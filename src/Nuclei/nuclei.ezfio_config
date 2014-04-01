@@ -1,0 +1,6 @@
+nuclei
+  nucl_num            integer
+  nucl_label          character*(32) (nuclei_nucl_num)
+  nucl_charge         double precision (nuclei_nucl_num)
+  nucl_coord          double precision (nuclei_nucl_num,3)
+

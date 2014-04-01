@@ -1,0 +1,39 @@
+ifndef SCI_ROOT
+$(error SCI_ROOT undefined. Run the setup_environment.sh script)
+endif
+
+
+IRP_VERSION_OK=$(shell $(IRPF90) -v | python -c "import sys ; print float(sys.stdin.readline().rsplit('.',1)[0]) >= 1.3")
+ifeq ($(IRP_VERSION_OK),False)
+$(error 'IRPF90 version >= 1.3 is required')
+endif
+
+
+MAKEFILE_OK=$(shell ls $(SCI_ROOT)/src/Makefile.config 2> /dev/null && echo True || echo False)
+ifeq ($(MAKEFILE_OK),False)
+$(error 'Makefile.config is not present. Please modify Makefile.config.example to create Makefile.config')
+endif
+
+
+EZFIO_DIR=$(SCI_ROOT)/EZFIO
+EZFIO=$(EZFIO_DIR)/lib/libezfio_irp.a
+
+$(EZFIO): $(wildcard $(SCI_ROOT)/src/*.ezfio_config) $(wildcard $(SCI_ROOT)/src/*/*.ezfio_config)
+	@echo Building EZFIO library
+	@cp $(wildcard $(SCI_ROOT)/src/*.ezfio_config) $(wildcard $(SCI_ROOT)/src/*/*.ezfio_config) $(EZFIO_DIR)/config 
+	@cd $(EZFIO_DIR) ; export FC="$(FC)" ; export FCFLAGS="$(FCFLAGS)" ; export IRPF90="$(IRPF90)" ; $(MAKE) ; $(MAKE) Python
+
+INCLUDE_DIRS+=include
+
+
+ifneq ($(PWD),$(SCI_ROOT)/src)
+$(shell $(SCI_ROOT)/scripts/prepare_module.sh $(INCLUDE_DIRS))
+clean_links:
+	rm $(INCLUDE_DIRS) $$(basename $$PWD)
+else
+clean_links:
+endif
+
+LIB+=$(EZFIO) $(MKL)
+IRPF90+=$(patsubst %, -I %, $(INCLUDE_DIRS)) 
+

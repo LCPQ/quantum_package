@@ -1,0 +1,10 @@
+ao_basis
+  ao_num             integer
+  ao_prim_num        integer       (ao_basis_ao_num)
+  ao_nucl            integer       (ao_basis_ao_num)
+  ao_power           integer       (ao_basis_ao_num,3)
+  ao_prim_num_max    integer       = maxval(ao_basis_ao_prim_num)
+  ao_coef            double precision (ao_basis_ao_num,ao_basis_ao_prim_num_max)
+  ao_expo            double precision (ao_basis_ao_num,ao_basis_ao_prim_num_max)
+
+
