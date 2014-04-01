@@ -1,4 +1,6 @@
-quantum_package
+Quantum package
 ===============
 
-Set of quantum chemistry programs and libraries
+Set of quantum chemistry programs and libraries.
+
+
