@@ -1,4 +1,8 @@
 #!/bin/bash
+# This script is used by the MOs module, and should not be used by users.
+# It copies the EZFIO/mo_basis directory in the save/EZFIO/mo_basis/xxx
+# directory, where xxx is the corresponding mo_label.
+# Wed Apr  2 14:35:15 CEST 2014
 
 EZFIO=$1
 
