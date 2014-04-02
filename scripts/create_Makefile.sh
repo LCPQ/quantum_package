@@ -11,7 +11,7 @@ DEPS_LONG=""
 for i in $@
 do
   DEPS_LONG+=" $i "
-  DEPS_LONG+=$(grep 'INCLUDE_DIRS' ${SCI_ROOT}/src/${i}/Makefile 2>/dev/null | cut -d '=' -f 2)
+  DEPS_LONG+=$(grep 'INCLUDE_DIRS' ${QPACKAGE_ROOT}/src/${i}/Makefile 2>/dev/null | cut -d '=' -f 2)
 done
 
 DEPS=($(
@@ -34,15 +34,15 @@ SRC=
 OBJ=
 
 include Makefile.depend
-include \$(SCI_ROOT)/src/Makefile.config
-include \$(SCI_ROOT)/src/Makefile.common
+include \$(QPACKAGE_ROOT)/src/Makefile.config
+include \$(QPACKAGE_ROOT)/src/Makefile.common
 include irpf90.make
 
 irpf90.make: \$(filter-out IRPF90_temp/%, \$(wildcard */*.irp.f)) \$(wildcard *.irp.f) \$(wildcard *.inc.f) Makefile \$(EZFIO)
 	\$(IRPF90)
 
 Makefile.depend: Makefile
-	\$(SCI_ROOT)/scripts/create_Makefile_depend.sh
+	\$(QPACKAGE_ROOT)/scripts/create_Makefile_depend.sh
 EOF
 
 

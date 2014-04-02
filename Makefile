@@ -23,5 +23,5 @@ doc:
 	$(MAKE) -C doc
 
 src: irpf90 EZFIO
-	export SCI_ROOT=$$PWD ; \
+	export QPACKAGE_ROOT=$$PWD ; \
 	$(MAKE) -C src

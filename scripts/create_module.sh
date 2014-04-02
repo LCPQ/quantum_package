@@ -23,6 +23,6 @@ mkdir ${MODULE}
 cd ${MODULE}
 
 # Create the Makefile
-${SCI_ROOT}/create_Makefile.sh
+${QPACKAGE_ROOT}/create_Makefile.sh
 
 

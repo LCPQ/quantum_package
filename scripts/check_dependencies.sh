@@ -32,7 +32,7 @@ fi
 
 for d in $COMMAND_LINE
 do
-  if [[ ! -d ${SCI_ROOT}/src/$d ]]
+  if [[ ! -d ${QPACKAGE_ROOT}/src/$d ]]
   then
     echo Error: Directory $d does not exist 
     exit 2
@@ -44,7 +44,7 @@ DEPS_LONG=""
 for i in $COMMAND_LINE
 do
   DEPS_LONG+=" $i "
-  DEPS_LONG+=$(grep -e '^INCLUDE_DIRS' ${SCI_ROOT}/src/${i}/Makefile 2>/dev/null | cut -d '=' -f 2)
+  DEPS_LONG+=$(grep -e '^INCLUDE_DIRS' ${QPACKAGE_ROOT}/src/${i}/Makefile 2>/dev/null | cut -d '=' -f 2)
 done
 
 DEPS=$(unique_list $DEPS_LONG)

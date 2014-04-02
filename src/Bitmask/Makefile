@@ -1,12 +1,12 @@
 default: all
 
 # Define here all other modules on which the current module depends
-INCLUDE_DIRS = Ezfio_files Nuclei Utils
+INCLUDE_DIRS = AOs Electrons Ezfio_files MOs Nuclei Utils
 
 # Define here all new external source files and objects.Don't forget to prefix the
 # object files with IRPF90_temp/
-SRC=
-OBJ=
+SRC=bitmasks_module.f90
+OBJ=IRPF90_temp/bitmasks_module.o
 
 include Makefile.depend
 include $(QPACKAGE_ROOT)/src/Makefile.config

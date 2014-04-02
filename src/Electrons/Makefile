@@ -1,7 +1,7 @@
 default: all
 
 # Define here all other modules on which the current module depends
-INCLUDE_DIRS = Ezfio_files Nuclei Utils
+INCLUDE_DIRS = Ezfio_files
 
 # Define here all new external source files and objects.Don't forget to prefix the
 # object files with IRPF90_temp/
