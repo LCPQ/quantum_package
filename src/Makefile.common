@@ -11,7 +11,7 @@ NEEDED_MODULES_OK=$(shell X=`$(QPACKAGE_ROOT)/scripts/check_dependencies.sh $(NE
 ifneq ($(NEEDED_MODULES_OK),OK)
   $(info ---------------------)
   $(info Your NEEDED_MODULES file is inconsistent. It should be:)
-  $(info $(NEEDED_MODULES))
+  $(info $(NEEDED_MODULES_OK))
   $(info ---------------------)
   $(error )
 endif
@@ -21,6 +21,8 @@ ifeq ($(IRP_VERSION_OK),False)
 $(error 'IRPF90 version >= 1.3 is required')
 endif
 
+README_RST_OK=$(shell ls README.rst || echo Failed)
+ASSUMPTIONS_RST_OK=$(shell ls ASSUMPTIONS.rst || echo Failed)
 
 MAKEFILE_OK=$(shell ls $(QPACKAGE_ROOT)/src/Makefile.config 2> /dev/null && echo True || echo False)
 ifeq ($(MAKEFILE_OK),False)

@@ -26,7 +26,7 @@ ReStructured Text format to enable the automatic generation of the Sphinx
 documentation.
 
 When the current module depends on other modules, the list of modules should
-be added in the Makefile in the ``INCLUDE_DIRS`` variable.
+be added in the ``NEEDED_MODULES`` file.
 
 
 Creating a new module
