@@ -103,3 +103,18 @@ should be always checked. For example, when creating a directory the existence
 of the directory has to be checked.
 
 
+Needed Modules
+==============
+
+.. Do not edit this section. It was auto-generated from the
+.. NEEDED_MODULES file.
+
+* AOs
+* Bitmask
+* Electrons
+* Ezfio_files
+* MOs
+* Nuclei
+* Output
+* Utils
+

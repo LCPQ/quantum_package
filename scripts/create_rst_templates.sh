@@ -43,19 +43,6 @@ $UNDERLINE
 $MODULE Module
 $UNDERLINE
 
-
-
-Assumptions
------------
-
-.. include:: ./ASSUMPTIONS.rst
-
-
-Needed Modules
---------------
-
-.. include:: ./NEEDED_MODULES
-
 EOF
 fi
 

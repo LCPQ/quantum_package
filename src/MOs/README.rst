@@ -2,16 +2,14 @@
 MOs Module
 ==========
 
-
-
-Assumptions
------------
-
-.. include:: ./ASSUMPTIONS.rst
-
-
 Needed Modules
---------------
+==============
 
-.. include:: ./NEEDED_MODULES
+.. Do not edit this section. It was auto-generated from the
+.. NEEDED_MODULES file.
+
+* AOs
+* Ezfio_files
+* Nuclei
+* Utils
 
