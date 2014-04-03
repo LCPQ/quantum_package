@@ -4,11 +4,11 @@ Programming guidelines
 
 Each module (directory) contains the following:
 
-* A :file:`readme.rst` file to document the current module.
-* An :file:`assumptions.rst` file. This file should document all the implicit
+* A :file:`README.rst` file to document the current module.
+* An :file:`ASSUMPTIONS.rst` file. This file should document all the implicit
   assumptions used in the module. For example, if the atomic orbitals are
   assumed to be normalized, this should be mentioned in the
-  :file:`AOs/assumptions.rst` file.
+  :file:`AOs/ASSUMPTIONS.rst` file.
 * A set of :file:`.irp.f` files containing provider, subroutines and functions
 * A :file:`tests` directory that should contain the test programs of the module
   (see testing section)
