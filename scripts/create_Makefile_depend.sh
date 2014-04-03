@@ -8,7 +8,7 @@
 
 SRC=""
 OBJ=""
-DEPS=$(grep "INCLUDE_DIRS" Makefile 2>/dev/null | cut -d '=' -f 2) 
+DEPS=$(cat NEEDED_MODULES)
 
 for M in ${DEPS}
 do

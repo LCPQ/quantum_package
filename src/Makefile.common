@@ -2,11 +2,11 @@ ifndef QPACKAGE_ROOT
 $(error QPACKAGE_ROOT undefined. Run the setup_environment.sh script)
 endif
 
-INCLUDE_DIRS_OK=$(shell X=`$(QPACKAGE_ROOT)/scripts/check_dependencies.sh $(INCLUDE_DIRS)` && echo OK || echo $$X)
-ifneq ($(INCLUDE_DIRS_OK),OK)
+NEEDED_MODULES_OK=$(shell X=`$(QPACKAGE_ROOT)/scripts/check_dependencies.sh $(NEEDED_MODULES)` && echo OK || echo $$X)
+ifneq ($(NEEDED_MODULES_OK),OK)
   $(info ---------------------)
-  $(info Your INCLUDE_DIRS variable is inconsistent. It should be:)
-  $(info INCLUDE_DIRS = $(INCLUDE_DIRS_OK))
+  $(info Your NEEDED_MODULES file is inconsistent. It should be:)
+  $(info $(NEEDED_MODULES))
   $(info ---------------------)
   $(error )
 endif
@@ -31,13 +31,13 @@ $(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_
 	@cp $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(EZFIO_DIR)/config 
 	@cd $(EZFIO_DIR) ; export FC="$(FC)" ; export FCFLAGS="$(FCFLAGS)" ; export IRPF90="$(IRPF90)" ; $(MAKE) ; $(MAKE) Python
 
-INCLUDE_DIRS+=include
+INCLUDE_DIRS=$(NEEDED_MODULES) include
 
 
 ifneq ($(PWD),$(QPACKAGE_ROOT)/src)
 $(shell $(QPACKAGE_ROOT)/scripts/prepare_module.sh $(INCLUDE_DIRS))
 clean_links:
-	rm $(INCLUDE_DIRS) $$(basename $$PWD)
+	rm -f $(INCLUDE_DIRS) $$(basename $$PWD)
 else
 clean_links:
 endif

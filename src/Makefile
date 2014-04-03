@@ -1,23 +1,29 @@
 default: all
-INCLUDE_DIRS = Ezfio_files Nuclei Utils AOs Electrons MonoInts BiInts MOs Output Bitmask
+NEEDED_MODULES=$(shell cat NEEDED_MODULES)
 
-include Makefile.common
-include Makefile.config
+SRC=
+OBJ=
 
-LIB+=$(MKL) 
-
-SRC=BiInts/map_module.f90 Bitmask/bitmasks_module.f90
-OBJ=IRPF90_temp/BiInts/map_module.o IRPF90_temp/Bitmask/bitmasks_module.o
-PYTHON_SCRIPTS=
-
+include Makefile.depend
+include $(QPACKAGE_ROOT)/src/Makefile.config
+include $(QPACKAGE_ROOT)/src/Makefile.common
 include irpf90.make
-all:$(ALL) $(PYTHON_SCRIPTS) 
 
-irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile $(EZFIO)
+all:$(ALL)
+
+irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile $(EZFIO) NEEDED_MODULES
 	$(IRPF90)
 
-all_clean:
-	for i in */ ; do unset INCLUDE_DIRS ; $(MAKE) -C $$i veryclean && $(MAKE) -C $$i clean_links ; done
+Makefile.depend: Makefile NEEDED_MODULES
+	$(QPACKAGE_ROOT)/scripts/create_Makefile_depend.sh
 
-all_modules:
-	for i in */ ; do unset INCLUDE_DIRS ; $(MAKE) -C $$i || exit 1 ; done
+all_clean:
+	@for i in $(NEEDED_MODULES) ; do cd $$i ; make veryclean ; make clean_links ; cd .. ; done
+
+all_modules: $(NEEDED_MODULES)
+
+FORCE:
+
+$(NEEDED_MODULES): FORCE
+	@cd $@ ; unset NEEDED_MODULES INCLUDE_DIRS ; make 
+

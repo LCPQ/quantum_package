@@ -6,4 +6,4 @@ Makefile.config
 *tags
 *.o
 *.mod
-*/Makefile.depend
+*Makefile.depend

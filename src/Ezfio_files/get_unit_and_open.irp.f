@@ -1,5 +1,20 @@
 integer function getUnitAndOpen(f,mode)
   implicit none
+
+  BEGIN_DOC
+!  :f:
+!     file name
+!
+!  :mode:
+!     'R' : READ, UNFORMATTED
+!     'W' : WRITE, UNFORMATTED
+!     'r' : READ, FORMATTED
+!     'w' : WRITE, FORMATTED
+!     'a' : APPEND, FORMATTED
+!     'x' : READ/WRITE, FORMATTED
+!
+  END_DOC
+
   character*(*)      :: f
   character*(128)    :: new_f
   integer            :: iunit
