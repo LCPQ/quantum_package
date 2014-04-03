@@ -13,19 +13,19 @@ fi
 
 function asksure() {
   echo -n $@ "(Y/N) "
-  while read -r -n 1 -s answer; do
-    if [[ $answer = [YyNn] ]]; then
-    [[ $answer = [Yy] ]] && retval=0
-    [[ $answer = [Nn] ]] && retval=1
-      break
-    fi
+  answer=w
+  while [[ $answer != [YyNn] ]]
+  do
+     read answer
+     [[ $answer = [Yy] ]] && retval=0 || retval=1
   done
   return $retval
 }
 
+README="True"
 if [[ -f README.rst ]]
 then
-  asksure "Overwrite existing README.rst file?" || exit 1
+  asksure "Overwrite existing README.rst file?" || README="False"
 fi
 
 UNDERLINE="======="
@@ -36,7 +36,9 @@ do
   i+=1
 done
 
-cat << EOF > README.rst
+if [[ ${README} == "True" ]]
+then
+cat << EOF > ./README.rst
 $UNDERLINE
 $MODULE Module
 $UNDERLINE
@@ -55,4 +57,7 @@ Needed Modules
 .. include:: ./NEEDED_MODULES
 
 EOF
+fi
+
+touch ./ASSUMPTIONS.rst
 

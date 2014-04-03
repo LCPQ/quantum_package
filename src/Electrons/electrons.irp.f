@@ -5,7 +5,7 @@
 
  implicit none
  BEGIN_DOC
-!  Numbers of alpha ("up") , beta ("down) and total electrons
+!  Numbers of alpha ("up") , beta ("down") and total electrons
  END_DOC
  PROVIDE ezfio_filename
  call ezfio_get_electrons_elec_alpha_num(elec_alpha_num)
