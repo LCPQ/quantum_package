@@ -59,6 +59,7 @@ EOF
 ))
 cd $OLDPWD
 
+rm -f ${EZFIO_FILE}.md5
 for FILE in ${FILES[@]}
 do
   FILE=${EZFIO_FILE}/${FILE}

@@ -2,5 +2,8 @@ all: $(wildcard *.ezfio)
 
 FORCE:
 
+%.ezfio.md5: FORCE
+	archive_ezfio.sh $*.ezfio
+
 %.ezfio: FORCE
-	archive_ezfio.sh $*
+	unarchive_ezfio.sh $@.md5
