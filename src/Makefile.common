@@ -1,6 +1,11 @@
+include $(QPACKAGE_ROOT)/src/Makefile.config
 ifndef QPACKAGE_ROOT
 $(error QPACKAGE_ROOT undefined. Run the setup_environment.sh script)
 endif
+
+NEEDED_MODULES=$(shell cat NEEDED_MODULES)
+
+include Makefile.depend
 
 NEEDED_MODULES_OK=$(shell X=`$(QPACKAGE_ROOT)/scripts/check_dependencies.sh $(NEEDED_MODULES)` && echo OK || echo $$X)
 ifneq ($(NEEDED_MODULES_OK),OK)
@@ -44,4 +49,14 @@ endif
 
 LIB+=$(EZFIO) $(MKL)
 IRPF90+=$(patsubst %, -I %, $(INCLUDE_DIRS)) 
+
+irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile $(EZFIO) NEEDED_MODULES
+	$(IRPF90)
+
+Makefile.depend: Makefile
+	$(QPACKAGE_ROOT)/scripts/create_Makefile_depend.sh
+
+include irpf90.make
+
+FORCE:
 
