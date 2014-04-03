@@ -9,6 +9,7 @@ README="README.rst"
 Assum_key="Assumptions\n===========\n"
 Needed_key="Needed Modules\n==============\n"
 Sentinel="@@$%&@@"
+URL="http://github.com/LCPQ/quantum_package/tree/master/src/"
 
 
 def fetch_splitted_data():
@@ -66,7 +67,8 @@ def update_assumptions(data):
 
 
 def update_needed(data):
-    """Read the NEEDED_MODULES file, and replace the data with it."""
+    """Read the NEEDED_MODULES file, and replace the data with it.
+    Create the links to the GitHub pages."""
 
     file = open('NEEDED_MODULES','r')
     modules = file.read()
@@ -78,7 +80,8 @@ def update_needed(data):
 
 """
     if modules.strip() != "":
-        modules = "\n".join(map(lambda x: '* %s'%(x), modules.split()))
+        modules = [ '* `%s <%s%s>`_'%(x,URL,x) for x in  modules.split() ]
+        modules = "\n".join(modules)
         modules = Needed_key + header + modules + '\n\n'
 
     has_modules = False
