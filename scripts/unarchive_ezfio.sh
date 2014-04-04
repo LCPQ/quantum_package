@@ -24,8 +24,8 @@ then
   exit 1
 fi
 
-key=($(cut -d ' ' -f 1 Ne_dz.ezfio.md5 ))
-filename=($(cut -d ' ' -f 2 Ne_dz.ezfio.md5 ))
+key=($(cut -d ' ' -f 1 ${EZFIO_FILE}.md5))
+filename=($(cut -d ' ' -f 2 ${EZFIO_FILE}.md5))
 
 for i in ${!key[@]}
 do
