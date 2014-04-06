@@ -2,7 +2,7 @@
 # 
 # usage:
 #  create_Makefile.sh MOs AOs Electrons
-# Creates the Makefile . This command is supposed to be run in a 
+# Creates the Makefile. This command is supposed to be run in a 
 # module directory.
 # Thu Apr  3 01:44:41 CEST 2014
 
