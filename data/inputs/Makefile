@@ -1,7 +1,7 @@
-all_ezfio: $(shell for i in *.md5 ; do echo $${i/md5/ezfio} ; done)
+all_ezfio: $(shell ls *.md5 | sed 's/\.md5/\.ezfio/')
 	@printf '\nCreated EZFIO directories\n'
 
-all_md5: $(shell for i in *.ezfio ; do echo $${i/ezfio/md5} ; done)
+all_md5: $(shell ls -d *.ezfio | sed 's/\.ezfio/\.md5/')
 	@printf '\nCreated md5 files\n'
 
 FORCE:
