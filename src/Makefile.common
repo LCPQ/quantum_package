@@ -123,7 +123,9 @@ Makefile.depend: Makefile
 
 include irpf90.make
 
-# Dummy rule to enable to force recompilation
+test:
+	make -j 1 -C tests
 
+# Dummy rule to enable to force recompilation
 FORCE:
 

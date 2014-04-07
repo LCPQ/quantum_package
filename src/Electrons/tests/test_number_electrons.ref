@@ -1,0 +1,1057 @@
+data = {
+  'AlCl.ezfio' : {
+  'elec_alpha_num' : 15,
+ 'elec_beta_num' : 15,
+ 'elec_num' : 30,
+ },
+ 'Al.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 13,
+ },
+ 'Al+.ezfio' : {
+  'elec_alpha_num' : 6,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 12,
+ },
+ 'AlH2.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 15,
+ },
+ 'AlH3.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 16,
+ },
+ 'AlH.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 14,
+ },
+ 'BCl.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 22,
+ },
+ 'BeCl.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 10,
+ 'elec_num' : 21,
+ },
+ 'Be.ezfio' : {
+  'elec_alpha_num' : 2,
+ 'elec_beta_num' : 2,
+ 'elec_num' : 4,
+ },
+ 'Be+.ezfio' : {
+  'elec_alpha_num' : 2,
+ 'elec_beta_num' : 1,
+ 'elec_num' : 3,
+ },
+ 'BeF.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 13,
+ },
+ 'BeH2.ezfio' : {
+  'elec_alpha_num' : 3,
+ 'elec_beta_num' : 3,
+ 'elec_num' : 6,
+ },
+ 'BeH.ezfio' : {
+  'elec_alpha_num' : 3,
+ 'elec_beta_num' : 2,
+ 'elec_num' : 5,
+ },
+ 'BeO.ezfio' : {
+  'elec_alpha_num' : 6,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 12,
+ },
+ 'BeOH.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 13,
+ },
+ 'BeS.ezfio' : {
+  'elec_alpha_num' : 10,
+ 'elec_beta_num' : 10,
+ 'elec_num' : 20,
+ },
+ 'B.ezfio' : {
+  'elec_alpha_num' : 3,
+ 'elec_beta_num' : 2,
+ 'elec_num' : 5,
+ },
+ 'B+.ezfio' : {
+  'elec_alpha_num' : 2,
+ 'elec_beta_num' : 2,
+ 'elec_num' : 4,
+ },
+ 'BH2.ezfio' : {
+  'elec_alpha_num' : 4,
+ 'elec_beta_num' : 3,
+ 'elec_num' : 7,
+ },
+ 'BH3.ezfio' : {
+  'elec_alpha_num' : 4,
+ 'elec_beta_num' : 4,
+ 'elec_num' : 8,
+ },
+ 'BH.ezfio' : {
+  'elec_alpha_num' : 3,
+ 'elec_beta_num' : 3,
+ 'elec_num' : 6,
+ },
+ 'BO.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 13,
+ },
+ 'BS.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 10,
+ 'elec_num' : 21,
+ },
+ 'C2.ezfio' : {
+  'elec_alpha_num' : 6,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 12,
+ },
+ 'C2H2.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 14,
+ },
+ 'C2H2+.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 13,
+ },
+ 'C2H3.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 15,
+ },
+ 'C2H3+.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 14,
+ },
+ 'C2H4.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 16,
+ },
+ 'C2H4+.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 15,
+ },
+ 'C2H5.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 17,
+ },
+ 'C2H6.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'C2H.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 13,
+ },
+ 'CCl.ezfio' : {
+  'elec_alpha_num' : 12,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 23,
+ },
+ 'C-.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 2,
+ 'elec_num' : 7,
+ },
+ 'C.ezfio' : {
+  'elec_alpha_num' : 4,
+ 'elec_beta_num' : 2,
+ 'elec_num' : 6,
+ },
+ 'C+.ezfio' : {
+  'elec_alpha_num' : 3,
+ 'elec_beta_num' : 2,
+ 'elec_num' : 5,
+ },
+ 'CF.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 15,
+ },
+ 'CH2_1A1.ezfio' : {
+  'elec_alpha_num' : 4,
+ 'elec_beta_num' : 4,
+ 'elec_num' : 8,
+ },
+ 'CH2_3B1.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 3,
+ 'elec_num' : 8,
+ },
+ 'CH2-.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 4,
+ 'elec_num' : 9,
+ },
+ 'CH3-.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 5,
+ 'elec_num' : 10,
+ },
+ 'CH3.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 4,
+ 'elec_num' : 9,
+ },
+ 'CH4.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 5,
+ 'elec_num' : 10,
+ },
+ 'CH4+.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 4,
+ 'elec_num' : 9,
+ },
+ 'CH-.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 3,
+ 'elec_num' : 8,
+ },
+ 'CH.ezfio' : {
+  'elec_alpha_num' : 4,
+ 'elec_beta_num' : 3,
+ 'elec_num' : 7,
+ },
+ 'Cl2-.ezfio' : {
+  'elec_alpha_num' : 18,
+ 'elec_beta_num' : 17,
+ 'elec_num' : 35,
+ },
+ 'Cl2.ezfio' : {
+  'elec_alpha_num' : 17,
+ 'elec_beta_num' : 17,
+ 'elec_num' : 34,
+ },
+ 'Cl2+.ezfio' : {
+  'elec_alpha_num' : 17,
+ 'elec_beta_num' : 16,
+ 'elec_num' : 33,
+ },
+ 'Cl-.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'Cl.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 17,
+ },
+ 'Cl+.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 16,
+ },
+ 'ClH2+.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'ClH.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'ClH+.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 17,
+ },
+ 'ClS.ezfio' : {
+  'elec_alpha_num' : 17,
+ 'elec_beta_num' : 16,
+ 'elec_num' : 33,
+ },
+ 'ClSiH3.ezfio' : {
+  'elec_alpha_num' : 17,
+ 'elec_beta_num' : 17,
+ 'elec_num' : 34,
+ },
+ 'CN-.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 14,
+ },
+ 'CN.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 13,
+ },
+ 'CO2.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 22,
+ },
+ 'CO.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 14,
+ },
+ 'CO+.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 13,
+ },
+ 'COS.ezfio' : {
+  'elec_alpha_num' : 15,
+ 'elec_beta_num' : 15,
+ 'elec_num' : 30,
+ },
+ 'CP.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 10,
+ 'elec_num' : 21,
+ },
+ 'CS2.ezfio' : {
+  'elec_alpha_num' : 19,
+ 'elec_beta_num' : 19,
+ 'elec_num' : 38,
+ },
+ 'CS.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 22,
+ },
+ 'CS+.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 10,
+ 'elec_num' : 21,
+ },
+ 'CSi.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 20,
+ },
+ 'F2.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'FAl.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 22,
+ },
+ 'FCl.ezfio' : {
+  'elec_alpha_num' : 13,
+ 'elec_beta_num' : 13,
+ 'elec_num' : 26,
+ },
+ 'FCl+.ezfio' : {
+  'elec_alpha_num' : 13,
+ 'elec_beta_num' : 12,
+ 'elec_num' : 25,
+ },
+ 'F-.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 5,
+ 'elec_num' : 10,
+ },
+ 'F.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 4,
+ 'elec_num' : 9,
+ },
+ 'F+.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 3,
+ 'elec_num' : 8,
+ },
+ 'FH.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 5,
+ 'elec_num' : 10,
+ },
+ 'FH+.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 4,
+ 'elec_num' : 9,
+ },
+ 'FMg.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 10,
+ 'elec_num' : 21,
+ },
+ 'FNa.ezfio' : {
+  'elec_alpha_num' : 10,
+ 'elec_beta_num' : 10,
+ 'elec_num' : 20,
+ },
+ 'FP.ezfio' : {
+  'elec_alpha_num' : 13,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 24,
+ },
+ 'FS.ezfio' : {
+  'elec_alpha_num' : 13,
+ 'elec_beta_num' : 12,
+ 'elec_num' : 25,
+ },
+ 'FSi.ezfio' : {
+  'elec_alpha_num' : 12,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 23,
+ },
+ 'FSiH3.ezfio' : {
+  'elec_alpha_num' : 13,
+ 'elec_beta_num' : 13,
+ 'elec_num' : 26,
+ },
+ 'H2CNH.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 16,
+ },
+ 'H2CO.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 16,
+ },
+ 'H2CPH.ezfio' : {
+  'elec_alpha_num' : 12,
+ 'elec_beta_num' : 12,
+ 'elec_num' : 24,
+ },
+ 'H2CS.ezfio' : {
+  'elec_alpha_num' : 12,
+ 'elec_beta_num' : 12,
+ 'elec_num' : 24,
+ },
+ 'H2.ezfio' : {
+  'elec_alpha_num' : 1,
+ 'elec_beta_num' : 1,
+ 'elec_num' : 2,
+ },
+ 'H2NNH2.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'H2PPH2.ezfio' : {
+  'elec_alpha_num' : 17,
+ 'elec_beta_num' : 17,
+ 'elec_num' : 34,
+ },
+ 'H3CCl.ezfio' : {
+  'elec_alpha_num' : 13,
+ 'elec_beta_num' : 13,
+ 'elec_num' : 26,
+ },
+ 'H3CF.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'H3CNH2.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'H3COH.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'H3CSH.ezfio' : {
+  'elec_alpha_num' : 13,
+ 'elec_beta_num' : 13,
+ 'elec_num' : 26,
+ },
+ 'H3SiSiH3.ezfio' : {
+  'elec_alpha_num' : 17,
+ 'elec_beta_num' : 17,
+ 'elec_num' : 34,
+ },
+ 'HBO.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 14,
+ },
+ 'HBS.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 22,
+ },
+ 'HCF.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 16,
+ },
+ 'HCN.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 14,
+ },
+ 'HCO.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 15,
+ },
+ 'HCP.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 22,
+ },
+ 'H.ezfio' : {
+  'elec_alpha_num' : 1,
+ 'elec_beta_num' : 0,
+ 'elec_num' : 1,
+ },
+ 'HNO.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 16,
+ },
+ 'HOCl.ezfio' : {
+  'elec_alpha_num' : 13,
+ 'elec_beta_num' : 13,
+ 'elec_num' : 26,
+ },
+ 'HOF.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'HOMg.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 10,
+ 'elec_num' : 21,
+ },
+ 'HONa.ezfio' : {
+  'elec_alpha_num' : 10,
+ 'elec_beta_num' : 10,
+ 'elec_num' : 20,
+ },
+ 'HOO.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 17,
+ },
+ 'HOOH.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'HSSH.ezfio' : {
+  'elec_alpha_num' : 17,
+ 'elec_beta_num' : 17,
+ 'elec_num' : 34,
+ },
+ 'Li2.ezfio' : {
+  'elec_alpha_num' : 3,
+ 'elec_beta_num' : 3,
+ 'elec_num' : 6,
+ },
+ 'LiCl.ezfio' : {
+  'elec_alpha_num' : 10,
+ 'elec_beta_num' : 10,
+ 'elec_num' : 20,
+ },
+ 'Li.ezfio' : {
+  'elec_alpha_num' : 2,
+ 'elec_beta_num' : 1,
+ 'elec_num' : 3,
+ },
+ 'Li+.ezfio' : {
+  'elec_alpha_num' : 1,
+ 'elec_beta_num' : 1,
+ 'elec_num' : 2,
+ },
+ 'LiF.ezfio' : {
+  'elec_alpha_num' : 6,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 12,
+ },
+ 'LiH.ezfio' : {
+  'elec_alpha_num' : 2,
+ 'elec_beta_num' : 2,
+ 'elec_num' : 4,
+ },
+ 'LiN.ezfio' : {
+  'elec_alpha_num' : 6,
+ 'elec_beta_num' : 4,
+ 'elec_num' : 10,
+ },
+ 'LiO.ezfio' : {
+  'elec_alpha_num' : 6,
+ 'elec_beta_num' : 5,
+ 'elec_num' : 11,
+ },
+ 'LiOH.ezfio' : {
+  'elec_alpha_num' : 6,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 12,
+ },
+ 'MgCl.ezfio' : {
+  'elec_alpha_num' : 15,
+ 'elec_beta_num' : 14,
+ 'elec_num' : 29,
+ },
+ 'Mg.ezfio' : {
+  'elec_alpha_num' : 6,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 12,
+ },
+ 'Mg+.ezfio' : {
+  'elec_alpha_num' : 6,
+ 'elec_beta_num' : 5,
+ 'elec_num' : 11,
+ },
+ 'MgH.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 13,
+ },
+ 'MgS.ezfio' : {
+  'elec_alpha_num' : 14,
+ 'elec_beta_num' : 14,
+ 'elec_num' : 28,
+ },
+ 'N2.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 14,
+ },
+ 'N2+.ezfio' : {
+  'elec_alpha_num' : 7,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 13,
+ },
+ 'Na2.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 22,
+ },
+ 'NaCl.ezfio' : {
+  'elec_alpha_num' : 14,
+ 'elec_beta_num' : 14,
+ 'elec_num' : 28,
+ },
+ 'Na.ezfio' : {
+  'elec_alpha_num' : 6,
+ 'elec_beta_num' : 5,
+ 'elec_num' : 11,
+ },
+ 'Na+.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 5,
+ 'elec_num' : 10,
+ },
+ 'NaH.ezfio' : {
+  'elec_alpha_num' : 6,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 12,
+ },
+ 'N.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 2,
+ 'elec_num' : 7,
+ },
+ 'N+.ezfio' : {
+  'elec_alpha_num' : 4,
+ 'elec_beta_num' : 2,
+ 'elec_num' : 6,
+ },
+ 'NF.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 16,
+ },
+ 'NH2-.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 5,
+ 'elec_num' : 10,
+ },
+ 'NH2.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 4,
+ 'elec_num' : 9,
+ },
+ 'NH3.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 5,
+ 'elec_num' : 10,
+ },
+ 'NH3+.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 4,
+ 'elec_num' : 9,
+ },
+ 'NH4+.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 5,
+ 'elec_num' : 10,
+ },
+ 'NH-.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 4,
+ 'elec_num' : 9,
+ },
+ 'NH.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 3,
+ 'elec_num' : 8,
+ },
+ 'NO-.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 16,
+ },
+ 'NO.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 15,
+ },
+ 'NP.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 22,
+ },
+ 'NS.ezfio' : {
+  'elec_alpha_num' : 12,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 23,
+ },
+ 'NSi.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 10,
+ 'elec_num' : 21,
+ },
+ 'O2Cl.ezfio' : {
+  'elec_alpha_num' : 17,
+ 'elec_beta_num' : 16,
+ 'elec_num' : 33,
+ },
+ 'O2-.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 17,
+ },
+ 'O2.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 16,
+ },
+ 'O2+.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 15,
+ },
+ 'O2S.ezfio' : {
+  'elec_alpha_num' : 16,
+ 'elec_beta_num' : 16,
+ 'elec_num' : 32,
+ },
+ 'O2Si.ezfio' : {
+  'elec_alpha_num' : 15,
+ 'elec_beta_num' : 15,
+ 'elec_num' : 30,
+ },
+ 'O3.ezfio' : {
+  'elec_alpha_num' : 12,
+ 'elec_beta_num' : 12,
+ 'elec_num' : 24,
+ },
+ 'OCl.ezfio' : {
+  'elec_alpha_num' : 13,
+ 'elec_beta_num' : 12,
+ 'elec_num' : 25,
+ },
+ 'O-.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 4,
+ 'elec_num' : 9,
+ },
+ 'O.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 3,
+ 'elec_num' : 8,
+ },
+ 'O+.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 2,
+ 'elec_num' : 7,
+ },
+ 'OH2.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 5,
+ 'elec_num' : 10,
+ },
+ 'OH2+.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 4,
+ 'elec_num' : 9,
+ },
+ 'OH3+.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 5,
+ 'elec_num' : 10,
+ },
+ 'OH-.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 5,
+ 'elec_num' : 10,
+ },
+ 'OH.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 4,
+ 'elec_num' : 9,
+ },
+ 'OH+.ezfio' : {
+  'elec_alpha_num' : 5,
+ 'elec_beta_num' : 3,
+ 'elec_num' : 8,
+ },
+ 'OMg.ezfio' : {
+  'elec_alpha_num' : 10,
+ 'elec_beta_num' : 10,
+ 'elec_num' : 20,
+ },
+ 'ONa.ezfio' : {
+  'elec_alpha_num' : 10,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 19,
+ },
+ 'OP-.ezfio' : {
+  'elec_alpha_num' : 13,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 24,
+ },
+ 'OP.ezfio' : {
+  'elec_alpha_num' : 12,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 23,
+ },
+ 'OPH.ezfio' : {
+  'elec_alpha_num' : 12,
+ 'elec_beta_num' : 12,
+ 'elec_num' : 24,
+ },
+ 'OS.ezfio' : {
+  'elec_alpha_num' : 13,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 24,
+ },
+ 'OSi.ezfio' : {
+  'elec_alpha_num' : 11,
+ 'elec_beta_num' : 11,
+ 'elec_num' : 22,
+ },
+ 'P2.ezfio' : {
+  'elec_alpha_num' : 15,
+ 'elec_beta_num' : 15,
+ 'elec_num' : 30,
+ },
+ 'P2+.ezfio' : {
+  'elec_alpha_num' : 15,
+ 'elec_beta_num' : 14,
+ 'elec_num' : 29,
+ },
+ 'PCl.ezfio' : {
+  'elec_alpha_num' : 17,
+ 'elec_beta_num' : 15,
+ 'elec_num' : 32,
+ },
+ 'P-.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 16,
+ },
+ 'P.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 15,
+ },
+ 'PH2-.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'PH2.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 17,
+ },
+ 'PH2+.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 16,
+ },
+ 'PH3.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'PH3+.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 17,
+ },
+ 'PH4+.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'PH-.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 17,
+ },
+ 'PH.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 16,
+ },
+ 'PS.ezfio' : {
+  'elec_alpha_num' : 16,
+ 'elec_beta_num' : 15,
+ 'elec_num' : 31,
+ },
+ 'S2-.ezfio' : {
+  'elec_alpha_num' : 17,
+ 'elec_beta_num' : 16,
+ 'elec_num' : 33,
+ },
+ 'S2.ezfio' : {
+  'elec_alpha_num' : 17,
+ 'elec_beta_num' : 15,
+ 'elec_num' : 32,
+ },
+ 'S-.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 17,
+ },
+ 'S.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 16,
+ },
+ 'S+.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 15,
+ },
+ 'SH2.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'SH2+.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 17,
+ },
+ 'SH3+.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'SH-.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'SH.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 17,
+ },
+ 'SH+.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 16,
+ },
+ 'Si2.ezfio' : {
+  'elec_alpha_num' : 15,
+ 'elec_beta_num' : 13,
+ 'elec_num' : 28,
+ },
+ 'SiCl.ezfio' : {
+  'elec_alpha_num' : 16,
+ 'elec_beta_num' : 15,
+ 'elec_num' : 31,
+ },
+ 'Si-.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 15,
+ },
+ 'Si.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 6,
+ 'elec_num' : 14,
+ },
+ 'SiH2_1A1.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 16,
+ },
+ 'SiH2_3B1.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 16,
+ },
+ 'SiH2-.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 17,
+ },
+ 'SiH3-.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'SiH3.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 17,
+ },
+ 'SiH4.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 9,
+ 'elec_num' : 18,
+ },
+ 'SiH4+.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 8,
+ 'elec_num' : 17,
+ },
+ 'SiH-.ezfio' : {
+  'elec_alpha_num' : 9,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 16,
+ },
+ 'SiH.ezfio' : {
+  'elec_alpha_num' : 8,
+ 'elec_beta_num' : 7,
+ 'elec_num' : 15,
+ },
+ 'SiS.ezfio' : {
+  'elec_alpha_num' : 15,
+ 'elec_beta_num' : 15,
+ 'elec_num' : 30,
+ },
+}
