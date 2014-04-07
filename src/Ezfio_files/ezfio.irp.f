@@ -1,15 +1,33 @@
 BEGIN_PROVIDER [ character*(128), ezfio_filename ]
   implicit none
   BEGIN_DOC
-! Name of EZFIO file
+  ! Name of EZFIO file. It is obtained from the QPACKAGE_INPUT environment
+  ! variable if it is set, or as the 1st argument of the command line.
   END_DOC
-  integer :: iargc
-  call getarg(0,ezfio_filename)
-  if (iargc() /= 1) then
-    print *, ezfio_filename, ' <ezfio_file>'
+  
+  ! Get the QPACKAGE_INPUT environment variable
+  call getenv('QPACKAGE_INPUT',ezfio_filename)
+  if (ezfio_filename == '') then
+    ! Get from the command line
+    integer                        :: iargc
+    call getarg(0,ezfio_filename)
+    if (iargc() /= 1) then
+      print *, 'Missing EZFIO file name in the command line:'
+      print *, trim(ezfio_filename)//' <ezfio_file>'
+      stop 1
+    endif
+    call getarg(1,ezfio_filename)
+  endif
+
+  ! Check that file exists
+  logical :: exists
+  inquire(file=trim(ezfio_filename)//'/ezfio/.version',exist=exists)
+  if (.not.exists) then
+    print *, 'Error: file '//trim(ezfio_filename)//' does not exist'
     stop 1
   endif
-  call getarg(1,ezfio_filename)
+
   call ezfio_set_file(ezfio_filename)
+
 END_PROVIDER
- 
+

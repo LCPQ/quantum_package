@@ -24,7 +24,7 @@ fi
 
 if [[ -z ${MAKE} ]]
 then
-  MAKE="make -j 4"
+  MAKE="make -j 32"
 fi
 
 echo "Unarchiving EZFIO input directories"
