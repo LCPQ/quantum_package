@@ -1,10 +1,15 @@
-all_ezfio: $(shell for i in *.out.ezfio.md5 ; do echo $$(basename $$i .md5) ; done)
-all_md5: $(shell for i in *.out.ezfio ; do echo $$i.md5 ; done)
+all_ezfio: $(shell for i in *.md5 ; do echo $${i/md5/ezfio} ; done)
+	@printf '\nCreated EZFIO directories\n'
+
+all_md5: $(shell for i in *.ezfio ; do echo $${i/ezfio/md5} ; done)
+	@printf '\nCreated md5 files\n'
 
 FORCE:
 
-%.ezfio.md5: FORCE
-	archive_ezfio.sh $(basename $@ .md5)
+%.md5: FORCE
+	@archive_ezfio.sh $*.ezfio
+	@printf '.'
 
 %.ezfio: FORCE
-	unarchive_ezfio.sh $@.md5
+	@unarchive_ezfio.sh $*.md5
+	@printf '.'

@@ -59,7 +59,8 @@ EOF
 ))
 cd $OLDPWD
 
-rm -f ${EZFIO_FILE}.md5
+MD5_FILE=$(basename ${EZFIO_FILE} .ezfio).md5
+rm -f ${MD5_FILE}
 for FILE in ${FILES[@]}
 do
   FILE=${EZFIO_FILE}/${FILE}
@@ -68,10 +69,10 @@ do
   then
     if ! archive $FILE $MD5
     then
-      rm ${EZFIO_FILE}.md5
+      rm ${MD5_FILE}
       exit 1
     fi
-    echo $MD5 $FILE >> ${EZFIO_FILE}.md5
+    echo $MD5 $FILE >> ${MD5_FILE}
   fi
 done
 
