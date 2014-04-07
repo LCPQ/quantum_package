@@ -1,635 +1,635 @@
 data = {
   'AlCl.ezfio' : {
-  "AlCl.ezfio"
+  'f' : "AlCl.ezfio",
  },
  'Al.ezfio' : {
-  "Al.ezfio"
+  'f' : "Al.ezfio",
  },
  'Al+.ezfio' : {
-  "Al+.ezfio"
+  'f' : "Al+.ezfio",
  },
  'AlH2.ezfio' : {
-  "AlH2.ezfio"
+  'f' : "AlH2.ezfio",
  },
  'AlH3.ezfio' : {
-  "AlH3.ezfio"
+  'f' : "AlH3.ezfio",
  },
  'AlH.ezfio' : {
-  "AlH.ezfio"
+  'f' : "AlH.ezfio",
  },
  'BCl.ezfio' : {
-  "BCl.ezfio"
+  'f' : "BCl.ezfio",
  },
  'BeCl.ezfio' : {
-  "BeCl.ezfio"
+  'f' : "BeCl.ezfio",
  },
  'Be.ezfio' : {
-  "Be.ezfio"
+  'f' : "Be.ezfio",
  },
  'Be+.ezfio' : {
-  "Be+.ezfio"
+  'f' : "Be+.ezfio",
  },
  'BeF.ezfio' : {
-  "BeF.ezfio"
+  'f' : "BeF.ezfio",
  },
  'BeH2.ezfio' : {
-  "BeH2.ezfio"
+  'f' : "BeH2.ezfio",
  },
  'BeH.ezfio' : {
-  "BeH.ezfio"
+  'f' : "BeH.ezfio",
  },
  'BeO.ezfio' : {
-  "BeO.ezfio"
+  'f' : "BeO.ezfio",
  },
  'BeOH.ezfio' : {
-  "BeOH.ezfio"
+  'f' : "BeOH.ezfio",
  },
  'BeS.ezfio' : {
-  "BeS.ezfio"
+  'f' : "BeS.ezfio",
  },
  'B.ezfio' : {
-  "B.ezfio"
+  'f' : "B.ezfio",
  },
  'B+.ezfio' : {
-  "B+.ezfio"
+  'f' : "B+.ezfio",
  },
  'BH2.ezfio' : {
-  "BH2.ezfio"
+  'f' : "BH2.ezfio",
  },
  'BH3.ezfio' : {
-  "BH3.ezfio"
+  'f' : "BH3.ezfio",
  },
  'BH.ezfio' : {
-  "BH.ezfio"
+  'f' : "BH.ezfio",
  },
  'BO.ezfio' : {
-  "BO.ezfio"
+  'f' : "BO.ezfio",
  },
  'BS.ezfio' : {
-  "BS.ezfio"
+  'f' : "BS.ezfio",
  },
  'C2.ezfio' : {
-  "C2.ezfio"
+  'f' : "C2.ezfio",
  },
  'C2H2.ezfio' : {
-  "C2H2.ezfio"
+  'f' : "C2H2.ezfio",
  },
  'C2H2+.ezfio' : {
-  "C2H2+.ezfio"
+  'f' : "C2H2+.ezfio",
  },
  'C2H3.ezfio' : {
-  "C2H3.ezfio"
+  'f' : "C2H3.ezfio",
  },
  'C2H3+.ezfio' : {
-  "C2H3+.ezfio"
+  'f' : "C2H3+.ezfio",
  },
  'C2H4.ezfio' : {
-  "C2H4.ezfio"
+  'f' : "C2H4.ezfio",
  },
  'C2H4+.ezfio' : {
-  "C2H4+.ezfio"
+  'f' : "C2H4+.ezfio",
  },
  'C2H5.ezfio' : {
-  "C2H5.ezfio"
+  'f' : "C2H5.ezfio",
  },
  'C2H6.ezfio' : {
-  "C2H6.ezfio"
+  'f' : "C2H6.ezfio",
  },
  'C2H.ezfio' : {
-  "C2H.ezfio"
+  'f' : "C2H.ezfio",
  },
  'CCl.ezfio' : {
-  "CCl.ezfio"
+  'f' : "CCl.ezfio",
  },
  'C-.ezfio' : {
-  "C-.ezfio"
+  'f' : "C-.ezfio",
  },
  'C.ezfio' : {
-  "C.ezfio"
+  'f' : "C.ezfio",
  },
  'C+.ezfio' : {
-  "C+.ezfio"
+  'f' : "C+.ezfio",
  },
  'CF.ezfio' : {
-  "CF.ezfio"
+  'f' : "CF.ezfio",
  },
  'CH2_1A1.ezfio' : {
-  "CH2_1A1.ezfio"
+  'f' : "CH2_1A1.ezfio",
  },
  'CH2_3B1.ezfio' : {
-  "CH2_3B1.ezfio"
+  'f' : "CH2_3B1.ezfio",
  },
  'CH2-.ezfio' : {
-  "CH2-.ezfio"
+  'f' : "CH2-.ezfio",
  },
  'CH3-.ezfio' : {
-  "CH3-.ezfio"
+  'f' : "CH3-.ezfio",
  },
  'CH3.ezfio' : {
-  "CH3.ezfio"
+  'f' : "CH3.ezfio",
  },
  'CH4.ezfio' : {
-  "CH4.ezfio"
+  'f' : "CH4.ezfio",
  },
  'CH4+.ezfio' : {
-  "CH4+.ezfio"
+  'f' : "CH4+.ezfio",
  },
  'CH-.ezfio' : {
-  "CH-.ezfio"
+  'f' : "CH-.ezfio",
  },
  'CH.ezfio' : {
-  "CH.ezfio"
+  'f' : "CH.ezfio",
  },
  'Cl2-.ezfio' : {
-  "Cl2-.ezfio"
+  'f' : "Cl2-.ezfio",
  },
  'Cl2.ezfio' : {
-  "Cl2.ezfio"
+  'f' : "Cl2.ezfio",
  },
  'Cl2+.ezfio' : {
-  "Cl2+.ezfio"
+  'f' : "Cl2+.ezfio",
  },
  'Cl-.ezfio' : {
-  "Cl-.ezfio"
+  'f' : "Cl-.ezfio",
  },
  'Cl.ezfio' : {
-  "Cl.ezfio"
+  'f' : "Cl.ezfio",
  },
  'Cl+.ezfio' : {
-  "Cl+.ezfio"
+  'f' : "Cl+.ezfio",
  },
  'ClH2+.ezfio' : {
-  "ClH2+.ezfio"
+  'f' : "ClH2+.ezfio",
  },
  'ClH.ezfio' : {
-  "ClH.ezfio"
+  'f' : "ClH.ezfio",
  },
  'ClH+.ezfio' : {
-  "ClH+.ezfio"
+  'f' : "ClH+.ezfio",
  },
  'ClS.ezfio' : {
-  "ClS.ezfio"
+  'f' : "ClS.ezfio",
  },
  'ClSiH3.ezfio' : {
-  "ClSiH3.ezfio"
+  'f' : "ClSiH3.ezfio",
  },
  'CN-.ezfio' : {
-  "CN-.ezfio"
+  'f' : "CN-.ezfio",
  },
  'CN.ezfio' : {
-  "CN.ezfio"
+  'f' : "CN.ezfio",
  },
  'CO2.ezfio' : {
-  "CO2.ezfio"
+  'f' : "CO2.ezfio",
  },
  'CO.ezfio' : {
-  "CO.ezfio"
+  'f' : "CO.ezfio",
  },
  'CO+.ezfio' : {
-  "CO+.ezfio"
+  'f' : "CO+.ezfio",
  },
  'COS.ezfio' : {
-  "COS.ezfio"
+  'f' : "COS.ezfio",
  },
  'CP.ezfio' : {
-  "CP.ezfio"
+  'f' : "CP.ezfio",
  },
  'CS2.ezfio' : {
-  "CS2.ezfio"
+  'f' : "CS2.ezfio",
  },
  'CS.ezfio' : {
-  "CS.ezfio"
+  'f' : "CS.ezfio",
  },
  'CS+.ezfio' : {
-  "CS+.ezfio"
+  'f' : "CS+.ezfio",
  },
  'CSi.ezfio' : {
-  "CSi.ezfio"
+  'f' : "CSi.ezfio",
  },
  'F2.ezfio' : {
-  "F2.ezfio"
+  'f' : "F2.ezfio",
  },
  'FAl.ezfio' : {
-  "FAl.ezfio"
+  'f' : "FAl.ezfio",
  },
  'FCl.ezfio' : {
-  "FCl.ezfio"
+  'f' : "FCl.ezfio",
  },
  'FCl+.ezfio' : {
-  "FCl+.ezfio"
+  'f' : "FCl+.ezfio",
  },
  'F-.ezfio' : {
-  "F-.ezfio"
+  'f' : "F-.ezfio",
  },
  'F.ezfio' : {
-  "F.ezfio"
+  'f' : "F.ezfio",
  },
  'F+.ezfio' : {
-  "F+.ezfio"
+  'f' : "F+.ezfio",
  },
  'FH.ezfio' : {
-  "FH.ezfio"
+  'f' : "FH.ezfio",
  },
  'FH+.ezfio' : {
-  "FH+.ezfio"
+  'f' : "FH+.ezfio",
  },
  'FMg.ezfio' : {
-  "FMg.ezfio"
+  'f' : "FMg.ezfio",
  },
  'FNa.ezfio' : {
-  "FNa.ezfio"
+  'f' : "FNa.ezfio",
  },
  'FP.ezfio' : {
-  "FP.ezfio"
+  'f' : "FP.ezfio",
  },
  'FS.ezfio' : {
-  "FS.ezfio"
+  'f' : "FS.ezfio",
  },
  'FSi.ezfio' : {
-  "FSi.ezfio"
+  'f' : "FSi.ezfio",
  },
  'FSiH3.ezfio' : {
-  "FSiH3.ezfio"
+  'f' : "FSiH3.ezfio",
  },
  'H2CNH.ezfio' : {
-  "H2CNH.ezfio"
+  'f' : "H2CNH.ezfio",
  },
  'H2CO.ezfio' : {
-  "H2CO.ezfio"
+  'f' : "H2CO.ezfio",
  },
  'H2CPH.ezfio' : {
-  "H2CPH.ezfio"
+  'f' : "H2CPH.ezfio",
  },
  'H2CS.ezfio' : {
-  "H2CS.ezfio"
+  'f' : "H2CS.ezfio",
  },
  'H2.ezfio' : {
-  "H2.ezfio"
+  'f' : "H2.ezfio",
  },
  'H2NNH2.ezfio' : {
-  "H2NNH2.ezfio"
+  'f' : "H2NNH2.ezfio",
  },
  'H2PPH2.ezfio' : {
-  "H2PPH2.ezfio"
+  'f' : "H2PPH2.ezfio",
  },
  'H3CCl.ezfio' : {
-  "H3CCl.ezfio"
+  'f' : "H3CCl.ezfio",
  },
  'H3CF.ezfio' : {
-  "H3CF.ezfio"
+  'f' : "H3CF.ezfio",
  },
  'H3CNH2.ezfio' : {
-  "H3CNH2.ezfio"
+  'f' : "H3CNH2.ezfio",
  },
  'H3COH.ezfio' : {
-  "H3COH.ezfio"
+  'f' : "H3COH.ezfio",
  },
  'H3CSH.ezfio' : {
-  "H3CSH.ezfio"
+  'f' : "H3CSH.ezfio",
  },
  'H3SiSiH3.ezfio' : {
-  "H3SiSiH3.ezfio"
+  'f' : "H3SiSiH3.ezfio",
  },
  'HBO.ezfio' : {
-  "HBO.ezfio"
+  'f' : "HBO.ezfio",
  },
  'HBS.ezfio' : {
-  "HBS.ezfio"
+  'f' : "HBS.ezfio",
  },
  'HCF.ezfio' : {
-  "HCF.ezfio"
+  'f' : "HCF.ezfio",
  },
  'HCN.ezfio' : {
-  "HCN.ezfio"
+  'f' : "HCN.ezfio",
  },
  'HCO.ezfio' : {
-  "HCO.ezfio"
+  'f' : "HCO.ezfio",
  },
  'HCP.ezfio' : {
-  "HCP.ezfio"
+  'f' : "HCP.ezfio",
  },
  'H.ezfio' : {
-  "H.ezfio"
+  'f' : "H.ezfio",
  },
  'HNO.ezfio' : {
-  "HNO.ezfio"
+  'f' : "HNO.ezfio",
  },
  'HOCl.ezfio' : {
-  "HOCl.ezfio"
+  'f' : "HOCl.ezfio",
  },
  'HOF.ezfio' : {
-  "HOF.ezfio"
+  'f' : "HOF.ezfio",
  },
  'HOMg.ezfio' : {
-  "HOMg.ezfio"
+  'f' : "HOMg.ezfio",
  },
  'HONa.ezfio' : {
-  "HONa.ezfio"
+  'f' : "HONa.ezfio",
  },
  'HOO.ezfio' : {
-  "HOO.ezfio"
+  'f' : "HOO.ezfio",
  },
  'HOOH.ezfio' : {
-  "HOOH.ezfio"
+  'f' : "HOOH.ezfio",
  },
  'HSSH.ezfio' : {
-  "HSSH.ezfio"
+  'f' : "HSSH.ezfio",
  },
  'Li2.ezfio' : {
-  "Li2.ezfio"
+  'f' : "Li2.ezfio",
  },
  'LiCl.ezfio' : {
-  "LiCl.ezfio"
+  'f' : "LiCl.ezfio",
  },
  'Li.ezfio' : {
-  "Li.ezfio"
+  'f' : "Li.ezfio",
  },
  'Li+.ezfio' : {
-  "Li+.ezfio"
+  'f' : "Li+.ezfio",
  },
  'LiF.ezfio' : {
-  "LiF.ezfio"
+  'f' : "LiF.ezfio",
  },
  'LiH.ezfio' : {
-  "LiH.ezfio"
+  'f' : "LiH.ezfio",
  },
  'LiN.ezfio' : {
-  "LiN.ezfio"
+  'f' : "LiN.ezfio",
  },
  'LiO.ezfio' : {
-  "LiO.ezfio"
+  'f' : "LiO.ezfio",
  },
  'LiOH.ezfio' : {
-  "LiOH.ezfio"
+  'f' : "LiOH.ezfio",
  },
  'MgCl.ezfio' : {
-  "MgCl.ezfio"
+  'f' : "MgCl.ezfio",
  },
  'Mg.ezfio' : {
-  "Mg.ezfio"
+  'f' : "Mg.ezfio",
  },
  'Mg+.ezfio' : {
-  "Mg+.ezfio"
+  'f' : "Mg+.ezfio",
  },
  'MgH.ezfio' : {
-  "MgH.ezfio"
+  'f' : "MgH.ezfio",
  },
  'MgS.ezfio' : {
-  "MgS.ezfio"
+  'f' : "MgS.ezfio",
  },
  'N2.ezfio' : {
-  "N2.ezfio"
+  'f' : "N2.ezfio",
  },
  'N2+.ezfio' : {
-  "N2+.ezfio"
+  'f' : "N2+.ezfio",
  },
  'Na2.ezfio' : {
-  "Na2.ezfio"
+  'f' : "Na2.ezfio",
  },
  'NaCl.ezfio' : {
-  "NaCl.ezfio"
+  'f' : "NaCl.ezfio",
  },
  'Na.ezfio' : {
-  "Na.ezfio"
+  'f' : "Na.ezfio",
  },
  'Na+.ezfio' : {
-  "Na+.ezfio"
+  'f' : "Na+.ezfio",
  },
  'NaH.ezfio' : {
-  "NaH.ezfio"
+  'f' : "NaH.ezfio",
  },
  'N.ezfio' : {
-  "N.ezfio"
+  'f' : "N.ezfio",
  },
  'N+.ezfio' : {
-  "N+.ezfio"
+  'f' : "N+.ezfio",
  },
  'NF.ezfio' : {
-  "NF.ezfio"
+  'f' : "NF.ezfio",
  },
  'NH2-.ezfio' : {
-  "NH2-.ezfio"
+  'f' : "NH2-.ezfio",
  },
  'NH2.ezfio' : {
-  "NH2.ezfio"
+  'f' : "NH2.ezfio",
  },
  'NH3.ezfio' : {
-  "NH3.ezfio"
+  'f' : "NH3.ezfio",
  },
  'NH3+.ezfio' : {
-  "NH3+.ezfio"
+  'f' : "NH3+.ezfio",
  },
  'NH4+.ezfio' : {
-  "NH4+.ezfio"
+  'f' : "NH4+.ezfio",
  },
  'NH-.ezfio' : {
-  "NH-.ezfio"
+  'f' : "NH-.ezfio",
  },
  'NH.ezfio' : {
-  "NH.ezfio"
+  'f' : "NH.ezfio",
  },
  'NO-.ezfio' : {
-  "NO-.ezfio"
+  'f' : "NO-.ezfio",
  },
  'NO.ezfio' : {
-  "NO.ezfio"
+  'f' : "NO.ezfio",
  },
  'NP.ezfio' : {
-  "NP.ezfio"
+  'f' : "NP.ezfio",
  },
  'NS.ezfio' : {
-  "NS.ezfio"
+  'f' : "NS.ezfio",
  },
  'NSi.ezfio' : {
-  "NSi.ezfio"
+  'f' : "NSi.ezfio",
  },
  'O2Cl.ezfio' : {
-  "O2Cl.ezfio"
+  'f' : "O2Cl.ezfio",
  },
  'O2-.ezfio' : {
-  "O2-.ezfio"
+  'f' : "O2-.ezfio",
  },
  'O2.ezfio' : {
-  "O2.ezfio"
+  'f' : "O2.ezfio",
  },
  'O2+.ezfio' : {
-  "O2+.ezfio"
+  'f' : "O2+.ezfio",
  },
  'O2S.ezfio' : {
-  "O2S.ezfio"
+  'f' : "O2S.ezfio",
  },
  'O2Si.ezfio' : {
-  "O2Si.ezfio"
+  'f' : "O2Si.ezfio",
  },
  'O3.ezfio' : {
-  "O3.ezfio"
+  'f' : "O3.ezfio",
  },
  'OCl.ezfio' : {
-  "OCl.ezfio"
+  'f' : "OCl.ezfio",
  },
  'O-.ezfio' : {
-  "O-.ezfio"
+  'f' : "O-.ezfio",
  },
  'O.ezfio' : {
-  "O.ezfio"
+  'f' : "O.ezfio",
  },
  'O+.ezfio' : {
-  "O+.ezfio"
+  'f' : "O+.ezfio",
  },
  'OH2.ezfio' : {
-  "OH2.ezfio"
+  'f' : "OH2.ezfio",
  },
  'OH2+.ezfio' : {
-  "OH2+.ezfio"
+  'f' : "OH2+.ezfio",
  },
  'OH3+.ezfio' : {
-  "OH3+.ezfio"
+  'f' : "OH3+.ezfio",
  },
  'OH-.ezfio' : {
-  "OH-.ezfio"
+  'f' : "OH-.ezfio",
  },
  'OH.ezfio' : {
-  "OH.ezfio"
+  'f' : "OH.ezfio",
  },
  'OH+.ezfio' : {
-  "OH+.ezfio"
+  'f' : "OH+.ezfio",
  },
  'OMg.ezfio' : {
-  "OMg.ezfio"
+  'f' : "OMg.ezfio",
  },
  'ONa.ezfio' : {
-  "ONa.ezfio"
+  'f' : "ONa.ezfio",
  },
  'OP-.ezfio' : {
-  "OP-.ezfio"
+  'f' : "OP-.ezfio",
  },
  'OP.ezfio' : {
-  "OP.ezfio"
+  'f' : "OP.ezfio",
  },
  'OPH.ezfio' : {
-  "OPH.ezfio"
+  'f' : "OPH.ezfio",
  },
  'OS.ezfio' : {
-  "OS.ezfio"
+  'f' : "OS.ezfio",
  },
  'OSi.ezfio' : {
-  "OSi.ezfio"
+  'f' : "OSi.ezfio",
  },
  'P2.ezfio' : {
-  "P2.ezfio"
+  'f' : "P2.ezfio",
  },
  'P2+.ezfio' : {
-  "P2+.ezfio"
+  'f' : "P2+.ezfio",
  },
  'PCl.ezfio' : {
-  "PCl.ezfio"
+  'f' : "PCl.ezfio",
  },
  'P-.ezfio' : {
-  "P-.ezfio"
+  'f' : "P-.ezfio",
  },
  'P.ezfio' : {
-  "P.ezfio"
+  'f' : "P.ezfio",
  },
  'PH2-.ezfio' : {
-  "PH2-.ezfio"
+  'f' : "PH2-.ezfio",
  },
  'PH2.ezfio' : {
-  "PH2.ezfio"
+  'f' : "PH2.ezfio",
  },
  'PH2+.ezfio' : {
-  "PH2+.ezfio"
+  'f' : "PH2+.ezfio",
  },
  'PH3.ezfio' : {
-  "PH3.ezfio"
+  'f' : "PH3.ezfio",
  },
  'PH3+.ezfio' : {
-  "PH3+.ezfio"
+  'f' : "PH3+.ezfio",
  },
  'PH4+.ezfio' : {
-  "PH4+.ezfio"
+  'f' : "PH4+.ezfio",
  },
  'PH-.ezfio' : {
-  "PH-.ezfio"
+  'f' : "PH-.ezfio",
  },
  'PH.ezfio' : {
-  "PH.ezfio"
+  'f' : "PH.ezfio",
  },
  'PS.ezfio' : {
-  "PS.ezfio"
+  'f' : "PS.ezfio",
  },
  'S2-.ezfio' : {
-  "S2-.ezfio"
+  'f' : "S2-.ezfio",
  },
  'S2.ezfio' : {
-  "S2.ezfio"
+  'f' : "S2.ezfio",
  },
  'S-.ezfio' : {
-  "S-.ezfio"
+  'f' : "S-.ezfio",
  },
  'S.ezfio' : {
-  "S.ezfio"
+  'f' : "S.ezfio",
  },
  'S+.ezfio' : {
-  "S+.ezfio"
+  'f' : "S+.ezfio",
  },
  'SH2.ezfio' : {
-  "SH2.ezfio"
+  'f' : "SH2.ezfio",
  },
  'SH2+.ezfio' : {
-  "SH2+.ezfio"
+  'f' : "SH2+.ezfio",
  },
  'SH3+.ezfio' : {
-  "SH3+.ezfio"
+  'f' : "SH3+.ezfio",
  },
  'SH-.ezfio' : {
-  "SH-.ezfio"
+  'f' : "SH-.ezfio",
  },
  'SH.ezfio' : {
-  "SH.ezfio"
+  'f' : "SH.ezfio",
  },
  'SH+.ezfio' : {
-  "SH+.ezfio"
+  'f' : "SH+.ezfio",
  },
  'Si2.ezfio' : {
-  "Si2.ezfio"
+  'f' : "Si2.ezfio",
  },
  'SiCl.ezfio' : {
-  "SiCl.ezfio"
+  'f' : "SiCl.ezfio",
  },
  'Si-.ezfio' : {
-  "Si-.ezfio"
+  'f' : "Si-.ezfio",
  },
  'Si.ezfio' : {
-  "Si.ezfio"
+  'f' : "Si.ezfio",
  },
  'SiH2_1A1.ezfio' : {
-  "SiH2_1A1.ezfio"
+  'f' : "SiH2_1A1.ezfio",
  },
  'SiH2_3B1.ezfio' : {
-  "SiH2_3B1.ezfio"
+  'f' : "SiH2_3B1.ezfio",
  },
  'SiH2-.ezfio' : {
-  "SiH2-.ezfio"
+  'f' : "SiH2-.ezfio",
  },
  'SiH3-.ezfio' : {
-  "SiH3-.ezfio"
+  'f' : "SiH3-.ezfio",
  },
  'SiH3.ezfio' : {
-  "SiH3.ezfio"
+  'f' : "SiH3.ezfio",
  },
  'SiH4.ezfio' : {
-  "SiH4.ezfio"
+  'f' : "SiH4.ezfio",
  },
  'SiH4+.ezfio' : {
-  "SiH4+.ezfio"
+  'f' : "SiH4+.ezfio",
  },
  'SiH-.ezfio' : {
-  "SiH-.ezfio"
+  'f' : "SiH-.ezfio",
  },
  'SiH.ezfio' : {
-  "SiH.ezfio"
+  'f' : "SiH.ezfio",
  },
  'SiS.ezfio' : {
-  "SiS.ezfio"
+  'f' : "SiS.ezfio",
  },
 }

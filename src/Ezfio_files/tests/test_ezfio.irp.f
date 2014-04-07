@@ -16,6 +16,6 @@ program test_number_electrons
     endif
   enddo
   i += 1
-  print *, '"'//trim(ezfio_filename(i:))//'"'
+  print *, 'f : ','"'//trim(ezfio_filename(i:))//'"'
 
 end

@@ -1,39 +1,52 @@
 #!/usr/bin/python
 
-import unittest
-import os
-import subprocess
-from math import *
-
-env = os.environ
-try:
-  verbosity = int(sys.argv[1])
-except:
-  verbosity = 1
-
-testfiles = []
-for f in os.listdir(os.getcwd()):
-  if f.endswith('.irp.f'):
-    testfiles.append(f.replace('.irp.f',''))
+import sys,os
 
 def run_test(test_name,inp):
   command = './'+test_name+" ${QPACKAGE_ROOT}/data/inputs/"+inp
   result = subprocess.check_output(command, shell=True)
   return result
 
+if __name__ == '__main__':
 
-template = """
+    import unittest
+    import subprocess
+    from math import *
+    
+    from multiprocessing import Pool
+    env = os.environ
+    
+    verbosity = 1
+    try:
+      nproc = int(subprocess.check_output("cat /proc/cpuinfo | grep processor | wc -l", shell=True))
+    except:
+      nproc=4
+    
+    testfiles = []
+    for f in os.listdir(os.getcwd()):
+      if f.endswith('.irp.f'):
+        testfiles.append(f.replace('.irp.f',''))
+    
+    # start worker processes
+    pool = Pool(processes=nproc)
+    
+    template = """
 class $test(unittest.TestCase):
     
     default_precision = 1.e-10
 
     execfile('$test.ref')
 
+    name = '$test'
+    tasks = {}
+
     def setUp(self):
-       self.name = '$test'
+       for d in self.data.keys():
+         if d not in self.tasks:
+           self.tasks[d] = pool.apply_async(run_test, [self.name, d])
 
     def _test_input(self,inp):
-       output = run_test(self.name, inp)
+       output = self.tasks[inp].get()
        for line in output.splitlines():
           buffer = line.split(':')
           if len(buffer) == 1:
@@ -50,6 +63,7 @@ class $test(unittest.TestCase):
           else:
             self.assertEqual(self.data[inp][l], r, msg=None)
 
+
     t = "def test_$k(self): self._test_input('$i')"
     for i in data.keys():
        k = i
@@ -59,8 +73,7 @@ class $test(unittest.TestCase):
        exec t.replace('$i',i).replace('$k',k) in locals()
 """
 
-for test in testfiles:
-    exec template.replace('$test',test) in locals()
+    for test in testfiles:
+      exec template.replace('$test',test) in locals()
 
-if __name__ == '__main__':
-   unittest.main(verbosity=verbosity)
+    unittest.main(verbosity=verbosity)
