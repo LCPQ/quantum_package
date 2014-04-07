@@ -21,7 +21,7 @@ BEGIN_PROVIDER [ character*(128), ezfio_filename ]
 
   ! Check that file exists
   logical :: exists
-  inquire(file=trim(ezfio_filename)//'/ezfio/.version',exist=exists)
+  inquire(file=trim(ezfio_filename)//'/ezfio/creation',exist=exists)
   if (.not.exists) then
     print *, 'Error: file '//trim(ezfio_filename)//' does not exist'
     stop 1

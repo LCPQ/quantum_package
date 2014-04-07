@@ -1,7 +1,8 @@
 subroutine ortho_lowdin(overlap,lda,n,C,ldc,m)
   implicit none
-  
+  BEGIN_DOC
   ! Compute U.S^-1/2 canonical orthogonalization
+  END_DOC
   
   integer, intent(in)            :: lda, ldc, n, m
   double precision, intent(in)   :: overlap(lda,n)
@@ -70,8 +71,10 @@ end
 
 
 subroutine get_pseudo_inverse(A,m,n,C,LDA)
-  ! Find C = A^-1
   implicit none
+  BEGIN_DOC
+  ! Find C = A^-1
+  END_DOC
   integer, intent(in)            :: m,n, LDA
   double precision, intent(in)   :: A(LDA,n)
   double precision, intent(out)  :: C(n,m)
@@ -97,7 +100,7 @@ subroutine get_pseudo_inverse(A,m,n,C,LDA)
   call dgesvd('S','A', m, n, A_tmp, m,D,U,m,Vt,n,work,lwork,info)
   if (info /= 0) then
     print *,  info, ': SVD failed'
-    stop
+    stop 1
   endif
   
   do i=1,n
@@ -122,8 +125,10 @@ subroutine get_pseudo_inverse(A,m,n,C,LDA)
 end
 
 subroutine find_rotation(A,LDA,B,m,C,n)
-  ! Find A.C = B
   implicit none
+  BEGIN_DOC
+  ! Find A.C = B
+  END_DOC
   integer, intent(in)            :: m,n, LDA
   double precision, intent(in)   :: A(LDA,n), B(LDA,n)
   double precision, intent(out)  :: C(n,n)
@@ -138,10 +143,11 @@ subroutine find_rotation(A,LDA,B,m,C,n)
 end
 
 
-
-
 subroutine apply_rotation(A,LDA,R,LDR,B,LDB,m,n)
   implicit none
+  BEGIN_DOC
+  ! Apply the rotation found by find_rotation
+  END_DOC
   double precision, intent(in)   :: R(LDR,n)
   double precision, intent(in)   :: A(LDA,n)
   double precision, intent(out)  :: B(LDB,n)
@@ -149,8 +155,11 @@ subroutine apply_rotation(A,LDA,R,LDR,B,LDB,m,n)
   call dgemm('N','N',m,n,n,1.d0,A,LDA,R,LDR,0.d0,B,LDB)
 end
 
-subroutine jacobi_lapack(eigvalues,eigvectors,H,nmax,n)
+subroutine lapack_diag(eigvalues,eigvectors,H,nmax,n)
   implicit none
+  BEGIN_DOC
+  ! Diagonalize matrix H
+  END_DOC
   integer, intent(in)            :: n,nmax
   double precision, intent(out)  :: eigvectors(nmax,n)
   double precision, intent(out)  :: eigvalues(n)
@@ -159,31 +168,19 @@ subroutine jacobi_lapack(eigvalues,eigvectors,H,nmax,n)
   double precision,allocatable   :: work(:)
   double precision,allocatable   :: A(:,:)
   !eigvectors(i,j) = <d_i|psi_j> where d_i is the basis function and psi_j is the j th eigenvector
-  print*,nmax,n
   allocate(A(nmax,n),eigenvalues(nmax),work(4*nmax))
   integer                        :: LWORK, info, i,j,l,k
-  double precision               :: cpu_2, cpu_1
   A=H
-  call cpu_time (cpu_1)
   LWORK = 4*nmax
-  call dsyev( 'V',                                                   &
-      'U',                                                           &
-      n,                                                             &
-      A,                                                             &
-      nmax,                                                          &
-      eigenvalues,                                                   &
-      work,                                                          &
-      LWORK,                                                         &
-      info )
+  call dsyev( 'V', 'U', n, A, nmax, eigenvalues, work, LWORK, info )
   if (info < 0) then
     print *, irp_here, ': the ',-info,'-th argument had an illegal value'
-    stop
+    stop 1
   else if (info > 0) then
     print *, irp_here, ': the algorithm failed to converge;  ',info,' off-diagonal'
     print *, 'elements of an intermediate tridiagonal form did not converge to zero.'
-    stop
+    stop 1
   endif
-  call cpu_time (cpu_2)
   eigvectors = 0.d0
   eigvalues = 0.d0
   do j = 1, n

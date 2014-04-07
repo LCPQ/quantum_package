@@ -35,6 +35,7 @@ then
   exit 1
 fi
 
+VERSION=$( cut -d '=' -f 2 < ${QPACKAGE_ROOT}/EZFIO/version)
 for i in ${!key[@]}
 do
   MD5=${key[$i]}
@@ -42,6 +43,7 @@ do
   if [[ ! -d $file ]]
   then
     mkdir -p $(dirname $file)
+    echo ${VERSION} > $(dirname $file)/.version
   fi
   if [[ ! -f ${QPACKAGE_ROOT}/data/cache/${MD5} ]]
   then
@@ -49,3 +51,4 @@ do
   fi
   cp ${QPACKAGE_ROOT}/data/cache/${MD5} ${file}
 done
+echo ${VERSION} > ${EZFIO_FILE}.ezfio/.version

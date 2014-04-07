@@ -25,6 +25,8 @@ def run_test(test_name,inp):
 template = """
 class $test(unittest.TestCase):
     
+    default_precision = 1.e-10
+
     execfile('$test.ref')
 
     def setUp(self):
@@ -38,9 +40,13 @@ class $test(unittest.TestCase):
             continue
           l,r = buffer
           l,r = l.strip(), eval(r)
+          if 'precision' in self.__dict__:
+            precision = self.precision[l]
+          else:
+            precision = self.default_precision
           if type(r) == float:
             self.assertAlmostEqual(self.data[inp][l], r, 
-              places=abs(int(log10(self.precision[l]*max(abs(self.data[inp][l]),1.e-12)))), msg=None)
+              places=abs(int(log10(precision*max(abs(self.data[inp][l]),1.e-12)))), msg=None)
           else:
             self.assertEqual(self.data[inp][l], r, msg=None)
 
