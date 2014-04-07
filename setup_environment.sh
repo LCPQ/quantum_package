@@ -24,7 +24,7 @@ export IRPF90=${IRPF90}
 export QPACKAGE_ROOT=${QPACKAGE_ROOT}
 export PATH+=:\${QPACKAGE_ROOT}/scripts
 export PATH+=:\${QPACKAGE_ROOT}/bin
-export QPACKAGE_CACHE_URL="http://qmcchem.ups-tlse.fr/files/scemama/quantum_package/cache/"
+export QPACKAGE_CACHE_URL="http://qmcchem.ups-tlse.fr/files/scemama/quantum_package/cache"
 EOF
 
 source quantum_package.rc
