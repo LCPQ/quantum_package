@@ -7,7 +7,7 @@ the constants that will be used to define on which kind of integer the bitmasks
 will be defined.
 
 In the program, when an integer ``X`` is used to represent a bit string (like a determinant
-for example), it should be defined as, for example::
+for example), it should be defined as, for example:
 
 .. code-block:: fortran
 

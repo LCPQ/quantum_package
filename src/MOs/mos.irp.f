@@ -19,13 +19,21 @@ BEGIN_PROVIDER [ integer, mo_tot_num_align ]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ character*(64), mo_label ]
+ BEGIN_PROVIDER [ double precision, mo_coef, (ao_num_align,mo_tot_num) ]
+&BEGIN_PROVIDER [ character*(64), mo_label ]
   implicit none
   BEGIN_DOC
-  ! Label characterizing the MOS (local, canonical, natural, etc)
+  ! Molecular orbital coefficients on AO basis set
+  ! mo_coef(i,j) = coefficient of the ith ao on the jth mo
+  ! mo_label : Label characterizing the MOS (local, canonical, natural, etc)
   END_DOC
+  integer                        :: i, j
+  double precision, allocatable  :: buffer(:,:)
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: buffer
   logical                        :: exists
   PROVIDE ezfio_filename
+
+  !Label
   call ezfio_has_mo_basis_mo_label(exists)
   if (exists) then
     call ezfio_get_mo_basis_mo_label(mo_label)
@@ -33,32 +41,8 @@ BEGIN_PROVIDER [ character*(64), mo_label ]
     mo_label = 'no_label'
     call ezfio_set_mo_basis_mo_label(mo_label)
   endif
-  
-END_PROVIDER
 
-
-BEGIN_PROVIDER [ double precision, mo_energy, (mo_tot_num) ]
-  implicit none
-  BEGIN_DOC
-  ! Fock diagonal elements
-  END_DOC
-  PROVIDE ezfio_filename
-  mo_energy = 0.d0
-  call ezfio_get_mo_basis_mo_energy(mo_energy)
-END_PROVIDER
-
-
-BEGIN_PROVIDER [ double precision, mo_coef, (ao_num_align,mo_tot_num) ]
-  implicit none
-  BEGIN_DOC
-  ! Molecular orbital coefficients on AO basis set
-  ! mo_coef(i,j) = coefficient of the ith ao on the jth mo
-  END_DOC
-  integer                        :: i, j
-  double precision, allocatable  :: buffer(:,:)
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: buffer
-  
-  PROVIDE ezfio_filename
+  ! Coefs
   allocate(buffer(ao_num,mo_tot_num))
   buffer = 0.d0
   call ezfio_get_mo_basis_mo_coef(buffer)
