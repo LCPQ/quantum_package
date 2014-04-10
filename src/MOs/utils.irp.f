@@ -34,7 +34,7 @@ subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label)
   allocate(mo_coef_new(ao_num_align,m),eigvalues(m))
   mo_coef_new = mo_coef
   
-  call jacobi_lapack(eigvalues,R,matrix,size(matrix,1),size(matrix,2))
+  call lapack_diag(eigvalues,R,matrix,size(matrix,1),size(matrix,2))
   integer :: i
   do i = 1, m
    print*,'eigvalues(i) = ',eigvalues(i)

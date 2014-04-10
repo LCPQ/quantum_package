@@ -12,7 +12,7 @@ END_PROVIDER
 BEGIN_PROVIDER [ integer(bit_kind), full_ijkl_bitmask, (N_int,4) ]
   implicit none
   BEGIN_DOC
-  ! Bitmask to include all possible <ij|kl> integrals
+  ! Bitmask to include all possible MOs
   END_DOC
   
   integer                        :: i,j,n
