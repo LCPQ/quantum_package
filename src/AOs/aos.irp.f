@@ -20,16 +20,18 @@ END_PROVIDER
 &BEGIN_PROVIDER [ double precision, ao_expo, (ao_num_align,ao_prim_num_max) ]
 &BEGIN_PROVIDER [ double precision, ao_coef, (ao_num_align,ao_prim_num_max) ]
  implicit none
+
+ BEGIN_DOC
+! Coefficients, exponents and powers of x,y and z
+! ao_coef(i,j) = coefficient of the jth primitive on the ith ao
+ END_DOC
+ PROVIDE ezfio_filename
+
  double precision, allocatable :: buffer(:,:)
  allocate ( buffer(ao_num,ao_prim_num_max) )
  integer :: ibuffer(ao_num,3)
  integer :: i,j,k
  ibuffer = 0
- BEGIN_DOC
-! coefficient of the primitives on the AO basis
-! ao_coef(i,j) = coefficient of the jth primitive on the ith ao
- END_DOC
- PROVIDE ezfio_filename
  call ezfio_get_ao_basis_ao_power(ibuffer)
  ao_power = 0
  do j = 1, 3
