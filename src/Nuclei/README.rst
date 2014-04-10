@@ -14,4 +14,5 @@ Needed Modules
 
 * `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
+* `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
 
