@@ -13,7 +13,8 @@ When the orbitals are modified, the label should also be updated to keep
 everything consistent.
 
 When saving the MOs, the ``mo_basis`` directory of the EZFIO file is copied
-in the ``save`` directory, named by the current ``mo_label``.
+in the ``save`` directory, named by the current ``mo_label``. All this is
+done with the script named ``save_current_mos.sh`` in the ``scripts`` directory.
 
 Needed Modules
 ==============
