@@ -1,8 +1,5 @@
 mo_basis
   mo_tot_num         integer
   mo_coef            double precision  (ao_basis_ao_num,mo_basis_mo_tot_num)
-  mo_energy          double precision (mo_basis_mo_tot_num)
-  mo_occ             double precision (mo_basis_mo_tot_num)
-  mo_symmetry        character*(8)     (mo_basis_mo_tot_num)
   mo_label           character*(64)
 

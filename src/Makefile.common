@@ -37,6 +37,11 @@ $(error )
 endif
 
 
+# Create the NEEDED_MODULES variable, needed for IRPF90
+
+NEEDED_MODULES=$(shell cat NEEDED_MODULES)
+
+
 # Check if the NEEDED_MODULES file is consistent
 
 NEEDED_MODULES_OK=$(shell X=`$(QPACKAGE_ROOT)/scripts/check_dependencies.sh $(NEEDED_MODULES)` && echo OK || echo $$X)
@@ -47,11 +52,6 @@ $(info $(NEEDED_MODULES_OK))
 $(info  -----------------------------------------------)
 $(error )
 endif
-
-
-# Create the NEEDED_MODULES variable, needed for IRPF90
-
-NEEDED_MODULES=$(shell cat NEEDED_MODULES)
 
 
 # Check and update dependencies

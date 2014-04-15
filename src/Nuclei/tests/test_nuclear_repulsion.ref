@@ -1,0 +1,635 @@
+data = {
+  'AlCl.ezfio' : {
+  'nuclear_repulsion' : 53.8264171154573,     
+ },
+ 'Al.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'Al+.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'AlH2.ezfio' : {
+  'nuclear_repulsion' : 8.75018136627833,     
+ },
+ 'AlH3.ezfio' : {
+  'nuclear_repulsion' : 13.5648754609241,     
+ },
+ 'AlH.ezfio' : {
+  'nuclear_repulsion' : 4.11171133644134,     
+ },
+ 'BCl.ezfio' : {
+  'nuclear_repulsion' : 25.7868865246804,     
+ },
+ 'BeCl.ezfio' : {
+  'nuclear_repulsion' : 19.8379474789128,     
+ },
+ 'Be.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'Be+.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'BeF.ezfio' : {
+  'nuclear_repulsion' : 13.9104643767798,     
+ },
+ 'BeH2.ezfio' : {
+  'nuclear_repulsion' : 3.38195986203008,     
+ },
+ 'BeH.ezfio' : {
+  'nuclear_repulsion' : 1.56862975841115,     
+ },
+ 'BeO.ezfio' : {
+  'nuclear_repulsion' : 12.7522192695233,     
+ },
+ 'BeOH.ezfio' : {
+  'nuclear_repulsion' : 17.4134832711231,     
+ },
+ 'BeS.ezfio' : {
+  'nuclear_repulsion' : 19.3505564712604,     
+ },
+ 'B.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'B+.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'BH2.ezfio' : {
+  'nuclear_repulsion' : 4.68444160214275,     
+ },
+ 'BH3.ezfio' : {
+  'nuclear_repulsion' : 7.41726181517049,     
+ },
+ 'BH.ezfio' : {
+  'nuclear_repulsion' : 2.12486849100546,     
+ },
+ 'BO.ezfio' : {
+  'nuclear_repulsion' : 17.5079321422663,     
+ },
+ 'BS.ezfio' : {
+  'nuclear_repulsion' : 26.1048158845656,     
+ },
+ 'C2.ezfio' : {
+  'nuclear_repulsion' : 15.1675007675159,     
+ },
+ 'C2H2.ezfio' : {
+  'nuclear_repulsion' : 24.7170250827893,     
+ },
+ 'C2H2+.ezfio' : {
+  'nuclear_repulsion' : 23.9531133720812,     
+ },
+ 'C2H3.ezfio' : {
+  'nuclear_repulsion' : 28.3655599991988,     
+ },
+ 'C2H3+.ezfio' : {
+  'nuclear_repulsion' : 28.8129123841814,     
+ },
+ 'C2H4.ezfio' : {
+  'nuclear_repulsion' : 33.3313308168267,     
+ },
+ 'C2H4+.ezfio' : {
+  'nuclear_repulsion' : 32.3825197661312,     
+ },
+ 'C2H5.ezfio' : {
+  'nuclear_repulsion' : 36.8638595064922,     
+ },
+ 'C2H6.ezfio' : {
+  'nuclear_repulsion' : 42.1072512860833,     
+ },
+ 'C2H.ezfio' : {
+  'nuclear_repulsion' : 19.9043330656836,     
+ },
+ 'CCl.ezfio' : {
+  'nuclear_repulsion' : 31.9233968523776,     
+ },
+ 'C-.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'C.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'C+.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'CF.ezfio' : {
+  'nuclear_repulsion' : 22.2084180041968,     
+ },
+ 'CH2_1A1.ezfio' : {
+  'nuclear_repulsion' : 5.98037573959508,     
+ },
+ 'CH2_3B1.ezfio' : {
+  'nuclear_repulsion' : 6.13464657973682,     
+ },
+ 'CH2-.ezfio' : {
+  'nuclear_repulsion' : 5.79972023084143,     
+ },
+ 'CH3-.ezfio' : {
+  'nuclear_repulsion' : 9.32246288359638,     
+ },
+ 'CH3.ezfio' : {
+  'nuclear_repulsion' : 9.64345422937034,     
+ },
+ 'CH4.ezfio' : {
+  'nuclear_repulsion' : 13.3951988521433,     
+ },
+ 'CH4+.ezfio' : {
+  'nuclear_repulsion' : 13.0297753686001,     
+ },
+ 'CH-.ezfio' : {
+  'nuclear_repulsion' : 2.69347089752290,     
+ },
+ 'CH.ezfio' : {
+  'nuclear_repulsion' : 2.80086758468596,     
+ },
+ 'Cl2-.ezfio' : {
+  'nuclear_repulsion' : 55.6117181676364,     
+ },
+ 'Cl2.ezfio' : {
+  'nuclear_repulsion' : 74.8713526686576,     
+ },
+ 'Cl2+.ezfio' : {
+  'nuclear_repulsion' : 78.8310437943299,     
+ },
+ 'Cl-.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'Cl.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'Cl+.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'ClH2+.ezfio' : {
+  'nuclear_repulsion' : 13.9628135517284,     
+ },
+ 'ClH.ezfio' : {
+  'nuclear_repulsion' : 6.97581671293424,     
+ },
+ 'ClH+.ezfio' : {
+  'nuclear_repulsion' : 6.79149421183753,     
+ },
+ 'ClS.ezfio' : {
+  'nuclear_repulsion' : 71.1323013234495,     
+ },
+ 'ClSiH3.ezfio' : {
+  'nuclear_repulsion' : 85.4851604920318,     
+ },
+ 'CN-.ezfio' : {
+  'nuclear_repulsion' : 18.7699049556625,     
+ },
+ 'CN.ezfio' : {
+  'nuclear_repulsion' : 18.9297712784260,     
+ },
+ 'CO2.ezfio' : {
+  'nuclear_repulsion' : 57.9325075880944,     
+ },
+ 'CO.ezfio' : {
+  'nuclear_repulsion' : 22.3222672923807,     
+ },
+ 'CO+.ezfio' : {
+  'nuclear_repulsion' : 22.6466725677603,     
+ },
+ 'COS.ezfio' : {
+  'nuclear_repulsion' : 78.7901165097457,     
+ },
+ 'CP.ezfio' : {
+  'nuclear_repulsion' : 30.4260859962946,     
+ },
+ 'CS2.ezfio' : {
+  'nuclear_repulsion' : 108.326970112590,     
+ },
+ 'CS.ezfio' : {
+  'nuclear_repulsion' : 32.8256758232101,     
+ },
+ 'CS+.ezfio' : {
+  'nuclear_repulsion' : 33.8921982146908,     
+ },
+ 'CSi.ezfio' : {
+  'nuclear_repulsion' : 25.7895619145973,     
+ },
+ 'F2.ezfio' : {
+  'nuclear_repulsion' : 30.5425090273621,     
+ },
+ 'FAl.ezfio' : {
+  'nuclear_repulsion' : 37.1118732440209,     
+ },
+ 'FCl.ezfio' : {
+  'nuclear_repulsion' : 48.6475509805924,     
+ },
+ 'FCl+.ezfio' : {
+  'nuclear_repulsion' : 51.4809684599733,     
+ },
+ 'F-.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'F.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'F+.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'FH.ezfio' : {
+  'nuclear_repulsion' : 5.10023050010709,     
+ },
+ 'FH+.ezfio' : {
+  'nuclear_repulsion' : 4.60777403347523,     
+ },
+ 'FMg.ezfio' : {
+  'nuclear_repulsion' : 32.6186535540209,     
+ },
+ 'FNa.ezfio' : {
+  'nuclear_repulsion' : 27.6953624714527,     
+ },
+ 'FP.ezfio' : {
+  'nuclear_repulsion' : 44.1498575274349,     
+ },
+ 'FS.ezfio' : {
+  'nuclear_repulsion' : 46.7809711191602,     
+ },
+ 'FSi.ezfio' : {
+  'nuclear_repulsion' : 41.0038333275936,     
+ },
+ 'FSiH3.ezfio' : {
+  'nuclear_repulsion' : 62.6114418264995,     
+ },
+ 'H2CNH.ezfio' : {
+  'nuclear_repulsion' : 32.8526344177161,     
+ },
+ 'H2CO.ezfio' : {
+  'nuclear_repulsion' : 31.2229935058079,     
+ },
+ 'H2CPH.ezfio' : {
+  'nuclear_repulsion' : 48.3421802716313,     
+ },
+ 'H2CS.ezfio' : {
+  'nuclear_repulsion' : 44.5767854484600,     
+ },
+ 'H2.ezfio' : {
+  'nuclear_repulsion' : 0.712408789714593,     
+ },
+ 'H2NNH2.ezfio' : {
+  'nuclear_repulsion' : 41.4249939574431,     
+ },
+ 'H2PPH2.ezfio' : {
+  'nuclear_repulsion' : 87.6585134562217,     
+ },
+ 'H3CCl.ezfio' : {
+  'nuclear_repulsion' : 50.8666776054764,     
+ },
+ 'H3CF.ezfio' : {
+  'nuclear_repulsion' : 37.2593143737816,     
+ },
+ 'H3CNH2.ezfio' : {
+  'nuclear_repulsion' : 41.8963874719951,     
+ },
+ 'H3COH.ezfio' : {
+  'nuclear_repulsion' : 40.2232086572262,     
+ },
+ 'H3CSH.ezfio' : {
+  'nuclear_repulsion' : 55.8675881504883,     
+ },
+ 'H3SiSiH3.ezfio' : {
+  'nuclear_repulsion' : 90.4359603586041,     
+ },
+ 'HBO.ezfio' : {
+  'nuclear_repulsion' : 21.5991527268018,     
+ },
+ 'HBS.ezfio' : {
+  'nuclear_repulsion' : 31.3399059598771,     
+ },
+ 'HCF.ezfio' : {
+  'nuclear_repulsion' : 27.0123026654602,     
+ },
+ 'HCN.ezfio' : {
+  'nuclear_repulsion' : 23.8384676747563,     
+ },
+ 'HCO.ezfio' : {
+  'nuclear_repulsion' : 26.3686844796402,     
+ },
+ 'HCP.ezfio' : {
+  'nuclear_repulsion' : 36.8574419611040,     
+ },
+ 'H.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'HNO.ezfio' : {
+  'nuclear_repulsion' : 30.2952957776046,     
+ },
+ 'HOCl.ezfio' : {
+  'nuclear_repulsion' : 50.1505535042340,     
+ },
+ 'HOF.ezfio' : {
+  'nuclear_repulsion' : 33.4838543459643,     
+ },
+ 'HOMg.ezfio' : {
+  'nuclear_repulsion' : 34.8178282640639,     
+ },
+ 'HONa.ezfio' : {
+  'nuclear_repulsion' : 30.1010353429222,     
+ },
+ 'HOO.ezfio' : {
+  'nuclear_repulsion' : 32.0229599958311,     
+ },
+ 'HOOH.ezfio' : {
+  'nuclear_repulsion' : 36.6750623000048,     
+ },
+ 'HSSH.ezfio' : {
+  'nuclear_repulsion' : 83.5895729800440,     
+ },
+ 'Li2.ezfio' : {
+  'nuclear_repulsion' : 1.74902506096217,     
+ },
+ 'LiCl.ezfio' : {
+  'nuclear_repulsion' : 13.1379805758933,     
+ },
+ 'Li.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'Li+.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'LiF.ezfio' : {
+  'nuclear_repulsion' : 9.21020158770064,     
+ },
+ 'LiH.ezfio' : {
+  'nuclear_repulsion' : 0.979051339500463,     
+ },
+ 'LiN.ezfio' : {
+  'nuclear_repulsion' : 5.88659933732387,     
+ },
+ 'LiO.ezfio' : {
+  'nuclear_repulsion' : 7.93170995253560,     
+ },
+ 'LiOH.ezfio' : {
+  'nuclear_repulsion' : 13.0547027859191,     
+ },
+ 'MgCl.ezfio' : {
+  'nuclear_repulsion' : 48.2403069067834,     
+ },
+ 'Mg.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'Mg+.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'MgH.ezfio' : {
+  'nuclear_repulsion' : 3.61851215909738,     
+ },
+ 'MgS.ezfio' : {
+  'nuclear_repulsion' : 46.9879442297553,     
+ },
+ 'N2.ezfio' : {
+  'nuclear_repulsion' : 23.4530437780391,     
+ },
+ 'N2+.ezfio' : {
+  'nuclear_repulsion' : 23.2136841548791,     
+ },
+ 'Na2.ezfio' : {
+  'nuclear_repulsion' : 21.0765132090191,     
+ },
+ 'NaCl.ezfio' : {
+  'nuclear_repulsion' : 41.6482094120370,     
+ },
+ 'Na.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'Na+.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'NaH.ezfio' : {
+  'nuclear_repulsion' : 3.08918417396381,     
+ },
+ 'N.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'N+.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'NF.ezfio' : {
+  'nuclear_repulsion' : 25.1988975722618,     
+ },
+ 'NH2-.ezfio' : {
+  'nuclear_repulsion' : 7.37988583449242,     
+ },
+ 'NH2.ezfio' : {
+  'nuclear_repulsion' : 7.49158056474290,     
+ },
+ 'NH3.ezfio' : {
+  'nuclear_repulsion' : 11.8776194840762,     
+ },
+ 'NH3+.ezfio' : {
+  'nuclear_repulsion' : 11.6891164726197,     
+ },
+ 'NH4+.ezfio' : {
+  'nuclear_repulsion' : 16.2832441933528,     
+ },
+ 'NH-.ezfio' : {
+  'nuclear_repulsion' : 3.46352246795468,     
+ },
+ 'NH.ezfio' : {
+  'nuclear_repulsion' : 3.53491478966047,     
+ },
+ 'NO-.ezfio' : {
+  'nuclear_repulsion' : 23.1696058983581,     
+ },
+ 'NO.ezfio' : {
+  'nuclear_repulsion' : 25.5751496884440,     
+ },
+ 'NP.ezfio' : {
+  'nuclear_repulsion' : 37.1737546965946,     
+ },
+ 'NS.ezfio' : {
+  'nuclear_repulsion' : 39.1258594454714,     
+ },
+ 'NSi.ezfio' : {
+  'nuclear_repulsion' : 32.8744027904913,     
+ },
+ 'O2Cl.ezfio' : {
+  'nuclear_repulsion' : 83.1888331915541,     
+ },
+ 'O2-.ezfio' : {
+  'nuclear_repulsion' : 25.0275967602720,     
+ },
+ 'O2.ezfio' : {
+  'nuclear_repulsion' : 27.8881290645586,     
+ },
+ 'O2+.ezfio' : {
+  'nuclear_repulsion' : 30.2009487569110,     
+ },
+ 'O2S.ezfio' : {
+  'nuclear_repulsion' : 105.966344294996,     
+ },
+ 'O2Si.ezfio' : {
+  'nuclear_repulsion' : 89.1421831572021,     
+ },
+ 'O3.ezfio' : {
+  'nuclear_repulsion' : 69.2054446317490,     
+ },
+ 'OCl.ezfio' : {
+  'nuclear_repulsion' : 44.4412164159565,     
+ },
+ 'O-.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'O.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'O+.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'OH2.ezfio' : {
+  'nuclear_repulsion' : 9.08812764915992,     
+ },
+ 'OH2+.ezfio' : {
+  'nuclear_repulsion' : 8.67914117846125,     
+ },
+ 'OH3+.ezfio' : {
+  'nuclear_repulsion' : 13.8203831495370,     
+ },
+ 'OH-.ezfio' : {
+  'nuclear_repulsion' : 4.28743973263115,     
+ },
+ 'OH.ezfio' : {
+  'nuclear_repulsion' : 4.30619264774692,     
+ },
+ 'OH+.ezfio' : {
+  'nuclear_repulsion' : 4.05538652361337,     
+ },
+ 'OMg.ezfio' : {
+  'nuclear_repulsion' : 29.1290228807339,     
+ },
+ 'ONa.ezfio' : {
+  'nuclear_repulsion' : 24.2299796617930,     
+ },
+ 'OP-.ezfio' : {
+  'nuclear_repulsion' : 40.2926839340101,     
+ },
+ 'OP.ezfio' : {
+  'nuclear_repulsion' : 42.3709013678521,     
+ },
+ 'OPH.ezfio' : {
+  'nuclear_repulsion' : 49.5192670477820,     
+ },
+ 'OS.ezfio' : {
+  'nuclear_repulsion' : 44.6298266271331,     
+ },
+ 'OSi.ezfio' : {
+  'nuclear_repulsion' : 38.8896665931759,     
+ },
+ 'P2.ezfio' : {
+  'nuclear_repulsion' : 62.5209415170132,     
+ },
+ 'P2+.ezfio' : {
+  'nuclear_repulsion' : 59.7235558913523,     
+ },
+ 'PCl.ezfio' : {
+  'nuclear_repulsion' : 65.5685777096318,     
+ },
+ 'P-.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'P.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'PH2-.ezfio' : {
+  'nuclear_repulsion' : 11.2125109434306,     
+ },
+ 'PH2.ezfio' : {
+  'nuclear_repulsion' : 11.3529998087909,     
+ },
+ 'PH2+.ezfio' : {
+  'nuclear_repulsion' : 11.3634058723972,     
+ },
+ 'PH3.ezfio' : {
+  'nuclear_repulsion' : 17.4847408945864,     
+ },
+ 'PH3+.ezfio' : {
+  'nuclear_repulsion' : 17.6302277906348,     
+ },
+ 'PH4+.ezfio' : {
+  'nuclear_repulsion' : 24.0705173140351,     
+ },
+ 'PH-.ezfio' : {
+  'nuclear_repulsion' : 5.44345994482242,     
+ },
+ 'PH.ezfio' : {
+  'nuclear_repulsion' : 5.52415528916417,     
+ },
+ 'PS.ezfio' : {
+  'nuclear_repulsion' : 66.0508319950073,     
+ },
+ 'S2-.ezfio' : {
+  'nuclear_repulsion' : 66.0826223141463,     
+ },
+ 'S2.ezfio' : {
+  'nuclear_repulsion' : 70.2933664092984,     
+ },
+ 'S-.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'S.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'S+.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'SH2.ezfio' : {
+  'nuclear_repulsion' : 12.8178620449752,     
+ },
+ 'SH2+.ezfio' : {
+  'nuclear_repulsion' : 12.6814071084466,     
+ },
+ 'SH3+.ezfio' : {
+  'nuclear_repulsion' : 19.5008720939354,     
+ },
+ 'SH-.ezfio' : {
+  'nuclear_repulsion' : 6.21419154788991,     
+ },
+ 'SH.ezfio' : {
+  'nuclear_repulsion' : 6.24766527744982,     
+ },
+ 'SH+.ezfio' : {
+  'nuclear_repulsion' : 6.17476369894983,     
+ },
+ 'Si2.ezfio' : {
+  'nuclear_repulsion' : 45.3593723449663,     
+ },
+ 'SiCl.ezfio' : {
+  'nuclear_repulsion' : 59.8736321663893,     
+ },
+ 'Si-.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'Si.ezfio' : {
+  'nuclear_repulsion' : 0.000000000000000E+000,
+ },
+ 'SiH2_1A1.ezfio' : {
+  'nuclear_repulsion' : 9.92236128177220,     
+ },
+ 'SiH2_3B1.ezfio' : {
+  'nuclear_repulsion' : 10.1391270956583,     
+ },
+ 'SiH2-.ezfio' : {
+  'nuclear_repulsion' : 9.71788680410726,     
+ },
+ 'SiH3-.ezfio' : {
+  'nuclear_repulsion' : 15.0218899988203,     
+ },
+ 'SiH3.ezfio' : {
+  'nuclear_repulsion' : 15.5736853749834,     
+ },
+ 'SiH4.ezfio' : {
+  'nuclear_repulsion' : 21.2515556411778,     
+ },
+ 'SiH4+.ezfio' : {
+  'nuclear_repulsion' : 21.0340344792186,     
+ },
+ 'SiH-.ezfio' : {
+  'nuclear_repulsion' : 4.70678620457433,     
+ },
+ 'SiH.ezfio' : {
+  'nuclear_repulsion' : 4.81320262863825,     
+ },
+ 'SiS.ezfio' : {
+  'nuclear_repulsion' : 60.7345922918481,     
+ },
+}

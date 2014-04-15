@@ -2,6 +2,10 @@
 Nuclei Module
 =============
 
+This module contains data relative to the nuclei (coordinates, charge,
+nuclear repulsion energy, etc).
+The coordinates are expressed in atomic units.
+
 Needed Modules
 ==============
 
@@ -10,4 +14,5 @@ Needed Modules
 
 * `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
+* `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
 

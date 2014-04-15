@@ -3,4 +3,4 @@ all: inputs
 FORCE:
 
 inputs: FORCE
-	$(MAKE) -C inputs
+	cd inputs ; $(MAKE) all_ezfio
