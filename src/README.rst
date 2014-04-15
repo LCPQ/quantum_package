@@ -117,4 +117,5 @@ Needed Modules
 * `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
 * `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
+* `Hartree-fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree-fock>`_
 
