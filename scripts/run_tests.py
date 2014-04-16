@@ -1,16 +1,22 @@
 #!/usr/bin/python
 
 import sys,os
+import subprocess
+
+DEBUG=False
+
 
 def run_test(test_name,inp):
   command = './'+test_name+" ${QPACKAGE_ROOT}/data/inputs/"+inp
-  result = subprocess.check_output(command, shell=True)
+  try:
+    result = subprocess.check_output(command, shell=True)
+  except:
+    result = sys.exc_info()[0]
   return result
 
 if __name__ == '__main__':
 
     import unittest
-    import subprocess
     from math import *
     
     from multiprocessing import Pool
@@ -21,7 +27,7 @@ if __name__ == '__main__':
       nproc = int(subprocess.check_output("cat /proc/cpuinfo | grep processor | wc -l", shell=True))
     except:
       nproc=4
-    
+
     testfiles = []
     for f in os.listdir(os.getcwd()):
       if f.endswith('.irp.f'):
@@ -33,7 +39,7 @@ if __name__ == '__main__':
     template = """
 class $test(unittest.TestCase):
     
-    default_precision = 1.e-10
+    default_precision = 10
 
     execfile('$test.ref')
 
@@ -41,12 +47,16 @@ class $test(unittest.TestCase):
     tasks = {}
 
     def setUp(self):
+       if DEBUG: return
        for d in self.data.keys():
          if d not in self.tasks:
            self.tasks[d] = pool.apply_async(run_test, [self.name, d])
 
     def _test_input(self,inp):
-       output = self.tasks[inp].get()
+       if DEBUG:
+         output = run_test(self.name,inp)
+       else:
+         output = self.tasks[inp].get()
        for line in output.splitlines():
           buffer = line.split(':')
           if len(buffer) == 1:
@@ -59,7 +69,8 @@ class $test(unittest.TestCase):
             precision = self.default_precision
           if type(r) == float:
             self.assertAlmostEqual(self.data[inp][l], r, 
-              places=abs(int(log10(precision*max(abs(self.data[inp][l]),1.e-12)))), msg=None)
+              places=precision, msg=None)
+             #places=abs(int(log10(precision*max(abs(self.data[inp][l]),1.e-12)))), msg=None)
           else:
             self.assertEqual(self.data[inp][l], r, msg=None)
 

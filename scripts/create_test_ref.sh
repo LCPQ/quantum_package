@@ -40,7 +40,14 @@ printf "Running tests...."
 for dir in ${QPACKAGE_ROOT}/data/inputs/*.ezfio
 do
   printf " '%s' : {\n " $(basename ${dir})
-  ./${TEST_EXE} ${dir} | sed "s/\([^ ]*\) *\(:\) *\([^ ]*\)/'\1' : \3,/g"
+  OMP_NUM_THREADS=1 python << EOF
+import subprocess
+lines = subprocess.check_output("./${TEST_EXE} ${dir}", shell=True)
+for line in lines.splitlines():
+  buffer = line.split(':')
+  print "'%s' : %s,"%(buffer[0].strip(), buffer[1].strip())
+EOF
+# sed "s/ \(.*\) *\(:\) *\([^ ]*\)/'\1' : \3,/g"
   printf " },\n"
 done >> ${REF_FILE}
 printf "}\n" >> ${REF_FILE}

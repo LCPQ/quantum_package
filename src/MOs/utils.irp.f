@@ -44,5 +44,5 @@ subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label)
   deallocate(mo_coef_new,R,eigvalues)
   
   mo_label = label
-  SOFT_TOUCH mo_coef
+  SOFT_TOUCH mo_coef mo_label
 end

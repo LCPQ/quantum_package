@@ -1,3 +1,18 @@
+BEGIN_PROVIDER [ logical, all_utils ]
+ implicit none
+ BEGIN_DOC
+ ! Dummy provider to provide all utils
+ END_DOC
+! Do not move this : it greps itself
+BEGIN_SHELL [ /bin/bash ]
+  for i in $(grep "BEGIN_PROVIDER" $QPACKAGE_ROOT/src/Utils/*.irp.f | cut -d ',' -f 2 | cut -d ']' -f 1 | tail --lines=+3 )
+  do
+    echo PROVIDE $i
+  done
+END_SHELL
+
+END_PROVIDER
+
 double precision function binom_func(i,j)
   implicit none
   BEGIN_DOC
@@ -162,7 +177,6 @@ BEGIN_PROVIDER [ double precision, inv_int, (128) ]
   do i=1,size(inv_int)
     inv_int(i) = 1.d0/dble(i)
   enddo
-  
 END_PROVIDER
 
 subroutine wall_time(t)
