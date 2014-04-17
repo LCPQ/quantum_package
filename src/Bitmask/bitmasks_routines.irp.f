@@ -59,36 +59,59 @@ subroutine list_to_bitstring( string, list, n_elements, Nint)
 end
 
 
-subroutine write_bitstring( iunit, string, Nint )
+subroutine bitstring_to_str( output, string, Nint )
+  use bitmasks
   implicit none
-   use bitmasks
-  integer, intent(in)            :: iunit
+  BEGIN_DOC
+! Transform a bit string to a string for printing
+  END_DOC
+  character*(*), intent(out)     :: output
   integer, intent(in)            :: Nint
   integer(bit_kind), intent(in)  :: string(Nint)
   
   integer                        :: i, j, ibuf
   integer(bit_kind)              :: itemp
-  character*(1)                  :: buffer(Nint*bit_kind_size+2)
   
   ibuf = 1
-  buffer(ibuf) = '|'
+  output = ''
+  output(ibuf:ibuf) = '|'
   ibuf = ibuf+1
   do i=1,Nint
     itemp = 1_bit_kind
     do j=1,bit_kind_size
       if (iand(itemp,string(i)) == itemp) then
-        buffer(ibuf) = '+'
+        output(ibuf:ibuf) = '+'
       else
-        buffer(ibuf) = '-'
+        output(ibuf:ibuf) = '-'
       endif
       ibuf = ibuf+1
       itemp = ishft(itemp,1)
     enddo
   enddo
-  buffer(ibuf) = '|'
-  write(iunit,'(100A)') buffer(1:ibuf)
-  
+  output(ibuf:ibuf) = '|'
 end
 
 
-
+subroutine bitstring_to_hexa( output, string, Nint )
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Transform a bit string to a string in hexadecimal format for printing
+  END_DOC
+  character*(*), intent(out)     :: output
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: string(Nint)
+  integer                        :: i, j, ibuf
+  integer(bit_kind)              :: itemp
+  character*(32)                 :: f
+  
+  write(f,*) '(Z',bit_kind_size/4,'.',bit_kind_size/4,')'
+  ibuf = 0
+  output = ''
+  do i=Nint,1,-1
+    ibuf = ibuf+1
+    write(output(ibuf:ibuf+bit_kind_size/4),f) string(i)
+  enddo
+end
+  
+  
