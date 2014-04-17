@@ -3,11 +3,12 @@ BiInts Module
 =============
 
 Here, all bi-electronic integrals (:math:`1/r_{12}`) are computed. As they have
-4 indices and many are zero, they are stored in a map.
-To fetch an AO integral, use the ``get_ao_bielec_integral(i,j,k,l,ao_integrals_map)``
+4 indices and many are zero, they are stored in a map, as defined in
+``Utils/map_module.f90``.  To fetch an AO integral, use the
+``get_ao_bielec_integral(i,j,k,l,ao_integrals_map)`` function, and to fetch and
+MO integral, use ``get_mo_bielec_integral(i,j,k,l,mo_integrals_map)`` or
+``mo_bielec_integral(i,j,k,l)``.
 
-function, and to fetch and MO integral, use
-.
 
 Needed Modules
 ==============

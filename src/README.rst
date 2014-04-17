@@ -91,7 +91,12 @@ subroutines or functions. This enables the possibility easily use the programs
 with pipes.
 
 To print, you should write in an output file provided by the ``Output``
-module.
+module. Every module has its own output file. Before printing something,
+a timestamp should be put in the output with the ``write_time`` function.
+This allows an external script to read all the pieces of the output files
+and put them in a sequential order. The format of the output should be
+in ReStructured Text for easy transformation of the output data to pdf,
+HTML, man, etc.
 
 
 Creating a shell script
