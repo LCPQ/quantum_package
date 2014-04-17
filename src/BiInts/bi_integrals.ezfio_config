@@ -1,0 +1,8 @@
+bielec_integrals
+  read_ao_integrals   logical
+  read_mo_integrals   logical
+  write_ao_integrals   logical
+  write_mo_integrals   logical
+  threshold_ao        double precision
+  threshold_mo        double precision
+

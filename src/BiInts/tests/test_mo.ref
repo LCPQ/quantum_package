@@ -1,0 +1,846 @@
+data = {
+  'AlCl.ezfio' : {
+ 'closed EE 1' : 324.604108318567,
+'closed EE 2' : 324.604108318567,
+ },
+ 'Al.ezfio' : {
+ 'closed EE 1' : 90.6007174995339,
+'closed EE 2' : 90.6007174995339,
+ },
+ 'Al+.ezfio' : {
+ 'closed EE 1' : 91.1277124469289,
+'closed EE 2' : 91.1277124469289,
+ },
+ 'AlH2.ezfio' : {
+ 'closed EE 1' : 98.3932867799503,
+'closed EE 2' : 98.3932867799503,
+ },
+ 'AlH3.ezfio' : {
+ 'closed EE 1' : 108.322607071765,
+'closed EE 2' : 108.322607071765,
+ },
+ 'AlH.ezfio' : {
+ 'closed EE 1' : 98.9361676259577,
+'closed EE 2' : 98.9361676259577,
+ },
+ 'BCl.ezfio' : {
+ 'closed EE 1' : 208.669206621826,
+'closed EE 2' : 208.669206621826,
+ },
+ 'BeCl.ezfio' : {
+ 'closed EE 1' : 195.478154262549,
+'closed EE 2' : 195.478154262549,
+ },
+ 'Be.ezfio' : {
+ 'closed EE 1' : 4.48960803917240,
+'closed EE 2' : 4.48960803917240,
+ },
+ 'Be+.ezfio' : {
+ 'closed EE 1' : 2.27296598314244,
+'closed EE 2' : 2.27296598314244,
+ },
+ 'BeF.ezfio' : {
+ 'closed EE 1' : 55.2667378076567,
+'closed EE 2' : 55.2667378076567,
+ },
+ 'BeH2.ezfio' : {
+ 'closed EE 1' : 7.91863331588170,
+'closed EE 2' : 7.91863331588170,
+ },
+ 'BeH.ezfio' : {
+ 'closed EE 1' : 4.60494282657902,
+'closed EE 2' : 4.60494282657902,
+ },
+ 'BeO.ezfio' : {
+ 'closed EE 1' : 47.0178059698967,
+'closed EE 2' : 47.0178059698967,
+ },
+ 'BeOH.ezfio' : {
+ 'closed EE 1' : 47.4095700462092,
+'closed EE 2' : 47.4095700462092,
+ },
+ 'BeS.ezfio' : {
+ 'closed EE 1' : 177.044582851287,
+'closed EE 2' : 177.044582851287,
+ },
+ 'B.ezfio' : {
+ 'closed EE 1' : 5.87051480040891,
+'closed EE 2' : 5.87051480040891,
+ },
+ 'B+.ezfio' : {
+ 'closed EE 1' : 6.08872058329241,
+'closed EE 2' : 6.08872058329241,
+ },
+ 'BH2.ezfio' : {
+ 'closed EE 1' : 9.82092714954701,
+'closed EE 2' : 9.82092714954701,
+ },
+ 'BH3.ezfio' : {
+ 'closed EE 1' : 15.1738039588984,
+'closed EE 2' : 15.1738039588984,
+ },
+ 'BH.ezfio' : {
+ 'closed EE 1' : 9.89523045878027,
+'closed EE 2' : 9.89523045878027,
+ },
+ 'BO.ezfio' : {
+ 'closed EE 1' : 49.5244841428460,
+'closed EE 2' : 49.5244841428460,
+ },
+ 'BS.ezfio' : {
+ 'closed EE 1' : 179.847811135927,
+'closed EE 2' : 179.847811135927,
+ },
+ 'C2.ezfio' : {
+ 'closed EE 1' : 40.1266484535661,
+'closed EE 2' : 40.1266484535661,
+ },
+ 'C2H2.ezfio' : {
+ 'closed EE 1' : 50.0072453359780,
+'closed EE 2' : 50.0072453359780,
+ },
+ 'C2H2+.ezfio' : {
+ 'closed EE 1' : 38.8813663363468,
+'closed EE 2' : 38.8813663363468,
+ },
+ 'C2H3.ezfio' : {
+ 'closed EE 1' : 47.7960364243417,
+'closed EE 2' : 47.7960364243417,
+ },
+ 'C2H3+.ezfio' : {
+ 'closed EE 1' : 49.4483058762631,
+'closed EE 2' : 49.4483058762631,
+ },
+ 'C2H4.ezfio' : {
+ 'closed EE 1' : 58.5930731008834,
+'closed EE 2' : 58.5930731008834,
+ },
+ 'C2H4+.ezfio' : {
+ 'closed EE 1' : 46.8050385693024,
+'closed EE 2' : 46.8050385693024,
+ },
+ 'C2H5.ezfio' : {
+ 'closed EE 1' : 55.8648362479812,
+'closed EE 2' : 55.8648362479812,
+ },
+ 'C2H6.ezfio' : {
+ 'closed EE 1' : 67.4231505770701,
+'closed EE 2' : 67.4231505770701,
+ },
+ 'C2H.ezfio' : {
+ 'closed EE 1' : 39.7941997946625,
+'closed EE 2' : 39.7941997946625,
+ },
+ 'CCl.ezfio' : {
+ 'closed EE 1' : 211.332787485635,
+'closed EE 2' : 211.332787485635,
+ },
+ 'C-.ezfio' : {
+ 'closed EE 1' : 7.05668474724391,
+'closed EE 2' : 7.05668474724391,
+ },
+ 'C.ezfio' : {
+ 'closed EE 1' : 7.22275234701424,
+'closed EE 2' : 7.22275234701424,
+ },
+ 'C+.ezfio' : {
+ 'closed EE 1' : 7.43316493990123,
+'closed EE 2' : 7.43316493990123,
+ },
+ 'CF.ezfio' : {
+ 'closed EE 1' : 67.5749607457798,
+'closed EE 2' : 67.5749607457798,
+ },
+ 'CH2_1A1.ezfio' : {
+ 'closed EE 1' : 18.6032101860148,
+'closed EE 2' : 18.6032101860148,
+ },
+ 'CH2_3B1.ezfio' : {
+ 'closed EE 1' : 11.7811748791077,
+'closed EE 2' : 11.7811748791077,
+ },
+ 'CH2-.ezfio' : {
+ 'closed EE 1' : 17.4224231187863,
+'closed EE 2' : 17.4224231187863,
+ },
+ 'CH3-.ezfio' : {
+ 'closed EE 1' : 25.0349104359763,
+'closed EE 2' : 25.0349104359763,
+ },
+ 'CH3.ezfio' : {
+ 'closed EE 1' : 18.1595297280646,
+'closed EE 2' : 18.1595297280646,
+ },
+ 'CH4.ezfio' : {
+ 'closed EE 1' : 26.0266830207216,
+'closed EE 2' : 26.0266830207216,
+ },
+ 'CH4+.ezfio' : {
+ 'closed EE 1' : 18.4285252097398,
+'closed EE 2' : 18.4285252097398,
+ },
+ 'CH-.ezfio' : {
+ 'closed EE 1' : 11.4343449775700,
+'closed EE 2' : 11.4343449775700,
+ },
+ 'CH.ezfio' : {
+ 'closed EE 1' : 12.0838764958443,
+'closed EE 2' : 12.0838764958443,
+ },
+ 'Cl2-.ezfio' : {
+ 'closed EE 1' : 402.671444472536,
+'closed EE 2' : 402.671444472536,
+ },
+ 'Cl2.ezfio' : {
+ 'closed EE 1' : 425.050531461454,
+'closed EE 2' : 425.050531461454,
+ },
+ 'Cl2+.ezfio' : {
+ 'closed EE 1' : 403.762363169362,
+'closed EE 2' : 403.762363169362,
+ },
+ 'Cl-.ezfio' : {
+ 'closed EE 1' : 182.327075272228,
+'closed EE 2' : 182.327075272228,
+ },
+ 'Cl.ezfio' : {
+ 'closed EE 1' : 165.731725346204,
+'closed EE 2' : 165.731725346204,
+ },
+ 'Cl+.ezfio' : {
+ 'closed EE 1' : 149.193201694481,
+'closed EE 2' : 149.193201694481,
+ },
+ 'ClH2+.ezfio' : {
+ 'closed EE 1' : 182.780324107490,
+'closed EE 2' : 182.780324107490,
+ },
+ 'ClH.ezfio' : {
+ 'closed EE 1' : 182.691147725717,
+'closed EE 2' : 182.691147725717,
+ },
+ 'ClH+.ezfio' : {
+ 'closed EE 1' : 165.325459132812,
+'closed EE 2' : 165.325459132812,
+ },
+ 'ClS.ezfio' : {
+ 'closed EE 1' : 385.435861712905,
+'closed EE 2' : 385.435861712905,
+ },
+ 'ClSiH3.ezfio' : {
+ 'closed EE 1' : 372.487466205289,
+'closed EE 2' : 372.487466205289,
+ },
+ 'CN-.ezfio' : {
+ 'closed EE 1' : 55.3766122391237,
+'closed EE 2' : 55.3766122391237,
+ },
+ 'CN.ezfio' : {
+ 'closed EE 1' : 45.1366654659749,
+'closed EE 2' : 45.1366654659749,
+ },
+ 'CO2.ezfio' : {
+ 'closed EE 1' : 126.003917383945,
+'closed EE 2' : 126.003917383945,
+ },
+ 'CO.ezfio' : {
+ 'closed EE 1' : 62.7345020629198,
+'closed EE 2' : 62.7345020629198,
+ },
+ 'CO+.ezfio' : {
+ 'closed EE 1' : 52.0257806106742,
+'closed EE 2' : 52.0257806106742,
+ },
+ 'COS.ezfio' : {
+ 'closed EE 1' : 270.518850152602,
+'closed EE 2' : 270.518850152602,
+ },
+ 'CP.ezfio' : {
+ 'closed EE 1' : 165.996004819480,
+'closed EE 2' : 165.996004819480,
+ },
+ 'CS2.ezfio' : {
+ 'closed EE 1' : 423.926547892897,
+'closed EE 2' : 423.926547892897,
+ },
+ 'CS.ezfio' : {
+ 'closed EE 1' : 196.955019712066,
+'closed EE 2' : 196.955019712066,
+ },
+ 'CS+.ezfio' : {
+ 'closed EE 1' : 183.101079356045,
+'closed EE 2' : 183.101079356045,
+ },
+ 'CSi.ezfio' : {
+ 'closed EE 1' : 136.339370158432,
+'closed EE 2' : 136.339370158432,
+ },
+ 'F2.ezfio' : {
+ 'closed EE 1' : 109.589586860957,
+'closed EE 2' : 109.589586860957,
+ },
+ 'FAl.ezfio' : {
+ 'closed EE 1' : 172.329074560241,
+'closed EE 2' : 172.329074560241,
+ },
+ 'FCl.ezfio' : {
+ 'closed EE 1' : 263.250821798940,
+'closed EE 2' : 263.250821798940,
+ },
+ 'FCl+.ezfio' : {
+ 'closed EE 1' : 243.398671131879,
+'closed EE 2' : 243.398671131879,
+ },
+ 'F-.ezfio' : {
+ 'closed EE 1' : 45.5127217885110,
+'closed EE 2' : 45.5127217885110,
+ },
+ 'F.ezfio' : {
+ 'closed EE 1' : 32.5100994559105,
+'closed EE 2' : 32.5100994559105,
+ },
+ 'F+.ezfio' : {
+ 'closed EE 1' : 21.0616333765295,
+'closed EE 2' : 21.0616333765295,
+ },
+ 'FH.ezfio' : {
+ 'closed EE 1' : 45.4165968585922,
+'closed EE 2' : 45.4165968585922,
+ },
+ 'FH+.ezfio' : {
+ 'closed EE 1' : 32.0966404042882,
+'closed EE 2' : 32.0966404042882,
+ },
+ 'FMg.ezfio' : {
+ 'closed EE 1' : 147.723081703366,
+'closed EE 2' : 147.723081703366,
+ },
+ 'FNa.ezfio' : {
+ 'closed EE 1' : 136.229809908309,
+'closed EE 2' : 136.229809908309,
+ },
+ 'FP.ezfio' : {
+ 'closed EE 1' : 195.769918393858,
+'closed EE 2' : 195.769918393858,
+ },
+ 'FS.ezfio' : {
+ 'closed EE 1' : 226.988766049930,
+'closed EE 2' : 226.988766049930,
+ },
+ 'FSi.ezfio' : {
+ 'closed EE 1' : 184.557018579786,
+'closed EE 2' : 184.557018579786,
+ },
+ 'FSiH3.ezfio' : {
+ 'closed EE 1' : 213.848410787899,
+'closed EE 2' : 213.848410787899,
+ },
+ 'H2CNH.ezfio' : {
+ 'closed EE 1' : 64.8118892917432,
+'closed EE 2' : 64.8118892917432,
+ },
+ 'H2CO.ezfio' : {
+ 'closed EE 1' : 72.1212876559760,
+'closed EE 2' : 72.1212876559760,
+ },
+ 'H2CPH.ezfio' : {
+ 'closed EE 1' : 191.727599087985,
+'closed EE 2' : 191.727599087985,
+ },
+ 'H2CS.ezfio' : {
+ 'closed EE 1' : 209.231104868214,
+'closed EE 2' : 209.231104868214,
+ },
+ 'H2.ezfio' : {
+ 'closed EE 1' : 0.658003361873990,
+'closed EE 2' : 0.658003361873990,
+ },
+ 'H2NNH2.ezfio' : {
+ 'closed EE 1' : 80.4177432036452,
+'closed EE 2' : 80.4177432036452,
+ },
+ 'H2PPH2.ezfio' : {
+ 'closed EE 1' : 348.965444263036,
+'closed EE 2' : 348.965444263036,
+ },
+ 'H3CCl.ezfio' : {
+ 'closed EE 1' : 239.272625318642,
+'closed EE 2' : 239.272625318642,
+ },
+ 'H3CF.ezfio' : {
+ 'closed EE 1' : 89.9110566746969,
+'closed EE 2' : 89.9110566746969,
+ },
+ 'H3CNH2.ezfio' : {
+ 'closed EE 1' : 74.0553942748957,
+'closed EE 2' : 74.0553942748957,
+ },
+ 'H3COH.ezfio' : {
+ 'closed EE 1' : 81.4464317182977,
+'closed EE 2' : 81.4464317182977,
+ },
+ 'H3CSH.ezfio' : {
+ 'closed EE 1' : 220.631290723648,
+'closed EE 2' : 220.631290723648,
+ },
+ 'H3SiSiH3.ezfio' : {
+ 'closed EE 1' : 313.726268238800,
+'closed EE 2' : 313.726268238800,
+ },
+ 'HBO.ezfio' : {
+ 'closed EE 1' : 58.0559325869888,
+'closed EE 2' : 58.0559325869888,
+ },
+ 'HBS.ezfio' : {
+ 'closed EE 1' : 191.322628710909,
+'closed EE 2' : 191.322628710909,
+ },
+ 'HCF.ezfio' : {
+ 'closed EE 1' : 79.0947411389797,
+'closed EE 2' : 79.0947411389797,
+ },
+ 'HCN.ezfio' : {
+ 'closed EE 1' : 55.7130916664010,
+'closed EE 2' : 55.7130916664010,
+ },
+ 'HCO.ezfio' : {
+ 'closed EE 1' : 60.6786870182187,
+'closed EE 2' : 60.6786870182187,
+ },
+ 'HCP.ezfio' : {
+ 'closed EE 1' : 180.296919079404,
+'closed EE 2' : 180.296919079404,
+ },
+ 'H.ezfio' : {
+ 'closed EE 1' : 0.000000000000000E+000,
+'closed EE 2' : 0.000000000000000E+000,
+ },
+ 'HNO.ezfio' : {
+ 'closed EE 1' : 77.5573550103421,
+'closed EE 2' : 77.5573550103421,
+ },
+ 'HOCl.ezfio' : {
+ 'closed EE 1' : 253.799452346657,
+'closed EE 2' : 253.799452346657,
+ },
+ 'HOF.ezfio' : {
+ 'closed EE 1' : 101.663005370608,
+'closed EE 2' : 101.663005370608,
+ },
+ 'HOMg.ezfio' : {
+ 'closed EE 1' : 138.443726972836,
+'closed EE 2' : 138.443726972836,
+ },
+ 'HONa.ezfio' : {
+ 'closed EE 1' : 126.747456382832,
+'closed EE 2' : 126.747456382832,
+ },
+ 'HOO.ezfio' : {
+ 'closed EE 1' : 79.4438064643797,
+'closed EE 2' : 79.4438064643797,
+ },
+ 'HOOH.ezfio' : {
+ 'closed EE 1' : 93.6527230199755,
+'closed EE 2' : 93.6527230199755,
+ },
+ 'HSSH.ezfio' : {
+ 'closed EE 1' : 387.218345293825,
+'closed EE 2' : 387.218345293825,
+ },
+ 'Li2.ezfio' : {
+ 'closed EE 1' : 6.46521052077037,
+'closed EE 2' : 6.46521052077037,
+ },
+ 'LiCl.ezfio' : {
+ 'closed EE 1' : 193.091759412769,
+'closed EE 2' : 193.091759412769,
+ },
+ 'Li.ezfio' : {
+ 'closed EE 1' : 1.64991166351969,
+'closed EE 2' : 1.64991166351969,
+ },
+ 'Li+.ezfio' : {
+ 'closed EE 1' : 1.65066035543863,
+'closed EE 2' : 1.65066035543863,
+ },
+ 'LiF.ezfio' : {
+ 'closed EE 1' : 53.4448357111712,
+'closed EE 2' : 53.4448357111712,
+ },
+ 'LiH.ezfio' : {
+ 'closed EE 1' : 3.45968704863106,
+'closed EE 2' : 3.45968704863106,
+ },
+ 'LiN.ezfio' : {
+ 'closed EE 1' : 19.4901024446162,
+'closed EE 2' : 19.4901024446162,
+ },
+ 'LiO.ezfio' : {
+ 'closed EE 1' : 33.6641656402794,
+'closed EE 2' : 33.6641656402794,
+ },
+ 'LiOH.ezfio' : {
+ 'closed EE 1' : 45.3987062615096,
+'closed EE 2' : 45.3987062615096,
+ },
+ 'MgCl.ezfio' : {
+ 'closed EE 1' : 297.457458920467,
+'closed EE 2' : 297.457458920467,
+ },
+ 'Mg.ezfio' : {
+ 'closed EE 1' : 79.8152268844060,
+'closed EE 2' : 79.8152268844060,
+ },
+ 'Mg+.ezfio' : {
+ 'closed EE 1' : 72.1282818471152,
+'closed EE 2' : 72.1282818471152,
+ },
+ 'MgH.ezfio' : {
+ 'closed EE 1' : 79.3190204144503,
+'closed EE 2' : 79.3190204144503,
+ },
+ 'MgS.ezfio' : {
+ 'closed EE 1' : 279.954838755823,
+'closed EE 2' : 279.954838755823,
+ },
+ 'N2.ezfio' : {
+ 'closed EE 1' : 61.5022395201583,
+'closed EE 2' : 61.5022395201583,
+ },
+ 'N2+.ezfio' : {
+ 'closed EE 1' : 48.5010781414573,
+'closed EE 2' : 48.5010781414573,
+ },
+ 'Na2.ezfio' : {
+ 'closed EE 1' : 153.459222056420,
+'closed EE 2' : 153.459222056420,
+ },
+ 'NaCl.ezfio' : {
+ 'closed EE 1' : 285.552878597068,
+'closed EE 2' : 285.552878597068,
+ },
+ 'Na.ezfio' : {
+ 'closed EE 1' : 63.1438465495254,
+'closed EE 2' : 63.1438465495254,
+ },
+ 'Na+.ezfio' : {
+ 'closed EE 1' : 63.1844537555369,
+'closed EE 2' : 63.1844537555369,
+ },
+ 'NaH.ezfio' : {
+ 'closed EE 1' : 69.3524887715318,
+'closed EE 2' : 69.3524887715318,
+ },
+ 'N.ezfio' : {
+ 'closed EE 1' : 8.56327997038596,
+'closed EE 2' : 8.56327997038596,
+ },
+ 'N+.ezfio' : {
+ 'closed EE 1' : 8.76869142211657,
+'closed EE 2' : 8.76869142211657,
+ },
+ 'NF.ezfio' : {
+ 'closed EE 1' : 69.0051111837754,
+'closed EE 2' : 69.0051111837754,
+ },
+ 'NH2-.ezfio' : {
+ 'closed EE 1' : 30.6309164550511,
+'closed EE 2' : 30.6309164550511,
+ },
+ 'NH2.ezfio' : {
+ 'closed EE 1' : 21.9260220960358,
+'closed EE 2' : 21.9260220960358,
+ },
+ 'NH3.ezfio' : {
+ 'closed EE 1' : 31.4406045429538,
+'closed EE 2' : 31.4406045429538,
+ },
+ 'NH3+.ezfio' : {
+ 'closed EE 1' : 22.1802907966178,
+'closed EE 2' : 22.1802907966178,
+ },
+ 'NH4+.ezfio' : {
+ 'closed EE 1' : 31.8659857288766,
+'closed EE 2' : 31.8659857288766,
+ },
+ 'NH-.ezfio' : {
+ 'closed EE 1' : 21.6689399304262,
+'closed EE 2' : 21.6689399304262,
+ },
+ 'NH.ezfio' : {
+ 'closed EE 1' : 14.2929080048555,
+'closed EE 2' : 14.2929080048555,
+ },
+ 'NO-.ezfio' : {
+ 'closed EE 1' : 61.7198631648835,
+'closed EE 2' : 61.7198631648835,
+ },
+ 'NO.ezfio' : {
+ 'closed EE 1' : 64.6696341812441,
+'closed EE 2' : 64.6696341812441,
+ },
+ 'NP.ezfio' : {
+ 'closed EE 1' : 187.100108926969,
+'closed EE 2' : 187.100108926969,
+ },
+ 'NS.ezfio' : {
+ 'closed EE 1' : 200.128710693974,
+'closed EE 2' : 200.128710693974,
+ },
+ 'NSi.ezfio' : {
+ 'closed EE 1' : 155.279906480313,
+'closed EE 2' : 155.279906480313,
+ },
+ 'O2Cl.ezfio' : {
+ 'closed EE 1' : 301.747915430568,
+'closed EE 2' : 301.747915430568,
+ },
+ 'O2-.ezfio' : {
+ 'closed EE 1' : 79.2328963139684,
+'closed EE 2' : 79.2328963139684,
+ },
+ 'O2.ezfio' : {
+ 'closed EE 1' : 66.1914541099256,
+'closed EE 2' : 66.1914541099256,
+ },
+ 'O2+.ezfio' : {
+ 'closed EE 1' : 69.4144048026520,
+'closed EE 2' : 69.4144048026520,
+ },
+ 'O2S.ezfio' : {
+ 'closed EE 1' : 312.243487598150,
+'closed EE 2' : 312.243487598150,
+ },
+ 'O2Si.ezfio' : {
+ 'closed EE 1' : 257.255582658461,
+'closed EE 2' : 257.255582658461,
+ },
+ 'O3.ezfio' : {
+ 'closed EE 1' : 152.241108922056,
+'closed EE 2' : 152.241108922056,
+ },
+ 'OCl.ezfio' : {
+ 'closed EE 1' : 236.412413075442,
+'closed EE 2' : 236.412413075442,
+ },
+ 'O-.ezfio' : {
+ 'closed EE 1' : 26.9389565391700,
+'closed EE 2' : 26.9389565391700,
+ },
+ 'O.ezfio' : {
+ 'closed EE 1' : 17.7360424805971,
+'closed EE 2' : 17.7360424805971,
+ },
+ 'O+.ezfio' : {
+ 'closed EE 1' : 10.1017140483289,
+'closed EE 2' : 10.1017140483289,
+ },
+ 'OH2.ezfio' : {
+ 'closed EE 1' : 37.8440317785205,
+'closed EE 2' : 37.8440317785205,
+ },
+ 'OH2+.ezfio' : {
+ 'closed EE 1' : 26.6519594351168,
+'closed EE 2' : 26.6519594351168,
+ },
+ 'OH3+.ezfio' : {
+ 'closed EE 1' : 38.1275235387040,
+'closed EE 2' : 38.1275235387040,
+ },
+ 'OH-.ezfio' : {
+ 'closed EE 1' : 37.4117044437012,
+'closed EE 2' : 37.4117044437012,
+ },
+ 'OH.ezfio' : {
+ 'closed EE 1' : 26.7707296794756,
+'closed EE 2' : 26.7707296794756,
+ },
+ 'OH+.ezfio' : {
+ 'closed EE 1' : 17.2889916223005,
+'closed EE 2' : 17.2889916223005,
+ },
+ 'OMg.ezfio' : {
+ 'closed EE 1' : 138.801601522175,
+'closed EE 2' : 138.801601522175,
+ },
+ 'ONa.ezfio' : {
+ 'closed EE 1' : 112.111906727576,
+'closed EE 2' : 112.111906727576,
+ },
+ 'OP-.ezfio' : {
+ 'closed EE 1' : 188.573528250670,
+'closed EE 2' : 188.573528250670,
+ },
+ 'OP.ezfio' : {
+ 'closed EE 1' : 191.910766225339,
+'closed EE 2' : 191.910766225339,
+ },
+ 'OPH.ezfio' : {
+ 'closed EE 1' : 208.214788904911,
+'closed EE 2' : 208.214788904911,
+ },
+ 'OS.ezfio' : {
+ 'closed EE 1' : 203.101155235861,
+'closed EE 2' : 203.101155235861,
+ },
+ 'OSi.ezfio' : {
+ 'closed EE 1' : 179.456084306272,
+'closed EE 2' : 179.456084306272,
+ },
+ 'P2.ezfio' : {
+ 'closed EE 1' : 323.782785949801,
+'closed EE 2' : 323.782785949801,
+ },
+ 'P2+.ezfio' : {
+ 'closed EE 1' : 301.882738442470,
+'closed EE 2' : 301.882738442470,
+ },
+ 'PCl.ezfio' : {
+ 'closed EE 1' : 349.890715378447,
+'closed EE 2' : 349.890715378447,
+ },
+ 'P-.ezfio' : {
+ 'closed EE 1' : 122.657805807297,
+'closed EE 2' : 122.657805807297,
+ },
+ 'P.ezfio' : {
+ 'closed EE 1' : 111.445647659427,
+'closed EE 2' : 111.445647659427,
+ },
+ 'PH2-.ezfio' : {
+ 'closed EE 1' : 147.249988541779,
+'closed EE 2' : 147.249988541779,
+ },
+ 'PH2.ezfio' : {
+ 'closed EE 1' : 134.714659285095,
+'closed EE 2' : 134.714659285095,
+ },
+ 'PH2+.ezfio' : {
+ 'closed EE 1' : 136.440910105336,
+'closed EE 2' : 136.440910105336,
+ },
+ 'PH3.ezfio' : {
+ 'closed EE 1' : 148.202871342844,
+'closed EE 2' : 148.202871342844,
+ },
+ 'PH3+.ezfio' : {
+ 'closed EE 1' : 134.975246396259,
+'closed EE 2' : 134.975246396259,
+ },
+ 'PH4+.ezfio' : {
+ 'closed EE 1' : 148.989370984817,
+'closed EE 2' : 148.989370984817,
+ },
+ 'PH-.ezfio' : {
+ 'closed EE 1' : 134.328964674983,
+'closed EE 2' : 134.328964674983,
+ },
+ 'PH.ezfio' : {
+ 'closed EE 1' : 122.455536217569,
+'closed EE 2' : 122.455536217569,
+ },
+ 'PS.ezfio' : {
+ 'closed EE 1' : 337.453574046369,
+'closed EE 2' : 337.453574046369,
+ },
+ 'S2-.ezfio' : {
+ 'closed EE 1' : 366.675175225190,
+'closed EE 2' : 366.675175225190,
+ },
+ 'S2.ezfio' : {
+ 'closed EE 1' : 349.448868216573,
+'closed EE 2' : 349.448868216573,
+ },
+ 'S-.ezfio' : {
+ 'closed EE 1' : 149.700149385399,
+'closed EE 2' : 149.700149385399,
+ },
+ 'S.ezfio' : {
+ 'closed EE 1' : 135.897852467643,
+'closed EE 2' : 135.897852467643,
+ },
+ 'S+.ezfio' : {
+ 'closed EE 1' : 122.164730812357,
+'closed EE 2' : 122.164730812357,
+ },
+ 'SH2.ezfio' : {
+ 'closed EE 1' : 164.906914972667,
+'closed EE 2' : 164.906914972667,
+ },
+ 'SH2+.ezfio' : {
+ 'closed EE 1' : 149.596440849195,
+'closed EE 2' : 149.596440849195,
+ },
+ 'SH3+.ezfio' : {
+ 'closed EE 1' : 165.246577302836,
+'closed EE 2' : 165.246577302836,
+ },
+ 'SH-.ezfio' : {
+ 'closed EE 1' : 164.245517624070,
+'closed EE 2' : 164.245517624070,
+ },
+ 'SH.ezfio' : {
+ 'closed EE 1' : 149.754586732578,
+'closed EE 2' : 149.754586732578,
+ },
+ 'SH+.ezfio' : {
+ 'closed EE 1' : 135.225667181454,
+'closed EE 2' : 135.225667181454,
+ },
+ 'Si2.ezfio' : {
+ 'closed EE 1' : 252.066473929603,
+'closed EE 2' : 252.066473929603,
+ },
+ 'SiCl.ezfio' : {
+ 'closed EE 1' : 337.640041152210,
+'closed EE 2' : 337.640041152210,
+ },
+ 'Si-.ezfio' : {
+ 'closed EE 1' : 100.662878826237,
+'closed EE 2' : 100.662878826237,
+ },
+ 'Si.ezfio' : {
+ 'closed EE 1' : 101.098004923652,
+'closed EE 2' : 101.098004923652,
+ },
+ 'SiH2_1A1.ezfio' : {
+ 'closed EE 1' : 121.587026002297,
+'closed EE 2' : 121.587026002297,
+ },
+ 'SiH2_3B1.ezfio' : {
+ 'closed EE 1' : 109.761390873831,
+'closed EE 2' : 109.761390873831,
+ },
+ 'SiH2-.ezfio' : {
+ 'closed EE 1' : 120.021930833955,
+'closed EE 2' : 120.021930833955,
+ },
+ 'SiH3-.ezfio' : {
+ 'closed EE 1' : 131.352511652808,
+'closed EE 2' : 131.352511652808,
+ },
+ 'SiH3.ezfio' : {
+ 'closed EE 1' : 120.791742854126,
+'closed EE 2' : 120.791742854126,
+ },
+ 'SiH4.ezfio' : {
+ 'closed EE 1' : 132.863104887314,
+'closed EE 2' : 132.863104887314,
+ },
+ 'SiH4+.ezfio' : {
+ 'closed EE 1' : 121.801965974605,
+'closed EE 2' : 121.801965974605,
+ },
+ 'SiH-.ezfio' : {
+ 'closed EE 1' : 109.783147473057,
+'closed EE 2' : 109.783147473057,
+ },
+ 'SiH.ezfio' : {
+ 'closed EE 1' : 110.775916738616,
+'closed EE 2' : 110.775916738616,
+ },
+ 'SiS.ezfio' : {
+ 'closed EE 1' : 324.574435129198,
+'closed EE 2' : 324.574435129198,
+ },
+}
