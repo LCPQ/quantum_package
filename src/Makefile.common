@@ -113,7 +113,7 @@ clean_links:
 endif
 
 LIB+=$(EZFIO) $(MKL)
-IRPF90+=$(patsubst %, -I %, $(INCLUDE_DIRS)) 
+IRPF90+=$(patsubst %, -I %, $(INCLUDE_DIRS)) $(IRPF90_FLAGS)
 
 irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile $(EZFIO) NEEDED_MODULES
 	$(IRPF90)

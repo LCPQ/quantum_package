@@ -1,4 +1,4 @@
- BEGIN_PROVIDER [ double precision, Fock_matrix_mo, (mo_tot_num,mo_tot_num) ]
+ BEGIN_PROVIDER [ double precision, Fock_matrix_mo, (mo_tot_num_align,mo_tot_num) ]
 &BEGIN_PROVIDER [ double precision, Fock_matrix_diag_mo, (mo_tot_num)]
    implicit none
    BEGIN_DOC
@@ -17,7 +17,6 @@
    !
    END_DOC
    integer                        :: i,j,n
-   double precision               :: get_mo_bielec_integral
    if (elec_alpha_num == elec_beta_num) then
      Fock_matrix_mo = Fock_matrix_alpha_mo
    else
