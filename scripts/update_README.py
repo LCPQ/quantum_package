@@ -95,18 +95,14 @@ def update_needed(data):
 
     return data
 
-import subprocess
+import os
 
 def git_add():
     """Executes:
     git add README.rst
     if git is present on the machine."""
     command = "git add "+README
-
-    try:
-      subprocess.call(command.split())
-    except OSError:
-      pass
+    os.system(command+" &> /dev/null")
 
 
 def main():

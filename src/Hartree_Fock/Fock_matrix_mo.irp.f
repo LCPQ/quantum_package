@@ -94,7 +94,7 @@ END_PROVIDER
  double precision               :: ao_bielec_integral
  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: ao_ints_idx, ao_ints_val
  if (do_direct_integrals) then
-   PROVIDE all_utils
+   PROVIDE all_utils ao_overlap_abs ao_integrals_threshold
    !$OMP PARALLEL DEFAULT(NONE) &
    !$OMP PRIVATE(i,j,l,k1,k,integral) &
    !$OMP SHARED(ao_num,Fock_matrix_alpha_ao,ao_mono_elec_integral,&
@@ -107,6 +107,7 @@ END_PROVIDER
        Fock_matrix_beta_ao (i,j) = ao_mono_elec_integral(i,j)
        do l=1,ao_num
          do k=1,ao_num
+           PROVIDE HF_density_matrix_ao_alpha  HF_density_matrix_ao_beta
            if ((abs(HF_density_matrix_ao_alpha(k,l)) > 1.d-9).or.    &
                  (abs(HF_density_matrix_ao_beta (k,l)) > 1.d-9)) then
              integral = (HF_density_matrix_ao_alpha(k,l)+HF_density_matrix_ao_beta (k,l)) * ao_bielec_integral(k,l,i,j)
@@ -207,3 +208,12 @@ BEGIN_PROVIDER [ double precision, Fock_matrix_beta_mo, (mo_tot_num_align,mo_tot
    deallocate(T)
 END_PROVIDER
  
+BEGIN_PROVIDER [ double precision, HF_energy ]
+ implicit none
+ BEGIN_DOC
+ ! Hartree-Fock energy
+ END_DOC
+  HF_energy = nuclear_repulsion + ref_bitmask_energy
+END_PROVIDER
+
+

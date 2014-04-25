@@ -5,16 +5,20 @@ program scf_iteration
   double precision               :: E0
   integer                        :: i_it
   
-  E0 = ref_bitmask_energy + nuclear_repulsion
+  E0 = HF_energy 
   i_it = 0
   n_it_scf_max = 100
   SCF_energy_before = huge(1.d0)
   SCF_energy_after = E0
   print *,  E0
-  do while (dabs(SCF_energy_before - SCF_energy_after) > thresh_SCF)
+  mo_label = "Canonical"
+  thresh_SCF = 1.d-10
+  do while (i_it < 10 .or. dabs(SCF_energy_before - SCF_energy_after) > thresh_SCF)
     SCF_energy_before = SCF_energy_after
-    call diagonalize_fock()
-    SCF_energy_after = ref_bitmask_energy + nuclear_repulsion
+    mo_coef = eigenvectors_Fock_matrix_mo
+    TOUCH mo_coef mo_label
+    call clear_mo_map
+    SCF_energy_after = HF_energy
     print*,SCF_energy_after
     i_it +=1
     if(i_it > n_it_scf_max)exit
@@ -28,6 +32,6 @@ program scf_iteration
   endif
   mo_label = "Canonical"
   TOUCH mo_label mo_coef
-! call save_mos
+  call save_mos
   
 end
