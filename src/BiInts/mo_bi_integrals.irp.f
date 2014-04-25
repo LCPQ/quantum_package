@@ -296,95 +296,132 @@ end
  BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj, (mo_tot_num_align,mo_tot_num) ]
 &BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_exchange, (mo_tot_num_align,mo_tot_num) ]
 &BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_anti, (mo_tot_num_align,mo_tot_num) ]
-   implicit none
-   BEGIN_DOC
-   ! Transform Bi-electronic integrals <ij|ij> and <ij|ji>
-   END_DOC
-   
-   integer                        :: i,j,p,q,r,s
-   double precision               :: integral, c
-   integer                        :: n, pp
-   double precision, allocatable  :: int_value(:)
-   integer, allocatable           :: int_idx(:)
-   
-   double precision, allocatable :: iqrs(:,:), iqsr(:,:), iqis(:), iqri(:)
+  implicit none
+  BEGIN_DOC
+  ! Transform Bi-electronic integrals <ij|ij> and <ij|ji>
+  END_DOC
+  
+  integer                        :: i,j,p,q,r,s
+  double precision               :: c
+  real(integral_kind)            :: integral
+  integer                        :: n, pp
+  real(integral_kind), allocatable :: int_value(:)
+  integer, allocatable           :: int_idx(:)
+  
+  double precision, allocatable  :: iqrs(:,:), iqsr(:,:), iqis(:), iqri(:)
+  
+  PROVIDE ao_integrals_threshold
+  if (.not.do_direct_integrals) then
+    PROVIDE ao_bielec_integrals_in_map
+  endif
+  
+  mo_bielec_integral_jj = 0.d0
+  mo_bielec_integral_jj_exchange = 0.d0
+  
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: iqrs, iqsr
+  
+  
+  !$OMP PARALLEL DEFAULT(NONE)                                       &
+      !$OMP PRIVATE (i,j,p,q,r,s,integral,c,n,pp,int_value,int_idx,  &
+      !$OMP  iqrs, iqsr,iqri,iqis)                                   &
+      !$OMP SHARED(mo_tot_num,mo_coef_transp,mo_tot_num_align,ao_num,&
+      !$OMP  ao_integrals_threshold,do_direct_integrals)             &
+      !$OMP REDUCTION(+:mo_bielec_integral_jj,mo_bielec_integral_jj_exchange)
+  
+  allocate( int_value(ao_num), int_idx(ao_num),                      &
+      iqrs(mo_tot_num_align,ao_num), iqis(mo_tot_num), iqri(mo_tot_num),&
+      iqsr(mo_tot_num_align,ao_num) )
+  
+  !$OMP DO SCHEDULE (guided)
+  do s=1,ao_num
+    do q=1,ao_num
+      
+      do j=1,ao_num
+        !DIR$ VECTOR ALIGNED
+        do i=1,mo_tot_num
+          iqrs(i,j) = 0.d0
+          iqsr(i,j) = 0.d0
+        enddo
+      enddo
+      
+      if (do_direct_integrals) then
+        double precision               :: ao_bielec_integral
+        do r=1,ao_num
+          call compute_ao_bielec_integrals(q,r,s,ao_num,int_value)
+          do p=1,ao_num
+            integral = int_value(p)
+            if (abs(integral) > ao_integrals_threshold) then
+              !DIR$ VECTOR ALIGNED
+              do i=1,mo_tot_num
+                iqrs(i,r) += mo_coef_transp(i,p) * integral
+              enddo
+            endif
+          enddo
+          call compute_ao_bielec_integrals(q,s,r,ao_num,int_value)
+          do p=1,ao_num
+            integral = int_value(p)
+            if (abs(integral) > ao_integrals_threshold) then
+              !DIR$ VECTOR ALIGNED
+              do i=1,mo_tot_num
+                iqsr(i,r) += mo_coef_transp(i,p) * integral
+              enddo
+            endif
+          enddo
+        enddo
 
-   PROVIDE ao_bielec_integrals_in_map
+      else
 
-   mo_bielec_integral_jj = 0.d0
-   mo_bielec_integral_jj_exchange = 0.d0
-
-   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: iqrs, iqsr
-
-
-   !$OMP PARALLEL DEFAULT(NONE) &
-   !$OMP PRIVATE (i,j,p,q,r,s,integral,c,n,pp,int_value,int_idx, &
-   !$OMP  iqrs, iqsr,iqri,iqis) &
-   !$OMP SHARED(mo_tot_num,mo_coef_transp,mo_tot_num_align,ao_num) &
-   !$OMP REDUCTION(+:mo_bielec_integral_jj,mo_bielec_integral_jj_exchange)
-
-   allocate( int_value(ao_num), int_idx(ao_num), &
-     iqrs(mo_tot_num_align,ao_num), iqis(mo_tot_num), iqri(mo_tot_num), &
-     iqsr(mo_tot_num_align,ao_num) )
-
-   !$OMP DO
-   do q=1,ao_num
-     do s=1,ao_num
-
-       do j=1,ao_num
-         !DIR$ VECTOR ALIGNED
-         do i=1,mo_tot_num
-           iqrs(i,j) = 0.d0
-           iqsr(i,j) = 0.d0
-         enddo
-       enddo
-
-       do r=1,ao_num
-         call get_ao_bielec_integrals_non_zero(q,r,s,ao_num,int_value,int_idx,n)
-         do pp=1,n
-           p = int_idx(pp)
-           integral = int_value(pp)
-           !DIR$ VECTOR ALIGNED
-           do i=1,mo_tot_num
-             iqrs(i,r) += mo_coef_transp(i,p) * integral
-           enddo
-         enddo
-         call get_ao_bielec_integrals_non_zero(q,s,r,ao_num,int_value,int_idx,n)
-         do pp=1,n
-           p = int_idx(pp)
-           integral = int_value(pp)
-           !DIR$ VECTOR ALIGNED
-           do i=1,mo_tot_num
-             iqsr(i,r) += mo_coef_transp(i,p) * integral
-           enddo
-         enddo
-       enddo
-       iqis = 0.d0
-       iqri = 0.d0
-       do r=1,ao_num
-         !DIR$ VECTOR ALIGNED
-         do i=1,mo_tot_num
-           iqis(i) += mo_coef_transp(i,r) * iqrs(i,r)
-           iqri(i) += mo_coef_transp(i,r) * iqsr(i,r)
-         enddo
-       enddo
-       do i=1,mo_tot_num
-         !DIR$ VECTOR ALIGNED
-         do j=1,mo_tot_num
-           c = mo_coef_transp(j,q)*mo_coef_transp(j,s) 
-           mo_bielec_integral_jj(j,i) += c * iqis(i)
-           mo_bielec_integral_jj_exchange(j,i) += c * iqri(i)
-         enddo
-       enddo
-
-     enddo
-   enddo
-   !$OMP END DO NOWAIT
-   deallocate(iqrs,iqsr,int_value,int_idx)
-   !$OMP END PARALLEL
-
- mo_bielec_integral_jj_anti = mo_bielec_integral_jj - mo_bielec_integral_jj_exchange
- 
- 
+        do r=1,ao_num
+          call get_ao_bielec_integrals_non_zero(q,r,s,ao_num,int_value,int_idx,n)
+          do pp=1,n
+            p = int_idx(pp)
+            integral = int_value(pp)
+            if (abs(integral) > ao_integrals_threshold) then
+              !DIR$ VECTOR ALIGNED
+              do i=1,mo_tot_num
+                iqrs(i,r) += mo_coef_transp(i,p) * integral
+              enddo
+            endif
+          enddo
+          call get_ao_bielec_integrals_non_zero(q,s,r,ao_num,int_value,int_idx,n)
+          do pp=1,n
+            p = int_idx(pp)
+            integral = int_value(pp)
+            if (abs(integral) > ao_integrals_threshold) then
+              !DIR$ VECTOR ALIGNED
+              do i=1,mo_tot_num
+                iqsr(i,r) += mo_coef_transp(i,p) * integral
+              enddo
+            endif
+          enddo
+        enddo
+      endif
+      iqis = 0.d0
+      iqri = 0.d0
+      do r=1,ao_num
+        !DIR$ VECTOR ALIGNED
+        do i=1,mo_tot_num
+          iqis(i) += mo_coef_transp(i,r) * iqrs(i,r)
+          iqri(i) += mo_coef_transp(i,r) * iqsr(i,r)
+        enddo
+      enddo
+      do i=1,mo_tot_num
+        !DIR$ VECTOR ALIGNED
+        do j=1,mo_tot_num
+          c = mo_coef_transp(j,q)*mo_coef_transp(j,s)
+          mo_bielec_integral_jj(j,i) += c * iqis(i)
+          mo_bielec_integral_jj_exchange(j,i) += c * iqri(i)
+        enddo
+      enddo
+      
+    enddo
+  enddo
+  !$OMP END DO NOWAIT
+  deallocate(iqrs,iqsr,int_value,int_idx)
+  !$OMP END PARALLEL
+  
+  mo_bielec_integral_jj_anti = mo_bielec_integral_jj - mo_bielec_integral_jj_exchange
+  
+  
 END_PROVIDER
-   
+

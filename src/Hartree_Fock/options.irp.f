@@ -35,24 +35,6 @@ BEGIN_PROVIDER [ integer, n_it_scf_max]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ logical, do_direct_SCF ]
-  implicit none
-  BEGIN_DOC  
-! If True, compute integrals on the fly
-  END_DOC
-
-  logical :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_Hartree_Fock_direct(has)
-  if (has) then
-    call ezfio_get_Hartree_Fock_direct(do_direct_SCF)
-  else
-    do_direct_SCF = .False.
-    call ezfio_set_Hartree_Fock_direct(do_direct_SCF)
-  endif
-
-END_PROVIDER
-
 BEGIN_PROVIDER [ logical, do_DIIS ]
   implicit none
   BEGIN_DOC  

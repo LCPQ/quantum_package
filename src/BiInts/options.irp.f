@@ -107,3 +107,21 @@ BEGIN_PROVIDER [ double precision, mo_integrals_threshold ]
   
 END_PROVIDER
 
+
+BEGIN_PROVIDER [ logical, do_direct_integrals ]
+  implicit none
+  BEGIN_DOC  
+! If True, compute integrals on the fly
+  END_DOC
+
+  logical :: has
+  PROVIDE ezfio_filename
+  call ezfio_has_bielec_integrals_direct(has)
+  if (has) then
+    call ezfio_get_bielec_integrals_direct(do_direct_integrals)
+  else
+    do_direct_integrals = .False.
+    call ezfio_set_bielec_integrals_direct(do_direct_integrals)
+  endif
+
+END_PROVIDER
