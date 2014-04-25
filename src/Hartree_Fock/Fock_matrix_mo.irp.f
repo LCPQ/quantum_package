@@ -118,10 +118,12 @@ END_PROVIDER
    !$OMP  HF_density_matrix_ao_beta) 
    allocate(ao_ints_idx(ao_num_align),ao_ints_val(ao_num_align))
    !$OMP DO
-   do j=1,ao_num
-     do i=1,ao_num
+   do i=1,ao_num
+     do j=1,ao_num
        Fock_matrix_alpha_ao(i,j) = ao_mono_elec_integral(i,j)
        Fock_matrix_beta_ao (i,j) = ao_mono_elec_integral(i,j)
+     enddo
+     do j=1,ao_num
        do l=1,ao_num
          call get_ao_bielec_integrals_non_zero(i,l,j,ao_num,ao_ints_val,ao_ints_idx,kmax)
          do k1=1,kmax
@@ -129,13 +131,9 @@ END_PROVIDER
            integral = ao_ints_val(k1)+ao_ints_val(k1)
            Fock_matrix_alpha_ao(i,j) += HF_density_matrix_ao_alpha(k,l) * integral
            Fock_matrix_beta_ao (i,j) += HF_density_matrix_ao_beta (k,l) * integral
-         enddo
-         call get_ao_bielec_integrals_non_zero(i,j,l,ao_num,ao_ints_val,ao_ints_idx,kmax)
-         do k1=1,kmax
-           k = ao_ints_idx(k1)
            integral = -ao_ints_val(k1)
-           Fock_matrix_alpha_ao(i,j) += HF_density_matrix_ao_alpha(k,l) * integral
-           Fock_matrix_beta_ao (i,j) += HF_density_matrix_ao_beta (k,l) * integral
+           Fock_matrix_alpha_ao(i,l) += HF_density_matrix_ao_alpha(k,j) * integral
+           Fock_matrix_beta_ao (i,l) += HF_density_matrix_ao_beta (k,j) * integral
          enddo
        enddo
      enddo
