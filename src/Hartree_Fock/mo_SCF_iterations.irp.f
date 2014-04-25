@@ -28,6 +28,6 @@ program scf_iteration
   endif
   mo_label = "Canonical"
   TOUCH mo_label mo_coef
-  call save_mos
+! call save_mos
   
 end

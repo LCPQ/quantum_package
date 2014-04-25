@@ -72,7 +72,6 @@ subroutine add_integrals_to_map(mask_ijkl)
   
   PROVIDE N_int ao_bielec_integrals_in_map ao_integrals_map mo_coef mo_coef_transp
   
-  
   !Get list of MOs for i,j,k and l
   !-------------------------------
   
@@ -81,9 +80,6 @@ subroutine add_integrals_to_map(mask_ijkl)
   call bitstring_to_list( mask_ijkl(1,2), list_ijkl(1,2), n_j, N_int )
   call bitstring_to_list( mask_ijkl(1,3), list_ijkl(1,3), n_k, N_int )
   call bitstring_to_list( mask_ijkl(1,4), list_ijkl(1,4), n_l, N_int )
-  
-  
-  
   
   l1_global = 0
   size_buffer = min(ao_num*ao_num*ao_num,16000000)
@@ -294,63 +290,101 @@ subroutine add_integrals_to_map(mask_ijkl)
 end
 
 
-BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj, (mo_tot_num_align,mo_tot_num)]
-  implicit none
-  BEGIN_DOC
-  ! Bi-electronic integrals <ij|ij>
-  END_DOC
-  integer                        :: i,j
-  double precision               :: get_mo_bielec_integral
-  PROVIDE mo_bielec_integrals_in_map
-  do j= 1, mo_tot_num
-    !DIR$ VECTOR ALIGNED
-    do i= 1, mo_tot_num
-      mo_bielec_integral_jj(i,j) = get_mo_bielec_integral(i,j,i,j,mo_integrals_map)
-    enddo
-    ! Padding
-    do i= mo_tot_num+1, mo_tot_num_align
-      mo_bielec_integral_jj(i,j) = 0.d0
-    enddo
-  enddo
-  
-END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_exchange, (mo_tot_num_align,mo_tot_num)]
-  implicit none
-  BEGIN_DOC
-  ! Bi-electronic integrals <ij|ij> - <ij|ji>
-  END_DOC
-  integer                        :: i,j
-  double precision               :: get_mo_bielec_integral
-  PROVIDE mo_bielec_integrals_in_map
-  
-  do j = 1, mo_tot_num
-    !DIR$ VECTOR ALIGNED
-    do i = 1,mo_tot_num
-      mo_bielec_integral_jj_exchange(i,j) = get_mo_bielec_integral(i,j,j,i,mo_integrals_map)
-    enddo
-    ! Padding
-    do i= mo_tot_num+1, mo_tot_num_align
-      mo_bielec_integral_jj_exchange(i,j) = 0.d0
-    enddo
-  enddo
-  
-END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_anti, (mo_tot_num_align,mo_tot_num)]
-  implicit none
-  BEGIN_DOC
-  ! Bi-electronic integrals <ij|ij> - <ij|ji>
-  END_DOC
-  integer                        :: i,j
-  PROVIDE mo_bielec_integrals_in_map
-  
-  do j = 1, mo_tot_num
-    !DIR$ VECTOR ALIGNED
-    do i = 1,mo_tot_num_align
-      mo_bielec_integral_jj_anti(i,j) = mo_bielec_integral_jj(i,j) -  mo_bielec_integral_jj_exchange(i,j)
-    enddo
-  enddo
-  
-END_PROVIDER
 
+ BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj, (mo_tot_num_align,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_exchange, (mo_tot_num_align,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_anti, (mo_tot_num_align,mo_tot_num) ]
+   implicit none
+   BEGIN_DOC
+   ! Transform Bi-electronic integrals <ij|ij> and <ij|ji>
+   END_DOC
+   
+   integer                        :: i,j,p,q,r,s
+   double precision               :: integral, c
+   integer                        :: n, pp
+   double precision, allocatable  :: int_value(:)
+   integer, allocatable           :: int_idx(:)
+   
+   double precision, allocatable :: iqrs(:,:), iqsr(:,:), iqis(:), iqri(:)
+
+   PROVIDE ao_bielec_integrals_in_map
+
+   mo_bielec_integral_jj = 0.d0
+   mo_bielec_integral_jj_exchange = 0.d0
+
+   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: iqrs, iqsr
+
+
+   !$OMP PARALLEL DEFAULT(NONE) &
+   !$OMP PRIVATE (i,j,p,q,r,s,integral,c,n,pp,int_value,int_idx, &
+   !$OMP  iqrs, iqsr,iqri,iqis) &
+   !$OMP SHARED(mo_tot_num,mo_coef_transp,mo_tot_num_align,ao_num) &
+   !$OMP REDUCTION(+:mo_bielec_integral_jj,mo_bielec_integral_jj_exchange)
+
+   allocate( int_value(ao_num), int_idx(ao_num), &
+     iqrs(mo_tot_num_align,ao_num), iqis(mo_tot_num), iqri(mo_tot_num), &
+     iqsr(mo_tot_num_align,ao_num) )
+
+   !$OMP DO
+   do q=1,ao_num
+     do s=1,ao_num
+
+       do j=1,ao_num
+         !DIR$ VECTOR ALIGNED
+         do i=1,mo_tot_num
+           iqrs(i,j) = 0.d0
+           iqsr(i,j) = 0.d0
+         enddo
+       enddo
+
+       do r=1,ao_num
+         call get_ao_bielec_integrals_non_zero(q,r,s,ao_num,int_value,int_idx,n)
+         do pp=1,n
+           p = int_idx(pp)
+           integral = int_value(pp)
+           !DIR$ VECTOR ALIGNED
+           do i=1,mo_tot_num
+             iqrs(i,r) += mo_coef_transp(i,p) * integral
+           enddo
+         enddo
+         call get_ao_bielec_integrals_non_zero(q,s,r,ao_num,int_value,int_idx,n)
+         do pp=1,n
+           p = int_idx(pp)
+           integral = int_value(pp)
+           !DIR$ VECTOR ALIGNED
+           do i=1,mo_tot_num
+             iqsr(i,r) += mo_coef_transp(i,p) * integral
+           enddo
+         enddo
+       enddo
+       iqis = 0.d0
+       iqri = 0.d0
+       do r=1,ao_num
+         !DIR$ VECTOR ALIGNED
+         do i=1,mo_tot_num
+           iqis(i) += mo_coef_transp(i,r) * iqrs(i,r)
+           iqri(i) += mo_coef_transp(i,r) * iqsr(i,r)
+         enddo
+       enddo
+       do i=1,mo_tot_num
+         !DIR$ VECTOR ALIGNED
+         do j=1,mo_tot_num
+           c = mo_coef_transp(j,q)*mo_coef_transp(j,s) 
+           mo_bielec_integral_jj(j,i) += c * iqis(i)
+           mo_bielec_integral_jj_exchange(j,i) += c * iqri(i)
+         enddo
+       enddo
+
+     enddo
+   enddo
+   !$OMP END DO NOWAIT
+   deallocate(iqrs,iqsr,int_value,int_idx)
+   !$OMP END PARALLEL
+
+ mo_bielec_integral_jj_anti = mo_bielec_integral_jj - mo_bielec_integral_jj_exchange
+ 
+ 
+END_PROVIDER
+   
