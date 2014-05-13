@@ -148,7 +148,7 @@ def update_documentation(data):
 
           # Search for the documentation in the IRPF90_man directory
           for item in tmp :
-              item, _, line = item.split('\t')
+              item, _, line = item.strip().split('\t')
               doc = extract_doc(item)
               items.append( (item, filename, doc, line) )
 

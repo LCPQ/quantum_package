@@ -1,0 +1,9 @@
+determinants
+  N_int         integer
+  bit_kind      integer
+  n_dets        integer
+  n_states      integer
+  psi_coef      double precision (determinants_n_dets,determinants_n_states)
+  psi_det       integer (determinants_N_int*determinants_bit_kind/4,2,determinants_n_dets)
+  H_apply_threshold  double precision
+

@@ -41,6 +41,7 @@ Needed Modules
 
 * `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
 * `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
+* `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 
 Documentation
@@ -49,55 +50,43 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`ao_coef <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L/&BEGIN_PROVIDER [ double precision, ao_coef, (ao_num_align,ao_prim_num_max) ]/;"
->`_
-  coefficient of the primitives on the AO basis
+`ao_coef <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L21>`_
+  Coefficients, exponents and powers of x,y and z
   ao_coef(i,j) = coefficient of the jth primitive on the ith ao
 
-`ao_coef_transp <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L/BEGIN_PROVIDER [ double precision, ao_coef_transp, (ao_prim_num_max_align,ao_num) ]/;"
->`_
+`ao_coef_transp <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L136>`_
   Transposed ao_coef and ao_expo
 
-`ao_expo <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L/&BEGIN_PROVIDER [ double precision, ao_expo, (ao_num_align,ao_prim_num_max) ]/;"
->`_
-  coefficient of the primitives on the AO basis
+`ao_expo <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L20>`_
+  Coefficients, exponents and powers of x,y and z
   ao_coef(i,j) = coefficient of the jth primitive on the ith ao
 
-`ao_expo_transp <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L/&BEGIN_PROVIDER [ double precision, ao_expo_transp, (ao_prim_num_max_align,ao_num) ]/;"
->`_
+`ao_expo_transp <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L137>`_
   Transposed ao_coef and ao_expo
 
-`ao_nucl <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L/BEGIN_PROVIDER [ integer, ao_nucl, (ao_num)]/;"
->`_
+`ao_nucl <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L186>`_
   Index of the nuclei on which the ao is centered
 
-`ao_num <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L/BEGIN_PROVIDER [ integer, ao_num ]/;"
->`_
+`ao_num <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L1>`_
   Number of atomic orbitals
 
-`ao_num_align <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L/&BEGIN_PROVIDER [ integer, ao_num_align ]/;"
->`_
+`ao_num_align <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L2>`_
   Number of atomic orbitals
 
-`ao_overlap <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L/BEGIN_PROVIDER [ double precision, ao_overlap, (ao_num_align,ao_num) ]/;"
->`_
+`ao_overlap <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L96>`_
   matrix of the overlap for tha AOs
   S(i,j) = overlap between the ith and the jth atomic basis function
 
-`ao_power <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L/BEGIN_PROVIDER [ integer, ao_power, (ao_num_align,3) ]/;"
->`_
-  coefficient of the primitives on the AO basis
+`ao_power <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L19>`_
+  Coefficients, exponents and powers of x,y and z
   ao_coef(i,j) = coefficient of the jth primitive on the ith ao
 
-`ao_prim_num <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L/BEGIN_PROVIDER [ integer, ao_prim_num, (ao_num_align) ]/;"
->`_
+`ao_prim_num <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L154>`_
   Number of primitives per atomic orbital
 
-`ao_prim_num_max <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L/BEGIN_PROVIDER [ integer, ao_prim_num_max ]/;"
->`_
+`ao_prim_num_max <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L176>`_
 None
-`ao_prim_num_max_align <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L/&BEGIN_PROVIDER [ integer, ao_prim_num_max_align ]/;"
->`_
+`ao_prim_num_max_align <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L177>`_
 None
 
 

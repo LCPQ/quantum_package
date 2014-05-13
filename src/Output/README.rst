@@ -39,24 +39,19 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`output_cpu_time_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Output/output.irp.f#L2
->`_
+`output_cpu_time_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Output/output.irp.f#L2>`_
   Initial CPU and wall times when printing in the output files
 
-`output_wall_time_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Output/output.irp.f#L1
->`_
+`output_wall_time_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Output/output.irp.f#L1>`_
   Initial CPU and wall times when printing in the output files
 
-`write_double <http://github.com/LCPQ/quantum_package/tree/master/src/Output/output.irp.f#L49
->`_
+`write_double <http://github.com/LCPQ/quantum_package/tree/master/src/Output/output.irp.f#L49>`_
   Write a double precision value in output
 
-`write_int <http://github.com/LCPQ/quantum_package/tree/master/src/Output/output.irp.f#L64
->`_
+`write_int <http://github.com/LCPQ/quantum_package/tree/master/src/Output/output.irp.f#L64>`_
   Write an integer value in output
 
-`write_time <http://github.com/LCPQ/quantum_package/tree/master/src/Output/output.irp.f#L33
->`_
+`write_time <http://github.com/LCPQ/quantum_package/tree/master/src/Output/output.irp.f#L33>`_
   Write a time stamp in the output for chronological reconstruction
 
 

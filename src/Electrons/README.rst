@@ -34,20 +34,16 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`elec_alpha_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L/BEGIN_PROVIDER [ integer, elec_alpha_num ]/;"
->`_
+`elec_alpha_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L1>`_
   Numbers of alpha ("up") , beta ("down") and total electrons
 
-`elec_beta_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L/&BEGIN_PROVIDER [ integer, elec_beta_num ]/;"
->`_
+`elec_beta_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L2>`_
   Numbers of alpha ("up") , beta ("down") and total electrons
 
-`elec_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L/&BEGIN_PROVIDER [ integer, elec_num ]/;"
->`_
+`elec_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L3>`_
   Numbers of alpha ("up") , beta ("down") and total electrons
 
-`elec_num_tab <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L/&BEGIN_PROVIDER [ integer, elec_num_tab, (2) ]/;"
->`_
+`elec_num_tab <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L4>`_
   Numbers of alpha ("up") , beta ("down") and total electrons
 
 
