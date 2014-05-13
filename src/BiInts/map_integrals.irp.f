@@ -330,5 +330,5 @@ end
 
 SUBST [ ao_integrals_map, ao_integrals, ao_num , get_ao_bielec_integral ]
 ao_integrals_map ; ao_integrals ; ao_num ; get_ao_bielec_integral ;;
-mo_integrals_map ; mo_integrals ; n_act ; get_mo_bielec_integral ;;
+mo_integrals_map ; mo_integrals ; mo_tot_num ; get_mo_bielec_integral ;;
 END_TEMPLATE

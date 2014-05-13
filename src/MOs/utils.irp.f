@@ -3,7 +3,7 @@ subroutine save_mos
   double precision, allocatable  :: buffer(:,:)
   integer                        :: i,j
   
-  call system('save_current_mos.sh '//trim(ezfio_filename))
+  call system('$QPACKAGE_ROOT/scripts/save_current_mos.sh '//trim(ezfio_filename))
   
   call ezfio_set_mo_basis_mo_label(mo_label)
   allocate ( buffer(ao_num,mo_tot_num) )

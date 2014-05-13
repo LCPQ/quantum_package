@@ -27,3 +27,42 @@ Needed Modules
 * `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 
+Documentation
+=============
+
+.. Do not edit this section. It was auto-generated from the
+.. NEEDED_MODULES file.
+
+`mo_coef <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/mos.irp.f#L/BEGIN_PROVIDER [ double precision, mo_coef, (ao_num_align,mo_tot_num) ]/;"
+>`_
+  Molecular orbital coefficients on AO basis set
+  mo_coef(i,j) = coefficient of the ith ao on the jth mo
+
+`mo_coef_transp <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/mos.irp.f#L/BEGIN_PROVIDER [ double precision, mo_coef_transp, (mo_tot_num_align,ao_num) ]/;"
+>`_
+  Molecular orbital coefficients on AO basis set
+
+`mo_energy <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/mos.irp.f#L/BEGIN_PROVIDER [ double precision, mo_energy, (mo_tot_num) ]/;"
+>`_
+  Fock diagonal elements
+
+`mo_label <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/mos.irp.f#L/BEGIN_PROVIDER [ character*(64), mo_label ]/;"
+>`_
+  Label characterizing the MOS (local, canonical, natural, etc)
+
+`mo_tot_num <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/mos.irp.f#L/BEGIN_PROVIDER [ integer, mo_tot_num ]/;"
+>`_
+  Total number of molecular orbitals and the size of the keys corresponding
+
+`mo_tot_num_align <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/mos.irp.f#L/BEGIN_PROVIDER [ integer, mo_tot_num_align ]/;"
+>`_
+  Aligned variable for dimensioning of arrays
+
+`mo_as_eigvectors_of_mo_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/utils.irp.f#L/subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label)/;"
+>`_
+None
+`save_mos <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/utils.irp.f#L/subroutine save_mos/;"
+>`_
+None
+
+

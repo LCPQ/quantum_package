@@ -3,8 +3,8 @@ BEGIN_PROVIDER [ double precision,thresh_SCF ]
   BEGIN_DOC  
 !  Threshold on the convergence of the Hartree Fock energy
   END_DOC
-
-  logical :: has
+  
+  logical                        :: has
   PROVIDE ezfio_filename
   call ezfio_has_Hartree_Fock_thresh_SCF(has)
   if (has) then
@@ -13,6 +13,9 @@ BEGIN_PROVIDER [ double precision,thresh_SCF ]
     thresh_SCF = 1.d-10
     call ezfio_set_Hartree_Fock_thresh_SCF(thresh_SCF)
   endif
+  call write_time(output_Hartree_Fock)
+  call write_double(output_Hartree_Fock, thresh_SCF,                 &
+      'thresh_SCF')
 
 END_PROVIDER
 

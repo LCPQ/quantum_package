@@ -114,4 +114,18 @@ subroutine bitstring_to_hexa( output, string, Nint )
   enddo
 end
   
-  
+subroutine debug_det(string,Nint)
+  implicit none
+  integer, intent(in) :: Nint
+  integer(bit_kind), intent(in) :: string(Nint,2)
+  character*(512) :: output(2)
+  call bitstring_to_hexa( output(1), string(1,1), Nint )
+  call bitstring_to_hexa( output(2), string(1,2), Nint )
+  print *,  trim(output(1)) , '|', trim(output(2))
+
+  call bitstring_to_str( output(1), string(1,1), N_int )
+  call bitstring_to_str( output(2), string(1,2), N_int )
+  print *,  trim(output(1))
+  print *,  trim(output(2))
+
+end

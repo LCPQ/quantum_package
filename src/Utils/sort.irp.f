@@ -382,7 +382,8 @@ BEGIN_TEMPLATE
     return
   endif
   
-  ASSERT (iradix > 0)
+  ASSERT (iradix >= 0)
+
   if (isize < 48) then
     call insertion_$Xsort$big(x,iorder,isize)
     return

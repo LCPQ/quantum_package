@@ -122,5 +122,11 @@ Needed Modules
 * `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
 * `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
-* `Hartree-fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree-fock>`_
+* `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock>`_
+* `BiInts <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts>`_
+* `MonoInts <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts>`_
+* `MOGuess <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess>`_
+* `Dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets>`_
+* `DensityMatrix <http://github.com/LCPQ/quantum_package/tree/master/src/DensityMatrix>`_
+* `CISD <http://github.com/LCPQ/quantum_package/tree/master/src/CISD>`_
 
