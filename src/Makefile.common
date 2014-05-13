@@ -85,11 +85,6 @@ $(info  -----------------------------------------------)
 endif
 
 
-# Update the README.rst file for GitHub, and git add it
-
-$(shell update_README.py)
-
-
 # Define the Makefile common variables and rules
 
 EZFIO_DIR=$(QPACKAGE_ROOT)/EZFIO
@@ -116,7 +111,8 @@ LIB+=$(EZFIO) $(MKL)
 IRPF90+=$(patsubst %, -I %, $(INCLUDE_DIRS)) $(IRPF90_FLAGS)
 
 irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile $(EZFIO) NEEDED_MODULES $(wildcard *.py) 
-	$(IRPF90)
+	- $(IRPF90)
+	- update_README.py
 
 Makefile.depend: Makefile
 	$(QPACKAGE_ROOT)/scripts/create_Makefile_depend.sh

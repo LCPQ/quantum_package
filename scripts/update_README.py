@@ -126,8 +126,12 @@ def update_documentation(data):
         inside = line.startswith(".SH Description")
       else:
         if line.startswith(".SH"):
-          return "".join(result)
-        result.append("  "+line.strip()+"\n")
+          break
+        result.append("  "+line.strip())
+
+    if result == []:
+      result = ["  Undocumented"]
+    return "\n".join(result)+'\n'
             
         
   
