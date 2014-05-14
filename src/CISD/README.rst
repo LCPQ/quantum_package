@@ -30,7 +30,5 @@ Documentation
   Calls H_apply on the HF determinant and selects all connected single and double
   excitations (of the same symmetry).
 
-`cisd <http://github.com/LCPQ/quantum_package/tree/master/src/CISD/cisd.irp.f#L1>`_
-None
 
 

@@ -74,6 +74,7 @@ subroutine get_excitation(det1,det2,exc,degree,phase,Nint)
 end
 
 subroutine decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+  use bitmasks
   implicit none
   BEGIN_DOC
   ! Decodes the exc arrays returned by get_excitation.
@@ -488,6 +489,7 @@ end
 
 
 subroutine i_H_psim(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
+  use bitmasks
   implicit none
   integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate
   integer, intent(in)            :: keys(Nint,2,Ndet_max)
@@ -515,14 +517,14 @@ end
 
 
 
-subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,sze_max,idx)
+subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
   use bitmasks
   implicit none
   BEGIN_DOC
 ! Applies get_excitation_degree to an array of determinants
   END_DOC
-  integer, intent(in)            :: Nint, sze,sze_max
-  integer(bit_kind), intent(in)  :: key1(Nint,2,sze_max)
+  integer, intent(in)            :: Nint, sze
+  integer(bit_kind), intent(in)  :: key1(Nint,2,sze)
   integer(bit_kind), intent(in)  :: key2(Nint,2)
   integer, intent(out)           :: degree(sze)
   integer, intent(out)           :: idx(0:sze)
@@ -531,7 +533,6 @@ subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,sze_max,idx)
   
   ASSERT (Nint > 0)
   ASSERT (sze > 0)
-  ASSERT (sze_max >= sze)
 
   l=1
   if (Nint==1) then
@@ -599,14 +600,14 @@ end
 
 
 
-subroutine filter_connected(key1,key2,Nint,sze,sze_max,idx)
+subroutine filter_connected(key1,key2,Nint,sze,idx)
   use bitmasks
   implicit none
   BEGIN_DOC
 ! Filters out the determinants that are not connected by H
   END_DOC
-  integer, intent(in)            :: Nint, sze,sze_max
-  integer(bit_kind), intent(in)  :: key1(Nint,2,sze_max)
+  integer, intent(in)            :: Nint, sze
+  integer(bit_kind), intent(in)  :: key1(Nint,2,sze)
   integer(bit_kind), intent(in)  :: key2(Nint,2)
   integer, intent(out)           :: idx(0:sze)
   
@@ -615,7 +616,6 @@ subroutine filter_connected(key1,key2,Nint,sze,sze_max,idx)
   
   ASSERT (Nint > 0)
   ASSERT (sze > 0)
-  ASSERT (sze_max >= sze)
 
   l=1
   
@@ -684,11 +684,11 @@ subroutine filter_connected(key1,key2,Nint,sze,sze_max,idx)
   idx(0) = l-1
 end
 
-subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,sze_max,idx)
+subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
   use bitmasks
   implicit none
-  integer, intent(in)            :: Nint, sze,sze_max
-  integer(bit_kind), intent(in)  :: key1(Nint,2,sze_max)
+  integer, intent(in)            :: Nint, sze
+  integer(bit_kind), intent(in)  :: key1(Nint,2,sze)
   integer(bit_kind), intent(in)  :: key2(Nint,2)
   integer, intent(out)           :: idx(0:sze)
   
@@ -697,7 +697,6 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,sze_max,idx)
 
   ASSERT (Nint > 0)
   ASSERT (sze > 0)
-  ASSERT (sze_max >= sze)
   
   l=1
   
@@ -777,7 +776,6 @@ end
 
 
 double precision function diag_H_mat_elem(det_in,Nint)
-  use bitmasks
   implicit none
   BEGIN_DOC
 ! Computes <i|H|i>
@@ -947,3 +945,46 @@ subroutine get_occ_from_key(key,occ,Nint)
   call bitstring_to_list(key(1,2), occ(1,2), tmp, Nint)
   
 end
+
+subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Computes v_0 = H|u_0>
+!
+! n : number of determinants
+! 
+! H_jj : array of <j|H|j>
+  END_DOC
+  integer, intent(in)            :: n,Nint
+  double precision, intent(out)  :: v_0(n)
+  double precision, intent(in)   :: u_0(n)
+  double precision, intent(in)   :: H_jj(n)
+  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
+  integer, allocatable           :: idx(:)
+  double precision               :: hij
+  integer                        :: i,j,k,l, jj
+  ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
+  ASSERT (n>0)
+  !$OMP PARALLEL DEFAULT(NONE)                                       &
+      !$OMP PRIVATE(i,hij,j,k,idx,jj) SHARED(n,H_jj,u_0,keys_tmp,Nint)&
+      !$OMP SHARED(v_0)
+  allocate(idx(0:n))
+  !$OMP DO SCHEDULE(dynamic)
+  do i=1,n
+    v_0(i) = H_jj(i) * u_0(i)
+    call filter_connected(keys_tmp,keys_tmp(1,1,i),Nint,n,idx)
+    do jj=1,idx(0)
+      j = idx(jj)
+      if (j/=i) then
+        call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
+        v_0(i) = v_0(i) + hij*u_0(j)
+      endif
+    enddo
+  enddo
+  !$OMP END DO
+  deallocate(idx)
+  !$OMP END PARALLEL
+end
+

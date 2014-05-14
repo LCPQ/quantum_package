@@ -13,11 +13,19 @@ BEGIN_PROVIDER [ integer, N_det ]
  BEGIN_DOC
  ! Number of determinants in the wave function
  END_DOC
- N_det = max(1,N_states)
+ N_det = 1
 END_PROVIDER
 
- BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,N_det) ]
-&BEGIN_PROVIDER [ double precision, psi_coef, (N_det,N_states) ]
+BEGIN_PROVIDER [ integer, psi_det_size ]
+ implicit none
+ BEGIN_DOC
+ ! Size of the psi_det/psi_coef arrays
+ END_DOC
+ psi_det_size = 1000
+END_PROVIDER
+
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
+&BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
  implicit none
  BEGIN_DOC
  ! The wave function. Initialized with Hartree-Fock
@@ -52,7 +60,7 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
  N_det_generators = N_det
 END_PROVIDER
 
-BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,N_det) ]
+BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
  implicit none
  BEGIN_DOC
  ! Determinants on which H is applied

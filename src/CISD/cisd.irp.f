@@ -1,19 +1,18 @@
 program cisd
   implicit none
   integer :: i
+  double precision, allocatable  :: eigvalues(:),eigvectors(:,:)
   call H_apply_cisd
-  double precision, allocatable :: eigvalues(:),eigvectors(:,:)
   allocate(eigvalues(n_det),eigvectors(n_det,n_det))
   print *,  'N_det = ', N_det
-  call lapack_diag(eigvalues,eigvectors,H_matrix_all_dets,n_det,n_det)
+  psi_coef = psi_coef - 1.d-4
+  call davidson_diag(psi_det,psi_coef,eigvalues,size(psi_coef,1),N_det,N_states,N_int)
 
-! print *,  H_matrix_all_dets
   print *,  '---'
   print *,  'HF:', HF_energy
   print *,  '---'
-  do i = 1,3
+  do i = 1,1
    print *,  'energy(i)    = ',eigvalues(i) + nuclear_repulsion
   enddo
-! print *,  eigvectors(:,1)
   deallocate(eigvalues,eigvectors)
 end
