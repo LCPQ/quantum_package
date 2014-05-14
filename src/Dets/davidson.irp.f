@@ -12,7 +12,7 @@ BEGIN_PROVIDER [ integer, davidson_sze_max]
   ! Max number of Davidson sizes
   END_DOC
   ASSERT (davidson_sze_max <= davidson_iter_max)
-  davidson_sze_max = 10
+  davidson_sze_max = 4
 END_PROVIDER
 
 subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
@@ -40,7 +40,7 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
   double precision, intent(out)  :: energies(N_st)
   
   integer                        :: iter
-  integer                        :: i,j,k,l
+  integer                        :: i,j,k,l,m
   logical                        :: converged
   
   double precision               :: overlap(N_st,N_st)
@@ -69,23 +69,9 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
   ASSERT (sze > 0)
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
-  ! Conventions:
-  ! i,j : 1,sze
-  ! k,l : 1,N_st
   
-  !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(k,i) SHARED(U,u_in,sze,N_st)
-  do k=1,N_st
-    !$OMP DO
-    do i=1,sze
-      U(i,k,1) = u_in(i,k)
-    enddo
-    !$OMP END DO NOWAIT
-  enddo
-  !$OMP END PARALLEL
-  
-  ! Orthonormalize initial guess
-  ! ============================
+  ! Initialization
+  ! ==============
   
   k_pairs=0
   do l=1,N_st
@@ -95,158 +81,198 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
       kl_pairs(2,k_pairs) = l
     enddo
   enddo
-  !$OMP PARALLEL DO DEFAULT(NONE)                                  &
-      !$OMP  SHARED(U,sze,N_st,overlap,kl_pairs,k_pairs)           &
-      !$OMP  PRIVATE(k,l,kl)
-  do kl=1,k_pairs
-    k = kl_pairs(1,kl)
-    l = kl_pairs(2,kl)
-    if (k==l) then
-      overlap(k,k) = u_dot_u(U(1,k,1),sze)
-    endif
-    overlap(k,l) = u_dot_v(U(1,k,1),U(1,l,1),sze)
-    overlap(l,k) = overlap(k,l)
-  enddo
-  !$OMP END PARALLEL DO
-  call ortho_lowdin(overlap,size(overlap,1),N_st,U,size(U,1),sze)
   
-  !$OMP PARALLEL DO DEFAULT(NONE)                                    &
-      !$OMP PRIVATE(i)                                               &
-      !$OMP SHARED(H_jj,Nint,dets_in,sze)
+  !$OMP PARALLEL DEFAULT(NONE)                                       &
+      !$OMP  SHARED(U,sze,N_st,overlap,kl_pairs,k_pairs,             &
+      !$OMP  H_jj,Nint,dets_in,u_in)                                 &
+      !$OMP  PRIVATE(k,l,kl,i)
+  
+  !$OMP DO
   do i=1,sze
     H_jj(i) = diag_h_mat_elem(dets_in(1,1,i),Nint)
   enddo
-  !$OMP END PARALLEL DO
+  !$OMP END DO NOWAIT
+  
+  ! Orthonormalize initial guess
+  ! ============================
+  
+  !$OMP DO
+  do kl=1,k_pairs
+    k = kl_pairs(1,kl)
+    l = kl_pairs(2,kl)
+    if (k/=l) then
+      overlap(k,l) = u_dot_v(U_in(1,k),U_in(1,l),sze)
+      overlap(l,k) = overlap(k,l)
+    else
+      overlap(k,k) = u_dot_u(U_in(1,k),sze)
+    endif
+  enddo
+  !$OMP END DO
+  !$OMP END PARALLEL
+  call ortho_lowdin(overlap,size(overlap,1),N_st,U_in,size(U_in,1),sze)
   
   ! Davidson iterations
   ! ===================
   
   converged = .False.
   
-  do iter=1,davidson_sze_max-1
-   print *,  'iter = ',iter
+  do while (.not.converged)
     
-!      print *,  '***************'
-!      do i=1,iter
-!       do k=1,N_st
-!         do j=1,iter
-!             do l=1,N_st
-!               print '(4(I4,X),F16.8)', i,j,k,l, u_dot_v(U(1,k,i),U(1,l,j),sze)
-!             enddo
-!           enddo
-!         enddo
-!       enddo
-!       print *,  '***************'
-    
-    ! Compute W_k = H |u_k>
-    ! ----------------------
-    
+    !$OMP PARALLEL DEFAULT(NONE)                                     &
+        !$OMP PRIVATE(k,i) SHARED(U,u_in,sze,N_st)
     do k=1,N_st
-      call H_u_0(W(1,k),U(1,k,iter),H_jj,sze,dets_in,Nint)
+      !$OMP DO
+      do i=1,sze
+        U(i,k,1) = u_in(i,k)
+      enddo
+      !$OMP END DO 
     enddo
+    !$OMP END PARALLEL
     
-    ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
-    ! -------------------------------------------
-    do l=1,N_st
-      do iter2=1,iter-1
-        do k=1,N_st
-          h(k,iter2,l,iter) = u_dot_v(U(1,k,iter2),W(1,l),sze)
-          h(k,iter,l,iter2) = h(k,iter2,l,iter)
+    do iter=1,davidson_sze_max-1
+      print *,  'iter = ',iter
+      
+      !      print *,  '***************'
+      !      do i=1,iter
+      !       do k=1,N_st
+      !         do j=1,iter
+      !             do l=1,N_st
+      !               print '(4(I4,X),F16.8)', i,j,k,l, u_dot_v(U(1,k,i),U(1,l,j),sze)
+      !             enddo
+      !           enddo
+      !         enddo
+      !       enddo
+      !       print *,  '***************'
+      
+      ! Compute W_k = H |u_k>
+      ! ----------------------
+      
+      do k=1,N_st
+        call H_u_0(W(1,k),U(1,k,iter),H_jj,sze,dets_in,Nint)
+      enddo
+      
+      ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
+      ! -------------------------------------------
+
+      !$OMP PARALLEL 
+      !$OMP SINGLE
+      do l=1,N_st
+        do iter2=1,iter-1
+          do k=1,N_st
+            !$OMP TASK FIRSTPRIVATE(k,iter,l,iter2)
+            h(k,iter2,l,iter) = u_dot_v(U(1,k,iter2),W(1,l),sze)
+            h(k,iter,l,iter2) = h(k,iter2,l,iter)
+            !$OMP END TASK
+          enddo
+        enddo
+        do k=1,l
+          !$OMP TASK FIRSTPRIVATE(k,iter,l)
+          h(k,iter,l,iter) = u_dot_v(U(1,k,iter),W(1,l),sze)
+          h(l,iter,k,iter) = h(k,iter,l,iter)
+          !$OMP END TASK
         enddo
       enddo
-      do k=1,l
-        h(k,iter,l,iter) = u_dot_v(U(1,k,iter),W(1,l),sze)
-        h(l,iter,k,iter) = h(k,iter,l,iter)
+      !$OMP END SINGLE NOWAIT
+      !$OMP TASKWAIT
+      !$OMP END PARALLEL
+      
+      ! Diagonalize h
+      ! -------------
+      call lapack_diag(lambda,y,h,N_st*davidson_sze_max,N_st*iter)
+      
+      print *,  lambda(1:4)
+      ! Express eigenvectors of h in the determinant basis
+      ! --------------------------------------------------
+      
+      !TODO dgemm
+      do k=1,N_st
+        do i=1,sze
+          U(i,k,iter+1) = 0.d0
+          do iter2=1,iter
+            do l=1,N_st
+              U(i,k,iter+1) += U(i,l,iter2)*y(l,iter2,k,1)
+            enddo
+          enddo
+        enddo
       enddo
-    enddo
-    
-    ! Diagonalize h
-    ! -------------
-    call lapack_diag(lambda,y,h,N_st*davidson_sze_max,N_st*iter)
-    
-    ! Express eigenvectors of h in the determinant basis
-    ! --------------------------------------------------
-    
-    !TODO dgemm
-    do k=1,N_st
-      do i=1,sze
-        U(i,k,iter+1) = 0.d0
+      
+      ! Compute residual vector
+      ! -----------------------
+      
+      do k=1,N_st
+        call H_u_0(W(1,k),U(1,k,iter+1),H_jj,sze,dets_in,Nint)
+      enddo
+      
+      do k=1,N_st
+        do i=1,sze
+          R(i,k) = lambda(k) * U(i,k,iter+1) - W(i,k)
+        enddo
+        residual_norm(k) = u_dot_u(R(1,k),sze)
+      enddo
+      print *,  'Lambda'
+      print *,  lambda(1:N_st) + nuclear_repulsion
+      print *,  'Residual_norm'
+      print *,  residual_norm(1:N_st)
+      print *,  ''
+      
+      converged = maxval(residual_norm) < 1.d-10
+      if (converged) then
+        exit
+      endif
+      
+      ! Davidson step
+      ! -------------
+      
+      do k=1,N_st
+        do i=1,sze
+          U(i,k,iter+1) = 1.d0/(lambda(k) - H_jj(i)) * R(i,k)
+        enddo
+      enddo
+      
+      ! Gram-Schmidt
+      ! ------------
+      
+      double precision               :: c
+      do k=1,N_st
         do iter2=1,iter
           do l=1,N_st
-            U(i,k,iter+1) += U(i,l,iter2)*y(l,iter2,k,1)
+            c = u_dot_v(U(1,k,iter+1),U(1,l,iter2),sze)
+            do i=1,sze
+              U(i,k,iter+1) -= c * U(i,l,iter2)
+            enddo
           enddo
         enddo
+        do l=1,k-1
+          c = u_dot_v(U(1,k,iter+1),U(1,l,iter+1),sze)
+          do i=1,sze
+            U(i,k,iter+1) -= c * U(i,l,iter+1)
+          enddo
+        enddo
+        call normalize( U(1,k,iter+1), sze )
       enddo
     enddo
     
-    ! Compute residual vector
-    ! -----------------------
-    
-    do k=1,N_st
-      call H_u_0(W(1,k),U(1,k,iter+1),H_jj,sze,dets_in,Nint)
-    enddo
-    
-    do k=1,N_st
-      do i=1,sze
-        R(i,k) = lambda(k) * U(i,k,iter+1) - W(i,k)
-      enddo
-      residual_norm(k) = u_dot_u(R(1,k),sze)
-    enddo
-    print *,  'Lambda'
-    print *,  lambda(1:N_st) + nuclear_repulsion
-    print *,  'Residual_norm'
-    print *,  residual_norm(1:N_st)
-    print *,  ''
-    
-    converged = maxval(residual_norm) < 1.d-10
-    if (converged) then
-      exit
+    if (.not.converged) then
+      iter = davidson_sze_max
     endif
     
-    ! Davidson step
-    ! -------------
+    ! Re-contract to u_in
+    ! -----------
     
     do k=1,N_st
+      energies(k) = lambda(k)
       do i=1,sze
-        U(i,k,iter+1) = 1.d0/(lambda(k) - H_jj(i)) * R(i,k)
-      enddo
-    enddo
-    
-    ! Gram-Schmidt
-    ! ------------
-    
-    double precision               :: c
-    do k=1,N_st
-      do iter2=1,iter
-        do l=1,N_st
-          c = u_dot_v(U(1,k,iter+1),U(1,l,iter2),sze)
-          do i=1,sze
-            U(i,k,iter+1) -= c * U(i,l,iter2)
+        u_in(i,k) = 0.d0
+        do iter2=1,iter
+          do l=1,N_st
+            u_in(i,k) += U(i,l,iter2)*y(l,iter2,k,1)
           enddo
         enddo
       enddo
-      do l=1,k-1
-        c = u_dot_v(U(1,k,iter+1),U(1,l,iter+1),sze)
-        do i=1,sze
-          U(i,k,iter+1) -= c * U(i,l,iter+1)
-        enddo
-      enddo
-      call normalize( U(1,k,iter+1), sze )
     enddo
     
   enddo
-  do k=1,N_st
-    energies(k) = lambda(k)
-    do i=1,sze
-      u_in(i,k) = 0.d0
-      do iter2=1,iter
-        do l=1,N_st
-          u_in(i,k) += U(i,l,iter2)*y(l,iter2,k,1)
-        enddo
-      enddo
-    enddo
-  enddo
-  
+
   deallocate (                                                       &
       kl_pairs,                                                      &
       H_jj,                                                          &

@@ -971,7 +971,7 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
       !$OMP PRIVATE(i,hij,j,k,idx,jj) SHARED(n,H_jj,u_0,keys_tmp,Nint)&
       !$OMP SHARED(v_0)
   allocate(idx(0:n))
-  !$OMP DO SCHEDULE(dynamic)
+  !$OMP DO SCHEDULE(guided)
   do i=1,n
     v_0(i) = H_jj(i) * u_0(i)
     call filter_connected(keys_tmp,keys_tmp(1,1,i),Nint,n,idx)
