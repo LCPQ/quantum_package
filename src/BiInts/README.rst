@@ -107,7 +107,8 @@ Documentation
   AO integrals
 
 `bielec_integrals_index <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts/map_integrals.irp.f#L17>`_
-None
+  Undocumented
+
 `clear_ao_map <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts/map_integrals.irp.f#L128>`_
   Frees the memory of the AO map
 

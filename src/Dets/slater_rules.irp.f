@@ -964,26 +964,38 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   integer, allocatable           :: idx(:)
   double precision               :: hij
   integer                        :: i,j,k,l, jj
+  integer                        :: i0, j0
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
-  ASSERT (n>0)
+  ASSERT (n>0) 
+  PROVIDE ref_bitmask_energy
+  integer, parameter :: block_size = 157
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,j,k,idx,jj) SHARED(n,H_jj,u_0,keys_tmp,Nint)&
       !$OMP SHARED(v_0)
-  allocate(idx(0:n))
-  !$OMP DO SCHEDULE(guided)
+  allocate(idx(0:block_size))
+  !$OMP DO SCHEDULE(static)
   do i=1,n
     v_0(i) = H_jj(i) * u_0(i)
-    call filter_connected(keys_tmp,keys_tmp(1,1,i),Nint,n,idx)
-    do jj=1,idx(0)
-      j = idx(jj)
-      if (j/=i) then
-        call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
-        v_0(i) = v_0(i) + hij*u_0(j)
-      endif
-    enddo
   enddo
   !$OMP END DO
+  !$OMP DO SCHEDULE(guided)
+  do i0=1,n,block_size
+    do j0=1,n,block_size
+      do i=i0,min(i0+block_size-1,n)
+        call filter_connected(keys_tmp(1,1,j0),keys_tmp(1,1,i),Nint,min(block_size,i-j0+1),idx)
+        do jj=1,idx(0)
+          j = idx(jj)+j0-1
+          if ( (j<i).and.(dabs(u_0(j)) > 1.d-8)) then
+            call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
+            v_0(i) = v_0(i) + hij*u_0(j)
+            v_0(j) = v_0(j) + hij*u_0(i)
+          endif
+        enddo
+      enddo
+    enddo
+  enddo
+  !$OMP END DO NOWAIT
   deallocate(idx)
   !$OMP END PARALLEL
 end

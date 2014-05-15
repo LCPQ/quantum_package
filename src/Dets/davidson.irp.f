@@ -12,7 +12,7 @@ BEGIN_PROVIDER [ integer, davidson_sze_max]
   ! Max number of Davidson sizes
   END_DOC
   ASSERT (davidson_sze_max <= davidson_iter_max)
-  davidson_sze_max = 4
+  davidson_sze_max = 8
 END_PROVIDER
 
 subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
@@ -50,15 +50,17 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
   integer                        :: k_pairs, kl
   
   integer                        :: iter2
-  double precision, allocatable  :: W(:,:), H_jj(:), U(:,:,:), R(:,:)
+  double precision, allocatable  :: W(:,:,:), H_jj(:), U(:,:,:), R(:,:)
   double precision, allocatable  :: y(:,:,:,:), h(:,:,:,:), lambda(:)
   double precision               :: diag_h_mat_elem
   double precision               :: residual_norm(N_st)
   
+  PROVIDE ref_bitmask_energy
+
   allocate(                                                          &
       kl_pairs(2,N_st*(N_st+1)/2),                                   &
       H_jj(sze),                                                     &
-      W(sze,N_st),                                                   &
+      W(sze,N_st,davidson_sze_max),                                                   &
       U(sze,N_st,davidson_sze_max),                                  &
       R(sze,N_st),                                                   &
       h(N_st,davidson_sze_max,N_st,davidson_sze_max),                &
@@ -109,6 +111,7 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
   enddo
   !$OMP END DO
   !$OMP END PARALLEL
+
   call ortho_lowdin(overlap,size(overlap,1),N_st,U_in,size(U_in,1),sze)
   
   ! Davidson iterations
@@ -148,33 +151,24 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
       ! ----------------------
       
       do k=1,N_st
-        call H_u_0(W(1,k),U(1,k,iter),H_jj,sze,dets_in,Nint)
+        call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint)
       enddo
       
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
       ! -------------------------------------------
 
-      !$OMP PARALLEL 
-      !$OMP SINGLE
       do l=1,N_st
-        do iter2=1,iter-1
-          do k=1,N_st
-            !$OMP TASK FIRSTPRIVATE(k,iter,l,iter2)
-            h(k,iter2,l,iter) = u_dot_v(U(1,k,iter2),W(1,l),sze)
+        do k=1,N_st
+          do iter2=1,iter-1
+            h(k,iter2,l,iter) = u_dot_v(U(1,k,iter2),W(1,l,iter),sze)
             h(k,iter,l,iter2) = h(k,iter2,l,iter)
-            !$OMP END TASK
           enddo
         enddo
         do k=1,l
-          !$OMP TASK FIRSTPRIVATE(k,iter,l)
-          h(k,iter,l,iter) = u_dot_v(U(1,k,iter),W(1,l),sze)
+          h(k,iter,l,iter) = u_dot_v(U(1,k,iter),W(1,l,iter),sze)
           h(l,iter,k,iter) = h(k,iter,l,iter)
-          !$OMP END TASK
         enddo
       enddo
-      !$OMP END SINGLE NOWAIT
-      !$OMP TASKWAIT
-      !$OMP END PARALLEL
       
       ! Diagonalize h
       ! -------------
@@ -184,13 +178,17 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
       ! Express eigenvectors of h in the determinant basis
       ! --------------------------------------------------
       
-      !TODO dgemm
+  !   call dgemm ( 'N','N', sze, N_st*iter, N_st, &
+  !     1.d0, U(1,1,1), size(U,1), y(1,1,1,1), size(y,1)*size(y,2), &
+  !     0.d0, U(1,1,iter+1), size(U,1) )
       do k=1,N_st
         do i=1,sze
           U(i,k,iter+1) = 0.d0
-          do iter2=1,iter
-            do l=1,N_st
-              U(i,k,iter+1) += U(i,l,iter2)*y(l,iter2,k,1)
+          W(i,k,iter+1) = 0.d0
+          do l=1,N_st
+            do iter2=1,iter
+              U(i,k,iter+1) = U(i,k,iter+1) + U(i,l,iter2)*y(l,iter2,k,1)
+              W(i,k,iter+1) = W(i,k,iter+1) + W(i,l,iter2)*y(l,iter2,k,1)
             enddo
           enddo
         enddo
@@ -200,12 +198,8 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
       ! -----------------------
       
       do k=1,N_st
-        call H_u_0(W(1,k),U(1,k,iter+1),H_jj,sze,dets_in,Nint)
-      enddo
-      
-      do k=1,N_st
         do i=1,sze
-          R(i,k) = lambda(k) * U(i,k,iter+1) - W(i,k)
+          R(i,k) = lambda(k) * U(i,k,iter+1) - W(i,k,iter+1)
         enddo
         residual_norm(k) = u_dot_u(R(1,k),sze)
       enddo
@@ -215,7 +209,7 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
       print *,  residual_norm(1:N_st)
       print *,  ''
       
-      converged = maxval(residual_norm) < 1.d-10
+      converged = maxval(residual_norm) < 1.d-5
       if (converged) then
         exit
       endif
@@ -253,7 +247,7 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
     enddo
     
     if (.not.converged) then
-      iter = davidson_sze_max
+      iter = davidson_sze_max-1
     endif
     
     ! Re-contract to u_in

@@ -253,12 +253,16 @@ double precision function u_dot_u(u,sze)
   t3 = t2+t2
   t4 = t3+t2
   u_dot_u = 0.d0
-  do i=1,t2
-    u_dot_u = u_dot_u + u(t1+i)*u(t1+i) + u(t2+i)*u(t2+i) +          &
-        u(t3+i)*u(t3+i) + u(t4+i)*u(t4+i)
-  enddo
-  do i=t4+t2+1,sze
-    u_dot_u = u_dot_u+u(i)*u(i)
+! do i=1,t2
+!   u_dot_u = u_dot_u + u(t1+i)*u(t1+i) + u(t2+i)*u(t2+i) +          &
+!       u(t3+i)*u(t3+i) + u(t4+i)*u(t4+i)
+! enddo
+! do i=t4+t2+1,sze
+!   u_dot_u = u_dot_u+u(i)*u(i)
+! enddo
+  
+  do i=1,sze
+    u_dot_u = u_dot_u + u(i)*u(i)
   enddo
   
 end

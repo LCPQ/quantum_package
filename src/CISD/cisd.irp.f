@@ -1,11 +1,16 @@
 program cisd
   implicit none
-  integer :: i
+  integer :: i,k
   double precision, allocatable  :: eigvalues(:),eigvectors(:,:)
+  PROVIDE ref_bitmask_energy
   call H_apply_cisd
-  allocate(eigvalues(n_det),eigvectors(n_det,n_det))
+  allocate(eigvalues(n_states),eigvectors(n_det,n_states))
   print *,  'N_det = ', N_det
-  psi_coef = psi_coef - 1.d-4
+  print *,  'N_states = ', N_states
+  psi_coef = - 1.d-4
+  do k=1,N_states
+    psi_coef(k,k) = 1.d0
+  enddo
   call davidson_diag(psi_det,psi_coef,eigvalues,size(psi_coef,1),N_det,N_states,N_int)
 
   print *,  '---'
