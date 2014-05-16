@@ -10,7 +10,7 @@ Assumptions
 ===========
 
 .. Do not edit this section. It was auto-generated from the
-.. ASSUMPTIONS.rst file.
+.. NEEDED_MODULES file.
 
 * ``elec_num`` >= 0
 * ``elec_alpha_num`` >= 0
@@ -27,4 +27,24 @@ Needed Modules
 * `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
 * `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
+
+Documentation
+=============
+
+.. Do not edit this section. It was auto-generated from the
+.. NEEDED_MODULES file.
+
+`elec_alpha_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L1>`_
+  Numbers of alpha ("up") , beta ("down") and total electrons
+
+`elec_beta_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L2>`_
+  Numbers of alpha ("up") , beta ("down") and total electrons
+
+`elec_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L3>`_
+  Numbers of alpha ("up") , beta ("down") and total electrons
+
+`elec_num_tab <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L4>`_
+  Numbers of alpha ("up") , beta ("down") and total electrons
+
+
 

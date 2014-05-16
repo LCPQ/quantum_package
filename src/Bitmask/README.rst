@@ -22,7 +22,7 @@ Assumptions
 ===========
 
 .. Do not edit this section. It was auto-generated from the
-.. ASSUMPTIONS.rst file.
+.. NEEDED_MODULES file.
 
 ``bit_kind_shift``, ``bit_kind_size`` and ``bit_kind`` are coherent:
 
@@ -47,4 +47,45 @@ Needed Modules
 * `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
 * `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
+
+Documentation
+=============
+
+.. Do not edit this section. It was auto-generated from the
+.. NEEDED_MODULES file.
+
+`full_ijkl_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L12>`_
+  Bitmask to include all possible MOs
+
+`hf_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L32>`_
+  Hartree Fock bit mask
+
+`n_int <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L3>`_
+  Number of 64-bit integers needed to represent determinants as binary strings
+
+`ref_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L50>`_
+  Reference bit mask, used in Slater rules, chosen as Hartree-Fock bitmask
+
+`bitstring_to_hexa <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L95>`_
+  Transform a bit string to a string in hexadecimal format for printing
+
+`bitstring_to_list <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L1>`_
+  Gives the inidices(+1) of the bits set to 1 in the bit string
+
+`bitstring_to_str <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L62>`_
+  Transform a bit string to a string for printing
+
+`debug_det <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L117>`_
+None
+`list_to_bitstring <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L29>`_
+  return the physical string "string(N_int,2)" from the array of occupations "list(N_int*bit_kind_size,2)
+  list
+  <== ipos ==>
+  |
+  v
+  string :|------------------------|-------------------------|------------------------|
+  <==== bit_kind_size ====> <==== bit_kind_size ====> <==== bit_kind_size ====>
+  {        iint            } {         iint         } {         iint         }
+
+
 

@@ -1,16 +1,16 @@
 BEGIN_PROVIDER [ logical, all_utils ]
- implicit none
- BEGIN_DOC
- ! Dummy provider to provide all utils
- END_DOC
-! Do not move this : it greps itself
-BEGIN_SHELL [ /bin/bash ]
+  implicit none
+  BEGIN_DOC
+  ! Dummy provider to provide all utils
+  END_DOC
+  ! Do not move this : it greps itself
+  BEGIN_SHELL [ /bin/bash ]
   for i in $(grep "BEGIN_PROVIDER" $QPACKAGE_ROOT/src/Utils/*.irp.f | cut -d ',' -f 2 | cut -d ']' -f 1 | tail --lines=+3 )
   do
-    echo PROVIDE $i
+  echo PROVIDE $i
   done
-END_SHELL
-
+  END_SHELL
+  
 END_PROVIDER
 
 double precision function binom_func(i,j)
@@ -208,4 +208,90 @@ BEGIN_PROVIDER [ integer, nproc ]
   !$OMP END MASTER
   !$OMP END PARALLEL
 END_PROVIDER
+
+
+double precision function u_dot_v(u,v,sze)
+  implicit none
+  BEGIN_DOC
+  ! Compute <u|v>
+  ! u and v are expected to be aligned in memory.
+  END_DOC
+  integer, intent(in)            :: sze
+  double precision, intent(in)   :: u(sze),v(sze)
+  
+  integer                        :: i,t1, t2, t3, t4
+  
+  ASSERT (sze > 0)
+  t1 = 0
+  t2 = sze/4
+  t3 = t2+t2
+  t4 = t3+t2
+  u_dot_v = 0.d0
+  !DIR$ VECTOR ALWAYS
+  !DIR$ VECTOR ALIGNED
+  do i=1,t2
+    u_dot_v = u_dot_v + u(t1+i)*v(t1+i) + u(t2+i)*v(t2+i) +          &
+        u(t3+i)*v(t3+i) + u(t4+i)*v(t4+i)
+  enddo
+  !DIR$ VECTOR ALWAYS
+  !DIR$ VECTOR ALIGNED
+  do i=t4+t2+1,sze
+    u_dot_v = u_dot_v + u(i)*v(i)
+  enddo
+  
+end
+
+double precision function u_dot_u(u,sze)
+  implicit none
+  BEGIN_DOC
+  ! Compute <u|u>
+  ! u is expected to be aligned in memory.
+  END_DOC
+  integer, intent(in)            :: sze
+  double precision, intent(in)   :: u(sze)
+  
+  integer                        :: i
+  integer                        :: t1, t2, t3, t4
+  
+  ASSERT (sze > 0)
+  t1 = 0
+  t2 = sze/4
+  t3 = t2+t2
+  t4 = t3+t2
+  u_dot_u = 0.d0
+  do i=1,t2
+    u_dot_u = u_dot_u + u(t1+i)*u(t1+i) + u(t2+i)*u(t2+i) +          &
+        u(t3+i)*u(t3+i) + u(t4+i)*u(t4+i)
+  enddo
+  do i=t4+t2+1,sze
+    u_dot_u = u_dot_u+u(i)*u(i)
+  enddo
+  
+end
+
+subroutine normalize(u,sze)
+  implicit none
+  BEGIN_DOC
+  ! Normalizes vector u
+  ! u is expected to be aligned in memory.
+  END_DOC
+  integer, intent(in)            :: sze
+  double precision, intent(inout):: u(sze)
+  double precision               :: d
+  double precision, external     :: u_dot_u
+  integer                        :: i
+  
+  !DIR$ FORCEINLINE
+  d = 1.d0/dsqrt( u_dot_u(u,sze) )
+  if (d /= 1.d0) then
+    do i=1,sze
+      u(i) = d*u(i)
+    enddo
+  endif
+end
+
+
+
+
+
 

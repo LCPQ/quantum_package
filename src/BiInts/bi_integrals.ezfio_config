@@ -5,4 +5,5 @@ bielec_integrals
   write_mo_integrals   logical
   threshold_ao        double precision
   threshold_mo        double precision
+  direct           logical
 

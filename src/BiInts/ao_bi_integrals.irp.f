@@ -160,20 +160,17 @@ subroutine compute_ao_bielec_integrals(j,k,l,sze,buffer_value)
   thresh = ao_integrals_threshold
   
   integer                        :: n_centers, i
-  integer*1                      :: center_count(nucl_num)
   
   PROVIDE gauleg_t2 ao_nucl  all_utils
   
   if (ao_overlap_abs(j,l) < thresh) then
-    buffer_value = 0.
+    buffer_value = 0._integral_kind
     return
   endif
   
-  center_count = 0
-  
   do i = 1, ao_num
     if (ao_overlap_abs(i,k)*ao_overlap_abs(j,l) < thresh) then
-      buffer_value(i) = 0.
+      buffer_value(i) = 0._integral_kind
       cycle
     endif
     !DIR$ FORCEINLINE
@@ -193,7 +190,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   implicit none
   use map_module
   BEGIN_DOC
-  !  Map of Atomic integrals :
+  !  Map of Atomic integrals
   !     i(r1) j(r2) 1/r12 k(r1) l(r2)
   END_DOC
   
@@ -211,7 +208,6 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   
   integer                        :: n_integrals, n_centers
   integer                        :: jl_pairs(2,ao_num*(ao_num+1)/2), kk, m, j1, i1, lmax
-  integer*1                      :: center_count(nucl_num)
   
   PROVIDE gauleg_t2 ao_integrals_map all_utils
   integral = ao_bielec_integral(1,1,1,1)
@@ -243,7 +239,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   call cpu_time(cpu_1)
   !$OMP PARALLEL PRIVATE(i,j,k,l,kk,                                 &
       !$OMP integral,buffer_i,buffer_value,n_integrals,              &
-      !$OMP cpu_2,wall_2,i1,j1,center_count)                         &
+      !$OMP cpu_2,wall_2,i1,j1)                         &
       !$OMP DEFAULT(NONE)                                            &
       !$OMP SHARED (ao_num, jl_pairs, ao_integrals_map,thresh,       &
       !$OMP    cpu_1,wall_1,lock, lmax,n_centers,ao_nucl,            &
@@ -252,7 +248,6 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   allocate(buffer_i(size_buffer))
   allocate(buffer_value(size_buffer))
   n_integrals = 0
-  center_count = 0
   
   !$OMP DO SCHEDULE(dynamic)
   do kk=1,lmax
