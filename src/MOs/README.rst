@@ -54,8 +54,10 @@ Documentation
   Aligned variable for dimensioning of arrays
 
 `mo_as_eigvectors_of_mo_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/utils.irp.f#L21>`_
-None
+  Undocumented
+
 `save_mos <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/utils.irp.f#L1>`_
-None
+  Undocumented
+
 
 

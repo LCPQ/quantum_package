@@ -482,7 +482,7 @@ subroutine cache_map_get_interval(map, key, value, ibegin, iend, idx)
  if (idx > 0) then
    value = map%value(idx)
  else
-   value = 0.
+   value = 0._integral_kind
  endif
 end
 

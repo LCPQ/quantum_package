@@ -26,7 +26,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   double precision               :: diag_H_mat_elem, E_ref
   
-  PROVIDE mo_integrals_map
+  PROVIDE mo_integrals_map ref_bitmask_energy
   PROVIDE mo_bielec_integrals_in_map
   
   $set_i_H_j_threshold
@@ -257,7 +257,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   double precision               :: diag_H_mat_elem, E_ref
   
-  PROVIDE mo_integrals_map
+  PROVIDE mo_integrals_map ref_bitmask_energy
   PROVIDE mo_bielec_integrals_in_map
 
   $set_i_H_j_threshold

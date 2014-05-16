@@ -120,6 +120,10 @@ subroutine copy_H_apply_buffer_to_wf
   N_det = N_det + H_apply_buffer_N_det
   TOUCH N_det
   
+  if (psi_det_size < N_det) then
+     psi_det_size = N_det
+     TOUCH psi_det_size
+  endif
   do i=1,N_det_old
     do k=1,N_int
       psi_det(k,1,i) = buffer_det(k,1,i)
