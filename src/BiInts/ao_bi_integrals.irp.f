@@ -193,7 +193,8 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   implicit none
   use map_module
   BEGIN_DOC
-  !  Map of Atomic integrals
+  !  Map of Atomic integrals :
+  !     i(r1) j(r2) 1/r12 k(r1) l(r2)
   END_DOC
   
   integer                        :: i,j,k,l
