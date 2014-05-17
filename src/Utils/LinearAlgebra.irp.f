@@ -1,10 +1,24 @@
-subroutine ortho_lowdin(overlap,lda,n,C,ldc,m)
+subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   implicit none
   BEGIN_DOC
-  ! Compute U.S^-1/2 canonical orthogonalization
+  ! Compute C_new=C_old.S^-1/2 canonical orthogonalization.
+  !
+  ! overlap : overlap matrix 
+  !
+  ! LDA : leftmost dimension of overlap array
+  !
+  ! N : Overlap matrix is NxN (array is (LDA,N) )
+  !
+  ! C : Coefficients of the vectors to orthogonalize. On exit,
+  !     orthogonal vectors
+  !
+  ! LDC : leftmost dimension of C
+  !
+  ! m : Coefficients matrix is MxN, ( array is (LDC,N) )
+  !
   END_DOC
   
-  integer, intent(in)            :: lda, ldc, n, m
+  integer, intent(in)            :: LDA, ldc, n, m
   double precision, intent(in)   :: overlap(lda,n)
   double precision, intent(inout) :: C(ldc,n)
   double precision               :: U(ldc,n)
@@ -34,37 +48,45 @@ subroutine ortho_lowdin(overlap,lda,n,C,ldc,m)
     stop
   endif
   
+  
+  !$OMP PARALLEL DEFAULT(NONE) &
+  !$OMP SHARED(S_half,U,D,Vt,n,C,m) &
+  !$OMP PRIVATE(i,j,k)
+
+  !$OMP DO
   do i=1,n
     if ( D(i) < 1.d-6 ) then
       D(i) = 0.d0
     else
       D(i) = 1.d0/dsqrt(D(i))
     endif
-  enddo
-  
-  S_half = 0.d0
-  do k=1,n
     do j=1,n
-      do i=1,n
-        S_half(i,j) += U(i,k)*D(k)*Vt(k,j)
-      enddo
+      S_half(j,i) = 0.d0
     enddo
   enddo
+  !$OMP END DO
+
+  do k=1,n
+    !$OMP DO
+    do j=1,n
+      do i=1,n
+        S_half(i,j) = S_half(i,j) + U(i,k)*D(k)*Vt(k,j)
+      enddo
+    enddo
+    !$OMP END DO NOWAIT
+  enddo
   
+  !$OMP DO
   do j=1,n
     do i=1,m
       U(i,j) = C(i,j)
     enddo
   enddo
+  !$OMP END DO
   
-  C = 0.d0
-  do j=1,n
-    do i=1,m
-      do k=1,n
-        C(i,j) += U(i,k)*S_half(k,j)
-      enddo
-    enddo
-  enddo
+  !$OMP END PARALLEL
+
+  call dgemm('N','N',m,n,n,1.d0,U,size(U,1),S_half,size(S_half,1),0.d0,C,size(C,1))
   
 end
 
@@ -171,6 +193,17 @@ subroutine lapack_diag(eigvalues,eigvectors,H,nmax,n)
   allocate(A(nmax,n),eigenvalues(nmax),work(4*nmax))
   integer                        :: LWORK, info, i,j,l,k
   A=H
+
+! if (n<30) then
+! do i=1,n
+! do j=1,n
+!   print *,  j,i, H(j,i)
+! enddo
+! print *,  '---'
+! enddo
+! print *,  '---'
+! endif
+
   LWORK = 4*nmax
   call dsyev( 'V', 'U', n, A, nmax, eigenvalues, work, LWORK, info )
   if (info < 0) then

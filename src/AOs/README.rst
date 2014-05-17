@@ -85,8 +85,10 @@ Documentation
   Number of primitives per atomic orbital
 
 `ao_prim_num_max <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L176>`_
-None
+  Undocumented
+
 `ao_prim_num_max_align <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L177>`_
-None
+  Undocumented
+
 
 

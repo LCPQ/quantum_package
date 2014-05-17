@@ -82,7 +82,8 @@ Documentation
   Diagonal Fock matrix in the MO basis
 
 `scf_iteration <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/mo_SCF_iterations.irp.f#L1>`_
-None
+  Undocumented
+
 `do_diis <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/options.irp.f#L41>`_
   If True, compute integrals on the fly
 

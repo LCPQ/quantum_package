@@ -214,7 +214,6 @@ double precision function u_dot_v(u,v,sze)
   implicit none
   BEGIN_DOC
   ! Compute <u|v>
-  ! u and v are expected to be aligned in memory.
   END_DOC
   integer, intent(in)            :: sze
   double precision, intent(in)   :: u(sze),v(sze)
@@ -227,14 +226,10 @@ double precision function u_dot_v(u,v,sze)
   t3 = t2+t2
   t4 = t3+t2
   u_dot_v = 0.d0
-  !DIR$ VECTOR ALWAYS
-  !DIR$ VECTOR ALIGNED
   do i=1,t2
     u_dot_v = u_dot_v + u(t1+i)*v(t1+i) + u(t2+i)*v(t2+i) +          &
         u(t3+i)*v(t3+i) + u(t4+i)*v(t4+i)
   enddo
-  !DIR$ VECTOR ALWAYS
-  !DIR$ VECTOR ALIGNED
   do i=t4+t2+1,sze
     u_dot_v = u_dot_v + u(i)*v(i)
   enddo
@@ -245,7 +240,6 @@ double precision function u_dot_u(u,sze)
   implicit none
   BEGIN_DOC
   ! Compute <u|u>
-  ! u is expected to be aligned in memory.
   END_DOC
   integer, intent(in)            :: sze
   double precision, intent(in)   :: u(sze)
@@ -259,12 +253,16 @@ double precision function u_dot_u(u,sze)
   t3 = t2+t2
   t4 = t3+t2
   u_dot_u = 0.d0
-  do i=1,t2
-    u_dot_u = u_dot_u + u(t1+i)*u(t1+i) + u(t2+i)*u(t2+i) +          &
-        u(t3+i)*u(t3+i) + u(t4+i)*u(t4+i)
-  enddo
-  do i=t4+t2+1,sze
-    u_dot_u = u_dot_u+u(i)*u(i)
+! do i=1,t2
+!   u_dot_u = u_dot_u + u(t1+i)*u(t1+i) + u(t2+i)*u(t2+i) +          &
+!       u(t3+i)*u(t3+i) + u(t4+i)*u(t4+i)
+! enddo
+! do i=t4+t2+1,sze
+!   u_dot_u = u_dot_u+u(i)*u(i)
+! enddo
+  
+  do i=1,sze
+    u_dot_u = u_dot_u + u(i)*u(i)
   enddo
   
 end

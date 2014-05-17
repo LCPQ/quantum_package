@@ -11,6 +11,7 @@
   double precision :: A_center(3), B_center(3)
   integer :: power_A(3), power_B(3)
   double precision :: d_a_2,d_2
+  PROVIDE all_utils 
   dim1=100
   BEGIN_DOC
   ! second derivatives matrix elements in the ao basis 

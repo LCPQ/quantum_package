@@ -2,6 +2,11 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   use omp_lib
   use bitmasks
   implicit none
+  BEGIN_DOC
+  ! Generate all double excitations of key_in using the bit masks of holes and
+  ! particles.
+  ! Assume N_int is already provided.
+  END_DOC
   $declarations
   integer(omp_lock_kind)         :: lck
   integer(bit_kind),intent(in)   :: key_in(N_int,2)
@@ -24,17 +29,15 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   integer,parameter              :: size_max = $size_max
   double precision               :: hij_elec, mo_bielec_integral, thresh
   integer, allocatable           :: ia_ja_pairs(:,:,:)
-  double precision               :: diag_H_mat_elem, E_ref
+  double precision               :: diag_H_mat_elem
   
-  PROVIDE mo_integrals_map
+  PROVIDE mo_integrals_map ref_bitmask_energy
   PROVIDE mo_bielec_integrals_in_map
   
   $set_i_H_j_threshold
   
   $omp_init_lock
   
-  
-  E_ref = diag_H_mat_elem(key_in,N_int)
   
   $initialization
   
@@ -233,6 +236,11 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
   use omp_lib
   use bitmasks
   implicit none
+  BEGIN_DOC
+  ! Generate all single excitations of key_in using the bit masks of holes and
+  ! particles.
+  ! Assume N_int is already provided.
+  END_DOC
   $declarations
   integer(omp_lock_kind)         :: lck
   integer(bit_kind),intent(in)   :: key_in(N_int,2)
@@ -255,17 +263,15 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
   integer,parameter              :: size_max = $size_max
   double precision               :: hij_elec, thresh
   integer, allocatable           :: ia_ja_pairs(:,:,:)
-  double precision               :: diag_H_mat_elem, E_ref
+  double precision               :: diag_H_mat_elem
   
-  PROVIDE mo_integrals_map
+  PROVIDE mo_integrals_map ref_bitmask_energy
   PROVIDE mo_bielec_integrals_in_map
 
   $set_i_H_j_threshold
   
   $omp_init_lock
   
-  
-  E_ref = diag_H_mat_elem(key_in,N_int)
   
   $initialization
   

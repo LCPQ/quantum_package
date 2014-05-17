@@ -51,7 +51,8 @@ Documentation
 .. NEEDED_MODULES file.
 
 `copy_h_apply_buffer_to_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L93>`_
-None
+  Undocumented
+
 `h_apply_buffer_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L82>`_
   Buffer of determinants/coefficients for H_apply. Uninitialized. Filled by H_apply subroutines.
 
@@ -68,23 +69,49 @@ None
   Theshold on | <Di|H|Dj> |
 
 `resize_h_apply_buffer_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L31>`_
-None
+  Undocumented
+
+`davidson_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L18>`_
+  Davidson diagonalization.
+  .br
+  dets_in : bitmasks corresponding to determinants
+  .br
+  u_in : guess coefficients on the various states. Overwritten
+  on exit
+  .br
+  dim_in : leftmost dimension of u_in
+  .br
+  sze : Number of determinants
+  .br
+  N_st : Number of eigenstates
+  .br
+  Initial guess vectors are not necessarily orthonormal
+
+`davidson_iter_max <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L1>`_
+  Max number of Davidson iterations
+
+`davidson_sze_max <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L9>`_
+  Max number of Davidson sizes
+
 `n_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L11>`_
   Number of determinants in the wave function
 
-`n_det_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L47>`_
+`n_det_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L55>`_
   Number of generator determinants in the wave function
 
 `n_states <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L3>`_
   Number of states to consider
 
-`psi_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L20>`_
+`psi_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L28>`_
   The wave function. Initialized with Hartree-Fock
 
-`psi_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L19>`_
+`psi_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L27>`_
   The wave function. Initialized with Hartree-Fock
 
-`psi_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L55>`_
+`psi_det_size <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L19>`_
+  Size of the psi_det/psi_coef arrays
+
+`psi_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L63>`_
   Determinants on which H is applied
 
 `double_exc_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants_bitmasks.irp.f#L40>`_
@@ -108,10 +135,10 @@ None
 `get_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/s2.irp.f#L1>`_
   Returns <S^2>
 
-`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L842>`_
+`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L666>`_
   Needed for diag_H_mat_elem
 
-`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L887>`_
+`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L711>`_
   Needed for diag_H_mat_elem
 
 `decode_exc <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L76>`_
@@ -121,15 +148,10 @@ None
   s1,s2 : Spins (1:alpha, 2:beta)
   degree : Degree of excitation
 
-`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L779>`_
+`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L604>`_
   Computes <i|H|i>
 
-`filter_connected <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L602>`_
-  Filters out the determinants that are not connected by H
-
-`filter_connected_i_h_psi0 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L687>`_
-None
-`get_double_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L140>`_
+`get_double_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L141>`_
   Returns the two excitation operators between two doubly excited determinants and the phase
 
 `get_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L30>`_
@@ -138,20 +160,28 @@ None
 `get_excitation_degree <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L1>`_
   Returns the excitation degree between two determinants
 
-`get_excitation_degree_vector <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L518>`_
+`get_excitation_degree_vector <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L520>`_
   Applies get_excitation_degree to an array of determinants
 
-`get_mono_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L273>`_
+`get_mono_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L274>`_
   Returns the excitation operator between two singly excited determinants and the phase
 
-`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L935>`_
+`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L759>`_
   Returns a list of occupation numbers from a bitstring
 
-`i_h_j <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L354>`_
+`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L775>`_
+  Computes v_0 = H|u_0>
+  .br
+  n : number of determinants
+  .br
+  H_jj : array of <j|H|j>
+
+`i_h_j <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L355>`_
   Returns <i|H|j> where i and j are determinants
 
-`i_h_psim <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L490>`_
-None
+`i_h_psi <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L491>`_
+  Undocumented
+
 `h_matrix_all_dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/utils.irp.f#L1>`_
   H matrix on the basis of the slater deter;inants defined by psi_det
 
