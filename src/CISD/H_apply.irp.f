@@ -54,14 +54,14 @@ subroutine H_apply_cisd
   particle_mask(:,1) = iand(not(HF_bitmask(:,1)),full_ijkl_bitmask(:,1))
   particle_mask(:,2) = iand(not(HF_bitmask(:,2)),full_ijkl_bitmask(:,2))
 
-  call H_apply_cisd_monoexc(HF_bitmask,                              &
+
+  call H_apply_cisd_OpenMP_monoexc(HF_bitmask,                              &
       hole_mask, particle_mask)
-  call H_apply_cisd_diexc(HF_bitmask,                                &
+  call H_apply_cisd_OpenMP_diexc(HF_bitmask,                                &
       hole_mask, particle_mask,                                      &
       hole_mask, particle_mask )
-  
-  call copy_H_apply_buffer_to_wf
-  
+
+  call copy_h_apply_buffer_to_wf
 end
 
 

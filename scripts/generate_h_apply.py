@@ -14,10 +14,17 @@ keys_work
 finalization
 """.split()
 
-def new_dict(openmp=True):
-    s ={}
+class H_apply(object):
+
+  def __init__(self,sub,openmp=True):
+    s = {}
     for k in keywords:
       s[k] = ""
+    s["subroutine"] = "H_apply_%s"%(sub)
+    self.openmp = openmp
+    if openmp:
+      s["subroutine"] += "_OpenMP"
+    self.perturbation = None
    #s["omp_parallel"]     = """!$OMP PARALLEL DEFAULT(NONE)          &
     s["omp_parallel"]     = """!$OMP PARALLEL DEFAULT(SHARED)        &
         !$OMP PRIVATE(i,j,k,l,keys_out,hole,particle,                &
@@ -29,7 +36,7 @@ def new_dict(openmp=True):
         !$OMP  N_elec_in_key_hole_2,ia_ja_pairs)                     &
         !$OMP SHARED(key_in,N_int,elec_num_tab,                      &
         !$OMP  hole_1, particl_1, hole_2, particl_2,                 &
-        !$OMP  lck,thresh,elec_alpha_num,E_ref)"""
+        !$OMP  lck,thresh,elec_alpha_num)"""
     s["omp_init_lock"]    = "call omp_init_lock(lck)"
     s["omp_set_lock"]     = "call omp_set_lock(lck)"
     s["omp_unset_lock"]   = "call omp_unset_lock(lck)"
@@ -50,16 +57,54 @@ def new_dict(openmp=True):
     s["set_i_H_j_threshold"] = """
       thresh = H_apply_threshold
      """
-    return s
+    self.data = s
 
+  def __setitem__(self,key,value):
+    self.data[key] = value
 
+  def __getitem__(self,key):
+    return self.data[key]
 
-def create_h_apply(s):
+  def __repr__(self):
     buffer = template
-    for key in s:
-      buffer = buffer.replace('$'+key, s[key])
-    print buffer
+    for key,value in self.data.items():
+      buffer = buffer.replace('$'+key, value)
+    return buffer
 
+  def set_perturbation(self,pert):
+    self.perturbation = pert
+    if pert is not None:
+      self.data["parameters"] = ",sum_e_2_pert_in,sum_norm_pert_in,sum_H_pert_diag_in,N_st,Nint"
+      self.data["declarations"] = """
+      integer, intent(in)             :: N_st,Nint
+      double precision, intent(inout) :: sum_e_2_pert_in(N_st)
+      double precision, intent(inout) :: sum_norm_pert_in(N_st)
+      double precision, intent(inout) :: sum_H_pert_diag_in
+      double precision                :: sum_e_2_pert(N_st)
+      double precision                :: sum_norm_pert(N_st)
+      double precision                :: sum_H_pert_diag
+      """
+      self.data["size_max"] = "256" 
+      self.data["initialization"] = """
+      E_ref = diag_H_mat_elem(key_in,N_int)
+      sum_e_2_pert = sum_e_2_pert_in
+      sum_norm_pert = sum_norm_pert_in
+      sum_H_pert_diag = sum_H_pert_diag_in
+      """
+      self.data["keys_work"] += """
+      call perturb_buffer_%s(keys_out,key_idx,sum_e_2_pert, &
+       sum_norm_pert,sum_H_pert_diag,N_st,Nint)
+      """%(pert,)
+      self.data["finalization"] = """
+      sum_e_2_pert_in = sum_e_2_pert
+      sum_norm_pert_in = sum_norm_pert
+      sum_H_pert_diag_in = sum_H_pert_diag
+      """
+      if self.openmp:
+        self.data["omp_test_lock"]  = ".False."
+        self.data["omp_parallel"]    += """&
+ !$OMP SHARED(N_st) &
+ !$OMP REDUCTION(+:sum_e_2_pert, sum_norm_pert, sum_H_pert_diag)"""
 
 
 

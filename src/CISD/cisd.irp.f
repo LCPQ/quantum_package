@@ -3,6 +3,9 @@ program cisd
   integer :: i,k
   double precision, allocatable  :: eigvalues(:),eigvectors(:,:)
   PROVIDE ref_bitmask_energy
+
+  double precision :: pt2(10), norm_pert(10), H_pert_diag
+
   call H_apply_cisd
   allocate(eigvalues(n_states),eigvectors(n_det,n_states))
   print *,  'N_det = ', N_det

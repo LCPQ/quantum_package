@@ -135,10 +135,10 @@ Documentation
 `get_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/s2.irp.f#L1>`_
   Returns <S^2>
 
-`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L840>`_
+`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L666>`_
   Needed for diag_H_mat_elem
 
-`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L885>`_
+`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L711>`_
   Needed for diag_H_mat_elem
 
 `decode_exc <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L76>`_
@@ -148,14 +148,8 @@ Documentation
   s1,s2 : Spins (1:alpha, 2:beta)
   degree : Degree of excitation
 
-`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L778>`_
+`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L604>`_
   Computes <i|H|i>
-
-`filter_connected <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L603>`_
-  Filters out the determinants that are not connected by H
-
-`filter_connected_i_h_psi0 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L687>`_
-  Undocumented
 
 `get_double_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L141>`_
   Returns the two excitation operators between two doubly excited determinants and the phase
@@ -172,10 +166,10 @@ Documentation
 `get_mono_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L274>`_
   Returns the excitation operator between two singly excited determinants and the phase
 
-`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L933>`_
+`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L759>`_
   Returns a list of occupation numbers from a bitstring
 
-`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L949>`_
+`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L775>`_
   Computes v_0 = H|u_0>
   .br
   n : number of determinants
@@ -185,7 +179,7 @@ Documentation
 `i_h_j <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L355>`_
   Returns <i|H|j> where i and j are determinants
 
-`i_h_psim <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L491>`_
+`i_h_psi <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L491>`_
   Undocumented
 
 `h_matrix_all_dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/utils.irp.f#L1>`_

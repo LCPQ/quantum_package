@@ -133,7 +133,6 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
     !$OMP END PARALLEL
     
     do iter=1,davidson_sze_max-1
-      print *,  'iter = ',iter
       
       !      print *,  '***************'
       !      do i=1,iter
@@ -174,7 +173,6 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
       ! -------------
       call lapack_diag(lambda,y,h,N_st*davidson_sze_max,N_st*iter)
       
-      print *,  lambda(1:4)
       ! Express eigenvectors of h in the determinant basis
       ! --------------------------------------------------
       
@@ -203,13 +201,11 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
         enddo
         residual_norm(k) = u_dot_u(R(1,k),sze)
       enddo
-      print *,  'Lambda'
-      print *,  lambda(1:N_st) + nuclear_repulsion
-      print *,  'Residual_norm'
-      print *,  residual_norm(1:N_st)
-      print *,  ''
+
+      print '(I3,15(F16.8,x))', iter, lambda(1:N_st) + nuclear_repulsion
+      print '(3x,15(E16.5,x))',       residual_norm(1:N_st)
       
-      converged = maxval(residual_norm) < 1.d-5
+      converged = maxval(residual_norm) < 1.d-10
       if (converged) then
         exit
       endif
