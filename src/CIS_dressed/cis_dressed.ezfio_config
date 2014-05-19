@@ -1,0 +1,6 @@
+cis_dressed 
+  n_state_cis            integer 
+  n_core_cis             integer 
+  n_act_cis              integer 
+  mp2_dressing           logical 
+  standard_doubles       logical 

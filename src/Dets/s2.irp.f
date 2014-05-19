@@ -1,11 +1,12 @@
 subroutine get_s2(key_i,key_j,phase,Nint)
  implicit none
+ use bitmasks
  BEGIN_DOC
 ! Returns <S^2> 
  END_DOC
  integer, intent(in)  :: Nint
- integer, intent(in)  :: key_i(Nint,2)
- integer, intent(in)  :: key_j(Nint,2)
+ integer(bit_kind), intent(in)  :: key_i(Nint,2)
+ integer(bit_kind), intent(in)  :: key_j(Nint,2)
  double precision, intent(out) :: phase
  integer :: exc(0:2,2,2)
  integer :: degree
@@ -30,5 +31,40 @@ subroutine get_s2(key_i,key_j,phase,Nint)
       enddo
       phase = dble(nup)
    end select
+end
+
+BEGIN_PROVIDER [ double precision, S_z ]
+&BEGIN_PROVIDER [ double precision, S_z2_Sz ]
+ implicit none
+
+ S_z = 0.5d0*dble(elec_alpha_num-elec_beta_num)
+ S_z2_Sz = S_z*(S_z-1.d0)
+
+END_PROVIDER
+
+
+subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
+ implicit none
+ use bitmasks
+ integer(bit_kind), intent(in) :: psi_keys_tmp(N_int,2,nmax)
+ integer, intent(in) :: n,nmax
+ double precision, intent(in) :: psi_coefs_tmp(nmax)
+ double precision, intent(out) :: s2
+ integer :: i,j,l
+ double precision :: s2_tmp
+ s2 = S_z2_Sz
+ !$OMP PARALLEL DO DEFAULT(NONE) &
+ !$OMP PRIVATE(i,j,s2_tmp) SHARED(n,psi_coefs_tmp,psi_keys_tmp,N_int) &
+ !$OMP REDUCTION(+:s2) SCHEDULE(dynamic)
+ do i = 1, n
+   call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,i),s2_tmp,N_int)
+!  print*,'s2_tmp = ',s2_tmp
+  do j = 1, n
+    call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,j),s2_tmp,N_int)
+    if (s2_tmp == 0.d0) cycle
+    s2 += psi_coefs_tmp(i)*psi_coefs_tmp(j)*s2_tmp
+  enddo
+ enddo
+ !$OMP END PARALLEL DO
 end
 
