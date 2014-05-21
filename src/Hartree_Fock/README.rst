@@ -81,9 +81,6 @@ Documentation
 `eigenvectors_fock_matrix_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/diagonalize_fock.irp.f#L/&BEGIN_PROVIDER [ double precision, eigenvectors_Fock_matrix_mo, (ao_num_align,mo_tot_num) ]/;">`_
   Diagonal Fock matrix in the MO basis
 
-`scf_iteration <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/mo_SCF_iterations.irp.f#L/subroutine scf_iteration/;">`_
-  Undocumented
-
 `do_diis <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/options.irp.f#L/BEGIN_PROVIDER [ logical, do_DIIS ]/;">`_
   If True, compute integrals on the fly
 

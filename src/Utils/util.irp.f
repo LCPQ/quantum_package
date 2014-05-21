@@ -174,7 +174,7 @@ BEGIN_PROVIDER [ double precision, inv_int, (128) ]
   ! 1/i
   END_DOC
   integer                        :: i
-  do i=1,size(inv_int)
+  do i=1,128
     inv_int(i) = 1.d0/dble(i)
   enddo
 END_PROVIDER

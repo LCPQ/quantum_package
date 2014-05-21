@@ -30,7 +30,41 @@ Documentation
   Calls H_apply on the HF determinant and selects all connected single and double
   excitations (of the same symmetry).
 
-`cisd <http://github.com/LCPQ/quantum_package/tree/master/src/CISD/cisd.irp.f#L/subroutine cisd/;">`_
+`cisd_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/CISD/SC2.irp.f#L/subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint)/;">`_
+  CISD+SC2 method :: take off all the disconnected terms of a CISD (selected or not)
+  .br
+  dets_in : bitmasks corresponding to determinants
+  .br
+  u_in : guess coefficients on the various states. Overwritten
+  on exit
+  .br
+  dim_in : leftmost dimension of u_in
+  .br
+  sze : Number of determinants
+  .br
+  N_st : Number of eigenstates
+  .br
+  Initial guess vectors are not necessarily orthonormal
+
+`davidson_diag_hjj <http://github.com/LCPQ/quantum_package/tree/master/src/CISD/SC2.irp.f#L/subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint)/;">`_
+  Davidson diagonalization with specific diagonal elements of the H matrix
+  .br
+  H_jj : specific diagonal H matrix elements to diagonalize de Davidson
+  .br
+  dets_in : bitmasks corresponding to determinants
+  .br
+  u_in : guess coefficients on the various states. Overwritten
+  on exit
+  .br
+  dim_in : leftmost dimension of u_in
+  .br
+  sze : Number of determinants
+  .br
+  N_st : Number of eigenstates
+  .br
+  Initial guess vectors are not necessarily orthonormal
+
+`repeat_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/CISD/SC2.irp.f#L/subroutine repeat_excitation(key_in,key_1,key_2,i_ok,Nint)/;">`_
   Undocumented
 
 
