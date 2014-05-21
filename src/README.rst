@@ -129,4 +129,13 @@ Needed Modules
 * `Dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets>`_
 * `DensityMatrix <http://github.com/LCPQ/quantum_package/tree/master/src/DensityMatrix>`_
 * `CISD <http://github.com/LCPQ/quantum_package/tree/master/src/CISD>`_
+* `Perturbation <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation>`_
+
+Documentation
+=============
+
+.. Do not edit this section. It was auto-generated from the
+.. NEEDED_MODULES file.
+
+
 
