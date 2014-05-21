@@ -43,14 +43,14 @@
   -0.316337207748718D-01  &
 /)
 
- do i=1,10
-   call write_bitstring( 6, det_provider(1,1,i), N_int )
- enddo
- print *,  ''
- do i=1,10
-   call write_bitstring( 6, det_provider(1,2,i), N_int )
- enddo
- print *,  ''
+!do i=1,10
+!  call write_bitstring( 6, det_provider(1,1,i), N_int )
+!enddo
+!print *,  ''
+!do i=1,10
+!  call write_bitstring( 6, det_provider(1,2,i), N_int )
+!enddo
+!print *,  ''
 
 
 END_PROVIDER

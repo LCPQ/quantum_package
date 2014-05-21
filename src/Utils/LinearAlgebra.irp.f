@@ -76,6 +76,7 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
     !$OMP END DO NOWAIT
   enddo
   
+  !$OMP BARRIER
   !$OMP DO
   do j=1,n
     do i=1,m
@@ -181,6 +182,13 @@ subroutine lapack_diag(eigvalues,eigvectors,H,nmax,n)
   implicit none
   BEGIN_DOC
   ! Diagonalize matrix H
+  !
+  ! H is untouched between input and ouptut
+  !
+  ! eigevalues(i) = ith lowest eigenvalue of the H matrix
+  !
+  ! eigvectors(i,j) = <i|psi_j> where i is the basis function and psi_j is the j th eigenvector
+  !
   END_DOC
   integer, intent(in)            :: n,nmax
   double precision, intent(out)  :: eigvectors(nmax,n)
@@ -189,7 +197,6 @@ subroutine lapack_diag(eigvalues,eigvectors,H,nmax,n)
   double precision,allocatable   :: eigenvalues(:)
   double precision,allocatable   :: work(:)
   double precision,allocatable   :: A(:,:)
-  !eigvectors(i,j) = <d_i|psi_j> where d_i is the basis function and psi_j is the j th eigenvector
   allocate(A(nmax,n),eigenvalues(nmax),work(4*nmax))
   integer                        :: LWORK, info, i,j,l,k
   A=H

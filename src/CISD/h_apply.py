@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-import generate_h_apply
+from generate_h_apply import *
 
-# H_apply
-s = generate_h_apply.new_dict(openmp=True)
-s["subroutine"]       = "H_apply_cisd"
-s["keys_work"]        = "call fill_H_apply_buffer_cisd(key_idx,keys_out,N_int)"
-generate_h_apply.create_h_apply(s) 
+s = H_apply("cisd",openmp=True)
+s["keys_work"]  += """
+call fill_H_apply_buffer_cisd(key_idx,keys_out,N_int)
+""" 
+print s
 
 
