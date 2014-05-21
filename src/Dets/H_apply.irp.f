@@ -33,11 +33,12 @@ subroutine resize_H_apply_buffer_det(new_size)
   integer, intent(in)            :: new_size
   integer(bit_kind), allocatable :: buffer_det(:,:,:)
   double precision, allocatable  :: buffer_coef(:,:)
+  double precision, allocatable  :: buffer_e2(:,:)
   integer                        :: i,j,k
   integer                        :: Ndet
   
   ASSERT (new_size > 0)
-  allocate ( buffer_det(N_int,2,new_size), buffer_coef(new_size,N_states) )
+  allocate ( buffer_det(N_int,2,new_size), buffer_coef(new_size,N_states), buffer_e2(new_size,N_states) )
   
   do i=1,min(new_size,H_apply_buffer_N_det)
     do k=1,N_int
@@ -48,9 +49,10 @@ subroutine resize_H_apply_buffer_det(new_size)
     ASSERT (sum(popcnt(H_apply_buffer_det(:,2,i))) == elec_beta_num )
   enddo
   do k=1,N_states
-    do i=1,min(new_size,H_apply_buffer_N_det)
-      buffer_coef(i,k) = H_apply_buffer_coef(i,k)
-    enddo
+      do i=1,min(new_size,H_apply_buffer_N_det)
+        buffer_coef(i,k) = H_apply_buffer_coef(i,k)
+        buffer_e2(i,k)   = H_apply_buffer_e2(i,k)
+      enddo
   enddo
   
   H_apply_buffer_size = new_size
@@ -70,20 +72,23 @@ subroutine resize_H_apply_buffer_det(new_size)
   do k=1,N_states
     do i=1,H_apply_buffer_N_det
       H_apply_buffer_coef(i,k) = buffer_coef(i,k)
+      H_apply_buffer_e2(i,k) = buffer_e2(i,k)
     enddo
   enddo
   
-  deallocate (buffer_det, buffer_coef)
-  SOFT_TOUCH H_apply_buffer_det H_apply_buffer_coef H_apply_buffer_N_det
+  deallocate (buffer_det, buffer_coef, buffer_e2)
+  SOFT_TOUCH H_apply_buffer_det H_apply_buffer_coef H_apply_buffer_N_det H_apply_buffer_e2
 
 end
 
  BEGIN_PROVIDER [ integer(bit_kind), H_apply_buffer_det,(N_int,2,H_apply_buffer_size) ]
 &BEGIN_PROVIDER [ double precision, H_apply_buffer_coef,(H_apply_buffer_size,N_states) ]
+&BEGIN_PROVIDER [ double precision, H_apply_buffer_e2,(H_apply_buffer_size,N_states) ]
 &BEGIN_PROVIDER [ integer, H_apply_buffer_N_det ]
   implicit none
   BEGIN_DOC
-  ! Buffer of determinants/coefficients for H_apply. Uninitialized. Filled by H_apply subroutines.
+  ! Buffer of determinants/coefficients/perturbative energy for H_apply.
+  ! Uninitialized. Filled by H_apply subroutines.
   END_DOC
   H_apply_buffer_N_det = 0
 
@@ -148,8 +153,9 @@ subroutine copy_H_apply_buffer_to_wf
       psi_coef(i+N_det_old,k) = H_apply_buffer_coef(i,k)
     enddo
   enddo
+  H_apply_buffer_N_det = 0
   
-  SOFT_TOUCH psi_det psi_coef
+  SOFT_TOUCH psi_det psi_coef H_apply_buffer_N_det H_apply_buffer_det H_apply_buffer_coef H_apply_buffer_e2
 
 end
 

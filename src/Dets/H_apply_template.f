@@ -7,6 +7,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   ! particles.
   ! Assume N_int is already provided.
   END_DOC
+  integer,parameter              :: size_max = $size_max
   $declarations
   integer(omp_lock_kind)         :: lck
   integer(bit_kind),intent(in)   :: key_in(N_int,2)
@@ -26,13 +27,12 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   integer                        :: N_elec_in_key_hole_1(2),N_elec_in_key_part_1(2)
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
   
-  integer,parameter              :: size_max = $size_max
   double precision               :: hij_elec, mo_bielec_integral, thresh
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   double precision               :: diag_H_mat_elem
   
-  PROVIDE mo_integrals_map ref_bitmask_energy
-  PROVIDE mo_bielec_integrals_in_map
+  PROVIDE mo_integrals_map ref_bitmask_energy key_pattern_not_in_ref
+  PROVIDE mo_bielec_integrals_in_map reference_energy psi_ref_coef psi_ref
   
   $set_i_H_j_threshold
   
@@ -156,8 +156,9 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
               hij_tab(key_idx) = hij_elec
               ASSERT (key_idx <= size_max)
               if (key_idx == size_max) then
+                $keys_work_unlocked
                 $omp_set_lock
-                $keys_work
+                $keys_work_locked
                 $omp_unset_lock
                 key_idx = 0
               endif
@@ -165,7 +166,8 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
           enddo
           if (key_idx > ishft(size_max,-5)) then
             if ($omp_test_lock) then
-              $keys_work
+              $keys_work_unlocked
+              $keys_work_locked
               $omp_unset_lock
               key_idx = 0
             endif
@@ -204,8 +206,9 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
             hij_tab(key_idx) = hij_elec
             ASSERT (key_idx <= size_max)
             if (key_idx == size_max) then
+              $keys_work_unlocked
               $omp_set_lock
-              $keys_work
+              $keys_work_locked
               $omp_unset_lock
               key_idx = 0
             endif
@@ -213,7 +216,8 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
         enddo
         if (key_idx > ishft(size_max,-5)) then
           if ($omp_test_lock) then
-            $keys_work
+            $keys_work_locked
+            $keys_work_unlocked
             $omp_unset_lock
             key_idx = 0
           endif
@@ -222,8 +226,9 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
     enddo  ! ii
     $omp_enddo
   enddo   ! ispin
+  $keys_work_unlocked
   $omp_set_lock
-  $keys_work
+  $keys_work_locked
   $omp_unset_lock
   deallocate (keys_out,hij_tab,ia_ja_pairs)
   $omp_end_parallel
@@ -241,6 +246,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
   ! particles.
   ! Assume N_int is already provided.
   END_DOC
+  integer,parameter              :: size_max = $size_max
   $declarations
   integer(omp_lock_kind)         :: lck
   integer(bit_kind),intent(in)   :: key_in(N_int,2)
@@ -260,13 +266,12 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
   integer                        :: N_elec_in_key_hole_1(2),N_elec_in_key_part_1(2)
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
   
-  integer,parameter              :: size_max = $size_max
   double precision               :: hij_elec, thresh
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   double precision               :: diag_H_mat_elem
   
-  PROVIDE mo_integrals_map ref_bitmask_energy
-  PROVIDE mo_bielec_integrals_in_map
+  PROVIDE mo_integrals_map ref_bitmask_energy key_pattern_not_in_ref
+  PROVIDE mo_bielec_integrals_in_map reference_energy psi_ref_coef psi_ref
 
   $set_i_H_j_threshold
   
@@ -311,7 +316,6 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
   integer(bit_kind)              :: test(N_int,2)
   double precision               :: accu
   accu = 0.d0
-  hij_elec = 0.d0
   do ispin=1,2
     other_spin = iand(ispin,1)+1
     $omp_do
@@ -325,33 +329,33 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
       k_a = ishft(j_a-1,-bit_kind_shift)+1
       l_a = j_a-ishft(k_a-1,bit_kind_shift)-1
       hole(k_a,ispin) = ibset(hole(k_a,ispin),l_a)
-      call i_H_j(hole,key_in,N_int,hij_elec)
-      if(dabs(hij_elec) .ge. thresh)then
-        key_idx += 1
-        do k=1,N_int
-          keys_out(k,1,key_idx) = hole(k,1)
-          keys_out(k,2,key_idx) = hole(k,2)
-        enddo
-        hij_tab(key_idx) = hij_elec
-        if (key_idx >  ishft(size_max,-5)) then
-          if ($omp_test_lock) then
-            $keys_work
-            $omp_unset_lock
-            key_idx = 0
-          endif
-        endif
-        if (key_idx == size_max) then
-          $omp_set_lock
-          $keys_work
+      key_idx += 1
+      do k=1,N_int
+        keys_out(k,1,key_idx) = hole(k,1)
+        keys_out(k,2,key_idx) = hole(k,2)
+      enddo
+      hij_tab(key_idx) = hij_elec
+      if (key_idx >  ishft(size_max,-5)) then
+        if ($omp_test_lock) then
+          $keys_work_unlocked
+          $keys_work_locked
           $omp_unset_lock
           key_idx = 0
         endif
       endif
+      if (key_idx == size_max) then
+        $keys_work_unlocked
+        $omp_set_lock
+        $keys_work_locked
+        $omp_unset_lock
+        key_idx = 0
+      endif
     enddo  ! ii
     $omp_enddo
   enddo   ! ispin
+  $keys_work_unlocked
   $omp_set_lock
-  $keys_work
+  $keys_work_locked
   $omp_unset_lock
   deallocate (keys_out,hij_tab,ia_ja_pairs)
   $omp_end_parallel

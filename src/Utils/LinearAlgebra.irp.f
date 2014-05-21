@@ -76,6 +76,7 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
     !$OMP END DO NOWAIT
   enddo
   
+  !$OMP BARRIER
   !$OMP DO
   do j=1,n
     do i=1,m
