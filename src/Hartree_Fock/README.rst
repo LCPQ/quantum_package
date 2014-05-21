@@ -21,19 +21,19 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`fock_matrix_alpha_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L/BEGIN_PROVIDER [ double precision, Fock_matrix_alpha_ao, (ao_num_align, ao_num) ]/;">`_
+`fock_matrix_alpha_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L83>`_
   Alpha Fock matrix in AO basis set
 
-`fock_matrix_alpha_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L/BEGIN_PROVIDER [ double precision, Fock_matrix_alpha_mo, (mo_tot_num_align,mo_tot_num) ]/;">`_
+`fock_matrix_alpha_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L172>`_
   Fock matrix on the MO basis
 
-`fock_matrix_beta_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L/&BEGIN_PROVIDER [ double precision, Fock_matrix_beta_ao,  (ao_num_align, ao_num) ]/;">`_
+`fock_matrix_beta_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L84>`_
   Alpha Fock matrix in AO basis set
 
-`fock_matrix_beta_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L/BEGIN_PROVIDER [ double precision, Fock_matrix_beta_mo, (mo_tot_num_align,mo_tot_num) ]/;">`_
+`fock_matrix_beta_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L192>`_
   Fock matrix on the MO basis
 
-`fock_matrix_diag_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L/&BEGIN_PROVIDER [ double precision, Fock_matrix_diag_mo, (mo_tot_num)]/;">`_
+`fock_matrix_diag_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L2>`_
   Fock matrix on the MO basis.
   For open shells, the ROHF Fock Matrix is
   .br
@@ -48,7 +48,7 @@ Documentation
   K = Fb - Fa
   .br
 
-`fock_matrix_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L/BEGIN_PROVIDER [ double precision, Fock_matrix_mo, (mo_tot_num_align,mo_tot_num) ]/;">`_
+`fock_matrix_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L1>`_
   Fock matrix on the MO basis.
   For open shells, the ROHF Fock Matrix is
   .br
@@ -63,49 +63,49 @@ Documentation
   K = Fb - Fa
   .br
 
-`hf_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L/BEGIN_PROVIDER [ double precision, HF_energy ]/;">`_
+`hf_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L211>`_
   Hartree-Fock energy
 
-`hf_density_matrix_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/HF_density_matrix_ao.irp.f#L/BEGIN_PROVIDER [ double precision, HF_density_matrix_ao, (ao_num_align,ao_num) ]/;">`_
+`hf_density_matrix_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/HF_density_matrix_ao.irp.f#L46>`_
   Density matrix in the AO basis
 
-`hf_density_matrix_ao_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/HF_density_matrix_ao.irp.f#L/BEGIN_PROVIDER [ double precision, HF_density_matrix_ao_alpha, (ao_num_align,ao_num) ]/;">`_
+`hf_density_matrix_ao_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/HF_density_matrix_ao.irp.f#L1>`_
   Alpha and Beta density matrix in the AO basis
 
-`hf_density_matrix_ao_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/HF_density_matrix_ao.irp.f#L/&BEGIN_PROVIDER [ double precision, HF_density_matrix_ao_beta,  (ao_num_align,ao_num) ]/;">`_
+`hf_density_matrix_ao_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/HF_density_matrix_ao.irp.f#L2>`_
   Alpha and Beta density matrix in the AO basis
 
-`diagonal_fock_matrix_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/diagonalize_fock.irp.f#L/BEGIN_PROVIDER [ double precision, diagonal_Fock_matrix_mo, (mo_tot_num) ]/;">`_
+`diagonal_fock_matrix_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/diagonalize_fock.irp.f#L1>`_
   Diagonal Fock matrix in the MO basis
 
-`eigenvectors_fock_matrix_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/diagonalize_fock.irp.f#L/&BEGIN_PROVIDER [ double precision, eigenvectors_Fock_matrix_mo, (ao_num_align,mo_tot_num) ]/;">`_
+`eigenvectors_fock_matrix_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/diagonalize_fock.irp.f#L2>`_
   Diagonal Fock matrix in the MO basis
 
-`scf_iteration <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/mo_SCF_iterations.irp.f#L/subroutine scf_iteration/;">`_
+`scf_iteration <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/mo_SCF_iterations.irp.f#L1>`_
   Undocumented
 
-`do_diis <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/options.irp.f#L/BEGIN_PROVIDER [ logical, do_DIIS ]/;">`_
+`do_diis <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/options.irp.f#L41>`_
   If True, compute integrals on the fly
 
-`n_it_scf_max <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/options.irp.f#L/BEGIN_PROVIDER [ integer, n_it_scf_max]/;">`_
+`n_it_scf_max <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/options.irp.f#L22>`_
   Maximum number of SCF iterations
 
-`thresh_scf <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/options.irp.f#L/BEGIN_PROVIDER [ double precision,thresh_SCF ]/;">`_
+`thresh_scf <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/options.irp.f#L1>`_
   Threshold on the convergence of the Hartree Fock energy
 
-`bi_elec_ref_bitmask_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/ref_bitmask.irp.f#L/&BEGIN_PROVIDER [ double precision, bi_elec_ref_bitmask_energy ]/;">`_
+`bi_elec_ref_bitmask_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/ref_bitmask.irp.f#L5>`_
   Energy of the reference bitmask used in Slater rules
 
-`kinetic_ref_bitmask_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/ref_bitmask.irp.f#L/&BEGIN_PROVIDER [ double precision, kinetic_ref_bitmask_energy ]/;">`_
+`kinetic_ref_bitmask_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/ref_bitmask.irp.f#L3>`_
   Energy of the reference bitmask used in Slater rules
 
-`mono_elec_ref_bitmask_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/ref_bitmask.irp.f#L/&BEGIN_PROVIDER [ double precision, mono_elec_ref_bitmask_energy ]/;">`_
+`mono_elec_ref_bitmask_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/ref_bitmask.irp.f#L2>`_
   Energy of the reference bitmask used in Slater rules
 
-`nucl_elec_ref_bitmask_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/ref_bitmask.irp.f#L/&BEGIN_PROVIDER [ double precision, nucl_elec_ref_bitmask_energy ]/;">`_
+`nucl_elec_ref_bitmask_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/ref_bitmask.irp.f#L4>`_
   Energy of the reference bitmask used in Slater rules
 
-`ref_bitmask_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/ref_bitmask.irp.f#L/BEGIN_PROVIDER [ double precision, ref_bitmask_energy ]/;">`_
+`ref_bitmask_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/ref_bitmask.irp.f#L1>`_
   Energy of the reference bitmask used in Slater rules
 
 

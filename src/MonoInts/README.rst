@@ -17,115 +17,223 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`ao_mono_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L/BEGIN_PROVIDER [ double precision, ao_mono_elec_integral,(ao_num_align,ao_num)]/;">`_
+`ao_mono_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L122>`_
   array of the mono electronic hamiltonian on the AOs basis
   : sum of the kinetic and nuclear electronic potential
 
-`ao_overlap <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L/BEGIN_PROVIDER [ double precision, ao_overlap,(ao_num_align,ao_num) ]/;">`_
+`ao_overlap <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L1>`_
   Overlap between atomic basis functions:
   :math:`\int \chi_i(r) \chi_j(r) dr)`
 
-`ao_overlap_abs <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L/BEGIN_PROVIDER [ double precision, ao_overlap_abs,(ao_num_align,ao_num) ]/;">`_
+`ao_overlap_abs <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L65>`_
   Overlap between absolute value of atomic basis functions:
   :math:`\int |\chi_i(r)| |\chi_j(r)| dr)`
 
-`ao_overlap_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L/&BEGIN_PROVIDER [ double precision, ao_overlap_x,(ao_num_align,ao_num) ]/;">`_
+`ao_overlap_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L2>`_
   Overlap between atomic basis functions:
   :math:`\int \chi_i(r) \chi_j(r) dr)`
 
-`ao_overlap_y <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L/&BEGIN_PROVIDER [ double precision, ao_overlap_y,(ao_num_align,ao_num) ]/;">`_
+`ao_overlap_y <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L3>`_
   Overlap between atomic basis functions:
   :math:`\int \chi_i(r) \chi_j(r) dr)`
 
-`ao_overlap_z <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L/&BEGIN_PROVIDER [ double precision, ao_overlap_z,(ao_num_align,ao_num) ]/;">`_
+`ao_overlap_z <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L4>`_
   Overlap between atomic basis functions:
   :math:`\int \chi_i(r) \chi_j(r) dr)`
 
-`check_ortho <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/check_orthonormality.irp.f#L/subroutine check_ortho/;">`_
+`check_ortho <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/check_orthonormality.irp.f#L1>`_
   Undocumented
 
-`do_print <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/check_orthonormality.irp.f#L/subroutine do_print/;">`_
+`do_print <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/check_orthonormality.irp.f#L11>`_
   Undocumented
 
-`n_pt_max_i_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/dimensions.irp.f#L/&BEGIN_PROVIDER [ integer, n_pt_max_i_x]/;">`_
+`n_pt_max_i_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/dimensions.irp.f#L2>`_
   Undocumented
 
-`n_pt_max_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/dimensions.irp.f#L/BEGIN_PROVIDER [ integer, n_pt_max_integrals ]/;">`_
+`n_pt_max_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/dimensions.irp.f#L1>`_
   Undocumented
 
-`ao_deriv2_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/kin_ao_ints.irp.f#L/BEGIN_PROVIDER [ double precision, ao_deriv2_x,(ao_num_align,ao_num) ]/;">`_
+`ao_deriv2_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/kin_ao_ints.irp.f#L1>`_
   second derivatives matrix elements in the ao basis
   .. math::
   .br
   {\tt ao_deriv2_x} = \langle \chi_i(x,y,z) \frac{\partial^2}{\partial x^2} |\chi_j (x,y,z) \rangle
 
-`ao_deriv2_y <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/kin_ao_ints.irp.f#L/&BEGIN_PROVIDER [ double precision, ao_deriv2_y,(ao_num_align,ao_num) ]/;">`_
+`ao_deriv2_y <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/kin_ao_ints.irp.f#L2>`_
   second derivatives matrix elements in the ao basis
   .. math::
   .br
   {\tt ao_deriv2_x} = \langle \chi_i(x,y,z) \frac{\partial^2}{\partial x^2} |\chi_j (x,y,z) \rangle
 
-`ao_deriv2_z <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/kin_ao_ints.irp.f#L/&BEGIN_PROVIDER [ double precision, ao_deriv2_z,(ao_num_align,ao_num) ]/;">`_
+`ao_deriv2_z <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/kin_ao_ints.irp.f#L3>`_
   second derivatives matrix elements in the ao basis
   .. math::
   .br
   {\tt ao_deriv2_x} = \langle \chi_i(x,y,z) \frac{\partial^2}{\partial x^2} |\chi_j (x,y,z) \rangle
 
-`ao_kinetic_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/kin_ao_ints.irp.f#L/BEGIN_PROVIDER [double precision, ao_kinetic_integral, (ao_num_align,ao_num)]/;">`_
+`ao_kinetic_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/kin_ao_ints.irp.f#L126>`_
   array of the priminitve basis kinetic integrals
   \langle \chi_i |\hat{T}| \chi_j \rangle
 
-`mo_kinetic_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/kin_mo_ints.irp.f#L/BEGIN_PROVIDER [double precision, mo_kinetic_integral, (mo_tot_num_align,mo_tot_num)]/;">`_
+`mo_kinetic_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/kin_mo_ints.irp.f#L1>`_
   Undocumented
 
-`mo_mono_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/mo_mono_ints.irp.f#L/BEGIN_PROVIDER [ double precision, mo_mono_elec_integral,(mo_tot_num_align,mo_tot_num)]/;">`_
+`mo_mono_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/mo_mono_ints.irp.f#L35>`_
   array of the mono electronic hamiltonian on the MOs basis
   : sum of the kinetic and nuclear electronic potential
 
-`mo_overlap <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/mo_mono_ints.irp.f#L/BEGIN_PROVIDER [ double precision, mo_overlap,(mo_tot_num_align,mo_tot_num)]/;">`_
+`mo_overlap <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/mo_mono_ints.irp.f#L1>`_
   Undocumented
 
-`orthonormalize_mos <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/orthonormalize.irp.f#L/subroutine orthonormalize_mos/;">`_
+`orthonormalize_mos <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/orthonormalize.irp.f#L1>`_
   Undocumented
 
-`ao_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L/BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral, (ao_num_align,ao_num)]/;">`_
+`ao_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L1>`_
   interaction nuclear electron
 
-`give_polynom_mult_center_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L/subroutine give_polynom_mult_center_mono_elec(A_center,B_center,alpha,beta,power_A,power_B,C_center,n_pt_in,d,n_pt_out)/;">`_
+`give_polynom_mult_center_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L157>`_
   Undocumented
 
-`i_x1_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L/recursive subroutine I_x1_pol_mult_mono_elec(a,c,R1x,R1xp,R2x,d,nd,n_pt_in)/;">`_
+`i_x1_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L285>`_
   Undocumented
 
-`i_x2_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L/recursive subroutine I_x2_pol_mult_mono_elec(c,R1x,R1xp,R2x,d,nd,dim)/;">`_
+`i_x2_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L357>`_
   Undocumented
 
-`int_gaus_pol <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L/double precision function int_gaus_pol(alpha,n)/;">`_
+`int_gaus_pol <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L428>`_
   Undocumented
 
-`nai_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L/double precision function NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)/;">`_
+`nai_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L82>`_
   Undocumented
 
-`v_e_n <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L/double precision function V_e_n(a_x,a_y,a_z,b_x,b_y,b_z,alpha,beta)/;">`_
+`v_e_n <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L409>`_
   Undocumented
 
-`v_phi <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L/double precision function V_phi(n,m)/;">`_
+`v_phi <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L473>`_
   Undocumented
 
-`v_r <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L/double precision function V_r(n,alpha)/;">`_
+`v_r <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L457>`_
   Undocumented
 
-`v_theta <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L/double precision function V_theta(n,m)/;">`_
+`v_theta <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L486>`_
   Undocumented
 
-`wallis <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L/double precision function Wallis(n)/;">`_
+`wallis <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L502>`_
   Undocumented
 
-`mo_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_mo_ints.irp.f#L/BEGIN_PROVIDER [double precision, mo_nucl_elec_integral, (mo_tot_num_align,mo_tot_num)]/;">`_
+`mo_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_mo_ints.irp.f#L1>`_
   Undocumented
 
-`save_ortho_mos <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/save_ortho_mos.irp.f#L/subroutine save_ortho_mos/;">`_
+`save_ortho_mos <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/save_ortho_mos.irp.f#L1>`_
   Undocumented
+
+`ao_deriv_1_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L148>`_
+  array of the integrals of AO_i * d/dx  AO_j
+  array of the integrals of AO_i * d/dy  AO_j
+  array of the integrals of AO_i * d/dz  AO_j
+
+`ao_deriv_1_y <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L149>`_
+  array of the integrals of AO_i * d/dx  AO_j
+  array of the integrals of AO_i * d/dy  AO_j
+  array of the integrals of AO_i * d/dz  AO_j
+
+`ao_deriv_1_z <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L150>`_
+  array of the integrals of AO_i * d/dx  AO_j
+  array of the integrals of AO_i * d/dy  AO_j
+  array of the integrals of AO_i * d/dz  AO_j
+
+`ao_dipole_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L75>`_
+  array of the integrals of AO_i * x AO_j
+  array of the integrals of AO_i * y AO_j
+  array of the integrals of AO_i * z AO_j
+
+`ao_dipole_y <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L76>`_
+  array of the integrals of AO_i * x AO_j
+  array of the integrals of AO_i * y AO_j
+  array of the integrals of AO_i * z AO_j
+
+`ao_dipole_z <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L77>`_
+  array of the integrals of AO_i * x AO_j
+  array of the integrals of AO_i * y AO_j
+  array of the integrals of AO_i * z AO_j
+
+`ao_spread_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L1>`_
+  array of the integrals of AO_i * x^2 AO_j
+  array of the integrals of AO_i * y^2 AO_j
+  array of the integrals of AO_i * z^2 AO_j
+
+`ao_spread_y <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L2>`_
+  array of the integrals of AO_i * x^2 AO_j
+  array of the integrals of AO_i * y^2 AO_j
+  array of the integrals of AO_i * z^2 AO_j
+
+`ao_spread_z <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L3>`_
+  array of the integrals of AO_i * x^2 AO_j
+  array of the integrals of AO_i * y^2 AO_j
+  array of the integrals of AO_i * z^2 AO_j
+
+`overlap_bourrin_deriv_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L359>`_
+  Undocumented
+
+`overlap_bourrin_dipole <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L318>`_
+  Undocumented
+
+`overlap_bourrin_spread <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L265>`_
+  Undocumented
+
+`overlap_bourrin_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L374>`_
+  Undocumented
+
+`overlap_bourrin_x_abs <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L226>`_
+  Undocumented
+
+`power <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L310>`_
+  Undocumented
+
+`mo_deriv_1_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_mo.irp.f#L69>`_
+  array of the integrals of MO_i * d/dx  MO_j
+  array of the integrals of MO_i * d/dy  MO_j
+  array of the integrals of MO_i * d/dz  MO_j
+
+`mo_deriv_1_y <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_mo.irp.f#L70>`_
+  array of the integrals of MO_i * d/dx  MO_j
+  array of the integrals of MO_i * d/dy  MO_j
+  array of the integrals of MO_i * d/dz  MO_j
+
+`mo_deriv_1_z <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_mo.irp.f#L71>`_
+  array of the integrals of MO_i * d/dx  MO_j
+  array of the integrals of MO_i * d/dy  MO_j
+  array of the integrals of MO_i * d/dz  MO_j
+
+`mo_dipole_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_mo.irp.f#L1>`_
+  array of the integrals of MO_i * x MO_j
+  array of the integrals of MO_i * y MO_j
+  array of the integrals of MO_i * z MO_j
+
+`mo_dipole_y <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_mo.irp.f#L2>`_
+  array of the integrals of MO_i * x MO_j
+  array of the integrals of MO_i * y MO_j
+  array of the integrals of MO_i * z MO_j
+
+`mo_dipole_z <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_mo.irp.f#L3>`_
+  array of the integrals of MO_i * x MO_j
+  array of the integrals of MO_i * y MO_j
+  array of the integrals of MO_i * z MO_j
+
+`mo_spread_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_mo.irp.f#L36>`_
+  array of the integrals of MO_i * x^2 MO_j
+  array of the integrals of MO_i * y^2 MO_j
+  array of the integrals of MO_i * z^2 MO_j
+
+`mo_spread_y <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_mo.irp.f#L37>`_
+  array of the integrals of MO_i * x^2 MO_j
+  array of the integrals of MO_i * y^2 MO_j
+  array of the integrals of MO_i * z^2 MO_j
+
+`mo_spread_z <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_mo.irp.f#L38>`_
+  array of the integrals of MO_i * x^2 MO_j
+  array of the integrals of MO_i * y^2 MO_j
+  array of the integrals of MO_i * z^2 MO_j
 
 
 
