@@ -82,6 +82,26 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
+`pt2_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L1>`_
+  compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
+  .br
+  for the various n_st states.
+  .br
+  c_pert(i) = <psi(i)|H|det_pert>/( E(i) - <det_pert|H|det_pert> )
+  .br
+  e_2_pert(i) = <psi(i)|H|det_pert>^2/( E(i) - <det_pert|H|det_pert> )
+  .br
+
+`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L33>`_
+  compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
+  .br
+  for the various n_st states.
+  .br
+  e_2_pert(i) = 0.5 * (( <det_pert|H|det_pert> -  E(i) )  - sqrt( ( <det_pert|H|det_pert> -  E(i)) ^2 + 4 <psi(i)|H|det_pert>^2  )
+  .br
+  c_pert(i) = e_2_pert(i)/ <psi(i)|H|det_pert>
+  .br
+
 
 
 Needed Modules

@@ -492,9 +492,9 @@ subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   use bitmasks
   implicit none
   integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate
-  integer, intent(in)            :: keys(Nint,2,Ndet_max)
+  integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
+  integer(bit_kind), intent(in)  :: key(Nint,2)
   double precision, intent(in)   :: coef(Ndet_max,Nstate)
-  integer, intent(in)            :: key(Nint,2)
   double precision, intent(out)  :: i_H_psi_array(Nstate)
   
   integer                        :: i, ii,j
@@ -503,6 +503,11 @@ subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   double precision               :: hij
   integer                        :: idx(0:Ndet)
   
+  ASSERT (Nint > 0)
+  ASSERT (N_int == Nint)
+  ASSERT (Nstate > 0)
+  ASSERT (Ndet > 0)
+  ASSERT (Ndet_max >= Ndet)
   i_H_psi_array = 0.d0
   call filter_connected_i_H_psi0(keys,key,Nint,Ndet,idx)
   do ii=1,idx(0)
@@ -512,6 +517,7 @@ subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
     do j = 1, Nstate
       i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
     enddo
+    print *, 'x', coef(i,1), hij, i_H_psi_array(1)
   enddo
 end
 

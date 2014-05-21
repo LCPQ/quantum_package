@@ -51,7 +51,7 @@ DEPS=$(unique_list $DEPS_LONG)
 
 if [[ ! "$COMMAND_LINE" == "$DEPS" ]]
 then
-  DEPS=$(check_dependencies.sh $DEPS)
+  DEPS=$(${QPACKAGE_ROOT}/scripts/check_dependencies.sh ${DEPS})
 fi
 echo $DEPS
 

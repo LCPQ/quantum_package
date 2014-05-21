@@ -95,6 +95,7 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
   integer                        :: degree_x2
 
   ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
   ASSERT (sze > 0)
   
   l=1
@@ -118,8 +119,8 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
     !DIR$ LOOP COUNT (1000)
     do i=1,sze
       degree_x2 =  popcnt(xor( key1(1,1,i), key2(1,1))) +            &
-          popcnt(xor( key1(1,2,i), key2(1,2))) +                     &
           popcnt(xor( key1(2,1,i), key2(2,1))) +                     &
+          popcnt(xor( key1(1,2,i), key2(1,2))) +                     &
           popcnt(xor( key1(2,2,i), key2(2,2)))
       if (degree_x2 < 5) then
         if(degree_x2 .ne. 0)then

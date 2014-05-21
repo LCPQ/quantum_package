@@ -24,7 +24,7 @@ subroutine pt2_epstein_nesbet(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,n_s
   call i_H_psi(det_pert,psi_ref,psi_ref_coef,Nint,ndet,psi_ref_size,n_st,i_H_psi_array)
   H_pert_diag = diag_H_mat_elem(det_pert,Nint)
   do i =1,n_st
-    c_pert(i) = i_H_psi_array(i) / (E_ref(i) - H_pert_diag)
+    c_pert(i) = i_H_psi_array(i) / (reference_energy(i) - H_pert_diag)
     e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
   enddo
   
@@ -53,12 +53,16 @@ subroutine pt2_epstein_nesbet_2x2(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet
   double precision               :: diag_H_mat_elem,delta_e
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
-  call i_H_psi(det_pert,psi_ref,psi_ref_coef,Nint,ndet,psi_ref_size,n_st,i_H_psi_array)
+  print *,  'coefs'
+  print *,  psi_ref_coef(1:N_det_ref,1)
+  print *,  '-----'
+  call i_H_psi(det_pert,psi_ref,psi_ref_coef,Nint,N_det_ref,psi_ref_size,n_st,i_H_psi_array)
   H_pert_diag = diag_H_mat_elem(det_pert,Nint)
   do i =1,n_st
-    delta_e = H_pert_diag - E_ref(i)
+    delta_e = H_pert_diag - reference_energy(i)
     e_2_pert(i) = 0.5d0 * (delta_e - dsqrt(delta_e * delta_e + 4.d0 * i_H_psi_array(i) * i_H_psi_array(i)))
     c_pert(i) = e_2_pert(i)/i_H_psi_array(i)
   enddo
-  
+  print *, e_2_pert, delta_e , i_H_psi_array
+
 end

@@ -10,7 +10,8 @@ subroutine
 parameters
 initialization
 declarations
-keys_work
+keys_work_locked
+keys_work_unlocked
 finalization
 """.split()
 
@@ -24,7 +25,10 @@ class H_apply(object):
     self.openmp = openmp
     if openmp:
       s["subroutine"] += "_OpenMP"
+
+    self.selection_pt2 = None
     self.perturbation = None
+
    #s["omp_parallel"]     = """!$OMP PARALLEL DEFAULT(NONE)          &
     s["omp_parallel"]     = """!$OMP PARALLEL DEFAULT(SHARED)        &
         !$OMP PRIVATE(i,j,k,l,keys_out,hole,particle,                &
@@ -34,7 +38,7 @@ class H_apply(object):
         !$OMP  occ_hole_tmp,key_idx,i_b,j_b,key,N_elec_in_key_part_1,&
         !$OMP  N_elec_in_key_hole_1,N_elec_in_key_part_2,            &
         !$OMP  N_elec_in_key_hole_2,ia_ja_pairs)                     &
-        !$OMP SHARED(key_in,N_int,elec_num_tab,                      &
+        !$OMP SHARED(key_in,N_int,elec_num_tab,mo_tot_num,           &
         !$OMP  hole_1, particl_1, hole_2, particl_2,                 &
         !$OMP  lck,thresh,elec_alpha_num)"""
     s["omp_init_lock"]    = "call omp_init_lock(lck)"
@@ -72,6 +76,8 @@ class H_apply(object):
     return buffer
 
   def set_perturbation(self,pert):
+    if self.perturbation is not None:
+        raise
     self.perturbation = pert
     if pert is not None:
       self.data["parameters"] = ",sum_e_2_pert_in,sum_norm_pert_in,sum_H_pert_diag_in,N_st,Nint"
@@ -83,16 +89,17 @@ class H_apply(object):
       double precision                :: sum_e_2_pert(N_st)
       double precision                :: sum_norm_pert(N_st)
       double precision                :: sum_H_pert_diag
+      double precision                :: e_2_pert_buffer(N_st,size_max)
+      double precision                :: coef_pert_buffer(N_st,size_max)
       """
       self.data["size_max"] = "256" 
       self.data["initialization"] = """
-      E_ref = diag_H_mat_elem(key_in,N_int)
       sum_e_2_pert = sum_e_2_pert_in
       sum_norm_pert = sum_norm_pert_in
       sum_H_pert_diag = sum_H_pert_diag_in
       """
-      self.data["keys_work"] += """
-      call perturb_buffer_%s(keys_out,key_idx,sum_e_2_pert, &
+      self.data["keys_work_unlocked"] += """
+      call perturb_buffer_%s(keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
        sum_norm_pert,sum_H_pert_diag,N_st,Nint)
       """%(pert,)
       self.data["finalization"] = """
@@ -101,10 +108,29 @@ class H_apply(object):
       sum_H_pert_diag_in = sum_H_pert_diag
       """
       if self.openmp:
+        self.data["omp_set_lock"]   = ""
+        self.data["omp_unset_lock"]   = ""
         self.data["omp_test_lock"]  = ".False."
         self.data["omp_parallel"]    += """&
- !$OMP SHARED(N_st) &
+ !$OMP SHARED(N_st,Nint) PRIVATE(e_2_pert_buffer,coef_pert_buffer) &
  !$OMP REDUCTION(+:sum_e_2_pert, sum_norm_pert, sum_H_pert_diag)"""
 
+  def set_selection_pt2(self,pert):
+    if self.selection_pt2 is not None:
+        raise
+    self.set_perturbation(pert)
+    self.selection_pt2 = pert
+    if pert is not None:
+      self.data["size_max"] = str(1024*128) 
+      self.data["keys_work_unlocked"] = """
+      e_2_pert_buffer = 0.d0
+      coef_pert_buffer = 0.d0
+      """ + self.data["keys_work_unlocked"]
+      self.data["keys_work_locked"] = """
+      call fill_H_apply_buffer_selection(key_idx,keys_out,e_2_pert_buffer,coef_pert_buffer,N_st,N_int)
+      """
+      self.data["omp_test_lock"]    = "omp_test_lock(lck)"
+      self.data["omp_set_lock"]     = "call omp_set_lock(lck)"
+      self.data["omp_unset_lock"]   = "call omp_unset_lock(lck)"
 
 
