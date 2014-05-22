@@ -75,3 +75,31 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
 
 END_PROVIDER
 
+BEGIN_PROVIDER [ integer, psi_ref_size]
+ implicit none
+ BEGIN_DOC
+ ! Number of generator determinants in the wave function
+ END_DOC
+ psi_det_size = N_det
+END_PROVIDER
+
+ BEGIN_PROVIDER [ integer(bit_kind), psi_ref, (N_int,2,psi_ref_size) ]
+&BEGIN_PROVIDER [ double precision, psi_ref_coef, (psi_ref_size,N_states) ]
+ implicit none
+ BEGIN_DOC
+ ! Determinants on which H is applied
+ END_DOC
+ integer :: i,k
+
+ do k = 1, psi_ref_size
+  do i=1,N_int
+    psi_ref(i,1,k) = psi_det(i,1,k)
+    psi_ref(i,2,k) = psi_det(i,1,k)
+  enddo
+  do i = 1, N_states
+   psi_ref_coef(k,i) = psi_coef(k,i)
+  enddo
+ enddo
+
+END_PROVIDER
+
