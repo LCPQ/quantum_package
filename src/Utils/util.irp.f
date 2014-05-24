@@ -280,7 +280,10 @@ subroutine normalize(u,sze)
   integer                        :: i
   
   !DIR$ FORCEINLINE
-  d = 1.d0/dsqrt( u_dot_u(u,sze) )
+  d = u_dot_u(u,sze)
+  if (d /= 0.d0) then
+    d = 1.d0/dsqrt( d )
+  endif
   if (d /= 1.d0) then
     do i=1,sze
       u(i) = d*u(i)

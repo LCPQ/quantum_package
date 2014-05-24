@@ -52,26 +52,3 @@ END_PROVIDER
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ integer, N_det_generators ]
- implicit none
- BEGIN_DOC
- ! Number of generator determinants in the wave function
- END_DOC
- N_det_generators = N_det
-END_PROVIDER
-
-BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
- implicit none
- BEGIN_DOC
- ! Determinants on which H is applied
- END_DOC
- psi_generators = 0_bit_kind
- integer :: i
-
- do i=1,N_int
-   psi_generators(i,1,1) = psi_det(i,1,1)
-   psi_generators(i,2,1) = psi_det(i,1,1)
- enddo
-
-END_PROVIDER
-

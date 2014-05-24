@@ -9,6 +9,16 @@
 TEST_EXE=$1
 REF_FILE=${TEST_EXE}.ref
 
+make executables
+
+if [[ ! -f ${TEST_EXE} ]]
+then
+  echo '------- ls -------'
+  ls -F | egrep '\*$'
+  echo '------- ls -------'
+  echo 'Executable file not found : ' ${TEST_EXE}
+  exit 1
+fi
 
 if [[ $(basename ${PWD}) != "tests" ]]
 then

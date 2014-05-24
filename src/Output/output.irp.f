@@ -10,8 +10,9 @@ END_PROVIDER
  
 BEGIN_SHELL [ /bin/bash ]
  
- for NAME in $(cat ${QPACKAGE_ROOT}/src/NEEDED_MODULES)
+ for NAME in $(\ls -d ${QPACKAGE_ROOT}/src/*/)
  do
+ NAME=$(basename ${NAME})
  cat << EOF
  BEGIN_PROVIDER [ integer, output_$NAME ]
   implicit none

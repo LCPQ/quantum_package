@@ -76,7 +76,8 @@ Documentation
   Transform a bit string to a string for printing
 
 `debug_det <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L117>`_
-None
+  Undocumented
+
 `list_to_bitstring <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L29>`_
   return the physical string "string(N_int,2)" from the array of occupations "list(N_int*bit_kind_size,2)
   list
