@@ -1,4 +1,4 @@
-BEGIN_PROVIDER [ double precision, H_matrix_all_dets,(n_det,n_det) ]
+BEGIN_PROVIDER [ double precision, H_matrix_all_dets,(N_det,N_det) ]
  implicit none
  BEGIN_DOC
  ! H matrix on the basis of the slater deter;inants defined by psi_det
@@ -13,3 +13,4 @@ BEGIN_PROVIDER [ double precision, H_matrix_all_dets,(n_det,n_det) ]
   enddo
  enddo
 END_PROVIDER
+

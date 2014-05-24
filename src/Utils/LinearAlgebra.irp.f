@@ -196,31 +196,42 @@ subroutine lapack_diag(eigvalues,eigvectors,H,nmax,n)
   double precision, intent(in)   :: H(nmax,n)
   double precision,allocatable   :: eigenvalues(:)
   double precision,allocatable   :: work(:)
+  integer         ,allocatable   :: iwork(:)
   double precision,allocatable   :: A(:,:)
-  allocate(A(nmax,n),eigenvalues(nmax),work(4*nmax))
-  integer                        :: LWORK, info, i,j,l,k
+  integer                        :: lwork, info, i,j,l,k, liwork
+
+  allocate(A(nmax,n),eigenvalues(n))
+
   A=H
+  lwork = 2*n*n + 6*n+ 1
+  liwork = 5*n + 3
+  allocate (work(lwork),iwork(liwork))
 
-! if (n<30) then
-! do i=1,n
-! do j=1,n
-!   print *,  j,i, H(j,i)
-! enddo
-! print *,  '---'
-! enddo
-! print *,  '---'
-! endif
-
-  LWORK = 4*nmax
-  call dsyev( 'V', 'U', n, A, nmax, eigenvalues, work, LWORK, info )
+  lwork = -1
+  liwork = -1
+  call DSYEVD( 'V', 'U', n, A, nmax, eigenvalues, work, lwork, &
+    iwork, liwork, info )
   if (info < 0) then
-    print *, irp_here, ': the ',-info,'-th argument had an illegal value'
-    stop 1
-  else if (info > 0) then
-    print *, irp_here, ': the algorithm failed to converge;  ',info,' off-diagonal'
-    print *, 'elements of an intermediate tridiagonal form did not converge to zero.'
-    stop 1
+    print *, irp_here, ': DSYEVD: the ',-info,'-th argument had an illegal value'
+    stop 2
   endif
+  lwork  = int( work( 1 ) )
+  liwork = iwork(1)
+  deallocate (work,iwork)
+
+  allocate (work(lwork),iwork(liwork))
+  call DSYEVD( 'V', 'U', n, A, nmax, eigenvalues, work, lwork, &
+    iwork, liwork, info )
+  deallocate(work,iwork)
+
+  if (info < 0) then
+    print *, irp_here, ': DSYEVD: the ',-info,'-th argument had an illegal value'
+    stop 2
+  else if( info > 0  ) then
+     write(*,*)'DSYEVD Failed'
+     stop 1
+  end if
+
   eigvectors = 0.d0
   eigvalues = 0.d0
   do j = 1, n
@@ -229,4 +240,5 @@ subroutine lapack_diag(eigvalues,eigvectors,H,nmax,n)
       eigvectors(i,j) = A(i,j)
     enddo
   enddo
+  deallocate(A,eigenvalues)
 end

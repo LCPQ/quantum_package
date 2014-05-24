@@ -53,6 +53,9 @@ Documentation
 `copy_h_apply_buffer_to_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L113>`_
   Undocumented
 
+`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L197>`_
+  Fill the H_apply buffer with determiants for CISD
+
 `h_apply_buffer_allocated <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L14>`_
   Buffer of determinants/coefficients/perturbative energy for H_apply.
   Uninitialized. Filled by H_apply subroutines.

@@ -24,6 +24,7 @@ subroutine pt2_epstein_nesbet(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,n_s
   ASSERT (Nint > 0)
   call i_H_psi(det_pert,psi_ref,psi_ref_coef,Nint,ndet,psi_ref_size,n_st,i_H_psi_array)
   H_pert_diag = diag_H_mat_elem(det_pert,Nint)
+    print *,  H_pert_diag
   do i =1,n_st
     c_pert(i) = i_H_psi_array(i) / (reference_energy(i) - H_pert_diag + eps)
     e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
@@ -72,7 +73,7 @@ subroutine pt2_epstein_nesbet_SC2(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet
   integer(bit_kind), intent(in)  :: det_pert(Nint,2)
   double precision , intent(out) :: c_pert(n_st),e_2_pert(n_st),H_pert_diag
   double precision               :: i_H_psi_array(N_st)
-  integer                        :: idx_repeat(ndet)
+  integer                        :: idx_repeat(0:ndet)
   
   BEGIN_DOC
   ! compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
@@ -122,7 +123,7 @@ subroutine pt2_epstein_nesbet_2x2_SC2(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,
   integer(bit_kind), intent(in)  :: det_pert(Nint,2)
   double precision , intent(out) :: c_pert(n_st),e_2_pert(n_st),H_pert_diag
   double precision               :: i_H_psi_array(N_st)
-  integer                        :: idx_repeat(ndet)
+  integer                        :: idx_repeat(0:ndet)
 
   BEGIN_DOC
   ! compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
@@ -174,7 +175,7 @@ subroutine pt2_epstein_nesbet_SC2_projected(det_pert,c_pert,e_2_pert,H_pert_diag
   integer(bit_kind), intent(in)  :: det_pert(Nint,2)
   double precision , intent(out) :: c_pert(n_st),e_2_pert(n_st),H_pert_diag
   double precision               :: i_H_psi_array(N_st)
-  integer                        :: idx_repeat(ndet)
+  integer                        :: idx_repeat(0:ndet)
   
   BEGIN_DOC
   ! compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution

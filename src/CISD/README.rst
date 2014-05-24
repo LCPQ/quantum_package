@@ -1,3 +1,14 @@
+CISD
+====
+
+This is a test directory which builds a CISD by setting the follwoing rules:
+
+* The only generator determinant is the Hartee-Fock (single-reference method)
+* All generated determinants are included in the wave function (no perturbative
+  selection)
+
+These rules are set in the ``H_apply.irp.f`` file.
+
 Needed Modules
 ==============
 
@@ -24,13 +35,6 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`fill_h_apply_buffer <http://github.com/LCPQ/quantum_package/tree/master/src/CISD/H_apply.irp.f#L6>`_
-  Fill the H_apply buffer with determiants for CISD
-
-`h_apply_cisd <http://github.com/LCPQ/quantum_package/tree/master/src/CISD/H_apply.irp.f#L43>`_
-  Calls H_apply on the HF determinant and selects all connected single and double
-  excitations (of the same symmetry).
-
 `cisd_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/CISD/SC2.irp.f#L1>`_
   CISD+SC2 method              :: take off all the disconnected terms of a CISD (selected or not)
   .br
@@ -48,6 +52,9 @@ Documentation
   Initial guess vectors are not necessarily orthonormal
 
 `repeat_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/CISD/SC2.irp.f#L143>`_
+  Undocumented
+
+`cisd <http://github.com/LCPQ/quantum_package/tree/master/src/CISD/cisd_sc2.irp.f#L1>`_
   Undocumented
 
 

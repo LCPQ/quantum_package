@@ -1,21 +1,21 @@
 program cisd
   implicit none
   integer :: i
-  PROVIDE ref_bitmask_energy H_apply_buffer_allocated mo_bielec_integrals_in_map
+
+  N_states = 3
+  diag_algorithm = "Lapack"
+  touch N_states diag_algorithm
+  print *,   'HF      = ', HF_energy
+  print *,  'N_states = ', N_states
   call H_apply_cisd
-  double precision, allocatable :: eigvalues(:),eigvectors(:,:)
-  allocate(eigvalues(n_det),eigvectors(n_det,n_det))
   print *,  'N_det = ', N_det
-  call lapack_diag(eigvalues,eigvectors,H_matrix_all_dets,n_det,n_det)
-
-! print *,  H_matrix_all_dets
-  print *,  '---'
-  print *,  'HF:', HF_energy
-  print *,  '---'
-  do i = 1,20
-   print *,  'energy(i)    = ',eigvalues(i) + nuclear_repulsion
+  do i = 1,N_states
+   print *,  'energy  = ',CI_energy(i) 
+   print *,  'E_corr  = ',CI_electronic_energy(i) - ref_bitmask_energy
   enddo
-! print *,  eigvectors(:,1)
-  deallocate(eigvalues,eigvectors)
-end
 
+! call CISD_SC2(psi_det,psi_coef,eigvalues,size(psi_coef,1),N_det,N_states,N_int)
+! do i = 1, N_states
+!  print*,'eigvalues(i) = ',eigvalues(i)
+! enddo
+end

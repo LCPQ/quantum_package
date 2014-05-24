@@ -82,8 +82,15 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`cisd <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/cisd_test.irp.f#L1>`_
-  Undocumented
+`pt2_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/Moller_plesset.irp.f#L1>`_
+  compute the standard Moller-Plesset perturbative first order coefficient and second order energetic contribution
+  .br
+  for the various n_st states.
+  .br
+  c_pert(i) = <psi(i)|H|det_pert>/(difference of orbital energies)
+  .br
+  e_2_pert(i) = <psi(i)|H|det_pert>^2/(difference of orbital energies)
+  .br
 
 `pt2_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L1>`_
   compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
@@ -95,7 +102,7 @@ Documentation
   e_2_pert(i) = <psi(i)|H|det_pert>^2/( E(i) - <det_pert|H|det_pert> )
   .br
 
-`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L34>`_
+`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L35>`_
   compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
   .br
   for the various n_st states.
@@ -105,7 +112,7 @@ Documentation
   c_pert(i) = e_2_pert(i)/ <psi(i)|H|det_pert>
   .br
 
-`pt2_epstein_nesbet_2x2_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L118>`_
+`pt2_epstein_nesbet_2x2_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L119>`_
   compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
   .br
   for the various n_st states.
@@ -127,7 +134,7 @@ Documentation
   c_pert(i) = e_2_pert(i)/ <psi(i)|H|det_pert>
   .br
 
-`pt2_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L68>`_
+`pt2_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L69>`_
   compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various n_st states,
@@ -149,7 +156,7 @@ Documentation
   e_2_pert(i) = <psi(i)|H|det_pert>^2/( E(i) - (<det_pert|H|det_pert> ) )
   .br
 
-`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L170>`_
+`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L171>`_
   compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various n_st states,
@@ -175,6 +182,9 @@ Documentation
   NOTE :::: if you satisfy Brillouin Theorem, the singles don't contribute !!
   .br
 
+`cisd <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation_test.irp.f#L1>`_
+  Undocumented
+
 `fill_h_apply_buffer_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L1>`_
   Fill the H_apply buffer with determiants for the selection
 
@@ -189,14 +199,6 @@ Documentation
 
 `diagonalize <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L18>`_
   Undocumented
-
-`h_apply_cisd_pt2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L63>`_
-  Calls H_apply on the HF determinant and selects all connected single and double
-  excitations (of the same symmetry).
-
-`h_apply_cisd_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L97>`_
-  Calls H_apply on the HF determinant and selects all connected single and double
-  excitations (of the same symmetry).
 
 `n_det_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L36>`_
   Undocumented

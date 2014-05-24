@@ -88,10 +88,17 @@ BEGIN_PROVIDER [ integer, N_generators_bitmask ]
 
 END_PROVIDER
 
-BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,2,N_generators_bitmask) ]
+BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_bitmask) ]
  implicit none
  BEGIN_DOC
- ! Bitmasks for generator determinants. (N_int, alpha/beta, hole/particle, generator)
+ ! Bitmasks for generator determinants. (N_int, alpha/beta, hole/particle, generator).
+ ! 3rd index is :
+ ! * 1 : hole     for single exc
+ ! * 1 : particle for single exc
+ ! * 3 : hole     for 1st exc of double
+ ! * 4 : particle for 1st exc of double
+ ! * 5 : hole     for 2dn exc of double
+ ! * 6 : particle for 2dn exc of double
  END_DOC
  logical                        :: exists
  PROVIDE ezfio_filename
@@ -100,12 +107,86 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,2,N_generators_
  if (exists) then
    call ezfio_get_bitmasks_generators(generators_bitmask)
  else
-   generators_bitmask(:,:,1,1) = HF_bitmask
-   generators_bitmask(:,1,2,1) = iand(not(HF_bitmask(:,1)),full_ijkl_bitmask(:,1))
-   generators_bitmask(:,2,2,1) = iand(not(HF_bitmask(:,2)),full_ijkl_bitmask(:,2))
+   generators_bitmask(:,:,s_hole ,1) = HF_bitmask
+   generators_bitmask(:,:,s_part ,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
+   generators_bitmask(:,:,d_hole1,1) = HF_bitmask
+   generators_bitmask(:,:,d_part1,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
+   generators_bitmask(:,:,d_hole2,1) = HF_bitmask
+   generators_bitmask(:,:,d_part2,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
    call ezfio_set_bitmasks_generators(generators_bitmask)
  endif
- ASSERT (N_generators_bitmask > 0)
 
+END_PROVIDER
+
+BEGIN_PROVIDER [ integer, N_reference_bitmask ]
+ implicit none
+ BEGIN_DOC
+ ! Number of bitmasks for reference
+ END_DOC
+ logical                        :: exists
+ PROVIDE ezfio_filename
+ 
+ call ezfio_has_bitmasks_N_mask_ref(exists)
+ if (exists) then
+   call ezfio_get_bitmasks_N_mask_ref(N_reference_bitmask)
+   integer                        :: N_int_check
+   integer                        :: bit_kind_check
+   call ezfio_get_bitmasks_bit_kind(bit_kind_check)
+   if (bit_kind_check /= bit_kind) then
+     print *,  bit_kind_check, bit_kind
+     print *,  'Error: bit_kind is not correct in EZFIO file'
+   endif
+   call ezfio_get_bitmasks_N_int(N_int_check)
+   if (N_int_check /= N_int) then
+     print *,  N_int_check, N_int
+     print *,  'Error: N_int is not correct in EZFIO file'
+   endif
+ else
+   N_reference_bitmask = 1
+   call ezfio_set_bitmasks_N_int(N_int)
+   call ezfio_set_bitmasks_bit_kind(bit_kind)
+   call ezfio_set_bitmasks_N_mask_ref(N_reference_bitmask)
+ endif
+ ASSERT (N_reference_bitmask > 0)
+
+END_PROVIDER
+
+BEGIN_PROVIDER [ integer(bit_kind), reference_bitmask, (N_int,2,2,N_reference_bitmask) ]
+ implicit none
+ BEGIN_DOC
+ ! Bitmasks for reference determinants. (N_int, alpha/beta, hole/particle, reference)
+ END_DOC
+ logical                        :: exists
+ PROVIDE ezfio_filename
+
+ call ezfio_has_bitmasks_reference(exists)
+ if (exists) then
+   call ezfio_get_bitmasks_reference(reference_bitmask)
+ else
+   reference_bitmask(:,:,s_hole ,1) = HF_bitmask
+   reference_bitmask(:,:,s_part ,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
+   reference_bitmask(:,:,d_hole1,1) = HF_bitmask
+   reference_bitmask(:,:,d_part1,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
+   reference_bitmask(:,:,d_hole2,1) = HF_bitmask
+   reference_bitmask(:,:,d_part2,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
+   call ezfio_set_bitmasks_reference(reference_bitmask)
+ endif
+
+END_PROVIDER
+
+BEGIN_PROVIDER [ integer, i_bitmask_gen ]
+ implicit none
+ BEGIN_DOC
+ ! Current bitmask for the generators
+ END_DOC
+ i_bitmask_gen = 1
+END_PROVIDER
+
+BEGIN_PROVIDER [ integer, i_bitmask_ref ]
+ implicit none
+ BEGIN_DOC
+ ! Current bitmask for the reference
+ END_DOC
+ i_bitmask_ref = 1
 END_PROVIDER
 
