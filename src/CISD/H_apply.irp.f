@@ -49,19 +49,16 @@ subroutine H_apply_cisd
   
   integer(bit_kind)              :: hole_mask(N_int,2)
   integer(bit_kind)              :: particle_mask(N_int,2)
-  hole_mask(:,1) = HF_bitmask(:,1)
-  hole_mask(:,2) = HF_bitmask(:,2)
-  particle_mask(:,1) = iand(not(HF_bitmask(:,1)),full_ijkl_bitmask(:,1))
-  particle_mask(:,2) = iand(not(HF_bitmask(:,2)),full_ijkl_bitmask(:,2))
-
-  PROVIDE N_det_generators
-
-  call H_apply_cisd_OpenMP_monoexc(HF_bitmask,                              &
-      hole_mask, particle_mask)
-  call H_apply_cisd_OpenMP_diexc(HF_bitmask,                                &
-      hole_mask, particle_mask,                                      &
-      hole_mask, particle_mask )
-
+  
+  ASSERT (N_det_generators == 1)
+  PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map
+  
+  call H_apply_cisd_OpenMP_monoexc(HF_bitmask,                       &
+      generators_bitmask(:,:,1,1), generators_bitmask(:,:,2,1))
+  call H_apply_cisd_OpenMP_diexc(HF_bitmask,                         &
+      generators_bitmask(:,:,1,1), generators_bitmask(:,:,2,1),      &
+      generators_bitmask(:,:,1,1), generators_bitmask(:,:,2,1) )
+  
   call copy_h_apply_buffer_to_wf
 end
 

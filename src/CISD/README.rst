@@ -50,8 +50,5 @@ Documentation
 `repeat_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/CISD/SC2.irp.f#L143>`_
   Undocumented
 
-`cisd <http://github.com/LCPQ/quantum_package/tree/master/src/CISD/cisd_sc2.irp.f#L1>`_
-  Undocumented
-
 
 
