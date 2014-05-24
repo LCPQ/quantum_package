@@ -313,6 +313,8 @@ end
   PROVIDE ao_integrals_threshold
   if (.not.do_direct_integrals) then
     PROVIDE ao_bielec_integrals_in_map
+  else
+    PROVIDE ao_overlap_abs
   endif
   
   mo_bielec_integral_jj = 0.d0

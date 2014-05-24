@@ -10,8 +10,7 @@ subroutine
 parameters
 initialization
 declarations
-keys_work_locked
-keys_work_unlocked
+keys_work
 finalization
 """.split()
 
@@ -37,15 +36,10 @@ class H_apply(object):
         !$OMP  accu,i_a,hole_tmp,particle_tmp,occ_particle_tmp,      &
         !$OMP  occ_hole_tmp,key_idx,i_b,j_b,key,N_elec_in_key_part_1,&
         !$OMP  N_elec_in_key_hole_1,N_elec_in_key_part_2,            &
-        !$OMP  N_elec_in_key_hole_2,ia_ja_pairs)                     &
+        !$OMP  N_elec_in_key_hole_2,ia_ja_pairs,iproc)               &
         !$OMP SHARED(key_in,N_int,elec_num_tab,mo_tot_num,           &
         !$OMP  hole_1, particl_1, hole_2, particl_2,                 &
-        !$OMP  lck,thresh,elec_alpha_num)"""
-    s["omp_init_lock"]    = "call omp_init_lock(lck)"
-    s["omp_set_lock"]     = "call omp_set_lock(lck)"
-    s["omp_unset_lock"]   = "call omp_unset_lock(lck)"
-    s["omp_test_lock"]    = "omp_test_lock(lck)"
-    s["omp_destroy_lock"] = "call omp_destroy_lock(lck)"
+        !$OMP  thresh,elec_alpha_num)"""
     s["omp_end_parallel"] = "!$OMP END PARALLEL"
     s["omp_master"]       = "!$OMP MASTER"
     s["omp_end_master"]   = "!$OMP END MASTER"
@@ -56,7 +50,6 @@ class H_apply(object):
     if not openmp:
       for k in s:
         s[k] = ""
-      s["omp_test_lock"]    = ".False."
     s["size_max"] = str(1024*128) 
     s["set_i_H_j_threshold"] = """
       thresh = H_apply_threshold
@@ -97,8 +90,9 @@ class H_apply(object):
       sum_e_2_pert = sum_e_2_pert_in
       sum_norm_pert = sum_norm_pert_in
       sum_H_pert_diag = sum_H_pert_diag_in
+      PROVIDE reference_energy psi_ref_coef psi_ref
       """
-      self.data["keys_work_unlocked"] += """
+      self.data["keys_work"] += """
       call perturb_buffer_%s(keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
        sum_norm_pert,sum_H_pert_diag,N_st,Nint)
       """%(pert,)
@@ -108,9 +102,6 @@ class H_apply(object):
       sum_H_pert_diag_in = sum_H_pert_diag
       """
       if self.openmp:
-        self.data["omp_set_lock"]   = ""
-        self.data["omp_unset_lock"]   = ""
-        self.data["omp_test_lock"]  = ".False."
         self.data["omp_parallel"]    += """&
  !$OMP SHARED(N_st,Nint) PRIVATE(e_2_pert_buffer,coef_pert_buffer) &
  !$OMP REDUCTION(+:sum_e_2_pert, sum_norm_pert, sum_H_pert_diag)"""
@@ -122,15 +113,12 @@ class H_apply(object):
     self.selection_pt2 = pert
     if pert is not None:
       self.data["size_max"] = str(1024*128) 
-      self.data["keys_work_unlocked"] = """
+      self.data["keys_work"] = """
       e_2_pert_buffer = 0.d0
       coef_pert_buffer = 0.d0
-      """ + self.data["keys_work_unlocked"]
-      self.data["keys_work_locked"] = """
-      call fill_H_apply_buffer_selection(key_idx,keys_out,e_2_pert_buffer,coef_pert_buffer,N_st,N_int)
+      """ + self.data["keys_work"]
+      self.data["keys_work"] += """
+      call fill_H_apply_buffer_selection(key_idx,keys_out,e_2_pert_buffer,coef_pert_buffer,N_st,N_int,iproc)
       """
-      self.data["omp_test_lock"]    = "omp_test_lock(lck)"
-      self.data["omp_set_lock"]     = "call omp_set_lock(lck)"
-      self.data["omp_unset_lock"]   = "call omp_unset_lock(lck)"
 
 

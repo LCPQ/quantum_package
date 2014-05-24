@@ -82,6 +82,9 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
+`cisd <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/cisd_test.irp.f#L1>`_
+  Undocumented
+
 `pt2_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L1>`_
   compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
@@ -92,7 +95,7 @@ Documentation
   e_2_pert(i) = <psi(i)|H|det_pert>^2/( E(i) - <det_pert|H|det_pert> )
   .br
 
-`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L33>`_
+`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L34>`_
   compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
   .br
   for the various n_st states.
@@ -101,6 +104,114 @@ Documentation
   .br
   c_pert(i) = e_2_pert(i)/ <psi(i)|H|det_pert>
   .br
+
+`pt2_epstein_nesbet_2x2_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L118>`_
+  compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
+  .br
+  for the various n_st states.
+  .br
+  but  with the correction in the denominator
+  .br
+  comming from the interaction of that determinant with all the others determinants
+  .br
+  that can be repeated by repeating all the double excitations
+  .br
+  : you repeat all the correlation energy already taken into account in reference_energy(1)
+  .br
+  that could be repeated to this determinant.
+  .br
+  <det_pert|H|det_pert> --->  <det_pert|H|det_pert> + delta_e_corr
+  .br
+  e_2_pert(i) = 0.5 * (( <det_pert|H|det_pert> -  E(i) )  - sqrt( ( <det_pert|H|det_pert> -  E(i)) ^2 + 4 <psi(i)|H|det_pert>^2  )
+  .br
+  c_pert(i) = e_2_pert(i)/ <psi(i)|H|det_pert>
+  .br
+
+`pt2_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L68>`_
+  compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
+  .br
+  for the various n_st states,
+  .br
+  but  with the correction in the denominator
+  .br
+  comming from the interaction of that determinant with all the others determinants
+  .br
+  that can be repeated by repeating all the double excitations
+  .br
+  : you repeat all the correlation energy already taken into account in reference_energy(1)
+  .br
+  that could be repeated to this determinant.
+  .br
+  <det_pert|H|det_pert> --->  <det_pert|H|det_pert> + delta_e_corr
+  .br
+  c_pert(i) = <psi(i)|H|det_pert>/( E(i) - (<det_pert|H|det_pert> ) )
+  .br
+  e_2_pert(i) = <psi(i)|H|det_pert>^2/( E(i) - (<det_pert|H|det_pert> ) )
+  .br
+
+`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L170>`_
+  compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
+  .br
+  for the various n_st states,
+  .br
+  but  with the correction in the denominator
+  .br
+  comming from the interaction of that determinant with all the others determinants
+  .br
+  that can be repeated by repeating all the double excitations
+  .br
+  : you repeat all the correlation energy already taken into account in reference_energy(1)
+  .br
+  that could be repeated to this determinant.
+  .br
+  BUT on the contrary with ""pt2_epstein_nesbet_SC2"", you compute the energy by projection
+  .br
+  <det_pert|H|det_pert> --->  <det_pert|H|det_pert> + delta_e_corr
+  .br
+  c_pert(1) = 1/c_HF <psi(i)|H|det_pert>/( E(i) - (<det_pert|H|det_pert> ) )
+  .br
+  e_2_pert(1) = <HF|H|det_pert> c_pert(1)
+  .br
+  NOTE :::: if you satisfy Brillouin Theorem, the singles don't contribute !!
+  .br
+
+`fill_h_apply_buffer_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L1>`_
+  Fill the H_apply buffer with determiants for the selection
+
+`selection_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L67>`_
+  Threshold to select determinants. Set by selection routines.
+
+`selection_criterion_factor <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L69>`_
+  Threshold to select determinants. Set by selection routines.
+
+`selection_criterion_min <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L68>`_
+  Threshold to select determinants. Set by selection routines.
+
+`diagonalize <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L18>`_
+  Undocumented
+
+`h_apply_cisd_pt2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L63>`_
+  Calls H_apply on the HF determinant and selects all connected single and double
+  excitations (of the same symmetry).
+
+`h_apply_cisd_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L97>`_
+  Calls H_apply on the HF determinant and selects all connected single and double
+  excitations (of the same symmetry).
+
+`n_det_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L36>`_
+  Undocumented
+
+`psi_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L41>`_
+  On what we apply <i|H|psi> for perturbation. If selection, it may be 0.9 of the norm.
+
+`psi_ref_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L42>`_
+  On what we apply <i|H|psi> for perturbation. If selection, it may be 0.9 of the norm.
+
+`psi_ref_size <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L32>`_
+  Undocumented
+
+`reference_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L6>`_
+  Reference energy
 
 
 
@@ -122,4 +233,5 @@ Needed Modules
 * `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
 * `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
+* `SingleRefMethod <http://github.com/LCPQ/quantum_package/tree/master/src/SingleRefMethod>`_
 

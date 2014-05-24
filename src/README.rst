@@ -130,6 +130,7 @@ Needed Modules
 * `DensityMatrix <http://github.com/LCPQ/quantum_package/tree/master/src/DensityMatrix>`_
 * `CISD <http://github.com/LCPQ/quantum_package/tree/master/src/CISD>`_
 * `Perturbation <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation>`_
+* `SingleRefMethod <http://github.com/LCPQ/quantum_package/tree/master/src/SingleRefMethod>`_
 
 Documentation
 =============

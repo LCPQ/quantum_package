@@ -174,7 +174,7 @@ BEGIN_PROVIDER [ double precision, inv_int, (128) ]
   ! 1/i
   END_DOC
   integer                        :: i
-  do i=1,size(inv_int)
+  do i=1,128
     inv_int(i) = 1.d0/dble(i)
   enddo
 END_PROVIDER
@@ -280,7 +280,10 @@ subroutine normalize(u,sze)
   integer                        :: i
   
   !DIR$ FORCEINLINE
-  d = 1.d0/dsqrt( u_dot_u(u,sze) )
+  d = u_dot_u(u,sze)
+  if (d /= 0.d0) then
+    d = 1.d0/dsqrt( d )
+  endif
   if (d /= 1.d0) then
     do i=1,sze
       u(i) = d*u(i)
