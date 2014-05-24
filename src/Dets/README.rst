@@ -161,9 +161,34 @@ Documentation
 
 `filter_connected <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/filter_connected.irp.f#L2>`_
   Filters out the determinants that are not connected by H
+  .br
+  returns the array idx which contains the index of the
+  .br
+  determinants in the array key1 that interact
+  .br
+  via the H operator with key2.
+  .br
+  idx(0) is the number of determinants that interact with key1
 
-`filter_connected_i_h_psi0 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/filter_connected.irp.f#L86>`_
-  Undocumented
+`filter_connected_i_h_psi0 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/filter_connected.irp.f#L94>`_
+  returns the array idx which contains the index of the
+  .br
+  determinants in the array key1 that interact
+  .br
+  via the H operator with key2.
+  .br
+  idx(0) is the number of determinants that interact with key1
+
+`filter_connected_i_h_psi0_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/filter_connected.irp.f#L193>`_
+  standard filter_connected_i_H_psi but returns in addition
+  .br
+  the array of the index of the non connected determinants to key1
+  .br
+  in order to know what double excitation can be repeated on key1
+  .br
+  idx_repeat(0) is the number of determinants that can be used
+  .br
+  to repeat the excitations
 
 `get_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/s2.irp.f#L1>`_
   Returns <S^2>
@@ -177,10 +202,10 @@ Documentation
 `s_z2_sz <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/s2.irp.f#L37>`_
   Undocumented
 
-`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L671>`_
+`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L721>`_
   Needed for diag_H_mat_elem
 
-`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L716>`_
+`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L766>`_
   Needed for diag_H_mat_elem
 
 `decode_exc <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L76>`_
@@ -190,7 +215,7 @@ Documentation
   s1,s2 : Spins (1:alpha, 2:beta)
   degree : Degree of excitation
 
-`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L609>`_
+`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L659>`_
   Computes <i|H|i>
 
 `get_double_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L141>`_
@@ -202,16 +227,16 @@ Documentation
 `get_excitation_degree <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L1>`_
   Returns the excitation degree between two determinants
 
-`get_excitation_degree_vector <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L525>`_
+`get_excitation_degree_vector <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L575>`_
   Applies get_excitation_degree to an array of determinants
 
 `get_mono_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L274>`_
   Returns the excitation operator between two singly excited determinants and the phase
 
-`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L764>`_
+`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L814>`_
   Returns a list of occupation numbers from a bitstring
 
-`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L780>`_
+`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L830>`_
   Computes v_0 = H|u_0>
   .br
   n : number of determinants
@@ -222,7 +247,20 @@ Documentation
   Returns <i|H|j> where i and j are determinants
 
 `i_h_psi <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L491>`_
-  Undocumented
+  <key|H|psi> for the various Nstate
+
+`i_h_psi_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L527>`_
+  <key|H|psi> for the various Nstate
+  .br
+  returns in addition
+  .br
+  the array of the index of the non connected determinants to key1
+  .br
+  in order to know what double excitation can be repeated on key1
+  .br
+  idx_repeat(0) is the number of determinants that can be used
+  .br
+  to repeat the excitations
 
 `h_matrix_all_dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/utils.irp.f#L1>`_
   H matrix on the basis of the slater deter;inants defined by psi_det

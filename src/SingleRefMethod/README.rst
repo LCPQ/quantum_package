@@ -11,6 +11,14 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
+`n_det_generators <http://github.com/LCPQ/quantum_package/tree/master/src/SingleRefMethod/generators.irp.f#L3>`_
+  For Single reference wave functions, the number of generators is 1 : the
+  Hartree-Fock determinant
+
+`psi_generators <http://github.com/LCPQ/quantum_package/tree/master/src/SingleRefMethod/generators.irp.f#L12>`_
+  For Single reference wave functions, the generator is the
+  Hartree-Fock determinant
+
 
 
 Needed Modules

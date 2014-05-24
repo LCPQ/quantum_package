@@ -1,6 +1,7 @@
 program cisd
   implicit none
   integer :: i
+  PROVIDE ref_bitmask_energy H_apply_buffer_allocated mo_bielec_integrals_in_map
   call H_apply_cisd
   double precision, allocatable :: eigvalues(:),eigvectors(:,:)
   allocate(eigvalues(n_det),eigvectors(n_det,n_det))

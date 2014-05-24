@@ -23,10 +23,13 @@ if __name__ == '__main__':
     env = os.environ
     
     verbosity = 1
-    try:
-      nproc = int(subprocess.check_output("cat /proc/cpuinfo | grep processor | wc -l", shell=True))
-    except:
-      nproc=4
+    if os.environ["OMP_NUM_THREADS"]=="1":
+      try:
+        nproc = int(subprocess.check_output("cat /proc/cpuinfo | grep processor | wc -l", shell=True))
+      except:
+        nproc=4
+    else:
+      nproc=1
 
     testfiles = []
     for f in os.listdir(os.getcwd()):

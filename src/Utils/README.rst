@@ -10,20 +10,41 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L146>`_
+`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L169>`_
   Apply the rotation found by find_rotation
 
-`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L127>`_
+`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L150>`_
   Find A.C = B
 
-`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L73>`_
+`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L96>`_
   Find C = A^-1
 
-`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L158>`_
+`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L181>`_
   Diagonalize matrix H
+  .br
+  H is untouched between input and ouptut
+  .br
+  eigevalues(i) = ith lowest eigenvalue of the H matrix
+  .br
+  eigvectors(i,j) = <i|psi_j> where i is the basis function and psi_j is the j th eigenvector
+  .br
 
 `ortho_lowdin <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L1>`_
-  Compute U.S^-1/2 canonical orthogonalization
+  Compute C_new=C_old.S^-1/2 canonical orthogonalization.
+  .br
+  overlap : overlap matrix
+  .br
+  LDA : leftmost dimension of overlap array
+  .br
+  N : Overlap matrix is NxN (array is (LDA,N) )
+  .br
+  C : Coefficients of the vectors to orthogonalize. On exit,
+  orthogonal vectors
+  .br
+  LDC : leftmost dimension of C
+  .br
+  m : Coefficients matrix is MxN, ( array is (LDC,N) )
+  .br
 
 `add_poly <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L243>`_
   Add two polynomials
@@ -133,20 +154,18 @@ Documentation
 `inv_int <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L171>`_
   1/i
 
-`normalize <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L272>`_
+`normalize <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L270>`_
   Normalizes vector u
   u is expected to be aligned in memory.
 
 `nproc <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L197>`_
   Number of current OpenMP threads
 
-`u_dot_u <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L244>`_
+`u_dot_u <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L239>`_
   Compute <u|u>
-  u is expected to be aligned in memory.
 
 `u_dot_v <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L213>`_
   Compute <u|v>
-  u and v are expected to be aligned in memory.
 
 `wall_time <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L182>`_
   The equivalent of cpu_time, but for the wall time.

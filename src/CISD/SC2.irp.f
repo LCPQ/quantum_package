@@ -36,6 +36,7 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
   double precision               :: hij_elec, e_corr_double,e_corr,diag_h_mat_elem,inv_c0
   double precision               :: e_corr_array(sze),H_jj_ref(sze),H_jj_dressed(sze),hij_double(sze)
   double precision               :: e_corr_double_before,accu,cpu_2,cpu_1
+  integer                        :: degree_exc(sze)
   integer                        :: i_ok
   
   call write_time(output_CISD)
@@ -59,6 +60,7 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
   e_corr_double = 0.d0
   do i = 1, sze
     call get_excitation_degree(ref_bitmask,dets_in(1,1,i),degree,Nint)
+    degree_exc(i) = degree
     if(degree==0)then
       index_hf=i
     else if (degree == 2)then
@@ -81,23 +83,28 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
   enddo
   e_corr = e_corr * inv_c0
   e_corr_double = e_corr_double * inv_c0
-  
   converged = .False.
   e_corr_double_before = e_corr_double
   iter = 0
   do while (.not.converged)
-    
     iter +=1
-    !  call cpu_time(cpu_1)
     do i=1,sze
       H_jj_dressed(i) = H_jj_ref(i)
       if (i==index_hf)cycle
       accu = 0.d0
-      do j=1,N_double
-        call repeat_excitation(dets_in(1,1,i),ref_bitmask,dets_in(1,1,index_double(j)),i_ok,Nint)
-        if (i_ok==1)cycle! you check if the excitation is possible
-        accu += e_corr_array(j)
-      enddo
+      if(degree_exc(i)==1)then
+        do j=1,N_double
+          call get_excitation_degree(dets_in(1,1,i),dets_in(1,1,index_double(j)),degree,N_int)
+          if (degree<=2)cycle
+          accu += e_corr_array(j)
+        enddo
+      else
+        do j=1,N_double
+          call get_excitation_degree(dets_in(1,1,i),dets_in(1,1,index_double(j)),degree,N_int)
+          if (degree<=3)cycle
+          accu += e_corr_array(j)
+        enddo
+      endif
       H_jj_dressed(i) += accu
     enddo
     
@@ -130,7 +137,6 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
   enddo
   
   call write_time(output_CISD)
-  
   
 end
 
@@ -180,4 +186,3 @@ subroutine repeat_excitation(key_in,key_1,key_2,i_ok,Nint)
     return
   endif
 end
-
