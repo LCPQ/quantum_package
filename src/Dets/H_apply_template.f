@@ -9,10 +9,8 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   END_DOC
   integer,parameter              :: size_max = $size_max
   $declarations
-  integer(omp_lock_kind)         :: lck
   integer(bit_kind),intent(in)   :: key_in(N_int,2)
   integer(bit_kind),allocatable  :: keys_out(:,:,:)
-  double precision, allocatable  :: hij_tab(:)
   integer(bit_kind), intent(in)  :: hole_1(N_int,2), particl_1(N_int,2)
   integer(bit_kind), intent(in)  :: hole_2(N_int,2), particl_2(N_int,2)
   integer(bit_kind)              :: hole_save(N_int,2)
@@ -27,22 +25,19 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   integer                        :: N_elec_in_key_hole_1(2),N_elec_in_key_part_1(2)
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
   
-  double precision               :: hij_elec, mo_bielec_integral, thresh
+  double precision               :: mo_bielec_integral, thresh
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   double precision               :: diag_H_mat_elem
-  
-  PROVIDE mo_integrals_map ref_bitmask_energy key_pattern_not_in_ref
-  PROVIDE mo_bielec_integrals_in_map reference_energy psi_ref_coef psi_ref
+  integer                        :: iproc
   
   $set_i_H_j_threshold
   
-  $omp_init_lock
-  
-  
   $initialization
   
+  iproc = 0
   $omp_parallel
-  allocate (keys_out(N_int,2,size_max),hij_tab(size_max))
+  !$ iproc = omp_get_thread_num()
+  allocate (keys_out(N_int,2,size_max))
   
   !print*,'key_in !!'
   !call print_key(key_in)
@@ -73,7 +68,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
       i_a = occ_hole(ii,ispin)
       ASSERT (i_a > 0)
       ASSERT (i_a <= mo_tot_num)
-
+      
       do jj=1,N_elec_in_key_part_1(ispin)              !particle
         j_a = occ_particle(jj,ispin)
         ASSERT (j_a > 0)
@@ -92,11 +87,16 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   integer(bit_kind)              :: test(N_int,2)
   double precision               :: accu
   accu = 0.d0
-  hij_elec = 0.d0
   do ispin=1,2
     other_spin = iand(ispin,1)+1
+    if (abort_here) then
+      exit
+    endif
     $omp_do
     do ii=1,ia_ja_pairs(1,0,ispin)
+      if (abort_here) then
+        cycle
+      endif
       i_a = ia_ja_pairs(1,ii,ispin)
       ASSERT (i_a > 0)
       ASSERT (i_a <= mo_tot_num)
@@ -146,31 +146,20 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
             k = ishft(j_b-1,-bit_kind_shift)+1
             l = j_b-ishft(k-1,bit_kind_shift)-1
             key(k,other_spin) = ibset(key(k,other_spin),l)
-            call i_H_j(key,key_in,N_int,hij_elec)
-            if(dabs(hij_elec)>=thresh) then
-              key_idx += 1
-              do k=1,N_int
-                keys_out(k,1,key_idx) = key(k,1)
-                keys_out(k,2,key_idx) = key(k,2)
-              enddo
-              hij_tab(key_idx) = hij_elec
-              ASSERT (key_idx <= size_max)
-              if (key_idx == size_max) then
-                $keys_work_unlocked
-                $omp_set_lock
-                $keys_work_locked
-                $omp_unset_lock
-                key_idx = 0
-              endif
-            endif
-          enddo
-          if (key_idx > ishft(size_max,-5)) then
-            if ($omp_test_lock) then
-              $keys_work_unlocked
-              $keys_work_locked
-              $omp_unset_lock
+            key_idx += 1
+            do k=1,N_int
+              keys_out(k,1,key_idx) = key(k,1)
+              keys_out(k,2,key_idx) = key(k,2)
+            enddo
+            ASSERT (key_idx <= size_max)
+            if (key_idx == size_max) then
+              $keys_work
               key_idx = 0
             endif
+            !           endif
+          enddo
+          if (abort_here) then
+            exit
           endif
         enddo
       endif
@@ -196,45 +185,29 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
           key(k,ispin) = ibset(key(k,ispin),l)
           !!   a^((+)_j_b(ispin) a_i_b(ispin) : mono exc :: orb(i_b,ispin) --> orb(j_b,ispin)
           
-          call i_H_j(key,key_in,N_int,hij_elec)
-          if(dabs(hij_elec)>=thresh) then
-            key_idx += 1
-            do k=1,N_int
-              keys_out(k,1,key_idx) = key(k,1)
-              keys_out(k,2,key_idx) = key(k,2)
-            enddo
-            hij_tab(key_idx) = hij_elec
-            ASSERT (key_idx <= size_max)
-            if (key_idx == size_max) then
-              $keys_work_unlocked
-              $omp_set_lock
-              $keys_work_locked
-              $omp_unset_lock
-              key_idx = 0
-            endif
-          endif
-        enddo
-        if (key_idx > ishft(size_max,-5)) then
-          if ($omp_test_lock) then
-            $keys_work_locked
-            $keys_work_unlocked
-            $omp_unset_lock
+          key_idx += 1
+          do k=1,N_int
+            keys_out(k,1,key_idx) = key(k,1)
+            keys_out(k,2,key_idx) = key(k,2)
+          enddo
+          ASSERT (key_idx <= size_max)
+          if (key_idx == size_max) then
+            $keys_work
             key_idx = 0
           endif
-        endif
+          if (abort_here) then
+            exit
+          endif
+        enddo
       enddo! kk
     enddo  ! ii
     $omp_enddo
   enddo   ! ispin
-  $keys_work_unlocked
-  $omp_set_lock
-  $keys_work_locked
-  $omp_unset_lock
-  deallocate (keys_out,hij_tab,ia_ja_pairs)
+  $keys_work
+  deallocate (keys_out,ia_ja_pairs)
   $omp_end_parallel
-  $omp_destroy_lock
   $finalization
-  
+  abort_here = abort_all
 end
 
 subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
@@ -248,10 +221,8 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
   END_DOC
   integer,parameter              :: size_max = $size_max
   $declarations
-  integer(omp_lock_kind)         :: lck
   integer(bit_kind),intent(in)   :: key_in(N_int,2)
   integer(bit_kind),allocatable  :: keys_out(:,:,:)
-  double precision, allocatable  :: hij_tab(:)
   integer(bit_kind), intent(in)  :: hole_1(N_int,2), particl_1(N_int,2)
   integer(bit_kind)              :: hole_2(N_int,2), particl_2(N_int,2)
   integer(bit_kind)              :: hole_save(N_int,2)
@@ -266,22 +237,19 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
   integer                        :: N_elec_in_key_hole_1(2),N_elec_in_key_part_1(2)
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
   
-  double precision               :: hij_elec, thresh
+  double precision               :: thresh
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   double precision               :: diag_H_mat_elem
+  integer                        :: iproc
   
-  PROVIDE mo_integrals_map ref_bitmask_energy key_pattern_not_in_ref
-  PROVIDE mo_bielec_integrals_in_map reference_energy psi_ref_coef psi_ref
-
   $set_i_H_j_threshold
-  
-  $omp_init_lock
-  
   
   $initialization
   
+  iproc = 0
   $omp_parallel
-  allocate (keys_out(N_int,2,size_max),hij_tab(size_max))
+  !$ iproc = omp_get_thread_num()
+  allocate (keys_out(N_int,2,size_max))
   !!!! First couple hole particle
   do j = 1, N_int
     hole(j,1) = iand(hole_1(j,1),key_in(j,1))
@@ -289,13 +257,13 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
     particle(j,1) = iand(xor(particl_1(j,1),key_in(j,1)),particl_1(j,1))
     particle(j,2) = iand(xor(particl_1(j,2),key_in(j,2)),particl_1(j,2))
   enddo
-
+  
   call bitstring_to_list(particle(1,1),occ_particle(1,1),N_elec_in_key_part_1(1),N_int)
   call bitstring_to_list(particle(1,2),occ_particle(1,2),N_elec_in_key_part_1(2),N_int)
   call bitstring_to_list(hole    (1,1),occ_hole    (1,1),N_elec_in_key_hole_1(1),N_int)
   call bitstring_to_list(hole    (1,2),occ_hole    (1,2),N_elec_in_key_hole_1(2),N_int)
   allocate (ia_ja_pairs(2,0:(elec_alpha_num)*mo_tot_num,2))
-
+  
   do ispin=1,2
     i=0
     do ii=N_elec_in_key_hole_1(ispin),1,-1             ! hole
@@ -334,33 +302,53 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
         keys_out(k,1,key_idx) = hole(k,1)
         keys_out(k,2,key_idx) = hole(k,2)
       enddo
-      hij_tab(key_idx) = hij_elec
-      if (key_idx >  ishft(size_max,-5)) then
-        if ($omp_test_lock) then
-          $keys_work_unlocked
-          $keys_work_locked
-          $omp_unset_lock
-          key_idx = 0
-        endif
-      endif
       if (key_idx == size_max) then
-        $keys_work_unlocked
-        $omp_set_lock
-        $keys_work_locked
-        $omp_unset_lock
+        $keys_work
         key_idx = 0
       endif
     enddo  ! ii
     $omp_enddo
   enddo   ! ispin
-  $keys_work_unlocked
-  $omp_set_lock
-  $keys_work_locked
-  $omp_unset_lock
-  deallocate (keys_out,hij_tab,ia_ja_pairs)
+  $keys_work
+  deallocate (keys_out,ia_ja_pairs)
   $omp_end_parallel
-  $omp_destroy_lock
   $finalization
+  
+end
+
+
+subroutine $subroutine($params_main)
+  implicit none
+  use bitmasks
+  BEGIN_DOC
+  ! Calls H_apply on the HF determinant and selects all connected single and double
+  ! excitations (of the same symmetry). Auto-generated by the ``generate_h_apply`` script.
+  END_DOC
+  
+  $decls_main
+  
+  PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map N_det_reference psi_generators
+  integer                        :: imask
+  
+  do imask=1,N_det_generators
+    call $subroutine_monoexc(psi_generators(1,1,imask),              &
+        generators_bitmask(1,1,s_hole ,i_bitmask_gen),               &
+        generators_bitmask(1,1,s_part ,i_bitmask_gen)                &
+        $params_post)
+    call $subroutine_diexc(psi_generators(1,1,imask),                &
+        generators_bitmask(1,1,d_hole1,i_bitmask_gen),               &
+        generators_bitmask(1,1,d_part1,i_bitmask_gen),               &
+        generators_bitmask(1,1,d_hole2,i_bitmask_gen),               &
+        generators_bitmask(1,1,d_part2,i_bitmask_gen)                &
+        $params_post)
+    if (abort_here) then
+      exit
+    endif
+  enddo
+  
+  $copy_buffer
+  $generate_psi_guess
+  abort_here = abort_all
   
 end
 

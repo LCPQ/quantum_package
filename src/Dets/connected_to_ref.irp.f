@@ -32,16 +32,16 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       endif
       if (degree_x2 > 5) then
         cycle
-      else
-        call i_H_j(keys(1,1,i),key,N_int,hij_elec)
-        if(dabs(hij_elec).lt.thresh)cycle
-        connected_to_ref = i
-        return
+!     else
+!       call i_H_j(keys(1,1,i),key,Nint,hij_elec)
+!       if(dabs(hij_elec).lt.thresh)cycle
+!       connected_to_ref = i
+!       return
       endif
     enddo
     
     !DIR$ FORCEINLINE
-    t = det_is_not_or_may_be_in_ref(key,N_int)
+    t = det_is_not_or_may_be_in_ref(key,Nint)
     if ( t ) then
       return
     endif
@@ -69,16 +69,16 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       endif
       if (degree_x2 > 5) then
         cycle
-      else
-        call i_H_j(keys(1,1,i),key,N_int,hij_elec)
-        if(dabs(hij_elec).lt.thresh)cycle
-        connected_to_ref = i
-        return
+!     else
+!       call i_H_j(keys(1,1,i),key,Nint,hij_elec)
+!       if(dabs(hij_elec).lt.thresh)cycle
+!       connected_to_ref = i
+!       return
       endif
     enddo
     
     !DIR$ FORCEINLINE
-    t = det_is_not_or_may_be_in_ref(key,N_int)
+    t = det_is_not_or_may_be_in_ref(key,Nint)
     if ( t ) then
       return
     endif
@@ -111,16 +111,16 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       endif
       if (degree_x2 > 5) then
         cycle
-      else
-        call i_H_j(keys(1,1,i),key,N_int,hij_elec)
-        if(dabs(hij_elec).lt.thresh)cycle
-        connected_to_ref = i
-        return
+!     else
+!       call i_H_j(keys(1,1,i),key,Nint,hij_elec)
+!       if(dabs(hij_elec).lt.thresh)cycle
+!       connected_to_ref = i
+!       return
       endif
     enddo
     
     !DIR$ FORCEINLINE
-    t = det_is_not_or_may_be_in_ref(key,N_int)
+    t = det_is_not_or_may_be_in_ref(key,Nint)
     if ( t ) then
       return
     endif
@@ -155,16 +155,16 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       endif
       if (degree_x2 > 5) then
         cycle
-      else
-        call i_H_j(keys(1,1,i),key,N_int,hij_elec)
-        if(dabs(hij_elec).lt.thresh)cycle
-        connected_to_ref = i
-        return
+!     else
+!       call i_H_j(keys(1,1,i),key,Nint,hij_elec)
+!       if(dabs(hij_elec).lt.thresh)cycle
+!       connected_to_ref = i
+!       return
       endif
     enddo
     
     !DIR$ FORCEINLINE
-    t = det_is_not_or_may_be_in_ref(key,N_int)
+    t = det_is_not_or_may_be_in_ref(key,Nint)
     if ( t ) then
       return
     endif
@@ -200,7 +200,8 @@ logical function det_is_not_or_may_be_in_ref(key,Nint)
   ! If true, det is not in ref
   ! If false, det may be in ref
   END_DOC
-  integer(bit_kind), intent(in)  :: key(Nint,2), Nint
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: key(Nint,2)
   integer(bit_kind)              :: key_int
   integer*1                      :: key_short(bit_kind)
   !DIR$ ATTRIBUTES ALIGN : 32    :: key_short

@@ -49,7 +49,7 @@ subroutine add_integrals_to_map(mask_ijkl)
   
   integer                        :: i,j,k,l
   integer                        :: i0,j0,k0,l0
-  double precision               :: c, cpu_1, cpu_2, wall_1, wall_2
+  double precision               :: c, cpu_1, cpu_2, wall_1, wall_2, wall_0
   
   integer, allocatable           :: list_ijkl(:,:)
   integer                        :: n_i, n_j, n_k, n_l
@@ -66,7 +66,7 @@ subroutine add_integrals_to_map(mask_ijkl)
   real(integral_kind),allocatable :: buffer_value(:)
   real                           :: map_mb
   
-  integer                        :: i1,j1,k1,l1, ii1, kmax, l1_global
+  integer                        :: i1,j1,k1,l1, ii1, kmax, thread_num
   integer                        :: i2,i3,i4
   double precision,parameter     :: thr_coef = 0.d0
   
@@ -81,7 +81,6 @@ subroutine add_integrals_to_map(mask_ijkl)
   call bitstring_to_list( mask_ijkl(1,3), list_ijkl(1,3), n_k, N_int )
   call bitstring_to_list( mask_ijkl(1,4), list_ijkl(1,4), n_l, N_int )
   
-  l1_global = 0
   size_buffer = min(ao_num*ao_num*ao_num,16000000)
   write(output_BiInts,*) 'Providing the molecular integrals '
   write(output_BiInts,*) 'Buffers : ', 8.*(mo_tot_num_align*(n_j)*(n_k+1) + mo_tot_num_align +&
@@ -93,13 +92,14 @@ subroutine add_integrals_to_map(mask_ijkl)
   
   !$OMP PARALLEL PRIVATE(l1,k1,j1,i1,i2,i3,i4,i,j,k,l,c, ii1,kmax,   &
       !$OMP  bielec_tmp_0_idx, bielec_tmp_0, bielec_tmp_1,bielec_tmp_2,bielec_tmp_3,&
-      !$OMP  buffer_i,buffer_value,n_integrals,wall_2,i0,j0,k0,l0)   &
+      !$OMP  buffer_i,buffer_value,n_integrals,wall_2,i0,j0,k0,l0,   &
+      !$OMP  wall_0,thread_num)   &
       !$OMP  DEFAULT(NONE)                                           &
       !$OMP  SHARED(size_buffer,ao_num,mo_tot_num,n_i,n_j,n_k,n_l,mo_tot_num_align,&
       !$OMP  mo_coef_transp,output_BiInts,                           &
       !$OMP  mo_coef_transp_is_built, list_ijkl,                     &
-      !$OMP  mo_coef_is_built, wall_1,                               &
-      !$OMP  mo_coef,mo_integrals_threshold,l1_global,ao_integrals_map,mo_integrals_map)
+      !$OMP  mo_coef_is_built, wall_1, abort_here,                   &
+      !$OMP  mo_coef,mo_integrals_threshold,ao_integrals_map,mo_integrals_map)
   n_integrals = 0
   allocate(bielec_tmp_3(mo_tot_num_align, n_j, n_k),                 &
       bielec_tmp_1(mo_tot_num_align),                                &
@@ -109,8 +109,12 @@ subroutine add_integrals_to_map(mask_ijkl)
       buffer_i(size_buffer),                                         &
       buffer_value(size_buffer) )
   
+!$  thread_num = omp_get_thread_num()
   !$OMP DO SCHEDULE(guided)
   do l1 = 1,ao_num
+    if (abort_here) then
+      cycle
+    endif
     !DEC$ VECTOR ALIGNED
     bielec_tmp_3 = 0.d0
     do k1 = 1,ao_num
@@ -253,11 +257,14 @@ subroutine add_integrals_to_map(mask_ijkl)
       enddo
     enddo
     
-    !$OMP ATOMIC
-    l1_global +=1
     call wall_time(wall_2)
-    write(output_BiInts,*)  100.*float(l1_global)/float(ao_num), '% in ',&
-        wall_2-wall_1, 's', map_mb(mo_integrals_map) ,'MB'
+    if (thread_num == 0) then
+      if (wall_2 - wall_0 > 1.d0) then
+        wall_0 = wall_2
+        write(output_BiInts,*) 100.*float(l1)/float(ao_num), '% in ',  &
+            wall_2-wall_1, 's', map_mb(ao_integrals_map) ,'MB'
+      endif
+    endif
   enddo
   !$OMP END DO NOWAIT
   deallocate (bielec_tmp_1,bielec_tmp_2,bielec_tmp_3)
@@ -266,6 +273,9 @@ subroutine add_integrals_to_map(mask_ijkl)
       real(mo_integrals_threshold,integral_kind))
   deallocate(buffer_i, buffer_value)
   !$OMP END PARALLEL
+  if (abort_here) then
+    stop 'Aborting in MO integrals calculation'
+  endif
   call map_unique(mo_integrals_map)
   
   call wall_time(wall_2)
@@ -313,6 +323,8 @@ end
   PROVIDE ao_integrals_threshold
   if (.not.do_direct_integrals) then
     PROVIDE ao_bielec_integrals_in_map
+  else
+    PROVIDE ao_overlap_abs
   endif
   
   mo_bielec_integral_jj = 0.d0
@@ -325,7 +337,7 @@ end
       !$OMP PRIVATE (i,j,p,q,r,s,integral,c,n,pp,int_value,int_idx,  &
       !$OMP  iqrs, iqsr,iqri,iqis)                                   &
       !$OMP SHARED(mo_tot_num,mo_coef_transp,mo_tot_num_align,ao_num,&
-      !$OMP  ao_integrals_threshold,do_direct_integrals)             &
+      !$OMP  ao_integrals_threshold,do_direct_integrals,abort_here)  &
       !$OMP REDUCTION(+:mo_bielec_integral_jj,mo_bielec_integral_jj_exchange)
   
   allocate( int_value(ao_num), int_idx(ao_num),                      &
@@ -334,6 +346,9 @@ end
   
   !$OMP DO SCHEDULE (guided)
   do s=1,ao_num
+    if (abort_here) then
+      cycle
+    endif
     do q=1,ao_num
       
       do j=1,ao_num
@@ -419,6 +434,9 @@ end
   !$OMP END DO NOWAIT
   deallocate(iqrs,iqsr,int_value,int_idx)
   !$OMP END PARALLEL
+  if (abort_here) then
+    stop 'Aborting in MO integrals calculation'
+  endif
   
   mo_bielec_integral_jj_anti = mo_bielec_integral_jj - mo_bielec_integral_jj_exchange
   

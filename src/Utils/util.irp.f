@@ -5,11 +5,16 @@ BEGIN_PROVIDER [ logical, all_utils ]
   END_DOC
   ! Do not move this : it greps itself
   BEGIN_SHELL [ /bin/bash ]
-  for i in $(grep "BEGIN_PROVIDER" $QPACKAGE_ROOT/src/Utils/*.irp.f | cut -d ',' -f 2 | cut -d ']' -f 1 | tail --lines=+3 )
+  for i in $(grep  "BEGIN_PROVIDER"  $QPACKAGE_ROOT/src/Utils/*.irp.f  \
+   | grep ',' | cut -d ',' -f 2 | cut -d ']' -f 1 | tail --lines=+3 )
   do
-  echo PROVIDE $i
+    if [[ ! -z $i ]]
+    then
+      echo PROVIDE $i
+    fi
   done
   END_SHELL
+  call trap_signals
   
 END_PROVIDER
 
@@ -280,7 +285,10 @@ subroutine normalize(u,sze)
   integer                        :: i
   
   !DIR$ FORCEINLINE
-  d = 1.d0/dsqrt( u_dot_u(u,sze) )
+  d = u_dot_u(u,sze)
+  if (d /= 0.d0) then
+    d = 1.d0/dsqrt( d )
+  endif
   if (d /= 1.d0) then
     do i=1,sze
       u(i) = d*u(i)

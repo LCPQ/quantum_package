@@ -13,7 +13,6 @@ subroutine filter_connected(key1,key2,Nint,sze,idx)
   !
   ! idx(0) is the number of determinants that interact with key1
   END_DOC
-  END_DOC
   integer, intent(in)            :: Nint, sze
   integer(bit_kind), intent(in)  :: key1(Nint,2,sze)
   integer(bit_kind), intent(in)  :: key2(Nint,2)

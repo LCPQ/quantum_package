@@ -5,7 +5,16 @@ BEGIN_PROVIDER [ integer, N_states ]
  BEGIN_DOC
 ! Number of states to consider
  END_DOC
- N_states = 1
+ logical                        :: exists
+ PROVIDE ezfio_filename
+ call ezfio_has_determinants_n_states(exists)
+ if (exists) then
+   call ezfio_get_determinants_n_states(N_states)
+ else
+   N_states = 1
+   call ezfio_set_determinants_n_states(N_states)
+ endif
+ ASSERT (N_states > 0)
 END_PROVIDER
 
 BEGIN_PROVIDER [ integer, N_det ]
@@ -13,22 +22,33 @@ BEGIN_PROVIDER [ integer, N_det ]
  BEGIN_DOC
  ! Number of determinants in the wave function
  END_DOC
- N_det = 1
+ logical                        :: exists
+ PROVIDE ezfio_filename
+ call ezfio_has_determinants_n_det(exists)
+ if (exists) then
+   call ezfio_get_determinants_n_det(N_det)
+ else
+   N_det = 1
+   call ezfio_set_determinants_n_det(N_det)
+ endif
+ ASSERT (N_det > 0)
 END_PROVIDER
+
 
 BEGIN_PROVIDER [ integer, psi_det_size ]
  implicit none
  BEGIN_DOC
  ! Size of the psi_det/psi_coef arrays
  END_DOC
- psi_det_size = 1000
+ psi_det_size = 1000*N_states
 END_PROVIDER
 
  BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
 &BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
  implicit none
  BEGIN_DOC
- ! The wave function. Initialized with Hartree-Fock
+ ! The wave function. Initialized with Hartree-Fock if the EZFIO file
+ ! is empty
  END_DOC
 
  integer, save :: ifirst = 0
@@ -52,54 +72,11 @@ END_PROVIDER
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ integer, N_det_generators ]
+BEGIN_PROVIDER [ integer, N_det_reference ]
  implicit none
  BEGIN_DOC
- ! Number of generator determinants in the wave function
+ ! Number of determinants in the reference wave function
  END_DOC
- N_det_generators = N_det
+   N_det_reference = N_det
+ ASSERT (N_det_reference > 0)
 END_PROVIDER
-
-BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
- implicit none
- BEGIN_DOC
- ! Determinants on which H is applied
- END_DOC
- psi_generators = 0_bit_kind
- integer :: i
-
- do i=1,N_int
-   psi_generators(i,1,1) = psi_det(i,1,1)
-   psi_generators(i,2,1) = psi_det(i,1,1)
- enddo
-
-END_PROVIDER
-
-BEGIN_PROVIDER [ integer, psi_ref_size]
- implicit none
- BEGIN_DOC
- ! Number of generator determinants in the wave function
- END_DOC
- psi_det_size = N_det
-END_PROVIDER
-
- BEGIN_PROVIDER [ integer(bit_kind), psi_ref, (N_int,2,psi_ref_size) ]
-&BEGIN_PROVIDER [ double precision, psi_ref_coef, (psi_ref_size,N_states) ]
- implicit none
- BEGIN_DOC
- ! Determinants on which H is applied
- END_DOC
- integer :: i,k
-
- do k = 1, psi_ref_size
-  do i=1,N_int
-    psi_ref(i,1,k) = psi_det(i,1,k)
-    psi_ref(i,2,k) = psi_det(i,1,k)
-  enddo
-  do i = 1, N_states
-   psi_ref_coef(k,i) = psi_coef(k,i)
-  enddo
- enddo
-
-END_PROVIDER
-

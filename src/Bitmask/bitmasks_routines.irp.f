@@ -106,25 +106,26 @@ subroutine bitstring_to_hexa( output, string, Nint )
   character*(32)                 :: f
   
   write(f,*) '(Z',bit_kind_size/4,'.',bit_kind_size/4,')'
-  ibuf = 0
+  ibuf = 1
   output = ''
   do i=Nint,1,-1
-    ibuf = ibuf+1
     write(output(ibuf:ibuf+bit_kind_size/4),f) string(i)
+    ibuf = ibuf+bit_kind_size/4
   enddo
 end
   
 subroutine debug_det(string,Nint)
+  use bitmasks
   implicit none
   integer, intent(in) :: Nint
   integer(bit_kind), intent(in) :: string(Nint,2)
   character*(512) :: output(2)
-! call bitstring_to_hexa( output(1), string(1,1), Nint )
-! call bitstring_to_hexa( output(2), string(1,2), Nint )
-! print *,  trim(output(1)) , '|', trim(output(2))
+  call bitstring_to_hexa( output(1), string(1,1), Nint )
+  call bitstring_to_hexa( output(2), string(1,2), Nint )
+  print *,  trim(output(1)) , '|', trim(output(2))
 
-  call bitstring_to_str( output(1), string(1,1), N_int )
-  call bitstring_to_str( output(2), string(1,2), N_int )
+  call bitstring_to_str( output(1), string(1,1), Nint )
+  call bitstring_to_str( output(2), string(1,2), Nint )
   print *,  trim(output(1))
   print *,  trim(output(2))
 

@@ -1,4 +1,4 @@
-BEGIN_PROVIDER [ integer, davidson_iter_max]
+BEGIN_PROVIDER [ integer, davidson_iter_max ]
   implicit none
   BEGIN_DOC
   ! Max number of Davidson iterations
@@ -6,16 +6,16 @@ BEGIN_PROVIDER [ integer, davidson_iter_max]
   davidson_iter_max = 100
 END_PROVIDER
 
-BEGIN_PROVIDER [ integer, davidson_sze_max]
+BEGIN_PROVIDER [ integer, davidson_sze_max ]
   implicit none
   BEGIN_DOC
   ! Max number of Davidson sizes
   END_DOC
   ASSERT (davidson_sze_max <= davidson_iter_max)
-  davidson_sze_max = 8
+  davidson_sze_max = 8*N_states
 END_PROVIDER
 
-subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
+subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -32,10 +32,66 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
   !
   ! N_st : Number of eigenstates
   !
+  ! iunit : Unit number for the I/O
+  !
+  ! Initial guess vectors are not necessarily orthonormal
+  END_DOC
+  integer, intent(in)            :: dim_in, sze, N_st, Nint, iunit
+  integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
+  double precision, intent(inout) :: u_in(dim_in,N_st)
+  double precision, intent(out)  :: energies(N_st)
+  double precision, allocatable  :: H_jj(:)
+  
+  double precision               :: diag_h_mat_elem
+  integer                        :: i
+  ASSERT (N_st > 0)
+  ASSERT (sze > 0)
+  ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
+  PROVIDE ref_bitmask_energy
+  allocate(H_jj(sze))
+  
+  !$OMP PARALLEL DEFAULT(NONE)                                       &
+      !$OMP  SHARED(sze,H_jj,dets_in,Nint)                           &
+      !$OMP  PRIVATE(i)
+  !$OMP DO SCHEDULE(guided)
+  do i=1,sze
+    H_jj(i) = diag_h_mat_elem(dets_in(1,1,i),Nint)
+  enddo
+  !$OMP END DO 
+  !$OMP END PARALLEL
+
+  call davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iunit)
+  deallocate (H_jj)
+end
+
+subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iunit)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Davidson diagonalization with specific diagonal elements of the H matrix
+  !
+  ! H_jj : specific diagonal H matrix elements to diagonalize de Davidson
+  !
+  ! dets_in : bitmasks corresponding to determinants
+  !
+  ! u_in : guess coefficients on the various states. Overwritten
+  !   on exit
+  !
+  ! dim_in : leftmost dimension of u_in
+  !
+  ! sze : Number of determinants
+  !
+  ! N_st : Number of eigenstates
+  !
+  ! iunit : Unit for the I/O
+  !
   ! Initial guess vectors are not necessarily orthonormal
   END_DOC
   integer, intent(in)            :: dim_in, sze, N_st, Nint
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
+  double precision,  intent(in)  :: H_jj(sze)
+  integer,  intent(in)  :: iunit
   double precision, intent(inout) :: u_in(dim_in,N_st)
   double precision, intent(out)  :: energies(N_st)
   
@@ -50,16 +106,43 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
   integer                        :: k_pairs, kl
   
   integer                        :: iter2
-  double precision, allocatable  :: W(:,:,:), H_jj(:), U(:,:,:), R(:,:)
+  double precision, allocatable  :: W(:,:,:),  U(:,:,:), R(:,:)
   double precision, allocatable  :: y(:,:,:,:), h(:,:,:,:), lambda(:)
   double precision               :: diag_h_mat_elem
   double precision               :: residual_norm(N_st)
+  character*(16384)              :: write_buffer
+  double precision               :: to_print(2,N_st)
+  double precision               :: cpu, wall
   
-  PROVIDE ref_bitmask_energy
+  call write_time(iunit)
+  call wall_time(wall)
+  call cpu_time(cpu)
+  write(iunit,'(A)') ''
+  write(iunit,'(A)') 'Davidson Diagonalization'
+  write(iunit,'(A)') '------------------------'
+  write(iunit,'(A)') ''
+  call write_int(iunit,N_st,'Number of states')
+  call write_int(iunit,sze,'Number of determinants')
+  write(iunit,'(A)') ''
+  write_buffer = '===== '
+  do i=1,N_st
+    write_buffer = trim(write_buffer)//' ================ ================'
+  enddo
+  write(iunit,'(A)') trim(write_buffer)
+  write_buffer = ' Iter'
+  do i=1,N_st
+    write_buffer = trim(write_buffer)//'           Energy         Residual'
+  enddo
+  write(iunit,'(A)') trim(write_buffer)
+  write_buffer = '===== '
+  do i=1,N_st
+    write_buffer = trim(write_buffer)//' ================ ================'
+  enddo
+  write(iunit,'(A)') trim(write_buffer)
+  PROVIDE ref_bitmask_energy davidson_criterion
 
   allocate(                                                          &
       kl_pairs(2,N_st*(N_st+1)/2),                                   &
-      H_jj(sze),                                                     &
       W(sze,N_st,davidson_sze_max),                                                   &
       U(sze,N_st,davidson_sze_max),                                  &
       R(sze,N_st),                                                   &
@@ -86,14 +169,9 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP  SHARED(U,sze,N_st,overlap,kl_pairs,k_pairs,             &
-      !$OMP  H_jj,Nint,dets_in,u_in)                                 &
+      !$OMP  Nint,dets_in,u_in)                                 &
       !$OMP  PRIVATE(k,l,kl,i)
   
-  !$OMP DO
-  do i=1,sze
-    H_jj(i) = diag_h_mat_elem(dets_in(1,1,i),Nint)
-  enddo
-  !$OMP END DO NOWAIT
   
   ! Orthonormalize initial guess
   ! ============================
@@ -134,18 +212,6 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
     
     do iter=1,davidson_sze_max-1
       
-      !      print *,  '***************'
-      !      do i=1,iter
-      !       do k=1,N_st
-      !         do j=1,iter
-      !             do l=1,N_st
-      !               print '(4(I4,X),F16.8)', i,j,k,l, u_dot_v(U(1,k,i),U(1,l,j),sze)
-      !             enddo
-      !           enddo
-      !         enddo
-      !       enddo
-      !       print *,  '***************'
-      
       ! Compute W_k = H |u_k>
       ! ----------------------
       
@@ -168,6 +234,13 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
           h(l,iter,k,iter) = h(k,iter,l,iter)
         enddo
       enddo
+
+      !DEBUG H MATRIX
+      !do i=1,iter
+      !  print '(10(x,F16.10))',  h(1,i,1,1:i)
+      !enddo
+      !print *,  ''
+      !END
       
       ! Diagonalize h
       ! -------------
@@ -176,9 +249,6 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
       ! Express eigenvectors of h in the determinant basis
       ! --------------------------------------------------
       
-  !   call dgemm ( 'N','N', sze, N_st*iter, N_st, &
-  !     1.d0, U(1,1,1), size(U,1), y(1,1,1,1), size(y,1)*size(y,2), &
-  !     0.d0, U(1,1,iter+1), size(U,1) )
       do k=1,N_st
         do i=1,sze
           U(i,k,iter+1) = 0.d0
@@ -200,22 +270,23 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
           R(i,k) = lambda(k) * U(i,k,iter+1) - W(i,k,iter+1)
         enddo
         residual_norm(k) = u_dot_u(R(1,k),sze)
+        to_print(1,k) = lambda(k) + nuclear_repulsion
+        to_print(2,k) = residual_norm(k)
       enddo
 
-      print '(I3,15(F16.8,x))', iter, lambda(1:N_st) + nuclear_repulsion
-      print '(3x,15(E16.5,x))',       residual_norm(1:N_st)
-      
-      converged = maxval(residual_norm) < 1.d-10
+      write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))'), iter, to_print(:,1:N_st)
+      call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
       if (converged) then
         exit
       endif
+      
       
       ! Davidson step
       ! -------------
       
       do k=1,N_st
         do i=1,sze
-          U(i,k,iter+1) = 1.d0/(lambda(k) - H_jj(i)) * R(i,k)
+          U(i,k,iter+1) = -1.d0/max(H_jj(i) - lambda(k),1.d-2) * R(i,k)
         enddo
       enddo
       
@@ -240,8 +311,22 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
         enddo
         call normalize( U(1,k,iter+1), sze )
       enddo
-    enddo
     
+      !DEBUG : CHECK OVERLAP
+      !print *,  '==='
+      !do k=1,iter+1
+      !  do l=1,k
+      !  c = u_dot_v(U(1,1,k),U(1,1,l),sze)
+      !  print *,  k,l, c
+      !  enddo
+      !enddo
+      !print *,  '==='
+      !pause
+      !END DEBUG
+
+
+    enddo
+
     if (.not.converged) then
       iter = davidson_sze_max-1
     endif
@@ -260,12 +345,19 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
         enddo
       enddo
     enddo
-    
+
   enddo
+
+  write_buffer = '===== '
+  do i=1,N_st
+    write_buffer = trim(write_buffer)//' ================ ================'
+  enddo
+  write(iunit,'(A)') trim(write_buffer)
+  write(iunit,'(A)') ''
+  call write_time(iunit)
 
   deallocate (                                                       &
       kl_pairs,                                                      &
-      H_jj,                                                          &
       W,                                                             &
       U,                                                             &
       R,                                                             &
@@ -273,6 +365,53 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
       y,                                                             &
       lambda                                                         &
       )
+  abort_here = abort_all
 end
 
+ BEGIN_PROVIDER [ character(64), davidson_criterion ]
+&BEGIN_PROVIDER [ double precision, davidson_threshold ]
+ implicit none
+ BEGIN_DOC
+ ! Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
+ END_DOC
+ davidson_criterion = 'both'
+ davidson_threshold = 1.d-8
+END_PROVIDER
 
+subroutine davidson_converged(energy,residual,wall,iterations,cpu,N_st,converged)
+  implicit none
+  BEGIN_DOC
+! True if the Davidson algorithm is converged
+  END_DOC
+  integer, intent(in) :: N_st, iterations
+  logical, intent(out) :: converged
+  double precision, intent(in) :: energy(N_st), residual(N_st)
+  double precision, intent(in) :: wall, cpu
+  double precision :: E(N_st), time
+  double precision, allocatable, save :: energy_old(:)
+
+  if (.not.allocated(energy_old)) then
+    allocate(energy_old(N_st))
+    energy_old = 0.d0
+  endif
+
+  E = energy - energy_old
+  energy_old = energy
+  if (davidson_criterion == 'energy') then
+    converged = dabs(maxval(E(1:N_st))) < davidson_threshold 
+  else if (davidson_criterion == 'residual') then
+    converged = dabs(maxval(residual(1:N_st))) < davidson_threshold 
+  else if (davidson_criterion == 'both') then
+    converged = dabs(maxval(residual(1:N_st))) + dabs(maxval(E(1:N_st)) ) &
+       < davidson_threshold  
+  else if (davidson_criterion == 'wall_time') then
+    call wall_time(time)
+    converged = time - wall > davidson_threshold
+  else if (davidson_criterion == 'cpu_time') then
+    call cpu_time(time)
+    converged = time - cpu > davidson_threshold
+  else if (davidson_criterion == 'iterations') then
+    converged = iterations >= int(davidson_threshold)
+  endif
+  converged = converged.or.abort_here
+end

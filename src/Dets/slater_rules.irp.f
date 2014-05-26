@@ -520,7 +520,6 @@ subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
     do j = 1, Nstate
       i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
     enddo
-!   print *, 'x', coef(i,1), hij, i_H_psi_array(1)
   enddo
 end
 
@@ -568,7 +567,6 @@ subroutine i_H_psi_SC2(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array,idx
     do j = 1, Nstate
       i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
     enddo
-!   print *, 'x', coef(i,1), hij, i_H_psi_array(1)
   enddo
 end
 
@@ -855,8 +853,8 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   PROVIDE ref_bitmask_energy
   integer, parameter :: block_size = 157
   !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt) SHARED(n,H_jj,u_0,keys_tmp,Nint)&
-      !$OMP SHARED(v_0)
+      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt) &
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0)
   !$OMP DO SCHEDULE(static)
   do i=1,n
     v_0(i) = H_jj(i) * u_0(i)
@@ -866,7 +864,7 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   Vt = 0.d0
   !$OMP DO SCHEDULE(guided)
   do i=1,n
-        call filter_connected(keys_tmp(1,1,1),keys_tmp(1,1,i),Nint,i-1,idx)
+        call filter_connected(keys_tmp,keys_tmp(1,1,i),Nint,i-1,idx)
         do jj=1,idx(0)
           j = idx(jj)
           call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
