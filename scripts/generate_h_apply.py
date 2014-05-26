@@ -163,6 +163,7 @@ class H_apply(object):
       call copy_h_apply_buffer_to_wf
       selection_criterion_min = selection_criterion_min*0.1d0
       selection_criterion = selection_criterion_min
+      call remove_small_contributions
       """
       self.data["keys_work"] = """
       e_2_pert_buffer = 0.d0

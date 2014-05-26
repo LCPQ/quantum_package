@@ -10,6 +10,8 @@ program cisd
   allocate (pt2(N_st), norm_pert(N_st))
   
   pt2 = 1.d0
+! davidson_criterion = 'wall_time'
+! davidson_threshold = 1.d0
   do while (maxval(abs(pt2(1:N_st))) > 1.d-6)
     E_old = CI_energy(1)
     call H_apply_cisd_selection(pt2, norm_pert, H_pert_diag,  N_st)

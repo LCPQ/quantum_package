@@ -112,8 +112,11 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   double precision               :: residual_norm(N_st)
   character*(16384)              :: write_buffer
   double precision               :: to_print(2,N_st)
+  double precision               :: cpu, wall
   
   call write_time(iunit)
+  call wall_time(wall)
+  call cpu_time(cpu)
   write(iunit,'(A)') ''
   write(iunit,'(A)') 'Davidson Diagonalization'
   write(iunit,'(A)') '------------------------'
@@ -272,11 +275,11 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       enddo
 
       write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))'), iter, to_print(:,1:N_st)
-      
-      call davidson_converged(lambda,residual_norm,N_st,converged)
+      call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
       if (converged) then
         exit
       endif
+      
       
       ! Davidson step
       ! -------------
@@ -320,6 +323,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       !print *,  '==='
       !pause
       !END DEBUG
+
 
     enddo
 
@@ -368,21 +372,22 @@ end
 &BEGIN_PROVIDER [ double precision, davidson_threshold ]
  implicit none
  BEGIN_DOC
- ! Can be : [  energy  | residual | both ]
+ ! Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
  END_DOC
  davidson_criterion = 'both'
  davidson_threshold = 1.d-8
 END_PROVIDER
 
-subroutine davidson_converged(energy,residual,N_st,converged)
+subroutine davidson_converged(energy,residual,wall,iterations,cpu,N_st,converged)
   implicit none
   BEGIN_DOC
 ! True if the Davidson algorithm is converged
   END_DOC
-  integer, intent(in) :: N_st
+  integer, intent(in) :: N_st, iterations
   logical, intent(out) :: converged
   double precision, intent(in) :: energy(N_st), residual(N_st)
-  double precision :: E(N_st)
+  double precision, intent(in) :: wall, cpu
+  double precision :: E(N_st), time
   double precision, allocatable, save :: energy_old(:)
 
   if (.not.allocated(energy_old)) then
@@ -397,7 +402,16 @@ subroutine davidson_converged(energy,residual,N_st,converged)
   else if (davidson_criterion == 'residual') then
     converged = dabs(maxval(residual(1:N_st))) < davidson_threshold 
   else if (davidson_criterion == 'both') then
-    converged = dabs(maxval(residual(1:N_st))) + dabs(maxval(E(1:N_st)) ) < davidson_threshold  
+    converged = dabs(maxval(residual(1:N_st))) + dabs(maxval(E(1:N_st)) ) &
+       < davidson_threshold  
+  else if (davidson_criterion == 'wall_time') then
+    call wall_time(time)
+    converged = time - wall > davidson_threshold
+  else if (davidson_criterion == 'cpu_time') then
+    call cpu_time(time)
+    converged = time - cpu > davidson_threshold
+  else if (davidson_criterion == 'iterations') then
+    converged = iterations >= int(davidson_threshold)
   endif
   converged = converged.or.abort_here
 end
