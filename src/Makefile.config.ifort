@@ -1,12 +1,11 @@
 OPENMP  =1
 PROFILE =0
-DEBUG  = 1
+DEBUG  = 0
 
 IRPF90_FLAGS+= --align=32
 FC     = ifort -g 
 FCFLAGS= 
-FCFLAGS+= -xHost
-#FCFLAGS+= -xAVX
+FCFLAGS+= -axAVX,SSE4.3
 FCFLAGS+= -O2 
 FCFLAGS+= -ip 
 FCFLAGS+= -opt-prefetch
@@ -25,7 +24,6 @@ endif
 
 ifeq ($(DEBUG),1)
 FC    += -C -traceback -fpe0 
-FCFLAGS+= -axSSE2
 IRPF90_FLAGS += -a
 #FCFLAGS =-O0
 endif

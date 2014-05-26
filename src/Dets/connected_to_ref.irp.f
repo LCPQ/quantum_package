@@ -200,7 +200,8 @@ logical function det_is_not_or_may_be_in_ref(key,Nint)
   ! If true, det is not in ref
   ! If false, det may be in ref
   END_DOC
-  integer(bit_kind), intent(in)  :: key(Nint,2), Nint
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: key(Nint,2)
   integer(bit_kind)              :: key_int
   integer*1                      :: key_short(bit_kind)
   !DIR$ ATTRIBUTES ALIGN : 32    :: key_short

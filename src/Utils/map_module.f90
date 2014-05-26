@@ -317,7 +317,7 @@ subroutine map_shrink(map,thr)
  use map_module
  implicit none
  type (map_type), intent(inout)    :: map
- type (map_type), intent(in)       :: thr
+ real(integral_kind), intent(in)   :: thr
  integer(map_size_kind) :: i
  integer(map_size_kind) :: icount
 
@@ -371,7 +371,7 @@ subroutine map_update(map, key, value, sze, thr)
          local_map%n_elements = map%map(idx_cache)%n_elements
          do
            !DIR$ FORCEINLINE
-           call search_key_big_interval(key(i),local_map%key, local_map%n_elements, idx, 1_8, local_map%n_elements)
+           call search_key_big_interval(key(i),local_map%key, local_map%n_elements, idx, 1, local_map%n_elements)
            if (idx > 0_8) then
              local_map%value(idx) = local_map%value(idx) + value(i)
            else
@@ -458,7 +458,7 @@ end
 subroutine map_get(map, key, value)
  use map_module
  implicit none
- type (map_type), intent(in)       :: map
+ type (map_type), intent(inout)    :: map
  integer(key_kind), intent(in)     :: key
  real(integral_kind), intent(out)  :: value
  integer(map_size_kind)            :: idx_cache
@@ -476,7 +476,7 @@ subroutine cache_map_get_interval(map, key, value, ibegin, iend, idx)
  integer(key_kind), intent(in)            :: key
  integer(cache_map_size_kind), intent(in) :: ibegin, iend
  real(integral_kind), intent(out)         :: value
- integer(cache_map_size_kind), intent(in) :: idx
+ integer(cache_map_size_kind), intent(inout) :: idx
 
  call search_key_big_interval(key,map%key, map%n_elements, idx, ibegin, iend)
  if (idx > 0) then

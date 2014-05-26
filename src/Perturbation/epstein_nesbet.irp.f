@@ -19,16 +19,19 @@ subroutine pt2_epstein_nesbet(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,n_s
   
   integer                        :: i,j
   double precision               :: diag_H_mat_elem
-  double precision, parameter    :: eps = tiny(1.d0)
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
   call i_H_psi(det_pert,psi_ref,psi_ref_coef,Nint,ndet,psi_ref_size,n_st,i_H_psi_array)
   H_pert_diag = diag_H_mat_elem(det_pert,Nint)
-    print *,  H_pert_diag
-  do i =1,n_st
-    c_pert(i) = i_H_psi_array(i) / (reference_energy(i) - H_pert_diag + eps)
-    e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
-  enddo
+  if (dabs(CI_electronic_energy(i) - H_pert_diag) > 1.d-6) then
+    do i =1,n_st
+      c_pert(i) = i_H_psi_array(i) / (CI_electronic_energy(i) - H_pert_diag)
+      e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
+    enddo
+  else
+    c_pert = 0.d0
+    e_2_pert = 0.d0
+  endif
   
 end
 
@@ -53,15 +56,18 @@ subroutine pt2_epstein_nesbet_2x2(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet
   
   integer                        :: i,j
   double precision               :: diag_H_mat_elem,delta_e
-  double precision, parameter    :: eps = tiny(1.d0)
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
   call i_H_psi(det_pert,psi_ref,psi_ref_coef,Nint,N_det_ref,psi_ref_size,n_st,i_H_psi_array)
   H_pert_diag = diag_H_mat_elem(det_pert,Nint)
   do i =1,n_st
-    delta_e = H_pert_diag - reference_energy(i)
+    delta_e = H_pert_diag - CI_electronic_energy(i)
     e_2_pert(i) = 0.5d0 * (delta_e - dsqrt(delta_e * delta_e + 4.d0 * i_H_psi_array(i) * i_H_psi_array(i)))
-    c_pert(i) = e_2_pert(i)/(i_H_psi_array(i)+eps)
+    if (dabs(i_H_psi_array(i)) > 1.d-6) then
+      c_pert(i) = e_2_pert(i)/i_H_psi_array(i)
+    else
+      c_pert(i) = 0.d0
+    endif
   enddo
 
 end
@@ -86,7 +92,7 @@ subroutine pt2_epstein_nesbet_SC2(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet
   ! 
   ! that can be repeated by repeating all the double excitations
   !
-  ! : you repeat all the correlation energy already taken into account in reference_energy(1)
+  ! : you repeat all the correlation energy already taken into account in CI_electronic_energy(1)
   ! 
   ! that could be repeated to this determinant.
   !
@@ -111,8 +117,12 @@ subroutine pt2_epstein_nesbet_SC2(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet
   accu_e_corr = accu_e_corr / psi_ref_coef(1,1)
   H_pert_diag = diag_H_mat_elem(det_pert,Nint) + accu_e_corr
   do i =1,n_st
-    c_pert(i) = i_H_psi_array(i) / (reference_energy(i) - H_pert_diag)
     e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
+    if (dabs(CI_electronic_energy(i) - H_pert_diag) > 1.d-6) then
+      c_pert(i) = i_H_psi_array(i) / (CI_electronic_energy(i) - H_pert_diag)
+    else
+      c_pert(i) = 0.d0
+    endif
   enddo
   
 end
@@ -136,7 +146,7 @@ subroutine pt2_epstein_nesbet_2x2_SC2(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,
   ! 
   ! that can be repeated by repeating all the double excitations
   !
-  ! : you repeat all the correlation energy already taken into account in reference_energy(1)
+  ! : you repeat all the correlation energy already taken into account in CI_electronic_energy(1)
   ! 
   ! that could be repeated to this determinant.
   !
@@ -161,9 +171,13 @@ subroutine pt2_epstein_nesbet_2x2_SC2(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,
   accu_e_corr = accu_e_corr / psi_ref_coef(1,1)
   H_pert_diag = diag_H_mat_elem(det_pert,Nint) + accu_e_corr
   do i =1,n_st
-    delta_e = H_pert_diag - reference_energy(i)
+    delta_e = H_pert_diag - CI_electronic_energy(i)
     e_2_pert(i) = 0.5d0 * (delta_e - dsqrt(delta_e * delta_e + 4.d0 * i_H_psi_array(i) * i_H_psi_array(i)))
-    c_pert(i) = e_2_pert(i)/i_H_psi_array(i)
+    if (dabs(i_H_psi_array(i)) > 1.d-6) then
+      c_pert(i) = e_2_pert(i)/i_H_psi_array(i)
+    else
+      c_pert(i) = 0.d0
+    endif
   enddo
   
 end
@@ -188,7 +202,7 @@ subroutine pt2_epstein_nesbet_SC2_projected(det_pert,c_pert,e_2_pert,H_pert_diag
   ! 
   ! that can be repeated by repeating all the double excitations
   !
-  ! : you repeat all the correlation energy already taken into account in reference_energy(1)
+  ! : you repeat all the correlation energy already taken into account in CI_electronic_energy(1)
   ! 
   ! that could be repeated to this determinant.
   !
@@ -218,10 +232,14 @@ subroutine pt2_epstein_nesbet_SC2_projected(det_pert,c_pert,e_2_pert,H_pert_diag
   accu_e_corr = accu_e_corr / psi_ref_coef(1,1)
   H_pert_diag = diag_H_mat_elem(det_pert,Nint) + accu_e_corr
 
-  c_pert(1) = 1.d0/psi_ref_coef(1,1) * i_H_psi_array(1) / (reference_energy(i) - H_pert_diag)
+  c_pert(1) = 1.d0/psi_ref_coef(1,1) * i_H_psi_array(1) / (CI_electronic_energy(i) - H_pert_diag)
   e_2_pert(1) = c_pert(i) * h0j
   do i =2,n_st
-    c_pert(i) = i_H_psi_array(i) / (reference_energy(i) - H_pert_diag)
+    if (dabs(CI_electronic_energy(i) - H_pert_diag) > 1.d-6) then
+      c_pert(i) = i_H_psi_array(i) / (CI_electronic_energy(i) - H_pert_diag)
+    else
+      c_pert(i) = 0.d0
+    endif
     e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
   enddo
   

@@ -102,7 +102,7 @@ Documentation
   e_2_pert(i) = <psi(i)|H|det_pert>^2/( E(i) - <det_pert|H|det_pert> )
   .br
 
-`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L35>`_
+`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L38>`_
   compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
   .br
   for the various n_st states.
@@ -112,7 +112,7 @@ Documentation
   c_pert(i) = e_2_pert(i)/ <psi(i)|H|det_pert>
   .br
 
-`pt2_epstein_nesbet_2x2_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L119>`_
+`pt2_epstein_nesbet_2x2_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L129>`_
   compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
   .br
   for the various n_st states.
@@ -123,7 +123,7 @@ Documentation
   .br
   that can be repeated by repeating all the double excitations
   .br
-  : you repeat all the correlation energy already taken into account in reference_energy(1)
+  : you repeat all the correlation energy already taken into account in CI_electronic_energy(1)
   .br
   that could be repeated to this determinant.
   .br
@@ -134,7 +134,7 @@ Documentation
   c_pert(i) = e_2_pert(i)/ <psi(i)|H|det_pert>
   .br
 
-`pt2_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L69>`_
+`pt2_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L75>`_
   compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various n_st states,
@@ -145,7 +145,7 @@ Documentation
   .br
   that can be repeated by repeating all the double excitations
   .br
-  : you repeat all the correlation energy already taken into account in reference_energy(1)
+  : you repeat all the correlation energy already taken into account in CI_electronic_energy(1)
   .br
   that could be repeated to this determinant.
   .br
@@ -156,7 +156,7 @@ Documentation
   e_2_pert(i) = <psi(i)|H|det_pert>^2/( E(i) - (<det_pert|H|det_pert> ) )
   .br
 
-`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L171>`_
+`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L185>`_
   compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various n_st states,
@@ -167,7 +167,7 @@ Documentation
   .br
   that can be repeated by repeating all the double excitations
   .br
-  : you repeat all the correlation energy already taken into account in reference_energy(1)
+  : you repeat all the correlation energy already taken into account in CI_electronic_energy(1)
   .br
   that could be repeated to this determinant.
   .br
@@ -197,23 +197,17 @@ Documentation
 `selection_criterion_min <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L68>`_
   Threshold to select determinants. Set by selection routines.
 
-`diagonalize <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L18>`_
+`n_det_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L11>`_
   Undocumented
 
-`n_det_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L36>`_
-  Undocumented
-
-`psi_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L41>`_
+`psi_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L16>`_
   On what we apply <i|H|psi> for perturbation. If selection, it may be 0.9 of the norm.
 
-`psi_ref_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L42>`_
+`psi_ref_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L17>`_
   On what we apply <i|H|psi> for perturbation. If selection, it may be 0.9 of the norm.
 
-`psi_ref_size <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L32>`_
+`psi_ref_size <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L7>`_
   Undocumented
-
-`reference_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L6>`_
-  Reference energy
 
 
 

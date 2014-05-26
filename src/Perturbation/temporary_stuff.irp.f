@@ -3,31 +3,6 @@ BEGIN_SHELL [ /bin/bash ]
 ./h_apply.py
 END_SHELL
 
-BEGIN_PROVIDER [ double precision, reference_energy, (N_states) ]
- implicit none
- BEGIN_DOC
- ! Reference energy
- END_DOC
- integer :: i
-
- call diagonalize(psi_det,psi_coef,reference_energy,size(psi_coef,1),N_det,N_states,N_int,output_CISD)
- SOFT_TOUCH psi_det psi_coef 
-END_PROVIDER
-
-
-subroutine diagonalize(psi_det_in,psi_coef_in,eigvalues_out,psi_coef_dim,Ndet,N_st,Nint,iunit)
-  use bitmasks
-  implicit none
-  integer,intent(in) :: Nint,Ndet,N_st,psi_coef_dim, iunit
-  integer(bit_kind), intent(in) :: psi_det_in(Nint,2,Ndet)
-  double precision, intent(in) :: psi_coef_in(Ndet,N_st)
-  double precision, intent(out) :: eigvalues_out(N_st)
-
-  ASSERT (Nint == N_int)
-
-  call davidson_diag(psi_det_in,psi_coef_in,eigvalues_out,psi_coef_dim,Ndet,N_st,Nint,iunit)
-end
-
 
 BEGIN_PROVIDER [ integer, psi_ref_size ]
  implicit none

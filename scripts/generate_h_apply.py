@@ -35,7 +35,7 @@ class H_apply(object):
     s["omp_parallel"]     = """!$OMP PARALLEL DEFAULT(SHARED)        &
         !$OMP PRIVATE(i,j,k,l,keys_out,hole,particle,                &
         !$OMP  occ_particle,occ_hole,j_a,k_a,other_spin,             &
-        !$OMP  hole_save,ispin,jj,l_a,hij_elec,hij_tab,              &
+        !$OMP  hole_save,ispin,jj,l_a,                               &
         !$OMP  accu,i_a,hole_tmp,particle_tmp,occ_particle_tmp,      &
         !$OMP  occ_hole_tmp,key_idx,i_b,j_b,key,N_elec_in_key_part_1,&
         !$OMP  N_elec_in_key_hole_1,N_elec_in_key_part_2,            &
@@ -121,9 +121,9 @@ class H_apply(object):
       sum_e_2_pert = sum_e_2_pert_in
       sum_norm_pert = sum_norm_pert_in
       sum_H_pert_diag = sum_H_pert_diag_in
-      PROVIDE reference_energy psi_ref_coef psi_ref
+      PROVIDE CI_electronic_energy psi_ref_coef psi_ref
       """
-      self.data["keys_work"] += """
+      self.data["keys_work"] = """
       call perturb_buffer_%s(keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
        sum_norm_pert,sum_H_pert_diag,N_st,Nint)
       """%(pert,)
@@ -141,7 +141,7 @@ class H_apply(object):
   double precision, intent(inout):: pt2(N_st) 
   double precision, intent(inout):: norm_pert(N_st) 
   double precision, intent(inout):: H_pert_diag
-  PROVIDE reference_energy N_det_generators key_pattern_not_in_ref                                                                                                      
+  PROVIDE CI_electronic_energy N_det_generators key_pattern_not_in_ref                                                                                                      
   pt2 = 0.d0
   norm_pert = 0.d0
   H_pert_diag = 0.d0

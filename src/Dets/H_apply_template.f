@@ -11,7 +11,6 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   $declarations
   integer(bit_kind),intent(in)   :: key_in(N_int,2)
   integer(bit_kind),allocatable  :: keys_out(:,:,:)
-  double precision, allocatable  :: hij_tab(:)
   integer(bit_kind), intent(in)  :: hole_1(N_int,2), particl_1(N_int,2)
   integer(bit_kind), intent(in)  :: hole_2(N_int,2), particl_2(N_int,2)
   integer(bit_kind)              :: hole_save(N_int,2)
@@ -26,7 +25,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   integer                        :: N_elec_in_key_hole_1(2),N_elec_in_key_part_1(2)
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
   
-  double precision               :: hij_elec, mo_bielec_integral, thresh
+  double precision               :: mo_bielec_integral, thresh
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   double precision               :: diag_H_mat_elem
   integer                        :: iproc
@@ -38,7 +37,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   iproc = 0
   $omp_parallel
   !$ iproc = omp_get_thread_num()
-  allocate (keys_out(N_int,2,size_max),hij_tab(size_max))
+  allocate (keys_out(N_int,2,size_max))
   
   !print*,'key_in !!'
   !call print_key(key_in)
@@ -88,7 +87,6 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   integer(bit_kind)              :: test(N_int,2)
   double precision               :: accu
   accu = 0.d0
-  hij_elec = 0.d0
   do ispin=1,2
     other_spin = iand(ispin,1)+1
     $omp_do
@@ -142,14 +140,11 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
             k = ishft(j_b-1,-bit_kind_shift)+1
             l = j_b-ishft(k-1,bit_kind_shift)-1
             key(k,other_spin) = ibset(key(k,other_spin),l)
-            !           call i_H_j(key,key_in,N_int,hij_elec)
-            !           if(dabs(hij_elec)>=thresh) then
             key_idx += 1
             do k=1,N_int
               keys_out(k,1,key_idx) = key(k,1)
               keys_out(k,2,key_idx) = key(k,2)
             enddo
-            hij_tab(key_idx) = hij_elec
             ASSERT (key_idx <= size_max)
             if (key_idx == size_max) then
               $keys_work
@@ -181,14 +176,11 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
           key(k,ispin) = ibset(key(k,ispin),l)
           !!   a^((+)_j_b(ispin) a_i_b(ispin) : mono exc :: orb(i_b,ispin) --> orb(j_b,ispin)
           
-          !         call i_H_j(key,key_in,N_int,hij_elec)
-          !         if(dabs(hij_elec)>=thresh) then
           key_idx += 1
           do k=1,N_int
             keys_out(k,1,key_idx) = key(k,1)
             keys_out(k,2,key_idx) = key(k,2)
           enddo
-          hij_tab(key_idx) = hij_elec
           ASSERT (key_idx <= size_max)
           if (key_idx == size_max) then
             $keys_work
@@ -201,7 +193,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
     $omp_enddo
   enddo   ! ispin
   $keys_work
-  deallocate (keys_out,hij_tab,ia_ja_pairs)
+  deallocate (keys_out,ia_ja_pairs)
   $omp_end_parallel
   $finalization
   
@@ -220,7 +212,6 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
   $declarations
   integer(bit_kind),intent(in)   :: key_in(N_int,2)
   integer(bit_kind),allocatable  :: keys_out(:,:,:)
-  double precision, allocatable  :: hij_tab(:)
   integer(bit_kind), intent(in)  :: hole_1(N_int,2), particl_1(N_int,2)
   integer(bit_kind)              :: hole_2(N_int,2), particl_2(N_int,2)
   integer(bit_kind)              :: hole_save(N_int,2)
@@ -235,7 +226,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
   integer                        :: N_elec_in_key_hole_1(2),N_elec_in_key_part_1(2)
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
   
-  double precision               :: hij_elec, thresh
+  double precision               :: thresh
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   double precision               :: diag_H_mat_elem
   integer                        :: iproc
@@ -247,7 +238,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
   iproc = 0
   $omp_parallel
   !$ iproc = omp_get_thread_num()
-  allocate (keys_out(N_int,2,size_max),hij_tab(size_max))
+  allocate (keys_out(N_int,2,size_max))
   !!!! First couple hole particle
   do j = 1, N_int
     hole(j,1) = iand(hole_1(j,1),key_in(j,1))
@@ -300,7 +291,6 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
         keys_out(k,1,key_idx) = hole(k,1)
         keys_out(k,2,key_idx) = hole(k,2)
       enddo
-      hij_tab(key_idx) = hij_elec
       if (key_idx == size_max) then
         $keys_work
         key_idx = 0
@@ -309,7 +299,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
     $omp_enddo
   enddo   ! ispin
   $keys_work
-  deallocate (keys_out,hij_tab,ia_ja_pairs)
+  deallocate (keys_out,ia_ja_pairs)
   $omp_end_parallel
   $finalization
   

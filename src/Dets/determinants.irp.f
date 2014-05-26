@@ -72,7 +72,6 @@ END_PROVIDER
 END_PROVIDER
 
 
-
 BEGIN_PROVIDER [ integer, N_det_reference ]
  implicit none
  BEGIN_DOC

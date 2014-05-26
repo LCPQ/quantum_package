@@ -8,6 +8,10 @@ BEGIN_PROVIDER [ character*(64), diag_algorithm ]
   else
     diag_algorithm = "Lapack"
   endif
+
+  if (N_det < N_states) then
+    diag_algorithm = "Lapack"
+  endif
   
 END_PROVIDER
 
@@ -18,7 +22,7 @@ BEGIN_PROVIDER [ double precision, CI_energy, (N_states) ]
   END_DOC
   
   integer                        :: j
-  do j=1,min(N_states,N_det)
+  do j=1,N_states
     CI_energy(j) = CI_electronic_energy(j) + nuclear_repulsion
   enddo
 

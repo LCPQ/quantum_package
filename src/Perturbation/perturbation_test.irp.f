@@ -10,8 +10,7 @@ program cisd
 
   call H_apply_cisd_pt2(pt2, norm_pert, H_pert_diag,  N_st)
   print *,  'N_det    = ', N_det
-  print *,  'N_states = ', N_states
-  print *,  'pt2      = ', pt2
-  print *,  'E        = ', reference_energy+pt2+nuclear_repulsion
+  print *,  'pt2      = ', pt2(1)
+  print *,  'E        = ', CI_energy(1)+pt2(1)
   return
 end
