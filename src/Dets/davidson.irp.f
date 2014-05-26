@@ -1,4 +1,4 @@
-BEGIN_PROVIDER [ integer, davidson_iter_max]
+BEGIN_PROVIDER [ integer, davidson_iter_max ]
   implicit none
   BEGIN_DOC
   ! Max number of Davidson iterations
@@ -6,7 +6,7 @@ BEGIN_PROVIDER [ integer, davidson_iter_max]
   davidson_iter_max = 100
 END_PROVIDER
 
-BEGIN_PROVIDER [ integer, davidson_sze_max]
+BEGIN_PROVIDER [ integer, davidson_sze_max ]
   implicit none
   BEGIN_DOC
   ! Max number of Davidson sizes
@@ -322,6 +322,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       !END DEBUG
 
     enddo
+
     if (.not.converged) then
       iter = davidson_sze_max-1
     endif
@@ -340,7 +341,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
         enddo
       enddo
     enddo
-    
+
   enddo
 
   write_buffer = '===== '
@@ -360,6 +361,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       y,                                                             &
       lambda                                                         &
       )
+  abort_here = abort_all
 end
 
  BEGIN_PROVIDER [ character(64), davidson_criterion ]
@@ -397,4 +399,5 @@ subroutine davidson_converged(energy,residual,N_st,converged)
   else if (davidson_criterion == 'both') then
     converged = dabs(maxval(residual(1:N_st))) + dabs(maxval(E(1:N_st)) ) < davidson_threshold  
   endif
+  converged = converged.or.abort_here
 end

@@ -124,53 +124,53 @@ Documentation
   \int_{-infty}^{+infty} (x-A_center)^(power_A) * (x-B_center)^power_B * exp(-alpha(x-A_center)^2) * exp(-beta(x-B_center)^2) dx
   .br
 
-`align_double <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L65>`_
+`align_double <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L70>`_
   Compute 1st dimension such that it is aligned for vectorization.
 
 `all_utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L1>`_
   Dummy provider to provide all utils
 
-`binom <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L47>`_
+`binom <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L52>`_
   Binomial coefficients
 
-`binom_func <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L16>`_
+`binom_func <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L21>`_
   .. math                       ::
   .br
   \frac{i!}{j!(i-j)!}
   .br
 
-`binom_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L48>`_
+`binom_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L53>`_
   Binomial coefficients
 
-`dble_fact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L124>`_
+`dble_fact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L129>`_
   n!!
 
-`fact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L80>`_
+`fact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L85>`_
   n!
 
-`fact_inv <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L112>`_
+`fact_inv <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L117>`_
   1/n!
 
-`inv_int <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L171>`_
+`inv_int <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L176>`_
   1/i
 
-`normalize <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L270>`_
+`normalize <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L275>`_
   Normalizes vector u
   u is expected to be aligned in memory.
 
-`nproc <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L197>`_
+`nproc <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L202>`_
   Number of current OpenMP threads
 
-`u_dot_u <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L239>`_
+`u_dot_u <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L244>`_
   Compute <u|u>
 
-`u_dot_v <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L213>`_
+`u_dot_v <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L218>`_
   Compute <u|v>
 
-`wall_time <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L182>`_
+`wall_time <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L187>`_
   The equivalent of cpu_time, but for the wall time.
 
-`write_git_log <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L157>`_
+`write_git_log <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L162>`_
   Write the last git commit in file iunit.
 
 

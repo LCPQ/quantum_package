@@ -89,8 +89,14 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   accu = 0.d0
   do ispin=1,2
     other_spin = iand(ispin,1)+1
+    if (abort_here) then
+      exit
+    endif
     $omp_do
     do ii=1,ia_ja_pairs(1,0,ispin)
+      if (abort_here) then
+        cycle
+      endif
       i_a = ia_ja_pairs(1,ii,ispin)
       ASSERT (i_a > 0)
       ASSERT (i_a <= mo_tot_num)
@@ -152,6 +158,9 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
             endif
             !           endif
           enddo
+          if (abort_here) then
+            exit
+          endif
         enddo
       endif
       !   does all the mono excitations of the same spin
@@ -186,7 +195,9 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
             $keys_work
             key_idx = 0
           endif
-          !         endif
+          if (abort_here) then
+            exit
+          endif
         enddo
       enddo! kk
     enddo  ! ii
@@ -196,7 +207,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   deallocate (keys_out,ia_ja_pairs)
   $omp_end_parallel
   $finalization
-  
+  abort_here = abort_all
 end
 
 subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
@@ -315,25 +326,29 @@ subroutine $subroutine($params_main)
   END_DOC
   
   $decls_main
-
+  
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map N_det_reference psi_generators
   integer                        :: imask
   
   do imask=1,N_det_generators
-    call $subroutine_monoexc(psi_generators(1,1,imask),                             &
+    call $subroutine_monoexc(psi_generators(1,1,imask),              &
         generators_bitmask(1,1,s_hole ,i_bitmask_gen),               &
         generators_bitmask(1,1,s_part ,i_bitmask_gen)                &
         $params_post)
-    call $subroutine_diexc(psi_generators(1,1,imask),                               &
+    call $subroutine_diexc(psi_generators(1,1,imask),                &
         generators_bitmask(1,1,d_hole1,i_bitmask_gen),               &
         generators_bitmask(1,1,d_part1,i_bitmask_gen),               &
         generators_bitmask(1,1,d_hole2,i_bitmask_gen),               &
         generators_bitmask(1,1,d_part2,i_bitmask_gen)                &
         $params_post)
+    if (abort_here) then
+      exit
+    endif
   enddo
   
   $copy_buffer
   $generate_psi_guess
+  abort_here = abort_all
   
 end
 

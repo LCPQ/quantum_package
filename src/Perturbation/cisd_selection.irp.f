@@ -19,6 +19,9 @@ program cisd
     print *,  'PT2      = ', pt2
     print *,  'E        = ', E_old
     print *,  'E+PT2    = ', E_old+pt2
+    if (abort_all) then
+      exit
+    endif
   enddo
   deallocate(pt2,norm_pert)
 end

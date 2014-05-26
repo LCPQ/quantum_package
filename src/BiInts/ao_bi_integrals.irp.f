@@ -196,7 +196,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   
   integer                        :: i,j,k,l
   double precision               :: ao_bielec_integral,cpu_1,cpu_2, wall_1, wall_2
-  double precision               :: integral
+  double precision               :: integral, wall_0
   double precision               :: thresh
   thresh = ao_integrals_threshold
   
@@ -206,7 +206,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   real(integral_kind),allocatable :: buffer_value(:)
   integer(omp_lock_kind)         :: lock
   
-  integer                        :: n_integrals, n_centers
+  integer                        :: n_integrals, n_centers, thread_num
   integer                        :: jl_pairs(2,ao_num*(ao_num+1)/2), kk, m, j1, i1, lmax
   
   PROVIDE gauleg_t2 ao_integrals_map all_utils
@@ -235,22 +235,28 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   call omp_init_lock(lock)
   lmax = ao_num*(ao_num+1)/2
   write(output_BiInts,*) 'providing the AO integrals'
+  call wall_time(wall_0)
   call wall_time(wall_1)
   call cpu_time(cpu_1)
   !$OMP PARALLEL PRIVATE(i,j,k,l,kk,                                 &
       !$OMP integral,buffer_i,buffer_value,n_integrals,              &
-      !$OMP cpu_2,wall_2,i1,j1)                         &
+      !$OMP cpu_2,wall_2,i1,j1,thread_num)                           &
       !$OMP DEFAULT(NONE)                                            &
       !$OMP SHARED (ao_num, jl_pairs, ao_integrals_map,thresh,       &
       !$OMP    cpu_1,wall_1,lock, lmax,n_centers,ao_nucl,            &
-      !$OMP    ao_overlap_abs,ao_overlap,output_BiInts)
+      !$OMP    ao_overlap_abs,ao_overlap,output_BiInts,abort_here,   &
+      !$OMP    wall_0)
   
   allocate(buffer_i(size_buffer))
   allocate(buffer_value(size_buffer))
   n_integrals = 0
+!$  thread_num = omp_get_thread_num()
   
   !$OMP DO SCHEDULE(dynamic)
   do kk=1,lmax
+    if (abort_here) then
+      cycle
+    endif
     j = jl_pairs(1,kk)
     l = jl_pairs(2,kk)
     j1 = j+ishft(l*l-l,-1)
@@ -293,7 +299,14 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
       enddo
     enddo
     call wall_time(wall_2)
-    write(output_BiInts,*) 100.*float(kk)/float(lmax), '% in ', wall_2-wall_1, 's'
+    
+    if (thread_num == 0) then
+      if (wall_2 - wall_0 > 1.d0) then
+        wall_0 = wall_2
+        write(output_BiInts,*) 100.*float(kk)/float(lmax), '% in ',  &
+            wall_2-wall_1, 's', map_mb(ao_integrals_map) ,'MB'
+      endif
+    endif
   enddo
   !$OMP END DO NOWAIT
   call insert_into_ao_integrals_map(n_integrals,buffer_i,buffer_value)
@@ -301,6 +314,9 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   deallocate(buffer_value)
   !$OMP END PARALLEL
   call omp_destroy_lock(lock)
+  if (abort_here) then
+    stop 'Aborting in AO integrals calculation'
+  endif
   write(output_BiInts,*) 'Sorting the map'
   call map_sort(ao_integrals_map)
   call cpu_time(cpu_2)
