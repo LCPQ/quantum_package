@@ -188,6 +188,9 @@ Documentation
 `fill_h_apply_buffer_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L1>`_
   Fill the H_apply buffer with determiants for the selection
 
+`remove_small_contributions <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L80>`_
+  Remove determinants with small contributions
+
 `selection_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L67>`_
   Threshold to select determinants. Set by selection routines.
 
