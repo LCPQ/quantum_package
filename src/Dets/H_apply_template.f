@@ -334,7 +334,6 @@ subroutine $subroutine($params_main)
   
   $copy_buffer
   $generate_psi_guess
-  SOFT_TOUCH psi_det psi_coef
   
 end
 
