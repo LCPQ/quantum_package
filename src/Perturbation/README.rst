@@ -182,35 +182,32 @@ Documentation
   NOTE :::: if you satisfy Brillouin Theorem, the singles don't contribute !!
   .br
 
-`cisd <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation_test.irp.f#L1>`_
-  Undocumented
-
-`fill_h_apply_buffer_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L1>`_
+`fill_h_apply_buffer_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L2>`_
   Fill the H_apply buffer with determiants for the selection
 
-`remove_small_contributions <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L80>`_
+`n_det_selectors <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L120>`_
+  Undocumented
+
+`psi_selectors <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L125>`_
+  On what we apply <i|H|psi> for perturbation. If selection, it may be 0.9 of the norm.
+
+`psi_selectors_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L126>`_
+  On what we apply <i|H|psi> for perturbation. If selection, it may be 0.9 of the norm.
+
+`psi_selectors_size <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L116>`_
+  Undocumented
+
+`remove_small_contributions <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L81>`_
   Remove determinants with small contributions
 
-`selection_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L67>`_
+`selection_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L68>`_
   Threshold to select determinants. Set by selection routines.
 
-`selection_criterion_factor <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L69>`_
+`selection_criterion_factor <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L70>`_
   Threshold to select determinants. Set by selection routines.
 
-`selection_criterion_min <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L68>`_
+`selection_criterion_min <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L69>`_
   Threshold to select determinants. Set by selection routines.
-
-`n_det_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L11>`_
-  Undocumented
-
-`psi_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L16>`_
-  On what we apply <i|H|psi> for perturbation. If selection, it may be 0.9 of the norm.
-
-`psi_ref_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L17>`_
-  On what we apply <i|H|psi> for perturbation. If selection, it may be 0.9 of the norm.
-
-`psi_ref_size <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/temporary_stuff.irp.f#L7>`_
-  Undocumented
 
 
 
@@ -232,5 +229,4 @@ Needed Modules
 * `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
 * `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
-* `SingleRefMethod <http://github.com/LCPQ/quantum_package/tree/master/src/SingleRefMethod>`_
 

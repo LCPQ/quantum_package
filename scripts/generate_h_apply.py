@@ -42,7 +42,7 @@ class H_apply(object):
         !$OMP  N_elec_in_key_hole_2,ia_ja_pairs,iproc)               &
         !$OMP SHARED(key_in,N_int,elec_num_tab,mo_tot_num,           &
         !$OMP  hole_1, particl_1, hole_2, particl_2,                 &
-        !$OMP  thresh,elec_alpha_num)"""
+        !$OMP  thresh,elec_alpha_num,i_generator)"""
     s["omp_end_parallel"] = "!$OMP END PARALLEL"
     s["omp_master"]       = "!$OMP MASTER"
     s["omp_end_master"]   = "!$OMP END MASTER"
@@ -121,10 +121,10 @@ class H_apply(object):
       sum_e_2_pert = sum_e_2_pert_in
       sum_norm_pert = sum_norm_pert_in
       sum_H_pert_diag = sum_H_pert_diag_in
-      PROVIDE CI_electronic_energy psi_ref_coef psi_ref
+      PROVIDE CI_electronic_energy psi_selectors_coef psi_selectors
       """
       self.data["keys_work"] = """
-      call perturb_buffer_%s(keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
+      call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
        sum_norm_pert,sum_H_pert_diag,N_st,Nint)
       """%(pert,)
       self.data["finalization"] = """

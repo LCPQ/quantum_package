@@ -6,15 +6,15 @@ program cisd
   double precision, allocatable  :: pt2(:), norm_pert(:)
   double precision               :: H_pert_diag, E_old
   integer                        :: N_st, iter
+  character*(64)                 :: perturbation
   N_st = N_states
   allocate (pt2(N_st), norm_pert(N_st))
   
   pt2 = 1.d0
-! davidson_criterion = 'wall_time'
-! davidson_threshold = 1.d0
+  perturbation = "epstein_nesbet"
   do while (maxval(abs(pt2(1:N_st))) > 1.d-6)
     E_old = CI_energy(1)
-    call H_apply_cisd_selection(pt2, norm_pert, H_pert_diag,  N_st)
+    call H_apply_cisd_selection(perturbation,pt2, norm_pert, H_pert_diag,  N_st)
     call diagonalize_CI
     print *,  'N_det    = ', N_det
     print *,  'N_states = ', N_states

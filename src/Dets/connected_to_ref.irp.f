@@ -32,11 +32,6 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       endif
       if (degree_x2 > 5) then
         cycle
-!     else
-!       call i_H_j(keys(1,1,i),key,Nint,hij_elec)
-!       if(dabs(hij_elec).lt.thresh)cycle
-!       connected_to_ref = i
-!       return
       endif
     enddo
     
@@ -69,11 +64,6 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       endif
       if (degree_x2 > 5) then
         cycle
-!     else
-!       call i_H_j(keys(1,1,i),key,Nint,hij_elec)
-!       if(dabs(hij_elec).lt.thresh)cycle
-!       connected_to_ref = i
-!       return
       endif
     enddo
     
@@ -111,11 +101,6 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       endif
       if (degree_x2 > 5) then
         cycle
-!     else
-!       call i_H_j(keys(1,1,i),key,Nint,hij_elec)
-!       if(dabs(hij_elec).lt.thresh)cycle
-!       connected_to_ref = i
-!       return
       endif
     enddo
     
@@ -155,11 +140,6 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       endif
       if (degree_x2 > 5) then
         cycle
-!     else
-!       call i_H_j(keys(1,1,i),key,Nint,hij_elec)
-!       if(dabs(hij_elec).lt.thresh)cycle
-!       connected_to_ref = i
-!       return
       endif
     enddo
     
