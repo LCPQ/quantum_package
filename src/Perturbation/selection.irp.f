@@ -110,3 +110,7 @@ subroutine remove_small_contributions
     call write_int(output_dets,N_removed, 'Removed determinants')
   endif
 end
+
+
+
+

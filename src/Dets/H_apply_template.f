@@ -1,4 +1,4 @@
-subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parameters )
+subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_generator $parameters )
   use omp_lib
   use bitmasks
   implicit none
@@ -9,6 +9,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   END_DOC
   integer,parameter              :: size_max = $size_max
   $declarations
+  integer          ,intent(in)   :: i_generator
   integer(bit_kind),intent(in)   :: key_in(N_int,2)
   integer(bit_kind),allocatable  :: keys_out(:,:,:)
   integer(bit_kind), intent(in)  :: hole_1(N_int,2), particl_1(N_int,2)
@@ -210,7 +211,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2 $parame
   abort_here = abort_all
 end
 
-subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
+subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator $parameters )
   use omp_lib
   use bitmasks
   implicit none
@@ -221,6 +222,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1 $parameters )
   END_DOC
   integer,parameter              :: size_max = $size_max
   $declarations
+  integer          ,intent(in)   :: i_generator
   integer(bit_kind),intent(in)   :: key_in(N_int,2)
   integer(bit_kind),allocatable  :: keys_out(:,:,:)
   integer(bit_kind), intent(in)  :: hole_1(N_int,2), particl_1(N_int,2)
@@ -328,19 +330,20 @@ subroutine $subroutine($params_main)
   $decls_main
   
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map N_det_reference psi_generators
-  integer                        :: imask
+  integer                        :: i_generator
   
-  do imask=1,N_det_generators
-    call $subroutine_monoexc(psi_generators(1,1,imask),              &
+  print *,  irp_here
+  do i_generator=1,N_det_generators
+    call $subroutine_monoexc(psi_generators(1,1,i_generator),        &
         generators_bitmask(1,1,s_hole ,i_bitmask_gen),               &
-        generators_bitmask(1,1,s_part ,i_bitmask_gen)                &
-        $params_post)
-    call $subroutine_diexc(psi_generators(1,1,imask),                &
+        generators_bitmask(1,1,s_part ,i_bitmask_gen),               &
+        i_generator $params_post)
+    call $subroutine_diexc(psi_generators(1,1,i_generator),          &
         generators_bitmask(1,1,d_hole1,i_bitmask_gen),               &
         generators_bitmask(1,1,d_part1,i_bitmask_gen),               &
         generators_bitmask(1,1,d_hole2,i_bitmask_gen),               &
-        generators_bitmask(1,1,d_part2,i_bitmask_gen)                &
-        $params_post)
+        generators_bitmask(1,1,d_part2,i_bitmask_gen),               &
+        i_generator $params_post)
     if (abort_here) then
       exit
     endif

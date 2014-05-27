@@ -5,7 +5,7 @@ OBJ=
 
 include $(QPACKAGE_ROOT)/src/Makefile.common
 
-all:$(ALL)
+all: all_modules
 
 all_clean:
 	@for i in $(NEEDED_MODULES) ; do cd $$i ; make veryclean ; make clean_links ; cd .. ; done

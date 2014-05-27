@@ -9,18 +9,33 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
  N_det_generators = 1
 END_PROVIDER
 
-BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,1) ]
+BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
  implicit none
  BEGIN_DOC
  ! For Single reference wave functions, the generator is the
  ! Hartree-Fock determinant
  END_DOC
  psi_generators = 0_bit_kind
- integer :: i
+ integer :: i,j,k
+ integer :: degree
 
  do i=1,N_int
    psi_generators(i,1,1) = HF_bitmask(i,1)
    psi_generators(i,2,1) = HF_bitmask(i,2)
+ enddo
+
+ do j=1,N_det
+   call get_excitation_degree(HF_bitmask,psi_det(1,1,j),degree,N_int)
+   if (degree == 0) then
+     k = j
+   endif
+ end do
+
+ do j=2,k
+   psi_generators(:,:,j) = psi_det(:,:,j-1)
+ enddo
+ do j=k+1,N_det
+   psi_generators(:,:,j) = psi_det(:,:,j)
  enddo
 
 END_PROVIDER
