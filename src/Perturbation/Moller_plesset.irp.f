@@ -3,7 +3,7 @@ subroutine pt2_moller_plesset(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,n_s
   implicit none
   integer, intent(in)            :: Nint,ndet,n_st
   integer(bit_kind), intent(in)  :: det_pert(Nint,2)
-  double precision , intent(out) :: c_pert(n_st),e_2_pert(n_st),H_pert_diag
+  double precision , intent(out) :: c_pert(n_st),e_2_pert(n_st),H_pert_diag(N_st)
   double precision               :: i_H_psi_array(N_st)
   
   BEGIN_DOC
@@ -21,7 +21,7 @@ subroutine pt2_moller_plesset(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,n_s
   double precision               :: diag_H_mat_elem
   integer                        :: exc(0:2,2,2)
   integer                        :: degree
-  double precision               :: phase,delta_e
+  double precision               :: phase,delta_e,h
   integer                        :: h1,h2,p1,p2,s1,s2
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
@@ -32,8 +32,9 @@ subroutine pt2_moller_plesset(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,n_s
   delta_e = 1.d0/delta_e
 
   call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det,psi_selectors_size,n_st,i_H_psi_array)
-  H_pert_diag = diag_H_mat_elem(det_pert,Nint)
+  h = diag_H_mat_elem(det_pert,Nint)
   do i =1,n_st
+    H_pert_diag(i) = h
     c_pert(i) = i_H_psi_array(i) *delta_e
     e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
   enddo

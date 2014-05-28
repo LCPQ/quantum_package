@@ -19,7 +19,7 @@ BEGIN_PROVIDER [ logical, H_apply_buffer_allocated ]
   ! Uninitialized. Filled by H_apply subroutines.
   END_DOC
   integer                        :: iproc, sze
-  sze = 10
+  sze = 100
   if (.not.associated(H_apply_buffer)) then
     allocate(H_apply_buffer(0:nproc-1))
     iproc = 0

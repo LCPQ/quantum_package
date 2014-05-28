@@ -57,17 +57,17 @@ END_PROVIDER
     ifirst = 1
     psi_det = 0_bit_kind
     psi_coef = 0.d0
-
-    integer :: i
-    do i=1,N_int
-      psi_det(i,1,1) = HF_bitmask(i,1)
-      psi_det(i,2,1) = HF_bitmask(i,2)
-    enddo
-
-    do i=1,N_states
-      psi_coef(i,i) = 1.d0
-    enddo
  endif
+
+ integer :: i
+ do i=1,N_int
+   psi_det(i,1,1) = HF_bitmask(i,1)
+   psi_det(i,2,1) = HF_bitmask(i,2)
+ enddo
+
+ do i=1,N_states
+   psi_coef(i,i) = 1.d0
+ enddo
 
 END_PROVIDER
 

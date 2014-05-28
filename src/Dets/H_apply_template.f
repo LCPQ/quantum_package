@@ -14,31 +14,33 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   integer(bit_kind),allocatable  :: keys_out(:,:,:)
   integer(bit_kind), intent(in)  :: hole_1(N_int,2), particl_1(N_int,2)
   integer(bit_kind), intent(in)  :: hole_2(N_int,2), particl_2(N_int,2)
-  integer(bit_kind)              :: hole_save(N_int,2)
-  integer(bit_kind)              :: key(N_int,2),hole(N_int,2), particle(N_int,2)
-  integer(bit_kind)              :: hole_tmp(N_int,2), particle_tmp(N_int,2)
+  integer(bit_kind), allocatable :: hole_save(:,:)
+  integer(bit_kind), allocatable :: key(:,:),hole(:,:), particle(:,:)
+  integer(bit_kind), allocatable :: hole_tmp(:,:), particle_tmp(:,:)
   integer                        :: ii,i,jj,j,k,ispin,l
-  integer                        :: occ_particle(N_int*bit_kind_size,2)
-  integer                        :: occ_hole(N_int*bit_kind_size,2)
-  integer                        :: occ_particle_tmp(N_int*bit_kind_size,2)
-  integer                        :: occ_hole_tmp(N_int*bit_kind_size,2)
+  integer, allocatable           :: occ_particle(:,:), occ_hole(:,:)
+  integer, allocatable           :: occ_particle_tmp(:,:), occ_hole_tmp(:,:)
   integer                        :: kk,pp,other_spin,key_idx
   integer                        :: N_elec_in_key_hole_1(2),N_elec_in_key_part_1(2)
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
   
-  double precision               :: mo_bielec_integral, thresh
+  double precision               :: mo_bielec_integral
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   double precision               :: diag_H_mat_elem
   integer                        :: iproc
-  
-  $set_i_H_j_threshold
+  PROVIDE H_apply_threshold
   
   $initialization
   
   iproc = 0
   $omp_parallel
   !$ iproc = omp_get_thread_num()
-  allocate (keys_out(N_int,2,size_max))
+  allocate (keys_out(N_int,2,size_max), hole_save(N_int,2),          &
+      key(N_int,2),hole(N_int,2), particle(N_int,2), hole_tmp(N_int,2),&
+      particle_tmp(N_int,2), occ_particle(N_int*bit_kind_size,2),    &
+      occ_hole(N_int*bit_kind_size,2), occ_particle_tmp(N_int*bit_kind_size,2),&
+      occ_hole_tmp(N_int*bit_kind_size,2))
+  $init_thread
   
   !print*,'key_in !!'
   !call print_key(key_in)
@@ -142,7 +144,6 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
             j_b = occ_particle_tmp(jjj,other_spin)
             ASSERT (j_b > 0)
             ASSERT (j_b <= mo_tot_num)
-            if(dabs( mo_bielec_integral(j_a,j_b,i_a,i_b))<thresh)cycle
             key = hole
             k = ishft(j_b-1,-bit_kind_shift)+1
             l = j_b-ishft(k-1,bit_kind_shift)-1
@@ -179,7 +180,6 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
           ASSERT (j_b > 0)
           ASSERT (j_b <= mo_tot_num)
           if (j_b <= j_a) cycle
-          if(dabs( mo_bielec_integral(j_a,j_b,i_b,i_a))<thresh)cycle
           key = hole
           k = ishft(j_b-1,-bit_kind_shift)+1
           l = j_b-ishft(k-1,bit_kind_shift)-1
@@ -205,7 +205,13 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
     $omp_enddo
   enddo   ! ispin
   $keys_work
-  deallocate (keys_out,ia_ja_pairs)
+  $deinit_thread
+  deallocate (ia_ja_pairs, &
+      keys_out, hole_save,          &
+      key,hole, particle, hole_tmp,&
+      particle_tmp, occ_particle,    &
+      occ_hole, occ_particle_tmp,&
+      occ_hole_tmp)
   $omp_end_parallel
   $finalization
   abort_here = abort_all
@@ -224,34 +230,35 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator $parameters 
   $declarations
   integer          ,intent(in)   :: i_generator
   integer(bit_kind),intent(in)   :: key_in(N_int,2)
+  integer(bit_kind),intent(in)   :: hole_1(N_int,2), particl_1(N_int,2)
   integer(bit_kind),allocatable  :: keys_out(:,:,:)
-  integer(bit_kind), intent(in)  :: hole_1(N_int,2), particl_1(N_int,2)
-  integer(bit_kind)              :: hole_2(N_int,2), particl_2(N_int,2)
-  integer(bit_kind)              :: hole_save(N_int,2)
-  integer(bit_kind)              :: key(N_int,2),hole(N_int,2), particle(N_int,2)
-  integer(bit_kind)              :: hole_tmp(N_int,2), particle_tmp(N_int,2)
+  integer(bit_kind),allocatable  :: hole_save(:,:)
+  integer(bit_kind),allocatable  :: key(:,:),hole(:,:), particle(:,:)
+  integer(bit_kind),allocatable  :: hole_tmp(:,:), particle_tmp(:,:)
+  integer(bit_kind),allocatable  :: hole_2(:,:), particl_2(:,:)
   integer                        :: ii,i,jj,j,k,ispin,l
-  integer                        :: occ_particle(N_int*bit_kind_size,2)
-  integer                        :: occ_hole(N_int*bit_kind_size,2)
-  integer                        :: occ_particle_tmp(N_int*bit_kind_size,2)
-  integer                        :: occ_hole_tmp(N_int*bit_kind_size,2)
+  integer,allocatable            :: occ_particle(:,:), occ_hole(:,:)
+  integer,allocatable            :: occ_particle_tmp(:,:), occ_hole_tmp(:,:)
   integer                        :: kk,pp,other_spin,key_idx
   integer                        :: N_elec_in_key_hole_1(2),N_elec_in_key_part_1(2)
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
   
-  double precision               :: thresh
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   double precision               :: diag_H_mat_elem
   integer                        :: iproc
-  
-  $set_i_H_j_threshold
+  PROVIDE H_apply_threshold
   
   $initialization
   
   iproc = 0
   $omp_parallel
   !$ iproc = omp_get_thread_num()
-  allocate (keys_out(N_int,2,size_max))
+  allocate (keys_out(N_int,2,size_max), hole_save(N_int,2),          &
+      key(N_int,2),hole(N_int,2), particle(N_int,2), hole_tmp(N_int,2),&
+      particle_tmp(N_int,2), occ_particle(N_int*bit_kind_size,2),    &
+      occ_hole(N_int*bit_kind_size,2), occ_particle_tmp(N_int*bit_kind_size,2),&
+      occ_hole_tmp(N_int*bit_kind_size,2))
+  $init_thread
   !!!! First couple hole particle
   do j = 1, N_int
     hole(j,1) = iand(hole_1(j,1),key_in(j,1))
@@ -312,7 +319,13 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator $parameters 
     $omp_enddo
   enddo   ! ispin
   $keys_work
-  deallocate (keys_out,ia_ja_pairs)
+  $deinit_thread
+  deallocate (ia_ja_pairs, &
+      keys_out, hole_save,          &
+      key,hole, particle, hole_tmp,&
+      particle_tmp, occ_particle,    &
+      occ_hole, occ_particle_tmp,&
+      occ_hole_tmp)
   $omp_end_parallel
   $finalization
   
@@ -330,9 +343,8 @@ subroutine $subroutine($params_main)
   $decls_main
   
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map N_det_reference psi_generators
-  integer                        :: i_generator
+  integer                        :: i_generator, k
   
-  print *,  irp_here
   do i_generator=1,N_det_generators
     call $subroutine_monoexc(psi_generators(1,1,i_generator),        &
         generators_bitmask(1,1,s_hole ,i_bitmask_gen),               &

@@ -16,6 +16,8 @@ keys_work
 copy_buffer
 finalization
 generate_psi_guess
+init_thread
+deinit_thread
 """.split()
 
 class H_apply(object):
@@ -42,7 +44,7 @@ class H_apply(object):
         !$OMP  N_elec_in_key_hole_2,ia_ja_pairs,iproc)               &
         !$OMP SHARED(key_in,N_int,elec_num_tab,mo_tot_num,           &
         !$OMP  hole_1, particl_1, hole_2, particl_2,                 &
-        !$OMP  thresh,elec_alpha_num,i_generator)"""
+        !$OMP  elec_alpha_num,i_generator)"""
     s["omp_end_parallel"] = "!$OMP END PARALLEL"
     s["omp_master"]       = "!$OMP MASTER"
     s["omp_end_master"]   = "!$OMP END MASTER"
@@ -54,7 +56,7 @@ class H_apply(object):
 
     s["generate_psi_guess"]  = """
   ! Sort H_jj to find the N_states lowest states
-  integer                        :: i,k
+  integer                        :: i
   integer, allocatable           :: iorder(:)
   double precision, allocatable  :: H_jj(:)
   double precision, external     :: diag_h_mat_elem
@@ -81,9 +83,6 @@ class H_apply(object):
       for k in s:
         s[k] = ""
     s["size_max"] = str(1024*128) 
-    s["set_i_H_j_threshold"] = """
-      thresh = H_apply_threshold
-     """
     s["copy_buffer"] = "call copy_h_apply_buffer_to_wf"
     self.data = s
 
@@ -109,28 +108,41 @@ class H_apply(object):
       integer, intent(in)             :: N_st,Nint
       double precision, intent(inout) :: sum_e_2_pert_in(N_st)
       double precision, intent(inout) :: sum_norm_pert_in(N_st)
-      double precision, intent(inout) :: sum_H_pert_diag_in
+      double precision, intent(inout) :: sum_H_pert_diag_in(N_st)
       double precision                :: sum_e_2_pert(N_st)
       double precision                :: sum_norm_pert(N_st)
-      double precision                :: sum_H_pert_diag
-      double precision                :: e_2_pert_buffer(N_st,size_max)
-      double precision                :: coef_pert_buffer(N_st,size_max)
+      double precision                :: sum_H_pert_diag(N_st)
+      double precision, allocatable   :: e_2_pert_buffer(:,:)
+      double precision, allocatable   :: coef_pert_buffer(:,:)
+      ASSERT (Nint == N_int)
+      """
+      self.data["init_thread"] = """
+      allocate (e_2_pert_buffer(N_st,size_max), coef_pert_buffer(N_st,size_max))
+      do k=1,N_st
+        sum_e_2_pert(k) = 0.d0
+        sum_norm_pert(k) = 0.d0
+        sum_H_pert_diag(k) = 0.d0
+      enddo
+      """
+      self.data["deinit_thread"] = """
+      !$OMP CRITICAL
+      do k=1,N_st
+        sum_e_2_pert_in(k) = sum_e_2_pert_in(k) + sum_e_2_pert(k)
+        sum_norm_pert_in(k) = sum_norm_pert_in(k) + sum_norm_pert(k)
+        sum_H_pert_diag_in(k) = sum_H_pert_diag_in(k) + sum_H_pert_diag(k)
+      enddo
+      !$OMP END CRITICAL
+      deallocate (e_2_pert_buffer, coef_pert_buffer)
       """
       self.data["size_max"] = "256" 
       self.data["initialization"] = """
-      sum_e_2_pert = sum_e_2_pert_in
-      sum_norm_pert = sum_norm_pert_in
-      sum_H_pert_diag = sum_H_pert_diag_in
       PROVIDE CI_electronic_energy psi_selectors_coef psi_selectors
       """
       self.data["keys_work"] = """
       call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-       sum_norm_pert,sum_H_pert_diag,N_st,Nint)
+       sum_norm_pert,sum_H_pert_diag,N_st,N_int)
       """%(pert,)
       self.data["finalization"] = """
-      sum_e_2_pert_in = sum_e_2_pert
-      sum_norm_pert_in = sum_norm_pert
-      sum_H_pert_diag_in = sum_H_pert_diag
       """
       self.data["copy_buffer"] = ""
       self.data["generate_psi_guess"] = ""
@@ -140,17 +152,19 @@ class H_apply(object):
       self.data["decls_main"] = """  integer, intent(in)            :: N_st 
   double precision, intent(inout):: pt2(N_st) 
   double precision, intent(inout):: norm_pert(N_st) 
-  double precision, intent(inout):: H_pert_diag
+  double precision, intent(inout):: H_pert_diag(N_st)
   PROVIDE CI_electronic_energy N_det_generators key_pattern_not_in_ref                                                                                                      
-  pt2 = 0.d0
-  norm_pert = 0.d0
-  H_pert_diag = 0.d0
+  do k=1,N_st
+    pt2(k) = 0.d0
+    norm_pert(k) = 0.d0
+    H_pert_diag(k) = 0.d0
+  enddo
       """ 
 
       if self.openmp:
         self.data["omp_parallel"]    += """&
- !$OMP SHARED(N_st,Nint) PRIVATE(e_2_pert_buffer,coef_pert_buffer) &
- !$OMP REDUCTION(+:sum_e_2_pert, sum_norm_pert, sum_H_pert_diag)"""
+ !$OMP SHARED(N_st) PRIVATE(e_2_pert_buffer,coef_pert_buffer) &
+ !$OMP PRIVATE(sum_e_2_pert, sum_norm_pert, sum_H_pert_diag)"""
 
   def set_selection_pt2(self,pert):
     if self.selection_pt2 is not None:

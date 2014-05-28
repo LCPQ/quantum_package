@@ -143,7 +143,8 @@ end
 subroutine repeat_excitation(key_in,key_1,key_2,i_ok,Nint)
   use bitmasks
   implicit none
-  integer(bit_kind), intent(in)  :: key_in(Nint,2),key_1(Nint,2),key_2(Nint,2),Nint
+  integer(bit_kind), intent(in)  :: key_in(Nint,2),key_1(Nint,2),key_2(Nint,2)
+  integer                        :: Nint
   integer,intent(out)            :: i_ok
   integer                        :: ispin,i_hole,k_hole,j_hole,i_particl,k_particl,j_particl,i_trou,degree,exc(0:2,2,2)
   double precision               :: phase
