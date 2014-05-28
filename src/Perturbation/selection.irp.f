@@ -31,13 +31,13 @@ subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,c
   l=H_apply_buffer(iproc)%N_det
   do i=1,n_selected
 
-    s = 0.d0
+    is_selected = .False.
     do j=1,N_st
-      s -= e_2_pert_buffer(j,i)
+      s = dabs(e_2_pert_buffer(j,i))
+      is_selected = s > selection_criterion*selection_criterion_factor .or. is_selected
     enddo
     ASSERT (s>=-1.d-8)
     
-    is_selected = s > selection_criterion * selection_criterion_factor
      
     if (is_selected) then
       l = l+1
@@ -71,7 +71,7 @@ end
  BEGIN_DOC
  ! Threshold to select determinants. Set by selection routines.
  END_DOC
- selection_criterion = .1d0 
+ selection_criterion =  1.d0 
  selection_criterion_factor = 0.01d0
  selection_criterion_min = selection_criterion
 
@@ -80,35 +80,37 @@ END_PROVIDER
 subroutine remove_small_contributions
   implicit none
   BEGIN_DOC
-!  Remove determinants with small contributions
+!  Remove determinants with small contributions. N_states is assumed to be 
+!  provided.
   END_DOC
   integer :: i,j,k, N_removed
   logical keep
+  double precision :: i_H_psi_array(N_states)
+  k = 0
   N_removed = 0
-  do i=N_det,1,-1
+  do i=N_det, 50
+    call i_H_psi(psi_det_sorted(1,1,i),psi_det_sorted,psi_coef_sorted,N_int,N_det,psi_det_size,N_states,i_H_psi_array)
     keep = .False.
     do j=1,N_states
-      keep = keep .or. (dabs(psi_coef(i,j)) > selection_criterion_min)
+      keep = keep .or. (dabs(psi_coef_sorted(i,j)*i_H_psi_array(j)) > selection_criterion_min)
     enddo
-    if (.not.keep) then
-      do k=i+1,N_det
-        do j=1,N_int
-           psi_det(j,1,k-1) = psi_det(j,1,k)
-           psi_det(j,2,k-1) = psi_det(j,2,k)
-        enddo
+    if (keep) then
+      k += 1
+      do j=1,N_int
+         psi_det(j,1,k) = psi_det_sorted(j,1,i)
+         psi_det(j,2,k) = psi_det_sorted(j,2,i)
       enddo
       do j=1,N_states
-        do k=i+1,N_det
-           psi_coef(k-1,j) = psi_coef(k,j)
-        enddo
+         psi_coef(k,j) = psi_coef_sorted(i,j)
       enddo
+    else
       N_removed += 1
     endif
   enddo
   if (N_removed > 0) then
-    N_det -= N_removed
     call write_int(output_dets,N_removed, 'Removed determinants')
   endif
+  SOFT_TOUCH N_det psi_det psi_coef
 end
 
 

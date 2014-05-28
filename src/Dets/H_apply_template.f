@@ -346,15 +346,15 @@ subroutine $subroutine($params_main)
   integer                        :: i_generator, k
   
   do i_generator=1,N_det_generators
-    call $subroutine_monoexc(psi_generators(1,1,i_generator),        &
-        generators_bitmask(1,1,s_hole ,i_bitmask_gen),               &
-        generators_bitmask(1,1,s_part ,i_bitmask_gen),               &
-        i_generator $params_post)
     call $subroutine_diexc(psi_generators(1,1,i_generator),          &
         generators_bitmask(1,1,d_hole1,i_bitmask_gen),               &
         generators_bitmask(1,1,d_part1,i_bitmask_gen),               &
         generators_bitmask(1,1,d_hole2,i_bitmask_gen),               &
         generators_bitmask(1,1,d_part2,i_bitmask_gen),               &
+        i_generator $params_post)
+    call $subroutine_monoexc(psi_generators(1,1,i_generator),        &
+        generators_bitmask(1,1,s_hole ,i_bitmask_gen),               &
+        generators_bitmask(1,1,s_part ,i_bitmask_gen),               &
         i_generator $params_post)
     if (abort_here) then
       exit

@@ -3,18 +3,15 @@ program cisd
   integer                        :: i,k
 
   
-  double precision, allocatable  :: pt2(:), norm_pert(:)
-  double precision               :: H_pert_diag, E_old
+  double precision, allocatable  :: pt2(:), norm_pert(:), H_pert_diag(:)
   integer                        :: N_st, degree
   character*(64)                 :: perturbation
   N_st = N_states
-  allocate (pt2(N_st), norm_pert(N_st))
+  allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st))
   
   pt2 = 1.d0
   diag_algorithm = "Lapack"
   do while (maxval(abs(pt2(1:N_st))) > 1.d-6)
-    print *,  '-----'
-    E_old = CI_energy(1)
     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
     call diagonalize_CI
     print *,  'N_det    = ', N_det
@@ -22,6 +19,7 @@ program cisd
     print *,  'PT2      = ', pt2
     print *,  'E        = ', CI_energy
     print *,  'E+PT2    = ', CI_energy+pt2
+    print *,  '-----'
     if (abort_all) then
       exit
     endif

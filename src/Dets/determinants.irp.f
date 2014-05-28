@@ -80,3 +80,54 @@ BEGIN_PROVIDER [ integer, N_det_reference ]
    N_det_reference = N_det
  ASSERT (N_det_reference > 0)
 END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, psi_average_norm_contrib, (N_det) ]
+ implicit none
+ BEGIN_DOC
+ ! Contribution of determinants to the state-averaged density
+ END_DOC
+ integer :: i,j,k
+ double precision :: f
+ f = 1.d0/dble(N_states)
+ do i=1,N_det
+   psi_average_norm_contrib(i) = psi_coef(i,1)*psi_coef(i,1)*f
+ enddo
+ do k=2,N_states
+   do i=1,N_det
+     psi_average_norm_contrib(i) = psi_average_norm_contrib(i) + &
+       psi_coef(i,k)*psi_coef(i,k)*f
+   enddo
+ enddo
+END_PROVIDER
+
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted, (N_int,2,N_det) ]
+&BEGIN_PROVIDER [ double precision, psi_coef_sorted, (N_det,N_states) ]
+&BEGIN_PROVIDER [ double precision, psi_average_norm_contrib_sorted, (N_det) ]
+ implicit none
+ BEGIN_DOC
+ ! Wave function sorted by determinants (state-averaged)
+ END_DOC
+ integer :: i,j,k
+ integer, allocatable ::  iorder(:)
+ allocate ( iorder(N_det) )
+ do i=1,N_det
+   psi_average_norm_contrib_sorted(i) = -psi_average_norm_contrib(i)
+   iorder(i) = i
+ enddo
+ call dsort(psi_average_norm_contrib_sorted,iorder,N_det)
+ !DIR$ IVDEP
+ do i=1,N_det
+  do j=1,N_int
+    psi_det_sorted(j,1,i) = psi_det(j,1,iorder(i))
+    psi_det_sorted(j,2,i) = psi_det(j,2,iorder(i))
+  enddo
+  do k=1,N_states
+    psi_coef_sorted(i,k) = psi_coef(iorder(i),k)
+  enddo
+  psi_average_norm_contrib_sorted(i) = -psi_average_norm_contrib_sorted(i)
+ enddo
+
+ deallocate(iorder)
+
+END_PROVIDER
+
