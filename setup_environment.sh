@@ -6,8 +6,6 @@
 
 QPACKAGE_ROOT=${PWD}
 
-IRPF90=$(which irpf90) 
-
 if [[ -z ${IRPF90} ]] ;
 then
     make irpf90

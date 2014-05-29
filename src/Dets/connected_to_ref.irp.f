@@ -32,6 +32,9 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       endif
       if (degree_x2 > 5) then
         cycle
+      else
+        connected_to_ref = i
+        return
       endif
     enddo
     
@@ -64,6 +67,9 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       endif
       if (degree_x2 > 5) then
         cycle
+      else
+        connected_to_ref = i
+        return
       endif
     enddo
     
@@ -101,6 +107,9 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       endif
       if (degree_x2 > 5) then
         cycle
+      else
+        connected_to_ref = i
+        return
       endif
     enddo
     
@@ -140,6 +149,9 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       endif
       if (degree_x2 > 5) then
         cycle
+      else
+        connected_to_ref = i
+        return
       endif
     enddo
     

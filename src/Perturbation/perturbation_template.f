@@ -13,7 +13,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   integer(bit_kind), intent(in)  :: buffer(Nint,2,buffer_size)
   double precision, intent(inout) :: sum_norm_pert(N_st),sum_e_2_pert(N_st)
   double precision, intent(inout) :: coef_pert_buffer(N_st,buffer_size),e_2_pert_buffer(N_st,buffer_size),sum_H_pert_diag(N_st)
-  double precision               :: c_pert(N_st), e_2_pert(N_st), H_pert_diag
+  double precision               :: c_pert(N_st), e_2_pert(N_st),  H_pert_diag(N_st)
   integer                        :: i,k, c_ref
   integer                        :: connected_to_ref
   
@@ -38,7 +38,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
       coef_pert_buffer(k,i) = c_pert(k)
       sum_norm_pert(k) += c_pert(k) * c_pert(k)
       sum_e_2_pert(k) += e_2_pert(k)
-      sum_H_pert_diag(k) += c_pert(k) * c_pert(k) * H_pert_diag
+      sum_H_pert_diag(k) += c_pert(k) * c_pert(k) * H_pert_diag(k)
     enddo
     
   enddo

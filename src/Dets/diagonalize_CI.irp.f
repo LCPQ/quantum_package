@@ -22,8 +22,12 @@ BEGIN_PROVIDER [ double precision, CI_energy, (N_states) ]
   END_DOC
   
   integer                        :: j
+  character*(8)                  :: st
+  call write_time(output_Dets)
   do j=1,N_states
     CI_energy(j) = CI_electronic_energy(j) + nuclear_repulsion
+    write(st,'(I4)') j
+    call write_double(output_Dets,CI_energy(j),'Energy of state '//trim(st))
   enddo
 
 END_PROVIDER
