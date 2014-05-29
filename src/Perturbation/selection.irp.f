@@ -33,10 +33,9 @@ subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,c
 
     is_selected = .False.
     do j=1,N_st
-      s = dabs(e_2_pert_buffer(j,i))
+      s = -e_2_pert_buffer(j,i)
       is_selected = s > selection_criterion*selection_criterion_factor .or. is_selected
     enddo
-    ASSERT (s>=-1.d-8)
     
      
     if (is_selected) then
@@ -60,8 +59,10 @@ subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,c
     ASSERT (sum(popcnt(h_apply_buffer(iproc)%det(:,1,i)) )== elec_alpha_num)
     ASSERT (sum(popcnt(h_apply_buffer(iproc)%det(:,2,i))) == elec_beta_num)
   enddo
-  selection_criterion = smax
-  selection_criterion_min = smin
+  !$OMP CRITICAL
+  selection_criterion = max(selection_criterion,smax)
+  selection_criterion_min = min(selection_criterion_min,smin)
+  !$OMP END CRITICAL
 end
 
  BEGIN_PROVIDER [ double precision, selection_criterion ]
@@ -84,17 +85,32 @@ subroutine remove_small_contributions
 !  provided.
   END_DOC
   integer :: i,j,k, N_removed
-  logical keep
+  logical, allocatable :: keep(:)
   double precision :: i_H_psi_array(N_states)
-  k = 0
-  N_removed = 0
-  do i=N_det, 50
-    call i_H_psi(psi_det_sorted(1,1,i),psi_det_sorted,psi_coef_sorted,N_int,N_det,psi_det_size,N_states,i_H_psi_array)
-    keep = .False.
+  allocate (keep(N_det))
+  call diagonalize_CI
+  do i=1,N_det
+    keep(i) = .True.
+  enddo
+  !$OMP PARALLEL DEFAULT(NONE) &
+  !$OMP PRIVATE(i,j,i_H_psi_array) &
+  !$OMP SHARED(k,psi_det_sorted,psi_coef_sorted,N_int,N_det,psi_det_size,N_states, &
+  !$OMP   selection_criterion_min,keep,N_det_generators) &
+  !$OMP REDUCTION(+:N_removed)
+  !$OMP DO
+  do i=2*N_det_generators+1, N_det
+    call i_H_psi(psi_det_sorted(1,1,i),psi_det_sorted,psi_coef_sorted,N_int,min(N_det,2*N_det_generators),psi_det_size,N_states,i_H_psi_array)
+    keep(i) = .False.
     do j=1,N_states
-      keep = keep .or. (dabs(psi_coef_sorted(i,j)*i_H_psi_array(j)) > selection_criterion_min)
+      keep(i) = keep(i) .or. (-(psi_coef_sorted(i,j)*i_H_psi_array(j)) > selection_criterion_min)
     enddo
-    if (keep) then
+  enddo
+  !$OMP END DO
+  !$OMP END PARALLEL
+  N_removed = 0
+  k = 0
+  do i=1, N_det
+    if (keep(i)) then
       k += 1
       do j=1,N_int
          psi_det(j,1,k) = psi_det_sorted(j,1,i)
@@ -107,10 +123,12 @@ subroutine remove_small_contributions
       N_removed += 1
     endif
   enddo
+  deallocate(keep)
   if (N_removed > 0) then
+    N_det = N_det - N_removed
+    SOFT_TOUCH N_det psi_det psi_coef 
     call write_int(output_dets,N_removed, 'Removed determinants')
   endif
-  SOFT_TOUCH N_det psi_det psi_coef
 end
 
 
