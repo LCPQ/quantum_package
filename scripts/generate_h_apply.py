@@ -123,7 +123,8 @@ class H_apply(object):
         sum_norm_pert(k) = 0.d0
         sum_H_pert_diag(k) = 0.d0
       enddo
-      """
+      """ 
+
       self.data["deinit_thread"] = """
       !$OMP CRITICAL
       do k=1,N_st
@@ -136,7 +137,7 @@ class H_apply(object):
       """
       self.data["size_max"] = "256" 
       self.data["initialization"] = """
-      PROVIDE CI_electronic_energy psi_selectors_coef psi_selectors
+      PROVIDE CI_electronic_energy psi_selectors_coef psi_selectors E_corr_per_selectors
       """
       self.data["keys_work"] = """
       call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &

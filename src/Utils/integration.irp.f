@@ -151,7 +151,7 @@ subroutine gaussian_product(a,xa,b,xb,k,p,xp)
     k=0.d0
     return
   endif
-  k = exp(-k)
+  k = dexp(-k)
   xp(1) = (a*xa(1)+b*xb(1))*p_inv
   xp(2) = (a*xa(2)+b*xb(2))*p_inv
   xp(3) = (a*xa(3)+b*xb(3))*p_inv
@@ -398,7 +398,11 @@ double precision function rint(n,rho)
   else
     if(n.le.20)then
       u_inv=1.d0/dsqrt(rho)
-      v=dexp(-rho)
+      if(rho.gt.80.d0)then
+       v=0.d0
+      else
+       v=dexp(-rho)
+      endif
       u=rho*u_inv
       two_rho_inv = 0.5d0*u_inv*u_inv
       val0=0.5d0*u_inv*sqpi*erf(u)
@@ -444,7 +448,12 @@ double precision function rint_sum(n_pt_out,rho,d1)
     
   else
     
-    v=dexp(-rho)
+    if(rho.gt.80.d0)then
+     v=0.d0
+    else
+     v=dexp(-rho)
+    endif
+     
     u_inv=1.d0/dsqrt(rho)
     u=rho*u_inv
     two_rho_inv = 0.5d0*u_inv*u_inv

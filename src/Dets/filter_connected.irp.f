@@ -221,6 +221,7 @@ subroutine filter_connected_i_H_psi0_SC2(key1,key2,Nint,sze,idx,idx_repeat)
   l_repeat=1
   call get_excitation_degree(ref_bitmask,key2,degree,Nint)
   integer :: degree
+  ASSERT (degree .ne. 0)
   
   if(degree == 2)then
    if (Nint==1) then
@@ -235,7 +236,7 @@ subroutine filter_connected_i_H_psi0_SC2(key1,key2,Nint,sze,idx,idx_repeat)
             idx(l) = i
             l = l+1
           endif
-        elseif(degree>6)then
+        elseif(degree_x2>6)then
          idx_repeat(l_repeat) = i
          l_repeat = l_repeat + 1
         endif
@@ -254,7 +255,7 @@ subroutine filter_connected_i_H_psi0_SC2(key1,key2,Nint,sze,idx,idx_repeat)
            idx(l) = i
            l = l+1
          endif
-       elseif(degree>6)then
+       elseif(degree_x2>6)then
          idx_repeat(l_repeat) = i
          l_repeat = l_repeat + 1
        endif
@@ -275,7 +276,7 @@ subroutine filter_connected_i_H_psi0_SC2(key1,key2,Nint,sze,idx,idx_repeat)
            idx(l) = i
            l = l+1
          endif
-       elseif(degree>6)then
+       elseif(degree_x2>6)then
          idx_repeat(l_repeat) = i
          l_repeat = l_repeat + 1
        endif
@@ -299,7 +300,7 @@ subroutine filter_connected_i_H_psi0_SC2(key1,key2,Nint,sze,idx,idx_repeat)
            idx(l) = i
            l = l+1
          endif
-       elseif(degree>6)then
+       elseif(degree_x2>6)then
          idx_repeat(l_repeat) = i
          l_repeat = l_repeat + 1
        endif
@@ -392,11 +393,13 @@ subroutine filter_connected_i_H_psi0_SC2(key1,key2,Nint,sze,idx,idx_repeat)
    endif
 
   else 
-   print*,'more than a double excitation, can not apply the '
-   print*,'SC2 dressing of the diagonal element .....'
-   print*,'stop !!'
-   print*,'degree = ',degree
-   stop
+!  print*,'more than a double excitation, can not apply the '
+!  print*,'SC2 dressing of the diagonal element .....'
+!  print*,'stop !!'
+!  print*,'degree = ',degree
+!  stop
+  idx(0) = 0
+  idx_repeat(0) = 0
   endif
   idx(0) = l-1
   idx_repeat(0) = l_repeat-1

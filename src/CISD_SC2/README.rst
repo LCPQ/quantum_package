@@ -1,13 +1,14 @@
-CISD
-====
+===============
+CISD_SC2 Module
+===============
 
-This is a test directory which builds a CISD by setting the follwoing rules:
+Documentation
+=============
 
-* The only generator determinant is the Hartee-Fock (single-reference method)
-* All generated determinants are included in the wave function (no perturbative
-  selection)
+.. Do not edit this section. It was auto-generated from the
+.. NEEDED_MODULES file.
 
-These rules are set in the ``H_apply.irp.f`` file.
+
 
 Needed Modules
 ==============
@@ -18,6 +19,7 @@ Needed Modules
 * `AOs <http://github.com/LCPQ/quantum_package/tree/master/src/AOs>`_
 * `BiInts <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts>`_
 * `Bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask>`_
+* `CISD <http://github.com/LCPQ/quantum_package/tree/master/src/CISD>`_
 * `Dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets>`_
 * `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_
 * `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
@@ -28,15 +30,5 @@ Needed Modules
 * `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
 * `SingleRefMethod <http://github.com/LCPQ/quantum_package/tree/master/src/SingleRefMethod>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
-
-Documentation
-=============
-
-.. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
-
-`cisd <http://github.com/LCPQ/quantum_package/tree/master/src/CISD/cisd_lapack.irp.f#L1>`_
-  Undocumented
-
-
+* `Selectors_full <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full>`_
 

@@ -38,7 +38,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
       coef_pert_buffer(k,i) = c_pert(k)
       sum_norm_pert(k) += c_pert(k) * c_pert(k)
       sum_e_2_pert(k) += e_2_pert(k)
-      sum_H_pert_diag(k) += c_pert(k) * c_pert(k) * H_pert_diag(k)
+      sum_H_pert_diag(k) +=  H_pert_diag(k)
     enddo
     
   enddo

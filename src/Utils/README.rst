@@ -46,6 +46,18 @@ Documentation
   m : Coefficients matrix is MxN, ( array is (LDC,N) )
   .br
 
+`abort_all <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/abort.irp.f#L1>`_
+  If True, all the calculation is aborted
+
+`abort_here <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/abort.irp.f#L10>`_
+  If True, all the calculation is aborted
+
+`control_c <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/abort.irp.f#L32>`_
+  What to do on Ctrl-C. If two Ctrl-C are pressed within 1 sec, the calculation if aborted.
+
+`trap_signals <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/abort.irp.f#L18>`_
+  What to do when a signal is caught. Here, trap Ctrl-C and call the control_C subroutine.
+
 `add_poly <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L243>`_
   Add two polynomials
   D(t) =! D(t) +( B(t)+C(t))
@@ -80,7 +92,7 @@ Documentation
   into
   fact_k  (x-x_P)^iorder(1)  (y-y_P)^iorder(2)  (z-z_P)^iorder(3) exp(-p(r-P)^2)
 
-`hermite <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L468>`_
+`hermite <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L472>`_
   Hermite polynomial
 
 `multiply_poly <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L201>`_
@@ -96,13 +108,13 @@ Documentation
   \int_0^1 dx \exp(-p x^2) x^n
   .br
 
-`rint1 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L524>`_
+`rint1 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L528>`_
   Standard version of rint
 
-`rint_large_n <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L493>`_
+`rint_large_n <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L497>`_
   Version of rint for large values of n
 
-`rint_sum <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L417>`_
+`rint_sum <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L421>`_
   Needed for the calculation of two-electron integrals.
 
 `overlap_gaussian_x <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/one_e_integration.irp.f#L1>`_

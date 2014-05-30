@@ -51,9 +51,10 @@ Documentation
 .. NEEDED_MODULES file.
 
 `copy_h_apply_buffer_to_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L113>`_
-  Undocumented
+  Copies the H_apply buffer to psi_coef. You need to touch psi_det, psi_coef and N_det
+  after calling this function.
 
-`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L197>`_
+`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L199>`_
   Fill the H_apply buffer with determiants for CISD
 
 `h_apply_buffer_allocated <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L14>`_
@@ -69,18 +70,18 @@ Documentation
 `connected_to_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connected_to_ref.irp.f#L1>`_
   Undocumented
 
-`det_is_not_or_may_be_in_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connected_to_ref.irp.f#L196>`_
+`det_is_not_or_may_be_in_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connected_to_ref.irp.f#L188>`_
   If true, det is not in ref
   If false, det may be in ref
 
-`key_pattern_not_in_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connected_to_ref.irp.f#L229>`_
+`key_pattern_not_in_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connected_to_ref.irp.f#L222>`_
   Min and max values of the integers of the keys of the reference
 
-`davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L375>`_
+`davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L381>`_
   True if the Davidson algorithm is converged
 
-`davidson_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L365>`_
-  Can be : [  energy  | residual | both ]
+`davidson_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L371>`_
+  Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
 `davidson_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L18>`_
   Davidson diagonalization.
@@ -126,23 +127,40 @@ Documentation
 `davidson_sze_max <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L9>`_
   Max number of Davidson sizes
 
-`davidson_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L366>`_
-  Can be : [  energy  | residual | both ]
+`davidson_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L372>`_
+  Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
-`n_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L11>`_
+`n_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L20>`_
   Number of determinants in the wave function
+
+`n_det_reference <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L75>`_
+  Number of determinants in the reference wave function
 
 `n_states <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L3>`_
   Number of states to consider
 
-`psi_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L28>`_
-  The wave function. Initialized with Hartree-Fock
+`psi_average_norm_contrib <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L84>`_
+  Contribution of determinants to the state-averaged density
 
-`psi_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L27>`_
-  The wave function. Initialized with Hartree-Fock
+`psi_average_norm_contrib_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L105>`_
+  Wave function sorted by determinants (state-averaged)
 
-`psi_det_size <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L19>`_
+`psi_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L47>`_
+  The wave function. Initialized with Hartree-Fock if the EZFIO file
+  is empty
+
+`psi_coef_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L104>`_
+  Wave function sorted by determinants (state-averaged)
+
+`psi_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L46>`_
+  The wave function. Initialized with Hartree-Fock if the EZFIO file
+  is empty
+
+`psi_det_size <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L38>`_
   Size of the psi_det/psi_coef arrays
+
+`psi_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L103>`_
+  Wave function sorted by determinants (state-averaged)
 
 `double_exc_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants_bitmasks.irp.f#L40>`_
   double_exc_bitmask(:,1,i) is the bitmask for holes of excitation 1
@@ -161,6 +179,22 @@ Documentation
   single_exc_bitmask(:,1,i) is the bitmask for holes
   single_exc_bitmask(:,2,i) is the bitmask for particles
   for a given couple of hole/particle excitations i.
+
+`ci_eigenvectors <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/diagonalize_CI.irp.f#L36>`_
+  Eigenvectors/values of the CI matrix
+
+`ci_electronic_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/diagonalize_CI.irp.f#L35>`_
+  Eigenvectors/values of the CI matrix
+
+`ci_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/diagonalize_CI.irp.f#L18>`_
+  N_states lowest eigenvalues of the CI matrix
+
+`diag_algorithm <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/diagonalize_CI.irp.f#L1>`_
+  Diagonalization algorithm (Davidson or Lapack)
+
+`diagonalize_ci <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/diagonalize_CI.irp.f#L73>`_
+  Replace the coefficients of the CI states by the coefficients of the
+  eigenstates of the CI matrix
 
 `filter_connected <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/filter_connected.irp.f#L2>`_
   Filters out the determinants that are not connected by H
