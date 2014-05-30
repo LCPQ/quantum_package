@@ -2,9 +2,8 @@ program cisd
   implicit none
   integer :: i
 
-  N_states = 3
   diag_algorithm = "Lapack"
-  touch N_states diag_algorithm
+  touch diag_algorithm
   print *,   'HF      = ', HF_energy
   print *,  'N_states = ', N_states
   call H_apply_cisd
@@ -14,8 +13,4 @@ program cisd
    print *,  'E_corr  = ',CI_electronic_energy(i) - ref_bitmask_energy
   enddo
 
-! call CISD_SC2(psi_det,psi_coef,eigvalues,size(psi_coef,1),N_det,N_states,N_int)
-! do i = 1, N_states
-!  print*,'eigvalues(i) = ',eigvalues(i)
-! enddo
 end

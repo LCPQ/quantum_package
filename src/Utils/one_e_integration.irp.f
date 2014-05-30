@@ -55,7 +55,7 @@ subroutine overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,&
   integer                        :: iorder_p(3)
   
   call give_explicit_poly_and_gaussian(P_new,P_center,p,fact_p,iorder_p,alpha,beta,power_A,power_B,A_center,B_center,dim)
-  if(fact_p.lt.0.000001d0)then
+  if(fact_p.lt.1d-10)then
     overlap_x = 0.d0
     overlap_y = 0.d0
     overlap_z = 0.d0
@@ -122,6 +122,10 @@ subroutine overlap_x_abs(A_center,B_center,alpha,beta,power_A,power_B,overlap_x,
   rho = alpha * beta * p_inv
   dist = (A_center - B_center)*(A_center - B_center)
   P_center = (alpha * A_center + beta * B_center) * p_inv
+  if(rho*dist.gt.80.d0)then
+   overlap_x= 0.d0
+   return
+  endif
   factor = dexp(-rho * dist)
   
   double precision               :: tmp

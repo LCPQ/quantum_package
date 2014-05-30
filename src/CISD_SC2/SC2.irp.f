@@ -1,4 +1,4 @@
-subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
+subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -17,7 +17,7 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
   !
   ! Initial guess vectors are not necessarily orthonormal
   END_DOC
-  integer, intent(in)            :: dim_in, sze, N_st, Nint
+  integer, intent(in)            :: dim_in, sze, N_st, Nint,iunit
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision, intent(inout) :: u_in(dim_in,N_st)
   double precision, intent(out)  :: energies(N_st)
@@ -38,11 +38,22 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
   double precision               :: e_corr_double_before,accu,cpu_2,cpu_1
   integer                        :: degree_exc(sze)
   integer                        :: i_ok
+  double precision, allocatable  :: eigenvectors(:,:), eigenvalues(:),H_matrix_tmp(:,:)
+  if(sze<500)then
+   allocate (eigenvectors(size(H_matrix_all_dets,1),N_det))
+   allocate (H_matrix_tmp(size(H_matrix_all_dets,1),N_det))
+   allocate (eigenvalues(N_det))
+   do i = 1, sze
+    do j = 1, sze
+     H_matrix_tmp(i,j) = H_matrix_all_dets(i,j)
+    enddo
+   enddo
+  endif
   
-  call write_time(output_CISD)
-  write(output_CISD,'(A)') ''
-  write(output_CISD,'(A)') 'CISD SC2'
-  write(output_CISD,'(A)') '========'
+  call write_time(output_CISD_SC2)
+  write(output_CISD_SC2,'(A)') ''
+  write(output_CISD_SC2,'(A)') 'CISD SC2'
+  write(output_CISD_SC2,'(A)') '========'
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP  SHARED(sze,N_st,                                        &
       !$OMP  H_jj_ref,Nint,dets_in,u_in)                             &
@@ -108,25 +119,40 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
       H_jj_dressed(i) += accu
     enddo
     
-    call davidson_diag_hjj(dets_in,u_in,H_jj_dressed,energies,dim_in,sze,N_st,Nint,output_CISD)
+    if(sze>500)then
+     call davidson_diag_hjj(dets_in,u_in,H_jj_dressed,energies,dim_in,sze,N_st,Nint,output_CISD_SC2)
+    else
+     do i = 1,sze
+      H_matrix_tmp(i,i) = H_jj_dressed(i)
+     enddo
+     call lapack_diag(eigenvalues,eigenvectors,                       &
+         H_matrix_tmp,size(H_matrix_all_dets,1),N_det)
+     do j=1,min(N_states,sze)
+       do i=1,sze
+         u_in(i,j) = eigenvectors(i,j)
+       enddo
+       energies(j) = eigenvalues(j)
+     enddo
+    endif
+
     e_corr_double = 0.d0
     inv_c0 = 1.d0/u_in(index_hf,1)
     do i = 1, N_double
       e_corr_array(i) = u_in(index_double(i),1)*inv_c0 * hij_double(i)
       e_corr_double += e_corr_array(i)
     enddo
-    write(output_CISD,'(A,I3)') 'SC2 Iteration ', iter
-    write(output_CISD,'(A)') '------------------'
-    write(output_CISD,'(A)') ''
-    write(output_CISD,'(A)') '===== ================'
-    write(output_CISD,'(A)') 'State Energy          '
-    write(output_CISD,'(A)') '===== ================'
+    write(output_CISD_SC2,'(A,I3)') 'SC2 Iteration ', iter
+    write(output_CISD_SC2,'(A)') '------------------'
+    write(output_CISD_SC2,'(A)') ''
+    write(output_CISD_SC2,'(A)') '===== ================'
+    write(output_CISD_SC2,'(A)') 'State Energy          '
+    write(output_CISD_SC2,'(A)') '===== ================'
     do i=1,N_st
-      write(output_CISD,'(I5,X,F16.10)') i, energies(i)+nuclear_repulsion
+      write(output_CISD_SC2,'(I5,X,F16.10)') i, energies(i)+nuclear_repulsion
     enddo
-    write(output_CISD,'(A)') '===== ================'
-    write(output_CISD,'(A)') ''
-    call write_double(output_CISD,(e_corr_double - e_corr_double_before),&
+    write(output_CISD_SC2,'(A)') '===== ================'
+    write(output_CISD_SC2,'(A)') ''
+    call write_double(output_CISD_SC2,(e_corr_double - e_corr_double_before),&
         'Delta(E_corr)')
     converged =  dabs(e_corr_double - e_corr_double_before) < 1.d-10
     if (converged) then
@@ -136,7 +162,7 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint)
     
   enddo
   
-  call write_time(output_CISD)
+  call write_time(output_CISD_SC2)
   
 end
 
@@ -187,3 +213,4 @@ subroutine repeat_excitation(key_in,key_1,key_2,i_ok,Nint)
     return
   endif
 end
+

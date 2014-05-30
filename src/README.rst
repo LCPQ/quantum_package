@@ -131,6 +131,14 @@ Needed Modules
 * `CISD <http://github.com/LCPQ/quantum_package/tree/master/src/CISD>`_
 * `Perturbation <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation>`_
 * `SingleRefMethod <http://github.com/LCPQ/quantum_package/tree/master/src/SingleRefMethod>`_
+* `CISD_selected <http://github.com/LCPQ/quantum_package/tree/master/src/CISD_selected>`_
+* `Selectors_full <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full>`_
+* `MP2 <http://github.com/LCPQ/quantum_package/tree/master/src/MP2>`_
+* `Generators_full <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full>`_
+* `Full_CI <http://github.com/LCPQ/quantum_package/tree/master/src/Full_CI>`_
+* `CISD_SC2_selected <http://github.com/LCPQ/quantum_package/tree/master/src/CISD_SC2_selected>`_
+* `CISD_SC2_selected <http://github.com/LCPQ/quantum_package/tree/master/src/CISD_SC2_selected>`_
+* `CISD_SC2 <http://github.com/LCPQ/quantum_package/tree/master/src/CISD_SC2>`_
 
 Documentation
 =============

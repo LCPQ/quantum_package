@@ -116,6 +116,10 @@ include 'constants.F'
   enddo
   const_factor = dist*rho
   const = p * dist_integral
+  if(const_factor.ge.80.d0)then
+   NAI_pol_mult = 0.d0
+   return
+  endif
   factor = dexp(-const_factor)
   coeff = dtwo_pi * factor * p_inv
   lmax = 20
