@@ -868,9 +868,11 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
         call filter_connected_davidson(keys_tmp,keys_tmp(1,1,i),Nint,i-1,idx)
         do jj=1,idx(0)
           j = idx(jj)
-          call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
-          vt (i) = vt (i) + hij*u_0(j)
-          vt (j) = vt (j) + hij*u_0(i)
+          if ( (dabs(u_0(j)) > 1.d-7).or.((dabs(u_0(i)) > 1.d-7)) ) then
+            call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
+            vt (i) = vt (i) + hij*u_0(j)
+            vt (j) = vt (j) + hij*u_0(i)
+          endif
         enddo
   enddo
   !$OMP END DO

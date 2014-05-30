@@ -77,6 +77,12 @@ Documentation
 `key_pattern_not_in_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connected_to_ref.irp.f#L222>`_
   Min and max values of the integers of the keys of the reference
 
+`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connections.irp.f#L10>`_
+  .br
+
+`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connections.irp.f#L2>`_
+  Number of integers to represent the connections between determinants
+
 `davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L383>`_
   True if the Davidson algorithm is converged
 
@@ -228,15 +234,7 @@ Documentation
   idx(0) is the number of determinants that interact with key1
 
 `filter_connected_i_h_psi0_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/filter_connected.irp.f#L310>`_
-  standard filter_connected_i_H_psi but returns in addition
-  .br
-  the array of the index of the non connected determinants to key1
-  .br
-  in order to know what double excitation can be repeated on key1
-  .br
-  idx_repeat(0) is the number of determinants that can be used
-  .br
-  to repeat the excitations
+  Undocumented
 
 `get_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/s2.irp.f#L1>`_
   Returns <S^2>
