@@ -503,7 +503,7 @@ subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   double precision               :: hij
   integer                        :: idx(0:Ndet)
   BEGIN_DOC
-  ! <key|H|psi> for the various Nstate
+  ! <key|H|psi> for the various Nstates
   END_DOC
   
   ASSERT (Nint > 0)

@@ -214,7 +214,6 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
       occ_hole_tmp)
   $omp_end_parallel
   $finalization
-  abort_here = abort_all
 end
 
 subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator $parameters )
@@ -344,7 +343,9 @@ subroutine $subroutine($params_main)
   
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map N_det_reference psi_generators
   integer                        :: i_generator, k
+  double precision               :: wall_0, wall_1, wall_2
   
+  call wall_time(wall_1)
   do i_generator=1,N_det_generators
     call $subroutine_diexc(psi_generators(1,1,i_generator),          &
         generators_bitmask(1,1,d_hole1,i_bitmask_gen),               &
@@ -358,6 +359,12 @@ subroutine $subroutine($params_main)
         i_generator $params_post)
     if (abort_here) then
       exit
+    endif
+    call wall_time(wall_2)
+    $printout_always
+    if (wall_2 - wall_0 > 2.d0) then
+        wall_0 = wall_2
+        $printout_now
     endif
   enddo
   

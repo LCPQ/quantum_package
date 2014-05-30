@@ -17,6 +17,8 @@ copy_buffer
 finalization
 generate_psi_guess
 init_thread
+printout_now
+printout_always
 deinit_thread
 """.split()
 
@@ -84,6 +86,8 @@ class H_apply(object):
         s[k] = ""
     s["size_max"] = str(1024*128) 
     s["copy_buffer"] = "call copy_h_apply_buffer_to_wf"
+    s["printout_now"]   = """write(output_Dets,*)  &
+       100.*float(i_generator)/float(N_det_generators), '% in ', wall_2-wall_1, 's'"""
     self.data = s
 
   def __setitem__(self,key,value):
@@ -154,14 +158,38 @@ class H_apply(object):
   double precision, intent(inout):: pt2(N_st) 
   double precision, intent(inout):: norm_pert(N_st) 
   double precision, intent(inout):: H_pert_diag(N_st)
+  double precision               :: delta_pt2(N_st), norm_psi(N_st), pt2_old(N_st)
   PROVIDE CI_electronic_energy N_det_generators key_pattern_not_in_ref                                                                                                      
   do k=1,N_st
     pt2(k) = 0.d0
     norm_pert(k) = 0.d0
     H_pert_diag(k) = 0.d0
+    norm_psi(k) = 0.d0
+    delta_pt2(k) = 0.d0
+    pt2_old(k) = 0.d0
   enddo
+        write(output_Dets,'(A12, X, A8, 3(2X, A9), 2X, A8, 2X, A8, 2X, A8)') &
+                 'N_generators', 'Norm', 'Delta PT2', 'PT2', 'Est. PT2', 'secs'
+        write(output_Dets,'(A12, X, A8, 3(2X, A9), 2X, A8, 2X, A8, 2X, A8)') &
+                 '============', '========', '=========', '=========', '=========', &
+                 '========='
       """ 
 
+      self.data["printout_always"] = """
+      do k=1,N_st
+        norm_psi(k) = norm_psi(k) + psi_coef(i_generator,k)*psi_coef(i_generator,k)
+        delta_pt2(k) = pt2(k) - pt2_old(k)
+      enddo
+      """
+      self.data["printout_now"] = """
+      do k=1,N_st
+        write(output_Dets,'(I10, 4(2X, F9.6), 2X, F8.1)') &
+                 i_generator, norm_psi(k), delta_pt2(k), pt2(k), &
+                 pt2(k)/norm_psi(k), &
+                 wall_2-wall_1
+         pt2_old(k) = pt2(k)
+      enddo
+      """
       if self.openmp:
         self.data["omp_parallel"]    += """&
  !$OMP SHARED(N_st) PRIVATE(e_2_pert_buffer,coef_pert_buffer) &
