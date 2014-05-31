@@ -5,6 +5,9 @@ program cisd
   print *,   'HF      = ', HF_energy
   print *,  'N_states = ', N_states
   call H_apply_cisd
+! do i=1,N_det
+!   print '(100(X,O32))',  det_connections(:,i)
+! enddo
   print *,  'N_det = ', N_det
   do i = 1,N_states
    print *,  'energy  = ',CI_energy(i) 

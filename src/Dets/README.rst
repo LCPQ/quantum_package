@@ -77,10 +77,10 @@ Documentation
 `key_pattern_not_in_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connected_to_ref.irp.f#L222>`_
   Min and max values of the integers of the keys of the reference
 
-`davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L381>`_
+`davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L383>`_
   True if the Davidson algorithm is converged
 
-`davidson_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L371>`_
+`davidson_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L373>`_
   Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
 `davidson_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L18>`_
@@ -127,7 +127,7 @@ Documentation
 `davidson_sze_max <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L9>`_
   Max number of Davidson sizes
 
-`davidson_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L372>`_
+`davidson_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L374>`_
   Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
 `n_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L20>`_
@@ -207,7 +207,9 @@ Documentation
   .br
   idx(0) is the number of determinants that interact with key1
 
-`filter_connected_i_h_psi0 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/filter_connected.irp.f#L94>`_
+`filter_connected_davidson <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/filter_connected.irp.f#L101>`_
+  Filters out the determinants that are not connected by H
+  .br
   returns the array idx which contains the index of the
   .br
   determinants in the array key1 that interact
@@ -216,7 +218,16 @@ Documentation
   .br
   idx(0) is the number of determinants that interact with key1
 
-`filter_connected_i_h_psi0_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/filter_connected.irp.f#L193>`_
+`filter_connected_i_h_psi0 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/filter_connected.irp.f#L233>`_
+  returns the array idx which contains the index of the
+  .br
+  determinants in the array key1 that interact
+  .br
+  via the H operator with key2.
+  .br
+  idx(0) is the number of determinants that interact with key1
+
+`filter_connected_i_h_psi0_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/filter_connected.irp.f#L332>`_
   standard filter_connected_i_H_psi but returns in addition
   .br
   the array of the index of the non connected determinants to key1
@@ -251,6 +262,9 @@ Documentation
   p1,p2 : Particles
   s1,s2 : Spins (1:alpha, 2:beta)
   degree : Degree of excitation
+
+`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L898>`_
+  .br
 
 `diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L659>`_
   Computes <i|H|i>
@@ -298,6 +312,9 @@ Documentation
   idx_repeat(0) is the number of determinants that can be used
   .br
   to repeat the excitations
+
+`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L890>`_
+  Number of integers to represent the connections between determinants
 
 `h_matrix_all_dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/utils.irp.f#L1>`_
   H matrix on the basis of the slater deter;inants defined by psi_det

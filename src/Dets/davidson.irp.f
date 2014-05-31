@@ -114,6 +114,8 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   double precision               :: to_print(2,N_st)
   double precision               :: cpu, wall
   
+  PROVIDE N_con_int det_connections
+
   call write_time(iunit)
   call wall_time(wall)
   call cpu_time(cpu)
