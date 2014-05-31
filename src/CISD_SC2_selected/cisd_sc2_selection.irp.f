@@ -18,12 +18,16 @@ program cisd_sc2_selected
     call H_apply_cisd_selection(perturbation,pt2, norm_pert, H_pert_diag,  N_st)
     call diagonalize_CI_SC2
     print *,  'N_det                        = ', N_det
-    print *,  'PT2(SC2)                     = ', pt2
-    print *,  'E(SC2)                       = ', CI_SC2_energy(1) 
-    print *,  'E_before(SC2)+PT2(SC2)       = ', (E_old(1)+pt2(1))
-    print *,  'E(SC2)+PT2(projctd)SC2       = ', (E_old(1)+H_pert_diag(1)) 
+    do i = 1, N_st
+     print *,  'PT2(SC2)                     = ', pt2(i)
+     print *,  'E(SC2)                       = ', CI_SC2_energy(i) 
+     print *,  'E_before(SC2)+PT2(SC2)       = ', (E_old(i)+pt2(i))
+     if(i==1)then
+      print *,  'E(SC2)+PT2(projctd)SC2       = ', (E_old(i)+H_pert_diag(i)) 
+     endif
+    enddo
 !   print *,  'E corr           = ', (E_old(1)) - HF_energy
-    E_old(1) = CI_SC2_energy(1)
+    E_old = CI_SC2_energy
     if (abort_all) then
       exit
     endif
