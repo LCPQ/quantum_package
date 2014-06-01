@@ -1,20 +1,3 @@
-BEGIN_PROVIDER [ character*(64), diag_algorithm ]
-  implicit none
-  BEGIN_DOC
-  ! Diagonalization algorithm (Davidson or Lapack)
-  END_DOC
-  if (N_det > 500) then
-    diag_algorithm = "Davidson"
-  else
-    diag_algorithm = "Lapack"
-  endif
-
-  if (N_det < N_states) then
-    diag_algorithm = "Lapack"
-  endif
-  
-END_PROVIDER
-
 BEGIN_PROVIDER [ double precision, CI_SC2_energy, (N_states) ]
   implicit none
   BEGIN_DOC
@@ -46,7 +29,6 @@ END_PROVIDER
     enddo
     CI_SC2_electronic_energy(j) = CI_electronic_energy(j) 
   enddo
-  print*,'E(CISD) = ',CI_electronic_energy(1)
   
     
   call CISD_SC2(psi_det,CI_SC2_eigenvectors,CI_SC2_electronic_energy, &

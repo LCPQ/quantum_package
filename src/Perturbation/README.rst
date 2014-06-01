@@ -95,110 +95,29 @@ Documentation
 `pt2_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L1>`_
   compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
-  for the various n_st states.
+  for the various N_st states.
   .br
   c_pert(i) = <psi(i)|H|det_pert>/( E(i) - <det_pert|H|det_pert> )
   .br
   e_2_pert(i) = <psi(i)|H|det_pert>^2/( E(i) - <det_pert|H|det_pert> )
   .br
 
-`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L38>`_
+`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L40>`_
   compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
   .br
-  for the various n_st states.
+  for the various N_st states.
   .br
   e_2_pert(i) = 0.5 * (( <det_pert|H|det_pert> -  E(i) )  - sqrt( ( <det_pert|H|det_pert> -  E(i)) ^2 + 4 <psi(i)|H|det_pert>^2  )
   .br
   c_pert(i) = e_2_pert(i)/ <psi(i)|H|det_pert>
   .br
 
-`pt2_epstein_nesbet_2x2_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L129>`_
-  compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
-  .br
-  for the various n_st states.
-  .br
-  but  with the correction in the denominator
-  .br
-  comming from the interaction of that determinant with all the others determinants
-  .br
-  that can be repeated by repeating all the double excitations
-  .br
-  : you repeat all the correlation energy already taken into account in CI_electronic_energy(1)
-  .br
-  that could be repeated to this determinant.
-  .br
-  <det_pert|H|det_pert> --->  <det_pert|H|det_pert> + delta_e_corr
-  .br
-  e_2_pert(i) = 0.5 * (( <det_pert|H|det_pert> -  E(i) )  - sqrt( ( <det_pert|H|det_pert> -  E(i)) ^2 + 4 <psi(i)|H|det_pert>^2  )
-  .br
-  c_pert(i) = e_2_pert(i)/ <psi(i)|H|det_pert>
-  .br
-
-`pt2_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L75>`_
-  compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
-  .br
-  for the various n_st states,
-  .br
-  but  with the correction in the denominator
-  .br
-  comming from the interaction of that determinant with all the others determinants
-  .br
-  that can be repeated by repeating all the double excitations
-  .br
-  : you repeat all the correlation energy already taken into account in CI_electronic_energy(1)
-  .br
-  that could be repeated to this determinant.
-  .br
-  <det_pert|H|det_pert> --->  <det_pert|H|det_pert> + delta_e_corr
-  .br
-  c_pert(i) = <psi(i)|H|det_pert>/( E(i) - (<det_pert|H|det_pert> ) )
-  .br
-  e_2_pert(i) = <psi(i)|H|det_pert>^2/( E(i) - (<det_pert|H|det_pert> ) )
-  .br
-
-`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L185>`_
-  compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
-  .br
-  for the various n_st states,
-  .br
-  but  with the correction in the denominator
-  .br
-  comming from the interaction of that determinant with all the others determinants
-  .br
-  that can be repeated by repeating all the double excitations
-  .br
-  : you repeat all the correlation energy already taken into account in CI_electronic_energy(1)
-  .br
-  that could be repeated to this determinant.
-  .br
-  BUT on the contrary with ""pt2_epstein_nesbet_SC2"", you compute the energy by projection
-  .br
-  <det_pert|H|det_pert> --->  <det_pert|H|det_pert> + delta_e_corr
-  .br
-  c_pert(1) = 1/c_HF <psi(i)|H|det_pert>/( E(i) - (<det_pert|H|det_pert> ) )
-  .br
-  e_2_pert(1) = <HF|H|det_pert> c_pert(1)
-  .br
-  NOTE :::: if you satisfy Brillouin Theorem, the singles don't contribute !!
-  .br
-
-`fill_h_apply_buffer_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L2>`_
+`fill_h_apply_buffer_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L1>`_
   Fill the H_apply buffer with determiants for the selection
 
-`n_det_selectors <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L120>`_
-  Undocumented
-
-`psi_selectors <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L125>`_
-  On what we apply <i|H|psi> for perturbation. If selection, it may be 0.9 of the norm.
-
-`psi_selectors_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L126>`_
-  On what we apply <i|H|psi> for perturbation. If selection, it may be 0.9 of the norm.
-
-`psi_selectors_size <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L116>`_
-  Undocumented
-
 `remove_small_contributions <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L81>`_
-  Remove determinants with small contributions
+  Remove determinants with small contributions. N_states is assumed to be
+  provided.
 
 `selection_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L68>`_
   Threshold to select determinants. Set by selection routines.

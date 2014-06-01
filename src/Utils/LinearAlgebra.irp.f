@@ -201,6 +201,8 @@ subroutine lapack_diag(eigvalues,eigvectors,H,nmax,n)
   integer                        :: lwork, info, i,j,l,k, liwork
 
   allocate(A(nmax,n),eigenvalues(n))
+! print*,'Diagonalization by jacobi'
+! print*,'n = ',n
 
   A=H
   lwork = 2*n*n + 6*n+ 1

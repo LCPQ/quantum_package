@@ -72,7 +72,7 @@ end
  BEGIN_DOC
  ! Threshold to select determinants. Set by selection routines.
  END_DOC
- selection_criterion =  1.d0 
+ selection_criterion =  10.d0 
  selection_criterion_factor = 0.01d0
  selection_criterion_min = selection_criterion
 

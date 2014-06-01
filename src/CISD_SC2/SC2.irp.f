@@ -39,10 +39,10 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
   integer                        :: degree_exc(sze)
   integer                        :: i_ok
   double precision, allocatable  :: eigenvectors(:,:), eigenvalues(:),H_matrix_tmp(:,:)
-  if(sze<500)then
-   allocate (eigenvectors(size(H_matrix_all_dets,1),N_det))
-   allocate (H_matrix_tmp(size(H_matrix_all_dets,1),N_det))
-   allocate (eigenvalues(N_det))
+  if(sze.le.1000)then
+   allocate (eigenvectors(size(H_matrix_all_dets,1),sze))
+   allocate (H_matrix_tmp(size(H_matrix_all_dets,1),sze))
+   allocate (eigenvalues(sze))
    do i = 1, sze
     do j = 1, sze
      H_matrix_tmp(i,j) = H_matrix_all_dets(i,j)
@@ -119,14 +119,14 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
       H_jj_dressed(i) += accu
     enddo
     
-    if(sze>500)then
+    if(sze>1000)then
      call davidson_diag_hjj(dets_in,u_in,H_jj_dressed,energies,dim_in,sze,N_st,Nint,output_CISD_SC2)
     else
      do i = 1,sze
       H_matrix_tmp(i,i) = H_jj_dressed(i)
      enddo
      call lapack_diag(eigenvalues,eigenvectors,                       &
-         H_matrix_tmp,size(H_matrix_all_dets,1),N_det)
+         H_matrix_tmp,size(H_matrix_all_dets,1),sze)
      do j=1,min(N_states,sze)
        do i=1,sze
          u_in(i,j) = eigenvectors(i,j)

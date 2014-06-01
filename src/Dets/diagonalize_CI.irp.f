@@ -3,7 +3,7 @@ BEGIN_PROVIDER [ character*(64), diag_algorithm ]
   BEGIN_DOC
   ! Diagonalization algorithm (Davidson or Lapack)
   END_DOC
-  if (N_det > 500) then
+  if (N_det > N_det_max_jacobi) then
     diag_algorithm = "Davidson"
   else
     diag_algorithm = "Lapack"

@@ -35,6 +35,24 @@ BEGIN_PROVIDER [ integer, N_det ]
 END_PROVIDER
 
 
+BEGIN_PROVIDER [ integer, N_det_max_jacobi ]
+ implicit none
+ BEGIN_DOC
+ ! Maximum number of determinants diagonalized my jacobi
+ END_DOC
+ logical                        :: exists
+ PROVIDE ezfio_filename
+ call ezfio_has_determinants_n_det_max_jacobi(exists)
+ if (exists) then
+   call ezfio_get_determinants_n_det_max_jacobi(N_det_max_jacobi)
+ else
+   N_det_max_jacobi = 1500
+   call ezfio_set_determinants_n_det_max_jacobi(N_det_max_jacobi)
+ endif
+ ASSERT (N_det_max_jacobi > 0)
+END_PROVIDER
+
+
 BEGIN_PROVIDER [ integer, psi_det_size ]
  implicit none
  BEGIN_DOC

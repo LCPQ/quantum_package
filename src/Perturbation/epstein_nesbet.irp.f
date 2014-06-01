@@ -24,7 +24,10 @@ subroutine pt2_epstein_nesbet(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_s
   call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
   h = diag_H_mat_elem(det_pert,Nint)
   do i =1,N_st
-    if (dabs(CI_electronic_energy(i) - h) > 1.d-6) then
+    if(CI_electronic_energy(i)>h.and.CI_electronic_energy(i).ne.0.d0)then
+      c_pert(i) = -1.d0
+      e_2_pert(i) = selection_criterion*selection_criterion_factor*2.d0
+    else if  (dabs(CI_electronic_energy(i) - h) > 1.d-6) then
         c_pert(i) = i_H_psi_array(i) / (CI_electronic_energy(i) - h)
         H_pert_diag(i) = h*c_pert(i)*c_pert(i)
         e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
