@@ -15,7 +15,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   double precision, intent(inout) :: coef_pert_buffer(N_st,buffer_size),e_2_pert_buffer(N_st,buffer_size),sum_H_pert_diag(N_st)
   double precision               :: c_pert(N_st), e_2_pert(N_st),  H_pert_diag(N_st)
   integer                        :: i,k, c_ref
-  integer                        :: connected_to_ref
+  integer, external              :: connected_to_ref
   
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
@@ -24,7 +24,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   ASSERT (N_st > 0)
   do i = 1,buffer_size
 
-    c_ref = connected_to_ref(buffer(1,1,i),psi_generators,Nint,i_generator,N_det,h_apply_threshold)
+    c_ref = connected_to_ref(buffer(1,1,i),psi_generators,Nint,i_generator,N_det)
 
     if (c_ref /= 0) then
       cycle

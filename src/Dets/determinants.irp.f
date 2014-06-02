@@ -90,15 +90,6 @@ END_PROVIDER
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ integer, N_det_reference ]
- implicit none
- BEGIN_DOC
- ! Number of determinants in the reference wave function
- END_DOC
-   N_det_reference = N_det
- ASSERT (N_det_reference > 0)
-END_PROVIDER
-
 BEGIN_PROVIDER [ double precision, psi_average_norm_contrib, (N_det) ]
  implicit none
  BEGIN_DOC
@@ -123,7 +114,7 @@ END_PROVIDER
 &BEGIN_PROVIDER [ double precision, psi_average_norm_contrib_sorted, (N_det) ]
  implicit none
  BEGIN_DOC
- ! Wave function sorted by determinants (state-averaged)
+ ! Wave function sorted by determinants contribution to the norm (state-averaged)
  END_DOC
  integer :: i,j,k
  integer, allocatable ::  iorder(:)
@@ -149,3 +140,54 @@ END_PROVIDER
 
 END_PROVIDER
 
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted_bit, (N_int,2,N_det) ]
+&BEGIN_PROVIDER [ double precision, psi_coef_sorted_bit, (N_det,N_states) ]
+ implicit none
+ BEGIN_DOC
+ ! Determinants on which we apply <i|H|psi> for perturbation.
+ !o They are sorted by determinants interpreted as integers. Useful
+ ! to accelerate the search of a determinant
+ END_DOC
+ integer :: i,j,k
+ integer, allocatable ::  iorder(:)
+ integer*8, allocatable :: bit_tmp(:)
+ integer*8, external :: det_search_key
+
+ allocate ( iorder(N_det), bit_tmp(N_det) )
+
+ do i=1,N_det
+   iorder(i) = i
+   !$DIR FORCEINLINE
+   bit_tmp(i) = det_search_key(psi_det(1,1,i),N_int)
+ enddo
+ call i8sort(bit_tmp,iorder,N_det)
+ !DIR$ IVDEP
+ do i=1,N_det
+  do j=1,N_int
+    psi_det_sorted_bit(j,1,i) = psi_det(j,1,iorder(i))
+    psi_det_sorted_bit(j,2,i) = psi_det(j,2,iorder(i))
+  enddo
+  do k=1,N_states
+    psi_coef_sorted_bit(i,k) = psi_coef(iorder(i),k)
+  enddo
+ enddo
+
+ deallocate(iorder)
+
+END_PROVIDER
+
+
+integer*8 function det_search_key(det,Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Return an integer*8 corresponding to a determinant index for searching
+  END_DOC
+  integer, intent(in) :: Nint
+  integer(bit_kind), intent(in) :: det(Nint,2)
+  integer :: i
+  det_search_key = iand(det(1,1),det(1,2))
+  do i=2,Nint
+    det_search_key = ieor(det_search_key,iand(det(i,1),det(i,2)))
+  enddo
+end

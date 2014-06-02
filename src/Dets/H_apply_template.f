@@ -341,7 +341,7 @@ subroutine $subroutine($params_main)
   
   $decls_main
   
-  PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map N_det_reference psi_generators
+  PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map N_det_selectors psi_generators
   integer                        :: i_generator, k
   double precision               :: wall_0, wall_1, wall_2
   

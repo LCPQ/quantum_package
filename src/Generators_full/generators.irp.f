@@ -1,13 +1,24 @@
 use bitmasks
 
-BEGIN_PROVIDER [ double precision, generators_threshold ]
+BEGIN_PROVIDER [ double precision, threshold_generators ]
  implicit none
  BEGIN_DOC
  ! Percentage of the norm of the state-averaged wave function to
  ! consider for the generators
  END_DOC
- generators_threshold = 0.97d0
+ logical                        :: exists
+ PROVIDE ezfio_filename
+ call ezfio_has_determinants_threshold_generators(exists)
+ if (exists) then
+   call ezfio_get_determinants_threshold_generators(threshold_generators)
+ else
+   threshold_generators = 0.99d0
+   call ezfio_set_determinants_threshold_generators(threshold_generators)
+ endif
+ ASSERT (N_det > 0)
+ call write_double(output_Dets,threshold_generators,'Threshold on generators')
 END_PROVIDER
+
 
 BEGIN_PROVIDER [ integer, N_det_generators ]
  implicit none
@@ -22,7 +33,7 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
  N_det_generators = N_det
  do i=1,N_det
    norm = norm + psi_average_norm_contrib_sorted(i)
-   if (norm > generators_threshold) then
+   if (norm > threshold_generators) then
      N_det_generators = i-1
      exit
    endif

@@ -7,4 +7,6 @@ determinants
   psi_det       integer*8 (determinants_N_int*determinants_bit_kind/8,2,determinants_n_det)
   H_apply_threshold  double precision
   n_det_max_jacobi integer
+  threshold_generators  double precision
+  threshold_selectors   double precision
 

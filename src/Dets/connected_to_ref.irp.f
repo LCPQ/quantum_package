@@ -1,10 +1,77 @@
-integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
+logical function is_in_wavefunction(key,keys,Nint,N_past_in,Ndet)
+  implicit none
+
+  integer, intent(in)            :: Nint, N_past_in, Ndet
+  integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
+  integer(bit_kind), intent(in)  :: key(Nint,2)
+
+  integer                        :: i, ibegin, iend, istep, l
+  integer*8                      :: det_ref, det_search
+  integer*8, external            :: det_search_key
+  
+  is_in_wavefunction = .False.
+  ibegin = 1
+  iend   = N_det
+  ASSERT (N_past > 0)
+  ASSERT (N_det >= N_past)
+  
+  det_ref = det_search_key(key,Nint)
+  
+  istep = ishft(iend-ibegin+1,-1)
+  i=ibegin+istep
+  do while (istep > 1)
+    i = ibegin + istep
+    det_search = det_search_key(psi_det_sorted_bit(1,1,i),Nint)
+!   print *,  istep, det_ref, det_search
+    if ( det_search > det_ref ) then
+      iend = i
+    else if ( det_search == det_ref ) then
+      exit
+    else
+      ibegin = i
+    endif
+    istep = ishft(iend-ibegin+1,-1)
+    i = ibegin + istep
+  end do
+! pause
+
+  do while (det_search_key(psi_det_sorted_bit(1,1,i),Nint) == det_ref)
+    i = i-1
+    if (i == 0) then
+      exit
+    endif
+  enddo
+  i += 1
+  do while (det_search_key(psi_det_sorted_bit(1,1,i),Nint) == det_ref)
+    if ( (key(1,1) /= psi_det_sorted_bit(1,1,i)).or.                               &
+          (key(1,2) /= psi_det_sorted_bit(1,2,i)) ) then
+      continue
+    else
+      is_in_wavefunction = .True.
+      !DEC$ LOOP COUNT MIN(3)
+      do l=2,Nint
+        if ( (key(l,1) /= psi_det_sorted_bit(l,1,i)).or.                           &
+              (key(l,2) /= psi_det_sorted_bit(l,2,i)) ) then
+          is_in_wavefunction = .False.
+          exit
+        endif
+      enddo
+      if (is_in_wavefunction) then
+        return
+      endif
+    endif
+    i += 1
+    
+  enddo
+  
+end
+
+integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
   use bitmasks
   implicit none
   integer, intent(in)            :: Nint, N_past_in, Ndet
   integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
   integer(bit_kind), intent(in)  :: key(Nint,2)
-  double precision, intent(in)   :: thresh
   
   integer                        :: N_past
   integer                        :: i, l
@@ -44,15 +111,21 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       return
     endif
     
-    do i=N_past,Ndet
-      if ( (key(1,1) /= keys(1,1,i)).or.                             &
-            (key(1,2) /= keys(1,2,i)) ) then
-        cycle
-      endif
-      connected_to_ref = -i
-      return
-    enddo
+    logical, external :: is_in_wavefunction
+    if (is_in_wavefunction(key,keys,Nint,N_past_in,Ndet)) then
+      connected_to_ref = -1
+    endif
     return
+
+  ! do i=N_past,Ndet
+  !   if ( (key(1,1) /= keys(1,1,i)).or.                             &
+  !         (key(1,2) /= keys(1,2,i)) ) then
+  !     cycle
+  !   endif
+  !   connected_to_ref = -i
+  !   return
+  ! enddo
+  ! return
     
   else if (Nint==2) then
     
@@ -80,7 +153,7 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
     endif
     
     !DIR$ LOOP COUNT (1000)
-    do i=N_past+1,Ndet
+    do i=N_past,Ndet
       if ( (key(1,1) /= keys(1,1,i)).or.                             &
             (key(1,2) /= keys(1,2,i)).or.                            &
             (key(2,1) /= keys(2,1,i)).or.                            &
@@ -119,7 +192,7 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       return
     endif
     
-    do i=N_past+1,Ndet
+    do i=N_past,Ndet
       if ( (key(1,1) /= keys(1,1,i)).or.                             &
             (key(1,2) /= keys(1,2,i)).or.                            &
             (key(2,1) /= keys(2,1,i)).or.                            &
@@ -161,7 +234,7 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet,thresh)
       return
     endif
     
-    do i=N_past+1,Ndet
+    do i=N_past,Ndet
       if ( (key(1,1) /= keys(1,1,i)).or.                             &
             (key(1,2) /= keys(1,2,i)) ) then
         cycle

@@ -141,7 +141,7 @@ class H_apply(object):
       """
       self.data["size_max"] = "256" 
       self.data["initialization"] = """
-      PROVIDE CI_electronic_energy psi_selectors_coef psi_selectors E_corr_per_selectors
+      PROVIDE CI_electronic_energy psi_selectors_coef psi_selectors E_corr_per_selectors psi_det_sorted_bit
       """
       self.data["keys_work"] = """
       call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
@@ -206,7 +206,6 @@ class H_apply(object):
       call copy_h_apply_buffer_to_wf
       selection_criterion_min = selection_criterion_min*0.1d0
       selection_criterion = selection_criterion_min
-      !call remove_small_contributions
       """
       self.data["keys_work"] = """
       e_2_pert_buffer = 0.d0
