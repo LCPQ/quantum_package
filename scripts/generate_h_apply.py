@@ -20,6 +20,8 @@ init_thread
 printout_now
 printout_always
 deinit_thread
+skip
+init_main
 """.split()
 
 class H_apply(object):
@@ -201,6 +203,11 @@ class H_apply(object):
     self.set_perturbation(pert)
     self.selection_pt2 = pert
     if pert is not None:
+      self.data["parameters"] += ",select_max_out"
+      self.data["declarations"] += """
+      double precision, intent(inout) :: select_max_out"""
+
+      self.data["params_post"] += ", select_max(i_generator)"
       self.data["size_max"] = str(1024*128) 
       self.data["copy_buffer"] = """
       call copy_h_apply_buffer_to_wf
@@ -212,7 +219,24 @@ class H_apply(object):
       coef_pert_buffer = 0.d0
       """ + self.data["keys_work"]
       self.data["keys_work"] += """
-      call fill_H_apply_buffer_selection(key_idx,keys_out,e_2_pert_buffer,coef_pert_buffer,N_st,N_int,iproc)
+      call fill_H_apply_buffer_selection(key_idx,keys_out,e_2_pert_buffer, &
+        coef_pert_buffer,N_st,N_int,iproc,select_max_out) 
+      """
+      self.data["omp_parallel"]    += """&
+ !$OMP REDUCTION (max:select_max_out)"""
+      self.data["skip"] = """
+      if ((i_generator < size(select_max)).and. &
+        (select_max(i_generator) < selection_criterion_min*selection_criterion_factor)) then
+        !$ call omp_set_lock(lck)
+        do k=1,N_st
+          norm_psi(k) = norm_psi(k) + psi_coef(i_generator,k)*psi_coef(i_generator,k)
+          delta_pt2(k) = 0.d0
+          pt2_old(k) = 0.d0
+        enddo
+        !$ call omp_unset_lock(lck)
+        cycle
+      endif
+      select_max(i_generator) = 0.d0
       """
 
 

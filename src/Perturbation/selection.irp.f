@@ -1,4 +1,5 @@
-subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,coef_pert_buffer,N_st,Nint,iproc)
+subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,coef_pert_buffer, &
+   N_st,Nint,iproc,select_max_out)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -9,6 +10,7 @@ subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,c
   integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
   double precision, intent(in)   :: e_2_pert_buffer(N_st,n_selected)
   double precision, intent(in)   :: coef_pert_buffer(N_st,n_selected)
+  double precision, intent(inout):: select_max_out
   integer                        :: i,j,k,l
   integer                        :: new_size
   double precision               :: s, smin, smax
@@ -35,6 +37,7 @@ subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,c
     do j=1,N_st
       s = -e_2_pert_buffer(j,i)
       is_selected = s > selection_criterion*selection_criterion_factor .or. is_selected
+      select_max_out = max(select_max_out,s)
     enddo
     
      
@@ -72,7 +75,7 @@ end
  BEGIN_DOC
  ! Threshold to select determinants. Set by selection routines.
  END_DOC
- selection_criterion =  10.d0 
+ selection_criterion =  .1d0 
  selection_criterion_factor = 0.01d0
  selection_criterion_min = selection_criterion
 
@@ -130,7 +133,5 @@ subroutine remove_small_contributions
     call write_int(output_dets,N_removed, 'Removed determinants')
   endif
 end
-
-
 
 

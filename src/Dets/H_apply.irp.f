@@ -237,4 +237,3 @@ subroutine fill_H_apply_buffer_no_selection(n_selected,det_buffer,Nint,iproc)
 end
 
 
-

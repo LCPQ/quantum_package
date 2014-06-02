@@ -369,6 +369,7 @@ subroutine $subroutine($params_main)
     if (abort_here) then
       cycle
     endif
+    $skip
     call $subroutine_diexc(psi_generators(1,1,i_generator),          &
         generators_bitmask(1,1,d_hole1,i_bitmask_gen),               &
         generators_bitmask(1,1,d_part1,i_bitmask_gen),               &
@@ -388,7 +389,7 @@ subroutine $subroutine($params_main)
     endif
     !$ call omp_unset_lock(lck)
   enddo
-  !$OMP END DO NOWAIT
+  !$OMP END DO 
   !$OMP END PARALLEL
   !$ call omp_destroy_lock(lck)
 
@@ -396,6 +397,7 @@ subroutine $subroutine($params_main)
     if (abort_here) then
       exit
     endif
+    $skip
     call $subroutine_diexc(psi_generators(1,1,i_generator),          &
         generators_bitmask(1,1,d_hole1,i_bitmask_gen),               &
         generators_bitmask(1,1,d_part1,i_bitmask_gen),               &

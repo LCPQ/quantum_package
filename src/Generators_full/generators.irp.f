@@ -52,4 +52,11 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
 
 END_PROVIDER
 
+ BEGIN_PROVIDER [ double precision, select_max, (3000) ]
+ implicit none
+ BEGIN_DOC
+ ! Memo to skip useless selectors
+ END_DOC
+ select_max = huge(1.d0)
+END_PROVIDER
 

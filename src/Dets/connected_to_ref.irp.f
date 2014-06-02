@@ -32,10 +32,6 @@ logical function is_in_wavefunction(key,Nint,Ndet)
     i = ibegin + istep 
   end do
 
-! if (det_search /= det_ref) then
-!   return
-! endif
-
   do while (det_search_key(psi_det_sorted_bit(1,1,i),Nint) == det_ref)
     i = i-1
     if (i == 0) then
@@ -43,6 +39,10 @@ logical function is_in_wavefunction(key,Nint,Ndet)
     endif
   enddo
   i += 1
+  if (i > N_det) then
+    return
+  endif
+
   do while (det_search_key(psi_det_sorted_bit(1,1,i),Nint) == det_ref)
     if ( (key(1,1) /= psi_det_sorted_bit(1,1,i)).or.                               &
           (key(1,2) /= psi_det_sorted_bit(1,2,i)) ) then
