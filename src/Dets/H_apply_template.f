@@ -28,6 +28,11 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   double precision               :: diag_H_mat_elem
   integer                        :: iproc
+  integer(omp_lock_kind), save   :: lck, ifirst=0
+  if (ifirst == 0) then
+    ifirst=1
+!$    call omp_init_lock(lck)
+  endif
   PROVIDE H_apply_threshold
   
   $initialization
@@ -245,6 +250,11 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator $parameters 
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   double precision               :: diag_H_mat_elem
   integer                        :: iproc
+  integer(omp_lock_kind), save   :: lck, ifirst=0
+  if (ifirst == 0) then
+    ifirst=1
+!$    call omp_init_lock(lck)
+  endif
   PROVIDE H_apply_threshold
   
   $initialization
@@ -333,6 +343,7 @@ end
 
 subroutine $subroutine($params_main)
   implicit none
+  use omp_lib
   use bitmasks
   BEGIN_DOC
   ! Calls H_apply on the HF determinant and selects all connected single and double
@@ -341,12 +352,23 @@ subroutine $subroutine($params_main)
   
   $decls_main
   
+  integer                        :: i_generator, k, nmax
+  double precision               :: wall_0, wall_1, wall_2, d
+  integer(omp_lock_kind)         :: lck
+
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map N_det_selectors psi_generators
-  integer                        :: i_generator, k
-  double precision               :: wall_0, wall_1, wall_2
+  PROVIDE psi_det_sorted_bit coef_hf_selector
   
+  nmax = ( N_det_generators/nproc ) *nproc
   call wall_time(wall_1)
-  do i_generator=1,N_det_generators
+  !$ call omp_init_lock(lck)
+  !$OMP PARALLEL DEFAULT(SHARED) &
+  !$OMP PRIVATE(i_generator,wall_2) 
+  !$OMP DO SCHEDULE(guided)
+  do i_generator=1,nmax
+    if (abort_here) then
+      cycle
+    endif
     call $subroutine_diexc(psi_generators(1,1,i_generator),          &
         generators_bitmask(1,1,d_hole1,i_bitmask_gen),               &
         generators_bitmask(1,1,d_part1,i_bitmask_gen),               &
@@ -357,9 +379,33 @@ subroutine $subroutine($params_main)
         generators_bitmask(1,1,s_hole ,i_bitmask_gen),               &
         generators_bitmask(1,1,s_part ,i_bitmask_gen),               &
         i_generator $params_post)
+    !$ call omp_set_lock(lck)
+    call wall_time(wall_2)
+    $printout_always
+    if (wall_2 - wall_0 > 2.d0) then
+        wall_0 = wall_2
+        $printout_now
+    endif
+    !$ call omp_unset_lock(lck)
+  enddo
+  !$OMP END DO NOWAIT
+  !$OMP END PARALLEL
+  !$ call omp_destroy_lock(lck)
+
+  do i_generator=nmax+1,N_det_generators
     if (abort_here) then
       exit
     endif
+    call $subroutine_diexc(psi_generators(1,1,i_generator),          &
+        generators_bitmask(1,1,d_hole1,i_bitmask_gen),               &
+        generators_bitmask(1,1,d_part1,i_bitmask_gen),               &
+        generators_bitmask(1,1,d_hole2,i_bitmask_gen),               &
+        generators_bitmask(1,1,d_part2,i_bitmask_gen),               &
+        i_generator $params_post)
+    call $subroutine_monoexc(psi_generators(1,1,i_generator),        &
+        generators_bitmask(1,1,s_hole ,i_bitmask_gen),               &
+        generators_bitmask(1,1,s_part ,i_bitmask_gen),               &
+        i_generator $params_post)
     call wall_time(wall_2)
     $printout_always
     if (wall_2 - wall_0 > 2.d0) then

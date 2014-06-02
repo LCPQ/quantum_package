@@ -6,11 +6,11 @@ BEGIN_PROVIDER [ double precision, CI_SC2_energy, (N_states) ]
   
   integer                        :: j
   character*(8)                  :: st
-  call write_time(output_CISD_SC2)
+  call write_time(output_SC2)
   do j=1,N_states
     CI_SC2_energy(j) = CI_SC2_electronic_energy(j) + nuclear_repulsion
     write(st,'(I4)') j
-    call write_double(output_CISD_SC2,CI_SC2_energy(j),'Energy of state '//trim(st))
+    call write_double(output_SC2,CI_SC2_energy(j),'Energy of state '//trim(st))
   enddo
 
 END_PROVIDER
@@ -32,7 +32,7 @@ END_PROVIDER
   
     
   call CISD_SC2(psi_det,CI_SC2_eigenvectors,CI_SC2_electronic_energy, &
-        size(CI_SC2_eigenvectors,1),N_det,N_states,N_int,output_CISD_SC2)
+        size(CI_SC2_eigenvectors,1),N_det,N_states,N_int,output_SC2)
 END_PROVIDER
 
 subroutine diagonalize_CI_SC2

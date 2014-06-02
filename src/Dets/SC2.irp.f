@@ -50,10 +50,10 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
    enddo
   endif
   
-  call write_time(output_CISD_SC2)
-  write(output_CISD_SC2,'(A)') ''
-  write(output_CISD_SC2,'(A)') 'CISD SC2'
-  write(output_CISD_SC2,'(A)') '========'
+  call write_time(output_SC2)
+  write(output_SC2,'(A)') ''
+  write(output_SC2,'(A)') 'CISD SC2'
+  write(output_SC2,'(A)') '========'
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP  SHARED(sze,N_st,                                        &
       !$OMP  H_jj_ref,Nint,dets_in,u_in)                             &
@@ -120,7 +120,7 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
     enddo
     
     if(sze>1000)then
-     call davidson_diag_hjj(dets_in,u_in,H_jj_dressed,energies,dim_in,sze,N_st,Nint,output_CISD_SC2)
+     call davidson_diag_hjj(dets_in,u_in,H_jj_dressed,energies,dim_in,sze,N_st,Nint,output_SC2)
     else
      do i = 1,sze
       H_matrix_tmp(i,i) = H_jj_dressed(i)
@@ -141,18 +141,18 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
       e_corr_array(i) = u_in(index_double(i),1)*inv_c0 * hij_double(i)
       e_corr_double += e_corr_array(i)
     enddo
-    write(output_CISD_SC2,'(A,I3)') 'SC2 Iteration ', iter
-    write(output_CISD_SC2,'(A)') '------------------'
-    write(output_CISD_SC2,'(A)') ''
-    write(output_CISD_SC2,'(A)') '===== ================'
-    write(output_CISD_SC2,'(A)') 'State Energy          '
-    write(output_CISD_SC2,'(A)') '===== ================'
+    write(output_SC2,'(A,I3)') 'SC2 Iteration ', iter
+    write(output_SC2,'(A)') '------------------'
+    write(output_SC2,'(A)') ''
+    write(output_SC2,'(A)') '===== ================'
+    write(output_SC2,'(A)') 'State Energy          '
+    write(output_SC2,'(A)') '===== ================'
     do i=1,N_st
-      write(output_CISD_SC2,'(I5,X,F16.10)') i, energies(i)+nuclear_repulsion
+      write(output_SC2,'(I5,X,F16.10)') i, energies(i)+nuclear_repulsion
     enddo
-    write(output_CISD_SC2,'(A)') '===== ================'
-    write(output_CISD_SC2,'(A)') ''
-    call write_double(output_CISD_SC2,(e_corr_double - e_corr_double_before),&
+    write(output_SC2,'(A)') '===== ================'
+    write(output_SC2,'(A)') ''
+    call write_double(output_SC2,(e_corr_double - e_corr_double_before),&
         'Delta(E_corr)')
     converged =  dabs(e_corr_double - e_corr_double_before) < 1.d-10
     if (converged) then
@@ -162,7 +162,7 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
     
   enddo
   
-  call write_time(output_CISD_SC2)
+  call write_time(output_SC2)
   
 end
 

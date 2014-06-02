@@ -130,13 +130,13 @@ class H_apply(object):
       """ 
 
       self.data["deinit_thread"] = """
-      !$OMP CRITICAL
+      !$ call omp_set_lock(lck)
       do k=1,N_st
         sum_e_2_pert_in(k) = sum_e_2_pert_in(k) + sum_e_2_pert(k)
         sum_norm_pert_in(k) = sum_norm_pert_in(k) + sum_norm_pert(k)
         sum_H_pert_diag_in(k) = sum_H_pert_diag_in(k) + sum_H_pert_diag(k)
       enddo
-      !$OMP END CRITICAL
+      !$ call omp_unset_lock(lck)
       deallocate (e_2_pert_buffer, coef_pert_buffer)
       """
       self.data["size_max"] = "256" 

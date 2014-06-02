@@ -115,30 +115,29 @@ Needed Modules
 .. NEEDED_MODULES file.
 
 * `AOs <http://github.com/LCPQ/quantum_package/tree/master/src/AOs>`_
+* `BiInts <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts>`_
 * `Bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask>`_
+* `CISD <http://github.com/LCPQ/quantum_package/tree/master/src/CISD>`_
+* `CISD_SC2_selected <http://github.com/LCPQ/quantum_package/tree/master/src/CISD_SC2_selected>`_
+* `CISD_selected <http://github.com/LCPQ/quantum_package/tree/master/src/CISD_selected>`_
+* `DensityMatrix <http://github.com/LCPQ/quantum_package/tree/master/src/DensityMatrix>`_
+* `Dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets>`_
 * `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_
 * `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
+* `Full_CI <http://github.com/LCPQ/quantum_package/tree/master/src/Full_CI>`_
+* `Generators_full <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full>`_
+* `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock>`_
+* `MOGuess <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess>`_
+* `MonoInts <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts>`_
 * `MOs <http://github.com/LCPQ/quantum_package/tree/master/src/MOs>`_
+* `MP2 <http://github.com/LCPQ/quantum_package/tree/master/src/MP2>`_
 * `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
 * `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
-* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
-* `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock>`_
-* `BiInts <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts>`_
-* `MonoInts <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts>`_
-* `MOGuess <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess>`_
-* `Dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets>`_
-* `DensityMatrix <http://github.com/LCPQ/quantum_package/tree/master/src/DensityMatrix>`_
-* `CISD <http://github.com/LCPQ/quantum_package/tree/master/src/CISD>`_
 * `Perturbation <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation>`_
-* `SingleRefMethod <http://github.com/LCPQ/quantum_package/tree/master/src/SingleRefMethod>`_
-* `CISD_selected <http://github.com/LCPQ/quantum_package/tree/master/src/CISD_selected>`_
+* `SC2 <http://github.com/LCPQ/quantum_package/tree/master/src/SC2>`_
 * `Selectors_full <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full>`_
-* `MP2 <http://github.com/LCPQ/quantum_package/tree/master/src/MP2>`_
-* `Generators_full <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full>`_
-* `Full_CI <http://github.com/LCPQ/quantum_package/tree/master/src/Full_CI>`_
-* `CISD_SC2_selected <http://github.com/LCPQ/quantum_package/tree/master/src/CISD_SC2_selected>`_
-* `CISD_SC2_selected <http://github.com/LCPQ/quantum_package/tree/master/src/CISD_SC2_selected>`_
-* `CISD_SC2 <http://github.com/LCPQ/quantum_package/tree/master/src/CISD_SC2>`_
+* `SingleRefMethod <http://github.com/LCPQ/quantum_package/tree/master/src/SingleRefMethod>`_
+* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 
 Documentation
 =============

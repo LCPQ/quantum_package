@@ -2,7 +2,7 @@ subroutine get_excitation_degree(key1,key2,degree,Nint)
   use bitmasks
   implicit none
   BEGIN_DOC
-! Returns the excitation degree between two determinants
+  ! Returns the excitation degree between two determinants
   END_DOC
   integer, intent(in)            :: Nint
   integer(bit_kind), intent(in)  :: key1(Nint,2)
@@ -10,7 +10,7 @@ subroutine get_excitation_degree(key1,key2,degree,Nint)
   integer, intent(out)           :: degree
   
   integer                        :: l
-
+  
   ASSERT (Nint > 0)
   
   degree = popcnt(xor( key1(1,1), key2(1,1))) +                      &
@@ -31,7 +31,7 @@ subroutine get_excitation(det1,det2,exc,degree,phase,Nint)
   use bitmasks
   implicit none
   BEGIN_DOC
-! Returns the excitation operators between two determinants and the phase
+  ! Returns the excitation operators between two determinants and the phase
   END_DOC
   integer, intent(in)            :: Nint
   integer(bit_kind), intent(in)  :: det1(Nint,2)
@@ -87,7 +87,7 @@ subroutine decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
   integer, intent(out)           :: h1,h2,p1,p2,s1,s2
   ASSERT (degree > 0)
   ASSERT (degree < 3)
-
+  
   select case(degree)
     case(2)
       if (exc(0,1,1) == 2) then
@@ -142,7 +142,7 @@ subroutine get_double_excitation(det1,det2,exc,phase,Nint)
   use bitmasks
   implicit none
   BEGIN_DOC
-! Returns the two excitation operators between two doubly excited determinants and the phase
+  ! Returns the two excitation operators between two doubly excited determinants and the phase
   END_DOC
   integer, intent(in)            :: Nint
   integer(bit_kind), intent(in)  :: det1(Nint,2)
@@ -275,7 +275,7 @@ subroutine get_mono_excitation(det1,det2,exc,phase,Nint)
   use bitmasks
   implicit none
   BEGIN_DOC
-! Returns the excitation operator between two singly excited determinants and the phase
+  ! Returns the excitation operator between two singly excited determinants and the phase
   END_DOC
   integer, intent(in)            :: Nint
   integer(bit_kind), intent(in)  :: det1(Nint,2)
@@ -356,7 +356,7 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
   use bitmasks
   implicit none
   BEGIN_DOC
-! Returns <i|H|j> where i and j are determinants
+  ! Returns <i|H|j> where i and j are determinants
   END_DOC
   integer, intent(in)            :: Nint
   integer(bit_kind), intent(in)  :: key_i(Nint,2), key_j(Nint,2)
@@ -528,16 +528,16 @@ subroutine i_H_psi_SC2(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array,idx
   use bitmasks
   BEGIN_DOC
   ! <key|H|psi> for the various Nstate
-  ! 
-  ! returns in addition 
+  !
+  ! returns in addition
   !
   ! the array of the index of the non connected determinants to key1
   !
   ! in order to know what double excitation can be repeated on key1
   !
-  ! idx_repeat(0) is the number of determinants that can be used 
-  ! 
-  ! to repeat the excitations 
+  ! idx_repeat(0) is the number of determinants that can be used
+  !
+  ! to repeat the excitations
   END_DOC
   implicit none
   integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate
@@ -576,7 +576,7 @@ subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
   use bitmasks
   implicit none
   BEGIN_DOC
-! Applies get_excitation_degree to an array of determinants
+  ! Applies get_excitation_degree to an array of determinants
   END_DOC
   integer, intent(in)            :: Nint, sze
   integer(bit_kind), intent(in)  :: key1(Nint,2,sze)
@@ -588,7 +588,7 @@ subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
   
   ASSERT (Nint > 0)
   ASSERT (sze > 0)
-
+  
   l=1
   if (Nint==1) then
     
@@ -659,7 +659,7 @@ end
 double precision function diag_H_mat_elem(det_in,Nint)
   implicit none
   BEGIN_DOC
-! Computes <i|H|i>
+  ! Computes <i|H|i>
   END_DOC
   integer,intent(in)             :: Nint
   integer(bit_kind),intent(in)   :: det_in(Nint,2)
@@ -671,7 +671,7 @@ double precision function diag_H_mat_elem(det_in,Nint)
   integer                        :: occ_hole(Nint*bit_kind_size,2)
   integer(bit_kind)              :: det_tmp(Nint,2)
   integer                        :: na, nb
-
+  
   ASSERT (Nint > 0)
   ASSERT (sum(popcnt(det_in(:,1))) == elec_alpha_num)
   ASSERT (sum(popcnt(det_in(:,2))) == elec_beta_num)
@@ -688,13 +688,13 @@ double precision function diag_H_mat_elem(det_in,Nint)
     nexc(1)      += popcnt(hole(i,1))
     nexc(2)      += popcnt(hole(i,2))
   enddo
-
+  
   diag_H_mat_elem = ref_bitmask_energy
   if (nexc(1)+nexc(2) == 0) then
     return
   endif
   
-!call debug_det(det_in,Nint)
+  !call debug_det(det_in,Nint)
   integer                        :: tmp
   call bitstring_to_list(particle(1,1), occ_particle(1,1), tmp, Nint)
   ASSERT (tmp == nexc(1))
@@ -722,7 +722,7 @@ subroutine a_operator(iorb,ispin,key,hjj,Nint,na,nb)
   use bitmasks
   implicit none
   BEGIN_DOC
-! Needed for diag_H_mat_elem
+  ! Needed for diag_H_mat_elem
   END_DOC
   integer, intent(in)            :: iorb, ispin, Nint
   integer, intent(inout)         :: na, nb
@@ -737,7 +737,7 @@ subroutine a_operator(iorb,ispin,key,hjj,Nint,na,nb)
   ASSERT (ispin > 0)
   ASSERT (ispin < 3)
   ASSERT (Nint > 0)
-
+  
   k = ishft(iorb-1,-bit_kind_shift)+1
   ASSERT (k > 0)
   l = iorb - ishft(k-1,bit_kind_shift)-1
@@ -767,7 +767,7 @@ subroutine ac_operator(iorb,ispin,key,hjj,Nint,na,nb)
   use bitmasks
   implicit none
   BEGIN_DOC
-! Needed for diag_H_mat_elem
+  ! Needed for diag_H_mat_elem
   END_DOC
   integer, intent(in)            :: iorb, ispin, Nint
   integer, intent(inout)         :: na, nb
@@ -779,10 +779,10 @@ subroutine ac_operator(iorb,ispin,key,hjj,Nint,na,nb)
   integer                        :: k,l,i
   
   ASSERT (iorb > 0)
-  ASSERT (ispin > 0) 
-  ASSERT (ispin < 3) 
+  ASSERT (ispin > 0)
+  ASSERT (ispin < 3)
   ASSERT (Nint > 0)
-
+  
   integer                        :: tmp
   !DIR$ FORCEINLINE
   call bitstring_to_list(key(1,1), occ(1,1), tmp, Nint)
@@ -815,7 +815,7 @@ subroutine get_occ_from_key(key,occ,Nint)
   use bitmasks
   implicit none
   BEGIN_DOC
-! Returns a list of occupation numbers from a bitstring
+  ! Returns a list of occupation numbers from a bitstring
   END_DOC
   integer(bit_kind), intent(in)  :: key(Nint,2)
   integer          , intent(in)  :: Nint
@@ -831,11 +831,11 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   use bitmasks
   implicit none
   BEGIN_DOC
-! Computes v_0 = H|u_0>
-!
-! n : number of determinants
-! 
-! H_jj : array of <j|H|j>
+  ! Computes v_0 = H|u_0>
+  !
+  ! n : number of determinants
+  !
+  ! H_jj : array of <j|H|j>
   END_DOC
   integer, intent(in)            :: n,Nint
   double precision, intent(out)  :: v_0(n)
@@ -849,11 +849,11 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   integer                        :: i0, j0
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
-  ASSERT (n>0) 
+  ASSERT (n>0)
   PROVIDE ref_bitmask_energy
-  integer, parameter :: block_size = 157
+  integer, parameter             :: block_size = 157
   !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt) &
+      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt)                             &
       !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0)
   !$OMP DO SCHEDULE(static)
   do i=1,n
@@ -864,23 +864,23 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   Vt = 0.d0
   !$OMP DO SCHEDULE(guided)
   do i=1,n
-        idx(0) = i
-        call filter_connected_davidson(keys_tmp,keys_tmp(1,1,i),Nint,i-1,idx)
-        do jj=1,idx(0)
-          j = idx(jj)
-          if ( (dabs(u_0(j)) > 1.d-7).or.((dabs(u_0(i)) > 1.d-7)) ) then
-            call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
-            vt (i) = vt (i) + hij*u_0(j)
-            vt (j) = vt (j) + hij*u_0(i)
-          endif
-        enddo
+    idx(0) = i
+    call filter_connected_davidson(keys_tmp,keys_tmp(1,1,i),Nint,i-1,idx)
+    do jj=1,idx(0)
+      j = idx(jj)
+      if ( (dabs(u_0(j)) > 1.d-7).or.((dabs(u_0(i)) > 1.d-7)) ) then
+        call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
+        vt (i) = vt (i) + hij*u_0(j)
+        vt (j) = vt (j) + hij*u_0(i)
+      endif
+    enddo
   enddo
   !$OMP END DO
   !$OMP CRITICAL
   do i=1,n
-    v_0(i) = v_0(i) + vt(i) 
+    v_0(i) = v_0(i) + vt(i)
   enddo
-  !$OMP END CRITICAL 
+  !$OMP END CRITICAL
   deallocate(idx,vt)
   !$OMP END PARALLEL
 end
@@ -904,30 +904,125 @@ BEGIN_PROVIDER [ integer*8, det_connections, (N_con_int,N_det) ]
   integer                        :: degree
   integer                        :: j_int, j_k, j_l
   integer, allocatable           :: idx(:)
-  !$OMP PARALLEL DEFAULT (NONE) &
-  !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections) &
-  !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx)
-  allocate (idx(0:N_det))
-  !$OMP DO SCHEDULE(guided)
-  do i=1,N_det
-    do j_int=1,N_con_int
-      det_connections(j_int,i) = 0_8
-      j_k = ishft(j_int-1,11)
-      do j_l = j_k,min(j_k+2047,N_det), 32 
-        do j = j_l+1,min(j_l+32,i)
-          !DIR$ FORCEINLINE
-          call get_excitation_degree(psi_det(1,1,i),psi_det(1,1,j),degree,N_int)
-          if (degree < 3) then
-            det_connections(j_int,i) = ibset( det_connections(j_int,i), iand(63,ishft(j_l,-5)) )
-            exit
-          endif
+  
+  select case(N_int)
+      
+    case(1)
+      
+      !$OMP PARALLEL DEFAULT (NONE)                                  &
+          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections)&
+          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx)
+      allocate (idx(0:N_det))
+      !$OMP DO SCHEDULE(guided)
+      do i=1,N_det
+        do j_int=1,N_con_int
+          det_connections(j_int,i) = 0_8
+          j_k = ishft(j_int-1,11)
+          do j_l = j_k,min(j_k+2047,N_det), 32
+            do j = j_l+1,min(j_l+32,i)
+              degree = popcnt(xor( psi_det(1,1,i),psi_det(1,1,j))) + &
+                  popcnt(xor( psi_det(1,2,i),psi_det(1,2,j)))
+              if (degree < 5) then
+                det_connections(j_int,i) = ibset( det_connections(j_int,i), iand(63,ishft(j_l,-5)) )
+                exit
+              endif
+            enddo
+          enddo
         enddo
       enddo
-    enddo
-  enddo
-  !$OMP ENDDO
-  deallocate(idx)
-  !$OMP ENDPARALLEL
+      !$OMP ENDDO
+      deallocate(idx)
+      !$OMP END PARALLEL
+      
+    case(2)
+      
+      !$OMP PARALLEL DEFAULT (NONE)                                  &
+          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections)&
+          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx)
+      allocate (idx(0:N_det))
+      !$OMP DO SCHEDULE(guided)
+      do i=1,N_det
+        do j_int=1,N_con_int
+          det_connections(j_int,i) = 0_8
+          j_k = ishft(j_int-1,11)
+          do j_l = j_k,min(j_k+2047,N_det), 32
+            do j = j_l+1,min(j_l+32,i)
+              degree = popcnt(xor( psi_det(1,1,i),psi_det(1,1,j))) + &
+                  popcnt(xor( psi_det(1,2,i),psi_det(1,2,j))) +      &
+                  popcnt(xor( psi_det(2,1,i),psi_det(2,1,j))) +      &
+                  popcnt(xor( psi_det(2,2,i),psi_det(2,2,j)))
+              if (degree < 5) then
+                det_connections(j_int,i) = ibset( det_connections(j_int,i), iand(63,ishft(j_l,-5)) )
+                exit
+              endif
+            enddo
+          enddo
+        enddo
+      enddo
+      !$OMP ENDDO
+      deallocate(idx)
+      !$OMP END PARALLEL
+      
+    case(3)
+      
+      !$OMP PARALLEL DEFAULT (NONE)                                  &
+          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections)&
+          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx)
+      allocate (idx(0:N_det))
+      !$OMP DO SCHEDULE(guided)
+      do i=1,N_det
+        do j_int=1,N_con_int
+          det_connections(j_int,i) = 0_8
+          j_k = ishft(j_int-1,11)
+          do j_l = j_k,min(j_k+2047,N_det), 32
+            do j = j_l+1,min(j_l+32,i)
+              degree = popcnt(xor( psi_det(1,1,i),psi_det(1,1,j))) + &
+                  popcnt(xor( psi_det(1,2,i),psi_det(1,2,j))) +      &
+                  popcnt(xor( psi_det(2,1,i),psi_det(2,1,j))) +      &
+                  popcnt(xor( psi_det(2,2,i),psi_det(2,2,j))) +      &
+                  popcnt(xor( psi_det(3,1,i),psi_det(3,1,j))) +      &
+                  popcnt(xor( psi_det(3,2,i),psi_det(3,2,j)))
+              if (degree < 5) then
+                det_connections(j_int,i) = ibset( det_connections(j_int,i), iand(63,ishft(j_l,-5)) )
+                exit
+              endif
+            enddo
+          enddo
+        enddo
+      enddo
+      !$OMP ENDDO
+      deallocate(idx)
+      !$OMP END PARALLEL
+      
+    case default
+      
+      
+      !$OMP PARALLEL DEFAULT (NONE)                                  &
+          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections)&
+          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx)
+      allocate (idx(0:N_det))
+      !$OMP DO SCHEDULE(guided)
+      do i=1,N_det
+        do j_int=1,N_con_int
+          det_connections(j_int,i) = 0_8
+          j_k = ishft(j_int-1,11)
+          do j_l = j_k,min(j_k+2047,N_det), 32
+            do j = j_l+1,min(j_l+32,i)
+              !DIR$ FORCEINLINE
+              call get_excitation_degree(psi_det(1,1,i),psi_det(1,1,j),degree,N_int)
+              if (degree < 3) then
+                det_connections(j_int,i) = ibset( det_connections(j_int,i), iand(63,ishft(j_l,-5)) )
+                exit
+              endif
+            enddo
+          enddo
+        enddo
+      enddo
+      !$OMP ENDDO
+      deallocate(idx)
+      !$OMP END PARALLEL
+      
+  end select
 
 END_PROVIDER
 
