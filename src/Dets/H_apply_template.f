@@ -28,6 +28,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   double precision               :: diag_H_mat_elem
   integer                        :: iproc
+  integer(omp_lock_kind)         :: lck
   PROVIDE H_apply_threshold
   
   $initialization
@@ -245,6 +246,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator $parameters 
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   double precision               :: diag_H_mat_elem
   integer                        :: iproc
+  integer(omp_lock_kind)         :: lck
   PROVIDE H_apply_threshold
   
   $initialization

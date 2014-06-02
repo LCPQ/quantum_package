@@ -57,26 +57,14 @@ Documentation
 `full_ijkl_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L12>`_
   Bitmask to include all possible MOs
 
-`generators_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L91>`_
-  Bitmasks for generator determinants. (N_int, alpha/beta, hole/particle, generator)
-
 `hf_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L32>`_
   Hartree Fock bit mask
-
-`n_generators_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L58>`_
-  Number of bitmasks for generators
 
 `n_int <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L3>`_
   Number of 64-bit integers needed to represent determinants as binary strings
 
-`n_reference_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L112>`_
-  Number of bitmasks for reference
-
 `ref_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L50>`_
   Reference bit mask, used in Slater rules, chosen as Hartree-Fock bitmask
-
-`reference_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L145>`_
-  Bitmasks for reference determinants. (N_int, alpha/beta, hole/particle, reference)
 
 `bitstring_to_hexa <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L95>`_
   Transform a bit string to a string in hexadecimal format for printing

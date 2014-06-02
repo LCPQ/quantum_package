@@ -118,6 +118,7 @@ class H_apply(object):
       double precision                :: sum_H_pert_diag(N_st)
       double precision, allocatable   :: e_2_pert_buffer(:,:)
       double precision, allocatable   :: coef_pert_buffer(:,:)
+      !$ call omp_init_lock(lck)
       ASSERT (Nint == N_int)
       """
       self.data["init_thread"] = """
@@ -130,13 +131,13 @@ class H_apply(object):
       """ 
 
       self.data["deinit_thread"] = """
-      !$OMP CRITICAL
+      !$ call omp_set_lock(lck)
       do k=1,N_st
         sum_e_2_pert_in(k) = sum_e_2_pert_in(k) + sum_e_2_pert(k)
         sum_norm_pert_in(k) = sum_norm_pert_in(k) + sum_norm_pert(k)
         sum_H_pert_diag_in(k) = sum_H_pert_diag_in(k) + sum_H_pert_diag(k)
       enddo
-      !$OMP END CRITICAL
+      !$ call omp_unset_lock(lck)
       deallocate (e_2_pert_buffer, coef_pert_buffer)
       """
       self.data["size_max"] = "256" 
@@ -148,6 +149,7 @@ class H_apply(object):
        sum_norm_pert,sum_H_pert_diag,N_st,N_int)
       """%(pert,)
       self.data["finalization"] = """
+      !$ call omp_destroy_lock(lck)
       """
       self.data["copy_buffer"] = ""
       self.data["generate_psi_guess"] = ""
