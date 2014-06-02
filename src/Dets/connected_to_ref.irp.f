@@ -11,8 +11,6 @@ logical function is_in_wavefunction(key,Nint,Ndet)
   is_in_wavefunction = .False.
   ibegin = 1
   iend   = N_det+1
-  ASSERT (N_past > 0)
-  ASSERT (N_det >= N_past)
   
   det_ref = det_search_key(key,Nint)
   det_search = det_search_key(psi_det_sorted_bit(1,1,1),Nint)
