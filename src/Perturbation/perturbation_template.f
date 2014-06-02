@@ -16,6 +16,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   double precision               :: c_pert(N_st), e_2_pert(N_st),  H_pert_diag(N_st)
   integer                        :: i,k, c_ref
   integer, external              :: connected_to_ref
+  logical, external              :: is_in_wavefunction
   
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
@@ -24,6 +25,9 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   ASSERT (N_st > 0)
   do i = 1,buffer_size
 
+    if (is_in_wavefunction(buffer(1,1,i),Nint,N_det)) then
+      cycle
+    endif
     c_ref = connected_to_ref(buffer(1,1,i),psi_generators,Nint,i_generator,N_det)
 
     if (c_ref /= 0) then

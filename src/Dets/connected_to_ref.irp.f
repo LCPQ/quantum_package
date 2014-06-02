@@ -1,8 +1,7 @@
-logical function is_in_wavefunction(key,keys,Nint,N_past_in,Ndet)
+logical function is_in_wavefunction(key,Nint,Ndet)
   implicit none
 
-  integer, intent(in)            :: Nint, N_past_in, Ndet
-  integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
+  integer, intent(in)            :: Nint, Ndet
   integer(bit_kind), intent(in)  :: key(Nint,2)
 
   integer                        :: i, ibegin, iend, istep, l
@@ -11,18 +10,17 @@ logical function is_in_wavefunction(key,keys,Nint,N_past_in,Ndet)
   
   is_in_wavefunction = .False.
   ibegin = 1
-  iend   = N_det
+  iend   = N_det+1
   ASSERT (N_past > 0)
   ASSERT (N_det >= N_past)
   
   det_ref = det_search_key(key,Nint)
+  det_search = det_search_key(psi_det_sorted_bit(1,1,1),Nint)
   
-  istep = ishft(iend-ibegin+1,-1)
+  istep = ishft(iend-ibegin,-1)
   i=ibegin+istep
-  do while (istep > 1)
-    i = ibegin + istep
+  do while (istep > 0)
     det_search = det_search_key(psi_det_sorted_bit(1,1,i),Nint)
-!   print *,  istep, det_ref, det_search
     if ( det_search > det_ref ) then
       iend = i
     else if ( det_search == det_ref ) then
@@ -30,10 +28,13 @@ logical function is_in_wavefunction(key,keys,Nint,N_past_in,Ndet)
     else
       ibegin = i
     endif
-    istep = ishft(iend-ibegin+1,-1)
-    i = ibegin + istep
+    istep = ishft(iend-ibegin,-1)
+    i = ibegin + istep 
   end do
-! pause
+
+! if (det_search /= det_ref) then
+!   return
+! endif
 
   do while (det_search_key(psi_det_sorted_bit(1,1,i),Nint) == det_ref)
     i = i-1
@@ -61,6 +62,9 @@ logical function is_in_wavefunction(key,keys,Nint,N_past_in,Ndet)
       endif
     endif
     i += 1
+    if (i > N_det) then
+      exit
+    endif
     
   enddo
   
@@ -105,27 +109,8 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
       endif
     enddo
     
-    !DIR$ FORCEINLINE
-    t = det_is_not_or_may_be_in_ref(key,Nint)
-    if ( t ) then
-      return
-    endif
-    
-    logical, external :: is_in_wavefunction
-    if (is_in_wavefunction(key,keys,Nint,N_past_in,Ndet)) then
-      connected_to_ref = -1
-    endif
     return
 
-  ! do i=N_past,Ndet
-  !   if ( (key(1,1) /= keys(1,1,i)).or.                             &
-  !         (key(1,2) /= keys(1,2,i)) ) then
-  !     cycle
-  !   endif
-  !   connected_to_ref = -i
-  !   return
-  ! enddo
-  ! return
     
   else if (Nint==2) then
     
@@ -146,23 +131,6 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
       endif
     enddo
     
-    !DIR$ FORCEINLINE
-    t = det_is_not_or_may_be_in_ref(key,Nint)
-    if ( t ) then
-      return
-    endif
-    
-    !DIR$ LOOP COUNT (1000)
-    do i=N_past,Ndet
-      if ( (key(1,1) /= keys(1,1,i)).or.                             &
-            (key(1,2) /= keys(1,2,i)).or.                            &
-            (key(2,1) /= keys(2,1,i)).or.                            &
-            (key(2,2) /= keys(2,2,i)) ) then
-        cycle
-      endif
-      connected_to_ref = -i
-      return
-    enddo
     return
     
   else if (Nint==3) then
@@ -186,24 +154,6 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
       endif
     enddo
     
-    !DIR$ FORCEINLINE
-    t = det_is_not_or_may_be_in_ref(key,Nint)
-    if ( t ) then
-      return
-    endif
-    
-    do i=N_past,Ndet
-      if ( (key(1,1) /= keys(1,1,i)).or.                             &
-            (key(1,2) /= keys(1,2,i)).or.                            &
-            (key(2,1) /= keys(2,1,i)).or.                            &
-            (key(2,2) /= keys(2,2,i)).or.                            &
-            (key(3,1) /= keys(3,1,i)).or.                            &
-            (key(3,2) /= keys(3,2,i)) ) then
-        cycle
-      endif
-      connected_to_ref = -i
-      return
-    enddo
     return
     
   else
@@ -225,32 +175,6 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
       else
         connected_to_ref = i
         return
-      endif
-    enddo
-    
-    !DIR$ FORCEINLINE
-    t = det_is_not_or_may_be_in_ref(key,Nint)
-    if ( t ) then
-      return
-    endif
-    
-    do i=N_past,Ndet
-      if ( (key(1,1) /= keys(1,1,i)).or.                             &
-            (key(1,2) /= keys(1,2,i)) ) then
-        cycle
-      else
-        connected_to_ref = -1
-        !DEC$ LOOP COUNT MIN(3)
-        do l=2,Nint
-          if ( (key(l,1) /= keys(l,1,i)).or.                         &
-                (key(l,2) /= keys(l,2,i)) ) then
-            connected_to_ref = 0
-            exit
-          endif
-        enddo
-        if (connected_to_ref /= 0) then
-          return
-        endif
       endif
     enddo
     

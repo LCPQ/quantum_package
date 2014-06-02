@@ -28,6 +28,7 @@ Needed Modules
 * `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
 * `SingleRefMethod <http://github.com/LCPQ/quantum_package/tree/master/src/SingleRefMethod>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
+* `Selectors_full <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full>`_
 
 Documentation
 =============

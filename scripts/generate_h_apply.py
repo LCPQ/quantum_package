@@ -159,7 +159,7 @@ class H_apply(object):
   double precision, intent(inout):: norm_pert(N_st) 
   double precision, intent(inout):: H_pert_diag(N_st)
   double precision               :: delta_pt2(N_st), norm_psi(N_st), pt2_old(N_st)
-  PROVIDE CI_electronic_energy N_det_generators key_pattern_not_in_ref                                                                                                      
+  PROVIDE CI_electronic_energy N_det_generators 
   do k=1,N_st
     pt2(k) = 0.d0
     norm_pert(k) = 0.d0
