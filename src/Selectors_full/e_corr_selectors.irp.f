@@ -51,7 +51,11 @@ END_PROVIDER
    E_corr_per_selectors(i) = -1000.d0
   endif
  enddo
- inv_selectors_coef_hf = 1.d0/coef_hf_selector
+ if (dabs(coef_hf_selector) > 1.d-8) then
+   inv_selectors_coef_hf = 1.d0/coef_hf_selector
+ else
+   inv_selectors_coef_hf = 0.d0
+ endif
  do i = 1,n_double_selectors
   E_corr_per_selectors(double_index_selectors(i)) *=inv_selectors_coef_hf
  enddo

@@ -47,14 +47,6 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
       occ_hole_tmp(N_int*bit_kind_size,2))
   $init_thread
   
-  !print*,'key_in !!'
-  !call print_key(key_in)
-  !print*,'hole_1, particl_1'
-  !call print_key(hole_1)
-  !call print_key(particl_1)
-  !print*,'hole_2, particl_2'
-  !call print_key(hole_2)
-  !call print_key(particl_2)
   
   
   !!!! First couple hole particle
@@ -352,9 +344,11 @@ subroutine $subroutine($params_main)
   
   $decls_main
   
-  integer                        :: i_generator, k, nmax
-  double precision               :: wall_0, wall_1, wall_2, d
+  integer                        :: i_generator, nmax
+  double precision               :: wall_0, wall_1, wall_2
   integer(omp_lock_kind)         :: lck
+  integer(bit_kind), allocatable :: mask(:,:,:)
+  integer                        :: ispin, k
 
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map N_det_selectors psi_generators
   PROVIDE psi_det_sorted_bit coef_hf_selector
@@ -363,22 +357,45 @@ subroutine $subroutine($params_main)
   call wall_time(wall_1)
   !$ call omp_init_lock(lck)
   !$OMP PARALLEL DEFAULT(SHARED) &
-  !$OMP PRIVATE(i_generator,wall_2) 
+  !$OMP PRIVATE(i_generator,wall_2,ispin,k,mask) 
+  allocate( mask(N_int,2,6) )
   !$OMP DO SCHEDULE(guided)
   do i_generator=1,nmax
     if (abort_here) then
       cycle
     endif
     $skip
+
+    ! Create bit masks for holes and particles
+    do ispin=1,2
+      do k=1,N_int
+        mask(k,ispin,s_hole) =                                      &
+            iand(generators_bitmask(k,ispin,s_hole,i_bitmask_gen),  &
+            psi_generators(k,ispin,i_generator) )
+        mask(k,ispin,s_part) =                                      &
+            iand(generators_bitmask(k,ispin,s_part,i_bitmask_gen),  &
+            not(psi_generators(k,ispin,i_generator)) )
+        mask(k,ispin,d_hole1) =                                      &
+            iand(generators_bitmask(k,ispin,d_hole1,i_bitmask_gen),  &
+            psi_generators(k,ispin,i_generator) )
+        mask(k,ispin,d_part1) =                                      &
+            iand(generators_bitmask(k,ispin,d_part1,i_bitmask_gen),  &
+            not(psi_generators(k,ispin,i_generator)) )
+        mask(k,ispin,d_hole2) =                                      &
+            iand(generators_bitmask(k,ispin,d_hole2,i_bitmask_gen),  &
+            psi_generators(k,ispin,i_generator) )
+        mask(k,ispin,d_part2) =                                      &
+            iand(generators_bitmask(k,ispin,d_part2,i_bitmask_gen),  &
+            not (psi_generators(k,ispin,i_generator)) )
+      enddo
+    enddo
+
     call $subroutine_diexc(psi_generators(1,1,i_generator),          &
-        generators_bitmask(1,1,d_hole1,i_bitmask_gen),               &
-        generators_bitmask(1,1,d_part1,i_bitmask_gen),               &
-        generators_bitmask(1,1,d_hole2,i_bitmask_gen),               &
-        generators_bitmask(1,1,d_part2,i_bitmask_gen),               &
+        mask(1,1,d_hole1), mask(1,1,d_part1),                        &
+        mask(1,1,d_hole2), mask(1,1,d_part2),                        &
         i_generator $params_post)
     call $subroutine_monoexc(psi_generators(1,1,i_generator),        &
-        generators_bitmask(1,1,s_hole ,i_bitmask_gen),               &
-        generators_bitmask(1,1,s_part ,i_bitmask_gen),               &
+        mask(1,1,s_hole ), mask(1,1,s_part ),                        &
         i_generator $params_post)
     !$ call omp_set_lock(lck)
     call wall_time(wall_2)
@@ -390,23 +407,46 @@ subroutine $subroutine($params_main)
     !$ call omp_unset_lock(lck)
   enddo
   !$OMP END DO 
+  deallocate( mask )
   !$OMP END PARALLEL
   !$ call omp_destroy_lock(lck)
 
+  allocate( mask(N_int,2,6) )
   do i_generator=nmax+1,N_det_generators
     if (abort_here) then
       exit
     endif
     $skip
+
+    ! Create bit masks for holes and particles
+    do ispin=1,2
+      do k=1,N_int
+        mask(k,ispin,s_hole) =                                      &
+            iand(generators_bitmask(k,ispin,s_hole,i_bitmask_gen),  &
+            psi_generators(k,ispin,i_generator) )
+        mask(k,ispin,s_part) =                                      &
+            iand(generators_bitmask(k,ispin,s_part,i_bitmask_gen),  &
+            not(psi_generators(k,ispin,i_generator)) )
+        mask(k,ispin,d_hole1) =                                      &
+            iand(generators_bitmask(k,ispin,d_hole1,i_bitmask_gen),  &
+            psi_generators(k,ispin,i_generator) )
+        mask(k,ispin,d_part1) =                                      &
+            iand(generators_bitmask(k,ispin,d_part1,i_bitmask_gen),  &
+            not(psi_generators(k,ispin,i_generator)) )
+        mask(k,ispin,d_hole2) =                                      &
+            iand(generators_bitmask(k,ispin,d_hole2,i_bitmask_gen),  &
+            psi_generators(k,ispin,i_generator) )
+        mask(k,ispin,d_part2) =                                      &
+            iand(generators_bitmask(k,ispin,d_part2,i_bitmask_gen),  &
+            not(psi_generators(k,ispin,i_generator)) )
+      enddo
+    enddo
     call $subroutine_diexc(psi_generators(1,1,i_generator),          &
-        generators_bitmask(1,1,d_hole1,i_bitmask_gen),               &
-        generators_bitmask(1,1,d_part1,i_bitmask_gen),               &
-        generators_bitmask(1,1,d_hole2,i_bitmask_gen),               &
-        generators_bitmask(1,1,d_part2,i_bitmask_gen),               &
+        mask(1,1,d_hole1), mask(1,1,d_part1),                        &
+        mask(1,1,d_hole2), mask(1,1,d_part2),                        &
         i_generator $params_post)
     call $subroutine_monoexc(psi_generators(1,1,i_generator),        &
-        generators_bitmask(1,1,s_hole ,i_bitmask_gen),               &
-        generators_bitmask(1,1,s_part ,i_bitmask_gen),               &
+        mask(1,1,s_hole ), mask(1,1,s_part ),                        &
         i_generator $params_post)
     call wall_time(wall_2)
     $printout_always
@@ -419,6 +459,7 @@ subroutine $subroutine($params_main)
   $copy_buffer
   $generate_psi_guess
   abort_here = abort_all
+  deallocate( mask )
   
 end
 

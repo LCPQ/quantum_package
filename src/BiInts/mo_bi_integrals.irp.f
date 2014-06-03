@@ -88,7 +88,6 @@ subroutine add_integrals_to_map(mask_ijkl)
   
   call wall_time(wall_1)
   call cpu_time(cpu_1)
-  mo_integrals_threshold = 0.d0
   
   !$OMP PARALLEL PRIVATE(l1,k1,j1,i1,i2,i3,i4,i,j,k,l,c, ii1,kmax,   &
       !$OMP  bielec_tmp_0_idx, bielec_tmp_0, bielec_tmp_1,bielec_tmp_2,bielec_tmp_3,&

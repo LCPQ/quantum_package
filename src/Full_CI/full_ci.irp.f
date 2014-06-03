@@ -5,9 +5,9 @@ program cisd
   
   double precision, allocatable  :: pt2(:), norm_pert(:), H_pert_diag(:)
   integer                        :: N_st, degree
-  character*(64)                 :: perturbation
   N_st = N_states
   allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st))
+  character*(64)                 :: perturbation
   
   pt2 = 1.d0
   diag_algorithm = "Lapack"

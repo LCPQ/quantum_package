@@ -23,7 +23,7 @@ Needed Modules
 * `BiInts <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts>`_
 * `Bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask>`_
 * `CISD <http://github.com/LCPQ/quantum_package/tree/master/src/CISD>`_
-* `CISD_SC2 <http://github.com/LCPQ/quantum_package/tree/master/src/CISD_SC2>`_
+* `SC2 <http://github.com/LCPQ/quantum_package/tree/master/src/SC2>`_
 * `CISD_selected <http://github.com/LCPQ/quantum_package/tree/master/src/CISD_selected>`_
 * `Dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets>`_
 * `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_

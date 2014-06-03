@@ -56,16 +56,40 @@ logical function is_in_wavefunction(key,Nint,Ndet)
         endif
       enddo
       if (is_in_wavefunction) then
-        return
+        exit
       endif
     endif
     i += 1
     if (i > N_det) then
-      exit
+      return
+ !    exit
     endif
     
   enddo
   
+
+! DEBUG is_in_wf
+! if (is_in_wavefunction) then
+!   degree = 1
+!   do i=1,N_det
+!     integer                        :: degree
+!     call get_excitation_degree(key,psi_det(1,1,i),degree,N_int)
+!     if (degree == 0) then
+!       exit
+!     endif
+!   enddo
+!   if (degree /=0) then
+!     stop 'pouet 1'
+!   endif
+! else
+!   do i=1,N_det
+!     call get_excitation_degree(key,psi_det(1,1,i),degree,N_int)
+!     if (degree == 0) then
+!       stop 'pouet 2'
+!     endif
+!   enddo
+! endif
+! END DEBUG is_in_wf
 end
 
 integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
@@ -92,14 +116,10 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
   N_past = max(1,N_past_in)
   if (Nint == 1) then
     
-    do i=N_past-1,1,-1
+    do i=1,N_past-1
       degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
           popcnt(xor( key(1,2), keys(1,2,i)))
-      if(degree_x2 == 0)then
-        connected_to_ref = -i
-        return
-      endif
-      if (degree_x2 > 5) then
+      if (degree_x2 > 4) then
         cycle
       else
         connected_to_ref = i
@@ -112,16 +132,12 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
     
   else if (Nint==2) then
     
-    do i=N_past-1,1,-1
+    do i=1,N_past-1
       degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
           popcnt(xor( key(1,2), keys(1,2,i))) +                      &
           popcnt(xor( key(2,1), keys(2,1,i))) +                      &
           popcnt(xor( key(2,2), keys(2,2,i)))
-      if(degree_x2 == 0)then
-        connected_to_ref = -i
-        return
-      endif
-      if (degree_x2 > 5) then
+      if (degree_x2 > 4) then
         cycle
       else
         connected_to_ref = i
@@ -133,18 +149,14 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
     
   else if (Nint==3) then
     
-    do i=N_past-1,1,-1
+    do i=1,N_past-1
       degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
           popcnt(xor( key(1,2), keys(1,2,i))) +                      &
           popcnt(xor( key(2,1), keys(2,1,i))) +                      &
           popcnt(xor( key(2,2), keys(2,2,i))) +                      &
           popcnt(xor( key(3,1), keys(3,1,i))) +                      &
           popcnt(xor( key(3,2), keys(3,2,i)))
-      if(degree_x2 == 0)then
-        connected_to_ref = -i
-        return
-      endif
-      if (degree_x2 > 5) then
+      if (degree_x2 > 4) then
         cycle
       else
         connected_to_ref = i
@@ -156,7 +168,7 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
     
   else
     
-    do i=N_past-1,1,-1
+    do i=1,N_past-1
       degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
           popcnt(xor( key(1,2), keys(1,2,i)))
       !DEC$ LOOP COUNT MIN(3)
@@ -164,11 +176,7 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
         degree_x2 = degree_x2 + popcnt(xor( key(l,1), keys(l,1,i))) +&
             popcnt(xor( key(l,2), keys(l,2,i)))
       enddo
-      if(degree_x2 == 0)then
-        connected_to_ref = -i
-        return
-      endif
-      if (degree_x2 > 5) then
+      if (degree_x2 > 4) then
         cycle
       else
         connected_to_ref = i

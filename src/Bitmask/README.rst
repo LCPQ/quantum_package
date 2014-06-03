@@ -57,14 +57,39 @@ Documentation
 `full_ijkl_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L12>`_
   Bitmask to include all possible MOs
 
+`generators_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L91>`_
+  Bitmasks for generator determinants. (N_int, alpha/beta, hole/particle, generator).
+  3rd index is :
+  * 1 : hole     for single exc
+  * 1 : particle for single exc
+  * 3 : hole     for 1st exc of double
+  * 4 : particle for 1st exc of double
+  * 5 : hole     for 2dn exc of double
+  * 6 : particle for 2dn exc of double
+
 `hf_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L32>`_
   Hartree Fock bit mask
+
+`i_bitmask_gen <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L182>`_
+  Current bitmask for the generators
+
+`i_bitmask_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L190>`_
+  Current bitmask for the reference
+
+`n_generators_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L58>`_
+  Number of bitmasks for generators
 
 `n_int <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L3>`_
   Number of 64-bit integers needed to represent determinants as binary strings
 
+`n_reference_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L126>`_
+  Number of bitmasks for reference
+
 `ref_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L50>`_
   Reference bit mask, used in Slater rules, chosen as Hartree-Fock bitmask
+
+`reference_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L159>`_
+  Bitmasks for reference determinants. (N_int, alpha/beta, hole/particle, reference)
 
 `bitstring_to_hexa <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L95>`_
   Transform a bit string to a string in hexadecimal format for printing
