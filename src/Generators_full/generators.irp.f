@@ -33,8 +33,8 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
  N_det_generators = N_det
  do i=1,N_det
    norm = norm + psi_average_norm_contrib_sorted(i)
-   if (norm > threshold_generators) then
-     N_det_generators = i-1
+   if (norm >= threshold_generators) then
+     N_det_generators = i
      exit
    endif
  enddo
@@ -52,4 +52,11 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
 
 END_PROVIDER
 
+ BEGIN_PROVIDER [ double precision, select_max, (3000) ]
+ implicit none
+ BEGIN_DOC
+ ! Memo to skip useless selectors
+ END_DOC
+ select_max = huge(1.d0)
+END_PROVIDER
 

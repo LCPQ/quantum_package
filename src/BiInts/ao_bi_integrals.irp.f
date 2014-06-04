@@ -26,7 +26,6 @@ double precision function ao_bielec_integral(i,j,k,l)
   ao_bielec_integral = 0.d0
   double precision               :: thresh
   thresh = ao_integrals_threshold
-  thresh = 0.d0
   
   if (num_i /= num_j .or. num_k /= num_l .or. num_j /= num_k)then
     do p = 1, 3

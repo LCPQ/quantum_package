@@ -19,7 +19,7 @@ BEGIN_PROVIDER [ logical, H_apply_buffer_allocated ]
   ! Uninitialized. Filled by H_apply subroutines.
   END_DOC
   integer                        :: iproc, sze
-  sze = 100
+  sze = 10000
   if (.not.associated(H_apply_buffer)) then
     allocate(H_apply_buffer(0:nproc-1))
     iproc = 0
@@ -235,6 +235,5 @@ subroutine fill_H_apply_buffer_no_selection(n_selected,det_buffer,Nint,iproc)
     ASSERT (sum(popcnt(H_apply_buffer(iproc)%det(:,2,i))) == elec_beta_num)
   enddo
 end
-
 
 

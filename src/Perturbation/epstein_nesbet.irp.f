@@ -66,14 +66,24 @@ subroutine pt2_epstein_nesbet_2x2(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet
   call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
   h = diag_H_mat_elem(det_pert,Nint)
   do i =1,N_st
-    delta_e = h - CI_electronic_energy(i)
-    e_2_pert(i) = 0.5d0 * (delta_e - dsqrt(delta_e * delta_e + 4.d0 * i_H_psi_array(i) * i_H_psi_array(i)))
-    if (dabs(i_H_psi_array(i)) > 1.d-6) then
-      c_pert(i) = e_2_pert(i)/i_H_psi_array(i)
+    if (i_H_psi_array(i) /= 0.d0) then
+      delta_e = h - CI_electronic_energy(i)
+      if (delta_e > 0.d0) then
+        e_2_pert(i) = 0.5d0 * (delta_e - dsqrt(delta_e * delta_e + 4.d0 * i_H_psi_array(i) * i_H_psi_array(i)))
+      else
+        e_2_pert(i) = 0.5d0 * (delta_e + dsqrt(delta_e * delta_e + 4.d0 * i_H_psi_array(i) * i_H_psi_array(i)))
+      endif
+      if (dabs(i_H_psi_array(i)) > 1.d-6) then
+        c_pert(i) = e_2_pert(i)/i_H_psi_array(i)
+      else
+        c_pert(i) = 0.d0
+      endif
+      H_pert_diag(i) = h*c_pert(i)*c_pert(i)
     else
-      c_pert(i) = -1.d0
+      e_2_pert(i) = 0.d0
+      c_pert(i) = 0.d0
+      H_pert_diag(i) = 0.d0
     endif
-    H_pert_diag(i) = h*c_pert(i)*c_pert(i)
   enddo
 
 end

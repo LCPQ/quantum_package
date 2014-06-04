@@ -107,12 +107,17 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_
  if (exists) then
    call ezfio_get_bitmasks_generators(generators_bitmask)
  else
-   generators_bitmask(:,:,s_hole ,1) = HF_bitmask
-   generators_bitmask(:,:,s_part ,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
-   generators_bitmask(:,:,d_hole1,1) = HF_bitmask
-   generators_bitmask(:,:,d_part1,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
-   generators_bitmask(:,:,d_hole2,1) = HF_bitmask
-   generators_bitmask(:,:,d_part2,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
+   integer :: k, ispin
+   do k=1,N_generators_bitmask
+     do ispin=1,2
+       generators_bitmask(:,ispin,s_hole ,k) = full_ijkl_bitmask(:,d_hole1)
+       generators_bitmask(:,ispin,s_part ,k) = full_ijkl_bitmask(:,d_part1)
+       generators_bitmask(:,ispin,d_hole1,k) = full_ijkl_bitmask(:,d_hole1)
+       generators_bitmask(:,ispin,d_part1,k) = full_ijkl_bitmask(:,d_part1)
+       generators_bitmask(:,ispin,d_hole2,k) = full_ijkl_bitmask(:,d_hole2)
+       generators_bitmask(:,ispin,d_part2,k) = full_ijkl_bitmask(:,d_part2)
+     enddo
+   enddo
    call ezfio_set_bitmasks_generators(generators_bitmask)
  endif
 
