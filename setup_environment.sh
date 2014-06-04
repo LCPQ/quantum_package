@@ -15,6 +15,7 @@ then
       echo "Error in IRPF90 installation"
       exit 1
     fi
+    rm -rf EZFIO
 fi
 
 cat << EOF > quantum_package.rc

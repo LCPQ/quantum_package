@@ -356,15 +356,20 @@ subroutine filter_connected_i_H_psi0_SC2(key1,key2,Nint,sze,idx,idx_repeat)
   ASSERT (Nint == N_int)
   ASSERT (sze > 0)
   
-  l=1
-  l_repeat=1
-  call get_excitation_degree(ref_bitmask,key2,degree,Nint)
   integer :: degree
-  ASSERT (degree .ne. 0)
+  degree = popcnt(xor( ref_bitmask(1,1), key2(1,1))) +                      &
+      popcnt(xor( ref_bitmask(1,2), key2(1,2)))
+  !DEC$ NOUNROLL
+  do l=2,Nint
+    degree = degree+ popcnt(xor( ref_bitmask(l,1), key2(l,1))) +            &
+        popcnt(xor( ref_bitmask(l,2), key2(l,2)))
+  enddo
+  degree = ishft(degree,-1)
   
+  l_repeat=1
+  l=1
   if(degree == 2)then
    if (Nint==1) then
-     
  
       !DIR$ LOOP COUNT (1000)
       do i=1,sze
