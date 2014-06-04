@@ -8,6 +8,9 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
+`cisd <http://github.com/LCPQ/quantum_package/tree/master/src/MP2/mp2.irp.f#L1>`_
+  Undocumented
+
 
 
 Needed Modules
