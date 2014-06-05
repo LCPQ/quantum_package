@@ -13,7 +13,7 @@ program cisd_sc2_selected
   pt2 = 1.d0
   perturbation = "epstein_nesbet_sc2_projected"
   E_old(1) = HF_energy
-  do while (maxval(abs(pt2(1:N_st))) > 1.d-10)
+  do while (maxval(abs(pt2(1:N_st))) > 1.d-2)
     print*,'----'
     print*,''
     call H_apply_cisd_selection(perturbation,pt2, norm_pert, H_pert_diag,  N_st)
@@ -34,6 +34,10 @@ program cisd_sc2_selected
       exit
     endif
   enddo
+
+  print*,'coucou'
+  pt2 = 0.d0
+  call H_apply_PT2(pt2, norm_pert, H_pert_diag,  N_st)
   do i = 1, N_st
    max = 0.d0
 
@@ -51,9 +55,9 @@ program cisd_sc2_selected
    integer :: imax
    print *,  'PT2(SC2)                     = ', pt2(i)
    print *,  'E(SC2)                       = ', CI_SC2_energy(i)
-   print *,  'E_before(SC2)+PT2(SC2)       = ', (E_old(i)+pt2(i))
+   print *,  'E_before(SC2)+PT2(SC2)       = ', (CI_SC2_energy(i)+pt2(i))
    if(i==1)then
-    print *,  'E(SC2)+PT2(projctd)SC2       = ', (E_old(i)+H_pert_diag(i))
+    print *,  'E(SC2)+PT2(projctd)SC2       = ', (CI_SC2_energy(i)+H_pert_diag(i))
    endif
 
    print*,'greater coeficient of the state : ',dabs(psi_coef(imax,i))
@@ -61,5 +65,6 @@ program cisd_sc2_selected
    print*,'degree of excitation of such determinant : ',degree
    
   enddo
+  print*,'coucou'
   deallocate(pt2,norm_pert,H_pert_diag)
 end

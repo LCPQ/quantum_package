@@ -55,14 +55,15 @@ subroutine pt2_epstein_nesbet_SC2_projected(det_pert,c_pert,e_2_pert,H_pert_diag
 
   do i =2,N_st
     H_pert_diag(i) = h
-    if(CI_SC2_electronic_energy(i)>h.and.CI_SC2_electronic_energy(i).ne.0.d0)then
-      c_pert(i) = -1.d0
-      e_2_pert(i) = -2.d0
-    else if  (dabs(CI_SC2_electronic_energy(i) - h) > 1.d-6) then
-      c_pert(i) = i_H_psi_array(i) / (CI_SC2_electronic_energy(i) - h)
-      e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
+!   if(CI_SC2_electronic_energy(i)>h.and.CI_SC2_electronic_energy(i).ne.0.d0)then
+!     c_pert(i) = -1.d0
+!     e_2_pert(i) = -2.d0
+!   else if  (dabs(CI_SC2_electronic_energy(i) - h) > 1.d-6) then
+    if  (dabs(CI_SC2_electronic_energy(i) - h) > 1.d-6) then
+      c_pert(i) = i_H_psi_array(i) / (-dabs(CI_SC2_electronic_energy(i) - h))
+      e_2_pert(i) = (c_pert(i) * i_H_psi_array(i))
     else
-      c_pert(i) = -1.d0
+      c_pert(i) = i_H_psi_array(i)
       e_2_pert(i) = -dabs(i_H_psi_array(i))
     endif
   enddo
