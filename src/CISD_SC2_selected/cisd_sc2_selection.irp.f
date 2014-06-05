@@ -13,10 +13,13 @@ program cisd_sc2_selected
   pt2 = 1.d0
   perturbation = "epstein_nesbet_sc2_projected"
   E_old(1) = HF_energy
-  do while (maxval(abs(pt2(1:N_st))) > 1.d-2)
+  davidson_threshold = 1.d-4
+
+  do while (maxval(abs(pt2(1:N_st))) > 1.d-6)
     print*,'----'
     print*,''
     call H_apply_cisd_selection(perturbation,pt2, norm_pert, H_pert_diag,  N_st)
+!    soft_touch det_connections
     call diagonalize_CI_SC2
     print *,  'N_det                        = ', N_det
     do i = 1, N_st
@@ -34,10 +37,10 @@ program cisd_sc2_selected
       exit
     endif
   enddo
-
-  print*,'coucou'
   pt2 = 0.d0
   call H_apply_PT2(pt2, norm_pert, H_pert_diag,  N_st)
+  davidson_threshold = 1.d-8
+  touch davidson_threshold davidson_criterion
   do i = 1, N_st
    max = 0.d0
 

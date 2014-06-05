@@ -62,10 +62,9 @@ BEGIN_PROVIDER [ integer, psi_det_size ]
 END_PROVIDER
 
  BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
-&BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
  implicit none
  BEGIN_DOC
- ! The wave function. Initialized with Hartree-Fock if the EZFIO file
+ ! The wave function determinants. Initialized with Hartree-Fock if the EZFIO file
  ! is empty
  END_DOC
 
@@ -74,7 +73,6 @@ END_PROVIDER
  if (ifirst == 0) then
     ifirst = 1
     psi_det = 0_bit_kind
-    psi_coef = 0.d0
  endif
 
  integer :: i
@@ -82,6 +80,23 @@ END_PROVIDER
    psi_det(i,1,1) = HF_bitmask(i,1)
    psi_det(i,2,1) = HF_bitmask(i,2)
  enddo
+
+END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
+ implicit none
+ BEGIN_DOC
+ ! The wave function coefficients. Initialized with Hartree-Fock if the EZFIO file
+ ! is empty
+ END_DOC
+
+ integer, save                  :: ifirst = 0
+ integer                        :: i
+
+ if (ifirst == 0) then
+    ifirst = 1
+    psi_coef = 0.d0
+ endif
 
  do i=1,N_states
    psi_coef(i,i) = 1.d0

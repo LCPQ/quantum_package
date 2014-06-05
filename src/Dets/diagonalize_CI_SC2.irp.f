@@ -30,9 +30,9 @@ END_PROVIDER
     CI_SC2_electronic_energy(j) = CI_electronic_energy(j) 
   enddo
   
-    
+  double precision :: convergence
   call CISD_SC2(psi_det,CI_SC2_eigenvectors,CI_SC2_electronic_energy, &
-        size(CI_SC2_eigenvectors,1),N_det,N_states,N_int,output_Dets)
+        size(CI_SC2_eigenvectors,1),N_det,N_states,N_int,davidson_threshold)
 END_PROVIDER
 
 subroutine diagonalize_CI_SC2
@@ -47,5 +47,5 @@ subroutine diagonalize_CI_SC2
       psi_coef(i,j) = CI_SC2_eigenvectors(i,j)
     enddo
   enddo
-  SOFT_TOUCH psi_coef psi_det CI_SC2_electronic_energy CI_SC2_energy CI_SC2_eigenvectors
+  SOFT_TOUCH psi_coef CI_SC2_electronic_energy CI_SC2_energy CI_SC2_eigenvectors
 end

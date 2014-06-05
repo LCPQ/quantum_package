@@ -18,6 +18,7 @@ then
       echo "Error in IRPF90 installation"
       exit 1
     fi
+    rm -rf EZFIO
 fi
 echo $IRPF90
 

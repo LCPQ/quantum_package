@@ -32,14 +32,14 @@ subroutine pt2_epstein_nesbet_SC2_projected(det_pert,c_pert,e_2_pert,H_pert_diag
   ! H_pert_diag = <HF|H|det_pert> c_pert
   END_DOC
   
-  integer                        :: i,j,degree
+  integer                        :: i,j,degree,l
   double precision               :: diag_H_mat_elem,accu_e_corr,hij,h0j,h,delta_E
   double precision               :: repeat_all_e_corr,accu_e_corr_tmp,e_2_pert_fonda
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
   call i_H_psi_SC2(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array,idx_repeat)
   accu_e_corr = 0.d0
-  call i_H_j(ref_bitmask,det_pert,Nint,h0j)
+  !$IVDEP
   do i = 1, idx_repeat(0)
    accu_e_corr = accu_e_corr + E_corr_per_selectors(idx_repeat(i))
   enddo
@@ -50,8 +50,6 @@ subroutine pt2_epstein_nesbet_SC2_projected(det_pert,c_pert,e_2_pert,H_pert_diag
 
   c_pert(1) = i_H_psi_array(1) * delta_E
   e_2_pert(1) = i_H_psi_array(1) * c_pert(1)
-  H_pert_diag(1) = c_pert(1) * h0j/coef_hf_selector
-  e_2_pert_fonda = H_pert_diag(1)
 
   do i =2,N_st
     H_pert_diag(i) = h
@@ -68,9 +66,18 @@ subroutine pt2_epstein_nesbet_SC2_projected(det_pert,c_pert,e_2_pert,H_pert_diag
     endif
   enddo
 
-  call get_excitation_degree(ref_bitmask,det_pert,degree,Nint)
-  if(degree==2)then
+  degree = popcnt(xor( ref_bitmask(1,1), det_pert(1,1))) +                      &
+      popcnt(xor( ref_bitmask(1,2), det_pert(1,2)))
+  !DEC$ NOUNROLL
+  do l=2,Nint
+    degree = degree+ popcnt(xor( ref_bitmask(l,1), det_pert(l,1))) +            &
+        popcnt(xor( ref_bitmask(l,2), det_pert(l,2)))
+  enddo
+  if(degree==4)then
   ! <psi|delta_H|psi>
+   call i_H_j(ref_bitmask,det_pert,Nint,h0j)
+   H_pert_diag(1) = c_pert(1) * h0j/coef_hf_selector
+   e_2_pert_fonda = H_pert_diag(1)
    do i = 1, N_st
     do j = 1, idx_repeat(0)
      e_2_pert(i) += e_2_pert_fonda * psi_selectors_coef(idx_repeat(j),i) * psi_selectors_coef(idx_repeat(j),i)
