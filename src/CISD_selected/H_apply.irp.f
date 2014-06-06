@@ -4,7 +4,7 @@ from generate_h_apply import *
 from perturbation import perturbations
 
 for perturbation in perturbations:
-  s = H_apply("cisd_selection_"+perturbation,openmp=True)
+  s = H_apply("cisd_selection_"+perturbation)
   s.set_selection_pt2(perturbation)
   print s
 END_SHELL

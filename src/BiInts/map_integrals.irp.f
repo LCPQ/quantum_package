@@ -232,6 +232,48 @@ subroutine get_mo_bielec_integrals(j,k,l,sze,out_val,map)
   call map_get_many(map, hash, out_val, sze)
 end
 
+subroutine get_mo_bielec_integrals_existing_ik(j,l,sze,out_array,map)
+  use map_module
+  implicit none
+  BEGIN_DOC
+  ! Returns multiple integrals <ij|kl> in the MO basis, all
+  ! i for j,k,l fixed.
+  END_DOC
+  integer, intent(in)            :: j,l, sze
+  logical, intent(out)           :: out_array(sze,sze)
+  type(map_type), intent(inout)  :: map
+  integer                        :: i,k,kk,ll,m
+  integer*8,allocatable          :: hash(:)
+  integer  ,allocatable          :: pairs(:,:), iorder(:)
+  PROVIDE mo_bielec_integrals_in_map
+  allocate (hash(sze*sze), pairs(2,sze*sze),iorder(sze*sze))
+  
+  kk=0
+  do k=1,sze
+   do i=1,sze
+    kk += 1
+    !DIR$ FORCEINLINE
+    call bielec_integrals_index(i,j,k,l,hash(kk))
+    pairs(1,kk) = i
+    pairs(2,kk) = k
+    iorder(kk) = kk
+   enddo
+  enddo
+
+  logical :: integral_is_in_map
+  call i8radix_sort(hash,iorder,kk,-1)
+  call map_exists_many(mo_integrals_map, hash, kk)
+
+  do ll=1,kk
+    m = iorder(ll)
+    i=pairs(1,m)
+    k=pairs(2,m)
+    out_array(i,k) = (hash(ll) /= 0_8)
+  enddo  
+
+  deallocate(pairs,hash,iorder)
+end
+
 integer*8 function get_mo_map_size()
   implicit none
   BEGIN_DOC

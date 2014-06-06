@@ -88,6 +88,8 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   integer                        :: i_a,j_a,i_b,j_b,k_a,l_a,k_b,l_b
   integer(bit_kind)              :: test(N_int,2)
   double precision               :: accu
+  logical, allocatable           :: array_pairs(:,:)
+  allocate(array_pairs(mo_tot_num,mo_tot_num))
   accu = 0.d0
   do ispin=1,2
     other_spin = iand(ispin,1)+1
@@ -128,6 +130,9 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
       
       !   hole = a^(+)_j_a(ispin) a_i_a(ispin)|key_in> : mono exc :: orb(i_a,ispin) --> orb(j_a,ispin)
       hole_save = hole
+
+      ! Build array of the non-zero integrals of second excitation
+      $filter_integrals
       if (ispin == 1) then
         integer                        :: jjj
         
@@ -140,9 +145,11 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
             j_b = occ_particle_tmp(jjj,other_spin)
             ASSERT (j_b > 0)
             ASSERT (j_b <= mo_tot_num)
-            i+= 1
-            ib_jb_pairs(1,i) = i_b
-            ib_jb_pairs(2,i) = j_b
+            if (array_pairs(i_b,j_b)) then
+              i+= 1
+              ib_jb_pairs(1,i) = i_b
+              ib_jb_pairs(2,i) = j_b
+            endif
           enddo
         enddo
         ib_jb_pairs(1,0) = i
@@ -186,9 +193,11 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
           ASSERT (j_b > 0)
           ASSERT (j_b <= mo_tot_num)
           if (j_b <= j_a) cycle
-          i+= 1
-          ib_jb_pairs(1,i) = i_b
-          ib_jb_pairs(2,i) = j_b
+          if (array_pairs(i_b,j_b)) then
+            i+= 1
+            ib_jb_pairs(1,i) = i_b
+            ib_jb_pairs(2,i) = j_b
+          endif
         enddo
       enddo
       ib_jb_pairs(1,0) = i
@@ -229,7 +238,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
       key,hole, particle, hole_tmp,&
       particle_tmp, occ_particle,    &
       occ_hole, occ_particle_tmp,&
-      occ_hole_tmp)
+      occ_hole_tmp,array_pairs)
   $omp_end_parallel
   $finalization
 end
@@ -262,6 +271,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator $parameters 
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
   
   integer, allocatable           :: ia_ja_pairs(:,:,:)
+  logical, allocatable           :: array_pairs(:,:)
   double precision               :: diag_H_mat_elem
   integer                        :: iproc
   integer(omp_lock_kind), save   :: lck, ifirst=0

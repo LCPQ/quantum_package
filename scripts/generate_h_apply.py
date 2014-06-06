@@ -22,17 +22,17 @@ printout_always
 deinit_thread
 skip
 init_main
+filter_integrals
 """.split()
 
 class H_apply(object):
 
-  def __init__(self,sub,openmp=True):
+  def __init__(self,sub,SingleRef=False):
     s = {}
     for k in keywords:
       s[k] = ""
     s["subroutine"] = "H_apply_%s"%(sub)
     s["params_post"] = ""
-    self.openmp = openmp
 
     self.selection_pt2 = None
     self.perturbation = None
@@ -41,7 +41,7 @@ class H_apply(object):
     s["omp_parallel"]     = """!$OMP PARALLEL DEFAULT(SHARED)        &
         !$OMP PRIVATE(i,j,k,l,keys_out,hole,particle,                &
         !$OMP  occ_particle,occ_hole,j_a,k_a,other_spin,             &
-        !$OMP  hole_save,ispin,jj,l_a,ib_jb_pairs,                   &
+        !$OMP  hole_save,ispin,jj,l_a,ib_jb_pairs,array_pairs,       &
         !$OMP  accu,i_a,hole_tmp,particle_tmp,occ_particle_tmp,      &
         !$OMP  occ_hole_tmp,key_idx,i_b,j_b,key,N_elec_in_key_part_1,&
         !$OMP  N_elec_in_key_hole_1,N_elec_in_key_part_2,            &
@@ -57,6 +57,12 @@ class H_apply(object):
     s["omp_enddo"]        = "!$OMP ENDDO NOWAIT"
 
     s["keys_work"]  += "call fill_H_apply_buffer_no_selection(key_idx,keys_out,N_int,iproc)"
+
+    s["filter_integrals"] = "array_pairs = .True."
+    if SingleRef:
+      s["filter_integrals"] = """
+      call get_mo_bielec_integrals_existing_ik(i_a,j_a,mo_tot_num,array_pairs,mo_integrals_map)
+      """
 
     s["generate_psi_guess"]  = """
   ! Sort H_jj to find the N_states lowest states
@@ -83,9 +89,6 @@ class H_apply(object):
   deallocate(H_jj,iorder)
     """
 
-    if not openmp:
-      for k in s:
-        s[k] = ""
     s["size_max"] = str(1024*128) 
     s["copy_buffer"] = "call copy_h_apply_buffer_to_wf"
     s["printout_now"]   = """write(output_Dets,*)  &
@@ -192,8 +195,7 @@ class H_apply(object):
          pt2_old(k) = pt2(k)
       enddo
       """
-      if self.openmp:
-        self.data["omp_parallel"]    += """&
+      self.data["omp_parallel"]    += """&
  !$OMP SHARED(N_st) PRIVATE(e_2_pert_buffer,coef_pert_buffer) &
  !$OMP PRIVATE(sum_e_2_pert, sum_norm_pert, sum_H_pert_diag)"""
 

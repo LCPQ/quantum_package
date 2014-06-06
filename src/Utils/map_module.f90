@@ -495,7 +495,7 @@ subroutine map_get_many(map, key, value, sze)
  integer(key_kind), intent(in)     :: key(sze)
  real(integral_kind), intent(out)  :: value(sze)
  integer                           :: i
- integer(map_size_kind)            :: idx_cache, idx_cache_prev
+ integer(map_size_kind)            :: idx_cache
  integer(cache_map_size_kind)      :: ibegin, iend
  integer(cache_map_size_kind), allocatable :: idx(:)
  !DIR$ ATTRIBUTES ALIGN : 64 :: idx
@@ -518,6 +518,43 @@ subroutine map_get_many(map, key, value, sze)
  deallocate(idx)
 end
 
+subroutine map_exists_many(map, key, sze)
+ use map_module
+ implicit none
+ type (map_type), intent(inout) :: map
+ integer, intent(in)            :: sze
+ integer(key_kind), intent(inout):: key(sze)
+ integer                        :: i
+ integer(map_size_kind)         :: idx_cache, idx_cache_prev
+ integer(cache_map_size_kind)   :: ibegin, iend
+ integer(cache_map_size_kind), allocatable :: idx(:)
+ !DIR$ ATTRIBUTES ALIGN : 64 :: idx
+
+ idx_cache_prev = -1_map_size_kind
+ allocate(idx(sze))
+ do i=1,sze
+   idx_cache = ishft(key(i),map_shift)
+   iend = map%map(idx_cache)%n_elements
+   if (idx_cache == idx_cache_prev) then
+      if ((idx(i-1) > 0_cache_map_size_kind).and.(idx(i-1) < iend)) then
+        if ((key(i) == key(i-1)+1).and.(map%map(idx_cache)%key(idx(i-1))+1) == key(i)) then
+          idx(i) = idx(i-1)+1
+          cycle
+        endif
+      endif
+   endif
+   !DIR$ FORCEINLINE
+   call search_key_big_interval(key(i),map%map(idx_cache)%key, iend, idx(i), 1, iend)
+   idx_cache_prev = idx_cache
+ enddo
+ do i=1,sze
+   idx_cache = ishft(key(i),map_shift)
+   if (idx(i) <= 0) then
+     key(i) = 0_key_kind
+   endif
+ enddo
+ deallocate(idx)
+end
 
 subroutine search_key_big(key,X,sze,idx)
  use map_module
