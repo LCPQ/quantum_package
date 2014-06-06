@@ -15,6 +15,14 @@ BEGIN_PROVIDER [ double precision, CI_SC2_energy, (N_states) ]
 
 END_PROVIDER
 
+ BEGIN_PROVIDER [ double precision, threshold_convergence_SC2]
+ implicit none
+ BEGIN_DOC
+ ! convergence of the correlation energy of SC2 iterations
+ END_DOC
+ threshold_convergence_SC2 = 1.d-8
+
+ END_PROVIDER
  BEGIN_PROVIDER [ double precision, CI_SC2_electronic_energy, (N_states) ]
 &BEGIN_PROVIDER [ double precision, CI_SC2_eigenvectors, (N_det,N_states) ]
   implicit none
@@ -32,7 +40,7 @@ END_PROVIDER
   
   double precision :: convergence
   call CISD_SC2(psi_det,CI_SC2_eigenvectors,CI_SC2_electronic_energy, &
-        size(CI_SC2_eigenvectors,1),N_det,N_states,N_int,davidson_threshold)
+        size(CI_SC2_eigenvectors,1),N_det,N_states,N_int,threshold_convergence_SC2)
 END_PROVIDER
 
 subroutine diagonalize_CI_SC2
