@@ -41,7 +41,7 @@ class H_apply(object):
     s["omp_parallel"]     = """!$OMP PARALLEL DEFAULT(SHARED)        &
         !$OMP PRIVATE(i,j,k,l,keys_out,hole,particle,                &
         !$OMP  occ_particle,occ_hole,j_a,k_a,other_spin,             &
-        !$OMP  hole_save,ispin,jj,l_a,                               &
+        !$OMP  hole_save,ispin,jj,l_a,ib_jb_pairs,                   &
         !$OMP  accu,i_a,hole_tmp,particle_tmp,occ_particle_tmp,      &
         !$OMP  occ_hole_tmp,key_idx,i_b,j_b,key,N_elec_in_key_part_1,&
         !$OMP  N_elec_in_key_hole_1,N_elec_in_key_part_2,            &
