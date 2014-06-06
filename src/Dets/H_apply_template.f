@@ -26,6 +26,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   
   double precision               :: mo_bielec_integral
   integer, allocatable           :: ia_ja_pairs(:,:,:)
+  integer, allocatable           :: ib_jb_pairs(:,:)
   double precision               :: diag_H_mat_elem
   integer                        :: iproc
   integer(omp_lock_kind), save   :: lck, ifirst=0
@@ -60,7 +61,8 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   call bitstring_to_list(particle(1,2),occ_particle(1,2),N_elec_in_key_part_1(2),N_int)
   call bitstring_to_list(hole(1,1),occ_hole(1,1),N_elec_in_key_hole_1(1),N_int)
   call bitstring_to_list(hole(1,2),occ_hole(1,2),N_elec_in_key_hole_1(2),N_int)
-  allocate (ia_ja_pairs(2,0:(elec_alpha_num)*mo_tot_num,2))
+  allocate (ia_ja_pairs(2,0:(elec_alpha_num)*mo_tot_num,2),          &
+            ib_jb_pairs(2,0:(elec_alpha_num)*mo_tot_num))
   
   do ispin=1,2
     i=0
@@ -86,6 +88,8 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   integer                        :: i_a,j_a,i_b,j_b,k_a,l_a,k_b,l_b
   integer(bit_kind)              :: test(N_int,2)
   double precision               :: accu
+  logical, allocatable           :: array_pairs(:,:)
+  allocate(array_pairs(mo_tot_num,mo_tot_num))
   accu = 0.d0
   do ispin=1,2
     other_spin = iand(ispin,1)+1
@@ -126,63 +130,41 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
       
       !   hole = a^(+)_j_a(ispin) a_i_a(ispin)|key_in> : mono exc :: orb(i_a,ispin) --> orb(j_a,ispin)
       hole_save = hole
+
+      ! Build array of the non-zero integrals of second excitation
+      $filter_integrals
       if (ispin == 1) then
         integer                        :: jjj
         
+        i=0
         do kk = 1,N_elec_in_key_hole_2(other_spin)
-          hole = hole_save
           i_b = occ_hole_tmp(kk,other_spin)
           ASSERT (i_b > 0)
           ASSERT (i_b <= mo_tot_num)
-          k = ishft(i_b-1,-bit_kind_shift)+1
-          j = i_b-ishft(k-1,bit_kind_shift)-1
-          hole(k,other_spin) = ibclr(hole(k,other_spin),j)
           do jjj=1,N_elec_in_key_part_2(other_spin)     ! particule
             j_b = occ_particle_tmp(jjj,other_spin)
             ASSERT (j_b > 0)
             ASSERT (j_b <= mo_tot_num)
-            key = hole
-            k = ishft(j_b-1,-bit_kind_shift)+1
-            l = j_b-ishft(k-1,bit_kind_shift)-1
-            key(k,other_spin) = ibset(key(k,other_spin),l)
-            key_idx += 1
-            do k=1,N_int
-              keys_out(k,1,key_idx) = key(k,1)
-              keys_out(k,2,key_idx) = key(k,2)
-            enddo
-            ASSERT (key_idx <= size_max)
-            if (key_idx == size_max) then
-              $keys_work
-              key_idx = 0
+            if (array_pairs(i_b,j_b)) then
+              i+= 1
+              ib_jb_pairs(1,i) = i_b
+              ib_jb_pairs(2,i) = j_b
             endif
-            !           endif
           enddo
-          if (abort_here) then
-            exit
-          endif
         enddo
-      endif
-      !   does all the mono excitations of the same spin
-      do kk = 1,N_elec_in_key_hole_2(ispin)
-        i_b = occ_hole_tmp(kk,ispin)
-        ASSERT (i_b > 0)
-        ASSERT (i_b <= mo_tot_num)
-        if (i_b <= i_a.or.i_b == j_a) cycle
-        hole = hole_save
-        k = ishft(i_b-1,-bit_kind_shift)+1
-        j = i_b-ishft(k-1,bit_kind_shift)-1
-        hole(k,ispin) = ibclr(hole(k,ispin),j)
-        do jjj=1,N_elec_in_key_part_2(ispin)
-          j_b = occ_particle_tmp(jjj,ispin)
-          ASSERT (j_b > 0)
-          ASSERT (j_b <= mo_tot_num)
-          if (j_b <= j_a) cycle
+        ib_jb_pairs(1,0) = i
+
+        do kk = 1,ib_jb_pairs(1,0)
+          hole = hole_save
+          i_b = ib_jb_pairs(1,kk)
+          j_b = ib_jb_pairs(2,kk)
+          k = ishft(i_b-1,-bit_kind_shift)+1
+          j = i_b-ishft(k-1,bit_kind_shift)-1
+          hole(k,other_spin) = ibclr(hole(k,other_spin),j)
           key = hole
           k = ishft(j_b-1,-bit_kind_shift)+1
           l = j_b-ishft(k-1,bit_kind_shift)-1
-          key(k,ispin) = ibset(key(k,ispin),l)
-          !!   a^((+)_j_b(ispin) a_i_b(ispin) : mono exc :: orb(i_b,ispin) --> orb(j_b,ispin)
-          
+          key(k,other_spin) = ibset(key(k,other_spin),l)
           key_idx += 1
           do k=1,N_int
             keys_out(k,1,key_idx) = key(k,1)
@@ -197,18 +179,66 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
             exit
           endif
         enddo
-      enddo! kk
+      endif
+
+      !   does all the mono excitations of the same spin
+      i=0
+      do kk = 1,N_elec_in_key_hole_2(ispin)
+        i_b = occ_hole_tmp(kk,ispin)
+        if (i_b <= i_a.or.i_b == j_a) cycle
+        ASSERT (i_b > 0)
+        ASSERT (i_b <= mo_tot_num)
+        do jjj=1,N_elec_in_key_part_2(ispin)     ! particule
+          j_b = occ_particle_tmp(jjj,ispin)
+          ASSERT (j_b > 0)
+          ASSERT (j_b <= mo_tot_num)
+          if (j_b <= j_a) cycle
+          if (array_pairs(i_b,j_b)) then
+            i+= 1
+            ib_jb_pairs(1,i) = i_b
+            ib_jb_pairs(2,i) = j_b
+          endif
+        enddo
+      enddo
+      ib_jb_pairs(1,0) = i
+
+      do kk = 1,ib_jb_pairs(1,0)
+        hole = hole_save
+        i_b = ib_jb_pairs(1,kk)
+        j_b = ib_jb_pairs(2,kk)
+        k = ishft(i_b-1,-bit_kind_shift)+1
+        j = i_b-ishft(k-1,bit_kind_shift)-1
+        hole(k,ispin) = ibclr(hole(k,ispin),j)
+        key = hole
+        k = ishft(j_b-1,-bit_kind_shift)+1
+        l = j_b-ishft(k-1,bit_kind_shift)-1
+        key(k,ispin) = ibset(key(k,ispin),l)
+        key_idx += 1
+        do k=1,N_int
+          keys_out(k,1,key_idx) = key(k,1)
+          keys_out(k,2,key_idx) = key(k,2)
+        enddo
+        ASSERT (key_idx <= size_max)
+        if (key_idx == size_max) then
+          $keys_work
+          key_idx = 0
+        endif
+        if (abort_here) then
+          exit
+        endif
+      enddo ! kk
+
     enddo  ! ii
     $omp_enddo
   enddo   ! ispin
   $keys_work
   $deinit_thread
-  deallocate (ia_ja_pairs, &
+  deallocate (ia_ja_pairs, ib_jb_pairs, &
       keys_out, hole_save,          &
       key,hole, particle, hole_tmp,&
       particle_tmp, occ_particle,    &
       occ_hole, occ_particle_tmp,&
-      occ_hole_tmp)
+      occ_hole_tmp,array_pairs)
   $omp_end_parallel
   $finalization
 end
@@ -235,11 +265,13 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator $parameters 
   integer                        :: ii,i,jj,j,k,ispin,l
   integer,allocatable            :: occ_particle(:,:), occ_hole(:,:)
   integer,allocatable            :: occ_particle_tmp(:,:), occ_hole_tmp(:,:)
+  integer,allocatable            :: ib_jb_pairs(:,:)
   integer                        :: kk,pp,other_spin,key_idx
   integer                        :: N_elec_in_key_hole_1(2),N_elec_in_key_part_1(2)
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
   
   integer, allocatable           :: ia_ja_pairs(:,:,:)
+  logical, allocatable           :: array_pairs(:,:)
   double precision               :: diag_H_mat_elem
   integer                        :: iproc
   integer(omp_lock_kind), save   :: lck, ifirst=0

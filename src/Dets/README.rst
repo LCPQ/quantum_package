@@ -83,7 +83,7 @@ Documentation
   .br
   Initial guess vectors are not necessarily orthonormal
 
-`repeat_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/SC2.irp.f#L215>`_
+`repeat_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/SC2.irp.f#L220>`_
   Undocumented
 
 `connected_to_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connected_to_ref.irp.f#L95>`_
@@ -152,7 +152,7 @@ Documentation
 `davidson_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L374>`_
   Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
-`det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L180>`_
+`det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L195>`_
   Return an integer*8 corresponding to a determinant index for searching
 
 `n_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L20>`_
@@ -164,35 +164,35 @@ Documentation
 `n_states <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L3>`_
   Number of states to consider
 
-`psi_average_norm_contrib <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L93>`_
+`psi_average_norm_contrib <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L108>`_
   Contribution of determinants to the state-averaged density
 
-`psi_average_norm_contrib_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L114>`_
+`psi_average_norm_contrib_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L129>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
-`psi_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L65>`_
-  The wave function. Initialized with Hartree-Fock if the EZFIO file
+`psi_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L86>`_
+  The wave function coefficients. Initialized with Hartree-Fock if the EZFIO file
   is empty
 
-`psi_coef_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L113>`_
+`psi_coef_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L128>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
-`psi_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L144>`_
+`psi_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L159>`_
   Determinants on which we apply <i|H|psi> for perturbation.
   o They are sorted by determinants interpreted as integers. Useful
   to accelerate the search of a determinant
 
 `psi_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L64>`_
-  The wave function. Initialized with Hartree-Fock if the EZFIO file
+  The wave function determinants. Initialized with Hartree-Fock if the EZFIO file
   is empty
 
 `psi_det_size <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L56>`_
   Size of the psi_det/psi_coef arrays
 
-`psi_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L112>`_
+`psi_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L127>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
-`psi_det_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L143>`_
+`psi_det_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L158>`_
   Determinants on which we apply <i|H|psi> for perturbation.
   o They are sorted by determinants interpreted as integers. Useful
   to accelerate the search of a determinant
