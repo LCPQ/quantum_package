@@ -55,7 +55,16 @@ BEGIN_PROVIDER [ integer, psi_det_size ]
  BEGIN_DOC
  ! Size of the psi_det/psi_coef arrays
  END_DOC
- psi_det_size = 1000*N_states
+ PROVIDE ezfio_filename
+ logical                        :: exists
+ call ezfio_has_determinants_n_det(exists)
+ if (exists) then
+   call ezfio_get_determinants_n_det(psi_det_size)
+ else
+   psi_det_size = 1
+ endif
+ psi_det_size = max(psi_det_size,10000)
+
 END_PROVIDER
 
 BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
@@ -64,13 +73,8 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
  ! The wave function determinants. Initialized with Hartree-Fock if the EZFIO file
  ! is empty
  END_DOC
-  integer*8, allocatable         :: psi_det_read(:,:,:)
-  double precision, allocatable  :: psi_coef_read(:,:)
-  integer*8                      :: det_8(100)
-  integer(bit_kind)              :: det_bk((100*8)/bit_kind)
-  integer                        :: N_int2, i
+  integer                        :: i
   logical                        :: exists
-  equivalence (det_8, det_bk)
 
   call ezfio_has_determinants_N_int(exists)
   if (exists) then
@@ -80,10 +84,7 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
     if (exists) then
      call ezfio_has_determinants_N_states(exists)
      if (exists) then
-      call ezfio_has_determinants_psi_coef(exists)
-      if (exists) then
        call ezfio_has_determinants_psi_det(exists)
-      endif
      endif
     endif
    endif
@@ -102,6 +103,7 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
 END_PROVIDER
 
 subroutine read_dets(det,Nint,Ndet)
+  use bitmasks
   implicit none
   BEGIN_DOC
   ! Reads the determinants from the EZFIO file
@@ -118,24 +120,24 @@ subroutine read_dets(det,Nint,Ndet)
   equivalence (det_8, det_bk)
   
   call ezfio_get_determinants_N_int(N_int2)
-  ASSERT (N_int2 == N_int)
+  ASSERT (N_int2 == Nint)
   call ezfio_get_determinants_bit_kind(k)
   ASSERT (k == bit_kind)
   
-  N_int2 = (N_int*bit_kind)/8
-  allocate (psi_det_read(N_int2,2,N_det))
+  N_int2 = (Nint*bit_kind)/8
+  allocate (psi_det_read(N_int2,2,Ndet))
   call ezfio_get_determinants_psi_det (psi_det_read)
-  do i=1,N_det
+  do i=1,Ndet
     do k=1,N_int2
       det_8(k) = psi_det_read(k,1,i)
     enddo
-    do k=1,N_int
+    do k=1,Nint
       det(k,1,i) = det_bk(k)
     enddo
     do k=1,N_int2
       det_8(k) = psi_det_read(k,2,i)
     enddo
-    do k=1,N_int
+    do k=1,Nint
       det(k,2,i) = det_bk(k)
     enddo
   enddo
@@ -176,6 +178,7 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
     enddo
     
   endif
+    
   
 END_PROVIDER
 
