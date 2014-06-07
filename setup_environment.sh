@@ -5,9 +5,6 @@
 # Mon Apr  7 15:41:19 CEST 2014
 
 QPACKAGE_ROOT=${PWD}
-echo $QPACKAGE_ROOT
-IRPF90=${QPACKAGE_ROOT}/irpf90/bin/irpf90
-echo $IRPF90
 
 if [[ -z ${IRPF90} ]] ;
 then
@@ -18,9 +15,7 @@ then
       echo "Error in IRPF90 installation"
       exit 1
     fi
-    rm -rf EZFIO
 fi
-echo $IRPF90
 
 cat << EOF > quantum_package.rc
 export IRPF90=${IRPF90}
@@ -39,6 +34,6 @@ fi
 
 if [[ ! -d ${QPACKAGE_ROOT}/EZFIO ]]
 then
-  echo "Error in EZFIO  installation"
+  echo "Error in IRPF90 installation"
   exit 1
 fi
