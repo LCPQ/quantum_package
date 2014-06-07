@@ -80,9 +80,6 @@ BEGIN_PROVIDER [ integer, N_generators_bitmask ]
    endif
  else
    N_generators_bitmask = 1
-   call ezfio_set_bitmasks_N_int(N_int)
-   call ezfio_set_bitmasks_bit_kind(bit_kind)
-   call ezfio_set_bitmasks_N_mask_gen(N_generators_bitmask)
  endif
  ASSERT (N_generators_bitmask > 0)
 
@@ -118,7 +115,6 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_
        generators_bitmask(:,ispin,d_part2,k) = full_ijkl_bitmask(:,d_part2)
      enddo
    enddo
-   call ezfio_set_bitmasks_generators(generators_bitmask)
  endif
 
 END_PROVIDER
@@ -148,9 +144,6 @@ BEGIN_PROVIDER [ integer, N_reference_bitmask ]
    endif
  else
    N_reference_bitmask = 1
-   call ezfio_set_bitmasks_N_int(N_int)
-   call ezfio_set_bitmasks_bit_kind(bit_kind)
-   call ezfio_set_bitmasks_N_mask_ref(N_reference_bitmask)
  endif
  ASSERT (N_reference_bitmask > 0)
 
@@ -174,7 +167,6 @@ BEGIN_PROVIDER [ integer(bit_kind), reference_bitmask, (N_int,2,2,N_reference_bi
    reference_bitmask(:,:,d_part1,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
    reference_bitmask(:,:,d_hole2,1) = HF_bitmask
    reference_bitmask(:,:,d_part2,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
-   call ezfio_set_bitmasks_reference(reference_bitmask)
  endif
 
 END_PROVIDER

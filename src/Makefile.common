@@ -125,3 +125,7 @@ test:
 # Dummy rule to enable to force recompilation
 FORCE:
 
+clena: clean
+
+vercylean: veryclean
+veryclena: veryclean

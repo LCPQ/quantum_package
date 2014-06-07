@@ -5,7 +5,7 @@ DEBUG  = 0
 IRPF90_FLAGS+= --align=32
 FC     = ifort -g 
 FCFLAGS= 
-FCFLAGS+= -axAVX,SSE4.3
+FCFLAGS+= -axAVX,SSE4.2
 FCFLAGS+= -O2 
 FCFLAGS+= -ip 
 FCFLAGS+= -opt-prefetch

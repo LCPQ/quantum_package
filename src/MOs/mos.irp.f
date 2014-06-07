@@ -39,7 +39,6 @@ END_PROVIDER
     call ezfio_get_mo_basis_mo_label(mo_label)
   else
     mo_label = 'no_label'
-    call ezfio_set_mo_basis_mo_label(mo_label)
   endif
 
   ! Coefs

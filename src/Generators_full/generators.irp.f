@@ -13,7 +13,6 @@ BEGIN_PROVIDER [ double precision, threshold_generators ]
    call ezfio_get_determinants_threshold_generators(threshold_generators)
  else
    threshold_generators = 0.99d0
-   call ezfio_set_determinants_threshold_generators(threshold_generators)
  endif
  ASSERT (N_det > 0)
  call write_double(output_Dets,threshold_generators,'Threshold on generators')
