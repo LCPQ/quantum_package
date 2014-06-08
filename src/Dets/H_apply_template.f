@@ -381,7 +381,7 @@ subroutine $subroutine($params_main)
   integer                        :: ispin, k
 
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map N_det_selectors psi_generators
-  PROVIDE psi_det_sorted_bit coef_hf_selector psi_det psi_coef H_apply_threshold
+  PROVIDE psi_det_sorted_bit coef_hf_selector psi_det psi_coef H_apply_threshold   ref_bitmask_energy
   
   nmax = ( N_det_generators/nproc ) *nproc
   call wall_time(wall_1)

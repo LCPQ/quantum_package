@@ -1,6 +1,7 @@
 determinants
   n_int         integer
   bit_kind      integer
+  mo_label      character*(64)
   n_det         integer
   n_states      integer
   psi_coef      double precision (determinants_n_det,determinants_n_states)
@@ -9,4 +10,3 @@ determinants
   n_det_max_jacobi integer
   threshold_generators  double precision
   threshold_selectors   double precision
-

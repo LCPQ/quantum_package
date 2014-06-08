@@ -13,6 +13,7 @@ BEGIN_PROVIDER [ integer, N_states ]
  else
    N_states = 1
  endif
+ call write_int(output_dets,N_states,'Number of states')
  ASSERT (N_states > 0)
 END_PROVIDER
 
@@ -22,13 +23,24 @@ BEGIN_PROVIDER [ integer, N_det ]
  ! Number of determinants in the wave function
  END_DOC
  logical                        :: exists
+ character*64                   :: label
  PROVIDE ezfio_filename
  call ezfio_has_determinants_n_det(exists)
+ if (exists) then
+   if (exists) then
+     call ezfio_has_determinants_mo_label(exists)
+     if (exists) then
+       call ezfio_get_determinants_mo_label(label)
+       exists = (label == mo_label)
+     endif
+   endif
+ endif
  if (exists) then
    call ezfio_get_determinants_n_det(N_det)
  else
    N_det = 1
  endif
+ call write_int(output_dets,N_det,'Number of determinants')
  ASSERT (N_det > 0)
 END_PROVIDER
 
@@ -46,6 +58,7 @@ BEGIN_PROVIDER [ integer, N_det_max_jacobi ]
  else
    N_det_max_jacobi = 2000
  endif
+ call write_int(output_dets,N_det_max_jacobi,'Lapack diagonalization up to')
  ASSERT (N_det_max_jacobi > 0)
 END_PROVIDER
 
@@ -64,6 +77,7 @@ BEGIN_PROVIDER [ integer, psi_det_size ]
    psi_det_size = 1
  endif
  psi_det_size = max(psi_det_size,10000)
+ call write_int(output_dets,psi_det_size,'Dimension of the psi arrays')
 
 END_PROVIDER
 
@@ -75,7 +89,8 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
  END_DOC
   integer                        :: i
   logical                        :: exists
-
+  character*64                   :: label
+  
   call ezfio_has_determinants_N_int(exists)
   if (exists) then
    call ezfio_has_determinants_bit_kind(exists)
@@ -84,7 +99,14 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
     if (exists) then
      call ezfio_has_determinants_N_states(exists)
      if (exists) then
-       call ezfio_has_determinants_psi_det(exists)
+      call ezfio_has_determinants_psi_det(exists)
+      if (exists) then
+        call ezfio_has_determinants_mo_label(exists)
+        if (exists) then
+          call ezfio_get_determinants_mo_label(label)
+          exists = (label == mo_label)
+        endif
+      endif
      endif
     endif
    endif
@@ -156,8 +178,16 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
   integer                        :: i,k, N_int2
   logical                        :: exists
   double precision, allocatable  :: psi_coef_read(:,:)
+  character*(64)                 :: label
   
   call ezfio_has_determinants_psi_coef(exists)
+  if (exists) then
+    call ezfio_has_determinants_mo_label(exists)
+    if (exists) then
+      call ezfio_get_determinants_mo_label(label)
+      exists = (label == mo_label)
+    endif
+  endif
   
   if (exists) then
     
@@ -303,6 +333,7 @@ subroutine save_wavefunction
   call ezfio_set_determinants_bit_kind(bit_kind)
   call ezfio_set_determinants_N_det(N_det)
   call ezfio_set_determinants_N_states(N_states)
+  call ezfio_set_determinants_mo_label(mo_label)
 
   N_int2 = (N_int*bit_kind)/8
   allocate (psi_det_save(N_int2,2,N_det))
@@ -314,7 +345,7 @@ subroutine save_wavefunction
       psi_det_save(k,1,i) = det_8(k)
     enddo
     do k=1,N_int
-      det_bk(k) = psi_det(k,2,i)
+      det_bk(k) = psi_det_sorted(k,2,i)
     enddo
     do k=1,N_int2
       psi_det_save(k,2,i) = det_8(k)
@@ -330,6 +361,7 @@ subroutine save_wavefunction
     enddo
   enddo
   call ezfio_set_determinants_psi_coef(psi_coef_save)
+  call write_int(output_dets,N_det,'Saved determinants')
   deallocate (psi_coef_save)
 end
 
