@@ -11,7 +11,6 @@ BEGIN_PROVIDER [ logical, write_mo_integrals ]
     call ezfio_get_bielec_integrals_write_mo_integrals(write_mo_integrals)
   else
     write_mo_integrals = .False.
-    call ezfio_set_bielec_integrals_write_mo_integrals(write_mo_integrals)
   endif
   
 END_PROVIDER
@@ -29,7 +28,6 @@ BEGIN_PROVIDER [ logical, write_ao_integrals ]
     call ezfio_get_bielec_integrals_write_ao_integrals(write_ao_integrals)
   else
     write_ao_integrals = .False.
-    call ezfio_set_bielec_integrals_write_ao_integrals(write_ao_integrals)
   endif
   
 END_PROVIDER
@@ -47,7 +45,6 @@ BEGIN_PROVIDER [ logical, read_mo_integrals ]
     call ezfio_get_bielec_integrals_read_mo_integrals(read_mo_integrals)
   else
     read_mo_integrals = .False.
-    call ezfio_set_bielec_integrals_read_mo_integrals(read_mo_integrals)
   endif
   
 END_PROVIDER
@@ -65,7 +62,6 @@ BEGIN_PROVIDER [ logical, read_ao_integrals ]
     call ezfio_get_bielec_integrals_read_ao_integrals(read_ao_integrals)
   else
     read_ao_integrals = .False.
-    call ezfio_set_bielec_integrals_read_ao_integrals(read_ao_integrals)
   endif
   
 END_PROVIDER
@@ -82,8 +78,7 @@ BEGIN_PROVIDER [ double precision, ao_integrals_threshold ]
   if (has) then
     call ezfio_get_bielec_integrals_threshold_ao(ao_integrals_threshold)
   else
-    ao_integrals_threshold = 1.d-15
-    call ezfio_set_bielec_integrals_threshold_ao(ao_integrals_threshold)
+    ao_integrals_threshold = 1.d-12
   endif
   
 END_PROVIDER
@@ -102,7 +97,6 @@ BEGIN_PROVIDER [ double precision, mo_integrals_threshold ]
     call ezfio_get_bielec_integrals_threshold_mo(mo_integrals_threshold)
   else
     mo_integrals_threshold = 1.d-11
-    call ezfio_set_bielec_integrals_threshold_mo(mo_integrals_threshold)
   endif
   
 END_PROVIDER
@@ -121,7 +115,6 @@ BEGIN_PROVIDER [ logical, do_direct_integrals ]
     call ezfio_get_bielec_integrals_direct(do_direct_integrals)
   else
     do_direct_integrals = .False.
-    call ezfio_set_bielec_integrals_direct(do_direct_integrals)
   endif
 
 END_PROVIDER

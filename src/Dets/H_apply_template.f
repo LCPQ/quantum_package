@@ -31,10 +31,9 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   integer                        :: iproc
   integer(omp_lock_kind), save   :: lck, ifirst=0
   if (ifirst == 0) then
-    ifirst=1
 !$    call omp_init_lock(lck)
+    ifirst=1
   endif
-  PROVIDE H_apply_threshold
   
   $initialization
   
@@ -279,7 +278,6 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator $parameters 
     ifirst=1
 !$    call omp_init_lock(lck)
   endif
-  PROVIDE H_apply_threshold
   
   $initialization
   
@@ -383,7 +381,7 @@ subroutine $subroutine($params_main)
   integer                        :: ispin, k
 
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map N_det_selectors psi_generators
-  PROVIDE psi_det_sorted_bit coef_hf_selector
+  PROVIDE psi_det_sorted_bit coef_hf_selector psi_det psi_coef H_apply_threshold
   
   nmax = ( N_det_generators/nproc ) *nproc
   call wall_time(wall_1)
