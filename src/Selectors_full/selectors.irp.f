@@ -13,7 +13,6 @@ BEGIN_PROVIDER [ double precision, threshold_selectors ]
    call ezfio_get_determinants_threshold_selectors(threshold_selectors)
  else
    threshold_selectors = 0.99d0
-   call ezfio_set_determinants_threshold_selectors(threshold_selectors)
  endif
  ASSERT (N_det > 0)
  call write_double(output_Dets,threshold_selectors,'Threshold on selectors')

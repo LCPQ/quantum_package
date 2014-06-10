@@ -48,7 +48,7 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
   ASSERT (sze > 0)
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
-  PROVIDE ref_bitmask_energy
+  PROVIDE ref_bitmask_energy  mo_bielec_integrals_in_map
   allocate(H_jj(sze))
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &

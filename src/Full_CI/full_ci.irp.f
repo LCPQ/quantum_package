@@ -11,9 +11,10 @@ program cisd
   
   pt2 = 1.d0
   diag_algorithm = "Lapack"
-  do while (maxval(abs(pt2(1:N_st))) > 1.d-3)
+  do while (maxval(abs(pt2(1:N_st))) > 1.d-4)
     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
     call diagonalize_CI
+    call save_wavefunction
     print *,  'N_det    = ', N_det
     print *,  'N_states = ', N_states
     print *,  'PT2      = ', pt2

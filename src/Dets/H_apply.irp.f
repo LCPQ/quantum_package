@@ -53,7 +53,6 @@ BEGIN_PROVIDER [ double precision, H_apply_threshold ]
     call ezfio_get_determinants_H_apply_threshold(H_apply_threshold)
   else
     H_apply_threshold = 1.d-10
-    call ezfio_set_determinants_H_apply_threshold(H_apply_threshold)
   endif
   call write_time(output_Dets)
   call write_double(output_Dets, H_apply_threshold,                  &
