@@ -1,5 +1,9 @@
 subroutine cholesky_mo(n,m,P,C,LDC,tol_in,rank)
  implicit none
+ BEGIN_DOC
+! Cholesky decomposition of MO Density matrix to
+! generate MOs
+ END_DOC
  integer, intent(in) :: n,m, LDC
  double precision, intent(in) :: P(LDC,n)
  double precision, intent(out) :: C(LDC,m)
@@ -36,4 +40,44 @@ subroutine cholesky_mo(n,m,P,C,LDC,tol_in,rank)
 
  deallocate(W,work)
 end
+
+BEGIN_PROVIDER [ double precision, mo_density_matrix, (mo_tot_num_align, mo_tot_num) ]
+ implicit none
+ BEGIN_DOC
+ ! Density matrix in MO basis
+ END_DOC
+ integer :: i,j,k
+ mo_density_matrix = 0.d0
+ do k=1,mo_tot_num
+   if (mo_occ(k) == 0) then
+     cycle
+   endif
+   do j=1,ao_num
+     do i=1,ao_num
+       mo_density_matrix(i,j) = mo_density_matrix(i,j) + &
+         mo_occ(k) * mo_coef(i,k) * mo_coef(j,k)
+     enddo
+   enddo
+ enddo
+END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, mo_density_matrix_virtual, (mo_tot_num_align, mo_tot_num) ]
+ implicit none
+ BEGIN_DOC
+ ! Density matrix in MO basis (virtual MOs)
+ END_DOC
+ integer :: i,j,k
+ mo_density_matrix = 0.d0
+ do k=1,mo_tot_num
+   if (mo_occ(k) == 0) then
+     cycle
+   endif
+   do j=1,ao_num
+     do i=1,ao_num
+       mo_density_matrix(i,j) = mo_density_matrix(i,j) + &
+         (2.d0-mo_occ(k)) * mo_coef(i,k) * mo_coef(j,k)
+     enddo
+   enddo
+ enddo
+END_PROVIDER
 

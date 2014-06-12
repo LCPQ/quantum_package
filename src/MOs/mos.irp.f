@@ -32,7 +32,7 @@ END_PROVIDER
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: buffer
   logical                        :: exists
   PROVIDE ezfio_filename
-
+  
   !Label
   call ezfio_has_mo_basis_mo_label(exists)
   if (exists) then
@@ -40,7 +40,7 @@ END_PROVIDER
   else
     mo_label = 'no_label'
   endif
-
+  
   ! Coefs
   allocate(buffer(ao_num,mo_tot_num))
   buffer = 0.d0
@@ -73,5 +73,27 @@ BEGIN_PROVIDER [ double precision, mo_coef_transp, (mo_tot_num_align,ao_num) ]
     enddo
   enddo
   
+END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, mo_occ, (mo_tot_num) ]
+  implicit none
+  BEGIN_DOC
+  ! MO occupation numbers
+  END_DOC
+  PROVIDE ezfio_filename
+  logical :: exists
+  call ezfio_has_mo_basis_mo_occ(exists)
+  if (exists) then
+    call ezfio_get_mo_basis_mo_occ(mo_occ)
+  else
+    mo_occ = 0.d0
+    integer :: i
+    do i=1,elec_beta_num
+      mo_occ(i) = 2.d0
+    enddo
+    do i=elec_beta_num+1,elec_alpha_num
+      mo_occ(i) = 1.d0
+    enddo
+  endif
 END_PROVIDER
 

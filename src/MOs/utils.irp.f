@@ -14,6 +14,7 @@ subroutine save_mos
     enddo
   enddo
   call ezfio_set_mo_basis_mo_coef(buffer)
+  call ezfio_set_mo_basis_mo_occ(mo_occ)
   deallocate (buffer)
   
 end

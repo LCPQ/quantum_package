@@ -27,6 +27,7 @@ Needed Modules
 * `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
 * `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
+* `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_
 
 Documentation
 =============
@@ -34,12 +35,19 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
+`cholesky_mo <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/cholesky_mo.irp.f#L1>`_
+  Cholesky decomposition of MO Density matrix to
+  generate MOs
+
+`mo_density_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/cholesky_mo.irp.f#L44>`_
+  Density matrix in MO basis
+
 `mo_coef <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/mos.irp.f#L22>`_
   Molecular orbital coefficients on AO basis set
   mo_coef(i,j) = coefficient of the ith ao on the jth mo
   mo_label : Label characterizing the MOS (local, canonical, natural, etc)
 
-`mo_coef_transp <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/mos.irp.f#L61>`_
+`mo_coef_transp <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/mos.irp.f#L60>`_
   Molecular orbital coefficients on AO basis set
 
 `mo_label <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/mos.irp.f#L23>`_
@@ -47,13 +55,16 @@ Documentation
   mo_coef(i,j) = coefficient of the ith ao on the jth mo
   mo_label : Label characterizing the MOS (local, canonical, natural, etc)
 
+`mo_occ <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/mos.irp.f#L78>`_
+  MO occupation numbers
+
 `mo_tot_num <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/mos.irp.f#L1>`_
   Total number of molecular orbitals and the size of the keys corresponding
 
 `mo_tot_num_align <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/mos.irp.f#L12>`_
   Aligned variable for dimensioning of arrays
 
-`mo_as_eigvectors_of_mo_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/utils.irp.f#L21>`_
+`mo_as_eigvectors_of_mo_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/utils.irp.f#L22>`_
   Undocumented
 
 `save_mos <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/utils.irp.f#L1>`_
