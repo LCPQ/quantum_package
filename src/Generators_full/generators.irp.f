@@ -47,7 +47,13 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
  ! For Single reference wave functions, the generator is the
  ! Hartree-Fock determinant
  END_DOC
- psi_generators = psi_det_sorted
+ integer                        :: i, k
+ do i=1,N_det
+   do k=1,N_int
+     psi_generators(k,1,i) = psi_det_sorted(k,1,i)
+     psi_generators(k,2,i) = psi_det_sorted(k,2,i)
+   enddo
+ enddo
 
 END_PROVIDER
 
