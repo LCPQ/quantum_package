@@ -1,7 +1,7 @@
 subroutine cholesky_mo(n,m,P,LDP,C,LDC,tol_in,rank)
  implicit none
  BEGIN_DOC
-! Cholesky decomposition of MO Density matrix to
+! Cholesky decomposition of AO Density matrix to
 ! generate MOs
  END_DOC
  integer, intent(in) :: n,m, LDC, LDP
