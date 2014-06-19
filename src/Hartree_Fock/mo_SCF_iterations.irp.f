@@ -1,4 +1,4 @@
-program scf_iteration
+program xcf_iteration
   use bitmasks
   implicit none
   double precision               :: SCF_energy_before,SCF_energy_after,diag_H_mat_elem,get_mo_bielec_integral
@@ -32,6 +32,6 @@ program scf_iteration
   endif
   mo_label = "Canonical"
   TOUCH mo_label mo_coef
-  call save_mos
+!  call save_mos
   
 end

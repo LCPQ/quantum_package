@@ -217,3 +217,46 @@ BEGIN_PROVIDER [ double precision, HF_energy ]
 END_PROVIDER
 
 
+BEGIN_PROVIDER [ double precision, Fock_matrix_ao, (ao_num_align, ao_num) ]
+ implicit none
+ BEGIN_DOC
+ ! Fock matrix in AO basis set
+ END_DOC
+ 
+ if (elec_alpha_num == elec_beta_num) then
+ integer :: i,j
+   do j=1,ao_num
+    !DIR$ VECTOR ALIGNED
+    do i=1,ao_num_align
+     Fock_matrix_ao(i,j) = Fock_matrix_alpha_ao(i,j)
+    enddo
+   enddo
+ else
+   double precision, allocatable :: T(:,:), M(:,:)
+   ! F_ao = S C F_mo C^t S
+   allocate (T(mo_tot_num_align,mo_tot_num),M(ao_num_align,mo_tot_num))
+   call dgemm('N','N', ao_num,ao_num,ao_num, 1.d0,                   &
+       ao_overlap, size(ao_overlap,1),                               &
+       mo_coef, size(mo_coef,1),                                     &
+       0.d0,                                                         &
+       M, size(M,1))
+   call dgemm('N','N', ao_num,mo_tot_num,mo_tot_num, 1.d0,           &
+       M, size(M,1),                                                 &
+       Fock_matrix_mo, size(Fock_matrix_mo,1),                       &
+       0.d0,                                                         &
+       T, size(T,1))
+   call dgemm('N','T', mo_tot_num,ao_num,mo_tot_num, 1.d0,           &
+       T, size(T,1),                                                 &
+       mo_coef, size(mo_coef,1),                                     &
+       0.d0,                                                         &
+       M, size(M,1))
+   call dgemm('N','N', ao_num,ao_num,ao_num, 1.d0,                   &
+       M, size(M,1),                                                 &
+       ao_overlap, size(ao_overlap,1),                               &
+       0.d0,                                                         &
+       Fock_matrix_ao, size(Fock_matrix_ao,1))
+
+   deallocate(T)
+ endif
+END_PROVIDER
+

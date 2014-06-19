@@ -82,7 +82,7 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`pt2_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/Moller_plesset.irp.f#L1>`_
+`pt2_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/Moller_plesset.irp.f#L/subroutine pt2_moller_plesset(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,n_st)/;">`_
   compute the standard Moller-Plesset perturbative first order coefficient and second order energetic contribution
   .br
   for the various n_st states.
@@ -92,7 +92,7 @@ Documentation
   e_2_pert(i) = <psi(i)|H|det_pert>^2/(difference of orbital energies)
   .br
 
-`pt2_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L1>`_
+`pt2_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L/subroutine pt2_epstein_nesbet(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_st)/;">`_
   compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states.
@@ -102,7 +102,7 @@ Documentation
   e_2_pert(i) = <psi(i)|H|det_pert>^2/( E(i) - <det_pert|H|det_pert> )
   .br
 
-`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L40>`_
+`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L/subroutine pt2_epstein_nesbet_2x2(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_st)/;">`_
   compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
   .br
   for the various N_st states.
@@ -112,20 +112,46 @@ Documentation
   c_pert(i) = e_2_pert(i)/ <psi(i)|H|det_pert>
   .br
 
-`fill_h_apply_buffer_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L1>`_
+`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/pert_sc2.irp.f#L/subroutine pt2_epstein_nesbet_SC2_projected(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_st)/;">`_
+  compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
+  .br
+  for the various N_st states,
+  .br
+  but  with the correction in the denominator
+  .br
+  comming from the interaction of that determinant with all the others determinants
+  .br
+  that can be repeated by repeating all the double excitations
+  .br
+  : you repeat all the correlation energy already taken into account in CI_electronic_energy(1)
+  .br
+  that could be repeated to this determinant.
+  .br
+  In addition, for the perturbative energetic contribution you have the standard second order
+  .br
+  e_2_pert = <psi_i|H|det_pert>^2/(Delta_E)
+  .br
+  and also the purely projected contribution
+  .br
+  H_pert_diag = <HF|H|det_pert> c_pert
+
+`repeat_all_e_corr <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/pert_sc2.irp.f#L/double precision function repeat_all_e_corr(key_in)/;">`_
+  Undocumented
+
+`fill_h_apply_buffer_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L/subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,coef_pert_buffer, &>`_
   Fill the H_apply buffer with determiants for the selection
 
-`remove_small_contributions <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L81>`_
+`remove_small_contributions <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L/subroutine remove_small_contributions/;">`_
   Remove determinants with small contributions. N_states is assumed to be
   provided.
 
-`selection_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L68>`_
+`selection_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L/BEGIN_PROVIDER [ double precision, selection_criterion ]/;">`_
   Threshold to select determinants. Set by selection routines.
 
-`selection_criterion_factor <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L70>`_
+`selection_criterion_factor <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L/&BEGIN_PROVIDER [ double precision, selection_criterion_factor ]/;">`_
   Threshold to select determinants. Set by selection routines.
 
-`selection_criterion_min <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L69>`_
+`selection_criterion_min <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L/&BEGIN_PROVIDER [ double precision, selection_criterion_min ]/;">`_
   Threshold to select determinants. Set by selection routines.
 
 
