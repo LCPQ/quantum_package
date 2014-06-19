@@ -6,32 +6,10 @@ program xcf_iteration
   integer                        :: i_it
   
   E0 = HF_energy 
-  i_it = 0
-  n_it_scf_max = 10
-  SCF_energy_before = huge(1.d0)
-  SCF_energy_after = E0
-  print *,  E0
-  mo_label = "Canonical"
   thresh_SCF = 1.d-10
-  do while (i_it < 40 .and. dabs(SCF_energy_before - SCF_energy_after) > thresh_SCF)
-    SCF_energy_before = SCF_energy_after
-    mo_coef = eigenvectors_Fock_matrix_mo
-    TOUCH mo_coef mo_label
-    call clear_mo_map
-    SCF_energy_after = HF_energy
-    print*,SCF_energy_after, dabs(SCF_energy_before - SCF_energy_after) 
-    i_it +=1
-    if(i_it > n_it_scf_max)exit
-  enddo
-  
-  if (i_it >= n_it_scf_max) then
-    stop 'Failed'
-  endif
-  if (SCF_energy_after - E0 > thresh_SCF) then
-    stop 'Failed'
-  endif
+  call scf_iterations
   mo_label = "Canonical"
   TOUCH mo_label mo_coef
-!  call save_mos
+  call save_mos
   
 end

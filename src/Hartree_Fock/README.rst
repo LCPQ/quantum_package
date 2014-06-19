@@ -83,6 +83,27 @@ Documentation
 `hf_density_matrix_ao_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/HF_density_matrix_ao.irp.f#L/BEGIN_PROVIDER [ double precision, HF_density_matrix_ao_beta,  (ao_num_align,ao_num) ]/;">`_
   Beta density matrix in the AO basis
 
+`fock_mo_to_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L/subroutine Fock_mo_to_ao(FMO,LDFMO,FAO,LDFAO)/;">`_
+  Undocumented
+
+`insert_new_scf_density_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L/subroutine insert_new_SCF_density_matrix/;">`_
+  Undocumented
+
+`it_scf <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L/BEGIN_PROVIDER [ integer, it_scf ]/;">`_
+  Number of the current SCF iteration
+
+`scf_density_matrices <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L/BEGIN_PROVIDER [ double precision, SCF_density_matrices, (ao_num_align,ao_num,2,n_it_scf_max) ]/;">`_
+  Density matrices at every SCF iteration
+
+`scf_energies <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L/&BEGIN_PROVIDER [ double precision, SCF_energies, (n_it_scf_max) ]/;">`_
+  Density matrices at every SCF iteration
+
+`scf_interpolation_step <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L/subroutine SCF_interpolation_step/;">`_
+  Undocumented
+
+`scf_iterations <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L/subroutine scf_iterations/;">`_
+  Undocumented
+
 `diagonal_fock_matrix_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/diagonalize_fock.irp.f#L/BEGIN_PROVIDER [ double precision, diagonal_Fock_matrix_mo, (mo_tot_num) ]/;">`_
   Diagonal Fock matrix in the MO basis
 
