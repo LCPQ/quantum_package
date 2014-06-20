@@ -420,13 +420,13 @@ subroutine $subroutine($params_main)
       enddo
     enddo
 
-    if(do_double_excitations)then
+    if($do_double_excitations)then
     call $subroutine_diexc(psi_generators(1,1,i_generator),          &
         mask(1,1,d_hole1), mask(1,1,d_part1),                        &
         mask(1,1,d_hole2), mask(1,1,d_part2),                        &
         i_generator $params_post)
     endif
-    if(do_mono_excitations)then
+    if($do_mono_excitations)then
     call $subroutine_monoexc(psi_generators(1,1,i_generator),        &
         mask(1,1,s_hole ), mask(1,1,s_part ),                        &
         i_generator $params_post)
@@ -475,13 +475,13 @@ subroutine $subroutine($params_main)
             not(psi_generators(k,ispin,i_generator)) )
       enddo
     enddo
-    if(do_double_excitations)then
+    if($do_double_excitations)then
      call $subroutine_diexc(psi_generators(1,1,i_generator),          &
          mask(1,1,d_hole1), mask(1,1,d_part1),                        &
          mask(1,1,d_hole2), mask(1,1,d_part2),                        &
          i_generator $params_post)
     endif
-    if(do_mono_excitations)then
+    if($do_mono_excitations)then
      call $subroutine_monoexc(psi_generators(1,1,i_generator),        &
          mask(1,1,s_hole ), mask(1,1,s_part ),                        &
          i_generator $params_post)

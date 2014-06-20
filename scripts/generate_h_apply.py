@@ -27,7 +27,7 @@ filter_integrals
 
 class H_apply(object):
 
-  def __init__(self,sub,SingleRef=False):
+  def __init__(self,sub,SingleRef=False,do_mono_exc=True, do_double_exc=True):
     s = {}
     for k in keywords:
       s[k] = ""
@@ -56,6 +56,9 @@ class H_apply(object):
     s["omp_do"]           = "!$OMP DO SCHEDULE (static)"
     s["omp_enddo"]        = "!$OMP ENDDO NOWAIT"
 
+    d = { True : '.True.', False : '.False.'}
+    s["do_mono_excitations"] = d[do_mono_exc]
+    s["do_double_excitations"] = d[do_double_exc]
     s["keys_work"]  += "call fill_H_apply_buffer_no_selection(key_idx,keys_out,N_int,iproc)"
 
     s["filter_integrals"] = "array_pairs = .True."
