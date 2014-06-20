@@ -389,7 +389,7 @@ subroutine $subroutine($params_main)
   !$OMP PARALLEL DEFAULT(SHARED) &
   !$OMP PRIVATE(i_generator,wall_2,ispin,k,mask) 
   allocate( mask(N_int,2,6) )
-  !$OMP DO SCHEDULE(guided)
+  !$OMP DO SCHEDULE(dynamic,4)
   do i_generator=1,nmax
     if (abort_here) then
       cycle

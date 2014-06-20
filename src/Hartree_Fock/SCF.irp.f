@@ -70,10 +70,11 @@ subroutine SCF_interpolation_step
     return
   endif
   call random_number(c)
+  c = c*0.5d0
   do j=1,ao_num
     do i=1,ao_num
-      HF_density_matrix_ao_alpha(i,j) = c*SCF_density_matrices(i,j,1,it_scf)+SCF_density_matrices(i,j,1,it_scf-1) * (1.d0 - c)
-      HF_density_matrix_ao_beta (i,j) = c*SCF_density_matrices(i,j,2,it_scf)+SCF_density_matrices(i,j,2,it_scf-1) * (1.d0 - c)
+      HF_density_matrix_ao_alpha(i,j) = c*SCF_density_matrices(i,j,1,it_scf-1)+SCF_density_matrices(i,j,1,it_scf) * (1.d0 - c)
+      HF_density_matrix_ao_beta (i,j) = c*SCF_density_matrices(i,j,2,it_scf-1)+SCF_density_matrices(i,j,2,it_scf) * (1.d0 - c)
     enddo
   enddo
   TOUCH HF_density_matrix_ao_alpha HF_density_matrix_ao_beta

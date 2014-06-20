@@ -28,21 +28,31 @@ subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label)
   double precision, allocatable  :: mo_coef_new(:,:), R(:,:),eigvalues(:)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: mo_coef_new, R
   
+  call write_time(output_mos)
   if (m /= mo_tot_num) then
     print *, irp_here, ': Error : m/= mo_tot_num'
+    stop 1
   endif
-  allocate(R(n,m))
-  allocate(mo_coef_new(ao_num_align,m),eigvalues(m))
+  allocate(R(n,m),mo_coef_new(ao_num_align,m),eigvalues(m))
   mo_coef_new = mo_coef
   
   call lapack_diag(eigvalues,R,matrix,size(matrix,1),size(matrix,2))
   integer :: i
+  write (output_mos,'(A)'), 'MOs are now **'//trim(label)//'**'
+  write (output_mos,'(A)'), ''
+  write (output_mos,'(A)'), 'Eigenvalues'
+  write (output_mos,'(A)'), '-----------'
+  write (output_mos,'(A)'), ''
+  write (output_mos,'(A)'), '======== ================'
   do i = 1, m
-   print*,'eigvalues(i) = ',eigvalues(i)
+   write (output_mos,'(I8,X,F16.10)'), i,eigvalues(i)
   enddo
+  write (output_mos,'(A)'), '======== ================'
+  write (output_mos,'(A)'), ''
   
   call dgemm('N','N',ao_num,m,m,1.d0,mo_coef_new,size(mo_coef_new,1),R,size(R,1),0.d0,mo_coef,size(mo_coef,1))
   deallocate(mo_coef_new,R,eigvalues)
+  call write_time(output_mos)
   
   mo_label = label
   SOFT_TOUCH mo_coef mo_label
