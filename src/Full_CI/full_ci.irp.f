@@ -25,14 +25,14 @@ program cisd
       exit
     endif
   enddo
-  print *,  'Final step'
-  call remove_small_contributions
-  call diagonalize_CI
-  print *,  'N_det    = ', N_det
-  print *,  'N_states = ', N_states
-  print *,  'PT2      = ', pt2
-  print *,  'E        = ', CI_energy
-  print *,  'E+PT2    = ', CI_energy+pt2
-  print *,  '-----'
+!  print *,  'Final step'
+!  call remove_small_contributions
+!  call diagonalize_CI
+!  print *,  'N_det    = ', N_det
+!  print *,  'N_states = ', N_states
+!  print *,  'PT2      = ', pt2
+!  print *,  'E        = ', CI_energy
+!  print *,  'E+PT2    = ', CI_energy+pt2
+!  print *,  '-----'
   deallocate(pt2,norm_pert)
 end

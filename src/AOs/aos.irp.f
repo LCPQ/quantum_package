@@ -93,46 +93,6 @@ END_PROVIDER
  enddo
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, ao_overlap, (ao_num_align,ao_num) ]
- implicit none
- BEGIN_DOC
-! matrix of the overlap for tha AOs 
-! S(i,j) = overlap between the ith and the jth atomic basis function
- END_DOC
- integer :: i,j,k,l,nz,num_i,num_j,powA(3),powB(3)
- double precision :: accu,overlap_x,overlap_y,overlap_z,A_center(3),B_center(3),norm
- nz=100
- do i = 1, ao_num 
-  num_i = ao_nucl(i)
-  powA(1) = ao_power(i,1)
-  powA(2) = ao_power(i,2)
-  powA(3) = ao_power(i,3)
-  A_center(1)=nucl_coord(num_i,1)
-  A_center(2)=nucl_coord(num_i,2)
-  A_center(3)=nucl_coord(num_i,3)
-  do j = i, ao_num
-   num_j = ao_nucl(j)
-   powB(1) = ao_power(j,1)
-   powB(2) = ao_power(j,2)
-   powB(3) = ao_power(j,3)
-   B_center(1)=nucl_coord(num_j,1)
-   B_center(2)=nucl_coord(num_j,2)
-   B_center(3)=nucl_coord(num_j,3)
-   accu = 0.d0
-   do k = 1, ao_prim_num(i)
-    do l = 1, ao_prim_num(j)
-     call overlap_gaussian_xyz(A_center,B_center,ao_expo(i,k),ao_expo(j,l),powA,powB,overlap_x,overlap_y,overlap_z,norm,nz)
-     accu = accu + norm * ao_coef(i,k) * ao_coef(j,l)
-    enddo
-   enddo
-   ao_overlap(i,j) = accu
-   ao_overlap(j,i) = accu
-  enddo
- enddo
-
-END_PROVIDER
-
-
  BEGIN_PROVIDER [ double precision, ao_coef_transp, (ao_prim_num_max_align,ao_num) ]
 &BEGIN_PROVIDER [ double precision, ao_expo_transp, (ao_prim_num_max_align,ao_num) ]
  implicit none
