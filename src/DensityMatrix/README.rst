@@ -17,12 +17,6 @@ Documentation
 `iunit_two_body_dm_bb <http://github.com/LCPQ/quantum_package/tree/master/src/DensityMatrix/density_matrix.irp.f#L4>`_
   Temporary files for 2-body dm calculation
 
-`one_body_dm_a <http://github.com/LCPQ/quantum_package/tree/master/src/DensityMatrix/density_matrix.irp.f#L213>`_
-  Alpha and beta one-body density matrix
-
-`one_body_dm_b <http://github.com/LCPQ/quantum_package/tree/master/src/DensityMatrix/density_matrix.irp.f#L214>`_
-  Alpha and beta one-body density matrix
-
 `two_body_dm_diag_aa <http://github.com/LCPQ/quantum_package/tree/master/src/DensityMatrix/density_matrix.irp.f#L170>`_
   diagonal part of the two body density matrix
 

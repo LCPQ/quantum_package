@@ -1,15 +1,21 @@
-===============
-CISD_SC2 Module
-===============
+==========
+CIS Module
+==========
+
+Assumptions
+===========
+
+.. Do not edit this section. It was auto-generated from the
+.. NEEDED_MODULES file.
+
+* The molecular orbitals are assumed orthonormal
+
 
 Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
-
-`cisd <http://github.com/LCPQ/quantum_package/tree/master/src/SC2/cisd_SC2.irp.f#L1>`_
-  Undocumented
 
 
 
@@ -22,7 +28,6 @@ Needed Modules
 * `AOs <http://github.com/LCPQ/quantum_package/tree/master/src/AOs>`_
 * `BiInts <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts>`_
 * `Bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask>`_
-* `CISD <http://github.com/LCPQ/quantum_package/tree/master/src/CISD>`_
 * `Dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets>`_
 * `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_
 * `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_

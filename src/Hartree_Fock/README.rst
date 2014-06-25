@@ -71,6 +71,9 @@ Documentation
   K = Fb - Fa
   .br
 
+`fock_mo_to_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L263>`_
+  Undocumented
+
 `hf_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L211>`_
   Hartree-Fock energy
 
@@ -83,25 +86,10 @@ Documentation
 `hf_density_matrix_ao_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/HF_density_matrix_ao.irp.f#L14>`_
   Beta density matrix in the AO basis
 
-`fock_mo_to_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L31>`_
+`run <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L7>`_
   Undocumented
 
-`insert_new_scf_density_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L19>`_
-  Undocumented
-
-`it_scf <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L1>`_
-  Number of the current SCF iteration
-
-`scf_density_matrices <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L9>`_
-  Density matrices at every SCF iteration
-
-`scf_energies <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L10>`_
-  Density matrices at every SCF iteration
-
-`scf_interpolation_step <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L64>`_
-  Undocumented
-
-`scf_iterations <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L89>`_
+`scf <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L2>`_
   Undocumented
 
 `diagonal_fock_matrix_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/diagonalize_fock.irp.f#L1>`_
@@ -109,12 +97,6 @@ Documentation
 
 `eigenvectors_fock_matrix_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/diagonalize_fock.irp.f#L2>`_
   Diagonal Fock matrix in the MO basis
-
-`run <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/mo_SCF_iterations.irp.f#L7>`_
-  Undocumented
-
-`scf <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/mo_SCF_iterations.irp.f#L2>`_
-  Undocumented
 
 `do_diis <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/options.irp.f#L39>`_
   If True, compute integrals on the fly

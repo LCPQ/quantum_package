@@ -260,3 +260,36 @@ BEGIN_PROVIDER [ double precision, Fock_matrix_ao, (ao_num_align, ao_num) ]
  endif
 END_PROVIDER
 
+subroutine Fock_mo_to_ao(FMO,LDFMO,FAO,LDFAO)
+  implicit none
+  integer, intent(in)            :: LDFMO ! size(FMO,1)
+  integer, intent(in)            :: LDFAO ! size(FAO,1)
+  double precision, intent(in)   :: FMO(LDFMO,*)
+  double precision, intent(out)  :: FAO(LDFAO,*)
+  
+  double precision, allocatable  :: T(:,:), M(:,:)
+  ! F_ao = S C F_mo C^t S
+  allocate (T(mo_tot_num_align,mo_tot_num),M(ao_num_align,mo_tot_num))
+  call dgemm('N','N', ao_num,ao_num,ao_num, 1.d0,                    &
+      ao_overlap, size(ao_overlap,1),                                &
+      mo_coef, size(mo_coef,1),                                      &
+      0.d0,                                                          &
+      M, size(M,1))
+  call dgemm('N','N', ao_num,mo_tot_num,mo_tot_num, 1.d0,            &
+      M, size(M,1),                                                  &
+      FMO, size(FMO,1),                                              &
+      0.d0,                                                          &
+      T, size(T,1))
+  call dgemm('N','T', mo_tot_num,ao_num,mo_tot_num, 1.d0,            &
+      T, size(T,1),                                                  &
+      mo_coef, size(mo_coef,1),                                      &
+      0.d0,                                                          &
+      M, size(M,1))
+  call dgemm('N','N', ao_num,ao_num,ao_num, 1.d0,                    &
+      M, size(M,1),                                                  &
+      ao_overlap, size(ao_overlap,1),                                &
+      0.d0,                                                          &
+      FAO, size(FAO,1))
+  deallocate(T,M)
+end
+

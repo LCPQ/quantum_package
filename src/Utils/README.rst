@@ -92,7 +92,7 @@ Documentation
   into
   fact_k  (x-x_P)^iorder(1)  (y-y_P)^iorder(2)  (z-z_P)^iorder(3) exp(-p(r-P)^2)
 
-`hermite <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L472>`_
+`hermite <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L477>`_
   Hermite polynomial
 
 `multiply_poly <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L201>`_
@@ -108,10 +108,10 @@ Documentation
   \int_0^1 dx \exp(-p x^2) x^n
   .br
 
-`rint1 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L528>`_
+`rint1 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L533>`_
   Standard version of rint
 
-`rint_large_n <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L497>`_
+`rint_large_n <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L502>`_
   Version of rint for large values of n
 
 `rint_sum <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L421>`_

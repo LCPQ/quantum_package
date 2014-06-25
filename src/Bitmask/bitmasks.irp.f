@@ -28,6 +28,18 @@ BEGIN_PROVIDER [ integer(bit_kind), full_ijkl_bitmask, (N_int,4) ]
   enddo
 END_PROVIDER
 
+ 
+BEGIN_PROVIDER [ integer(bit_kind), cis_ijkl_bitmask, (N_int,4) ]
+  implicit none
+  BEGIN_DOC
+  ! Bitmask to include all possible single excitations from Hartree-Fock
+  END_DOC
+  
+  integer                        :: i,j,n
+  cis_ijkl_bitmask = full_ijkl_bitmask
+  cis_ijkl_bitmask(:,1) = HF_bitmask(:,1)
+END_PROVIDER
+
 
 BEGIN_PROVIDER [ integer(bit_kind), HF_bitmask, (N_int,2)]
   implicit none

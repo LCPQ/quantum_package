@@ -78,10 +78,10 @@ BEGIN_PROVIDER [ double precision, one_body_dm_mo, (mo_tot_num_align,mo_tot_num)
  one_body_dm_mo = one_body_dm_mo_alpha + one_body_dm_mo_beta
 END_PROVIDER
 
-subroutine save_natural_mos
+subroutine set_natural_mos
  implicit none
  BEGIN_DOC
- ! Save natural orbitals, obtained by diagonalization of the one-body density matrix in the MO basis
+ ! Set natural orbitals, obtained by diagonalization of the one-body density matrix in the MO basis
  END_DOC
  character*(64) :: label
  double precision, allocatable :: tmp(:,:)
@@ -92,9 +92,18 @@ subroutine save_natural_mos
  label = "Natural"
  call mo_as_eigvectors_of_mo_matrix(tmp,size(tmp,1),size(tmp,2),label)
  deallocate(tmp)
- call save_mos
 
 end
+subroutine save_natural_mos
+ implicit none
+ BEGIN_DOC
+ ! Save natural orbitals, obtained by diagonalization of the one-body density matrix in the MO basis
+ END_DOC
+ call set_natural_mos
+  call save_mos
+ 
+end
+
 
 BEGIN_PROVIDER [ double precision, state_average_weight, (N_states) ]
  implicit none

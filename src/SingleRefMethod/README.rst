@@ -19,6 +19,9 @@ Documentation
   For Single reference wave functions, the generator is the
   Hartree-Fock determinant
 
+`select_max <http://github.com/LCPQ/quantum_package/tree/master/src/SingleRefMethod/generators.irp.f#L43>`_
+  Memo to skip useless selectors
+
 
 
 Needed Modules
