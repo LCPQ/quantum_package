@@ -10,3 +10,7 @@ determinants
   n_det_max_jacobi integer
   threshold_generators  double precision
   threshold_selectors   double precision
+  det_num                integer
+  det_occ                integer           (electrons_elec_alpha_num,determinants_det_num,2)
+  det_coef               double precision  (determinants_det_num)
+

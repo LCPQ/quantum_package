@@ -55,7 +55,7 @@ subroutine write_double(iunit,value,label)
   integer, intent(in)            :: iunit
   double precision               :: value
   character*(*)                  :: label
-  character*(64), parameter      :: f = '(A50,G16.8)'
+  character*(64), parameter      :: f = '(A50,G24.16)'
   character*(50)                 :: newlabel
   write(newlabel,'(A,A)') '* ',trim(label)
   write(iunit,f) newlabel, value

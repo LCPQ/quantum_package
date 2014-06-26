@@ -1,5 +1,4 @@
 mo_basis
-  ao_num             integer
   mo_tot_num         integer
   mo_coef            double precision  (ao_basis_ao_num,mo_basis_mo_tot_num)
   mo_label           character*(64)

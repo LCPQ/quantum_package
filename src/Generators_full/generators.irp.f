@@ -57,7 +57,15 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
 
 END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, select_max, (3000) ]
+BEGIN_PROVIDER [ integer, size_select_max]
+ implicit none
+ BEGIN_DOC
+ ! Size of the select_max array
+ END_DOC
+ size_select_max = 10000
+END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, select_max, (size_select_max) ]
  implicit none
  BEGIN_DOC
  ! Memo to skip useless selectors

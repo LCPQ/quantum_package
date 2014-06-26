@@ -56,7 +56,7 @@ BEGIN_PROVIDER [ integer, N_det_max_jacobi ]
  if (exists) then
    call ezfio_get_determinants_n_det_max_jacobi(N_det_max_jacobi)
  else
-   N_det_max_jacobi = 2000
+   N_det_max_jacobi = 10000
  endif
  call write_int(output_dets,N_det_max_jacobi,'Lapack diagonalization up to')
  ASSERT (N_det_max_jacobi > 0)

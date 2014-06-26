@@ -28,6 +28,7 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
    call get_excitation_degree(HF_bitmask,psi_det(1,1,j),degree,N_int)
    if (degree == 0) then
      k = j
+     exit
    endif
  end do
 

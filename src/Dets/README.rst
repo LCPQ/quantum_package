@@ -152,6 +152,21 @@ Documentation
 `davidson_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/davidson.irp.f#L374>`_
   Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
+`one_body_dm_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/density_matrix.irp.f#L73>`_
+  One-body density matrix
+
+`one_body_dm_mo_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/density_matrix.irp.f#L1>`_
+  Alpha and beta one-body density matrix for each state
+
+`one_body_dm_mo_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/density_matrix.irp.f#L2>`_
+  Alpha and beta one-body density matrix for each state
+
+`save_natural_mos <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/density_matrix.irp.f#L81>`_
+  Save natural orbitals, obtained by diagonalization of the one-body density matrix in the MO basis
+
+`state_average_weight <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/density_matrix.irp.f#L99>`_
+  Weights in the state-average calculation of the density matrix
+
 `det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L303>`_
   Return an integer*8 corresponding to a determinant index for searching
 
@@ -305,6 +320,9 @@ Documentation
   Undocumented
 
 `s_z2_sz <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/s2.irp.f#L37>`_
+  Undocumented
+
+`save_natorb <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/save_natorb.irp.f#L1>`_
   Undocumented
 
 `a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L721>`_

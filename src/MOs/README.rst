@@ -36,11 +36,14 @@ Documentation
 .. NEEDED_MODULES file.
 
 `cholesky_mo <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/cholesky_mo.irp.f#L1>`_
-  Cholesky decomposition of MO Density matrix to
+  Cholesky decomposition of AO Density matrix to
   generate MOs
 
 `mo_density_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/cholesky_mo.irp.f#L44>`_
   Density matrix in MO basis
+
+`mo_density_matrix_virtual <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/cholesky_mo.irp.f#L64>`_
+  Density matrix in MO basis (virtual MOs)
 
 `mo_coef <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/mos.irp.f#L22>`_
   Molecular orbital coefficients on AO basis set

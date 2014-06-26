@@ -1,6 +1,6 @@
 OPENMP  =1
 PROFILE =0
-DEBUG  = 1
+DEBUG  = 0
 
 IRPF90_FLAGS+= --align=32
 FC     = ifort -g 
