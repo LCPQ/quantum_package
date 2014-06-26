@@ -65,7 +65,7 @@ BEGIN_PROVIDER [ integer, size_select_max]
  size_select_max = 10000
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision precision, select_max, (size_select_max) ]
+BEGIN_PROVIDER [ double precision, select_max, (size_select_max) ]
  implicit none
  BEGIN_DOC
  ! Memo to skip useless selectors
