@@ -1,5 +1,13 @@
 use bitmasks
 
+BEGIN_PROVIDER [ logical, read_wf ] 
+ implicit none
+ BEGIN_DOC
+! If true, read the wave function from the EZFIO file
+ END_DOC
+ read_wf = .False.
+END_PROVIDER
+
 BEGIN_PROVIDER [ integer, N_states ] 
  implicit none
  BEGIN_DOC
@@ -25,18 +33,22 @@ BEGIN_PROVIDER [ integer, N_det ]
  logical                        :: exists
  character*64                   :: label
  PROVIDE ezfio_filename
- call ezfio_has_determinants_n_det(exists)
- if (exists) then
+ if (read_wf) then
+   call ezfio_has_determinants_n_det(exists)
    if (exists) then
-     call ezfio_has_determinants_mo_label(exists)
      if (exists) then
-       call ezfio_get_determinants_mo_label(label)
-       exists = (label == mo_label)
+       call ezfio_has_determinants_mo_label(exists)
+       if (exists) then
+         call ezfio_get_determinants_mo_label(label)
+         exists = (label == mo_label)
+       endif
      endif
    endif
- endif
- if (exists) then
-   call ezfio_get_determinants_n_det(N_det)
+   if (exists) then
+     call ezfio_get_determinants_n_det(N_det)
+   else
+     N_det = 1
+   endif
  else
    N_det = 1
  endif
@@ -56,7 +68,7 @@ BEGIN_PROVIDER [ integer, N_det_max_jacobi ]
  if (exists) then
    call ezfio_get_determinants_n_det_max_jacobi(N_det_max_jacobi)
  else
-   N_det_max_jacobi = 10000
+   N_det_max_jacobi = 5000
  endif
  call write_int(output_dets,N_det_max_jacobi,'Lapack diagonalization up to')
  ASSERT (N_det_max_jacobi > 0)
@@ -91,29 +103,37 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
   logical                        :: exists
   character*64                   :: label
   
-  call ezfio_has_determinants_N_int(exists)
-  if (exists) then
-   call ezfio_has_determinants_bit_kind(exists)
-   if (exists) then
-    call ezfio_has_determinants_N_det(exists)
+  if (read_wf) then
+    call ezfio_has_determinants_N_int(exists)
     if (exists) then
-     call ezfio_has_determinants_N_states(exists)
+     call ezfio_has_determinants_bit_kind(exists)
      if (exists) then
-      call ezfio_has_determinants_psi_det(exists)
+      call ezfio_has_determinants_N_det(exists)
       if (exists) then
-        call ezfio_has_determinants_mo_label(exists)
+       call ezfio_has_determinants_N_states(exists)
+       if (exists) then
+        call ezfio_has_determinants_psi_det(exists)
         if (exists) then
-          call ezfio_get_determinants_mo_label(label)
-          exists = (label == mo_label)
+          call ezfio_has_determinants_mo_label(exists)
+          if (exists) then
+            call ezfio_get_determinants_mo_label(label)
+            exists = (label == mo_label)
+          endif
         endif
+       endif
       endif
      endif
     endif
-   endif
-  endif
-
-  if (exists) then
-    call read_dets(psi_det,N_int,N_det)
+   
+    if (exists) then
+      call read_dets(psi_det,N_int,N_det)
+    else
+       psi_det = 0_bit_kind
+       do i=1,N_int
+         psi_det(i,1,1) = HF_bitmask(i,1)
+         psi_det(i,2,1) = HF_bitmask(i,2)
+       enddo
+    endif
   else
      psi_det = 0_bit_kind
      do i=1,N_int
@@ -180,25 +200,35 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
   double precision, allocatable  :: psi_coef_read(:,:)
   character*(64)                 :: label
   
-  call ezfio_has_determinants_psi_coef(exists)
-  if (exists) then
-    call ezfio_has_determinants_mo_label(exists)
+  if (read_wf) then
+    call ezfio_has_determinants_psi_coef(exists)
     if (exists) then
-      call ezfio_get_determinants_mo_label(label)
-      exists = (label == mo_label)
+      call ezfio_has_determinants_mo_label(exists)
+      if (exists) then
+        call ezfio_get_determinants_mo_label(label)
+        exists = (label == mo_label)
+      endif
     endif
-  endif
-  
-  if (exists) then
     
-    allocate (psi_coef_read(N_det,N_states))
-    call ezfio_get_determinants_psi_coef(psi_coef_read)
-    do k=1,N_states
-      do i=1,N_det
-        psi_coef(i,k) = psi_coef_read(i,k)
+    if (exists) then
+      
+      allocate (psi_coef_read(N_det,N_states))
+      call ezfio_get_determinants_psi_coef(psi_coef_read)
+      do k=1,N_states
+        do i=1,N_det
+          psi_coef(i,k) = psi_coef_read(i,k)
+        enddo
       enddo
-    enddo
-    deallocate(psi_coef_read)
+      deallocate(psi_coef_read)
+      
+    else
+      
+      psi_coef = 0.d0
+      do i=1,N_states
+        psi_coef(i,i) = 1.d0
+      enddo
+
+    endif
     
   else
     
