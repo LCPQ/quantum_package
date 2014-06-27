@@ -212,7 +212,7 @@ class H_apply(object):
       self.data["declarations"] += """
       double precision, intent(inout) :: select_max_out"""
 
-      self.data["params_post"] += ", select_max(i_generator)"
+      self.data["params_post"] += ", select_max(min(i_generator,size(select_max,1)))"
       self.data["size_max"] = str(1024*128) 
       self.data["copy_buffer"] = """
       call copy_h_apply_buffer_to_wf
@@ -242,8 +242,8 @@ class H_apply(object):
           !$ call omp_unset_lock(lck)
           cycle
         endif
+        select_max(i_generator) = 0.d0
       endif
-      select_max(i_generator) = 0.d0
       """
 
 

@@ -18,9 +18,9 @@ fi
 #####################
 
 declare -A EXECUTABLES
-for EXE in $(find $QPACKAGE_ROOT/src -type f -executable | grep -e "$QPACKAGE_ROOT/src/[^/]*/[^/]*$") 
+for EXE in $(find $QPACKAGE_ROOT/src -type f -executable | grep -e "$QPACKAGE_ROOT/src/[^/]*/[^/]*$")
 do
-  EXECUTABLES["$(basename "${EXE}")"]="${EXE}"
+  EXECUTABLES[$(basename ${EXE})]="${EXE}"
 done
 
 function print_list()
@@ -119,9 +119,6 @@ case "${COMMAND}" in
     print_help
     ;;
 esac
-
-
-
 
 
 
