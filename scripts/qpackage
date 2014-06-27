@@ -1,0 +1,127 @@
+#!/bin/bash
+# 
+# Runs the programs.
+# Thu Jun 26 23:40:20 CEST 2014
+
+# Check environment
+###################
+
+if [[ -z $QPACKAGE_ROOT ]]
+then
+   echo "Error:"
+   echo "QPACKAGE_ROOT environment variable is not set."
+   echo "source quantum_package.rc"
+   exit 1
+fi
+
+# List of executables
+#####################
+
+declare -A EXECUTABLES
+for EXE in $(find $QPACKAGE_ROOT/src -type f -executable | grep -e "$QPACKAGE_ROOT/src/[^/]*/[^/]*$") 
+do
+  EXECUTABLES["$(basename "${EXE}")"]="${EXE}"
+done
+
+function print_list()
+{
+  echo
+  echo "Available programs:"
+  echo
+  for EXE in ${!EXECUTABLES[@]}
+  do
+    printf " * %-30s [ %s ]\n" $EXE ${EXECUTABLES[$EXE]}
+  done | sort
+  echo
+}
+
+# Help message
+##############
+
+function print_help()
+{
+  cat << EOF
+
+Usage:
+   qpackage -h | --help
+   qpackage -l | --list
+   qpackage run <program> <EZFIO_input>
+   qpackage reset <EZFIO_input>
+
+Options:
+   -h  --help       Print help message
+   -l  --list       List executables
+
+EOF
+}
+
+ARGS=$(getopt -o "hl" -l "help,list" -n $0 -- "$@")
+
+[[ $? -eq 0 ]] || exit 1
+
+eval set -- "$ARGS"
+
+while true
+do
+  case "$1" in
+    -h|--help)
+      print_help
+      exit 0
+      shift ;;
+
+    -l|--list)
+      print_list
+      exit 0
+      shift ;;
+
+    --)
+      shift
+      break;;
+  esac
+done
+
+# Run commands
+##############
+
+function run()
+{
+  # run $EXE $EZFIO
+  # Starts the executable in one process and
+  # displays the output files in stdout
+  EXE=${EXECUTABLES[$1]}
+  EZFIO=$2
+  date
+  ${QPACKAGE_ROOT}/scripts/follow_output.py ${EZFIO} &
+  ${EXE} ${EZFIO} 
+  kill -2 %1
+  wait
+  date
+}
+
+function reset()
+{
+  # reset $EZFIO
+  rm -rf $1/output/*.rst
+  rm -rf $1/determinants/{n_det,psi_det.gz,psi_coef.gz}
+}
+
+COMMAND=$1
+shift
+
+case "${COMMAND}" in
+  run)
+    run $1 $2
+    ;;
+  reset)
+    reset $1 
+    ;;
+  *)
+    print_help
+    ;;
+esac
+
+
+
+
+
+

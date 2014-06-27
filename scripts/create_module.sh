@@ -36,6 +36,13 @@ function fail()
 }
 
 
+if [[ -z $QPACKAGE_ROOT ]]
+then
+  echo "Error:"
+  echo "QPACKAGE_ROOT environment variable is not set."
+  echo "source quantum_package.rc"
+  exit 1
+fi
 
 MODULE=$1
 
