@@ -1,13 +1,5 @@
 use bitmasks
 
-BEGIN_PROVIDER [ logical, read_wf ] 
- implicit none
- BEGIN_DOC
-! If true, read the wave function from the EZFIO file
- END_DOC
- read_wf = .False.
-END_PROVIDER
-
 BEGIN_PROVIDER [ integer, N_states ] 
  implicit none
  BEGIN_DOC
@@ -161,6 +153,7 @@ subroutine read_dets(det,Nint,Ndet)
   integer                        :: i,k
   equivalence (det_8, det_bk)
   
+!  print*,'coucou'
   call ezfio_get_determinants_N_int(N_int2)
   ASSERT (N_int2 == Nint)
   call ezfio_get_determinants_bit_kind(k)
@@ -169,6 +162,9 @@ subroutine read_dets(det,Nint,Ndet)
   N_int2 = (Nint*bit_kind)/8
   allocate (psi_det_read(N_int2,2,Ndet))
   call ezfio_get_determinants_psi_det (psi_det_read)
+! print*,'N_int2 = ',N_int2,N_int
+! print*,'k',k,bit_kind
+! print*,'psi_det_read = ',Ndet
   do i=1,Ndet
     do k=1,N_int2
       det_8(k) = psi_det_read(k,1,i)
@@ -184,6 +180,7 @@ subroutine read_dets(det,Nint,Ndet)
     enddo
   enddo
   deallocate(psi_det_read)
+!  print*,'ciao'
   
 end
 
@@ -347,6 +344,7 @@ end
 
 subroutine save_wavefunction
   implicit none
+  use bitmasks
   BEGIN_DOC
 !  Save the wave function into the EZFIO file
   END_DOC
@@ -395,3 +393,57 @@ subroutine save_wavefunction
   deallocate (psi_coef_save)
 end
 
+subroutine save_wavefunction_general(ndet,nstates,psidet,psicoef)
+  implicit none
+  BEGIN_DOC
+!  Save the wave function into the EZFIO file
+  END_DOC
+  use bitmasks
+  integer, intent(in) :: ndet,nstates
+  integer(bit_kind), intent(in) :: psidet(N_int,2,ndet)
+  double precision, intent(in)  :: psicoef(ndet,nstates)
+  integer*8, allocatable         :: psi_det_save(:,:,:)
+  double precision, allocatable  :: psi_coef_save(:,:)
+  integer*8                      :: det_8(100)
+  integer(bit_kind)              :: det_bk((100*8)/bit_kind)
+  integer                        :: N_int2
+  equivalence (det_8, det_bk)
+
+  integer :: i,k
+
+  call ezfio_set_determinants_N_int(N_int)
+  call ezfio_set_determinants_bit_kind(bit_kind)
+  call ezfio_set_determinants_N_det(ndet)
+  call ezfio_set_determinants_n_states(nstates)
+  call ezfio_set_determinants_mo_label(mo_label)
+
+  N_int2 = (N_int*bit_kind)/8
+  allocate (psi_det_save(N_int2,2,ndet))
+  do i=1,ndet
+    do k=1,N_int
+      det_bk(k) = psidet(k,1,i)
+    enddo
+    do k=1,N_int2
+      psi_det_save(k,1,i) = det_8(k)
+    enddo
+    do k=1,N_int
+      det_bk(k) = psidet(k,2,i)
+    enddo
+    do k=1,N_int2
+      psi_det_save(k,2,i) = det_8(k)
+    enddo
+!   print*,psi_det_save
+  enddo
+  call ezfio_set_determinants_psi_det(psi_det_save)
+  deallocate (psi_det_save)
+
+  allocate (psi_coef_save(ndet,nstates))
+  do k=1,nstates
+    do i=1,ndet
+      psi_coef_save(i,k) = psicoef(i,k)
+    enddo
+  enddo
+  call ezfio_set_determinants_psi_coef(psi_coef_save)
+  call write_int(output_dets,ndet,'Saved determinants')
+  deallocate (psi_coef_save)
+end

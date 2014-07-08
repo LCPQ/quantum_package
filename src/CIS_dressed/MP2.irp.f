@@ -1573,16 +1573,16 @@ subroutine diexcitation(i,j,k,l,ispin1,ispin2,key_in,key_out,i_ok,Nint)
   integer :: i_test_hole,i_test_particl
   key_out = key_in
 
-  k_hole = ishft(i-1,-5)+1
-  j_hole = i-ishft(k_hole-1,5)-1
+  k_hole = ishft(i-1,-bit_kind_shift)+1
+  j_hole = i-ishft(k_hole-1,bit_kind_shift)-1
   i_test_hole = ibset(0,j_hole)
   if(iand(key_in(k_hole,ispin1),i_test_hole).ne.i_test_hole)then
    i_ok = 0
    return
   endif
   key_out(k_hole,ispin1) = ibclr(key_out(k_hole,ispin1),j_hole)
-  k_particl = ishft(k-1,-5)+1
-  j_particl = k-ishft(k_particl-1,5)-1
+  k_particl = ishft(k-1,-bit_kind_shift)+1
+  j_particl = k-ishft(k_particl-1,bit_kind_shift)-1
   i_test_particl= ibset(0,j_particl)
   if(iand(key_in(k_particl,ispin1),i_test_particl).ne.0)then
    i_ok = 0
@@ -1590,16 +1590,16 @@ subroutine diexcitation(i,j,k,l,ispin1,ispin2,key_in,key_out,i_ok,Nint)
   endif
   key_out(k_particl,ispin1) = ibset(key_out(k_particl,ispin1),j_particl)
 
-  k_hole = ishft(j-1,-5)+1
-  j_hole = j-ishft(k_hole-1,5)-1
+  k_hole = ishft(j-1,-bit_kind_shift)+1
+  j_hole = j-ishft(k_hole-1,bit_kind_shift)-1
   i_test_hole = ibset(0,j_hole)
   if(iand(key_in(k_hole,ispin2),i_test_hole).ne.i_test_hole)then
    i_ok = 0
    return
   endif
   key_out(k_hole,ispin2) = ibclr(key_out(k_hole,ispin2),j_hole)
-  k_particl = ishft(l-1,-5)+1
-  j_particl = l-ishft(k_particl-1,5)-1
+  k_particl = ishft(l-1,-bit_kind_shift)+1
+  j_particl = l-ishft(k_particl-1,bit_kind_shift)-1
   i_test_particl = ibset(0,j_particl)
   if(iand(key_in(k_particl,ispin2),i_test_particl).ne.0)then
    i_ok = 0

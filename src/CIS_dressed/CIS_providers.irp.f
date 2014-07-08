@@ -45,13 +45,13 @@
     psi_CIS(a,2,key)=ref_bitmask(a,2)
    enddo
 
-   j_hole=ishft(i-1,-5)+1
-   i_hole=i-ishft(j_hole-1,5)-1
+   j_hole=ishft(i-1,-bit_kind_shift)+1
+   i_hole=i-ishft(j_hole-1,bit_kind_shift)-1
 
    psi_CIS(j_hole,ispin,key)=ibclr(psi_CIS(j_hole,ispin,key),i_hole)
 
-   l_particle=ishft(k-1,-5)+1
-   k_particle=k-ishft(l_particle-1,5)-1
+   l_particle=ishft(k-1,-bit_kind_shift)+1
+   k_particle=k-ishft(l_particle-1,bit_kind_shift)-1
 
    psi_CIS(l_particle,ispin,key)=ibset(psi_CIS(l_particle,ispin,key),k_particle)
    
@@ -69,13 +69,13 @@
     psi_CIS(a,2,key)=ref_bitmask(a,2)
    enddo
 
-   j_hole=ishft(i-1,-5)+1
-   i_hole=i-ishft(j_hole-1,5)-1
+   j_hole=ishft(i-1,-bit_kind_shift)+1
+   i_hole=i-ishft(j_hole-1,bit_kind_shift)-1
 
    psi_CIS(j_hole,ispin,key)=ibclr(psi_CIS(j_hole,ispin,key),i_hole)
 
-   l_particle=ishft(k-1,-5)+1
-   k_particle=k-ishft(l_particle-1,5)-1
+   l_particle=ishft(k-1,-bit_kind_shift)+1
+   k_particle=k-ishft(l_particle-1,bit_kind_shift)-1
    psi_CIS_holes(key) = i
    psi_CIS_particl(key) = k
    psi_CIS_spin(key) = 2

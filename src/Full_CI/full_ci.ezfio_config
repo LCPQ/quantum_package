@@ -1,0 +1,3 @@
+full_ci
+  n_det_max_fci integer 
+  do_pt2_end logical
