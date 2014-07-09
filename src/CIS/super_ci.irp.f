@@ -38,6 +38,7 @@ subroutine super_CI
     else
       save_char = ' '
     endif
+    E_min = min(E,E_min)
     write(output_hartree_fock,'(I4,X,F16.10, X, F16.10, X, A8 )'),&
         k, E, delta_E, save_char
     if ( (delta_E < 0.d0).and.(dabs(delta_E) < thresh_scf) ) then

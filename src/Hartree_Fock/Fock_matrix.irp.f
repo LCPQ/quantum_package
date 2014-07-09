@@ -87,6 +87,25 @@ END_PROVIDER
  ! Alpha Fock matrix in AO basis set
  END_DOC
  
+ integer                        :: i,j
+ do j=1,ao_num
+   !DIR$ VECTOR ALIGNED
+   do i=1,ao_num
+     Fock_matrix_alpha_ao(i,j) = ao_mono_elec_integral(i,j) + ao_bi_elec_integral_alpha(i,j)
+     Fock_matrix_beta_ao (i,j) = ao_mono_elec_integral(i,j) + ao_bi_elec_integral_beta (i,j)
+   enddo
+ enddo
+
+END_PROVIDER
+
+
+ BEGIN_PROVIDER [ double precision, ao_bi_elec_integral_alpha, (ao_num_align, ao_num) ]
+&BEGIN_PROVIDER [ double precision, ao_bi_elec_integral_beta ,  (ao_num_align, ao_num) ]
+ implicit none
+ BEGIN_DOC
+ ! Alpha Fock matrix in AO basis set
+ END_DOC
+ 
  integer                        :: i,j,k,l,k1,kmax
  double precision, allocatable  :: ao_ints_val(:)
  integer, allocatable           :: ao_ints_idx(:)
@@ -98,30 +117,30 @@ END_PROVIDER
    PROVIDE HF_density_matrix_ao_alpha  HF_density_matrix_ao_beta
    !$OMP PARALLEL DEFAULT(NONE) &
    !$OMP PRIVATE(i,j,l,k1,k,integral) &
-   !$OMP SHARED(ao_num,Fock_matrix_alpha_ao,ao_mono_elec_integral,&
-   !$OMP  ao_num_align,Fock_matrix_beta_ao,HF_density_matrix_ao_alpha, &
+   !$OMP SHARED(ao_num,ao_bi_elec_integral_alpha,ao_mono_elec_integral,&
+   !$OMP  ao_num_align,ao_bi_elec_integral_beta,HF_density_matrix_ao_alpha, &
    !$OMP  HF_density_matrix_ao_beta) 
    !$OMP DO SCHEDULE(GUIDED)
    do j=1,ao_num
      do i=1,j
-       Fock_matrix_alpha_ao(i,j) = ao_mono_elec_integral(i,j)
-       Fock_matrix_beta_ao (i,j) = ao_mono_elec_integral(i,j)
+       ao_bi_elec_integral_alpha(i,j) = 0.d0
+       ao_bi_elec_integral_beta (i,j) = 0.d0
        do l=1,ao_num
          do k=1,ao_num
            if ((abs(HF_density_matrix_ao_alpha(k,l)) > 1.d-9).or.    &
                  (abs(HF_density_matrix_ao_beta (k,l)) > 1.d-9)) then
              integral = (HF_density_matrix_ao_alpha(k,l)+HF_density_matrix_ao_beta (k,l)) * ao_bielec_integral(k,l,i,j)
-             Fock_matrix_alpha_ao(i,j) += integral
-             Fock_matrix_beta_ao (i,j) += integral
+             ao_bi_elec_integral_alpha(i,j) += integral
+             ao_bi_elec_integral_beta (i,j) += integral
 
              integral = ao_bielec_integral(k,j,i,l)
-             Fock_matrix_alpha_ao(i,j) -= HF_density_matrix_ao_alpha(k,l)*integral
-             Fock_matrix_beta_ao (i,j) -= HF_density_matrix_ao_beta (k,l)*integral
+             ao_bi_elec_integral_alpha(i,j) -= HF_density_matrix_ao_alpha(k,l)*integral
+             ao_bi_elec_integral_beta (i,j) -= HF_density_matrix_ao_beta (k,l)*integral
            endif
          enddo
        enddo
-       Fock_matrix_alpha_ao(j,i) = Fock_matrix_alpha_ao(i,j)
-       Fock_matrix_beta_ao (j,i) = Fock_matrix_beta_ao (i,j)
+       ao_bi_elec_integral_alpha(j,i) = ao_bi_elec_integral_alpha(i,j)
+       ao_bi_elec_integral_beta (j,i) = ao_bi_elec_integral_beta (i,j)
      enddo
    enddo
    !$OMP END DO NOWAIT
@@ -130,16 +149,16 @@ END_PROVIDER
  else
    !$OMP PARALLEL DEFAULT(NONE) &
    !$OMP PRIVATE(i,j,l,k1,k,integral,ao_ints_val,ao_ints_idx,kmax) &
-   !$OMP SHARED(ao_num,Fock_matrix_alpha_ao,ao_mono_elec_integral,&
-   !$OMP  ao_num_align,Fock_matrix_beta_ao,HF_density_matrix_ao_alpha, &
+   !$OMP SHARED(ao_num,ao_bi_elec_integral_alpha,ao_mono_elec_integral,&
+   !$OMP  ao_num_align,ao_bi_elec_integral_beta,HF_density_matrix_ao_alpha, &
    !$OMP  HF_density_matrix_ao_beta) 
    allocate(ao_ints_idx(ao_num_align),ao_ints_val(ao_num_align))
    !$OMP DO SCHEDULE(GUIDED)
    do j=1,ao_num
      !DIR$ VECTOR ALIGNED
      do i=1,ao_num
-       Fock_matrix_alpha_ao(i,j) = ao_mono_elec_integral(i,j)
-       Fock_matrix_beta_ao (i,j) = ao_mono_elec_integral(i,j)
+       ao_bi_elec_integral_alpha(i,j) = 0.d0
+       ao_bi_elec_integral_beta (i,j) = 0.d0
      enddo
      do l=1,ao_num
        do i=1,ao_num
@@ -148,11 +167,11 @@ END_PROVIDER
          do k1=1,kmax
            k = ao_ints_idx(k1)
            integral = (HF_density_matrix_ao_alpha(k,l)+HF_density_matrix_ao_beta(k,l)) * ao_ints_val(k1)
-           Fock_matrix_alpha_ao(i,j) += integral
-           Fock_matrix_beta_ao (i,j) += integral
+           ao_bi_elec_integral_alpha(i,j) += integral
+           ao_bi_elec_integral_beta (i,j) += integral
            integral = ao_ints_val(k1)
-           Fock_matrix_alpha_ao(l,j) -= HF_density_matrix_ao_alpha(k,i) * integral
-           Fock_matrix_beta_ao (l,j) -= HF_density_matrix_ao_beta (k,i) * integral
+           ao_bi_elec_integral_alpha(l,j) -= HF_density_matrix_ao_alpha(k,i) * integral
+           ao_bi_elec_integral_beta (l,j) -= HF_density_matrix_ao_beta (k,i) * integral
          enddo
        enddo
      enddo

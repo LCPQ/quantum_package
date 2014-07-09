@@ -17,6 +17,12 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
+`cis <http://github.com/LCPQ/quantum_package/tree/master/src/CIS/super_ci.irp.f#L1>`_
+  Undocumented
+
+`super_ci <http://github.com/LCPQ/quantum_package/tree/master/src/CIS/super_ci.irp.f#L9>`_
+  Undocumented
+
 
 
 Needed Modules

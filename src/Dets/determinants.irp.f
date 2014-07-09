@@ -348,49 +348,7 @@ subroutine save_wavefunction
   BEGIN_DOC
 !  Save the wave function into the EZFIO file
   END_DOC
-  integer*8, allocatable         :: psi_det_save(:,:,:)
-  double precision, allocatable  :: psi_coef_save(:,:)
-  integer*8                      :: det_8(100)
-  integer(bit_kind)              :: det_bk((100*8)/bit_kind)
-  integer                        :: N_int2
-  equivalence (det_8, det_bk)
-
-  integer :: i,k
-
-  call ezfio_set_determinants_N_int(N_int)
-  call ezfio_set_determinants_bit_kind(bit_kind)
-  call ezfio_set_determinants_N_det(N_det)
-  call ezfio_set_determinants_N_states(N_states)
-  call ezfio_set_determinants_mo_label(mo_label)
-
-  N_int2 = (N_int*bit_kind)/8
-  allocate (psi_det_save(N_int2,2,N_det))
-  do i=1,N_det
-    do k=1,N_int
-      det_bk(k) = psi_det_sorted(k,1,i)
-    enddo
-    do k=1,N_int2
-      psi_det_save(k,1,i) = det_8(k)
-    enddo
-    do k=1,N_int
-      det_bk(k) = psi_det_sorted(k,2,i)
-    enddo
-    do k=1,N_int2
-      psi_det_save(k,2,i) = det_8(k)
-    enddo
-  enddo
-  call ezfio_set_determinants_psi_det(psi_det_save)
-  deallocate (psi_det_save)
-
-  allocate (psi_coef_save(N_det,N_states))
-  do k=1,N_states
-    do i=1,N_det
-      psi_coef_save(i,k) = psi_coef_sorted(i,k)
-    enddo
-  enddo
-  call ezfio_set_determinants_psi_coef(psi_coef_save)
-  call write_int(output_dets,N_det,'Saved determinants')
-  deallocate (psi_coef_save)
+  call save_wavefunction_general(N_det,N_states,psi_det_sorted,psi_coef_sorted)
 end
 
 subroutine save_wavefunction_general(ndet,nstates,psidet,psicoef)
