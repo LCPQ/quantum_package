@@ -307,7 +307,9 @@ end
 &BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_anti, (mo_tot_num_align,mo_tot_num) ]
   implicit none
   BEGIN_DOC
-  ! Transform Bi-electronic integrals <ij|ij> and <ij|ji>
+  ! mo_bielec_integral_jj(i,j) = J_ij
+  ! mo_bielec_integral_jj_exchange(i,j) = J_ij
+  ! mo_bielec_integral_jj_anti(i,j) = J_ij - K_ij
   END_DOC
   
   integer                        :: i,j,p,q,r,s

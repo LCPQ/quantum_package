@@ -385,7 +385,10 @@ subroutine $subroutine($params_main)
   
   nmax = ( N_det_generators/nproc ) *nproc
   call wall_time(wall_1)
+ 
+
   !$ call omp_init_lock(lck)
+IRP_IF I_LIKE_BUGS
   !$OMP PARALLEL DEFAULT(SHARED) &
   !$OMP PRIVATE(i_generator,wall_2,ispin,k,mask) 
   allocate( mask(N_int,2,6) )
@@ -447,6 +450,13 @@ subroutine $subroutine($params_main)
 
   allocate( mask(N_int,2,6) )
   do i_generator=nmax+1,N_det_generators
+
+IRP_ELSE
+  allocate( mask(N_int,2,6) )
+  do i_generator=1,N_det_generators
+
+IRP_ENDIF
+
     if (abort_here) then
       exit
     endif

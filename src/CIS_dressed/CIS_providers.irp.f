@@ -212,13 +212,22 @@
  allocate (delta_H_matrix_doub(size_psi_CIS,size_psi_CIS))
  allocate(eigvalues(size_psi_CIS),eigvectors(size_psi_CIS,size_psi_CIS))
   do i = 1,n_state_CIS
-   call dress_by_doubles(eigenvalues_CIS(i),coefs_CIS(1,i),delta_H_matrix_doub,size_psi_CIS) !dressing of the Doubles
+!  call dress_by_doubles(eigenvalues_CIS(i),coefs_CIS(1,i),delta_H_matrix_doub,size_psi_CIS) !dressing of the Doubles
+   delta_H_matrix_doub = 0.d0
    
    do j = 1,size_psi_CIS
     do k = 1,size_psi_CIS
      delta_H_matrix_doub(j,k) += H_CIS(j,k)
     enddo
     delta_H_matrix_doub(j,j) += dress_T_discon_array_CIS(j)
+   enddo
+
+   double precision :: accu
+   accu = 0.d0
+   do j = 1, size_psi_CIS
+    do k = 1, size_psi_CIS
+     accu += delta_H_matrix_doub(j,k) * coefs_CIS(j,i) * coefs_CIS(k,i)
+    enddo
    enddo
    call lapack_diag(eigvalues,eigvectors,delta_H_matrix_doub,size_psi_CIS,size_psi_CIS)
 
@@ -235,7 +244,9 @@
     endif
     ! <CIS(i)|state(k)>
    enddo
- ! print*,'overlap = ',max_overlap
+   print*,i,i_overlap
+   print*,'overlap = ',max_overlap
+   i_overlap = i
    overlap_Ddt=max_overlap
    do k = 1,size_psi_CIS
     eigenvectors_CIS_dress_D_dt(k,i) = eigvectors(k,i_overlap)
@@ -248,6 +259,9 @@
    call get_s2_u0(psi_CIS,eigenvectors_CIS_dress_D_dt(1,i),size_psi_CIS,size_psi_CIS,s2)
    s_2_CIS_dress_D_dt(i) = s2
    eigenvalues_CIS_dress_D_dt(i) = eigvalues(i_overlap)
+   print*,'eigenvalues_CIS_dress_D_dt(i)= ',eigenvalues_CIS_dress_D_dt(i)
+   print*,'accu                         = ',accu
+   print*,'eigenvalues_CIS              = ',eigenvalues_CIS(i)
   enddo
 
  END_PROVIDER

@@ -139,269 +139,6 @@
  END_PROVIDER
 
 
- BEGIN_PROVIDER [double precision, EN2_corr_energy]
- &BEGIN_PROVIDER [double precision, p_imp_EN,(elec_alpha_num+1:n_act_cis)]
- &BEGIN_PROVIDER [double precision, h_imp_EN,(n_core_cis+1:elec_alpha_num)]
- &BEGIN_PROVIDER [double precision, hp_imp_EN,(n_core_cis+1:elec_alpha_num,elec_alpha_num+1:n_act_cis)]
-
- BEGIN_DOC
- !Calculation of the EN2 correlation energy (EN2_corr_energy)
- !and calculation of the contribution of the disconnected Triples on the 
- !Singles, via the impossible (p_imp_EN, h_imp_EN, hp_imp_EN)
- END_DOC
-
- implicit none
- integer :: i,j,k,l !variables for going over the occupied (i,j) and virutal (k,l)
- double precision :: direct,exchg,hij !calculating direct, exchange and total contribution
- double precision :: get_mo_bielec_integral
- double precision :: e_i,e_k,e_j,e_l !epsilons of i,j,k,l
- double precision :: delta_e_ik,delta_e_ikj
- double precision :: delta_e !delta epsilons
- double precision :: delta_e_tmp,H_jj_total
- integer, allocatable :: key_in(:,:)
- integer, allocatable :: key_out(:,:)
- integer :: ispin1,ispin2,i_ok
- allocate(key_in(N_int,2))
- allocate(key_out(N_int,2))
-
- print*,'EN2_corr_energy'
-
- EN2_corr_energy=0.d0
-
-do i=n_core_cis+1,elec_alpha_num
- h_imp_EN(i)=0.d0
- do k =elec_beta_num + 1, n_act_cis
-  p_imp_EN(k)=0.d0
-  hp_imp_EN(i,k)=0.d0
- enddo
-enddo
-
- do i=n_core_cis+1,elec_alpha_num
-! h_imp_EN(i)=0.d0
- 
-  e_i=diagonal_Fock_matrix_mo(i)
- 
-  do k=elec_alpha_num+1,n_act_cis
-!  hp_imp_EN(i,k)=0.d0
-  
-   e_k=diagonal_Fock_matrix_mo(k)
-   delta_e_ik=e_i-e_k
-
-   !same spin contribution for EN2_corr_energy 
-   do j=i+1,elec_alpha_num
-    e_j=diagonal_Fock_matrix_mo(j)
-    delta_e_ikj=delta_e_ik+e_j
-
-    !same spin contribution for EN2_corr_energy and a part of the contribution to p_imp_EN,h_imp_EN
-    do l=k+1,n_act_cis
-     e_l=diagonal_Fock_matrix_mo(l)
-     delta_e=delta_e_ikj-e_l
-     delta_e=delta_e-mo_bielec_integral_jj_anti(i,j) - &
-                     mo_bielec_integral_jj_anti(k,l)
-     delta_e=delta_e+mo_bielec_integral_jj_anti(i,k) + &
-                     mo_bielec_integral_jj_anti(i,l) + &
-                     mo_bielec_integral_jj_anti(j,k) + &
-                     mo_bielec_integral_jj_anti(j,l) 
- !   ispin1 = 1
- !   ispin2 = 1
- !   call diexcitation(i,j,k,l,ispin1,ispin2,ref_bitmask,key_out,i_ok,N_int)
- !   delta_e_tmp = HF_energy - H_jj_total(key_out)
- !   if(dabs(delta_e_tmp-delta_e).gt.1.d-10)then
- !   print*,'same spin first'
- !   print*,'delta_e_SSS = ',delta_e_tmp-delta_e
- !   stop
- !   endif
- !                       
-     direct=get_mo_bielec_integral(i,j,k,l,mo_integrals_map)
-     exchg=get_mo_bielec_integral(i,j,l,k,mo_integrals_map)
-
-     hij=(direct-exchg)*(direct-exchg)
-     hij=0.5d0*(-delta_e-dsqrt(delta_e*delta_e+4.d0*hij))
- !   ispin1 = 1
- !   ispin2 = 1
- !   call diexcitation(i,j,k,l,ispin1,ispin2,ref_bitmask,key_out,i_ok,N_int)
- !   delta_e_tmp = HF_energy - H_jj_total(key_out)
-
-     EN2_corr_energy=EN2_corr_energy+2*hij
-     p_imp_EN(k)=p_imp_EN(k)+hij
-     h_imp_EN(i)=h_imp_EN(i)+hij
-
-     p_imp_EN(l)=p_imp_EN(l)+hij
-     h_imp_EN(j)=h_imp_EN(j)+hij
-
-    enddo
-enddo
-!   !remaining same spin contribution for p_imp_EN    
-
-!   do l=elec_alpha_num+1,k-1
-!    e_l=diagonal_Fock_matrix_mo(l)
-!    delta_e=delta_e_ikj-e_l 
-!    delta_e=e_i + e_j - e_k -e_l
-!    delta_e=delta_e-mo_bielec_integral_jj_anti(i,j) - &
-!                    mo_bielec_integral_jj_anti(k,l)
-!    delta_e=delta_e+mo_bielec_integral_jj_anti(i,k) + &
-!                    mo_bielec_integral_jj_anti(i,l) + &
-!                    mo_bielec_integral_jj_anti(j,k) + &
-!                    mo_bielec_integral_jj_anti(j,l) 
-!    e_l=diagonal_Fock_matrix_mo(l)
-!    delta_e=delta_e_ikj-e_l
-!    delta_e=delta_e-mo_bielec_integral_jj_anti(i,j) - &
-!                    mo_bielec_integral_jj_anti(k,l)
-!    delta_e=delta_e+mo_bielec_integral_jj_anti(i,k) + &
-!                    mo_bielec_integral_jj_anti(i,l) + &
-!                    mo_bielec_integral_jj_anti(j,k) + &
-!                    mo_bielec_integral_jj_anti(j,l)
-
-
-
-
-
-!!   ispin1 = 1
-!!   ispin2 = 1
-!!   call diexcitation(i,j,k,l,ispin1,ispin2,ref_bitmask,key_out,i_ok,N_int)
-!!   delta_e_tmp = HF_energy - H_jj_total(key_out)
-!!   if(dabs(delta_e_tmp-delta_e).gt.1.d-10)then
-!!   call print_key(key_out)
-!!   call print_key(ref_bitmask)
-!!   print*,i,k,j,l
-!!   print*,'same spin middle'
-!!   print*,'delta_e_SSS = ',delta_e_tmp-delta_e
-!!   print*,'delta_e_SSS = ',delta_e_tmp,delta_e
-!!   stop
-!!   endif
-
-!    direct=get_mo_bielec_integral(i,j,k,l,mo_integrals_map)
-!    exchg=get_mo_bielec_integral(i,j,l,k,mo_integrals_map)
-
-!    hij=(direct-exchg)*(direct-exchg)
-!    hij=0.5d0*(-delta_e-dsqrt(delta_e*delta_e+4.d0*hij))
-
-!    p_imp_EN(k)=p_imp_EN(k)+hij  
-
-!   enddo
-!  enddo
-
-!  !remaining same spin contribution for h_imp_EN
-!  do j=n_core_cis+1,i-1
-!   e_j=diagonal_Fock_matrix_mo(j)
-!   delta_e_ikj=delta_e_ik+e_j
-
-!   do l=k+1,n_act_cis
-!    e_l=diagonal_Fock_matrix_mo(l)
-!    delta_e=delta_e_ikj-e_l
-!    delta_e=delta_e-mo_bielec_integral_jj_anti(i,j) - &
-!                    mo_bielec_integral_jj_anti(k,l)
-!    delta_e=delta_e+mo_bielec_integral_jj_anti(i,k) + &
-!                    mo_bielec_integral_jj_anti(i,l) + &
-!                    mo_bielec_integral_jj_anti(j,k) + &
-!                    mo_bielec_integral_jj_anti(j,l)
-!!   ispin2 = 1
-!!   call diexcitation(i,j,k,l,ispin1,ispin2,ref_bitmask,key_out,i_ok,N_int)
-!!   delta_e_tmp = HF_energy - H_jj_total(key_out)
-!!   if(dabs(delta_e_tmp-delta_e).gt.1.d-10)then
-!!   print*,'same spin third '
-!!   print*,'delta_e_SSS = ',delta_e_tmp-delta_e
-!!   stop
-!!   endif
-
-!    direct=get_mo_bielec_integral(i,j,k,l,mo_integrals_map)
-!    exchg=get_mo_bielec_integral(i,j,l,k,mo_integrals_map)
-
-!    hij=(direct-exchg)*(direct-exchg)
-!    hij=0.5d0*(-delta_e-dsqrt(delta_e*delta_e+4.d0*hij))
-
-!    h_imp_EN(i)=h_imp_EN(i)+hij
-
-!   enddo
-!  enddo
-
-   !same spin contribution for hp_imp_EN
-
-   do j=n_core_cis+1,elec_alpha_num
-    if(j==i)cycle
-    e_j=diagonal_Fock_matrix_mo(j)
-    delta_e_ikj=delta_e_ik+e_j
- 
-    do l=elec_alpha_num+1,n_act_cis
-     if(l==k)cycle
-     e_l=diagonal_Fock_matrix_mo(l)
-     delta_e=delta_e_ikj-e_l
-     delta_e=delta_e-mo_bielec_integral_jj_anti(i,j) - &
-                     mo_bielec_integral_jj_anti(k,l)
-     delta_e=delta_e+mo_bielec_integral_jj_anti(i,k) + &
-                     mo_bielec_integral_jj_anti(i,l) + &
-                     mo_bielec_integral_jj_anti(j,k) + &
-                     mo_bielec_integral_jj_anti(j,l) 
-!!!  ispin1 = 1
-!!!  ispin2 = 1
-!!!  call diexcitation(i,j,k,l,ispin1,ispin2,ref_bitmask,key_out,i_ok,N_int)
-!!!  delta_e_tmp = HF_energy - H_jj_total(key_out)
-!!!  if(dabs(delta_e_tmp-delta_e).gt.1.d-10)then
-!!!  print*,'same spin fourth'
-!!!  print*,'delta_e_SSS = ',delta_e_tmp-delta_e
-!!!  call print_key(key_out)
-!!!  call print_key(ref_bitmask)
-!!!  print*,i,k,j,l
-!!!  stop
-!!!  endif
-
-     direct=get_mo_bielec_integral(i,j,k,l,mo_integrals_map)
-     exchg=get_mo_bielec_integral(i,j,l,k,mo_integrals_map)
-
-     hij=(direct-exchg)*(direct-exchg)
-     hij = 0.5d0 * (-delta_e - dsqrt(delta_e * delta_e + 4.d0 * hij))
-
-     hp_imp_EN(i,k)=hp_imp_EN(i,k)+hij
-
-    enddo
-   enddo
-
-   !different spin contribution
-   do j=n_core_cis+1,elec_beta_num
-    e_j=diagonal_Fock_matrix_mo(j)
-    delta_e_ikj=delta_e_ik+e_j
-
-    do l=elec_beta_num+1,n_act_cis
-     e_l=diagonal_Fock_matrix_mo(l)
-     delta_e=delta_e_ikj-e_l 
-     delta_e=delta_e-mo_bielec_integral_jj(i,j) - &
-                     mo_bielec_integral_jj(k,l)
-     delta_e=delta_e+mo_bielec_integral_jj_anti(i,k) + &
-                     mo_bielec_integral_jj_anti(j,l) + &
-                     mo_bielec_integral_jj(i,l) + &
-                     mo_bielec_integral_jj(j,k)
-!!   ispin1 = 2
-!!   ispin2 = 1
-!!   call diexcitation(i,j,k,l,ispin1,ispin2,ref_bitmask,key_out,i_ok,N_int)
-!!   delta_e_tmp = HF_energy - H_jj_total(key_out)
-!!   if(dabs(delta_e_tmp-delta_e).gt.1.d-10)then
-!!   print*,'different spin '
-!!   print*,'delta_e_SSS = ',delta_e_tmp-delta_e
-!!   stop
-!!   endif
-
-
-     direct=get_mo_bielec_integral(i,j,k,l,mo_integrals_map)
-
-     hij=direct*direct
-     hij=0.5d0*(-delta_e-dsqrt(delta_e*delta_e+4.d0*hij))
-
-     EN2_corr_energy=EN2_corr_energy+hij
-     p_imp_EN(k)=p_imp_EN(k)+hij
-     h_imp_EN(i)=h_imp_EN(i)+hij
-     hp_imp_EN(i,k)=hp_imp_EN(i,k)+hij
-
-    enddo
-   enddo
-  enddo
- enddo
-
- print*,'EN correlation energy=',EN2_corr_energy
- print*,'EN correlation energy=',EN2_corr_energy
-
- END_PROVIDER
-
-
 
 
  BEGIN_PROVIDER [integer, size_psi_CIS]
@@ -630,6 +367,7 @@ enddo
  integer :: key !key for CIS-matrix
 
  print*,'dress_T_discon'
+ print*,'mp2_dressing = ',mp2_dressing
 
  if(mp2_dressing)then
   dress_T_discon_array_CIS(1)=MP2_corr_energy
@@ -647,24 +385,25 @@ enddo
   enddo
 
  else !EN Dressing
+  print*,'coucou !'
   dress_T_discon_array_CIS(1)=EN2_corr_energy
+  print*,'coucou !'
   
-  do i=n_core_cis+1,elec_alpha_num
-   do k=elec_alpha_num+1,n_act_cis
-    key=psi_CIS_adress(i,k)
-    
-    dress_T_discon(i,k)=EN2_corr_energy-p_imp_EN(k)-h_imp_EN(i)+hp_imp_EN(i,k)
+! do i=n_core_cis+1,elec_alpha_num
+!  print*,'i',i,n_core_cis
+!  do k=elec_alpha_num+1,n_act_cis
+!   print*,'k',k,n_act_cis
+!   key=psi_CIS_adress(i,k)
+!   
+!   dress_T_discon(i,k)=EN2_corr_energy-p_imp_EN(k)-h_imp_EN(i)+hp_imp_EN(i,k)
 
-!print*,'i,k,key',i,k,key
-!print*,'EN2_corr_energy-p_imp_EN(k)-h_imp_EN(i)+hp_imp_EN(i,k)',EN2_corr_energy,p_imp_EN(k),h_imp_EN(i),hp_imp_EN(i,k)
-!print*,'dress_T_discon',dress_T_discon(i,k)
+!   dress_T_discon_array_CIS(key) = dress_T_discon(i,k)
+!   dress_T_discon_array_CIS(key+1) = dress_T_discon(i,k)
 
-    dress_T_discon_array_CIS(key) = dress_T_discon(i,k)
-    dress_T_discon_array_CIS(key+1) = dress_T_discon(i,k)
-
-   enddo
-  enddo
+!  enddo
+! enddo
  end if
+ print*,'end'
 
  END_PROVIDER
 

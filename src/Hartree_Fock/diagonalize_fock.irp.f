@@ -54,3 +54,28 @@
    deallocate(work, iwork, F, S)
 END_PROVIDER
  
+BEGIN_PROVIDER [double precision, diagonal_Fock_matrix_mo_sum, (mo_tot_num)]
+ implicit none
+ BEGIN_DOC
+ ! diagonal element of the fock matrix calculated as the sum over all the interactions 
+ ! with all the electrons in the RHF determinant
+ ! diagonal_Fock_matrix_mo_sum(i) = sum_{j=1, N_elec} 2 J_ij -K_ij 
+ END_DOC
+ integer :: i,j
+ double precision :: accu
+ do i = 1,elec_alpha_num
+  accu = 0.d0
+  do j = 1, elec_alpha_num
+   accu += 2.d0 * mo_bielec_integral_jj(i,j) - mo_bielec_integral_jj_exchange(i,j)
+  enddo
+  diagonal_Fock_matrix_mo_sum(i) = accu + mo_mono_elec_integral(i,i)
+ enddo
+ do i = elec_alpha_num+1,mo_tot_num
+  accu = 0.d0
+  do j = 1, elec_alpha_num
+   accu += 2.d0 * mo_bielec_integral_jj(i,j) - mo_bielec_integral_jj_exchange(i,j)
+  enddo
+  diagonal_Fock_matrix_mo_sum(i) = accu + mo_mono_elec_integral(i,i)
+ enddo
+
+END_PROVIDER

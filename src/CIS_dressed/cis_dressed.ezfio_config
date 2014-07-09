@@ -4,3 +4,4 @@ cis_dressed
   n_act_cis              integer 
   mp2_dressing           logical 
   standard_doubles       logical 
+  en_2_2                 logical

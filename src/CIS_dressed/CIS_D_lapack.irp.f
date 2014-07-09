@@ -1,4 +1,4 @@
-program CIS_DT
+program CIS_D
  implicit none
  integer :: i
  print*,'MP2_dresssing=',mp2_dressing
@@ -18,7 +18,7 @@ endif
    print*,'i = ',i
    print*,'CIS     = ',eigenvalues_CIS(i)
    print*,'CIS(DdT)= ',eigenvalues_CIS_dress_D(i)
-   print*,'s2(DdT)    = ',s_2_CIS_dress_D_dt(i)
+   print*,'s2(DdT)    = ',s_2_CIS_dress_D(i)
    print*,'<x>   = ',CIS_states_properties(1,i)
    print*,'<y>   = ',CIS_states_properties(2,i)
    print*,'<z>   = ',CIS_states_properties(3,i)
@@ -27,39 +27,39 @@ endif
    print*,'<zz>  = ',CIS_states_properties(6,i)
    print*,''
  enddo
- double precision :: delta_E_CIS,delta_E_CIS_DT,convert
+ double precision :: delta_E_CIS,delta_E_CIS_D,convert
 
  convert = 1.d0
- print*,'Excitation energies :      CIS           CIS_DT         (Hartree)' 
+ print*,'Excitation energies :      CIS           CIS_D         (Hartree)' 
  do i = 2, n_state_CIS
   delta_E_CIS = eigenvalues_CIS(i) - eigenvalues_CIS(1)
-  delta_E_CIS_DT = eigenvalues_CIS_dress_D(i) - eigenvalues_CIS_dress_D(1)
-  write(*,'(I3,xxxxxxxxxxxxxxxx,5(F16.5,x))')i,delta_E_CIS*convert,delta_E_CIS_DT*convert
+  delta_E_CIS_D = eigenvalues_CIS_dress_D(i) - eigenvalues_CIS_dress_D(1)
+  write(*,'(I3,xxxxxxxxxxxxxxxx,5(F16.5,x))')i,delta_E_CIS*convert,delta_E_CIS_D*convert
  enddo
 
  convert = 27.2114d0
- print*,'Excitation energies :      CIS           CIS_DT         (eV)' 
+ print*,'Excitation energies :      CIS           CIS_D         (eV)' 
  do i = 2, n_state_CIS
   delta_E_CIS = eigenvalues_CIS(i) - eigenvalues_CIS(1)
-  delta_E_CIS_DT = eigenvalues_CIS_dress_D(i) - eigenvalues_CIS_dress_D(1)
-  write(*,'(I3,xxxxxxxxxxxxxxxx,5(F16.6,x))')i,delta_E_CIS*convert,delta_E_CIS_DT*convert
+  delta_E_CIS_D = eigenvalues_CIS_dress_D(i) - eigenvalues_CIS_dress_D(1)
+  write(*,'(I3,xxxxxxxxxxxxxxxx,5(F16.6,x))')i,delta_E_CIS*convert,delta_E_CIS_D*convert
  enddo
 
 
  convert = 219475d0
- print*,'Excitation energies :      CIS           CIS_DT         (cm-1)' 
+ print*,'Excitation energies :      CIS           CIS_D         (cm-1)' 
  do i = 2, n_state_CIS
   delta_E_CIS = eigenvalues_CIS(i) - eigenvalues_CIS(1)
-  delta_E_CIS_DT = eigenvalues_CIS_dress_D(i) - eigenvalues_CIS_dress_D(1)
-  write(*,'(I3,xxxxxxxxxxxxxxxx,5(F16.1,x))')i,delta_E_CIS*convert,delta_E_CIS_DT*convert
+  delta_E_CIS_D = eigenvalues_CIS_dress_D(i) - eigenvalues_CIS_dress_D(1)
+  write(*,'(I3,xxxxxxxxxxxxxxxx,5(F16.1,x))')i,delta_E_CIS*convert,delta_E_CIS_D*convert
  enddo
 
  convert = 627.51d0
- print*,'Excitation energies :      CIS           CIS_DT         (Kcal/mol)' 
+ print*,'Excitation energies :      CIS           CIS_D         (Kcal/mol)' 
  do i = 2, n_state_CIS
   delta_E_CIS = eigenvalues_CIS(i) - eigenvalues_CIS(1)
-  delta_E_CIS_DT = eigenvalues_CIS_dress_D(i) - eigenvalues_CIS_dress_D(1)
-  write(*,'(I3,xxxxxxxxxxxxxxxx,5(F16.5,x))')i,delta_E_CIS*convert,delta_E_CIS_DT*convert
+  delta_E_CIS_D = eigenvalues_CIS_dress_D(i) - eigenvalues_CIS_dress_D(1)
+  write(*,'(I3,xxxxxxxxxxxxxxxx,5(F16.5,x))')i,delta_E_CIS*convert,delta_E_CIS_D*convert
  enddo
 
 !if(save_all_dm_cis)then

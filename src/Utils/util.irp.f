@@ -296,6 +296,27 @@ subroutine normalize(u,sze)
   endif
 end
 
+double precision function approx_dble(a,n)
+  implicit none
+  integer, intent(in) :: n
+  double precision, intent(in) :: a
+  double precision :: f
+  integer :: i
+
+  if (a == 0.d0) then
+    approx_dble = 0.d0
+    return
+  endif
+  f = 1.d0
+  do i=1,-int(dlog10(dabs(a)))+n
+    f = f*.1d0
+  enddo
+  do i=1,int(dlog10(dabs(a)))-n
+    f = f*10.d0
+  enddo
+  approx_dble = dnint(a/f)*f
+
+end
 
 
 

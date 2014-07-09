@@ -12,7 +12,7 @@ program cisd
   pt2 = 1.d0
   diag_algorithm = "Lapack"
 ! do while (maxval(abs(pt2(1:N_st))) > 1.d-4)
-  do while (N_det < n_det_max_fci.and.maxval(abs(pt2(1:N_st))) > 1.d-4)
+  do while (N_det < n_det_max_fci.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
     call diagonalize_CI
     call save_wavefunction
@@ -29,7 +29,7 @@ program cisd
    N_det = min(n_det_max_fci,N_det)
    if(do_pt2_end)then
     threshold_selectors = 1.d0
-    threshold_generators = 0.999d0
+    threshold_generators = 0.99d0
     touch N_det psi_det psi_coef
     call diagonalize_CI
     call H_apply_FCI_PT2(pt2, norm_pert, H_pert_diag,  N_st)

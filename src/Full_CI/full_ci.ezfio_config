@@ -1,3 +1,4 @@
 full_ci
   n_det_max_fci integer 
+  pt2_max double precision
   do_pt2_end logical

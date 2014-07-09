@@ -83,3 +83,21 @@ BEGIN_PROVIDER [ logical , standard_doubles]
 
 END_PROVIDER
 
+
+BEGIN_PROVIDER [ logical , en_2_2]
+  implicit none
+  BEGIN_DOC
+  !  Number of states asked for the CIS vector
+  END_DOC
+
+  logical                        :: has
+  PROVIDE ezfio_filename
+  call ezfio_has_cis_dressed_en_2_2(has)
+  if (has) then
+    call ezfio_get_cis_dressed_en_2_2(en_2_2)
+  else
+    en_2_2 = .False.
+  endif
+
+END_PROVIDER
+
