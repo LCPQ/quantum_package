@@ -253,6 +253,11 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   
   !$OMP DO SCHEDULE(dynamic)
   do kk=1,lmax
+IRP_IF COARRAY
+    if (mod(kk-this_image(),num_images()) /= 0) then
+      cycle
+    endif
+IRP_ENDIF
     if (abort_here) then
       cycle
     endif
@@ -316,6 +321,10 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   if (abort_here) then
     stop 'Aborting in AO integrals calculation'
   endif
+IRP_IF COARRAY
+  write(output_BiInts,*) 'Communicating the map'
+  call communicate_ao_integrals()
+IRP_ENDIF COARRAY
   write(output_BiInts,*) 'Sorting the map'
   call map_sort(ao_integrals_map)
   call cpu_time(cpu_2)

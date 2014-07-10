@@ -48,3 +48,14 @@ BEGIN_PROVIDER [ double precision, select_max, (1) ]
  END_DOC
  select_max(1) = huge(1.d0)
 END_PROVIDER
+
+BEGIN_PROVIDER [ integer, size_select_max ]
+ implicit none
+ BEGIN_DOC
+ ! Size of select_max
+ END_DOC
+ size_select_max = 1
+
+END_PROVIDER
+
+

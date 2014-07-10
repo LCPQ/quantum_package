@@ -321,6 +321,63 @@ subroutine dump_$ao_integrals(filename)
   
 end
 
+IRP_IF COARRAY
+subroutine communicate_$ao_integrals()
+  use map_module
+  implicit none
+  BEGIN_DOC
+  ! Communicate the $ao integrals with co-array
+  END_DOC
+  integer(cache_key_kind), pointer :: key(:)
+  real(integral_kind), pointer   :: val(:)
+  integer*8                      :: i,j, k, nmax
+  integer*8, save                :: n[*]
+  integer                        :: copy_n
+
+  real(integral_kind), allocatable            :: buffer_val(:)[:]
+  integer(cache_key_kind), allocatable        :: buffer_key(:)[:]
+  real(integral_kind), allocatable            :: copy_val(:)
+  integer*8, allocatable                      :: copy_key(:)
+
+  n = 0_8
+  do i=0_8,$ao_integrals_map%map_size
+    n = max(n,$ao_integrals_map%map(i)%n_elements)
+  enddo
+  sync all
+  nmax = 0_8
+  do j=1,num_images()
+    nmax = max(nmax,n[j])
+  enddo
+  allocate( buffer_key(nmax)[*], buffer_val(nmax)[*])
+  allocate( copy_key(nmax), copy_val(nmax))
+  do i=0_8,$ao_integrals_map%map_size
+    key => $ao_integrals_map%map(i)%key
+    val => $ao_integrals_map%map(i)%value
+    n = $ao_integrals_map%map(i)%n_elements
+    do j=1,n
+      buffer_key(j) = key(j)
+      buffer_val(j) = val(j)
+    enddo
+    sync all
+    do j=1,num_images()
+      if (j /= this_image()) then
+        copy_n = n[j]
+        do k=1,copy_n
+          copy_val(k) = buffer_val(k)[j]
+          copy_key(k) = buffer_key(k)[j]
+          copy_key(k) = copy_key(k)+ishft(i,-map_shift)
+        enddo
+!        call map_update($ao_integrals_map, copy_key, copy_val, copy_n, 0.d0)
+        call map_append($ao_integrals_map, copy_key, copy_val, copy_n )
+      endif
+    enddo
+    sync all
+  enddo
+  deallocate( buffer_key, buffer_val, copy_val, copy_key)
+  
+end
+IRP_ENDIF 
+
 
 integer function load_$ao_integrals(filename)
   implicit none
