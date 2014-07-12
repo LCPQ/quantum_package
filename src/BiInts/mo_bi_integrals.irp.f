@@ -111,6 +111,11 @@ subroutine add_integrals_to_map(mask_ijkl)
 !$  thread_num = omp_get_thread_num()
   !$OMP DO SCHEDULE(guided)
   do l1 = 1,ao_num
+IRP_IF COARRAY
+    if (mod(l1-this_image(),num_images()) /= 0 ) then
+      cycle
+    endif
+IRP_ENDIF
     if (abort_here) then
       cycle
     endif
@@ -275,6 +280,10 @@ subroutine add_integrals_to_map(mask_ijkl)
   if (abort_here) then
     stop 'Aborting in MO integrals calculation'
   endif
+IRP_IF COARRAY
+  write(output_BiInts,*) 'Communicating the map'
+  call communicate_mo_integrals()
+IRP_ENDIF
   call map_unique(mo_integrals_map)
   
   call wall_time(wall_2)
