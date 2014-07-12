@@ -10,7 +10,8 @@ BEGIN_PROVIDER [ integer , n_state_cis ]
   if (has) then
     call ezfio_get_cis_dressed_n_state_cis(n_state_cis)
   else
-    n_state_cis = 5
+    n_state_cis = 10
+    call ezfio_set_cis_dressed_n_state_cis(n_state_cis)
   endif
 
 END_PROVIDER

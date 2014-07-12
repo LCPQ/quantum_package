@@ -56,7 +56,7 @@
   enddo
   do k = 1, mo_tot_num
    do l = 1, mo_tot_num
-    c_k = eigvectors(k,j) * eigvectors(l,j)
+    c_k = eigvectors(k,i) * eigvectors(l,i)
     particle_natural_orb_CIS_properties(1,i) += c_k * mo_dipole_x(k,l)
     particle_natural_orb_CIS_properties(2,i) += c_k * mo_dipole_y(k,l)
     particle_natural_orb_CIS_properties(3,i) += c_k * mo_dipole_z(k,l)

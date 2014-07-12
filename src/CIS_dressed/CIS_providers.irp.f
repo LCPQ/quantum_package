@@ -207,13 +207,13 @@
  implicit none
  double precision,allocatable  :: delta_H_matrix_doub(:,:)
  double precision,allocatable  :: eigvalues(:),eigvectors(:,:)
- double precision :: overlap,max_overlap,s2
+ double precision :: overlap,max_overlap,s2,e_corr
  integer :: i_overlap,i,j,k
  allocate (delta_H_matrix_doub(size_psi_CIS,size_psi_CIS))
  allocate(eigvalues(size_psi_CIS),eigvectors(size_psi_CIS,size_psi_CIS))
   do i = 1,n_state_CIS
-!  call dress_by_doubles(eigenvalues_CIS(i),coefs_CIS(1,i),delta_H_matrix_doub,size_psi_CIS) !dressing of the Doubles
-   delta_H_matrix_doub = 0.d0
+   call dress_by_doubles(eigenvalues_CIS(i),coefs_CIS(1,i),delta_H_matrix_doub,size_psi_CIS) !dressing of the Doubles
+!  delta_H_matrix_doub = 0.d0
    
    do j = 1,size_psi_CIS
     do k = 1,size_psi_CIS
@@ -246,7 +246,6 @@
    enddo
    print*,i,i_overlap
    print*,'overlap = ',max_overlap
-   i_overlap = i
    overlap_Ddt=max_overlap
    do k = 1,size_psi_CIS
     eigenvectors_CIS_dress_D_dt(k,i) = eigvectors(k,i_overlap)

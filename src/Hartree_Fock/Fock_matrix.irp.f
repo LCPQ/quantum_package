@@ -115,6 +115,7 @@ END_PROVIDER
  if (do_direct_integrals) then
    PROVIDE all_utils ao_overlap_abs ao_integrals_threshold
    PROVIDE HF_density_matrix_ao_alpha  HF_density_matrix_ao_beta
+   PROVIDE ao_bi_elec_integral_alpha
    !$OMP PARALLEL DEFAULT(NONE) &
    !$OMP PRIVATE(i,j,l,k1,k,integral) &
    !$OMP SHARED(ao_num,ao_bi_elec_integral_alpha,ao_mono_elec_integral,&
@@ -147,6 +148,8 @@ END_PROVIDER
    !$OMP END PARALLEL
 
  else
+   PROVIDE ao_bielec_integrals_in_map
+           
    !$OMP PARALLEL DEFAULT(NONE) &
    !$OMP PRIVATE(i,j,l,k1,k,integral,ao_ints_val,ao_ints_idx,kmax) &
    !$OMP SHARED(ao_num,ao_bi_elec_integral_alpha,ao_mono_elec_integral,&
