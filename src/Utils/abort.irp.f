@@ -21,15 +21,16 @@ subroutine trap_signals
   BEGIN_DOC
   ! What to do when a signal is caught. Here, trap Ctrl-C and call the control_C subroutine.
   END_DOC
-  integer, external              :: control_C
+  integer, external              :: catch_signal
   integer                        :: err, flag
+  integer, parameter             :: sigusr2 = 12
   flag = -1
-  err = signal (sigint, control_C, flag)
+  err = signal (sigusr2, catch_signal, flag)
   PROVIDE abort_all
   PROVIDE abort_here
 end subroutine trap_signals
 
-integer function control_C(signum)
+integer function catch_signal(signum)
   implicit none
   integer, intent(in) :: signum
   BEGIN_DOC
@@ -37,13 +38,13 @@ integer function control_C(signum)
   END_DOC
   double precision, save         :: last_time
   double precision               :: this_time
-  control_C = 0
+  catch_signal = 0
   call wall_time(this_time)
   if (this_time - last_time < 1.d0) then
-    print *,  'Caught Ctrl-C'
+    print *,  'Caught Signal ', signum
     abort_all = .True.
   endif 
   last_time = this_time
   abort_here = .True.
-end subroutine control_C
+end 
 
