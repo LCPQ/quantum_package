@@ -54,10 +54,13 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
+`cis_ijkl_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L32>`_
+  Bitmask to include all possible single excitations from Hartree-Fock
+
 `full_ijkl_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L12>`_
   Bitmask to include all possible MOs
 
-`generators_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L88>`_
+`generators_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L100>`_
   Bitmasks for generator determinants. (N_int, alpha/beta, hole/particle, generator).
   3rd index is :
   * 1 : hole     for single exc
@@ -67,28 +70,28 @@ Documentation
   * 5 : hole     for 2dn exc of double
   * 6 : particle for 2dn exc of double
 
-`hf_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L32>`_
+`hf_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L44>`_
   Hartree Fock bit mask
 
-`i_bitmask_gen <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L174>`_
+`i_bitmask_gen <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L186>`_
   Current bitmask for the generators
 
-`i_bitmask_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L182>`_
+`i_bitmask_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L194>`_
   Current bitmask for the reference
 
-`n_generators_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L58>`_
+`n_generators_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L70>`_
   Number of bitmasks for generators
 
 `n_int <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L3>`_
   Number of 64-bit integers needed to represent determinants as binary strings
 
-`n_reference_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L122>`_
+`n_reference_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L134>`_
   Number of bitmasks for reference
 
-`ref_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L50>`_
+`ref_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L62>`_
   Reference bit mask, used in Slater rules, chosen as Hartree-Fock bitmask
 
-`reference_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L152>`_
+`reference_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L164>`_
   Bitmasks for reference determinants. (N_int, alpha/beta, hole/particle, reference)
 
 `bitstring_to_hexa <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L95>`_

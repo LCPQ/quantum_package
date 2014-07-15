@@ -119,6 +119,15 @@ Makefile.depend: Makefile
 
 include irpf90.make
 
+# Check that there is no file named test.irp.f
+ifeq (test.irp.f, $(wildcard test.irp.f))
+$(info  -------------------- Error --------------------)
+$(info  Having a file named test.irp.f is not allowed)
+$(info  because 'make test' should run the tests.)
+$(info  -----------------------------------------------)
+$(error )
+endif
+
 test:
 	DEBUG=1 make -j 1 -C tests
 

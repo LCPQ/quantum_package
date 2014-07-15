@@ -34,4 +34,6 @@ subroutine save_dets_qmcchem
  deallocate(occ)
 end
 
-
+program save_for_qmc
+  call save_dets_qmcchem
+end
