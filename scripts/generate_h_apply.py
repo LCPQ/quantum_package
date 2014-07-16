@@ -95,7 +95,7 @@ class H_apply(object):
     s["size_max"] = str(1024*128) 
     s["copy_buffer"] = "call copy_h_apply_buffer_to_wf"
     s["printout_now"]   = """write(output_Dets,*)  &
-       100.*float(i_generator)/float(N_det_generators), '% in ', wall_2-wall_1, 's'"""
+       100.*float(i_generator)/float(N_det_generators), '% in ', wall_1-wall_0, 's'"""
     self.data = s
 
   def __setitem__(self,key,value):
@@ -194,7 +194,7 @@ class H_apply(object):
         write(output_Dets,'(I10, 4(2X, F9.6), 2X, F8.1)') &
                  i_generator, norm_psi(k), delta_pt2(k), pt2(k), &
                  pt2(k)/norm_psi(k), &
-                 wall_2-wall_1
+                 wall_1-wall_0
          pt2_old(k) = pt2(k)
       enddo
       """

@@ -375,7 +375,7 @@ subroutine $subroutine($params_main)
   $decls_main
   
   integer                        :: i_generator, nmax
-  double precision               :: wall_0, wall_1, wall_2
+  double precision               :: wall_0, wall_1
   integer(omp_lock_kind)         :: lck
   integer(bit_kind), allocatable :: mask(:,:,:)
   integer                        :: ispin, k
@@ -384,13 +384,13 @@ subroutine $subroutine($params_main)
   PROVIDE psi_det_sorted_bit coef_hf_selector psi_det psi_coef H_apply_threshold   ref_bitmask_energy
   
   nmax = ( N_det_generators/nproc ) *nproc
-  call wall_time(wall_1)
+  call wall_time(wall_0)
  
 
   !$ call omp_init_lock(lck)
 IRP_IF I_LIKE_BUGS
   !$OMP PARALLEL DEFAULT(SHARED) &
-  !$OMP PRIVATE(i_generator,wall_2,ispin,k,mask) 
+  !$OMP PRIVATE(i_generator,wall_1,ispin,k,mask) 
   allocate( mask(N_int,2,6) )
   !$OMP DO SCHEDULE(dynamic,4)
   do i_generator=1,nmax
@@ -435,10 +435,10 @@ IRP_IF I_LIKE_BUGS
         i_generator $params_post)
     endif
     !$ call omp_set_lock(lck)
-    call wall_time(wall_2)
+    call wall_time(wall_1)
     $printout_always
-    if (wall_2 - wall_0 > 2.d0) then
-        wall_0 = wall_2
+    if (wall_1 - wall_0 > 2.d0) then
+        wall_0 = wall_1
         $printout_now
     endif
     !$ call omp_unset_lock(lck)
@@ -496,10 +496,10 @@ IRP_ENDIF
          mask(1,1,s_hole ), mask(1,1,s_part ),                        &
          i_generator $params_post)
     endif
-    call wall_time(wall_2)
+    call wall_time(wall_1)
     $printout_always
-    if (wall_2 - wall_0 > 2.d0) then
-        wall_0 = wall_2
+    if (wall_1 - wall_0 > 2.d0) then
+        wall_0 = wall_1
         $printout_now
     endif
   enddo

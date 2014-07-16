@@ -12,7 +12,13 @@ program cisd
   pt2 = 1.d0
   perturbation = "epstein_nesbet"
   E_old(1) = HF_energy
-  do while (maxval(abs(pt2(1:N_st))) > 1.d-6)
+  call diagonalize_CI
+  do i = 1, N_st
+   print*,'state ',i
+   print *,  'E                            = ', CI_energy(i) 
+  enddo
+  E_old = CI_energy
+  do while (maxval(abs(pt2(1:N_st))) > 1.d-4)
     print*,'----'
     print*,''
     call H_apply_cisd_selection(perturbation,pt2, norm_pert, H_pert_diag,  N_st)

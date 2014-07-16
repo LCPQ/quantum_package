@@ -211,7 +211,14 @@
  integer :: i_overlap,i,j,k
  allocate (delta_H_matrix_doub(size_psi_CIS,size_psi_CIS))
  allocate(eigvalues(size_psi_CIS),eigvectors(size_psi_CIS,size_psi_CIS))
-  do i = 1,n_state_CIS
+ eigenvalues_CIS_dress_D_dt(1) = eigenvalues_cis(1) + dress_T_discon_array_CIS(1)
+ eigenvectors_CIS_dress_D_dt(1,1) = 1.d0
+ s_2_CIS_dress_D_dt = 0.d0
+ print*,'eigenvalues_CIS_dress_D_dt(i)= ',eigenvalues_CIS_dress_D_dt(1) + nuclear_repulsion
+ do i = 2, size_psi_CIS
+  eigenvectors_CIS_dress_D_dt(i,1) = 0.d0
+ enddo
+  do i = 2,n_state_CIS
    call dress_by_doubles(eigenvalues_CIS(i),coefs_CIS(1,i),delta_H_matrix_doub,size_psi_CIS) !dressing of the Doubles
 !  delta_H_matrix_doub = 0.d0
    
@@ -220,6 +227,9 @@
      delta_H_matrix_doub(j,k) += H_CIS(j,k)
     enddo
     delta_H_matrix_doub(j,j) += dress_T_discon_array_CIS(j)
+   enddo
+   do j = 2, size_psi_CIS
+    delta_H_matrix_doub(1,j) = 0.d0
    enddo
 
    double precision :: accu
@@ -258,9 +268,9 @@
    call get_s2_u0(psi_CIS,eigenvectors_CIS_dress_D_dt(1,i),size_psi_CIS,size_psi_CIS,s2)
    s_2_CIS_dress_D_dt(i) = s2
    eigenvalues_CIS_dress_D_dt(i) = eigvalues(i_overlap)
-   print*,'eigenvalues_CIS_dress_D_dt(i)= ',eigenvalues_CIS_dress_D_dt(i)
-   print*,'accu                         = ',accu
-   print*,'eigenvalues_CIS              = ',eigenvalues_CIS(i)
+   print*,'eigenvalues_CIS_dress_D_dt(i)= ',eigenvalues_CIS_dress_D_dt(i) + nuclear_repulsion
+   print*,'Perturbative                 = ',accu+ nuclear_repulsion
+   print*,'eigenvalues_CIS              = ',eigenvalues_CIS(i)+ nuclear_repulsion
   enddo
 
  END_PROVIDER

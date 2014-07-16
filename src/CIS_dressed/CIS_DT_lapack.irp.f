@@ -16,8 +16,8 @@ endif
  do i = 1,n_state_CIS
    print*,''
    print*,'i = ',i
-   print*,'CIS     = ',eigenvalues_CIS(i)
-   print*,'CIS(DdT)= ',eigenvalues_CIS_dress_D_dt(i)
+   print*,'CIS     = ',eigenvalues_CIS(i)+ nuclear_repulsion
+   print*,'CIS(DdT)= ',eigenvalues_CIS_dress_D_dt(i)+ nuclear_repulsion
    print*,'s2(DdT)    = ',s_2_CIS_dress_D_dt(i)
    print*,'<x>   = ',CIS_states_properties(1,i)
    print*,'<y>   = ',CIS_states_properties(2,i)
