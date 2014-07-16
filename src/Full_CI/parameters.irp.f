@@ -30,7 +30,6 @@ BEGIN_PROVIDER [ logical , do_pt2_end ]
    do_pt2_end = .True.
  endif
 !call write_i(output_full_ci,do_pt2_end,' computes the PT2 at the end of the selection ')
- ASSERT (do_pt2_end > 0)
 END_PROVIDER
 
 

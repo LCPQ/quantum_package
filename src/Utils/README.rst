@@ -10,16 +10,36 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L169>`_
+`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L168>`_
   Apply the rotation found by find_rotation
 
-`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L150>`_
+`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L149>`_
   Find A.C = B
 
-`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L96>`_
+`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L95>`_
   Find C = A^-1
 
-`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L181>`_
+`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L247>`_
+  Diagonalize matrix H
+  .br
+  H is untouched between input and ouptut
+  .br
+  eigevalues(i) = ith lowest eigenvalue of the H matrix
+  .br
+  eigvectors(i,j) = <i|psi_j> where i is the basis function and psi_j is the j th eigenvector
+  .br
+
+`lapack_diagd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L180>`_
+  Diagonalize matrix H
+  .br
+  H is untouched between input and ouptut
+  .br
+  eigevalues(i) = ith lowest eigenvalue of the H matrix
+  .br
+  eigvectors(i,j) = <i|psi_j> where i is the basis function and psi_j is the j th eigenvector
+  .br
+
+`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L310>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -52,7 +72,7 @@ Documentation
 `abort_here <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/abort.irp.f#L10>`_
   If True, all the calculation is aborted
 
-`control_c <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/abort.irp.f#L32>`_
+`catch_signal <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/abort.irp.f#L33>`_
   What to do on Ctrl-C. If two Ctrl-C are pressed within 1 sec, the calculation if aborted.
 
 `trap_signals <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/abort.irp.f#L18>`_
@@ -141,6 +161,9 @@ Documentation
 
 `all_utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L1>`_
   Dummy provider to provide all utils
+
+`approx_dble <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L299>`_
+  Undocumented
 
 `binom <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L52>`_
   Binomial coefficients

@@ -256,7 +256,7 @@ BEGIN_PROVIDER [ double precision, Fock_matrix_ao, (ao_num_align, ao_num) ]
  else
    double precision, allocatable :: T(:,:), M(:,:)
    ! F_ao = S C F_mo C^t S
-   allocate (T(mo_tot_num_align,mo_tot_num),M(ao_num_align,mo_tot_num))
+   allocate (T(ao_num_align,ao_num),M(ao_num_align,ao_num))
    call dgemm('N','N', ao_num,ao_num,ao_num, 1.d0,                   &
        ao_overlap, size(ao_overlap,1),                               &
        mo_coef, size(mo_coef,1),                                     &
@@ -291,7 +291,7 @@ subroutine Fock_mo_to_ao(FMO,LDFMO,FAO,LDFAO)
   
   double precision, allocatable  :: T(:,:), M(:,:)
   ! F_ao = S C F_mo C^t S
-  allocate (T(mo_tot_num_align,mo_tot_num),M(ao_num_align,mo_tot_num))
+  allocate (T(ao_num_align,ao_num),M(ao_num_align,ao_num))
   call dgemm('N','N', ao_num,ao_num,ao_num, 1.d0,                    &
       ao_overlap, size(ao_overlap,1),                                &
       mo_coef, size(mo_coef,1),                                      &

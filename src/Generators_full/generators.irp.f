@@ -14,7 +14,6 @@ BEGIN_PROVIDER [ double precision, threshold_generators ]
  else
    threshold_generators = 0.99d0
  endif
- ASSERT (N_det > 0)
  call write_double(output_Dets,threshold_generators,'Threshold on generators')
 END_PROVIDER
 

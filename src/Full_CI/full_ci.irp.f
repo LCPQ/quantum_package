@@ -15,8 +15,10 @@ program cisd
   do while (N_det < n_det_max_fci.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
     if (N_det > n_det_max_fci) then
+       psi_det = psi_det_sorted
+       psi_coef = psi_coef_sorted
        N_det = n_det_max_fci
-       touch N_det
+       soft_touch N_det psi_det psi_coef
     endif
     call diagonalize_CI
     call save_wavefunction

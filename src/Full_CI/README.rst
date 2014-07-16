@@ -10,6 +10,16 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
+`do_pt2_end <http://github.com/LCPQ/quantum_package/tree/master/src/Full_CI/parameters.irp.f#L19>`_
+  if True then compute the PT2 when the selection process is finished
+
+`n_det_max_fci <http://github.com/LCPQ/quantum_package/tree/master/src/Full_CI/parameters.irp.f#L1>`_
+  Max number od determinants in the wave function
+
+`pt2_max <http://github.com/LCPQ/quantum_package/tree/master/src/Full_CI/parameters.irp.f#L37>`_
+  The selection process stops when the largest PT2 (for all the states) is lower than pt2_max
+  in absolute value
+
 
 
 Needed Modules

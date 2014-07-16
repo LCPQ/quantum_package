@@ -12,6 +12,5 @@ BEGIN_PROVIDER [ logical , read_wf ]
    read_wf = .True.
  endif
 !call write_i(output_determinants,read_wf,' computes the PT2 at the end of the selection ')
- ASSERT (read_wf > 0)
 END_PROVIDER
 

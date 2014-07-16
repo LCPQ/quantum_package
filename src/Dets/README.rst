@@ -161,61 +161,67 @@ Documentation
 `one_body_dm_mo_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/density_matrix.irp.f#L2>`_
   Alpha and beta one-body density matrix for each state
 
-`save_natural_mos <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/density_matrix.irp.f#L81>`_
+`save_natural_mos <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/density_matrix.irp.f#L97>`_
   Save natural orbitals, obtained by diagonalization of the one-body density matrix in the MO basis
 
-`state_average_weight <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/density_matrix.irp.f#L99>`_
+`set_natural_mos <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/density_matrix.irp.f#L81>`_
+  Set natural orbitals, obtained by diagonalization of the one-body density matrix in the MO basis
+
+`state_average_weight <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/density_matrix.irp.f#L108>`_
   Weights in the state-average calculation of the density matrix
 
-`det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L303>`_
+`det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L330>`_
   Return an integer*8 corresponding to a determinant index for searching
 
 `n_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L20>`_
   Number of determinants in the wave function
 
-`n_det_max_jacobi <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L48>`_
+`n_det_max_jacobi <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L52>`_
   Maximum number of determinants diagonalized my jacobi
 
 `n_states <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L3>`_
   Number of states to consider
 
-`psi_average_norm_contrib <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L216>`_
+`psi_average_norm_contrib <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L243>`_
   Contribution of determinants to the state-averaged density
 
-`psi_average_norm_contrib_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L237>`_
+`psi_average_norm_contrib_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L264>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
-`psi_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L171>`_
+`psi_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L188>`_
   The wave function coefficients. Initialized with Hartree-Fock if the EZFIO file
   is empty
 
-`psi_coef_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L236>`_
+`psi_coef_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L263>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
-`psi_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L267>`_
+`psi_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L294>`_
   Determinants on which we apply <i|H|psi> for perturbation.
   o They are sorted by determinants interpreted as integers. Useful
   to accelerate the search of a determinant
 
-`psi_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L84>`_
+`psi_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L88>`_
   The wave function determinants. Initialized with Hartree-Fock if the EZFIO file
   is empty
 
-`psi_det_size <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L66>`_
+`psi_det_size <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L70>`_
   Size of the psi_det/psi_coef arrays
 
-`psi_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L235>`_
+`psi_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L262>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
-`psi_det_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L266>`_
+`psi_det_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L293>`_
   Determinants on which we apply <i|H|psi> for perturbation.
   o They are sorted by determinants interpreted as integers. Useful
   to accelerate the search of a determinant
 
-`read_dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L127>`_
+`read_dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L139>`_
   Reads the determinants from the EZFIO file
 
-`save_wavefunction <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L318>`_
+`save_wavefunction <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L345>`_
+  Save the wave function into the EZFIO file
+
+`save_wavefunction_general <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L354>`_
   Save the wave function into the EZFIO file
 
 `double_exc_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants_bitmasks.irp.f#L40>`_
@@ -310,6 +316,9 @@ Documentation
   .br
   to repeat the excitations
 
+`read_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/parameters.irp.f#L1>`_
+  If true, read the wave function from the EZFIO file
+
 `get_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/s2.irp.f#L1>`_
   Returns <S^2>
 
@@ -320,6 +329,12 @@ Documentation
   Undocumented
 
 `s_z2_sz <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/s2.irp.f#L37>`_
+  Undocumented
+
+`save_dets_qmcchem <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/save_for_qmcchem.irp.f#L1>`_
+  Undocumented
+
+`save_for_qmc <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/save_for_qmcchem.irp.f#L37>`_
   Undocumented
 
 `save_natorb <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/save_natorb.irp.f#L1>`_

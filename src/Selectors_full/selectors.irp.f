@@ -14,7 +14,6 @@ BEGIN_PROVIDER [ double precision, threshold_selectors ]
  else
    threshold_selectors = 0.99d0
  endif
- ASSERT (N_det > 0)
  call write_double(output_Dets,threshold_selectors,'Threshold on selectors')
 END_PROVIDER
 

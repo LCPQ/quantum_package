@@ -23,7 +23,7 @@ BEGIN_PROVIDER [ logical, H_apply_buffer_allocated ]
   if (.not.associated(H_apply_buffer)) then
     allocate(H_apply_buffer(0:nproc-1))
     iproc = 0
-    !$OMP PARALLEL PRIVATE(iproc) DEFAULT(NONE) 
+    !$OMP PARALLEL PRIVATE(iproc) DEFAULT(NONE)  &
     !$OMP SHARED(H_apply_buffer,N_int,sze,N_states)
     !$   iproc = omp_get_thread_num()
     H_apply_buffer(iproc)%N_det = 0
