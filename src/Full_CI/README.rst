@@ -16,7 +16,7 @@ Documentation
 `n_det_max_fci <http://github.com/LCPQ/quantum_package/tree/master/src/Full_CI/parameters.irp.f#L1>`_
   Max number od determinants in the wave function
 
-`pt2_max <http://github.com/LCPQ/quantum_package/tree/master/src/Full_CI/parameters.irp.f#L37>`_
+`pt2_max <http://github.com/LCPQ/quantum_package/tree/master/src/Full_CI/parameters.irp.f#L36>`_
   The selection process stops when the largest PT2 (for all the states) is lower than pt2_max
   in absolute value
 

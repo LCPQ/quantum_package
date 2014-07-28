@@ -20,12 +20,12 @@ fi
 cat << EOF > quantum_package.rc
 export IRPF90=${IRPF90}
 export QPACKAGE_ROOT=${QPACKAGE_ROOT}
-export PYTHONPATH+=:\${QPACKAGE_ROOT}/scripts
-export PATH+=:\${QPACKAGE_ROOT}/scripts
-export PATH+=:\${QPACKAGE_ROOT}/bin
+export PYTHONPATH=\${PYTHONPATH}:\${QPACKAGE_ROOT}/scripts
+export PATH=\${PATH}:\${QPACKAGE_ROOT}/scripts
+export PATH=\${PATH}:\${QPACKAGE_ROOT}/bin
 export QPACKAGE_CACHE_URL="http://qmcchem.ups-tlse.fr/files/scemama/quantum_package/cache"
-export PATH+=:${QPACKAGE_ROOT}/irpf90/bin/
-source ${QPACKAGE_ROOT}/irpf90/bin/irpman
+export PATH=\${PATH}:\${QPACKAGE_ROOT}/irpf90/bin/
+source \${QPACKAGE_ROOT}/irpf90/bin/irpman > /dev/null
 EOF
 
 source quantum_package.rc

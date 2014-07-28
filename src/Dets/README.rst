@@ -50,21 +50,21 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`copy_h_apply_buffer_to_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L112>`_
+`copy_h_apply_buffer_to_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L113>`_
   Copies the H_apply buffer to psi_coef. You need to touch psi_det, psi_coef and N_det
   after calling this function.
 
-`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L198>`_
+`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L199>`_
   Fill the H_apply buffer with determiants for CISD
 
 `h_apply_buffer_allocated <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L14>`_
   Buffer of determinants/coefficients/perturbative energy for H_apply.
   Uninitialized. Filled by H_apply subroutines.
 
-`h_apply_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L44>`_
+`h_apply_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L45>`_
   Theshold on | <Di|H|Dj> |
 
-`resize_h_apply_buffer <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L62>`_
+`resize_h_apply_buffer <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L63>`_
   Undocumented
 
 `cisd_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/SC2.irp.f#L1>`_
