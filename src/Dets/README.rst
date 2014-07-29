@@ -50,21 +50,18 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`copy_h_apply_buffer_to_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L113>`_
+`copy_h_apply_buffer_to_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L95>`_
   Copies the H_apply buffer to psi_coef. You need to touch psi_det, psi_coef and N_det
   after calling this function.
 
-`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L199>`_
+`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L181>`_
   Fill the H_apply buffer with determiants for CISD
 
 `h_apply_buffer_allocated <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L14>`_
   Buffer of determinants/coefficients/perturbative energy for H_apply.
   Uninitialized. Filled by H_apply subroutines.
 
-`h_apply_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L45>`_
-  Theshold on | <Di|H|Dj> |
-
-`resize_h_apply_buffer <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L63>`_
+`resize_h_apply_buffer <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L45>`_
   Undocumented
 
 `cisd_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/SC2.irp.f#L1>`_
@@ -170,58 +167,52 @@ Documentation
 `state_average_weight <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/density_matrix.irp.f#L108>`_
   Weights in the state-average calculation of the density matrix
 
-`det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L330>`_
+`det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L295>`_
   Return an integer*8 corresponding to a determinant index for searching
 
-`n_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L20>`_
+`n_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L3>`_
   Number of determinants in the wave function
 
-`n_det_max_jacobi <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L52>`_
-  Maximum number of determinants diagonalized my jacobi
-
-`n_states <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L3>`_
-  Number of states to consider
-
-`psi_average_norm_contrib <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L243>`_
+`psi_average_norm_contrib <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L208>`_
   Contribution of determinants to the state-averaged density
 
-`psi_average_norm_contrib_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L264>`_
+`psi_average_norm_contrib_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L229>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
-`psi_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L188>`_
+`psi_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L153>`_
   The wave function coefficients. Initialized with Hartree-Fock if the EZFIO file
   is empty
 
-`psi_coef_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L263>`_
+`psi_coef_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L228>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
-`psi_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L294>`_
+`psi_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L259>`_
   Determinants on which we apply <i|H|psi> for perturbation.
   o They are sorted by determinants interpreted as integers. Useful
   to accelerate the search of a determinant
 
-`psi_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L88>`_
+`psi_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L53>`_
   The wave function determinants. Initialized with Hartree-Fock if the EZFIO file
   is empty
 
-`psi_det_size <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L70>`_
+`psi_det_size <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L35>`_
   Size of the psi_det/psi_coef arrays
 
-`psi_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L262>`_
+`psi_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L227>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
-`psi_det_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L293>`_
+`psi_det_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L258>`_
   Determinants on which we apply <i|H|psi> for perturbation.
   o They are sorted by determinants interpreted as integers. Useful
   to accelerate the search of a determinant
 
-`read_dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L139>`_
+`read_dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L104>`_
   Reads the determinants from the EZFIO file
 
-`save_wavefunction <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L345>`_
+`save_wavefunction <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L310>`_
   Save the wave function into the EZFIO file
 
-`save_wavefunction_general <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L354>`_
+`save_wavefunction_general <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L319>`_
   Save the wave function into the EZFIO file
 
 `double_exc_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants_bitmasks.irp.f#L40>`_
@@ -315,9 +306,6 @@ Documentation
   idx_repeat(0) is the number of determinants that can be used
   .br
   to repeat the excitations
-
-`read_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/parameters.irp.f#L1>`_
-  If true, read the wave function from the EZFIO file
 
 `get_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/s2.irp.f#L1>`_
   Returns <S^2>

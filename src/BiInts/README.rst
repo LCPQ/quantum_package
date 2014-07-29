@@ -179,26 +179,5 @@ Documentation
 `mo_bielec_integrals_index <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts/mo_bi_integrals.irp.f#L1>`_
   Computes an unique index for i,j,k,l integrals
 
-`ao_integrals_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts/options.irp.f#L69>`_
-  If <pq|rs> < ao_integrals_threshold, <pq|rs> = 0
-
-`do_direct_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts/options.irp.f#L105>`_
-  If True, compute integrals on the fly
-
-`mo_integrals_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts/options.irp.f#L87>`_
-  If <ij|kl> < mo_integrals_threshold, <ij|kl> = 0
-
-`read_ao_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts/options.irp.f#L52>`_
-  If true, read AO integrals in EZFIO
-
-`read_mo_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts/options.irp.f#L35>`_
-  If true, read MO integrals in EZFIO
-
-`write_ao_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts/options.irp.f#L18>`_
-  If true, write AO integrals in EZFIO
-
-`write_mo_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts/options.irp.f#L1>`_
-  If true, write MO integrals in EZFIO
-
 
 

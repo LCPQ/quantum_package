@@ -85,3 +85,18 @@ subroutine write_int(iunit,value,label)
 end
 
 
+subroutine write_bool(iunit,value,label)
+  implicit none
+  BEGIN_DOC
+  ! Write an logical value in output
+  END_DOC
+  integer, intent(in)            :: iunit
+  logical                        :: value
+  character*(*)                  :: label
+  character*(64), parameter      :: f = '(A50,L1)'
+  character*(50)                 :: newlabel
+  write(newlabel,'(A,A)') '* ',trim(label)
+  write(iunit,f) newlabel, value
+end
+
+

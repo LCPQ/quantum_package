@@ -1,0 +1,34 @@
+bielec_integrals
+  read_ao_integrals          False
+  read_mo_integrals          False
+  write_ao_integrals         False
+  write_mo_integrals         False
+  threshold_ao               1.e-12
+  threshold_mo               1.e-12
+  direct                     False
+
+cis_dressed 
+  n_state_cis                10
+  n_core_cis                 0
+  n_act_cis                  mo_basis_mo_tot_num
+  mp2_dressing               False
+  standard_doubles           True
+  en_2_2                     False
+
+determinants
+  n_states                   1
+  n_det_max_jacobi           5000
+  threshold_generators       1.0
+  threshold_selectors        1.0
+  read_wf                    False
+
+full_ci
+  n_det_max_fci              1000000
+  pt2_max                    1.e-4
+  do_pt2_end                 True
+                            
+hartree_fock
+  n_it_scf_max               200
+  thresh_scf                 1.e-10
+
+

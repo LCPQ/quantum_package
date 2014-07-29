@@ -1,104 +1,40 @@
-BEGIN_PROVIDER [ integer , n_state_cis ]
-  implicit none
-  BEGIN_DOC
-  !  Number of states asked for the CIS vector
-  END_DOC
+BEGIN_SHELL [ /usr/bin/python ]
+from ezfio_with_default import EZFIO_Provider
+T = EZFIO_Provider()
+T.set_type      ( "integer" )
+T.set_name      ( "n_state_cis" )
+T.set_doc       ( "Number of states asked for the CIS vector" )
+T.set_ezfio_dir ( "cis_dressed" )
+T.set_ezfio_name( "n_state_cis" )
+T.set_output    ( "output_CIS" )
+print T
 
-  logical                        :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_cis_dressed_n_state_cis(has)
-  if (has) then
-    call ezfio_get_cis_dressed_n_state_cis(n_state_cis)
-  else
-    n_state_cis = 10
-    call ezfio_set_cis_dressed_n_state_cis(n_state_cis)
-  endif
+T.set_name      ( "n_core_cis" )
+T.set_doc       ( "Number of core orbitals in the dressed CIS" )
+T.set_ezfio_name( "n_core_cis" )
+print T
 
-END_PROVIDER
+T.set_name      ( "n_act_cis" )
+T.set_doc       ( "Number of active orbitals in the dressed CIS" )
+T.set_ezfio_name( "n_act_cis" )
+print T
 
-BEGIN_PROVIDER [ integer , n_core_cis]
-  implicit none
-  BEGIN_DOC
-  !  Number of states asked for the CIS vector
-  END_DOC
+T.set_type      ( "logical" )
+T.set_name      ( "mp2_dressing" )
+T.set_doc       ( "If true, use MP2 dressing in the dressed CIS" )
+T.set_ezfio_name( "mp2_dressing" )
+print T
 
-  logical                        :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_cis_dressed_n_core_cis(has)
-  if (has) then
-    call ezfio_get_cis_dressed_n_core_cis(n_core_cis)
-  else
-    n_core_cis = 0
-  endif
+T.set_name      ( "standard_doubles" )
+T.set_doc       ( "If true, use standard doubles in the dressed CIS" )
+T.set_ezfio_name( "standard_doubles" )
+print T
 
-END_PROVIDER
+T.set_name      ( "en_2_2" )
+T.set_doc       ( "TODO")
+T.set_ezfio_name( "en_2_2" )
+print T
 
-BEGIN_PROVIDER [ integer , n_act_cis]
-  implicit none
-  BEGIN_DOC
-  !  Number of states asked for the CIS vector
-  END_DOC
+END_SHELL
 
-  logical                        :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_cis_dressed_n_act_cis(has)
-  if (has) then
-    call ezfio_get_cis_dressed_n_act_cis(n_act_cis)
-  else
-    n_act_cis = mo_tot_num
-  endif
-
-END_PROVIDER
-
-BEGIN_PROVIDER [ logical , mp2_dressing]
-  implicit none
-  BEGIN_DOC
-  !  Number of states asked for the CIS vector
-  END_DOC
-
-  logical                        :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_cis_dressed_mp2_dressing(has)
-  if (has) then
-    call ezfio_get_cis_dressed_mp2_dressing(mp2_dressing)
-  else
-    mp2_dressing = .False.
-  endif
-
-END_PROVIDER
-
-BEGIN_PROVIDER [ logical , standard_doubles]
-  implicit none
-  BEGIN_DOC
-  !  Number of states asked for the CIS vector
-  END_DOC
-
-  logical                        :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_cis_dressed_standard_doubles(has)
-  if (has) then
-    call ezfio_get_cis_dressed_standard_doubles(standard_doubles)
-  else
-    standard_doubles = .True.
-  endif
-
-END_PROVIDER
-
-
-BEGIN_PROVIDER [ logical , en_2_2]
-  implicit none
-  BEGIN_DOC
-  !  Number of states asked for the CIS vector
-  END_DOC
-
-  logical                        :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_cis_dressed_en_2_2(has)
-  if (has) then
-    call ezfio_get_cis_dressed_en_2_2(en_2_2)
-  else
-    en_2_2 = .False.
-  endif
-
-END_PROVIDER
 

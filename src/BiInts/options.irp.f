@@ -1,120 +1,46 @@
-BEGIN_PROVIDER [ logical, write_mo_integrals ]
-  implicit none
-  BEGIN_DOC
-  !  If true, write MO integrals in EZFIO
-  END_DOC
-  
-  logical                        :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_bielec_integrals_write_mo_integrals(has)
-  if (has) then
-    call ezfio_get_bielec_integrals_write_mo_integrals(write_mo_integrals)
-  else
-    write_mo_integrals = .False.
-  endif
-  
-END_PROVIDER
+BEGIN_SHELL [ /usr/bin/python ]
+from ezfio_with_default import EZFIO_Provider
+T = EZFIO_Provider()
+T.set_type      ( "logical" )
+T.set_name      ( "do_direct_integrals" )
+T.set_doc       ( "If true, compute integrals on the fly" )
+T.set_ezfio_dir ( "bielec_integrals" )
+T.set_ezfio_name( "direct" )
+T.set_output    ( "output_biints" )
+print T
 
-BEGIN_PROVIDER [ logical, write_ao_integrals ]
-  implicit none
-  BEGIN_DOC
-  !  If true, write AO integrals in EZFIO
-  END_DOC
-  
-  logical                        :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_bielec_integrals_write_ao_integrals(has)
-  if (has) then
-    call ezfio_get_bielec_integrals_write_ao_integrals(write_ao_integrals)
-  else
-    write_ao_integrals = .False.
-  endif
-  
-END_PROVIDER
+T.set_type      ( "logical" )
+T.set_name      ( "write_mo_integrals" )
+T.set_doc       ( "If true, write MO integrals in EZFIO" )
+T.set_ezfio_name( "write_mo_integrals" )
+print T
 
-BEGIN_PROVIDER [ logical, read_mo_integrals ]
-  implicit none
-  BEGIN_DOC
-  !  If true, read MO integrals in EZFIO
-  END_DOC
-  
-  logical                        :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_bielec_integrals_read_mo_integrals(has)
-  if (has) then
-    call ezfio_get_bielec_integrals_read_mo_integrals(read_mo_integrals)
-  else
-    read_mo_integrals = .False.
-  endif
-  
-END_PROVIDER
+T.set_name      ( "write_ao_integrals" )
+T.set_doc       ( "If true, write AO integrals in EZFIO" )
+T.set_ezfio_name( "write_ao_integrals" )
+print T
 
-BEGIN_PROVIDER [ logical, read_ao_integrals ]
-  implicit none
-  BEGIN_DOC
-  !  If true, read AO integrals in EZFIO
-  END_DOC
-  
-  logical                        :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_bielec_integrals_read_ao_integrals(has)
-  if (has) then
-    call ezfio_get_bielec_integrals_read_ao_integrals(read_ao_integrals)
-  else
-    read_ao_integrals = .False.
-  endif
-  
-END_PROVIDER
+T.set_name      ( "read_mo_integrals" )
+T.set_doc       ( "If true, read MO integrals in EZFIO" )
+T.set_ezfio_name( "read_mo_integrals" )
+print T
 
-BEGIN_PROVIDER [ double precision, ao_integrals_threshold ]
-  implicit none
-  BEGIN_DOC
-  !  If <pq|rs> < ao_integrals_threshold, <pq|rs> = 0
-  END_DOC
-  
-  logical                        :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_bielec_integrals_threshold_ao(has)
-  if (has) then
-    call ezfio_get_bielec_integrals_threshold_ao(ao_integrals_threshold)
-  else
-    ao_integrals_threshold = 1.d-12
-  endif
-  
-END_PROVIDER
+T.set_name      ( "read_ao_integrals" )
+T.set_doc       ( "If true, read AO integrals in EZFIO" )
+T.set_ezfio_name( "read_ao_integrals" )
+print T
+
+T.set_type      ( "double precision" )
+T.set_name      ( "ao_integrals_threshold" )
+T.set_doc       ( "If <pq|rs> < ao_integrals_threshold, <pq|rs> = 0" )
+T.set_ezfio_name( "threshold_ao" )
+print T
+
+T.set_name      ( "mo_integrals_threshold" )
+T.set_doc       ( "If <ij|kl> < mo_integrals_threshold, <ij|kl> = 0" )
+T.set_ezfio_name( "threshold_mo" )
+print T
+
+END_SHELL
 
 
-BEGIN_PROVIDER [ double precision, mo_integrals_threshold ]
-  implicit none
-  BEGIN_DOC
-  !  If <ij|kl> < mo_integrals_threshold, <ij|kl> = 0
-  END_DOC
-  
-  logical                        :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_bielec_integrals_threshold_mo(has)
-  if (has) then
-    call ezfio_get_bielec_integrals_threshold_mo(mo_integrals_threshold)
-  else
-    mo_integrals_threshold = 1.d-11
-  endif
-  
-END_PROVIDER
-
-
-BEGIN_PROVIDER [ logical, do_direct_integrals ]
-  implicit none
-  BEGIN_DOC  
-! If True, compute integrals on the fly
-  END_DOC
-
-  logical :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_bielec_integrals_direct(has)
-  if (has) then
-    call ezfio_get_bielec_integrals_direct(do_direct_integrals)
-  else
-    do_direct_integrals = .False.
-  endif
-
-END_PROVIDER

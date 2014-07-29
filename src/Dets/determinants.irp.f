@@ -1,22 +1,5 @@
 use bitmasks
 
-BEGIN_PROVIDER [ integer, N_states ] 
- implicit none
- BEGIN_DOC
-! Number of states to consider
- END_DOC
- logical                        :: exists
- PROVIDE ezfio_filename
- call ezfio_has_determinants_n_states(exists)
- if (exists) then
-   call ezfio_get_determinants_n_states(N_states)
- else
-   N_states = 1
- endif
- call write_int(output_dets,N_states,'Number of states')
- ASSERT (N_states > 0)
-END_PROVIDER
-
 BEGIN_PROVIDER [ integer, N_det ]
  implicit none
  BEGIN_DOC
@@ -46,24 +29,6 @@ BEGIN_PROVIDER [ integer, N_det ]
  endif
  call write_int(output_dets,N_det,'Number of determinants')
  ASSERT (N_det > 0)
-END_PROVIDER
-
-
-BEGIN_PROVIDER [ integer, N_det_max_jacobi ]
- implicit none
- BEGIN_DOC
- ! Maximum number of determinants diagonalized my jacobi
- END_DOC
- logical                        :: exists
- PROVIDE ezfio_filename
- call ezfio_has_determinants_n_det_max_jacobi(exists)
- if (exists) then
-   call ezfio_get_determinants_n_det_max_jacobi(N_det_max_jacobi)
- else
-   N_det_max_jacobi = 5000
- endif
- call write_int(output_dets,N_det_max_jacobi,'Lapack diagonalization up to')
- ASSERT (N_det_max_jacobi > 0)
 END_PROVIDER
 
 
