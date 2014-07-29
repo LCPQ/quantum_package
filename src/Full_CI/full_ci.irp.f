@@ -11,7 +11,23 @@ program cisd
   
   pt2 = 1.d0
   diag_algorithm = "Lapack"
-! do while (maxval(abs(pt2(1:N_st))) > 1.d-4)
+  if (N_det > n_det_max_fci) then
+    call diagonalize_CI
+    call save_wavefunction
+    psi_det = psi_det_sorted
+    psi_coef = psi_coef_sorted
+    N_det = n_det_max_fci
+    soft_touch N_det psi_det psi_coef
+    call diagonalize_CI
+    call save_wavefunction
+    print *,  'N_det    = ', N_det
+    print *,  'N_states = ', N_states
+    print *,  'PT2      = ', pt2
+    print *,  'E        = ', CI_energy
+    print *,  'E+PT2    = ', CI_energy+pt2
+    print *,  '-----'
+  endif
+
   do while (N_det < n_det_max_fci.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
     if (N_det > n_det_max_fci) then

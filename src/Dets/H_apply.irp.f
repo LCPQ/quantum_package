@@ -42,24 +42,6 @@ BEGIN_PROVIDER [ logical, H_apply_buffer_allocated ]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ double precision, H_apply_threshold ]
-  implicit none
-  BEGIN_DOC
-  ! Theshold on | <Di|H|Dj> |
-  END_DOC
-  logical                        :: has
-  PROVIDE ezfio_filename
-  call ezfio_has_determinants_H_apply_threshold(has)
-  if (has) then
-    call ezfio_get_determinants_H_apply_threshold(H_apply_threshold)
-  else
-    H_apply_threshold = 1.d-10
-  endif
-  call write_time(output_Dets)
-  call write_double(output_Dets, H_apply_threshold,                  &
-      'H_apply_threshold')
-END_PROVIDER
-
 subroutine resize_H_apply_buffer(new_size,iproc)
   implicit none
   integer, intent(in)            :: new_size, iproc
