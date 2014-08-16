@@ -35,8 +35,11 @@ subroutine pt2_epstein_nesbet_SC2_projected(det_pert,c_pert,e_2_pert,H_pert_diag
   integer                        :: i,j,degree,l
   double precision               :: diag_H_mat_elem,accu_e_corr,hij,h0j,h,delta_E
   double precision               :: repeat_all_e_corr,accu_e_corr_tmp,e_2_pert_fonda
+
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
+
+  double precision :: tmp
   call i_H_psi_SC2(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array,idx_repeat)
   accu_e_corr = 0.d0
   !$IVDEP
@@ -45,10 +48,8 @@ subroutine pt2_epstein_nesbet_SC2_projected(det_pert,c_pert,e_2_pert,H_pert_diag
   enddo
   h = diag_H_mat_elem(det_pert,Nint) + accu_e_corr
 
-  delta_E = (CI_SC2_electronic_energy(1) - h)
-  delta_E = 1.d0/delta_E
 
-  c_pert(1) = i_H_psi_array(1) * delta_E
+  c_pert(1) = i_H_psi_array(1) /(CI_SC2_electronic_energy(1) - h)
   e_2_pert(1) = i_H_psi_array(1) * c_pert(1)
 
   do i =2,N_st
@@ -76,7 +77,7 @@ subroutine pt2_epstein_nesbet_SC2_projected(det_pert,c_pert,e_2_pert,H_pert_diag
   if(degree==4)then
   ! <psi|delta_H|psi>
    call i_H_j(ref_bitmask,det_pert,Nint,h0j)
-   H_pert_diag(1) = c_pert(1) * h0j/coef_hf_selector
+   H_pert_diag(1) = e_2_pert(1)
    e_2_pert_fonda = H_pert_diag(1)
    do i = 1, N_st
     do j = 1, idx_repeat(0)
