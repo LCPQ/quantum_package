@@ -39,14 +39,14 @@ subroutine pt2_epstein_nesbet_SC2_projected(det_pert,c_pert,e_2_pert,H_pert_diag
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
 
-  double precision :: tmp
   call i_H_psi_SC2(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array,idx_repeat)
   accu_e_corr = 0.d0
   !$IVDEP
   do i = 1, idx_repeat(0)
    accu_e_corr = accu_e_corr + E_corr_per_selectors(idx_repeat(i))
   enddo
-  h = diag_H_mat_elem(det_pert,Nint) + accu_e_corr
+  h =  diag_H_mat_elem(det_pert,Nint) + accu_e_corr
+  delta_E = 1.d0/(CI_SC2_electronic_energy(1) - h)
 
 
   c_pert(1) = i_H_psi_array(1) /(CI_SC2_electronic_energy(1) - h)
@@ -54,10 +54,6 @@ subroutine pt2_epstein_nesbet_SC2_projected(det_pert,c_pert,e_2_pert,H_pert_diag
 
   do i =2,N_st
     H_pert_diag(i) = h
-!   if(CI_SC2_electronic_energy(i)>h.and.CI_SC2_electronic_energy(i).ne.0.d0)then
-!     c_pert(i) = -1.d0
-!     e_2_pert(i) = -2.d0
-!   else if  (dabs(CI_SC2_electronic_energy(i) - h) > 1.d-6) then
     if  (dabs(CI_SC2_electronic_energy(i) - h) > 1.d-6) then
       c_pert(i) = i_H_psi_array(i) / (-dabs(CI_SC2_electronic_energy(i) - h))
       e_2_pert(i) = (c_pert(i) * i_H_psi_array(i))
@@ -68,17 +64,16 @@ subroutine pt2_epstein_nesbet_SC2_projected(det_pert,c_pert,e_2_pert,H_pert_diag
   enddo
 
   degree = popcnt(xor( ref_bitmask(1,1), det_pert(1,1))) +                      &
-      popcnt(xor( ref_bitmask(1,2), det_pert(1,2)))
+           popcnt(xor( ref_bitmask(1,2), det_pert(1,2)))
   !DEC$ NOUNROLL
   do l=2,Nint
     degree = degree+ popcnt(xor( ref_bitmask(l,1), det_pert(l,1))) +            &
-        popcnt(xor( ref_bitmask(l,2), det_pert(l,2)))
+                     popcnt(xor( ref_bitmask(l,2), det_pert(l,2)))
   enddo
   if(degree==4)then
   ! <psi|delta_H|psi>
-   call i_H_j(ref_bitmask,det_pert,Nint,h0j)
    H_pert_diag(1) = e_2_pert(1)
-   e_2_pert_fonda = H_pert_diag(1)
+   e_2_pert_fonda = H_pert_diag(1) 
    do i = 1, N_st
     do j = 1, idx_repeat(0)
      e_2_pert(i) += e_2_pert_fonda * psi_selectors_coef(idx_repeat(j),i) * psi_selectors_coef(idx_repeat(j),i)

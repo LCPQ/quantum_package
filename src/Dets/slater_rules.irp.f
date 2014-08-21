@@ -571,6 +571,61 @@ subroutine i_H_psi_SC2(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array,idx
 end
 
 
+subroutine i_H_psi_SC2_verbose(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array,idx_repeat)
+  use bitmasks
+  BEGIN_DOC
+  ! <key|H|psi> for the various Nstate
+  !
+  ! returns in addition
+  !
+  ! the array of the index of the non connected determinants to key1
+  !
+  ! in order to know what double excitation can be repeated on key1
+  !
+  ! idx_repeat(0) is the number of determinants that can be used
+  !
+  ! to repeat the excitations
+  END_DOC
+  implicit none
+  integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate
+  integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
+  integer(bit_kind), intent(in)  :: key(Nint,2)
+  double precision, intent(in)   :: coef(Ndet_max,Nstate)
+  double precision, intent(out)  :: i_H_psi_array(Nstate)
+  integer         , intent(out)  :: idx_repeat(0:Ndet)
+  
+  integer                        :: i, ii,j
+  double precision               :: phase
+  integer                        :: exc(0:2,2,2)
+  double precision               :: hij
+  integer                        :: idx(0:Ndet)
+  
+  ASSERT (Nint > 0)
+  ASSERT (N_int == Nint)
+  ASSERT (Nstate > 0)
+  ASSERT (Ndet > 0)
+  ASSERT (Ndet_max >= Ndet)
+  i_H_psi_array = 0.d0
+  call filter_connected_i_H_psi0_SC2(keys,key,Nint,Ndet,idx,idx_repeat)
+  print*,'--------'
+  do ii=1,idx(0)
+    print*,'--'
+    i = idx(ii)
+    !DEC$ FORCEINLINE
+    call i_H_j(keys(1,1,i),key,Nint,hij)
+    if (i==1)then
+     print*,'i==1 !!'
+    endif
+    print*,coef(i,1) * hij,coef(i,1),hij
+    do j = 1, Nstate
+      i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
+    enddo
+    print*,i_H_psi_array(1)
+  enddo
+  print*,'------'
+end
+
+
 
 subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
   use bitmasks
