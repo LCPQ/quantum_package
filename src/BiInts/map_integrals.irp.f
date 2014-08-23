@@ -98,11 +98,12 @@ subroutine get_ao_bielec_integrals_non_zero(j,k,l,sze,out_val,out_val_index,non_
   PROVIDE ao_bielec_integrals_in_map
   thresh = ao_integrals_threshold
   
+  non_zero_int = 0
   if (ao_overlap_abs(j,l) < thresh) then
     out_val = 0.d0
     return
   endif
-  
+ 
   non_zero_int = 0
   do i=1,sze
     !DIR$ FORCEINLINE
