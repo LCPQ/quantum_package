@@ -136,10 +136,15 @@ def update_documentation(data):
         
   
   items = []
+  dirname = os.path.basename(os.getcwd())
   command = "git ls-tree --full-tree --name-only HEAD:src/%s"
-  command = command%(os.path.basename(os.getcwd()))
+  command = command%(dirname)
   try:
-    tracked_files = subprocess.check_output(command.split())
+    if dirname != 'src':
+      p = subprocess.Popen(command.split(),stdout=subprocess.PIPE)
+      tracked_files = p.stdout.read()
+    else:
+      tracked_files = ""
     tracked_files = tracked_files.splitlines()
   except:
     tracked_files = []
