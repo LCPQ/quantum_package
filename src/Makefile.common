@@ -96,6 +96,7 @@ $(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_
 	@cp $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(EZFIO_DIR)/config 
 	@cd $(EZFIO_DIR) ; export FC="$(FC)" ; export FCFLAGS="$(FCFLAGS)" ; export IRPF90="$(IRPF90)" ; $(MAKE) ; $(MAKE) Python
 
+ezfio: $(EZFIO)
 
 # Create symbolic links of other modules
 

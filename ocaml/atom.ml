@@ -35,6 +35,12 @@ let of_string s =
       charge  = Charge.of_string  charge ;
       coord   = Point3d.of_string (String.concat [x; y; z] ?sep:(Some " "))
     }
+  | [ name; x; y; z ] ->
+    let e = Element.of_string name in
+    { element = e ;
+      charge  = Charge.of_int (Element.charge e);
+      coord   = Point3d.of_string (String.concat [x; y; z] ?sep:(Some " "))
+    }
   | _ -> raise (AtomError s)
 ;;
   
@@ -42,6 +48,6 @@ let to_string a =
   [ Element.to_string a.element ;
     Charge.to_string  a.charge ;
     Point3d.to_string a.coord ]
-  |> String.concat ?sep:(Some "  ")
+  |> String.concat ?sep:(Some "   ")
 ;;
 

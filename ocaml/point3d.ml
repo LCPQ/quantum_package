@@ -30,6 +30,6 @@ let distance p1 p2 = sqrt (distance2 p1 p2)
 
 let to_string p =
   let { x=x ; y=y ; z=z } = p in
-  Printf.sprintf "%f %f %f" x y z
+  Printf.sprintf "%f  %f  %f" x y z
 ;;
   

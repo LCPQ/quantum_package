@@ -5,7 +5,7 @@ module Positive_float : sig
 end = struct
   type t = float
   let to_float x = x
-  let of_float x = ( assert (x > 0.) ; x )
+  let of_float x = ( assert (x >= 0.) ; x )
 end
 
 
@@ -16,7 +16,7 @@ module Strictly_positive_float : sig
 end = struct
   type t =float 
   let to_float x = x
-  let of_float x = ( assert (x >= 0.) ; x )
+  let of_float x = ( assert (x > 0.) ; x )
 end
 
 
@@ -27,7 +27,7 @@ module Positive_int : sig
 end = struct
   type t = int
   let to_int x = x
-  let of_int x = ( assert (x > 0) ; x )
+  let of_int x = ( assert (x >= 0) ; x )
 end
 
 
@@ -38,7 +38,7 @@ module Strictly_positive_int : sig
 end = struct
   type t = int
   let to_int x = x
-  let of_int x = ( assert (x >= 0) ; x )
+  let of_int x = ( assert (x > 0) ; x )
 end
 
 
