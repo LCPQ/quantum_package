@@ -9,16 +9,21 @@ $(info  -----------------------------------------------)
 $(error )
 endif
 
+
+EXECUTABLES=set_mo_class
+
 LIBS=
 PKGS=
 OCAMLCFLAGS=-g
 OCAMLBUILD=ocamlbuild -cflags $(OCAMLCFLAGS) -lflags -g
-MLFILES=$(wildcard *.ml) ezfio.ml
+MLFILES=$(wildcard *.ml) ezfio.ml qptypes.ml
 MLIFILES=$(wildcard *.mli) 
 ALL_TESTS=$(patsubst %.ml,%.byte,$(wildcard test_*.ml))
 
 
-default: $(ALL_TESTS)
+default: $(ALL_TESTS) executables
+
+executables: $(patsubst %, %.native, $(EXECUTABLES))
 
 %.inferred.mli: $(MLFILES)
 	$(OCAMLBUILD) $*.inferred.mli -cflags -i -use-ocamlfind  $(PKGS)
@@ -31,6 +36,13 @@ default: $(ALL_TESTS)
 
 ezfio.ml: ${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml
 	cp ${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml .
+
+qptypes_generator.byte: qptypes_generator.ml
+	$(OCAMLBUILD) qptypes_generator.byte  -use-ocamlfind 
+
+qptypes.ml: qptypes_generator.byte
+	./qptypes_generator.byte > qptypes.ml
+	rm qptypes_generator.byte
 
 ${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml:
 	$(MAKE) -C ${QPACKAGE_ROOT}/src ezfio

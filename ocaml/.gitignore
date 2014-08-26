@@ -1,4 +1,5 @@
 ezfio.ml
+qptypes.ml
 *.byte
 *.native
 _build
