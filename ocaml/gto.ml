@@ -91,7 +91,7 @@ let find in_channel element =
 ;;
 
 let read_basis_of_element in_channel element =
-  find in_channel element ;
+  ignore (find in_channel element) ;
   read_basis in_channel ;
 ;;
 
@@ -100,5 +100,5 @@ let to_string { sym = sym ; lc = lc } =
   let f (p,c) = Printf.sprintf "( %s, %f )" (Primitive.to_string p) c
   in
   Printf.sprintf "[ %s : %s ]" (Symmetry.to_string sym)
-    (String.concat (List.map ~f:f lc) ?sep:(Some ", "))
+    (String.concat (List.map ~f:f lc) ~sep:", ")
 ;;

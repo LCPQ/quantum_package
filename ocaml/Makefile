@@ -1,3 +1,5 @@
+#TODO : Opam auto-installer in makefile
+
 # Check if QPACKAGE_ROOT is defined
 
 ifndef QPACKAGE_ROOT

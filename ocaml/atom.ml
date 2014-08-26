@@ -33,13 +33,13 @@ let of_string s =
   | [ name; charge; x; y; z ] ->
     { element = Element.of_string name ;
       charge  = Charge.of_string  charge ;
-      coord   = Point3d.of_string (String.concat [x; y; z] ?sep:(Some " "))
+      coord   = Point3d.of_string (String.concat [x; y; z] ~sep:" ")
     }
   | [ name; x; y; z ] ->
     let e = Element.of_string name in
     { element = e ;
       charge  = Charge.of_int (Element.charge e);
-      coord   = Point3d.of_string (String.concat [x; y; z] ?sep:(Some " "))
+      coord   = Point3d.of_string (String.concat [x; y; z] ~sep:" ")
     }
   | _ -> raise (AtomError s)
 ;;
