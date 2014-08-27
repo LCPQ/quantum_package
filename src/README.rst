@@ -116,3 +116,11 @@ Documentation
 
 
 
+Needed Modules
+==============
+
+.. Do not edit this section. It was auto-generated from the
+.. NEEDED_MODULES file.
+
+* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
+

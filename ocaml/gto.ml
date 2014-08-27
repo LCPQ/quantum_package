@@ -65,35 +65,6 @@ let read_one in_channel =
   |> of_prim_coef_list
 ;;
 
-(** Read all the basis functions of an element *)
-let read_basis in_channel =
-  let rec read result =
-    try
-      let gto = read_one in_channel in
-      read (gto::result)
-    with
-    | End_Of_Basis -> List.rev result
-  in read []  
-;;
-
-(** Find an element in the basis set file *)
-let find in_channel element =
-  let element_read = ref Element.X in
-  while !element_read <> element
-  do
-    let buffer = input_line in_channel in
-    try
-      element_read := Element.of_string buffer
-    with
-    | Element.ElementError _ -> ()
-  done ;
-  !element_read
-;;
-
-let read_basis_of_element in_channel element =
-  ignore (find in_channel element) ;
-  read_basis in_channel ;
-;;
 
 (** Transform the gto to a string *)
 let to_string { sym = sym ; lc = lc } =

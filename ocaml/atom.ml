@@ -5,6 +5,7 @@ exception AtomError of string
 module Charge : sig
   type t 
   val to_float : t -> float
+  val to_int   : t -> int
   val to_string: t -> string 
   val of_float : float -> t
   val of_int   : int -> t
@@ -12,6 +13,7 @@ module Charge : sig
 end = struct
   type t = float
   let to_float x = x
+  let to_int   x = Float.to_int x
   let to_string x = Float.to_string (to_float x)
   let of_float x = x
   let of_int   i = Float.of_int i

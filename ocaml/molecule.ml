@@ -22,6 +22,10 @@ let get_multiplicity m =
   Multiplicity.of_alpha_beta m.elec_alpha m.elec_beta
 ;;
 
+let get_nucl_num m =
+  Strictly_positive_int.of_int (List.length m.nuclei)
+;;
+
 let name m = 
   let cm = Float.to_int (get_charge m) in
   let c = 

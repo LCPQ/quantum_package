@@ -10,62 +10,6 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L168>`_
-  Apply the rotation found by find_rotation
-
-`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L149>`_
-  Find A.C = B
-
-`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L95>`_
-  Find C = A^-1
-
-`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L247>`_
-  Diagonalize matrix H
-  .br
-  H is untouched between input and ouptut
-  .br
-  eigevalues(i) = ith lowest eigenvalue of the H matrix
-  .br
-  eigvectors(i,j) = <i|psi_j> where i is the basis function and psi_j is the j th eigenvector
-  .br
-
-`lapack_diagd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L180>`_
-  Diagonalize matrix H
-  .br
-  H is untouched between input and ouptut
-  .br
-  eigevalues(i) = ith lowest eigenvalue of the H matrix
-  .br
-  eigvectors(i,j) = <i|psi_j> where i is the basis function and psi_j is the j th eigenvector
-  .br
-
-`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L310>`_
-  Diagonalize matrix H
-  .br
-  H is untouched between input and ouptut
-  .br
-  eigevalues(i) = ith lowest eigenvalue of the H matrix
-  .br
-  eigvectors(i,j) = <i|psi_j> where i is the basis function and psi_j is the j th eigenvector
-  .br
-
-`ortho_lowdin <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L1>`_
-  Compute C_new=C_old.S^-1/2 canonical orthogonalization.
-  .br
-  overlap : overlap matrix
-  .br
-  LDA : leftmost dimension of overlap array
-  .br
-  N : Overlap matrix is NxN (array is (LDA,N) )
-  .br
-  C : Coefficients of the vectors to orthogonalize. On exit,
-  orthogonal vectors
-  .br
-  LDC : leftmost dimension of C
-  .br
-  m : Coefficients matrix is MxN, ( array is (LDC,N) )
-  .br
-
 `abort_all <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/abort.irp.f#L1>`_
   If True, all the calculation is aborted
 

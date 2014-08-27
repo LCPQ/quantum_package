@@ -10,7 +10,7 @@ let test_prim () =
 ;;
   
 let test_gto_1 () =
-  let in_channel = open_in "/home/scemama/quantum_package/data/basis/cc-pVDZ" in
+  let in_channel = open_in "/home/scemama/quantum_package/data/basis/cc-pvdz" in
   ignore (input_line in_channel);
   let gto = Gto.read_one in_channel in
   print_string (Gto.to_string gto);
@@ -21,15 +21,15 @@ let test_gto_1 () =
 ;;
 
 let test_gto_2 () =
-  let in_channel = open_in "/home/scemama/quantum_package/data/basis/cc-pVDZ" in
+  let in_channel = open_in "/home/scemama/quantum_package/data/basis/cc-pvdz" in
   ignore (input_line in_channel);
-  let basis = Gto.read_basis in_channel in
+  let basis = Basis.read in_channel in
   List.iter basis ~f:(fun x-> Printf.printf "%s\n" (Gto.to_string x))
 ;;
 
 let test_gto () =
-  let in_channel = open_in "/home/scemama/quantum_package/data/basis/cc-pVDZ" in
-  let basis = Gto.read_basis_of_element in_channel Element.C in
+  let in_channel = open_in "/home/scemama/quantum_package/data/basis/cc-pvdz" in
+  let basis = Basis.read_element in_channel Element.C in
   List.iter basis ~f:(fun x-> Printf.printf "%s\n" (Gto.to_string x))
 ;;
 
