@@ -44,7 +44,7 @@ DEPS_LONG=""
 for i in $COMMAND_LINE
 do
   DEPS_LONG+=" $i "
-  DEPS_LONG+=$(cat ${QPACKAGE_ROOT}/src/${i}/NEEDED_MODULES)
+  DEPS_LONG+=$(cat "${QPACKAGE_ROOT}/src/${i}/NEEDED_MODULES")
 done
 
 DEPS=$(unique_list $DEPS_LONG)
@@ -53,7 +53,7 @@ if [[ ! "$COMMAND_LINE" == "$DEPS" ]]
 then
   DEPS=$(${QPACKAGE_ROOT}/scripts/check_dependencies.sh ${DEPS})
 fi
-echo $DEPS
+echo "$DEPS"
 
 if [[ "$COMMAND_LINE" == "$DEPS" ]]
 then

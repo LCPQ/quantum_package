@@ -11,21 +11,21 @@ fi
 
 function archive()
 {
-  FILE=$1
-  MD5=$2
-  ARCHIVE=${QPACKAGE_ROOT}/data/cache/$MD5
-  if [[ -f $ARCHIVE ]]
+  FILE="$1"
+  MD5="$2"
+  ARCHIVE="${QPACKAGE_ROOT}/data/cache/$MD5"
+  if [[ -f "$ARCHIVE" ]]
   then
-    if ! diff $FILE ${QPACKAGE_ROOT}/data/cache/$MD5 &> /dev/null
+    if ! diff "$FILE" "${QPACKAGE_ROOT}/data/cache/$MD5" &> /dev/null
     then
       echo "Something went wrong. The file"
-      echo ${QPACKAGE_ROOT}/data/cache/$MD5
+      echo "${QPACKAGE_ROOT}/data/cache/$MD5"
       echo "is different from $FILE"
       echo "Aborting"
       return 1
     fi
   else
-    cp $FILE ${QPACKAGE_ROOT}/data/cache/$MD5
+    cp "$FILE" "${QPACKAGE_ROOT}/data/cache/$MD5"
   fi
 }
 
@@ -41,7 +41,7 @@ then
 fi
 
 
-cd ${QPACKAGE_ROOT}/EZFIO/src
+cd "${QPACKAGE_ROOT}/EZFIO/src"
 FILES=($(python << EOF | sort
 from read_config import * 
 for group in groups:
@@ -59,20 +59,20 @@ EOF
 ))
 cd $OLDPWD
 
-MD5_FILE=$(basename ${EZFIO_FILE} .ezfio).md5
-rm -f ${MD5_FILE}
+MD5_FILE=$(basename "${EZFIO_FILE}" .ezfio).md5
+rm -f -- "${MD5_FILE}"
 for FILE in ${FILES[@]}
 do
-  FILE=${EZFIO_FILE}/${FILE}
-  MD5=$(md5sum ${FILE} 2>/dev/null | cut -d ' ' -f 1)
+  FILE="${EZFIO_FILE}/${FILE}"
+  MD5=$(md5sum "${FILE}" 2>/dev/null | cut -d ' ' -f 1)
   if [[ ! -z $MD5 ]]
   then
-    if ! archive $FILE $MD5
+    if ! archive "$FILE" "$MD5"
     then
-      rm ${MD5_FILE}
+      rm -- "${MD5_FILE}"
       exit 1
     fi
-    echo $MD5 $FILE >> ${MD5_FILE}
+    echo "$MD5" "$FILE" >> "${MD5_FILE}"
   fi
 done
 

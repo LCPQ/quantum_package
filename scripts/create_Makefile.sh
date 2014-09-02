@@ -6,9 +6,9 @@
 # module directory.
 # Thu Apr  3 01:44:41 CEST 2014
 
-MODULE=$(basename $PWD)
+MODULE=$(basename "$PWD")
 
-if [[ $MODULE == "src" ]]
+if [[ "$MODULE" == "src" ]]
 then
   echo "Error: This script should not be run in the src directory."
   exit 1

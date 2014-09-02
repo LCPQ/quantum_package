@@ -29,9 +29,9 @@ function debug()
 
 function fail()
 {
-  echo "Error: " $@
-  cd ${QPACKAGE_ROOT}/src
-  rm -rf ${MODULE}
+  echo "Error:  $@"
+  cd "${QPACKAGE_ROOT}/src"
+  rm -rf -- "${MODULE}"
   exit 1
 }
 
@@ -68,7 +68,7 @@ debug "Module does not already exist: OK"
 
 
 # Set up dependencies
-ALL_MODULES=$(cat NEEDED_MODULES)
+ALL_MODULES="$(cat NEEDED_MODULES)"
 echo "Select which modules you are sure you will need:  (press q to quit)"  
 NEEDED_MODULES=""
 select M in ${ALL_MODULES}
@@ -78,34 +78,34 @@ do
     break
   fi
   NEEDED_MODULES+=" $M"
-  echo $NEEDED_MODULES
+  echo "$NEEDED_MODULES"
 done
 
 
 
 # Create module directory and go into it
-mkdir ${QPACKAGE_ROOT}/src/${MODULE} 
+mkdir "${QPACKAGE_ROOT}/src/${MODULE}"
 if [[ $? != 0 ]]
 then
   echo  "Error: Unable to create module directory."
   exit 1
 fi
 
-if [[ ! -d  ${QPACKAGE_ROOT}/src/${MODULE} ]]
+if [[ ! -d  "${QPACKAGE_ROOT}/src/${MODULE}" ]]
 then
   echo  "Something strange happened: the"
-  echo   ${QPACKAGE_ROOT}/src/${MODULE} 
+  echo  "${QPACKAGE_ROOT}/src/${MODULE}"
   echo  "directory was not created."
   exit 1
 fi
 
-cd ${QPACKAGE_ROOT}/src/${MODULE}
-if [[ ${PWD} != ${QPACKAGE_ROOT}/src/${MODULE} ]]
+cd "${QPACKAGE_ROOT}/src/${MODULE}"
+if [[ "${PWD}" != "${QPACKAGE_ROOT}/src/${MODULE}" ]]
 then
   echo  "Something strange happened: we should be in"
-  echo   ${QPACKAGE_ROOT}/src/${MODULE} 
+  echo  "${QPACKAGE_ROOT}/src/${MODULE}"
   echo  "but we are in"
-  echo  ${PWD}
+  echo  "${PWD}"
   exit 1
 fi
 
@@ -114,7 +114,7 @@ debug "Module directory is created."
 
 
 # Create the Makefile
-${QPACKAGE_ROOT}/scripts/create_Makefile.sh || fail "Unable to create Makefile"
+"${QPACKAGE_ROOT}/scripts/create_Makefile.sh" || fail "Unable to create Makefile"
 if [[ ! -f Makefile ]]
 then
   fail "Makefile was not created"
@@ -122,7 +122,7 @@ fi
 debug "Makefile created"
 
 # Create the NEEDED_MODULES file
-${QPACKAGE_ROOT}/scripts/create_Needed_modules.sh ${NEEDED_MODULES} || fail "Unable to create the NEEDED_MODULES file"
+"${QPACKAGE_ROOT}/scripts/create_Needed_modules.sh" ${NEEDED_MODULES} || fail "Unable to create the NEEDED_MODULES file"
 if [[ ! -f NEEDED_MODULES ]]
 then
   fail "NEEDED_MODULES was not created"
@@ -132,12 +132,12 @@ debug "NEEDED_MODULES created"
 
 
 # Create rst templates
-${QPACKAGE_ROOT}/scripts/create_rst_templates.sh || fail "Unable to create rst templates"
+"${QPACKAGE_ROOT}/scripts/create_rst_templates.sh" || fail "Unable to create rst templates"
 
 
 # Update module list in main NEEDED_MODULES
 ALL_MODULES+=" ${MODULE}"
-echo ${ALL_MODULES} > ${QPACKAGE_ROOT}/src/NEEDED_MODULES
+echo "${ALL_MODULES}" > "${QPACKAGE_ROOT}/src/NEEDED_MODULES"
 debug "Updated NEEDED_MODULES"
 
 
@@ -149,7 +149,7 @@ then
 fi
 
 cd tests || fail "Unable to enter into tests directory"
-${QPACKAGE_ROOT}/scripts/create_tests_Makefile.sh
+"${QPACKAGE_ROOT}/scripts/create_tests_Makefile.sh"
 cd ..
 if [[ ! -f tests/Makefile ]]
 then
