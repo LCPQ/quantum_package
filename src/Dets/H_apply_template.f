@@ -447,8 +447,8 @@ subroutine $subroutine($params_main)
   !$OMP END PARALLEL
   !$ call omp_destroy_lock(lck)
 
+  allocate( mask(N_int,2,6) )
 !  do i_generator=1,N_det_generators
-
   do i_generator=nmax+1,N_det_generators
 
 

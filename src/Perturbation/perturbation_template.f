@@ -25,15 +25,16 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   ASSERT (N_st > 0)
   do i = 1,buffer_size
 
-    if (is_in_wavefunction(buffer(1,1,i),Nint,N_det)) then
-      cycle
-    endif
     c_ref = connected_to_ref(buffer(1,1,i),psi_generators,Nint,i_generator,N_det)
 
     if (c_ref /= 0) then
       cycle
     endif
     
+    if (is_in_wavefunction(buffer(1,1,i),Nint,N_det)) then
+      cycle
+    endif
+
     call pt2_$PERT(buffer(1,1,i),         &
         c_pert,e_2_pert,H_pert_diag,Nint,N_det_selectors,n_st)
 
