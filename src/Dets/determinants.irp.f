@@ -292,21 +292,6 @@ END_PROVIDER
 END_PROVIDER
 
 
-integer*8 function det_search_key(det,Nint)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-! Return an integer*8 corresponding to a determinant index for searching
-  END_DOC
-  integer, intent(in) :: Nint
-  integer(bit_kind), intent(in) :: det(Nint,2)
-  integer :: i
-  det_search_key = iand(det(1,1),det(1,2))
-  do i=2,Nint
-    det_search_key = ieor(det_search_key,iand(det(i,1),det(i,2)))
-  enddo
-end
-
 subroutine save_wavefunction
   implicit none
   use bitmasks

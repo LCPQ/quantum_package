@@ -1,4 +1,4 @@
-program cisd
+program full_ci
   implicit none
   integer                        :: i,k
 

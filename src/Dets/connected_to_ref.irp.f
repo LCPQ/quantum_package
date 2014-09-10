@@ -1,3 +1,18 @@
+integer*8 function det_search_key(det,Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Return an integer*8 corresponding to a determinant index for searching
+  END_DOC
+  integer, intent(in) :: Nint
+  integer(bit_kind), intent(in) :: det(Nint,2)
+  integer :: i
+  det_search_key = iand(det(1,1),det(1,2))
+  do i=2,Nint
+    det_search_key = ieor(det_search_key,iand(det(i,1),det(i,2)))
+  enddo
+end
+
 logical function is_in_wavefunction(key,Nint,Ndet)
   implicit none
 
@@ -12,12 +27,15 @@ logical function is_in_wavefunction(key,Nint,Ndet)
   ibegin = 1
   iend   = N_det+1
   
+  !DIR$ FORCEINLINE
   det_ref = det_search_key(key,Nint)
+  !DIR$ FORCEINLINE
   det_search = det_search_key(psi_det_sorted_bit(1,1,1),Nint)
   
   istep = ishft(iend-ibegin,-1)
   i=ibegin+istep
   do while (istep > 0)
+    !DIR$ FORCEINLINE
     det_search = det_search_key(psi_det_sorted_bit(1,1,i),Nint)
     if ( det_search > det_ref ) then
       iend = i
@@ -30,6 +48,7 @@ logical function is_in_wavefunction(key,Nint,Ndet)
     i = ibegin + istep 
   end do
 
+  !DIR$ FORCEINLINE
   do while (det_search_key(psi_det_sorted_bit(1,1,i),Nint) == det_ref)
     i = i-1
     if (i == 0) then
@@ -41,6 +60,7 @@ logical function is_in_wavefunction(key,Nint,Ndet)
     return
   endif
 
+  !DIR$ FORCEINLINE
   do while (det_search_key(psi_det_sorted_bit(1,1,i),Nint) == det_ref)
     if ( (key(1,1) /= psi_det_sorted_bit(1,1,i)).or.                               &
           (key(1,2) /= psi_det_sorted_bit(1,2,i)) ) then
@@ -116,7 +136,7 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
   N_past = max(1,N_past_in)
   if (Nint == 1) then
     
-    do i=1,N_past-1
+    do i=N_past-1,1,-1
       degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
           popcnt(xor( key(1,2), keys(1,2,i)))
       if (degree_x2 > 4) then
@@ -132,7 +152,7 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
     
   else if (Nint==2) then
     
-    do i=1,N_past-1
+    do i=N_past-1,1,-1
       degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
           popcnt(xor( key(1,2), keys(1,2,i))) +                      &
           popcnt(xor( key(2,1), keys(2,1,i))) +                      &
@@ -149,7 +169,7 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
     
   else if (Nint==3) then
     
-    do i=1,N_past-1
+    do i=N_past-1,1,-1
       degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
           popcnt(xor( key(1,2), keys(1,2,i))) +                      &
           popcnt(xor( key(2,1), keys(2,1,i))) +                      &
@@ -168,7 +188,7 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
     
   else
     
-    do i=1,N_past-1
+    do i=N_past-1,1,-1
       degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
           popcnt(xor( key(1,2), keys(1,2,i)))
       !DEC$ LOOP COUNT MIN(3)

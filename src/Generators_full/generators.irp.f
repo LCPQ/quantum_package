@@ -1,22 +1,16 @@
 use bitmasks
 
-BEGIN_PROVIDER [ double precision, threshold_generators ]
- implicit none
- BEGIN_DOC
- ! Percentage of the norm of the state-averaged wave function to
- ! consider for the generators
- END_DOC
- logical                        :: exists
- PROVIDE ezfio_filename
- call ezfio_has_determinants_threshold_generators(exists)
- if (exists) then
-   call ezfio_get_determinants_threshold_generators(threshold_generators)
- else
-   threshold_generators = 0.99d0
- endif
- call write_double(output_Dets,threshold_generators,'Threshold on generators')
-END_PROVIDER
-
+BEGIN_SHELL [ /usr/bin/python ]
+from ezfio_with_default import EZFIO_Provider
+T = EZFIO_Provider()
+T.set_type      ( "double precision" )
+T.set_name      ( "threshold_generators" )
+T.set_doc       ( "Percentage of the norm of the state-averaged wave function to consider for the generators" )
+T.set_ezfio_dir ( "determinants" )
+T.set_ezfio_name( "threshold_generators" )
+T.set_output    ( "output_dets" )
+print T
+END_SHELL
 
 BEGIN_PROVIDER [ integer, N_det_generators ]
  implicit none
