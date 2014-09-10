@@ -18,6 +18,14 @@ let spec =
 
 let run ?o b c m xyz_file =
 
+(*
+  (* DEBUG *)
+  Printf.printf "Charge : %d
+Multiplicity : %d
+Basis : %s
+File : %s\n" c m b xyz_file;
+*)
+
   (* Open basis set channel *)
   let basis_channel =
     In_channel.create
@@ -26,7 +34,8 @@ let run ?o b c m xyz_file =
 
   (* Read molecule *)
   let molecule =
-    Molecule.of_xyz_file xyz_file
+    Molecule.of_xyz_file xyz_file ~charge:c
+      ~multiplicity:(Multiplicity.of_int m)
   in
 
   (* Build EZFIO File name *)
