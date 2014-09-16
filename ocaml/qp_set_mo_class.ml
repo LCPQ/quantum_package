@@ -51,13 +51,11 @@ let apply_mask mask n_int mo_tot_num =
   let d = append_d 12 in
   Ezfio.ezfio_array_of_list ~rank:4 ~dim:([| (N_int_number.to_int n_int) ; 2; 6; 1|]) ~data:d 
   |> Ezfio.set_bitmasks_generators ; 
-
 ;;
 
 
 
-let failure s = 
-  raise (Failure s)
+let failure s = raise (Failure s)
 ;;
 
 type t = 

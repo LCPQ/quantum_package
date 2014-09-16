@@ -14,7 +14,7 @@ LIBS=
 PKGS=
 OCAMLCFLAGS=-g
 OCAMLBUILD=ocamlbuild -cflags $(OCAMLCFLAGS) -lflags -g
-MLFILES=$(wildcard *.ml) ezfio.ml qptypes.ml
+MLFILES=$(wildcard *.ml) ezfio.ml Qptypes.ml
 MLIFILES=$(wildcard *.mli) 
 ALL_TESTS=$(patsubst %.ml,%.byte,$(wildcard test_*.ml))
 ALL_EXE=$(patsubst %.ml,%.native,$(wildcard qp_*.ml))
@@ -40,7 +40,7 @@ qptypes_generator.byte: qptypes_generator.ml
 	$(OCAMLBUILD) qptypes_generator.byte  -use-ocamlfind 
 
 qptypes.ml: qptypes_generator.byte
-	./qptypes_generator.byte > qptypes.ml
+	./qptypes_generator.byte > Qptypes.ml
 	rm qptypes_generator.byte
 
 ${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml:

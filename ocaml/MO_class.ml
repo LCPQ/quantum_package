@@ -36,10 +36,11 @@ let create_active   range = Active   (_mo_number_list_of_range range) ;;
 let create_virtual  range = Virtual  (_mo_number_list_of_range range) ;;
 let create_deleted  range = Deleted  (_mo_number_list_of_range range) ;;
 
-let to_bitlist holes particles =
-  let mask = Bitlist.of_int64 (Int64.of_int 513) in
-  let l = Bitlist.to_mo_number_list mask in
-  let i = Inactive l in
-  print_string (to_string i)
+let to_bitlist x =
+   match x with    
+   | Core     l 
+   | Inactive l 
+   | Active   l 
+   | Virtual  l 
+   | Deleted  l -> Bitlist.of_mo_number_list n_int l
 ;;
-
