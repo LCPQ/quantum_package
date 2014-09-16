@@ -91,6 +91,23 @@ let of_mo_number_list n_int l =
   Array.to_list a
 ;;
 
+let to_mo_number_list l =
+  let a = Array.of_list l in
+  let rec do_work accu = function
+  | 0 -> accu
+  | i ->
+      begin
+        let new_accu = 
+        match a.(i-1) with
+        | Bit.One  -> (MO_number.of_int i)::accu 
+        | Bit.Zero -> accu 
+        in
+        do_work new_accu (i-1)
+      end
+  in
+  do_work [] (List.length l)
+;;
+
 
 
 (* logical operations on bit_list *)

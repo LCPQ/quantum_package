@@ -103,7 +103,7 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_
  ! Bitmasks for generator determinants. (N_int, alpha/beta, hole/particle, generator).
  ! 3rd index is :
  ! * 1 : hole     for single exc
- ! * 1 : particle for single exc
+ ! * 2 : particle for single exc
  ! * 3 : hole     for 1st exc of double
  ! * 4 : particle for 1st exc of double
  ! * 5 : hole     for 2dn exc of double

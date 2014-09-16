@@ -7,6 +7,8 @@ open Core.Std;;
  * that should represent the list of integers
  * [ 37 ; 37 ; 38 ; ... ; 52 ; 53 ; 72 ; 73 ; ... ; 106 ; 107 ; 126 ; 127 ; ...
  * ; 130 ; 131 ]
+ *
+ * or it can be an integer
 *)
 
 
@@ -34,11 +36,15 @@ let expand_range r =
 ;;
 
 let of_string s =
-  assert (s.[0] = '[') ;
-  assert (s.[(String.length s)-1] = ']') ;
-  let s = String.sub s 1 ((String.length s) - 2) in
-  let l = String.split ~on:',' s in
-  let l = List.map ~f:expand_range l in
+  match s.[0] with
+  | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ->
+      [ int_of_string s ]
+  | _ ->
+    assert (s.[0] = '[') ;
+    assert (s.[(String.length s)-1] = ']') ;
+    let s = String.sub s 1 ((String.length s) - 2) in
+    let l = String.split ~on:',' s in
+    let l = List.map ~f:expand_range l in
   List.concat l |> List.dedup ~compare:Int.compare |> List.sort ~cmp:Int.compare
 ;;
 
