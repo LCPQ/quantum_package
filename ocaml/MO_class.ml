@@ -36,7 +36,7 @@ let create_active   range = Active   (_mo_number_list_of_range range) ;;
 let create_virtual  range = Virtual  (_mo_number_list_of_range range) ;;
 let create_deleted  range = Deleted  (_mo_number_list_of_range range) ;;
 
-let to_bitlist x =
+let to_bitlist n_int x =
    match x with    
    | Core     l 
    | Inactive l 

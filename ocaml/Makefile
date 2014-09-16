@@ -19,8 +19,9 @@ MLIFILES=$(wildcard *.mli)
 ALL_TESTS=$(patsubst %.ml,%.byte,$(wildcard test_*.ml))
 ALL_EXE=$(patsubst %.ml,%.native,$(wildcard qp_*.ml))
 
+.PHONY: executables default
 
-default: $(ALL_TESTS) executables
+default: $(ALL_TESTS) $(ALL_EXE)
 
 executables: $(ALL_EXE)
 
@@ -39,7 +40,7 @@ ezfio.ml: ${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml
 qptypes_generator.byte: qptypes_generator.ml
 	$(OCAMLBUILD) qptypes_generator.byte  -use-ocamlfind 
 
-qptypes.ml: qptypes_generator.byte
+Qptypes.ml: qptypes_generator.byte
 	./qptypes_generator.byte > Qptypes.ml
 	rm qptypes_generator.byte
 

@@ -62,6 +62,12 @@ let of_int64_list l =
   List.flatten result
 ;;
 
+let zero n_int =
+  let n_int = N_int_number.to_int n_int in
+  let a = Array.init n_int (fun i-> 0L)  in
+  of_int64_list ( Array.to_list a )
+;;
+
 (* Create an int64 list from a bit list *)
 let to_int64_list l =
   let rec do_work accu buf counter = function

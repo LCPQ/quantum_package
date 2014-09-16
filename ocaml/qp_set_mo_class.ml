@@ -30,30 +30,6 @@ let build_mask from upto n_int =
   |> List.rev
 ;;
 
-let apply_mask mask n_int mo_tot_num = 
-  let full_mask  = build_mask (MO_number.of_int 1) (MO_number.of_int mo_tot_num) n_int in
-  let occ_mask   = build_mask (MO_number.of_int 1) (MO_number.of_int mo_tot_num) n_int in
-  let virt_mask  = Bitlist.not_operator occ_mask
-  in
-  let newmask = Bitlist.and_operator occ_mask mask
-  in
-  newmask |> Bitlist.to_string |> print_string;
-  Ezfio.set_bitmasks_n_int (N_int_number.to_int n_int);
-  Ezfio.set_bitmasks_bit_kind 8;
-  Ezfio.set_bitmasks_n_mask_gen 1;
-  let d =  newmask
-    |> Bitlist.to_int64_list
-  in 
-  let rec append_d = function
-    | 1 -> List.rev d
-    | n -> d@(append_d (n-1))
-  in
-  let d = append_d 12 in
-  Ezfio.ezfio_array_of_list ~rank:4 ~dim:([| (N_int_number.to_int n_int) ; 2; 6; 1|]) ~data:d 
-  |> Ezfio.set_bitmasks_generators ; 
-;;
-
-
 
 let failure s = raise (Failure s)
 ;;
@@ -88,6 +64,7 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
 
   let mo_class = Array.init mo_tot_num ~f:(fun i -> None) in
 
+  (* Check input data *)
   let apply_class l = 
     let rec apply_class t = function
     | [] -> ()
@@ -109,11 +86,17 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
     | MO_class.Deleted  x -> apply_class Deleted   x
   in
 
-  MO_class.create_core     core  |> apply_class ;
-  MO_class.create_inactive inact |> apply_class ;
-  MO_class.create_active   act   |> apply_class ;
-  MO_class.create_virtual  virt  |> apply_class ;
-  MO_class.create_deleted  del   |> apply_class ;
+  let core  = MO_class.create_core     core in
+  let inact = MO_class.create_inactive inact in
+  let act   = MO_class.create_active   act in
+  let virt  = MO_class.create_virtual  virt in
+  let del   = MO_class.create_deleted  del in
+
+  apply_class core  ;
+  apply_class inact ;
+  apply_class act   ;
+  apply_class virt  ;
+  apply_class del   ;
 
   for i=1 to (Array.length mo_class)
   do
@@ -122,28 +105,91 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
   done;
   
   
-  MO_class.create_core     core  |> MO_class.to_string |> print_endline ;
-  MO_class.create_inactive inact |> MO_class.to_string |> print_endline ;
-  MO_class.create_active   act   |> MO_class.to_string |> print_endline ;
-  MO_class.create_virtual  virt  |> MO_class.to_string |> print_endline ;
-  MO_class.create_deleted  del   |> MO_class.to_string |> print_endline ;
-  (*
+  (* Debug output *)
+  MO_class.to_string core  |> print_endline ;
+  MO_class.to_string inact |> print_endline ;
+  MO_class.to_string act   |> print_endline ;
+  MO_class.to_string virt  |> print_endline ;
+  MO_class.to_string del   |> print_endline ;
 
-
-  let inactive_mask = Range.of_string inact
-    |> List.map ~f:MO_number.of_int
-    |> Bitlist.of_mo_number_list n_int
-  and active_mask = 
-    let s = Range.of_string act
-    in
-      List.map ~f:MO_number.of_int s
-      |> Bitlist.of_mo_number_list n_int
+  (* Create masks *)
+  let ia = Excitation.create_single inact act 
+  and aa = Excitation.create_single act act 
+  and av = Excitation.create_single act virt
   in
-  let mask = 
-    Bitlist.not_operator inactive_mask
-    |> Bitlist.and_operator active_mask
-  in apply_mask mask n_int mo_tot_num
-*)
+  let single_excitations = [ ia ; aa ; av ]
+    |> List.map ~f:Excitation.(fun x ->
+       match x with
+       | Single (x,y) -> 
+         ( MO_class.to_bitlist n_int (Hole.to_mo_class x),
+           MO_class.to_bitlist n_int (Particle.to_mo_class y) ) 
+       | Double _ -> assert false
+       )
+       
+  and double_excitations = [
+    Excitation.double_of_singles ia ia ;
+    Excitation.double_of_singles ia aa ;
+    Excitation.double_of_singles ia av ;
+    Excitation.double_of_singles aa aa ;
+    Excitation.double_of_singles aa av ;
+    Excitation.double_of_singles av av ]
+    |> List.map ~f:Excitation.(fun x ->
+       match x with
+       | Single _ -> assert false
+       | Double (x,y,z,t) -> 
+         ( MO_class.to_bitlist n_int (Hole.to_mo_class x),
+           MO_class.to_bitlist n_int (Particle.to_mo_class y) , 
+           MO_class.to_bitlist n_int (Hole.to_mo_class z),
+           MO_class.to_bitlist n_int (Particle.to_mo_class t) )
+       )
+  in
+  
+  let extract_hole = function
+    | (h,_) -> h
+  and extract_particle = function
+    | (_,p) -> p
+  and extract_hole1 = function
+    | (h,_,_,_) -> h
+    | _ -> assert false
+  and extract_particle1 = function
+    | (_,p,_,_) -> p
+    | _ -> assert false
+  and extract_hole2 = function
+    | (_,_,h,_) -> h
+    | _ -> assert false
+  and extract_particle2 = function
+    | (_,_,_,p) -> p
+    | _ -> assert false
+  in
+  let result = [
+  List.map ~f:extract_hole single_excitations
+  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
+  List.map ~f:extract_particle single_excitations
+  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
+  List.map ~f:extract_hole1 double_excitations
+  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
+  List.map ~f:extract_particle1 double_excitations
+  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
+  List.map ~f:extract_hole2 double_excitations
+  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
+  List.map ~f:extract_particle2 double_excitations
+  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
+  ]
+  in
+
+  List.iter ~f:(fun x-> print_endline (Bitlist.to_string x)) result;
+  let result =  List.map ~f:(fun x ->
+     let y = Bitlist.to_int64_list x in y@y )
+     result 
+  |> List.concat
+  in
+
+  (* Write masks *)
+  Ezfio.set_bitmasks_n_int (N_int_number.to_int n_int);
+  Ezfio.set_bitmasks_bit_kind 8;
+  Ezfio.set_bitmasks_n_mask_gen 1;
+  Ezfio.ezfio_array_of_list ~rank:4 ~dim:([| (N_int_number.to_int n_int) ; 2; 6; 1|]) ~data:result
+  |> Ezfio.set_bitmasks_generators ; 
 ;;
 
 let ezfio_file =
