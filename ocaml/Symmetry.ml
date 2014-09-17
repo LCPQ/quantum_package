@@ -54,19 +54,24 @@ let to_l = function
   | K -> Positive_int.of_int 8
   | L -> Positive_int.of_int 9
 
+type st = t
+;;
+
 module Xyz : sig
   type t
   val  of_string : string -> t
   val  to_string : t -> string 
   val  get_l     : t -> Positive_int.t
+  val  of_symmetry : st -> t list
 end = struct
   type t = { x: Positive_int.t ;
              y: Positive_int.t ;
              z: Positive_int.t }
 
   type state_type = Null | X | Y | Z
-  (* Input string is like "x2z3" *)
 
+  (** Builds an XYZ triplet from a string.
+    * The input string is like "x2z3" *)
   let of_string s =
     let flush state accu number =
       let n = 
@@ -106,6 +111,7 @@ end = struct
        z=Positive_int.of_int 0 } "" 
   ;;
 
+  (** Transforms an XYZ triplet to a string *)
   let to_string t = 
     let x = match (Positive_int.to_int t.x) with
     | 0 -> ""
@@ -123,6 +129,7 @@ end = struct
     x^y^z
   ;;
 
+ (** Returns the l quantum number from a XYZ powers triplet *)
   let get_l t =
    let x = Positive_int.to_int t.x
    and y = Positive_int.to_int t.y
@@ -130,6 +137,7 @@ end = struct
    in Positive_int.of_int (x+y+z)
  ;;
 
+ (** Returns a list of XYZ powers for a given symmetry *)
  let of_symmetry sym =
    let l = Positive_int.to_int (to_l sym) in
    let create_z xyz = 
