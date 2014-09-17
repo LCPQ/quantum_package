@@ -7,6 +7,8 @@ subroutine save_dets_qmcchem
  integer, allocatable :: occ(:,:,:), occ_tmp(:,:)
  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: occ, occ_tmp
 
+ read_wf = .True.
+ TOUCH read_wf
  call ezfio_set_determinants_det_num(N_det)
  call ezfio_set_determinants_det_coef(psi_coef_sorted(1,1))
 
