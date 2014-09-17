@@ -244,9 +244,10 @@ let spec =
 
 let command = 
     Command.basic 
-    ~summary: "Set the orbital classes in an EZFIO directory"
+    ~summary: "Quantum Package command"
     ~readme:(fun () ->
-      "The range of MOs has the form : \"[36-53,72-107,126-131]\"
+     "Set the orbital classes in an EZFIO directory
+      The range of MOs has the form : \"[36-53,72-107,126-131]\"
         ")
     spec
     (fun core inact act virt del ezfio_filename () -> run ?core ?inact ?act ?virt ?del ezfio_filename )

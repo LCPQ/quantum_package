@@ -81,6 +81,8 @@ File : %s\n" c m b xyz_file;
     ~rank:2 ~dim:[| nucl_num ; 3 |] ~data:coords);
 
   (* Write Basis set *)
+  let basis = 
+  let long_basis = Long_basis
 
 ;;
 
