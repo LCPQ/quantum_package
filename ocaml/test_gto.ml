@@ -23,14 +23,14 @@ let test_gto_1 () =
 let test_gto_2 () =
   let in_channel = open_in "/home/scemama/quantum_package/data/basis/cc-pvdz" in
   ignore (input_line in_channel);
-  let basis = Basis.read in_channel in
-  List.iter basis ~f:(fun x-> Printf.printf "%s\n" (Gto.to_string x))
+  let basis = Basis.read in_channel (Atom_number.of_int 1) in
+  List.iter basis ~f:(fun (x,n)-> Printf.printf "%d:%s\n" (Atom_number.to_int n) (Gto.to_string x))
 ;;
 
 let test_gto () =
   let in_channel = open_in "/home/scemama/quantum_package/data/basis/cc-pvdz" in
-  let basis = Basis.read_element in_channel Element.C in
-  List.iter basis ~f:(fun x-> Printf.printf "%s\n" (Gto.to_string x))
+  let basis = Basis.read_element in_channel (Atom_number.of_int 1) Element.C in
+  List.iter basis ~f:(fun (x,n)-> Printf.printf "%d:%s\n" (Atom_number.to_int n) (Gto.to_string x))
 ;;
 
 let test_module () =

@@ -81,8 +81,37 @@ File : %s\n" c m b xyz_file;
     ~rank:2 ~dim:[| nucl_num ; 3 |] ~data:coords);
 
   (* Write Basis set *)
-  let basis = 
-  let long_basis = Long_basis
+  let basis =
+    let rec do_work (accu:(Atom.t*Atom_number.t) list) (n:int) = function
+    | [] -> accu
+    | e::tail -> let new_accu = (e,(Atom_number.of_int n))::accu in
+      do_work new_accu (n+1) tail
+    in
+    do_work [] 1  nuclei
+    |> List.rev
+    |> List.map ~f:(fun (x,i) ->
+       Basis.read_element basis_channel i x.Atom.element) 
+    |> List.concat
+  in
+  let long_basis = Long_basis.of_basis basis in
+  let ao_num = List.length long_basis in
+  Ezfio.set_ao_basis_ao_num ao_num;
+  let ao_prim_num = List.map long_basis ~f:(fun (_,g,_) -> List.length g.Gto.lc) 
+  and ao_nucl = List.map long_basis ~f:(fun (_,_,n) -> Atom_number.to_int n)
+  in
+  Ezfio.set_ao_basis_ao_prim_num (Ezfio.ezfio_array_of_list
+    ~rank:1 ~dim:[| ao_num |] ~data:ao_prim_num) ;
+  Ezfio.set_ao_basis_ao_nucl(Ezfio.ezfio_array_of_list
+    ~rank:1 ~dim:[| ao_num |] ~data:ao_nucl) ;
+
+(*
+ao_basis
+  ao_power           integer       (ao_basis_ao_num,3)
+  ao_prim_num_max    integer       = maxval(ao_basis_ao_prim_num)
+  ao_coef            double precision (ao_basis_ao_num,ao_basis_ao_prim_num_max)
+  ao_expo            double precision (ao_basis_ao_num,ao_basis_ao_prim_num_max)
+
+*)
 
 ;;
 

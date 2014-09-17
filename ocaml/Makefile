@@ -13,7 +13,7 @@ endif
 LIBS=
 PKGS=
 OCAMLCFLAGS=-g
-OCAMLBUILD=ocamlbuild -cflags $(OCAMLCFLAGS) -lflags -g
+OCAMLBUILD=ocamlbuild -j 0 -cflags $(OCAMLCFLAGS) -lflags -g 
 MLFILES=$(wildcard *.ml) ezfio.ml Qptypes.ml
 MLIFILES=$(wildcard *.mli) 
 ALL_TESTS=$(patsubst %.ml,%.byte,$(wildcard test_*.ml))
@@ -26,7 +26,8 @@ default: $(ALL_TESTS) $(ALL_EXE)
 executables: $(ALL_EXE)
 
 %.inferred.mli: $(MLFILES)
-	$(OCAMLBUILD) $*.inferred.mli -cflags -i -use-ocamlfind  $(PKGS)
+	$(OCAMLBUILD) $*.inferred.mli -use-ocamlfind  $(PKGS) 
+	mv _build/$*.inferred.mli .
 
 %.byte: $(MLFILES) $(MLIFILES)
 	$(OCAMLBUILD) $*.byte  -use-ocamlfind  $(PKGS)
