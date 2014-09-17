@@ -64,7 +64,7 @@ let of_int64_list l =
 
 (* Compute n_int *)
 let n_int_of_mo_tot_num mo_tot_num =
-  let bit_kind_size = Bit_kind_size.to_int Qpackage.bit_kind_size in
+  let bit_kind_size = Bit_kind_size.to_int (Lazy.force Qpackage.bit_kind_size) in
   N_int_number.of_int ( (mo_tot_num-1)/bit_kind_size + 1 )
 ;;
 
