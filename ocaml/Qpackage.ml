@@ -10,7 +10,7 @@ Please source the quantum_package.rc file."
   | Some x -> x 
 ;;
 
-let bit_kind_size = 
+let bit_kind_size = lazy (
   let filename = root^"/src/Bitmask/bitmasks_module.f90" in
   if not (Sys.file_exists_exn filename) then
      raise (Failure ("File "^filename^" not found"));
@@ -37,5 +37,5 @@ let bit_kind_size =
      | _ -> get_data tail
      end
   in
-  get_data lines
+  get_data lines )
 ;;
