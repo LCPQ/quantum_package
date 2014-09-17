@@ -84,11 +84,14 @@ subroutine map_init(map,keymax)
    print *,  'Unable to allocate map'
    stop 5
  endif
-!sze = max(sqrt(map%map_size/16.d0),2048.d0)
  sze = 2
+ !$OMP PARALLEL DEFAULT(NONE) SHARED(map,sze) PRIVATE(i)
+ !$OMP DO SCHEDULE(STATIC,512)
  do i=0_8,map%map_size
    call cache_map_init(map%map(i),sze)
  enddo
+ !$OMP ENDDO
+ !$OMP END PARALLEL
  map%sorted = .True.
 
  call omp_unset_lock(map%lock)

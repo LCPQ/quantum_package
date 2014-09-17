@@ -59,7 +59,10 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
     failure "mo_basis/mo_tot_num not found" ;
 
   let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () in
-  let n_int = N_int_number.of_int (Ezfio.get_determinants_n_int ()) in
+  let n_int =
+     try  N_int_number.of_int (Ezfio.get_determinants_n_int ())
+     with _ -> Bitlist.n_int_of_mo_tot_num mo_tot_num 
+  in
 
 
   let mo_class = Array.init mo_tot_num ~f:(fun i -> None) in

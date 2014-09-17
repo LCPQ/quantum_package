@@ -22,8 +22,9 @@ header = """
 """
 
 try:
-  subprocess.check_output("git status".split())
-  has_git = True
+# subprocess.check_output("git status".split())
+# has_git = True
+  pass
 except OSError:
   has_git = False
 

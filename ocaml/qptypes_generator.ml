@@ -30,23 +30,44 @@ let input_data = "
 
 * MO_number : int  
   assert (x > 0) ; 
+  if (x > 1000) then
+    warning \"More than 1000 MOs\";
   if (Ezfio.has_mo_basis_mo_tot_num ()) then
     assert (x <= (Ezfio.get_mo_basis_mo_tot_num ()));
 
 * AO_number : int  
   assert (x > 0) ; 
+  if (x > 1000) then
+    warning \"More than 1000 AOs\";
   if (Ezfio.has_ao_basis_ao_num ()) then
     assert (x <= (Ezfio.get_ao_basis_ao_num ()));
 
 * N_int_number : int 
   assert (x > 0) ; 
+  if (x > 100) then
+    warning \"N_int > 100\";
   if (Ezfio.has_determinants_n_int ()) then
     assert (x == (Ezfio.get_determinants_n_int ()));
 
 * Det_number : int 
   assert (x > 0) ; 
+  if (x > 100000000) then
+    warning \"More than 100 million determinants\";
   if (Ezfio.has_determinants_det_num ()) then
     assert (x <= (Ezfio.get_determinants_det_num ()));
+
+* Bit_kind_size : int  
+  begin match x with
+  | 8 | 16 | 32 | 64 -> ()
+  | _ -> raise (Failure \"Bit_kind_size should be (8|16|32|64).\")
+  end;
+
+* Bit_kind : int  
+  begin match x with
+  | 1 | 2 | 4 | 8 -> ()
+  | _ -> raise (Failure \"Bit_kind should be (1|2|4|8).\")
+  end;
+
 "
 ;;
 
@@ -66,6 +87,7 @@ end
 ;;
 
 let parse_input input=
+  print_string "let warning = print_string;;\n" ;
   let rec parse result = function
     | [] -> result
     | ( "" , ""   )::tail -> parse result tail

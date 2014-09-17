@@ -62,6 +62,13 @@ let of_int64_list l =
   List.flatten result
 ;;
 
+(* Compute n_int *)
+let n_int_of_mo_tot_num mo_tot_num =
+  let bit_kind_size = Bit_kind_size.to_int Qpackage.bit_kind_size in
+  N_int_number.of_int ( (mo_tot_num-1)/bit_kind_size + 1 )
+;;
+
+(* Create a zero bit list *)
 let zero n_int =
   let n_int = N_int_number.to_int n_int in
   let a = Array.init n_int (fun i-> 0L)  in
