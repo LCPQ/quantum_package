@@ -58,7 +58,9 @@ type st = t
 ;;
 
 module Xyz : sig
-  type t
+  type t = { x: Positive_int.t ;
+             y: Positive_int.t ;
+             z: Positive_int.t }
   val  of_string : string -> t
   val  to_string : t -> string 
   val  get_l     : t -> Positive_int.t
@@ -67,7 +69,6 @@ end = struct
   type t = { x: Positive_int.t ;
              y: Positive_int.t ;
              z: Positive_int.t }
-
   type state_type = Null | X | Y | Z
 
   (** Builds an XYZ triplet from a string.

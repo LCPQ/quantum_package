@@ -12,7 +12,7 @@ endif
 
 LIBS=
 PKGS=
-OCAMLCFLAGS=-g
+OCAMLCFLAGS=-g 
 OCAMLBUILD=ocamlbuild -j 0 -cflags $(OCAMLCFLAGS) -lflags -g 
 MLFILES=$(wildcard *.ml) ezfio.ml Qptypes.ml
 MLIFILES=$(wildcard *.mli) 

@@ -76,10 +76,11 @@ let to_string m =
 
 let of_xyz_string
     ?(charge=0) ?(multiplicity=(Multiplicity.of_int 1))
+    ?(units=Point3d.Angstrom)
     s =
   let l = String.split s ~on:'\n'
        |> List.filter ~f:(fun x -> x <> "")
-       |> List.map ~f:Atom.of_string 
+       |> List.map ~f:(fun x -> Atom.of_string units x)
   in
   let ne = ( get_charge { 
         nuclei=l ;

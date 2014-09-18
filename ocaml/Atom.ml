@@ -26,7 +26,8 @@ type t =
   coord   : Point3d.t ;
 }
 
-let of_string s =
+(** Read xyz coordinates of the atom with unit u *)
+let of_string u s =
   let buffer = s
   |> String.split ~on:' '
   |> List.filter ~f:(fun x -> x <> "")
@@ -35,13 +36,13 @@ let of_string s =
   | [ name; charge; x; y; z ] ->
     { element = Element.of_string name ;
       charge  = Charge.of_string  charge ;
-      coord   = Point3d.of_string (String.concat [x; y; z] ~sep:" ")
+      coord   = Point3d.of_string u (String.concat [x; y; z] ~sep:" ")
     }
   | [ name; x; y; z ] ->
     let e = Element.of_string name in
     { element = e ;
       charge  = Charge.of_int (Element.charge e);
-      coord   = Point3d.of_string (String.concat [x; y; z] ~sep:" ")
+      coord   = Point3d.of_string u (String.concat [x; y; z] ~sep:" ")
     }
   | _ -> raise (AtomError s)
 ;;

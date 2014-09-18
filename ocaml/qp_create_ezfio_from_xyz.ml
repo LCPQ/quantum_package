@@ -98,21 +98,59 @@ File : %s\n" c m b xyz_file;
   Ezfio.set_ao_basis_ao_num ao_num;
   let ao_prim_num = List.map long_basis ~f:(fun (_,g,_) -> List.length g.Gto.lc) 
   and ao_nucl = List.map long_basis ~f:(fun (_,_,n) -> Atom_number.to_int n)
+  and ao_power= 
+    let l = List.map long_basis ~f:(fun (x,_,_) -> x) in
+    (List.map l ~f:(fun t -> Positive_int.to_int Symmetry.Xyz.(t.x)) )@
+    (List.map l ~f:(fun t -> Positive_int.to_int Symmetry.Xyz.(t.y)) )@
+    (List.map l ~f:(fun t -> Positive_int.to_int Symmetry.Xyz.(t.z)) ) 
+  in
+  let ao_prim_num_max = List.fold ~init:0 ~f:(fun s x ->
+    if x > s then x
+    else s) ao_prim_num
+  in
+  let gtos = List.map long_basis ~f:(fun (_,x,_) -> x) in
+
+  let create_expo_coef ec = 
+      let coefs = 
+        begin match ec with
+        | `Coefs -> List.map gtos ~f:(fun x->
+          List.map x.Gto.lc ~f:(fun (_,coef) -> AO_coef.to_float coef) )
+        | `Expos -> List.map gtos ~f:(fun x->
+          List.map x.Gto.lc ~f:(fun (prim,_) -> Positive_float.to_float
+          prim.Primitive.expo) )
+        end
+      in
+      let rec get_n n accu = function
+        | [] -> List.rev accu  
+        | h::tail ->
+            let y =
+            begin match List.nth h n with
+            | Some x -> x
+            | None -> 0.
+            end
+            in 
+            get_n n (y::accu) tail
+      in
+      let rec build accu = function
+        | n when n=ao_prim_num_max -> accu
+        | n -> build ( accu @ (get_n n [] coefs) ) (n+1)
+      in
+      build [] 0
+  in
+
+  let ao_coef = create_expo_coef `Coefs
+  and ao_expo = create_expo_coef `Expos
   in
   Ezfio.set_ao_basis_ao_prim_num (Ezfio.ezfio_array_of_list
     ~rank:1 ~dim:[| ao_num |] ~data:ao_prim_num) ;
   Ezfio.set_ao_basis_ao_nucl(Ezfio.ezfio_array_of_list
     ~rank:1 ~dim:[| ao_num |] ~data:ao_nucl) ;
-
-(*
-ao_basis
-  ao_power           integer       (ao_basis_ao_num,3)
-  ao_prim_num_max    integer       = maxval(ao_basis_ao_prim_num)
-  ao_coef            double precision (ao_basis_ao_num,ao_basis_ao_prim_num_max)
-  ao_expo            double precision (ao_basis_ao_num,ao_basis_ao_prim_num_max)
-
-*)
-
+  Ezfio.set_ao_basis_ao_power(Ezfio.ezfio_array_of_list
+  ~rank:2 ~dim:[| ao_num ; 3 |] ~data:ao_power) ;
+  Ezfio.set_ao_basis_ao_coef(Ezfio.ezfio_array_of_list
+  ~rank:2 ~dim:[| ao_num ; ao_prim_num_max |] ~data:ao_coef) ;
+  Ezfio.set_ao_basis_ao_expo(Ezfio.ezfio_array_of_list
+  ~rank:2 ~dim:[| ao_num ; ao_prim_num_max |] ~data:ao_expo) ;
 ;;
 
 let command = 

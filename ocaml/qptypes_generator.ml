@@ -54,7 +54,7 @@ let input_data = "
   if (x > 100) then
     warning \"N_int > 100\";
   if (Ezfio.has_determinants_n_int ()) then
-    assert (x == (Ezfio.get_determinants_n_int ()));
+    assert (x = (Ezfio.get_determinants_n_int ()));
 
 * Det_number : int 
   assert (x > 0) ; 
@@ -75,6 +75,10 @@ let input_data = "
   | _ -> raise (Failure \"Bit_kind should be (1|2|4|8).\")
   end;
 
+* MO_coef : float
+
+* AO_coef : float
+
 "
 ;;
 
@@ -84,17 +88,19 @@ module %s : sig
   type t
   val to_%s : t -> %s
   val of_%s : %s -> t
+  val to_string : %s -> string
 end = struct
   type t = %s
   let to_%s x = x
   let of_%s x = ( %s x )
+  let to_string x = %s.to_string x
 end
 
 "
 ;;
 
 let parse_input input=
-  print_string "let warning = print_string;;\n" ;
+  print_string "open Core.Std;;\nlet warning = print_string;;\n" ;
   let rec parse result = function
     | [] -> result
     | ( "" , ""   )::tail -> parse result tail
@@ -102,10 +108,10 @@ let parse_input input=
         let  name , typ  = String.lsplit2_exn ~on:':' t
         in
         let typ  = String.strip typ
-        and name = String.strip name
-        in
-        let newstring = Printf.sprintf template name typ typ typ typ typ typ typ
-        ( String.strip text )
+        and name = String.strip name in
+        let typ_cap = String.capitalize typ in
+        let newstring = Printf.sprintf template name typ typ typ typ typ typ typ typ 
+          ( String.strip text ) typ_cap
         in
         List.rev (parse (newstring::result) tail )
   in

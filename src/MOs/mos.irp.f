@@ -4,7 +4,13 @@ BEGIN_PROVIDER [ integer, mo_tot_num ]
   ! Total number of molecular orbitals and the size of the keys corresponding
   END_DOC
   PROVIDE ezfio_filename
-  call ezfio_get_mo_basis_mo_tot_num(mo_tot_num)
+  logical                        :: exists
+  call ezfio_has_mo_basis_mo_tot_num(exists)
+  if (exists) then
+    call ezfio_get_mo_basis_mo_tot_num(mo_tot_num)
+  else
+    mo_tot_num = ao_num
+  endif
   ASSERT (mo_tot_num > 0)
 END_PROVIDER
 
@@ -42,18 +48,23 @@ END_PROVIDER
   endif
   
   ! Coefs
-  allocate(buffer(ao_num,mo_tot_num))
-  buffer = 0.d0
-  call ezfio_get_mo_basis_mo_coef(buffer)
-  do i=1,mo_tot_num
-    do j=1,ao_num
-      mo_coef(j,i) = buffer(j,i)
+  call ezfio_has_mo_basis_mo_coef(exists)
+  if (exists) then
+    allocate(buffer(ao_num,mo_tot_num))
+    buffer = 0.d0
+    call ezfio_get_mo_basis_mo_coef(buffer)
+    do i=1,mo_tot_num
+      do j=1,ao_num
+        mo_coef(j,i) = buffer(j,i)
+      enddo
+      do j=ao_num+1,ao_num_align
+        mo_coef(j,i) = 0.d0
+      enddo
     enddo
-    do j=ao_num+1,ao_num_align
-      mo_coef(j,i) = 0.d0
-    enddo
-  enddo
-  deallocate(buffer)
+    deallocate(buffer)
+  else
+    mo_coef = 0.d0
+  endif
   
 END_PROVIDER
 

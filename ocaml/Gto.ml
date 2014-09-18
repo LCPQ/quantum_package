@@ -6,7 +6,7 @@ exception End_Of_Basis
 
 type t =
 { sym  : Symmetry.t ;
-  lc   : ((Primitive.t * float) list)
+  lc   : ((Primitive.t * AO_coef.t) list)
 }
 ;;
 
@@ -56,7 +56,7 @@ let read_one in_channel =
                     Primitive.expo = Positive_float.of_float
                         (Float.of_string expo)
                   }
-          and c = Float.of_string coef in
+          and c = AO_coef.of_float (Float.of_string coef) in
           read_lines ( (p,c)::result) (i-1)
         end
       | _ -> raise (GTO_Read_Failure line_buffer)
@@ -68,7 +68,7 @@ let read_one in_channel =
 
 (** Transform the gto to a string *)
 let to_string { sym = sym ; lc = lc } =
-  let f (p,c) = Printf.sprintf "( %s, %f )" (Primitive.to_string p) c
+  let f (p,c) = Printf.sprintf "( %s, %f )" (Primitive.to_string p) (AO_coef.to_float c)
   in
   Printf.sprintf "[ %s : %s ]" (Symmetry.to_string sym)
     (String.concat (List.map ~f:f lc) ~sep:", ")

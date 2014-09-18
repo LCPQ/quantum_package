@@ -1,21 +1,33 @@
 open Core.Std;;
 
+type units = 
+| Bohr
+| Angstrom
+;;
+
 type t = {
   x : float ;
   y : float ;
   z : float ;
 }
 
-let of_string s =
+(** Read x y z coordinates in string s with units u *)
+let of_string u s =
+  let f = 
+    begin match u with
+    | Bohr -> 1.
+    | Angstrom -> 1. /. 0.52917721092
+    end
+  in
   let l = s
   |> String.split ~on:' '
   |> List.filter ~f:(fun x -> x <> "")
   |> List.map ~f:Float.of_string
   |> Array.of_list
   in
-  { x = l.(0) ;
-    y = l.(1) ;
-    z = l.(2) }
+  { x = l.(0) *. f ;
+    y = l.(1) *. f ;
+    z = l.(2) *. f }
 ;;
            
 
