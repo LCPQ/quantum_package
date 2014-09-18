@@ -147,22 +147,12 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
        )
   in
   
-  let extract_hole = function
-    | (h,_) -> h
-  and extract_particle = function
-    | (_,p) -> p
-  and extract_hole1 = function
-    | (h,_,_,_) -> h
-    | _ -> assert false
-  and extract_particle1 = function
-    | (_,p,_,_) -> p
-    | _ -> assert false
-  and extract_hole2 = function
-    | (_,_,h,_) -> h
-    | _ -> assert false
-  and extract_particle2 = function
-    | (_,_,_,p) -> p
-    | _ -> assert false
+  let extract_hole (h,_) = h 
+  and extract_particle (_,p) = p 
+  and extract_hole1 (h,_,_,_) = h 
+  and extract_particle1 (_,p,_,_) = p 
+  and extract_hole2 (_,_,h,_) = h 
+  and extract_particle2 (_,_,_,p) = p 
   in
   let result = [
   List.map ~f:extract_hole single_excitations
