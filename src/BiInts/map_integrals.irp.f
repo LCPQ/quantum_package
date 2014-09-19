@@ -62,8 +62,14 @@ double precision function get_ao_bielec_integral(i,j,k,l,map)
   real(integral_kind)            :: tmp
   PROVIDE ao_bielec_integrals_in_map
   !DIR$ FORCEINLINE
-  call bielec_integrals_index(i,j,k,l,idx)
-  call map_get(map,idx,tmp)
+  if (ao_overlap_abs(i,k)*ao_overlap_abs(j,l) < ao_integrals_threshold ) then
+    tmp = 0.d0
+  else if (ao_bielec_integral_schwartz(i,k)*ao_bielec_integral_schwartz(j,l) < ao_integrals_threshold) then
+    tmp = 0.d0
+  else
+    call bielec_integrals_index(i,j,k,l,idx)
+    call map_get(map,idx,tmp)
+  endif
   get_ao_bielec_integral = tmp
 end
 
@@ -92,6 +98,8 @@ subroutine get_ao_bielec_integrals(j,k,l,sze,out_val)
   do i=1,sze
     if (ao_overlap_abs(i,k)*ao_overlap_abs(j,l) < thresh ) then
       out_val(i) = 0.d0
+    else if (ao_bielec_integral_schwartz(i,k)*ao_bielec_integral_schwartz(j,l) < thresh) then
+      out_val(i)=0.d0
     else
       !DIR$ FORCEINLINE
       call bielec_integrals_index(i,j,k,l,hash)
@@ -126,7 +134,12 @@ subroutine get_ao_bielec_integrals_non_zero(j,k,l,sze,out_val,out_val_index,non_
  
   non_zero_int = 0
   do i=1,sze
+    integer, external :: ao_l4
+    double precision, external :: ao_bielec_integral
     !DIR$ FORCEINLINE
+    if (ao_bielec_integral_schwartz(i,k)*ao_bielec_integral_schwartz(j,l) < thresh) then
+      cycle
+    endif
     call bielec_integrals_index(i,j,k,l,hash)
     call map_get(ao_integrals_map, hash,tmp)
     if (dabs(tmp) < thresh ) cycle
