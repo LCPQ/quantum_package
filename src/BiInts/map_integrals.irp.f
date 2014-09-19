@@ -30,6 +30,26 @@ subroutine bielec_integrals_index(i,j,k,l,i1)
   i1 = i1+ishft(i2*i2-i2,-1)
 end
 
+subroutine bielec_integrals_index_reverse(i,j,k,l,i1)
+  implicit none
+  integer, intent(out)           :: i,j,k,l
+  integer*8, intent(in)          :: i1
+  integer*8                      :: i2,i3
+  real                           :: x
+  x = 0.5*(sqrt(8.*real(i1)+1.)-1.)
+  i2 = ceiling(x)
+  i3 = i1 - ishft(i2*i2-i2,-1)
+
+  l = 0.5*(sqrt(8.*real(i2)+1.)-1.)
+  l = ceiling(x)
+  j = i2 - ishft(l*l-l,-1)
+
+  x = 0.5*(sqrt(8.*real(i3)+1.)-1.)
+  k = ceiling(x)
+  i = i3 - ishft(k*k-k,-1)
+end
+
+
 double precision function get_ao_bielec_integral(i,j,k,l,map)
   use map_module
   implicit none

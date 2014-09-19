@@ -19,11 +19,13 @@ END_PROVIDER
  BEGIN_PROVIDER [ integer, ao_power, (ao_num_align,3) ]
 &BEGIN_PROVIDER [ double precision, ao_expo, (ao_num_align,ao_prim_num_max) ]
 &BEGIN_PROVIDER [ double precision, ao_coef, (ao_num_align,ao_prim_num_max) ]
+&BEGIN_PROVIDER [ integer, ao_l, (ao_num) ]
  implicit none
 
  BEGIN_DOC
 ! Coefficients, exponents and powers of x,y and z
 ! ao_coef(i,j) = coefficient of the jth primitive on the ith ao
+! ao_l = l value of the AO: a+b+c in x^a y^b z^c
  END_DOC
  PROVIDE ezfio_filename
 
@@ -91,7 +93,12 @@ END_PROVIDER
    ao_coef(i,j) = d(j,2)
   enddo
  enddo
+ do i=1,ao_num
+   ao_l(i) = ao_power(i,1) + ao_power(i,2) + ao_power(i,3) 
+ enddo
 END_PROVIDER
+
+
 
  BEGIN_PROVIDER [ double precision, ao_coef_transp, (ao_prim_num_max_align,ao_num) ]
 &BEGIN_PROVIDER [ double precision, ao_expo_transp, (ao_prim_num_max_align,ao_num) ]

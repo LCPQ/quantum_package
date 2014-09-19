@@ -139,8 +139,14 @@ double precision function ao_bielec_integral(i,j,k,l)
 end
 
 
-
-
+integer function ao_l4(i,j,k,l)
+  implicit none
+  BEGIN_DOC
+! Computes the product of l values of i,j,k,and l
+  END_DOC
+  integer, intent(in) :: i,j,k,l
+  ao_l4 = ao_l(i)*ao_l(j)*ao_l(k)*ao_l(l)
+end
 
 
 
