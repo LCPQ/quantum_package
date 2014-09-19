@@ -150,38 +150,76 @@ END_PROVIDER
  else
    PROVIDE ao_bielec_integrals_in_map
            
+   integer(omp_lock_kind) :: lck(ao_num)
+   do i=1,ao_num
+     call omp_init_lock(lck(i))
+   enddo
    !$OMP PARALLEL DEFAULT(NONE) &
    !$OMP PRIVATE(i,j,l,k1,k,integral,ao_ints_val,ao_ints_idx,kmax) &
    !$OMP SHARED(ao_num,ao_bi_elec_integral_alpha,ao_mono_elec_integral,&
    !$OMP  ao_num_align,ao_bi_elec_integral_beta,HF_density_matrix_ao_alpha, &
-   !$OMP  HF_density_matrix_ao_beta) 
+   !$OMP  HF_density_matrix_ao_beta,lck) 
    allocate(ao_ints_idx(ao_num_align),ao_ints_val(ao_num_align))
-   !$OMP DO SCHEDULE(GUIDED)
+   !$OMP DO 
    do j=1,ao_num
      !DIR$ VECTOR ALIGNED
      do i=1,ao_num
        ao_bi_elec_integral_alpha(i,j) = 0.d0
        ao_bi_elec_integral_beta (i,j) = 0.d0
      enddo
+   enddo
+   !$OMP END DO
+   !$OMP DO SCHEDULE(GUIDED)
+   do j=1,ao_num
      do l=1,ao_num
-       do i=1,ao_num
+       do i=1,j-1
          call get_ao_bielec_integrals_non_zero(i,l,j,ao_num,ao_ints_val,ao_ints_idx,kmax)
-         !DIR$ VECTOR ALIGNED
+         call OMP_SET_LOCK(lck(i))
+         call OMP_SET_LOCK(lck(j))
          do k1=1,kmax
            k = ao_ints_idx(k1)
            integral = (HF_density_matrix_ao_alpha(k,l)+HF_density_matrix_ao_beta(k,l)) * ao_ints_val(k1)
            ao_bi_elec_integral_alpha(i,j) += integral
            ao_bi_elec_integral_beta (i,j) += integral
+           ao_bi_elec_integral_alpha(j,i) += integral
+           ao_bi_elec_integral_beta (j,i) += integral
+         enddo
+         do k1=1,kmax
+           k = ao_ints_idx(k1)
+           integral = ao_ints_val(k1)
+           ao_bi_elec_integral_alpha(l,j) -= HF_density_matrix_ao_alpha(k,i) * integral
+           ao_bi_elec_integral_beta (l,j) -= HF_density_matrix_ao_beta (k,i) * integral
+           ao_bi_elec_integral_alpha(l,i) -= HF_density_matrix_ao_alpha(k,j) * integral
+           ao_bi_elec_integral_beta (l,i) -= HF_density_matrix_ao_beta (k,j) * integral
+         enddo
+         call OMP_UNSET_LOCK(lck(i))
+         call OMP_UNSET_LOCK(lck(j))
+       enddo
+       do i=j,j
+         call get_ao_bielec_integrals_non_zero(i,l,j,ao_num,ao_ints_val,ao_ints_idx,kmax)
+         call OMP_SET_LOCK(lck(i))
+         do k1=1,kmax
+           k = ao_ints_idx(k1)
+           integral = (HF_density_matrix_ao_alpha(k,l)+HF_density_matrix_ao_beta(k,l)) * ao_ints_val(k1)
+           ao_bi_elec_integral_alpha(i,j) += integral
+           ao_bi_elec_integral_beta (i,j) += integral
+         enddo
+         do k1=1,kmax
+           k = ao_ints_idx(k1)
            integral = ao_ints_val(k1)
            ao_bi_elec_integral_alpha(l,j) -= HF_density_matrix_ao_alpha(k,i) * integral
            ao_bi_elec_integral_beta (l,j) -= HF_density_matrix_ao_beta (k,i) * integral
          enddo
+         call OMP_UNSET_LOCK(lck(i))
        enddo
      enddo
    enddo
    !$OMP END DO
    deallocate(ao_ints_val,ao_ints_idx)
    !$OMP END PARALLEL
+   do i=1,ao_num
+     call omp_destroy_lock(lck(i))
+   enddo
  endif
 
 END_PROVIDER
