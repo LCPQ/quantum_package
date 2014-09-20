@@ -32,21 +32,72 @@ end
 
 subroutine bielec_integrals_index_reverse(i,j,k,l,i1)
   implicit none
-  integer, intent(out)           :: i,j,k,l
+  integer, intent(out)           :: i(8),j(8),k(8),l(8)
   integer*8, intent(in)          :: i1
   integer*8                      :: i2,i3
   real                           :: x
+  i = 0
   x = 0.5*(sqrt(8.*real(i1)+1.)-1.)
   i2 = ceiling(x)
   i3 = i1 - ishft(i2*i2-i2,-1)
 
-  l = 0.5*(sqrt(8.*real(i2)+1.)-1.)
-  l = ceiling(x)
-  j = i2 - ishft(l*l-l,-1)
+  x = 0.5*(sqrt(8.*real(i2)+1.)-1.)
+  l(1) = ceiling(x)
+  j(1) = i2 - ishft(l(1)*l(1)-l(1),-1)
 
   x = 0.5*(sqrt(8.*real(i3)+1.)-1.)
-  k = ceiling(x)
-  i = i3 - ishft(k*k-k,-1)
+  k(1) = ceiling(x)
+  i(1) = i3 - ishft(k(1)*k(1)-k(1),-1)
+
+              !ijkl
+  i(2) = k(1) !kjil
+  j(2) = j(1)
+  k(2) = i(1)
+  l(2) = l(1)
+
+  i(3) = i(1) !ilkj
+  j(3) = l(1)
+  k(3) = k(1)
+  l(3) = j(1)
+
+  i(4) = k(1) !klij
+  j(4) = l(1)
+  k(4) = i(1)
+  l(4) = j(1)
+
+  i(5) = j(1) !jilk
+  j(5) = i(1)
+  k(5) = l(1)
+  l(5) = k(1)
+
+  i(6) = l(1) !lijk
+  j(6) = i(1)
+  k(6) = j(1)
+  l(6) = k(1)
+
+  i(7) = j(1) !jkli
+  j(7) = k(1)
+  k(7) = l(1)
+  l(7) = i(1)
+
+  i(8) = l(1) !lkji
+  j(8) = k(1)
+  k(8) = j(1)
+  l(8) = i(1)
+
+  integer :: ii, jj
+  do ii=2,8
+    do jj=1,ii-1
+      if ( (i(ii) == i(jj)).and. &
+           (j(ii) == j(jj)).and. &
+           (k(ii) == k(jj)).and. &
+           (l(ii) == l(jj)) ) then
+         i(jj) = 0
+         exit
+      endif
+    enddo
+  enddo
+
 end
 
 
