@@ -25,7 +25,7 @@ double precision function ao_bielec_integral(i,j,k,l)
   num_l = ao_nucl(l)
   ao_bielec_integral = 0.d0
   double precision               :: thresh
-  thresh = ao_integrals_threshold
+!  thresh = ao_integrals_threshold
   
   if (num_i /= num_j .or. num_k /= num_l .or. num_j /= num_k)then
     do p = 1, 3
@@ -80,9 +80,9 @@ double precision function ao_bielec_integral(i,j,k,l)
                 P_new,P_center,fact_p,pp,p_inv,iorder_p,             &
                 Q_new,Q_center,fact_q,qq,q_inv,iorder_q)
             ao_bielec_integral +=  coef4 * integral
-            if (abs(integral) < thresh) then
-              exit
-            endif
+!            if (abs(integral) < thresh) then
+!              exit
+!            endif
             do_r = .True.
             do_q = .True.
             do_p = .True.
@@ -123,9 +123,9 @@ double precision function ao_bielec_integral(i,j,k,l)
                 I_power(2),J_power(2),K_power(2),L_power(2),         &
                 I_power(3),J_power(3),K_power(3),L_power(3))
             ao_bielec_integral +=  coef4 * integral
-            if (abs(integral) < thresh) then
-              exit
-            endif
+!            if (abs(integral) < thresh) then
+!              exit
+!            endif
             do_r = .True.
             do_q = .True.
             do_p = .True.

@@ -55,12 +55,7 @@ END_PROVIDER
   ! Energy of the reference bitmask used in Slater rules
   END_DOC
   
-  integer                        :: occ(N_int*bit_kind_size,2)
   integer                        :: i,j
-  double precision               :: ni,nj
-  
-  call bitstring_to_list(ref_bitmask(1,1), occ(1,1), i, N_int)
-  call bitstring_to_list(ref_bitmask(1,2), occ(1,2), i, N_int)
   
   
   ref_bitmask_energy = 0.d0
