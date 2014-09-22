@@ -151,7 +151,6 @@ END_PROVIDER
              cycle
            endif
            values(1) = ao_bielec_integral(k,l,i,j)
-!           values(1) = ao_bielec_integral(k,i,l,j)
            if (abs(values(1)) < ao_integrals_threshold) then
              cycle
            endif
