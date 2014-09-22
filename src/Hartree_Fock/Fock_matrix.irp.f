@@ -107,12 +107,9 @@ END_PROVIDER
  ! Alpha Fock matrix in AO basis set
  END_DOC
  
- integer                        :: i,j,k,l,k1,kmax
- double precision, allocatable  :: ao_ints_val(:)
- integer, allocatable           :: ao_ints_idx(:)
+ integer                        :: i,j,k,l,k1
  double precision               :: integral
  double precision               :: ao_bielec_integral
- !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: ao_ints_idx, ao_ints_val
  if (do_direct_integrals) then
    PROVIDE all_utils ao_overlap_abs ao_integrals_threshold
    PROVIDE HF_density_matrix_ao_alpha  HF_density_matrix_ao_beta
@@ -149,38 +146,29 @@ END_PROVIDER
    !$OMP END PARALLEL
 
  else
-   PROVIDE ao_bielec_integrals_in_map
+   PROVIDE ao_bielec_integrals_in_map 
            
    integer(omp_lock_kind) :: lck(ao_num)
-   do i=1,ao_num
-     call omp_init_lock(lck(i))
-   enddo
-   !$OMP PARALLEL DEFAULT(NONE) &
-   !$OMP PRIVATE(i,j,l,k1,k,integral,ao_ints_val,ao_ints_idx,kmax) &
-   !$OMP SHARED(ao_num,ao_bi_elec_integral_alpha,ao_mono_elec_integral,&
-   !$OMP  ao_num_align,ao_bi_elec_integral_beta,HF_density_matrix_ao_alpha, &
-   !$OMP  HF_density_matrix_ao_beta,lck) 
-   !$OMP DO 
-   do j=1,ao_num
-     !DIR$ VECTOR ALIGNED
-     do i=1,ao_num
-       ao_bi_elec_integral_alpha(i,j) = 0.d0
-       ao_bi_elec_integral_beta (i,j) = 0.d0
-     enddo
-   enddo
-   !$OMP END DO
-   !$OMP END PARALLEL
-
+   integer*8                      :: i8
+   integer                        :: ii(8), jj(8), kk(8), ll(8), k2
    integer(cache_map_size_kind)   :: n_elements_max, n_elements
    integer(key_kind), allocatable :: keys(:)
    double precision, allocatable  :: values(:)
+
+   ao_bi_elec_integral_alpha = 0.d0
+   ao_bi_elec_integral_beta  = 0.d0
+   !$OMP PARALLEL DEFAULT(NONE)                                      &
+       !$OMP PRIVATE(i,j,l,k1,k,integral,ii,jj,kk,ll,i8,keys,values,n_elements_max,n_elements)&
+       !$OMP SHARED(ao_num,HF_density_matrix_ao_alpha,HF_density_matrix_ao_beta,&
+       !$OMP ao_integrals_map) &
+       !$OMP REDUCTION(+:ao_bi_elec_integral_alpha,ao_bi_elec_integral_beta)
+
    call get_cache_map_n_elements_max(ao_integrals_map,n_elements_max)
    allocate(keys(n_elements_max), values(n_elements_max))
 
-   integer*8                      :: i8
-   integer                        :: ii(8), jj(8), kk(8), ll(8), k2
-
-   do i8=1,ao_integrals_map%map_size
+   !$OMP BARRIER
+   !$OMP DO SCHEDULE(dynamic)
+   do i8=0_8,ao_integrals_map%map_size
      n_elements = n_elements_max
      call get_cache_map(ao_integrals_map,i8,keys,values,n_elements)
      if (n_elements == 0) then
@@ -189,7 +177,9 @@ END_PROVIDER
      do k1=1,n_elements
        call bielec_integrals_index_reverse(kk,ii,ll,jj,keys(k1))
        do k2=1,8
-         if (kk(k2) == 0) cycle
+         if (kk(k2)==0) then
+           cycle
+         endif
          i = ii(k2)
          j = jj(k2)
          k = kk(k2)
@@ -197,17 +187,16 @@ END_PROVIDER
          integral = (HF_density_matrix_ao_alpha(k,l)+HF_density_matrix_ao_beta(k,l)) * values(k1)
          ao_bi_elec_integral_alpha(i,j) += integral
          ao_bi_elec_integral_beta (i,j) += integral
-!         integral = values(k1)
-!         ao_bi_elec_integral_alpha(i,l) -= HF_density_matrix_ao_alpha(k,l) * integral
-!         ao_bi_elec_integral_beta (i,l) -= HF_density_matrix_ao_beta (k,l) * integral
+         integral = values(k1)
+         ao_bi_elec_integral_alpha(l,j) -= HF_density_matrix_ao_alpha(k,i) * integral
+         ao_bi_elec_integral_beta (l,j) -= HF_density_matrix_ao_beta (k,i) * integral
        enddo
      enddo
    enddo
+   !$OMP END DO
    deallocate(keys,values)
+   !$OMP END PARALLEL
 
-   do i=1,ao_num
-     call omp_destroy_lock(lck(i))
-   enddo
  endif
 
 END_PROVIDER

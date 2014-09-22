@@ -92,7 +92,7 @@ subroutine bielec_integrals_index_reverse(i,j,k,l,i1)
            (j(ii) == j(jj)).and. &
            (k(ii) == k(jj)).and. &
            (l(ii) == l(jj)) ) then
-         i(jj) = 0
+         i(ii) = 0
          exit
       endif
     enddo

@@ -698,7 +698,7 @@ subroutine get_cache_map_n_elements_max(map,n_elements_max)
   integer(cache_map_size_kind), intent(out) :: n_elements_max
   integer(map_size_kind)         :: i
   n_elements_max = 0_cache_map_size_kind
-  do i=1,map%map_size
+  do i=0_8,map%map_size
     n_elements_max = max(n_elements_max, map%map(i)%n_elements)
   enddo
 end
