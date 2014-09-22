@@ -107,44 +107,73 @@ END_PROVIDER
  ! Alpha Fock matrix in AO basis set
  END_DOC
  
- integer                        :: i,j,k,l,k1
+ integer                        :: i,j,k,l,k1,r,s
+ integer*8                      :: p,q
  double precision               :: integral
  double precision               :: ao_bielec_integral
  if (do_direct_integrals) then
-   PROVIDE all_utils ao_overlap_abs ao_integrals_threshold
+   PROVIDE all_utils ao_overlap_abs ao_integrals_threshold gauleg_t2
    PROVIDE HF_density_matrix_ao_alpha  HF_density_matrix_ao_beta
    PROVIDE ao_bi_elec_integral_alpha
-   !$OMP PARALLEL DEFAULT(NONE) &
-   !$OMP PRIVATE(i,j,l,k1,k,integral) &
-   !$OMP SHARED(ao_num,ao_bi_elec_integral_alpha,ao_mono_elec_integral,&
-   !$OMP  ao_num_align,ao_bi_elec_integral_beta,HF_density_matrix_ao_alpha, &
-   !$OMP  HF_density_matrix_ao_beta) 
-   !$OMP DO SCHEDULE(GUIDED)
-   do j=1,ao_num
-     do i=1,j
-       ao_bi_elec_integral_alpha(i,j) = 0.d0
-       ao_bi_elec_integral_beta (i,j) = 0.d0
-       do l=1,ao_num
-         do k=1,ao_num
-           if ((abs(HF_density_matrix_ao_alpha(k,l)) > 1.d-9).or.    &
-                 (abs(HF_density_matrix_ao_beta (k,l)) > 1.d-9)) then
-             integral = (HF_density_matrix_ao_alpha(k,l)+HF_density_matrix_ao_beta (k,l)) * ao_bielec_integral(k,l,i,j)
+
+   ao_bi_elec_integral_alpha = 0.d0
+   ao_bi_elec_integral_beta  = 0.d0
+   !$OMP PARALLEL DEFAULT(NONE)                                      &
+       !$OMP PRIVATE(i,j,l,k1,k,integral,ii,jj,kk,ll,i8,keys,values,p,q,r,s)&
+       !$OMP SHARED(ao_num,HF_density_matrix_ao_alpha,HF_density_matrix_ao_beta,&
+       !$OMP ao_integrals_map,ao_integrals_threshold, ao_bielec_integral_schwartz, &
+       !$OMP ao_overlap_abs) &
+       !$OMP REDUCTION(+:ao_bi_elec_integral_alpha,ao_bi_elec_integral_beta)
+
+   allocate(keys(1), values(1))
+
+   q = ao_num*ao_num*ao_num*ao_num
+   !$OMP DO SCHEDULE(dynamic)
+   do p=1_8,q
+           call bielec_integrals_index_reverse(kk,ii,ll,jj,p)
+           if ( (kk(1)>ao_num).or. &
+                (ii(1)>ao_num).or. &
+                (jj(1)>ao_num).or. &
+                (ll(1)>ao_num) ) then
+                cycle
+           endif
+           k = kk(1)
+           i = ii(1)
+           l = ll(1)
+           j = jj(1)
+
+           if (ao_overlap_abs(k,l)*ao_overlap_abs(i,j)  &
+              < ao_integrals_threshold) then
+             cycle
+           endif
+           if (ao_bielec_integral_schwartz(k,l)*ao_bielec_integral_schwartz(i,j)  &
+              < ao_integrals_threshold) then
+             cycle
+           endif
+           values(1) = ao_bielec_integral(k,l,i,j)
+!           values(1) = ao_bielec_integral(k,i,l,j)
+           if (abs(values(1)) < ao_integrals_threshold) then
+             cycle
+           endif
+           do k2=1,8
+             if (kk(k2)==0) then
+               cycle
+             endif
+             i = ii(k2)
+             j = jj(k2)
+             k = kk(k2)
+             l = ll(k2)
+             integral = (HF_density_matrix_ao_alpha(k,l)+HF_density_matrix_ao_beta(k,l)) * values(1)
              ao_bi_elec_integral_alpha(i,j) += integral
              ao_bi_elec_integral_beta (i,j) += integral
-
-             integral = ao_bielec_integral(k,j,i,l)
-             ao_bi_elec_integral_alpha(i,j) -= HF_density_matrix_ao_alpha(k,l)*integral
-             ao_bi_elec_integral_beta (i,j) -= HF_density_matrix_ao_beta (k,l)*integral
-           endif
-         enddo
-       enddo
-       ao_bi_elec_integral_alpha(j,i) = ao_bi_elec_integral_alpha(i,j)
-       ao_bi_elec_integral_beta (j,i) = ao_bi_elec_integral_beta (i,j)
-     enddo
+             integral = values(1)
+             ao_bi_elec_integral_alpha(l,j) -= HF_density_matrix_ao_alpha(k,i) * integral
+             ao_bi_elec_integral_beta (l,j) -= HF_density_matrix_ao_beta (k,i) * integral
+           enddo
    enddo
-   !$OMP END DO NOWAIT
+   !$OMP END DO
+   deallocate(keys,values)
    !$OMP END PARALLEL
-
  else
    PROVIDE ao_bielec_integrals_in_map 
            
@@ -166,7 +195,6 @@ END_PROVIDER
    call get_cache_map_n_elements_max(ao_integrals_map,n_elements_max)
    allocate(keys(n_elements_max), values(n_elements_max))
 
-   !$OMP BARRIER
    !$OMP DO SCHEDULE(dynamic)
    do i8=0_8,ao_integrals_map%map_size
      n_elements = n_elements_max

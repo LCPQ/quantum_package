@@ -215,7 +215,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   integer                        :: jl_pairs(2,ao_num*(ao_num+1)/2), kk, m, j1, i1, lmax
   
   PROVIDE gauleg_t2 ao_integrals_map all_utils
-  PROVIDE ao_bielec_integral_schwartz
+!  PROVIDE ao_bielec_integral_schwartz
   integral = ao_bielec_integral(1,1,1,1)
   
   real                           :: map_mb
@@ -357,7 +357,7 @@ END_PROVIDER
 BEGIN_PROVIDER [ double precision, ao_bielec_integral_schwartz,(ao_num,ao_num)  ]
   implicit none
   BEGIN_DOC
-  !  Needed to compuet Schwartz inequalities
+  !  Needed to compute Schwartz inequalities
   END_DOC
   
   integer                        :: i,k
