@@ -13,8 +13,13 @@ double precision function ao_bielec_integral(i,j,k,l)
   double precision               :: P_new(0:max_dim,3),P_center(3),fact_p,pp
   double precision               :: Q_new(0:max_dim,3),Q_center(3),fact_q,qq
   integer                        :: iorder_p(3), iorder_q(3)
-  logical                        :: do_p, do_q, do_r
+  double precision               :: ao_bielec_integral_schwartz_accel
   
+   if (ao_prim_num(i) * ao_prim_num(j) * ao_prim_num(k) * ao_prim_num(l) > 1024 ) then
+     ao_bielec_integral = ao_bielec_integral_schwartz_accel(i,j,k,l)
+     return
+   endif
+
   PROVIDE all_utils
   
   dim1 = n_pt_max_integrals
@@ -24,8 +29,6 @@ double precision function ao_bielec_integral(i,j,k,l)
   num_k = ao_nucl(k)
   num_l = ao_nucl(l)
   ao_bielec_integral = 0.d0
-  double precision               :: thresh
-!  thresh = ao_integrals_threshold
   
   if (num_i /= num_j .or. num_k /= num_l .or. num_j /= num_k)then
     do p = 1, 3
@@ -39,31 +42,19 @@ double precision function ao_bielec_integral(i,j,k,l)
       L_center(p) = nucl_coord(num_l,p)
     enddo
     
-    do_p = .True.
     do p = 1, ao_prim_num(i)
       double precision               :: coef1
-      if (.not.do_p) exit
-      do_p = .False.
-      do_q = .True.
       coef1 = ao_coef_transp(p,i)
       do q = 1, ao_prim_num(j)
         double precision               :: coef2
-        if (.not.do_q) exit
-        do_q = .False.
-        do_r = .True.
         coef2 = coef1*ao_coef_transp(q,j)
         double precision               :: p_inv,q_inv
         call give_explicit_poly_and_gaussian(P_new,P_center,pp,fact_p,iorder_p,&
             ao_expo_transp(p,i),ao_expo_transp(q,j),                 &
             I_power,J_power,I_center,J_center,dim1)
-        if (abs(fact_p) < 1.d-8) then
-          exit
-        endif
         p_inv = 1.d0/pp
         do r = 1, ao_prim_num(k)
           double precision               :: coef3
-          if (.not.do_r) exit
-          do_r = .False.
           coef3 = coef2*ao_coef_transp(r,k)
           do s = 1, ao_prim_num(l)
             double precision               :: coef4
@@ -72,20 +63,11 @@ double precision function ao_bielec_integral(i,j,k,l)
             call give_explicit_poly_and_gaussian(Q_new,Q_center,qq,fact_q,iorder_q,&
                 ao_expo_transp(r,k),ao_expo_transp(s,l),             &
                 K_power,L_power,K_center,L_center,dim1)
-            if (abs(fact_p*fact_q) < 1.d-8) then
-              exit
-            endif
             q_inv = 1.d0/qq
             integral = general_primitive_integral(dim1,              &
                 P_new,P_center,fact_p,pp,p_inv,iorder_p,             &
                 Q_new,Q_center,fact_q,qq,q_inv,iorder_q)
             ao_bielec_integral +=  coef4 * integral
-!            if (abs(integral) < thresh) then
-!              exit
-!            endif
-            do_r = .True.
-            do_q = .True.
-            do_p = .True.
           enddo ! s
         enddo  ! r
       enddo   ! q
@@ -100,20 +82,12 @@ double precision function ao_bielec_integral(i,j,k,l)
       L_power(p) = ao_power(l,p)
     enddo
     double  precision              :: ERI
-    do_p = .True.
+
     do p = 1, ao_prim_num(i)
-      if (.not.do_p) exit
-      do_p = .False.
-      do_q = .True.
       coef1 = ao_coef_transp(p,i)
       do q = 1, ao_prim_num(j)
-        if (.not.do_q) exit
-        do_q = .False.
-        do_r = .True.
         coef2 = coef1*ao_coef_transp(q,j)
         do r = 1, ao_prim_num(k)
-          if (.not.do_r) exit
-          do_r = .False.
           coef3 = coef2*ao_coef_transp(r,k)
           do s = 1, ao_prim_num(l)
             coef4 = coef3*ao_coef_transp(s,l)
@@ -123,18 +97,160 @@ double precision function ao_bielec_integral(i,j,k,l)
                 I_power(2),J_power(2),K_power(2),L_power(2),         &
                 I_power(3),J_power(3),K_power(3),L_power(3))
             ao_bielec_integral +=  coef4 * integral
-!            if (abs(integral) < thresh) then
-!              exit
-!            endif
-            do_r = .True.
-            do_q = .True.
-            do_p = .True.
           enddo ! s
         enddo  ! r
       enddo   ! q
     enddo    ! p
     
   endif
+  
+end
+
+double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
+  implicit none
+  BEGIN_DOC
+  !  integral of the AO basis <ik|jl> or (ij|kl)
+  !     i(r1) j(r1) 1/r12 k(r2) l(r2)
+  END_DOC
+  integer,intent(in)             :: i,j,k,l
+  integer                        :: p,q,r,s
+  double precision               :: I_center(3),J_center(3),K_center(3),L_center(3)
+  integer                        :: num_i,num_j,num_k,num_l,dim1,I_power(3),J_power(3),K_power(3),L_power(3)
+  double precision               :: integral
+  include 'include/constants.F'
+  double precision               :: P_new(0:max_dim,3),P_center(3),fact_p,pp
+  double precision               :: Q_new(0:max_dim,3),Q_center(3),fact_q,qq
+  integer                        :: iorder_p(3), iorder_q(3)
+  double precision, allocatable  :: schwartz_kl(:,:)
+  double precision               :: schwartz_ij
+  
+  PROVIDE all_utils
+  
+  dim1 = n_pt_max_integrals
+  
+  num_i = ao_nucl(i)
+  num_j = ao_nucl(j)
+  num_k = ao_nucl(k)
+  num_l = ao_nucl(l)
+  ao_bielec_integral_schwartz_accel = 0.d0
+  double precision               :: thresh
+  thresh = ao_integrals_threshold*ao_integrals_threshold
+  
+  allocate(schwartz_kl(ao_prim_num(k),ao_prim_num(l)))
+
+
+  if (num_i /= num_j .or. num_k /= num_l .or. num_j /= num_k)then
+    do p = 1, 3
+      I_power(p) = ao_power(i,p)
+      J_power(p) = ao_power(j,p)
+      K_power(p) = ao_power(k,p)
+      L_power(p) = ao_power(l,p)
+      I_center(p) = nucl_coord(num_i,p)
+      J_center(p) = nucl_coord(num_j,p)
+      K_center(p) = nucl_coord(num_k,p)
+      L_center(p) = nucl_coord(num_l,p)
+    enddo
+    
+    do r = 1, ao_prim_num(k)
+      do s = 1, ao_prim_num(l)
+        call give_explicit_poly_and_gaussian(Q_new,Q_center,qq,fact_q,iorder_q,&
+            ao_expo_transp(r,k),ao_expo_transp(s,l),                 &
+            K_power,L_power,K_center,L_center,dim1)
+        q_inv = 1.d0/qq
+        schwartz_kl(r,s) = general_primitive_integral(dim1,          &
+            Q_new,Q_center,fact_q,qq,q_inv,iorder_q,                 &
+            Q_new,Q_center,fact_q,qq,q_inv,iorder_q)
+        schwartz_kl(r,s) = schwartz_kl(r,s)
+      enddo
+    enddo
+
+    do p = 1, ao_prim_num(i)
+      double precision               :: coef1
+      coef1 = ao_coef_transp(p,i)
+      do q = 1, ao_prim_num(j)
+        double precision               :: coef2
+        coef2 = coef1*ao_coef_transp(q,j)
+        double precision               :: p_inv,q_inv
+        call give_explicit_poly_and_gaussian(P_new,P_center,pp,fact_p,iorder_p,&
+            ao_expo_transp(p,i),ao_expo_transp(q,j),                 &
+            I_power,J_power,I_center,J_center,dim1)
+        p_inv = 1.d0/pp
+        schwartz_ij = general_primitive_integral(dim1,              &
+                P_new,P_center,fact_p,pp,p_inv,iorder_p,             &
+                P_new,P_center,fact_p,pp,p_inv,iorder_p)
+        schwartz_ij = schwartz_ij
+        do r = 1, ao_prim_num(k)
+          double precision               :: coef3
+          coef3 = coef2*ao_coef_transp(r,k)
+          do s = 1, ao_prim_num(l)
+            double precision               :: coef4
+            coef4 = coef3*ao_coef_transp(s,l)
+            if (schwartz_kl(r,s)*schwartz_ij*coef4*coef4 < thresh) then
+               cycle
+            endif
+            double precision               :: general_primitive_integral
+            call give_explicit_poly_and_gaussian(Q_new,Q_center,qq,fact_q,iorder_q,&
+                ao_expo_transp(r,k),ao_expo_transp(s,l),             &
+                K_power,L_power,K_center,L_center,dim1)
+            q_inv = 1.d0/qq
+            integral = general_primitive_integral(dim1,              &
+                P_new,P_center,fact_p,pp,p_inv,iorder_p,             &
+                Q_new,Q_center,fact_q,qq,q_inv,iorder_q)
+            ao_bielec_integral_schwartz_accel +=  coef4 * integral
+          enddo ! s
+        enddo  ! r
+      enddo   ! q
+    enddo    ! p
+    
+  else
+    
+    do p = 1, 3
+      I_power(p) = ao_power(i,p)
+      J_power(p) = ao_power(j,p)
+      K_power(p) = ao_power(k,p)
+      L_power(p) = ao_power(l,p)
+    enddo
+    double  precision              :: ERI
+
+    do r = 1, ao_prim_num(k)
+      do s = 1, ao_prim_num(l)
+        schwartz_kl(r,s) = ERI(                                      &
+            ao_expo_transp(r,k),ao_expo_transp(s,l),ao_expo_transp(r,k),ao_expo_transp(s,l),&
+            K_power(1),L_power(1),K_power(1),L_power(1),             &
+            K_power(2),L_power(2),K_power(2),L_power(2),             &
+            K_power(3),L_power(3),K_power(3),L_power(3))
+      enddo
+    enddo
+
+    do p = 1, ao_prim_num(i)
+      coef1 = ao_coef_transp(p,i)
+      do q = 1, ao_prim_num(j)
+        coef2 = coef1*ao_coef_transp(q,j)
+        schwartz_ij = ERI(                                          &
+                ao_expo_transp(p,i),ao_expo_transp(q,j),ao_expo_transp(p,i),ao_expo_transp(q,j),&
+                I_power(1),J_power(1),I_power(1),J_power(1),         &
+                I_power(2),J_power(2),I_power(2),J_power(2),         &
+                I_power(3),J_power(3),I_power(3),J_power(3))
+        do r = 1, ao_prim_num(k)
+          coef3 = coef2*ao_coef_transp(r,k)
+          do s = 1, ao_prim_num(l)
+            coef4 = coef3*ao_coef_transp(s,l)
+            if (schwartz_kl(r,s)*schwartz_ij*coef4*coef4 < thresh) then
+               cycle
+            endif
+            integral = ERI(                                          &
+                ao_expo_transp(p,i),ao_expo_transp(q,j),ao_expo_transp(r,k),ao_expo_transp(s,l),&
+                I_power(1),J_power(1),K_power(1),L_power(1),         &
+                I_power(2),J_power(2),K_power(2),L_power(2),         &
+                I_power(3),J_power(3),K_power(3),L_power(3))
+            ao_bielec_integral_schwartz_accel +=  coef4 * integral
+          enddo ! s
+        enddo  ! r
+      enddo   ! q
+    enddo    ! p
+    
+  endif
+  deallocate (schwartz_kl)
   
 end
 
@@ -501,6 +617,9 @@ double precision function general_primitive_integral(dim,            &
   
   !DEC$ FORCEINLINE
   call multiply_poly(Ix_pol,n_Ix,Iy_pol,n_Iy,d_poly,n_pt_tmp)
+  if (n_pt_tmp == -1) then
+    return
+  endif
   n_pt_out = n_pt_tmp+n_Iz
   do i=0,n_pt_out
     d1(i)=0.d0
