@@ -716,11 +716,10 @@ subroutine integrale_new(I_f,a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z,p,q
   double precision               :: p,q
   integer                        :: a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z
   integer                        :: i, n_iter, n_pt, j
-  double precision               :: accu,  I_f, pq_inv, p10_1, p10_2, p01_1, p01_2,rho,pq_inv_2
+  double precision               :: I_f, pq_inv, p10_1, p10_2, p01_1, p01_2,rho,pq_inv_2
   integer :: ix,iy,iz, jx,jy,jz, sx,sy,sz
   
   j = ishft(n_pt,-1)
-  accu = 0.d0
   ASSERT (n_pt > 1)
   pq_inv = 0.5d0/(p+q)
   pq_inv_2 = pq_inv + pq_inv
@@ -729,26 +728,52 @@ subroutine integrale_new(I_f,a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z,p,q
   p10_2 = 0.5d0 *  q /(p * q + p * p)
   p01_2 = 0.5d0 *  p /(q * q + q * p)
   double precision               :: B10(n_pt), B01(n_pt), B00(n_pt)
-  double precision               :: t1(n_pt), t2(n_pt), t3(n_pt)
+  double precision               :: t1(n_pt), t2(n_pt)
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: t1, t2, B10, B01, B00
   ix = a_x+b_x
   jx = c_x+d_x
   iy = a_y+b_y
   jy = c_y+d_y
   iz = a_z+b_z
   jz = c_z+d_z
+  sx = ix+jx
+  sy = iy+jy
+  sz = iz+jz
+
+  !DIR$ VECTOR ALIGNED
   do i = 1,n_pt
     B10(i)  = p10_1 -  gauleg_t2(i,j)* p10_2
     B01(i)  = p01_1 -  gauleg_t2(i,j)* p01_2
     B00(i)  = gauleg_t2(i,j)*pq_inv
   enddo
-  call I_x1_new(ix,jx,B10,B01,B00,t1,n_pt)
-  call I_x1_new(iy,jy,B10,B01,B00,t2,n_pt)
-  call I_x1_new(iz,jz,B10,B01,B00,t3,n_pt)
+  if (sx > 0) then
+    call I_x1_new(ix,jx,B10,B01,B00,t1,n_pt)
+  else
+    !DIR$ VECTOR ALIGNED
+    do i = 1,n_pt
+      t1(i) = 1.d0
+    enddo
+  endif
+  if (sy > 0) then
+    call I_x1_new(iy,jy,B10,B01,B00,t2,n_pt)
+    !DIR$ VECTOR ALIGNED
+    do i = 1,n_pt
+      t1(i) = t1(i)*t2(i)
+    enddo
+  endif
+  if (sz > 0) then
+    call I_x1_new(iz,jz,B10,B01,B00,t2,n_pt)
+    !DIR$ VECTOR ALIGNED
+    do i = 1,n_pt
+      t1(i) = t1(i)*t2(i)
+    enddo
+  endif
+  I_f= 0.d0
+  !DIR$ VECTOR ALIGNED
   do i = 1,n_pt
-    accu += gauleg_w(i,j)*t1(i)*t2(i)*t3(i)
+    I_f += gauleg_w(i,j)*t1(i)
   enddo
   
-  I_f= accu
   
   
 end
@@ -765,6 +790,7 @@ recursive subroutine I_x1_new(a,c,B_10,B_01,B_00,res,n_pt)
   integer                        :: i
   
   if(c<0)then
+    !DIR$ VECTOR ALIGNED
     do i=1,n_pt
       res(i) = 0.d0
     enddo
@@ -772,12 +798,14 @@ recursive subroutine I_x1_new(a,c,B_10,B_01,B_00,res,n_pt)
     call I_x2_new(c,B_10,B_01,B_00,res,n_pt)
   else if (a==1) then
     call I_x2_new(c-1,B_10,B_01,B_00,res,n_pt)
+    !DIR$ VECTOR ALIGNED
     do i=1,n_pt
       res(i) = c * B_00(i) * res(i)
     enddo
   else
     call I_x1_new(a-2,c,B_10,B_01,B_00,res,n_pt)
     call I_x1_new(a-1,c-1,B_10,B_01,B_00,res2,n_pt)
+    !DIR$ VECTOR ALIGNED
     do i=1,n_pt
       res(i) = (a-1) * B_10(i) * res(i) &
                + c * B_00(i) * res2(i)
@@ -796,15 +824,18 @@ recursive subroutine I_x2_new(c,B_10,B_01,B_00,res,n_pt)
   integer                        :: i
   
   if(c==1)then
+    !DIR$ VECTOR ALIGNED
     do i=1,n_pt
       res(i) = 0.d0
     enddo
   elseif(c==0) then
+    !DIR$ VECTOR ALIGNED
     do i=1,n_pt
       res(i) = 1.d0
     enddo
   else
     call I_x1_new(0,c-2,B_10,B_01,B_00,res,n_pt)
+    !DIR$ VECTOR ALIGNED
     do i=1,n_pt
       res(i) =  (c-1) * B_01(i) * res(i)
     enddo
