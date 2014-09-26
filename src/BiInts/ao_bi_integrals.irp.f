@@ -121,8 +121,8 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
   double precision               :: P_new(0:max_dim,3),P_center(3),fact_p,pp
   double precision               :: Q_new(0:max_dim,3),Q_center(3),fact_q,qq
   integer                        :: iorder_p(3), iorder_q(3)
-  double precision, allocatable  :: schwartz_kl(:,:)
-  double precision               :: schwartz_ij
+  real, allocatable              :: schwartz_kl(:,:)
+  real                           :: schwartz_ij
   
   PROVIDE all_utils
   
@@ -151,10 +151,10 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
       L_center(p) = nucl_coord(num_l,p)
     enddo
     
-    schwartz_kl(0,0) = 0.d0
+    schwartz_kl(0,0) = 0.
     do r = 1, ao_prim_num(k)
       coef1 = ao_coef_transp(r,k)*ao_coef_transp(r,k)
-      schwartz_kl(0,r) = 0.d0
+      schwartz_kl(0,r) = 0.
       do s = 1, ao_prim_num(l)
         coef2 = coef1 * ao_coef_transp(s,l) * ao_coef_transp(s,l)
         call give_explicit_poly_and_gaussian(Q_new,Q_center,qq,fact_q,iorder_q,&
@@ -205,10 +205,9 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
                 ao_expo_transp(r,k),ao_expo_transp(s,l),             &
                 K_power,L_power,K_center,L_center,dim1)
             q_inv = 1.d0/qq
-            integral = general_primitive_integral(dim1,              &
+            integral += general_primitive_integral(dim1,              &
                 P_new,P_center,fact_p,pp,p_inv,iorder_p,             &
-                Q_new,Q_center,fact_q,qq,q_inv,iorder_q)
-            ao_bielec_integral_schwartz_accel +=  coef4 * integral
+                Q_new,Q_center,fact_q,qq,q_inv,iorder_q) * coef4
           enddo ! s
         enddo  ! r
       enddo   ! q
@@ -224,10 +223,10 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
     enddo
     double  precision              :: ERI
 
-    schwartz_kl(0,0) = 0.d0
+    schwartz_kl(0,0) = 0.
     do r = 1, ao_prim_num(k)
       coef1 = ao_coef_transp(r,k)*ao_coef_transp(r,k)
-      schwartz_kl(0,r) = 0.d0
+      schwartz_kl(0,r) = 0.
       do s = 1, ao_prim_num(l)
         coef2 = coef1*ao_coef_transp(s,l)*ao_coef_transp(s,l)
         schwartz_kl(s,r) = ERI(                                      &
@@ -263,7 +262,7 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
                cycle
             endif
             coef4 = coef3*ao_coef_transp(s,l)
-            integral = ERI(                                          &
+            integral += coef4*ERI(                                          &
                 ao_expo_transp(p,i),ao_expo_transp(q,j),ao_expo_transp(r,k),ao_expo_transp(s,l),&
                 I_power(1),J_power(1),K_power(1),L_power(1),         &
                 I_power(2),J_power(2),K_power(2),L_power(2),         &
@@ -342,9 +341,8 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   
   integer                        :: i,j,k,l
   double precision               :: ao_bielec_integral,cpu_1,cpu_2, wall_1, wall_2
-  double precision               :: integral, wall_0
-  double precision               :: thresh
-  thresh = ao_integrals_threshold
+  double precision               :: wall_0
+  double precision               :: thresh, thresh2
   
   ! For integrals file
   integer*8,allocatable          :: buffer_i(:)
@@ -354,12 +352,37 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   
   integer                        :: n_integrals, n_centers, thread_num
   integer                        :: jl_pairs(2,ao_num*(ao_num+1)/2), kk, m, j1, i1, lmax
+
+
+  integer                        :: p,q,r,s
+  double precision               :: I_center(3),J_center(3),K_center(3),L_center(3)
+  integer                        :: num_i,num_j,num_k,num_l,dim1,I_power(3),J_power(3),K_power(3),L_power(3)
+  double precision               :: integral
+  include 'include/constants.F'
+  double precision               :: P_new(0:max_dim,3),P_center(3),fact_p,pp
+  double precision               :: Q_new(0:max_dim,3),Q_center(3),fact_q,qq
+  integer                        :: iorder_p(3), iorder_q(3)
+  real, allocatable              :: schwartz_kl(:,:)
+  real                           :: schwartz_ij
+  double precision               :: coef1
+  double precision               :: coef2
+  double precision               :: p_inv,q_inv
+  double precision               :: coef3
+  double precision               :: coef4
+  double precision               :: general_primitive_integral
+  double  precision              :: ERI
+
   
+  thresh = ao_integrals_threshold
   PROVIDE gauleg_t2 ao_integrals_map all_utils
-!  PROVIDE ao_bielec_integral_schwartz
+  PROVIDE ao_bielec_integral_schwartz
   integral = ao_bielec_integral(1,1,1,1)
+  dim1 = n_pt_max_integrals
   
   real                           :: map_mb
+
+  thresh2 = thresh*thresh
+
   if (read_ao_integrals) then
     integer                        :: load_ao_integrals
     if (load_ao_integrals(trim(ezfio_filename)//'/work/ao_integrals.bin') == 0) then
@@ -371,8 +394,8 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   
   kk=1
   do l = 1, ao_num   ! r2
-    do j = 1, l       ! r2
-      jl_pairs(1,kk) = j
+    do k = 1, l       ! r2
+      jl_pairs(1,kk) = k
       jl_pairs(2,kk) = l
       kk += 1
     enddo
@@ -387,12 +410,17 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   call cpu_time(cpu_1)
   !$OMP PARALLEL PRIVATE(i,j,k,l,kk,                                 &
       !$OMP integral,buffer_i,buffer_value,n_integrals,              &
-      !$OMP cpu_2,wall_2,i1,j1,thread_num)                           &
+      !$OMP cpu_2,wall_2,i1,j1,thread_num, num_i, num_j, num_k, num_l,&
+      !$OMP schwartz_kl,schwartz_ij,I_power,J_power,K_power,L_power, &
+      !$OMP I_center,J_center,K_center,L_center,coef1,coef2,coef3,coef4,&
+      !$OMP pp,qq,p_inv,q_inv,P_center,Q_center,P_new,Q_new,fact_p,  &
+      !$OMP fact_q,iorder_p,iorder_q)                                &
       !$OMP DEFAULT(NONE)                                            &
-      !$OMP SHARED (ao_num, jl_pairs, ao_integrals_map,thresh,       &
-      !$OMP    cpu_1,wall_1,lock, lmax,n_centers,ao_nucl,            &
-      !$OMP    ao_overlap_abs,ao_overlap,output_BiInts,abort_here,   &
-      !$OMP    wall_0)
+      !$OMP SHARED (ao_num, jl_pairs, ao_integrals_map,thresh,thresh2,&
+      !$OMP cpu_1,wall_1,lock, lmax,n_centers,ao_nucl,nucl_coord,    &
+      !$OMP ao_bielec_integral_schwartz,output_BiInts,abort_here,    &
+      !$OMP wall_0,ao_prim_num,ao_expo_transp,ao_coef_transp,dim1,   &
+      !$OMP ao_power)
   
   allocate(buffer_i(size_buffer))
   allocate(buffer_value(size_buffer))
@@ -409,33 +437,198 @@ IRP_ENDIF
     if (abort_here) then
       cycle
     endif
-    j = jl_pairs(1,kk)
+    k = jl_pairs(1,kk)
     l = jl_pairs(2,kk)
-    j1 = j+ishft(l*l-l,-1)
-    if (ao_overlap_abs(j,l) < thresh) then
-      cycle
+    j1 = k+ishft(l*l-l,-1)
+    num_k = ao_nucl(k)
+    num_l = ao_nucl(l)
+    allocate(schwartz_kl(0:ao_prim_num(l),0:ao_prim_num(k)))
+    do p = 1, 3
+      K_power(p) = ao_power(k,p)
+      L_power(p) = ao_power(l,p)
+      K_center(p) = nucl_coord(num_k,p)
+      L_center(p) = nucl_coord(num_l,p)
+    enddo
+
+    ! ====================================
+    ! Schwartz screening for kl primitives
+    ! ------------------------------------
+
+    schwartz_kl(0,0) = 0.
+    if (num_k /= num_l) then
+
+      do r = 1, ao_prim_num(k)
+        coef1 = ao_coef_transp(r,k)*ao_coef_transp(r,k)
+        schwartz_kl(0,r) = 0.
+        do s = 1, ao_prim_num(l)
+          coef2 = coef1 * ao_coef_transp(s,l) * ao_coef_transp(s,l)
+          call give_explicit_poly_and_gaussian(Q_new,Q_center,qq,fact_q,iorder_q,&
+              ao_expo_transp(r,k),ao_expo_transp(s,l),                 &
+              K_power,L_power,K_center,L_center,dim1)
+          q_inv = 1.d0/qq
+          schwartz_kl(s,r) = general_primitive_integral(dim1,          &
+              Q_new,Q_center,fact_q,qq,q_inv,iorder_q, &
+              Q_new,Q_center,fact_q,qq,q_inv,iorder_q) &
+              * coef2 
+          schwartz_kl(0,r) = max(schwartz_kl(0,r),schwartz_kl(s,r))
+        enddo
+        schwartz_kl(0,0) = max(schwartz_kl(0,r),schwartz_kl(0,0))
+      enddo
+
+    else
+
+      do r = 1, ao_prim_num(k)
+        coef1 = ao_coef_transp(r,k)*ao_coef_transp(r,k)
+        schwartz_kl(0,r) = 0.
+        do s = 1, ao_prim_num(l)
+          coef2 = coef1*ao_coef_transp(s,l)*ao_coef_transp(s,l)
+          schwartz_kl(s,r) = ERI(                                      &
+              ao_expo_transp(r,k),ao_expo_transp(s,l),ao_expo_transp(r,k),ao_expo_transp(s,l),&
+              K_power(1),L_power(1),K_power(1),L_power(1),             &
+              K_power(2),L_power(2),K_power(2),L_power(2),             &
+              K_power(3),L_power(3),K_power(3),L_power(3)) * &
+              coef2
+          schwartz_kl(0,r) = max(schwartz_kl(0,r),schwartz_kl(s,r))
+        enddo
+        schwartz_kl(0,0) = max(schwartz_kl(0,r),schwartz_kl(0,0))
+      enddo
+
     endif
-    do k = 1, ao_num           ! r1
-      i1 = ishft(k*k-k,-1)
+    ! -------------------------------------------
+    ! End of Schwartz screening for kl primitives
+    ! ===========================================
+
+    do j = 1, ao_num           ! r1
+      i1 = ishft(j*j-j,-1)
       if (i1 > j1) then
         exit
       endif
-      do i = 1, k
+      num_j = ao_nucl(j)
+      do p = 1, 3
+        J_power(p) = ao_power(j,p)
+        J_center(p) = nucl_coord(num_j,p)
+      enddo
+      do i = 1, j
         i1 += 1
         if (i1 > j1) then
           exit
         endif
-        if (ao_overlap_abs(i,k)*ao_overlap_abs(j,l) < thresh) then
-          cycle
+        num_i = ao_nucl(i)
+        do p = 1, 3
+          I_power(p) = ao_power(i,p)
+          I_center(p) = nucl_coord(num_i,p)
+        enddo
+
+        integral = 0.d0
+        
+
+        if (num_i /= num_j .or. num_k /= num_l .or. num_j /= num_k)then
+
+          ! =====================
+          ! Multi-center integral
+          ! ---------------------
+
+          do p = 1, ao_prim_num(i)
+            coef1 = ao_coef_transp(p,i)
+            do q = 1, ao_prim_num(j)
+              coef2 = coef1*ao_coef_transp(q,j)
+              call give_explicit_poly_and_gaussian(P_new,P_center,pp,fact_p,iorder_p,&
+                  ao_expo_transp(p,i),ao_expo_transp(q,j),                 &
+                  I_power,J_power,I_center,J_center,dim1)
+              p_inv = 1.d0/pp
+              schwartz_ij = general_primitive_integral(dim1,               &
+                  P_new,P_center,fact_p,pp,p_inv,iorder_p,                 &
+                  P_new,P_center,fact_p,pp,p_inv,iorder_p) *               &
+                  coef2*coef2
+              if (schwartz_kl(0,0)*schwartz_ij < thresh2) then
+                 cycle
+              endif
+              do r = 1, ao_prim_num(k)
+                if (schwartz_kl(0,r)*schwartz_ij < thresh2) then
+                   cycle
+                endif
+                coef3 = coef2*ao_coef_transp(r,k)
+                do s = 1, ao_prim_num(l)
+                  if (schwartz_kl(s,r)*schwartz_ij < thresh2) then
+                     cycle
+                  endif
+                  coef4 = coef3*ao_coef_transp(s,l)
+                  call give_explicit_poly_and_gaussian(Q_new,Q_center,qq,fact_q,iorder_q,&
+                      ao_expo_transp(r,k),ao_expo_transp(s,l),             &
+                      K_power,L_power,K_center,L_center,dim1)
+                  q_inv = 1.d0/qq
+                  integral += coef4 * general_primitive_integral(dim1,              &
+                      P_new,P_center,fact_p,pp,p_inv,iorder_p,             &
+                      Q_new,Q_center,fact_q,qq,q_inv,iorder_q) 
+                enddo ! s
+              enddo  ! r
+            enddo   ! q
+          enddo    ! p
+
+          ! -------------------------
+          ! End Multi-center integral
+          ! =========================
+
+          
+        else
+          
+
+          ! ===================
+          ! One-center integral
+          ! -------------------
+
+          do p = 1, ao_prim_num(i)
+            coef1 = ao_coef_transp(p,i)
+            do q = 1, ao_prim_num(j)
+              coef2 = coef1*ao_coef_transp(q,j)
+              schwartz_ij = ERI(                                          &
+                      ao_expo_transp(p,i),ao_expo_transp(q,j),ao_expo_transp(p,i),ao_expo_transp(q,j),&
+                      I_power(1),J_power(1),I_power(1),J_power(1),         &
+                      I_power(2),J_power(2),I_power(2),J_power(2),         &
+                      I_power(3),J_power(3),I_power(3),J_power(3))*coef2*coef2
+              if (schwartz_kl(0,0)*schwartz_ij < thresh2) then
+                 cycle
+              endif
+              do r = 1, ao_prim_num(k)
+                if (schwartz_kl(0,r)*schwartz_ij < thresh2) then
+                   cycle
+                endif
+                coef3 = coef2*ao_coef_transp(r,k)
+                do s = 1, ao_prim_num(l)
+                  if (schwartz_kl(s,r)*schwartz_ij < thresh2) then
+                     cycle
+                  endif
+                  coef4 = coef3*ao_coef_transp(s,l)
+                  integral += coef4*ERI(                                          &
+                      ao_expo_transp(p,i),ao_expo_transp(q,j),ao_expo_transp(r,k),ao_expo_transp(s,l),&
+                      I_power(1),J_power(1),K_power(1),L_power(1),         &
+                      I_power(2),J_power(2),K_power(2),L_power(2),         &
+                      I_power(3),J_power(3),K_power(3),L_power(3))
+                enddo ! s
+              enddo  ! r
+            enddo   ! q
+          enddo    ! p
+
+          ! -----------------------
+          ! End One-center integral
+          ! =======================
+
+          
         endif
-        !DIR$ FORCEINLINE
-        integral = ao_bielec_integral(i,k,j,l)
+  
+
+
         if (abs(integral) < thresh) then
           cycle
         endif
+
+        ! ======================
+        ! Append integral to map
+        ! ----------------------
+
         n_integrals += 1
         !DIR$ FORCEINLINE
-        call bielec_integrals_index(i,j,k,l,buffer_i(n_integrals))
+        call bielec_integrals_index(i,k,j,l,buffer_i(n_integrals))
         buffer_value(n_integrals) = integral
         if (n_integrals > 1024 ) then
           if (omp_test_lock(lock)) then
@@ -448,6 +641,11 @@ IRP_ENDIF
           call insert_into_ao_integrals_map(n_integrals,buffer_i,buffer_value)
           n_integrals = 0
         endif
+
+        ! --------------------------
+        ! End Append integral to map
+        ! ==========================
+
       enddo
     enddo
     call wall_time(wall_2)
@@ -459,6 +657,7 @@ IRP_ENDIF
             wall_2-wall_1, 's', map_mb(ao_integrals_map) ,'MB'
       endif
     endif
+    deallocate (schwartz_kl)
   enddo
   !$OMP END DO NOWAIT
   call insert_into_ao_integrals_map(n_integrals,buffer_i,buffer_value)
@@ -495,7 +694,7 @@ END_PROVIDER
 
 
 
-BEGIN_PROVIDER [ double precision, ao_bielec_integral_schwartz,(ao_num,ao_num)  ]
+BEGIN_PROVIDER [ real, ao_bielec_integral_schwartz,(ao_num,ao_num)  ]
   implicit none
   BEGIN_DOC
   !  Needed to compute Schwartz inequalities
@@ -512,7 +711,7 @@ BEGIN_PROVIDER [ double precision, ao_bielec_integral_schwartz,(ao_num,ao_num)  
       !$OMP SCHEDULE(dynamic)
   do i=1,ao_num
     do k=1,i
-      ao_bielec_integral_schwartz(i,k) = dsqrt(ao_bielec_integral(i,k,i,k))
+      ao_bielec_integral_schwartz(i,k) = sqrt(ao_bielec_integral(i,k,i,k))
       ao_bielec_integral_schwartz(k,i) = ao_bielec_integral_schwartz(i,k)
     enddo
   enddo
@@ -807,8 +1006,7 @@ recursive subroutine I_x1_new(a,c,B_10,B_01,B_00,res,n_pt)
     call I_x1_new(a-1,c-1,B_10,B_01,B_00,res2,n_pt)
     !DIR$ VECTOR ALIGNED
     do i=1,n_pt
-      res(i) = (a-1) * B_10(i) * res(i) &
-               + c * B_00(i) * res2(i)
+      res(i) = (a-1) * B_10(i) * res(i) + c * B_00(i) * res2(i)
     enddo
   endif
 end
