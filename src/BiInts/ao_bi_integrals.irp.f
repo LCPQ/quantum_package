@@ -714,16 +714,13 @@ subroutine integrale_new(I_f,a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z,p,q
   
   implicit none
   double precision               :: p,q
-  double precision               :: I_x1_new, I_x2_new
   integer                        :: a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z
   integer                        :: i, n_iter, n_pt, j
-  double precision               :: accu,  I_f, pq_inv, p10_1, p10_2, p01_1, p01_2
+  double precision               :: accu,  I_f, pq_inv, p10_1, p10_2, p01_1, p01_2,rho,pq_inv_2
+  integer :: ix,iy,iz, jx,jy,jz, sx,sy,sz
   
   j = ishft(n_pt,-1)
   accu = 0.d0
-  !if(iand(a_x+b_x+c_x+d_x,1).eq.1.or.iand(a_y+b_y+c_y+d_y,1).eq.1.or.iand(a_z+b_z+c_z+d_z,1).eq.1)then
-  !  I_f = 0.d0
-  !else
   ASSERT (n_pt > 1)
   pq_inv = 0.5d0/(p+q)
   pq_inv_2 = pq_inv + pq_inv
@@ -731,62 +728,86 @@ subroutine integrale_new(I_f,a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z,p,q
   p01_1 = 0.5d0/q
   p10_2 = 0.5d0 *  q /(p * q + p * p)
   p01_2 = 0.5d0 *  p /(q * q + q * p)
-  double precision               :: B10, B01, B00, flush_buffer,flush_buffer_one,rho,pq_inv_2
+  double precision               :: B10(n_pt), B01(n_pt), B00(n_pt)
+  double precision               :: t1(n_pt), t2(n_pt), t3(n_pt)
+  ix = a_x+b_x
+  jx = c_x+d_x
+  iy = a_y+b_y
+  jy = c_y+d_y
+  iz = a_z+b_z
+  jz = c_z+d_z
   do i = 1,n_pt
-    B10  = p10_1 -  gauleg_t2(i,j)* p10_2
-    B01  = p01_1 -  gauleg_t2(i,j)* p01_2
-    B00  = gauleg_t2(i,j)*pq_inv
-    flush_buffer = 0.d0
-    flush_buffer_one = 1.d0
-    accu += gauleg_w(i,j)*I_x1_new(a_x+b_x,c_x+d_x,B10,B01,B00,flush_buffer)&
-        *I_x1_new(a_y+b_y,c_y+d_y,B10,B01,B00,flush_buffer_one)      &
-        *I_x1_new(a_z+b_z,c_z+d_z,B10,B01,B00,flush_buffer_one)
+    B10(i)  = p10_1 -  gauleg_t2(i,j)* p10_2
+    B01(i)  = p01_1 -  gauleg_t2(i,j)* p01_2
+    B00(i)  = gauleg_t2(i,j)*pq_inv
+  enddo
+  call I_x1_new(ix,jx,B10,B01,B00,t1,n_pt)
+  call I_x1_new(iy,jy,B10,B01,B00,t2,n_pt)
+  call I_x1_new(iz,jz,B10,B01,B00,t3,n_pt)
+  do i = 1,n_pt
+    accu += gauleg_w(i,j)*t1(i)*t2(i)*t3(i)
   enddo
   
   I_f= accu
   
-  !endif
   
 end
 
-recursive double precision function I_x1_new(a,c,B_10,B_01,B_00,I_0000) result(res)
+recursive subroutine I_x1_new(a,c,B_10,B_01,B_00,res,n_pt) 
   BEGIN_DOC
   !  recursive function involved in the bielectronic integral
   END_DOC
   implicit none
-  integer, intent(in)            :: a,c
-  double precision, intent(in)   :: B_10,B_01,B_00
-  double precision, intent(in)   :: I_0000
-  double precision               :: I_x2_new
-  
+  integer, intent(in)            :: a,c,n_pt
+  double precision, intent(in)   :: B_10(n_pt),B_01(n_pt),B_00(n_pt)
+  double precision, intent(out)  :: res(n_pt)
+  double precision               :: res2(n_pt)
+  integer                        :: i
   
   if(c<0)then
-    res = 0.d0
+    do i=1,n_pt
+      res(i) = 0.d0
+    enddo
   else if (a==0) then
-    res = I_x2_new(c,B_10,B_01,B_00,I_0000)
+    call I_x2_new(c,B_10,B_01,B_00,res,n_pt)
   else if (a==1) then
-    res = c * B_00 * I_x2_new(c-1,B_10,B_01,B_00,I_0000)
+    call I_x2_new(c-1,B_10,B_01,B_00,res,n_pt)
+    do i=1,n_pt
+      res(i) = c * B_00(i) * res(i)
+    enddo
   else
-    res = (a-1) * B_10 * I_x1_new(a-2,c,B_10,B_01,B_00,I_0000)       &
-                                                                     &+   c   * B_00 * I_x1_new(a-1,c-1,B_10,B_01,B_00,I_0000)
+    call I_x1_new(a-2,c,B_10,B_01,B_00,res,n_pt)
+    call I_x1_new(a-1,c-1,B_10,B_01,B_00,res2,n_pt)
+    do i=1,n_pt
+      res(i) = (a-1) * B_10(i) * res(i) &
+               + c * B_00(i) * res2(i)
+    enddo
   endif
 end
-
-recursive double precision function I_x2_new(c,B_10,B_01,B_00,I_0000) result(res)
+  
+recursive subroutine I_x2_new(c,B_10,B_01,B_00,res,n_pt) 
   implicit none
   BEGIN_DOC
   !  recursive function involved in the bielectronic integral
   END_DOC
-  integer, intent(in)            :: c
-  double precision, intent(in)   :: B_10,B_01,B_00,I_0000
-  double precision               :: I_x1_new
+  integer, intent(in)            :: c, n_pt
+  double precision, intent(in)   :: B_10(n_pt),B_01(n_pt),B_00(n_pt)
+  double precision, intent(out)  :: res(n_pt)
+  integer                        :: i
   
   if(c==1)then
-    res = 0.d0
+    do i=1,n_pt
+      res(i) = 0.d0
+    enddo
   elseif(c==0) then
-    res = 1.d0
+    do i=1,n_pt
+      res(i) = 1.d0
+    enddo
   else
-    res =  (c-1) * B_01 * I_x1_new(0,c-2,B_10,B_01,B_00,I_0000)
+    call I_x1_new(0,c-2,B_10,B_01,B_00,res,n_pt)
+    do i=1,n_pt
+      res(i) =  (c-1) * B_01(i) * res(i)
+    enddo
   endif
 end
 
