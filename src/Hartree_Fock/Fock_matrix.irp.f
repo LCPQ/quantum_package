@@ -277,7 +277,7 @@ BEGIN_PROVIDER [ double precision, HF_energy ]
  BEGIN_DOC
  ! Hartree-Fock energy
  END_DOC
-  HF_energy = nuclear_repulsion + ref_bitmask_energy
+ HF_energy = nuclear_repulsion + ref_bitmask_energy
 END_PROVIDER
 
 

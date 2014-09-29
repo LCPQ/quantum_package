@@ -24,6 +24,7 @@ use bitmasks
   endif
  enddo
 END_PROVIDER
+
   BEGIN_PROVIDER[double precision, coef_hf_selector]
  &BEGIN_PROVIDER[double precision, inv_selectors_coef_hf]
  &BEGIN_PROVIDER[double precision, inv_selectors_coef_hf_squared]

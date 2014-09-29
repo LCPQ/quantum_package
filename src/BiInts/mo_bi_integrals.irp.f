@@ -24,6 +24,8 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
   BEGIN_DOC
   ! If True, the map of MO bielectronic integrals is provided
   END_DOC
+
+  PROVIDE all_mo_integrals
   
   mo_bielec_integrals_in_map = .True.
   if (read_mo_integrals) then
