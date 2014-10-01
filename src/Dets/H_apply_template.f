@@ -387,6 +387,9 @@ subroutine $subroutine($params_main)
   call wall_time(wall_1)
  
 
+  PROVIDE progress_bar
+  call start_progress(N_det_generators,'Selection (norm)',0.d0)
+
   !$ call omp_init_lock(lck)
   !$OMP PARALLEL DEFAULT(SHARED) &
   !$OMP PRIVATE(i_generator,wall_2,ispin,k,mask,iproc) 
@@ -395,6 +398,9 @@ subroutine $subroutine($params_main)
   allocate( mask(N_int,2,6) )
   !$OMP DO SCHEDULE(dynamic,4)
   do i_generator=1,nmax
+    if (iproc == 0) then
+      progress_bar(1) = i_generator
+    endif
     if (abort_here) then
       cycle
     endif
@@ -449,10 +455,12 @@ subroutine $subroutine($params_main)
   !$OMP END PARALLEL
   !$ call omp_destroy_lock(lck)
 
+
   allocate( mask(N_int,2,6) )
 !  do i_generator=1,N_det_generators
   do i_generator=nmax+1,N_det_generators
 
+    progress_bar(1) = i_generator
 
     if (abort_here) then
       exit
@@ -500,6 +508,7 @@ subroutine $subroutine($params_main)
         $printout_now
     endif
   enddo
+  call stop_progress
   
   $copy_buffer
   $generate_psi_guess

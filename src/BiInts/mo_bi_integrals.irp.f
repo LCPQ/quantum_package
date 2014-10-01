@@ -90,6 +90,8 @@ subroutine add_integrals_to_map(mask_ijkl)
   
   call wall_time(wall_1)
   call cpu_time(cpu_1)
+  PROVIDE progress_bar
+  call start_progress(ao_num,'MO integrals (MB)',0.d0)
   
   !$OMP PARALLEL PRIVATE(l1,k1,j1,i1,i2,i3,i4,i,j,k,l,c, ii1,kmax,   &
       !$OMP  bielec_tmp_0_idx, bielec_tmp_0, bielec_tmp_1,bielec_tmp_2,bielec_tmp_3,&
@@ -100,7 +102,7 @@ subroutine add_integrals_to_map(mask_ijkl)
       !$OMP  mo_coef_transp,output_BiInts,                           &
       !$OMP  mo_coef_transp_is_built, list_ijkl,                     &
       !$OMP  mo_coef_is_built, wall_1, abort_here,                   &
-      !$OMP  mo_coef,mo_integrals_threshold,ao_integrals_map,mo_integrals_map)
+      !$OMP  mo_coef,mo_integrals_threshold,ao_integrals_map,mo_integrals_map,progress_bar,progress_value)
   n_integrals = 0
   allocate(bielec_tmp_3(mo_tot_num_align, n_j, n_k),                 &
       bielec_tmp_1(mo_tot_num_align),                                &
@@ -113,6 +115,9 @@ subroutine add_integrals_to_map(mask_ijkl)
 !$  thread_num = omp_get_thread_num()
   !$OMP DO SCHEDULE(guided)
   do l1 = 1,ao_num
+    if (thread_num == 0) then
+      progress_bar(1) = l1
+    endif
 IRP_IF COARRAY
     if (mod(l1-this_image(),num_images()) /= 0 ) then
       cycle
@@ -268,7 +273,9 @@ IRP_ENDIF
       if (wall_2 - wall_0 > 1.d0) then
         wall_0 = wall_2
         write(output_BiInts,*) 100.*float(l1)/float(ao_num), '% in ',  &
-            wall_2-wall_1, 's', map_mb(ao_integrals_map) ,'MB'
+            wall_2-wall_1, 's', map_mb(mo_integrals_map) ,'MB'
+        progress_value = dble(map_mb(mo_integrals_map))
+
       endif
     endif
   enddo
@@ -279,6 +286,7 @@ IRP_ENDIF
       real(mo_integrals_threshold,integral_kind))
   deallocate(buffer_i, buffer_value)
   !$OMP END PARALLEL
+  call stop_progress
   if (abort_here) then
     stop 'Aborting in MO integrals calculation'
   endif

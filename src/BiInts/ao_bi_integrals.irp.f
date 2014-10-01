@@ -379,12 +379,14 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   enddo
   
   PROVIDE ao_nucl
+  PROVIDE progress_bar
   call omp_init_lock(lock)
   lmax = ao_num*(ao_num+1)/2
   write(output_BiInts,*) 'providing the AO integrals'
   call wall_time(wall_0)
   call wall_time(wall_1)
   call cpu_time(cpu_1)
+  call start_progress(lmax,'AO integrals (MB)',0.d0)
   !$OMP PARALLEL PRIVATE(i,j,k,l,kk,                                 &
       !$OMP integral,buffer_i,buffer_value,n_integrals,              &
       !$OMP cpu_2,wall_2,i1,j1,thread_num)                           &
@@ -392,7 +394,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
       !$OMP SHARED (ao_num, jl_pairs, ao_integrals_map,thresh,       &
       !$OMP    cpu_1,wall_1,lock, lmax,n_centers,ao_nucl,            &
       !$OMP    ao_overlap_abs,ao_overlap,output_BiInts,abort_here,   &
-      !$OMP    wall_0)
+      !$OMP    wall_0,progress_bar,progress_value)
   
   allocate(buffer_i(size_buffer))
   allocate(buffer_value(size_buffer))
@@ -408,6 +410,9 @@ IRP_IF COARRAY
 IRP_ENDIF
     if (abort_here) then
       cycle
+    endif
+    if (thread_num == 0) then
+      progress_bar(1) = kk
     endif
     j = jl_pairs(1,kk)
     l = jl_pairs(2,kk)
@@ -457,6 +462,7 @@ IRP_ENDIF
         wall_0 = wall_2
         write(output_BiInts,*) 100.*float(kk)/float(lmax), '% in ',  &
             wall_2-wall_1, 's', map_mb(ao_integrals_map) ,'MB'
+        progress_value = dble(map_mb(ao_integrals_map))
       endif
     endif
   enddo
@@ -466,6 +472,7 @@ IRP_ENDIF
   deallocate(buffer_value)
   !$OMP END PARALLEL
   call omp_destroy_lock(lock)
+  call stop_progress
   if (abort_here) then
     stop 'Aborting in AO integrals calculation'
   endif

@@ -197,6 +197,7 @@ class H_apply(object):
                  wall_1-wall_0
          pt2_old(k) = pt2(k)
       enddo
+      progress_value = norm_psi(1)
       """
       self.data["omp_parallel"]    += """&
  !$OMP SHARED(N_st) PRIVATE(e_2_pert_buffer,coef_pert_buffer) &
@@ -238,6 +239,7 @@ class H_apply(object):
             norm_psi(k) = norm_psi(k) + psi_coef(i_generator,k)*psi_coef(i_generator,k)
             delta_pt2(k) = 0.d0
             pt2_old(k) = 0.d0
+            pt2(k) = select_max(i_generator)
           enddo
           !$ call omp_unset_lock(lck)
           cycle
