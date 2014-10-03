@@ -86,6 +86,19 @@ BEGIN_PROVIDER [ double precision, mo_coef_transp, (mo_tot_num_align,ao_num) ]
   
 END_PROVIDER
 
+BEGIN_PROVIDER [ double precision, S_mo_coef, (ao_num_align, mo_tot_num) ]
+ implicit none
+ BEGIN_DOC
+ ! Product S.C where S is the overlap matrix in the AO basis and C the mo_coef matrix.
+ END_DOC
+
+ call dgemm('N','N', ao_num, mo_tot_num, ao_num,                   &
+     1.d0, ao_overlap,size(ao_overlap,1),      &
+     mo_coef, size(mo_coef,1),                                     &
+     0.d0, S_mo_coef, size(S_mo_coef,1))
+
+END_PROVIDER
+
 BEGIN_PROVIDER [ double precision, mo_occ, (mo_tot_num) ]
   implicit none
   BEGIN_DOC

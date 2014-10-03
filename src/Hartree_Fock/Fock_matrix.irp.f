@@ -198,11 +198,9 @@ END_PROVIDER
    do i8=0_8,ao_integrals_map%map_size
      n_elements = n_elements_max
      call get_cache_map(ao_integrals_map,i8,keys,values,n_elements)
-     if (n_elements == 0) then
-       cycle
-     endif
      do k1=1,n_elements
        call bielec_integrals_index_reverse(kk,ii,ll,jj,keys(k1))
+
        do k2=1,8
          if (kk(k2)==0) then
            cycle

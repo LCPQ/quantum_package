@@ -37,10 +37,10 @@ subroutine bielec_integrals_index_reverse(i,j,k,l,i1)
   integer*8, intent(in)          :: i1
   integer*8                      :: i2,i3
   i = 0
-  i2   = ceiling(0.5*(sqrt(8.*real(i1)+1.)-1.))
-  l(1) = ceiling(0.5*(sqrt(8.*real(i2)+1.)-1.))
+  i2   = ceiling(0.5d0*(dsqrt(8.d0*dble(i1)+1.d0)-1.d0))
+  l(1) = ceiling(0.5d0*(dsqrt(8.d0*dble(i2)+1.d0)-1.d0))
   i3   = i1 - ishft(i2*i2-i2,-1)
-  k(1) = ceiling(0.5*(sqrt(8.*real(i3)+1.)-1.))
+  k(1) = ceiling(0.5d0*(dsqrt(8.d0*dble(i3)+1.d0)-1.d0))
   j(1) = i2 - ishft(l(1)*l(1)-l(1),-1)
   i(1) = i3 - ishft(k(1)*k(1)-k(1),-1)
 
