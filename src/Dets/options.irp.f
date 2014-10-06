@@ -20,6 +20,7 @@ T.set_doc       ( "If true, read the wave function from the EZFIO file" )
 T.set_ezfio_name( "read_wf" )
 T.set_output    ( "output_dets" )
 print T
+
 END_SHELL
 
 

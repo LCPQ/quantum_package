@@ -20,7 +20,7 @@ END_PROVIDER
  BEGIN_DOC
  ! convergence of the correlation energy of SC2 iterations
  END_DOC
- threshold_convergence_SC2 = 1.d-8
+ threshold_convergence_SC2 = 1.d-10
 
  END_PROVIDER
  BEGIN_PROVIDER [ double precision, CI_SC2_electronic_energy, (N_states) ]
@@ -33,8 +33,8 @@ END_PROVIDER
   
   do j=1,N_states
     do i=1,N_det
-!     CI_SC2_eigenvectors(i,j) = psi_coef(i,j)
-      CI_SC2_eigenvectors(i,j) = CI_eigenvectors(i,j)
+      CI_SC2_eigenvectors(i,j) = psi_coef(i,j)
+!     CI_SC2_eigenvectors(i,j) = CI_eigenvectors(i,j)
     enddo
     CI_SC2_electronic_energy(j) = CI_electronic_energy(j) 
   enddo

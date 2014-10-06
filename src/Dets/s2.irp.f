@@ -42,6 +42,21 @@ BEGIN_PROVIDER [ double precision, S_z ]
 
 END_PROVIDER
 
+BEGIN_PROVIDER [ double precision, expected_s2]
+ implicit none
+   PROVIDE ezfio_filename
+   logical :: has_expected_s2
+
+   call ezfio_has_determinants_expected_s2(has_expected_s2)
+   if (has_expected_s2) then
+     call ezfio_get_determinants_expected_s2(expected_s2)
+   else
+     expected_s2 = elec_alpha_num - elec_beta_num + 0.5d0 * ((elec_alpha_num - elec_beta_num)**2*0.5d0 - (elec_alpha_num-elec_beta_num))
+     call ezfio_set_determinants_expected_s2(expected_s2)
+   endif
+
+END_PROVIDER 
+
 
 subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
  implicit none

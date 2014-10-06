@@ -13,4 +13,5 @@ determinants
   det_occ                integer           (electrons_elec_alpha_num,determinants_det_num,2)
   det_coef               double precision  (determinants_det_num)
   read_wf                logical 
+  expected_s2            double precision 
 

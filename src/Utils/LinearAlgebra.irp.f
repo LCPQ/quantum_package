@@ -307,6 +307,72 @@ subroutine lapack_diag(eigvalues,eigvectors,H,nmax,n)
   deallocate(A,eigenvalues)
 end
 
+subroutine lapack_diag_s2(eigvalues,eigvectors,H,nmax,n)
+  implicit none
+  BEGIN_DOC
+  ! Diagonalize matrix H
+  !
+  ! H is untouched between input and ouptut
+  !
+  ! eigevalues(i) = ith lowest eigenvalue of the H matrix
+  !
+  ! eigvectors(i,j) = <i|psi_j> where i is the basis function and psi_j is the j th eigenvector
+  !
+  END_DOC
+  integer, intent(in)            :: n,nmax
+  double precision, intent(out)  :: eigvectors(nmax,n)
+  double precision, intent(out)  :: eigvalues(n)
+  double precision, intent(in)   :: H(nmax,n)
+  double precision,allocatable   :: eigenvalues(:)
+  double precision,allocatable   :: work(:)
+  double precision,allocatable   :: A(:,:)
+  integer                        :: lwork, info, i,j,l,k, liwork
+
+  allocate(A(nmax,n),eigenvalues(n))
+! print*,'Diagonalization by jacobi'
+! print*,'n = ',n
+
+  A=H
+  lwork = 2*n*n + 6*n+ 1
+  allocate (work(lwork))
+
+  lwork = -1
+  call DSYEV( 'V', 'U', n, A, nmax, eigenvalues, work, lwork, &
+    info )
+  if (info < 0) then
+    print *, irp_here, ': DSYEV: the ',-info,'-th argument had an illegal value'
+    stop 2
+  endif
+  lwork  = int( work( 1 ) )
+  deallocate (work)
+
+  allocate (work(lwork))
+  call DSYEV( 'V', 'U', n, A, nmax, eigenvalues, work, lwork, &
+    info )
+  deallocate(work)
+
+  if (info < 0) then
+    print *, irp_here, ': DSYEV: the ',-info,'-th argument had an illegal value'
+    stop 2
+  else if( info > 0  ) then
+     write(*,*)'DSYEV Failed'
+     stop 1
+  end if
+
+  eigvectors = 0.d0
+  eigvalues = 0.d0
+  do j = 1, n
+    eigvalues(j) = eigenvalues(j)
+    do i = 1, n
+      eigvectors(i,j) = A(i,j)
+    enddo
+  enddo
+  deallocate(A,eigenvalues)
+end
+
+
+
+
 subroutine lapack_partial_diag(eigvalues,eigvectors,H,nmax,n,n_st)
   implicit none
   BEGIN_DOC
