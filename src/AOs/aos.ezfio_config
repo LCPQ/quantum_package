@@ -1,4 +1,5 @@
 ao_basis
+  ao_basis           character*(256)
   ao_num             integer
   ao_prim_num        integer       (ao_basis_ao_num)
   ao_nucl            integer       (ao_basis_ao_num)

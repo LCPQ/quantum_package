@@ -12,10 +12,10 @@ type t = {
 let get_charge { nuclei  ; elec_alpha ; elec_beta } =
   let result = Positive_int.(to_int elec_alpha + to_int elec_beta) in
   let rec nucl_charge = function
-  | a::rest -> Atom.(Charge.to_float a.charge) +. nucl_charge rest
+  | a::rest -> (Charge.to_float a.Atom.charge) +. nucl_charge rest
   | [] -> 0.
   in
-  nucl_charge nuclei  -. (Float.of_int result)
+  Charge.of_float (nucl_charge nuclei  -. (Float.of_int result))
 ;;
 
 let get_multiplicity m = 
@@ -27,7 +27,7 @@ let get_nucl_num m =
 ;;
 
 let name m = 
-  let cm = Float.to_int (get_charge m) in
+  let cm = Charge.to_int (get_charge m) in
   let c = 
      match cm with
      | 0 -> ""
@@ -70,13 +70,14 @@ let to_string m =
   let { nuclei  ; elec_alpha ; elec_beta } = m in
   let n = List.length nuclei in
   let title = name m in
-  [ Int.to_string n ; title ] @ (List.map ~f:Atom.to_string nuclei)
+  [ Int.to_string n ; title ] @ (List.map ~f:(fun x -> Atom.to_string
+  Units.Angstrom x) nuclei)
   |> String.concat ~sep:"\n"
 ;;
 
 let of_xyz_string
     ?(charge=0) ?(multiplicity=(Multiplicity.of_int 1))
-    ?(units=Point3d.Angstrom)
+    ?(units=Units.Angstrom)
     s =
   let l = String.split s ~on:'\n'
        |> List.filter ~f:(fun x -> x <> "")
@@ -86,8 +87,8 @@ let of_xyz_string
         nuclei=l ;
         elec_alpha=(Positive_int.of_int 0) ;
         elec_beta=(Positive_int.of_int 0) } 
-      |> Float.to_int 
-      )- charge 
+      |> Charge.to_int 
+      ) - charge 
       |> Positive_int.of_int 
   in
   let (na,nb) = Multiplicity.to_alpha_beta ne multiplicity in

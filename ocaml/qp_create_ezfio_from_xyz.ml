@@ -18,14 +18,6 @@ let spec =
 
 let run ?o b c m xyz_file =
 
-(*
-  (* DEBUG *)
-  Printf.printf "Charge : %d
-Multiplicity : %d
-Basis : %s
-File : %s\n" c m b xyz_file;
-*)
-
   (* Open basis set channel *)
   let basis_channel =
     In_channel.create

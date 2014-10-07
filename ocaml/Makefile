@@ -32,7 +32,7 @@ executables: $(ALL_EXE)
 %.byte: $(MLFILES) $(MLIFILES)
 	rm -f -- $*
 	$(OCAMLBUILD) $*.byte  -use-ocamlfind  $(PKGS)
-	ln -s $*.native $*
+	ln -s $*.byte $*
 
 %.native: $(MLFILES) $(MLIFILES)
 	rm -f -- $*
