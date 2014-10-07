@@ -27,3 +27,5 @@ doc:
 src: irpf90 EZFIO
 	export QPACKAGE_ROOT=$$PWD ; \
 	$(MAKE) -C src
+
+
