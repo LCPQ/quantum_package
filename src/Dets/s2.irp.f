@@ -52,7 +52,7 @@ BEGIN_PROVIDER [ double precision, expected_s2]
      call ezfio_get_determinants_expected_s2(expected_s2)
    else
      expected_s2 = elec_alpha_num - elec_beta_num + 0.5d0 * ((elec_alpha_num - elec_beta_num)**2*0.5d0 - (elec_alpha_num-elec_beta_num))
-     call ezfio_set_determinants_expected_s2(expected_s2)
+!    call ezfio_set_determinants_expected_s2(expected_s2)
    endif
 
 END_PROVIDER 

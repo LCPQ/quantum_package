@@ -175,7 +175,7 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
      enddo
      call lapack_diag(eigenvalues,eigenvectors,                       &
          H_matrix_tmp,size(H_matrix_all_dets,1),sze)
-     do j=1,min(N_states,sze)
+     do j=1,min(N_states_diag,sze)
        do i=1,sze
          u_in(i,j) = eigenvectors(i,j)
        enddo

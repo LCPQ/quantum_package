@@ -150,7 +150,7 @@ subroutine read_dets(det,Nint,Ndet)
 end
 
 
-BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
+BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states_diag) ]
   implicit none
   BEGIN_DOC
   ! The wave function coefficients. Initialized with Hartree-Fock if the EZFIO file
@@ -161,6 +161,11 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
   logical                        :: exists
   double precision, allocatable  :: psi_coef_read(:,:)
   character*(64)                 :: label
+
+  psi_coef = 0.d0
+  do i=1,N_states_diag
+    psi_coef(i,i) = 1.d0
+  enddo
   
   if (read_wf) then
     call ezfio_has_determinants_psi_coef(exists)
@@ -183,21 +188,7 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
       enddo
       deallocate(psi_coef_read)
       
-    else
-      
-      psi_coef = 0.d0
-      do i=1,N_states
-        psi_coef(i,i) = 1.d0
-      enddo
-
     endif
-    
-  else
-    
-    psi_coef = 0.d0
-    do i=1,N_states
-      psi_coef(i,i) = 1.d0
-    enddo
     
   endif
     
