@@ -30,10 +30,14 @@ executables: $(ALL_EXE)
 	mv _build/$*.inferred.mli .
 
 %.byte: $(MLFILES) $(MLIFILES)
+	rm -f -- $*
 	$(OCAMLBUILD) $*.byte  -use-ocamlfind  $(PKGS)
+	ln -s $*.native $*
 
 %.native: $(MLFILES) $(MLIFILES)
+	rm -f -- $*
 	$(OCAMLBUILD) $*.native -use-ocamlfind $(PKGS)
+	ln -s $*.native $*
 
 ezfio.ml: ${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml
 	cp ${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml .

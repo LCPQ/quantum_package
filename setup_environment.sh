@@ -39,3 +39,16 @@ then
   echo "Error in IRPF90 installation"
   exit 1
 fi
+
+# Ocaml installation
+make -C ocaml qp_create_ezfio_from_xyz.native
+if [[ $? -ne 0 ]]
+then
+  scripts/fetch_from_web.py "https://raw.github.com/hcarty/ocamlbrew/master/ocamlbrew-install" ocamlbrew-install.sh
+  cat < ocamlbrew-install.sh | env OCAMLBREW_FLAGS="-r" bash > ocaml_install.log
+  grep "source " install.log | grep "etc/ocamlbrew.bashrc"  >> quantum_package.rc
+  source quantum_package.rc
+  echo Y | opam install core async
+fi
+
+
