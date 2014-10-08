@@ -10,15 +10,6 @@ T.set_output    ( "output_dets" )
 print T
 
 
-T.set_type      ( "integer" )
-T.set_name      ( "N_states_diag" )
-T.set_doc       ( "Number of states to consider for the diagonalization " )
-T.set_ezfio_dir ( "determinants" )
-T.set_ezfio_name( "N_states_diag" )
-T.set_output    ( "output_dets" )
-print T
-
-
 T.set_name      ( "N_det_max_jacobi" )
 T.set_doc       ( "Maximum number of determinants diagonalized by Jacobi" )
 T.set_ezfio_name( "N_det_max_jacobi" )
@@ -33,4 +24,25 @@ print T
 
 END_SHELL
 
+BEGIN_PROVIDER [ integer, N_states_diag ]
+  implicit none
+  BEGIN_DOC  
+!  Number of states to consider for the diagonalization 
+  END_DOC
+
+  logical                        :: has
+  PROVIDE ezfio_filename
+  call ezfio_has_determinants_n_states_diag(has)
+  if (has) then
+    call ezfio_get_determinants_n_states_diag(N_states_diag)
+  else
+    N_states_diag = N_states
+  endif
+  
+  call write_time(output_dets)
+  call write_int(output_dets, N_states_diag, &
+      'N_states_diag')
+      
+
+END_PROVIDER
 
