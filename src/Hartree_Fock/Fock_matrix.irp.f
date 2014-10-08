@@ -112,9 +112,6 @@ END_PROVIDER
  double precision               :: integral
  double precision               :: ao_bielec_integral
  if (do_direct_integrals) then
-   PROVIDE all_utils ao_overlap_abs ao_integrals_threshold gauleg_t2
-   PROVIDE HF_density_matrix_ao_alpha  HF_density_matrix_ao_beta
-   PROVIDE ao_bi_elec_integral_alpha
 
    ao_bi_elec_integral_alpha = 0.d0
    ao_bi_elec_integral_beta  = 0.d0

@@ -1,4 +1,4 @@
-program cisd
+program mp2
   implicit none
   double precision, allocatable  :: pt2(:), norm_pert(:)
   double precision               :: H_pert_diag, E_old

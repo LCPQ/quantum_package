@@ -11,7 +11,6 @@
  double precision ::overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult
  integer :: nucl_numC
  ! Important for OpenMP
- PROVIDE all_utils
 
  ao_nucl_elec_integral = 0.d0
 

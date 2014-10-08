@@ -25,8 +25,6 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
   ! If True, the map of MO bielectronic integrals is provided
   END_DOC
 
-  PROVIDE all_mo_integrals
-  
   mo_bielec_integrals_in_map = .True.
   if (read_mo_integrals) then
     integer                        :: load_mo_integrals
@@ -72,7 +70,7 @@ subroutine add_integrals_to_map(mask_ijkl)
   integer                        :: i2,i3,i4
   double precision,parameter     :: thr_coef = 0.d0
   
-  PROVIDE N_int ao_bielec_integrals_in_map ao_integrals_map mo_coef mo_coef_transp
+  PROVIDE ao_bielec_integrals_in_map 
   
   !Get list of MOs for i,j,k and l
   !-------------------------------
@@ -340,11 +338,8 @@ end
   
   double precision, allocatable  :: iqrs(:,:), iqsr(:,:), iqis(:), iqri(:)
   
-  PROVIDE ao_integrals_threshold
   if (.not.do_direct_integrals) then
     PROVIDE ao_bielec_integrals_in_map
-  else
-    PROVIDE ao_overlap_abs
   endif
   
   mo_bielec_integral_jj = 0.d0

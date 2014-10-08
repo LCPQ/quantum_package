@@ -14,7 +14,8 @@ CXX   += -pg
 endif
 
 ifeq ($(OPENMP),1)
-FC    += -fopenmp
+FC           += -fopenmp
+IRPF90_FLAGS += --openmp
 endif
 
 ifeq ($(DEBUG),1)

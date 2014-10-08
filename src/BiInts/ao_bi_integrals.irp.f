@@ -20,8 +20,6 @@ double precision function ao_bielec_integral(i,j,k,l)
      return
    endif
 
-  PROVIDE all_utils
-  
   dim1 = n_pt_max_integrals
   
   num_i = ao_nucl(i)
@@ -123,8 +121,6 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
   integer                        :: iorder_p(3), iorder_q(3)
   double precision, allocatable  :: schwartz_kl(:,:)
   double precision               :: schwartz_ij
-  
-  PROVIDE all_utils
   
   dim1 = n_pt_max_integrals
   
@@ -307,8 +303,6 @@ subroutine compute_ao_bielec_integrals(j,k,l,sze,buffer_value)
   
   integer                        :: n_centers, i
   
-  PROVIDE gauleg_t2 ao_nucl  all_utils
-  
   if (ao_overlap_abs(j,l) < thresh) then
     buffer_value = 0._integral_kind
     return
@@ -355,8 +349,6 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   integer                        :: n_integrals, n_centers, thread_num
   integer                        :: jl_pairs(2,ao_num*(ao_num+1)/2), kk, m, j1, i1, lmax
   
-  PROVIDE gauleg_t2 ao_integrals_map all_utils
-  PROVIDE ao_bielec_integral_schwartz
   integral = ao_bielec_integral(1,1,1,1)
   
   real                           :: map_mb
@@ -378,7 +370,6 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
     enddo
   enddo
   
-  PROVIDE ao_nucl
   PROVIDE progress_bar
   call omp_init_lock(lock)
   lmax = ao_num*(ao_num+1)/2
@@ -511,7 +502,6 @@ BEGIN_PROVIDER [ double precision, ao_bielec_integral_schwartz,(ao_num,ao_num)  
   integer                        :: i,k
   double precision               :: ao_bielec_integral,cpu_1,cpu_2, wall_1, wall_2
   
-  PROVIDE gauleg_t2 ao_integrals_map
   ao_bielec_integral_schwartz(1,1) = ao_bielec_integral(1,1,1,1)
   !$OMP PARALLEL DO PRIVATE(i,k)                                     &
       !$OMP DEFAULT(NONE)                                            &

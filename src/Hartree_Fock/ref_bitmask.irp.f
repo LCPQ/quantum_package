@@ -11,8 +11,6 @@
   integer                        :: occ(N_int*bit_kind_size,2)
   integer                        :: i,j
   
-  PROVIDE mo_mono_elec_integral
-
   call bitstring_to_list(ref_bitmask(1,1), occ(1,1), i, N_int)
   call bitstring_to_list(ref_bitmask(1,2), occ(1,2), i, N_int)
   

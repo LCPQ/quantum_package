@@ -9,7 +9,6 @@ BEGIN_PROVIDER [ type(map_type), ao_integrals_map ]
   ! AO integrals
   END_DOC
   integer*8                      :: sze
-  PROVIDE gauleg_t2
   call bielec_integrals_index(ao_num,ao_num,ao_num,ao_num,sze)
   call map_init(ao_integrals_map,sze)
   write(output_BiInts,*)  'AO map initialized'

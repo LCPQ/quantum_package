@@ -22,7 +22,6 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
   double precision, intent(inout) :: u_in(dim_in,N_st)
   double precision, intent(out)  :: energies(N_st)
   double precision, intent(in)   :: convergence
-  PROVIDE ref_bitmask_energy
   ASSERT (N_st > 0)
   ASSERT (sze > 0)
   ASSERT (Nint > 0)
