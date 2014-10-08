@@ -92,7 +92,7 @@ let to_int64_list l =
   in
   let l = do_work [] [] 1 l
   in
-  List.map to_int64 l
+  List.rev_map to_int64 l
 ;;
 
 (* Create a bit list from a list of MO indices *)
