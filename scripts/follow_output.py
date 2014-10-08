@@ -11,6 +11,8 @@ class OutputFollower(object):
   def __init__(self,filename):
     self.filename = filename
     self.dir = filename+'/output/'
+    while not os.path.exists(self.dir):
+      time.sleep(.1)
     self.last_time = {}
     self.last_line = {}
     self.data      = {}
@@ -42,7 +44,7 @@ class OutputFollower(object):
   def start(self):
     self.running = True
     while self.running:
-      time.sleep(1.)
+      time.sleep(.1)
       self.update_file_list()
 
 

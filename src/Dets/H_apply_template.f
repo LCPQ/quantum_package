@@ -371,7 +371,7 @@ subroutine $subroutine($params_main)
   $decls_main
   
   integer                        :: i_generator, nmax
-  double precision               :: wall_0, wall_1, wall_2
+  double precision               :: wall_0, wall_1
   integer(omp_lock_kind)         :: lck
   integer(bit_kind), allocatable :: mask(:,:,:)
   integer                        :: ispin, k
@@ -383,8 +383,6 @@ subroutine $subroutine($params_main)
   PROVIDE mo_mono_elec_integral ref_bitmask_energy
   
   nmax = ( N_det_generators/nproc ) *nproc
-  call wall_time(wall_0)
-  call wall_time(wall_1)
  
 
   PROVIDE progress_bar
@@ -392,7 +390,8 @@ subroutine $subroutine($params_main)
 
   !$ call omp_init_lock(lck)
   !$OMP PARALLEL DEFAULT(SHARED) &
-  !$OMP PRIVATE(i_generator,wall_2,ispin,k,mask,iproc) 
+  !$OMP PRIVATE(i_generator,wall_1,wall_0,ispin,k,mask,iproc) 
+  call wall_time(wall_0)
   iproc = 0
   !$ iproc = omp_get_thread_num()
   allocate( mask(N_int,2,6) )
@@ -442,11 +441,11 @@ subroutine $subroutine($params_main)
         i_generator, iproc $params_post)
     endif
     !$ call omp_set_lock(lck)
-    call wall_time(wall_2)
+    call wall_time(wall_1)
     $printout_always
-    if (wall_2 - wall_0 > 2.d0) then
-        wall_0 = wall_2
+    if (wall_1 - wall_0 > 2.d0) then
         $printout_now
+        wall_0 = wall_1
     endif
     !$ call omp_unset_lock(lck)
   enddo
@@ -454,6 +453,7 @@ subroutine $subroutine($params_main)
   deallocate( mask )
   !$OMP END PARALLEL
   !$ call omp_destroy_lock(lck)
+  call wall_time(wall_0)
 
 
   allocate( mask(N_int,2,6) )
@@ -501,11 +501,11 @@ subroutine $subroutine($params_main)
          mask(1,1,s_hole ), mask(1,1,s_part ),                        &
          i_generator, 0 $params_post)
     endif
-    call wall_time(wall_2)
+    call wall_time(wall_1)
     $printout_always
-    if (wall_2 - wall_0 > 2.d0) then
-        wall_0 = wall_2
+    if (wall_1 - wall_0 > 2.d0) then
         $printout_now
+        wall_0 = wall_1
     endif
   enddo
   call stop_progress

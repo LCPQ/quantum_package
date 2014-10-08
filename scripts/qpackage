@@ -88,12 +88,32 @@ function run()
   # run $EXE $EZFIO
   # Starts the executable in one process and
   # displays the output files in stdout
+  if [[ -z $1 ]] ; then
+    echo "Please specify which executable to run"
+    print_list
+    exit 1
+  fi
   EXE=${EXECUTABLES[$1]}
   EZFIO=$2
+  if [[ -z $EXE ]] ; then
+    echo "Executable $1 not found"
+    exit 1
+  fi
+  if [[ -z $EZFIO ]] ; then
+    echo "Please specify an EZFIO directory"
+    exit 1
+  fi
   date
+  rm -rf -- ${EZFIO}/output
   ${QPACKAGE_ROOT}/scripts/follow_output.py ${EZFIO} &
+  PID=$!
   ${EXE} ${EZFIO} 
-  kill -2 %1
+  kill -2 $PID
+  if [[ $(jobs | wc -l) -gt 0 ]] 
+  then
+    sleep 1
+    kill -9 $PID
+  fi
   wait
   date
 }
@@ -101,8 +121,13 @@ function run()
 function reset()
 {
   # reset $EZFIO
-  rm -rf $1/output/*.rst
-  rm -rf $1/determinants/{n_det,psi_det.gz,psi_coef.gz}
+  EZFIO=$1
+  if [[ -z ${EZFIO} ]] ; then
+    echo "Please specify an EZFIO directory"
+    exit 1
+  fi
+  rm -rf -- ${EZFIO}/output/*.rst
+  rm -rf -- ${EZFIO}/determinants/{n_det,psi_det.gz,psi_coef.gz}
 }
 
 COMMAND=$1
