@@ -9,13 +9,13 @@ BEGIN_PROVIDER [ character*(64), diag_algorithm ]
     diag_algorithm = "Lapack"
   endif
 
-  if (N_det < N_states) then
+  if (N_det < N_states_diag) then
     diag_algorithm = "Lapack"
   endif
   
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, CI_energy, (N_states) ]
+BEGIN_PROVIDER [ double precision, CI_energy, (N_states_diag) ]
   implicit none
   BEGIN_DOC
   ! N_states lowest eigenvalues of the CI matrix
@@ -24,23 +24,25 @@ BEGIN_PROVIDER [ double precision, CI_energy, (N_states) ]
   integer                        :: j
   character*(8)                  :: st
   call write_time(output_Dets)
-  do j=1,N_states
+  do j=1,N_states_diag
     CI_energy(j) = CI_electronic_energy(j) + nuclear_repulsion
     write(st,'(I4)') j
     call write_double(output_Dets,CI_energy(j),'Energy of state '//trim(st))
+    call write_double(output_Dets,CI_eigenvectors_s2(j),'S^2 of state '//trim(st))
   enddo
 
 END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, CI_electronic_energy, (N_states) ]
-&BEGIN_PROVIDER [ double precision, CI_eigenvectors, (N_det,N_states) ]
+ BEGIN_PROVIDER [ double precision, CI_electronic_energy, (N_states_diag) ]
+&BEGIN_PROVIDER [ double precision, CI_eigenvectors, (N_det,N_states_diag) ]
+&BEGIN_PROVIDER [ double precision, CI_eigenvectors_s2, (N_states_diag) ]
   implicit none
   BEGIN_DOC
   ! Eigenvectors/values of the CI matrix
   END_DOC
   integer                        :: i,j
   
-  do j=1,N_states
+  do j=1,N_states_diag
     do i=1,N_det
       CI_eigenvectors(i,j) = psi_coef(i,j)
     enddo
@@ -49,7 +51,7 @@ END_PROVIDER
   if (diag_algorithm == "Davidson") then
     
     call davidson_diag(psi_det,CI_eigenvectors,CI_electronic_energy, &
-        size(CI_eigenvectors,1),N_det,N_states,N_int,output_Dets)
+        size(CI_eigenvectors,1),N_det,N_states_diag,N_int,output_Dets)
     
   else if (diag_algorithm == "Lapack") then
     
@@ -59,11 +61,21 @@ END_PROVIDER
     call lapack_diag(eigenvalues,eigenvectors,                       &
         H_matrix_all_dets,size(H_matrix_all_dets,1),N_det)
     CI_electronic_energy(:) = 0.d0
-    do j=1,min(N_states,N_det)
-      do i=1,N_det
-        CI_eigenvectors(i,j) = eigenvectors(i,j)
-      enddo
-      CI_electronic_energy(j) = eigenvalues(j)
+    integer :: i_state
+    double precision :: s2
+    j=0
+    i_state = 0
+    do while(i_state.lt.min(N_states_diag,N_det))
+      j+=1
+      call get_s2_u0(psi_det,eigenvectors(1,j),N_det,N_det,s2)
+      if(dabs(s2-expected_s2).le.0.1d0)then
+       i_state += 1
+       do i=1,N_det
+         CI_eigenvectors(i,i_state) = eigenvectors(i,j)
+       enddo
+       CI_electronic_energy(i_state) = eigenvalues(j)
+       CI_eigenvectors_s2(i_state) = s2
+      endif
     enddo
     deallocate(eigenvectors,eigenvalues)
   endif
@@ -77,10 +89,10 @@ subroutine diagonalize_CI
 !  eigenstates of the CI matrix
   END_DOC
   integer :: i,j
-  do j=1,N_states
+  do j=1,N_states_diag
     do i=1,N_det
       psi_coef(i,j) = CI_eigenvectors(i,j)
     enddo
   enddo
-  SOFT_TOUCH psi_coef CI_electronic_energy CI_energy CI_eigenvectors
+  SOFT_TOUCH psi_coef CI_electronic_energy CI_energy CI_eigenvectors CI_eigenvectors_s2
 end

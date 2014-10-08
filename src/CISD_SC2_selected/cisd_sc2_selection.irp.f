@@ -12,8 +12,9 @@ program cisd_sc2_selected
   
   pt2 = 1.d0
   perturbation = "epstein_nesbet_sc2_projected"
+                 
   E_old(1) = HF_energy
-  davidson_threshold = 1.d-8
+  davidson_threshold = 1.d-10
   if (N_det > n_det_max_cisd_sc2) then
     call diagonalize_CI_SC2
     call save_wavefunction
@@ -31,6 +32,8 @@ program cisd_sc2_selected
     print *,  '-----'
   endif
 
+  integer :: i_count
+  i_count = 0
   do while (N_det < n_det_max_cisd_sc2.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     print*,'----'
     print*,''
@@ -49,6 +52,13 @@ program cisd_sc2_selected
      E_old(i) = CI_SC2_energy(i)
     enddo
 !   print *,  'E corr           = ', (E_old(1)) - HF_energy
+     if(dabs(E_old(i) - CI_SC2_energy(i) ).le.1.d-12)then
+      i_count += 1
+      selection_criterion_factor = selection_criterion_factor * 0.5d0
+      if(i_count > 5)then
+       exit
+      endif
+     endif
     if (abort_all) then
       exit
     endif
@@ -81,7 +91,7 @@ program cisd_sc2_selected
     print *,  'PT2(SC2)                     = ', pt2(i)
     print *,  'E(SC2)                       = ', CI_SC2_energy(i)
     print *,  'E_before(SC2)+PT2(SC2)       = ', CI_SC2_energy(i)+pt2(i)
-    print *,  'E_before(SC2)+PT2(SC2)_new   = ', CI_SC2_energy(i)+pt2(i)*(1.d0+norm_pert)
+    print *,  'E_before(SC2)+PT2(SC2)_new   = ', CI_SC2_energy(i)+pt2(i)* (1.d0 + norm_pert) - H_pert_diag(i)
    
     print*,'greater coeficient of the state : ',dabs(psi_coef(imax,i))
     call get_excitation_degree(ref_bitmask,psi_det(1,1,imax),degree,N_int)

@@ -49,17 +49,17 @@ double precision function binom_func(i,j)
 end
 
 
- BEGIN_PROVIDER [ double precision, binom, (0:20,0:20) ]
-&BEGIN_PROVIDER [ double precision, binom_transp, (0:20,0:20) ]
+ BEGIN_PROVIDER [ double precision, binom, (0:40,0:40) ]
+&BEGIN_PROVIDER [ double precision, binom_transp, (0:40,0:40) ]
   implicit none
   BEGIN_DOC
   ! Binomial coefficients
   END_DOC
   integer                        :: k,l
   double precision               :: fact, f
-  do k=0,20
+  do k=0,40
     f = fact(k)
-    do l=0,20
+    do l=0,40
       binom(k,l) = f/(fact(l)*fact(k-l))
       binom_transp(l,k) = binom(k,l)
     enddo
