@@ -41,7 +41,7 @@ then
 fi
 
 # Ocaml installation
-make -C ocaml qp_create_ezfio_from_xyz.native
+make -C ocaml Qptypes.ml
 if [[ $? -ne 0 ]]
 then
   scripts/fetch_from_web.py "https://raw.github.com/hcarty/ocamlbrew/master/ocamlbrew-install" ocamlbrew-install.sh
