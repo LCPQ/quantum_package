@@ -8,6 +8,7 @@ These include:
 
 * Input data for the test suites 
 * Atomic basis sets
+* List of built executables 
 
 *Important*: EZFIO files are large and should not be tracked by git.
 

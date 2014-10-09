@@ -54,7 +54,10 @@ def main():
   # Handle signals
   import signal
   def handler(signum,frame):
-    F.running = False
+    if F.running:
+      F.running = False
+    else:
+      sys.exit(0)
 
   for i in [2, 15]:
    try:

@@ -1,5 +1,6 @@
 open Core.Std;;
 open Qptypes;;
+open Qputils;;
 
 (** Variables related to the quantum package installation *)
 
@@ -11,7 +12,7 @@ Please source the quantum_package.rc file."
 ;;
 
 let bit_kind_size = lazy (
-  let filename = root^"/src/Bitmask/bitmasks_module.f90" in
+  let filename = root / "src/Bitmask/bitmasks_module.f90" in
   if not (Sys.file_exists_exn filename) then
      raise (Failure ("File "^filename^" not found"));
 
@@ -39,3 +40,26 @@ let bit_kind_size = lazy (
   in
   get_data lines )
 ;;
+
+let executables = lazy (
+  let filename = root / "data/executables" 
+  and func in_channel =
+    In_channel.input_lines in_channel
+     |> List.map ~f:(fun x ->
+         let e = String.split ~on:' ' x
+           |> List.map ~f:String.strip
+           |> List.filter ~f:(fun x -> x <> "")
+         in
+         match e with
+         | [a;b] -> (a,String.substr_replace_all ~pattern:"$QPACKAGE_ROOT" ~with_:root b)
+         | _ -> ("","")
+     )
+  in
+  In_channel.with_file filename ~f:func
+  |> List.sort ~cmp:(fun (x,_) (y,_) -> 
+      if x < y then -1
+      else if x > y then 1
+      else 0) 
+)
+
+
