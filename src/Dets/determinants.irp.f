@@ -310,11 +310,27 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,psicoef)
 
   integer :: i,k
 
+  PROVIDE progress_bar
+  call start_progress(7,'Saving wfunction',0.d0)
+
+  progress_bar(1) = 1
+  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_N_int(N_int)
+  progress_bar(1) = 2
+  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_bit_kind(bit_kind)
+  progress_bar(1) = 3
+  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_N_det(ndet)
+  progress_bar(1) = 4
+  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_n_states(nstates)
+  progress_bar(1) = 5
+  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_mo_label(mo_label)
+
+  progress_bar(1) = 6
+  progress_value = dble(progress_bar(1))
 
   N_int2 = (N_int*bit_kind)/8
   allocate (psi_det_save(N_int2,2,ndet))
@@ -336,6 +352,8 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,psicoef)
   call ezfio_set_determinants_psi_det(psi_det_save)
   deallocate (psi_det_save)
 
+  progress_bar(7) = 7
+  progress_value = dble(progress_bar(1))
   allocate (psi_coef_save(ndet,nstates))
   do k=1,nstates
     do i=1,ndet
@@ -344,5 +362,6 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,psicoef)
   enddo
   call ezfio_set_determinants_psi_coef(psi_coef_save)
   call write_int(output_dets,ndet,'Saved determinants')
+  call stop_progress
   deallocate (psi_coef_save)
 end

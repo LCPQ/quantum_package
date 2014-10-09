@@ -1,3 +1,5 @@
+open Core.Std;;
+
 exception ElementError of string
 
 type t =
@@ -8,7 +10,8 @@ type t =
 |K |Ca|Sc|Ti|V |Cr|Mn|Fe|Co|Ni|Cu|Zn|Ga|Ge|As|Se|Br|Kr
 ;;
 
-let of_string = function
+let of_string x = 
+  match (String.capitalize (String.lowercase x)) with
 | "X"  | "Dummy" -> X
 | "H"  | "Hydrogen" -> H
 | "He" | "Helium" -> He

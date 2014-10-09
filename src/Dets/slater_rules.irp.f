@@ -953,23 +953,36 @@ END_PROVIDER
 BEGIN_PROVIDER [ integer*8, det_connections, (N_con_int,N_det) ]
   implicit none
   BEGIN_DOC
-  !
+  ! Build connection proxy between determinants
   END_DOC
   integer                        :: i,j
   integer                        :: degree
   integer                        :: j_int, j_k, j_l
   integer, allocatable           :: idx(:)
+  integer                        :: thread_num
+  !$ integer :: omp_get_thread_num
   
+  PROVIDE progress_bar
+  call start_progress(N_det,'Det connections',0.d0)
+
   select case(N_int)
       
     case(1)
       
+
       !$OMP PARALLEL DEFAULT (NONE)                                  &
-          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections)&
-          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx)
+          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections, &
+          !$OMP progress_bar,progress_value)&
+          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx,thread_num)
+
+      !$  thread_num = omp_get_thread_num()
       allocate (idx(0:N_det))
       !$OMP DO SCHEDULE(guided)
       do i=1,N_det
+        if (thread_num == 0) then
+          progress_bar(1) = i
+          progress_value = dble(i)
+        endif
         do j_int=1,N_con_int
           det_connections(j_int,i) = 0_8
           j_k = ishft(j_int-1,11)
@@ -992,11 +1005,17 @@ BEGIN_PROVIDER [ integer*8, det_connections, (N_con_int,N_det) ]
     case(2)
       
       !$OMP PARALLEL DEFAULT (NONE)                                  &
-          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections)&
-          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx)
+          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections,&
+          !$OMP progress_bar,progress_value)&
+          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx,thread_num)
+      !$  thread_num = omp_get_thread_num()
       allocate (idx(0:N_det))
       !$OMP DO SCHEDULE(guided)
       do i=1,N_det
+        if (thread_num == 0) then
+          progress_bar(1) = i
+          progress_value = dble(i)
+        endif
         do j_int=1,N_con_int
           det_connections(j_int,i) = 0_8
           j_k = ishft(j_int-1,11)
@@ -1021,11 +1040,17 @@ BEGIN_PROVIDER [ integer*8, det_connections, (N_con_int,N_det) ]
     case(3)
       
       !$OMP PARALLEL DEFAULT (NONE)                                  &
-          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections)&
-          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx)
+          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections,&
+          !$OMP progress_bar,progress_value)&
+          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx,thread_num)
+      !$  thread_num = omp_get_thread_num()
       allocate (idx(0:N_det))
       !$OMP DO SCHEDULE(guided)
       do i=1,N_det
+        if (thread_num == 0) then
+          progress_bar(1) = i
+          progress_value = dble(i)
+        endif
         do j_int=1,N_con_int
           det_connections(j_int,i) = 0_8
           j_k = ishft(j_int-1,11)
@@ -1053,11 +1078,17 @@ BEGIN_PROVIDER [ integer*8, det_connections, (N_con_int,N_det) ]
       
       
       !$OMP PARALLEL DEFAULT (NONE)                                  &
-          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections)&
-          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx)
+          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections,&
+          !$OMP progress_bar,progress_value)&
+          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx,thread_num)
+      !$  thread_num = omp_get_thread_num()
       allocate (idx(0:N_det))
       !$OMP DO SCHEDULE(guided)
       do i=1,N_det
+        if (thread_num == 0) then
+          progress_bar(1) = i
+          progress_value = dble(i)
+        endif
         do j_int=1,N_con_int
           det_connections(j_int,i) = 0_8
           j_k = ishft(j_int-1,11)
@@ -1078,6 +1109,7 @@ BEGIN_PROVIDER [ integer*8, det_connections, (N_con_int,N_det) ]
       !$OMP END PARALLEL
       
   end select
+  call stop_progress
 
 END_PROVIDER
 
