@@ -24,6 +24,7 @@ ALL_EXE=$(patsubst %.ml,%.native,$(wildcard qp_*.ml))
 default: $(ALL_TESTS) $(ALL_EXE)
 
 executables: $(ALL_EXE)
+	$(MAKE) -C $(QPACKAGE_ROOT)/data executables
 
 %.inferred.mli: $(MLFILES)
 	$(OCAMLBUILD) $*.inferred.mli -use-ocamlfind  $(PKGS) 
@@ -34,7 +35,7 @@ executables: $(ALL_EXE)
 	$(OCAMLBUILD) $*.byte  -use-ocamlfind  $(PKGS)
 	ln -s $*.byte $*
 
-%.native: $(MLFILES) $(MLIFILES)
+%.native: $(MLFILES) $(MLIFILES) 
 	rm -f -- $*
 	$(OCAMLBUILD) $*.native -use-ocamlfind $(PKGS)
 	ln -s $*.native $*
