@@ -88,6 +88,7 @@ let run ?o b c m xyz_file =
   let long_basis = Long_basis.of_basis basis in
   let ao_num = List.length long_basis in
   Ezfio.set_ao_basis_ao_num ao_num;
+  Ezfio.set_ao_basis_ao_basis b;
   let ao_prim_num = List.map long_basis ~f:(fun (_,g,_) -> List.length g.Gto.lc) 
   and ao_nucl = List.map long_basis ~f:(fun (_,_,n) -> Atom_number.to_int n)
   and ao_power= 
