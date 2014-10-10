@@ -272,7 +272,17 @@ BEGIN_PROVIDER [ double precision, HF_energy ]
  BEGIN_DOC
  ! Hartree-Fock energy
  END_DOC
- HF_energy = nuclear_repulsion + ref_bitmask_energy
+ HF_energy = nuclear_repulsion
+ 
+ integer                        :: i,j
+ do j=1,ao_num
+   do i=1,ao_num
+     HF_energy += 0.5d0 * (                                          &
+         (ao_mono_elec_integral(i,j) + Fock_matrix_alpha_ao(i,j) ) *  HF_density_matrix_ao_alpha(i,j) +&
+         (ao_mono_elec_integral(i,j) + Fock_matrix_beta_ao (i,j) ) *  HF_density_matrix_ao_beta (i,j) )
+   enddo
+ enddo
+  
 END_PROVIDER
 
 
@@ -283,12 +293,12 @@ BEGIN_PROVIDER [ double precision, Fock_matrix_ao, (ao_num_align, ao_num) ]
  END_DOC
  
  if (elec_alpha_num == elec_beta_num) then
- integer :: i,j
+   integer                        :: i,j
    do j=1,ao_num
-    !DIR$ VECTOR ALIGNED
-    do i=1,ao_num_align
-     Fock_matrix_ao(i,j) = Fock_matrix_alpha_ao(i,j)
-    enddo
+     !DIR$ VECTOR ALIGNED
+     do i=1,ao_num_align
+       Fock_matrix_ao(i,j) = Fock_matrix_alpha_ao(i,j)
+     enddo
    enddo
  else
    double precision, allocatable :: T(:,:), M(:,:)

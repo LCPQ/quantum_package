@@ -382,6 +382,7 @@ subroutine dump_$ao_integrals(filename)
   integer(cache_key_kind), pointer :: key(:)
   real(integral_kind), pointer   :: val(:)
   integer*8                      :: i,j, n
+  call ezfio_set_work_empty(.False.)
   open(unit=66,file=filename,FORM='unformatted')
   write(66) integral_kind, key_kind
   write(66) $ao_integrals_map%sorted, $ao_integrals_map%map_size,    &

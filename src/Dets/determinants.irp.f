@@ -352,7 +352,7 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,psicoef)
   call ezfio_set_determinants_psi_det(psi_det_save)
   deallocate (psi_det_save)
 
-  progress_bar(7) = 7
+  progress_bar(1) = 7
   progress_value = dble(progress_bar(1))
   allocate (psi_coef_save(ndet,nstates))
   do k=1,nstates

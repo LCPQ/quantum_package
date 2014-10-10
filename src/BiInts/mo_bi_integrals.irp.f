@@ -319,14 +319,14 @@ end
 
 
 
- BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj, (mo_tot_num_align,mo_tot_num) ]
-&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_exchange, (mo_tot_num_align,mo_tot_num) ]
-&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_anti, (mo_tot_num_align,mo_tot_num) ]
+ BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_from_ao, (mo_tot_num_align,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_exchange_from_ao, (mo_tot_num_align,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_anti_from_ao, (mo_tot_num_align,mo_tot_num) ]
   implicit none
   BEGIN_DOC
-  ! mo_bielec_integral_jj(i,j) = J_ij
-  ! mo_bielec_integral_jj_exchange(i,j) = J_ij
-  ! mo_bielec_integral_jj_anti(i,j) = J_ij - K_ij
+  ! mo_bielec_integral_jj_from_ao(i,j) = J_ij
+  ! mo_bielec_integral_jj_exchange_from_ao(i,j) = J_ij
+  ! mo_bielec_integral_jj_anti_from_ao(i,j) = J_ij - K_ij
   END_DOC
   
   integer                        :: i,j,p,q,r,s
@@ -342,8 +342,8 @@ end
     PROVIDE ao_bielec_integrals_in_map
   endif
   
-  mo_bielec_integral_jj = 0.d0
-  mo_bielec_integral_jj_exchange = 0.d0
+  mo_bielec_integral_jj_from_ao = 0.d0
+  mo_bielec_integral_jj_exchange_from_ao = 0.d0
   
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: iqrs, iqsr
   
@@ -353,7 +353,7 @@ end
       !$OMP  iqrs, iqsr,iqri,iqis)                                   &
       !$OMP SHARED(mo_tot_num,mo_coef_transp,mo_tot_num_align,ao_num,&
       !$OMP  ao_integrals_threshold,do_direct_integrals,abort_here)  &
-      !$OMP REDUCTION(+:mo_bielec_integral_jj,mo_bielec_integral_jj_exchange)
+      !$OMP REDUCTION(+:mo_bielec_integral_jj_from_ao,mo_bielec_integral_jj_exchange_from_ao)
   
   allocate( int_value(ao_num), int_idx(ao_num),                      &
       iqrs(mo_tot_num_align,ao_num), iqis(mo_tot_num), iqri(mo_tot_num),&
@@ -439,8 +439,8 @@ end
         !DIR$ VECTOR ALIGNED
         do j=1,mo_tot_num
           c = mo_coef_transp(j,q)*mo_coef_transp(j,s)
-          mo_bielec_integral_jj(j,i) += c * iqis(i)
-          mo_bielec_integral_jj_exchange(j,i) += c * iqri(i)
+          mo_bielec_integral_jj_from_ao(j,i) += c * iqis(i)
+          mo_bielec_integral_jj_exchange_from_ao(j,i) += c * iqri(i)
         enddo
       enddo
       
@@ -453,8 +453,35 @@ end
     stop 'Aborting in MO integrals calculation'
   endif
   
-  mo_bielec_integral_jj_anti = mo_bielec_integral_jj - mo_bielec_integral_jj_exchange
+  mo_bielec_integral_jj_anti_from_ao = mo_bielec_integral_jj_from_ao - mo_bielec_integral_jj_exchange_from_ao
   
   
 END_PROVIDER
 
+
+ BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj, (mo_tot_num_align,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_exchange, (mo_tot_num_align,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_anti, (mo_tot_num_align,mo_tot_num) ]
+  implicit none
+  BEGIN_DOC
+  ! mo_bielec_integral_jj(i,j) = J_ij
+  ! mo_bielec_integral_jj_exchange(i,j) = K_ij
+  ! mo_bielec_integral_jj_anti(i,j) = J_ij - K_ij
+  END_DOC
+  
+  integer                        :: i,j
+  double precision               :: get_mo_bielec_integral
+  
+  PROVIDE mo_bielec_integrals_in_map
+
+  mo_bielec_integral_jj = 0.d0
+  mo_bielec_integral_jj_exchange = 0.d0
+  do j=1,mo_tot_num
+   do i=1,mo_tot_num
+     mo_bielec_integral_jj(i,j) = get_mo_bielec_integral(i,j,i,j,mo_integrals_map)
+     mo_bielec_integral_jj_exchange(i,j) = get_mo_bielec_integral(i,j,j,i,mo_integrals_map)
+     mo_bielec_integral_jj_anti(i,j) = mo_bielec_integral_jj(i,j) - mo_bielec_integral_jj_exchange(i,j) 
+   enddo
+ enddo
+  
+END_PROVIDER
