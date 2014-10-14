@@ -3,6 +3,7 @@ BEGIN_PROVIDER [ logical, abort_all ]
  BEGIN_DOC
  ! If True, all the calculation is aborted
  END_DOC
+ call trap_signals
  abort_all = .False.
 
 END_PROVIDER
@@ -26,8 +27,6 @@ subroutine trap_signals
   integer, parameter             :: sigusr2 = 12
   flag = -1
   err = signal (sigusr2, catch_signal, flag)
-  PROVIDE abort_all
-  PROVIDE abort_here
 end subroutine trap_signals
 
 integer function catch_signal(signum)

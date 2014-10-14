@@ -379,10 +379,66 @@ subroutine $subroutine($params_main)
 
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map
   
-  nmax = ( N_det_generators/nproc ) *nproc
+  nmax = mod( N_det_generators,nproc )
  
 
   call start_progress(N_det_generators,'Selection (norm)',0.d0)
+
+  call wall_time(wall_0)
+
+  allocate( mask(N_int,2,6) )
+  do i_generator=1,nmax
+
+    progress_bar(1) = i_generator
+
+    if (abort_here) then
+      exit
+    endif
+    $skip
+
+    ! Create bit masks for holes and particles
+    do ispin=1,2
+      do k=1,N_int
+        mask(k,ispin,s_hole) =                                      &
+            iand(generators_bitmask(k,ispin,s_hole,i_bitmask_gen),  &
+            psi_generators(k,ispin,i_generator) )
+        mask(k,ispin,s_part) =                                      &
+            iand(generators_bitmask(k,ispin,s_part,i_bitmask_gen),  &
+            not(psi_generators(k,ispin,i_generator)) )
+        mask(k,ispin,d_hole1) =                                      &
+            iand(generators_bitmask(k,ispin,d_hole1,i_bitmask_gen),  &
+            psi_generators(k,ispin,i_generator) )
+        mask(k,ispin,d_part1) =                                      &
+            iand(generators_bitmask(k,ispin,d_part1,i_bitmask_gen),  &
+            not(psi_generators(k,ispin,i_generator)) )
+        mask(k,ispin,d_hole2) =                                      &
+            iand(generators_bitmask(k,ispin,d_hole2,i_bitmask_gen),  &
+            psi_generators(k,ispin,i_generator) )
+        mask(k,ispin,d_part2) =                                      &
+            iand(generators_bitmask(k,ispin,d_part2,i_bitmask_gen),  &
+            not(psi_generators(k,ispin,i_generator)) )
+      enddo
+    enddo
+    if($do_double_excitations)then
+     call $subroutine_diexc(psi_generators(1,1,i_generator),          &
+         mask(1,1,d_hole1), mask(1,1,d_part1),                        &
+         mask(1,1,d_hole2), mask(1,1,d_part2),                        &
+         i_generator, 0 $params_post)
+    endif
+    if($do_mono_excitations)then
+     call $subroutine_monoexc(psi_generators(1,1,i_generator),        &
+         mask(1,1,s_hole ), mask(1,1,s_part ),                        &
+         i_generator, 0 $params_post)
+    endif
+    call wall_time(wall_1)
+    $printout_always
+    if (wall_1 - wall_0 > 2.d0) then
+        $printout_now
+        wall_0 = wall_1
+    endif
+  enddo
+
+  deallocate( mask )
 
   !$ call omp_init_lock(lck)
   !$OMP PARALLEL DEFAULT(SHARED) &
@@ -391,8 +447,8 @@ subroutine $subroutine($params_main)
   iproc = 0
   !$ iproc = omp_get_thread_num()
   allocate( mask(N_int,2,6) )
-  !$OMP DO SCHEDULE(dynamic,4)
-  do i_generator=1,nmax
+  !$OMP DO SCHEDULE(dynamic,1)
+  do i_generator=nmax+1,N_det_generators
     if (iproc == 0) then
       progress_bar(1) = i_generator
     endif
@@ -449,67 +505,12 @@ subroutine $subroutine($params_main)
   deallocate( mask )
   !$OMP END PARALLEL
   !$ call omp_destroy_lock(lck)
-  call wall_time(wall_0)
 
-
-  allocate( mask(N_int,2,6) )
-!  do i_generator=1,N_det_generators
-  do i_generator=nmax+1,N_det_generators
-
-    progress_bar(1) = i_generator
-
-    if (abort_here) then
-      exit
-    endif
-    $skip
-
-    ! Create bit masks for holes and particles
-    do ispin=1,2
-      do k=1,N_int
-        mask(k,ispin,s_hole) =                                      &
-            iand(generators_bitmask(k,ispin,s_hole,i_bitmask_gen),  &
-            psi_generators(k,ispin,i_generator) )
-        mask(k,ispin,s_part) =                                      &
-            iand(generators_bitmask(k,ispin,s_part,i_bitmask_gen),  &
-            not(psi_generators(k,ispin,i_generator)) )
-        mask(k,ispin,d_hole1) =                                      &
-            iand(generators_bitmask(k,ispin,d_hole1,i_bitmask_gen),  &
-            psi_generators(k,ispin,i_generator) )
-        mask(k,ispin,d_part1) =                                      &
-            iand(generators_bitmask(k,ispin,d_part1,i_bitmask_gen),  &
-            not(psi_generators(k,ispin,i_generator)) )
-        mask(k,ispin,d_hole2) =                                      &
-            iand(generators_bitmask(k,ispin,d_hole2,i_bitmask_gen),  &
-            psi_generators(k,ispin,i_generator) )
-        mask(k,ispin,d_part2) =                                      &
-            iand(generators_bitmask(k,ispin,d_part2,i_bitmask_gen),  &
-            not(psi_generators(k,ispin,i_generator)) )
-      enddo
-    enddo
-    if($do_double_excitations)then
-     call $subroutine_diexc(psi_generators(1,1,i_generator),          &
-         mask(1,1,d_hole1), mask(1,1,d_part1),                        &
-         mask(1,1,d_hole2), mask(1,1,d_part2),                        &
-         i_generator, 0 $params_post)
-    endif
-    if($do_mono_excitations)then
-     call $subroutine_monoexc(psi_generators(1,1,i_generator),        &
-         mask(1,1,s_hole ), mask(1,1,s_part ),                        &
-         i_generator, 0 $params_post)
-    endif
-    call wall_time(wall_1)
-    $printout_always
-    if (wall_1 - wall_0 > 2.d0) then
-        $printout_now
-        wall_0 = wall_1
-    endif
-  enddo
   call stop_progress
   
   $copy_buffer
   $generate_psi_guess
   abort_here = abort_all
-  deallocate( mask )
   
 end
 
