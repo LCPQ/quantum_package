@@ -98,6 +98,7 @@ subroutine copy_H_apply_buffer_to_wf
   BEGIN_DOC
 ! Copies the H_apply buffer to psi_coef. You need to touch psi_det, psi_coef and N_det
 ! after calling this function.
+! After calling this subroutine, N_det, psi_det and psi_coef need to be touched
   END_DOC
   integer(bit_kind), allocatable :: buffer_det(:,:,:)
   double precision, allocatable  :: buffer_coef(:,:)
@@ -173,7 +174,6 @@ subroutine copy_H_apply_buffer_to_wf
   H_apply_buffer(j)%N_det = 0
   !$OMP END PARALLEL
   call normalize(psi_coef,N_det)
-  SOFT_TOUCH psi_det psi_coef N_det
   
 end
 

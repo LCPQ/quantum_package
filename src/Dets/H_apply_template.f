@@ -382,6 +382,7 @@ subroutine $subroutine($params_main)
   nmax = mod( N_det_generators,nproc )
  
 
+  !$ call omp_init_lock(lck)
   call start_progress(N_det_generators,'Selection (norm)',0.d0)
 
   call wall_time(wall_0)
@@ -440,7 +441,6 @@ subroutine $subroutine($params_main)
 
   deallocate( mask )
 
-  !$ call omp_init_lock(lck)
   !$OMP PARALLEL DEFAULT(SHARED) &
   !$OMP PRIVATE(i_generator,wall_1,wall_0,ispin,k,mask,iproc) 
   call wall_time(wall_0)

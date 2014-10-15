@@ -194,8 +194,19 @@ subroutine make_s2_eigenfunction
   endif
 
   deallocate(d,det_buffer)
-  call copy_H_apply_buffer_to_wf
 
+  double precision :: c(N_states), e_2_pert(N_states), H_pert_diag(N_states)
+
+  call copy_H_apply_buffer_to_wf
+! do i=1,N_det
+!   if (psi_coef(i,1) == 0.d0) then
+!     call pt2_epstein_nesbet_2x2(psi_det(1,1,i),c,e_2_pert,H_pert_diag,N_int,N_det,N_states)
+!     do k=1,N_states
+!       psi_coef(i,k) = c(k)
+!     enddo
+!   endif
+! enddo
+  SOFT_TOUCH N_det psi_coef psi_det
 !  !TODO DEBUG
 !  do i=1,N_det
 !   do j=i+1,N_det

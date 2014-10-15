@@ -93,7 +93,9 @@ class H_apply(object):
     """
 
     s["size_max"] = str(1024*128) 
-    s["copy_buffer"] = "call copy_h_apply_buffer_to_wf"
+    s["copy_buffer"] = """call copy_H_apply_buffer_to_wf
+  SOFT_TOUCH psi_det psi_coef N_det
+"""
     s["printout_now"]   = """write(output_Dets,*)  &
        100.*float(i_generator)/float(N_det_generators), '% in ', wall_1-wall_0, 's'"""
     self.data = s
@@ -216,7 +218,8 @@ class H_apply(object):
       self.data["params_post"] += ", select_max(min(i_generator,size(select_max,1)))"
       self.data["size_max"] = str(1024*128) 
       self.data["copy_buffer"] = """
-      call copy_h_apply_buffer_to_wf
+      call copy_H_apply_buffer_to_wf
+      SOFT_TOUCH psi_det psi_coef N_det
       selection_criterion_min = min(selection_criterion_min, maxval(select_max))*0.1d0
       selection_criterion = selection_criterion_min
       call write_double(output_Dets,selection_criterion,'Selection criterion')
