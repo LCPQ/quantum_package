@@ -134,4 +134,88 @@ subroutine remove_small_contributions
   endif
 end
 
+subroutine make_s2_eigenfunction
+  implicit none
+  integer                        :: i,j,k
+  integer                        :: smax, s
+  integer(bit_kind), allocatable :: d(:,:,:), det_buffer(:,:,:)
+  integer                        :: N_det_new
+  integer, parameter             :: bufsze = 1000
+  logical, external              :: is_in_wavefunction
+
+!  !TODO DEBUG
+!  do i=1,N_det
+!   do j=i+1,N_det
+!    s = 0
+!    do k=1,N_int
+!      if((psi_det(k,1,j) /= psi_det(k,1,i)).or. &
+!         (psi_det(k,2,j) /= psi_det(k,2,i))) then
+!         s=1
+!         exit
+!      endif
+!    enddo
+!    if ( s == 0 ) then
+!      print *,  'Error0: det ', j, 'already in wf'
+!      call debug_det(psi_det(1,1,j),N_int)
+!      stop
+!    endif
+!   enddo
+!  enddo
+!  !TODO DEBUG
+
+  allocate (d(N_int,2,1), det_buffer(N_int,2,bufsze) )
+  smax = 1
+  N_det_new = 0
+
+  do i=1,N_occ_pattern
+    call occ_pattern_to_dets_size(psi_occ_pattern(1,1,i),s,elec_alpha_num,N_int)
+    if (s > smax) then
+      deallocate(d)
+      allocate ( d(N_int,2,s) )
+    endif
+    call occ_pattern_to_dets(psi_occ_pattern(1,1,i),d,s,elec_alpha_num,N_int)
+    do j=1,s
+      if (.not. is_in_wavefunction( d(1,1,j), N_int, N_det)) then
+        N_det_new += 1
+        do k=1,N_int
+          det_buffer(k,1,N_det_new) = d(k,1,j)
+          det_buffer(k,2,N_det_new) = d(k,2,j)
+        enddo
+        if (N_det_new == bufsze) then
+          call fill_H_apply_buffer_no_selection(bufsze,det_buffer,N_int,0)
+          N_det_new = 0
+        endif
+      endif
+    enddo
+  enddo
+
+  if (N_det_new > 0) then
+    call fill_H_apply_buffer_no_selection(N_det_new,det_buffer,N_int,0)
+  endif
+
+  deallocate(d,det_buffer)
+  call copy_H_apply_buffer_to_wf
+
+!  !TODO DEBUG
+!  do i=1,N_det
+!   do j=i+1,N_det
+!    s = 0
+!    do k=1,N_int
+!      if((psi_det(k,1,j) /= psi_det(k,1,i)).or. &
+!         (psi_det(k,2,j) /= psi_det(k,2,i))) then
+!         s=1
+!         exit
+!      endif
+!    enddo
+!    if ( s == 0 ) then
+!      print *,  'Error : det ', j, 'already in wf at ', i
+!      call debug_det(psi_det(1,1,j),N_int)
+!      stop
+!    endif
+!   enddo
+!  enddo
+!  !TODO DEBUG
+   call write_int(output_dets,N_det_new, 'Added deteminants for S^2')
+
+end
 

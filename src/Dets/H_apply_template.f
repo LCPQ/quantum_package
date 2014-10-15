@@ -506,11 +506,14 @@ subroutine $subroutine($params_main)
   !$OMP END PARALLEL
   !$ call omp_destroy_lock(lck)
 
+  abort_here = abort_all
   call stop_progress
   
   $copy_buffer
+  if (s2_eig) then
+    call make_s2_eigenfunction
+  endif
   $generate_psi_guess
-  abort_here = abort_all
   
 end
 

@@ -237,9 +237,9 @@ class H_apply(object):
           !$ call omp_set_lock(lck)
           do k=1,N_st
             norm_psi(k) = norm_psi(k) + psi_coef(i_generator,k)*psi_coef(i_generator,k)
-            delta_pt2(k) = 0.d0
-            pt2_old(k) = 0.d0
-            pt2(k) = select_max(i_generator)
+!            delta_pt2(k) = 0.d0
+!            pt2_old(k) = 0.d0
+!            pt2(k) = select_max(i_generator)
           enddo
           !$ call omp_unset_lock(lck)
           cycle

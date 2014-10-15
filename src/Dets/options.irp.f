@@ -22,6 +22,11 @@ T.set_ezfio_name( "read_wf" )
 T.set_output    ( "output_dets" )
 print T
 
+T.set_name      ( "s2_eig" )
+T.set_doc       ( "Force the wave function to be an eigenfunction of S^2" )
+T.set_ezfio_name( "s2_eig" )
+print T
+
 END_SHELL
 
 BEGIN_PROVIDER [ integer, N_states_diag ]

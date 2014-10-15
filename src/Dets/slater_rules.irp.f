@@ -960,7 +960,7 @@ BEGIN_PROVIDER [ integer*8, det_connections, (N_con_int,N_det) ]
   integer                        :: j_int, j_k, j_l
   integer, allocatable           :: idx(:)
   integer                        :: thread_num
-  !$ integer :: omp_get_thread_num
+  integer                        :: omp_get_thread_num
   
   PROVIDE progress_bar
   call start_progress(N_det,'Det connections',0.d0)

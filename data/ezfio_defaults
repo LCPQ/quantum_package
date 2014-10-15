@@ -19,9 +19,10 @@ determinants
   n_states                   1
   n_states_diag              determinants_n_states
   n_det_max_jacobi           5000
-  threshold_generators       0.995
+  threshold_generators       0.99
   threshold_selectors        0.999
   read_wf                    False
+  s2_eig                     True
 
 full_ci
   n_det_max_fci              1000000

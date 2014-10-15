@@ -15,4 +15,5 @@ determinants
   det_coef               double precision  (determinants_det_num)
   read_wf                logical 
   expected_s2            double precision 
+  s2_eig                 logical
 
