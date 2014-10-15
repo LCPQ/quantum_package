@@ -30,6 +30,11 @@ program full_ci
 
   do while (N_det < n_det_max_fci.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
+
+    PROVIDE  psi_coef
+    PROVIDE  psi_det
+    PROVIDE  psi_det_sorted
+
     if (N_det > n_det_max_fci) then
        psi_det = psi_det_sorted
        psi_coef = psi_coef_sorted

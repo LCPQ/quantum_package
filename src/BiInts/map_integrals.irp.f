@@ -132,7 +132,7 @@ subroutine get_ao_bielec_integrals(j,k,l,sze,out_val)
   integer                        :: i
   integer*8                      :: hash
   double precision               :: thresh
-  PROVIDE ao_bielec_integrals_in_map
+  PROVIDE ao_bielec_integrals_in_map ao_integrals_map
   thresh = ao_integrals_threshold
   
   if (ao_overlap_abs(j,l) < thresh) then

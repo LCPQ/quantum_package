@@ -15,7 +15,7 @@ subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,c
   integer                        :: new_size
   double precision               :: s, smin, smax
   logical                        :: is_selected
-  PROVIDE H_apply_buffer_allocated
+  PROVIDE H_apply_buffer_allocated N_int
   ASSERT (Nint > 0)
   ASSERT (N_int == N_int)
   ASSERT (N_selected >= 0)
@@ -41,6 +41,7 @@ subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,c
     enddo
     
      
+
     if (is_selected) then
       l = l+1
       do j=1,N_int
@@ -90,6 +91,7 @@ subroutine remove_small_contributions
   integer :: i,j,k, N_removed
   logical, allocatable :: keep(:)
   double precision :: i_H_psi_array(N_states)
+
   allocate (keep(N_det))
   call diagonalize_CI
   do i=1,N_det
@@ -113,6 +115,7 @@ subroutine remove_small_contributions
   N_removed = 0
   k = 0
   do i=1, N_det
+    PROVIDE  psi_coef psi_det psi_det_sorted psi_coef_sorted
     if (keep(i)) then
       k += 1
       do j=1,N_int

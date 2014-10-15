@@ -19,6 +19,8 @@ subroutine pt2_epstein_nesbet(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_s
   
   integer                        :: i,j
   double precision               :: diag_H_mat_elem, h
+  PROVIDE  selection_criterion
+
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
   call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
@@ -63,6 +65,8 @@ subroutine pt2_epstein_nesbet_2x2(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet
   double precision               :: diag_H_mat_elem,delta_e, h
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
+  PROVIDE CI_electronic_energy
+
   call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
   h = diag_H_mat_elem(det_pert,Nint)
   do i =1,N_st

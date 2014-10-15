@@ -178,14 +178,15 @@ BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
    nuclear_repulsion = 0.d0
    do l = 1, nucl_num
      do  k = 1, nucl_num
-       if(k /= l) then
-         Z12 = nucl_charge(k)*nucl_charge(l)
-         x(1) = nucl_coord(k,1) - nucl_coord(l,1)
-         x(2) = nucl_coord(k,2) - nucl_coord(l,2)
-         x(3) = nucl_coord(k,3) - nucl_coord(l,3)
-         r2 = x(1)*x(1) + x(2)*x(2) + x(3)*x(3)
-         nuclear_repulsion += Z12/dsqrt(r2)
+       if(k == l) then
+         cycle
        endif
+       Z12 = nucl_charge(k)*nucl_charge(l)
+       x(1) = nucl_coord(k,1) - nucl_coord(l,1)
+       x(2) = nucl_coord(k,2) - nucl_coord(l,2)
+       x(3) = nucl_coord(k,3) - nucl_coord(l,3)
+       r2 = x(1)*x(1) + x(2)*x(2) + x(3)*x(3)
+       nuclear_repulsion += Z12/dsqrt(r2)
      enddo
    enddo
    nuclear_repulsion *= 0.5d0

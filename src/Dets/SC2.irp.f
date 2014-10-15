@@ -166,6 +166,7 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
     !$OMP END DO
     !$OMP END PARALLEL
     
+    PROVIDE n_states_diag h_matrix_all_dets
     if(sze>sze_max)then
      call davidson_diag_hjj(dets_in,u_in,H_jj_dressed,energies,dim_in,sze,N_st,Nint,output_Dets)
     else

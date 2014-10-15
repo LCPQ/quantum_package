@@ -204,6 +204,8 @@ subroutine pt2_epstein_nesbet_sc2(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet
   
   integer                        :: i,j
   double precision               :: diag_H_mat_elem, h
+  PROVIDE  selection_criterion
+
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
   call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)

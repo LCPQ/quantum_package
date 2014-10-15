@@ -45,6 +45,7 @@ END_PROVIDER
  !
  ! coef_hf_selector = coefficient of the Hartree Fock determinant in the selectors determinants
  END_DOC
+ PROVIDE  ref_bitmask_energy psi_selectors ref_bitmask N_int psi_selectors
  integer :: i,degree
  double precision :: hij,diag_H_mat_elem
  E_corr_double_only = 0.d0

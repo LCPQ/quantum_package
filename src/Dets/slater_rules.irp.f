@@ -372,7 +372,7 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
   integer                        :: n_occ_alpha, n_occ_beta
   logical                        :: has_mipi(Nint*bit_kind_size)
   double precision               :: mipi(Nint*bit_kind_size), miip(Nint*bit_kind_size)
-  PROVIDE mo_bielec_integrals_in_map
+  PROVIDE mo_bielec_integrals_in_map mo_integrals_map
   
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
