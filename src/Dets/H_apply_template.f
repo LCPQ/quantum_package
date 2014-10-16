@@ -377,6 +377,7 @@ subroutine $subroutine($params_main)
   integer                        :: ispin, k
   integer                        :: iproc
 
+  $initialization
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map
   
   nmax = mod( N_det_generators,nproc )
@@ -510,9 +511,6 @@ subroutine $subroutine($params_main)
   call stop_progress
   
   $copy_buffer
-  if (s2_eig) then
-    call make_s2_eigenfunction
-  endif
   $generate_psi_guess
   
 end

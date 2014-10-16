@@ -94,6 +94,9 @@ class H_apply(object):
 
     s["size_max"] = str(1024*128) 
     s["copy_buffer"] = """call copy_H_apply_buffer_to_wf
+  if (s2_eig) then
+    call make_s2_eigenfunction
+  endif
   SOFT_TOUCH psi_det psi_coef N_det
 """
     s["printout_now"]   = """write(output_Dets,*)  &

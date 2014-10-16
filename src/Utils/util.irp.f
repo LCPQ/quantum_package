@@ -7,7 +7,7 @@ double precision function binom_func(i,j)
   !
   END_DOC
   integer,intent(in)             :: i,j
-  double precision               :: fact, f
+  double precision               :: logfact
   integer, save                  :: ifirst
   double precision, save         :: memo(0:15,0:15)
   !DEC$ ATTRIBUTES ALIGN : $IRP_ALIGN :: memo
@@ -15,16 +15,15 @@ double precision function binom_func(i,j)
   if (ifirst == 0) then
     ifirst = 1
     do k=0,15
-      f = fact(k)
       do l=0,15
-        memo(k,l) = f/(fact(l)*fact(k-l))
+        memo(k,l) = dexp( logfact(k)-logfact(l)-logfact(k-l) )
       enddo
     enddo
   endif
   if ( (i<=15).and.(j<=15) ) then
     binom_func = memo(i,j)
   else
-    binom_func = fact(i)/(fact(j)*fact(i-j))
+    binom_func = dexp( logfact(i)-logfact(j)-logfact(i-j) )
   endif
 end
 
@@ -36,11 +35,10 @@ end
   ! Binomial coefficients
   END_DOC
   integer                        :: k,l
-  double precision               :: fact, f
+  double precision               :: logfact
   do k=0,40
-    f = fact(k)
     do l=0,40
-      binom(k,l) = f/(fact(l)*fact(k-l))
+      binom(k,l) = dexp( logfact(k)-logfact(l)-logfact(k-l) )
       binom_transp(l,k) = binom(k,l)
     enddo
   enddo
@@ -83,12 +81,42 @@ double precision function fact(n)
   integer                        :: i
   memo(1) = 1.d0
   do i=memomax+1,min(n,100)
-    memo(i) = memo(i-1)*float(i)
+    memo(i) = memo(i-1)*dble(i)
   enddo
   memomax = min(n,100)
   fact = memo(memomax)
   do i=101,n
-    fact = fact*float(i)
+    fact = fact*dble(i)
+  enddo
+end function
+
+double precision function logfact(n)
+  implicit none
+  BEGIN_DOC
+  ! n!
+  END_DOC
+  integer                        :: n
+  double precision, save         :: memo(1:100)
+  integer, save                  :: memomax = 1
+  
+  if (n<=memomax) then
+    if (n<2) then
+      logfact = 0.d0
+    else
+      logfact = memo(n)
+    endif
+    return
+  endif
+  
+  integer                        :: i
+  memo(1) = 0.d0
+  do i=memomax+1,min(n,100)
+    memo(i) = memo(i-1)+dlog(dble(i))
+  enddo
+  memomax = min(n,100)
+  logfact = memo(memomax)
+  do i=101,n
+    logfact += dlog(dble(i))
   enddo
 end function
 
@@ -128,13 +156,47 @@ double precision function dble_fact(n) result(fact2)
   integer                        :: i
   memo(1) = 1.d0
   do i=memomax+2,min(n,99),2
-    memo(i) = memo(i-2)* float(i)
+    memo(i) = memo(i-2)* dble(i)
   enddo
   memomax = min(n,99)
   fact2 = memo(memomax)
   
+  if (n > 99) then
+    double precision :: dble_logfact
+    fact2 = dexp(dble_logfact(n))
+  endif
+
+end function
+
+double precision function dble_logfact(n) result(logfact2)
+  implicit none
+  BEGIN_DOC
+  ! n!!
+  END_DOC
+  integer                        :: n
+  double precision, save         :: memo(1:100)
+  integer, save                  :: memomax = 1
+  
+  ASSERT (iand(n,1) /= 0)
+  if (n<=memomax) then
+    if (n<3) then
+      logfact2 = 0.d0
+    else
+      logfact2 = memo(n)
+    endif
+    return
+  endif
+  
+  integer                        :: i
+  memo(1) = 0.d0
+  do i=memomax+2,min(n,99),2
+    memo(i) = memo(i-2)+ dlog(dble(i))
+  enddo
+  memomax = min(n,99)
+  logfact2 = memo(memomax)
+  
   do i=101,n,2
-    fact2 = fact2*float(i)
+    logfact2 += dlog(dble(i))
   enddo
   
 end function
