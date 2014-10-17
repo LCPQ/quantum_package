@@ -20,15 +20,15 @@ let run exe ezfio_file =
   Printf.printf "===============\nQuantum Package\n===============\n\n";
   Printf.printf "Date : %s\n\n%!" (Time.to_string time_start);
 
-  let output_dir = ezfio_file / "output" in
+  let output_dir = ezfio_file^"/output" in
   if (Sys.file_exists_exn output_dir) then
     begin
       Sys.ls_dir output_dir
-      |> List.iter ~f:(fun x -> Sys.remove (output_dir / x));
+      |> List.iter ~f:(fun x -> Sys.remove (output_dir^"/"^x));
       Unix.rmdir output_dir
     end;
   
-  let fifo_name = ezfio_file / ".fifo" in
+  let fifo_name = ezfio_file^"/.fifo" in
   if (Sys.file_exists_exn fifo_name) then
     Sys.remove fifo_name;
   Unix.mkfifo ~perm:0o664 fifo_name;

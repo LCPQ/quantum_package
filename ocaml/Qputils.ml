@@ -1,5 +1,3 @@
-let (/) (a:string) (b:string) = a^"/"^b;;
-
 let rec transpose = function
 | []          -> []
 | []::tail    -> transpose tail

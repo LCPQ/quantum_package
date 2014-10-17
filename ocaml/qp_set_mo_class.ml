@@ -195,7 +195,7 @@ let ezfio_file =
     match Sys.is_directory filename with
     | `Yes -> 
         begin
-          match Sys.is_file (filename / ".version") with
+          match Sys.is_file (filename ^ "/.version") with
           | `Yes -> filename
           | _ -> failure filename
         end
@@ -213,7 +213,7 @@ let default range =
     match Sys.is_directory filename with
     | `Yes -> 
         begin
-          match Sys.is_file (filename / ".version") with
+          match Sys.is_file (filename^"/.version") with
           | `Yes -> filename
           | _ -> failure filename
         end

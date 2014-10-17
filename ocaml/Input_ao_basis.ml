@@ -19,6 +19,8 @@ end = struct
     }
   ;;
 
+  let get_default = Qpackage.get_ezfio_default "ao_basis";;
+
   let read_ao_basis () = 
     if not (Ezfio.has_ao_basis_ao_basis ()) then
        Ezfio.set_ao_basis_ao_basis ""

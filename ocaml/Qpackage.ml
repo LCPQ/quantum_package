@@ -12,7 +12,7 @@ Please source the quantum_package.rc file."
 ;;
 
 let bit_kind_size = lazy (
-  let filename = root / "src/Bitmask/bitmasks_module.f90" in
+  let filename = root^"/src/Bitmask/bitmasks_module.f90" in
   if not (Sys.file_exists_exn filename) then
      raise (Failure ("File "^filename^" not found"));
 
@@ -41,8 +41,16 @@ let bit_kind_size = lazy (
   get_data lines )
 ;;
 
+let bit_kind = lazy (
+  Lazy.force bit_kind_size
+  |> Bit_kind_size.to_int
+  |> fun x -> x / 8
+  |> Bit_kind.of_int
+  )
+;;
+
 let executables = lazy (
-  let filename = root / "data/executables" 
+  let filename = root^"/data/executables" 
   and func in_channel =
     In_channel.input_lines in_channel
      |> List.map ~f:(fun x ->
@@ -64,7 +72,7 @@ let executables = lazy (
 
 
 let get_ezfio_default directory data =
-  let filename = root / "data/ezfio_defaults" in
+  let filename = root^"/data/ezfio_defaults" in
   let lines = In_channel.with_file filename ~f:(fun in_channel ->
     In_channel.input_lines in_channel) in
   let rec find_dir = function

@@ -6,7 +6,7 @@ let test_module () =
   
     let basis_channel =
       let b = "cc-pvdz" in
-      In_channel.create (Qpackage.root / "data/basis" / (String.lowercase b))
+      In_channel.create (Qpackage.root^"/data/basis/"^(String.lowercase b))
     in
 
     let molecule =

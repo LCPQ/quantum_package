@@ -12,4 +12,11 @@ let test_bielec_intergals () =
   print_endline (Input.Bielec_integrals.to_string b);
 ;;
 
-test_bielec_intergals ();;
+let test_bitmasks () =
+  Ezfio.set_file "F2.ezfio" ;
+  let b = Input.Bitmasks.read ()
+  in
+  print_endline (Input.Bitmasks.to_string b);
+;;
+
+test_bitmasks ();;

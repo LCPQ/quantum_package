@@ -21,7 +21,7 @@ let run ?o b c m xyz_file =
   (* Open basis set channel *)
   let basis_channel =
     In_channel.create
-      (Qpackage.root / "data/basis" / (String.lowercase b))
+      (Qpackage.root ^ "/data/basis/" ^ (String.lowercase b))
   in
 
   (* Read molecule *)
