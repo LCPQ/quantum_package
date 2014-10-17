@@ -34,6 +34,14 @@ subroutine save_dets_qmcchem
  call ezfio_set_determinants_det_occ(occ)
  call write_int(output_dets,N_det,'Determinants saved for QMC')
  deallocate(occ)
+ open(unit=31,file=trim(ezfio_filename)//'/mo_basis/mo_classif')
+ write(31,*) 1
+ write(31,*) mo_tot_num
+ do i=1,mo_tot_num
+   write(31,'(A)') 'a'
+ enddo
+ close(31)
+ call system('gzip '//trim(ezfio_filename)//'/mo_basis/mo_classif')
 end
 
 program save_for_qmc

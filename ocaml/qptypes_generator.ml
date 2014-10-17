@@ -49,6 +49,13 @@ let input_data = "
   if (Ezfio.has_ao_basis_ao_num ()) then
     assert (x <= (Ezfio.get_ao_basis_ao_num ()));
 
+* Nucl_number : int  
+  assert (x > 0) ; 
+  if (x > 1000) then
+    warning \"More than 1000 Atoms\";
+  if (Ezfio.has_nuclei_nucl_num ()) then
+    assert (x <= (Ezfio.get_nuclei_nucl_num ()));
+
 * N_int_number : int 
   assert (x > 0) ; 
   if (x > 100) then
@@ -88,7 +95,7 @@ module %s : sig
   type t
   val to_%s : t -> %s
   val of_%s : %s -> t
-  val to_string : %s -> string
+  val to_string : t -> string
 end = struct
   type t = %s
   let to_%s x = x
@@ -110,7 +117,7 @@ let parse_input input=
         let typ  = String.strip typ
         and name = String.strip name in
         let typ_cap = String.capitalize typ in
-        let newstring = Printf.sprintf template name typ typ typ typ typ typ typ typ 
+        let newstring = Printf.sprintf template name typ typ typ typ typ typ typ 
           ( String.strip text ) typ_cap
         in
         List.rev (parse (newstring::result) tail )
