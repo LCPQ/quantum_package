@@ -63,3 +63,34 @@ let executables = lazy (
 )
 
 
+let get_ezfio_default directory data =
+  let filename = root / "data/ezfio_defaults" in
+  let lines = In_channel.with_file filename ~f:(fun in_channel ->
+    In_channel.input_lines in_channel) in
+  let rec find_dir = function
+    | line :: rest ->
+        if ((String.strip line) = directory) then
+          rest
+        else
+          find_dir rest
+    | [] -> raise Not_found
+  in 
+  let rec find_data = function
+    | line :: rest ->
+        if (line = "") then
+          raise Not_found
+        else if (line.[0] <> ' ') then
+          raise Not_found
+        else 
+          begin
+            match (String.lsplit2 ~on:' ' (String.strip line)) with
+              | Some (l,r) -> 
+                if (l = data) then (String.lowercase (String.strip r))
+                else find_data rest
+              | None -> raise Not_found
+          end
+    | [] -> raise Not_found
+  in
+  find_dir lines
+    |> find_data ;
+;;
