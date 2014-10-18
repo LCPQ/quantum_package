@@ -19,4 +19,11 @@ let test_bitmasks () =
   print_endline (Input.Bitmasks.to_string b);
 ;;
 
-test_bitmasks ();;
+let test_cis () =
+  Ezfio.set_file "F2.ezfio" ;
+  let b = Input.Cis_dressed.read ()
+  in
+  print_endline (Input.Cis_dressed.to_string b);
+;;
+
+test_cis ();;
