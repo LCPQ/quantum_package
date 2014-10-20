@@ -26,4 +26,11 @@ let test_cis () =
   print_endline (Input.Cis_dressed.to_string b);
 ;;
 
-test_cis ();;
+let test_dets () =
+  Ezfio.set_file "F2.ezfio" ;
+  let b = Input.Determinants.read ()
+  in
+  print_endline (Input.Determinants.to_string b);
+;;
+
+test_dets();;

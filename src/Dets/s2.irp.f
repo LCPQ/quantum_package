@@ -36,6 +36,9 @@ end
 BEGIN_PROVIDER [ double precision, S_z ]
 &BEGIN_PROVIDER [ double precision, S_z2_Sz ]
  implicit none
+ BEGIN_DOC
+! z component of the Spin
+ END_DOC
 
  S_z = 0.5d0*dble(elec_alpha_num-elec_beta_num)
  S_z2_Sz = S_z*(S_z-1.d0)
@@ -44,15 +47,19 @@ END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, expected_s2]
  implicit none
-   PROVIDE ezfio_filename
+ BEGIN_DOC
+! Expected value of S2 : S*(S+1)
+ END_DOC
    logical :: has_expected_s2
 
    call ezfio_has_determinants_expected_s2(has_expected_s2)
    if (has_expected_s2) then
      call ezfio_get_determinants_expected_s2(expected_s2)
    else
-     expected_s2 = elec_alpha_num - elec_beta_num + 0.5d0 * ((elec_alpha_num - elec_beta_num)**2*0.5d0 - (elec_alpha_num-elec_beta_num))
-!    call ezfio_set_determinants_expected_s2(expected_s2)
+     double precision :: S
+     S = (elec_alpha_num-elec_beta_num)*0.5d0 
+     expected_s2 = S * (S+1.d0)
+!     expected_s2 = elec_alpha_num - elec_beta_num + 0.5d0 * ((elec_alpha_num - elec_beta_num)**2*0.5d0 - (elec_alpha_num-elec_beta_num))
    endif
 
 END_PROVIDER 

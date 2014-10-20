@@ -152,6 +152,15 @@ let xor_operator a b = logical_operator2 Bit.xor_operator a b;;
 let  or_operator a b = logical_operator2  Bit.or_operator a b;;
 let not_operator   b = logical_operator1 Bit.not_operator   b ;;
 
+
+let popcnt b = 
+  let rec popcnt accu = function
+    | [] -> accu
+    | Bit.One::rest -> popcnt (accu+1) rest
+    | Bit.Zero::rest -> popcnt (accu) rest
+  in popcnt 0 b
+;;
+
 let test_module () = 
   let test = of_int64_list ([-1231L;255L]) in
   print_string (to_string test);
@@ -174,5 +183,8 @@ let test_module () =
    print_string (to_string (or_operator a b));
    print_newline ();
    print_string (to_string (xor_operator a b));
+   print_string (to_string a);
+   print_int (popcnt a);
   end
 ;;
+

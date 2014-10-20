@@ -22,6 +22,14 @@ let input_data = "
 * Negative_int : int  
   assert (x <= 0) ; 
 
+* Det_coef : float
+  assert (x >= -1.) ; 
+  assert (x <=  1.) ; 
+
+* Normalized_float : float
+  assert (x <= 1.) ; 
+  assert (x >= 0.) ; 
+
 * Strictly_negative_int : int  
   assert (x < 0) ; 
 
@@ -70,6 +78,15 @@ let input_data = "
   if (Ezfio.has_determinants_det_num ()) then
     assert (x <= (Ezfio.get_determinants_det_num ()));
 
+* States_number : int 
+  assert (x > 0) ; 
+  if (x > 100) then
+    warning \"More than 100 states\";
+  if (Ezfio.has_determinants_n_states_diag ()) then
+    assert (x <= (Ezfio.get_determinants_n_states_diag ()))
+  else if (Ezfio.has_determinants_n_states ()) then
+    assert (x <= (Ezfio.get_determinants_n_states ()));
+
 * Bit_kind_size : int  
   begin match x with
   | 8 | 16 | 32 | 64 -> ()
@@ -89,6 +106,28 @@ let input_data = "
 "
 ;;
 
+let untouched = "
+module Determinant : sig
+  type t
+  val to_int64_array : t -> int64 array
+  val of_int64_array : int64 array -> t
+  val to_string : t -> string
+end = struct
+  type t = int64 array
+  let to_int64_array x = x
+  let of_int64_array x = 
+    if (Ezfio.has_determinants_n_int ()) then
+      begin
+        let n_int = Ezfio.get_determinants_n_int () in
+        assert ((Array.length x) = n_int*2) 
+      end
+      ; x
+  let to_string x = Array.to_list x
+    |> List.map ~f:Int64.to_string
+    |> String.concat ~sep:\", \"
+end
+
+"
 
 let template = format_of_string "
 module %s : sig
@@ -129,6 +168,9 @@ let parse_input input=
   |> print_string
 ;;
 
-let () = parse_input input_data;;
+let () = 
+  parse_input input_data ;
+  print_endline untouched
+;;
 
 
