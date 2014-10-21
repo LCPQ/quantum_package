@@ -6,7 +6,7 @@ module Bitmasks : sig
   type t = 
     { n_int              : N_int_number.t;
       bit_kind           : Bit_kind.t;
-      n_mask_gen         : Strictly_positive_int.t;
+      n_mask_gen         : Bitmask_number.t;
       generators         : int64 array;
     }
   ;;
@@ -16,7 +16,7 @@ end = struct
   type t = 
     { n_int              : N_int_number.t;
       bit_kind           : Bit_kind.t;
-      n_mask_gen         : Strictly_positive_int.t;
+      n_mask_gen         : Bitmask_number.t;
       generators         : int64 array;
     }
   ;;
@@ -49,7 +49,7 @@ end = struct
       Ezfio.set_bitmasks_n_mask_gen 1
     ;
     Ezfio.get_bitmasks_n_mask_gen ()
-    |> Strictly_positive_int.of_int
+    |> Bitmask_number.of_int
   ;;
 
 
@@ -93,7 +93,7 @@ generators         = %s
 "
         (N_int_number.to_string b.n_int)
         (Bit_kind.to_string b.bit_kind)
-        (Strictly_positive_int.to_string b.n_mask_gen)
+        (Bitmask_number.to_string b.n_mask_gen)
         (Array.to_list b.generators
          |> List.map ~f:(fun x-> Int64.to_string x) 
          |> String.concat ~sep:", ")

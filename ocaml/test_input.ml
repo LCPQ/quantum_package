@@ -54,4 +54,19 @@ let test_fci () =
   print_endline (Input.Full_ci.to_string b);
 ;;
 
-test_fci();;
+let test_hf () =
+  Ezfio.set_file "F2.ezfio" ;
+  let b = Input.Hartree_fock.read ()
+  in
+  print_endline (Input.Hartree_fock.to_string b);
+;;
+
+(*
+test_hf ();;
+test_ao ();;
+test_bielec_intergals ();;
+test_bitmasks ();
+test_cis ();
+test_dets ();
+*)
+test_cisd_sc2 ();

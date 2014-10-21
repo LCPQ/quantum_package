@@ -4,18 +4,18 @@ open Core.Std;;
 
 module Electrons : sig
   type t = 
-    { elec_alpha_num     : Strictly_positive_int.t;
-      elec_beta_num      : Positive_int.t;
-      elec_num           : Strictly_positive_int.t;
+    { elec_alpha_num     : Elec_alpha_number.t;
+      elec_beta_num      : Elec_beta_number.t;
+      elec_num           : Elec_number.t;
     }
   ;;
   val read : unit -> t
   val to_string : t -> string
 end = struct
   type t = 
-    { elec_alpha_num     : Strictly_positive_int.t;
-      elec_beta_num      : Positive_int.t;
-      elec_num           : Strictly_positive_int.t;
+    { elec_alpha_num     : Elec_alpha_number.t;
+      elec_beta_num      : Elec_beta_number.t;
+      elec_num           : Elec_number.t;
     }
   ;;
 
@@ -23,19 +23,19 @@ end = struct
 
   let read_elec_alpha_num() = 
     Ezfio.get_electrons_elec_alpha_num ()
-    |> Strictly_positive_int.of_int
+    |> Elec_alpha_number.of_int
   ;;
 
   let read_elec_beta_num() = 
     Ezfio.get_electrons_elec_beta_num ()
-    |> Positive_int.of_int
+    |> Elec_beta_number.of_int
   ;;
 
   let read_elec_num () = 
     let na = Ezfio.get_electrons_elec_alpha_num ()
     and nb = Ezfio.get_electrons_elec_beta_num  ()
     in assert (na >= nb);
-    Strictly_positive_int.of_int (na + nb)
+    Elec_number.of_int (na + nb)
   ;;
 
 
@@ -52,9 +52,9 @@ elec_alpha_num     = %s
 elec_beta_num      = %s
 elec_num           = %s
 "
-        (Strictly_positive_int.to_string b.elec_alpha_num)
-        (Positive_int.to_string b.elec_beta_num)
-        (Strictly_positive_int.to_string b.elec_num)
+        (Elec_alpha_number.to_string b.elec_alpha_num)
+        (Elec_beta_number.to_string b.elec_beta_num)
+        (Elec_number.to_string b.elec_num)
 end
 
 

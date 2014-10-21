@@ -11,5 +11,6 @@ include Input_cisd_sc2;;
 include Input_determinants;;
 include Input_electrons;;
 include Input_full_ci;;
+include Input_hartree_fock;;
 
 

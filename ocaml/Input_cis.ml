@@ -4,7 +4,7 @@ open Core.Std;;
 
 module Cis_dressed : sig
   type t = 
-    { n_state_cis        : Strictly_positive_int.t;
+    { n_state_cis        : States_number.t;
       n_core_cis         : Positive_int.t;
       n_act_cis          : Positive_int.t;
       mp2_dressing       : bool;
@@ -16,7 +16,7 @@ module Cis_dressed : sig
   val to_string : t -> string
 end = struct
   type t = 
-    { n_state_cis        : Strictly_positive_int.t;
+    { n_state_cis        : States_number.t;
       n_core_cis         : Positive_int.t;
       n_act_cis          : Positive_int.t;
       mp2_dressing       : bool;
@@ -34,7 +34,7 @@ end = struct
        |> Ezfio.set_cis_dressed_n_state_cis
     ;
     Ezfio.get_cis_dressed_n_state_cis ()
-    |> Strictly_positive_int.of_int
+    |> States_number.of_int
   ;;
 
   let read_n_core_cis () = 
@@ -102,7 +102,7 @@ mp2_dressing       = %s
 standard_doubles   = %s
 en_2_2             = %s
 "
-        (Strictly_positive_int.to_string b.n_state_cis)
+        (States_number.to_string b.n_state_cis)
         (Positive_int.to_string b.n_core_cis)
         (Positive_int.to_string b.n_act_cis)
         (Bool.to_string b.mp2_dressing)

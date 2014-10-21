@@ -8,8 +8,8 @@ module Bielec_integrals : sig
       read_mo_integrals  : bool;
       write_ao_integrals : bool;
       write_mo_integrals : bool;
-      threshold_ao       : Positive_float.t;
-      threshold_mo       : Positive_float.t;
+      threshold_ao       : Threshold.t;
+      threshold_mo       : Threshold.t;
       direct             : bool;
     }
   ;;
@@ -21,8 +21,8 @@ end = struct
       read_mo_integrals  : bool;
       write_ao_integrals : bool;
       write_mo_integrals : bool;
-      threshold_ao       : Positive_float.t;
-      threshold_mo       : Positive_float.t;
+      threshold_ao       : Threshold.t;
+      threshold_mo       : Threshold.t;
       direct             : bool;
     }
   ;;
@@ -81,7 +81,7 @@ end = struct
        |> Ezfio.set_bielec_integrals_threshold_ao
     ;
     Ezfio.get_bielec_integrals_threshold_ao ()
-    |> Positive_float.of_float
+    |> Threshold.of_float
   ;;
 
   let read_threshold_mo () = 
@@ -91,7 +91,7 @@ end = struct
        |> Ezfio.set_bielec_integrals_threshold_mo
     ;
     Ezfio.get_bielec_integrals_threshold_mo ()
-    |> Positive_float.of_float
+    |> Threshold.of_float
   ;;
 
   let read ()= 
@@ -127,8 +127,8 @@ direct             = %s
         (Bool.to_string b.read_mo_integrals)
         (Bool.to_string b.write_ao_integrals)
         (Bool.to_string b.write_mo_integrals)
-        (Positive_float.to_string b.threshold_ao)
-        (Positive_float.to_string b.threshold_mo)
+        (Threshold.to_string b.threshold_ao)
+        (Threshold.to_string b.threshold_mo)
         (Bool.to_string b.direct)
 end
 

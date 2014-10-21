@@ -6,12 +6,12 @@ module Ao_basis : sig
   type t = 
     { ao_basis        : string ;
       ao_num          : AO_number.t ;
-      ao_prim_num     : Strictly_positive_int.t array;
-      ao_prim_num_max : Strictly_positive_int.t;
+      ao_prim_num     : AO_prim_number.t array;
+      ao_prim_num_max : AO_prim_number.t;
       ao_nucl         : Nucl_number.t array;
       ao_power        : Symmetry.Xyz.t array;
-      ao_coef         : float array;
-      ao_expo         : Positive_float.t array;
+      ao_coef         : AO_coef.t array;
+      ao_expo         : AO_expo.t array;
     }
   ;;
   val read : unit -> t
@@ -20,12 +20,12 @@ end = struct
   type t = 
     { ao_basis        : string ;
       ao_num          : AO_number.t ;
-      ao_prim_num     : Strictly_positive_int.t array;
-      ao_prim_num_max : Strictly_positive_int.t;
+      ao_prim_num     : AO_prim_number.t array;
+      ao_prim_num_max : AO_prim_number.t;
       ao_nucl         : Nucl_number.t array;
       ao_power        : Symmetry.Xyz.t array;
-      ao_coef         : float array;
-      ao_expo         : Positive_float.t array;
+      ao_coef         : AO_coef.t array;
+      ao_expo         : AO_expo.t array;
     }
   ;;
 
@@ -46,14 +46,14 @@ end = struct
   let read_ao_prim_num () =
     (Ezfio.get_ao_basis_ao_prim_num () ).Ezfio.data
     |> Ezfio.flattened_ezfio_data
-    |> Array.map ~f:Strictly_positive_int.of_int
+    |> Array.map ~f:AO_prim_number.of_int
   ;;
 
   let read_ao_prim_num_max () =
     (Ezfio.get_ao_basis_ao_prim_num () ).Ezfio.data
     |> Ezfio.flattened_ezfio_data
     |> Array.fold ~f:(fun x y -> if x>y then x else y) ~init:0
-    |> Strictly_positive_int.of_int
+    |> AO_prim_number.of_int
   ;;
 
   let read_ao_nucl () =
@@ -82,12 +82,13 @@ end = struct
   let read_ao_coef () =
     (Ezfio.get_ao_basis_ao_coef () ).Ezfio.data
     |> Ezfio.flattened_ezfio_data
+    |> Array.map ~f:AO_coef.of_float
   ;;
 
   let read_ao_expo () =
     (Ezfio.get_ao_basis_ao_expo () ).Ezfio.data
     |> Ezfio.flattened_ezfio_data
-    |> Array.map ~f:Positive_float.of_float
+    |> Array.map ~f:AO_expo.of_float
   ;;
 
   let read () =
@@ -116,15 +117,15 @@ ao_expo         = %s
     b.ao_basis
     (AO_number.to_string b.ao_num)
     (b.ao_prim_num |> Array.to_list |> List.map
-      ~f:(Strictly_positive_int.to_string) |> String.concat ~sep:", " )
-    (Strictly_positive_int.to_string b.ao_prim_num_max)
+      ~f:(AO_prim_number.to_string) |> String.concat ~sep:", " )
+    (AO_prim_number.to_string b.ao_prim_num_max)
     (b.ao_nucl |> Array.to_list |> List.map ~f:Nucl_number.to_string |>
       String.concat ~sep:", ")
     (b.ao_power |> Array.to_list |> List.map ~f:(fun x->
       "("^(Symmetry.Xyz.to_string x)^")" )|> String.concat ~sep:", ")
-    (b.ao_coef  |> Array.to_list |> List.map ~f:Float.to_string
+    (b.ao_coef  |> Array.to_list |> List.map ~f:AO_coef.to_string
       |> String.concat ~sep:", ")
-    (b.ao_expo  |> Array.to_list |> List.map ~f:Positive_float.to_string
+    (b.ao_expo  |> Array.to_list |> List.map ~f:AO_expo.to_string
       |> String.concat ~sep:", ")
 
 end

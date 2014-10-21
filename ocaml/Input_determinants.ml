@@ -11,8 +11,8 @@ module Determinants : sig
       n_states               : States_number.t;
       n_states_diag          : States_number.t;
       n_det_max_jacobi       : Det_number.t;
-      threshold_generators   : Positive_float.t;
-      threshold_selectors    : Positive_float.t; 
+      threshold_generators   : Threshold.t;
+      threshold_selectors    : Threshold.t; 
       read_wf                : bool;
       expected_s2            : Positive_float.t;
       s2_eig                 : bool;
@@ -31,8 +31,8 @@ end = struct
       n_states               : States_number.t;
       n_states_diag          : States_number.t;
       n_det_max_jacobi       : Det_number.t;
-      threshold_generators   : Positive_float.t;
-      threshold_selectors    : Positive_float.t; 
+      threshold_generators   : Threshold.t;
+      threshold_selectors    : Threshold.t; 
       read_wf                : bool;
       expected_s2            : Positive_float.t;
       s2_eig                 : bool;
@@ -116,7 +116,7 @@ end = struct
       |> Ezfio.set_determinants_threshold_generators
     ;
     Ezfio.get_determinants_threshold_generators ()
-    |> Positive_float.of_float
+    |> Threshold.of_float
   ;;
 
   let read_threshold_selectors () =
@@ -126,7 +126,7 @@ end = struct
       |> Ezfio.set_determinants_threshold_selectors
     ;
     Ezfio.get_determinants_threshold_selectors ()
-    |> Positive_float.of_float
+    |> Threshold.of_float
   ;;
 
   let read_read_wf () =
@@ -257,8 +257,8 @@ psi_det                = %s
      (b.n_states      |> States_number.to_string)
      (b.n_states_diag |> States_number.to_string)
      (b.n_det_max_jacobi |> Det_number.to_string)
-     (b.threshold_generators |> Positive_float.to_string)
-     (b.threshold_selectors |> Positive_float.to_string)
+     (b.threshold_generators |> Threshold.to_string)
+     (b.threshold_selectors |> Threshold.to_string)
      (b.read_wf       |> Bool.to_string)
      (b.expected_s2   |> Positive_float.to_string)
      (b.s2_eig        |> Bool.to_string)
@@ -266,7 +266,6 @@ psi_det                = %s
       |> String.concat ~sep:", ")
      (b.psi_det   |> Array.map ~f:(fun x -> Determinant.to_int64_array x
       |> Array.map ~f:(fun x-> 
-          print_endline (Int64.to_string x) ;
           Int64.to_string x )|> Array.to_list |>
        String.concat ~sep:", ") |> Array.to_list
       |> String.concat ~sep:" | ")

@@ -4,8 +4,8 @@ open Core.Std;;
 
 module Cisd_sc2 : sig
   type t = 
-    { n_det_max_cisd_sc2 : Strictly_positive_int.t;
-      pt2_max            : Positive_float.t;
+    { n_det_max_cisd_sc2 : Det_number.t;
+      pt2_max            : PT2_energy.t;
       do_pt2_end         : bool;
     }
   ;;
@@ -13,8 +13,8 @@ module Cisd_sc2 : sig
   val to_string : t -> string
 end = struct
   type t = 
-    { n_det_max_cisd_sc2 : Strictly_positive_int.t;
-      pt2_max            : Positive_float.t;
+    { n_det_max_cisd_sc2 : Det_number.t;
+      pt2_max            : PT2_energy.t;
       do_pt2_end         : bool;
     }
   ;;
@@ -28,7 +28,7 @@ end = struct
        |> Ezfio.set_cisd_sc2_selected_n_det_max_cisd_sc2 
     ;
     Ezfio.get_cisd_sc2_selected_n_det_max_cisd_sc2 ()
-    |> Strictly_positive_int.of_int
+    |> Det_number.of_int
   ;;
 
 
@@ -39,7 +39,7 @@ end = struct
        |> Ezfio.set_cisd_sc2_selected_pt2_max
     ;
     Ezfio.get_cisd_sc2_selected_pt2_max ()
-    |> Positive_float.of_float
+    |> PT2_energy.of_float
   ;;
 
 
@@ -66,8 +66,8 @@ n_det_max_cisd_sc2 = %s
 pt2_max            = %s
 do_pt2_end         = %s
 "
-        (Strictly_positive_int.to_string b.n_det_max_cisd_sc2)
-        (Positive_float.to_string b.pt2_max)
+        (Det_number.to_string b.n_det_max_cisd_sc2)
+        (PT2_energy.to_string b.pt2_max)
         (Bool.to_string b.do_pt2_end)
 end
 

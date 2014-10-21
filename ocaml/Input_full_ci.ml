@@ -4,8 +4,8 @@ open Core.Std;;
 
 module Full_ci : sig
   type t = 
-    { n_det_max_fci      : Strictly_positive_int.t;
-      pt2_max            : Positive_float.t;
+    { n_det_max_fci      : Det_number.t;
+      pt2_max            : PT2_energy.t;
       do_pt2_end         : bool;
     }
   ;;
@@ -13,8 +13,8 @@ module Full_ci : sig
   val to_string : t -> string
 end = struct
   type t = 
-    { n_det_max_fci      : Strictly_positive_int.t;
-      pt2_max            : Positive_float.t;
+    { n_det_max_fci      : Det_number.t;
+      pt2_max            : PT2_energy.t;
       do_pt2_end         : bool;
     }
   ;;
@@ -28,7 +28,7 @@ end = struct
        |> Ezfio.set_full_ci_n_det_max_fci
     ;
     Ezfio.get_full_ci_n_det_max_fci ()
-    |> Strictly_positive_int.of_int
+    |> Det_number.of_int
   ;;
 
   let read_pt2_max () = 
@@ -38,7 +38,7 @@ end = struct
        |> Ezfio.set_full_ci_pt2_max
     ;
     Ezfio.get_full_ci_pt2_max ()
-    |> Positive_float.of_float
+    |> PT2_energy.of_float
   ;;
 
   let read_do_pt2_end () = 
@@ -64,8 +64,8 @@ n_det_max_fci      = %s
 pt2_max            = %s
 do_pt2_end         = %s
 "
-        (Strictly_positive_int.to_string b.n_det_max_fci)
-        (Positive_float.to_string b.pt2_max)
+        (Det_number.to_string b.n_det_max_fci)
+        (PT2_energy.to_string b.pt2_max)
         (Bool.to_string b.do_pt2_end)
 end
 

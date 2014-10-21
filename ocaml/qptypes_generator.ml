@@ -99,9 +99,34 @@ let input_data = "
   | _ -> raise (Failure \"Bit_kind should be (1|2|4|8).\")
   end;
 
+* Bitmask_number : int
+  assert (x > 0) ;
+
 * MO_coef : float
 
 * AO_coef : float
+
+* AO_expo : float  
+  assert (x >= 0.) ; 
+
+* AO_prim_number : int
+  assert (x > 0) ;
+
+* Threshold : float
+  assert (x >= 0.) ;
+  assert (x <= 1.) ;
+
+* PT2_energy : float
+  assert (x >=0.) ;
+
+* Elec_alpha_number : int
+  assert (x > 0) ;
+
+* Elec_beta_number : int
+  assert (x >= 0) ;
+
+* Elec_number : int
+  assert (x > 0) ;
 
 "
 ;;
