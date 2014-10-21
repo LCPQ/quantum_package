@@ -11,13 +11,11 @@ BEGIN_PROVIDER [ integer, N_det ]
  if (read_wf) then
    call ezfio_has_determinants_n_det(exists)
    if (exists) then
-     if (exists) then
        call ezfio_has_determinants_mo_label(exists)
        if (exists) then
          call ezfio_get_determinants_mo_label(label)
          exists = (label == mo_label)
        endif
-     endif
    endif
    if (exists) then
      call ezfio_get_determinants_n_det(N_det)
