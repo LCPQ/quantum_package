@@ -33,4 +33,11 @@ let test_dets () =
   print_endline (Input.Determinants.to_string b);
 ;;
 
-test_dets();;
+let test_cisd_sc2 () =
+  Ezfio.set_file "F2.ezfio" ;
+  let b = Input.Cisd_sc2.read ()
+  in
+  print_endline (Input.Cisd_sc2.to_string b);
+;;
+
+test_cisd_sc2();;
