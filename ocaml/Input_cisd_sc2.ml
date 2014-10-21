@@ -3,7 +3,12 @@ open Qputils;;
 open Core.Std;;
 
 module Cisd_sc2 : sig
-  type t
+  type t = 
+    { n_det_max_cisd_sc2 : Strictly_positive_int.t;
+      pt2_max            : Positive_float.t;
+      do_pt2_end         : bool;
+    }
+  ;;
   val read : unit -> t
   val to_string : t -> string
 end = struct

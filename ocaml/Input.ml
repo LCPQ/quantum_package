@@ -10,5 +10,6 @@ include Input_cis;;
 include Input_cisd_sc2;;
 include Input_determinants;;
 include Input_electrons;;
+include Input_full_ci;;
 
 

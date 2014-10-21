@@ -3,7 +3,13 @@ open Qputils;;
 open Core.Std;;
 
 module Bitmasks : sig
-  type t
+  type t = 
+    { n_int              : N_int_number.t;
+      bit_kind           : Bit_kind.t;
+      n_mask_gen         : Strictly_positive_int.t;
+      generators         : int64 array;
+    }
+  ;;
   val read : unit -> t
   val to_string : t -> string
 end = struct
@@ -12,10 +18,6 @@ end = struct
       bit_kind           : Bit_kind.t;
       n_mask_gen         : Strictly_positive_int.t;
       generators         : int64 array;
-      (*
-      n_mask_ref         : Strictly_positive_int.t;
-      reference          : int64 array;
-      *)
     }
   ;;
 

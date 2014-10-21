@@ -3,7 +3,23 @@ open Qputils;;
 open Core.Std;;
 
 module Determinants : sig
-  type t
+  type t = 
+    { n_int                  : N_int_number.t;
+      bit_kind               : Bit_kind.t;
+      mo_label               : Non_empty_string.t;
+      n_det                  : Det_number.t;
+      n_states               : States_number.t;
+      n_states_diag          : States_number.t;
+      n_det_max_jacobi       : Det_number.t;
+      threshold_generators   : Positive_float.t;
+      threshold_selectors    : Positive_float.t; 
+      read_wf                : bool;
+      expected_s2            : Positive_float.t;
+      s2_eig                 : bool;
+      psi_coef               : Det_coef.t array;
+      psi_det                : Determinant.t array;
+    }
+  ;;
   val read : unit -> t
   val to_string : t -> string
 end = struct

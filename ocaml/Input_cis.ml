@@ -3,7 +3,15 @@ open Qputils;;
 open Core.Std;;
 
 module Cis_dressed : sig
-  type t
+  type t = 
+    { n_state_cis        : Strictly_positive_int.t;
+      n_core_cis         : Positive_int.t;
+      n_act_cis          : Positive_int.t;
+      mp2_dressing       : bool;
+      standard_doubles   : bool;
+      en_2_2             : bool;
+    }
+  ;;
   val read : unit -> t
   val to_string : t -> string
 end = struct

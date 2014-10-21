@@ -3,7 +3,17 @@ open Qputils;;
 open Core.Std;;
 
 module Ao_basis : sig
-  type t
+  type t = 
+    { ao_basis        : string ;
+      ao_num          : AO_number.t ;
+      ao_prim_num     : Strictly_positive_int.t array;
+      ao_prim_num_max : Strictly_positive_int.t;
+      ao_nucl         : Nucl_number.t array;
+      ao_power        : Symmetry.Xyz.t array;
+      ao_coef         : float array;
+      ao_expo         : Positive_float.t array;
+    }
+  ;;
   val read : unit -> t
   val to_string : t -> string
 end = struct

@@ -3,7 +3,16 @@ open Qputils;;
 open Core.Std;;
 
 module Bielec_integrals : sig
-  type t
+  type t = 
+    { read_ao_integrals  : bool;
+      read_mo_integrals  : bool;
+      write_ao_integrals : bool;
+      write_mo_integrals : bool;
+      threshold_ao       : Positive_float.t;
+      threshold_mo       : Positive_float.t;
+      direct             : bool;
+    }
+  ;;
   val read : unit -> t
   val to_string : t -> string
 end = struct

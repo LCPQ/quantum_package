@@ -47,4 +47,11 @@ let test_electrons () =
   print_endline (Input.Electrons.to_string b);
 ;;
 
-test_electrons();;
+let test_fci () =
+  Ezfio.set_file "F2.ezfio" ;
+  let b = Input.Full_ci.read ()
+  in
+  print_endline (Input.Full_ci.to_string b);
+;;
+
+test_fci();;
