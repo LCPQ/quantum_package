@@ -51,16 +51,20 @@ let run_i ~action ezfio_filename =
 
 
   let compute_charge () =
+    let input = Input.Electrons.read () in
     let nucl_charge = Ezfio.((get_nuclei_nucl_charge ()).data)
       |> Ezfio.flattened_ezfio_data |> Array.map ~f:(Float.to_int) 
-    and n_alpha = Ezfio.get_electrons_elec_alpha_num ()
-    and n_beta  = Ezfio.get_electrons_elec_beta_num ()
+    and n_alpha = input.Input.Electrons.elec_alpha_num
+      |> Strictly_positive_int.to_int
+    and n_beta  = input.Input.Electrons.elec_beta_num 
+      |> Positive_int.to_int
     in Array.fold ~init:(-n_alpha-n_beta) ~f:(fun x y -> x+y) nucl_charge
   in
 
   let compute_multiplicity () =
-    let n_alpha = Positive_int.of_int (Ezfio.get_electrons_elec_alpha_num ())
-    and n_beta  = Positive_int.of_int (Ezfio.get_electrons_elec_beta_num ())
+    let input = Input.Electrons.read () in
+    let n_alpha = input.Input.Electrons.elec_alpha_num
+    and n_beta  = input.Input.Electrons.elec_beta_num 
     in Multiplicity.of_alpha_beta n_alpha n_beta
   in
 
@@ -139,10 +143,10 @@ Prints data contained into the EZFIO file.
 Input data :
 
   * basis
-  * nuclei
+  * nucl
   * charge
-  * multiplicity
-  * electrons
+  * mult
+  * elec
 
 Output data :
 
@@ -150,6 +154,7 @@ Output data :
       ")
     spec
     (fun i o ezfio_file () ->
+  try 
       match (i,o) with
       | (Some i, None) -> run_i ~action:i ezfio_file
       | (None, Some o) -> run_o ~action:o ezfio_file
@@ -157,6 +162,9 @@ Output data :
           raise (Failure "Error : please specify -i or -o but not both.")
       | (None, None) -> 
           raise (Failure "Error : please specify -i or -o.")
+  with
+  | Failure msg -> print_string ("Error\n"^msg)
+  | _ -> ()
     )
 ;;
 

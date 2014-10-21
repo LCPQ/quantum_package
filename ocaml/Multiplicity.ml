@@ -19,7 +19,7 @@ let to_string m =
 ;;
    
 let of_alpha_beta a b =
-  let a = Positive_int.to_int a 
+  let a = Strictly_positive_int.to_int a 
   and b = Positive_int.to_int b
   in
   assert (a >= b);

@@ -40,4 +40,11 @@ let test_cisd_sc2 () =
   print_endline (Input.Cisd_sc2.to_string b);
 ;;
 
-test_cisd_sc2();;
+let test_electrons () =
+  Ezfio.set_file "F2.ezfio" ;
+  let b = Input.Electrons.read ()
+  in
+  print_endline (Input.Electrons.to_string b);
+;;
+
+test_electrons();;

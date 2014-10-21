@@ -77,7 +77,7 @@ let () =
   Command.basic
   ~summary: "Quantum Package command"
   ~readme:( fun () -> "
-Executes a Quantum Package binary file among these:\ni\n"
+Executes a Quantum Package binary file among these:\n\n"
 ^ (Lazy.force Qpackage.executables
     |> List.map ~f:(fun (x,_) -> Printf.sprintf " * %s" x )
     |> String.concat ~sep:"\n" 

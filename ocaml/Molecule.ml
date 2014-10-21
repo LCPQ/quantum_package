@@ -19,7 +19,10 @@ let get_charge { nuclei  ; elec_alpha ; elec_beta } =
 ;;
 
 let get_multiplicity m = 
-  Multiplicity.of_alpha_beta m.elec_alpha m.elec_beta
+  let elec_alpha = m.elec_alpha
+  |> Positive_int.to_int
+  |> Strictly_positive_int.of_int in
+  Multiplicity.of_alpha_beta elec_alpha m.elec_beta
 ;;
 
 let get_nucl_num m =
