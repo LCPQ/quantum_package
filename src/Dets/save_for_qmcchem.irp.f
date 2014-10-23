@@ -35,7 +35,7 @@ subroutine save_dets_qmcchem
  call write_int(output_dets,N_det,'Determinants saved for QMC')
  deallocate(occ)
  open(unit=31,file=trim(ezfio_filename)//'/mo_basis/mo_classif')
- write(31,*) 1
+ write(31,'(I1)') 1
  write(31,*) mo_tot_num
  do i=1,mo_tot_num
    write(31,'(A)') 'a'
