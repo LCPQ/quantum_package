@@ -68,6 +68,13 @@ let test_mo () =
   print_endline (Input.Mo_basis.to_string b);
 ;;
 
+let test_nucl () =
+  Ezfio.set_file "F2.ezfio" ;
+  let b = Input.Nuclei.read ()
+  in
+  print_endline (Input.Nuclei.to_string b);
+;;
+
 (*
 test_hf ();;
 test_ao ();;
@@ -76,5 +83,6 @@ test_bitmasks ();
 test_cis ();
 test_dets ();
 test_cisd_sc2 ();
-*)
 test_mo ();;
+*)
+test_nucl ();

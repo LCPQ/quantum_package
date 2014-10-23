@@ -13,5 +13,6 @@ include Input_electrons;;
 include Input_full_ci;;
 include Input_hartree_fock;;
 include Input_mo_basis;;
+include Input_nuclei;;
 
 
