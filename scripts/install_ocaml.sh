@@ -9,9 +9,9 @@ make -C ocaml Qptypes.ml &> /dev/null
 if [[ $? -ne 0 ]]
 then
 
-  scripts/fetch_from_web.py "https://raw.github.com/hcarty/ocamlbrew/master/ocamlbrew-install" ocamlbrew-install.sh
-  cat < ocamlbrew-install.sh | env OCAMLBREW_FLAGS="-r" bash 
-  grep "source " ocaml_install.log | grep "etc/ocamlbrew.bashrc"  >> quantum_package.rc
+  scripts/fetch_from_web.py "https://raw.github.com/hcarty/ocamlbrew/master/ocamlbrew-install" ocamlbrew-install.sh 
+  cat < ocamlbrew-install.sh | env OCAMLBREW_FLAGS="-r" bash | tee ocamlbrew_install.log
+  grep "source " ocamlbrew_install.log | grep "etc/ocamlbrew.bashrc"  >> quantum_package.rc
   source quantum_package.rc
   echo Y | opam install core 
 fi

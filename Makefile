@@ -7,21 +7,23 @@ BLUE=[34m
 BLACK=(B[m
 
 
-.PHONY: doc src curl m4 ocaml irpf90
+.PHONY: doc src curl m4 ocaml irpf90 
 
 default: 
-	./setup_environment.sh
+	exec ./setup_environment.sh
 
 curl: bin/curl
 m4: bin/m4
 irpf90: bin/irpf90
 
-EZFIO: irpf90
+EZFIO: bin/irpf90
 	$(info $(BLUE)===== Fetching EZFIO from the web ===== $(BLACK))
 	@sleep 1
 	@$(FETCH_FROM_WEB) "$(WWW_SERVER)/$(EZFIO_TGZ)" $(EZFIO_TGZ) || \
 	  (echo Unable to download EZFIO : $(WWW_SERVER)/$(EZFIO_TGZ) ; exit 1)
 	tar -zxf $(EZFIO_TGZ) && rm $(EZFIO_TGZ)
+	$(MAKE) -C src $$PWD/EZFIO
+	touch EZFIO
 
 bin/irpf90:
 	$(info $(BLUE)===== Fetching IRPF90 from the web ===== $(BLACK))

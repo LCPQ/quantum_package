@@ -6,4 +6,5 @@ inputs:
 	cd inputs ; $(MAKE) all_ezfio
 
 executables: 
-	$(MAKE) -C $(QPACKAGE_ROOT)/src executables && mv $(QPACKAGE_ROOT)/src/executables .
+	cd  $(QPACKAGE_ROOT)/src ; $(MAKE) executables 
+	mv $(QPACKAGE_ROOT)/src/executables .

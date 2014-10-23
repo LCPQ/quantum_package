@@ -28,6 +28,7 @@ export QPACKAGE_ROOT=${QPACKAGE_ROOT}
 export PYTHONPATH=\${PYTHONPATH}:\${QPACKAGE_ROOT}/scripts
 export PATH=\${PATH}:\${QPACKAGE_ROOT}/scripts
 export PATH=\${PATH}:\${QPACKAGE_ROOT}/bin
+export PATH=\${PATH}:\${QPACKAGE_ROOT}/ocaml
 export QPACKAGE_CACHE_URL="http://qmcchem.ups-tlse.fr/files/scemama/quantum_package/cache"
 source \${QPACKAGE_ROOT}/bin/irpman > /dev/null
 EOF
@@ -56,4 +57,7 @@ source quantum_package.rc
 
 =======================================================
 " $BLACK
+
+source quantum_package.rc
+exec bash
 
