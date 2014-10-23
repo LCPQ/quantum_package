@@ -35,7 +35,7 @@ executables: $(ALL_EXE)
 	$(OCAMLBUILD) $*.byte  -use-ocamlfind  $(PKGS)
 	ln -s $*.byte $*
 
-%.native: $(MLFILES) $(MLIFILES) 
+%.native: $(MLFILES) $(MLIFILES) executables
 	rm -f -- $*
 	$(OCAMLBUILD) $*.native -use-ocamlfind $(PKGS)
 	ln -s $*.native $*
@@ -50,8 +50,8 @@ Qptypes.ml: qptypes_generator.byte
 	./qptypes_generator.byte > Qptypes.ml
 	rm qptypes_generator.byte
 
-${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml:
+${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml: 
 	$(MAKE) -C ${QPACKAGE_ROOT}/src ezfio
 
 clean: 
-	rm -rf _build *.native *.byte
+	rm -rf _build Qptypes.ml $(ALL_EXE) $(ALL_TESTS)
