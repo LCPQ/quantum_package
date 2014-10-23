@@ -36,13 +36,6 @@ let input_data = "
 * Non_empty_string : string
   assert (x <> \"\") ;
 
-* Atom_number : int  
-  assert (x > 0) ; 
-  if (x > 1000) then
-    warning \"More than 1000 atoms\";
-  if (Ezfio.has_nuclei_nucl_num ()) then
-    assert (x <= (Ezfio.get_nuclei_nucl_num ()));
-
 * MO_number : int  
   assert (x > 0) ; 
   if (x > 1000) then
@@ -60,7 +53,7 @@ let input_data = "
 * Nucl_number : int  
   assert (x > 0) ; 
   if (x > 1000) then
-    warning \"More than 1000 Atoms\";
+    warning \"More than 1000 atoms\";
   if (Ezfio.has_nuclei_nucl_num ()) then
     assert (x <= (Ezfio.get_nuclei_nucl_num ()));
 

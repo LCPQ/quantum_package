@@ -4,7 +4,7 @@ open Qptypes;;
 let test_prim () = 
   let p = 
    { Primitive.sym  = Symmetry.P ; 
-     Primitive.expo = Positive_float.of_float 0.15} in
+     Primitive.expo = AO_expo.of_float 0.15} in
   Primitive.to_string p
   |> print_string
 ;;
@@ -23,14 +23,14 @@ let test_gto_1 () =
 let test_gto_2 () =
   let in_channel = open_in "/home/scemama/quantum_package/data/basis/cc-pvdz" in
   ignore (input_line in_channel);
-  let basis = Basis.read in_channel (Atom_number.of_int 1) in
-  List.iter basis ~f:(fun (x,n)-> Printf.printf "%d:%s\n" (Atom_number.to_int n) (Gto.to_string x))
+  let basis = Basis.read in_channel (Nucl_number.of_int 1) in
+  List.iter basis ~f:(fun (x,n)-> Printf.printf "%d:%s\n" (Nucl_number.to_int n) (Gto.to_string x))
 ;;
 
 let test_gto () =
   let in_channel = open_in "/home/scemama/quantum_package/data/basis/cc-pvdz" in
-  let basis = Basis.read_element in_channel (Atom_number.of_int 1) Element.C in
-  List.iter basis ~f:(fun (x,n)-> Printf.printf "%d:%s\n" (Atom_number.to_int n) (Gto.to_string x))
+  let basis = Basis.read_element in_channel (Nucl_number.of_int 1) Element.C in
+  List.iter basis ~f:(fun (x,n)-> Printf.printf "%d:%s\n" (Nucl_number.to_int n) (Gto.to_string x))
 ;;
 
 let test_module () =

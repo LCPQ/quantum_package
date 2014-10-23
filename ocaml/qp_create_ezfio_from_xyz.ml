@@ -48,9 +48,9 @@ let run ?o b c m xyz_file =
   Ezfio.set_file ezfio_file;
 
   (* Write Electrons *)
-  Ezfio.set_electrons_elec_alpha_num ( Positive_int.to_int
+  Ezfio.set_electrons_elec_alpha_num ( Elec_alpha_number.to_int
     molecule.Molecule.elec_alpha ) ;
-  Ezfio.set_electrons_elec_beta_num  ( Positive_int.to_int
+  Ezfio.set_electrons_elec_beta_num  ( Elec_beta_number.to_int
     molecule.Molecule.elec_beta  ) ;
 
   (* Write Nuclei *)
@@ -74,9 +74,9 @@ let run ?o b c m xyz_file =
 
   (* Write Basis set *)
   let basis =
-    let rec do_work (accu:(Atom.t*Atom_number.t) list) (n:int) = function
+    let rec do_work (accu:(Atom.t*Nucl_number.t) list) (n:int) = function
     | [] -> accu
-    | e::tail -> let new_accu = (e,(Atom_number.of_int n))::accu in
+    | e::tail -> let new_accu = (e,(Nucl_number.of_int n))::accu in
       do_work new_accu (n+1) tail
     in
     do_work [] 1  nuclei
@@ -90,7 +90,7 @@ let run ?o b c m xyz_file =
   Ezfio.set_ao_basis_ao_num ao_num;
   Ezfio.set_ao_basis_ao_basis b;
   let ao_prim_num = List.map long_basis ~f:(fun (_,g,_) -> List.length g.Gto.lc) 
-  and ao_nucl = List.map long_basis ~f:(fun (_,_,n) -> Atom_number.to_int n)
+  and ao_nucl = List.map long_basis ~f:(fun (_,_,n) -> Nucl_number.to_int n)
   and ao_power= 
     let l = List.map long_basis ~f:(fun (x,_,_) -> x) in
     (List.map l ~f:(fun t -> Positive_int.to_int Symmetry.Xyz.(t.x)) )@
@@ -109,7 +109,7 @@ let run ?o b c m xyz_file =
         | `Coefs -> List.map gtos ~f:(fun x->
           List.map x.Gto.lc ~f:(fun (_,coef) -> AO_coef.to_float coef) )
         | `Expos -> List.map gtos ~f:(fun x->
-          List.map x.Gto.lc ~f:(fun (prim,_) -> Positive_float.to_float
+          List.map x.Gto.lc ~f:(fun (prim,_) -> AO_expo.to_float
           prim.Primitive.expo) )
         end
       in

@@ -53,7 +53,7 @@ let read_one in_channel =
       | [ j ; expo ; coef ] ->
         begin
           let p = { Primitive.sym = sym ;
-                    Primitive.expo = Positive_float.of_float
+                    Primitive.expo = AO_expo.of_float
                         (Float.of_string expo)
                   }
           and c = AO_coef.of_float (Float.of_string coef) in

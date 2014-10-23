@@ -1,3 +1,4 @@
+open Core.Std;;
 open Qptypes ;;
 
 type t = Strictly_positive_int.t;;
@@ -19,17 +20,16 @@ let to_string m =
 ;;
    
 let of_alpha_beta a b =
-  let a = Strictly_positive_int.to_int a 
-  and b = Positive_int.to_int b
+  let a = Elec_alpha_number.to_int a 
+  and b = Elec_beta_number.to_int b
   in
   assert (a >= b);
   of_int (1 + a - b)
 ;;
 
 let to_alpha_beta ne m = 
-  let ne = Positive_int.to_int ne in
+  let ne = Elec_number.to_int ne in
   let nb = (ne-(to_int m)+1)/2 in
   let na = ne - nb in
-  assert (na >= nb) ;
-  (na,nb)
+  (Elec_alpha_number.of_int na, Elec_beta_number.of_int nb)
 ;;

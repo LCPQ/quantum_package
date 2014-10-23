@@ -17,8 +17,8 @@ let test_module () =
     let nuclei = molecule.Molecule.nuclei in
 
     let basis = 
-      (Basis.read_element basis_channel (Atom_number.of_int 1) Element.F) @ 
-      (Basis.read_element basis_channel (Atom_number.of_int 2) Element.F) 
+      (Basis.read_element basis_channel (Nucl_number.of_int 1) Element.F) @ 
+      (Basis.read_element basis_channel (Nucl_number.of_int 2) Element.F) 
     in
 
     Long_basis.of_basis basis 

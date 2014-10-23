@@ -41,6 +41,7 @@ then
 fi
 
 # Ocaml installation
+# Check if m4 and curl are OK
 make -C ocaml Qptypes.ml
 if [[ $? -ne 0 ]]
 then

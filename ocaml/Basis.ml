@@ -1,7 +1,7 @@
 open Core.Std;;
 open Qptypes;;
 
-type t = (Gto.t * Atom_number.t) list;;
+type t = (Gto.t * Nucl_number.t) list;;
 
 (** Read all the basis functions of an element *)
 let read in_channel at_number =
@@ -37,7 +37,7 @@ let read_element in_channel at_number element =
 
 let to_string b =
   List.map ~f:(fun (g,n) ->
-     let n = Atom_number.to_int n in
+     let n = Nucl_number.to_int n in
      (Int.to_string n)^":"^(Gto.to_string g)) b
   |> String.concat ~sep:"\n"
 ;;

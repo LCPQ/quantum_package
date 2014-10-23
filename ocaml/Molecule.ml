@@ -5,12 +5,13 @@ exception MultiplicityError of string;;
 
 type t = {
   nuclei     : Atom.t list ;
-  elec_alpha : Positive_int.t ;
-  elec_beta  : Positive_int.t ;
+  elec_alpha : Elec_alpha_number.t ;
+  elec_beta  : Elec_beta_number.t ;
 }
 
 let get_charge { nuclei  ; elec_alpha ; elec_beta } =
-  let result = Positive_int.(to_int elec_alpha + to_int elec_beta) in
+  let result = (Elec_alpha_number.to_int elec_alpha) +
+     (Elec_beta_number.to_int elec_beta) in
   let rec nucl_charge = function
   | a::rest -> (Charge.to_float a.Atom.charge) +. nucl_charge rest
   | [] -> 0.
@@ -19,14 +20,12 @@ let get_charge { nuclei  ; elec_alpha ; elec_beta } =
 ;;
 
 let get_multiplicity m = 
-  let elec_alpha = m.elec_alpha
-  |> Positive_int.to_int
-  |> Strictly_positive_int.of_int in
+  let elec_alpha = m.elec_alpha in
   Multiplicity.of_alpha_beta elec_alpha m.elec_beta
 ;;
 
 let get_nucl_num m =
-  Strictly_positive_int.of_int (List.length m.nuclei)
+  Nucl_number.of_int (List.length m.nuclei)
 ;;
 
 let name m = 
@@ -88,22 +87,22 @@ let of_xyz_string
   in
   let ne = ( get_charge { 
         nuclei=l ;
-        elec_alpha=(Positive_int.of_int 0) ;
-        elec_beta=(Positive_int.of_int 0) } 
+        elec_alpha=(Elec_alpha_number.of_int 1) ;
+        elec_beta=(Elec_beta_number.of_int 0) } 
       |> Charge.to_int 
-      ) - charge 
-      |> Positive_int.of_int 
+      ) - 1 - charge 
+      |> Elec_number.of_int 
   in
   let (na,nb) = Multiplicity.to_alpha_beta ne multiplicity in
   let result = 
   { nuclei = l ;
-    elec_alpha = (Positive_int.of_int na) ;
-    elec_beta  = (Positive_int.of_int nb) }
+    elec_alpha = na ;
+    elec_beta  = nb }
   in
   if ((get_multiplicity result) <> multiplicity) then
      let msg = Printf.sprintf
       "With %d electrons multiplicity %d is impossible"
-      (Positive_int.to_int ne)
+      (Elec_number.to_int ne)
       (Multiplicity.to_int multiplicity)
      in
      raise (MultiplicityError msg);

@@ -55,9 +55,9 @@ let run_i ~action ezfio_filename =
     let nucl_charge = Ezfio.((get_nuclei_nucl_charge ()).data)
       |> Ezfio.flattened_ezfio_data |> Array.map ~f:(Float.to_int) 
     and n_alpha = input.Input.Electrons.elec_alpha_num
-      |> Strictly_positive_int.to_int
+      |> Elec_alpha_number.to_int
     and n_beta  = input.Input.Electrons.elec_beta_num 
-      |> Positive_int.to_int
+      |> Elec_beta_number.to_int
     in Array.fold ~init:(-n_alpha-n_beta) ~f:(fun x y -> x+y) nucl_charge
   in
 
