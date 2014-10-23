@@ -61,6 +61,13 @@ let test_hf () =
   print_endline (Input.Hartree_fock.to_string b);
 ;;
 
+let test_mo () =
+  Ezfio.set_file "F2.ezfio" ;
+  let b = Input.Mo_basis.read ()
+  in
+  print_endline (Input.Mo_basis.to_string b);
+;;
+
 (*
 test_hf ();;
 test_ao ();;
@@ -68,5 +75,6 @@ test_bielec_intergals ();;
 test_bitmasks ();
 test_cis ();
 test_dets ();
-*)
 test_cisd_sc2 ();
+*)
+test_mo ();;
