@@ -122,8 +122,8 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
   and av = Excitation.create_single act virt
   and iv = Excitation.create_single inact virt
   in
-  let single_excitations = [ ia ; aa ; av ; iv]
-    |> List.map ~f:Excitation.(fun x ->
+  let single_excitations = [| ia ; aa ; av ; iv |]
+    |> Array.map ~f:Excitation.(fun x ->
        match x with
        | Single (x,y) -> 
          ( MO_class.to_bitlist n_int (Hole.to_mo_class x),
@@ -131,7 +131,7 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
        | Double _ -> assert false
        )
        
-  and double_excitations = [
+  and double_excitations = [|
     Excitation.double_of_singles ia ia ;
     Excitation.double_of_singles ia aa ;
     Excitation.double_of_singles ia iv ;
@@ -144,9 +144,10 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
     Excitation.double_of_singles iv aa ;
     Excitation.double_of_singles iv av ;
 
-    Excitation.double_of_singles iv iv ]
+(*    Excitation.double_of_singles iv iv ; *)
+ |]
 
-    |> List.map ~f:Excitation.(fun x ->
+    |> Array.map ~f:Excitation.(fun x ->
        match x with
        | Single _ -> assert false
        | Double (x,y,z,t) -> 
@@ -168,41 +169,40 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
     let core = MO_class.create_inactive core_input in
     let cv = Excitation.create_single core virt in
     let cv = match cv with
-    | Single (x,y) ->  
+    | Excitation.Single (x,y) ->  
       ( MO_class.to_bitlist n_int (Excitation.Hole.to_mo_class x),
         MO_class.to_bitlist n_int (Excitation.Particle.to_mo_class y) ) 
-    | Double _ -> assert false
+    | Excitation.Double _ -> assert false
     in
     let iv = match iv with
-    | Single (x,y) ->  
+    | Excitation.Single (x,y) ->  
       ( MO_class.to_bitlist n_int (Excitation.Hole.to_mo_class x),
         MO_class.to_bitlist n_int (Excitation.Particle.to_mo_class y) ) 
-    | Double _ -> assert false
+    | Excitation.Double _ -> assert false
     in
     [ Bitlist.or_operator (extract_hole iv) (extract_hole cv);
       extract_particle iv ]
   in
 
-  let result_gen = [
-  List.map ~f:extract_hole single_excitations
-  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
-
-  List.map ~f:extract_particle single_excitations
-  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
-
-  List.map ~f:extract_hole1 double_excitations
-  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
-
-  List.map ~f:extract_particle1 double_excitations
-  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
-
-  List.map ~f:extract_hole2 double_excitations
-  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
-
-  List.map ~f:extract_particle2 double_excitations
-  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
-
-  ]
+  let n_single = Array.length single_excitations in
+  let n_mask = Array.length double_excitations in
+  let zero = List.init (N_int_number.to_int n_int) ~f:(fun i -> 0L)
+   |> Bitlist.of_int64_list in
+  let result_gen = (List.init n_single ~f:(fun i-> [
+    extract_hole      single_excitations.(i) ; 
+    extract_particle  single_excitations.(i) ; 
+    extract_hole1     double_excitations.(i) ; 
+    extract_particle1 double_excitations.(i) ; 
+    extract_hole2     double_excitations.(i) ; 
+    extract_particle2 double_excitations.(i) ; ])
+   )@(List.init (n_mask-n_single) ~f:(fun i-> [
+    zero ; zero ;
+    extract_hole1     double_excitations.(n_single+i) ; 
+    extract_particle1 double_excitations.(n_single+i) ; 
+    extract_hole2     double_excitations.(n_single+i) ; 
+    extract_particle2 double_excitations.(n_single+i) ; ])
+   )
+   |> List.concat
   in
 
   (* Print bitmasks *)
@@ -227,8 +227,8 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
   (* Write generators masks *)
   Ezfio.set_bitmasks_n_int (N_int_number.to_int n_int);
   Ezfio.set_bitmasks_bit_kind 8;
-  Ezfio.set_bitmasks_n_mask_gen 1;
-  Ezfio.ezfio_array_of_list ~rank:4 ~dim:([| (N_int_number.to_int n_int) ; 2; 6; 1|]) ~data:result_gen
+  Ezfio.set_bitmasks_n_mask_gen n_mask;
+  Ezfio.ezfio_array_of_list ~rank:4 ~dim:([| (N_int_number.to_int n_int) ; 2; 6; n_mask|]) ~data:result_gen
   |> Ezfio.set_bitmasks_generators ; 
 
   (* Write reference masks *)
