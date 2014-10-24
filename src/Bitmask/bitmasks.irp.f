@@ -175,10 +175,6 @@ BEGIN_PROVIDER [ integer(bit_kind), reference_bitmask, (N_int,2,2,N_reference_bi
  else
    reference_bitmask(:,:,s_hole ,1) = HF_bitmask
    reference_bitmask(:,:,s_part ,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
-   reference_bitmask(:,:,d_hole1,1) = HF_bitmask
-   reference_bitmask(:,:,d_part1,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
-   reference_bitmask(:,:,d_hole2,1) = HF_bitmask
-   reference_bitmask(:,:,d_part2,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
  endif
 
 END_PROVIDER
