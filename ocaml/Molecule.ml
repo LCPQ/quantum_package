@@ -90,7 +90,7 @@ let of_xyz_string
         elec_alpha=(Elec_alpha_number.of_int 1) ;
         elec_beta=(Elec_beta_number.of_int 0) } 
       |> Charge.to_int 
-      ) - 1 - charge 
+      ) + 1 - charge 
       |> Elec_number.of_int 
   in
   let (na,nb) = Multiplicity.to_alpha_beta ne multiplicity in

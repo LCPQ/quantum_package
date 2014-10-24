@@ -23,7 +23,7 @@ ALL_EXE=$(patsubst %.ml,%.native,$(wildcard qp_*.ml))
 
 default: $(ALL_TESTS) $(ALL_EXE)
 
-executables: $(ALL_EXE)
+executables: 
 	$(MAKE) -C $(QPACKAGE_ROOT)/data executables
 
 %.inferred.mli: $(MLFILES)
