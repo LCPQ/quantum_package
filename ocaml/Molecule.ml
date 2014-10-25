@@ -7,7 +7,7 @@ type t = {
   nuclei     : Atom.t list ;
   elec_alpha : Elec_alpha_number.t ;
   elec_beta  : Elec_beta_number.t ;
-}
+} with sexp
 
 let get_charge { nuclei  ; elec_alpha ; elec_beta } =
   let result = (Elec_alpha_number.to_int elec_alpha) +

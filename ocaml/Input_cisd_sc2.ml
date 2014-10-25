@@ -7,7 +7,7 @@ module Cisd_sc2 : sig
     { n_det_max_cisd_sc2 : Det_number.t;
       pt2_max            : PT2_energy.t;
       do_pt2_end         : bool;
-    }
+    } with sexp
   ;;
   val read : unit -> t
   val to_string : t -> string
@@ -16,7 +16,7 @@ end = struct
     { n_det_max_cisd_sc2 : Det_number.t;
       pt2_max            : PT2_energy.t;
       do_pt2_end         : bool;
-    }
+    } with sexp
   ;;
 
   let get_default = Qpackage.get_ezfio_default "cisd_sc2_selected";;

@@ -1,7 +1,7 @@
 open Qptypes;;
 open Core.Std;;
 
-type t = S|P|D|F|G|H|I|J|K|L
+type t = S|P|D|F|G|H|I|J|K|L with sexp
 
 let to_string = function
   | S -> "S"
@@ -53,6 +53,23 @@ let to_l = function
   | J -> Positive_int.of_int 7
   | K -> Positive_int.of_int 8
   | L -> Positive_int.of_int 9
+;;
+
+let of_l i = 
+  let i = Positive_int.to_int i in
+  match i with
+  | 0 -> S
+  | 1 -> P
+  | 2 -> D
+  | 3 -> F
+  | 4 -> G
+  | 5 -> H
+  | 6 -> I
+  | 7 -> J
+  | 8 -> K
+  | 9 -> L
+  | x -> raise (Failure ("Symmetry should be S|P|D|F|G|H|I|J|K|L"))
+;;
 
 type st = t
 ;;
@@ -60,15 +77,16 @@ type st = t
 module Xyz : sig
   type t = { x: Positive_int.t ;
              y: Positive_int.t ;
-             z: Positive_int.t }
+             z: Positive_int.t } with sexp
   val  of_string : string -> t
   val  to_string : t -> string 
   val  get_l     : t -> Positive_int.t
   val  of_symmetry : st -> t list
+  val  to_symmetry : t -> st
 end = struct
   type t = { x: Positive_int.t ;
              y: Positive_int.t ;
-             z: Positive_int.t }
+             z: Positive_int.t } with sexp
   type state_type = Null | X | Y | Z
 
   (** Builds an XYZ triplet from a string.
@@ -127,7 +145,9 @@ end = struct
     | 1 -> "z"
     | i -> Printf.sprintf "z%d" i
     in
-    x^y^z
+    let result = (x^y^z) in
+    if (result = "") then "s"
+    else result
   ;;
 
  (** Returns the l quantum number from a XYZ powers triplet *)
@@ -169,5 +189,7 @@ end = struct
      z=Positive_int.of_int 0 }
    ;;
 
+   let to_symmetry sym = of_l (get_l sym)
+   ;;
 end
 

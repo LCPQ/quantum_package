@@ -12,10 +12,11 @@ module Ao_basis : sig
       ao_power        : Symmetry.Xyz.t array;
       ao_coef         : AO_coef.t array;
       ao_expo         : AO_expo.t array;
-    }
+    } with sexp
   ;;
   val read : unit -> t
   val to_string : t -> string
+  val debug : t -> string
 end = struct
   type t = 
     { ao_basis        : string ;
@@ -26,7 +27,7 @@ end = struct
       ao_power        : Symmetry.Xyz.t array;
       ao_coef         : AO_coef.t array;
       ao_expo         : AO_expo.t array;
-    }
+    } with sexp
   ;;
 
   let get_default = Qpackage.get_ezfio_default "ao_basis";;
@@ -104,16 +105,56 @@ end = struct
   ;;
 
   let to_string b =
+    let ao_num = AO_number.to_int b.ao_num in
+    let gto_array = Array.init (AO_number.to_int b.ao_num)
+      ~f:(fun i ->
+        let s = Symmetry.Xyz.to_symmetry b.ao_power.(i) in
+        let ao_prim_num = AO_prim_number.to_int b.ao_prim_num.(i) in
+        let prims = List.init ao_prim_num ~f:(fun j ->
+          let prim = { Primitive.sym  = s ;
+                       Primitive.expo = b.ao_expo.(ao_num*j+i)
+                     }
+          in
+          let coef = b.ao_coef.(ao_num*j+i) in
+          (prim,coef)
+        ) in
+        Gto.of_prim_coef_list prims
+      )
+    in
+    let long_basis = 
+      let rec do_work accu sym gto nucl =
+        match (sym, gto, nucl) with
+          | (s::srest, g::grest, n::nrest) -> 
+            do_work ((s,g,n)::accu) srest grest nrest
+          | ([],[],[]) -> List.rev accu
+          | _ -> assert false
+      in
+      do_work [] 
+        (Array.to_list b.ao_power)
+        (Array.to_list gto_array)
+        (Array.to_list b.ao_nucl)
+    in
     Printf.sprintf "
-ao_basis        = \"%s\"
-ao_num          = %s
-ao_prim_num     = %s
-ao_prim_num_max = %s
-ao_nucl         = %s
-ao_power        = %s
-ao_coef         = %s
-ao_expo         = %s
-"
+# AO Basis
+# ========
+%s" (Long_basis.to_string long_basis)
+  ;;
+    
+      
+  let debug b =
+    Printf.sprintf "
+# AO Basis
+# ========
+#
+# ao_basis        = %s
+# ao_num          = %s
+# ao_prim_num     = %s
+# ao_prim_num_max = %s
+# ao_nucl         = %s
+# ao_power        = %s
+# ao_coef         = %s
+# ao_expo         = %s
+#"
     b.ao_basis
     (AO_number.to_string b.ao_num)
     (b.ao_prim_num |> Array.to_list |> List.map
@@ -128,6 +169,6 @@ ao_expo         = %s
     (b.ao_expo  |> Array.to_list |> List.map ~f:AO_expo.to_string
       |> String.concat ~sep:", ")
 
+  ;;
 end
-
 

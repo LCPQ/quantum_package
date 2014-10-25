@@ -7,7 +7,7 @@ module Electrons : sig
     { elec_alpha_num     : Elec_alpha_number.t;
       elec_beta_num      : Elec_beta_number.t;
       elec_num           : Elec_number.t;
-    }
+    } with sexp
   ;;
   val read : unit -> t
   val to_string : t -> string
@@ -16,7 +16,7 @@ end = struct
     { elec_alpha_num     : Elec_alpha_number.t;
       elec_beta_num      : Elec_beta_number.t;
       elec_num           : Elec_number.t;
-    }
+    } with sexp
   ;;
 
   let get_default = Qpackage.get_ezfio_default "electrons";;

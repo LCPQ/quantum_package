@@ -126,12 +126,12 @@ let input_data = "
 
 let untouched = "
 module Determinant : sig
-  type t
+  type t with sexp
   val to_int64_array : t -> int64 array
   val of_int64_array : int64 array -> t
   val to_string : t -> string
 end = struct
-  type t = int64 array
+  type t = int64 array with sexp
   let to_int64_array x = x
   let of_int64_array x = 
     if (Ezfio.has_determinants_n_int ()) then
@@ -149,12 +149,12 @@ end
 
 let template = format_of_string "
 module %s : sig
-  type t
+  type t with sexp
   val to_%s : t -> %s
   val of_%s : %s -> t
   val to_string : t -> string
 end = struct
-  type t = %s
+  type t = %s with sexp
   let to_%s x = x
   let of_%s x = ( %s x )
   let to_string x = %s.to_string x

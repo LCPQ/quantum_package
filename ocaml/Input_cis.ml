@@ -10,7 +10,7 @@ module Cis_dressed : sig
       mp2_dressing       : bool;
       standard_doubles   : bool;
       en_2_2             : bool;
-    }
+    } with sexp
   ;;
   val read : unit -> t
   val to_string : t -> string
@@ -22,7 +22,7 @@ end = struct
       mp2_dressing       : bool;
       standard_doubles   : bool;
       en_2_2             : bool;
-    }
+    } with sexp
   ;;
 
   let get_default = Qpackage.get_ezfio_default "cis_dressed";;

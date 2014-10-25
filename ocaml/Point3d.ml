@@ -4,7 +4,7 @@ type t = {
   x : float ;
   y : float ;
   z : float ;
-}
+} with sexp
 
 (** Read x y z coordinates in string s with units u *)
 let of_string u s =

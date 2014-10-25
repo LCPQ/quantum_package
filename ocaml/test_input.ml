@@ -2,6 +2,7 @@ let test_ao () =
   Ezfio.set_file "F2.ezfio" ;
   let b = Input.Ao_basis.read ()
   in
+  print_endline (Input.Ao_basis.debug b);
   print_endline (Input.Ao_basis.to_string b);
 ;;
 
@@ -84,5 +85,7 @@ test_cis ();
 test_dets ();
 test_cisd_sc2 ();
 test_mo ();;
-*)
 test_nucl ();
+*)
+test_ao ();;
+

@@ -6,7 +6,7 @@ module Hartree_fock : sig
   type t = 
     { n_it_scf_max       : Strictly_positive_int.t;
       thresh_scf         : Threshold.t;
-    }
+    } with sexp
   ;;
   val read : unit -> t
   val to_string : t -> string
@@ -14,7 +14,7 @@ end = struct
   type t = 
     { n_it_scf_max       : Strictly_positive_int.t;
       thresh_scf         : Threshold.t;
-    }
+    } with sexp
   ;;
 
   let get_default = Qpackage.get_ezfio_default "hartree_fock";;

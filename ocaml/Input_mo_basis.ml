@@ -8,7 +8,7 @@ module Mo_basis : sig
       mo_label        : Non_empty_string.t;
       mo_occ          : Positive_float.t array;
       mo_coef         : MO_coef.t array;
-    }
+    } with sexp
   ;;
   val read : unit -> t
   val to_string : t -> string
@@ -18,7 +18,7 @@ end = struct
       mo_label        : Non_empty_string.t;
       mo_occ          : Positive_float.t array;
       mo_coef         : MO_coef.t array;
-    }
+    } with sexp
   ;;
 
   let get_default = Qpackage.get_ezfio_default "mo_basis";;

@@ -18,7 +18,7 @@ module Determinants : sig
       s2_eig                 : bool;
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
-    }
+    } with sexp
   ;;
   val read : unit -> t
   val to_string : t -> string
@@ -38,7 +38,7 @@ end = struct
       s2_eig                 : bool;
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
-    }
+    } with sexp
   ;;
 
   let get_default = Qpackage.get_ezfio_default "determinants";;

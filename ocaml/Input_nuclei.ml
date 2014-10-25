@@ -8,7 +8,7 @@ module Nuclei : sig
       nucl_label      : Element.t array;
       nucl_charge     : Charge.t array;
       nucl_coord      : Point3d.t array;
-    }
+    } with sexp
   ;;
   val read : unit -> t
   val to_string : t -> string
@@ -18,7 +18,7 @@ end = struct
       nucl_label      : Element.t array;
       nucl_charge     : Charge.t array;
       nucl_coord      : Point3d.t array;
-    }
+    } with sexp
   ;;
 
   let get_default = Qpackage.get_ezfio_default "nuclei";;

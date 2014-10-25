@@ -6,7 +6,7 @@ type t =
 { element : Element.t ;
   charge  : Charge.t ;
   coord   : Point3d.t ;
-}
+} with sexp
 
 (** Read xyz coordinates of the atom with unit u *)
 let of_string u s =

@@ -1,3 +1,4 @@
+open Core.Std;;
 
 (*
 Type for bits 
@@ -10,6 +11,7 @@ Zero | One
 type bit      = 
    | One 
    | Zero 
+with sexp
 
 let to_string = function
   | Zero -> "0"

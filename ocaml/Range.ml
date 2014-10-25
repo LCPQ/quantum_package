@@ -12,7 +12,7 @@ open Core.Std;;
 *)
 
 
-type t = int list ;;
+type t = int list with sexp
 
 let expand_range r =
   match String.lsplit2 ~on:'-' r with

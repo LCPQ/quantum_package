@@ -13,7 +13,7 @@ endif
 LIBS=
 PKGS=
 OCAMLCFLAGS=-g 
-OCAMLBUILD=ocamlbuild -j 0 -cflags $(OCAMLCFLAGS) -lflags -g 
+OCAMLBUILD=ocamlbuild -j 0 -syntax camlp4o -cflags $(OCAMLCFLAGS) -lflags -g  
 MLFILES=$(wildcard *.ml) ezfio.ml Qptypes.ml
 MLIFILES=$(wildcard *.mli) 
 ALL_TESTS=$(patsubst %.ml,%.byte,$(wildcard test_*.ml))

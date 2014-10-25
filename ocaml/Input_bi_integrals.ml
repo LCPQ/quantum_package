@@ -11,7 +11,7 @@ module Bielec_integrals : sig
       threshold_ao       : Threshold.t;
       threshold_mo       : Threshold.t;
       direct             : bool;
-    }
+    } with sexp
   ;;
   val read : unit -> t
   val to_string : t -> string
@@ -24,7 +24,7 @@ end = struct
       threshold_ao       : Threshold.t;
       threshold_mo       : Threshold.t;
       direct             : bool;
-    }
+    } with sexp
   ;;
 
   let get_default = Qpackage.get_ezfio_default "bielec_integrals";;

@@ -4,7 +4,7 @@ open Core.Std;;
 type t =
 { sym  : Symmetry.t ;
   expo : AO_expo.t ;
-}
+} with sexp
 
 let to_string p = 
   let { sym = s ; expo = e } = p in

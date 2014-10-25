@@ -7,7 +7,7 @@ exception End_Of_Basis
 type t =
 { sym  : Symmetry.t ;
   lc   : ((Primitive.t * AO_coef.t) list)
-}
+} with sexp
 ;;
 
 let of_prim_coef_list pc =
@@ -62,6 +62,7 @@ let read_one in_channel =
       | _ -> raise (GTO_Read_Failure line_buffer)
     end
   in read_lines [] n
+  |> List.rev
   |> of_prim_coef_list
 ;;
 
@@ -70,6 +71,6 @@ let read_one in_channel =
 let to_string { sym = sym ; lc = lc } =
   let f (p,c) = Printf.sprintf "( %s, %f )" (Primitive.to_string p) (AO_coef.to_float c)
   in
-  Printf.sprintf "[ %s : %s ]" (Symmetry.to_string sym)
+  Printf.sprintf "( %s, %s )" (Symmetry.to_string sym)
     (String.concat (List.map ~f:f lc) ~sep:", ")
 ;;

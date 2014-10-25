@@ -1,10 +1,11 @@
 open Core.Std;;
 
-type t = float
+type t = float with sexp;;
 
 let of_float x = x
 let of_int   i = Float.of_int i
 let of_string s = Float.of_string s
+
 
 let to_float x = x
 let to_int   x = Float.to_int x

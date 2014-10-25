@@ -7,7 +7,7 @@ module Full_ci : sig
     { n_det_max_fci      : Det_number.t;
       pt2_max            : PT2_energy.t;
       do_pt2_end         : bool;
-    }
+    } with sexp
   ;;
   val read : unit -> t
   val to_string : t -> string
@@ -16,7 +16,7 @@ end = struct
     { n_det_max_fci      : Det_number.t;
       pt2_max            : PT2_energy.t;
       do_pt2_end         : bool;
-    }
+    } with sexp
   ;;
 
   let get_default = Qpackage.get_ezfio_default "full_ci";;
