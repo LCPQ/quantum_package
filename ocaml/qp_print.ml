@@ -59,6 +59,7 @@ let run_i ~action ezfio_filename =
     and n_beta  = input.Input.Electrons.elec_beta_num 
       |> Elec_beta_number.to_int
     in Array.fold ~init:(-n_alpha-n_beta) ~f:(fun x y -> x+y) nucl_charge
+    |> Charge.of_int
   in
 
   let compute_multiplicity () =
@@ -80,7 +81,7 @@ let run_i ~action ezfio_filename =
        Ezfio.((get_nuclei_nucl_label ()).data) |> Ezfio.flattened_ezfio_data
       else
         Array.map ~f:(fun x-> x
-          |> Float.to_int
+          |> Charge.of_float
           |> Element.of_charge 
           |> Element.to_string ) nucl_charge
     in

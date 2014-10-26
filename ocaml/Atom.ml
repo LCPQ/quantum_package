@@ -23,7 +23,7 @@ let of_string u s =
   | [ name; x; y; z ] ->
     let e = Element.of_string name in
     { element = e ;
-      charge  = Charge.of_int (Element.to_charge e);
+      charge  = Element.to_charge e;
       coord   = Point3d.of_string u (String.concat [x; y; z] ~sep:" ")
     }
   | _ -> raise (AtomError s)

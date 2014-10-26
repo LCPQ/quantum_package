@@ -8,9 +8,9 @@ Zero | One
 
 *)
 
-type bit      = 
-   | One 
-   | Zero 
+type t      = 
+| One 
+| Zero 
 with sexp
 
 let to_string = function

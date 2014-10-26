@@ -35,6 +35,7 @@ let test_module () =
     ;
     print_string "Short basis\n===========\n";
     print_endline (Basis.to_string basis);
+    print_endline ("MD5: "^(Basis.to_md5 basis |> MD5.to_string));
 ;;
 
 test_module ();

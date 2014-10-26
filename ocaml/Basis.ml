@@ -56,10 +56,8 @@ let to_string b =
   do_work [new_nucleus 1] 1 b
   |> String.concat ~sep:"\n"
 ;;
-(*
-  List.map ~f:(fun (g,n) ->
-     let n = Nucl_number.to_int n in
-     (Int.to_string n)^":"^(Gto.to_string g)) b
+
+include To_md5;;
+let to_md5 = to_md5 sexp_of_t
 ;;
-*)
 

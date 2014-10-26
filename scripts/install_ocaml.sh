@@ -4,6 +4,7 @@
 # Thu Oct 23 21:58:40 CEST 2014
 
 QPACKAGE_ROOT=${PWD}
+PACKAGES="core cryptokit"
 
 make -C ocaml Qptypes.ml &> /dev/null
 if [[ $? -ne 0 ]]
@@ -13,7 +14,7 @@ then
   cat < ocamlbrew-install.sh | env OCAMLBREW_FLAGS="-r" bash | tee ocamlbrew_install.log
   grep "source " ocamlbrew_install.log | grep "etc/ocamlbrew.bashrc"  >> quantum_package.rc
   source quantum_package.rc
-  echo Y | opam install core 
+  echo Y | opam install ${PACKAGES}
 fi
 make -C ocaml Qptypes.ml
 

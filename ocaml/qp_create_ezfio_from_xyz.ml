@@ -26,8 +26,8 @@ let run ?o b c m xyz_file =
 
   (* Read molecule *)
   let molecule =
-    Molecule.of_xyz_file xyz_file ~charge:c
-      ~multiplicity:(Multiplicity.of_int m)
+    (Molecule.of_xyz_file xyz_file ~charge:(Charge.of_int c)
+      ~multiplicity:(Multiplicity.of_int m) )
   in
 
   (* Build EZFIO File name *)

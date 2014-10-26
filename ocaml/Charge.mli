@@ -1,8 +1,13 @@
 type t = float with sexp
 
+(** Float conversion functions *)
 val to_float : t -> float
-val to_int   : t -> int
-val to_string: t -> string 
 val of_float : float -> t
+
+(** Int conversion functions *)
+val to_int   : t -> int
 val of_int   : int -> t
+
+(** String conversion functions *)
+val to_string: t -> string 
 val of_string: string -> t

@@ -121,6 +121,8 @@ let input_data = "
 * Elec_number : int
   assert (x > 0) ;
 
+* MD5 : string
+  assert ((String.length x) = 32);
 "
 ;;
 

@@ -47,3 +47,8 @@ let to_string b =
   |> String.concat ~sep:",\n"
   in "("^middle^")"
 ;;
+
+include To_md5;;
+let to_md5 = to_md5 sexp_of_t
+;;
+

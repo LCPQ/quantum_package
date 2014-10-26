@@ -16,6 +16,7 @@ module Ao_basis : sig
   ;;
   val read : unit -> t
   val to_string : t -> string
+  val to_md5 : t -> MD5.t
   val debug : t -> string
 end = struct
   type t = 
@@ -103,8 +104,8 @@ end = struct
       ao_expo         = read_ao_expo () ;
     }
   ;;
-
-  let to_string b =
+    
+  let to_long_basis b =
     let ao_num = AO_number.to_int b.ao_num in
     let gto_array = Array.init (AO_number.to_int b.ao_num)
       ~f:(fun i ->
@@ -121,27 +122,35 @@ end = struct
         Gto.of_prim_coef_list prims
       )
     in
-    let long_basis = 
-      let rec do_work accu sym gto nucl =
-        match (sym, gto, nucl) with
-          | (s::srest, g::grest, n::nrest) -> 
-            do_work ((s,g,n)::accu) srest grest nrest
-          | ([],[],[]) -> List.rev accu
-          | _ -> assert false
-      in
-      do_work [] 
-        (Array.to_list b.ao_power)
-        (Array.to_list gto_array)
-        (Array.to_list b.ao_nucl)
+    let rec do_work accu sym gto nucl =
+      match (sym, gto, nucl) with
+        | (s::srest, g::grest, n::nrest) -> 
+          do_work ((s,g,n)::accu) srest grest nrest
+        | ([],[],[]) -> List.rev accu
+        | _ -> assert false
     in
-    let short_basis =
-      Long_basis.to_basis long_basis
-    in
+    do_work [] 
+      (Array.to_list b.ao_power)
+      (Array.to_list gto_array)
+      (Array.to_list b.ao_nucl)
+  ;;
+
+  let to_basis b =
+    to_long_basis b
+    |> Long_basis.to_basis
+  ;;
+      
+  let to_string b =
+    let short_basis = to_basis b in
     Printf.sprintf "Basis name : %s\n\n%s" b.ao_basis
     (Basis.to_string short_basis)
   ;;
+
+  let to_md5 b =
+    let short_basis = to_basis b in
+    Basis.to_md5 short_basis
+  ;;
     
-      
   let debug b =
     Printf.sprintf "
 ao_basis        = %s
@@ -152,6 +161,7 @@ ao_nucl         = %s
 ao_power        = %s
 ao_coef         = %s
 ao_expo         = %s
+md5             = %s
 "
     b.ao_basis
     (AO_number.to_string b.ao_num)
@@ -166,6 +176,7 @@ ao_expo         = %s
       |> String.concat ~sep:", ")
     (b.ao_expo  |> Array.to_list |> List.map ~f:AO_expo.to_string
       |> String.concat ~sep:", ")
+    (to_md5 b |> MD5.to_string )
 
   ;;
 end

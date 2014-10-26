@@ -7,7 +7,7 @@ Type for bits strings
 list of Bits
 *)
 
-type bit_list = Bit.bit list
+type t = Bit.t list
 
 (* String representation *)
 let to_string b = 
