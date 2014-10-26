@@ -10,7 +10,15 @@ let test_bielec_intergals () =
   Ezfio.set_file "F2.ezfio" ;
   let b = Input.Bielec_integrals.read ()
   in
-  print_endline (Input.Bielec_integrals.to_string b);
+  let output = Input.Bielec_integrals.to_string b
+  in
+  print_endline output;
+  let b2 = Input.Bielec_integrals.of_string output in
+  if (b = b2) then
+   print_endline "OK"
+  else
+   print_endline "b <> b2"
+  ;
 ;;
 
 let test_bitmasks () =
@@ -77,15 +85,15 @@ let test_nucl () =
 ;;
 
 (*
-test_hf ();;
 test_ao ();;
 test_bielec_intergals ();;
 test_bitmasks ();
 test_cis ();
-test_dets ();
 test_cisd_sc2 ();
+test_dets ();
+test_hf ();;
 test_mo ();;
 test_nucl ();
 *)
-test_ao ();;
+test_bielec_intergals ();;
 

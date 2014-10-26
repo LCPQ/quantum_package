@@ -74,3 +74,23 @@ let to_string { sym = sym ; lc = lc } =
   Printf.sprintf "( %s, %s )" (Symmetry.to_string sym)
     (String.concat (List.map ~f:f lc) ~sep:", ")
 ;;
+
+let to_string { sym = sym ; lc = lc } =
+  let result = 
+    Printf.sprintf "%s %3d" (Symmetry.to_string sym) (List.length lc)
+  in
+  let rec do_work accu i = function
+  | [] -> List.rev accu
+  | (p,c)::tail -> 
+    let p = AO_expo.to_float p.Primitive.expo
+    and c = AO_coef.to_float c
+    in
+    let result = 
+      Printf.sprintf "%3d %16f  %16f" i p c
+    in
+    do_work (result::accu) (i+1) tail
+  in
+  (do_work [result] 1 lc)
+  |> String.concat ~sep:"\n"
+;;
+

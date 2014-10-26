@@ -1,3 +1,6 @@
+open Core.Std;;
+
+(*
 let rec transpose = function
 | []          -> []
 | []::tail    -> transpose tail
@@ -7,5 +10,20 @@ let rec transpose = function
     in 
     new_head @ new_tail
 ;;
+*)
 
+
+let input_to_sexp s =
+    let result = 
+      String.split_lines s 
+      |> List.filter ~f:(fun x->
+         (String.strip x) <> "")
+      |> List.map ~f:(fun x->
+         "("^(String.tr '=' ' ' x)^")")
+      |> String.concat 
+    in
+    print_endline ("("^result^")");
+    "("^result^")"
+    |> Sexp.of_string
+;;
 

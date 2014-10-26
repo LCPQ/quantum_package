@@ -134,27 +134,25 @@ end = struct
         (Array.to_list gto_array)
         (Array.to_list b.ao_nucl)
     in
-    Printf.sprintf "
-# AO Basis
-# ========
-%s" (Long_basis.to_string long_basis)
+    let short_basis =
+      Long_basis.to_basis long_basis
+    in
+    Printf.sprintf "Basis name : %s\n\n%s" b.ao_basis
+    (Basis.to_string short_basis)
   ;;
     
       
   let debug b =
     Printf.sprintf "
-# AO Basis
-# ========
-#
-# ao_basis        = %s
-# ao_num          = %s
-# ao_prim_num     = %s
-# ao_prim_num_max = %s
-# ao_nucl         = %s
-# ao_power        = %s
-# ao_coef         = %s
-# ao_expo         = %s
-#"
+ao_basis        = %s
+ao_num          = %s
+ao_prim_num     = %s
+ao_prim_num_max = %s
+ao_nucl         = %s
+ao_power        = %s
+ao_coef         = %s
+ao_expo         = %s
+"
     b.ao_basis
     (AO_number.to_string b.ao_num)
     (b.ao_prim_num |> Array.to_list |> List.map

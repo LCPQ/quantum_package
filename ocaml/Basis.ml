@@ -36,8 +36,30 @@ let read_element in_channel at_number element =
 ;;
 
 let to_string b =
+  let new_nucleus n = 
+    Printf.sprintf "Atom %d:" n
+  in
+  
+  let rec do_work accu current_nucleus = function
+  | [] -> List.rev accu
+  | (g,n)::tail -> 
+    let n = Nucl_number.to_int n
+    in
+    let accu = 
+       if (n <> current_nucleus) then
+         (new_nucleus n)::""::accu
+       else
+         accu
+    in
+    do_work ((Gto.to_string g)::accu) n tail
+  in
+  do_work [new_nucleus 1] 1 b
+  |> String.concat ~sep:"\n"
+;;
+(*
   List.map ~f:(fun (g,n) ->
      let n = Nucl_number.to_int n in
      (Int.to_string n)^":"^(Gto.to_string g)) b
-  |> String.concat ~sep:"\n"
 ;;
+*)
+

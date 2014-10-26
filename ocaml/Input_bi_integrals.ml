@@ -15,6 +15,7 @@ module Bielec_integrals : sig
   ;;
   val read : unit -> t
   val to_string : t -> string
+  val of_string : string -> t
 end = struct
   type t = 
     { read_ao_integrals  : bool;
@@ -114,8 +115,7 @@ end = struct
   ;;
 
   let to_string b =
-    Printf.sprintf "
-read_ao_integrals  = %s
+    Printf.sprintf "read_ao_integrals  = %s
 read_mo_integrals  = %s
 write_ao_integrals = %s
 write_mo_integrals = %s
@@ -130,6 +130,13 @@ direct             = %s
         (Threshold.to_string b.threshold_ao)
         (Threshold.to_string b.threshold_mo)
         (Bool.to_string b.direct)
+  ;;
+
+  let of_string s =
+    input_to_sexp s
+    |> t_of_sexp
+  ;;
+
 end
 
 
