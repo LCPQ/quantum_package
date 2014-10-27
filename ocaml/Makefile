@@ -24,8 +24,11 @@ default: $(ALL_TESTS) $(ALL_EXE)
 executables: 
 	$(MAKE) -C $(QPACKAGE_ROOT)/data executables
 
-%.odoc: $(MLFILES)
-	$(OCAMLBUILD) $*.odoc -use-ocamlfind  $(PKGS) 
+qpackage.odocl: $(MLIFILES)
+	ls $(MLIFILES) | sed "s/\.mli//" > qpackage.odocl
+
+doc: qpackage.odocl
+	$(OCAMLBUILD) qpackage.docdir/index.html -use-ocamlfind  $(PKGS) 
 
 %.inferred.mli: $(MLFILES)
 	$(OCAMLBUILD) $*.inferred.mli -use-ocamlfind  $(PKGS) 
