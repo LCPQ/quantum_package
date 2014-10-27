@@ -13,3 +13,6 @@ let to_string p =
    (AO_expo.to_float e)
 ;;
   
+let of_sym_expo s e = 
+  { sym=s ; expo=e}
+;;

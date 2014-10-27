@@ -74,16 +74,7 @@ let of_l i =
 type st = t
 ;;
 
-module Xyz : sig
-  type t = { x: Positive_int.t ;
-             y: Positive_int.t ;
-             z: Positive_int.t } with sexp
-  val  of_string : string -> t
-  val  to_string : t -> string 
-  val  get_l     : t -> Positive_int.t
-  val  of_symmetry : st -> t list
-  val  to_symmetry : t -> st
-end = struct
+module Xyz = struct
   type t = { x: Positive_int.t ;
              y: Positive_int.t ;
              z: Positive_int.t } with sexp
@@ -187,9 +178,10 @@ end = struct
    in
    create_x [] { x=(to_l sym) ; y=Positive_int.of_int 0 ;
      z=Positive_int.of_int 0 }
-   ;;
+ ;;
 
-   let to_symmetry sym = of_l (get_l sym)
-   ;;
+ (** Returns the symmetry corresponding to the XYZ triplet *)
+ let to_symmetry sym = of_l (get_l sym)
+ ;;
 end
 
