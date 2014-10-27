@@ -136,6 +136,7 @@ subroutine copy_H_apply_buffer_to_wf
   do j=0,nproc-1
     N_det = N_det + H_apply_buffer(j)%N_det
   enddo
+  SOFT_TOUCH N_det
   
   if (psi_det_size < N_det) then
     psi_det_size = N_det

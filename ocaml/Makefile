@@ -19,10 +19,14 @@ ALL_EXE=$(patsubst %.ml,%.native,$(wildcard qp_*.ml))
 
 .PHONY: executables default
 
+
 default: $(ALL_TESTS) $(ALL_EXE)
 
 executables: 
 	$(MAKE) -C $(QPACKAGE_ROOT)/data executables
+
+external_libs:
+	opam install cryptokit core
 
 qpackage.odocl: $(MLIFILES)
 	ls $(MLIFILES) | sed "s/\.mli//" > qpackage.odocl
