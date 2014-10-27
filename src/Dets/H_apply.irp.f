@@ -1,4 +1,5 @@
 use bitmasks
+use omp_lib
 
 type H_apply_buffer_type
 integer                        :: N_det
@@ -11,7 +12,8 @@ end type H_apply_buffer_type
 type(H_apply_buffer_type), pointer :: H_apply_buffer(:)
 
 
-BEGIN_PROVIDER [ logical, H_apply_buffer_allocated ]
+ BEGIN_PROVIDER [ logical, H_apply_buffer_allocated ]
+&BEGIN_PROVIDER [ integer(omp_lock_kind), H_apply_buffer_lock, (64,0:nproc-1) ]
   use omp_lib
   implicit none
   BEGIN_DOC
@@ -24,7 +26,7 @@ BEGIN_PROVIDER [ logical, H_apply_buffer_allocated ]
     allocate(H_apply_buffer(0:nproc-1))
     iproc = 0
     !$OMP PARALLEL PRIVATE(iproc) DEFAULT(NONE)  &
-    !$OMP SHARED(H_apply_buffer,N_int,sze,N_states)
+    !$OMP SHARED(H_apply_buffer,N_int,sze,N_states,H_apply_buffer_lock)
     !$   iproc = omp_get_thread_num()
     H_apply_buffer(iproc)%N_det = 0
     H_apply_buffer(iproc)%sze = sze
@@ -36,6 +38,7 @@ BEGIN_PROVIDER [ logical, H_apply_buffer_allocated ]
     H_apply_buffer(iproc)%det  = 0_bit_kind
     H_apply_buffer(iproc)%coef = 0.d0
     H_apply_buffer(iproc)%e2   = 0.d0
+    call omp_init_lock(H_apply_buffer_lock(1,iproc))
     !$OMP END PARALLEL
   endif
   
@@ -56,6 +59,7 @@ subroutine resize_H_apply_buffer(new_size,iproc)
   ASSERT (iproc >= 0)
   ASSERT (iproc < nproc)
   
+  call omp_set_lock(H_apply_buffer_lock(1,iproc))
   allocate ( buffer_det(N_int,2,new_size),                           &
       buffer_coef(new_size,N_states),                                &
       buffer_e2(new_size,N_states) )
@@ -89,6 +93,7 @@ subroutine resize_H_apply_buffer(new_size,iproc)
   
   H_apply_buffer(iproc)%sze = new_size
   H_apply_buffer(iproc)%N_det = min(new_size,H_apply_buffer(iproc)%N_det)
+  call omp_unset_lock(H_apply_buffer_lock(1,iproc))
   
 end
 
@@ -194,6 +199,7 @@ subroutine fill_H_apply_buffer_no_selection(n_selected,det_buffer,Nint,iproc)
   if (new_size > H_apply_buffer(iproc)%sze) then
     call resize_h_apply_buffer(max(2*H_apply_buffer(iproc)%sze,new_size),iproc)
   endif
+  call omp_set_lock(H_apply_buffer_lock(1,iproc))
   do i=1,H_apply_buffer(iproc)%N_det
     ASSERT (sum(popcnt(H_apply_buffer(iproc)%det(:,1,i)) )== elec_alpha_num)
     ASSERT (sum(popcnt(H_apply_buffer(iproc)%det(:,2,i))) == elec_beta_num)
@@ -216,6 +222,7 @@ subroutine fill_H_apply_buffer_no_selection(n_selected,det_buffer,Nint,iproc)
     ASSERT (sum(popcnt(H_apply_buffer(iproc)%det(:,1,i)) )== elec_alpha_num)
     ASSERT (sum(popcnt(H_apply_buffer(iproc)%det(:,2,i))) == elec_beta_num)
   enddo
+  call omp_unset_lock(H_apply_buffer_lock(1,iproc))
 end
 
 

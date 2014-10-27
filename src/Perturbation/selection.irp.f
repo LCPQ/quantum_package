@@ -26,6 +26,7 @@ subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,c
   if (new_size > h_apply_buffer(iproc)%sze) then
     call resize_h_apply_buffer(max(h_apply_buffer(iproc)%sze*2,new_size),iproc)
   endif
+  call omp_set_lock(H_apply_buffer_lock(1,iproc))
   do i=1,H_apply_buffer(iproc)%N_det
     ASSERT (sum(popcnt(h_apply_buffer(iproc)%det(:,1,i)) )== elec_alpha_num)
     ASSERT (sum(popcnt(h_apply_buffer(iproc)%det(:,2,i))) == elec_beta_num)
@@ -63,6 +64,7 @@ subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,c
     ASSERT (sum(popcnt(h_apply_buffer(iproc)%det(:,1,i)) )== elec_alpha_num)
     ASSERT (sum(popcnt(h_apply_buffer(iproc)%det(:,2,i))) == elec_beta_num)
   enddo
+  call omp_unset_lock(H_apply_buffer_lock(1,iproc))
   !$OMP CRITICAL
   selection_criterion = max(selection_criterion,smax)
   selection_criterion_min = min(selection_criterion_min,smin)
