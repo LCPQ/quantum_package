@@ -68,8 +68,13 @@ let input_data = "
   assert (x > 0) ; 
   if (x > 100000000) then
     warning \"More than 100 million determinants\";
-  if (Ezfio.has_determinants_det_num ()) then
-    assert (x <= (Ezfio.get_determinants_det_num ()));
+  if (Ezfio.has_determinants_n_det ()) then
+    assert (x <= (Ezfio.get_determinants_n_det ()));
+
+* Det_number_max : int 
+  assert (x > 0) ; 
+  if (x > 100000000) then
+    warning \"More than 100 million determinants\";
 
 * States_number : int 
   assert (x > 0) ; 

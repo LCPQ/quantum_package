@@ -15,11 +15,23 @@ let instructions filename = Printf.sprintf
 type keyword = 
 | Ao_basis
 | Bielec_integrals
+| Cisd_sc2
+| Determinants
+| Electrons
+| Full_ci
+| Hartree_fock
+| Mo_basis
 ;;
 
 let keyword_to_string = function
-| Ao_basis -> "AO basis"
+| Ao_basis         -> "AO basis"
 | Bielec_integrals -> "Two electron integrals"
+| Cisd_sc2         -> "CISD (SC)^2"
+| Determinants     -> "Determinants"
+| Electrons        -> "Electrons"
+| Full_ci          -> "Selected Full-CI"
+| Hartree_fock     -> "Hartree-Fock"
+| Mo_basis         -> "MO basis"
 ;;
 
 let make_header kw =
@@ -28,15 +40,37 @@ let make_header kw =
   "\n\n# "^s^"\n"^"# "^(String.init l ~f:(fun _ -> '='))^"\n\n"
 ;;
 
-let get_bielec () = 
-  (make_header Bielec_integrals)^
-  (Input.Bielec_integrals.(to_string (read ())))
+let get s = 
+  let header = (make_header s)
+  in header^(match s with
+  | Bielec_integrals -> 
+    Input.Bielec_integrals.(to_string (read ()))
+  | Ao_basis ->
+    Input.Ao_basis.(to_string (read ()))
+  | Cisd_sc2 ->
+    Input.Cisd_sc2.(to_string (read ()))
+  | Determinants ->
+    Input.Determinants.(to_string (read ()))
+  | Electrons ->
+    Input.Electrons.(to_string (read ()))
+  | Full_ci ->
+    Input.Full_ci.(to_string (read ()))
+  | Hartree_fock ->
+    Input.Hartree_fock.(to_string (read ()))
+  | Mo_basis ->
+    Input.Mo_basis.(to_string (read ()))
+  )
 ;;
 
-let get_ao_basis () = 
-  (make_header Ao_basis)^
-  (Input.Ao_basis.(to_string (read ())))
+(*
+let create_temp_file ezfio_filename fields =
+  In_channel.with_file filename ~f:(func out_channel ->
+    (instructions ezfio_filename) :: (List.map ~f:get fields)
+    |> String.concat output
+    |> print_string
+  )
 ;;
+*)
 
 let run ezfio_filename =
 
@@ -46,11 +80,18 @@ let run ezfio_filename =
 
   Ezfio.set_file ezfio_filename;
 
-  let output = [
-    (instructions ezfio_filename) ;
-    (get_ao_basis ()) ;
-    (get_bielec ()) 
-  ] in
+  let output = (instructions ezfio_filename) :: (
+    List.map ~f:get [
+      Electrons ;
+      Ao_basis ; 
+      Mo_basis ; 
+      Bielec_integrals ;
+      Cisd_sc2 ;
+      Determinants ;
+      Full_ci ;
+      Hartree_fock ;
+    ])
+   in
   String.concat output
   |> print_string
 ;;

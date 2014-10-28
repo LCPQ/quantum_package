@@ -4,7 +4,7 @@ open Core.Std;;
 
 module Cisd_sc2 : sig
   type t = 
-    { n_det_max_cisd_sc2 : Det_number.t;
+    { n_det_max_cisd_sc2 : Det_number_max.t;
       pt2_max            : PT2_energy.t;
       do_pt2_end         : bool;
     } with sexp
@@ -13,7 +13,7 @@ module Cisd_sc2 : sig
   val to_string : t -> string
 end = struct
   type t = 
-    { n_det_max_cisd_sc2 : Det_number.t;
+    { n_det_max_cisd_sc2 : Det_number_max.t;
       pt2_max            : PT2_energy.t;
       do_pt2_end         : bool;
     } with sexp
@@ -28,7 +28,7 @@ end = struct
        |> Ezfio.set_cisd_sc2_selected_n_det_max_cisd_sc2 
     ;
     Ezfio.get_cisd_sc2_selected_n_det_max_cisd_sc2 ()
-    |> Det_number.of_int
+    |> Det_number_max.of_int
   ;;
 
 
@@ -61,12 +61,11 @@ end = struct
   ;;
 
   let to_string b =
-    Printf.sprintf "
-n_det_max_cisd_sc2 = %s
+    Printf.sprintf "n_det_max_cisd_sc2 = %s
 pt2_max            = %s
 do_pt2_end         = %s
 "
-        (Det_number.to_string b.n_det_max_cisd_sc2)
+        (Det_number_max.to_string b.n_det_max_cisd_sc2)
         (PT2_energy.to_string b.pt2_max)
         (Bool.to_string b.do_pt2_end)
 end

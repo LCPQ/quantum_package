@@ -47,14 +47,22 @@ end = struct
   ;;
 
   let to_string b =
-    Printf.sprintf "
-elec_alpha_num     = %s
+    Printf.sprintf "elec_alpha_num     = %s
+elec_beta_num      = %s
+"
+        (Elec_alpha_number.to_string b.elec_alpha_num)
+        (Elec_beta_number.to_string b.elec_beta_num)
+  ;;
+
+  let debug b =
+    Printf.sprintf "elec_alpha_num     = %s
 elec_beta_num      = %s
 elec_num           = %s
 "
         (Elec_alpha_number.to_string b.elec_alpha_num)
         (Elec_beta_number.to_string b.elec_beta_num)
         (Elec_number.to_string b.elec_num)
+  ;;
 end
 
 

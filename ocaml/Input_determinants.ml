@@ -10,7 +10,7 @@ module Determinants : sig
       n_det                  : Det_number.t;
       n_states               : States_number.t;
       n_states_diag          : States_number.t;
-      n_det_max_jacobi       : Det_number.t;
+      n_det_max_jacobi       : Strictly_positive_int.t;
       threshold_generators   : Threshold.t;
       threshold_selectors    : Threshold.t; 
       read_wf                : bool;
@@ -30,7 +30,7 @@ end = struct
       n_det                  : Det_number.t;
       n_states               : States_number.t;
       n_states_diag          : States_number.t;
-      n_det_max_jacobi       : Det_number.t;
+      n_det_max_jacobi       : Strictly_positive_int.t;
       threshold_generators   : Threshold.t;
       threshold_selectors    : Threshold.t; 
       read_wf                : bool;
@@ -106,7 +106,7 @@ end = struct
       |> Ezfio.set_determinants_n_det_max_jacobi 
     ;
     Ezfio.get_determinants_n_det_max_jacobi ()
-    |> Det_number.of_int
+    |> Strictly_positive_int.of_int
   ;;
 
   let read_threshold_generators () =
@@ -234,6 +234,30 @@ end = struct
   ;;
 
   let to_string b =
+    Printf.sprintf "read_wf                = %s
+n_det                  = %s
+n_states               = %s
+threshold_generators   = %s
+threshold_selectors    = %s
+n_det_max_jacobi       = %s
+n_states_diag          = %s
+s2_eig                 = %s
+expected_s2            = %s
+mo_label               = \"%s\"
+"
+     (b.read_wf       |> Bool.to_string)
+     (b.n_det         |> Det_number.to_string)
+     (b.n_states      |> States_number.to_string)
+     (b.threshold_generators |> Threshold.to_string)
+     (b.threshold_selectors |> Threshold.to_string)
+     (b.n_det_max_jacobi |> Strictly_positive_int.to_string)
+     (b.n_states_diag |> States_number.to_string)
+     (b.s2_eig        |> Bool.to_string)
+     (b.expected_s2   |> Positive_float.to_string)
+     (b.mo_label      |> Non_empty_string.to_string)
+  ;;
+
+  let debug b =
     Printf.sprintf "
 n_int                  = %s
 bit_kind               = %s
@@ -256,7 +280,7 @@ psi_det                = %s
      (b.n_det         |> Det_number.to_string)
      (b.n_states      |> States_number.to_string)
      (b.n_states_diag |> States_number.to_string)
-     (b.n_det_max_jacobi |> Det_number.to_string)
+     (b.n_det_max_jacobi |> Strictly_positive_int.to_string)
      (b.threshold_generators |> Threshold.to_string)
      (b.threshold_selectors |> Threshold.to_string)
      (b.read_wf       |> Bool.to_string)
@@ -269,8 +293,7 @@ psi_det                = %s
           Int64.to_string x )|> Array.to_list |>
        String.concat ~sep:", ") |> Array.to_list
       |> String.concat ~sep:" | ")
-     ;
-;;
+  ;;
 
 end
 

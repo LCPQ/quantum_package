@@ -142,7 +142,7 @@ end = struct
       
   let to_string b =
     let short_basis = to_basis b in
-    Printf.sprintf "Basis name : %s\n\n%s" b.ao_basis
+    Printf.sprintf "Basis name : %s\n\n%s\n" b.ao_basis
     (Basis.to_string short_basis)
   ;;
 

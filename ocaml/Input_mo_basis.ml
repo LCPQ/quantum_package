@@ -72,6 +72,16 @@ end = struct
   let to_string b =
     Printf.sprintf "
 mo_label        = %s
+mo_tot_num      = %s
+"
+    (Non_empty_string.to_string b.mo_label)
+    (MO_number.to_string b.mo_tot_num)
+
+  ;;
+
+  let debug b =
+    Printf.sprintf "
+mo_label        = %s
 mo_tot_num      = \"%s\"
 mo_occ          = %s
 mo_coef         = %s
@@ -82,6 +92,7 @@ mo_coef         = %s
       ~f:(Positive_float.to_string) |> String.concat ~sep:", " )
     (b.mo_coef |> Array.to_list |> List.map
       ~f:(MO_coef.to_string) |> String.concat ~sep:", " )
+  ;;
 
 end
 

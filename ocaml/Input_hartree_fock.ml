@@ -46,8 +46,7 @@ end = struct
   ;;
 
   let to_string b =
-    Printf.sprintf "
-n_it_scf_max       = %s
+    Printf.sprintf "n_it_scf_max       = %s
 thresh_scf         = %s
 "
         (Strictly_positive_int.to_string b.n_it_scf_max)
