@@ -222,6 +222,9 @@ class H_apply(object):
       self.data["size_max"] = str(1024*128) 
       self.data["copy_buffer"] = """
       call copy_H_apply_buffer_to_wf
+      if (s2_eig) then
+        call make_s2_eigenfunction
+      endif
       SOFT_TOUCH psi_det psi_coef N_det
       selection_criterion_min = min(selection_criterion_min, maxval(select_max))*0.1d0
       selection_criterion = selection_criterion_min

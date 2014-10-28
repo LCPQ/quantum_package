@@ -148,6 +148,7 @@ subroutine make_s2_eigenfunction
   integer, parameter             :: bufsze = 1000
   logical, external              :: is_in_wavefunction
 
+  print *,  irp_here
 !  !TODO DEBUG
 !  do i=1,N_det
 !   do j=i+1,N_det
@@ -174,9 +175,11 @@ subroutine make_s2_eigenfunction
 
   do i=1,N_occ_pattern
     call occ_pattern_to_dets_size(psi_occ_pattern(1,1,i),s,elec_alpha_num,N_int)
+    s += 1
     if (s > smax) then
       deallocate(d)
       allocate ( d(N_int,2,s) )
+      smax = s
     endif
     call occ_pattern_to_dets(psi_occ_pattern(1,1,i),d,s,elec_alpha_num,N_int)
     do j=1,s
