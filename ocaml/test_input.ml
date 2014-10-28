@@ -39,6 +39,7 @@ let test_dets () =
   Ezfio.set_file "F2.ezfio" ;
   let b = Input.Determinants.read ()
   in
+  (*print_endline (Input.Determinants.debug b);*)
   print_endline (Input.Determinants.to_string b);
 ;;
 
@@ -95,5 +96,5 @@ test_hf ();;
 test_mo ();;
 test_nucl ();
 *)
-test_ao ();;
+test_dets();;
 

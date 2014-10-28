@@ -11,7 +11,7 @@ module Nuclei : sig
     } with sexp
   ;;
   val read : unit -> t
-  val to_string : t -> string
+  val debug : t -> string
 end = struct
   type t = 
     { nucl_num        : Nucl_number.t ;
@@ -65,7 +65,7 @@ end = struct
     }
   ;;
 
-  let to_string b =
+  let debug b =
     Printf.sprintf "
 nucl_num         = %s
 nucl_label       = %s

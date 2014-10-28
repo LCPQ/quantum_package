@@ -3,14 +3,14 @@ open Qptypes;;
 open Core.Std;;
 
 let instructions filename = Printf.sprintf
-"# ===============
-# Quantum Package
-# ===============
-# 
-# File : %s
-#
-# Lines starting with a '#' sign are commented.
-#" filename
+"
+==================================================================
+                       Quantum Package
+==================================================================
+
+Editing file `%s`
+
+" filename
   
 type keyword = 
 | Ao_basis
@@ -37,7 +37,7 @@ let keyword_to_string = function
 let make_header kw =
   let s = keyword_to_string kw in
   let l = String.length s in
-  "\n\n# "^s^"\n"^"# "^(String.init l ~f:(fun _ -> '='))^"\n\n"
+  "\n\n"^s^"\n"^(String.init l ~f:(fun _ -> '='))^"\n\n"
 ;;
 
 let get s = 

@@ -59,9 +59,19 @@ end = struct
   ;;
 
   let to_string b =
-    Printf.sprintf "n_det_max_fci      = %s
-pt2_max            = %s
-do_pt2_end         = %s
+    Printf.sprintf "
+Stop when the `n_det` > `n_det_max_fci` ::
+
+  n_det_max_fci = %s
+
+Stop when -E(PT2) < `pt2_max` ::
+
+  pt2_max = %s
+
+Compute E(PT2) at the end ::
+
+  do_pt2_end = %s
+
 "
         (Det_number_max.to_string b.n_det_max_fci)
         (PT2_energy.to_string b.pt2_max)

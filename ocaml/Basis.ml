@@ -37,7 +37,7 @@ let read_element in_channel at_number element =
 
 let to_string b =
   let new_nucleus n = 
-    Printf.sprintf "Atom %d:" n
+    Printf.sprintf "Atom %d" n
   in
   
   let rec do_work accu current_nucleus = function

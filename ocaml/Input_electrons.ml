@@ -47,9 +47,17 @@ end = struct
   ;;
 
   let to_string b =
-    Printf.sprintf "elec_alpha_num     = %s
-elec_beta_num      = %s
+    Printf.sprintf "
+Spin multiplicity is %s.
+
+Number of alpha and beta electrons ::
+
+  elec_alpha_num = %s
+  elec_beta_num  = %s
+
 "
+        (Multiplicity.of_alpha_beta b.elec_alpha_num b.elec_beta_num
+         |> Multiplicity.to_string)
         (Elec_alpha_number.to_string b.elec_alpha_num)
         (Elec_beta_number.to_string b.elec_beta_num)
   ;;

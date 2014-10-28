@@ -132,6 +132,7 @@ let input_data = "
 ;;
 
 let untouched = "
+(*
 module Determinant : sig
   type t with sexp
   val to_int64_array : t -> int64 array
@@ -151,6 +152,7 @@ end = struct
     |> List.map ~f:Int64.to_string
     |> String.concat ~sep:\", \"
 end
+*)
 
 "
 

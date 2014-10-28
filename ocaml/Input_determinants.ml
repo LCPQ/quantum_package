@@ -22,6 +22,7 @@ module Determinants : sig
   ;;
   val read : unit -> t
   val to_string : t -> string
+  val debug : t -> string
 end = struct
   type t = 
     { n_int                  : N_int_number.t;
@@ -191,12 +192,12 @@ end = struct
         Ezfio.ezfio_array_of_list ~rank:3 ~dim:[| N_int_number.to_int n_int ; 2 ; 1 |] ~data:data
         |> Ezfio.set_determinants_psi_det 
       end  ;
-    let n_int = N_int_number.to_int n_int in
+      (*
     let rec transform accu1 accu2 n_rest = function 
       | [] ->
           let accu1 = List.rev accu1
           |> Array.of_list 
-          |> Determinant.of_int64_array
+          |> Determinant.of_int64_array n_int
           in
           List.rev (accu1::accu2) |> Array.of_list
       | i::rest ->
@@ -205,14 +206,25 @@ end = struct
           else
             let accu1 = List.rev accu1
             |> Array.of_list 
-            |> Determinant.of_int64_array
+            |> Determinant.of_int64_array n_int
             in
+            let n_int = N_int_number.to_int n_int in
             transform [] (accu1::accu2) (2*n_int) rest
     in
-    (Ezfio.get_determinants_psi_det ()).Ezfio.data
-    |> Ezfio.flattened_ezfio_data
-    |> Array.to_list
-    |> transform [] [] (2*n_int)
+    *)
+    let n_int = N_int_number.to_int n_int in
+    let psi_det_array = Ezfio.get_determinants_psi_det () in
+    let dim = psi_det_array.Ezfio.dim
+    and data =  Ezfio.flattened_ezfio_data psi_det_array.Ezfio.data 
+    in
+    assert (n_int = dim.(0));
+    assert (dim.(1) = 2);
+    assert (dim.(2) = (Det_number.to_int (read_n_det ())));
+    List.init dim.(2) ~f:(fun i ->
+      Array.sub ~pos:(2*n_int*i) ~len:(2*n_int) data)
+    |> List.map ~f:(Determinant.of_int64_array
+      (N_int_number.of_int n_int))
+    |> Array.of_list
   ;;
 
   let read () =
@@ -234,30 +246,74 @@ end = struct
   ;;
 
   let to_string b =
-    Printf.sprintf "read_wf                = %s
-n_det                  = %s
-n_states               = %s
-threshold_generators   = %s
-threshold_selectors    = %s
-n_det_max_jacobi       = %s
-n_states_diag          = %s
-s2_eig                 = %s
-expected_s2            = %s
-mo_label               = \"%s\"
+    let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () 
+    |> MO_number.of_int in
+    let det_text = 
+      List.map2_exn ~f:(fun coef det ->
+        Printf.sprintf "  %f\n%s\n"
+        (Det_coef.to_float coef)
+        (Determinant.to_string ~mo_tot_num:mo_tot_num det 
+         |> String.split ~on:'\n'
+         |> List.map ~f:(fun x -> "  "^x)
+         |> String.concat ~sep:"\n"
+        )
+      ) (Array.to_list b.psi_coef) (Array.to_list b.psi_det)
+      |> String.concat ~sep:"\n"
+    in
+    Printf.sprintf "
+Read the current wave function ::
+
+  read_wf = %s
+
+Label of the MOs on which the determinants were computed ::
+
+  mo_label = %s
+
+Force the selected wave function to be an eigenfunction of S^2.
+If true, input the expected value of S^2 ::
+
+  s2_eig                 = %s
+  expected_s2            = %s
+
+Thresholds on generators and selectors (fraction of the norm) ::
+
+  threshold_generators   = %s
+  threshold_selectors    = %s
+
+Number of requested states, and number of states used for the
+Davidson diagonalization ::
+
+  n_states               = %s
+  n_states_diag          = %s
+
+Maximum size of the Hamiltonian matrix that will be fully diagonalized ::
+
+  n_det_max_jacobi       = %s
+
+Number of determinants ::
+
+  n_det                  = %s
+
+Determinants ::
+
+%s
 "
      (b.read_wf       |> Bool.to_string)
-     (b.n_det         |> Det_number.to_string)
-     (b.n_states      |> States_number.to_string)
-     (b.threshold_generators |> Threshold.to_string)
-     (b.threshold_selectors |> Threshold.to_string)
-     (b.n_det_max_jacobi |> Strictly_positive_int.to_string)
-     (b.n_states_diag |> States_number.to_string)
+     (b.mo_label      |> Non_empty_string.to_string)
      (b.s2_eig        |> Bool.to_string)
      (b.expected_s2   |> Positive_float.to_string)
-     (b.mo_label      |> Non_empty_string.to_string)
+     (b.threshold_generators |> Threshold.to_string)
+     (b.threshold_selectors |> Threshold.to_string)
+     (b.n_states      |> States_number.to_string)
+     (b.n_states_diag |> States_number.to_string)
+     (b.n_det_max_jacobi |> Strictly_positive_int.to_string)
+     (b.n_det         |> Det_number.to_string)
+     det_text
   ;;
 
   let debug b =
+    let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () 
+    |> MO_number.of_int in
     Printf.sprintf "
 n_int                  = %s
 bit_kind               = %s
@@ -288,11 +344,8 @@ psi_det                = %s
      (b.s2_eig        |> Bool.to_string)
      (b.psi_coef  |> Array.to_list |> List.map ~f:Det_coef.to_string
       |> String.concat ~sep:", ")
-     (b.psi_det   |> Array.map ~f:(fun x -> Determinant.to_int64_array x
-      |> Array.map ~f:(fun x-> 
-          Int64.to_string x )|> Array.to_list |>
-       String.concat ~sep:", ") |> Array.to_list
-      |> String.concat ~sep:" | ")
+     (b.psi_det   |> Array.to_list |> List.map ~f:(Determinant.to_string
+       ~mo_tot_num:mo_tot_num) |> String.concat ~sep:"\n\n")
   ;;
 
 end

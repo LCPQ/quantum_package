@@ -71,8 +71,14 @@ end = struct
 
   let to_string b =
     Printf.sprintf "
-mo_label        = %s
-mo_tot_num      = %s
+Label of the molecular orbitals ::
+
+  mo_label = %s
+
+Total number of MOs ::
+
+  mo_tot_num = %s
+
 "
     (Non_empty_string.to_string b.mo_label)
     (MO_number.to_string b.mo_tot_num)

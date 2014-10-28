@@ -115,13 +115,26 @@ end = struct
   ;;
 
   let to_string b =
-    Printf.sprintf "read_ao_integrals  = %s
-read_mo_integrals  = %s
-write_ao_integrals = %s
-write_mo_integrals = %s
-threshold_ao       = %s
-threshold_mo       = %s
-direct             = %s
+    Printf.sprintf "
+Read AO/MO integrals from disk ::
+
+  read_ao_integrals = %s
+  read_mo_integrals = %s
+
+Write AO/MO integrals to disk ::
+
+  write_ao_integrals = %s
+  write_mo_integrals = %s
+
+Thresholds on integrals ::
+
+  threshold_ao = %s
+  threshold_mo = %s
+
+Direct calculation of integrals ::
+
+  direct = %s
+
 "
         (Bool.to_string b.read_ao_integrals)
         (Bool.to_string b.read_mo_integrals)

@@ -142,8 +142,21 @@ end = struct
       
   let to_string b =
     let short_basis = to_basis b in
-    Printf.sprintf "Basis name : %s\n\n%s\n" b.ao_basis
-    (Basis.to_string short_basis)
+    Printf.sprintf "
+Name of the AO basis ::
+
+  ao_basis = %s
+
+Basis set ::
+  
+%s
+
+" b.ao_basis
+    (Basis.to_string short_basis 
+     |> String.split ~on:'\n'
+     |> List.map ~f:(fun x-> "  "^x)
+     |> String.concat ~sep:"\n"
+    )
   ;;
 
   let to_md5 b =

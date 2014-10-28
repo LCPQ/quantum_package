@@ -95,12 +95,27 @@ end = struct
 
   let to_string b =
     Printf.sprintf "
-n_state_cis        = %s
-n_core_cis         = %s
-n_act_cis          = %s
-mp2_dressing       = %s
-standard_doubles   = %s
-en_2_2             = %s
+Number of states ::
+
+  n_state_cis = %s
+
+Core and active MOs ::
+
+  n_core_cis = %s
+  n_act_cis  = %s
+
+Dress with MP2 perturbation ::
+
+  mp2_dressing       = %s
+
+Use standard double-excitations ::
+
+  standard_doubles   = %s
+
+Epstein-Nesbet 2x2 diagonalization ::
+
+  en_2_2             = %s
+
 "
         (States_number.to_string b.n_state_cis)
         (Positive_int.to_string b.n_core_cis)
