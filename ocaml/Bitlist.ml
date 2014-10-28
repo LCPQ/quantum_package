@@ -58,8 +58,8 @@ let to_int64 l =
 (* Create a bit list from a list of int64 *)
 let of_int64_list l = 
   let list_of_lists = List.map of_int64 l in
-  let result = List.rev list_of_lists in
-  List.flatten result
+(*  let result = List.rev list_of_lists in *)
+  List.flatten list_of_lists
 ;;
 
 (* Compute n_int *)

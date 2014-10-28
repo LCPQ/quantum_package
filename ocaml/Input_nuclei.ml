@@ -12,6 +12,7 @@ module Nuclei : sig
   ;;
   val read : unit -> t
   val debug : t -> string
+  val to_string : t -> string
 end = struct
   type t = 
     { nucl_num        : Nucl_number.t ;
@@ -79,7 +80,10 @@ nucl_coord       = %s
       ~f:(Charge.to_string) |> String.concat ~sep:", " )
     (b.nucl_coord  |> Array.to_list |> List.map
       ~f:(Point3d.to_string Units.Bohr) |> String.concat ~sep:"\n" )
+  ;;
 
+   let to_string = debug
+;;
 end
 
 

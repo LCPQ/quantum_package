@@ -41,7 +41,7 @@ let bitlist_to_string ~mo_tot_num x =
     | Bit.Zero -> "-"
     | Bit.One  -> "+" )
   |> String.concat
-  |> String.sub ~pos:0 ~len:(MO_number.to_int mo_tot_num)
+  |> String.sub ~pos:0 ~len:(MO_number.to_int mo_tot_num) 
 ;;
 
 let to_string ~mo_tot_num x = 
