@@ -75,7 +75,7 @@ let test_mo () =
   Ezfio.set_file "F2.ezfio" ;
   let b = Input.Mo_basis.read ()
   in
-  print_endline (Input.Mo_basis.to_string b);
+  print_endline (Input.Mo_basis.debug b);
 ;;
 
 let test_nucl () =
@@ -96,5 +96,5 @@ test_hf ();;
 test_mo ();;
 test_nucl ();
 *)
-test_dets();;
+test_mo();;
 

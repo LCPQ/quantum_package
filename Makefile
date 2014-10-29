@@ -53,7 +53,9 @@ bin/m4:
 	QPACKAGE_ROOT=$$PWD ./scripts/install_m4.sh | tee install_m4.log
 
 
-ocaml: ocaml/Qptypes.ml curl m4
+ocaml: curl m4
+	rm ocaml/Qptypes.ml
+	$(MAKE) ocaml/Qptypes.ml
 
 ocaml/Qptypes.ml: 
 	$(info $(BLUE)===== Installing ocaml =====$(BLACK))

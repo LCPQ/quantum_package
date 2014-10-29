@@ -102,6 +102,9 @@ let input_data = "
 
 * MO_coef : float
 
+* MO_occ : float
+  assert (x >= 0.); 
+
 * AO_coef : float
 
 * AO_expo : float  
