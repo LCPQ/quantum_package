@@ -82,7 +82,26 @@ nucl_coord       = %s
       ~f:(Point3d.to_string Units.Bohr) |> String.concat ~sep:"\n" )
   ;;
 
-   let to_string = debug
+   let to_string b = 
+     let nucl_num = Nucl_number.to_int b.nucl_num in
+     let text = 
+       ( Printf.sprintf "  %d\n  "
+         nucl_num 
+       ) :: (
+       List.init nucl_num ~f:(fun i->
+         Printf.sprintf "  %-3s  %d   %s"
+          (b.nucl_label.(i)  |> Element.to_string)
+          (b.nucl_charge.(i) |> Charge.to_int )
+          (b.nucl_coord.(i)  |> Point3d.to_string Units.Angstrom) )
+      ) |> String.concat ~sep:"\n"
+     in
+     Printf.sprintf "
+Nuclear coordinates in xyz format (Angstroms) ::
+
+%s
+
+" text
+     
 ;;
 end
 

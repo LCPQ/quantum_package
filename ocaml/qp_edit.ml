@@ -21,6 +21,7 @@ type keyword =
 | Full_ci
 | Hartree_fock
 | Mo_basis
+| Nuclei
 ;;
 
 let keyword_to_string = function
@@ -32,6 +33,7 @@ let keyword_to_string = function
 | Full_ci          -> "Selected Full-CI"
 | Hartree_fock     -> "Hartree-Fock"
 | Mo_basis         -> "MO basis"
+| Nuclei           -> "Molecule"
 ;;
 
 let make_header kw =
@@ -59,6 +61,8 @@ let get s =
     Input.Hartree_fock.(to_string (read ()))
   | Mo_basis ->
     Input.Mo_basis.(to_string (read ()))
+  | Nuclei ->
+    Input.Nuclei.(to_string (read ()))
   )
 ;;
 
@@ -82,6 +86,7 @@ let run ezfio_filename =
 
   let output = (instructions ezfio_filename) :: (
     List.map ~f:get [
+      Nuclei ;
       Electrons ;
       Ao_basis ; 
       Mo_basis ; 

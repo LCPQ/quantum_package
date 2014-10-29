@@ -96,5 +96,5 @@ test_hf ();;
 test_mo ();;
 test_nucl ();
 *)
-test_mo();;
+test_nucl();;
 

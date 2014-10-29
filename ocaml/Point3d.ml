@@ -41,6 +41,6 @@ let to_string u p =
     | Units.Angstrom -> Units.bohr_to_angstrom
   in
   let { x=x ; y=y ; z=z } = p in
-  Printf.sprintf "%f  %f  %f" (x*.f) (y*.f) (z*.f)
+  Printf.sprintf "%16.8f %16.8f %16.8f" (x*.f) (y*.f) (z*.f)
 ;;
   
