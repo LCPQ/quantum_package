@@ -54,7 +54,7 @@ bin/m4:
 
 
 ocaml: curl m4
-	rm ocaml/Qptypes.ml
+	- rm -f -- ocaml/Qptypes.ml
 	$(MAKE) ocaml/Qptypes.ml
 
 ocaml/Qptypes.ml: 

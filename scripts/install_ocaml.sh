@@ -6,10 +6,15 @@
 QPACKAGE_ROOT=${PWD}
 PACKAGES="core cryptokit"
 
+if [[ -f quantum_package.rc ]]
+then
+  source quantum_package.rc
+fi
 make -C ocaml Qptypes.ml &> /dev/null
 if [[ $? -ne 0 ]]
 then
 
+  rm -rf -- ${HOME}/ocamlbrew
   scripts/fetch_from_web.py "https://raw.github.com/hcarty/ocamlbrew/master/ocamlbrew-install" ocamlbrew-install.sh 
   cat < ocamlbrew-install.sh | env OCAMLBREW_FLAGS="-r" bash | tee ocamlbrew_install.log
   grep "source " ocamlbrew_install.log | grep "etc/ocamlbrew.bashrc"  >> quantum_package.rc
