@@ -35,7 +35,6 @@ let test_dets () =
   Ezfio.set_file "F2.ezfio" ;
   let b = Input.Determinants.read ()
   in
-  (*print_endline (Input.Determinants.debug b);*)
   print_endline (Input.Determinants.to_string b);
 ;;
 
@@ -71,37 +70,19 @@ let test_mo () =
   Ezfio.set_file "F2.ezfio" ;
   let b = Input.Mo_basis.read ()
   in
-  print_endline (Input.Mo_basis.debug b);
+  print_endline (Input.Mo_basis.to_string b);
 ;;
 
 let test_nucl () =
   Ezfio.set_file "F2.ezfio" ;
-  let b = Input.Nuclei.read ()
-  in
+  let b = Input.Nuclei.read () in
+  let rst = Input.Nuclei.to_rst b in
+  let new_b = Input.Nuclei.of_rst rst in
   print_endline (Input.Nuclei.to_string b);
-;;
-
-let test_nucl_read () =
-  let rst_input = Rst_string.of_string "
-Molecule
-========
-
-
-Nuclear coordinates in xyz format (Angstroms) ::
-
-  2
-  
-  F    9 0.00000000  0.00000000 -0.70000000
-  F    9 0.00000000  0.00000000 0.70000000
-
-
-
-Electrons
-=========
-" in
-  let b = Input.Nuclei.of_rst rst_input
-  in
-  print_endline (Input.Nuclei.to_string b);
+  if (b = new_b) then
+    print_endline "OK"
+  else
+    print_endline "Failed in rst"
 ;;
 
 (*
@@ -115,5 +96,5 @@ test_hf ();;
 test_mo ();;
 test_nucl ();
 *)
-test_nucl_read();;
+test_nucl();;
 
