@@ -17,7 +17,7 @@ module Ao_basis : sig
   val read : unit -> t
   val to_string : t -> string
   val to_md5 : t -> MD5.t
-  val debug : t -> string
+  val to_rst : t -> Rst_string.t
 end = struct
   type t = 
     { ao_basis        : string ;
@@ -140,7 +140,7 @@ end = struct
     |> Long_basis.to_basis
   ;;
       
-  let to_string b =
+  let to_rst b =
     let short_basis = to_basis b in
     Printf.sprintf "
 Name of the AO basis ::
@@ -157,6 +157,7 @@ Basis set ::
      |> List.map ~f:(fun x-> "  "^x)
      |> String.concat ~sep:"\n"
     )
+  |> Rst_string.of_string
   ;;
 
   let to_md5 b =
@@ -164,7 +165,7 @@ Basis set ::
     Basis.to_md5 short_basis
   ;;
     
-  let debug b =
+  let to_string b =
     Printf.sprintf "
 ao_basis        = %s
 ao_num          = %s

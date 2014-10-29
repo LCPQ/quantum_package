@@ -10,6 +10,7 @@ module Hartree_fock : sig
   ;;
   val read : unit -> t
   val to_string : t -> string
+  val to_rst : t -> Rst_string.t
 end = struct
   type t = 
     { n_it_scf_max       : Strictly_positive_int.t;
@@ -47,6 +48,15 @@ end = struct
 
   let to_string b =
     Printf.sprintf "
+n_it_scf_max = %s
+thresh_scf = %s
+"
+      (Strictly_positive_int.to_string b.n_it_scf_max)
+      (Threshold.to_string b.thresh_scf)
+  ;;
+
+  let to_rst b =
+    Printf.sprintf "
 Max number of SCF iterations ::
 
   n_it_scf_max = %s
@@ -58,6 +68,9 @@ SCF convergence criterion (on energy) ::
 "
         (Strictly_positive_int.to_string b.n_it_scf_max)
         (Threshold.to_string b.thresh_scf)
+    |> Rst_string.of_string
+  ;;
+
 end
 
 

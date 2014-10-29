@@ -1,9 +1,11 @@
+open Qptypes;;
+
 let test_ao () =
   Ezfio.set_file "F2.ezfio" ;
   let b = Input.Ao_basis.read ()
   in
-  print_endline (Input.Ao_basis.debug b);
   print_endline (Input.Ao_basis.to_string b);
+  print_endline (Input.Ao_basis.to_rst b |> Rst_string.to_string);
 ;;
 
 let test_bielec_intergals () =
@@ -13,12 +15,6 @@ let test_bielec_intergals () =
   let output = Input.Bielec_integrals.to_string b
   in
   print_endline output;
-  let b2 = Input.Bielec_integrals.of_string output in
-  if (b = b2) then
-   print_endline "OK"
-  else
-   print_endline "b <> b2"
-  ;
 ;;
 
 let test_bitmasks () =
@@ -85,6 +81,29 @@ let test_nucl () =
   print_endline (Input.Nuclei.to_string b);
 ;;
 
+let test_nucl_read () =
+  let rst_input = Rst_string.of_string "
+Molecule
+========
+
+
+Nuclear coordinates in xyz format (Angstroms) ::
+
+  2
+  
+  F    9 0.00000000  0.00000000 -0.70000000
+  F    9 0.00000000  0.00000000 0.70000000
+
+
+
+Electrons
+=========
+" in
+  let b = Input.Nuclei.of_rst rst_input
+  in
+  print_endline (Input.Nuclei.to_string b);
+;;
+
 (*
 test_ao ();;
 test_bielec_intergals ();;
@@ -96,5 +115,5 @@ test_hf ();;
 test_mo ();;
 test_nucl ();
 *)
-test_nucl();;
+test_nucl_read();;
 

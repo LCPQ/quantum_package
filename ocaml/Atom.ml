@@ -33,6 +33,6 @@ let to_string u a =
   [ Element.to_string a.element ;
     Charge.to_string  a.charge ;
     Point3d.to_string u a.coord ]
-  |> String.concat ?sep:(Some "   ")
+  |> String.concat ~sep:"   "
 ;;
 

@@ -12,7 +12,7 @@ module Mo_basis : sig
   ;;
   val read : unit -> t
   val to_string : t -> string
-  val debug : t -> string
+  val to_rst : t -> Rst_string.t
 end = struct
   type t = 
     { mo_tot_num      : MO_number.t ;
@@ -132,15 +132,15 @@ end = struct
       | _ -> assert false
     in
     let rec create_list accu i = 
-      if (i+5 < mo_tot_num) then
-        create_list ( (print_five i (i+4) |> String.concat ~sep:"\n")::accu ) (i+5)
+      if (i+4 < mo_tot_num) then
+        create_list ( (print_five i (i+3) |> String.concat ~sep:"\n")::accu ) (i+4)
       else
         (print_five i (mo_tot_num-1) |> String.concat ~sep:"\n")::accu |> List.rev
     in
     create_list [] 0 |> String.concat ~sep:"\n\n"
   ;;
 
-  let to_string b =
+  let to_rst b =
     Printf.sprintf "
 Label of the molecular orbitals ::
 
@@ -157,10 +157,11 @@ MO coefficients ::
     (MO_label.to_string b.mo_label)
     (MO_number.to_string b.mo_tot_num)
     (mo_coef_to_string b.mo_coef)
+    |> Rst_string.of_string
 
   ;;
 
-  let debug b =
+  let to_string b =
     Printf.sprintf "
 mo_label        = %s
 mo_tot_num      = \"%s\"

@@ -43,27 +43,28 @@ let make_header kw =
 ;;
 
 let get s = 
-  let header = (make_header s)
-  in header^(match s with
-  | Bielec_integrals -> 
-    Input.Bielec_integrals.(to_string (read ()))
-  | Ao_basis ->
-    Input.Ao_basis.(to_string (read ()))
-  | Cisd_sc2 ->
-    Input.Cisd_sc2.(to_string (read ()))
-  | Determinants ->
-    Input.Determinants.(to_string (read ()))
-  | Electrons ->
-    Input.Electrons.(to_string (read ()))
+  let header = (make_header s) 
+  and rst = match s with
   | Full_ci ->
-    Input.Full_ci.(to_string (read ()))
+    Input.Full_ci.(to_rst (read ()))
   | Hartree_fock ->
-    Input.Hartree_fock.(to_string (read ()))
+    Input.Hartree_fock.(to_rst (read ()))
   | Mo_basis ->
-    Input.Mo_basis.(to_string (read ()))
+    Input.Mo_basis.(to_rst (read ()))
+  | Electrons ->
+    Input.Electrons.(to_rst (read ()))
+  | Determinants ->
+    Input.Determinants.(to_rst (read ()))
+  | Cisd_sc2 ->
+    Input.Cisd_sc2.(to_rst (read ()))
   | Nuclei ->
-    Input.Nuclei.(to_string (read ()))
-  )
+    Input.Nuclei.(to_rst (read ()))
+  | Ao_basis ->
+    Input.Ao_basis.(to_rst (read ()))
+  | Bielec_integrals -> 
+    Input.Bielec_integrals.(to_rst (read ()))
+ 
+  in header^(Rst_string.to_string rst)
 ;;
 
 (*

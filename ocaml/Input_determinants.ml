@@ -22,7 +22,7 @@ module Determinants : sig
   ;;
   val read : unit -> t
   val to_string : t -> string
-  val debug : t -> string
+  val to_rst : t -> Rst_string.t
 end = struct
   type t = 
     { n_int                  : N_int_number.t;
@@ -245,7 +245,7 @@ end = struct
     }
   ;;
 
-  let to_string b =
+  let to_rst b =
     let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () 
     |> MO_number.of_int in
     let det_text = 
@@ -309,9 +309,10 @@ Determinants ::
      (b.n_det_max_jacobi |> Strictly_positive_int.to_string)
      (b.n_det         |> Det_number.to_string)
      det_text
+     |> Rst_string.of_string
   ;;
 
-  let debug b =
+  let to_string b =
     let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () 
     |> MO_number.of_int in
     Printf.sprintf "

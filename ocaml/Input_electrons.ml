@@ -11,6 +11,7 @@ module Electrons : sig
   ;;
   val read : unit -> t
   val to_string : t -> string
+  val to_rst : t -> Rst_string.t
 end = struct
   type t = 
     { elec_alpha_num     : Elec_alpha_number.t;
@@ -46,7 +47,7 @@ end = struct
     }
   ;;
 
-  let to_string b =
+  let to_rst b =
     Printf.sprintf "
 Spin multiplicity is %s.
 
@@ -60,9 +61,10 @@ Number of alpha and beta electrons ::
          |> Multiplicity.to_string)
         (Elec_alpha_number.to_string b.elec_alpha_num)
         (Elec_beta_number.to_string b.elec_beta_num)
+    |> Rst_string.of_string
   ;;
 
-  let debug b =
+  let to_string b =
     Printf.sprintf "elec_alpha_num     = %s
 elec_beta_num      = %s
 elec_num           = %s

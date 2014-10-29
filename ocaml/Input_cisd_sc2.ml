@@ -11,6 +11,7 @@ module Cisd_sc2 : sig
   ;;
   val read : unit -> t
   val to_string : t -> string
+  val to_rst : t -> Rst_string.t
 end = struct
   type t = 
     { n_det_max_cisd_sc2 : Det_number_max.t;
@@ -62,6 +63,17 @@ end = struct
 
   let to_string b =
     Printf.sprintf "
+n_det_max_cisd_sc2 = %s
+pt2_max = %s
+do_pt2_end = %s
+"
+        (Det_number_max.to_string b.n_det_max_cisd_sc2)
+        (PT2_energy.to_string b.pt2_max)
+        (Bool.to_string b.do_pt2_end)
+  ;;
+
+  let to_rst b =
+    Printf.sprintf "
 Stop when the `n_det` > `n_det_max_cisd_sc2` ::
 
   n_det_max_cisd_sc2 = %s
@@ -78,6 +90,8 @@ Compute E(PT2) at the end ::
         (Det_number_max.to_string b.n_det_max_cisd_sc2)
         (PT2_energy.to_string b.pt2_max)
         (Bool.to_string b.do_pt2_end)
+   |> Rst_string.of_string
+
 end
 
 

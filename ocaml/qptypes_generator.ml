@@ -131,6 +131,9 @@ let input_data = "
 
 * MD5 : string
   assert ((String.length x) = 32);
+
+* Rst_string : string
+
 "
 ;;
 
