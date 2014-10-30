@@ -74,9 +74,10 @@ let run ?o b c m xyz_file =
 
   (* Write Basis set *)
   let basis =
+    let nmax = Nucl_number.get_max () in
     let rec do_work (accu:(Atom.t*Nucl_number.t) list) (n:int) = function
     | [] -> accu
-    | e::tail -> let new_accu = (e,(Nucl_number.of_int n))::accu in
+    | e::tail -> let new_accu = (e,(Nucl_number.of_int ~max:nmax n))::accu in
       do_work new_accu (n+1) tail
     in
     do_work [] 1  nuclei

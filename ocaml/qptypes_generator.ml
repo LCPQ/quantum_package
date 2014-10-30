@@ -37,34 +37,6 @@ let input_data = "
   assert (x <> \"\") ;
 
 
-* AO_number : int  
-  assert (x > 0) ; 
-  if (x > 1000) then
-    warning \"More than 1000 AOs\";
-  if (Ezfio.has_ao_basis_ao_num ()) then
-    assert (x <= (Ezfio.get_ao_basis_ao_num ()));
-
-* Nucl_number : int  
-  assert (x > 0) ; 
-  if (x > 1000) then
-    warning \"More than 1000 atoms\";
-  if (Ezfio.has_nuclei_nucl_num ()) then
-    assert (x <= (Ezfio.get_nuclei_nucl_num ()));
-
-* N_int_number : int 
-  assert (x > 0) ; 
-  if (x > 100) then
-    warning \"N_int > 100\";
-  if (Ezfio.has_determinants_n_int ()) then
-    assert (x = (Ezfio.get_determinants_n_int ()));
-
-* Det_number : int 
-  assert (x > 0) ; 
-  if (x > 100000000) then
-    warning \"More than 100 million determinants\";
-  if (Ezfio.has_determinants_n_det ()) then
-    assert (x <= (Ezfio.get_determinants_n_det ()));
-
 * Det_number_max : int 
   assert (x > 0) ; 
   if (x > 100000000) then
@@ -131,38 +103,36 @@ let input_data = "
 "
 ;;
 
+let input_ezfio = "
+* MO_number : int
+  mo_basis_mo_tot_num
+  1 : 10000
+  More than 10000 MOs
+
+* AO_number : int
+  ao_basis_ao_num
+  1 : 10000
+  More than 10000 AOs
+
+* Nucl_number : int
+  nuclei_nucl_num
+  1 : 10000
+  More than 10000 nuclei
+
+* N_int_number : int
+  determinants_n_int
+  1 : 30
+  N_int > 30
+
+* Det_number : int
+  determinants_n_det
+  1 : 100000000
+  More than 100 million determinants
+
+"
+;;
+
 let untouched = "
-module MO_number : sig
-  type t with sexp
-  val to_int : t -> int
-  val get_mo_tot_num : unit -> int 
-  val of_int : ?mo_tot_num:int -> int -> t
-  val to_string : t -> string
-end = struct
-  type t = int with sexp
-  let get_mo_tot_num () =
-    if (Ezfio.has_mo_basis_mo_tot_num ()) then
-      Ezfio.get_mo_basis_mo_tot_num ()
-    else
-      0
-  let to_int x = x
-  let of_int  ?mo_tot_num  x = ( assert (x > 0) ;
-  if (x > 1000) then
-    warning \"More than 1000 MOs\";
-  let mo_tot_num = match mo_tot_num with
-  | Some i -> i
-  | None -> get_mo_tot_num ()
-  in
-  begin
-    match mo_tot_num with
-    | 0 -> ()
-    | i -> assert ( x <= i )
-  end
-  ; x )
-
-  let to_string x = Int.to_string x
-end
-
 "
 
 let template = format_of_string "
@@ -209,9 +179,75 @@ let parse_input input=
   |> print_string
 ;;
 
+
+let ezfio_template = format_of_string "
+module %s : sig
+  type t with sexp
+  val to_%s : t -> %s
+  val get_max : unit -> %s
+  val of_%s : ?min:%s -> ?max:%s -> %s -> t
+  val to_string : t -> string
+end = struct
+  type t = %s with sexp
+  let to_string x = %s.to_string x
+  let get_max () =
+    if (Ezfio.has_%s ()) then
+      Ezfio.get_%s ()
+    else
+      %s
+  let get_min () =
+      %s
+  let to_%s x = x
+  let of_%s ?(min=get_min ()) ?(max=get_max ()) x = 
+    begin
+      assert (x >= min) ;
+      if (x > %s) then
+        warning \"%s\";
+      begin
+        match max with
+        | %s -> ()
+        | i  -> assert ( x <= i )
+      end ;
+      x
+    end
+end
+"
+;;
+
+let parse_input_ezfio input=
+  let parse s = 
+    match (
+      String.split s ~on:'\n'
+      |> List.filter ~f:(fun x -> (String.strip x) <> "")
+    ) with
+    | [] -> ""
+    | a :: b :: c :: d :: [] ->
+      begin
+        let (name,typ) = String.lsplit2_exn ~on:':' a
+        and ezfio_func = b
+        and (min, max) = String.lsplit2_exn ~on:':' c
+        and msg = d
+        in 
+        let name :: typ :: ezfio_func :: min :: max :: msg :: [] = 
+            name :: typ :: ezfio_func :: min :: max :: msg :: []
+           |> List.map ~f:String.strip 
+        in
+        Printf.sprintf ezfio_template 
+          name typ typ typ typ typ typ typ typ (String.capitalize typ)
+          ezfio_func ezfio_func max min typ typ max msg min
+      end
+    | _ -> failwith "Error in input_ezfio"
+  in
+     String.split ~on:'*' input
+  |> List.map ~f:parse
+  |> String.concat 
+  |> print_string
+;;
+
 let () = 
   parse_input input_data ;
-  print_endline untouched
-;;
+  parse_input_ezfio input_ezfio;
+  print_endline untouched;
+
 
 

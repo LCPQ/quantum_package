@@ -26,8 +26,8 @@ end = struct
   let get_default = Qpackage.get_ezfio_default "nuclei";;
 
   let read_nucl_num () = 
-    Ezfio.get_nuclei_nucl_num ()
-    |> Nucl_number.of_int
+    let nmax = Nucl_number.get_max () in
+    Nucl_number.of_int ~max:nmax nmax
   ;;
 
   let read_nucl_label () =
@@ -75,15 +75,8 @@ end = struct
       else
          extract_begin tail
     in
-    (* Read the xyz data *)
-    let rec read_line = function
-    | [] -> []
-    | line::tail -> 
-      if (String.strip line = "") then []
-      else 
-        (read_line tail)
-    in
     (* Create a list of Atom.t *)
+    let nmax = Nucl_number.get_max () in
     let atom_list = 
       match (extract_begin l) with 
       | _ :: nucl_num :: title :: lines ->
@@ -91,7 +84,7 @@ end = struct
           let nucl_num = nucl_num
           |> String.strip
           |> Int.of_string
-          |> Nucl_number.of_int
+          |> Nucl_number.of_int ~max:nmax
           and lines = Array.of_list lines
           in
           List.init (Nucl_number.to_int nucl_num) ~f:(fun i ->
@@ -101,7 +94,7 @@ end = struct
     in
     (* Create the Nuclei.t data structure *)
     { nucl_num = List.length atom_list
-        |> Nucl_number.of_int;
+        |> Nucl_number.of_int ~max:nmax;
       nucl_label = List.map atom_list ~f:(fun x ->
         x.Atom.element) |> Array.of_list ;
       nucl_charge = List.map atom_list ~f:(fun x ->

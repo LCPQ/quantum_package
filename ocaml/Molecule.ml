@@ -25,7 +25,8 @@ let get_multiplicity m =
 ;;
 
 let get_nucl_num m =
-  Nucl_number.of_int (List.length m.nuclei)
+  let nmax = (List.length m.nuclei) in
+  Nucl_number.of_int nmax ~max:nmax
 ;;
 
 let name m = 

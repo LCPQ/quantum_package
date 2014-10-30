@@ -59,9 +59,10 @@ end = struct
   ;;
 
   let read_ao_nucl () =
+    let nmax = Nucl_number.get_max () in
     (Ezfio.get_ao_basis_ao_nucl () ).Ezfio.data
     |> Ezfio.flattened_ezfio_data
-    |> Array.map ~f:Nucl_number.of_int
+    |> Array.map ~f:(fun x-> Nucl_number.of_int ~max:nmax x)
   ;;
 
   let read_ao_power () =
