@@ -36,12 +36,6 @@ let input_data = "
 * Non_empty_string : string
   assert (x <> \"\") ;
 
-* MO_number : int  
-  assert (x > 0) ; 
-  if (x > 1000) then
-    warning \"More than 1000 MOs\";
-  if (Ezfio.has_mo_basis_mo_tot_num ()) then
-    assert (x <= (Ezfio.get_mo_basis_mo_tot_num ()));
 
 * AO_number : int  
   assert (x > 0) ; 
@@ -138,27 +132,36 @@ let input_data = "
 ;;
 
 let untouched = "
-(*
-module Determinant : sig
+module MO_number : sig
   type t with sexp
-  val to_int64_array : t -> int64 array
-  val of_int64_array : int64 array -> t
+  val to_int : t -> int
+  val get_mo_tot_num : unit -> int 
+  val of_int : ?mo_tot_num:int -> int -> t
   val to_string : t -> string
 end = struct
-  type t = int64 array with sexp
-  let to_int64_array x = x
-  let of_int64_array x = 
-    if (Ezfio.has_determinants_n_int ()) then
-      begin
-        let n_int = Ezfio.get_determinants_n_int () in
-        assert ((Array.length x) = n_int*2) 
-      end
-      ; x
-  let to_string x = Array.to_list x
-    |> List.map ~f:Int64.to_string
-    |> String.concat ~sep:\", \"
+  type t = int with sexp
+  let get_mo_tot_num () =
+    if (Ezfio.has_mo_basis_mo_tot_num ()) then
+      Ezfio.get_mo_basis_mo_tot_num ()
+    else
+      0
+  let to_int x = x
+  let of_int  ?mo_tot_num  x = ( assert (x > 0) ;
+  if (x > 1000) then
+    warning \"More than 1000 MOs\";
+  let mo_tot_num = match mo_tot_num with
+  | Some i -> i
+  | None -> get_mo_tot_num ()
+  in
+  begin
+    match mo_tot_num with
+    | 0 -> ()
+    | i -> assert ( x <= i )
+  end
+  ; x )
+
+  let to_string x = Int.to_string x
 end
-*)
 
 "
 
@@ -166,12 +169,12 @@ let template = format_of_string "
 module %s : sig
   type t with sexp
   val to_%s : t -> %s
-  val of_%s : %s -> t
+  val of_%s : %s %s -> t
   val to_string : t -> string
 end = struct
   type t = %s with sexp
   let to_%s x = x
-  let of_%s x = ( %s x )
+  let of_%s %s x = ( %s x )
   let to_string x = %s.to_string x
 end
 
@@ -184,13 +187,18 @@ let parse_input input=
     | [] -> result
     | ( "" , ""   )::tail -> parse result tail
     | ( t  , text )::tail -> 
-        let  name , typ  = String.lsplit2_exn ~on:':' t
+        let name,typ,params,params_val = 
+          match String.split ~on:':' t with
+          | [name;typ] -> (name,typ,"","")
+          | name::typ::params::params_val -> (name,typ,params,
+            (String.concat params_val ~sep:":") )
+          | _ -> assert false
         in
         let typ  = String.strip typ
         and name = String.strip name in
         let typ_cap = String.capitalize typ in
-        let newstring = Printf.sprintf template name typ typ typ typ typ typ typ 
-          ( String.strip text ) typ_cap
+        let newstring = Printf.sprintf template name typ typ typ params_val typ typ 
+          typ typ params ( String.strip text ) typ_cap
         in
         List.rev (parse (newstring::result) tail )
   in

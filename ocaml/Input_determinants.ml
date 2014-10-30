@@ -177,9 +177,10 @@ end = struct
     let n_int = read_n_int () in
     if not (Ezfio.has_determinants_psi_det ()) then
       begin
+        let mo_tot_num = MO_number.get_mo_tot_num () in
         let rec build_data accu =  function
           | 0 -> accu
-          | n -> build_data ((MO_number.of_int n)::accu) (n-1)
+          | n -> build_data ((MO_number.of_int ~mo_tot_num:mo_tot_num n)::accu) (n-1)
         in
         let det_a = build_data [] (Ezfio.get_electrons_elec_alpha_num ())
           |> Bitlist.of_mo_number_list n_int
@@ -246,8 +247,8 @@ end = struct
   ;;
 
   let to_rst b =
-    let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () 
-    |> MO_number.of_int in
+    let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () in
+    let mo_tot_num = MO_number.of_int mo_tot_num ~mo_tot_num:mo_tot_num in
     let det_text = 
       List.map2_exn ~f:(fun coef det ->
         Printf.sprintf "  %f\n%s\n"
@@ -313,8 +314,8 @@ Determinants ::
   ;;
 
   let to_string b =
-    let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () 
-    |> MO_number.of_int in
+    let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () in
+    let mo_tot_num = MO_number.of_int mo_tot_num ~mo_tot_num:mo_tot_num in
     Printf.sprintf "
 n_int                  = %s
 bit_kind               = %s

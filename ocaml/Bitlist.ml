@@ -106,13 +106,14 @@ let of_mo_number_list n_int l =
 
 let to_mo_number_list l =
   let a = Array.of_list l in
+  let mo_tot_num = MO_number.get_mo_tot_num () in
   let rec do_work accu = function
   | 0 -> accu
   | i ->
       begin
         let new_accu = 
         match a.(i-1) with
-        | Bit.One  -> (MO_number.of_int i)::accu 
+        | Bit.One  -> (MO_number.of_int ~mo_tot_num:mo_tot_num i)::accu 
         | Bit.Zero -> accu 
         in
         do_work new_accu (i-1)
