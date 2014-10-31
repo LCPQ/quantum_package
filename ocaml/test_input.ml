@@ -83,6 +83,13 @@ let test_hf () =
   let b = Input.Hartree_fock.read ()
   in
   print_endline (Input.Hartree_fock.to_string b);
+  let rst = Input.Hartree_fock.to_rst b in
+  let new_b = Input.Hartree_fock.of_rst rst in
+  print_endline (Input.Hartree_fock.to_string b);
+  if (b = new_b) then
+    print_endline "OK"
+  else
+    print_endline "Failed in rst"
 ;;
 
 let test_mo () =
@@ -117,4 +124,4 @@ test_bielec_intergals ();;
 test_electrons();
 *)
 
-test_electrons();
+test_hf();
