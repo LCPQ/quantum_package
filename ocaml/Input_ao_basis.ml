@@ -142,6 +142,22 @@ end = struct
   ;;
       
   let to_rst b =
+    let print_sym = 
+      let l = List.init (Array.length b.ao_power) ~f:(
+         fun i -> ( (i+1),b.ao_nucl.(i),b.ao_power.(i) ) ) in
+      let rec do_work count = function
+      | [] -> []
+      | (i,n,x)::tail  -> 
+        if (count < 2) then
+          (Printf.sprintf "  (%4d) %d:%-8s" i (Nucl_number.to_int n) (Symmetry.Xyz.to_string x))::
+          (do_work (count+1) tail)
+        else
+          (Printf.sprintf "  (%4d) %d:%-8s\n" i (Nucl_number.to_int n) (Symmetry.Xyz.to_string x))::
+          (do_work 0 tail)
+      in do_work 0 l
+      |> String.concat
+    in
+
     let short_basis = to_basis b in
     Printf.sprintf "
 Name of the AO basis ::
@@ -152,12 +168,16 @@ Basis set ::
   
 %s
 
+Symmetries ::
+
+%s
+
 " b.ao_basis
     (Basis.to_string short_basis 
      |> String.split ~on:'\n'
      |> List.map ~f:(fun x-> "  "^x)
      |> String.concat ~sep:"\n"
-    )
+    ) print_sym
   |> Rst_string.of_string
   ;;
 

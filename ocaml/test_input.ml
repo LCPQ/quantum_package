@@ -131,4 +131,4 @@ test_bielec_intergals ();;
 test_electrons();
 *)
 
-test_fci();
+test_ao();
