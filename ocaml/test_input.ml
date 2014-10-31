@@ -76,6 +76,13 @@ let test_fci () =
   let b = Input.Full_ci.read ()
   in
   print_endline (Input.Full_ci.to_string b);
+  let rst = Input.Full_ci.to_rst b in
+  let new_b = Input.Full_ci.of_rst rst in
+  print_endline (Input.Full_ci.to_string b);
+  if (b = new_b) then
+    print_endline "OK"
+  else
+    print_endline "Failed in rst"
 ;;
 
 let test_hf () =
@@ -124,4 +131,4 @@ test_bielec_intergals ();;
 test_electrons();
 *)
 
-test_hf();
+test_fci();
