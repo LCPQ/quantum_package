@@ -63,6 +63,12 @@ let test_electrons () =
   let b = Input.Electrons.read ()
   in
   print_endline (Input.Electrons.to_string b);
+  let rst = Input.Electrons.to_rst b in
+  let new_b = Input.Electrons.of_rst rst in
+  if (b = new_b) then
+    print_endline "OK"
+  else
+    print_endline "Failed in rst"
 ;;
 
 let test_fci () =
@@ -108,6 +114,7 @@ test_hf ();;
 test_mo ();;
 test_nucl ();
 test_bielec_intergals ();;
+test_electrons();
 *)
 
-test_cisd_sc2 ();
+test_electrons();
