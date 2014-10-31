@@ -16,6 +16,7 @@ module Bielec_integrals : sig
   val read : unit -> t
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
+  val of_rst : Rst_string.t -> t 
 end = struct
   type t = 
     { read_ao_integrals  : bool;
@@ -163,6 +164,21 @@ Direct calculation of integrals ::
         (Threshold.to_string b.threshold_mo)
         (Bool.to_string b.direct)
   |> Rst_string.of_string
+  ;;
+
+  let of_rst s =
+    let s = Rst_string.to_string s
+    |> String.split ~on:'\n'
+    |> List.filter ~f:(fun line ->
+        String.contains line '=')
+    |> List.map ~f:(fun line ->
+        "("^(
+        String.tr line ~target:'=' ~replacement:' '
+        )^")" )
+    |> String.concat
+    in
+    Sexp.of_string ("("^s^")")
+    |> t_of_sexp
   ;;
 
 end

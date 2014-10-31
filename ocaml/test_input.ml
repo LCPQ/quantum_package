@@ -15,6 +15,12 @@ let test_bielec_intergals () =
   let output = Input.Bielec_integrals.to_string b
   in
   print_endline output;
+  let rst = Input.Bielec_integrals.to_rst b in
+  let b2 = Input.Bielec_integrals.of_rst rst in
+  if (b = b2) then
+    print_endline "OK"
+  else
+    print_endline "rst failed";
 ;;
 
 let test_bitmasks () =
@@ -87,7 +93,6 @@ let test_nucl () =
 
 (*
 test_ao ();;
-test_bielec_intergals ();;
 test_bitmasks ();
 test_cis ();
 test_cisd_sc2 ();
@@ -95,6 +100,7 @@ test_dets ();
 test_hf ();;
 test_mo ();;
 test_nucl ();
+test_bielec_intergals ();;
 *)
-test_nucl();;
+test_bielec_intergals ();;
 
