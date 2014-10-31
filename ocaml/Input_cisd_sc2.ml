@@ -12,6 +12,7 @@ module Cisd_sc2 : sig
   val read : unit -> t
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
+  val of_rst : Rst_string.t -> t
 end = struct
   type t = 
     { n_det_max_cisd_sc2 : Det_number_max.t;
@@ -91,6 +92,24 @@ Compute E(PT2) at the end ::
         (PT2_energy.to_string b.pt2_max)
         (Bool.to_string b.do_pt2_end)
    |> Rst_string.of_string
+  ;;
+
+  let of_rst s =
+    let s = Rst_string.to_string s
+    |> String.split ~on:'\n'
+    |> List.filter ~f:(fun line ->
+        String.contains line '=')
+    |> List.map ~f:(fun line ->
+        "("^(
+        String.tr line ~target:'=' ~replacement:' '
+        )^")" )
+    |> String.concat
+    in
+    Sexp.of_string ("("^s^")")
+    |> t_of_sexp
+  ;;
+
+
 
 end
 

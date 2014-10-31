@@ -49,6 +49,13 @@ let test_cisd_sc2 () =
   let b = Input.Cisd_sc2.read ()
   in
   print_endline (Input.Cisd_sc2.to_string b);
+  let rst = Input.Cisd_sc2.to_rst b in
+  let b2 = Input.Cisd_sc2.of_rst rst in
+  if (b = b2) then
+    print_endline "OK"
+  else
+    print_endline "rst failed";
+
 ;;
 
 let test_electrons () =
@@ -102,5 +109,5 @@ test_mo ();;
 test_nucl ();
 test_bielec_intergals ();;
 *)
-test_bielec_intergals ();;
 
+test_cisd_sc2 ();
