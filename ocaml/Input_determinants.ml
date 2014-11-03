@@ -6,7 +6,7 @@ module Determinants : sig
   type t = 
     { n_int                  : N_int_number.t;
       bit_kind               : Bit_kind.t;
-      mo_label               : Non_empty_string.t;
+      mo_label               : MO_label.t;
       n_det                  : Det_number.t;
       n_states               : States_number.t;
       n_states_diag          : States_number.t;
@@ -19,8 +19,8 @@ module Determinants : sig
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
     } with sexp
-  ;;
-  val read : unit -> t
+  val read  : unit -> t
+  val write : t -> unit
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
   val of_rst : Rst_string.t -> t 
@@ -28,7 +28,7 @@ end = struct
   type t = 
     { n_int                  : N_int_number.t;
       bit_kind               : Bit_kind.t;
-      mo_label               : Non_empty_string.t;
+      mo_label               : MO_label.t;
       n_det                  : Det_number.t;
       n_states               : States_number.t;
       n_states_diag          : States_number.t;
@@ -56,6 +56,12 @@ end = struct
     |> N_int_number.of_int
   ;;
 
+  let write_n_int n =
+    N_int_number.to_int n
+    |> Ezfio.set_determinants_n_int
+  ;;
+
+
   let read_bit_kind () =
     if not (Ezfio.has_determinants_bit_kind ()) then
       Lazy.force Qpackage.bit_kind
@@ -66,14 +72,26 @@ end = struct
     |> Bit_kind.of_int
   ;;
 
+  let write_bit_kind b =
+    Bit_kind.to_int b
+    |> Ezfio.set_determinants_bit_kind
+  ;;
+
+
   let read_mo_label () =
     if (not (Ezfio.has_determinants_mo_label ())) then
       Ezfio.get_mo_basis_mo_label ()
       |> Ezfio.set_determinants_mo_label 
       ;
     Ezfio.get_determinants_mo_label ()
-    |> Non_empty_string.of_string
+    |> MO_label.of_string
   ;;
+
+  let write_mo_label l =
+    MO_label.to_string l
+    |> Ezfio.set_determinants_mo_label
+  ;;
+
 
   let read_n_det () =
     if not (Ezfio.has_determinants_n_det ()) then
@@ -83,6 +101,12 @@ end = struct
     |> Det_number.of_int
   ;;
 
+  let write_n_det n =
+    Det_number.to_int n
+    |> Ezfio.set_determinants_n_det
+  ;;
+
+
   let read_n_states () =
     if not (Ezfio.has_determinants_n_states ()) then
       Ezfio.set_determinants_n_states 1
@@ -90,6 +114,12 @@ end = struct
     Ezfio.get_determinants_n_states ()
     |> States_number.of_int
   ;;
+
+  let write_n_states n =
+    States_number.to_int n
+    |> Ezfio.set_determinants_n_states
+  ;;
+
 
   let read_n_states_diag () =
     if not (Ezfio.has_determinants_n_states_diag ()) then
@@ -101,6 +131,12 @@ end = struct
     |> States_number.of_int
   ;;
 
+  let write_n_states_diag n =
+    States_number.to_int n
+    |> Ezfio.set_determinants_n_states_diag
+  ;;
+
+
   let read_n_det_max_jacobi () =
     if not (Ezfio.has_determinants_n_det_max_jacobi ()) then
       get_default "n_det_max_jacobi"
@@ -110,6 +146,12 @@ end = struct
     Ezfio.get_determinants_n_det_max_jacobi ()
     |> Strictly_positive_int.of_int
   ;;
+
+  let write_n_det_max_jacobi n =
+    Strictly_positive_int.to_int n
+    |> Ezfio.set_determinants_n_det_max_jacobi
+  ;;
+
 
   let read_threshold_generators () =
     if not (Ezfio.has_determinants_threshold_generators ()) then
@@ -121,6 +163,12 @@ end = struct
     |> Threshold.of_float
   ;;
 
+  let write_threshold_generators t =
+    Threshold.to_float t
+    |> Ezfio.set_determinants_threshold_generators
+  ;;
+
+
   let read_threshold_selectors () =
     if not (Ezfio.has_determinants_threshold_selectors ()) then
       get_default "threshold_selectors"
@@ -131,6 +179,12 @@ end = struct
     |> Threshold.of_float
   ;;
 
+  let write_threshold_selectors t =
+    Threshold.to_float t
+    |> Ezfio.set_determinants_threshold_selectors
+  ;;
+
+
   let read_read_wf () =
     if not (Ezfio.has_determinants_read_wf ()) then
       get_default "read_wf"
@@ -139,6 +193,9 @@ end = struct
     ;
     Ezfio.get_determinants_read_wf ()
   ;;
+
+  let write_read_wf = Ezfio.set_determinants_read_wf ;;
+    
 
   let read_expected_s2 () =
     if not (Ezfio.has_determinants_expected_s2 ()) then
@@ -155,6 +212,12 @@ end = struct
     |> Positive_float.of_float
   ;;
 
+  let write_expected_s2 s2 =
+    Positive_float.to_float s2
+    |> Ezfio.set_determinants_expected_s2 
+  ;;
+
+
   let read_s2_eig () =
     if not (Ezfio.has_determinants_s2_eig ()) then
       get_default "s2_eig"
@@ -163,6 +226,9 @@ end = struct
     ;
     Ezfio.get_determinants_s2_eig ()
   ;;
+
+  let write_s2_eig = Ezfio.set_determinants_s2_eig ;;
+
 
   let read_psi_coef () =
     if not (Ezfio.has_determinants_psi_coef ()) then
@@ -173,6 +239,15 @@ end = struct
     |> Ezfio.flattened_ezfio
     |> Array.map ~f:Det_coef.of_float
   ;;
+
+  let write_psi_coef ~n_det c =
+    let n_det = Det_number.to_int n_det
+    and c = Array.to_list c
+            |> List.map ~f:Det_coef.to_float
+    in
+    Ezfio.ezfio_array_of_list ~rank:1 ~dim:[| n_det |] ~data:c
+  ;;
+
 
   let read_psi_det () =
     let n_int = read_n_int () in
@@ -194,26 +269,6 @@ end = struct
         Ezfio.ezfio_array_of_list ~rank:3 ~dim:[| N_int_number.to_int n_int ; 2 ; 1 |] ~data:data
           |> Ezfio.set_determinants_psi_det ;
       end  ;
-      (*
-    let rec transform accu1 accu2 n_rest = function 
-      | [] ->
-          let accu1 = List.rev accu1
-          |> Array.of_list 
-          |> Determinant.of_int64_array n_int
-          in
-          List.rev (accu1::accu2) |> Array.of_list
-      | i::rest ->
-          if (n_rest > 0) then
-            transform (i::accu1) accu2 (n_rest-1) rest
-          else
-            let accu1 = List.rev accu1
-            |> Array.of_list 
-            |> Determinant.of_int64_array n_int
-            in
-            let n_int = N_int_number.to_int n_int in
-            transform [] (accu1::accu2) (2*n_int) rest
-    in
-    *)
     let n_int = N_int_number.to_int n_int in
     let psi_det_array = Ezfio.get_determinants_psi_det () in
     let dim = psi_det_array.Ezfio.dim
@@ -228,6 +283,16 @@ end = struct
       (N_int_number.of_int n_int))
     |> Array.of_list
   ;;
+
+  let write_psi_det ~n_int ~n_det d =
+    let data = Array.to_list d
+      |> Array.concat 
+      |> Array.to_list
+    in
+    Ezfio.ezfio_array_of_list ~rank:3 ~dim:[| N_int_number.to_int n_int ; 2 ; Det_number.to_int n_det |] ~data:data
+    |> Ezfio.set_determinants_psi_det
+  ;;
+
 
   let read () =
     { n_int                  = read_n_int ()                ;
@@ -246,6 +311,38 @@ end = struct
       psi_det                = read_psi_det ()              ;
     }
   ;;
+
+  let write { n_int                ;
+              bit_kind             ;
+              mo_label             ;
+              n_det                ;
+              n_states             ;
+              n_states_diag        ;
+              n_det_max_jacobi     ;
+              threshold_generators ;
+              threshold_selectors  ;
+              read_wf              ;
+              expected_s2          ;
+              s2_eig               ;
+              psi_coef             ;
+              psi_det              ;
+            } =
+     write_n_int n_int ;
+     write_bit_kind bit_kind;
+     write_mo_label mo_label;
+     write_n_det n_det;
+     write_n_states n_states;
+     write_n_states_diag n_states_diag;
+     write_n_det_max_jacobi n_det_max_jacobi;
+     write_threshold_generators threshold_generators;
+     write_threshold_selectors threshold_selectors;
+     write_read_wf read_wf;
+     write_expected_s2 expected_s2;
+     write_s2_eig s2_eig;
+     write_psi_coef ~n_det:n_det psi_coef;
+     write_psi_det ~n_int:n_int ~n_det:n_det psi_det;
+  ;;
+
 
   let to_rst b =
     let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () in
@@ -301,7 +398,7 @@ Determinants ::
 %s
 "
      (b.read_wf       |> Bool.to_string)
-     (b.mo_label      |> Non_empty_string.to_string)
+     (b.mo_label      |> MO_label.to_string)
      (b.s2_eig        |> Bool.to_string)
      (b.expected_s2   |> Positive_float.to_string)
      (b.threshold_generators |> Threshold.to_string)
@@ -335,7 +432,7 @@ psi_det                = %s
 "
      (b.n_int         |> N_int_number.to_string)
      (b.bit_kind      |> Bit_kind.to_string)
-     (b.mo_label      |> Non_empty_string.to_string)
+     (b.mo_label      |> MO_label.to_string)
      (b.n_det         |> Det_number.to_string)
      (b.n_states      |> States_number.to_string)
      (b.n_states_diag |> States_number.to_string)

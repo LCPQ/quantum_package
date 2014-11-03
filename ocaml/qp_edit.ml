@@ -87,8 +87,10 @@ let set str s =
   | Hartree_fock ->
   | Mo_basis ->
   | Electrons ->
-  | Determinants ->
     *)
+  | Determinants ->
+      Input.Determinants.of_rst str 
+      |> Input.Determinants.write
   | Cisd_sc2 ->
       Input.Cisd_sc2.of_rst str 
       |> Input.Cisd_sc2.write
@@ -144,6 +146,7 @@ let run ezfio_filename =
       Nuclei ;
       Bielec_integrals ;
       Cisd_sc2 ;
+      Determinants ;
   ]
   in
 
