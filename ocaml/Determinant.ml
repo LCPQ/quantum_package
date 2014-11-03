@@ -24,12 +24,35 @@ let to_bitlist_couple x =
   in (xa,xb)
 ;;
 
+let bitlist_to_string ~mo_tot_num x =
+  List.map x ~f:(fun i -> match i with
+    | Bit.Zero -> "-"
+    | Bit.One  -> "+" )
+  |> String.concat
+  |> String.sub ~pos:0 ~len:(MO_number.to_int mo_tot_num) 
+;;
+
 
 let of_int64_array ~n_int ~alpha ~beta x =
    assert ((Array.length x) = (N_int_number.to_int n_int)*2) ;
-   let (a,b) = to_bitlist_couple x in
-   assert (Bitlist.popcnt a = Elec_alpha_number.to_int alpha);
-   assert (Bitlist.popcnt b = Elec_beta_number.to_int  beta );
+   let (a,b) = to_bitlist_couple x 
+   and alpha = Elec_alpha_number.to_int alpha
+   and beta  = Elec_beta_number.to_int beta
+   in
+   if ( (Bitlist.popcnt a) <> alpha) then
+     begin
+       let mo_tot_num = MO_number.get_max () in
+       let mo_tot_num = MO_number.of_int mo_tot_num ~max:mo_tot_num  in
+       failwith (Printf.sprintf "Expected %d electrons in alpha determinant
+%s" alpha (bitlist_to_string ~mo_tot_num:mo_tot_num a) )
+     end;
+   if ( (Bitlist.popcnt b) <> beta ) then
+     begin
+       let mo_tot_num = MO_number.get_max () in
+       let mo_tot_num = MO_number.of_int mo_tot_num ~max:mo_tot_num  in
+       failwith (Printf.sprintf "Expected %d electrons in beta determinant
+%s" beta (bitlist_to_string ~mo_tot_num:mo_tot_num b) )
+     end;
    x
 ;;
 
@@ -38,14 +61,6 @@ let of_bitlist_couple ~alpha ~beta (xa,xb) =
   let bb = Bitlist.to_int64_list xb in
   let n_int = Bitlist.n_int_of_mo_tot_num (List.length xa) in
   of_int64_array ~n_int:n_int ~alpha:alpha ~beta:beta (Array.of_list (ba@bb))
-;;
-
-let bitlist_to_string ~mo_tot_num x =
-  List.map x ~f:(fun i -> match i with
-    | Bit.Zero -> "-"
-    | Bit.One  -> "+" )
-  |> String.concat
-  |> String.sub ~pos:0 ~len:(MO_number.to_int mo_tot_num) 
 ;;
 
 let to_string ~mo_tot_num x = 

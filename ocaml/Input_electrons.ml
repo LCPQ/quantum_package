@@ -8,7 +8,8 @@ module Electrons : sig
       elec_beta_num      : Elec_beta_number.t;
     } with sexp
   ;;
-  val read : unit -> t
+  val read  : unit -> t
+  val write : t -> unit
   val read_elec_num : unit -> Elec_number.t
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
@@ -27,9 +28,20 @@ end = struct
     |> Elec_alpha_number.of_int
   ;;
 
+  let write_elec_alpha_num n = 
+    Elec_alpha_number.to_int n
+    |> Ezfio.set_electrons_elec_alpha_num 
+  ;;
+
+
   let read_elec_beta_num() = 
     Ezfio.get_electrons_elec_beta_num ()
     |> Elec_beta_number.of_int
+  ;;
+
+  let write_elec_beta_num n = 
+    Elec_beta_number.to_int n
+    |> Ezfio.set_electrons_elec_beta_num 
   ;;
 
   let read_elec_num () = 
@@ -45,6 +57,12 @@ end = struct
       elec_beta_num       = read_elec_beta_num ();
     }
   ;;
+
+  let write { elec_alpha_num ; elec_beta_num } =
+    write_elec_alpha_num elec_alpha_num;
+    write_elec_beta_num  elec_beta_num;
+  ;;
+
 
   let to_rst b =
     Printf.sprintf "

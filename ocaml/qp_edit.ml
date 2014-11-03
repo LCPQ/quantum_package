@@ -86,8 +86,10 @@ let set str s =
   | Full_ci ->
   | Hartree_fock ->
   | Mo_basis ->
-  | Electrons ->
     *)
+  | Electrons ->
+      Input.Electrons.of_rst str 
+      |> Input.Electrons.write
   | Determinants ->
       Input.Determinants.of_rst str 
       |> Input.Determinants.write
@@ -128,12 +130,8 @@ let run ezfio_filename =
   (*
   let output = (file_header ezfio_filename) :: (
     List.map ~f:get [
-      Nuclei ;
-      Electrons ;
       Ao_basis ; 
       Mo_basis ; 
-      Bielec_integrals ;
-      Determinants ;
       Full_ci ;
       Hartree_fock ;
     ])
@@ -144,6 +142,7 @@ let run ezfio_filename =
   
   let tasks = [
       Nuclei ;
+      Electrons ;
       Bielec_integrals ;
       Cisd_sc2 ;
       Determinants ;
