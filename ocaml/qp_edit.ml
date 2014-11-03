@@ -2,7 +2,7 @@ open Qputils;;
 open Qptypes;;
 open Core.Std;;
 
-let instructions filename = Printf.sprintf
+let file_header filename = Printf.sprintf
 "
 ==================================================================
                        Quantum Package
@@ -67,15 +67,51 @@ let get s =
   in header^(Rst_string.to_string rst)
 ;;
 
-(*
-let create_temp_file ezfio_filename fields =
-  In_channel.with_file filename ~f:(func out_channel ->
-    (instructions ezfio_filename) :: (List.map ~f:get fields)
-    |> String.concat output
-    |> print_string
-  )
+let set str s = 
+  let header = (make_header s) in
+  let index_begin = String.substr_index_exn ~pos:0 ~pattern:header str in
+  let index_begin = index_begin + (String.length header) in
+  let index_end   = 
+    match ( String.substr_index ~pos:(index_begin+(String.length header)+1)
+      ~pattern:"==" str) with
+      | Some i -> i
+      | None -> String.length str
+  in
+  let l = index_end - index_begin in
+  let str = String.sub ~pos:index_begin ~len:l str
+  |> Rst_string.of_string
+  in
+  match s with
+  (*
+  | Full_ci ->
+  | Hartree_fock ->
+  | Mo_basis ->
+  | Electrons ->
+  | Determinants ->
+  | Cisd_sc2 ->
+    *)
+  | Nuclei ->
+      let b = Input.Nuclei.of_rst str in
+      print_string (Input.Nuclei.to_string b);
+  | Bielec_integrals -> 
+      let b = Input.Bielec_integrals.of_rst str in
+      print_string (Input.Bielec_integrals.to_string b);
+    (*
+  | Ao_basis ->
+    *)
+ 
 ;;
-*)
+
+
+let create_temp_file ezfio_filename fields =
+  let temp_filename  = Filename.temp_file "qp_edit_" ".rst" in
+  Out_channel.with_file temp_filename ~f:(fun out_channel ->
+    (file_header ezfio_filename) :: (List.map ~f:get fields) 
+    |> String.concat ~sep:"\n" 
+    |> Out_channel.output_string out_channel 
+  );
+  temp_filename
+;;
 
 let run ezfio_filename =
 
@@ -85,7 +121,8 @@ let run ezfio_filename =
 
   Ezfio.set_file ezfio_filename;
 
-  let output = (instructions ezfio_filename) :: (
+  (*
+  let output = (file_header ezfio_filename) :: (
     List.map ~f:get [
       Nuclei ;
       Electrons ;
@@ -100,6 +137,35 @@ let run ezfio_filename =
    in
   String.concat output
   |> print_string
+  *)
+  
+  let tasks = [
+      Nuclei ;
+      Bielec_integrals ;
+  ]
+  in
+
+  (* Create the temp file *)
+  let temp_filename = create_temp_file ezfio_filename tasks in
+
+  (* Open the temp file with external editor *)
+  let editor = 
+    match Sys.getenv "EDITOR" with
+    | Some editor -> editor
+    | None -> "vi"
+  in
+  let command = Printf.sprintf "%s %s" editor temp_filename in
+  Sys.command_exn command;
+
+  (* Re-read the temp file *)
+  let temp_string  =
+    In_channel.with_file temp_filename ~f:(fun in_channel ->
+      In_channel.input_all in_channel) 
+  in
+  List.iter ~f:(fun x -> set temp_string x) tasks;
+
+  (* Remove temp_file *)
+  Sys.remove temp_filename;
 ;;
 
 
