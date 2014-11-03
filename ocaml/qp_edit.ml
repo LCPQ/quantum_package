@@ -88,8 +88,10 @@ let set str s =
   | Mo_basis ->
   | Electrons ->
   | Determinants ->
-  | Cisd_sc2 ->
     *)
+  | Cisd_sc2 ->
+      Input.Cisd_sc2.of_rst str 
+      |> Input.Cisd_sc2.write
   | Nuclei ->
       Input.Nuclei.of_rst str 
       |> Input.Nuclei.write
@@ -129,7 +131,6 @@ let run ezfio_filename =
       Ao_basis ; 
       Mo_basis ; 
       Bielec_integrals ;
-      Cisd_sc2 ;
       Determinants ;
       Full_ci ;
       Hartree_fock ;
@@ -142,6 +143,7 @@ let run ezfio_filename =
   let tasks = [
       Nuclei ;
       Bielec_integrals ;
+      Cisd_sc2 ;
   ]
   in
 

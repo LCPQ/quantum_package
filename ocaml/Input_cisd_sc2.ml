@@ -9,7 +9,8 @@ module Cisd_sc2 : sig
       do_pt2_end         : bool;
     } with sexp
   ;;
-  val read : unit -> t
+  val read  : unit -> t
+  val write : t -> unit
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
   val of_rst : Rst_string.t -> t
@@ -33,6 +34,11 @@ end = struct
     |> Det_number_max.of_int
   ;;
 
+  let write_n_det_max_cisd_sc2 n =
+    Det_number_max.to_int n
+    |> Ezfio.set_cisd_sc2_selected_n_det_max_cisd_sc2
+  ;;
+
 
   let read_pt2_max () = 
     if not (Ezfio.has_cisd_sc2_selected_pt2_max ()) then
@@ -42,6 +48,11 @@ end = struct
     ;
     Ezfio.get_cisd_sc2_selected_pt2_max ()
     |> PT2_energy.of_float
+  ;;
+
+  let write_pt2_max p =
+    PT2_energy.to_float p
+    |> Ezfio.set_cisd_sc2_selected_pt2_max
   ;;
 
 
@@ -54,12 +65,25 @@ end = struct
     Ezfio.get_cisd_sc2_selected_do_pt2_end ()
   ;;
 
+  let write_do_pt2_end =
+    Ezfio.set_cisd_sc2_selected_do_pt2_end
+  ;;
+
 
   let read () = 
     { n_det_max_cisd_sc2  = read_n_det_max_cisd_sc2 ();
       pt2_max             = read_pt2_max ();
       do_pt2_end          = read_do_pt2_end ();
     }
+  ;;
+
+  let write { n_det_max_cisd_sc2 ;
+              pt2_max            ;
+              do_pt2_end         ;
+            } =
+     write_n_det_max_cisd_sc2 n_det_max_cisd_sc2;
+     write_pt2_max            pt2_max;
+     write_do_pt2_end         do_pt2_end;
   ;;
 
   let to_string b =
