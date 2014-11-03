@@ -91,8 +91,8 @@ let set str s =
   | Cisd_sc2 ->
     *)
   | Nuclei ->
-      let b = Input.Nuclei.of_rst str in
-      print_string (Input.Nuclei.to_string b);
+      Input.Nuclei.of_rst str 
+      |> Input.Nuclei.write;
   | Bielec_integrals -> 
       let b = Input.Bielec_integrals.of_rst str in
       print_string (Input.Bielec_integrals.to_string b);

@@ -68,13 +68,6 @@ let read_one in_channel =
 
 (** Transform the gto to a string *)
 let to_string { sym = sym ; lc = lc } =
-  let f (p,c) = Printf.sprintf "( %s, %f )" (Primitive.to_string p) (AO_coef.to_float c)
-  in
-  Printf.sprintf "( %s, %s )" (Symmetry.to_string sym)
-    (String.concat (List.map ~f:f lc) ~sep:", ")
-;;
-
-let to_string { sym = sym ; lc = lc } =
   let result = 
     Printf.sprintf "%s %3d" (Symmetry.to_string sym) (List.length lc)
   in

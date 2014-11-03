@@ -10,7 +10,8 @@ module Nuclei : sig
       nucl_coord      : Point3d.t array;
     } with sexp
   ;;
-  val read : unit -> t
+  val read  : unit -> t
+  val write : t -> unit 
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
   val of_rst : Rst_string.t -> t
@@ -30,17 +31,51 @@ end = struct
     Nucl_number.of_int ~max:nmax nmax
   ;;
 
+  let write_nucl_num n = 
+    Nucl_number.to_int n
+    |> Ezfio.set_nuclei_nucl_num
+  ;;
+    
+
   let read_nucl_label () =
     Ezfio.get_nuclei_nucl_label ()
     |> Ezfio.flattened_ezfio
     |> Array.map ~f:Element.of_string 
   ;;
 
+  let write_nucl_label ~nucl_num labels =
+    let nucl_num = 
+       Nucl_number.to_int nucl_num
+    in
+    let labels =
+       Array.to_list labels 
+       |> List.map ~f:Element.to_string
+    in
+    Ezfio.ezfio_array_of_list ~rank:1 
+       ~dim:[| nucl_num |] ~data:labels
+    |> Ezfio.set_nuclei_nucl_label
+  ;;
+
+
   let read_nucl_charge () =
     Ezfio.get_nuclei_nucl_charge ()
     |> Ezfio.flattened_ezfio
     |> Array.map ~f:Charge.of_float
   ;;
+
+  let write_nucl_charge ~nucl_num charges =
+    let nucl_num = 
+       Nucl_number.to_int nucl_num
+    in
+    let charges =
+       Array.to_list charges
+       |> List.map ~f:Charge.to_float
+    in
+    Ezfio.ezfio_array_of_list ~rank:1 
+       ~dim:[| nucl_num |] ~data:charges
+    |> Ezfio.set_nuclei_nucl_charge
+  ;;
+
 
   let read_nucl_coord () =
     let nucl_num = Nucl_number.to_int (read_nucl_num ()) in
@@ -59,6 +94,81 @@ end = struct
     result
   ;;
 
+  let write_nucl_coord ~nucl_num coord =
+    let nucl_num = 
+       Nucl_number.to_int nucl_num
+    in
+    let coord = Array.to_list coord in
+    let coord = 
+       (List.map ~f:(fun x-> x.Point3d.x) coord) @
+       (List.map ~f:(fun x-> x.Point3d.y) coord) @
+       (List.map ~f:(fun x-> x.Point3d.z) coord) 
+    in
+    Ezfio.ezfio_array_of_list ~rank:2 
+       ~dim:[| nucl_num ; 3 |] ~data:coord
+    |> Ezfio.set_nuclei_nucl_coord
+  ;;
+
+
+  let read () =
+    { nucl_num        = read_nucl_num ();
+      nucl_label      = read_nucl_label () ;
+      nucl_charge     = read_nucl_charge ();
+      nucl_coord      = read_nucl_coord ();
+    }
+  ;;
+
+  let write { nucl_num    ;
+              nucl_label  ;
+              nucl_charge ;
+              nucl_coord  ;
+            } =
+    write_nucl_num nucl_num ;
+    write_nucl_label  ~nucl_num:nucl_num nucl_label;
+    write_nucl_charge ~nucl_num:nucl_num nucl_charge;
+    write_nucl_coord  ~nucl_num:nucl_num nucl_coord;
+  ;;         
+
+
+  let to_string b =
+    Printf.sprintf "
+nucl_num         = %s
+nucl_label       = %s
+nucl_charge      = %s
+nucl_coord       = %s
+"
+    (Nucl_number.to_string b.nucl_num)
+    (b.nucl_label |> Array.to_list |> List.map
+      ~f:(Element.to_string) |> String.concat ~sep:", " )
+    (b.nucl_charge |> Array.to_list |> List.map
+      ~f:(Charge.to_string) |> String.concat ~sep:", " )
+    (b.nucl_coord  |> Array.to_list |> List.map
+      ~f:(Point3d.to_string Units.Bohr) |> String.concat ~sep:"\n" )
+  ;;
+
+
+   let to_rst b = 
+     let nucl_num = Nucl_number.to_int b.nucl_num in
+     let text = 
+       ( Printf.sprintf "  %d\n  "
+         nucl_num 
+       ) :: (
+       List.init nucl_num ~f:(fun i->
+         Printf.sprintf "  %-3s  %d   %s"
+          (b.nucl_label.(i)  |> Element.to_string)
+          (b.nucl_charge.(i) |> Charge.to_int )
+          (b.nucl_coord.(i)  |> Point3d.to_string Units.Angstrom) )
+      ) |> String.concat ~sep:"\n"
+     in
+     Printf.sprintf "
+Nuclear coordinates in xyz format (Angstroms) ::
+
+%s
+
+" text
+     |> Rst_string.of_string
+  ;;
+     
   let of_rst s =
     let l = Rst_string.to_string s 
     |> String.split ~on:'\n'
@@ -104,52 +214,6 @@ end = struct
     }
   ;;
 
-  let read () =
-    { nucl_num        = read_nucl_num ();
-      nucl_label      = read_nucl_label () ;
-      nucl_charge     = read_nucl_charge ();
-      nucl_coord      = read_nucl_coord ();
-    }
-  ;;
-
-  let to_string b =
-    Printf.sprintf "
-nucl_num         = %s
-nucl_label       = %s
-nucl_charge      = %s
-nucl_coord       = %s
-"
-    (Nucl_number.to_string b.nucl_num)
-    (b.nucl_label |> Array.to_list |> List.map
-      ~f:(Element.to_string) |> String.concat ~sep:", " )
-    (b.nucl_charge |> Array.to_list |> List.map
-      ~f:(Charge.to_string) |> String.concat ~sep:", " )
-    (b.nucl_coord  |> Array.to_list |> List.map
-      ~f:(Point3d.to_string Units.Bohr) |> String.concat ~sep:"\n" )
-  ;;
-
-   let to_rst b = 
-     let nucl_num = Nucl_number.to_int b.nucl_num in
-     let text = 
-       ( Printf.sprintf "  %d\n  "
-         nucl_num 
-       ) :: (
-       List.init nucl_num ~f:(fun i->
-         Printf.sprintf "  %-3s  %d   %s"
-          (b.nucl_label.(i)  |> Element.to_string)
-          (b.nucl_charge.(i) |> Charge.to_int )
-          (b.nucl_coord.(i)  |> Point3d.to_string Units.Angstrom) )
-      ) |> String.concat ~sep:"\n"
-     in
-     Printf.sprintf "
-Nuclear coordinates in xyz format (Angstroms) ::
-
-%s
-
-" text
-     |> Rst_string.of_string
-;;
-     
 end
 
 

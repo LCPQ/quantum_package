@@ -145,16 +145,12 @@ end = struct
     let print_sym = 
       let l = List.init (Array.length b.ao_power) ~f:(
          fun i -> ( (i+1),b.ao_nucl.(i),b.ao_power.(i) ) ) in
-      let rec do_work count = function
+      let rec do_work = function
       | [] -> []
       | (i,n,x)::tail  -> 
-        if (count < 2) then
-          (Printf.sprintf "  (%4d) %d:%-8s" i (Nucl_number.to_int n) (Symmetry.Xyz.to_string x))::
-          (do_work (count+1) tail)
-        else
-          (Printf.sprintf "  (%4d) %d:%-8s\n" i (Nucl_number.to_int n) (Symmetry.Xyz.to_string x))::
-          (do_work 0 tail)
-      in do_work 0 l
+          (Printf.sprintf " %5d  %6d     %-8s\n" i (Nucl_number.to_int n) (Symmetry.Xyz.to_string x))::
+          (do_work tail)
+      in do_work l
       |> String.concat
     in
 
@@ -168,9 +164,12 @@ Basis set ::
   
 %s
 
-Symmetries ::
 
+======= ========= ===========
+ Basis   Nucleus   Symmetries
+======= ========= ===========
 %s
+======= ========= ===========
 
 " b.ao_basis
     (Basis.to_string short_basis 
@@ -179,6 +178,22 @@ Symmetries ::
      |> String.concat ~sep:"\n"
     ) print_sym
   |> Rst_string.of_string
+  ;;
+
+  let read_rst s = 
+    let s = Rst_string.to_string s
+    |> String.split ~on:'\n'
+    in
+    let rec extract_basis = function
+    | [] -> failwith "Error in basis set"
+    | line :: tail ->
+      let line = String.strip line in
+      if line = "Basis set ::" then
+        String.concat tail ~sep:"\n"
+      else
+        extract_basis tail
+    in
+    extract_basis s
   ;;
 
   let to_md5 b =
