@@ -169,8 +169,8 @@ end = struct
         Ezfio.ezfio_array_of_list ~rank:1 ~dim:[| 1 |] ~data:[1.]
         |> Ezfio.set_determinants_psi_coef 
       ;
-    (Ezfio.get_determinants_psi_coef ()).Ezfio.data
-    |> Ezfio.flattened_ezfio_data
+    Ezfio.get_determinants_psi_coef ()
+    |> Ezfio.flattened_ezfio
     |> Array.map ~f:Det_coef.of_float
   ;;
 
@@ -192,7 +192,7 @@ end = struct
           (Bitlist.to_int64_list det_b) ) 
         in
         Ezfio.ezfio_array_of_list ~rank:3 ~dim:[| N_int_number.to_int n_int ; 2 ; 1 |] ~data:data
-        |> Ezfio.set_determinants_psi_det 
+          |> Ezfio.set_determinants_psi_det ;
       end  ;
       (*
     let rec transform accu1 accu2 n_rest = function 
@@ -217,7 +217,7 @@ end = struct
     let n_int = N_int_number.to_int n_int in
     let psi_det_array = Ezfio.get_determinants_psi_det () in
     let dim = psi_det_array.Ezfio.dim
-    and data =  Ezfio.flattened_ezfio_data psi_det_array.Ezfio.data 
+    and data =  Ezfio.flattened_ezfio psi_det_array
     in
     assert (n_int = dim.(0));
     assert (dim.(1) = 2);

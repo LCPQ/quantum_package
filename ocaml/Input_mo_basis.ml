@@ -51,14 +51,13 @@ end = struct
           ~dim:[| mo_tot_num |] ~data:data
         |> Ezfio.set_mo_basis_mo_occ
       end;
-    (Ezfio.get_mo_basis_mo_occ () ).Ezfio.data
-    |> Ezfio.flattened_ezfio_data
+    Ezfio.flattened_ezfio (Ezfio.get_mo_basis_mo_occ () )
     |> Array.map ~f:MO_occ.of_float
   ;;
 
   let read_mo_coef () =
-    let a = (Ezfio.get_mo_basis_mo_coef () ).Ezfio.data
-    |> Ezfio.flattened_ezfio_data
+    let a = Ezfio.get_mo_basis_mo_coef () 
+    |> Ezfio.flattened_ezfio
     |> Array.map ~f:MO_coef.of_float
     in
     let mo_tot_num = read_mo_tot_num () |> MO_number.to_int in

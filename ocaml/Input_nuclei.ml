@@ -31,22 +31,22 @@ end = struct
   ;;
 
   let read_nucl_label () =
-    (Ezfio.get_nuclei_nucl_label ()).Ezfio.data
-    |> Ezfio.flattened_ezfio_data
+    Ezfio.get_nuclei_nucl_label ()
+    |> Ezfio.flattened_ezfio
     |> Array.map ~f:Element.of_string 
   ;;
 
   let read_nucl_charge () =
-    (Ezfio.get_nuclei_nucl_charge () ).Ezfio.data
-    |> Ezfio.flattened_ezfio_data
+    Ezfio.get_nuclei_nucl_charge ()
+    |> Ezfio.flattened_ezfio
     |> Array.map ~f:Charge.of_float
   ;;
 
   let read_nucl_coord () =
     let nucl_num = Nucl_number.to_int (read_nucl_num ()) in
     let raw_data = 
-    (Ezfio.get_nuclei_nucl_coord() ).Ezfio.data
-    |> Ezfio.flattened_ezfio_data
+    Ezfio.get_nuclei_nucl_coord()
+    |> Ezfio.flattened_ezfio
     in
     let zero = Point3d.of_string Units.Bohr "0. 0. 0." in
     let result = Array.create nucl_num zero in

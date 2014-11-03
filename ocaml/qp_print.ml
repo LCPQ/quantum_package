@@ -52,8 +52,8 @@ let run_i ~action ezfio_filename =
 
   let compute_charge () =
     let input = Input.Electrons.read () in
-    let nucl_charge = Ezfio.((get_nuclei_nucl_charge ()).data)
-      |> Ezfio.flattened_ezfio_data |> Array.map ~f:(Float.to_int) 
+    let nucl_charge = Ezfio.get_nuclei_nucl_charge ()
+      |> Ezfio.flattened_ezfio |> Array.map ~f:(Float.to_int) 
     and n_alpha = input.Input.Electrons.elec_alpha_num
       |> Elec_alpha_number.to_int
     and n_beta  = input.Input.Electrons.elec_beta_num 
@@ -71,14 +71,14 @@ let run_i ~action ezfio_filename =
 
   let create_molecule () =
     let nucl_num = Ezfio.get_nuclei_nucl_num () 
-    and nucl_charge = Ezfio.((get_nuclei_nucl_charge ()).data)
-       |> Ezfio.flattened_ezfio_data
-    and nucl_coord = Ezfio.((get_nuclei_nucl_coord ()).data )
-       |> Ezfio.flattened_ezfio_data
+    and nucl_charge = Ezfio.get_nuclei_nucl_charge ()
+       |> Ezfio.flattened_ezfio
+    and nucl_coord = Ezfio.get_nuclei_nucl_coord ()
+       |> Ezfio.flattened_ezfio
     in
     let nucl_label =
       if (Ezfio.has_nuclei_nucl_label ()) then
-       Ezfio.((get_nuclei_nucl_label ()).data) |> Ezfio.flattened_ezfio_data
+       Ezfio.get_nuclei_nucl_label () |> Ezfio.flattened_ezfio
       else
         Array.map ~f:(fun x-> x
           |> Charge.of_float

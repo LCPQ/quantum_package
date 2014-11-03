@@ -72,8 +72,8 @@ end = struct
       in
       Ezfio.set_bitmasks_generators generators
       end;
-    (Ezfio.get_bitmasks_generators ()).Ezfio.data
-    |> Ezfio.flattened_ezfio_data 
+    Ezfio.get_bitmasks_generators ()
+    |> Ezfio.flattened_ezfio
   ;;
 
   let read () = 

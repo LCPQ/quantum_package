@@ -46,29 +46,29 @@ end = struct
   ;;
 
   let read_ao_prim_num () =
-    (Ezfio.get_ao_basis_ao_prim_num () ).Ezfio.data
-    |> Ezfio.flattened_ezfio_data
+    Ezfio.get_ao_basis_ao_prim_num () 
+    |> Ezfio.flattened_ezfio
     |> Array.map ~f:AO_prim_number.of_int
   ;;
 
   let read_ao_prim_num_max () =
-    (Ezfio.get_ao_basis_ao_prim_num () ).Ezfio.data
-    |> Ezfio.flattened_ezfio_data
+    Ezfio.get_ao_basis_ao_prim_num ()
+    |> Ezfio.flattened_ezfio
     |> Array.fold ~f:(fun x y -> if x>y then x else y) ~init:0
     |> AO_prim_number.of_int
   ;;
 
   let read_ao_nucl () =
     let nmax = Nucl_number.get_max () in
-    (Ezfio.get_ao_basis_ao_nucl () ).Ezfio.data
-    |> Ezfio.flattened_ezfio_data
+    Ezfio.get_ao_basis_ao_nucl () 
+    |> Ezfio.flattened_ezfio
     |> Array.map ~f:(fun x-> Nucl_number.of_int ~max:nmax x)
   ;;
 
   let read_ao_power () =
     let x = Ezfio.get_ao_basis_ao_power () in
     let dim = x.Ezfio.dim.(0) in
-    let data = Ezfio.flattened_ezfio_data x.Ezfio.data in
+    let data = Ezfio.flattened_ezfio x in
     let result = Array.init dim ~f:(fun x -> "") in
     for i=1 to dim
     do
@@ -83,14 +83,14 @@ end = struct
   ;;
 
   let read_ao_coef () =
-    (Ezfio.get_ao_basis_ao_coef () ).Ezfio.data
-    |> Ezfio.flattened_ezfio_data
+    Ezfio.get_ao_basis_ao_coef () 
+    |> Ezfio.flattened_ezfio
     |> Array.map ~f:AO_coef.of_float
   ;;
 
   let read_ao_expo () =
-    (Ezfio.get_ao_basis_ao_expo () ).Ezfio.data
-    |> Ezfio.flattened_ezfio_data
+    Ezfio.get_ao_basis_ao_expo ()
+    |> Ezfio.flattened_ezfio
     |> Array.map ~f:AO_expo.of_float
   ;;
 
