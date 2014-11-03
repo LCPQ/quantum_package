@@ -6,11 +6,6 @@ type t = int64 array with sexp
 let to_int64_array (x:t) = (x:int64 array)
 ;;
 
-let of_int64_array n_int x =
-   assert ((Array.length x) = (N_int_number.to_int n_int)*2) ;
-   x
-;;
-
 let to_alpha_beta x = 
   let x = to_int64_array x in
   let n_int = (Array.length x)/2 in
@@ -29,11 +24,20 @@ let to_bitlist_couple x =
   in (xa,xb)
 ;;
 
-let of_bitlist_couple (xa,xb) =
+
+let of_int64_array ~n_int ~alpha ~beta x =
+   assert ((Array.length x) = (N_int_number.to_int n_int)*2) ;
+   let (a,b) = to_bitlist_couple x in
+   assert (Bitlist.popcnt a = Elec_alpha_number.to_int alpha);
+   assert (Bitlist.popcnt b = Elec_beta_number.to_int  beta );
+   x
+;;
+
+let of_bitlist_couple ~alpha ~beta (xa,xb) =
   let ba = Bitlist.to_int64_list xa in
   let bb = Bitlist.to_int64_list xb in
-  let n_int = Bitlist.n_int_of_mo_tot_num (List.length ba) in
-  of_int64_array n_int (Array.of_list (ba@bb))
+  let n_int = Bitlist.n_int_of_mo_tot_num (List.length xa) in
+  of_int64_array ~n_int:n_int ~alpha:alpha ~beta:beta (Array.of_list (ba@bb))
 ;;
 
 let bitlist_to_string ~mo_tot_num x =

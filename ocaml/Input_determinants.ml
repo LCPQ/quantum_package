@@ -246,11 +246,17 @@ end = struct
             |> List.map ~f:Det_coef.to_float
     in
     Ezfio.ezfio_array_of_list ~rank:1 ~dim:[| n_det |] ~data:c
+    |> Ezfio.set_determinants_psi_coef 
   ;;
 
 
   let read_psi_det () =
-    let n_int = read_n_int () in
+    let n_int = read_n_int () 
+    and n_alpha = Ezfio.get_electrons_elec_alpha_num ()
+        |> Elec_alpha_number.of_int 
+    and n_beta = Ezfio.get_electrons_elec_beta_num ()
+        |> Elec_beta_number.of_int 
+    in
     if not (Ezfio.has_determinants_psi_det ()) then
       begin
         let mo_tot_num = MO_number.get_max () in
@@ -258,9 +264,9 @@ end = struct
           | 0 -> accu
           | n -> build_data ((MO_number.of_int ~max:mo_tot_num n)::accu) (n-1)
         in
-        let det_a = build_data [] (Ezfio.get_electrons_elec_alpha_num ())
+        let det_a = build_data [] (Elec_alpha_number.to_int n_alpha)
           |> Bitlist.of_mo_number_list n_int
-        and det_b = build_data [] (Ezfio.get_electrons_elec_beta_num  ())
+        and det_b = build_data [] (Elec_beta_number.to_int n_beta)
           |> Bitlist.of_mo_number_list n_int
         in
         let data = ( (Bitlist.to_int64_list det_a) @ 
@@ -280,7 +286,8 @@ end = struct
     List.init dim.(2) ~f:(fun i ->
       Array.sub ~pos:(2*n_int*i) ~len:(2*n_int) data)
     |> List.map ~f:(Determinant.of_int64_array
-      (N_int_number.of_int n_int))
+      ~n_int:(N_int_number.of_int n_int)
+      ~alpha:n_alpha ~beta:n_beta )
     |> Array.of_list
   ;;
 
@@ -500,6 +507,11 @@ psi_det                = %s
 
     (* Handle determinants *)
     let psi_det = 
+      let n_alpha = Ezfio.get_electrons_elec_alpha_num ()
+        |> Elec_alpha_number.of_int 
+      and n_beta = Ezfio.get_electrons_elec_beta_num ()
+        |> Elec_beta_number.of_int 
+      in
       let rec read_dets accu = function
       | [] -> List.rev accu
       | ""::c::alpha::beta::tail -> 
@@ -507,7 +519,8 @@ psi_det                = %s
             let alpha = String.rev alpha |> Bitlist.of_string ~zero:'-' ~one:'+'
             and beta  = String.rev beta  |> Bitlist.of_string ~zero:'-' ~one:'+'
             in
-            let newdet = Determinant.of_bitlist_couple (alpha,beta) 
+            let newdet = Determinant.of_bitlist_couple 
+              ~alpha:n_alpha ~beta:n_beta (alpha,beta) 
             |> Determinant.sexp_of_t |> Sexplib.Sexp.to_string
             in
             read_dets (newdet::accu) tail
@@ -525,8 +538,6 @@ psi_det                = %s
     and n_int = Printf.sprintf "(n_int %d)" (N_int_number.get_max ()) in
     let s = String.concat [ header ; bitkind ; n_int ; psi_coef ; psi_det]
     in
-    ("("^s^")")
-    |> print_endline ;
     Sexp.of_string ("("^s^")")
     |> t_of_sexp
   ;;
