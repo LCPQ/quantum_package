@@ -229,8 +229,9 @@ let parse_input_ezfio input=
         and msg = d
         in 
         let name :: typ :: ezfio_func :: min :: max :: msg :: [] = 
-            name :: typ :: ezfio_func :: min :: max :: msg :: []
-           |> List.map ~f:String.strip 
+        match (name :: typ :: ezfio_func :: min :: max :: msg :: []) with
+        | l -> List.map ~f:String.strip  l
+        | _ -> assert false
         in
         Printf.sprintf ezfio_template 
           name typ typ typ typ typ typ typ typ (String.capitalize typ)

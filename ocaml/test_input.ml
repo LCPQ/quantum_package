@@ -41,7 +41,14 @@ let test_dets () =
   Ezfio.set_file "F2.ezfio" ;
   let b = Input.Determinants.read ()
   in
-  print_endline (Input.Determinants.to_string b);
+  print_endline (Input.Determinants.to_rst b |> Rst_string.to_string ) ;
+  print_endline (Input.Determinants.sexp_of_t b |> Sexplib.Sexp.to_string ) ;
+  let r = Input.Determinants.to_rst b in
+  let b2 = Input.Determinants.of_rst r in
+  if (b2 = b) then
+    print_endline "OK"
+  else
+    print_endline "Failed"
 ;;
 
 let test_cisd_sc2 () =
@@ -130,5 +137,5 @@ test_nucl ();
 test_bielec_intergals ();;
 test_electrons();
 *)
+test_dets ();
 
-test_ao();

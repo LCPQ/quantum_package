@@ -23,6 +23,7 @@ module Determinants : sig
   val read : unit -> t
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
+  val of_rst : Rst_string.t -> t 
 end = struct
   type t = 
     { n_int                  : N_int_number.t;
@@ -251,7 +252,7 @@ end = struct
     let mo_tot_num = MO_number.of_int mo_tot_num ~max:mo_tot_num in
     let det_text = 
       List.map2_exn ~f:(fun coef det ->
-        Printf.sprintf "  %f\n%s\n"
+        Printf.sprintf "  %F\n%s\n"
         (Det_coef.to_float coef)
         (Determinant.to_string ~mo_tot_num:mo_tot_num det 
          |> String.split ~on:'\n'
@@ -273,27 +274,27 @@ Label of the MOs on which the determinants were computed ::
 Force the selected wave function to be an eigenfunction of S^2.
 If true, input the expected value of S^2 ::
 
-  s2_eig                 = %s
-  expected_s2            = %s
+  s2_eig      = %s
+  expected_s2 = %s
 
 Thresholds on generators and selectors (fraction of the norm) ::
 
-  threshold_generators   = %s
-  threshold_selectors    = %s
+  threshold_generators = %s
+  threshold_selectors  = %s
 
 Number of requested states, and number of states used for the
 Davidson diagonalization ::
 
-  n_states               = %s
-  n_states_diag          = %s
+  n_states      = %s
+  n_states_diag = %s
 
 Maximum size of the Hamiltonian matrix that will be fully diagonalized ::
 
-  n_det_max_jacobi       = %s
+  n_det_max_jacobi = %s
 
 Number of determinants ::
 
-  n_det                  = %s
+  n_det = %s
 
 Determinants ::
 
@@ -348,6 +349,89 @@ psi_det                = %s
       |> String.concat ~sep:", ")
      (b.psi_det   |> Array.to_list |> List.map ~f:(Determinant.to_string
        ~mo_tot_num:mo_tot_num) |> String.concat ~sep:"\n\n")
+  ;;
+
+  let of_rst r =
+    let r = Rst_string.to_string r
+    in
+
+    (* Split into header and determinants data *)
+    let idx = String.substr_index_exn r ~pos:0 ~pattern:"\nDeterminants"
+    in
+    let (header, dets) = 
+       (String.prefix r idx, String.suffix r ((String.length r)-idx) )
+    in
+
+    (* Handle header *)
+    let header = r
+    |> String.split ~on:'\n'
+    |> List.filter ~f:(fun line ->
+        if (line = "") then
+          false
+        else
+          ( (String.contains line '=') && (line.[0] = ' ') )
+       )
+    |> List.map ~f:(fun line ->
+        "("^(
+        String.tr line ~target:'=' ~replacement:' '
+        |> String.strip
+        )^")" )
+    |> String.concat 
+    in
+
+    (* Handle determinant coefs *)
+    let dets = match ( dets
+    |> String.split ~on:'\n'
+    |> List.map ~f:(String.strip)
+    ) with 
+    | _::lines -> lines 
+    | _ -> failwith "Error in determinants"
+    in
+
+    let psi_coef = 
+      let rec read_coefs accu = function
+      | [] -> List.rev accu
+      | ""::c::tail -> 
+          read_coefs (c::accu) tail
+      | _::tail -> read_coefs accu tail
+      in
+      let a = read_coefs [] dets
+      |> String.concat ~sep:" "
+      in
+      "(psi_coef ("^a^"))"
+    in
+
+    (* Handle determinants *)
+    let psi_det = 
+      let rec read_dets accu = function
+      | [] -> List.rev accu
+      | ""::c::alpha::beta::tail -> 
+          begin
+            let alpha = String.rev alpha |> Bitlist.of_string ~zero:'-' ~one:'+'
+            and beta  = String.rev beta  |> Bitlist.of_string ~zero:'-' ~one:'+'
+            in
+            let newdet = Determinant.of_bitlist_couple (alpha,beta) 
+            |> Determinant.sexp_of_t |> Sexplib.Sexp.to_string
+            in
+            read_dets (newdet::accu) tail
+          end
+      | _::tail -> read_dets accu tail
+      in
+      let a = read_dets [] dets
+      |> String.concat 
+      in
+      "(psi_det ("^a^"))"
+    in
+
+    let bitkind = Printf.sprintf "(bit_kind %d)" (Lazy.force Qpackage.bit_kind
+      |> Bit_kind.to_int)
+    and n_int = Printf.sprintf "(n_int %d)" (N_int_number.get_max ()) in
+    let s = String.concat [ header ; bitkind ; n_int ; psi_coef ; psi_det]
+    in
+    ("("^s^")")
+    |> print_endline ;
+    Sexp.of_string ("("^s^")")
+    |> t_of_sexp
   ;;
 
 end

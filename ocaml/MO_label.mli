@@ -3,6 +3,7 @@ type t =
   | Canonical
   | Natural
   | Localized
+  | Orthonormalized
   | None
 with sexp
 

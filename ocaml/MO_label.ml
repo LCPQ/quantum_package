@@ -5,6 +5,7 @@ type t =
 | Canonical
 | Natural
 | Localized
+| Orthonormalized
 | None
 with sexp
 ;;
@@ -12,6 +13,7 @@ with sexp
 let to_string = function
   | Guess     -> "Guess"
   | Canonical -> "Canonical"
+  | Orthonormalized -> "Orthonormalized"
   | Natural   -> "Natural"
   | Localized -> "Localized"
   | None      -> "None"
@@ -23,7 +25,8 @@ let of_string  s =
   | "canonical" -> Canonical
   | "natural"   -> Natural
   | "localized" -> Localized
+  | "orthonormalized" -> Orthonormalized
   | "none"      -> None
   | _ -> failwith "MO_label should be one of:
-    Guess | Canonical | Natural | Localized | None."
+    Guess | Orthonormalized | Canonical | Natural | Localized | None."
 ;;

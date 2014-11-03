@@ -6,6 +6,9 @@ val zero : Qptypes.N_int_number.t -> t
 (** Convert to a string for printing *)
 val to_string : t -> string
 
+(** Convert to a string for printing *)
+val of_string : ?zero:char -> ?one:char -> string -> t
+
 (** int64 conversion functions *)
 
 val of_int64 : int64 -> t

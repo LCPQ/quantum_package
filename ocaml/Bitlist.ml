@@ -1,4 +1,5 @@
 open Qptypes;;
+open Core.Std;;
 
 (*
 Type for bits strings
@@ -20,6 +21,13 @@ let to_string b =
   do_work "" b
 ;;
 
+let of_string ?(zero='0') ?(one='1') s =
+  String.to_list s
+  |> List.rev_map ~f:( fun c ->
+     if (c = zero) then Bit.Zero
+     else if (c = one) then Bit.One
+     else (failwith ("Error in string "^s) ) )
+;;
 
 (* Create a bit list from an int64 *)
 let of_int64 i = 
@@ -27,7 +35,7 @@ let of_int64 i =
   | 0L -> [ Bit.Zero ]
   | 1L -> [ Bit.One ]
   | i -> let b =
-    match (Int64.logand i 1L ) with
+    match (Int64.bit_and i 1L ) with
     | 0L -> Bit.Zero
     | 1L -> Bit.One 
     | _ -> raise (Failure "i land 1 not in (0,1)")  
@@ -51,15 +59,14 @@ let to_int64 l =
   let rec do_work accu = function
     | [] -> accu
     | Bit.Zero::tail -> do_work Int64.(shift_left accu 1) tail
-    | Bit.One::tail  -> do_work Int64.(logor one (shift_left accu 1)) tail
+    | Bit.One::tail  -> do_work Int64.(bit_or one (shift_left accu 1)) tail
   in do_work Int64.zero (List.rev l)
 ;;
 
 (* Create a bit list from a list of int64 *)
 let of_int64_list l = 
-  let list_of_lists = List.map of_int64 l in
-(*  let result = List.rev list_of_lists in *)
-  List.flatten list_of_lists
+  List.map ~f:of_int64 l 
+  |> List.concat
 ;;
 
 (* Compute n_int *)
@@ -92,15 +99,15 @@ let to_int64_list l =
   in
   let l = do_work [] [] 1 l
   in
-  List.rev_map to_int64 l
+  List.rev_map ~f:to_int64 l
 ;;
 
 (* Create a bit list from a list of MO indices *)
 let of_mo_number_list n_int l = 
   let n_int = N_int_number.to_int n_int in
   let length = n_int*64 in
-  let a = Array.make length (Bit.Zero) in
-  List.iter (fun i-> a.((MO_number.to_int i)-1) <- Bit.One) l;
+  let a = Array.create length (Bit.Zero) in
+  List.iter ~f:(fun i-> a.((MO_number.to_int i)-1) <- Bit.One) l;
   Array.to_list a
 ;;
 
@@ -162,30 +169,4 @@ let popcnt b =
   in popcnt 0 b
 ;;
 
-let test_module () = 
-  let test = of_int64_list ([-1231L;255L]) in
-  print_string (to_string test);
-  print_newline ();
-  print_string (string_of_int (String.length (to_string test)));
-  print_newline ();
-  print_string ( Bit.to_string Bit.One );
-
-  let a = of_int64_list ([-1L;0L]) 
-  and b = of_int64_list ([128L;127L])
-  in begin
-   print_newline ();
-   print_newline ();
-   print_string (to_string a);
-   print_newline ();
-   print_string (to_string b);
-   print_newline ();
-   print_string (to_string (and_operator a b));
-   print_newline ();
-   print_string (to_string (or_operator a b));
-   print_newline ();
-   print_string (to_string (xor_operator a b));
-   print_string (to_string a);
-   print_int (popcnt a);
-  end
-;;
 
