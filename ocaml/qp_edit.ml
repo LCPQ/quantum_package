@@ -92,10 +92,10 @@ let set str s =
     *)
   | Nuclei ->
       Input.Nuclei.of_rst str 
-      |> Input.Nuclei.write;
+      |> Input.Nuclei.write
   | Bielec_integrals -> 
-      let b = Input.Bielec_integrals.of_rst str in
-      print_string (Input.Bielec_integrals.to_string b);
+      Input.Bielec_integrals.of_rst str 
+      |> Input.Bielec_integrals.write
     (*
   | Ao_basis ->
     *)
