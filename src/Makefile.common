@@ -1,3 +1,9 @@
+# Required EZFIO version
+EZFIO_VERSION=1.1
+
+# Required IRPF90 version
+IRPF90_VERSION=1.4
+
 # Check if QPACKAGE_ROOT is defined
 
 ifndef QPACKAGE_ROOT
@@ -28,10 +34,12 @@ include $(QPACKAGE_ROOT)/src/Makefile.config
 
 # Check the  version of IRPF90
 
-IRP_VERSION_OK=$(shell $(IRPF90) -v | python -c "import sys ; print float(sys.stdin.readline().rsplit('.',1)[0]) >= 1.3")
+IRP_VERSION_OK=$(shell $(IRPF90) -v | python -c "import sys ; print float(sys.stdin.readline().rsplit('.',1)[0]) >= $(IRPF90_VERSION)")
 ifeq ($(IRP_VERSION_OK),False)
 $(info  -------------------- Error --------------------)
-$(info  IRPF90 version >= 1.3 is required)
+$(info  IRPF90 version >= $(IRPF90_VERSION) is required)
+$(info  To upgrade IRPF90, run :                       )
+$(info    $(QPACKAGE_ROOT)/scripts/upgrade_irpf90.sh   )
 $(info  -----------------------------------------------)
 $(error )
 endif
@@ -85,11 +93,25 @@ $(info  -----------------------------------------------)
 endif
 
 
-# Define the Makefile common variables and rules
+# Define the Makefile common variables
 
 EZFIO_DIR=$(QPACKAGE_ROOT)/EZFIO
 EZFIO=$(EZFIO_DIR)/lib/libezfio_irp.a
 INCLUDE_DIRS=$(NEEDED_MODULES) include
+
+# Check EZFIO version
+
+EZFIO_VERSION_OK=$(shell cat $(EZFIO_DIR)/version | cut -d '=' -f 2 | python -c "import sys ; print float(sys.stdin.readline().rsplit('.',1)[0]) >= $(EZFIO_VERSION)")
+ifeq ($(EZFIO_VERSION_OK),False)
+$(info  -------------------- Error --------------------)
+$(info  EZFIO version >= $(EZFIO_VERSION) is required  )
+$(info  To upgrade EZFIO, run :                        )
+$(info    $(QPACKAGE_ROOT)/scripts/upgrade_ezfio.sh    )
+$(info  -----------------------------------------------)
+$(error )
+endif
+
+# Define the EZFIO rules
 
 $(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config)
 	@echo Building EZFIO library

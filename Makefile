@@ -32,6 +32,7 @@ bin/irpf90:
 	  (echo Unable to download IRPF90 : $(WWW_SERVER)/$(IRPF90_TGZ) ; exit 1)
 	tar -zxf $(IRPF90_TGZ) && rm $(IRPF90_TGZ)
 	$(MAKE) -C irpf90 | tee install_irpf90.log
+	rm -rf -- $$PWD/bin/irpf90 $$PWD/bin/irpman
 	ln -s $$PWD/irpf90/bin/irpf90 $$PWD/bin/irpf90
 	ln -s $$PWD/irpf90/bin/irpman $$PWD/bin/irpman
 
