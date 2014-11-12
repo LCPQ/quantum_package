@@ -23,7 +23,7 @@ module Determinants : sig
   val write : t -> unit
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
-  val of_rst : Rst_string.t -> t 
+  val of_rst : Rst_string.t -> t option
 end = struct
   type t = 
     { n_int                  : N_int_number.t;
@@ -538,8 +538,8 @@ psi_det                = %s
     and n_int = Printf.sprintf "(n_int %d)" (N_int_number.get_max ()) in
     let s = String.concat [ header ; bitkind ; n_int ; psi_coef ; psi_det]
     in
-    Sexp.of_string ("("^s^")")
-    |> t_of_sexp
+
+    Generic_input_of_rst.evaluate_sexp t_of_sexp s
   ;;
 
 end

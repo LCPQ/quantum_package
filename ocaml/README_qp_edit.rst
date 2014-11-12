@@ -23,9 +23,8 @@ of the block.
     ;;
     val read  : unit -> t
     val write : t -> unit
-    val to_string : t -> string
     val to_rst : t -> Rst_string.t
-    val of_rst : Rst_string.t -> t
+    val of_rst : Rst_string.t -> t option
   end = struct
     type t =
       {  r_x    : Type_of_x.t
@@ -42,12 +41,14 @@ of the block.
 
   end
 
-The following functions need to be defined::
+The following functions need to be defined
+
+.. code-block:: ocaml
 
     val read   : unit -> t
     val write  : t -> unit
     val to_rst : t -> Rst_string.t
-    val of_rst : Rst_string.t -> t
+    val of_rst : Rst_string.t -> t option
 
 
 The type `t` has to be defined in a same way in the `sig` and the `struct`.
@@ -135,26 +136,12 @@ Finally, create the functions to write an RST string as
   ;;
 
 
-and you can use this function to read it back:
+and you can use the generic `of_rst` function to read it back:
 
 .. code-block:: ocaml
 
-  let of_rst s =
-    let s = Rst_string.to_string s
-    |> String.split ~on:'\n'
-    |> List.filter ~f:(fun line ->
-        String.contains line '=')
-    |> List.map ~f:(fun line ->
-        "("^(
-        String.tr line ~target:'=' ~replacement:' '
-        )^")" )
-    |> String.concat
-    in
-    Sexp.of_string ("("^s^")")
-    |> t_of_sexp
-  ;;
-
-
+  include Generic_input_of_rst;;
+  let of_rst = of_rst t_of_sexp;;
 
   
 
@@ -201,10 +188,11 @@ vim search strings are given in brackets.
 
   let get s =
     let header = (make_header s)
-      and rst = match s with
+      and rst = let open Input in
+      match s with
       ...
       | New_keyword ->
-        Input.New_keyword.(to_rst (read ()))
+        New_keyword.(to_rst (read ()))
       ...
       
 
@@ -212,9 +200,10 @@ vim search strings are given in brackets.
 
 .. code-block:: ocaml
 
-    match s with
-    ...
-    | New_keyword ->
-        Input.New_keyword.(write (of_rst str))
+    let open Input in
+      match s with
+      ...
+      | New_keyword -> write New_keyword.(of_rst, write)
+      ...
     ;;  
 
