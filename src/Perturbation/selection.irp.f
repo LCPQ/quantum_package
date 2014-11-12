@@ -148,7 +148,6 @@ subroutine make_s2_eigenfunction
   integer, parameter             :: bufsze = 1000
   logical, external              :: is_in_wavefunction
 
-  print *,  irp_here
 !  !TODO DEBUG
 !  do i=1,N_det
 !   do j=i+1,N_det
