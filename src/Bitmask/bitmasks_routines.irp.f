@@ -130,3 +130,17 @@ subroutine debug_det(string,Nint)
   print *,  trim(output(2))
 
 end
+
+subroutine print_det(string,Nint)
+  use bitmasks
+  implicit none
+  integer, intent(in) :: Nint
+  integer(bit_kind), intent(in) :: string(Nint,2)
+  character*(512) :: output(2)
+
+  call bitstring_to_str( output(1), string(1,1), Nint )
+  call bitstring_to_str( output(2), string(1,2), Nint )
+  print *,  trim(output(1))
+  print *,  trim(output(2))
+
+end

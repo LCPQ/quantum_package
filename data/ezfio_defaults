@@ -28,6 +28,11 @@ full_ci
   n_det_max_fci              10000
   pt2_max                    1.e-4
   do_pt2_end                 True
+
+cassd  
+  n_det_max_cassd            10000
+  pt2_max                    1.e-4
+  do_pt2_end                 True
                             
 hartree_fock
   n_it_scf_max               200

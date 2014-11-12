@@ -1,1 +1,2 @@
-AOs BiInts Bitmask Dets Electrons Ezfio_files Hartree_Fock MonoInts MOs Nuclei Output Utils
+AOs BiInts Bitmask CASSD DDCI Dets Electrons Ezfio_files Generators_CAS Hartree_Fock MonoInts MOs Nuclei Output Perturbation Selectors_full Utils
+

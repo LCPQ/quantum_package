@@ -170,11 +170,12 @@ BEGIN_PROVIDER [ integer(bit_kind), reference_bitmask, (N_int,2,2,N_reference_bi
  PROVIDE ezfio_filename
 
  call ezfio_has_bitmasks_reference(exists)
+ print*,'exists = ',exists
  if (exists) then
    call ezfio_get_bitmasks_reference(reference_bitmask)
  else
-   reference_bitmask(:,:,s_hole ,1) = HF_bitmask
-   reference_bitmask(:,:,s_part ,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
+   reference_bitmask(:,:,1,1) = HF_bitmask
+   reference_bitmask(:,:,2,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
  endif
 
 END_PROVIDER
