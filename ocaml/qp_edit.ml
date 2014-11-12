@@ -83,10 +83,12 @@ let set str s =
   in
   match s with
   (*
-  | Full_ci ->
   | Hartree_fock ->
   | Mo_basis ->
     *)
+  | Full_ci ->
+      Input.Full_ci.of_rst str 
+      |> Input.Full_ci.write
   | Electrons ->
       Input.Electrons.of_rst str 
       |> Input.Electrons.write
@@ -132,7 +134,6 @@ let run ezfio_filename =
     List.map ~f:get [
       Ao_basis ; 
       Mo_basis ; 
-      Full_ci ;
       Hartree_fock ;
     ])
    in
@@ -144,6 +145,7 @@ let run ezfio_filename =
       Nuclei ;
       Electrons ;
       Bielec_integrals ;
+      Full_ci ;
       Cisd_sc2 ;
       Determinants ;
   ]
