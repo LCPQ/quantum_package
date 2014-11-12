@@ -8,7 +8,8 @@ module Hartree_fock : sig
       thresh_scf         : Threshold.t;
     } with sexp
   ;;
-  val read : unit -> t
+  val read  : unit -> t
+  val write : t -> unit
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
   val of_rst : Rst_string.t -> t 
@@ -31,14 +32,25 @@ end = struct
     |> Strictly_positive_int.of_int
   ;;
 
-  let read_thresh_scf() = 
+  let write_n_it_scf_max n_it_scf_max = 
+    Strictly_positive_int.to_int n_it_scf_max
+    |> Ezfio.set_hartree_fock_n_it_scf_max
+  ;;
+
+  let read_thresh_scf () = 
     if not (Ezfio.has_hartree_fock_thresh_scf()) then
        get_default "thresh_scf"
        |> Float.of_string
        |> Ezfio.set_hartree_fock_thresh_scf
     ;
     Ezfio.get_hartree_fock_thresh_scf ()
-    |> Threshold.of_float ;;
+    |> Threshold.of_float
+  ;;
+
+  let write_thresh_scf thresh_scf =
+    Threshold.to_float thresh_scf
+    |> Ezfio.set_hartree_fock_thresh_scf
+  ;;
 
 
   let read () = 
@@ -46,6 +58,15 @@ end = struct
       thresh_scf         = read_thresh_scf ();
     }
   ;;
+
+
+  let write { n_it_scf_max ;
+              thresh_scf ;
+            } =
+    write_n_it_scf_max n_it_scf_max;
+    write_thresh_scf   thresh_scf
+  ;;
+
 
   let to_string b =
     Printf.sprintf "
