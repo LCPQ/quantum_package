@@ -44,25 +44,26 @@ let make_header kw =
 
 let get s = 
   let header = (make_header s) 
-  and rst = match s with
+  and rst = let open Input in
+  match s with
   | Full_ci ->
-    Input.Full_ci.(to_rst (read ()))
+    Full_ci.(to_rst (read ()))
   | Hartree_fock ->
-    Input.Hartree_fock.(to_rst (read ()))
+    Hartree_fock.(to_rst (read ()))
   | Mo_basis ->
-    Input.Mo_basis.(to_rst (read ()))
+    Mo_basis.(to_rst (read ()))
   | Electrons ->
-    Input.Electrons.(to_rst (read ()))
+    Electrons.(to_rst (read ()))
   | Determinants ->
-    Input.Determinants.(to_rst (read ()))
+    Determinants.(to_rst (read ()))
   | Cisd_sc2 ->
-    Input.Cisd_sc2.(to_rst (read ()))
+    Cisd_sc2.(to_rst (read ()))
   | Nuclei ->
-    Input.Nuclei.(to_rst (read ()))
+    Nuclei.(to_rst (read ()))
   | Ao_basis ->
-    Input.Ao_basis.(to_rst (read ()))
+    Ao_basis.(to_rst (read ()))
   | Bielec_integrals -> 
-    Input.Bielec_integrals.(to_rst (read ()))
+    Bielec_integrals.(to_rst (read ()))
  
   in header^(Rst_string.to_string rst)
 ;;
@@ -81,30 +82,22 @@ let set str s =
   let str = String.sub ~pos:index_begin ~len:l str
   |> Rst_string.of_string
   in
-  match s with
-  (*
-  | Full_ci ->
-  | Hartree_fock ->
-  | Mo_basis ->
-    *)
-  | Electrons ->
-      Input.Electrons.of_rst str 
-      |> Input.Electrons.write
-  | Determinants ->
-      Input.Determinants.of_rst str 
-      |> Input.Determinants.write
-  | Cisd_sc2 ->
-      Input.Cisd_sc2.of_rst str 
-      |> Input.Cisd_sc2.write
-  | Nuclei ->
-      Input.Nuclei.of_rst str 
-      |> Input.Nuclei.write
-  | Bielec_integrals -> 
-      Input.Bielec_integrals.of_rst str 
-      |> Input.Bielec_integrals.write
-    (*
-  | Ao_basis ->
-    *)
+  let write (of_rst,w) =
+    match of_rst str with
+    | Some data -> w data
+    | None -> ()
+  in
+  let open Input in
+    match s with
+    | Hartree_fock     -> write Hartree_fock.(of_rst, write)
+    | Full_ci          -> write Full_ci.(of_rst, write)
+    | Electrons        -> write Electrons.(of_rst, write)
+    | Cisd_sc2         -> write Cisd_sc2.(of_rst, write)
+    | Bielec_integrals -> write Bielec_integrals.(of_rst, write)
+    | Determinants     -> write Determinants.(of_rst, write)
+    | Nuclei           -> write Nuclei.(of_rst, write)
+    | Ao_basis         -> () (* TODO *)
+    | Mo_basis         -> () (* TODO *)
  
 ;;
 
@@ -132,8 +125,6 @@ let run ezfio_filename =
     List.map ~f:get [
       Ao_basis ; 
       Mo_basis ; 
-      Full_ci ;
-      Hartree_fock ;
     ])
    in
   String.concat output
@@ -144,7 +135,9 @@ let run ezfio_filename =
       Nuclei ;
       Electrons ;
       Bielec_integrals ;
+      Hartree_fock ;
       Cisd_sc2 ;
+      Full_ci ;
       Determinants ;
   ]
   in

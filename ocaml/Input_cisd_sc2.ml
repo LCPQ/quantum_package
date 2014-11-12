@@ -13,7 +13,7 @@ module Cisd_sc2 : sig
   val write : t -> unit
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
-  val of_rst : Rst_string.t -> t
+  val of_rst : Rst_string.t -> t option
 end = struct
   type t = 
     { n_det_max_cisd_sc2 : Det_number_max.t;
@@ -118,22 +118,8 @@ Compute E(PT2) at the end ::
    |> Rst_string.of_string
   ;;
 
-  let of_rst s =
-    let s = Rst_string.to_string s
-    |> String.split ~on:'\n'
-    |> List.filter ~f:(fun line ->
-        String.contains line '=')
-    |> List.map ~f:(fun line ->
-        "("^(
-        String.tr line ~target:'=' ~replacement:' '
-        )^")" )
-    |> String.concat
-    in
-    Sexp.of_string ("("^s^")")
-    |> t_of_sexp
-  ;;
-
-
+  include Generic_input_of_rst;;
+  let of_rst = of_rst t_of_sexp;;
 
 end
 

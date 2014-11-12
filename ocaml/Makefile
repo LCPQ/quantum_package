@@ -10,7 +10,7 @@ endif
 
 LIBS=
 PKGS=
-OCAMLCFLAGS="-g"
+OCAMLCFLAGS="-g -warn-error A"
 OCAMLBUILD=ocamlbuild -j 0 -syntax camlp4o -cflags $(OCAMLCFLAGS) -lflags $(OCAMLCFLAGS)
 MLFILES=$(wildcard *.ml) ezfio.ml Qptypes.ml
 MLIFILES=$(wildcard *.mli) 
