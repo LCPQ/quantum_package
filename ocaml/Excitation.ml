@@ -1,22 +1,14 @@
 open Core.Std;;
 open Qptypes;;
 
-module Hole : sig
-    type t
-    val to_mo_class  : t -> MO_class.t
-    val of_mo_class  : MO_class.t -> t
-end = struct
-    type t = MO_class.t
+module Hole = struct
+    type t = MO_class.t with sexp
     let of_mo_class x = x
     let to_mo_class x = x
 end
 
-module Particle : sig
-    type t
-    val to_mo_class  : t -> MO_class.t
-    val of_mo_class  : MO_class.t -> t
-end = struct
-    type t = MO_class.t
+module Particle = struct
+    type t = MO_class.t with sexp
     let of_mo_class x = x
     let to_mo_class x = x
 end
@@ -24,10 +16,7 @@ end
 type t =
 | Single of Hole.t*Particle.t
 | Double of Hole.t*Particle.t*Hole.t*Particle.t
-;;
-
-let failwith s = raise (Failure s)
-;;
+with sexp;;
 
 let create_single ~hole ~particle =
   MO_class.(

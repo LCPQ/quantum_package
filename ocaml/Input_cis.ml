@@ -10,10 +10,11 @@ module Cis_dressed : sig
       mp2_dressing       : bool;
       standard_doubles   : bool;
       en_2_2             : bool;
-    }
+    } with sexp
   ;;
   val read : unit -> t
   val to_string : t -> string
+  val to_rst : t -> Rst_string.t
 end = struct
   type t = 
     { n_state_cis        : States_number.t;
@@ -22,7 +23,7 @@ end = struct
       mp2_dressing       : bool;
       standard_doubles   : bool;
       en_2_2             : bool;
-    }
+    } with sexp
   ;;
 
   let get_default = Qpackage.get_ezfio_default "cis_dressed";;
@@ -95,9 +96,9 @@ end = struct
 
   let to_string b =
     Printf.sprintf "
-n_state_cis        = %s
-n_core_cis         = %s
-n_act_cis          = %s
+n_state_cis = %s
+n_core_cis = %s
+n_act_cis  = %s
 mp2_dressing       = %s
 standard_doubles   = %s
 en_2_2             = %s
@@ -108,6 +109,42 @@ en_2_2             = %s
         (Bool.to_string b.mp2_dressing)
         (Bool.to_string b.standard_doubles)
         (Bool.to_string b.en_2_2)
+  ;;
+
+
+  let to_rst b =
+    Printf.sprintf "
+Number of states ::
+
+  n_state_cis = %s
+
+Core and active MOs ::
+
+  n_core_cis = %s
+  n_act_cis  = %s
+
+Dress with MP2 perturbation ::
+
+  mp2_dressing       = %s
+
+Use standard double-excitations ::
+
+  standard_doubles   = %s
+
+Epstein-Nesbet 2x2 diagonalization ::
+
+  en_2_2             = %s
+
+"
+        (States_number.to_string b.n_state_cis)
+        (Positive_int.to_string b.n_core_cis)
+        (Positive_int.to_string b.n_act_cis)
+        (Bool.to_string b.mp2_dressing)
+        (Bool.to_string b.standard_doubles)
+        (Bool.to_string b.en_2_2)
+
+   |> Rst_string.of_string
+  ;;
 end
 
 

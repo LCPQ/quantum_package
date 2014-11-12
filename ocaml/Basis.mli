@@ -15,3 +15,6 @@ val read_element :
 
 (** Convert the basis to a string *)
 val to_string :  (Gto.t * Nucl_number.t) list -> string
+
+(** Convert the basis to an MD5 hash *)
+val to_md5 :  (Gto.t * Nucl_number.t) list -> MD5.t

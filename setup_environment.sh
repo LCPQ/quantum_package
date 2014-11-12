@@ -53,7 +53,7 @@ echo $RED "
 To complete the installation, add the following line to
 your ~/.bashrc:
 
-source quantum_package.rc
+source ${QPACKAGE_ROOT}/quantum_package.rc
 
 =======================================================
 " $BLACK

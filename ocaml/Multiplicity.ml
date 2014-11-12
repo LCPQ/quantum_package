@@ -1,7 +1,8 @@
 open Core.Std;;
 open Qptypes ;;
 
-type t = Strictly_positive_int.t;;
+type t = Strictly_positive_int.t with sexp
+
 let of_int = Strictly_positive_int.of_int ;;
 let to_int = Strictly_positive_int.to_int ;;
 

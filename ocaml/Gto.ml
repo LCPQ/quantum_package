@@ -7,7 +7,7 @@ exception End_Of_Basis
 type t =
 { sym  : Symmetry.t ;
   lc   : ((Primitive.t * AO_coef.t) list)
-}
+} with sexp
 ;;
 
 let of_prim_coef_list pc =
@@ -52,24 +52,37 @@ let read_one in_channel =
       match buffer with
       | [ j ; expo ; coef ] ->
         begin
-          let p = { Primitive.sym = sym ;
-                    Primitive.expo = AO_expo.of_float
-                        (Float.of_string expo)
-                  }
+          let p =
+            Primitive.of_sym_expo sym 
+              (AO_expo.of_float (Float.of_string expo) )
           and c = AO_coef.of_float (Float.of_string coef) in
           read_lines ( (p,c)::result) (i-1)
         end
       | _ -> raise (GTO_Read_Failure line_buffer)
     end
   in read_lines [] n
+  |> List.rev
   |> of_prim_coef_list
 ;;
 
 
 (** Transform the gto to a string *)
 let to_string { sym = sym ; lc = lc } =
-  let f (p,c) = Printf.sprintf "( %s, %f )" (Primitive.to_string p) (AO_coef.to_float c)
+  let result = 
+    Printf.sprintf "%s %3d" (Symmetry.to_string sym) (List.length lc)
   in
-  Printf.sprintf "[ %s : %s ]" (Symmetry.to_string sym)
-    (String.concat (List.map ~f:f lc) ~sep:", ")
+  let rec do_work accu i = function
+  | [] -> List.rev accu
+  | (p,c)::tail -> 
+    let p = AO_expo.to_float p.Primitive.expo
+    and c = AO_coef.to_float c
+    in
+    let result = 
+      Printf.sprintf "%3d %16f  %16f" i p c
+    in
+    do_work (result::accu) (i+1) tail
+  in
+  (do_work [result] 1 lc)
+  |> String.concat ~sep:"\n"
 ;;
+

@@ -1,7 +1,7 @@
 BEGIN_PROVIDER [ double precision, H_matrix_all_dets,(N_det,N_det) ]
  implicit none
  BEGIN_DOC
- ! H matrix on the basis of the slater deter;inants defined by psi_det
+ ! H matrix on the basis of the slater determinants defined by psi_det
  END_DOC
  integer :: i,j
  double precision :: hij

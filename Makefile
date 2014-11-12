@@ -32,6 +32,7 @@ bin/irpf90:
 	  (echo Unable to download IRPF90 : $(WWW_SERVER)/$(IRPF90_TGZ) ; exit 1)
 	tar -zxf $(IRPF90_TGZ) && rm $(IRPF90_TGZ)
 	$(MAKE) -C irpf90 | tee install_irpf90.log
+	rm -rf -- $$PWD/bin/irpf90 $$PWD/bin/irpman
 	ln -s $$PWD/irpf90/bin/irpf90 $$PWD/bin/irpf90
 	ln -s $$PWD/irpf90/bin/irpman $$PWD/bin/irpman
 
@@ -53,7 +54,9 @@ bin/m4:
 	QPACKAGE_ROOT=$$PWD ./scripts/install_m4.sh | tee install_m4.log
 
 
-ocaml: ocaml/Qptypes.ml curl m4
+ocaml: curl m4
+	- rm -f -- ocaml/Qptypes.ml
+	$(MAKE) ocaml/Qptypes.ml
 
 ocaml/Qptypes.ml: 
 	$(info $(BLUE)===== Installing ocaml =====$(BLACK))

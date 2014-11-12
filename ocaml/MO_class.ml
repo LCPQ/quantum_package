@@ -7,7 +7,7 @@ type t =
 | Active of MO_number.t list
 | Virtual of MO_number.t list
 | Deleted of MO_number.t list
-;;
+with sexp
 
 
 let to_string  x = 

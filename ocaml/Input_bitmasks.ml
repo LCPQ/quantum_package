@@ -8,7 +8,7 @@ module Bitmasks : sig
       bit_kind           : Bit_kind.t;
       n_mask_gen         : Bitmask_number.t;
       generators         : int64 array;
-    }
+    } with sexp
   ;;
   val read : unit -> t
   val to_string : t -> string
@@ -18,7 +18,7 @@ end = struct
       bit_kind           : Bit_kind.t;
       n_mask_gen         : Bitmask_number.t;
       generators         : int64 array;
-    }
+    } with sexp
   ;;
 
   let get_default = Qpackage.get_ezfio_default "bitmasks";;
@@ -72,8 +72,8 @@ end = struct
       in
       Ezfio.set_bitmasks_generators generators
       end;
-    (Ezfio.get_bitmasks_generators ()).Ezfio.data
-    |> Ezfio.flattened_ezfio_data 
+    Ezfio.get_bitmasks_generators ()
+    |> Ezfio.flattened_ezfio
   ;;
 
   let read () = 

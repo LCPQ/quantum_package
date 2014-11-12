@@ -7,7 +7,7 @@ type t = {
   nuclei     : Atom.t list ;
   elec_alpha : Elec_alpha_number.t ;
   elec_beta  : Elec_beta_number.t ;
-}
+} with sexp
 
 let get_charge { nuclei  ; elec_alpha ; elec_beta } =
   let result = (Elec_alpha_number.to_int elec_alpha) +
@@ -25,7 +25,8 @@ let get_multiplicity m =
 ;;
 
 let get_nucl_num m =
-  Nucl_number.of_int (List.length m.nuclei)
+  let nmax = (List.length m.nuclei) in
+  Nucl_number.of_int nmax ~max:nmax
 ;;
 
 let name m = 
@@ -78,7 +79,7 @@ let to_string m =
 ;;
 
 let of_xyz_string
-    ?(charge=0) ?(multiplicity=(Multiplicity.of_int 1))
+    ?(charge=(Charge.of_int 0)) ?(multiplicity=(Multiplicity.of_int 1))
     ?(units=Units.Angstrom)
     s =
   let l = String.split s ~on:'\n'
@@ -90,7 +91,7 @@ let of_xyz_string
         elec_alpha=(Elec_alpha_number.of_int 1) ;
         elec_beta=(Elec_beta_number.of_int 0) } 
       |> Charge.to_int 
-      ) + 1 - charge 
+      ) + 1 - (Charge.to_int charge)
       |> Elec_number.of_int 
   in
   let (na,nb) = Multiplicity.to_alpha_beta ne multiplicity in
@@ -112,10 +113,16 @@ let of_xyz_string
 
 
 let of_xyz_file
-    ?(charge=0) ?(multiplicity=(Multiplicity.of_int 1))
+    ?(charge=(Charge.of_int 0)) ?(multiplicity=(Multiplicity.of_int 1))
+    ?(units=Units.Angstrom)
     filename =
   let (_,buffer) = In_channel.read_all filename 
   |> String.lsplit2_exn ~on:'\n' in
   let (_,buffer) = String.lsplit2_exn buffer ~on:'\n' in
-  of_xyz_string ~charge:charge ~multiplicity:multiplicity buffer
+  of_xyz_string ~charge:charge ~multiplicity:multiplicity 
+    ~units:units buffer
+;;
+
+include To_md5;;
+let to_md5 = to_md5 sexp_of_t
 ;;

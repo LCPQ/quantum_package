@@ -1,7 +1,7 @@
 open Core.Std;;
 open Qptypes;;
 
-type t = (Gto.t * Nucl_number.t) list;;
+type t = (Gto.t * Nucl_number.t) list with sexp;;
 
 (** Read all the basis functions of an element *)
 let read in_channel at_number =
@@ -36,8 +36,28 @@ let read_element in_channel at_number element =
 ;;
 
 let to_string b =
-  List.map ~f:(fun (g,n) ->
-     let n = Nucl_number.to_int n in
-     (Int.to_string n)^":"^(Gto.to_string g)) b
+  let new_nucleus n = 
+    Printf.sprintf "Atom %d" n
+  in
+  
+  let rec do_work accu current_nucleus = function
+  | [] -> List.rev accu
+  | (g,n)::tail -> 
+    let n = Nucl_number.to_int n
+    in
+    let accu = 
+       if (n <> current_nucleus) then
+         (new_nucleus n)::""::accu
+       else
+         accu
+    in
+    do_work ((Gto.to_string g)::accu) n tail
+  in
+  do_work [new_nucleus 1] 1 b
   |> String.concat ~sep:"\n"
 ;;
+
+include To_md5;;
+let to_md5 = to_md5 sexp_of_t
+;;
+
