@@ -86,26 +86,19 @@ let set str s =
   | Mo_basis ->
     *)
   | Hartree_fock ->
-      Input.Hartree_fock.of_rst str 
-      |> Input.Hartree_fock.write
+      Input.Hartree_fock.(write (of_rst str ))
   | Full_ci ->
-      Input.Full_ci.of_rst str 
-      |> Input.Full_ci.write
+      Input.Full_ci.(write (of_rst str))
   | Electrons ->
-      Input.Electrons.of_rst str 
-      |> Input.Electrons.write
+      Input.Electrons.(write (of_rst str))
   | Determinants ->
-      Input.Determinants.of_rst str 
-      |> Input.Determinants.write
+      Input.Determinants.(write (of_rst str))
   | Cisd_sc2 ->
-      Input.Cisd_sc2.of_rst str 
-      |> Input.Cisd_sc2.write
+      Input.Cisd_sc2.(write (of_rst str))
   | Nuclei ->
-      Input.Nuclei.of_rst str 
-      |> Input.Nuclei.write
+      Input.Nuclei.(write (of_rst str))
   | Bielec_integrals -> 
-      Input.Bielec_integrals.of_rst str 
-      |> Input.Bielec_integrals.write
+      Input.Bielec_integrals.(write (of_rst str))
     (*
   | Ao_basis ->
     *)
