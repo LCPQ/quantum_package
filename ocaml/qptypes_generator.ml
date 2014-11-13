@@ -228,9 +228,9 @@ let parse_input_ezfio input=
         and (min, max) = String.lsplit2_exn ~on:':' c
         and msg = d
         in 
-        let name :: typ :: ezfio_func :: min :: max :: msg :: [] = 
-        match (name :: typ :: ezfio_func :: min :: max :: msg :: []) with
-        | l -> List.map ~f:String.strip  l
+        let (name, typ, ezfio_func, min, max, msg) = 
+        match (List.map [ name ; typ ; ezfio_func ; min ; max ; msg ] ~f:String.strip) with
+        | [ name ; typ ; ezfio_func ; min ; max ; msg ] -> (name, typ, ezfio_func, min, max, msg)
         | _ -> assert false
         in
         Printf.sprintf ezfio_template 
