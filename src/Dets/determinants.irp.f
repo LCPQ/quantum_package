@@ -149,7 +149,7 @@ END_PROVIDER
   duplicate(i) = .False.
  enddo
 
- do i=1,N_det
+ do i=1,N_det-1
   if (duplicate(i)) then
     cycle
   endif
