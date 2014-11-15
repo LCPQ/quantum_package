@@ -74,17 +74,54 @@ let run ?o b c m xyz_file =
 
   (* Write Basis set *)
   let basis =
+
+    let alternate_basis_table = Hashtbl.Poly.create () in
+    let alternate_basis_channel element = 
+      let key = Element.to_string element in
+      match Hashtbl.find alternate_basis_table key with
+      | Some in_channel -> 
+          in_channel
+      | None ->
+          begin
+           Printf.printf "%s is not defined in basis %s.\nEnter alternate basis : %!"
+            (Element.to_long_string element) b ;
+            let bas =
+               match In_channel.input_line stdin with
+               | Some line -> String.strip line |> String.lowercase
+               | None -> failwith "Aborted"
+            in
+            let new_channel = In_channel.create 
+              (Qpackage.root ^ "/data/basis/" ^ bas)
+            in
+            Hashtbl.add_exn alternate_basis_table ~key:key ~data:new_channel;
+            new_channel
+          end
+    in
+
     let nmax = Nucl_number.get_max () in
     let rec do_work (accu:(Atom.t*Nucl_number.t) list) (n:int) = function
     | [] -> accu
-    | e::tail -> let new_accu = (e,(Nucl_number.of_int ~max:nmax n))::accu in
+    | e::tail ->
+      let new_accu = (e,(Nucl_number.of_int ~max:nmax n))::accu in
       do_work new_accu (n+1) tail
     in
-    do_work [] 1  nuclei
+    let result = do_work [] 1  nuclei
     |> List.rev
     |> List.map ~f:(fun (x,i) ->
-       Basis.read_element basis_channel i x.Atom.element) 
+       try 
+         Basis.read_element basis_channel i x.Atom.element
+       with
+       | End_of_file -> 
+         begin
+           let alt_channel = alternate_basis_channel x.Atom.element in
+           Basis.read_element alt_channel i x.Atom.element 
+         end
+       | _ -> assert false
+       ) 
     |> List.concat
+    in
+    (* close all in_channels *)
+    result
   in
   let long_basis = Long_basis.of_basis basis in
   let ao_num = List.length long_basis in
