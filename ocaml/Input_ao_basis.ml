@@ -4,7 +4,7 @@ open Core.Std;;
 
 module Ao_basis : sig
   type t = 
-    { ao_basis        : string ;
+    { ao_basis        : AO_basis_name.t;
       ao_num          : AO_number.t ;
       ao_prim_num     : AO_prim_number.t array;
       ao_prim_num_max : AO_prim_number.t;
@@ -20,7 +20,7 @@ module Ao_basis : sig
   val to_rst : t -> Rst_string.t
 end = struct
   type t = 
-    { ao_basis        : string ;
+    { ao_basis        : AO_basis_name.t;
       ao_num          : AO_number.t ;
       ao_prim_num     : AO_prim_number.t array;
       ao_prim_num_max : AO_prim_number.t;
@@ -34,10 +34,8 @@ end = struct
   let get_default = Qpackage.get_ezfio_default "ao_basis";;
 
   let read_ao_basis () = 
-    if not (Ezfio.has_ao_basis_ao_basis ()) then
-       Ezfio.set_ao_basis_ao_basis ""
-    ;
     Ezfio.get_ao_basis_ao_basis ()
+    |> AO_basis_name.of_string
   ;;
 
   let read_ao_num () =
@@ -171,7 +169,7 @@ Basis set ::
 %s
 ======= ========= ===========
 
-" b.ao_basis
+" (AO_basis_name.to_string b.ao_basis)
     (Basis.to_string short_basis 
      |> String.split ~on:'\n'
      |> List.map ~f:(fun x-> "  "^x)
@@ -213,7 +211,7 @@ ao_coef         = %s
 ao_expo         = %s
 md5             = %s
 "
-    b.ao_basis
+    (AO_basis_name.to_string b.ao_basis)
     (AO_number.to_string b.ao_num)
     (b.ao_prim_num |> Array.to_list |> List.map
       ~f:(AO_prim_number.to_string) |> String.concat ~sep:", " )

@@ -100,6 +100,9 @@ let input_data = "
 
 * Rst_string : string
 
+* AO_basis_name : string
+  assert (x <> \"\") ;
+
 "
 ;;
 
