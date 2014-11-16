@@ -6,29 +6,85 @@ let spec =
   let open Command.Spec in
   empty 
   +> flag "o"  (optional string)
-     ~doc:"file Name of the created EZFIO file"
+     ~doc:"file Name of the created EZFIO file."
   +> flag "b" (required string)
-     ~doc:"name Basis set."
+     ~doc:"definition of basis set."
   +> flag "c" (optional_with_default 0 int)
      ~doc:"int Total charge of the molecule. Default is 0."
   +> flag "m"  (optional_with_default 1 int)
-     ~doc:"int Spin multiplicity (2S+1) of the molecule. Default is 1"
+     ~doc:"int Spin multiplicity (2S+1) of the molecule. Default is 1."
   +> anon ("xyz_file" %: string)
 ;;
 
 let run ?o b c m xyz_file =
-
-  (* Open basis set channel *)
-  let basis_channel =
-    In_channel.create
-      (Qpackage.root ^ "/data/basis/" ^ (String.lowercase b))
-  in
 
   (* Read molecule *)
   let molecule =
     (Molecule.of_xyz_file xyz_file ~charge:(Charge.of_int c)
       ~multiplicity:(Multiplicity.of_int m) )
   in
+  let nuclei = molecule.Molecule.nuclei in
+
+  let basis_table = Hashtbl.Poly.create () in
+  (* Open basis set channels *)
+  let basis_channel element =
+    let key = Element.to_string element in
+    match Hashtbl.find basis_table key with
+    | Some in_channel -> 
+        in_channel
+    | None ->
+        begin
+         Printf.printf "%s is not defined in basis %s.\nEnter alternate basis : %!"
+          (Element.to_long_string element) b ;
+          let bas =
+             match In_channel.input_line stdin with
+             | Some line -> String.strip line |> String.lowercase
+             | None -> failwith "Aborted"
+          in
+          let new_channel = In_channel.create 
+            (Qpackage.root ^ "/data/basis/" ^ bas)
+          in
+          Hashtbl.add_exn basis_table ~key:key ~data:new_channel;
+          new_channel
+        end
+  in
+  
+  let rec build_basis = function
+  | [] -> ()
+  | elem_and_basis_name :: rest -> 
+    begin
+      match (String.lsplit2 ~on:':' elem_and_basis_name) with
+      | None -> (* Principal basis *)
+        begin
+          let new_channel = In_channel.create
+            (Qpackage.root ^ "/data/basis/" ^ elem_and_basis_name)
+          in
+          List.iter nuclei ~f:(fun x->
+            let key = Element.to_string x.Atom.element
+            in
+            match Hashtbl.add basis_table ~key:key ~data:new_channel with
+            | `Ok -> ()
+            | `Duplicate -> ()
+          )
+        end
+      | Some (key, basis) -> (*Aux basis *)
+        begin
+          let elem  = Element.of_string key
+          and basis = String.lowercase basis
+          in
+          let new_channel = In_channel.create
+            (Qpackage.root ^ "/data/basis/" ^ basis)
+          in
+          match Hashtbl.add basis_table ~key:key ~data:new_channel with
+          | `Ok -> ()
+          | `Duplicate -> failwith ("Duplicate definition of basis for "^(Element.to_long_string elem))
+        end
+    end;
+    build_basis rest
+  in
+  String.split ~on:' ' b
+  |> List.rev_map ~f:String.strip 
+  |> build_basis;
 
   (* Build EZFIO File name *)
   let ezfio_file =
@@ -54,7 +110,6 @@ let run ?o b c m xyz_file =
     molecule.Molecule.elec_beta  ) ;
 
   (* Write Nuclei *)
-  let nuclei = molecule.Molecule.nuclei in
   let labels =
      List.map ~f:(fun x->Element.to_string x.Atom.element) nuclei
   and charges = 
@@ -75,29 +130,6 @@ let run ?o b c m xyz_file =
   (* Write Basis set *)
   let basis =
 
-    let alternate_basis_table = Hashtbl.Poly.create () in
-    let alternate_basis_channel element = 
-      let key = Element.to_string element in
-      match Hashtbl.find alternate_basis_table key with
-      | Some in_channel -> 
-          in_channel
-      | None ->
-          begin
-           Printf.printf "%s is not defined in basis %s.\nEnter alternate basis : %!"
-            (Element.to_long_string element) b ;
-            let bas =
-               match In_channel.input_line stdin with
-               | Some line -> String.strip line |> String.lowercase
-               | None -> failwith "Aborted"
-            in
-            let new_channel = In_channel.create 
-              (Qpackage.root ^ "/data/basis/" ^ bas)
-            in
-            Hashtbl.add_exn alternate_basis_table ~key:key ~data:new_channel;
-            new_channel
-          end
-    in
-
     let nmax = Nucl_number.get_max () in
     let rec do_work (accu:(Atom.t*Nucl_number.t) list) (n:int) = function
     | [] -> accu
@@ -109,11 +141,11 @@ let run ?o b c m xyz_file =
     |> List.rev
     |> List.map ~f:(fun (x,i) ->
        try 
-         Basis.read_element basis_channel i x.Atom.element
+         Basis.read_element (basis_channel x.Atom.element) i x.Atom.element
        with
        | End_of_file -> 
          begin
-           let alt_channel = alternate_basis_channel x.Atom.element in
+           let alt_channel = basis_channel x.Atom.element in
            Basis.read_element alt_channel i x.Atom.element 
          end
        | _ -> assert false
@@ -187,8 +219,14 @@ let run ?o b c m xyz_file =
 let command = 
     Command.basic 
     ~summary: "Quantum Package command"
-    ~readme:(fun () ->
-      "Creates an EZFIO directory from a standard xyz file
+    ~readme:(fun () -> "
+Creates an EZFIO directory from a standard xyz file.
+The basis set is defined as a single string if all the
+atoms are taken from the same basis set, otherwise specific
+elements can be defined as follows:
+
+ -b \"cc-pcvdz H:cc-pvdz C:6-31g\"
+
       ")
     spec
     (fun o b c m xyz_file () ->
