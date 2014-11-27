@@ -14,7 +14,7 @@ module Ao_basis : sig
       ao_expo         : AO_expo.t array;
     } with sexp
   ;;
-  val read : unit -> t
+  val read : unit -> t option
   val to_string : t -> string
   val to_md5 : t -> MD5.t
   val to_rst : t -> Rst_string.t
@@ -93,15 +93,19 @@ end = struct
   ;;
 
   let read () =
-    { ao_basis        = read_ao_basis ();
-      ao_num          = read_ao_num () ;
-      ao_prim_num     = read_ao_prim_num ();
-      ao_prim_num_max = read_ao_prim_num_max ();
-      ao_nucl         = read_ao_nucl ();
-      ao_power        = read_ao_power ();
-      ao_coef         = read_ao_coef () ;
-      ao_expo         = read_ao_expo () ;
-    }
+    if (Ezfio.has_ao_basis_ao_basis ()) then
+      Some
+      { ao_basis        = read_ao_basis ();
+        ao_num          = read_ao_num () ;
+        ao_prim_num     = read_ao_prim_num ();
+        ao_prim_num_max = read_ao_prim_num_max ();
+        ao_nucl         = read_ao_nucl ();
+        ao_power        = read_ao_power ();
+        ao_coef         = read_ao_coef () ;
+        ao_expo         = read_ao_expo () ;
+      }
+    else
+      None
   ;;
     
   let to_long_basis b =

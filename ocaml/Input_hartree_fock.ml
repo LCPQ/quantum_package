@@ -8,7 +8,7 @@ module Hartree_fock : sig
       thresh_scf         : Threshold.t;
     } with sexp
   ;;
-  val read  : unit -> t
+  val read  : unit -> t option
   val write : t -> unit
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
@@ -54,6 +54,7 @@ end = struct
 
 
   let read () = 
+    Some
     { n_it_scf_max       = read_n_it_scf_max ();
       thresh_scf         = read_thresh_scf ();
     }

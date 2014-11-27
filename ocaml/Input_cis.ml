@@ -12,7 +12,7 @@ module Cis_dressed : sig
       en_2_2             : bool;
     } with sexp
   ;;
-  val read : unit -> t
+  val read : unit -> t option
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
   val of_rst : Rst_string.t -> t option
@@ -86,6 +86,7 @@ end = struct
   ;;
 
   let read () = 
+    Some
     { n_state_cis        = read_n_state_cis ();
       n_core_cis         = read_n_core_cis ();
       n_act_cis          = read_n_act_cis ();
