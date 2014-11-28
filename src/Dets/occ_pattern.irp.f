@@ -196,7 +196,11 @@ end
   do while (bit_tmp(j)==bit_tmp(i))
     if (duplicate(j)) then
       j+=1
-      cycle
+      if (j<=N_det) then
+        cycle
+      else
+        exit
+      endif
     endif
     duplicate(j) = .True.
     do k=1,N_int
@@ -207,7 +211,7 @@ end
       endif
     enddo
     j+=1
-    if (j>=N_det) then
+    if (j>N_det) then
       exit
     endif
   enddo
