@@ -130,7 +130,11 @@ else
 clean_links:
 endif
 
-LIB+=$(EZFIO) $(MKL)
+ZMQ=$(QPACKAGE_ROOT)/f77_zmq
+ZMQ_LIB=$(QPACKAGE_ROOT)/f77_zmq/libf77zmq.a -lzmq
+
+LIB+=$(EZFIO) $(ZMQ_LIB) $(MKL)
+
 IRPF90+=$(patsubst %, -I %, $(INCLUDE_DIRS)) $(IRPF90_FLAGS)
 
 irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile $(EZFIO) NEEDED_MODULES $(wildcard *.py) 

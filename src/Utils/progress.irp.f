@@ -39,6 +39,26 @@ end
  progress_active  = .False.
  progress_timeout = 1
  open (unit=0, carriagecontrol='fortran')
+END_PROVIDER
+
+
+include 'f77_zmq.h'
+
+BEGIN_PROVIDER [ integer(ZMQ_PTR), responder]
+
+implicit none
+
+integer(ZMQ_PTR)       :: context
+character(64)          :: address
+integer                :: rc
+       
+       
+address = 'tcp://*:5556'
+       
+context   = f77_zmq_ctx_new()
+responder = f77_zmq_socket(context, ZMQ_PUB)
+rc        = f77_zmq_bind(responder,address)
+
 
 END_PROVIDER
 
@@ -52,6 +72,9 @@ recursive subroutine run_progress
   ' ---                      : ---                |                     | ---%'
   character(75)                  :: bar
   integer                        :: prog
+  
+  integer(ZMQ_PTR)        :: msg
+  integer                 :: rc
 
 
   bar = bar0
@@ -63,7 +86,31 @@ recursive subroutine run_progress
     write(bar(1:25),'(A)'),progress_title
     write(bar(29:47),'(G17.10)'),progress_value
     write(bar(72:74),'(i3)') prog
-   
+
+    msg   = f77_zmq_msg_new()
+    rc = f77_zmq_msg_init_size(msg,6)
+    rc = f77_zmq_msg_copy_to_data(msg, 'log',3)
+    rc = f77_zmq_msg_send(msg,responder,ZMQ_SNDMORE)
+    rc = f77_zmq_msg_close(msg)
+
+    rc = f77_zmq_msg_init_size(msg,20)
+    rc = f77_zmq_msg_copy_to_data(msg, progress_title, 20)
+    rc = f77_zmq_msg_send(msg,responder,ZMQ_SNDMORE)
+    rc = f77_zmq_msg_close(msg)
+
+    rc = f77_zmq_msg_init_size(msg,8)
+    rc = f77_zmq_msg_copy_to_data(msg, progress_value, 8)
+    rc = f77_zmq_msg_send(msg,responder,ZMQ_SNDMORE)
+    rc = f77_zmq_msg_close(msg)
+
+    rc = f77_zmq_msg_init_size(msg,4)
+    rc = f77_zmq_msg_copy_to_data(msg, prog, 4)
+    rc = f77_zmq_msg_send(msg,responder,0)
+    rc = f77_zmq_msg_close(msg)
+
+    rc = f77_zmq_msg_destroy(msg)
+
+
     integer :: k,j
     j = int( progress_bar(1)*20./progress_bar(2) )
     do k=1, j

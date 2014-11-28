@@ -1,3 +1,40 @@
+subroutine send_energy(s_ndet,s_pt2,s_ci_energy)
+  !Warning : Don t handle multi states pt2
+  !No provider for the PT2, so this is a function with all the parameter
+  implicit none
+
+
+  integer :: s_ndet
+  double precision :: s_pt2, s_ci_energy
+
+  integer(ZMQ_PTR)        :: msg
+  integer                 :: rc
+
+    msg   = f77_zmq_msg_new()
+    rc = f77_zmq_msg_init_size(msg,6)
+    rc = f77_zmq_msg_copy_to_data(msg, 'energy',6)
+    rc = f77_zmq_msg_send(msg,responder,ZMQ_SNDMORE)
+    rc = f77_zmq_msg_close(msg)
+
+    rc = f77_zmq_msg_init_size(msg,4)
+    rc = f77_zmq_msg_copy_to_data(msg, s_ndet, 4)
+    rc = f77_zmq_msg_send(msg,responder,ZMQ_SNDMORE)
+    rc = f77_zmq_msg_close(msg)
+
+    rc = f77_zmq_msg_init_size(msg,8)
+    rc = f77_zmq_msg_copy_to_data(msg, s_ci_energy, 8)
+    rc = f77_zmq_msg_send(msg,responder,ZMQ_SNDMORE)
+    rc = f77_zmq_msg_close(msg)
+
+    rc = f77_zmq_msg_init_size(msg,8)
+    rc = f77_zmq_msg_copy_to_data(msg, s_pt2, 8)
+    rc = f77_zmq_msg_send(msg,responder,0)
+    rc = f77_zmq_msg_close(msg)
+
+    rc = f77_zmq_msg_destroy(msg)
+end
+
+
 program full_ci
   implicit none
   integer                        :: i,k
@@ -26,7 +63,11 @@ program full_ci
     print *,  'E        = ', CI_energy
     print *,  'E+PT2    = ', CI_energy+pt2
     print *,  '-----'
+    call send_energy(N_det,pt2,CI_energy)
   endif
+
+
+       
 
   do while (N_det < n_det_max_fci.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
@@ -49,6 +90,10 @@ program full_ci
     print *,  'E        = ', CI_energy
     print *,  'E+PT2    = ', CI_energy+pt2
     print *,  '-----'
+    call send_energy(N_det,pt2,CI_energy)
+
+
+
     if (abort_all) then
       exit
     endif
@@ -70,6 +115,8 @@ program full_ci
     print *,  'E        = ', CI_energy
     print *,  'E+PT2    = ', CI_energy+pt2
     print *,  '-----'
+    call send_energy(N_det,pt2,CI_energy)
+
    endif
   deallocate(pt2,norm_pert)
 end
