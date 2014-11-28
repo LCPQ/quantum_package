@@ -55,7 +55,6 @@ subroutine print_result_energy(r_ndet,r_ntates,r_pt2,r_ci_energy)
     print *,  '-----'
 
     if (zmq_send == .True.) then
-        print*, "gogogo"
         call send_result_energy(r_ndet,r_pt2,r_ci_energy)
     endif
 
