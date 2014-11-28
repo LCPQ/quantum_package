@@ -1,4 +1,5 @@
-subroutine send_energy(s_ndet,s_pt2,s_ci_energy)
+subroutine send_result_energy(s_ndet,s_pt2,s_ci_energy)
+  !Send the result to the f77
   !Warning : Don t handle multi states pt2
   !No provider for the PT2, so this is a function with all the parameter
   implicit none
@@ -32,8 +33,38 @@ subroutine send_energy(s_ndet,s_pt2,s_ci_energy)
     rc = f77_zmq_msg_close(msg)
 
     rc = f77_zmq_msg_destroy(msg)
+    return
 end
 
+subroutine print_result_energy(r_ndet,r_ntates,r_pt2,r_ci_energy)
+  implicit none
+
+  !No provider for the PT2, so this is a function with all the parameter
+
+  integer :: r_ndet, r_ntates
+  double precision :: r_pt2, r_ci_energy
+
+    print *,  'N_det    = ', r_ndet
+    print *,  'N_states = ', r_ntates
+    print *,  'PT2      = ', r_pt2
+    print *,  'E        = ', r_ci_energy
+    print *,  'E+PT2    = ', r_ci_energy+r_pt2
+    print *,  '-----'
+    return
+end
+
+subroutine print_and_send_result_energy(r_ndet,r_ntates,r_pt2,r_ci_energy)
+  implicit none
+  
+  integer :: r_ndet, r_ntates
+  double precision :: r_pt2, r_ci_energy
+
+  !Print and send 
+
+  call print_result_energy(r_ndet,r_ntates,r_pt2,r_ci_energy)
+  call send_result_energy(r_ndet,r_pt2,r_ci_energy)
+
+end
 
 program full_ci
   implicit none
@@ -57,13 +88,8 @@ program full_ci
     soft_touch N_det psi_det psi_coef
     call diagonalize_CI
     call save_wavefunction
-    print *,  'N_det    = ', N_det
-    print *,  'N_states = ', N_states
-    print *,  'PT2      = ', pt2
-    print *,  'E        = ', CI_energy
-    print *,  'E+PT2    = ', CI_energy+pt2
-    print *,  '-----'
-    call send_energy(N_det,pt2,CI_energy)
+
+    call print_and_send_result_energy(N_det,N_states,pt2,CI_energy)
   endif
 
 
@@ -84,13 +110,8 @@ program full_ci
     endif
     call diagonalize_CI
     call save_wavefunction
-    print *,  'N_det    = ', N_det
-    print *,  'N_states = ', N_states
-    print *,  'PT2      = ', pt2
-    print *,  'E        = ', CI_energy
-    print *,  'E+PT2    = ', CI_energy+pt2
-    print *,  '-----'
-    call send_energy(N_det,pt2,CI_energy)
+
+    call print_and_send_result_energy(N_det,N_states,pt2,CI_energy)
 
 
 
@@ -109,14 +130,8 @@ program full_ci
     print *,  'Final step'
 !!  call remove_small_contributions
 !!  call diagonalize_CI
-    print *,  'N_det    = ', N_det
-    print *,  'N_states = ', N_states
-    print *,  'PT2      = ', pt2
-    print *,  'E        = ', CI_energy
-    print *,  'E+PT2    = ', CI_energy+pt2
-    print *,  '-----'
-    call send_energy(N_det,pt2,CI_energy)
 
+    call print_and_send_result_energy(N_det,N_states,pt2,CI_energy)
    endif
   deallocate(pt2,norm_pert)
 end
