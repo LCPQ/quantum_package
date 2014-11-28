@@ -147,7 +147,7 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states_diag) ]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ double precision, psi_average_norm_contrib, (N_det) ]
+BEGIN_PROVIDER [ double precision, psi_average_norm_contrib, (psi_det_size) ]
  implicit none
  BEGIN_DOC
  ! Contribution of determinants to the state-averaged density
@@ -218,7 +218,7 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det_beta, (N_int,psi_det_size) ]
  enddo
 END_PROVIDER
 
- BEGIN_PROVIDER [ integer(bit_kind), psi_det_alpha_unique, (N_int,N_det) ]
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_alpha_unique, (N_int,psi_det_size) ]
 &BEGIN_PROVIDER [ integer, N_det_alpha_unique ]
  implicit none
  BEGIN_DOC
@@ -255,7 +255,7 @@ END_PROVIDER
  deallocate (iorder, bit_tmp)
 END_PROVIDER
 
- BEGIN_PROVIDER [ integer(bit_kind), psi_det_beta_unique, (N_int,N_det) ]
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_beta_unique, (N_int,psi_det_size) ]
 &BEGIN_PROVIDER [ integer, N_det_beta_unique ]
  implicit none
  BEGIN_DOC
@@ -300,9 +300,9 @@ END_PROVIDER
 !==============================================================================!
 
 
- BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted, (N_int,2,N_det) ]
-&BEGIN_PROVIDER [ double precision, psi_coef_sorted, (N_det,N_states) ]
-&BEGIN_PROVIDER [ double precision, psi_average_norm_contrib_sorted, (N_det) ]
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted, (N_int,2,psi_det_size) ]
+&BEGIN_PROVIDER [ double precision, psi_coef_sorted, (psi_det_size,N_states) ]
+&BEGIN_PROVIDER [ double precision, psi_average_norm_contrib_sorted, (psi_det_size) ]
  implicit none
  BEGIN_DOC
  ! Wave function sorted by determinants contribution to the norm (state-averaged)
@@ -331,8 +331,8 @@ END_PROVIDER
 
 END_PROVIDER
 
- BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted_bit, (N_int,2,N_det) ]
-&BEGIN_PROVIDER [ double precision, psi_coef_sorted_bit, (N_det,N_states) ]
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted_bit, (N_int,2,psi_det_size) ]
+&BEGIN_PROVIDER [ double precision, psi_coef_sorted_bit, (psi_det_size,N_states) ]
  implicit none
  BEGIN_DOC
  ! Determinants on which we apply <i|H|psi> for perturbation.
@@ -429,11 +429,38 @@ subroutine filter_3_highest_electrons( det_in, det_out, Nint )
     enddo
   enddo
 end
-
- BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted_ab, (N_int,2,N_det) ]
+      
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted_ab, (N_int,2,psi_det_size) ]
 &BEGIN_PROVIDER [ double precision, psi_coef_sorted_ab, (N_det,N_states) ]
-&BEGIN_PROVIDER [ integer, psi_det_sorted_next_ab, (2,N_det) ]
+&BEGIN_PROVIDER [ integer, psi_det_sorted_next_ab, (2,psi_det_size) ]
  implicit none
+ BEGIN_DOC
+ ! Determinants on which we apply <i|H|j>.
+ ! They are sorted by the 3 highest electrons in the alpha part,
+ ! then by the 3 highest electrons in the beta part to accelerate
+ ! the research of connected determinants.
+ END_DOC
+ 
+ call sort_dets_by_3_highest_electrons(                              &
+     psi_det,                                                        &
+     psi_coef,                                                       &
+     psi_det_sorted_ab,                                              &
+     psi_coef_sorted_ab,                                             &
+     psi_det_sorted_next_ab,                                         &
+     N_det, N_states, N_int,                                         &
+     psi_det_size                     )
+
+END_PROVIDER
+
+subroutine sort_dets_by_3_highest_electrons(det_in,coef_in,det_out,coef_out, &
+  det_next, Ndet, Nstates, Nint, LDA)
+ implicit none
+ integer, intent(in)            :: Ndet, Nstates, Nint, LDA
+ integer(bit_kind), intent(in)  :: det_in   (Nint,2,Ndet)
+ integer(bit_kind), intent(out) :: det_out  (Nint,2,Ndet)
+ integer, intent(out)           :: det_next (2,Ndet)
+ double precision, intent(in)   :: coef_in  (LDA,Nstates)
+ double precision, intent(out)  :: coef_out (LDA,Nstates)
  BEGIN_DOC
  ! Determinants on which we apply <i|H|j>.
  ! They are sorted by the 3 highest electrons in the alpha part,
@@ -445,26 +472,26 @@ end
  integer*8, allocatable         :: bit_tmp(:)
  integer*8, external            :: det_search_key
  
- allocate ( iorder(N_det), bit_tmp(N_det) )
+ allocate ( iorder(Ndet), bit_tmp(Ndet) )
  
  ! Sort alpha dets
  ! ---------------
  
- integer(bit_kind)              :: det_tmp(N_int)
+ integer(bit_kind)              :: det_tmp(Nint)
 
- do i=1,N_det
+ do i=1,Ndet
    iorder(i) = i
    call int_of_3_highest_electrons(psi_det(1,1,i),bit_tmp(i),N_int)
  enddo
- call i8sort(bit_tmp,iorder,N_det)
+ call i8sort(bit_tmp,iorder,Ndet)
  !DIR$ IVDEP
- do i=1,N_det
+ do i=1,Ndet
    do j=1,N_int
-     psi_det_sorted_ab(j,1,i) = psi_det(j,1,iorder(i))
-     psi_det_sorted_ab(j,2,i) = psi_det(j,2,iorder(i))
+     det_out(j,1,i) = psi_det(j,1,iorder(i))
+     det_out(j,2,i) = psi_det(j,2,iorder(i))
    enddo
-   do k=1,N_states
-     psi_coef_sorted_ab(i,k) = psi_coef(iorder(i),k)
+   do k=1,Nstates
+     coef_out(i,k) = psi_coef(iorder(i),k)
    enddo
  enddo
  
@@ -473,60 +500,60 @@ end
 
  integer                        :: next
 
- next = N_det+1
- psi_det_sorted_next_ab(1,N_det) = next
- do i=N_det-1,1,-1
+ next = Ndet+1
+ det_next(1,Ndet) = next
+ do i=Ndet-1,1,-1
   if (bit_tmp(i) /= bit_tmp(i+1)) then
     next = i+1
   endif
-  psi_det_sorted_next_ab(1,i) = next
+  det_next(1,i) = next
  enddo
 
  ! Sort beta dets
  ! --------------
 
  integer :: istart, iend
- integer(bit_kind), allocatable :: psi_det_sorted_ab_temp (:,:) 
+ integer(bit_kind), allocatable :: det_sorted_temp (:,:) 
 
- allocate ( psi_det_sorted_ab_temp (N_int,N_det) )
- do i=1,N_det
+ allocate ( det_sorted_temp (N_int,Ndet) )
+ do i=1,Ndet
    do j=1,N_int
-     psi_det_sorted_ab_temp(j,i) = psi_det_sorted_ab(j,2,i)
+     det_sorted_temp(j,i) = det_out(j,2,i)
    enddo
    iorder(i) = i
-   call int_of_3_highest_electrons(psi_det_sorted_ab_temp(1,i),bit_tmp(i),N_int)
+   call int_of_3_highest_electrons(det_sorted_temp(1,i),bit_tmp(i),N_int)
  enddo
 
  istart=1
- do while ( istart<N_det )
+ do while ( istart<Ndet )
  
-   iend = psi_det_sorted_next_ab(1,istart)
+   iend = det_next(1,istart)
    call i8sort(bit_tmp(istart),iorder(istart),iend-istart)
    !DIR$ IVDEP
    do i=istart,iend-1
      do j=1,N_int
-       psi_det_sorted_ab(j,2,i) = psi_det_sorted_ab_temp(j,iorder(i))
+       det_out(j,2,i) = det_sorted_temp(j,iorder(i))
      enddo
-     do k=1,N_states
-       psi_coef_sorted_ab(i,k) = psi_coef(iorder(i),k)
+     do k=1,Nstates
+       coef_out(i,k) = psi_coef(iorder(i),k)
      enddo
    enddo
 
    next = iend
-   psi_det_sorted_next_ab(2,iend-1) = next
+   det_next(2,iend-1) = next
    do i=iend-2,1,-1
     if (bit_tmp(i) /= bit_tmp(i+1)) then
       next = i+1
     endif
-    psi_det_sorted_next_ab(2,i) = next
+    det_next(2,i) = next
    enddo
 
    istart = iend
  enddo
 
- deallocate(iorder, bit_tmp, psi_det_sorted_ab_temp)
+ deallocate(iorder, bit_tmp, det_sorted_temp)
 
-END_PROVIDER
+end
 
 !==============================================================================!
 !                                                                              !

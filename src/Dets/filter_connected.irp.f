@@ -165,14 +165,12 @@ subroutine filter_connected_davidson(key1,key2,Nint,sze,idx)
   implicit none
   BEGIN_DOC
   ! Filters out the determinants that are not connected by H
-  !
   ! returns the array idx which contains the index of the 
-  !
   ! determinants in the array key1 that interact 
-  !
   ! via the H operator with key2.
   !
   ! idx(0) is the number of determinants that interact with key1
+  ! key1 should come from psi_det_sorted_ab.
   END_DOC
   integer, intent(in)            :: Nint, sze
   integer(bit_kind), intent(in)  :: key1(Nint,2,sze)
