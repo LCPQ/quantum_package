@@ -1,9 +1,10 @@
 subroutine send_result_energy(s_ndet,s_pt2,s_ci_energy)
+  implicit none
+  BEGIN_DOC
   !Send the result to the f77
   !Warning : Don t handle multi states pt2
   !No provider for the PT2, so this is a function with all the parameter
-  implicit none
-
+  END_DOC
 
   integer :: s_ndet
   double precision :: s_pt2, s_ci_energy
@@ -38,8 +39,10 @@ end
 
 subroutine print_result_energy(r_ndet,r_ntates,r_pt2,r_ci_energy)
   implicit none
-
+  BEGIN_DOC
+  !Print and send to zmq if needed the energy
   !No provider for the PT2, so this is a function with all the parameter
+  END_DOC
 
   integer :: r_ndet, r_ntates
   double precision :: r_pt2, r_ci_energy
@@ -50,20 +53,13 @@ subroutine print_result_energy(r_ndet,r_ntates,r_pt2,r_ci_energy)
     print *,  'E        = ', r_ci_energy
     print *,  'E+PT2    = ', r_ci_energy+r_pt2
     print *,  '-----'
+
+    if (zmq_send == .True.) then
+        print*, "gogogo"
+        call send_result_energy(r_ndet,r_pt2,r_ci_energy)
+    endif
+
     return
-end
-
-subroutine print_and_send_result_energy(r_ndet,r_ntates,r_pt2,r_ci_energy)
-  implicit none
-  
-  integer :: r_ndet, r_ntates
-  double precision :: r_pt2, r_ci_energy
-
-  !Print and send 
-
-  call print_result_energy(r_ndet,r_ntates,r_pt2,r_ci_energy)
-  call send_result_energy(r_ndet,r_pt2,r_ci_energy)
-
 end
 
 program full_ci
@@ -89,7 +85,7 @@ program full_ci
     call diagonalize_CI
     call save_wavefunction
 
-    call print_and_send_result_energy(N_det,N_states,pt2,CI_energy)
+    call print_result_energy(N_det,N_states,pt2,CI_energy)
   endif
 
 
@@ -111,7 +107,7 @@ program full_ci
     call diagonalize_CI
     call save_wavefunction
 
-    call print_and_send_result_energy(N_det,N_states,pt2,CI_energy)
+    call print_result_energy(N_det,N_states,pt2,CI_energy)
 
 
 
@@ -131,7 +127,7 @@ program full_ci
 !!  call remove_small_contributions
 !!  call diagonalize_CI
 
-    call print_and_send_result_energy(N_det,N_states,pt2,CI_energy)
+    call print_result_energy(N_det,N_states,pt2,CI_energy)
    endif
   deallocate(pt2,norm_pert)
 end
