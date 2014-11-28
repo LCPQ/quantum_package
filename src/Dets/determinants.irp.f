@@ -368,6 +368,166 @@ END_PROVIDER
 
 END_PROVIDER
 
+
+subroutine int_of_3_highest_electrons( det_in, res, Nint )
+  implicit none
+  use bitmasks
+  integer,intent(in)             :: Nint
+  integer(bit_kind)              :: det_in(Nint)
+  integer*8                      :: res
+  BEGIN_DOC
+! Returns an integer*8 as :
+!
+! |_<--- 21 bits ---><--- 21 bits ---><--- 21 bits --->|
+!
+! |0<---   i1    ---><---   i2    ---><---   i3    --->| 
+!
+! It encodes the value of the indices of the 3 highest MOs
+! in descending order
+!
+  END_DOC
+  integer                        :: i, k, icount
+  integer(bit_kind)              :: ix
+  res = 0_8
+  icount = 3
+  do k=Nint,1,-1
+    ix = det_in(k)
+    do while (ix /= 0_bit_kind)
+      i = bit_kind_size-1-leadz(ix)
+      ix = ibclr(ix,i)
+      res = ior(ishft(res, 21), i+ishft(k-1,bit_kind_shift))
+      icount -= 1
+      if (icount == 0) then
+        return
+      endif
+    enddo
+  enddo
+end
+
+subroutine filter_3_highest_electrons( det_in, det_out, Nint )
+  implicit none
+  use bitmasks
+  integer,intent(in)             :: Nint
+  integer(bit_kind)              :: det_in(Nint), det_out(Nint)
+  BEGIN_DOC
+! Returns a determinant with only the 3 highest electrons
+  END_DOC
+  integer                        :: i, k, icount
+  integer(bit_kind)              :: ix
+  det_out = 0_8
+  icount = 3
+  do k=Nint,1,-1
+    ix = det_in(k)
+    do while (ix /= 0_bit_kind)
+      i = bit_kind_size-1-leadz(ix)
+      ix = ibclr(ix,i)
+      det_out(k) = ibset(det_out(k),i)
+      icount -= 1
+      if (icount == 0) then
+        return
+      endif
+    enddo
+  enddo
+end
+
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted_ab, (N_int,2,N_det) ]
+&BEGIN_PROVIDER [ double precision, psi_coef_sorted_ab, (N_det,N_states) ]
+&BEGIN_PROVIDER [ integer, psi_det_sorted_next_ab, (2,N_det) ]
+ implicit none
+ BEGIN_DOC
+ ! Determinants on which we apply <i|H|j>.
+ ! They are sorted by the 3 highest electrons in the alpha part,
+ ! then by the 3 highest electrons in the beta part to accelerate
+ ! the research of connected determinants.
+ END_DOC
+ integer                        :: i,j,k
+ integer, allocatable           :: iorder(:)
+ integer*8, allocatable         :: bit_tmp(:)
+ integer*8, external            :: det_search_key
+ 
+ allocate ( iorder(N_det), bit_tmp(N_det) )
+ 
+ ! Sort alpha dets
+ ! ---------------
+ 
+ integer(bit_kind)              :: det_tmp(N_int)
+
+ do i=1,N_det
+   iorder(i) = i
+   call int_of_3_highest_electrons(psi_det(1,1,i),bit_tmp(i),N_int)
+ enddo
+ call i8sort(bit_tmp,iorder,N_det)
+ !DIR$ IVDEP
+ do i=1,N_det
+   do j=1,N_int
+     psi_det_sorted_ab(j,1,i) = psi_det(j,1,iorder(i))
+     psi_det_sorted_ab(j,2,i) = psi_det(j,2,iorder(i))
+   enddo
+   do k=1,N_states
+     psi_coef_sorted_ab(i,k) = psi_coef(iorder(i),k)
+   enddo
+ enddo
+ 
+ ! Find next alpha
+ ! ---------------
+
+ integer                        :: next
+
+ next = N_det+1
+ psi_det_sorted_next_ab(1,N_det) = next
+ do i=N_det-1,1,-1
+  if (bit_tmp(i) /= bit_tmp(i+1)) then
+    next = i+1
+  endif
+  psi_det_sorted_next_ab(1,i) = next
+ enddo
+
+ ! Sort beta dets
+ ! --------------
+
+ integer :: istart, iend
+ integer(bit_kind), allocatable :: psi_det_sorted_ab_temp (:,:) 
+
+ allocate ( psi_det_sorted_ab_temp (N_int,N_det) )
+ do i=1,N_det
+   do j=1,N_int
+     psi_det_sorted_ab_temp(j,i) = psi_det_sorted_ab(j,2,i)
+   enddo
+   iorder(i) = i
+   call int_of_3_highest_electrons(psi_det_sorted_ab_temp(1,i),bit_tmp(i),N_int)
+ enddo
+
+ istart=1
+ do while ( istart<N_det )
+ 
+   iend = psi_det_sorted_next_ab(1,istart)
+   call i8sort(bit_tmp(istart),iorder(istart),iend-istart)
+   !DIR$ IVDEP
+   do i=istart,iend-1
+     do j=1,N_int
+       psi_det_sorted_ab(j,2,i) = psi_det_sorted_ab_temp(j,iorder(i))
+     enddo
+     do k=1,N_states
+       psi_coef_sorted_ab(i,k) = psi_coef(iorder(i),k)
+     enddo
+   enddo
+
+   next = iend
+   psi_det_sorted_next_ab(2,iend-1) = next
+   do i=iend-2,1,-1
+    if (bit_tmp(i) /= bit_tmp(i+1)) then
+      next = i+1
+    endif
+    psi_det_sorted_next_ab(2,i) = next
+   enddo
+
+   istart = iend
+ enddo
+
+ deallocate(iorder, bit_tmp, psi_det_sorted_ab_temp)
+
+END_PROVIDER
+
 !==============================================================================!
 !                                                                              !
 !                             Read/write routines                              !

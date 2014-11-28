@@ -98,6 +98,68 @@ subroutine filter_connected(key1,key2,Nint,sze,idx)
 end
 
 
+subroutine filter_connected_sorted_ab(key1,key2,next,Nint,sze,idx)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Filters out the determinants that are not connected by H
+  ! returns the array idx which contains the index of the 
+  ! determinants in the array key1 that interact 
+  ! via the H operator with key2.
+  ! idx(0) is the number of determinants that interact with key1
+  !
+  ! Determinants are taken from the psi_det_sorted_ab array
+  END_DOC
+  integer, intent(in)            :: Nint, sze
+  integer, intent(in)            :: next(2,N_det)
+  integer(bit_kind), intent(in)  :: key1(Nint,2,sze)
+  integer(bit_kind), intent(in)  :: key2(Nint,2)
+  integer, intent(out)           :: idx(0:sze)
+  
+  integer                        :: i,j,l
+  integer                        :: degree_x2
+  integer(bit_kind)              :: det3_1(Nint,2), det3_2(Nint,2)
+  
+  ASSERT (Nint > 0)
+  ASSERT (sze >= 0)
+
+  l=1
+  
+  call filter_3_highest_electrons( key2(1,1), det3_2(1,1), Nint)
+  if (Nint==1) then
+    
+    i = 1
+    do while ( i<= sze )
+      call filter_3_highest_electrons( key1(1,1,i), det3_1(1,1), Nint)
+      degree_x2 = popcnt( xor( det3_1(1,1), det3_2(1,1))) 
+      if (degree_x2 > 4) then
+        i = next(1,i)
+        cycle
+      else 
+        degree_x2 = popcnt( xor( key1(1,1,i), key2(1,1)) ) 
+        if (degree_x2 <= 4) then
+          degree_x2 += popcnt( xor( key1(1,2,i), key2(1,2)) )
+          if (degree_x2 <= 4) then
+            idx(l) = i
+            l += 1
+          endif
+        endif
+        i += 1
+      endif
+    enddo
+    
+  else
+    
+    print *,  'Not implemented', irp_here
+    stop 1
+    
+  endif
+  idx(0) = l-1
+end
+
+
+
+
 subroutine filter_connected_davidson(key1,key2,Nint,sze,idx)
   use bitmasks
   implicit none
