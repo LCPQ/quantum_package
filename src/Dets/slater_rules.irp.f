@@ -882,7 +882,7 @@ subroutine get_occ_from_key(key,occ,Nint)
   
 end
 
-subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,keys3,keys_next,Nint)
+subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,keys_next,Nint)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -897,7 +897,6 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,keys3,keys_next,Nint)
   double precision, intent(in)   :: u_0(n)
   double precision, intent(in)   :: H_jj(n)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
-  integer(bit_kind),intent(in)   :: keys3(Nint,2,n)
   integer,intent(in)             :: keys_next(2,n)
   integer, allocatable           :: idx(:)
   double precision               :: hij
@@ -911,7 +910,7 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,keys3,keys_next,Nint)
   integer, parameter             :: block_size = 157
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,j,k,idx,jj,vt)                             &
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,keys3,keys_next,Nint,v_0)
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,keys_next,Nint,v_0)
   !$OMP DO SCHEDULE(static)
   do i=1,n
     v_0(i) = H_jj(i) * u_0(i)
@@ -922,7 +921,7 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,keys3,keys_next,Nint)
   !$OMP DO SCHEDULE(guided)
   do i=1,n
     idx(0) = i
-    call filter_connected_davidson(keys_tmp,keys_tmp(1,1,i),keys3,keys_next,Nint,i-1,idx)
+    call filter_connected_davidson(keys_tmp,keys_tmp(1,1,i),keys_next,Nint,i-1,idx)
     do jj=1,idx(0)
       j = idx(jj)
       if ( (dabs(u_0(j)) > 1.d-7).or.((dabs(u_0(i)) > 1.d-7)) ) then

@@ -59,7 +59,7 @@ END_PROVIDER
   
   if (diag_algorithm == "Davidson") then
     
-    call davidson_diag(psi_det,psi_det3_sorted_ab,CI_eigenvectors,psi_det_sorted_next_ab, &
+    call davidson_diag(psi_det,CI_eigenvectors,psi_det_sorted_next_ab, &
         CI_electronic_energy, &
         size(CI_eigenvectors,1),N_det,N_states_diag,N_int,output_Dets)
     

@@ -431,7 +431,6 @@ subroutine filter_3_highest_electrons( det_in, det_out, Nint )
 end
       
  BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted_ab, (N_int,2,psi_det_size) ]
-&BEGIN_PROVIDER [ integer(bit_kind), psi_det3_sorted_ab, (N_int,2,psi_det_size) ]
 &BEGIN_PROVIDER [ double precision, psi_coef_sorted_ab, (psi_det_size,N_states) ]
 &BEGIN_PROVIDER [ integer, psi_det_sorted_next_ab, (2,psi_det_size) ]
  implicit none
@@ -450,19 +449,17 @@ end
      psi_det_sorted_ab,                                              &
      psi_coef_sorted_ab,                                             &
      psi_det_sorted_next_ab,                                         &
-     psi_det3_sorted_ab,                                             &
      N_det, N_states, N_int,                                         &
      psi_det_size                     )
 
 END_PROVIDER
 
 subroutine sort_dets_by_3_highest_electrons(det_in,coef_in,det_out,coef_out, &
-  det_next, det3_out, Ndet, Nstates, Nint, LDA)
+  det_next, Ndet, Nstates, Nint, LDA)
  implicit none
  integer, intent(in)            :: Ndet, Nstates, Nint, LDA
  integer(bit_kind), intent(in)  :: det_in   (Nint,2,Ndet)
  integer(bit_kind), intent(out) :: det_out  (Nint,2,Ndet)
- integer(bit_kind), intent(out) :: det3_out  (Nint,2,Ndet)
  integer, intent(out)           :: det_next (2,Ndet)
  double precision, intent(in)   :: coef_in  (LDA,Nstates)
  double precision, intent(out)  :: coef_out (LDA,Nstates)
@@ -477,26 +474,27 @@ subroutine sort_dets_by_3_highest_electrons(det_in,coef_in,det_out,coef_out, &
  integer*8, allocatable         :: bit_tmp(:)
  integer*8, external            :: det_search_key
  
- allocate ( iorder(Ndet), bit_tmp(Ndet) )
+ allocate ( iorder(Ndet), bit_tmp(Ndet), coef_tmp(Ndet,Nstates) ) 
  
  ! Sort alpha dets
  ! ---------------
  
  integer(bit_kind)              :: det_tmp(Nint)
+ double precision, allocatable :: coef_tmp(:,:) 
 
  do i=1,Ndet
    iorder(i) = i
-   call int_of_3_highest_electrons(psi_det(1,1,i),bit_tmp(i),N_int)
+   call int_of_3_highest_electrons(psi_det(1,1,i),bit_tmp(i),Nint)
  enddo
  call i8sort(bit_tmp,iorder,Ndet)
  !DIR$ IVDEP
  do i=1,Ndet
-   do j=1,N_int
+   do j=1,Nint
      det_out(j,1,i) = psi_det(j,1,iorder(i))
      det_out(j,2,i) = psi_det(j,2,iorder(i))
    enddo
    do k=1,Nstates
-     coef_out(i,k) = psi_coef(iorder(i),k)
+     coef_tmp(i,k) = psi_coef(iorder(i),k)
    enddo
  enddo
  
@@ -508,61 +506,61 @@ subroutine sort_dets_by_3_highest_electrons(det_in,coef_in,det_out,coef_out, &
  next = Ndet+1
  i = N_det
  det_next(1,i) = next
- call filter_3_highest_electrons( det_out(1,1,i), det3_out(1,1,i), Nint )
- call filter_3_highest_electrons( det_out(1,2,i), det3_out(1,2,i), Nint )
  do i=Ndet-1,1,-1
   if (bit_tmp(i) /= bit_tmp(i+1)) then
     next = i+1
   endif
   det_next(1,i) = next
-  call filter_3_highest_electrons( det_out(1,1,i), det3_out(1,1,i), Nint )
-  call filter_3_highest_electrons( det_out(1,2,i), det3_out(1,2,i), Nint )
  enddo
 
-! ! Sort beta dets
-! ! --------------
-!
-! integer :: istart, iend
-! integer(bit_kind), allocatable :: det_sorted_temp (:,:) 
-!
-! allocate ( det_sorted_temp (N_int,Ndet) )
-! do i=1,Ndet
-!   do j=1,N_int
-!     det_sorted_temp(j,i) = det_out(j,2,i)
-!   enddo
-!   iorder(i) = i
-!   call int_of_3_highest_electrons(det_sorted_temp(1,i),bit_tmp(i),N_int)
-! enddo
-!
-! istart=1
-! do while ( istart<Ndet )
-! 
-!   iend = det_next(1,istart)
-!   call i8sort(bit_tmp(istart),iorder(istart),iend-istart)
-!   !DIR$ IVDEP
-!   do i=istart,iend-1
-!     do j=1,N_int
-!       det_out(j,2,i) = det_sorted_temp(j,iorder(i))
-!     enddo
-!     do k=1,Nstates
-!       coef_out(i,k) = psi_coef(iorder(i),k)
-!     enddo
-!   enddo
-!
-!   next = iend
-!   det_next(2,iend-1) = next
-!   do i=iend-2,1,-1
-!    if (bit_tmp(i) /= bit_tmp(i+1)) then
-!      next = i+1
-!    endif
-!    det_next(2,i) = next
-!   enddo
-!
-!   istart = iend
-! enddo
-!
-! deallocate(iorder, bit_tmp, det_sorted_temp)
-!
+ ! Sort beta dets
+ ! --------------
+
+ integer :: istart, iend
+ integer(bit_kind), allocatable :: det_sorted_temp (:,:,:) 
+
+
+ allocate ( det_sorted_temp (Nint,2,Ndet) )
+ istart=1
+
+ do while ( istart<=Ndet )
+ 
+   iend = det_next(1,istart)
+   do i=istart,iend-1
+     do j=1,Nint
+       det_sorted_temp(j,1,i) = det_out(j,1,i)
+       det_sorted_temp(j,2,i) = det_out(j,2,i)
+     enddo
+     iorder(i) = i
+     call int_of_3_highest_electrons(det_sorted_temp(1,2,i),bit_tmp(i),Nint)
+   enddo
+
+   call i8sort(bit_tmp(istart),iorder(istart),iend-istart)
+   !DIR$ IVDEP
+   do i=istart,iend-1
+     do j=1,Nint
+       det_out(j,1,i) = det_sorted_temp(j,1,iorder(i))
+       det_out(j,2,i) = det_sorted_temp(j,2,iorder(i))
+     enddo
+     do k=1,Nstates
+       coef_out(i,k) = coef_tmp(iorder(i),k)
+     enddo
+   enddo
+
+   next = iend
+   det_next(2,iend-1) = next
+   do i=iend-2,1,-1
+    if (bit_tmp(i) /= bit_tmp(i+1)) then
+      next = i+1
+    endif
+    det_next(2,i) = next
+   enddo
+
+   istart = iend
+ enddo
+
+ deallocate(iorder, bit_tmp, det_sorted_temp)
+
 end
 
 !==============================================================================!

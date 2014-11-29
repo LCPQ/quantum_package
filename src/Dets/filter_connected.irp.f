@@ -98,7 +98,7 @@ subroutine filter_connected(key1,key2,Nint,sze,idx)
 end
 
 
-subroutine filter_connected_davidson(key1,key2,key3,next,Nint,sze,idx)
+subroutine filter_connected_davidson(key1,key2,next,Nint,sze,idx)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -111,10 +111,9 @@ subroutine filter_connected_davidson(key1,key2,key3,next,Nint,sze,idx)
   ! Determinants are taken from the psi_det_sorted_ab array
   END_DOC
   integer, intent(in)            :: Nint, sze
-  integer, intent(in)            :: next(2,N_det)
+  integer, intent(in)            :: next(2,sze)
   integer(bit_kind), intent(in)  :: key1(Nint,2,sze)
   integer(bit_kind), intent(in)  :: key2(Nint,2)
-  integer(bit_kind), intent(in)  :: key3(Nint,2,sze)
   integer, intent(out)           :: idx(0:sze)
   
   integer                        :: i,j,l
@@ -128,28 +127,37 @@ subroutine filter_connected_davidson(key1,key2,key3,next,Nint,sze,idx)
 
   l=1
   
+!integer :: icount(4)
+!icount = 0
   call filter_3_highest_electrons( key2(1,1), det3(1,1), Nint)
   if (Nint==1) then
     
+    integer(bit_kind)              :: d31,d32, k1, k2
+    d31 = det3(1,1)
+    d32 = det3(1,2)
+
     i = 1
     do while ( i<= sze )
-      degree_x2 = popcnt( xor( key3(1,1,i), det3(1,1))) 
-      if (degree_x2 > 4) then
+      k1 = key1(1,1,i)
+      k2 = key1(1,2,i)
+      if (iand( k1, d31 ) == 0_8) then
         i = next(1,i)
-        cycle
-      else 
-        degree_x2 = popcnt( xor( key1(1,1,i), key2(1,1)) ) 
+      else if (iand( k2, d32 ) == 0_8) then
+        i = next(2,i)
+      else
+        degree_x2 = popcnt( xor( k1, key2(1,1)) ) + &
+                    popcnt( xor( k2, key2(1,2)) )
         if (degree_x2 <= 4) then
-          degree_x2 += popcnt( xor( key1(1,2,i), key2(1,2)) )
-          if (degree_x2 <= 4) then
-            idx(l) = i
-            l += 1
-          endif
+          idx(l) = i
+          l += 1
+!icount(3) += 1
+!else
+!icount(4) += 1
         endif
         i += 1
       endif
     enddo
-    
+!    print *,  icount
   else
     
     print *,  'Not implemented', irp_here

@@ -12,6 +12,11 @@ let rec transpose = function
 ;;
 *)
 
+let python_split x =
+  String.split_on_chars ~on:[ ' ' ; '\t' ; '\n' ; '\r' ] x
+  |> List.filter ~f:(fun x -> x <> "")
+;;
+
 
 let input_to_sexp s =
     let result = 

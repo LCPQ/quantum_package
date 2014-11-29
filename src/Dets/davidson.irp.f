@@ -15,7 +15,7 @@ BEGIN_PROVIDER [ integer, davidson_sze_max ]
   davidson_sze_max = 8*N_states_diag
 END_PROVIDER
 
-subroutine davidson_diag(dets_in,dets3_in,u_in,dets_next,energies,dim_in,sze,N_st,Nint,iunit)
+subroutine davidson_diag(dets_in,u_in,dets_next,energies,dim_in,sze,N_st,Nint,iunit)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -23,9 +23,6 @@ subroutine davidson_diag(dets_in,dets3_in,u_in,dets_next,energies,dim_in,sze,N_s
   !
   ! dets_in : bitmasks corresponding to determinants sorted by 3-highest
   !   electrons as in psi_det_sorted_ab
-  !
-  ! dets3_in : bitmasks corresponding to determinants sorted by 3-highest
-  !   electrons as in psi_det_sorted_ab, with only 3 highest determinants
   !
   ! dets_next : allows to skip fast in the search of determinants (needs
   !   sorting by 3 highest electrons)
@@ -45,7 +42,6 @@ subroutine davidson_diag(dets_in,dets3_in,u_in,dets_next,energies,dim_in,sze,N_s
   END_DOC
   integer, intent(in)            :: dim_in, sze, N_st, Nint, iunit
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
-  integer(bit_kind), intent(in)  :: dets3_in(Nint,2,sze)
   integer, intent(in)            :: dets_next(2,sze)
   double precision, intent(inout) :: u_in(dim_in,N_st)
   double precision, intent(out)  :: energies(N_st)
@@ -70,11 +66,11 @@ subroutine davidson_diag(dets_in,dets3_in,u_in,dets_next,energies,dim_in,sze,N_s
   !$OMP END DO 
   !$OMP END PARALLEL
 
-  call davidson_diag_hjj(dets_in,dets3_in,u_in,dets_next,H_jj,energies,dim_in,sze,N_st,Nint,iunit)
+  call davidson_diag_hjj(dets_in,u_in,dets_next,H_jj,energies,dim_in,sze,N_st,Nint,iunit)
   deallocate (H_jj)
 end
 
-subroutine davidson_diag_hjj(dets_in,dets3_in,u_in,dets_next,H_jj,energies,dim_in,sze,N_st,Nint,iunit)
+subroutine davidson_diag_hjj(dets_in,u_in,dets_next,H_jj,energies,dim_in,sze,N_st,Nint,iunit)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -83,8 +79,6 @@ subroutine davidson_diag_hjj(dets_in,dets3_in,u_in,dets_next,H_jj,energies,dim_i
   ! H_jj : specific diagonal H matrix elements to diagonalize de Davidson
   !
   ! dets_in : bitmasks corresponding to determinants
-  !
-  ! dets3_in : bitmasks corresponding to determinants with only 3 highest electrons
   !
   ! dets_next : allows to skip fast in the search of determinants (needs
   !   sorting by 3 highest electrons)
@@ -104,7 +98,6 @@ subroutine davidson_diag_hjj(dets_in,dets3_in,u_in,dets_next,H_jj,energies,dim_i
   END_DOC
   integer, intent(in)            :: dim_in, sze, N_st, Nint
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
-  integer(bit_kind), intent(in)  :: dets3_in(Nint,2,sze)
   integer, intent(in)            :: dets_next(2,sze)
   double precision,  intent(in)  :: H_jj(sze)
   integer,  intent(in)  :: iunit
@@ -184,7 +177,7 @@ subroutine davidson_diag_hjj(dets_in,dets3_in,u_in,dets_next,H_jj,energies,dim_i
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP  SHARED(U,sze,N_st,overlap,kl_pairs,k_pairs,             &
-      !$OMP  Nint,dets_in,dets3_in,dets_next,u_in)                                 &
+      !$OMP  Nint,dets_in,dets_next,u_in)                                 &
       !$OMP  PRIVATE(k,l,kl,i)
   
   
@@ -231,7 +224,7 @@ subroutine davidson_diag_hjj(dets_in,dets3_in,u_in,dets_next,H_jj,energies,dim_i
       ! ----------------------
       
       do k=1,N_st
-        call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,dets3_in,dets_next,Nint)
+        call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,dets_next,Nint)
       enddo
       
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
