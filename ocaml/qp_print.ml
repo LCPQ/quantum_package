@@ -51,7 +51,10 @@ let run_i ~action ezfio_filename =
 
 
   let compute_charge () =
-    let input = Input.Electrons.read () in
+    let input = match Input.Electrons.read () with
+    | Some x -> x
+    | None   -> assert false
+    in
     let nucl_charge = Ezfio.get_nuclei_nucl_charge ()
       |> Ezfio.flattened_ezfio |> Array.map ~f:(Float.to_int) 
     and n_alpha = input.Input.Electrons.elec_alpha_num
@@ -63,7 +66,10 @@ let run_i ~action ezfio_filename =
   in
 
   let compute_multiplicity () =
-    let input = Input.Electrons.read () in
+    let input = match Input.Electrons.read () with
+    | Some x -> x
+    | None   -> assert false
+    in
     let n_alpha = input.Input.Electrons.elec_alpha_num
     and n_beta  = input.Input.Electrons.elec_beta_num 
     in Multiplicity.of_alpha_beta n_alpha n_beta

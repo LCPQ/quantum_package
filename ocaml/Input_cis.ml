@@ -12,9 +12,10 @@ module Cis_dressed : sig
       en_2_2             : bool;
     } with sexp
   ;;
-  val read : unit -> t
+  val read : unit -> t option
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
+  val of_rst : Rst_string.t -> t option
 end = struct
   type t = 
     { n_state_cis        : States_number.t;
@@ -85,6 +86,7 @@ end = struct
   ;;
 
   let read () = 
+    Some
     { n_state_cis        = read_n_state_cis ();
       n_core_cis         = read_n_core_cis ();
       n_act_cis          = read_n_act_cis ();
@@ -145,6 +147,10 @@ Epstein-Nesbet 2x2 diagonalization ::
 
    |> Rst_string.of_string
   ;;
+
+  include Generic_input_of_rst;;
+  let of_rst = of_rst t_of_sexp;;
+
 end
 
 

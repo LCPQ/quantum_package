@@ -8,11 +8,11 @@ module Hartree_fock : sig
       thresh_scf         : Threshold.t;
     } with sexp
   ;;
-  val read  : unit -> t
+  val read  : unit -> t option
   val write : t -> unit
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
-  val of_rst : Rst_string.t -> t 
+  val of_rst : Rst_string.t -> t  option
 end = struct
   type t = 
     { n_it_scf_max       : Strictly_positive_int.t;
@@ -54,6 +54,7 @@ end = struct
 
 
   let read () = 
+    Some
     { n_it_scf_max       = read_n_it_scf_max ();
       thresh_scf         = read_thresh_scf ();
     }
@@ -93,21 +94,8 @@ SCF convergence criterion (on energy) ::
     |> Rst_string.of_string
   ;;
 
-  let of_rst s =
-    let s = Rst_string.to_string s
-    |> String.split ~on:'\n'
-    |> List.filter ~f:(fun line ->
-        String.contains line '=')
-    |> List.map ~f:(fun line ->
-        "("^(
-        String.tr line ~target:'=' ~replacement:' '
-        )^")" )
-    |> String.concat
-    in
-    Sexp.of_string ("("^s^")")
-    |> t_of_sexp
-  ;;
-
+  include Generic_input_of_rst;;
+  let of_rst = of_rst t_of_sexp;;
 
 end
 

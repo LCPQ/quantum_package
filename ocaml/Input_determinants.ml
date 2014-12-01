@@ -19,11 +19,11 @@ module Determinants : sig
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
     } with sexp
-  val read  : unit -> t
+  val read  : unit -> t option
   val write : t -> unit
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
-  val of_rst : Rst_string.t -> t 
+  val of_rst : Rst_string.t -> t option
 end = struct
   type t = 
     { n_int                  : N_int_number.t;
@@ -131,9 +131,11 @@ end = struct
     |> States_number.of_int
   ;;
 
-  let write_n_states_diag n =
-    States_number.to_int n
-    |> Ezfio.set_determinants_n_states_diag
+  let write_n_states_diag ~n_states n =
+    let n_states = States_number.to_int n_states
+    and n = States_number.to_int n
+    in
+    Ezfio.set_determinants_n_states_diag (max n_states n)
   ;;
 
 
@@ -232,20 +234,27 @@ end = struct
 
   let read_psi_coef () =
     if not (Ezfio.has_determinants_psi_coef ()) then
-        Ezfio.ezfio_array_of_list ~rank:1 ~dim:[| 1 |] ~data:[1.]
-        |> Ezfio.set_determinants_psi_coef 
-      ;
+      begin
+        let n_states =
+          read_n_states ()
+          |> States_number.to_int
+        in
+        Ezfio.ezfio_array_of_list ~rank:2 ~dim:[| 1 ; n_states |] 
+          ~data:(List.init n_states ~f:(fun i -> if (i=0) then 1. else 0. ))
+          |> Ezfio.set_determinants_psi_coef 
+      end;
     Ezfio.get_determinants_psi_coef ()
     |> Ezfio.flattened_ezfio
     |> Array.map ~f:Det_coef.of_float
   ;;
 
-  let write_psi_coef ~n_det c =
+  let write_psi_coef ~n_det ~n_states c =
     let n_det = Det_number.to_int n_det
     and c = Array.to_list c
             |> List.map ~f:Det_coef.to_float
+    and n_states = States_number.to_int n_states
     in
-    Ezfio.ezfio_array_of_list ~rank:1 ~dim:[| n_det |] ~data:c
+    Ezfio.ezfio_array_of_list ~rank:2 ~dim:[| n_det ; n_states |] ~data:c
     |> Ezfio.set_determinants_psi_coef 
   ;;
 
@@ -302,21 +311,25 @@ end = struct
 
 
   let read () =
-    { n_int                  = read_n_int ()                ;
-      bit_kind               = read_bit_kind ()             ;
-      mo_label               = read_mo_label ()             ;
-      n_det                  = read_n_det ()                ;
-      n_states               = read_n_states ()             ;
-      n_states_diag          = read_n_states_diag ()        ;
-      n_det_max_jacobi       = read_n_det_max_jacobi ()     ;
-      threshold_generators   = read_threshold_generators () ;
-      threshold_selectors    = read_threshold_selectors ()  ;
-      read_wf                = read_read_wf ()              ;
-      expected_s2            = read_expected_s2 ()          ;
-      s2_eig                 = read_s2_eig ()               ;
-      psi_coef               = read_psi_coef ()             ;
-      psi_det                = read_psi_det ()              ;
-    }
+    if (Ezfio.has_mo_basis_mo_tot_num ()) then
+      Some
+      { n_int                  = read_n_int ()                ;
+        bit_kind               = read_bit_kind ()             ;
+        mo_label               = read_mo_label ()             ;
+        n_det                  = read_n_det ()                ;
+        n_states               = read_n_states ()             ;
+        n_states_diag          = read_n_states_diag ()        ;
+        n_det_max_jacobi       = read_n_det_max_jacobi ()     ;
+        threshold_generators   = read_threshold_generators () ;
+        threshold_selectors    = read_threshold_selectors ()  ;
+        read_wf                = read_read_wf ()              ;
+        expected_s2            = read_expected_s2 ()          ;
+        s2_eig                 = read_s2_eig ()               ;
+        psi_coef               = read_psi_coef ()             ;
+        psi_det                = read_psi_det ()              ;
+      }
+    else
+      None
   ;;
 
   let write { n_int                ;
@@ -339,14 +352,14 @@ end = struct
      write_mo_label mo_label;
      write_n_det n_det;
      write_n_states n_states;
-     write_n_states_diag n_states_diag;
+     write_n_states_diag ~n_states:n_states n_states_diag;
      write_n_det_max_jacobi n_det_max_jacobi;
      write_threshold_generators threshold_generators;
      write_threshold_selectors threshold_selectors;
      write_read_wf read_wf;
      write_expected_s2 expected_s2;
      write_s2_eig s2_eig;
-     write_psi_coef ~n_det:n_det psi_coef;
+     write_psi_coef ~n_det:n_det psi_coef ~n_states:n_states;
      write_psi_det ~n_int:n_int ~n_det:n_det psi_det;
   ;;
 
@@ -538,8 +551,8 @@ psi_det                = %s
     and n_int = Printf.sprintf "(n_int %d)" (N_int_number.get_max ()) in
     let s = String.concat [ header ; bitkind ; n_int ; psi_coef ; psi_det]
     in
-    Sexp.of_string ("("^s^")")
-    |> t_of_sexp
+
+    Generic_input_of_rst.evaluate_sexp t_of_sexp s
   ;;
 
 end

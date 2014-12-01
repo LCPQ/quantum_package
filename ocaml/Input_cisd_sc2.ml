@@ -9,11 +9,11 @@ module Cisd_sc2 : sig
       do_pt2_end         : bool;
     } with sexp
   ;;
-  val read  : unit -> t
+  val read  : unit -> t option
   val write : t -> unit
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
-  val of_rst : Rst_string.t -> t
+  val of_rst : Rst_string.t -> t option
 end = struct
   type t = 
     { n_det_max_cisd_sc2 : Det_number_max.t;
@@ -71,6 +71,7 @@ end = struct
 
 
   let read () = 
+    Some
     { n_det_max_cisd_sc2  = read_n_det_max_cisd_sc2 ();
       pt2_max             = read_pt2_max ();
       do_pt2_end          = read_do_pt2_end ();
@@ -118,22 +119,8 @@ Compute E(PT2) at the end ::
    |> Rst_string.of_string
   ;;
 
-  let of_rst s =
-    let s = Rst_string.to_string s
-    |> String.split ~on:'\n'
-    |> List.filter ~f:(fun line ->
-        String.contains line '=')
-    |> List.map ~f:(fun line ->
-        "("^(
-        String.tr line ~target:'=' ~replacement:' '
-        )^")" )
-    |> String.concat
-    in
-    Sexp.of_string ("("^s^")")
-    |> t_of_sexp
-  ;;
-
-
+  include Generic_input_of_rst;;
+  let of_rst = of_rst t_of_sexp;;
 
 end
 

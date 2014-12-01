@@ -10,11 +10,11 @@ module Nuclei : sig
       nucl_coord      : Point3d.t array;
     } with sexp
   ;;
-  val read  : unit -> t
+  val read  : unit -> t option
   val write : t -> unit 
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
-  val of_rst : Rst_string.t -> t
+  val of_rst : Rst_string.t -> t option
 end = struct
   type t = 
     { nucl_num        : Nucl_number.t ;
@@ -111,11 +111,15 @@ end = struct
 
 
   let read () =
-    { nucl_num        = read_nucl_num ();
-      nucl_label      = read_nucl_label () ;
-      nucl_charge     = read_nucl_charge ();
-      nucl_coord      = read_nucl_coord ();
-    }
+    if (Ezfio.has_nuclei_nucl_num ()) then
+      Some
+      { nucl_num        = read_nucl_num ();
+        nucl_label      = read_nucl_label () ;
+        nucl_charge     = read_nucl_charge ();
+        nucl_coord      = read_nucl_coord ();
+      }
+    else
+      None
   ;;
 
   let write { nucl_num    ;
@@ -203,15 +207,17 @@ Nuclear coordinates in xyz format (Angstroms) ::
       | _ -> failwith "Error in xyz format"
     in
     (* Create the Nuclei.t data structure *)
-    { nucl_num = List.length atom_list
-        |> Nucl_number.of_int ~max:nmax;
-      nucl_label = List.map atom_list ~f:(fun x ->
-        x.Atom.element) |> Array.of_list ;
-      nucl_charge = List.map atom_list ~f:(fun x ->
-        x.Atom.charge ) |> Array.of_list ;
-      nucl_coord = List.map atom_list ~f:(fun x ->
-        x.Atom.coord ) |> Array.of_list ;
-    }
+    let result = 
+      { nucl_num = List.length atom_list
+          |> Nucl_number.of_int ~max:nmax;
+        nucl_label = List.map atom_list ~f:(fun x ->
+          x.Atom.element) |> Array.of_list ;
+        nucl_charge = List.map atom_list ~f:(fun x ->
+          x.Atom.charge ) |> Array.of_list ;
+        nucl_coord = List.map atom_list ~f:(fun x ->
+          x.Atom.coord ) |> Array.of_list ;
+      }
+    in Some result
   ;;
 
 end

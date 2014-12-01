@@ -10,7 +10,7 @@ module Mo_basis : sig
       mo_coef         : (MO_coef.t array) array;
     } with sexp
   ;;
-  val read : unit -> t
+  val read : unit -> t option
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
 end = struct
@@ -68,11 +68,15 @@ end = struct
   ;;
 
   let read () =
-    { mo_tot_num      = read_mo_tot_num ();
-      mo_label        = read_mo_label () ;
-      mo_occ          = read_mo_occ ();
-      mo_coef         = read_mo_coef ();
-    }
+    if (Ezfio.has_mo_basis_mo_tot_num ()) then
+      Some
+      { mo_tot_num      = read_mo_tot_num ();
+        mo_label        = read_mo_label () ;
+        mo_occ          = read_mo_occ ();
+        mo_coef         = read_mo_coef ();
+      }
+    else
+      None
   ;;
 
   let mo_coef_to_string mo_coef =
