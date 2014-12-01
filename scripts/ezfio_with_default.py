@@ -44,6 +44,9 @@ END_PROVIDER
       exec "self.%s = None"%(v) in locals()
 
   def __repr__(self):
+    return self.get_string()
+
+  def get_string(self):
     self.get_default()
     self.set_write()
     for v in self.values:
