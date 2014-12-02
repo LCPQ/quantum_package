@@ -4,6 +4,7 @@
 import ConfigParser
 from collections import defaultdict
 
+
 def create_dic_fancy_type():
     fancy_type = defaultdict(dict)
 
@@ -51,7 +52,9 @@ def dict_config_file(config_file, dic_type):
     for provider_name in provider_names:
 
         if config_file.get(provider_name, "type") not in dic_type:
-            print config_file.get(provider_name, "type"), "not avalaible"
+            print config_file.get(provider_name, "type"), "not avalaible. Choose in: "
+            print ", ".join([i for i in dic_type])
+
             sys.exit(1)
 
         for k in list_key:
@@ -100,21 +103,24 @@ def create_ezfio_provider(dict_all):
 
 import os
 
-def get_dict_cgf():
 
-    dict_cfg = {}
-    fancy_type = create_dic_fancy_type()
+def get_dict_cfg(pickle=False):
 
-    src = os.environ.get('QPACKAGE_ROOT') + "/src/"
+    if pickle:
+        import pickle
+        path = os.environ.get('QPACKAGE_ROOT') + "/data/"
+        dict_cfg = pickle.load(open(path + "dict_cfg.p", "rb"))
+    else:
+        dict_cfg = {}
+        fancy_type = create_dic_fancy_type()
 
-    for root, dirs, files in os.walk(src, topdown=False):
+        src = os.environ.get('QPACKAGE_ROOT') + "/src/"
 
-        for name in dirs:
-
-            path_config_folder = src + name
-            config = ConfigParser.ConfigParser()
+        dirs_name = [x[0] for x in os.walk(src, topdown=False)]
+        for path_config_folder in dirs_name:
 
             try:
+                config = ConfigParser.ConfigParser()
                 config.readfp(open(path_config_folder + '/EZFIO.cfg'))
             except Exception as inst:
                 pass
@@ -123,14 +129,34 @@ def get_dict_cgf():
 
     return dict_cfg
 
+
+def get_ezfio_cmd(dict_cfg):
+    d = defaultdict(dict)
+    for k, v in dict_cfg.items():
+        d[k] = {"set": "set_" + v["ezfio_dir"] + "_" + k,
+                "get": "get_" + v["ezfio_dir"] + "_" + k}
+
+    return dict(d)
+
+
+def save_dict_cfg(d):
+    import pickle
+    path = os.environ.get('QPACKAGE_ROOT') + "/data/"
+    pickle.dump(d, open(path + "dict_cfg.p", "wb"))
+
+
 if __name__ == "__main__":
-    src = os.environ.get('QPACKAGE_ROOT') + "/src/"
+    roger = get_dict_cfg()
+    save_dict_cfg(roger)
+    biloute = get_dict_cfg(True)
 
-    roger = get_dict_cgf()
-    print roger
+    print biloute
 
-    for i in create_ezfio_string(roger, "config"):
+    for i in create_ezfio_string(biloute, "config"):
         print i
 
-    for i in create_ezfio_string(roger, "default"):
+    for i in create_ezfio_string(biloute, "default"):
+        print i
+
+    for i in get_ezfio_cmd(biloute).items():
         print i
