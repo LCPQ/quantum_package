@@ -114,7 +114,7 @@ endif
 
 # Define the EZFIO rules
 
-$(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg) $(wildcard $(QPACKAGE_ROOT)/src/*/options.irp.f) options.irp.f
+$(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg) interface.irp.f
 	@echo Building EZFIO library
 	@cp $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(EZFIO_DIR)/config 
 	@cd $(EZFIO_DIR) ; export FC="$(FC)" ; export FCFLAGS="$(FCFLAGS)" ; export IRPF90="$(IRPF90)" ; $(MAKE) ; $(MAKE) Python
@@ -122,9 +122,9 @@ $(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg) $(wildcard $(QPACKAGE_ROO
 ezfio: $(EZFIO)
 
 
-options.irp.f: EZFIO.cfg
+interface.irp.f: EZFIO.cfg
 	$(QPACKAGE_ROOT)/scripts/ezfio_interface.py
-	touch options.irp.f
+	touch interface.irp.f
 
 # Create symbolic links of other modules
 

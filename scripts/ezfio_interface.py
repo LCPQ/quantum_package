@@ -104,6 +104,23 @@ def create_ezfio_provider(dict_all):
 import os
 
 
+def save_ezfio_config(array):
+    path = os.environ.get('QPACKAGE_ROOT') + "/EZFIO/config/"
+
+    with open(path + "interface.ezfio_config","w") as f:
+        for i in array:
+            f.write(i + "\n")
+
+
+def save_ezfio_provider(array):
+    path = os.environ.get('QPACKAGE_ROOT') + "/src/Ezfio_files/"
+
+    with open(path + "interface.irp.f","w") as f:
+        f.write("!DO NOT MODIFY BY HAND \n")
+        for i in array:
+            f.write(i + "\n")
+
+
 def get_dict_cfg(pickle=False):
 
     if pickle:
@@ -133,8 +150,8 @@ def get_dict_cfg(pickle=False):
 def get_ezfio_cmd(dict_cfg):
     d = defaultdict(dict)
     for k, v in dict_cfg.items():
-        d[k] = {"set": "set_" + v["ezfio_dir"] + "_" + k,
-                "get": "get_" + v["ezfio_dir"] + "_" + k}
+        d[k] = {"set": "ezfio_set_" + v["ezfio_dir"] + "_" + k,
+                "get": "ezfio_get_" + v["ezfio_dir"] + "_" + k}
 
     return dict(d)
 
@@ -152,7 +169,9 @@ if __name__ == "__main__":
 
     print biloute
 
-    for i in create_ezfio_string(biloute, "config"):
+    config = create_ezfio_string(biloute, "config")
+    save_ezfio_config(config)
+    for i in config:
         print i
 
     for i in create_ezfio_string(biloute, "default"):
@@ -160,3 +179,6 @@ if __name__ == "__main__":
 
     for i in get_ezfio_cmd(biloute).items():
         print i
+
+    irp = create_ezfio_provider(biloute)
+    save_ezfio_provider(irp)
