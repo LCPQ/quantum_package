@@ -4,105 +4,133 @@
 import ConfigParser
 from collections import defaultdict
 
+def create_dic_fancy_type():
+    fancy_type = defaultdict(dict)
 
-def create_ezfio_config(config_file, save, root):
+    ocaml_to_fortran = {"int": "integer",
+                        "float": "double precision",
+                        "logical": "logical",
+                        "string": "character*60"}
+
+    fancy_type['integer'] = {
+        "ocaml": "int",
+        "fortran": "integer"}
+
+    fancy_type['double precision'] = {
+        "ocaml": "float",
+        "fortran": "double precision"}
+    fancy_type['logical'] = {
+        "ocaml": "logical",
+        "fortran": "logical"}
+
+    src = os.environ.get('QPACKAGE_ROOT') + "/ocaml/qptypes_generator.ml"
+
+    with open(src, "r") as f:
+        l = f.read().splitlines()
+
+    l = [i for i in l if i.strip().startswith("*")]
+
+    for i in l:
+        ocaml_fancy_type = i.split()[1].strip()
+        ocaml_type = i.split()[3]
+        fortran_type = ocaml_to_fortran[ocaml_type]
+
+        fancy_type[ocaml_fancy_type] = {"ocaml": ocaml_type,
+                                        "fortran": fortran_type}
+
+    return dict(fancy_type)
+
+import sys
+
+
+def dict_config_file(config_file, dic_type):
+    d = defaultdict(dict)
+    list_key = ["doc", "ezfio_name", "ezfio_dir", "ezfio_default_value"]
+
+    provider_names = config_file.sections()
+    for provider_name in provider_names:
+
+        if config_file.get(provider_name, "type") not in dic_type:
+            print config_file.get(provider_name, "type"), "not avalaible"
+            sys.exit(1)
+
+        for k in list_key:
+            d[provider_name][k] = config_file.get(provider_name, k)
+
+            type_raw = config_file.get(provider_name, "type")
+            d[provider_name]["ezfio_type"] = dic_type[type_raw]["fortran"]
+            d[provider_name]["ocaml_type"] = dic_type[type_raw]["ocaml"]
+
+    return dict(d)
+
+
+def create_ezfio_string(dict_all, t):
+    a = {"config": "ezfio_type",
+         "default": "ezfio_default_value"}
+
+    info = a[t]
     d = defaultdict(list)
 
-    ls = config_file.sections()
-    for i in ls:
-        l_to_join = [" ",
-                     config_file.get(i, 'ezfio_name'),
-                     config_file.get(i, 'ezfio_type'),
-                     "\n"]
+    for provider_name, dict_info in dict_all.items():
+        l_to_join = [" ", dict_info['ezfio_name'], dict_info[info], "\n"]
+        d[dict_info['ezfio_dir']].append(l_to_join)
 
-        d[config_file.get(i, 'ezfio_dir')].append(l_to_join)
-
-    s = ""
-    for k, v in d.items():
-        s += k + "\n"
-        for i in v:
-            s += " ".join(i)
-
-    if (save):
-        for k, v in d.items():
-            f = open(root + "/" + k + ".ezfio_config", "w")
-            f.write(k + "\n")
-            for i in v:
-                f.write(" ".join(i))
-            f.close()
-
-    return s
+    # Only for fun,sry reader...
+    return [" ".join([k, "\n"] + [j for i in v for j in i])
+            for k, v in d.items()]
 
 
-def create_ezfio_default(config_file):
-
-    d = defaultdict(list)
-
-    ls = config_file.sections()
-    for i in ls:
-        l_to_join = [" ",
-                     config_file.get(i, 'ezfio_name'),
-                     config_file.get(i, 'ezfio_default_value'),
-                     "\n"]
-
-        d[config_file.get(i, 'ezfio_dir')].append(l_to_join)
-
-    f = ""
-    for k, v in d.items():
-        f += k + "\n"
-        for i in v:
-            f += " ".join(i)
-
-    return f
-
-
-def create_ezfio_provider(config_file):
+def create_ezfio_provider(dict_all):
     from ezfio_with_default import EZFIO_Provider
     lp = []
 
     T = EZFIO_Provider()
+    for provider_name, dict_info in dict_all.items():
+        T.set_type(dict_info['ezfio_type'])
+        T.set_name(provider_name)
+        T.set_doc(dict_info['doc'])
+        T.set_ezfio_dir(dict_info['ezfio_dir'])
+        T.set_ezfio_name(dict_info['ezfio_name'])
+        T.set_default(dict_info['ezfio_default_value'])
 
-    ls = config_file.sections()
-    for i in ls:
-        T.set_type(config_file.get(i, 'ezfio_type'))
-        T.set_name(i)
-        T.set_doc(config_file.get(i, 'doc'))
-        T.set_ezfio_dir(config_file.get(i, 'ezfio_dir'))
-        T.set_ezfio_name(config_file.get(i, 'ezfio_name'))
-        T.set_default(config_file.get(i, 'ezfio_default_value'))
-
-        T.set_output("output_%s" % config_file.get(i, 'ezfio_dir'))
-        lp.append(T.get_string())
+        T.set_output("output_%s" % dict_info['ezfio_dir'])
+        lp.append(str(T))
 
     return lp
 
 import os
 
-if __name__ == "__main__":
+def get_dict_cgf():
 
-    src = "/home/razoa/quantum_package/src/"
+    dict_cfg = {}
+    fancy_type = create_dic_fancy_type()
+
+    src = os.environ.get('QPACKAGE_ROOT') + "/src/"
+
     for root, dirs, files in os.walk(src, topdown=False):
-   
+
         for name in dirs:
+
             path_config_folder = src + name
             config = ConfigParser.ConfigParser()
-        
+
             try:
                 config.readfp(open(path_config_folder + '/EZFIO.cfg'))
-            except  Exception as inst:
-#                print inst
+            except Exception as inst:
                 pass
             else:
+                dict_cfg.update(dict_config_file(config, fancy_type))
 
-            	print path_config_folder
-                print create_ezfio_config(config, True, path_config_folder)
+    return dict_cfg
 
-                for i in create_ezfio_provider(config):
-                    print i
-           
-                path = "{root}/options.irp.f".format(
-                    root=path_config_folder)
-                with open(path, "w") as f:
-                    for i in create_ezfio_provider(config):
-                         f.write(i+"\n")
-        
+if __name__ == "__main__":
+    src = os.environ.get('QPACKAGE_ROOT') + "/src/"
+
+    roger = get_dict_cgf()
+    print roger
+
+    for i in create_ezfio_string(roger, "config"):
+        print i
+
+    for i in create_ezfio_string(roger, "default"):
+        print i
