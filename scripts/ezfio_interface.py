@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
 import ConfigParser
 from collections import defaultdict
 
@@ -20,6 +21,7 @@ def create_dic_fancy_type():
     fancy_type['double precision'] = {
         "ocaml": "float",
         "fortran": "double precision"}
+
     fancy_type['logical'] = {
         "ocaml": "logical",
         "fortran": "logical"}
@@ -27,9 +29,7 @@ def create_dic_fancy_type():
     src = os.environ.get('QPACKAGE_ROOT') + "/ocaml/qptypes_generator.ml"
 
     with open(src, "r") as f:
-        l = f.read().splitlines()
-
-    l = [i for i in l if i.strip().startswith("*")]
+        l = [i for i in f.read().splitlines() if i.strip().startswith("*")]
 
     for i in l:
         ocaml_fancy_type = i.split()[1].strip()
@@ -40,8 +40,6 @@ def create_dic_fancy_type():
                                         "fortran": fortran_type}
 
     return dict(fancy_type)
-
-import sys
 
 
 def dict_config_file(config_file, dic_type):
@@ -54,15 +52,14 @@ def dict_config_file(config_file, dic_type):
         if config_file.get(provider_name, "type") not in dic_type:
             print config_file.get(provider_name, "type"), "not avalaible. Choose in: "
             print ", ".join([i for i in dic_type])
-
             sys.exit(1)
 
         for k in list_key:
             d[provider_name][k] = config_file.get(provider_name, k)
 
-            type_raw = config_file.get(provider_name, "type")
-            d[provider_name]["ezfio_type"] = dic_type[type_raw]["fortran"]
-            d[provider_name]["ocaml_type"] = dic_type[type_raw]["ocaml"]
+        type_raw = config_file.get(provider_name, "type")
+        d[provider_name]["ezfio_type"] = dic_type[type_raw]["fortran"]
+        d[provider_name]["ocaml_type"] = dic_type[type_raw]["ocaml"]
 
     return dict(d)
 
@@ -107,7 +104,7 @@ import os
 def save_ezfio_config(array):
     path = os.environ.get('QPACKAGE_ROOT') + "/EZFIO/config/"
 
-    with open(path + "interface.ezfio_config","w") as f:
+    with open(path + "interface.ezfio_config", "w") as f:
         for i in array:
             f.write(i + "\n")
 
@@ -115,7 +112,7 @@ def save_ezfio_config(array):
 def save_ezfio_provider(array):
     path = os.environ.get('QPACKAGE_ROOT') + "/src/Ezfio_files/"
 
-    with open(path + "interface.irp.f","w") as f:
+    with open(path + "interface.irp.f", "w") as f:
         f.write("!DO NOT MODIFY BY HAND \n")
         for i in array:
             f.write(i + "\n")
@@ -171,14 +168,14 @@ if __name__ == "__main__":
 
     config = create_ezfio_string(biloute, "config")
     save_ezfio_config(config)
-#    for i in config:
-#        print i
-#
-#    for i in create_ezfio_string(biloute, "default"):
-#        print i
-#
-#    for i in get_ezfio_cmd(biloute).items():
-#        print i
+    for i in config:
+        print i
+
+    for i in create_ezfio_string(biloute, "default"):
+        print i
+
+    for i in get_ezfio_cmd(biloute).items():
+        print i
 
     irp = create_ezfio_provider(biloute)
     save_ezfio_provider(irp)
