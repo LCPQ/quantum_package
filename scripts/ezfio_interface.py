@@ -46,7 +46,7 @@ import sys
 
 def dict_config_file(config_file, dic_type):
     d = defaultdict(dict)
-    list_key = ["doc", "ezfio_name", "ezfio_dir", "ezfio_default_value"]
+    list_key = ["doc", "ezfio_name", "ezfio_dir", "default_value"]
 
     provider_names = config_file.sections()
     for provider_name in provider_names:
@@ -69,7 +69,7 @@ def dict_config_file(config_file, dic_type):
 
 def create_ezfio_string(dict_all, t):
     a = {"config": "ezfio_type",
-         "default": "ezfio_default_value"}
+         "default": "default_value"}
 
     info = a[t]
     d = defaultdict(list)
@@ -94,7 +94,7 @@ def create_ezfio_provider(dict_all):
         T.set_doc(dict_info['doc'])
         T.set_ezfio_dir(dict_info['ezfio_dir'])
         T.set_ezfio_name(dict_info['ezfio_name'])
-        T.set_default(dict_info['ezfio_default_value'])
+        T.set_default(dict_info['default_value'])
 
         T.set_output("output_%s" % dict_info['ezfio_dir'])
         lp.append(str(T))
@@ -171,14 +171,16 @@ if __name__ == "__main__":
 
     config = create_ezfio_string(biloute, "config")
     save_ezfio_config(config)
-    for i in config:
-        print i
-
-    for i in create_ezfio_string(biloute, "default"):
-        print i
-
-    for i in get_ezfio_cmd(biloute).items():
-        print i
+#    for i in config:
+#        print i
+#
+#    for i in create_ezfio_string(biloute, "default"):
+#        print i
+#
+#    for i in get_ezfio_cmd(biloute).items():
+#        print i
 
     irp = create_ezfio_provider(biloute)
     save_ezfio_provider(irp)
+#    for i in irp:
+#        print i
