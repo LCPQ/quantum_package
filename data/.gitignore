@@ -1,4 +1,4 @@
 executables
 cache/*
 *.ezfio
-
+dict_cfg.p
