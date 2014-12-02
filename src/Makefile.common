@@ -82,6 +82,7 @@ $(error )
 endif
 
 
+
 # Check if ASSUMPTIONS.rst exists
 
 ASSUMPTIONS_RST_OK=$(shell ls ASSUMPTIONS.rst || echo False)
@@ -113,12 +114,17 @@ endif
 
 # Define the EZFIO rules
 
-$(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config)
-	@echo Building EZFIO library
+$(EZFIO): $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg) interface.irp.f
+	@echo Building EZFIO library $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config)
 	@cp $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(EZFIO_DIR)/config 
 	@cd $(EZFIO_DIR) ; export FC="$(FC)" ; export FCFLAGS="$(FCFLAGS)" ; export IRPF90="$(IRPF90)" ; $(MAKE) ; $(MAKE) Python
 
 ezfio: $(EZFIO)
+
+
+interface.irp.f: EZFIO.cfg
+	$(QPACKAGE_ROOT)/scripts/ezfio_interface.py
+	touch interface.irp.f
 
 # Create symbolic links of other modules
 
