@@ -1,4 +1,7 @@
 program full_ci
+  BEGIN_DOC
+  ! Golden standar
+  END_DOC
   implicit none
   integer                        :: i,k
 
