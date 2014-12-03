@@ -1,6 +1,6 @@
 program full_ci
   BEGIN_DOC
-  ! Golden standar
+  ! Golden standard
   END_DOC
   implicit none
   integer                        :: i,k

@@ -108,10 +108,12 @@ def dict_binary_file(irp_file, dcf):
     except:
         pass
     else:
-        name = os.path.basename(irp_file)
-        name = name[:name.index(".irp.f")]
+        path_bin = irp_file[:irp_file.index(".irp.f")]
+        name = os.path.basename(path_bin)
+
         d[name]["doc"] = doc
         d[name]["providers"] = [i for i in dcf]
+        d[name]["path"] = path_bin
 
     return dict(d)
 
@@ -221,8 +223,9 @@ def save_dicts(d):
 def get_ezfio_cmd(dict_cfg):
     d = defaultdict(dict)
     for k, v in dict_cfg.items():
-        d[k] = {"set": "ezfio_set_" + v["ezfio_dir"] + "_" + k,
-                "get": "ezfio_get_" + v["ezfio_dir"] + "_" + k}
+        d[k] = {"set": "set_" + v["ezfio_dir"] + "_" + k,
+                "get": "get_" + v["ezfio_dir"] + "_" + k,
+                "has": "has_" + v["ezfio_dir"] + "_" + k}
 
     return dict(d)
 
