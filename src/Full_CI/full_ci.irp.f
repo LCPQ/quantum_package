@@ -1,4 +1,8 @@
 program full_ci
+  BEGIN_DOC
+  !test
+  !plein de ligne
+  END_DOC
   implicit none
   integer                        :: i,k
 

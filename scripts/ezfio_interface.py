@@ -63,6 +63,58 @@ def dict_config_file(config_file, dic_type):
 
     return dict(d)
 
+import re
+
+
+def find_doc_prog(path):
+    regex_prog = re.compile(r'\bprogram\b', re.IGNORECASE)
+    regex_begin = re.compile(r'\bBEGIN_DOC\b')
+    regex_end = re.compile(r'\bEND_DOC\b')
+
+    bible = open(path, "r")
+    find = False
+    read = False
+    doc = ""
+
+    for line in bible:
+        if regex_prog.search(line):
+            find = True
+            continue
+
+        if find:
+            if regex_begin.search(line):
+                read = True
+                continue
+
+        if find:
+            if regex_end.search(line):
+                read = False
+                break
+
+        if read:
+            doc += line[line.index("!") + 1:]
+
+    if doc:
+        return doc
+    else:
+        raise
+
+
+def dict_binary_file(irp_file, dcf):
+    d = defaultdict(dict)
+
+    try:
+        doc = find_doc_prog(irp_file)
+    except:
+        pass
+    else:
+        name = os.path.basename(irp_file)
+        name = name[:name.index(".irp.f")]
+        d[name]["doc"] = doc
+        d[name]["providers"] = [i for i in dcf]
+
+    return dict(d)
+
 
 def create_ezfio_string(dict_all, t):
     a = {"config": "ezfio_type",
@@ -72,11 +124,11 @@ def create_ezfio_string(dict_all, t):
     d = defaultdict(list)
 
     for provider_name, dict_info in dict_all.items():
-        l_to_join = [" ", dict_info['ezfio_name'], dict_info[info], "\n"]
+        l_to_join = [dict_info['ezfio_name'], dict_info[info], "\n"]
         d[dict_info['ezfio_dir']].append(l_to_join)
 
     # Only for fun,sry reader...
-    return [" ".join([k, "\n"] + [j for i in v for j in i])
+    return ["  ".join([k, "\n"] + [j for i in v for j in i])
             for k, v in d.items()]
 
 
@@ -118,30 +170,52 @@ def save_ezfio_provider(array):
             f.write(i + "\n")
 
 
-def get_dict_cfg(pickle=False):
+def get_dicts(pickle=False):
 
     if pickle:
-        import pickle
+        import pickle as pickle_lib
         path = os.environ.get('QPACKAGE_ROOT') + "/data/"
-        dict_cfg = pickle.load(open(path + "dict_cfg.p", "rb"))
+        dict_binary = pickle_lib.load(open(path + "dict_binary.p", "rb"))
+        dict_cfg = pickle_lib.load(open(path + "dict_cfg.p", "rb"))
+
     else:
+
         dict_cfg = {}
+        dict_binary = {}
+
         fancy_type = create_dic_fancy_type()
 
         src = os.environ.get('QPACKAGE_ROOT') + "/src/"
+        for root, dirs, files in os.walk(src):
 
-        dirs_name = [x[0] for x in os.walk(src, topdown=False)]
-        for path_config_folder in dirs_name:
+            dcf = None
 
-            try:
+            if "EZFIO.cfg" in files:
                 config = ConfigParser.ConfigParser()
-                config.readfp(open(path_config_folder + '/EZFIO.cfg'))
-            except Exception as inst:
-                pass
-            else:
-                dict_cfg.update(dict_config_file(config, fancy_type))
+                config.readfp(open(root + '/EZFIO.cfg'))
+                dcf = dict_config_file(config, fancy_type)
+                dict_cfg.update(dcf)
 
-    return dict_cfg
+            list_irp = [root + "/" + i for i in files if i.endswith(".irp.f")]
+            for i in list_irp:
+                dict_binary.update(dict_binary_file(i, dcf))
+
+    return [dict_binary, dict_cfg]
+
+
+def get_dict_binary(pickle=False):
+    return get_dicts(pickle)[0]
+
+
+def get_dict_cfg(pickle=False):
+    return get_dicts(pickle)[1]
+
+
+def save_dicts(d):
+    import pickle
+    path = os.environ.get('QPACKAGE_ROOT') + "/data/"
+    pickle.dump(d[0], open(path + "dict_binary.p", "wb"))
+    pickle.dump(d[1], open(path + "dict_cfg.p", "wb"))
 
 
 def get_ezfio_cmd(dict_cfg):
@@ -153,21 +227,18 @@ def get_ezfio_cmd(dict_cfg):
     return dict(d)
 
 
-def save_dict_cfg(d):
-    import pickle
-    path = os.environ.get('QPACKAGE_ROOT') + "/data/"
-    pickle.dump(d, open(path + "dict_cfg.p", "wb"))
-
-
 if __name__ == "__main__":
-    roger = get_dict_cfg()
-    save_dict_cfg(roger)
+    roger = get_dicts()
+    print roger[0]
+    print roger[1]
+
+    save_dicts(roger)
     biloute = get_dict_cfg(True)
 
     print biloute
 
     config = create_ezfio_string(biloute, "config")
-    save_ezfio_config(config)
+ #   save_ezfio_config(config)
     for i in config:
         print i
 
@@ -178,6 +249,6 @@ if __name__ == "__main__":
         print i
 
     irp = create_ezfio_provider(biloute)
-    save_ezfio_provider(irp)
+#    save_ezfio_provider(irp)
 #    for i in irp:
 #        print i
