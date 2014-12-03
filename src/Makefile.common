@@ -114,7 +114,7 @@ endif
 
 # Define the EZFIO rules
 
-$(EZFIO): $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg) interface.irp.f
+$(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg) interface.irp.f
 	@echo Building EZFIO library $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config)
 	@cp $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(EZFIO_DIR)/config 
 	@cd $(EZFIO_DIR) ; export FC="$(FC)" ; export FCFLAGS="$(FCFLAGS)" ; export IRPF90="$(IRPF90)" ; $(MAKE) ; $(MAKE) Python
@@ -122,7 +122,7 @@ $(EZFIO): $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*
 ezfio: $(EZFIO)
 
 
-interface.irp.f: EZFIO.cfg
+interface.irp.f:  $(wildcard EZFIO.cfg*)
 	$(QPACKAGE_ROOT)/scripts/ezfio_interface.py
 	touch interface.irp.f
 
