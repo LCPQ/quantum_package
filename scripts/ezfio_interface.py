@@ -188,7 +188,7 @@ def get_dicts(pickle=False):
         src = os.environ.get('QPACKAGE_ROOT') + "/src/"
         for root, dirs, files in os.walk(src):
 
-            dcf = None
+            dcf = {}
 
             if "EZFIO.cfg" in files:
                 config = ConfigParser.ConfigParser()
@@ -238,7 +238,7 @@ if __name__ == "__main__":
     print biloute
 
     config = create_ezfio_string(biloute, "config")
- #   save_ezfio_config(config)
+    save_ezfio_config(config)
     for i in config:
         print i
 
@@ -249,6 +249,6 @@ if __name__ == "__main__":
         print i
 
     irp = create_ezfio_provider(biloute)
-#    save_ezfio_provider(irp)
+    save_ezfio_provider(irp)
 #    for i in irp:
 #        print i
