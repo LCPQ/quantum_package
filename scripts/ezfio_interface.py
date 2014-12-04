@@ -44,7 +44,7 @@ def create_dic_fancy_type():
 
 def dict_config_file(config_file, dic_type):
     d = defaultdict(dict)
-    list_key = ["doc", "ezfio_name", "ezfio_dir", "default_value"]
+    list_key = ["ezfio_name", "ezfio_dir", "default_value"]
 
     provider_names = config_file.sections()
     for provider_name in provider_names:
@@ -54,8 +54,10 @@ def dict_config_file(config_file, dic_type):
             print ", ".join([i for i in dic_type])
             sys.exit(1)
 
+        d[provider_name]["doc"] = config_file.get(provider_name, "doc")
+
         for k in list_key:
-            d[provider_name][k] = config_file.get(provider_name, k)
+            d[provider_name][k] = config_file.get(provider_name, k).lower()
 
         type_raw = config_file.get(provider_name, "type")
         d[provider_name]["ezfio_type"] = dic_type[type_raw]["fortran"]
@@ -223,9 +225,9 @@ def save_dicts(d):
 def get_ezfio_cmd(dict_cfg):
     d = defaultdict(dict)
     for k, v in dict_cfg.items():
-        d[k] = {"set": "set_" + v["ezfio_dir"] + "_" + k,
-                "get": "get_" + v["ezfio_dir"] + "_" + k,
-                "has": "has_" + v["ezfio_dir"] + "_" + k}
+        d[k] = {"set": "set_" + v["ezfio_dir"] + "_" + v["ezfio_name"],
+                "get": "get_" + v["ezfio_dir"] + "_" + v["ezfio_name"],
+                "has": "has_" + v["ezfio_dir"] + "_" + v["ezfio_name"]}
 
     return dict(d)
 
