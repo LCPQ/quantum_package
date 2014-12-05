@@ -1,6 +1,6 @@
 program scf
   BEGIN_DOC
-  ! Cycle SCF for HartreeFock
+  ! Cycle SCF for Hartree Fock
   END_DOC
   call orthonormalize_mos
   call run
