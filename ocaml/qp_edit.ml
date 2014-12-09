@@ -153,6 +153,7 @@ let run ezfio_filename =
   
   let tasks = [
       Nuclei ;
+      Ao_basis;
       Electrons ;
       Bielec_integrals ;
       Hartree_fock ;

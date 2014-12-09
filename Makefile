@@ -28,11 +28,11 @@ EZFIO: bin/irpf90
 bin/irpf90:
 	$(info $(BLUE)===== Fetching IRPF90 from the web ===== $(BLACK))
 	@sleep 1
-	#@$(FETCH_FROM_WEB) "$(WWW_SERVER)/$(IRPF90_TGZ)" $(IRPF90_TGZ) || \
-	#  (echo Unable to download IRPF90 : $(WWW_SERVER)/$(IRPF90_TGZ) ; exit 1)
-	#tar -zxf $(IRPF90_TGZ) && rm $(IRPF90_TGZ)
-	#$(MAKE) -C irpf90 | tee install_irpf90.log
-	#rm -rf -- $$PWD/bin/irpf90 $$PWD/bin/irpman
+	@$(FETCH_FROM_WEB) "$(WWW_SERVER)/$(IRPF90_TGZ)" $(IRPF90_TGZ) || \
+	  (echo Unable to download IRPF90 : $(WWW_SERVER)/$(IRPF90_TGZ) ; exit 1)
+	tar -zxf $(IRPF90_TGZ) && rm $(IRPF90_TGZ)
+	$(MAKE) -C irpf90 | tee install_irpf90.log
+	rm -rf -- $$PWD/bin/irpf90 $$PWD/bin/irpman
 	echo $$PWD/irpf90/bin/irpf90 $$\@ > $$PWD/bin/irpf90
 	echo $$PWD/irpf90/bin/irpman $$\@ > $$PWD/bin/irpman
 	chmod +x $$PWD/bin/irpf90 $$PWD/bin/irpman

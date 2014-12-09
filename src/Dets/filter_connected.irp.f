@@ -98,137 +98,77 @@ subroutine filter_connected(key1,key2,Nint,sze,idx)
 end
 
 
-subroutine filter_connected_davidson(key1,key2,Nint,sze,idx)
+subroutine filter_connected_davidson(key1,key2,next,Nint,sze,idx)
   use bitmasks
   implicit none
   BEGIN_DOC
   ! Filters out the determinants that are not connected by H
-  !
   ! returns the array idx which contains the index of the 
-  !
   ! determinants in the array key1 that interact 
-  !
   ! via the H operator with key2.
-  !
   ! idx(0) is the number of determinants that interact with key1
+  !
+  ! Determinants are taken from the psi_det_sorted_ab array
   END_DOC
   integer, intent(in)            :: Nint, sze
+  integer, intent(in)            :: next(2,sze)
   integer(bit_kind), intent(in)  :: key1(Nint,2,sze)
   integer(bit_kind), intent(in)  :: key2(Nint,2)
   integer, intent(out)           :: idx(0:sze)
   
-  integer                        :: i,j,k,l
+  integer                        :: i,j,l
   integer                        :: degree_x2
-  integer :: j_int, j_start
-  integer*8 :: itmp
+  integer(bit_kind)              :: det3(Nint,2)
   
-  PROVIDE N_con_int det_connections
+!  call filter_connected(key1,key2,Nint,sze,idx)
+!  return
   ASSERT (Nint > 0)
   ASSERT (sze >= 0)
 
   l=1
   
+!integer :: icount(4)
+!icount = 0
+  call filter_3_highest_electrons( key2(1,1), det3(1,1), Nint)
   if (Nint==1) then
+    
+    integer(bit_kind)              :: d31,d32, k1, k2
+    d31 = det3(1,1)
+    d32 = det3(1,2)
 
-    i = idx(0)
-    do j_int=1,N_con_int
-      itmp = det_connections(j_int,i)
-      do while (itmp /= 0_8)
-        j_start = ishft(j_int-1,11) + ishft(trailz(itmp),5)
-        do j = j_start+1, min(j_start+32,i-1)
-          degree_x2 = popcnt(xor( key1(1,1,j), key2(1,1))) +             &
-              popcnt(xor( key1(1,2,j), key2(1,2)))
-          if (degree_x2 > 4) then
-            cycle
-          else
-            idx(l) = j
-            l = l+1
-          endif
-        enddo
-        itmp = iand(itmp-1_8,itmp)
-      enddo
+    i = 1
+    do while ( i<= sze )
+      k1 = key1(1,1,i)
+      k2 = key1(1,2,i)
+      if (iand( k1, d31 ) == 0_8) then
+        i = next(1,i)
+      else if (iand( k2, d32 ) == 0_8) then
+        i = next(2,i)
+      else
+        degree_x2 = popcnt( xor( k1, key2(1,1)) ) + &
+                    popcnt( xor( k2, key2(1,2)) )
+        if (degree_x2 <= 4) then
+          idx(l) = i
+          l += 1
+!icount(3) += 1
+!else
+!icount(4) += 1
+        endif
+        i += 1
+      endif
     enddo
-    
-  else if (Nint==2) then
-    
-    
-    i = idx(0)
-    do j_int=1,N_con_int
-      itmp = det_connections(j_int,i)
-      do while (itmp /= 0_8)
-        j_start = ishft(j_int-1,11) + ishft(trailz(itmp),5)
-        do j = j_start+1, min(j_start+32,i-1)
-          degree_x2 = popcnt(xor( key1(1,1,j), key2(1,1))) +         &
-              popcnt(xor( key1(2,1,j), key2(2,1))) +                 &
-              popcnt(xor( key1(1,2,j), key2(1,2))) +                 &
-              popcnt(xor( key1(2,2,j), key2(2,2)))
-          if (degree_x2 > 4) then
-            cycle
-          else
-            idx(l) = j
-            l = l+1
-          endif
-        enddo
-        itmp = iand(itmp-1_8,itmp)
-      enddo
-    enddo
-    
-  else if (Nint==3) then
-    
-    !DIR$ LOOP COUNT (1000)
-    i = idx(0)
-    do j_int=1,N_con_int
-      itmp = det_connections(j_int,i)
-      do while (itmp /= 0_8)
-        j_start = ishft(j_int-1,11) + ishft(trailz(itmp),5)
-        do j = j_start+1, min(j_start+32,i-1)
-          degree_x2 = popcnt(xor( key1(1,1,j), key2(1,1))) +         &
-              popcnt(xor( key1(1,2,j), key2(1,2))) +                 &
-              popcnt(xor( key1(2,1,j), key2(2,1))) +                 &
-              popcnt(xor( key1(2,2,j), key2(2,2))) +                 &
-              popcnt(xor( key1(3,1,j), key2(3,1))) +                 &
-              popcnt(xor( key1(3,2,j), key2(3,2)))
-          if (degree_x2 > 4) then
-            cycle
-          else
-            idx(l) = j
-            l = l+1
-          endif
-        enddo
-        itmp = iand(itmp-1_8,itmp)
-      enddo
-    enddo
-    
+!    print *,  icount
   else
     
-    !DIR$ LOOP COUNT (1000)
-    i = idx(0)
-    do j_int=1,N_con_int
-      itmp = det_connections(j_int,i)
-      do while (itmp /= 0_8)
-        j_start = ishft(j_int-1,11) + ishft(trailz(itmp),5)
-        do j = j_start+1, min(j_start+32,i-1)
-          degree_x2 = 0
-          !DEC$ LOOP COUNT MIN(4)
-          do k=1,Nint
-            degree_x2 = degree_x2+ popcnt(xor( key1(k,1,j), key2(k,1))) +&
-                popcnt(xor( key1(k,2,j), key2(k,2)))
-            if (degree_x2 > 4) then
-              exit
-            endif
-          enddo
-          if (degree_x2 <= 5) then
-            idx(l) = j
-            l = l+1
-          endif
-        enddo
-        itmp = iand(itmp-1_8,itmp)
-      enddo
-    enddo
-
+    print *,  'Not implemented', irp_here
+    stop 1
+    
   endif
   idx(0) = l-1
 end
+
+
+
 
 subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
   use bitmasks
