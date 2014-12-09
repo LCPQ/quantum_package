@@ -4,6 +4,7 @@
 import sys
 import ConfigParser
 from collections import defaultdict
+import cPickle as pickle
 
 
 def create_dic_fancy_type():
@@ -62,61 +63,6 @@ def dict_config_file(config_file, dic_type):
         type_raw = config_file.get(provider_name, "type")
         d[provider_name]["ezfio_type"] = dic_type[type_raw]["fortran"]
         d[provider_name]["ocaml_type"] = dic_type[type_raw]["ocaml"]
-
-    return dict(d)
-
-import re
-
-
-def find_doc_prog(path):
-    regex_prog = re.compile(r'\bprogram\b', re.IGNORECASE)
-    regex_begin = re.compile(r'\bBEGIN_DOC\b')
-    regex_end = re.compile(r'\bEND_DOC\b')
-
-    bible = open(path, "r")
-    find = False
-    read = False
-    doc = ""
-
-    for line in bible:
-        if regex_prog.search(line):
-            find = True
-            continue
-
-        if find:
-            if regex_begin.search(line):
-                read = True
-                continue
-
-        if find:
-            if regex_end.search(line):
-                read = False
-                break
-
-        if read:
-            doc += line[line.index("!") + 1:]
-
-    if doc:
-        return doc
-    else:
-        raise
-
-
-def dict_binary_file(irp_file, dcf):
-    d = defaultdict(dict)
-
-    try:
-        doc = find_doc_prog(irp_file)
-    except:
-        pass
-    else:
-        path_bin = irp_file[:irp_file.index(".irp.f")]
-        name = os.path.basename(path_bin)
-
-        d[name]["doc"] = doc
-        d[name]["providers"] = [i for i in dcf]
-        d[name]["path"] = path_bin
-
     return dict(d)
 
 
@@ -174,25 +120,21 @@ def save_ezfio_provider(array):
             f.write(i + "\n")
 
 
-def get_dicts(pickle=False):
+def get_dict_cfg(pickle=False):
 
     if pickle:
         import pickle as pickle_lib
         path = os.environ.get('QPACKAGE_ROOT') + "/data/"
-        dict_binary = pickle_lib.load(open(path + "dict_binary.p", "rb"))
         dict_cfg = pickle_lib.load(open(path + "dict_cfg.p", "rb"))
 
     else:
 
         dict_cfg = {}
-        dict_binary = {}
 
         fancy_type = create_dic_fancy_type()
 
         src = os.environ.get('QPACKAGE_ROOT') + "/src/"
         for root, dirs, files in os.walk(src):
-
-            dcf = {}
 
             if "EZFIO.cfg" in files:
                 config = ConfigParser.ConfigParser()
@@ -200,26 +142,12 @@ def get_dicts(pickle=False):
                 dcf = dict_config_file(config, fancy_type)
                 dict_cfg.update(dcf)
 
-            list_irp = [root + "/" + i for i in files if i.endswith(".irp.f")]
-            for i in list_irp:
-                dict_binary.update(dict_binary_file(i, dcf))
-
-    return [dict_binary, dict_cfg]
+    return  dict_cfg
 
 
-def get_dict_binary(pickle=False):
-    return get_dicts(pickle)[0]
-
-
-def get_dict_cfg(pickle=False):
-    return get_dicts(pickle)[1]
-
-
-def save_dicts(d):
-    import pickle
+def save_dict_cfg(d):
     path = os.environ.get('QPACKAGE_ROOT') + "/data/"
-    pickle.dump(d[0], open(path + "dict_binary.p", "wb"))
-    pickle.dump(d[1], open(path + "dict_cfg.p", "wb"))
+    pickle.dump(d, open(path + "dict_cfg.p", "wb"))
 
 
 def get_ezfio_cmd(dict_cfg):
@@ -233,27 +161,14 @@ def get_ezfio_cmd(dict_cfg):
 
 
 if __name__ == "__main__":
-    roger = get_dicts()
-    print roger[0]
-    print roger[1]
 
-    save_dicts(roger)
+    roger = get_dict_cfg()
+    save_dict_cfg(roger)
     biloute = get_dict_cfg(True)
 
-    print biloute
+    print "Generating the options.irp.f and ezfio_config"
 
     config = create_ezfio_string(biloute, "config")
     save_ezfio_config(config)
-    for i in config:
-        print i
-
-    for i in create_ezfio_string(biloute, "default"):
-        print i
-
-    for i in get_ezfio_cmd(biloute).items():
-        print i
-
     irp = create_ezfio_provider(biloute)
     save_ezfio_provider(irp)
-#    for i in irp:
-#        print i
