@@ -82,6 +82,7 @@ $(error )
 endif
 
 
+
 # Check if ASSUMPTIONS.rst exists
 
 ASSUMPTIONS_RST_OK=$(shell ls ASSUMPTIONS.rst || echo False)
@@ -113,12 +114,15 @@ endif
 
 # Define the EZFIO rules
 
-$(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config)
-	@echo Building EZFIO library
+$(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg)
+	$(QPACKAGE_ROOT)/scripts/ezfio_interface.py
+	@echo Building EZFIO library $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config)
 	@cp $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(EZFIO_DIR)/config 
 	@cd $(EZFIO_DIR) ; export FC="$(FC)" ; export FCFLAGS="$(FCFLAGS)" ; export IRPF90="$(IRPF90)" ; $(MAKE) ; $(MAKE) Python
 
 ezfio: $(EZFIO)
+
+
 
 # Create symbolic links of other modules
 
@@ -134,6 +138,7 @@ LIB+=$(EZFIO) $(MKL)
 IRPF90+=$(patsubst %, -I %, $(INCLUDE_DIRS)) $(IRPF90_FLAGS)
 
 irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile $(EZFIO) NEEDED_MODULES $(wildcard *.py) 
+	- $(QPACKAGE_ROOT)/scripts/ezfio_interface.py
 	- $(IRPF90)
 	- update_README.py
 
