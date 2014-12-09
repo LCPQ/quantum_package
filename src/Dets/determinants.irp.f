@@ -100,162 +100,6 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
 END_PROVIDER
 
 
- BEGIN_PROVIDER [ integer(bit_kind), psi_occ_pattern, (N_int,2,psi_det_size) ]
-&BEGIN_PROVIDER [ integer, N_occ_pattern ]
- implicit none
- BEGIN_DOC
-  ! array of the occ_pattern present in the wf
-  ! psi_occ_pattern(:,1,j) = jth occ_pattern of the wave function : represent all the single occupation
-  ! psi_occ_pattern(:,2,j) = jth occ_pattern of the wave function : represent all the double occupation
- END_DOC
- integer :: i,j,k
-
- ! create
- do i = 1, N_det
-  do k = 1, N_int
-   psi_occ_pattern(k,1,i) = ieor(psi_det(k,1,i),psi_det(k,2,i))
-   psi_occ_pattern(k,2,i) = iand(psi_det(k,1,i),psi_det(k,2,i))
-  enddo
- enddo
-
- ! Sort
- integer, allocatable           :: iorder(:)
- integer*8, allocatable         :: bit_tmp(:)
- integer*8, external            :: occ_pattern_search_key
- integer(bit_kind), allocatable :: tmp_array(:,:,:)
- logical,allocatable            :: duplicate(:)
-
-
- allocate ( iorder(N_det), duplicate(N_det), bit_tmp(N_det), tmp_array(N_int,2,psi_det_size) )
-
- do i=1,N_det
-   iorder(i) = i
-   !$DIR FORCEINLINE
-   bit_tmp(i) = occ_pattern_search_key(psi_occ_pattern(1,1,i),N_int)
- enddo
- call i8sort(bit_tmp,iorder,N_det)
- !DIR$ IVDEP
- do i=1,N_det
-  do k=1,N_int
-    tmp_array(k,1,i) = psi_occ_pattern(k,1,iorder(i))
-    tmp_array(k,2,i) = psi_occ_pattern(k,2,iorder(i))
-  enddo
-  duplicate(i) = .False.
- enddo
-
- i=1
- integer (bit_kind) :: occ_pattern_tmp
- do i=1,N_det
-  duplicate(i) = .False.
- enddo
-
- do i=1,N_det-1
-  if (duplicate(i)) then
-    cycle
-  endif
-  j = i+1
-  do while (bit_tmp(j)==bit_tmp(i))
-    if (duplicate(j)) then
-      j+=1
-      cycle
-    endif
-    duplicate(j) = .True.
-    do k=1,N_int
-      if ( (tmp_array(k,1,i) /= tmp_array(k,1,j)) &
-      .or. (tmp_array(k,2,i) /= tmp_array(k,2,j)) ) then
-         duplicate(j) = .False.
-         exit
-      endif
-    enddo
-    j+=1
-    if (j>N_det) then
-      exit
-    endif
-  enddo
- enddo
-
- N_occ_pattern=0
- do i=1,N_det
-  if (duplicate(i)) then
-    cycle
-  endif
-  N_occ_pattern += 1
-  do k=1,N_int
-    psi_occ_pattern(k,1,N_occ_pattern) = tmp_array(k,1,i)
-    psi_occ_pattern(k,2,N_occ_pattern) = tmp_array(k,2,i)
-  enddo
- enddo
-
- deallocate(iorder,duplicate,bit_tmp,tmp_array)
-! !TODO DEBUG
-! integer :: s
-! do i=1,N_occ_pattern
-!   do j=i+1,N_occ_pattern
-!    s = 0
-!    do k=1,N_int
-!      if((psi_occ_pattern(k,1,j) /= psi_occ_pattern(k,1,i)).or. &
-!         (psi_occ_pattern(k,2,j) /= psi_occ_pattern(k,2,i))) then
-!         s=1
-!         exit
-!      endif
-!    enddo
-!    if ( s == 0 ) then
-!      print *,  'Error : occ ', j, 'already in wf'
-!      call debug_det(psi_occ_pattern(1,1,j),N_int)
-!      stop
-!    endif
-!   enddo
-! enddo
-! !TODO DEBUG
-END_PROVIDER 
-
-
-subroutine read_dets(det,Nint,Ndet)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Reads the determinants from the EZFIO file
-  END_DOC
-  
-  integer, intent(in)            :: Nint,Ndet
-  integer(bit_kind), intent(out) :: det(Nint,2,Ndet)
-  integer*8, allocatable         :: psi_det_read(:,:,:)
-  double precision, allocatable  :: psi_coef_read(:,:)
-  integer*8                      :: det_8(100)
-  integer(bit_kind)              :: det_bk((100*8)/bit_kind)
-  integer                        :: N_int2
-  integer                        :: i,k
-  equivalence (det_8, det_bk)
-  
-  call ezfio_get_determinants_N_int(N_int2)
-  ASSERT (N_int2 == Nint)
-  call ezfio_get_determinants_bit_kind(k)
-  ASSERT (k == bit_kind)
-  
-  N_int2 = (Nint*bit_kind)/8
-  allocate (psi_det_read(N_int2,2,Ndet))
-  call ezfio_get_determinants_psi_det (psi_det_read)
-! print*,'N_int2 = ',N_int2,N_int
-! print*,'k',k,bit_kind
-! print*,'psi_det_read = ',Ndet
-  do i=1,Ndet
-    do k=1,N_int2
-      det_8(k) = psi_det_read(k,1,i)
-    enddo
-    do k=1,Nint
-      det(k,1,i) = det_bk(k)
-    enddo
-    do k=1,N_int2
-      det_8(k) = psi_det_read(k,2,i)
-    enddo
-    do k=1,Nint
-      det(k,2,i) = det_bk(k)
-    enddo
-  enddo
-  deallocate(psi_det_read)
-  
-end
-
 
 BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states_diag) ]
   implicit none
@@ -303,7 +147,7 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states_diag) ]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ double precision, psi_average_norm_contrib, (N_det) ]
+BEGIN_PROVIDER [ double precision, psi_average_norm_contrib, (psi_det_size) ]
  implicit none
  BEGIN_DOC
  ! Contribution of determinants to the state-averaged density
@@ -322,9 +166,143 @@ BEGIN_PROVIDER [ double precision, psi_average_norm_contrib, (N_det) ]
  enddo
 END_PROVIDER
 
- BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted, (N_int,2,N_det) ]
-&BEGIN_PROVIDER [ double precision, psi_coef_sorted, (N_det,N_states) ]
-&BEGIN_PROVIDER [ double precision, psi_average_norm_contrib_sorted, (N_det) ]
+
+
+!==============================================================================!
+!                                                                              !
+!                          Independent alpha/beta parts                        !
+!                                                                              !
+!==============================================================================!
+
+integer*8 function spin_det_search_key(det,Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Return an integer*8 corresponding to a determinant index for searching
+  END_DOC
+  integer, intent(in) :: Nint
+  integer(bit_kind), intent(in) :: det(Nint)
+  integer :: i
+  spin_det_search_key = det(1)
+  do i=2,Nint
+    spin_det_search_key = ieor(spin_det_search_key,det(i))
+  enddo
+end
+
+
+BEGIN_PROVIDER [ integer(bit_kind), psi_det_alpha, (N_int,psi_det_size) ]
+ implicit none
+ BEGIN_DOC
+! List of alpha determinants of psi_det
+ END_DOC
+ integer :: i,k
+
+ do i=1,N_det
+   do k=1,N_int
+     psi_det_alpha(k,i) = psi_det(k,1,i)
+   enddo
+ enddo
+END_PROVIDER
+
+BEGIN_PROVIDER [ integer(bit_kind), psi_det_beta, (N_int,psi_det_size) ]
+ implicit none
+ BEGIN_DOC
+! List of beta determinants of psi_det
+ END_DOC
+ integer :: i,k
+
+ do i=1,N_det
+   do k=1,N_int
+     psi_det_beta(k,i) = psi_det(k,2,i)
+   enddo
+ enddo
+END_PROVIDER
+
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_alpha_unique, (N_int,psi_det_size) ]
+&BEGIN_PROVIDER [ integer, N_det_alpha_unique ]
+ implicit none
+ BEGIN_DOC
+ ! Unique alpha determinants
+ END_DOC
+
+ integer                        :: i,k
+ integer, allocatable           :: iorder(:)
+ integer*8, allocatable         :: bit_tmp(:)
+ integer*8                      :: last_key
+ integer*8, external            :: spin_det_search_key
+
+ allocate ( iorder(N_det), bit_tmp(N_det))
+
+ do i=1,N_det
+   iorder(i) = i
+   bit_tmp(i) = spin_det_search_key(psi_det_alpha(1,i),N_int)
+ enddo
+
+ call i8sort(bit_tmp,iorder,N_det)
+
+ N_det_alpha_unique = 0
+ last_key = 0_8
+ do i=1,N_det
+  if (bit_tmp(i) /= last_key) then
+    last_key = bit_tmp(i)
+    N_det_alpha_unique += 1
+    do k=1,N_int
+      psi_det_alpha_unique(k,N_det_alpha_unique) = psi_det_alpha(k,iorder(i))
+    enddo
+  endif
+ enddo
+
+ deallocate (iorder, bit_tmp)
+END_PROVIDER
+
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_beta_unique, (N_int,psi_det_size) ]
+&BEGIN_PROVIDER [ integer, N_det_beta_unique ]
+ implicit none
+ BEGIN_DOC
+ ! Unique beta determinants
+ END_DOC
+
+ integer                        :: i,k
+ integer, allocatable           :: iorder(:)
+ integer*8, allocatable         :: bit_tmp(:)
+ integer*8                      :: last_key
+ integer*8, external            :: spin_det_search_key
+
+ allocate ( iorder(N_det), bit_tmp(N_det))
+
+ do i=1,N_det
+   iorder(i) = i
+   bit_tmp(i) = spin_det_search_key(psi_det_beta(1,i),N_int)
+ enddo
+
+ call i8sort(bit_tmp,iorder,N_det)
+
+ N_det_beta_unique = 0
+ last_key = 0_8
+ do i=1,N_det
+  if (bit_tmp(i) /= last_key) then
+    last_key = bit_tmp(i)
+    N_det_beta_unique += 1
+    do k=1,N_int
+      psi_det_beta_unique(k,N_det_beta_unique) = psi_det_beta(k,iorder(i))
+    enddo
+  endif
+ enddo
+
+ deallocate (iorder, bit_tmp)
+END_PROVIDER
+
+
+!==============================================================================!
+!                                                                              !
+!                               Sorting providers                              !
+!                                                                              !
+!==============================================================================!
+
+
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted, (N_int,2,psi_det_size) ]
+&BEGIN_PROVIDER [ double precision, psi_coef_sorted, (psi_det_size,N_states) ]
+&BEGIN_PROVIDER [ double precision, psi_average_norm_contrib_sorted, (psi_det_size) ]
  implicit none
  BEGIN_DOC
  ! Wave function sorted by determinants contribution to the norm (state-averaged)
@@ -353,13 +331,14 @@ END_PROVIDER
 
 END_PROVIDER
 
- BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted_bit, (N_int,2,N_det) ]
-&BEGIN_PROVIDER [ double precision, psi_coef_sorted_bit, (N_det,N_states) ]
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted_bit, (N_int,2,psi_det_size) ]
+&BEGIN_PROVIDER [ double precision, psi_coef_sorted_bit, (psi_det_size,N_states) ]
  implicit none
  BEGIN_DOC
  ! Determinants on which we apply <i|H|psi> for perturbation.
- !o They are sorted by determinants interpreted as integers. Useful
- ! to accelerate the search of a determinant
+ ! They are sorted by determinants interpreted as integers. Useful
+ ! to accelerate the search of a random determinant in the wave
+ ! function.
  END_DOC
  integer :: i,j,k
  integer, allocatable ::  iorder(:)
@@ -388,6 +367,253 @@ END_PROVIDER
  deallocate(iorder, bit_tmp)
 
 END_PROVIDER
+
+
+subroutine int_of_3_highest_electrons( det_in, res, Nint )
+  implicit none
+  use bitmasks
+  integer,intent(in)             :: Nint
+  integer(bit_kind)              :: det_in(Nint)
+  integer*8                      :: res
+  BEGIN_DOC
+! Returns an integer*8 as :
+!
+! |_<--- 21 bits ---><--- 21 bits ---><--- 21 bits --->|
+!
+! |0<---   i1    ---><---   i2    ---><---   i3    --->| 
+!
+! It encodes the value of the indices of the 3 highest MOs
+! in descending order
+!
+  END_DOC
+  integer                        :: i, k, icount
+  integer(bit_kind)              :: ix
+  res = 0_8
+  icount = 3
+  do k=Nint,1,-1
+    ix = det_in(k)
+    do while (ix /= 0_bit_kind)
+      i = bit_kind_size-1-leadz(ix)
+      ix = ibclr(ix,i)
+      res = ior(ishft(res, 21), i+ishft(k-1,bit_kind_shift))
+      icount -= 1
+      if (icount == 0) then
+        return
+      endif
+    enddo
+  enddo
+end
+
+subroutine filter_3_highest_electrons( det_in, det_out, Nint )
+  implicit none
+  use bitmasks
+  integer,intent(in)             :: Nint
+  integer(bit_kind)              :: det_in(Nint), det_out(Nint)
+  BEGIN_DOC
+! Returns a determinant with only the 3 highest electrons
+  END_DOC
+  integer                        :: i, k, icount
+  integer(bit_kind)              :: ix
+  det_out = 0_8
+  icount = 3
+  do k=Nint,1,-1
+    ix = det_in(k)
+    do while (ix /= 0_bit_kind)
+      i = bit_kind_size-1-leadz(ix)
+      ix = ibclr(ix,i)
+      det_out(k) = ibset(det_out(k),i)
+      icount -= 1
+      if (icount == 0) then
+        return
+      endif
+    enddo
+  enddo
+end
+      
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted_ab, (N_int,2,psi_det_size) ]
+&BEGIN_PROVIDER [ double precision, psi_coef_sorted_ab, (psi_det_size,N_states) ]
+&BEGIN_PROVIDER [ integer, psi_det_sorted_next_ab, (2,psi_det_size) ]
+ implicit none
+ BEGIN_DOC
+ ! Determinants on which we apply <i|H|j>.
+ ! They are sorted by the 3 highest electrons in the alpha part,
+ ! then by the 3 highest electrons in the beta part to accelerate
+ ! the research of connected determinants.
+ ! next_ab (1) : next alpha
+ ! next_ab (2) : next beta
+ END_DOC
+ 
+ call sort_dets_by_3_highest_electrons(                              &
+     psi_det,                                                        &
+     psi_coef,                                                       &
+     psi_det_sorted_ab,                                              &
+     psi_coef_sorted_ab,                                             &
+     psi_det_sorted_next_ab,                                         &
+     N_det, N_states, N_int,                                         &
+     psi_det_size                     )
+
+END_PROVIDER
+
+subroutine sort_dets_by_3_highest_electrons(det_in,coef_in,det_out,coef_out, &
+  det_next, Ndet, Nstates, Nint, LDA)
+ implicit none
+ integer, intent(in)            :: Ndet, Nstates, Nint, LDA
+ integer(bit_kind), intent(in)  :: det_in   (Nint,2,Ndet)
+ integer(bit_kind), intent(out) :: det_out  (Nint,2,Ndet)
+ integer, intent(out)           :: det_next (2,Ndet)
+ double precision, intent(in)   :: coef_in  (LDA,Nstates)
+ double precision, intent(out)  :: coef_out (LDA,Nstates)
+ BEGIN_DOC
+ ! Determinants on which we apply <i|H|j>.
+ ! They are sorted by the 3 highest electrons in the alpha part,
+ ! then by the 3 highest electrons in the beta part to accelerate
+ ! the research of connected determinants.
+ END_DOC
+ integer                        :: i,j,k
+ integer, allocatable           :: iorder(:)
+ integer*8, allocatable         :: bit_tmp(:)
+ integer*8, external            :: det_search_key
+ 
+ allocate ( iorder(Ndet), bit_tmp(Ndet), coef_tmp(Ndet,Nstates) ) 
+ 
+ ! Sort alpha dets
+ ! ---------------
+ 
+ integer(bit_kind)              :: det_tmp(Nint)
+ double precision, allocatable :: coef_tmp(:,:) 
+
+ do i=1,Ndet
+   iorder(i) = i
+   call int_of_3_highest_electrons(psi_det(1,1,i),bit_tmp(i),Nint)
+ enddo
+ call i8sort(bit_tmp,iorder,Ndet)
+ !DIR$ IVDEP
+ do i=1,Ndet
+   do j=1,Nint
+     det_out(j,1,i) = psi_det(j,1,iorder(i))
+     det_out(j,2,i) = psi_det(j,2,iorder(i))
+   enddo
+   do k=1,Nstates
+     coef_tmp(i,k) = psi_coef(iorder(i),k)
+   enddo
+ enddo
+ 
+ ! Find next alpha
+ ! ---------------
+
+ integer                        :: next
+
+ next = Ndet+1
+ i = N_det
+ det_next(1,i) = next
+ do i=Ndet-1,1,-1
+  if (bit_tmp(i) /= bit_tmp(i+1)) then
+    next = i+1
+  endif
+  det_next(1,i) = next
+ enddo
+
+ ! Sort beta dets
+ ! --------------
+
+ integer :: istart, iend
+ integer(bit_kind), allocatable :: det_sorted_temp (:,:,:) 
+
+
+ allocate ( det_sorted_temp (Nint,2,Ndet) )
+ istart=1
+
+ do while ( istart<=Ndet )
+ 
+   iend = det_next(1,istart)
+   do i=istart,iend-1
+     do j=1,Nint
+       det_sorted_temp(j,1,i) = det_out(j,1,i)
+       det_sorted_temp(j,2,i) = det_out(j,2,i)
+     enddo
+     iorder(i) = i
+     call int_of_3_highest_electrons(det_sorted_temp(1,2,i),bit_tmp(i),Nint)
+   enddo
+
+   call i8sort(bit_tmp(istart),iorder(istart),iend-istart)
+   !DIR$ IVDEP
+   do i=istart,iend-1
+     do j=1,Nint
+       det_out(j,1,i) = det_sorted_temp(j,1,iorder(i))
+       det_out(j,2,i) = det_sorted_temp(j,2,iorder(i))
+     enddo
+     do k=1,Nstates
+       coef_out(i,k) = coef_tmp(iorder(i),k)
+     enddo
+   enddo
+
+   next = iend
+   det_next(2,iend-1) = next
+   do i=iend-2,1,-1
+    if (bit_tmp(i) /= bit_tmp(i+1)) then
+      next = i+1
+    endif
+    det_next(2,i) = next
+   enddo
+
+   istart = iend
+ enddo
+
+ deallocate(iorder, bit_tmp, det_sorted_temp)
+
+end
+
+!==============================================================================!
+!                                                                              !
+!                             Read/write routines                              !
+!                                                                              !
+!==============================================================================!
+
+subroutine read_dets(det,Nint,Ndet)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Reads the determinants from the EZFIO file
+  END_DOC
+  
+  integer, intent(in)            :: Nint,Ndet
+  integer(bit_kind), intent(out) :: det(Nint,2,Ndet)
+  integer*8, allocatable         :: psi_det_read(:,:,:)
+  double precision, allocatable  :: psi_coef_read(:,:)
+  integer*8                      :: det_8(100)
+  integer(bit_kind)              :: det_bk((100*8)/bit_kind)
+  integer                        :: N_int2
+  integer                        :: i,k
+  equivalence (det_8, det_bk)
+  
+  call ezfio_get_determinants_N_int(N_int2)
+  ASSERT (N_int2 == Nint)
+  call ezfio_get_determinants_bit_kind(k)
+  ASSERT (k == bit_kind)
+  
+  N_int2 = (Nint*bit_kind)/8
+  allocate (psi_det_read(N_int2,2,Ndet))
+  call ezfio_get_determinants_psi_det (psi_det_read)
+! print*,'N_int2 = ',N_int2,N_int
+! print*,'k',k,bit_kind
+! print*,'psi_det_read = ',Ndet
+  do i=1,Ndet
+    do k=1,N_int2
+      det_8(k) = psi_det_read(k,1,i)
+    enddo
+    do k=1,Nint
+      det(k,1,i) = det_bk(k)
+    enddo
+    do k=1,N_int2
+      det_8(k) = psi_det_read(k,2,i)
+    enddo
+    do k=1,Nint
+      det(k,2,i) = det_bk(k)
+    enddo
+  enddo
+  deallocate(psi_det_read)
+  
+end
 
 
 subroutine save_wavefunction
@@ -472,3 +698,6 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,psicoef)
   call stop_progress
   deallocate (psi_coef_save)
 end
+
+
+

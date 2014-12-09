@@ -42,15 +42,25 @@ END_PROVIDER
   END_DOC
   integer                        :: i,j
   
+  do i=1,N_det
+    do j=1,N_int
+      psi_det(j,1,i)  = psi_det_sorted_ab(j,1,i)
+      psi_det(j,2,i)  = psi_det_sorted_ab(j,2,i)
+    enddo
+  enddo
+
   do j=1,N_states_diag
     do i=1,N_det
+      psi_coef(i,j) = psi_coef_sorted_ab(i,j)
       CI_eigenvectors(i,j) = psi_coef(i,j)
     enddo
   enddo
+  SOFT_TOUCH psi_det psi_coef
   
   if (diag_algorithm == "Davidson") then
     
-    call davidson_diag(psi_det,CI_eigenvectors,CI_electronic_energy, &
+    call davidson_diag(psi_det,CI_eigenvectors,psi_det_sorted_next_ab, &
+        CI_electronic_energy, &
         size(CI_eigenvectors,1),N_det,N_states_diag,N_int,output_Dets)
     
   else if (diag_algorithm == "Lapack") then
