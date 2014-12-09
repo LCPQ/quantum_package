@@ -52,6 +52,8 @@ let read_one in_channel =
       match buffer with
       | [ j ; expo ; coef ] ->
         begin
+          let coef = String.tr ~target:'D' ~replacement:'e' coef
+          in
           let p =
             Primitive.of_sym_expo sym 
               (AO_expo.of_float (Float.of_string expo) )
