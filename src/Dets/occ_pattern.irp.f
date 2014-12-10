@@ -207,7 +207,7 @@ end
       endif
     enddo
     j+=1
-    if (j>=N_det) then
+    if (j>N_det) then
       exit
     endif
   enddo
