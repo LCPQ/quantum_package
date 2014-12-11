@@ -148,7 +148,7 @@ let run ?o b c m xyz_file =
            let alt_channel = basis_channel x.Atom.element in
            Basis.read_element alt_channel i x.Atom.element 
          end
-       | _ -> assert false
+       | x -> raise x
        ) 
     |> List.concat
     in
