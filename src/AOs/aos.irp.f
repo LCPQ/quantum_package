@@ -159,3 +159,12 @@ BEGIN_PROVIDER [ integer, ao_nucl, (ao_num)]
  call ezfio_get_ao_basis_ao_nucl(ao_nucl)
 END_PROVIDER
 
+BEGIN_PROVIDER [ character*(32), ao_md5 ]
+ BEGIN_DOC
+! MD5 key characteristic of the AO basis
+ END_DOC
+ implicit none
+ PROVIDE ezfio_filename
+ call ezfio_get_ao_basis_ao_md5(ao_md5)
+END_PROVIDER
+

@@ -92,22 +92,6 @@ end = struct
     |> Array.map ~f:AO_expo.of_float
   ;;
 
-  let read () =
-    if (Ezfio.has_ao_basis_ao_basis ()) then
-      Some
-      { ao_basis        = read_ao_basis ();
-        ao_num          = read_ao_num () ;
-        ao_prim_num     = read_ao_prim_num ();
-        ao_prim_num_max = read_ao_prim_num_max ();
-        ao_nucl         = read_ao_nucl ();
-        ao_power        = read_ao_power ();
-        ao_coef         = read_ao_coef () ;
-        ao_expo         = read_ao_expo () ;
-      }
-    else
-      None
-  ;;
-    
   let to_long_basis b =
     let ao_num = AO_number.to_int b.ao_num in
     let gto_array = Array.init (AO_number.to_int b.ao_num)
@@ -137,12 +121,41 @@ end = struct
       (Array.to_list gto_array)
       (Array.to_list b.ao_nucl)
   ;;
-
   let to_basis b =
     to_long_basis b
     |> Long_basis.to_basis
   ;;
       
+  let to_md5 b =
+    let short_basis = to_basis b in
+    Basis.to_md5 short_basis
+  ;;
+    
+
+  let read () =
+    if (Ezfio.has_ao_basis_ao_basis ()) then
+      begin
+        let result = 
+          { ao_basis        = read_ao_basis ();
+            ao_num          = read_ao_num () ;
+            ao_prim_num     = read_ao_prim_num ();
+            ao_prim_num_max = read_ao_prim_num_max ();
+            ao_nucl         = read_ao_nucl ();
+            ao_power        = read_ao_power ();
+            ao_coef         = read_ao_coef () ;
+            ao_expo         = read_ao_expo () ;
+          }
+        in
+        to_md5 result
+        |> MD5.to_string
+        |> Ezfio.set_ao_basis_ao_md5 ;
+        Some result
+      end
+    else
+      None
+  ;;
+    
+
   let to_rst b =
     let print_sym = 
       let l = List.init (Array.length b.ao_power) ~f:(
@@ -198,11 +211,6 @@ Basis set ::
     extract_basis s
   ;;
 
-  let to_md5 b =
-    let short_basis = to_basis b in
-    Basis.to_md5 short_basis
-  ;;
-    
   let to_string b =
     Printf.sprintf "
 ao_basis        = %s

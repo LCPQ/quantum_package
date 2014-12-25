@@ -159,6 +159,7 @@ let run ezfio_filename =
       Hartree_fock ;
       Cisd_sc2 ;
       Full_ci ;
+      Mo_basis;
       Determinants ;
   ]
   in

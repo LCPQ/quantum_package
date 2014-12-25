@@ -20,13 +20,13 @@ let to_string = function
 ;;
 
 let of_string  s = 
-  match String.lowercase s with 
+  match String.lowercase (String.strip s) with 
   | "guess"     -> Guess
   | "canonical" -> Canonical
   | "natural"   -> Natural
   | "localized" -> Localized
   | "orthonormalized" -> Orthonormalized
   | "none"      -> None
-  | _ -> failwith "MO_label should be one of:
-    Guess | Orthonormalized | Canonical | Natural | Localized | None."
+  | _ -> (print_endline s ; failwith "MO_label should be one of:
+Guess | Orthonormalized | Canonical | Natural | Localized | None.")
 ;;

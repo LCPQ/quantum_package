@@ -22,7 +22,7 @@ determinants
   threshold_generators       0.99
   threshold_selectors        0.999
   read_wf                    False
-  s2_eig                     True
+  s2_eig                     False
 
 full_ci
   n_det_max_fci              10000
