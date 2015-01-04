@@ -39,14 +39,7 @@ END_PROVIDER
   logical                        :: exists
   PROVIDE ezfio_filename
   
-  !Label
-  call ezfio_has_mo_basis_mo_label(exists)
-  if (exists) then
-    call ezfio_get_mo_basis_mo_label(mo_label)
-  else
-    mo_label = 'no_label'
-  endif
-  
+
   ! Coefs
   call ezfio_has_mo_basis_mo_coef(exists)
   if (exists) then
@@ -62,8 +55,15 @@ END_PROVIDER
       enddo
     enddo
     deallocate(buffer)
+    call ezfio_has_mo_basis_mo_label(exists)
+    if (exists) then
+      call ezfio_get_mo_basis_mo_label(mo_label)
+    else
+      mo_label = 'no_label'
+    endif
   else
-    mo_coef = 0.d0
+    ! Orthonormalized AO basis
+    mo_coef = 0.
   endif
   
 END_PROVIDER
