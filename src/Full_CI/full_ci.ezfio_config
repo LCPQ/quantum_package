@@ -1,4 +1,6 @@
 full_ci
-  n_det_max_fci integer 
-  pt2_max double precision
-  do_pt2_end logical
+  n_det_max_fci  integer 
+  pt2_max        double precision
+  do_pt2_end     logical
+  energy         double precision
+  energy_pt2     double precision

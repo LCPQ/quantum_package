@@ -1,5 +1,7 @@
 # Check if QPACKAGE_ROOT is defined
 
+.NOPARALLEL:
+
 ifndef QPACKAGE_ROOT
 $(info  -------------------- Error --------------------)
 $(info  QPACKAGE_ROOT undefined. Source the quantum_package.rc script)

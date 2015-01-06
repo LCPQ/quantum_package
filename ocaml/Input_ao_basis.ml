@@ -16,6 +16,7 @@ module Ao_basis : sig
   ;;
   val read : unit -> t option
   val to_string : t -> string
+  val write  : t -> unit
   val to_md5 : t -> MD5.t
   val to_rst : t -> Rst_string.t
 end = struct
@@ -131,6 +132,34 @@ end = struct
     Basis.to_md5 short_basis
   ;;
     
+
+ 
+  let write_md5 b =
+    to_md5 b
+    |> MD5.to_string 
+    |> Ezfio.set_ao_basis_ao_md5 
+  ;;
+
+  let write_ao_basis name =
+    AO_basis_name.to_string name
+    |> Ezfio.set_ao_basis_ao_basis
+  ;;
+
+  let write b =
+   let { ao_basis        ;
+         ao_num          ;
+         ao_prim_num     ;
+         ao_prim_num_max ;
+         ao_nucl         ;
+         ao_power        ;
+         ao_coef         ;
+         ao_expo         ;
+       } = b
+     in
+     write_md5 b ;
+     write_ao_basis ao_basis;
+  ;;
+
 
   let read () =
     if (Ezfio.has_ao_basis_ao_basis ()) then

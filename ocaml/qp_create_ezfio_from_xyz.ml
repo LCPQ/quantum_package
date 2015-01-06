@@ -214,6 +214,12 @@ let run ?o b c m xyz_file =
   ~rank:2 ~dim:[| ao_num ; ao_prim_num_max |] ~data:ao_coef) ;
   Ezfio.set_ao_basis_ao_expo(Ezfio.ezfio_array_of_list
   ~rank:2 ~dim:[| ao_num ; ao_prim_num_max |] ~data:ao_expo) ;
+
+  
+  match Input.Ao_basis.read () with
+  | None -> failwith "Error in basis"
+  | Some x -> Input.Ao_basis.write x
+ 
 ;;
 
 let command = 

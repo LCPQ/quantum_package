@@ -97,6 +97,8 @@ let input_data = "
 
 * MD5 : string
   assert ((String.length x) = 32);
+  assert (String.fold x ~init:true ~f:(fun accu x ->
+     accu && (x < 'g')));
 
 * Rst_string : string
 
