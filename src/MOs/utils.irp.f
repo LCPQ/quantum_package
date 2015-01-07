@@ -38,7 +38,90 @@ subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label)
   mo_coef_new = mo_coef
   
   call lapack_diag(eigvalues,R,matrix,size(matrix,1),size(matrix,2))
+  do i = 1, mo_tot_num
+   print*,R(i,4)
+  enddo
   integer :: i
+  write (output_mos,'(A)'), 'MOs are now **'//trim(label)//'**'
+  write (output_mos,'(A)'), ''
+  write (output_mos,'(A)'), 'Eigenvalues'
+  write (output_mos,'(A)'), '-----------'
+  write (output_mos,'(A)'), ''
+  write (output_mos,'(A)'), '======== ================'
+  do i = 1, m
+   write (output_mos,'(I8,X,F16.10)'), i,eigvalues(i)
+  enddo
+  write (output_mos,'(A)'), '======== ================'
+  write (output_mos,'(A)'), ''
+  
+  call dgemm('N','N',ao_num,m,m,1.d0,mo_coef_new,size(mo_coef_new,1),R,size(R,1),0.d0,mo_coef,size(mo_coef,1))
+  deallocate(mo_coef_new,R,eigvalues)
+  call write_time(output_mos)
+  
+  mo_label = label
+  SOFT_TOUCH mo_coef mo_label
+end
+subroutine mo_as_eigvectors_of_mo_matrix_sort_by_observable(matrix,observable,n,m,label)
+  implicit none
+  integer,intent(in)             :: n,m
+  character*(64), intent(in)     :: label
+  double precision, intent(in)   :: matrix(n,m),observable(n,n)
+  
+  double precision, allocatable  :: mo_coef_new(:,:), R(:,:),eigvalues(:),value(:)
+  integer,allocatable :: iorder(:)
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: mo_coef_new, R
+  
+  call write_time(output_mos)
+  if (m /= mo_tot_num) then
+    print *, irp_here, ': Error : m/= mo_tot_num'
+    stop 1
+  endif
+  allocate(R(n,m),mo_coef_new(ao_num_align,m),eigvalues(m),value(m),iorder(m))
+  mo_coef_new = mo_coef
+  
+  call lapack_diag(eigvalues,R,matrix,size(matrix,1),size(matrix,2))
+
+  do i = 1, mo_tot_num
+   value(i) = 0.d0
+   iorder(i) = i
+   do j = 1, mo_tot_num
+    do k = 1, mo_tot_num
+     value(i) += R(k,i) * R(j,i) * observable(k,j)
+    enddo
+   enddo
+!  print*,'value(i) = ',i,value(i)
+  enddo
+  integer :: i,j,k,index
+  double precision :: R_tmp(m,m),obs(m)
+  print*,'sort ....'
+  call dsort(value,iorder,n)
+  do i = 1, mo_tot_num
+   index = iorder(i)
+!  print*,'iorder(i) = ',iorder(i)
+   obs(i) = eigvalues(iorder(i))
+   do j = 1, mo_tot_num
+    R_tmp(j,i) = R(j,index)
+   enddo
+  enddo
+  do i = 1, mo_tot_num
+   do j = 1, mo_tot_num
+    R(j,i) = R_tmp(j,i)
+   enddo
+  enddo
+
+  do i = 1, mo_tot_num
+   value(i) = 0.d0
+   do j = 1, mo_tot_num
+    do k = 1, mo_tot_num
+     value(i) += R(k,i) * R(j,i) * observable(k,j)
+    enddo
+   enddo
+   print*,'i = ',i
+   print*,'value(i) = ',value(i)
+   print*,'obs(i)   = ',obs(i)
+   print*,''
+  enddo
+
   write (output_mos,'(A)'), 'MOs are now **'//trim(label)//'**'
   write (output_mos,'(A)'), ''
   write (output_mos,'(A)'), 'Eigenvalues'

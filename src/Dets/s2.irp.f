@@ -64,6 +64,20 @@ BEGIN_PROVIDER [ double precision, expected_s2]
 
 END_PROVIDER 
 
+BEGIN_PROVIDER [ double precision, s2_values, (N_states) ]
+ implicit none
+ BEGIN_DOC
+! array of the averaged values of the S^2 operator on the various states
+ END_DOC
+ integer :: i
+ double precision :: s2
+ do i = 1, N_states
+  call get_s2_u0(psi_det,psi_coef(1,i),n_det,psi_det_size,s2)
+  s2_values(i) = s2
+ enddo
+
+END_PROVIDER
+
 
 subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
  implicit none
