@@ -7,6 +7,7 @@ subroutine save_mos
   
   call ezfio_set_mo_basis_mo_tot_num(mo_tot_num)
   call ezfio_set_mo_basis_mo_label(mo_label)
+  call ezfio_set_mo_basis_ao_md5(ao_md5)
   allocate ( buffer(ao_num,mo_tot_num) )
   buffer = 0.d0
   do j = 1, mo_tot_num

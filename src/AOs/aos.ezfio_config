@@ -7,5 +7,6 @@ ao_basis
   ao_prim_num_max    integer       = maxval(ao_basis_ao_prim_num)
   ao_coef            double precision (ao_basis_ao_num,ao_basis_ao_prim_num_max)
   ao_expo            double precision (ao_basis_ao_num,ao_basis_ao_prim_num_max)
+  ao_md5             character*(32)
 
 

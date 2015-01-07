@@ -8,9 +8,10 @@ module Mo_basis : sig
       mo_label        : MO_label.t;
       mo_occ          : MO_occ.t array;
       mo_coef         : (MO_coef.t array) array;
+      ao_md5          : MD5.t;
     } with sexp
   ;;
-  val read : unit -> t
+  val read : unit -> t option
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
 end = struct
@@ -19,6 +20,7 @@ end = struct
       mo_label        : MO_label.t;
       mo_occ          : MO_occ.t array;
       mo_coef         : (MO_coef.t array) array;
+      ao_md5          : MD5.t;
     } with sexp
   ;;
 
@@ -30,6 +32,26 @@ end = struct
     ;
     Ezfio.get_mo_basis_mo_label ()
     |> MO_label.of_string
+  ;;
+
+  let read_ao_md5 () = 
+    let ao_md5 = 
+      match (Input_ao_basis.Ao_basis.read ()) with
+      | None -> failwith "Unable to read AO basis"
+      | Some result -> Input_ao_basis.Ao_basis.to_md5 result
+    in
+    let result = 
+      if not (Ezfio.has_mo_basis_ao_md5 ()) then
+        begin
+          MD5.to_string ao_md5
+          |> Ezfio.set_mo_basis_ao_md5 
+        end;
+      Ezfio.get_mo_basis_ao_md5 ()
+      |> MD5.of_string
+    in
+    if (ao_md5 <> result) then
+      failwith "The current MOs don't correspond to the current AOs.";
+    result
   ;;
 
   let read_mo_tot_num () =
@@ -68,11 +90,16 @@ end = struct
   ;;
 
   let read () =
-    { mo_tot_num      = read_mo_tot_num ();
-      mo_label        = read_mo_label () ;
-      mo_occ          = read_mo_occ ();
-      mo_coef         = read_mo_coef ();
-    }
+    if (Ezfio.has_mo_basis_mo_tot_num ()) then
+      Some
+      { mo_tot_num      = read_mo_tot_num ();
+        mo_label        = read_mo_label () ;
+        mo_occ          = read_mo_occ ();
+        mo_coef         = read_mo_coef ();
+        ao_md5          = read_ao_md5 ();
+      }
+    else
+      None
   ;;
 
   let mo_coef_to_string mo_coef =

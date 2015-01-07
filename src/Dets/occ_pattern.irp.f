@@ -1,3 +1,4 @@
+use bitmasks
 subroutine det_to_occ_pattern(d,o,Nint)
   use bitmasks
   implicit none
@@ -137,4 +138,113 @@ recursive subroutine  rec_occ_pattern_to_dets(list_todo,nt,list_a,na,d,nd,sze,am
   endif
 
 end
+
+ BEGIN_PROVIDER [ integer(bit_kind), psi_occ_pattern, (N_int,2,psi_det_size) ]
+&BEGIN_PROVIDER [ integer, N_occ_pattern ]
+ implicit none
+ BEGIN_DOC
+  ! array of the occ_pattern present in the wf
+  ! psi_occ_pattern(:,1,j) = jth occ_pattern of the wave function : represent all the single occupation
+  ! psi_occ_pattern(:,2,j) = jth occ_pattern of the wave function : represent all the double occupation
+ END_DOC
+ integer :: i,j,k
+
+ ! create
+ do i = 1, N_det
+  do k = 1, N_int
+   psi_occ_pattern(k,1,i) = ieor(psi_det(k,1,i),psi_det(k,2,i))
+   psi_occ_pattern(k,2,i) = iand(psi_det(k,1,i),psi_det(k,2,i))
+  enddo
+ enddo
+
+ ! Sort
+ integer, allocatable           :: iorder(:)
+ integer*8, allocatable         :: bit_tmp(:)
+ integer*8, external            :: occ_pattern_search_key
+ integer(bit_kind), allocatable :: tmp_array(:,:,:)
+ logical,allocatable            :: duplicate(:)
+
+
+ allocate ( iorder(N_det), duplicate(N_det), bit_tmp(N_det), tmp_array(N_int,2,psi_det_size) )
+
+ do i=1,N_det
+   iorder(i) = i
+   !$DIR FORCEINLINE
+   bit_tmp(i) = occ_pattern_search_key(psi_occ_pattern(1,1,i),N_int)
+ enddo
+ call i8sort(bit_tmp,iorder,N_det)
+ !DIR$ IVDEP
+ do i=1,N_det
+  do k=1,N_int
+    tmp_array(k,1,i) = psi_occ_pattern(k,1,iorder(i))
+    tmp_array(k,2,i) = psi_occ_pattern(k,2,iorder(i))
+  enddo
+  duplicate(i) = .False.
+ enddo
+
+ i=1
+ integer (bit_kind) :: occ_pattern_tmp
+ do i=1,N_det
+  duplicate(i) = .False.
+ enddo
+
+ do i=1,N_det-1
+  if (duplicate(i)) then
+    cycle
+  endif
+  j = i+1
+  do while (bit_tmp(j)==bit_tmp(i))
+    if (duplicate(j)) then
+      j+=1
+      cycle
+    endif
+    duplicate(j) = .True.
+    do k=1,N_int
+      if ( (tmp_array(k,1,i) /= tmp_array(k,1,j)) &
+      .or. (tmp_array(k,2,i) /= tmp_array(k,2,j)) ) then
+         duplicate(j) = .False.
+         exit
+      endif
+    enddo
+    j+=1
+    if (j>N_det) then
+      exit
+    endif
+  enddo
+ enddo
+
+ N_occ_pattern=0
+ do i=1,N_det
+  if (duplicate(i)) then
+    cycle
+  endif
+  N_occ_pattern += 1
+  do k=1,N_int
+    psi_occ_pattern(k,1,N_occ_pattern) = tmp_array(k,1,i)
+    psi_occ_pattern(k,2,N_occ_pattern) = tmp_array(k,2,i)
+  enddo
+ enddo
+
+ deallocate(iorder,duplicate,bit_tmp,tmp_array)
+! !TODO DEBUG
+! integer :: s
+! do i=1,N_occ_pattern
+!   do j=i+1,N_occ_pattern
+!    s = 0
+!    do k=1,N_int
+!      if((psi_occ_pattern(k,1,j) /= psi_occ_pattern(k,1,i)).or. &
+!         (psi_occ_pattern(k,2,j) /= psi_occ_pattern(k,2,i))) then
+!         s=1
+!         exit
+!      endif
+!    enddo
+!    if ( s == 0 ) then
+!      print *,  'Error : occ ', j, 'already in wf'
+!      call debug_det(psi_occ_pattern(1,1,j),N_int)
+!      stop
+!    endif
+!   enddo
+! enddo
+! !TODO DEBUG
+END_PROVIDER 
 

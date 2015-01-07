@@ -43,73 +43,93 @@ let make_header kw =
 ;;
 
 let get s = 
-  let header = (make_header s) 
-  and rst = let open Input in
-  match s with
-  | Full_ci ->
-    Full_ci.(to_rst (read ()))
-  | Hartree_fock ->
-    Hartree_fock.(to_rst (read ()))
-  | Mo_basis ->
-    Mo_basis.(to_rst (read ()))
-  | Electrons ->
-    Electrons.(to_rst (read ()))
-  | Determinants ->
-    Determinants.(to_rst (read ()))
-  | Cisd_sc2 ->
-    Cisd_sc2.(to_rst (read ()))
-  | Nuclei ->
-    Nuclei.(to_rst (read ()))
-  | Ao_basis ->
-    Ao_basis.(to_rst (read ()))
-  | Bielec_integrals -> 
-    Bielec_integrals.(to_rst (read ()))
- 
-  in header^(Rst_string.to_string rst)
+  let header = (make_header s) in
+  let f (read,to_rst) = 
+    match read () with
+    | Some text -> header ^ (Rst_string.to_string (to_rst text))
+    | None      -> ""
+  in
+  let rst = 
+    try
+      begin
+         let open Input in
+         match s with
+         | Full_ci ->
+           f Full_ci.(read, to_rst)
+         | Hartree_fock ->
+           f Hartree_fock.(read, to_rst)
+         | Mo_basis ->
+           f Mo_basis.(read, to_rst)
+         | Electrons ->
+           f Electrons.(read, to_rst)
+         | Cisd_sc2 ->
+           f Cisd_sc2.(read, to_rst)
+         | Nuclei ->
+           f Nuclei.(read, to_rst)
+         | Ao_basis ->
+           f Ao_basis.(read, to_rst)
+         | Bielec_integrals -> 
+           f Bielec_integrals.(read, to_rst)
+         | Determinants ->
+           f Determinants.(read, to_rst)
+      end
+    with
+    | Sys_error msg -> (Printf.eprintf "Info: %s\n%!" msg ; "")
+  in 
+  rst
 ;;
 
 let set str s = 
   let header = (make_header s) in
-  let index_begin = String.substr_index_exn ~pos:0 ~pattern:header str in
-  let index_begin = index_begin + (String.length header) in
-  let index_end   = 
-    match ( String.substr_index ~pos:(index_begin+(String.length header)+1)
-      ~pattern:"==" str) with
-      | Some i -> i
-      | None -> String.length str
-  in
-  let l = index_end - index_begin in
-  let str = String.sub ~pos:index_begin ~len:l str
-  |> Rst_string.of_string
-  in
-  let write (of_rst,w) =
-    match of_rst str with
-    | Some data -> w data
-    | None -> ()
-  in
-  let open Input in
-    match s with
-    | Hartree_fock     -> write Hartree_fock.(of_rst, write)
-    | Full_ci          -> write Full_ci.(of_rst, write)
-    | Electrons        -> write Electrons.(of_rst, write)
-    | Cisd_sc2         -> write Cisd_sc2.(of_rst, write)
-    | Bielec_integrals -> write Bielec_integrals.(of_rst, write)
-    | Determinants     -> write Determinants.(of_rst, write)
-    | Nuclei           -> write Nuclei.(of_rst, write)
-    | Ao_basis         -> () (* TODO *)
-    | Mo_basis         -> () (* TODO *)
- 
+  match String.substr_index ~pos:0 ~pattern:header str with
+  | None -> ()
+  | Some idx -> 
+    begin
+      let index_begin = idx + (String.length header) in
+      let index_end   = 
+        match ( String.substr_index ~pos:(index_begin+(String.length header)+1)
+          ~pattern:"==" str) with
+          | Some i -> i
+          | None -> String.length str
+      in
+      let l = index_end - index_begin in
+      let str = String.sub ~pos:index_begin ~len:l str
+      |> Rst_string.of_string
+      in
+      let write (of_rst,w) s =
+        try
+        match of_rst str with
+        | Some data -> w data
+        | None -> ()
+        with
+        | _ -> (Printf.eprintf "Info: Read error in %s\n%!"
+               (keyword_to_string s))
+      in
+      let open Input in
+        match s with
+        | Hartree_fock     -> write Hartree_fock.(of_rst, write) s
+        | Full_ci          -> write Full_ci.(of_rst, write) s
+        | Electrons        -> write Electrons.(of_rst, write) s
+        | Cisd_sc2         -> write Cisd_sc2.(of_rst, write) s
+        | Bielec_integrals -> write Bielec_integrals.(of_rst, write) s
+        | Determinants     -> write Determinants.(of_rst, write) s
+        | Nuclei           -> write Nuclei.(of_rst, write) s
+        | Ao_basis         -> () (* TODO *)
+        | Mo_basis         -> () (* TODO *)
+    end 
 ;;
 
 
 let create_temp_file ezfio_filename fields =
   let temp_filename  = Filename.temp_file "qp_edit_" ".rst" in
-  Out_channel.with_file temp_filename ~f:(fun out_channel ->
-    (file_header ezfio_filename) :: (List.map ~f:get fields) 
-    |> String.concat ~sep:"\n" 
-    |> Out_channel.output_string out_channel 
-  );
-  temp_filename
+  begin
+      Out_channel.with_file temp_filename ~f:(fun out_channel ->
+        (file_header ezfio_filename) :: (List.map ~f:get fields) 
+        |> String.concat ~sep:"\n" 
+        |> Out_channel.output_string out_channel 
+      )
+  end
+  ; temp_filename
 ;;
 
 let run ezfio_filename =
@@ -133,11 +153,13 @@ let run ezfio_filename =
   
   let tasks = [
       Nuclei ;
+      Ao_basis;
       Electrons ;
       Bielec_integrals ;
       Hartree_fock ;
       Cisd_sc2 ;
       Full_ci ;
+      Mo_basis;
       Determinants ;
   ]
   in

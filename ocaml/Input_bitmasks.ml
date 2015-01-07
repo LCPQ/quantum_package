@@ -10,7 +10,7 @@ module Bitmasks : sig
       generators         : int64 array;
     } with sexp
   ;;
-  val read : unit -> t
+  val read : unit -> t option 
   val to_string : t -> string
 end = struct
   type t = 
@@ -77,11 +77,15 @@ end = struct
   ;;
 
   let read () = 
-    { n_int              = read_n_int ();
-      bit_kind           = read_bit_kind ();
-      n_mask_gen         = read_n_mask_gen ();
-      generators         = read_generators ();
-    }
+    if (Ezfio.has_mo_basis_mo_tot_num ()) then
+      Some
+      { n_int              = read_n_int ();
+        bit_kind           = read_bit_kind ();
+        n_mask_gen         = read_n_mask_gen ();
+        generators         = read_generators ();
+      }
+    else
+      None
   ;;
 
   let to_string b =

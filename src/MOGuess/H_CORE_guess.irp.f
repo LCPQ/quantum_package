@@ -5,7 +5,7 @@ program H_CORE_guess
   TOUCH mo_coef
   label = "Guess"
   call mo_as_eigvectors_of_mo_matrix(mo_mono_elec_integral,size(mo_mono_elec_integral,1),size(mo_mono_elec_integral,2),label)
+  print *,  'save mos'
   call save_mos
-  
   
 end

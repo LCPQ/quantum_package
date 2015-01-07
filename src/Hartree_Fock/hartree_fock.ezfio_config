@@ -1,4 +1,5 @@
 hartree_fock
   thresh_scf       double precision
   n_it_scf_max     integer
+  energy           double precision
 

@@ -26,23 +26,33 @@
 
    lwork = -1
    liwork = -1
+
    call dsygvd(1,'v','u',ao_num,F,size(F,1),S,size(S,1),&
      diagonal_Fock_matrix_mo, work, lwork, iwork, liwork, info)
+!    call dsygv(1, 'v', 'u',ao_num,F,size(F,1),S,size(S,1),&
+!     diagonal_Fock_matrix_mo, work, lwork, info)
+
+
 
    if (info /= 0) then
-     print *,  irp_here//' failed'
+     print *,  irp_here//' failed : ', info
      stop 1
    endif
    lwork = int(work(1))
    liwork = iwork(1)
    deallocate(work,iwork)
    allocate(work(lwork), iwork(liwork) )
+!   deallocate(work)
+!   allocate(work(lwork))
 
    call dsygvd(1,'v','u',ao_num,F,size(F,1),S,size(S,1),&
      diagonal_Fock_matrix_mo, work, lwork, iwork, liwork, info)
 
+!    call dsygv(1, 'v', 'u',ao_num,F,size(F,1),S,size(S,1),&
+!     diagonal_Fock_matrix_mo, work, lwork, info)
+
    if (info /= 0) then
-     print *,  irp_here//' failed'
+     print *,  irp_here//' failed : ', info
      stop 1
    endif
    do j=1,mo_tot_num

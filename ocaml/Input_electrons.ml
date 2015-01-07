@@ -8,7 +8,7 @@ module Electrons : sig
       elec_beta_num      : Elec_beta_number.t;
     } with sexp
   ;;
-  val read  : unit -> t
+  val read  : unit -> t option
   val write : t -> unit
   val read_elec_num : unit -> Elec_number.t
   val to_string : t -> string
@@ -53,9 +53,13 @@ end = struct
 
 
   let read () = 
-    { elec_alpha_num      = read_elec_alpha_num ();
-      elec_beta_num       = read_elec_beta_num ();
-    }
+    if (Ezfio.has_electrons_elec_alpha_num ()) then
+      Some
+      { elec_alpha_num      = read_elec_alpha_num ();
+        elec_beta_num       = read_elec_beta_num ();
+      }
+    else
+      None
   ;;
 
   let write { elec_alpha_num ; elec_beta_num } =

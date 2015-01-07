@@ -2,7 +2,9 @@ open Qptypes;;
 
 let test_ao () =
   Ezfio.set_file "F2.ezfio" ;
-  let b = Input.Ao_basis.read ()
+  let b = match Input.Ao_basis.read () with
+  | Some x -> x
+  | None   -> assert false
   in
   print_endline (Input.Ao_basis.to_string b);
   print_endline (Input.Ao_basis.to_rst b |> Rst_string.to_string);
@@ -10,7 +12,9 @@ let test_ao () =
 
 let test_bielec_intergals () =
   Ezfio.set_file "F2.ezfio" ;
-  let b = Input.Bielec_integrals.read ()
+  let b = match Input.Bielec_integrals.read () with
+  | Some x -> x
+  | None   -> assert false
   in
   let output = Input.Bielec_integrals.to_string b
   in
@@ -28,21 +32,27 @@ let test_bielec_intergals () =
 
 let test_bitmasks () =
   Ezfio.set_file "F2.ezfio" ;
-  let b = Input.Bitmasks.read ()
+  let b = match Input.Bitmasks.read () with
+  | Some x -> x
+  | None   -> assert false
   in
   print_endline (Input.Bitmasks.to_string b);
 ;;
 
 let test_cis () =
   Ezfio.set_file "F2.ezfio" ;
-  let b = Input.Cis_dressed.read ()
+  let b = match Input.Cis_dressed.read () with
+  | Some x -> x
+  | None   -> assert false
   in
   print_endline (Input.Cis_dressed.to_string b);
 ;;
 
 let test_dets () =
   Ezfio.set_file "F2.ezfio" ;
-  let b = Input.Determinants.read ()
+  let b = match Input.Determinants.read () with
+  | Some x -> x
+  | None -> assert false
   in
   print_endline (Input.Determinants.to_rst b |> Rst_string.to_string ) ;
   print_endline (Input.Determinants.sexp_of_t b |> Sexplib.Sexp.to_string ) ;
@@ -59,7 +69,9 @@ let test_dets () =
 
 let test_cisd_sc2 () =
   Ezfio.set_file "F2.ezfio" ;
-  let b = Input.Cisd_sc2.read ()
+  let b = match Input.Cisd_sc2.read () with
+  | Some x -> x
+  | None   -> assert false
   in
   print_endline (Input.Cisd_sc2.to_string b);
   let rst = Input.Cisd_sc2.to_rst b in
@@ -76,7 +88,9 @@ let test_cisd_sc2 () =
 
 let test_electrons () =
   Ezfio.set_file "F2.ezfio" ;
-  let b = Input.Electrons.read ()
+  let b = match Input.Electrons.read () with
+  | Some x -> x
+  | None   -> assert false
   in
   print_endline (Input.Electrons.to_string b);
   let rst = Input.Electrons.to_rst b in
@@ -92,7 +106,9 @@ let test_electrons () =
 
 let test_fci () =
   Ezfio.set_file "F2.ezfio" ;
-  let b = Input.Full_ci.read ()
+  let b = match Input.Full_ci.read () with
+  | Some x -> x
+  | None   -> assert false
   in
   print_endline (Input.Full_ci.to_string b);
   let rst = Input.Full_ci.to_rst b in
@@ -109,7 +125,9 @@ let test_fci () =
 
 let test_hf () =
   Ezfio.set_file "F2.ezfio" ;
-  let b = Input.Hartree_fock.read ()
+  let b = match Input.Hartree_fock.read () with
+  | Some x -> x
+  | None   -> assert false
   in
   print_endline (Input.Hartree_fock.to_string b);
   let rst = Input.Hartree_fock.to_rst b in
@@ -126,14 +144,19 @@ let test_hf () =
 
 let test_mo () =
   Ezfio.set_file "F2.ezfio" ;
-  let b = Input.Mo_basis.read ()
+  let b = match Input.Mo_basis.read () with
+  | Some x -> x
+  | None   -> assert false
   in
   print_endline (Input.Mo_basis.to_string b);
 ;;
 
 let test_nucl () =
   Ezfio.set_file "F2.ezfio" ;
-  let b = Input.Nuclei.read () in
+  let b = match Input.Nuclei.read () with
+  | Some x -> x
+  | None   -> assert false
+  in
   let rst = Input.Nuclei.to_rst b in
   let b2 = match Input.Nuclei.of_rst rst with
   | Some x -> x

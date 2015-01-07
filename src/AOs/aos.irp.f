@@ -397,3 +397,12 @@ END_PROVIDER
    ao_l_char_space(i) = give_ao_character_space
  enddo
 END_PROVIDER
+BEGIN_PROVIDER [ character*(32), ao_md5 ]
+ BEGIN_DOC
+! MD5 key characteristic of the AO basis
+ END_DOC
+ implicit none
+ PROVIDE ezfio_filename
+ call ezfio_get_ao_basis_ao_md5(ao_md5)
+END_PROVIDER
+

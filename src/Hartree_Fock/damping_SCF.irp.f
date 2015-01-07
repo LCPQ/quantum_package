@@ -119,5 +119,7 @@ subroutine damping_SCF
   call write_double(output_hartree_fock, HF_energy, 'Hartree-Fock energy')
   call write_time(output_hartree_fock)
 
+  call ezfio_set_hartree_fock_energy(HF_energy)
+
   deallocate(D_alpha,D_beta,F_new,D_new_alpha,D_new_beta,delta_alpha,delta_beta)
 end

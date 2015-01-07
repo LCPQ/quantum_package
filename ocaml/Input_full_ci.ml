@@ -9,7 +9,7 @@ module Full_ci : sig
       do_pt2_end         : bool;
     } with sexp
   ;;
-  val read  : unit -> t
+  val read  : unit -> t option
   val write : t-> unit
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
@@ -69,9 +69,10 @@ end = struct
 
 
   let read () = 
-    { n_det_max_fci    = read_n_det_max_fci ();
-    pt2_max            = read_pt2_max ();
-    do_pt2_end         = read_do_pt2_end ();
+    Some
+    { n_det_max_fci = read_n_det_max_fci ();
+      pt2_max       = read_pt2_max ();
+      do_pt2_end    = read_do_pt2_end ();
     }
   ;;
 

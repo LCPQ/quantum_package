@@ -13,7 +13,7 @@ module Bielec_integrals : sig
       direct             : bool;
     } with sexp
   ;;
-  val read  : unit -> t
+  val read  : unit -> t option
   val write : t -> unit
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
@@ -150,7 +150,7 @@ end = struct
     if (result.read_mo_integrals &&
         result.write_mo_integrals) then
           failwith "Read and Write MO integrals are both true.";
-    result
+    Some result
   ;;
 
   let write b =
