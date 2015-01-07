@@ -61,22 +61,35 @@ END_PROVIDER
     call lapack_diag(eigenvalues,eigenvectors,                       &
         H_matrix_all_dets,size(H_matrix_all_dets,1),N_det)
     CI_electronic_energy(:) = 0.d0
+    do i=1,N_det
+       CI_eigenvectors(i,1) = eigenvectors(i,1)
+    enddo
     integer :: i_state
     double precision :: s2
-    j=0
     i_state = 0
-    do while(i_state.lt.min(N_states_diag,N_det))
-      j+=1
+    do j=1,N_det
       call get_s2_u0(psi_det,eigenvectors(1,j),N_det,N_det,s2)
-      if(dabs(s2-expected_s2).le.0.1d0)then
+      print *, 'j = ',j,s2, expected_s2
+      if(dabs(s2-expected_s2).le.0.3d0)then
        i_state += 1
+       print *,  'i_state = ',i_state
        do i=1,N_det
          CI_eigenvectors(i,i_state) = eigenvectors(i,j)
        enddo
        CI_electronic_energy(i_state) = eigenvalues(j)
        CI_eigenvectors_s2(i_state) = s2
       endif
+      if (i_state.ge.N_states_diag) then
+        exit
+      endif
     enddo
+!    if(i_state < min(N_states_diag,N_det))then
+!     print *, 'pb with the number of states'
+!     print *, 'i_state = ',i_state
+!     print *, 'N_states_diag ',N_states_diag
+!     print *,'stopping ...'
+!     stop
+!    endif
     deallocate(eigenvectors,eigenvalues)
   endif
   

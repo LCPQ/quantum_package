@@ -508,12 +508,19 @@ psi_det                = %s
     let psi_coef = 
       let rec read_coefs accu = function
       | [] -> List.rev accu
+      | ""::""::tail -> read_coefs accu tail
       | ""::c::tail -> 
+          let c =
+            Float.of_string c
+            |> Det_coef.of_float 
+          in
           read_coefs (c::accu) tail
       | _::tail -> read_coefs accu tail
       in
-      let a = read_coefs [] dets
-      |> String.concat ~sep:" "
+      let a =
+        read_coefs [] dets
+        |> List.map ~f:(fun x -> Det_coef.to_string x)
+        |> String.concat ~sep:" "
       in
       "(psi_coef ("^a^"))"
     in
