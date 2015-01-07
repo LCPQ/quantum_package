@@ -6,7 +6,9 @@ program CIS_full
 end
 subroutine save_cis
  do i = 1, n_state_cis
-  print*,'eigenvalues_CIS(i) = ',eigenvalues_CIS(i)
+  print*,''
+  print*,'eigenvalues_CIS(i) = ',eigenvalues_CIS(i)+nuclear_repulsion
+  print*,'s2 = ',s_2_CIS(i)
  enddo
  call save_wavefunction_general(size_psi_CIS,n_state_cis,psi_CIS,coefs_CIS)
 

@@ -196,4 +196,44 @@ BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
        'Nuclear repulsion energy')
 END_PROVIDER
  
- 
+BEGIN_PROVIDER [ character*(128), element_name, (36)] 
+ BEGIN_DOC
+ ! Array of the name of element, sorted by nuclear charge (integer)
+ END_DOC
+ element_name(1) = 'H'
+ element_name(2) = 'He'
+ element_name(3) = 'Li'
+ element_name(4) = 'Be'
+ element_name(5) = 'B'
+ element_name(6) = 'C'
+ element_name(7) = 'N'
+ element_name(8) = 'O'
+ element_name(9) = 'F'
+ element_name(10) = 'Ne'
+ element_name(11) = 'Na'
+ element_name(12) = 'Mg'
+ element_name(13) = 'Al'
+ element_name(14) = 'Si'
+ element_name(15) = 'P'
+ element_name(16) = 'S'
+ element_name(17) = 'Cl'
+ element_name(18) = 'Ar'
+ element_name(19) = 'K'
+ element_name(20) = 'Ca'
+ element_name(21) = 'Sc'
+ element_name(22) = 'Ti'
+ element_name(23) = 'V'
+ element_name(24) = 'Cr'
+ element_name(25) = 'Mn'
+ element_name(26) = 'Fe'
+ element_name(27) = 'Co'
+ element_name(28) = 'Ni'
+ element_name(29) = 'Cu'
+ element_name(30) = 'Zn'
+ element_name(31) = 'Ga'
+ element_name(32) = 'Ge'
+ element_name(33) = 'As'
+ element_name(34) = 'Se'
+ element_name(35) = 'Br'
+ element_name(36) = 'Kr'
+END_PROVIDER

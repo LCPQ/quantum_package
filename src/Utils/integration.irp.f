@@ -118,6 +118,69 @@ subroutine give_explicit_poly_and_gaussian(P_new,P_center,p,fact_k,iorder,alpha,
   
 end
 
+
+subroutine give_explicit_poly_and_gaussian_double(P_new,P_center,p,fact_k,iorder,alpha,beta,gama,a,b,A_center,B_center,Nucl_center,dim)
+  BEGIN_DOC
+  ! Transforms the product of
+  !          (x-x_A)^a(1) (x-x_B)^b(1) (x-x_A)^a(2) (y-y_B)^b(2) (z-z_A)^a(3) (z-z_B)^b(3) 
+  !          exp(-(r-A)^2 alpha) exp(-(r-B)^2 beta) exp(-(r-Nucl_center)^2 gama 
+  !
+  ! into
+  !        fact_k * [ sum (l_x = 0,i_order(1)) P_new(l_x,1) * (x-P_center(1))^l_x ] exp (- p (x-P_center(1))^2 )
+  !               * [ sum (l_y = 0,i_order(2)) P_new(l_y,2) * (y-P_center(2))^l_y ] exp (- p (y-P_center(2))^2 )
+  !               * [ sum (l_z = 0,i_order(3)) P_new(l_z,3) * (z-P_center(3))^l_z ] exp (- p (z-P_center(3))^2 )
+  END_DOC
+  implicit none
+  include 'constants.F'
+  integer, intent(in)            :: dim
+  integer, intent(in)            :: a(3),b(3)         ! powers : (x-xa)**a_x = (x-A(1))**a(1)
+  double precision, intent(in)   :: alpha, beta, gama ! exponents
+  double precision, intent(in)   :: A_center(3)       ! A center
+  double precision, intent(in)   :: B_center (3)      ! B center
+  double precision, intent(in)   :: Nucl_center(3)    ! B center
+  double precision, intent(out)  :: P_center(3)       ! new center
+  double precision, intent(out)  :: p                 ! new exponent
+  double precision, intent(out)  :: fact_k            ! constant factor
+  double precision, intent(out)  :: P_new(0:max_dim,3)! polynomial
+  integer         , intent(out)  :: iorder(3)         ! i_order(i) = order of the polynomials
+
+  double precision  :: P_center_tmp(3)       ! new center
+  double precision  :: p_tmp                 ! new exponent
+  double precision  :: fact_k_tmp,fact_k_bis ! constant factor
+  double precision  :: P_new_tmp(0:max_dim,3)! polynomial
+  integer :: i,j
+  double precision :: binom_func
+
+  ! First you transform the two primitives into a sum of primitive with the same center P_center_tmp and gaussian exponent p_tmp
+  call give_explicit_poly_and_gaussian(P_new_tmp,P_center_tmp,p_tmp,fact_k_tmp,iorder,alpha,beta,a,b,A_center,B_center,dim)
+  ! Then you create the new gaussian from the product of the new one per the Nuclei one
+  call gaussian_product(p_tmp,P_center_tmp,gama,Nucl_center,fact_k_bis,p,P_center)
+  fact_k = fact_k_bis * fact_k_tmp
+
+  ! Then you build the coefficient of the new polynom 
+  do i = 0, iorder(1)
+   P_new(i,1) = 0.d0
+   do j = i,iorder(1)
+    P_new(i,1) = P_new(i,1) + P_new_tmp(j,1) * binom_func(j,j-i) * (P_center(1) - P_center_tmp(1))**(j-i)
+   enddo
+  enddo
+  do i = 0, iorder(2)
+   P_new(i,2) = 0.d0
+   do j = i,iorder(2)
+    P_new(i,2) = P_new(i,2) + P_new_tmp(j,2) * binom_func(j,j-i) * (P_center(2) - P_center_tmp(2))**(j-i)
+   enddo
+  enddo
+  do i = 0, iorder(3)
+   P_new(i,3) = 0.d0
+   do j = i,iorder(3)
+    P_new(i,3) = P_new(i,3) + P_new_tmp(j,3) * binom_func(j,j-i) * (P_center(3) - P_center_tmp(3))**(j-i)
+   enddo
+  enddo
+  
+end
+
+
+
 subroutine gaussian_product(a,xa,b,xb,k,p,xp)
   implicit none
   BEGIN_DOC

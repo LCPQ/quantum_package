@@ -14,19 +14,6 @@
 
  ao_nucl_elec_integral = 0.d0
 
- ! -- Dummy run to provide everything called by NAI_pol_mult
- !power_A(:)= ao_power(1,:)
- !A_center(:) = nucl_coord(1,:)
- !B_center(:) = nucl_coord(1,:)+0.5d0
- !C_center(:) = 0.5d0*(B_center(:)-A_center(:))
- !alpha = 1.d0
- !beta = 0.1d0
- !Z = 1.d0
- !n_pt_in = n_pt_max_integrals
- !c = NAI_pol_mult(A_center,B_center,power_A,power_A,alpha,beta,C_center,n_pt_in)
- !c = NAI_pol_mult(A_center,A_center,power_A,power_A,alpha,beta,C_center,n_pt_in)
- !c = NAI_pol_mult(A_center,A_center,power_A,power_A,alpha,beta,A_center,n_pt_in)
- ! -- 
 
  !$OMP PARALLEL &
  !$OMP DEFAULT (NONE) &

@@ -121,3 +121,122 @@ BEGIN_PROVIDER [ double precision, mo_occ, (mo_tot_num) ]
   endif
 END_PROVIDER
 
+
+
+subroutine ao_to_mo(A_ao,LDA_ao,A_mo,LDA_mo)
+  implicit none
+  BEGIN_DOC
+  ! Transform A from the AO basis to the MO basis
+  END_DOC
+  double precision, intent(in)   :: A_ao(LDA_ao)
+  double precision, intent(out)  :: A_mo(LDA_mo)
+  integer, intent(in)            :: LDA_ao,LDA_mo
+  double precision, allocatable  :: T(:,:)
+  
+  allocate ( T(ao_num_align,mo_tot_num) )
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
+  
+  call dgemm('N','N', ao_num, mo_tot_num, ao_num,                    &
+      1.d0, A_ao,LDA_ao,                                             &
+      mo_coef, size(mo_coef,1),                                      &
+      0.d0, T, ao_num_align)
+  
+  call dgemm('T','N', mo_tot_num, mo_tot_num, ao_num,                &
+      1.d0, mo_coef,size(mo_coef,1),                                 &
+      T, ao_num_align,                                               &
+      0.d0, A_mo, LDA_mo)
+  
+  deallocate(T)
+end
+
+subroutine mo_to_ao(A_mo,LDA_mo,A_ao,LDA_ao)
+  implicit none
+  BEGIN_DOC
+  ! Transform A from the MO basis to the AO basis
+  END_DOC
+  double precision, intent(in)   :: A_mo(LDA_mo)
+  double precision, intent(out)  :: A_ao(LDA_ao)
+  integer, intent(in)            :: LDA_ao,LDA_mo
+  double precision, allocatable  :: T(:,:), SC(:,:)
+  
+  allocate ( SC(ao_num_align,mo_tot_num) )
+  allocate ( T(mo_tot_num_align,ao_num) )
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
+  
+  call dgemm('N','N', ao_num, mo_tot_num, ao_num,                    &
+      1.d0, ao_overlap,size(ao_overlap,1),                           &
+      mo_coef, size(mo_coef,1),                                      &
+      0.d0, SC, ao_num_align)
+  
+  call dgemm('N','T', mo_tot_num, ao_num, mo_tot_num,                &
+      1.d0, A_mo,LDA_mo,                                             &
+      SC, size(SC,1),                                      &
+      0.d0, T, mo_tot_num_align)
+  
+  call dgemm('N','N', ao_num, ao_num, mo_tot_num,                    &
+      1.d0, SC,size(SC,1),                                 &
+      T, mo_tot_num_align,                                           &
+      0.d0, A_ao, LDA_ao)
+  
+  deallocate(T,SC)
+end
+
+subroutine mo_to_ao_no_overlap(A_mo,LDA_mo,A_ao,LDA_ao)
+  implicit none
+  BEGIN_DOC
+  ! Transform A from the MO basis to the S^-1 AO basis
+  END_DOC
+  double precision, intent(in)   :: A_mo(LDA_mo)
+  double precision, intent(out)  :: A_ao(LDA_ao)
+  integer, intent(in)            :: LDA_ao,LDA_mo
+  double precision, allocatable  :: T(:,:)
+  
+  allocate ( T(mo_tot_num_align,ao_num) )
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
+  
+  call dgemm('N','T', mo_tot_num, ao_num, mo_tot_num,                &
+      1.d0, A_mo,LDA_mo,                                             &
+      mo_coef, size(mo_coef,1),                                      &
+      0.d0, T, mo_tot_num_align)
+  
+  call dgemm('N','N', ao_num, ao_num, mo_tot_num,                    &
+      1.d0, mo_coef,size(mo_coef,1),                                 &
+      T, mo_tot_num_align,                                           &
+      0.d0, A_ao, LDA_ao)
+  
+  deallocate(T)
+end
+
+subroutine mix_mo_jk(j,k)
+ implicit none
+ integer, intent(in) :: j,k
+ integer :: i,i_plus,i_minus
+ BEGIN_DOC
+! subroutine that rotates the jth MO with the kth MO
+! to give two new MO's that are 
+!         '+' = 1/sqrt(2) (|j> + |k>) 
+!         '-' = 1/sqrt(2) (|j> - |k>)
+! by convention, the '+' MO is in the lower index (min(j,k))
+! by convention, the '-' MO is in the greater index (max(j,k))
+ END_DOC
+ double precision :: array_tmp(ao_num,2),dsqrt_2
+ if(j==k)then
+  print*,'Youwant to mix two orbitals that are the same !'
+  print*,'It does not make sense ... '
+  print*,'Stopping ...'
+  stop
+ endif
+ array_tmp = 0.d0
+ dsqrt_2 = 1.d0/dsqrt(2.d0)
+ do i = 1, ao_num
+  array_tmp(i,1) = dsqrt_2 * (mo_coef(i,j) + mo_coef(i,k))
+  array_tmp(i,2) = dsqrt_2 * (mo_coef(i,j) - mo_coef(i,k))
+ enddo
+ i_plus = min(j,k)
+ i_minus = max(j,k)
+ do i = 1, ao_num
+  mo_coef(i,i_plus) = array_tmp(i,1)
+  mo_coef(i,i_minus) = array_tmp(i,2)
+ enddo
+
+end
