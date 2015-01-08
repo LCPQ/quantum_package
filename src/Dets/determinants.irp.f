@@ -213,53 +213,6 @@ END_PROVIDER
 END_PROVIDER 
 
 
-subroutine read_dets(det,Nint,Ndet)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Reads the determinants from the EZFIO file
-  END_DOC
-  
-  integer, intent(in)            :: Nint,Ndet
-  integer(bit_kind), intent(out) :: det(Nint,2,Ndet)
-  integer*8, allocatable         :: psi_det_read(:,:,:)
-  double precision, allocatable  :: psi_coef_read(:,:)
-  integer*8                      :: det_8(100)
-  integer(bit_kind)              :: det_bk((100*8)/bit_kind)
-  integer                        :: N_int2
-  integer                        :: i,k
-  equivalence (det_8, det_bk)
-  
-  call ezfio_get_determinants_N_int(N_int2)
-  ASSERT (N_int2 == Nint)
-  call ezfio_get_determinants_bit_kind(k)
-  ASSERT (k == bit_kind)
-  
-  N_int2 = (Nint*bit_kind)/8
-  allocate (psi_det_read(N_int2,2,Ndet))
-  call ezfio_get_determinants_psi_det (psi_det_read)
-! print*,'N_int2 = ',N_int2,N_int
-! print*,'k',k,bit_kind
-! print*,'psi_det_read = ',Ndet
-  do i=1,Ndet
-    do k=1,N_int2
-      det_8(k) = psi_det_read(k,1,i)
-    enddo
-    do k=1,Nint
-      det(k,1,i) = det_bk(k)
-    enddo
-    do k=1,N_int2
-      det_8(k) = psi_det_read(k,2,i)
-    enddo
-    do k=1,Nint
-      det(k,2,i) = det_bk(k)
-    enddo
-  enddo
-  deallocate(psi_det_read)
-  
-end
-
-
 BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states_diag) ]
   implicit none
   BEGIN_DOC
