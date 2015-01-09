@@ -6,6 +6,11 @@
 QPACKAGE_ROOT=${PWD}
 PACKAGES="core cryptokit"
 
+function asksure() {
+  echo -n "Are you sure (Y/N)? "
+  return $retval
+}
+
 if [[ -f quantum_package.rc ]]
 then
   source quantum_package.rc
@@ -14,7 +19,18 @@ make -C ocaml Qptypes.ml &> /dev/null
 if [[ $? -ne 0 ]]
 then
 
-  rm -rf -- ${HOME}/ocamlbrew
+  if [[ -d ${HOME}/ocamlbrew ]]
+  then
+    echo "Remove directory ${HOME}/ocamlbrew? [Y/n]"
+    while read -r -n 1 -s answer; do
+      if [[ $answer = [YyNn] ]]; then
+         [[ $answer = [Yy] ]] && rm -rf -- ${HOME}/ocamlbrew
+         [[ $answer = [Nn] ]] && exit 1
+        break
+      fi
+    done
+    
+  fi
   scripts/fetch_from_web.py "https://raw.github.com/hcarty/ocamlbrew/master/ocamlbrew-install" ocamlbrew-install.sh 
   cat < ocamlbrew-install.sh | env OCAMLBREW_FLAGS="-r" bash | tee ocamlbrew_install.log
   grep "source " ocamlbrew_install.log | grep "etc/ocamlbrew.bashrc"  >> quantum_package.rc

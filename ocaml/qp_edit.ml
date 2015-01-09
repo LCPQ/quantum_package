@@ -2,16 +2,13 @@ open Qputils;;
 open Qptypes;;
 open Core.Std;;
 
-let file_header filename = Printf.sprintf
-"
-==================================================================
-                       Quantum Package
-==================================================================
+(** Interactive editing of the input.
 
-Editing file `%s`
+@author A. Scemama
+*)
 
-" filename
-  
+
+(** Keywords used to define input sections *)
 type keyword = 
 | Ao_basis
 | Bielec_integrals
@@ -23,6 +20,7 @@ type keyword =
 | Mo_basis
 | Nuclei
 ;;
+
 
 let keyword_to_string = function
 | Ao_basis         -> "AO basis"
@@ -36,12 +34,30 @@ let keyword_to_string = function
 | Nuclei           -> "Molecule"
 ;;
 
+
+
+(** Create the header of the temporary file *)
+let file_header filename = 
+  Printf.sprintf  "
+==================================================================
+                       Quantum Package
+==================================================================
+
+Editing file `%s`
+
+" filename
+;;
+  
+
+(** Creates the header of a section *)
 let make_header kw =
   let s = keyword_to_string kw in
   let l = String.length s in
   "\n\n"^s^"\n"^(String.init l ~f:(fun _ -> '='))^"\n\n"
 ;;
 
+
+(** Returns the rst string of section [s] *)
 let get s = 
   let header = (make_header s) in
   let f (read,to_rst) = 
@@ -79,6 +95,8 @@ let get s =
   rst
 ;;
 
+
+(** Applies the changes from the string [str] corresponding to section [s] *)
 let set str s = 
   let header = (make_header s) in
   match String.substr_index ~pos:0 ~pattern:header str with
@@ -103,7 +121,7 @@ let set str s =
         | None -> ()
         with
         | _ -> (Printf.eprintf "Info: Read error in %s\n%!"
-               (keyword_to_string s))
+               (keyword_to_string s); ignore (of_rst str) )
       in
       let open Input in
         match s with
@@ -120,6 +138,7 @@ let set str s =
 ;;
 
 
+(** Creates the temporary file for interactive editing *)
 let create_temp_file ezfio_filename fields =
   let temp_filename  = Filename.temp_file "qp_edit_" ".rst" in
   begin
@@ -131,6 +150,8 @@ let create_temp_file ezfio_filename fields =
   end
   ; temp_filename
 ;;
+
+
 
 let run ezfio_filename =
 
@@ -173,8 +194,8 @@ let run ezfio_filename =
     | Some editor -> editor
     | None -> "vi"
   in
-  let command = Printf.sprintf "%s %s" editor temp_filename in
-  Sys.command_exn command;
+  Printf.sprintf "%s %s" editor temp_filename 
+  |> Sys.command_exn ;
 
   (* Re-read the temp file *)
   let temp_string  =
@@ -187,6 +208,24 @@ let run ezfio_filename =
   Sys.remove temp_filename;
 ;;
 
+
+(** Create a backup file in case of an exception *)
+let create_backup ezfio_filename =
+  Printf.sprintf "
+    rm -f %s/backup.tgz ;
+    tar -zcf .backup.tgz %s && mv .backup.tgz %s/backup.tgz
+  "
+    ezfio_filename ezfio_filename ezfio_filename
+  |> Sys.command_exn
+;;
+
+
+(** Restore the backup file when an exception occuprs *)
+let restore_backup ezfio_filename =
+  Printf.sprintf "tar -zxf %s/backup.tgz"
+    ezfio_filename 
+  |> Sys.command_exn
+;;
 
 
 let spec =
@@ -216,11 +255,34 @@ Edit input data
        with
        | _ msg -> print_string ("\n\nError\n\n"^msg^"\n\n")
     *)
-    (fun ezfio_file () -> run ezfio_file)
+    (fun ezfio_file () ->
+       try
+          run ezfio_file ;
+          (* create_backup ezfio_file; *)
+       with
+       | Failure exc 
+       | Invalid_argument exc as e -> 
+         begin
+           Printf.eprintf "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n\n";
+           Printf.eprintf "%s\n\n" exc;
+           Printf.eprintf "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n\n";
+           (* restore_backup ezfio_file; *) 
+           raise e
+         end
+       | Assert_failure (file, line, ch) as e ->
+         begin
+           Printf.eprintf "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n\n";
+           Printf.eprintf "Assert error in file $QPACKAGE_ROOT/ocaml/%s, line %d, character %d\n\n" file line ch;
+           Printf.eprintf "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n\n";
+           (* restore_backup ezfio_file; *)
+           raise e
+         end
+    )
 ;;
 
 let () =
-    Command.run command
+  Command.run command;
+  exit 0
 ;;
 
 

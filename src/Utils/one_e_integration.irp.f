@@ -31,45 +31,6 @@ double precision function overlap_gaussian_x(A_center,B_center,alpha,beta,power_
   overlap_gaussian_x*= fact_p
 end
 
-subroutine test(alpha,beta,gama,a,b,A_center,B_center,Nucl_center,overlap_x,overlap_y,overlap_z,overlap)
-   implicit none
-  include 'constants.F'
- integer, intent(in)            :: a(3),b(3)         ! powers : (x-xa)**a_x = (x-A(1))**a(1)
- double precision, intent(in)   :: alpha, beta, gama ! exponents
- double precision, intent(in)   :: A_center(3)       ! A center
- double precision, intent(in)   :: B_center (3)      ! B center
- double precision, intent(in)   :: Nucl_center(3)    ! B center
- double precision, intent(out)  :: overlap_x,overlap_y,overlap_z,overlap
- integer :: i,j
- double precision :: dx,Lx,nx,x(3)
- nx = 100000000
- Lx = 25.d0
- dx = dble(Lx/nx)
- overlap_x = 0.d0
- overlap_y = 0.d0
- overlap_z = 0.d0
- x(1) = -12.5d0
- x(2) = -12.5d0
- x(3) = -12.5d0
- do i = 1,nx 
-  overlap_x += (x(1) - A_center(1))**a(1) * (x(1) - B_center(1))**b(1) &
-              * dexp(-alpha*(x(1) - A_center(1))**2) * dexp(-beta*(x(1) - B_center(1))**2) * dexp(-gama*(x(1) - Nucl_center(1))**2) 
-
-  overlap_y += (x(2) - A_center(2))**a(2) * (x(2) - B_center(2))**b(2) &
-              * dexp(-alpha*(x(2) - A_center(2))**2) * dexp(-beta*(x(2) - B_center(2))**2) * dexp(-gama*(x(2) - Nucl_center(2))**2) 
-  overlap_z += (x(3) - A_center(3))**a(3) * (x(3) - B_center(3))**b(3) &
-              * dexp(-alpha*(x(3) - A_center(3))**2) * dexp(-beta*(x(3) - B_center(3))**2) * dexp(-gama*(x(3) - Nucl_center(3))**2) 
-  x(1) += dx
-  x(2) += dx
-  x(3) += dx
- enddo
- overlap_x = overlap_x * dx
- overlap_y = overlap_y * dx
- overlap_z = overlap_z * dx
- overlap = overlap_x * overlap_y * overlap_z
-
-end
-
 
 subroutine overlap_A_B_C(dim,alpha,beta,gama,a,b,A_center,B_center,Nucl_center,overlap)
  implicit none

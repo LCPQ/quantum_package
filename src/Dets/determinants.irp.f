@@ -213,7 +213,6 @@ END_PROVIDER
 END_PROVIDER 
 
 
-
 BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states_diag) ]
   implicit none
   BEGIN_DOC
