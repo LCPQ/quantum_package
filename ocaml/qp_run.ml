@@ -32,9 +32,6 @@ let run exe ezfio_file =
   if (Sys.file_exists_exn fifo_name) then
     Sys.remove fifo_name;
   Unix.mkfifo ~perm:0o664 fifo_name;
-  let script = Printf.sprintf "%s/scripts/follow_output.py %s &
-  echo $! > %s &" Qpackage.root ezfio_file fifo_name in
-  ignore (Sys.command script);
 
   let pid = 
     In_channel.with_file fifo_name ~f:(fun in_channel ->

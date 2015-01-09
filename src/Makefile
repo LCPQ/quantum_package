@@ -19,7 +19,7 @@ $(NEEDED_MODULES): FORCE
 
 executables:
 	rm -f executables ; \
-	for EXE in $$(find $(QPACKAGE_ROOT)/src -type f -executable | grep -e "$(QPACKAGE_ROOT)/src/[^/]*/[^/]*$$" ) ; \
+	for EXE in $$(find $(QPACKAGE_ROOT)/src -perm /u+x -type f | grep -e "$(QPACKAGE_ROOT)/src/[^/]*/[^/]*$$" |sort ) ; \
 	  do printf "%-30s %s\n" $$(basename $$EXE) $$EXE | sed "s|$(QPACKAGE_ROOT)|\$$QPACKAGE_ROOT|g" >> executables ;\
 	done
 

@@ -12,7 +12,7 @@ subroutine start_progress(max,title,progress_init)
   progress_title = title
   progress_active = .True.
   progress_value = progress_init
-  call run_progress()
+! call run_progress()
 
 end
 
