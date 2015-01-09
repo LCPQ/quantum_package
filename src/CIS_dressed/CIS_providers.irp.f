@@ -102,7 +102,8 @@
 
 
  BEGIN_PROVIDER[double precision, eigenvalues_CIS,(n_state_CIS)]
- &BEGIN_PROVIDER[double precision, coefs_CIS, (size_psi_CIS,n_state_CIS)]
+&BEGIN_PROVIDER[double precision, coefs_CIS, (size_psi_CIS,n_state_CIS)]
+&BEGIN_PROVIDER[double precision, s_2_CIS,(n_state_CIS)]
    use bitmasks
 
  BEGIN_DOC
@@ -133,6 +134,7 @@
    coefs_CIS(k,i)=eigvectors(k,i)
   enddo
   call get_s2_u0(psi_CIS,coefs_tmp,size_psi_CIS,size_psi_CIS,s2)
+  s_2_CIS(i) = s2
  enddo
  
  END_PROVIDER
