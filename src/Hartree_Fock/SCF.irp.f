@@ -15,6 +15,7 @@ subroutine create_guess
   call ezfio_has_mo_basis_mo_coef(exists)
   if (.not.exists) then
     mo_coef = ao_ortho_lowdin_coef
+    TOUCH mo_coef
     mo_label = 'Guess'
     call mo_as_eigvectors_of_mo_matrix(mo_mono_elec_integral,size(mo_mono_elec_integral,1),size(mo_mono_elec_integral,2),mo_label)
     SOFT_TOUCH mo_coef mo_label
@@ -38,6 +39,7 @@ subroutine run
   thresh_SCF = 1.d-10
   call damping_SCF
   mo_label = "Canonical"
+  call mo_as_eigvectors_of_mo_matrix(Fock_matrix_mo,size(Fock_matrix_mo,1),size(Fock_matrix_mo,2),mo_label)
   TOUCH mo_label mo_coef
   call save_mos
   

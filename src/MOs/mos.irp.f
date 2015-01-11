@@ -221,7 +221,7 @@ subroutine mix_mo_jk(j,k)
  END_DOC
  double precision :: array_tmp(ao_num,2),dsqrt_2
  if(j==k)then
-  print*,'Youwant to mix two orbitals that are the same !'
+  print*,'You want to mix two orbitals that are the same !'
   print*,'It does not make sense ... '
   print*,'Stopping ...'
   stop

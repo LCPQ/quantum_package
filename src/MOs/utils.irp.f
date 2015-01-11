@@ -39,9 +39,6 @@ subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label)
   mo_coef_new = mo_coef
   
   call lapack_diag(eigvalues,R,matrix,size(matrix,1),size(matrix,2))
-  do i = 1, mo_tot_num
-   print*,R(i,4)
-  enddo
   integer :: i
   write (output_mos,'(A)'), 'MOs are now **'//trim(label)//'**'
   write (output_mos,'(A)'), ''
