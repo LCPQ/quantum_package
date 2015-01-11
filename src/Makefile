@@ -13,7 +13,7 @@ all_clean:
 	@for i in $(ALL_MODULES) ; do cd $$i ; make veryclean ; make clean_links ; cd .. ; done
 
 $(ALL_MODULES): FORCE
-	cd $@ ; $(MAKE) 
+	cd $@ ; make -j $$(cat /proc/cpuinfo | grep MHz | wc -l)
 
 executables: $(ALL_MODULES)
 	rm -f executables ; \
