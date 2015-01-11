@@ -8,7 +8,7 @@ let spec =
   +> flag "o"  (optional string)
      ~doc:"file Name of the created EZFIO file."
   +> flag "b" (required string)
-     ~doc:"definition of basis set."
+     ~doc:"string Name of basis set."
   +> flag "c" (optional_with_default 0 int)
      ~doc:"int Total charge of the molecule. Default is 0."
   +> flag "m"  (optional_with_default 1 int)
