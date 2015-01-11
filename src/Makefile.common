@@ -140,7 +140,9 @@ irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp
 Makefile.depend: Makefile
 	$(QPACKAGE_ROOT)/scripts/create_Makefile_depend.sh
 
+ifneq ( $(PWD), $($(QPACKAGE_ROOT)/src))
 include irpf90.make
+endif
 
 # Check that there is no file named test.irp.f
 ifeq (test.irp.f, $(wildcard test.irp.f))

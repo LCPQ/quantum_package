@@ -116,10 +116,12 @@ subroutine damping_SCF
   write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16, X, A4 )'), '====','================','================','================', '===='
   write(output_hartree_fock,*)
   
-  call write_double(output_hartree_fock, HF_energy, 'Hartree-Fock energy')
-  call write_time(output_hartree_fock)
+  call mo_as_eigvectors_of_mo_matrix(Fock_matrix_mo,size(Fock_matrix_mo,1),size(Fock_matrix_mo,2),mo_label)
 
+  call write_double(output_hartree_fock, HF_energy, 'Hartree-Fock energy')
   call ezfio_set_hartree_fock_energy(HF_energy)
+
+  call write_time(output_hartree_fock)
 
   deallocate(D_alpha,D_beta,F_new,D_new_alpha,D_new_beta,delta_alpha,delta_beta)
 end

@@ -39,7 +39,6 @@ subroutine run
   thresh_SCF = 1.d-10
   call damping_SCF
   mo_label = "Canonical"
-  call mo_as_eigvectors_of_mo_matrix(Fock_matrix_mo,size(Fock_matrix_mo,1),size(Fock_matrix_mo,2),mo_label)
   TOUCH mo_label mo_coef
   call save_mos
   
