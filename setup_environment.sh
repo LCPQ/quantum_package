@@ -31,13 +31,16 @@ cat << EOF > quantum_package.rc
 export IRPF90=${IRPF90}
 export OCAMLBREW_BASE=${OCAMLBREW_BASE}
 export QPACKAGE_ROOT=${QPACKAGE_ROOT}
+export LD_LIBRARY_PATH="\${QPACKAGE_ROOT}/lib":\${LD_LIBRARY_PATH}
+export LIBRARY_PATH="\${QPACKAGE_ROOT}/lib":\${LIBRARY_PATH}
+export C_INCLUDE_PATH=\${QPACKAGE_ROOT}/include:\${C_INCLUDE_PATH}
 export PYTHONPATH=\${PYTHONPATH}:\${QPACKAGE_ROOT}/scripts
 export PATH=\${PATH}:\${QPACKAGE_ROOT}/scripts
 export PATH=\${PATH}:\${QPACKAGE_ROOT}/bin
 export PATH=\${PATH}:\${QPACKAGE_ROOT}/ocaml
 export QPACKAGE_CACHE_URL="http://qmcchem.ups-tlse.fr/files/scemama/quantum_package/cache"
-source "\${QPACKAGE_ROOT}/bin/irpman" > /dev/null
-source "\${OCAMLBREW_BASE}"/ocaml-4*/etc/ocamlbrew.bashrc
+source "\${QPACKAGE_ROOT}/bin/irpman" &> /dev/null
+source "\${OCAMLBREW_BASE}"/ocaml-4*/etc/ocamlbrew.bashrc &> /dev/null
 EOF
 
 source quantum_package.rc

@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Installs curl for ocaml
-# Thu Oct 23 22:02:08 CEST 2014
+# Mon Jan 12 18:52:48 CET 2015
 
 CURL="curl-7.30.0.ermine"
 CURL_URL="http://qmcchem.ups-tlse.fr/files/scemama/${CURL}.tar.bz2"

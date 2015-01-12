@@ -31,6 +31,12 @@ EMSL_Basis:
 	@sleep 1
 	QPACKAGE_ROOT=$$PWD ./scripts/install_emsl.sh | tee install_emsl.log
 
+zlib: 
+	$(info $(BLUE)===== Fetching Zlib from the web ===== $(BLACK))
+	@sleep 1
+	QPACKAGE_ROOT=$$PWD ./scripts/install_zlib.sh | tee install_zlib.log
+
+
 bin/irpf90:
 	$(info $(BLUE)===== Fetching IRPF90 from the web ===== $(BLACK))
 	@sleep 1
@@ -61,7 +67,7 @@ bin/m4:
 	QPACKAGE_ROOT=$$PWD ./scripts/install_m4.sh | tee install_m4.log
 
 
-ocaml: curl m4 emsl
+ocaml: curl m4 emsl zlib
 	- rm -f -- ocaml/Qptypes.ml
 	$(MAKE) ocaml/Qptypes.ml
 
