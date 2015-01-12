@@ -19,9 +19,9 @@ make -C ocaml Qptypes.ml &> /dev/null
 if [[ $? -ne 0 ]]
 then
 
-  if [[ -d ${HOME}/ocamlbrew ]]
+  if [[ -d ${OCAMLBREW_BASE} ]]
   then
-    echo "Remove directory ${HOME}/ocamlbrew? [Y/n]"
+    echo "Remove directory ${OCAMLBREW_BASE} ? [Y/n]"
     while read -r -n 1 -s answer; do
       if [[ $answer = [YyNn] ]]; then
          [[ $answer = [Yy] ]] && rm -rf -- ${HOME}/ocamlbrew
@@ -29,7 +29,7 @@ then
         break
       fi
     done
-    
+    echo $answer
   fi
   scripts/fetch_from_web.py "https://raw.github.com/hcarty/ocamlbrew/master/ocamlbrew-install" ocamlbrew-install.sh 
   cat < ocamlbrew-install.sh | env OCAMLBREW_FLAGS="-r" bash | tee ocamlbrew_install.log
