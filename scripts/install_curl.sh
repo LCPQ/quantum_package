@@ -12,8 +12,7 @@ then
     ${QPACKAGE_ROOT}/scripts/fetch_from_web.py ${CURL_URL} CURL.tar.gz 
     tar -zxf CURL.tar.gz && rm CURL.tar.gz ||exit 1
     cd curl* || exit 1 
-    cp src/tool_getparam.c src/tool_getparam.c.old
-    patch -f < ../data/curl_insecure_patch.txt
+    patch -p0 -f < ../data/curl_insecure_patch.txt
     ./configure && make || exit 1 
     ln -s ${PWD}/src/curl ${QPACKAGE_ROOT}/bin 
 else
