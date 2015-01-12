@@ -3,19 +3,21 @@
 # Installs curl for ocaml
 # Thu Oct 23 22:02:08 CEST 2014
 
-CURL_URL="http://curl.haxx.se/download/curl-7.38.0.tar.gz"
+CURL="curl-7.30.0.ermine"
+CURL_URL="http://qmcchem.ups-tlse.fr/files/scemama/${CURL}.tar.bz2"
 
-CURL=$(which curl)
-if [[ -z ${CURL} ]] 
-then 
-    rm -f -- bin/curl
-    ${QPACKAGE_ROOT}/scripts/fetch_from_web.py ${CURL_URL} CURL.tar.gz 
-    tar -zxf CURL.tar.gz && rm CURL.tar.gz ||exit 1
-    cd curl* || exit 1 
-    patch -p0 -f < ../data/curl_insecure_patch.txt
-    ./configure && make || exit 1 
-    ln -s ${PWD}/src/curl ${QPACKAGE_ROOT}/bin 
-else
-    ln -s ${CURL} ${QPACKAGE_ROOT}/bin/curl
+curl -kL "https://github.com/LCPQ/quantum_package" &> /dev/null
+if [[ $? -eq 0 ]]
+then
+  exit 0
 fi
+
+cd ${QPACKAGE_ROOT}
+rm -f -- ${QPACKAGE_ROOT}/bin/curl
+${QPACKAGE_ROOT}/scripts/fetch_from_web.py ${CURL_URL} CURL.tar.bz2
+tar -jxf CURL.tar.bz2 && rm CURL.tar.bz2 ||exit 1
+cd ${CURL} || exit 1 
+mv curl.ermine ${QPACKAGE_ROOT}/bin/curl
+cd ${QPACKAGE_ROOT}
+rm -rf -- ${CURL}
 
