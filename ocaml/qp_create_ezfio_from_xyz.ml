@@ -55,12 +55,34 @@ let run ?o b c m xyz_file =
     begin
       match (String.lsplit2 ~on:':' elem_and_basis_name) with
       | None -> (* Principal basis *)
-        begin
-          let new_channel = In_channel.create
-            (Qpackage.root ^ "/data/basis/" ^ elem_and_basis_name)
+        let basis = elem_and_basis_name in
+        let command =
+          let rec apply accu = function
+          | [] -> accu
+          | atom::rest -> 
+            let new_accu =
+              accu ^ " " ^ (Element.to_string atom)
+            in
+            apply new_accu rest
           in
-          List.iter nuclei ~f:(fun x->
-            let key = Element.to_string x.Atom.element
+          let accu = 
+            Qpackage.root ^ "/scripts/get_basis.sh \"" ^ basis ^"\""
+          in
+          List.map nuclei ~f:(fun x -> x.Atom.element)
+          |> apply accu 
+        in
+        begin
+          let filename = 
+            Unix.open_process_in command
+            |> In_channel.input_all
+            |> String.strip
+          in
+          let new_channel =
+            In_channel.create filename
+          in
+          Unix.unlink filename;
+          List.iter nuclei ~f:(fun elem->
+            let key = Element.to_string elem.Atom.element
             in
             match Hashtbl.add basis_table ~key:key ~data:new_channel with
             | `Ok -> ()
@@ -72,17 +94,31 @@ let run ?o b c m xyz_file =
           let elem  = Element.of_string key
           and basis = String.lowercase basis
           in
-          let new_channel = In_channel.create
-            (Qpackage.root ^ "/data/basis/" ^ basis)
+          let key = Element.to_string elem
           in
-          match Hashtbl.add basis_table ~key:key ~data:new_channel with
-          | `Ok -> ()
-          | `Duplicate -> failwith ("Duplicate definition of basis for "^(Element.to_long_string elem))
-        end
+          let command =
+              Qpackage.root ^ "/scripts/get_basis.sh \"" ^ basis ^ "\""
+              ^ " " ^ key
+          in
+          begin
+            let filename = 
+              Unix.open_process_in command
+              |> In_channel.input_all
+              |> String.strip
+            in
+            let new_channel =
+              In_channel.create filename
+            in
+            Unix.unlink filename;
+            match Hashtbl.add basis_table ~key:key ~data:new_channel with
+            | `Ok -> ()
+            | `Duplicate -> failwith ("Duplicate definition of basis for "^(Element.to_long_string elem))
+          end
+       end
     end;
     build_basis rest
   in
-  String.split ~on:' ' b
+  String.split ~on:'|' b
   |> List.rev_map ~f:String.strip 
   |> build_basis;
 
@@ -146,9 +182,12 @@ let run ?o b c m xyz_file =
        | End_of_file -> 
          begin
            let alt_channel = basis_channel x.Atom.element in
-           Basis.read_element alt_channel i x.Atom.element 
+           try
+             Basis.read_element alt_channel i x.Atom.element 
+           with
+           End_of_file -> failwith
+             ("Element "^(Element.to_string x.Atom.element)^" not found")
          end
-       | x -> raise x
        ) 
     |> List.concat
     in
@@ -231,7 +270,7 @@ The basis set is defined as a single string if all the
 atoms are taken from the same basis set, otherwise specific
 elements can be defined as follows:
 
- -b \"cc-pcvdz H:cc-pvdz C:6-31g\"
+ -b \"cc-pcvdz | H:cc-pvdz | C:6-31g\"
 
       ")
     spec

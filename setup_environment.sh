@@ -22,15 +22,22 @@ then
 fi
 
 
+if [[ -z ${OCAMLBREW_BASE} ]]
+then
+  export OCAMLBREW_BASE="$HOME/ocamlbrew"
+fi
+
 cat << EOF > quantum_package.rc
 export IRPF90=${IRPF90}
+export OCAMLBREW_BASE=${OCAMLBREW_BASE}
 export QPACKAGE_ROOT=${QPACKAGE_ROOT}
 export PYTHONPATH=\${PYTHONPATH}:\${QPACKAGE_ROOT}/scripts
 export PATH=\${PATH}:\${QPACKAGE_ROOT}/scripts
 export PATH=\${PATH}:\${QPACKAGE_ROOT}/bin
 export PATH=\${PATH}:\${QPACKAGE_ROOT}/ocaml
 export QPACKAGE_CACHE_URL="http://qmcchem.ups-tlse.fr/files/scemama/quantum_package/cache"
-source \${QPACKAGE_ROOT}/bin/irpman > /dev/null
+source "\${QPACKAGE_ROOT}/bin/irpman" > /dev/null
+source "\${OCAMLBREW_BASE}"/ocaml-4*/etc/ocamlbrew.bashrc
 EOF
 
 source quantum_package.rc

@@ -7,7 +7,7 @@ BLUE=[34m
 BLACK=(B[m
 
 
-.PHONY: doc src curl m4 ocaml irpf90 
+.PHONY: doc src curl m4 ocaml irpf90 emsl
 
 default: 
 	exec ./setup_environment.sh
@@ -15,6 +15,7 @@ default:
 curl: bin/curl
 m4: bin/m4
 irpf90: bin/irpf90
+emsl: EMSL_Basis
 
 EZFIO: bin/irpf90
 	$(info $(BLUE)===== Fetching EZFIO from the web ===== $(BLACK))
@@ -24,6 +25,11 @@ EZFIO: bin/irpf90
 	tar -zxf $(EZFIO_TGZ) && rm $(EZFIO_TGZ)
 	$(MAKE) -C src $$PWD/EZFIO
 	touch EZFIO
+
+EMSL_Basis: 
+	$(info $(BLUE)===== Fetching EMSL_Basis_Set_Exchange_Local from the web ===== $(BLACK))
+	@sleep 1
+	QPACKAGE_ROOT=$$PWD ./scripts/install_emsl.sh | tee install_emsl.log
 
 bin/irpf90:
 	$(info $(BLUE)===== Fetching IRPF90 from the web ===== $(BLACK))
@@ -55,7 +61,7 @@ bin/m4:
 	QPACKAGE_ROOT=$$PWD ./scripts/install_m4.sh | tee install_m4.log
 
 
-ocaml: curl m4
+ocaml: curl m4 emsl
 	- rm -f -- ocaml/Qptypes.ml
 	$(MAKE) ocaml/Qptypes.ml
 
