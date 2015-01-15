@@ -1,9 +1,6 @@
-all: inputs executables
+all: executables
 
-.PHONY: inputs executables
-
-inputs: 
-	cd inputs ; $(MAKE) all_ezfio
+.PHONY: executables
 
 executables: 
 	cd  $(QPACKAGE_ROOT)/src ; $(MAKE) executables 
