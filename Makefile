@@ -7,7 +7,7 @@ BLUE=[34m
 BLACK=(B[m
 
 
-.PHONY: doc src curl m4 ocaml irpf90 emsl
+.PHONY: doc src curl m4 ocaml irpf90 emsl build binary
 
 default: 
 	@echo   -----------------------------------------------
@@ -16,6 +16,9 @@ default:
 	@echo
 	@echo To compile everything, run
 	@echo make build
+	@echo
+	@echo To compile a binary distribution for export, run
+	@echo make binary
 	@echo   -----------------------------------------------
 
 ifndef QPACKAGE_ROOT
@@ -29,14 +32,17 @@ build:
 	@echo   -----------------------------------------------
 else
 build:
-	  $(MAKE) -C src
-	  $(MAKE) -C ocaml
+	$(MAKE) -C src
+	$(MAKE) -C ocaml
 endif
 
 curl: bin/curl
 m4: bin/m4
 irpf90: bin/irpf90
 emsl: EMSL_Basis
+
+binary: 
+	$(QPACKAGE_ROOT)/scripts/make_binary.sh
 
 EZFIO: bin/irpf90
 	$(info $(BLUE)===== Fetching EZFIO from the web ===== $(BLACK))

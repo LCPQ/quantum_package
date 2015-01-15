@@ -49,6 +49,9 @@ let run ?o b c m xyz_file =
         end
   in
   
+  let temp_filename =
+    Filename.temp_file "qp_create_" ".basis"
+  in
   let rec build_basis = function
   | [] -> ()
   | elem_and_basis_name :: rest -> 
@@ -66,7 +69,8 @@ let run ?o b c m xyz_file =
             apply new_accu rest
           in
           let accu = 
-            Qpackage.root ^ "/scripts/get_basis.sh \"" ^ basis ^"\""
+            Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
+              ^ "\" " ^ basis 
           in
           List.map nuclei ~f:(fun x -> x.Atom.element)
           |> apply accu 
@@ -97,8 +101,8 @@ let run ?o b c m xyz_file =
           let key = Element.to_string elem
           in
           let command =
-              Qpackage.root ^ "/scripts/get_basis.sh \"" ^ basis ^ "\""
-              ^ " " ^ key
+              Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename ^
+                "\" " ^ basis ^ " " ^ key
           in
           begin
             let filename = 

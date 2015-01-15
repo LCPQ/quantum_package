@@ -8,13 +8,14 @@ BLUE="[34m"
 RED="[31m"
 BLACK="(B[m"
 
-QPACKAGE_ROOT=${PWD}
+QPACKAGE_ROOT="$( cd "$(dirname "$BASH_SOURCE")"  ; pwd -P )"
 
-if [[ -z ${IRPF90} ]] ;
+
+if [[ -z "${IRPF90}" ]] ;
 then
     make irpf90
-    IRPF90=${QPACKAGE_ROOT}/bin/irpf90
-    if [[ ! -x ${IRPF90} ]]
+    IRPF90="${QPACKAGE_ROOT}"/bin/irpf90
+    if [[ ! -x "${IRPF90}" ]]
     then
       echo $RED "Error in IRPF90 installation" $BLACK
       exit 1
@@ -28,18 +29,17 @@ then
 fi
 
 cat << EOF > quantum_package.rc
-export IRPF90=${IRPF90}
-export OCAMLBREW_BASE=${OCAMLBREW_BASE}
-export QPACKAGE_ROOT=${QPACKAGE_ROOT}
-export LD_LIBRARY_PATH="\${QPACKAGE_ROOT}/lib":\${LD_LIBRARY_PATH}
-export LIBRARY_PATH="\${QPACKAGE_ROOT}/lib":\${LIBRARY_PATH}
-export C_INCLUDE_PATH=\${QPACKAGE_ROOT}/include:\${C_INCLUDE_PATH}
-export PYTHONPATH=\${PYTHONPATH}:\${QPACKAGE_ROOT}/scripts
-export PATH=\${PATH}:\${QPACKAGE_ROOT}/scripts
-export PATH=\${PATH}:\${QPACKAGE_ROOT}/bin
-export PATH=\${PATH}:\${QPACKAGE_ROOT}/ocaml
-export QPACKAGE_CACHE_URL="http://qmcchem.ups-tlse.fr/files/scemama/quantum_package/cache"
-source "\${QPACKAGE_ROOT}/bin/irpman" &> /dev/null
+export IRPF90="${IRPF90}"
+export OCAMLBREW_BASE="${OCAMLBREW_BASE}"
+export QPACKAGE_ROOT=\$( cd \$(dirname "\${BASH_SOURCE}")  ; pwd -P )
+export LD_LIBRARY_PATH="\${QPACKAGE_ROOT}"/lib:\${LD_LIBRARY_PATH}
+export LIBRARY_PATH="\${QPACKAGE_ROOT}"/lib:\${LIBRARY_PATH}
+export C_INCLUDE_PATH="\${QPACKAGE_ROOT}"/include:\${C_INCLUDE_PATH}
+export PYTHONPATH=\${PYTHONPATH}:"\${QPACKAGE_ROOT}"/scripts
+export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/scripts
+export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/bin
+export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/ocaml
+source "\${QPACKAGE_ROOT}"/bin/irpman" &> /dev/null
 source "\${OCAMLBREW_BASE}"/ocaml-4*/etc/ocamlbrew.bashrc &> /dev/null
 EOF
 
