@@ -141,19 +141,3 @@ echo "${ALL_MODULES}" > "${QPACKAGE_ROOT}/src/NEEDED_MODULES"
 debug "Updated NEEDED_MODULES"
 
 
-# Create tests directory
-mkdir tests
-if [[ ! -d tests ]]
-then
-  fail "tests directory was not created"
-fi
-
-cd tests || fail "Unable to enter into tests directory"
-"${QPACKAGE_ROOT}/scripts/create_tests_Makefile.sh"
-cd ..
-if [[ ! -f tests/Makefile ]]
-then
-  fail "tests/Makefile was not created"
-fi
-
-

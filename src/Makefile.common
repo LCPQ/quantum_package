@@ -1,3 +1,7 @@
+.PHONY: default
+
+default: all .gitignore
+
 # Required EZFIO version
 EZFIO_VERSION=1.1
 
@@ -144,22 +148,15 @@ ifneq ( $(PWD), $($(QPACKAGE_ROOT)/src))
 include irpf90.make
 endif
 
-# Check that there is no file named test.irp.f
-ifeq (test.irp.f, $(wildcard test.irp.f))
-$(info  -------------------- Error --------------------)
-$(info  Having a file named test.irp.f is not allowed)
-$(info  because 'make test' should run the tests.)
-$(info  -----------------------------------------------)
-$(error )
-endif
-
-test:
-	DEBUG=1 make -j 1 -C tests
-
 # Dummy rule to enable to force recompilation
 FORCE:
 
-clena: clean
-
 vercylean: veryclean
+
+.gitignore:
+	$(QPACKAGE_ROOT)/scripts/create_gitignore.sh 
+
+
+# Frequent typos
+clena: clean
 veryclena: veryclean

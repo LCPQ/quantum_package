@@ -12,8 +12,6 @@ Each module (directory) contains the following:
 * A ``NEEDED_MODULES`` file which contains the list of modules on which the
   current module depends
 * A set of ``.irp.f`` files containing provider, subroutines and functions
-* A ``tests`` directory that should contain the test programs of the module
-  (see testing section)
 * A ``Makefile`` that should compile
 * Optionally some ``*.ezfio_config`` configuration files for the EZFIO
   library
@@ -54,18 +52,6 @@ For example
   SRC=map_module.f90
   OBJ=IRPF90_temp/map_module.o
 
-
-
-Testing
-=======
-
-Each module contains a ``tests/`` directory which contains the test script.
-Each module should be tested by running::
-
-  make test
-
-Before merging into the master branch, the module should pass **all** the tests.
-This enables the possibility to use ``git bisect`` to quickly find bugs.
 
 
 Input data

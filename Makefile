@@ -10,7 +10,28 @@ BLACK=(B[m
 .PHONY: doc src curl m4 ocaml irpf90 emsl
 
 default: 
-	exec ./setup_environment.sh
+	@echo   -----------------------------------------------
+	@echo To set up the environment, run
+	@echo ./setup_environment.sh
+	@echo
+	@echo To compile everything, run
+	@echo make build
+	@echo   -----------------------------------------------
+
+ifndef QPACKAGE_ROOT
+build:
+	@echo   -------------------- Error --------------------
+	@echo   QPACKAGE_ROOT undefined.
+	@echo   Run
+	@echo     ./setup_environment.sh
+	@echo   or
+	@echo     source quantum_package.rc
+	@echo   -----------------------------------------------
+else
+build:
+	  $(MAKE) -C src
+	  $(MAKE) -C ocaml
+endif
 
 curl: bin/curl
 m4: bin/m4
@@ -37,6 +58,7 @@ zlib:
 	QPACKAGE_ROOT=$$PWD ./scripts/install_zlib.sh | tee install_zlib.log
 
 
+bin/irpf90:
 bin/irpf90:
 	$(info $(BLUE)===== Fetching IRPF90 from the web ===== $(BLACK))
 	@sleep 1

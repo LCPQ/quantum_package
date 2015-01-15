@@ -1,9 +1,1 @@
 Makefile.config
-*IRPF90_temp
-*IRPF90_man
-*irpf90.make
-*irpf90_entities
-*tags
-*.o
-*.mod
-*Makefile.depend
