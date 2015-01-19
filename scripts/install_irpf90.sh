@@ -22,8 +22,8 @@ tar -zxf ${BASE}.tar.gz && rm ${BASE}.tar.gz ||exit 1
 mv ${BASE}-master irpf90
 make -C irpf90 | tee install_irpf90.log
 rm -rf -- bin/irpf90 bin/irpman
-echo ${PWD}/irpf90/bin/irpf90 $@ > bin/irpf90
-echo ${PWD}/irpf90/bin/irpman $@ > bin/irpman
+echo '${QPACKAGE_ROOT}/irpf90/bin/irpf90 $@' > bin/irpf90
+echo '${QPACKAGE_ROOT}/irpf90/bin/irpman $@' > bin/irpman
 chmod +x bin/irpf90 bin/irpman
 
 

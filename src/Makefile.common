@@ -15,6 +15,8 @@ $(info  -------------------- Error --------------------)
 $(info  QPACKAGE_ROOT undefined. Run the setup_environment.sh script)
 $(info  -----------------------------------------------)
 $(error )
+else
+$(info  QPACKAGE_ROOT is defined.)
 endif
 
 
@@ -28,6 +30,8 @@ $(info You can create Makefile.config)
 $(info by modifying Makefile.config.example)
 $(info  -----------------------------------------------)
 $(error )
+else
+$(info  Makefile.config is present.)
 endif
 
 
@@ -46,6 +50,8 @@ $(info  To upgrade IRPF90, run :                       )
 $(info    $(QPACKAGE_ROOT)/scripts/upgrade_irpf90.sh   )
 $(info  -----------------------------------------------)
 $(error )
+else
+$(info  irpf90 version is OK.)
 endif
 
 
@@ -63,6 +69,8 @@ $(info Your NEEDED_MODULES file is inconsistent. It should be)
 $(info $(NEEDED_MODULES_OK))
 $(info  -----------------------------------------------)
 $(error )
+else
+$(info  NEEDED_MODULES files is consistent.)
 endif
 
 
@@ -83,6 +91,8 @@ $(info  You should document it before you compile, as)
 $(info  well as the ASSUMPTIONS.rst file.)
 $(info  -----------------------------------------------)
 $(error )
+else
+$(info  README.rst is present.)
 endif
 
 
@@ -94,6 +104,8 @@ $(info  -------------------- Error --------------------)
 $(info This is a Bug. At that point, the ASSUMPTIONS.rst)
 $(info file should exist.)
 $(info  -----------------------------------------------)
+else
+$(info  ASSUMPTIONS.rst is present.)
 endif
 
 
@@ -113,6 +125,8 @@ $(info  To upgrade EZFIO, run :                        )
 $(info    $(QPACKAGE_ROOT)/scripts/upgrade_ezfio.sh    )
 $(info  -----------------------------------------------)
 $(error )
+else
+$(info  EZFIO version is OK.)
 endif
 
 # Define the EZFIO rules
