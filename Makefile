@@ -1,7 +1,3 @@
-IRPF90_TGZ = irpf90-latest-noarch-src.tar.gz
-EZFIO_TGZ  = EZFIO.latest.tar.gz
-FETCH_FROM_WEB=./scripts/fetch_from_web.py
-
 BLUE=[34m
 BLACK=(B[m
 

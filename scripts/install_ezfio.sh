@@ -17,6 +17,7 @@ fi
 cd ${QPACKAGE_ROOT}
 
 
+rm -rf -- EZFIO
 ${QPACKAGE_ROOT}/scripts/fetch_from_web.py ${URL} ${QPACKAGE_ROOT}/${BASE}.tar.gz
 tar -zxf ${BASE}.tar.gz && rm ${BASE}.tar.gz ||exit 1
 mv EZFIO-master EZFIO
