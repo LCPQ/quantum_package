@@ -44,6 +44,11 @@ emsl: EMSL_Basis
 binary: 
 	$(QPACKAGE_ROOT)/scripts/make_binary.sh
 
+resultsFile: 
+	$(info $(BLUE)===== Fetching resultsFile from the web ===== $(BLACK))
+	@sleep 1
+	$(QPACKAGE_ROOT)/scripts/install_resultsFile.sh
+
 EZFIO: bin/irpf90
 	$(info $(BLUE)===== Fetching EZFIO from the web ===== $(BLACK))
 	@sleep 1

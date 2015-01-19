@@ -47,7 +47,7 @@ source quantum_package.rc
 make EZFIO
 if [[ ! -d ${QPACKAGE_ROOT}/EZFIO ]]
 then
-  echo $RED "Error in IRPF90 installation" $BLACK
+  echo $RED "Error in EZFIO installation" $BLACK
   exit 1
 fi
 
@@ -57,6 +57,14 @@ then
   echo $RED "Error in ocaml installation" $BLACK
   exit 1
 fi
+
+make resultsFile
+if [[ ! -d ${QPACKAGE_ROOT}/resultsFile ]]
+then
+  echo $RED "Error in resultsFile installation" $BLACK
+  exit 1
+fi
+
 
 echo $RED "
 =======================================================
