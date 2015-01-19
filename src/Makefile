@@ -24,3 +24,4 @@ executables: $(ALL_MODULES)
 # Dummy rule to enable to force recompilation
 FORCE:
 
+veryclean: all_clean

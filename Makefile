@@ -31,7 +31,7 @@ build:
 	@echo     source quantum_package.rc
 	@echo   -----------------------------------------------
 else
-build:
+build: EZFIO curl m4 irpf90 emsl 
 	$(MAKE) -C src
 	$(MAKE) -C ocaml
 endif

@@ -41,7 +41,7 @@ subroutine save_dets_qmcchem
    write(31,'(A)') 'a'
  enddo
  close(31)
- call system('gzip '//trim(ezfio_filename)//'/mo_basis/mo_classif')
+ call system('gzip -f '//trim(ezfio_filename)//'/mo_basis/mo_classif')
 end
 
 program save_for_qmc
