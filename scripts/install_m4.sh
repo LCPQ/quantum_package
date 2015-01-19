@@ -4,8 +4,18 @@
 # Thu Oct 23 22:02:08 CEST 2014
 
 M4_URL="http://ftp.gnu.org/gnu/m4/m4-latest.tar.gz"
-
 M4=$(which m4)
+
+# Check the QPACKAGE_ROOT directory
+if [[ -z ${QPACKAGE_ROOT} ]]
+then
+  echo "The QPACKAGE_ROOT environment variable is not set."
+  echo "Please reload the quantum_package.rc file."
+  exit 1
+fi
+
+cd ${QPACKAGE_ROOT}
+
 if [[ -z ${M4} ]] 
 then 
     rm -f -- bin/m4

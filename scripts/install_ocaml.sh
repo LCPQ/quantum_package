@@ -3,8 +3,18 @@
 # Downloads and installs ocaml, opam and core library
 # Thu Oct 23 21:58:40 CEST 2014
 
-QPACKAGE_ROOT=${PWD}
 PACKAGES="core cryptokit"
+
+# Check the QPACKAGE_ROOT directory
+if [[ -z ${QPACKAGE_ROOT} ]]
+then
+  echo "The QPACKAGE_ROOT environment variable is not set."
+  echo "Please reload the quantum_package.rc file."
+  exit 1
+fi
+
+cd ${QPACKAGE_ROOT}
+
 
 function asksure() {
   echo -n "Are you sure (Y/N)? "

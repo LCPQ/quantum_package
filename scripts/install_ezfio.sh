@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# Installs EMSL_Basis_Set_Exchange_Local
-# Mon Jan 12 12:57:19 CET 2015
+# Installs EZFIO
+# Mon Jan 12 16:06:44 CET 2015
 
-BASE="EMSL_Basis_Set_Exchange_Local"
+BASE="ezfio"
 URL="https://github.com/LCPQ/${BASE}/archive/master.tar.gz"
 
 # Check the QPACKAGE_ROOT directory
@@ -16,8 +16,10 @@ fi
 
 cd ${QPACKAGE_ROOT}
 
+
 ${QPACKAGE_ROOT}/scripts/fetch_from_web.py ${URL} ${QPACKAGE_ROOT}/${BASE}.tar.gz
 tar -zxf ${BASE}.tar.gz && rm ${BASE}.tar.gz ||exit 1
-mv ${BASE}-master EMSL_Basis
+mv EZFIO-master EZFIO
+
 
 

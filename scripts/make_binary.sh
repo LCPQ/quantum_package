@@ -68,10 +68,10 @@ echo "Creating root of static directory"
 #     ---------------------------------
 
 rm -rf -- ${QPACKAGE_STATIC}
-mkdir -p -- ${QPACKAGE_STATIC}/{bin,lib,data}
+mkdir -p -- ${QPACKAGE_STATIC}/{bin,lib,extra_lib,data}
 if [[ $? -ne 0 ]] ;
 then
-  echo "Error creating ${QPACKAGE_STATIC}/{bin,lib,data,scripts}"
+  echo "Error creating ${QPACKAGE_STATIC}/{bin,lib,extra_lib,data}"
   exit 1
 fi
 
@@ -122,13 +122,19 @@ MKL_LIBS=$(find_libs ${FORTRAN_EXEC} | grep libmkl | head -1)
 MKL_LIBS=$(dirname ${MKL_LIBS})
 MKL_LIBS=$(ls ${MKL_LIBS}/libmkl_{def,avx,avx2}.so)
 ALL_LIBS=$(find_libs ${OCAML_EXEC} ${FORTRAN_EXEC})
-cp -- ${ALL_LIBS} ${MKL_LIBS} ${QPACKAGE_STATIC}/lib
+cp -- ${ALL_LIBS} ${MKL_LIBS} ${QPACKAGE_STATIC}/extra_lib
 if [[ $? -ne 0 ]] ;
 then
-  echo 'cp -- ${ALL_LIBS} ${MKL_LIBS} ${QPACKAGE_STATIC}/lib'
+  echo 'cp -- ${ALL_LIBS} ${MKL_LIBS} ${QPACKAGE_STATIC}/extra_lib'
   exit 1
 fi
 
+cp -- ${QPACKAGE_STATIC}/extra_lib/{libiomp*,libmkl*} ${QPACKAGE_STATIC}/lib/
+if [[ $? -ne 0 ]] ;
+then
+  echo 'mv -- ${QPACKAGE_STATIC}/extra_lib/{libiomp*,libmkl*} ${QPACKAGE_STATIC}/lib/'
+  exit 1
+fi
 
 #
 echo "Copying EMSL_Basis directory"

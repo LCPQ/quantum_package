@@ -1,4 +1,3 @@
-WWW_SERVER = http://qmcchem.ups-tlse.fr/files/scemama
 IRPF90_TGZ = irpf90-latest-noarch-src.tar.gz
 EZFIO_TGZ  = EZFIO.latest.tar.gz
 FETCH_FROM_WEB=./scripts/fetch_from_web.py
@@ -45,42 +44,30 @@ binary:
 	$(QPACKAGE_ROOT)/scripts/make_binary.sh
 
 resultsFile: 
-	$(info $(BLUE)===== Fetching resultsFile from the web ===== $(BLACK))
+	$(info $(BLUE)===== Installing resultsFile ===== $(BLACK))
 	@sleep 1
 	$(QPACKAGE_ROOT)/scripts/install_resultsFile.sh
 
 EZFIO: bin/irpf90
-	$(info $(BLUE)===== Fetching EZFIO from the web ===== $(BLACK))
+	$(info $(BLUE)===== Installing EZFIO ===== $(BLACK))
 	@sleep 1
-	@$(FETCH_FROM_WEB) "$(WWW_SERVER)/$(EZFIO_TGZ)" $(EZFIO_TGZ) || \
-	  (echo Unable to download EZFIO : $(WWW_SERVER)/$(EZFIO_TGZ) ; exit 1)
-	tar -zxf $(EZFIO_TGZ) && rm $(EZFIO_TGZ)
-	$(MAKE) -C src $$PWD/EZFIO
-	touch EZFIO
+	QPACKAGE_ROOT=$$PWD ./scripts/install_ezfio.sh | tee install_ezfio.log
 
 EMSL_Basis: 
-	$(info $(BLUE)===== Fetching EMSL_Basis_Set_Exchange_Local from the web ===== $(BLACK))
+	$(info $(BLUE)===== Installing EMSL_Basis_Set_Exchange_Local ===== $(BLACK))
 	@sleep 1
 	QPACKAGE_ROOT=$$PWD ./scripts/install_emsl.sh | tee install_emsl.log
 
 zlib: 
-	$(info $(BLUE)===== Fetching Zlib from the web ===== $(BLACK))
+	$(info $(BLUE)===== Installing Zlib ===== $(BLACK))
 	@sleep 1
 	QPACKAGE_ROOT=$$PWD ./scripts/install_zlib.sh | tee install_zlib.log
 
 
 bin/irpf90:
-bin/irpf90:
-	$(info $(BLUE)===== Fetching IRPF90 from the web ===== $(BLACK))
+	$(info $(BLUE)===== Installing IRPF90 ===== $(BLACK))
 	@sleep 1
-	@$(FETCH_FROM_WEB) "$(WWW_SERVER)/$(IRPF90_TGZ)" $(IRPF90_TGZ) || \
-	  (echo Unable to download IRPF90 : $(WWW_SERVER)/$(IRPF90_TGZ) ; exit 1)
-	tar -zxf $(IRPF90_TGZ) && rm $(IRPF90_TGZ)
-	$(MAKE) -C irpf90 | tee install_irpf90.log
-	rm -rf -- $$PWD/bin/irpf90 $$PWD/bin/irpman
-	echo $$PWD/irpf90/bin/irpf90 $$\@ > $$PWD/bin/irpf90
-	echo $$PWD/irpf90/bin/irpman $$\@ > $$PWD/bin/irpman
-	chmod +x $$PWD/bin/irpf90 $$PWD/bin/irpman
+	QPACKAGE_ROOT=$$PWD ./scripts/install_irpf90.sh | tee install_irpf90.log
 
 doc:
 	$(MAKE) -C doc

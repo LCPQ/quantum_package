@@ -6,13 +6,22 @@
 CURL="curl-7.30.0.ermine"
 CURL_URL="http://qmcchem.ups-tlse.fr/files/scemama/${CURL}.tar.bz2"
 
+# Check the QPACKAGE_ROOT directory
+if [[ -z ${QPACKAGE_ROOT} ]]
+then
+  echo "The QPACKAGE_ROOT environment variable is not set."
+  echo "Please reload the quantum_package.rc file."
+  exit 1
+fi
+
+cd ${QPACKAGE_ROOT}
+
 curl -kL "https://github.com/LCPQ/quantum_package" &> /dev/null
 if [[ $? -eq 0 ]]
 then
   exit 0
 fi
 
-cd ${QPACKAGE_ROOT}
 rm -f -- ${QPACKAGE_ROOT}/bin/curl
 ${QPACKAGE_ROOT}/scripts/fetch_from_web.py ${CURL_URL} CURL.tar.bz2
 tar -jxf CURL.tar.bz2 && rm CURL.tar.bz2 ||exit 1
