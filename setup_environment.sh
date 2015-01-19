@@ -39,7 +39,7 @@ export PYTHONPATH=\${PYTHONPATH}:"\${QPACKAGE_ROOT}"/scripts
 export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/scripts
 export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/bin
 export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/ocaml
-source "\${QPACKAGE_ROOT}"/bin/irpman" &> /dev/null
+source "\${QPACKAGE_ROOT}"/bin/irpman &> /dev/null
 source "\${OCAMLBREW_BASE}"/ocaml-4*/etc/ocamlbrew.bashrc &> /dev/null
 EOF
 
