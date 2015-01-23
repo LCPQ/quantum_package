@@ -70,7 +70,7 @@ let run ?o b c m xyz_file =
           in
           let accu = 
             Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
-              ^ "\" " ^ basis 
+              ^ "\" \"" ^ basis ^"\""
           in
           List.map nuclei ~f:(fun x -> x.Atom.element)
           |> apply accu 
@@ -102,7 +102,7 @@ let run ?o b c m xyz_file =
           in
           let command =
               Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename ^
-                "\" " ^ basis ^ " " ^ key
+                "\" \"" ^ basis ^ "\" " ^ key
           in
           begin
             let filename = 
