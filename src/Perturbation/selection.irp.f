@@ -66,8 +66,10 @@ subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,c
   enddo
   call omp_unset_lock(H_apply_buffer_lock(1,iproc))
   !$OMP CRITICAL
-  selection_criterion = max(selection_criterion,smax)
-  selection_criterion_min = min(selection_criterion_min,smin)
+  if(l.ne.0)then
+   selection_criterion = max(selection_criterion,smax)
+   selection_criterion_min = min(selection_criterion_min,smin)
+  endif
   !$OMP END CRITICAL
 end
 

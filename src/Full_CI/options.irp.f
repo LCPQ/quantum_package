@@ -9,6 +9,14 @@ T.set_ezfio_name( "N_det_max_fci" )
 T.set_output    ( "output_full_ci" )
 print T
 
+T.set_type      ( "integer" )
+T.set_name      ( "N_det_max_fci_property" )
+T.set_doc       ( "Max number of determinants in the wave function when you select for a given property" )
+T.set_ezfio_dir ( "full_ci" )
+T.set_ezfio_name( "N_det_max_fci_property" )
+T.set_output    ( "output_full_ci" )
+print T
+
 T.set_type      ( "logical" )
 T.set_name      ( "do_pt2_end" )
 T.set_doc       ( "If true, compute the PT2 at the end of the selection" )
