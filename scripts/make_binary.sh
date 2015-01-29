@@ -114,6 +114,10 @@ do
   echo $i \$QPACKAGE_ROOT/bin/$i
 done >> ${QPACKAGE_STATIC}/data/executables
 
+cp ${QPACKAGE_ROOT}/data/ezfio_defaults ${QPACKAGE_STATIC}/data
+mkdir -p ${QPACKAGE_STATIC}/src/Bitmask
+cp ${QPACKAGE_ROOT}/src/Bitmask/bitmasks_module.f90 ${QPACKAGE_STATIC}/src/Bitmask
+
 #
 echo "Copying dynamic libraries"
 #     --------------------------
