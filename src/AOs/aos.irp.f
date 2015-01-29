@@ -109,8 +109,21 @@ END_PROVIDER
    ao_expo_transp(i,j) = ao_expo(j,i)
   enddo
  enddo
+END_PROVIDER
 
-
+ BEGIN_PROVIDER [ double precision, ao_coef_transp_unnormalized, (ao_prim_num_max_align,ao_num) ]
+&BEGIN_PROVIDER [ double precision, ao_expo_transp_unsorted, (ao_prim_num_max_align,ao_num) ]
+ implicit none
+ BEGIN_DOC
+! Transposed ao_coef and ao_expo with the GAMESS-US normalization convention
+ END_DOC
+ integer :: i,j
+ do j=1, ao_num
+  do i=1, ao_prim_num_max
+   ao_coef_transp_unnormalized(i,j) = ao_coef_unnormalized(j,i)
+   ao_expo_transp_unsorted(i,j) = ao_expo_unsorted(j,i)
+  enddo
+ enddo
 END_PROVIDER
 
  BEGIN_PROVIDER [ double precision, ao_coef_unnormalized, (ao_num_align,ao_prim_num_max) ]

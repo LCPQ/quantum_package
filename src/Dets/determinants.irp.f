@@ -29,6 +29,20 @@ BEGIN_PROVIDER [ integer, N_det ]
  ASSERT (N_det > 0)
 END_PROVIDER
 
+BEGIN_PROVIDER [integer, max_degree_exc]
+ implicit none
+ integer :: i,degree
+ max_degree_exc = 0
+ BEGIN_DOC
+ ! Maximum degree of excitation in the wf
+ END_DOC
+ do i = 1, N_det
+  call get_excitation_degree(HF_bitmask,psi_det(1,1,i),degree,N_int)
+  if(degree.gt.max_degree_exc)then
+   max_degree_exc= degree
+  endif
+ enddo
+END_PROVIDER
 
 BEGIN_PROVIDER [ integer, psi_det_size ]
  implicit none
@@ -229,7 +243,7 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states_diag) ]
   do i=1,N_states_diag
     psi_coef(i,i) = 1.d0
   enddo
-  
+
   if (read_wf) then
     call ezfio_has_determinants_psi_coef(exists)
     if (exists) then

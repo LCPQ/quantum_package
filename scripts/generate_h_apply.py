@@ -115,6 +115,9 @@ class H_apply(object):
       buffer = buffer.replace('$'+key, value)
     return buffer
 
+  def unset_double_excitations(self):
+    self["do_double_excitations"] = ".False."
+
   def set_perturbation(self,pert):
     if self.perturbation is not None:
         raise
@@ -225,7 +228,8 @@ class H_apply(object):
       if (s2_eig) then
         call make_s2_eigenfunction
       endif
-      SOFT_TOUCH psi_det psi_coef N_det
+      print*,'NO TOUCH !!'
+!     SOFT_TOUCH psi_det psi_coef N_det
       selection_criterion_min = min(selection_criterion_min, maxval(select_max))*0.1d0
       selection_criterion = selection_criterion_min
       call write_double(output_Dets,selection_criterion,'Selection criterion')
@@ -253,7 +257,6 @@ class H_apply(object):
           !$ call omp_unset_lock(lck)
           cycle
         endif
-        select_max(i_generator) = 0.d0
       endif
       """
 

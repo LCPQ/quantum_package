@@ -19,7 +19,7 @@ BEGIN_PROVIDER [double precision, average_position,(3)]
   enddo
  enddo
  !$OMP END PARALLEL DO
- call test_average_value(mo_dipole_z,average_position(3))
+!call test_average_value(mo_dipole_z,average_position(3))
  
 END_PROVIDER
 
@@ -35,7 +35,7 @@ BEGIN_PROVIDER [double precision, average_spread,(3)]
  average_spread = 0.d0
  !$OMP PARALLEL DO DEFAULT(none) &
  !$OMP PRIVATE(i,j) &
- !$OMP SHARED(mo_tot_num,mo_dipole_x,mo_dipole_y,mo_dipole_z,one_body_dm_mo) &
+ !$OMP SHARED(mo_tot_num,mo_spread_x,mo_spread_y,mo_spread_z,one_body_dm_mo) &
  !$OMP REDUCTION(+:average_spread)
  do i = 1, mo_tot_num
   do j = 1, mo_tot_num
@@ -45,7 +45,7 @@ BEGIN_PROVIDER [double precision, average_spread,(3)]
   enddo
  enddo
  !$OMP END PARALLEL DO
- call test_average_value(mo_spread_z,average_spread(3))
+!call test_average_value(mo_spread_z,average_spread(3))
  
 END_PROVIDER
 

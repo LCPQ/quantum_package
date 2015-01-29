@@ -339,6 +339,12 @@ end
  dist = (A_center - B_center)*(A_center - B_center)
  P_center = (alpha * A_center + beta * B_center) * p_inv
  factor = dexp(-rho * dist)
+ if(power_B == 0 .and. power_A ==0)then
+  double precision :: F_integral
+  overlap_x = P_center * F_integral(0,p) * factor
+  dx = 0.d0
+  return
+ endif
  double precision :: pouet_timy
 
  pouet_timy = dsqrt(lower_exp_val/p)

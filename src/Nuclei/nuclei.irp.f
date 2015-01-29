@@ -168,15 +168,20 @@ END_PROVIDER
    
 END_PROVIDER
  
-BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
+ BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
+&BEGIN_PROVIDER [ double precision, positive_charge_barycentre,(3)]
    implicit none
    BEGIN_DOC
    ! Nuclear repulsion energy
    END_DOC
-   integer                        :: k,l
+   integer                        :: k,l,i
    double precision               :: Z12, r2, x(3)
    nuclear_repulsion = 0.d0
+   positive_charge_barycentre = 0.d0
    do l = 1, nucl_num
+     do i = 1, 3
+      positive_charge_barycentre(i) += nucl_charge(l) * nucl_coord(l,i)
+     enddo
      do  k = 1, nucl_num
        if(k == l) then
          cycle

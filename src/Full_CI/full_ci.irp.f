@@ -29,11 +29,13 @@ program full_ci
   endif
 
   do while (N_det < n_det_max_fci.and.maxval(abs(pt2(1:N_st))) > pt2_max)
+    print*,'BEGINNING THE SELECTION ...'
     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
 
     PROVIDE  psi_coef
     PROVIDE  psi_det
     PROVIDE  psi_det_sorted
+    print*,'N_det inside !!!!!!!!!!!!=',N_det
 
     if (N_det > n_det_max_fci) then
        psi_det = psi_det_sorted
@@ -56,6 +58,7 @@ program full_ci
   enddo
    N_det = min(n_det_max_fci,N_det)
    if(do_pt2_end)then
+    print*,'Last iteration only to compute the PT2'
     threshold_selectors = 1.d0
     threshold_generators = 0.999d0
     touch N_det psi_det psi_coef
@@ -63,8 +66,6 @@ program full_ci
     call H_apply_FCI_PT2(pt2, norm_pert, H_pert_diag,  N_st)
  
     print *,  'Final step'
-!!  call remove_small_contributions
-!!  call diagonalize_CI
     print *,  'N_det    = ', N_det
     print *,  'N_states = ', N_states
     print *,  'PT2      = ', pt2
@@ -73,5 +74,6 @@ program full_ci
     print *,  '-----'
     call ezfio_set_full_ci_energy_pt2(CI_energy+pt2)
    endif
+    call save_wavefunction
   deallocate(pt2,norm_pert)
 end
