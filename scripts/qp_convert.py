@@ -50,8 +50,28 @@ def write_ezfioFile(res,filename):
   ezfio.set_nuclei_nucl_coord(coord_x+coord_y+coord_z)
 
 # Basis
+  prim_expo = []
   basis = res.uncontracted_basis
   geom  = res.geometry
+  prim_num = len(basis)
+  prim_nucl = []
+  prim_power = []
+  for prim in basis:
+     c = prim.center
+     for i,atom in enumerate(geom):
+         atom_c = atom.coord
+         if atom_c == c:
+            atom_id = i+1
+     sym = prim.sym
+     prim_nucl.append(atom_id)
+     prim_power.append([ sym.count('x'), sym.count('y'), sym.count('z') ])
+     prim_expo.append(prim.expo)
+
+  ezfio.set_primitive_basis_prim_num(prim_num)
+  ezfio.set_primitive_basis_prim_nucl(prim_nucl)
+  ezfio.set_primitive_basis_prim_power(prim_power)
+  ezfio.set_primitive_basis_prim_expo(prim_expo)
+
 
 # MO 
   MoTag = res.determinants_mo_type
