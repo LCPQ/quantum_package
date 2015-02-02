@@ -15,7 +15,8 @@ END_PROVIDER
 BEGIN_PROVIDER [double precision, integrated_delta_rho_all_points, (N_z_pts)]
  BEGIN_DOC
 ! 
-! integrated_rho(alpha,z) - integrated_rho(beta,z)
+! integrated_rho(alpha,z) - integrated_rho(beta,z) for all the z points 
+! chosen
 !
  END_DOC
  implicit none
@@ -194,18 +195,16 @@ BEGIN_PROVIDER [double precision, mo_integrated_delta_rho_one_point, (mo_tot_num
  double precision :: z,function_integrated_delta_rho,c_k,c_j,n_i_h,accu
  mo_integrated_delta_rho_one_point = 0.d0
  !$OMP PARALLEL DO DEFAULT(none) &
- !$OMP PRIVATE(i,j,h,k,c_j,c_k,n_i_h) &
+ !$OMP PRIVATE(i,j,h,k,c_j,c_k) &
  !$OMP SHARED(mo_tot_num,ao_num,mo_coef, &
- !$OMP   mo_integrated_delta_rho_one_point, ao_integrated_delta_rho_one_point,one_body_spin_density_mo)
+ !$OMP   mo_integrated_delta_rho_one_point, ao_integrated_delta_rho_one_point)
   do i = 1, mo_tot_num
     do h = 1, mo_tot_num
-     n_i_h = one_body_spin_density_mo(i,h)
-     if(dabs(n_i_h).lt.1.d-10)cycle
      do j = 1, ao_num
       c_j = mo_coef(j,i)   ! coefficient of the jth AO on the ith MO
       do k = 1, ao_num
        c_k = mo_coef(k,h)   ! coefficient of the kth AO on the hth MO
-       mo_integrated_delta_rho_one_point(i,h) += c_k * c_j * n_i_h *  ao_integrated_delta_rho_one_point(j,k)
+       mo_integrated_delta_rho_one_point(i,h) += c_k * c_j *  ao_integrated_delta_rho_one_point(j,k)
       enddo
      enddo
     enddo
@@ -213,5 +212,16 @@ BEGIN_PROVIDER [double precision, mo_integrated_delta_rho_one_point, (mo_tot_num
  !$OMP END PARALLEL DO
 
 END_PROVIDER
-
+BEGIN_PROVIDER [ double precision, integrated_delta_rho_one_point]
+ implicit none
+ BEGIN_DOC
+! 
+! integral (x,y) and (z,z+delta_z) of rho(alpha) - rho(beta)
+! on the MO basis
+!
+ END_DOC
+  double precision :: average
+call get_average(mo_integrated_delta_rho_one_point,one_body_spin_density_mo,average)
+ integrated_delta_rho_one_point = average
+END_PROVIDER
 

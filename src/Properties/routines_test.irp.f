@@ -22,6 +22,37 @@ subroutine test_average_value(array,value)
  endif
 end
 
+subroutine test_average_value_alpha_beta(array,value)
+ implicit none
+ double precision, intent(in) :: array(mo_tot_num_align,mo_tot_num)
+ double precision, intent(in) :: value
+ double precision :: tmp,hij
+ integer :: i,j
+ tmp = 0.d0
+ do i = 1, N_det
+  do j = 1, N_det
+   call i_O1_j_alpha_beta(array,psi_det(1,1,i),psi_det(1,1,j),N_int,hij)
+   tmp+= hij * psi_coef(i,1) * psi_coef(j,1)
+  enddo
+ enddo
+ print*,'tmp   = ',tmp
+ print*,'value = ',value
+ tmp = 0.d0
+ do i = 1, N_det
+   call i_O1_psi_alpha_beta(array,psi_det(1,1,i),psi_det,psi_coef,N_int,N_det,psi_det_size,N_states,hij)
+   tmp+= hij * psi_coef(i,1) 
+ enddo
+ print*,'tmp   = ',tmp
+ print*,'value = ',value
+ if(dabs(tmp-value).ge.1.d-8)then
+  print*,'subroutine test_average_value'
+  print*,'PB WITH AVERAGE VALUE !!!!!!!!!'
+  print*,'<psi|O|psi>        = ',tmp
+  print*,'value              = ',value
+  stop
+ endif
+end
+
 subroutine test_dm(tmp_array)
  use bitmasks
  implicit none
