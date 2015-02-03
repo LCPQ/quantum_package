@@ -137,7 +137,7 @@ BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_one_point, (ao_num_al
  END_DOC
   implicit none
   integer :: i,j,n,l
-  double precision :: f,accu
+  double precision :: f
   integer :: dim1
   double precision :: overlap, overlap_x, overlap_y, overlap_z
   double precision :: alpha, beta, c
@@ -168,7 +168,7 @@ BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_one_point, (ao_num_al
     power_B(3)  = ao_power( i, 3 )
 
      accu_z = 0.d0
-     do n = 0,ao_prim_num(j)
+     do n = 1,ao_prim_num(j)
       alpha = ao_expo_transp(n,j)
       do l = 1, ao_prim_num(i)
        beta = ao_expo_transp(l,i)
@@ -183,6 +183,7 @@ BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_one_point, (ao_num_al
   enddo
  !$OMP END PARALLEL DO
 END_PROVIDER
+
 BEGIN_PROVIDER [double precision, mo_integrated_delta_rho_one_point, (mo_tot_num_align,mo_tot_num)]
  BEGIN_DOC
 ! 
@@ -192,7 +193,7 @@ BEGIN_PROVIDER [double precision, mo_integrated_delta_rho_one_point, (mo_tot_num
  END_DOC
  implicit none
  integer :: i,j,k,l,i_z,h
- double precision :: z,function_integrated_delta_rho,c_k,c_j,n_i_h,accu
+ double precision :: z,function_integrated_delta_rho,c_k,c_j
  mo_integrated_delta_rho_one_point = 0.d0
  !$OMP PARALLEL DO DEFAULT(none) &
  !$OMP PRIVATE(i,j,h,k,c_j,c_k) &
@@ -210,7 +211,6 @@ BEGIN_PROVIDER [double precision, mo_integrated_delta_rho_one_point, (mo_tot_num
     enddo
   enddo
  !$OMP END PARALLEL DO
-
 END_PROVIDER
 BEGIN_PROVIDER [ double precision, integrated_delta_rho_one_point]
  implicit none

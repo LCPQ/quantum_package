@@ -80,19 +80,7 @@ end
  BEGIN_DOC
  ! Threshold to select determinants. Set by selection routines.
  END_DOC
- integer,save :: ifirst
- ifirst = 0
- if(read_wf)then
-  double precision :: i_H_psi_array(N_states),diag_H_mat_elem,h
-  if(ifirst==0)then
-   call i_H_psi(psi_det(1,1,N_det),psi_det,psi_coef,N_int,N_det,psi_det_size,N_states,i_H_psi_array)
-   h = diag_H_mat_elem(psi_det(1,1,N_det),N_int)
-   selection_criterion = psi_coef(N_det,1) * (i_H_psi_array(1) - h * psi_coef(N_det,1))
-   ifirst =1
-  endif
- else
-  selection_criterion =  .1d0 
- endif
+  selection_criterion =  0.1d0 
   selection_criterion_factor = 0.01d0
   selection_criterion_min = selection_criterion
 

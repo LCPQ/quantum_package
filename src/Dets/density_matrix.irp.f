@@ -78,6 +78,14 @@ BEGIN_PROVIDER [ double precision, one_body_dm_mo, (mo_tot_num_align,mo_tot_num)
  one_body_dm_mo = one_body_dm_mo_alpha + one_body_dm_mo_beta
 END_PROVIDER
 
+BEGIN_PROVIDER [ double precision, one_body_spin_density_mo, (mo_tot_num_align,mo_tot_num) ]
+ implicit none
+ BEGIN_DOC
+ ! rho(alpha) - rho(beta)
+ END_DOC
+ one_body_spin_density_mo = one_body_dm_mo_alpha - one_body_dm_mo_beta
+END_PROVIDER
+
 subroutine set_natural_mos
  implicit none
  BEGIN_DOC
