@@ -44,7 +44,7 @@ subroutine pt2_delta_rho_one_point(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,nde
   endif
 
   call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
-  call filter_connected_i_H_psi0_print(psi_det,det_pert,N_int,N_det,idx)
+! call filter_connected_i_H_psi0_print(psi_det,det_pert,N_int,N_det,idx)
   integer ::  idx(0:N_det)
 
   logical :: is_in_wavefunction,is_wf
