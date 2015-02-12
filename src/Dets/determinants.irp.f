@@ -11,11 +11,11 @@ BEGIN_PROVIDER [ integer, N_det ]
  if (read_wf) then
    call ezfio_has_determinants_n_det(exists)
    if (exists) then
-       call ezfio_has_determinants_mo_label(exists)
-       if (exists) then
-         call ezfio_get_determinants_mo_label(label)
-         exists = (label == mo_label)
-       endif
+     call ezfio_has_determinants_mo_label(exists)
+     if (exists) then
+       call ezfio_get_determinants_mo_label(label)
+       exists = (label == mo_label)
+     endif
    endif
    if (exists) then
      call ezfio_get_determinants_n_det(N_det)
@@ -726,18 +726,18 @@ subroutine save_wavefunction
   BEGIN_DOC
 !  Save the wave function into the EZFIO file
   END_DOC
-  call save_wavefunction_general(N_det,N_states,psi_det_sorted,psi_coef_sorted)
+  call save_wavefunction_general(N_det,N_states,psi_det_sorted,size(psi_coef_sorted,1),psi_coef_sorted)
 end
 
-subroutine save_wavefunction_general(ndet,nstates,psidet,psicoef)
+subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
   implicit none
   BEGIN_DOC
 !  Save the wave function into the EZFIO file
   END_DOC
   use bitmasks
-  integer, intent(in) :: ndet,nstates
+  integer, intent(in) :: ndet,nstates,dim_psicoef
   integer(bit_kind), intent(in) :: psidet(N_int,2,ndet)
-  double precision, intent(in)  :: psicoef(ndet,nstates)
+  double precision, intent(in)  :: psicoef(dim_psicoef,nstates)
   integer*8, allocatable         :: psi_det_save(:,:,:)
   double precision, allocatable  :: psi_coef_save(:,:)
   integer*8                      :: det_8(100)

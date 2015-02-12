@@ -368,16 +368,35 @@ end = struct
     let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () in
     let mo_tot_num = MO_number.of_int mo_tot_num ~max:mo_tot_num in
     let det_text = 
-      List.map2_exn ~f:(fun coef det ->
-        Printf.sprintf "  %F\n%s\n"
-        (Det_coef.to_float coef)
-        (Determinant.to_string ~mo_tot_num:mo_tot_num det 
-         |> String.split ~on:'\n'
-         |> List.map ~f:(fun x -> "  "^x)
-         |> String.concat ~sep:"\n"
+      let nstates =
+        States_number.to_int b.n_states
+      and ndet =
+        Det_number.to_int b.n_det
+      in
+      let coefs_string i =
+        Array.init nstates (fun j -> 
+          let ishift = 
+            j*ndet
+          in
+          if (ishift < Array.length b.psi_coef) then
+            b.psi_coef.(i+ishift)
+            |> Det_coef.to_float 
+            |> Float.to_string
+          else
+            "0."
         )
-      ) (Array.to_list b.psi_coef) (Array.to_list b.psi_det)
-      |> String.concat ~sep:"\n"
+        |> String.concat_array ~sep:"\t"
+      in
+      Array.init ndet ~f:(fun i ->
+        Printf.sprintf "  %s\n%s\n"
+          (coefs_string i)
+          (Determinant.to_string ~mo_tot_num:mo_tot_num b.psi_det.(i)
+           |> String.split ~on:'\n'
+           |> List.map ~f:(fun x -> "  "^x)
+           |> String.concat ~sep:"\n"
+          )
+      )
+      |> String.concat_array ~sep:"\n"
     in
     Printf.sprintf "
 Read the current wave function ::
@@ -498,8 +517,8 @@ psi_det                = %s
 
     (* Handle determinant coefs *)
     let dets = match ( dets
-    |> String.split ~on:'\n'
-    |> List.map ~f:(String.strip)
+      |> String.split ~on:'\n'
+      |> List.map ~f:(String.strip)
     ) with 
     | _::lines -> lines 
     | _ -> failwith "Error in determinants"
@@ -511,16 +530,33 @@ psi_det                = %s
       | ""::""::tail -> read_coefs accu tail
       | ""::c::tail -> 
           let c =
-            Float.of_string c
-            |> Det_coef.of_float 
+            String.split ~on:'\t' c
+            |> List.map ~f:(fun x -> Det_coef.of_float (Float.of_string x))
+            |> Array.of_list
           in
           read_coefs (c::accu) tail
       | _::tail -> read_coefs accu tail
       in
       let a =
-        read_coefs [] dets
-        |> List.map ~f:(fun x -> Det_coef.to_string x)
-        |> String.concat ~sep:" "
+        let buffer = 
+          read_coefs [] dets
+        in
+        let nstates =
+          List.hd_exn buffer
+          |> Array.length
+        in
+        let extract_state i = 
+          let i = 
+            i-1
+          in
+          List.map ~f:(fun x -> Det_coef.to_string x.(i)) buffer
+          |> String.concat ~sep:" "
+        in
+        let rec build_result = function
+        | 1 -> extract_state 1
+        | i -> (build_result (i-1))^" "^(extract_state i)
+        in
+        build_result nstates 
       in
       "(psi_coef ("^a^"))"
     in
