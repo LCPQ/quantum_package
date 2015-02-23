@@ -153,7 +153,7 @@ let create_temp_file ezfio_filename fields =
 
 
 
-let run ezfio_filename =
+let run check_only ezfio_filename =
 
   (* Open EZFIO *)
   if (not (Sys.file_exists_exn ezfio_filename)) then
@@ -194,8 +194,13 @@ let run ezfio_filename =
     | Some editor -> editor
     | None -> "vi"
   in
-  Printf.sprintf "%s %s" editor temp_filename 
-  |> Sys.command_exn ;
+
+  match check_only with
+  | true  -> ()
+  | false -> 
+    Printf.sprintf "%s %s" editor temp_filename 
+    |> Sys.command_exn 
+  ;
 
   (* Re-read the temp file *)
   let temp_string  =
@@ -231,9 +236,9 @@ let restore_backup ezfio_filename =
 let spec =
   let open Command.Spec in
   empty 
+  +> flag "-c" no_arg
+     ~doc:"Checks the input data"
 (*
-  +> flag "i"  (optional string)
-     ~doc:"Prints input data"
   +> flag "o" (optional string)
      ~doc:"Prints output data"
 *)
@@ -255,9 +260,9 @@ Edit input data
        with
        | _ msg -> print_string ("\n\nError\n\n"^msg^"\n\n")
     *)
-    (fun ezfio_file () ->
+    (fun c ezfio_file () ->
        try
-          run ezfio_file ;
+          run c ezfio_file ;
           (* create_backup ezfio_file; *)
        with
        | Failure exc 
