@@ -19,6 +19,9 @@ for charge in ezfio.nuclei_nucl_charge:
 
 mo_tot_num = ezfio.mo_basis_mo_tot_num
 
-os.system( """qp_set_mo_class -core "[1-%d]" -act "[%d-%d]" %s"""%(nb, nb+1, mo_tot_num, sys.argv[1]) )
+if nb == 0:
+  os.system( """qp_set_mo_class -act "[1-%d]" %s"""%(1, mo_tot_num, sys.argv[1]) )
+else:
+  os.system( """qp_set_mo_class -core "[1-%d]" -act "[%d-%d]" %s"""%(nb, nb+1, mo_tot_num, sys.argv[1]) )
 
 
