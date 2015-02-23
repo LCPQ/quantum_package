@@ -307,7 +307,7 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
   integer(bit_kind), intent(in)  :: key2(Nint,2)
   integer, intent(out)           :: idx(0:sze)
   
-  integer                        :: i,l
+  integer                        :: i,l,m
   integer                        :: degree_x2
 
   ASSERT (Nint > 0)
@@ -370,9 +370,9 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
     do i=1,sze
       degree_x2 = 0
       !DEC$ LOOP COUNT MIN(4)
-      do l=1,Nint
-        degree_x2 = degree_x2+ popcnt(xor( key1(l,1,i), key2(l,1))) +&
-            popcnt(xor( key1(l,2,i), key2(l,2)))
+      do m=1,Nint
+        degree_x2 = degree_x2+ popcnt(xor( key1(m,1,i), key2(m,1))) +&
+            popcnt(xor( key1(m,2,i), key2(m,2)))
         if (degree_x2 > 4) then
           exit
         endif
@@ -409,7 +409,7 @@ subroutine filter_connected_i_H_psi0_SC2(key1,key2,Nint,sze,idx,idx_repeat)
   integer, intent(out)           :: idx(0:sze)
   integer, intent(out)           :: idx_repeat(0:sze)
   
-  integer                        :: i,l,l_repeat
+  integer                        :: i,l,l_repeat,m
   integer                        :: degree_x2
 
   ASSERT (Nint > 0)
@@ -420,9 +420,9 @@ subroutine filter_connected_i_H_psi0_SC2(key1,key2,Nint,sze,idx,idx_repeat)
   degree = popcnt(xor( ref_bitmask(1,1), key2(1,1))) +                      &
       popcnt(xor( ref_bitmask(1,2), key2(1,2)))
   !DEC$ NOUNROLL
-  do l=2,Nint
-    degree = degree+ popcnt(xor( ref_bitmask(l,1), key2(l,1))) +            &
-        popcnt(xor( ref_bitmask(l,2), key2(l,2)))
+  do m=2,Nint
+    degree = degree+ popcnt(xor( ref_bitmask(m,1), key2(m,1))) +            &
+        popcnt(xor( ref_bitmask(m,2), key2(m,2)))
   enddo
   degree = ishft(degree,-1)
   
@@ -492,9 +492,9 @@ subroutine filter_connected_i_H_psi0_SC2(key1,key2,Nint,sze,idx,idx_repeat)
      do i=1,sze
        degree_x2 = 0
        !DEC$ LOOP COUNT MIN(4)
-       do l=1,Nint
-         degree_x2 = degree_x2+ popcnt(xor( key1(l,1,i), key2(l,1))) +&
-             popcnt(xor( key1(l,2,i), key2(l,2)))
+       do m=1,Nint
+         degree_x2 = degree_x2+ popcnt(xor( key1(m,1,i), key2(m,1))) +&
+             popcnt(xor( key1(m,2,i), key2(m,2)))
          if (degree_x2 > 4) then
            exit
          endif
@@ -576,9 +576,9 @@ subroutine filter_connected_i_H_psi0_SC2(key1,key2,Nint,sze,idx,idx_repeat)
      do i=1,sze
        degree_x2 = 0
        !DEC$ LOOP COUNT MIN(4)
-       do l=1,Nint
-         degree_x2 = degree_x2+ popcnt(xor( key1(l,1,i), key2(l,1))) +&
-             popcnt(xor( key1(l,2,i), key2(l,2)))
+       do m=1,Nint
+         degree_x2 = degree_x2+ popcnt(xor( key1(m,1,i), key2(m,1))) +&
+             popcnt(xor( key1(m,2,i), key2(m,2)))
          if (degree_x2 > 4) then
            exit
          endif
