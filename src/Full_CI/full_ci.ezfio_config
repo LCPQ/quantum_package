@@ -4,3 +4,4 @@ full_ci
   do_pt2_end     logical
   energy         double precision
   energy_pt2     double precision
+  var_pt2_ratio  double precision

@@ -21,5 +21,12 @@ T.set_doc       ( """The selection process stops when the largest PT2 (for all t
 is lower than pt2_max in absolute value""" )
 T.set_ezfio_name( "pt2_max" )
 print T
+
+T.set_type      ( "double precision" )
+T.set_name      ( "var_pt2_ratio" )
+T.set_doc       ( """The selection process stops when the energy ratio variational/(variational+PT2)
+is equal to var_pt2_ratio""" )
+T.set_ezfio_name( "var_pt2_ratio" )
+print T
 END_SHELL
 
