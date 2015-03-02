@@ -38,15 +38,18 @@ subroutine list_to_bitstring( string, list, n_elements, Nint)
   integer                        :: i, j
   integer                        :: ipos, iint
   BEGIN_DOC
-  ! return the physical string "string(N_int,2)" from the array of occupations "list(N_int*bit_kind_size,2)
-  !                              list
+  ! Returnd the physical string "string(N_int,2)" from the array of
+  ! occupations "list(N_int*bit_kind_size,2)
+  END_DOC
+
+  ! 
   !                                       <== ipos ==>
   !                                                  |
   !                                                  v
   !string :|------------------------|-------------------------|------------------------|
   !        <==== bit_kind_size ====> <==== bit_kind_size ====> <==== bit_kind_size ====>
   !        {        iint            } {         iint         } {         iint         }
-  END_DOC
+  ! 
   
   string = 0_bit_kind
   
