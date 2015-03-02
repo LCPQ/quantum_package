@@ -140,17 +140,17 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_
 
 END_PROVIDER
 
-BEGIN_PROVIDER [ integer, N_reference_bitmask ]
+BEGIN_PROVIDER [ integer, N_cas_bitmask ]
  implicit none
  BEGIN_DOC
- ! Number of bitmasks for reference
+ ! Number of bitmasks for CAS
  END_DOC
  logical                        :: exists
  PROVIDE ezfio_filename
  
- call ezfio_has_bitmasks_N_mask_ref(exists)
+ call ezfio_has_bitmasks_N_mask_cas(exists)
  if (exists) then
-   call ezfio_get_bitmasks_N_mask_ref(N_reference_bitmask)
+   call ezfio_get_bitmasks_N_mask_cas(N_cas_bitmask)
    integer                        :: N_int_check
    integer                        :: bit_kind_check
    call ezfio_get_bitmasks_bit_kind(bit_kind_check)
@@ -164,27 +164,29 @@ BEGIN_PROVIDER [ integer, N_reference_bitmask ]
      print *,  'Error: N_int is not correct in EZFIO file'
    endif
  else
-   N_reference_bitmask = 1
+   N_cas_bitmask = 1
  endif
- ASSERT (N_reference_bitmask > 0)
+ ASSERT (N_cas_bitmask > 0)
 
 END_PROVIDER
 
-BEGIN_PROVIDER [ integer(bit_kind), reference_bitmask, (N_int,2,2,N_reference_bitmask) ]
+BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
  implicit none
  BEGIN_DOC
- ! Bitmasks for reference determinants. (N_int, alpha/beta, hole/particle, reference)
+ ! Bitmasks for CAS reference determinants. (N_int, alpha/beta, CAS reference)
  END_DOC
  logical                        :: exists
+ integer                        :: i
  PROVIDE ezfio_filename
 
- call ezfio_has_bitmasks_reference(exists)
+ call ezfio_has_bitmasks_cas(exists)
  print*,'exists = ',exists
  if (exists) then
-   call ezfio_get_bitmasks_reference(reference_bitmask)
+   call ezfio_get_bitmasks_cas(cas_bitmask)
  else
-   reference_bitmask(:,:,1,1) = HF_bitmask
-   reference_bitmask(:,:,2,1) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
+   do i=1,N_cas_bitmask
+     cas_bitmask(:,:,i) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
+   enddo
  endif
 
 END_PROVIDER
@@ -195,13 +197,5 @@ BEGIN_PROVIDER [ integer, i_bitmask_gen ]
  ! Current bitmask for the generators
  END_DOC
  i_bitmask_gen = 1
-END_PROVIDER
-
-BEGIN_PROVIDER [ integer, i_bitmask_ref ]
- implicit none
- BEGIN_DOC
- ! Current bitmask for the reference
- END_DOC
- i_bitmask_ref = 1
 END_PROVIDER
 

@@ -165,6 +165,7 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
   and extract_hole2 (_,_,h,_) = h 
   and extract_particle2 (_,_,_,p) = p 
   in
+(* --> TODO : This might be wrong *)
   let result_ref = 
     let core = MO_class.create_inactive core_input in
     let cv = Excitation.create_single core virt in
@@ -183,6 +184,7 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
     [ Bitlist.or_operator (extract_hole iv) (extract_hole cv);
       extract_particle iv ]
   in
+(* <-- TODO : This might be wrong *)
 
   let n_single = Array.length single_excitations in
   let n_mask = Array.length double_excitations in
@@ -231,10 +233,10 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
   Ezfio.ezfio_array_of_list ~rank:4 ~dim:([| (N_int_number.to_int n_int) ; 2; 6; n_mask|]) ~data:result_gen
   |> Ezfio.set_bitmasks_generators ; 
 
-  (* Write reference masks *)
-  Ezfio.set_bitmasks_n_mask_ref 1;
-  Ezfio.ezfio_array_of_list ~rank:4 ~dim:([| (N_int_number.to_int n_int) ; 2; 2; 1|]) ~data:result_ref
-  |> Ezfio.set_bitmasks_reference ; 
+  (* Write CAS reference masks *)
+  Ezfio.set_bitmasks_n_mask_cas 1;
+  Ezfio.ezfio_array_of_list ~rank:3 ~dim:([| (N_int_number.to_int n_int) ; 2; 1|]) ~data:result_ref
+  |> Ezfio.set_bitmasks_cas ; 
 
 
 ;;

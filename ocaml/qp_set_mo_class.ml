@@ -31,9 +31,6 @@ let build_mask from upto n_int =
 ;;
 
 
-let failure s = raise (Failure s)
-;;
-
 type t = 
   | Core
   | Inactive
@@ -56,7 +53,7 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
 
   Ezfio.set_file ezfio_filename ;
   if not (Ezfio.has_mo_basis_mo_tot_num ()) then
-    failure "mo_basis/mo_tot_num not found" ;
+    failwith "mo_basis/mo_tot_num not found" ;
 
   let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () in
   let n_int =
@@ -76,7 +73,7 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
           match mo_class.(i-1) with
           | None -> mo_class.(i-1) <- t ;
             apply_class t tail;
-          | x -> failure 
+          | x -> failwith
              (Printf.sprintf "Orbital %d is defined both in the %s and %s spaces"
              i (t_to_string x) (t_to_string t))
         end
@@ -104,7 +101,7 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
   for i=1 to (Array.length mo_class)
   do
     if (mo_class.(i-1) = None) then
-      failure (Printf.sprintf "Orbital %d is not specified (mo_tot_num = %d)" i mo_tot_num)
+      failwith (Printf.sprintf "Orbital %d is not specified (mo_tot_num = %d)" i mo_tot_num)
   done;
   
   
@@ -155,34 +152,48 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
   and extract_particle2 (_,_,_,p) = p 
   in
   let result = [
-  List.map ~f:extract_hole single_excitations
-  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
-  List.map ~f:extract_particle single_excitations
-  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
-  List.map ~f:extract_hole1 double_excitations
-  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
-  List.map ~f:extract_particle1 double_excitations
-  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
-  List.map ~f:extract_hole2 double_excitations
-  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
-  List.map ~f:extract_particle2 double_excitations
-  |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
+    List.map ~f:extract_hole single_excitations
+    |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
+    List.map ~f:extract_particle single_excitations
+    |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
+    List.map ~f:extract_hole1 double_excitations
+    |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
+    List.map ~f:extract_particle1 double_excitations
+    |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
+    List.map ~f:extract_hole2 double_excitations
+    |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
+    List.map ~f:extract_particle2 double_excitations
+    |>  List.fold ~init:(Bitlist.zero n_int) ~f:Bitlist.or_operator ;
   ]
   in
 
   List.iter ~f:(fun x-> print_endline (Bitlist.to_string x)) result;
+
+  (* Write masks *)
   let result =  List.map ~f:(fun x ->
      let y = Bitlist.to_int64_list x in y@y )
      result 
   |> List.concat
   in
 
-  (* Write masks *)
   Ezfio.set_bitmasks_n_int (N_int_number.to_int n_int);
   Ezfio.set_bitmasks_bit_kind 8;
   Ezfio.set_bitmasks_n_mask_gen 1;
   Ezfio.ezfio_array_of_list ~rank:4 ~dim:([| (N_int_number.to_int n_int) ; 2; 6; 1|]) ~data:result
   |> Ezfio.set_bitmasks_generators ; 
+
+  let result =
+    let open Excitation in 
+    match aa with
+    | Double _ -> assert false
+    | Single (x,y) -> 
+        ( MO_class.to_bitlist n_int (Hole.to_mo_class x) ) @
+        ( MO_class.to_bitlist n_int (Particle.to_mo_class y) )
+        |> Bitlist.to_int64_list
+  in
+  Ezfio.set_bitmasks_n_mask_cas 1;
+  Ezfio.ezfio_array_of_list ~rank:3 ~dim:([| (N_int_number.to_int n_int) ; 2; 1|]) ~data:result
+  |> Ezfio.set_bitmasks_cas; 
 ;;
 
 let ezfio_file =
