@@ -198,7 +198,7 @@ class H_apply(object):
       do k=1,N_st
         write(output_Dets,'(I10, 4(2X, F9.6), 2X, F8.1)') &
                  i_generator, norm_psi(k), delta_pt2(k), pt2(k), &
-                 pt2(k)/norm_psi(k), &
+                 pt2(k)/(norm_psi(k)*norm_psi(k)), &
                  wall_1-wall_0
          pt2_old(k) = pt2(k)
       enddo
