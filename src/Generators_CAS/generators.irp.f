@@ -60,7 +60,7 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
         psi_generators(k,1,m) = psi_det(k,1,i)
         psi_generators(k,2,m) = psi_det(k,2,i)
       enddo
-      call debug_det(psi_generators(1,1,m),N_int)
+!     call debug_det(psi_generators(1,1,m),N_int)
     endif
   enddo
   

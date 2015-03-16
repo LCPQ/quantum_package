@@ -123,6 +123,7 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_
 
  call ezfio_has_bitmasks_generators(exists)
  if (exists) then
+   print*,'EXIST !!'
    call ezfio_get_bitmasks_generators(generators_bitmask)
  else
    integer :: k, ispin
@@ -191,6 +192,24 @@ BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
 
 END_PROVIDER
 
+ BEGIN_PROVIDER [ integer(bit_kind), inact_bitmask, (N_int,2) ]
+&BEGIN_PROVIDER [ integer(bit_kind), virt_bitmask, (N_int,2) ]
+ implicit none
+ BEGIN_DOC
+ ! Bitmasks for the inactive orbitals that are excited in post CAS method
+ END_DOC
+ logical                        :: exists
+ integer                        :: j
+ PROVIDE ezfio_filename
+ do j = 1, N_int
+  inact_bitmask(j,1) = xor(generators_bitmask(j,1,1,1),cas_bitmask(j,1,1))
+  inact_bitmask(j,2) = xor(generators_bitmask(j,2,1,1),cas_bitmask(j,2,1))
+  virt_bitmask(j,1) = xor(generators_bitmask(j,1,2,1),cas_bitmask(j,1,1))
+  virt_bitmask(j,2) = xor(generators_bitmask(j,2,2,1),cas_bitmask(j,2,1))
+ enddo
+
+END_PROVIDER
+
 BEGIN_PROVIDER [ integer, i_bitmask_gen ]
  implicit none
  BEGIN_DOC
@@ -198,4 +217,5 @@ BEGIN_PROVIDER [ integer, i_bitmask_gen ]
  END_DOC
  i_bitmask_gen = 1
 END_PROVIDER
+
 
