@@ -5,3 +5,8 @@ mo_basis
   mo_occ             double precision  (mo_basis_mo_tot_num)
   ao_md5             character*(32)
 
+mo_basis_test
+  ishift_test        integer
+  ao_num_test        integer
+  mo_coef_test       double precision  (mo_basis_test_ao_num_test,mo_basis_mo_tot_num)
+  

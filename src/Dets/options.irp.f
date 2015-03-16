@@ -22,6 +22,14 @@ T.set_ezfio_name( "read_wf" )
 T.set_output    ( "output_dets" )
 print T
 
+T.set_type      ( "logical" )
+T.set_name      ( "only_single_double_dm" )
+T.set_doc       ( "If true, The One body DM is calculated with ignoring the Double<->Doubles extra diag elements" )
+T.set_ezfio_name( "only_single_double_dm" )
+T.set_output    ( "output_dets" )
+print T
+
+
 T.set_name      ( "s2_eig" )
 T.set_doc       ( "Force the wave function to be an eigenfunction of S^2" )
 T.set_ezfio_name( "s2_eig" )

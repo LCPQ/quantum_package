@@ -36,7 +36,7 @@ END_PROVIDER
       CI_SC2_eigenvectors(i,j) = psi_coef(i,j)
 !     CI_SC2_eigenvectors(i,j) = CI_eigenvectors(i,j)
     enddo
-    CI_SC2_electronic_energy(j) = CI_electronic_energy(j) 
+!   CI_SC2_electronic_energy(j) = CI_electronic_energy(j) 
   enddo
   
   double precision :: convergence

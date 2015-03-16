@@ -16,4 +16,5 @@ determinants
   read_wf                logical 
   expected_s2            double precision 
   s2_eig                 logical
+  only_single_double_dm  logical
 
