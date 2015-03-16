@@ -9,7 +9,7 @@
    if (has_n_det_max_cisd_sc2) then
      call ezfio_get_cisd_sc2_selected_n_det_max_cisd_sc2(n_det_max_cisd_sc2)
    else
-     n_det_max_cisd_sc2 = 1000
+     n_det_max_cisd_sc2 = 16000
      call ezfio_set_cisd_sc2_selected_n_det_max_cisd_sc2(n_det_max_cisd_sc2)
    endif
    print*,'n_det_max_cisd_sc2 = ',n_det_max_cisd_sc2
@@ -26,7 +26,7 @@
    if (has_pt2_max) then
      call ezfio_get_cisd_sc2_selected_pt2_max(pt2_max)
    else
-     pt2_max = 1.d-3
+     pt2_max = 1.d-9
      call ezfio_set_cisd_sc2_selected_pt2_max(pt2_max)
    endif
    print*,'pt2_max = ',pt2_max

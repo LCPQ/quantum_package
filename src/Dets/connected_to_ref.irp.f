@@ -225,6 +225,114 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
   
 end
 
+
+
+integer function connected_to_ref_by_mono(key,keys,Nint,N_past_in,Ndet)
+  use bitmasks
+  implicit none
+  integer, intent(in)            :: Nint, N_past_in, Ndet
+  integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
+  integer(bit_kind), intent(in)  :: key(Nint,2)
+  
+  integer                        :: N_past
+  integer                        :: i, l
+  integer                        :: degree_x2
+  logical                        :: det_is_not_or_may_be_in_ref, t
+  double precision               :: hij_elec
+  
+  ! output :   0 : not connected
+  !            i : connected to determinant i of the past
+  !           -i : is the ith determinant of the refernce wf keys
+  
+  ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
+  
+  connected_to_ref_by_mono = 0
+  N_past = max(1,N_past_in)
+  if (Nint == 1) then
+    
+    do i=N_past-1,1,-1
+      degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
+          popcnt(xor( key(1,2), keys(1,2,i)))
+      if (degree_x2 > 3.and. degree_x2 <5) then
+        cycle
+      else if (degree_x2 == 4)then
+        cycle
+      else if(degree_x2 == 2)then
+        connected_to_ref_by_mono = i
+        return
+      endif
+    enddo
+    
+    return
+
+    
+  else if (Nint==2) then
+    
+    do i=N_past-1,1,-1
+      degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
+          popcnt(xor( key(1,2), keys(1,2,i))) +                      &
+          popcnt(xor( key(2,1), keys(2,1,i))) +                      &
+          popcnt(xor( key(2,2), keys(2,2,i)))
+      if (degree_x2 > 3.and. degree_x2 <5) then
+        cycle
+      else if (degree_x2 == 4)then
+        cycle
+      else if(degree_x2 == 2)then
+        connected_to_ref_by_mono = i
+        return
+      endif
+    enddo
+    
+    return
+    
+  else if (Nint==3) then
+    
+    do i=N_past-1,1,-1
+      degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
+          popcnt(xor( key(1,2), keys(1,2,i))) +                      &
+          popcnt(xor( key(2,1), keys(2,1,i))) +                      &
+          popcnt(xor( key(2,2), keys(2,2,i))) +                      &
+          popcnt(xor( key(3,1), keys(3,1,i))) +                      &
+          popcnt(xor( key(3,2), keys(3,2,i)))
+      if (degree_x2 > 3.and. degree_x2 <5) then
+        cycle
+      else if (degree_x2 == 4)then
+        cycle
+      else if(degree_x2 == 2)then
+        connected_to_ref_by_mono = i
+        return
+      endif
+    enddo
+    
+    return
+    
+  else
+    
+    do i=N_past-1,1,-1
+      degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
+          popcnt(xor( key(1,2), keys(1,2,i)))
+      !DEC$ LOOP COUNT MIN(3)
+      do l=2,Nint
+        degree_x2 = degree_x2 + popcnt(xor( key(l,1), keys(l,1,i))) +&
+            popcnt(xor( key(l,2), keys(l,2,i)))
+      enddo
+      if (degree_x2 > 3.and. degree_x2 <5) then
+        cycle
+      else if (degree_x2 == 4)then
+        cycle
+      else if(degree_x2 == 2)then
+        connected_to_ref_by_mono = i
+        return
+      endif
+    enddo
+    
+  endif
+  
+end
+
+
+
 logical function det_is_not_or_may_be_in_ref(key,Nint)
   use bitmasks
   implicit none

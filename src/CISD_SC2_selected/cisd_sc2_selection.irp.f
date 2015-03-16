@@ -13,7 +13,7 @@ program cisd_sc2_selected
   pt2 = 1.d0
   perturbation = "epstein_nesbet_sc2_projected"
                  
-  E_old(1) = HF_energy
+  E_old(1) = ref_bitmask_energy
   davidson_threshold = 1.d-10
   if (N_det > n_det_max_cisd_sc2) then
     call diagonalize_CI_SC2
@@ -26,10 +26,10 @@ program cisd_sc2_selected
     call save_wavefunction
     print *,  'N_det    = ', N_det
     print *,  'N_states = ', N_states
-    print *,  'PT2      = ', pt2
     print *,  'E        = ', CI_SC2_energy
-    print *,  'E+PT2    = ', CI_SC2_energy+pt2
     print *,  '-----'
+    deallocate(pt2,norm_pert,H_pert_diag)
+    stop
   endif
 
   integer :: i_count
@@ -37,8 +37,8 @@ program cisd_sc2_selected
   do while (N_det < n_det_max_cisd_sc2.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     print*,'----'
     print*,''
-    call H_apply_cisd_selection(perturbation,pt2, norm_pert, H_pert_diag,  N_st)
-!    soft_touch det_connections
+    call H_apply_SC2_selected(pt2, norm_pert, H_pert_diag,  N_st)
+ !    soft_touch det_connections
     call diagonalize_CI_SC2
     print *,  'N_det                        = ', N_det
     do i = 1, N_st
@@ -51,13 +51,14 @@ program cisd_sc2_selected
      endif
      E_old(i) = CI_SC2_energy(i)
     enddo
-!   print *,  'E corr           = ', (E_old(1)) - HF_energy
      if(dabs(E_old(i) - CI_SC2_energy(i) ).le.1.d-12)then
       i_count += 1
       selection_criterion_factor = selection_criterion_factor * 0.5d0
       if(i_count > 5)then
        exit
       endif
+     else 
+      i_count = 0
      endif
     if (abort_all) then
       exit

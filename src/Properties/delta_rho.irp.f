@@ -48,10 +48,7 @@ BEGIN_PROVIDER [double precision, integrated_delta_rho_all_points, (N_z_pts)]
  accu = 0.d0
  do i = 1, N_z_pts
   accu += integrated_delta_rho_all_points(i)
-  write(i_unit_integrated_delta_rho,*)z,integrated_delta_rho_all_points(i)
-! if(dabs(z - z_one_point).le.delta_z)then
-!  print*,'integrated_delta_rho = ',integrated_delta_rho_all_points(i)
-! endif
+  write(i_unit_integrated_delta_rho,*)z,integrated_delta_rho_all_points(i),accu
   z += delta_z
  enddo
  print*,'sum of integrated_delta_rho = ',accu

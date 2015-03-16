@@ -27,15 +27,24 @@ program full_ci
     print *,  'E+PT2    = ', CI_energy+pt2
     print *,  '-----'
   endif
+  double precision :: i_H_psi_array(N_states),diag_H_mat_elem,h,i_O1_psi_array(N_states)
+  if(read_wf)then
+   call i_H_psi(psi_det(1,1,N_det),psi_det,psi_coef,N_int,N_det,psi_det_size,N_states,i_H_psi_array)
+   h = diag_H_mat_elem(psi_det(1,1,N_det),N_int)
+   selection_criterion = dabs(psi_coef(N_det,1) *  (i_H_psi_array(1) - h * psi_coef(N_det,1))) * 0.1d0
+   soft_touch selection_criterion
+  endif
 
+
+  integer :: n_det_before
+  print*,'BEGINNING THE SELECTION ...'
   do while (N_det < n_det_max_fci.and.maxval(abs(pt2(1:N_st))) > pt2_max)
-    print*,'BEGINNING THE SELECTION ...'
+    n_det_before = N_det
     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
 
     PROVIDE  psi_coef
     PROVIDE  psi_det
     PROVIDE  psi_det_sorted
-    print*,'N_det inside !!!!!!!!!!!!=',N_det
 
     if (N_det > n_det_max_fci) then
        psi_det = psi_det_sorted
@@ -45,6 +54,9 @@ program full_ci
     endif
     call diagonalize_CI
     call save_wavefunction
+    if(n_det_before == N_det)then
+     selection_criterion = selection_criterion * 0.5d0
+    endif
     print *,  'N_det    = ', N_det
     print *,  'N_states = ', N_states
     print *,  'PT2      = ', pt2
@@ -57,12 +69,14 @@ program full_ci
     endif
   enddo
    N_det = min(n_det_max_fci,N_det)
+   touch N_det psi_det psi_coef
+   call diagonalize_CI
    if(do_pt2_end)then
     print*,'Last iteration only to compute the PT2'
     threshold_selectors = 1.d0
     threshold_generators = 0.999d0
-    touch N_det psi_det psi_coef
-    call diagonalize_CI
+!   touch N_det psi_det psi_coef
+!   call diagonalize_CI
     call H_apply_FCI_PT2(pt2, norm_pert, H_pert_diag,  N_st)
  
     print *,  'Final step'

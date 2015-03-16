@@ -36,7 +36,7 @@ subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,c
 
     is_selected = .False.
     do j=1,N_st
-      s = -e_2_pert_buffer(j,i)
+      s = dabs(e_2_pert_buffer(j,i))
       is_selected = s > selection_criterion*selection_criterion_factor .or. is_selected
       select_max_out = max(select_max_out,s)
     enddo
@@ -66,10 +66,8 @@ subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,c
   enddo
   call omp_unset_lock(H_apply_buffer_lock(1,iproc))
   !$OMP CRITICAL
-  if(l.ne.0)then
    selection_criterion = max(selection_criterion,smax)
    selection_criterion_min = min(selection_criterion_min,smin)
-  endif
   !$OMP END CRITICAL
 end
 

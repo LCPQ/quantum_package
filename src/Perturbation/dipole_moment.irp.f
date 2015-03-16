@@ -1,4 +1,4 @@
-subroutine pt2_dipole_moment_z_eipstein_nesbet(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,n_st)
+subroutine pt2_dipole_moment_z(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,n_st)
   use bitmasks
   implicit none
   integer, intent(in)            :: Nint,ndet,n_st
@@ -10,13 +10,21 @@ subroutine pt2_dipole_moment_z_eipstein_nesbet(det_pert,c_pert,e_2_pert,H_pert_d
   BEGIN_DOC
   ! compute the perturbatibe contribution to the dipole moment of one determinant
   !
-  ! for the various n_st states.
+  ! for the various n_st states, at various level of theory.
   !
   ! c_pert(i) = <psi(i)|H|det_pert>/(<psi(i)|H|psi(i)> - <det_pert|H|det_pert>)
   !
-  ! e_2_pert(i) = |c_pert(i) * <det_pert|X|psi(i)>|
+  ! e_2_pert(i) = c_pert(i) * <det_pert|Z|psi(i)>
   !
-  ! H_pert_diag(i) = c_pert(i) * <det_pert|X|psi(i)>
+  ! H_pert_diag(i) = c_pert(i)^2 * <det_pert|Z|det_pert>
+  !
+  ! To get the contribution of the first order : 
+  !
+  ! <Z_1> = sum(over i)  e_2_pert(i) 
+  !
+  ! To get the contribution of the diagonal elements of the second order : 
+  !
+  ! [ <Z_0> + <Z_1> + sum(over i)  H_pert_diag(i) ] / [1. + sum(over i) c_pert(i) **2]
   !
   END_DOC
   
@@ -28,19 +36,19 @@ subroutine pt2_dipole_moment_z_eipstein_nesbet(det_pert,c_pert,e_2_pert,H_pert_d
   integer                        :: h1,h2,p1,p2,s1,s2
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
-  call get_excitation_degree(HF_bitmask,det_pert,degree,N_int)
-!  print*,'coucou'
-  if(degree.gt.max_degree_exc+1)then
-   H_pert_diag = 0.d0
-   e_2_pert = 0.d0
-   c_pert = 0.d0
-   return
-  endif
 
-  call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
+! call get_excitation_degree(HF_bitmask,det_pert,degree,N_int)
+! if(degree.gt.degree_max_generators+1)then
+!  H_pert_diag = 0.d0
+!  e_2_pert = 0.d0
+!  c_pert = 0.d0
+!  return
+! endif
+
   call i_O1_psi(mo_dipole_z,det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_O1_psi_array)
+  call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
   h = diag_H_mat_elem(det_pert,Nint)
-! oii = diag_O1_mat_elem(mo_dipole_z,det_pert,N_int)
+  oii = diag_O1_mat_elem(mo_dipole_z,det_pert,N_int)
 
 
   do i =1,N_st
@@ -49,30 +57,13 @@ subroutine pt2_dipole_moment_z_eipstein_nesbet(det_pert,c_pert,e_2_pert,H_pert_d
       e_2_pert(i) = selection_criterion*selection_criterion_factor*2.d0
     else if  (dabs(CI_electronic_energy(i) - h) > 1.d-6) then
         c_pert(i) = i_H_psi_array(i) / (CI_electronic_energy(i) - h)
-        H_pert_diag(i) = c_pert(i) * (i_O1_psi_array(i) + i_O1_psi_array(i) ) 
-!       e_2_pert(i) = -dabs(c_pert(i) * (i_O1_psi_array(i)+i_O1_psi_array(i) ) + c_pert(i) * c_pert(i) * oii)
-        e_2_pert(i) = -dabs(c_pert(i) * (i_O1_psi_array(i)+i_O1_psi_array(i) ) )
+        e_2_pert(i) = c_pert(i) * (i_O1_psi_array(i)+i_O1_psi_array(i) ) 
+        H_pert_diag(i) = e_2_pert(i) + c_pert(i) * c_pert(i) * oii
     else
       c_pert(i) = -1.d0
       e_2_pert(i) = -dabs(i_H_psi_array(i))
       H_pert_diag(i) = c_pert(i) * i_O1_psi_array(i)
     endif
   enddo
-
-
-! !test
-! call get_excitation_degree(det_pert,HF_bitmask,degree,Nint)
-! if(degree.eq.2)then
-!   print*,'degree = ',degree
-!  if(dabs(e_2_pert(1)).gt.1.d-8)then
-!   print*,'degree = ',degree
-!   double precision :: hij
-!   call i_O1_j(mo_dipole_z,HF_bitmask,det_pert,N_int,hij)
-!   print*,'<HF|O1|det>  = ',hij
-!   call i_O1_j(mo_dipole_z,psi_det(1,1,2),det_pert,N_int,hij)
-!   print*,'<HF+1|O1|det>= ',hij
-!   print*,'i_O1_psi_array = ',i_O1_psi_array(1),c_pert(1)
-!  endif
-! endif
-
 end
+

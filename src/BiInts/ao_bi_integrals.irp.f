@@ -354,6 +354,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   real                           :: map_mb
   if (read_ao_integrals) then
     integer                        :: load_ao_integrals
+    print*,'READING THE AO INTEGRALS !'
     if (load_ao_integrals(trim(ezfio_filename)//'/work/ao_integrals.bin') == 0) then
       write(output_BiInts,*) 'AO integrals provided'
       ao_bielec_integrals_in_map = .True.

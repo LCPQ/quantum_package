@@ -4,7 +4,7 @@ program cisd
 
   diag_algorithm = "Lapack"
   touch diag_algorithm
-  print *,   'HF      = ', HF_energy
+  print *,   'HF      = ', ref_bitmask_energy
   print *,  'N_states = ', N_states
   call H_apply_cisd
   print *,  'N_det = ', N_det
