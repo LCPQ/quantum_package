@@ -93,12 +93,11 @@ program cisd_sc2_selected
     print *,  'E_before(SC2)+PT2(SC2)       = ', CI_SC2_energy(i)+pt2(i)
     print *,  'E_before(SC2)+PT2(SC2)_new   = ', CI_SC2_energy(i)+pt2(i)* (1.d0 + norm_pert) - H_pert_diag(i)
    
-    print*,'greater coeficient of the state : ',dabs(psi_coef(imax,i))
+    print*,'Largest coefficient of the state : ',dabs(psi_coef(imax,i))
     call get_excitation_degree(ref_bitmask,psi_det(1,1,imax),degree,N_int)
-    print*,'degree of excitation of such determinant : ',degree
+    print*,'Degree of excitation of this determinant : ',degree
     
    enddo
-  print*,'coucou'
   endif
   call save_wavefunction
   deallocate(pt2,norm_pert,H_pert_diag)
