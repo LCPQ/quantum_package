@@ -28,5 +28,6 @@ T.set_doc       ( """The selection process stops when the energy ratio variation
 is equal to var_pt2_ratio""" )
 T.set_ezfio_name( "var_pt2_ratio" )
 print T
+
 END_SHELL
 
