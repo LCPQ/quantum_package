@@ -11,11 +11,11 @@ BEGIN_PROVIDER [double precision, mo_nucl_elec_integral, (mo_tot_num_align,mo_to
  do i = 1, mo_tot_num
    do j = 1, mo_tot_num
     do i1 = 1,ao_num
-     c_i1 = mo_coef(i1,i)
+     c_i1 = mo_coef(i1,i)  ! <AO(i1)|MO(i)> 
      do j1 = 1,ao_num
-       c_j1 = c_i1*mo_coef(j1,j)
+       c_j1 = c_i1*mo_coef(j1,j)   ! <AO(j1)|MO(j)> 
        mo_nucl_elec_integral(j,i) = mo_nucl_elec_integral(j,i) + &
-                                           c_j1 * ao_nucl_elec_integral(j1,i1)
+                             c_j1 * ao_nucl_elec_integral(j1,i1)
      enddo
     enddo
    enddo

@@ -26,6 +26,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
   
   double precision               :: mo_bielec_integral
+  logical                        :: is_a_two_holes_two_particles
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   integer, allocatable           :: ib_jb_pairs(:,:)
   double precision               :: diag_H_mat_elem
@@ -162,6 +163,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
           k = ishft(j_b-1,-bit_kind_shift)+1
           l = j_b-ishft(k-1,bit_kind_shift)-1
           key(k,other_spin) = ibset(key(k,other_spin),l)
+          $filter2h2p
           key_idx += 1
           do k=1,N_int
             keys_out(k,1,key_idx) = key(k,1)
@@ -210,6 +212,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
         k = ishft(j_b-1,-bit_kind_shift)+1
         l = j_b-ishft(k-1,bit_kind_shift)-1
         key(k,ispin) = ibset(key(k,ispin),l)
+        $filter2h2p
         key_idx += 1
         do k=1,N_int
           keys_out(k,1,key_idx) = key(k,1)
@@ -267,6 +270,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc $param
   integer                        :: kk,pp,other_spin,key_idx
   integer                        :: N_elec_in_key_hole_1(2),N_elec_in_key_part_1(2)
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
+  logical                        :: is_a_two_holes_two_particles
   
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   logical, allocatable           :: array_pairs(:,:)
@@ -333,6 +337,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc $param
       k_a = ishft(j_a-1,-bit_kind_shift)+1
       l_a = j_a-ishft(k_a-1,bit_kind_shift)-1
       hole(k_a,ispin) = ibset(hole(k_a,ispin),l_a)
+      $filter2h2p
       key_idx += 1
       do k=1,N_int
         keys_out(k,1,key_idx) = hole(k,1)

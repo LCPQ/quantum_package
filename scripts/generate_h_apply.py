@@ -23,6 +23,7 @@ deinit_thread
 skip
 init_main
 filter_integrals
+filter2h2p
 """.split()
 
 class H_apply(object):
@@ -114,6 +115,13 @@ class H_apply(object):
     for key,value in self.data.items():
       buffer = buffer.replace('$'+key, value)
     return buffer
+
+  def set_filter_2h_2p(self):
+    self["filter2h2p"] = """
+!    ! DIR$ FORCEINLINE
+     if(is_a_two_holes_two_particles(key))cycle
+    """
+
 
   def set_perturbation(self,pert):
     if self.perturbation is not None:
