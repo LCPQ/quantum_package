@@ -99,7 +99,6 @@ program cisd_sc2_selected
     print*,'degree of excitation of such determinant : ',degree
     
    enddo
-  print*,'coucou'
   endif
   call save_wavefunction
   deallocate(pt2,norm_pert,H_pert_diag)

@@ -833,7 +833,6 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,psicoef)
     enddo
   enddo
 
-  print*,'coucou'
   call ezfio_set_determinants_psi_coef(psi_coef_save)
   call write_int(output_dets,ndet,'Saved determinants')
   call stop_progress

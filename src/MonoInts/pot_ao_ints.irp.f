@@ -357,7 +357,6 @@ recursive subroutine I_x1_pol_mult_mono_elec(a,c,R1x,R1xp,R2x,d,nd,n_pt_in)
 ! print*,'nd_in = ',nd
 
   if( (a==0) .and. (c==0))then
-!  print*,'coucou !'
    nd = 0
    d(0) = 1.d0
    return
