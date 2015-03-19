@@ -36,7 +36,7 @@ subroutine fill_H_apply_buffer_selection(n_selected,det_buffer,e_2_pert_buffer,c
 
     is_selected = .False.
     do j=1,N_st
-      s = -e_2_pert_buffer(j,i)
+      s = dabs(e_2_pert_buffer(j,i))
       is_selected = s > selection_criterion*selection_criterion_factor .or. is_selected
       select_max_out = max(select_max_out,s)
     enddo
@@ -78,7 +78,7 @@ end
  BEGIN_DOC
  ! Threshold to select determinants. Set by selection routines.
  END_DOC
- selection_criterion =  .1d0 
+ selection_criterion =  0.1d0 
  selection_criterion_factor = 0.01d0
  selection_criterion_min = selection_criterion
 

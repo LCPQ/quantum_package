@@ -168,7 +168,23 @@ END_PROVIDER
    
 END_PROVIDER
  
-BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
+BEGIN_PROVIDER [ double precision, positive_charge_barycentre,(3)]
+  implicit none
+  BEGIN_DOC
+  ! Centroid of the positive charges
+  END_DOC
+  integer                        :: l
+  positive_charge_barycentre(1) = 0.d0
+  positive_charge_barycentre(2) = 0.d0
+  positive_charge_barycentre(3) = 0.d0
+  do l = 1, nucl_num
+    positive_charge_barycentre(1) += nucl_charge(l) * nucl_coord(l,1)
+    positive_charge_barycentre(2) += nucl_charge(l) * nucl_coord(l,2)
+    positive_charge_barycentre(3) += nucl_charge(l) * nucl_coord(l,3)
+  enddo
+END_PROVIDER
+
+ BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
    implicit none
    BEGIN_DOC
    ! Nuclear repulsion energy

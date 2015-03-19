@@ -23,12 +23,19 @@ determinants
   threshold_selectors        0.999
   read_wf                    False
   s2_eig                     False
+  only_single_double_dm      False
 
 full_ci
   n_det_max_fci              10000
+  n_det_max_fci_property     50000
   pt2_max                    1.e-4
   do_pt2_end                 True
   var_pt2_ratio              0.75
+
+all_singles
+  n_det_max_fci              50000
+  pt2_max                    1.e-8
+  do_pt2_end                 False
 
 cassd  
   n_det_max_cassd            10000
@@ -39,8 +46,14 @@ hartree_fock
   n_it_scf_max               200
   thresh_scf                 1.e-10
 
+cisd_selected
+  n_det_max_cisd         10000
+  pt2_max                    1.e-4
+
 cisd_sc2_selected
   n_det_max_cisd_sc2         10000
   pt2_max                    1.e-4
   do_pt2_end                 True
 
+properties 
+  z_one_point                3.9

@@ -91,7 +91,11 @@ subroutine write_Ao_basis(i_unit_output)
 !   write(i_unit_output,*),j,i_shell,i_ao!trim(character_shell)
     do k = 1, ao_prim_num(i_ao)
      i_prim +=1
-     write(i_unit_output,'(4X,I3,3X,A1,6X,I2,6X,F16.7,2X,F16.12)')i_shell,character_shell,i_prim,ao_expo_unsorted(i_ao,k),ao_coef_unnormalized(i_ao,k)
+     if(i_prim.lt.100)then
+       write(i_unit_output,'(4X,I3,3X,A1,6X,I2,6X,F16.7,2X,F16.12)')i_shell,character_shell,i_prim,ao_expo_unsorted(i_ao,k),ao_coef_unnormalized(i_ao,k)
+     else
+       write(i_unit_output,'(4X,I3,3X,A1,5X,I3,6X,F16.7,2X,F16.12)')i_shell,character_shell,i_prim,ao_expo_unsorted(i_ao,k),ao_coef_unnormalized(i_ao,k)
+     endif
     enddo
     write(i_unit_output,*)''
    enddo

@@ -29,6 +29,20 @@ BEGIN_PROVIDER [ integer, N_det ]
  ASSERT (N_det > 0)
 END_PROVIDER
 
+BEGIN_PROVIDER [integer, max_degree_exc]
+ implicit none
+ integer :: i,degree
+ max_degree_exc = 0
+ BEGIN_DOC
+ ! Maximum degree of excitation in the wf
+ END_DOC
+ do i = 1, N_det
+  call get_excitation_degree(HF_bitmask,psi_det(1,1,i),degree,N_int)
+  if(degree.gt.max_degree_exc)then
+   max_degree_exc= degree
+  endif
+ enddo
+END_PROVIDER
 
 BEGIN_PROVIDER [ integer, psi_det_size ]
  implicit none
@@ -229,7 +243,7 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states_diag) ]
   do i=1,N_states_diag
     psi_coef(i,i) = 1.d0
   enddo
-  
+
   if (read_wf) then
     call ezfio_has_determinants_psi_coef(exists)
     if (exists) then
@@ -729,6 +743,16 @@ subroutine save_wavefunction
   call save_wavefunction_general(N_det,N_states,psi_det_sorted,size(psi_coef_sorted,1),psi_coef_sorted)
 end
 
+
+subroutine save_wavefunction_unsorted
+  implicit none
+  use bitmasks
+  BEGIN_DOC
+!  Save the wave function into the EZFIO file
+  END_DOC
+  call save_wavefunction_general(N_det,N_states,psi_det,size(psi_coef,1),psi_coef)
+end
+
 subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
   implicit none
   BEGIN_DOC
@@ -792,11 +816,23 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
   progress_bar(1) = 7
   progress_value = dble(progress_bar(1))
   allocate (psi_coef_save(ndet,nstates))
+  double precision :: accu_norm(nstates)
+  accu_norm = 0.d0
   do k=1,nstates
     do i=1,ndet
+      accu_norm(k) = accu_norm(k) + psicoef(i,k) * psicoef(i,k)
       psi_coef_save(i,k) = psicoef(i,k)
     enddo
   enddo
+  do k = 1, nstates
+   accu_norm(k) = 1.d0/dsqrt(accu_norm(k))
+  enddo
+  do k=1,nstates
+    do i=1,ndet
+      psi_coef_save(i,k) = psi_coef_save(i,k) * accu_norm(k)
+    enddo
+  enddo
+
   call ezfio_set_determinants_psi_coef(psi_coef_save)
   call write_int(output_dets,ndet,'Saved determinants')
   call stop_progress

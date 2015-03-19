@@ -60,6 +60,18 @@ END_PROVIDER
   enddo
 END_PROVIDER
 
+ BEGIN_PROVIDER [ double precision, psi_selectors_diag_h_mat, (psi_selectors_size) ]
+  implicit none
+  BEGIN_DOC
+  ! Diagonal elements of the H matrix for each selectors 
+  END_DOC
+  integer                        :: i
+  double precision :: diag_H_mat_elem
+  do i = 1, N_det_selectors
+   psi_selectors_diag_h_mat(i) = diag_H_mat_elem(psi_selectors(1,1,i),N_int)
+  enddo
+ END_PROVIDER
+
 
  BEGIN_PROVIDER [ integer(bit_kind), psi_selectors_ab, (N_int,2,psi_selectors_size) ]
 &BEGIN_PROVIDER [ double precision, psi_selectors_coef_ab, (psi_selectors_size,N_states) ]

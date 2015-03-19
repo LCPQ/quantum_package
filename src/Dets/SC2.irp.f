@@ -141,7 +141,7 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
               accu += e_corr_array(j)
             endif
           enddo
-          case default
+        case default
           do j=1,N_double
             call get_excitation_degree(dets_in(1,1,i),doubles(1,1,j),degree,N_int)
             if (degree<=degree_exc(i)) then
@@ -177,7 +177,7 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
     else
       call davidson_diag_hjj(dets_in,u_in,H_jj_dressed,energies,dim_in,sze,N_st,Nint,output_Dets)
     endif
-    
+
     e_corr_double = 0.d0
     inv_c0 = 1.d0/u_in(index_hf,1)
     do i = 1, N_double

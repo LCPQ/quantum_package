@@ -68,6 +68,5 @@ program cisd_sc2_selected
    print*,'degree of excitation of such determinant : ',degree
    
   enddo
-  print*,'coucou'
   deallocate(pt2,norm_pert,H_pert_diag)
 end

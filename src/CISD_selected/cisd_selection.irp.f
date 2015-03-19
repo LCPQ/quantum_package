@@ -18,11 +18,13 @@ program cisd
    print *,  'E                            = ', CI_energy(i) 
   enddo
   E_old = CI_energy
-  do while (maxval(abs(pt2(1:N_st))) > 1.d-4)
+  do while (maxval(abs(pt2(1:N_st))) > pt2_max.and.n_det < n_det_max_cisd)
     print*,'----'
     print*,''
     call H_apply_cisd_selection(perturbation,pt2, norm_pert, H_pert_diag,  N_st)
     call diagonalize_CI
+    psi_det = psi_det_sorted
+    psi_coef = psi_coef_sorted
     print*,'N_det = ',N_det
     do i = 1, N_st
      print*,'state ',i
@@ -36,5 +38,9 @@ program cisd
       exit
     endif
   enddo
+  N_det = min(N_det,n_det_max_cisd)
+  touch N_det psi_det psi_coef
+  call diagonalize_CI
   deallocate(pt2,norm_pert,H_pert_diag)
+    call save_wavefunction
 end

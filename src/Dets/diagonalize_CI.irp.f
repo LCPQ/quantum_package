@@ -69,10 +69,8 @@ END_PROVIDER
     i_state = 0
     do j=1,N_det
       call get_s2_u0(psi_det,eigenvectors(1,j),N_det,N_det,s2)
-!      print *, 'j = ',j,s2, expected_s2
       if(dabs(s2-expected_s2).le.0.3d0)then
        i_state += 1
-!       print *,  'i_state = ',i_state
        do i=1,N_det
          CI_eigenvectors(i,i_state) = eigenvectors(i,j)
        enddo

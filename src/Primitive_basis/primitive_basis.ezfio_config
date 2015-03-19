@@ -1,5 +1,0 @@
-primitive_basis
- prim_num         integer
- prim_power       integer (3,primitive_basis_prim_num)
- prim_expo        double precision (primitive_basis_prim_num)
- prim_nucl        integer (primitive_basis_prim_num)

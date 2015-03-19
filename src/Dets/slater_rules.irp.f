@@ -488,6 +488,146 @@ end
 
 
 
+
+subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Returns <i|H|j> where i and j are determinants
+  END_DOC
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: key_i(Nint,2), key_j(Nint,2)
+  double precision, intent(out)  :: hij,hmono,hdouble
+  
+  integer                        :: exc(0:2,2,2)
+  integer                        :: degree
+  double precision               :: get_mo_bielec_integral
+  integer                        :: m,n,p,q
+  integer                        :: i,j,k
+  integer                        :: occ(Nint*bit_kind_size,2)
+  double precision               :: diag_H_mat_elem, phase,phase_2
+  integer                        :: n_occ_alpha, n_occ_beta
+  logical                        :: has_mipi(Nint*bit_kind_size)
+  double precision               :: mipi(Nint*bit_kind_size), miip(Nint*bit_kind_size)
+  PROVIDE mo_bielec_integrals_in_map mo_integrals_map
+  
+  ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
+  ASSERT (sum(popcnt(key_i(:,1))) == elec_alpha_num)
+  ASSERT (sum(popcnt(key_i(:,2))) == elec_beta_num)
+  ASSERT (sum(popcnt(key_j(:,1))) == elec_alpha_num)
+  ASSERT (sum(popcnt(key_j(:,2))) == elec_beta_num)
+  
+  hij = 0.d0
+  hmono = 0.d0
+  hdouble = 0.d0
+  !DEC$ FORCEINLINE
+  call get_excitation_degree(key_i,key_j,degree,Nint)
+  select case (degree)
+    case (2)
+      call get_double_excitation(key_i,key_j,exc,phase,Nint)
+      if (exc(0,1,1) == 1) then
+        ! Mono alpha, mono beta
+        hij = phase*get_mo_bielec_integral(                          &
+            exc(1,1,1),                                              &
+            exc(1,1,2),                                              &
+            exc(1,2,1),                                              &
+            exc(1,2,2) ,mo_integrals_map)
+      else if (exc(0,1,1) == 2) then
+        ! Double alpha
+        hij = phase*(get_mo_bielec_integral(                         &
+            exc(1,1,1),                                              &
+            exc(2,1,1),                                              &
+            exc(1,2,1),                                              &
+            exc(2,2,1) ,mo_integrals_map) -                          &
+            get_mo_bielec_integral(                                  &
+            exc(1,1,1),                                              &
+            exc(2,1,1),                                              &
+            exc(2,2,1),                                              &
+            exc(1,2,1) ,mo_integrals_map) )
+      else if (exc(0,1,2) == 2) then
+        ! Double beta
+        hij = phase*(get_mo_bielec_integral(                         &
+            exc(1,1,2),                                              &
+            exc(2,1,2),                                              &
+            exc(1,2,2),                                              &
+            exc(2,2,2) ,mo_integrals_map) -                          &
+            get_mo_bielec_integral(                                  &
+            exc(1,1,2),                                              &
+            exc(2,1,2),                                              &
+            exc(2,2,2),                                              &
+            exc(1,2,2) ,mo_integrals_map) )
+      endif
+    case (1)
+      call get_mono_excitation(key_i,key_j,exc,phase,Nint)
+      call bitstring_to_list(key_i(1,1), occ(1,1), n_occ_alpha, Nint)
+      call bitstring_to_list(key_i(1,2), occ(1,2), n_occ_beta, Nint)
+      has_mipi = .False.
+      if (exc(0,1,1) == 1) then
+        ! Mono alpha
+        m = exc(1,1,1)
+        p = exc(1,2,1)
+        do k = 1, elec_alpha_num
+          i = occ(k,1)
+          if (.not.has_mipi(i)) then
+            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            has_mipi(i) = .True.
+          endif
+        enddo
+        do k = 1, elec_beta_num
+          i = occ(k,2)
+          if (.not.has_mipi(i)) then
+            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            has_mipi(i) = .True.
+          endif
+        enddo
+        
+        do k = 1, elec_alpha_num
+          hdouble = hdouble + mipi(occ(k,1)) - miip(occ(k,1))
+        enddo
+        do k = 1, elec_beta_num
+          hdouble = hdouble + mipi(occ(k,2))
+        enddo
+        
+      else
+        ! Mono beta
+        m = exc(1,1,2)
+        p = exc(1,2,2)
+        do k = 1, elec_beta_num
+          i = occ(k,2)
+          if (.not.has_mipi(i)) then
+            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            has_mipi(i) = .True.
+          endif
+        enddo
+        do k = 1, elec_alpha_num
+          i = occ(k,1)
+          if (.not.has_mipi(i)) then
+            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            has_mipi(i) = .True.
+          endif
+        enddo
+        
+        do k = 1, elec_alpha_num
+          hdouble = hdouble + mipi(occ(k,1))
+        enddo
+        do k = 1, elec_beta_num
+          hdouble = hdouble + mipi(occ(k,2)) - miip(occ(k,2))
+        enddo
+        
+      endif
+      hmono = mo_mono_elec_integral(m,p)
+      hij = phase*(hdouble + hmono)
+      
+    case (0)
+      hij = diag_H_mat_elem(key_i,Nint)
+  end select
+end
+
+
+
 subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   use bitmasks
   implicit none
@@ -521,6 +661,52 @@ subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
       i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
     enddo
   enddo
+end
+
+subroutine i_H_psi_sec_ord(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array,idx_interaction,interactions)
+  use bitmasks
+  implicit none
+  integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate
+  integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
+  integer(bit_kind), intent(in)  :: key(Nint,2)
+  double precision, intent(in)   :: coef(Ndet_max,Nstate)
+  double precision, intent(out)  :: i_H_psi_array(Nstate)
+  double precision, intent(out)  :: interactions(Ndet)
+  integer,intent(out)            :: idx_interaction(0:Ndet)
+  
+  integer                        :: i, ii,j
+  double precision               :: phase
+  integer                        :: exc(0:2,2,2)
+  double precision               :: hij
+  integer                        :: idx(0:Ndet),n_interact
+  BEGIN_DOC
+  ! <key|H|psi> for the various Nstates
+  END_DOC
+  
+  ASSERT (Nint > 0)
+  ASSERT (N_int == Nint)
+  ASSERT (Nstate > 0)
+  ASSERT (Ndet > 0)
+  ASSERT (Ndet_max >= Ndet)
+  i_H_psi_array = 0.d0
+  call filter_connected_i_H_psi0(keys,key,Nint,Ndet,idx)
+  n_interact = 0
+  do ii=1,idx(0)
+    i = idx(ii)
+    !DEC$ FORCEINLINE
+    call i_H_j(keys(1,1,i),key,Nint,hij)
+    if(dabs(hij).ge.1.d-8)then
+     if(i.ne.1)then
+      n_interact += 1
+      interactions(n_interact) = hij
+      idx_interaction(n_interact) = i
+     endif
+    endif
+    do j = 1, Nstate
+      i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
+    enddo
+  enddo
+  idx_interaction(0) = n_interact
 end
 
 

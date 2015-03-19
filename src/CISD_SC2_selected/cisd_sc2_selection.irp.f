@@ -37,8 +37,7 @@ program cisd_sc2_selected
   do while (N_det < n_det_max_cisd_sc2.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     print*,'----'
     print*,''
-    call H_apply_cisd_selection(perturbation,pt2, norm_pert, H_pert_diag,  N_st)
-!    soft_touch det_connections
+    call H_apply_SC2_selected(pt2, norm_pert, H_pert_diag,  N_st)
     call diagonalize_CI_SC2
     print *,  'N_det                        = ', N_det
     do i = 1, N_st
@@ -51,13 +50,14 @@ program cisd_sc2_selected
      endif
      E_old(i) = CI_SC2_energy(i)
     enddo
-!   print *,  'E corr           = ', (E_old(1)) - HF_energy
      if(dabs(E_old(i) - CI_SC2_energy(i) ).le.1.d-12)then
       i_count += 1
       selection_criterion_factor = selection_criterion_factor * 0.5d0
       if(i_count > 5)then
        exit
       endif
+     else 
+      i_count = 0
      endif
     if (abort_all) then
       exit

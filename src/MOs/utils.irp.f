@@ -139,3 +139,44 @@ subroutine mo_as_eigvectors_of_mo_matrix_sort_by_observable(matrix,observable,n,
   mo_label = label
   SOFT_TOUCH mo_coef mo_label
 end
+
+
+subroutine mo_sort_by_observable(observable,label)
+  implicit none
+  character*(64), intent(in)     :: label
+  double precision, intent(in)   :: observable(mo_tot_num)
+  
+  double precision, allocatable  :: mo_coef_new(:,:),value(:)
+  integer,allocatable :: iorder(:)
+  
+  allocate(mo_coef_new(ao_num_align,mo_tot_num),value(mo_tot_num),iorder(mo_tot_num))
+  print*,'allocate !'
+  mo_coef_new = mo_coef
+  
+
+  do i = 1, mo_tot_num
+   iorder(i) = i
+   value(i)  = observable(i)
+  enddo
+  integer :: i,j,k,index
+  print*,'sort ....'
+  call dsort(value,iorder,mo_tot_num)
+  do i = 1, mo_tot_num
+   index = iorder(i)
+   do j = 1, mo_tot_num
+    mo_coef(j,i) = mo_coef_new(j,index)
+   enddo
+  enddo
+
+  write (output_mos,'(A)'), 'MOs are now **'//trim(label)//'**'
+  write (output_mos,'(A)'), ''
+
+  
+  deallocate(mo_coef_new,value)
+! call write_time(output_mos)
+  
+  mo_label = label
+  SOFT_TOUCH mo_coef mo_label
+end
+
+

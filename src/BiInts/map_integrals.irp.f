@@ -276,7 +276,6 @@ double precision function get_mo_bielec_integral(i,j,k,l,map)
   implicit none
   BEGIN_DOC
   ! Returns one integral <ij|kl> in the MO basis
-  ! i(1)j(1) 1/r12 k(2)l(2)
   END_DOC
   integer, intent(in)            :: i,j,k,l
   integer*8                      :: idx
@@ -293,7 +292,6 @@ double precision function mo_bielec_integral(i,j,k,l)
   implicit none
   BEGIN_DOC
   ! Returns one integral <ij|kl> in the MO basis
-  ! i(1)j(1) 1/r12 k(2)l(2)
   END_DOC
   integer, intent(in)            :: i,j,k,l
   double precision               :: get_mo_bielec_integral
@@ -308,7 +306,6 @@ subroutine get_mo_bielec_integrals(j,k,l,sze,out_val,map)
   BEGIN_DOC
   ! Returns multiple integrals <ij|kl> in the MO basis, all
   ! i for j,k,l fixed.
-  ! i(1)j(1) 1/r12 k(2)l(2)
   END_DOC
   integer, intent(in)            :: j,k,l, sze
   real(integral_kind), intent(out) :: out_val(sze)

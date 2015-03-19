@@ -354,6 +354,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   real                           :: map_mb
   if (read_ao_integrals) then
     integer                        :: load_ao_integrals
+    print*,'Reading the AO integrals'
     if (load_ao_integrals(trim(ezfio_filename)//'/work/ao_integrals.bin') == 0) then
       write(output_BiInts,*) 'AO integrals provided'
       ao_bielec_integrals_in_map = .True.
@@ -373,7 +374,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   PROVIDE progress_bar
   call omp_init_lock(lock)
   lmax = ao_num*(ao_num+1)/2
-  write(output_BiInts,*) 'providing the AO integrals'
+  write(output_BiInts,*) 'Providing the AO integrals'
   call wall_time(wall_0)
   call wall_time(wall_1)
   call cpu_time(cpu_1)

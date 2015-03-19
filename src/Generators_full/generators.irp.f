@@ -50,6 +50,21 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
 
 END_PROVIDER
 
+BEGIN_PROVIDER [integer, degree_max_generators]
+ implicit none
+ BEGIN_DOC
+! Max degree of excitation (respect to HF) of the generators
+ END_DOC
+ integer :: i,degree
+  degree_max_generators = 0
+  do i = 1, N_det_generators
+   call get_excitation_degree(HF_bitmask,psi_generators(1,1,i),degree,N_int)
+   if(degree .gt. degree_max_generators)then
+    degree_max_generators = degree
+   endif
+  enddo
+END_PROVIDER 
+
 BEGIN_PROVIDER [ integer, size_select_max]
  implicit none
  BEGIN_DOC

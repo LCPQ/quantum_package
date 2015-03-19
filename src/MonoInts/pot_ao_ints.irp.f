@@ -64,6 +64,73 @@
 END_PROVIDER
 
 
+ BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral_per_atom, (ao_num_align,ao_num,nucl_num)]
+ BEGIN_DOC
+! ao_nucl_elec_integral_per_atom(i,j,k) = -<AO(i)|1/|r-Rk|AO(j)> 
+! where Rk is the geometry of the kth atom
+ END_DOC
+ implicit none
+ double precision  :: alpha, beta, gama, delta
+ integer :: i_c,num_A,num_B
+ double precision :: A_center(3),B_center(3),C_center(3)
+ integer :: power_A(3),power_B(3)
+ integer :: i,j,k,l,n_pt_in,m
+ double precision ::overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult
+ integer :: nucl_numC
+ ! Important for OpenMP
+
+ ao_nucl_elec_integral_per_atom = 0.d0
+
+
+ do  k = 1, nucl_num
+  C_center(1) = nucl_coord(k,1)
+  C_center(2) = nucl_coord(k,2)
+  C_center(3) = nucl_coord(k,3)
+ !$OMP PARALLEL &
+ !$OMP DEFAULT (NONE) &
+ !$OMP PRIVATE (i,j,l,m,alpha,beta,A_center,B_center,power_A,power_B, &
+ !$OMP  num_A,num_B,c,n_pt_in) &
+ !$OMP SHARED (k,ao_num,ao_prim_num,ao_expo_transp,ao_power,ao_nucl,nucl_coord,ao_coef_transp, &
+ !$OMP  n_pt_max_integrals,ao_nucl_elec_integral_per_atom,nucl_num,C_center)
+ n_pt_in = n_pt_max_integrals
+ !$OMP DO SCHEDULE (guided)
+
+  double precision :: c
+  do j = 1, ao_num
+   power_A(1)= ao_power(j,1)
+   power_A(2)= ao_power(j,2)
+   power_A(3)= ao_power(j,3)
+   num_A = ao_nucl(j)
+   A_center(1) = nucl_coord(num_A,1)
+   A_center(2) = nucl_coord(num_A,2)
+   A_center(3) = nucl_coord(num_A,3)
+   do i = 1, ao_num
+    power_B(1)= ao_power(i,1)
+    power_B(2)= ao_power(i,2)
+    power_B(3)= ao_power(i,3)
+    num_B = ao_nucl(i)
+    B_center(1) = nucl_coord(num_B,1)
+    B_center(2) = nucl_coord(num_B,2)
+    B_center(3) = nucl_coord(num_B,3)
+    c = 0.d0
+    do l=1,ao_prim_num(j)
+     alpha = ao_expo_transp(l,j)
+     do m=1,ao_prim_num(i)
+      beta = ao_expo_transp(m,i)
+      c = c + NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in) &
+          * ao_coef_transp(l,j)*ao_coef_transp(m,i)
+     enddo
+    enddo
+    ao_nucl_elec_integral_per_atom(i,j,k) = -c
+   enddo
+  enddo
+ !$OMP END DO 
+ !$OMP END PARALLEL
+ enddo
+
+END_PROVIDER
+
+
 
 double precision function NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)
 ! function that calculate the folowing integral :
@@ -290,7 +357,6 @@ recursive subroutine I_x1_pol_mult_mono_elec(a,c,R1x,R1xp,R2x,d,nd,n_pt_in)
 ! print*,'nd_in = ',nd
 
   if( (a==0) .and. (c==0))then
-!  print*,'coucou !'
    nd = 0
    d(0) = 1.d0
    return
