@@ -30,17 +30,37 @@ integer*8 function occ_pattern_search_key(det,Nint)
 end
 
 
+
 logical function is_in_wavefunction(key,Nint,Ndet)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! True if the determinant ``det`` is in the wave function
+  END_DOC
+  integer, intent(in)            :: Nint, Ndet
+  integer(bit_kind), intent(in)  :: key(Nint,2)
+  integer, external              :: get_index_in_psi_det_sorted_bit
+
+  !DIR$ FORCEINLINE
+  is_in_wavefunction = get_index_in_psi_det_sorted_bit(key,Nint) > 0
+end
+
+integer function get_index_in_psi_det_sorted_bit(key,Nint)
+  use bitmasks
+  BEGIN_DOC
+! Returns the index of the determinant in the ``psi_det_sorted_bit`` array
+  END_DOC
   implicit none
 
-  integer, intent(in)            :: Nint, Ndet
+  integer, intent(in)            :: Nint
   integer(bit_kind), intent(in)  :: key(Nint,2)
 
   integer                        :: i, ibegin, iend, istep, l
   integer*8                      :: det_ref, det_search
   integer*8, external            :: det_search_key
+  logical                        :: is_in_wavefunction
   
-  is_in_wavefunction = .False.
+  get_index_in_psi_det_sorted_bit = 0
   ibegin = 1
   iend   = N_det+1
   
@@ -103,7 +123,9 @@ logical function is_in_wavefunction(key,Nint,Ndet)
     endif
     
   enddo
-  
+  if (is_in_wavefunction) then
+    get_index_in_psi_det_sorted_bit = i
+  endif
 
 ! DEBUG is_in_wf
 ! if (is_in_wavefunction) then

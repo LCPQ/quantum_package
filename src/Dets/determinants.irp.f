@@ -419,6 +419,7 @@ END_PROVIDER
 END_PROVIDER
 
 
+
 !==============================================================================!
 !                                                                              !
 !                               Sorting providers                              !
@@ -493,7 +494,6 @@ END_PROVIDER
  deallocate(iorder, bit_tmp)
 
 END_PROVIDER
-
 
 subroutine int_of_3_highest_electrons( det_in, res, Nint )
   implicit none
@@ -680,6 +680,177 @@ subroutine sort_dets_by_3_highest_electrons(det_in,coef_in,det_out,coef_out, &
  deallocate(iorder, bit_tmp, det_sorted_temp)
 
 end
+
+!==============================================================================!
+!                                                                              !
+!                               Alpha x Beta Matrix                            !
+!                                                                              !
+!==============================================================================!
+
+BEGIN_PROVIDER [ double precision, psi_svd_matrix, (N_det_alpha_unique,N_det_beta_unique,N_states) ]
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Matrix of wf coefficients. Outer product of alpha and beta determinants
+  END_DOC
+  integer                        :: i,j,k
+  integer(bit_kind)               :: tmp_det(N_int,2)
+  integer                        :: idx
+  integer, external              :: get_index_in_psi_det_sorted_bit
+  logical, external              :: is_in_wavefunction
+
+  psi_svd_matrix = 0.d0
+  do j=1,N_det_beta_unique
+    do k=1,N_int
+      tmp_det(k,2) = psi_det_beta_unique(k,j)
+    enddo
+    do i=1,N_det_alpha_unique
+      do k=1,N_int
+        tmp_det(k,1) = psi_det_alpha_unique(k,i)
+      enddo
+      idx = get_index_in_psi_det_sorted_bit(tmp_det,N_int)
+      if (idx > 0) then
+        do k=1,N_states
+          psi_svd_matrix(i,j,k) = psi_coef_sorted_bit(idx,k)
+        enddo
+      endif
+    enddo
+  enddo
+
+END_PROVIDER
+
+subroutine create_wf_of_psi_svd_matrix
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Matrix of wf coefficients. Outer product of alpha and beta determinants
+  END_DOC
+  integer                        :: i,j,k
+  integer(bit_kind)              :: tmp_det(N_int,2)
+  integer                        :: idx
+  integer, external              :: get_index_in_psi_det_sorted_bit
+  logical, external              :: is_in_wavefunction
+  double precision               :: norm(N_states)
+
+  call generate_all_alpha_beta_det_products
+  norm = 0.d0
+  do j=1,N_det_beta_unique
+    do k=1,N_int
+      tmp_det(k,2) = psi_det_beta_unique(k,j)
+    enddo
+    do i=1,N_det_alpha_unique
+      do k=1,N_int
+        tmp_det(k,1) = psi_det_alpha_unique(k,i)
+      enddo
+      idx = get_index_in_psi_det_sorted_bit(tmp_det,N_int)
+      if (idx > 0) then
+        do k=1,N_states
+          psi_coef_sorted_bit(idx,k) = psi_svd_matrix(i,j,k) 
+          norm(k) += psi_svd_matrix(i,j,k)
+        enddo
+      endif
+    enddo
+  enddo
+  do k=1,N_states
+    norm(k) = 1.d0/dsqrt(norm(k))
+    do i=1,N_det
+      psi_coef_sorted_bit(i,k) = psi_coef_sorted_bit(i,k)*norm(k)
+    enddo
+  enddo
+  psi_det  = psi_det_sorted_bit
+  psi_coef = psi_coef_sorted_bit
+  TOUCH psi_det psi_coef
+  psi_det  = psi_det_sorted
+  psi_coef = psi_coef_sorted
+  norm(1) = 0.d0
+  do i=1,N_det
+    norm(1) += psi_average_norm_contrib_sorted(i)
+    if (norm(1) >= 0.999999d0) then
+      exit
+    endif
+  enddo
+  N_det = min(i,N_det)
+  SOFT_TOUCH psi_det psi_coef N_det
+
+end
+
+subroutine generate_all_alpha_beta_det_products
+  implicit none
+  BEGIN_DOC
+!  Create a wave function from all possible alpha x beta determinants
+  END_DOC
+  integer                        :: i,j,k,l
+  integer                        :: idx
+  integer, external              :: get_index_in_psi_det_sorted_bit
+  integer(bit_kind), allocatable  :: tmp_det(:,:,:)
+  logical, external              :: is_in_wavefunction
+
+  allocate (tmp_det(N_int,2,N_det_alpha_unique))
+  do j=1,N_det_beta_unique
+    l = 1
+    do i=1,N_det_alpha_unique
+      do k=1,N_int
+        tmp_det(k,1,l) = psi_det_alpha_unique(k,i)
+        tmp_det(k,2,l) = psi_det_beta_unique (k,j)
+      enddo
+      if (.not.is_in_wavefunction(tmp_det(1,1,l),N_int,N_det)) then
+        l = l+1
+      endif
+    enddo
+    call fill_H_apply_buffer_no_selection(l-1, tmp_det, N_int, 1)
+  enddo
+  deallocate (tmp_det)
+  call copy_H_apply_buffer_to_wf
+  SOFT_TOUCH psi_det psi_coef N_det
+end
+
+ BEGIN_PROVIDER [ double precision, psi_svd_alpha, (N_det_alpha_unique,N_det_alpha_unique,N_states) ]
+&BEGIN_PROVIDER [ double precision, psi_svd_beta , (N_det_beta_unique,N_det_beta_unique,N_states) ]
+&BEGIN_PROVIDER [ double precision, psi_svd_coefs, (N_det_beta_unique,N_states) ]
+  implicit none
+  BEGIN_DOC
+  ! SVD wave function
+  END_DOC
+
+  integer                        :: lwork, info, istate
+  double precision, allocatable  :: work(:), tmp(:,:), copy(:,:)
+  allocate (work(1),tmp(N_det_beta_unique,N_det_beta_unique),    &
+      copy(size(psi_svd_matrix,1),size(psi_svd_matrix,2)))
+
+  do istate = 1,N_states
+    copy(:,:) = psi_svd_matrix(:,:,istate)
+    lwork=-1
+    call dgesvd('A','A', N_det_alpha_unique, N_det_beta_unique,      &
+        copy, size(copy,1),                                          &
+        psi_svd_coefs(1,istate), psi_svd_alpha(1,1,istate),          &
+        size(psi_svd_alpha,1),                                       &
+        tmp, size(psi_svd_beta,2),                                   &
+        work, lwork, info)
+    lwork = work(1)
+    deallocate(work)
+    allocate(work(lwork))
+    call dgesvd('A','A', N_det_alpha_unique, N_det_beta_unique,      &
+        copy, size(copy,1),                                          &
+        psi_svd_coefs(1,istate), psi_svd_alpha(1,1,istate),          &
+        size(psi_svd_alpha,1),                                       &
+        tmp, size(psi_svd_beta,2),                                   &
+        work, lwork, info)
+    deallocate(work)
+    if (info /= 0) then
+      print *,  irp_here//': error in det SVD'
+      stop 1
+    endif
+    integer                        :: i,j
+    do j=1,N_det_beta_unique
+      do i=1,N_det_beta_unique
+        psi_svd_beta(i,j,istate) = tmp(j,i)
+      enddo
+    enddo
+    deallocate(tmp,copy)
+  enddo
+
+END_PROVIDER
+
 
 !==============================================================================!
 !                                                                              !
