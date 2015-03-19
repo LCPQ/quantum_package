@@ -38,23 +38,11 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
   integer,allocatable            :: degree_exc(:), index_double(:)
   integer                        :: i_ok
   double precision,allocatable   :: e_corr_array(:),H_jj_ref(:),H_jj_dressed(:),hij_double(:)
-  double precision, allocatable  :: eigenvectors(:,:), eigenvalues(:),H_matrix_tmp(:,:)
   integer(bit_kind), allocatable :: doubles(:,:,:)
-  integer ,parameter             :: sze_max = 1000
 
-  if(sze.le.sze_max)then
-   allocate (eigenvectors(size(H_matrix_all_dets,1),sze))
-   allocate (H_matrix_tmp(size(H_matrix_all_dets,1),sze))
-   allocate (eigenvalues(sze))
-   do i = 1, sze
-    do j = 1, sze
-     H_matrix_tmp(i,j) = H_matrix_all_dets(i,j)
-    enddo
-   enddo
-  endif
   
-  allocate (doubles(Nint,2,sze),e_corr_array(sze),H_jj_ref(sze),H_jj_dressed(sze), &
-    index_double(sze), degree_exc(sze), hij_double(sze))
+  allocate (doubles(Nint,2,sze),e_corr_array(sze),H_jj_ref(sze),H_jj_dressed(sze),&
+      index_double(sze), degree_exc(sze), hij_double(sze))
   call write_time(output_Dets)
   write(output_Dets,'(A)') ''
   write(output_Dets,'(A)') 'CISD SC2'
@@ -119,8 +107,8 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
       select case (N_int)
         case (1)
           do j=1,N_double
-            degree =                                               &
-                popcnt(xor( dets_in(1,1,i),doubles(1,1,j))) +      &
+            degree =                                                 &
+                popcnt(xor( dets_in(1,1,i),doubles(1,1,j))) +        &
                 popcnt(xor( dets_in(1,2,i),doubles(1,2,j)))
             
             if (degree<=ishft(degree_exc(i),1)) then
@@ -129,10 +117,10 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
           enddo
         case (2)
           do j=1,N_double
-            degree =                                               &
-                popcnt(xor( dets_in(1,1,i),doubles(1,1,j))) +      &
-                popcnt(xor( dets_in(1,2,i),doubles(1,2,j))) +      &
-                popcnt(xor( dets_in(2,1,i),doubles(2,1,j))) +      &
+            degree =                                                 &
+                popcnt(xor( dets_in(1,1,i),doubles(1,1,j))) +        &
+                popcnt(xor( dets_in(1,2,i),doubles(1,2,j))) +        &
+                popcnt(xor( dets_in(2,1,i),doubles(2,1,j))) +        &
                 popcnt(xor( dets_in(2,2,i),doubles(2,2,j)))
             
             if (degree<=ishft(degree_exc(i),1)) then
@@ -141,19 +129,19 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
           enddo
         case (3)
           do j=1,N_double
-            degree =                                               &
-                popcnt(xor( dets_in(1,1,i),doubles(1,1,j))) +      &
-                popcnt(xor( dets_in(1,2,i),doubles(1,2,j))) +      &
-                popcnt(xor( dets_in(2,1,i),doubles(2,1,j))) +      &
-                popcnt(xor( dets_in(2,2,i),doubles(2,2,j))) +      &
-                popcnt(xor( dets_in(3,1,i),doubles(3,1,j))) +      &
+            degree =                                                 &
+                popcnt(xor( dets_in(1,1,i),doubles(1,1,j))) +        &
+                popcnt(xor( dets_in(1,2,i),doubles(1,2,j))) +        &
+                popcnt(xor( dets_in(2,1,i),doubles(2,1,j))) +        &
+                popcnt(xor( dets_in(2,2,i),doubles(2,2,j))) +        &
+                popcnt(xor( dets_in(3,1,i),doubles(3,1,j))) +        &
                 popcnt(xor( dets_in(3,2,i),doubles(3,2,j)))
             
             if (degree<=ishft(degree_exc(i),1)) then
               accu += e_corr_array(j)
             endif
           enddo
-        case default
+          case default
           do j=1,N_double
             call get_excitation_degree(dets_in(1,1,i),doubles(1,1,j),degree,N_int)
             if (degree<=degree_exc(i)) then
@@ -166,23 +154,30 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
     !$OMP END DO
     !$OMP END PARALLEL
     
-    PROVIDE n_states_diag h_matrix_all_dets
-    if(sze>sze_max)then
-     call davidson_diag_hjj(dets_in,u_in,H_jj_dressed,energies,dim_in,sze,N_st,Nint,output_Dets)
+    if(sze<=N_det_max_jacobi)then
+      double precision, allocatable  :: eigenvectors(:,:), eigenvalues(:),H_matrix_tmp(:,:)
+      allocate (H_matrix_tmp(size(H_matrix_all_dets,1),sze),eigenvalues(sze),eigenvectors(size(H_matrix_all_dets,1),sze))
+      do j=1,sze
+        do i=1,sze
+          H_matrix_tmp(i,j) = H_matrix_all_dets(i,j)
+        enddo
+      enddo
+      do i = 1,sze
+        H_matrix_tmp(i,i) = H_jj_dressed(i)
+      enddo
+      call lapack_diag(eigenvalues,eigenvectors,                     &
+          H_matrix_tmp,size(H_matrix_all_dets,1),sze)
+      do j=1,min(N_states_diag,sze)
+        do i=1,sze
+          u_in(i,j) = eigenvectors(i,j)
+        enddo
+        energies(j) = eigenvalues(j)
+      enddo
+      deallocate (H_matrix_tmp, eigenvalues, eigenvectors)
     else
-     do i = 1,sze
-      H_matrix_tmp(i,i) = H_jj_dressed(i)
-     enddo
-     call lapack_diag(eigenvalues,eigenvectors,                       &
-         H_matrix_tmp,size(H_matrix_all_dets,1),sze)
-     do j=1,min(N_states_diag,sze)
-       do i=1,sze
-         u_in(i,j) = eigenvectors(i,j)
-       enddo
-       energies(j) = eigenvalues(j)
-     enddo
+      call davidson_diag_hjj(dets_in,u_in,H_jj_dressed,energies,dim_in,sze,N_st,Nint,output_Dets)
     endif
-
+    
     e_corr_double = 0.d0
     inv_c0 = 1.d0/u_in(index_hf,1)
     do i = 1, N_double
@@ -212,56 +207,9 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
   enddo
   
   call write_time(output_Dets)
-  deallocate (doubles,e_corr_array,H_jj_ref,H_jj_dressed, &
-    index_double, degree_exc, hij_double)
+  deallocate (doubles,e_corr_array,H_jj_ref,H_jj_dressed,            &
+      index_double, degree_exc, hij_double)
   
 end
 
-subroutine repeat_excitation(key_in,key_1,key_2,i_ok,Nint)
-  use bitmasks
-  implicit none
-  integer(bit_kind), intent(in)  :: key_in(Nint,2),key_1(Nint,2),key_2(Nint,2)
-  integer                        :: Nint
-  integer,intent(out)            :: i_ok
-  integer                        :: ispin,i_hole,k_hole,j_hole,i_particl,k_particl,j_particl,i_trou,degree,exc(0:2,2,2)
-  double precision               :: phase
-  i_ok = 1
-  call get_excitation(key_1,key_2,exc,degree,phase,Nint)
-  integer                        :: h1,p1,h2,p2,s1,s2
-  if(degree==2)then
-    call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
-    !  first hole
-    k_hole = ishft(h1-1,-5)+1
-    j_hole = h1-ishft(k_hole-1,5)-1
-    if(iand(key_in(k_hole,s1),ibset(0,j_hole)).eq.0)then
-      i_ok = 0
-      return
-    endif
-    
-    !  second hole
-    k_hole = ishft(h2-1,-5)+1
-    j_hole = h2-ishft(k_hole-1,5)-1
-    if(iand(key_in(k_hole,s2),ibset(0,j_hole)).eq.0)then
-      i_ok = 0
-      return
-    endif
-    
-    ! first particle
-    k_particl  = ishft(p1-1,-5)+1
-    j_particl = p1-ishft(k_particl-1,5)-1
-    if(iand(key_in(k_particl,s1),ibset(0,j_particl)).ne.0)then
-      i_ok = 0
-      return
-    endif
-    
-    ! second particle
-    k_particl  = ishft(p2-1,-5)+1
-    j_particl = p2-ishft(k_particl-1,5)-1
-    if(iand(key_in(k_particl,s2),ibset(0,j_particl)).ne.0)then
-      i_ok = 0
-      return
-    endif
-    return
-  endif
-end
 

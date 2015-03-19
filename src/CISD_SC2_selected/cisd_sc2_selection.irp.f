@@ -64,9 +64,8 @@ program cisd_sc2_selected
     endif
   enddo
   N_det = min(n_det_max_cisd_sc2,N_det)
-  touch N_det psi_det psi_coef
   davidson_threshold = 1.d-10
-  touch davidson_threshold davidson_criterion
+  touch N_det psi_det psi_coef davidson_threshold davidson_criterion
   call diagonalize_CI_SC2
   pt2 = 0.d0
   if(do_pt2_end)then

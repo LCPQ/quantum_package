@@ -34,12 +34,10 @@ END_PROVIDER
   do j=1,N_states_diag
     do i=1,N_det
       CI_SC2_eigenvectors(i,j) = psi_coef(i,j)
-!     CI_SC2_eigenvectors(i,j) = CI_eigenvectors(i,j)
     enddo
     CI_SC2_electronic_energy(j) = CI_electronic_energy(j) 
   enddo
   
-  double precision :: convergence
   call CISD_SC2(psi_det,CI_SC2_eigenvectors,CI_SC2_electronic_energy, &
         size(CI_SC2_eigenvectors,1),N_det,N_states_diag,N_int,threshold_convergence_SC2)
 END_PROVIDER
