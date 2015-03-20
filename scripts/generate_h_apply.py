@@ -13,8 +13,6 @@ initialization
 declarations
 decls_main
 keys_work
-do_double_excitations
-check_double_excitation
 copy_buffer
 finalization
 generate_psi_guess
@@ -25,8 +23,7 @@ deinit_thread
 skip
 init_main
 filter_integrals
-filterhole
-filterparticle
+filter2h2p
 """.split()
 
 class H_apply(object):
@@ -119,23 +116,12 @@ class H_apply(object):
       buffer = buffer.replace('$'+key, value)
     return buffer
 
-  def unset_double_excitations(self):
-    self["do_double_excitations"] = ".False."
-    self["check_double_excitation"] = """
-     check_double_excitation = .False.
+  def set_filter_2h_2p(self):
+    self["filter2h2p"] = """
+!    ! DIR$ FORCEINLINE
+     if(is_a_two_holes_two_particles(key))cycle
     """
-  def set_filter_holes(self):
-    self["filterhole"] = """
-     if(iand(ibset(0_bit_kind,j),hole(k,other_spin)).eq.0_bit_kind ) then
-        cycle
-     endif
-    """
-  def set_filter_particl(self):
-    self["filterparticle"] = """
-     if(iand(ibset(0_bit_kind,j_a),hole(k_a,other_spin)).eq.0_bit_kind ) then
-        cycle
-     endif
-    """
+
 
   def set_perturbation(self,pert):
     if self.perturbation is not None:
@@ -179,14 +165,9 @@ class H_apply(object):
       PROVIDE CI_electronic_energy psi_selectors_coef psi_selectors E_corr_per_selectors psi_det_sorted_bit
       """
       self.data["keys_work"] = """
-      if(check_double_excitation)then
-       call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-        sum_norm_pert,sum_H_pert_diag,N_st,N_int)
-      else 
-       call perturb_buffer_by_mono_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-        sum_norm_pert,sum_H_pert_diag,N_st,N_int)
-      endif
-      """%(pert,pert)
+      call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
+       sum_norm_pert,sum_H_pert_diag,N_st,N_int)
+      """%(pert,)
       self.data["finalization"] = """
       """
       self.data["copy_buffer"] = ""
@@ -252,7 +233,7 @@ class H_apply(object):
       if (s2_eig) then
         call make_s2_eigenfunction
       endif
-!     SOFT_TOUCH psi_det psi_coef N_det
+!      SOFT_TOUCH psi_det psi_coef N_det
       selection_criterion_min = min(selection_criterion_min, maxval(select_max))*0.1d0
       selection_criterion = selection_criterion_min
       call write_double(output_Dets,selection_criterion,'Selection criterion')

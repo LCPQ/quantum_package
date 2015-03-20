@@ -26,6 +26,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
   
   double precision               :: mo_bielec_integral
+  logical                        :: is_a_two_holes_two_particles
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   integer, allocatable           :: ib_jb_pairs(:,:)
   double precision               :: diag_H_mat_elem
@@ -35,11 +36,6 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
     ifirst=1
   endif
   
-  logical :: check_double_excitation 
-  check_double_excitation = .True.
-
-
-
   $initialization
   
   $omp_parallel
@@ -167,6 +163,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
           k = ishft(j_b-1,-bit_kind_shift)+1
           l = j_b-ishft(k-1,bit_kind_shift)-1
           key(k,other_spin) = ibset(key(k,other_spin),l)
+          $filter2h2p
           key_idx += 1
           do k=1,N_int
             keys_out(k,1,key_idx) = key(k,1)
@@ -215,6 +212,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
         k = ishft(j_b-1,-bit_kind_shift)+1
         l = j_b-ishft(k-1,bit_kind_shift)-1
         key(k,ispin) = ibset(key(k,ispin),l)
+        $filter2h2p
         key_idx += 1
         do k=1,N_int
           keys_out(k,1,key_idx) = key(k,1)
@@ -272,17 +270,12 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc $param
   integer                        :: kk,pp,other_spin,key_idx
   integer                        :: N_elec_in_key_hole_1(2),N_elec_in_key_part_1(2)
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
+  logical                        :: is_a_two_holes_two_particles
   
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   logical, allocatable           :: array_pairs(:,:)
   double precision               :: diag_H_mat_elem
   integer(omp_lock_kind), save   :: lck, ifirst=0
-
-  logical :: check_double_excitation 
-  check_double_excitation = .True.
-  $check_double_excitation
-
-
   if (ifirst == 0) then
     ifirst=1
 !$    call omp_init_lock(lck)
@@ -340,12 +333,11 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc $param
       hole = key_in
       k = ishft(i_a-1,-bit_kind_shift)+1
       j = i_a-ishft(k-1,bit_kind_shift)-1
-  $filterhole
       hole(k,ispin) = ibclr(hole(k,ispin),j)
       k_a = ishft(j_a-1,-bit_kind_shift)+1
       l_a = j_a-ishft(k_a-1,bit_kind_shift)-1
-  $filterparticle
       hole(k_a,ispin) = ibset(hole(k_a,ispin),l_a)
+      $filter2h2p
       key_idx += 1
       do k=1,N_int
         keys_out(k,1,key_idx) = hole(k,1)
