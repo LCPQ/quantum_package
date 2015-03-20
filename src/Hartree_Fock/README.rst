@@ -2,6 +2,7 @@
 Hartree-Fock Module
 ===================
 
+From the 140 molecules of the G2 set, only LiO, ONa don't converge well.
 
 Needed Modules
 ==============

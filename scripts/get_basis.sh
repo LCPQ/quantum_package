@@ -13,7 +13,9 @@ export PYTHONPATH="${EMSL_API_ROOT}":${PYTHONPATH}
 
 tmpfile="$1"
 shift
-basis="$1"
+
+# Case insensitive basis in input
+basis=$( ${EMSL_API_ROOT}/EMSL_api.py list_basis | cut -d "'" -f 2 | grep -i "^${1}\$")
 shift
 atoms=""
 

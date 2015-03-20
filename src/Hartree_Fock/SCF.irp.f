@@ -8,17 +8,24 @@ end
 subroutine create_guess
   implicit none
   BEGIN_DOC
-! Create an H_core guess if no MOs are present in the EZFIO directory
+! Create an MO guess if no MOs are present in the EZFIO directory
   END_DOC
   logical                        :: exists
   PROVIDE ezfio_filename
   call ezfio_has_mo_basis_mo_coef(exists)
   if (.not.exists) then
-    mo_coef = ao_ortho_lowdin_coef
-    TOUCH mo_coef
-    mo_label = 'Guess'
-    call mo_as_eigvectors_of_mo_matrix(mo_mono_elec_integral,size(mo_mono_elec_integral,1),size(mo_mono_elec_integral,2),mo_label)
-    SOFT_TOUCH mo_coef mo_label
+    if (mo_guess_type == "HCore") then
+      mo_coef = ao_ortho_lowdin_coef
+      TOUCH mo_coef
+      mo_label = 'Guess'
+      call mo_as_eigvectors_of_mo_matrix(mo_mono_elec_integral,size(mo_mono_elec_integral,1),size(mo_mono_elec_integral,2),mo_label)
+      SOFT_TOUCH mo_coef mo_label
+    else if (mo_guess_type == "Huckel") then
+      call huckel_guess
+    else
+      print *,  'Unrecognized MO guess type : '//mo_guess_type
+      stop 1
+    endif
   endif
 end
 

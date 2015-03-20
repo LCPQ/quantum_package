@@ -71,7 +71,7 @@ subroutine damping_SCF
     delta_alpha = D_new_alpha - D_alpha
     delta_beta  = D_new_beta  - D_beta 
     
-    lambda = 0.5d0
+    lambda = 1.d0
     E_half = 0.d0
     do while (E_half > E)
       HF_density_matrix_ao_alpha = D_alpha + lambda * delta_alpha
@@ -118,8 +118,8 @@ subroutine damping_SCF
   
   call mo_as_eigvectors_of_mo_matrix(Fock_matrix_mo,size(Fock_matrix_mo,1),size(Fock_matrix_mo,2),mo_label)
 
-  call write_double(output_hartree_fock, HF_energy, 'Hartree-Fock energy')
-  call ezfio_set_hartree_fock_energy(HF_energy)
+  call write_double(output_hartree_fock, E_min, 'Hartree-Fock energy')
+  call ezfio_set_hartree_fock_energy(E_min)
 
   call write_time(output_hartree_fock)
 

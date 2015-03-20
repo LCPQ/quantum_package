@@ -138,7 +138,32 @@ let input_ezfio = "
 ;;
 
 let untouched = "
+module MO_guess : sig
+  type t with sexp
+  val to_string : t -> string
+  val of_string : string -> t
+end = struct
+  type t = 
+  | Huckel
+  | HCore
+  with sexp
+
+  let to_string = function
+  | Huckel -> \"Huckel\"
+  | HCore  -> \"HCore\"
+
+  let of_string  s = 
+    let s = 
+      String.lowercase s
+    in
+    match s with
+    | \"huckel\" -> Huckel
+    | \"hcore\"  -> HCore
+    | _ -> failwith (\"Wrong Guess type : \"^s)
+
+end
 "
+;;
 
 let template = format_of_string "
 module %s : sig

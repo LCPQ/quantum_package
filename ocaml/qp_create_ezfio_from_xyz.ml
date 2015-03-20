@@ -60,20 +60,8 @@ let run ?o b c m xyz_file =
       | None -> (* Principal basis *)
         let basis = elem_and_basis_name in
         let command =
-          let rec apply accu = function
-          | [] -> accu
-          | atom::rest -> 
-            let new_accu =
-              accu ^ " " ^ (Element.to_string atom)
-            in
-            apply new_accu rest
-          in
-          let accu = 
             Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
               ^ "\" \"" ^ basis ^"\""
-          in
-          List.map nuclei ~f:(fun x -> x.Atom.element)
-          |> apply accu 
         in
         begin
           let filename = 

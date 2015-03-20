@@ -18,6 +18,15 @@ T.set_ezfio_name( "n_it_scf_max" )
 T.set_output    ( "output_Hartree_Fock" )
 print T
 
+T = EZFIO_Provider()
+T.set_type      ( "character*(32)" )
+T.set_name      ( "mo_guess_type" )
+T.set_doc       ( "Initial MO guess. Can be [ Huckel | HCore ]" )
+T.set_ezfio_dir ( "Hartree_Fock" )
+T.set_ezfio_name( "guess" )
+T.set_output    ( "output_Hartree_Fock" )
+print T
+
 
 END_SHELL
 
