@@ -8,17 +8,20 @@ BEGIN_PROVIDER [ type(map_type), ao_integrals_map ]
   BEGIN_DOC
   ! AO integrals
   END_DOC
-  integer*8                      :: sze
-  call bielec_integrals_index(ao_num,ao_num,ao_num,ao_num,sze)
+  integer(key_kind)              :: key_max
+  integer(map_size_kind)         :: sze
+  call bielec_integrals_index(ao_num,ao_num,ao_num,ao_num,key_max)
+  sze = key_max
   call map_init(ao_integrals_map,sze)
   write(output_BiInts,*)  'AO map initialized'
 END_PROVIDER
 
 subroutine bielec_integrals_index(i,j,k,l,i1)
+  use map_module
   implicit none
   integer, intent(in)            :: i,j,k,l
-  integer*8, intent(out)         :: i1
-  integer*8                      :: p,q,r,s,i2
+  integer(key_kind), intent(out) :: i1
+  integer(key_kind)              :: p,q,r,s,i2
   p = min(i,k)
   r = max(i,k)
   p = p+ishft(r*r-r,-1)
@@ -31,10 +34,11 @@ subroutine bielec_integrals_index(i,j,k,l,i1)
 end
 
 subroutine bielec_integrals_index_reverse(i,j,k,l,i1)
+  use map_module
   implicit none
   integer, intent(out)           :: i(8),j(8),k(8),l(8)
-  integer*8, intent(in)          :: i1
-  integer*8                      :: i2,i3
+  integer(key_kind), intent(in)  :: i1
+  integer(key_kind)              :: i2,i3
   i = 0
   i2   = ceiling(0.5d0*(dsqrt(8.d0*dble(i1)+1.d0)-1.d0))
   l(1) = ceiling(0.5d0*(dsqrt(8.d0*dble(i2)+1.d0)-1.d0))
@@ -113,7 +117,7 @@ double precision function get_ao_bielec_integral(i,j,k,l,map)
   ! Gets one AO bi-electronic integral from the AO map
   END_DOC
   integer, intent(in)            :: i,j,k,l
-  integer*8                      :: idx
+  integer(key_kind)              :: idx
   type(map_type), intent(inout)  :: map
   real(integral_kind)            :: tmp
   PROVIDE ao_bielec_integrals_in_map
@@ -141,7 +145,7 @@ subroutine get_ao_bielec_integrals(j,k,l,sze,out_val)
   real(integral_kind), intent(out) :: out_val(sze)
   
   integer                        :: i
-  integer*8                      :: hash
+  integer(key_kind)              :: hash
   double precision               :: thresh
   PROVIDE ao_bielec_integrals_in_map ao_integrals_map
   thresh = ao_integrals_threshold
@@ -177,7 +181,7 @@ subroutine get_ao_bielec_integrals_non_zero(j,k,l,sze,out_val,out_val_index,non_
   integer, intent(out)           :: out_val_index(sze),non_zero_int
   
   integer                        :: i
-  integer*8                      :: hash
+  integer(key_kind)              :: hash
   double precision               :: thresh,tmp
   PROVIDE ao_bielec_integrals_in_map
   thresh = ao_integrals_threshold
@@ -207,8 +211,9 @@ subroutine get_ao_bielec_integrals_non_zero(j,k,l,sze,out_val,out_val_index,non_
 end
 
 
-integer*8 function get_ao_map_size()
+function get_ao_map_size()
   implicit none
+  integer (map_size_kind) :: get_ao_map_size
   BEGIN_DOC
   ! Returns the number of elements in the AO map
   END_DOC
@@ -234,8 +239,10 @@ BEGIN_PROVIDER [ type(map_type), mo_integrals_map ]
   BEGIN_DOC
   ! MO integrals
   END_DOC
-  integer*8                      :: sze
-  call bielec_integrals_index(mo_tot_num,mo_tot_num,mo_tot_num,mo_tot_num,sze)
+  integer(key_kind)              :: key_max
+  integer(map_size_kind)         :: sze
+  call bielec_integrals_index(mo_tot_num,mo_tot_num,mo_tot_num,mo_tot_num,key_max)
+  sze = key_max
   call map_init(mo_integrals_map,sze)
   write(output_BiInts,*) 'MO map initialized'
 END_PROVIDER
@@ -248,8 +255,8 @@ subroutine insert_into_ao_integrals_map(n_integrals,                 &
   ! Create new entry into AO map
   END_DOC
   
-  integer, intent(in)            :: n_integrals
-  integer*8, intent(inout)       :: buffer_i(n_integrals)
+  integer, intent(in)                :: n_integrals
+  integer(key_kind), intent(inout)   :: buffer_i(n_integrals)
   real(integral_kind), intent(inout) :: buffer_values(n_integrals)
   
   call map_append(ao_integrals_map, buffer_i, buffer_values, n_integrals)
@@ -264,10 +271,10 @@ subroutine insert_into_mo_integrals_map(n_integrals,                 &
   ! Create new entry into MO map, or accumulate in an existing entry
   END_DOC
   
-  integer, intent(in)            :: n_integrals
-  integer*8, intent(inout)       :: buffer_i(n_integrals)
+  integer, intent(in)                :: n_integrals
+  integer(key_kind), intent(inout)   :: buffer_i(n_integrals)
   real(integral_kind), intent(inout) :: buffer_values(n_integrals)
-  real(integral_kind), intent(in) :: thr
+  real(integral_kind), intent(in)    :: thr
   call map_update(mo_integrals_map, buffer_i, buffer_values, n_integrals, thr)
 end
 
@@ -278,7 +285,7 @@ double precision function get_mo_bielec_integral(i,j,k,l,map)
   ! Returns one integral <ij|kl> in the MO basis
   END_DOC
   integer, intent(in)            :: i,j,k,l
-  integer*8                      :: idx
+  integer(key_kind)              :: idx
   type(map_type), intent(inout)  :: map
   real(integral_kind)            :: tmp
   PROVIDE mo_bielec_integrals_in_map
@@ -308,10 +315,11 @@ subroutine get_mo_bielec_integrals(j,k,l,sze,out_val,map)
   ! i for j,k,l fixed.
   END_DOC
   integer, intent(in)            :: j,k,l, sze
-  real(integral_kind), intent(out) :: out_val(sze)
+  double precision, intent(out)  :: out_val(sze)
   type(map_type), intent(inout)  :: map
   integer                        :: i
-  integer*8                      :: hash(sze)
+  integer(key_kind)              :: hash(sze)
+  real(integral_kind)            :: tmp_val(sze)
   PROVIDE mo_bielec_integrals_in_map
   
   do i=1,sze
@@ -319,7 +327,15 @@ subroutine get_mo_bielec_integrals(j,k,l,sze,out_val,map)
     call bielec_integrals_index(i,j,k,l,hash(i))
   enddo
   
-  call map_get_many(map, hash, out_val, sze)
+  if (key_kind == 8) then
+    call map_get_many(map, hash, out_val, sze)
+  else
+    call map_get_many(map, hash, tmp_val, sze)
+    ! Conversion to double precision 
+    do i=1,sze
+      out_val(i) = tmp_val(i)
+    enddo
+  endif
 end
 
 subroutine get_mo_bielec_integrals_existing_ik(j,l,sze,out_array,map)
@@ -334,7 +350,7 @@ subroutine get_mo_bielec_integrals_existing_ik(j,l,sze,out_array,map)
   logical, intent(out)           :: out_array(sze,sze)
   type(map_type), intent(inout)  :: map
   integer                        :: i,k,kk,ll,m
-  integer*8,allocatable          :: hash(:)
+  integer(key_kind),allocatable  :: hash(:)
   integer  ,allocatable          :: pairs(:,:), iorder(:)
   PROVIDE mo_bielec_integrals_in_map
   allocate (hash(sze*sze), pairs(2,sze*sze),iorder(sze*sze))
@@ -352,7 +368,14 @@ subroutine get_mo_bielec_integrals_existing_ik(j,l,sze,out_array,map)
   enddo
 
   logical :: integral_is_in_map
-  call i8radix_sort(hash,iorder,kk,-1)
+  if (cache_key_kind == 8) then
+    call i8radix_sort(hash,iorder,kk,-1)
+  else if (cache_key_kind == 4) then
+    call iradix_sort(hash,iorder,kk,-1)
+  else if (cache_key_kind == 2) then
+    call i2radix_sort(hash,iorder,kk,-1)
+  endif
+
   call map_exists_many(mo_integrals_map, hash, kk)
 
   do ll=1,kk
@@ -429,7 +452,7 @@ subroutine communicate_$ao_integrals()
   real(integral_kind), allocatable            :: buffer_val(:)[:]
   integer(cache_key_kind), allocatable        :: buffer_key(:)[:]
   real(integral_kind), allocatable            :: copy_val(:)
-  integer*8, allocatable                      :: copy_key(:)
+  integer(key_kind), allocatable              :: copy_key(:)
 
   n = 0_8
   do i=0_8,$ao_integrals_map%map_size
@@ -459,7 +482,6 @@ subroutine communicate_$ao_integrals()
           copy_key(k) = buffer_key(k)[j]
           copy_key(k) = copy_key(k)+ishft(i,-map_shift)
         enddo
-!        call map_update($ao_integrals_map, copy_key, copy_val, copy_n, 0.d0)
         call map_append($ao_integrals_map, copy_key, copy_val, copy_n )
       endif
     enddo

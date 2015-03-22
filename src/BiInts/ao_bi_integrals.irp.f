@@ -341,7 +341,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   thresh = ao_integrals_threshold
   
   ! For integrals file
-  integer*8,allocatable          :: buffer_i(:)
+  integer(key_kind),allocatable  :: buffer_i(:)
   integer,parameter              :: size_buffer = 1024*64
   real(integral_kind),allocatable :: buffer_value(:)
   integer(omp_lock_kind)         :: lock
@@ -476,7 +476,7 @@ IRP_ENDIF COARRAY
   call map_sort(ao_integrals_map)
   call cpu_time(cpu_2)
   call wall_time(wall_2)
-  integer*8                      :: get_ao_map_size, ao_map_size
+  integer(map_size_kind)         :: get_ao_map_size, ao_map_size
   ao_map_size = get_ao_map_size()
   
   write(output_BiInts,*) 'AO integrals provided:'

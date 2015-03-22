@@ -1,11 +1,12 @@
 subroutine mo_bielec_integrals_index(i,j,k,l,i1)
+  use map_module
   implicit none
   BEGIN_DOC
   ! Computes an unique index for i,j,k,l integrals
   END_DOC
   integer, intent(in)            :: i,j,k,l
-  integer*8, intent(out)         :: i1
-  integer*8                      :: p,q,r,s,i2
+  integer(key_kind), intent(out) :: i1
+  integer(key_kind)              :: p,q,r,s,i2
   p = min(i,k)
   r = max(i,k)
   p = p+ishft(r*r-r,-1)
@@ -63,7 +64,7 @@ subroutine add_integrals_to_map(mask_ijkl)
   
   integer                        :: n_integrals
   integer                        :: size_buffer
-  integer*8,allocatable          :: buffer_i(:)
+  integer(key_kind),allocatable  :: buffer_i(:)
   real(integral_kind),allocatable :: buffer_value(:)
   real                           :: map_mb
   
