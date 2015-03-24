@@ -38,12 +38,11 @@ end
  progress_title   = ''
  progress_active  = .False.
  progress_timeout = 1
- open (unit=0, carriagecontrol='fortran')
+! open (unit=0, carriagecontrol='fortran')
 
 END_PROVIDER
 
 recursive subroutine run_progress
-  use ifport
   implicit none
   BEGIN_DOC
 ! Display a progress bar with documentation of what is happening
@@ -70,8 +69,7 @@ recursive subroutine run_progress
       bar(49+k:49+k)="="
     enddo
     write(unit=0,fmt="(a1,a1,a75)") '+',char(13), bar
-    integer :: istat
-    istat = alarm(progress_timeout,run_progress)
+    call alarm(progress_timeout,run_progress)
   endif
 
 end

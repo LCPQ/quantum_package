@@ -92,3 +92,7 @@ ocaml/Qptypes.ml:
 	@sleep 1
 	QPACKAGE_ROOT=$$PWD ./scripts/install_ocaml.sh | tee install_ocaml.log
 
+veryclean:
+	rm -f EZFIO
+	$(MAKE) EZFIO
+	$(MAKE) -C src veryclean

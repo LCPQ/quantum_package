@@ -3,10 +3,12 @@ PROFILE =0
 DEBUG  = 0
 
 IRPF90_FLAGS= 
-FC     = gfortran -ffree-line-length-none
-FCFLAGS= 
-FCFLAGS+= -O2 
-MKL=-L /opt/intel/composerxe/mkl/lib/intel64/ -lmkl_gf_lp64 -lmkl_core -lmkl_gnu_thread -fopenmp
+FC     = gfortran -ffree-line-length-none -march=native
+FCFLAGS= -ffast-math 
+FCFLAGS+= -Ofast
+MKL=-lblas -llapack
+# Uncomment to use gfortan with MKL
+#MKL=-L /opt/intel/composerxe/mkl/lib/intel64/ -lmkl_gf_lp64 -lmkl_core -lmkl_gnu_thread -fopenmp
 
 ifeq ($(PROFILE),1)
 FC    += -p -g

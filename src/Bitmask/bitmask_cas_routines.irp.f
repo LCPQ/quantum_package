@@ -214,13 +214,13 @@ logical function is_a_two_holes_two_particles(key_in)
  integer :: i,i_diff
  i_diff = 0
  if(N_int == 1)then
-   i_diff = i_diff + &
+   i_diff = i_diff  &
     + popcnt( xor( iand(inact_bitmask(1,1), xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1)))), inact_bitmask(1,1)) )  &   
     + popcnt( xor( iand(inact_bitmask(1,2), xor(key_in(1,2),iand(key_in(1,2),cas_bitmask(1,2,1)))), inact_bitmask(1,2)) )  &
     + popcnt( iand( iand( xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1))), virt_bitmask(1,1) ), virt_bitmask(1,1)) ) & 
     + popcnt( iand( iand( xor(key_in(1,2),iand(key_in(1,2),cas_bitmask(1,2,1))), virt_bitmask(1,2) ), virt_bitmask(1,2)) ) 
  else if(N_int == 2)then
-   i_diff = i_diff + &
+   i_diff = i_diff  &
     + popcnt( xor( iand(inact_bitmask(1,1), xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1)))), inact_bitmask(1,1)) )  &   
     + popcnt( xor( iand(inact_bitmask(1,2), xor(key_in(1,2),iand(key_in(1,2),cas_bitmask(1,2,1)))), inact_bitmask(1,2)) )  &
     + popcnt( iand( iand( xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1))), virt_bitmask(1,1) ), virt_bitmask(1,1)) ) & 
@@ -231,7 +231,7 @@ logical function is_a_two_holes_two_particles(key_in)
     + popcnt( iand( iand( xor(key_in(2,2),iand(key_in(2,2),cas_bitmask(2,2,1))), virt_bitmask(2,2) ), virt_bitmask(2,2)) ) 
 
  else if(N_int == 3)then
-   i_diff = i_diff + &
+   i_diff = i_diff  &
     + popcnt( xor( iand(inact_bitmask(1,1), xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1)))), inact_bitmask(1,1)) )  &   
     + popcnt( xor( iand(inact_bitmask(1,2), xor(key_in(1,2),iand(key_in(1,2),cas_bitmask(1,2,1)))), inact_bitmask(1,2)) )  &
     + popcnt( iand( iand( xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1))), virt_bitmask(1,1) ), virt_bitmask(1,1)) ) & 
@@ -245,7 +245,7 @@ logical function is_a_two_holes_two_particles(key_in)
     + popcnt( iand( iand( xor(key_in(3,1),iand(key_in(3,1),cas_bitmask(3,1,1))), virt_bitmask(3,1) ), virt_bitmask(3,1)) ) & 
     + popcnt( iand( iand( xor(key_in(3,2),iand(key_in(3,2),cas_bitmask(3,2,1))), virt_bitmask(3,2) ), virt_bitmask(3,2)) ) 
  else if(N_int == 4)then
-   i_diff = i_diff + &
+   i_diff = i_diff  &
     + popcnt( xor( iand(inact_bitmask(1,1), xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1)))), inact_bitmask(1,1)) )  &   
     + popcnt( xor( iand(inact_bitmask(1,2), xor(key_in(1,2),iand(key_in(1,2),cas_bitmask(1,2,1)))), inact_bitmask(1,2)) )  &
     + popcnt( iand( iand( xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1))), virt_bitmask(1,1) ), virt_bitmask(1,1)) ) & 
@@ -263,7 +263,7 @@ logical function is_a_two_holes_two_particles(key_in)
     + popcnt( iand( iand( xor(key_in(4,1),iand(key_in(4,1),cas_bitmask(4,1,1))), virt_bitmask(4,1) ), virt_bitmask(4,1)) ) & 
     + popcnt( iand( iand( xor(key_in(4,2),iand(key_in(4,2),cas_bitmask(4,2,1))), virt_bitmask(4,2) ), virt_bitmask(4,2)) ) 
  else if(N_int == 5)then
-   i_diff = i_diff + &
+   i_diff = i_diff  &
     + popcnt( xor( iand(inact_bitmask(1,1), xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1)))), inact_bitmask(1,1)) )  &   
     + popcnt( xor( iand(inact_bitmask(1,2), xor(key_in(1,2),iand(key_in(1,2),cas_bitmask(1,2,1)))), inact_bitmask(1,2)) )  &
     + popcnt( iand( iand( xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1))), virt_bitmask(1,1) ), virt_bitmask(1,1)) ) & 
@@ -285,7 +285,7 @@ logical function is_a_two_holes_two_particles(key_in)
     + popcnt( iand( iand( xor(key_in(5,1),iand(key_in(5,1),cas_bitmask(5,1,1))), virt_bitmask(5,1) ), virt_bitmask(5,1)) ) & 
     + popcnt( iand( iand( xor(key_in(5,2),iand(key_in(5,2),cas_bitmask(5,2,1))), virt_bitmask(5,2) ), virt_bitmask(5,2)) ) 
  else if(N_int == 6)then
-   i_diff = i_diff + &
+   i_diff = i_diff  &
     + popcnt( xor( iand(inact_bitmask(1,1), xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1)))), inact_bitmask(1,1)) )  &   
     + popcnt( xor( iand(inact_bitmask(1,2), xor(key_in(1,2),iand(key_in(1,2),cas_bitmask(1,2,1)))), inact_bitmask(1,2)) )  &
     + popcnt( iand( iand( xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1))), virt_bitmask(1,1) ), virt_bitmask(1,1)) ) & 
@@ -311,7 +311,7 @@ logical function is_a_two_holes_two_particles(key_in)
     + popcnt( iand( iand( xor(key_in(6,1),iand(key_in(6,1),cas_bitmask(6,1,1))), virt_bitmask(6,1) ), virt_bitmask(6,1)) ) & 
     + popcnt( iand( iand( xor(key_in(6,2),iand(key_in(6,2),cas_bitmask(6,2,1))), virt_bitmask(6,2) ), virt_bitmask(6,2)) ) 
  else if(N_int == 7)then
-   i_diff = i_diff + &
+   i_diff = i_diff  &
     + popcnt( xor( iand(inact_bitmask(1,1), xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1)))), inact_bitmask(1,1)) )  &   
     + popcnt( xor( iand(inact_bitmask(1,2), xor(key_in(1,2),iand(key_in(1,2),cas_bitmask(1,2,1)))), inact_bitmask(1,2)) )  &
     + popcnt( iand( iand( xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1))), virt_bitmask(1,1) ), virt_bitmask(1,1)) ) & 
@@ -341,7 +341,7 @@ logical function is_a_two_holes_two_particles(key_in)
     + popcnt( iand( iand( xor(key_in(7,1),iand(key_in(7,1),cas_bitmask(7,1,1))), virt_bitmask(7,1) ), virt_bitmask(7,1)) ) & 
     + popcnt( iand( iand( xor(key_in(7,2),iand(key_in(7,2),cas_bitmask(7,2,1))), virt_bitmask(7,2) ), virt_bitmask(7,2)) ) 
  else if(N_int == 8)then
-   i_diff = i_diff + &
+   i_diff = i_diff  &
     + popcnt( xor( iand(inact_bitmask(1,1), xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1)))), inact_bitmask(1,1)) )  &   
     + popcnt( xor( iand(inact_bitmask(1,2), xor(key_in(1,2),iand(key_in(1,2),cas_bitmask(1,2,1)))), inact_bitmask(1,2)) )  &
     + popcnt( iand( iand( xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1))), virt_bitmask(1,1) ), virt_bitmask(1,1)) ) & 
@@ -378,7 +378,7 @@ logical function is_a_two_holes_two_particles(key_in)
  else
 
   do i = 1, N_int 
-   i_diff = i_diff + &
+   i_diff = i_diff  &
     + popcnt( xor( iand(inact_bitmask(i,1), xor(key_in(i,1),iand(key_in(i,1),cas_bitmask(i,1,1)))), inact_bitmask(i,1)) )  &   
     + popcnt( xor( iand(inact_bitmask(i,2), xor(key_in(i,2),iand(key_in(i,2),cas_bitmask(i,2,1)))), inact_bitmask(i,2)) )  &
     + popcnt( iand( iand( xor(key_in(i,1),iand(key_in(i,1),cas_bitmask(i,1,1))), virt_bitmask(i,1) ), virt_bitmask(i,1)) ) & 
