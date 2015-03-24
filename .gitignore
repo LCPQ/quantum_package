@@ -1,3 +1,8 @@
 quantum_package.rc
 EZFIO
 irpf90
+EMSL_Basis
+bin/
+*.log
+quantum_package_static.tar.gz
+

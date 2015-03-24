@@ -1,8 +1,0 @@
-full_ci
-  n_det_max_fci           integer 
-  n_det_max_fci_property  integer 
-  pt2_max                 double precision
-  do_pt2_end              logical
-  energy                  double precision
-  energy_pt2              double precision
-  var_pt2_ratio           double precision
