@@ -5,7 +5,7 @@ before_script:
   - sudo apt-get install gfortran liblapack-dev zip 
 
 script: 
-  - ./setup_environment.sh
+  - ./setup_environment.sh --robot
   - source ./quantum_package.rc
   - cp ./src/Makefile.config.gfortran  ./src/Makefile.config
   - make build 

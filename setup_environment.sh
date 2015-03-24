@@ -74,6 +74,12 @@ source ${QPACKAGE_ROOT}/quantum_package.rc
 =======================================================
 " $BLACK
 
-source quantum_package.rc
-exec bash
+
+if [[ $1 == "--robot" ]] ; 
+then
+  exit 0
+else
+  source quantum_package.rc
+  exec bash
+fi
 
