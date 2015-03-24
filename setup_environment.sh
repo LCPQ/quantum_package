@@ -30,7 +30,6 @@ fi
 
 cat << EOF > quantum_package.rc
 export IRPF90="${IRPF90}"
-export OCAMLBREW_BASE="${OCAMLBREW_BASE}"
 export QPACKAGE_ROOT=\$( cd \$(dirname "\${BASH_SOURCE}")  ; pwd -P )
 export LD_LIBRARY_PATH="\${QPACKAGE_ROOT}"/lib:\${LD_LIBRARY_PATH}
 export LIBRARY_PATH="\${QPACKAGE_ROOT}"/lib:\${LIBRARY_PATH}
@@ -40,7 +39,6 @@ export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/scripts
 export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/bin
 export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/ocaml
 source "\${QPACKAGE_ROOT}"/bin/irpman &> /dev/null
-source "\${OCAMLBREW_BASE}"/ocaml-4*/etc/ocamlbrew.bashrc &> /dev/null
 EOF
 
 source quantum_package.rc
