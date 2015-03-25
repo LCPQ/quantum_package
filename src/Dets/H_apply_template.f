@@ -36,6 +36,11 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
     ifirst=1
   endif
   
+  logical :: check_double_excitation 
+  check_double_excitation = .True.
+
+
+
   $initialization
   
   $omp_parallel
@@ -276,6 +281,12 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc $param
   logical, allocatable           :: array_pairs(:,:)
   double precision               :: diag_H_mat_elem
   integer(omp_lock_kind), save   :: lck, ifirst=0
+
+  logical :: check_double_excitation 
+  check_double_excitation = .True.
+  $check_double_excitation
+
+
   if (ifirst == 0) then
     ifirst=1
 !$    call omp_init_lock(lck)
@@ -333,9 +344,11 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc $param
       hole = key_in
       k = ishft(i_a-1,-bit_kind_shift)+1
       j = i_a-ishft(k-1,bit_kind_shift)-1
+  $filterhole
       hole(k,ispin) = ibclr(hole(k,ispin),j)
       k_a = ishft(j_a-1,-bit_kind_shift)+1
       l_a = j_a-ishft(k_a-1,bit_kind_shift)-1
+  $filterparticle
       hole(k_a,ispin) = ibset(hole(k_a,ispin),l_a)
       $filter2h2p
       key_idx += 1
