@@ -133,6 +133,9 @@ class H_apply(object):
     self["filterparticle"] = """
      if(iand(ibset(0_bit_kind,j_a),hole(k_a,other_spin)).eq.0_bit_kind )cycle
     """
+  def unset_skip(self):
+    self["skip"] = """
+    """
 
 
   def set_filter_2h_2p(self):

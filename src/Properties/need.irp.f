@@ -132,7 +132,7 @@
 ! <fortran>
       double precision function gammp(a,x)
       implicit double precision (a-h,o-z)
-      if(x.lt.0..or.a.le.0.)stop 'error in gammp'
+      if(x.lt.0..or.a.le.0.)pause
       if(x.lt.a+1.)then
         call gser(gammp,a,x,gln)
       else
@@ -169,7 +169,7 @@
       parameter (itmax=100,eps=3.e-7)
       gln=gammln(a)
       if(x.le.0.)then
-        if(x.lt.0.) stop 'error in gser'
+        if(x.lt.0.)pause
         gamser=0.
         return
       endif
@@ -182,7 +182,7 @@
         sum=sum+del
         if(abs(del).lt.abs(sum)*eps)go to 1
 11    continue
-      stop 'a too large, itmax too small'
+      pause 'a too large, itmax too small'
 1     gamser=sum*exp(-x+a*log(x)-gln)
       return
       end
@@ -233,7 +233,7 @@
           gold=g
         endif
 11    continue
-      stop 'a too large, itmax too small'
+      pause 'a too large, itmax too small'
 1     gammcf=exp(-x+a*log(x)-gln)*g
       return
       end

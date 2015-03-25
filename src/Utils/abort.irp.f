@@ -17,13 +17,16 @@ BEGIN_PROVIDER [ logical, abort_here ]
 END_PROVIDER
 
 subroutine trap_signals
+  use ifport
   implicit none
   BEGIN_DOC
   ! What to do when a signal is caught. Here, trap Ctrl-C and call the control_C subroutine.
   END_DOC
   integer, external              :: catch_signal
+  integer                        :: err, flag
   integer, parameter             :: sigusr2 = 12
-  call signal (sigusr2, catch_signal)
+  flag = -1
+  err = signal (sigusr2, catch_signal, flag)
 end subroutine trap_signals
 
 integer function catch_signal(signum)
