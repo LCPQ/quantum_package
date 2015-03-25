@@ -3,24 +3,27 @@
 ## Requirements
 
 * curl
-* wget
 * m4
 * GNU make
-* Intel Fortran compiler
-* Python
+* Fortran compiler (ifort or gfortran)
+* Python 2.7 or new
 * Bash
 
 
-By default, the Ocaml compiler will be installed in `$HOME/ocamlbrew`.
-To install it somewhere else, set the `$OCAMLBREW_BASE` environment
-variable to the required destination, for example:
+## Installing <<Normaly>>
 
-    export OCAMLBREW_BASE=/usr/local/ocamlbrew
+1) Run `./setup_environment.sh`
+    It will doawnload and install all the requirement
+    (Installing OCaml will take somme time 20min)
 
-For more info about the Ocaml installation, check the ocamlbrew
-website : https://github.com/hcarty/ocamlbrew
+2) `source /home/razoa/quantum_package/quantum_package.rc`
+    It containt all the environement variable neeeded by the quantum package
 
+3) Create the Makefile.config who containt all the flag needed by the compilator.
+    (`cp ./src/Makefile.config.gfortran  ./src/Makefile.config`)
 
+4) make build
+    It will compile all the fortran
 
 ## Installing behind a firewall
 
