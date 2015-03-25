@@ -3,24 +3,15 @@
 # Creates the rst files when creating a new module.
 # Thu Apr  3 11:54:16 CEST 2014
 
-MODULE=$(basename $PWD)
-
-if [[ $MODULE == "src" ]]
+if [[ -z ${QPACKAGE_ROOT} ]]
 then
-  echo "Error: This script should not be run in the src directory."
-  exit 1
+  print "The QPACKAGE_ROOT environment variable is not set."
+  print "Please reload the quantum_package.rc file."
+  exit -1
 fi
+source ${QPACKAGE_ROOT}/scripts/qp_include.sh
 
-function asksure() {
-  echo -n $@ "(Y/N) "
-  answer=w
-  while [[ $answer != [YyNn] ]]
-  do
-     read answer
-     [[ $answer = [Yy] ]] && retval=0 || retval=1
-  done
-  return $retval
-}
+check_current_dir_is_module
 
 README="True"
 if [[ -f README.rst ]]

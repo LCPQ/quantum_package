@@ -8,6 +8,13 @@
 # Prints in stdout the name of a temporary file containing the basis set.
 #
 
+if [[ -z ${QPACKAGE_ROOT} ]]
+then
+  print "The QPACKAGE_ROOT environment variable is not set."
+  print "Please reload the quantum_package.rc file."
+  exit -1
+fi
+
 export EMSL_API_ROOT="${QPACKAGE_ROOT}"/EMSL_Basis/
 export PYTHONPATH="${EMSL_API_ROOT}":${PYTHONPATH}
 
@@ -15,8 +22,11 @@ tmpfile="$1"
 shift
 
 # Case insensitive basis in input
-basis=$( ${EMSL_API_ROOT}/EMSL_api.py list_basis | cut -d "'" -f 2 | grep -i "^${1}\$")
+#basis=$( ${EMSL_API_ROOT}/EMSL_api.py list_basis | cut -d "'" -f 2 | grep -i "^${1}\$")
+
+basis="$1"
 shift
+
 atoms=""
 
 for atom in $@

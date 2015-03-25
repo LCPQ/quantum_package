@@ -75,6 +75,9 @@ source ${QPACKAGE_ROOT}/quantum_package.rc
 " $BLACK
 
 
+mkdir -f install_logs
+mv *.log install_logs/
+
 if [[ $1 == "--robot" ]] ; 
 then
   exit 0

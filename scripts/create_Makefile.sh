@@ -6,17 +6,17 @@
 # module directory.
 # Thu Apr  3 01:44:41 CEST 2014
 
-MODULE=$(basename "$PWD")
-
-if [[ "$MODULE" == "src" ]]
+if [[ -z ${QPACKAGE_ROOT} ]]
 then
-  echo "Error: This script should not be run in the src directory."
-  exit 1
+  print "The QPACKAGE_ROOT environment variable is not set."
+  print "Please reload the quantum_package.rc file."
+  exit -1
 fi
+source ${QPACKAGE_ROOT}/scripts/qp_include.sh
+
+check_current_dir_is_module
 
 cat << EOF > Makefile
-default: all
-
 # Define here all new external source files and objects.Don't forget to prefix the
 # object files with IRPF90_temp/
 SRC=

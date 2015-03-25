@@ -184,15 +184,26 @@ def save_ezfio_provider(path_head, dict_code_provider):
 
     path = "{0}/ezfio_interface.irp.f".format(path_head)
 
-    print "Path = {}".format(path)
+#    print "Path = {}".format(path)
 
-    with open(path, "w") as f:
-        f.write("!DO NOT MODIFY BY HAND \n")
-        f.write("!Created by $QPACKAGE_ROOT/scripts/ezfio_interface.py \n")
-        f.write("!from file {0}/EZFIO.cfg\n".format(path_head))
-        f.write("\n")
-        for provider_name, code in dict_code_provider.iteritems():
-            f.write(code + "\n")
+    try:
+        f = open(path, "r")
+    except IOError:
+        old_output = ""
+    else:
+        old_output = f.read()
+        f.close()
+
+    output =   "! DO NOT MODIFY BY HAND\n" + \
+               "! Created by $QPACKAGE_ROOT/scripts/ezfio_interface.py\n" + \
+               "! from file {0}/EZFIO.cfg\n".format(path_head) + \
+               "\n" 
+    for provider_name, code in dict_code_provider.iteritems():
+        output += code + "\n"
+
+    if output != old_output:
+        with open(path, "w") as f:
+            f.write(output)
 
 
 def create_ezfio_config(dict_ezfio_cfg, opt, folder):
@@ -220,10 +231,19 @@ def save_ezfio_config(folder, str_ezfio_config):
     path = "{0}/config/{1}.ezfio_interface_config".format(ezfio_dir,
                                                           folder)
 
-    print "Path = {}".format(path)
+#    print "Path = {}".format(path)
 
-    with open(path, "w") as f:
-        f.write(str_ezfio_config)
+    try:
+        f = open(path, "r")
+    except IOError:
+        old_output = ""
+    else:
+        old_output = f.read()
+        f.close()
+
+    if str_ezfio_config != old_output:
+        with open(path, "w") as f:
+            f.write(str_ezfio_config)
 
 def main():
     """Take in argument a EZFIO.cfg"""
@@ -238,28 +258,25 @@ def main():
     path = os.path.expanduser(path)
     path = os.path.expandvars(path)
     path = os.path.abspath(path)
-    print path
+#    print path
 
     path_dirname = os.path.dirname(path)
     folder = [i for i in path_dirname.split("/") if i][-1]
     folder = folder.lower()
 
-    print "Find a EZFIO.cfg in {}".format(path)
+#    print "Found a EZFIO.cfg in {}".format(path)
     dict_info_provider = get_dict_config_file(path,folder)
 
-    print "Generating the ezfio_interface.irp.f: \n"
+#    print "Generating the ezfio_interface.irp.f: \n"
     d_config = create_ezfio_provider(dict_info_provider)
-#    for provider, code in d_config.iteritems():
-#        print code
 
-    print "Saving the ezfio_interface.irp.f"
+#    print "Saving the ezfio_interface.irp.f"
     save_ezfio_provider(path_dirname, d_config)
 
-    print "Generating the ezfio_config"
+#    print "Generating the ezfio_config"
     config_ezfio = create_ezfio_config(dict_info_provider, "config", folder)
-#    print config_ezfio
 
-    print "Saving ezfio_config"
+#    print "Saving ezfio_config"
     save_ezfio_config(folder, config_ezfio)
 
 
