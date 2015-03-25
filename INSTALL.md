@@ -5,25 +5,39 @@
 * curl
 * m4
 * GNU make
-* Fortran compiler (ifort or gfortran)
-* Python 2.7 or new
+* Fortran compiler (ifort or gfortran are tested)
+* Python >= 2.7
 * Bash
 
 
-## Installing <<Normaly>>
+## Standard installation
 
-1) Run `./setup_environment.sh`
-    It will doawnload and install all the requirement
-    (Installing OCaml will take somme time 20min)
+1) `./setup_environment.sh`
 
-2) `source /home/razoa/quantum_package/quantum_package.rc`
-    It containt all the environement variable neeeded by the quantum package
+This command will download and install all the requirements.
+Installing OCaml and the Core library may take somme time
+(up to 20min on an old machine).
 
-3) Create the Makefile.config who containt all the flag needed by the compilator.
-    (`cp ./src/Makefile.config.gfortran  ./src/Makefile.config`)
+2) `source quantum_package.rc`
 
-4) make build
-    It will compile all the fortran
+This file contains all the environement variables neeeded by the quantum package
+both to compile and run. This should also be done before running calculations.
+
+3) `cp ./src/Makefile.config.gfortran  ./src/Makefile.config`
+
+Create the ``Makefile.config`` which contains all the flags needed by the compiler.
+The is also an example for the Intel Compiler (`Makefile.config.ifort`).
+Edit this file and tune the flags as you want.
+
+4) `make build`
+
+It will compile all the executables and tools. 
+
+5) `make binary`
+
+Optional. It will build a `tar.gz` file containing everything needed to run the quantum package on a
+machine where you can't compile.
+
 
 ## Installing behind a firewall
 
@@ -63,5 +77,4 @@
 8) Start a tsocks ssh tunnel:
 
     ssh -fN -D 10000 user@external-server.com
-
 
