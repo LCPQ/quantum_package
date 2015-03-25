@@ -131,11 +131,17 @@ endif
 
 # Define the EZFIO rules
 
-$(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(wildcard EZ*FIO.cfg)
+$(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg)
 	@echo Building EZFIO library
-	@$(QPACKAGE_ROOT)/scripts/ezfio_interface.py
-	@cp $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(EZFIO_DIR)/config 
-	@cd $(EZFIO_DIR) ; export FC="$(FC)" ; export FCFLAGS="$(FCFLAGS)" ; export IRPF90="$(IRPF90)" ; $(MAKE) ; $(MAKE) Python
+	@echo =-=-=-=-=-=-=-=-=-=-=-
+	for dir in $(QPACKAGE_ROOT)/src/*/ ;\
+	do \
+	        cd $$dir && \
+		$(QPACKAGE_ROOT)/scripts/ezfio_interface.py && \
+		cd .. ;\
+	done
+	cp $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(EZFIO_DIR)/config 
+	cd $(EZFIO_DIR) ; export FC="$(FC)" ; export FCFLAGS="$(FCFLAGS)" ; export IRPF90="$(IRPF90)" ; $(MAKE) ; $(MAKE) Python
 
 ezfio: $(EZFIO)
 
