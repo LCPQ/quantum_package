@@ -49,10 +49,14 @@ scripts/fetch_from_web.py "https://raw.github.com/ocaml/opam/master/shell/opam_i
 chmod +x opam_installer.sh
 echo N | ./opam_installer.sh ${QPACKAGE_ROOT}/bin 
 
-if [[ ! -f ${QPACKAGE_ROOT}/bin/opam ]]; then
+if [[ ! -f ${QPACKAGE_ROOT}/bin/opam ]]
+then
    echo "Installation of OPAM failed"
    exit 2
+else
+    rm "opam_installer.sh"
 fi
+
 ${QPACKAGE_ROOT}/bin/opam config setup -a --dot-profile ${QPACKAGE_ROOT}/quantum_package.rc 
 
 source ${QPACKAGE_ROOT}/quantum_package.rc
