@@ -71,7 +71,7 @@ subroutine damping_SCF
     delta_alpha = D_new_alpha - D_alpha
     delta_beta  = D_new_beta  - D_beta 
     
-    lambda = 1.d0
+    lambda = .5d0
     E_half = 0.d0
     do while (E_half > E)
       HF_density_matrix_ao_alpha = D_alpha + lambda * delta_alpha
