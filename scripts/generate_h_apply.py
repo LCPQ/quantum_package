@@ -24,6 +24,10 @@ skip
 init_main
 filter_integrals
 filter2h2p
+filterhole
+filterparticle
+do_double_excitations
+check_double_excitation
 """.split()
 
 class H_apply(object):
@@ -115,6 +119,24 @@ class H_apply(object):
     for key,value in self.data.items():
       buffer = buffer.replace('$'+key, value)
     return buffer
+
+  def unset_double_excitations(self):
+    self["do_double_excitations"] = ".False."
+    self["check_double_excitation"] = """
+     check_double_excitation = .False.
+    """
+  def set_filter_holes(self):
+    self["filterhole"] = """
+     if(iand(ibset(0_bit_kind,j),hole(k,other_spin)).eq.0_bit_kind )cycle
+    """
+  def set_filter_particl(self):
+    self["filterparticle"] = """
+     if(iand(ibset(0_bit_kind,j_a),hole(k_a,other_spin)).eq.0_bit_kind )cycle
+    """
+  def unset_skip(self):
+    self["skip"] = """
+    """
+
 
   def set_filter_2h_2p(self):
     self["filter2h2p"] = """

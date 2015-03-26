@@ -23,7 +23,7 @@ EOF
 gcc /tmp/main.c -lz
 if [[ $? -eq 0 ]]
 then
-  rm /tmp/main.c
+  rm /tmp/main.c "a.out"
   exit 0
 fi
 rm /tmp/main.c

@@ -3,23 +3,40 @@
 ## Requirements
 
 * curl
-* wget
 * m4
 * GNU make
-* Intel Fortran compiler
-* Python
+* Fortran compiler (ifort or gfortran are tested)
+* Python >= 2.7
 * Bash
 
 
-By default, the Ocaml compiler will be installed in `$HOME/ocamlbrew`.
-To install it somewhere else, set the `$OCAMLBREW_BASE` environment
-variable to the required destination, for example:
+## Standard installation
 
-    export OCAMLBREW_BASE=/usr/local/ocamlbrew
+1) `./setup_environment.sh`
 
-For more info about the Ocaml installation, check the ocamlbrew
-website : https://github.com/hcarty/ocamlbrew
+This command will download and install all the requirements.
+Installing OCaml and the Core library may take somme time
+(up to 20min on an old machine).
 
+2) `source quantum_package.rc`
+
+This file contains all the environement variables neeeded by the quantum package
+both to compile and run. This should also be done before running calculations.
+
+3) `cp ./src/Makefile.config.gfortran  ./src/Makefile.config`
+
+Create the ``Makefile.config`` which contains all the flags needed by the compiler.
+The is also an example for the Intel Compiler (`Makefile.config.ifort`).
+Edit this file and tune the flags as you want.
+
+4) `make build`
+
+It will compile all the executables and tools. 
+
+5) `make binary`
+
+Optional. It will build a `tar.gz` file containing everything needed to run the quantum package on a
+machine where you can't compile.
 
 
 ## Installing behind a firewall
@@ -60,5 +77,4 @@ website : https://github.com/hcarty/ocamlbrew
 8) Start a tsocks ssh tunnel:
 
     ssh -fN -D 10000 user@external-server.com
-
 
