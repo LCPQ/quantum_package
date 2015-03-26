@@ -342,10 +342,9 @@ def create_ezfio_config(dict_ezfio_cfg, opt, module_lower):
     def create_format_string(size):
         """
         Take a size number and
-            return the string format for being right align with this ofset
+            return the string format for being right align with this offset
         """
-
-        return "{{:<{0}}}".format(size).format
+        return "{{0:<{0}}}".format(size).format
 
     # ~#~#~#~#~#~#~#~#~#~#~# #
     #  F o r m a t _ i n f o #
