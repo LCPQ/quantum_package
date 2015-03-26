@@ -3,7 +3,7 @@ open Qputils;;
 open Core.Std;;
 
 module Full_ci : sig
-  type t = 
+  type t =  
     { n_det_max_fci      : Det_number_max.t;
       pt2_max            : PT2_energy.t;
       do_pt2_end         : bool;
