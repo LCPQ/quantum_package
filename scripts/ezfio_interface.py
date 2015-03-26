@@ -47,12 +47,6 @@ def get_type_dict():
     # I n i t #
     # ~#~#~#~ #
 
-    # Dict to change ocaml LowLevel type into FortranLowLevel type
-    ocaml_to_fortran = {"int": "integer",
-                        "float": "double precision",
-                        "logical": "logical",
-                        "string": "character*60"}
-
     fancy_type = defaultdict(dict)
 
     # ~#~#~#~#~#~#~#~ #
@@ -68,21 +62,32 @@ def get_type_dict():
     fancy_type['logical'] = Type("bool", "logical")
     fancy_type['bool'] = Type("bool", "logical")
 
+    fancy_type['character*32'] = Type("string", "character*32")
+    fancy_type['character*60'] = Type("string", "character*60")
+    fancy_type['character*256'] = Type("string", "character*256")
+
     # ~#~#~#~#~#~#~#~ #
     # q p _ t y p e s #
     # ~#~#~#~#~#~#~#~ #
 
-    src = os.environ['QPACKAGE_ROOT'] + "/ocaml/qptypes_generator.ml"
+    # Dict to change ocaml LowLevel type into FortranLowLevel type
+    ocaml_to_fortran = {"int": "integer",
+                        "float": "double precision",
+                        "logical": "logical",
+                        "string": "character*32"}
 
+    # Read and parse qptype
+    src = os.environ['QPACKAGE_ROOT'] + "/ocaml/qptypes_generator.ml"
     with open(src, "r") as f:
         l = [i for i in f.read().splitlines() if i.strip().startswith("*")]
 
+    # Read the fancy_type, the ocaml. and convert the ocam to the fortran
     for i in l:
-        ocaml_fancy_type = i.split()[1].strip()
-        ocaml_type = i.split()[3]
-        fortran_type = ocaml_to_fortran[ocaml_type]
+        str_fancy_type = i.split()[1].strip()
+        str_ocaml_type = i.split()[3]
+        str_fortran_type = ocaml_to_fortran[str_ocaml_type]
 
-        fancy_type[ocaml_fancy_type] = Type(ocaml_type, fortran_type)
+        fancy_type[str_fancy_type] = Type(str_ocaml_type, str_fortran_type)
 
     return dict(fancy_type)
 
@@ -102,6 +107,7 @@ def get_dict_config_file(config_file_path, module_lower):
                                       doc,
                                       ezfio_name,
                                       ezfio_dir,
+                                      size,
                                       interface,
                                       default}
 
@@ -122,7 +128,7 @@ def get_dict_config_file(config_file_path, module_lower):
 
     d = defaultdict(dict)
     l_info_required = ["doc", "interface"]
-    l_info_optional = ["ezfio_name"]
+    l_info_optional = ["ezfio_name", "size"]
 
     # ~#~#~#~#~#~#~#~#~#~#~ #
     # L o a d _ C o n f i g #
@@ -144,7 +150,7 @@ def get_dict_config_file(config_file_path, module_lower):
         pvd = section.lower()
 
         # Create the dictionary who containt the value per default
-        d_default = {"ezfio_name": pvd}
+        d_default = {"ezfio_name": pvd, "size": 1}
 
         # Set the ezfio_dir
         d[pvd]["ezfio_dir"] = module_lower
@@ -241,12 +247,12 @@ def create_ezfio_config(dict_ezfio_cfg, opt, module_lower):
 
     result = [module_lower]
     lenmax = max([len(i) for i in dict_ezfio_cfg]) + 2
-    l = sorted(dict_ezfio_cfg.keys())
-    for provider_name in l:
-        provider_info = dict_ezfio_cfg[provider_name]
-        s = "  {0} {1}".format(
-            provider_name.lower().ljust(lenmax),
-            provider_info["type"].fortran)
+
+#    l = sorted(dict_ezfio_cfg.keys())
+    for provider_name, provider_info in sorted(dict_ezfio_cfg.iteritems()):
+
+        s = "  {0} {1}".format(provider_name.lower().ljust(lenmax),
+                               provider_info["type"].fortran)
         result.append(s)
     return "\n".join(result)
 
