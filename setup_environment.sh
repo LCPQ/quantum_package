@@ -41,22 +41,81 @@ export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/ocaml
 source "\${QPACKAGE_ROOT}"/bin/irpman &> /dev/null
 EOF
 
+
 source quantum_package.rc
-make EZFIO
+
+echo "${BLUE}===== Installing IRPF90 ===== ${BLACK}"
+${QPACKAGE_ROOT}/scripts/install_irpf90.sh     | tee install_irpf90.log
+if [[ ! -d ${QPACKAGE_ROOT}/irpf90 ]]
+then
+  echo $RED "Error in IRPF90 installation" $BLACK
+  exit 1
+fi
+
+if [[ ! -x ${QPACKAGE_ROOT}/bin/irpf90 ]]
+then
+  echo $RED "Error in IRPF90 installation" $BLACK
+  exit 1
+fi
+
+
+if [[ ! -x ${QPACKAGE_ROOT}/bin/irpman ]]
+then
+  echo $RED "Error in IRPF90 installation" $BLACK
+  exit 1
+fi
+
+
+echo "${BLUE}===== Installing EZFIO ===== ${BLACK}"
+${QPACKAGE_ROOT}/scripts/install_ezfio.sh | tee install_ezfio.log
+
 if [[ ! -d ${QPACKAGE_ROOT}/EZFIO ]]
 then
   echo $RED "Error in EZFIO installation" $BLACK
   exit 1
 fi
 
-make ocaml
-if [[ ! -f ${QPACKAGE_ROOT}/ocaml/Qptypes.ml ]]
+
+echo "${BLUE}===== Installing Zlib ===== ${BLACK}"
+${QPACKAGE_ROOT}/scripts/install_zlib.sh       | tee install_zlib.log
+
+echo "${BLUE}===== Installing Curl ===== ${BLACK}"
+${QPACKAGE_ROOT}/scripts/install_curl.sh       | tee install_curl.log
+
+echo "${BLUE}===== Installing M4 ===== ${BLACK}"
+${QPACKAGE_ROOT}/scripts/install_m4.sh         | tee install_m4.log
+
+echo "${BLUE}===== Installing EMSL Basis set library ===== ${BLACK}"
+${QPACKAGE_ROOT}/scripts/install_emsl.sh       | tee install_emsl.log
+
+if [[ ! -d ${QPACKAGE_ROOT}/EMSL_Basis ]]
 then
-  echo $RED "Error in ocaml installation" $BLACK
+  echo $RED "Error in EMSL Basis set library installation" $BLACK
   exit 1
 fi
 
-make resultsFile
+echo "${BLUE}===== Installing EZFIO ===== ${BLACK}"
+
+${QPACKAGE_ROOT}/scripts/install_ezfio.sh | tee install_ezfio.log
+if [[ ! -d ${QPACKAGE_ROOT}/EZFIO ]]
+then
+  echo $RED "Error in EZFIO installation" $BLACK
+  exit 1
+fi
+
+
+echo "${BLUE}===== Installing Ocaml compiler and libraries ===== ${BLACK}"
+rm -f -- ocaml/Qptypes.ml
+${QPACKAGE_ROOT}/scripts/install_ocaml.sh | tee install_ocaml.log
+
+if [[ ! -f ${QPACKAGE_ROOT}/ocaml/Qptypes.ml ]]
+then
+  echo $RED "Error in Ocaml installation" $BLACK
+  exit 1
+fi
+
+echo "${BLUE}===== Installing resultsFile Python library ===== ${BLACK}"
+${QPACKAGE_ROOT}/scripts/install_resultsFile.sh
 if [[ ! -d ${QPACKAGE_ROOT}/resultsFile ]]
 then
   echo $RED "Error in resultsFile installation" $BLACK
@@ -75,8 +134,8 @@ source ${QPACKAGE_ROOT}/quantum_package.rc
 " $BLACK
 
 
-mkdir -f install_logs
-mv *.log install_logs/
+mkdir -p ${QPACKAGE_ROOT}/install_logs
+mv ${QPACKAGE_ROOT}/*.log ${QPACKAGE_ROOT}/install_logs/
 
 if [[ $1 == "--robot" ]] ; 
 then
