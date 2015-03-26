@@ -246,7 +246,7 @@ def save_ezfio_provider(path_head, dict_code_provider):
 
     path = "{0}/ezfio_interface.irp.f".format(path_head)
 
-    print "Path = {0}".format(path)
+    # print "Path = {0}".format(path)
 
     try:
         f = open(path, "r")
@@ -369,6 +369,9 @@ def main():
         -Take the EZFIO.cfg path in arg
         or
         -Look if EZFIO.cfg is present in the pwd
+
+    Return : - ezfio_interface.irp.f
+             - folder_ezfio_inteface_config
     """
 
     try:
@@ -381,28 +384,28 @@ def main():
     config_file_path = os.path.expanduser(config_file_path)
     config_file_path = os.path.expandvars(config_file_path)
     config_file_path = os.path.abspath(config_file_path)
-#    print config_file_path
+    # print config_file_path
 
     path_dirname = os.path.dirname(config_file_path)
     module = [i for i in path_dirname.split("/") if i][-1]
     module_lower = module.lower()
 
-#    print "Read {0}".format(config_file_path)
+    # print "Read {0}".format(config_file_path)
     dict_info_provider = get_dict_config_file(config_file_path, module_lower)
 
-#    print "Generating the ezfio_interface.irp.f: \n"
+    # print "Generating the ezfio_interface.irp.f: \n"
     d_config = create_ezfio_provider(dict_info_provider)
 
-#    print "Saving the ezfio_interface.irp.f"
+    # print "Saving the ezfio_interface.irp.f"
     save_ezfio_provider(path_dirname, d_config)
 
-#    print "Generating the ezfio_config"
+    # print "Generating the ezfio_config"
     config_ezfio = create_ezfio_config(
         dict_info_provider,
         "config",
         module_lower)
 
-#    print "Saving ezfio_config"
+    # print "Saving ezfio_config"
     save_ezfio_config(module_lower, config_ezfio)
 
 
