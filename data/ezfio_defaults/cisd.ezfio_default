@@ -1,0 +1,4 @@
+cisd_selected
+  n_det_max_cisd         10000
+  pt2_max                    1.e-4
+
