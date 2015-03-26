@@ -32,3 +32,4 @@ Build failed for module $MODULE
   fi
   cd ${OLDPWD}
 done
+${QPACKAGE_ROOT}/scripts/create_executables_list.sh
