@@ -6,6 +6,8 @@ Check if EZFIO.cfg exists.
 EZFIO.cfg are in MODULE directories.
 create : ezfio_interface.irp.f
          folder_ezfio_inteface_config
+Ezfio_dir : is equal to MODULE.lower!
+
 
 Format specification :
     [provider_name] : the name of the provider in irp.f90
@@ -310,7 +312,7 @@ def save_ezfio_provider(path_head, dict_code_provider):
             f.write(output)
 
 
-def create_ezfio_config(dict_ezfio_cfg, module_lower):
+def create_ezfio_config(dict_ezfio_cfg):
     """
     From dict_ezfio_cfg[provider_name] = {type, default, ezfio_name,ezfio_dir,doc}
     Return the string ezfio_interface_config
@@ -353,7 +355,14 @@ def create_ezfio_config(dict_ezfio_cfg, module_lower):
     #  C r e a t e _ t h e _ s t r i n g #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
 
-    result = [module_lower]
+    # Checking is many ezfio_dir provided
+    l_ezfio_dir = [d['ezfio_dir'] for d in dict_ezfio_cfg.values()]
+
+    if not l_ezfio_dir.count(l_ezfio_dir[0]) == len(l_ezfio_dir):
+        print >> sys.stderr, "You have many ezfio_dir. Not supported yet"
+        raise TypeError
+    else:
+        result = [l_ezfio_dir[0]]
 
     for provider_name, provider_info in sorted(dict_ezfio_cfg.iteritems()):
 
@@ -388,8 +397,8 @@ def save_ezfio_config(module_lower, str_ezfio_config):
     $QPACKAGE_ROOT/EZFIO/{0}.ezfio_interface_config".format(module_lower)
     """
 
-    ezfio_dir = "{0}/EZFIO".format(os.environ['QPACKAGE_ROOT'])
-    path = "{0}/config/{1}.ezfio_interface_config".format(ezfio_dir,
+    root_ezfio = "{0}/EZFIO".format(os.environ['QPACKAGE_ROOT'])
+    path = "{0}/config/{1}.ezfio_interface_config".format(root_ezfio,
                                                           module_lower)
 
     try:
@@ -407,6 +416,19 @@ def save_ezfio_config(module_lower, str_ezfio_config):
 
 def create_ocaml_check(dict_code_provider):
     pass
+#    def create_creade():
+#
+#"""
+#  let read_{ezfio_name} () =
+#    if not (Ezfio.has_{ezfio_dir}_{ezfio_name} ()) then
+#       get_default "{ezfio_name}"
+#       |> Float.of_string
+#       |> Ezfio.set_{ezfio_dir}_{ezfio_name}
+#    ;
+#    Ezfio.get_{ezfio_dir}_{ezfio_name} ()
+#    |> Normalized_float.of_float
+#  ;;
+#"""
 
 
 def main():
@@ -420,6 +442,10 @@ def main():
              - folder_ezfio_inteface_config
     """
 
+    # ~#~#~#~# #
+    #  I n i t #
+    # ~#~#~#~# #
+
     try:
         config_file_path = sys.argv[1]
     except:
@@ -430,27 +456,32 @@ def main():
     config_file_path = os.path.expanduser(config_file_path)
     config_file_path = os.path.expandvars(config_file_path)
     config_file_path = os.path.abspath(config_file_path)
-    # print config_file_path
+
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+    #  G e t _ m o d u l e _ d i r #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
 
     path_dirname = os.path.dirname(config_file_path)
     module = [i for i in path_dirname.split("/") if i][-1]
     module_lower = module.lower()
 
-    # print "Read {0}".format(config_file_path)
-    dict_info_provider = get_dict_config_file(config_file_path, module_lower)
+    # Because we only authorise this right now!
+    ezfio_dir = module_lower
+    dict_info_provider = get_dict_config_file(config_file_path, ezfio_dir)
 
-    # print "Generating the ezfio_interface.irp.f: \n"
-    d_config = create_ezfio_provider(dict_info_provider)
+    # ~#~#~#~#~#~#~#~# #
+    #  I R P . f 9 0 #
+    # ~#~#~#~#~#~#~#~# #
 
-    # print "Saving the ezfio_interface.irp.f"
-    save_ezfio_provider(path_dirname, d_config)
+    l_str_code = create_ezfio_provider(dict_info_provider)
+    save_ezfio_provider(path_dirname, l_str_code)
 
-    # print "Generating the ezfio_config"
-    config_ezfio = create_ezfio_config(dict_info_provider,
-                                       module_lower)
+    # ~#~#~#~#~#~#~#~#~#~#~#~# #
+    #  e z f i o _ c o n f i g #
+    # ~#~#~#~#~#~#~#~#~#~#~#~# #
 
-    # print "Saving ezfio_config"
-    save_ezfio_config(module_lower, config_ezfio)
+    str_ezfio_config = create_ezfio_config(dict_info_provider)
+    save_ezfio_config(module_lower, str_ezfio_config)
 
 
 if __name__ == "__main__":
