@@ -5,4 +5,5 @@ EMSL_Basis
 bin/
 *.log
 quantum_package_static.tar.gz
-
+resultsFile
+opam_installer.sh

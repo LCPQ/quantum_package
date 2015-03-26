@@ -7,7 +7,17 @@
 # All remaining aruments are dependencies.
 # Thu Apr  3 01:44:58 CEST 2014
 
-DEBUG=1
+if [[ -z ${QPACKAGE_ROOT} ]]
+then
+  print "The QPACKAGE_ROOT environment variable is not set."
+  print "Please reload the quantum_package.rc file."
+  exit -1
+fi
+source ${QPACKAGE_ROOT}/scripts/qp_include.sh
+
+check_current_dir_is_src
+
+DEBUG=0
 
 # If DEBUG=1, the print debug info.
 function debug()
@@ -36,13 +46,6 @@ function fail()
 }
 
 
-if [[ -z $QPACKAGE_ROOT ]]
-then
-  echo "Error:"
-  echo "QPACKAGE_ROOT environment variable is not set."
-  echo "source quantum_package.rc"
-  exit 1
-fi
 
 MODULE=$1
 
@@ -68,7 +71,7 @@ debug "Module does not already exist: OK"
 
 
 # Set up dependencies
-ALL_MODULES="$(cat NEEDED_MODULES)"
+ALL_MODULES="${NEEDED_MODULES}"
 echo "Select which modules you are sure you will need:  (press q to quit)"  
 NEEDED_MODULES=""
 select M in ${ALL_MODULES}

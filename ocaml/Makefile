@@ -1,7 +1,6 @@
-# Check if QPACKAGE_ROOT is defined
-
 .NOPARALLEL:
 
+# Check if QPACKAGE_ROOT is defined
 ifndef QPACKAGE_ROOT
 $(info  -------------------- Error --------------------)
 $(info  QPACKAGE_ROOT undefined. Source the quantum_package.rc script)
@@ -30,8 +29,10 @@ default: $(ALL_TESTS) $(ALL_EXE) .gitignore
 	   echo $$i ; \
 	done >> .gitignore
 
-executables: 
-	$(MAKE) -C $(QPACKAGE_ROOT)/data executables
+executables: $(QPACKAGE_ROOT)/data/executables
+
+$(QPACKAGE_ROOT)/data/executables:
+	$(QPACKAGE_ROOT)/scripts/create_executables_list.sh
 
 external_libs:
 	opam install cryptokit core

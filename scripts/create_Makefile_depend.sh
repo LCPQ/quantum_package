@@ -6,9 +6,19 @@
 # files included by including other modules.
 # Thu Apr  3 01:44:09 CEST 2014
 
+if [[ -z ${QPACKAGE_ROOT} ]]
+then
+  print "The QPACKAGE_ROOT environment variable is not set."
+  print "Please reload the quantum_package.rc file."
+  exit -1
+fi
+source ${QPACKAGE_ROOT}/scripts/qp_include.sh
+
+check_current_dir_is_module
+
 SRC=""
 OBJ=""
-DEPS="$(cat NEEDED_MODULES)"
+DEPS="$NEEDED_MODULES"
 
 for M in ${DEPS}
 do

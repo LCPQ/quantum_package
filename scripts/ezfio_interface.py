@@ -32,6 +32,8 @@ from collections import defaultdict
 from collections import namedtuple
 
 Type = namedtuple('Type', 'ocaml fortran')
+def bool_convertor(b):
+  return ( b.lower() in [ "true", ".true." ] )
 
 
 def get_type_dict():
@@ -222,15 +224,26 @@ def save_ezfio_provider(path_head, dict_code_provider):
 
     path = "{0}/ezfio_interface.irp.f".format(path_head)
 
-    print "Path = {}".format(path)
+#    print "Path = {}".format(path)
 
-    with open(path, "w") as f:
-        f.write("!DO NOT MODIFY BY HAND \n")
-        f.write("!Created by $QPACKAGE_ROOT/scripts/ezfio_interface.py \n")
-        f.write("!from file {0}/EZFIO.cfg\n".format(path_head))
-        f.write("\n")
-        for provider_name, code in dict_code_provider.iteritems():
-            f.write(code + "\n")
+    try:
+        f = open(path, "r")
+    except IOError:
+        old_output = ""
+    else:
+        old_output = f.read()
+        f.close()
+
+    output =   "! DO NOT MODIFY BY HAND\n" + \
+               "! Created by $QPACKAGE_ROOT/scripts/ezfio_interface.py\n" + \
+               "! from file {0}/EZFIO.cfg\n".format(path_head) + \
+               "\n" 
+    for provider_name, code in dict_code_provider.iteritems():
+        output += code + "\n"
+
+    if output != old_output:
+        with open(path, "w") as f:
+            f.write(output)
 
 
 def create_ezfio_config(dict_ezfio_cfg, opt, module_lower):
@@ -261,10 +274,19 @@ def save_ezfio_config(module_lower, str_ezfio_config):
     path = "{0}/config/{1}.ezfio_interface_config".format(ezfio_dir,
                                                           module_lower)
 
-    print "Path = {}".format(path)
+#    print "Path = {}".format(path)
 
-    with open(path, "w") as f:
-        f.write(str_ezfio_config)
+    try:
+        f = open(path, "r")
+    except IOError:
+        old_output = ""
+    else:
+        old_output = f.read()
+        f.close()
+
+    if str_ezfio_config != old_output:
+        with open(path, "w") as f:
+            f.write(str_ezfio_config)
 
 
 def main():
@@ -285,25 +307,25 @@ def main():
     config_file_path = os.path.expanduser(config_file_path)
     config_file_path = os.path.expandvars(config_file_path)
     config_file_path = os.path.abspath(config_file_path)
-    print config_file_path
+#    print config_file_path
 
     path_dirname = os.path.dirname(config_file_path)
     module = [i for i in path_dirname.split("/") if i][-1]
     module_lower = module.lower()
 
-    print "Read {0}".format(config_file_path)
+#    print "Read {0}".format(config_file_path)
     dict_info_provider = get_dict_config_file(config_file_path, module_lower)
 
-    print "Generating the ezfio_interface.irp.f: \n"
+#    print "Generating the ezfio_interface.irp.f: \n"
     d_config = create_ezfio_provider(dict_info_provider)
 
-    print "Saving the ezfio_interface.irp.f"
+#    print "Saving the ezfio_interface.irp.f"
     save_ezfio_provider(path_dirname, d_config)
 
-    print "Generating the ezfio_config"
+#    print "Generating the ezfio_config"
     config_ezfio = create_ezfio_config(dict_info_provider, "config", module_lower)
 
-    print "Saving ezfio_config"
+#    print "Saving ezfio_config"
     save_ezfio_config(module_lower, config_ezfio)
 
 

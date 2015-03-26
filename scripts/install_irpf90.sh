@@ -27,4 +27,3 @@ echo '${QPACKAGE_ROOT}/irpf90/bin/irpman $@' > bin/irpman
 chmod +x bin/irpf90 bin/irpman
 
 
-

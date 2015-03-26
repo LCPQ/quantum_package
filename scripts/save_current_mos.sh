@@ -4,6 +4,13 @@
 # directory, where xxx is the corresponding mo_label.
 # Wed Apr  2 14:35:15 CEST 2014
 
+if [[ -z ${QPACKAGE_ROOT} ]]
+then
+  print "The QPACKAGE_ROOT environment variable is not set."
+  print "Please reload the quantum_package.rc file."
+  exit -1
+fi
+
 EZFIO=$1
 
 if [[ -z ${EZFIO} ]]
