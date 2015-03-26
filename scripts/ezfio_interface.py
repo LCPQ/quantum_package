@@ -51,6 +51,10 @@ Type = namedtuple('Type', 'ocaml fortran')
 
 
 def is_bool(str_):
+    """
+    Take a string, if is a bool return the convert into
+        fortran and ocaml one.
+    """
     if str_.lower() in ['true', '.true.']:
         return Type("true", ".True.")
     elif str_.lower() in ['false', '.False.']:
@@ -67,6 +71,21 @@ def get_type_dict():
     For example fancy_type['Ndet'].fortran = interger
                                   .ocaml   = int
     """
+    # ~#~#~#~#~ #
+    # P i c l e #
+    # ~#~#~#~#~ #
+
+    import cPickle as pickle
+
+    from os import listdir
+
+    qpackage_root = os.environ['QPACKAGE_ROOT']
+
+    fancy_type_pickle = qpackage_root + "/scripts/fancy_type.p"
+
+    if fancy_type_pickle in listdir(os.getcwd()):
+        fancy_type = pickle.load(open(fancy_type_pickle, "rb"))
+        return fancy_type
 
     # ~#~#~#~ #
     # I n i t #
@@ -102,7 +121,7 @@ def get_type_dict():
                         "string": "character*32"}
 
     # Read and parse qptype
-    src = os.environ['QPACKAGE_ROOT'] + "/ocaml/qptypes_generator.ml"
+    src = qpackage_root + "/ocaml/qptypes_generator.ml"
     with open(src, "r") as f:
         l = [i for i in f.read().splitlines() if i.strip().startswith("*")]
 
@@ -113,6 +132,12 @@ def get_type_dict():
         str_fortran_type = ocaml_to_fortran[str_ocaml_type]
 
         fancy_type[str_fancy_type] = Type(str_ocaml_type, str_fortran_type)
+
+    # ~#~#~#~#~#~#~#~ #
+    # F i n a l i z e #
+    # ~#~#~#~#~#~#~#~ #
+
+    pickle.dump(dict(fancy_type), open(fancy_type_pickle, "wb"))
 
     return dict(fancy_type)
 
@@ -217,7 +242,7 @@ def get_dict_config_file(config_file_path, module_lower):
 
             try:
                 d[pvd]["default"] = is_bool(default_raw)
-            except:
+            except TypeError:
                 d[pvd]["default"] = Type(default_raw, default_raw)
 
     return dict(d)
