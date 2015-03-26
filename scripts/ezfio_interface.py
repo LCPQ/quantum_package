@@ -310,7 +310,7 @@ def save_ezfio_provider(path_head, dict_code_provider):
             f.write(output)
 
 
-def create_ezfio_config(dict_ezfio_cfg, opt, module_lower):
+def create_ezfio_config(dict_ezfio_cfg, module_lower):
     """
     From dict_ezfio_cfg[provider_name] = {type, default, ezfio_name,ezfio_dir,doc}
     Return the string ezfio_interface_config
@@ -405,6 +405,10 @@ def save_ezfio_config(module_lower, str_ezfio_config):
             f.write(str_ezfio_config)
 
 
+def create_ocaml_check(dict_code_provider):
+    pass
+
+
 def main():
     """
     Two condition:
@@ -442,10 +446,8 @@ def main():
     save_ezfio_provider(path_dirname, d_config)
 
     # print "Generating the ezfio_config"
-    config_ezfio = create_ezfio_config(
-        dict_info_provider,
-        "config",
-        module_lower)
+    config_ezfio = create_ezfio_config(dict_info_provider,
+                                       module_lower)
 
     # print "Saving ezfio_config"
     save_ezfio_config(module_lower, config_ezfio)
