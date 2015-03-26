@@ -7,3 +7,5 @@ bin/
 quantum_package_static.tar.gz
 resultsFile
 opam_installer.sh
+*.mod
+*.p
