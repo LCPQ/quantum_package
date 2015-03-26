@@ -43,7 +43,8 @@ END_PROVIDER
             exec "self.%s = None" % (v) in locals()
 
     def __repr__(self):
-        self.get_default()
+        if not self.default:
+            self.get_default()
         self.set_write()
         for v in self.values:
             exec "test = self.%s is None" % (v) in locals()

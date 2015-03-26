@@ -50,6 +50,15 @@ from collections import namedtuple
 Type = namedtuple('Type', 'ocaml fortran')
 
 
+def is_bool(str_):
+    if str_.lower() in ['true', '.true.']:
+        return Type("true", ".True.")
+    elif str_.lower() in ['false', '.False.']:
+        return Type("false", ".False")
+    else:
+        raise TypeError
+
+
 def get_type_dict():
     """
     This function makes the correspondance between the type of value read in
@@ -199,10 +208,15 @@ def get_dict_config_file(config_file_path, module_lower):
         # If interface is output we need a default value information
         if d[pvd]["interface"] == "output":
             try:
-                d[pvd]["default"] = config_file.get(section, "default")
+                default_raw = config_file.get(section, "default")
             except ConfigParser.NoOptionError:
                 error("default", pvd, config_file_path)
                 sys.exit(1)
+
+            try:
+                d[pvd]["default"] = is_bool(default_raw)
+            except:
+                d[pvd]["default"] = Type(default_raw, default_raw)
 
     return dict(d)
 
@@ -231,7 +245,11 @@ def create_ezfio_provider(dict_ezfio_cfg):
             ez_p.set_doc(dict_info['doc'])
             ez_p.set_ezfio_dir(dict_info['ezfio_dir'])
             ez_p.set_ezfio_name(dict_info['ezfio_name'])
-            ez_p.set_default(dict_info['default'])
+
+            # default = "{0} = {1}".format(provider_name,
+            #                              dict_info['default'].fortran)
+            # ez_p.set_default(default)
+            ez_p.set_default("stop 1")
 
             ez_p.set_output("output_%s" % dict_info['ezfio_dir'])
             dict_code_provider[provider_name] = str(ez_p)
@@ -281,6 +299,7 @@ def create_ezfio_config(dict_ezfio_cfg, opt, module_lower):
            If the value are between parenthsesis donothing
            Else put the parenthsesis
         """
+
         size_raw = str(size_raw)
         if any([size_raw.startswith('='),
                 size_raw.startswith("(") and size_raw.endswith(")")]):
@@ -326,10 +345,12 @@ def create_ezfio_config(dict_ezfio_cfg, opt, module_lower):
         else:
             size_raw = None
 
+        # It is the last so we don't need to right align it
+        str_size = size_format_to_ezfio(size_raw) if size_raw else ""
+
         # Get the string in to good format (left align and co)
         str_name = str_name_format(name_raw)
         str_fortran_type = str_type_format(fortran_type_raw)
-        str_size = size_format_to_ezfio(size_raw) if size_raw else ""
 
         # Return the string
         s = "  {0} {1} {2}".format(str_name, str_fortran_type, str_size)
