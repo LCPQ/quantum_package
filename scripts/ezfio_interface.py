@@ -228,7 +228,7 @@ def save_ezfio_provider(path_head, dict_code_provider):
 
     path = "{0}/ezfio_interface.irp.f".format(path_head)
 
-    print "Path = {}".format(path)
+    print "Path = {0}".format(path)
 
     with open(path, "w") as f:
         f.write("!DO NOT MODIFY BY HAND \n")
@@ -244,15 +244,21 @@ def create_ezfio_config(dict_ezfio_cfg, opt, module_lower):
     From dict_ezfio_cfg[provider_name] = {type, default, ezfio_name,ezfio_dir,doc}
     Return the string ezfio_interface_config
     """
-
     result = [module_lower]
     lenmax = max([len(i) for i in dict_ezfio_cfg]) + 2
 
-#    l = sorted(dict_ezfio_cfg.keys())
     for provider_name, provider_info in sorted(dict_ezfio_cfg.iteritems()):
 
-        s = "  {0} {1}".format(provider_name.lower().ljust(lenmax),
-                               provider_info["type"].fortran)
+        name = provider_name.lower()
+        fortran_type = provider_info["type"].fortran
+        size_raw = str(provider_info["size"])
+
+        if size_raw.startswith('='):
+            size = size_raw
+        else:
+            size = "({0})".format(size_raw)
+
+        s = "  {0} {1}  {2}".format(name.ljust(lenmax), fortran_type, size)
         result.append(s)
     return "\n".join(result)
 
@@ -267,7 +273,7 @@ def save_ezfio_config(module_lower, str_ezfio_config):
     path = "{0}/config/{1}.ezfio_interface_config".format(ezfio_dir,
                                                           module_lower)
 
-    print "Path = {}".format(path)
+    print "Path = {0}".format(path)
 
     with open(path, "w") as f:
         f.write(str_ezfio_config)
