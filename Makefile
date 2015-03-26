@@ -39,58 +39,14 @@ emsl: EMSL_Basis
 binary: 
 	$(QPACKAGE_ROOT)/scripts/make_binary.sh
 
-resultsFile: 
-	$(info $(BLUE)===== Installing resultsFile ===== $(BLACK))
-	@sleep 1
-	$(QPACKAGE_ROOT)/scripts/install_resultsFile.sh
-
-EZFIO: bin/irpf90
-	$(info $(BLUE)===== Installing EZFIO ===== $(BLACK))
-	@sleep 1
-	QPACKAGE_ROOT=$$PWD ./scripts/install_ezfio.sh | tee install_ezfio.log
-
-EMSL_Basis: 
-	$(info $(BLUE)===== Installing EMSL_Basis_Set_Exchange_Local ===== $(BLACK))
-	@sleep 1
-	QPACKAGE_ROOT=$$PWD ./scripts/install_emsl.sh | tee install_emsl.log
-
-zlib: 
-	$(info $(BLUE)===== Installing Zlib ===== $(BLACK))
-	@sleep 1
-	QPACKAGE_ROOT=$$PWD ./scripts/install_zlib.sh | tee install_zlib.log
-
-
-bin/irpf90:
-	$(info $(BLUE)===== Installing IRPF90 ===== $(BLACK))
-	@sleep 1
-	QPACKAGE_ROOT=$$PWD ./scripts/install_irpf90.sh | tee install_irpf90.log
-
 doc:
 	$(MAKE) -C doc
 
-src: irpf90 EZFIO ocaml
-	@export QPACKAGE_ROOT=$$PWD ; \
+src:
 	$(MAKE) -C src
 
-bin/curl:
-	$(info $(BLUE)===== Installing curl =====$(BLACK))
-	@sleep 1
-	QPACKAGE_ROOT=$$PWD ./scripts/install_curl.sh | tee install_curl.log
-
-bin/m4:
-	$(info $(BLUE)===== Installing m4 =====$(BLACK))
-	@sleep 1
-	QPACKAGE_ROOT=$$PWD ./scripts/install_m4.sh | tee install_m4.log
-
-
-ocaml: curl m4 emsl zlib
-	- rm -f -- ocaml/Qptypes.ml
+ocaml:
 	$(MAKE) ocaml/Qptypes.ml
-
-ocaml/Qptypes.ml: 
-	$(info $(BLUE)===== Installing ocaml =====$(BLACK))
-	@sleep 1
-	QPACKAGE_ROOT=$$PWD ./scripts/install_ocaml.sh | tee install_ocaml.log
 
 veryclean:
 	rm -f EZFIO

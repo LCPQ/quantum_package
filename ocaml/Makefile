@@ -52,7 +52,9 @@ doc: qpackage.odocl
 	$(OCAMLBUILD) $*.byte  -use-ocamlfind  $(PKGS)
 	ln -s $*.byte $*
 
-%.native: $(MLFILES) $(MLIFILES) executables
+qp_run.native: $(MLFILES) $(MLIFILES) executables
+
+%.native: $(MLFILES) $(MLIFILES)
 	rm -f -- $*
 	$(OCAMLBUILD) $*.native -use-ocamlfind $(PKGS)
 	ln -s $*.native $*
@@ -65,7 +67,6 @@ qptypes_generator.byte: qptypes_generator.ml
 
 Qptypes.ml: qptypes_generator.byte
 	./qptypes_generator.byte > Qptypes.ml
-	rm qptypes_generator.byte
 
 ${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml: 
 	$(MAKE) -C ${QPACKAGE_ROOT}/src ezfio
