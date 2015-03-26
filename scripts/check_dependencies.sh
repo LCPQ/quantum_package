@@ -10,13 +10,13 @@
 # read in the Makefile.
 # Thu Apr  3 01:44:23 CEST 2014
 
-function unique_list()
-{
-  for d in $@
-  do
-    echo $d
-  done | sort | uniq
-}
+if [[ -z ${QPACKAGE_ROOT} ]]
+then
+  print "The QPACKAGE_ROOT environment variable is not set."
+  print "Please reload the quantum_package.rc file."
+  exit -1
+fi
+source ${QPACKAGE_ROOT}/scripts/qp_include.sh
 
 if [[ -z $1 ]]
 then

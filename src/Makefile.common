@@ -1,160 +1,34 @@
-.PHONY: default
+.PHONY: default silent
+
+ifneq ($(IN_MAKE),1) 
+
+default:
+	@$(MAKE) -C $(QPACKAGE_ROOT)/src $$(basename $(PWD))
+
+veryclean:
+	 clean_modules.sh
+
+else  # Called by scripts/build_module.sh
 
 default: all .gitignore
 
-# Required EZFIO version
-EZFIO_VERSION=1.1
-
-# Required IRPF90 version
-IRPF90_VERSION=1.4
-
-# Check if QPACKAGE_ROOT is defined
-
-ifndef QPACKAGE_ROOT
-$(info  -------------------- Error --------------------)
-$(info  QPACKAGE_ROOT undefined. Run the setup_environment.sh script)
-$(info  -----------------------------------------------)
-$(error )
-#else
-#$(info  QPACKAGE_ROOT is defined.)
-endif
-
-
-# Check if the user's config exists
-
-MAKEFILE_OK=$(shell ls $(QPACKAGE_ROOT)/src/Makefile.config 2> /dev/null && echo True || echo False)
-ifeq ($(MAKEFILE_OK),False)
-$(info  -------------------- Error --------------------)
-$(info Makefile.config is not present.)
-$(info You can create Makefile.config)
-$(info by modifying Makefile.config.example)
-$(info  -----------------------------------------------)
-$(error )
-#else
-#$(info  Makefile.config is present.)
-endif
-
-
 # Include the user's config
-
 include $(QPACKAGE_ROOT)/src/Makefile.config
 
-
-# Check the  version of IRPF90
-
-IRP_VERSION_OK=$(shell $(IRPF90) -v | python -c "import sys ; print float(sys.stdin.readline().rsplit('.',1)[0]) >= $(IRPF90_VERSION)")
-ifeq ($(IRP_VERSION_OK),False)
-$(info  -------------------- Error --------------------)
-$(info  IRPF90 version >= $(IRPF90_VERSION) is required)
-$(info  To upgrade IRPF90, run :                       )
-$(info    $(QPACKAGE_ROOT)/scripts/upgrade_irpf90.sh   )
-$(info  -----------------------------------------------)
-$(error )
-#else
-#$(info  irpf90 version is OK.)
-endif
-
-
 # Create the NEEDED_MODULES variable, needed for IRPF90
-
 NEEDED_MODULES=$(shell cat NEEDED_MODULES)
 
-
-# Check if the NEEDED_MODULES file is consistent
-
-NEEDED_MODULES_OK=$(shell X=`$(QPACKAGE_ROOT)/scripts/check_dependencies.sh $(NEEDED_MODULES)` && echo OK || echo $$X)
-ifneq ($(NEEDED_MODULES_OK),OK)
-$(info  -------------------- Error --------------------)
-$(info Your NEEDED_MODULES file is inconsistent. It should be)
-$(info $(NEEDED_MODULES_OK))
-$(info  -----------------------------------------------)
-$(error )
-#else
-#$(info  NEEDED_MODULES files is consistent.)
-endif
-
-
 # Check and update dependencies
-
 include Makefile.depend
 
 
-# Check if README.rst exists
-
-README_RST_OK=$(shell ls README.rst 2>/dev/null || echo False)
-ifeq ($(README_RST_OK), False)
-$(shell $(QPACKAGE_ROOT)/scripts/create_rst_templates.sh)
-$(info  -------------------- Error --------------------)
-$(info  README.rst was not present, so I created a)
-$(info  default one for you.)
-$(info  You should document it before you compile, as)
-$(info  well as the ASSUMPTIONS.rst file.)
-$(info  -----------------------------------------------)
-$(error )
-#else
-#$(info  README.rst is present.)
-endif
-
-
-# Check if ASSUMPTIONS.rst exists
-
-ASSUMPTIONS_RST_OK=$(shell ls ASSUMPTIONS.rst || echo False)
-ifeq ($(ASSUMPTIONS_RST_OK), False)
-$(info  -------------------- Error --------------------)
-$(info This is a Bug. At that point, the ASSUMPTIONS.rst)
-$(info file should exist.)
-$(info  -----------------------------------------------)
-#else
-#$(info  ASSUMPTIONS.rst is present.)
-endif
-
-
 # Define the Makefile common variables
-
 EZFIO_DIR=$(QPACKAGE_ROOT)/EZFIO
 EZFIO=$(EZFIO_DIR)/lib/libezfio_irp.a
 INCLUDE_DIRS=$(NEEDED_MODULES) include
 
-# Check EZFIO version
-
-EZFIO_VERSION_OK=$(shell cat $(EZFIO_DIR)/version | cut -d '=' -f 2 | python -c "import sys ; print float(sys.stdin.readline().rsplit('.',1)[0]) >= $(EZFIO_VERSION)")
-ifeq ($(EZFIO_VERSION_OK),False)
-$(info  -------------------- Error --------------------)
-$(info  EZFIO version >= $(EZFIO_VERSION) is required  )
-$(info  To upgrade EZFIO, run :                        )
-$(info    $(QPACKAGE_ROOT)/scripts/upgrade_ezfio.sh    )
-$(info  -----------------------------------------------)
-$(error )
-#else
-#$(info  EZFIO version is OK.)
-endif
-
-# Define the EZFIO rules
-
-$(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg)
-	@echo Building EZFIO library
-	@echo =-=-=-=-=-=-=-=-=-=-=-
-	for dir in $(QPACKAGE_ROOT)/src/*/ ;\
-	do \
-	        cd $$dir && \
-		$(QPACKAGE_ROOT)/scripts/ezfio_interface.py && \
-		cd .. ;\
-	done
-	cp $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(EZFIO_DIR)/config 
-	cd $(EZFIO_DIR) ; export FC="$(FC)" ; export FCFLAGS="$(FCFLAGS)" ; export IRPF90="$(IRPF90)" ; $(MAKE) ; $(MAKE) Python
-
-ezfio: $(EZFIO)
-
-
-# Create symbolic links of other modules
-
-ifneq ($(PWD),$(QPACKAGE_ROOT)/src)
-$(shell $(QPACKAGE_ROOT)/scripts/prepare_module.sh $(INCLUDE_DIRS))
 clean_links:
 	rm -f $(INCLUDE_DIRS) $$(basename $$PWD)
-else
-clean_links:
-endif
 
 LIB+=$(EZFIO) $(MKL)
 IRPF90+=$(patsubst %, -I %, $(INCLUDE_DIRS)) $(IRPF90_FLAGS)
@@ -163,22 +37,14 @@ irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp
 	- $(IRPF90)
 	- update_README.py
 
-Makefile.depend: Makefile
-	$(QPACKAGE_ROOT)/scripts/create_Makefile_depend.sh
-
-ifneq ( $(PWD), $($(QPACKAGE_ROOT)/src))
 include irpf90.make
+
 endif
-
-# Dummy rule to enable to force recompilation
-FORCE:
-
-vercylean: veryclean
 
 .gitignore:
 	$(QPACKAGE_ROOT)/scripts/create_gitignore.sh 
 
-
 # Frequent typos
 clena: clean
 veryclena: veryclean
+vercylean: veryclean

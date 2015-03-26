@@ -6,12 +6,11 @@
 CURL="curl-7.30.0.ermine"
 CURL_URL="http://qmcchem.ups-tlse.fr/files/scemama/${CURL}.tar.bz2"
 
-# Check the QPACKAGE_ROOT directory
 if [[ -z ${QPACKAGE_ROOT} ]]
 then
-  echo "The QPACKAGE_ROOT environment variable is not set."
-  echo "Please reload the quantum_package.rc file."
-  exit 1
+  print "The QPACKAGE_ROOT environment variable is not set."
+  print "Please reload the quantum_package.rc file."
+  exit -1
 fi
 
 cd ${QPACKAGE_ROOT}

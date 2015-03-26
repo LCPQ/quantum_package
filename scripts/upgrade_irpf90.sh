@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/bash 
 # 
 # Upgrades IRPF90 from the web.
-# Tue Nov  4 00:53:13 CET 2014
+# Wed Mar 25 11:41:04 CET 2015
 
 if [[ -z ${QPACKAGE_ROOT} ]]
 then
@@ -10,9 +10,9 @@ then
 fi
 
 cd -- ${QPACKAGE_ROOT}
-mv -- ${QPACKAGE_ROOT}/irpf90 ${QPACKAGE_ROOT}/irpf90.old
+mv -f -- ${QPACKAGE_ROOT}/irpf90 ${QPACKAGE_ROOT}/irpf90.old
 
-make irpf90 
+${QPACKAGE_ROOT}/scripts/install_irpf90.sh
 
 if [[ $? -eq 0 ]]
 then
