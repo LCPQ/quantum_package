@@ -30,6 +30,8 @@ default: $(ALL_TESTS) $(ALL_EXE) .gitignore
 	done >> .gitignore
 
 executables: $(QPACKAGE_ROOT)/data/executables
+
+$(QPACKAGE_ROOT)/data/executables:
 	$(QPACKAGE_ROOT)/scripts/create_executables_list.sh
 
 external_libs:
