@@ -12,7 +12,7 @@ fi
 cd -- ${QPACKAGE_ROOT}
 mv -- ${QPACKAGE_ROOT}/EZFIO ${QPACKAGE_ROOT}/EZFIO.old
 
-make EZFIO
+${QPACKAGE_ROOT}/scripts/install_ezfio.sh
 
 if [[ $? -eq 0 ]]
 then
