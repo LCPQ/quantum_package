@@ -244,22 +244,61 @@ def create_ezfio_config(dict_ezfio_cfg, opt, module_lower):
     From dict_ezfio_cfg[provider_name] = {type, default, ezfio_name,ezfio_dir,doc}
     Return the string ezfio_interface_config
     """
+
+    def size_format_to_ezfio(size_raw):
+        """If = is a formula do nothing
+        Else but the parenthsesis because is the ezfio_ format
+        """
+        size_raw = str(size_raw)
+        if size_raw.startswith('='):
+            size_convert = size_raw
+        else:
+            size_convert = "({0})".format(size_raw)
+        return size_convert
+
+    def create_format_string(size):
+        """
+        Take a size and return the string format for bewing right align
+        Example size = 10
+        Return '{:<10}'.format
+        """
+
+        return "{{:<{0}}}".format(size).format
+
+    # ~#~#~#~#~#~#~#~#~#~#~# #
+    #  F o r m a t _ i n f o #
+    # ~#~#~#~#~#~#~#~#~#~#~# #
+
+    lenmax_name = max([len(i) for i in dict_ezfio_cfg])
+    lenmax_type = max([len(i["type"].fortran) for i in dict_ezfio_cfg.values()])
+
+    str_name_format = create_format_string(lenmax_name + 2)
+    str_type_format = create_format_string(lenmax_type + 2)
+
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+    #  C r e a t e _ t h e _ s t r i n g #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+
     result = [module_lower]
-    lenmax = max([len(i) for i in dict_ezfio_cfg]) + 2
 
     for provider_name, provider_info in sorted(dict_ezfio_cfg.iteritems()):
 
-        name = provider_name.lower()
-        fortran_type = provider_info["type"].fortran
-        size_raw = str(provider_info["size"])
+        # Get the value from dict
+        name_raw = provider_name.lower()
+        fortran_type_raw = provider_info["type"].fortran
+        size_raw = size_format_to_ezfio(provider_info["size"])
 
-        if size_raw.startswith('='):
-            size = size_raw
-        else:
-            size = "({0})".format(size_raw)
+        # Get the string in to good format (left align and co)
+        str_name = str_name_format(name_raw)
+        str_fortran_type = str_type_format(fortran_type_raw)
+        str_size = size_raw
 
-        s = "  {0} {1}  {2}".format(name.ljust(lenmax), fortran_type, size)
+        # Return the string
+        s = "  {0} {1} {2}".format(str_name, str_fortran_type, str_size)
+
+        # Append
         result.append(s)
+
     return "\n".join(result)
 
 
