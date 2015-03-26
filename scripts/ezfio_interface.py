@@ -273,10 +273,13 @@ def create_ezfio_provider(dict_ezfio_cfg):
             ez_p.set_ezfio_dir(dict_info['ezfio_dir'])
             ez_p.set_ezfio_name(dict_info['ezfio_name'])
 
-            # default = "{0} = {1}".format(provider_name,
-            #                              dict_info['default'].fortran)
-            # ez_p.set_default(default)
-            ez_p.set_default("stop 1")
+            str_ = "\n".join(["         print *, '{0}/{1} not found in EZFIO file'",
+                              "         stop 1" ])
+  
+            str_ = str_.format(dict_info['ezfio_dir'],
+                              dict_info['ezfio_name'])
+           
+            ez_p.set_default(str_)
 
             ez_p.set_output("output_%s" % dict_info['ezfio_dir'])
             dict_code_provider[provider_name] = str(ez_p)
