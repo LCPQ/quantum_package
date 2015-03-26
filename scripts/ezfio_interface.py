@@ -49,7 +49,7 @@ import ConfigParser
 from collections import defaultdict
 from collections import namedtuple
 
-Type = namedtuple('Type', 'ocaml fortran')
+Type = namedtuple('Type', 'fancy ocaml fortran')
 
 
 def is_bool(str_):
@@ -58,9 +58,9 @@ def is_bool(str_):
         fortran and ocaml one.
     """
     if str_.lower() in ['true', '.true.']:
-        return Type("true", ".True.")
+        return Type(None, "true", ".True.")
     elif str_.lower() in ['false', '.False.']:
-        return Type("false", ".False")
+        return Type(None, "false", ".False")
     else:
         raise TypeError
 
@@ -99,18 +99,18 @@ def get_type_dict():
     # R a w _ t y p e #
     # ~#~#~#~#~#~#~#~ #
 
-    fancy_type['integer'] = Type("int", "integer")
-    fancy_type['int'] = Type("int", "integer")
+    fancy_type['integer'] = Type(None, "int", "integer")
+    fancy_type['int'] = Type(None, "int", "integer")
 
-    fancy_type['float'] = Type("float", "double precision")
-    fancy_type['double precision'] = Type("float", "double precision")
+    fancy_type['float'] = Type(None, "float", "double precision")
+    fancy_type['double precision'] = Type(None, "float", "double precision")
 
-    fancy_type['logical'] = Type("bool", "logical")
-    fancy_type['bool'] = Type("bool", "logical")
+    fancy_type['logical'] = Type(None, "bool", "logical")
+    fancy_type['bool'] = Type(None, "bool", "logical")
 
-    fancy_type['character*32'] = Type("string", "character*32")
-    fancy_type['character*60'] = Type("string", "character*60")
-    fancy_type['character*256'] = Type("string", "character*256")
+    fancy_type['character*32'] = Type(None, "string", "character*32")
+    fancy_type['character*60'] = Type(None, "string", "character*60")
+    fancy_type['character*256'] = Type(None, "string", "character*256")
 
     # ~#~#~#~#~#~#~#~ #
     # q p _ t y p e s #
@@ -133,7 +133,9 @@ def get_type_dict():
         str_ocaml_type = i.split()[3]
         str_fortran_type = ocaml_to_fortran[str_ocaml_type]
 
-        fancy_type[str_fancy_type] = Type(str_ocaml_type, str_fortran_type)
+        fancy_type[str_fancy_type] = Type(str_fancy_type,
+                                          str_ocaml_type,
+                                          str_fortran_type)
 
     # ~#~#~#~#~#~#~#~ #
     # F i n a l i z e #
@@ -245,7 +247,7 @@ def get_dict_config_file(config_file_path, module_lower):
             try:
                 d[pvd]["default"] = is_bool(default_raw)
             except TypeError:
-                d[pvd]["default"] = Type(default_raw, default_raw)
+                d[pvd]["default"] = Type(None, default_raw, default_raw)
 
     return dict(d)
 
@@ -287,8 +289,6 @@ def save_ezfio_provider(path_head, dict_code_provider):
     """
 
     path = "{0}/ezfio_interface.irp.f".format(path_head)
-
-    # print "Path = {0}".format(path)
 
     try:
         f = open(path, "r")
@@ -414,21 +414,52 @@ def save_ezfio_config(module_lower, str_ezfio_config):
             f.write(str_ezfio_config)
 
 
-def create_ocaml_check(dict_code_provider):
-    pass
-#    def create_creade():
-#
-#"""
-#  let read_{ezfio_name} () =
-#    if not (Ezfio.has_{ezfio_dir}_{ezfio_name} ()) then
-#       get_default "{ezfio_name}"
-#       |> Float.of_string
-#       |> Ezfio.set_{ezfio_dir}_{ezfio_name}
-#    ;
-#    Ezfio.get_{ezfio_dir}_{ezfio_name} ()
-#    |> Normalized_float.of_float
-#  ;;
-#"""
+def create_ocaml_check(dict_ezfio_cfg):
+
+    # ~#~#~#~#~#~#~#~# #
+    #  F u n c t i o n #
+    # ~#~#~#~#~#~#~#~# #
+
+    def create_read(d_format):
+
+        template = """
+  (* Read snippet for {ezfio_name} *)
+  let read_{ezfio_name} () =
+    if not (Ezfio.has_{ezfio_dir}_{ezfio_name} ()) then
+       get_default "{ezfio_name}"
+       |> {Ocaml_type}.of_string
+       |> Ezfio.set_{ezfio_dir}_{ezfio_name}
+    ;
+    Ezfio.get_{ezfio_dir}_{ezfio_name} ()
+"""
+        fancy_type = d_format["type"]
+        if d_format["type"].fancy:
+            template += "    |> {0}.of_{1}".format(fancy_type.fancy,
+                                                   fancy_type.ocaml)
+
+        template += """
+  ;;
+        """
+        return template.strip().format(**d_format)
+
+    # ~#~#~#~#~#~#~#~# #
+    #  C r e a t i o n #
+    # ~#~#~#~#~#~#~#~# #
+
+    for provider_name, d_val in sorted(dict_ezfio_cfg.iteritems()):
+
+        ocaml_type = d_val["type"].ocaml.capitalize()
+        ezfio_dir = d_val["ezfio_dir"]
+        ezfio_name = d_val["ezfio_name"]
+
+        d = {"ezfio_dir": ezfio_dir,
+             "ezfio_name": ezfio_name,
+             "type": d_val["type"],
+             "Ocaml_type": ocaml_type}
+
+        template = create_read(d)
+
+        print template
 
 
 def main():
@@ -467,20 +498,26 @@ def main():
 
     # Because we only authorise this right now!
     ezfio_dir = module_lower
-    dict_info_provider = get_dict_config_file(config_file_path, ezfio_dir)
+    dict_ezfio_cfg = get_dict_config_file(config_file_path, ezfio_dir)
 
-    # ~#~#~#~#~#~#~#~# #
+    # ~#~#~#~#~#~#
+    #  O c a m l #
+    # ~#~#~#~#~#~#
+
+    _ = create_ocaml_check(dict_ezfio_cfg)
+
+    # ~#~#~#~#~#~#~#~#
     #  I R P . f 9 0 #
-    # ~#~#~#~#~#~#~#~# #
+    # ~#~#~#~#~#~#~#~#
 
-    l_str_code = create_ezfio_provider(dict_info_provider)
+    l_str_code = create_ezfio_provider(dict_ezfio_cfg)
     save_ezfio_provider(path_dirname, l_str_code)
 
     # ~#~#~#~#~#~#~#~#~#~#~#~# #
     #  e z f i o _ c o n f i g #
     # ~#~#~#~#~#~#~#~#~#~#~#~# #
 
-    str_ezfio_config = create_ezfio_config(dict_info_provider)
+    str_ezfio_config = create_ezfio_config(dict_ezfio_cfg)
     save_ezfio_config(module_lower, str_ezfio_config)
 
 
