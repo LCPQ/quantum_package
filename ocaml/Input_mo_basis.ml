@@ -2,27 +2,21 @@ open Qptypes;;
 open Qputils;;
 open Core.Std;;
 
+type t_mo = 
+  { mo_tot_num      : MO_number.t ;
+    mo_label        : MO_label.t;
+    mo_occ          : MO_occ.t array;
+    mo_coef         : (MO_coef.t array) array;
+    ao_md5          : MD5.t;
+  } with sexp
+
 module Mo_basis : sig
-  type t = 
-    { mo_tot_num      : MO_number.t ;
-      mo_label        : MO_label.t;
-      mo_occ          : MO_occ.t array;
-      mo_coef         : (MO_coef.t array) array;
-      ao_md5          : MD5.t;
-    } with sexp
-  ;;
+  type t =  t_mo
   val read : unit -> t option
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
 end = struct
-  type t = 
-    { mo_tot_num      : MO_number.t ;
-      mo_label        : MO_label.t;
-      mo_occ          : MO_occ.t array;
-      mo_coef         : (MO_coef.t array) array;
-      ao_md5          : MD5.t;
-    } with sexp
-  ;;
+  type t = t_mo
 
   let get_default = Qpackage.get_ezfio_default "mo_basis";;
 

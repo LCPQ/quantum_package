@@ -1,0 +1,4 @@
+hartree_fock
+  n_it_scf_max               200
+  thresh_scf                 1.e-10
+  guess                      "Huckel"
