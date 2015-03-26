@@ -136,14 +136,16 @@ def get_dict_config_file(config_file_path, module_lower):
                                       interface,
                                       default}
 
-    - Type       : Is a fancy_type named typle who containt fortran and ocaml type
+    - Type       : Is a Type named tuple who containt
+                    fortran and ocaml type
     - doc        : Is the doc
     - ezfio_name : Will be the name of the file
     - ezfio_dir  : Will be the folder who containt the ezfio_name
         * /ezfio_dir/ezfio_name
         * equal to MODULE_lower name for the moment.
     - interface  : The provider is a imput or a output
-    - default : The default value if interface == output:
+    - default : The default value /!\ stored in a Type named type!
+                   if interface == output
     - size : Is the string read in ezfio.cgf who containt the size information
          (like 1 or =sum(ao_num))
     """
@@ -295,9 +297,10 @@ def create_ezfio_config(dict_ezfio_cfg, opt, module_lower):
     """
 
     def size_format_to_ezfio(size_raw):
-        """If = is a formula so do nothing
-           If the value are between parenthsesis donothing
-           Else put the parenthsesis
+        """
+        If size_raw == "=" is a formula -> do nothing; return
+        If the value are between parenthses ->  do nothing; return
+        Else put it in parenthsesis
         """
 
         size_raw = str(size_raw)
@@ -310,9 +313,8 @@ def create_ezfio_config(dict_ezfio_cfg, opt, module_lower):
 
     def create_format_string(size):
         """
-        Take a size and return the string format for bewing right align
-        Example size = 10
-        Return '{:<10}'.format
+        Take a size number and
+            return the string format for being right align with this ofset
         """
 
         return "{{:<{0}}}".format(size).format
