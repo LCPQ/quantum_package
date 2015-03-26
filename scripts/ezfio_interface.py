@@ -7,17 +7,33 @@ EZFIO.cfg are in MODULE directories.
 create : ezfio_interface.irp.f
          folder_ezfio_inteface_config
 
+Format specification :
+    [provider_name] : the name of the provider in irp.f90
+    - doc        : Is the doc
+    - Type       : Is a fancy_type support by the ocaml
+    - ezfio_name : Will be the name of the file for the ezfio
+        (optional by default is the name of the provider)
+    - interface  : The provider is a imput or a output
+    - default : The default value if interface == output:
+    - size : Is the string read in ezfio.cgf who containt the size information
+             (like 1 or =sum(ao_num) or (ao_num,3) )
+
 Example EZFIO.cfg:
 ```
 [thresh_SCF]
 doc: Threshold on the convergence of the Hartree Fock energy
 type: Threshold
 default: 1.e-10
+interface: output
+default: 10000
+size : ao_num, 3
 
 [do_pt2_end]
 type: logical
 doc: If true, compute the PT2 at the end of the selection
 default: true
+interface: input
+size : 1
 ```
 
 """
@@ -111,16 +127,16 @@ def get_dict_config_file(config_file_path, module_lower):
                                       interface,
                                       default}
 
-    Type       : Is a fancy_type named typle who containt fortran and ocaml type
-    doc        : Is the doc
-    ezfio_name : Will be the name of the file
-    ezfio_dir  : Will be the folder who containt the ezfio_name
+    - Type       : Is a fancy_type named typle who containt fortran and ocaml type
+    - doc        : Is the doc
+    - ezfio_name : Will be the name of the file
+    - ezfio_dir  : Will be the folder who containt the ezfio_name
         * /ezfio_dir/ezfio_name
         * equal to MODULE_lower name for the moment.
-    interface  : The provider is a imput or a output
-    if is a output:
-        default    : The default value
-
+    - interface  : The provider is a imput or a output
+    - default : The default value if interface == output:
+    - size : Is the string read in ezfio.cgf who containt the size information
+         (like 1 or =sum(ao_num))
     """
     # ~#~#~#~ #
     # I n i t #
@@ -150,7 +166,7 @@ def get_dict_config_file(config_file_path, module_lower):
         pvd = section.lower()
 
         # Create the dictionary who containt the value per default
-        d_default = {"ezfio_name": pvd, "size": 1}
+        d_default = {"ezfio_name": pvd}
 
         # Set the ezfio_dir
         d[pvd]["ezfio_dir"] = module_lower
@@ -177,7 +193,8 @@ def get_dict_config_file(config_file_path, module_lower):
             try:
                 d[pvd][option] = config_file.get(section, option).lower()
             except ConfigParser.NoOptionError:
-                d[pvd][option] = d_default[option]
+                if option in d_default:
+                    d[pvd][option] = d_default[option]
 
         # If interface is output we need a default value information
         if d[pvd]["interface"] == "output":
@@ -197,7 +214,8 @@ def create_ezfio_provider(dict_ezfio_cfg):
                                   ezfio_name,
                                   ezfio_dir,
                                   interface,
-                                  default}
+                                  default
+                                  size}
     create the a list who containt all the code for the provider
     return [code, ...]
     """
@@ -259,11 +277,13 @@ def create_ezfio_config(dict_ezfio_cfg, opt, module_lower):
     """
 
     def size_format_to_ezfio(size_raw):
-        """If = is a formula do nothing
-        Else but the parenthsesis because is the ezfio_ format
+        """If = is a formula so do nothing
+           If the value are between parenthsesis donothing
+           Else put the parenthsesis
         """
         size_raw = str(size_raw)
-        if size_raw.startswith('='):
+        if any([size_raw.startswith('='),
+                size_raw.startswith("(") and size_raw.endswith(")")]):
             size_convert = size_raw
         else:
             size_convert = "({0})".format(size_raw)
@@ -300,12 +320,16 @@ def create_ezfio_config(dict_ezfio_cfg, opt, module_lower):
         # Get the value from dict
         name_raw = provider_name.lower()
         fortran_type_raw = provider_info["type"].fortran
-        size_raw = size_format_to_ezfio(provider_info["size"])
+
+        if "size" in provider_info and not provider_info["size"] == "1":
+            size_raw = provider_info["size"]
+        else:
+            size_raw = None
 
         # Get the string in to good format (left align and co)
         str_name = str_name_format(name_raw)
         str_fortran_type = str_type_format(fortran_type_raw)
-        str_size = size_raw
+        str_size = size_format_to_ezfio(size_raw) if size_raw else ""
 
         # Return the string
         s = "  {0} {1} {2}".format(str_name, str_fortran_type, str_size)
