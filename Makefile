@@ -2,7 +2,7 @@ BLUE=[34m
 BLACK=(B[m
 
 
-.PHONY: doc src curl m4 ocaml irpf90 emsl build binary
+.PHONY: doc src ocaml build binary
 
 default: 
 	@echo   -----------------------------------------------
@@ -26,15 +26,10 @@ build:
 	@echo     source quantum_package.rc
 	@echo   -----------------------------------------------
 else
-build: EZFIO curl m4 irpf90 emsl 
+build: 
 	$(MAKE) -C src
 	$(MAKE) -C ocaml
 endif
-
-curl: bin/curl
-m4: bin/m4
-irpf90: bin/irpf90
-emsl: EMSL_Basis
 
 binary: 
 	$(QPACKAGE_ROOT)/scripts/make_binary.sh
