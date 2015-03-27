@@ -41,7 +41,6 @@ then
   exit 1
 fi
 
-
 if [[ ! -x ${QPACKAGE_ROOT}/bin/irpman ]]
 then
   echo $RED "Error in IRPF90 installation" $BLACK

@@ -18,6 +18,8 @@ source ${QPACKAGE_ROOT}/scripts/qp_include.sh
 
 check_current_dir_is_src
 
+IRPF90="${QPACKAGE_ROOT}/bin/irpf90 ${IRPF90_FLAGS}"
+
 
 # Check if the user's config exists
 if [[ ! -f  ${QPACKAGE_ROOT}/src/Makefile.config ]] 
