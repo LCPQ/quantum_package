@@ -21,7 +21,7 @@ $(ALL_MODULES): ezfio
 	$(QPACKAGE_ROOT)/scripts/build_modules.sh $@ 
 
 # Define the EZFIO rules
-$(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg)
+$(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg)
 	$(QPACKAGE_ROOT)/scripts/prepare_ezfio.sh
 	cd $(EZFIO_DIR);\
 	export FC="$(FC)" ; export FCFLAGS="$(FCFLAGS)" ; export IRPF90="$(IRPF90)" ;\

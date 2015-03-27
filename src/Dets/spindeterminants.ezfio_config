@@ -1,0 +1,10 @@
+spindeterminants
+  n_det_alpha     integer
+  n_det_beta      integer
+  n_int           integer
+  bit_kind        integer
+  n_states        integer
+  psi_det_alpha   integer*8 (spindeterminants_n_int*spindeterminants_bit_kind/8,spindeterminants_n_det_alpha)
+  psi_det_beta    integer*8 (spindeterminants_n_int*spindeterminants_bit_kind/8,spindeterminants_n_det_beta)
+  psi_coef_matrix double precision (spindeterminants_n_det_alpha,spindeterminants_n_det_beta,spindeterminants_n_states)
+
