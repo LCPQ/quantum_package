@@ -463,7 +463,7 @@ def create_ocaml_input(dict_ezfio_cfg):
     l_doc = []
 
     for k, v in dict_ezfio_cfg.iteritems():
-        if v['interface'] == "output":
+        if v['interface'] == "input":
             l_provider.append(k)
             l_type.append(v["type"])
             l_doc.append(v["doc"])
