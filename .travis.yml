@@ -13,4 +13,4 @@ script:
   - source ./quantum_package.rc
   - cp ./src/Makefile.config.gfortran  ./src/Makefile.config
   - make build 
-
+  - ./tests/unit_test/unit_test.py
