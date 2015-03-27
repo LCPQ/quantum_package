@@ -16,7 +16,7 @@ Format specification :
     - ezfio_name : Will be the name of the file for the ezfio
         (optional by default is the name of the provider)
     - interface  : The provider is a imput or a output
-    - default : The default value if interface == output:
+    - default : The default value if interface == input:
     - size : Is the string read in ezfio.cgf who containt the size information
              (like 1 or =sum(ao_num) or (ao_num,3) )
 
@@ -26,7 +26,7 @@ Example EZFIO.cfg:
 doc: Threshold on the convergence of the Hartree Fock energy
 type: Threshold
 default: 1.e-10
-interface: output
+interface: input
 default: 10000
 size : ao_num, 3
 
@@ -34,7 +34,7 @@ size : ao_num, 3
 type: logical
 doc: If true, compute the PT2 at the end of the selection
 default: true
-interface: input
+interface: output
 size : 1
 ```
 
@@ -237,7 +237,7 @@ def get_dict_config_file(config_file_path, module_lower):
                     d[pvd][option] = d_default[option]
 
         # If interface is output we need a default value information
-        if d[pvd]["interface"] == "output":
+        if d[pvd]["interface"] == "input":
             try:
                 default_raw = config_file.get(section, "default")
             except ConfigParser.NoOptionError:
@@ -416,9 +416,15 @@ def save_ezfio_config(module_lower, str_ezfio_config):
 
 def create_ocaml_input(dict_ezfio_cfg):
 
-    l_provider = [k for k, v in dict_ezfio_cfg.iteritems() if 'default' in v]
-    l_type = [v["type"] for k, v in dict_ezfio_cfg.iteritems() if 'default' in v]
-    l_doc = [v["doc"] for k, v in dict_ezfio_cfg.iteritems() if 'default' in v]
+    l_provider = []
+    l_type = []
+    l_doc = []
+
+    for k, v in dict_ezfio_cfg.iteritems():
+        if v['interface'] == "output":
+            l_provider.append(k)
+            l_type.append(v["type"])
+            l_doc.append(v["doc"])
 
     # ~#~#~#~#~#~#~#~# #
     #  C r e a t i o n #
@@ -513,6 +519,7 @@ def save_ocaml_input(module_lower, str_ocaml_input):
     if str_ocaml_input != old_output:
         with open(path, "w") as f:
             f.write(str_ocaml_input)
+
 
 def main():
     """

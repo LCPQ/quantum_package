@@ -148,7 +148,8 @@ class EZFIO_ocaml(object):
                       "let read() = ",
                       "  Some",
                       "  {"]
-        l_template += ["    {0:<30} = read_{0} ();".format(p) for p in l_provider]
+        l_template += ["    {0:<30} = read_{0} ();".format(p)
+                       for p in l_provider]
 
         l_template += ["  }",
                        ";;"]
@@ -161,8 +162,8 @@ class EZFIO_ocaml(object):
     @staticmethod
     def create_write_global(l_provider):
 
-        l_template =  ["(* Write all *)",
-                       "let write{ "]
+        l_template = ["(* Write all *)",
+                      "let write{ "]
         l_template += ["           {0};".format(p) for p in l_provider]
         l_template += ["         } ="]
         l_template += ["  write_{0:<30} {0};".format(p) for p in l_provider]
@@ -180,7 +181,7 @@ class EZFIO_ocaml(object):
                       'let to_string b =',
                       '  Printf.sprintf "']
 
-        l_template += ["{0} = %s".format(p) for p in l_provider] 
+        l_template += ["{0} = %s".format(p) for p in l_provider]
         l_template += ['"']
 
         for p, t in zip(l_provider, l_type):
