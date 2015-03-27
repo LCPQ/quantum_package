@@ -414,7 +414,11 @@ def save_ezfio_config(module_lower, str_ezfio_config):
             f.write(str_ezfio_config)
 
 
-def create_ocaml_check(dict_ezfio_cfg):
+def create_ocaml_input(dict_ezfio_cfg):
+
+    l_provider = [k for k, v in dict_ezfio_cfg.iteritems() if 'default' in v]
+    l_type = [v["type"] for k, v in dict_ezfio_cfg.iteritems() if 'default' in v]
+    l_doc = [v["doc"] for k, v in dict_ezfio_cfg.iteritems() if 'default' in v]
 
     # ~#~#~#~#~#~#~#~# #
     #  C r e a t i o n #
@@ -422,7 +426,41 @@ def create_ocaml_check(dict_ezfio_cfg):
 
     from ezfio_generate_ocaml import EZFIO_ocaml
 
+    template = ['(* =~=~ *)',
+                '(* Init *)',
+                '(* =~=~ *)',
+                ""]
+
+    template += ["open Qptypes;;",
+                 "open Qputils;;",
+                 "open Core.Std;;",
+                 "",
+                 "module Full_ci : sig"]
+
+    template += [EZFIO_ocaml.create_type(l_provider, l_type)]
+
+    template += ["  val read  : unit -> t option",
+                 "  val write : t-> unit",
+                 "  val to_string : t -> string",
+                 "  val to_rst : t -> Rst_string.t",
+                 "  val of_rst : Rst_string.t -> t option",
+                 "end = struct"]
+
+    template += [EZFIO_ocaml.create_type(l_provider, l_type)]
+
+    template += ['',
+                 '  let get_default = Qpackage.get_ezfio_default "full_ci";;',
+                 '']
+
+    template += ['(* =~=~=~=~=~=~==~=~=~=~=~=~ *)',
+                 '(* Generate Special Function *)',
+                 '(* =~=~=~==~=~~=~=~=~=~=~=~=~ *)',
+                 ""]
+
     for provider_name, d_val in sorted(dict_ezfio_cfg.iteritems()):
+
+        if 'default' not in d_val:
+            continue
 
         ezfio_dir = d_val["ezfio_dir"]
         ezfio_name = d_val["ezfio_name"]
@@ -433,10 +471,48 @@ def create_ocaml_check(dict_ezfio_cfg):
 
         e = EZFIO_ocaml(**d)
 
-        template = e.create_read()
+        template += [e.create_read(),
+                     e.create_write(),
+                     ""]
 
-        print template
+    template += ['(* =~=~=~=~=~=~=~=~=~=~=~=~ *)',
+                 '(* Generate Global Function *)',
+                 '(* =~=~=~=~=~=~=~=~=~=~=~=~ *)',
+                 ""]
 
+    template += [EZFIO_ocaml.create_read_global(l_provider),
+                 EZFIO_ocaml.create_write_global(l_provider),
+                 EZFIO_ocaml.create_to_string(l_provider, l_type),
+                 EZFIO_ocaml.create_to_rst(l_provider, l_type, l_doc)]
+
+    template += ["  include Generic_input_of_rst;;",
+                 "  let of_rst = of_rst t_of_sexp;;",
+                 "",
+                 "end"]
+
+    return "\n".join(template)
+
+
+def save_ocaml_input(module_lower, str_ocaml_input):
+    """
+    Write the str_ocaml_input in
+    $QPACKAGE_ROOT/ocaml/Input_{0}.ml".format(module_lower)
+    """
+
+    path = "{0}/ocaml/Input_{1}.ml".format(os.environ['QPACKAGE_ROOT'],
+                                           module_lower)
+
+    try:
+        f = open(path, "r")
+    except IOError:
+        old_output = ""
+    else:
+        old_output = f.read()
+        f.close()
+
+    if str_ocaml_input != old_output:
+        with open(path, "w") as f:
+            f.write(str_ocaml_input)
 
 def main():
     """
@@ -480,7 +556,8 @@ def main():
     #  O c a m l #
     # ~#~#~#~#~#~#
 
-    _ = create_ocaml_check(dict_ezfio_cfg)
+    str_ocaml_input = create_ocaml_input(dict_ezfio_cfg)
+    save_ocaml_input(module_lower, str_ocaml_input)
 
     # ~#~#~#~#~#~#~#~#
     #  I R P . f 9 0 #
