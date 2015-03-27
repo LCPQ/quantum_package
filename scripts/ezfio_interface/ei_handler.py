@@ -58,9 +58,9 @@ def is_bool(str_):
         fortran and ocaml one.
     """
     if str_.lower() in ['true', '.true.']:
-        return Type(None, "true", ".True.")
+        return Type(None, "True", ".True.")
     elif str_.lower() in ['false', '.False.']:
-        return Type(None, "false", ".False")
+        return Type(None, "False", ".False")
     else:
         raise TypeError
 
@@ -236,7 +236,7 @@ def get_dict_config_file(config_file_path, module_lower):
                 if option in d_default:
                     d[pvd][option] = d_default[option]
 
-        # If interface is output we need a default value information
+        # If interface is input we need a default value information
         if d[pvd]["interface"] == "input":
             try:
                 default_raw = config_file.get(section, "default")
@@ -312,7 +312,7 @@ def save_ezfio_provider(path_head, dict_code_provider):
             f.write(output)
 
 
-def create_ezfio_config(dict_ezfio_cfg):
+def create_ezfio_stuff(dict_ezfio_cfg, config_or_default="config"):
     """
     From dict_ezfio_cfg[provider_name] = {type, default, ezfio_name,ezfio_dir,doc}
     Return the string ezfio_interface_config
@@ -383,18 +383,32 @@ def create_ezfio_config(dict_ezfio_cfg):
         str_fortran_type = str_type_format(fortran_type_raw)
 
         # Return the string
-        s = "  {0} {1} {2}".format(str_name, str_fortran_type, str_size)
-
+        if config_or_default == "config":
+            s = "  {0} {1} {2}".format(str_name, str_fortran_type, str_size)
+        elif config_or_default == "default":
+            try:
+                str_value = provider_info["default"].ocaml
+            except KeyError:
+                continue
+            else:
+                s = "  {0} {1}".format(str_name, str_value)
+        else:
+            raise KeyError
         # Append
         result.append(s)
 
     return "\n".join(result)
 
 
+def create_ezfio_config(dict_ezfio_cfg):
+    return create_ezfio_stuff(dict_ezfio_cfg,
+                              config_or_default="config")
+
+
 def save_ezfio_config(module_lower, str_ezfio_config):
     """
     Write the str_ezfio_config in
-    $QPACKAGE_ROOT/EZFIO/{0}.ezfio_interface_config".format(module_lower)
+    "$QPACKAGE_ROOT/EZFIO/{0}.ezfio_interface_config".format(module_lower)
     """
 
     root_ezfio = "{0}/EZFIO".format(os.environ['QPACKAGE_ROOT'])
@@ -412,6 +426,34 @@ def save_ezfio_config(module_lower, str_ezfio_config):
     if str_ezfio_config != old_output:
         with open(path, "w") as f:
             f.write(str_ezfio_config)
+
+
+def create_ezfio_default(dict_ezfio_cfg):
+    return create_ezfio_stuff(dict_ezfio_cfg,
+                              config_or_default="default")
+
+
+def save_ezfio_default(module_lower, str_ezfio_default):
+    """
+    Write the str_ezfio_config in
+    "$QPACKAGE_ROOT/data/ezfio_defaults/{0}.ezfio_interface_default".format(module_lower)
+    """
+
+    root_ezfio_default = "{0}/data/ezfio_defaults/".format(os.environ['QPACKAGE_ROOT'])
+    path = "{0}/{1}.ezfio_interface_default".format(root_ezfio_default,
+                                                    module_lower)
+
+    try:
+        f = open(path, "r")
+    except IOError:
+        old_output = ""
+    else:
+        old_output = f.read()
+        f.close()
+
+    if str_ezfio_default != old_output:
+        with open(path, "w") as f:
+            f.write(str_ezfio_default)
 
 
 def create_ocaml_input(dict_ezfio_cfg):
@@ -579,6 +621,13 @@ def main():
 
     str_ezfio_config = create_ezfio_config(dict_ezfio_cfg)
     save_ezfio_config(module_lower, str_ezfio_config)
+
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    #  e z f i o _  d e f a u l t #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+
+    str_ezfio_default = create_ezfio_default(dict_ezfio_cfg)
+    save_ezfio_default(module_lower, str_ezfio_default)
 
 
 if __name__ == "__main__":

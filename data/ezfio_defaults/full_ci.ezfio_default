@@ -1,6 +1,0 @@
-full_ci
-  n_det_max_fci              10000
-  n_det_max_fci_property     50000
-  pt2_max                    1.e-4
-  do_pt2_end                 True
-  var_pt2_ratio              0.75
