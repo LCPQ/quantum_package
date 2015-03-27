@@ -83,7 +83,7 @@ def get_type_dict():
 
     qpackage_root = os.environ['QPACKAGE_ROOT']
 
-    fancy_type_pickle = qpackage_root + "/scripts/fancy_type.p"
+    fancy_type_pickle = qpackage_root + "/scripts/ezfio_interface/fancy_type.p"
 
     if fancy_type_pickle in listdir(os.getcwd()):
         fancy_type = pickle.load(open(fancy_type_pickle, "rb"))
@@ -417,34 +417,12 @@ def save_ezfio_config(module_lower, str_ezfio_config):
 def create_ocaml_check(dict_ezfio_cfg):
 
     # ~#~#~#~#~#~#~#~# #
-    #  F u n c t i o n #
-    # ~#~#~#~#~#~#~#~# #
-
-    def create_read(d_format):
-
-        template = """
-  (* Read snippet for {ezfio_name} *)
-  let read_{ezfio_name} () =
-    if not (Ezfio.has_{ezfio_dir}_{ezfio_name} ()) then
-       get_default "{ezfio_name}"
-       |> {Ocaml_type}.of_string
-       |> Ezfio.set_{ezfio_dir}_{ezfio_name}
-    ;
-    Ezfio.get_{ezfio_dir}_{ezfio_name} ()
-"""
-        fancy_type = d_format["type"]
-        if d_format["type"].fancy:
-            template += "    |> {0}.of_{1}".format(fancy_type.fancy,
-                                                   fancy_type.ocaml)
-
-        template += """
-  ;;
-        """
-        return template.strip().format(**d_format)
-
-    # ~#~#~#~#~#~#~#~# #
     #  C r e a t i o n #
     # ~#~#~#~#~#~#~#~# #
+
+    from ezfio_generate_ocaml import EZFIO_ocaml
+
+    e = EZFIO_ocaml()
 
     for provider_name, d_val in sorted(dict_ezfio_cfg.iteritems()):
 
@@ -454,10 +432,9 @@ def create_ocaml_check(dict_ezfio_cfg):
 
         d = {"ezfio_dir": ezfio_dir,
              "ezfio_name": ezfio_name,
-             "type": d_val["type"],
-             "Ocaml_type": ocaml_type}
+             "type": d_val["type"]}
 
-        template = create_read(d)
+        template = e.create_read(**d)
 
         print template
 

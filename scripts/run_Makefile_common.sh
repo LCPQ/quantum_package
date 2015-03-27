@@ -65,5 +65,4 @@ fi
 ${QPACKAGE_ROOT}/scripts/create_Makefile_depend.sh
 
 # Update EZFIO interface
-${QPACKAGE_ROOT}/scripts/ezfio_interface.py
-
+  ${QPACKAGE_ROOT}/scripts/ezfio_interface/ei_handler.py
