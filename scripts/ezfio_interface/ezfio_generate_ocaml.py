@@ -5,10 +5,23 @@ import sys
 
 class EZFIO_ocaml(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, **kwargs):
 
-    def create_read(self, **param):
+        for k, v in kwargs.iteritems():
+            if k == "type":
+                self.type = kwargs["type"]
+            else:
+                exec "self.{0} = '{1}'".format(k, v)
+
+    @property
+    def Ocaml_type(self):
+        return self.type.ocaml.capitalize()
+
+    @property
+    def fancy_type(self):
+        return self.type.fancy
+
+    def create_read(self):
         '''
         Take an imput a list of keyword argument
         ezfio_dir  = str
@@ -18,28 +31,28 @@ class EZFIO_ocaml(object):
         Return the read template
         '''
 
-        l_name_need = "ezfio_dir ezfio_name type".split()
-
-        for key in l_name_need:
-            if key not in param:
-                print "You need to provide {0} at keyword argument".format(key)
-                sys.exit(1)
+        for i in ["ezfio_dir", "ezfio_name", "type"]:
+            try:
+                "exec self.{0}".format(i)
+            except NameError:
+                msg = "You need to provide a '{0}' for creating read function"
+                raise KeyError(msg.format(i))
 
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
         # C r e a t e _ t e m pl a t e #
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
 
-        l_template = ['(* Read snippet for {ezfio_name} *)',
-                      'let read_{ezfio_name} () =',
-                      '  if not (Ezfio.has_{ezfio_dir}_{ezfio_name} ()) then',
-                      '     get_default "{ezfio_name}"',
-                      '     |> {Ocaml_type}.of_string',
-                      '     |> Ezfio.set_{ezfio_dir}_{ezfio_name}',
+        l_template = ['(* Read snippet for {self.ezfio_name} *)',
+                      'let read_{self.ezfio_name} () =',
+                      '  if not (Ezfio.has_{self.ezfio_dir}_{self.ezfio_name} ()) then',
+                      '     get_default "{self.ezfio_name}"',
+                      '     |> {self.Ocaml_type}.of_string',
+                      '     |> Ezfio.set_{self.ezfio_dir}_{self.ezfio_name}',
                       '  ;',
-                      '  Ezfio.get_{ezfio_dir}_{ezfio_name} ()']
+                      '  Ezfio.get_{self.ezfio_dir}_{self.ezfio_name} ()']
 
-        if param["type"].fancy:
-                l_template += ["    |> {fancy_type}.of_{Ocaml_type}"]
+        if self.fancy_type:
+                l_template += ["    |> {self.fancy_type}.of_{self.Ocaml_type}"]
 
         l_template += [";;;"]
 
@@ -49,11 +62,12 @@ class EZFIO_ocaml(object):
         # R e n d e r #
         # ~#~#~#~#~#~ #
 
-        param["Ocaml_type"] = param["type"].ocaml.capitalize()
-        param["fancy_type"] = param["type"].fancy
-        template_rendered = template.format(**param)
+        template_rendered = template.format(**locals())
 
         # ~#~#~#~#~#~ #
         # R e t u r n #
         # ~#~#~#~#~#~ #
         return template_rendered
+
+    def create_write(self):
+        pass

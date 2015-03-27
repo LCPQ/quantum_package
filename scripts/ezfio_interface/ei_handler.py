@@ -422,11 +422,8 @@ def create_ocaml_check(dict_ezfio_cfg):
 
     from ezfio_generate_ocaml import EZFIO_ocaml
 
-    e = EZFIO_ocaml()
-
     for provider_name, d_val in sorted(dict_ezfio_cfg.iteritems()):
 
-        ocaml_type = d_val["type"].ocaml.capitalize()
         ezfio_dir = d_val["ezfio_dir"]
         ezfio_name = d_val["ezfio_name"]
 
@@ -434,7 +431,9 @@ def create_ocaml_check(dict_ezfio_cfg):
              "ezfio_name": ezfio_name,
              "type": d_val["type"]}
 
-        template = e.create_read(**d)
+        e = EZFIO_ocaml(**d)
+
+        template = e.create_read()
 
         print template
 
