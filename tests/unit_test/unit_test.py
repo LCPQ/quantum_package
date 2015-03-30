@@ -57,22 +57,46 @@ def run_hf(geo, basis):
     Run a simle by default hf
     EZFIO path = geo.ezfio
     """
-    global has_hf_alredy
-    has_hf_alredy = True
+    # ~#~#~#~#~#~#~#~#~#~ #
+    # R e f _ e n e r g y #
+    # ~#~#~#~#~#~#~#~#~#~ #
 
     ref_energy = defaultdict(dict)
 
     ref_energy["sto-3g"]["methane"] = -39.7267433402
 
-    init_folder(geo, basis)
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # G l o b a l _ v a r i a b l e #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
+    global has_hf_alredy
+    has_hf_alredy = True
+
+    # ~#~#~#~ #
+    # I n i t #
+    # ~#~#~#~ #
+
+    init_folder(geo, basis)
     ezfio.set_file("{0}.ezfio".format(geo))
-    ezfio.set_hartree_fock_mo_guess_type("Huckel")
-    ezfio.set_hartree_fock_thresh_scf("1.e-10")
-    ezfio.set_hartree_fock_n_it_scf_max("100")
+
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # S e t _ p a r a m e t e r #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+
+    ezfio.hartree_fock_mo_guess_type = "Huckel"
+    ezfio.hartree_fock_thresh_scf = 1.e-10
+    ezfio.hartree_fock_n_it_scf_max = 100
+
+    # ~#~#~ #
+    # R u n #
+    # ~#~#~ #
 
     cmd = "qp_run SCF {0}.ezfio/".format(geo)
     subprocess.check_call([cmd], shell=True)
+
+    # ~#~#~#~#~ #
+    # C h e c k #
+    # ~#~#~#~#~ #
 
     cur_e = ezfio.get_hartree_fock_energy()
     ref_e = ref_energy[basis][geo]
@@ -89,20 +113,40 @@ def run_full_ci_10k_pt2_end(geo, basis):
     EZFIO path = geo.ezfio
     """
 
+    # ~#~#~#~#~#~#~#~#~#~ #
+    # R e f _ e n e r g y #
+    # ~#~#~#~#~#~#~#~#~#~ #
+
     ref_energy_var = defaultdict(dict)
     ref_energy_pt2 = defaultdict(dict)
 
     ref_energy_var["sto-3g"]["methane"] = -0.398058753535695E+02
     ref_energy_pt2["sto-3g"]["methane"] = -0.398059182483741E+02
 
+    # ~#~#~#~ #
+    # I n i t #
+    # ~#~#~#~ #
+
     ezfio.set_file("{0}.ezfio".format(geo))
+
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # S e t _ p a r a m e t e r #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
     ezfio.full_ci_do_pt2_end = True
     ezfio.full_ci_n_det_max_fci = 10000
     ezfio.full_ci_pt2_max = 1.e-8
 
+    # ~#~#~ #
+    # R u n #
+    # ~#~#~ #
+
     cmd = "qp_run full_ci {0}.ezfio/".format(geo)
     subprocess.check_call([cmd], shell=True)
+
+    # ~#~#~#~#~ #
+    # C h e c k #
+    # ~#~#~#~#~ #
 
     cur_var = ezfio.get_full_ci_energy()
     cur_pt2 = ezfio.get_full_ci_energy_pt2()
