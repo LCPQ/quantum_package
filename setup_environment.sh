@@ -11,23 +11,6 @@ BLACK="(B[m"
 QPACKAGE_ROOT="$( cd "$(dirname "$BASH_SOURCE")"  ; pwd -P )"
 
 
-if [[ -z "${IRPF90}" ]] ;
-then
-    make irpf90
-    IRPF90="${QPACKAGE_ROOT}"/bin/irpf90
-    if [[ ! -x "${IRPF90}" ]]
-    then
-      echo $RED "Error in IRPF90 installation" $BLACK
-      exit 1
-    fi
-fi
-
-
-if [[ -z ${OCAMLBREW_BASE} ]]
-then
-  export OCAMLBREW_BASE="$HOME/ocamlbrew"
-fi
-
 cat << EOF > quantum_package.rc
 export IRPF90="${IRPF90}"
 export QPACKAGE_ROOT=\$( cd \$(dirname "\${BASH_SOURCE}")  ; pwd -P )
@@ -57,7 +40,6 @@ then
   echo $RED "Error in IRPF90 installation" $BLACK
   exit 1
 fi
-
 
 if [[ ! -x ${QPACKAGE_ROOT}/bin/irpman ]]
 then

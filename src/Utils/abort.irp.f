@@ -22,8 +22,9 @@ subroutine trap_signals
   ! What to do when a signal is caught. Here, trap Ctrl-C and call the control_C subroutine.
   END_DOC
   integer, external              :: catch_signal
-  integer, parameter             :: sigusr2 = 12
-  call signal (sigusr2, catch_signal)
+  integer                        :: sigusr2, status
+  sigusr2 = 12
+  call signal (sigusr2, catch_signal,status)
 end subroutine trap_signals
 
 integer function catch_signal(signum)
