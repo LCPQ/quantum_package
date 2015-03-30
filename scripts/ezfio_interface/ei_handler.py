@@ -105,6 +105,8 @@ def get_type_dict():
     fancy_type['logical'] = Type(None, "bool", "logical")
     fancy_type['bool'] = Type(None, "bool", "logical")
 
+    fancy_type['MO_guess'] = Type("MO_guess", "string", "character*(32)")
+
     fancy_type['character*(32)'] = Type(None, "string", "character*(32)")
     fancy_type['character*(60)'] = Type(None, "string", "character*(60)")
     fancy_type['character*(256)'] = Type(None, "string", "character*(256)")
@@ -212,7 +214,7 @@ def get_dict_config_file(config_file_path, module_lower):
         type_ = config_file.get(section, "type")
         if type_ not in type_dict:
             print "{0} not avalaible. Choose in:".format(type_)
-            print ", ".join([i for i in type_dict])
+            print ", ".join(sorted([i for i in type_dict]))
             sys.exit(1)
         else:
             d[pvd]["type"] = type_dict[type_]
