@@ -66,10 +66,13 @@ def run_hf(geo, basis):
 
     init_folder(geo, basis)
 
+    ezfio.set_file("{0}.ezfio".format(geo))
+    ezfio.set_hartree_fock_mo_guess_type("Huckel")
+    ezfio.set_hartree_fock_thresh_scf("1.e-10")
+    ezfio.set_hartree_fock_n_it_scf_max("100")
+
     cmd = "qp_run SCF {0}.ezfio/".format(geo)
     subprocess.check_call([cmd], shell=True)
-
-    ezfio.set_file("{0}.ezfio".format(geo))
 
     cur_e = ezfio.get_hartree_fock_energy()
     ref_e = ref_energy[basis][geo]
