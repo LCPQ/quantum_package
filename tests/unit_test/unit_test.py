@@ -25,6 +25,12 @@ precision = 1.e-8
 # More ezfio condition you set, beter it is
 
 
+# You cannot order the test flow.
+# So if you dont whant to remarque on test (for example the HF), set
+# a global variable and check for it
+global has_hf_alredy
+has_hf_alredy = False
+
 def init_folder(geo, basis, mult=1):
     '''
     Take a geo in arg (aka a existing geo.xyz in test/)
@@ -50,8 +56,9 @@ def run_hf(geo, basis):
     """
     Run a simle by default hf
     EZFIO path = geo.ezfio
-
     """
+    global has_hf_alredy
+    has_hf_alredy = True
 
     ref_energy = defaultdict(dict)
 
@@ -111,8 +118,9 @@ def run_full_ci_10k_pt2_end(geo, basis):
 
 
 def run_big_test(geo, basis):
+    if not has_hf_alredy:
+        run_hf(geo, basis)
 
-    run_hf(geo, basis)
     run_full_ci_10k_pt2_end(geo, basis)
     return True
 
