@@ -1,0 +1,9 @@
+bielec_integrals
+  read_ao_integrals          False
+  read_mo_integrals          False
+  write_ao_integrals         False
+  write_mo_integrals         False
+  threshold_ao               1.e-15
+  threshold_mo               1.e-15
+  direct                     False
+

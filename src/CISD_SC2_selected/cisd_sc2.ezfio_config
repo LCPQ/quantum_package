@@ -1,4 +1,0 @@
-cisd_sc2_selected
-  n_det_max_cisd_sc2  integer 
-  pt2_max             double precision
-  do_pt2_end          logical 
