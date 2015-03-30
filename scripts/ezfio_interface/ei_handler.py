@@ -27,15 +27,12 @@ doc: Threshold on the convergence of the Hartree Fock energy
 type: Threshold
 default: 1.e-10
 interface: input
-default: 10000
-size : ao_num, 3
+size: 1
 
-[do_pt2_end]
-type: logical
-doc: If true, compute the PT2 at the end of the selection
-default: true
+[energy]
+type: double precision
+doc: Calculated HF energy
 interface: output
-size : 1
 ```
 
 """
