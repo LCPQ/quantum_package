@@ -3,48 +3,81 @@
 import unittest
 import subprocess
 import os
+import sys
 
 qpackage_root = os.environ['QPACKAGE_ROOT']
 
-import sys
 EZFIO = "{0}/EZFIO".format(qpackage_root)
-
 sys.path = [EZFIO + "/Python"] + sys.path
 
 from ezfio import ezfio
+from collections import defaultdict
+
+# ~#~#~ #
+# O p t #
+# ~#~#~ #
 
 precision = 1.e-8
 
-from collections import defaultdict
+# A test get a geo file and a basis file.
+# A global dict containt the result for this test
+# A test return True or Raise a error !
+# More ezfio condition you set, beter it is
 
 
-def init_folder(name, basis):
+def init_folder(geo, basis, mult=1):
+    '''
+    Take a geo in arg (aka a existing geo.xyz in test/)
+    And create the geo.ezfio with the adeguate basis and multipliciti
+    DO NOT CHECK IS THE EZFIO FOLDER ALREADY EXIST
+    '''
 
-    cmd = "cp {0}/tests/{1}.xyz .".format(qpackage_root, name)
+    cmd = "cp {0}/tests/{1}.xyz .".format(qpackage_root, geo)
     subprocess.check_call([cmd], shell=True)
 
-    cmd = "qp_create_ezfio_from_xyz -b {0} {1}.xyz".format(basis, name)
+    cmd = "qp_create_ezfio_from_xyz -b {0} -m {1} {2}.xyz".format(basis,
+                                                                  mult,
+                                                                  geo)
     subprocess.check_call([cmd], shell=True)
 
 
-def run_hf(name, basis):
+def get_error_message(l_exepected, l_cur):
+    l_msg = ["Need {0} get {1}".format(i,j) for i,j in zip(l_exepected,l_cur)]
+    return "\n".join(l_msg)
+
+
+def run_hf(geo, basis):
+    """
+    Run a simle by default hf
+    EZFIO path = geo.ezfio
+
+    """
 
     ref_energy = defaultdict(dict)
 
     ref_energy["sto-3g"]["methane"] = -39.7267433402
 
-    init_folder(name, basis)
+    init_folder(geo, basis)
 
-    cmd = "qp_run SCF {0}.ezfio/".format(name)
+    cmd = "qp_run SCF {0}.ezfio/".format(geo)
     subprocess.check_call([cmd], shell=True)
 
-    ezfio.set_file("{0}.ezfio".format(name))
+    ezfio.set_file("{0}.ezfio".format(geo))
+
     cur_e = ezfio.get_hartree_fock_energy()
+    ref_e = ref_energy[basis][geo]
 
-    return abs(cur_e - ref_energy[basis][name]) <= precision
+    if abs(cur_e - ref_e) <= precision:
+        return True
+    else:
+        raise ValueError(get_error_message([ref_e], [cur_e]))
 
 
-def run_full_ci_10k_pt2_end(name, basis):
+def run_full_ci_10k_pt2_end(geo, basis):
+    """
+    Run a Full_ci with 10k with the TruePT2
+    EZFIO path = geo.ezfio
+    """
 
     ref_energy_var = defaultdict(dict)
     ref_energy_pt2 = defaultdict(dict)
@@ -52,29 +85,36 @@ def run_full_ci_10k_pt2_end(name, basis):
     ref_energy_var["sto-3g"]["methane"] = -0.398058753535695E+02
     ref_energy_pt2["sto-3g"]["methane"] = -0.398059182483741E+02
 
-    ezfio.set_file("{0}.ezfio".format(name))
+    ezfio.set_file("{0}.ezfio".format(geo))
 
     ezfio.full_ci_do_pt2_end = True
     ezfio.full_ci_n_det_max_fci = 10000
     ezfio.full_ci_pt2_max = 1.e-8
 
-    cmd = "qp_run full_ci {0}.ezfio/".format(name)
+    cmd = "qp_run full_ci {0}.ezfio/".format(geo)
     subprocess.check_call([cmd], shell=True)
 
     cur_var = ezfio.get_full_ci_energy()
     cur_pt2 = ezfio.get_full_ci_energy_pt2()
 
-    t = [abs(cur_var - ref_energy_var[basis][name]) <= precision,
-         abs(cur_pt2 - ref_energy_pt2[basis][name]) <= precision]
+    ref_var = ref_energy_var[basis][geo]
+    ref_pt2 = ref_energy_pt2[basis][geo]
 
-    return all(t)
+    t = [abs(cur_var - ref_var) <= precision,
+         abs(cur_pt2 - ref_pt2) <= precision]
 
-
-def run_big_test(name, basis):
-    if run_hf(name, basis):
-        return run_full_ci_10k_pt2_end(name, basis)
+    if all(t):
+        return True
     else:
-        raise ValueError("Fail un run_hf")
+        raise ValueError(get_error_message([ref_var, ref_pt2],
+                                           [cur_var, cur_pt2]))
+
+
+def run_big_test(geo, basis):
+
+    run_hf(geo, basis)
+    run_full_ci_10k_pt2_end(geo, basis)
+    return True
 
 
 class SimplisticTest(unittest.TestCase):
