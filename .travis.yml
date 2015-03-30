@@ -6,10 +6,10 @@ python:
 
 before_script:
   - sudo apt-get update
-  - sudo apt-get install gfortran liblapack-dev zip 
+  - sudo apt-get install gfortran liblapack-dev 
 
 script: 
-  - ./setup_environment.sh --robot
+  - ./setup_environment.sh --robot 
   - source ./quantum_package.rc
   - cp ./src/Makefile.config.gfortran  ./src/Makefile.config
   - make build 
