@@ -108,9 +108,9 @@ def get_type_dict():
     fancy_type['logical'] = Type(None, "bool", "logical")
     fancy_type['bool'] = Type(None, "bool", "logical")
 
-    fancy_type['character*32'] = Type(None, "string", "character*32")
-    fancy_type['character*60'] = Type(None, "string", "character*60")
-    fancy_type['character*256'] = Type(None, "string", "character*256")
+    fancy_type['character*(32)'] = Type(None, "string", "character*(32)")
+    fancy_type['character*(60)'] = Type(None, "string", "character*(60)")
+    fancy_type['character*(256)'] = Type(None, "string", "character*(256)")
 
     # ~#~#~#~#~#~#~#~ #
     # q p _ t y p e s #
@@ -457,7 +457,7 @@ def save_ezfio_default(module_lower, str_ezfio_default):
             f.write(str_ezfio_default)
 
 
-def create_ocaml_input(dict_ezfio_cfg):
+def create_ocaml_input(dict_ezfio_cfg,module_lower):
 
     # ~#~#~#~# #
     #  I n i t #
@@ -492,7 +492,7 @@ def create_ocaml_input(dict_ezfio_cfg):
                  "open Qputils;;",
                  "open Core.Std;;",
                  "",
-                 "module Full_ci : sig"]
+                 "module {0} : sig".format(module_lower.capitalize())]
 
     template += [e_glob.create_type()]
 
@@ -612,7 +612,7 @@ def main():
     #  O c a m l #
     # ~#~#~#~#~#~#
 
-    str_ocaml_input = create_ocaml_input(dict_ezfio_cfg)
+    str_ocaml_input = create_ocaml_input(dict_ezfio_cfg, module_lower)
     save_ocaml_input(module_lower, str_ocaml_input)
 
     # ~#~#~#~#~#~#~#~#
