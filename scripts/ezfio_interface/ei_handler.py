@@ -439,7 +439,8 @@ def save_ezfio_default(module_lower, str_ezfio_default):
     "$QPACKAGE_ROOT/data/ezfio_defaults/{0}.ezfio_interface_default".format(module_lower)
     """
 
-    root_ezfio_default = "{0}/data/ezfio_defaults/".format(os.environ['QPACKAGE_ROOT'])
+    root_ezfio_default = "{0}/data/ezfio_defaults/".format(
+        os.environ['QPACKAGE_ROOT'])
     path = "{0}/{1}.ezfio_interface_default".format(root_ezfio_default,
                                                     module_lower)
 
@@ -458,6 +459,12 @@ def save_ezfio_default(module_lower, str_ezfio_default):
 
 def create_ocaml_input(dict_ezfio_cfg):
 
+    # ~#~#~#~# #
+    #  I n i t #
+    # ~#~#~#~# #
+
+    from ezfio_generate_ocaml import EZFIO_ocaml
+
     l_provider = []
     l_type = []
     l_doc = []
@@ -468,11 +475,13 @@ def create_ocaml_input(dict_ezfio_cfg):
             l_type.append(v["type"])
             l_doc.append(v["doc"])
 
+    e_glob = EZFIO_ocaml(l_provider=l_provider,
+                         l_type=l_type,
+                         l_doc=l_doc)
+
     # ~#~#~#~#~#~#~#~# #
     #  C r e a t i o n #
     # ~#~#~#~#~#~#~#~# #
-
-    from ezfio_generate_ocaml import EZFIO_ocaml
 
     template = ['(* =~=~ *)',
                 '(* Init *)',
@@ -485,7 +494,7 @@ def create_ocaml_input(dict_ezfio_cfg):
                  "",
                  "module Full_ci : sig"]
 
-    template += [EZFIO_ocaml.create_type(l_provider, l_type)]
+    template += [e_glob.create_type()]
 
     template += ["  val read  : unit -> t option",
                  "  val write : t-> unit",
@@ -494,7 +503,7 @@ def create_ocaml_input(dict_ezfio_cfg):
                  "  val of_rst : Rst_string.t -> t option",
                  "end = struct"]
 
-    template += [EZFIO_ocaml.create_type(l_provider, l_type)]
+    template += [e_glob.create_type()]
 
     template += ['',
                  '  let get_default = Qpackage.get_ezfio_default "full_ci";;',
@@ -513,11 +522,9 @@ def create_ocaml_input(dict_ezfio_cfg):
         ezfio_dir = d_val["ezfio_dir"]
         ezfio_name = d_val["ezfio_name"]
 
-        d = {"ezfio_dir": ezfio_dir,
-             "ezfio_name": ezfio_name,
-             "type": d_val["type"]}
-
-        e = EZFIO_ocaml(**d)
+        e = EZFIO_ocaml(ezfio_dir=ezfio_dir,
+                        ezfio_name=ezfio_name,
+                        type=d_val["type"])
 
         template += [e.create_read(),
                      e.create_write(),
@@ -528,10 +535,10 @@ def create_ocaml_input(dict_ezfio_cfg):
                  '(* =~=~=~=~=~=~=~=~=~=~=~=~ *)',
                  ""]
 
-    template += [EZFIO_ocaml.create_read_global(l_provider),
-                 EZFIO_ocaml.create_write_global(l_provider),
-                 EZFIO_ocaml.create_to_string(l_provider, l_type),
-                 EZFIO_ocaml.create_to_rst(l_provider, l_type, l_doc)]
+    template += [e_glob.create_read_global(),
+                 e_glob.create_write_global(),
+                 e_glob.create_to_string(),
+                 e_glob.create_to_rst()]
 
     template += ["  include Generic_input_of_rst;;",
                  "  let of_rst = of_rst t_of_sexp;;",

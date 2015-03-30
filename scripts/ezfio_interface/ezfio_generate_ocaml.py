@@ -2,15 +2,19 @@
 
 import sys
 
+# If type in **kwargs
+from ei_handler import Type
+
 
 class EZFIO_ocaml(object):
 
     def __init__(self, **kwargs):
 
         for k, v in kwargs.iteritems():
-            if k == "type":
-                self.type = kwargs["type"]
-            else:
+
+            try:
+                exec "self.{0} = {1}".format(k, v)
+            except NameError:
                 exec "self.{0} = '{1}'".format(k, v)
 
     @property
@@ -25,6 +29,14 @@ class EZFIO_ocaml(object):
     def fancy_type(self):
         return self.type.fancy
 
+    def check_if_init(self, l_arg, name):
+        for i in l_arg:
+            try:
+                exec "self.{0}".format(i)
+            except AttributeError:
+                msg = "You need to provide a '{0}' for creating {1}"
+                raise KeyError(msg.format(i, name))
+
     def create_read(self):
         '''
         You need to instantiate the EZFIO_ocaml with this keyword argument
@@ -35,12 +47,12 @@ class EZFIO_ocaml(object):
         Return the read template
         '''
 
-        for i in ["ezfio_dir", "ezfio_name", "type"]:
-            try:
-                "exec self.{0}".format(i)
-            except NameError:
-                msg = "You need to provide a '{0}' for creating read function"
-                raise KeyError(msg.format(i))
+        # ~#~#~#~#~#~#~#~ #
+        # C h e c k i n g #
+        # ~#~#~#~#~#~#~#~ #
+
+        self.check_if_init(["ezfio_dir", "ezfio_name", "type"],
+                           sys._getframe().f_code.co_name)
 
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
         # C r e a t e _ t e m pl a t e #
@@ -84,12 +96,12 @@ class EZFIO_ocaml(object):
         Return the read template
         '''
 
-        for i in ["ezfio_dir", "ezfio_name", "type"]:
-            try:
-                "exec self.{0}".format(i)
-            except NameError:
-                msg = "You need to provide a '{0}' for creating read function"
-                raise KeyError(msg.format(i))
+        # ~#~#~#~#~#~#~#~ #
+        # C h e c k i n g #
+        # ~#~#~#~#~#~#~#~ #
+
+        self.check_if_init(["ezfio_dir", "ezfio_name", "type"],
+                           sys._getframe().f_code.co_name)
 
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
         # C r e a t e _ t e m pl a t e #
@@ -120,14 +132,31 @@ class EZFIO_ocaml(object):
         # ~#~#~#~#~#~ #
         return template_rendered
 
-    @staticmethod
-    def create_type(l_provider, l_type):
+    def create_type(self):
+        '''
+        You need to instantiate the EZFIO_ocaml with this keyword argument
+        l_provider  = [provider_name, ...]
+        l_type =  [Named_tuple(fancy_type, ocaml_type, fortrant_type), ...]
+
+        Return the type template
+        '''
+
+        # ~#~#~#~#~#~#~#~ #
+        # C h e c k i n g #
+        # ~#~#~#~#~#~#~#~ #
+
+        self.check_if_init(["l_provider", "l_type"],
+                           sys._getframe().f_code.co_name)
+
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+        # C r e a t e _ t e m pl a t e #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
 
         l_template = ["(* Generate type *)",
                       "type t = ",
                       "  {"]
 
-        for p, t in zip(l_provider, l_type):
+        for p, t in zip(self.l_provider, self.l_type):
 
             if t.fancy:
                 l_template += ["    {0:<30} : {1}.t;".format(p, t.fancy)]
@@ -141,15 +170,31 @@ class EZFIO_ocaml(object):
         # ~#~#~#~#~#~ #
         return "\n   ".join(l_template)
 
-    @staticmethod
-    def create_read_global(l_provider):
+    def create_read_global(self):
+        '''
+        You need to instantiate the EZFIO_ocaml with this keyword argument
+        l_provider  = [provider_name, ...]
+
+        Return the read_global template
+        '''
+        # ~#~#~#~#~#~#~#~ #
+        # C h e c k i n g #
+        # ~#~#~#~#~#~#~#~ #
+
+        self.check_if_init(["l_provider"],
+                           sys._getframe().f_code.co_name)
+
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+        # C r e a t e _ t e m pl a t e #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
 
         l_template = ["(* Read all *)",
                       "let read() = ",
                       "  Some",
                       "  {"]
+
         l_template += ["    {0:<30} = read_{0} ();".format(p)
-                       for p in l_provider]
+                       for p in self.l_provider]
 
         l_template += ["  }",
                        ";;"]
@@ -159,14 +204,29 @@ class EZFIO_ocaml(object):
         # ~#~#~#~#~#~ #
         return "\n   ".join(l_template)
 
-    @staticmethod
-    def create_write_global(l_provider):
+    def create_write_global(self):
+        '''
+        You need to instantiate the EZFIO_ocaml with this keyword argument
+        l_provider  = [provider_name, ...]
+
+        Return the type template
+        '''
+        # ~#~#~#~#~#~#~#~ #
+        # C h e c k i n g #
+        # ~#~#~#~#~#~#~#~ #
+
+        self.check_if_init(["l_provider"],
+                           sys._getframe().f_code.co_name)
+
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+        # C r e a t e _ t e m pl a t e #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
 
         l_template = ["(* Write all *)",
                       "let write{ "]
-        l_template += ["           {0};".format(p) for p in l_provider]
+        l_template += ["           {0};".format(p) for p in self.l_provider]
         l_template += ["         } ="]
-        l_template += ["  write_{0:<30} {0};".format(p) for p in l_provider]
+        l_template += ["  write_{0:<30} {0};".format(p) for p in self.l_provider]
         l_template += [";;"]
 
         # ~#~#~#~#~#~ #
@@ -174,17 +234,33 @@ class EZFIO_ocaml(object):
         # ~#~#~#~#~#~ #
         return "\n   ".join(l_template)
 
-    @staticmethod
-    def create_to_string(l_provider, l_type):
+    def create_to_string(self):
+        '''
+        You need to instantiate the EZFIO_ocaml with this keyword argument
+        l_provider  = [provider_name, ...]
+        l_type =  [Named_tuple(fancy_type, ocaml_type, fortrant_type), ...]
+
+        Return the type template
+        '''
+        # ~#~#~#~#~#~#~#~ #
+        # C h e c k i n g #
+        # ~#~#~#~#~#~#~#~ #
+
+        self.check_if_init(["l_provider", "l_type"],
+                           sys._getframe().f_code.co_name)
+
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+        # C r e a t e _ t e m pl a t e #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
 
         l_template = ['(* to_string*)',
                       'let to_string b =',
                       '  Printf.sprintf "']
 
-        l_template += ["{0} = %s".format(p) for p in l_provider]
+        l_template += ["{0} = %s".format(p) for p in self.l_provider]
         l_template += ['"']
 
-        for p, t in zip(l_provider, l_type):
+        for p, t in zip(self.l_provider, self.l_type):
 
             if t.fancy:
                 str_ = t.fancy
@@ -200,14 +276,30 @@ class EZFIO_ocaml(object):
         # ~#~#~#~#~#~ #
         return "\n   ".join(l_template)
 
-    @staticmethod
-    def create_to_rst(l_provider, l_type, l_doc):
+    def create_to_rst(self):
+        '''
+        You need to instantiate the EZFIO_ocaml with this keyword argument
+        l_provider  = [provider_name, ...]
+        l_type =  [Named_tuple(fancy_type, ocaml_type, fortrant_type), ...]
+
+        Return the type template
+        '''
+        # ~#~#~#~#~#~#~#~ #
+        # C h e c k i n g #
+        # ~#~#~#~#~#~#~#~ #
+
+        self.check_if_init(["l_provider", "l_type", "l_doc"],
+                           sys._getframe().f_code.co_name)
+
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+        # C r e a t e _ t e m pl a t e #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
 
         l_template = ['(* to_rst*)',
                       'let to_rst b =',
                       '  Printf.sprintf "']
 
-        for p, d in zip(l_provider, l_doc):
+        for p, d in zip(self.l_provider, self.l_doc):
 
             l_template += ["{0} ::".format(d),
                            "",
@@ -215,7 +307,7 @@ class EZFIO_ocaml(object):
                            ""]
         l_template += ['"']
 
-        for p, t in zip(l_provider, l_type):
+        for p, t in zip(self.l_provider, self.l_type):
 
             if t.fancy:
                 str_ = t.fancy
