@@ -163,7 +163,6 @@ class EZFIO_ocaml(object):
             else:
                 l_template += ["    {0:<30} : {1};".format(p, t.ocaml)]
 
-                print p, t, l_template
         l_template += ["  } with sexp",
                        ";;"]
 
