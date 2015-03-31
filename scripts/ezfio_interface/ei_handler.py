@@ -465,17 +465,17 @@ def create_ocaml_input(dict_ezfio_cfg,module_lower):
 
     from ezfio_generate_ocaml import EZFIO_ocaml
 
-    l_provider = []
+    l_ezfio_name = []
     l_type = []
     l_doc = []
 
     for k, v in dict_ezfio_cfg.iteritems():
         if v['interface'] == "input":
-            l_provider.append(k)
+            l_ezfio_name.append(v['ezfio_name'])
             l_type.append(v["type"])
             l_doc.append(v["doc"])
 
-    e_glob = EZFIO_ocaml(l_provider=l_provider,
+    e_glob = EZFIO_ocaml(l_ezfio_name=l_ezfio_name,
                          l_type=l_type,
                          l_doc=l_doc)
 

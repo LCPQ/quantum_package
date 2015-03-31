@@ -135,7 +135,7 @@ class EZFIO_ocaml(object):
     def create_type(self):
         '''
         You need to instantiate the EZFIO_ocaml with this keyword argument
-        l_provider  = [provider_name, ...]
+        l_ezfio_name  = [provider_name, ...]
         l_type =  [Named_tuple(fancy_type, ocaml_type, fortrant_type), ...]
 
         Return the type template
@@ -145,7 +145,7 @@ class EZFIO_ocaml(object):
         # C h e c k i n g #
         # ~#~#~#~#~#~#~#~ #
 
-        self.check_if_init(["l_provider", "l_type"],
+        self.check_if_init(["l_ezfio_name", "l_type"],
                            sys._getframe().f_code.co_name)
 
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
@@ -156,7 +156,7 @@ class EZFIO_ocaml(object):
                       "type t = ",
                       "  {"]
 
-        for p, t in zip(self.l_provider, self.l_type):
+        for p, t in zip(self.l_ezfio_name, self.l_type):
 
             if t.fancy:
                 l_template += ["    {0:<30} : {1}.t;".format(p, t.fancy)]
@@ -174,7 +174,7 @@ class EZFIO_ocaml(object):
     def create_read_global(self):
         '''
         You need to instantiate the EZFIO_ocaml with this keyword argument
-        l_provider  = [provider_name, ...]
+        l_ezfio_name  = [ezfio_name, ...]
 
         Return the read_global template
         '''
@@ -182,7 +182,7 @@ class EZFIO_ocaml(object):
         # C h e c k i n g #
         # ~#~#~#~#~#~#~#~ #
 
-        self.check_if_init(["l_provider"],
+        self.check_if_init(["l_ezfio_name"],
                            sys._getframe().f_code.co_name)
 
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
@@ -195,7 +195,7 @@ class EZFIO_ocaml(object):
                       "  {"]
 
         l_template += ["    {0:<30} = read_{0} ();".format(p)
-                       for p in self.l_provider]
+                       for p in self.l_ezfio_name]
 
         l_template += ["  }",
                        ";;"]
@@ -208,7 +208,7 @@ class EZFIO_ocaml(object):
     def create_write_global(self):
         '''
         You need to instantiate the EZFIO_ocaml with this keyword argument
-        l_provider  = [provider_name, ...]
+        l_ezfio_name  = [provider_name, ...]
 
         Return the type template
         '''
@@ -216,7 +216,7 @@ class EZFIO_ocaml(object):
         # C h e c k i n g #
         # ~#~#~#~#~#~#~#~ #
 
-        self.check_if_init(["l_provider"],
+        self.check_if_init(["l_ezfio_name"],
                            sys._getframe().f_code.co_name)
 
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
@@ -225,9 +225,9 @@ class EZFIO_ocaml(object):
 
         l_template = ["(* Write all *)",
                       "let write{ "]
-        l_template += ["           {0};".format(p) for p in self.l_provider]
+        l_template += ["           {0};".format(p) for p in self.l_ezfio_name]
         l_template += ["         } ="]
-        l_template += ["  write_{0:<30} {0};".format(p) for p in self.l_provider]
+        l_template += ["  write_{0:<30} {0};".format(p) for p in self.l_ezfio_name]
         l_template += [";;"]
 
         # ~#~#~#~#~#~ #
@@ -238,7 +238,7 @@ class EZFIO_ocaml(object):
     def create_to_string(self):
         '''
         You need to instantiate the EZFIO_ocaml with this keyword argument
-        l_provider  = [provider_name, ...]
+        l_ezfio_name  = [provider_name, ...]
         l_type =  [Named_tuple(fancy_type, ocaml_type, fortrant_type), ...]
 
         Return the type template
@@ -247,7 +247,7 @@ class EZFIO_ocaml(object):
         # C h e c k i n g #
         # ~#~#~#~#~#~#~#~ #
 
-        self.check_if_init(["l_provider", "l_type"],
+        self.check_if_init(["l_ezfio_name", "l_type"],
                            sys._getframe().f_code.co_name)
 
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
@@ -258,10 +258,10 @@ class EZFIO_ocaml(object):
                       'let to_string b =',
                       '  Printf.sprintf "']
 
-        l_template += ["{0} = %s".format(p) for p in self.l_provider]
+        l_template += ["{0} = %s".format(p) for p in self.l_ezfio_name]
         l_template += ['"']
 
-        for p, t in zip(self.l_provider, self.l_type):
+        for p, t in zip(self.l_ezfio_name, self.l_type):
 
             if t.fancy:
                 str_ = t.fancy
@@ -280,7 +280,7 @@ class EZFIO_ocaml(object):
     def create_to_rst(self):
         '''
         You need to instantiate the EZFIO_ocaml with this keyword argument
-        l_provider  = [provider_name, ...]
+        l_ezfio_name  = [provider_name, ...]
         l_type =  [Named_tuple(fancy_type, ocaml_type, fortrant_type), ...]
 
         Return the type template
@@ -289,7 +289,7 @@ class EZFIO_ocaml(object):
         # C h e c k i n g #
         # ~#~#~#~#~#~#~#~ #
 
-        self.check_if_init(["l_provider", "l_type", "l_doc"],
+        self.check_if_init(["l_ezfio_name", "l_type", "l_doc"],
                            sys._getframe().f_code.co_name)
 
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
@@ -300,7 +300,7 @@ class EZFIO_ocaml(object):
                       'let to_rst b =',
                       '  Printf.sprintf "']
 
-        for p, d in zip(self.l_provider, self.l_doc):
+        for p, d in zip(self.l_ezfio_name, self.l_doc):
 
             l_template += ["{0} ::".format(d),
                            "",
@@ -308,7 +308,7 @@ class EZFIO_ocaml(object):
                            ""]
         l_template += ['"']
 
-        for p, t in zip(self.l_provider, self.l_type):
+        for p, t in zip(self.l_ezfio_name, self.l_type):
 
             if t.fancy:
                 str_ = t.fancy
