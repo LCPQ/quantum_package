@@ -17,7 +17,7 @@ from collections import defaultdict
 # O p t #
 # ~#~#~ #
 
-precision = 1.e-8
+precision = 5.e-8
 
 # A test get a geo file and a basis file.
 # A global dict containt the result for this test
@@ -30,6 +30,7 @@ precision = 1.e-8
 # a global variable and check for it
 global has_hf_alredy
 has_hf_alredy = False
+
 
 def init_folder(geo, basis, mult=1):
     '''
@@ -48,7 +49,8 @@ def init_folder(geo, basis, mult=1):
 
 
 def get_error_message(l_exepected, l_cur):
-    l_msg = ["Need {0} get {1}".format(i,j) for i,j in zip(l_exepected,l_cur)]
+    l_msg = ["Need {0} get {1} error is {2}".format(i, j, abs(i - j))
+             for i, j in zip(l_exepected, l_cur)]
     return "\n".join(l_msg)
 
 
