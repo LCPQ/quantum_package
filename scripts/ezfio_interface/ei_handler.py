@@ -506,7 +506,7 @@ def create_ocaml_input(dict_ezfio_cfg,module_lower):
     template += [e_glob.create_type()]
 
     template += ['',
-                 '  let get_default = Qpackage.get_ezfio_default "full_ci";;',
+                 '  let get_default = Qpackage.get_ezfio_default "{0}";;'.format(module_lower),
                  '']
 
     template += ['(* =~=~=~=~=~=~==~=~=~=~=~=~ *)',
