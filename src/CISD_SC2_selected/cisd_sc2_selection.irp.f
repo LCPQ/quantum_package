@@ -68,6 +68,7 @@ program cisd_sc2_selected
   touch N_det psi_det psi_coef davidson_threshold davidson_criterion
   call diagonalize_CI_SC2
   pt2 = 0.d0
+ 
   if(do_pt2_end)then
    threshold_selectors = 1.d0
    call H_apply_PT2(pt2, norm_pert, H_pert_diag,  N_st)

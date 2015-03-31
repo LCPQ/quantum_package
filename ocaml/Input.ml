@@ -6,7 +6,6 @@ open Core.Std;;
 include Input_ao_basis;;
 include Input_bi_integrals;;
 include Input_bitmasks;;
-include Input_cisd_sc2;;
 include Input_cisd_sc2_selected;;
 include Input_determinants;;
 include Input_electrons;;
