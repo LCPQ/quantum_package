@@ -304,7 +304,7 @@ def save_ezfio_provider(path_head, dict_code_provider):
 
     l_output += [code for code in dict_code_provider.values()]
 
-    output = "\n".join(l_output)
+    output = "\n\n".join(l_output)
 
     if output != old_output:
         with open(path, "w") as f:
@@ -366,7 +366,8 @@ def create_ezfio_stuff(dict_ezfio_cfg, config_or_default="config"):
     for provider_name, provider_info in sorted(dict_ezfio_cfg.iteritems()):
 
         # Get the value from dict
-        name_raw = provider_name.lower()
+        name_raw = provider_info["ezfio_name"].lower()
+
         fortran_type_raw = provider_info["type"].fortran
 
         if "size" in provider_info and not provider_info["size"] == "1":

@@ -29,7 +29,6 @@ BEGIN_PROVIDER [ %(type)s, %(name)s ]
   endif
 
 %(write)s
-
 END_PROVIDER
 """.strip()
 

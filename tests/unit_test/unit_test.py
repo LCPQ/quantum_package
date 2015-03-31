@@ -82,6 +82,14 @@ def run_hf(geo, basis):
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # S e t _ p a r a m e t e r #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    ezfio.bielec_integrals_direct = False
+    ezfio.bielec_integrals_threshold_ao = 1.e-15
+    ezfio.bielec_integrals_write_ao_integrals = False
+    ezfio.bielec_integrals_read_ao_integrals = False
+
+    ezfio.bielec_integrals_threshold_mo = 1.e-15
+    ezfio.bielec_integrals_write_mo_integrals = False
+    ezfio.bielec_integrals_read_mo_integrals = False
 
     ezfio.hartree_fock_mo_guess_type = "Huckel"
     ezfio.hartree_fock_thresh_scf = 1.e-10
