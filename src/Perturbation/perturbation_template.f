@@ -25,7 +25,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   ASSERT (N_st > 0)
   do i = 1,buffer_size
 
-    c_ref = connected_to_ref(buffer(1,1,i),psi_generators,Nint,i_generator,N_det)
+    c_ref = connected_to_ref(buffer(1,1,i),psi_generators,Nint,i_generator,N_det_generators)
 
     if (c_ref /= 0) then
       cycle

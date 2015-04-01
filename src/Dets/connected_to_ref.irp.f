@@ -60,6 +60,7 @@ integer function get_index_in_psi_det_sorted_bit(key,Nint)
   integer*8, external            :: det_search_key
   logical                        :: is_in_wavefunction
   
+  is_in_wavefunction = .False.
   get_index_in_psi_det_sorted_bit = 0
   ibegin = 1
   iend   = N_det+1
