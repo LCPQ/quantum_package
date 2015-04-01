@@ -319,13 +319,6 @@ subroutine compute_ao_bielec_integrals(j,k,l,sze,buffer_value)
   
 end
 
-
-
-
-
-
-
-
 BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   implicit none
   use map_module

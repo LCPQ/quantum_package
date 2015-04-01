@@ -54,6 +54,10 @@ def get_error_message(l_exepected, l_cur):
     return "\n".join(l_msg)
 
 
+def check_hf(geo, basis):
+    ezfio.bielec_integrals_disk_access_ao_integrals = "None"
+
+
 def run_hf(geo, basis):
     """
     Run a simle by default hf
@@ -86,12 +90,10 @@ def run_hf(geo, basis):
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     ezfio.bielec_integrals_direct = False
     ezfio.bielec_integrals_threshold_ao = 1.e-15
-    ezfio.bielec_integrals_write_ao_integrals = False
-    ezfio.bielec_integrals_read_ao_integrals = False
+    ezfio.bielec_integrals_disk_access_ao_integrals = "None"
 
     ezfio.bielec_integrals_threshold_mo = 1.e-15
-    ezfio.bielec_integrals_write_mo_integrals = False
-    ezfio.bielec_integrals_read_mo_integrals = False
+    ezfio.bielec_integrals_disk_access_mo_integrals = "None"
 
     ezfio.hartree_fock_mo_guess_type = "Huckel"
     ezfio.hartree_fock_thresh_scf = 1.e-10

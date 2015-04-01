@@ -162,7 +162,35 @@ end = struct
     | _ -> failwith (\"Wrong Guess type : \"^s)
 
 end
+
+module Disk_access : sig
+  type t with sexp
+  val to_string : t -> string
+  val of_string : string -> t
+end = struct
+  type t = 
+  | Read
+  | Write
+  | None
+  with sexp
+
+  let to_string = function
+  | Read   -> \"Read\"
+  | Write  -> \"Write\"
+  | None   -> \"None\"
+  let of_string  s = 
+    let s = 
+      String.lowercase s
+    in
+    match s with
+    | \"read\"  -> Read
+    | \"write\" -> Write
+    | \"none\"  -> None
+    | _ -> failwith (\"Wrong IO type : \"^s)
+
+end
 "
+
 ;;
 
 let template = format_of_string "
