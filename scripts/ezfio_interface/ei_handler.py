@@ -1,26 +1,40 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Take a path in argv
-Check if EZFIO.cfg exists.
-EZFIO.cfg are in MODULE directories.
-create : ezfio_interface.irp.f
-         folder_ezfio_inteface_config
-Ezfio_dir : is equal to MODULE.lower!
+Welcom the ei_handler.
+We will create all the ezfio related stuff from a EZFIO.cfg file.
 
+Usage:
+    ei_handler.py [--path] [--irpf90] [--ezfio_config] [--ocaml] [--ezfio_default]
 
+By default all the option are executed.
+
+Options:
+    -h --help
+    --path             The path of the `EZFIO.cfg`, by default will look in the ${pwd}
+    --irpf90           Create the `ezfio_interface.ipf90` 
+                             who containt all the provider needed
+                             (aka all with the `interface: input` parameter)
+                             in `${pwd}`
+    --ezfio_config     Create the `${module_lower}_ezfio_interface_config` in
+                             `${QPACKAGE_ROOT}/EZFIO/config/`
+                       This file is needed by *EZFIO* to create the `libezfio.so`
+    --ocaml            Create the `Input_module.lower.ml` for the *qp_edit*
+    --ezfio_default    Create the `${module_lower}_ezfio_interface_default` in
+                             `${QPACKAGE_ROOT}/data/ezfio_defaults` needed by
+                             the ocaml
 Format specification :
-    [provider_name] : the name of the provider in irp.f90
-    - doc        : Is the doc
-    - Type       : Is a fancy_type support by the ocaml
-    - ezfio_name : Will be the name of the file for the ezfio
-        (optional by default is the name of the provider)
-    - interface  : The provider is a imput or a output
-    - default : The default value if interface == input:
-    - size : Is the string read in ezfio.cgf who containt the size information
-             (like 1 or =sum(ao_num) or (ao_num,3) )
+    [provider_name]  | the name of the provider in irp.f90
+    doc:{str}        | Is the doc
+    Type:{str}       | Is a fancy_type support by the ocaml
+    ezfio_name:{str} | Will be the name of the file for the ezfio
+                       (optional by default is the name of the provider)
+    interface:{str}  | The provider is a imput or a output
+    default:{str}    | The default value if interface == input:
+    size:{str}       | the size information
+                        (like 1 or =sum(ao_num) or (ao_num,3) )
 
-Example EZFIO.cfg:
+Example of EZFIO.cfg:
 ```
 [thresh_SCF]
 doc: Threshold on the convergence of the Hartree Fock energy
@@ -34,8 +48,8 @@ type: double precision
 doc: Calculated HF energy
 interface: output
 ```
-
 """
+from docopt import docopt
 
 import sys
 import os
@@ -586,28 +600,22 @@ def save_ocaml_input(module_lower, str_ocaml_input):
             f.write(str_ocaml_input)
 
 
-def main():
-    """
-    Two condition:
-        -Take the EZFIO.cfg path in arg
-        or
-        -Look if EZFIO.cfg is present in the pwd
+if __name__ == "__main__":
+    arguments = docopt(__doc__)
 
-    Return : - ezfio_interface.irp.f
-             - folder_ezfio_inteface_config
-    """
+    # ___
+    #  |  ._  o _|_
+    # _|_ | | |  |_
+    #
 
-    # ~#~#~#~# #
-    #  I n i t #
-    # ~#~#~#~# #
-
-    try:
-        config_file_path = sys.argv[1]
-    except:
+    if not arguments["--path"]:
         config_file_path = "EZFIO.cfg"
         if "EZFIO.cfg" not in os.listdir(os.getcwd()):
             sys.exit(0)
+    else:
+        config_file_path = arguments["path"]
 
+    # Get the full path
     config_file_path = os.path.expanduser(config_file_path)
     config_file_path = os.path.expandvars(config_file_path)
     config_file_path = os.path.abspath(config_file_path)
@@ -624,34 +632,51 @@ def main():
     ezfio_dir = module_lower
     dict_ezfio_cfg = get_dict_config_file(config_file_path, ezfio_dir)
 
+    #  _
+    # /   _   _|  _     _   _  ._   _  ._ _. _|_ o  _  ._
+    # \_ (_) (_| (/_   (_| (/_ | | (/_ | (_|  |_ | (_) | |
+    #                   _|
+
+    # ~#~#~#~#~#~#~#~#~#~ #
+    # W h a t _ t o _ d o #
+    # ~#~#~#~#~#~#~#~#~#~ #
+    if any([arguments[i] for i in ["--irpf90",
+                                   "--ezfio_config",
+                                   "--ocaml",
+                                   "--ezfio_default",
+                                   ]]):
+        # User changer somme argument, do what he want
+        do_all = False
+    else:
+        # Do all the stuff
+        do_all = True
+
+    # ~#~#~#~#~#~#~ #
+    # I R P . f 9 0 #
+    # ~#~#~#~#~#~#~ #
+
+    if do_all or arguments["--irpf90"]:
+        l_str_code = create_ezfio_provider(dict_ezfio_cfg)
+        save_ezfio_provider(path_dirname, l_str_code)
+
+    # ~#~#~#~#~#~#~#~#~#~#~#~ #
+    # e z f i o _ c o n f i g #
+    # ~#~#~#~#~#~#~#~#~#~#~#~ #
+
+    if do_all or arguments["--ezfio_config"]:
+        str_ezfio_config = create_ezfio_config(dict_ezfio_cfg)
+        save_ezfio_config(module_lower, str_ezfio_config)
+
     # ~#~#~#~#~#~#
-    #  O c a m l #
+    # O c a m l #
     # ~#~#~#~#~#~#
 
     str_ocaml_input = create_ocaml_input(dict_ezfio_cfg, module_lower)
     save_ocaml_input(module_lower, str_ocaml_input)
 
-    # ~#~#~#~#~#~#~#~#
-    #  I R P . f 9 0 #
-    # ~#~#~#~#~#~#~#~#
-
-    l_str_code = create_ezfio_provider(dict_ezfio_cfg)
-    save_ezfio_provider(path_dirname, l_str_code)
-
-    # ~#~#~#~#~#~#~#~#~#~#~#~# #
-    #  e z f i o _ c o n f i g #
-    # ~#~#~#~#~#~#~#~#~#~#~#~# #
-
-    str_ezfio_config = create_ezfio_config(dict_ezfio_cfg)
-    save_ezfio_config(module_lower, str_ezfio_config)
-
-    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
-    #  e z f i o _  d e f a u l t #
-    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # e z f i o _ d e f a u l t #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
     str_ezfio_default = create_ezfio_default(dict_ezfio_cfg)
     save_ezfio_default(module_lower, str_ezfio_default)
-
-
-if __name__ == "__main__":
-    main()
