@@ -220,7 +220,7 @@ class H_apply(object):
 
       self.data["printout_always"] = """
       do k=1,N_st
-        norm_psi(k) = norm_psi(k) + psi_coef(i_generator,k)*psi_coef(i_generator,k)
+          norm_psi(k) = norm_psi(k) + psi_coef_generators(i_generator,k)*psi_coef_generators(i_generator,k)
         delta_pt2(k) = pt2(k) - pt2_old(k)
       enddo
       """
@@ -275,7 +275,7 @@ class H_apply(object):
         if (select_max(i_generator) < selection_criterion_min*selection_criterion_factor) then
           !$ call omp_set_lock(lck)
           do k=1,N_st
-            norm_psi(k) = norm_psi(k) + psi_coef(i_generator,k)*psi_coef(i_generator,k)
+            norm_psi(k) = norm_psi(k) + psi_coef_generators(i_generator,k)*psi_coef_generators(i_generator,k)
 !            delta_pt2(k) = 0.d0
 !            pt2_old(k) = 0.d0
 !            pt2(k) = select_max(i_generator)
