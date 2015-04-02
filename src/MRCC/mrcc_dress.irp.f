@@ -53,22 +53,6 @@ subroutine mrcc_dress(delta_ij_sd_,Ndet_sd,i_generator,n_selected,det_buffer,Nin
   double precision :: haj
   double precision :: f(N_states)
 
-
-!  call i_h_j(psi_det(1,1,1), psi_det(1,1,64),Nint,hka)
-!  call debug_det(psi_det(1,1,1), N_int)
-!  call debug_det(psi_det(1,1,64), N_int)
-  double precision :: phase
-  integer          :: exc(0:2,2,2)
-!  call get_excitation(psi_det(1,1,1),psi_det(1,1,64),exc,degree(1),phase,Nint)
-  integer :: h1, p1, h2, p2, s1, s2
-!  call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
-!  print *,  hka
-!  print *,  h1, p1, h2, p2
-!  print *,  s1, s2
-!  pause
-
-
-
   do i=1,N_tq
     call get_excitation_degree_vector(psi_sd,tq(1,1,i),degree,Nint,Ndet_sd,idx)
     call i_h_j(tq(1,1,i),tq(1,1,i),Nint,haa)
@@ -83,21 +67,6 @@ subroutine mrcc_dress(delta_ij_sd_,Ndet_sd,i_generator,n_selected,det_buffer,Nin
           delta_ij_sd_(idx(k), idx(j),m) += haj*hka* f(m)
           delta_ij_sd_(idx(j), idx(k),m) += haj*hka* f(m)
         enddo
-  call get_excitation(tq(1,1,i),psi_sd(1,1,idx(j)),exc,degree(1),phase,Nint)
-  call decode_exc(exc,degree(1),h1,p1,h2,p2,s1,s2)
-  if ( (h1 == 1).and. &
-       (p1 == 6).and. &
-       (h2 == 1).and. &
-       (p2 == 6).and. &
-       (s1 == 1).and. &
-       (s2 == 2) ) then
-    call debug_det(tq(1,1,i), N_int)
-    call debug_det(psi_sd(1,1,idx(j)), N_int)
-    print *,  haj
-    pause
-  endif
-
-
       enddo 
     enddo
   enddo
@@ -196,13 +165,6 @@ END_PROVIDER
         exit
       endif
     enddo
-!    if(i_state < min(N_states_diag,N_det))then
-!     print *, 'pb with the number of states'
-!     print *, 'i_state = ',i_state
-!     print *, 'N_states_diag ',N_states_diag
-!     print *,'stopping ...'
-!     stop
-!    endif
     deallocate(eigenvectors,eigenvalues)
   endif
   

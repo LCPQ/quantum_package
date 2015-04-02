@@ -8,6 +8,9 @@ default:
 veryclean:
 	 clean_modules.sh
 
+clean:
+	IN_MAKE=1 make clean
+
 else  # Called by scripts/build_module.sh
 
 default: all .gitignore

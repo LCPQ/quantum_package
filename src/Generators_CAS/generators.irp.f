@@ -15,9 +15,9 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
       do k=1,N_int
         good = good .and. (                                          &
             iand(not(cas_bitmask(k,1,l)), psi_det(k,1,i)) ==         &
-            iand(not(cas_bitmask(k,1,l)), psi_det(k,1,1)) ) .and. (  &
+            iand(not(cas_bitmask(k,1,l)), HF_bitmask(k,1)) ) .and. ( &
             iand(not(cas_bitmask(k,2,l)), psi_det(k,2,i)) ==         &
-            iand(not(cas_bitmask(k,2,l)), psi_det(k,2,1)) )
+            iand(not(cas_bitmask(k,2,l)), HF_bitmask(k,2)) )
       enddo
       if (good) then
         exit
@@ -31,7 +31,8 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
   call write_int(output_dets,N_det_generators,'Number of generators')
 END_PROVIDER
 
-BEGIN_PROVIDER [ integer(bit_kind), psi_det_generators, (N_int,2,psi_det_size) ]
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_generators, (N_int,2,psi_det_size) ]
+&BEGIN_PROVIDER [ double precision, psi_coef_generators, (psi_det_size,N_states) ]
   implicit none
   BEGIN_DOC
   ! For Single reference wave functions, the generator is the
@@ -44,11 +45,11 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det_generators, (N_int,2,psi_det_size) ]
     do l=1,n_cas_bitmask
       good = .True.
       do k=1,N_int
-        good = good .and. (                                          &
+        good = good .and. (                                         &
             iand(not(cas_bitmask(k,1,l)), psi_det(k,1,i)) ==         &
-            iand(not(cas_bitmask(k,1,l)), psi_det(k,1,1)) ) .and. (  &
+            iand(not(cas_bitmask(k,1,l)), HF_bitmask(k,1)) .and. (   &
             iand(not(cas_bitmask(k,2,l)), psi_det(k,2,i)) ==         &
-            iand(not(cas_bitmask(k,2,l)), psi_det(k,2,1)) )
+            iand(not(cas_bitmask(k,2,l)), HF_bitmask(k,2) )) )
       enddo
       if (good) then
         exit
@@ -60,6 +61,7 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det_generators, (N_int,2,psi_det_size) ]
         psi_det_generators(k,1,m) = psi_det(k,1,i)
         psi_det_generators(k,2,m) = psi_det(k,2,i)
       enddo
+      psi_coef_generators(m,:) = psi_coef(m,:)
 !     call debug_det(psi_det_generators(1,1,m),N_int)
     endif
   enddo
