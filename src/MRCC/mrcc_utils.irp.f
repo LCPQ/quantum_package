@@ -1,31 +1,117 @@
  use bitmasks
- BEGIN_PROVIDER [ integer(bit_kind), psi_cas, (N_int,2,N_det_generators) ]
-&BEGIN_PROVIDER [ double precision, psi_cas_coefs,  (N_det_generators,n_states) ]
-&BEGIN_PROVIDER [ integer(bit_kind), psi_sd,  (N_int,2,N_det) ]
+
+BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
+ implicit none
+ BEGIN_DOC
+ ! Bitmasks for CAS reference determinants. (N_int, alpha/beta, CAS reference)
+ END_DOC
+ logical                        :: exists
+ integer                        :: i
+ PROVIDE ezfio_filename
+  
+ call ezfio_has_bitmasks_cas(exists)
+ if (exists) then                
+   call ezfio_get_bitmasks_cas(cas_bitmask)
+ else
+   do i=1,N_cas_bitmask
+     cas_bitmask(:,:,i) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
+   enddo 
+ endif  
+            
+END_PROVIDER
+
+BEGIN_PROVIDER [ integer, N_det_cas ]
+  implicit none
+  BEGIN_DOC
+  ! Number of generator detetrminants
+  END_DOC
+  integer                        :: i,k,l
+  logical                        :: good
+  call write_time(output_dets)
+  N_det_cas = 0
+  do i=1,N_det
+    do l=1,n_cas_bitmask
+      good = .True.
+      do k=1,N_int
+        good = good .and. (                                          &
+            iand(not(cas_bitmask(k,1,l)), psi_det(k,1,i)) ==         &
+            iand(not(cas_bitmask(k,1,l)), psi_det(k,1,1)) ) .and. (  &
+            iand(not(cas_bitmask(k,2,l)), psi_det(k,2,i)) ==         &
+            iand(not(cas_bitmask(k,2,l)), psi_det(k,2,1)) )
+      enddo
+      if (good) then
+        exit
+      endif
+    enddo
+    if (good) then
+      N_det_cas += 1
+    endif
+  enddo
+  N_det_cas = max(N_det_cas, 1)
+  call write_int(output_dets,N_det_cas, 'Number of determinants in the CAS')
+END_PROVIDER
+
+ BEGIN_PROVIDER [ integer(bit_kind), psi_cas, (N_int,2,N_det_cas) ]
+&BEGIN_PROVIDER [ double precision, psi_cas_coefs,  (N_det_cas,n_states) ]
+&BEGIN_PROVIDER [ integer, idx_cas, (N_det_cas) ]
+  implicit none
+  BEGIN_DOC
+  ! For Single reference wave functions, the generator is the
+  ! Hartree-Fock determinant
+  END_DOC
+  integer                        :: i, k, l, m
+  logical                        :: good
+  m=0
+  do i=1,N_det
+    do l=1,n_cas_bitmask
+      good = .True.
+      do k=1,N_int
+        good = good .and. (                                          &
+            iand(not(cas_bitmask(k,1,l)), psi_det(k,1,i)) ==         &
+            iand(not(cas_bitmask(k,1,l)), psi_det(k,1,1)) ) .and. (  &
+            iand(not(cas_bitmask(k,2,l)), psi_det(k,2,i)) ==         &
+            iand(not(cas_bitmask(k,2,l)), psi_det(k,2,1)) )
+      enddo
+      if (good) then
+        exit
+      endif
+    enddo
+    if (good) then
+      m = m+1
+      do k=1,N_int
+        psi_cas(k,1,m) = psi_det(k,1,i)
+        psi_cas(k,2,m) = psi_det(k,2,i)
+      enddo
+      idx_cas(m) = i
+      do k=1,N_states
+        psi_cas_coefs(m,k) = psi_coef(i,k)
+      enddo
+    endif
+  enddo
+
+END_PROVIDER
+
+
+
+
+ BEGIN_PROVIDER [ integer(bit_kind), psi_sd,  (N_int,2,N_det) ]
 &BEGIN_PROVIDER [ double precision, psi_sd_coefs, (N_det,n_states) ]
-&BEGIN_PROVIDER [ integer, idx_cas, (N_det_generators) ]
 &BEGIN_PROVIDER [ integer, idx_sd,  (N_det) ]
 &BEGIN_PROVIDER [ integer, N_det_sd]
-&BEGIN_PROVIDER [ integer, N_det_cas]
  implicit none
  BEGIN_DOC
  ! SD
  END_DOC
- integer                        :: i_cas,i_sd,j,k
+ integer                        :: i_sd,j,k
  integer                        :: degree
  logical                        :: in_cas
- i_cas=0
  i_sd =0
  do k=1,N_det
    in_cas = .False.
-   do j=1,n_det_generators
-     call get_excitation_degree(psi_generators(1,1,j), psi_det(1,1,k), degree, N_int)
+   do j=1,N_det_cas
+     call get_excitation_degree(psi_cas(1,1,j), psi_det(1,1,k), degree, N_int)
      if (degree == 0) then
-       i_cas  += 1
-       psi_cas(1:N_int,1:2,i_cas) = psi_det(1:N_int,1:2,k)
-       psi_cas_coefs(i_cas,1:N_states) = psi_coef(k,1:N_states)
        in_cas = .True.
-       idx_cas(i_cas) = k
        exit
      endif
    enddo
@@ -38,7 +124,6 @@
    endif
  enddo
  N_det_sd = i_sd
- N_det_cas = i_cas
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, lambda_mrcc, (psi_det_size,n_states) ]
@@ -63,15 +148,3 @@ BEGIN_PROVIDER [ double precision, lambda_mrcc, (psi_det_size,n_states) ]
  enddo
 END_PROVIDER
 
-subroutine update_generators
-  implicit none
-  integer :: i,j,k
-  n_det_generators = N_det_sd
-  do k=1,N_det_sd
-    do j=1,2
-      do i=1,N_int
-        psi_generators(i,j,k) = psi_sd(i,j,k)
-      enddo
-    enddo
-  enddo
-end

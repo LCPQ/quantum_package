@@ -54,4 +54,42 @@ program full_ci
       exit
     endif
   enddo
+
+  ! Check that it is a CAS-SD
+  logical :: in_cas
+  integer :: exc_max
+  exc_max = 0
+  print *,  'CAS determinants'
+  do i=1,N_det_generators
+    do k=i,N_det_generators
+      call get_excitation_degree(psi_generators(1,1,k),psi_det(1,1,i),degree,N_int)
+      exc_max = max(exc_max,degree)
+    enddo
+    call debug_det(psi_generators(1,1,i),N_int)
+    print *,  ''
+  enddo
+  print *,  'Max excitation degree in the CAS :', exc_max
+  do i=1,N_det
+    in_cas = .False.
+    do k=1,N_det_generators
+      call get_excitation_degree(psi_generators(1,1,k),psi_det(1,1,i),degree,N_int)
+      if (degree == 0) then
+        in_cas = .True.
+        exit
+      endif
+    enddo
+    if (.not.in_cas) then
+      do k=i,N_det
+        call get_excitation_degree(psi_det(1,1,k),psi_det(1,1,i),degree,N_int)
+        if (degree > exc_max+2) then
+          print *,  'Error : This is not a CAS-SD : '
+          print *,  'CAS determinant:'
+          call debug_det(psi_det(1,1,i),N_int)
+          print *,  'Excited determinant:', degree
+          call debug_det(psi_det(1,1,k),N_int)
+          stop
+        endif
+      enddo
+    endif
+  enddo
 end

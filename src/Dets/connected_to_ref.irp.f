@@ -94,9 +94,10 @@ integer function get_index_in_psi_det_sorted_bit(key,Nint)
     endif
   enddo
   i += 1
-  if (i > N_det) then
-    return
-  endif
+
+!  if (i > N_det) then
+!    return
+!  endif
 
   !DIR$ FORCEINLINE
   do while (det_search_key(psi_det_sorted_bit(1,1,i),Nint) == det_ref)
@@ -105,50 +106,49 @@ integer function get_index_in_psi_det_sorted_bit(key,Nint)
       continue
     else
       is_in_wavefunction = .True.
-      !DEC$ LOOP COUNT MIN(3)
+      !DIR$ IVDEP
+      !DIR$ LOOP COUNT MIN(3)
       do l=2,Nint
         if ( (key(l,1) /= psi_det_sorted_bit(l,1,i)).or.                           &
               (key(l,2) /= psi_det_sorted_bit(l,2,i)) ) then
           is_in_wavefunction = .False.
-          exit
         endif
       enddo
       if (is_in_wavefunction) then
+        get_index_in_psi_det_sorted_bit = i
         exit
+!        return
       endif
     endif
     i += 1
     if (i > N_det) then
-      return
- !    exit
+      exit
+!      return
     endif
     
   enddo
-  if (is_in_wavefunction) then
-    get_index_in_psi_det_sorted_bit = i
-  endif
 
 ! DEBUG is_in_wf
-! if (is_in_wavefunction) then
-!   degree = 1
-!   do i=1,N_det
-!     integer                        :: degree
-!     call get_excitation_degree(key,psi_det(1,1,i),degree,N_int)
-!     if (degree == 0) then
-!       exit
-!     endif
-!   enddo
-!   if (degree /=0) then
-!     stop 'pouet 1'
-!   endif
-! else
-!   do i=1,N_det
-!     call get_excitation_degree(key,psi_det(1,1,i),degree,N_int)
-!     if (degree == 0) then
-!       stop 'pouet 2'
-!     endif
-!   enddo
-! endif
+ if (is_in_wavefunction) then
+   degree = 1
+   do i=1,N_det
+     integer                        :: degree
+     call get_excitation_degree(key,psi_det(1,1,i),degree,N_int)
+     if (degree == 0) then
+       exit
+     endif
+   enddo
+   if (degree /=0) then
+     stop 'pouet 1'
+   endif
+ else
+   do i=1,N_det
+     call get_excitation_degree(key,psi_det(1,1,i),degree,N_int)
+     if (degree == 0) then
+       stop 'pouet 2'
+     endif
+   enddo
+ endif
 ! END DEBUG is_in_wf
 end
 
