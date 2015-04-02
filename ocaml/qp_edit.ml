@@ -12,7 +12,6 @@ open Core.Std;;
 type keyword = 
 | Ao_basis
 | Bielec_integrals
-| Cisd_sc2
 | Cisd_sc2_selected
 | Determinants
 | Electrons
@@ -24,16 +23,15 @@ type keyword =
 
 
 let keyword_to_string = function
-| Ao_basis         -> "AO basis"
-| Bielec_integrals -> "Two electron integrals"
-| Cisd_sc2         -> "CISD (SC)^2"
-| Cisd_sc2_selected -> "CISD (SC)^2 selected"
-| Determinants     -> "Determinants"
-| Electrons        -> "Electrons"
-| Full_ci          -> "Selected Full-CI"
-| Hartree_fock     -> "Hartree-Fock"
-| Mo_basis         -> "MO basis"
-| Nuclei           -> "Molecule"
+| Ao_basis          -> "AO basis"
+| Bielec_integrals  -> "Two electron integrals"
+| Cisd_sc2_selected -> "CISD (SC)^2"
+| Determinants      -> "Determinants"
+| Electrons         -> "Electrons"
+| Full_ci           -> "Selected Full-CI"
+| Hartree_fock      -> "Hartree-Fock"
+| Mo_basis          -> "MO basis"
+| Nuclei            -> "Molecule"
 ;;
 
 
@@ -80,8 +78,6 @@ let get s =
            f Mo_basis.(read, to_rst)
          | Electrons ->
            f Electrons.(read, to_rst)
-         | Cisd_sc2 ->
-           f Cisd_sc2.(read, to_rst)
          | Cisd_sc2_selected -> 
            f Cisd_sc2_selected.(read, to_rst)
          | Nuclei ->
@@ -132,7 +128,6 @@ let set str s =
         | Hartree_fock     -> write Hartree_fock.(of_rst, write) s
         | Full_ci          -> write Full_ci.(of_rst, write) s
         | Electrons        -> write Electrons.(of_rst, write) s
-        | Cisd_sc2         -> write Cisd_sc2.(of_rst, write) s
         | Cisd_sc2_selected -> write Cisd_sc2_selected.(of_rst, write) s
         | Bielec_integrals -> write Bielec_integrals.(of_rst, write) s
         | Determinants     -> write Determinants.(of_rst, write) s
@@ -183,7 +178,6 @@ let run check_only ezfio_filename =
       Electrons ;
       Bielec_integrals ;
       Hartree_fock ;
-      Cisd_sc2 ;
       Cisd_sc2_selected ;
       Full_ci ;
       Mo_basis;

@@ -61,13 +61,13 @@ let test_dets () =
 
 let test_cisd_sc2 () =
   Ezfio.set_file "F2.ezfio" ;
-  let b = match Input.Cisd_sc2.read () with
+  let b = match Input.Cisd_sc2_selected.read () with
   | Some x -> x
   | None   -> assert false
   in
-  print_endline (Input.Cisd_sc2.to_string b);
-  let rst = Input.Cisd_sc2.to_rst b in
-  let b2 = match Input.Cisd_sc2.of_rst rst with
+  print_endline (Input.Cisd_sc2_selected.to_string b);
+  let rst = Input.Cisd_sc2_selected.to_rst b in
+  let b2 = match Input.Cisd_sc2_selected.of_rst rst with
   | Some x -> x
   | None -> assert false
   in

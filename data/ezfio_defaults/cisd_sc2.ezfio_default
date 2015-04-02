@@ -1,5 +1,0 @@
-cisd_sc2_selected
-  n_det_max_cisd_sc2         10000
-  pt2_max                    1.e-4
-  do_pt2_end                 True
-

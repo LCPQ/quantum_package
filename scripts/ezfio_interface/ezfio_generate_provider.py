@@ -8,6 +8,7 @@ Creates the provider of a variable that has to be
 fetched from the EZFIO file.
 """
 
+import sys
 
 class EZFIO_Provider(object):
 
@@ -27,9 +28,7 @@ BEGIN_PROVIDER [ %(type)s, %(name)s ]
     print *, '%(ezfio_dir)s/%(ezfio_name)s not found in EZFIO file'
     stop 1
   endif
-
 %(write)s
-
 END_PROVIDER
 """.strip()
 
@@ -58,9 +57,12 @@ END_PROVIDER
             output = self.output
             name = self.name
 
-            l_write = ["  call write_time(%(output)s)",
+            l_write = ["",
+                       "  call write_time(%(output)s)",
                        "  call %(write)s(%(output)s, %(name)s, &",
-                       "     '%(name)s')"]
+                       "     '%(name)s')",
+                       ""]
+
             self.write = "\n".join(l_write) % locals()
 
     def set_type(self, t):

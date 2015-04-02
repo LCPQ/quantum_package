@@ -105,8 +105,6 @@ def get_type_dict():
     fancy_type['logical'] = Type(None, "bool", "logical")
     fancy_type['bool'] = Type(None, "bool", "logical")
 
-    fancy_type['MO_guess'] = Type("MO_guess", "string", "character*(32)")
-
     fancy_type['character*(32)'] = Type(None, "string", "character*(32)")
     fancy_type['character*(60)'] = Type(None, "string", "character*(60)")
     fancy_type['character*(256)'] = Type(None, "string", "character*(256)")
@@ -121,16 +119,34 @@ def get_type_dict():
                         "logical": "logical",
                         "string": "character*32"}
 
-    # Read and parse qptype
+    # Read and parse qptype generate
     src = qpackage_root + "/ocaml/qptypes_generator.ml"
     with open(src, "r") as f:
-        l = [i for i in f.read().splitlines() if i.strip().startswith("*")]
+        r = f.read()
+
+        # Generate
+        l_gen = [i for i in r.splitlines() if i.strip().startswith("*")]
+
+        # Untouch
+        b = r.find('let untouched = "')
+        e = r.find(';;', b)
+
+        l_un = [i for i in r[b:e].splitlines() if i.strip().startswith("module")]
+
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # q p _ t y p e s _ g e n e r a t e #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
     # Read the fancy_type, the ocaml. and convert the ocam to the fortran
-    for i in l:
+    for i in l_gen + l_un:
         str_fancy_type = i.split()[1].strip()
         str_ocaml_type = i.split()[3]
-        str_fortran_type = ocaml_to_fortran[str_ocaml_type]
+
+        if str_ocaml_type != 'sig':
+            str_fortran_type = ocaml_to_fortran[str_ocaml_type]
+        else:
+            str_fortran_type = 'character*(32)'
+            str_ocaml_type = 'string'
 
         fancy_type[str_fancy_type] = Type(str_fancy_type,
                                           str_ocaml_type,
@@ -277,7 +293,7 @@ def create_ezfio_provider(dict_ezfio_cfg):
             ez_p.set_ezfio_name(dict_info['ezfio_name'])
             ez_p.set_output("output_%s" % dict_info['ezfio_dir'])
 
-            dict_code_provider[provider_name] = str(ez_p)
+            dict_code_provider[provider_name] = str(ez_p) + "\n"
 
     return dict_code_provider
 
@@ -307,7 +323,7 @@ def save_ezfio_provider(path_head, dict_code_provider):
     output = "\n".join(l_output)
 
     if output != old_output:
-        with open(path, "w") as f:
+        with open(path, "w+") as f:
             f.write(output)
 
 
@@ -366,7 +382,8 @@ def create_ezfio_stuff(dict_ezfio_cfg, config_or_default="config"):
     for provider_name, provider_info in sorted(dict_ezfio_cfg.iteritems()):
 
         # Get the value from dict
-        name_raw = provider_name.lower()
+        name_raw = provider_info["ezfio_name"].lower()
+
         fortran_type_raw = provider_info["type"].fortran
 
         if "size" in provider_info and not provider_info["size"] == "1":
@@ -423,7 +440,7 @@ def save_ezfio_config(module_lower, str_ezfio_config):
         f.close()
 
     if str_ezfio_config != old_output:
-        with open(path, "w") as f:
+        with open(path, "w+") as f:
             f.write(str_ezfio_config)
 
 
@@ -452,7 +469,7 @@ def save_ezfio_default(module_lower, str_ezfio_default):
         f.close()
 
     if str_ezfio_default != old_output:
-        with open(path, "w") as f:
+        with open(path, "w+") as f:
             f.write(str_ezfio_default)
 
 
@@ -464,17 +481,17 @@ def create_ocaml_input(dict_ezfio_cfg,module_lower):
 
     from ezfio_generate_ocaml import EZFIO_ocaml
 
-    l_provider = []
+    l_ezfio_name = []
     l_type = []
     l_doc = []
 
     for k, v in dict_ezfio_cfg.iteritems():
         if v['interface'] == "input":
-            l_provider.append(k)
+            l_ezfio_name.append(v['ezfio_name'])
             l_type.append(v["type"])
             l_doc.append(v["doc"])
 
-    e_glob = EZFIO_ocaml(l_provider=l_provider,
+    e_glob = EZFIO_ocaml(l_ezfio_name=l_ezfio_name,
                          l_type=l_type,
                          l_doc=l_doc)
 
@@ -505,7 +522,7 @@ def create_ocaml_input(dict_ezfio_cfg,module_lower):
     template += [e_glob.create_type()]
 
     template += ['',
-                 '  let get_default = Qpackage.get_ezfio_default "full_ci";;',
+                 '  let get_default = Qpackage.get_ezfio_default "{0}";;'.format(module_lower),
                  '']
 
     template += ['(* =~=~=~=~=~=~==~=~=~=~=~=~ *)',
@@ -565,7 +582,7 @@ def save_ocaml_input(module_lower, str_ocaml_input):
         f.close()
 
     if str_ocaml_input != old_output:
-        with open(path, "w") as f:
+        with open(path, "w+") as f:
             f.write(str_ocaml_input)
 
 
