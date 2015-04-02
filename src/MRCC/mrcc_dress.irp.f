@@ -20,7 +20,7 @@ subroutine mrcc_dress(delta_ij_sd_,Ndet_sd,i_generator,n_selected,det_buffer,Nin
 
   N_tq = 0
   do i=1,N_selected
-    c_ref = connected_to_ref(det_buffer(1,1,i),psi_generators,Nint, &
+    c_ref = connected_to_ref(det_buffer(1,1,i),psi_det_generators,Nint, &
        i_generator,N_det_generators)
 
     if (c_ref /= 0) then

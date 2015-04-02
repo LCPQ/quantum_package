@@ -62,17 +62,17 @@ program full_ci
   print *,  'CAS determinants'
   do i=1,N_det_generators
     do k=i,N_det_generators
-      call get_excitation_degree(psi_generators(1,1,k),psi_det(1,1,i),degree,N_int)
+      call get_excitation_degree(psi_det_generators(1,1,k),psi_det_generators(1,1,i),degree,N_int)
       exc_max = max(exc_max,degree)
     enddo
-    call debug_det(psi_generators(1,1,i),N_int)
+    call debug_det(psi_det_generators(1,1,i),N_int)
     print *,  ''
   enddo
   print *,  'Max excitation degree in the CAS :', exc_max
   do i=1,N_det
     in_cas = .False.
     do k=1,N_det_generators
-      call get_excitation_degree(psi_generators(1,1,k),psi_det(1,1,i),degree,N_int)
+      call get_excitation_degree(psi_det_generators(1,1,k),psi_det(1,1,i),degree,N_int)
       if (degree == 0) then
         in_cas = .True.
         exit

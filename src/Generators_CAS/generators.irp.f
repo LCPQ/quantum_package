@@ -31,7 +31,7 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
   call write_int(output_dets,N_det_generators,'Number of generators')
 END_PROVIDER
 
-BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
+BEGIN_PROVIDER [ integer(bit_kind), psi_det_generators, (N_int,2,psi_det_size) ]
   implicit none
   BEGIN_DOC
   ! For Single reference wave functions, the generator is the
@@ -57,10 +57,10 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
     if (good) then
       m = m+1
       do k=1,N_int
-        psi_generators(k,1,m) = psi_det(k,1,i)
-        psi_generators(k,2,m) = psi_det(k,2,i)
+        psi_det_generators(k,1,m) = psi_det(k,1,i)
+        psi_det_generators(k,2,m) = psi_det(k,2,i)
       enddo
-!     call debug_det(psi_generators(1,1,m),N_int)
+!     call debug_det(psi_det_generators(1,1,m),N_int)
     endif
   enddo
   

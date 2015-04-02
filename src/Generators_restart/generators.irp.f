@@ -17,8 +17,8 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
 END_PROVIDER
 
 
- BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,N_det_generators) ]
-&BEGIN_PROVIDER [ double precision, psi_generators_coef, (N_det_generators,N_states)
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_generators, (N_int,2,N_det_generators) ]
+&BEGIN_PROVIDER [ double precision, psi_coef_generators, (N_det_generators,N_states) ]
  implicit none
  BEGIN_DOC
  ! read wf
@@ -29,11 +29,11 @@ END_PROVIDER
  if(ifirst == 0)then
   do i=1,N_det_generators
     do k=1,N_int
-      psi_generators(k,1,i) = psi_det(k,1,i)
-      psi_generators(k,2,i) = psi_det(k,2,i)
+      psi_det_generators(k,1,i) = psi_det(k,1,i)
+      psi_det_generators(k,2,i) = psi_det(k,2,i)
     enddo
    do k = 1, N_states
-    psi_generators_coef(i,k) = psi_coef(i,k)
+    psi_coef_generators(i,k) = psi_coef(i,k)
    enddo
   enddo
   ifirst = 1

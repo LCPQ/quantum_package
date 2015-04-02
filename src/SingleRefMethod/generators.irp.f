@@ -9,19 +9,20 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
  N_det_generators = 1
 END_PROVIDER
 
-BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_generators, (N_int,2,psi_det_size) ]
+&BEGIN_PROVIDER [ integer(bit_kind), psi_coef_generators, (1,N_states) ]
  implicit none
  BEGIN_DOC
  ! For Single reference wave functions, the generator is the
  ! Hartree-Fock determinant
  END_DOC
- psi_generators = 0_bit_kind
+ psi_det_generators = 0_bit_kind
  integer :: i,j,k
  integer :: degree
 
  do i=1,N_int
-   psi_generators(i,1,1) = HF_bitmask(i,1)
-   psi_generators(i,2,1) = HF_bitmask(i,2)
+   psi_det_generators(i,1,1) = HF_bitmask(i,1)
+   psi_det_generators(i,2,1) = HF_bitmask(i,2)
  enddo
 
  do j=1,N_det
@@ -32,12 +33,8 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
    endif
  end do
 
- do j=2,k
-   psi_generators(:,:,j) = psi_det(:,:,j-1)
- enddo
- do j=k+1,N_det
-   psi_generators(:,:,j) = psi_det(:,:,j)
- enddo
+ psi_det_generators(:,:,1) = psi_det(:,:,j)
+ psi_coef_generators(1,:) = psi_coef_generators(j,:)
 
 END_PROVIDER
 

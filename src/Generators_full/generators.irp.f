@@ -34,7 +34,7 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
  call write_int(output_dets,N_det_generators,'Number of generators')
 END_PROVIDER
 
-BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
+BEGIN_PROVIDER [ integer(bit_kind), psi_det_generators, (N_int,2,psi_det_size) ]
  implicit none
  BEGIN_DOC
  ! For Single reference wave functions, the generator is the
@@ -43,8 +43,8 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_generators, (N_int,2,psi_det_size) ]
  integer                        :: i, k
  do i=1,N_det
    do k=1,N_int
-     psi_generators(k,1,i) = psi_det_sorted(k,1,i)
-     psi_generators(k,2,i) = psi_det_sorted(k,2,i)
+     psi_det_generators(k,1,i) = psi_det_sorted(k,1,i)
+     psi_det_generators(k,2,i) = psi_det_sorted(k,2,i)
    enddo
  enddo
 
@@ -58,7 +58,7 @@ BEGIN_PROVIDER [integer, degree_max_generators]
  integer :: i,degree
   degree_max_generators = 0
   do i = 1, N_det_generators
-   call get_excitation_degree(HF_bitmask,psi_generators(1,1,i),degree,N_int)
+   call get_excitation_degree(HF_bitmask,psi_det_generators(1,1,i),degree,N_int)
    if(degree .gt. degree_max_generators)then
     degree_max_generators = degree
    endif
