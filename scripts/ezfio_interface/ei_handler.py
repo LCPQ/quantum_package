@@ -5,14 +5,14 @@ Welcom the ei_handler.
 We will create all the ezfio related stuff from a EZFIO.cfg file.
 
 Usage:
-    ei_handler.py [--path] [--irpf90] [--ezfio_config] [--ocaml] [--ezfio_default]
+    ei_handler.py [--path] [--irpf90] [--ezfio_config] [--ocaml] [--ezfio_default] [--global]
 
 By default all the option are executed.
 
 Options:
     -h --help
     --path             The path of the `EZFIO.cfg`, by default will look in the ${pwd}
-    --irpf90           Create the `ezfio_interface.ipf90` 
+    --irpf90           Create the `ezfio_interface.ipf90`
                              who containt all the provider needed
                              (aka all with the `interface: input` parameter)
                              in `${pwd}`
@@ -23,6 +23,8 @@ Options:
     --ezfio_default    Create the `${module_lower}_ezfio_interface_default` in
                              `${QPACKAGE_ROOT}/data/ezfio_defaults` needed by
                              the ocaml
+    --global           Create all the stuff who need all the EZFIO.cfg
+
 Format specification :
     [provider_name]  | the name of the provider in irp.f90
     doc:{str}        | Is the doc
@@ -93,7 +95,6 @@ def get_type_dict():
     from os import listdir
 
     qpackage_root = os.environ['QPACKAGE_ROOT']
-
     fancy_type_pickle = qpackage_root + "/scripts/ezfio_interface/fancy_type.p"
 
     if fancy_type_pickle in listdir(os.getcwd()):
@@ -145,7 +146,9 @@ def get_type_dict():
         b = r.find('let untouched = "')
         e = r.find(';;', b)
 
-        l_un = [i for i in r[b:e].splitlines() if i.strip().startswith("module")]
+        l_un = [
+            i for i in r[
+                b:e].splitlines() if i.strip().startswith("module")]
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # q p _ t y p e s _ g e n e r a t e #
@@ -294,7 +297,6 @@ def create_ezfio_provider(dict_ezfio_cfg):
     return [code, ...]
     """
     from ezfio_generate_provider import EZFIO_Provider
-
     dict_code_provider = dict()
 
     ez_p = EZFIO_Provider()
@@ -487,7 +489,7 @@ def save_ezfio_default(module_lower, str_ezfio_default):
             f.write(str_ezfio_default)
 
 
-def create_ocaml_input(dict_ezfio_cfg,module_lower):
+def create_ocaml_input(dict_ezfio_cfg, module_lower):
 
     # ~#~#~#~# #
     #  I n i t #
@@ -600,6 +602,93 @@ def save_ocaml_input(module_lower, str_ocaml_input):
             f.write(str_ocaml_input)
 
 
+def create_ocaml_input_global():
+    """
+    Check for all the EZFIO.cfg get the module lower
+    then create incule {module_lower}.ml
+    """
+
+    # ~#~#~#~# #
+    #  I n i t #
+    # ~#~#~#~# #
+
+    from os import listdir
+    from os.path import isdir, join, exists
+
+    mypath = "{0}/src".format(os.environ['QPACKAGE_ROOT'])
+
+    onlyfodler = [f for f in listdir(mypath) if isdir(join(mypath, f))]
+
+    l_module_lower = [f.lower() for f in onlyfodler
+                      if exists("{0}/{1}/EZFIO.cfg".format(mypath, f))]
+
+    # ~#~#~#~#~#~#~#~# #
+    #  C r e a t i o n #
+    # ~#~#~#~#~#~#~#~# #
+
+    from ezfio_generate_ocaml import EZFIO_ocaml
+
+    qpackage_root = os.environ['QPACKAGE_ROOT']
+    path = qpackage_root + "/scripts/ezfio_interface/qp_edit_template"
+
+    with open(path, "r") as f:
+        template_raw = f.read()
+
+    e = EZFIO_ocaml(l_module_lower=l_module_lower)
+
+    template = template_raw.format(keywords=e.create_qp_keywords(),
+                                   keywords_to_string=e.create_qp_keywords_to_string(),
+                                   section_to_rst=e.create_qp_section_to_rst(),
+                                   write=e.create_qp_write(),
+                                   tasks=e.create_qp_tasks())
+
+    input_auto = e.create_input_auto_generated()
+
+    return (template, input_auto)
+
+
+def save_ocaml_input_auto(str_ocaml_input_global):
+    """
+    Write the str_ocaml_input in
+    $QPACKAGE_ROOT/ocaml/Input_auto_generated.ml
+    """
+
+    path = "{0}/ocaml/Input_auto_generated.ml".format(os.environ['QPACKAGE_ROOT'])
+
+    try:
+        f = open(path, "r")
+    except IOError:
+        old_output = ""
+    else:
+        old_output = f.read()
+        f.close()
+
+    if str_ocaml_input_global != old_output:
+        with open(path, "w+") as f:
+            f.write(str_ocaml_input_global)
+
+
+def save_ocaml_qp_edit(str_ocaml_qp_edit):
+    """
+    Write the str_ocaml_qp_edit in
+    $QPACKAGE_ROOT/ocaml/qp_edit.ml
+    """
+
+    path = "{0}/ocaml/qp_edit.ml".format(os.environ['QPACKAGE_ROOT'])
+
+    try:
+        f = open(path, "r")
+    except IOError:
+        old_output = ""
+    else:
+        old_output = f.read()
+        f.close()
+
+    if str_ocaml_qp_edit != old_output:
+        with open(path, "w+") as f:
+            f.write(str_ocaml_qp_edit)
+
+
 if __name__ == "__main__":
     arguments = docopt(__doc__)
 
@@ -608,29 +697,30 @@ if __name__ == "__main__":
     # _|_ | | |  |_
     #
 
-    if not arguments["--path"]:
-        config_file_path = "EZFIO.cfg"
-        if "EZFIO.cfg" not in os.listdir(os.getcwd()):
-            sys.exit(0)
-    else:
-        config_file_path = arguments["path"]
+    if not arguments["--global"]:
+        if not arguments["--path"]:
+            config_file_path = "EZFIO.cfg"
+            if "EZFIO.cfg" not in os.listdir(os.getcwd()):
+                sys.exit(0)
+        else:
+            config_file_path = arguments["path"]
 
-    # Get the full path
-    config_file_path = os.path.expanduser(config_file_path)
-    config_file_path = os.path.expandvars(config_file_path)
-    config_file_path = os.path.abspath(config_file_path)
+        # Get the full path
+        config_file_path = os.path.expanduser(config_file_path)
+        config_file_path = os.path.expandvars(config_file_path)
+        config_file_path = os.path.abspath(config_file_path)
 
-    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
-    #  G e t _ m o d u l e _ d i r #
-    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+        #  G e t _ m o d u l e _ d i r #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
 
-    path_dirname = os.path.dirname(config_file_path)
-    module = [i for i in path_dirname.split("/") if i][-1]
-    module_lower = module.lower()
+        path_dirname = os.path.dirname(config_file_path)
+        module = [i for i in path_dirname.split("/") if i][-1]
+        module_lower = module.lower()
 
-    # Because we only authorise this right now!
-    ezfio_dir = module_lower
-    dict_ezfio_cfg = get_dict_config_file(config_file_path, ezfio_dir)
+        # Because we only authorise this right now!
+        ezfio_dir = module_lower
+        dict_ezfio_cfg = get_dict_config_file(config_file_path, ezfio_dir)
 
     #  _
     # /   _   _|  _     _   _  ._   _  ._ _. _|_ o  _  ._
@@ -644,7 +734,7 @@ if __name__ == "__main__":
                                    "--ezfio_config",
                                    "--ocaml",
                                    "--ezfio_default",
-                                   ]]):
+                                   "--global"]]):
         # User changer somme argument, do what he want
         do_all = False
     else:
@@ -670,13 +760,22 @@ if __name__ == "__main__":
     # ~#~#~#~#~#~#
     # O c a m l #
     # ~#~#~#~#~#~#
+    if do_all or arguments["--ocaml"]:
+        str_ocaml_input = create_ocaml_input(dict_ezfio_cfg, module_lower)
+        save_ocaml_input(module_lower, str_ocaml_input)
 
-    str_ocaml_input = create_ocaml_input(dict_ezfio_cfg, module_lower)
-    save_ocaml_input(module_lower, str_ocaml_input)
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # e z f i o _ d e f a u l t #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    if do_all or arguments["--ezfio_default"]:
+        str_ezfio_default = create_ezfio_default(dict_ezfio_cfg)
+        save_ezfio_default(module_lower, str_ezfio_default)
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # e z f i o _ d e f a u l t #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
-    str_ezfio_default = create_ezfio_default(dict_ezfio_cfg)
-    save_ezfio_default(module_lower, str_ezfio_default)
+    if do_all or arguments["--global"]:
+        str_ocaml_qp_edit, str_ocaml_input_auto = create_ocaml_input_global()
+        save_ocaml_input_auto(str_ocaml_input_auto)
+        save_ocaml_qp_edit(str_ocaml_qp_edit)

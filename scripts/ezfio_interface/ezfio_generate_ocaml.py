@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import os
 
 # If type in **kwargs
 from ei_handler import Type
@@ -227,7 +228,8 @@ class EZFIO_ocaml(object):
                       "let write{ "]
         l_template += ["           {0};".format(p) for p in self.l_ezfio_name]
         l_template += ["         } ="]
-        l_template += ["  write_{0:<30} {0};".format(p) for p in self.l_ezfio_name]
+        l_template += ["  write_{0:<30} {0};".format(p)
+                       for p in self.l_ezfio_name]
         l_template += [";;"]
 
         # ~#~#~#~#~#~ #
@@ -324,3 +326,158 @@ class EZFIO_ocaml(object):
         # R e t u r n #
         # ~#~#~#~#~#~ #
         return "\n   ".join(l_template)
+
+    def create_input_auto_generated(self):
+        """
+        Generate the include of all the Input_module.lower template
+        """
+
+        # ~#~#~#~#~#~#~#~ #
+        # C h e c k i n g #
+        # ~#~#~#~#~#~#~#~ #
+
+        self.check_if_init(["l_module_lower"],
+                           sys._getframe().f_code.co_name)
+
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+        # C r e a t e _ t e m pl a t e #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+
+        l_template = ['open Qputils;;',
+                      'open Qptypes;;',
+                      'open Core.Std;;',
+                      '']
+
+        for m in self.l_module_lower:
+            l_template += ["include Input_{0}".format(m)]
+
+        # ~#~#~#~#~#~ #
+        # R e t u r n #
+        # ~#~#~#~#~#~ #
+
+        return "\n".join(l_template)
+
+    def create_qp_keywords(self):
+        """
+        Generate keywords template
+        """
+
+        # ~#~#~#~#~#~#~#~ #
+        # C h e c k i n g #
+        # ~#~#~#~#~#~#~#~ #
+
+        self.check_if_init(["l_module_lower"],
+                           sys._getframe().f_code.co_name)
+
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+        # C r e a t e _ t e m pl a t e #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+
+        l_template = ["| {0}".format(m.capitalize())
+                      for m in self.l_module_lower]
+
+        # ~#~#~#~#~#~ #
+        # R e t u r n #
+        # ~#~#~#~#~#~ #
+
+        return "\n".join(l_template)
+
+    def create_qp_keywords_to_string(self):
+        """
+        Generate keywords to string template
+        """
+
+        # ~#~#~#~#~#~#~#~ #
+        # C h e c k i n g #
+        # ~#~#~#~#~#~#~#~ #
+
+        self.check_if_init(["l_module_lower"],
+                           sys._getframe().f_code.co_name)
+
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+        # C r e a t e _ t e m pl a t e #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+
+        l_template = ['| {0} -> "{0}"'.format(m.capitalize())
+                      for m in self.l_module_lower]
+
+        # ~#~#~#~#~#~ #
+        # R e t u r n #
+        # ~#~#~#~#~#~ #
+
+        return "\n".join(l_template)
+
+    def create_qp_section_to_rst(self):
+        """
+        Generate section to rst
+        """
+        # ~#~#~#~#~#~#~#~ #
+        # C h e c k i n g #
+        # ~#~#~#~#~#~#~#~ #
+
+        self.check_if_init(["l_module_lower"],
+                           sys._getframe().f_code.co_name)
+
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+        # C r e a t e _ t e m pl a t e #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+
+        l_template = []
+        for m in self.l_module_lower:
+            m_cap = m.capitalize()
+            l_template += ["         | {0} ->".format(m_cap),
+                           "           f {0}.(read, to_rst)".format(m_cap)]
+
+        # ~#~#~#~#~#~ #
+        # R e t u r n #
+        # ~#~#~#~#~#~ #
+
+        return "\n".join(l_template)
+
+    def create_qp_write(self):
+        """
+        Generate write
+        """
+        # ~#~#~#~#~#~#~#~ #
+        # C h e c k i n g #
+        # ~#~#~#~#~#~#~#~ #
+
+        self.check_if_init(["l_module_lower"],
+                           sys._getframe().f_code.co_name)
+
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+        # C r e a t e _ t e m pl a t e #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+
+        str_ = "        | {0} -> write {0}.(of_rst, write) s"
+        l_template = [str_.format(m.capitalize()) for m in self.l_module_lower]
+
+        # ~#~#~#~#~#~ #
+        # R e t u r n #
+        # ~#~#~#~#~#~ #
+
+        return "\n".join(l_template)
+
+    def create_qp_tasks(self):
+        """
+        Generate taks
+        """
+        # ~#~#~#~#~#~#~#~ #
+        # C h e c k i n g #
+        # ~#~#~#~#~#~#~#~ #
+
+        self.check_if_init(["l_module_lower"],
+                           sys._getframe().f_code.co_name)
+
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+        # C r e a t e _ t e m pl a t e #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+
+        l_template = ["      {0} ; ".format(m.capitalize())
+                      for m in self.l_module_lower]
+
+        # ~#~#~#~#~#~ #
+        # R e t u r n #
+        # ~#~#~#~#~#~ #
+
+        return "\n".join(l_template)
