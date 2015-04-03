@@ -1,0 +1,10 @@
+pseudo
+    klocmax     integer
+    v_k         double precision (pseudo_klocmax)
+    n_k         integer (pseudo_klocmax)
+    dz_k        double precision (pseudo_klocmax)
+    lmax        integer
+    kmax        integer
+    v_kl        double precision (pseudo_kmax,pseudo_lmax)
+    n_kl        integer (pseudo_kmax,pseudo_lmax)
+    dz_kl       double precision (pseudo_kmax,pseudo_lmax)

@@ -1,60 +1,3 @@
-!!
-!!  Computation of Vps, matrix element of the 
-!!  pseudo-potential centered at point C
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!  Vps= < Phi_A | Vloc(C) + Vpp(C) | Phi_B>
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!  Phi_M (M=A,B) Cartesian gaussian orbital centered at point M :
-!!  Phi_M = (x-M_x)**n^M_x *(y-M_y)**n^M_y *(z-M_z)**n^M_z exp(-g_M rM**2)
-!!         with rM**2=(x-M_x)**2 + (y-M_y)**2 + (z-M_z)**2
-!!
-!!**  Vloc(C)= \sum_{k=1}^klocmax v_k rC**n_k exp(-dz_k rC**2)
-!!
-!!**  Vpp(C)=  \sum_{l=0}^lmax v_l(rC)  \sum_{m=-l}^{m=l} |Y_lm> <Y_lm|
-!!
-!!              v_l(rC) = \sum_{k=1}^kmax v_kl rC**n_kl exp(-dz_kl rC**2)
-!!
-!!              Y_lm : real spherical harmonics:
-!!                   Y_00  = sqrt(1/4pi)
-!!                   Y_11  = sqrt(3/4pi) xchap
-!!                   Y_10  = sqrt(3/4pi) ychap
-!!                   Y_1-1 = sqrt(3/4pi) zchap
-!!                   Y_22  = sqrt(15/16pi) (xchap**2-ychap**2)
-!!                   Y_21  = sqrt(15/4pi)  xchap*zchap
-!!                   Y_20  = sqrt(15/16pi)(-xchap**2-ychap**2+ 2 zchap**2)
-!!                   Y_2-1 = sqrt(15/4pi) ychap*zchap
-!!                   Y_2-2 = sqrt(15/4pi) xchap*ychap
-!!                      etc.
-!!                            xchap=x/r ychap=y/r  zchap=z/r
-!!
-!! Routine computing  <Phi_A|Vpp(C)|Phi_B> :
-!! function Vpseudo(lmax,kmax,v_kl,n_kl,dz_kl,a,n_a,g_a,b,n_b,g_b,c)
-!!  lmax of formula above
-!!  kmax of formula above
-!!    v_kl = array v_kl(kmax_max,0:lmax_max)
-!!    n_kl = array n_kl(kmax_max,0:lmax_max)
-!!    dz_kl = array dz_kl(kmax_max,0:lmax_max)
-!!    n_a(1),n_a(2),n_a(3)
-!!    a(1),a(2),a(3)
-!!    g_a
-!!    n_b(1),n_b(2),n_b(3)
-!!    b(1),b(2),b(3)
-!!    g_b
-!!    c(1),c(2),c(3)
-!!
-!! Routine computing  <Phi_A|Vloc(C)|Phi_B> :
-!! function Vloc(klocmax,v_k,n_k,dz_k,a,n_a,g_a,b,n_b,g_b,c)
-!!  klocmax of formula above
-!!  v_k = array v_k(klocmax_max)
-!!  n_k = array n_k(klocmax_max)
-!!  dz_k= array dz_k(klocmax_max)
-!! Routine total matrix element <Phi_A|Vloc(C)+Vlpp(C)|Phi_B> :
-!! function Vps(a,n_a,g_a,b,n_b,g_b,c,klocmax,v_k,n_k,dz_k,lmax,kmax,v_kl,n_kl,dz_kl)
-!!
-!! Routines Vps_num, Vpseudo_num, and Vloc_num =  brute force numerical 
-!! estimations of the same integrals
-
-
 !! Vps= <Phi_A|Vloc(C)+Cpp(C)| Phi_B>
 !!
 !! with: Vloc(C)=\sum_{k=1}^klocmax v_k rC**n_k exp(-dz_k rC**2)
@@ -1018,15 +961,6 @@ end
 
 !  Y_l^m(theta,phi) = i^(m+|m|) ([(2l+1)*(l-|m|)!]/[4pi*(l+|m|)!])^1/2
 !  P_l^|m|(cos(theta))  exp(i m phi)
-
-      double precision function fact(n)
-      implicit double precision(a-h,o-z)
-      fact=1.d0
-      if(n.eq.0)return
-      do i=1,n
-        fact=fact*dfloat(i)
-      enddo
-      end
 
       subroutine erreur(x,n,rmoy,error)
       implicit double precision(a-h,o-z)
