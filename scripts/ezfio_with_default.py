@@ -94,6 +94,7 @@ END_PROVIDER
     file = open(filename,'r')
     lines = file.readlines()
     file.close()
+    k=-1
     # Search directory
     for k,line in enumerate(lines):
       if line[0] != ' ':
