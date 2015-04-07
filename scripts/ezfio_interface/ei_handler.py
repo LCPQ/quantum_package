@@ -12,8 +12,8 @@ By default all the option are executed.
 Options:
     -h --help
     --path             The path of the `EZFIO.cfg`, by default will look in the ${pwd}
-    --irpf90           Create the `ezfio_interface.ipf90`
-                             who containt all the provider needed
+    --irpf90           Create the `ezfio_interface.irpf90`
+                             which contains all the providers needed
                              (aka all with the `interface: input` parameter)
                              in `${pwd}`
     --ezfio_config     Create the `${module_lower}_ezfio_interface_config` in
@@ -28,7 +28,7 @@ Options:
 Format specification :
     [provider_name]  | the name of the provider in irp.f90
     doc:{str}        | Is the doc
-    Type:{str}       | Is a fancy_type support by the ocaml
+    Type:{str}       | Is a fancy_type supported by the ocaml
     ezfio_name:{str} | Will be the name of the file for the ezfio
                        (optional by default is the name of the provider)
     interface:{str}  | The provider is a imput or a output
@@ -67,13 +67,13 @@ Type = namedtuple('Type', 'fancy ocaml fortran')
 
 def is_bool(str_):
     """
-    Take a string, if is a bool return the convert into
-        fortran and ocaml one.
+    Take a string, if is a bool return the conversion into
+        fortran and ocaml.
     """
     if str_.lower() in ['true', '.true.']:
-        return Type(None, "True", ".True.")
-    elif str_.lower() in ['false', '.False.']:
-        return Type(None, "False", ".False")
+        return Type(None, "true", ".True.")
+    elif str_.lower() in ['false', '.false.']:
+        return Type(None, "false", ".False")
     else:
         raise TypeError
 
@@ -81,7 +81,7 @@ def is_bool(str_):
 def get_type_dict():
     """
     This function makes the correspondance between the type of value read in
-    ezfio.cfg into the f90 and Ocam Type
+    ezfio.cfg into the f90 and Ocaml Type
     return fancy_type[fancy_type] = namedtuple('Type', 'ocaml fortran')
     For example fancy_type['Ndet'].fortran = interger
                                   .ocaml   = int
@@ -154,7 +154,7 @@ def get_type_dict():
     # q p _ t y p e s _ g e n e r a t e #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
-    # Read the fancy_type, the ocaml. and convert the ocam to the fortran
+    # Read the fancy_type, the ocaml. and convert the ocaml to the fortran
     for i in l_gen + l_un:
         str_fancy_type = i.split()[1].strip()
         str_ocaml_type = i.split()[3]
