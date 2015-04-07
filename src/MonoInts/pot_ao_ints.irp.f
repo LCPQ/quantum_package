@@ -8,19 +8,43 @@
  double precision :: A_center(3),B_center(3),C_center(3)
  integer :: power_A(3),power_B(3)
  integer :: i,j,k,l,n_pt_in,m
- double precision ::overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult
+ double precision ::overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult, Vloc
  integer :: nucl_numC
  ! Important for OpenMP
 
  ao_nucl_elec_integral = 0.d0
 
+  !                 
+  ! |   _   _  _. | 
+  ! |_ (_) (_ (_| | 
+  !                 
+
+  integer klocmax
+  integer, allocatable ::  n_k(:)
+  double precision, allocatable ::  v_k(:), dz_k(:)
+
+  call ezfio_get_pseudo_klocmax(klocmax)
+
+  allocate(n_k(klocmax),v_k(klocmax), dz_k(klocmax))
+
+  call ezfio_get_pseudo_v_k(v_k)
+  call ezfio_get_pseudo_n_k(n_k)
+  call ezfio_get_pseudo_dz_k(dz_k)
+
+  print*, "klocmax", klocmax
+
+  print*, "n_k_ezfio", n_k
+  print*, "v_k_ezfio",v_k
+  print*, "dz_k_ezfio", dz_k
+
 
  !$OMP PARALLEL &
  !$OMP DEFAULT (NONE) &
- !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B, &
- !$OMP  num_A,num_B,Z,c,n_pt_in) &
+ !$OMP PRIVATE (i, j, k, l, m, alpha, beta, A_center, B_center, C_center, power_A, power_B, &
+ !$OMP          num_A, num_B, Z, c, n_pt_in,&
+ !$OMP          v_k, n_k, dz_k, klocmax) &
  !$OMP SHARED (ao_num,ao_prim_num,ao_expo_transp,ao_power,ao_nucl,nucl_coord,ao_coef_transp, &
- !$OMP  n_pt_max_integrals,ao_nucl_elec_integral,nucl_num,nucl_charge)
+ !$OMP         n_pt_max_integrals,ao_nucl_elec_integral,nucl_num,nucl_charge)
  n_pt_in = n_pt_max_integrals
  !$OMP DO SCHEDULE (guided)
  do j = 1, ao_num
@@ -50,7 +74,15 @@
       C_center(1) = nucl_coord(k,1)
       C_center(2) = nucl_coord(k,2)
       C_center(3) = nucl_coord(k,3)
-      c = c+Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)
+      c = c + Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)
+
+      print*, A_center
+      print*, B_center
+      print*, C_center
+
+      print*, Vloc(klocmax,v_k,n_k,dz_k,A_center,power_A,alpha,B_center,power_B,beta,C_center)
+!      c = c + Z*Vloc(klocmax,v_k,n_k,dz_k,A_center,power_A,alpha,B_center,power_B,beta,C_center)
+
      enddo
      ao_nucl_elec_integral(i,j) = ao_nucl_elec_integral(i,j) - &
        ao_coef_transp(l,j)*ao_coef_transp(m,i)*c

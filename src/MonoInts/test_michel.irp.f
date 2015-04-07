@@ -137,19 +137,31 @@ program compute_integrals_pseudo
   ! \_ (_| | (_ |_| | 
   !                   
 
-  write(*,*)'a?'
-  read*,a(1),a(2),a(3)
+!  write(*,*)'a?'
+!  read*,a(1),a(2),a(3)
   !write(*,*)'b?'
   !read*,b(1),b(2),b(3)
-  b(1)=-0.1d0
-  b(2)=-0.2d0
-  b(3)=0.3d0
-  !write(*,*)'a?'
-  !read*,c(1),c(2),c(3)
-  c(1)=0.1d0
-  c(2)=0.2d0
-  c(3)=0.3d0
+!  b(1)=-0.1d0
+!  b(2)=-0.2d0
+!  b(3)=0.3d0
+!  !write(*,*)'a?'
+!  !read*,c(1),c(2),c(3)
+!  c(1)=0.1d0
+!  c(2)=0.2d0
+!  c(3)=0.3d0
   
+  a(1)= 0.d0
+  a(2)= 0.d0
+  a(3)= 0.d0
+
+  b(1)= 0.d0
+  b(2)= 0.d0
+  b(3)= 0.d0
+
+  c(1)= 0.d0
+  c(2)= 0.d0
+  c(3)= 0.d0
+
   print*,'ntps? rmax for brute force integration'
   read*,npts,rmax
   

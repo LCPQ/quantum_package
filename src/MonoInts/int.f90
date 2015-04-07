@@ -560,12 +560,22 @@ double precision int_prod_bessel_loc,binom,accu,prod,ylm,bigI,arg
  Vloc=0.d0
  return
  endif
- freal=dexp(-g_a*ac**2-g_b*bc**2)
 
  ntotA=n_a(1)+n_a(2)+n_a(3)
  ntotB=n_b(1)+n_b(2)+n_b(3)
  ntot=ntotA+ntotB
 
+ if(ac.eq.0.d0.and.bc.eq.0.d0)then
+  accu=0.d0
+  do k=1,klocmax 
+   accu=accu+v_k(k)*crochet(n_k(k)+2+ntot,g_a+g_b+dz_k(k))
+  enddo
+  Vloc=accu*fourpi*bigI(0,0,0,0,n_a(1)+n_b(1),n_a(2)+n_b(2),n_a(3)+n_b(3))
+  return
+ endif
+
+ freal=dexp(-g_a*ac**2-g_b*bc**2)
+ 
  d2=0.d0
  do i=1,3
   d(i)=g_a*(a(i)-c(i))+g_b*(b(i)-c(i))
