@@ -20,6 +20,10 @@ let run exe ezfio_file =
   Printf.printf "===============\nQuantum Package\n===============\n\n";
   Printf.printf "Date : %s\n\n%!" (Time.to_string time_start);
 
+  match (Sys.command ("qp_edit -c "^ezfio_file)) with
+  | 0 -> ()
+  | i -> failwith "Error: Input inconsistent\n";
+  ;
   let exe =
     match (List.find ~f:(fun (x,_) -> x = exe) executables) with
     | None -> assert false

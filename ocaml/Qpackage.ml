@@ -94,7 +94,7 @@ let get_ezfio_default_in_file ~directory ~data ~filename =
             match (String.lsplit2 ~on:' ' (String.strip line)) with
               | Some (l,r) -> 
                 if (l = data) then 
-                  String.lowercase (String.strip r)
+                  String.strip r
                 else
                   find_data rest
               | None -> raise Not_found
