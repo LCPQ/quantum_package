@@ -121,6 +121,8 @@ END_PROVIDER
     v = buffer[1]
     name = self.name
     try:
+      true = True
+      false = False
       v_eval = eval(v)
       if type(v_eval) == bool:
         v = '.%s.'%(v)

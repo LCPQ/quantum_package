@@ -2,24 +2,14 @@ cis_dressed
   n_state_cis                10
   n_core_cis                 0
   n_act_cis                  mo_basis_mo_tot_num
-  mp2_dressing               False
+  mp2_dressing               false
   standard_doubles           True
-  en_2_2                     False
-
-determinants
-  n_states                   1
-  n_states_diag              determinants_n_states
-  n_det_max_jacobi           1000
-  threshold_generators       0.99
-  threshold_selectors        0.999
-  read_wf                    False
-  s2_eig                     False
-  only_single_double_dm      False
+  en_2_2                     false
 
 all_singles
   n_det_max_fci              50000
   pt2_max                    1.e-8
-  do_pt2_end                 False
+  do_pt2_end                 false
 
 cassd  
   n_det_max_cassd            10000

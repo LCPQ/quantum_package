@@ -12,7 +12,6 @@ subroutine run
   print *, N_det_cas
   print *, N_det_sd
 
-!  call update_generators
   integer :: i
   print *,  'CAS'
   print *,  '==='
@@ -21,13 +20,13 @@ subroutine run
     call debug_det(psi_cas(1,1,i),N_int)
   enddo
 
-!  print *,  'SD'
-!  print *,  '=='
-!  do i=1,N_det_sd
-!    print *,  psi_sd_coefs(i,:)
-!    call debug_det(psi_sd(1,1,i),N_int)
-!  enddo
-!
+  print *,  'SD'
+  print *,  '=='
+  do i=1,N_det_sd
+    print *,  psi_sd_coefs(i,:)
+    call debug_det(psi_sd(1,1,i),N_int)
+  enddo
+
   print *,  'MRCC'
   print *,  '===='
   print *,  ci_energy(:)
