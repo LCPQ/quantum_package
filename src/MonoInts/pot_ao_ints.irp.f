@@ -8,7 +8,7 @@
  double precision :: A_center(3),B_center(3),C_center(3)
  integer :: power_A(3),power_B(3)
  integer :: i,j,k,l,n_pt_in,m
- double precision ::overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult, Vloc
+ double precision ::overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult, Vloc, Vpseudo
  integer :: nucl_numC
  ! Important for OpenMP
 
@@ -38,13 +38,55 @@
   print*, "dz_k_ezfio", dz_k
 
 
+  call ezfio_get_pseudo_v_k(v_k)
+  call ezfio_get_pseudo_n_k(n_k)
+  call ezfio_get_pseudo_dz_k(dz_k)
+
+  print*, "klocmax", klocmax
+
+  print*, "n_k_ezfio", n_k
+  print*, "v_k_ezfio",v_k
+  print*, "dz_k_ezfio", dz_k
+
+
+  !                               
+  ! |\ |  _  ._    |  _   _  _. | 
+  ! | \| (_) | |   | (_) (_ (_| | 
+  !                              
+
+  !! Parameters of non local part of pseudo:
+
+  integer :: kmax,lmax
+  integer, allocatable ::  n_kl(:,:)
+  double precision, allocatable ::  v_kl(:,:), dz_kl(:,:) 
+
+  call ezfio_get_pseudo_lmax(lmax)
+  call ezfio_get_pseudo_kmax(kmax)
+  lmax = lmax - 1 
+
+  allocate(n_kl(kmax,0:lmax), v_kl(kmax,0:lmax), dz_kl(kmax,0:lmax)) 
+
+  call ezfio_get_pseudo_n_kl(n_kl)
+  call ezfio_get_pseudo_v_kl(v_kl)
+  call ezfio_get_pseudo_dz_kl(dz_kl)
+
+
+  print*, "lmax",lmax
+  print*, "kmax", kmax
+
+  print*,"n_kl_ezfio", n_kl
+  print*,"v_kl_ezfio", v_kl
+  print*,"dz_kl_ezfio", dz_kl
+
+
  !$OMP PARALLEL &
  !$OMP DEFAULT (NONE) &
  !$OMP PRIVATE (i, j, k, l, m, alpha, beta, A_center, B_center, C_center, power_A, power_B, &
- !$OMP          num_A, num_B, Z, c, n_pt_in,&
- !$OMP          v_k, n_k, dz_k, klocmax) &
+ !$OMP          num_A, num_B, Z, c, n_pt_in) &
  !$OMP SHARED (ao_num,ao_prim_num,ao_expo_transp,ao_power,ao_nucl,nucl_coord,ao_coef_transp, &
- !$OMP         n_pt_max_integrals,ao_nucl_elec_integral,nucl_num,nucl_charge)
+ !$OMP         n_pt_max_integrals,ao_nucl_elec_integral,nucl_num,nucl_charge, &
+ !$OMP         v_k, n_k, dz_k, klocmax, &
+ !$OMP         lmax,kmax,v_kl,n_kl,dz_kl)
  n_pt_in = n_pt_max_integrals
  !$OMP DO SCHEDULE (guided)
  do j = 1, ao_num
@@ -74,18 +116,13 @@
       C_center(1) = nucl_coord(k,1)
       C_center(2) = nucl_coord(k,2)
       C_center(3) = nucl_coord(k,3)
+
       c = c + Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)
-
-      print*, A_center
-      print*, B_center
-      print*, C_center
-
-      print*, Vloc(klocmax,v_k,n_k,dz_k,A_center,power_A,alpha,B_center,power_B,beta,C_center)
-!      c = c + Z*Vloc(klocmax,v_k,n_k,dz_k,A_center,power_A,alpha,B_center,power_B,beta,C_center)
-
+      c = c - Vloc(klocmax,v_k,n_k,dz_k,A_center,power_A,alpha,B_center,power_B,beta,C_center)
+      c = c - Vpseudo(lmax,kmax,v_kl,n_kl,dz_kl,A_center,power_A,alpha,B_center,power_B,C_center)
      enddo
      ao_nucl_elec_integral(i,j) = ao_nucl_elec_integral(i,j) - &
-       ao_coef_transp(l,j)*ao_coef_transp(m,i)*c
+                                  ao_coef_transp(l,j)*ao_coef_transp(m,i)*c
     enddo
    enddo
   enddo

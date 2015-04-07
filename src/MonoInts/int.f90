@@ -550,7 +550,6 @@ double precision,allocatable :: array_R_loc(:,:,:)
 double precision,allocatable :: array_coefs(:,:,:,:,:,:)
 double precision int_prod_bessel_loc,binom,accu,prod,ylm,bigI,arg
 
-
  fourpi=4.d0*dacos(-1.d0)
  f=fourpi**1.5d0
  ac=dsqrt((a(1)-c(1))**2+(a(2)-c(2))**2+(a(3)-c(3))**2)
@@ -567,6 +566,7 @@ double precision int_prod_bessel_loc,binom,accu,prod,ylm,bigI,arg
 
  if(ac.eq.0.d0.and.bc.eq.0.d0)then
   accu=0.d0
+
   do k=1,klocmax 
    accu=accu+v_k(k)*crochet(n_k(k)+2+ntot,g_a+g_b+dz_k(k))
   enddo
@@ -1726,87 +1726,6 @@ end
       ENDIF
       RETURN
       END
-
-      double precision FUNCTION GAMMLN(XX)
-      implicit double precision(a-h,o-z)
-      REAL*8 COF(6),STP,HALF,ONE,FPF,X,TMP,SER
-      DATA COF,STP/76.18009173D0,-86.50532033D0,24.01409822D0,  &
-         -1.231739516D0,.120858003D-2,-.536382D-5,2.50662827465D0/
-      DATA HALF,ONE,FPF/0.5D0,1.0D0,5.5D0/
-      X=XX-ONE
-      TMP=X+FPF
-      TMP=(X+HALF)*DLOG(TMP)-TMP
-      SER=ONE
-      DO 11 J=1,6
-        X=X+ONE
-        SER=SER+COF(J)/X
-11    CONTINUE
-      GAMMLN=TMP+DLOG(STP*SER)
-      RETURN
-      END
-      FUNCTION GAMMP(A,X)
-      implicit double precision(a-h,o-z)
-      IF(X.LT.0.d0.OR.A.LE.0.d0)PAUSE
-      IF(X.LT.A+1.d0)THEN
-        CALL GSER(GAMMP,A,X,GLN)
-      ELSE
-        CALL GCF(GAMMCF,A,X,GLN)
-        GAMMP=1.d0-GAMMCF
-      ENDIF
-      RETURN
-      END
-      SUBROUTINE GCF(GAMMCF,A,X,GLN)
-      implicit double precision(a-h,o-z)
-      PARAMETER (ITMAX=100,EPS=3.D-7)
-      GLN=GAMMLN(A)
-      GOLD=0.d0
-      A0=1.d0
-      A1=X
-      B0=0.d0
-      B1=1.d0
-      FAC=1.d0
-      DO 11 N=1,ITMAX
-        AN=DFLOAT(N)
-        ANA=AN-A
-        A0=(A1+A0*ANA)*FAC
-        B0=(B1+B0*ANA)*FAC
-        ANF=AN*FAC
-        A1=X*A0+ANF*A1
-        B1=X*B0+ANF*B1
-        IF(A1.NE.0.d0)THEN
-          FAC=1.d0/A1
-          G=B1*FAC
-          IF(DABS((G-GOLD)/G).LT.EPS)GO TO 1
-          GOLD=G
-        ENDIF
-11    CONTINUE
-      PAUSE 'A TOO LARGE, ITMAX TOO SMALL'
-1     GAMMCF=DEXP(-X+A*DLOG(X)-GLN)*G
-      RETURN
-      END
-      SUBROUTINE GSER(GAMSER,A,X,GLN)
-      implicit double precision(a-h,o-z)
-      PARAMETER (ITMAX=100,EPS=3.D-7)
-      GLN=GAMMLN(A)
-      IF(X.LE.0.d0)THEN
-        IF(X.LT.0.d0)PAUSE
-        GAMSER=0.d0
-        RETURN
-      ENDIF
-      AP=A
-      SUM=1.d0/A
-      DEL=SUM
-      DO 11 N=1,ITMAX
-        AP=AP+1.d0
-        DEL=DEL*X/AP
-        SUM=SUM+DEL
-        IF(DABS(DEL).LT.DABS(SUM)*EPS)GO TO 1
-11    CONTINUE
-      PAUSE 'A TOO LARGE, ITMAX TOO SMALL'
-1     GAMSER=SUM*DEXP(-X+A*DLOG(X)-GLN)
-      RETURN
-      END
-
 
       double precision function coef_nk(n,k)
       implicit none

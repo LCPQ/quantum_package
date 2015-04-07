@@ -42,9 +42,9 @@ then
   echo "ERROR"
   exit 1
 fi
-${EMSL_API_ROOT}/EMSL_api.py get_basis_data --treat_l --save --path="${tmpfile}" --basis="${basis}" $atoms
 
+#${EMSL_API_ROOT}/EMSL_api.py get_basis_data --treat_l --save --path="${tmpfile}" --basis="${basis}" $atoms
 
-
-
+cp He.dz_filipi.basis ${tmpfile}
+echo ${tmpfile}
 
