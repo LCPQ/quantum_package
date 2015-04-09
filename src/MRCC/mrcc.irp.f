@@ -55,11 +55,12 @@ subroutine run_mrcc
     print *,  '===========================' 
     print *,  ''
     E_old = sum(ci_energy_dressed)
-    call diagonalize_ci_dressed
     call write_double(6,ci_energy_dressed(1),"MRCC energy")
+    call diagonalize_ci_dressed
     E_new = sum(ci_energy_dressed)
     delta_E = dabs(E_new - E_old)
   enddo
+  call write_double(6,ci_energy_dressed(1),"Final MRCC energy")
   call ezfio_set_mrcc_energy(ci_energy_dressed(1))
 !  call save_wavefunction
 
