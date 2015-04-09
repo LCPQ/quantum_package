@@ -29,7 +29,7 @@ program full_ci
   endif
 
   do while (N_det < n_det_max_fci.and.maxval(abs(pt2(1:N_st))) > pt2_max)
-    call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
+    call H_apply_CAS_SD_selected(pt2, norm_pert, H_pert_diag,  N_st)
 
     PROVIDE  psi_coef
     PROVIDE  psi_det
@@ -60,7 +60,7 @@ program full_ci
   integer :: exc_max, degree_min
   exc_max = 0
   print *,  'CAS determinants : ', N_det_generators
-  do i=1,N_det_generators
+  do i=1,min(N_det_generators,10)
     do k=i,N_det_generators
       call get_excitation_degree(psi_det_generators(1,1,k),psi_det_generators(1,1,i),degree,N_int)
       exc_max = max(exc_max,degree)
