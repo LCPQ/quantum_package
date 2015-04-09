@@ -176,7 +176,7 @@ def get_dict_config_file(config_file_path, module_lower):
                 d[pvd][option] = d_default[option]
 
         # If interface is output we need a default value information
-        if d[pvd]["interface"] == "output":
+        if d[pvd]["interface"] == "input":
             try:
                 d[pvd]["default"] = config_file.get(section, "default")
             except ConfigParser.NoOptionError:
@@ -210,8 +210,8 @@ def create_ezfio_provider(dict_ezfio_cfg):
             ez_p.set_ezfio_dir(dict_info['ezfio_dir'])
             ez_p.set_ezfio_name(dict_info['ezfio_name'])
             ez_p.set_default(dict_info['default'])
-
             ez_p.set_output("output_%s" % dict_info['ezfio_dir'])
+
             dict_code_provider[provider_name] = str(ez_p)
 
     return dict_code_provider
@@ -239,7 +239,7 @@ def save_ezfio_provider(path_head, dict_code_provider):
                "! from file {0}/EZFIO.cfg\n".format(path_head) + \
                "\n" 
     for provider_name, code in dict_code_provider.iteritems():
-        output += code + "\n"
+        output += str(code) + "\n"
 
     if output != old_output:
         with open(path, "w") as f:

@@ -112,16 +112,19 @@ END_PROVIDER
         break
     v = buffer[1]
     name = self.name
+    true = True
+    false= False
     try:
       v_eval = eval(v)
+    except:
+      v = "call ezfio_get_%(v)s(%(name)s)"%locals()
+    else:
       if type(v_eval) == bool:
         v = '.%s.'%(v)
       elif type(v_eval) == float:
         v = v.replace('e','d')
         v = v.replace('E','D')
       v = "%(name)s = %(v)s"%locals()
-    except:
-      v = "call ezfio_get_%(v)s(%(name)s)"%locals()
     self.default = v
 
 

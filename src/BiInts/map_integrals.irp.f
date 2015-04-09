@@ -368,11 +368,11 @@ subroutine get_mo_bielec_integrals_existing_ik(j,l,sze,out_array,map)
   enddo
 
   logical :: integral_is_in_map
-  if (cache_key_kind == 8) then
+  if (key_kind == 8) then
     call i8radix_sort(hash,iorder,kk,-1)
-  else if (cache_key_kind == 4) then
+  else if (key_kind == 4) then
     call iradix_sort(hash,iorder,kk,-1)
-  else if (cache_key_kind == 2) then
+  else if (key_kind == 2) then
     call i2radix_sort(hash,iorder,kk,-1)
   endif
 
