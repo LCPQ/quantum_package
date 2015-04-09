@@ -467,33 +467,52 @@ END_PROVIDER
  ! to accelerate the search of a random determinant in the wave
  ! function.
  END_DOC
+
+ call sort_dets_by_det_search_key(N_det, psi_det, psi_coef, &
+   psi_det_sorted_bit, psi_coef_sorted_bit)
+END_PROVIDER
+
+subroutine sort_dets_by_det_search_key(Ndet, det_in, coef_in, det_out, coef_out)
+  use bitmasks
+  implicit none
+  integer, intent(in) :: Ndet
+  integer(bit_kind), intent(in)  :: det_in  (N_int,2,psi_det_size)
+  double precision , intent(in)  :: coef_in(psi_det_size,N_states)
+  integer(bit_kind), intent(out) :: det_out (N_int,2,psi_det_size)
+  double precision , intent(out) :: coef_out(psi_det_size,N_states)
+ BEGIN_DOC
+ ! Determinants are sorted are sorted according to their det_search_key.
+ ! Useful to accelerate the search of a random determinant in the wave
+ ! function.
+ END_DOC
  integer :: i,j,k
  integer, allocatable ::  iorder(:)
  integer*8, allocatable :: bit_tmp(:)
  integer*8, external :: det_search_key
 
- allocate ( iorder(N_det), bit_tmp(N_det) )
+ allocate ( iorder(Ndet), bit_tmp(Ndet) )
 
- do i=1,N_det
+ do i=1,Ndet
    iorder(i) = i
    !$DIR FORCEINLINE
-   bit_tmp(i) = det_search_key(psi_det(1,1,i),N_int)
+   bit_tmp(i) = det_search_key(det_in(1,1,i),N_int)
  enddo
- call i8sort(bit_tmp,iorder,N_det)
+ call i8sort(bit_tmp,iorder,Ndet)
  !DIR$ IVDEP
- do i=1,N_det
+ do i=1,Ndet
   do j=1,N_int
-    psi_det_sorted_bit(j,1,i) = psi_det(j,1,iorder(i))
-    psi_det_sorted_bit(j,2,i) = psi_det(j,2,iorder(i))
+    det_out(j,1,i) = det_in(j,1,iorder(i))
+    det_out(j,2,i) = det_in(j,2,iorder(i))
   enddo
   do k=1,N_states
-    psi_coef_sorted_bit(i,k) = psi_coef(iorder(i),k)
+    coef_out(i,k) = coef_in(iorder(i),k)
   enddo
  enddo
 
  deallocate(iorder, bit_tmp)
 
-END_PROVIDER
+end
+
 
 subroutine int_of_3_highest_electrons( det_in, res, Nint )
   implicit none

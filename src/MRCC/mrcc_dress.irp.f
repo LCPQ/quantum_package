@@ -1,3 +1,17 @@
+use omp_lib
+
+BEGIN_PROVIDER [ integer(omp_lock_kind), psi_cas_lock, (psi_det_size) ]
+ implicit none
+ BEGIN_DOC
+ ! Locks on CAS determinants to fill delta_ij
+ END_DOC
+ integer :: i
+ do i=1,psi_det_size
+   call omp_init_lock( psi_cas_lock(i) )
+ enddo
+
+END_PROVIDER
+
 subroutine mrcc_dress(delta_ij_,Ndet,i_generator,n_selected,det_buffer,Nint,iproc)
  use bitmasks
  implicit none
@@ -7,11 +21,8 @@ subroutine mrcc_dress(delta_ij_,Ndet,i_generator,n_selected,det_buffer,Nint,ipro
   double precision, intent(inout) :: delta_ij_(Ndet,Ndet,*)
 
   integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
-  integer                        :: i,j,k,l,m
-  logical                        :: is_in_wavefunction
+  integer                        :: i,j,k,l
   integer                        :: degree_alpha(psi_det_size)
-  integer                        :: degree_I(psi_det_size)
-  integer                        :: idx_I(0:psi_det_size)
   integer                        :: idx_alpha(0:psi_det_size)
   logical                        :: good
 
@@ -19,18 +30,19 @@ subroutine mrcc_dress(delta_ij_,Ndet,i_generator,n_selected,det_buffer,Nint,ipro
   integer                        :: N_tq, c_ref ,degree
   integer                        :: connected_to_ref
 
+  double precision               :: hIk, hla, hIl, dIk(N_states), dka(N_states), dIa(N_states)
+  double precision, allocatable  :: dIa_hla(:,:)
+  double precision               :: haj, phase, phase2
+  double precision               :: f(N_states), ci_inv(N_states)
+  integer                        :: exc(0:2,2,2)
+  integer                        :: h1,h2,p1,p2,s1,s2
+  integer(bit_kind)              :: tmp_det(Nint,2)
+  integer                        :: iint, ipos
+  integer                        :: i_state, k_sd, l_sd, i_I, i_alpha
+
   call find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq)
 
-  double precision :: hIk, hIl, hla, dIk(N_states), dka(N_states), dIa(N_states)
-  double precision :: haj, phase, phase2
-  double precision :: f(N_states), ci_inv(N_states)
-  integer          :: exc(0:2,2,2)
-  integer          :: h1,h2,p1,p2,s1,s2
-  integer(bit_kind):: tmp_det(Nint,2)
-  integer          :: iint, ipos
-  integer          :: i_state, k_sd, l_sd, i_I, i_alpha
-
-
+  allocate (dIa_hla(N_states,Ndet))
 
   ! |I>
 
@@ -60,12 +72,15 @@ subroutine mrcc_dress(delta_ij_,Ndet,i_generator,n_selected,det_buffer,Nint,ipro
          ! <I|H|k>
          call i_h_j(psi_cas(1,1,i_I),psi_non_cas(1,1,idx_alpha(k_sd)),Nint,hIk)
          do i_state=1,N_states
-           dIk(i_state) = hIk * lambda_mrcc(idx_alpha(k_sd),i_state)
+           dIk(i_state) = hIk * lambda_mrcc(i_state,idx_alpha(k_sd))
          enddo
          ! |l> = Exc(k -> alpha) |I>
          call get_excitation(psi_non_cas(1,1,idx_alpha(k_sd)),tq(1,1,i_alpha),exc,degree,phase,Nint)
          call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
-         tmp_det(1:Nint,1:2) = psi_cas(1,1,i_I)
+         do k=1,N_int
+           tmp_det(k,1) = psi_cas(k,1,i_I)
+           tmp_det(k,2) = psi_cas(k,2,i_I)
+         enddo
          ! Hole (see list_to_bitstring)
          iint = ishft(h1-1,-bit_kind_shift) + 1
          ipos = h1-ishft((iint-1),bit_kind_shift)-1
@@ -75,7 +90,7 @@ subroutine mrcc_dress(delta_ij_,Ndet,i_generator,n_selected,det_buffer,Nint,ipro
          iint = ishft(p1-1,-bit_kind_shift) + 1
          ipos = p1-ishft((iint-1),bit_kind_shift)-1
          tmp_det(iint,s1) = ibset(tmp_det(iint,s1),ipos)
-         if (degree == 2) then
+         if (degree_alpha(k_sd) == 2) then
            ! Hole (see list_to_bitstring)
            iint = ishft(h2-1,-bit_kind_shift) + 1
            ipos = h2-ishft((iint-1),bit_kind_shift)-1
@@ -97,31 +112,39 @@ subroutine mrcc_dress(delta_ij_,Ndet,i_generator,n_selected,det_buffer,Nint,ipro
              call get_excitation(psi_cas(1,1,i_I),psi_non_cas(1,1,idx_alpha(l_sd)),exc,degree,phase2,Nint)
              call i_h_j(psi_cas(1,1,i_I),psi_non_cas(1,1,idx_alpha(l_sd)),Nint,hIl)
              do i_state=1,N_states
-               dka(i_state) = hIl * lambda_mrcc(idx_alpha(l_sd),i_state) * phase * phase2
+               dka(i_state) = hIl * lambda_mrcc(i_state,idx_alpha(l_sd)) * phase * phase2
              enddo
              exit
            endif
          enddo
          do i_state=1,N_states
-           dIa(i_state) = dIa(i_state) + dIk(i_state) * dka(i_state)
+           dIa(i_state) = dIa(i_state) + dIk(i_state) * dka(i_state) 
          enddo
        enddo
 
        do i_state=1,N_states
-         ci_inv(i_state) = 1.d0/psi_cas_coefs(i_I,i_state)
+         ci_inv(i_state) = 1.d0/psi_cas_coef(i_I,i_state)
        enddo
-
        do l_sd=1,idx_alpha(0)
          k_sd = idx_alpha(l_sd)
          call i_h_j(tq(1,1,i_alpha),psi_non_cas(1,1,idx_alpha(l_sd)),Nint,hla)
-         do m=1,N_states
-           delta_ij_(idx_non_cas(k_sd),idx_cas(i_I),m) += dIa(m) * hla 
-           delta_ij_(idx_cas(i_I),idx_non_cas(k_sd),m) += dIa(m) * hla
-           delta_ij_(idx_cas(i_I),idx_cas(i_I),m) -= dIa(m) * hla * ci_inv(m) * psi_non_cas_coefs(k_sd,m)
+         do i_state=1,N_states
+           dIa_hla(i_state,k_sd) = dIa(i_state) * hla
          enddo
        enddo
+       call omp_set_lock( psi_cas_lock(i_I) )
+       do l_sd=1,idx_alpha(0)
+         k_sd = idx_alpha(l_sd)
+         do i_state=1,N_states
+           delta_ij_(idx_non_cas(k_sd),idx_cas(i_I),i_state) += dIa_hla(i_state,k_sd)
+           delta_ij_(idx_cas(i_I),idx_non_cas(k_sd),i_state) += dIa_hla(i_state,k_sd)
+           delta_ij_(idx_cas(i_I),idx_cas(i_I),i_state) -= dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_cas_coef(k_sd,i_state)
+         enddo
+       enddo
+       call omp_unset_lock( psi_cas_lock(i_I) )
     enddo
   enddo
+  deallocate (dIa_hla)
 end
 
 
@@ -141,7 +164,6 @@ subroutine mrcc_dress_simple(delta_ij_non_cas_,Ndet_non_cas,i_generator,n_select
   integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
   integer                        :: i,j,k,m
   integer                        :: new_size
-  logical                        :: is_in_wavefunction
   integer                        :: degree(psi_det_size)
   integer                        :: idx(0:psi_det_size)
   logical                        :: good

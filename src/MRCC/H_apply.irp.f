@@ -18,7 +18,7 @@ s.data["decls_main"] += """
 s.data["finalization"] = ""
 s.data["copy_buffer"] = ""
 s.data["generate_psi_guess"] = ""
-s.data["size_max"] = "256"
+s.data["size_max"] = "3072"
 print s
 
 
