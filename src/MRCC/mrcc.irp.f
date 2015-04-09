@@ -3,6 +3,8 @@ program mrcc
   read_wf = .True.
   TOUCH read_wf
   call run
+  call run_mrcc
+!  call run_mrcc_test
 end
 
 subroutine run
@@ -12,8 +14,7 @@ subroutine run
   print *, N_det_cas
   print *, N_det_sd
 
-!  call update_generators
-  integer :: i
+  integer :: i,j
   print *,  'CAS'
   print *,  '==='
   do i=1,N_det_cas
@@ -21,23 +22,54 @@ subroutine run
     call debug_det(psi_cas(1,1,i),N_int)
   enddo
 
-!  print *,  'SD'
-!  print *,  '=='
-!  do i=1,N_det_sd
-!    print *,  psi_sd_coefs(i,:)
-!    call debug_det(psi_sd(1,1,i),N_int)
-!  enddo
-!
+  print *,  'SD'
+  print *,  '=='
+  do i=1,N_det_sd
+    print *,  psi_sd_coefs(i,:)
+    call debug_det(psi_sd(1,1,i),N_int)
+  enddo
+  print *,  'xxx', 'Energy CAS+SD', ci_energy
+end
+subroutine run_mrcc_test
+  implicit none
+  integer :: i,j
+  double precision :: pt2
+  pt2 = 0.d0
+  do j=1,N_det
+   do i=1,N_det
+     pt2 += psi_coef(i,1)*psi_coef(j,1) * delta_ij(i,j,1)
+   enddo
+  enddo
+  print *,  ci_energy(1)
+  print *,  ci_energy(1)+pt2
+end
+subroutine run_mrcc
+  implicit none
+  integer :: i,j
   print *,  'MRCC'
   print *,  '===='
-  print *,  ci_energy(:)
-  print *,  h_matrix_all_dets(3,3), delta_ij(3,3,1)
-  print *,  h_matrix_all_dets(3,3), delta_ij(3,3,1)
-  print *,  ci_energy_dressed(:)
-!  print *,  'max', maxval(delta_ij_sd)
-!  print *,  'min', minval(delta_ij_sd)
-!
-!  do i=1,N_det
-!     print '(10(F10.6,X))',  delta_ij(i,1:N_det,1)
-!  enddo
+  print *,  ''
+  print *,  'CAS+SD energy : ', ci_energy_dressed(:)
+  print *,  ''
+
+!    call diagonalize_ci_dressed
+!    call save_wavefunction_unsorted
+  double precision :: E_new, E_old, delta_e
+  integer :: iteration
+  E_new = 0.d0
+  delta_E = 1.d0
+  iteration = 0
+  do while (delta_E > 1.d-8)
+    iteration += 1
+    print *,  '===========================' 
+    print *,  'MRCC Iteration', iteration
+    print *,  '===========================' 
+    print *,  ''
+    E_old = sum(ci_energy_dressed)
+    call diagonalize_ci_dressed
+    E_new = sum(ci_energy_dressed)
+    delta_E = dabs(E_new - E_old)
+    call write_double(6,ci_energy_dressed(1),"MRCC energy")
+  enddo
+
 end

@@ -164,14 +164,7 @@ BEGIN_PROVIDER [ double precision, delta_ij_sd, (N_det_sd, N_det_sd,N_states) ]
  ! Dressing matrix in SD basis
  END_DOC
  delta_ij_sd = 0.d0
- if (dressing_type == "MRCC") then
-   call H_apply_mrcc(delta_ij_sd,N_det_sd)
- else if (dressing_type == "Simple") then
-   call H_apply_mrcc_simple(delta_ij_sd,N_det_sd)
- else
-   print *,  irp_here
-   stop 'dressing'
- endif
+ call H_apply_mrcc_simple(delta_ij_sd,N_det_sd)
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, delta_ij, (N_det,N_det,N_states) ]
@@ -181,13 +174,17 @@ BEGIN_PROVIDER [ double precision, delta_ij, (N_det,N_det,N_states) ]
  END_DOC
  integer :: i,j,m
  delta_ij = 0.d0
- do m=1,N_states
-  do j=1,N_det_sd
-   do i=1,N_det_sd
-     delta_ij(idx_sd(i),idx_sd(j),m) = delta_ij_sd(i,j,m) 
+ if (dressing_type == "MRCC") then
+   call H_apply_mrcc(delta_ij,N_det)
+ else if (dressing_type == "Simple") then
+   do m=1,N_states
+    do j=1,N_det_sd
+     do i=1,N_det_sd
+       delta_ij(idx_sd(i),idx_sd(j),m) = delta_ij_sd(i,j,m) 
+     enddo
+    enddo
    enddo
-  enddo
- enddo
+ endif
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det) ]
@@ -199,9 +196,6 @@ BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det) ]
  do j=1,N_det
    do i=1,N_det
      h_matrix_dressed(i,j) = h_matrix_all_dets(i,j) + delta_ij(i,j,1)
-     if (i==j) then
-       print *,  i, delta_ij(i,j,1), h_matrix_all_dets(i,j) 
-     endif
    enddo
  enddo
 
@@ -273,10 +267,22 @@ BEGIN_PROVIDER [ double precision, CI_energy_dressed, (N_states_diag) ]
   call write_time(output_Dets)
   do j=1,N_states_diag
     CI_energy_dressed(j) = CI_electronic_energy_dressed(j) + nuclear_repulsion
-    write(st,'(I4)') j
-    call write_double(output_Dets,CI_energy(j),'Energy of state '//trim(st))
-    call write_double(output_Dets,CI_eigenvectors_s2(j),'S^2 of state '//trim(st))
   enddo
 
 END_PROVIDER
 
+subroutine diagonalize_CI_dressed
+  implicit none
+  BEGIN_DOC
+!  Replace the coefficients of the CI states by the coefficients of the 
+!  eigenstates of the CI matrix
+  END_DOC
+  integer :: i,j
+  do j=1,N_states_diag
+    do i=1,N_det
+      psi_coef(i,j) = CI_eigenvectors_dressed(i,j)
+    enddo
+  enddo
+  SOFT_TOUCH psi_coef 
+
+end
