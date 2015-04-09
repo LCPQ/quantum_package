@@ -10,10 +10,6 @@ end
 subroutine run
   implicit none
 
-  print *, N_det
-  print *, N_det_cas
-  print *, N_det_sd
-
   integer :: i,j
   print *,  'CAS'
   print *,  '==='
@@ -22,13 +18,13 @@ subroutine run
     call debug_det(psi_cas(1,1,i),N_int)
   enddo
 
-  print *,  'SD'
-  print *,  '=='
-  do i=1,N_det_sd
-    print *,  psi_sd_coefs(i,:)
-    call debug_det(psi_sd(1,1,i),N_int)
-  enddo
-  print *,  'xxx', 'Energy CAS+SD', ci_energy
+!  print *,  'SD'
+!  print *,  '=='
+!  do i=1,N_det_non_cas
+!    print *,  psi_non_cas_coefs(i,:)
+!    call debug_det(psi_non_cas(1,1,i),N_int)
+!  enddo
+  call write_double(6,ci_energy(1),"Initial CI energy")
 end
 subroutine run_mrcc_test
   implicit none
@@ -46,14 +42,7 @@ end
 subroutine run_mrcc
   implicit none
   integer :: i,j
-  print *,  'MRCC'
-  print *,  '===='
-  print *,  ''
-  print *,  'CAS+SD energy : ', ci_energy_dressed(:)
-  print *,  ''
 
-!    call diagonalize_ci_dressed
-!    call save_wavefunction_unsorted
   double precision :: E_new, E_old, delta_e
   integer :: iteration
   E_new = 0.d0
@@ -71,5 +60,7 @@ subroutine run_mrcc
     delta_E = dabs(E_new - E_old)
     call write_double(6,ci_energy_dressed(1),"MRCC energy")
   enddo
+  call ezfio_set_mrcc_energy(ci_energy_dressed(1))
+!  call save_wavefunction
 
 end

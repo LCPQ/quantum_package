@@ -28,38 +28,44 @@ subroutine mrcc_dress(delta_ij_,Ndet,i_generator,n_selected,det_buffer,Nint,ipro
   integer          :: h1,h2,p1,p2,s1,s2
   integer(bit_kind):: tmp_det(Nint,2)
   integer          :: iint, ipos
-!  integer          :: istate, i_sd, i_cas
+  integer          :: i_state, k_sd, l_sd, i_I, i_alpha
 
 
 
   ! |I>
 
   ! |alpha>
-  do i=1,N_tq
-    call get_excitation_degree_vector(psi_sd,tq(1,1,i),degree_alpha,Nint,N_det_sd,idx_alpha)
+  do i_alpha=1,N_tq
+    call get_excitation_degree_vector(psi_non_cas,tq(1,1,i_alpha),degree_alpha,Nint,N_det_non_cas,idx_alpha)
 
     ! |I>
-    do j=1,N_det_cas
+    do i_I=1,N_det_cas
        ! Find triples and quadruple grand parents
-       call get_excitation_degree(tq(1,1,i),psi_cas(1,1,j),degree,Nint)
+       call get_excitation_degree(tq(1,1,i_alpha),psi_cas(1,1,i_I),degree,Nint)
        if (degree > 4) then
          cycle
        endif
-       dIa(:) = 0.d0
+
+       do i_state=1,N_states
+         dIa(i_state) = 0.d0
+       enddo
+
        ! <I|  <>  |alpha>
-       do k=1,idx_alpha(0)
-         call get_excitation_degree(psi_cas(1,1,j),psi_sd(1,1,idx_alpha(k)),degree,Nint)
+       do k_sd=1,idx_alpha(0)
+         call get_excitation_degree(psi_cas(1,1,i_I),psi_non_cas(1,1,idx_alpha(k_sd)),degree,Nint)
          if (degree > 2) then
            cycle
          endif
-         ! <I|  k  |alpha>
+         ! <I| /k\ |alpha>
          ! <I|H|k>
-         call i_h_j(psi_cas(1,1,j),psi_sd(1,1,idx_alpha(k)),Nint,hIk)
-         dIk(:) = hIk * lambda_mrcc(idx_alpha(k),:)
-         ! Exc(k -> alpha)
-         call get_excitation(psi_sd(1,1,idx_alpha(k)),tq(1,1,i),exc,degree,phase,Nint)
+         call i_h_j(psi_cas(1,1,i_I),psi_non_cas(1,1,idx_alpha(k_sd)),Nint,hIk)
+         do i_state=1,N_states
+           dIk(i_state) = hIk * lambda_mrcc(idx_alpha(k_sd),i_state)
+         enddo
+         ! |l> = Exc(k -> alpha) |I>
+         call get_excitation(psi_non_cas(1,1,idx_alpha(k_sd)),tq(1,1,i_alpha),exc,degree,phase,Nint)
          call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
-         tmp_det(1:Nint,1:2) = psi_cas(1,1,j)
+         tmp_det(1:Nint,1:2) = psi_cas(1,1,i_I)
          ! Hole (see list_to_bitstring)
          iint = ishft(h1-1,-bit_kind_shift) + 1
          ipos = h1-ishft((iint-1),bit_kind_shift)-1
@@ -81,28 +87,37 @@ subroutine mrcc_dress(delta_ij_,Ndet,i_generator,n_selected,det_buffer,Nint,ipro
            tmp_det(iint,s2) = ibset(tmp_det(iint,s2),ipos)
          endif
          
-         dka(:) = 0.d0
-         do l=k+1,idx_alpha(0)
-           call get_excitation_degree(tmp_det,psi_sd(1,1,idx_alpha(l)),degree,Nint)
+         ! <I| \l/ |alpha>
+         do i_state=1,N_states
+           dka(i_state) = 0.d0
+         enddo
+         do l_sd=k_sd+1,idx_alpha(0)
+           call get_excitation_degree(tmp_det,psi_non_cas(1,1,idx_alpha(l_sd)),degree,Nint)
            if (degree == 0) then
-             call get_excitation(psi_cas(1,1,j),psi_sd(1,1,idx_alpha(l)),exc,degree,phase2,Nint)
-             call i_h_j(psi_cas(1,1,j),psi_sd(1,1,idx_alpha(l)),Nint,hIl)
-             dka(:) = hIl * lambda_mrcc(idx_alpha(l),:) * phase * phase2
+             call get_excitation(psi_cas(1,1,i_I),psi_non_cas(1,1,idx_alpha(l_sd)),exc,degree,phase2,Nint)
+             call i_h_j(psi_cas(1,1,i_I),psi_non_cas(1,1,idx_alpha(l_sd)),Nint,hIl)
+             do i_state=1,N_states
+               dka(i_state) = hIl * lambda_mrcc(idx_alpha(l_sd),i_state) * phase * phase2
+             enddo
              exit
            endif
          enddo
-         do l=1,N_states
-           dIa(l) += dka(l)*dIk(l)
+         do i_state=1,N_states
+           dIa(i_state) = dIa(i_state) + dIk(i_state) * dka(i_state)
          enddo
        enddo
-       ci_inv(1:N_states) = 1.d0/psi_cas_coefs(j,1:N_states)
-       do l=1,idx_alpha(0)
-         k = idx_alpha(l)
-         call i_h_j(tq(1,1,i),psi_sd(1,1,idx_alpha(l)),Nint,hla)
+
+       do i_state=1,N_states
+         ci_inv(i_state) = 1.d0/psi_cas_coefs(i_I,i_state)
+       enddo
+
+       do l_sd=1,idx_alpha(0)
+         k_sd = idx_alpha(l_sd)
+         call i_h_j(tq(1,1,i_alpha),psi_non_cas(1,1,idx_alpha(l_sd)),Nint,hla)
          do m=1,N_states
-           delta_ij_(idx_sd(k),idx_cas(j),m) += dIa(m) * hla 
-           delta_ij_(idx_cas(j),idx_sd(k),m) += dIa(m) * hla
-           delta_ij_(idx_cas(j),idx_cas(j),m) -= dIa(m) * hla * ci_inv(m) * psi_sd_coefs(k,m)
+           delta_ij_(idx_non_cas(k_sd),idx_cas(i_I),m) += dIa(m) * hla 
+           delta_ij_(idx_cas(i_I),idx_non_cas(k_sd),m) += dIa(m) * hla
+           delta_ij_(idx_cas(i_I),idx_cas(i_I),m) -= dIa(m) * hla * ci_inv(m) * psi_non_cas_coefs(k_sd,m)
          enddo
        enddo
     enddo
@@ -115,13 +130,13 @@ end
 
 
 
-subroutine mrcc_dress_simple(delta_ij_sd_,Ndet_sd,i_generator,n_selected,det_buffer,Nint,iproc)
+subroutine mrcc_dress_simple(delta_ij_non_cas_,Ndet_non_cas,i_generator,n_selected,det_buffer,Nint,iproc)
  use bitmasks
  implicit none
 
   integer, intent(in)            :: i_generator,n_selected, Nint, iproc
-  integer, intent(in) :: Ndet_sd
-  double precision, intent(inout) :: delta_ij_sd_(Ndet_sd,Ndet_sd,*)
+  integer, intent(in) :: Ndet_non_cas
+  double precision, intent(inout) :: delta_ij_non_cas_(Ndet_non_cas,Ndet_non_cas,*)
 
   integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
   integer                        :: i,j,k,m
@@ -143,18 +158,18 @@ subroutine mrcc_dress_simple(delta_ij_sd_,Ndet_sd,i_generator,n_selected,det_buf
   double precision :: f(N_states)
 
   do i=1,N_tq
-    call get_excitation_degree_vector(psi_sd,tq(1,1,i),degree,Nint,Ndet_sd,idx)
+    call get_excitation_degree_vector(psi_non_cas,tq(1,1,i),degree,Nint,Ndet_non_cas,idx)
     call i_h_j(tq(1,1,i),tq(1,1,i),Nint,haa)
     do m=1,N_states
       f(m) = 1.d0/(ci_electronic_energy(m)-haa)
     enddo
     do k=1,idx(0)
-      call i_h_j(tq(1,1,i),psi_sd(1,1,idx(k)),Nint,hka)
+      call i_h_j(tq(1,1,i),psi_non_cas(1,1,idx(k)),Nint,hka)
       do j=k,idx(0)
-        call i_h_j(tq(1,1,i),psi_sd(1,1,idx(j)),Nint,haj)
+        call i_h_j(tq(1,1,i),psi_non_cas(1,1,idx(j)),Nint,haj)
         do m=1,N_states
-          delta_ij_sd_(idx(k), idx(j),m) += haj*hka* f(m)
-          delta_ij_sd_(idx(j), idx(k),m) += haj*hka* f(m)
+          delta_ij_non_cas_(idx(k), idx(j),m) += haj*hka* f(m)
+          delta_ij_non_cas_(idx(j), idx(k),m) += haj*hka* f(m)
         enddo
       enddo 
     enddo
