@@ -48,16 +48,6 @@ then
 fi
 
 
-echo "${BLUE}===== Installing EZFIO ===== ${BLACK}"
-${QPACKAGE_ROOT}/scripts/install_ezfio.sh | tee install_ezfio.log
-
-if [[ ! -d ${QPACKAGE_ROOT}/EZFIO ]]
-then
-  echo $RED "Error in EZFIO installation" $BLACK
-  exit 1
-fi
-
-
 echo "${BLUE}===== Installing Zlib ===== ${BLACK}"
 ${QPACKAGE_ROOT}/scripts/install_zlib.sh       | tee install_zlib.log
 
