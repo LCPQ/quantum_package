@@ -6,8 +6,9 @@
 * m4
 * GNU make
 * Fortran compiler (ifort or gfortran are tested)
-* Python >= 2.7
+* Python >= 2.6
 * Bash
+* Patch (for opam)
 
 
 ## Standard installation

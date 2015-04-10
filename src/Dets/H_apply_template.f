@@ -1,4 +1,4 @@
-subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_generator, iproc $parameters )
+subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_generator, iproc_in $parameters )
   use omp_lib
   use bitmasks
   implicit none
@@ -14,7 +14,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   integer(bit_kind),allocatable  :: keys_out(:,:,:)
   integer(bit_kind), intent(in)  :: hole_1(N_int,2), particl_1(N_int,2)
   integer(bit_kind), intent(in)  :: hole_2(N_int,2), particl_2(N_int,2)
-  integer, intent(in)            :: iproc
+  integer, intent(in)            :: iproc_in
   integer(bit_kind), allocatable :: hole_save(:,:)
   integer(bit_kind), allocatable :: key(:,:),hole(:,:), particle(:,:)
   integer(bit_kind), allocatable :: hole_tmp(:,:), particle_tmp(:,:)
@@ -30,6 +30,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   integer, allocatable           :: ib_jb_pairs(:,:)
   double precision               :: diag_H_mat_elem
+  integer                        :: iproc
   integer(omp_lock_kind), save   :: lck, ifirst=0
   if (ifirst == 0) then
 !$    call omp_init_lock(lck)
@@ -38,12 +39,13 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   
   logical :: check_double_excitation 
   check_double_excitation = .True.
-
+  iproc = iproc_in
 
 
   $initialization
   
   $omp_parallel
+!$ iproc = omp_get_thread_num()
   allocate (keys_out(N_int,2,size_max), hole_save(N_int,2),          &
       key(N_int,2),hole(N_int,2), particle(N_int,2), hole_tmp(N_int,2),&
       particle_tmp(N_int,2), occ_particle(N_int*bit_kind_size,2),    &
@@ -248,7 +250,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   $finalization
 end
 
-subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc $parameters )
+subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc_in $parameters )
   use omp_lib
   use bitmasks
   implicit none
@@ -262,7 +264,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc $param
   integer          ,intent(in)   :: i_generator
   integer(bit_kind),intent(in)   :: key_in(N_int,2)
   integer(bit_kind),intent(in)   :: hole_1(N_int,2), particl_1(N_int,2)
-  integer, intent(in)            :: iproc
+  integer, intent(in)            :: iproc_in
   integer(bit_kind),allocatable  :: keys_out(:,:,:)
   integer(bit_kind),allocatable  :: hole_save(:,:)
   integer(bit_kind),allocatable  :: key(:,:),hole(:,:), particle(:,:)
@@ -281,8 +283,11 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc $param
   logical, allocatable           :: array_pairs(:,:)
   double precision               :: diag_H_mat_elem
   integer(omp_lock_kind), save   :: lck, ifirst=0
+  integer                        :: iproc
 
   logical :: check_double_excitation 
+  iproc = iproc_in
+
   check_double_excitation = .True.
   $check_double_excitation
 
@@ -295,6 +300,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc $param
   $initialization
   
   $omp_parallel
+!$ iproc = omp_get_thread_num()
   allocate (keys_out(N_int,2,size_max), hole_save(N_int,2),          &
       key(N_int,2),hole(N_int,2), particle(N_int,2), hole_tmp(N_int,2),&
       particle_tmp(N_int,2), occ_particle(N_int*bit_kind_size,2),    &
@@ -396,7 +402,8 @@ subroutine $subroutine($params_main)
   integer                        :: iproc
 
   $initialization
-  PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map
+  PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators
+
   
   nmax = mod( N_det_generators,nproc )
  
@@ -406,6 +413,7 @@ subroutine $subroutine($params_main)
 
   call wall_time(wall_0)
 
+  iproc = 0
   allocate( mask(N_int,2,6) )
   do i_generator=1,nmax
 
@@ -443,12 +451,12 @@ subroutine $subroutine($params_main)
      call $subroutine_diexc(psi_det_generators(1,1,i_generator),      &
          mask(1,1,d_hole1), mask(1,1,d_part1),                        &
          mask(1,1,d_hole2), mask(1,1,d_part2),                        &
-         i_generator, 0 $params_post)
+         i_generator, iproc $params_post)
     endif
     if($do_mono_excitations)then
      call $subroutine_monoexc(psi_det_generators(1,1,i_generator),    &
          mask(1,1,s_hole ), mask(1,1,s_part ),                        &
-         i_generator, 0 $params_post)
+         i_generator, iproc $params_post)
     endif
     call wall_time(wall_1)
     $printout_always
@@ -463,7 +471,6 @@ subroutine $subroutine($params_main)
   !$OMP PARALLEL DEFAULT(SHARED) &
   !$OMP PRIVATE(i_generator,wall_1,wall_0,ispin,k,mask,iproc) 
   call wall_time(wall_0)
-  iproc = 0
   !$ iproc = omp_get_thread_num()
   allocate( mask(N_int,2,6) )
   !$OMP DO SCHEDULE(dynamic,1)
