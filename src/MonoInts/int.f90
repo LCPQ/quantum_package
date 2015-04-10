@@ -8,7 +8,7 @@ implicit none
 integer n_a(3),n_b(3)
 double precision g_a,g_b,a(3),b(3),c(3)
 integer kmax_max,lmax_max
-parameter (kmax_max=2,lmax_max=2)
+parameter (kmax_max=4,lmax_max=2)
 integer lmax,kmax,n_kl(kmax_max,0:lmax_max)
 double precision v_kl(kmax_max,0:lmax_max),dz_kl(kmax_max,0:lmax_max)
 integer klocmax_max
@@ -18,7 +18,7 @@ double precision v_k(klocmax_max),dz_k(klocmax_max)
 double precision Vloc,Vpseudo
 
 Vps=Vloc(klocmax,v_k,n_k,dz_k,a,n_a,g_a,b,n_b,g_b,c) &
-  +Vpseudo(lmax,kmax,v_kl,n_kl,dz_kl,a,n_a,g_a,b,n_b,g_b,c)
+   +Vpseudo(lmax,kmax,v_kl,n_kl,dz_kl,a,n_a,g_a,b,n_b,g_b,c)
 end
 !!
 !! Vps_num: brute force numerical evaluation of the same matrix element Vps
@@ -29,7 +29,7 @@ implicit none
 integer n_a(3),n_b(3)
 double precision g_a,g_b,a(3),b(3),c(3),rmax
 integer kmax_max,lmax_max
-parameter (kmax_max=2,lmax_max=2)
+parameter (kmax_max=4,lmax_max=2)
 integer lmax,kmax,n_kl(kmax_max,0:lmax_max)
 double precision v_kl(kmax_max,0:lmax_max),dz_kl(kmax_max,0:lmax_max)
 integer klocmax_max;parameter (klocmax_max=10)
@@ -170,12 +170,13 @@ end
 double precision function Vpseudo  &
 (lmax,kmax,v_kl,n_kl,dz_kl,a,n_a,g_a,b,n_b,g_b,c)
 implicit none
+double precision, intent(in) :: a(3),g_a,b(3),g_b,c(3)
+
 integer kmax_max,lmax_max,ntot_max,nkl_max
-parameter (kmax_max=2,lmax_max=2,nkl_max=4)
+parameter (kmax_max=4,lmax_max=2,nkl_max=4)
 parameter (ntot_max=10)
 integer lmax,kmax,n_kl(kmax_max,0:lmax_max),l,k
 double precision v_kl(kmax_max,0:lmax_max),dz_kl(kmax_max,0:lmax_max)
-double precision a(3),g_a,b(3),g_b,c(3)
 double precision fourpi,f,prod,prodp,binom,accu,bigR,bigI,ylm
 double precision theta_AC0,phi_AC0,theta_BC0,phi_BC0,ac,bc,big
 double precision areal,freal,breal,t1,t2,int_prod_bessel
@@ -474,7 +475,7 @@ end
 double precision function Vpseudo_num(npts,rmax,lmax,kmax,v_kl,n_kl,dz_kl,a,n_a,g_a,b,n_b,g_b,c)
 implicit none
 integer kmax_max,lmax_max
-parameter (kmax_max=2,lmax_max=2)
+parameter (kmax_max=4,lmax_max=2)
 integer lmax,kmax, n_kl(kmax_max,0:lmax_max),l,m,k,kk
 double precision v_kl(kmax_max,0:lmax_max),dz_kl(kmax_max,0:lmax_max)
 double precision a(3),g_a,b(3),g_b,c(3),ac(3),bc(3)
@@ -486,6 +487,7 @@ do l=1,3
  ac(l)=a(l)-c(l)
  bc(l)=b(l)-c(l)
 enddo
+
 dr=rmax/npts
 sum=0.d0
 do l=0,lmax
@@ -571,6 +573,7 @@ double precision int_prod_bessel_loc,binom,accu,prod,ylm,bigI,arg
    accu=accu+v_k(k)*crochet(n_k(k)+2+ntot,g_a+g_b+dz_k(k))
   enddo
   Vloc=accu*fourpi*bigI(0,0,0,0,n_a(1)+n_b(1),n_a(2)+n_b(2),n_a(3)+n_b(3))
+  !bigI frequantly is null
   return
  endif
 

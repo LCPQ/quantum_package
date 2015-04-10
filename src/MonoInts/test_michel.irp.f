@@ -114,7 +114,7 @@ program compute_integrals_pseudo
   integer, allocatable ::  n_kl(:,:)
   double precision, allocatable ::  v_kl(:,:), dz_kl(:,:) 
 
-  call ezfio_get_pseudo_lmax(lmax)
+  call ezfio_get_pseudo_lmaxpo(lmax)
   call ezfio_get_pseudo_kmax(kmax)
   lmax = lmax - 1 
 

@@ -4,7 +4,7 @@
 Create the pseudo potential for a given atom
 
 Usage:
-    put_pseudo_in_ezfio.py --ezfio=<path>  --atom=<atom>...
+    put_pseudo_in_ezfio.py --ezfio=<path>  --atom=<atom>... --zeff=<charge>...
 """
 
 
@@ -96,9 +96,14 @@ def get_v_n_dz_l_nonlocal(str_ele):
         except ValueError:
             pass
         else:
-            l_v_kl.append((v, l))
-            l_n_kl.append((n, l))
-            l_dz_kl.append((dz, l))
+            l_v_kl.append([v])
+            l_n_kl.append([n])
+            l_dz_kl.append([dz])
+
+    if not l_v_kl:
+            l_v_kl.append([0.])
+            l_n_kl.append([0])
+            l_dz_kl.append([0.])
 
     return l_v_kl, l_n_kl, l_dz_kl
 
@@ -175,9 +180,11 @@ if __name__ == "__main__":
         print l_n_kl
         print l_dz_kl
 
-        if l_v_kl:
-            ezfio.pseudo_lmax = max([i[1] for i in l_v_kl]) + 1
-            ezfio.pseudo_kmax = len(l_v_kl)
-            ezfio.pseudo_v_kl = l_v_kl
-            ezfio.pseudo_n_kl = l_n_kl
-            ezfio.pseudo_dz_kl = l_dz_kl
+        ezfio.pseudo_lmaxpo = len(l_v_kl)
+        ezfio.pseudo_kmax = len(l_v_kl[0])
+        ezfio.pseudo_v_kl = l_v_kl
+        ezfio.pseudo_n_kl = l_n_kl
+        ezfio.pseudo_dz_kl = l_dz_kl
+
+    if arguments["--zeff"]:
+        ezfio.nuclei_nucl_charge = map(int, arguments["--zeff"])

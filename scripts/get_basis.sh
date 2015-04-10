@@ -45,6 +45,6 @@ fi
 
 #${EMSL_API_ROOT}/EMSL_api.py get_basis_data --treat_l --save --path="${tmpfile}" --basis="${basis}" $atoms
 
-cp He.dz_filipi.basis ${tmpfile}
+cp /home/razoa/quantum_package/scripts/pseudo/burkatzki_dz.basis ${tmpfile}
 echo ${tmpfile}
 
