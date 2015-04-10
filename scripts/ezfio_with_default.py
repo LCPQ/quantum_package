@@ -90,7 +90,10 @@ END_PROVIDER
     self.default = t
 
   def get_default(self):
-    filename = '/'.join( [os.environ['QPACKAGE_ROOT'], 'data', 'ezfio_defaults'] )
+    filename = '/'.join( [os.environ['QPACKAGE_ROOT'], 'data',
+                          'ezfio_defaults',
+                          'WILL_BE_DELETED.ezfio_default'] )
+
     file = open(filename,'r')
     lines = file.readlines()
     file.close()
@@ -115,6 +118,8 @@ END_PROVIDER
     true = True
     false= False
     try:
+      true = True
+      false = False
       v_eval = eval(v)
     except:
       v = "call ezfio_get_%(v)s(%(name)s)"%locals()

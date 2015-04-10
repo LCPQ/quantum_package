@@ -44,6 +44,6 @@ ocaml:
 	$(MAKE) ocaml/Qptypes.ml
 
 veryclean:
-	rm -f EZFIO
+	rm -rf EZFIO
 	$(MAKE) EZFIO
 	$(MAKE) -C src veryclean

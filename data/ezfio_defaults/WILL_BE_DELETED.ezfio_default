@@ -43,11 +43,6 @@ all_singles
   pt2_max                    1.e-8
   do_pt2_end                 False
 
-cassd  
-  n_det_max_cassd            10000
-  pt2_max                    1.e-4
-  do_pt2_end                 True
-                            
 hartree_fock
   n_it_scf_max               200
   thresh_scf                 1.e-10

@@ -3,7 +3,7 @@ program det_svd
   BEGIN_DOC
 ! Computes the SVD of the Alpha x Beta determinant coefficient matrix
   END_DOC
-  integer                        :: i,j
+  integer                        :: i,j,k
 
   read_wf = .True.
   TOUCH read_wf
@@ -40,17 +40,22 @@ program det_svd
   print *,  'N_det_alpha = ', N_det_alpha_unique
   print *,  'N_det_beta  = ', N_det_beta_unique
   print *,  ''
-
-!  do i=1,N_det_alpha_unique
-!    do j=1,N_det_beta_unique
-!      print *,  i,j,psi_svd_matrix(i,j,:)
-!    enddo
-!  enddo
-
   print *,  ''
+  call diagonalize_ci
   print *,  'Energy = ', ci_energy
+
+  do i=1,N_det_alpha_unique
+    do j=1,N_det_beta_unique
+      do k=1,N_states
+        if (dabs(psi_svd_matrix(i,j,k)) < 1.d-15) then
+          psi_svd_matrix(i,j,k) = 0.d0
+        endif
+      enddo
+    enddo
+  enddo
+
   print *,  ''
   print *,  psi_svd_coefs(1:20,1)
-!  call save_wavefunction
+  call save_wavefunction
 
 end

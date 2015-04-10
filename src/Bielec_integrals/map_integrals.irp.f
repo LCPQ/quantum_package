@@ -13,7 +13,7 @@ BEGIN_PROVIDER [ type(map_type), ao_integrals_map ]
   call bielec_integrals_index(ao_num,ao_num,ao_num,ao_num,key_max)
   sze = key_max
   call map_init(ao_integrals_map,sze)
-  write(output_BiInts,*)  'AO map initialized'
+  write(output_bielec_integrals,*)  'AO map initialized'
 END_PROVIDER
 
 subroutine bielec_integrals_index(i,j,k,l,i1)
@@ -244,7 +244,7 @@ BEGIN_PROVIDER [ type(map_type), mo_integrals_map ]
   call bielec_integrals_index(mo_tot_num,mo_tot_num,mo_tot_num,mo_tot_num,key_max)
   sze = key_max
   call map_init(mo_integrals_map,sze)
-  write(output_BiInts,*) 'MO map initialized'
+  write(output_bielec_integrals,*) 'MO map initialized'
 END_PROVIDER
 
 subroutine insert_into_ao_integrals_map(n_integrals,                 &

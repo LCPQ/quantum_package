@@ -150,19 +150,41 @@ end = struct
 
   let to_string = function
   | Huckel -> \"Huckel\"
-  | HCore  -> \"HCore\"
+  | HCore  -> \"Hcore\"
 
   let of_string  s = 
-    let s = 
-      String.lowercase s
-    in
     match s with
-    | \"huckel\" -> Huckel
-    | \"hcore\"  -> HCore
+    | \"Huckel\" -> Huckel
+    | \"Hcore\"  -> HCore
     | _ -> failwith (\"Wrong Guess type : \"^s)
 
 end
+
+module Disk_access : sig
+  type t with sexp
+  val to_string : t -> string
+  val of_string : string -> t
+end = struct
+  type t = 
+  | Read
+  | Write
+  | None
+  with sexp
+
+  let to_string = function
+  | Read   -> \"Read\"
+  | Write  -> \"Write\"
+  | None   -> \"None\"
+  let of_string  s = 
+    match s with
+    | \"Read\"  -> Read
+    | \"Write\" -> Write
+    | \"None\"  -> None
+    | _ -> failwith (\"Wrong IO type : \"^s)
+
+end
 "
+
 ;;
 
 let template = format_of_string "

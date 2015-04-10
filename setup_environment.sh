@@ -17,8 +17,8 @@ export QPACKAGE_ROOT=\$( cd \$(dirname "\${BASH_SOURCE}")  ; pwd -P )
 export LD_LIBRARY_PATH="\${QPACKAGE_ROOT}"/lib:\${LD_LIBRARY_PATH}
 export LIBRARY_PATH="\${QPACKAGE_ROOT}"/lib:\${LIBRARY_PATH}
 export C_INCLUDE_PATH="\${QPACKAGE_ROOT}"/include:\${C_INCLUDE_PATH}
-export PYTHONPATH=\${PYTHONPATH}:"\${QPACKAGE_ROOT}"/scripts
-export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/scripts
+export PYTHONPATH=\${PYTHONPATH}:"\${QPACKAGE_ROOT}"/scripts:"\${QPACKAGE_ROOT}"/scripts/ezfio_interface
+export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/scripts:"\${QPACKAGE_ROOT}"/scripts/ezfio_interface
 export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/bin
 export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/ocaml
 source "\${QPACKAGE_ROOT}"/bin/irpman &> /dev/null
@@ -44,16 +44,6 @@ fi
 if [[ ! -x ${QPACKAGE_ROOT}/bin/irpman ]]
 then
   echo $RED "Error in IRPF90 installation" $BLACK
-  exit 1
-fi
-
-
-echo "${BLUE}===== Installing EZFIO ===== ${BLACK}"
-${QPACKAGE_ROOT}/scripts/install_ezfio.sh | tee install_ezfio.log
-
-if [[ ! -d ${QPACKAGE_ROOT}/EZFIO ]]
-then
-  echo $RED "Error in EZFIO installation" $BLACK
   exit 1
 fi
 

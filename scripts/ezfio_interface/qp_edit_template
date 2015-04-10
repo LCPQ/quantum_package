@@ -11,27 +11,21 @@ open Core.Std;;
 (** Keywords used to define input sections *)
 type keyword = 
 | Ao_basis
-| Bielec_integrals
-| Cisd_sc2
 | Determinants
 | Electrons
-| Full_ci
-| Hartree_fock
 | Mo_basis
 | Nuclei
+{keywords}
 ;;
 
 
 let keyword_to_string = function
-| Ao_basis         -> "AO basis"
-| Bielec_integrals -> "Two electron integrals"
-| Cisd_sc2         -> "CISD (SC)^2"
-| Determinants     -> "Determinants"
-| Electrons        -> "Electrons"
-| Full_ci          -> "Selected Full-CI"
-| Hartree_fock     -> "Hartree-Fock"
-| Mo_basis         -> "MO basis"
-| Nuclei           -> "Molecule"
+| Ao_basis          -> "AO basis"
+| Determinants      -> "Determinants"
+| Electrons         -> "Electrons"
+| Mo_basis          -> "MO basis"
+| Nuclei            -> "Molecule"
+{keywords_to_string}
 ;;
 
 
@@ -70,24 +64,17 @@ let get s =
       begin
          let open Input in
          match s with
-         | Full_ci ->
-           f Full_ci.(read, to_rst)
-         | Hartree_fock ->
-           f Hartree_fock.(read, to_rst)
          | Mo_basis ->
            f Mo_basis.(read, to_rst)
          | Electrons ->
            f Electrons.(read, to_rst)
-         | Cisd_sc2 ->
-           f Cisd_sc2.(read, to_rst)
          | Nuclei ->
            f Nuclei.(read, to_rst)
          | Ao_basis ->
            f Ao_basis.(read, to_rst)
-         | Bielec_integrals -> 
-           f Bielec_integrals.(read, to_rst)
          | Determinants ->
            f Determinants.(read, to_rst)
+{section_to_rst}
       end
     with
     | Sys_error msg -> (Printf.eprintf "Info: %s\n%!" msg ; "")
@@ -125,11 +112,8 @@ let set str s =
       in
       let open Input in
         match s with
-        | Hartree_fock     -> write Hartree_fock.(of_rst, write) s
-        | Full_ci          -> write Full_ci.(of_rst, write) s
+{write}
         | Electrons        -> write Electrons.(of_rst, write) s
-        | Cisd_sc2         -> write Cisd_sc2.(of_rst, write) s
-        | Bielec_integrals -> write Bielec_integrals.(of_rst, write) s
         | Determinants     -> write Determinants.(of_rst, write) s
         | Nuclei           -> write Nuclei.(of_rst, write) s
         | Ao_basis         -> () (* TODO *)
@@ -176,10 +160,7 @@ let run check_only ezfio_filename =
       Nuclei ;
       Ao_basis;
       Electrons ;
-      Bielec_integrals ;
-      Hartree_fock ;
-      Cisd_sc2 ;
-      Full_ci ;
+{tasks}
       Mo_basis;
       Determinants ;
   ]

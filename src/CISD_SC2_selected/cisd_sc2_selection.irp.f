@@ -62,12 +62,20 @@ program cisd_sc2_selected
     if (abort_all) then
       exit
     endif
+
+    ! =~=~=~=~=~=~=~=~=~=~=~=~=~!
+    ! W r i t e _ o n _ d i s k !
+    ! =~=~=~=~=~=~=~=~=~=~=~=~=~!
+
+    call ezfio_set_full_ci_energy(CI_SC2_energy(1))
+
   enddo
   N_det = min(n_det_max_cisd_sc2,N_det)
   davidson_threshold = 1.d-10
   touch N_det psi_det psi_coef davidson_threshold davidson_criterion
   call diagonalize_CI_SC2
   pt2 = 0.d0
+ 
   if(do_pt2_end)then
    threshold_selectors = 1.d0
    call H_apply_PT2(pt2, norm_pert, H_pert_diag,  N_st)
@@ -97,6 +105,12 @@ program cisd_sc2_selected
     print*,'Degree of excitation of this determinant : ',degree
     
    enddo
+
+    ! =~=~=~=~=~=~=~=~=~=~=~=~=~!
+    ! W r i t e _ o n _ d i s k !
+    ! =~=~=~=~=~=~=~=~=~=~=~=~=~!
+
+    call ezfio_set_full_ci_energy_pt2(CI_SC2_energy(i)+pt2(i)* (1.d0 + norm_pert) - H_pert_diag(i))
   endif
   call save_wavefunction
   deallocate(pt2,norm_pert,H_pert_diag)

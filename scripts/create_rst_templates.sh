@@ -12,6 +12,8 @@ fi
 source ${QPACKAGE_ROOT}/scripts/qp_include.sh
 
 check_current_dir_is_module
+MODULE=$(basename $PWD)
+
 
 README="True"
 if [[ -f README.rst ]]
