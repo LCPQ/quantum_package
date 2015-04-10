@@ -21,33 +21,33 @@
   !                 
 
   integer klocmax
-!  integer, allocatable ::  n_k(:)
-!  double precision, allocatable ::  v_k(:), dz_k(:)
+  integer, allocatable ::  n_k(:)
+  double precision, allocatable ::  v_k(:), dz_k(:)
+
+  call ezfio_get_pseudo_klocmax(klocmax)
+
+  allocate(n_k(klocmax),v_k(klocmax), dz_k(klocmax))
+
+  call ezfio_get_pseudo_v_k(v_k)
+  call ezfio_get_pseudo_n_k(n_k)
+  call ezfio_get_pseudo_dz_k(dz_k)
+
+!  klocmax = 3
 !
-!  call ezfio_get_pseudo_klocmax(klocmax)
+!  integer :: n_k(3)
+!  double precision :: v_k(3), dz_k(3)
 !
-!  allocate(n_k(klocmax),v_k(klocmax), dz_k(klocmax))
+!  v_k(1) = 1.00000000d0
+!  v_k(2) = 5.35838717  
+!  v_k(3) = -2.07764789
 !
-!  call ezfio_get_pseudo_v_k(v_k)
-!  call ezfio_get_pseudo_n_k(n_k)
-!  call ezfio_get_pseudo_dz_k(dz_k)
-
-  klocmax = 3
-
-  integer :: n_k(3)
-  double precision :: v_k(3), dz_k(3)
-
-  v_k(1) = 1.00000000d0
-  v_k(2) = 5.35838717  
-  v_k(3) = -2.07764789
-
-  n_k(1) =  -1
-  n_k(2) =  1 
-  n_k(3) =  0
-
-  dz_k(1) = 5.35838717
-  dz_k(2) = 3.67918975
-  dz_k(3) = 1.60507673
+!  n_k(1) =  -1
+!  n_k(2) =  1 
+!  n_k(3) =  0
+!
+!  dz_k(1) = 5.35838717
+!  dz_k(2) = 3.67918975
+!  dz_k(3) = 1.60507673
   
 
   print*, "klocmax", klocmax
