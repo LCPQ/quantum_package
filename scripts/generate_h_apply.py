@@ -53,7 +53,7 @@ class H_apply(object):
         !$OMP  N_elec_in_key_hole_2,ia_ja_pairs)               &
         !$OMP SHARED(key_in,N_int,elec_num_tab,mo_tot_num,           &
         !$OMP  hole_1, particl_1, hole_2, particl_2,                 &
-        !$OMP  elec_alpha_num,i_generator)"""
+        !$OMP  elec_alpha_num,i_generator) FIRSTPRIVATE(iproc)"""
     s["omp_end_parallel"] = "!$OMP END PARALLEL"
     s["omp_master"]       = "!$OMP MASTER"
     s["omp_end_master"]   = "!$OMP END MASTER"

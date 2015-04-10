@@ -123,7 +123,6 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_
 
  call ezfio_has_bitmasks_generators(exists)
  if (exists) then
-   print*,'EXIST !!'
    call ezfio_get_bitmasks_generators(generators_bitmask)
  else
    integer :: k, ispin
@@ -181,7 +180,6 @@ BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
  PROVIDE ezfio_filename
 
  call ezfio_has_bitmasks_cas(exists)
- print*,'exists = ',exists
  if (exists) then
    call ezfio_get_bitmasks_cas(cas_bitmask)
  else

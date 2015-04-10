@@ -507,6 +507,9 @@ def create_ocaml_input(dict_ezfio_cfg, module_lower):
             l_type.append(v["type"])
             l_doc.append(v["doc"])
 
+    if not l_ezfio_name:
+        raise ValueError
+
     e_glob = EZFIO_ocaml(l_ezfio_name=l_ezfio_name,
                          l_type=l_type,
                          l_doc=l_doc)
@@ -602,6 +605,49 @@ def save_ocaml_input(module_lower, str_ocaml_input):
             f.write(str_ocaml_input)
 
 
+def get_l_module_lower():
+    """
+    Get all module who have EZFIO.cfg with input data
+        (NB `search` in all the ligne and `match` only in one)
+    """
+
+    # ~#~#~#~ #
+    # I n i t #
+    # ~#~#~#~ #
+
+    mypath = "{0}/src".format(os.environ['QPACKAGE_ROOT'])
+
+    # ~#~#~#~#~#~#~#~ #
+    # L _ f o l d e r #
+    # ~#~#~#~#~#~#~#~ #
+
+    from os import listdir
+    from os.path import isdir, join, exists
+
+    l_folder = [f for f in listdir(mypath) if isdir(join(mypath, f))]
+
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # L _ m o d u l e _ l o w e r #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+
+    l_module_lower = []
+    import re
+    p = re.compile(ur'interface:\s+input')
+
+    for f in l_folder:
+        path = "{0}/{1}/EZFIO.cfg".format(mypath, f)
+        if exists(path):
+            with open(path, 'r') as file_:
+                if p.search(file_.read()):
+                    l_module_lower.append(f.lower())
+
+    # ~#~#~#~#~#~ #
+    # R e t u r n #
+    # ~#~#~#~#~#~ #
+
+    return l_module_lower
+
+
 def create_ocaml_input_global():
     """
     Check for all the EZFIO.cfg get the module lower
@@ -612,15 +658,7 @@ def create_ocaml_input_global():
     #  I n i t #
     # ~#~#~#~# #
 
-    from os import listdir
-    from os.path import isdir, join, exists
-
-    mypath = "{0}/src".format(os.environ['QPACKAGE_ROOT'])
-
-    onlyfodler = [f for f in listdir(mypath) if isdir(join(mypath, f))]
-
-    l_module_lower = [f.lower() for f in onlyfodler
-                      if exists("{0}/{1}/EZFIO.cfg".format(mypath, f))]
+    l_module_lower = get_l_module_lower()
 
     # ~#~#~#~#~#~#~#~# #
     #  C r e a t i o n #
@@ -761,8 +799,12 @@ if __name__ == "__main__":
     # O c a m l #
     # ~#~#~#~#~#~#
     if do_all or arguments["--ocaml"]:
-        str_ocaml_input = create_ocaml_input(dict_ezfio_cfg, module_lower)
-        save_ocaml_input(module_lower, str_ocaml_input)
+        try:
+            str_ocaml_input = create_ocaml_input(dict_ezfio_cfg, module_lower)
+        except ValueError:
+            pass
+        else:
+            save_ocaml_input(module_lower, str_ocaml_input)
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # e z f i o _ d e f a u l t #
