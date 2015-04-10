@@ -11,8 +11,12 @@ BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
      size(psi_cas_coef,1), n_states, ihpsi)
    double precision :: hij
    do k=1,N_states
-     lambda_mrcc(k,i) = psi_non_cas_coef(i,k)/ihpsi(k)
-     lambda_mrcc(k,i) = min( lambda_mrcc (k,i),0.d0 )
+     if (dabs(ihpsi(k)) > 1.d-5) then
+       lambda_mrcc(k,i) = psi_non_cas_coef(i,k)/ihpsi(k)
+       lambda_mrcc(k,i) = min( lambda_mrcc (k,i),0.d0 )
+     else
+       lambda_mrcc(k,i) = 0.d0
+     endif
    enddo
  enddo
 END_PROVIDER

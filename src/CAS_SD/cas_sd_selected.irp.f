@@ -8,6 +8,7 @@ program full_ci
   N_st = N_states
   allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st))
   character*(64)                 :: perturbation
+  PROVIDE N_det_cas
   
   pt2 = 1.d0
   diag_algorithm = "Lapack"
@@ -59,21 +60,21 @@ program full_ci
   logical :: in_cas
   integer :: exc_max, degree_min
   exc_max = 0
-  print *,  'CAS determinants : ', N_det_generators
-  do i=1,min(N_det_generators,10)
-    do k=i,N_det_generators
-      call get_excitation_degree(psi_det_generators(1,1,k),psi_det_generators(1,1,i),degree,N_int)
+  print *,  'CAS determinants : ', N_det_cas
+  do i=1,min(N_det_cas,10)
+    do k=i,N_det_cas
+      call get_excitation_degree(psi_cas(1,1,k),psi_cas(1,1,i),degree,N_int)
       exc_max = max(exc_max,degree)
     enddo
-    call debug_det(psi_det_generators(1,1,i),N_int)
+    call debug_det(psi_cas(1,1,i),N_int)
     print *,  ''
   enddo
   print *,  'Max excitation degree in the CAS :', exc_max
   do i=1,N_det
     in_cas = .False.
     degree_min = 1000
-    do k=1,N_det_generators
-      call get_excitation_degree(psi_det_generators(1,1,k),psi_det(1,1,i),degree,N_int)
+    do k=1,N_det_cas
+      call get_excitation_degree(psi_cas(1,1,k),psi_det(1,1,i),degree,N_int)
       degree_min = min(degree_min,degree)
     enddo
     if (degree_min > 2) then
