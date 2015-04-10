@@ -4,7 +4,7 @@
 Create the pseudo potential for a given atom
 
 Usage:
-    put_pseudo_in_ezfio.py --ezfio=<path>  --atom=<atom>...
+    put_pseudo_in_ezfio.py <ezfio_path>
 
 Help:
     atom is the Abreviation of the atom
@@ -181,7 +181,6 @@ def get_zeff_alpha_beta(str_ele):
 
 if __name__ == "__main__":
     arguments = docopt(__doc__)
-
     # ___
     #  |  ._  o _|_
     # _|_ | | |  |_
@@ -191,7 +190,7 @@ if __name__ == "__main__":
     # E Z F I O #
     # ~#~#~#~#~ #
 
-    ezfio_path = arguments["--ezfio"]
+    ezfio_path = arguments["<ezfio_path>"]
     ezfio_path = os.path.expanduser(ezfio_path)
     ezfio_path = os.path.expandvars(ezfio_path)
     ezfio_path = os.path.abspath(ezfio_path)
@@ -202,7 +201,7 @@ if __name__ == "__main__":
     # P s e u d o _ d a t a #
     # ~#~#~#~#~#~#~#~#~#~#~ #
 
-    l_ele = arguments["--atom"]
+    l_ele = ezfio.get_nuclei_nucl_label()
     str_ = get_pseudo_str(l_ele)
 
     #  _
