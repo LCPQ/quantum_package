@@ -14,4 +14,8 @@ program cisd
   enddo
 
   call save_wavefunction
+! call CISD_SC2(psi_det,psi_coef,eigvalues,size(psi_coef,1),N_det,N_states,N_int)
+! do i = 1, N_states
+!  print*,'eigvalues(i) = ',eigvalues(i)
+! enddo
 end

@@ -6,6 +6,12 @@ cis_dressed
   standard_doubles           True
   en_2_2                     false
 
+cas_sd
+  n_det_max_cas_sd           100000
+  pt2_max                    1.e-4
+  do_pt2_end                 True
+  var_pt2_ratio              0.75
+
 all_singles
   n_det_max_fci              50000
   pt2_max                    1.e-8

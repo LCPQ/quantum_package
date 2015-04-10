@@ -1,0 +1,66 @@
+bielec_integrals
+  read_ao_integrals          False
+  read_mo_integrals          False
+  write_ao_integrals         False
+  write_mo_integrals         False
+  threshold_ao               1.e-15
+  threshold_mo               1.e-15
+  direct                     False
+
+cis_dressed 
+  n_state_cis                10
+  n_core_cis                 0
+  n_act_cis                  mo_basis_mo_tot_num
+  mp2_dressing               False
+  standard_doubles           True
+  en_2_2                     False
+
+determinants
+  n_states                   1
+  n_states_diag              determinants_n_states
+  n_det_max_jacobi           1000
+  threshold_generators       0.99
+  threshold_selectors        0.999
+  read_wf                    False
+  s2_eig                     False
+  only_single_double_dm      False
+
+full_ci
+  n_det_max_fci              10000
+  n_det_max_fci_property     50000
+  pt2_max                    1.e-4
+  do_pt2_end                 True
+  var_pt2_ratio              0.75
+
+cas_sd
+  n_det_max_cas_sd           100000
+  pt2_max                    1.e-4
+  do_pt2_end                 True
+  var_pt2_ratio              0.75
+
+all_singles
+  n_det_max_fci              50000
+  pt2_max                    1.e-8
+  do_pt2_end                 False
+
+cassd  
+  n_det_max_cassd            10000
+  pt2_max                    1.e-4
+  do_pt2_end                 True
+                            
+hartree_fock
+  n_it_scf_max               200
+  thresh_scf                 1.e-10
+  guess                      "Huckel"
+
+cisd_selected
+  n_det_max_cisd         10000
+  pt2_max                    1.e-4
+
+cisd_sc2_selected
+  n_det_max_cisd_sc2         10000
+  pt2_max                    1.e-4
+  do_pt2_end                 True
+
+properties 
+  z_one_point                3.9
