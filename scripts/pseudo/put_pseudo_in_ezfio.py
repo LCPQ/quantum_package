@@ -4,7 +4,10 @@
 Create the pseudo potential for a given atom
 
 Usage:
-    put_pseudo_in_ezfio.py --ezfio=<path>  --atom=<atom>... --zeff=<charge>...
+    put_pseudo_in_ezfio.py --ezfio=<path>  --atom=<atom>...
+
+Help:
+    atom is the Abreviation of the atom
 """
 
 
@@ -28,6 +31,24 @@ p = re.compile(ur'\|(\d+)><\d+\|')
 def get_pseudo_str(l_atom):
     """
     Run EMSL_local for geting the str of the speudo potential
+
+    str_ele :
+        Element Symbol: Na
+        Number of replaced protons: 10
+        Number of projectors: 2
+
+        Pseudopotential data:
+
+        Local component:
+        Coeff.      r^n Exp.
+        1.00000000  -1  5.35838717
+        5.35838717  1   3.67918975
+        -2.07764789 0   1.60507673
+
+        Non-local component:
+        Coeff.      r^n Exp.        Proj.
+        10.69640234 0   1.32389367  |0><0|
+        10.11238853 0   1.14052020  |1><1|
     """
 
     EMSL_root = "{0}/EMSL_Basis/".format(qpackage_root)
@@ -101,12 +122,62 @@ def get_v_n_dz_l_nonlocal(str_ele):
             l_dz_kl.append([dz])
 
     if not l_v_kl:
-            l_v_kl.append([0.])
-            l_n_kl.append([0])
-            l_dz_kl.append([0.])
+        l_v_kl.append([0.])
+        l_n_kl.append([0])
+        l_dz_kl.append([0.])
 
     return l_v_kl, l_n_kl, l_dz_kl
 
+
+def get_zeff_alpha_beta(str_ele):
+    """
+    Return the the zeff, alpha num elec and beta num elec
+        Assert ezfio_set_file alredy defined
+    """
+
+    import re
+
+    # ___
+    #  |  ._  o _|_
+    # _|_ | | |  |_
+    #
+
+    # ~#~#~#~#~#~#~ #
+    # s t r _ e l e #
+    # ~#~#~#~#~#~#~ #
+
+    m = re.search('Element Symbol: ([a-zA-Z]+)', str_ele)
+    name = m.group(1).capitalize()
+
+    m = re.search('Number of replaced protons: (\d+)', str_ele)
+    z_remove = int(m.group(1))
+
+    # ~#~#~#~#~#~#~#~#~#~ #
+    # F r o m _ e z f i o #
+    # ~#~#~#~#~#~#~#~#~#~ #
+
+    alpha = ezfio.get_electrons_elec_alpha_num()
+    beta = ezfio.get_electrons_elec_beta_num()
+
+    #  _
+    # |_) _. ._ _  _
+    # |  (_| | _> (/_
+    #
+
+    from elts_num_ele import name_to_elec
+    z = name_to_elec[name]
+
+    z_eff = z - z_remove
+
+    alpha = alpha - (z_remove / 2)
+    beta = beta - (z_remove / 2)
+
+    #  _
+    # |_)  _ _|_     ._ ._
+    # | \ (/_ |_ |_| |  | |
+    #
+
+    return [z_eff, alpha, beta]
 
 if __name__ == "__main__":
     arguments = docopt(__doc__)
@@ -142,6 +213,10 @@ if __name__ == "__main__":
     l_str_ele = [str_ele for str_ele in str_.split("Element Symbol: ")
                  if str_ele]
 
+    l_zeff = []
+    alpha_tot = 0
+    beta_tot = 0
+
     for str_ele in l_str_ele:
 
         # ~#~#~#~#~ #
@@ -155,13 +230,7 @@ if __name__ == "__main__":
         # L o c a l #
         # ~#~#~#~#~ #
 
-        print "local"
-
         l_v, l_n, l_dz = get_v_n_dz_local(str_ele[l:nl])
-
-        print l_v
-        print l_n
-        print l_dz
 
         ezfio.pseudo_klocmax = len(l_v)
         ezfio.pseudo_v_k = l_v
@@ -172,13 +241,7 @@ if __name__ == "__main__":
         # N o n _ L o c a l #
         # ~#~#~#~#~#~#~#~#~ #
 
-        print "non local"
-
         l_v_kl, l_n_kl, l_dz_kl = get_v_n_dz_l_nonlocal(str_ele[nl:])
-
-        print l_v_kl
-        print l_n_kl
-        print l_dz_kl
 
         ezfio.pseudo_lmaxpo = len(l_v_kl)
         ezfio.pseudo_kmax = len(l_v_kl[0])
@@ -186,5 +249,16 @@ if __name__ == "__main__":
         ezfio.pseudo_n_kl = l_n_kl
         ezfio.pseudo_dz_kl = l_dz_kl
 
-    if arguments["--zeff"]:
-        ezfio.nuclei_nucl_charge = map(int, arguments["--zeff"])
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+        # Z _ e f f , a l p h a / b e t a _ e l e c #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+
+        zeff, alpha, beta = get_zeff_alpha_beta(str_)
+
+        alpha_tot += alpha
+        beta_tot += beta
+        l_zeff.append(zeff)
+
+    ezfio.electrons_elec_alpha_num = alpha_tot
+    ezfio.electrons_elec_beta_num = beta_tot
+    ezfio.nuclei_nucl_charge = l_zeff
