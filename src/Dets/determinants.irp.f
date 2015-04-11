@@ -718,7 +718,12 @@ BEGIN_PROVIDER [ double precision, psi_svd_matrix, (N_det_alpha_unique,N_det_bet
   integer, external              :: get_index_in_psi_det_sorted_bit
   logical, external              :: is_in_wavefunction
 
+
+  PROVIDE psi_coef_sorted_bit
+
   psi_svd_matrix = 0.d0
+  !$OMP PARALLEL DO DEFAULT(SHARED) &
+      !$OMP PRIVATE(i,j,k,tmp_det,idx)
   do j=1,N_det_beta_unique
     do k=1,N_int
       tmp_det(k,2) = psi_det_beta_unique(k,j)
@@ -735,6 +740,7 @@ BEGIN_PROVIDER [ double precision, psi_svd_matrix, (N_det_alpha_unique,N_det_bet
       endif
     enddo
   enddo
+  !$OMP END PARALLEL DO
 
 END_PROVIDER
 
@@ -799,12 +805,19 @@ subroutine generate_all_alpha_beta_det_products
 !  Create a wave function from all possible alpha x beta determinants
   END_DOC
   integer                        :: i,j,k,l
-  integer                        :: idx
+  integer                        :: idx, iproc
   integer, external              :: get_index_in_psi_det_sorted_bit
-  integer(bit_kind), allocatable  :: tmp_det(:,:,:)
+  integer(bit_kind), allocatable :: tmp_det(:,:,:)
   logical, external              :: is_in_wavefunction
+  integer, external              :: omp_get_thread_num
 
+  !$OMP PARALLEL DEFAULT(NONE) SHARED(psi_coef_sorted_bit,N_det_beta_unique,&
+      !$OMP N_det_alpha_unique, N_int, psi_det_alpha_unique, psi_det_beta_unique,&
+      !$OMP N_det)                                                &
+      !$OMP PRIVATE(i,j,k,l,tmp_det,idx,iproc)
+  !$ iproc = omp_get_thread_num()
   allocate (tmp_det(N_int,2,N_det_alpha_unique))
+  !$OMP DO
   do j=1,N_det_beta_unique
     l = 1
     do i=1,N_det_alpha_unique
@@ -816,8 +829,11 @@ subroutine generate_all_alpha_beta_det_products
         l = l+1
       endif
     enddo
-    call fill_H_apply_buffer_no_selection(l-1, tmp_det, N_int, 1)
+    call fill_H_apply_buffer_no_selection(l-1, tmp_det, N_int, iproc)
   enddo
+  !$OMP END DO NOWAIT
+  deallocate(tmp_det)
+  !$OMP END PARALLEL
   deallocate (tmp_det)
   call copy_H_apply_buffer_to_wf
   SOFT_TOUCH psi_det psi_coef N_det
