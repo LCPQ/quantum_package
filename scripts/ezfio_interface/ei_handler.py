@@ -70,9 +70,9 @@ def is_bool(str_):
     Take a string, if is a bool return the conversion into
         fortran and ocaml.
     """
-    if str_.lower() in ['true', '.true.']:
+    if "true" in str_.lower():
         return Type(None, "true", ".True.")
-    elif str_.lower() in ['false', '.false.']:
+    elif "false" in str_.lower():
         return Type(None, "false", ".False")
     else:
         raise TypeError
