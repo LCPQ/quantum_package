@@ -4,7 +4,7 @@
 # Mon Jan 12 16:00:20 CET 2015
 
 BASE="irpf90"
-URL="https://github.com/LCPQ/${BASE}/archive/master.tar.gz"
+URL="https://github.com/TApplencourt/${BASE}/archive/master.tar.gz"
 
 # Check the QPACKAGE_ROOT directory
 if [[ -z ${QPACKAGE_ROOT} ]]
