@@ -150,8 +150,8 @@
 
       c = c - Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)
     
-       c = c + Vloc(    klocmax ,v_k ,n_k ,dz_k, A_center,power_A,alpha,B_center,power_B,beta,C_center)
-       c = c + Vpseudo(lmax,kmax,v_kl,n_kl,dz_kl,A_center,power_A,alpha,B_center,power_B,beta,C_center)
+      c = c + Vloc(    klocmax ,v_k ,n_k ,dz_k, A_center,power_A,alpha,B_center,power_B,beta,C_center)
+      c = c + Vpseudo(lmax,kmax,v_kl,n_kl,dz_kl,A_center,power_A,alpha,B_center,power_B,beta,C_center)
 !      c = c - Vps(A_center,power_A,alpha,B_center,power_B,beta,C_center,klocmax,v_k,n_k,dz_k,lmax,kmax,v_kl,n_kl,dz_kl)
 
      enddo

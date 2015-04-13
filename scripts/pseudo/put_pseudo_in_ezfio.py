@@ -55,18 +55,21 @@ def get_pseudo_str(l_atom):
     EMSL_path = "{0}/EMSL_api.py".format(EMSL_root)
     db_path = "{0}/db/Pseudo.db".format(EMSL_root)
 
-    l_cmd_atom = []
+    str_ = ""
+
     for a in l_atom:
-        l_cmd_atom += ["--atom", a]
+        l_cmd_atom = ["--atom", a]
 
-    l_cmd_head = [EMSL_path, "get_basis_data",
-                  "--db_path", db_path,
-                  "--basis", "BFD-Pseudo"]
+        l_cmd_head = [EMSL_path, "get_basis_data",
+                      "--db_path", db_path,
+                      "--basis", "BFD-Pseudo"]
 
-    process = Popen(l_cmd_head + l_cmd_atom, stdout=PIPE, stderr=PIPE)
+        process = Popen(l_cmd_head + l_cmd_atom, stdout=PIPE, stderr=PIPE)
 
-    stdout, _ = process.communicate()
-    return stdout.strip()
+        stdout, _ = process.communicate()
+        str_ += stdout.strip() + "\n"
+
+    return str_
 
 
 def get_v_n_dz_local(str_ele):
@@ -146,18 +149,12 @@ def get_zeff_alpha_beta(str_ele):
     # s t r _ e l e #
     # ~#~#~#~#~#~#~ #
 
-    m = re.search('Element Symbol: ([a-zA-Z]+)', str_ele)
-    name = m.group(1).capitalize()
+#    m = re.search('Element Symbol: ([a-zA-Z]+)', str_ele)
+#    name = m.group(1).capitalize()
+    name = str_ele.split("\n")[0].strip().capitalize()
 
     m = re.search('Number of replaced protons: (\d+)', str_ele)
     z_remove = int(m.group(1))
-
-    # ~#~#~#~#~#~#~#~#~#~ #
-    # F r o m _ e z f i o #
-    # ~#~#~#~#~#~#~#~#~#~ #
-
-    alpha = ezfio.get_electrons_elec_alpha_num()
-    beta = ezfio.get_electrons_elec_beta_num()
 
     #  _
     # |_) _. ._ _  _
@@ -169,8 +166,8 @@ def get_zeff_alpha_beta(str_ele):
 
     z_eff = z - z_remove
 
-    alpha = alpha - (z_remove / 2)
-    beta = beta - (z_remove / 2)
+    alpha = (z_remove / 2)
+    beta = (z_remove / 2)
 
     #  _
     # |_)  _ _|_     ._ ._
@@ -252,12 +249,16 @@ if __name__ == "__main__":
         # Z _ e f f , a l p h a / b e t a _ e l e c #
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
-        zeff, alpha, beta = get_zeff_alpha_beta(str_)
+        zeff, alpha, beta = get_zeff_alpha_beta(str_ele)
 
         alpha_tot += alpha
         beta_tot += beta
         l_zeff.append(zeff)
 
+    ezfio.nuclei_nucl_charge = l_zeff
+
+    alpha_tot = ezfio.get_electrons_elec_alpha_num() - alpha_tot
+    beta_tot = ezfio.get_electrons_elec_beta_num() - beta_tot
+
     ezfio.electrons_elec_alpha_num = alpha_tot
     ezfio.electrons_elec_beta_num = beta_tot
-    ezfio.nuclei_nucl_charge = l_zeff
