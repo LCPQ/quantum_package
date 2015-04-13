@@ -22,6 +22,9 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
+`element_name <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L215>`_
+  Array of the name of element, sorted by nuclear charge (integer)
+
 `nucl_charge <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L23>`_
   Nuclear charges
 
@@ -65,8 +68,11 @@ Documentation
 `nucl_num_aligned <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L2>`_
   Number of nuclei
 
-`nuclear_repulsion <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L171>`_
+`nuclear_repulsion <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L187>`_
   Nuclear repulsion energy
+
+`positive_charge_barycentre <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L171>`_
+  Centroid of the positive charges
 
 
 
