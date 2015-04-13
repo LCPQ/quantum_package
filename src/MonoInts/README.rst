@@ -63,44 +63,77 @@ Documentation
   array of the mono electronic hamiltonian on the MOs basis
   : sum of the kinetic and nuclear electronic potential
 
+`a_coef <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/need.irp.f#L252>`_
+  Undocumented
+
+`b_coef <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/need.irp.f#L257>`_
+  Undocumented
+
+`ddfact2 <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/need.irp.f#L243>`_
+  Undocumented
+
+`erf0 <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/need.irp.f#L105>`_
+  Undocumented
+
+`gammln <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/need.irp.f#L271>`_
+  Undocumented
+
+`gammp <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/need.irp.f#L133>`_
+  Undocumented
+
+`gcf <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/need.irp.f#L211>`_
+  Undocumented
+
+`gser <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/need.irp.f#L167>`_
+  Undocumented
+
+`rinteg <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/need.irp.f#L47>`_
+  Undocumented
+
+`rintgauss <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/need.irp.f#L31>`_
+  Undocumented
+
+`sabpartial <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/need.irp.f#L2>`_
+  Undocumented
+
 `orthonormalize_mos <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/orthonormalize.irp.f#L1>`_
   Undocumented
 
 `ao_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L1>`_
   interaction nuclear electron
 
-`ao_nucl_elec_integral_per_atom <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L67>`_
+`ao_nucl_elec_integral_per_atom <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L170>`_
   ao_nucl_elec_integral_per_atom(i,j,k) = -<AO(i)|1/|r-Rk|AO(j)>
   where Rk is the geometry of the kth atom
 
-`give_polynom_mult_center_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L214>`_
+`give_polynom_mult_center_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L317>`_
   Undocumented
 
-`i_x1_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L342>`_
+`i_x1_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L445>`_
   Undocumented
 
-`i_x2_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L413>`_
+`i_x2_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L516>`_
   Undocumented
 
-`int_gaus_pol <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L484>`_
+`int_gaus_pol <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L587>`_
   Undocumented
 
-`nai_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L135>`_
+`nai_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L238>`_
   Undocumented
 
-`v_e_n <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L465>`_
+`v_e_n <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L568>`_
   Undocumented
 
-`v_phi <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L529>`_
+`v_phi <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L632>`_
   Undocumented
 
-`v_r <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L513>`_
+`v_r <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L616>`_
   Undocumented
 
-`v_theta <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L542>`_
+`v_theta <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L645>`_
   Undocumented
 
-`wallis <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L558>`_
+`wallis <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L661>`_
   Undocumented
 
 `mo_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_mo_ints.irp.f#L1>`_
@@ -220,6 +253,9 @@ Documentation
   array of the integrals of MO_i * x^2 MO_j
   array of the integrals of MO_i * y^2 MO_j
   array of the integrals of MO_i * z^2 MO_j
+
+`compute_integrals_pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/test_michel.irp.f#L58>`_
+  Undocumented
 
 
 
