@@ -5,6 +5,6 @@ pseudo
     dz_k        double precision (nuclei_nucl_num,pseudo_klocmax)
     lmaxpo      integer
     kmax        integer
-    v_kl        double precision (pseudo_kmax,pseudo_lmaxpo)
-    n_kl        integer (pseudo_kmax,pseudo_lmaxpo)
-    dz_kl       double precision (pseudo_kmax,pseudo_lmaxpo)
+    v_kl        double precision (nuclei_nucl_num,pseudo_kmax,pseudo_lmaxpo)
+    n_kl        integer (nuclei_nucl_num,pseudo_kmax,pseudo_lmaxpo)
+    dz_kl       double precision (nuclei_nucl_num,pseudo_kmax,pseudo_lmaxpo)

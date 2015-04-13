@@ -64,15 +64,15 @@
   !! Parameters of non local part of pseudo:
 
    integer :: kmax,lmax
-   integer, allocatable ::  n_kl(:,:)
-   double precision, allocatable ::  v_kl(:,:), dz_kl(:,:) 
+   integer, allocatable ::  n_kl(:,:,:)
+   double precision, allocatable ::  v_kl(:,:,:), dz_kl(:,:,:) 
 
   call ezfio_get_pseudo_lmaxpo(lmax)
   call ezfio_get_pseudo_kmax(kmax)
   !lmax plus one -> lmax
   lmax = lmax - 1 
  
-  allocate(n_kl(kmax,0:lmax), v_kl(kmax,0:lmax), dz_kl(kmax,0:lmax)) 
+  allocate(n_kl(nucl_num,kmax,0:lmax), v_kl(nucl_num,kmax,0:lmax), dz_kl(nucl_num,kmax,0:lmax)) 
 
   call ezfio_get_pseudo_n_kl(n_kl)
   call ezfio_get_pseudo_v_kl(v_kl)
@@ -148,7 +148,7 @@
       c = c - Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)
       
       c = c + Vloc(    klocmax ,v_k(k,:) ,n_k(k,:) ,dz_k(k,:), A_center,power_A,alpha,B_center,power_B,beta,C_center)
-      c = c + Vpseudo(lmax,kmax,v_kl,n_kl,dz_kl,A_center,power_A,alpha,B_center,power_B,beta,C_center)
+      c = c + Vpseudo(lmax,kmax,v_kl(k,:,:),n_kl,dz_kl,A_center,power_A,alpha,B_center,power_B,beta,C_center)
 !      c = c - Vps(A_center,power_A,alpha,B_center,power_B,beta,C_center,klocmax,v_k,n_k,dz_k,lmax,kmax,v_kl,n_kl,dz_kl)
 
      enddo

@@ -240,11 +240,9 @@ if __name__ == "__main__":
 
         l_v_kl, l_n_kl, l_dz_kl = get_v_n_dz_l_nonlocal(str_ele[nl:])
 
-        ezfio.pseudo_lmaxpo = len(l_v_kl)
-        ezfio.pseudo_kmax = len(l_v_kl[0])
-        ezfio.pseudo_v_kl = l_v_kl
-        ezfio.pseudo_n_kl = l_n_kl
-        ezfio.pseudo_dz_kl = l_dz_kl
+        v_kl.append(l_v_kl)
+        n_kl.append(l_n_kl)
+        dz_kl.append(l_dz_kl)
 
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
         # Z _ e f f , a l p h a / b e t a _ e l e c #
@@ -267,9 +265,6 @@ if __name__ == "__main__":
 
     ezfio.nuclei_nucl_charge = l_zeff
 
-    print "alpha tot", alpha_tot
-    print "beta tot", beta_tot
-
     alpha_tot = ezfio.get_electrons_elec_alpha_num() - alpha_tot
     beta_tot = ezfio.get_electrons_elec_beta_num() - beta_tot
 
@@ -284,3 +279,14 @@ if __name__ == "__main__":
     ezfio.pseudo_v_k = zip(*v_k)
     ezfio.pseudo_n_k = zip(*n_k)
     ezfio.pseudo_dz_k = zip(*dz_k)
+
+    # ~#~#~#~#~#~#~#~#~ #
+    # N o n _ L o c a l #
+    # ~#~#~#~#~#~#~#~#~ #
+
+    ezfio.pseudo_lmaxpo = len(v_kl[0])
+    ezfio.pseudo_kmax = len(v_kl[0][0])
+
+    ezfio.pseudo_v_kl = zip(*v_kl)
+    ezfio.pseudo_n_kl = zip(*n_kl)
+    ezfio.pseudo_dz_kl = zip(*dz_kl)
