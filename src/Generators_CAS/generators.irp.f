@@ -62,7 +62,6 @@ END_PROVIDER
         psi_det_generators(k,2,m) = psi_det(k,2,i)
       enddo
       psi_coef_generators(m,:) = psi_coef(m,:)
-!     call debug_det(psi_det_generators(1,1,m),N_int)
     endif
   enddo
   

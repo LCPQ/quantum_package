@@ -35,4 +35,4 @@ then
 fi
 
 find . -type l | sed "s@./@@" >> .gitignore
-
+find . -type f -executable -print | sed "s@./@@" >> .gitignore

@@ -18,29 +18,9 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`ao_mono_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L122>`_
+`ao_mono_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L1>`_
   array of the mono electronic hamiltonian on the AOs basis
   : sum of the kinetic and nuclear electronic potential
-
-`ao_overlap <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L1>`_
-  Overlap between atomic basis functions:
-  :math:`\int \chi_i(r) \chi_j(r) dr)`
-
-`ao_overlap_abs <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L65>`_
-  Overlap between absolute value of atomic basis functions:
-  :math:`\int |\chi_i(r)| |\chi_j(r)| dr)`
-
-`ao_overlap_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L2>`_
-  Overlap between atomic basis functions:
-  :math:`\int \chi_i(r) \chi_j(r) dr)`
-
-`ao_overlap_y <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L3>`_
-  Overlap between atomic basis functions:
-  :math:`\int \chi_i(r) \chi_j(r) dr)`
-
-`ao_overlap_z <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/ao_mono_ints.irp.f#L4>`_
-  Overlap between atomic basis functions:
-  :math:`\int \chi_i(r) \chi_j(r) dr)`
 
 `check_ortho <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/check_orthonormality.irp.f#L1>`_
   Undocumented
@@ -72,19 +52,16 @@ Documentation
   .br
   {\tt ao_deriv2_x} = \langle \chi_i(x,y,z) \frac{\partial^2}{\partial x^2} |\chi_j (x,y,z) \rangle
 
-`ao_kinetic_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/kin_ao_ints.irp.f#L126>`_
+`ao_kinetic_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/kin_ao_ints.irp.f#L125>`_
   array of the priminitve basis kinetic integrals
   \langle \chi_i |\hat{T}| \chi_j \rangle
 
 `mo_kinetic_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/kin_mo_ints.irp.f#L1>`_
   Undocumented
 
-`mo_mono_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/mo_mono_ints.irp.f#L35>`_
+`mo_mono_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/mo_mono_ints.irp.f#L1>`_
   array of the mono electronic hamiltonian on the MOs basis
   : sum of the kinetic and nuclear electronic potential
-
-`mo_overlap <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/mo_mono_ints.irp.f#L1>`_
-  Undocumented
 
 `orthonormalize_mos <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/orthonormalize.irp.f#L1>`_
   Undocumented
@@ -92,38 +69,46 @@ Documentation
 `ao_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L1>`_
   interaction nuclear electron
 
-`give_polynom_mult_center_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L161>`_
+`ao_nucl_elec_integral_per_atom <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L67>`_
+  ao_nucl_elec_integral_per_atom(i,j,k) = -<AO(i)|1/|r-Rk|AO(j)>
+  where Rk is the geometry of the kth atom
+
+`give_polynom_mult_center_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L214>`_
   Undocumented
 
-`i_x1_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L289>`_
+`i_x1_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L342>`_
   Undocumented
 
-`i_x2_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L361>`_
+`i_x2_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L413>`_
   Undocumented
 
-`int_gaus_pol <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L432>`_
+`int_gaus_pol <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L484>`_
   Undocumented
 
-`nai_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L82>`_
+`nai_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L135>`_
   Undocumented
 
-`v_e_n <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L413>`_
+`v_e_n <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L465>`_
   Undocumented
 
-`v_phi <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L477>`_
+`v_phi <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L529>`_
   Undocumented
 
-`v_r <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L461>`_
+`v_r <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L513>`_
   Undocumented
 
-`v_theta <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L490>`_
+`v_theta <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L542>`_
   Undocumented
 
-`wallis <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L506>`_
+`wallis <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L558>`_
   Undocumented
 
 `mo_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_mo_ints.irp.f#L1>`_
-  Undocumented
+  interaction nuclear electron on the MO basis
+
+`mo_nucl_elec_integral_per_atom <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_mo_ints.irp.f#L30>`_
+  mo_nucl_elec_integral_per_atom(i,j,k) = -<MO(i)|1/|r-Rk|MO(j)>
+  where Rk is the geometry of the kth atom
 
 `save_ortho_mos <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/save_ortho_mos.irp.f#L1>`_
   Undocumented
@@ -173,7 +158,7 @@ Documentation
   array of the integrals of AO_i * y^2 AO_j
   array of the integrals of AO_i * z^2 AO_j
 
-`overlap_bourrin_deriv_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L359>`_
+`overlap_bourrin_deriv_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L365>`_
   Undocumented
 
 `overlap_bourrin_dipole <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L318>`_
@@ -182,7 +167,7 @@ Documentation
 `overlap_bourrin_spread <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L265>`_
   Undocumented
 
-`overlap_bourrin_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L374>`_
+`overlap_bourrin_x <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L380>`_
   Undocumented
 
 `overlap_bourrin_x_abs <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/spread_dipole_ao.irp.f#L226>`_

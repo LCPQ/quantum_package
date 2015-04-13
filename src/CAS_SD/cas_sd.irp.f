@@ -11,12 +11,12 @@ program full_ci
   
   pt2 = 1.d0
   diag_algorithm = "Lapack"
-  if (N_det > n_det_max_fci) then
+  if (N_det > n_det_max_cas_sd) then
     call diagonalize_CI
     call save_wavefunction
     psi_det = psi_det_sorted
     psi_coef = psi_coef_sorted
-    N_det = n_det_max_fci
+    N_det = n_det_max_cas_sd
     soft_touch N_det psi_det psi_coef
     call diagonalize_CI
     call save_wavefunction
@@ -28,17 +28,17 @@ program full_ci
     print *,  '-----'
   endif
 
-  do while (N_det < n_det_max_fci.and.maxval(abs(pt2(1:N_st))) > pt2_max)
-    call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
+  do while (N_det < n_det_max_cas_sd.and.maxval(abs(pt2(1:N_st))) > pt2_max)
+    call H_apply_CAS_SD(pt2, norm_pert, H_pert_diag,  N_st)
 
     PROVIDE  psi_coef
     PROVIDE  psi_det
     PROVIDE  psi_det_sorted
 
-    if (N_det > n_det_max_fci) then
+    if (N_det > n_det_max_cas_sd) then
        psi_det = psi_det_sorted
        psi_coef = psi_coef_sorted
-       N_det = n_det_max_fci
+       N_det = n_det_max_cas_sd
        soft_touch N_det psi_det psi_coef
     endif
     call diagonalize_CI
@@ -60,7 +60,7 @@ program full_ci
   integer :: exc_max, degree_min
   exc_max = 0
   print *,  'CAS determinants : ', N_det_generators
-  do i=1,N_det_generators
+  do i=1,min(N_det_generators,10)
     do k=i,N_det_generators
       call get_excitation_degree(psi_det_generators(1,1,k),psi_det_generators(1,1,i),degree,N_int)
       exc_max = max(exc_max,degree)

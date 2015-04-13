@@ -12,8 +12,8 @@ By default all the option are executed.
 Options:
     -h --help
     --path             The path of the `EZFIO.cfg`, by default will look in the ${pwd}
-    --irpf90           Create the `ezfio_interface.ipf90`
-                             who containt all the provider needed
+    --irpf90           Create the `ezfio_interface.irpf90`
+                             which contains all the providers needed
                              (aka all with the `interface: input` parameter)
                              in `${pwd}`
     --ezfio_config     Create the `${module_lower}_ezfio_interface_config` in
@@ -28,7 +28,7 @@ Options:
 Format specification :
     [provider_name]  | the name of the provider in irp.f90
     doc:{str}        | Is the doc
-    Type:{str}       | Is a fancy_type support by the ocaml
+    Type:{str}       | Is a fancy_type supported by the ocaml
     ezfio_name:{str} | Will be the name of the file for the ezfio
                        (optional by default is the name of the provider)
     interface:{str}  | The provider is a imput or a output
@@ -67,13 +67,13 @@ Type = namedtuple('Type', 'fancy ocaml fortran')
 
 def is_bool(str_):
     """
-    Take a string, if is a bool return the convert into
-        fortran and ocaml one.
+    Take a string, if is a bool return the conversion into
+        fortran and ocaml.
     """
-    if str_.lower() in ['true', '.true.']:
-        return Type(None, "True", ".True.")
-    elif str_.lower() in ['false', '.False.']:
-        return Type(None, "False", ".False")
+    if "true" in str_.lower():
+        return Type(None, "true", ".True.")
+    elif "false" in str_.lower():
+        return Type(None, "false", ".False")
     else:
         raise TypeError
 
@@ -81,7 +81,7 @@ def is_bool(str_):
 def get_type_dict():
     """
     This function makes the correspondance between the type of value read in
-    ezfio.cfg into the f90 and Ocam Type
+    ezfio.cfg into the f90 and Ocaml Type
     return fancy_type[fancy_type] = namedtuple('Type', 'ocaml fortran')
     For example fancy_type['Ndet'].fortran = interger
                                   .ocaml   = int
@@ -154,7 +154,7 @@ def get_type_dict():
     # q p _ t y p e s _ g e n e r a t e #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
-    # Read the fancy_type, the ocaml. and convert the ocam to the fortran
+    # Read the fancy_type, the ocaml. and convert the ocaml to the fortran
     for i in l_gen + l_un:
         str_fancy_type = i.split()[1].strip()
         str_ocaml_type = i.split()[3]
@@ -507,6 +507,9 @@ def create_ocaml_input(dict_ezfio_cfg, module_lower):
             l_type.append(v["type"])
             l_doc.append(v["doc"])
 
+    if not l_ezfio_name:
+        raise ValueError
+
     e_glob = EZFIO_ocaml(l_ezfio_name=l_ezfio_name,
                          l_type=l_type,
                          l_doc=l_doc)
@@ -602,6 +605,49 @@ def save_ocaml_input(module_lower, str_ocaml_input):
             f.write(str_ocaml_input)
 
 
+def get_l_module_lower():
+    """
+    Get all module who have EZFIO.cfg with input data
+        (NB `search` in all the ligne and `match` only in one)
+    """
+
+    # ~#~#~#~ #
+    # I n i t #
+    # ~#~#~#~ #
+
+    mypath = "{0}/src".format(os.environ['QPACKAGE_ROOT'])
+
+    # ~#~#~#~#~#~#~#~ #
+    # L _ f o l d e r #
+    # ~#~#~#~#~#~#~#~ #
+
+    from os import listdir
+    from os.path import isdir, join, exists
+
+    l_folder = [f for f in listdir(mypath) if isdir(join(mypath, f))]
+
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # L _ m o d u l e _ l o w e r #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+
+    l_module_lower = []
+    import re
+    p = re.compile(ur'interface:\s+input')
+
+    for f in l_folder:
+        path = "{0}/{1}/EZFIO.cfg".format(mypath, f)
+        if exists(path):
+            with open(path, 'r') as file_:
+                if p.search(file_.read()):
+                    l_module_lower.append(f.lower())
+
+    # ~#~#~#~#~#~ #
+    # R e t u r n #
+    # ~#~#~#~#~#~ #
+
+    return l_module_lower
+
+
 def create_ocaml_input_global():
     """
     Check for all the EZFIO.cfg get the module lower
@@ -612,15 +658,7 @@ def create_ocaml_input_global():
     #  I n i t #
     # ~#~#~#~# #
 
-    from os import listdir
-    from os.path import isdir, join, exists
-
-    mypath = "{0}/src".format(os.environ['QPACKAGE_ROOT'])
-
-    onlyfodler = [f for f in listdir(mypath) if isdir(join(mypath, f))]
-
-    l_module_lower = [f.lower() for f in onlyfodler
-                      if exists("{0}/{1}/EZFIO.cfg".format(mypath, f))]
+    l_module_lower = get_l_module_lower()
 
     # ~#~#~#~#~#~#~#~# #
     #  C r e a t i o n #
@@ -761,8 +799,12 @@ if __name__ == "__main__":
     # O c a m l #
     # ~#~#~#~#~#~#
     if do_all or arguments["--ocaml"]:
-        str_ocaml_input = create_ocaml_input(dict_ezfio_cfg, module_lower)
-        save_ocaml_input(module_lower, str_ocaml_input)
+        try:
+            str_ocaml_input = create_ocaml_input(dict_ezfio_cfg, module_lower)
+        except ValueError:
+            pass
+        else:
+            save_ocaml_input(module_lower, str_ocaml_input)
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # e z f i o _ d e f a u l t #

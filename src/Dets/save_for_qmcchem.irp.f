@@ -42,8 +42,10 @@ subroutine save_dets_qmcchem
  enddo
  close(31)
  call system('gzip -f '//trim(ezfio_filename)//'/mo_basis/mo_classif')
+
 end
 
 program save_for_qmc
   call save_dets_qmcchem
+ call write_spindeterminants
 end

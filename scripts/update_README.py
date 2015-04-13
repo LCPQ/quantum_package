@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
 """Updates the README.rst file as the include directive is disabled on GitHub."""
-__date__     = "Thu Apr  3 23:06:18 CEST 2014"
+__date__ = "Thu Apr  3 23:06:18 CEST 2014"
 __author__ = "Anthony Scemama <scemama@irsamc.ups-tlse.fr>"
 
 
-README="README.rst"
-Assum_key="Assumptions\n===========\n"
-Needed_key="Needed Modules\n==============\n"
-Doc_key="Documentation\n=============\n"
-Sentinel="@@$%&@@"
-URL="http://github.com/LCPQ/quantum_package/tree/master/src/"
+README = "README.rst"
+Assum_key = "Assumptions\n===========\n"
+Needed_key = "Needed Modules\n==============\n"
+Doc_key = "Documentation\n=============\n"
+Sentinel = "@@$%&@@"
+URL = "http://github.com/LCPQ/quantum_package/tree/master/src/"
 
 import os
 import subprocess
@@ -22,30 +22,30 @@ header = """
 """
 
 try:
-# subprocess.check_output("git status".split())
-# has_git = True
-  pass
+    # subprocess.check_output("git status".split())
+    has_git = True
 except OSError:
-  has_git = False
+    has_git = False
+
 
 def fetch_splitted_data():
     """Read the README.rst file and split it in strings:
     * The description
     * The assumptions
-    * The documentation 
+    * The documentation
     * The needed modules
     The result is given as a list of strings
     """
 
-    file = open(README,'r')
+    file = open(README, 'r')
     data = file.read()
     file.close()
 
     # Place sentinels
-    data = data.replace(Assum_key,Sentinel+Assum_key)
-    data = data.replace(Doc_key,Sentinel+Doc_key)
-    data = data.replace(Needed_key,Sentinel+Needed_key)
-    
+    data = data.replace(Assum_key, Sentinel + Assum_key)
+    data = data.replace(Doc_key, Sentinel + Doc_key)
+    data = data.replace(Needed_key, Sentinel + Needed_key)
+
     # Now Split data using the sentinels
     result = data.split(Sentinel)
 
@@ -56,9 +56,9 @@ def update_assumptions(data):
     """Read the ASSUMPTIONS.rst file, and replace the data with it."""
 
     try:
-        file = open('ASSUMPTIONS.rst','r')
+        file = open('ASSUMPTIONS.rst', 'r')
     except IOError:
-        file = open('ASSUMPTIONS.rst','w')
+        file = open('ASSUMPTIONS.rst', 'w')
         assumptions = ""
     else:
         assumptions = file.read()
@@ -74,7 +74,7 @@ def update_assumptions(data):
             data[i] = assumptions
 
     if not has_assumptions:
-        data.insert(1,assumptions)
+        data.insert(1, assumptions)
 
     return data
 
@@ -83,12 +83,12 @@ def update_needed(data):
     """Read the NEEDED_MODULES file, and replace the data with it.
     Create the links to the GitHub pages."""
 
-    file = open('NEEDED_MODULES','r')
+    file = open('NEEDED_MODULES', 'r')
     modules = file.read()
     file.close()
 
     if modules.strip() != "":
-        modules = [ '* `%s <%s%s>`_'%(x,URL,x) for x in  modules.split() ]
+        modules = ['* `%s <%s%s>`_' % (x, URL, x) for x in modules.split()]
         modules = "\n".join(modules)
         modules = Needed_key + header + modules + '\n\n'
 
@@ -105,112 +105,114 @@ def update_needed(data):
 
 
 def update_documentation(data):
-  """Reads the BEGIN_DOC ... END_DOC blocks and builds the documentation"""
+    """Reads the BEGIN_DOC ... END_DOC blocks and builds the documentation"""
 
-  # If the file does not exist, don't do anything
-  try:
-    file = open('tags','r')
-  except:
-    return
-  tags = file.readlines()
-  file.close()
-
-  def extract_doc(item):
-    """Extracts the documentation contained in IRPF90_man file"""
-    file = open("IRPF90_man/%s.l"%(item),'r')
-    lines = file.readlines()
+    # If the file does not exist, don't do anything
+    try:
+        file = open('tags', 'r')
+    except:
+        return
+    tags = file.readlines()
     file.close()
-    result = []
-    inside = False
-    for line in lines:
-      if not inside:
-        inside = line.startswith(".SH Description")
-      else:
-        if line.startswith(".SH"):
-          break
-        result.append("  "+line.strip())
 
-    if result == []:
-      result = ["  Undocumented"]
-    return "\n".join(result)+'\n'
-            
-        
-  
-  items = []
-  dirname = os.path.basename(os.getcwd())
-  command = "git ls-tree --full-tree --name-only HEAD:src/%s"
-  command = command%(dirname)
-  try:
-    if dirname != 'src':
-      p = subprocess.Popen(command.split(),stdout=subprocess.PIPE)
-      tracked_files = p.stdout.read()
-    else:
-      tracked_files = ""
-    tracked_files = tracked_files.splitlines()
-  except:
-    tracked_files = []
-  for filename in tracked_files:
-      if filename.endswith('.irp.f'):
-          # Search for providers, subroutines and functions in each file using
-          # the tags file
-          search = "\t"+filename+"\t"
-          tmp = filter(lambda line: search in line, tags)
+    def extract_doc(item):
+        """Extracts the documentation contained in IRPF90_man file"""
+        file = open("IRPF90_man/%s.l" % (item), 'r')
+        lines = file.readlines()
+        file.close()
+        result = []
+        inside = False
+        for line in lines:
+            if not inside:
+                inside = line.startswith(".SH Description")
+            else:
+                if line.startswith(".SH"):
+                    break
+                result.append("  " + line.strip())
 
-          # Search for the documentation in the IRPF90_man directory
-          for item in tmp :
-              item, _, line = item.strip().split('\t')
-              doc = extract_doc(item)
-              items.append( (item, filename, doc, line) )
+        if result == []:
+            result = ["  Undocumented"]
+        return "\n".join(result) + '\n'
 
-  dirname = os.path.basename(os.getcwd())
-  # Write the documentation in the README
-  template = "`%(item)s <%(url)s%(dirname)s/%(filename)s#L%(line)s>`_\n%(doc)s\n"
+    items = []
+    dirname = os.path.basename(os.getcwd())
+    command = "git ls-tree --full-tree --name-only HEAD:src/%s"
+    command = command % (dirname)
+    try:
+        if dirname != 'src':
+            p = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+            tracked_files = p.stdout.read()
+        else:
+            tracked_files = ""
+        tracked_files = tracked_files.splitlines()
+    except:
+        tracked_files = []
+    for filename in tracked_files:
+        if filename.endswith('.irp.f'):
+                    # Search for providers, subroutines and functions in each file using
+                    # the tags file
+            search = "\t" + filename + "\t"
+            tmp = filter(lambda line: search in line, tags)
 
-  documentation = Doc_key + header 
-  url = URL
-  for item, filename, doc, line in items:
-    documentation += template%locals()
-  documentation += '\n\n'
+            # Search for the documentation in the IRPF90_man directory
+            for item in tmp:
+                item, _, line = item.strip().split('\t')
+                doc = extract_doc(item)
+                items.append((item, filename, doc, line))
 
-  has_doc = False
-  for i in range(len(data)):
-      if data[i].startswith(Doc_key):
-          has_doc = True
-          data[i] = documentation
+    dirname = os.path.basename(os.getcwd())
+    # Write the documentation in the README
+    template = "`%(item)s <%(url)s%(dirname)s/%(filename)s#L%(line)s>`_\n%(doc)s\n"
 
-  if not has_doc:
-      data.append(documentation)
+    documentation = Doc_key + header
+    url = URL
+    for item, filename, doc, line in items:
+        documentation += template % locals()
+    documentation += '\n\n'
 
-  return data
+    has_doc = False
+    for i in range(len(data)):
+        if data[i].startswith(Doc_key):
+            has_doc = True
+            data[i] = documentation
+
+    if not has_doc:
+        data.append(documentation)
+
+    return data
 
 
 def git_add():
     """Executes:
     git add README.rst
-    if git is present on the machine."""
-    command = "git add "+README
-    os.system(command+" &> /dev/null")
+    throw an error if git is not precent"""
+
+    import subprocess
+
+    try:
+        # pipe output to /dev/null for silence
+        null = open("/dev/null", "w")
+        subprocess.Popen("git add README.rst", stdout=null, stderr=null)
+        null.close()
+
+    except OSError:
+        raise
 
 
 def main():
-    if not has_git:
-        return
     data = fetch_splitted_data()
     data = update_assumptions(data)
     data = update_documentation(data)
     data = update_needed(data)
     output = ''.join(data)
-    
-    file = open(README,'w')
-    file.write(output)
-    file.close()
 
-    git_add()
+    with open(README, 'w') as f:
+        f.write(output)
 
+    try:
+        git_add()
+    except OSError:
+        pass
 
 if __name__ == '__main__':
-    try:
-      main()
-    except:
-      pass
-
+    main()

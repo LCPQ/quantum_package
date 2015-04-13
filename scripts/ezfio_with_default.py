@@ -90,19 +90,14 @@ END_PROVIDER
     self.default = t
 
   def get_default(self):
+    filename = '/'.join( [os.environ['QPACKAGE_ROOT'], 'data',
+                          'ezfio_defaults',
+                          'WILL_BE_DELETED.ezfio_default'] )
 
-    from os import listdir
-    from os.path import isfile, join
-
-    mypath = '/'.join( [os.environ['QPACKAGE_ROOT'], 'data', 'ezfio_defaults','/'])
-    onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
-
-    lines= []
-    for filename in onlyfiles: 
-      file = open(mypath+filename,'r')
-      lines.extend(file.readlines()[:])
-      file.close()
-
+    file = open(filename,'r')
+    lines = file.readlines()
+    file.close()
+    k=-1
     # Search directory
     for k,line in enumerate(lines):
       if line[0] != ' ':
@@ -120,16 +115,21 @@ END_PROVIDER
         break
     v = buffer[1]
     name = self.name
+    true = True
+    false= False
     try:
+      true = True
+      false = False
       v_eval = eval(v)
+    except:
+      v = "call ezfio_get_%(v)s(%(name)s)"%locals()
+    else:
       if type(v_eval) == bool:
         v = '.%s.'%(v)
       elif type(v_eval) == float:
         v = v.replace('e','d')
         v = v.replace('E','D')
       v = "%(name)s = %(v)s"%locals()
-    except:
-      v = "call ezfio_get_%(v)s(%(name)s)"%locals()
     self.default = v
 
 
