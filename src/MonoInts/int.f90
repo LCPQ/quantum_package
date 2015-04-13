@@ -1288,6 +1288,11 @@ implicit none
 integer :: n,k
 double precision prod
 dblefact=1.d0
+
+if (n.ge.3000) then
+  print*, n
+endif
+
 if(n.lt.0)return
 if(mod(n,2).eq.1)then
   prod=1.d0

@@ -145,10 +145,29 @@
 
       C_center(1:3) = nucl_coord(k,1:3)
 
+      print*, j, "j /", ao_num
+      print*, l, "l /", ao_prim_num(j)
+      print*, i, "i /", ao_num
+      print*, m, "m /", ao_prim_num(i)
+
       c = c - Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)
       
       c = c + Vloc(    klocmax ,v_k(k,:) ,n_k(k,:) ,dz_k(k,:), A_center,power_A,alpha,B_center,power_B,beta,C_center)
-      c = c + Vpseudo(lmax,kmax,v_kl(k,:,:),n_kl,dz_kl,A_center,power_A,alpha,B_center,power_B,beta,C_center)
+      
+      print*, "lmax",lmax
+      print*, "kmax",kmax
+      print*, "v_kl",v_kl(k,:,:)
+      print*, "n_kl",n_kl(k,:,:)
+      print*, "dz_kl",dz_kl(k,:,:)
+      print*, "A_center", A_center
+      print*, "power_A",power_A
+      print*, "Alpha_B", alpha
+      print*, "B_center", B_center
+      print*, "power_B", power_B
+      print*, "beta", beta
+      print*, "C_center",C_center
+
+      c = c + Vpseudo(lmax,kmax,v_kl(k,:,:),n_kl(k,:,:),dz_kl(k,:,:),A_center,power_A,alpha,B_center,power_B,beta,C_center)
 !      c = c - Vps(A_center,power_A,alpha,B_center,power_B,beta,C_center,klocmax,v_k,n_k,dz_k,lmax,kmax,v_kl,n_kl,dz_kl)
 
      enddo
