@@ -54,6 +54,24 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
+`is_a_two_holes_two_particles <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L206>`_
+  Undocumented
+
+`number_of_holes <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L1>`_
+  Undocumented
+
+`number_of_holes_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L394>`_
+  Undocumented
+
+`number_of_particles <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L103>`_
+  Undocumented
+
+`number_of_particles_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L422>`_
+  Undocumented
+
+`cas_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L173>`_
+  Bitmasks for CAS reference determinants. (N_int, alpha/beta, CAS reference)
+
 `cis_ijkl_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L32>`_
   Bitmask to include all possible single excitations from Hartree-Fock
 
@@ -61,23 +79,35 @@ Documentation
   Bitmask to include all possible MOs
 
 `generators_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L100>`_
-  Bitmasks for generator determinants. (N_int, alpha/beta, hole/particle, generator).
+  Bitmasks for generator determinants.
+  (N_int, alpha/beta, hole/particle, generator).
+  .br
   3rd index is :
+  .br
   * 1 : hole     for single exc
-  * 1 : particle for single exc
+  .br
+  * 2 : particle for single exc
+  .br
   * 3 : hole     for 1st exc of double
+  .br
   * 4 : particle for 1st exc of double
-  * 5 : hole     for 2dn exc of double
-  * 6 : particle for 2dn exc of double
+  .br
+  * 5 : hole     for 2nd exc of double
+  .br
+  * 6 : particle for 2nd exc of double
+  .br
 
 `hf_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L44>`_
   Hartree Fock bit mask
 
-`i_bitmask_gen <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L186>`_
+`i_bitmask_gen <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L211>`_
   Current bitmask for the generators
 
-`i_bitmask_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L194>`_
-  Current bitmask for the reference
+`inact_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L193>`_
+  Bitmasks for the inactive orbitals that are excited in post CAS method
+
+`n_cas_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L143>`_
+  Number of bitmasks for CAS
 
 `n_generators_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L70>`_
   Number of bitmasks for generators
@@ -85,36 +115,31 @@ Documentation
 `n_int <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L3>`_
   Number of 64-bit integers needed to represent determinants as binary strings
 
-`n_reference_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L134>`_
-  Number of bitmasks for reference
-
 `ref_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L62>`_
   Reference bit mask, used in Slater rules, chosen as Hartree-Fock bitmask
 
-`reference_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L164>`_
-  Bitmasks for reference determinants. (N_int, alpha/beta, hole/particle, reference)
+`virt_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L194>`_
+  Bitmasks for the inactive orbitals that are excited in post CAS method
 
-`bitstring_to_hexa <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L95>`_
+`bitstring_to_hexa <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L98>`_
   Transform a bit string to a string in hexadecimal format for printing
 
 `bitstring_to_list <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L1>`_
   Gives the inidices(+1) of the bits set to 1 in the bit string
 
-`bitstring_to_str <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L62>`_
+`bitstring_to_str <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L65>`_
   Transform a bit string to a string for printing
 
-`debug_det <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L117>`_
-  Undocumented
+`debug_det <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L120>`_
+  Subroutine to print the content of a determinant in '+-' notation and
+  hexadecimal representation.
 
 `list_to_bitstring <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L29>`_
-  return the physical string "string(N_int,2)" from the array of occupations "list(N_int*bit_kind_size,2)
-  list
-  <== ipos ==>
-  |
-  v
-  string :|------------------------|-------------------------|------------------------|
-  <==== bit_kind_size ====> <==== bit_kind_size ====> <==== bit_kind_size ====>
-  {        iint            } {         iint         } {         iint         }
+  Returns the physical string "string(N_int,2)" from the array of
+  occupations "list(N_int*bit_kind_size,2)
+
+`print_det <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L138>`_
+  Subroutine to print the content of a determinant using the '+-' notation
 
 
 

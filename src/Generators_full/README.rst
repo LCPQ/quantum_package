@@ -11,20 +11,26 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`n_det_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L22>`_
+`degree_max_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L55>`_
+  Max degree of excitation (respect to HF) of the generators
+
+`n_det_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L15>`_
   For Single reference wave functions, the number of generators is 1 : the
   Hartree-Fock determinant
 
-`psi_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L44>`_
+`psi_coef_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L38>`_
   For Single reference wave functions, the generator is the
   Hartree-Fock determinant
 
-`select_max <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L60>`_
+`psi_det_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L37>`_
+  For Single reference wave functions, the generator is the
+  Hartree-Fock determinant
+
+`select_max <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L78>`_
   Memo to skip useless selectors
 
-`threshold_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L3>`_
-  Percentage of the norm of the state-averaged wave function to
-  consider for the generators
+`size_select_max <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L70>`_
+  Size of the select_max array
 
 
 
@@ -35,12 +41,13 @@ Needed Modules
 .. NEEDED_MODULES file.
 
 * `AOs <http://github.com/LCPQ/quantum_package/tree/master/src/AOs>`_
-* `BiInts <http://github.com/LCPQ/quantum_package/tree/master/src/BiInts>`_
+* `Bielec_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Bielec_integrals>`_
 * `Bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask>`_
 * `Dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets>`_
 * `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_
 * `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
 * `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock>`_
+* `MOGuess <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess>`_
 * `MonoInts <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts>`_
 * `MOs <http://github.com/LCPQ/quantum_package/tree/master/src/MOs>`_
 * `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_

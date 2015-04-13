@@ -30,6 +30,7 @@ Build failed for module $MODULE
 "
     fi
   fi
+  ${QPACKAGE_ROOT}/scripts/create_gitignore.sh
   cd ${OLDPWD}
 done
 ${QPACKAGE_ROOT}/scripts/create_executables_list.sh

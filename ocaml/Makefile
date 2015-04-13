@@ -25,9 +25,12 @@ default: $(ALL_TESTS) $(ALL_EXE) .gitignore
 
 .gitignore: $(MLFILES)
 	@for i in .gitignore ezfio.ml Qptypes.ml qptypes_generator.byte _build $(ALL_EXE) $(ALL_TESTS) \
-	$(patsubst %.ml,%,$(wildcard test_*.ml)) $(patsubst %.ml,%,$(wildcard qp_*.ml)) ; do \
+	$(patsubst %.ml,%,$(wildcard test_*.ml)) $(patsubst %.ml,%,$(wildcard qp_*.ml)) \
+	$(shell grep Input Input_auto_generated.ml | awk '{print $$2 ".ml"}') \
+	Input_auto_generated.ml;\
+	do \
 	   echo $$i ; \
-	done >> .gitignore
+	done > .gitignore
 
 executables: $(QPACKAGE_ROOT)/data/executables
 
