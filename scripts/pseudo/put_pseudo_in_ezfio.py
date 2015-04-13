@@ -209,7 +209,9 @@ if __name__ == "__main__":
     l_str_ele = [str_ele for str_ele in str_.split("Element Symbol: ")
                  if str_ele]
 
-    l_zeff = []
+    for i in "l_zeff v_k n_k dz_k v_kl n_kl dz_kl".split():
+        exec("{0} = []".format(i))
+
     alpha_tot = 0
     beta_tot = 0
 
@@ -228,10 +230,9 @@ if __name__ == "__main__":
 
         l_v, l_n, l_dz = get_v_n_dz_local(str_ele[l:nl])
 
-        ezfio.pseudo_klocmax = len(l_v)
-        ezfio.pseudo_v_k = l_v
-        ezfio.pseudo_n_k = l_n
-        ezfio.pseudo_dz_k = l_dz
+        v_k.append(l_v)
+        n_k.append(l_n)
+        dz_k.append(l_dz)
 
         # ~#~#~#~#~#~#~#~#~ #
         # N o n _ L o c a l #
@@ -255,10 +256,31 @@ if __name__ == "__main__":
         beta_tot += beta
         l_zeff.append(zeff)
 
+    #                                  _
+    #  /\   _|  _|   _|_  _     _  _ _|_ o  _
+    # /--\ (_| (_|    |_ (_)   (/_ /_ |  | (_)
+    #
+
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # Z _ e f f , a l p h a / b e t a _ e l e c #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+
     ezfio.nuclei_nucl_charge = l_zeff
+
+    print "alpha tot", alpha_tot
+    print "beta tot", beta_tot
 
     alpha_tot = ezfio.get_electrons_elec_alpha_num() - alpha_tot
     beta_tot = ezfio.get_electrons_elec_beta_num() - beta_tot
 
     ezfio.electrons_elec_alpha_num = alpha_tot
     ezfio.electrons_elec_beta_num = beta_tot
+
+    # ~#~#~#~#~ #
+    # L o c a l #
+    # ~#~#~#~#~ #
+
+    ezfio.pseudo_klocmax = len(v_k[0])
+    ezfio.pseudo_v_k = zip(*v_k)
+    ezfio.pseudo_n_k = zip(*n_k)
+    ezfio.pseudo_dz_k = zip(*dz_k)

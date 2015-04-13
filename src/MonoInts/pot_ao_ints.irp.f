@@ -21,12 +21,12 @@
   !                 
 
   integer klocmax
-  integer, allocatable ::  n_k(:)
-  double precision, allocatable ::  v_k(:), dz_k(:)
+  integer, allocatable ::  n_k(:,:)
+  double precision, allocatable ::  v_k(:,:), dz_k(:,:)
 
   call ezfio_get_pseudo_klocmax(klocmax)
 
-  allocate(n_k(klocmax),v_k(klocmax), dz_k(klocmax))
+  allocate(n_k(nucl_num,klocmax),v_k(nucl_num,klocmax), dz_k(nucl_num,klocmax))
 
   call ezfio_get_pseudo_v_k(v_k)
   call ezfio_get_pseudo_n_k(n_k)
@@ -49,13 +49,12 @@
 !  dz_k(2) = 3.67918975
 !  dz_k(3) = 1.60507673
   
-
+  print*, "nucl_num", nucl_num
   print*, "klocmax", klocmax
 
   print*, "n_k_ezfio", n_k
   print*, "v_k_ezfio",v_k
   print*, "dz_k_ezfio", dz_k
-
 
   !                               
   ! |\ |  _  ._    |  _   _  _. | 
@@ -78,8 +77,6 @@
   call ezfio_get_pseudo_n_kl(n_kl)
   call ezfio_get_pseudo_v_kl(v_kl)
   call ezfio_get_pseudo_dz_kl(dz_kl)
-
-  print*, "raw"
 
   print*, "kmax", kmax
   print*, "lmax",lmax
@@ -116,7 +113,7 @@
  !$OMP PRIVATE (i, j, k, l, m, alpha, beta, A_center, B_center, C_center, power_A, power_B, &
  !$OMP          num_A, num_B, Z, c, n_pt_in, dump) &
  !$OMP SHARED (ao_num,ao_prim_num,ao_expo_transp,ao_power,ao_nucl,nucl_coord,ao_coef_transp, &
- !$OMP         n_pt_max_integrals,ao_nucl_elec_integral,nucl_num,nucl_charge, &
+ !$OMP         n_pt_max_integrals,ao_nucl_elec_integral,nucl_num,nucl_charge,nucl_label, &
  !$OMP         v_k, n_k, dz_k, klocmax, &
  !$OMP         lmax,kmax,v_kl,n_kl,dz_kl)
 
@@ -149,8 +146,8 @@
       C_center(1:3) = nucl_coord(k,1:3)
 
       c = c - Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)
-    
-      c = c + Vloc(    klocmax ,v_k ,n_k ,dz_k, A_center,power_A,alpha,B_center,power_B,beta,C_center)
+      
+      c = c + Vloc(    klocmax ,v_k(k,:) ,n_k(k,:) ,dz_k(k,:), A_center,power_A,alpha,B_center,power_B,beta,C_center)
       c = c + Vpseudo(lmax,kmax,v_kl,n_kl,dz_kl,A_center,power_A,alpha,B_center,power_B,beta,C_center)
 !      c = c - Vps(A_center,power_A,alpha,B_center,power_B,beta,C_center,klocmax,v_k,n_k,dz_k,lmax,kmax,v_kl,n_kl,dz_kl)
 

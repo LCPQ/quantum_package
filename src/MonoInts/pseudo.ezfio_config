@@ -1,8 +1,8 @@
 pseudo
     klocmax     integer
-    v_k         double precision (pseudo_klocmax)
-    n_k         integer (pseudo_klocmax)
-    dz_k        double precision (pseudo_klocmax)
+    v_k         double precision (nuclei_nucl_num,pseudo_klocmax)
+    n_k         integer (nuclei_nucl_num,pseudo_klocmax)
+    dz_k        double precision (nuclei_nucl_num,pseudo_klocmax)
     lmaxpo      integer
     kmax        integer
     v_kl        double precision (pseudo_kmax,pseudo_lmaxpo)
