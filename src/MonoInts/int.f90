@@ -8,7 +8,7 @@ implicit none
 integer n_a(3),n_b(3)
 double precision g_a,g_b,a(3),b(3),c(3)
 integer kmax_max,lmax_max
-parameter (kmax_max=4,lmax_max=2)
+parameter (kmax_max=2,lmax_max=2)
 integer lmax,kmax,n_kl(kmax_max,0:lmax_max)
 double precision v_kl(kmax_max,0:lmax_max),dz_kl(kmax_max,0:lmax_max)
 integer klocmax_max
@@ -29,7 +29,7 @@ implicit none
 integer n_a(3),n_b(3)
 double precision g_a,g_b,a(3),b(3),c(3),rmax
 integer kmax_max,lmax_max
-parameter (kmax_max=4,lmax_max=2)
+parameter (kmax_max=2,lmax_max=2)
 integer lmax,kmax,n_kl(kmax_max,0:lmax_max)
 double precision v_kl(kmax_max,0:lmax_max),dz_kl(kmax_max,0:lmax_max)
 integer klocmax_max;parameter (klocmax_max=10)
@@ -135,6 +135,14 @@ end
          if(l.gt.2)stop 'l > 2 not coded!'
 
         end
+!                                   _       
+!                                  | |      
+! __   __  _ __  ___  ___ _   _  __| | ___  
+! \ \ / / | '_ \/ __|/ _ \ | | |/ _` |/ _ \ 
+!  \ V /  | |_) \__ \  __/ |_| | (_| | (_) |
+!   \_/   | .__/|___/\___|\__,_|\__,_|\___/ 
+!         | |                               
+!         |_|                               
 
 !! Routine Vpseudo is based on formumla (66) 
 !! of Kahn Baybutt TRuhlar J.Chem.Phys. vol.65 3826 (1976):
@@ -170,27 +178,60 @@ end
 double precision function Vpseudo  &
 (lmax,kmax,v_kl,n_kl,dz_kl,a,n_a,g_a,b,n_b,g_b,c)
 implicit none
+
+! ___                
+!  |  ._  ._     _|_ 
+! _|_ | | |_) |_| |_ 
+!         |          
 double precision, intent(in) :: a(3),g_a,b(3),g_b,c(3)
 
 integer kmax_max,lmax_max,ntot_max,nkl_max
-parameter (kmax_max=4,lmax_max=2,nkl_max=4)
+parameter (kmax_max=2,lmax_max=2,nkl_max=4)
 parameter (ntot_max=10)
-integer lmax,kmax,n_kl(kmax_max,0:lmax_max),l,k
-double precision v_kl(kmax_max,0:lmax_max),dz_kl(kmax_max,0:lmax_max)
-double precision fourpi,f,prod,prodp,binom,accu,bigR,bigI,ylm
-double precision theta_AC0,phi_AC0,theta_BC0,phi_BC0,ac,bc,big
-double precision areal,freal,breal,t1,t2,int_prod_bessel
-integer ntot,ntotA,m,mu,mup,k1,k2,k3,ntotB,k1p,k2p,k3p,lambda,lambdap,ktot
-integer n_a(3),n_b(3)
-double precision array_R(0:ntot_max+nkl_max,kmax_max,0:lmax_max,0:lmax_max+ntot_max,0:lmax_max+ntot_max)
-double precision &
-array_I_A(0:lmax_max+ntot_max,-(lmax_max+ntot_max):lmax_max+ntot_max,0:ntot_max,0:ntot_max,0:ntot_max)
-double precision &
-array_I_B(0:lmax_max+ntot_max,-(lmax_max+ntot_max):lmax_max+ntot_max,0:ntot_max,0:ntot_max,0:ntot_max)
+integer, intent(in) :: lmax,kmax,n_kl(kmax_max,0:lmax_max)
+integer, intent(in) :: n_a(3),n_b(3)
+double precision, intent(in) :: v_kl(kmax_max,0:lmax_max),dz_kl(kmax_max,0:lmax_max)
+
+
+!                     
+! |   _   _  _. |  _  
+! |_ (_) (_ (_| | (/_ 
+!                     
+
+double precision :: fourpi,f,prod,prodp,binom,accu,bigR,bigI,ylm
+double precision :: theta_AC0,phi_AC0,theta_BC0,phi_BC0,ac,bc,big
+double precision :: areal,freal,breal,t1,t2,int_prod_bessel
+double precision :: arg
+
+integer :: ntot,ntotA,m,mu,mup,k1,k2,k3,ntotB,k1p,k2p,k3p,lambda,lambdap,ktot
+integer :: l,k
+
+!  _                          
+! |_) o  _     _. ._ ._ _.    
+! |_) | (_|   (_| |  | (_| \/ 
+!        _|                /  
 
 double precision array_coefs_A(0:ntot_max,0:ntot_max,0:ntot_max)
 double precision array_coefs_B(0:ntot_max,0:ntot_max,0:ntot_max)
-double precision arg
+
+double precision, allocatable :: array_R(:,:,:,:,:)
+double precision, allocatable :: array_I_A(:,:,:,:,:)
+double precision, allocatable :: array_I_B(:,:,:,:,:)
+
+!=!=!=!=!=!=!=!=!=!
+! A l l o c a t e !
+!=!=!=!=!=!=!=!=!=!
+
+allocate (array_R(0:ntot_max+nkl_max,kmax_max,0:lmax_max,0:lmax_max+ntot_max,0:lmax_max+ntot_max))
+
+allocate (array_I_A(0:lmax_max+ntot_max,-(lmax_max+ntot_max):lmax_max+ntot_max,0:ntot_max,0:ntot_max,0:ntot_max))
+
+allocate (array_I_B(0:lmax_max+ntot_max,-(lmax_max+ntot_max):lmax_max+ntot_max,0:ntot_max,0:ntot_max,0:ntot_max))
+
+!  _                
+! /   _. |  _     | 
+! \_ (_| | (_ |_| | 
+!                   
 
 fourpi=4.d0*dacos(-1.d0)
 ac=dsqrt((a(1)-c(1))**2+(a(2)-c(2))**2+(a(3)-c(3))**2)
@@ -212,7 +253,17 @@ if(ntot.gt.ntot_max)stop 'increase ntot_max'
 
 if(ac.eq.0.d0.and.bc.eq.0.d0)then
 
+
+ !=!=!=!=!=!
+ ! I n i t !
+ !=!=!=!=!=!
+
  accu=0.d0
+
+ !=!=!=!=!=!=!=!
+ ! c a l c u l !
+ !=!=!=!=!=!=!=!
+
  do k=1,kmax
   do l=0,lmax
    ktot=ntot+n_kl(k,l)
@@ -223,11 +274,18 @@ if(ac.eq.0.d0.and.bc.eq.0.d0)then
    enddo
   enddo
  enddo
- Vpseudo=accu*fourpi
- return
-endif
 
-if(ac.ne.0.d0.and.bc.ne.0.d0)then
+ !=!=!=!=!
+ ! E n d !
+ !=!=!=!=!
+
+ Vpseudo=accu*fourpi
+
+else if(ac.ne.0.d0.and.bc.ne.0.d0)then
+
+ !=!=!=!=!=!
+ ! I n i t !
+ !=!=!=!=!=!
 
  f=fourpi**2
 
@@ -236,24 +294,27 @@ if(ac.ne.0.d0.and.bc.ne.0.d0)then
  theta_BC0=dacos( (b(3)-c(3))/bc )
  phi_BC0=datan2((b(2)-c(2))/bc,(b(1)-c(1))/bc)
 
+
+
+
  do ktot=0,ntotA+ntotB+nkl_max
- do lambda=0,lmax+ntotA
- do lambdap=0,lmax+ntotB
- do k=1,kmax
- do l=0,lmax
- array_R(ktot,k,l,lambda,lambdap)=   &
-     freal*int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),lambda,lambdap,areal,breal)
- enddo
- enddo
- enddo
- enddo
+   do lambda=0,lmax+ntotA
+   do lambdap=0,lmax+ntotB
+        do k=1,kmax
+          do l=0,lmax
+          array_R(ktot,k,l,lambda,lambdap)= freal & 
+                                            *int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),lambda,lambdap,areal,breal)
+          enddo
+        enddo
+   enddo
+   enddo
  enddo
 
  do k1=0,n_a(1)
  do k2=0,n_a(2)
  do k3=0,n_a(3)
   array_coefs_A(k1,k2,k3)=binom(n_a(1),k1)*binom(n_a(2),k2)*binom(n_a(3),k3)  &
-  *(c(1)-a(1))**(n_a(1)-k1)*(c(2)-a(2))**(n_a(2)-k2)*(c(3)-a(3))**(n_a(3)-k3)
+                          *(c(1)-a(1))**(n_a(1)-k1)*(c(2)-a(2))**(n_a(2)-k2)*(c(3)-a(3))**(n_a(3)-k3)
  enddo
  enddo
  enddo
@@ -262,79 +323,94 @@ if(ac.ne.0.d0.and.bc.ne.0.d0)then
  do k2p=0,n_b(2)
  do k3p=0,n_b(3)
   array_coefs_B(k1p,k2p,k3p)=binom(n_b(1),k1p)*binom(n_b(2),k2p)*binom(n_b(3),k3p)  &
-  *(c(1)-b(1))**(n_b(1)-k1p)*(c(2)-b(2))**(n_b(2)-k2p)*(c(3)-b(3))**(n_b(3)-k3p)
+                             *(c(1)-b(1))**(n_b(1)-k1p)*(c(2)-b(2))**(n_b(2)-k2p)*(c(3)-b(3))**(n_b(3)-k3p)
  enddo
  enddo
  enddo
+
+ !=!=!=!=!=!=!=!
+ ! c a l c u l !
+ !=!=!=!=!=!=!=!
 
  accu=0.d0
  do l=0,lmax
   do m=-l,l
 
- do lambda=0,l+ntotA
-  do mu=-lambda,lambda
-   do k1=0,n_a(1)
-   do k2=0,n_a(2)
-   do k3=0,n_a(3)
-    array_I_A(lambda,mu,k1,k2,k3)=bigI(lambda,mu,l,m,k1,k2,k3)
-   enddo
-   enddo
-   enddo
-  enddo
- enddo
-
- do lambdap=0,l+ntotB
-  do mup=-lambdap,lambdap
-   do k1p=0,n_b(1)
-   do k2p=0,n_b(2)
-   do k3p=0,n_b(3)
-    array_I_B(lambdap,mup,k1p,k2p,k3p)=bigI(lambdap,mup,l,m,k1p,k2p,k3p)
-   enddo
-   enddo
-   enddo
-  enddo
- enddo
-
-   do lambda=0,l+ntotA
-    do mu=-lambda,lambda
-
-     do k1=0,n_a(1)
-     do k2=0,n_a(2)
-     do k3=0,n_a(3)
-
- prod=ylm(lambda,mu,theta_AC0,phi_AC0)*array_coefs_A(k1,k2,k3)*array_I_A(lambda,mu,k1,k2,k3)
-
-      do lambdap=0,l+ntotB
-       do mup=-lambdap,lambdap
-
-        do k1p=0,n_b(1)
-        do k2p=0,n_b(2)
-        do k3p=0,n_b(3)
-
- prodp=ylm(lambdap,mup,theta_BC0,phi_BC0)*array_coefs_B(k1p,k2p,k3p)*array_I_B(lambdap,mup,k1p,k2p,k3p)
-
-         do k=1,kmax
-          ktot=k1+k2+k3+k1p+k2p+k3p+n_kl(k,l)
-          accu=accu+prod*prodp*v_kl(k,l)*array_R(ktot,k,l,lambda,lambdap)
-         enddo
-
-        enddo
-        enddo
+       do lambda=0,l+ntotA
+        do mu=-lambda,lambda
+           do k1=0,n_a(1)
+           do k2=0,n_a(2)
+           do k3=0,n_a(3)
+                array_I_A(lambda,mu,k1,k2,k3)=bigI(lambda,mu,l,m,k1,k2,k3)
+           enddo
+           enddo
+           enddo
         enddo
        enddo
-      enddo
-     enddo
-     enddo
-     enddo
-    enddo
-   enddo
+
+       do lambdap=0,l+ntotB
+        do mup=-lambdap,lambdap
+           do k1p=0,n_b(1)
+           do k2p=0,n_b(2)
+           do k3p=0,n_b(3)
+                  array_I_B(lambdap,mup,k1p,k2p,k3p)=bigI(lambdap,mup,l,m,k1p,k2p,k3p)
+            enddo
+            enddo
+            enddo
+        enddo
+       enddo
+
+       do lambda=0,l+ntotA
+        do mu=-lambda,lambda
+
+          do k1=0,n_a(1)
+          do k2=0,n_a(2)
+          do k3=0,n_a(3)
+
+              prod=ylm(lambda,mu,theta_AC0,phi_AC0)*array_coefs_A(k1,k2,k3)*array_I_A(lambda,mu,k1,k2,k3)
+
+              do lambdap=0,l+ntotB
+               do mup=-lambdap,lambdap
+
+                    do k1p=0,n_b(1)
+                    do k2p=0,n_b(2)
+                    do k3p=0,n_b(3)
+
+                        prodp=ylm(lambdap,mup,theta_BC0,phi_BC0)*array_coefs_B(k1p,k2p,k3p)*array_I_B(lambdap,mup,k1p,k2p,k3p)
+
+                        do k=1,kmax
+                            ktot=k1+k2+k3+k1p+k2p+k3p+n_kl(k,l)
+                            accu=accu+prod*prodp*v_kl(k,l)*array_R(ktot,k,l,lambda,lambdap)
+                        enddo
+
+                    enddo
+                    enddo
+                    enddo
+
+               enddo
+              enddo
+
+          enddo
+          enddo
+          enddo
+
+        enddo
+       enddo
+
   enddo
  enddo
- Vpseudo=f*accu
- return
-endif
 
-if(ac.eq.0.d0.and.bc.ne.0.d0)then
+ !=!=!=!=!
+ ! E n d !
+ !=!=!=!=!
+
+ Vpseudo=f*accu
+
+else if(ac.eq.0.d0.and.bc.ne.0.d0)then
+
+ !=!=!=!=!=!
+ ! I n i t !
+ !=!=!=!=!=!
 
  f=fourpi**1.5d0
  theta_BC0=dacos( (b(3)-c(3))/bc )
@@ -343,68 +419,85 @@ if(ac.eq.0.d0.and.bc.ne.0.d0)then
  areal=2.d0*g_a*ac
  breal=2.d0*g_b*bc
  freal=dexp(-g_a*ac**2-g_b*bc**2)
+
  do ktot=0,ntotA+ntotB+nkl_max
- do lambdap=0,lmax+ntotB
- do k=1,kmax
- do l=0,lmax
- array_R(ktot,k,l,0,lambdap)=   &
-     freal*int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),0,lambdap,areal,breal)
- enddo
- enddo
- enddo
+  do lambdap=0,lmax+ntotB
+    do k=1,kmax
+      do l=0,lmax
+
+        array_R(ktot,k,l,0,lambdap)= freal & 
+                                     *int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),0,lambdap,areal,breal)
+      enddo
+    enddo
+  enddo
  enddo
 
  do k1p=0,n_b(1)
  do k2p=0,n_b(2)
  do k3p=0,n_b(3)
+
   array_coefs_B(k1p,k2p,k3p)=binom(n_b(1),k1p)*binom(n_b(2),k2p)*binom(n_b(3),k3p)  &
-  *(c(1)-b(1))**(n_b(1)-k1p)*(c(2)-b(2))**(n_b(2)-k2p)*(c(3)-b(3))**(n_b(3)-k3p)
+                             *(c(1)-b(1))**(n_b(1)-k1p)*(c(2)-b(2))**(n_b(2)-k2p)*(c(3)-b(3))**(n_b(3)-k3p)
  enddo
  enddo
  enddo
+
+ !=!=!=!=!=!=!=!
+ ! c a l c u l !
+ !=!=!=!=!=!=!=!
 
  accu=0.d0
  do l=0,lmax
   do m=-l,l
 
- do lambdap=0,l+ntotB
-  do mup=-lambdap,lambdap
-   do k1p=0,n_b(1)
-   do k2p=0,n_b(2)
-   do k3p=0,n_b(3)
-    array_I_B(lambdap,mup,k1p,k2p,k3p)=bigI(lambdap,mup,l,m,k1p,k2p,k3p)
-   enddo
-   enddo
-   enddo
-  enddo
- enddo
-
-   prod=bigI(0,0,l,m,n_a(1),n_a(2),n_a(3))
-
-   do lambdap=0,l+ntotB
-    do mup=-lambdap,lambdap
-     do k1p=0,n_b(1)
-     do k2p=0,n_b(2)
-     do k3p=0,n_b(3)
-
- prodp=array_coefs_B(k1p,k2p,k3p)*ylm(lambdap,mup,theta_BC0,phi_BC0)*array_I_B(lambdap,mup,k1p,k2p,k3p)
-
-      do k=1,kmax
-       ktot=ntotA+k1p+k2p+k3p+n_kl(k,l)
-       accu=accu+prod*prodp*v_kl(k,l)*array_R(ktot,k,l,0,lambdap)
+    do lambdap=0,l+ntotB
+      do mup=-lambdap,lambdap
+        do k1p=0,n_b(1)
+        do k2p=0,n_b(2)
+        do k3p=0,n_b(3)
+          array_I_B(lambdap,mup,k1p,k2p,k3p)=bigI(lambdap,mup,l,m,k1p,k2p,k3p)
+        enddo
+        enddo
+        enddo
       enddo
      enddo
-     enddo
+    
+    prod=bigI(0,0,l,m,n_a(1),n_a(2),n_a(3))
+    
+    do lambdap=0,l+ntotB
+      do mup=-lambdap,lambdap
+         do k1p=0,n_b(1)
+         do k2p=0,n_b(2)
+         do k3p=0,n_b(3)
+    
+          prodp=array_coefs_B(k1p,k2p,k3p)*ylm(lambdap,mup,theta_BC0,phi_BC0)*array_I_B(lambdap,mup,k1p,k2p,k3p)
+    
+          do k=1,kmax
+
+            ktot=ntotA+k1p+k2p+k3p+n_kl(k,l)
+            accu=accu+prod*prodp*v_kl(k,l)*array_R(ktot,k,l,0,lambdap)
+
+          enddo
+
+         enddo
+         enddo
+         enddo
      enddo
     enddo
-   enddo
   enddo
  enddo
- Vpseudo=f*accu
- return
-endif
 
-if(ac.ne.0.d0.and.bc.eq.0.d0)then
+ !=!=!=!=!
+ ! E n d !
+ !=!=!=!=!
+
+ Vpseudo=f*accu
+
+else if(ac.ne.0.d0.and.bc.eq.0.d0)then
+
+ !=!=!=!=!=!
+ ! I n i t !
+ !=!=!=!=!=!
 
  f=fourpi**1.5d0
  theta_AC0=dacos( (a(3)-c(3))/ac )
@@ -413,69 +506,102 @@ if(ac.ne.0.d0.and.bc.eq.0.d0)then
  areal=2.d0*g_a*ac
  breal=2.d0*g_b*bc
  freal=dexp(-g_a*ac**2-g_b*bc**2)
+
  do ktot=0,ntotA+ntotB+nkl_max
- do lambda=0,lmax+ntotA
- do k=1,kmax
- do l=0,lmax
- array_R(ktot,k,l,lambda,0)=   &
-     freal*int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),lambda,0,areal,breal)
- enddo
- enddo
- enddo
+  do lambda=0,lmax+ntotA
+    do k=1,kmax
+      do l=0,lmax
+
+      array_R(ktot,k,l,lambda,0)= freal & 
+                                  *int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),lambda,0,areal,breal)
+
+      enddo
+    enddo
+  enddo
  enddo
 
  do k1=0,n_a(1)
  do k2=0,n_a(2)
  do k3=0,n_a(3)
+
   array_coefs_A(k1,k2,k3)=binom(n_a(1),k1)*binom(n_a(2),k2)*binom(n_a(3),k3)  &
-  *(c(1)-a(1))**(n_a(1)-k1)*(c(2)-a(2))**(n_a(2)-k2)*(c(3)-a(3))**(n_a(3)-k3)
+                          *(c(1)-a(1))**(n_a(1)-k1)*(c(2)-a(2))**(n_a(2)-k2)*(c(3)-a(3))**(n_a(3)-k3)
+
  enddo
  enddo
  enddo
+
+ !=!=!=!=!=!=!=!
+ ! c a l c u l !
+ !=!=!=!=!=!=!=!
 
  accu=0.d0
  do l=0,lmax
   do m=-l,l
 
-   do lambda=0,l+ntotA
-    do mu=-lambda,lambda
-     do k1=0,n_a(1)
-     do k2=0,n_a(2)
-     do k3=0,n_a(3)
-      array_I_A(lambda,mu,k1,k2,k3)=bigI(lambda,mu,l,m,k1,k2,k3)
-     enddo
-     enddo
-     enddo
-    enddo
-   enddo
-
-   do lambda=0,l+ntotA
-    do mu=-lambda,lambda
-     do k1=0,n_a(1)
-     do k2=0,n_a(2)
-     do k3=0,n_a(3)
-      prod=array_coefs_A(k1,k2,k3)*ylm(lambda,mu,theta_AC0,phi_AC0)*array_I_A(lambda,mu,k1,k2,k3)
-      prodp=bigI(0,0,l,m,n_b(1),n_b(2),n_b(3))
-      do k=1,kmax
-       ktot=k1+k2+k3+ntotB+n_kl(k,l)
-        accu=accu+prod*prodp*v_kl(k,l)*array_R(ktot,k,l,lambda,0)
+    do lambda=0,l+ntotA
+      do mu=-lambda,lambda
+        do k1=0,n_a(1)
+        do k2=0,n_a(2)
+        do k3=0,n_a(3)
+          array_I_A(lambda,mu,k1,k2,k3)=bigI(lambda,mu,l,m,k1,k2,k3)
+        enddo
+        enddo
+        enddo
       enddo
-     enddo
-     enddo
+    enddo
+
+    do lambda=0,l+ntotA
+      do mu=-lambda,lambda
+        do k1=0,n_a(1)
+        do k2=0,n_a(2)
+        do k3=0,n_a(3)
+
+          prod=array_coefs_A(k1,k2,k3)*ylm(lambda,mu,theta_AC0,phi_AC0)*array_I_A(lambda,mu,k1,k2,k3)
+          prodp=bigI(0,0,l,m,n_b(1),n_b(2),n_b(3))
+
+          do k=1,kmax
+            ktot=k1+k2+k3+ntotB+n_kl(k,l)
+            accu=accu+prod*prodp*v_kl(k,l)*array_R(ktot,k,l,lambda,0)
+          enddo
+
+        enddo
+        enddo
+        enddo
      enddo
     enddo
-   enddo
+
   enddo
  enddo
+ 
+ !=!=!=!=!
+ ! E n d !
+ !=!=!=!=!
+
  Vpseudo=f*accu
- return
 endif
+
+!  _                      
+! |_ o ._   _. | o  _  _  
+! |  | | | (_| | | _> (/_ 
+!                         
+  deallocate (array_R, array_I_A, array_I_B)
+  return
 end
+
+!                                  _                               
+!                                 | |                              
+!__   __  _ __  ___  ___ _   _  __| | ___    _ __  _   _ _ __ ___  
+!\ \ / / | '_ \/ __|/ _ \ | | |/ _` |/ _ \  | '_ \| | | | '_ ` _ \ 
+! \ V /  | |_) \__ \  __/ |_| | (_| | (_) | | | | | |_| | | | | | |
+!  \_/   | .__/|___/\___|\__,_|\__,_|\___/  |_| |_|\__,_|_| |_| |_|
+!        | |                                                       
+!        |_|                                                       
 
 double precision function Vpseudo_num(npts,rmax,lmax,kmax,v_kl,n_kl,dz_kl,a,n_a,g_a,b,n_b,g_b,c)
 implicit none
 integer kmax_max,lmax_max
-parameter (kmax_max=4,lmax_max=2)
+parameter (kmax_max=2,lmax_max=2)
 integer lmax,kmax, n_kl(kmax_max,0:lmax_max),l,m,k,kk
 double precision v_kl(kmax_max,0:lmax_max),dz_kl(kmax_max,0:lmax_max)
 double precision a(3),g_a,b(3),g_b,c(3),ac(3),bc(3)
@@ -1289,10 +1415,6 @@ integer :: n,k
 double precision prod
 dblefact=1.d0
 
-if (n.ge.3000) then
-  print*, n
-endif
-
 if(n.lt.0)return
 if(mod(n,2).eq.1)then
   prod=1.d0
@@ -1777,7 +1899,16 @@ end
         endif
        enddo
        int_prod_bessel=int
-       if(kcp.gt.100)print*,'**WARNING** bad convergence in int_prod_bessel'
+       if(kcp.gt.100) then
+          print*,"l",l
+          print*, "gam", gam
+          print*, "n", n
+          print*, "m", m
+          print*, "a", a
+          print*, "b", b
+          print*, "kcp", kcp
+          print*,'**WARNING** bad convergence in int_prod_bessel'
+        endif
        return
       endif
 
