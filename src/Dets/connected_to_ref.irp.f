@@ -162,7 +162,7 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
   integer                        :: N_past
   integer                        :: i, l
   integer                        :: degree_x2
-  logical                        :: det_is_not_or_may_be_in_ref, t
+  logical                        :: t
   double precision               :: hij_elec
   
   ! output :   0 : not connected
@@ -260,7 +260,7 @@ integer function connected_to_ref_by_mono(key,keys,Nint,N_past_in,Ndet)
   integer                        :: N_past
   integer                        :: i, l
   integer                        :: degree_x2
-  logical                        :: det_is_not_or_may_be_in_ref, t
+  logical                        :: t
   double precision               :: hij_elec
   
   ! output :   0 : not connected
@@ -354,67 +354,4 @@ integer function connected_to_ref_by_mono(key,keys,Nint,N_past_in,Ndet)
   
 end
 
-
-
-logical function det_is_not_or_may_be_in_ref(key,Nint)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! If true, det is not in ref
-  ! If false, det may be in ref
-  END_DOC
-  integer, intent(in)            :: Nint
-  integer(bit_kind), intent(in)  :: key(Nint,2)
-  integer(bit_kind)              :: key_int
-  integer*1                      :: key_short(bit_kind)
-  !DIR$ ATTRIBUTES ALIGN : 32    :: key_short
-  equivalence  (key_int,key_short)
-  
-  integer                        :: i, ispin, k
-  
-  det_is_not_or_may_be_in_ref = .False.
-  do ispin=1,2
-    do i=1,Nint
-      key_int = key(i,ispin)
-      do k=1,bit_kind
-        det_is_not_or_may_be_in_ref =                                &
-            det_is_not_or_may_be_in_ref .or.                         &
-            key_pattern_not_in_ref(key_short(k), i, ispin)
-      enddo
-      if(det_is_not_or_may_be_in_ref) then
-        return
-      endif
-    enddo
-  enddo
-  
-end
-
-
-BEGIN_PROVIDER [ logical, key_pattern_not_in_ref, (-128:127,N_int,2) ]
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Min and max values of the integers of the keys of the reference
-  END_DOC
-  
-  integer                        :: i, j, ispin
-  integer(bit_kind)              :: key
-  integer*1                      :: key_short(bit_kind)
-  equivalence  (key,key_short)
-  integer                        :: idx, k
-  
-  key_pattern_not_in_ref = .True.
-  
-  do j=1,N_det
-    do ispin=1,2
-      do i=1,N_int
-        key = psi_det(i,ispin,j)
-        do k=1,bit_kind
-          key_pattern_not_in_ref( key_short(k), i, ispin ) = .False.
-        enddo
-      enddo
-    enddo
-  enddo
-  
-END_PROVIDER
 
