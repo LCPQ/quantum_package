@@ -48,7 +48,10 @@
 !  dz_k(1) = 5.35838717
 !  dz_k(2) = 3.67918975
 !  dz_k(3) = 1.60507673
-  
+  print*, "======================="
+  print*, "======================="
+  print*, "======================="
+
   print*, "nucl_num", nucl_num
   print*, "klocmax", klocmax
 
@@ -85,6 +88,10 @@
   print*,"v_kl_ezfio", v_kl
   print*,"dz_kl_ezfio", dz_kl
 
+  print*, "======================="
+  print*, "======================="
+  print*, "======================="
+
 
 !  lmax = 1
 !  kmax = 1
@@ -108,28 +115,30 @@
 !  print*,"dz_kl_ezfio", dz_kl
 
 
- !$OMP PARALLEL &
- !$OMP DEFAULT (NONE) &
- !$OMP PRIVATE (i, j, k, l, m, alpha, beta, A_center, B_center, C_center, power_A, power_B, &
- !$OMP          num_A, num_B, Z, c, n_pt_in, dump) &
- !$OMP SHARED (ao_num,ao_prim_num,ao_expo_transp,ao_power,ao_nucl,nucl_coord,ao_coef_transp, &
- !$OMP         n_pt_max_integrals,ao_nucl_elec_integral,nucl_num,nucl_charge,nucl_label, &
- !$OMP         v_k, n_k, dz_k, klocmax, &
- !$OMP         lmax,kmax,v_kl,n_kl,dz_kl)
+  integer, allocatable ::  n_kl_dump(:,:)
+  double precision, allocatable ::  v_kl_dump(:,:), dz_kl_dump(:,:) 
+ 
+  allocate(n_kl_dump(kmax,0:lmax), v_kl_dump(kmax,0:lmax), dz_kl_dump(kmax,0:lmax)) 
+
 
  n_pt_in = n_pt_max_integrals
- !$OMP DO SCHEDULE (guided)
  do j = 1, ao_num
 
   num_A = ao_nucl(j)
   power_A(1:3)= ao_power(j,1:3)
   A_center(1:3) = nucl_coord(num_A,1:3)
 
+  print*, "J", j, "/", ao_num
+  print*,"==================="
+
   do i = 1, ao_num
 
    num_B = ao_nucl(i)
    power_B(1:3)= ao_power(i,1:3)
    B_center(1:3) = nucl_coord(num_B,1:3)
+
+
+   print*, "i", i, "/", ao_num
 
    do l=1,ao_prim_num(j)
     alpha = ao_expo_transp(l,j)
@@ -145,31 +154,37 @@
 
       C_center(1:3) = nucl_coord(k,1:3)
 
-      print*, j, "j /", ao_num
-      print*, l, "l /", ao_prim_num(j)
-      print*, i, "i /", ao_num
-      print*, m, "m /", ao_prim_num(i)
-
       c = c - Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)
       
       c = c + Vloc(    klocmax ,v_k(k,:) ,n_k(k,:) ,dz_k(k,:), A_center,power_A,alpha,B_center,power_B,beta,C_center)
-      
-      print*, "lmax",lmax
-      print*, "kmax",kmax
-      print*, "v_kl",v_kl(k,:,:)
-      print*, "n_kl",n_kl(k,:,:)
-      print*, "dz_kl",dz_kl(k,:,:)
-      print*, "A_center", A_center
-      print*, "power_A",power_A
-      print*, "Alpha_B", alpha
-      print*, "B_center", B_center
-      print*, "power_B", power_B
-      print*, "beta", beta
-      print*, "C_center",C_center
 
-      c = c + Vpseudo(lmax,kmax,v_kl(k,:,:),n_kl(k,:,:),dz_kl(k,:,:),A_center,power_A,alpha,B_center,power_B,beta,C_center)
-!      c = c - Vps(A_center,power_A,alpha,B_center,power_B,beta,C_center,klocmax,v_k,n_k,dz_k,lmax,kmax,v_kl,n_kl,dz_kl)
 
+    n_kl_dump = n_kl(k,1:kmax,0:lmax)
+    v_kl_dump = v_kl(k,1:kmax,0:lmax)
+    dz_kl_dump = dz_kl(k,1:kmax,0:lmax)
+
+!      print*, "lmax",lmax
+!      print*, "kmax",kmax
+!      print*, "v_kl",v_kl_dump
+!      print*, "n_kl",n_kl_dump
+!      print*, n_kl_dump(1,0)
+!      print*, n_kl_dump(1,1)
+!      print*, "dz_kl",dz_kl_dump
+!      print*, dz_kl_dump(1,0)
+!      print*, dz_kl_dump(1,1)
+!      print*, "A_center", A_center
+!      print*, "power_A",power_A
+!      print*, "alpha", alpha
+!      print*, "B_center", B_center
+!      print*, "power_B", power_B
+!      print*, "beta", beta
+!      print*, "C_center",C_center
+
+ !      c = c + Vpseudo(lmax,kmax,v_kl_dump,n_kl_dump,dz_kl_dump,A_center,power_A,alpha,B_center,power_B,beta,C_center)
+ !      c = c - Vps(A_center,power_A,alpha,B_center,power_B,beta,C_center,klocmax,v_k,n_k,dz_k,lmax,kmax,v_kl,n_kl,dz_kl)
+
+!       print*, "#################"
+!       print*, "#################"
      enddo
      ao_nucl_elec_integral(i,j) = ao_nucl_elec_integral(i,j) + &
                                   ao_coef_transp(l,j)*ao_coef_transp(m,i)*c
@@ -177,8 +192,6 @@
    enddo
   enddo
  enddo
- !$OMP END DO 
- !$OMP END PARALLEL
 
 END_PROVIDER
 
