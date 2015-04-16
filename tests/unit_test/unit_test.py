@@ -62,7 +62,6 @@ def get_error_message(l_exepected, l_cur):
 # /  |_   _   _ |    o ._  ._     _|_
 # \_ | | (/_ (_ |<   | | | |_) |_| |_
 #                          |
-
 def check_disk_acess(geo, basis, mult=1):
 
     import uuid
@@ -147,8 +146,6 @@ def check_mo_guess(geo, basis, mult=1):
 # /  |_   _   _ |        _. |      _   _
 # \_ | | (/_ (_ |<   \/ (_| | |_| (/_ _>
 #
-
-
 def run_hf(geo, basis, mult=1):
     """
     Run a simle by default hf
@@ -286,6 +283,56 @@ def hf_then_10k_test(geo, basis):
     return return_code
 
 
+#  _
+# /  |_   _   _ |     _. ._   _  _  ._      _  ._ _|_
+# \_ | | (/_ (_ |<   (_| |_) (_ (_) | | \/ (/_ |   |_
+#                      | | __
+def check_convert(path_out):
+    '''
+    Path_out is the out_file
+    '''
+
+    # ~#~#~#~#~#~#~#~#~#~ #
+    # R e f _ e n e r g y #
+    # ~#~#~#~#~#~#~#~#~#~ #
+
+    ref_energy = defaultdict(dict)
+
+    ref_energy["HBO.out"] = -100.0185822589
+
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # S e t _ p a r a m e t e r #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+
+    cmd = "cp {0}/tests/{1} .".format(qpackage_root, path_out)
+    subprocess.check_call([cmd], shell=True)
+
+    cmd = "qp_convert_output_to_ezfio.py {0}".format(path_out)
+    subprocess.check_call([cmd], shell=True)
+
+    # Test 2
+    cmd = "qp_edit -c {0}.ezfio".format(path_out)
+    subprocess.check_call([cmd], shell=True)
+
+    cmd = "qp_run SCF {0}.ezfio".format(path_out)
+    subprocess.check_call([cmd], shell=True)
+
+    # ~#~#~#~#~ #
+    # C h e c k #
+    # ~#~#~#~#~ #
+
+    ezfio.set_file("{0}.ezfio".format(path_out))
+
+    cur_e = ezfio.get_hartree_fock_energy()
+    ref_e = ref_energy[path_out]
+
+    if abs(cur_e - ref_e) <= precision:
+        subprocess.call(["rm {0}".format(path_out)], shell=True)
+        subprocess.call(["rm -R {0}.ezfio".format(path_out)], shell=True)
+        return True
+    else:
+        raise ValueError(get_error_message([ref_e], [cur_e]))
+
 # ___
 #  |  _   _ _|_
 #  | (/_ _>  |_
@@ -294,6 +341,9 @@ class ValueTest(unittest.TestCase):
 
     def test_full_ci_10k_pt2_end(self):
         self.assertTrue(hf_then_10k_test("methane", "sto-3g"))
+
+    def test_check_convert_hf_energy(self):
+        self.assertTrue(check_convert("HBO.out"))
 
 
 class InputTest(unittest.TestCase):
