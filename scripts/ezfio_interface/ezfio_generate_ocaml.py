@@ -1,7 +1,13 @@
 #!/usr/bin/env python
+"""
+This programme generate all the
+ocaml template needed by qp_edit
+
+You can see `ezfio_generate_provider.py`
+for an example of utilisation
+"""
 
 import sys
-import os
 
 # If type in **kwargs
 from ei_handler import Type
