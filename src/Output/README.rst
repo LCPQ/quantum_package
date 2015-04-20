@@ -32,6 +32,7 @@ Needed Modules
 .. NEEDED_MODULES file.
 
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
+* `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
 
 Documentation
 =============
