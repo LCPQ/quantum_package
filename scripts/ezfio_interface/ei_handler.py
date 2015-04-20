@@ -278,7 +278,6 @@ def get_dict_config_file(config_file_path, module_lower):
 
             try:
                 d[pvd]["default"] = is_bool(default_raw)
-                print is_bool(default_raw)
             except TypeError:
                 d[pvd]["default"] = Type(None, default_raw, default_raw)
 
