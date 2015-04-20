@@ -90,10 +90,6 @@ Documentation
 `connected_to_ref_by_mono <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connected_to_ref.irp.f#L253>`_
   Undocumented
 
-`det_is_not_or_may_be_in_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connected_to_ref.irp.f#L359>`_
-  If true, det is not in ref
-  If false, det may be in ref
-
 `det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connected_to_ref.irp.f#L1>`_
   Return an integer*8 corresponding to a determinant index for searching
 
@@ -102,9 +98,6 @@ Documentation
 
 `is_in_wavefunction <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connected_to_ref.irp.f#L34>`_
   True if the determinant ``det`` is in the wave function
-
-`key_pattern_not_in_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connected_to_ref.irp.f#L393>`_
-  Min and max values of the integers of the keys of the reference
 
 `occ_pattern_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/connected_to_ref.irp.f#L17>`_
   Return an integer*8 corresponding to a determinant index for searching
@@ -200,16 +193,10 @@ Documentation
 `det_svd <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/det_svd.irp.f#L1>`_
   Computes the SVD of the Alpha x Beta determinant coefficient matrix
 
-`create_wf_of_psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L741>`_
-  Matrix of wf coefficients. Outer product of alpha and beta determinants
-
-`filter_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L552>`_
+`filter_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L426>`_
   Returns a determinant with only the 3 highest electrons
 
-`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L796>`_
-  Create a wave function from all possible alpha x beta determinants
-
-`int_of_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L517>`_
+`int_of_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L391>`_
   Returns an integer*8 as :
   .br
   |_<--- 21 bits ---><--- 21 bits ---><--- 21 bits --->|
@@ -226,32 +213,26 @@ Documentation
 `n_det <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L3>`_
   Number of determinants in the wave function
 
-`n_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L348>`_
-  Unique alpha determinants
-
-`n_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L385>`_
-  Unique beta determinants
-
 `psi_average_norm_contrib <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L276>`_
   Contribution of determinants to the state-averaged density
 
-`psi_average_norm_contrib_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L432>`_
+`psi_average_norm_contrib_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L306>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
 `psi_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L230>`_
   The wave function coefficients. Initialized with Hartree-Fock if the EZFIO file
   is empty
 
-`psi_coef_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L431>`_
+`psi_coef_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L305>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
-`psi_coef_sorted_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L579>`_
+`psi_coef_sorted_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L453>`_
   Determinants on which we apply <i|H|j>.
   They are sorted by the 3 highest electrons in the alpha part,
   then by the 3 highest electrons in the beta part to accelerate
   the research of connected determinants.
 
-`psi_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L462>`_
+`psi_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L336>`_
   Determinants on which we apply <i|H|psi> for perturbation.
   They are sorted by determinants interpreted as integers. Useful
   to accelerate the search of a random determinant in the wave
@@ -261,79 +242,52 @@ Documentation
   The wave function determinants. Initialized with Hartree-Fock if the EZFIO file
   is empty
 
-`psi_det_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L319>`_
-  List of alpha determinants of psi_det
-
-`psi_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L347>`_
-  Unique alpha determinants
-
-`psi_det_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L333>`_
-  List of beta determinants of psi_det
-
-`psi_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L384>`_
-  Unique beta determinants
-
 `psi_det_size <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L47>`_
   Size of the psi_det/psi_coef arrays
 
-`psi_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L430>`_
+`psi_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L304>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
-`psi_det_sorted_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L578>`_
+`psi_det_sorted_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L452>`_
   Determinants on which we apply <i|H|j>.
   They are sorted by the 3 highest electrons in the alpha part,
   then by the 3 highest electrons in the beta part to accelerate
   the research of connected determinants.
 
-`psi_det_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L461>`_
+`psi_det_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L335>`_
   Determinants on which we apply <i|H|psi> for perturbation.
   They are sorted by determinants interpreted as integers. Useful
   to accelerate the search of a random determinant in the wave
   function.
 
-`psi_det_sorted_next_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L580>`_
+`psi_det_sorted_next_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L454>`_
   Determinants on which we apply <i|H|j>.
   They are sorted by the 3 highest electrons in the alpha part,
   then by the 3 highest electrons in the beta part to accelerate
   the research of connected determinants.
 
-`psi_svd_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L826>`_
-  SVD wave function
-
-`psi_svd_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L827>`_
-  SVD wave function
-
-`psi_svd_coefs <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L828>`_
-  SVD wave function
-
-`psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L709>`_
-  Matrix of wf coefficients. Outer product of alpha and beta determinants
-
-`read_dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L880>`_
+`read_dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L583>`_
   Reads the determinants from the EZFIO file
 
-`save_wavefunction <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L927>`_
+`save_wavefunction <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L630>`_
   Save the wave function into the EZFIO file
 
-`save_wavefunction_general <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L946>`_
+`save_wavefunction_general <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L649>`_
   Save the wave function into the EZFIO file
 
-`save_wavefunction_unsorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L937>`_
+`save_wavefunction_unsorted <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L640>`_
   Save the wave function into the EZFIO file
 
-`sort_dets_by_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L600>`_
+`sort_dets_by_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L474>`_
   Determinants on which we apply <i|H|j>.
   They are sorted by the 3 highest electrons in the alpha part,
   then by the 3 highest electrons in the beta part to accelerate
   the research of connected determinants.
 
-`sort_dets_by_det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L475>`_
+`sort_dets_by_det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L349>`_
   Determinants are sorted are sorted according to their det_search_key.
   Useful to accelerate the search of a random determinant in the wave
   function.
-
-`spin_det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants.irp.f#L303>`_
-  Return an integer*8 corresponding to a determinant index for searching
 
 `double_exc_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/determinants_bitmasks.irp.f#L40>`_
   double_exc_bitmask(:,1,i) is the bitmask for holes of excitation 1
@@ -675,7 +629,61 @@ Documentation
 `n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/slater_rules.irp.f#L1131>`_
   Number of integers to represent the connections between determinants
 
-`write_spindeterminants <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L1>`_
+`create_wf_of_psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L473>`_
+  Matrix of wf coefficients. Outer product of alpha and beta determinants
+
+`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L528>`_
+  Create a wave function from all possible alpha x beta determinants
+
+`get_index_in_psi_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L131>`_
+  Returns the index of the determinant in the ``psi_det_alpha_unique`` array
+
+`get_index_in_psi_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L212>`_
+  Returns the index of the determinant in the ``psi_det_beta_unique`` array
+
+`n_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L54>`_
+  Unique alpha determinants
+
+`n_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L91>`_
+  Unique beta determinants
+
+`psi_det_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L25>`_
+  List of alpha determinants of psi_det
+
+`psi_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L53>`_
+  Unique alpha determinants
+
+`psi_det_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L39>`_
+  List of beta determinants of psi_det
+
+`psi_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L90>`_
+  Unique beta determinants
+
+`psi_svd_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L568>`_
+  SVD wave function
+
+`psi_svd_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L569>`_
+  SVD wave function
+
+`psi_svd_coefs <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L570>`_
+  SVD wave function
+
+`psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L457>`_
+  Matrix of wf coefficients. Outer product of alpha and beta determinants
+
+`psi_svd_matrix_columns <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L398>`_
+  Matrix of wf coefficients. Outer product of alpha and beta determinants
+
+`psi_svd_matrix_rows <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L397>`_
+  Matrix of wf coefficients. Outer product of alpha and beta determinants
+
+`psi_svd_matrix_values <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L396>`_
+  Matrix of wf coefficients. Outer product of alpha and beta determinants
+
+`spin_det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L9>`_
+  Return an integer*8 corresponding to a determinant index for searching
+
+`write_spindeterminants <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/spindeterminants.irp.f#L294>`_
   Undocumented
 
 `cisd <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/truncate_wf.irp.f#L1>`_
