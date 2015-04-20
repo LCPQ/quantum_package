@@ -203,7 +203,7 @@ def get_dict_config_file(config_file_path, module_lower):
     - ezfio_name : Will be the name of the file
     - ezfio_dir  : Will be the folder who containt the ezfio_name
         * /ezfio_dir/ezfio_name
-        * equal to MODULE_lower name for the moment.
+        * equal to MODULE_lower name by default.
     - interface  : The provider is a imput or a output
     - default : The default value /!\ stored in a Type named type!
                    if interface == output
@@ -216,7 +216,7 @@ def get_dict_config_file(config_file_path, module_lower):
 
     d = defaultdict(dict)
     l_info_required = ["doc", "interface"]
-    l_info_optional = ["ezfio_name", "size"]
+    l_info_optional = ["ezfio_dir", "ezfio_name", "size"]
 
     # ~#~#~#~#~#~#~#~#~#~#~ #
     # L o a d _ C o n f i g #
@@ -238,10 +238,8 @@ def get_dict_config_file(config_file_path, module_lower):
         pvd = section.lower()
 
         # Create the dictionary who containt the value per default
-        d_default = {"ezfio_name": pvd}
-
-        # Set the ezfio_dir
-        d[pvd]["ezfio_dir"] = module_lower
+        d_default = {"ezfio_name": pvd,
+                     "ezfio_dir": module_lower}
 
         # Check if type if avalaible
         type_ = config_file.get(section, "type")
@@ -294,6 +292,7 @@ def create_ezfio_provider(dict_ezfio_cfg):
                                   default
                                   size}
     create the a list who containt all the code for the provider
+    output = output_dict_info['ezfio_dir'
     return [code, ...]
     """
     from ezfio_generate_provider import EZFIO_Provider
