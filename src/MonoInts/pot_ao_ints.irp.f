@@ -156,7 +156,7 @@
 
       c = c - Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)
       
-      c = c + Vloc(    klocmax ,v_k(k,:) ,n_k(k,:) ,dz_k(k,:), A_center,power_A,alpha,B_center,power_B,beta,C_center)
+!      c = c + Vloc(    klocmax ,v_k(k,:) ,n_k(k,:) ,dz_k(k,:), A_center,power_A,alpha,B_center,power_B,beta,C_center)
 
 
     n_kl_dump = n_kl(k,1:kmax,0:lmax)
@@ -167,7 +167,7 @@
 !      print*, "kmax",kmax
 !      print*, "v_kl",v_kl_dump
 !      print*, "n_kl",n_kl_dump
-!      print*, n_kl_dump(1,0)
+!      print*, n_kl_ump(1,0)
 !      print*, n_kl_dump(1,1)
 !      print*, "dz_kl",dz_kl_dump
 !      print*, dz_kl_dump(1,0)
@@ -180,7 +180,9 @@
 !      print*, "beta", beta
 !      print*, "C_center",C_center
 
- !      c = c + Vpseudo(lmax,kmax,v_kl_dump,n_kl_dump,dz_kl_dump,A_center,power_A,alpha,B_center,power_B,beta,C_center)
+       c = c + Vpseudo(lmax,kmax,v_kl_dump,n_kl_dump,dz_kl_dump,A_center,power_A,alpha,B_center,power_B,beta,C_center)
+       dump =  Vpseudo(lmax,kmax,v_kl_dump,n_kl_dump,dz_kl_dump,A_center,power_A,alpha,B_center,power_B,beta,C_center)
+       print*, dump
  !      c = c - Vps(A_center,power_A,alpha,B_center,power_B,beta,C_center,klocmax,v_k,n_k,dz_k,lmax,kmax,v_kl,n_kl,dz_kl)
 
 !       print*, "#################"
