@@ -112,6 +112,8 @@ def get_type_dict():
     # ~#~#~#~#~#~#~#~ #
 
     fancy_type['integer'] = Type(None, "int", "integer")
+    fancy_type['integer*8'] = Type(None, "int", "integer*8")
+
     fancy_type['int'] = Type(None, "int", "integer")
 
     fancy_type['float'] = Type(None, "float", "double precision")
@@ -121,7 +123,7 @@ def get_type_dict():
     fancy_type['bool'] = Type(None, "bool", "logical")
 
     fancy_type['character*(32)'] = Type(None, "string", "character*(32)")
-    fancy_type['character*(60)'] = Type(None, "string", "character*(60)")
+    fancy_type['character*(64)'] = Type(None, "string", "character*(68)")
     fancy_type['character*(256)'] = Type(None, "string", "character*(256)")
 
     # ~#~#~#~#~#~#~#~ #
@@ -267,7 +269,7 @@ def get_dict_config_file(config_file_path, module_lower):
                     d[pvd][option] = d_default[option]
 
         # If interface is input we need a default value information
-        if d[pvd]["interface"] == "input":
+        if d[pvd]["interface"].lower() == "input":
             try:
                 default_raw = config_file.get(section, "default")
             except ConfigParser.NoOptionError:

@@ -135,7 +135,7 @@ subroutine remove_small_contributions
   if (N_removed > 0) then
     N_det = N_det - N_removed
     SOFT_TOUCH N_det psi_det psi_coef 
-    call write_int(output_dets,N_removed, 'Removed determinants')
+    call write_int(output_determinants,N_removed, 'Removed determinants')
   endif
 end
 
