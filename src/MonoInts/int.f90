@@ -140,7 +140,7 @@ end
 ! __   __  _ __  ___  ___ _   _  __| | ___  
 ! \ \ / / | '_ \/ __|/ _ \ | | |/ _` |/ _ \ 
 !  \ V /  | |_) \__ \  __/ |_| | (_| | (_) |
-!   \_/   | .__/|___/\___|\__,_|\__,_|\___/ 
+!   \_/   | .__/|___/\___|\__,_|\____|\___/ 
 !         | |                               
 !         |_|                               
 
@@ -200,7 +200,7 @@ double precision, intent(in) :: v_kl(kmax_max,0:lmax_max),dz_kl(kmax_max,0:lmax_
 
 double precision :: fourpi,f,prod,prodp,binom,accu,bigR,bigI,ylm
 double precision :: theta_AC0,phi_AC0,theta_BC0,phi_BC0,ac,bc,big
-double precision :: areal,freal,breal,t1,t2,int_prod_bessel
+double precision :: areal,freal,breal,t1,t2,int_prod_bessel, int_prod_bessel_num_soph_p
 double precision :: arg
 
 integer :: ntot,ntotA,m,mu,mup,k1,k2,k3,ntotB,k1p,k2p,k3p,lambda,lambdap,ktot
@@ -270,7 +270,9 @@ if(ac.eq.0.d0.and.bc.eq.0.d0)then
    do m=-l,l
     prod=bigI(0,0,l,m,n_a(1),n_a(2),n_a(3))
     prodp=bigI(0,0,l,m,n_b(1),n_b(2),n_b(3))
-    accu=accu+prod*prodp*v_kl(k,l)*freal*int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),0,0,areal,breal)
+
+      accu=accu+prod*prodp*v_kl(k,l)*int_prod_bessel_num_soph_p(ktot+2,g_a+g_b+dz_kl(k,l),0,0,areal,breal,arg)
+
    enddo
   enddo
  enddo
@@ -303,7 +305,7 @@ else if(ac.ne.0.d0.and.bc.ne.0.d0)then
         do k=1,kmax
           do l=0,lmax
           array_R(ktot,k,l,lambda,lambdap)= freal & 
-                                            *int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),lambda,lambdap,areal,breal)
+                                            *int_prod_bessel_num_soph_p(ktot+2,g_a+g_b+dz_kl(k,l),lambda,lambdap,areal,breal,arg)
           enddo
         enddo
    enddo
@@ -426,8 +428,8 @@ else if(ac.eq.0.d0.and.bc.ne.0.d0)then
       do l=0,lmax
 
         array_R(ktot,k,l,0,lambdap)= freal & 
-                                     *int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),0,lambdap,areal,breal)
-      enddo
+                                     * int_prod_bessel_num_soph_p(ktot+2,g_a+g_b+dz_kl(k,l),0,lambdap,areal,breal,arg)
+       enddo
     enddo
   enddo
  enddo
@@ -513,8 +515,7 @@ else if(ac.ne.0.d0.and.bc.eq.0.d0)then
       do l=0,lmax
 
       array_R(ktot,k,l,lambda,0)= freal & 
-                                  *int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),lambda,0,areal,breal)
-
+                                  * int_prod_bessel_num_soph_p(ktot+2,g_a+g_b+dz_kl(k,l),lambda,0,areal,breal,arg)
       enddo
     enddo
   enddo
@@ -1973,6 +1974,59 @@ end
 
       stop 'pb in int_prod_bessel!!'
       end
+
+
+      double precision function int_prod_bessel_num_soph_p(l,gam,n,m,a,b,arg)
+      implicit none
+      integer n,m,l
+      double precision gam,a,b,arg,arg_new
+      double precision bessel_mod,factor
+logical not_done
+double precision bigA,xold,x,dx,accu,intnew,intold,intold2,u,v,freal
+integer iter
+double precision n0,nI,i,eps
+      u=(a+b)/(2.d0*dsqrt(gam))
+      arg_new=u**2-arg
+      freal=dexp(arg_new)
+      v=u/dsqrt(gam)
+
+bigA=v+dsqrt(-dlog(1.d-15)/gam)
+n0=5
+accu=0.d0
+dx=bigA/(n0-1.d0)
+iter=0
+do i=1.d0,n0
+ x=(i-1.d0)*dx
+ accu=accu+x**l*dexp(-gam*(x-v)**2)*bessel_mod(a*x,n)*bessel_mod(b*x,m)*dexp(-(a+b)*x)
+enddo
+accu=accu*freal
+intold=accu*dx
+
+eps=1.d-08
+nI=n0-1.d0
+dx=dx/2.d0
+not_done=.true.
+
+do while(not_done)
+ iter=iter+1
+ accu=0.d0
+ do i=1.d0,nI
+  x=dx+(i-1.d0)*2.d0*dx
+  accu=accu+dx*x**l*dexp(-gam*(x-v)**2)*bessel_mod(a*x,n)*bessel_mod(b*x,m)*dexp(-(a+b)*x)
+ enddo
+ accu=accu*freal
+ intnew=intold/2.d0+accu
+ if(iter.gt.1.and.dabs(intnew-intold).lt.eps.and.dabs(intnew-intold2).lt.eps)then
+  not_done=.false.
+ else
+  intold2=intold
+  intold=intnew
+  dx=dx/2.d0
+  nI=2.d0*nI
+ endif
+enddo
+int_prod_bessel_num_soph_p=intold
+end
 
 !!    Calculation of
 !!
