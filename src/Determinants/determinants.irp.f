@@ -68,9 +68,6 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
  ! The wave function determinants. Initialized with Hartree-Fock if the EZFIO file
  ! is empty
  END_DOC
-
- PROVIDE ezfio_filename
-
   integer                        :: i
   logical                        :: exists
   character*64                   :: label
@@ -237,8 +234,6 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states_diag) ]
   ! is empty
   END_DOC
   
-  PROVIDE ezfio_filename
-
   integer                        :: i,k, N_int2
   logical                        :: exists
   double precision, allocatable  :: psi_coef_read(:,:)
@@ -602,8 +597,6 @@ subroutine read_dets(det,Nint,Ndet)
   integer                        :: i,k
   equivalence (det_8, det_bk)
   
-  PROVIDE ezfio_filename
-
   call ezfio_get_determinants_N_int(N_int2)
   ASSERT (N_int2 == Nint)
   call ezfio_get_determinants_bit_kind(k)
@@ -672,8 +665,6 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
   integer :: i,k
 
   PROVIDE progress_bar
-  PROVIDE ezfio_filename
-
   call start_progress(7,'Saving wfunction',0.d0)
 
   progress_bar(1) = 1

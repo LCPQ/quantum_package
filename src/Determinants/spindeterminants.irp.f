@@ -1,0 +1,615 @@
+!==============================================================================!
+!                                                                              !
+!                          Independent alpha/beta parts                        !
+!                                                                              !
+!==============================================================================!
+
+use bitmasks
+
+integer*8 function spin_det_search_key(det,Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Return an integer*8 corresponding to a determinant index for searching
+  END_DOC
+  integer, intent(in) :: Nint
+  integer(bit_kind), intent(in) :: det(Nint)
+  integer :: i
+  spin_det_search_key = det(1)
+  do i=2,Nint
+    spin_det_search_key = ieor(spin_det_search_key,det(i))
+  enddo
+end
+
+
+BEGIN_PROVIDER [ integer(bit_kind), psi_det_alpha, (N_int,psi_det_size) ]
+ implicit none
+ BEGIN_DOC
+! List of alpha determinants of psi_det
+ END_DOC
+ integer :: i,k
+
+ do i=1,N_det
+   do k=1,N_int
+     psi_det_alpha(k,i) = psi_det(k,1,i)
+   enddo
+ enddo
+END_PROVIDER
+
+BEGIN_PROVIDER [ integer(bit_kind), psi_det_beta, (N_int,psi_det_size) ]
+ implicit none
+ BEGIN_DOC
+! List of beta determinants of psi_det
+ END_DOC
+ integer :: i,k
+
+ do i=1,N_det
+   do k=1,N_int
+     psi_det_beta(k,i) = psi_det(k,2,i)
+   enddo
+ enddo
+END_PROVIDER
+
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_alpha_unique, (N_int,psi_det_size) ]
+&BEGIN_PROVIDER [ integer, N_det_alpha_unique ]
+ implicit none
+ BEGIN_DOC
+ ! Unique alpha determinants
+ END_DOC
+
+ integer                        :: i,k
+ integer, allocatable           :: iorder(:)
+ integer*8, allocatable         :: bit_tmp(:)
+ integer*8                      :: last_key
+ integer*8, external            :: spin_det_search_key
+
+ allocate ( iorder(N_det), bit_tmp(N_det))
+
+ do i=1,N_det
+   iorder(i) = i
+   bit_tmp(i) = spin_det_search_key(psi_det_alpha(1,i),N_int)
+ enddo
+
+ call i8sort(bit_tmp,iorder,N_det)
+
+ N_det_alpha_unique = 0
+ last_key = 0_8
+ do i=1,N_det
+  if (bit_tmp(i) /= last_key) then
+    last_key = bit_tmp(i)
+    N_det_alpha_unique += 1
+    do k=1,N_int
+      psi_det_alpha_unique(k,N_det_alpha_unique) = psi_det_alpha(k,iorder(i))
+    enddo
+  endif
+ enddo
+
+ deallocate (iorder, bit_tmp)
+END_PROVIDER
+
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_beta_unique, (N_int,psi_det_size) ]
+&BEGIN_PROVIDER [ integer, N_det_beta_unique ]
+ implicit none
+ BEGIN_DOC
+ ! Unique beta determinants
+ END_DOC
+
+ integer                        :: i,k
+ integer, allocatable           :: iorder(:)
+ integer*8, allocatable         :: bit_tmp(:)
+ integer*8                      :: last_key
+ integer*8, external            :: spin_det_search_key
+
+ allocate ( iorder(N_det), bit_tmp(N_det))
+
+ do i=1,N_det
+   iorder(i) = i
+   bit_tmp(i) = spin_det_search_key(psi_det_beta(1,i),N_int)
+ enddo
+
+ call i8sort(bit_tmp,iorder,N_det)
+
+ N_det_beta_unique = 0
+ last_key = 0_8
+ do i=1,N_det
+  if (bit_tmp(i) /= last_key) then
+    last_key = bit_tmp(i)
+    N_det_beta_unique += 1
+    do k=1,N_int
+      psi_det_beta_unique(k,N_det_beta_unique) = psi_det_beta(k,iorder(i))
+    enddo
+  endif
+ enddo
+
+ deallocate (iorder, bit_tmp)
+END_PROVIDER
+
+
+
+
+
+integer function get_index_in_psi_det_alpha_unique(key,Nint)
+  use bitmasks
+  BEGIN_DOC
+! Returns the index of the determinant in the ``psi_det_alpha_unique`` array
+  END_DOC
+  implicit none
+
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: key(Nint)
+
+  integer                        :: i, ibegin, iend, istep, l
+  integer*8                      :: det_ref, det_search
+  integer*8, external            :: spin_det_search_key
+  logical                        :: is_in_wavefunction
+
+  is_in_wavefunction = .False.
+  get_index_in_psi_det_alpha_unique = 0
+  ibegin = 1
+  iend   = N_det_alpha_unique + 1
+
+  !DIR$ FORCEINLINE
+  det_ref = spin_det_search_key(key,Nint)
+  !DIR$ FORCEINLINE
+  det_search = spin_det_search_key(psi_det_alpha_unique(1,1),Nint)
+
+  istep = ishft(iend-ibegin,-1)
+  i=ibegin+istep
+  do while (istep > 0)
+    !DIR$ FORCEINLINE
+    det_search = spin_det_search_key(psi_det_alpha_unique(1,i),Nint)
+    if ( det_search > det_ref ) then
+      iend = i
+    else if ( det_search == det_ref ) then
+      exit
+    else
+      ibegin = i
+    endif
+    istep = ishft(iend-ibegin,-1)
+    i = ibegin + istep
+  end do
+
+  !DIR$ FORCEINLINE
+  do while (spin_det_search_key(psi_det_alpha_unique(1,i),Nint) == det_ref)
+    i = i-1
+    if (i == 0) then
+      exit
+    endif
+  enddo
+  i += 1
+
+  if (i > N_det_alpha_unique) then
+    return
+  endif
+
+  !DIR$ FORCEINLINE
+  do while (spin_det_search_key(psi_det_alpha_unique(1,i),Nint) == det_ref)
+    if (key(1) /= psi_det_alpha_unique(1,i)) then
+      continue
+    else
+      is_in_wavefunction = .True.
+      !DIR$ IVDEP
+      !DIR$ LOOP COUNT MIN(3)
+      do l=2,Nint
+        if (key(l) /= psi_det_alpha_unique(l,i)) then
+          is_in_wavefunction = .False.
+        endif
+      enddo
+      if (is_in_wavefunction) then
+        get_index_in_psi_det_alpha_unique = i
+        return
+      endif
+    endif
+    i += 1
+    if (i > N_det_alpha_unique) then
+      return
+    endif
+
+  enddo
+
+end
+
+integer function get_index_in_psi_det_beta_unique(key,Nint)
+  use bitmasks
+  BEGIN_DOC
+! Returns the index of the determinant in the ``psi_det_beta_unique`` array
+  END_DOC
+  implicit none
+
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: key(Nint)
+
+  integer                        :: i, ibegin, iend, istep, l
+  integer*8                      :: det_ref, det_search
+  integer*8, external            :: spin_det_search_key
+  logical                        :: is_in_wavefunction
+
+  is_in_wavefunction = .False.
+  get_index_in_psi_det_beta_unique = 0
+  ibegin = 1
+  iend   = N_det_beta_unique + 1
+
+  !DIR$ FORCEINLINE
+  det_ref = spin_det_search_key(key,Nint)
+  !DIR$ FORCEINLINE
+  det_search = spin_det_search_key(psi_det_beta_unique(1,1),Nint)
+
+  istep = ishft(iend-ibegin,-1)
+  i=ibegin+istep
+  do while (istep > 0)
+    !DIR$ FORCEINLINE
+    det_search = spin_det_search_key(psi_det_beta_unique(1,i),Nint)
+    if ( det_search > det_ref ) then
+      iend = i
+    else if ( det_search == det_ref ) then
+      exit
+    else
+      ibegin = i
+    endif
+    istep = ishft(iend-ibegin,-1)
+    i = ibegin + istep
+  end do
+
+  !DIR$ FORCEINLINE
+  do while (spin_det_search_key(psi_det_beta_unique(1,i),Nint) == det_ref)
+    i = i-1
+    if (i == 0) then
+      exit
+    endif
+  enddo
+  i += 1
+
+  if (i > N_det_beta_unique) then
+    return
+  endif
+
+  !DIR$ FORCEINLINE
+  do while (spin_det_search_key(psi_det_beta_unique(1,i),Nint) == det_ref)
+    if (key(1) /= psi_det_beta_unique(1,i)) then
+      continue
+    else
+      is_in_wavefunction = .True.
+      !DIR$ IVDEP
+      !DIR$ LOOP COUNT MIN(3)
+      do l=2,Nint
+        if (key(l) /= psi_det_beta_unique(l,i)) then
+          is_in_wavefunction = .False.
+        endif
+      enddo
+      if (is_in_wavefunction) then
+        get_index_in_psi_det_beta_unique = i
+        return
+      endif
+    endif
+    i += 1
+    if (i > N_det_beta_unique) then
+      return
+    endif
+
+  enddo
+
+end
+
+
+subroutine write_spindeterminants
+  use bitmasks
+  implicit none
+  integer*8, allocatable         :: tmpdet(:,:)
+  integer                        :: N_int2
+  integer                        :: i,j,k
+  integer*8                      :: det_8(100)
+  integer(bit_kind)              :: det_bk((100*8)/bit_kind)
+  equivalence (det_8, det_bk)
+
+  N_int2 = (N_int*bit_kind)/8
+  call ezfio_set_spindeterminants_n_det_alpha(N_det_alpha_unique)
+  call ezfio_set_spindeterminants_n_det_beta(N_det_beta_unique)
+  call ezfio_set_spindeterminants_n_det(N_det)
+  call ezfio_set_spindeterminants_n_int(N_int)
+  call ezfio_set_spindeterminants_bit_kind(bit_kind)
+  call ezfio_set_spindeterminants_n_states(N_states)
+
+  allocate(tmpdet(N_int2,N_det_alpha_unique))
+  do i=1,N_det_alpha_unique
+    do k=1,N_int
+      det_bk(k) = psi_det_alpha_unique(k,i)
+    enddo
+    do k=1,N_int2
+      tmpdet(k,i) = det_8(k)
+    enddo
+  enddo
+  call ezfio_set_spindeterminants_psi_det_alpha(psi_det_alpha_unique)
+  deallocate(tmpdet)
+  
+  allocate(tmpdet(N_int2,N_det_beta_unique))
+  do i=1,N_det_beta_unique
+    do k=1,N_int
+      det_bk(k) = psi_det_beta_unique(k,i)
+    enddo
+    do k=1,N_int2
+      tmpdet(k,i) = det_8(k)
+    enddo
+  enddo
+  call ezfio_set_spindeterminants_psi_det_beta(psi_det_beta_unique)
+  deallocate(tmpdet)
+  
+  call ezfio_set_spindeterminants_psi_coef_matrix_values(psi_svd_matrix_values)
+  call ezfio_set_spindeterminants_psi_coef_matrix_rows(psi_svd_matrix_rows)
+  call ezfio_set_spindeterminants_psi_coef_matrix_columns(psi_svd_matrix_columns)
+  
+  integer                        :: n_svd_coefs
+  double precision               :: norm, f
+  f = 1.d0/dble(N_states)
+  norm = 1.d0
+  do n_svd_coefs=1,N_det_alpha_unique
+    do k=1,N_states
+      norm -= psi_svd_coefs(n_svd_coefs,k)*psi_svd_coefs(n_svd_coefs,k)
+    enddo
+    if (norm < 1.d-4) then
+      exit
+    endif
+  enddo
+  n_svd_coefs -= 1
+  call ezfio_set_spindeterminants_n_svd_coefs(n_svd_coefs)
+  
+  double precision, allocatable  :: dtmp(:,:,:)
+  allocate(dtmp(N_det_alpha_unique,n_svd_coefs,N_states))
+  do k=1,N_states
+    do j=1,n_svd_coefs
+      do i=1,N_det_alpha_unique
+        dtmp(i,j,k) = psi_svd_alpha(i,j,k)
+      enddo
+    enddo
+  enddo
+  call ezfio_set_spindeterminants_psi_svd_alpha(dtmp)
+  deallocate(dtmp)
+
+  allocate(dtmp(N_det_beta_unique,n_svd_coefs,N_states))
+  do k=1,N_states
+    do j=1,n_svd_coefs
+      do i=1,N_det_beta_unique
+        dtmp(i,j,k) = psi_svd_beta(i,j,k)
+      enddo
+    enddo
+  enddo
+  call ezfio_set_spindeterminants_psi_svd_beta(dtmp)
+  deallocate(dtmp)
+
+  allocate(dtmp(n_svd_coefs,N_states,1))
+  do k=1,N_states
+    do j=1,n_svd_coefs
+        dtmp(j,k,1) = psi_svd_coefs(j,k)
+    enddo
+  enddo
+  call ezfio_set_spindeterminants_psi_svd_coefs(dtmp)
+  deallocate(dtmp)
+
+end
+
+
+!==============================================================================!
+!                                                                              !
+!                               Alpha x Beta Matrix                            !
+!                                                                              !
+!==============================================================================!
+
+BEGIN_PROVIDER  [ double precision, psi_svd_matrix_values, (N_det,N_states) ]
+&BEGIN_PROVIDER [ integer, psi_svd_matrix_rows, (N_det) ]
+&BEGIN_PROVIDER [ integer, psi_svd_matrix_columns, (N_det) ]
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Matrix of wf coefficients. Outer product of alpha and beta determinants
+  END_DOC
+  integer                        :: i,j,k, l
+  integer(bit_kind)               :: tmp_det(N_int,2)
+  integer                        :: idx
+  integer, external              :: get_index_in_psi_det_sorted_bit
+  logical, external              :: is_in_wavefunction
+
+
+  PROVIDE psi_coef_sorted_bit
+
+!  l=0
+!  do j=1,N_det_beta_unique
+!    do k=1,N_int
+!      tmp_det(k,2) = psi_det_beta_unique(k,j)
+!    enddo
+!    do i=1,N_det_alpha_unique
+!      do k=1,N_int
+!        tmp_det(k,1) = psi_det_alpha_unique(k,i)
+!      enddo
+!      idx = get_index_in_psi_det_sorted_bit(tmp_det,N_int)
+!      if (idx > 0) then
+!        l += 1
+!        psi_svd_matrix_rows(l) = i
+!        psi_svd_matrix_columns(l) = j
+!        do k=1,N_states
+!          psi_svd_matrix_values(l,k) = psi_coef_sorted_bit(idx,k)
+!        enddo
+!      endif
+!    enddo
+!  enddo
+!  ASSERT (l == N_det)
+
+  integer, allocatable :: iorder(:), to_sort(:)
+  integer, external :: get_index_in_psi_det_alpha_unique
+  integer, external :: get_index_in_psi_det_beta_unique
+  allocate(iorder(N_det), to_sort(N_det))
+  do k=1,N_det
+    i = get_index_in_psi_det_alpha_unique(psi_det(1,1,k),N_int)
+    j = get_index_in_psi_det_beta_unique (psi_det(1,2,k),N_int)
+    do l=1,N_states
+      psi_svd_matrix_values(k,l) = psi_coef(k,l)
+    enddo
+    psi_svd_matrix_rows(k) = i
+    psi_svd_matrix_columns(k) = j
+    to_sort(k) = N_det_alpha_unique * (j-1) + i
+    iorder(k) = k
+  enddo
+  call isort(to_sort, iorder, N_det)
+  call iset_order(psi_svd_matrix_rows,iorder,N_det)
+  call iset_order(psi_svd_matrix_columns,iorder,N_det)
+  call dset_order(psi_svd_matrix_values,iorder,N_det)
+  deallocate(iorder,to_sort)
+END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, psi_svd_matrix, (N_det_alpha_unique,N_det_beta_unique,N_states) ]
+  implicit none
+  BEGIN_DOC
+! Matrix of wf coefficients. Outer product of alpha and beta determinants
+  END_DOC
+  integer :: i,j,k,istate
+  psi_svd_matrix = 0.d0
+  do k=1,N_det
+    i = psi_svd_matrix_rows(k)
+    j = psi_svd_matrix_columns(k)
+    do istate=1,N_states
+      psi_svd_matrix(i,j,istate) = psi_svd_matrix_values(k,istate)
+    enddo
+  enddo
+END_PROVIDER
+
+subroutine create_wf_of_psi_svd_matrix
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Matrix of wf coefficients. Outer product of alpha and beta determinants
+  END_DOC
+  integer                        :: i,j,k
+  integer(bit_kind)              :: tmp_det(N_int,2)
+  integer                        :: idx
+  integer, external              :: get_index_in_psi_det_sorted_bit
+  logical, external              :: is_in_wavefunction
+  double precision               :: norm(N_states)
+
+  call generate_all_alpha_beta_det_products
+  norm = 0.d0
+  do j=1,N_det_beta_unique
+    do k=1,N_int
+      tmp_det(k,2) = psi_det_beta_unique(k,j)
+    enddo
+    do i=1,N_det_alpha_unique
+      do k=1,N_int
+        tmp_det(k,1) = psi_det_alpha_unique(k,i)
+      enddo
+      idx = get_index_in_psi_det_sorted_bit(tmp_det,N_int)
+      if (idx > 0) then
+        do k=1,N_states
+          psi_coef_sorted_bit(idx,k) = psi_svd_matrix(i,j,k) 
+          norm(k) += psi_svd_matrix(i,j,k)
+        enddo
+      endif
+    enddo
+  enddo
+  do k=1,N_states
+    norm(k) = 1.d0/dsqrt(norm(k))
+    do i=1,N_det
+      psi_coef_sorted_bit(i,k) = psi_coef_sorted_bit(i,k)*norm(k)
+    enddo
+  enddo
+  psi_det  = psi_det_sorted_bit
+  psi_coef = psi_coef_sorted_bit
+  TOUCH psi_det psi_coef
+  psi_det  = psi_det_sorted
+  psi_coef = psi_coef_sorted
+  norm(1) = 0.d0
+  do i=1,N_det
+    norm(1) += psi_average_norm_contrib_sorted(i)
+    if (norm(1) >= 0.999999d0) then
+      exit
+    endif
+  enddo
+  N_det = min(i,N_det)
+  SOFT_TOUCH psi_det psi_coef N_det
+
+end
+
+subroutine generate_all_alpha_beta_det_products
+  implicit none
+  BEGIN_DOC
+!  Create a wave function from all possible alpha x beta determinants
+  END_DOC
+  integer                        :: i,j,k,l
+  integer                        :: idx, iproc
+  integer, external              :: get_index_in_psi_det_sorted_bit
+  integer(bit_kind), allocatable :: tmp_det(:,:,:)
+  logical, external              :: is_in_wavefunction
+  integer, external              :: omp_get_thread_num
+
+  !$OMP PARALLEL DEFAULT(NONE) SHARED(psi_coef_sorted_bit,N_det_beta_unique,&
+      !$OMP N_det_alpha_unique, N_int, psi_det_alpha_unique, psi_det_beta_unique,&
+      !$OMP N_det)                                                &
+      !$OMP PRIVATE(i,j,k,l,tmp_det,idx,iproc)
+  !$ iproc = omp_get_thread_num()
+  allocate (tmp_det(N_int,2,N_det_alpha_unique))
+  !$OMP DO
+  do j=1,N_det_beta_unique
+    l = 1
+    do i=1,N_det_alpha_unique
+      do k=1,N_int
+        tmp_det(k,1,l) = psi_det_alpha_unique(k,i)
+        tmp_det(k,2,l) = psi_det_beta_unique (k,j)
+      enddo
+      if (.not.is_in_wavefunction(tmp_det(1,1,l),N_int,N_det)) then
+        l = l+1
+      endif
+    enddo
+    call fill_H_apply_buffer_no_selection(l-1, tmp_det, N_int, iproc)
+  enddo
+  !$OMP END DO NOWAIT
+  deallocate(tmp_det)
+  !$OMP END PARALLEL
+  deallocate (tmp_det)
+  call copy_H_apply_buffer_to_wf
+  SOFT_TOUCH psi_det psi_coef N_det
+end
+
+ BEGIN_PROVIDER [ double precision, psi_svd_alpha, (N_det_alpha_unique,N_det_alpha_unique,N_states) ]
+&BEGIN_PROVIDER [ double precision, psi_svd_beta , (N_det_beta_unique,N_det_beta_unique,N_states) ]
+&BEGIN_PROVIDER [ double precision, psi_svd_coefs, (N_det_beta_unique,N_states) ]
+  implicit none
+  BEGIN_DOC
+  ! SVD wave function
+  END_DOC
+
+  integer                        :: lwork, info, istate
+  double precision, allocatable  :: work(:), tmp(:,:), copy(:,:)
+  allocate (work(1),tmp(N_det_beta_unique,N_det_beta_unique),    &
+      copy(size(psi_svd_matrix,1),size(psi_svd_matrix,2)))
+
+  do istate = 1,N_states
+    copy(:,:) = psi_svd_matrix(:,:,istate)
+    lwork=-1
+    call dgesvd('A','A', N_det_alpha_unique, N_det_beta_unique,      &
+        copy, size(copy,1),                                          &
+        psi_svd_coefs(1,istate), psi_svd_alpha(1,1,istate),          &
+        size(psi_svd_alpha,1),                                       &
+        tmp, size(psi_svd_beta,2),                                   &
+        work, lwork, info)
+    lwork = work(1)
+    deallocate(work)
+    allocate(work(lwork))
+    call dgesvd('A','A', N_det_alpha_unique, N_det_beta_unique,      &
+        copy, size(copy,1),                                          &
+        psi_svd_coefs(1,istate), psi_svd_alpha(1,1,istate),          &
+        size(psi_svd_alpha,1),                                       &
+        tmp, size(psi_svd_beta,2),                                   &
+        work, lwork, info)
+    deallocate(work)
+    if (info /= 0) then
+      print *,  irp_here//': error in det SVD'
+      stop 1
+    endif
+    integer                        :: i,j
+    do j=1,N_det_beta_unique
+      do i=1,N_det_beta_unique
+        psi_svd_beta(i,j,istate) = tmp(j,i)
+      enddo
+    enddo
+    deallocate(tmp,copy)
+  enddo
+
+END_PROVIDER
+
+

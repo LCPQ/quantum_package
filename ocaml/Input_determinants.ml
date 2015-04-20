@@ -10,10 +10,10 @@ module Determinants : sig
 (* Generate type *)
    type t = 
      {
-       n_det_max_jacobi               : Strictly_positive_int.t;
+       n_det_max_jacobi               : int;
        threshold_generators           : Threshold.t;
        threshold_selectors            : Threshold.t;
-       n_states                       : Strictly_positive_int.t;
+       n_states                       : States_number.t;
        s2_eig                         : bool;
        read_wf                        : bool;
        only_single_double_dm          : bool;
@@ -28,10 +28,10 @@ end = struct
 (* Generate type *)
    type t = 
      {
-       n_det_max_jacobi               : Strictly_positive_int.t;
+       n_det_max_jacobi               : int;
        threshold_generators           : Threshold.t;
        threshold_selectors            : Threshold.t;
-       n_states                       : Strictly_positive_int.t;
+       n_states                       : States_number.t;
        s2_eig                         : bool;
        read_wf                        : bool;
        only_single_double_dm          : bool;
@@ -52,12 +52,10 @@ end = struct
        |> Ezfio.set_determinants_n_det_max_jacobi
     ;
     Ezfio.get_determinants_n_det_max_jacobi ()
-      |> Strictly_positive_int.of_int
   ;;
 (* Write snippet for n_det_max_jacobi *)
-  let write_n_det_max_jacobi var = 
-    Strictly_positive_int.to_int var
-    |> Ezfio.set_determinants_n_det_max_jacobi
+  let write_n_det_max_jacobi =
+     Ezfio.set_determinants_n_det_max_jacobi
   ;;
 
 (* Read snippet for n_states *)
@@ -68,11 +66,11 @@ end = struct
        |> Ezfio.set_determinants_n_states
     ;
     Ezfio.get_determinants_n_states ()
-      |> Strictly_positive_int.of_int
+      |> States_number.of_int
   ;;
 (* Write snippet for n_states *)
   let write_n_states var = 
-    Strictly_positive_int.to_int var
+    States_number.to_int var
     |> Ezfio.set_determinants_n_states
   ;;
 
@@ -196,10 +194,10 @@ end = struct
    read_wf = %s
    only_single_double_dm = %s
    "
-       (Strictly_positive_int.to_string b.n_det_max_jacobi)
+       (Int.to_string b.n_det_max_jacobi)
        (Threshold.to_string b.threshold_generators)
        (Threshold.to_string b.threshold_selectors)
-       (Strictly_positive_int.to_string b.n_states)
+       (States_number.to_string b.n_states)
        (Bool.to_string b.s2_eig)
        (Bool.to_string b.read_wf)
        (Bool.to_string b.only_single_double_dm)
@@ -211,11 +209,11 @@ end = struct
    
      n_det_max_jacobi = %s
    
-   Percentage of the norm of the state-averaged wave function to consider for the generators ::
+   Thresholds on generators (fraction of the norm) ::
    
      threshold_generators = %s
    
-   Percentage of the norm of the state-averaged wave function to consider for the selectors ::
+   Thresholds on selectors (fraction of the norm) ::
    
      threshold_selectors = %s
    
@@ -231,15 +229,15 @@ end = struct
    
      read_wf = %s
    
-   If true, The One body DM is calculated with ignoing the Double <-> Doubles extra diag elements ::
+   If true, The One body DM is calculated with ignoring the Double<->Doubles extra diag elements ::
    
      only_single_double_dm = %s
    
    "
-       (Strictly_positive_int.to_string b.n_det_max_jacobi)
+       (Int.to_string b.n_det_max_jacobi)
        (Threshold.to_string b.threshold_generators)
        (Threshold.to_string b.threshold_selectors)
-       (Strictly_positive_int.to_string b.n_states)
+       (States_number.to_string b.n_states)
        (Bool.to_string b.s2_eig)
        (Bool.to_string b.read_wf)
        (Bool.to_string b.only_single_double_dm)
