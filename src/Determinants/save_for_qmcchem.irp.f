@@ -32,7 +32,7 @@ subroutine save_dets_qmcchem
  deallocate(occ_tmp)
  ! OMP END PARALLEL
  call ezfio_set_determinants_det_occ(occ)
- call write_int(output_dets,N_det,'Determinants saved for QMC')
+ call write_int(output_determinants,N_det,'Determinants saved for QMC')
  deallocate(occ)
  open(unit=31,file=trim(ezfio_filename)//'/mo_basis/mo_classif')
  write(31,'(I1)') 1

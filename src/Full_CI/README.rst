@@ -27,7 +27,7 @@ Needed Modules
 * `AOs <http://github.com/LCPQ/quantum_package/tree/master/src/AOs>`_
 * `Bielec_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Bielec_integrals>`_
 * `Bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask>`_
-* `Dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets>`_
+* `Determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants>`_
 * `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_
 * `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
 * `Generators_full <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full>`_

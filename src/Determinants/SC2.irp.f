@@ -43,10 +43,10 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
   
   allocate (doubles(Nint,2,sze),e_corr_array(sze),H_jj_ref(sze),H_jj_dressed(sze),&
       index_double(sze), degree_exc(sze), hij_double(sze))
-  call write_time(output_Dets)
-  write(output_Dets,'(A)') ''
-  write(output_Dets,'(A)') 'CISD SC2'
-  write(output_Dets,'(A)') '========'
+  call write_time(output_determinants)
+  write(output_determinants,'(A)') ''
+  write(output_determinants,'(A)') 'CISD SC2'
+  write(output_determinants,'(A)') '========'
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP  SHARED(sze,N_st,                                        &
       !$OMP  H_jj_ref,Nint,dets_in,u_in)                             &
@@ -175,7 +175,7 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
       enddo
       deallocate (H_matrix_tmp, eigenvalues, eigenvectors)
     else
-      call davidson_diag_hjj(dets_in,u_in,H_jj_dressed,energies,dim_in,sze,N_st,Nint,output_Dets)
+      call davidson_diag_hjj(dets_in,u_in,H_jj_dressed,energies,dim_in,sze,N_st,Nint,output_determinants)
     endif
 
     e_corr_double = 0.d0
@@ -184,18 +184,18 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
       e_corr_array(i) = u_in(index_double(i),1)*inv_c0 * hij_double(i)
       e_corr_double += e_corr_array(i)
     enddo
-    write(output_Dets,'(A,I3)') 'SC2 Iteration ', iter
-    write(output_Dets,'(A)') '------------------'
-    write(output_Dets,'(A)') ''
-    write(output_Dets,'(A)') '===== ================'
-    write(output_Dets,'(A)') 'State Energy          '
-    write(output_Dets,'(A)') '===== ================'
+    write(output_determinants,'(A,I3)') 'SC2 Iteration ', iter
+    write(output_determinants,'(A)') '------------------'
+    write(output_determinants,'(A)') ''
+    write(output_determinants,'(A)') '===== ================'
+    write(output_determinants,'(A)') 'State Energy          '
+    write(output_determinants,'(A)') '===== ================'
     do i=1,N_st
-      write(output_Dets,'(I5,X,F16.10)') i, energies(i)+nuclear_repulsion
+      write(output_determinants,'(I5,X,F16.10)') i, energies(i)+nuclear_repulsion
     enddo
-    write(output_Dets,'(A)') '===== ================'
-    write(output_Dets,'(A)') ''
-    call write_double(output_Dets,(e_corr_double - e_corr_double_before),&
+    write(output_determinants,'(A)') '===== ================'
+    write(output_determinants,'(A)') ''
+    call write_double(output_determinants,(e_corr_double - e_corr_double_before),&
         'Delta(E_corr)')
     converged =  dabs(e_corr_double - e_corr_double_before) < convergence
     converged = converged .or. abort_here
@@ -206,7 +206,7 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
     
   enddo
   
-  call write_time(output_Dets)
+  call write_time(output_determinants)
   deallocate (doubles,e_corr_array,H_jj_ref,H_jj_dressed,            &
       index_double, degree_exc, hij_double)
   

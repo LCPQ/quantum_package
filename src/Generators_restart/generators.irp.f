@@ -13,7 +13,7 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
   N_det_generators = N_det
   ifirst = 1
  endif
- call write_int(output_dets,N_det_generators,'Number of generators')
+ call write_int(output_determinants,N_det_generators,'Number of generators')
 END_PROVIDER
 
 

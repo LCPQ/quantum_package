@@ -26,7 +26,7 @@ Needed Modules
 * `Bielec_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Bielec_integrals>`_
 * `Bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask>`_
 * `CISD <http://github.com/LCPQ/quantum_package/tree/master/src/CISD>`_
-* `Dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets>`_
+* `Determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants>`_
 * `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_
 * `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
 * `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock>`_

@@ -70,9 +70,9 @@ def is_bool(str_):
     Take a string, if is a bool return the conversion into
         fortran and ocaml.
     """
-    if "true" in str_.lower():
+    if "true" in str_.strip().lower():
         return Type(None, "true", ".True.")
-    elif "false" in str_.lower():
+    elif "false" in str_.strip().lower():
         return Type(None, "false", ".False")
     else:
         raise TypeError
@@ -112,6 +112,8 @@ def get_type_dict():
     # ~#~#~#~#~#~#~#~ #
 
     fancy_type['integer'] = Type(None, "int", "integer")
+    fancy_type['integer*8'] = Type(None, "int", "integer*8")
+
     fancy_type['int'] = Type(None, "int", "integer")
 
     fancy_type['float'] = Type(None, "float", "double precision")
@@ -121,7 +123,7 @@ def get_type_dict():
     fancy_type['bool'] = Type(None, "bool", "logical")
 
     fancy_type['character*(32)'] = Type(None, "string", "character*(32)")
-    fancy_type['character*(60)'] = Type(None, "string", "character*(60)")
+    fancy_type['character*(64)'] = Type(None, "string", "character*(68)")
     fancy_type['character*(256)'] = Type(None, "string", "character*(256)")
 
     # ~#~#~#~#~#~#~#~ #
@@ -203,7 +205,7 @@ def get_dict_config_file(config_file_path, module_lower):
     - ezfio_name : Will be the name of the file
     - ezfio_dir  : Will be the folder who containt the ezfio_name
         * /ezfio_dir/ezfio_name
-        * equal to MODULE_lower name for the moment.
+        * equal to MODULE_lower name by default.
     - interface  : The provider is a imput or a output
     - default : The default value /!\ stored in a Type named type!
                    if interface == output
@@ -216,7 +218,7 @@ def get_dict_config_file(config_file_path, module_lower):
 
     d = defaultdict(dict)
     l_info_required = ["doc", "interface"]
-    l_info_optional = ["ezfio_name", "size"]
+    l_info_optional = ["ezfio_dir", "ezfio_name", "size"]
 
     # ~#~#~#~#~#~#~#~#~#~#~ #
     # L o a d _ C o n f i g #
@@ -238,10 +240,8 @@ def get_dict_config_file(config_file_path, module_lower):
         pvd = section.lower()
 
         # Create the dictionary who containt the value per default
-        d_default = {"ezfio_name": pvd}
-
-        # Set the ezfio_dir
-        d[pvd]["ezfio_dir"] = module_lower
+        d_default = {"ezfio_name": pvd,
+                     "ezfio_dir": module_lower}
 
         # Check if type if avalaible
         type_ = config_file.get(section, "type")
@@ -269,7 +269,7 @@ def get_dict_config_file(config_file_path, module_lower):
                     d[pvd][option] = d_default[option]
 
         # If interface is input we need a default value information
-        if d[pvd]["interface"] == "input":
+        if d[pvd]["interface"].lower() == "input":
             try:
                 default_raw = config_file.get(section, "default")
             except ConfigParser.NoOptionError:
@@ -294,6 +294,7 @@ def create_ezfio_provider(dict_ezfio_cfg):
                                   default
                                   size}
     create the a list who containt all the code for the provider
+    output = output_dict_info['ezfio_dir'
     return [code, ...]
     """
     from ezfio_generate_provider import EZFIO_Provider

@@ -6,11 +6,11 @@ BEGIN_PROVIDER [ double precision, CI_SC2_energy, (N_states_diag) ]
   
   integer                        :: j
   character*(8)                  :: st
-  call write_time(output_Dets)
+  call write_time(output_determinants)
   do j=1,N_states_diag
     CI_SC2_energy(j) = CI_SC2_electronic_energy(j) + nuclear_repulsion
     write(st,'(I4)') j
-    call write_double(output_Dets,CI_SC2_energy(j),'Energy of state '//trim(st))
+    call write_double(output_determinants,CI_SC2_energy(j),'Energy of state '//trim(st))
   enddo
 
 END_PROVIDER
