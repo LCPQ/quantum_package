@@ -4,21 +4,93 @@
  END_DOC
  implicit none
  double precision  :: alpha, beta, gama, delta
- integer :: i_c,num_A,num_B
- double precision :: A_center(3),B_center(3),C_center(3)
- integer :: power_A(3),power_B(3)
- integer :: i,j,k,l,n_pt_in,m
- double precision ::overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult, Vloc, Vpseudo, Vpseudo_num
- double precision :: dump
- integer :: nucl_numC
- ! Important for OpenMP
+ integer           :: num_A,num_B
+ double precision  :: A_center(3),B_center(3),C_center(3)
+ integer           :: power_A(3),power_B(3)
+ integer           :: i,j,k,l,n_pt_in,m
+ double precision  ::overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult
 
- ao_nucl_elec_integral = 0.d0
+  ao_nucl_elec_integral = ao_nucl_elec_integral_pseudo ! 0.d0
+
+  !        _  
+  ! /|  / |_) 
+  !  | /  | \ 
+  !          
+
+  !$OMP PARALLEL &
+  !$OMP DEFAULT (NONE) &
+  !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B, &
+  !$OMP          num_A,num_B,Z,c,n_pt_in) &
+  !$OMP SHARED (ao_num,ao_prim_num,ao_expo_transp,ao_power,ao_nucl,nucl_coord,ao_coef_transp, &
+  !$OMP         n_pt_max_integrals,ao_nucl_elec_integral,nucl_num,nucl_charge) 
+
+  n_pt_in = n_pt_max_integrals
+  
+  !$OMP DO SCHEDULE (guided)
+
+  do j = 1, ao_num
+  num_A = ao_nucl(j)
+  power_A(1:3)= ao_power(j,1:3)
+  A_center(1:3) = nucl_coord(num_A,1:3)
+
+  do i = 1, ao_num
+
+   num_B = ao_nucl(i)
+   power_B(1:3)= ao_power(i,1:3)
+   B_center(1:3) = nucl_coord(num_B,1:3)
+
+    do l=1,ao_prim_num(j)
+     alpha = ao_expo_transp(l,j)
+  
+    do m=1,ao_prim_num(i)
+      beta = ao_expo_transp(m,i)
+  
+      double precision :: c
+      c = 0.d0
+       
+      do  k = 1, nucl_num
+        double precision :: Z
+        Z = nucl_charge(k)
+  
+        C_center(1:3) = nucl_coord(k,1:3)
+  
+        c = c - Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)    
+
+      enddo
+      ao_nucl_elec_integral(i,j) = ao_nucl_elec_integral(i,j) + &
+                                   ao_coef_transp(l,j)*ao_coef_transp(m,i)*c
+     enddo
+     enddo
+  enddo
+  enddo
+
+ !$OMP END DO 
+ !$OMP END PARALLEL
+
+ END_PROVIDER
+
+ BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral_pseudo, (ao_num_align,ao_num)]
+ BEGIN_DOC
+! interaction nuclear electron
+ END_DOC
+ implicit none
+ double precision  :: alpha, beta, gama, delta
+ integer           :: num_A,num_B
+ double precision  :: A_center(3),B_center(3),C_center(3)
+ integer           :: power_A(3),power_B(3)
+ integer           :: i,j,k,l,n_pt_in,m
+ double precision  ::  Vloc, Vpseudo
+
+ double precision  :: cpu_1, cpu_2, wall_1, wall_2, wall_0
+ integer           :: thread_num
+
+  ao_nucl_elec_integral_pseudo = 0.d0
 
   !                 
   ! |   _   _  _. | 
   ! |_ (_) (_ (_| | 
   !                 
+  !! Parameters of the local part of pseudo:
 
   integer klocmax
   integer, allocatable ::  n_k(:,:)
@@ -32,43 +104,22 @@
   call ezfio_get_pseudo_n_k(n_k)
   call ezfio_get_pseudo_dz_k(dz_k)
 
-!  klocmax = 3
-!
-!  integer :: n_k(3)
-!  double precision :: v_k(3), dz_k(3)
-!
-!  v_k(1) = 1.00000000d0
-!  v_k(2) = 5.35838717  
-!  v_k(3) = -2.07764789
-!
-!  n_k(1) =  -1
-!  n_k(2) =  1 
-!  n_k(3) =  0
-!
-!  dz_k(1) = 5.35838717
-!  dz_k(2) = 3.67918975
-!  dz_k(3) = 1.60507673
-  print*, "======================="
-  print*, "======================="
-  print*, "======================="
+  !! Dump array 
+  integer, allocatable ::  n_k_dump(:)
+  double precision, allocatable ::  v_k_dump(:), dz_k_dump(:) 
+ 
+  allocate(n_k_dump(1:klocmax), v_k_dump(1:klocmax), dz_k_dump(1:klocmax)) 
 
-  print*, "nucl_num", nucl_num
-  print*, "klocmax", klocmax
-
-  print*, "n_k_ezfio", n_k
-  print*, "v_k_ezfio",v_k
-  print*, "dz_k_ezfio", dz_k
 
   !                               
   ! |\ |  _  ._    |  _   _  _. | 
   ! | \| (_) | |   | (_) (_ (_| | 
   !                              
-
   !! Parameters of non local part of pseudo:
 
-   integer :: kmax,lmax
-   integer, allocatable ::  n_kl(:,:,:)
-   double precision, allocatable ::  v_kl(:,:,:), dz_kl(:,:,:) 
+  integer :: kmax,lmax
+  integer, allocatable ::  n_kl(:,:,:)
+  double precision, allocatable ::  v_kl(:,:,:), dz_kl(:,:,:) 
 
   call ezfio_get_pseudo_lmaxpo(lmax)
   call ezfio_get_pseudo_kmax(kmax)
@@ -81,55 +132,43 @@
   call ezfio_get_pseudo_v_kl(v_kl)
   call ezfio_get_pseudo_dz_kl(dz_kl)
 
-  print*, "kmax", kmax
-  print*, "lmax",lmax
 
-  print*,"n_kl_ezfio", n_kl
-  print*,"v_kl_ezfio", v_kl
-  print*,"dz_kl_ezfio", dz_kl
-
-  print*, "======================="
-  print*, "======================="
-  print*, "======================="
-
-
-!  lmax = 1
-!  kmax = 1
-
-!  integer :: n_kl(1,0:1)
-!  double precision :: v_kl(1,0:1), dz_kl(1,0:1)
-
-!   v_kl(1,0)  =10.69640234
-!   n_kl(1,0)  = 0
-!   dz_kl(1,0) = 1.32389367
-!
-!   v_kl(1,1)  = 10.11238853
-!   n_kl(1,1)  = 0
-!   dz_kl(1,1) = 1.14052020
-!
-!  print*, "kmax", kmax
-!  print*, "lmax",lmax
-!
-!  print*,"n_kl_ezfio", n_kl
-!  print*,"v_kl_ezfio", v_kl
-!  print*,"dz_kl_ezfio", dz_kl
-
-
+  !! Dump array 
   integer, allocatable ::  n_kl_dump(:,:)
   double precision, allocatable ::  v_kl_dump(:,:), dz_kl_dump(:,:) 
  
   allocate(n_kl_dump(kmax,0:lmax), v_kl_dump(kmax,0:lmax), dz_kl_dump(kmax,0:lmax)) 
 
+  !  _                
+  ! /   _. |  _     | 
+  ! \_ (_| | (_ |_| | 
+  !                   
 
- n_pt_in = n_pt_max_integrals
- do j = 1, ao_num
+  write(output_monoints,*) 'Providing the nuclear electron pseudo integrals '
 
-  num_A = ao_nucl(j)
-  power_A(1:3)= ao_power(j,1:3)
-  A_center(1:3) = nucl_coord(num_A,1:3)
+  call wall_time(wall_1)
+  call cpu_time(cpu_1)
 
-  print*, "J", j, "/", ao_num
-  print*,"==================="
+  !$OMP PARALLEL &
+  !$OMP DEFAULT (NONE) &
+  !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B, &
+  !$OMP          num_A,num_B,Z,c,n_pt_in, &
+  !$OMP          v_k_dump,n_k_dump, dz_k_dump, n_kl_dump, v_kl_dump, dz_kl_dump, &
+  !$OMP          wall_0,wall_2,thread_num, output_monoints) & 
+  !$OMP SHARED (ao_num,ao_prim_num,ao_expo_transp,ao_power,ao_nucl,nucl_coord,ao_coef_transp, &
+  !$OMP         n_pt_max_integrals,ao_nucl_elec_integral_pseudo,nucl_num,nucl_charge, &
+  !$OMP         klocmax,lmax,kmax,v_k,n_k, dz_k, n_kl, v_kl, dz_kl, &
+  !$OMP         wall_1)
+
+  n_pt_in = n_pt_max_integrals
+  
+  !$OMP DO SCHEDULE (guided)
+
+  do j = 1, ao_num
+
+   num_A = ao_nucl(j)
+   power_A(1:3)= ao_power(j,1:3)
+   A_center(1:3) = nucl_coord(num_A,1:3)
 
   do i = 1, ao_num
 
@@ -137,63 +176,66 @@
    power_B(1:3)= ao_power(i,1:3)
    B_center(1:3) = nucl_coord(num_B,1:3)
 
-
-   print*, "i", i, "/", ao_num
-
-   do l=1,ao_prim_num(j)
-    alpha = ao_expo_transp(l,j)
-
+    do l=1,ao_prim_num(j)
+     alpha = ao_expo_transp(l,j)
+  
     do m=1,ao_prim_num(i)
-     beta = ao_expo_transp(m,i)
+      beta = ao_expo_transp(m,i)
+      double precision :: c
+      c = 0.d0
+       
+      do  k = 1, nucl_num
+        double precision :: Z
+        Z = nucl_charge(k)
+  
+        C_center(1:3) = nucl_coord(k,1:3)
+  
+        v_k_dump = v_k(k,1:klocmax)
+        n_k_dump = n_k(k,1:klocmax)
+        dz_k_dump =  dz_k(k,1:klocmax)
 
-     double precision :: c
-     c = 0.d0
-     do  k = 1, nucl_num
-      double precision :: Z
-      Z = nucl_charge(k)
+        c = c + Vloc(klocmax, v_k_dump,n_k_dump, dz_k_dump, &
+                     A_center,power_A,alpha,B_center,power_B,beta,C_center)
+  
 
-      C_center(1:3) = nucl_coord(k,1:3)
-
-      c = c - Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)
-      
-!      c = c + Vloc(    klocmax ,v_k(k,:) ,n_k(k,:) ,dz_k(k,:), A_center,power_A,alpha,B_center,power_B,beta,C_center)
-
-
-    n_kl_dump = n_kl(k,1:kmax,0:lmax)
-    v_kl_dump = v_kl(k,1:kmax,0:lmax)
-    dz_kl_dump = dz_kl(k,1:kmax,0:lmax)
-
-!      print*, "lmax",lmax
-!      print*, "kmax",kmax
-!      print*, "v_kl",v_kl_dump
-!      print*, "n_kl",n_kl_dump
-!      print*, n_kl_ump(1,0)
-!      print*, n_kl_dump(1,1)
-!      print*, "dz_kl",dz_kl_dump
-!      print*, dz_kl_dump(1,0)
-!      print*, dz_kl_dump(1,1)
-!      print*, "A_center", A_center
-!      print*, "power_A",power_A
-!      print*, "alpha", alpha
-!      print*, "B_center", B_center
-!      print*, "power_B", power_B
-!      print*, "beta", beta
-!      print*, "C_center",C_center
-
-       c = c + Vpseudo(lmax,kmax,v_kl_dump,n_kl_dump,dz_kl_dump,A_center,power_A,alpha,B_center,power_B,beta,C_center)
-       dump =  Vpseudo(lmax,kmax,v_kl_dump,n_kl_dump,dz_kl_dump,A_center,power_A,alpha,B_center,power_B,beta,C_center)
-       print*, dump
- !      c = c - Vps(A_center,power_A,alpha,B_center,power_B,beta,C_center,klocmax,v_k,n_k,dz_k,lmax,kmax,v_kl,n_kl,dz_kl)
-
-!       print*, "#################"
-!       print*, "#################"
+        n_kl_dump = n_kl(k,1:kmax,0:lmax)
+        v_kl_dump = v_kl(k,1:kmax,0:lmax)
+        dz_kl_dump = dz_kl(k,1:kmax,0:lmax)
+  
+        c = c + Vpseudo(lmax,kmax,v_kl_dump,n_kl_dump,dz_kl_dump,A_center,power_A,alpha,B_center,power_B,beta,C_center)
+  
+      enddo
+      ao_nucl_elec_integral_pseudo(i,j) = ao_nucl_elec_integral_pseudo(i,j) + &
+                                   ao_coef_transp(l,j)*ao_coef_transp(m,i)*c
      enddo
-     ao_nucl_elec_integral(i,j) = ao_nucl_elec_integral(i,j) + &
-                                  ao_coef_transp(l,j)*ao_coef_transp(m,i)*c
-    enddo
-   enddo
+     enddo
   enddo
- enddo
+
+    call wall_time(wall_2)
+    if (thread_num == 0) then
+      if (wall_2 - wall_0 > 1.d0) then
+        wall_0 = wall_2
+        write(output_monoints,*) 100.*float(j)/float(ao_num), '% in ',  &
+                                 wall_2-wall_1, 's'
+      endif
+    endif
+  enddo
+
+ !$OMP END DO
+ !$OMP END PARALLEL
+
+
+!  _                                 
+! | \  _   _. | |  _   _  _. _|_  _  
+! |_/ (/_ (_| | | (_) (_ (_|  |_ (/_ 
+!                                    
+ 
+  deallocate(n_k,v_k, dz_k)
+  deallocate(n_k_dump,v_k_dump, dz_k_dump)
+
+  deallocate(n_kl,v_kl, dz_kl)
+  deallocate(n_kl_dump,v_kl_dump, dz_kl_dump)
+
 
 END_PROVIDER
 
@@ -210,7 +252,6 @@ END_PROVIDER
  integer :: power_A(3),power_B(3)
  integer :: i,j,k,l,n_pt_in,m
  double precision ::overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult
- integer :: nucl_numC
  ! Important for OpenMP
 
  ao_nucl_elec_integral_per_atom = 0.d0

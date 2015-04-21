@@ -253,7 +253,6 @@ if __name__ == "__main__":
         alpha_tot += alpha
         beta_tot += beta
         l_zeff.append(zeff)
-
     #                                  _
     #  /\   _|  _|   _|_  _     _  _ _|_ o  _
     # /--\ (_| (_|    |_ (_)   (/_ /_ |  | (_)

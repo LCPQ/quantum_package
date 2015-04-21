@@ -188,9 +188,9 @@ double precision, intent(in) :: a(3),g_a,b(3),g_b,c(3)
 integer kmax_max,lmax_max,ntot_max,nkl_max
 parameter (kmax_max=2,lmax_max=2,nkl_max=4)
 parameter (ntot_max=10)
-integer, intent(in) :: lmax,kmax,n_kl(kmax_max,0:lmax_max)
+integer, intent(in) :: lmax,kmax,n_kl(kmax,0:lmax)
 integer, intent(in) :: n_a(3),n_b(3)
-double precision, intent(in) :: v_kl(kmax_max,0:lmax_max),dz_kl(kmax_max,0:lmax_max)
+double precision, intent(in) :: v_kl(kmax,0:lmax),dz_kl(kmax,0:lmax)
 
 
 !                     

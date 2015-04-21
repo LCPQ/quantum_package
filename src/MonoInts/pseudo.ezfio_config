@@ -1,4 +1,5 @@
 pseudo
+    do_pseudo   logical
     klocmax     integer
     v_k         double precision (nuclei_nucl_num,pseudo_klocmax)
     n_k         integer (nuclei_nucl_num,pseudo_klocmax)
