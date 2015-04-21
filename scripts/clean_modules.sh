@@ -14,7 +14,7 @@ function do_clean()
 {
   rm -rf -- \
     IRPF90_temp IRPF90_man Makefile.depend $(cat NEEDED_MODULES) include \
-    ezfio_interface.irp.f irpf90.make irpf90_entities tags $(ls_exe)
+    ezfio_interface.irp.f irpf90.make irpf90_entities tags $(ls_exe) *.mod
 }
 
 if [[ -z $1 ]]

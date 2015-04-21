@@ -333,7 +333,7 @@ subroutine make_s2_eigenfunction
 !   enddo
 !  enddo
 !  !TODO DEBUG
-   call write_int(output_dets,N_det_new, 'Added deteminants for S^2')
+   call write_int(output_determinants,N_det_new, 'Added deteminants for S^2')
 
 end
 

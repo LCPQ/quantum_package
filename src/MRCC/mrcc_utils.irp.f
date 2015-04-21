@@ -94,7 +94,7 @@ END_PROVIDER
     
     stop 'use Lapack'
 !    call davidson_diag(psi_det,CI_eigenvectors_dressed,CI_electronic_energy_dressed, &
-!        size(CI_eigenvectors_dressed,1),N_det,N_states_diag,N_int,output_Dets)
+!        size(CI_eigenvectors_dressed,1),N_det,N_states_diag,N_int,output_determinants)
     
   else if (diag_algorithm == "Lapack") then
     
@@ -137,7 +137,7 @@ BEGIN_PROVIDER [ double precision, CI_energy_dressed, (N_states_diag) ]
   
   integer                        :: j
   character*(8)                  :: st
-  call write_time(output_Dets)
+  call write_time(output_determinants)
   do j=1,N_states_diag
     CI_energy_dressed(j) = CI_electronic_energy_dressed(j) + nuclear_repulsion
   enddo
