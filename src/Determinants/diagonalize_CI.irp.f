@@ -23,12 +23,12 @@ BEGIN_PROVIDER [ double precision, CI_energy, (N_states_diag) ]
   
   integer                        :: j
   character*(8)                  :: st
-  call write_time(output_Dets)
+  call write_time(output_determinants)
   do j=1,N_states_diag
     CI_energy(j) = CI_electronic_energy(j) + nuclear_repulsion
     write(st,'(I4)') j
-    call write_double(output_Dets,CI_energy(j),'Energy of state '//trim(st))
-    call write_double(output_Dets,CI_eigenvectors_s2(j),'S^2 of state '//trim(st))
+    call write_double(output_determinants,CI_energy(j),'Energy of state '//trim(st))
+    call write_double(output_determinants,CI_eigenvectors_s2(j),'S^2 of state '//trim(st))
   enddo
 
 END_PROVIDER
@@ -51,7 +51,7 @@ END_PROVIDER
   if (diag_algorithm == "Davidson") then
     
     call davidson_diag(psi_det,CI_eigenvectors,CI_electronic_energy, &
-        size(CI_eigenvectors,1),N_det,N_states_diag,N_int,output_Dets)
+        size(CI_eigenvectors,1),N_det,N_states_diag,N_int,output_determinants)
     
   else if (diag_algorithm == "Lapack") then
     

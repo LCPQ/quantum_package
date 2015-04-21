@@ -45,7 +45,7 @@ END_PROVIDER
         self.set_write()
         for v in self.values:
             if not v:
-                msg = "Error : %s is not set in ezfio_with_default.py" % (v)
+                msg = "Error : %s is not set in EZFIO.cfg" % (v)
                 print >>sys.stderr, msg
                 sys.exit(1)
         return self.data % self.__dict__

@@ -2,20 +2,14 @@ open Qptypes;;
 open Qputils;;
 open Core.Std;;
 
-module Determinants : sig
+module Determinants_by_hand : sig
   type t = 
     { n_int                  : N_int_number.t;
       bit_kind               : Bit_kind.t;
-      mo_label               : MO_label.t;
       n_det                  : Det_number.t;
       n_states               : States_number.t;
       n_states_diag          : States_number.t;
-      n_det_max_jacobi       : Strictly_positive_int.t;
-      threshold_generators   : Threshold.t;
-      threshold_selectors    : Threshold.t; 
-      read_wf                : bool;
       expected_s2            : Positive_float.t;
-      s2_eig                 : bool;
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
     } with sexp
@@ -28,16 +22,10 @@ end = struct
   type t = 
     { n_int                  : N_int_number.t;
       bit_kind               : Bit_kind.t;
-      mo_label               : MO_label.t;
       n_det                  : Det_number.t;
       n_states               : States_number.t;
       n_states_diag          : States_number.t;
-      n_det_max_jacobi       : Strictly_positive_int.t;
-      threshold_generators   : Threshold.t;
-      threshold_selectors    : Threshold.t; 
-      read_wf                : bool;
       expected_s2            : Positive_float.t;
-      s2_eig                 : bool;
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
     } with sexp
@@ -76,22 +64,6 @@ end = struct
     Bit_kind.to_int b
     |> Ezfio.set_determinants_bit_kind
   ;;
-
-
-  let read_mo_label () =
-    if (not (Ezfio.has_determinants_mo_label ())) then
-      Ezfio.get_mo_basis_mo_label ()
-      |> Ezfio.set_determinants_mo_label 
-      ;
-    Ezfio.get_determinants_mo_label ()
-    |> MO_label.of_string
-  ;;
-
-  let write_mo_label l =
-    MO_label.to_string l
-    |> Ezfio.set_determinants_mo_label
-  ;;
-
 
   let read_n_det () =
     if not (Ezfio.has_determinants_n_det ()) then
@@ -138,67 +110,6 @@ end = struct
     Ezfio.set_determinants_n_states_diag (max n_states n)
   ;;
 
-
-  let read_n_det_max_jacobi () =
-    if not (Ezfio.has_determinants_n_det_max_jacobi ()) then
-      get_default "n_det_max_jacobi"
-      |> Int.of_string
-      |> Ezfio.set_determinants_n_det_max_jacobi 
-    ;
-    Ezfio.get_determinants_n_det_max_jacobi ()
-    |> Strictly_positive_int.of_int
-  ;;
-
-  let write_n_det_max_jacobi n =
-    Strictly_positive_int.to_int n
-    |> Ezfio.set_determinants_n_det_max_jacobi
-  ;;
-
-
-  let read_threshold_generators () =
-    if not (Ezfio.has_determinants_threshold_generators ()) then
-      get_default "threshold_generators"
-      |> Float.of_string
-      |> Ezfio.set_determinants_threshold_generators
-    ;
-    Ezfio.get_determinants_threshold_generators ()
-    |> Threshold.of_float
-  ;;
-
-  let write_threshold_generators t =
-    Threshold.to_float t
-    |> Ezfio.set_determinants_threshold_generators
-  ;;
-
-
-  let read_threshold_selectors () =
-    if not (Ezfio.has_determinants_threshold_selectors ()) then
-      get_default "threshold_selectors"
-      |> Float.of_string
-      |> Ezfio.set_determinants_threshold_selectors
-    ;
-    Ezfio.get_determinants_threshold_selectors ()
-    |> Threshold.of_float
-  ;;
-
-  let write_threshold_selectors t =
-    Threshold.to_float t
-    |> Ezfio.set_determinants_threshold_selectors
-  ;;
-
-
-  let read_read_wf () =
-    if not (Ezfio.has_determinants_read_wf ()) then
-      get_default "read_wf"
-      |> Bool.of_string
-      |> Ezfio.set_determinants_read_wf 
-    ;
-    Ezfio.get_determinants_read_wf ()
-  ;;
-
-  let write_read_wf = Ezfio.set_determinants_read_wf ;;
-    
-
   let read_expected_s2 () =
     if not (Ezfio.has_determinants_expected_s2 ()) then
       begin
@@ -218,19 +129,6 @@ end = struct
     Positive_float.to_float s2
     |> Ezfio.set_determinants_expected_s2 
   ;;
-
-
-  let read_s2_eig () =
-    if not (Ezfio.has_determinants_s2_eig ()) then
-      get_default "s2_eig"
-      |> Bool.of_string
-      |> Ezfio.set_determinants_s2_eig
-    ;
-    Ezfio.get_determinants_s2_eig ()
-  ;;
-
-  let write_s2_eig = Ezfio.set_determinants_s2_eig ;;
-
 
   let read_psi_coef () =
     if not (Ezfio.has_determinants_psi_coef ()) then
@@ -315,16 +213,10 @@ end = struct
       Some
       { n_int                  = read_n_int ()                ;
         bit_kind               = read_bit_kind ()             ;
-        mo_label               = read_mo_label ()             ;
         n_det                  = read_n_det ()                ;
         n_states               = read_n_states ()             ;
         n_states_diag          = read_n_states_diag ()        ;
-        n_det_max_jacobi       = read_n_det_max_jacobi ()     ;
-        threshold_generators   = read_threshold_generators () ;
-        threshold_selectors    = read_threshold_selectors ()  ;
-        read_wf                = read_read_wf ()              ;
         expected_s2            = read_expected_s2 ()          ;
-        s2_eig                 = read_s2_eig ()               ;
         psi_coef               = read_psi_coef ()             ;
         psi_det                = read_psi_det ()              ;
       }
@@ -334,31 +226,19 @@ end = struct
 
   let write { n_int                ;
               bit_kind             ;
-              mo_label             ;
               n_det                ;
               n_states             ;
               n_states_diag        ;
-              n_det_max_jacobi     ;
-              threshold_generators ;
-              threshold_selectors  ;
-              read_wf              ;
               expected_s2          ;
-              s2_eig               ;
               psi_coef             ;
               psi_det              ;
             } =
      write_n_int n_int ;
      write_bit_kind bit_kind;
-     write_mo_label mo_label;
      write_n_det n_det;
      write_n_states n_states;
      write_n_states_diag ~n_states:n_states n_states_diag;
-     write_n_det_max_jacobi n_det_max_jacobi;
-     write_threshold_generators threshold_generators;
-     write_threshold_selectors threshold_selectors;
-     write_read_wf read_wf;
      write_expected_s2 expected_s2;
-     write_s2_eig s2_eig;
      write_psi_coef ~n_det:n_det psi_coef ~n_states:n_states;
      write_psi_det ~n_int:n_int ~n_det:n_det psi_det;
   ;;
@@ -399,34 +279,16 @@ end = struct
       |> String.concat_array ~sep:"\n"
     in
     Printf.sprintf "
-Read the current wave function ::
-
-  read_wf = %s
-
-Label of the MOs on which the determinants were computed ::
-
-  mo_label = %s
-
 Force the selected wave function to be an eigenfunction of S^2.
 If true, input the expected value of S^2 ::
 
-  s2_eig      = %s
   expected_s2 = %s
-
-Thresholds on generators and selectors (fraction of the norm) ::
-
-  threshold_generators = %s
-  threshold_selectors  = %s
 
 Number of requested states, and number of states used for the
 Davidson diagonalization ::
 
   n_states      = %s
   n_states_diag = %s
-
-Maximum size of the Hamiltonian matrix that will be fully diagonalized ::
-
-  n_det_max_jacobi = %s
 
 Number of determinants ::
 
@@ -436,15 +298,9 @@ Determinants ::
 
 %s
 "
-     (b.read_wf       |> Bool.to_string)
-     (b.mo_label      |> MO_label.to_string)
-     (b.s2_eig        |> Bool.to_string)
      (b.expected_s2   |> Positive_float.to_string)
-     (b.threshold_generators |> Threshold.to_string)
-     (b.threshold_selectors |> Threshold.to_string)
      (b.n_states      |> States_number.to_string)
      (b.n_states_diag |> States_number.to_string)
-     (b.n_det_max_jacobi |> Strictly_positive_int.to_string)
      (b.n_det         |> Det_number.to_string)
      det_text
      |> Rst_string.of_string
@@ -456,31 +312,19 @@ Determinants ::
     Printf.sprintf "
 n_int                  = %s
 bit_kind               = %s
-mo_label               = \"%s\"
 n_det                  = %s
 n_states               = %s
 n_states_diag          = %s
-n_det_max_jacobi       = %s
-threshold_generators   = %s
-threshold_selectors    = %s
-read_wf                = %s
 expected_s2            = %s
-s2_eig                 = %s
 psi_coef               = %s
 psi_det                = %s
 "
      (b.n_int         |> N_int_number.to_string)
      (b.bit_kind      |> Bit_kind.to_string)
-     (b.mo_label      |> MO_label.to_string)
      (b.n_det         |> Det_number.to_string)
      (b.n_states      |> States_number.to_string)
      (b.n_states_diag |> States_number.to_string)
-     (b.n_det_max_jacobi |> Strictly_positive_int.to_string)
-     (b.threshold_generators |> Threshold.to_string)
-     (b.threshold_selectors |> Threshold.to_string)
-     (b.read_wf       |> Bool.to_string)
      (b.expected_s2   |> Positive_float.to_string)
-     (b.s2_eig        |> Bool.to_string)
      (b.psi_coef  |> Array.to_list |> List.map ~f:Det_coef.to_string
       |> String.concat ~sep:", ")
      (b.psi_det   |> Array.to_list |> List.map ~f:(Determinant.to_string

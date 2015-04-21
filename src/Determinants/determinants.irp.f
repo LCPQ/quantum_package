@@ -25,7 +25,7 @@ BEGIN_PROVIDER [ integer, N_det ]
  else
    N_det = 1
  endif
- call write_int(output_dets,N_det,'Number of determinants')
+ call write_int(output_determinants,N_det,'Number of determinants')
  ASSERT (N_det > 0)
 END_PROVIDER
 
@@ -58,7 +58,7 @@ BEGIN_PROVIDER [ integer, psi_det_size ]
    psi_det_size = 1
  endif
  psi_det_size = max(psi_det_size,10000)
- call write_int(output_dets,psi_det_size,'Dimension of the psi arrays')
+ call write_int(output_determinants,psi_det_size,'Dimension of the psi arrays')
 
 END_PROVIDER
 
@@ -727,7 +727,7 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
   enddo
 
   call ezfio_set_determinants_psi_coef(psi_coef_save)
-  call write_int(output_dets,ndet,'Saved determinants')
+  call write_int(output_determinants,ndet,'Saved determinants')
   call stop_progress
   deallocate (psi_coef_save)
 end

@@ -4,14 +4,16 @@ open Core.Std;;
 
 (** Interactive editing of the input.
 
-@author A. Scemama
+WARNING 
+This file is autogenerad by
+`${{QP_ROOT}}/script/ezfio_interface/ei_handler.py`
 *)
 
 
 (** Keywords used to define input sections *)
 type keyword = 
 | Ao_basis
-| Determinants
+| Determinants_by_hand
 | Electrons
 | Mo_basis
 | Nuclei
@@ -20,11 +22,11 @@ type keyword =
 
 
 let keyword_to_string = function
-| Ao_basis          -> "AO basis"
-| Determinants      -> "Determinants"
-| Electrons         -> "Electrons"
-| Mo_basis          -> "MO basis"
-| Nuclei            -> "Molecule"
+| Ao_basis              -> "AO basis"
+| Determinants_by_hand  -> "Determinants_by_hand"
+| Electrons             -> "Electrons"
+| Mo_basis              -> "MO basis"
+| Nuclei                -> "Molecule"
 {keywords_to_string}
 ;;
 
@@ -72,8 +74,8 @@ let get s =
            f Nuclei.(read, to_rst)
          | Ao_basis ->
            f Ao_basis.(read, to_rst)
-         | Determinants ->
-           f Determinants.(read, to_rst)
+         | Determinants_by_hand ->
+           f Determinants_by_hand.(read, to_rst)
 {section_to_rst}
       end
     with
@@ -114,7 +116,7 @@ let set str s =
         match s with
 {write}
         | Electrons        -> write Electrons.(of_rst, write) s
-        | Determinants     -> write Determinants.(of_rst, write) s
+        | Determinants_by_hand     -> write Determinants_by_hand.(of_rst, write) s
         | Nuclei           -> write Nuclei.(of_rst, write) s
         | Ao_basis         -> () (* TODO *)
         | Mo_basis         -> () (* TODO *)
@@ -162,7 +164,7 @@ let run check_only ezfio_filename =
       Electrons ;
 {tasks}
       Mo_basis;
-      Determinants ;
+      Determinants_by_hand ;
   ]
   in
 

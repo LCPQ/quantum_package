@@ -16,7 +16,7 @@
   if (diag_algorithm == "Davidson") then
     
     call davidson_diag(psi_det,CI_eigenvectors_mono,CI_electronic_energy, &
-        size(CI_eigenvectors_mono,1),N_det,N_states_diag,N_int,output_Dets)
+        size(CI_eigenvectors_mono,1),N_det,N_states_diag,N_int,output_determinants)
     
   else if (diag_algorithm == "Lapack") then
     
