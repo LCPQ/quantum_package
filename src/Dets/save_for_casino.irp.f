@@ -161,7 +161,7 @@ subroutine save_casino
    if (ao_l(i) == ao_power(i,1)) then
      do j=1,ao_prim_num(i)
        l+=1
-       rtmp(l) = ao_coef(i,ao_prim_num(i)-j+1)
+       rtmp(l) = ao_coef_normalized(i,ao_prim_num(i))
      enddo
    endif
  enddo

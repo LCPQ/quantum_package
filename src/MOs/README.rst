@@ -8,6 +8,8 @@ Molecular orbitals are expressed as
 
   \phi_k({\bf r}) = \sum_i C_{ik} \chi_k({\bf r})
 
+where :math:`\chi_k` are *normalized* atomic basis set.
+
 The current set of molecular orbitals has a label ``mo_label``.
 When the orbitals are modified, the label should also be updated to keep
 everything consistent.

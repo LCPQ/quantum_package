@@ -54,7 +54,10 @@ Documentation
   after calling this function.
   After calling this subroutine, N_det, psi_det and psi_coef need to be touched
 
-`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L187>`_
+`debug_unicity_of_determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L187>`_
+  This subroutine checks that there are no repetitions in the wave function
+
+`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L222>`_
   Fill the H_apply buffer with determiants for CISD
 
 `h_apply_buffer_allocated <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L15>`_

@@ -181,8 +181,43 @@ subroutine copy_H_apply_buffer_to_wf
   call normalize(psi_coef,N_det)
   SOFT_TOUCH N_det psi_det psi_coef
   
+  call debug_unicity_of_determinants
 end
 
+subroutine debug_unicity_of_determinants
+  implicit none
+  BEGIN_DOC
+! This subroutine checks that there are no repetitions in the wave function
+  END_DOC
+  logical :: same, failed
+  integer :: i,k
+  print *,  "======= DEBUG UNICITY ========="
+  failed = .False.
+  do i=2,N_det
+    same = .True.
+    do k=1,N_int
+      if ( psi_det_sorted_bit(k,1,i) /= psi_det_sorted_bit(k,1,i-1) ) then
+        same = .False.
+        exit
+      endif
+      if ( psi_det_sorted_bit(k,2,i) /= psi_det_sorted_bit(k,2,i-1) ) then
+        same = .False.
+        exit
+      endif
+    enddo
+    if (same) then
+      failed = .True.
+      call debug_det(psi_det_sorted_bit(1,1,i))
+    endif
+  enddo
+
+  if (failed) then
+    print *,  '======= Determinants not unique : Failed ! ========='
+    stop
+  else
+    print *,  '======= Determinants are unique : OK ! ========='
+  endif
+end
 
 subroutine fill_H_apply_buffer_no_selection(n_selected,det_buffer,Nint,iproc)
   use bitmasks
