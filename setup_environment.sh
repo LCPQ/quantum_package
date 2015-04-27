@@ -28,7 +28,7 @@ EOF
 source quantum_package.rc
 
 echo "${BLUE}===== Installing IRPF90 ===== ${BLACK}"
-${QPACKAGE_ROOT}/scripts/install_irpf90.sh     | tee install_irpf90.log
+${QPACKAGE_ROOT}/scripts/install/install_irpf90.sh     | tee install_irpf90.log
 if [[ ! -d ${QPACKAGE_ROOT}/irpf90 ]]
 then
   echo $RED "Error in IRPF90 installation" $BLACK
@@ -49,19 +49,19 @@ fi
 
 
 echo "${BLUE}===== Installing Zlib ===== ${BLACK}"
-${QPACKAGE_ROOT}/scripts/install_zlib.sh       | tee install_zlib.log
+${QPACKAGE_ROOT}/scripts/install/install_zlib.sh       | tee install_zlib.log
 
 echo "${BLUE}===== Installing Curl ===== ${BLACK}"
-${QPACKAGE_ROOT}/scripts/install_curl.sh       | tee install_curl.log
+${QPACKAGE_ROOT}/scripts/install/install_curl.sh       | tee install_curl.log
 
 echo "${BLUE}===== Installing M4 ===== ${BLACK}"
-${QPACKAGE_ROOT}/scripts/install_m4.sh         | tee install_m4.log
+${QPACKAGE_ROOT}/scripts/install/install_m4.sh         | tee install_m4.log
 
 echo "${BLUE}===== Installing Docopt ===== ${BLACK}"
-${QPACKAGE_ROOT}/scripts/install_docopt.sh     | tee install_docopt.log
+${QPACKAGE_ROOT}/scripts/install/install_docopt.sh     | tee install_docopt.log
 
 echo "${BLUE}===== Installing EMSL Basis set library ===== ${BLACK}"
-${QPACKAGE_ROOT}/scripts/install_emsl.sh       | tee install_emsl.log
+${QPACKAGE_ROOT}/scripts/install/install_emsl.sh       | tee install_emsl.log
 
 if [[ ! -d ${QPACKAGE_ROOT}/EMSL_Basis ]]
 then
@@ -71,7 +71,7 @@ fi
 
 echo "${BLUE}===== Installing EZFIO ===== ${BLACK}"
 
-${QPACKAGE_ROOT}/scripts/install_ezfio.sh | tee install_ezfio.log
+${QPACKAGE_ROOT}/scripts/install/install_ezfio.sh | tee install_ezfio.log
 if [[ ! -d ${QPACKAGE_ROOT}/EZFIO ]]
 then
   echo $RED "Error in EZFIO installation" $BLACK
@@ -81,7 +81,7 @@ fi
 
 echo "${BLUE}===== Installing Ocaml compiler and libraries ===== ${BLACK}"
 rm -f -- ocaml/Qptypes.ml
-${QPACKAGE_ROOT}/scripts/install_ocaml.sh | tee install_ocaml.log
+${QPACKAGE_ROOT}/scripts/install/install_ocaml.sh | tee install_ocaml.log
 
 if [[ ! -f ${QPACKAGE_ROOT}/ocaml/Qptypes.ml ]]
 then
@@ -90,7 +90,7 @@ then
 fi
 
 echo "${BLUE}===== Installing resultsFile Python library ===== ${BLACK}"
-${QPACKAGE_ROOT}/scripts/install_resultsFile.sh
+${QPACKAGE_ROOT}/scripts/install/install_resultsFile.sh
 if [[ ! -d ${QPACKAGE_ROOT}/resultsFile ]]
 then
   echo $RED "Error in resultsFile installation" $BLACK

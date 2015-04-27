@@ -12,7 +12,7 @@ fi
 cd -- ${QPACKAGE_ROOT}
 mv -f -- ${QPACKAGE_ROOT}/irpf90 ${QPACKAGE_ROOT}/irpf90.old
 
-${QPACKAGE_ROOT}/scripts/install_irpf90.sh
+${QPACKAGE_ROOT}/scripts/install/install_irpf90.sh
 
 if [[ $? -eq 0 ]]
 then
