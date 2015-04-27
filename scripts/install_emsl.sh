@@ -8,8 +8,8 @@ URL="https://github.com/LCPQ/${BASE}/archive/master.tar.gz"
 
 if [[ -z ${QPACKAGE_ROOT} ]]
 then
-  print "The QPACKAGE_ROOT environment variable is not set."
-  print "Please reload the quantum_package.rc file."
+  echo "The QPACKAGE_ROOT environment variable is not set."
+  echo "Please reload the quantum_package.rc file."
   exit -1
 fi
 
