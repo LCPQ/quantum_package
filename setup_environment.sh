@@ -57,6 +57,9 @@ ${QPACKAGE_ROOT}/scripts/install_curl.sh       | tee install_curl.log
 echo "${BLUE}===== Installing M4 ===== ${BLACK}"
 ${QPACKAGE_ROOT}/scripts/install_m4.sh         | tee install_m4.log
 
+echo "${BLUE}===== Installing Docopt ===== ${BLACK}"
+${QPACKAGE_ROOT}/scripts/install_docopt.sh     | tee install_docopt.log
+
 echo "${BLUE}===== Installing EMSL Basis set library ===== ${BLACK}"
 ${QPACKAGE_ROOT}/scripts/install_emsl.sh       | tee install_emsl.log
 
