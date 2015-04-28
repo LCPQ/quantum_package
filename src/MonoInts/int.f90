@@ -184,14 +184,9 @@ implicit none
 ! _|_ | | |_) |_| |_ 
 !         |          
 double precision, intent(in) :: a(3),g_a,b(3),g_b,c(3)
-
-integer kmax_max,lmax_max,ntot_max,nkl_max
-parameter (kmax_max=2,lmax_max=2,nkl_max=4)
-parameter (ntot_max=10)
 integer, intent(in) :: lmax,kmax,n_kl(kmax,0:lmax)
 integer, intent(in) :: n_a(3),n_b(3)
 double precision, intent(in) :: v_kl(kmax,0:lmax),dz_kl(kmax,0:lmax)
-
 
 !                     
 ! |   _   _  _. |  _  
@@ -204,34 +199,35 @@ double precision :: areal,freal,breal,t1,t2,int_prod_bessel, int_prod_bessel_num
 double precision :: arg
 
 integer :: ntot,ntotA,m,mu,mup,k1,k2,k3,ntotB,k1p,k2p,k3p,lambda,lambdap,ktot
-integer :: l,k
+integer :: l,k, nkl_max
 
 !  _                          
 ! |_) o  _     _. ._ ._ _.    
 ! |_) | (_|   (_| |  | (_| \/ 
 !        _|                /  
 
-double precision array_coefs_A(0:ntot_max,0:ntot_max,0:ntot_max)
-double precision array_coefs_B(0:ntot_max,0:ntot_max,0:ntot_max)
+double precision, allocatable :: array_coefs_A(:,:,:)
+double precision, allocatable :: array_coefs_B(:,:,:)
 
 double precision, allocatable :: array_R(:,:,:,:,:)
 double precision, allocatable :: array_I_A(:,:,:,:,:)
 double precision, allocatable :: array_I_B(:,:,:,:,:)
 
-!=!=!=!=!=!=!=!=!=!
-! A l l o c a t e !
-!=!=!=!=!=!=!=!=!=!
-
-allocate (array_R(0:ntot_max+nkl_max,kmax_max,0:lmax_max,0:lmax_max+ntot_max,0:lmax_max+ntot_max))
-
-allocate (array_I_A(0:lmax_max+ntot_max,-(lmax_max+ntot_max):lmax_max+ntot_max,0:ntot_max,0:ntot_max,0:ntot_max))
-
-allocate (array_I_B(0:lmax_max+ntot_max,-(lmax_max+ntot_max):lmax_max+ntot_max,0:ntot_max,0:ntot_max,0:ntot_max))
 
 !  _                
 ! /   _. |  _     | 
 ! \_ (_| | (_ |_| | 
 !                   
+
+
+print*, "lmax",lmax 
+print*, "kmax",kmax 
+print*, "n_kl",n_kl 
+print*, "n_a",n_a 
+print*, "n_b",n_b 
+print*, "v_kl",v_kl 
+print*, "dz_kl",dz_kl
+
 
 fourpi=4.d0*dacos(-1.d0)
 ac=dsqrt((a(1)-c(1))**2+(a(2)-c(2))**2+(a(3)-c(3))**2)
@@ -249,8 +245,21 @@ ntotA=n_a(1)+n_a(2)+n_a(3)
 ntotB=n_b(1)+n_b(2)+n_b(3)
 ntot=ntotA+ntotB
 
-if(ntot.gt.ntot_max)stop 'increase ntot_max'
+nkl_max=4
+!=!=!=!=!=!=!=!=!=!
+! A l l o c a t e !
+!=!=!=!=!=!=!=!=!=!
 
+allocate (array_coefs_A(0:ntot,0:ntot,0:ntot))
+allocate (array_coefs_B(0:ntot,0:ntot,0:ntot))
+
+allocate (array_R(0:ntot+nkl_max,kmax,0:lmax,0:lmax+ntot,0:lmax+ntot))
+
+allocate (array_I_A(0:lmax+ntot,-(lmax+ntot):lmax+ntot,0:ntot,0:ntot,0:ntot))
+
+allocate (array_I_B(0:lmax+ntot,-(lmax+ntot):lmax+ntot,0:ntot,0:ntot,0:ntot))
+
+print*, ac,bc
 if(ac.eq.0.d0.and.bc.eq.0.d0)then
 
 
@@ -584,6 +593,7 @@ endif
 ! |  | | | (_| | | _> (/_ 
 !                         
   deallocate (array_R, array_I_A, array_I_B)
+  deallocate (array_coefs_A, array_coefs_B)
   return
 end
 
@@ -598,14 +608,32 @@ end
 
 double precision function Vpseudo_num(npts,rmax,lmax,kmax,v_kl,n_kl,dz_kl,a,n_a,g_a,b,n_b,g_b,c)
 implicit none
-integer kmax_max,lmax_max
-parameter (kmax_max=2,lmax_max=2)
-integer lmax,kmax, n_kl(kmax_max,0:lmax_max),l,m,k,kk
-double precision v_kl(kmax_max,0:lmax_max),dz_kl(kmax_max,0:lmax_max)
-double precision a(3),g_a,b(3),g_b,c(3),ac(3),bc(3)
-integer n_a(3),n_b(3),npts
-double precision rmax,dr,sum,rC
+
+
+! ___                
+!  |  ._  ._     _|_ 
+! _|_ | | |_) |_| |_ 
+!         |          
+double precision, intent(in) :: a(3),g_a,b(3),g_b,c(3)
+integer, intent(in) :: lmax,kmax,npts
+integer, intent(in) :: n_a(3),n_b(3), n_kl(kmax,0:lmax)
+double precision, intent(in) :: v_kl(kmax,0:lmax),dz_kl(kmax,0:lmax)
+double precision, intent(in) :: rmax
+
+!                     
+! |   _   _  _. |  _  
+! |_ (_) (_ (_| | (/_ 
+!                     
+
+integer :: l,m,k,kk
+double precision ac(3),bc(3)
+double precision dr,sum,rC
 double precision overlap_orb_ylm_brute
+
+!  _                
+! /   _. |  _     | 
+! \_ (_| | (_ |_| | 
+!                   
 
 do l=1,3
  ac(l)=a(l)-c(l)
