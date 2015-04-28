@@ -275,6 +275,13 @@ if __name__ == "__main__":
     # ~#~#~#~#~ #
 
     ezfio.pseudo_klocmax = len(v_k[0])
+
+    # Change all the array 'cause EZFIO
+    #   v_kl (v, l) => v_kl(l,v)
+    #    v_kl => zip(*_v_kl)
+    # [[7.0, 79.74474797, -49.45159098], [1.0, 5.41040609, -4.60151975]]
+    # [(7.0, 1.0), (79.74474797, 5.41040609), (-49.45159098, -4.60151975)]
+
     ezfio.pseudo_v_k = zip(*v_k)
     ezfio.pseudo_n_k = zip(*n_k)
     ezfio.pseudo_dz_k = zip(*dz_k)

@@ -219,24 +219,21 @@ double precision, allocatable :: array_I_B(:,:,:,:,:)
 ! \_ (_| | (_ |_| | 
 !                   
 
-
-print*, "lmax",lmax 
-print*, "kmax",kmax 
-print*, "n_kl",n_kl 
-print*, "n_a",n_a 
-print*, "n_b",n_b 
-print*, "v_kl",v_kl 
-print*, "dz_kl",dz_kl
-
+if (kmax.eq.1.and.lmax.eq.0.and.v_kl(1,0).eq.0.d0) then
+  Vpseudo=0.d0
+  return
+end if
 
 fourpi=4.d0*dacos(-1.d0)
 ac=dsqrt((a(1)-c(1))**2+(a(2)-c(2))**2+(a(3)-c(3))**2)
 bc=dsqrt((b(1)-c(1))**2+(b(2)-c(2))**2+(b(3)-c(3))**2)
 arg=g_a*ac**2+g_b*bc**2
+
 if(arg.gt.-dlog(1.d-20))then
-Vpseudo=0.d0
-return
+  Vpseudo=0.d0
+  return
 endif
+
 freal=dexp(-arg)
 
 areal=2.d0*g_a*ac
@@ -259,7 +256,6 @@ allocate (array_I_A(0:lmax+ntot,-(lmax+ntot):lmax+ntot,0:ntot,0:ntot,0:ntot))
 
 allocate (array_I_B(0:lmax+ntot,-(lmax+ntot):lmax+ntot,0:ntot,0:ntot,0:ntot))
 
-print*, ac,bc
 if(ac.eq.0.d0.and.bc.eq.0.d0)then
 
 
