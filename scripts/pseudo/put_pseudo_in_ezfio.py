@@ -176,6 +176,36 @@ def get_zeff_alpha_beta(str_ele):
 
     return [z_eff, alpha, beta]
 
+
+def add_zero(array, size, type):
+    for add in xrange(len(array), size):
+        array.append([type(0)])
+
+    return array
+
+
+def make_it_square(matrix, dim, type=float):
+    """
+    matix the matrix to squate
+    dim array  [lmax, kmax]
+    type the null value you want
+        [[[28.59107316], [19.37583724]], [[50.25646328]]]
+            =>
+        [[[28.59107316], [19.37583724]], [[50.25646328], [0.0]]]
+    """
+
+    lmax = dim[0]
+    kmax = dim[1]
+
+    for l_list in matrix:
+
+        l_list = add_zero(l_list, lmax, type)
+
+        for k_list in list_:
+            k_list = add_zero(k_list, kmax, type)
+
+    return matrix
+
 if __name__ == "__main__":
     arguments = docopt(__doc__)
     # ___
@@ -270,17 +300,18 @@ if __name__ == "__main__":
     ezfio.electrons_elec_alpha_num = alpha_tot
     ezfio.electrons_elec_beta_num = beta_tot
 
-    # ~#~#~#~#~ #
-    # L o c a l #
-    # ~#~#~#~#~ #
-
-    ezfio.pseudo_klocmax = len(v_k[0])
-
     # Change all the array 'cause EZFIO
     #   v_kl (v, l) => v_kl(l,v)
     #    v_kl => zip(*_v_kl)
     # [[7.0, 79.74474797, -49.45159098], [1.0, 5.41040609, -4.60151975]]
     # [(7.0, 1.0), (79.74474797, 5.41040609), (-49.45159098, -4.60151975)]
+
+    # ~#~#~#~#~ #
+    # L o c a l #
+    # ~#~#~#~#~ #
+
+    klocmax = max([len(i) for i in v_k])
+    ezfio.pseudo_klocmax = klocmax
 
     ezfio.pseudo_v_k = zip(*v_k)
     ezfio.pseudo_n_k = zip(*n_k)
@@ -290,8 +321,15 @@ if __name__ == "__main__":
     # N o n _ L o c a l #
     # ~#~#~#~#~#~#~#~#~ #
 
-    ezfio.pseudo_lmaxpo = len(v_kl[0])
-    ezfio.pseudo_kmax = len(v_kl[0][0])
+    lmax = max([len(i) for i in v_kl])
+    kmax = max([len(sublist) for list_ in v_kl for sublist in list_])
+
+    ezfio.pseudo_lmaxpo = lmax
+    ezfio.pseudo_kmax = kmax
+
+    v_kl = make_it_square(v_kl, [lmax, kmax])
+    n_kl = make_it_square(n_kl, [lmax, kmax], int)
+    dz_kl = make_it_square(dz_kl, [lmax, kmax])
 
     ezfio.pseudo_v_kl = zip(*v_kl)
     ezfio.pseudo_n_kl = zip(*n_kl)
