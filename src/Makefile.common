@@ -45,7 +45,7 @@ include irpf90.make
 endif
 
 .gitignore:
-	$(QPACKAGE_ROOT)/scripts/create_gitignore.sh 
+	$(QPACKAGE_ROOT)/scripts/create/create_gitignore.sh 
 
 # Frequent typos
 clena: clean

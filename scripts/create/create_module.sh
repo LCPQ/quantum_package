@@ -117,7 +117,7 @@ debug "Module directory is created."
 
 
 # Create the Makefile
-"${QPACKAGE_ROOT}/scripts/create_Makefile.sh" || fail "Unable to create Makefile"
+"${QPACKAGE_ROOT}/scripts/create/create_Makefile.sh" || fail "Unable to create Makefile"
 if [[ ! -f Makefile ]]
 then
   fail "Makefile was not created"
@@ -125,7 +125,7 @@ fi
 debug "Makefile created"
 
 # Create the NEEDED_MODULES file
-"${QPACKAGE_ROOT}/scripts/create_Needed_modules.sh" ${NEEDED_MODULES} || fail "Unable to create the NEEDED_MODULES file"
+"${QPACKAGE_ROOT}/scripts/create/create_Needed_modules.sh" ${NEEDED_MODULES} || fail "Unable to create the NEEDED_MODULES file"
 if [[ ! -f NEEDED_MODULES ]]
 then
   fail "NEEDED_MODULES was not created"
@@ -135,7 +135,7 @@ debug "NEEDED_MODULES created"
 
 
 # Create rst templates
-"${QPACKAGE_ROOT}/scripts/create_rst_templates.sh" || fail "Unable to create rst templates"
+"${QPACKAGE_ROOT}/scripts/create/create_rst_templates.sh" || fail "Unable to create rst templates"
 
 
 # Update module list in main NEEDED_MODULES
