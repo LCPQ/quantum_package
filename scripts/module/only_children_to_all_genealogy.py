@@ -4,10 +4,10 @@
 import os
 import os.path
 
-dir_ = '/home/razoa/quantum_package/src'
-
-
 def get_dict_genealogy(all_children=False):
+
+    qpackage_root = os.environ['QPACKAGE_ROOT']
+    dir_ = os.path.join(qpackage_root,'src')
 
     d_ref = dict()
 
