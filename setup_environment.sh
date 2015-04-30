@@ -17,8 +17,10 @@ export QPACKAGE_ROOT=\$( cd \$(dirname "\${BASH_SOURCE}")  ; pwd -P )
 export LD_LIBRARY_PATH="\${QPACKAGE_ROOT}"/lib:\${LD_LIBRARY_PATH}
 export LIBRARY_PATH="\${QPACKAGE_ROOT}"/lib:\${LIBRARY_PATH}
 export C_INCLUDE_PATH="\${QPACKAGE_ROOT}"/include:\${C_INCLUDE_PATH}
-export PYTHONPATH=\${PYTHONPATH}:"\${QPACKAGE_ROOT}"/scripts:"\${QPACKAGE_ROOT}"/scripts/ezfio_interface
-export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/scripts:"\${QPACKAGE_ROOT}"/scripts/ezfio_interface
+
+export PYTHONPATH=${PYTHONPATH}$(find "${QPACKAGE_ROOT}"/scripts -type d -printf ":%p")
+
+export PATH=${PATH}$(find "${QPACKAGE_ROOT}"/scripts -type d -printf ":%p")
 export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/bin
 export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/ocaml
 source "\${QPACKAGE_ROOT}"/bin/irpman &> /dev/null
