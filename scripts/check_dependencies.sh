@@ -25,7 +25,7 @@ fi
 
 if [[ $1 == "-" ]]
 then
-  COMMAND_LINE=$(cat NEEDED_MODULES)
+  COMMAND_LINE=$(only_children_to_all_genealogy.py NEEDED_MODULES)
 else
   COMMAND_LINE=$(unique_list $@)
 fi
@@ -44,7 +44,7 @@ DEPS_LONG=""
 for i in $COMMAND_LINE
 do
   DEPS_LONG+=" $i "
-  DEPS_LONG+=$(cat "${QPACKAGE_ROOT}/src/${i}/NEEDED_MODULES")
+  DEPS_LONG+=$(only_children_to_all_genealogy.py "${QPACKAGE_ROOT}/src/${i}/NEEDED_MODULES")
 done
 
 DEPS=$(unique_list $DEPS_LONG)

@@ -18,8 +18,8 @@ default: all .gitignore
 # Include the user's config
 include $(QPACKAGE_ROOT)/src/Makefile.config
 
-# Create the NEEDED_MODULES variable, needed for IRPF90
-NEEDED_MODULES=$(shell cat NEEDED_MODULES)
+# Create the NEEDED_CHILDREN_MODULES variable, needed for IRPF90
+NEEDED_CHILDREN_MODULES=$(shell only_children_to_all_genealogy.py)
 
 # Check and update dependencies
 include Makefile.depend
@@ -28,7 +28,7 @@ include Makefile.depend
 # Define the Makefile common variables
 EZFIO_DIR=$(QPACKAGE_ROOT)/EZFIO
 EZFIO=$(EZFIO_DIR)/lib/libezfio_irp.a
-INCLUDE_DIRS=$(NEEDED_MODULES) include
+INCLUDE_DIRS=$(NEEDED_CHILDREN_MODULES) include
 
 clean_links:
 	rm -f $(INCLUDE_DIRS) $$(basename $$PWD)
@@ -36,7 +36,7 @@ clean_links:
 LIB+=$(EZFIO) $(MKL)
 IRPF90+=$(patsubst %, -I %, $(INCLUDE_DIRS)) $(IRPF90_FLAGS)
 
-irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile $(EZFIO) NEEDED_MODULES $(wildcard *.py) 
+irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile $(EZFIO) NEEDED_CHILDREN_MODULES $(wildcard *.py) 
 	- $(IRPF90)
 	- update_README.py
 

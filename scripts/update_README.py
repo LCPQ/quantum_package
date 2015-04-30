@@ -83,7 +83,7 @@ def update_needed(data):
     """Read the NEEDED_MODULES file, and replace the data with it.
     Create the links to the GitHub pages."""
 
-    file = open('NEEDED_MODULES', 'r')
+    file = open('NEEDED_CHILDREN_MODULES', 'r')
     modules = file.read()
     file.close()
 
