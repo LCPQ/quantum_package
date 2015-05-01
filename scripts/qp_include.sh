@@ -35,9 +35,9 @@ function check_current_dir_is_module()
      exit -1
   fi
 }
-if [[ -f NEEDED_MODULES ]]
+if [[ -f NEEDED_CHILDREN_MODULES ]]
 then
-  NEEDED_MODULES=$(cat NEEDED_MODULES)
+  NEEDED_MODULES=$(only_children_to_all_genealogy.py)
 fi
 
 # List of executables in the current directory

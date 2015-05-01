@@ -52,7 +52,7 @@ ${IRPF90_VERSION}.
 
 IRPF90 version >= ${IRPF90_REQUIRED_VERSION} is required.
 To upgrade IRPF90, run :                       
-  ${QPACKAGE_ROOT}/scripts/upgrade_irpf90.sh   
+  ${QPACKAGE_ROOT}/scripts/upgrade/upgrade_irpf90.sh   
 "
 else
   info "irpf90 version is OK"
@@ -75,7 +75,7 @@ then
 Current EZFIO version : ${EZFIO_VERSION}
 EZFIO version >= ${EZFIO_REQUIRED_VERSION} is required.
 To upgrade EZFIO, run :                       
-  ${QPACKAGE_ROOT}/scripts/upgrade_ezfio.sh   
+  ${QPACKAGE_ROOT}/scripts/upgrade/upgrade_ezfio.sh   
 "
 else
   info "EZFIO version is OK"

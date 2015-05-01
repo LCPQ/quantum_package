@@ -13,7 +13,7 @@ source ${QPACKAGE_ROOT}/scripts/qp_include.sh
 function do_clean()
 {
   rm -rf -- \
-    IRPF90_temp IRPF90_man Makefile.depend $(cat NEEDED_MODULES) include \
+    IRPF90_temp IRPF90_man Makefile.depend $(only_children_to_all_genealogy.py) include \
     ezfio_interface.irp.f irpf90.make irpf90_entities tags $(ls_exe) *.mod
 }
 
