@@ -105,7 +105,7 @@ def write_ezfio(res, filename):
     # Transformt H1 into H
     import re
     p = re.compile(ur'(\d*)$')
-    label = [p.sub("", x.name) for x in res.geometry]
+    label = [p.sub("", x.name).capitalize() for x in res.geometry]
     ezfio.set_nuclei_nucl_label(label)
 
     ezfio.set_nuclei_nucl_coord(coord_x + coord_y + coord_z)
