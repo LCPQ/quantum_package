@@ -43,5 +43,13 @@ then
   exit 1
 fi
 
-${EMSL_API_ROOT}/EMSL_api.py get_basis_data --treat_l --save --path="${tmpfile}" --basis="${basis}"
-#${EMSL_API_ROOT}/EMSL_api.py get_basis_data --treat_l  --save --path="${tmpfile}" --basis="${basis}" --db_path="${EMSL_API_ROOT}/db/Pseudo.db"
+pseudo="$1"
+shift
+
+if [[ -z $pseudo ]]
+then
+    ${EMSL_API_ROOT}/EMSL_api.py get_basis_data --treat_l --save --path="${tmpfile}" --basis="${basis}"
+else
+    ${EMSL_API_ROOT}/EMSL_api.py get_basis_data --treat_l  --save --path="${tmpfile}" --basis="${basis}" --db_path="${EMSL_API_ROOT}/db/Pseudo.db"
+fi
+
