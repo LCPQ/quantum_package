@@ -25,13 +25,13 @@
   integer, allocatable ::  n_k(:,:)
   double precision, allocatable ::  v_k(:,:), dz_k(:,:)
 
-  call ezfio_get_pseudo_klocmax(klocmax)
+  call ezfio_get_pseudo_integrals_klocmax(klocmax)
 
   allocate(n_k(nucl_num,klocmax),v_k(nucl_num,klocmax), dz_k(nucl_num,klocmax))
 
-  call ezfio_get_pseudo_v_k(v_k)
-  call ezfio_get_pseudo_n_k(n_k)
-  call ezfio_get_pseudo_dz_k(dz_k)
+  call ezfio_get_pseudo_integrals_v_k(v_k)
+  call ezfio_get_pseudo_integrals_n_k(n_k)
+  call ezfio_get_pseudo_integrals_dz_k(dz_k)
 
   !! Dump array 
   integer, allocatable ::  n_k_dump(:)
@@ -50,16 +50,16 @@
   integer, allocatable ::  n_kl(:,:,:)
   double precision, allocatable ::  v_kl(:,:,:), dz_kl(:,:,:) 
 
-  call ezfio_get_pseudo_lmaxpo(lmax)
-  call ezfio_get_pseudo_kmax(kmax)
+  call ezfio_get_pseudo_integrals_lmaxpo(lmax)
+  call ezfio_get_pseudo_integrals_kmax(kmax)
   !lmax plus one -> lmax
   lmax = lmax - 1 
  
   allocate(n_kl(nucl_num,kmax,0:lmax), v_kl(nucl_num,kmax,0:lmax), dz_kl(nucl_num,kmax,0:lmax)) 
 
-  call ezfio_get_pseudo_n_kl(n_kl)
-  call ezfio_get_pseudo_v_kl(v_kl)
-  call ezfio_get_pseudo_dz_kl(dz_kl)
+  call ezfio_get_pseudo_integrals_n_kl(n_kl)
+  call ezfio_get_pseudo_integrals_v_kl(v_kl)
+  call ezfio_get_pseudo_integrals_dz_kl(dz_kl)
 
 
   !! Dump array 

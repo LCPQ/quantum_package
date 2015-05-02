@@ -5,18 +5,20 @@ open Core.Std;;
 let spec =
   let open Command.Spec in
   empty 
-  +> flag "o"  (optional string)
+  +> flag "o" (optional string)
      ~doc:"file Name of the created EZFIO file."
   +> flag "b" (required string)
      ~doc:"string Name of basis set."
   +> flag "c" (optional_with_default 0 int)
      ~doc:"int Total charge of the molecule. Default is 0."
-  +> flag "m"  (optional_with_default 1 int)
+  +> flag "m" (optional_with_default 1 int)
      ~doc:"int Spin multiplicity (2S+1) of the molecule. Default is 1."
+  +> flag "p" (optional_with_default 1 int)
+     ~doc:"Using pseudo potentiel or not"
   +> anon ("xyz_file" %: string)
 ;;
 
-let run ?o b c m xyz_file =
+let run ?o b c m p xyz_file =
 
   (* Read molecule *)
   let molecule =
@@ -60,8 +62,12 @@ let run ?o b c m xyz_file =
       | None -> (* Principal basis *)
         let basis = elem_and_basis_name in
         let command =
+          if (p = 0) then  
             Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
               ^ "\" \"" ^ basis ^"\""
+          else
+            Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
+              ^ "\" \"" ^ basis ^"\" pseudo"
         in
         begin
           let filename = 
@@ -246,7 +252,10 @@ let run ?o b c m xyz_file =
   Ezfio.set_ao_basis_ao_expo(Ezfio.ezfio_array_of_list
   ~rank:2 ~dim:[| ao_num ; ao_prim_num_max |] ~data:ao_expo) ;
 
-  
+
+  (* Doesn't work... *)
+  (*  if p = 1 then Qpackage.root ^ "scripts/pseudo/put_pseudo_in_ezfio.py" ezfio_file.to_string; *)
+
   match Input.Ao_basis.read () with
   | None -> failwith "Error in basis"
   | Some x -> Input.Ao_basis.write x
@@ -266,8 +275,8 @@ elements can be defined as follows:
 
       ")
     spec
-    (fun o b c m xyz_file () ->
-       run ?o b c m xyz_file )
+    (fun o b c m p xyz_file () ->
+       run ?o b c m p xyz_file )
 ;;
 
 let () =

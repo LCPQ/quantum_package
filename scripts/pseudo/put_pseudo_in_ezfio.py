@@ -311,11 +311,11 @@ if __name__ == "__main__":
     # ~#~#~#~#~ #
 
     klocmax = max([len(i) for i in v_k])
-    ezfio.pseudo_klocmax = klocmax
+    ezfio.pseudo_intergrals_klocmax = klocmax
 
-    ezfio.pseudo_v_k = zip(*v_k)
-    ezfio.pseudo_n_k = zip(*n_k)
-    ezfio.pseudo_dz_k = zip(*dz_k)
+    ezfio.pseudo_intergrals_v_k = zip(*v_k)
+    ezfio.pseudo_intergrals_n_k = zip(*n_k)
+    ezfio.pseudo_intergrals_dz_k = zip(*dz_k)
 
     # ~#~#~#~#~#~#~#~#~ #
     # N o n _ L o c a l #
@@ -324,13 +324,15 @@ if __name__ == "__main__":
     lmax = max([len(i) for i in v_kl])
     kmax = max([len(sublist) for list_ in v_kl for sublist in list_])
 
-    ezfio.pseudo_lmaxpo = lmax
-    ezfio.pseudo_kmax = kmax
+    ezfio.pseudo_intergrals_lmaxpo = lmax
+    ezfio.pseudo_intergrals_kmax = kmax
 
     v_kl = make_it_square(v_kl, [lmax, kmax])
     n_kl = make_it_square(n_kl, [lmax, kmax], int)
     dz_kl = make_it_square(dz_kl, [lmax, kmax])
 
-    ezfio.pseudo_v_kl = zip(*v_kl)
-    ezfio.pseudo_n_kl = zip(*n_kl)
-    ezfio.pseudo_dz_kl = zip(*dz_kl)
+    ezfio.pseudo_intergrals_v_kl = zip(*v_kl)
+    ezfio.pseudo_intergrals_n_kl = zip(*n_kl)
+    ezfio.pseudo_intergrals_dz_kl = zip(*dz_kl)
+
+    ezfio.pseudo_intergrals_do_pseudo = True
