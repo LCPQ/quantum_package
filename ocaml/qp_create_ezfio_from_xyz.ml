@@ -13,8 +13,8 @@ let spec =
      ~doc:"int Total charge of the molecule. Default is 0."
   +> flag "m" (optional_with_default 1 int)
      ~doc:"int Spin multiplicity (2S+1) of the molecule. Default is 1."
-  +> flag "p" (optional_with_default 1 int)
-     ~doc:"Using pseudo potentiel or not"
+  +> flag "p" (optional_with_default 0 int)
+     ~doc:"Using pseudo. Default is not (aka 0)"
   +> anon ("xyz_file" %: string)
 ;;
 
