@@ -1,14 +1,3 @@
- BEGIN_PROVIDER [logical, do_pseudo]
- BEGIN_DOC
-! Using pseudo potential integral of not
-! If true, check all the {alpha,beta} electron and Z
- END_DOC
-
- call ezfio_get_pseudo_do_pseudo(do_pseudo)
-
-END_PROVIDER
-
-
  BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral_pseudo, (ao_num_align,ao_num)]
  BEGIN_DOC
 ! interaction nuclear electron
