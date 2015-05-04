@@ -28,7 +28,7 @@ fi
 # Check if README.rst exists
 if [[ ! -f README.rst ]] 
 then
-  ${QPACKAGE_ROOT}/scripts/create/create_rst_templates.sh
+  ${QPACKAGE_ROOT}/scripts/module/create_rst_templates.sh
   error "
 README.rst was not present, so I created a
 default one for you.
@@ -62,7 +62,7 @@ then
 fi
 
 # Update Makefile.depend
-${QPACKAGE_ROOT}/scripts/create/create_Makefile_depend.sh
+${QPACKAGE_ROOT}/scripts/module/create_Makefile_depend.sh
 
 # Update EZFIO interface
 ${QPACKAGE_ROOT}/scripts/ezfio_interface/ei_handler.py
