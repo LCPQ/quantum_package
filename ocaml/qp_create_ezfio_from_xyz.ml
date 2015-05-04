@@ -64,10 +64,10 @@ let run ?o b c m p xyz_file =
         let command =
           if (p) then  
             Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
-              ^ "\" \"" ^ basis ^"\""
+              ^ "\" \"" ^ basis ^"\" pseudo"
           else
             Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
-              ^ "\" \"" ^ basis ^"\" pseudo"
+              ^ "\" \"" ^ basis ^"\""
         in
         begin
           let filename = 
