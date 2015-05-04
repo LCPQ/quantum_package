@@ -160,6 +160,39 @@ Documentation
 `rint_sum <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L484>`_
   Needed for the calculation of two-electron integrals.
 
+`a_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L252>`_
+  Undocumented
+
+`b_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L257>`_
+  Undocumented
+
+`ddfact2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L243>`_
+  Undocumented
+
+`erf0 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L105>`_
+  Undocumented
+
+`gammln <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L271>`_
+  Undocumented
+
+`gammp <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L133>`_
+  Undocumented
+
+`gcf <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L211>`_
+  Undocumented
+
+`gser <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L167>`_
+  Undocumented
+
+`rinteg <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L47>`_
+  Undocumented
+
+`rintgauss <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L31>`_
+  Undocumented
+
+`sabpartial <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L2>`_
+  Undocumented
+
 `overlap_a_b_c <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/one_e_integration.irp.f#L35>`_
   Undocumented
 

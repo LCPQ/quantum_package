@@ -1,9 +1,0 @@
-determinants
-  n_states                   1
-  n_states_diag              determinants_n_states
-  n_det_max_jacobi           1000
-  threshold_generators       0.99
-  threshold_selectors        0.999
-  read_wf                    false
-  s2_eig                     false
-  only_single_double_dm      false

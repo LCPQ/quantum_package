@@ -123,38 +123,38 @@ Documentation
   .br
   n_double_selectors = number of double excitations in the selectors determinants
 
-`n_det_selectors <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L20>`_
+`n_det_selectors <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L8>`_
   For Single reference wave functions, the number of selectors is 1 : the
   Hartree-Fock determinant
 
-`psi_selectors <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L42>`_
+`psi_selectors <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L30>`_
   Determinants on which we apply <i|H|psi> for perturbation.
 
-`psi_selectors_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L76>`_
+`psi_selectors_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L64>`_
   Determinants on which we apply <i|H|j>.
   They are sorted by the 3 highest electrons in the alpha part,
   then by the 3 highest electrons in the beta part to accelerate
   the research of connected determinants.
 
-`psi_selectors_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L43>`_
+`psi_selectors_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L31>`_
   Determinants on which we apply <i|H|psi> for perturbation.
 
-`psi_selectors_coef_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L77>`_
+`psi_selectors_coef_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L65>`_
   Determinants on which we apply <i|H|j>.
   They are sorted by the 3 highest electrons in the alpha part,
   then by the 3 highest electrons in the beta part to accelerate
   the research of connected determinants.
 
-`psi_selectors_diag_h_mat <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L63>`_
+`psi_selectors_diag_h_mat <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L51>`_
   Diagonal elements of the H matrix for each selectors
 
-`psi_selectors_next_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L78>`_
+`psi_selectors_next_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L66>`_
   Determinants on which we apply <i|H|j>.
   They are sorted by the 3 highest electrons in the alpha part,
   then by the 3 highest electrons in the beta part to accelerate
   the research of connected determinants.
 
-`psi_selectors_size <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L15>`_
+`psi_selectors_size <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L3>`_
   Undocumented
 
 
@@ -165,17 +165,6 @@ Needed Modules
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-* `AOs <http://github.com/LCPQ/quantum_package/tree/master/src/AOs>`_
-* `Bielec_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Bielec_integrals>`_
-* `Bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask>`_
-* `Dets <http://github.com/LCPQ/quantum_package/tree/master/src/Dets>`_
-* `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_
-* `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
+* `Determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants>`_
 * `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock>`_
-* `MOGuess <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess>`_
-* `MonoInts <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts>`_
-* `MOs <http://github.com/LCPQ/quantum_package/tree/master/src/MOs>`_
-* `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
-* `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
-* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 

@@ -90,13 +90,19 @@ END_PROVIDER
     self.default = t
 
   def get_default(self):
-    filename = '/'.join( [os.environ['QPACKAGE_ROOT'], 'data',
-                          'ezfio_defaults',
-                          'WILL_BE_DELETED.ezfio_default'] )
+    mypath = '/'.join( [os.environ['QPACKAGE_ROOT'], 'data',
+                          'ezfio_defaults'] )
 
-    file = open(filename,'r')
-    lines = file.readlines()
-    file.close()
+    from os import listdir
+    from os.path import isfile, join
+    onlyfiles = [ join(mypath,f) for f in listdir(mypath) if isfile(join(mypath,f)) ]
+
+    lines = []
+    for filename in onlyfiles:
+      file = open(filename,'r')
+      lines.extend(file.readlines())
+      file.close()
+
     k=-1
     # Search directory
     for k,line in enumerate(lines):
