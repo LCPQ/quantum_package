@@ -26,8 +26,8 @@
   !$OMP  overlap_x,overlap_y, overlap_z, overlap, &
   !$OMP  alpha, beta,i,j,dx,tmp,c,accu_x,accu_y,accu_z) &
   !$OMP SHARED(nucl_coord,ao_power,ao_prim_num, &
-  !$OMP  ao_spread_x,ao_spread_y,ao_spread_z,ao_num,ao_coef_transp,ao_nucl, &
-  !$OMP  ao_expo_transp,dim1,lower_exp_val)
+  !$OMP  ao_spread_x,ao_spread_y,ao_spread_z,ao_num,ao_coef_normalized_ordered_transp,ao_nucl, &
+  !$OMP  ao_expo_ordered_transp,dim1,lower_exp_val)
   do j=1,ao_num
    A_center(1) = nucl_coord( ao_nucl(j), 1 )
    A_center(2) = nucl_coord( ao_nucl(j), 2 )
@@ -48,11 +48,11 @@
     accu_y = 0.d0
     accu_z = 0.d0
     do n = 1,ao_prim_num(j)
-     alpha = ao_expo_transp(n,j)
+     alpha = ao_expo_ordered_transp(n,j)
      !DEC$ VECTOR ALIGNED
      do l = 1, ao_prim_num(i)
-      c = ao_coef_transp(n,j)*ao_coef_transp(l,i)
-      beta = ao_expo_transp(l,i)
+      c = ao_coef_normalized_ordered_transp(n,j)*ao_coef_normalized_ordered_transp(l,i)
+      beta = ao_expo_ordered_transp(l,i)
       call overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,power_B,overlap_x,overlap_y,overlap_z,overlap,dim1)
       call overlap_bourrin_spread(A_center(1),B_center(1),alpha,beta,power_A(1),power_B(1),tmp,lower_exp_val,dx,dim1)
       accu_x +=  c*(tmp*overlap_y*overlap_z)
@@ -100,8 +100,8 @@
   !$OMP  overlap_x,overlap_y, overlap_z, overlap, &
   !$OMP  alpha, beta,i,j,dx,tmp,c,accu_x,accu_y,accu_z) &
   !$OMP SHARED(nucl_coord,ao_power,ao_prim_num, &
-  !$OMP  ao_dipole_x,ao_dipole_y,ao_dipole_z,ao_num,ao_coef_transp,ao_nucl, &
-  !$OMP ao_expo_transp,dim1,lower_exp_val)
+  !$OMP  ao_dipole_x,ao_dipole_y,ao_dipole_z,ao_num,ao_coef_normalized_ordered_transp,ao_nucl, &
+  !$OMP ao_expo_ordered_transp,dim1,lower_exp_val)
   do j=1,ao_num
    A_center(1) = nucl_coord( ao_nucl(j), 1 )
    A_center(2) = nucl_coord( ao_nucl(j), 2 )
@@ -122,11 +122,11 @@
     accu_y = 0.d0
     accu_z = 0.d0
     do n = 1,ao_prim_num(j)
-     alpha = ao_expo_transp(n,j)
+     alpha = ao_expo_ordered_transp(n,j)
      !DEC$ VECTOR ALIGNED
      do l = 1, ao_prim_num(i)
-      beta = ao_expo_transp(l,i)
-      c = ao_coef_transp(l,i)*ao_coef_transp(n,j)
+      beta = ao_expo_ordered_transp(l,i)
+      c = ao_coef_normalized_ordered_transp(l,i)*ao_coef_normalized_ordered_transp(n,j)
       call overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,power_B,overlap_x,overlap_y,overlap_z,overlap,dim1)
 
       call overlap_bourrin_dipole(A_center(1),B_center(1),alpha,beta,power_A(1),power_B(1),tmp,lower_exp_val,dx,dim1)
@@ -174,8 +174,8 @@
   !$OMP  overlap_x,overlap_y, overlap_z, overlap, &
   !$OMP  alpha, beta,i,j,dx,tmp,c,i_component,accu_x,accu_y,accu_z) &
   !$OMP SHARED(nucl_coord,ao_power,ao_prim_num, &
-  !$OMP  ao_deriv_1_x,ao_deriv_1_y,ao_deriv_1_z,ao_num,ao_coef_transp,ao_nucl, &
-  !$OMP  ao_expo_transp,dim1,lower_exp_val)
+  !$OMP  ao_deriv_1_x,ao_deriv_1_y,ao_deriv_1_z,ao_num,ao_coef_normalized_ordered_transp,ao_nucl, &
+  !$OMP  ao_expo_ordered_transp,dim1,lower_exp_val)
   do j=1,ao_num
    A_center(1) = nucl_coord( ao_nucl(j), 1 )
    A_center(2) = nucl_coord( ao_nucl(j), 2 )
@@ -196,12 +196,12 @@
     accu_y = 0.d0
     accu_z = 0.d0
     do n = 1,ao_prim_num(j)
-     alpha = ao_expo_transp(n,j)
+     alpha = ao_expo_ordered_transp(n,j)
      !DEC$ VECTOR ALIGNED
      do l = 1, ao_prim_num(i)
-      beta = ao_expo_transp(l,i)
+      beta = ao_expo_ordered_transp(l,i)
       call overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,power_B,overlap_x,overlap_y,overlap_z,overlap,dim1)
-      c = ao_coef_transp(l,i) * ao_coef_transp(n,j)
+      c = ao_coef_normalized_ordered_transp(l,i) * ao_coef_normalized_ordered_transp(n,j)
       i_component = 1
       call overlap_bourrin_deriv_x(i_component,A_center,B_center,alpha,beta,power_A,power_B,dx,lower_exp_val,tmp,dim1)
       accu_x += c*(tmp*overlap_y*overlap_z)

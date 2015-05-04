@@ -25,7 +25,7 @@
   !$OMP DEFAULT (NONE) &
   !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B, &
   !$OMP          num_A,num_B,Z,c,n_pt_in) &
-  !$OMP SHARED (ao_num,ao_prim_num,ao_expo_transp,ao_power,ao_nucl,nucl_coord,ao_coef_transp, &
+  !$OMP SHARED (ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp, &
   !$OMP         n_pt_max_integrals,ao_nucl_elec_integral,nucl_num,nucl_charge) 
 
   n_pt_in = n_pt_max_integrals
@@ -33,39 +33,39 @@
   !$OMP DO SCHEDULE (guided)
 
   do j = 1, ao_num
-  num_A = ao_nucl(j)
-  power_A(1:3)= ao_power(j,1:3)
-  A_center(1:3) = nucl_coord(num_A,1:3)
-
-  do i = 1, ao_num
-
-   num_B = ao_nucl(i)
-   power_B(1:3)= ao_power(i,1:3)
-   B_center(1:3) = nucl_coord(num_B,1:3)
-
-    do l=1,ao_prim_num(j)
-     alpha = ao_expo_transp(l,j)
-  
-    do m=1,ao_prim_num(i)
-      beta = ao_expo_transp(m,i)
-  
-      double precision :: c
-      c = 0.d0
-       
-      do  k = 1, nucl_num
-        double precision :: Z
-        Z = nucl_charge(k)
-  
-        C_center(1:3) = nucl_coord(k,1:3)
-  
-        c = c - Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)    
-
+    num_A = ao_nucl(j)
+    power_A(1:3)= ao_power(j,1:3)
+    A_center(1:3) = nucl_coord(num_A,1:3)
+    
+    do i = 1, ao_num
+      
+      num_B = ao_nucl(i)
+      power_B(1:3)= ao_power(i,1:3)
+      B_center(1:3) = nucl_coord(num_B,1:3)
+      
+      do l=1,ao_prim_num(j)
+        alpha = ao_expo_ordered_transp(l,j)
+        
+        do m=1,ao_prim_num(i)
+          beta = ao_expo_ordered_transp(m,i)
+          
+          double precision               :: c
+          c = 0.d0
+          
+          do  k = 1, nucl_num
+            double precision               :: Z
+            Z = nucl_charge(k)
+            
+            C_center(1:3) = nucl_coord(k,1:3)
+            
+            c = c - Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)
+            
+          enddo
+          ao_nucl_elec_integral(i,j) = ao_nucl_elec_integral(i,j) +  &
+                                       ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i)*c
+        enddo
       enddo
-      ao_nucl_elec_integral(i,j) = ao_nucl_elec_integral(i,j) + &
-                                   ao_coef_transp(l,j)*ao_coef_transp(m,i)*c
-     enddo
-     enddo
-  enddo
+    enddo
   enddo
 
  !$OMP END DO 
@@ -98,7 +98,7 @@
  !$OMP DEFAULT (NONE) &
  !$OMP PRIVATE (i,j,l,m,alpha,beta,A_center,B_center,power_A,power_B, &
  !$OMP  num_A,num_B,c,n_pt_in) &
- !$OMP SHARED (k,ao_num,ao_prim_num,ao_expo_transp,ao_power,ao_nucl,nucl_coord,ao_coef_transp, &
+ !$OMP SHARED (k,ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp, &
  !$OMP  n_pt_max_integrals,ao_nucl_elec_integral_per_atom,nucl_num,C_center)
  n_pt_in = n_pt_max_integrals
  !$OMP DO SCHEDULE (guided)
@@ -122,11 +122,11 @@
     B_center(3) = nucl_coord(num_B,3)
     c = 0.d0
     do l=1,ao_prim_num(j)
-     alpha = ao_expo_transp(l,j)
+     alpha = ao_expo_ordered_transp(l,j)
      do m=1,ao_prim_num(i)
-      beta = ao_expo_transp(m,i)
+      beta = ao_expo_ordered_transp(m,i)
       c = c + NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in) &
-          * ao_coef_transp(l,j)*ao_coef_transp(m,i)
+          * ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i)
      enddo
     enddo
     ao_nucl_elec_integral_per_atom(i,j,k) = -c
