@@ -13,8 +13,8 @@ let spec =
      ~doc:"int Total charge of the molecule. Default is 0."
   +> flag "m" (optional_with_default 1 int)
      ~doc:"int Spin multiplicity (2S+1) of the molecule. Default is 1."
-  +> flag "p" (optional_with_default 0 int)
-     ~doc:"Using pseudo. Default is not (aka 0)"
+  +> flag "p" no_arg
+     ~doc:"Using pseudo."
   +> anon ("xyz_file" %: string)
 ;;
 
@@ -62,7 +62,7 @@ let run ?o b c m p xyz_file =
       | None -> (* Principal basis *)
         let basis = elem_and_basis_name in
         let command =
-          if (p = 0) then  
+          if (p) then  
             Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
               ^ "\" \"" ^ basis ^"\""
           else
@@ -254,7 +254,11 @@ let run ?o b c m p xyz_file =
 
 
   (* Doesn't work... *)
-  (*  if p = 1 then Qpackage.root ^ "scripts/pseudo/put_pseudo_in_ezfio.py" ezfio_file.to_string; *)
+  if (p) then 
+    begin
+      Qpackage.root ^ "/scripts/pseudo/put_pseudo_in_ezfio.py " ^ ezfio_file
+      |> Sys.command_exn
+    end;
 
   match Input.Ao_basis.read () with
   | None -> failwith "Error in basis"
