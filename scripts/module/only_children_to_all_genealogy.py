@@ -1,12 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+Create the NEEDED_MODULE aka the genealogy (children module, subchildren module and so on),
+of a NEEDED_CHILDREN_MODULES file
+
+Usage:
+    only_children_to_all_genealogy.py [--create_png] [<NEEDED_CHILDREN_MODULES>]
+
+Help:
+    If NEEDED_CHILDREN_MODULES is not set, check the current pwd
+    Same for create_png.
+"""
+
+from docopt import docopt
+
 import os
 import os.path
 from functools import wraps
 
 
 def cache(func):
+    """
+    A decorator for lazy evaluation off true function
+    """
     saved = {}
 
     @wraps(func)
@@ -48,10 +65,6 @@ def module_genealogy(path):
     Take a name of a NEEDED_CHILDREN_MODULES
     and return a list of all the {sub, subsub, ...}children
     """
-    if not path:
-        dir_ = os.getcwd()
-        path = os.path.join(dir_, "NEEDED_CHILDREN_MODULES")
-
     try:
         with open(path, "r") as f:
             l_children = f.read().split()
@@ -107,13 +120,61 @@ def reduce_(l_module):
                     return c
 
 
-if __name__ == '__main__':
-    import sys
+def create_png_from_path(path):
+    " Change a path like this into a module list"
+    "path = /home/razoa/quantum_package/src/Molden/NEEDED_CHILDREN_MODULES"
 
-    try:
-        path = sys.argv[1]
-    except IndexError:
-        path = None
+    l_module = os.path.split(path)[0].split("/")[-1]
+    create_png([l_module])
+
+
+def create_png(l_module):
+    """Create the png of the dependancy tree for a l_module"""
+
+    # Init
+    import pydot
+    all_ready_done = []
+
+    def draw_module_edge(module, l_children):
+        "Draw all the module recursifly"
+
+        if module not in all_ready_done:
+            for children in l_children:
+                        # Add Edge
+                        edge = pydot.Edge(module, children)
+                        graph.add_edge(edge)
+                        # Recurs
+                        draw_module_edge(children, d_ref[children])
+            all_ready_done.append(module)
+
+    # Init
+    graph = pydot.Dot(graph_type='digraph')
+    d_ref = get_dict_genealogy()
+
+    # Create all the edge
+    for module in l_module:
+        node_a = pydot.Node(module, fontcolor="red")
+        graph.add_node(node_a)
+        draw_module_edge(module, d_ref[module])
+
+    # Save
+    path = '{0}.png'.format("_".join(l_module))
+    graph.write_png(path)
+
+if __name__ == '__main__':
+
+    arguments = docopt(__doc__)
+
+    if not arguments['<NEEDED_CHILDREN_MODULES>']:
+        dir_ = os.getcwd()
+        path = os.path.join(dir_, "NEEDED_CHILDREN_MODULES")
+    else:
+        path = os.path.abspath(arguments['<NEEDED_CHILDREN_MODULES>'])
+        path = os.path.expanduser(path)
+        path = os.path.expandvars(path)
 
     l_all_needed_molule = module_genealogy(path)
     print " ".join(sorted(l_all_needed_molule))
+
+    if arguments["--create_png"]:
+        create_png_from_path(path)
