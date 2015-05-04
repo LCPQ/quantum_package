@@ -84,7 +84,7 @@
   !$OMP          num_A,num_B,Z,c,n_pt_in, &
   !$OMP          v_k_dump,n_k_dump, dz_k_dump, n_kl_dump, v_kl_dump, dz_kl_dump, &
   !$OMP          wall_0,wall_2,thread_num, output_monoints) & 
-  !$OMP SHARED (ao_num,ao_prim_num,ao_expo_transp,ao_power,ao_nucl,nucl_coord,ao_coef_transp, &
+  !$OMP SHARED (ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp, &
   !$OMP         ao_nucl_elec_integral_pseudo,nucl_num,nucl_charge, &
   !$OMP         klocmax,lmax,kmax,v_k,n_k, dz_k, n_kl, v_kl, dz_kl, &
   !$OMP         wall_1)
@@ -104,10 +104,10 @@
    B_center(1:3) = nucl_coord(num_B,1:3)
 
     do l=1,ao_prim_num(j)
-     alpha = ao_expo_transp(l,j)
+     alpha = ao_expo_ordered_transp(l,j)
   
     do m=1,ao_prim_num(i)
-      beta = ao_expo_transp(m,i)
+      beta = ao_expo_ordered_transp(m,i)
       double precision :: c
       c = 0.d0
        
@@ -133,7 +133,7 @@
   
       enddo
       ao_nucl_elec_integral_pseudo(i,j) = ao_nucl_elec_integral_pseudo(i,j) + &
-                                   ao_coef_transp(l,j)*ao_coef_transp(m,i)*c
+                                   ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i)*c
      enddo
      enddo
   enddo

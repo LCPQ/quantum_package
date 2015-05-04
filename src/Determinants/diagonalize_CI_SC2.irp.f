@@ -35,8 +35,7 @@ END_PROVIDER
     do i=1,N_det
       CI_SC2_eigenvectors(i,j) = psi_coef(i,j)
     enddo
-! TODO : check comment
-!   CI_SC2_electronic_energy(j) = CI_electronic_energy(j) 
+    CI_SC2_electronic_energy(j) = CI_electronic_energy(j) 
   enddo
   
   call CISD_SC2(psi_det,CI_SC2_eigenvectors,CI_SC2_electronic_energy, &

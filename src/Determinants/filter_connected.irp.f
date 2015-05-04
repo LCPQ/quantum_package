@@ -235,8 +235,8 @@ subroutine filter_connected_davidson(key1,key2,Nint,sze,idx)
     
   else if (Nint==3) then
     
-    !DIR$ LOOP COUNT (1000)
     i = idx(0)
+    !DIR$ LOOP COUNT (1000)
     do j_int=1,N_con_int
       itmp = det_connections(j_int,i)
       do while (itmp /= 0_8)
@@ -261,8 +261,8 @@ subroutine filter_connected_davidson(key1,key2,Nint,sze,idx)
     
   else
     
-    !DIR$ LOOP COUNT (1000)
     i = idx(0)
+    !DIR$ LOOP COUNT (1000)
     do j_int=1,N_con_int
       itmp = det_connections(j_int,i)
       do while (itmp /= 0_8)

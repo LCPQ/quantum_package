@@ -36,8 +36,8 @@
   !$OMP  alpha, beta,i,j,c,d_a_2,d_2,deriv_tmp, &
   !$OMP  overlap_x0,overlap_y0,overlap_z0) &
   !$OMP SHARED(nucl_coord,ao_power,ao_prim_num, &
-  !$OMP  ao_deriv2_x,ao_deriv2_y,ao_deriv2_z,ao_num,ao_coef_transp,ao_nucl, &
-  !$OMP  ao_expo_transp,dim1)
+  !$OMP  ao_deriv2_x,ao_deriv2_y,ao_deriv2_z,ao_num,ao_coef_normalized_ordered_transp,ao_nucl, &
+  !$OMP  ao_expo_ordered_transp,dim1)
   do j=1,ao_num
    A_center(1) = nucl_coord( ao_nucl(j), 1 )
    A_center(2) = nucl_coord( ao_nucl(j), 2 )
@@ -58,12 +58,12 @@
     power_B(2)  = ao_power( i, 2 )
     power_B(3)  = ao_power( i, 3 )
     do n = 1,ao_prim_num(j)
-     alpha = ao_expo_transp(n,j)
+     alpha = ao_expo_ordered_transp(n,j)
      !DEC$ VECTOR ALIGNED
      do l = 1, ao_prim_num(i)
-      beta = ao_expo_transp(l,i)
+      beta = ao_expo_ordered_transp(l,i)
       call overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,power_B,overlap_x0,overlap_y0,overlap_z0,overlap,dim1)
-      c = ao_coef_transp(n,j) * ao_coef_transp(l,i)
+      c = ao_coef_normalized_ordered_transp(n,j) * ao_coef_normalized_ordered_transp(l,i)
 !     if (abs(c) < 1.d-8) then
 !       cycle
 !     endif
