@@ -17,7 +17,7 @@ from collections import defaultdict
 # O p t #
 # ~#~#~ #
 
-precision = 5.e-8
+precision = 1.e-7
 
 # A test get a geo file and a basis file.
 # A global dict containt the result for this test

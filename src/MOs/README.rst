@@ -18,6 +18,18 @@ When saving the MOs, the ``mo_basis`` directory of the EZFIO file is copied
 in the ``save`` directory, named by the current ``mo_label``. All this is
 done with the script named ``save_current_mos.sh`` in the ``scripts`` directory.
 
+Assumptions
+===========
+
+.. Do not edit this section. It was auto-generated from the
+.. NEEDED_MODULES file.
+
+ASSUMPTONS
+==========
+
+* The AO basis functions are normalized.
+
+
 Needed Modules
 ==============
 

@@ -45,10 +45,10 @@ Documentation
   after calling this function.
   After calling this subroutine, N_det, psi_det and psi_coef need to be touched
 
-`debug_unicity_of_determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L187>`_
+`debug_unicity_of_determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L187>`_
   This subroutine checks that there are no repetitions in the wave function
 
-`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Dets/H_apply.irp.f#L222>`_
+`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L222>`_
   Fill the H_apply buffer with determiants for CISD
 
 `h_apply_buffer_allocated <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L15>`_
@@ -329,7 +329,7 @@ Documentation
 `ci_sc2_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_SC2.irp.f#L1>`_
   N_states_diag lowest eigenvalues of the CI matrix
 
-`diagonalize_ci_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_SC2.irp.f#L46>`_
+`diagonalize_ci_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_SC2.irp.f#L45>`_
   Replace the coefficients of the CI states_diag by the coefficients of the
   eigenstates of the CI matrix
 
