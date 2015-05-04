@@ -19,7 +19,7 @@ default: all .gitignore
 include $(QPACKAGE_ROOT)/src/Makefile.config
 
 # Create the NEEDED_CHILDREN_MODULES variable, needed for IRPF90
-NEEDED_CHILDREN_MODULES=$(shell only_children_to_all_genealogy.py)
+NEEDED_CHILDREN_MODULES=$(shell module_handler.py print_genealogy)
 
 # Check and update dependencies
 include Makefile.depend

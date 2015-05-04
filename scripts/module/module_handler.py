@@ -2,16 +2,19 @@
 # -*- coding: utf-8 -*-
 
 """
-Create the NEEDED_MODULE aka the genealogy (children module, subchildren module and so on),
+Create the NEEDED_MODULE
+    aka the genealogy (children module, subchildren module and so on),
 of a NEEDED_CHILDREN_MODULES file
 
 Usage:
-    only_children_to_all_genealogy.py [<NEEDED_CHILDREN_MODULES>]
-                                      [--create_png]
+    module_handler.py   print_genealogy [<NEEDED_CHILDREN_MODULES>]
+    module_handler.py   create_png      [<NEEDED_CHILDREN_MODULES>]
 
-Help:
-    If NEEDED_CHILDREN_MODULES is not set, check the current pwd
-    Same for create_png.
+Options:
+    print_genealogy    Print the genealogy of the NEEDED_CHILDREN_MODULES
+                            aka (children, subchildren, etc)
+                        if NEEDED_CHILDREN_MODULES
+                            try to open it in the current path
 """
 
 from docopt import docopt
@@ -180,8 +183,9 @@ if __name__ == '__main__':
         path = os.path.expanduser(path)
         path = os.path.expandvars(path)
 
-    l_all_needed_molule = module_genealogy(path)
-    print " ".join(sorted(l_all_needed_molule))
+    if arguments['print_genealogy']:
+        l_all_needed_molule = module_genealogy(path)
+        print " ".join(sorted(l_all_needed_molule))
 
-    if arguments["--create_png"]:
+    if arguments["create_png"]:
         create_png_from_path(path)
