@@ -16,6 +16,7 @@ fi
 cd ${QPACKAGE_ROOT}
 
 
+rm -rf resultsFile-master
 ${QPACKAGE_ROOT}/scripts/fetch_from_web.py ${URL} ${QPACKAGE_ROOT}/resultsFile.tar.gz
 tar -zxf resultsFile.tar.gz && rm resultsFile.tar.gz ||exit 1
 mv resultsFile-master resultsFile

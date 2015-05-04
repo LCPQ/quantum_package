@@ -30,6 +30,8 @@ Assumptions
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
+* The AO coefficients in the EZFIO files are not necessarily normalized and are normalized after reading
+
 
 Needed Modules
 ==============

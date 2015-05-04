@@ -12,15 +12,15 @@ QPACKAGE_ROOT="$( cd "$(dirname "$BASH_SOURCE")"  ; pwd -P )"
 
 
 cat << EOF > quantum_package.rc
-export IRPF90="${IRPF90}"
 export QPACKAGE_ROOT=\$( cd \$(dirname "\${BASH_SOURCE}")  ; pwd -P )
+export IRPF90="\${QPACKAGE_ROOT}/bin/irpf90"
 export LD_LIBRARY_PATH="\${QPACKAGE_ROOT}"/lib:\${LD_LIBRARY_PATH}
 export LIBRARY_PATH="\${QPACKAGE_ROOT}"/lib:\${LIBRARY_PATH}
 export C_INCLUDE_PATH="\${QPACKAGE_ROOT}"/include:\${C_INCLUDE_PATH}
 
-export PYTHONPATH=\${PYTHONPATH}\$(find "${QPACKAGE_ROOT}"/scripts -type d -printf ":%p")
+export PYTHONPATH=\${PYTHONPATH}\$(find "\${QPACKAGE_ROOT}"/scripts -type d -printf ":%p")
 
-export PATH=\${PATH}\$(find "${QPACKAGE_ROOT}"/scripts -type d -printf ":%p")
+export PATH=\${PATH}\$(find "\${QPACKAGE_ROOT}"/scripts -type d -printf ":%p")
 export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/bin
 export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/ocaml
 source "\${QPACKAGE_ROOT}"/bin/irpman &> /dev/null
