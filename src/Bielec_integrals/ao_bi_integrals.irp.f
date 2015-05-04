@@ -481,6 +481,7 @@ IRP_ENDIF COARRAY
   ao_bielec_integrals_in_map = .True.
   if (write_ao_integrals) then
     call dump_ao_integrals(trim(ezfio_filename)//'/work/ao_integrals.bin')
+    call ezfio_set_bielec_integrals_disk_access_ao_integrals(.True.)
   endif
   
 END_PROVIDER

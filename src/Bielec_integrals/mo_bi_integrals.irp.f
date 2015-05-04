@@ -312,6 +312,7 @@ IRP_ENDIF
   
   if (write_mo_integrals) then
     call dump_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin')
+    call ezfio_set_bielec_integrals_disk_access_mo_integrals(.True.)
   endif
   
   
