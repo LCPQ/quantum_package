@@ -71,7 +71,7 @@ debug "Module does not already exist: OK"
 
 
 # Set up dependencies
-ALL_MODULES="${NEEDED_MODULES}"
+ALL_MODULES="$(cat NEEDED_MODULES)"
 echo "Select which modules you are sure you will need:  (press q to quit)"  
 NEEDED_MODULES=""
 select M in ${ALL_MODULES}
