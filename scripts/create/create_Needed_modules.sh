@@ -14,7 +14,5 @@ source ${QPACKAGE_ROOT}/scripts/qp_include.sh
 
 check_current_dir_is_module
 
-OUTPUT=$(${QPACKAGE_ROOT}/scripts/check_dependencies.sh $@)
-echo ${OUTPUT} > NEEDED_MODULES
-
-
+OUTPUT=$(module_handler.py check_dependencies $@)
+echo $@ > NEEDED_CHILDREN_MODULES

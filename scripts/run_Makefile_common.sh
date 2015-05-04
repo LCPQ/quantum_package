@@ -14,7 +14,7 @@ check_current_dir_is_module
 
 # Check if the NEEDED_MODULES file is consistent
 INCLUDE_DIRS="${NEEDED_MODULES} include"
-NEEDED_MODULES_OK=$( ${QPACKAGE_ROOT}/scripts/check_dependencies.sh ${NEEDED_MODULES} )
+NEEDED_MODULES_OK=$(module_handler.py check_dependencies ${NEEDED_MODULES} )
 if [[ $? -ne 0 ]] 
 then
   error "

@@ -7,14 +7,16 @@ Create the NEEDED_MODULE
 of a NEEDED_CHILDREN_MODULES file
 
 Usage:
-    module_handler.py   print_genealogy [<NEEDED_CHILDREN_MODULES>]
-    module_handler.py   create_png      [<NEEDED_CHILDREN_MODULES>]
+    module_handler.py print_genealogy    [<NEEDED_CHILDREN_MODULES>]
+    module_handler.py check_dependencies   [<module_name>...]
+    module_handler.py create_png         [<NEEDED_CHILDREN_MODULES>]
 
 Options:
-    print_genealogy    Print the genealogy of the NEEDED_CHILDREN_MODULES
-                            aka (children, subchildren, etc)
-                        if NEEDED_CHILDREN_MODULES
-                            try to open it in the current path
+    print_genealogy         Print the genealogy of the NEEDED_CHILDREN_MODULES
+                                 aka (children, subchildren, etc)
+    create_png              Create a png of the file
+    NEEDED_CHILDREN_MODULES The path of NEEDED_CHILDREN_MODULES
+                                by default try to open the file in the current path
 """
 
 from docopt import docopt
@@ -73,8 +75,9 @@ def module_genealogy(path):
     try:
         with open(path, "r") as f:
             l_children = f.read().split()
-    except IOError:
-        return []
+    except IOError as e:
+        print >> sys.stderr, e
+        sys.exit(1)
     else:
 
         needed_module = get_it_and_children(l_children)
@@ -169,6 +172,7 @@ def create_png(l_module):
 
     # Save
     path = '{0}.png'.format("_".join(l_module))
+    print "png saved in {0}".format(path)
     graph.write_png(path)
 
 if __name__ == '__main__':
@@ -187,5 +191,12 @@ if __name__ == '__main__':
         l_all_needed_molule = module_genealogy(path)
         print " ".join(sorted(l_all_needed_molule))
 
-    if arguments["create_png"]:
+    elif arguments["check_dependencies"]:
+        l_module = arguments['<module_name>']
+        if l_module:
+            l_all_needed_molule = get_it_and_children(l_module)
+        else:
+            l_all_needed_molule = module_genealogy(path)
+
+    elif arguments["create_png"]:
         create_png_from_path(path)

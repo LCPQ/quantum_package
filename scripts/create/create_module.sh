@@ -126,7 +126,7 @@ debug "Makefile created"
 
 # Create the NEEDED_MODULES file
 "${QPACKAGE_ROOT}/scripts/create/create_Needed_modules.sh" ${NEEDED_MODULES} || fail "Unable to create the NEEDED_MODULES file"
-if [[ ! -f NEEDED_MODULES ]]
+if [[ ! -f NEEDED_CHILDREN_MODULES ]]
 then
   fail "NEEDED_MODULES was not created"
 fi
