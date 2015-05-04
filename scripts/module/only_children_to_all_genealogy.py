@@ -3,13 +3,32 @@
 
 import os
 import os.path
+from functools import wraps
 
-def get_dict_genealogy(all_children=False):
+
+def cache(func):
+    saved = {}
+
+    @wraps(func)
+    def newfunc(*args):
+        if args in saved:
+            return saved[args]
+
+        result = func(*args)
+        saved[args] = result
+        return result
+    return newfunc
+
+
+@cache
+def get_dict_genealogy():
+    """Loop over MODULE in  QPACKAGE_ROOT/src, open all the NEEDED_CHILDREN_MODULES
+    and create a dict[MODULE] = [sub module needed, ...]
+    """
+    d_ref = dict()
 
     qpackage_root = os.environ['QPACKAGE_ROOT']
-    dir_ = os.path.join(qpackage_root,'src')
-
-    d_ref = dict()
+    dir_ = os.path.join(qpackage_root, 'src')
 
     for o in os.listdir(dir_):
 
@@ -21,15 +40,14 @@ def get_dict_genealogy(all_children=False):
         else:
             d_ref[o] = l_children
 
-    if all_children:
-        for module in d_ref:
-            d_ref[module] = get_all_children(d_ref, d_ref[module], [])
-
     return d_ref
 
 
-def module_children_to_all(d_ref,path):
-
+def module_genealogy(path):
+    """
+    Take a name of a NEEDED_CHILDREN_MODULES
+    and return a list of all the {sub, subsub, ...}children
+    """
     if not path:
         dir_ = os.getcwd()
         path = os.path.join(dir_, "NEEDED_CHILDREN_MODULES")
@@ -40,51 +58,54 @@ def module_children_to_all(d_ref,path):
     except IOError:
         return []
     else:
-        needed_module = l_children
-        for module in l_children:
 
-            for children in get_all_children(d_ref, d_ref[module], []):
-                if children not in needed_module:
-                    needed_module.append(children)
+        needed_module = get_it_and_children(l_children)
 
         return needed_module
 
 
-def get_all_children(d_ref, l_module, l=[]):
+def get_it_and_children(l_module):
     """
-    From a d_ref (who containt all the data --flatter or not-- create
-        an flatten list who contain all the children
+    From a list of module return the module and all of the genealogy
     """
+    d_ref = get_dict_genealogy()
+
+    l = []
     for module in l_module:
         if module not in l:
             l.append(module)
-            get_all_children(d_ref, d_ref[module], l)
+            l.extend(get_it_and_children(d_ref[module]))
 
     return list(set(l))
 
 
-def reduce_(d_ref, name):
-
+def get_all_children(l_module):
     """
-    Take a big list and try to find the lower parent
-    available
+    From a list of module return all the genealogy
+    """
+
+    it_and_all = get_it_and_children(l_module)
+    return [children for children in it_and_all if children not in l_module]
+
+
+def reduce_(l_module):
+    """
+    Take a l_module and try to find the lower combinaitions
+    of module with the same genealogy
     """
     import itertools
+    d_ref = get_dict_genealogy()
 
-    a = sorted(get_all_children(d_ref[name]))
+    target_genealogy = sorted(get_all_children(l_module))
 
     for i in xrange(len(d_ref)):
         for c in itertools.combinations(d_ref, i):
 
-                l = []
-                b = sorted(get_all_children(c, l))
+                guess_genealogy = sorted(get_it_and_children(d_ref, c))
 
-                if a == b:
+                if target_genealogy == guess_genealogy:
                     return c
 
-#for i in sorted(d_ref):
-#    print i, reduce_(i)
-#
 
 if __name__ == '__main__':
     import sys
@@ -94,15 +115,5 @@ if __name__ == '__main__':
     except IndexError:
         path = None
 
-    d_ref = get_dict_genealogy()
-
-    l_all_needed_molule = module_children_to_all(d_ref, path)
+    l_all_needed_molule = module_genealogy(path)
     print " ".join(sorted(l_all_needed_molule))
-
-#    print d_ref
-#
-#    d_ref = get_dict_genealogy(True)
-#
-#    print d_ref
-#
-#    module_hl_to_ll(d_ref)
