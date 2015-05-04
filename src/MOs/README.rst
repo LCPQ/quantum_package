@@ -8,6 +8,8 @@ Molecular orbitals are expressed as
 
   \phi_k({\bf r}) = \sum_i C_{ik} \chi_k({\bf r})
 
+where :math:`\chi_k` are *normalized* atomic basis set.
+
 The current set of molecular orbitals has a label ``mo_label``.
 When the orbitals are modified, the label should also be updated to keep
 everything consistent.
@@ -24,10 +26,6 @@ Needed Modules
 
 * `AOs <http://github.com/LCPQ/quantum_package/tree/master/src/AOs>`_
 * `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_
-* `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
-* `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
-* `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
-* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 
 Documentation
 =============

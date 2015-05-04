@@ -12,21 +12,21 @@ EZFIO=$(EZFIO_DIR)/lib/libezfio_irp.a
 
 
 default: ezfio
-	$(QPACKAGE_ROOT)/scripts/build_modules.sh $(ALL_MODULES)
+	$(QPACKAGE_ROOT)/scripts/module/build_modules.sh $(ALL_MODULES)
 
 veryclean:
-	$(QPACKAGE_ROOT)/scripts/clean_modules.sh $(ALL_MODULES)
+	$(QPACKAGE_ROOT)/scripts/module/clean_modules.sh $(ALL_MODULES)
 	# Define the dict [type in EZFIO.cfg] = ocaml type , f90 type
 	# If you change the qptypes_generator.ml, you need to rm this
 	# For simplicity add this to the veryclean rule
-	rm $(QPACKAGE_ROOT)/scripts/ezfio_interface/fancy_type.p
+	rm -f $(QPACKAGE_ROOT)/scripts/ezfio_interface/fancy_type.p
 
 $(ALL_MODULES): ezfio
-	$(QPACKAGE_ROOT)/scripts/build_modules.sh $@ 
+	$(QPACKAGE_ROOT)/scripts/module/build_modules.sh $@ 
 
 # Define the EZFIO rules
 $(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg)
-	$(QPACKAGE_ROOT)/scripts/prepare_ezfio.sh
+	$(QPACKAGE_ROOT)/scripts/ezfio_interface/prepare_ezfio.sh
 	cd $(EZFIO_DIR);\
 	export FC="$(FC)" ; export FCFLAGS="$(FCFLAGS)" ; export IRPF90="$(IRPF90)" ;\
 	$(MAKE) ;\
