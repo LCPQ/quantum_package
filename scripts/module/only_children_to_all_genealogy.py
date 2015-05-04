@@ -6,7 +6,8 @@ Create the NEEDED_MODULE aka the genealogy (children module, subchildren module 
 of a NEEDED_CHILDREN_MODULES file
 
 Usage:
-    only_children_to_all_genealogy.py [--create_png] [<NEEDED_CHILDREN_MODULES>]
+    only_children_to_all_genealogy.py [<NEEDED_CHILDREN_MODULES>]
+                                      [--create_png]
 
 Help:
     If NEEDED_CHILDREN_MODULES is not set, check the current pwd
@@ -16,6 +17,7 @@ Help:
 from docopt import docopt
 
 import os
+import sys
 import os.path
 from functools import wraps
 
@@ -87,7 +89,12 @@ def get_it_and_children(l_module):
     for module in l_module:
         if module not in l:
             l.append(module)
-            l.extend(get_it_and_children(d_ref[module]))
+            try:
+                l.extend(get_it_and_children(d_ref[module]))
+            except KeyError:
+                print >> sys.stderr, "`{0}` in not a good submodule name".format(module)
+                print >> sys.stderr, "Check the corresponding NEEDED_CHILDREN_MODULES"
+                sys.exit(1)
 
     return list(set(l))
 
