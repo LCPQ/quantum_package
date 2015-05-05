@@ -1835,24 +1835,6 @@ double precision function binom_gen(alpha,n)
  enddo
 end
 
-double precision function test_int(g_a,g_b,g_c,ac,bc)
-implicit none
-double precision factor,g_a,g_b,g_c,ac,bc,x,dx,sum,alpha,beta,pi
-integer i,npts
-pi=dacos(-1.d0)
-factor=0.5d0*pi/(g_a*g_b*ac*bc*dsqrt(g_a+g_b+g_c))*dexp(-g_a*ac**2-g_b*bc**2)
-npts=2000
-dx=20.d0/npts
-sum=0.d0
-alpha=(2.d0*g_a*ac+2.d0*g_b*bc)/dsqrt(g_c+g_a+g_b)
-beta=(2.d0*g_b*bc-2.d0*g_b*bc)/dsqrt(g_c+g_a+g_b)
-do i=1,npts
- x=(i-1)*dx+0.5d0*dx
- sum=sum+dx*dexp(-x**2)*(dcosh(alpha*x)-dcosh(beta*x))
-enddo
-test_int=factor*sum
-end
-
 recursive function fact1(n,a) result(x)
 implicit none
 integer n
