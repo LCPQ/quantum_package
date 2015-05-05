@@ -1828,12 +1828,6 @@ double precision function coef_nk(n,k)
   double precision gam,dble_fact,fact
 
   double precision, save :: store_result(0:2,0:10)
-  integer, save :: ifirst
-
-  if (ifirst == 0) then
-    ifirst =1
-
-  endif
 
   store_result(0, 0) =  1.00000000000000d0
   store_result(0, 1) =  0.166666666666667d0
@@ -1878,7 +1872,7 @@ double precision function coef_nk(n,k)
     endif
   endif
 
-  if ((n+k).GE.30) then
+  if ((n+k).GE.60) then
     coef_nk = 0.d0
     return
   endif
@@ -1945,10 +1939,10 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
       sum=0.d0
 
       temp_array_a(q) = coef_nk(n,q)*(a**(n+2*q))
-      temp_array_b(m+2*q) = coef_nk(m,q)*b**(m+2*q)
+      temp_array_b(q) = coef_nk(m,q)*b**(m+2*q)
 
       do k=0,q
-        sum=sum+temp_array_a(k)*temp_array_b(m-2*k+2*q)
+        sum=sum+temp_array_a(k)*temp_array_b(q-2*k)
       enddo
 
      int=int+sum*crochet(2*q+n+m+l,gam)
