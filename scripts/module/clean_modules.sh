@@ -16,6 +16,8 @@ function do_clean()
     IRPF90_temp IRPF90_man Makefile.depend \
     $(module_handler.py print_genealogy) include \
     ezfio_interface.irp.f irpf90.make irpf90_entities tags $(ls_exe) *.mod
+
+  touch -c EZFIO.cfg *.ezfio_config
 }
 
 if [[ -z $1 ]]
