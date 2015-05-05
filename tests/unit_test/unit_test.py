@@ -20,7 +20,7 @@ Energy = namedtuple('Energy', ['without_pseudo', 'with_pseudo'])
 # O p t #
 # ~#~#~ #
 
-precision = 1.e-7
+precision = 1.e-8
 
 # A test get a geo file and a basis file.
 # A global dict containt the result for this test
@@ -372,11 +372,11 @@ def check_convert(path_out):
 #
 class ValueTest(unittest.TestCase):
 
-    def test_hf_then_full_ci_10k_pt2_end(self):
-        self.assertTrue(hf_then_10k_test(geo="methane",
-                                         basis="sto-3g",
-                                         mult=1,
-                                         pseudo=False))
+#    def test_hf_then_full_ci_10k_pt2_end(self):
+#        self.assertTrue(hf_then_10k_test(geo="methane",
+#                                         basis="sto-3g",
+#                                         mult=1,
+#                                         pseudo=False))
 
     def test_hf(self):
         self.assertTrue(run_hf(geo="HBO",
@@ -385,20 +385,20 @@ class ValueTest(unittest.TestCase):
                                pseudo=True))
 
 
-class ConvertTest(unittest.TestCase):
-    def test_check_convert_hf_energy(self):
-        self.assertTrue(check_convert("HBO.out"))
-
-
-class InputTest(unittest.TestCase):
-
-    def test_check_disk_acess(self):
-        self.assertTrue(check_disk_acess(geo="methane",
-                                         basis="un-ccemd-ref"))
-
-    def test_check_mo_guess(self):
-        self.assertTrue(check_mo_guess(geo="methane",
-                                       basis="maug-cc-pVDZ"))
+#class ConvertTest(unittest.TestCase):
+#    def test_check_convert_hf_energy(self):
+#        self.assertTrue(check_convert("HBO.out"))
+#
+#
+#class InputTest(unittest.TestCase):
+#
+#    def test_check_disk_acess(self):
+#        self.assertTrue(check_disk_acess(geo="methane",
+#                                         basis="un-ccemd-ref"))
+#
+#    def test_check_mo_guess(self):
+#        self.assertTrue(check_mo_guess(geo="methane",
+#                                       basis="maug-cc-pVDZ"))
 
 if __name__ == '__main__':
     unittest.main()
