@@ -1905,6 +1905,10 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
   integer n,k,m,q,l,kcp
   double precision gam,dblefact,fact,pi,a,b
   double precision int,intold,sum,coef_nk,crochet,u,int_prod_bessel_large,freal,arg
+  double precision dump
+
+  double precision, allocatable :: temp_array(:)
+
   logical done
 
   u=(a+b)/(2.d0*dsqrt(gam))
@@ -1933,13 +1937,20 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
     done=.false.
     kcp=0
 
+    allocate( temp_array(0:101))
+
     do while (.not.done)  
-    
+
       kcp=kcp+1
       sum=0.d0
-     
+
+      dump = a**n
+      do k=q,q+1
+         temp_array(k) = coef_nk(n,k)*dump*(a**(2*k))
+      enddo
+
       do k=0,q
-        sum=sum+coef_nk(n,k)*coef_nk(m,q-k)*a**(n+2*k)*b**(m-2*k+2*q)
+        sum=sum+temp_array(k)*coef_nk(m,q-k)*b**(m-2*k+2*q)
       enddo
      
      int=int+sum*crochet(2*q+n+m+l,gam)
@@ -1951,8 +1962,11 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
         q=q+1
         intold=int
       endif
+
     enddo
     
+    deallocate(temp_array)
+
     int_prod_bessel=int*freal
     
     if(kcp.gt.100)then
