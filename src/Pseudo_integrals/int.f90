@@ -1879,13 +1879,18 @@ end
       RETURN
       END
 
-      double precision function coef_nk(n,k)
-      implicit none
-      integer n,k
-      double precision gam,dblefact,fact
-      gam=dblefact(2*(n+k)+1)
-      coef_nk=1.d0/(2.d0**k*fact(k)*gam)
-      end
+double precision function coef_nk(n,k)
+  implicit none
+  integer n,k
+  double precision gam,dblefact,fact
+
+  if(k.GE.80) then
+    coef_nk = 0.d0
+  else
+    gam=dblefact(2*(n+k)+1)
+    coef_nk=1.d0/(2.d0**k*fact(k)*gam)
+  endif
+end
 
 !!    Calculation of
 !!
