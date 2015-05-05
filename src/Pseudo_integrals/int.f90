@@ -1905,7 +1905,8 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
   double precision int,intold,sum,coef_nk,crochet,u,int_prod_bessel_large,freal,arg
   double precision dump
 
-  double precision, allocatable :: temp_array(:)
+  double precision, allocatable :: temp_array_a(:)
+  double precision, allocatable :: temp_array_b(:)
 
   logical done
 
@@ -1935,22 +1936,21 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
     done=.false.
     kcp=0
 
-    allocate( temp_array(0:101))
+    allocate( temp_array_a(0:100))
+    allocate( temp_array_b(0+m:200+m))
 
     do while (.not.done)  
 
       kcp=kcp+1
       sum=0.d0
 
-      dump = a**n
-      do k=q,q+1
-         temp_array(k) = coef_nk(n,k)*dump*(a**(2*k))
-      enddo
+      temp_array_a(q) = coef_nk(n,q)*(a**(n+2*q))
+      temp_array_b(m+2*q) = coef_nk(m,q)*b**(m+2*q)
 
       do k=0,q
-        sum=sum+temp_array(k)*coef_nk(m,q-k)*b**(m-2*k+2*q)
+        sum=sum+temp_array_a(k)*temp_array_b(m-2*k+2*q)
       enddo
-     
+
      int=int+sum*crochet(2*q+n+m+l,gam)
      
      if(dabs(int-intold).lt.1d-15)then
@@ -1963,14 +1963,15 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
 
     enddo
     
-    deallocate(temp_array)
+    deallocate(temp_array_a)
+    deallocate(temp_array_b)
 
     int_prod_bessel=int*freal
     
     if(kcp.gt.100)then
       print*,'**WARNING** bad convergence in int_prod_bessel'
     endif
-    
+
     return
   endif
 
