@@ -800,13 +800,13 @@ end
 double precision function bigA(i,j,k)
 implicit none
 integer i,j,k
-double precision fourpi,dblefact
+double precision fourpi,dble_fact
 fourpi=4.d0*dacos(-1.d0)
 bigA=0.d0
 if(mod(i,2).eq.1)return
 if(mod(j,2).eq.1)return
 if(mod(k,2).eq.1)return
-bigA=fourpi*dblefact(i-1)*dblefact(j-1)*dblefact(k-1)/dblefact(i+j+k+1)
+bigA=fourpi*dble_fact(i-1)*dble_fact(j-1)*dble_fact(k-1)/dble_fact(i+j+k+1)
 end
 !!
 !! I_{lambda,mu,l,m}^{k1,k2,k3} = /int dOmega  Y_{lambda mu} xchap^k1 ychap^k2 zchap^k3  Y_{lm}
@@ -996,10 +996,10 @@ end
 double precision function crochet(n,g)
 implicit none
 integer n
-double precision g,pi,dblefact,expo
+double precision g,pi,dble_fact,expo
 pi=dacos(-1.d0)
 expo=0.5d0*dfloat(n+1)
-crochet=dblefact(n-1)/(2.d0*g)**expo
+crochet=dble_fact(n-1)/(2.d0*g)**expo
 if(mod(n,2).eq.0)crochet=crochet*dsqrt(pi/2.d0)
 end
 
@@ -1431,30 +1431,6 @@ end
        stop
       end
 
-double precision function dblefact(n)
-implicit none
-integer :: n,k
-double precision prod
-dblefact=1.d0
-
-if(n.lt.0)return
-if(mod(n,2).eq.1)then
-  prod=1.d0
-  do k=1,n,2
-   prod=prod*dfloat(k)
-  enddo
-  dblefact=prod
-  return
- endif
- if(mod(n,2).eq.0)then
-  prod=1.d0
-  do k=2,n,2
-   prod=prod*dfloat(k)
-  enddo
-  dblefact=prod
-  return
- endif
-end
 !!
 !! R_{lambda,lamba',N}= exp(-ga_a AC**2 -g_b BC**2) /int_{0}{+infty} r**(2+n) exp(-(g_a+g_b+g_k)r**2)
 !!                       * M_{lambda}( 2g_a ac r) M_{lambda'}(2g_b bc r)
@@ -1510,10 +1486,10 @@ end
        double precision function bessel_mod_exp(n,x)
        implicit none
        integer n,k
-       double precision x,coef,accu,fact,dblefact
+       double precision x,coef,accu,fact,dble_fact
        accu=0.d0
        do k=0,10
-        coef=1.d0/fact(k)/dblefact(2*(n+k)+1)
+        coef=1.d0/fact(k)/dble_fact(2*(n+k)+1)
         accu=accu+(x**2/2.d0)**k*coef
        enddo
        bessel_mod_exp=x**n*accu
@@ -1835,22 +1811,6 @@ double precision function binom_gen(alpha,n)
  enddo
 end
 
-recursive function fact1(n,a) result(x)
-implicit none
-integer n
-double precision a,x,erf
-if(n.eq.0)then
-x=dsqrt(dacos(-1.d0))/2.d0*erf(a)
-return
-endif
-if(n.eq.1)then
-x=1.d0-dexp(-a**2)
-return
-endif
-if(mod(n,2).eq.0)x=0.5d0*dfloat(n-1)*fact1(n-2,a)+a**n*dexp(-a**2)
-if(mod(n,2).eq.1)x=0.5d0*dfloat(n-1)*fact1(n-2,a)+0.5d0*a**(n-1)*dexp(-a**2)
-end
-
       double precision FUNCTION ERF(X)
       implicit double precision(a-h,o-z)
       IF(X.LT.0.d0)THEN
@@ -1863,15 +1823,71 @@ end
 
 double precision function coef_nk(n,k)
   implicit none
-  integer n,k
-  double precision gam,dblefact,fact
+  integer n,k, ISHFT
 
-  if(k.GE.80) then
-    coef_nk = 0.d0
-  else
-    gam=dblefact(2*(n+k)+1)
-    coef_nk=1.d0/(2.d0**k*fact(k)*gam)
+  double precision gam,dble_fact,fact
+
+  double precision, save :: store_result(0:2,0:10)
+  integer, save :: ifirst
+
+  if (ifirst == 0) then
+    ifirst =1
+
   endif
+
+  store_result(0, 0) =  1.00000000000000d0
+  store_result(0, 1) =  0.166666666666667d0
+  store_result(0, 2) =  8.333333333333333d-3
+  store_result(0, 3) =  1.984126984126984d-4
+  store_result(0, 4) =  2.755731922398589d-6
+  store_result(0, 5) =  2.505210838544172d-8
+  store_result(0, 6) =  1.605904383682161d-10
+  store_result(0, 7) =  7.647163731819816d-13
+  store_result(0, 8) =  2.811457254345521d-15
+  store_result(0, 9) =  8.220635246624329d-018
+  store_result(0,10) =  1.957294106339126d-020
+
+  store_result(1, 0) =  0.333333333333333d0     
+  store_result(1, 1) =  3.333333333333333d-002   
+  store_result(1, 2) =  1.190476190476191d-003
+  store_result(1, 3) =  2.204585537918871d-005   
+  store_result(1, 4) =  2.505210838544172d-007   
+  store_result(1, 5) =  1.927085260418594d-009   
+  store_result(1, 6) =  1.070602922454774d-011   
+  store_result(1, 7) =  4.498331606952833d-014   
+  store_result(1, 8) =  1.479714344392379d-016
+  store_result(1, 9) =  3.914588212678252d-019
+  store_result(1,10) =  8.509974375387505d-022
+
+  store_result(2, 0) =  6.666666666666667d-002
+  store_result(2, 1) =  4.761904761904762d-003
+  store_result(2, 2) =  1.322751322751323d-004
+  store_result(2, 3) =  2.004168670835337d-006
+  store_result(2, 4) =  1.927085260418594d-008
+  store_result(2, 5) =  1.284723506945729d-010
+  store_result(2, 6) =  6.297664249733966d-013
+  store_result(2, 7) =  2.367542951027807d-015
+  store_result(2, 8) =  7.046258782820854d-018
+  store_result(2, 9) =  1.701994875077501d-020
+  store_result(2,10) =  3.403989750155002d-023
+
+  if (n.LE.2) then
+    if (k.LE.10) then
+      coef_nk = store_result(n,k)
+      return 
+    endif
+  endif
+
+  if ((n+k).GE.30) then
+    coef_nk = 0.d0
+    return
+  endif
+
+  gam=dble_fact(2*(n+k)+1)
+  coef_nk=1.d0/(dble(ISHFT(1,k))*fact(k)*gam)
+  
+  return
+
 end
 
 !!    Calculation of
@@ -1885,7 +1901,7 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
 
   implicit none
   integer n,k,m,q,l,kcp
-  double precision gam,dblefact,fact,pi,a,b
+  double precision gam,dble_fact,fact,pi,a,b
   double precision int,intold,sum,coef_nk,crochet,u,int_prod_bessel_large,freal,arg
   double precision dump
 

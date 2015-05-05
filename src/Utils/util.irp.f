@@ -134,7 +134,46 @@ BEGIN_PROVIDER [ double precision, fact_inv, (128) ]
   enddo
 END_PROVIDER
 
-double precision function dble_fact(n) result(fact2)
+
+double precision function dble_fact(n)
+  implicit none
+  integer :: n
+  double precision :: dble_fact_peer, dble_fact_odd
+
+  dble_fact = 1.d0
+
+  if(n.lt.0) return
+
+  if(iand(n,1).eq.0)then
+    dble_fact = dble_fact_peer(n)
+  else
+    dble_fact= dble_fact_odd(n)
+  endif
+
+end function
+
+double precision function dble_fact_peer(n) result(fact2)
+  implicit none
+  BEGIN_DOC
+  ! n!!
+  END_DOC
+  integer                        :: n,k
+  double precision, save         :: memo(1:100)
+  integer, save                  :: memomax = 2
+  double precision               :: prod
+
+  ASSERT (iand(n,1) /= 1)
+
+  prod=1.d0
+  do k=2,n,2
+   prod=prod*dfloat(k)
+  enddo
+  fact2=prod
+  return
+
+end function
+
+double precision function dble_fact_odd(n) result(fact2)
   implicit none
   BEGIN_DOC
   ! n!!
