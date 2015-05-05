@@ -169,7 +169,7 @@ def run_hf(geo, basis, mult=1, pseudo=False, remove_after_sucess=True):
 
     ref_energy["sto-3g"]["methane"] = Energy(-39.7267433402, None)
     ref_energy["vdz"]["SO2"] = Energy(None, -41.48912297776174)
-    ref_energy["vdz"]["HBO"] = Energy(None, -19.1198251160)
+    ref_energy["vdz"]["HBO"] = Energy(None, -19.11982540413317)
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # G l o b a l _ v a r i a b l e #

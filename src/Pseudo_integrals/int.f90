@@ -1898,114 +1898,133 @@ end
 !!
 !!    M_n(x) modified spherical bessel function 
 !!
-      double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
-      implicit none
-      integer n,k,m,q,l,kcp
-      double precision gam,dblefact,fact,pi,a,b
-      double precision int,intold,sum,coef_nk,crochet,u,int_prod_bessel_large,freal,arg
-      logical done
 
-      u=(a+b)/(2.d0*dsqrt(gam))
-      freal=dexp(-arg)
+double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
 
-      if(a.eq.0.d0.and.b.eq.0.d0)then
-       if(n.ne.0.or.m.ne.0)then
-        int_prod_bessel=0.d0
-        return
-       endif
-       int_prod_bessel=crochet(l,gam)*freal
-       return
-      endif
+  implicit none
+  integer n,k,m,q,l,kcp
+  double precision gam,dblefact,fact,pi,a,b
+  double precision int,intold,sum,coef_nk,crochet,u,int_prod_bessel_large,freal,arg
+  logical done
 
-      if(u.gt.6.d0)then
-       int_prod_bessel=int_prod_bessel_large(l,gam,n,m,a,b,arg)
+  u=(a+b)/(2.d0*dsqrt(gam))
+  freal=dexp(-arg)
+
+  if(a.eq.0.d0.and.b.eq.0.d0)then
+    if(n.ne.0.or.m.ne.0)then
+      int_prod_bessel=0.d0
       return
+    endif
+    
+    int_prod_bessel=crochet(l,gam)*freal
+    return
+  endif
+
+  if(u.gt.6.d0)then
+   int_prod_bessel=int_prod_bessel_large(l,gam,n,m,a,b,arg)
+    return
+  endif
+
+  if(a.ne.0.d0.and.b.ne.0.d0)then
+
+    q=0
+    intold=-1.d0
+    int=0.d0
+    done=.false.
+    kcp=0
+
+    do while (.not.done)  
+    
+      kcp=kcp+1
+      sum=0.d0
+     
+      do k=0,q
+        sum=sum+coef_nk(n,k)*coef_nk(m,q-k)*a**(n+2*k)*b**(m-2*k+2*q)
+      enddo
+     
+     int=int+sum*crochet(2*q+n+m+l,gam)
+     
+     if(dabs(int-intold).lt.1d-15)then
+       done=.true.
+      else
+        
+        q=q+1
+        intold=int
       endif
+    enddo
+    
+    int_prod_bessel=int*freal
+    
+    if(kcp.gt.100)then
+      print*,'**WARNING** bad convergence in int_prod_bessel'
+    endif
+    
+    return
+  endif
 
-      if(a.ne.0.d0.and.b.ne.0.d0)then
+  if(a.eq.0.d0.and.b.ne.0.d0)then
+       
+    if(n.ne.0)then
+      int_prod_bessel=0.d0
+      return
+    endif
 
-       q=0
-       intold=-1.d0
-       int=0.d0
-       done=.false.
-       kcp=0
-       do while (.not.done)  
-        kcp=kcp+1
-        sum=0.d0
-        do k=0,q
-         sum=sum+coef_nk(n,k)*coef_nk(m,q-k)*a**(n+2*k)*b**(m-2*k+2*q)
-        enddo
-        int=int+sum*crochet(2*q+n+m+l,gam)
-        if(dabs(int-intold).lt.1d-15)then
+    q=0
+    intold=-1.d0
+    int=0.d0
+    done=.false.
+    kcp=0
+
+    do while (.not.done)
+        
+      kcp=kcp+1
+      int=int+coef_nk(m,q)*b**(m+2*q)*crochet(2*q+m+l,gam)
+      
+      if(dabs(int-intold).lt.1d-15)then
+        done=.true.
+      else
+        q=q+1
+        intold=int
+      endif
+    
+    enddo
+
+    int_prod_bessel=int*freal
+    if(kcp.gt.100)stop '**WARNING** bad convergence in int_prod_bessel'
+    return
+  endif
+
+  if(a.ne.0.d0.and.b.eq.0.d0)then
+    if(m.ne.0)then
+      int_prod_bessel=0.d0
+      return
+    endif
+
+    q=0
+    intold=-1.d0
+    int=0.d0
+    done=.false.
+    kcp=0
+
+    do while (.not.done)
+      kcp=kcp+1
+      int=int+coef_nk(n,q)*a**(n+2*q)*crochet(2*q+n+l,gam)
+      if(dabs(int-intold).lt.1d-15)then
          done=.true.
-        else
+      else
          q=q+1
          intold=int
-        endif
-       enddo
-       int_prod_bessel=int*freal
-       if(kcp.gt.100)then
-        print*,'**WARNING** bad convergence in int_prod_bessel'
-!        else
-!        print*,'kcp=',kcp
-       endif
-       return
       endif
+    enddo
+    
+    int_prod_bessel=int*freal
+    if(kcp.gt.100)stop '**WARNING** bad convergence in int_prod_bessel'
+    return
 
-      if(a.eq.0.d0.and.b.ne.0.d0)then
-       if(n.ne.0)then
-        int_prod_bessel=0.d0
-        return
-       endif
+  endif
 
-       q=0
-       intold=-1.d0
-       int=0.d0
-       done=.false.
-       kcp=0
-       do while (.not.done)
-        kcp=kcp+1
-        int=int+coef_nk(m,q)*b**(m+2*q)*crochet(2*q+m+l,gam)
-        if(dabs(int-intold).lt.1d-15)then
-         done=.true.
-        else
-         q=q+1
-         intold=int
-        endif
-       enddo
-       int_prod_bessel=int*freal
-       if(kcp.gt.100)stop '**WARNING** bad convergence in int_prod_bessel'
-       return
-      endif
-
-      if(a.ne.0.d0.and.b.eq.0.d0)then
-       if(m.ne.0)then
-        int_prod_bessel=0.d0
-        return
-       endif
-
-       q=0
-       intold=-1.d0
-       int=0.d0
-       done=.false.
-       kcp=0
-       do while (.not.done)
-        kcp=kcp+1
-        int=int+coef_nk(n,q)*a**(n+2*q)*crochet(2*q+n+l,gam)
-        if(dabs(int-intold).lt.1d-15)then
-         done=.true.
-        else
-         q=q+1
-         intold=int
-        endif
-       enddo
-       int_prod_bessel=int*freal
-       if(kcp.gt.100)stop '**WARNING** bad convergence in int_prod_bessel'
-       return
-      endif
-
-      stop 'pb in int_prod_bessel!!'
-      end
+  stop 'pb in int_prod_bessel!!'
+end
 
 double precision function int_prod_bessel_large(l,gam,n,m,a,b,arg)
       implicit none
