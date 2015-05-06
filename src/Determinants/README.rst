@@ -532,7 +532,7 @@ Documentation
 `save_dets_qmcchem <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_for_qmcchem.irp.f#L1>`_
   Undocumented
 
-`save_for_qmc <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_for_qmcchem.irp.f#L48>`_
+`save_for_qmc <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_for_qmcchem.irp.f#L46>`_
   Undocumented
 
 `save_natorb <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_natorb.irp.f#L1>`_
@@ -623,61 +623,49 @@ Documentation
 `n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1131>`_
   Number of integers to represent the connections between determinants
 
-`create_wf_of_psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L473>`_
+`create_wf_of_psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L483>`_
   Matrix of wf coefficients. Outer product of alpha and beta determinants
 
-`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L528>`_
+`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L538>`_
   Create a wave function from all possible alpha x beta determinants
 
-`get_index_in_psi_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L131>`_
+`get_index_in_psi_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L139>`_
   Returns the index of the determinant in the ``psi_det_alpha_unique`` array
 
-`get_index_in_psi_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L212>`_
+`get_index_in_psi_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L221>`_
   Returns the index of the determinant in the ``psi_det_beta_unique`` array
-
-`n_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L54>`_
-  Unique alpha determinants
-
-`n_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L91>`_
-  Unique beta determinants
 
 `psi_det_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L25>`_
   List of alpha determinants of psi_det
 
-`psi_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L53>`_
-  Unique alpha determinants
-
 `psi_det_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L39>`_
   List of beta determinants of psi_det
 
-`psi_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L90>`_
-  Unique beta determinants
-
-`psi_svd_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L568>`_
+`psi_svd_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L578>`_
   SVD wave function
 
-`psi_svd_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L569>`_
+`psi_svd_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L579>`_
   SVD wave function
 
-`psi_svd_coefs <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L570>`_
+`psi_svd_coefs <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L580>`_
   SVD wave function
 
-`psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L457>`_
+`psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L467>`_
   Matrix of wf coefficients. Outer product of alpha and beta determinants
 
-`psi_svd_matrix_columns <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L398>`_
+`psi_svd_matrix_columns <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L407>`_
   Matrix of wf coefficients. Outer product of alpha and beta determinants
 
-`psi_svd_matrix_rows <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L397>`_
+`psi_svd_matrix_rows <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L406>`_
   Matrix of wf coefficients. Outer product of alpha and beta determinants
 
-`psi_svd_matrix_values <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L396>`_
+`psi_svd_matrix_values <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L405>`_
   Matrix of wf coefficients. Outer product of alpha and beta determinants
 
 `spin_det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L9>`_
   Return an integer*8 corresponding to a determinant index for searching
 
-`write_spindeterminants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L294>`_
+`write_spindeterminants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L303>`_
   Undocumented
 
 `cisd <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/truncate_wf.irp.f#L1>`_

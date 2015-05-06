@@ -66,28 +66,32 @@ END_PROVIDER
     enddo
     integer :: i_state
     double precision :: s2
-    i_state = 0
-    do j=1,N_det
-      call get_s2_u0(psi_det,eigenvectors(1,j),N_det,N_det,s2)
-      if(dabs(s2-expected_s2).le.0.3d0)then
-       i_state += 1
-       do i=1,N_det
-         CI_eigenvectors(i,i_state) = eigenvectors(i,j)
-       enddo
-       CI_electronic_energy(i_state) = eigenvalues(j)
-       CI_eigenvectors_s2(i_state) = s2
-      endif
-      if (i_state.ge.N_states_diag) then
-        exit
-      endif
-    enddo
-!    if(i_state < min(N_states_diag,N_det))then
-!     print *, 'pb with the number of states'
-!     print *, 'i_state = ',i_state
-!     print *, 'N_states_diag ',N_states_diag
-!     print *,'stopping ...'
-!     stop
-!    endif
+    if (s2_eig) then
+      i_state = 0
+      do j=1,N_det
+        call get_s2_u0(psi_det,eigenvectors(1,j),N_det,N_det,s2)
+        if(dabs(s2-expected_s2).le.0.3d0)then
+        i_state += 1
+        do i=1,N_det
+          CI_eigenvectors(i,i_state) = eigenvectors(i,j)
+        enddo
+        CI_electronic_energy(i_state) = eigenvalues(j)
+        CI_eigenvectors_s2(i_state) = s2
+        endif
+        if (i_state.ge.N_states_diag) then
+          exit
+        endif
+      enddo
+    else
+      do j=1,N_det
+        call get_s2_u0(psi_det,eigenvectors(1,j),N_det,N_det,s2)
+        do i=1,N_det
+          CI_eigenvectors(i,j) = eigenvectors(i,j)
+        enddo
+        CI_electronic_energy(j) = eigenvalues(j)
+        CI_eigenvectors_s2(j) = s2
+      enddo
+    endif
     deallocate(eigenvectors,eigenvalues)
   endif
   

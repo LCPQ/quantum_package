@@ -110,20 +110,32 @@ END_PROVIDER
     integer :: i_state
     double precision :: s2
     i_state = 0
-    do j=1,N_det
-      call get_s2_u0(psi_det,eigenvectors(1,j),N_det,N_det,s2)
-      if(dabs(s2-expected_s2).le.0.3d0)then
-       i_state += 1
-       do i=1,N_det
-         CI_eigenvectors_dressed(i,i_state) = eigenvectors(i,j)
-       enddo
-       CI_electronic_energy_dressed(i_state) = eigenvalues(j)
-       CI_eigenvectors_s2_dressed(i_state) = s2
-      endif
-      if (i_state.ge.N_states_diag) then
-        exit
-      endif
-    enddo
+    if (s2_eig) then
+      do j=1,N_det
+        call get_s2_u0(psi_det,eigenvectors(1,j),N_det,N_det,s2)
+        if(dabs(s2-expected_s2).le.0.3d0)then
+          i_state += 1
+          do i=1,N_det
+            CI_eigenvectors_dressed(i,i_state) = eigenvectors(i,j)
+          enddo
+          CI_electronic_energy_dressed(i_state) = eigenvalues(j)
+          CI_eigenvectors_s2_dressed(i_state) = s2
+        endif
+        if (i_state.ge.N_states_diag) then
+          exit
+        endif
+      enddo
+    else
+      do j=1,N_det
+        call get_s2_u0(psi_det,eigenvectors(1,j),N_det,N_det,s2)
+        i_state += 1
+        do i=1,N_det
+          CI_eigenvectors_dressed(i,i_state) = eigenvectors(i,j)
+        enddo
+        CI_electronic_energy_dressed(i_state) = eigenvalues(j)
+        CI_eigenvectors_s2_dressed(i_state) = s2
+      enddo
+    endif
     deallocate(eigenvectors,eigenvalues)
   endif
   

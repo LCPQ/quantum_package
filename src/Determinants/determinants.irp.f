@@ -147,9 +147,7 @@ END_PROVIDER
    !$DIR FORCEINLINE
    bit_tmp(i) = occ_pattern_search_key(psi_occ_pattern(1,1,i),N_int)
  enddo
- print*,'passed 1'
  call i8sort(bit_tmp,iorder,N_det)
- print*,'passed 2'
  !DIR$ IVDEP
  do i=1,N_det
   do k=1,N_int
@@ -189,7 +187,6 @@ END_PROVIDER
     endif
   enddo
  enddo
-  print*,'passed 3'
 
  N_occ_pattern=0
  do i=1,N_det

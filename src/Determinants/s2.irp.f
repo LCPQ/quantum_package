@@ -92,14 +92,13 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
  !$OMP PARALLEL DO DEFAULT(NONE) &
  !$OMP PRIVATE(i,j,s2_tmp) SHARED(n,psi_coefs_tmp,psi_keys_tmp,N_int) &
  !$OMP REDUCTION(+:s2) SCHEDULE(dynamic)
- do i = 1, n
+ do i=1,n
    call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,i),s2_tmp,N_int)
-!  print*,'s2_tmp = ',s2_tmp
-  do j = 1, n
-    call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,j),s2_tmp,N_int)
-    if (s2_tmp == 0.d0) cycle
-    s2 += psi_coefs_tmp(i)*psi_coefs_tmp(j)*s2_tmp
-  enddo
+   s2 += psi_coefs_tmp(i)*psi_coefs_tmp(i)*s2_tmp
+   do j=i+1,n
+     call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,j),s2_tmp,N_int)
+     s2 += (psi_coefs_tmp(i)+psi_coefs_tmp(i))*psi_coefs_tmp(j)*s2_tmp
+   enddo
  enddo
  !$OMP END PARALLEL DO
 end

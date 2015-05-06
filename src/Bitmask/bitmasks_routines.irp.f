@@ -126,7 +126,7 @@ subroutine debug_det(string,Nint)
   END_DOC
   integer, intent(in)            :: Nint
   integer(bit_kind), intent(in)  :: string(Nint,2)
-  character*(512)                :: output(2)
+  character*(2048)                :: output(2)
   call bitstring_to_hexa( output(1), string(1,1), Nint )
   call bitstring_to_hexa( output(2), string(1,2), Nint )
   print *,  trim(output(1)) , '|', trim(output(2))
@@ -143,11 +143,42 @@ subroutine print_det(string,Nint)
   END_DOC
   integer, intent(in)            :: Nint
   integer(bit_kind), intent(in)  :: string(Nint,2)
-  character*(512)                :: output(2)
+  character*(2048)                :: output(2)
 
   call bitstring_to_str( output(1), string(1,1), Nint )
   call bitstring_to_str( output(2), string(1,2), Nint )
   print *,  trim(output(1))
   print *,  trim(output(2))
+
+end
+
+subroutine debug_spindet(string,Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Subroutine to print the content of a determinant in '+-' notation and
+  ! hexadecimal representation.
+  END_DOC
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: string(Nint,2)
+  character*(2048)                :: output(1)
+  call bitstring_to_hexa( output(1), string(1,1), Nint )
+  print *,  trim(output(1)) 
+  call print_spindet(string,Nint)
+
+end
+
+subroutine print_spindet(string,Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Subroutine to print the content of a determinant using the '+-' notation
+  END_DOC
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: string(Nint,2)
+  character*(2048)                :: output(1)
+
+  call bitstring_to_str( output(1), string(1,1), Nint )
+  print *,  trim(output(1))
 
 end
