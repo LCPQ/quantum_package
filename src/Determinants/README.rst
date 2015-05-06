@@ -40,15 +40,11 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-`copy_h_apply_buffer_to_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L100>`_
-  Copies the H_apply buffer to psi_coef. You need to touch psi_det, psi_coef and N_det
-  after calling this function.
+`copy_h_apply_buffer_to_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L103>`_
+  Copies the H_apply buffer to psi_coef.
   After calling this subroutine, N_det, psi_det and psi_coef need to be touched
 
-`debug_unicity_of_determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L187>`_
-  This subroutine checks that there are no repetitions in the wave function
-
-`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L222>`_
+`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L258>`_
   Fill the H_apply buffer with determiants for CISD
 
 `h_apply_buffer_allocated <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L15>`_
@@ -59,8 +55,12 @@ Documentation
   Buffer of determinants/coefficients/perturbative energy for H_apply.
   Uninitialized. Filled by H_apply subroutines.
 
+`remove_duplicates_in_psi_det <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L190>`_
+  Removes duplicate determinants in the wave function.
+
 `resize_h_apply_buffer <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L48>`_
-  Undocumented
+  Resizes the H_apply buffer of proc iproc. The buffer lock should
+  be set before calling this function.
 
 `cisd_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/SC2.irp.f#L1>`_
   CISD+SC2 method              :: take off all the disconnected terms of a CISD (selected or not)

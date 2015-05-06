@@ -126,7 +126,7 @@ END_PROVIDER
         endif
       enddo
     else
-      do j=1,N_det
+      do j=1,N_states_diag
         call get_s2_u0(psi_det,eigenvectors(1,j),N_det,N_det,s2)
         i_state += 1
         do i=1,N_det
