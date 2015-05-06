@@ -249,7 +249,6 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
         psi_coef(k,:)  = psi_coef_sorted_bit(i,:)
       endif
     enddo
-    print *,  N_det,k
     N_det = k
     TOUCH N_det psi_det psi_coef
   endif
