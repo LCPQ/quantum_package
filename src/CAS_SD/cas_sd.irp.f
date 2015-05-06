@@ -69,18 +69,4 @@ program full_ci
     print *,  ''
   enddo
   print *,  'Max excitation degree in the CAS :', exc_max
-  do i=1,N_det
-    in_cas = .False.
-    degree_min = 1000
-    do k=1,N_det_generators
-      call get_excitation_degree(psi_det_generators(1,1,k),psi_det(1,1,i),degree,N_int)
-      degree_min = min(degree_min,degree)
-    enddo
-    if (degree_min > 2) then
-        print *,  'Error : This is not a CAS-SD : '
-        print *,  'Excited determinant:', degree_min
-        call debug_det(psi_det(1,1,k),N_int)
-        stop
-    endif
-  enddo
 end

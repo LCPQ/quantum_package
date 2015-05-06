@@ -187,10 +187,10 @@ Documentation
 `det_svd <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/det_svd.irp.f#L1>`_
   Computes the SVD of the Alpha x Beta determinant coefficient matrix
 
-`filter_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L426>`_
+`filter_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L423>`_
   Returns a determinant with only the 3 highest electrons
 
-`int_of_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L391>`_
+`int_of_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L388>`_
   Returns an integer*8 as :
   .br
   |_<--- 21 bits ---><--- 21 bits ---><--- 21 bits --->|
@@ -207,26 +207,26 @@ Documentation
 `n_det <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L3>`_
   Number of determinants in the wave function
 
-`psi_average_norm_contrib <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L276>`_
+`psi_average_norm_contrib <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L273>`_
   Contribution of determinants to the state-averaged density
 
-`psi_average_norm_contrib_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L306>`_
+`psi_average_norm_contrib_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L303>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
-`psi_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L230>`_
+`psi_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L227>`_
   The wave function coefficients. Initialized with Hartree-Fock if the EZFIO file
   is empty
 
-`psi_coef_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L305>`_
+`psi_coef_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L302>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
-`psi_coef_sorted_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L453>`_
+`psi_coef_sorted_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L450>`_
   Determinants on which we apply <i|H|j>.
   They are sorted by the 3 highest electrons in the alpha part,
   then by the 3 highest electrons in the beta part to accelerate
   the research of connected determinants.
 
-`psi_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L336>`_
+`psi_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L333>`_
   Determinants on which we apply <i|H|psi> for perturbation.
   They are sorted by determinants interpreted as integers. Useful
   to accelerate the search of a random determinant in the wave
@@ -239,46 +239,46 @@ Documentation
 `psi_det_size <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L47>`_
   Size of the psi_det/psi_coef arrays
 
-`psi_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L304>`_
+`psi_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L301>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
-`psi_det_sorted_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L452>`_
+`psi_det_sorted_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L449>`_
   Determinants on which we apply <i|H|j>.
   They are sorted by the 3 highest electrons in the alpha part,
   then by the 3 highest electrons in the beta part to accelerate
   the research of connected determinants.
 
-`psi_det_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L335>`_
+`psi_det_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L332>`_
   Determinants on which we apply <i|H|psi> for perturbation.
   They are sorted by determinants interpreted as integers. Useful
   to accelerate the search of a random determinant in the wave
   function.
 
-`psi_det_sorted_next_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L454>`_
+`psi_det_sorted_next_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L451>`_
   Determinants on which we apply <i|H|j>.
   They are sorted by the 3 highest electrons in the alpha part,
   then by the 3 highest electrons in the beta part to accelerate
   the research of connected determinants.
 
-`read_dets <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L583>`_
+`read_dets <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L580>`_
   Reads the determinants from the EZFIO file
 
-`save_wavefunction <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L630>`_
+`save_wavefunction <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L627>`_
   Save the wave function into the EZFIO file
 
-`save_wavefunction_general <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L649>`_
+`save_wavefunction_general <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L646>`_
   Save the wave function into the EZFIO file
 
-`save_wavefunction_unsorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L640>`_
+`save_wavefunction_unsorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L637>`_
   Save the wave function into the EZFIO file
 
-`sort_dets_by_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L474>`_
+`sort_dets_by_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L471>`_
   Determinants on which we apply <i|H|j>.
   They are sorted by the 3 highest electrons in the alpha part,
   then by the 3 highest electrons in the beta part to accelerate
   the research of connected determinants.
 
-`sort_dets_by_det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L349>`_
+`sort_dets_by_det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L346>`_
   Determinants are sorted are sorted according to their det_search_key.
   Useful to accelerate the search of a random determinant in the wave
   function.
@@ -316,7 +316,7 @@ Documentation
 `diag_algorithm <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI.irp.f#L1>`_
   Diagonalization algorithm (Davidson or Lapack)
 
-`diagonalize_ci <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI.irp.f#L96>`_
+`diagonalize_ci <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI.irp.f#L100>`_
   Replace the coefficients of the CI states by the coefficients of the
   eigenstates of the CI matrix
 
@@ -345,7 +345,7 @@ Documentation
 `ci_electronic_energy_mono <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_mono.irp.f#L1>`_
   Eigenvectors/values of the CI matrix
 
-`diagonalize_ci_mono <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_mono.irp.f#L59>`_
+`diagonalize_ci_mono <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_mono.irp.f#L73>`_
   Replace the coefficients of the CI states by the coefficients of the
   eigenstates of the CI matrix
 

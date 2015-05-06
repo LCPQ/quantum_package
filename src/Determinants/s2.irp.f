@@ -88,7 +88,7 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
  double precision, intent(out) :: s2
  integer :: i,j,l
  double precision :: s2_tmp
- s2 = S_z2_Sz
+ s2 = 0.d0
  !$OMP PARALLEL DO DEFAULT(NONE) &
  !$OMP PRIVATE(i,j,s2_tmp) SHARED(n,psi_coefs_tmp,psi_keys_tmp,N_int) &
  !$OMP REDUCTION(+:s2) SCHEDULE(dynamic)
@@ -101,5 +101,6 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
    enddo
  enddo
  !$OMP END PARALLEL DO
+ s2 +=  S_z2_Sz
 end
 
