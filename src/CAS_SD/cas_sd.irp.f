@@ -1,6 +1,7 @@
 program full_ci
   implicit none
   integer                        :: i,k
+  integer                        :: N_det_old
 
   
   double precision, allocatable  :: pt2(:), norm_pert(:), H_pert_diag(:)
@@ -9,6 +10,7 @@ program full_ci
   allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st))
   character*(64)                 :: perturbation
   
+  N_det_old = 0
   pt2 = 1.d0
   diag_algorithm = "Lapack"
   if (N_det > n_det_max_cas_sd) then
@@ -29,6 +31,7 @@ program full_ci
   endif
 
   do while (N_det < n_det_max_cas_sd.and.maxval(abs(pt2(1:N_st))) > pt2_max)
+    N_det_old = N_det
     call H_apply_CAS_SD(pt2, norm_pert, H_pert_diag,  N_st)
 
     PROVIDE  psi_coef
@@ -53,10 +56,11 @@ program full_ci
     if (abort_all) then
       exit
     endif
+    if (N_det == N_det_old) then
+      exit
+    endif
   enddo
 
-  ! Check that it is a CAS-SD
-  logical :: in_cas
   integer :: exc_max, degree_min
   exc_max = 0
   print *,  'CAS determinants : ', N_det_generators
@@ -69,18 +73,4 @@ program full_ci
     print *,  ''
   enddo
   print *,  'Max excitation degree in the CAS :', exc_max
-  do i=1,N_det
-    in_cas = .False.
-    degree_min = 1000
-    do k=1,N_det_generators
-      call get_excitation_degree(psi_det_generators(1,1,k),psi_det(1,1,i),degree,N_int)
-      degree_min = min(degree_min,degree)
-    enddo
-    if (degree_min > 2) then
-        print *,  'Error : This is not a CAS-SD : '
-        print *,  'Excited determinant:', degree_min
-        call debug_det(psi_det(1,1,k),N_int)
-        stop
-    endif
-  enddo
 end

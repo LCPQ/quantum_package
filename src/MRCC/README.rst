@@ -51,7 +51,7 @@ Documentation
 `ci_electronic_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L78>`_
   Eigenvectors/values of the CI matrix
 
-`ci_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L132>`_
+`ci_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L144>`_
   N_states lowest eigenvalues of the dressed CI matrix
 
 `delta_ij <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L43>`_
@@ -60,7 +60,7 @@ Documentation
 `delta_ij_non_cas <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L34>`_
   Dressing matrix in SD basis
 
-`diagonalize_ci_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L147>`_
+`diagonalize_ci_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L159>`_
   Replace the coefficients of the CI states by the coefficients of the
   eigenstates of the CI matrix
 

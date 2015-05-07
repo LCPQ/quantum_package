@@ -50,80 +50,88 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det_beta, (N_int,psi_det_size) ]
  enddo
 END_PROVIDER
 
- BEGIN_PROVIDER [ integer(bit_kind), psi_det_alpha_unique, (N_int,psi_det_size) ]
-&BEGIN_PROVIDER [ integer, N_det_alpha_unique ]
+
+BEGIN_TEMPLATE
+
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_$alpha_unique, (N_int,psi_det_size) ]
+&BEGIN_PROVIDER [ integer, N_det_$alpha_unique ]
  implicit none
  BEGIN_DOC
- ! Unique alpha determinants
+ ! Unique $alpha determinants
  END_DOC
 
- integer                        :: i,k
+ integer                        :: i,j,k
  integer, allocatable           :: iorder(:)
  integer*8, allocatable         :: bit_tmp(:)
  integer*8                      :: last_key
  integer*8, external            :: spin_det_search_key
+ logical,allocatable            :: duplicate(:)
 
- allocate ( iorder(N_det), bit_tmp(N_det))
+ allocate ( iorder(N_det), bit_tmp(N_det), duplicate(N_det) )
 
  do i=1,N_det
    iorder(i) = i
-   bit_tmp(i) = spin_det_search_key(psi_det_alpha(1,i),N_int)
+   bit_tmp(i) = spin_det_search_key(psi_det_$alpha(1,i),N_int)
  enddo
 
  call i8sort(bit_tmp,iorder,N_det)
 
- N_det_alpha_unique = 0
+ N_det_$alpha_unique = 0
  last_key = 0_8
  do i=1,N_det
-  if (bit_tmp(i) /= last_key) then
-    last_key = bit_tmp(i)
-    N_det_alpha_unique += 1
-    do k=1,N_int
-      psi_det_alpha_unique(k,N_det_alpha_unique) = psi_det_alpha(k,iorder(i))
-    enddo
+   last_key = bit_tmp(i)
+   N_det_$alpha_unique += 1
+   do k=1,N_int
+     psi_det_$alpha_unique(k,N_det_$alpha_unique) = psi_det_$alpha(k,iorder(i))
+   enddo
+   duplicate(i) = .False.
+ enddo
+
+ j=1
+ do i=1,N_det_$alpha_unique-1
+   if (duplicate(i)) then
+     cycle
+   endif
+   j = i+1
+   do while (bit_tmp(j)==bit_tmp(i))
+     if (duplicate(j)) then
+       j += 1
+       cycle
+     endif
+     duplicate(j) = .True.
+     do k=1,N_int
+       if (psi_det_$alpha_unique(k,i) /= psi_det_$alpha_unique(k,j)) then
+         duplicate(j) = .False.
+         exit
+       endif
+     enddo
+     j+=1
+     if (j > N_det_$alpha_unique) then
+       exit
+     endif
+   enddo
+ enddo
+
+ j=1
+ do i=2,N_det_$alpha_unique
+   if (duplicate(i)) then
+     cycle
+  else
+    j += 1
+    psi_det_$alpha_unique(:,j) = psi_det_$alpha_unique(:,i)
   endif
  enddo
+ N_det_$alpha_unique = j
 
- deallocate (iorder, bit_tmp)
+ deallocate (iorder, bit_tmp, duplicate)
 END_PROVIDER
 
- BEGIN_PROVIDER [ integer(bit_kind), psi_det_beta_unique, (N_int,psi_det_size) ]
-&BEGIN_PROVIDER [ integer, N_det_beta_unique ]
- implicit none
- BEGIN_DOC
- ! Unique beta determinants
- END_DOC
+SUBST [ alpha ]
 
- integer                        :: i,k
- integer, allocatable           :: iorder(:)
- integer*8, allocatable         :: bit_tmp(:)
- integer*8                      :: last_key
- integer*8, external            :: spin_det_search_key
+alpha ;;
+beta ;;
 
- allocate ( iorder(N_det), bit_tmp(N_det))
-
- do i=1,N_det
-   iorder(i) = i
-   bit_tmp(i) = spin_det_search_key(psi_det_beta(1,i),N_int)
- enddo
-
- call i8sort(bit_tmp,iorder,N_det)
-
- N_det_beta_unique = 0
- last_key = 0_8
- do i=1,N_det
-  if (bit_tmp(i) /= last_key) then
-    last_key = bit_tmp(i)
-    N_det_beta_unique += 1
-    do k=1,N_int
-      psi_det_beta_unique(k,N_det_beta_unique) = psi_det_beta(k,iorder(i))
-    enddo
-  endif
- enddo
-
- deallocate (iorder, bit_tmp)
-END_PROVIDER
-
+END_TEMPLATE
 
 
 
@@ -150,6 +158,7 @@ integer function get_index_in_psi_det_alpha_unique(key,Nint)
 
   !DIR$ FORCEINLINE
   det_ref = spin_det_search_key(key,Nint)
+
   !DIR$ FORCEINLINE
   det_search = spin_det_search_key(psi_det_alpha_unique(1,1),Nint)
 
@@ -439,6 +448,7 @@ BEGIN_PROVIDER  [ double precision, psi_svd_matrix_values, (N_det,N_states) ]
   do k=1,N_det
     i = get_index_in_psi_det_alpha_unique(psi_det(1,1,k),N_int)
     j = get_index_in_psi_det_beta_unique (psi_det(1,2,k),N_int)
+
     do l=1,N_states
       psi_svd_matrix_values(k,l) = psi_coef(k,l)
     enddo
