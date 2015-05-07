@@ -1932,10 +1932,6 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
 
     int_prod_bessel=int*freal
 
-    if(q.gt.100)then
-      print*,'**WARNING** bad convergence in int_prod_bessel'
-    endif
-
     return
   endif
 
@@ -2065,8 +2061,6 @@ double precision function int_prod_bessel_loc(l,gam,n,a)
   enddo
   
   int_prod_bessel_loc=int
-  if(k.gt.100)print*,'**WARNING** bad convergence in int_prod_bessel'
-
 end
 
       double precision function int_prod_bessel_num(l,gam,n,m,a,b)
