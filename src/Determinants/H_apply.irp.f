@@ -53,13 +53,17 @@ subroutine resize_H_apply_buffer(new_size,iproc)
   double precision,  pointer     :: buffer_e2(:,:)
   integer                        :: i,j,k
   integer                        :: Ndet
+
+  BEGIN_DOC
+! Resizes the H_apply buffer of proc iproc. The buffer lock should
+! be set before calling this function.
+  END_DOC
   PROVIDE H_apply_buffer_allocated
   
   ASSERT (new_size > 0)
   ASSERT (iproc >= 0)
   ASSERT (iproc < nproc)
   
-  call omp_set_lock(H_apply_buffer_lock(1,iproc))
   allocate ( buffer_det(N_int,2,new_size),                           &
       buffer_coef(new_size,N_states),                                &
       buffer_e2(new_size,N_states) )
@@ -93,7 +97,6 @@ subroutine resize_H_apply_buffer(new_size,iproc)
   
   H_apply_buffer(iproc)%sze = new_size
   H_apply_buffer(iproc)%N_det = min(new_size,H_apply_buffer(iproc)%N_det)
-  call omp_unset_lock(H_apply_buffer_lock(1,iproc))
   
 end
 
@@ -101,8 +104,7 @@ subroutine copy_H_apply_buffer_to_wf
   use omp_lib
   implicit none
   BEGIN_DOC
-! Copies the H_apply buffer to psi_coef. You need to touch psi_det, psi_coef and N_det
-! after calling this function.
+! Copies the H_apply buffer to psi_coef.
 ! After calling this subroutine, N_det, psi_det and psi_coef need to be touched
   END_DOC
   integer(bit_kind), allocatable :: buffer_det(:,:,:)
@@ -181,42 +183,76 @@ subroutine copy_H_apply_buffer_to_wf
   call normalize(psi_coef,N_det)
   SOFT_TOUCH N_det psi_det psi_coef
   
-  call debug_unicity_of_determinants
+  logical :: found_duplicates
+  call remove_duplicates_in_psi_det(found_duplicates)
 end
 
-subroutine debug_unicity_of_determinants
+subroutine remove_duplicates_in_psi_det(found_duplicates)
   implicit none
+  logical, intent(out) :: found_duplicates
   BEGIN_DOC
-! This subroutine checks that there are no repetitions in the wave function
+! Removes duplicate determinants in the wave function.
   END_DOC
-  logical :: same, failed
-  integer :: i,k
-  print *,  "======= DEBUG UNICITY ========="
-  failed = .False.
-  do i=2,N_det
-    same = .True.
-    do k=1,N_int
-      if ( psi_det_sorted_bit(k,1,i) /= psi_det_sorted_bit(k,1,i-1) ) then
-        same = .False.
-        exit
+  integer                        :: i,j,k
+  integer(bit_kind), allocatable :: bit_tmp(:)
+  logical,allocatable            :: duplicate(:)
+
+  allocate (duplicate(N_det), bit_tmp(N_det))
+
+  do i=1,N_det
+    integer, external            :: det_search_key
+    !$DIR FORCEINLINE
+    bit_tmp(i) = det_search_key(psi_det_sorted_bit(1,1,i),N_int)
+    duplicate(i) = .False.
+  enddo
+
+  do i=1,N_det-1
+    if (duplicate(i)) then
+      cycle
+    endif
+    j = i+1
+    do while (bit_tmp(j)==bit_tmp(i))
+      if (duplicate(j)) then
+        j += 1
+        cycle
       endif
-      if ( psi_det_sorted_bit(k,2,i) /= psi_det_sorted_bit(k,2,i-1) ) then
-        same = .False.
+      duplicate(j) = .True.
+      do k=1,N_int
+        if ( (psi_det_sorted_bit(k,1,i) /= psi_det_sorted_bit(k,1,j) ) &
+        .or. (psi_det_sorted_bit(k,2,i) /= psi_det_sorted_bit(k,2,j) ) ) then
+          duplicate(j) = .False.
+          exit
+        endif
+      enddo
+      j += 1
+      if (j > N_det) then
         exit
       endif
     enddo
-    if (same) then
-      failed = .True.
-      call debug_det(psi_det_sorted_bit(1,1,i))
+  enddo
+
+  found_duplicates = .False.
+  do i=1,N_det
+    if (duplicate(i)) then
+      found_duplicates = .True.
+      exit
     endif
   enddo
 
-  if (failed) then
-    print *,  '======= Determinants not unique : Failed ! ========='
-    stop
-  else
-    print *,  '======= Determinants are unique : OK ! ========='
+  if (found_duplicates) then
+    call write_bool(output_determinants,found_duplicates,'Found duplicate determinants')
+    k=0
+    do i=1,N_det
+      if (.not.duplicate(i)) then
+        k += 1
+        psi_det(:,:,k) = psi_det_sorted_bit (:,:,i)
+        psi_coef(k,:)  = psi_coef_sorted_bit(i,:)
+      endif
+    enddo
+    N_det = k
+    TOUCH N_det psi_det psi_coef
   endif
+  deallocate (duplicate,bit_tmp)
 end
 
 subroutine fill_H_apply_buffer_no_selection(n_selected,det_buffer,Nint,iproc)
@@ -231,11 +267,11 @@ subroutine fill_H_apply_buffer_no_selection(n_selected,det_buffer,Nint,iproc)
   integer                        :: i,j,k
   integer                        :: new_size
   PROVIDE H_apply_buffer_allocated
+  call omp_set_lock(H_apply_buffer_lock(1,iproc))
   new_size = H_apply_buffer(iproc)%N_det + n_selected
   if (new_size > H_apply_buffer(iproc)%sze) then
     call resize_h_apply_buffer(max(2*H_apply_buffer(iproc)%sze,new_size),iproc)
   endif
-  call omp_set_lock(H_apply_buffer_lock(1,iproc))
   do i=1,H_apply_buffer(iproc)%N_det
     ASSERT (sum(popcnt(H_apply_buffer(iproc)%det(:,1,i)) )== elec_alpha_num)
     ASSERT (sum(popcnt(H_apply_buffer(iproc)%det(:,2,i))) == elec_beta_num)
@@ -250,7 +286,7 @@ subroutine fill_H_apply_buffer_no_selection(n_selected,det_buffer,Nint,iproc)
   enddo
   do j=1,N_states
     do i=1,N_selected
-      H_apply_buffer(iproc)%coef(i,j) = 0.d0
+      H_apply_buffer(iproc)%coef(i+H_apply_buffer(iproc)%N_det,j) = 0.d0
     enddo
   enddo
   H_apply_buffer(iproc)%N_det = new_size

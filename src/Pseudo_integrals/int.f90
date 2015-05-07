@@ -1,7 +1,15 @@
-!! Vps= <Phi_A|Vloc(C)+Cpp(C)| Phi_B>
+!! INFO : You can display equations using : http://www.codecogs.com/latex/eqneditor.php
+
 !!
-!! with: Vloc(C)=\sum_{k=1}^klocmax v_k rC**n_k exp(-dz_k rC**2)
-!!       Vpp(C)=\sum_{l=0}^lmax\sum_{k=1}^kmax v_kl rC**n_kl exp(-dz_kl rC**2)*|l><l|
+!! {\tt Vps}(C) = \langle \Phi_A|{\tt Vloc}(C)+{\tt Vpp}(C)| \Phi_B \rangle
+!!
+!! with :
+!!
+!! {\tt Vloc}(C)=\sum_{k=1}^{\tt klocmax} v_k r_C^{n_k} \exp(-dz_k r_C^2) \\
+!! 
+!! {\tt Vpp}(C)=\sum_{l=0}^{\tt lmax}\left( \sum_{k=1}^{\tt kmax} v_{kl}
+!!   r_C^{n_{kl}} \exp(-dz_{kl} r_C)^2 \right) |l\rangle \langle l|
+!!
 double precision function Vps &
 (a,n_a,g_a,b,n_b,g_b,c,klocmax,v_k,n_k,dz_k,lmax,kmax,v_kl,n_kl,dz_kl)
 implicit none
