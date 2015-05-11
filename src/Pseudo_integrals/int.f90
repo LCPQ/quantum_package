@@ -1003,11 +1003,11 @@ end
 double precision function crochet(n,g)
 implicit none
 integer n
-double precision g,pi,dble_fact,expo
-pi=dacos(-1.d0)
+double precision g,dble_fact,expo
+double precision, parameter :: sq_pi_ov_2=dsqrt(dacos(-1.d0)*0.5d0)
 expo=0.5d0*dfloat(n+1)
 crochet=dble_fact(n-1)/(2.d0*g)**expo
-if(mod(n,2).eq.0)crochet=crochet*dsqrt(pi/2.d0)
+if(mod(n,2).eq.0)crochet=crochet*sq_pi_ov_2
 end
 
 !!
@@ -2043,10 +2043,10 @@ double precision function int_prod_bessel_loc(l,gam,n,a)
   int=0
   
   ! Int f_0
-  coef_nk=1.d0/dble_fact(2*n+1)
+  coef_nk=1.d0/dble_fact( n+n+1 )
   expo=0.5d0*dfloat(n+l+1)
   crochet=dble_fact(n+l-1)/(2.d0*gam)**expo
-  if(mod(n+l,2).eq.0)crochet=crochet*dsqrt(pi/2.d0)
+  if(mod(n+l,2).eq.0)crochet=crochet*dsqrt(0.5d0*pi)
 
   f_0 = coef_nk*a**n*crochet
 
