@@ -203,7 +203,7 @@ double precision, intent(in) :: v_kl(kmax,0:lmax),dz_kl(kmax,0:lmax)
 
 double precision :: fourpi,f,prod,prodp,binom,accu,bigR,bigI,ylm
 double precision :: theta_AC0,phi_AC0,theta_BC0,phi_BC0,ac,bc,big
-double precision :: areal,freal,breal,t1,t2,int_prod_bessel, int_prod_bessel_num_soph_p
+double precision :: areal,freal,breal,t1,t2,int_prod_bessel
 double precision :: arg
 
 integer :: ntot,ntotA,m,mu,mup,k1,k2,k3,ntotB,k1p,k2p,k3p,lambda,lambdap,ktot
@@ -284,7 +284,7 @@ if(ac.eq.0.d0.and.bc.eq.0.d0)then
     prod=bigI(0,0,l,m,n_a(1),n_a(2),n_a(3))
     prodp=bigI(0,0,l,m,n_b(1),n_b(2),n_b(3))
 
-      accu=accu+prod*prodp*v_kl(k,l)*int_prod_bessel_num_soph_p(ktot+2,g_a+g_b+dz_kl(k,l),0,0,areal,breal,arg)
+      accu=accu+prod*prodp*v_kl(k,l)*int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),0,0,areal,breal,arg)
 
    enddo
   enddo
@@ -317,7 +317,7 @@ else if(ac.ne.0.d0.and.bc.ne.0.d0)then
    do lambdap=0,lmax+ntotB
         do k=1,kmax
           do l=0,lmax
-          array_R(ktot,k,l,lambda,lambdap)= int_prod_bessel_num_soph_p(ktot+2,g_a+g_b+dz_kl(k,l),lambda,lambdap,areal,breal,arg)
+          array_R(ktot,k,l,lambda,lambdap)= int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),lambda,lambdap,areal,breal,arg)
           enddo
         enddo
    enddo
@@ -438,8 +438,7 @@ else if(ac.eq.0.d0.and.bc.ne.0.d0)then
   do lambdap=0,lmax+ntotB
     do k=1,kmax
       do l=0,lmax
-
-        array_R(ktot,k,l,0,lambdap)=  int_prod_bessel_num_soph_p(ktot+2,g_a+g_b+dz_kl(k,l),0,lambdap,areal,breal,arg)
+        array_R(ktot,k,l,0,lambdap)=  int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),0,lambdap,areal,breal,arg)
        enddo
     enddo
   enddo
@@ -525,7 +524,7 @@ else if(ac.ne.0.d0.and.bc.eq.0.d0)then
     do k=1,kmax
       do l=0,lmax
 
-      array_R(ktot,k,l,lambda,0)= int_prod_bessel_num_soph_p(ktot+2,g_a+g_b+dz_kl(k,l),lambda,0,areal,breal,arg)
+      array_R(ktot,k,l,lambda,0)= int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),lambda,0,areal,breal,arg)
       enddo
     enddo
   enddo
@@ -808,13 +807,13 @@ end
 double precision function bigA(i,j,k)
 implicit none
 integer i,j,k
-double precision fourpi,dblefact
+double precision fourpi,dble_fact
 fourpi=4.d0*dacos(-1.d0)
 bigA=0.d0
 if(mod(i,2).eq.1)return
 if(mod(j,2).eq.1)return
 if(mod(k,2).eq.1)return
-bigA=fourpi*dblefact(i-1)*dblefact(j-1)*dblefact(k-1)/dblefact(i+j+k+1)
+bigA=fourpi*dble_fact(i-1)*dble_fact(j-1)*dble_fact(k-1)/dble_fact(i+j+k+1)
 end
 !!
 !! I_{lambda,mu,l,m}^{k1,k2,k3} = /int dOmega  Y_{lambda mu} xchap^k1 ychap^k2 zchap^k3  Y_{lm}
@@ -1004,10 +1003,10 @@ end
 double precision function crochet(n,g)
 implicit none
 integer n
-double precision g,pi,dblefact,expo
+double precision g,pi,dble_fact,expo
 pi=dacos(-1.d0)
 expo=0.5d0*dfloat(n+1)
-crochet=dblefact(n-1)/(2.d0*g)**expo
+crochet=dble_fact(n-1)/(2.d0*g)**expo
 if(mod(n,2).eq.0)crochet=crochet*dsqrt(pi/2.d0)
 end
 
@@ -1439,30 +1438,6 @@ end
        stop
       end
 
-double precision function dblefact(n)
-implicit none
-integer :: n,k
-double precision prod
-dblefact=1.d0
-
-if(n.lt.0)return
-if(mod(n,2).eq.1)then
-  prod=1.d0
-  do k=1,n,2
-   prod=prod*dfloat(k)
-  enddo
-  dblefact=prod
-  return
- endif
- if(mod(n,2).eq.0)then
-  prod=1.d0
-  do k=2,n,2
-   prod=prod*dfloat(k)
-  enddo
-  dblefact=prod
-  return
- endif
-end
 !!
 !! R_{lambda,lamba',N}= exp(-ga_a AC**2 -g_b BC**2) /int_{0}{+infty} r**(2+n) exp(-(g_a+g_b+g_k)r**2)
 !!                       * M_{lambda}( 2g_a ac r) M_{lambda'}(2g_b bc r)
@@ -1518,10 +1493,10 @@ end
        double precision function bessel_mod_exp(n,x)
        implicit none
        integer n,k
-       double precision x,coef,accu,fact,dblefact
+       double precision x,coef,accu,fact,dble_fact
        accu=0.d0
        do k=0,10
-        coef=1.d0/fact(k)/dblefact(2*(n+k)+1)
+        coef=1.d0/fact(k)/dble_fact(2*(n+k)+1)
         accu=accu+(x**2/2.d0)**k*coef
        enddo
        bessel_mod_exp=x**n*accu
@@ -1843,40 +1818,6 @@ double precision function binom_gen(alpha,n)
  enddo
 end
 
-double precision function test_int(g_a,g_b,g_c,ac,bc)
-implicit none
-double precision factor,g_a,g_b,g_c,ac,bc,x,dx,sum,alpha,beta,pi
-integer i,npts
-pi=dacos(-1.d0)
-factor=0.5d0*pi/(g_a*g_b*ac*bc*dsqrt(g_a+g_b+g_c))*dexp(-g_a*ac**2-g_b*bc**2)
-npts=2000
-dx=20.d0/npts
-sum=0.d0
-alpha=(2.d0*g_a*ac+2.d0*g_b*bc)/dsqrt(g_c+g_a+g_b)
-beta=(2.d0*g_b*bc-2.d0*g_b*bc)/dsqrt(g_c+g_a+g_b)
-do i=1,npts
- x=(i-1)*dx+0.5d0*dx
- sum=sum+dx*dexp(-x**2)*(dcosh(alpha*x)-dcosh(beta*x))
-enddo
-test_int=factor*sum
-end
-
-recursive function fact1(n,a) result(x)
-implicit none
-integer n
-double precision a,x,erf
-if(n.eq.0)then
-x=dsqrt(dacos(-1.d0))/2.d0*erf(a)
-return
-endif
-if(n.eq.1)then
-x=1.d0-dexp(-a**2)
-return
-endif
-if(mod(n,2).eq.0)x=0.5d0*dfloat(n-1)*fact1(n-2,a)+a**n*dexp(-a**2)
-if(mod(n,2).eq.1)x=0.5d0*dfloat(n-1)*fact1(n-2,a)+0.5d0*a**(n-1)*dexp(-a**2)
-end
-
       double precision FUNCTION ERF(X)
       implicit double precision(a-h,o-z)
       IF(X.LT.0.d0)THEN
@@ -1887,13 +1828,21 @@ end
       RETURN
       END
 
-      double precision function coef_nk(n,k)
-      implicit none
-      integer n,k
-      double precision gam,dblefact,fact
-      gam=dblefact(2*(n+k)+1)
-      coef_nk=1.d0/(2.d0**k*fact(k)*gam)
-      end
+double precision function coef_nk(n,k)
+  implicit none
+  integer n,k, ISHFT
+
+  double precision gam,dble_fact,fact
+
+  gam=dble_fact(2*(n+k)+1)
+
+!  coef_nk=1.d0/(dble(ISHFT(1,k))*fact(k)*gam)
+  
+  coef_nk=1.d0/(2.d0**k*fact(k)*gam)
+  
+  return
+
+end
 
 !!    Calculation of
 !!
@@ -1901,162 +1850,177 @@ end
 !!
 !!    M_n(x) modified spherical bessel function 
 !!
-      double precision function int_prod_bessel(l,gam,n,m,a,b)
+
+double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
+
+  implicit none
+  integer n,k,m,q,l,kcp
+  double precision gam,dble_fact,fact,pi,a,b
+  double precision int,intold,sum,coef_nk,crochet,u,int_prod_bessel_large,freal,arg
+
+  integer :: n_1,m_1,nlm
+  double precision :: term_A, term_B, term_rap,  expo
+  double precision :: s_q_0, s_q_k, s_0_0, a_over_b_square
+  double precision :: int_prod_bessel_loc
+
+  logical done
+
+  u=(a+b)/(2.d0*dsqrt(gam))
+  freal=dexp(-arg)
+
+  if(a.eq.0.d0.and.b.eq.0.d0)then
+    if(n.ne.0.or.m.ne.0)then
+      int_prod_bessel=0.d0
+      return
+    endif
+    
+    int_prod_bessel=crochet(l,gam)*freal
+    return
+  endif
+
+  if(u.gt.6.d0)then
+   int_prod_bessel=int_prod_bessel_large(l,gam,n,m,a,b,arg)
+    return
+  endif
+
+  if(a.ne.0.d0.and.b.ne.0.d0)then
+
+    q=0
+    intold=-1.d0
+    int=0.d0
+    done=.false.
+
+    n_1 = 2*(n)+1
+    m_1 = 2*m+1
+    nlm = n+m+l
+    pi=dacos(-1.d0)
+    a_over_b_square = (a/b)**2
+
+    ! Calcul first term of the sequence
+
+    term_a =dble_fact(nlm-1) / (dble_fact(n_1)*dble_fact(m_1))
+    expo=0.5d0*dfloat(nlm+1)
+    term_rap = term_a / (2.d0*gam)**expo
+
+    s_0_0=term_rap*a**(n)*b**(m)
+    if(mod(nlm,2).eq.0)s_0_0=s_0_0*dsqrt(pi/2.d0)
+
+    ! Initialise the first recurence terme for the q loop
+    s_q_0 = s_0_0
+
+    ! Loop over q for the convergence of the sequence
+    do while (.not.done)  
+
+      ! Init
+      sum=0
+      s_q_k=s_q_0
+
+      ! Iteration of k
+      do k=0,q
+        sum=sum+s_q_k
+        s_q_k = a_over_b_square * ( dble(2*(q-k+m)+1)/dble(2*(k+n)+3) ) * ( dble(q-k)/dble(k+1)) * s_q_k
+      enddo
+    
+      int=int+sum
+
+      if(dabs(int-intold).lt.1d-15)then
+        done=.true.
+      else
+
+        !Compute the s_q+1_0
+        s_q_0=s_q_0*(2.d0*q+nlm+1)*b**2/((2.d0*(m+q)+3)*4.d0*(q+1)*gam)
+        
+        if(mod(n+m+l,2).eq.1)s_q_0=s_q_0*dsqrt(pi/2.d0)
+        ! Increment q
+        q=q+1
+        intold=int
+      endif
+
+    enddo
+
+    int_prod_bessel=int*freal
+
+    return
+  endif
+
+  if(a.eq.0.d0.and.b.ne.0.d0)then
+       
+    int = int_prod_bessel_loc(l,gam,m,b)
+    int_prod_bessel=int*freal
+    return
+  endif
+
+  if(a.ne.0.d0.and.b.eq.0.d0)then
+
+    int = int_prod_bessel_loc(l,gam,n,a)
+    int_prod_bessel=int*freal
+    return
+
+  endif
+
+  stop 'pb in int_prod_bessel!!'
+end
+
+double precision function int_prod_bessel_large(l,gam,n,m,a,b,arg)
       implicit none
-      integer n,k,m,q,l,kcp
-      double precision gam,dblefact,fact,pi,a,b
-      double precision int,intold,sum,coef_nk,crochet
-      logical done
-
-      if(a.ne.0.d0.and.b.ne.0.d0)then
-       q=0
-       intold=-1.d0
-       int=0.d0
-       done=.false.
-       kcp=0
-       do while (.not.done)  
-        kcp=kcp+1
-        sum=0.d0
-        do k=0,q
-         sum=sum+coef_nk(n,k)*coef_nk(m,q-k)*a**(n+2*k)*b**(m-2*k+2*q)
-        enddo
-        int=int+sum*crochet(2*q+n+m+l,gam)
-        if(dabs(int-intold).lt.1d-15)then
-         done=.true.
-        else
-         q=q+1
-         intold=int
-        endif
-       enddo
-       int_prod_bessel=int
-       if(kcp.gt.100) then
-          print*,"l",l
-          print*, "gam", gam
-          print*, "n", n
-          print*, "m", m
-          print*, "a", a
-          print*, "b", b
-          print*, "kcp", kcp
-          print*,'**WARNING** bad convergence in int_prod_bessel'
-        endif
-       return
-      endif
-
-      if(a.eq.0.d0.and.b.ne.0.d0)then
-       if(n.ne.0)then
-        int_prod_bessel=0.d0
-        return
-       endif
-       q=0
-       intold=-1.d0
-       int=0.d0
-       done=.false.
-       kcp=0
-       do while (.not.done)
-        kcp=kcp+1
-        int=int+coef_nk(m,q)*b**(m+2*q)*crochet(2*q+m+l,gam)
-        if(dabs(int-intold).lt.1d-15)then
-         done=.true.
-        else
-         q=q+1
-         intold=int
-        endif
-       enddo
-       int_prod_bessel=int
-       if(kcp.gt.100)stop '**WARNING** bad convergence in int_prod_bessel'
-       return
-      endif
-
-      if(a.ne.0.d0.and.b.eq.0.d0)then
-       if(m.ne.0)then
-        int_prod_bessel=0.d0
-        return
-       endif
-       q=0
-       intold=-1.d0
-       int=0.d0
-       done=.false.
-       kcp=0
-       do while (.not.done)
-        kcp=kcp+1
-        int=int+coef_nk(n,q)*a**(n+2*q)*crochet(2*q+n+l,gam)
-        if(dabs(int-intold).lt.1d-15)then
-         done=.true.
-        else
-         q=q+1
-         intold=int
-        endif
-       enddo
-       int_prod_bessel=int
-       if(kcp.gt.100)stop '**WARNING** bad convergence in int_prod_bessel'
-       return
-       endif
-
-      if(a.eq.0.d0.and.b.eq.0.d0)then
-       if(n.ne.0.or.m.ne.0)then
-        int_prod_bessel=0.d0
-        return
-       endif
-       int_prod_bessel=crochet(l,gam)
-       return
-      endif
-
-      stop 'pb in int_prod_bessel!!'
-      end
-
-
-double precision function int_prod_bessel_num_soph_p(l,gam,n,m,a,b,arg)
-      implicit none
-      integer :: n,m,l
-      double precision :: gam,a,b,arg,arg_new
-      double precision :: bessel_mod,factor
-      logical :: not_done
-      double precision :: bigA,xold,x,dx,accu,intnew,intold,intold2,u,v,freal
-      integer :: iter, i, nI, n0
-      double precision :: eps
+      integer n,m,i,npts,l
+      double precision gam,a,b
+      double precision sum,x,bessel_mod,u,factor,arg
+      double precision xq(100),wq(100)
 
       u=(a+b)/(2.d0*dsqrt(gam))
-      arg_new=u**2-arg
-      freal=dexp(arg_new)
-      v=u/dsqrt(gam)
+      factor=dexp(u**2-arg)/dsqrt(gam)
 
-  bigA=v+dsqrt(-dlog(1.d-15)/gam)
-  n0=5
-  accu=0.d0
-  dx=bigA/(float(n0)-1.d0)
-  iter=0
-  do i=1,n0
-   x=(float(i)-1.d0)*dx
-   accu=accu+x**l*dexp(-gam*(x-v)**2)*bessel_mod(a*x,n)*bessel_mod(b*x,m)*dexp(-(a+b)*x)
-  enddo
+xq(1)= 5.38748089001123    
+xq(2)= 4.60368244955074   
+xq(3)= 3.94476404011563  
+xq(4)= 3.34785456738322 
+xq(5)= 2.78880605842813
+xq(6)= 2.25497400208928       
+xq(7)= 1.73853771211659      
+xq(8)= 1.23407621539532     
+xq(9)= 0.737473728545394   
+xq(10)= 0.245340708300901 
+xq(11)=-0.245340708300901
+xq(12)=-0.737473728545394    
+xq(13)=-1.23407621539532    
+xq(14)=-1.73853771211659   
+xq(15)=-2.25497400208928  
+xq(16)=-2.78880605842813 
+xq(17)=-3.34785456738322     
+xq(18)=-3.94476404011563    
+xq(19)=-4.60368244955074   
+xq(20)=-5.38748089001123  
+wq(1)=  2.229393645534151E-013
+wq(2)=  4.399340992273176E-010
+wq(3)=  1.086069370769280E-007
+wq(4)=  7.802556478532063E-006
+wq(5)=  2.283386360163528E-004
+wq(6)=  3.243773342237853E-003
+wq(7)=  2.481052088746362E-002
+wq(8)=  0.109017206020022
+wq(9)=  0.286675505362834
+wq(10)= 0.462243669600610
+wq(11)= 0.462243669600610
+wq(12)= 0.286675505362834
+wq(13)= 0.109017206020022
+wq(14)= 2.481052088746362E-002
+wq(15)= 3.243773342237853E-003
+wq(16)= 2.283386360163528E-004
+wq(17)= 7.802556478532063E-006
+wq(18)= 1.086069370769280E-007
+wq(19)= 4.399340992273176E-010
+wq(20)= 2.229393645534151E-013
 
-accu=accu*freal
-intold=accu*dx
+      npts=20
+!      call gauher(xq,wq,npts)
 
-eps=1.d-08
-nI=n0-1
-dx=dx/2.d0
-not_done=.true.
-
-do while(not_done)
- iter=iter+1
- accu=0.d0
- do i=1,nI
-  x=dx+(float(i)-1.d0)*2.d0*dx
-  accu=accu+dx*x**l*dexp(-gam*(x-v)**2)*bessel_mod(a*x,n)*bessel_mod(b*x,m)*dexp(-(a+b)*x)
- enddo
- accu=accu*freal
- intnew=intold/2.d0+accu
- if(iter.gt.1.and.dabs(intnew-intold).lt.eps.and.dabs(intnew-intold2).lt.eps)then
-  not_done=.false.
- else
-  intold2=intold
-  intold=intnew
-  dx=dx/2.d0
-  nI=2*nI
- endif
-enddo
-int_prod_bessel_num_soph_p=intold
+      sum=0.d0
+      do i=1,npts
+       x=(xq(i)+u)/dsqrt(gam)
+       sum=sum+wq(i)*x**l*bessel_mod(a*x,n)*bessel_mod(b*x,m)*dexp(-(a+b)*x)
+      enddo
+      int_prod_bessel_large=sum*factor
 end
 
 !!    Calculation of
@@ -2065,30 +2029,47 @@ end
 !!
 !!    M_n(x) modified spherical bessel function 
 !!
-      double precision function int_prod_bessel_loc(l,gam,n,a)
-      implicit none
-      integer n,k,l,kcp
-      double precision gam,a
-      double precision int,intold,coef_nk,crochet
-      logical done
-      k=0
-      intold=-1.d0
-      int=0.d0
-      done=.false.
-      kcp=0
-      do while (.not.done)
-       kcp=kcp+1
-       int=int+coef_nk(n,k)*a**(n+2*k)*crochet(2*k+n+l,gam)
-       if(dabs(int-intold).lt.1d-15)then
-        done=.true.
-       else
-        k=k+1
-        intold=int
-       endif
-      enddo
-      int_prod_bessel_loc=int
-      if(kcp.gt.100)print*,'**WARNING** bad convergence in int_prod_bessel'
-      end
+double precision function int_prod_bessel_loc(l,gam,n,a)
+  implicit none
+  integer n,k,l,kcp
+  double precision gam,a
+  double precision int,intold,coef_nk,crochet,dble_fact, fact, pi, expo
+  double precision :: f_0, f_k
+  logical done
+  
+  pi=dacos(-1.d0)
+  intold=-1.d0
+  done=.false.
+  int=0
+  
+  ! Int f_0
+  coef_nk=1.d0/dble_fact(2*n+1)
+  expo=0.5d0*dfloat(n+l+1)
+  crochet=dble_fact(n+l-1)/(2.d0*gam)**expo
+  if(mod(n+l,2).eq.0)crochet=crochet*dsqrt(pi/2.d0)
+
+  f_0 = coef_nk*a**n*crochet
+
+  k=0
+
+  f_k=f_0
+  do while (.not.done)
+
+    int=int+f_k
+
+    f_k = f_k*(a**2*(2*(k+1)+n+l-1)) / (2*(k+1)*(2*(n+k+1)+1)*2*gam)
+
+    if(dabs(int-intold).lt.1d-15)then
+      done=.true.
+    else
+      k=k+1
+      intold=int
+    endif
+
+  enddo
+  
+  int_prod_bessel_loc=int
+end
 
       double precision function int_prod_bessel_num(l,gam,n,m,a,b)
       implicit none

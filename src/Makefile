@@ -16,10 +16,6 @@ default: ezfio
 
 veryclean:
 	$(QPACKAGE_ROOT)/scripts/module/clean_modules.sh $(ALL_MODULES)
-	# Define the dict [type in EZFIO.cfg] = ocaml type , f90 type
-	# If you change the qptypes_generator.ml, you need to rm this
-	# For simplicity add this to the veryclean rule
-	rm -f $(QPACKAGE_ROOT)/scripts/ezfio_interface/fancy_type.p
 
 $(ALL_MODULES): ezfio
 	$(QPACKAGE_ROOT)/scripts/module/build_modules.sh $@ 

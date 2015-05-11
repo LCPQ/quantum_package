@@ -62,6 +62,9 @@ import ConfigParser
 from collections import defaultdict
 from collections import namedtuple
 
+
+from qp_utils import cache
+
 Type = namedtuple('Type', 'fancy ocaml fortran')
 
 
@@ -78,6 +81,7 @@ def is_bool(str_):
         raise TypeError
 
 
+@cache
 def get_type_dict():
     """
     This function makes the correspondance between the type of value read in
@@ -89,17 +93,7 @@ def get_type_dict():
     # ~#~#~#~#~ #
     # P i c l e #
     # ~#~#~#~#~ #
-
-    import cPickle as pickle
-
-    from os import listdir
-
     qpackage_root = os.environ['QPACKAGE_ROOT']
-    fancy_type_pickle = qpackage_root + "/scripts/ezfio_interface/fancy_type.p"
-
-    if fancy_type_pickle in listdir(os.getcwd()):
-        fancy_type = pickle.load(open(fancy_type_pickle, "rb"))
-        return fancy_type
 
     # ~#~#~#~ #
     # I n i t #
@@ -148,9 +142,7 @@ def get_type_dict():
         b = r.find('let untouched = "')
         e = r.find(';;', b)
 
-        l_un = [
-            i for i in r[
-                b:e].splitlines() if i.strip().startswith("module")]
+        l_un = [i for i in r[b:e].splitlines() if i.strip().startswith("module")]
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # q p _ t y p e s _ g e n e r a t e #
@@ -174,9 +166,6 @@ def get_type_dict():
     # ~#~#~#~#~#~#~#~ #
     # F i n a l i z e #
     # ~#~#~#~#~#~#~#~ #
-
-    pickle.dump(dict(fancy_type), open(fancy_type_pickle, "wb"))
-
     return dict(fancy_type)
 
 
