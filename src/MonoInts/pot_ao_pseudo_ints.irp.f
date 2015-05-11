@@ -1,12 +1,16 @@
-BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral_pseudo, (ao_num_align,ao_num)]
+BEGIN_PROVIDER [ double precision, ao_pseudo_integral, (ao_num_align,ao_num)]
   implicit none
   BEGIN_DOC
 ! Pseudo-potential
   END_DOC
-  ao_nucl_elec_integral_pseudo = pseudo_integral_local + pseudo_integral_non_local 
+  if (do_pseudo) then
+    ao_pseudo_integral = ao_pseudo_integral_local + ao_pseudo_integral_non_local 
+  else
+    ao_pseudo_integral = 0.d0
+  endif
 END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, pseudo_integral_local, (ao_num_align,ao_num)]
+ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_num)]
   implicit none
   BEGIN_DOC
 ! Local pseudo-potential
@@ -21,7 +25,7 @@ END_PROVIDER
  double precision  :: cpu_1, cpu_2, wall_1, wall_2, wall_0
  integer           :: thread_num
 
-  pseudo_integral_local = 0.d0
+  ao_pseudo_integral_local = 0.d0
 
   !! Dump array 
   integer, allocatable ::  n_k_dump(:)
@@ -47,7 +51,7 @@ END_PROVIDER
   !$OMP          v_k_dump,n_k_dump, dz_k_dump, &
   !$OMP          wall_0,wall_2,thread_num, output_monoints) & 
   !$OMP SHARED (ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp, &
-  !$OMP         pseudo_integral_local,nucl_num,nucl_charge, &
+  !$OMP         ao_pseudo_integral_local,nucl_num,nucl_charge, &
   !$OMP         pseudo_klocmax,pseudo_lmax,pseudo_kmax,pseudo_v_k,pseudo_n_k, pseudo_dz_k, &
   !$OMP         wall_1)
   
@@ -87,7 +91,7 @@ END_PROVIDER
                      A_center,power_A,alpha,B_center,power_B,beta,C_center)
   
       enddo
-      pseudo_integral_local(i,j) = pseudo_integral_local(i,j) + &
+      ao_pseudo_integral_local(i,j) = ao_pseudo_integral_local(i,j) + &
                                    ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i)*c
      enddo
      enddo
@@ -112,7 +116,7 @@ END_PROVIDER
  END_PROVIDER
 
 
- BEGIN_PROVIDER [ double precision, pseudo_integral_non_local, (ao_num_align,ao_num)]
+ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_non_local, (ao_num_align,ao_num)]
   implicit none
   BEGIN_DOC
 ! Local pseudo-potential
@@ -127,7 +131,7 @@ END_PROVIDER
  double precision  :: cpu_1, cpu_2, wall_1, wall_2, wall_0
  integer           :: thread_num
 
-  pseudo_integral_non_local = 0.d0
+  ao_pseudo_integral_non_local = 0.d0
 
   !! Dump array 
   integer, allocatable ::  n_kl_dump(:,:)
@@ -152,7 +156,7 @@ END_PROVIDER
   !$OMP          n_kl_dump, v_kl_dump, dz_kl_dump, &
   !$OMP          wall_0,wall_2,thread_num, output_monoints) & 
   !$OMP SHARED (ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp, &
-  !$OMP         pseudo_integral_non_local,nucl_num,nucl_charge, &
+  !$OMP         ao_pseudo_integral_non_local,nucl_num,nucl_charge, &
   !$OMP         pseudo_klocmax,pseudo_lmax,pseudo_kmax,pseudo_n_kl, pseudo_v_kl, pseudo_dz_kl, &
   !$OMP         wall_1)
   
@@ -191,7 +195,7 @@ END_PROVIDER
         c = c + Vpseudo(pseudo_lmax,pseudo_kmax,v_kl_dump,n_kl_dump,dz_kl_dump,A_center,power_A,alpha,B_center,power_B,beta,C_center)
   
       enddo
-      pseudo_integral_non_local(i,j) = pseudo_integral_non_local(i,j) + &
+      ao_pseudo_integral_non_local(i,j) = ao_pseudo_integral_non_local(i,j) + &
                                    ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i)*c
      enddo
      enddo
