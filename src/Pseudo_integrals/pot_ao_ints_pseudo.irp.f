@@ -21,23 +21,23 @@
   !                 
   !! Parameters of the local part of pseudo:
 
-  integer klocmax
-  integer, allocatable ::  n_k(:,:)
-  double precision, allocatable ::  v_k(:,:), dz_k(:,:)
-
-  call ezfio_get_pseudo_integrals_klocmax(klocmax)
-
-  allocate(n_k(nucl_num,klocmax),v_k(nucl_num,klocmax), dz_k(nucl_num,klocmax))
-
-  call ezfio_get_pseudo_integrals_v_k(v_k)
-  call ezfio_get_pseudo_integrals_n_k(n_k)
-  call ezfio_get_pseudo_integrals_dz_k(dz_k)
-
+!  integer klocmax
+!  integer, allocatable ::  n_k(:,:)
+!  double precision, allocatable ::  v_k(:,:), dz_k(:,:)
+!
+!  call ezfio_get_pseudo_klocmax(klocmax)
+!
+!  allocate(n_k(nucl_num,klocmax),v_k(nucl_num,klocmax), dz_k(nucl_num,klocmax))
+!
+!  call ezfio_get_pseudo_v_k(v_k)
+!  call ezfio_get_pseudo_n_k(n_k)
+!  call ezfio_get_pseudo_dz_k(dz_k)
+!
   !! Dump array 
   integer, allocatable ::  n_k_dump(:)
   double precision, allocatable ::  v_k_dump(:), dz_k_dump(:) 
  
-  allocate(n_k_dump(1:klocmax), v_k_dump(1:klocmax), dz_k_dump(1:klocmax)) 
+  allocate(n_k_dump(1:pseudo_klocmax), v_k_dump(1:pseudo_klocmax), dz_k_dump(1:pseudo_klocmax)) 
 
 
   !                               
@@ -46,27 +46,27 @@
   !                              
   !! Parameters of non local part of pseudo:
 
-  integer :: kmax,lmax
-  integer, allocatable ::  n_kl(:,:,:)
-  double precision, allocatable ::  v_kl(:,:,:), dz_kl(:,:,:) 
-
-  call ezfio_get_pseudo_integrals_lmaxpo(lmax)
-  call ezfio_get_pseudo_integrals_kmax(kmax)
-  !lmax plus one -> lmax
-  lmax = lmax - 1 
- 
-  allocate(n_kl(nucl_num,kmax,0:lmax), v_kl(nucl_num,kmax,0:lmax), dz_kl(nucl_num,kmax,0:lmax)) 
-
-  call ezfio_get_pseudo_integrals_n_kl(n_kl)
-  call ezfio_get_pseudo_integrals_v_kl(v_kl)
-  call ezfio_get_pseudo_integrals_dz_kl(dz_kl)
-
-
+!  integer :: kmax,lmax
+!  integer, allocatable ::  n_kl(:,:,:)
+!  double precision, allocatable ::  v_kl(:,:,:), dz_kl(:,:,:) 
+!
+!  call ezfio_get_pseudo_lmaxpo(lmax)
+!  call ezfio_get_pseudo_kmax(kmax)
+!  !lmax plus one -> lmax
+!  lmax = lmax - 1 
+! 
+!  allocate(n_kl(nucl_num,kmax,0:lmax), v_kl(nucl_num,kmax,0:lmax), dz_kl(nucl_num,kmax,0:lmax)) 
+!
+!  call ezfio_get_pseudo_n_kl(n_kl)
+!  call ezfio_get_pseudo_v_kl(v_kl)
+!  call ezfio_get_pseudo_dz_kl(dz_kl)
+!
+!
   !! Dump array 
   integer, allocatable ::  n_kl_dump(:,:)
   double precision, allocatable ::  v_kl_dump(:,:), dz_kl_dump(:,:) 
  
-  allocate(n_kl_dump(kmax,0:lmax), v_kl_dump(kmax,0:lmax), dz_kl_dump(kmax,0:lmax)) 
+  allocate(n_kl_dump(pseudo_kmax,0:pseudo_lmax), v_kl_dump(pseudo_kmax,0:pseudo_lmax), dz_kl_dump(pseudo_kmax,0:pseudo_lmax)) 
 
   !  _                
   ! /   _. |  _     | 
@@ -86,7 +86,7 @@
   !$OMP          wall_0,wall_2,thread_num, output_monoints) & 
   !$OMP SHARED (ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp, &
   !$OMP         ao_nucl_elec_integral_pseudo,nucl_num,nucl_charge, &
-  !$OMP         klocmax,lmax,kmax,v_k,n_k, dz_k, n_kl, v_kl, dz_kl, &
+  !$OMP         pseudo_klocmax,pseudo_lmax,pseudo_kmax,pseudo_v_k,pseudo_n_k, pseudo_dz_k, pseudo_n_kl, pseudo_v_kl, pseudo_dz_kl, &
   !$OMP         wall_1)
   
   !$OMP DO SCHEDULE (guided)
@@ -117,19 +117,19 @@
   
         C_center(1:3) = nucl_coord(k,1:3)
   
-        v_k_dump = v_k(k,1:klocmax)
-        n_k_dump = n_k(k,1:klocmax)
-        dz_k_dump =  dz_k(k,1:klocmax)
+        v_k_dump = pseudo_v_k(k,1:pseudo_klocmax)
+        n_k_dump = pseudo_n_k(k,1:pseudo_klocmax)
+        dz_k_dump =  pseudo_dz_k(k,1:pseudo_klocmax)
 
-        c = c + Vloc(klocmax, v_k_dump,n_k_dump, dz_k_dump, &
+        c = c + Vloc(pseudo_klocmax, v_k_dump,n_k_dump, dz_k_dump, &
                      A_center,power_A,alpha,B_center,power_B,beta,C_center)
   
 
-        n_kl_dump = n_kl(k,1:kmax,0:lmax)
-        v_kl_dump = v_kl(k,1:kmax,0:lmax)
-        dz_kl_dump = dz_kl(k,1:kmax,0:lmax)
+        n_kl_dump = pseudo_n_kl(k,1:pseudo_kmax,0:pseudo_lmax)
+        v_kl_dump = pseudo_v_kl(k,1:pseudo_kmax,0:pseudo_lmax)
+        dz_kl_dump = pseudo_dz_kl(k,1:pseudo_kmax,0:pseudo_lmax)
 
-        c = c + Vpseudo(lmax,kmax,v_kl_dump,n_kl_dump,dz_kl_dump,A_center,power_A,alpha,B_center,power_B,beta,C_center)
+        c = c + Vpseudo(pseudo_lmax,pseudo_kmax,v_kl_dump,n_kl_dump,dz_kl_dump,A_center,power_A,alpha,B_center,power_B,beta,C_center)
   
       enddo
       ao_nucl_elec_integral_pseudo(i,j) = ao_nucl_elec_integral_pseudo(i,j) + &
@@ -157,10 +157,10 @@
 ! |_/ (/_ (_| | | (_) (_ (_|  |_ (/_ 
 !                                    
  
-  deallocate(n_k,v_k, dz_k)
+!  deallocate(n_k,v_k, dz_k)
   deallocate(n_k_dump,v_k_dump, dz_k_dump)
 
-  deallocate(n_kl,v_kl, dz_kl)
+!  deallocate(n_kl,v_kl, dz_kl)
   deallocate(n_kl_dump,v_kl_dump, dz_kl_dump)
 
 

@@ -21,4 +21,5 @@ Needed Modules
 
 * `AOs <http://github.com/LCPQ/quantum_package/tree/master/src/AOs>`_
 * `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_
+* `Pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo>`_
 
