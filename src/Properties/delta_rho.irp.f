@@ -79,7 +79,7 @@ BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_all_points, (ao_num_a
  !$OMP PARALLEL DO DEFAULT(none) &
  !$OMP PRIVATE(i,j,n,l,A_center,power_A,B_center,power_B,accu_z, &
  !$OMP  overlap_x,overlap_y,overlap_z,overlap,c,alpha,beta) &
- !$OMP SHARED(ao_num,nucl_coord,ao_nucl,ao_power,ao_prim_num,ao_expo_transp,ao_coef_transp, &
+ !$OMP SHARED(ao_num,nucl_coord,ao_nucl,ao_power,ao_prim_num,ao_expo_ordered_transp,ao_coef_normalized_ordered_transp, &
  !$OMP   ao_integrated_delta_rho_all_points,N_z_pts,dim1,i_z,z,delta_z)           
   do j=1,ao_num
    A_center(1) = nucl_coord( ao_nucl(j), 1 )
@@ -98,12 +98,12 @@ BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_all_points, (ao_num_a
 
      accu_z = 0.d0
      do n = 1,ao_prim_num(j)
-      alpha = ao_expo_transp(n,j)
+      alpha = ao_expo_ordered_transp(n,j)
       do l = 1, ao_prim_num(i)
-       beta = ao_expo_transp(l,i)
+       beta = ao_expo_ordered_transp(l,i)
        call overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,power_B,overlap_x,overlap_y,overlap_z,overlap,dim1)
 
-       c = ao_coef_transp(n,j) * ao_coef_transp(l,i) 
+       c = ao_coef_normalized_ordered_transp(n,j) * ao_coef_normalized_ordered_transp(l,i) 
        accu_z += c* overlap_x * overlap_y * SABpartial(z,z+delta_z,A_center,B_center,power_A,power_B,alpha,beta)
       enddo
      enddo
@@ -147,7 +147,7 @@ BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_one_point, (ao_num_al
  !$OMP PARALLEL DO DEFAULT(none) &
  !$OMP PRIVATE(i,j,n,l,A_center,power_A,B_center,power_B,accu_z, &
  !$OMP  overlap_x,overlap_y,overlap_z,overlap,c,alpha,beta) &
- !$OMP SHARED(ao_num,nucl_coord,ao_nucl,ao_power,ao_prim_num,ao_expo_transp,ao_coef_transp, &
+ !$OMP SHARED(ao_num,nucl_coord,ao_nucl,ao_power,ao_prim_num,ao_expo_ordered_transp,ao_coef_normalized_ordered_transp, &
  !$OMP   ao_integrated_delta_rho_one_point,dim1,z,delta_z)           
   do j=1,ao_num
    A_center(1) = nucl_coord( ao_nucl(j), 1 )
@@ -166,12 +166,12 @@ BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_one_point, (ao_num_al
 
      accu_z = 0.d0
      do n = 1,ao_prim_num(j)
-      alpha = ao_expo_transp(n,j)
+      alpha = ao_expo_ordered_transp(n,j)
       do l = 1, ao_prim_num(i)
-       beta = ao_expo_transp(l,i)
+       beta = ao_expo_ordered_transp(l,i)
        call overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,power_B,overlap_x,overlap_y,overlap_z,overlap,dim1)
 
-       c = ao_coef_transp(n,j) * ao_coef_transp(l,i) 
+       c = ao_coef_normalized_ordered_transp(n,j) * ao_coef_normalized_ordered_transp(l,i) 
        accu_z += c* overlap_x * overlap_y * SABpartial(z,z+delta_z,A_center,B_center,power_A,power_B,alpha,beta)
       enddo
      enddo

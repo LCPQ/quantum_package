@@ -105,7 +105,7 @@ def write_ezfio(res, filename):
     # Transformt H1 into H
     import re
     p = re.compile(ur'(\d*)$')
-    label = [p.sub("", x.name) for x in res.geometry]
+    label = [p.sub("", x.name).capitalize() for x in res.geometry]
     ezfio.set_nuclei_nucl_label(label)
 
     ezfio.set_nuclei_nucl_coord(coord_x + coord_y + coord_z)
@@ -264,6 +264,16 @@ def write_ezfio(res, filename):
     ezfio.set_mo_basis_mo_tot_num(mo_tot_num)
     ezfio.set_mo_basis_mo_occ(OccNum)
     ezfio.set_mo_basis_mo_coef(MoMatrix)
+
+    # ______                   _
+    # | ___ \                 | |
+    # | |_/ /__  ___ _   _  __| | ___
+    # |  __/ __|/ _ \ | | |/ _` |/ _ \
+    # | |  \__ \  __/ |_| | (_| | (_) |
+    # \_|  |___/\___|\__,_|\__,_|\___/
+    #
+
+    ezfio.set_pseudo_integrals_do_pseudo(False)
 
 
 def get_full_path(file_path):

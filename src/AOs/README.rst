@@ -17,20 +17,20 @@ The AO coefficients are normalized as:
 
   {\tilde c}_{ki} = \frac{c_{ki}}{ \int \left( (x-X_A)^a (y-Y_A)^b (z-Z_A)^c  e^{-\gamma_{ki} |{\bf r} - {\bf R}_A|^2} \right)^2} dr
 
+Warning: ``ao_coef`` contains the AO coefficients given in input. These do not
+include the normalization constant of the AO. The ``ao_coef_normalized`` includes
+this normalization factor.
+
+The AOs are also sorted by increasing exponent to accelerate the calculation of
+the two electron integrals.
+
 Assumptions
 ===========
 
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-* The atomic orbitals are normalized:
-
-  .. math::
-
-   \int \left(\chi_i({\bf r}) \right)^2 dr = 1
-
 * The AO coefficients in the EZFIO files are not necessarily normalized and are normalized after reading
-* The AO coefficients and exponents are ordered in increasing order of exponents
 
 
 Needed Modules
@@ -39,10 +39,7 @@ Needed Modules
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-* `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
 * `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
-* `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
-* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 
 Documentation
 =============
@@ -70,45 +67,41 @@ Documentation
   Overlap between atomic basis functions:
   :math:`\int \chi_i(r) \chi_j(r) dr)`
 
-`ao_coef <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L21>`_
-  Coefficients, exponents and powers of x,y and z
+`ao_coef <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L62>`_
+  AO Coefficients, read from input. Those should not be used directly, as
+  the MOs are expressed on the basis of **normalized** AOs.
 
-`ao_coef_transp <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L157>`_
-  Transposed ao_coef and ao_expo
+`ao_coef_normalized <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L84>`_
+  Coefficients including the AO normalization
 
-`ao_coef_unnormalized <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L116>`_
-  Coefficients, exponents and powers of x,y and z as in the EZFIO file
-  ao_coef(i,j) = coefficient of the jth primitive on the ith ao
+`ao_coef_normalized_ordered <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L107>`_
+  Sorted primitives to accelerate 4 index MO transformation
+
+`ao_coef_normalized_ordered_transp <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L133>`_
+  Transposed ao_coef_normalized_ordered
+
+`ao_expo <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L41>`_
+  AO Exponents read from input
+
+`ao_expo_ordered <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L108>`_
+  Sorted primitives to accelerate 4 index MO transformation
+
+`ao_expo_ordered_transp <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L147>`_
+  Transposed ao_expo_ordered
+
+`ao_l <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L162>`_
   ao_l = l value of the AO: a+b+c in x^a y^b z^c
 
-`ao_expo <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L20>`_
-  Coefficients, exponents and powers of x,y and z
-
-`ao_expo_transp <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L158>`_
-  Transposed ao_coef and ao_expo
-
-`ao_expo_unsorted <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L117>`_
-  Coefficients, exponents and powers of x,y and z as in the EZFIO file
-  ao_coef(i,j) = coefficient of the jth primitive on the ith ao
+`ao_l_char <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L163>`_
   ao_l = l value of the AO: a+b+c in x^a y^b z^c
 
-`ao_l <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L118>`_
-  Coefficients, exponents and powers of x,y and z as in the EZFIO file
-  ao_coef(i,j) = coefficient of the jth primitive on the ith ao
-  ao_l = l value of the AO: a+b+c in x^a y^b z^c
-
-`ao_l_char <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L119>`_
-  Coefficients, exponents and powers of x,y and z as in the EZFIO file
-  ao_coef(i,j) = coefficient of the jth primitive on the ith ao
-  ao_l = l value of the AO: a+b+c in x^a y^b z^c
-
-`ao_l_char_space <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L309>`_
+`ao_l_char_space <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L311>`_
   Undocumented
 
-`ao_md5 <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L400>`_
+`ao_md5 <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L403>`_
   MD5 key characteristic of the AO basis
 
-`ao_nucl <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L207>`_
+`ao_nucl <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L209>`_
   Index of the nuclei on which the ao is centered
 
 `ao_num <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L1>`_
@@ -118,35 +111,35 @@ Documentation
   Number of atomic orbitals
 
 `ao_power <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L19>`_
-  Coefficients, exponents and powers of x,y and z
+  Powers of x,y and z read from input
 
-`ao_prim_num <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L175>`_
+`ao_prim_num <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L177>`_
   Number of primitives per atomic orbital
 
-`ao_prim_num_max <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L197>`_
+`ao_prim_num_max <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L199>`_
   Undocumented
 
-`ao_prim_num_max_align <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L198>`_
+`ao_prim_num_max_align <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L200>`_
   Undocumented
 
-`l_to_charater <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L216>`_
+`l_to_charater <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L218>`_
   character corresponding to the "L" value of an AO orbital
 
-`n_aos_max <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L229>`_
+`n_aos_max <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L231>`_
   Number of AOs per atom
 
-`nucl_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L242>`_
+`nucl_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L244>`_
   List of AOs attached on each atom
 
-`nucl_list_shell_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L260>`_
+`nucl_list_shell_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L262>`_
   Index of the shell type Aos and of the corresponding Aos
   Per convention, for P,D,F and G AOs, we take the index
   of the AO with the the corresponding power in the "X" axis
 
-`nucl_n_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L228>`_
+`nucl_n_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L230>`_
   Number of AOs per atom
 
-`nucl_num_shell_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L261>`_
+`nucl_num_shell_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/aos.irp.f#L263>`_
   Index of the shell type Aos and of the corresponding Aos
   Per convention, for P,D,F and G AOs, we take the index
   of the AO with the the corresponding power in the "X" axis

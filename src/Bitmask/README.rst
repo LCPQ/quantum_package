@@ -40,13 +40,7 @@ Needed Modules
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-* `AOs <http://github.com/LCPQ/quantum_package/tree/master/src/AOs>`_
-* `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_
-* `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
 * `MOs <http://github.com/LCPQ/quantum_package/tree/master/src/MOs>`_
-* `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
-* `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
-* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 
 Documentation
 =============
@@ -134,11 +128,18 @@ Documentation
   Subroutine to print the content of a determinant in '+-' notation and
   hexadecimal representation.
 
+`debug_spindet <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L155>`_
+  Subroutine to print the content of a determinant in '+-' notation and
+  hexadecimal representation.
+
 `list_to_bitstring <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L29>`_
   Returns the physical string "string(N_int,2)" from the array of
   occupations "list(N_int*bit_kind_size,2)
 
 `print_det <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L138>`_
+  Subroutine to print the content of a determinant using the '+-' notation
+
+`print_spindet <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L171>`_
   Subroutine to print the content of a determinant using the '+-' notation
 
 

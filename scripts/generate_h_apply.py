@@ -141,7 +141,7 @@ class H_apply(object):
   def set_filter_2h_2p(self):
     self["filter2h2p"] = """
 !    ! DIR$ FORCEINLINE
-     if(is_a_two_holes_two_particles(key))cycle
+     if (is_a_two_holes_two_particles(key)) cycle
     """
 
 

@@ -8,6 +8,8 @@ Molecular orbitals are expressed as
 
   \phi_k({\bf r}) = \sum_i C_{ik} \chi_k({\bf r})
 
+where :math:`\chi_k` are *normalized* atomic basis set.
+
 The current set of molecular orbitals has a label ``mo_label``.
 When the orbitals are modified, the label should also be updated to keep
 everything consistent.
@@ -15,6 +17,18 @@ everything consistent.
 When saving the MOs, the ``mo_basis`` directory of the EZFIO file is copied
 in the ``save`` directory, named by the current ``mo_label``. All this is
 done with the script named ``save_current_mos.sh`` in the ``scripts`` directory.
+
+Assumptions
+===========
+
+.. Do not edit this section. It was auto-generated from the
+.. NEEDED_MODULES file.
+
+ASSUMPTONS
+==========
+
+* The AO basis functions are normalized.
+
 
 Needed Modules
 ==============
@@ -24,10 +38,6 @@ Needed Modules
 
 * `AOs <http://github.com/LCPQ/quantum_package/tree/master/src/AOs>`_
 * `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_
-* `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
-* `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
-* `Output <http://github.com/LCPQ/quantum_package/tree/master/src/Output>`_
-* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 
 Documentation
 =============

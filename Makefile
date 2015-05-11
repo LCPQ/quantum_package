@@ -45,5 +45,5 @@ ocaml:
 
 veryclean:
 	rm -rf EZFIO
-	$(MAKE) EZFIO
+	rm -rf resultsFile
 	$(MAKE) -C src veryclean
