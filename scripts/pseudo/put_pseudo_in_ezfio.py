@@ -335,4 +335,4 @@ if __name__ == "__main__":
     ezfio.pseudo_pseudo_n_kl = zip(*n_kl)
     ezfio.pseudo_pseudo_dz_kl = zip(*dz_kl)
 
-    ezfio.pseudo_integrals_do_pseudo = True
+    ezfio.pseudo_do_pseudo = True
