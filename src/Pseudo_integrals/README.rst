@@ -9,12 +9,12 @@ Documentation
 .. NEEDED_MODULES file.
 
 `ao_nucl_elec_integral_pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo_integrals/pot_ao_ints_pseudo.irp.f#L1>`_
-  Undocumented
+  Pseudo-potential integrals (local + non-local)
 
 `ao_nucl_elec_integral_pseudo_local <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo_integrals/pot_ao_ints_pseudo.irp.f#L10>`_
-  Local component of the pseudopotential
+  interaction nuclear electron
 
-`ao_nucl_elec_integral_pseudo_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo_integrals/pot_ao_ints_pseudo.irp.f#L124>`_
+`ao_nucl_elec_integral_pseudo_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo_integrals/pot_ao_ints_pseudo.irp.f#L114>`_
   interaction nuclear electron
 
 
