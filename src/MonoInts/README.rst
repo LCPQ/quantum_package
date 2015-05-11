@@ -6,6 +6,7 @@ Needed Modules
 
 * `MOs <http://github.com/LCPQ/quantum_package/tree/master/src/MOs>`_
 * `Pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo>`_
+* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 
 Documentation
 =============

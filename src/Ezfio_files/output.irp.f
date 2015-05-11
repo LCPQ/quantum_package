@@ -20,8 +20,8 @@ BEGIN_SHELL [ /bin/bash ]
   ! Output file for $NAME
   END_DOC
   PROVIDE output_wall_time_0 output_cpu_time_0 ezfio_filename
-  integer                        :: getUnitAndOpen
-  call ezfio_set_output_empty(.False.)
+!  integer                        :: getUnitAndOpen
+!  call ezfio_set_output_empty(.False.)
 IRP_IF COARRAY
   if (this_image() == 1) then
     output_$NAME = 6 !getUnitAndOpen(trim(ezfio_filename)//'/output/'//'$NAME.rst','a')

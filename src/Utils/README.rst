@@ -260,10 +260,10 @@ Documentation
 `dble_fact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L138>`_
   Undocumented
 
-`dble_fact_odd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L176>`_
+`dble_fact_even <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L155>`_
   n!!
 
-`dble_fact_peer <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L155>`_
+`dble_fact_odd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L176>`_
   n!!
 
 `dble_logfact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L210>`_
