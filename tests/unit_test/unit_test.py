@@ -244,8 +244,8 @@ def run_full_ci_10k_pt2_end(geo, basis, pseudo):
     ref_energy_var = defaultdict(dict)
     ref_energy_pt2 = defaultdict(dict)
 
-    ref_energy_var["sto-3g"]["methane"] = Energy(-0.398058753535695E+02, None)
-    ref_energy_pt2["sto-3g"]["methane"] = Energy(-0.398059182483741E+02, None)
+    ref_energy_var["sto-3g"]["methane"] = Energy(-39.8058687211, None)
+    ref_energy_pt2["sto-3g"]["methane"] = Energy(-39.8059180427, None)
 
     # ~#~#~#~ #
     # I n i t #

@@ -11,12 +11,12 @@ program full_ci
   
   pt2 = 1.d0
   diag_algorithm = "Lapack"
-  if (N_det > n_det_max_fci) then
+  if (N_det > N_det_max) then
     call diagonalize_CI
     call save_wavefunction
     psi_det = psi_det_sorted
     psi_coef = psi_coef_sorted
-    N_det = n_det_max_fci
+    N_det = N_det_max
     soft_touch N_det psi_det psi_coef
     call diagonalize_CI
     call save_wavefunction
@@ -38,7 +38,7 @@ program full_ci
 
   integer :: n_det_before
   print*,'Beginning the selection ...'
-  do while (N_det < n_det_max_fci.and.maxval(abs(pt2(1:N_st))) > pt2_max)
+  do while (N_det < N_det_max.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     n_det_before = N_det
     call H_apply_FCI_no_skip(pt2, norm_pert, H_pert_diag,  N_st)
 
@@ -46,10 +46,10 @@ program full_ci
     PROVIDE  psi_det
     PROVIDE  psi_det_sorted
 
-    if (N_det > n_det_max_fci) then
+    if (N_det > N_det_max) then
        psi_det = psi_det_sorted
        psi_coef = psi_coef_sorted
-       N_det = n_det_max_fci
+       N_det = N_det_max
        soft_touch N_det psi_det psi_coef
     endif
     call diagonalize_CI
@@ -68,7 +68,7 @@ program full_ci
       exit
     endif
   enddo
-   N_det = min(n_det_max_fci,N_det)
+   N_det = min(N_det_max,N_det)
    touch N_det psi_det psi_coef
    call diagonalize_CI
    if(do_pt2_end)then

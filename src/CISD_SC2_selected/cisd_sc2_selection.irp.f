@@ -15,12 +15,12 @@ program cisd_sc2_selected
                  
   E_old(1) = HF_energy
   davidson_threshold = 1.d-10
-  if (N_det > n_det_max_cisd_sc2) then
+  if (N_det > N_det_max) then
     call diagonalize_CI_SC2
     call save_wavefunction
     psi_det = psi_det_sorted
     psi_coef = psi_coef_sorted
-    N_det = n_det_max_cisd_sc2
+    N_det = N_det_max
     soft_touch N_det psi_det psi_coef
     call diagonalize_CI
     call save_wavefunction
@@ -34,7 +34,7 @@ program cisd_sc2_selected
 
   integer :: i_count
   i_count = 0
-  do while (N_det < n_det_max_cisd_sc2.and.maxval(abs(pt2(1:N_st))) > pt2_max)
+  do while (N_det < N_det_max.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     print*,'----'
     print*,''
     call H_apply_SC2_selected(pt2, norm_pert, H_pert_diag,  N_st)
@@ -70,7 +70,7 @@ program cisd_sc2_selected
     call ezfio_set_full_ci_energy(CI_SC2_energy(1))
 
   enddo
-  N_det = min(n_det_max_cisd_sc2,N_det)
+  N_det = min(N_det_max,N_det)
   davidson_threshold = 1.d-10
   touch N_det psi_det psi_coef davidson_threshold davidson_criterion
   call diagonalize_CI_SC2
