@@ -88,12 +88,12 @@ def check_disk_acess(geo, basis, mult=1):
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
     # Test 1
-    ezfio.bielec_integrals_disk_access_ao_integrals = "Write"
+    ezfio.integrals_bielec_disk_access_ao_integrals = "Write"
     cmd = "qp_edit -c {0}.ezfio".format(filename)
     subprocess.check_call([cmd], shell=True)
 
     # Test 2
-    ezfio.bielec_integrals_disk_access_ao_integrals = "IculeAcess"
+    ezfio.integrals_bielec_disk_access_ao_integrals = "IculeAcess"
     cmd = "qp_edit -c {0}.ezfio".format(filename)
 
     try:
