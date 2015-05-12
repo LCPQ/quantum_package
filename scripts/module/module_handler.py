@@ -121,7 +121,12 @@ def create_png_from_path(path):
     "path = /home/razoa/quantum_package/src/Molden/NEEDED_CHILDREN_MODULES"
 
     l_module = os.path.split(path)[0].split("/")[-1]
-    create_png([l_module])
+
+    import pydot
+    try:
+        create_png([l_module])
+    except pydot.InvocationException:
+        pass
 
 
 def create_png(l_module):
@@ -154,8 +159,10 @@ def create_png(l_module):
         draw_module_edge(module, d_ref[module])
 
     # Save
-    path = '{0}.png'.format("_".join(l_module))
+    path = '{0}.png'.format("tree_dependancy")
+    # path = '{0}.png'.format("_".join(l_module))
     # print "png saved in {0}".format(path)
+
     graph.write_png(path)
 
 if __name__ == '__main__':

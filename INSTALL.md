@@ -10,6 +10,10 @@
 * Bash
 * Patch (for opam)
 
+## Optional
+
+* graphviz
+
 
 ## Standard installation
 

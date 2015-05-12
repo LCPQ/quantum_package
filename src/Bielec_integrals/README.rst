@@ -16,6 +16,8 @@ Needed Modules
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
+.. image:: tree_dependancy.png
+
 * `MonoInts <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts>`_
 * `Bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask>`_
 
