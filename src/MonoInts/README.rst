@@ -5,7 +5,8 @@ Needed Modules
 .. NEEDED_MODULES file.
 
 * `MOs <http://github.com/LCPQ/quantum_package/tree/master/src/MOs>`_
-* `Pseudo_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo_integrals>`_
+* `Pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo>`_
+* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 
 Documentation
 =============
@@ -64,39 +65,48 @@ Documentation
 `ao_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L1>`_
   interaction nuclear electron
 
-`ao_nucl_elec_integral_per_atom <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L76>`_
+`ao_nucl_elec_integral_per_atom <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L72>`_
   ao_nucl_elec_integral_per_atom(i,j,k) = -<AO(i)|1/|r-Rk|AO(j)>
   where Rk is the geometry of the kth atom
 
-`give_polynom_mult_center_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L222>`_
+`give_polynom_mult_center_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L218>`_
   Undocumented
 
-`i_x1_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L350>`_
+`i_x1_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L346>`_
   Undocumented
 
-`i_x2_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L421>`_
+`i_x2_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L417>`_
   Undocumented
 
-`int_gaus_pol <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L492>`_
+`int_gaus_pol <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L488>`_
   Undocumented
 
-`nai_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L143>`_
+`nai_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L139>`_
   Undocumented
 
-`v_e_n <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L473>`_
+`v_e_n <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L469>`_
   Undocumented
 
-`v_phi <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L537>`_
+`v_phi <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L533>`_
   Undocumented
 
-`v_r <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L521>`_
+`v_r <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L517>`_
   Undocumented
 
-`v_theta <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L550>`_
+`v_theta <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L546>`_
   Undocumented
 
-`wallis <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L566>`_
+`wallis <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_ints.irp.f#L562>`_
   Undocumented
+
+`ao_pseudo_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_pseudo_ints.irp.f#L1>`_
+  Pseudo-potential
+
+`ao_pseudo_integral_local <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_pseudo_ints.irp.f#L13>`_
+  Local pseudo-potential
+
+`ao_pseudo_integral_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_ao_pseudo_ints.irp.f#L119>`_
+  Local pseudo-potential
 
 `mo_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_mo_ints.irp.f#L1>`_
   interaction nuclear electron on the MO basis

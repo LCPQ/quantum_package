@@ -32,4 +32,5 @@ Needed Modules
 .. NEEDED_MODULES file.
 
 * `MOs <http://github.com/LCPQ/quantum_package/tree/master/src/MOs>`_
+* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 

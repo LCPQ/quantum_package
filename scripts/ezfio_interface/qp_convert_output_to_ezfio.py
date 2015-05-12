@@ -273,7 +273,7 @@ def write_ezfio(res, filename):
     # \_|  |___/\___|\__,_|\__,_|\___/
     #
 
-    ezfio.set_pseudo_integrals_do_pseudo(False)
+    ezfio.set_pseudo_do_pseudo(False)
 
 
 def get_full_path(file_path):

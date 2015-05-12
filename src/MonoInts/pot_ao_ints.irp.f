@@ -10,11 +10,7 @@
  integer           :: i,j,k,l,n_pt_in,m
  double precision  ::overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult
 
-  if (do_pseudo) then
-    ao_nucl_elec_integral = ao_nucl_elec_integral_pseudo
-  else
-    ao_nucl_elec_integral = 0.d0
-  endif
+  ao_nucl_elec_integral = 0.d0
 
   !        _  
   ! /|  / |_) 

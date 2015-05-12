@@ -199,7 +199,7 @@ def run_hf(geo, basis, mult=1, pseudo=False, remove_after_sucess=True):
     ezfio.hartree_fock_thresh_scf = 1.e-10
     ezfio.hartree_fock_n_it_scf_max = 100
 
-    ezfio.pseudo_integrals_do_pseudo = pseudo
+    ezfio.pseudo_do_pseudo = pseudo
 
     # ~#~#~ #
     # R u n #

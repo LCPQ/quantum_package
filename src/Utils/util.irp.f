@@ -138,21 +138,21 @@ END_PROVIDER
 double precision function dble_fact(n)
   implicit none
   integer :: n
-  double precision :: dble_fact_peer, dble_fact_odd
+  double precision :: dble_fact_even, dble_fact_odd
 
   dble_fact = 1.d0
 
   if(n.lt.0) return
 
   if(iand(n,1).eq.0)then
-    dble_fact = dble_fact_peer(n)
+    dble_fact = dble_fact_even(n)
   else
     dble_fact= dble_fact_odd(n)
   endif
 
 end function
 
-double precision function dble_fact_peer(n) result(fact2)
+double precision function dble_fact_even(n) result(fact2)
   implicit none
   BEGIN_DOC
   ! n!!
