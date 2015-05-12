@@ -25,12 +25,6 @@ Documentation
 `do_print <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/check_orthonormality.irp.f#L11>`_
   Undocumented
 
-`n_pt_max_i_x <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/dimensions.irp.f#L2>`_
-  Undocumented
-
-`n_pt_max_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/dimensions.irp.f#L1>`_
-  Undocumented
-
 `ao_deriv2_x <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/kin_ao_ints.irp.f#L1>`_
   second derivatives matrix elements in the ao basis
   .. math::

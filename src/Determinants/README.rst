@@ -34,6 +34,7 @@ Needed Modules
 
 .. image:: tree_dependancy.png
 
+* `Integrals_Monoelec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec>`_
 * `Integrals_Bielec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec>`_
 
 Documentation
