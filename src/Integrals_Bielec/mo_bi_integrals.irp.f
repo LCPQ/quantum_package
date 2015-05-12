@@ -31,7 +31,7 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
     integer                        :: load_mo_integrals
     print*,'Reading the MO integrals'
     if (load_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin') == 0) then
-      write(output_bielec_integrals,*) 'MO integrals provided'
+      print*, 'MO integrals provided'
       return
     endif
   endif
@@ -84,8 +84,8 @@ subroutine add_integrals_to_map(mask_ijkl)
   call bitstring_to_list( mask_ijkl(1,4), list_ijkl(1,4), n_l, N_int )
   
   size_buffer = min(ao_num*ao_num*ao_num,16000000)
-  write(output_bielec_integrals,*) 'Providing the molecular integrals '
-  write(output_bielec_integrals,*) 'Buffers : ', 8.*(mo_tot_num_align*(n_j)*(n_k+1) + mo_tot_num_align +&
+  print*, 'Providing the molecular integrals '
+  print*, 'Buffers : ', 8.*(mo_tot_num_align*(n_j)*(n_k+1) + mo_tot_num_align +&
       ao_num+ao_num*ao_num+ size_buffer*3)/(1024*1024), 'MB / core'
   
   call wall_time(wall_1)
@@ -99,7 +99,7 @@ subroutine add_integrals_to_map(mask_ijkl)
       !$OMP  wall_0,thread_num)   &
       !$OMP  DEFAULT(NONE)                                           &
       !$OMP  SHARED(size_buffer,ao_num,mo_tot_num,n_i,n_j,n_k,n_l,mo_tot_num_align,&
-      !$OMP  mo_coef_transp,output_bielec_integrals,                           &
+      !$OMP  mo_coef_transp,                                         &
       !$OMP  mo_coef_transp_is_built, list_ijkl,                     &
       !$OMP  mo_coef_is_built, wall_1, abort_here,                   &
       !$OMP  mo_coef,mo_integrals_threshold,ao_integrals_map,mo_integrals_map,progress_bar,progress_value)
@@ -272,7 +272,7 @@ IRP_ENDIF
     if (thread_num == 0) then
       if (wall_2 - wall_0 > 1.d0) then
         wall_0 = wall_2
-        write(output_bielec_integrals,*) 100.*float(l1)/float(ao_num), '% in ',  &
+        print*, 100.*float(l1)/float(ao_num), '% in ',  &
             wall_2-wall_1, 's', map_mb(mo_integrals_map) ,'MB'
         progress_value = dble(map_mb(mo_integrals_map))
 
@@ -291,7 +291,7 @@ IRP_ENDIF
     stop 'Aborting in MO integrals calculation'
   endif
 IRP_IF COARRAY
-  write(output_bielec_integrals,*) 'Communicating the map'
+  print*, 'Communicating the map'
   call communicate_mo_integrals()
 IRP_ENDIF
   call map_unique(mo_integrals_map)
@@ -304,15 +304,15 @@ IRP_ENDIF
   deallocate(list_ijkl)
   
   
-  write(output_bielec_integrals,*)'Molecular integrals provided:'
-  write(output_bielec_integrals,*)' Size of MO map           ', map_mb(mo_integrals_map) ,'MB'
-  write(output_bielec_integrals,*)' Number of MO integrals: ',  mo_map_size
-  write(output_bielec_integrals,*)' cpu  time :',cpu_2 - cpu_1, 's'
-  write(output_bielec_integrals,*)' wall time :',wall_2 - wall_1, 's  ( x ', (cpu_2-cpu_1)/(wall_2-wall_1), ')'
+  print*,'Molecular integrals provided:'
+  print*,' Size of MO map           ', map_mb(mo_integrals_map) ,'MB'
+  print*,' Number of MO integrals: ',  mo_map_size
+  print*,' cpu  time :',cpu_2 - cpu_1, 's'
+  print*,' wall time :',wall_2 - wall_1, 's  ( x ', (cpu_2-cpu_1)/(wall_2-wall_1), ')'
   
   if (write_mo_integrals) then
     call dump_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin')
-    call ezfio_set_bielec_integrals_disk_access_mo_integrals(.True.)
+    call ezfio_set_integrals_bielec_disk_access_mo_integrals(.True.)
   endif
   
   

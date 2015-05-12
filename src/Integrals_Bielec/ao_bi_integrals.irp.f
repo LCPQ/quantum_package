@@ -349,7 +349,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
     integer                        :: load_ao_integrals
     print*,'Reading the AO integrals'
     if (load_ao_integrals(trim(ezfio_filename)//'/work/ao_integrals.bin') == 0) then
-      write(output_bielec_integrals,*) 'AO integrals provided'
+      print*, 'AO integrals provided'
       ao_bielec_integrals_in_map = .True.
       return
     endif
@@ -367,7 +367,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   PROVIDE progress_bar
   call omp_init_lock(lock)
   lmax = ao_num*(ao_num+1)/2
-  write(output_bielec_integrals,*) 'Providing the AO integrals'
+  print*, 'Providing the AO integrals'
   call wall_time(wall_0)
   call wall_time(wall_1)
   call cpu_time(cpu_1)
@@ -378,7 +378,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
       !$OMP DEFAULT(NONE)                                            &
       !$OMP SHARED (ao_num, jl_pairs, ao_integrals_map,thresh,       &
       !$OMP    cpu_1,wall_1,lock, lmax,n_centers,ao_nucl,            &
-      !$OMP    ao_overlap_abs,ao_overlap,output_bielec_integrals,abort_here,   &
+      !$OMP    ao_overlap_abs,ao_overlap,abort_here,   &
       !$OMP    wall_0,progress_bar,progress_value)
   
   allocate(buffer_i(size_buffer))
@@ -445,7 +445,7 @@ IRP_ENDIF
     if (thread_num == 0) then
       if (wall_2 - wall_0 > 1.d0) then
         wall_0 = wall_2
-        write(output_bielec_integrals,*) 100.*float(kk)/float(lmax), '% in ',  &
+        print*, 100.*float(kk)/float(lmax), '% in ',  &
             wall_2-wall_1, 's', map_mb(ao_integrals_map) ,'MB'
         progress_value = dble(map_mb(ao_integrals_map))
       endif
@@ -462,32 +462,30 @@ IRP_ENDIF
     stop 'Aborting in AO integrals calculation'
   endif
 IRP_IF COARRAY
-  write(output_bielec_integrals,*) 'Communicating the map'
+  print*, 'Communicating the map'
   call communicate_ao_integrals()
 IRP_ENDIF COARRAY
-  write(output_bielec_integrals,*) 'Sorting the map'
+  print*, 'Sorting the map'
   call map_sort(ao_integrals_map)
   call cpu_time(cpu_2)
   call wall_time(wall_2)
   integer(map_size_kind)         :: get_ao_map_size, ao_map_size
   ao_map_size = get_ao_map_size()
   
-  write(output_bielec_integrals,*) 'AO integrals provided:'
-  write(output_bielec_integrals,*) ' Size of AO map :         ', map_mb(ao_integrals_map) ,'MB'
-  write(output_bielec_integrals,*) ' Number of AO integrals :', ao_map_size
-  write(output_bielec_integrals,*) ' cpu  time :',cpu_2 - cpu_1, 's'
-  write(output_bielec_integrals,*) ' wall time :',wall_2 - wall_1, 's  ( x ', (cpu_2-cpu_1)/(wall_2-wall_1+tiny(1.d0)), ' )'
+  print*, 'AO integrals provided:'
+  print*, ' Size of AO map :         ', map_mb(ao_integrals_map) ,'MB'
+  print*, ' Number of AO integrals :', ao_map_size
+  print*, ' cpu  time :',cpu_2 - cpu_1, 's'
+  print*, ' wall time :',wall_2 - wall_1, 's  ( x ', (cpu_2-cpu_1)/(wall_2-wall_1+tiny(1.d0)), ' )'
   
   ao_bielec_integrals_in_map = .True.
   if (write_ao_integrals) then
     call dump_ao_integrals(trim(ezfio_filename)//'/work/ao_integrals.bin')
-    call ezfio_set_bielec_integrals_disk_access_ao_integrals(.True.)
+    call ezfio_set_integrals_bielec_disk_access_ao_integrals(.True.)
   endif
   
 END_PROVIDER
-
-
-
+ 
 BEGIN_PROVIDER [ double precision, ao_bielec_integral_schwartz,(ao_num,ao_num)  ]
   implicit none
   BEGIN_DOC
