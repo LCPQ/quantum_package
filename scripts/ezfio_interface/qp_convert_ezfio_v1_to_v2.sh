@@ -33,4 +33,6 @@ if [[ -f  $biint/read_ao_integrals ]]; then
     rm $biint/read_ao_integrals  $biint/write_ao_integrals  $biint/write_ao_intergals 2> /dev/null
 fi
 
+mv $1/MonoInts $1/Integrals_Monoelec
+
 echo "Done"

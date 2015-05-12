@@ -18,7 +18,7 @@ Needed Modules
 
 .. image:: tree_dependancy.png
 
-* `MonoInts <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts>`_
+* `Integrals_Monoelec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec>`_
 * `Bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask>`_
 
 Documentation

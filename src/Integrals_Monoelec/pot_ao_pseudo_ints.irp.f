@@ -39,7 +39,7 @@ END_PROVIDER
   ! \_ (_| | (_ |_| | 
   !                   
 
-  write(output_monoints,*) 'Providing the nuclear electron pseudo integrals '
+  print*, 'Providing the nuclear electron pseudo integrals '
 
   call wall_time(wall_1)
   call cpu_time(cpu_1)
@@ -49,7 +49,7 @@ END_PROVIDER
   !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B, &
   !$OMP          num_A,num_B,Z,c,n_pt_in, &
   !$OMP          v_k_dump,n_k_dump, dz_k_dump, &
-  !$OMP          wall_0,wall_2,thread_num, output_monoints) & 
+  !$OMP          wall_0,wall_2,thread_num) & 
   !$OMP SHARED (ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp, &
   !$OMP         ao_pseudo_integral_local,nucl_num,nucl_charge, &
   !$OMP         pseudo_klocmax,pseudo_lmax,pseudo_kmax,pseudo_v_k,pseudo_n_k, pseudo_dz_k, &
@@ -101,7 +101,7 @@ END_PROVIDER
     if (thread_num == 0) then
       if (wall_2 - wall_0 > 1.d0) then
         wall_0 = wall_2
-        write(output_monoints,*) 100.*float(j)/float(ao_num), '% in ',  &
+        print*, 100.*float(j)/float(ao_num), '% in ',  &
                                  wall_2-wall_1, 's'
       endif
     endif
@@ -144,7 +144,7 @@ END_PROVIDER
   ! \_ (_| | (_ |_| | 
   !                   
 
-  write(output_monoints,*) 'Providing the nuclear electron pseudo integrals '
+  print*, 'Providing the nuclear electron pseudo integrals '
 
   call wall_time(wall_1)
   call cpu_time(cpu_1)
@@ -154,7 +154,7 @@ END_PROVIDER
   !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B, &
   !$OMP          num_A,num_B,Z,c,n_pt_in, &
   !$OMP          n_kl_dump, v_kl_dump, dz_kl_dump, &
-  !$OMP          wall_0,wall_2,thread_num, output_monoints) & 
+  !$OMP          wall_0,wall_2,thread_num) & 
   !$OMP SHARED (ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp, &
   !$OMP         ao_pseudo_integral_non_local,nucl_num,nucl_charge, &
   !$OMP         pseudo_klocmax,pseudo_lmax,pseudo_kmax,pseudo_n_kl, pseudo_v_kl, pseudo_dz_kl, &
@@ -205,7 +205,7 @@ END_PROVIDER
     if (thread_num == 0) then
       if (wall_2 - wall_0 > 1.d0) then
         wall_0 = wall_2
-        write(output_monoints,*) 100.*float(j)/float(ao_num), '% in ',  &
+        print*, 100.*float(j)/float(ao_num), '% in ',  &
                                  wall_2-wall_1, 's'
       endif
     endif

@@ -7,7 +7,7 @@ python:
 before_script:
   - sudo apt-get update
   - sudo apt-get install gfortran liblapack-dev 
-  - sudo apt-get install GraphViz
+  - sudo apt-get install graphviz
 
 script: 
   - ./setup_environment.sh --robot 
