@@ -155,7 +155,7 @@ def create_png(l_module):
 
     # Save
     path = '{0}.png'.format("_".join(l_module))
-    print "png saved in {0}".format(path)
+    # print "png saved in {0}".format(path)
     graph.write_png(path)
 
 if __name__ == '__main__':

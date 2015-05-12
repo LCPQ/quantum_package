@@ -40,6 +40,7 @@ Needed Modules
 .. NEEDED_MODULES file.
 
 * `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
+* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 
 Documentation
 =============

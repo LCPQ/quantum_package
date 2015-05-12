@@ -2,7 +2,7 @@
 
 """Updates the README.rst file as the include directive is disabled on GitHub."""
 __date__ = "Thu Apr  3 23:06:18 CEST 2014"
-__author__ = "Anthony Scemama <scemama@irsamc.ups-tlse.fr>"
+__author__ = "Anthony Scemama & TApplencourt<scemama@irsamc.ups-tlse.fr>"
 
 
 README = "README.rst"
@@ -20,12 +20,6 @@ header = """
 .. NEEDED_MODULES file.
 
 """
-
-try:
-    # subprocess.check_output("git status".split())
-    has_git = True
-except OSError:
-    has_git = False
 
 
 def fetch_splitted_data():

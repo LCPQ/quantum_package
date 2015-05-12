@@ -66,3 +66,6 @@ ${QPACKAGE_ROOT}/scripts/module/create_Makefile_depend.sh
 
 # Update EZFIO interface
 ${QPACKAGE_ROOT}/scripts/ezfio_interface/ei_handler.py
+
+# Create png
+${QPACKAGE_ROOT}/scripts/module/module_handler.py create_png

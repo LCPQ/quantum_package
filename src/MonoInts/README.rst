@@ -6,7 +6,6 @@ Needed Modules
 
 * `MOs <http://github.com/LCPQ/quantum_package/tree/master/src/MOs>`_
 * `Pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo>`_
-* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 
 Documentation
 =============
@@ -114,6 +113,9 @@ Documentation
 `mo_nucl_elec_integral_per_atom <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_mo_ints.irp.f#L30>`_
   mo_nucl_elec_integral_per_atom(i,j,k) = -<MO(i)|1/|r-Rk|MO(j)>
   where Rk is the geometry of the kth atom
+
+`mo_pseudo_integral <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/pot_mo_pseudo_ints.irp.f#L1>`_
+  interaction nuclear electron on the MO basis
 
 `save_ortho_mos <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts/save_ortho_mos.irp.f#L1>`_
   Undocumented
