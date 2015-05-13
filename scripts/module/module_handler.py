@@ -165,11 +165,21 @@ def get_list_depend(l_module):
 def save_makefile_depend(l_src, l_obj):
     header = "# This file was created by the module_handler.py script. Do not modify it by hand."
 
-    with open("Makefile.depend", "w") as f:
-        f.write(header + "\n"*2)
-        f.write("SRC+= {0}".format(" ".join(l_src)) + "\n")
-        f.write("OBJ+= {0}".format(" ".join(l_obj)) + "\n")
-        f.write("\n")
+    try:
+        with open("Makefile.depend", "r") as f:
+            old_output = f.read()
+    except IOError:
+        old_output = None
+
+    output = "\n".join([header,
+                        "\n",
+                        "SRC+= {0}".format(" ".join(l_src)),
+                        "OBJ+= {0}".format(" ".join(l_obj)),
+                        "\n"])
+
+    if output != old_output:
+        with open("Makefile.depend", "w+") as f:
+            f.write(output)
 
 
 def create_png_from_path(path):

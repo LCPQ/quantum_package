@@ -21,9 +21,6 @@ do
   # Update Makefile.depend
   ${QPACKAGE_ROOT}/scripts/module/check_module.sh
 
-  # Update Makefile.depend
-  ${QPACKAGE_ROOT}/scripts/module/module_handler.py save_makefile_depend
-
   # Update EZFIO interface (create the irp.f90 and the ocaml)
   ${QPACKAGE_ROOT}/scripts/ezfio_interface/ei_handler.py --irpf90 --ocaml
 

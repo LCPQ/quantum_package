@@ -24,7 +24,6 @@ NEEDED_CHILDREN_MODULES=$(shell module_handler.py print_genealogy)
 # Check and update dependencies
 include Makefile.depend
 
-
 # Define the Makefile common variables
 EZFIO_DIR=$(QPACKAGE_ROOT)/EZFIO
 EZFIO=$(EZFIO_DIR)/lib/libezfio_irp.a
@@ -36,7 +35,11 @@ clean_links:
 LIB+=$(EZFIO) $(MKL)
 IRPF90+=$(patsubst %, -I %, $(INCLUDE_DIRS)) $(IRPF90_FLAGS)
 
-irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile $(EZFIO) NEEDED_CHILDREN_MODULES $(wildcard *.py) 
+# Update Makefile.depend
+Makefile.depend: $(wildcart */Makefile)
+	${QPACKAGE_ROOT}/scripts/module/module_handler.py save_makefile_depend
+
+irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile.depend Makefile $(EZFIO) NEEDED_CHILDREN_MODULES $(wildcard *.py) 
 	- $(IRPF90)
 	- update_README.py
 
