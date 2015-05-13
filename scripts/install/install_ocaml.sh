@@ -45,7 +45,7 @@ then
     done
   fi
 fi
-${QPACKAGE_ROOT}/scripts/fetch_from_web.py \
+${QPACKAGE_ROOT}/scripts/install/fetch_from_web.py \
    "https://raw.github.com/ocaml/opam/master/shell/opam_installer.sh" opam_installer.sh
 chmod +x opam_installer.sh
 echo N | ./opam_installer.sh ${QPACKAGE_ROOT}/bin 

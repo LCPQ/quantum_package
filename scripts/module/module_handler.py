@@ -25,7 +25,7 @@ from docopt import docopt
 import os
 import sys
 import os.path
-from qp_utils import cache
+from cache import cache
 
 
 @cache

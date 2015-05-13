@@ -63,7 +63,7 @@ from collections import defaultdict
 from collections import namedtuple
 
 
-from qp_utils import cache
+from cache import cache
 
 Type = namedtuple('Type', 'fancy ocaml fortran')
 

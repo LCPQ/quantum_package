@@ -3,7 +3,7 @@
 # This script should run from the directory $QPACKAGE_ROOT/src
 
 # Check is we are in `QPROOT_SRC` and all the dependancy are corect
-${QPACKAGE_ROOT}/scripts/check_src.sh
+${QPACKAGE_ROOT}/scripts/module/check_src.sh
 
 NPROC=$(cat /proc/cpuinfo | grep MHz | wc -l)
 
@@ -19,14 +19,11 @@ do
   echo ${MODULE}  
 
   # Update Makefile.depend
-  ${QPACKAGE_ROOT}/scripts/check_module.sh
+  ${QPACKAGE_ROOT}/scripts/module/check_module.sh
 
   # Update Makefile.depend
-  ${QPACKAGE_ROOT}/scripts/module/create_Makefile_depend.sh 
   ${QPACKAGE_ROOT}/scripts/module/module_handler.py save_makefile_depend
 
-#   save_makefile_depend
-  
   # Update EZFIO interface (create the irp.f90 and the ocaml)
   ${QPACKAGE_ROOT}/scripts/ezfio_interface/ei_handler.py --irpf90 --ocaml
 
@@ -51,6 +48,9 @@ Build failed for module $MODULE
 
   # Create png
   ${QPACKAGE_ROOT}/scripts/module/module_handler.py create_png
+
+  # Create png
+  ${QPACKAGE_ROOT}/scripts/module/update_README.py
 
   cd ${OLDPWD}
 done
