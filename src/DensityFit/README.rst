@@ -1,8 +1,8 @@
-==============
-FCIdump Module
-==============
+=================
+DensityFit Module
+=================
 
-Interface for the `NECI <https://github.com/ghb24/NECI_STABLE>`_ Full-CI QMC program.
+In this module, the basis of all the products of atomic orbitals is built.
 
 Documentation
 =============
@@ -20,5 +20,5 @@ Needed Modules
 
 .. image:: tree_dependancy.png
 
-* `Determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants>`_
+* `AOs <http://github.com/LCPQ/quantum_package/tree/master/src/AOs>`_
 

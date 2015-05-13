@@ -4,7 +4,7 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral, (ao_num_align,ao_num)]
 ! Pseudo-potential
   END_DOC
   if (do_pseudo) then
-    ao_pseudo_integral = ao_pseudo_integral_local + ao_pseudo_integral_non_local 
+    ao_pseudo_integral = ao_pseudo_integral_local !+ ao_pseudo_integral_non_local 
   else
     ao_pseudo_integral = 0.d0
   endif
@@ -219,5 +219,68 @@ END_PROVIDER
 
 
  END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, pseudo_grid, (pseudo_grid_size,ao_num,-pseudo_lmax:pseudo_lmax,0:pseudo_lmax,nucl_num)  ]
+ implicit none
+ BEGIN_DOC
+! Grid points for f(|r-r_A|) = \int Y_{lm}^{C} (|r-r_C|, \Omega_C) \chi_i^{A} (r-r_A) d\Omega_C
+!
+! <img src="http://latex.codecogs.com/gif.latex?f(|r-r_A|)&space;=&space;\int&space;Y_{lm}^{C}&space;(|r-r_C|,&space;\Omega_C)&space;\chi_i^{A}&space;(r-r_A)&space;d\Omega_C"
+! title="f(|r-r_A|) = \int Y_{lm}^{C} (|r-r_C|, \Omega_C) \chi_i^{A} (r-r_A) d\Omega_C" />
+ END_DOC
+ ! l,m    : Y(l,m) parameters
+ ! c(3)   : pseudopotential center
+ ! a(3)   : Atomic Orbital center
+ ! n_a(3) : Powers of x,y,z in the Atomic Orbital
+ ! g_a    : Atomic Orbital exponent      
+ ! r      : Distance between the Atomic Orbital center and the considered point
+ double precision, external :: ylm_orb
+ integer :: n_a(3)
+ double precision :: a(3), c(3), g_a
+ integer :: i,j,k,l,m,n,p
+ double precision :: r(pseudo_grid_size), dr, Ulc
+ double precision, parameter :: rmax= 10.d0
+
+ dr = rmax/dble(pseudo_grid_size)
+ r(1) = 0.d0
+ do j=2,pseudo_grid_size
+   r(j) = r(j-1) + dr
+ enddo
+
+ pseudo_grid = 0.d0
+ do k=1,nucl_num
+   c(1:3) = nucl_coord(k,1:3)
+   do l=0,pseudo_lmax
+     do i=1,ao_num
+       a(1:3) = nucl_coord(ao_nucl(i),1:3)
+       n_a(1:3) = ao_power(i,1:3)
+       do j=1,pseudo_grid_size
+         do p=1,ao_prim_num(i)
+           g_a = ao_expo_ordered_transp(p,i)
+           do m=-l,l
+             double precision               :: y
+             !            y = ylm_orb(l,m,c,a,n_a,g_a,r(j))
+             !            if (y /= 0.d0) then
+             !              print *, 'y = ', y
+             !              print *, 'l = ', l
+             !              print *, 'm = ', m
+             !              print *, 'c = ', c
+             !              print *, 'a = ', a
+             !              print *, 'n = ', n_a
+             !              print *, 'g = ', g_a
+             !              print *, 'r = ', r(j)
+             !              print *,  ''
+             !            endif
+             y = ylm_orb(l,m,c,a,n_a,g_a,r(j))
+             pseudo_grid(j,i,m,l,k) = pseudo_grid(j,i,m,l,k) +           &
+                 ao_coef_normalized_ordered_transp(p,i)*y
+           enddo
+         enddo
+       enddo
+     enddo
+   enddo
+ enddo
+
+END_PROVIDER
 
 

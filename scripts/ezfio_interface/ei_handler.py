@@ -368,7 +368,10 @@ def create_ezfio_stuff(dict_ezfio_cfg, config_or_default="config"):
                 except ValueError:
                     a_size_raw.append(dim)
                 else:
-                    a_size_raw.append("{0}+{1}+1".format(begin, end))
+                    if begin[0] == '-':
+                        a_size_raw.append("{0}+{1}+1".format(end, begin[1:]))
+                    else:
+                       a_size_raw.append("{0}-{1}+1".format(end, begin))
 
             size_raw = ",".join(a_size_raw)
 
