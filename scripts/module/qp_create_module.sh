@@ -125,14 +125,8 @@ fi
 debug "Makefile created"
 
 # Create the NEEDED_MODULES file
-"${QPACKAGE_ROOT}/scripts/module/create_Needed_modules.sh" ${NEEDED_MODULES} || fail "Unable to create the NEEDED_MODULES file"
-if [[ ! -f NEEDED_CHILDREN_MODULES ]]
-then
-  fail "NEEDED_MODULES was not created"
-fi
-
+echo "$NEEDED_MODULES" > NEEDED_CHILDREN_MODULES
 debug "NEEDED_MODULES created"
-
 
 # Create rst templates
 "${QPACKAGE_ROOT}/scripts/module/create_rst_templates.sh" || fail "Unable to create rst templates"

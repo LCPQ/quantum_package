@@ -24,22 +24,14 @@ function check_current_dir_is_src()
 
 function check_current_dir_is_module()
 {
-  cd ..
-  if [[ "${PWD}" == "${QPACKAGE_ROOT}/src" ]]
+  if [[ "$(dirname $PWD)" == "${QPACKAGE_ROOT}/src" ]]
   then
-     cd $OLDPWD
      return 0
   else
-     cd $OLDPWD
      echo "Current directory should be \$QPACKAGE_ROOT/src"
      exit -1
   fi
 }
-
-if [[ -f NEEDED_CHILDREN_MODULES ]]
-then
-  NEEDED_MODULES=$(module_handler.py print_genealogy NEEDED_CHILDREN_MODULES)
-fi
 
 # List of executables in the current directory
 function ls_exe()

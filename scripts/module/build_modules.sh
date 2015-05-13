@@ -2,6 +2,7 @@
 #
 # This script should run from the directory $QPACKAGE_ROOT/src
 
+# Check is we are in `QPROOT_SRC` and all the dependancy are corect
 ${QPACKAGE_ROOT}/scripts/check_src.sh
 
 NPROC=$(cat /proc/cpuinfo | grep MHz | wc -l)
@@ -16,7 +17,22 @@ do
   fi
   cd ${MODULE}
   echo ${MODULE}  
+
+  # Update Makefile.depend
   ${QPACKAGE_ROOT}/scripts/check_module.sh
+
+  # Update Makefile.depend
+  ${QPACKAGE_ROOT}/scripts/module/create_Makefile_depend.sh 
+  ${QPACKAGE_ROOT}/scripts/module/module_handler.py save_makefile_depend
+
+#   save_makefile_depend
+  
+  # Update EZFIO interface (create the irp.f90 and the ocaml)
+  ${QPACKAGE_ROOT}/scripts/ezfio_interface/ei_handler.py --irpf90 --ocaml
+
+  # Create symlink
+  ${QPACKAGE_ROOT}/scripts/module/module_handler.py create_symlick
+
   if [[ $# -eq 1 ]] 
   then
     env make -j ${NPROC} all 
@@ -30,7 +46,12 @@ Build failed for module $MODULE
 "
     fi
   fi
+  # Create gitignore
   ${QPACKAGE_ROOT}/scripts/module/create_gitignore.sh
+
+  # Create png
+  ${QPACKAGE_ROOT}/scripts/module/module_handler.py create_png
+
   cd ${OLDPWD}
 done
 ${QPACKAGE_ROOT}/scripts/module/create_executables_list.sh

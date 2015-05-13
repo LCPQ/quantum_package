@@ -781,8 +781,7 @@ if __name__ == "__main__":
     if any([arguments[i] for i in ["--irpf90",
                                    "--ezfio_config",
                                    "--ocaml",
-                                   "--ezfio_default",
-                                   "--global"]]):
+                                   "--ezfio_default"]]):
         # User changer somme argument, do what he want
         do_all = False
     else:
@@ -827,7 +826,7 @@ if __name__ == "__main__":
     # e z f i o _ d e f a u l t #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
-    if do_all or arguments["--global"]:
+    if do_all:
         str_ocaml_qp_edit, str_ocaml_input_auto = create_ocaml_input_global()
         save_ocaml_input_auto(str_ocaml_input_auto)
         save_ocaml_qp_edit(str_ocaml_qp_edit)

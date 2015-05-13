@@ -7,9 +7,10 @@ Create the NEEDED_MODULE
 of a NEEDED_CHILDREN_MODULES file
 
 Usage:
-    module_handler.py print_genealogy    [<NEEDED_CHILDREN_MODULES>]
-    module_handler.py check_dependencies   [<module_name>...]
-    module_handler.py create_png         [<NEEDED_CHILDREN_MODULES>]
+    module_handler.py print_genealogy       [<NEEDED_CHILDREN_MODULES>]
+    module_handler.py save_makefile_depend
+    module_handler.py create_symlick        [<NEEDED_CHILDREN_MODULES>]
+    module_handler.py create_png            [<NEEDED_CHILDREN_MODULES>]
 
 Options:
     print_genealogy         Print the genealogy of the NEEDED_CHILDREN_MODULES
@@ -81,7 +82,8 @@ def get_it_and_children(l_module):
             try:
                 l.extend(get_it_and_children(d_ref[module]))
             except KeyError:
-                print >> sys.stderr, "`{0}` in not a good submodule name".format(module)
+                print >> sys.stderr, "`{0}` in not a good submodule name".format(
+                    module)
                 print >> sys.stderr, "Check the corresponding NEEDED_CHILDREN_MODULES"
                 sys.exit(1)
 
@@ -110,10 +112,64 @@ def reduce_(l_module):
     for i in xrange(len(d_ref)):
         for c in itertools.combinations(d_ref, i):
 
-                guess_genealogy = sorted(get_it_and_children(d_ref, c))
+            guess_genealogy = sorted(get_it_and_children(d_ref, c))
 
-                if target_genealogy == guess_genealogy:
-                    return c
+            if target_genealogy == guess_genealogy:
+                return c
+
+
+def get_list_depend(l_module):
+    """
+    transform
+
+    SRC = Utils.f90 test.f90
+    OBJ = IRPF90_temp/map_module.o
+
+    into
+
+    ['Utils/map_module.f90','test.f90']
+    ['IRPF90_tmp/Utils/map_module.o']
+    """
+
+    def get_list(sep):
+        # Split for sep
+        dump = [l.split(sep)[1] for l in data if l.startswith(sep)]
+
+        # Delete the empy one
+        l_unique = [k for k in map(str.strip, dump) if k]
+
+        # Return the flat one (if multi in l_unique)
+        l_flat = [j for i in l_unique for j in i.split()]
+        return l_flat
+
+    qpackage_root = os.environ['QPACKAGE_ROOT']
+    dir_ = os.path.join(qpackage_root, 'src')
+
+    l_src = []
+    l_obj = []
+
+    for module in l_module:
+        path = os.path.join(dir_, module, "Makefile")
+
+        with open(path, 'r') as f:
+            data = f.readlines()
+
+        l_src.extend("{0}/{1}".format(module, i) for i in get_list("SRC="))
+
+        l_obj.extend(["IRPF90_temp/{0}/{1}".format(module, os.path.basename(i))
+                      for i in get_list("OBJ=")])
+
+    return l_src, l_obj
+
+
+def save_makefile_depend(l_src, l_obj):
+    header = "# This file was created by the module_handler.py script. Do not modify it by hand."
+
+    with open("Makefile.depend", "w") as f:
+        f.write(header + "\n"*2)
+        f.write("SRC+= {0}".format(" ".join(l_src)) + "\n")
+        f.write("OBJ+= {0}".format(" ".join(l_obj)) + "\n")
+        f.write("\n")
 
 
 def create_png_from_path(path):
@@ -141,11 +197,11 @@ def create_png(l_module):
 
         if module not in all_ready_done:
             for children in l_children:
-                        # Add Edge
-                        edge = pydot.Edge(module, children)
-                        graph.add_edge(edge)
-                        # Recurs
-                        draw_module_edge(children, d_ref[children])
+                # Add Edge
+                edge = pydot.Edge(module, children)
+                graph.add_edge(edge)
+                # Recurs
+                draw_module_edge(children, d_ref[children])
             all_ready_done.append(module)
 
     # Init
@@ -181,12 +237,25 @@ if __name__ == '__main__':
         l_all_needed_molule = module_genealogy(path)
         print " ".join(sorted(l_all_needed_molule))
 
-    elif arguments["check_dependencies"]:
-        l_module = arguments['<module_name>']
-        if l_module:
-            l_all_needed_molule = get_it_and_children(l_module)
-        else:
-            l_all_needed_molule = module_genealogy(path)
+        get_list_depend(l_all_needed_molule)
 
-    elif arguments["create_png"]:
+    if arguments['create_symlick']:
+        src = os.getcwd()
+
+        for link_name in module_genealogy(path) + ["include"]:
+
+            source = os.path.join(
+                "/home/razoa/quantum_package/src/",
+                link_name)
+            try:
+                os.symlink(source, link_name)
+            except OSError:
+                pass
+
+    if arguments['save_makefile_depend']:
+        l_all_needed_molule = module_genealogy(path)
+        l_src, l_obj = get_list_depend(l_all_needed_molule)
+        save_makefile_depend(l_src, l_obj)
+
+    if arguments["create_png"]:
         create_png_from_path(path)
