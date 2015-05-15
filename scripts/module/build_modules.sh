@@ -18,15 +18,6 @@ do
   cd ${MODULE}
   echo ${MODULE}  
 
-  # Update Makefile.depend
-  ${QPACKAGE_ROOT}/scripts/module/check_module.sh
-
-  # Update EZFIO interface (create the irp.f90 and the ocaml)
-  ${QPACKAGE_ROOT}/scripts/ezfio_interface/ei_handler.py --irpf90 --ocaml
-
-  # Create symlink
-  ${QPACKAGE_ROOT}/scripts/module/module_handler.py create_symlick
-
   if [[ $# -eq 1 ]] 
   then
     env make -j ${NPROC} all 
@@ -40,14 +31,6 @@ Build failed for module $MODULE
 "
     fi
   fi
-  # Create gitignore
-  ${QPACKAGE_ROOT}/scripts/module/create_gitignore.sh
-
-  # Create png
-  ${QPACKAGE_ROOT}/scripts/module/module_handler.py create_png
-
-  # Create png
-  ${QPACKAGE_ROOT}/scripts/module/update_README.py
 
   cd ${OLDPWD}
 done

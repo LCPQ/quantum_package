@@ -9,7 +9,7 @@ of a NEEDED_CHILDREN_MODULES file
 Usage:
     module_handler.py print_genealogy       [<NEEDED_CHILDREN_MODULES>]
     module_handler.py save_makefile_depend
-    module_handler.py create_symlick        [<NEEDED_CHILDREN_MODULES>]
+    module_handler.py create_symlink        [<NEEDED_CHILDREN_MODULES>]
     module_handler.py create_png            [<NEEDED_CHILDREN_MODULES>]
 
 Options:
@@ -249,7 +249,7 @@ if __name__ == '__main__':
 
         get_list_depend(l_all_needed_molule)
 
-    if arguments['create_symlick']:
+    if arguments['create_symlink']:
         src = os.getcwd()
 
         for link_name in module_genealogy(path) + ["include"]:

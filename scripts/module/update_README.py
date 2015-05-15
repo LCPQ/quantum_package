@@ -17,7 +17,7 @@ import subprocess
 
 header = """
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. update_README.py.
 
 """
 
@@ -74,7 +74,7 @@ def update_assumptions(data):
 
 
 def update_needed(data):
-    """Read the NEEDED_MODULES file, and replace the data with it.
+    """Read the NEEDED_CHILDREN_MODULES file, and replace the data with it.
     Create the links to the GitHub pages."""
 
     file = open('NEEDED_CHILDREN_MODULES', 'r')

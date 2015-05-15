@@ -24,11 +24,16 @@ function check_current_dir_is_src()
 
 function check_current_dir_is_module()
 {
-  if [[ "$(dirname $PWD)" == "${QPACKAGE_ROOT}/src" ]]
+  # If the prefix ${QPACKAGE_ROOT}/src/ can be removed from $PWD, it means that
+  # $PWD is somewhere below ${QPACKAGE_ROOT}/src/ so it is a module.
+  # If the prefix ${QPACKAGE_ROOT}/src/ can not be removed from $PWD, then
+  # "${PWD##${QPACKAGE_ROOT}/src/}" == "$PWD".
+
+  if [[ "${PWD##${QPACKAGE_ROOT}/src/}" != "$PWD" ]]
   then
      return 0
   else
-     echo "Current directory should be \$QPACKAGE_ROOT/src"
+     echo "You are not in a submodule"
      exit -1
   fi
 }

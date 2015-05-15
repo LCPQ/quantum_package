@@ -1,17 +1,5 @@
-.PHONY: default silent
-
-ifneq ($(IN_MAKE),1) 
-
-default:
-	@$(MAKE) -C $(QPACKAGE_ROOT)/src $$(basename $(PWD))
-
-veryclean:
-	 clean_modules.sh
-
-clean:
-	IN_MAKE=1 make clean
-
-else  # Called by scripts/build_module.sh
+.PHONY: default 
+.SECONDARY: symlink ezfio_interface
 
 default: all .gitignore
 
@@ -20,9 +8,6 @@ include $(QPACKAGE_ROOT)/src/Makefile.config
 
 # Create the NEEDED_CHILDREN_MODULES variable, needed for IRPF90
 NEEDED_CHILDREN_MODULES=$(shell module_handler.py print_genealogy)
-
-# Check and update dependencies
-include Makefile.depend
 
 # Define the Makefile common variables
 EZFIO_DIR=$(QPACKAGE_ROOT)/EZFIO
@@ -36,21 +21,47 @@ LIB+=$(EZFIO) $(MKL)
 IRPF90+=$(patsubst %, -I %, $(INCLUDE_DIRS)) $(IRPF90_FLAGS)
 
 # Update Makefile.depend
-Makefile.depend: $(wildcart */Makefile)
+Makefile.depend: $(wildcard */Makefile)
 	${QPACKAGE_ROOT}/scripts/module/module_handler.py save_makefile_depend
 
-irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile.depend Makefile $(EZFIO) NEEDED_CHILDREN_MODULES $(wildcard *.py) 
-	- $(IRPF90)
-	- update_README.py
+# Check and update dependencies
+include Makefile.depend
+
+# Create symlink
+symlink: $(wildcard $(QPACKAGE_ROOT)/src/*/NEEDED_CHILDREN_MODULES)
+	${QPACKAGE_ROOT}/scripts/module/module_handler.py create_symlink
+
+# Define the EZFIO rules
+$(EZFIO): $(wildcard $(QPACKAGE_ROOT)/src/*/*.ezfio_config) $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg)
+	$(QPACKAGE_ROOT)/scripts/ezfio_interface/prepare_ezfio.sh
+	cd $(EZFIO_DIR);\
+	export FC="$(FC)" ; export FCFLAGS="$(FCFLAGS)" ; export IRPF90="$(IRPF90)" ;\
+	$(MAKE) ;\
+	$(MAKE) Python
+
+# Update EZFIO interface (create the irp.f90 and the ocaml)
+ezfio_interface: symlink $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg) 
+	${QPACKAGE_ROOT}/scripts/ezfio_interface/ei_handler.py --irpf90 --ocaml --recursif
+
+irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard .inc.f) Makefile.depend Makefile $(EZFIO) $(wildcard *.py) symlink ezfio_interface
+	$(IRPF90)
 
 include irpf90.make
 
-endif
+# Need NEEDED_CHILDREN_MODULES and IRPMAN
+README.rst: NEEDED_CHILDREN_MODULES irpf90.make
+	${QPACKAGE_ROOT}/scripts/module/update_README.py
 
-.gitignore:
-	$(QPACKAGE_ROOT)/scripts/create/create_gitignore.sh 
+tree_dependancy.png: NEEDED_CHILDREN_MODULES
+	${QPACKAGE_ROOT}/scripts/module/module_handler.py create_png
 
-# Frequent typos
-clena: clean
-veryclena: veryclean
-vercylean: veryclean
+#Need all the executable 
+.gitignore: irpf90.make
+	${QPACKAGE_ROOT}/scripts/module/create_gitignore.sh
+
+# 
+# 
+# # Frequent typos
+# clena: clean
+# veryclena: roger
+# vercylean: roger
