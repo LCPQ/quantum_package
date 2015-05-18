@@ -8,7 +8,7 @@ of a NEEDED_CHILDREN_MODULES file
 
 Usage:
     module_handler.py print_genealogy       [<NEEDED_CHILDREN_MODULES>]
-    module_handler.py save_makefile_depend
+    module_handler.py save_makefile_depend  [<NEEDED_CHILDREN_MODULES>]
     module_handler.py create_symlink        [<NEEDED_CHILDREN_MODULES>]
     module_handler.py create_png            [<NEEDED_CHILDREN_MODULES>]
 
@@ -162,7 +162,7 @@ def get_list_depend(l_module):
     return l_src, l_obj
 
 
-def save_makefile_depend(l_src, l_obj):
+def save_makefile_depend(l_src, l_obj, dir_):
     header = "# This file was created by the module_handler.py script. Do not modify it by hand."
 
     try:
@@ -178,7 +178,7 @@ def save_makefile_depend(l_src, l_obj):
                         "\n"])
 
     if output != old_output:
-        with open("Makefile.depend", "w+") as f:
+        with open(os.path.join(dir_,"Makefile.depend"), "w+") as f:
             f.write(output)
 
 
@@ -237,35 +237,33 @@ if __name__ == '__main__':
 
     if not arguments['<NEEDED_CHILDREN_MODULES>']:
         dir_ = os.getcwd()
-        path = os.path.join(dir_, "NEEDED_CHILDREN_MODULES")
+        path_file = os.path.join(dir_, "NEEDED_CHILDREN_MODULES")
     else:
-        path = os.path.abspath(arguments['<NEEDED_CHILDREN_MODULES>'])
-        path = os.path.expanduser(path)
-        path = os.path.expandvars(path)
+        path_file = os.path.abspath(arguments['<NEEDED_CHILDREN_MODULES>'])
+        path_file = os.path.expanduser(path_file)
+        path_file = os.path.expandvars(path_file)
+        dir_ = os.path.dirname(path_file)
 
     if arguments['print_genealogy']:
-        l_all_needed_molule = module_genealogy(path)
+        l_all_needed_molule = module_genealogy(path_file)
         print " ".join(sorted(l_all_needed_molule))
-
-        get_list_depend(l_all_needed_molule)
 
     if arguments['create_symlink']:
         src = os.getcwd()
 
-        for link_name in module_genealogy(path) + ["include"]:
+        for link_name in module_genealogy(path_file) + ["include"]:
 
-            source = os.path.join(
-                "/home/razoa/quantum_package/src/",
-                link_name)
+            source = os.path.join("/home/razoa/quantum_package/src/",
+                                  link_name)
             try:
                 os.symlink(source, link_name)
             except OSError:
                 pass
 
     if arguments['save_makefile_depend']:
-        l_all_needed_molule = module_genealogy(path)
+        l_all_needed_molule = module_genealogy(path_file)
         l_src, l_obj = get_list_depend(l_all_needed_molule)
-        save_makefile_depend(l_src, l_obj)
+        save_makefile_depend(l_src, l_obj, dir_)
 
     if arguments["create_png"]:
-        create_png_from_path(path)
+        create_png_from_path(path_file)

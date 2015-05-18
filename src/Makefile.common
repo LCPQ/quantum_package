@@ -24,8 +24,6 @@ IRPF90+=$(patsubst %, -I %, $(INCLUDE_DIRS)) $(IRPF90_FLAGS)
 Makefile.depend: $(wildcard */Makefile)
 	${QPACKAGE_ROOT}/scripts/module/module_handler.py save_makefile_depend
 
-# Check and update dependencies
-include Makefile.depend
 
 # Create symlink
 symlink: $(wildcard $(QPACKAGE_ROOT)/src/*/NEEDED_CHILDREN_MODULES)
@@ -44,8 +42,9 @@ ezfio_interface: symlink $(wildcard $(QPACKAGE_ROOT)/src/*/EZFIO.cfg)
 	${QPACKAGE_ROOT}/scripts/ezfio_interface/ei_handler.py --irpf90 --ocaml --recursif
 
 irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard .inc.f) Makefile.depend Makefile $(EZFIO) $(wildcard *.py) symlink ezfio_interface
-	$(IRPF90)
+	echo $(IRPF90)
 
+include Makefile.depend
 include irpf90.make
 
 # Need NEEDED_CHILDREN_MODULES and IRPMAN
