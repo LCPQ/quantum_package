@@ -51,7 +51,6 @@ def get_l_ezfio_irp(l_all_needed_molule, path_module):
     l_module_abs = [join(qpackage_root_src, m) for m in l_all_needed_molule]
 
     l_irp = []
-    l_ezfio_module_abs = []
 
     for m in l_module_abs + [path_module.abs]:
 
@@ -59,10 +58,9 @@ def get_l_ezfio_irp(l_all_needed_molule, path_module):
             if file.endswith(".irp.f"):
                 l_irp.append(join(m, file))
             if file == "EZFIO.cfg":
-                l_ezfio_module_abs.append(m)
                 l_irp.append(join(m, "ezfio_interface.irp.f"))
 
-    return l_irp, l_ezfio_module_abs
+    return l_irp
 
 
 def ninja_ezfio_cfg_rule():
@@ -75,10 +73,17 @@ def ninja_ezfio_cfg_rule():
     return l_string
 
 
-def ninja_ezfio_cfg_build(l_ezfio_module_abs):
+def ninja_ezfio_cfg_build():
     # Build
     l_string = []
-    for m in l_ezfio_module_abs:
+
+    from os import listdir
+    from os.path import isfile, join
+    qp_src = qpackage_root_src
+
+    l = [join(qp_src, m) for m in listdir(qp_src) if isfile(join(qp_src, m, "EZFIO.cfg")) ]
+
+    for m in l:
         ez_interface = join(m, "ezfio_interface.irp.f")
         ez_cfg = join(m, "EZFIO.cfg")
 
@@ -132,8 +137,13 @@ def ninja_symlink_build(l_source, l_destination):
 #      |
 def ninja_irpf90_make_rule():
     # Rule
-    l_string = ["rule build_irpf90.make"]
+    l_string  = ["pool irp_pool"]
+    l_string += ["   depth = 1"]
+    l_string += [""]
+
+    l_string += ["rule build_irpf90.make"]
     l_string += ["   command = cd $module ; irpf90 $include_dir $irpf90_flag ; cd -"]
+    l_string += ["   pool = irp_pool"]
     l_string += [""]
 
     return l_string
@@ -189,7 +199,7 @@ def ninja_binary_rule():
 
     # Rule
     l_string = ["rule build_binary"]
-    l_string += ["   command = cd $module ; make $binary ; touch $binary; cd -"]
+    l_string += ["   command = cd $module ; make -j 1 $binary ; touch $binary; cd -"]
     l_string += [""]
 
     return l_string
@@ -215,8 +225,20 @@ def ninja_binary_build(l_bin, path_module):
 
     l_string += ["build build_all_binary_{0}: phony {1}".format(path_module.rel,
                                                                 str_l_abs_bin)]
+    l_string += [""]
 
     return l_string
+
+
+def ninja_all_binary_build(l_module):
+    l_build_name = ["build_all_binary_{0}".format(m) for m in l_module]
+    str_l_build_name = " ".join(l_build_name)
+
+    l_string = ["build build_all_binary: phony {0}".format(str_l_build_name)]
+    l_string += [""]
+
+    return l_string
+
 
 if __name__ == "__main__":
 
@@ -231,7 +253,9 @@ if __name__ == "__main__":
 
     from collections import namedtuple
 
-    for module_to_consider in ["Hartree_Fock", "AOs"]: #l_module_to_compile:
+#    l_module_to_compile = ["AOs", "CAS_SD", "Hartree_Fock"]
+
+    for module_to_consider in l_module_to_compile:
 
         Path = namedtuple('Path', ['abs', 'rel'])
 
@@ -245,16 +269,15 @@ if __name__ == "__main__":
         l_string += ninja_makefile_depend_build(l_all_needed_molule, path_module)
 
         # EZFIO.cfg rule and build
-        l_irp, l_ezfio_module_abs = get_l_ezfio_irp(l_all_needed_molule, path_module)
-        l_string += ninja_ezfio_cfg_build(l_ezfio_module_abs)
+        l_irp = get_l_ezfio_irp(l_all_needed_molule, path_module)
 
         # Symlink rule and build
         l_source, l_destination = get_source_destination(l_all_needed_molule,
                                                          path_module)
+
         l_string += ninja_symlink_build(l_source, l_destination)
 
         # irpf90.make
-
         l_string += ninja_irpf90_make_build(path_module,
                                             l_all_needed_molule + ["include"],
                                             l_irp,
@@ -263,4 +286,7 @@ if __name__ == "__main__":
         l_binary = get_program(path_module)
         l_string += ninja_binary_build(l_binary, path_module)
 
+    l_string += ninja_ezfio_cfg_build()
+
+    l_string += ninja_all_binary_build(l_module_to_compile)
     print "\n".join(l_string)
