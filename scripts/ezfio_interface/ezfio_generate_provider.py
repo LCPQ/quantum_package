@@ -10,10 +10,11 @@ fetched from the EZFIO file.
 
 import sys
 
+
 class EZFIO_Provider(object):
 
     data = """
-BEGIN_PROVIDER [ %(type)s, %(name)s ]
+BEGIN_PROVIDER [ %(type)s, %(name)s %(size)s ]
   implicit none
   BEGIN_DOC
 ! %(doc)s
@@ -48,6 +49,9 @@ END_PROVIDER
                 msg = "Error : %s is not set in EZFIO.cfg" % (v)
                 print >>sys.stderr, msg
                 sys.exit(1)
+        if "size" not in self.__dict__:
+            self.__dict__["size"] = ""
+
         return self.data % self.__dict__
 
     def set_write(self):
@@ -83,6 +87,12 @@ END_PROVIDER
     def set_output(self, t):
         self.output = t
 
+    def set_size(self, t):
+
+        if t != "1":
+            self.size = ", " + t
+        else:
+            self.size = ""
 
 def test_module():
     T = EZFIO_Provider()

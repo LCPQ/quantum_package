@@ -18,7 +18,7 @@ program cisd
    print *,  'E                            = ', CI_energy(i) 
   enddo
   E_old = CI_energy
-  do while (maxval(abs(pt2(1:N_st))) > pt2_max.and.n_det < n_det_max_cisd)
+  do while (maxval(abs(pt2(1:N_st))) > pt2_max.and.n_det < N_det_max)
     print*,'----'
     print*,''
     call H_apply_cisd_selection(perturbation,pt2, norm_pert, H_pert_diag,  N_st)
@@ -38,7 +38,7 @@ program cisd
       exit
     endif
   enddo
-  N_det = min(N_det,n_det_max_cisd)
+  N_det = min(N_det,N_det_max)
   touch N_det psi_det psi_coef
   call diagonalize_CI
   deallocate(pt2,norm_pert,H_pert_diag)

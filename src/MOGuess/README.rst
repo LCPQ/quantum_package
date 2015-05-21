@@ -8,7 +8,9 @@ Needed Modules
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-* `MonoInts <http://github.com/LCPQ/quantum_package/tree/master/src/MonoInts>`_
+.. image:: tree_dependancy.png
+
+* `Integrals_Monoelec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec>`_
 
 Documentation
 =============

@@ -10,7 +10,9 @@ Needed Modules
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
-* `Bielec_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Bielec_integrals>`_
+.. image:: tree_dependancy.png
+
+* `Integrals_Bielec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec>`_
 * `MOGuess <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess>`_
 
 Documentation

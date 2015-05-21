@@ -20,7 +20,7 @@ Energy = namedtuple('Energy', ['without_pseudo', 'with_pseudo'])
 # O p t #
 # ~#~#~ #
 
-precision = 1.e-7
+precision = 2.e-7
 
 # A test get a geo file and a basis file.
 # A global dict containt the result for this test
@@ -88,12 +88,12 @@ def check_disk_acess(geo, basis, mult=1):
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
     # Test 1
-    ezfio.bielec_integrals_disk_access_ao_integrals = "Write"
+    ezfio.integrals_bielec_disk_access_ao_integrals = "Write"
     cmd = "qp_edit -c {0}.ezfio".format(filename)
     subprocess.check_call([cmd], shell=True)
 
     # Test 2
-    ezfio.bielec_integrals_disk_access_ao_integrals = "IculeAcess"
+    ezfio.integrals_bielec_disk_access_ao_integrals = "IculeAcess"
     cmd = "qp_edit -c {0}.ezfio".format(filename)
 
     try:
@@ -169,7 +169,7 @@ def run_hf(geo, basis, mult=1, pseudo=False, remove_after_sucess=True):
 
     ref_energy["sto-3g"]["methane"] = Energy(-39.7267433402, None)
     ref_energy["vdz"]["SO2"] = Energy(None, -41.48912297776174)
-    ref_energy["vdz"]["HBO"] = Energy(None, -19.11982540413317)
+    ref_energy["vdz"]["HBO"] = Energy(None, -19.11982530413317)
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # G l o b a l _ v a r i a b l e #
@@ -199,7 +199,7 @@ def run_hf(geo, basis, mult=1, pseudo=False, remove_after_sucess=True):
     ezfio.hartree_fock_thresh_scf = 1.e-10
     ezfio.hartree_fock_n_it_scf_max = 100
 
-    ezfio.pseudo_integrals_do_pseudo = pseudo
+    ezfio.pseudo_do_pseudo = pseudo
 
     # ~#~#~ #
     # R u n #
@@ -244,8 +244,8 @@ def run_full_ci_10k_pt2_end(geo, basis, pseudo):
     ref_energy_var = defaultdict(dict)
     ref_energy_pt2 = defaultdict(dict)
 
-    ref_energy_var["sto-3g"]["methane"] = Energy(-0.398058753535695E+02, None)
-    ref_energy_pt2["sto-3g"]["methane"] = Energy(-0.398059182483741E+02, None)
+    ref_energy_var["sto-3g"]["methane"] = Energy(-39.8058687211, None)
+    ref_energy_pt2["sto-3g"]["methane"] = Energy(-39.8059180427, None)
 
     # ~#~#~#~ #
     # I n i t #

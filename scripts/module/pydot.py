@@ -31,7 +31,8 @@ import sys
 try:
     import dot_parser
 except Exception as e:
-    print >> sys.stderr, "Couldn't import dot_parser, loading of dot files will not be possible."
+    pass
+    # print >> sys.stderr, "Couldn't import dot_parser, loading of dot files will not be possible."
 
 
 GRAPH_ATTRIBUTES = set(['Damping', 'K', 'URL', 'aspect', 'bb', 'bgcolor',

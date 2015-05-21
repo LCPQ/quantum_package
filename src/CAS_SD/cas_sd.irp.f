@@ -13,12 +13,12 @@ program full_ci
   N_det_old = 0
   pt2 = 1.d0
   diag_algorithm = "Lapack"
-  if (N_det > n_det_max_cas_sd) then
+  if (N_det > N_det_max) then
     call diagonalize_CI
     call save_wavefunction
     psi_det = psi_det_sorted
     psi_coef = psi_coef_sorted
-    N_det = n_det_max_cas_sd
+    N_det = N_det_max
     soft_touch N_det psi_det psi_coef
     call diagonalize_CI
     call save_wavefunction
@@ -30,7 +30,7 @@ program full_ci
     print *,  '-----'
   endif
 
-  do while (N_det < n_det_max_cas_sd.and.maxval(abs(pt2(1:N_st))) > pt2_max)
+  do while (N_det < N_det_max.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     N_det_old = N_det
     call H_apply_CAS_SD(pt2, norm_pert, H_pert_diag,  N_st)
 
@@ -38,10 +38,10 @@ program full_ci
     PROVIDE  psi_det
     PROVIDE  psi_det_sorted
 
-    if (N_det > n_det_max_cas_sd) then
+    if (N_det > N_det_max) then
        psi_det = psi_det_sorted
        psi_coef = psi_coef_sorted
-       N_det = n_det_max_cas_sd
+       N_det = N_det_max
        soft_touch N_det psi_det psi_coef
     endif
     call diagonalize_CI

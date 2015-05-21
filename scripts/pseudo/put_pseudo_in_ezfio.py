@@ -186,7 +186,7 @@ def add_zero(array, size, type):
 
 def make_it_square(matrix, dim, type=float):
     """
-    matix the matrix to squate
+    matix the matrix to square
     dim array  [lmax, kmax]
     type the null value you want
         [[[28.59107316], [19.37583724]], [[50.25646328]]]
@@ -311,11 +311,11 @@ if __name__ == "__main__":
     # ~#~#~#~#~ #
 
     klocmax = max([len(i) for i in v_k])
-    ezfio.pseudo_integrals_klocmax = klocmax
+    ezfio.pseudo_pseudo_klocmax = klocmax
 
-    ezfio.pseudo_integrals_v_k = zip(*v_k)
-    ezfio.pseudo_integrals_n_k = zip(*n_k)
-    ezfio.pseudo_integrals_dz_k = zip(*dz_k)
+    ezfio.pseudo_pseudo_v_k = zip(*v_k)
+    ezfio.pseudo_pseudo_n_k = zip(*n_k)
+    ezfio.pseudo_pseudo_dz_k = zip(*dz_k)
 
     # ~#~#~#~#~#~#~#~#~ #
     # N o n _ L o c a l #
@@ -324,15 +324,15 @@ if __name__ == "__main__":
     lmax = max([len(i) for i in v_kl])
     kmax = max([len(sublist) for list_ in v_kl for sublist in list_])
 
-    ezfio.pseudo_integrals_lmaxpo = lmax
-    ezfio.pseudo_integrals_kmax = kmax
+    ezfio.pseudo_pseudo_lmax = lmax - 1
+    ezfio.pseudo_pseudo_kmax = kmax
 
     v_kl = make_it_square(v_kl, [lmax, kmax])
     n_kl = make_it_square(n_kl, [lmax, kmax], int)
     dz_kl = make_it_square(dz_kl, [lmax, kmax])
 
-    ezfio.pseudo_integrals_v_kl = zip(*v_kl)
-    ezfio.pseudo_integrals_n_kl = zip(*n_kl)
-    ezfio.pseudo_integrals_dz_kl = zip(*dz_kl)
+    ezfio.pseudo_pseudo_v_kl = zip(*v_kl)
+    ezfio.pseudo_pseudo_n_kl = zip(*n_kl)
+    ezfio.pseudo_pseudo_dz_kl = zip(*dz_kl)
 
-    ezfio.pseudo_integrals_do_pseudo = True
+    ezfio.pseudo_do_pseudo = True

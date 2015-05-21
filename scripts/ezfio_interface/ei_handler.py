@@ -197,7 +197,7 @@ def get_dict_config_file(config_file_path, module_lower):
         * equal to MODULE_lower name by default.
     - interface  : The provider is a imput or a output
     - default : The default value /!\ stored in a Type named type!
-                   if interface == output
+                   if interface == input
     - size : Is the string read in ezfio.cgf who containt the size information
          (like 1 or =sum(ao_num))
     """
@@ -230,7 +230,8 @@ def get_dict_config_file(config_file_path, module_lower):
 
         # Create the dictionary who containt the value per default
         d_default = {"ezfio_name": pvd,
-                     "ezfio_dir": module_lower}
+                     "ezfio_dir": module_lower,
+                     "size": "1"}
 
         # Check if type if avalaible
         type_ = config_file.get(section, "type")
@@ -274,6 +275,8 @@ def get_dict_config_file(config_file_path, module_lower):
 
 
 def create_ezfio_provider(dict_ezfio_cfg):
+    import re
+
     """
     From dict d[provider_name] = {type,
                                   doc,
@@ -286,18 +289,22 @@ def create_ezfio_provider(dict_ezfio_cfg):
     output = output_dict_info['ezfio_dir'
     return [code, ...]
     """
+
     from ezfio_generate_provider import EZFIO_Provider
     dict_code_provider = dict()
 
     ez_p = EZFIO_Provider()
     for provider_name, dict_info in dict_ezfio_cfg.iteritems():
-        if "default" in dict_info:
+        if "input" in dict_info["interface"]:
             ez_p.set_type(dict_info['type'].fortran)
             ez_p.set_name(provider_name)
             ez_p.set_doc(dict_info['doc'])
             ez_p.set_ezfio_dir(dict_info['ezfio_dir'])
             ez_p.set_ezfio_name(dict_info['ezfio_name'])
             ez_p.set_output("output_%s" % dict_info['ezfio_dir'])
+
+            # (nuclei.nucl_num,pseudo.klocmax) => (nucl_num,klocmax)
+            ez_p.set_size(re.sub(r'\w+\.', "", dict_info['size']))
 
             dict_code_provider[provider_name] = str(ez_p) + "\n"
 
@@ -342,15 +349,32 @@ def create_ezfio_stuff(dict_ezfio_cfg, config_or_default="config"):
     def size_format_to_ezfio(size_raw):
         """
         If size_raw == "=" is a formula -> do nothing; return
+        Else convert the born of a multidimential array
+           (12,begin:end) into (12,begin+end+1) for example
         If the value are between parenthses ->  do nothing; return
-        Else put it in parenthsesis
         """
 
         size_raw = str(size_raw)
-        if any([size_raw.startswith('='),
-                size_raw.startswith("(") and size_raw.endswith(")")]):
+        if size_raw.startswith('='):
             size_convert = size_raw
         else:
+            size_raw = provider_info["size"].translate(None, "()")
+            size_raw = size_raw.replace('.', '_')
+
+            a_size_raw = []
+            for dim in size_raw.split(","):
+                try:
+                    (begin, end) = map(str.strip, dim.split(":"))
+                except ValueError:
+                    a_size_raw.append(dim)
+                else:
+                    if begin[0] == '-':
+                        a_size_raw.append("{0}+{1}+1".format(end, begin[1:]))
+                    else:
+                       a_size_raw.append("{0}-{1}+1".format(end, begin))
+
+            size_raw = ",".join(a_size_raw)
+
             size_convert = "({0})".format(size_raw)
         return size_convert
 
@@ -719,7 +743,6 @@ def save_ocaml_qp_edit(str_ocaml_qp_edit):
 
 if __name__ == "__main__":
     arguments = docopt(__doc__)
-
     # ___
     #  |  ._  o _|_
     # _|_ | | |  |_

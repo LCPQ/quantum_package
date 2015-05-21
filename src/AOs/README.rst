@@ -39,7 +39,10 @@ Needed Modules
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES file.
 
+.. image:: tree_dependancy.png
+
 * `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
+* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 
 Documentation
 =============
@@ -143,6 +146,12 @@ Documentation
   Index of the shell type Aos and of the corresponding Aos
   Per convention, for P,D,F and G AOs, we take the index
   of the AO with the the corresponding power in the "X" axis
+
+`n_pt_max_i_x <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/dimensions_integrals.irp.f#L2>`_
+  Undocumented
+
+`n_pt_max_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/dimensions_integrals.irp.f#L1>`_
+  Undocumented
 
 
 

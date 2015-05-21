@@ -4,6 +4,7 @@ DEBUG  = 0
 
 IRPF90_FLAGS+= --align=32
 FC     = ifort -g 
+#FC     = cache_compile.py ifort -g    # Accelerates compilation
 FCFLAGS= 
 FCFLAGS+= -xHost
 #FCFLAGS+= -xAVX

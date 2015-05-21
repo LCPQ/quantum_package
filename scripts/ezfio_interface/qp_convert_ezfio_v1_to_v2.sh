@@ -15,10 +15,10 @@ mv $1/hartree_Fock/thresh_SCF $1/hartree_fock/thresh_scf 2> /dev/null
 # Set disk_acess
 echo "Change {read,write}_ao_integrals > disk_access_ao_integrals"
 
-biint=$1/bielec_integrals
+biint=$1/Integrals_bielec
 
 if [[ -f  $biint/read_ao_integrals ]]; then
-    if [[ `cat $1/bielec_integrals/read_ao_integrals` -eq "T" ]]
+    if [[ `cat $1/Integrals_bielec/read_ao_integrals` -eq "T" ]]
     then
             echo "Read" > $biint/disk_access_ao_integrals
     
@@ -32,5 +32,7 @@ if [[ -f  $biint/read_ao_integrals ]]; then
     fi
     rm $biint/read_ao_integrals  $biint/write_ao_integrals  $biint/write_ao_intergals 2> /dev/null
 fi
+
+mv $1/MonoInts $1/Integrals_Monoelec
 
 echo "Done"
