@@ -1485,7 +1485,6 @@ end
         a=bessel_mod_exp(n,x)
         return
        endif
-       print *,  n,x
        if(n.eq.0)a=dsinh(x)/x
        if(n.eq.1)a=(x*dcosh(x)-dsinh(x))/x**2
        if(n.ge.2)a=bessel_mod_recur(n-2,x)-(2*n-1)/x*bessel_mod_recur(n-1,x)

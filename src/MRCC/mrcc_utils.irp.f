@@ -92,9 +92,10 @@ END_PROVIDER
   
   if (diag_algorithm == "Davidson") then
     
-    stop 'use Lapack'
-!    call davidson_diag(psi_det,CI_eigenvectors_dressed,CI_electronic_energy_dressed, &
-!        size(CI_eigenvectors_dressed,1),N_det,N_states_diag,N_int,output_determinants)
+    integer :: istate
+    istate = 1
+    call davidson_diag_mrcc(psi_det,CI_eigenvectors_dressed,CI_electronic_energy_dressed, &
+        size(CI_eigenvectors_dressed,1),N_det,N_states_diag,N_int,output_determinants,istate)
     
   else if (diag_algorithm == "Lapack") then
     

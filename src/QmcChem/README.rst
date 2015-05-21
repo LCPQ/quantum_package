@@ -1,6 +1,6 @@
-=============
-Pseudo Module
-=============
+==============
+QmcChem Module
+==============
 
 Documentation
 =============
@@ -18,6 +18,6 @@ Needed Modules
 
 .. image:: tree_dependancy.png
 
-* `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
-* `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
+* `Determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants>`_
+* `DensityFit <http://github.com/LCPQ/quantum_package/tree/master/src/DensityFit>`_
 

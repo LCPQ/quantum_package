@@ -186,7 +186,7 @@ def add_zero(array, size, type):
 
 def make_it_square(matrix, dim, type=float):
     """
-    matix the matrix to squate
+    matix the matrix to square
     dim array  [lmax, kmax]
     type the null value you want
         [[[28.59107316], [19.37583724]], [[50.25646328]]]

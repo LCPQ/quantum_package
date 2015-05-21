@@ -97,17 +97,11 @@ Documentation
 `ao_pseudo_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L1>`_
   Pseudo-potential
 
-`ao_pseudo_integral_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L13>`_
+`ao_pseudo_integral_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L15>`_
   Local pseudo-potential
 
-`ao_pseudo_integral_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L119>`_
+`ao_pseudo_integral_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L121>`_
   Local pseudo-potential
-
-`pseudo_grid <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L223>`_
-  Grid points for f(|r-r_A|) = \int Y_{lm}^{C} (|r-r_C|, \Omega_C) \chi_i^{A} (r-r_A) d\Omega_C
-  .br
-  <img src="http://latex.codecogs.com/gif.latex?f(|r-r_A|)&space;=&space;\int&space;Y_{lm}^{C}&space;(|r-r_C|,&space;\Omega_C)&space;\chi_i^{A}&space;(r-r_A)&space;d\Omega_C"
-  title="f(|r-r_A|) = \int Y_{lm}^{C} (|r-r_C|, \Omega_C) \chi_i^{A} (r-r_A) d\Omega_C" />
 
 `mo_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_mo_ints.irp.f#L1>`_
   interaction nuclear electron on the MO basis

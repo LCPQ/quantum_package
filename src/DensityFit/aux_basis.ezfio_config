@@ -1,0 +1,12 @@
+aux_basis
+  aux_basis_num             integer
+  aux_basis_num_sqrt        integer
+  aux_basis_idx             integer       (2,aux_basis_aux_basis_num)
+  aux_basis_prim_num        integer       (aux_basis_aux_basis_num_sqrt)
+  aux_basis_nucl            integer       (aux_basis_aux_basis_num_sqrt)
+  aux_basis_power           integer       (aux_basis_aux_basis_num_sqrt,3)
+  aux_basis_prim_num_max    integer       = maxval(aux_basis_aux_basis_prim_num)
+  aux_basis_coef            double precision (aux_basis_aux_basis_num_sqrt,aux_basis_aux_basis_prim_num_max)
+  aux_basis_expo            double precision (aux_basis_aux_basis_num_sqrt,aux_basis_aux_basis_prim_num_max)
+
+

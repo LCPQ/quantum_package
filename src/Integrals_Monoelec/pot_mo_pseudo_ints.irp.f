@@ -28,7 +28,6 @@ BEGIN_PROVIDER [double precision, mo_pseudo_integral, (mo_tot_num_align,mo_tot_n
     enddo
   enddo
   !$OMP END PARALLEL DO
-  call ezfio_set_pseudo_pseudo_matrix(mo_pseudo_integral(1:mo_tot_num,1:mo_tot_num))
 END_PROVIDER
 
 

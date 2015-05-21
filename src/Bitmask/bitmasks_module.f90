@@ -8,4 +8,4 @@ module bitmasks
   integer, parameter             :: d_part2 = 4
   integer, parameter             :: s_hole  = 5
   integer, parameter             :: s_part  = 6
-end module
+end module bitmasks
