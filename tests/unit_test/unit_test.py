@@ -20,7 +20,7 @@ Energy = namedtuple('Energy', ['without_pseudo', 'with_pseudo'])
 # O p t #
 # ~#~#~ #
 
-precision = 1.e-7
+precision = 2.e-7
 
 # A test get a geo file and a basis file.
 # A global dict containt the result for this test
@@ -169,7 +169,7 @@ def run_hf(geo, basis, mult=1, pseudo=False, remove_after_sucess=True):
 
     ref_energy["sto-3g"]["methane"] = Energy(-39.7267433402, None)
     ref_energy["vdz"]["SO2"] = Energy(None, -41.48912297776174)
-    ref_energy["vdz"]["HBO"] = Energy(None, -19.11982540413317)
+    ref_energy["vdz"]["HBO"] = Energy(None, -19.11982530413317)
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # G l o b a l _ v a r i a b l e #
