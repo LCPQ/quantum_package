@@ -1,63 +1,95 @@
 #!/usr/bin/env python
+"""
+Save the .o from a .f90
+and is the .o is asked a second time, retur it
+Take in argv command like:
+     ifort -g  -openmp -I IRPF90_temp/Ezfio_files/ -c IRPF90_temp/Integrals_Monoelec/kin_ao_ints.irp.module.F90 -o IRPF90_temp/Integrals_Monoelec/kin_ao_ints.irp.module.o
+"""
 
 import os
 import sys
-import shelve
 import hashlib
 import re
+import shutil
 
 r = re.compile(ur'-c\s+(\S+\.[fF]90)\s+-o\s+(\S+\.o)')
 p = re.compile(ur'-I IRPF90_temp/\S*\s+')
-mod = re.compile(ur'module\s+(?P<mod>\S+).+end\s?module\s+(?P=mod)?', re.MULTILINE | re.IGNORECASE)
+mod = re.compile(ur'module\s+(?P<mod>\S+).+end\s?module\s+(?P=mod)?',
+                 re.MULTILINE | re.IGNORECASE)
 
-TMPDIR="/tmp/qp_compiler/"
+TMPDIR = "/tmp/qp_compiler/"
+
+
+def return_filename_to_cache(command):
+    """
+    For a irp_command:
+        ifort -g  -openmp -I IRPF90_temp/Ezfio_files/ -c IRPF90_temp/Integrals_Monoelec/kin_ao_ints.irp.module.F90 -o IRPF90_temp/Integrals_Monoelec/kin_ao_ints.irp.module.o
+
+    Return the *.F90 and the *.o
+    """
+    command_clean = p.sub('', command)
+    match = r.search(command_clean)
+
+    input = match.group(1)
+    output = match.group(2)
+
+    return (input, output)
+
+
+def get_hash_key(command, input_data):
+    """
+    Return the hash of command + input_data
+    """
+    m = hashlib.md5()
+    m.update(command)
+    m.update(input_data)
+
+    # Md5 Key containing command + content of Fread
+    return m.hexdigest()
+
+
+def ruun_and_save_the_data(command, path_output, path_key, is_mod):
+
+    # Compile the file -> .o
+    os.system(command)
+    # Read the .o
+
+    # Copy the .o in database if is not a module
+    if not is_mod:
+        shutil.copyfile(path_output, path_key)
+
 
 def main():
     # Create temp directory
-    if "qp_compiler" not in os.listdir("/tmp"):
-      os.mkdir("/tmp/qp_compiler/")
+    try:
+        os.mkdir("/tmp/qp_compiler/")
+    except OSError:
+        pass
 
     line = sys.argv[1:]
     command = " ".join(line)
-    command_clean = p.sub('',command)
 
+    # Get the filename of the input.f.90
+    # and the otput .o
     try:
-      match = r.search(command_clean)
-      input  = match.group(1)
-      output = match.group(2)
+        (path_input, path_output) = return_filename_to_cache(command)
     except:
-      os.system(command)
-      return
-    m = hashlib.md5()
-
-    # Fread : read input
-    with open(input,'r') as file:
-      fread = file.read()
-      m.update( " ".join( [ command, fread ] ))
-
-    # Md5 Key containing command + content of Fread
-    key = TMPDIR+m.hexdigest()
-    try:
-        # Try to return the content of the .o file
-        with open(key,'r') as file:
-            result = file.read()
-    except IOError:
-        # Compile the file -> .o
         os.system(command)
-        # Read the .o
-        with open(output,'r') as file:
-            result = file.read()
-        # Copy the .o in database
-        if not mod.search(fread.replace('\n',' ')):
-            with open(key,'w') as file:
-                file.write(result)
-        else:
-            print input+' -> module'
-    else:
-        # Write the .o file
-        with open(output,'w') as file:
-            file.write(result)
+        return
+
+    with open(path_input, 'r') as f:
+        input_data = f.read()
+
+    # Get the hash
+    key = get_hash_key(command, input_data)
+    path_key = os.path.join(TMPDIR, key)
+
+    # Try to return the content of the .o file
+    try:
+        shutil.copyfile(path_key, path_output)
+    except IOError:
+        is_mod = mod.search(input_data.replace('\n', ' '))
+        ruun_and_save_the_data(command, path_output, path_key, is_mod)
 
 if __name__ == '__main__':
     main()
-
