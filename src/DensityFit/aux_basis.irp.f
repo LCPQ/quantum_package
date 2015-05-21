@@ -8,8 +8,8 @@
  integer :: align_double
 
  if (do_pseudo) then
-   aux_basis_num_sqrt = ao_num + ao_pseudo_num
-!   aux_basis_num_sqrt = ao_num 
+!   aux_basis_num_sqrt = ao_num + ao_pseudo_num
+   aux_basis_num_sqrt = ao_num 
  else
  endif
 
@@ -55,13 +55,13 @@ END_PROVIDER
    aux_basis_power(i,1:3) = ao_power(i,1:3)
  enddo
 
- do j=1,ao_pseudo_num
-   aux_basis_expo_transp(1,ao_num+j) = 0.5d0*pseudo_ao_expo(j)
-   aux_basis_coef_transp(1,ao_num+j) = 1.d0
-   aux_basis_power(ao_num+j,1:3) = 0
-   aux_basis_prim_num(ao_num+j) = 1
-   aux_basis_nucl(ao_num+j) = pseudo_ao_nucl(j)
- enddo
+! do j=1,ao_pseudo_num
+!   aux_basis_expo_transp(1,ao_num+j) = 0.5d0*pseudo_ao_expo(j)
+!   aux_basis_coef_transp(1,ao_num+j) = 1.d0
+!   aux_basis_power(ao_num+j,1:3) = 0
+!   aux_basis_prim_num(ao_num+j) = 1
+!   aux_basis_nucl(ao_num+j) = pseudo_ao_nucl(j)
+! enddo
   
 END_PROVIDER
 
