@@ -41,11 +41,25 @@ def ninja_makefile_depend_build(l_all_needed_molule, path_module):
 
     return l_string
 
-
+import glob
 #  _ __  _ ___  _         _
 # |_  / |_  |  / \    _ _|_ _
 # |_ /_ |  _|_ \_/ o (_  | (_|
 #                           _|
+
+
+def get_module_with_ezfio_cfg():
+    from os import listdir
+    from os.path import isfile, join
+    qp_src = qpackage_root_src
+
+    return [join(qp_src, m) for m in listdir(qp_src) if isfile(join(qp_src, m, "EZFIO.cfg")) ]
+
+
+def get_ezfio_config():
+    return glob.glob("{0}/*/*.ezfio_config".format(qpackage_root_src))
+
+
 def get_l_ezfio_irp(l_all_needed_molule, path_module):
 
     l_module_abs = [join(qpackage_root_src, m) for m in l_all_needed_molule]
@@ -66,24 +80,35 @@ def get_l_ezfio_irp(l_all_needed_molule, path_module):
 def ninja_ezfio_cfg_rule():
     # Rule
     l_string = ["rule build_ezfio_interface"]
-    l_string += [
-        "   command = cd $sub_module ; ei_handler.py ; cd -"]
+    l_string += ["   command = ei_handler.py --path_module $sub_module --irpf90"]
     l_string += [""]
 
     return l_string
 
 
-def ninja_ezfio_cfg_build():
+def ninja_ezfio_interface_config_rule():
+    # Rule
+    l_string = ["rule build_ezfio_interface_config"]
+    l_string += ["   command = ei_handler.py --path_module $sub_module --ezfio_config"]
+    l_string += [""]
+
+    return l_string
+
+
+def ninja_ezfio_config_rule():
+    # Rule
+    l_string = ["rule build_ezfio_config"]
+    l_string += ["   command = cp $in $out"]
+    l_string += [""]
+
+    return l_string
+
+
+def ninja_ezfio_cfg_build(l_module_with_ezfio_cfg):
     # Build
     l_string = []
 
-    from os import listdir
-    from os.path import isfile, join
-    qp_src = qpackage_root_src
-
-    l = [join(qp_src, m) for m in listdir(qp_src) if isfile(join(qp_src, m, "EZFIO.cfg")) ]
-
-    for m in l:
+    for m in l_module_with_ezfio_cfg:
         ez_interface = join(m, "ezfio_interface.irp.f")
         ez_cfg = join(m, "EZFIO.cfg")
 
@@ -91,6 +116,55 @@ def ninja_ezfio_cfg_build():
                                                                    ez_cfg)]
         l_string += ["   sub_module = {0}".format(m)]
         l_string += [""]
+
+    return l_string
+
+
+def ninja_ezfio_config_build(l_module_with_ezfio_cfg,l_ezfio_config):
+    # Build
+    l_string = []
+    l_file_create = []
+
+    ezfio_folder = join(qpackage_root, "EZFIO/config")
+
+    for m in l_module_with_ezfio_cfg:
+        file_source = join(m, "EZFIO.cfg")
+        name = "{0}.ezfio_interface_config".format(os.path.split(m)[1].lower())
+        file_create = join(ezfio_folder, name)
+
+        l_file_create.append(file_create)
+        l_string += ["build {0}: build_ezfio_interface_config {1}".format(file_create, file_source)]
+        l_string +=  ["   sub_module = {0}".format(m)]
+        l_string += [""]
+
+    for m in l_ezfio_config:
+        file_source = m
+        name = os.path.split(m)[1].lower()
+        file_create = join(ezfio_folder, name)
+
+        l_file_create.append(file_create)
+        l_string += ["build {0}: build_ezfio_config {1}".format(file_create, file_source)]
+        l_string += [""]
+
+    return l_string, l_file_create
+
+
+def ninja_ezfio_rule():
+    # Rule
+    l_string = ["rule build_ezfio"]
+    ezfio_folder = join(qpackage_root, "EZFIO")
+    l_string += ["   command = cd {0}; make ; cd -".format(ezfio_folder)]
+
+    return l_string
+
+
+def ninja_ezfio_build(l_file_create):
+    # Rule
+    ezfio_lib = join(qpackage_root, "EZFIO", "lib", "libezfio.a")
+    str_ = " ".join(l_file_create)
+
+    l_string = ["build {0}: build_ezfio {1}".format(ezfio_lib, str_)]
+    l_string += [""]
 
     return l_string
 
@@ -137,7 +211,7 @@ def ninja_symlink_build(l_source, l_destination):
 #      |
 def ninja_irpf90_make_rule():
     # Rule
-    l_string  = ["pool irp_pool"]
+    l_string = ["pool irp_pool"]
     l_string += ["   depth = 1"]
     l_string += [""]
 
@@ -187,8 +261,9 @@ def get_program(path_module):
     import subprocess
 
     try:
+        fnull = open(os.devnull, 'w')
         cmd = 'grep -l "program" {0}/*.irp.f'.format(path_module.abs)
-        p = subprocess.check_output([cmd], shell=True)
+        p = subprocess.check_output([cmd], shell=True, stderr=fnull)
     except subprocess.CalledProcessError:
         return []
     else:
@@ -209,13 +284,15 @@ def ninja_binary_build(l_bin, path_module):
 
     # Build
     irpf90mk_path = join(path_module.abs, "irpf90.make")
+    ezfio_lib = join(qpackage_root, "EZFIO", "lib", "libezfio.a")
 
     l_abs_bin = [join(path_module.abs, binary) for binary in l_bin]
 
     l_string = []
     for path, abs_path in zip(l_bin, l_abs_bin):
-        l_string += ["build {0}: build_binary {1}".format(abs_path,
-                                                          irpf90mk_path)]
+        l_string += ["build {0}: build_binary {1} {2}".format(abs_path,
+                                                              ezfio_lib,
+                                                              irpf90mk_path)]
         l_string += ["   module = {0}".format(path_module.abs)]
         l_string += ["   binary = {0}".format(path)]
 
@@ -250,6 +327,9 @@ if __name__ == "__main__":
     l_string += ninja_symlink_rule()
     l_string += ninja_irpf90_make_rule()
     l_string += ninja_binary_rule()
+    l_string += ninja_ezfio_interface_config_rule()
+    l_string += ninja_ezfio_config_rule()
+    l_string += ninja_ezfio_rule()
 
     from collections import namedtuple
 
@@ -286,7 +366,18 @@ if __name__ == "__main__":
         l_binary = get_program(path_module)
         l_string += ninja_binary_build(l_binary, path_module)
 
-    l_string += ninja_ezfio_cfg_build()
+    l_module = get_module_with_ezfio_cfg()
+
+    l_string += ninja_ezfio_cfg_build(l_module)
+
+    l_ezfio_config = get_ezfio_config()
+
+    l_string_dump, l_file_create = ninja_ezfio_config_build(l_module_with_ezfio_cfg=l_module,
+                                                            l_ezfio_config=l_ezfio_config)
+    l_string += l_string_dump
 
     l_string += ninja_all_binary_build(l_module_to_compile)
+
+    l_string += ninja_ezfio_build(l_file_create)
+
     print "\n".join(l_string)
