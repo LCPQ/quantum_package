@@ -16,7 +16,6 @@ By default all the option are executed.
 
 Options:
     -h --help
-    --recursif         Folow the dependancy of the module
     --irpf90           Create the `ezfio_interface.irpf90`
                              which contains all the providers needed
                              (aka all with the `interface: input` parameter)
@@ -437,6 +436,7 @@ def create_ezfio_stuff(dict_ezfio_cfg, config_or_default="config"):
             raise KeyError
         # Append
         result.append(s)
+    result.append("\n")
 
     return "\n".join(result)
 
@@ -499,6 +499,7 @@ def create_ocaml_input(dict_ezfio_cfg, module_lower):
 
     if not l_ezfio_name:
         raise ValueError
+
 
     e_glob = EZFIO_ocaml(l_ezfio_name=l_ezfio_name,
                          l_type=l_type,
@@ -586,7 +587,7 @@ def save_ocaml_input(module_lower, str_ocaml_input):
         f.write(str_ocaml_input)
 
 
-def get_l_module_lower():
+def get_l_module_with_auto_generate_ocaml_lower():
     """
     Get all module who have EZFIO.cfg with input data
         (NB `search` in all the ligne and `match` only in one)
@@ -626,17 +627,10 @@ def get_l_module_lower():
     return l_module_lower
 
 
-def create_ocaml_input_global():
+def create_ocaml_input_global(l_module_with_auto_generate_ocaml_lower):
     """
-    Check for all the EZFIO.cfg get the module lower
-    then create incule {module_lower}.ml
+    Create the Input_auto_generated.ml and qp_edit.ml str
     """
-
-    # ~#~#~#~# #
-    #  I n i t #
-    # ~#~#~#~# #
-
-    l_module_lower = get_l_module_lower()
 
     # ~#~#~#~#~#~#~#~# #
     #  C r e a t i o n #
@@ -650,7 +644,7 @@ def create_ocaml_input_global():
     with open(path, "r") as f:
         template_raw = f.read()
 
-    e = EZFIO_ocaml(l_module_lower=l_module_lower)
+    e = EZFIO_ocaml(l_module_lower=l_module_with_auto_generate_ocaml_lower)
 
     template = template_raw.format(keywords=e.create_qp_keywords(),
                                    keywords_to_string=e.create_qp_keywords_to_string(),
@@ -671,9 +665,8 @@ def save_ocaml_input_auto(str_ocaml_input_global):
 
     path = "{0}/ocaml/Input_auto_generated.ml".format(os.environ['QPACKAGE_ROOT'])
 
-    if str_ocaml_input_global != old_output:
-        with open(path, "w+") as f:
-            f.write(str_ocaml_input_global)
+    with open(path, "w+") as f:
+        f.write(str_ocaml_input_global)
 
 
 def save_ocaml_qp_edit(str_ocaml_qp_edit):
@@ -684,9 +677,8 @@ def save_ocaml_qp_edit(str_ocaml_qp_edit):
 
     path = "{0}/ocaml/qp_edit.ml".format(os.environ['QPACKAGE_ROOT'])
 
-    if str_ocaml_qp_edit != old_output:
-        with open(path, "w+") as f:
-            f.write(str_ocaml_qp_edit)
+    with open(path, "w+") as f:
+        f.write(str_ocaml_qp_edit)
 
 
 def code_generation(arguments, dict_ezfio_cfg, m):
@@ -750,7 +742,14 @@ if __name__ == "__main__":
     #
 
     if arguments["ocaml_global"]:
-        str_ocaml_qp_edit, str_ocaml_input_auto = create_ocaml_input_global()
+
+        # ~#~#~#~# #
+        #  I n i t #
+        # ~#~#~#~# #
+
+        l_module = get_l_module_with_auto_generate_ocaml_lower()
+
+        str_ocaml_qp_edit, str_ocaml_input_auto = create_ocaml_input_global(l_module)
         save_ocaml_input_auto(str_ocaml_input_auto)
         save_ocaml_qp_edit(str_ocaml_qp_edit)
         sys.exit(0)

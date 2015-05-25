@@ -82,8 +82,7 @@ def get_it_and_children(l_module):
             try:
                 l.extend(get_it_and_children(d_ref[module]))
             except KeyError:
-                print >> sys.stderr, "`{0}` in not a good submodule name".format(
-                    module)
+                print >> sys.stderr, "`{0}` in not a good submodule name".format(module)
                 print >> sys.stderr, "Check the corresponding NEEDED_CHILDREN_MODULES"
                 sys.exit(1)
 

@@ -62,17 +62,11 @@ qp_run.native: $(MLFILES) $(MLIFILES) executables
 	$(OCAMLBUILD) $*.native -use-ocamlfind $(PKGS)
 	ln -s $*.native $*
 
-ezfio.ml: ${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml
-	cp ${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml .
-
 qptypes_generator.byte: qptypes_generator.ml
 	$(OCAMLBUILD) qptypes_generator.byte  -use-ocamlfind 
 
 Qptypes.ml: qptypes_generator.byte
 	./qptypes_generator.byte > Qptypes.ml
-
-${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml: 
-	$(MAKE) -C ${QPACKAGE_ROOT}/src ezfio
 
 clean: 
 	rm -rf _build Qptypes.ml $(ALL_EXE) $(ALL_TESTS)

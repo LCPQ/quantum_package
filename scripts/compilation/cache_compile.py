@@ -48,7 +48,7 @@ def get_hash_key(command, input_data):
     return m.hexdigest()
 
 
-def ruun_and_save_the_data(command, path_output, path_key, is_mod):
+def run_and_save_the_data(command, path_output, path_key, is_mod):
 
     # Compile the file -> .o
     os.system(command)
@@ -56,40 +56,50 @@ def ruun_and_save_the_data(command, path_output, path_key, is_mod):
 
     # Copy the .o in database if is not a module
     if not is_mod:
-        shutil.copyfile(path_output, path_key)
+        try:
+            shutil.copyfile(path_output, path_key)
+        except:
+            pass
 
 
-def main():
+def cache_utility(command):
     # Create temp directory
+
     try:
         os.mkdir("/tmp/qp_compiler/")
     except OSError:
-        pass
-
-    line = sys.argv[1:]
-    command = " ".join(line)
+        raise
 
     # Get the filename of the input.f.90
     # and the otput .o
     try:
         (path_input, path_output) = return_filename_to_cache(command)
     except:
-        os.system(command)
-        return
+        raise OSError
 
-    with open(path_input, 'r') as f:
-        input_data = f.read()
-
-    # Get the hash
-    key = get_hash_key(command, input_data)
-    path_key = os.path.join(TMPDIR, key)
-
-    # Try to return the content of the .o file
     try:
-        shutil.copyfile(path_key, path_output)
-    except IOError:
-        is_mod = mod.search(input_data.replace('\n', ' '))
-        ruun_and_save_the_data(command, path_output, path_key, is_mod)
+        with open(path_input, 'r') as f:
+            input_data = f.read()
+
+        # Get the hash
+        key = get_hash_key(command, input_data)
+        path_key = os.path.join(TMPDIR, key)
+
+        # Try to return the content of the .o file
+        try:
+            shutil.copyfile(path_key, path_output)
+        except IOError:
+            is_mod = mod.search(input_data.replace('\n', ' '))
+            run_and_save_the_data(command, path_output, path_key, is_mod)
+    except:
+        raise
 
 if __name__ == '__main__':
-    main()
+
+    line = sys.argv[1:]
+    command = " ".join(line)
+
+    try:
+        cache_utility(command)
+    except:
+        os.system(command)

@@ -415,7 +415,7 @@ double precision function F_integral(n,p)
   double precision               :: p
   integer                        :: i,j
   double precision               :: accu,sqrt_p,fact_ratio,tmp,fact
-  include 'include/constants.F'
+  include 'constants.F'
   if(n < 0)then
     F_integral = 0.d0
   endif
@@ -441,7 +441,7 @@ double precision function rint(n,rho)
 !  \int_0^1 dx \exp(-p x^2) x^n
 !
   END_DOC
-  include 'include/constants.F'
+  include 'constants.F'
   double precision               :: rho,u,rint1,v,val0,rint_large_n,u_inv
   integer                        :: n,k
   double precision               :: two_rho_inv
@@ -486,7 +486,7 @@ double precision function rint_sum(n_pt_out,rho,d1)
   BEGIN_DOC
   ! Needed for the calculation of two-electron integrals.
   END_DOC
-  include 'include/constants.F'
+  include 'constants.F'
   integer, intent(in)            :: n_pt_out
   double precision, intent(in)   :: rho,d1(0:n_pt_out)
   double precision               :: u,rint1,v,val0,rint_large_n,u_inv
