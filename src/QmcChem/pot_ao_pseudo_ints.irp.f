@@ -273,7 +273,7 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_grid, (ao_num,-pseudo_lmax:pseudo_l
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ double precision, mo_pseudo_grid, (mo_tot_num,-pseudo_lmax:pseudo_lmax,0:pseudo_lmax,nucl_num,pseudo_grid_size)  ]
+BEGIN_PROVIDER [ double precision, mo_pseudo_grid, (ao_num,-pseudo_lmax:pseudo_lmax,0:pseudo_lmax,nucl_num,pseudo_grid_size)  ]
  implicit none
  BEGIN_DOC
 ! Grid points for f(|r-r_A|) = \int Y_{lm}^{C} (|r-r_C|, \Omega_C) \phi_i^{A} (r-r_A) d\Omega_C
@@ -307,8 +307,8 @@ BEGIN_PROVIDER [ double precision, mo_pseudo_grid, (mo_tot_num,-pseudo_lmax:pseu
        do m=-l,l
          do j=1,mo_tot_num
            do i=1,ao_num
-!             mo_pseudo_grid(
-!         ao_pseudo_grid(j,i,m,l,k) = ao_pseudo_grid(j,i,m,l,k) +           &
+             mo_pseudo_grid(j,m,l,k,n) = mo_pseudo_grid(j,m,l,k,n) + &
+                ao_pseudo_grid(i,m,l,k,n)  * mo_coef(i,j)
            enddo
          enddo
        enddo
@@ -318,7 +318,7 @@ BEGIN_PROVIDER [ double precision, mo_pseudo_grid, (mo_tot_num,-pseudo_lmax:pseu
 
 END_PROVIDER
 
-double precision function test_pseudo_grid(i,j)
+double precision function test_pseudo_grid_ao(i,j)
   implicit none
   integer, intent(in) :: i,j
   integer :: k,l,m,n
@@ -333,6 +333,28 @@ double precision function test_pseudo_grid(i,j)
         u = pseudo_v_kl(n,l,1) * exp(-pseudo_dz_kl(n,l,1)*r*r)* r*r*dr
         do m=-l,l
           test_pseudo_grid +=  ao_pseudo_grid(i,m,l,n,k) * ao_pseudo_grid(j,m,l,n,k) * u 
+        enddo
+      enddo
+    enddo
+    r = r+dr
+  enddo
+end
+!
+double precision function test_pseudo_grid_mo(i,j)
+  implicit none
+  integer, intent(in) :: i,j
+  integer :: k,l,m,n
+  double precision :: r, dr,u
+  dr = pseudo_grid_rmax/dble(pseudo_grid_size)
+
+  test_pseudo_grid = 0.d0
+  r = 0.d0
+  do k=1,pseudo_grid_size
+    do n=1,nucl_num
+      do l = 0,pseudo_lmax
+        u = pseudo_v_kl(n,l,1) * exp(-pseudo_dz_kl(n,l,1)*r*r)* r*r*dr
+        do m=-l,l
+          test_pseudo_grid +=  mo_pseudo_grid(i,m,l,n,k) * mo_pseudo_grid(j,m,l,n,k) * u 
         enddo
       enddo
     enddo

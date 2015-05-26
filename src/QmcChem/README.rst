@@ -29,10 +29,13 @@ Documentation
   <img src="http://latex.codecogs.com/gif.latex?f(|r-r_A|)&space;=&space;\int&space;Y_{lm}^{C}&space;(|r-r_C|,&space;\Omega_C)&space;\chi_i^{A}&space;(r-r_A)&space;d\Omega_C"
   title="f(|r-r_A|) = \int Y_{lm}^{C} (|r-r_C|, \Omega_C) \chi_i^{A} (r-r_A) d\Omega_C" />
 
-`test_pseudo_grid <http://github.com/LCPQ/quantum_package/tree/master/src/QmcChem/pot_ao_pseudo_ints.irp.f#L321>`_
+`test_pseudo_grid_ao <http://github.com/LCPQ/quantum_package/tree/master/src/QmcChem/pot_ao_pseudo_ints.irp.f#L321>`_
   Undocumented
 
-`pseudo_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/QmcChem/pseudo.irp.f#L11>`_
+`test_pseudo_grid_mo <http://github.com/LCPQ/quantum_package/tree/master/src/QmcChem/pot_ao_pseudo_ints.irp.f#L343>`_
+  Undocumented
+
+`pseudo_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/QmcChem/pseudo.irp.f#L12>`_
   Pseudo-potential expressed in the basis of ao products
 
 `write_pseudopotential <http://github.com/LCPQ/quantum_package/tree/master/src/QmcChem/pseudo.irp.f#L1>`_
