@@ -325,40 +325,17 @@ double precision function test_pseudo_grid_ao(i,j)
   double precision :: r, dr,u
   dr = pseudo_grid_rmax/dble(pseudo_grid_size)
 
-  test_pseudo_grid = 0.d0
+  test_pseudo_grid_ao = 0.d0
   r = 0.d0
   do k=1,pseudo_grid_size
     do n=1,nucl_num
       do l = 0,pseudo_lmax
         u = pseudo_v_kl(n,l,1) * exp(-pseudo_dz_kl(n,l,1)*r*r)* r*r*dr
         do m=-l,l
-          test_pseudo_grid +=  ao_pseudo_grid(i,m,l,n,k) * ao_pseudo_grid(j,m,l,n,k) * u 
+          test_pseudo_grid_ao +=  ao_pseudo_grid(i,m,l,n,k) * ao_pseudo_grid(j,m,l,n,k) * u 
         enddo
       enddo
     enddo
     r = r+dr
   enddo
 end
-!
-double precision function test_pseudo_grid_mo(i,j)
-  implicit none
-  integer, intent(in) :: i,j
-  integer :: k,l,m,n
-  double precision :: r, dr,u
-  dr = pseudo_grid_rmax/dble(pseudo_grid_size)
-
-  test_pseudo_grid = 0.d0
-  r = 0.d0
-  do k=1,pseudo_grid_size
-    do n=1,nucl_num
-      do l = 0,pseudo_lmax
-        u = pseudo_v_kl(n,l,1) * exp(-pseudo_dz_kl(n,l,1)*r*r)* r*r*dr
-        do m=-l,l
-          test_pseudo_grid +=  mo_pseudo_grid(i,m,l,n,k) * mo_pseudo_grid(j,m,l,n,k) * u 
-        enddo
-      enddo
-    enddo
-    r = r+dr
-  enddo
-end
-!

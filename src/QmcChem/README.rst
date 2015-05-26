@@ -32,9 +32,6 @@ Documentation
 `test_pseudo_grid_ao <http://github.com/LCPQ/quantum_package/tree/master/src/QmcChem/pot_ao_pseudo_ints.irp.f#L321>`_
   Undocumented
 
-`test_pseudo_grid_mo <http://github.com/LCPQ/quantum_package/tree/master/src/QmcChem/pot_ao_pseudo_ints.irp.f#L343>`_
-  Undocumented
-
 `pseudo_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/QmcChem/pseudo.irp.f#L12>`_
   Pseudo-potential expressed in the basis of ao products
 
