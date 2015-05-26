@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 
 from os.path import join
 
@@ -22,8 +23,10 @@ EZ_handler = namedtuple('EZ_handler', ['ez_module', 'ez_cfg', 'ez_interface', 'e
 try:
     from module_handler import module_genealogy
     from cache import cache
+    from read_compilation_cfg import get_compilation_option
 except ImportError:
     print "source .quantum_package.rc"
+    sys.exit(1)
 
 
 #                  _
@@ -214,8 +217,14 @@ def ninja_ezfio_config_build(l_ezfio_config):
 def ninja_ezfio_rule():
     # Rule
     l_string = ["rule build_ezfio"]
-    l_string += ["   command = cd {0}; make ; cd -".format(qpackage_root_ezfio)]
-    l_string += ["   description = Make ezfio"]
+
+    l_flag = []
+    for flag in ["FC", "FCFLAGS", "IRPF90"]:
+        str_ = "export {0}='{1}'".format(flag, get_compilation_option(flag))
+        l_flag.append(str_)
+
+    l_cmd = ["cd {0}".format(qpackage_root_ezfio)] + l_flag + ["make", "make Python"]
+    l_string += ["   command = {0}".format(" ; ".join(l_cmd))]
 
     return l_string
 
@@ -408,7 +417,7 @@ def get_ml_file(l_util, l_qp):
 
 def ninja_ocaml_rule():
     # Rule
-    cmd = "   command = cd {0} ; make -j 1 $binary ; touch $binary; cd -"
+    cmd = "   command = cd {0} ; make -j 1 $native ; touch $native; ln -sf $native $binary; cd -"
 
     l_string = ["rule build_ocaml"]
     l_string += [cmd.format(qpackage_root_ocaml)]
@@ -456,15 +465,16 @@ def ninja_ocaml_build(l_bin_ml, l_ml):
     # Rule
 
     ezfio_ml = join(qpackage_root_ocaml, "ezfio.ml")
-    exc = join(qpackage_root, "data", "executables")
+#    exc = join(qpackage_root, "data", "executables")
 
-    str_depend = " ".join(l_ml + l_bin_ml + [ezfio_ml, exc])
+    str_depend = " ".join(l_ml + l_bin_ml + [ezfio_ml])
 
     l_string = [""]
     for bin_ in [i.replace(".ml", ".native") for i in l_bin_ml]:
         binary_name = os.path.split(bin_)[1]
         l_string += ["build {0}: build_ocaml {1} ".format(bin_, str_depend)]
-        l_string += ["   binary = {0}".format(binary_name)]
+        l_string += ["   native = {0}".format(binary_name)]
+        l_string += ["   binary = {0}".format(binary_name.replace(".native", ""))]
         l_string += [""]
 
     return l_string
@@ -578,8 +588,8 @@ if __name__ == "__main__":
     l_qp = get_qp_file()
     l_ml = get_ml_file(l_util, l_qp)
 
-    l_string += ninja_ml_build(l_util)
-    l_string += ninja_ocaml_build(l_qp, l_ml)
+#    l_string += ninja_ml_build(l_util)
+#    l_string += ninja_ocaml_build(l_qp, l_ml)
 
     #  _                  _
     # |_)     o |  _|   _|_ _  ._   ._ _   _   _|     |  _
@@ -588,6 +598,7 @@ if __name__ == "__main__":
     #
     with open(join(qpackage_root_src, "NEEDED_MODULES"), "r") as f:
         l_module_to_compile = f.read().split()
+        l_module_to_compile = ["Hartree_Fock"]
 
     d_info_module = dict_needed_modules(l_module_to_compile)
 
