@@ -306,7 +306,7 @@ def get_irp_dependancy(d_info_module):
 
     d_irp = dict()
     for module in l_all_module:
-        d_irp[module.rel] = get_l_irp_for_module(module.abs)
+        d_irp[module] = get_l_irp_for_module(module.abs)
 
     return d_irp
 
@@ -338,11 +338,15 @@ def ninja_create_l_irp_build(d_irp):
 
 
 def ninja_irpf90_make_build(l_all_needed_molule,
-                            path_module):
+                            path_module,
+                            d_irp):
 
     path_irpf90_make = join(path_module.abs, "irpf90.make")
 
-    l_irp_need = ["l_irp_{0}".format(i.rel) for i in l_all_needed_molule]
+    l_irp_need = []
+    for module in [path_module] + l_all_needed_molule:
+        l_irp_need.extend(d_irp[module])
+
     str_l_irp_need = " ".join(l_irp_need)
 
     path_makefiledepend = join(path_module.abs, "Makefile.depend")
@@ -443,19 +447,20 @@ def ninja_ml_build(l_util):
     # Et des ezfio.ml
 
     depend_str = " ".join(l_depend)
-    l_string = ["build {0}: build_qp_edit.ml {1}".format(ocaml_ml_str, depend_str)]
+    l_string += ["build {0}: build_qp_edit.ml {1}".format(ocaml_ml_str, depend_str)]
     return l_string
 
 
 def ninja_ocaml_build(l_bin_ml, l_ml):
 
     # Rule
-    l_string = [""]
+
     ezfio_ml = join(qpackage_root_ocaml, "ezfio.ml")
     exc = join(qpackage_root, "data", "executables")
 
     str_depend = " ".join(l_ml + l_bin_ml + [ezfio_ml, exc])
 
+    l_string = [""]
     for bin_ in [i.replace(".ml", ".native") for i in l_bin_ml]:
         binary_name = os.path.split(bin_)[1]
         l_string += ["build {0}: build_ocaml {1} ".format(bin_, str_depend)]
@@ -587,7 +592,6 @@ if __name__ == "__main__":
     d_info_module = dict_needed_modules(l_module_to_compile)
 
     d_irp = get_irp_dependancy(d_info_module)
-    l_string += ninja_create_l_irp_build(d_irp)
 
     l_module_with_binary = []
     for module, l_children in d_info_module.iteritems():
@@ -599,7 +603,7 @@ if __name__ == "__main__":
         # irpf90.make
         l_string += ninja_symlink_build(l_source, l_destination, module)
 
-        l_string += ninja_irpf90_make_build(l_children, module)
+        l_string += ninja_irpf90_make_build(l_children, module, d_irp)
 
         # ninja_binary
         l_binary = get_program(module)
