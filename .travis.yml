@@ -6,12 +6,13 @@ python:
 
 before_script:
   - sudo apt-get update
-  - sudo apt-get install gfortran liblapack-dev 
+  - sudo apt-get install gfortran liblapack-dev gcc
   - sudo apt-get install graphviz
 
 script: 
   - ./setup_environment.sh --robot 
   - source ./quantum_package.rc
   - cp ./src/Makefile.config.gfortran  ./src/Makefile.config
-  - make build 
+  - ./scripts/compilation/create_ninja_build.py > build.ninja
+  - ./ninja/ninja
   - ./tests/unit_test/unit_test.py
