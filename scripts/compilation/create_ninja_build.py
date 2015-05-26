@@ -36,8 +36,7 @@ except ImportError:
 def ninja_makefile_depend_rule():
     # Rule
     l_string = ["rule build_makefile.depend"]
-    l_string += [
-        "   command = module_handler.py save_makefile_depend $module/NEEDED_CHILDREN_MODULES"]
+    l_string += ["   command = module_handler.py save_makefile_depend $module/NEEDED_CHILDREN_MODULES"]
     l_string += [""]
 
     return l_string
@@ -598,7 +597,6 @@ if __name__ == "__main__":
     #
     with open(join(qpackage_root_src, "NEEDED_MODULES"), "r") as f:
         l_module_to_compile = f.read().split()
-        l_module_to_compile = ["Hartree_Fock"]
 
     d_info_module = dict_needed_modules(l_module_to_compile)
 

@@ -15,5 +15,5 @@ script:
   - cp ./src/Makefile.config.gfortran  ./src/Makefile.config
   - ./scripts/compilation/create_ninja_build.py > build.ninja
   - ./ninja/ninja
-  - cd ocaml ; make ;
+  - cd ocaml ; make ; cd -
   - ./tests/unit_test/unit_test.py
