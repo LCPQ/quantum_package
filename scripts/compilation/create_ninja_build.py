@@ -13,7 +13,6 @@ qpackage_root_ezfio = join(qpackage_root, 'EZFIO')
 
 ezfio_lib = join(qpackage_root_ezfio, "lib", "libezfio.a")
 
-
 from collections import namedtuple
 Path = namedtuple('Path', ['abs', 'rel'])
 
@@ -261,6 +260,10 @@ def ninja_symlink_rule():
 
 def ninja_symlink_build(l_source, l_destination, path_module):
     # Rule
+
+    if not l_destination:
+        return []
+
     l_string = []
     for source, destination in zip(l_source, l_destination):
         l_string += ["build {0}: build_symlink {1}".format(destination,
@@ -343,11 +346,16 @@ def ninja_irpf90_make_build(l_all_needed_molule,
     str_l_irp_need = " ".join(l_irp_need)
 
     path_makefiledepend = join(path_module.abs, "Makefile.depend")
-    str_l_destination = "l_symlink_{0}".format(path_module.rel)
 
-    str_depend = "{0} {1} {2}".format(str_l_irp_need,
-                                      path_makefiledepend,
-                                      str_l_destination)
+    if l_all_needed_molule:
+        str_l_destination = "l_symlink_{0}".format(path_module.rel)
+
+        str_depend = "{0} {1} {2}".format(str_l_irp_need,
+                                          path_makefiledepend,
+                                          str_l_destination)
+    else:
+        str_depend = "{0} {1}".format(str_l_irp_need,
+                                      path_makefiledepend)
 
     # Build
     l_string = ["build {0}: build_irpf90.make {1}".format(path_irpf90_make,
@@ -355,8 +363,7 @@ def ninja_irpf90_make_build(l_all_needed_molule,
     l_string += ["   module = {0}".format(path_module.abs)]
 
     # Option
-    str_include_dir = " ".join(["-I {0}".format(m.rel)
-                                for m in l_all_needed_molule])
+    str_include_dir = " ".join(["-I {0}".format(m.rel) for m in l_all_needed_molule])
 
     l_string += ["   include_dir = {0}".format(str_include_dir)]
     l_string += ["   irpf90_flag = {0}".format("--align=32 --openmp")]
@@ -416,17 +423,24 @@ def ninja_ocaml_rule():
 
 def ninja_ml_build(l_util):
 
+    # Build rule for ezfio.ml
     source = join(qpackage_root_ezfio, "Ocaml", "ezfio.ml")
-    dest = join(qpackage_root_ocaml, "ezfio.ml")
+    ezfio_ml = join(qpackage_root_ocaml, "ezfio.ml")
 
-    l_string = ["build {0}: cp_input.ml {1}".format(dest, source)]
+    l_string = ["build {0}: cp_input.ml {1}".format(ezfio_ml, source)]
     l_string += [""]
 
-    ocaml_ml = [join(qpackage_root_ocaml, i) for i in ["qp_edit.ml", "Input_auto_generated.ml"]]
+    # Build rule for for qp_edit and Input_auto_generated
+    ocaml_ml = [join(qpackage_root_ocaml, i) for i in ["qp_edit.ml",
+                                                       "Input_auto_generated.ml"]]
     ocaml_ml_str = " ".join(ocaml_ml)
 
+    # Depend de tout qp_edti_templates
     qp_edit_template = join(qpackage_root, "scripts", "ezfio_interface", "qp_edit_template")
-    l_depend = [i.ez_ocaml.abs for i in l_util.itervalues() if i.ez_ocaml] + [qp_edit_template]
+    # Et de tout les .ml
+    l_all_ml = [i.ez_ocaml.abs for i in l_util.itervalues() if i.ez_ocaml]
+    l_depend = l_all_ml + [qp_edit_template]
+    # Et des ezfio.ml
 
     depend_str = " ".join(l_depend)
     l_string = ["build {0}: build_qp_edit.ml {1}".format(ocaml_ml_str, depend_str)]
@@ -437,11 +451,14 @@ def ninja_ocaml_build(l_bin_ml, l_ml):
 
     # Rule
     l_string = [""]
-    str_depend = " ".join(l_ml + l_bin_ml)
+    ezfio_ml = join(qpackage_root_ocaml, "ezfio.ml")
+    exc = join(qpackage_root, "data", "executables")
+
+    str_depend = " ".join(l_ml + l_bin_ml + [ezfio_ml, exc])
 
     for bin_ in [i.replace(".ml", ".native") for i in l_bin_ml]:
         binary_name = os.path.split(bin_)[1]
-        l_string += ["build {0}: build_ocaml {1}".format(bin_, str_depend)]
+        l_string += ["build {0}: build_ocaml {1} ".format(bin_, str_depend)]
         l_string += ["   binary = {0}".format(binary_name)]
         l_string += [""]
 
@@ -476,6 +493,9 @@ def ninja_binary_rule():
 
 def ninja_binary_build(l_bin, path_module):
 
+    if not l_bin:
+        return []
+
     # Build
     irpf90mk_path = join(path_module.abs, "irpf90.make")
 
@@ -492,8 +512,7 @@ def ninja_binary_build(l_bin, path_module):
         l_string += ["   binary = {0}".format(path)]
         l_string += [""]
 
-    ocaml_bin = [join(qpackage_root_ocaml, i) for i in ["qp_run.native", "qp_edit.native"]]
-    str_l_abs_bin = " ".join(l_abs_bin + ocaml_bin)
+    str_l_abs_bin = " ".join(l_abs_bin)
 
     l_string += ["build build_all_binary_{0}: phony {1}".format(path_module.rel,
                                                                 str_l_abs_bin)]
@@ -502,11 +521,17 @@ def ninja_binary_build(l_bin, path_module):
     return l_string
 
 
-def ninja_all_binary_build(l_module):
+def ninja_build_executable_list(l_module):
     l_build_name = ["build_all_binary_{0}".format(m) for m in l_module]
     str_l_build_name = " ".join(l_build_name)
 
-    l_string = ["build build_all_binary: phony {0}".format(str_l_build_name)]
+    exc = join(qpackage_root, "data", "executables")
+
+    l_string = ["rule build_executables_list"]
+    l_string += ["   command = create_executables_list.sh"]
+    l_string += [""]
+
+    l_string += ["build {0}: build_executables_list {1}".format(exc, str_l_build_name)]
     l_string += [""]
 
     return l_string
@@ -561,6 +586,7 @@ if __name__ == "__main__":
     d_irp = get_irp_dependancy(d_info_module)
     l_string += ninja_create_l_irp_build(d_irp)
 
+    l_module_with_binary = []
     for module, l_children in d_info_module.iteritems():
 
         l_source, l_destination = get_source_destination(l_children, module)
@@ -575,7 +601,9 @@ if __name__ == "__main__":
         # ninja_binary
         l_binary = get_program(module)
         l_string += ninja_binary_build(l_binary, module)
+        if l_binary:
+            l_module_with_binary.append(module.rel)
 
-    l_string += ninja_all_binary_build(l_module_to_compile)
+    l_string += ninja_build_executable_list(l_module_with_binary)
 
     print "\n".join(l_string)
