@@ -14,6 +14,7 @@ script:
   - source ./quantum_package.rc
   - cp ./src/Makefile.config.gfortran  ./src/Makefile.config
   - ./scripts/compilation/create_ninja_build.py > build.ninja
-  - ./ninja/ninja
+  - ./ninja/ninja -v
+  - ei_handler.py ocaml_global
   - cd ocaml ; make ; cd -
   - ./tests/unit_test/unit_test.py

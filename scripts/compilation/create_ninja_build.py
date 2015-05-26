@@ -570,7 +570,7 @@ if __name__ == "__main__":
     l_string += ninja_ezfio_config_rule()
     l_string += ninja_ezfio_rule()
 
-    l_string += ninja_ocaml_rule()
+#    l_string += ninja_ocaml_rule()
 
     #  _
     # |_)     o |  _|    _   _  ._   _  ._ _. |
