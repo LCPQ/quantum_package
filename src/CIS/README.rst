@@ -6,7 +6,7 @@ Assumptions
 ===========
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 * The molecular orbitals are assumed orthonormal
 
@@ -15,7 +15,7 @@ Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 `cis <http://github.com/LCPQ/quantum_package/tree/master/src/CIS/super_ci.irp.f#L1>`_
   Undocumented
@@ -29,7 +29,7 @@ Needed Modules
 ==============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 .. image:: tree_dependancy.png
 

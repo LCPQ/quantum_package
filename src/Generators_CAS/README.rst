@@ -7,7 +7,7 @@ Assumptions
 ===========
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. update_README.py.
 
 The active space is defined by the ``reference_bitmask``.
 
@@ -16,7 +16,7 @@ Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. update_README.py.
 
 `n_det_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_CAS/generators.irp.f#L3>`_
   Number of generator detetrminants
@@ -41,7 +41,7 @@ Needed Modules
 ==============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. update_README.py.
 
 .. image:: tree_dependancy.png
 

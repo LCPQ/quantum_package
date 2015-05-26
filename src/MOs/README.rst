@@ -22,7 +22,7 @@ Assumptions
 ===========
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. update_README.py.
 
 ASSUMPTONS
 ==========
@@ -34,7 +34,7 @@ Needed Modules
 ==============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. update_README.py.
 
 .. image:: tree_dependancy.png
 
@@ -45,7 +45,7 @@ Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. update_README.py.
 
 `cholesky_mo <http://github.com/LCPQ/quantum_package/tree/master/src/MOs/cholesky_mo.irp.f#L1>`_
   Cholesky decomposition of AO Density matrix to

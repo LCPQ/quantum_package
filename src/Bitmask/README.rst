@@ -22,7 +22,7 @@ Assumptions
 ===========
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. update_README.py.
 
 ``bit_kind_shift``, ``bit_kind_size`` and ``bit_kind`` are coherent:
 
@@ -38,7 +38,7 @@ Needed Modules
 ==============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. update_README.py.
 
 .. image:: tree_dependancy.png
 
@@ -48,7 +48,7 @@ Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. update_README.py.
 
 `is_a_two_holes_two_particles <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L206>`_
   Undocumented

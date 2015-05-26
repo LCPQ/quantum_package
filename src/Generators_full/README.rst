@@ -9,7 +9,7 @@ Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 `degree_max_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L43>`_
   Max degree of excitation (respect to HF) of the generators
@@ -38,7 +38,7 @@ Needed Modules
 ==============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 .. image:: tree_dependancy.png
 

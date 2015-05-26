@@ -2,7 +2,7 @@ Needed Modules
 ==============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. update_README.py.
 
 .. image:: tree_dependancy.png
 
@@ -13,7 +13,7 @@ Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. update_README.py.
 
 `ao_mono_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/ao_mono_ints.irp.f#L1>`_
   array of the mono electronic hamiltonian on the AOs basis

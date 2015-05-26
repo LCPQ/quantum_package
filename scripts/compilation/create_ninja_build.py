@@ -326,7 +326,7 @@ def ninja_irpf90_make_rule():
     l_string += [""]
 
     l_string += ["rule build_irpf90.make"]
-    l_string += ["   command = cd $module ; irpf90 $include_dir $irpf90_flag ; cd -"]
+    l_string += ["   command = cd $module ; irpf90 $include_dir $irpf90_flag"]
     l_string += ["   pool = irp_pool"]
     l_string += [""]
 
@@ -384,6 +384,29 @@ def ninja_irpf90_make_build(l_all_needed_molule,
     return l_string
 
 
+def ninja_readme_rule():
+
+    l_string = ["rule build_readme"]
+    l_string += ["   command = cd $module ; update_README.py"]
+    l_string += [""]
+
+    return l_string
+
+
+def ninja_readme_build(path_module):
+
+    path_irpf90_make = join(path_module.abs, "irpf90.make")
+    path_readme = join(path_module.abs, "README.rst")
+
+    l_string = ["build {0}: build_readme {1}".format(path_readme,
+                                                     path_irpf90_make)]
+
+    l_string += ["   module = {0}".format(path_module.abs)]
+    l_string += [""]
+
+    return l_string
+
+
 #  _
 # / \  _  _. ._ _  |
 # \_/ (_ (_| | | | |
@@ -416,7 +439,7 @@ def get_ml_file(l_util, l_qp):
 
 def ninja_ocaml_rule():
     # Rule
-    cmd = "   command = cd {0} ; make -j 1 $native ; touch $native; ln -sf $native $binary; cd -"
+    cmd = "   command = cd {0} ; make -j 1 $native ; touch $native; ln -sf $native $binary"
 
     l_string = ["rule build_ocaml"]
     l_string += [cmd.format(qpackage_root_ocaml)]
@@ -502,7 +525,7 @@ def get_program(path_module):
 def ninja_binary_rule():
     # Rule
     l_string = ["rule build_binary"]
-    l_string += ["   command = cd $module ; make -j 1 $binary ; touch $binary; cd -"]
+    l_string += ["   command = cd $module ; make -j 1 $binary ; touch $binary"]
     l_string += [""]
 
     return l_string
@@ -564,6 +587,7 @@ if __name__ == "__main__":
     l_string += ninja_symlink_rule()
 
     l_string += ninja_irpf90_make_rule()
+    l_string += ninja_readme_rule()
 
     l_string += ninja_binary_rule()
 
@@ -584,9 +608,8 @@ if __name__ == "__main__":
     l_string += ninja_ezfio_config_build(l_ezfio_config)
     l_string += ninja_ezfio_build(l_ezfio_config, l_util)
 
-    l_qp = get_qp_file()
-    l_ml = get_ml_file(l_util, l_qp)
-
+#    l_qp = get_qp_file()
+#    l_ml = get_ml_file(l_util, l_qp)
 #    l_string += ninja_ml_build(l_util)
 #    l_string += ninja_ocaml_build(l_qp, l_ml)
 
@@ -613,6 +636,7 @@ if __name__ == "__main__":
         l_string += ninja_symlink_build(l_source, l_destination, module)
 
         l_string += ninja_irpf90_make_build(l_children, module, d_irp)
+        l_string += ninja_readme_build(module)
 
         # ninja_binary
         l_binary = get_program(module)

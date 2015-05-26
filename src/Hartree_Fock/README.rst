@@ -8,7 +8,7 @@ Needed Modules
 ==============
 
 .. Do not edit this section. It was auto-generated from the
-.. update_README.py.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 .. image:: tree_dependancy.png
 
@@ -19,7 +19,7 @@ Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
-.. update_README.py.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 `ao_bi_elec_integral_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/Fock_matrix.irp.f#L102>`_
   Alpha Fock matrix in AO basis set

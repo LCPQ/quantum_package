@@ -17,7 +17,7 @@ import subprocess
 
 header = """
 .. Do not edit this section. It was auto-generated from the
-.. update_README.py.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 """
 
