@@ -4,7 +4,7 @@ subroutine write_pseudopotential
 !  Write the pseudo_potential into the EZFIO file
   END_DOC
 !  call ezfio_set_pseudo_pseudo_matrix(pseudo_matrix)
-  call ezfio_set_pseudo_pseudo_grid(pseudo_grid)
+  call ezfio_set_pseudo_ao_pseudo_grid(ao_pseudo_grid)
 end
 
 
