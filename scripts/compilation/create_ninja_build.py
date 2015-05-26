@@ -473,13 +473,16 @@ def get_program(path_module):
     import subprocess
 
     try:
-        fnull = open(os.devnull, 'w')
         cmd = 'grep -l "program" {0}/*.irp.f'.format(path_module.abs)
-        p = subprocess.check_output([cmd], shell=True, stderr=fnull)
-    except subprocess.CalledProcessError:
+        process = subprocess.Popen([cmd],shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+    except OSError:
         return []
     else:
-        return [os.path.basename(f).split(".")[0] for f in p.split()]
+        if "No such file or directory" not in stdout:
+            return [os.path.basename(f).split(".")[0] for f in stdout.split()]
+        else:
+            return []
 
 
 def ninja_binary_rule():
