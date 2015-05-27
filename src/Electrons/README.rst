@@ -10,7 +10,7 @@ Assumptions
 ===========
 
 .. Do not edit this section. It was auto-generated from the
-.. update_README.py.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 * ``elec_num`` >= 0
 * ``elec_alpha_num`` >= 0
@@ -22,7 +22,7 @@ Needed Modules
 ==============
 
 .. Do not edit this section. It was auto-generated from the
-.. update_README.py.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 .. image:: tree_dependancy.png
 
@@ -32,7 +32,7 @@ Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
-.. update_README.py.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 `elec_alpha_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L1>`_
   Numbers of alpha ("up") , beta ("down") and total electrons

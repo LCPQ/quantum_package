@@ -1,12 +1,1 @@
-# Include the user's config
-include $(QPACKAGE_ROOT)/src/Makefile.config
-
-# Define the Makefile common variables
-EZFIO_DIR=$(QPACKAGE_ROOT)/EZFIO
-EZFIO=$(EZFIO_DIR)/lib/libezfio_irp.a
-
-LIB+=$(EZFIO) $(MKL)
-IRPF90+=$(patsubst %, -I %, $(INCLUDE_DIRS)) $(IRPF90_FLAGS)
-
-include Makefile.depend
 include irpf90.make

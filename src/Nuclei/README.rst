@@ -10,7 +10,7 @@ Needed Modules
 ==============
 
 .. Do not edit this section. It was auto-generated from the
-.. update_README.py.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 .. image:: tree_dependancy.png
 
@@ -20,7 +20,7 @@ Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
-.. update_README.py.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 `element_name <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L215>`_
   Array of the name of element, sorted by nuclear charge (integer)

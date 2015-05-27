@@ -6,7 +6,7 @@ Needed Modules
 ==============
 
 .. Do not edit this section. It was auto-generated from the
-.. update_README.py.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 .. image:: tree_dependancy.png
 
@@ -16,7 +16,7 @@ Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
-.. update_README.py.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 `h_core_guess <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess/H_CORE_guess.irp.f#L1>`_
   Undocumented

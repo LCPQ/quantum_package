@@ -8,8 +8,6 @@ of a NEEDED_CHILDREN_MODULES file
 
 Usage:
     module_handler.py print_genealogy       [<NEEDED_CHILDREN_MODULES>]
-    module_handler.py save_makefile_depend  [<NEEDED_CHILDREN_MODULES>]
-    module_handler.py create_symlink        [<NEEDED_CHILDREN_MODULES>]
     module_handler.py create_png            [<NEEDED_CHILDREN_MODULES>]
 
 Options:
@@ -25,10 +23,25 @@ from docopt import docopt
 import os
 import sys
 import os.path
-from cache import cache
+
+from collections import namedtuple
+Dependancy = namedtuple('Dependancy', ['src', 'obj'])
+Module_info = namedtuple('Module_info', ['l_children', 'l_dependancy'])
 
 
-@cache
+def get_list_from_makefile(data, sep):
+    # Split for sep
+    dump = [l.split(sep)[1] for l in data if l.startswith(sep)]
+
+    # Delete the empy one
+    l_unique = [k for k in map(str.strip, dump) if k]
+
+    # Return the flat one (if multi in l_unique)
+    l_flat = [j for i in l_unique for j in i.split()]
+    return l_flat
+
+
+# Canot cache for a fucking raison
 def get_dict_genealogy():
     """Loop over MODULE in  QPACKAGE_ROOT/src, open all the NEEDED_CHILDREN_MODULES
     and create a dict[MODULE] = [sub module needed, ...]
@@ -44,43 +57,32 @@ def get_dict_genealogy():
             with open(os.path.join(dir_, o, "NEEDED_CHILDREN_MODULES"), "r") as f:
                 l_children = f.read().split()
         except IOError:
-            pass
-        else:
-            d_ref[o] = l_children
+            continue
+
+        try:
+            with open(os.path.join(dir_, o, "Makefile"), "r") as f:
+                data = f.readlines()
+                l_depend = Dependancy(get_list_from_makefile(data, "SRC="),
+                                      get_list_from_makefile(data, "OBJ="))
+        except IOError:
+            l_depend = []
+
+        d_ref[o] = Module_info(l_children, l_depend)
 
     return d_ref
 
 
-def module_genealogy(path):
-    """
-    Take a name of a NEEDED_CHILDREN_MODULES
-    and return a list of all the {sub, subsub, ...}children
-    """
-    try:
-        with open(path, "r") as f:
-            l_children = f.read().split()
-    except IOError as e:
-        print >> sys.stderr, e
-        sys.exit(1)
-    else:
-
-        needed_module = get_it_and_children(l_children)
-
-        return needed_module
-
-
-def get_it_and_children(l_module):
+def him_and_all_children(d_ref, l_module):
     """
     From a list of module return the module and all of the genealogy
     """
-    d_ref = get_dict_genealogy()
 
     l = []
     for module in l_module:
         if module not in l:
             l.append(module)
             try:
-                l.extend(get_it_and_children(d_ref[module]))
+                l.extend(him_and_all_children(d_ref, d_ref[module].l_children))
             except KeyError:
                 print >> sys.stderr, "`{0}` in not a good submodule name".format(module)
                 print >> sys.stderr, "Check the corresponding NEEDED_CHILDREN_MODULES"
@@ -89,96 +91,28 @@ def get_it_and_children(l_module):
     return list(set(l))
 
 
-def get_all_children(l_module):
+def module_genealogy(module_name):
     """
-    From a list of module return all the genealogy
+    Take a name of a NEEDED_CHILDREN_MODULES
+    and return a list of all the {sub, subsub, ...}children
     """
 
-    it_and_all = get_it_and_children(l_module)
-    return [children for children in it_and_all if children not in l_module]
-
-
-def reduce_(l_module):
-    """
-    Take a l_module and try to find the lower combinaitions
-    of module with the same genealogy
-    """
-    import itertools
     d_ref = get_dict_genealogy()
-
-    target_genealogy = sorted(get_all_children(l_module))
-
-    for i in xrange(len(d_ref)):
-        for c in itertools.combinations(d_ref, i):
-
-            guess_genealogy = sorted(get_it_and_children(d_ref, c))
-
-            if target_genealogy == guess_genealogy:
-                return c
+    return him_and_all_children(d_ref, d_ref[module_name].l_children)
 
 
-def get_list_depend(l_module):
-    """
-    transform
+def file_dependancy(module_name):
 
-    SRC = Utils.f90 test.f90
-    OBJ = IRPF90_temp/map_module.o
+    d_ref = get_dict_genealogy()
+    l_src, l_obj = d_ref[module_name].l_dependancy
 
-    into
+    l_children_module = him_and_all_children(d_ref, d_ref[module_name].l_children)
+    for module in l_children_module:
+        l_src_dump, l_obj_dump = d_ref[module].l_dependancy
+        l_src.extend("{0}/{1}".format(module, i) for i in l_src_dump)
+        l_obj.extend("IRPF90_temp/{0}/{1}".format(module, os.path.basename(i)) for i in l_obj_dump)
 
-    ['Utils/map_module.f90','test.f90']
-    ['IRPF90_tmp/Utils/map_module.o']
-    """
-
-    def get_list(sep):
-        # Split for sep
-        dump = [l.split(sep)[1] for l in data if l.startswith(sep)]
-
-        # Delete the empy one
-        l_unique = [k for k in map(str.strip, dump) if k]
-
-        # Return the flat one (if multi in l_unique)
-        l_flat = [j for i in l_unique for j in i.split()]
-        return l_flat
-
-    qpackage_root = os.environ['QPACKAGE_ROOT']
-    dir_ = os.path.join(qpackage_root, 'src')
-
-    l_src = []
-    l_obj = []
-
-    for module in l_module:
-        path = os.path.join(dir_, module, "Makefile")
-
-        with open(path, 'r') as f:
-            data = f.readlines()
-
-        l_src.extend("{0}/{1}".format(module, i) for i in get_list("SRC="))
-
-        l_obj.extend(["IRPF90_temp/{0}/{1}".format(module, os.path.basename(i))
-                      for i in get_list("OBJ=")])
-
-    return l_src, l_obj
-
-
-def save_makefile_depend(l_src, l_obj, dir_):
-    header = "# This file was created by the module_handler.py script. Do not modify it by hand."
-
-    try:
-        with open("Makefile.depend", "r") as f:
-            old_output = f.read()
-    except IOError:
-        old_output = None
-
-    output = "\n".join([header,
-                        "\n",
-                        "SRC+= {0}".format(" ".join(l_src)),
-                        "OBJ+= {0}".format(" ".join(l_obj)),
-                        "\n"])
-
-    if output != old_output:
-        with open(os.path.join(dir_,"Makefile.depend"), "w+") as f:
-            f.write(output)
+    return Dependancy(l_src, l_obj)
 
 
 def create_png_from_path(path):
@@ -210,7 +144,7 @@ def create_png(l_module):
                 edge = pydot.Edge(module, children)
                 graph.add_edge(edge)
                 # Recurs
-                draw_module_edge(children, d_ref[children])
+                draw_module_edge(children, d_ref[children].l_children)
             all_ready_done.append(module)
 
     # Init
@@ -221,7 +155,7 @@ def create_png(l_module):
     for module in l_module:
         node_a = pydot.Node(module, fontcolor="red")
         graph.add_node(node_a)
-        draw_module_edge(module, d_ref[module])
+        draw_module_edge(module, d_ref[module].l_children)
 
     # Save
     path = '{0}.png'.format("tree_dependancy")
@@ -246,23 +180,6 @@ if __name__ == '__main__':
     if arguments['print_genealogy']:
         l_all_needed_molule = module_genealogy(path_file)
         print " ".join(sorted(l_all_needed_molule))
-
-    if arguments['create_symlink']:
-        src = os.getcwd()
-
-        for link_name in module_genealogy(path_file) + ["include"]:
-
-            source = os.path.join("/home/razoa/quantum_package/src/",
-                                  link_name)
-            try:
-                os.symlink(source, link_name)
-            except OSError:
-                pass
-
-    if arguments['save_makefile_depend']:
-        l_all_needed_molule = module_genealogy(path_file)
-        l_src, l_obj = get_list_depend(l_all_needed_molule)
-        save_makefile_depend(l_src, l_obj, dir_)
 
     if arguments["create_png"]:
         create_png_from_path(path_file)

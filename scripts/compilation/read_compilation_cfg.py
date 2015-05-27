@@ -3,30 +3,23 @@
 
 import os
 import ConfigParser
-import sys
-from cache import cache
-
-qpackage_root = os.environ['QPACKAGE_ROOT']
-
-Config = ConfigParser.ConfigParser()
-pwd = os.path.join(qpackage_root, "scripts/compilation/compilation.cfg")
-Config.read(pwd)
 
 
-@cache
-def get_l_option_section():
-    return [o for o in ['OPENMP', 'PROFILE', 'DEBUG'] if Config.getboolean("OPTION", o)]
+def get_l_option_section(config):
+    return [o for o in ['OPENMP', 'PROFILE', 'DEBUG'] if config.getboolean("OPTION", o)]
 
 
-@cache
-def get_compilation_option(name):
+def get_compilation_option(pwd_cfg, flag_name):
 
-    l_option_section = get_l_option_section()
+    config = ConfigParser.ConfigParser()
+    config.read(pwd_cfg)
+
+    l_option_section = get_l_option_section(config)
 
     l = []
     for section in ["COMMON"] + l_option_section:
         try:
-            l.extend(Config.get(section, name).split())
+            l.extend(config.get(section, flag_name).split())
         except ConfigParser.NoOptionError:
             pass
 
@@ -34,6 +27,7 @@ def get_compilation_option(name):
 
 if __name__ == '__main__':
 
-    name = sys.argv[1]
+    qpackage_root = os.environ['QPACKAGE_ROOT']
+    pwd_cfg = os.path.join(qpackage_root, "scripts/compilation/compilation_ifort.cfg")
 
-    print get_compilation_option(name)
+    print get_compilation_option(pwd_cfg, "FC")

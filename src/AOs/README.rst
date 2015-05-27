@@ -28,7 +28,7 @@ Assumptions
 ===========
 
 .. Do not edit this section. It was auto-generated from the
-.. update_README.py.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 * The AO coefficients in the EZFIO files are not necessarily normalized and are normalized after reading
 
@@ -37,7 +37,7 @@ Needed Modules
 ==============
 
 .. Do not edit this section. It was auto-generated from the
-.. update_README.py.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 .. image:: tree_dependancy.png
 
@@ -48,7 +48,7 @@ Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
-.. update_README.py.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 `ao_overlap <http://github.com/LCPQ/quantum_package/tree/master/src/AOs/ao_overlap.irp.f#L1>`_
   Overlap between atomic basis functions:
