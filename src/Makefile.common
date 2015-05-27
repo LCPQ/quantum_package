@@ -1,5 +1,5 @@
 .PHONY: default silent
-
+export
 ifneq ($(IN_MAKE),1) 
 
 default:

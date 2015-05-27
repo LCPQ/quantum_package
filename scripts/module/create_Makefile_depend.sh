@@ -23,12 +23,12 @@ DEPS="$NEEDED_MODULES"
 for M in ${DEPS}
 do
   # X is the list of external source files
-  X=$(grep 'SRC=' "${QPACKAGE_ROOT}/src/${M}/Makefile" 2>/dev/null |cut -d '=' -f 2) 
+  X=$(grep '^SRC=' "${QPACKAGE_ROOT}/src/${M}/Makefile" 2>/dev/null |cut -d '=' -f 2) 
   for f in ${X}
   do
     SRC+=" ${M}/${f}"
   done
-  X=$(grep 'OBJ=' "${QPACKAGE_ROOT}/src/${M}/Makefile" 2>/dev/null |cut -d '=' -f 2) 
+  X=$(grep '^OBJ=' "${QPACKAGE_ROOT}/src/${M}/Makefile" 2>/dev/null |cut -d '=' -f 2) 
   for f in ${X}
   do
     OBJ+=" IRPF90_temp/${M}/${f/IRPF90_temp//}"
