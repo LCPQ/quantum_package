@@ -313,7 +313,12 @@ def ninja_irpf90_make_build(l_all_needed_molule,
                             path_module,
                             d_irp):
 
-    path_irpf90_make = join(path_module.abs, "irpf90.make")
+    l_creation = [join(path_module.abs,i) for i in ["irpf90.make", 
+                                                    "irpf90_entities", 
+                                                    "tags",
+                                                    "IRPF90_temp",
+                                                    "IRPF90_man"]]
+    str_creation = " ".join(l_creation)
 
     l_irp_need = []
     for module in [path_module] + l_all_needed_molule:
@@ -330,7 +335,8 @@ def ninja_irpf90_make_build(l_all_needed_molule,
         str_depend = "{0}".format(str_l_irp_need)
 
     # Build
-    l_string = ["build {0}: build_irpf90.make {1}".format(path_irpf90_make,
+    
+    l_string = ["build {0}: build_irpf90.make {1}".format(str_creation,
                                                           str_depend)]
 
     l_string += ["   module = {0}".format(path_module.abs)]
@@ -499,7 +505,7 @@ def ninja_binary_rule(pwd_config_file):
         str_ = "export {0}='{1}'".format(flag, get_compilation_option(pwd_config_file, flag))
         l_flag.append(str_)
 
-    mkl = get_compilation_option(pwd_config_file, "MKL")
+    mkl = get_compilation_option(pwd_config_file, "LAPACK_LIB")
     ezfio = join(qpackage_root_ezfio, "lib", "libezfio_irp.a")
 
     str_ = "export LIB='{0} {1}'".format(mkl, ezfio)

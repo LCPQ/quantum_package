@@ -51,9 +51,11 @@ def get_hash_key(command, input_data):
 def run_and_save_the_data(command, path_output, path_key, is_mod):
 
     # Compile the file -> .o
-    os.system(command)
-    # Read the .o
+    pid = os.fork()
+    if pid == 0:
+	    os.execvpe(command.split()[0],command.split(),os.environ)
 
+    os.waitpid(pid)
     # Copy the .o in database if is not a module
     if not is_mod:
         try:
@@ -102,4 +104,4 @@ if __name__ == '__main__':
     try:
         cache_utility(command)
     except:
-        os.system(command)
+        os.execvpe(command.split()[0],command.split(),os.environ)
