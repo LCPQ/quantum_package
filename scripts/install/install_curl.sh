@@ -22,7 +22,7 @@ then
 fi
 
 rm -f -- ${QPACKAGE_ROOT}/bin/curl
-${QPACKAGE_ROOT}/scripts/fetch_from_web.py ${CURL_URL} CURL.tar.bz2
+${QPACKAGE_ROOT}/scripts/install/fetch_from_web.py ${CURL_URL} CURL.tar.bz2
 tar -jxf CURL.tar.bz2 && rm CURL.tar.bz2 ||exit 1
 cd ${CURL} || exit 1 
 mv curl.ermine ${QPACKAGE_ROOT}/bin/curl

@@ -20,7 +20,7 @@ rm -f l${QPACKAGE_ROOT}/bin/m4
 if [[ -z ${M4} ]] 
 then 
     rm -f -- bin/m4
-    ${QPACKAGE_ROOT}/scripts/fetch_from_web.py ${M4_URL} M4.tar.gz 
+    ${QPACKAGE_ROOT}/scripts/install/fetch_from_web.py ${M4_URL} M4.tar.gz 
     tar -zxf M4.tar.gz && rm M4.tar.gz ||exit 1
     cd m4* || exit 1 
     ./configure && make || exit 1 
