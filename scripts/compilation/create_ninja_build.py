@@ -32,10 +32,30 @@ except ImportError:
     sys.exit(1)
 
 
+#  _
+# |_ ._           _. ._ o  _. |_  |  _   _
+# |_ | | \/   \/ (_| |  | (_| |_) | (/_ _>
+
+def ninja_create_env_variable(pwd_config_file):
+    l_string = []
+    for flag in ["FC", "FCFLAGS", "IRPF90", "IRPF90_FLAGS"]:
+        str_ = "{0} = {1}".format(flag, get_compilation_option(pwd_config_file, flag))
+        l_string.append(str_)
+
+    lib_lapack = get_compilation_option(pwd_config_file, "LAPACK_LIB")
+    lib_ezfio = join(qpackage_root_ezfio, "lib", "libezfio_irp.a")
+    l_string.append("{0} = {1} {2}".format("LIB", lib_lapack, lib_ezfio))
+
+    l_string.append("")
+
+    return l_string
+
+
 #  _ __  _ ___  _         _
 # |_  / |_  |  / \    _ _|_ _
 # |_ /_ |  _|_ \_/ o (_  | (_|
 #                           _|
+
 def get_l_module_with_ezfio_cfg():
     from os import listdir
     from os.path import isfile, join
@@ -44,10 +64,10 @@ def get_l_module_with_ezfio_cfg():
     return [join(qp_src, m) for m in listdir(qp_src) if isfile(join(qp_src, m, "EZFIO.cfg")) ]
 
 
-def get_ezfio_config():
-    # Path in module
-    # Path in EZFIO/config/
-    # namedtuple('EZ_config', ['path_in_module', 'path_in_ezfio'])
+def get_l_ezfio_config():
+    """In $QPACKAGE_ROOT/src/module
+       In EZFIO/config/
+       namedtuple('EZ_config', ['path_in_module', 'path_in_ezfio'])"""
 
     l = []
 
@@ -183,17 +203,19 @@ def ninja_ezfio_config_build(l_ezfio_config):
     return l_string
 
 
-def ninja_ezfio_rule(pwd_config_file):
+def ninja_ezfio_rule():
     # Rule
     l_string = ["rule build_ezfio"]
 
     l_flag = []
     for flag in ["FC", "FCFLAGS", "IRPF90"]:
-        str_ = "export {0}='{1}'".format(flag, get_compilation_option(pwd_config_file, flag))
+        str_ = "export {0}='${0}'".format(flag)
         l_flag.append(str_)
 
     l_cmd = ["cd {0}".format(qpackage_root_ezfio)] + l_flag + ["make", "make Python"]
     l_string += ["   command = {0}".format(" ; ".join(l_cmd))]
+
+    l_string += [""]
 
     return l_string
 
@@ -287,7 +309,7 @@ def get_irp_dependancy(d_info_module):
     return d_irp
 
 
-def ninja_irpf90_make_rule(pwd_config_file):
+def ninja_irpf90_make_rule():
     # Rule
     l_string = ["pool irp_pool"]
     l_string += ["   depth = 1"]
@@ -295,12 +317,12 @@ def ninja_irpf90_make_rule(pwd_config_file):
 
     l_string += ["rule build_irpf90.make"]
 
-    flag = get_compilation_option(pwd_config_file, "IRPF90_FLAGS")
+    l_flag = []
+    for flag in ["FC", "FCFLAGS", "LIB", "SRC", "OBJ"]:
+        str_ = "export {0}='${0}'".format(flag)
+        l_flag.append(str_)
 
-    l_cmd = ["cd $module",
-             "export SRC=$src",
-             "export OBJ=$obj",
-             "irpf90 $include_dir irpf90_flag = {0}".format(flag)]
+    l_cmd = ["cd $module"] + l_flag + ["irpf90 $include_dir $IRPF90_FLAGS"]
 
     l_string += ["   command = {0}".format(" ; ".join(l_cmd))]
     l_string += ["   pool = irp_pool"]
@@ -313,11 +335,9 @@ def ninja_irpf90_make_build(l_all_needed_molule,
                             path_module,
                             d_irp):
 
-    l_creation = [join(path_module.abs,i) for i in ["irpf90.make", 
-                                                    "irpf90_entities", 
-                                                    "tags",
-                                                    "IRPF90_temp",
-                                                    "IRPF90_man"]]
+    l_creation = [join(path_module.abs,i) for i in ["irpf90.make",
+                                                    "irpf90_entities",
+                                                    "tags"]]
     str_creation = " ".join(l_creation)
 
     l_irp_need = []
@@ -335,7 +355,7 @@ def ninja_irpf90_make_build(l_all_needed_molule,
         str_depend = "{0}".format(str_l_irp_need)
 
     # Build
-    
+
     l_string = ["build {0}: build_irpf90.make {1}".format(str_creation,
                                                           str_depend)]
 
@@ -346,8 +366,8 @@ def ninja_irpf90_make_build(l_all_needed_molule,
 
     str_src = " ".join(l_src)
     str_obj = " ".join(l_obj)
-    l_string += ["   src = '{0}'".format(str_src)]
-    l_string += ["   obj = '{0}'".format(str_obj)]
+    l_string += ["   SRC = {0}".format(str_src)]
+    l_string += ["   OBJ = {0}".format(str_obj)]
 
     # Option
     str_include_dir = " ".join(["-I {0}".format(m.rel) for m in l_all_needed_molule])
@@ -498,22 +518,9 @@ def get_program(path_module):
             return []
 
 
-def ninja_binary_rule(pwd_config_file):
+def ninja_binary_rule():
 
-    l_flag = []
-    for flag in ["FC", "FCFLAGS"]:
-        str_ = "export {0}='{1}'".format(flag, get_compilation_option(pwd_config_file, flag))
-        l_flag.append(str_)
-
-    mkl = get_compilation_option(pwd_config_file, "LAPACK_LIB")
-    ezfio = join(qpackage_root_ezfio, "lib", "libezfio_irp.a")
-
-    str_ = "export LIB='{0} {1}'".format(mkl, ezfio)
-    l_flag.append(str_)
-
-    l_cmd = ["cd $module"] + l_flag + ["export SRC=$src",
-                                       "export OBJ=$obj",
-                                       "make -f irpf90.make -j 1 $binary && touch $binary"]
+    l_cmd = ["cd $module", "make -f irpf90.make"]
 
     l_string = ["rule build_binary"]
     l_string += ["   command = {0}".format(" ; ".join(l_cmd))]
@@ -524,33 +531,20 @@ def ninja_binary_rule(pwd_config_file):
 
 def ninja_binary_build(l_bin, path_module, l_children):
 
-    l_src, l_obj = file_dependancy(path_module.rel)
-
-    str_src = " ".join(l_src)
-    str_obj = " ".join(l_obj)
-
     if not l_bin:
         return []
 
     # Build
     irpf90mk_path = join(path_module.abs, "irpf90.make")
 
-    l_string = []
-
     l_abs_bin = [join(path_module.abs, binary) for binary in l_bin]
-
-    for path, abs_path in zip(l_bin, l_abs_bin):
-        l_string += ["build {0}: build_binary {1} {2}".format(abs_path,
-                                                              ezfio_lib,
-                                                              irpf90mk_path)]
-
-        l_string += ["   module = {0}".format(path_module.abs)]
-        l_string += ["   binary = {0}".format(path)]
-        l_string += ["   src = '{0}'".format(str_src)]
-        l_string += ["   obj = '{0}'".format(str_obj)]
-        l_string += [""]
-
     str_l_abs_bin = " ".join(l_abs_bin)
+
+    l_string = ["build {0}: build_binary {1} {2}".format(str_l_abs_bin,
+                                                         ezfio_lib,
+                                                         irpf90mk_path)]
+
+    l_string += ["   module = {0}".format(path_module.abs)]
 
     l_string += ["build build_all_binary_{0}: phony {1}".format(path_module.rel,
                                                                 str_l_abs_bin)]
@@ -576,23 +570,29 @@ def ninja_build_executable_list(l_module):
 
 if __name__ == "__main__":
 
+    #  _
+    # |_ ._           _. ._ o  _. |_  |  _   _
+    # |_ | | \/   \/ (_| |  | (_| |_) | (/_ _>
+    #
+
     pwd_config_file = sys.argv[1]
+    l_string = ninja_create_env_variable(pwd_config_file)
 
     #  _
     # |_)     |  _
     # | \ |_| | (/_
     #
-    l_string = ninja_ezfio_cfg_rule()
+    l_string += ninja_ezfio_cfg_rule()
 
     l_string += ninja_symlink_rule()
 
-    l_string += ninja_irpf90_make_rule(pwd_config_file)
+    l_string += ninja_irpf90_make_rule()
     l_string += ninja_readme_rule()
 
-    l_string += ninja_binary_rule(pwd_config_file)
+    l_string += ninja_binary_rule()
 
     l_string += ninja_ezfio_config_rule()
-    l_string += ninja_ezfio_rule(pwd_config_file)
+    l_string += ninja_ezfio_rule()
 
 #    l_string += ninja_ocaml_rule()
 
@@ -602,7 +602,7 @@ if __name__ == "__main__":
     #                    _|
     l_module_with_ezfio_cfg = get_l_module_with_ezfio_cfg()
     l_util = get_children_of_ezfio_cfg(l_module_with_ezfio_cfg)
-    l_ezfio_config = get_ezfio_config()
+    l_ezfio_config = get_l_ezfio_config()
 
     l_string += ninja_ezfio_cfg_build(l_util)
     l_string += ninja_ezfio_config_build(l_ezfio_config)

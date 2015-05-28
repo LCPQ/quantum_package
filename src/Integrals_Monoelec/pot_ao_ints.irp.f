@@ -148,7 +148,7 @@ double precision :: P_center(3)
 double precision :: d(0:n_pt_in),pouet,coeff,rho,dist,const,pouet_2,p,p_inv,factor
 double precision :: I_n_special_exact,integrate_bourrin,I_n_bibi
 double precision ::  V_e_n,const_factor,dist_integral,tmp
-include 'constants.F'
+include 'Utils/constants.F'
   if ( (A_center(1)/=B_center(1)).or. &
        (A_center(2)/=B_center(2)).or. &
        (A_center(3)/=B_center(3)).or. &
@@ -351,7 +351,7 @@ recursive subroutine I_x1_pol_mult_mono_elec(a,c,R1x,R1xp,R2x,d,nd,n_pt_in)
  integer,intent(inout) :: nd
  integer, intent(in):: a,c
  double precision, intent(in) :: R1x(0:2),R1xp(0:2),R2x(0:2)
- include 'constants.F'
+ include 'Utils/constants.F'
   double precision :: X(0:max_dim)
   double precision :: Y(0:max_dim)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: X, Y
@@ -417,7 +417,7 @@ end
 recursive subroutine I_x2_pol_mult_mono_elec(c,R1x,R1xp,R2x,d,nd,dim) 
  implicit none
  integer , intent(in) :: dim
- include 'constants.F'
+ include 'Utils/constants.F'
  double precision :: d(0:max_dim)
  integer,intent(inout) :: nd
  integer, intent(in):: c
@@ -492,7 +492,7 @@ implicit none
 double precision :: alpha
 integer :: n
 double precision :: dble_fact
-include 'constants.F'
+include 'Utils/constants.F'
 
 !if(iand(n,1).eq.1)then
 !  int_gaus_pol= 0.d0
@@ -521,7 +521,7 @@ double precision function V_r(n,alpha)
 implicit none
 double precision ::  alpha, fact
 integer :: n
-include 'constants.F'
+include 'Utils/constants.F'
 if(iand(n,1).eq.1)then
  V_r = 0.5d0 * fact(ishft(n,-1)) / (alpha ** (ishft(n,-1) + 1))
 else
@@ -549,7 +549,7 @@ implicit none
 !!     integral on "theta" with boundaries ( 0 ; pi) of [ cos(theta) **n  sin(theta) **m ]
 integer :: n,m,i
 double precision ::  Wallis, prod
-include 'constants.F'
+include 'Utils/constants.F'
   V_theta = 0.d0
   prod = 1.d0
   do i = 0,ishft(n,-1)-1
@@ -565,7 +565,7 @@ double precision function Wallis(n)
 implicit none
 double precision :: fact
 integer :: n,p
-include 'constants.F'
+include 'Utils/constants.F'
 if(iand(n,1).eq.0)then
   Wallis = fact(ishft(n,-1))
   Wallis = pi * fact(n) / (dble(ibset(0_8,n)) * (Wallis+Wallis)*Wallis) 

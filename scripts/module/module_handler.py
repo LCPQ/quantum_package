@@ -170,7 +170,7 @@ if __name__ == '__main__':
 
     if not arguments['<NEEDED_CHILDREN_MODULES>']:
         dir_ = os.getcwd()
-        path_file = os.path.join(dir_, "NEEDED_CHILDREN_MODULES")
+        path_file = os.path.split(dir_)[1]
     else:
         path_file = os.path.abspath(arguments['<NEEDED_CHILDREN_MODULES>'])
         path_file = os.path.expanduser(path_file)
