@@ -2,7 +2,7 @@ OPENMP  =1
 PROFILE =0
 DEBUG  = 0
 
-IRPF90_FLAGS+= --align=32
+IRPF90_FLAGS+= --align=32 
 FC     = ifort -g 
 #FC     = cache_compile.py ifort -g    # Accelerates compilation
 FCFLAGS= 
@@ -13,6 +13,7 @@ FCFLAGS+= -ip
 FCFLAGS+= -opt-prefetch
 FCFLAGS+= -ftz
 MKL=-mkl=parallel 
+NINJA=ninja
 
 ifeq ($(PROFILE),1)
 FC    += -p -g
