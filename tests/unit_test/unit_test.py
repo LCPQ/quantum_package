@@ -20,7 +20,7 @@ Energy = namedtuple('Energy', ['without_pseudo', 'with_pseudo'])
 # O p t #
 # ~#~#~ #
 
-precision = 2.e-7
+precision = 5.e-7
 
 # A test get a geo file and a basis file.
 # A global dict containt the result for this test
