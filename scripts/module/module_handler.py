@@ -9,6 +9,7 @@ of a NEEDED_CHILDREN_MODULES file
 Usage:
     module_handler.py print_genealogy       [<NEEDED_CHILDREN_MODULES>]
     module_handler.py create_png            [<NEEDED_CHILDREN_MODULES>]
+    module_handler.py head_module
 
 Options:
     print_genealogy         Print the genealogy of the NEEDED_CHILDREN_MODULES
@@ -23,6 +24,7 @@ from docopt import docopt
 import os
 import sys
 import os.path
+from cache import cache
 
 from collections import namedtuple
 Dependancy = namedtuple('Dependancy', ['src', 'obj'])
@@ -41,7 +43,7 @@ def get_list_from_makefile(data, sep):
     return l_flat
 
 
-# Canot cache for a fucking raison
+# Canot cache for namedtuple are not hashable
 def get_dict_genealogy():
     """Loop over MODULE in  QPACKAGE_ROOT/src, open all the NEEDED_CHILDREN_MODULES
     and create a dict[MODULE] = [sub module needed, ...]
@@ -170,12 +172,13 @@ if __name__ == '__main__':
 
     if not arguments['<NEEDED_CHILDREN_MODULES>']:
         dir_ = os.getcwd()
-        path_file = os.path.split(dir_)[1]
     else:
         path_file = os.path.abspath(arguments['<NEEDED_CHILDREN_MODULES>'])
         path_file = os.path.expanduser(path_file)
         path_file = os.path.expandvars(path_file)
         dir_ = os.path.dirname(path_file)
+
+    path_file = os.path.basename(dir_)
 
     if arguments['print_genealogy']:
         l_all_needed_molule = module_genealogy(path_file)
@@ -183,3 +186,42 @@ if __name__ == '__main__':
 
     if arguments["create_png"]:
         create_png_from_path(path_file)
+
+    if arguments["head_module"]:
+            d_ref = get_dict_genealogy()
+            l_all_module = d_ref.keys()
+
+    from itertools import combinations
+
+    print "len_ref", len(l_all_module)
+    l_head = []
+    # All the head module alredy discover
+
+    l_head_and_genealogy = []
+
+    # All the children of l_head
+    l_check = [i for i in l_all_module if i not in l_head_and_genealogy]
+
+    while l_check:
+        len_max = -1
+        head = None
+
+        # Find the module in l_check who have the most direct children
+        # not alredy find
+        # We do not use the all genealogy for saving few second
+        for i in l_check:
+            l_module_and_children = [i] + d_ref[i].l_children
+
+            l_missing_module = [l for l in l_module_and_children if l not in l_head_and_genealogy]
+
+            if len(l_missing_module) > len_max:
+                len_max = len(l_missing_module)
+                head = i
+        # Now add all the genealogy and remove duplicate
+        l_head_and_genealogy = list(set(l_head_and_genealogy + him_and_all_children(d_ref, [head])))
+        # Now only search in the missing module
+        l_check = [i for i in l_all_module if i not in l_head_and_genealogy]
+
+        l_head.append(head)
+
+    print "l_head", l_head
