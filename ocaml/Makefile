@@ -13,7 +13,7 @@ LIBS=
 PKGS=
 OCAMLCFLAGS="-g -warn-error A"
 OCAMLBUILD=ocamlbuild -j 0 -syntax camlp4o -cflags $(OCAMLCFLAGS) -lflags $(OCAMLCFLAGS) 
-MLFILES=$(wildcard *.ml) ezfio.ml Qptypes.ml
+MLFILES=$(wildcard *.ml) ezfio.ml Qptypes.ml Input_auto_generated.ml
 MLIFILES=$(wildcard *.mli) 
 ALL_TESTS=$(patsubst %.ml,%.byte,$(wildcard test_*.ml))
 ALL_EXE=$(patsubst %.ml,%.native,$(wildcard qp_*.ml))
@@ -74,5 +74,9 @@ Qptypes.ml: qptypes_generator.byte
 ${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml: 
 	$(MAKE) -C ${QPACKAGE_ROOT}/src ezfio
 
+Input_auto_generated.ml:
+	ei_handler.py ocaml_global
+
 clean: 
-	rm -rf _build Qptypes.ml $(ALL_EXE) $(ALL_TESTS)
+	rm -rf _build Qptypes.ml Input_auto_generated.ml $(ALL_EXE) $(ALL_TESTS)
+

@@ -93,6 +93,53 @@ def him_and_all_children(d_ref, l_module):
     return list(set(l))
 
 
+def get_dict_genealogy_desc():
+    """
+    Get a dic of all the genealogy desc (children and all_children)
+    """
+    d_ref = get_dict_genealogy()
+
+    d = {}
+
+    for module_name in d_ref:
+        d[module_name] = him_and_all_children(d_ref, d_ref[module_name].l_children)
+
+    return d
+
+
+def get_dict_parent():
+    """
+    Get a dic of the first parent
+    """
+    d_ref = get_dict_genealogy()
+
+    d = {}
+
+    for module_name in d_ref:
+        d[module_name] = [i for i in d_ref.keys() if module_name in d_ref[i].l_children]
+
+    return d
+
+
+def get_dict_module_boss():
+    """
+    Return a dict(module_name) = module_boss
+    Module boss is a module who have not parent (a edge) and have module_name
+    in is genealogy
+    """
+    d_ref_asc = get_dict_parent()
+    d_ref_desc = get_dict_genealogy_desc()
+
+    l_all_module = d_ref_asc.keys()
+
+    d_module_boss = {}
+
+    for module in l_all_module:
+        d_module_boss[module] = [p for p in l_all_module if module in [p] + d_ref_desc[p] and not d_ref_asc[p]][0]
+
+    return d_module_boss
+
+
 def module_genealogy(module_name):
     """
     Take a name of a NEEDED_CHILDREN_MODULES
@@ -188,40 +235,5 @@ if __name__ == '__main__':
         create_png_from_path(path_file)
 
     if arguments["head_module"]:
-            d_ref = get_dict_genealogy()
-            l_all_module = d_ref.keys()
-
-    from itertools import combinations
-
-    print "len_ref", len(l_all_module)
-    l_head = []
-    # All the head module alredy discover
-
-    l_head_and_genealogy = []
-
-    # All the children of l_head
-    l_check = [i for i in l_all_module if i not in l_head_and_genealogy]
-
-    while l_check:
-        len_max = -1
-        head = None
-
-        # Find the module in l_check who have the most direct children
-        # not alredy find
-        # We do not use the all genealogy for saving few second
-        for i in l_check:
-            l_module_and_children = [i] + d_ref[i].l_children
-
-            l_missing_module = [l for l in l_module_and_children if l not in l_head_and_genealogy]
-
-            if len(l_missing_module) > len_max:
-                len_max = len(l_missing_module)
-                head = i
-        # Now add all the genealogy and remove duplicate
-        l_head_and_genealogy = list(set(l_head_and_genealogy + him_and_all_children(d_ref, [head])))
-        # Now only search in the missing module
-        l_check = [i for i in l_all_module if i not in l_head_and_genealogy]
-
-        l_head.append(head)
-
-    print "l_head", l_head
+        for module, boss in get_dict_module_boss().iteritems():
+            print module, boss

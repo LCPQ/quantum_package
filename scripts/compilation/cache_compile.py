@@ -59,7 +59,6 @@ def run_and_save_the_data(command, path_output, path_key, is_mod):
     elif not is_mod:
         try:
             shutil.copyfile(path_output, path_key)
-            print "save"
         except:
             pass
 
@@ -89,9 +88,6 @@ def cache_utility(command):
         key = get_hash_key(command, input_data)
         path_key = os.path.join(TMPDIR, key)
 
-        print key
-        print path_key
-
         # Try to return the content of the .o file
         try:
             shutil.copyfile(path_key, path_output)
@@ -110,4 +106,3 @@ if __name__ == '__main__':
         cache_utility(command)
     except:
         process = subprocess.Popen(command, shell=True)
-#        os.execvpe(command.split()[0],command.split(),os.environ)
