@@ -11,7 +11,7 @@ from os.path import join
 from collections import namedtuple
 
 try:
-    from module_handler import file_dependancy
+    from module_handler import file_dependency
     from module_handler import get_dict_module_boss, get_dict_genealogy_desc
     from read_compilation_cfg import get_compilation_option
     from docopt import docopt
@@ -309,7 +309,7 @@ def get_l_irp_for_module(path_module_abs):
     return dump
 
 
-def get_irp_dependancy(d_info_module):
+def get_irp_dependency(d_info_module):
     """
     For a module return all the irp.f90 file who depend
     """
@@ -345,7 +345,7 @@ def ninja_irpf90_make_rule():
                 "   command = {0}".format(" ; ".join(l_cmd)),
                 "   pool = irp_pool",
                 "   generator = 1",
-                "   description = Create the irp tree for $module"
+                "   description = Create the IRP_Tree for $module"
                 ""]
 
     return l_string
@@ -355,7 +355,7 @@ def ninja_irpf90_make_build(path_module,
                             l_needed_molule,
                             d_irp):
     """
-    Creatre the dependancy for a irpf90.make
+    Creatre the dependency for a irpf90.make
     We need all the symklink and all the irp.f
     """
     # ~#~#~#~#~#~ #
@@ -381,7 +381,7 @@ def ninja_irpf90_make_build(path_module,
     # N i n j a _ b u i l d #
     # ~#~#~#~#~#~#~#~#~#~#~ #
 
-    l_src, l_obj = file_dependancy(path_module.rel)
+    l_src, l_obj = file_dependency(path_module.rel)
     l_include_dir = ["-I {0}".format(m.rel) for m in l_needed_molule]
 
     l_string = ["build {0}: build_irpf90.ninja {1}".format(str_creation, str_depend),
@@ -411,7 +411,7 @@ def ninja_readme_build(path_module):
     """
     Rule for creation the readme
     """
-    path_irp_man = join(path_module.abs, "IRPF90_man")
+    path_irp_man = join(path_module.abs, "irpf90.make")
     path_readme = join(path_module.abs, "README.rst")
 
     l_string = ["build {0}: build_readme {1}".format(path_readme,
@@ -429,7 +429,7 @@ def ninja_readme_build(path_module):
 #                 /
 def get_program(path_module):
     """
-    Return the list of binary (Path= namedtuple('Path', ['abs', 'rel']) for a module
+    Return the list of binaries (Path= namedtuple('Path', ['abs', 'rel']) for a module
     """
     import subprocess
 
@@ -449,10 +449,10 @@ def get_program(path_module):
             return []
 
 
-def get_dict_binary(mode="development"):
+def get_dict_binaries(mode="development"):
     """
-    Return a dict [module] = list_binary
-    If a the production mode is enable only header module will produce binary
+    Return a dict [module] = list_binaries
+    If a the production mode is enable only header module will produce binaries
 
     Example : The module Full_CI can produce the binary SCF
     so you dont need to use at all the module Hartree-Fock
@@ -460,63 +460,93 @@ def get_dict_binary(mode="development"):
 
     from collections import defaultdict
 
-    d_binary = defaultdict(list)
+    d_binaries = defaultdict(list)
 
-    # Create d_binary
-    # Ake module => binary generated
+    # Create d_binaries
+    # Ake module => binaries generated
     for module in d_genealogy_path.keys():
-        l_binary = get_program(module)
+        l_binaries = get_program(module)
 
-        if l_binary:
-            d_binary[module] += l_binary
+        if l_binaries:
+            d_binaries[module] += l_binaries
 
     if mode == "production":
 
         dict_boss = get_dict_module_boss()
         dict_boss_path = dict_module_genelogy_path(dict_boss)
 
-        d_binary_condensed = defaultdict(list)
-        for module in d_binary:
-            d_binary_condensed[dict_boss_path[module]] += d_binary[module]
+        d_binaries_condensed = defaultdict(list)
+        for module in d_binaries:
+            d_binaries_condensed[dict_boss_path[module]] += d_binaries[module]
 
-        d_binary = d_binary_condensed
+        d_binaries = d_binaries_condensed
 
-    return d_binary
+    return d_binaries
 
 
-def ninja_binary_rule():
+def ninja_binaries_rule():
     """
-    Rule for creating the binary
+    Rule for creating the binaries
     """
 
-    l_cmd = ["cd $module/IRPF90_temp", "ninja -j 1 "]
+    l_cmd = ["cd $module/IRPF90_temp", "ninja"]
 
-    l_string = ["rule build_binary",
+    l_string = ["rule build_binaries",
                 "   command = {0}".format(" ; ".join(l_cmd)),
-                "   description = Create all the binary from $module"
+                "   description = Create all the binaries from $module"
                 ""]
 
     return l_string
 
 
-def ninja_binary_build(path_module, l_children, d_binary):
+def ninja_binaries_build(path_module, l_children, d_binaries):
     """
-    The binary need the EZFIO_LIB, and the irpf90.make (aka build.ninja)
+    The binaries need the EZFIO_LIB, and the irpf90.make (aka build.ninja)
     """
     ninja_module_path = join(path_module.abs, "IRPF90_temp", "build.ninja")
 
-    l_abs_bin = [binary.abs for binary in d_binary[path_module]]
-    l_rel_bin = [binary.rel for binary in d_binary[path_module]]
+    l_abs_bin = [binary.abs for binary in d_binaries[path_module]]
 
-    l_string = ["build {0}: build_binary {1} {2}".format(" ".join(l_abs_bin),
-                                                         EZFIO_LIB,
-                                                         ninja_module_path),
+    l_string = ["build {0}: build_binaries {1} {2}".format(" ".join(l_abs_bin),
+                                                           EZFIO_LIB,
+                                                           ninja_module_path),
                 "   module = {0}".format(path_module.abs),
                 ""]
 
     return l_string
 
 
+# ___
+#  | ._ _   _     _|  _  ._   _  ._   _|  _  ._   _ o  _   _
+#  | | (/_ (/_   (_| (/_ |_) (/_ | | (_| (/_ | | (_ | (/_ _>
+#                        |
+def ninja_dot_tree_rule():
+    """
+    Rule for creating the binaries
+    """
+    l_cmd = ["cd $module", "module_handler.py create_png"]
+
+    l_string = ["rule build_dot_tree",
+                "   command = {0}".format(" ; ".join(l_cmd)),
+                "   description = Generate Dot Dependancies Tree of $module"
+                ""]
+
+    return l_string
+
+
+def ninja_dot_tree_build(path_module):
+
+    l_string = ["build {0}: build_dot_tree".format(join(path_module.abs, "tree_dependency.png")),
+                "   module = {0}".format(path_module.abs),
+                ""]
+
+    return l_string
+
+
+#
+# |\/|  _. o ._
+# |  | (_| | | |
+#
 if __name__ == "__main__":
 
     arguments = docopt(__doc__)
@@ -527,7 +557,6 @@ if __name__ == "__main__":
     # |_ | | \/   \/ (_| |  | (_| |_) | (/_ _>
     #
 
-    pwd_config_file = sys.argv[1]
     l_string = ninja_create_env_variable(pwd_config_file)
 
     #  _
@@ -541,10 +570,12 @@ if __name__ == "__main__":
     l_string += ninja_irpf90_make_rule()
     l_string += ninja_readme_rule()
 
-    l_string += ninja_binary_rule()
+    l_string += ninja_binaries_rule()
 
     l_string += ninja_ezfio_config_rule()
     l_string += ninja_ezfio_rule()
+
+    l_string += ninja_dot_tree_rule()
 
     #  _
     # |_)     o |  _|    _   _  ._   _  ._ _. |
@@ -570,20 +601,20 @@ if __name__ == "__main__":
 
     d_genealogy = get_dict_genealogy_desc()
     d_genealogy_path = dict_module_genelogy_path(d_genealogy)
-    d_irp = get_irp_dependancy(d_genealogy_path)
+    d_irp = get_irp_dependency(d_genealogy_path)
 
-    d_binary_production = get_dict_binary("production")
-    d_binary_development = get_dict_binary("development")
+    d_binaries_production = get_dict_binaries("production")
+    d_binaries_development = get_dict_binaries("development")
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # M o d u l e _ t o _ i r p #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
     if arguments["--production"]:
-        l_module_to_irp = d_binary_production.keys()
+        l_module_to_irp = d_binaries_production.keys()
 
     elif arguments["--development"]:
-        l_module_to_irp = d_binary_development.keys()
+        l_module_to_irp = d_binaries_development.keys()
 
     for module_to_compile in l_module_to_irp:
 
@@ -600,13 +631,18 @@ if __name__ == "__main__":
         # ~#~#~#~#~#~#~#~ #
         l_string += ninja_irpf90_make_build(module_to_compile, l_children, d_irp)
 
+        # ~#~#~#~#~#~#~#~ #
+        # d o t _ t r e e #
+        # ~#~#~#~#~#~#~#~ #
+        l_string += ninja_dot_tree_build(module_to_compile)
+
     # ~#~#~#~#~#~#~ #
     #  b i n a r y  #
     # ~#~#~#~#~#~#~ #
+    for module_to_compile in d_binaries_production.keys():
 
-    for module_to_compile in d_binary_production.keys():
-
-        l_string += ninja_binary_build(module_to_compile, l_children, d_binary_production)
+        l_string += ninja_binaries_build(module_to_compile, l_children, d_binaries_production)
         l_string += ninja_readme_build(module_to_compile)
 
-    print "\n".join(l_string)
+    with open(join(QPACKAGE_ROOT, "build.ninja"), "w+") as f:
+        f.write("\n".join(l_string))

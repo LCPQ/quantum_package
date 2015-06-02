@@ -2,7 +2,7 @@
 #
 # This script should run from the directory $QPACKAGE_ROOT/src
 
-# Check is we are in `QPROOT_SRC` and all the dependancy are corect
+# Check is we are in `QPACKAGE_ROOT_SRC` and all the dependency are correct
 ${QPACKAGE_ROOT}/scripts/module/check_src.sh
 
 NPROC=$(cat /proc/cpuinfo | grep MHz | wc -l)

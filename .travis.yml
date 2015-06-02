@@ -12,9 +12,7 @@ before_script:
 script: 
   - ./setup_environment.sh --robot 
   - source ./quantum_package.rc
-  - cp ./src/Makefile.config.gfortran  ./src/Makefile.config
-  - ./scripts/compilation/create_ninja_build.py ./config/gfortran_example.cfg > build.ninja
-  - ./ninja/ninja -v
-  - ei_handler.py ocaml_global
+  - ./scripts/compilation/create_ninja_build.py --production ./config/gfortran_example.cfg
+  - ./ninja/ninja
   - cd ocaml ; make ; cd -
   - ./tests/unit_test/unit_test.py

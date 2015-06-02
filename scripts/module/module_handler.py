@@ -27,8 +27,8 @@ import os.path
 from cache import cache
 
 from collections import namedtuple
-Dependancy = namedtuple('Dependancy', ['src', 'obj'])
-Module_info = namedtuple('Module_info', ['l_children', 'l_dependancy'])
+Dependency = namedtuple('Dependency', ['src', 'obj'])
+Module_info = namedtuple('Module_info', ['l_children', 'l_dependency'])
 
 
 def get_list_from_makefile(data, sep):
@@ -64,7 +64,7 @@ def get_dict_genealogy():
         try:
             with open(os.path.join(dir_, o, "Makefile"), "r") as f:
                 data = f.readlines()
-                l_depend = Dependancy(get_list_from_makefile(data, "SRC="),
+                l_depend = Dependency(get_list_from_makefile(data, "SRC="),
                                       get_list_from_makefile(data, "OBJ="))
         except IOError:
             l_depend = []
@@ -150,35 +150,22 @@ def module_genealogy(module_name):
     return him_and_all_children(d_ref, d_ref[module_name].l_children)
 
 
-def file_dependancy(module_name):
+def file_dependency(module_name):
 
     d_ref = get_dict_genealogy()
-    l_src, l_obj = d_ref[module_name].l_dependancy
+    l_src, l_obj = d_ref[module_name].l_dependency
 
     l_children_module = him_and_all_children(d_ref, d_ref[module_name].l_children)
     for module in l_children_module:
-        l_src_dump, l_obj_dump = d_ref[module].l_dependancy
+        l_src_dump, l_obj_dump = d_ref[module].l_dependency
         l_src.extend("{0}/{1}".format(module, i) for i in l_src_dump)
         l_obj.extend("IRPF90_temp/{0}/{1}".format(module, os.path.basename(i)) for i in l_obj_dump)
 
-    return Dependancy(l_src, l_obj)
-
-
-def create_png_from_path(path):
-    " Change a path like this into a module list"
-    "path = /home/razoa/quantum_package/src/Molden/NEEDED_CHILDREN_MODULES"
-
-    l_module = os.path.split(path)[0].split("/")[-1]
-
-    import pydot
-    try:
-        create_png([l_module])
-    except pydot.InvocationException:
-        pass
+    return Dependency(l_src, l_obj)
 
 
 def create_png(l_module):
-    """Create the png of the dependancy tree for a l_module"""
+    """Create the png of the dependency tree for a l_module"""
 
     # Init
     import pydot
@@ -207,10 +194,7 @@ def create_png(l_module):
         draw_module_edge(module, d_ref[module].l_children)
 
     # Save
-    path = '{0}.png'.format("tree_dependancy")
-    # path = '{0}.png'.format("_".join(l_module))
-    # print "png saved in {0}".format(path)
-
+    path = '{0}.png'.format("tree_dependency")
     graph.write_png(path)
 
 if __name__ == '__main__':
@@ -232,7 +216,7 @@ if __name__ == '__main__':
         print " ".join(sorted(l_all_needed_molule))
 
     if arguments["create_png"]:
-        create_png_from_path(path_file)
+        create_png([path_file])
 
     if arguments["head_module"]:
         for module, boss in get_dict_module_boss().iteritems():

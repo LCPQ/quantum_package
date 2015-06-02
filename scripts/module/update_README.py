@@ -81,7 +81,7 @@ def update_needed(data):
     modules = file.read()
     file.close()
 
-    header_image = ".. image:: tree_dependancy.png\n\n"
+    header_image = ".. image:: tree_dependency.png\n\n"
 
     if modules.strip() != "":
         modules = ['* `%s <%s%s>`_' % (x, URL, x) for x in modules.split()]
