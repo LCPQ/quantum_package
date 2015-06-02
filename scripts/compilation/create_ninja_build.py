@@ -1,54 +1,87 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Usage: create_ninja_build.py (--development | --production) CONFIG_FILE
+"""
 
 import os
 import sys
 import glob
-
 from os.path import join
-
-
-qpackage_root = os.environ['QPACKAGE_ROOT']
-qpackage_root_src = join(qpackage_root, 'src')
-qpackage_root_ocaml = join(qpackage_root, 'ocaml')
-qpackage_root_ezfio = join(qpackage_root, 'EZFIO')
-
-ezfio_lib = join(qpackage_root_ezfio, "lib", "libezfio.a")
-
 from collections import namedtuple
-Path = namedtuple('Path', ['abs', 'rel'])
-
-EZ_config_path = namedtuple('EZ_config', ['path_in_module', 'path_in_ezfio'])
-EZ_handler = namedtuple('EZ_handler', ['ez_module', 'ez_cfg',
-                                       'ez_interface', 'ez_config',
-                                       'ez_default', 'ez_ocaml'])
 
 try:
-    from module_handler import module_genealogy, file_dependancy
-    from cache import cache
+    from module_handler import file_dependancy
+    from module_handler import get_dict_module_boss, get_dict_genealogy_desc
     from read_compilation_cfg import get_compilation_option
+    from docopt import docopt
 except ImportError:
     print "source .quantum_package.rc"
     sys.exit(1)
 
 
+#  __
+# /__ |  _  |_   _. |       _. ._ o  _. |_  |  _   _
+# \_| | (_) |_) (_| |   \/ (_| |  | (_| |_) | (/_ _>
+#
+
+QPACKAGE_ROOT = os.environ['QPACKAGE_ROOT']
+QPACKAGE_ROOT_SRC = join(QPACKAGE_ROOT, 'src')
+QPACKAGE_ROOT_EZFIO = join(QPACKAGE_ROOT, 'EZFIO')
+
+EZFIO_LIB = join(QPACKAGE_ROOT_EZFIO, "lib", "libezfio.a")
+
+#
+# |\ |  _. ._ _   _   _|   _|_     ._  |  _
+# | \| (_| | | | (/_ (_|    |_ |_| |_) | (/_
+#                                  |
+Path = namedtuple('Path', ['abs', 'rel'])
+EZ_config_path = namedtuple('EZ_config', ['path_in_module', 'path_in_ezfio'])
+EZ_handler = namedtuple('EZ_handler', ['ez_module', 'ez_cfg','ez_interface', 'ez_config'])
+Sym_link = namedtuple('Sym_link', ['source', 'destination'])
+
+
 #  _
 # |_ ._           _. ._ o  _. |_  |  _   _
 # |_ | | \/   \/ (_| |  | (_| |_) | (/_ _>
-
 def ninja_create_env_variable(pwd_config_file):
+    """
+    Return some ninja varible with the env variable expanded
+    FC, FCFLAGS, IRPF90, IRPF90_FLAGS
+    The env variable is usefull for the generation of EZFIO, and IRPF90
+    """
     l_string = []
     for flag in ["FC", "FCFLAGS", "IRPF90", "IRPF90_FLAGS"]:
         str_ = "{0} = {1}".format(flag, get_compilation_option(pwd_config_file, flag))
         l_string.append(str_)
 
     lib_lapack = get_compilation_option(pwd_config_file, "LAPACK_LIB")
-    lib_ezfio = join(qpackage_root_ezfio, "lib", "libezfio_irp.a")
+    lib_ezfio = join(QPACKAGE_ROOT_EZFIO, "lib", "libezfio_irp.a")
     l_string.append("{0} = {1} {2}".format("LIB", lib_lapack, lib_ezfio))
 
     l_string.append("")
 
     return l_string
+
+
+#  __
+# /__  _  ._   _   _. |  _   _
+# \_| (/_ | | (/_ (_| | (_) (_| \/
+#                            _| /
+def dict_module_genelogy_path(d_module_genelogy):
+    """
+    Just a dict with relative, and absolue path for the
+    d_module_genelogy
+    """
+    d = dict()
+    for module_rel, l_children_rel in d_module_genelogy.iteritems():
+        module_abs = join(QPACKAGE_ROOT_SRC, module_rel)
+        try:
+            d[Path(module_abs, module_rel)] = Path(join(QPACKAGE_ROOT_SRC, l_children_rel), l_children_rel)
+        except:
+            d[Path(module_abs, module_rel)] = [Path(join(QPACKAGE_ROOT_SRC, children), children) for children in l_children_rel]
+
+    return d
 
 
 #  _ __  _ ___  _         _
@@ -57,66 +90,61 @@ def ninja_create_env_variable(pwd_config_file):
 #                           _|
 
 def get_l_module_with_ezfio_cfg():
+    """
+    Return all the module who have a EZFIO.cfg
+    """
     from os import listdir
     from os.path import isfile, join
-    qp_src = qpackage_root_src
+    qp_src = QPACKAGE_ROOT_SRC
 
     return [join(qp_src, m) for m in listdir(qp_src) if isfile(join(qp_src, m, "EZFIO.cfg")) ]
 
 
 def get_l_ezfio_config():
-    """In $QPACKAGE_ROOT/src/module
-       In EZFIO/config/
-       namedtuple('EZ_config', ['path_in_module', 'path_in_ezfio'])"""
+    """
+    Return a namedtuple('EZ_config', ['path_in_module', 'path_in_ezfio'])
+    """
 
     l = []
 
-    cmd = "{0}/*/*.ezfio_config".format(qpackage_root_src)
+    cmd = "{0}/*/*.ezfio_config".format(QPACKAGE_ROOT_SRC)
     for path_in_module in glob.glob(cmd):
         name_lower = os.path.split(path_in_module)[1].lower()
-        path_in_ezfio = join(qpackage_root_ezfio, "config", name_lower)
+        path_in_ezfio = join(QPACKAGE_ROOT_EZFIO, "config", name_lower)
         l.append(EZ_config_path(path_in_module, path_in_ezfio))
 
     return l
 
 
-@cache
-def get_l_irp_for_module(path_module_abs):
-    dump = []
-    for file in os.listdir(path_module_abs):
-        if file.endswith(".irp.f"):
-            dump.append(join(path_module_abs, file))
-        if file == "EZFIO.cfg":
-            dump.append(join(path_module_abs, "ezfio_interface.irp.f"))
-    return dump
-
-
 def ninja_ezfio_cfg_rule():
-    # Rule
-    l_string = ["rule build_ezfio_interface"]
-    l_string += ["   command = ei_handler.py --path_module $sub_module"]
-    l_string += [""]
+    """
+    Return the ezfio_interface rule who will create
+    the _ezfio_interface.irp.f the _ezfio_config from the EZFIO.cfg
+    """
+
+    l_string = ["rule build_ezfio_interface",
+                "   command = ei_handler.py --path_module $sub_module",
+                ""]
 
     return l_string
 
 
 def ninja_ezfio_config_rule():
-    # Rule
-    l_string = ["rule build_ezfio_config"]
-    l_string += ["   command = cp $in $out"]
-    l_string += [""]
+    """
+    If a ezfio_config existe you just need to move it
+    """
+    l_string = ["rule build_ezfio_config",
+                "   command = cp $in $out",
+                ""]
 
     return l_string
 
 
 def get_children_of_ezfio_cfg(l_module_with_ezfio_cfg):
-    # Build
-
-    import re
-    p = re.compile(ur'interface:\s+input')
-
-    config_folder = join(qpackage_root_ezfio, "config")
-    default_folder = join(qpackage_root, "data", "ezfio_defaults")
+    """
+    From a module list of ezfio_cfg return all the stuff create by him
+    """
+    config_folder = join(QPACKAGE_ROOT_EZFIO, "config")
 
     l_util = dict()
 
@@ -141,56 +169,38 @@ def get_children_of_ezfio_cfg(l_module_with_ezfio_cfg):
         abs_ = join(config_folder, rel)
         ez_config = Path(abs_, rel)
 
-        with open(ez_cfg.abs, 'r') as file_:
-            if p.search(file_.read()):
-
-                rel = "{0}.ezfio_interface_default".format(name_module_lower)
-                abs_ = join(default_folder, rel)
-                ez_default = Path(abs_, rel)
-
-                rel = "Input_{0}.ml".format(name_module_lower)
-                abs_ = join(qpackage_root_ocaml, rel)
-                ez_ocaml = Path(abs_, rel)
-            else:
-                ez_default = None
-                ez_ocaml = None
-
         l_util[ez_module.rel] = EZ_handler(ez_module,
                                            ez_cfg,
                                            ez_interface,
-                                           ez_config,
-                                           ez_default, ez_ocaml)
+                                           ez_config)
 
     return l_util
 
 
 def ninja_ezfio_cfg_build(l_util):
-
+    """
+    Return the children created by EZFIO.cfg
+    For us is only ez_interface.irp.f and ez_config
+    """
     l_string = []
 
     for m in l_util.itervalues():
 
-        try:
-            str_ = "build {1} {2} {3} {4}: build_ezfio_interface {0}"
-            l_string += [str_.format(m.ez_cfg.abs,
-                                     m.ez_interface.abs,
-                                     m.ez_config.abs,
-                                     m.ez_default.abs,
-                                     m.ez_ocaml.abs)]
-        except AttributeError:
-            str_ = "build {1} {2}: build_ezfio_interface {0}"
-            l_string += [str_.format(m.ez_cfg.abs,
-                                     m.ez_interface.abs,
-                                     m.ez_config.abs)]
-        finally:
-            l_string += ["   sub_module = {0}".format(m.ez_module.abs)]
-            l_string += [""]
+        str_ = "build {1} {2}: build_ezfio_interface {0}"
+        l_string += [str_.format(m.ez_cfg.abs,
+                                 m.ez_interface.abs,
+                                 m.ez_config.abs)]
+
+        l_string += ["   sub_module = {0}".format(m.ez_module.abs)]
+        l_string += [""]
 
     return l_string
 
 
 def ninja_ezfio_config_build(l_ezfio_config):
-    # Build
+    """
+    For the ezfio_config present in module move then
+    """
     l_string = []
 
     for m in l_ezfio_config:
@@ -204,34 +214,36 @@ def ninja_ezfio_config_build(l_ezfio_config):
 
 
 def ninja_ezfio_rule():
-    # Rule
-    l_string = ["rule build_ezfio"]
+    """
+    Retun the rule for creation the ezfio
+    Set some variable
+    and run ninja
+    """
+    l_flag = ["export {0}='${0}'".format(flag) for flag in ["FC", "FCFLAGS", "IRPF90"]]
 
-    l_flag = []
-    for flag in ["FC", "FCFLAGS", "IRPF90"]:
-        str_ = "export {0}='${0}'".format(flag)
-        l_flag.append(str_)
+    l_cmd = ["cd {0}".format(QPACKAGE_ROOT_EZFIO)] + l_flag + ["{0}/ninja/ninja".format(QPACKAGE_ROOT)]
 
-    l_cmd = ["cd {0}".format(qpackage_root_ezfio)] + l_flag + ["make", "make Python"]
-    l_string += ["   command = {0}".format(" ; ".join(l_cmd))]
-
-    l_string += [""]
+    l_string = ["rule build_ezfio",
+                "   command = {0}".format(" ; ".join(l_cmd)),
+                "   description = Create $out"
+                ""]
 
     return l_string
 
 
 def ninja_ezfio_build(l_ezfio_config, l_util):
-    # Rule
-    ezfio_ocam_lib = join(qpackage_root, "EZFIO", "Ocaml", "ezfio.ml")
+    """
+    Rule for create the ezfio
+    we depend of the ezfio_config set by the user or created bu EZFIO.cfg
+    """
 
-    l = [i.path_in_ezfio for i in l_ezfio_config]
+    l_ezfio_config = [i.path_in_ezfio for i in l_ezfio_config]
+    l_ezfio_from_cfg = [i.ez_config.abs for i in l_util.itervalues()]
 
-    str_ = " ".join(l + [i.ez_config.abs for i in l_util.itervalues()])
+    str_ = " ".join(l_ezfio_config + l_ezfio_from_cfg)
 
-    l_string = ["build {0} {1}: build_ezfio {2}".format(ezfio_lib,
-                                                        ezfio_ocam_lib,
-                                                        str_)]
-    l_string += [""]
+    l_string = ["build {0}: build_ezfio {1}".format(EZFIO_LIB, str_),
+                ""]
 
     return l_string
 
@@ -240,41 +252,42 @@ def ninja_ezfio_build(l_ezfio_config, l_util):
 # (_     ._ _  | o ._  |
 # __) \/ | | | | | | | |<
 #     /
-def get_source_destination(l_all_needed_molule, path_module):
+def get_source_destination(path_module, l_needed_molule):
+    """
+    Return a list of Sym_link = namedtuple('Sym_link', ['source', 'destination'])
+    for a module
+    """
+    l = [Sym_link(m.abs, join(QPACKAGE_ROOT_SRC, path_module.rel, m.rel)) for m in l_needed_molule]
 
-    l_source = [m.abs for m in l_all_needed_molule]
-    l_destination = [join(qpackage_root_src, path_module.rel, m.rel)
-                     for m in l_all_needed_molule]
-
-    return l_source, l_destination
+    return l
 
 
 def ninja_symlink_rule():
-    # Rule
-    l_string = ["rule build_symlink"]
-    l_string += ["   command =  ln -sf $in $out"]
-    l_string += [""]
+    """
+    Return the command to create for the symlink
+    """
+    l_string = ["rule build_symlink",
+                "   command =  ln -sf $in $out",
+                ""]
 
     return l_string
 
 
-def ninja_symlink_build(l_source, l_destination, path_module):
-    # Rule
+def ninja_symlink_build(path_module, l_symlink):
+    """
+    Create the symlink
+    and the l_symlink who are all the symlink list
+    """
 
-    if not l_destination:
+    if not l_symlink:
         return []
 
-    l_string = []
-    for source, destination in zip(l_source, l_destination):
-        l_string += ["build {0}: build_symlink {1}".format(destination,
-                                                           source)]
-        l_string += [""]
+    l_string = ["build l_symlink_{0} : phony {1}".format(path_module.rel, " ".join([s.destination for s in l_symlink])),
+                ""]
 
-    out = "l_symlink_{0}".format(path_module.rel)
-    dep = " ".join(l_destination)
-
-    l_string += ["build {0} : phony {1}".format(out, dep)]
-    l_string += [""]
+    for symlink in l_symlink:
+        l_string += ["build {0}: build_symlink {1}".format(symlink.destination, symlink.source),
+                     ""]
 
     return l_string
 
@@ -283,40 +296,41 @@ def ninja_symlink_build(l_source, l_destination, path_module):
 # o ._ ._ _|_ (_| / \   ._ _   _. |   _
 # | |  |_) |    | \_/ o | | | (_| |< (/_
 #      |
-def dict_needed_modules(l_module_to_compile):
-
-    d = dict()
-    for module_rel in l_module_to_compile:
-        module_abs = join(qpackage_root_src, module_rel)
-
-        d[Path(module_abs, module_rel)] = [Path(join(qpackage_root_src, m_children), m_children) for m_children in  module_genealogy(module_rel)]
-
-    return d
+def get_l_irp_for_module(path_module_abs):
+    '''
+    return the list of irp.f in a module
+    '''
+    dump = []
+    for file in os.listdir(path_module_abs):
+        if file.endswith(".irp.f"):
+            dump.append(join(path_module_abs, file))
+        if file == "EZFIO.cfg":
+            dump.append(join(path_module_abs, "ezfio_interface.irp.f"))
+    return dump
 
 
 def get_irp_dependancy(d_info_module):
-    l_all_module = [m for m in d_info_module.keys()]
-
-    for l_m_children in d_info_module.values():
-        for m_children in l_m_children:
-            if m_children not in l_all_module:
-                l_all_module.append(m_children)
-
+    """
+    For a module return all the irp.f90 file who depend
+    """
     d_irp = dict()
-    for module in l_all_module:
-        d_irp[module] = get_l_irp_for_module(module.abs)
+    for module, l_children in d_info_module.iteritems():
+
+        dump = get_l_irp_for_module(module.abs)
+        for children in l_children:
+            dump.extend(get_l_irp_for_module(children.abs))
+
+        d_irp[module] = dump
 
     return d_irp
 
 
 def ninja_irpf90_make_rule():
-    # Rule
-    l_string = ["pool irp_pool"]
-    l_string += ["   depth = 1"]
-    l_string += [""]
-
-    l_string += ["rule build_irpf90.make"]
-
+    """
+    The rule for creating the irpf90.make
+    Export the flag and compile
+    Only secontial make a possible
+    """
     l_flag = []
     for flag in ["FC", "FCFLAGS", "LIB", "SRC", "OBJ"]:
         str_ = "export {0}='${0}'".format(flag)
@@ -324,176 +338,87 @@ def ninja_irpf90_make_rule():
 
     l_cmd = ["cd $module"] + l_flag + ["irpf90 $include_dir $IRPF90_FLAGS"]
 
-    l_string += ["   command = {0}".format(" ; ".join(l_cmd))]
-    l_string += ["   pool = irp_pool"]
-    l_string += [""]
+    l_string = ["pool irp_pool",
+                "   depth = 1",
+                "",
+                "rule build_irpf90.ninja",
+                "   command = {0}".format(" ; ".join(l_cmd)),
+                "   pool = irp_pool",
+                "   generator = 1",
+                "   description = Create the irp tree for $module"
+                ""]
 
     return l_string
 
 
-def ninja_irpf90_make_build(l_all_needed_molule,
-                            path_module,
+def ninja_irpf90_make_build(path_module,
+                            l_needed_molule,
                             d_irp):
+    """
+    Creatre the dependancy for a irpf90.make
+    We need all the symklink and all the irp.f
+    """
+    # ~#~#~#~#~#~ #
+    # O u t p u t #
+    # ~#~#~#~#~#~ #
 
-    l_creation = [join(path_module.abs,i) for i in ["irpf90.make",
-                                                    "irpf90_entities",
-                                                    "tags"]]
+    l_creation = [join(path_module.abs, i) for i in ["irpf90.make",
+                                                     "irpf90_entities",
+                                                     "tags",
+                                                     "IRPF90_temp/build.ninja"]]
     str_creation = " ".join(l_creation)
 
-    l_irp_need = []
-    for module in [path_module] + l_all_needed_molule:
-        l_irp_need.extend(d_irp[module])
+    # ~#~#~#~#~#~#~#~#~#~ #
+    # D e p e n d a n c y #
+    # ~#~#~#~#~#~#~#~#~#~ #
 
-    str_l_irp_need = " ".join(l_irp_need)
+    l_irp_need = d_irp[path_module]
 
-    if l_all_needed_molule:
-        str_l_destination = "l_symlink_{0}".format(path_module.rel)
+    l_destination = ["l_symlink_{0}".format(path_module.rel)] if l_needed_molule else []
+    str_depend = " ".join(l_irp_need + l_destination)
 
-        str_depend = "{0} {1}".format(str_l_irp_need,
-                                      str_l_destination)
-    else:
-        str_depend = "{0}".format(str_l_irp_need)
+    # ~#~#~#~#~#~#~#~#~#~#~ #
+    # N i n j a _ b u i l d #
+    # ~#~#~#~#~#~#~#~#~#~#~ #
 
-    # Build
-
-    l_string = ["build {0}: build_irpf90.make {1}".format(str_creation,
-                                                          str_depend)]
-
-    l_string += ["   module = {0}".format(path_module.abs)]
-
-    # Env
     l_src, l_obj = file_dependancy(path_module.rel)
+    l_include_dir = ["-I {0}".format(m.rel) for m in l_needed_molule]
 
-    str_src = " ".join(l_src)
-    str_obj = " ".join(l_obj)
-    l_string += ["   SRC = {0}".format(str_src)]
-    l_string += ["   OBJ = {0}".format(str_obj)]
-
-    # Option
-    str_include_dir = " ".join(["-I {0}".format(m.rel) for m in l_all_needed_molule])
-
-    l_string += ["   include_dir = {0}".format(str_include_dir)]
-    l_string += [""]
+    l_string = ["build {0}: build_irpf90.ninja {1}".format(str_creation, str_depend),
+                "   module = {0}".format(path_module.abs),
+                "   SRC = {0}".format(" ".join(l_src)),
+                "   OBJ = {0}".format(" ".join(l_obj)),
+                "   include_dir = {0}".format(" ".join(l_include_dir)),
+                ""]
 
     return l_string
 
 
 def ninja_readme_rule():
-
-    l_string = ["rule build_readme"]
-    l_string += ["   command = cd $module ; update_README.py"]
-    # Trick to not remove the update_README when cleaning
-    l_string += ["   generator = 1"]
-    l_string += [""]
+    """
+    Rule for creation the readme.
+    For not dealted the readme when ninja -t clean and the generator option
+    """
+    l_string = ["rule build_readme",
+                "   command = cd $module ; update_README.py",
+                "   generator = 1",
+                ""]
 
     return l_string
 
 
 def ninja_readme_build(path_module):
-
-    path_irpf90_make = join(path_module.abs, "irpf90.make")
+    """
+    Rule for creation the readme
+    """
+    path_irp_man = join(path_module.abs, "IRPF90_man")
     path_readme = join(path_module.abs, "README.rst")
 
     l_string = ["build {0}: build_readme {1}".format(path_readme,
-                                                     path_irpf90_make)]
+                                                     path_irp_man)]
 
     l_string += ["   module = {0}".format(path_module.abs)]
     l_string += [""]
-
-    return l_string
-
-
-#  _
-# / \  _  _. ._ _  |
-# \_/ (_ (_| | | | |
-
-def get_qp_file():
-    qp_edit = join(qpackage_root_ocaml, "qp_edit.ml")
-    l = glob.glob(join(qpackage_root_ocaml, "qp_*.ml"))
-
-    if qp_edit not in l:
-        l.append(qp_edit)
-    return l
-
-
-def get_ml_file(l_util, l_qp):
-    """
-    Get all the ml file
-    Remove the binary
-    """
-    ezfio_ml = join(qpackage_root_ocaml, "ezfio.ml")
-
-    l_ml_auto_generated = [i.ez_ocaml.abs for i in l_util.itervalues() if i.ez_ocaml] + [ezfio_ml]
-
-    # .ml present
-    l_ml_present = glob.glob("{0}/*.ml".format(qpackage_root_ocaml))
-    l_ml = list(set(l_ml_present + l_ml_auto_generated))
-
-    # Return all the .ml who are not ocaml_binary
-    return [ml for ml in l_ml if ml not in l_qp]
-
-
-def ninja_ocaml_rule():
-    # Rule
-    cmd = "   command = cd {0} ; make -j 1 $native && touch $native && ln -sf $native $binary"
-
-    l_string = ["rule build_ocaml"]
-    l_string += [cmd.format(qpackage_root_ocaml)]
-    l_string += [""]
-
-    l_string += ["rule cp_input.ml"]
-    l_string += ["   command = cp $in $out"]
-    l_string += [""]
-
-    l_string += ["rule build_qp_edit.ml"]
-    l_string += ["   command =  ei_handler.py ocaml_global"]
-    l_string += [""]
-
-    return l_string
-
-
-def ninja_ml_build(l_util):
-
-    # Build rule for ezfio.ml
-    source = join(qpackage_root_ezfio, "Ocaml", "ezfio.ml")
-    ezfio_ml = join(qpackage_root_ocaml, "ezfio.ml")
-
-    l_string = ["build {0}: cp_input.ml {1}".format(ezfio_ml, source)]
-    l_string += [""]
-
-    # Build rule for for qp_edit and Input_auto_generated
-    ocaml_ml = [join(qpackage_root_ocaml, i) for i in ["qp_edit.ml",
-                                                       "Input_auto_generated.ml"]]
-    ocaml_ml_str = " ".join(ocaml_ml)
-
-    # Depend de tout qp_edti_templates
-    qp_edit_template = join(qpackage_root, "scripts", "ezfio_interface", "qp_edit_template")
-    # Et de tout les .ml
-    l_all_ml = [i.ez_ocaml.abs for i in l_util.itervalues() if i.ez_ocaml]
-    l_depend = l_all_ml + [qp_edit_template]
-    # Et des ezfio.ml
-
-    depend_str = " ".join(l_depend)
-    l_string += ["build {0}: build_qp_edit.ml {1}".format(ocaml_ml_str, depend_str)]
-    return l_string
-
-
-def ninja_ocaml_build(l_bin_ml, l_ml):
-
-    # Rule
-
-    ezfio_ml = join(qpackage_root_ocaml, "ezfio.ml")
-#    exc = join(qpackage_root, "data", "executables")
-
-    str_depend = " ".join(l_ml + l_bin_ml + [ezfio_ml])
-
-    l_string = [""]
-    for bin_ in [i.replace(".ml", ".native") for i in l_bin_ml]:
-        binary_name = os.path.split(bin_)[1]
-        l_string += ["build {0}: build_ocaml {1} ".format(bin_, str_depend)]
-        l_string += ["   native = {0}".format(binary_name)]
-        l_string += ["   binary = {0}".format(binary_name.replace(".native", ""))]
-        l_string += [""]
 
     return l_string
 
@@ -503,6 +428,9 @@ def ninja_ocaml_build(l_bin_ml, l_ml):
 # |_) | | | (_| | \/
 #                 /
 def get_program(path_module):
+    """
+    Return the list of binary (Path= namedtuple('Path', ['abs', 'rel']) for a module
+    """
     import subprocess
 
     try:
@@ -512,63 +440,87 @@ def get_program(path_module):
     except OSError:
         return []
     else:
-        if "No such file or directory" not in stdout:
-            return [os.path.basename(f).split(".")[0] for f in stdout.split()]
+        if not stdout:
+            return []
+        elif "No such file or directory" not in stdout:
+            l_bin = [i.replace(".irp.f", "", 1) for i in stdout.split()]
+            return [Path(bin_, os.path.basename(bin_)) for bin_ in l_bin]
         else:
             return []
 
 
+def get_dict_binary(mode="development"):
+    """
+    Return a dict [module] = list_binary
+    If a the production mode is enable only header module will produce binary
+
+    Example : The module Full_CI can produce the binary SCF
+    so you dont need to use at all the module Hartree-Fock
+    """
+
+    from collections import defaultdict
+
+    d_binary = defaultdict(list)
+
+    # Create d_binary
+    # Ake module => binary generated
+    for module in d_genealogy_path.keys():
+        l_binary = get_program(module)
+
+        if l_binary:
+            d_binary[module] += l_binary
+
+    if mode == "production":
+
+        dict_boss = get_dict_module_boss()
+        dict_boss_path = dict_module_genelogy_path(dict_boss)
+
+        d_binary_condensed = defaultdict(list)
+        for module in d_binary:
+            d_binary_condensed[dict_boss_path[module]] += d_binary[module]
+
+        d_binary = d_binary_condensed
+
+    return d_binary
+
+
 def ninja_binary_rule():
+    """
+    Rule for creating the binary
+    """
 
-    l_cmd = ["cd $module", "make -f irpf90.make"]
+    l_cmd = ["cd $module/IRPF90_temp", "ninja -j 1 "]
 
-    l_string = ["rule build_binary"]
-    l_string += ["   command = {0}".format(" ; ".join(l_cmd))]
-    l_string += [""]
-
-    return l_string
-
-
-def ninja_binary_build(l_bin, path_module, l_children):
-
-    if not l_bin:
-        return []
-
-    # Build
-    irpf90mk_path = join(path_module.abs, "irpf90.make")
-
-    l_abs_bin = [join(path_module.abs, binary) for binary in l_bin]
-    str_l_abs_bin = " ".join(l_abs_bin)
-
-    l_string = ["build {0}: build_binary {1} {2}".format(str_l_abs_bin,
-                                                         ezfio_lib,
-                                                         irpf90mk_path)]
-
-    l_string += ["   module = {0}".format(path_module.abs)]
-
-    l_string += ["build build_all_binary_{0}: phony {1}".format(path_module.rel,
-                                                                str_l_abs_bin)]
-    l_string += [""]
+    l_string = ["rule build_binary",
+                "   command = {0}".format(" ; ".join(l_cmd)),
+                "   description = Create all the binary from $module"
+                ""]
 
     return l_string
 
 
-def ninja_build_executable_list(l_module):
-    l_build_name = ["build_all_binary_{0}".format(m) for m in l_module]
-    str_l_build_name = " ".join(l_build_name)
+def ninja_binary_build(path_module, l_children, d_binary):
+    """
+    The binary need the EZFIO_LIB, and the irpf90.make (aka build.ninja)
+    """
+    ninja_module_path = join(path_module.abs, "IRPF90_temp", "build.ninja")
 
-    exc = join(qpackage_root, "data", "executables")
+    l_abs_bin = [binary.abs for binary in d_binary[path_module]]
+    l_rel_bin = [binary.rel for binary in d_binary[path_module]]
 
-    l_string = ["rule build_executables_list"]
-    l_string += ["   command = create_executables_list.sh"]
-    l_string += [""]
-
-    l_string += ["build {0}: build_executables_list {1}".format(exc, str_l_build_name)]
-    l_string += [""]
+    l_string = ["build {0}: build_binary {1} {2}".format(" ".join(l_abs_bin),
+                                                         EZFIO_LIB,
+                                                         ninja_module_path),
+                "   module = {0}".format(path_module.abs),
+                ""]
 
     return l_string
+
 
 if __name__ == "__main__":
+
+    arguments = docopt(__doc__)
+    pwd_config_file = arguments["CONFIG_FILE"]
 
     #  _
     # |_ ._           _. ._ o  _. |_  |  _   _
@@ -594,8 +546,6 @@ if __name__ == "__main__":
     l_string += ninja_ezfio_config_rule()
     l_string += ninja_ezfio_rule()
 
-#    l_string += ninja_ocaml_rule()
-
     #  _
     # |_)     o |  _|    _   _  ._   _  ._ _. |
     # |_) |_| | | (_|   (_| (/_ | | (/_ | (_| |
@@ -608,40 +558,55 @@ if __name__ == "__main__":
     l_string += ninja_ezfio_config_build(l_ezfio_config)
     l_string += ninja_ezfio_build(l_ezfio_config, l_util)
 
-#    l_qp = get_qp_file()
-#    l_ml = get_ml_file(l_util, l_qp)
-#    l_string += ninja_ml_build(l_util)
-#    l_string += ninja_ocaml_build(l_qp, l_ml)
-
     #  _                  _
     # |_)     o |  _|   _|_ _  ._   ._ _   _   _|     |  _
     # |_) |_| | | (_|    | (_) |    | | | (_) (_| |_| | (/_
     #
     #
-    with open(join(qpackage_root_src, "NEEDED_MODULES"), "r") as f:
-        l_module_to_compile = f.read().split()
 
-    d_info_module = dict_needed_modules(l_module_to_compile)
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # G e n e a l o g y _ d i c t #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
-    d_irp = get_irp_dependancy(d_info_module)
+    d_genealogy = get_dict_genealogy_desc()
+    d_genealogy_path = dict_module_genelogy_path(d_genealogy)
+    d_irp = get_irp_dependancy(d_genealogy_path)
 
-    l_module_with_binary = []
-    for module, l_children in d_info_module.iteritems():
+    d_binary_production = get_dict_binary("production")
+    d_binary_development = get_dict_binary("development")
 
-        l_source, l_destination = get_source_destination(l_children, module)
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # M o d u l e _ t o _ i r p #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
-        # irpf90.make
-        l_string += ninja_symlink_build(l_source, l_destination, module)
+    if arguments["--production"]:
+        l_module_to_irp = d_binary_production.keys()
 
-        l_string += ninja_irpf90_make_build(l_children, module, d_irp)
-        l_string += ninja_readme_build(module)
+    elif arguments["--development"]:
+        l_module_to_irp = d_binary_development.keys()
 
-        # ninja_binary
-        l_binary = get_program(module)
-        l_string += ninja_binary_build(l_binary, module, l_children)
-        if l_binary:
-            l_module_with_binary.append(module.rel)
+    for module_to_compile in l_module_to_irp:
 
-    l_string += ninja_build_executable_list(l_module_with_binary)
+        # ~#~#~#~#~#~#~#~ #
+        #  S y m l i n k  #
+        # ~#~#~#~#~#~#~#~ #
+        l_children = d_genealogy_path[module_to_compile]
+        l_symlink = get_source_destination(module_to_compile, l_children)
+
+        l_string += ninja_symlink_build(module_to_compile, l_symlink)
+
+        # ~#~#~#~#~#~#~#~ #
+        #  i r p . f 9 0  #
+        # ~#~#~#~#~#~#~#~ #
+        l_string += ninja_irpf90_make_build(module_to_compile, l_children, d_irp)
+
+    # ~#~#~#~#~#~#~ #
+    #  b i n a r y  #
+    # ~#~#~#~#~#~#~ #
+
+    for module_to_compile in d_binary_production.keys():
+
+        l_string += ninja_binary_build(module_to_compile, l_children, d_binary_production)
+        l_string += ninja_readme_build(module_to_compile)
 
     print "\n".join(l_string)
