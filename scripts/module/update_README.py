@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-
 """Updates the README.rst file as the include directive is disabled on GitHub."""
 __date__ = "Thu Apr  3 23:06:18 CEST 2014"
 __author__ = "Anthony Scemama<scemama@irsamc.ups-tlse.fr>  & TApplencourt "
-
 
 README = "README.rst"
 Assum_key = "Assumptions\n===========\n"
@@ -145,8 +143,8 @@ def update_documentation(data):
         tracked_files = []
     for filename in tracked_files:
         if filename.endswith('.irp.f'):
-                    # Search for providers, subroutines and functions in each file using
-                    # the tags file
+            # Search for providers, subroutines and functions in each file using
+            # the tags file
             search = "\t" + filename + "\t"
             tmp = filter(lambda line: search in line, tags)
 
@@ -209,6 +207,7 @@ def main():
         git_add()
     except OSError:
         pass
+
 
 if __name__ == '__main__':
     main()

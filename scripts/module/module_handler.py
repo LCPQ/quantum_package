@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 Create the NEEDED_MODULE
     aka the genealogy (children module, subchildren module and so on),
@@ -56,12 +55,14 @@ def get_dict_genealogy():
     for o in os.listdir(dir_):
 
         try:
-            with open(os.path.join(dir_, o, "NEEDED_CHILDREN_MODULES"), "r") as f:
+            path_file = os.path.join(dir_, o, "NEEDED_CHILDREN_MODULES")
+            with open(path_file, "r") as f:
                 l_children = f.read().split()
         except IOError:
             continue
 
         try:
+            path_file = os.path.join(dir_, o, "Makefile")
             with open(os.path.join(dir_, o, "Makefile"), "r") as f:
                 data = f.readlines()
                 l_depend = Dependency(get_list_from_makefile(data, "SRC="),
@@ -86,7 +87,7 @@ def him_and_all_children(d_ref, l_module):
             try:
                 l.extend(him_and_all_children(d_ref, d_ref[module].l_children))
             except KeyError:
-                print >> sys.stderr, "`{0}` in not a good submodule name".format(module)
+                print >> sys.stderr, "`{0}` not submodule".format(module)
                 print >> sys.stderr, "Check the corresponding NEEDED_CHILDREN_MODULES"
                 sys.exit(1)
 
@@ -102,7 +103,8 @@ def get_dict_genealogy_desc():
     d = {}
 
     for module_name in d_ref:
-        d[module_name] = him_and_all_children(d_ref, d_ref[module_name].l_children)
+        d[module_name] = him_and_all_children(d_ref,
+                                              d_ref[module_name].l_children)
 
     return d
 
@@ -116,7 +118,8 @@ def get_dict_parent():
     d = {}
 
     for module_name in d_ref:
-        d[module_name] = [i for i in d_ref.keys() if module_name in d_ref[i].l_children]
+        d[module_name] = [i for i in d_ref.keys()
+                          if module_name in d_ref[i].l_children]
 
     return d
 
@@ -135,7 +138,10 @@ def get_dict_module_boss():
     d_module_boss = {}
 
     for module in l_all_module:
-        d_module_boss[module] = [p for p in l_all_module if module in [p] + d_ref_desc[p] and not d_ref_asc[p]][0]
+        d_module_boss[module] = [
+            p for p in l_all_module
+            if module in [p] + d_ref_desc[p] and not d_ref_asc[p]
+        ][0]
 
     return d_module_boss
 
@@ -155,11 +161,13 @@ def file_dependency(module_name):
     d_ref = get_dict_genealogy()
     l_src, l_obj = d_ref[module_name].l_dependency
 
-    l_children_module = him_and_all_children(d_ref, d_ref[module_name].l_children)
+    l_children_module = him_and_all_children(d_ref,
+                                             d_ref[module_name].l_children)
     for module in l_children_module:
         l_src_dump, l_obj_dump = d_ref[module].l_dependency
         l_src.extend("{0}/{1}".format(module, i) for i in l_src_dump)
-        l_obj.extend("IRPF90_temp/{0}/{1}".format(module, os.path.basename(i)) for i in l_obj_dump)
+        l_obj.extend("IRPF90_temp/{0}/{1}".format(module, os.path.basename(i))
+                     for i in l_obj_dump)
 
     return Dependency(l_src, l_obj)
 
@@ -196,6 +204,7 @@ def create_png(l_module):
     # Save
     path = '{0}.png'.format("tree_dependency")
     graph.write_png(path)
+
 
 if __name__ == '__main__':
 
