@@ -51,5 +51,7 @@ then
     ${EMSL_API_ROOT}/EMSL_api.py get_basis_data --treat_l --save --path="${tmpfile}" --basis="${basis}"
 else
     ${EMSL_API_ROOT}/EMSL_api.py get_basis_data --save --path="${tmpfile}" --basis="${basis}" --db_path="${EMSL_API_ROOT}/db/Pseudo.db"
+#    echo ${EMSL_API_ROOT}/EMSL_api.py get_basis_data --save --path="${tmpfile}" --basis="${basis}" --db_path="${EMSL_API_ROOT}/db/Pseudo.db" 1>&2
+#    echo $PWD/BASIS
 fi
 
