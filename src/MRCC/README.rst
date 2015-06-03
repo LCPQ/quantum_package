@@ -20,6 +20,51 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
+`davidson_diag_hjj_mrcc <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/davidson.irp.f#L51>`_
+  Davidson diagonalization with specific diagonal elements of the H matrix
+  .br
+  H_jj : specific diagonal H matrix elements to diagonalize de Davidson
+  .br
+  dets_in : bitmasks corresponding to determinants
+  .br
+  u_in : guess coefficients on the various states. Overwritten
+  on exit
+  .br
+  dim_in : leftmost dimension of u_in
+  .br
+  sze : Number of determinants
+  .br
+  N_st : Number of eigenstates
+  .br
+  iunit : Unit for the I/O
+  .br
+  Initial guess vectors are not necessarily orthonormal
+
+`davidson_diag_mrcc <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/davidson.irp.f#L1>`_
+  Davidson diagonalization.
+  .br
+  dets_in : bitmasks corresponding to determinants
+  .br
+  u_in : guess coefficients on the various states. Overwritten
+  on exit
+  .br
+  dim_in : leftmost dimension of u_in
+  .br
+  sze : Number of determinants
+  .br
+  N_st : Number of eigenstates
+  .br
+  iunit : Unit number for the I/O
+  .br
+  Initial guess vectors are not necessarily orthonormal
+
+`h_u_0_mrcc <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/davidson.irp.f#L355>`_
+  Computes v_0 = H|u_0>
+  .br
+  n : number of determinants
+  .br
+  H_jj : array of <j|H|j>
+
 `mrcc <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc.irp.f#L1>`_
   Undocumented
 
@@ -53,7 +98,7 @@ Documentation
 `ci_electronic_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L78>`_
   Eigenvectors/values of the CI matrix
 
-`ci_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L144>`_
+`ci_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L145>`_
   N_states lowest eigenvalues of the dressed CI matrix
 
 `delta_ij <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L43>`_
@@ -62,7 +107,7 @@ Documentation
 `delta_ij_non_cas <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L34>`_
   Dressing matrix in SD basis
 
-`diagonalize_ci_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L159>`_
+`diagonalize_ci_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L160>`_
   Replace the coefficients of the CI states by the coefficients of the
   eigenstates of the CI matrix
 

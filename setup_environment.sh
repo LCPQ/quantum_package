@@ -29,7 +29,7 @@ EOF
 
 
 source quantum_package.rc
-
+mkdir -p install_logs
 echo "${BLUE}===== Installing IRPF90 ===== ${BLACK}"
 ${QPACKAGE_ROOT}/scripts/install/install_irpf90.sh     | tee ${QPACKAGE_ROOT}/install_logs/install_irpf90.log
 if [[ ! -d ${QPACKAGE_ROOT}/irpf90 ]]  ||  [[ ! -x ${QPACKAGE_ROOT}/bin/irpf90 ]] ||  [[ ! -x ${QPACKAGE_ROOT}/bin/irpman ]]

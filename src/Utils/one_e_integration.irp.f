@@ -34,7 +34,7 @@ end
 
 subroutine overlap_A_B_C(dim,alpha,beta,gama,a,b,A_center,B_center,Nucl_center,overlap)
  implicit none
-  include 'constants.F'
+  include 'include/constants.F'
  integer, intent(in)            :: dim                                                             
  integer, intent(in)            :: a(3),b(3)         ! powers : (x-xa)**a_x = (x-A(1))**a(1)
  double precision, intent(in)   :: alpha, beta, gama ! exponents
@@ -131,13 +131,13 @@ subroutine overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,&
   integer                        :: iorder_p(3)
   
   call give_explicit_poly_and_gaussian(P_new,P_center,p,fact_p,iorder_p,alpha,beta,power_A,power_B,A_center,B_center,dim)
-  if(fact_p.lt.1d-10)then
-    overlap_x = 0.d0
-    overlap_y = 0.d0
-    overlap_z = 0.d0
-    overlap = 0.d0
-    return
-  endif
+!  if(fact_p.lt.1d-20)then
+!    overlap_x = 0.d0
+!    overlap_y = 0.d0
+!    overlap_z = 0.d0
+!    overlap = 0.d0
+!    return
+!  endif
   integer                        :: nmax
   double precision               :: F_integral
   nmax = maxval(iorder_p)

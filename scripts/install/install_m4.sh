@@ -16,6 +16,7 @@ fi
 
 cd ${QPACKAGE_ROOT}
 
+rm -f l${QPACKAGE_ROOT}/bin/m4
 if [[ -z ${M4} ]] 
 then 
     rm -f -- bin/m4

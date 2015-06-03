@@ -14,7 +14,7 @@ let spec =
   +> flag "m" (optional_with_default 1 int)
      ~doc:"int Spin multiplicity (2S+1) of the molecule. Default is 1."
   +> flag "p" no_arg
-     ~doc:"Using pseudo."
+     ~doc:"Using pseudopotentials"
   +> anon ("xyz_file" %: string)
 ;;
 

@@ -5,6 +5,8 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral, (ao_num_align,ao_num)]
   END_DOC
   if (do_pseudo) then
     ao_pseudo_integral = ao_pseudo_integral_local + ao_pseudo_integral_non_local 
+!    ao_pseudo_integral = ao_pseudo_integral_local 
+!    ao_pseudo_integral = ao_pseudo_integral_non_local 
   else
     ao_pseudo_integral = 0.d0
   endif
@@ -219,5 +221,6 @@ END_PROVIDER
 
 
  END_PROVIDER
+
 
 

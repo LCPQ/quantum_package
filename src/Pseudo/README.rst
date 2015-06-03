@@ -18,5 +18,9 @@ Needed Modules
 
 .. image:: tree_dependancy.png
 
+<<<<<<< HEAD
+=======
+* `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
+>>>>>>> LCPQ-master
 * `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
 

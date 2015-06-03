@@ -532,12 +532,6 @@ Documentation
 `save_casino <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_for_casino.irp.f#L1>`_
   Undocumented
 
-`save_dets_qmcchem <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_for_qmcchem.irp.f#L1>`_
-  Undocumented
-
-`save_for_qmc <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_for_qmcchem.irp.f#L46>`_
-  Undocumented
-
 `save_natorb <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_natorb.irp.f#L1>`_
   Undocumented
 

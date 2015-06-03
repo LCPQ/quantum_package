@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Installs m4 for ocaml
-# Thu Oct 23 22:02:08 CEST 2014
+# Installs the ninja build system
+# Thu May 28 13:21:16 CEST 2015
 
 BASE="ninja"
 URL="https://github.com/martine/ninja/archive/master.tar.gz"
@@ -21,5 +21,3 @@ rm -rf ${BASE}
 mv ${BASE}-master ${BASE}
 cd ${BASE}
 ./configure.py --bootstrap
-
-

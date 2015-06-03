@@ -6,7 +6,7 @@ subroutine give_explicit_poly_and_gaussian_x(P_new,P_center,p,fact_k,iorder,alph
   !        fact_k  (x-x_P)^iorder(1)  (y-y_P)^iorder(2)  (z-z_P)^iorder(3) exp(-p(r-P)^2)
   END_DOC
   implicit none
-  include 'constants.F'
+  include 'include/constants.F'
   integer, intent(in)            :: dim
   integer, intent(in)            :: a,b               ! powers : (x-xa)**a_x = (x-A(1))**a(1)
   double precision, intent(in)   :: alpha, beta       ! exponents
@@ -53,7 +53,7 @@ subroutine give_explicit_poly_and_gaussian(P_new,P_center,p,fact_k,iorder,alpha,
   !               * [ sum (l_z = 0,i_order(3)) P_new(l_z,3) * (z-P_center(3))^l_z ] exp (- p (z-P_center(3))^2 )
   END_DOC
   implicit none
-  include 'constants.F'
+  include 'include/constants.F'
   integer, intent(in)            :: dim
   integer, intent(in)            :: a(3),b(3)         ! powers : (x-xa)**a_x = (x-A(1))**a(1)
   double precision, intent(in)   :: alpha, beta       ! exponents
@@ -131,7 +131,7 @@ subroutine give_explicit_poly_and_gaussian_double(P_new,P_center,p,fact_k,iorder
   !               * [ sum (l_z = 0,i_order(3)) P_new(l_z,3) * (z-P_center(3))^l_z ] exp (- p (z-P_center(3))^2 )
   END_DOC
   implicit none
-  include 'constants.F'
+  include 'include/constants.F'
   integer, intent(in)            :: dim
   integer, intent(in)            :: a(3),b(3)         ! powers : (x-xa)**a_x = (x-A(1))**a(1)
   double precision, intent(in)   :: alpha, beta, gama ! exponents
