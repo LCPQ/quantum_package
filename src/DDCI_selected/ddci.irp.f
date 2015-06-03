@@ -49,7 +49,7 @@ program full_ci
     print *,  'E        = ', CI_energy
     print *,  'E+PT2    = ', CI_energy+pt2
     print *,  '-----'
-    call ezfio_set_full_ci_energy(CI_energy)
+    call ezfio_set_ddci_selected_energy(CI_energy)
     if (abort_all) then
       exit
     endif
