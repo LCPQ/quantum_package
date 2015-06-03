@@ -6,7 +6,7 @@ Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
 `ao_pseudo_grid <http://github.com/LCPQ/quantum_package/tree/master/src/QmcChem/pot_ao_pseudo_ints.irp.f#L225>`_
   Grid points for f(|r-r_A|) = \int Y_{lm}^{C} (|r-r_C|, \Omega_C) \chi_i^{A} (r-r_A) d\Omega_C
@@ -47,9 +47,9 @@ Needed Modules
 ==============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
+.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
 
-.. image:: tree_dependancy.png
+.. image:: tree_dependency.png
 
 * `Determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants>`_
 * `DensityFit <http://github.com/LCPQ/quantum_package/tree/master/src/DensityFit>`_

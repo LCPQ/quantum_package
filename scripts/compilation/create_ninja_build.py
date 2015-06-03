@@ -245,7 +245,10 @@ def ninja_ezfio_build(l_ezfio_config, l_util):
 
     str_ = " ".join(l_ezfio_config + l_ezfio_from_cfg)
 
-    l_string = ["build {0}: build_ezfio {1}".format(EZFIO_LIB, str_), ""]
+    ezfio_make_config = join(QPACKAGE_ROOT_EZFIO,"make.config")
+    l_string = ["build {0} {1}: build_ezfio {2}".format(EZFIO_LIB,
+                                                        ezfio_make_config,
+                                                        str_), ""]
 
     return l_string
 
@@ -670,5 +673,5 @@ if __name__ == "__main__":
                                          d_binaries_production)
         l_string += ninja_readme_build(module_to_compile)
 
-    with open(join(QPACKAGE_ROOT, "build.ninja"), "w+") as f:
-        f.write("\n".join(l_string))
+     with open(join(QPACKAGE_ROOT, "build.ninja"), "w+") as f:
+         f.write("\n".join(l_string))

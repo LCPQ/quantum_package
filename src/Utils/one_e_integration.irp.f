@@ -34,7 +34,7 @@ end
 
 subroutine overlap_A_B_C(dim,alpha,beta,gama,a,b,A_center,B_center,Nucl_center,overlap)
  implicit none
-  include 'include/constants.F'
+  include 'constants.F'
  integer, intent(in)            :: dim                                                             
  integer, intent(in)            :: a(3),b(3)         ! powers : (x-xa)**a_x = (x-A(1))**a(1)
  double precision, intent(in)   :: alpha, beta, gama ! exponents
