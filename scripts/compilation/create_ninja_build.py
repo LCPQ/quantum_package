@@ -9,9 +9,9 @@ import sys
 import glob
 from os.path import join
 from collections import namedtuple
+from collections import defaultdict
 
 try:
-    from module_handler import file_dependency
     from module_handler import get_dict_module_boss, get_dict_genealogy_desc
     from read_compilation_cfg import get_compilation_option
     from docopt import docopt
@@ -296,32 +296,55 @@ def ninja_symlink_build(path_module, l_symlink):
 # o ._ ._ _|_ (_| / \   ._ _   _. |   _
 # | |  |_) |    | \_/ o | | | (_| |< (/_
 #      |
-def get_l_irp_for_module(path_module_abs):
+def get_l_file_for_module(path_module_abs):
     '''
     return the list of irp.f in a module
     '''
-    dump = []
+    l_irp = []
+    l_src = []
+    l_obj = []
+
+    l_template = []
 
     for f in os.listdir(path_module_abs):
-        if f.endswith(".irp.f"):
-            dump.append(join(path_module_abs, f))
-        if f == "EZFIO.cfg":
-            dump.append(join(path_module_abs, "ezfio_interface.irp.f"))
-    return dump
+        if f.endswith(".template.f"):
+            l_template.append(join(path_module_abs, f))
+        elif f.endswith(".irp.f"):
+            l_irp.append(join(path_module_abs, f))
+        elif any(f.endswith("{0}".format(i)) for i in [".f",
+                                                       ".f90",
+                                                       ".c",
+                                                       ".cpp",
+                                                       ".cxx"]):
+            l_src.append(join(path_module_abs, f))
+            obj = '{0}.o'.format(os.path.splitext(f)[0])
+            l_obj.append(join(path_module_abs, obj))
+        elif f == "EZFIO.cfg":
+            l_irp.append(join(path_module_abs, "ezfio_interface.irp.f"))
+
+    d = dict()
+    d["l_irp"] = l_irp
+    d["l_src"] = l_src
+    d["l_obj"] = l_obj
+    d["l_template"] = l_template
+
+    return d
 
 
-def get_irp_dependency(d_info_module):
+def get_file_dependency(d_info_module):
     """
     For a module return all the irp.f90 file who depend
     """
-    d_irp = dict()
+    d_irp = defaultdict(dict)
+
     for module, l_children in d_info_module.iteritems():
 
-        dump = get_l_irp_for_module(module.abs)
-        for children in l_children:
-            dump.extend(get_l_irp_for_module(children.abs))
+        for key, values in get_l_file_for_module(module.abs).iteritems():
+            d_irp[module][key] = values
 
-        d_irp[module] = dump
+        for children in l_children:
+            for key, values in get_l_file_for_module(children.abs).iteritems():
+                d_irp[module][key].extend(values)
 
     return d_irp
 
@@ -377,20 +400,22 @@ def ninja_irpf90_make_build(path_module, l_needed_molule, d_irp):
     # D e p e n d a n c y #
     # ~#~#~#~#~#~#~#~#~#~ #
 
-    l_irp_need = d_irp[path_module]
+    l_irp_need = d_irp[path_module]["l_irp"]
+    l_src = d_irp[path_module]["l_src"]
+    l_obj = d_irp[path_module]["l_obj"]
+    l_template = d_irp[path_module]["l_template"]
 
     if l_needed_molule:
         l_destination = ["l_symlink_{0}".format(path_module.rel)]
     else:
         l_destination = []
 
-    str_depend = " ".join(l_irp_need + l_destination)
+    str_depend = " ".join(l_irp_need + l_destination + l_src + l_template)
 
     # ~#~#~#~#~#~#~#~#~#~#~ #
     # N i n j a _ b u i l d #
     # ~#~#~#~#~#~#~#~#~#~#~ #
 
-    l_src, l_obj = file_dependency(path_module.rel)
     l_include_dir = ["-I {0}".format(m.rel) for m in l_needed_molule]
 
     l_string = [
@@ -467,9 +492,6 @@ def get_dict_binaries(mode="development"):
     Example : The module Full_CI can produce the binary SCF
     so you dont need to use at all the module Hartree-Fock
     """
-
-    from collections import defaultdict
-
     d_binaries = defaultdict(list)
 
     # Create d_binaries
@@ -628,7 +650,7 @@ if __name__ == "__main__":
 
     d_genealogy = get_dict_genealogy_desc()
     d_genealogy_path = dict_module_genelogy_path(d_genealogy)
-    d_irp = get_irp_dependency(d_genealogy_path)
+    d_irp = get_file_dependency(d_genealogy_path)
 
     d_binaries_production = get_dict_binaries("production")
     d_binaries_development = get_dict_binaries("development")
@@ -673,5 +695,5 @@ if __name__ == "__main__":
                                          d_binaries_production)
         l_string += ninja_readme_build(module_to_compile)
 
-     with open(join(QPACKAGE_ROOT, "build.ninja"), "w+") as f:
-         f.write("\n".join(l_string))
+    with open(join(QPACKAGE_ROOT, "build.ninja"), "w+") as f:
+        f.write("\n".join(l_string))
