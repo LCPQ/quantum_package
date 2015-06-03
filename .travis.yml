@@ -5,11 +5,9 @@ python:
     - "2.6"
 
 before_script:
-  - sudo add-apt-repository ppa.launchpad.net/avsm/ppa/ubuntu -y
   - sudo apt-get update -q
   - sudo apt-get install gfortran liblapack-dev gcc
   - sudo apt-get install graphviz
-  - sudo apt-get install ocaml opam
 
 script: 
   - ./setup_environment.sh --robot 
