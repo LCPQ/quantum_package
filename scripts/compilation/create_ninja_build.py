@@ -224,7 +224,7 @@ def ninja_ezfio_rule():
               for flag in ["FC", "FCFLAGS", "IRPF90"]]
 
     l_cmd = ["cd {0}".format(QPACKAGE_ROOT_EZFIO)
-             ] + l_flag + ["{0}/ninja/ninja".format(QPACKAGE_ROOT)]
+             ] + l_flag + ["ninja"]
 
     l_string = ["rule build_ezfio",
                 "   command = {0}".format(" ; ".join(l_cmd)),
