@@ -298,9 +298,10 @@ def get_l_irp_for_module(path_module_abs):
     return the list of irp.f in a module
     '''
     dump = []
+
     for f in os.listdir(path_module_abs):
         if f.endswith(".irp.f"):
-            dump.append(join(path_module_abs, file))
+            dump.append(join(path_module_abs, f))
         if f == "EZFIO.cfg":
             dump.append(join(path_module_abs, "ezfio_interface.irp.f"))
     return dump
