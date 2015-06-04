@@ -484,13 +484,14 @@ def get_program(path_module):
             return []
 
 
-def get_dict_binaries(mode):
+def get_dict_binaries(mode="production"):
     """
     Return a dict [module] = list_binaries
-    If a the production mode is enable only header module will produce binaries
+    If a the production mode is enable only header module
+    who will produce all binaries
 
     Example : The module Full_CI can produce the binary SCF
-    so you dont need to use at all the module Hartree-Fock
+    so you dont need to compile at all the module Hartree-Fock
     """
     d_binaries = defaultdict(list)
 
@@ -653,7 +654,6 @@ if __name__ == "__main__":
     d_irp = get_file_dependency(d_genealogy_path)
 
     d_binaries_production = get_dict_binaries(mode="production")
-    d_binaries_development = get_dict_binaries(mode="development")
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # M o d u l e _ t o _ i r p #
@@ -663,15 +663,7 @@ if __name__ == "__main__":
         l_module_to_irp = d_binaries_production.keys()
 
     elif arguments["--development"]:
-        l_module_to_irp = d_binaries_development.keys()
-
-    l_all_module = d_genealogy_path.keys()
-
-    for module in l_all_module:
-        # ~#~#~#~#~#~#~#~ #
-        # d o t _ t r e e #
-        # ~#~#~#~#~#~#~#~ #
-        l_string += ninja_dot_tree_build(module)
+        l_module_to_irp = d_genealogy_path.keys()
 
     for module_to_compile in l_module_to_irp:
 
@@ -688,6 +680,11 @@ if __name__ == "__main__":
         # ~#~#~#~#~#~#~#~ #
         l_string += ninja_irpf90_make_build(module_to_compile, l_children,
                                             d_irp)
+
+        # ~#~#~#~#~#~#~#~ #
+        # d o t _ t r e e #
+        # ~#~#~#~#~#~#~#~ #
+        l_string += ninja_dot_tree_build(module_to_compile)
 
     # ~#~#~#~#~#~#~ #
     #  b i n a r y  #

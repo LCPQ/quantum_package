@@ -8,18 +8,16 @@ Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
+.. by the `update_README.py` script.
 
 `fcidump <http://github.com/LCPQ/quantum_package/tree/master/src/FCIdump/fcidump.irp.f#L1>`_
   Undocumented
-
-
 
 Needed Modules
 ==============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
+.. by the `update_README.py` script.
 
 .. image:: tree_dependency.png
 

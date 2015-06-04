@@ -12,10 +12,11 @@ URL = "http://github.com/LCPQ/quantum_package/tree/master/src/"
 
 import os
 import subprocess
+from collections import namedtuple
 
 header = """
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
+.. by the `update_README.py` script.
 
 """
 
@@ -43,18 +44,19 @@ def fetch_splitted_data():
 
     return result
 
+
 def update_needed(data):
     """Read the NEEDED_CHILDREN_MODULES file, and replace the data with it.
     Create the links to the GitHub pages."""
 
-    file = open('NEEDED_CHILDREN_MODULES', 'r')
-    modules = file.read()
-    file.close()
+    with open('NEEDED_CHILDREN_MODULES', 'r') as f:
+        modules = f.read()
 
     header_image = ".. image:: tree_dependency.png\n\n"
 
-    if modules.strip() != "":
-        modules = ['* `%s <%s%s>`_' % (x, URL, x) for x in modules.split()]
+    if modules.strip():
+        modules = ['* `{0} <{1}>`_'.format(name, os.path.join(URL, name))
+                   for name in modules.split()]
         modules = "\n".join(modules)
         modules = Needed_key + header + header_image + modules + '\n\n'
 
@@ -70,71 +72,50 @@ def update_needed(data):
     return data
 
 
+def extract_doc(item):
+    """Extracts the documentation contained in IRPF90_man file"""
+
+    with open("IRPF90_man/%s.l" % (item), 'r') as f:
+        l_line = f.readlines()
+
+    result = []
+    inside = False
+    for line in l_line:
+        if not inside:
+            inside = line.startswith(".SH Description")
+        else:
+            if line.startswith(".SH"):
+                break
+            result.append("  {0}".format(line.strip()))
+
+    if not result:
+        result = ["  Undocumented"]
+
+    return "\n".join(result) + '\n'
+
+
 def update_documentation(data):
     """Reads the BEGIN_DOC ... END_DOC blocks and builds the documentation"""
 
+    IRP_info = namedtuple('IRP_info', ["name", "file", "line"])
+
     # If the file does not exist, don't do anything
-    try:
-        file = open('tags', 'r')
-    except:
-        return
-    tags = file.readlines()
-    file.close()
 
-    def extract_doc(item):
-        """Extracts the documentation contained in IRPF90_man file"""
-        file = open("IRPF90_man/%s.l" % (item), 'r')
-        lines = file.readlines()
-        file.close()
-        result = []
-        inside = False
-        for line in lines:
-            if not inside:
-                inside = line.startswith(".SH Description")
-            else:
-                if line.startswith(".SH"):
-                    break
-                result.append("  " + line.strip())
+    with open('tags', 'r') as f:
+        l_info = [IRP_info(*i.split()) for i in f.readlines()
+                  if "/" not in i.split()[1]]
 
-        if result == []:
-            result = ["  Undocumented"]
-        return "\n".join(result) + '\n'
+    l_line = []
+    module_name = os.path.basename(os.getcwd())
 
-    items = []
-    dirname = os.path.basename(os.getcwd())
-    command = "git ls-tree --full-tree --name-only HEAD:src/%s"
-    command = command % (dirname)
-    try:
-        if dirname != 'src':
-            p = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-            tracked_files = p.stdout.read()
-        else:
-            tracked_files = ""
-        tracked_files = tracked_files.splitlines()
-    except:
-        tracked_files = []
-    for filename in tracked_files:
-        if filename.endswith('.irp.f'):
-            # Search for providers, subroutines and functions in each file using
-            # the tags file
-            search = "\t" + filename + "\t"
-            tmp = filter(lambda line: search in line, tags)
+    for irp in l_info:
+        url = os.path.join(URL, module_name, irp.file)
+        doc = extract_doc(irp.name)
 
-            # Search for the documentation in the IRPF90_man directory
-            for item in tmp:
-                item, _, line = item.strip().split('\t')
-                doc = extract_doc(item)
-                items.append((item, filename, doc, line))
+        l_line += ["`{0} <{1}#L{2}>`_".format(irp.name, url, irp.line), doc,
+                   ""]
 
-    dirname = os.path.basename(os.getcwd())
-    # Write the documentation in the README
-    template = "`%(item)s <%(url)s%(dirname)s/%(filename)s#L%(line)s>`_\n%(doc)s\n"
-
-    documentation = Doc_key + header
-    url = URL
-    for item, filename, doc, line in items:
-        documentation += template % locals()
-    documentation += '\n\n'
+    documentation = Doc_key + header + "\n".join(l_line)
 
     has_doc = False
     for i in range(len(data)):
@@ -153,8 +134,6 @@ def git_add():
     git add README.rst
     throw an error if git is not precent"""
 
-    import subprocess
-
     try:
         # pipe output to /dev/null for silence
         null = open("/dev/null", "w")
@@ -167,6 +146,7 @@ def git_add():
 
 def main():
     data = fetch_splitted_data()
+
     data = update_documentation(data)
     data = update_needed(data)
     output = ''.join(data)
