@@ -44,9 +44,6 @@ def init_folder(geo, basis, mult=1, pseudo=False, ezfio_name=None):
     DO NOT CHECK IS THE EZFIO FOLDER ALREADY EXIST
     '''
 
-    cmd = "cp {0}/tests/{1}.xyz .".format(qpackage_root, geo)
-    subprocess.check_call([cmd], shell=True)
-
     if not ezfio_name:
         ezfio_name = geo
 
@@ -57,9 +54,6 @@ def init_folder(geo, basis, mult=1, pseudo=False, ezfio_name=None):
 
     subprocess.check_call([cmd.format(basis, mult, geo, ezfio_name)],
                           shell=True)
-
-    subprocess.call(["rm {0}.xyz".format(geo)], shell=True)
-
 
 def get_error_message(l_exepected, l_cur):
     l_msg = ["Need {0} get {1} error is {2}".format(i, j, abs(i - j))
@@ -335,10 +329,6 @@ def check_convert(path_out):
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # S e t _ p a r a m e t e r #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
-
-    cmd = "cp {0}/tests/{1} .".format(qpackage_root, path_out)
-    subprocess.check_call([cmd], shell=True)
-
     cmd = "qp_convert_output_to_ezfio.py {0}".format(path_out)
     subprocess.check_call([cmd], shell=True)
 
@@ -359,7 +349,6 @@ def check_convert(path_out):
     ref_e = ref_energy[path_out]
 
     if abs(cur_e - ref_e) <= precision:
-        subprocess.call(["rm {0}".format(path_out)], shell=True)
         subprocess.call(["rm -R {0}.ezfio".format(path_out)], shell=True)
         return True
     else:

@@ -484,7 +484,7 @@ def get_program(path_module):
             return []
 
 
-def get_dict_binaries(mode="development"):
+def get_dict_binaries(mode):
     """
     Return a dict [module] = list_binaries
     If a the production mode is enable only header module will produce binaries
@@ -578,7 +578,7 @@ def ninja_dot_tree_rule():
 
     l_string = ["rule build_dot_tree",
                 "   command = {0}".format(" ; ".join(l_cmd)),
-                "   description = Generate Dot Dependancies Tree of $module"
+                "   description = Generate Dot Dependancies Tree of $module",
                 ""]
 
     return l_string
@@ -652,8 +652,8 @@ if __name__ == "__main__":
     d_genealogy_path = dict_module_genelogy_path(d_genealogy)
     d_irp = get_file_dependency(d_genealogy_path)
 
-    d_binaries_production = get_dict_binaries("production")
-    d_binaries_development = get_dict_binaries("development")
+    d_binaries_production = get_dict_binaries(mode="production")
+    d_binaries_development = get_dict_binaries(mode="development")
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # M o d u l e _ t o _ i r p #
