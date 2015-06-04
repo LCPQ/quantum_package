@@ -66,7 +66,7 @@ import ConfigParser
 from collections import defaultdict
 from collections import namedtuple
 
-from cache import cache
+from decorator import cache
 
 
 from os import listdir
