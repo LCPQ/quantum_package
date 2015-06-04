@@ -4,10 +4,6 @@ CIS Module
 
 Assumptions
 ===========
-
-.. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
-
 * The molecular orbitals are assumed orthonormal
 
 

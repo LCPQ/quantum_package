@@ -58,22 +58,13 @@ Ndet
 N_st
   Number of states
 
-
-
-
-
 Assumptions
 ===========
-
-.. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES file.
 
 * This is not allowed:
 
   subroutine &
     pt2_....
-
-
 
 
 Documentation

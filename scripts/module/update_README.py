@@ -43,34 +43,6 @@ def fetch_splitted_data():
 
     return result
 
-
-def update_assumptions(data):
-    """Read the ASSUMPTIONS.rst file, and replace the data with it."""
-
-    try:
-        file = open('ASSUMPTIONS.rst', 'r')
-    except IOError:
-        file = open('ASSUMPTIONS.rst', 'w')
-        assumptions = ""
-    else:
-        assumptions = file.read()
-    file.close()
-
-    if assumptions.strip() != "":
-        assumptions = Assum_key + header + assumptions + '\n\n'
-
-    has_assumptions = False
-    for i in range(len(data)):
-        if data[i].startswith(Assum_key):
-            has_assumptions = True
-            data[i] = assumptions
-
-    if not has_assumptions:
-        data.insert(1, assumptions)
-
-    return data
-
-
 def update_needed(data):
     """Read the NEEDED_CHILDREN_MODULES file, and replace the data with it.
     Create the links to the GitHub pages."""
@@ -195,7 +167,6 @@ def git_add():
 
 def main():
     data = fetch_splitted_data()
-    data = update_assumptions(data)
     data = update_documentation(data)
     data = update_needed(data)
     output = ''.join(data)

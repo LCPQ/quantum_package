@@ -27,9 +27,6 @@ the two electron integrals.
 Assumptions
 ===========
 
-.. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
-
 * The AO coefficients in the EZFIO files are not necessarily normalized and are normalized after reading
 
 
