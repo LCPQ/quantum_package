@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Usage: create_ninja_build.py (--development | --production) CONFIG_FILE
+Usage: qp_create_ninja.py (--development | --production) CONFIG_FILE
 """
 
 import os
@@ -12,7 +12,7 @@ from collections import namedtuple
 from collections import defaultdict
 
 try:
-    from module_handler import get_dict_module_boss, get_dict_genealogy_desc
+    from module_handler import ModuleHandler
     from read_compilation_cfg import get_compilation_option
     from docopt import docopt
 except ImportError:
@@ -307,26 +307,21 @@ def get_l_file_for_module(path_module_abs):
     l_template = []
 
     for f in os.listdir(path_module_abs):
-        if f.endswith(".template.f"):
+        if f.lower().endswith(tuple([".template.f", ".include.f"])):
             l_template.append(join(path_module_abs, f))
         elif f.endswith(".irp.f"):
             l_irp.append(join(path_module_abs, f))
-        elif any(f.endswith("{0}".format(i)) for i in [".f",
-                                                       ".f90",
-                                                       ".c",
-                                                       ".cpp",
-                                                       ".cxx"]):
+        elif f.lower().endswith(tuple([".f", ".f90", ".c", ".cpp", ".cxx"])):
             l_src.append(join(path_module_abs, f))
             obj = '{0}.o'.format(os.path.splitext(f)[0])
             l_obj.append(join(path_module_abs, obj))
         elif f == "EZFIO.cfg":
             l_irp.append(join(path_module_abs, "ezfio_interface.irp.f"))
 
-    d = dict()
-    d["l_irp"] = l_irp
-    d["l_src"] = l_src
-    d["l_obj"] = l_obj
-    d["l_template"] = l_template
+    d = {"l_irp": l_irp,
+         "l_src": l_src,
+         "l_obj": l_obj,
+         "l_template": l_template}
 
     return d
 
@@ -459,7 +454,7 @@ def ninja_readme_build(path_module):
 # |_) o ._   _. ._
 # |_) | | | (_| | \/
 #                 /
-def get_program(path_module):
+def get_binaries(path_module):
     """
     Return the list of binaries (Path= namedtuple('Path', ['abs', 'rel']) for a module
     """
@@ -484,7 +479,7 @@ def get_program(path_module):
             return []
 
 
-def get_dict_binaries(mode="production"):
+def get_dict_binaries(l_module, mode="production"):
     """
     Return a dict [module] = list_binaries
     If a the production mode is enable only header module
@@ -497,20 +492,20 @@ def get_dict_binaries(mode="production"):
 
     # Create d_binaries
     # Ake module => binaries generated
-    for module in d_genealogy_path.keys():
-        l_binaries = get_program(module)
+    for module in l_module:
+        l_binaries = get_binaries(module)
 
         if l_binaries:
             d_binaries[module] += l_binaries
 
     if mode == "production":
 
-        dict_boss = get_dict_module_boss()
-        dict_boss_path = dict_module_genelogy_path(dict_boss)
+        dict_root = ModuleHandler.dict_root
+        dict_root_path = dict_module_genelogy_path(dict_root)
 
         d_binaries_condensed = defaultdict(list)
         for module in d_binaries:
-            d_binaries_condensed[dict_boss_path[module]] += d_binaries[module]
+            d_binaries_condensed[dict_root_path[module]] += d_binaries[module]
 
         d_binaries = d_binaries_condensed
 
@@ -649,11 +644,14 @@ if __name__ == "__main__":
     # G e n e a l o g y _ d i c t #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
-    d_genealogy = get_dict_genealogy_desc()
+    d_genealogy = ModuleHandler.dict_descendant
     d_genealogy_path = dict_module_genelogy_path(d_genealogy)
     d_irp = get_file_dependency(d_genealogy_path)
 
-    d_binaries_production = get_dict_binaries(mode="production")
+    l_module = d_genealogy_path.keys()
+
+    d_binaries_production = get_dict_binaries(l_module,
+                                              mode="production")
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # M o d u l e _ t o _ i r p #

@@ -6,44 +6,31 @@ Create the NEEDED_MODULE
 of a NEEDED_CHILDREN_MODULES file
 
 Usage:
-    module_handler.py print_genealogy       [<NEEDED_CHILDREN_MODULES>]
+    module_handler.py print_descendant      [<NEEDED_CHILDREN_MODULES>]
     module_handler.py create_png            [<NEEDED_CHILDREN_MODULES>]
     module_handler.py head_module
 
 Options:
-    print_genealogy         Print the genealogy of the NEEDED_CHILDREN_MODULES
+    print_descendant         Print the genealogy of the NEEDED_CHILDREN_MODULES
                                  aka (children, subchildren, etc)
     create_png              Create a png of the file
     NEEDED_CHILDREN_MODULES The path of NEEDED_CHILDREN_MODULES
                                 by default try to open the file in the current path
 """
-
-from docopt import docopt
-
 import os
 import sys
 import os.path
-from cache import cache
 
-from collections import namedtuple
-Dependency = namedtuple('Dependency', ['src', 'obj'])
-Module_info = namedtuple('Module_info', ['l_children', 'l_dependency'])
-
-
-def get_list_from_makefile(data, sep):
-    # Split for sep
-    dump = [l.split(sep)[1] for l in data if l.startswith(sep)]
-
-    # Delete the empy one
-    l_unique = [k for k in map(str.strip, dump) if k]
-
-    # Return the flat one (if multi in l_unique)
-    l_flat = [j for i in l_unique for j in i.split()]
-    return l_flat
+try:
+    from docopt import docopt
+    from decorator import classproperty
+except ImportError:
+    print "source .quantum_package.rc"
+    raise
 
 
 # Canot cache for namedtuple are not hashable
-def get_dict_genealogy():
+def get_dict_child():
     """Loop over MODULE in  QPACKAGE_ROOT/src, open all the NEEDED_CHILDREN_MODULES
     and create a dict[MODULE] = [sub module needed, ...]
     """
@@ -59,23 +46,14 @@ def get_dict_genealogy():
             with open(path_file, "r") as f:
                 l_children = f.read().split()
         except IOError:
-            continue
-
-        try:
-            path_file = os.path.join(dir_, o, "Makefile")
-            with open(os.path.join(dir_, o, "Makefile"), "r") as f:
-                data = f.readlines()
-                l_depend = Dependency(get_list_from_makefile(data, "SRC="),
-                                      get_list_from_makefile(data, "OBJ="))
-        except IOError:
-            l_depend = []
-
-        d_ref[o] = Module_info(l_children, l_depend)
+            pass
+        else:
+            d_ref[o] = l_children
 
     return d_ref
 
 
-def him_and_all_children(d_ref, l_module):
+def l_module_generalogy_rec(d_chidlren, l_module):
     """
     From a list of module return the module and all of the genealogy
     """
@@ -85,7 +63,7 @@ def him_and_all_children(d_ref, l_module):
         if module not in l:
             l.append(module)
             try:
-                l.extend(him_and_all_children(d_ref, d_ref[module].l_children))
+                l.extend(l_module_generalogy_rec(d_chidlren, d_chidlren[module]))
             except KeyError:
                 print >> sys.stderr, "`{0}` not submodule".format(module)
                 print >> sys.stderr, "Check the corresponding NEEDED_CHILDREN_MODULES"
@@ -94,116 +72,116 @@ def him_and_all_children(d_ref, l_module):
     return list(set(l))
 
 
-def get_dict_genealogy_desc():
-    """
-    Get a dic of all the genealogy desc (children and all_children)
-    """
-    d_ref = get_dict_genealogy()
+class ModuleHandler:
 
-    d = {}
+    dict_child = get_dict_child()
 
-    for module_name in d_ref:
-        d[module_name] = him_and_all_children(d_ref,
-                                              d_ref[module_name].l_children)
+    @classproperty
+    def l_module(self):
+        return self.dict_child.keys()
 
-    return d
+    @classproperty
+    def dict_parent(self):
+        """
+        Get a dic of the first parent
+        """
+        d_child = self.dict_child
 
+        d = {}
 
-def get_dict_parent():
-    """
-    Get a dic of the first parent
-    """
-    d_ref = get_dict_genealogy()
+        for module_name in d_child:
+            d[module_name] = [i for i in d_child.keys() if module_name in d_child[i]]
 
-    d = {}
+        return d
 
-    for module_name in d_ref:
-        d[module_name] = [i for i in d_ref.keys()
-                          if module_name in d_ref[i].l_children]
+    @classproperty
+    def dict_descendant(self):
+        """
+        Get a dic of all the genealogy desc (children and all_children)
+        """
+        d = {}
 
-    return d
+        d_child = self.dict_child
 
+        for module_name in d_child:
+            d[module_name] = l_module_generalogy_rec(d_child,
+                                                     d_child[module_name])
 
-def get_dict_module_boss():
-    """
-    Return a dict(module_name) = module_boss
-    Module boss is a module who have not parent (a edge) and have module_name
-    in is genealogy
-    """
-    d_ref_asc = get_dict_parent()
-    d_ref_desc = get_dict_genealogy_desc()
+        return d
 
-    l_all_module = d_ref_asc.keys()
+    @classproperty
+    def dict_root(self):
+        """
+        Return a dict(module_name) = module_boss
+        The top node in a tree.
+        """
+        d_asc = self.dict_parent
+        d_desc = self.dict_descendant
 
-    d_module_boss = {}
+        l_all_module = self.l_module
 
-    for module in l_all_module:
-        d_module_boss[module] = [
-            p for p in l_all_module
-            if module in [p] + d_ref_desc[p] and not d_ref_asc[p]
-        ][0]
+        dict_root = {}
 
-    return d_module_boss
+        for module in l_all_module:
+            dict_root[module] = [ p for p in l_all_module if module in [p] + d_desc[p] and not d_asc[p]][0]
 
+        return dict_root
 
-def module_genealogy(module_name):
-    """
-    Take a name of a NEEDED_CHILDREN_MODULES
-    and return a list of all the {sub, subsub, ...}children
-    """
+    @classmethod
+    def l_descendant_unique(cls, l_module):
+        d_desc = cls.dict_descendant
 
-    d_ref = get_dict_genealogy()
-    return him_and_all_children(d_ref, d_ref[module_name].l_children)
+        d = {}
+        for module in l_module:
+            for e in d_desc[module]:
+                d[e] = 1
 
+        return d.keys()
 
-def file_dependency(module_name):
+    @classmethod
+    def l_reduce_tree(cls, l_module):
 
-    d_ref = get_dict_genealogy()
-    l_src, l_obj = d_ref[module_name].l_dependency
+        l_d_u = cls.l_descendant_unique(l_module)
+        l_module_reduce = []
+        for module in l_module:
+            if module not in l_d_u:
+                l_module_reduce.append(module)
 
-    l_children_module = him_and_all_children(d_ref,
-                                             d_ref[module_name].l_children)
-    for module in l_children_module:
-        l_src_dump, l_obj_dump = d_ref[module].l_dependency
-        l_src.extend("{0}/{1}".format(module, i) for i in l_src_dump)
-        l_obj.extend("IRPF90_temp/{0}/{1}".format(module, os.path.basename(i))
-                     for i in l_obj_dump)
+        return l_module_reduce
 
-    return Dependency(l_src, l_obj)
+    @classmethod
+    def create_png(cls, l_module):
+        """Create the png of the dependency tree for a l_module"""
 
+        # Init
+        import pydot
+        all_ready_done = []
 
-def create_png(l_module):
-    """Create the png of the dependency tree for a l_module"""
+        def draw_module_edge(module, l_children):
+            "Draw all the module recursifly"
 
-    # Init
-    import pydot
-    all_ready_done = []
+            if module not in all_ready_done:
+                for children in l_children:
+                    # Add Edge
+                    edge = pydot.Edge(module, children)
+                    graph.add_edge(edge)
+                    # Recurs
+                    draw_module_edge(children, d_ref[children])
+                all_ready_done.append(module)
 
-    def draw_module_edge(module, l_children):
-        "Draw all the module recursifly"
+        # Init
+        graph = pydot.Dot(graph_type='digraph')
+        d_ref = cls.dict_child
 
-        if module not in all_ready_done:
-            for children in l_children:
-                # Add Edge
-                edge = pydot.Edge(module, children)
-                graph.add_edge(edge)
-                # Recurs
-                draw_module_edge(children, d_ref[children].l_children)
-            all_ready_done.append(module)
+        # Create all the edge
+        for module in l_module:
+            node_a = pydot.Node(module, fontcolor="red")
+            graph.add_node(node_a)
+            draw_module_edge(module, d_ref[module])
 
-    # Init
-    graph = pydot.Dot(graph_type='digraph')
-    d_ref = get_dict_genealogy()
-
-    # Create all the edge
-    for module in l_module:
-        node_a = pydot.Node(module, fontcolor="red")
-        graph.add_node(node_a)
-        draw_module_edge(module, d_ref[module].l_children)
-
-    # Save
-    path = '{0}.png'.format("tree_dependency")
-    graph.write_png(path)
+        # Save
+        path = '{0}.png'.format("tree_dependency")
+        graph.write_png(path)
 
 
 if __name__ == '__main__':
@@ -220,13 +198,8 @@ if __name__ == '__main__':
 
     path_file = os.path.basename(dir_)
 
-    if arguments['print_genealogy']:
-        l_all_needed_molule = module_genealogy(path_file)
-        print " ".join(sorted(l_all_needed_molule))
+    if arguments['print_descendant']:
+        print " ".join(sorted(ModuleHandler.l_module))
 
     if arguments["create_png"]:
-        create_png([path_file])
-
-    if arguments["head_module"]:
-        for module, boss in get_dict_module_boss().iteritems():
-            print module, boss
+        ModuleHandler.create_png([path_file])

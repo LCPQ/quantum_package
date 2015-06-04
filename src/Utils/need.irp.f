@@ -46,7 +46,7 @@
 
       double precision function rinteg(n,u)
       implicit double precision(a-h,o-z)
-      include 'constants.F'
+      include 'constants.include.F'
 !     pi=dacos(-1.d0)
       ichange=1
       factor=1.d0

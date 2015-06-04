@@ -23,19 +23,15 @@ header = """
 
 def fetch_splitted_data():
     """Read the README.rst file and split it in strings:
-    * The description
-    * The assumptions
     * The documentation
     * The needed modules
     The result is given as a list of strings
     """
 
-    file = open(README, 'r')
-    data = file.read()
-    file.close()
+    with open(README, 'r') as f:
+        data = f.read()
 
     # Place sentinels
-    data = data.replace(Assum_key, Sentinel + Assum_key)
     data = data.replace(Doc_key, Sentinel + Doc_key)
     data = data.replace(Needed_key, Sentinel + Needed_key)
 

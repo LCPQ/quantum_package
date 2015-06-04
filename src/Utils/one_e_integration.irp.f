@@ -6,7 +6,7 @@ double precision function overlap_gaussian_x(A_center,B_center,alpha,beta,power_
   ! \sum_{-infty}^{+infty} (x-A_x)^ax (x-B_x)^bx exp(-alpha(x-A_x)^2) exp(-beta(x-B_X)^2) dx
   !
   END_DOC
-  include 'constants.F'
+  include 'constants.include.F'
   integer,intent(in)             :: dim ! dimension maximum for the arrays representing the polynomials
   double precision,intent(in)    :: A_center,B_center  ! center of the x1 functions
   integer,intent(in)             :: power_A, power_B ! power of the x1 functions
@@ -34,7 +34,7 @@ end
 
 subroutine overlap_A_B_C(dim,alpha,beta,gama,a,b,A_center,B_center,Nucl_center,overlap)
  implicit none
-  include 'constants.F'
+  include 'constants.include.F'
  integer, intent(in)            :: dim                                                             
  integer, intent(in)            :: a(3),b(3)         ! powers : (x-xa)**a_x = (x-A(1))**a(1)
  double precision, intent(in)   :: alpha, beta, gama ! exponents
@@ -120,7 +120,7 @@ subroutine overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,&
   !   S = S_x S_y S_z
   !
   END_DOC
-  include 'constants.F'
+  include 'constants.include.F'
   integer,intent(in)             :: dim ! dimension maximum for the arrays representing the polynomials
   double precision,intent(in)    :: A_center(3),B_center(3)  ! center of the x1 functions
   double precision, intent(in)   :: alpha,beta
