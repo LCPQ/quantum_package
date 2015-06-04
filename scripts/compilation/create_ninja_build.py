@@ -665,6 +665,14 @@ if __name__ == "__main__":
     elif arguments["--development"]:
         l_module_to_irp = d_binaries_development.keys()
 
+    l_all_module = d_genealogy_path.keys()
+
+    for module in l_all_module:
+        # ~#~#~#~#~#~#~#~ #
+        # d o t _ t r e e #
+        # ~#~#~#~#~#~#~#~ #
+        l_string += ninja_dot_tree_build(module)
+
     for module_to_compile in l_module_to_irp:
 
         # ~#~#~#~#~#~#~#~ #
@@ -680,11 +688,6 @@ if __name__ == "__main__":
         # ~#~#~#~#~#~#~#~ #
         l_string += ninja_irpf90_make_build(module_to_compile, l_children,
                                             d_irp)
-
-        # ~#~#~#~#~#~#~#~ #
-        # d o t _ t r e e #
-        # ~#~#~#~#~#~#~#~ #
-        l_string += ninja_dot_tree_build(module_to_compile)
 
     # ~#~#~#~#~#~#~ #
     #  b i n a r y  #
