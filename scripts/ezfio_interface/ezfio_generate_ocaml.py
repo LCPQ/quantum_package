@@ -348,6 +348,7 @@ class EZFIO_ocaml(object):
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
         # C r e a t e _ t e m pl a t e #
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+        l_template = ["(* Auto generate. Do not modify by Hand *)"]
 
         l_template = ['open Qputils;;',
                       'open Qptypes;;',

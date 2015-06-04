@@ -9,7 +9,7 @@ echo "=-=-=-=-=-=-=-=-=-=-=-"
 for dir in ${QPACKAGE_ROOT}/src/*/ 
 do 
   cd $dir || exit -1
-  ${QPACKAGE_ROOT}/scripts/ezfio_interface/ei_handler.py
+  ${QPACKAGE_ROOT}/scripts/ezfio_interface/ei_handler.py --ezfio_config --ezfio_default
 done
 
 # For old-style directories. Will be removed some day...

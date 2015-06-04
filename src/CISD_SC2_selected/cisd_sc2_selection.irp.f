@@ -67,7 +67,7 @@ program cisd_sc2_selected
     ! W r i t e _ o n _ d i s k !
     ! =~=~=~=~=~=~=~=~=~=~=~=~=~!
 
-    call ezfio_set_full_ci_energy(CI_SC2_energy(1))
+    call ezfio_set_cisd_sc2_selected_energy(CI_SC2_energy(1))
 
   enddo
   N_det = min(N_det_max,N_det)
@@ -110,7 +110,7 @@ program cisd_sc2_selected
     ! W r i t e _ o n _ d i s k !
     ! =~=~=~=~=~=~=~=~=~=~=~=~=~!
 
-    call ezfio_set_full_ci_energy_pt2(CI_SC2_energy(i)+pt2(i)* (1.d0 + norm_pert) - H_pert_diag(i))
+    call ezfio_set_cisd_sc2_selected_energy_pt2(CI_SC2_energy(i)+pt2(i)* (1.d0 + norm_pert) - H_pert_diag(i))
   endif
   call save_wavefunction
   deallocate(pt2,norm_pert,H_pert_diag)

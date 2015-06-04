@@ -1,0 +1,35 @@
+#
+# Do not modify this file. Add your ignored files to the gitignore
+# (without the dot at the beginning) file.
+#
+IRPF90_temp
+IRPF90_man
+irpf90.make
+tags
+Makefile.depend
+irpf90_entities
+build.ninja
+.ninja_log
+.ninja_deps
+CID_selected
+Pseudo
+Integrals_Monoelec
+Bitmask
+CID
+Integrals_Bielec
+CISD_selected
+AOs
+Selectors_full
+MOs
+Hartree_Fock
+Perturbation
+CISD
+Determinants
+Electrons
+Utils
+Properties
+Nuclei
+MOGuess
+SingleRefMethod
+Ezfio_files
+cid_sc2_selection

@@ -1,0 +1,32 @@
+#
+# Do not modify this file. Add your ignored files to the gitignore
+# (without the dot at the beginning) file.
+#
+IRPF90_temp
+IRPF90_man
+irpf90.make
+tags
+Makefile.depend
+irpf90_entities
+build.ninja
+.ninja_log
+.ninja_deps
+Pseudo
+Integrals_Monoelec
+Bitmask
+Integrals_Bielec
+AOs
+MOs
+Electrons
+Utils
+Nuclei
+Ezfio_files
+guess_triplet
+guess_singlet
+truncate_wf
+save_natorb
+save_for_qmcchem
+program_beginer_determinants
+save_for_casino
+det_svd
+guess_doublet

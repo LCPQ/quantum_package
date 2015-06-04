@@ -13,9 +13,10 @@ then
 fi
 source ${QPACKAGE_ROOT}/scripts/qp_include.sh
 
-check_current_dir_is_module
 
-cat << EOF > .gitignore
+function do_gitingore()
+{ 
+  cat << EOF > .gitignore
 #
 # Do not modify this file. Add your ignored files to the gitignore
 # (without the dot at the beginning) file.
@@ -26,13 +27,35 @@ irpf90.make
 tags
 Makefile.depend
 irpf90_entities
-.gitignore
+build.ninja
+.ninja_log
+.ninja_deps
 EOF
+  
+  if [[ -f gitignore ]]
+  then
+    cat gitignore >> .gitignore
+  fi
+  
+  find . -type l | sed "s@./@@" >> .gitignore
+  find . -type f -executable -print | sed "s@./@@" >> .gitignore
+}
 
-if [[ -f gitignore ]]
+
+if [[ -z $1 ]]
 then
-  cat gitignore >> .gitignore
+  check_current_dir_is_module
+  do_gitingore
+else
+  check_current_dir_is_src
+  for i in $@
+  do
+    if [[ -d $i ]]
+    then
+       cd $i
+       do_gitingore
+       cd $OLDPWD
+    fi
+  done
 fi
 
-find . -type l | sed "s@./@@" >> .gitignore
-find . -type f -executable -print | sed "s@./@@" >> .gitignore

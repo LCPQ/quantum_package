@@ -28,7 +28,7 @@ then
 fi
 rm /tmp/main.c
 
-${QPACKAGE_ROOT}/scripts/fetch_from_web.py ${ZLIB_URL} ZLIB.tar.gz
+${QPACKAGE_ROOT}/scripts/install/fetch_from_web.py ${ZLIB_URL} ZLIB.tar.gz
 tar -zxf ZLIB.tar.gz && rm ZLIB.tar.gz ||exit 1
 cd ${ZLIB} || exit 1 
 ./configure && make

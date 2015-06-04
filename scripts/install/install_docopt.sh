@@ -18,4 +18,4 @@ cd ${QPACKAGE_ROOT}
 rm -f -- scripts/${DOCOPT}{,c}
 ${QPACKAGE_ROOT}/scripts/install/fetch_from_web.py ${DOCOPT_URL} ${DOCOPT}
 
-mv ${DOCOPT} scripts/${DOCOPT}
+mv ${DOCOPT} scripts/utility/${DOCOPT}

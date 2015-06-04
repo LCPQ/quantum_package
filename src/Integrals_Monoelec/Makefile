@@ -1,6 +1,16 @@
-# Define here all new external source files and objects.Don't forget to prefix the
-# object files with IRPF90_temp/
-SRC=pseudopot.f90
-OBJ=IRPF90_temp/pseudopot.o
+IRPF90 = irpf90  #-a -d
+FC     = gfortran
+FCFLAGS= -O2 -ffree-line-length-none -I .
+NINJA  = ninja
+AR     = ar
+RANLIB = ranlib
 
-include $(QPACKAGE_ROOT)/src/Makefile.common
+SRC=
+OBJ=
+LIB=
+
+include irpf90.make
+export
+
+irpf90.make: $(filter-out IRPF90_temp/%, $(wildcard */*.irp.f)) $(wildcard *.irp.f) $(wildcard *.inc.f) Makefile 
+	$(IRPF90)

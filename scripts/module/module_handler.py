@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 Create the NEEDED_MODULE
     aka the genealogy (children module, subchildren module and so on),
 of a NEEDED_CHILDREN_MODULES file
 
 Usage:
-    module_handler.py print_genealogy    [<NEEDED_CHILDREN_MODULES>]
-    module_handler.py check_dependencies   [<module_name>...]
-    module_handler.py create_png         [<NEEDED_CHILDREN_MODULES>]
+    module_handler.py print_genealogy       [<NEEDED_CHILDREN_MODULES>]
+    module_handler.py create_png            [<NEEDED_CHILDREN_MODULES>]
+    module_handler.py head_module
 
 Options:
     print_genealogy         Print the genealogy of the NEEDED_CHILDREN_MODULES
@@ -24,10 +23,26 @@ from docopt import docopt
 import os
 import sys
 import os.path
-from qp_utils import cache
+from cache import cache
+
+from collections import namedtuple
+Dependency = namedtuple('Dependency', ['src', 'obj'])
+Module_info = namedtuple('Module_info', ['l_children', 'l_dependency'])
 
 
-@cache
+def get_list_from_makefile(data, sep):
+    # Split for sep
+    dump = [l.split(sep)[1] for l in data if l.startswith(sep)]
+
+    # Delete the empy one
+    l_unique = [k for k in map(str.strip, dump) if k]
+
+    # Return the flat one (if multi in l_unique)
+    l_flat = [j for i in l_unique for j in i.split()]
+    return l_flat
+
+
+# Canot cache for namedtuple are not hashable
 def get_dict_genealogy():
     """Loop over MODULE in  QPACKAGE_ROOT/src, open all the NEEDED_CHILDREN_MODULES
     and create a dict[MODULE] = [sub module needed, ...]
@@ -40,97 +55,125 @@ def get_dict_genealogy():
     for o in os.listdir(dir_):
 
         try:
-            with open(os.path.join(dir_, o, "NEEDED_CHILDREN_MODULES"), "r") as f:
+            path_file = os.path.join(dir_, o, "NEEDED_CHILDREN_MODULES")
+            with open(path_file, "r") as f:
                 l_children = f.read().split()
         except IOError:
-            pass
-        else:
-            d_ref[o] = l_children
+            continue
+
+        try:
+            path_file = os.path.join(dir_, o, "Makefile")
+            with open(os.path.join(dir_, o, "Makefile"), "r") as f:
+                data = f.readlines()
+                l_depend = Dependency(get_list_from_makefile(data, "SRC="),
+                                      get_list_from_makefile(data, "OBJ="))
+        except IOError:
+            l_depend = []
+
+        d_ref[o] = Module_info(l_children, l_depend)
 
     return d_ref
 
 
-def module_genealogy(path):
-    """
-    Take a name of a NEEDED_CHILDREN_MODULES
-    and return a list of all the {sub, subsub, ...}children
-    """
-    try:
-        with open(path, "r") as f:
-            l_children = f.read().split()
-    except IOError as e:
-        print >> sys.stderr, e
-        sys.exit(1)
-    else:
-
-        needed_module = get_it_and_children(l_children)
-
-        return needed_module
-
-
-def get_it_and_children(l_module):
+def him_and_all_children(d_ref, l_module):
     """
     From a list of module return the module and all of the genealogy
     """
-    d_ref = get_dict_genealogy()
 
     l = []
     for module in l_module:
         if module not in l:
             l.append(module)
             try:
-                l.extend(get_it_and_children(d_ref[module]))
+                l.extend(him_and_all_children(d_ref, d_ref[module].l_children))
             except KeyError:
-                print >> sys.stderr, "`{0}` in not a good submodule name".format(module)
+                print >> sys.stderr, "`{0}` not submodule".format(module)
                 print >> sys.stderr, "Check the corresponding NEEDED_CHILDREN_MODULES"
                 sys.exit(1)
 
     return list(set(l))
 
 
-def get_all_children(l_module):
+def get_dict_genealogy_desc():
     """
-    From a list of module return all the genealogy
+    Get a dic of all the genealogy desc (children and all_children)
     """
-
-    it_and_all = get_it_and_children(l_module)
-    return [children for children in it_and_all if children not in l_module]
-
-
-def reduce_(l_module):
-    """
-    Take a l_module and try to find the lower combinaitions
-    of module with the same genealogy
-    """
-    import itertools
     d_ref = get_dict_genealogy()
 
-    target_genealogy = sorted(get_all_children(l_module))
+    d = {}
 
-    for i in xrange(len(d_ref)):
-        for c in itertools.combinations(d_ref, i):
+    for module_name in d_ref:
+        d[module_name] = him_and_all_children(d_ref,
+                                              d_ref[module_name].l_children)
 
-                guess_genealogy = sorted(get_it_and_children(d_ref, c))
-
-                if target_genealogy == guess_genealogy:
-                    return c
+    return d
 
 
-def create_png_from_path(path):
-    " Change a path like this into a module list"
-    "path = /home/razoa/quantum_package/src/Molden/NEEDED_CHILDREN_MODULES"
+def get_dict_parent():
+    """
+    Get a dic of the first parent
+    """
+    d_ref = get_dict_genealogy()
 
-    l_module = os.path.split(path)[0].split("/")[-1]
+    d = {}
 
-    import pydot
-    try:
-        create_png([l_module])
-    except pydot.InvocationException:
-        pass
+    for module_name in d_ref:
+        d[module_name] = [i for i in d_ref.keys()
+                          if module_name in d_ref[i].l_children]
+
+    return d
+
+
+def get_dict_module_boss():
+    """
+    Return a dict(module_name) = module_boss
+    Module boss is a module who have not parent (a edge) and have module_name
+    in is genealogy
+    """
+    d_ref_asc = get_dict_parent()
+    d_ref_desc = get_dict_genealogy_desc()
+
+    l_all_module = d_ref_asc.keys()
+
+    d_module_boss = {}
+
+    for module in l_all_module:
+        d_module_boss[module] = [
+            p for p in l_all_module
+            if module in [p] + d_ref_desc[p] and not d_ref_asc[p]
+        ][0]
+
+    return d_module_boss
+
+
+def module_genealogy(module_name):
+    """
+    Take a name of a NEEDED_CHILDREN_MODULES
+    and return a list of all the {sub, subsub, ...}children
+    """
+
+    d_ref = get_dict_genealogy()
+    return him_and_all_children(d_ref, d_ref[module_name].l_children)
+
+
+def file_dependency(module_name):
+
+    d_ref = get_dict_genealogy()
+    l_src, l_obj = d_ref[module_name].l_dependency
+
+    l_children_module = him_and_all_children(d_ref,
+                                             d_ref[module_name].l_children)
+    for module in l_children_module:
+        l_src_dump, l_obj_dump = d_ref[module].l_dependency
+        l_src.extend("{0}/{1}".format(module, i) for i in l_src_dump)
+        l_obj.extend("IRPF90_temp/{0}/{1}".format(module, os.path.basename(i))
+                     for i in l_obj_dump)
+
+    return Dependency(l_src, l_obj)
 
 
 def create_png(l_module):
-    """Create the png of the dependancy tree for a l_module"""
+    """Create the png of the dependency tree for a l_module"""
 
     # Init
     import pydot
@@ -141,11 +184,11 @@ def create_png(l_module):
 
         if module not in all_ready_done:
             for children in l_children:
-                        # Add Edge
-                        edge = pydot.Edge(module, children)
-                        graph.add_edge(edge)
-                        # Recurs
-                        draw_module_edge(children, d_ref[children])
+                # Add Edge
+                edge = pydot.Edge(module, children)
+                graph.add_edge(edge)
+                # Recurs
+                draw_module_edge(children, d_ref[children].l_children)
             all_ready_done.append(module)
 
     # Init
@@ -156,14 +199,12 @@ def create_png(l_module):
     for module in l_module:
         node_a = pydot.Node(module, fontcolor="red")
         graph.add_node(node_a)
-        draw_module_edge(module, d_ref[module])
+        draw_module_edge(module, d_ref[module].l_children)
 
     # Save
-    path = '{0}.png'.format("tree_dependancy")
-    # path = '{0}.png'.format("_".join(l_module))
-    # print "png saved in {0}".format(path)
-
+    path = '{0}.png'.format("tree_dependency")
     graph.write_png(path)
+
 
 if __name__ == '__main__':
 
@@ -171,22 +212,21 @@ if __name__ == '__main__':
 
     if not arguments['<NEEDED_CHILDREN_MODULES>']:
         dir_ = os.getcwd()
-        path = os.path.join(dir_, "NEEDED_CHILDREN_MODULES")
     else:
-        path = os.path.abspath(arguments['<NEEDED_CHILDREN_MODULES>'])
-        path = os.path.expanduser(path)
-        path = os.path.expandvars(path)
+        path_file = os.path.abspath(arguments['<NEEDED_CHILDREN_MODULES>'])
+        path_file = os.path.expanduser(path_file)
+        path_file = os.path.expandvars(path_file)
+        dir_ = os.path.dirname(path_file)
+
+    path_file = os.path.basename(dir_)
 
     if arguments['print_genealogy']:
-        l_all_needed_molule = module_genealogy(path)
+        l_all_needed_molule = module_genealogy(path_file)
         print " ".join(sorted(l_all_needed_molule))
 
-    elif arguments["check_dependencies"]:
-        l_module = arguments['<module_name>']
-        if l_module:
-            l_all_needed_molule = get_it_and_children(l_module)
-        else:
-            l_all_needed_molule = module_genealogy(path)
+    if arguments["create_png"]:
+        create_png([path_file])
 
-    elif arguments["create_png"]:
-        create_png_from_path(path)
+    if arguments["head_module"]:
+        for module, boss in get_dict_module_boss().iteritems():
+            print module, boss
