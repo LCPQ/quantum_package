@@ -681,10 +681,11 @@ if __name__ == "__main__":
         l_string += ninja_irpf90_make_build(module_to_compile, l_children,
                                             d_irp)
 
-        # ~#~#~#~#~#~#~#~ #
-        # d o t _ t r e e #
-        # ~#~#~#~#~#~#~#~ #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+        # d o t _ t r e e  & r e a d  m e #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
         l_string += ninja_dot_tree_build(module_to_compile)
+        l_string += ninja_readme_build(module_to_compile)
 
     # ~#~#~#~#~#~#~ #
     #  b i n a r y  #
@@ -693,7 +694,6 @@ if __name__ == "__main__":
 
         l_string += ninja_binaries_build(module_to_compile, l_children,
                                          d_binaries_production)
-        l_string += ninja_readme_build(module_to_compile)
 
     with open(join(QPACKAGE_ROOT, "build.ninja"), "w+") as f:
         f.write("\n".join(l_string))

@@ -6,7 +6,7 @@ Needed Modules
 ==============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
+.. by the `update_README.py` script.
 
 .. image:: tree_dependency.png
 
@@ -16,7 +16,7 @@ Documentation
 =============
 
 .. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
+.. by the `update_README.py` script.
 
 `do_pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L248>`_
   Using pseudo potential integral of not
