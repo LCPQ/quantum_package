@@ -15,4 +15,4 @@ script:
   - ./scripts/compilation/create_ninja_build.py --production ./config/gfortran_example.cfg
   - ./ninja/ninja
   - cd ocaml ; make ; cd -
-  - ./tests/unit_test/unit_test.py
+  - cd testing_no_regression ; ./unit_test.py
