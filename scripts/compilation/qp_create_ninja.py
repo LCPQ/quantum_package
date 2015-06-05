@@ -371,7 +371,7 @@ def ninja_irpf90_make_rule():
 
     l_string = ["pool irp_pool", "   depth = 1", "", "rule build_irpf90.ninja",
                 "   command = {0}".format(" ; ".join(l_cmd)),
-                "   pool = irp_pool", "   generator = 1",
+                "   pool = irp_pool",
                 "   description = Create the IRP_Tree for $module", ""]
 
     return l_string
@@ -574,7 +574,8 @@ def ninja_dot_tree_rule():
 
     l_string = ["rule build_dot_tree",
                 "   command = {0}".format(" ; ".join(l_cmd)),
-                "   description = Generate Dot Dependancies Tree of $module",
+                "   generator = 1",
+                "   description = Generate Png representtion of the Tree Dependancies of $module",
                 ""]
 
     return l_string
