@@ -24,22 +24,19 @@ function check_current_dir_is_src()
 
 function check_current_dir_is_module()
 {
-  cd ..
-  if [[ "${PWD}" == "${QPACKAGE_ROOT}/src" ]]
+  # If the prefix ${QPACKAGE_ROOT}/src/ can be removed from $PWD, it means that
+  # $PWD is somewhere below ${QPACKAGE_ROOT}/src/ so it is a module.
+  # If the prefix ${QPACKAGE_ROOT}/src/ can not be removed from $PWD, then
+  # "${PWD##${QPACKAGE_ROOT}/src/}" == "$PWD".
+
+  if [[ "${PWD##${QPACKAGE_ROOT}/src/}" != "$PWD" ]]
   then
-     cd $OLDPWD
      return 0
   else
-     cd $OLDPWD
-     echo "Current directory should be \$QPACKAGE_ROOT/src"
+     echo "You are not in a submodule"
      exit -1
   fi
 }
-
-if [[ -f NEEDED_CHILDREN_MODULES ]]
-then
-  NEEDED_MODULES=$(module_handler.py print_genealogy NEEDED_CHILDREN_MODULES)
-fi
 
 # List of executables in the current directory
 function ls_exe()

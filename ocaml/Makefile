@@ -13,10 +13,10 @@ LIBS=
 PKGS=
 OCAMLCFLAGS="-g -warn-error A"
 OCAMLBUILD=ocamlbuild -j 0 -syntax camlp4o -cflags $(OCAMLCFLAGS) -lflags $(OCAMLCFLAGS) 
-MLFILES=$(wildcard *.ml) ezfio.ml Qptypes.ml
+MLFILES=$(wildcard *.ml) ezfio.ml Qptypes.ml Input_auto_generated.ml qp_edit.ml
 MLIFILES=$(wildcard *.mli) 
 ALL_TESTS=$(patsubst %.ml,%.byte,$(wildcard test_*.ml))
-ALL_EXE=$(patsubst %.ml,%.native,$(wildcard qp_*.ml))
+ALL_EXE=$(patsubst %.ml,%.native,$(wildcard qp_*.ml)) qp_edit.native
 
 .PHONY: executables default
 
@@ -27,7 +27,7 @@ default: $(ALL_TESTS) $(ALL_EXE) .gitignore
 	@for i in .gitignore ezfio.ml Qptypes.ml qptypes_generator.byte _build $(ALL_EXE) $(ALL_TESTS) \
 	$(patsubst %.ml,%,$(wildcard test_*.ml)) $(patsubst %.ml,%,$(wildcard qp_*.ml)) \
 	$(shell grep Input Input_auto_generated.ml | awk '{print $$2 ".ml"}') \
-	Input_auto_generated.ml;\
+	qp_edit.ml qp_edit qp_edit.native Input_auto_generated.ml;\
 	do \
 	   echo $$i ; \
 	done > .gitignore
@@ -35,7 +35,7 @@ default: $(ALL_TESTS) $(ALL_EXE) .gitignore
 executables: $(QPACKAGE_ROOT)/data/executables
 
 $(QPACKAGE_ROOT)/data/executables:
-	$(QPACKAGE_ROOT)/scripts/create/create_executables_list.sh
+	$(QPACKAGE_ROOT)/scripts/module/create_executables_list.sh
 
 external_libs:
 	opam install cryptokit core
@@ -74,5 +74,9 @@ Qptypes.ml: qptypes_generator.byte
 ${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml: 
 	$(MAKE) -C ${QPACKAGE_ROOT}/src ezfio
 
+Input_auto_generated.ml qp_edit.ml:
+	ei_handler.py ocaml_global
+
 clean: 
-	rm -rf _build Qptypes.ml $(ALL_EXE) $(ALL_TESTS)
+	rm -rf _build Qptypes.ml Input_auto_generated.ml $(ALL_EXE) $(ALL_TESTS)
+
