@@ -6,7 +6,7 @@ subroutine give_explicit_poly_and_gaussian_x(P_new,P_center,p,fact_k,iorder,alph
   !        fact_k  (x-x_P)^iorder(1)  (y-y_P)^iorder(2)  (z-z_P)^iorder(3) exp(-p(r-P)^2)
   END_DOC
   implicit none
-  include 'include/constants.F'
+  include 'constants.include.F'
   integer, intent(in)            :: dim
   integer, intent(in)            :: a,b               ! powers : (x-xa)**a_x = (x-A(1))**a(1)
   double precision, intent(in)   :: alpha, beta       ! exponents
@@ -53,7 +53,7 @@ subroutine give_explicit_poly_and_gaussian(P_new,P_center,p,fact_k,iorder,alpha,
   !               * [ sum (l_z = 0,i_order(3)) P_new(l_z,3) * (z-P_center(3))^l_z ] exp (- p (z-P_center(3))^2 )
   END_DOC
   implicit none
-  include 'include/constants.F'
+  include 'constants.include.F'
   integer, intent(in)            :: dim
   integer, intent(in)            :: a(3),b(3)         ! powers : (x-xa)**a_x = (x-A(1))**a(1)
   double precision, intent(in)   :: alpha, beta       ! exponents
@@ -131,7 +131,7 @@ subroutine give_explicit_poly_and_gaussian_double(P_new,P_center,p,fact_k,iorder
   !               * [ sum (l_z = 0,i_order(3)) P_new(l_z,3) * (z-P_center(3))^l_z ] exp (- p (z-P_center(3))^2 )
   END_DOC
   implicit none
-  include 'include/constants.F'
+  include 'constants.include.F'
   integer, intent(in)            :: dim
   integer, intent(in)            :: a(3),b(3)         ! powers : (x-xa)**a_x = (x-A(1))**a(1)
   double precision, intent(in)   :: alpha, beta, gama ! exponents
@@ -415,7 +415,7 @@ double precision function F_integral(n,p)
   double precision               :: p
   integer                        :: i,j
   double precision               :: accu,sqrt_p,fact_ratio,tmp,fact
-  include 'include/constants.F'
+  include 'constants.include.F'
   if(n < 0)then
     F_integral = 0.d0
   endif
@@ -441,7 +441,7 @@ double precision function rint(n,rho)
 !  \int_0^1 dx \exp(-p x^2) x^n
 !
   END_DOC
-  include 'include/constants.F'
+  include 'constants.include.F'
   double precision               :: rho,u,rint1,v,val0,rint_large_n,u_inv
   integer                        :: n,k
   double precision               :: two_rho_inv
@@ -486,7 +486,7 @@ double precision function rint_sum(n_pt_out,rho,d1)
   BEGIN_DOC
   ! Needed for the calculation of two-electron integrals.
   END_DOC
-  include 'include/constants.F'
+  include 'constants.include.F'
   integer, intent(in)            :: n_pt_out
   double precision, intent(in)   :: rho,d1(0:n_pt_out)
   double precision               :: u,rint1,v,val0,rint_large_n,u_inv

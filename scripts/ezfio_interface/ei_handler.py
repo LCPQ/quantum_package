@@ -5,13 +5,17 @@ Welcom the ei_handler.
 We will create all the ezfio related stuff from a EZFIO.cfg file.
 
 Usage:
-    ei_handler.py [--path] [--irpf90] [--ezfio_config] [--ocaml] [--ezfio_default] [--global]
+    ei_handler.py [--path_module=<module>]
+                  [--irpf90]
+                  [--ezfio_config]
+                  [--ocaml]
+                  [--ezfio_default]
+    ei_handler.py ocaml_global
 
 By default all the option are executed.
 
 Options:
     -h --help
-    --path             The path of the `EZFIO.cfg`, by default will look in the ${pwd}
     --irpf90           Create the `ezfio_interface.irpf90`
                              which contains all the providers needed
                              (aka all with the `interface: input` parameter)
@@ -23,7 +27,7 @@ Options:
     --ezfio_default    Create the `${module_lower}_ezfio_interface_default` in
                              `${QPACKAGE_ROOT}/data/ezfio_defaults` needed by
                              the ocaml
-    --global           Create all the stuff who need all the EZFIO.cfg
+    ocaml_global       Create the qp_edit
 
 Format specification :
     [provider_name]  | the name of the provider in irp.f90
@@ -62,8 +66,11 @@ import ConfigParser
 from collections import defaultdict
 from collections import namedtuple
 
+from decorator import cache
 
-from qp_utils import cache
+
+from os import listdir
+from os.path import isdir, join, exists
 
 Type = namedtuple('Type', 'fancy ocaml fortran')
 
@@ -172,12 +179,12 @@ def get_type_dict():
 type_dict = get_type_dict()
 
 
-def get_dict_config_file(config_file_path, module_lower):
+def get_dict_config_file(module_obj):
     """
     Input:
-        config_file_path is the config file path
+        module_obj.path is the config file 
             (for example FULL_PATH/EZFIO.cfg)
-        module_lower is the MODULE name lowered
+        module_obj.lower is the MODULE name lowered
             (Ex fullci)
 
     Return a dict d[provider_name] = {type,
@@ -204,7 +211,6 @@ def get_dict_config_file(config_file_path, module_lower):
     # ~#~#~#~ #
     # I n i t #
     # ~#~#~#~ #
-
     d = defaultdict(dict)
     l_info_required = ["doc", "interface"]
     l_info_optional = ["ezfio_dir", "ezfio_name", "size"]
@@ -214,14 +220,14 @@ def get_dict_config_file(config_file_path, module_lower):
     # ~#~#~#~#~#~#~#~#~#~#~ #
 
     config_file = ConfigParser.ConfigParser()
-    config_file.readfp(open(config_file_path))
+    config_file.readfp(open(module_obj.path))
 
     # ~#~#~#~#~#~#~#~#~ #
     # F i l l _ d i c t #
     # ~#~#~#~#~#~#~#~#~ #
 
     def error(o, p, c):
-        "o option ; p provider_name ;c config_file_path"
+        "o option ; p provider_name ;c module_obj.path"
         print "You need a {0} for {1} in {2}".format(o, p, c)
 
     for section in config_file.sections():
@@ -230,7 +236,7 @@ def get_dict_config_file(config_file_path, module_lower):
 
         # Create the dictionary who containt the value per default
         d_default = {"ezfio_name": pvd,
-                     "ezfio_dir": module_lower,
+                     "ezfio_dir": module_obj.lower,
                      "size": "1"}
 
         # Check if type if avalaible
@@ -247,7 +253,7 @@ def get_dict_config_file(config_file_path, module_lower):
             try:
                 d[pvd][option] = config_file.get(section, option)
             except ConfigParser.NoOptionError:
-                error(option, pvd, config_file_path)
+                error(option, pvd, module_obj.path)
                 sys.exit(1)
 
         # Fill the dict with OPTIONAL information
@@ -263,7 +269,7 @@ def get_dict_config_file(config_file_path, module_lower):
             try:
                 default_raw = config_file.get(section, "default")
             except ConfigParser.NoOptionError:
-                error("default", pvd, config_file_path)
+                error("default", pvd, module_obj.path)
                 sys.exit(1)
 
             try:
@@ -318,14 +324,6 @@ def save_ezfio_provider(path_head, dict_code_provider):
 
     path = "{0}/ezfio_interface.irp.f".format(path_head)
 
-    try:
-        f = open(path, "r")
-    except IOError:
-        old_output = ""
-    else:
-        old_output = f.read()
-        f.close()
-
     l_output = ["! DO NOT MODIFY BY HAND",
                 "! Created by $QPACKAGE_ROOT/scripts/ezfio_interface.py",
                 "! from file {0}/EZFIO.cfg".format(path_head),
@@ -335,9 +333,8 @@ def save_ezfio_provider(path_head, dict_code_provider):
 
     output = "\n".join(l_output)
 
-    if output != old_output:
-        with open(path, "w+") as f:
-            f.write(output)
+    with open(path, "w+") as f:
+        f.write(output)
 
 
 def create_ezfio_stuff(dict_ezfio_cfg, config_or_default="config"):
@@ -442,6 +439,7 @@ def create_ezfio_stuff(dict_ezfio_cfg, config_or_default="config"):
             raise KeyError
         # Append
         result.append(s)
+    result.append("\n")
 
     return "\n".join(result)
 
@@ -461,17 +459,8 @@ def save_ezfio_config(module_lower, str_ezfio_config):
     path = "{0}/config/{1}.ezfio_interface_config".format(root_ezfio,
                                                           module_lower)
 
-    try:
-        f = open(path, "r")
-    except IOError:
-        old_output = ""
-    else:
-        old_output = f.read()
-        f.close()
-
-    if str_ezfio_config != old_output:
-        with open(path, "w+") as f:
-            f.write(str_ezfio_config)
+    with open(path, "w+") as f:
+        f.write(str_ezfio_config)
 
 
 def create_ezfio_default(dict_ezfio_cfg):
@@ -489,18 +478,8 @@ def save_ezfio_default(module_lower, str_ezfio_default):
         os.environ['QPACKAGE_ROOT'])
     path = "{0}/{1}.ezfio_interface_default".format(root_ezfio_default,
                                                     module_lower)
-
-    try:
-        f = open(path, "r")
-    except IOError:
-        old_output = ""
-    else:
-        old_output = f.read()
-        f.close()
-
-    if str_ezfio_default != old_output:
-        with open(path, "w+") as f:
-            f.write(str_ezfio_default)
+    with open(path, "w+") as f:
+        f.write(str_ezfio_default)
 
 
 def create_ocaml_input(dict_ezfio_cfg, module_lower):
@@ -523,6 +502,7 @@ def create_ocaml_input(dict_ezfio_cfg, module_lower):
 
     if not l_ezfio_name:
         raise ValueError
+
 
     e_glob = EZFIO_ocaml(l_ezfio_name=l_ezfio_name,
                          l_type=l_type,
@@ -606,20 +586,11 @@ def save_ocaml_input(module_lower, str_ocaml_input):
     path = "{0}/ocaml/Input_{1}.ml".format(os.environ['QPACKAGE_ROOT'],
                                            module_lower)
 
-    try:
-        f = open(path, "r")
-    except IOError:
-        old_output = ""
-    else:
-        old_output = f.read()
-        f.close()
-
-    if str_ocaml_input != old_output:
-        with open(path, "w+") as f:
-            f.write(str_ocaml_input)
+    with open(path, "w+") as f:
+        f.write(str_ocaml_input)
 
 
-def get_l_module_lower():
+def get_l_module_with_auto_generate_ocaml_lower():
     """
     Get all module who have EZFIO.cfg with input data
         (NB `search` in all the ligne and `match` only in one)
@@ -634,9 +605,6 @@ def get_l_module_lower():
     # ~#~#~#~#~#~#~#~ #
     # L _ f o l d e r #
     # ~#~#~#~#~#~#~#~ #
-
-    from os import listdir
-    from os.path import isdir, join, exists
 
     l_folder = [f for f in listdir(mypath) if isdir(join(mypath, f))]
 
@@ -662,17 +630,10 @@ def get_l_module_lower():
     return l_module_lower
 
 
-def create_ocaml_input_global():
+def create_ocaml_input_global(l_module_with_auto_generate_ocaml_lower):
     """
-    Check for all the EZFIO.cfg get the module lower
-    then create incule {module_lower}.ml
+    Create the Input_auto_generated.ml and qp_edit.ml str
     """
-
-    # ~#~#~#~# #
-    #  I n i t #
-    # ~#~#~#~# #
-
-    l_module_lower = get_l_module_lower()
 
     # ~#~#~#~#~#~#~#~# #
     #  C r e a t i o n #
@@ -686,7 +647,7 @@ def create_ocaml_input_global():
     with open(path, "r") as f:
         template_raw = f.read()
 
-    e = EZFIO_ocaml(l_module_lower=l_module_lower)
+    e = EZFIO_ocaml(l_module_lower=l_module_with_auto_generate_ocaml_lower)
 
     template = template_raw.format(keywords=e.create_qp_keywords(),
                                    keywords_to_string=e.create_qp_keywords_to_string(),
@@ -707,17 +668,8 @@ def save_ocaml_input_auto(str_ocaml_input_global):
 
     path = "{0}/ocaml/Input_auto_generated.ml".format(os.environ['QPACKAGE_ROOT'])
 
-    try:
-        f = open(path, "r")
-    except IOError:
-        old_output = ""
-    else:
-        old_output = f.read()
-        f.close()
-
-    if str_ocaml_input_global != old_output:
-        with open(path, "w+") as f:
-            f.write(str_ocaml_input_global)
+    with open(path, "w+") as f:
+        f.write(str_ocaml_input_global)
 
 
 def save_ocaml_qp_edit(str_ocaml_qp_edit):
@@ -728,55 +680,14 @@ def save_ocaml_qp_edit(str_ocaml_qp_edit):
 
     path = "{0}/ocaml/qp_edit.ml".format(os.environ['QPACKAGE_ROOT'])
 
-    try:
-        f = open(path, "r")
-    except IOError:
-        old_output = ""
-    else:
-        old_output = f.read()
-        f.close()
-
-    if str_ocaml_qp_edit != old_output:
-        with open(path, "w+") as f:
-            f.write(str_ocaml_qp_edit)
+    with open(path, "w+") as f:
+        f.write(str_ocaml_qp_edit)
 
 
-if __name__ == "__main__":
-    arguments = docopt(__doc__)
-    # ___
-    #  |  ._  o _|_
-    # _|_ | | |  |_
-    #
+def code_generation(arguments, dict_ezfio_cfg, m):
 
-    if not arguments["--global"]:
-        if not arguments["--path"]:
-            config_file_path = "EZFIO.cfg"
-            if "EZFIO.cfg" not in os.listdir(os.getcwd()):
-                sys.exit(0)
-        else:
-            config_file_path = arguments["path"]
-
-        # Get the full path
-        config_file_path = os.path.expanduser(config_file_path)
-        config_file_path = os.path.expandvars(config_file_path)
-        config_file_path = os.path.abspath(config_file_path)
-
-        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
-        #  G e t _ m o d u l e _ d i r #
-        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
-
-        path_dirname = os.path.dirname(config_file_path)
-        module = [i for i in path_dirname.split("/") if i][-1]
-        module_lower = module.lower()
-
-        # Because we only authorise this right now!
-        ezfio_dir = module_lower
-        dict_ezfio_cfg = get_dict_config_file(config_file_path, ezfio_dir)
-
-    #  _
-    # /   _   _|  _     _   _  ._   _  ._ _. _|_ o  _  ._
-    # \_ (_) (_| (/_   (_| (/_ | | (/_ | (_|  |_ | (_) | |
-    #                   _|
+    module_lower = m.lower
+    path_dirname = m.path.replace("/EZFIO.cfg", "")
 
     # ~#~#~#~#~#~#~#~#~#~ #
     # W h a t _ t o _ d o #
@@ -784,8 +695,7 @@ if __name__ == "__main__":
     if any([arguments[i] for i in ["--irpf90",
                                    "--ezfio_config",
                                    "--ocaml",
-                                   "--ezfio_default",
-                                   "--global"]]):
+                                   "--ezfio_default"]]):
         # User changer somme argument, do what he want
         do_all = False
     else:
@@ -826,11 +736,60 @@ if __name__ == "__main__":
         str_ezfio_default = create_ezfio_default(dict_ezfio_cfg)
         save_ezfio_default(module_lower, str_ezfio_default)
 
-    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
-    # e z f i o _ d e f a u l t #
-    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
-    if do_all or arguments["--global"]:
-        str_ocaml_qp_edit, str_ocaml_input_auto = create_ocaml_input_global()
+if __name__ == "__main__":
+    arguments = docopt(__doc__)
+    # ___
+    #  |  ._  o _|_
+    # _|_ | | |  |_
+    #
+
+    if arguments["ocaml_global"]:
+
+        # ~#~#~#~# #
+        #  I n i t #
+        # ~#~#~#~# #
+
+        l_module = get_l_module_with_auto_generate_ocaml_lower()
+
+        str_ocaml_qp_edit, str_ocaml_input_auto = create_ocaml_input_global(l_module)
         save_ocaml_input_auto(str_ocaml_input_auto)
         save_ocaml_qp_edit(str_ocaml_qp_edit)
+        sys.exit(0)
+
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+    #  G e t _ m o d u l e _ d i r #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+
+    if arguments["--path_module"]:
+        path_dirname = os.path.abspath(arguments["--path_module"])
+    else:
+        path_dirname = os.getcwd()
+
+    root_module = os.path.split(path_dirname)[1]
+
+    l_module = [root_module]
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+    #  G e t _ l _ d i c t _ e z f i o _ c f g #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
+
+    qpackage_root_src = join(os.environ['QPACKAGE_ROOT'], "src")
+
+    l_module_with_ezfio = []
+
+    Module = namedtuple('Module', 'path lower')
+
+    for f in l_module:
+        path = join(qpackage_root_src, f, "EZFIO.cfg")
+        if exists(path):
+            l_module_with_ezfio.append(Module(path, f.lower()))
+
+    l_dict_ezfio_cfg = [(m, get_dict_config_file(m)) for m in l_module_with_ezfio]
+
+    #  _
+    # /   _   _|  _     _   _  ._   _  ._ _. _|_ o  _  ._
+    # \_ (_) (_| (/_   (_| (/_ | | (/_ | (_|  |_ | (_) | |
+    #                   _|
+
+    for (m, dict_ezfio_cfg) in l_dict_ezfio_cfg:
+        code_generation(arguments, dict_ezfio_cfg, m)

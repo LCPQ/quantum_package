@@ -9,7 +9,7 @@ double precision function ao_bielec_integral(i,j,k,l)
   double precision               :: I_center(3),J_center(3),K_center(3),L_center(3)
   integer                        :: num_i,num_j,num_k,num_l,dim1,I_power(3),J_power(3),K_power(3),L_power(3)
   double precision               :: integral
-  include 'include/constants.F'
+  include 'Utils/constants.include.F'
   double precision               :: P_new(0:max_dim,3),P_center(3),fact_p,pp
   double precision               :: Q_new(0:max_dim,3),Q_center(3),fact_q,qq
   integer                        :: iorder_p(3), iorder_q(3)
@@ -115,7 +115,7 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
   double precision               :: I_center(3),J_center(3),K_center(3),L_center(3)
   integer                        :: num_i,num_j,num_k,num_l,dim1,I_power(3),J_power(3),K_power(3),L_power(3)
   double precision               :: integral
-  include 'include/constants.F'
+  include 'Utils/constants.include.F'
   double precision               :: P_new(0:max_dim,3),P_center(3),fact_p,pp
   double precision               :: Q_new(0:max_dim,3),Q_center(3),fact_q,qq
   integer                        :: iorder_p(3), iorder_q(3)
@@ -519,7 +519,7 @@ double precision function general_primitive_integral(dim,            &
   ! Computes the integral <pq|rs> where p,q,r,s are Gaussian primitives
   END_DOC
   integer,intent(in)             :: dim
-  include 'include/constants.F'
+  include 'Utils/constants.include.F'
   double precision, intent(in)   :: P_new(0:max_dim,3),P_center(3),fact_p,p,p_inv
   double precision, intent(in)   :: Q_new(0:max_dim,3),Q_center(3),fact_q,q,q_inv
   integer, intent(in)            :: iorder_p(3)
@@ -665,7 +665,7 @@ double precision function ERI(alpha,beta,delta,gama,a_x,b_x,c_x,d_x,a_y,b_y,c_y,
   integer                        :: n_pt_sup
   double precision               :: p,q,denom,coeff
   double precision               :: I_f
-  include 'include/constants.F'
+  include 'Utils/constants.include.F'
   if(iand(a_x+b_x+c_x+d_x,1).eq.1.or.iand(a_y+b_y+c_y+d_y,1).eq.1.or.iand(a_z+b_z+c_z+d_z,1).eq.1)then
     ERI = 0.d0
     return
@@ -859,7 +859,7 @@ subroutine give_polynom_mult_center_x(P_center,Q_center,a_x,d_x,p,q,n_pt_in,pq_i
   integer, intent(in)            :: a_x,d_x
   double precision, intent(in)   :: P_center, Q_center
   double precision, intent(in)   :: p,q,pq_inv,p10_1,p01_1,p10_2,p01_2,pq_inv_2
-  include 'include/constants.F'
+  include 'Utils/constants.include.F'
   double precision,intent(out)   :: d(0:max_dim)
   double precision               :: accu
   accu = 0.d0
@@ -916,7 +916,7 @@ subroutine I_x1_pol_mult(a,c,B_10,B_01,B_00,C_00,D_00,d,nd,n_pt_in)
   ! recursive function involved in the bielectronic integral
   END_DOC
   integer , intent(in)           :: n_pt_in
-  include 'include/constants.F'
+  include 'Utils/constants.include.F'
   double precision,intent(inout) :: d(0:max_dim)
   integer,intent(inout)          :: nd
   integer, intent(in)            :: a,c
@@ -950,7 +950,7 @@ recursive subroutine I_x1_pol_mult_recurs(a,c,B_10,B_01,B_00,C_00,D_00,d,nd,n_pt
   ! recursive function involved in the bielectronic integral
   END_DOC
   integer , intent(in)           :: n_pt_in
-  include 'include/constants.F'
+  include 'Utils/constants.include.F'
   double precision,intent(inout) :: d(0:max_dim)
   integer,intent(inout)          :: nd
   integer, intent(in)            :: a,c
@@ -1036,7 +1036,7 @@ recursive subroutine I_x1_pol_mult_a1(c,B_10,B_01,B_00,C_00,D_00,d,nd,n_pt_in)
   ! recursive function involved in the bielectronic integral
   END_DOC
   integer , intent(in)           :: n_pt_in
-  include 'include/constants.F'
+  include 'Utils/constants.include.F'
   double precision,intent(inout) :: d(0:max_dim)
   integer,intent(inout)          :: nd
   integer, intent(in)            :: c
@@ -1090,7 +1090,7 @@ recursive subroutine I_x1_pol_mult_a2(c,B_10,B_01,B_00,C_00,D_00,d,nd,n_pt_in)
   ! recursive function involved in the bielectronic integral
   END_DOC
   integer , intent(in)           :: n_pt_in
-  include 'include/constants.F'
+  include 'Utils/constants.include.F'
   double precision,intent(inout) :: d(0:max_dim)
   integer,intent(inout)          :: nd
   integer, intent(in)            :: c
@@ -1152,7 +1152,7 @@ recursive subroutine I_x2_pol_mult(c,B_10,B_01,B_00,C_00,D_00,d,nd,dim)
   ! recursive function involved in the bielectronic integral
   END_DOC
   integer , intent(in)           :: dim
-  include 'include/constants.F'
+  include 'Utils/constants.include.F'
   double precision               :: d(0:max_dim)
   integer,intent(inout)          :: nd
   integer, intent(in)            :: c

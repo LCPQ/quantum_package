@@ -51,7 +51,7 @@ integer function align_double(n)
   ! Compute 1st dimension such that it is aligned for vectorization.
   END_DOC
   integer                        :: n
-  include 'include/constants.F'
+  include 'constants.include.F'
   if (mod(n,SIMD_vector/4) /= 0) then
     align_double= n + SIMD_vector/4 - mod(n,SIMD_vector/4)
   else

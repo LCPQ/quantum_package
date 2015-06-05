@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-file = open(os.environ["QPACKAGE_ROOT"]+'/src/Determinants/H_apply_template.f','r')
+file = open(os.environ["QPACKAGE_ROOT"]+'/src/Determinants/H_apply.template.f','r')
 template = file.read()
 file.close()
 

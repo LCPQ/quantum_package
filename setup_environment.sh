@@ -23,6 +23,7 @@ export PYTHONPATH=\${PYTHONPATH}\$(find "\${QPACKAGE_ROOT}"/scripts -type d -pri
 export PATH=\${PATH}\$(find "\${QPACKAGE_ROOT}"/scripts -type d -printf ":%p")
 export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/bin
 export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/ocaml
+export PATH=\${PATH}:"\${QPACKAGE_ROOT}"/ninja
 source "\${QPACKAGE_ROOT}"/bin/irpman &> /dev/null
 EOF
 
@@ -38,6 +39,9 @@ then
 fi
 
 mkdir -p ${QPACKAGE_ROOT}/install_logs
+
+echo "${BLUE}===== Installing Ninja ===== ${BLACK}"
+${QPACKAGE_ROOT}/scripts/install/install_ninja.sh       | tee ${QPACKAGE_ROOT}/install_logs/install_ninja.log
 
 echo "${BLUE}===== Installing Zlib ===== ${BLACK}"
 ${QPACKAGE_ROOT}/scripts/install/install_zlib.sh       | tee ${QPACKAGE_ROOT}/install_logs/install_zlib.log
