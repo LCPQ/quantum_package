@@ -23,6 +23,8 @@ It have some usefull property:
     - The dict of the root
     - The list reduced tree (For a list of module in input return only the root)
 
+For tree syntax you can check http://en.wikipedia.org/wiki/Tree_%28data_structure%29#Terminologies_used_in_Trees
+
 In the cli mode:
     - From a `NEEDED_CHILDREN_MODULE` file you can have all the descendant, and a png
     representation who correspond.

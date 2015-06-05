@@ -296,7 +296,7 @@ def ninja_symlink_build(path_module, l_symlink):
 # o ._ ._ _|_ (_| / \   ._ _   _. |   _
 # | |  |_) |    | \_/ o | | | (_| |< (/_
 #      |
-def get_l_file_for_module(path_module_abs):
+def get_l_file_for_module(path_module):
     '''
     return the list of irp.f in a module
     '''
@@ -306,17 +306,17 @@ def get_l_file_for_module(path_module_abs):
 
     l_template = []
 
-    for f in os.listdir(path_module_abs):
+    for f in os.listdir(path_module.abs):
         if f.lower().endswith(tuple([".template.f", ".include.f"])):
-            l_template.append(join(path_module_abs, f))
+            l_template.append(join(path_module.abs, f))
         elif f.endswith(".irp.f"):
-            l_irp.append(join(path_module_abs, f))
+            l_irp.append(join(path_module.abs, f))
         elif f.lower().endswith(tuple([".f", ".f90", ".c", ".cpp", ".cxx"])):
-            l_src.append(join(path_module_abs, f))
+            l_src.append(f)
             obj = '{0}.o'.format(os.path.splitext(f)[0])
-            l_obj.append(join(path_module_abs, obj))
+            l_obj.append(obj)
         elif f == "EZFIO.cfg":
-            l_irp.append(join(path_module_abs, "ezfio_interface.irp.f"))
+            l_irp.append(join(path_module.abs, "ezfio_interface.irp.f"))
 
     d = {"l_irp": l_irp,
          "l_src": l_src,
@@ -334,12 +334,20 @@ def get_file_dependency(d_info_module):
 
     for module, l_children in d_info_module.iteritems():
 
-        for key, values in get_l_file_for_module(module.abs).iteritems():
+        for key, values in get_l_file_for_module(module).iteritems():
+            if key in ["l_src"]:
+		values = [join(module.abs,o) for o in values]
+	    if key in ["l_obj"]:
+              	values = [join(module.abs,"IRPF90_temp",o) for o in values]
             d_irp[module][key] = values
 
         for children in l_children:
-            for key, values in get_l_file_for_module(children.abs).iteritems():
-                d_irp[module][key].extend(values)
+            for key, values in get_l_file_for_module(children).iteritems():
+		 if key in ["l_src"]:
+		      values = [join(module.abs,children.rel,o) for o in values]
+		 if key in ["l_obj"]:
+		      values = [join(module.abs,"IRPF90_temp",children.rel,o) for o in values]
+                 d_irp[module][key].extend(values)
 
     return d_irp
 
