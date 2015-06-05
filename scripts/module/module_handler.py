@@ -8,7 +8,6 @@ of a NEEDED_CHILDREN_MODULES file
 Usage:
     module_handler.py print_descendant      [<NEEDED_CHILDREN_MODULES>]
     module_handler.py create_png            [<NEEDED_CHILDREN_MODULES>]
-    module_handler.py head_module
 
 Options:
     print_descendant         Print the genealogy of the NEEDED_CHILDREN_MODULES
@@ -140,7 +139,7 @@ class ModuleHandler:
 
     @classmethod
     def l_reduce_tree(cls, l_module):
-
+        """For a list of module in input return only the root"""
         l_d_u = cls.l_descendant_unique(l_module)
         l_module_reduce = []
         for module in l_module:

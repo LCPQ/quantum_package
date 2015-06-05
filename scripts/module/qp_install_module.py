@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Usage: qp_create_module.py list
-       qp_create_module.py create -n <name> [<children_module>...]
+Usage: qp_install_module.py list
+       qp_install_module.py create -n <name> [<children_module>...]
+
+Options:
+    list: List all the module avalaible
+    create: Create a new module 
 """
 
 import sys
