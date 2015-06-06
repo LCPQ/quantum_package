@@ -300,7 +300,7 @@ def get_l_file_for_module(path_module):
     '''
     return the list of irp.f in a module
     '''
-    l_irp = []
+    l_depend = []
     l_src = []
     l_obj = []
 
@@ -310,15 +310,16 @@ def get_l_file_for_module(path_module):
         if f.lower().endswith(tuple([".template.f", ".include.f"])):
             l_template.append(join(path_module.abs, f))
         elif f.endswith(".irp.f"):
-            l_irp.append(join(path_module.abs, f))
+            l_depend.append(join(path_module.abs, f))
         elif f.lower().endswith(tuple([".f", ".f90", ".c", ".cpp", ".cxx"])):
-            l_src.append(f)
+            l_depend.append(join(path_module.abs,f))
+	    l_src.append(f)
             obj = '{0}.o'.format(os.path.splitext(f)[0])
             l_obj.append(obj)
         elif f == "EZFIO.cfg":
-            l_irp.append(join(path_module.abs, "ezfio_interface.irp.f"))
+            l_depend.append(join(path_module.abs, "ezfio_interface.irp.f"))
 
-    d = {"l_irp": l_irp,
+    d = {"l_depend": l_depend,
          "l_src": l_src,
          "l_obj": l_obj,
          "l_template": l_template}
@@ -340,7 +341,7 @@ def get_file_dependency(d_info_module):
 	    if key in ["l_obj"]:
               	values = [join(module.abs,"IRPF90_temp",o) for o in values]
             d_irp[module][key] = values
-
+       
         for children in l_children:
             for key, values in get_l_file_for_module(children).iteritems():
 		 if key in ["l_src"]:
@@ -403,17 +404,17 @@ def ninja_irpf90_make_build(path_module, l_needed_molule, d_irp):
     # D e p e n d a n c y #
     # ~#~#~#~#~#~#~#~#~#~ #
 
-    l_irp_need = d_irp[path_module]["l_irp"]
+    l_depend = d_irp[path_module]["l_depend"]
     l_src = d_irp[path_module]["l_src"]
     l_obj = d_irp[path_module]["l_obj"]
     l_template = d_irp[path_module]["l_template"]
 
     if l_needed_molule:
-        l_destination = ["l_symlink_{0}".format(path_module.rel)]
+        l_symlink = ["l_symlink_{0}".format(path_module.rel)]
     else:
-        l_destination = []
+        l_symlink = []
 
-    str_depend = " ".join(l_irp_need + l_destination + l_src + l_template)
+    str_depend = " ".join(l_depend + l_symlink + l_template)
 
     # ~#~#~#~#~#~#~#~#~#~#~ #
     # N i n j a _ b u i l d #
