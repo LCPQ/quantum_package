@@ -259,9 +259,6 @@ def create_rule():
         "  description = Downloading ${descr}", "", "rule install",
         "  command = ./scripts/install_${target}.sh > _build/${target}.log 2>&1",
         "  description = Installing ${descr}", ""
-        "rule install_verbose",
-        "  command = ./scripts/install_${target}.sh | tee _build/${target}.log 2>&1",
-        "  description = Installing ${descr}", ""
     ]
 
     return l_rules
@@ -287,15 +284,9 @@ for need in l_need_genealogy:
     # Build to install
     l_dependancy = [d_info[i].default_path for i in d_dependancy[need] if i in l_need_genealogy]
 
-    if need == "ocaml":
-        install ="install_verbose"
-    else:
-        install ="install"
-
-    l_build += ["build {0}: {1} {2} {3}".format(d_info[need].default_path,
-                                                install,
-                                                archive_path,
-                                                " ".join(l_dependancy)),
+    l_build += ["build {0}: install {1} {2}".format(d_info[need].default_path,
+                                                    archive_path,
+                                                    " ".join(l_dependancy)),
                 "   target = {0}".format(need),
                 "   descr = {0}".format(descr), ""]
 
