@@ -19,7 +19,7 @@ from subprocess import Popen, PIPE
 
 qpackage_root = os.environ['QP_ROOT']
 
-EZFIO = "{0}/EZFIO".format(qpackage_root)
+EZFIO = "{0}/install/EZFIO".format(qpackage_root)
 sys.path = [EZFIO + "/Python"] + sys.path
 
 from ezfio import ezfio
@@ -51,7 +51,7 @@ def get_pseudo_str(l_atom):
         10.11238853 0   1.14052020  |1><1|
     """
 
-    EMSL_root = "{0}/EMSL_Basis/".format(qpackage_root)
+    EMSL_root = "{0}/install/emsl/".format(qpackage_root)
     EMSL_path = "{0}/EMSL_api.py".format(EMSL_root)
     db_path = "{0}/db/Pseudo.db".format(EMSL_root)
 
