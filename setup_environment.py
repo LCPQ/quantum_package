@@ -238,9 +238,11 @@ if "ninja" in l_need_genealogy:
 
     l_cmd = ["cd install;",
              "wget {0} -O {1} -o /dev/null ;".format(url, path_archive),
-             "./scripts/install_ninja.sh 2>/dev/null;", "cd -"]
+             "./scripts/install_ninja.sh", "cd -"]
 
     check_output(" ".join(l_cmd), shell=True)
+
+    print "Done"
     l_need_genealogy.remove("ninja")
 
 print """

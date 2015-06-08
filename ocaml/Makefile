@@ -1,9 +1,9 @@
 .NOPARALLEL:
 
-# Check if QPACKAGE_ROOT is defined
-ifndef QPACKAGE_ROOT
+# Check if QP_ROOT is defined
+ifndef QP_ROOT
 $(info  -------------------- Error --------------------)
-$(info  QPACKAGE_ROOT undefined. Source the quantum_package.rc script)
+$(info  QP_ROOT undefined. Source the quantum_package.rc script)
 $(info  -----------------------------------------------)
 $(error )
 endif
@@ -32,10 +32,10 @@ default: $(ALL_TESTS) $(ALL_EXE) .gitignore
 	   echo $$i ; \
 	done > .gitignore
 
-executables: $(QPACKAGE_ROOT)/data/executables
+executables: $(QP_ROOT)/data/executables
 
-$(QPACKAGE_ROOT)/data/executables:
-	$(QPACKAGE_ROOT)/scripts/module/create_executables_list.sh
+$(QP_ROOT)/data/executables:
+	$(QP_ROOT)/scripts/module/create_executables_list.sh
 
 external_libs:
 	opam install cryptokit core
@@ -62,8 +62,8 @@ qp_run.native: $(MLFILES) $(MLIFILES) executables
 	$(OCAMLBUILD) $*.native -use-ocamlfind $(PKGS)
 	ln -s $*.native $*
 
-ezfio.ml: ${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml
-	cp ${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml .
+ezfio.ml: ${QP_ROOT}/EZFIO/Ocaml/ezfio.ml
+	cp ${QP_ROOT}/EZFIO/Ocaml/ezfio.ml .
 
 qptypes_generator.byte: qptypes_generator.ml
 	$(OCAMLBUILD) qptypes_generator.byte  -use-ocamlfind 
@@ -71,8 +71,8 @@ qptypes_generator.byte: qptypes_generator.ml
 Qptypes.ml: qptypes_generator.byte
 	./qptypes_generator.byte > Qptypes.ml
 
-${QPACKAGE_ROOT}/EZFIO/Ocaml/ezfio.ml: 
-	$(MAKE) -C ${QPACKAGE_ROOT}/src ezfio
+${QP_ROOT}/EZFIO/Ocaml/ezfio.ml: 
+	$(MAKE) -C ${QP_ROOT}/src ezfio
 
 Input_auto_generated.ml qp_edit.ml:
 	ei_handler.py ocaml_global
