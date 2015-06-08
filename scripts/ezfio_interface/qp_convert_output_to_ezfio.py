@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This function acceep
+convert output of gamess/GAU$$IAN to ezfio
 
 Usage:
     qp_convert_output_to_ezfio.py <file.out> [--ezfio=<folder.ezfio>]
@@ -29,7 +29,7 @@ except:
     print "Error: QP_ROOT environment variable not found."
     sys.exit(1)
 else:
-    sys.path = [QP_ROOT + "/EZFIO/Python",
+    sys.path = [QP_ROOT + "/install/EZFIO/Python",
                 QP_ROOT + "/resultsFile",
                 QP_ROOT + "/scripts"] + sys.path
 

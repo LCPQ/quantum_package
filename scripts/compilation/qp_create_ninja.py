@@ -223,7 +223,7 @@ def ninja_ezfio_rule():
               for flag in ["FC", "FCFLAGS", "IRPF90"]]
 
     l_cmd = ["cd {0}".format(QP_ROOT_EZFIO)
-             ] + l_flag + ["make && ln -f {0} {1}".format(join(QP_ROOT, 'install', 'EZFIO',"lib","libezfio.a"),
+             ] + l_flag + ["ninja && ln -f {0} {1}".format(join(QP_ROOT, 'install', 'EZFIO',"lib","libezfio.a"),
                                                           EZFIO_LIB)]
 
     l_string = ["rule build_ezfio",
@@ -399,7 +399,7 @@ def ninja_irpf90_make_build(path_module, l_needed_molule, d_irp):
 
     l_creation = [join(path_module.abs, i)
                   for i in ["irpf90.make", "irpf90_entities", "tags",
-                            "IRPF90_temp/build.ninja"]]
+                            "build.ninja"]]
     str_creation = " ".join(l_creation)
 
     # ~#~#~#~#~#~#~#~#~#~ #
@@ -532,7 +532,7 @@ def ninja_binaries_rule():
     # c m d #
     # ~#~#~ #
 
-    l_cmd = ["cd $module/IRPF90_temp", "ninja"]
+    l_cmd = ["cd $module", "ninja"]
 
     # ~#~#~#~#~#~ #
     # s t r i n g #
@@ -554,7 +554,7 @@ def ninja_binaries_build(path_module, l_children, d_binaries):
     # c m d #
     # ~#~#~ #
 
-    ninja_module_path = join(path_module.abs, "IRPF90_temp", "build.ninja")
+    ninja_module_path = join(path_module.abs, "build.ninja")
     l_abs_bin = [binary.abs for binary in d_binaries[path_module]]
 
     # ~#~#~#~#~#~ #

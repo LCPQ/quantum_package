@@ -12,7 +12,8 @@ function _install()
   cd ${BUILD}
   ./configure && make || exit 1
   make install prefix=$QP_ROOT/install/${TARGET} || exit 1
-  ln -f $QP_ROOT/install/${TARGET}/lib/libz.so $QP_ROOT/lib || exit 1
+  ln -s -f $QP_ROOT/install/${TARGET}/lib/libz.so $QP_ROOT/lib || exit 1
+  ln -s -f $QP_ROOT/install/${TARGET}/lib/libz.a $QP_ROOT/lib || exit 1
 }
 
 source scripts/build.sh

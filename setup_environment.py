@@ -65,7 +65,7 @@ path = Info(
     default_path=join(QP_ROOT_BIN, "patch"))
 
 irpf90 = Info(
-    url='{head}/scemama/irpf90/archive/v1.6.5.tar.gz'.format(**path_github),
+    url='{head}/scemama/irpf90/archive/v1.6.6.tar.gz'.format(**path_github),
     description=' irpf90',
     default_path=join(QP_ROOT_BIN, "irpf90"))
 
@@ -143,16 +143,11 @@ def check_python():
 
 def check_avabiliy(binary):
 
-    if binary == "zlib":
-        binary_name = "zlib-flate"
-    else:
-        binary_name = binary
-
     if binary == "python":
         check_python()
 
     try:
-        return check_output(["which", binary_name])
+        return check_output(["which", binary])
     except subprocess.CalledProcessError:
         default_path = d_info[binary].default_path
         if os.path.exists(default_path):
@@ -209,7 +204,12 @@ print """
 """
 
 print "You have already installed :"
-pprint.pprint(l_installed)
+def f( (a1,a2), (key,value) ): 
+    return tuple(max(x,len(y)) for (x,y) in [(a1,key), (a2,value)] )
+fmt_tuple =reduce(f, l_installed.iteritems(), (0,0))
+for k,v in l_installed.iteritems():
+    fmt = "{0:<%d} : {1:<%d}"%fmt_tuple
+    print fmt.format( k, v )
 
 print """
  ___
