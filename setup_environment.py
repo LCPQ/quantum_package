@@ -109,7 +109,7 @@ l_need = []
 # | |_| | | (_  |_ | (_) | |
 #
 def check_output(*popenargs, **kwargs):
-    r"""Run command with arguments and return its output as a byte string.
+    """Run command with arguments and return its output as a byte string.
 
     Backported from Python 2.7 as it's implemented as pure python on stdlib.
 
@@ -240,7 +240,7 @@ if "ninja" in l_need_genealogy:
              "wget {0} -O {1} -o /dev/null ;".format(url, path_archive),
              "./scripts/install_ninja.sh 2>/dev/null;", "cd -"]
 
-    subprocess.check_call(" ".join(l_cmd), shell=True)
+    subprocess.check_output(" ".join(l_cmd), shell=True)
     l_need_genealogy.remove("ninja")
 
 print """
