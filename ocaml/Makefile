@@ -62,8 +62,8 @@ qp_run.native: $(MLFILES) $(MLIFILES) executables
 	$(OCAMLBUILD) $*.native -use-ocamlfind $(PKGS)
 	ln -s $*.native $*
 
-ezfio.ml: ${QP_ROOT}/EZFIO/Ocaml/ezfio.ml
-	cp ${QP_ROOT}/EZFIO/Ocaml/ezfio.ml .
+ezfio.ml: ${QP_ROOT}/install/EZFIO/Ocaml/ezfio.ml
+	cp ${QP_ROOT}/install/EZFIO/Ocaml/ezfio.ml .
 
 qptypes_generator.byte: qptypes_generator.ml
 	$(OCAMLBUILD) qptypes_generator.byte  -use-ocamlfind 
@@ -71,8 +71,8 @@ qptypes_generator.byte: qptypes_generator.ml
 Qptypes.ml: qptypes_generator.byte
 	./qptypes_generator.byte > Qptypes.ml
 
-${QP_ROOT}/EZFIO/Ocaml/ezfio.ml: 
-	$(MAKE) -C ${QP_ROOT}/src ezfio
+${QP_ROOT}/install/EZFIO/Ocaml/ezfio.ml: 
+	$(MAKE) -C ${QP_ROOT}/install/src ezfio
 
 Input_auto_generated.ml qp_edit.ml:
 	ei_handler.py ocaml_global

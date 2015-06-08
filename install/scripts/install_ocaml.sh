@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 PACKAGES="core cryptokit ocamlfind sexplib"
 
@@ -19,7 +19,7 @@ chmod +x  ocaml.sh || exit 1
 
 echo N | ./ocaml.sh ${QP_ROOT}/bin/ || exit 1
 
-${QP_ROOT}/bin/opam config setup -a|| exit 1
+${QP_ROOT}/bin/opam config setup -a -q || exit 1
 
 export LD_LIBRARY_PATH=${QP_ROOT}/lib:${LD_LIBRARY_PATH}
 export LIBRARY_PATH=${QP_ROOT}/lib:${LIBRARY_PATH}
