@@ -240,7 +240,7 @@ if "ninja" in l_need_genealogy:
              "wget {0} -O {1} -o /dev/null ;".format(url, path_archive),
              "./scripts/install_ninja.sh 2>/dev/null;", "cd -"]
 
-    subprocess.check_output(" ".join(l_cmd), shell=True)
+    check_output(" ".join(l_cmd), shell=True)
     l_need_genealogy.remove("ninja")
 
 print """
