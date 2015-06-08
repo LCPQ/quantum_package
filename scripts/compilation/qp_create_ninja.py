@@ -26,7 +26,7 @@ except ImportError:
 
 QPACKAGE_ROOT = os.environ['QPACKAGE_ROOT']
 QPACKAGE_ROOT_SRC = join(QPACKAGE_ROOT, 'src')
-QPACKAGE_ROOT_EZFIO = join(QPACKAGE_ROOT, 'EZFIO')
+QPACKAGE_ROOT_EZFIO = join(QPACKAGE_ROOT, 'install', 'EZFIO')
 
 EZFIO_LIB = join(QPACKAGE_ROOT_EZFIO, "lib", "libezfio.a")
 
@@ -57,8 +57,7 @@ def ninja_create_env_variable(pwd_config_file):
         l_string.append(str_)
 
     lib_lapack = get_compilation_option(pwd_config_file, "LAPACK_LIB")
-    lib_ezfio = join(QPACKAGE_ROOT_EZFIO, "lib", "libezfio_irp.a")
-    l_string.append("{0} = {1} {2}".format("LIB", lib_lapack, lib_ezfio))
+    l_string.append("{0} = {1} {2}".format("LIB", lib_lapack, EZFIO_LIB))
 
     l_string.append("")
 
@@ -313,7 +312,7 @@ def get_l_file_for_module(path_module):
             l_depend.append(join(path_module.abs, f))
         elif f.lower().endswith(tuple([".f", ".f90", ".c", ".cpp", ".cxx"])):
             l_depend.append(join(path_module.abs,f))
-	    l_src.append(f)
+            l_src.append(f)
             obj = '{0}.o'.format(os.path.splitext(f)[0])
             l_obj.append(obj)
         elif f == "EZFIO.cfg":
@@ -337,18 +336,20 @@ def get_file_dependency(d_info_module):
 
         for key, values in get_l_file_for_module(module).iteritems():
             if key in ["l_src"]:
-		values = [join(module.abs,o) for o in values]
-	    if key in ["l_obj"]:
-              	values = [join(module.abs,"IRPF90_temp",o) for o in values]
+                values = [join(module.abs,o) for o in values]
+            if key in ["l_obj"]:
+                values = [join(module.abs,"IRPF90_temp",o) for o in values]
+
             d_irp[module][key] = values
-       
+
         for children in l_children:
             for key, values in get_l_file_for_module(children).iteritems():
-		 if key in ["l_src"]:
-		      values = [join(module.abs,children.rel,o) for o in values]
-		 if key in ["l_obj"]:
-		      values = [join(module.abs,"IRPF90_temp",children.rel,o) for o in values]
-                 d_irp[module][key].extend(values)
+                if key in ["l_src"]:
+                    values = [join(module.abs,children.rel,o) for o in values]
+                if key in ["l_obj"]:
+                    values = [join(module.abs,"IRPF90_temp",children.rel,o) for o in values]
+
+                d_irp[module][key].extend(values)
 
     return d_irp
 

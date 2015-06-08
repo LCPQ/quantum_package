@@ -368,7 +368,7 @@ def create_ezfio_stuff(dict_ezfio_cfg, config_or_default="config"):
                     if begin[0] == '-':
                         a_size_raw.append("{0}+{1}+1".format(end, begin[1:]))
                     else:
-                       a_size_raw.append("{0}-{1}+1".format(end, begin))
+                        a_size_raw.append("{0}-{1}+1".format(end, begin))
 
             size_raw = ",".join(a_size_raw)
 
@@ -454,10 +454,8 @@ def save_ezfio_config(module_lower, str_ezfio_config):
     Write the str_ezfio_config in
     "$QPACKAGE_ROOT/EZFIO/{0}.ezfio_interface_config".format(module_lower)
     """
-
-    root_ezfio = "{0}/EZFIO".format(os.environ['QPACKAGE_ROOT'])
-    path = "{0}/config/{1}.ezfio_interface_config".format(root_ezfio,
-                                                          module_lower)
+    name = "{0}.ezfio_interface_config".format(module_lower)
+    path = os.path.join(os.environ['QP_EZFIO'], "config", name)
 
     with open(path, "w+") as f:
         f.write(str_ezfio_config)
