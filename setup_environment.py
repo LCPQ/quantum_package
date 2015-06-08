@@ -326,7 +326,7 @@ if "ocaml" in l_need_genealogy:
 
     l_cmd = ["cd install &&",
              "wget {0} -O {1} -o /dev/null &&".format(url, path_archive),
-             "./scripts/install_ocaml.sh"]
+             "./scripts/install_ocaml.sh --fast"]
 
     os.system(" ".join(l_cmd))
 
@@ -369,7 +369,7 @@ l_rc = [
     'export PATH="${PATH}":"${QP_PYTHON}":"${QP_ROOT}"/bin',
     'export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${LD_LIBRARY_PATH}"',
     'export LIBRARY_PATH="${QP_ROOT}"/lib:"${LIBRARY_PATH}"', ""
-    'source . ${HOME}/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true',
+    'source ${HOME}/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true',
     ""
 ]
 

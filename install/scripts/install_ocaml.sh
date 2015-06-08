@@ -1,5 +1,23 @@
 #!/bin/bash
 
+cd ..
+QP_ROOT=$PWD
+cd -
+
+# Fast installation
+if [[ "$1" == "--fast" && ! -d ${HOME}/.opam ]]
+then
+  MEGA_DL="${QP_ROOT}/bin/mega-dl.sh"
+  wget 'https://gist.githubusercontent.com/scemama/b9debaed0b76321229a5/raw/d06ca00e6ad7f3703ff4738b210f6f913c1bd8d5/mega-dl.sh' -O ${MEGA_DL}
+  chmod +x ${MEGA_DL}
+  url='https://mega.co.nz/#!ykh32ajD!2aeqh87c53tL-Z4W1msQvem-TrmRN3ftlZ_QdhKo3c4'
+  ${MEGA_DL} $url /tmp/opam.tgz
+  cd $HOME
+  tar -zxf /tmp/opam.tgz
+  cd -
+fi
+
+# Normal installation
 PACKAGES="core cryptokit ocamlfind sexplib"
 
 declare -i i
@@ -10,9 +28,10 @@ then
    exit 1
 fi
 
-cd ..
-QP_ROOT=$PWD
-cd -
+if [[ -d ${HOME}/.opam ]]
+then
+  source ${HOME}/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true
+fi
 
 cd Downloads || exit 1
 chmod +x  ocaml.sh || exit 1
