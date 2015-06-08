@@ -41,7 +41,7 @@ path_github = {"head": "http://github.com/", "tail": "archive/master.tar.gz"}
 
 ocaml = Info(
     url='http://raw.github.com/ocaml/opam/master/shell/opam_installer.sh',
-    description=' ocaml',
+    description=' ocaml (it will take some time)',
     default_path=join(QP_ROOT_BIN, "opam"))
 
 m4 = Info(
@@ -236,9 +236,9 @@ if "ninja" in l_need_genealogy:
     extension = splitext(url)[1]
     path_archive = "Downloads/{0}{1}".format("ninja", extension)
 
-    l_cmd = ["cd install;",
-             "wget {0} -O {1} -o /dev/null ;".format(url, path_archive),
-             "./scripts/install_ninja.sh", "cd -"]
+    l_cmd = ["cd install &&",
+             "wget {0} -O {1} -o /dev/null &&".format(url, path_archive),
+             "./scripts/install_ninja.sh &&", "cd -"]
 
     check_output(" ".join(l_cmd), shell=True)
 
