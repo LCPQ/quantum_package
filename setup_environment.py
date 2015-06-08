@@ -144,13 +144,15 @@ def check_python():
 def check_avabiliy(binary):
 
     if binary == "zlib":
-        binary = "zlib-flate"
+        binary_name = "zlib-flate"
+    else:
+        binary_name = binary
 
     if binary == "python":
         check_python()
 
     try:
-        return check_output(["which", binary])
+        return check_output(["which", binary_name])
     except subprocess.CalledProcessError:
         default_path = d_info[binary].default_path
         if os.path.exists(default_path):
