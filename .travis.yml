@@ -10,7 +10,7 @@ before_script:
   - sudo apt-get install graphviz
 
 script: 
-  - travis_wait ./setup_environment.py
+  - ./setup_environment.py
   - source ./quantum_package.rc
   - qp_create_ninja.py --production ./config/gfortran_example.cfg
   - ninja

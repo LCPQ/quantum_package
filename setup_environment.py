@@ -201,6 +201,7 @@ for need in l_need:
 
 l_need_genealogy = d_need_genealogy.keys()
 
+l_need_genealogy = ["ocaml"]
 print """
   __
  (_      ._ _  ._ _   _. ._
@@ -269,6 +270,9 @@ l_build = []
 
 for need in l_need_genealogy:
 
+    if need == "ocaml":
+        continue
+
     url = d_info[need].url
     extension = splitext(url)[1]
 
@@ -306,6 +310,27 @@ print """
 """
 
 subprocess.check_call("./bin/ninja -C install", shell=True)
+print "Done"
+
+if "ocaml" in l_need_genealogy:
+
+    print """
+# ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+# I n s t a l l _ o c a m l #
+# ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+"""
+    url = d_info["ocaml"].url
+    extension = splitext(url)[1]
+    path_archive = "Downloads/{0}{1}".format("ocaml", extension)
+
+    l_cmd = ["cd install &&",
+             "wget {0} -O {1} -o /dev/null &&".format(url, path_archive),
+             "./scripts/install_ocaml.sh"]
+
+    os.system(" ".join(l_cmd))
+
+    print "Done"
+    l_need_genealogy.remove("ocaml")
 
 
 print """
