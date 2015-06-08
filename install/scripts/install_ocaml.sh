@@ -28,13 +28,13 @@ then
    echo "Installation of OPAM failed"
    exit 2
 fi
-${QP_ROOT}/bin/opam config setup -a || exit 1
+${QP_ROOT}/bin/opam config setup -a --dot-profile ${QP_ROOT}/quantum_package.rc  || exit 1
 
 export LD_LIBRARY_PATH=${QP_ROOT}/lib:${LD_LIBRARY_PATH}
 export LIBRARY_PATH=${QP_ROOT}/lib:${LIBRARY_PATH}
 export C_INCLUDE_PATH=${QP_ROOT}/lib:${C_INCLUDE_PATH}
-${QP_ROOT}/bin/opam install ${PACKAGES} || exit 1
+
+source ${QPACKAGE_ROOT}/quantum_package.rc
+echo Y | ${QP_ROOT}/bin/opam install ${PACKAGES} || exit 1
 rm -f ../_build/ocaml.log
 exit 0
-
-
