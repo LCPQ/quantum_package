@@ -19,10 +19,10 @@ QP_ROOT_INSTALL = join(QP_ROOT, "install")
 
 d_dependancy = {
     "ocaml": ["m4", "curl", "zlib", "patch", "gcc"],
-    "m4": [],
-    "curl": [],
-    "zlib": ["gcc"],
-    "patch": [],
+    "m4": ["make"],
+    "curl": ["make"],
+    "zlib": ["gcc", "make"],
+    "patch": ["make"],
     "ezfio": ["irpf90"],
     "irpf90": ["python"],
     "docopt": ["python"],
@@ -30,7 +30,8 @@ d_dependancy = {
     "emsl": ["python"],
     "gcc": [],
     "python": [],
-    "ninja": ["gcc", "python"]
+    "ninja": ["gcc", "python"],
+    "make": []
 }
 
 from collections import namedtuple
@@ -366,7 +367,7 @@ l_rc = [
     'export QP_PYTHON={0}'.format(":".join(l_python)),
     "",
     'export PYTHONPATH="${PYTHONPATH}":"${QP_PYTHON}"',
-    'export PATH="${PATH}":"${QP_PYTHON}":"${QP_ROOT}"/bin',
+    'export PATH="${PATH}":"${QP_PYTHON}":"${QP_ROOT}"/bin:"${QP_ROOT}"/ocaml',
     'export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${LD_LIBRARY_PATH}"',
     'export LIBRARY_PATH="${QP_ROOT}"/lib:"${LIBRARY_PATH}"', ""
     'source ${HOME}/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true',
