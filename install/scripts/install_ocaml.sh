@@ -11,7 +11,7 @@ then
 fi
 
 cd ..
-QPACKAGE_ROOT=$PWD
+QP_ROOT=$PWD
 cd -
 
 cd Downloads || exit 1
@@ -22,18 +22,18 @@ then
   source ${HOME}/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true
 fi
 
-echo N | ./ocaml.sh ${QPACKAGE_ROOT}/bin/ || exit 1
-if [[ ! -f ${QPACKAGE_ROOT}/bin/opam ]]
+echo N | ./ocaml.sh ${QP_ROOT}/bin/ || exit 1
+if [[ ! -f ${QP_ROOT}/bin/opam ]]
 then
    echo "Installation of OPAM failed"
    exit 2
 fi
-${QPACKAGE_ROOT}/bin/opam config setup -a --dot-profile ${QPACKAGE_ROOT}/qmcchemrc || exit 1
-touch ${QPACKAGE_ROOT}/bin/opam
+${QP_ROOT}/bin/opam config setup -a --dot-profile ${QP_ROOT}/qmcchemrc || exit 1
+touch ${QP_ROOT}/bin/opam
 
-export LD_LIBRARY_PATH=${QPACKAGE_ROOT}/lib:${LD_LIBRARY_PATH}
-export LIBRARY_PATH=${QPACKAGE_ROOT}/lib:${LIBRARY_PATH}
-export C_INCLUDE_PATH=${QPACKAGE_ROOT}/lib:${C_INCLUDE_PATH}
+export LD_LIBRARY_PATH=${QP_ROOT}/lib:${LD_LIBRARY_PATH}
+export LIBRARY_PATH=${QP_ROOT}/lib:${LIBRARY_PATH}
+export C_INCLUDE_PATH=${QP_ROOT}/lib:${C_INCLUDE_PATH}
 opam install ${PACKAGES} || exit 1
 rm -f ../_build/ocaml.log
 exit 0

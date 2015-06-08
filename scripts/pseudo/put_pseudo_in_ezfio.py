@@ -17,7 +17,7 @@ from docopt import docopt
 
 from subprocess import Popen, PIPE
 
-qpackage_root = os.environ['QPACKAGE_ROOT']
+qpackage_root = os.environ['QP_ROOT']
 
 EZFIO = "{0}/EZFIO".format(qpackage_root)
 sys.path = [EZFIO + "/Python"] + sys.path

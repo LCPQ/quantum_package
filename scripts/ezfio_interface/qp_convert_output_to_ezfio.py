@@ -24,14 +24,14 @@ from functools import reduce
 
 
 try:
-    QPACKAGE_ROOT = os.environ["QPACKAGE_ROOT"]
+    QP_ROOT = os.environ["QP_ROOT"]
 except:
-    print "Error: QPACKAGE_ROOT environment variable not found."
+    print "Error: QP_ROOT environment variable not found."
     sys.exit(1)
 else:
-    sys.path = [QPACKAGE_ROOT + "/EZFIO/Python",
-                QPACKAGE_ROOT + "/resultsFile",
-                QPACKAGE_ROOT + "/scripts"] + sys.path
+    sys.path = [QP_ROOT + "/EZFIO/Python",
+                QP_ROOT + "/resultsFile",
+                QP_ROOT + "/scripts"] + sys.path
 
 # ~#~#~#~#~#~ #
 # I m p o r t #

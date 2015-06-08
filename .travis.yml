@@ -10,7 +10,7 @@ before_script:
   - sudo apt-get install graphviz
 
 script: 
-  - ./setup_environment.sh --robot 
+  - ./setup_environment.py
   - source ./quantum_package.rc
   - qp_create_ninja.py --production ./config/gfortran_example.cfg
   - ninja

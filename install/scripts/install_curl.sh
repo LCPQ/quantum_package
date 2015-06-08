@@ -4,10 +4,10 @@ TARGET=curl
 function _install()
 {
   cd ..
-  QPACKAGE_ROOT=$PWD
+  QP_ROOT=$PWD
   cd -
   cd ${BUILD} || return 1
-  mv curl.ermine ${QPACKAGE_ROOT}/bin/curl || return 1
+  mv curl.ermine ${QP_ROOT}/bin/curl || return 1
 }
 
 BUILD=_build/${TARGET}

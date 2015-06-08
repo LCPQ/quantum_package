@@ -13,9 +13,9 @@ from os.path import join
 # \_| |_ (_) |_) (_| |   | | | | (_)
 #
 
-QPACKAGE_ROOT = os.getcwd()
-QPACKAGE_ROOT_BIN = join(QPACKAGE_ROOT, "bin")
-QPACKAGE_ROOT_INSTALL = join(QPACKAGE_ROOT, "install")
+QP_ROOT = os.getcwd()
+QP_ROOT_BIN = join(QP_ROOT, "bin")
+QP_ROOT_INSTALL = join(QP_ROOT, "install")
 
 d_dependancy = {
     "ocaml": ["m4", "curl", "zlib", "patch", "gcc"],
@@ -42,58 +42,58 @@ path_github = {"head": "http://github.com/", "tail": "archive/master.tar.gz"}
 ocaml = Info(
     url='http://raw.github.com/ocaml/opam/master/shell/opam_installer.sh',
     description=' ocaml',
-    default_path=join(QPACKAGE_ROOT_BIN, "opam"))
+    default_path=join(QP_ROOT_BIN, "opam"))
 
 m4 = Info(
     url="http://ftp.gnu.org/gnu/m4/m4-latest.tar.gz",
     description=" m4",
-    default_path=join(QPACKAGE_ROOT_BIN, "m4"))
+    default_path=join(QP_ROOT_BIN, "m4"))
 
 curl = Info(
     url="http://qmcchem.ups-tlse.fr/files/scemama/curl-7.30.0.ermine.tar.bz2",
     description=" curl",
-    default_path=join(QPACKAGE_ROOT_BIN, "curl"))
+    default_path=join(QP_ROOT_BIN, "curl"))
 
 zlib = Info(
     url='http://zlib.net/zlib-1.2.8.tar.gz',
     description=' zlib',
-    default_path=join(QPACKAGE_ROOT_INSTALL, "zlib"))
+    default_path=join(QP_ROOT_INSTALL, "zlib"))
 
 path = Info(
     url='ftp://ftp.gnu.org/gnu/patch/patch-2.7.5.tar.gz',
     description=' path',
-    default_path=join(QPACKAGE_ROOT_BIN, "patch"))
+    default_path=join(QP_ROOT_BIN, "patch"))
 
 irpf90 = Info(
     url='{head}/scemama/irpf90/archive/v1.6.5.tar.gz'.format(**path_github),
     description=' irpf90',
-    default_path=join(QPACKAGE_ROOT_BIN, "irpf90"))
+    default_path=join(QP_ROOT_BIN, "irpf90"))
 
 docopt = Info(
     url='{head}/docopt/docopt/{tail}'.format(**path_github),
     description=' docop',
-    default_path=join(QPACKAGE_ROOT_INSTALL, "docopt"))
+    default_path=join(QP_ROOT_INSTALL, "docopt"))
 
 resultsFile = Info(
     url='{head}/LCPQ/resultsFile/{tail}'.format(**path_github),
     description=' resultsFile',
-    default_path=join(QPACKAGE_ROOT_INSTALL, "resultsFile"))
+    default_path=join(QP_ROOT_INSTALL, "resultsFile"))
 
 ninja = Info(
     url='{head}/martine/ninja/{tail}'.format(**path_github),
     description=' nina',
-    default_path=join(QPACKAGE_ROOT_BIN, "ninja"))
+    default_path=join(QP_ROOT_BIN, "ninja"))
 
 emsl = Info(
     url='{head}/LCPQ/EMSL_Basis_Set_Exchange_Local/{tail}'.format(**
                                                                   path_github),
     description=' emsl',
-    default_path=join(QPACKAGE_ROOT_INSTALL, "emsl"))
+    default_path=join(QP_ROOT_INSTALL, "emsl"))
 
 ezfio = Info(
     url='{head}/LCPQ/EZFIO/{tail}'.format(**path_github),
     description=' EZFIO',
-    default_path=join(QPACKAGE_ROOT_INSTALL, "EZFIO"))
+    default_path=join(QP_ROOT_INSTALL, "EZFIO"))
 
 d_info = dict()
 
@@ -104,10 +104,10 @@ for m in ["ocaml", "m4", "curl", "zlib", "path", "irpf90", "docopt",
 l_need = []
 
 
-#  _                         
-# |_    ._   _ _|_ o  _  ._  
-# | |_| | | (_  |_ | (_) | | 
-#                            
+#  _
+# |_    ._   _ _|_ o  _  ._
+# | |_| | | (_  |_ | (_) | |
+#
 def check_output(*popenargs, **kwargs):
     r"""Run command with arguments and return its output as a byte string.
 
@@ -236,10 +236,10 @@ if "ninja" in l_need_genealogy:
 
     l_cmd = ["cd install;",
              "wget {0} -O {1} -o /dev/null ;".format(url, path_archive),
-             "./scripts/install_ninja.sh;", "cd -"]
+             "./scripts/install_ninja.sh 2>/dev/null;", "cd -"]
 
     subprocess.check_call(" ".join(l_cmd), shell=True)
-
+    l_need_genealogy.remove("ninja")
 
 print """
 # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
@@ -288,7 +288,7 @@ for need in l_need_genealogy:
 
 l_string += l_build
 
-path = join(QPACKAGE_ROOT_INSTALL, "build.ninja")
+path = join(QP_ROOT_INSTALL, "build.ninja")
 with open(path, "w+") as f:
     f.write("\n".join(l_string))
 
@@ -310,9 +310,9 @@ print """
 # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
 """
 
-python_path = [join(QPACKAGE_ROOT, "scripts"), join(QPACKAGE_ROOT, "install")]
+python_path = [join(QP_ROOT, "scripts"), join(QP_ROOT, "install")]
 
-l_python = [join(QPACKAGE_ROOT, "scripts")]
+l_python = [join(QP_ROOT, "scripts")]
 for dir_ in python_path:
     for folder in os.listdir(dir_):
         path = join(dir_, folder)
@@ -323,25 +323,27 @@ for dir_ in python_path:
 def find_path(bin_):
     try:
         locate = l_installed[bin_]
-    except:
+    except KeyError:
         locate = d_info[bin_].default_path
     return locate
 
 
 l_rc = [
-    'export QPACKAGE_ROOT={0}'.format(QPACKAGE_ROOT),
+    'export QP_ROOT={0}'.format(QP_ROOT),
     'export QP_EZFIO={0}'.format(find_path('ezfio')),
     'export IRPF90={0}'.format(find_path("irpf90")),
     'export NINJA={0}'.format(find_path("ninja")),
-    'export PYTHONPATH=${{PYTHONPATH}}:{0}'.format(":".join(l_python)), '',
-    'export PATH=${PATH}:${PYTHONPATH}:"${QPACKAGE_ROOT}"/bin',
-    'export LD_LIBRARY_PATH="${QPACKAGE_ROOT}"/lib:${LD_LIBRARY_PATH}',
-    'export LIBRARY_PATH="${QPACKAGE_ROOT}"/lib:${LIBRARY_PATH}', ""
+    'export QP_PYTHON={0}'.format(":".join(l_python)),
+    "",
+    'export PYTHONPATH="${PYTHONPATH}":"${QP_PYTHON}"',
+    'export PATH="${PATH}":"${QP_PYTHON}":"${QP_ROOT}"/bin',
+    'export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${LD_LIBRARY_PATH}"',
+    'export LIBRARY_PATH="${QP_ROOT}"/lib:"${LIBRARY_PATH}"', ""
     'source . ${HOME}/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true',
     ""
 ]
 
-path = join(QPACKAGE_ROOT, "quantum_package.rc")
+path = join(QP_ROOT, "quantum_package.rc")
 with open(path, "w+") as f:
     f.write("\n".join(l_rc))
 

@@ -13,23 +13,23 @@ function unique_list()
 
 function check_current_dir_is_src()
 {
-  if [[ "${PWD}" == "${QPACKAGE_ROOT}/src" ]]
+  if [[ "${PWD}" == "${QP_ROOT}/src" ]]
   then
      return 0
   else
-     echo "Current directory should be \$QPACKAGE_ROOT/src"
+     echo "Current directory should be \$QP_ROOT/src"
      exit -1
   fi
 }
 
 function check_current_dir_is_module()
 {
-  # If the prefix ${QPACKAGE_ROOT}/src/ can be removed from $PWD, it means that
-  # $PWD is somewhere below ${QPACKAGE_ROOT}/src/ so it is a module.
-  # If the prefix ${QPACKAGE_ROOT}/src/ can not be removed from $PWD, then
-  # "${PWD##${QPACKAGE_ROOT}/src/}" == "$PWD".
+  # If the prefix ${QP_ROOT}/src/ can be removed from $PWD, it means that
+  # $PWD is somewhere below ${QP_ROOT}/src/ so it is a module.
+  # If the prefix ${QP_ROOT}/src/ can not be removed from $PWD, then
+  # "${PWD##${QP_ROOT}/src/}" == "$PWD".
 
-  if [[ "${PWD##${QPACKAGE_ROOT}/src/}" != "$PWD" ]]
+  if [[ "${PWD##${QP_ROOT}/src/}" != "$PWD" ]]
   then
      return 0
   else

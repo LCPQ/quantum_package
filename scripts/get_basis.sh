@@ -8,14 +8,14 @@
 # Prints in stdout the name of a temporary file containing the basis set.
 #
 
-if [[ -z ${QPACKAGE_ROOT} ]]
+if [[ -z ${QP_ROOT} ]]
 then
-  print "The QPACKAGE_ROOT environment variable is not set."
+  print "The QP_ROOT environment variable is not set."
   print "Please reload the quantum_package.rc file."
   exit -1
 fi
 
-export EMSL_API_ROOT="${QPACKAGE_ROOT}"/EMSL_Basis/
+export EMSL_API_ROOT="${QP_ROOT}"/install/EMSL_Basis/
 export PYTHONPATH="${EMSL_API_ROOT}":${PYTHONPATH}
 
 tmpfile="$1"

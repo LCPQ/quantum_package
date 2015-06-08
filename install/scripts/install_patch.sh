@@ -6,13 +6,13 @@ function _install()
 {  
   mkdir ${TARGET}
   cd ..
-  QPACKAGE_ROOT=$PWD
+  QP_ROOT=$PWD
   cd -
   cd ${BUILD}
-  ./configure --prefix=${QPACKAGE_ROOT}/install/${TARGET} && make || exit 1
+  ./configure --prefix=${QP_ROOT}/install/${TARGET} && make || exit 1
   make install || exit 1
   cd -
-  cp ${TARGET}/bin/${TARGET} ${QPACKAGE_ROOT}/bin || exit 1
+  cp ${TARGET}/bin/${TARGET} ${QP_ROOT}/bin || exit 1
   rm -R -- ${TARGET} || exit 1
 }
 

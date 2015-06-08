@@ -24,11 +24,11 @@ except ImportError:
 # \_| | (_) |_) (_| |   \/ (_| |  | (_| |_) | (/_ _>
 #
 
-QPACKAGE_ROOT = os.environ['QPACKAGE_ROOT']
-QPACKAGE_ROOT_SRC = join(QPACKAGE_ROOT, 'src')
-QPACKAGE_ROOT_EZFIO = join(QPACKAGE_ROOT, 'install', 'EZFIO')
+QP_ROOT = os.environ['QP_ROOT']
+QP_ROOT_SRC = join(QP_ROOT, 'src')
+QP_ROOT_EZFIO = join(QP_ROOT, 'install', 'EZFIO')
 
-EZFIO_LIB = join(QPACKAGE_ROOT_EZFIO, "lib", "libezfio.a")
+EZFIO_LIB = join(QP_ROOT, "lib", "libezfio.a")
 
 #
 # |\ |  _. ._ _   _   _|   _|_     ._  |  _
@@ -75,14 +75,14 @@ def dict_module_genelogy_path(d_module_genelogy):
     """
     d = dict()
     for module_rel, l_children_rel in d_module_genelogy.iteritems():
-        module_abs = join(QPACKAGE_ROOT_SRC, module_rel)
+        module_abs = join(QP_ROOT_SRC, module_rel)
 
         p = Path(module_abs, module_rel)
         try:
-            d[p] = Path(join(QPACKAGE_ROOT_SRC, l_children_rel),
+            d[p] = Path(join(QP_ROOT_SRC, l_children_rel),
                         l_children_rel)
         except:
-            d[p] = [Path(join(QPACKAGE_ROOT_SRC, children), children)
+            d[p] = [Path(join(QP_ROOT_SRC, children), children)
                     for children in l_children_rel]
 
     return d
@@ -99,7 +99,7 @@ def get_l_module_with_ezfio_cfg():
     """
     from os import listdir
     from os.path import isfile, join
-    qp_src = QPACKAGE_ROOT_SRC
+    qp_src = QP_ROOT_SRC
 
     return [join(qp_src, m) for m in listdir(qp_src)
             if isfile(join(qp_src, m, "EZFIO.cfg"))]
@@ -112,10 +112,10 @@ def get_l_ezfio_config():
 
     l = []
 
-    cmd = "{0}/*/*.ezfio_config".format(QPACKAGE_ROOT_SRC)
+    cmd = "{0}/*/*.ezfio_config".format(QP_ROOT_SRC)
     for path_in_module in glob.glob(cmd):
         name_lower = os.path.split(path_in_module)[1].lower()
-        path_in_ezfio = join(QPACKAGE_ROOT_EZFIO, "config", name_lower)
+        path_in_ezfio = join(QP_ROOT_EZFIO, "config", name_lower)
         l.append(EZ_config_path(path_in_module, path_in_ezfio))
 
     return l
@@ -146,7 +146,7 @@ def get_children_of_ezfio_cfg(l_module_with_ezfio_cfg):
     """
     From a module list of ezfio_cfg return all the stuff create by him
     """
-    config_folder = join(QPACKAGE_ROOT_EZFIO, "config")
+    config_folder = join(QP_ROOT_EZFIO, "config")
 
     l_util = dict()
 
@@ -222,8 +222,9 @@ def ninja_ezfio_rule():
     l_flag = ["export {0}='${0}'".format(flag)
               for flag in ["FC", "FCFLAGS", "IRPF90"]]
 
-    l_cmd = ["cd {0}".format(QPACKAGE_ROOT_EZFIO)
-             ] + l_flag + ["ninja"]
+    l_cmd = ["cd {0}".format(QP_ROOT_EZFIO)
+             ] + l_flag + ["make && ln -f {0} {1}".format(join(QP_ROOT, 'install', 'EZFIO',"lib","libezfio.a"),
+                                                          EZFIO_LIB)]
 
     l_string = ["rule build_ezfio",
                 "   command = {0}".format(" ; ".join(l_cmd)),
@@ -244,7 +245,7 @@ def ninja_ezfio_build(l_ezfio_config, l_util):
 
     str_ = " ".join(l_ezfio_config + l_ezfio_from_cfg)
 
-    ezfio_make_config = join(QPACKAGE_ROOT_EZFIO,"make.config")
+    ezfio_make_config = join(QP_ROOT_EZFIO, "make.config")
     l_string = ["build {0} {1}: build_ezfio {2}".format(EZFIO_LIB,
                                                         ezfio_make_config,
                                                         str_), ""]
@@ -261,7 +262,7 @@ def get_source_destination(path_module, l_needed_molule):
     Return a list of Sym_link = namedtuple('Sym_link', ['source', 'destination'])
     for a module
     """
-    return [Sym_link(m.abs, join(QPACKAGE_ROOT_SRC, path_module.rel, m.rel))
+    return [Sym_link(m.abs, join(QP_ROOT_SRC, path_module.rel, m.rel))
             for m in l_needed_molule]
 
 
@@ -704,5 +705,5 @@ if __name__ == "__main__":
         l_string += ninja_binaries_build(module_to_compile, l_children,
                                          d_binaries_production)
 
-    with open(join(QPACKAGE_ROOT, "build.ninja"), "w+") as f:
+    with open(join(QP_ROOT, "build.ninja"), "w+") as f:
         f.write("\n".join(l_string))

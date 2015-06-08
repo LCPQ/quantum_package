@@ -10,7 +10,7 @@ END_PROVIDER
  
 BEGIN_SHELL [ /bin/bash ]
  
- for NAME in $(\ls -d ${QPACKAGE_ROOT}/src/*/)
+ for NAME in $(\ls -d ${QP_ROOT}/src/*/)
  do
  NAME=$(basename ${NAME})
  cat << EOF

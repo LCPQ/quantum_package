@@ -5,9 +5,9 @@ import subprocess
 import os
 import sys
 
-qpackage_root = os.environ['QPACKAGE_ROOT']
+qpackage_root = os.environ['QP_ROOT']
 
-EZFIO = "{0}/EZFIO".format(qpackage_root)
+EZFIO = "{0}/install/EZFIO".format(qpackage_root)
 sys.path = [EZFIO + "/Python"] + sys.path
 
 from ezfio import ezfio
