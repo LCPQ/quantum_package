@@ -15,8 +15,7 @@ then
   exit -1
 fi
 
-export EMSL_API_ROOT="${QP_ROOT}"/install/EMSL_Basis/
-export PYTHONPATH="${EMSL_API_ROOT}":${PYTHONPATH}
+export EMSL_API_ROOT="${QP_ROOT}"/install/emsl
 
 tmpfile="$1"
 shift
