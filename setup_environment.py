@@ -41,7 +41,7 @@ path_github = {"head": "http://github.com/", "tail": "archive/master.tar.gz"}
 
 ocaml = Info(
     url='http://raw.github.com/ocaml/opam/master/shell/opam_installer.sh',
-    description=' ocaml (it will take some time)',
+    description=' ocaml (it will take some time roughly 20min)',
     default_path=join(QP_ROOT_BIN, "opam"))
 
 m4 = Info(
@@ -238,7 +238,7 @@ if "ninja" in l_need_genealogy:
 
     l_cmd = ["cd install &&",
              "wget {0} -O {1} -o /dev/null &&".format(url, path_archive),
-             "./scripts/install_ninja.sh &&", "cd -"]
+             "./scripts/install_ninja.sh 2> /dev/null &&", "cd -"]
 
     check_output(" ".join(l_cmd), shell=True)
 
@@ -258,6 +258,9 @@ def create_rule():
         "rule download", "  command = wget ${url} -O ${out} -o /dev/null",
         "  description = Downloading ${descr}", "", "rule install",
         "  command = ./scripts/install_${target}.sh > _build/${target}.log 2>&1",
+        "  description = Installing ${descr}", ""
+        "rule install_verbose",
+        "  command = ./scripts/install_${target}.sh | tee _build/${target}.log 2>&1",
         "  description = Installing ${descr}", ""
     ]
 
@@ -284,9 +287,15 @@ for need in l_need_genealogy:
     # Build to install
     l_dependancy = [d_info[i].default_path for i in d_dependancy[need] if i in l_need_genealogy]
 
-    l_build += ["build {0}: install {1} {2}".format(d_info[need].default_path,
-                                                    archive_path,
-                                                    " ".join(l_dependancy)),
+    if need == "ocaml":
+        install ="install_verbose"
+    else:
+        install ="install"
+
+    l_build += ["build {0}: {1} {2} {3}".format(d_info[need].default_path,
+                                                install,
+                                                archive_path,
+                                                " ".join(l_dependancy)),
                 "   target = {0}".format(need),
                 "   descr = {0}".format(descr), ""]
 
