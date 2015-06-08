@@ -201,7 +201,6 @@ for need in l_need:
 
 l_need_genealogy = d_need_genealogy.keys()
 
-l_need_genealogy = ["ocaml"]
 print """
   __
  (_      ._ _  ._ _   _. ._
@@ -309,7 +308,9 @@ print """
 # ~#~#~#~#~#~#~#~#~ #
 """
 
-subprocess.check_call("./bin/ninja -C install", shell=True)
+if [i for i in l_need_genealogy if i not in "ocaml"]:
+    subprocess.check_call("./bin/ninja -C install", shell=True)
+
 print "Done"
 
 if "ocaml" in l_need_genealogy:
