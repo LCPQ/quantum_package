@@ -33,7 +33,7 @@ ${QP_ROOT}/bin/opam config setup -a || exit 1
 export LD_LIBRARY_PATH=${QP_ROOT}/lib:${LD_LIBRARY_PATH}
 export LIBRARY_PATH=${QP_ROOT}/lib:${LIBRARY_PATH}
 export C_INCLUDE_PATH=${QP_ROOT}/lib:${C_INCLUDE_PATH}
-opam install ${PACKAGES} || exit 1
+${QP_ROOT}/bin/opam install ${PACKAGES} || exit 1
 rm -f ../_build/ocaml.log
 exit 0
 
