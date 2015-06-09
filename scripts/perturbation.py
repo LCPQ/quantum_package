@@ -2,7 +2,7 @@
 
 import os
 
-Pert_dir = os.environ["QPACKAGE_ROOT"]+"/src/Perturbation/"
+Pert_dir = os.environ["QP_ROOT"]+"/src/Perturbation/"
 
 perturbations = []
 

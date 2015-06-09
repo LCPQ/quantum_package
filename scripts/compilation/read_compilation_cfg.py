@@ -36,7 +36,7 @@ def get_compilation_option(pwd_cfg, flag_name):
 
 if __name__ == '__main__':
 
-    qpackage_root = os.environ['QPACKAGE_ROOT']
+    qpackage_root = os.environ['QP_ROOT']
     pwd_cfg = os.path.join(qpackage_root, "config/gfortran_example.cfg")
 
     print get_compilation_option(pwd_cfg, "FC")

@@ -5,8 +5,8 @@ open Qputils;;
 (** Variables related to the quantum package installation *)
 
 let root = 
-  match (Sys.getenv "QPACKAGE_ROOT") with
-  | None -> failwith "QPACKAGE_ROOT environment variable is not set.
+  match (Sys.getenv "QP_ROOT") with
+  | None -> failwith "QP_ROOT environment variable is not set.
 Please source the quantum_package.rc file."
   | Some x -> x 
 ;;
@@ -59,7 +59,7 @@ let executables = lazy (
            |> List.filter ~f:(fun x -> x <> "")
          in
          match e with
-         | [a;b] -> (a,String.substr_replace_all ~pattern:"$QPACKAGE_ROOT" ~with_:root b)
+         | [a;b] -> (a,String.substr_replace_all ~pattern:"$QP_ROOT" ~with_:root b)
          | _ -> ("","")
      )
   in

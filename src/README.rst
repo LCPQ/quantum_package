@@ -31,7 +31,7 @@ Creating a new module
 =====================
 
 Every new module should be created using the interactive ``create_module.sh``
-script located in the ``${QPACKAGE_ROOT}/scripts`` directory. This will create
+script located in the ``${QP_ROOT}/scripts`` directory. This will create
 all the required files with correct templates.
 
 
@@ -88,7 +88,7 @@ HTML, man, etc.
 Creating a shell script
 =======================
 
-Shell scripts should be located in the ``${QPACKAGE_ROOT}/scripts`` directory.
+Shell scripts should be located in the ``${QP_ROOT}/scripts`` directory.
 Relative paths should be avoided as much as possible, and the result of commands
 should be always checked. For example, when creating a directory the existence
 of the directory has to be checked.

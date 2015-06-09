@@ -104,5 +104,5 @@ if __name__ == '__main__':
 
     try:
         cache_utility(command)
-    except:
+    except OSError:
         process = subprocess.Popen(command, shell=True)

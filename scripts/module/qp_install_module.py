@@ -61,7 +61,7 @@ if __name__ == '__main__':
     elif arguments["create"]:
         l_children = arguments["<children_module>"]
 
-        qpackage_root = os.environ['QPACKAGE_ROOT']
+        qpackage_root = os.environ['QP_ROOT']
         path = os.path.join(qpackage_root, "src", arguments["<name>"])
 
         print "You will create the module:"
