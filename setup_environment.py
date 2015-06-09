@@ -8,6 +8,19 @@ import pprint
 
 from os.path import join
 
+def finalize():
+    path = join(QP_ROOT, "quantum_package.rc")
+    print "For more info on compiling the code, read the COMPILE_RUN.md file."
+    print ""
+    print "You can check {0} and run:".format(path)
+    print ""
+    print "   source {0}".format(path)
+    print "   qp_create_ninja.py --production $QP_ROOT/config/ifort.cfg"
+    print "   ninja"
+    print ""
+    sys.exit()
+
+
 #  __                           _
 # /__ |   _  |_   _. |   o ._ _|_ _
 # \_| |_ (_) |_) (_| |   | | | | (_)
@@ -17,7 +30,7 @@ QP_ROOT = os.getcwd()
 QP_ROOT_BIN = join(QP_ROOT, "bin")
 QP_ROOT_INSTALL = join(QP_ROOT, "install")
 
-d_dependancy = {
+d_dependency = {
     "ocaml": ["m4", "curl", "zlib", "patch", "gcc"],
     "m4": ["make"],
     "curl": ["make"],
@@ -142,7 +155,7 @@ def check_python():
         sys.exit(1)
 
 
-def check_avabiliy(binary):
+def check_availabiliy(binary):
 
     if binary == "python":
         check_python()
@@ -174,15 +187,17 @@ print """
 """
 
 # Check all the other
-for i in d_dependancy.keys():
-    print "Checking if you have {0} avalaible...".format(i),
+length = max( [ len(i) for i in d_dependency ] )
+fmt = "%"+str(length)+"s"
+for i in d_dependency.keys():
+    print "Checking if %s is avalaible..."%( i.center(length) ),
 
-    r = check_avabiliy(i)
+    r = check_availabiliy(i)
     if r:
-        print "OK"
+        print "[ OK ]"
         l_installed[i] = r.strip()
     else:
-        print "We will try to compile if from source in a few moment"
+        print "Will compile it"
         l_need.append(i)
 
 # Expend the need_stuff for all the genealogy
@@ -191,7 +206,7 @@ d_need_genealogy = dict()
 
 for need in l_need:
     d_need_genealogy[need] = None
-    for childen in d_dependancy[need]:
+    for childen in d_dependency[need]:
         if childen not in l_installed:
             d_need_genealogy[childen] = None
 
@@ -220,11 +235,11 @@ print """
 """
 
 if l_need_genealogy:
-    print "You need to install"
+    print "You need to install:"
     pprint.pprint(l_need_genealogy)
 else:
-    print "Nothing to do"
-    sys.exit()
+    print "Nothing to do."
+    finalize()
 
 if "ninja" in l_need_genealogy:
 
@@ -286,7 +301,7 @@ for need in l_need_genealogy:
                 "   descr = {0}".format(descr), ""]
 
     # Build to install
-    l_dependancy = [d_info[i].default_path for i in d_dependancy[need] if i in l_need_genealogy]
+    l_dependancy = [d_info[i].default_path for i in d_dependency[need] if i in l_need_genealogy]
 
     l_build += ["build {0}: install {1} {2}".format(d_info[need].default_path,
                                                     archive_path,
@@ -301,7 +316,7 @@ with open(path, "w+") as f:
     f.write("\n".join(l_string))
 
 print "Done"
-print "You can check at {0}".format(path)
+print "You can check {0}".format(path)
 
 print """
 # ~#~#~#~#~#~#~#~#~ #
@@ -310,7 +325,7 @@ print """
 """
 
 if [i for i in l_need_genealogy if i not in "ocaml"]:
-    subprocess.check_call("./bin/ninja -C install", shell=True)
+    subprocess.check_call("ninja -C install", shell=True)
 
 print "Done"
 
@@ -327,7 +342,7 @@ if "ocaml" in l_need_genealogy:
 
     l_cmd = ["cd install &&",
              "wget {0} -O {1} -o /dev/null &&".format(url, path_archive),
-             "./scripts/install_ocaml.sh --fast"]
+             "./scripts/install_ocaml.sh"]
 
     os.system(" ".join(l_cmd))
 
@@ -378,6 +393,5 @@ path = join(QP_ROOT, "quantum_package.rc")
 with open(path, "w+") as f:
     f.write("\n".join(l_rc))
 
-print "Done"
-print "You can check at {0}".format(path)
-print "Don't forget to source it"
+print "Done."
+finalize()
