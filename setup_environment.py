@@ -30,6 +30,8 @@ def finalize():
 QP_ROOT = os.getcwd()
 QP_ROOT_BIN = join(QP_ROOT, "bin")
 QP_ROOT_INSTALL = join(QP_ROOT, "install")
+os.environ["PATH"] = ":".join( [QP_ROOT_BIN,os.environ["PATH"] ] )
+
 
 d_dependency = {
     "ocaml": ["m4", "curl", "zlib", "patch", "gcc"],
