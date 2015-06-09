@@ -14,7 +14,7 @@ import os
 
 try:
     from docopt import docopt
-    from module_handler import ModuleHandler
+    from module_handler import ModuleHandler, get_dict_child
     from update_README import Doc_key, Needed_key
 except ImportError:
     print "source .quantum_package.rc"
@@ -53,8 +53,8 @@ def save_new_module(path, l_child):
 
 if __name__ == '__main__':
     arguments = docopt(__doc__)
-    m_instance = ModuleHandler()
 
+    m_instance = ModuleHandler()
     if arguments["list"]:
         for module in m_instance.l_module:
             print module

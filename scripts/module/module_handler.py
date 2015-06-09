@@ -19,41 +19,44 @@ Options:
 import os
 import sys
 import os.path
+from collections import namedtuple
 
 try:
     from docopt import docopt
-    from decorator import classproperty
 except ImportError:
     print "source .quantum_package.rc"
     raise
 
 
 # Canot cache for namedtuple are not hashable
-def get_dict_child(dir_=None):
+def get_dict_child(l_root_abs=None):
     """Loop over MODULE in  QP_ROOT/src, open all the NEEDED_CHILDREN_MODULES
     and create a dict[MODULE] = [sub module needed, ...]
     """
     d_ref = dict()
 
-    if not dir_:
+    if not l_root_abs:
         qp_root = os.environ['QP_ROOT']
-        dir_ = os.path.join(qp_root, 'src')
+        l_root_abs = [os.path.join(qp_root, 'src')]
 
-    for o in os.listdir(dir_):
+    for root_abs in l_root_abs:
+        for module_rel in os.listdir(root_abs):
 
-        try:
-            path_file = os.path.join(dir_, o, "NEEDED_CHILDREN_MODULES")
-            with open(path_file, "r") as f:
-                l_children = f.read().split()
-        except IOError:
-            pass
-        else:
-            if o not in d_ref:
-                d_ref[o] = l_children
+            module_abs = os.path.join(root_abs, module_rel)
+            try:
+                path_file = os.path.join(module_abs, "NEEDED_CHILDREN_MODULES")
+
+                with open(path_file, "r") as f:
+                    l_children = f.read().split()
+            except IOError:
+                pass
             else:
-                print "Module {0} alredy defined"
-                print "Abort"
-                sys.exit(1)
+                if module_rel not in d_ref:
+                    d_ref[module_rel] = l_children
+                else:
+                    print "Module {0} alredy defined"
+                    print "Abort"
+                    sys.exit(1)
 
     return d_ref
 
@@ -79,8 +82,8 @@ def l_module_descendant(d_child, l_module):
 
 class ModuleHandler():
 
-    def __init__(self, dict_child=get_dict_child()):
-        self.dict_child = dict_child
+    def __init__(self, l_root_abs=None):
+        self.dict_child = get_dict_child(l_root_abs)
 
     @property
     def l_module(self):
