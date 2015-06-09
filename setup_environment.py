@@ -63,7 +63,7 @@ zlib = Info(
 path = Info(
     url='ftp://ftp.gnu.org/gnu/patch/patch-2.7.5.tar.gz',
     description=' path',
-    default_path=join(QP_ROOT_BIN, "patch"))
+    default_path=join(QP_ROOT, "lib", "libz.a"))
 
 irpf90 = Info(
     url='{head}/scemama/irpf90/archive/v1.6.6.tar.gz'.format(**path_github),
