@@ -30,13 +30,13 @@ except ImportError:
 
 # Canot cache for namedtuple are not hashable
 def get_dict_child():
-    """Loop over MODULE in  QPACKAGE_ROOT/src, open all the NEEDED_CHILDREN_MODULES
+    """Loop over MODULE in  QP_ROOT/src, open all the NEEDED_CHILDREN_MODULES
     and create a dict[MODULE] = [sub module needed, ...]
     """
     d_ref = dict()
 
-    qpackage_root = os.environ['QPACKAGE_ROOT']
-    dir_ = os.path.join(qpackage_root, 'src')
+    qp_root = os.environ['QP_ROOT']
+    dir_ = os.path.join(qp_root, 'src')
 
     for o in os.listdir(dir_):
 

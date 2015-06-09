@@ -2,13 +2,13 @@
 #
 # Cleans a module directory 
 
-if [[ -z ${QPACKAGE_ROOT} ]]
+if [[ -z ${QP_ROOT} ]]
 then
-  print "The QPACKAGE_ROOT environment variable is not set."
+  print "The QP_ROOT environment variable is not set."
   print "Please reload the quantum_package.rc file."
   exit -1
 fi
-source ${QPACKAGE_ROOT}/scripts/qp_include.sh
+source ${QP_ROOT}/scripts/qp_include.sh
 
 function do_clean()
 {

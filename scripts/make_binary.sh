@@ -6,15 +6,15 @@
 #
 
 
-# Check the QPACKAGE_ROOT directory
-if [[ -z ${QPACKAGE_ROOT} ]]
+# Check the QP_ROOT directory
+if [[ -z ${QP_ROOT} ]]
 then
-  echo "The QPACKAGE_ROOT environment variable is not set."
+  echo "The QP_ROOT environment variable is not set."
   echo "Please reload the quantum_package.rc file."
   exit 1
 fi
 
-cd ${QPACKAGE_ROOT}
+cd ${QP_ROOT}
 if [[ -f quantum_package.rc \
    && -f README.md \
    && -d src  \
@@ -35,7 +35,7 @@ fi
 
 
 # Build all sources
-for dir in ${QPACKAGE_ROOT}/{src,ocaml}
+for dir in ${QP_ROOT}/{src,ocaml}
 do
   make -C ${dir}
   if [[ $? -ne 0 ]]
@@ -46,7 +46,7 @@ done
 
 
 # Copy the files in the static directory
-QPACKAGE_STATIC=${QPACKAGE_ROOT}/quantum_package_static
+QPACKAGE_STATIC=${QP_ROOT}/quantum_package_static
 
 function find_libs ()
 {
@@ -58,7 +58,7 @@ function find_libs ()
 
 function find_exec ()
 {
-  find ${QPACKAGE_ROOT}/$1 -perm /u+x -type f
+  find ${QP_ROOT}/$1 -perm /u+x -type f
 }
 
 
@@ -111,12 +111,12 @@ cd -
 for i in ${FORTRAN_EXEC}
 do
   i=$(basename $i)
-  echo $i \$QPACKAGE_ROOT/bin/$i
+  echo $i \$QP_ROOT/bin/$i
 done >> ${QPACKAGE_STATIC}/data/executables
 
-cp ${QPACKAGE_ROOT}/data/ezfio_defaults ${QPACKAGE_STATIC}/data
+cp ${QP_ROOT}/data/ezfio_defaults ${QPACKAGE_STATIC}/data
 mkdir -p ${QPACKAGE_STATIC}/src/Bitmask
-cp ${QPACKAGE_ROOT}/src/Bitmask/bitmasks_module.f90 ${QPACKAGE_STATIC}/src/Bitmask
+cp ${QP_ROOT}/src/Bitmask/bitmasks_module.f90 ${QPACKAGE_STATIC}/src/Bitmask
 
 #
 echo "Copying dynamic libraries"
@@ -143,10 +143,10 @@ cp -- ${QPACKAGE_STATIC}/extra_lib/lib{[gi]omp*,mkl*,lapack*,blas*,z*} ${QPACKAG
 echo "Copying EMSL_Basis directory"
 #     ---------------------------- 
 
-cp -r -- ${QPACKAGE_ROOT}/EMSL_Basis ${QPACKAGE_STATIC}/
+cp -r -- ${QP_ROOT}/EMSL_Basis ${QPACKAGE_STATIC}/
 if [[ $? -ne 0 ]] ;
 then
-  echo 'cp -r -- ${QPACKAGE_ROOT}/EMSL_Basis ${QPACKAGE_STATIC}/'
+  echo 'cp -r -- ${QP_ROOT}/EMSL_Basis ${QPACKAGE_STATIC}/'
   exit 1
 fi
 
@@ -155,10 +155,10 @@ fi
 echo "Copying scripts directory"
 #     ------------------------- 
 
-cp -r -- ${QPACKAGE_ROOT}/scripts ${QPACKAGE_STATIC}/
+cp -r -- ${QP_ROOT}/scripts ${QPACKAGE_STATIC}/
 if [[ $? -ne 0 ]] ;
 then
-  echo 'cp -r -- ${QPACKAGE_ROOT}/scripts ${QPACKAGE_STATIC}/'
+  echo 'cp -r -- ${QP_ROOT}/scripts ${QPACKAGE_STATIC}/'
   exit 1
 fi
 
@@ -168,13 +168,13 @@ echo "Creating quantum_package.rc"
 #     ---------------------------
 
 cat << EOF > ${QPACKAGE_STATIC}/quantum_package.rc
-export QPACKAGE_ROOT=\$( cd \$(dirname "\${BASH_SOURCE}")  ; pwd -P )
-export LD_LIBRARY_PATH="\${QPACKAGE_ROOT}"/lib:\${LD_LIBRARY_PATH}
-export LIBRARY_PATH="\${QPACKAGE_ROOT}"/lib:\${LIBRARY_PATH}
-export PYTHONPATH="\${QPACKAGE_ROOT}"/scripts:\${PYTHONPATH}
-export PATH="\${QPACKAGE_ROOT}"/scripts:\${PATH}
-export PATH="\${QPACKAGE_ROOT}"/bin:\${PATH}
-export PATH="\${QPACKAGE_ROOT}"/ocaml:\${PATH}
+export QP_ROOT=\$( cd \$(dirname "\${BASH_SOURCE}")  ; pwd -P )
+export LD_LIBRARY_PATH="\${QP_ROOT}"/lib:\${LD_LIBRARY_PATH}
+export LIBRARY_PATH="\${QP_ROOT}"/lib:\${LIBRARY_PATH}
+export PYTHONPATH="\${QP_ROOT}"/scripts:\${PYTHONPATH}
+export PATH="\${QP_ROOT}"/scripts:\${PATH}
+export PATH="\${QP_ROOT}"/bin:\${PATH}
+export PATH="\${QP_ROOT}"/ocaml:\${PATH}
 EOF
 
 #exit 0

@@ -260,7 +260,7 @@ Edit input data
        | Assert_failure (file, line, ch) as e ->
          begin
            Printf.eprintf "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n\n";
-           Printf.eprintf "Assert error in file $QPACKAGE_ROOT/ocaml/%s, line %d, character %d\n\n" file line ch;
+           Printf.eprintf "Assert error in file $QP_ROOT/ocaml/%s, line %d, character %d\n\n" file line ch;
            Printf.eprintf "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n\n";
            (* restore_backup ezfio_file; *)
            raise e

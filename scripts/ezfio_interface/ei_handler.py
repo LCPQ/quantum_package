@@ -21,11 +21,11 @@ Options:
                              (aka all with the `interface: input` parameter)
                              in `${pwd}`
     --ezfio_config     Create the `${module_lower}_ezfio_interface_config` in
-                             `${QPACKAGE_ROOT}/EZFIO/config/`
+                             `${QP_ROOT}/EZFIO/config/`
                        This file is needed by *EZFIO* to create the `libezfio.so`
     --ocaml            Create the `Input_module.lower.ml` for the *qp_edit*
     --ezfio_default    Create the `${module_lower}_ezfio_interface_default` in
-                             `${QPACKAGE_ROOT}/data/ezfio_defaults` needed by
+                             `${QP_ROOT}/data/ezfio_defaults` needed by
                              the ocaml
     ocaml_global       Create the qp_edit
 
@@ -100,7 +100,7 @@ def get_type_dict():
     # ~#~#~#~#~ #
     # P i c l e #
     # ~#~#~#~#~ #
-    qpackage_root = os.environ['QPACKAGE_ROOT']
+    qpackage_root = os.environ['QP_ROOT']
 
     # ~#~#~#~ #
     # I n i t #
@@ -325,7 +325,7 @@ def save_ezfio_provider(path_head, dict_code_provider):
     path = "{0}/ezfio_interface.irp.f".format(path_head)
 
     l_output = ["! DO NOT MODIFY BY HAND",
-                "! Created by $QPACKAGE_ROOT/scripts/ezfio_interface.py",
+                "! Created by $QP_ROOT/scripts/ezfio_interface.py",
                 "! from file {0}/EZFIO.cfg".format(path_head),
                 "\n"]
 
@@ -368,7 +368,7 @@ def create_ezfio_stuff(dict_ezfio_cfg, config_or_default="config"):
                     if begin[0] == '-':
                         a_size_raw.append("{0}+{1}+1".format(end, begin[1:]))
                     else:
-                       a_size_raw.append("{0}-{1}+1".format(end, begin))
+                        a_size_raw.append("{0}-{1}+1".format(end, begin))
 
             size_raw = ",".join(a_size_raw)
 
@@ -452,12 +452,10 @@ def create_ezfio_config(dict_ezfio_cfg):
 def save_ezfio_config(module_lower, str_ezfio_config):
     """
     Write the str_ezfio_config in
-    "$QPACKAGE_ROOT/EZFIO/{0}.ezfio_interface_config".format(module_lower)
+    "$QP_ROOT/EZFIO/{0}.ezfio_interface_config".format(module_lower)
     """
-
-    root_ezfio = "{0}/EZFIO".format(os.environ['QPACKAGE_ROOT'])
-    path = "{0}/config/{1}.ezfio_interface_config".format(root_ezfio,
-                                                          module_lower)
+    name = "{0}.ezfio_interface_config".format(module_lower)
+    path = os.path.join(os.environ['QP_EZFIO'], "config", name)
 
     with open(path, "w+") as f:
         f.write(str_ezfio_config)
@@ -471,11 +469,11 @@ def create_ezfio_default(dict_ezfio_cfg):
 def save_ezfio_default(module_lower, str_ezfio_default):
     """
     Write the str_ezfio_config in
-    "$QPACKAGE_ROOT/data/ezfio_defaults/{0}.ezfio_interface_default".format(module_lower)
+    "$QP_ROOT/data/ezfio_defaults/{0}.ezfio_interface_default".format(module_lower)
     """
 
     root_ezfio_default = "{0}/data/ezfio_defaults/".format(
-        os.environ['QPACKAGE_ROOT'])
+        os.environ['QP_ROOT'])
     path = "{0}/{1}.ezfio_interface_default".format(root_ezfio_default,
                                                     module_lower)
     with open(path, "w+") as f:
@@ -580,10 +578,10 @@ def create_ocaml_input(dict_ezfio_cfg, module_lower):
 def save_ocaml_input(module_lower, str_ocaml_input):
     """
     Write the str_ocaml_input in
-    $QPACKAGE_ROOT/ocaml/Input_{0}.ml".format(module_lower)
+    $QP_ROOT/ocaml/Input_{0}.ml".format(module_lower)
     """
 
-    path = "{0}/ocaml/Input_{1}.ml".format(os.environ['QPACKAGE_ROOT'],
+    path = "{0}/ocaml/Input_{1}.ml".format(os.environ['QP_ROOT'],
                                            module_lower)
 
     with open(path, "w+") as f:
@@ -600,7 +598,7 @@ def get_l_module_with_auto_generate_ocaml_lower():
     # I n i t #
     # ~#~#~#~ #
 
-    mypath = "{0}/src".format(os.environ['QPACKAGE_ROOT'])
+    mypath = "{0}/src".format(os.environ['QP_ROOT'])
 
     # ~#~#~#~#~#~#~#~ #
     # L _ f o l d e r #
@@ -641,7 +639,7 @@ def create_ocaml_input_global(l_module_with_auto_generate_ocaml_lower):
 
     from ezfio_generate_ocaml import EZFIO_ocaml
 
-    qpackage_root = os.environ['QPACKAGE_ROOT']
+    qpackage_root = os.environ['QP_ROOT']
     path = qpackage_root + "/scripts/ezfio_interface/qp_edit_template"
 
     with open(path, "r") as f:
@@ -663,10 +661,10 @@ def create_ocaml_input_global(l_module_with_auto_generate_ocaml_lower):
 def save_ocaml_input_auto(str_ocaml_input_global):
     """
     Write the str_ocaml_input in
-    $QPACKAGE_ROOT/ocaml/Input_auto_generated.ml
+    $QP_ROOT/ocaml/Input_auto_generated.ml
     """
 
-    path = "{0}/ocaml/Input_auto_generated.ml".format(os.environ['QPACKAGE_ROOT'])
+    path = "{0}/ocaml/Input_auto_generated.ml".format(os.environ['QP_ROOT'])
 
     with open(path, "w+") as f:
         f.write(str_ocaml_input_global)
@@ -675,10 +673,10 @@ def save_ocaml_input_auto(str_ocaml_input_global):
 def save_ocaml_qp_edit(str_ocaml_qp_edit):
     """
     Write the str_ocaml_qp_edit in
-    $QPACKAGE_ROOT/ocaml/qp_edit.ml
+    $QP_ROOT/ocaml/qp_edit.ml
     """
 
-    path = "{0}/ocaml/qp_edit.ml".format(os.environ['QPACKAGE_ROOT'])
+    path = "{0}/ocaml/qp_edit.ml".format(os.environ['QP_ROOT'])
 
     with open(path, "w+") as f:
         f.write(str_ocaml_qp_edit)
@@ -773,7 +771,7 @@ if __name__ == "__main__":
     #  G e t _ l _ d i c t _ e z f i o _ c f g #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
 
-    qpackage_root_src = join(os.environ['QPACKAGE_ROOT'], "src")
+    qpackage_root_src = join(os.environ['QP_ROOT'], "src")
 
     l_module_with_ezfio = []
 
