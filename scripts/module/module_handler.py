@@ -52,9 +52,9 @@ def get_dict_child():
     return d_ref
 
 
-def l_module_generalogy_rec(d_chidlren, l_module):
+def l_module_generalogy_rec(d_child, l_module):
     """
-    From a list of module return the module and all of the genealogy
+    From a list of module return the module and descendant
     """
 
     l = []
@@ -62,7 +62,7 @@ def l_module_generalogy_rec(d_chidlren, l_module):
         if module not in l:
             l.append(module)
             try:
-                l.extend(l_module_generalogy_rec(d_chidlren, d_chidlren[module]))
+                l.extend(l_module_generalogy_rec(d_child, d_child[module]))
             except KeyError:
                 print >> sys.stderr, "`{0}` not submodule".format(module)
                 print >> sys.stderr, "Check the corresponding NEEDED_CHILDREN_MODULES"
