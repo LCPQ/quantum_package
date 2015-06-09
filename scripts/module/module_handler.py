@@ -29,14 +29,15 @@ except ImportError:
 
 
 # Canot cache for namedtuple are not hashable
-def get_dict_child():
+def get_dict_child(dir_=None):
     """Loop over MODULE in  QP_ROOT/src, open all the NEEDED_CHILDREN_MODULES
     and create a dict[MODULE] = [sub module needed, ...]
     """
     d_ref = dict()
 
-    qp_root = os.environ['QP_ROOT']
-    dir_ = os.path.join(qp_root, 'src')
+    if not dir_:
+        qp_root = os.environ['QP_ROOT']
+        dir_ = os.path.join(qp_root, 'src')
 
     for o in os.listdir(dir_):
 
@@ -47,12 +48,17 @@ def get_dict_child():
         except IOError:
             pass
         else:
-            d_ref[o] = l_children
+            if o not in d_ref:
+                d_ref[o] = l_children
+            else:
+                print "Module {0} alredy defined"
+                print "Abort"
+                sys.exit(1)
 
     return d_ref
 
 
-def l_module_generalogy_rec(d_child, l_module):
+def l_module_descendant(d_child, l_module):
     """
     From a list of module return the module and descendant
     """
@@ -62,7 +68,7 @@ def l_module_generalogy_rec(d_child, l_module):
         if module not in l:
             l.append(module)
             try:
-                l.extend(l_module_generalogy_rec(d_child, d_child[module]))
+                l.extend(l_module_descendant(d_child, d_child[module]))
             except KeyError:
                 print >> sys.stderr, "`{0}` not submodule".format(module)
                 print >> sys.stderr, "Check the corresponding NEEDED_CHILDREN_MODULES"
@@ -71,15 +77,16 @@ def l_module_generalogy_rec(d_child, l_module):
     return list(set(l))
 
 
-class ModuleHandler:
+class ModuleHandler():
 
-    dict_child = get_dict_child()
+    def __init__(self, dict_child=get_dict_child()):
+        self.dict_child = dict_child
 
-    @classproperty
+    @property
     def l_module(self):
         return self.dict_child.keys()
 
-    @classproperty
+    @property
     def dict_parent(self):
         """
         Get a dic of the first parent
@@ -93,7 +100,7 @@ class ModuleHandler:
 
         return d
 
-    @classproperty
+    @property
     def dict_descendant(self):
         """
         Get a dic of all the genealogy desc (children and all_children)
@@ -103,12 +110,12 @@ class ModuleHandler:
         d_child = self.dict_child
 
         for module_name in d_child:
-            d[module_name] = l_module_generalogy_rec(d_child,
-                                                     d_child[module_name])
+            d[module_name] = l_module_descendant(d_child,
+                                                 d_child[module_name])
 
         return d
 
-    @classproperty
+    @property
     def dict_root(self):
         """
         Return a dict(module_name) = module_boss
@@ -126,9 +133,8 @@ class ModuleHandler:
 
         return dict_root
 
-    @classmethod
-    def l_descendant_unique(cls, l_module):
-        d_desc = cls.dict_descendant
+    def l_descendant_unique(self, l_module):
+        d_desc = self.dict_descendant
 
         d = {}
         for module in l_module:
@@ -137,10 +143,9 @@ class ModuleHandler:
 
         return d.keys()
 
-    @classmethod
-    def l_reduce_tree(cls, l_module):
+    def l_reduce_tree(self, l_module):
         """For a list of module in input return only the root"""
-        l_d_u = cls.l_descendant_unique(l_module)
+        l_d_u = self.l_descendant_unique(l_module)
         l_module_reduce = []
         for module in l_module:
             if module not in l_d_u:
@@ -148,8 +153,7 @@ class ModuleHandler:
 
         return l_module_reduce
 
-    @classmethod
-    def create_png(cls, l_module):
+    def create_png(self, l_module):
         """Create the png of the dependency tree for a l_module"""
 
         # Init
@@ -170,7 +174,7 @@ class ModuleHandler:
 
         # Init
         graph = pydot.Dot(graph_type='digraph')
-        d_ref = cls.dict_child
+        d_ref = self.dict_child
 
         # Create all the edge
         for module in l_module:
@@ -196,9 +200,10 @@ if __name__ == '__main__':
         dir_ = os.path.dirname(path_file)
 
     path_file = os.path.basename(dir_)
+    m = ModuleHandler()
 
     if arguments['print_descendant']:
-        print " ".join(sorted(ModuleHandler.l_module))
+        print " ".join(sorted(m.l_module))
 
     if arguments["create_png"]:
-        ModuleHandler.create_png([path_file])
+        m.create_png([path_file])

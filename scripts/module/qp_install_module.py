@@ -53,9 +53,10 @@ def save_new_module(path, l_child):
 
 if __name__ == '__main__':
     arguments = docopt(__doc__)
+    m_instance = ModuleHandler()
 
     if arguments["list"]:
-        for module in ModuleHandler.l_module:
+        for module in m_instance.l_module:
             print module
 
     elif arguments["create"]:
@@ -68,7 +69,7 @@ if __name__ == '__main__':
         print path
 
         for children in l_children:
-            if children not in ModuleHandler.dict_descendant:
+            if children not in m_instance.dict_descendant:
                 print "This module ({0}) is not a valide module.".format(children)
                 print "Run `list` flag for the list of module avalaible"
                 print "Aborting..."
@@ -78,9 +79,9 @@ if __name__ == '__main__':
         print l_children
 
         print "You can use all the routine in this module"
-        print l_children + ModuleHandler.l_descendant_unique(l_children)
+        print l_children + m_instance.l_descendant_unique(l_children)
 
         print "This can be reduce to:"
-        l_child_reduce = ModuleHandler.l_reduce_tree(l_children)
+        l_child_reduce = m_instance.l_reduce_tree(l_children)
         print l_child_reduce
         save_new_module(path, l_child_reduce)

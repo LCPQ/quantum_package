@@ -39,6 +39,7 @@ EZ_config_path = namedtuple('EZ_config', ['path_in_module', 'path_in_ezfio'])
 EZ_handler = namedtuple('EZ_handler', ['ez_module', 'ez_cfg', 'ez_interface',
                                        'ez_config'])
 Sym_link = namedtuple('Sym_link', ['source', 'destination'])
+module_instance = ModuleHandler()
 
 
 #  _
@@ -511,7 +512,7 @@ def get_dict_binaries(l_module, mode="production"):
 
     if mode == "production":
 
-        dict_root = ModuleHandler.dict_root
+        dict_root = module_instance.dict_root
         dict_root_path = dict_module_genelogy_path(dict_root)
 
         d_binaries_condensed = defaultdict(list)
@@ -656,7 +657,7 @@ if __name__ == "__main__":
     # G e n e a l o g y _ d i c t #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
-    d_genealogy = ModuleHandler.dict_descendant
+    d_genealogy = module_instance.dict_descendant
     d_genealogy_path = dict_module_genelogy_path(d_genealogy)
     d_irp = get_file_dependency(d_genealogy_path)
 
