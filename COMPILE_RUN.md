@@ -1,31 +1,41 @@
 # Compile
 
-We need to create the file who contain all the tree dependencies for the binaries. It's not a MakeFile, but a Ninja file. (So don't type `make` is hopeless, type `ninja` instead)
+We need to create the file which contains all the tree dependencies for the
+binaries.  It's not a Makefile, but a Ninja file (so don't type `make` is
+hopeless, type `ninja` instead).
 
-The script to create the dependencies file (aka `build.ninja`) is `create_ninja_build.py`.
+The script to create the dependency file (aka `build.ninja`) is
+`qp_create_ninja.py`.
 
 ## What utilization of the code will you do?
 
-   * If you only want the binaries (for production workflow) use the flag `--production` in when calling this script. It's quicker 
+* If you only want the binaries (for production workflow) use the flag
+  `--production` in when calling this script. It's quicker 
+* Else if you are a developer and you want to be able to compile specific
+  modules use: `--development`
 
-   * Else if you are a developer and you want to be able to only compile one specific module use: `--development`
+## Compilation Flags
 
-## Compilation Flag
-
-You need to specify all the flag useful for the compilation:   like the optimization one, the mkl one .``$QP_ROOT/config`` contains ``ifort.cfg`` and ``gfortran.cfg`` files which have the compiler flags that will be used to compile the code. You can edit these files to modify the compiling option. Put the file path when calling `create_ninja_build.py`
+You need to specify all the flags useful for the compilation:  like the
+optimization flags, the Lapack libary, etc.  ``$QP_ROOT/config`` contains
+``ifort.cfg`` and ``gfortran.cfg`` containing the compiler flags that will be
+used.  You can edit these files to modify the compiling options. 
 
 ## Example to create the Ninja file
 
-`create_ninja_build.py --production $QP_ROOT/config/ifort.cfg`
+`qp_create_ninja.py --production $QP_ROOT/config/ifort.cfg`
 
 # WARNING
 
-For now reload this command if you add a `IRP.f90` or `EZFIO.cfg` file or modify the `NEED_CHILDREN_MODULE`!
+For now you need to execute this command if you add a `irp.f` or `EZFIO.cfg`
+file or modify the `NEED_CHILDREN_MODULE`!
 
-## Compile
+## Compiling
 
-Just type `ninja` if you are in `$QP_ROOT` (or `ninja -f $QP_ROOT/build.ninja` elsewhere). The compilation will take approximately 3 min.
+Just type `ninja` if you are in `$QP_ROOT` (or `ninja -f $QP_ROOT/build.ninja`
+elsewhere). The compilation will take approximately 3 min.
 
-If you have set the `--developement` flag in a specific module you can go in the corresponding IRPF90_temp and run `ninja` to only make the module and submodule binaries. (You can use the `-f` option too)
+If you have set the `--developement` flag in a specific module you can go in
+the corresponding module directory and run `ninja` to build only this module.
 
-Now go in `$QP_ROOT/ocaml` and type `make`
+Finally, go in `$QP_ROOT/ocaml` and type `make`
