@@ -61,7 +61,7 @@ def get_dict_child(l_root_abs=None):
     return d_ref
 
 
-def l_module_descendant(d_child, l_module):
+def get_l_module_descendant(d_child, l_module):
     """
     From a list of module return the module and descendant
     """
@@ -71,7 +71,7 @@ def l_module_descendant(d_child, l_module):
         if module not in l:
             l.append(module)
             try:
-                l.extend(l_module_descendant(d_child, d_child[module]))
+                l.extend(get_l_module_descendant(d_child, d_child[module]))
             except KeyError:
                 print >> sys.stderr, "`{0}` not submodule".format(module)
                 print >> sys.stderr, "Check the corresponding NEEDED_CHILDREN_MODULES"
@@ -113,8 +113,8 @@ class ModuleHandler():
         d_child = self.dict_child
 
         for module_name in d_child:
-            d[module_name] = l_module_descendant(d_child,
-                                                 d_child[module_name])
+            d[module_name] = get_l_module_descendant(d_child,
+                                                     d_child[module_name])
 
         return d
 

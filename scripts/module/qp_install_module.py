@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Usage: qp_install_module.py list
+Usage: qp_install_module.py list [--installed|--avalaible-local|--avalaible-remote]
+       qp_install_module.py install -n <name>
        qp_install_module.py create -n <name> [<children_module>...]
+       qp_install_module.py download -n <name> [<path_folder>...]
+
 
 Options:
     list: List all the module avalaible
-    create: Create a new module 
+    create: Create a new module
 """
 
 import sys
@@ -15,6 +18,7 @@ import os
 try:
     from docopt import docopt
     from module_handler import ModuleHandler, get_dict_child
+    from module_handler import get_l_module_descendant
     from update_README import Doc_key, Needed_key
 except ImportError:
     print "source .quantum_package.rc"
@@ -53,17 +57,26 @@ def save_new_module(path, l_child):
 
 if __name__ == '__main__':
     arguments = docopt(__doc__)
+    qp_root_src = os.path.join(os.environ['QP_ROOT'], "src")
+    qp_root_plugin = os.path.join(os.environ['QP_ROOT'], "plugins")
 
-    m_instance = ModuleHandler()
     if arguments["list"]:
+
+        if arguments["--installed"]:
+            l_repository = [qp_root_src]
+
+        m_instance = ModuleHandler(l_repository)
+
         for module in m_instance.l_module:
             print module
 
     elif arguments["create"]:
+        m_instance = ModuleHandler(l_repository)
+
         l_children = arguments["<children_module>"]
 
-        qpackage_root = os.environ['QP_ROOT']
-        path = os.path.join(qpackage_root, "src", arguments["<name>"])
+        qp_root = os.environ['QP_ROOT']
+        path = os.path.join(qp_root_src, arguments["<name>"])
 
         print "You will create the module:"
         print path
@@ -85,3 +98,35 @@ if __name__ == '__main__':
         l_child_reduce = m_instance.l_reduce_tree(l_children)
         print l_child_reduce
         save_new_module(path, l_child_reduce)
+
+    elif arguments["download"]:
+
+        d_local = get_dict_child([qp_root_src])
+        d_remote = get_dict_child(arguments["<path_folder>"])
+
+        d_child = d_local.copy()
+        d_child.update(d_remote)
+
+        name = arguments["<name>"]
+        l_module_descendant = get_l_module_descendant(d_child, [name])
+
+        for module in l_module_descendant:
+            if module not in d_local:
+                print "you need to install", module
+
+    elif arguments["install"]:
+
+        d_local = get_dict_child([qp_root_src])
+
+        d_plugin = get_dict_child([qp_root_plugin])
+
+        d_child = d_local.copy()
+        d_child.update(d_plugin)
+
+        name = arguments["<name>"]
+        l_module_descendant = get_l_module_descendant(d_child, [name])
+
+        module_to_cp = [module for module in l_module_descendant if module not in d_local]
+
+        print "For ln -s by hand the module"
+        print module_to_cp
