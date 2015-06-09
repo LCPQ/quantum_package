@@ -17,6 +17,7 @@ def finalize():
     print "   source {0}".format(path)
     print "   qp_create_ninja.py --production $QP_ROOT/config/ifort.cfg"
     print "   ninja"
+    print "   make -C ocaml"
     print ""
     sys.exit()
 
