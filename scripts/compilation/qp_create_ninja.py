@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Usage: qp_create_ninja.py (--development | --production) CONFIG_FILE
+Usage: qp_create_ninja.py create (--development | --production) CONFIG_FILE
+       qp_create_ninja.py update
+
 """
 
 import os
@@ -10,6 +12,7 @@ import glob
 from os.path import join
 from collections import namedtuple
 from collections import defaultdict
+import pickle
 
 try:
     from module_handler import ModuleHandler
@@ -378,7 +381,8 @@ def ninja_irpf90_make_rule():
     # c m d #
     # ~#~#~ #
 
-    l_cmd = ["cd $module"] + l_flag + ["irpf90 $include_dir $IRPF90_FLAGS"]
+    l_cmd = ["cd $module", "rm -rf IRPF90_temp IRPF90_man"
+             ] + l_flag + ["irpf90 $include_dir $IRPF90_FLAGS"]
 
     # ~#~#~#~#~#~ #
     # s t r i n g #
@@ -555,7 +559,7 @@ def ninja_binaries_rule():
     # c m d #
     # ~#~#~ #
 
-    l_cmd = ["cd $module", "ninja -C IRPF90_temp $out"]
+    l_cmd = ["cd $module/IRPF90_temp", "ninja $out"]
 
     # ~#~#~#~#~#~ #
     # s t r i n g #
@@ -589,6 +593,22 @@ def ninja_binaries_build(path_module, l_children, d_binaries):
                                                            ninja_module_path),
                 "   module = {0}".format(path_module.abs), ""]
 
+    l_string += ["build module_{0}: phony {1}".format(path_module.rel,
+                                                      " ".join(l_abs_bin)), ""]
+
+    return l_string
+
+
+#
+# |\/|  _   _|     |  _
+# |  | (_) (_| |_| | (/_
+#
+def create_module_ninja():
+    """
+    In a module create a build.ninja
+    """
+
+    l_string = ["rule all:"]
     return l_string
 
 
@@ -625,12 +645,57 @@ def ninja_dot_tree_build(path_module):
     return l_string
 
 #
+# |\/|  _   _|     |  _
+# |  | (_) (_| |_| | (/_
+#
+
+
+def create_ninja_module(path_module):
+    path_ninja_root = join(QP_ROOT, "build.ninja")
+
+    l_string = [
+        "rule update_ninja_common", "    command = qp_create_ninja.py update",
+        "", "rule make_local_binaries",
+        "    command = ninja -f {0} module_{1}".format(path_ninja_root,
+                                                       path_module.rel), ""
+    ]
+
+    l_string += ["rule make_all_binaries",
+                 "    command = ninja -f {0}".format(path_ninja_root), ""]
+
+    l_string += ["build dumy_target: update_ninja_common", "",
+                 "build all: make_all_binaries dumy_target", "",
+                 "build local: make_local_binaries dumy_target",
+                 "default local", ""]
+
+    path_ninja_cur = join(path_module.abs, "build.ninja")
+    with open(path_ninja_cur, "w") as f:
+        f.write("\n".join(l_string))
+
+#
 # |\/|  _. o ._
 # |  | (_| | | |
 #
 if __name__ == "__main__":
-
     arguments = docopt(__doc__)
+
+    pickle_path = os.path.join(QP_ROOT, "config", "qp_create_ninja.pickle")
+
+    if arguments["update"]:
+        try:
+            with open(pickle_path, 'rb') as handle:
+                arguments = pickle.load(handle)
+        except IOError:
+            print "You need to create first my friend"
+            sys.exit(1)
+
+    elif arguments["create"]:
+
+        arguments["CONFIG_FILE"] = os.path.realpath(arguments["CONFIG_FILE"])
+
+        with open(pickle_path, 'wb') as handle:
+            pickle.dump(arguments, handle)
+
     pwd_config_file = arguments["CONFIG_FILE"]
 
     #  _
@@ -703,6 +768,9 @@ if __name__ == "__main__":
         l_module = d_binaries.keys()
 
     for module_to_compile in l_module:
+
+        if arguments["--development"]:
+            create_ninja_module(module_to_compile)
 
         # ~#~#~#~#~#~#~#~ #
         #  S y m l i n k  #

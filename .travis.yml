@@ -12,7 +12,7 @@ before_script:
 script: 
   - ./setup_environment.py
   - source ./quantum_package.rc
-  - qp_create_ninja.py --production ./config/gfortran.cfg
+  - qp_create_ninja.py create --production ./config/gfortran.cfg
   - ninja
   - cd ocaml ; make ; cd -
   - cd testing_no_regression ; ./unit_test.py
