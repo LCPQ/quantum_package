@@ -247,11 +247,7 @@ def ninja_ezfio_build(l_ezfio_config, l_util):
     l_ezfio_from_cfg = [i.ez_config.abs for i in l_util.itervalues()]
 
     str_ = " ".join(l_ezfio_config + l_ezfio_from_cfg)
-
-    ezfio_make_config = join(QP_ROOT_EZFIO, "make.config")
-    l_string = ["build {0} {1}: build_ezfio {2}".format(EZFIO_LIB,
-                                                        ezfio_make_config,
-                                                        str_), ""]
+    l_string = ["build {0}: build_ezfio {1}".format(EZFIO_LIB, str_), ""]
 
     return l_string
 
@@ -381,8 +377,7 @@ def ninja_irpf90_make_rule():
     # c m d #
     # ~#~#~ #
 
-    l_cmd = ["cd $module", "rm -rf IRPF90_temp IRPF90_man"
-             ] + l_flag + ["irpf90 $include_dir $IRPF90_FLAGS"]
+    l_cmd = ["cd $module"] + l_flag + ["irpf90 $include_dir $IRPF90_FLAGS"]
 
     # ~#~#~#~#~#~ #
     # s t r i n g #
@@ -559,7 +554,7 @@ def ninja_binaries_rule():
     # c m d #
     # ~#~#~ #
 
-    l_cmd = ["cd $module/IRPF90_temp", "ninja $out"]
+    l_cmd = ["cd $module/IRPF90_temp", "ninja $out && touch $out"]
 
     # ~#~#~#~#~#~ #
     # s t r i n g #
@@ -653,15 +648,18 @@ def ninja_dot_tree_build(path_module):
 def create_ninja_module(path_module):
     path_ninja_root = join(QP_ROOT, "build.ninja")
 
-    l_string = [
-        "rule update_ninja_common", "    command = qp_create_ninja.py update",
-        "", "rule make_local_binaries",
-        "    command = ninja -f {0} module_{1}".format(path_ninja_root,
-                                                       path_module.rel), ""
-    ]
+    l_string = ["rule update_ninja_common",
+                "   command = qp_create_ninja.py update", ""]
+
+    l_string += ["rule make_local_binaries",
+                 "   command = ninja -j 1 -f {0} module_{1}".format(
+                     path_ninja_root, path_module.rel),
+                 "   description = Compile only {0}".format(path_module.rel),
+                 ""]
 
     l_string += ["rule make_all_binaries",
-                 "    command = ninja -f {0}".format(path_ninja_root), ""]
+                 "   command = ninja -j 1 -f {0}".format(path_ninja_root),
+                 "  description = Compile all the module", ""]
 
     l_string += ["build dumy_target: update_ninja_common", "",
                  "build all: make_all_binaries dumy_target", "",
