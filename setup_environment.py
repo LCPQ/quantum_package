@@ -66,7 +66,7 @@ path = Info(
     default_path=join(QP_ROOT, "lib", "libz.a"))
 
 irpf90 = Info(
-    url='{head}/scemama/irpf90/archive/v1.6.6.tar.gz'.format(**path_github),
+    url='{head}/LCPQ/irpf90/{tail}'.format(**path_github),
     description=' irpf90',
     default_path=join(QP_ROOT_BIN, "irpf90"))
 
@@ -190,6 +190,13 @@ def create_rule_ninja():
 
 
 def finalize():
+
+    print """
+ ___      _
+  |  ._ _|_ _  ._ ._ _   _. _|_ o  _  ._
+ _|_ | | | (_) |  | | | (_|  |_ | (_) | |
+
+"""
     path = join(QP_ROOT, "quantum_package.rc")
     print "For more info on compiling the code, read the COMPILE_RUN.md file."
     print ""
@@ -239,7 +246,7 @@ for i in d_dependency.keys():
         print "[ OK ]"
         l_installed[i] = r.strip()
     else:
-        print "[ will compile it ]"
+        print "[ Will compile it ]"
         l_need.append(i)
 
 print """
@@ -280,17 +287,17 @@ l_install_without_ninja = []
 
 for need in l_install_descendant:
     if need == "ocaml":
-        l_install_with_ninja.append(need)
-    else:
         l_install_without_ninja.append(need)
+    else:
+        l_install_with_ninja.append(need)
 
 if need_to_install_ninja:
 
     print """
-# ~#~#~#~#~#~#~#~#~#~#~#~#~ #
-# I n s t a l l _ n i n j a #
-# ~#~#~#~#~#~#~#~#~#~#~#~#~ #
-"""
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # I n s t a l l _ n i n j a #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    """
 
     url = d_info["ninja"].url
     extension = splitext(url)[1]
@@ -363,10 +370,10 @@ if l_install_with_ninja:
 if "ocaml" in l_install_without_ninja:
 
     print """
-# ~#~#~#~#~#~#~#~#~#~#~#~#~ #
-# I n s t a l l _ o c a m l #
-# ~#~#~#~#~#~#~#~#~#~#~#~#~ #
-"""
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # I n s t a l l _ o c a m l #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    """
 
     url = d_info["ocaml"].url
     extension = splitext(url)[1]
@@ -382,9 +389,9 @@ if "ocaml" in l_install_without_ninja:
     l_install_descendant.remove("ocaml")
 
 print """
-# ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
-# C r e a t e   q u a n t u m _ p a c k a g e . r c
-# ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+  _.      _. ._ _|_     ._ _         ._   _.  _ |   _.  _   _    ._ _
+ (_| |_| (_| | | |_ |_| | | |        |_) (_| (_ |< (_| (_| (/_ o | (_
+   |                            __   |                  _|
 """
 
 python_path = [join(QP_ROOT, "scripts"), join(QP_ROOT, "install")]

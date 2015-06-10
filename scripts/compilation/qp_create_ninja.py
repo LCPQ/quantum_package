@@ -80,8 +80,7 @@ def dict_module_genelogy_path(d_module_genelogy):
 
         p = Path(module_abs, module_rel)
         try:
-            d[p] = Path(join(QP_ROOT_SRC, l_children_rel),
-                        l_children_rel)
+            d[p] = Path(join(QP_ROOT_SRC, l_children_rel), l_children_rel)
         except:
             d[p] = [Path(join(QP_ROOT_SRC, children), children)
                     for children in l_children_rel]
@@ -223,9 +222,9 @@ def ninja_ezfio_rule():
     l_flag = ["export {0}='${0}'".format(flag)
               for flag in ["FC", "FCFLAGS", "IRPF90"]]
 
-    l_cmd = ["cd {0}".format(QP_ROOT_EZFIO)
-             ] + l_flag + ["ninja && ln -f {0} {1}".format(join(QP_ROOT, 'install', 'EZFIO',"lib","libezfio.a"),
-                                                          EZFIO_LIB)]
+    install_lib_ezfio = join(QP_ROOT, 'install', 'EZFIO', "lib", "libezfio.a")
+    l_cmd = ["cd {0}".format(QP_ROOT_EZFIO)] + l_flag
+    l_cmd += ["ninja && ln -f {0} {1}".format(install_lib_ezfio, EZFIO_LIB)]
 
     l_string = ["rule build_ezfio",
                 "   command = {0}".format(" ; ".join(l_cmd)),
@@ -313,17 +312,19 @@ def get_l_file_for_module(path_module):
         elif f.endswith(".irp.f"):
             l_depend.append(join(path_module.abs, f))
         elif f.lower().endswith(tuple([".f", ".f90", ".c", ".cpp", ".cxx"])):
-            l_depend.append(join(path_module.abs,f))
+            l_depend.append(join(path_module.abs, f))
             l_src.append(f)
             obj = '{0}.o'.format(os.path.splitext(f)[0])
             l_obj.append(obj)
         elif f == "EZFIO.cfg":
             l_depend.append(join(path_module.abs, "ezfio_interface.irp.f"))
 
-    d = {"l_depend": l_depend,
-         "l_src": l_src,
-         "l_obj": l_obj,
-         "l_template": l_template}
+    d = {
+        "l_depend": l_depend,
+        "l_src": l_src,
+        "l_obj": l_obj,
+        "l_template": l_template
+    }
 
     return d
 
@@ -338,18 +339,20 @@ def get_file_dependency(d_info_module):
 
         for key, values in get_l_file_for_module(module).iteritems():
             if key in ["l_src"]:
-                values = [join(module.abs,o) for o in values]
+                values = [join(module.abs, o) for o in values]
             if key in ["l_obj"]:
-                values = [join(module.abs,"IRPF90_temp",o) for o in values]
+                values = [join(module.abs, "IRPF90_temp", o) for o in values]
 
             d_irp[module][key] = values
 
         for children in l_children:
             for key, values in get_l_file_for_module(children).iteritems():
                 if key in ["l_src"]:
-                    values = [join(module.abs,children.rel,o) for o in values]
+                    values = [join(module.abs, children.rel, o)
+                              for o in values]
                 if key in ["l_obj"]:
-                    values = [join(module.abs,"IRPF90_temp",children.rel,o) for o in values]
+                    values = [join(module.abs, "IRPF90_temp", children.rel, o)
+                              for o in values]
 
                 d_irp[module][key].extend(values)
 
@@ -527,10 +530,16 @@ def get_dict_binaries(l_module, mode="production"):
             if module == root_module:
                 d_binaries_condensed[root_module] += d_binaries[module]
             else:
-                #We need to put the root module in the d_binarie path.
 
-                new_path = [Path(join(QP_ROOT_SRC,root_module.rel,module.rel,i.rel),i.rel) for i in d_binaries[module]]
-                d_binaries_condensed[root_module] += new_path
+                l_binaries = []
+                for binaries in d_binaries[module]:
+                    p_abs = join(QP_ROOT_SRC, root_module.rel, module.rel,
+                                 binaries.rel)
+                    p_rel = binaries.rel
+                    p = Path(p_abs, p_rel)
+                    l_binaries.append(p)
+
+                d_binaries_condensed[root_module] += l_binaries
 
         d_binaries = d_binaries_condensed
 
@@ -597,11 +606,12 @@ def ninja_dot_tree_rule():
 
     l_cmd = ["cd $module", "module_handler.py create_png"]
 
-    l_string = ["rule build_dot_tree",
-                "   command = {0}".format(" ; ".join(l_cmd)),
-                "   generator = 1",
-                "   description = Generate Png representtion of the Tree Dependancies of $module",
-                ""]
+    l_string = [
+        "rule build_dot_tree", "   command = {0}".format(" ; ".join(l_cmd)),
+        "   generator = 1",
+        "   description = Generate Png representtion of the Tree Dependancies of $module",
+        ""
+    ]
 
     return l_string
 
@@ -682,15 +692,13 @@ if __name__ == "__main__":
 
     if arguments["--production"]:
 
-        d_binaries = get_dict_binaries(l_module,
-                                       mode="production")
+        d_binaries = get_dict_binaries(l_module, mode="production")
 
         l_module = d_binaries.keys()
 
     elif arguments["--development"]:
 
-        d_binaries = get_dict_binaries(l_module,
-                                       mode="development")
+        d_binaries = get_dict_binaries(l_module, mode="development")
 
         l_module = d_binaries.keys()
 
