@@ -46,7 +46,7 @@ Sym_link = namedtuple('Sym_link', ['source', 'destination'])
 # |_ | | \/   \/ (_| |  | (_| |_) | (/_ _>
 def ninja_create_env_variable(pwd_config_file):
     """
-    Return some ninja varible with the env variable expanded
+    Return some ninja variable with the env variable expanded
     FC, FCFLAGS, IRPF90, IRPF90_FLAGS
     The env variable is usefull for the generation of EZFIO, and IRPF90
     """
@@ -399,7 +399,7 @@ def ninja_irpf90_make_build(path_module, l_needed_molule, d_irp):
 
     l_creation = [join(path_module.abs, i)
                   for i in ["irpf90.make", "irpf90_entities", "tags",
-                            "build.ninja"]]
+                            "IRPF90_temp/build.ninja"]]
     str_creation = " ".join(l_creation)
 
     # ~#~#~#~#~#~#~#~#~#~ #
@@ -532,7 +532,7 @@ def ninja_binaries_rule():
     # c m d #
     # ~#~#~ #
 
-    l_cmd = ["cd $module", "ninja"]
+    l_cmd = ["cd $module", "ninja -C IRPF90_temp"]
 
     # ~#~#~#~#~#~ #
     # s t r i n g #
@@ -554,7 +554,7 @@ def ninja_binaries_build(path_module, l_children, d_binaries):
     # c m d #
     # ~#~#~ #
 
-    ninja_module_path = join(path_module.abs, "build.ninja")
+    ninja_module_path = join(path_module.abs, "IRPF90_temp/build.ninja")
     l_abs_bin = [binary.abs for binary in d_binaries[path_module]]
 
     # ~#~#~#~#~#~ #
