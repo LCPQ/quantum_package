@@ -8,20 +8,6 @@ import pprint
 
 from os.path import join
 
-def finalize():
-    path = join(QP_ROOT, "quantum_package.rc")
-    print "For more info on compiling the code, read the COMPILE_RUN.md file."
-    print ""
-    print "You can check {0} and run:".format(path)
-    print ""
-    print "   source {0}".format(path)
-    print "   qp_create_ninja.py --production $QP_ROOT/config/ifort.cfg"
-    print "   ninja"
-    print "   make -C ocaml"
-    print ""
-    sys.exit()
-
-
 #  __                           _
 # /__ |   _  |_   _. |   o ._ _|_ _
 # \_| |_ (_) |_) (_| |   | | | | (_)
@@ -30,8 +16,6 @@ def finalize():
 QP_ROOT = os.getcwd()
 QP_ROOT_BIN = join(QP_ROOT, "bin")
 QP_ROOT_INSTALL = join(QP_ROOT, "install")
-os.environ["PATH"] = ":".join( [QP_ROOT_BIN,os.environ["PATH"] ] )
-
 
 d_dependency = {
     "ocaml": ["m4", "curl", "zlib", "patch", "gcc"],
@@ -180,7 +164,60 @@ def splitext(path):
     return os.path.splitext(path)
 
 
-l_installed = dict()
+def find_path(bin_):
+    """Use the global variable
+    * l_installed
+    * d_info
+    """
+
+    try:
+        locate = l_installed[bin_]
+    except KeyError:
+        locate = d_info[bin_].default_path
+    return locate
+
+
+def create_rule_ninja():
+
+    l_rules = [
+        "rule download", "  command = wget ${url} -O ${out} -o /dev/null",
+        "  description = Downloading ${descr}", "", "rule install",
+        "  command = ./scripts/install_${target}.sh > _build/${target}.log 2>&1",
+        "  description = Installing ${descr}", ""
+    ]
+
+    return l_rules
+
+
+def finalize():
+    path = join(QP_ROOT, "quantum_package.rc")
+    print "For more info on compiling the code, read the COMPILE_RUN.md file."
+    print ""
+    print "You can check {0} and run:".format(path)
+    print ""
+    print "   source {0}".format(path)
+    print "   qp_create_ninja.py --production $QP_ROOT/config/ifort.cfg"
+    print "   ninja"
+    print "   make -C ocaml"
+    print ""
+    sys.exit()
+
+
+def get_list_need_child(l_need):
+    """
+    Descendant – a node reachable by repeated proceeding from parent to child.
+    """
+    d_need_genealogy = dict()
+
+    for need in l_need:
+        d_need_genealogy[need] = None
+        for childen in d_dependency[need]:
+            if childen not in l_installed:
+                d_need_genealogy[childen] = None
+    return d_need_genealogy.keys()
+
+    return d_need_genealogy.keys()
+
 
 print """
   _
@@ -189,31 +226,21 @@ print """
                          _|
 """
 
+l_installed = dict()
+
 # Check all the other
-length = max( [ len(i) for i in d_dependency ] )
-fmt = "%"+str(length)+"s"
+length = max(map(len, d_dependency))
+
 for i in d_dependency.keys():
-    print "Checking if %s is avalaible..."%( i.center(length) ),
+    print "Checking if {0:^{1}} is avalaible...".format(i, length),
 
     r = check_availabiliy(i)
     if r:
         print "[ OK ]"
         l_installed[i] = r.strip()
     else:
-        print "Will compile it"
+        print "[ will compile it ]"
         l_need.append(i)
-
-# Expend the need_stuff for all the genealogy
-
-d_need_genealogy = dict()
-
-for need in l_need:
-    d_need_genealogy[need] = None
-    for childen in d_dependency[need]:
-        if childen not in l_installed:
-            d_need_genealogy[childen] = None
-
-l_need_genealogy = d_need_genealogy.keys()
 
 print """
   __
@@ -223,12 +250,15 @@ print """
 """
 
 print "You have already installed :"
-def f( (a1,a2), (key,value) ): 
-    return tuple(max(x,len(y)) for (x,y) in [(a1,key), (a2,value)] )
-fmt_tuple =reduce(f, l_installed.iteritems(), (0,0))
-for k,v in l_installed.iteritems():
-    fmt = "{0:<%d} : {1:<%d}"%fmt_tuple
-    print fmt.format( k, v )
+
+len_bin, len_path = [max(map(len, line))
+                     for line in zip(*l_installed.iteritems())]
+
+for bin, path in l_installed.iteritems():
+    print "{0:<{2}} : {1:<{3}}".format(bin, path, len_bin, len_path)
+
+# Expend the need_stuff for all the genealogy
+l_install_descendant = get_list_need_child(l_need)
 
 print """
  ___
@@ -237,20 +267,31 @@ print """
 
 """
 
-if l_need_genealogy:
+if l_install_descendant:
     print "You need to install:"
-    pprint.pprint(l_need_genealogy)
+    pprint.pprint(l_install_descendant)
 else:
     print "Nothing to do."
     finalize()
 
-if "ninja" in l_need_genealogy:
+need_to_install_ninja = "ninja" in l_install_descendant
+l_install_with_ninja = []
+l_install_without_ninja = []
+
+for need in l_install_descendant:
+    if need == "ocaml":
+        l_install_with_ninja.append(need)
+    else:
+        l_install_without_ninja.append(need)
+
+if need_to_install_ninja:
 
     print """
 # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 # I n s t a l l _ n i n j a #
 # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 """
+
     url = d_info["ninja"].url
     extension = splitext(url)[1]
     path_archive = "Downloads/{0}{1}".format("ninja", extension)
@@ -262,83 +303,71 @@ if "ninja" in l_need_genealogy:
     check_output(" ".join(l_cmd), shell=True)
 
     print "Done"
-    l_need_genealogy.remove("ninja")
+    l_install_with_ninja.remove("ninja")
 
-print """
-# ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
-# C r e a t i n g _ n i n j a #
-# ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
-"""
+if l_install_with_ninja:
+    print """
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # C r e a t i n g _ n i n j a #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    """
 
+    l_string = create_rule_ninja()
 
-def create_rule():
+    l_build = []
 
-    l_rules = [
-        "rule download", "  command = wget ${url} -O ${out} -o /dev/null",
-        "  description = Downloading ${descr}", "", "rule install",
-        "  command = ./scripts/install_${target}.sh > _build/${target}.log 2>&1",
-        "  description = Installing ${descr}", ""
-    ]
+    for need in l_install_with_ninja:
 
-    return l_rules
+        url = d_info[need].url
+        extension = splitext(url)[1]
 
-l_string = create_rule()
+        archive_path = "Downloads/{0}{1}".format(need, extension)
 
-l_build = []
+        descr = d_info[need].description
 
-for need in l_need_genealogy:
+        # Build to dowload
+        l_build += ["build {0}: download".format(archive_path),
+                    "   url = {0}".format(url), "   descr = {0}".format(descr),
+                    ""]
 
-    if need == "ocaml":
-        continue
+        # Build to install
+        l_dependancy = [d_info[i].default_path for i in d_dependency[need]
+                        if i in l_install_descendant]
 
-    url = d_info[need].url
-    extension = splitext(url)[1]
+        l_build += ["build {0}: install {1} {2}".format(
+            d_info[need].default_path, archive_path, " ".join(l_dependancy)),
+                    "   target = {0}".format(need),
+                    "   descr = {0}".format(descr), ""]
 
-    archive_path = "Downloads/{0}{1}".format(need, extension)
+    l_string += l_build
 
-    descr = d_info[need].description
+    path = join(QP_ROOT_INSTALL, "build.ninja")
+    with open(path, "w+") as f:
+        f.write("\n".join(l_string))
 
-    # Build to dowload
-    l_build += ["build {0}: download".format(archive_path),
-                "   url = {0}".format(url),
-                "   descr = {0}".format(descr), ""]
+    print "Done"
+    print "You can check {0}".format(path)
 
-    # Build to install
-    l_dependancy = [d_info[i].default_path for i in d_dependency[need] if i in l_need_genealogy]
+    print """
+    # ~#~#~#~#~#~#~#~#~ #
+    # R u n _ n i n j a #
+    # ~#~#~#~#~#~#~#~#~ #
+    """
 
-    l_build += ["build {0}: install {1} {2}".format(d_info[need].default_path,
-                                                    archive_path,
-                                                    " ".join(l_dependancy)),
-                "   target = {0}".format(need),
-                "   descr = {0}".format(descr), ""]
+    if [i for i in l_install_descendant if i not in "ocaml"]:
+        subprocess.check_call("{0} -C install".format(find_path("ninja")),
+                              shell=True)
 
-l_string += l_build
+    print "Done"
 
-path = join(QP_ROOT_INSTALL, "build.ninja")
-with open(path, "w+") as f:
-    f.write("\n".join(l_string))
-
-print "Done"
-print "You can check {0}".format(path)
-
-print """
-# ~#~#~#~#~#~#~#~#~ #
-# R u n _ n i n j a #
-# ~#~#~#~#~#~#~#~#~ #
-"""
-
-if [i for i in l_need_genealogy if i not in "ocaml"]:
-    subprocess.check_call("ninja -C install", shell=True)
-
-print "Done"
-
-if "ocaml" in l_need_genealogy:
+if "ocaml" in l_install_without_ninja:
 
     print """
 # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 # I n s t a l l _ o c a m l #
 # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 """
+
     url = d_info["ocaml"].url
     extension = splitext(url)[1]
     path_archive = "Downloads/{0}{1}".format("ocaml", extension)
@@ -350,8 +379,7 @@ if "ocaml" in l_need_genealogy:
     os.system(" ".join(l_cmd))
 
     print "Done"
-    l_need_genealogy.remove("ocaml")
-
+    l_install_descendant.remove("ocaml")
 
 print """
 # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
@@ -368,22 +396,11 @@ for dir_ in python_path:
         if os.path.isdir(path):
             l_python.append(path)
 
-
-def find_path(bin_):
-    try:
-        locate = l_installed[bin_]
-    except KeyError:
-        locate = d_info[bin_].default_path
-    return locate
-
-
 l_rc = [
-    'export QP_ROOT={0}'.format(QP_ROOT),
-    'export QP_EZFIO={0}'.format(find_path('ezfio')),
-    'export IRPF90={0}'.format(find_path("irpf90")),
+    'export QP_ROOT={0}'.format(QP_ROOT), 'export QP_EZFIO={0}'.format(
+        find_path('ezfio')), 'export IRPF90={0}'.format(find_path("irpf90")),
     'export NINJA={0}'.format(find_path("ninja")),
-    'export QP_PYTHON={0}'.format(":".join(l_python)),
-    "",
+    'export QP_PYTHON={0}'.format(":".join(l_python)), "",
     'export PYTHONPATH="${PYTHONPATH}":"${QP_PYTHON}"',
     'export PATH="${PATH}":"${QP_PYTHON}":"${QP_ROOT}"/bin:"${QP_ROOT}"/ocaml',
     'export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${LD_LIBRARY_PATH}"',
