@@ -499,6 +499,9 @@ def get_dict_binaries(l_module, mode="production"):
 
     Example : The module Full_CI can produce the binary SCF
     so you dont need to compile at all the module Hartree-Fock
+
+    But you need to change the path acordingle
+    Full_CI/Hartree-Fock/SCF
     """
     d_binaries = defaultdict(list)
 
@@ -513,11 +516,21 @@ def get_dict_binaries(l_module, mode="production"):
     if mode == "production":
 
         dict_root = module_instance.dict_root
-        dict_root_path = dict_module_genelogy_path(dict_root)
+        dict_root_module_path = dict_module_genelogy_path(dict_root)
 
         d_binaries_condensed = defaultdict(list)
+
         for module in d_binaries:
-            d_binaries_condensed[dict_root_path[module]] += d_binaries[module]
+
+            root_module = dict_root_module_path[module]
+
+            if module == root_module:
+                d_binaries_condensed[root_module] += d_binaries[module]
+            else:
+                #We need to put the root module in the d_binarie path.
+
+                new_path = [Path(join(QP_ROOT_SRC,root_module.rel,module.rel,i.rel),i.rel) for i in d_binaries[module]]
+                d_binaries_condensed[root_module] += new_path
 
         d_binaries = d_binaries_condensed
 
@@ -533,7 +546,7 @@ def ninja_binaries_rule():
     # c m d #
     # ~#~#~ #
 
-    l_cmd = ["cd $module", "ninja"]
+    l_cmd = ["cd $module", "ninja $out"]
 
     # ~#~#~#~#~#~ #
     # s t r i n g #
@@ -663,20 +676,25 @@ if __name__ == "__main__":
 
     l_module = d_genealogy_path.keys()
 
-    d_binaries_production = get_dict_binaries(l_module,
-                                              mode="production")
-
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # M o d u l e _ t o _ i r p #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
     if arguments["--production"]:
-        l_module_to_irp = d_binaries_production.keys()
+
+        d_binaries = get_dict_binaries(l_module,
+                                       mode="production")
+
+        l_module = d_binaries.keys()
 
     elif arguments["--development"]:
-        l_module_to_irp = d_genealogy_path.keys()
 
-    for module_to_compile in l_module_to_irp:
+        d_binaries = get_dict_binaries(l_module,
+                                       mode="development")
+
+        l_module = d_binaries.keys()
+
+    for module_to_compile in l_module:
 
         # ~#~#~#~#~#~#~#~ #
         #  S y m l i n k  #
@@ -698,13 +716,8 @@ if __name__ == "__main__":
         l_string += ninja_dot_tree_build(module_to_compile)
         l_string += ninja_readme_build(module_to_compile)
 
-    # ~#~#~#~#~#~#~ #
-    #  b i n a r y  #
-    # ~#~#~#~#~#~#~ #
-    for module_to_compile in d_binaries_production.keys():
-
         l_string += ninja_binaries_build(module_to_compile, l_children,
-                                         d_binaries_production)
+                                         d_binaries)
 
     with open(join(QP_ROOT, "build.ninja"), "w+") as f:
         f.write("\n".join(l_string))
