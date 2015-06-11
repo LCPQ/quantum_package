@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Usage: qp_create_ninja.py create (--development | --production) CONFIG_FILE
+Usage: qp_create_ninja.py create <config_file> (--development | --production)
        qp_create_ninja.py update
 
 """
@@ -22,6 +22,27 @@ except ImportError:
     print "source .quantum_package.rc"
     sys.exit(1)
 
+header = r"""#
+#  _______                     _____
+#  __  __ \___  _______ _________  /____  ________ ___
+#  _  / / /  / / /  __ `/_  __ \  __/  / / /_  __ `__ \
+#  / /_/ // /_/ // /_/ /_  / / / /_ / /_/ /_  / / / / /
+#  \___\_\\__,_/ \__,_/ /_/ /_/\__/ \__,_/ /_/ /_/ /_/
+#
+#               ________             ______
+#               ___  __ \_____ _________  /_______ _______ _____
+#               __  /_/ /  __ `/  ___/_  //_/  __ `/_  __ `/  _ \
+#               _  ____// /_/ // /__ _  ,<  / /_/ /_  /_/ //  __/
+#               /_/     \__,_/ \___/ /_/|_| \__,_/ _\__, / \___/
+#                                                  /____/
+#
+# https://github.com/LCPQ/quantum_package,
+#
+# Generated automatically by {0}.".format(__file__)
+#
+#
+"""
+
 #  __
 # /__ |  _  |_   _. |       _. ._ o  _. |_  |  _   _
 # \_| | (_) |_) (_| |   \/ (_| |  | (_| |_) | (/_ _>
@@ -32,6 +53,7 @@ QP_ROOT_SRC = join(QP_ROOT, 'src')
 QP_ROOT_EZFIO = join(QP_ROOT, 'install', 'EZFIO')
 
 EZFIO_LIB = join(QP_ROOT, "lib", "libezfio.a")
+ROOT_BUILD_NINJA = join(QP_ROOT, "config", "build.ninja")
 
 #
 # |\ |  _. ._ _   _   _|   _|_     ._  |  _
@@ -231,8 +253,7 @@ def ninja_ezfio_rule():
 
     l_string = ["rule build_ezfio",
                 "   command = {0}".format(" ; ".join(l_cmd)),
-                "   description = Create $out"
-                ""]
+                "   pool = console", "   description = Create $out", ""]
 
     return l_string
 
@@ -377,7 +398,7 @@ def ninja_irpf90_make_rule():
     # c m d #
     # ~#~#~ #
 
-    l_cmd = ["cd $module"] + l_flag + ["irpf90 $include_dir $IRPF90_FLAGS"]
+    l_cmd = ["cd $module_abs"] + l_flag + ["irpf90 $include_dir $IRPF90_FLAGS"]
 
     # ~#~#~#~#~#~ #
     # s t r i n g #
@@ -386,7 +407,7 @@ def ninja_irpf90_make_rule():
     l_string = ["pool irp_pool", "   depth = 1", "", "rule build_irpf90.ninja",
                 "   command = {0}".format(" ; ".join(l_cmd)),
                 "   pool = irp_pool",
-                "   description = Create the IRP_Tree for $module", ""]
+                "   description = Running IRPF90 for $module_rel", ""]
 
     return l_string
 
@@ -429,7 +450,8 @@ def ninja_irpf90_make_build(path_module, l_needed_molule, d_irp):
 
     l_string = [
         "build {0}: build_irpf90.ninja {1}".format(str_creation, str_depend),
-        "   module = {0}".format(path_module.abs),
+        "   module_abs = {0}".format(path_module.abs),
+        "   module_rel = {0}".format(path_module.rel),
         "   SRC = {0}".format(" ".join(l_src)),
         "   OBJ = {0}".format(" ".join(l_obj)),
         "   include_dir = {0}".format(" ".join(l_include_dir)), ""
@@ -444,7 +466,7 @@ def ninja_readme_rule():
     For not dealted the readme when ninja -t clean and the generator option
     """
     l_string = ["rule build_readme",
-                "   command = cd $module ; update_README.py",
+                "   command = cd $module_abs ; update_README.py",
                 "   generator = 1", ""]
 
     return l_string
@@ -459,7 +481,8 @@ def ninja_readme_build(path_module):
 
     l_string = ["build {0}: build_readme {1}".format(path_readme,
                                                      path_irp_man),
-                "   module = {0}".format(path_module.abs), ""]
+                "   module_abs = {0}".format(path_module.abs),
+                "   module_rel = {0}".format(path_module.rel), ""]
 
     return l_string
 
@@ -554,7 +577,7 @@ def ninja_binaries_rule():
     # c m d #
     # ~#~#~ #
 
-    l_cmd = ["cd $module/IRPF90_temp", "ninja $out && touch $out"]
+    l_cmd = ["cd $module_abs/IRPF90_temp", "ninja $out && touch $out"]
 
     # ~#~#~#~#~#~ #
     # s t r i n g #
@@ -562,7 +585,9 @@ def ninja_binaries_rule():
 
     l_string = ["rule build_binaries",
                 "   command = {0}".format(" ; ".join(l_cmd)),
-                "   description = Create all the binaries from $module", ""]
+                "   pool = console",
+                "   description = Create all the binaries from $module_rel",
+                ""]
 
     return l_string
 
@@ -586,7 +611,8 @@ def ninja_binaries_build(path_module, l_children, d_binaries):
     l_string = ["build {0}: build_binaries {1} {2}".format(" ".join(l_abs_bin),
                                                            EZFIO_LIB,
                                                            ninja_module_path),
-                "   module = {0}".format(path_module.abs), ""]
+                "   module_abs = {0}".format(path_module.abs),
+                "   module_rel = {0}".format(path_module.rel), ""]
 
     l_string += ["build module_{0}: phony {1}".format(path_module.rel,
                                                       " ".join(l_abs_bin)), ""]
@@ -619,12 +645,12 @@ def ninja_dot_tree_rule():
     # c m d #
     # ~#~#~ #
 
-    l_cmd = ["cd $module", "module_handler.py create_png"]
+    l_cmd = ["cd $module_abs", "module_handler.py create_png"]
 
     l_string = [
         "rule build_dot_tree", "   command = {0}".format(" ; ".join(l_cmd)),
         "   generator = 1",
-        "   description = Generate Png representtion of the Tree Dependancies of $module",
+        "   description = Generate Png representtion of the Tree Dependencies of $module_rel",
         ""
     ]
 
@@ -635,39 +661,73 @@ def ninja_dot_tree_build(path_module):
 
     path_tree = join(path_module.abs, "tree_dependency.png")
     l_string = ["build {0}: build_dot_tree".format(path_tree),
-                "   module = {0}".format(path_module.abs), ""]
+                "   module_abs = {0}".format(path_module.abs),
+                "   module_rel = {0}".format(path_module.rel), ""]
 
     return l_string
+
 
 #
 # |\/|  _   _|     |  _
 # |  | (_) (_| |_| | (/_
 #
+def create_build_ninja_module(path_module):
 
-
-def create_ninja_module(path_module):
-    path_ninja_root = join(QP_ROOT, "build.ninja")
-
-    l_string = ["rule update_ninja_common",
+    l_string = ["rule update_build_ninja_root",
                 "   command = qp_create_ninja.py update", ""]
 
     l_string += ["rule make_local_binaries",
-                 "   command = ninja -j 1 -f {0} module_{1}".format(
-                     path_ninja_root, path_module.rel),
+                 "   command = ninja -f {0} module_{1}".format(
+                     ROOT_BUILD_NINJA, path_module.rel), "   pool = console",
                  "   description = Compile only {0}".format(path_module.rel),
                  ""]
 
     l_string += ["rule make_all_binaries",
-                 "   command = ninja -j 1 -f {0}".format(path_ninja_root),
-                 "  description = Compile all the module", ""]
+                 "  command = ninja -f {0}".format(ROOT_BUILD_NINJA),
+                 "  pool = console", "  description = Compile all the module",
+                 ""]
 
-    l_string += ["build dumy_target: update_ninja_common", "",
-                 "build all: make_all_binaries dumy_target", "",
-                 "build local: make_local_binaries dumy_target",
-                 "default local", ""]
+    l_string += ["rule make_clean", "  command = clean_modules.sh",
+                 "  description = Cleaning module {0}".format(path_module.rel),
+                 ""]
+
+    l_string += ["build dummy_target: update_build_ninja_root", "",
+                 "build all: make_all_binaries dummy_target", "",
+                 "build local: make_local_binaries dummy_target",
+                 "default local", "", "build clean: make_clean dummy_target",
+                 ""]
 
     path_ninja_cur = join(path_module.abs, "build.ninja")
     with open(path_ninja_cur, "w") as f:
+        f.write(header)
+        f.write("\n".join(l_string))
+
+
+def create_build_ninja_global():
+
+    l_string = ["rule update_build_ninja_root",
+                "   command = qp_create_ninja.py update", ""]
+
+    l_string += ["rule make_all_binaries",
+                 "  command = ninja -f {0}".format(ROOT_BUILD_NINJA),
+                 "  pool = console", "  description = Compile all the module",
+                 ""]
+
+    l_string += ["rule make_clean",
+                 "  command = cd {0} ; clean_modules.sh *".format(QP_ROOT_SRC),
+                 "  description = Cleaning all modules", ""]
+
+    l_string += ["build dummy_target: update_build_ninja_root",
+                 "",
+                 "build all: make_all_binaries dummy_target",
+                 "default all",
+                 "",
+                 "build clean: make_clean",
+                 "", ]
+
+    path_ninja_cur = join(QP_ROOT, "build.ninja")
+    with open(path_ninja_cur, "w") as f:
+        f.write(header)
         f.write("\n".join(l_string))
 
 #
@@ -689,12 +749,12 @@ if __name__ == "__main__":
 
     elif arguments["create"]:
 
-        arguments["CONFIG_FILE"] = os.path.realpath(arguments["CONFIG_FILE"])
+        arguments["<config_file>"] = os.path.realpath(arguments["<config_file>"])
 
         with open(pickle_path, 'wb') as handle:
             pickle.dump(arguments, handle)
 
-    pwd_config_file = arguments["CONFIG_FILE"]
+    pwd_config_file = arguments["<config_file>"]
 
     #  _
     # |_ ._           _. ._ o  _. |_  |  _   _
@@ -756,19 +816,18 @@ if __name__ == "__main__":
     if arguments["--production"]:
 
         d_binaries = get_dict_binaries(l_module, mode="production")
-
         l_module = d_binaries.keys()
 
     elif arguments["--development"]:
 
         d_binaries = get_dict_binaries(l_module, mode="development")
-
         l_module = d_binaries.keys()
+        create_build_ninja_global()
 
     for module_to_compile in l_module:
 
         if arguments["--development"]:
-            create_ninja_module(module_to_compile)
+            create_build_ninja_module(module_to_compile)
 
         # ~#~#~#~#~#~#~#~ #
         #  S y m l i n k  #
@@ -793,5 +852,6 @@ if __name__ == "__main__":
         l_string += ninja_binaries_build(module_to_compile, l_children,
                                          d_binaries)
 
-    with open(join(QP_ROOT, "build.ninja"), "w+") as f:
+    with open(join(QP_ROOT, "config", "build.ninja"), "w+") as f:
+        f.write(header)
         f.write("\n".join(l_string))
