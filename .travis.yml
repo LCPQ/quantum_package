@@ -10,9 +10,8 @@ before_script:
   - sudo apt-get install graphviz
 
 script: 
-  - ./setup_environment.py
+  - ./configure.py  --production ./config/gfortran.cfg
   - source ./quantum_package.rc
-  - qp_create_ninja.py create --production ./config/gfortran.cfg
   - ninja
   - cd ocaml ; make ; cd -
   - cd testing_no_regression ; ./unit_test.py
