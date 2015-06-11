@@ -822,7 +822,8 @@ if __name__ == "__main__":
 
         d_binaries = get_dict_binaries(l_module, mode="development")
         l_module = d_binaries.keys()
-        create_build_ninja_global()
+
+    create_build_ninja_global()
 
     for module_to_compile in l_module:
 

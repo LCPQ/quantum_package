@@ -312,6 +312,8 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
         try:
             check_output(" ".join(l_cmd), shell=True)
         except:
+            raise
+        else:
             print "[  OK  ]"
 
         l_install_descendant.remove("ninja")
