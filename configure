@@ -70,7 +70,7 @@ path_github = {"head": "http://github.com/", "tail": "archive/master.tar.gz"}
 
 ocaml = Info(
     url='http://raw.github.com/ocaml/opam/master/shell/opam_installer.sh',
-    description=' ocaml (it will take some time roughly 20min)',
+    description=' Ocaml, Opam and the Core library (it will take some time roughly 20min)',
     default_path=join(QP_ROOT_BIN, "opam"))
 
 m4 = Info(
@@ -95,12 +95,12 @@ path = Info(
 
 irpf90 = Info(
     url='{head}/LCPQ/irpf90/{tail}'.format(**path_github),
-    description=' irpf90',
+    description=' IRPF90',
     default_path=join(QP_ROOT_BIN, "irpf90"))
 
 docopt = Info(
     url='{head}/docopt/docopt/{tail}'.format(**path_github),
-    description=' docop',
+    description=' docopt',
     default_path=join(QP_ROOT_INSTALL, "docopt"))
 
 resultsFile = Info(
@@ -116,7 +116,7 @@ ninja = Info(
 emsl = Info(
     url='{head}/LCPQ/EMSL_Basis_Set_Exchange_Local/{tail}'.format(**
                                                                   path_github),
-    description=' emsl',
+    description=' EMSL basis set library',
     default_path=join(QP_ROOT_INSTALL, "emsl"))
 
 ezfio = Info(
