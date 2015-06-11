@@ -109,7 +109,11 @@ let get_ezfio_default directory data =
   let dirname = root^"/data/ezfio_defaults/" in
   
   let rec aux = function 
-  | []           -> raise Not_found
+  | []           -> 
+      begin
+        Printf.printf "%s/%s not found\n%!" directory data;
+        raise Not_found
+      end
   | filename :: tail ->
     let filename = 
       dirname^filename
