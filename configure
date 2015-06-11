@@ -4,14 +4,22 @@
 
 Usage: configure <config_file> (--production | --development)
 
+
 Options:
-    config_file   A config file will all the information for the compilation
-                    (Fortran Compiler, FLag, ...)
-   --production   You cannot compile only one module with this flag.
-                    but the compilation will be lighting fast
+
+    config_file   A config file with all the information for the compilation
+                  Example config_files are given in config/
+
+   --production   You can only compile all the modules with this flag,
+                  but the compilation will be lighting fast
+
    --development  It will create a build.ninja for each directory
-                    who containt a binary, than you can compile then
-                    individualy if you want
+                  who contains a binary, than you can compile then
+                  individualy if you want
+
+Example:
+
+    ./configure config/gfortran.cfg --production
 
 """
 
