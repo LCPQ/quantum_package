@@ -13,11 +13,9 @@ source ${QP_ROOT}/scripts/qp_include.sh
 function do_clean()
 {
   rm -rf -- \
-    IRPF90_temp IRPF90_man Makefile.depend \
+    IRPF90_temp IRPF90_man \
     $(module_handler.py print_descendant) include \
     ezfio_interface.irp.f irpf90.make irpf90_entities tags $(ls_exe) *.mod
-
-  touch -c EZFIO.cfg *.ezfio_config
 }
 
 if [[ -z $1 ]]

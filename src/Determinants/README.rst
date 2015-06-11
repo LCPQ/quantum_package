@@ -589,7 +589,7 @@ Documentation
   If true, The One body DM is calculated with ignoring the Double<->Doubles extra diag elements
 
 
-`pouet <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/program_beginer_determinants.irp.f#L1>`_
+`pouet <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/program_initial_determinants.irp.f#L1>`_
   Undocumented
 
 
@@ -783,7 +783,7 @@ Documentation
   be set before calling this function.
 
 
-`routine <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/program_beginer_determinants.irp.f#L7>`_
+`routine <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/program_initial_determinants.irp.f#L7>`_
   Undocumented
 
 
