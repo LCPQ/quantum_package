@@ -128,7 +128,7 @@ ezfio = Info(
 
 d_info = dict()
 
-for m in ["ocaml", "m4", "curl", "zlib", "path", "irpf90", "docopt",
+for m in ["ocaml", "m4", "curl", "zlib", "path", "irpf90", "docopt", "gcc",
           "resultsFile", "ninja", "emsl", "ezfio"]:
     exec ("d_info['{0}']={0}".format(m))
 
@@ -188,7 +188,7 @@ def checking(d_dependency):
             print "To old version (need >2.5). Abort"
             sys.exit(1)
 
-    def check_availabiliy(binary):
+    def check_availability(binary):
         """
         If avalabie return the path who can can't find the
         binary else return 0
@@ -238,7 +238,7 @@ def checking(d_dependency):
     for i in d_dependency.keys():
         print "Checking {0:>{1}}...".format(i, length),
 
-        r = check_availabiliy(i)
+        r = check_availability(i)
         if r:
             print "[  OK  ] ( {0} )".format(r.strip())
             l_installed[i] = r.strip()
