@@ -297,7 +297,7 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
     d_print = {
         "install_ninja": "Install ninja...",
         "build": "Creating build.ninja...",
-        "install": "Installing the dependancy through ninja..."
+        "install": "Installing the dependency through ninja..."
     }
 
     length = max(map(len, d_print.values()))
@@ -347,15 +347,15 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
                     ""]
 
         # Build to install
-        l_dependancy = [d_info[i].default_path for i in d_dependency[need]
+        l_dependency = [d_info[i].default_path for i in d_dependency[need]
                         if i in l_install_descendant]
-        str_dependancy = " ".join(l_dependancy)
+        str_dependency = " ".join(l_dependency)
 
         rule = "install" if need != "ocaml" else "install_verbose"
 
         l_build += ["build {0}: {1} {2} {3}".format(default_path, rule,
                                                     archive_path,
-                                                    str_dependancy),
+                                                    str_dependency),
                     "   target = {0}".format(need),
                     "   descr = {0}".format(descr), ""]
 
