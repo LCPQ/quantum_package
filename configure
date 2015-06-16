@@ -45,6 +45,8 @@ QP_ROOT = os.getcwd()
 QP_ROOT_BIN = join(QP_ROOT, "bin")
 QP_ROOT_INSTALL = join(QP_ROOT, "install")
 
+os.environ["PATH"] = os.environ["PATH"] + ":"+QP_ROOT_BIN
+
 d_dependency = {
     "ocaml": ["m4", "curl", "zlib", "patch", "gcc"],
     "m4": ["make"],
