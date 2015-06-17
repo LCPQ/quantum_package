@@ -38,10 +38,10 @@ header = r"""#
 #
 # https://github.com/LCPQ/quantum_package,
 #
-# Generated automatically by {0}.".format(__file__)
+# Generated automatically by {0}
 #
 #
-"""
+""".format(__file__)
 
 #  __
 # /__ |  _  |_   _. |       _. ._ o  _. |_  |  _   _

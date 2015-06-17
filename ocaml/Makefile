@@ -72,7 +72,7 @@ Qptypes.ml: qptypes_generator.byte
 	./qptypes_generator.byte > Qptypes.ml
 
 ${QP_ROOT}/install/EZFIO/Ocaml/ezfio.ml: 
-	$(MAKE) -C ${QP_ROOT}/install/src ezfio
+	$(NINJA) -C ${QP_ROOT}/install/EZFIO
 
 Input_auto_generated.ml qp_edit.ml:
 	ei_handler.py ocaml_global
