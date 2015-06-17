@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Usage: qp_install_module.py list [--installed|--avalaible-local|--avalaible-remote]
-       qp_install_module.py install -n <name>
+Usage: qp_install_module.py list (--installed|--avalaible-local|--avalaible-remote)
+       qp_install_module.py install <name>...
        qp_install_module.py create -n <name> [<children_module>...]
        qp_install_module.py download -n <name> [<path_folder>...]
 
@@ -64,18 +64,19 @@ if __name__ == '__main__':
 
         if arguments["--installed"]:
             l_repository = [qp_root_src]
+        if arguments["--avalaible-local"]:
+            l_repository = [qp_root_plugin]
 
         m_instance = ModuleHandler(l_repository)
 
         for module in m_instance.l_module:
-            print module
+            print "* {0}".format(module)
 
     elif arguments["create"]:
-        m_instance = ModuleHandler(l_repository)
+        m_instance = ModuleHandler([qp_root_src])
 
         l_children = arguments["<children_module>"]
 
-        qp_root = os.environ['QP_ROOT']
         path = os.path.join(qp_root_src, arguments["<name>"])
 
         print "You will create the module:"
@@ -100,33 +101,48 @@ if __name__ == '__main__':
         save_new_module(path, l_child_reduce)
 
     elif arguments["download"]:
-
-        d_local = get_dict_child([qp_root_src])
-        d_remote = get_dict_child(arguments["<path_folder>"])
-
-        d_child = d_local.copy()
-        d_child.update(d_remote)
-
-        name = arguments["<name>"]
-        l_module_descendant = get_l_module_descendant(d_child, [name])
-
-        for module in l_module_descendant:
-            if module not in d_local:
-                print "you need to install", module
+        pass
+#        d_local = get_dict_child([qp_root_src])
+#        d_remote = get_dict_child(arguments["<path_folder>"])
+#
+#        d_child = d_local.copy()
+#        d_child.update(d_remote)
+#
+#        name = arguments["<name>"]
+#        l_module_descendant = get_l_module_descendant(d_child, [name])
+#
+#        for module in l_module_descendant:
+#            if module not in d_local:
+#                print "you need to install", module
 
     elif arguments["install"]:
 
         d_local = get_dict_child([qp_root_src])
-
         d_plugin = get_dict_child([qp_root_plugin])
 
         d_child = d_local.copy()
         d_child.update(d_plugin)
 
-        name = arguments["<name>"]
-        l_module_descendant = get_l_module_descendant(d_child, [name])
+        l_name = arguments["<name>"]
 
-        module_to_cp = [module for module in l_module_descendant if module not in d_local]
+        for name in l_name:
+            if name in d_local:
+                print "{0} Is already installed".format(name)
 
-        print "For ln -s by hand the module"
-        print module_to_cp
+        l_module_descendant = get_l_module_descendant(d_child, l_name)
+
+        l_module_to_cp = [module for module in l_module_descendant if module not in d_local]
+
+        if l_module_to_cp:
+
+            print "You will need all these modules"
+            print l_module_to_cp
+
+            print "Installation...",
+
+            for module_to_cp in l_module_to_cp:
+                    src = os.path.join(qp_root_plugin, module_to_cp)
+                    des = os.path.join(qp_root_src, module_to_cp)
+                    os.symlink(src, des)
+            print "Done"
+            print "You can now compile as usual"

@@ -517,7 +517,7 @@ def get_binaries(path_module):
             return []
         elif "No such file or directory" not in stdout:
             l_bin = [i.replace(".irp.f", "", 1) for i in stdout.split()]
-            return [Path(bin_, os.path.basename(bin_)) for bin_ in l_bin]
+            return [Path(os.path.realpath(bin_), os.path.basename(bin_)) for bin_ in l_bin]
         else:
             return []
 
@@ -540,7 +540,6 @@ def get_dict_binaries(l_module, mode="production"):
     # Ake module => binaries generated
     for module in l_module:
         l_binaries = get_binaries(module)
-
         if l_binaries:
             d_binaries[module] += l_binaries
 
@@ -561,8 +560,8 @@ def get_dict_binaries(l_module, mode="production"):
 
                 l_binaries = []
                 for binaries in d_binaries[module]:
-                    p_abs = join(QP_ROOT_SRC, root_module.rel, module.rel,
-                                 binaries.rel)
+                    p_abs = real_join(QP_ROOT_SRC, root_module.rel)
+                    p_abs = join(p_abs, module.rel, binaries.rel)
                     p_rel = binaries.rel
                     p = Path(p_abs, p_rel)
                     l_binaries.append(p)
