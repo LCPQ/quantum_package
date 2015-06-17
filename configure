@@ -45,6 +45,8 @@ QP_ROOT = os.getcwd()
 QP_ROOT_BIN = join(QP_ROOT, "bin")
 QP_ROOT_INSTALL = join(QP_ROOT, "install")
 
+os.environ["PATH"] = os.environ["PATH"] + ":"+QP_ROOT_BIN
+
 d_dependency = {
     "ocaml": ["m4", "curl", "zlib", "patch", "gcc"],
     "m4": ["make"],
@@ -70,7 +72,7 @@ path_github = {"head": "http://github.com/", "tail": "archive/master.tar.gz"}
 
 ocaml = Info(
     url='http://raw.github.com/ocaml/opam/master/shell/opam_installer.sh',
-    description=' ocaml (it will take some time roughly 20min)',
+    description=' Ocaml, Opam and the Core library (it will take some time roughly 20min)',
     default_path=join(QP_ROOT_BIN, "opam"))
 
 m4 = Info(
@@ -95,12 +97,12 @@ path = Info(
 
 irpf90 = Info(
     url='{head}/LCPQ/irpf90/{tail}'.format(**path_github),
-    description=' irpf90',
+    description=' IRPF90',
     default_path=join(QP_ROOT_BIN, "irpf90"))
 
 docopt = Info(
     url='{head}/docopt/docopt/{tail}'.format(**path_github),
-    description=' docop',
+    description=' docopt',
     default_path=join(QP_ROOT_INSTALL, "docopt"))
 
 resultsFile = Info(
@@ -116,7 +118,7 @@ ninja = Info(
 emsl = Info(
     url='{head}/LCPQ/EMSL_Basis_Set_Exchange_Local/{tail}'.format(**
                                                                   path_github),
-    description=' emsl',
+    description=' EMSL basis set library',
     default_path=join(QP_ROOT_INSTALL, "emsl"))
 
 ezfio = Info(
@@ -126,7 +128,7 @@ ezfio = Info(
 
 d_info = dict()
 
-for m in ["ocaml", "m4", "curl", "zlib", "path", "irpf90", "docopt",
+for m in ["ocaml", "m4", "curl", "zlib", "path", "irpf90", "docopt", 
           "resultsFile", "ninja", "emsl", "ezfio"]:
     exec ("d_info['{0}']={0}".format(m))
 
@@ -186,7 +188,7 @@ def checking(d_dependency):
             print "To old version (need >2.5). Abort"
             sys.exit(1)
 
-    def check_availabiliy(binary):
+    def check_availability(binary):
         """
         If avalabie return the path who can can't find the
         binary else return 0
@@ -236,7 +238,7 @@ def checking(d_dependency):
     for i in d_dependency.keys():
         print "Checking {0:>{1}}...".format(i, length),
 
-        r = check_availabiliy(i)
+        r = check_availability(i)
         if r:
             print "[  OK  ] ( {0} )".format(r.strip())
             l_installed[i] = r.strip()
@@ -297,7 +299,7 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
     d_print = {
         "install_ninja": "Install ninja...",
         "build": "Creating build.ninja...",
-        "install": "Installing the dependancy through ninja..."
+        "install": "Installing the dependency through ninja..."
     }
 
     length = max(map(len, d_print.values()))
@@ -347,15 +349,15 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
                     ""]
 
         # Build to install
-        l_dependancy = [d_info[i].default_path for i in d_dependency[need]
+        l_dependency = [d_info[i].default_path for i in d_dependency[need]
                         if i in l_install_descendant]
-        str_dependancy = " ".join(l_dependancy)
+        str_dependency = " ".join(l_dependency)
 
         rule = "install" if need != "ocaml" else "install_verbose"
 
         l_build += ["build {0}: {1} {2} {3}".format(default_path, rule,
                                                     archive_path,
-                                                    str_dependancy),
+                                                    str_dependency),
                     "   target = {0}".format(need),
                     "   descr = {0}".format(descr), ""]
 

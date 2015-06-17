@@ -12,7 +12,7 @@ For more information you can type `ei_handler.py -h`
 # `module_handler.py`
 
 This script in located in `$QP_ROOT/scripts/module/`.
-It provide all the resource related to the tree dependancy of the modules.
+It provide all the resource related to the tree dependency of the modules.
 If more useful as a librairy than a cli.
 
 It have some usefull property:
