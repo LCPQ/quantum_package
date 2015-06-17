@@ -128,7 +128,7 @@ ezfio = Info(
 
 d_info = dict()
 
-for m in ["ocaml", "m4", "curl", "zlib", "path", "irpf90", "docopt", "gcc",
+for m in ["ocaml", "m4", "curl", "zlib", "path", "irpf90", "docopt", 
           "resultsFile", "ninja", "emsl", "ezfio"]:
     exec ("d_info['{0}']={0}".format(m))
 

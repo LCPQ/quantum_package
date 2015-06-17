@@ -32,7 +32,10 @@ export LIBRARY_PATH=${QP_ROOT}/lib:${LIBRARY_PATH}
 export C_INCLUDE_PATH=${QP_ROOT}/lib:${C_INCLUDE_PATH}
 source ${HOME}/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true
 
-${QP_ROOT}/bin/opam install ${PACKAGES} -y -q || exit 1
+
+NCPUs=$(cat /proc/cpuinfo  | grep -i  MHz | wc -l)
+${QP_ROOT}/bin/opam install -j ${NCPUs} ${PACKAGES} -y -q || exit 1
+
 rm -f ../_build/ocaml.log
 exit 0
 
