@@ -35,8 +35,13 @@ Format specification :
     Type:{str}       | Is a fancy_type supported by the ocaml
     ezfio_name:{str} | Will be the name of the file for the ezfio
                        (optional by default is the name of the provider)
-    interface:{str}  | The provider is a imput or a output
-    default:{str}    | The default value if interface == input:
+    interface:{str}  | The provider is string sepeared by "," who can containt
+                        ezfio (if you only whant the ezfiolib)
+                        provider (if you want the provider)
+                        ocaml (if you want the ocaml gestion)
+                        So for example:
+                         interface: provider,ezfio,ocaml
+    default:{str}    | The default value if 'ocam' in interface:
     size:{str}       | the size information
                         (like 1 or =sum(ao_num) or (ao_num,3) )
 
@@ -46,13 +51,13 @@ Example of EZFIO.cfg:
 doc: Threshold on the convergence of the Hartree Fock energy
 type: Threshold
 default: 1.e-10
-interface: input
+interface: provider,ezfio,ocaml
 size: 1
 
 [energy]
 type: double precision
 doc: Calculated HF energy
-interface: output
+interface: ezfio
 ```
 """
 from docopt import docopt
@@ -201,7 +206,7 @@ def get_dict_config_file(module_obj):
     - ezfio_dir  : Will be the folder who containt the ezfio_name
         * /ezfio_dir/ezfio_name
         * equal to MODULE_lower name by default.
-    - interface  : The provider is a imput or a output
+    - interface  : The provider is lit of [provider,ezfio,ocaml]
     - default : The default value /!\ stored in a Type named type!
                    if interface == input
     - size : Is the string read in ezfio.cgf who containt the size information
@@ -211,7 +216,6 @@ def get_dict_config_file(module_obj):
     # I n i t #
     # ~#~#~#~ #
     d = defaultdict(dict)
-    l_info_required = ["doc", "interface"]
     l_info_optional = ["ezfio_dir", "ezfio_name", "size"]
 
     # ~#~#~#~#~#~#~#~#~#~#~ #
@@ -238,8 +242,13 @@ def get_dict_config_file(module_obj):
                      "ezfio_dir": module_obj.lower,
                      "size": "1"}
 
-        # Check if type if avalaible
-        type_ = config_file.get(section, "type")
+        # Check if type is avalaible
+        try:
+            type_ = config_file.get(section, "type")
+        except ConfigParser.NoOptionError:
+            error("type", pvd, module_obj.path)
+            sys.exit(1)
+
         if type_ not in type_dict:
             print "{0} not avalaible. Choose in:".format(type_)
             print ", ".join(sorted([i for i in type_dict]))
@@ -248,12 +257,23 @@ def get_dict_config_file(module_obj):
             d[pvd]["type"] = type_dict[type_]
 
         # Fill the dict with REQUIRED information
-        for option in l_info_required:
-            try:
-                d[pvd][option] = config_file.get(section, option)
-            except ConfigParser.NoOptionError:
-                error(option, pvd, module_obj.path)
+        try:
+            d[pvd]["doc"] = config_file.get(section, "doc")
+        except ConfigParser.NoOptionError:
+            error("doc", pvd, module_obj.path)
+            sys.exit(1)
+
+        try:
+            interface = map(str.lower, config_file.get(section, "interface").split(","))
+        except ConfigParser.NoOptionError:
+            error("doc", pvd, module_obj.path)
+            sys.exit(1)
+        else:
+            if not any(i in ["ezfio", "provider", "ocaml"] for i in interface):
+                print "Bad keyword for interface for {0}".format(pvd)
                 sys.exit(1)
+            else:
+                d[pvd]["interface"] = interface
 
         # Fill the dict with OPTIONAL information
         for option in l_info_optional:
@@ -264,7 +284,7 @@ def get_dict_config_file(module_obj):
                     d[pvd][option] = d_default[option]
 
         # If interface is input we need a default value information
-        if d[pvd]["interface"].lower() == "input":
+        if "ocaml" in d[pvd]["interface"]:
             try:
                 default_raw = config_file.get(section, "default")
             except ConfigParser.NoOptionError:
@@ -300,7 +320,7 @@ def create_ezfio_provider(dict_ezfio_cfg):
 
     ez_p = EZFIO_Provider()
     for provider_name, dict_info in dict_ezfio_cfg.iteritems():
-        if "input" in dict_info["interface"]:
+        if "provider" in dict_info["interface"]:
             ez_p.set_type(dict_info['type'].fortran)
             ez_p.set_name(provider_name)
             ez_p.set_doc(dict_info['doc'])
@@ -492,7 +512,7 @@ def create_ocaml_input(dict_ezfio_cfg, module_lower):
     l_doc = []
 
     for k, v in dict_ezfio_cfg.iteritems():
-        if v['interface'] == "input":
+        if "ocaml" in v['interface']:
             l_ezfio_name.append(v['ezfio_name'])
             l_type.append(v["type"])
             l_doc.append(v["doc"])

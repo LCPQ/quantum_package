@@ -5,6 +5,7 @@ qptypes_generator.byte
 _build
 qp_basis_clean.native
 qp_create_ezfio_from_xyz.native
+qp_edit.native
 qp_print.native
 qp_run.native
 qp_set_ddci.native
@@ -32,6 +33,7 @@ test_molecule
 test_point3d
 qp_basis_clean
 qp_create_ezfio_from_xyz
+qp_edit
 qp_print
 qp_run
 qp_set_ddci
