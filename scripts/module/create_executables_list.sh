@@ -17,8 +17,3 @@ for EXE in $EXES
 do
    printf "%-30s %s\n" $(basename $EXE) $EXE | sed "s|${QP_ROOT}|\$QP_ROOT|g" >> executables 
 done
-
-
-
-
-
