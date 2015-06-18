@@ -22,7 +22,9 @@ For more information, you can visit the [wiki of the project](http://github.com/
 
 ### 1) Configure
 
-    $ configure <config_file> (--production | --development)
+    $ ./configure <config_file> (--production | --development)
+
+For example you can type `./configure config/gfortran.cfg --production`
 
 This command have to purpose :
 
