@@ -6,14 +6,15 @@ Quantum package
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/LCPQ/quantum_package?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
-Set of quantum chemistry programs and libraries.
+Set of quantum chemistry programs and libraries. 
+(under GNU GENERAL PUBLIC LICENSE v2)
 
 For more information, you can visit the [wiki of the project](http://github.com/LCPQ/quantum_package/wiki>), or bellow for the installation instruction.
 
 # Installation
 
 ## Requirements
-* Fortran compiler (ifort or gfortran are tested)
+* Fortran compiler (`ifort` and `gfortran` are tested)
 * Python >= 2.6
 * GNU make
 * Bash
