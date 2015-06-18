@@ -2,11 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 
 try:
-    qp_root = os.environ['QP_ROOT']
+    QP_ROOT = os.environ['QP_ROOT']
 except:
     print "source quantum_package.rc"
     sys.exit(1)
 else:
-    qp_root_src = os.path.join(qp_root, "src")
+    QP_SRC = os.path.join(QP_ROOT, "src")
+    QP_EZFIO = os.path.join(QP_ROOT, "install", "EZFIO")
+    QP_OCAML = os.path.join(QP_ROOT, "ocaml")

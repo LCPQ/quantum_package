@@ -48,9 +48,7 @@ header = r"""#
 # \_| | (_) |_) (_| |   \/ (_| |  | (_| |_) | (/_ _>
 #
 
-QP_ROOT = os.environ['QP_ROOT']
-QP_ROOT_SRC = join(QP_ROOT, 'src')
-QP_ROOT_EZFIO = join(QP_ROOT, 'install', 'EZFIO')
+from qp_path import QP_ROOT, QP_SRC, QP_EZFIO
 
 EZFIO_LIB = join(QP_ROOT, "lib", "libezfio.a")
 ROOT_BUILD_NINJA = join(QP_ROOT, "config", "build.ninja")
@@ -105,13 +103,13 @@ def dict_module_genelogy_path(d_module_genelogy):
     """
     d = dict()
     for module_rel, l_children_rel in d_module_genelogy.iteritems():
-        module_abs = real_join(QP_ROOT_SRC, module_rel)
+        module_abs = real_join(QP_SRC, module_rel)
 
         p = Path(module_abs, module_rel)
         try:
-            d[p] = Path(real_join(QP_ROOT_SRC, l_children_rel), l_children_rel)
+            d[p] = Path(real_join(QP_SRC, l_children_rel), l_children_rel)
         except:
-            d[p] = [Path(real_join(QP_ROOT_SRC, children), children)
+            d[p] = [Path(real_join(QP_SRC, children), children)
                     for children in l_children_rel]
 
     return d
@@ -129,8 +127,8 @@ def get_l_module_with_ezfio_cfg():
     from os import listdir
     from os.path import isfile
 
-    return [real_join(QP_ROOT_SRC, m) for m in listdir(QP_ROOT_SRC)
-            if isfile(real_join(QP_ROOT_SRC, m, "EZFIO.cfg"))]
+    return [real_join(QP_SRC, m) for m in listdir(QP_SRC)
+            if isfile(real_join(QP_SRC, m, "EZFIO.cfg"))]
 
 
 def get_l_ezfio_config():
@@ -140,13 +138,13 @@ def get_l_ezfio_config():
 
     l = []
 
-    cmd = "{0}/*/*.ezfio_config".format(QP_ROOT_SRC)
+    cmd = "{0}/*/*.ezfio_config".format(QP_SRC)
     for path_in_module in glob.glob(cmd):
 
         real_path = real_join(path_in_module)
 
         name_lower = os.path.split(real_path)[1].lower()
-        path_in_ezfio = join(QP_ROOT_EZFIO, "config", name_lower)
+        path_in_ezfio = join(QP_EZFIO, "config", name_lower)
         l.append(EZ_config_path(real_path, path_in_ezfio))
 
     return l
@@ -177,7 +175,7 @@ def get_children_of_ezfio_cfg(l_module_with_ezfio_cfg):
     """
     From a module list of ezfio_cfg return all the stuff create by him
     """
-    config_folder = join(QP_ROOT_EZFIO, "config")
+    config_folder = join(QP_EZFIO, "config")
 
     l_util = dict()
 
@@ -254,7 +252,7 @@ def ninja_ezfio_rule():
               for flag in ["FC", "FCFLAGS", "IRPF90"]]
 
     install_lib_ezfio = join(QP_ROOT, 'install', 'EZFIO', "lib", "libezfio.a")
-    l_cmd = ["cd {0}".format(QP_ROOT_EZFIO)] + l_flag
+    l_cmd = ["cd {0}".format(QP_EZFIO)] + l_flag
     l_cmd += ["ninja && ln -f {0} {1}".format(install_lib_ezfio, EZFIO_LIB)]
 
     l_string = ["rule build_ezfio",
@@ -288,7 +286,7 @@ def get_source_destination(path_module, l_needed_molule):
     Return a list of Sym_link = namedtuple('Sym_link', ['source', 'destination'])
     for a module
     """
-    return [Sym_link(m.abs, join(QP_ROOT_SRC, path_module.rel, m.rel))
+    return [Sym_link(m.abs, join(QP_SRC, path_module.rel, m.rel))
             for m in l_needed_molule]
 
 
@@ -560,7 +558,7 @@ def get_dict_binaries(l_module, mode="production"):
 
                 l_binaries = []
                 for binaries in d_binaries[module]:
-                    p_abs = real_join(QP_ROOT_SRC, root_module.rel)
+                    p_abs = real_join(QP_SRC, root_module.rel)
                     p_abs = join(p_abs, module.rel, binaries.rel)
                     p_rel = binaries.rel
                     p = Path(p_abs, p_rel)
@@ -719,7 +717,7 @@ def create_build_ninja_global():
                  ""]
 
     l_string += ["rule make_clean",
-                 "  command = cd {0} ; clean_modules.sh *".format(QP_ROOT_SRC),
+                 "  command = cd {0} ; clean_modules.sh *".format(QP_SRC),
                  "  description = Cleaning all modules", ""]
 
     l_string += ["build dummy_target: update_build_ninja_root",
