@@ -11,14 +11,9 @@ fi
 
 cd ${QP_ROOT}/data
 rm -f executables
-EXES=$(find ${QP_ROOT}/src -perm /u+x -type f | grep -e "${QP_ROOT}/src/[^/]*/[^/]*$" |sort ) 
+EXES=$(find -L ${QP_ROOT}/src -executable -type f | grep -e "${QP_ROOT}/src/[^/]*/[^/]*$" |sort ) 
 
 for EXE in $EXES
 do
    printf "%-30s %s\n" $(basename $EXE) $EXE | sed "s|${QP_ROOT}|\$QP_ROOT|g" >> executables 
 done
-
-
-
-
-
