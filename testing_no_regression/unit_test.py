@@ -350,6 +350,9 @@ def check_convert(path_out):
     cmd = "qp_run SCF {0}.ezfio".format(path_out)
     subprocess.check_call([cmd], shell=True)
 
+    cmd = "ls -R {0}.ezfio/".format(path_out)
+    subprocess.check_call([cmd], shell=True)
+
     # ~#~#~#~#~ #
     # C h e c k #
     # ~#~#~#~#~ #
