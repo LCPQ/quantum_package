@@ -609,7 +609,7 @@ def save_ocaml_input(module_lower, str_ocaml_input):
 
 def get_l_module_with_auto_generate_ocaml_lower():
     """
-    Get all module who have EZFIO.cfg with input data
+    Get all module who have EZFIO.cfg with ocaml data
         (NB `search` in all the ligne and `match` only in one)
     """
 
@@ -625,7 +625,7 @@ def get_l_module_with_auto_generate_ocaml_lower():
 
     l_module_lower = []
     import re
-    p = re.compile(ur'interface:\s+input')
+    p = re.compile(ur'interface:.*ocaml')
 
     for f in l_folder:
         path = "{0}/{1}/EZFIO.cfg".format(QP_SRC, f)
@@ -763,6 +763,7 @@ if __name__ == "__main__":
         # ~#~#~#~# #
 
         l_module = get_l_module_with_auto_generate_ocaml_lower()
+        print l_module
 
         str_ocaml_qp_edit, str_ocaml_input_auto = create_ocaml_input_global(l_module)
         save_ocaml_input_auto(str_ocaml_input_auto)
