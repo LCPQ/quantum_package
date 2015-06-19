@@ -121,6 +121,7 @@ You can type `ninja all` in a module for compiling all the submodule
 
 ##Format specification :
 
+```
 Required:
     [<provider_name>]   The name of the provider in irp.f90 and in the EZFIO lib
     doc:<str>           The plain text documentation
@@ -141,6 +142,7 @@ Optional:
                              (by default is <provider_name>)
     ezfio_dir: <str>    Will be the folder of EZFIO.
                               (by default is <module_lower>)
+```
 
 ##Example of EZFIO.cfg:
 
