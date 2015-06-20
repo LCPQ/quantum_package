@@ -117,3 +117,45 @@ You can type `ninja all` in a module for compiling all the submodule
 
     ssh -fN -D 10000 user@external-server.com
 
+# Note on EZFIO.cfg
+
+##Format specification :
+
+```
+Required:
+    [<provider_name>]   The name of the provider in irp.f90 and in the EZFIO lib
+    doc:<str>           The plain text documentation
+    type:<str>          A Fancy_type supported by the ocaml.
+                            type `ei_handler.py get_supported_type` for a list
+    interface:<str>     The interface is list of string sepeared by ","  who can containt :
+                          - ezfio (if you only whant the ezfiolib)
+                          - provider (if you want the provider)
+                          - ocaml (if you want the ocaml gestion)
+Optional:
+    default: <str>      The default value needed,
+                            if 'ocaml' is in interface list.
+                           ! No list is allowed for now !
+    size: <str>         The size information.
+                            (by default is one)
+                            Example : 1, =sum(ao_num); (ao_num,3)
+    ezfio_name: <str>   The name for the EZFIO lib
+                             (by default is <provider_name>)
+    ezfio_dir: <str>    Will be the folder of EZFIO.
+                              (by default is <module_lower>)
+```
+
+##Example of EZFIO.cfg:
+
+```
+[thresh_SCF]
+doc: Threshold on the convergence of the Hartree Fock energy
+type: Threshold
+default: 1.e-10
+interface: provider,ezfio,ocaml
+size: 1
+
+[energy]
+type: Strictly_negative_float
+doc: Calculated HF energy
+interface: ezfio
+```

@@ -1,4 +1,8 @@
 sudo: true
+#
+#cache:
+#  directories:
+#  - $HOME/.opam/
 
 language: python
 python:
