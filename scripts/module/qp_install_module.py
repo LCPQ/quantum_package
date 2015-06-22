@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Usage: qp_install_module.py list (--installed|--avalaible-local|--avalaible-remote)
-       qp_install_module.py install <name>...
+Usage: 
        qp_install_module.py create -n <name> [<children_module>...]
        qp_install_module.py download -n <name> [<path_folder>...]
+       qp_install_module.py install <name>...
+       qp_install_module.py list (--installed|--avalaible-local|--avalaible-remote)
+       qp_install_module.py uninstall <name>...
 
 
 Options:
@@ -69,7 +71,7 @@ if __name__ == '__main__':
 
         m_instance = ModuleHandler(l_repository)
 
-        for module in m_instance.l_module:
+        for module in sorted(m_instance.l_module):
             print "* {0}".format(module)
 
     elif arguments["create"]:
@@ -143,6 +145,29 @@ if __name__ == '__main__':
             for module_to_cp in l_module_to_cp:
                     src = os.path.join(qp_root_plugin, module_to_cp)
                     des = os.path.join(qp_root_src, module_to_cp)
-                    os.symlink(src, des)
+                    try:
+                        os.symlink(src, des)
+                    except OSError:
+                        print "Your src directory is broken. Please remove %s"%des
+                        raise
             print "Done"
             print "You can now compile as usual"
+
+    elif arguments["uninstall"]:
+
+        d_local = get_dict_child([qp_root_src])
+        l_name = arguments["<name>"]
+
+        l_failed = [ name for name in l_name if name not in d_local ]
+        if l_failed:
+            print "Modules not installed:"
+            for name in sorted(l_failed):
+                print "* %s"%name
+            sys.exit(1)
+        else:
+            def unlink(x):
+                try:
+                    os.unlink(os.path.join(qp_root_src,x))
+                except OSError:
+                    print "%s is a core module which can not be renmoved"%x
+            map(unlink,l_name) 
