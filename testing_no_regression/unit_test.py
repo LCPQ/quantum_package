@@ -183,12 +183,12 @@ def run_hf(geo, basis, mult=1, pseudo=False, remove_after_sucess=True):
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # S e t _ p a r a m e t e r #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
-    ezfio.bielec_integrals_direct = False
-    ezfio.bielec_integrals_threshold_ao = 1.e-15
-    ezfio.bielec_integrals_disk_access_ao_integrals = "None"
+    ezfio.integrals_bielec_direct = False
+    ezfio.integrals_bielec_threshold_ao = 1.e-15
+    ezfio.integrals_bielec_disk_access_ao_integrals = "None"
 
-    ezfio.bielec_integrals_threshold_mo = 1.e-15
-    ezfio.bielec_integrals_disk_access_mo_integrals = "None"
+    ezfio.integrals_bielec_threshold_mo = 1.e-15
+    ezfio.integrals_bielec_disk_access_mo_integrals = "None"
 
     ezfio.hartree_fock_mo_guess_type = "Huckel"
     ezfio.hartree_fock_thresh_scf = 1.e-10
@@ -200,6 +200,7 @@ def run_hf(geo, basis, mult=1, pseudo=False, remove_after_sucess=True):
     # R u n #
     # ~#~#~ #
 
+#    cmd = "{0}/Hartree_Fock/SCF {1}.ezfio/".format(QP_src,geo)
     cmd = "qp_run SCF {0}.ezfio/".format(geo)
     subprocess.check_call([cmd], shell=True)
 
@@ -252,14 +253,23 @@ def run_full_ci_10k_pt2_end(geo, basis, pseudo):
     # S e t _ p a r a m e t e r #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
-    ezfio.full_ci_do_pt2_end = True
-    ezfio.full_ci_n_det_max_fci = 10000
-    ezfio.full_ci_pt2_max = 1.e-8
+    ezfio.determinants_n_det_max = 10000
+    ezfio.determinants_n_det_max_jacobi = 10000
+    ezfio.determinants_n_states = 1
+    ezfio.determinants_read_wf = 1
+    ezfio.determinants_s2_eig = False
+
+    ezfio.determinants_threshold_generators = 0.99
+    ezfio.determinants_threshold_selectors = 0.999
+
+    ezfio.perturbation_do_pt2_end = True
+    ezfio.perturbation_pt2_max = 1.e-4
 
     # ~#~#~ #
     # R u n #
     # ~#~#~ #
 
+#    cmd = "{0}/Full_CI/full_ci {1}.ezfio/".format(QP_src,geo)
     cmd = "qp_run full_ci {0}.ezfio/".format(geo)
     subprocess.check_call([cmd], shell=True)
 

@@ -10,35 +10,44 @@ Usage:
                   [--ezfio_config]
                   [--ocaml]
                   [--ezfio_default]
+    ei_handler.py list_supported_type
     ei_handler.py ocaml_global
 
 By default all the option are executed.
 
 Options:
     -h --help
-    --irpf90           Create the `ezfio_interface.irpf90`
-                             which contains all the providers needed
-                             (aka all with the `interface: input` parameter)
-                             in `${pwd}`
-    --ezfio_config     Create the `${module_lower}_ezfio_interface_config` in
-                             `${QP_ROOT}/EZFIO/config/`
-                       This file is needed by *EZFIO* to create the `libezfio.so`
-    --ocaml            Create the `Input_module.lower.ml` for the *qp_edit*
-    --ezfio_default    Create the `${module_lower}_ezfio_interface_default` in
-                             `${QP_ROOT}/data/ezfio_defaults` needed by
-                             the ocaml
-    ocaml_global       Create the qp_edit
+    --irpf90        Create the `<module>/ezfio_interface.irpf90`
+                         which contains all the providers needed
+    --ezfio_config  Create the `<module_lower>_ezfio_interface_config` in
+                          `${QP_EZFIO}/config/`
+    --ocaml         Create all the stuff needed by *qp_edit*:
+                             -`Input_<module_lower>.ml` and
+                             - <module_lower>_ezfio_interface_default`
+    ocaml_global    Create the *qp_edit*
 
 Format specification :
-    [provider_name]  | the name of the provider in irp.f90
-    doc:{str}        | Is the doc
-    Type:{str}       | Is a fancy_type supported by the ocaml
-    ezfio_name:{str} | Will be the name of the file for the ezfio
-                       (optional by default is the name of the provider)
-    interface:{str}  | The provider is a imput or a output
-    default:{str}    | The default value if interface == input:
-    size:{str}       | the size information
-                        (like 1 or =sum(ao_num) or (ao_num,3) )
+
+Required:
+    [<provider_name>]   The name of the provider in irp.f90 and in the EZFIO lib
+    doc:<str>           The plain text documentation
+    type:<str>          A Fancy_type supported by the ocaml.
+                            type `ei_handler.py get_supported_type` for a list
+    interface:<str>     The interface is list of string sepeared by ","  who can containt :
+                          - ezfio (if you only whant the ezfiolib)
+                          - provider (if you want the provider)
+                          - ocaml (if you want the ocaml gestion)
+Optional:
+    default: <str>      The default value needed,
+                            if 'ocaml' is in interface list.
+                           ! No list is allowed for now !
+    size: <str>         The size information.
+                            (by default is one)
+                            Example : 1, =sum(ao_num); (ao_num,3)
+    ezfio_name: <str>   The name for the EZFIO lib
+                             (by default is <provider_name>)
+    ezfio_dir: <str>    Will be the folder of EZFIO.
+                              (by default is <module_lower>)
 
 Example of EZFIO.cfg:
 ```
@@ -46,13 +55,13 @@ Example of EZFIO.cfg:
 doc: Threshold on the convergence of the Hartree Fock energy
 type: Threshold
 default: 1.e-10
-interface: input
+interface: provider,ezfio,ocaml
 size: 1
 
 [energy]
 type: double precision
 doc: Calculated HF energy
-interface: output
+interface: ezfio
 ```
 """
 from docopt import docopt
@@ -68,9 +77,11 @@ from collections import namedtuple
 
 from decorator import cache
 
-
 from os import listdir
 from os.path import isdir, join, exists
+
+
+from qp_path import QP_ROOT, QP_SRC, QP_OCAML, QP_EZFIO
 
 Type = namedtuple('Type', 'fancy ocaml fortran')
 
@@ -97,10 +108,6 @@ def get_type_dict():
     For example fancy_type['Ndet'].fortran = interger
                                   .ocaml   = int
     """
-    # ~#~#~#~#~ #
-    # P i c l e #
-    # ~#~#~#~#~ #
-    qpackage_root = os.environ['QP_ROOT']
 
     # ~#~#~#~ #
     # I n i t #
@@ -138,7 +145,8 @@ def get_type_dict():
                         "string": "character*32"}
 
     # Read and parse qptype generate
-    src = qpackage_root + "/ocaml/qptypes_generator.ml"
+    src = join(QP_OCAML, "qptypes_generator.ml")
+
     with open(src, "r") as f:
         r = f.read()
 
@@ -194,25 +202,11 @@ def get_dict_config_file(module_obj):
                                       size,
                                       interface,
                                       default}
-
-    - Type       : Is a Type named tuple who containt
-                    fortran and ocaml type
-    - doc        : Is the doc
-    - ezfio_name : Will be the name of the file
-    - ezfio_dir  : Will be the folder who containt the ezfio_name
-        * /ezfio_dir/ezfio_name
-        * equal to MODULE_lower name by default.
-    - interface  : The provider is a imput or a output
-    - default : The default value /!\ stored in a Type named type!
-                   if interface == input
-    - size : Is the string read in ezfio.cgf who containt the size information
-         (like 1 or =sum(ao_num))
     """
     # ~#~#~#~ #
     # I n i t #
     # ~#~#~#~ #
     d = defaultdict(dict)
-    l_info_required = ["doc", "interface"]
     l_info_optional = ["ezfio_dir", "ezfio_name", "size"]
 
     # ~#~#~#~#~#~#~#~#~#~#~ #
@@ -239,8 +233,13 @@ def get_dict_config_file(module_obj):
                      "ezfio_dir": module_obj.lower,
                      "size": "1"}
 
-        # Check if type if avalaible
-        type_ = config_file.get(section, "type")
+        # Check if type is avalaible
+        try:
+            type_ = config_file.get(section, "type")
+        except ConfigParser.NoOptionError:
+            error("type", pvd, module_obj.path)
+            sys.exit(1)
+
         if type_ not in type_dict:
             print "{0} not avalaible. Choose in:".format(type_)
             print ", ".join(sorted([i for i in type_dict]))
@@ -249,12 +248,23 @@ def get_dict_config_file(module_obj):
             d[pvd]["type"] = type_dict[type_]
 
         # Fill the dict with REQUIRED information
-        for option in l_info_required:
-            try:
-                d[pvd][option] = config_file.get(section, option)
-            except ConfigParser.NoOptionError:
-                error(option, pvd, module_obj.path)
+        try:
+            d[pvd]["doc"] = config_file.get(section, "doc")
+        except ConfigParser.NoOptionError:
+            error("doc", pvd, module_obj.path)
+            sys.exit(1)
+
+        try:
+            interface = map(str.lower, config_file.get(section, "interface").split(","))
+        except ConfigParser.NoOptionError:
+            error("doc", pvd, module_obj.path)
+            sys.exit(1)
+        else:
+            if not any(i in ["ezfio", "provider", "ocaml"] for i in interface):
+                print "Bad keyword for interface for {0}".format(pvd)
                 sys.exit(1)
+            else:
+                d[pvd]["interface"] = interface
 
         # Fill the dict with OPTIONAL information
         for option in l_info_optional:
@@ -265,7 +275,7 @@ def get_dict_config_file(module_obj):
                     d[pvd][option] = d_default[option]
 
         # If interface is input we need a default value information
-        if d[pvd]["interface"].lower() == "input":
+        if "ocaml" in d[pvd]["interface"]:
             try:
                 default_raw = config_file.get(section, "default")
             except ConfigParser.NoOptionError:
@@ -301,7 +311,7 @@ def create_ezfio_provider(dict_ezfio_cfg):
 
     ez_p = EZFIO_Provider()
     for provider_name, dict_info in dict_ezfio_cfg.iteritems():
-        if "input" in dict_info["interface"]:
+        if "provider" in dict_info["interface"]:
             ez_p.set_type(dict_info['type'].fortran)
             ez_p.set_name(provider_name)
             ez_p.set_doc(dict_info['doc'])
@@ -455,7 +465,7 @@ def save_ezfio_config(module_lower, str_ezfio_config):
     "$QP_ROOT/EZFIO/{0}.ezfio_interface_config".format(module_lower)
     """
     name = "{0}.ezfio_interface_config".format(module_lower)
-    path = os.path.join(os.environ['QP_EZFIO'], "config", name)
+    path = os.path.join(QP_EZFIO, "config", name)
 
     with open(path, "w+") as f:
         f.write(str_ezfio_config)
@@ -473,7 +483,7 @@ def save_ezfio_default(module_lower, str_ezfio_default):
     """
 
     root_ezfio_default = "{0}/data/ezfio_defaults/".format(
-        os.environ['QP_ROOT'])
+        QP_ROOT)
     path = "{0}/{1}.ezfio_interface_default".format(root_ezfio_default,
                                                     module_lower)
     with open(path, "w+") as f:
@@ -493,14 +503,13 @@ def create_ocaml_input(dict_ezfio_cfg, module_lower):
     l_doc = []
 
     for k, v in dict_ezfio_cfg.iteritems():
-        if v['interface'] == "input":
+        if "ocaml" in v['interface']:
             l_ezfio_name.append(v['ezfio_name'])
             l_type.append(v["type"])
             l_doc.append(v["doc"])
 
     if not l_ezfio_name:
         raise ValueError
-
 
     e_glob = EZFIO_ocaml(l_ezfio_name=l_ezfio_name,
                          l_type=l_type,
@@ -578,11 +587,12 @@ def create_ocaml_input(dict_ezfio_cfg, module_lower):
 def save_ocaml_input(module_lower, str_ocaml_input):
     """
     Write the str_ocaml_input in
-    $QP_ROOT/ocaml/Input_{0}.ml".format(module_lower)
+    qp_path.QP_OCAML/Input_{0}.ml".format(module_lower)
     """
 
-    path = "{0}/ocaml/Input_{1}.ml".format(os.environ['QP_ROOT'],
-                                           module_lower)
+    name = "Input_{0}.ml".format(module_lower)
+
+    path = join(QP_OCAML, name)
 
     with open(path, "w+") as f:
         f.write(str_ocaml_input)
@@ -590,21 +600,15 @@ def save_ocaml_input(module_lower, str_ocaml_input):
 
 def get_l_module_with_auto_generate_ocaml_lower():
     """
-    Get all module who have EZFIO.cfg with input data
+    Get all module who have EZFIO.cfg with ocaml data
         (NB `search` in all the ligne and `match` only in one)
     """
-
-    # ~#~#~#~ #
-    # I n i t #
-    # ~#~#~#~ #
-
-    mypath = "{0}/src".format(os.environ['QP_ROOT'])
 
     # ~#~#~#~#~#~#~#~ #
     # L _ f o l d e r #
     # ~#~#~#~#~#~#~#~ #
 
-    l_folder = [f for f in listdir(mypath) if isdir(join(mypath, f))]
+    l_folder = [f for f in listdir(QP_SRC) if isdir(join(QP_SRC, f))]
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # L _ m o d u l e _ l o w e r #
@@ -612,10 +616,10 @@ def get_l_module_with_auto_generate_ocaml_lower():
 
     l_module_lower = []
     import re
-    p = re.compile(ur'interface:\s+input')
+    p = re.compile(ur'interface:.*ocaml')
 
     for f in l_folder:
-        path = "{0}/{1}/EZFIO.cfg".format(mypath, f)
+        path = "{0}/{1}/EZFIO.cfg".format(QP_SRC, f)
         if exists(path):
             with open(path, 'r') as file_:
                 if p.search(file_.read()):
@@ -639,8 +643,7 @@ def create_ocaml_input_global(l_module_with_auto_generate_ocaml_lower):
 
     from ezfio_generate_ocaml import EZFIO_ocaml
 
-    qpackage_root = os.environ['QP_ROOT']
-    path = qpackage_root + "/scripts/ezfio_interface/qp_edit_template"
+    path = QP_ROOT + "/scripts/ezfio_interface/qp_edit_template"
 
     with open(path, "r") as f:
         template_raw = f.read()
@@ -661,10 +664,11 @@ def create_ocaml_input_global(l_module_with_auto_generate_ocaml_lower):
 def save_ocaml_input_auto(str_ocaml_input_global):
     """
     Write the str_ocaml_input in
-    $QP_ROOT/ocaml/Input_auto_generated.ml
+    qp_path.QP_OCAML/Input_auto_generated.ml
     """
 
-    path = "{0}/ocaml/Input_auto_generated.ml".format(os.environ['QP_ROOT'])
+    name = "Input_auto_generated.ml"
+    path = join(QP_OCAML, name)
 
     with open(path, "w+") as f:
         f.write(str_ocaml_input_global)
@@ -673,10 +677,11 @@ def save_ocaml_input_auto(str_ocaml_input_global):
 def save_ocaml_qp_edit(str_ocaml_qp_edit):
     """
     Write the str_ocaml_qp_edit in
-    $QP_ROOT/ocaml/qp_edit.ml
+    qp_path.QP_OCAML/qp_edit.ml
     """
 
-    path = "{0}/ocaml/qp_edit.ml".format(os.environ['QP_ROOT'])
+    name = "qp_edit.ml"
+    path = join(QP_OCAML, name)
 
     with open(path, "w+") as f:
         f.write(str_ocaml_qp_edit)
@@ -716,9 +721,9 @@ def code_generation(arguments, dict_ezfio_cfg, m):
         str_ezfio_config = create_ezfio_config(dict_ezfio_cfg)
         save_ezfio_config(module_lower, str_ezfio_config)
 
-    # ~#~#~#~#~#~#
-    # O c a m l #
-    # ~#~#~#~#~#~#
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # O c a m l & e z f i o _ d e f a u l t #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
     if do_all or arguments["--ocaml"]:
         try:
             str_ocaml_input = create_ocaml_input(dict_ezfio_cfg, module_lower)
@@ -727,13 +732,8 @@ def code_generation(arguments, dict_ezfio_cfg, m):
         else:
             save_ocaml_input(module_lower, str_ocaml_input)
 
-    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
-    # e z f i o _ d e f a u l t #
-    # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
-    if do_all or arguments["--ezfio_default"]:
         str_ezfio_default = create_ezfio_default(dict_ezfio_cfg)
         save_ezfio_default(module_lower, str_ezfio_default)
-
 
 if __name__ == "__main__":
     arguments = docopt(__doc__)
@@ -741,6 +741,10 @@ if __name__ == "__main__":
     #  |  ._  o _|_
     # _|_ | | |  |_
     #
+    if arguments["list_supported_type"]:
+        for i in get_type_dict():
+            print i
+        sys.exit(0)
 
     if arguments["ocaml_global"]:
 
@@ -771,14 +775,12 @@ if __name__ == "__main__":
     #  G e t _ l _ d i c t _ e z f i o _ c f g #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
 
-    qpackage_root_src = join(os.environ['QP_ROOT'], "src")
-
     l_module_with_ezfio = []
 
     Module = namedtuple('Module', 'path lower')
 
     for f in l_module:
-        path = join(qpackage_root_src, f, "EZFIO.cfg")
+        path = join(QP_SRC, f, "EZFIO.cfg")
         if exists(path):
             l_module_with_ezfio.append(Module(path, f.lower()))
 
