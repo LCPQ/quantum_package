@@ -71,8 +71,11 @@ BEGIN_PROVIDER [ double precision, mo_pseudo_grid, (ao_num,-pseudo_lmax:pseudo_l
  integer :: n_a(3)
  double precision :: a(3), c(3), g_a
  integer :: i,j,k,l,m,n,p
- double precision :: r(pseudo_grid_size), dr, Ulc
+ double precision :: dr, Ulc
  double precision :: y
+ double precision, allocatable :: r(:)
+
+ allocate (r(pseudo_grid_size))
 
  dr = pseudo_grid_rmax/dble(pseudo_grid_size)
  r(1) = 0.d0
@@ -95,6 +98,7 @@ BEGIN_PROVIDER [ double precision, mo_pseudo_grid, (ao_num,-pseudo_lmax:pseudo_l
      enddo
    enddo
  enddo
+ deallocate(r)
 
 END_PROVIDER
 
