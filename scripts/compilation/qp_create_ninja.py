@@ -19,7 +19,11 @@ try:
     from read_compilation_cfg import get_compilation_option
     from docopt import docopt
 except ImportError:
-    print "source .quantum_package.rc"
+    f = os.path.realpath(os.path.join(os.path.dirname(__file__),"..","..","quantum_package.rc"))
+    print """
+Error:
+ source %s
+"""%f
     sys.exit(1)
 
 header = r"""#
@@ -677,7 +681,8 @@ def ninja_dot_tree_build(path_module):
 def create_build_ninja_module(path_module):
 
     l_string = ["rule update_build_ninja_root",
-                "   command = qp_create_ninja.py update", ""]
+                "   command = {0} update".format(__file__),
+                ""]
 
     l_string += ["rule make_local_binaries",
                  "   command = ninja -f {0} module_{1}".format(
@@ -709,7 +714,8 @@ def create_build_ninja_module(path_module):
 def create_build_ninja_global():
 
     l_string = ["rule update_build_ninja_root",
-                "   command = qp_create_ninja.py update", ""]
+                "   command = {0} update".format(__file__),
+                ""]
 
     l_string += ["rule make_all_binaries",
                  "  command = ninja -f {0}".format(ROOT_BUILD_NINJA),
