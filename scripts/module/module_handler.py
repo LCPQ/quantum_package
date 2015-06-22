@@ -175,8 +175,16 @@ class ModuleHandler():
                     draw_module_edge(children, d_ref[children])
                 all_ready_done.append(module)
 
+        path = '{0}.png'.format("tree_dependency")
+
         # Init
-        graph = pydot.Dot(graph_type='digraph')
+        try:
+            graph = pydot.Dot(graph_type='digraph')
+        except:
+            with open(path, 'a'):
+                os.utime(path, None)
+            return
+
         d_ref = self.dict_child
 
         # Create all the edge
@@ -186,7 +194,6 @@ class ModuleHandler():
             draw_module_edge(module, d_ref[module])
 
         # Save
-        path = '{0}.png'.format("tree_dependency")
         graph.write_png(path)
 
 
