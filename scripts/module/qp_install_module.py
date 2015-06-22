@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
         m_instance = ModuleHandler(l_repository)
 
-        for module in m_instance.l_module:
+        for module in sorted(m_instance.l_module):
             print "* {0}".format(module)
 
     elif arguments["create"]:
@@ -143,6 +143,10 @@ if __name__ == '__main__':
             for module_to_cp in l_module_to_cp:
                     src = os.path.join(qp_root_plugin, module_to_cp)
                     des = os.path.join(qp_root_src, module_to_cp)
-                    os.symlink(src, des)
+                    try:
+                        os.symlink(src, des)
+                    except OSError:
+                        print "Your src directory is broken. Please remove %s"%des
+                        raise
             print "Done"
             print "You can now compile as usual"
