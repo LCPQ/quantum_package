@@ -201,9 +201,9 @@ def checking(d_dependency):
             a = check_output(["which", binary])
 
             if binary == "irpf90":
-	        version = check_output("irpf90 -v".split())
-		
-		from distutils.version import LooseVersion
+                version = check_output("bash irpf90 -v".split())
+
+                from distutils.version import LooseVersion
                 if LooseVersion(version) < LooseVersion("1.6.7"):
                     return 0
                 else:
