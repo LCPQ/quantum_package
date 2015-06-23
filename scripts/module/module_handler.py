@@ -19,10 +19,10 @@ Options:
 import os
 import sys
 import os.path
-from collections import namedtuple
 
 try:
     from docopt import docopt
+    from qp_path import QP_SRC
 except ImportError:
     print "source .quantum_package.rc"
     raise
@@ -36,8 +36,7 @@ def get_dict_child(l_root_abs=None):
     d_ref = dict()
 
     if not l_root_abs:
-        qp_root = os.environ['QP_ROOT']
-        l_root_abs = [os.path.join(qp_root, 'src')]
+        l_root_abs = [QP_SRC]
 
     for root_abs in l_root_abs:
         for module_rel in os.listdir(root_abs):
