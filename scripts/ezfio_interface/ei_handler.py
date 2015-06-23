@@ -255,7 +255,7 @@ def get_dict_config_file(module_obj):
             sys.exit(1)
 
         try:
-            interface = map(str.lower, config_file.get(section, "interface").split(","))
+            interface = [i.lower().strip() for i in config_file.get(section, "interface").split(",")]
         except ConfigParser.NoOptionError:
             error("doc", pvd, module_obj.path)
             sys.exit(1)
