@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Create the NEEDED_MODULE
-    aka the genealogy (children module, subchildren module and so on),
-of a NEEDED_CHILDREN_MODULES file
+Module utilitary
 
 Usage:
-    module_handler.py print_descendant      [<NEEDED_CHILDREN_MODULES>]
-    module_handler.py create_png            [<NEEDED_CHILDREN_MODULES>]
+    module_handler.py print_descendant      [<module_name>...]
+    module_handler.py create_png            [<module_name>...]
+    module_handler.py clean                 [<module_name>...]
 
 Options:
     print_descendant         Print the genealogy of the NEEDED_CHILDREN_MODULES
@@ -29,6 +28,10 @@ except ImportError:
 
 
 # Canot cache for namedtuple are not hashable
+def is_module(path_module):
+    return os.path.isfile(os.path.join(path_module, "NEEDED_CHILDREN_MODULES"))
+
+
 def get_dict_child(l_root_abs=None):
     """Loop over MODULE in  QP_ROOT/src, open all the NEEDED_CHILDREN_MODULES
     and create a dict[MODULE] = [sub module needed, ...]
@@ -200,19 +203,26 @@ if __name__ == '__main__':
 
     arguments = docopt(__doc__)
 
-    if not arguments['<NEEDED_CHILDREN_MODULES>']:
+    if not arguments['<module_name>']:
         dir_ = os.getcwd()
+        l_module = [os.path.basename(dir_)]
     else:
-        path_file = os.path.abspath(arguments['<NEEDED_CHILDREN_MODULES>'])
-        path_file = os.path.expanduser(path_file)
-        path_file = os.path.expandvars(path_file)
-        dir_ = os.path.dirname(path_file)
+        l_module = arguments['<module_name>']
+#    else:
+#        path_file = os.path.abspath(arguments['<module_name>'])
+#        dir_ = os.path.dirname(path_file)
+#
 
-    path_file = os.path.basename(dir_)
     m = ModuleHandler()
 
     if arguments['print_descendant']:
-        print " ".join(sorted(m.l_module))
+
+        for module in l_module:
+            print " ".join(sorted(m.l_descendant_unique([module])))
 
     if arguments["create_png"]:
-        m.create_png([path_file])
+        m.create_png(l_module)
+
+    if arguments["clean"]:
+        for i in arguments['<module_name>']:
+            print i.is_module()
