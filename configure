@@ -198,7 +198,18 @@ def checking(d_dependency):
             check_python()
 
         try:
-            return check_output(["which", binary])
+            a = check_output(["which", binary])
+
+            if binary == "irpf90":
+                cmd = join(QP_ROOT_INSTALL, "scripts", "check_irp_version.sh")
+
+                if check_output(cmd) == "FAIL":
+                    raise subprocess.CalledProcessError
+                else:
+                    return a
+
+            return a
+
         except subprocess.CalledProcessError:
             default_path = d_info[binary].default_path
             if os.path.exists(default_path):
@@ -265,7 +276,7 @@ def installation(l_install_descendant):
     def create_rule_ninja():
 
         l_rules = [
-            "rule download", "  command = wget ${url} -O ${out} -o /dev/null",
+            "rule download", "  command = wget --no-check-certificate ${url} -O ${out} -o /dev/null",
             "  description = Downloading ${descr}", ""
         ]
 
