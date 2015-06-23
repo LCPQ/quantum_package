@@ -29,7 +29,9 @@ except ImportError:
 
 # Canot cache for namedtuple are not hashable
 def is_module(path_module):
-    return os.path.isfile(os.path.join(path_module, "NEEDED_CHILDREN_MODULES"))
+    return os.path.isfile(os.path.join(QP_SRC,
+                                       path_module,
+                                       "NEEDED_CHILDREN_MODULES"))
 
 
 def get_dict_child(l_root_abs=None):
@@ -208,6 +210,12 @@ if __name__ == '__main__':
         l_module = [os.path.basename(dir_)]
     else:
         l_module = arguments['<module_name>']
+
+    for module in l_module:
+        if not is_module(module):
+            print "{0} is not a module. Abort".format(module)
+            sys.exit(1)
+
 #    else:
 #        path_file = os.path.abspath(arguments['<module_name>'])
 #        dir_ = os.path.dirname(path_file)
