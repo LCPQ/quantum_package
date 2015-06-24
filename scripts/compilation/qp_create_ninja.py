@@ -475,6 +475,7 @@ def ninja_readme_rule():
     """
     l_string = ["rule build_readme",
                 "   command = cd $module_abs ; update_README.py $module_root",
+                "   description = update_README $module_rel",
                 "   generator = 1", ""]
 
     return l_string
@@ -485,8 +486,9 @@ def ninja_readme_build(path_module, d_irp, dict_root_path):
     Rule for creation the readme
     """
     path_readme = join(path_module.abs, "README.rst")
-    l_depend = d_irp[path_module]["l_depend"]
     root_module = dict_root_path[module]
+
+    l_depend = d_irp[path_module]["l_depend"] + [join(root_module.abs, "tags")]
 
     l_string = ["build {0}: build_readme {1}".format(path_readme,
                                                      " ".join(l_depend)),
@@ -669,7 +671,7 @@ def ninja_dot_tree_rule():
 def ninja_dot_tree_build(path_module, l_module):
 
     path_tree = join(path_module.abs, "tree_dependency.png")
-    l_dep = [path.abs for path in l_module]
+    l_dep = [join(path.abs, "NEEDED_CHILDREN_MODULES") for path in l_module]
     l_string = ["build {0}: build_dot_tree {1}".format(path_tree, " ".join(l_dep)),
                 "   module_abs = {0}".format(path_module.abs),
                 "   module_rel = {0}".format(path_module.rel), ""]

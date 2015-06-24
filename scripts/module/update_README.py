@@ -24,15 +24,13 @@ try:
 except:
     ROOT_module = os.getcwd()
 
-if ROOT_module != os.getcwd:
+if ROOT_module != os.getcwd():
     change = True
 else:
     change = False
 
 MODULE_NAME = os.path.basename(os.getcwd())
 
-print MODULE_NAME
-print ROOT_module
 
 header = """
 .. Do not edit this section. It was auto-generated from the

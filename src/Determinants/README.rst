@@ -492,10 +492,6 @@ Documentation
   Maximum degree of excitation in the wf
 
 
-`mo_label <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L204>`_
-  o_label
-
-
 `mono_elec_ref_bitmask_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ref_bitmask.irp.f#L2>`_
   Energy of the reference bitmask used in Slater rules
 
