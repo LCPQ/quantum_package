@@ -474,21 +474,27 @@ def ninja_readme_rule():
     For not dealted the readme when ninja -t clean and the generator option
     """
     l_string = ["rule build_readme",
-                "   command = cd $module_abs ; update_README.py",
+                "   command = cd $module_abs ; update_README.py $module_root",
                 "   generator = 1", ""]
 
     return l_string
 
 
-def ninja_readme_build(path_module):
+def ninja_readme_build(path_module, d_irp):
     """
     Rule for creation the readme
     """
-    path_irp_man = join(path_module.abs, "irpf90.make")
+
+    dict_root = module_instance.dict_root
+    dict_root_module_path = dict_module_genelogy_path(dict_root)
+    root_module = dict_root_module_path[module]
+
+    l_depend = d_irp[path_module]["l_depend"]
     path_readme = join(path_module.abs, "README.rst")
 
     l_string = ["build {0}: build_readme {1}".format(path_readme,
-                                                     path_irp_man),
+                                                     " ".join(l_depend)),
+                "   module_root = {0}".format(root_module.abs),
                 "   module_abs = {0}".format(path_module.abs),
                 "   module_rel = {0}".format(path_module.rel), ""]
 
@@ -533,7 +539,7 @@ def get_dict_binaries(l_module, mode="production"):
     Example : The module Full_CI can produce the binary SCF
     so you dont need to compile at all the module Hartree-Fock
 
-    But you need to change the path acordingle
+    But you need to change the path acordingly
     Full_CI/Hartree-Fock/SCF
     """
     d_binaries = defaultdict(list)
@@ -824,6 +830,7 @@ if __name__ == "__main__":
         # d o t _ t r e e  & r e a d  m e #
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
         l_string += ninja_dot_tree_build(module, l_module)
+        l_string += ninja_readme_build(module, d_irp)
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # M o d u l e _ t o _ i r p #
@@ -859,8 +866,6 @@ if __name__ == "__main__":
         # ~#~#~#~#~#~#~#~ #
         l_string += ninja_irpf90_make_build(module_to_compile, l_children,
                                             d_irp)
-
-        l_string += ninja_readme_build(module_to_compile)
 
         l_string += ninja_binaries_build(module_to_compile, l_children,
                                          d_binaries)
