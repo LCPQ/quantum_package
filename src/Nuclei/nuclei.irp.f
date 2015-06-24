@@ -1,55 +1,12 @@
- BEGIN_PROVIDER [ integer, nucl_num ]
-&BEGIN_PROVIDER [ integer, nucl_num_aligned ]
+BEGIN_PROVIDER [ integer, nucl_num_aligned ]
    implicit none
    BEGIN_DOC
-   ! Number of nuclei
+   ! Number of nuclei algined
    END_DOC
    
    PROVIDE ezfio_filename
-   nucl_num = 0
-   logical                        :: has
-   call ezfio_has_nuclei_nucl_num(has)
-   if (has) then
-     call ezfio_get_nuclei_nucl_num(nucl_num)
-   else
-     print *, irp_here
-     stop 1
-   endif
-   ASSERT (nucl_num > 0)
    integer                        :: align_double
    nucl_num_aligned = align_double(nucl_num)
-END_PROVIDER
- 
-BEGIN_PROVIDER [ double precision, nucl_charge, (nucl_num) ]
-   implicit none
-   BEGIN_DOC
-   ! Nuclear charges
-   END_DOC
-   PROVIDE ezfio_filename
-   nucl_charge = -1.d0
-   logical                        :: has
-   call ezfio_has_nuclei_nucl_charge(has)
-   if (has) then
-     call ezfio_get_nuclei_nucl_charge(nucl_charge)
-   else
-     print *, irp_here
-     stop 1
-   endif
-   ASSERT (minval(nucl_charge) >= 0.d0)
-END_PROVIDER
- 
-BEGIN_PROVIDER [ character*(32), nucl_label, (nucl_num) ]
-   implicit none
-   BEGIN_DOC
-   ! Nuclear labels
-   END_DOC
-   PROVIDE ezfio_filename
-   nucl_label = ""
-   logical                        :: has
-   call ezfio_has_nuclei_nucl_label(has)
-   if (has) then
-     call ezfio_get_nuclei_nucl_label(nucl_label)
-   endif
 END_PROVIDER
  
 BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num_aligned,3) ]

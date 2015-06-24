@@ -5,8 +5,8 @@ Usage:
        qp_install_module.py create -n <name> [<children_module>...]
        qp_install_module.py download -n <name> [<path_folder>...]
        qp_install_module.py install <name>...
-       qp_install_module.py list (--installed|--avalaible-local|--avalaible-remote)
-       qp_install_module.py uninstall <name>...
+       qp_install_module.py list (--installed|--avalaible-local)
+       qp_install_module.py uninstall <name>... [--and_ancestor]
 
 
 Options:
@@ -22,6 +22,8 @@ try:
     from module_handler import ModuleHandler, get_dict_child
     from module_handler import get_l_module_descendant
     from update_README import Doc_key, Needed_key
+    from qp_path import QP_ROOT, QP_SRC, QP_PLUGINS
+
 except ImportError:
     print "source .quantum_package.rc"
     raise
@@ -59,15 +61,13 @@ def save_new_module(path, l_child):
 
 if __name__ == '__main__':
     arguments = docopt(__doc__)
-    qp_root_src = os.path.join(os.environ['QP_ROOT'], "src")
-    qp_root_plugin = os.path.join(os.environ['QP_ROOT'], "plugins")
 
     if arguments["list"]:
 
         if arguments["--installed"]:
-            l_repository = [qp_root_src]
-        if arguments["--avalaible-local"]:
-            l_repository = [qp_root_plugin]
+            l_repository = [QP_SRC]
+        elif arguments["--avalaible-local"]:
+            l_repository = [QP_PLUGINS]
 
         m_instance = ModuleHandler(l_repository)
 
@@ -75,11 +75,11 @@ if __name__ == '__main__':
             print "* {0}".format(module)
 
     elif arguments["create"]:
-        m_instance = ModuleHandler([qp_root_src])
+        m_instance = ModuleHandler([QP_SRC])
 
         l_children = arguments["<children_module>"]
 
-        path = os.path.join(qp_root_src, arguments["<name>"])
+        path = os.path.join(QP_SRC, arguments["<name>"])
 
         print "You will create the module:"
         print path
@@ -88,6 +88,7 @@ if __name__ == '__main__':
             if children not in m_instance.dict_descendant:
                 print "This module ({0}) is not a valide module.".format(children)
                 print "Run `list` flag for the list of module avalaible"
+                print "Maybe you need to install some module first"
                 print "Aborting..."
                 sys.exit(1)
 
@@ -104,7 +105,7 @@ if __name__ == '__main__':
 
     elif arguments["download"]:
         pass
-#        d_local = get_dict_child([qp_root_src])
+#        d_local = get_dict_child([QP_SRC])
 #        d_remote = get_dict_child(arguments["<path_folder>"])
 #
 #        d_child = d_local.copy()
@@ -119,8 +120,8 @@ if __name__ == '__main__':
 
     elif arguments["install"]:
 
-        d_local = get_dict_child([qp_root_src])
-        d_plugin = get_dict_child([qp_root_plugin])
+        d_local = get_dict_child([QP_SRC])
+        d_plugin = get_dict_child([QP_PLUGINS])
 
         d_child = d_local.copy()
         d_child.update(d_plugin)
@@ -143,31 +144,43 @@ if __name__ == '__main__':
             print "Installation...",
 
             for module_to_cp in l_module_to_cp:
-                    src = os.path.join(qp_root_plugin, module_to_cp)
-                    des = os.path.join(qp_root_src, module_to_cp)
+                    src = os.path.join(QP_PLUGINS, module_to_cp)
+                    des = os.path.join(QP_SRC, module_to_cp)
                     try:
                         os.symlink(src, des)
                     except OSError:
-                        print "Your src directory is broken. Please remove %s"%des
+                        print "Your src directory is broken. Please remove %s" % des
                         raise
             print "Done"
             print "You can now compile as usual"
 
     elif arguments["uninstall"]:
 
-        d_local = get_dict_child([qp_root_src])
+        m_instance = ModuleHandler([QP_SRC])
+        d_descendant = m_instance.dict_descendant
+
+        d_local = get_dict_child([QP_SRC])
         l_name = arguments["<name>"]
 
-        l_failed = [ name for name in l_name if name not in d_local ]
+        l_failed = [name for name in l_name if name not in d_local]
         if l_failed:
             print "Modules not installed:"
             for name in sorted(l_failed):
-                print "* %s"%name
+                print "* %s" % name
             sys.exit(1)
         else:
+            if arguments["--and_ancestor"]:
+
+                l_name_to_remove = l_name + [module for module in m_instance.l_module for name in l_name if name in d_descendant[module]]
+                print "You will remove all of:"
+                print l_name_to_remove
+
+            else:
+                l_name_to_remove = l_name
+
             def unlink(x):
                 try:
-                    os.unlink(os.path.join(qp_root_src,x))
+                    os.unlink(os.path.join(QP_SRC, x))
                 except OSError:
-                    print "%s is a core module which can not be renmoved"%x
-            map(unlink,l_name) 
+                    print "%s is a core module which can not be renmoved" % x
+            map(unlink, l_name_to_remove)

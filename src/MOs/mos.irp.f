@@ -26,7 +26,6 @@ END_PROVIDER
 
 
  BEGIN_PROVIDER [ double precision, mo_coef, (ao_num_align,mo_tot_num) ]
-&BEGIN_PROVIDER [ character*(64), mo_label ]
   implicit none
   BEGIN_DOC
   ! Molecular orbital coefficients on AO basis set
@@ -55,17 +54,28 @@ END_PROVIDER
       enddo
     enddo
     deallocate(buffer)
-    call ezfio_has_mo_basis_mo_label(exists)
-    if (exists) then
-      call ezfio_get_mo_basis_mo_label(mo_label)
-    else
-      mo_label = 'no_label'
-    endif
   else
     ! Orthonormalized AO basis
     mo_coef = 0.
   endif
-  
+END_PROVIDER
+
+BEGIN_PROVIDER [ character*(64), mo_label ]
+  implicit none
+  BEGIN_DOC
+  ! Molecular orbital coefficients on AO basis set
+  ! mo_coef(i,j) = coefficient of the ith ao on the jth mo
+  ! mo_label : Label characterizing the MOS (local, canonical, natural, etc)
+  END_DOC
+
+  logical                        :: exists
+  PROVIDE ezfio_filename
+  call ezfio_has_mo_basis_mo_label(exists)
+  if (exists) then
+    call ezfio_get_mo_basis_mo_label(mo_label)
+  else
+    mo_label = 'no_label'
+  endif
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, mo_coef_transp, (mo_tot_num_align,ao_num) ]
