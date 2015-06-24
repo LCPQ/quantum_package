@@ -664,10 +664,11 @@ def ninja_dot_tree_rule():
     return l_string
 
 
-def ninja_dot_tree_build(path_module):
+def ninja_dot_tree_build(path_module, l_module):
 
     path_tree = join(path_module.abs, "tree_dependency.png")
-    l_string = ["build {0}: build_dot_tree".format(path_tree),
+    l_dep = [path.abs for path in l_module]
+    l_string = ["build {0}: build_dot_tree {1}".format(path_tree, " ".join(l_dep)),
                 "   module_abs = {0}".format(path_module.abs),
                 "   module_rel = {0}".format(path_module.rel), ""]
 
@@ -818,6 +819,12 @@ if __name__ == "__main__":
 
     l_module = d_genealogy_path.keys()
 
+    for module in l_module:
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+        # d o t _ t r e e  & r e a d  m e #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+        l_string += ninja_dot_tree_build(module, l_module)
+
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # M o d u l e _ t o _ i r p #
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
@@ -853,10 +860,6 @@ if __name__ == "__main__":
         l_string += ninja_irpf90_make_build(module_to_compile, l_children,
                                             d_irp)
 
-        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
-        # d o t _ t r e e  & r e a d  m e #
-        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
-        l_string += ninja_dot_tree_build(module_to_compile)
         l_string += ninja_readme_build(module_to_compile)
 
         l_string += ninja_binaries_build(module_to_compile, l_children,
