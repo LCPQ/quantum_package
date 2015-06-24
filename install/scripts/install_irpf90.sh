@@ -13,8 +13,16 @@ function _install()
   [[ -x ./irpf90/bin/irpf90 ]] || return 1
   [[ -x ./irpf90/bin/irpman ]] || return 1
   rm -rf -- ../bin/irpf90 ../bin/irpman
-  echo 'exec ${QP_ROOT}/install/irpf90/bin/irpf90 $@' > ../bin/irpf90 || return 1
-  echo 'exec ${QP_ROOT}/install/irpf90/bin/irpman $@' > ../bin/irpman || return 1
+  cat << EOF > ../bin/irpf90 || return 1
+#!/bin/bash
+exec \${QP_ROOT}/install/irpf90/bin/irpf90 \$@
+EOF
+
+  
+  cat << EOF > ../bin/irpman || return 1
+#!/bin/bash
+exec \${QP_ROOT}/install/irpf90/bin/irpman \$@
+EOF
   chmod +x ../bin/irpf90 ../bin/irpman || return 1
   return 0
 }
