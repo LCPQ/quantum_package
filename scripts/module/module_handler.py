@@ -213,13 +213,9 @@ if __name__ == '__main__':
 
     for module in l_module:
         if not is_module(module):
-            print "{0} is not a module. Abort".format(module)
+            print "{0} is not a volide module. Abort".format(module)
+            print "No NEEDED_CHILDREN_MODULES in it"
             sys.exit(1)
-
-#    else:
-#        path_file = os.path.abspath(arguments['<module_name>'])
-#        dir_ = os.path.dirname(path_file)
-#
 
     m = ModuleHandler()
 
@@ -232,5 +228,25 @@ if __name__ == '__main__':
         m.create_png(l_module)
 
     if arguments["clean"]:
-        for i in arguments['<module_name>']:
-            print i.is_module()
+        for module in l_module:
+            module_abs = os.path.realpath(os.path.join(QP_SRC, module))
+
+            import shutil
+
+            for f in ['IRPF90_temp', 'IRPF90_man']:
+                try:
+                    shutil.rmtree(os.path.join(module_abs, f))
+                except:
+                    pass
+
+            for symlink in m.l_descendant_unique([module]):
+                try:
+                    os.unlink(os.path.join(module_abs,symlink))
+                except:
+                    pass
+
+            for f in ["irpf90_entities", "tags", "irpf90.make", "Makefile"]:
+                try:
+                    os.remove(os.path.join(module_abs,f))
+                except:
+                    pass

@@ -230,6 +230,8 @@ def get_dict_config_file(module_obj):
         # pvd = provider
         pvd = section.lower()
 
+        d[pvd]["module"] = module_obj
+
         # Create the dictionary who containt the value per default
         d_default = {"ezfio_name": pvd,
                      "ezfio_dir": module_obj.lower,
@@ -319,7 +321,7 @@ def create_ezfio_provider(dict_ezfio_cfg):
             ez_p.set_doc(dict_info['doc'])
             ez_p.set_ezfio_dir(dict_info['ezfio_dir'])
             ez_p.set_ezfio_name(dict_info['ezfio_name'])
-            ez_p.set_output("output_%s" % dict_info['ezfio_dir'])
+            ez_p.set_output("output_%s" % dict_info['module'].lower)
 
             # (nuclei.nucl_num,pseudo.klocmax) => (nucl_num,klocmax)
             ez_p.set_size(re.sub(r'\w+\.', "", dict_info['size']))

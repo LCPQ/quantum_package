@@ -205,8 +205,20 @@ Documentation
   degree : Degree of excitation
 
 
+`det_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L138>`_
+  det_coef
+
+
 `det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1139>`_
   Build connection proxy between determinants
+
+
+`det_num <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L266>`_
+  det_num
+
+
+`det_occ <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L244>`_
+  det_occ
 
 
 `det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/connected_to_ref.irp.f#L1>`_
@@ -480,6 +492,10 @@ Documentation
   Maximum degree of excitation in the wf
 
 
+`mo_label <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L204>`_
+  o_label
+
+
 `mono_elec_ref_bitmask_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ref_bitmask.irp.f#L2>`_
   Energy of the reference bitmask used in Slater rules
 
@@ -505,15 +521,15 @@ Documentation
   determinants. idx_cas gives the indice of the CAS determinant in psi_det.
 
 
-`n_det_max <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L28>`_
+`n_det_max <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L50>`_
   Max number of determinants in the wave function
 
 
-`n_det_max_jacobi <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L72>`_
+`n_det_max_jacobi <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L94>`_
   Maximum number of determinants diagonalized by Jacobi
 
 
-`n_det_max_property <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L182>`_
+`n_det_max_property <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L310>`_
   Max number of determinants in the wave function when you select for a given property
 
 
@@ -537,7 +553,7 @@ Documentation
   Number of single excitation bitmasks
 
 
-`n_states <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L50>`_
+`n_states <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L72>`_
   Number of states to consider
 
 
@@ -585,7 +601,7 @@ Documentation
   rho(alpha) - rho(beta)
 
 
-`only_single_double_dm <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L116>`_
+`only_single_double_dm <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L182>`_
   If true, The One body DM is calculated with ignoring the Double<->Doubles extra diag elements
 
 
@@ -762,7 +778,7 @@ Documentation
   Reads the determinants from the EZFIO file
 
 
-`read_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L94>`_
+`read_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L160>`_
   If true, read the wave function from the EZFIO file
 
 
@@ -787,7 +803,7 @@ Documentation
   Undocumented
 
 
-`s2_eig <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L138>`_
+`s2_eig <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L116>`_
   Force the wave function to be an eigenfunction of S^2
 
 
@@ -862,7 +878,7 @@ Documentation
   convergence of the correlation energy of SC2 iterations
 
 
-`threshold_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L160>`_
+`threshold_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L288>`_
   Thresholds on generators (fraction of the norm)
 
 

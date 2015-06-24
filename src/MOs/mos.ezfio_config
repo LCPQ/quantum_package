@@ -1,7 +1,0 @@
-mo_basis
-  mo_tot_num         integer
-  mo_coef            double precision  (ao_basis_ao_num,mo_basis_mo_tot_num)
-  mo_label           character*(64)
-  mo_occ             double precision  (mo_basis_mo_tot_num)
-  ao_md5             character*(32)
-
