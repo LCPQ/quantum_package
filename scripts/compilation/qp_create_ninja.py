@@ -480,17 +480,13 @@ def ninja_readme_rule():
     return l_string
 
 
-def ninja_readme_build(path_module, d_irp):
+def ninja_readme_build(path_module, d_irp, dict_root_path):
     """
     Rule for creation the readme
     """
-
-    dict_root = module_instance.dict_root
-    dict_root_module_path = dict_module_genelogy_path(dict_root)
-    root_module = dict_root_module_path[module]
-
-    l_depend = d_irp[path_module]["l_depend"]
     path_readme = join(path_module.abs, "README.rst")
+    l_depend = d_irp[path_module]["l_depend"]
+    root_module = dict_root_path[module]
 
     l_string = ["build {0}: build_readme {1}".format(path_readme,
                                                      " ".join(l_depend)),
@@ -823,6 +819,9 @@ if __name__ == "__main__":
     d_genealogy_path = dict_module_genelogy_path(d_genealogy)
     d_irp = get_file_dependency(d_genealogy_path)
 
+    dict_root = module_instance.dict_root
+    dict_root_path = dict_module_genelogy_path(dict_root)
+
     l_module = d_genealogy_path.keys()
 
     for module in l_module:
@@ -830,7 +829,7 @@ if __name__ == "__main__":
         # d o t _ t r e e  & r e a d  m e #
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
         l_string += ninja_dot_tree_build(module, l_module)
-        l_string += ninja_readme_build(module, d_irp)
+        l_string += ninja_readme_build(module, d_irp, dict_root_path)
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # M o d u l e _ t o _ i r p #
