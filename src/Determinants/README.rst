@@ -213,11 +213,11 @@ Documentation
   Build connection proxy between determinants
 
 
-`det_num <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L266>`_
+`det_num <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L248>`_
   det_num
 
 
-`det_occ <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L244>`_
+`det_occ <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L226>`_
   det_occ
 
 
@@ -525,7 +525,7 @@ Documentation
   Maximum number of determinants diagonalized by Jacobi
 
 
-`n_det_max_property <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L310>`_
+`n_det_max_property <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L292>`_
   Max number of determinants in the wave function when you select for a given property
 
 
@@ -874,7 +874,7 @@ Documentation
   convergence of the correlation energy of SC2 iterations
 
 
-`threshold_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L288>`_
+`threshold_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L270>`_
   Thresholds on generators (fraction of the norm)
 
 
