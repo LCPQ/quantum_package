@@ -5,12 +5,12 @@ Usage:
        qp_install_module.py create -n <name> [<children_module>...]
        qp_install_module.py download -n <name> [<path_folder>...]
        qp_install_module.py install <name>...
-       qp_install_module.py list (--installed|--avalaible-local)
+       qp_install_module.py list (--installed | --available-local)
        qp_install_module.py uninstall <name>... [--and_ancestor]
 
 
 Options:
-    list: List all the module avalaible
+    list: List all the module available
     create: Create a new module
 """
 
@@ -22,7 +22,7 @@ try:
     from module_handler import ModuleHandler, get_dict_child
     from module_handler import get_l_module_descendant
     from update_README import Doc_key, Needed_key
-    from qp_path import QP_ROOT, QP_SRC, QP_PLUGINS
+    from qp_path import QP_SRC, QP_PLUGINS
 
 except ImportError:
     print "source .quantum_package.rc"
@@ -66,7 +66,7 @@ if __name__ == '__main__':
 
         if arguments["--installed"]:
             l_repository = [QP_SRC]
-        elif arguments["--avalaible-local"]:
+        elif arguments["--available-local"]:
             l_repository = [QP_PLUGINS]
 
         m_instance = ModuleHandler(l_repository)
@@ -87,7 +87,7 @@ if __name__ == '__main__':
         for children in l_children:
             if children not in m_instance.dict_descendant:
                 print "This module ({0}) is not a valide module.".format(children)
-                print "Run `list` flag for the list of module avalaible"
+                print "Run `list` flag for the list of module available"
                 print "Maybe you need to install some module first"
                 print "Aborting..."
                 sys.exit(1)
