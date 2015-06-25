@@ -7,6 +7,7 @@ Usage:
     module_handler.py print_descendant      [<module_name>...]
     module_handler.py create_png            [<module_name>...]
     module_handler.py clean                 [<module_name>...]
+    module_handler.py create_git_ignore     [<module_name>...]
 
 Options:
     print_descendant         Print the genealogy of the NEEDED_CHILDREN_MODULES
@@ -18,6 +19,7 @@ Options:
 import os
 import sys
 import os.path
+import shutil
 
 try:
     from docopt import docopt
@@ -32,6 +34,10 @@ def is_module(path_module):
     return os.path.isfile(os.path.join(QP_SRC,
                                        path_module,
                                        "NEEDED_CHILDREN_MODULES"))
+
+
+def is_exe(fpath):
+    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
 
 def get_dict_child(l_root_abs=None):
@@ -227,37 +233,48 @@ if __name__ == '__main__':
     if arguments["create_png"]:
         m.create_png(l_module)
 
-    if arguments["clean"]:
+    if arguments["clean"] or arguments["create_git_ignore"]:
+
+        l_dir = ['IRPF90_temp', 'IRPF90_man']
+        l_file = ["irpf90_entities", "tags", "irpf90.make",
+                  "Makefile", "Makefile.depend",
+                  "build.ninja", ".ninja_log", ".ninja_deps",
+                  "ezfio_interface.irp.f"]
+
         for module in l_module:
             module_abs = os.path.realpath(os.path.join(QP_SRC, module))
+            l_symlink = m.l_descendant_unique([module])
+            l_exe = [f for f in os.listdir(module_abs) if is_exe(os.path.join(module_abs,f))]
 
-            import shutil
+            if arguments["clean"]:
+                for f in l_dir:
+                    try:
+                        shutil.rmtree(os.path.join(module_abs, f))
+                    except:
+                        pass
 
-            for f in ['IRPF90_temp', 'IRPF90_man']:
-                try:
-                    shutil.rmtree(os.path.join(module_abs, f))
-                except:
-                    pass
+                for symlink in l_symlink:
+                    try:
+                        os.unlink(os.path.join(module_abs, symlink))
+                    except:
+                        pass
 
-            for symlink in m.l_descendant_unique([module]):
-                try:
-                    os.unlink(os.path.join(module_abs,symlink))
-                except:
-                    pass
-
-            for f in ["irpf90_entities", "tags", "irpf90.make", "Makefile"]:
-                try:
-                    os.remove(os.path.join(module_abs,f))
-                except:
-                    pass
-
-            for f in os.listdir(module_abs):
-
-                def is_exe(fpath):
-                    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-                if is_exe(f):
+                for f in l_file:
                     try:
                         os.remove(os.path.join(module_abs, f))
                     except:
                         pass
+
+                for f in l_exe:
+
+                    try:
+                        os.remove(os.path.join(module_abs, f))
+                    except:
+                        pass
+
+            if arguments["create_git_ignore"]:
+                path = os.path.join(module_abs, ".gitignore")
+
+                with open(path, "w+") as f:
+                    f.write("# Automatically created by {0} \n".format(__file__))
+                    f.write("\n".join(l_dir + l_file + l_symlink + l_exe))

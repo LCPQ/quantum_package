@@ -1,0 +1,10 @@
+config/qp_create_ninja.pickle
+Downloads
+_build
+docopt
+emsl
+EZFIO
+irpf90
+resultsFile
+zlib
+build.ninja
