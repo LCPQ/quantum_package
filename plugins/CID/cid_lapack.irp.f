@@ -1,4 +1,4 @@
-program cisd
+program cid
   implicit none
   integer :: i
 
@@ -6,7 +6,7 @@ program cisd
   touch diag_algorithm
   print *,   'HF      = ', HF_energy
   print *,  'N_states = ', N_states
-  call H_apply_cisd
+  call H_apply_cid
   print *,  'N_det = ', N_det
   do i = 1,N_states
    print *,  'energy  = ',CI_energy(i) 

@@ -257,7 +257,7 @@ def ninja_ezfio_rule():
 
     install_lib_ezfio = join(QP_ROOT, 'install', 'EZFIO', "lib", "libezfio.a")
     l_cmd = ["cd {0}".format(QP_EZFIO)] + l_flag
-    l_cmd += ["ninja && ln -sf {0} {1}".format(install_lib_ezfio, EZFIO_LIB)]
+    l_cmd += ["rm -f make.config ; ninja && ln -sf {0} {1}".format(install_lib_ezfio, EZFIO_LIB)]
 
     l_string = ["rule build_ezfio",
                 "   command = {0}".format(" ; ".join(l_cmd)),
@@ -316,6 +316,37 @@ def ninja_symlink_build(path_module, l_symlink):
     for symlink in l_symlink:
         l_string += ["build {0}: build_symlink {1}".format(symlink.destination,
                                                            symlink.source), ""]
+
+    return l_string
+
+
+#
+#    _  o _|_ o  _  ._   _  ._ _
+# o (_| |  |_ | (_| | | (_) | (/_
+#    _|          _|
+def ninja_gitignore_rule():
+    """
+    Return the command to create the gitignore
+    """
+    return ["rule build_gitignore",
+            "  command = module_handler.py create_git_ignore $module_rel",
+            "  description = Create gitignore for $module_rel", ""]
+
+
+def ninja_gitignore_build(path_module, l_symlink, d_binaries):
+    """
+    """
+
+    path_gitignore = join(path_module.abs, ".gitignore")
+
+    l_b = [i.abs for i in d_binaries[path_module]]
+    l_sym = [i.destination for i in l_symlink]
+
+    l_string = ["build {0}: build_gitignore {1} || {2}".format(path_gitignore,
+                                                               " ".join(l_b),
+                                                               " ".join(l_sym)),
+                "   module_rel = {0}".format(path_module.rel),
+                ""]
 
     return l_string
 
@@ -700,7 +731,7 @@ def create_build_ninja_module(path_module):
                  "  pool = console", "  description = Compile all the module",
                  ""]
 
-    l_string += ["rule make_clean", "  command = clean_modules.sh",
+    l_string += ["rule make_clean", "  command = module_handler.py clean {0}".format(path_module.rel),
                  "  description = Cleaning module {0}".format(path_module.rel),
                  ""]
 
@@ -787,6 +818,7 @@ if __name__ == "__main__":
 
     l_string += ninja_irpf90_make_rule()
     l_string += ninja_readme_rule()
+    l_string += ninja_gitignore_rule()
 
     l_string += ninja_binaries_rule()
 
@@ -870,6 +902,8 @@ if __name__ == "__main__":
 
         l_string += ninja_binaries_build(module_to_compile, l_children,
                                          d_binaries)
+
+        l_string += ninja_gitignore_build(module_to_compile, l_symlink, d_binaries)
 
     with open(join(QP_ROOT, "config", "build.ninja"), "w+") as f:
         f.write(header)
