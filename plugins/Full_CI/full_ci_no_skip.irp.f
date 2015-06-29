@@ -76,6 +76,7 @@ program full_ci
    call diagonalize_CI
    if(do_pt2_end)then
     print*,'Last iteration only to compute the PT2'
+!   print*,'The thres'
     threshold_selectors = 1.d0
     threshold_generators = 0.999d0
     call H_apply_FCI_PT2(pt2, norm_pert, H_pert_diag,  N_st)
