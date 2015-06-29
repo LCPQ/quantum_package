@@ -2,6 +2,7 @@
 
 import os
 file = open(os.environ["QP_ROOT"]+'/src/Determinants/H_apply.template.f','r')
+
 template = file.read()
 file.close()
 
@@ -13,6 +14,8 @@ initialization
 declarations
 decls_main
 keys_work
+do_double_excitations
+check_double_excitation
 copy_buffer
 finalization
 generate_psi_guess
@@ -54,6 +57,7 @@ class H_apply(object):
         !$OMP SHARED(key_in,N_int,elec_num_tab,mo_tot_num,           &
         !$OMP  hole_1, particl_1, hole_2, particl_2,                 &
         !$OMP  elec_alpha_num,i_generator) FIRSTPRIVATE(iproc)"""
+
     s["omp_end_parallel"] = "!$OMP END PARALLEL"
     s["omp_master"]       = "!$OMP MASTER"
     s["omp_end_master"]   = "!$OMP END MASTER"
@@ -104,7 +108,7 @@ class H_apply(object):
   endif
   SOFT_TOUCH psi_det psi_coef N_det
 """
-    s["printout_now"]   = """write(output_determinants,*)  &
+    s["printout_now"]   = """write(output_Determinants,*)  &
        100.*float(i_generator)/float(N_det_generators), '% in ', wall_1-wall_0, 's'"""
     self.data = s
 
@@ -127,21 +131,23 @@ class H_apply(object):
     """
   def set_filter_holes(self):
     self["filterhole"] = """
-     if(iand(ibset(0_bit_kind,j),hole(k,other_spin)).eq.0_bit_kind )cycle
+     if(iand(ibset(0_bit_kind,j),key(k,other_spin)).eq.0_bit_kind )cycle
     """
   def set_filter_particl(self):
     self["filterparticle"] = """
-     if(iand(ibset(0_bit_kind,j_a),hole(k_a,other_spin)).eq.0_bit_kind )cycle
+     if(iand(ibset(0_bit_kind,j_a),key(k_a,other_spin)).eq.0_bit_kind )cycle
     """
   def unset_skip(self):
     self["skip"] = """
     """
-
-
   def set_filter_2h_2p(self):
     self["filter2h2p"] = """
 !    ! DIR$ FORCEINLINE
-     if (is_a_two_holes_two_particles(key)) cycle
+!   call get_excitation_degree(ref_bitmask,key,degree,N_int)
+!   if(degree==1)then
+!    print*,'degree = ',degree
+!   endif
+     if(is_a_two_holes_two_particles(key))cycle
     """
 
 
@@ -187,9 +193,14 @@ class H_apply(object):
       PROVIDE CI_electronic_energy psi_selectors_coef psi_selectors E_corr_per_selectors psi_det_sorted_bit
       """
       self.data["keys_work"] = """
-      call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-       sum_norm_pert,sum_H_pert_diag,N_st,N_int)
-      """%(pert,)
+      if(check_double_excitation)then
+       call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
+        sum_norm_pert,sum_H_pert_diag,N_st,N_int)
+      else 
+       call perturb_buffer_by_mono_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
+        sum_norm_pert,sum_H_pert_diag,N_st,N_int)
+      endif
+      """%(pert,pert)
       self.data["finalization"] = """
       """
       self.data["copy_buffer"] = ""
@@ -211,9 +222,9 @@ class H_apply(object):
     delta_pt2(k) = 0.d0
     pt2_old(k) = 0.d0
   enddo
-        write(output_determinants,'(A12, X, A8, 3(2X, A9), 2X, A8, 2X, A8, 2X, A8)') &
+        write(output_Determinants,'(A12, X, A8, 3(2X, A9), 2X, A8, 2X, A8, 2X, A8)') &
                  'N_generators', 'Norm', 'Delta PT2', 'PT2', 'Est. PT2', 'secs'
-        write(output_determinants,'(A12, X, A8, 3(2X, A9), 2X, A8, 2X, A8, 2X, A8)') &
+        write(output_Determinants,'(A12, X, A8, 3(2X, A9), 2X, A8, 2X, A8, 2X, A8)') &
                  '============', '========', '=========', '=========', '=========', &
                  '========='
       """ 
@@ -226,7 +237,7 @@ class H_apply(object):
       """
       self.data["printout_now"] = """
       do k=1,N_st
-        write(output_determinants,'(I10, 4(2X, F9.6), 2X, F8.1)') &
+        write(output_Determinants,'(I10, 4(2X, F9.6), 2X, F8.1)') &
                  i_generator, norm_psi(k), delta_pt2(k), pt2(k), &
                  pt2(k)/(norm_psi(k)*norm_psi(k)), &
                  wall_1-wall_0
@@ -258,7 +269,7 @@ class H_apply(object):
 !      SOFT_TOUCH psi_det psi_coef N_det
       selection_criterion_min = min(selection_criterion_min, maxval(select_max))*0.1d0
       selection_criterion = selection_criterion_min
-      call write_double(output_determinants,selection_criterion,'Selection criterion')
+      call write_double(output_Determinants,selection_criterion,'Selection criterion')
       """
       self.data["keys_work"] = """
       e_2_pert_buffer = 0.d0
@@ -275,10 +286,10 @@ class H_apply(object):
         if (select_max(i_generator) < selection_criterion_min*selection_criterion_factor) then
           !$ call omp_set_lock(lck)
           do k=1,N_st
-            norm_psi(k) = norm_psi(k) + psi_coef_generators(i_generator,k)*psi_coef_generators(i_generator,k)
-!            delta_pt2(k) = 0.d0
-!            pt2_old(k) = 0.d0
-!            pt2(k) = select_max(i_generator)
+             norm_psi(k) = norm_psi(k) + psi_coef_generators(i_generator,k)*psi_coef_generators(i_generator,k)
+             delta_pt2(k) = 0.d0
+             pt2_old(k) = 0.d0
+             pt2(k) = select_max(i_generator)
           enddo
           !$ call omp_unset_lock(lck)
           cycle

@@ -1,4 +1,4 @@
-subroutine get_s2(key_i,key_j,phase,Nint)
+subroutine get_s2(key_i,key_j,s2,Nint)
  implicit none
  use bitmasks
  BEGIN_DOC
@@ -7,21 +7,21 @@ subroutine get_s2(key_i,key_j,phase,Nint)
  integer, intent(in)  :: Nint
  integer(bit_kind), intent(in)  :: key_i(Nint,2)
  integer(bit_kind), intent(in)  :: key_j(Nint,2)
- double precision, intent(out) :: phase
+ double precision, intent(out) :: s2
  integer :: exc(0:2,2,2)
  integer :: degree
  double precision :: phase_spsm
  integer :: nup, i
 
- phase = 0.d0
+ s2 = 0.d0
  !$FORCEINLINE
  call get_excitation_degree(key_i,key_j,degree,Nint)
  select case (degree)
    case(2)
-     call get_double_excitation(key_i,key_j,exc,phase_spsm,Nint)
+     call get_double_excitation(key_j,key_i,exc,phase_spsm,Nint)
      if (exc(0,1,1) == 1) then   ! Mono alpha + mono-beta
        if ( (exc(1,1,1) == exc(1,2,2)).and.(exc(1,1,2) == exc(1,2,1)) ) then
-         phase =  -phase_spsm
+         s2 =  -phase_spsm
        endif
      endif
    case(0)
@@ -29,7 +29,7 @@ subroutine get_s2(key_i,key_j,phase,Nint)
       do i=1,Nint
         nup += popcnt(iand(xor(key_i(i,1),key_i(i,2)),key_i(i,1)))
       enddo
-      phase = dble(nup)
+      s2 = dble(nup)
    end select
 end
 
@@ -72,7 +72,7 @@ BEGIN_PROVIDER [ double precision, s2_values, (N_states) ]
  integer :: i
  double precision :: s2
  do i = 1, N_states
-  call get_s2_u0(psi_det,psi_coef(1,i),n_det,psi_det_size,s2)
+  call get_s2_u0(psi_det,psi_coef(1,i),n_det,size(psi_coef,1),s2)
   s2_values(i) = s2
  enddo
 
@@ -89,18 +89,32 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
  integer :: i,j,l
  double precision :: s2_tmp
  s2 = 0.d0
+!print*,'IN get_s2_u0'
+!print*,'n,nmax = ',n,nmax
+ double precision :: accu
+ accu = 0.d0
+ do i = 1,n
+  accu += psi_coefs_tmp(i) * psi_coefs_tmp(i)
+! print*,'psi_coef = ',psi_coefs_tmp(i)
+ enddo
+!print*,'accu = ',accu
+!print*,''
  !$OMP PARALLEL DO DEFAULT(NONE) &
- !$OMP PRIVATE(i,j,s2_tmp) SHARED(n,psi_coefs_tmp,psi_keys_tmp,N_int) &
- !$OMP REDUCTION(+:s2) SCHEDULE(dynamic)
+ !$OMP PRIVATE(i,j,s2_tmp) SHARED(n,psi_coefs_tmp,psi_keys_tmp,N_int) REDUCTION(+:s2) SCHEDULE(dynamic) 
  do i=1,n
-   call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,i),s2_tmp,N_int)
-   s2 += psi_coefs_tmp(i)*psi_coefs_tmp(i)*s2_tmp
    do j=i+1,n
      call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,j),s2_tmp,N_int)
      s2 += (psi_coefs_tmp(i)+psi_coefs_tmp(i))*psi_coefs_tmp(j)*s2_tmp
+!    s2 = s2 + 2.d0 * psi_coefs_tmp(i)*psi_coefs_tmp(j)*s2_tmp
    enddo
  enddo
  !$OMP END PARALLEL DO
+ do i=1,n
+   call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,i),s2_tmp,N_int)
+   s2 += psi_coefs_tmp(i)*psi_coefs_tmp(i)*s2_tmp
+ enddo
  s2 +=  S_z2_Sz
+!print*,'s2 = ',s2
+!print*,''
 end
 
