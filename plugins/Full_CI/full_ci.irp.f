@@ -28,6 +28,7 @@ program full_ci
     print *,  '-----'
   endif
   double precision :: i_H_psi_array(N_states),diag_H_mat_elem,h,i_O1_psi_array(N_states)
+  double precision :: E_CI_before(N_states)
   if(read_wf)then
    call i_H_psi(psi_det(1,1,N_det),psi_det,psi_coef,N_int,N_det,psi_det_size,N_states,i_H_psi_array)
    h = diag_H_mat_elem(psi_det(1,1,N_det),N_int)
@@ -38,6 +39,7 @@ program full_ci
 
   integer :: n_det_before
   print*,'Beginning the selection ...'
+  E_CI_before = CI_energy
   do while (N_det < N_det_max.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     n_det_before = N_det
     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
@@ -57,12 +59,13 @@ program full_ci
     if(n_det_before == N_det)then
      selection_criterion = selection_criterion * 0.5d0
     endif
-    print *,  'N_det    = ', N_det
-    print *,  'N_states = ', N_states
-    print *,  'PT2      = ', pt2
-    print *,  'E        = ', CI_energy
-    print *,  'E+PT2    = ', CI_energy+pt2
+    print *,  'N_det          = ', N_det
+    print *,  'N_states       = ', N_states
+    print *,  'PT2            = ', pt2
+    print *,  'E              = ', CI_energy
+    print *,  'E(before)+PT2  = ', E_CI_before+pt2
     print *,  '-----'
+    E_CI_before = CI_energy
     call ezfio_set_full_ci_energy(CI_energy)
     if (abort_all) then
       exit
