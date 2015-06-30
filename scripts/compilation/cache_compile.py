@@ -18,9 +18,8 @@ p = re.compile(ur'-I IRPF90_temp/\S*\s+')
 mod = re.compile(ur'module\s+(?P<mod>\S+).+end\s?module\s+(?P=mod)?',
                  re.MULTILINE | re.IGNORECASE)
 
-tmpdir_root = os.environ.get("TMPDIR",failobj="/dev/shm")
-TMPDIR = os.path.join(tmpdir_root,os.environ["USER"],"qp_compiler") 
-
+tmpdir_root = os.environ.get("TMPDIR", failobj="/dev/shm")
+TMPDIR = os.path.join(tmpdir_root, os.environ["USER"], "qp_compiler")
 
 
 def return_filename_to_cache(command):

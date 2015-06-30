@@ -158,7 +158,7 @@ def check_output(*popenargs, **kwargs):
     >>> check_output(['/usr/bin/python', '--version'])
     Python 2.6.2
     """
-    process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
+    process = subprocess.Popen(stdout=subprocess.PIPE,stderr=subprocess.PIPE, *popenargs, **kwargs)
     output, unused_err = process.communicate()
     retcode = process.poll()
     if retcode:
@@ -190,7 +190,7 @@ def checking(d_dependency):
 
     def check_availability(binary):
         """
-        If avalabie return the path who can can't find the
+        If avalable return the path who can find the
         binary else return 0
         """
 
@@ -198,7 +198,19 @@ def checking(d_dependency):
             check_python()
 
         try:
-            return check_output(["which", binary])
+            a = check_output(["which", binary])
+
+            if binary == "irpf90":
+                version = check_output("irpf90 -v".split()).strip()
+
+                from distutils.version import LooseVersion
+                if LooseVersion(version) < LooseVersion("1.6.7"):
+                    return 0
+                else:
+                    return a
+
+            return a
+
         except subprocess.CalledProcessError:
             default_path = d_info[binary].default_path
             if os.path.exists(default_path):
@@ -208,7 +220,7 @@ def checking(d_dependency):
 
     def get_list_descendant(d_dependency, l_installed, l_needed):
         """
-        Descendant – a node reachable by repeated proceeding from parent to child.
+        Descendant : a node reachable by repeated proceeding from parent to child.
         """
         d_need_genealogy = dict()
 
@@ -265,7 +277,7 @@ def installation(l_install_descendant):
     def create_rule_ninja():
 
         l_rules = [
-            "rule download", "  command = wget ${url} -O ${out} -o /dev/null",
+            "rule download", "  command = wget --no-check-certificate ${url} -O ${out} -o /dev/null",
             "  description = Downloading ${descr}", ""
         ]
 
@@ -423,8 +435,8 @@ def create_ninja_and_rc(l_installed):
         'export IRPF90={0}'.format(find_path("irpf90", l_installed)),
         'export NINJA={0}'.format(find_path("ninja", l_installed)),
         'export QP_PYTHON={0}'.format(":".join(l_python)), "",
-        'export PYTHONPATH="${PYTHONPATH}":"${QP_PYTHON}"',
-        'export PATH="${PATH}":"${QP_PYTHON}":"${QP_ROOT}"/bin:"${QP_ROOT}"/ocaml',
+        'export PYTHONPATH="${QP_PYTHON}":"${PYTHONPATH}"',
+        'export PATH="${QP_PYTHON}":"${QP_ROOT}"/bin:"${QP_ROOT}"/ocaml:"${PATH}"',
         'export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${LD_LIBRARY_PATH}"',
         'export LIBRARY_PATH="${QP_ROOT}"/lib:"${LIBRARY_PATH}"', "",
         'source ${QP_ROOT}/install/EZFIO/Bash/ezfio.sh}"', "",

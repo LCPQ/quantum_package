@@ -320,6 +320,37 @@ def ninja_symlink_build(path_module, l_symlink):
     return l_string
 
 
+#
+#    _  o _|_ o  _  ._   _  ._ _
+# o (_| |  |_ | (_| | | (_) | (/_
+#    _|          _|
+def ninja_gitignore_rule():
+    """
+    Return the command to create the gitignore
+    """
+    return ["rule build_gitignore",
+            "  command = module_handler.py create_git_ignore $module_rel",
+            "  description = Create gitignore for $module_rel", ""]
+
+
+def ninja_gitignore_build(path_module, l_symlink, d_binaries):
+    """
+    """
+
+    path_gitignore = join(path_module.abs, ".gitignore")
+
+    l_b = [i.abs for i in d_binaries[path_module]]
+    l_sym = [i.destination for i in l_symlink]
+
+    l_string = ["build {0}: build_gitignore {1} || {2}".format(path_gitignore,
+                                                               " ".join(l_b),
+                                                               " ".join(l_sym)),
+                "   module_rel = {0}".format(path_module.rel),
+                ""]
+
+    return l_string
+
+
 #           _  _   _
 # o ._ ._ _|_ (_| / \   ._ _   _. |   _
 # | |  |_) |    | \_/ o | | | (_| |< (/_
@@ -474,21 +505,25 @@ def ninja_readme_rule():
     For not dealted the readme when ninja -t clean and the generator option
     """
     l_string = ["rule build_readme",
-                "   command = cd $module_abs ; update_README.py",
+                "   command = cd $module_abs ; update_README.py $module_root",
+                "   description = update_README $module_rel",
                 "   generator = 1", ""]
 
     return l_string
 
 
-def ninja_readme_build(path_module):
+def ninja_readme_build(path_module, d_irp, dict_root_path):
     """
     Rule for creation the readme
     """
-    path_irp_man = join(path_module.abs, "irpf90.make")
     path_readme = join(path_module.abs, "README.rst")
+    root_module = dict_root_path[module]
+
+    l_depend = d_irp[path_module]["l_depend"] + [join(root_module.abs, "tags")]
 
     l_string = ["build {0}: build_readme {1}".format(path_readme,
-                                                     path_irp_man),
+                                                     " ".join(l_depend)),
+                "   module_root = {0}".format(root_module.abs),
                 "   module_abs = {0}".format(path_module.abs),
                 "   module_rel = {0}".format(path_module.rel), ""]
 
@@ -533,7 +568,7 @@ def get_dict_binaries(l_module, mode="production"):
     Example : The module Full_CI can produce the binary SCF
     so you dont need to compile at all the module Hartree-Fock
 
-    But you need to change the path acordingle
+    But you need to change the path acordingly
     Full_CI/Hartree-Fock/SCF
     """
     d_binaries = defaultdict(list)
@@ -664,10 +699,11 @@ def ninja_dot_tree_rule():
     return l_string
 
 
-def ninja_dot_tree_build(path_module):
+def ninja_dot_tree_build(path_module, l_module):
 
     path_tree = join(path_module.abs, "tree_dependency.png")
-    l_string = ["build {0}: build_dot_tree".format(path_tree),
+    l_dep = [join(path.abs, "NEEDED_CHILDREN_MODULES") for path in l_module]
+    l_string = ["build {0}: build_dot_tree {1}".format(path_tree, " ".join(l_dep)),
                 "   module_abs = {0}".format(path_module.abs),
                 "   module_rel = {0}".format(path_module.rel), ""]
 
@@ -695,7 +731,7 @@ def create_build_ninja_module(path_module):
                  "  pool = console", "  description = Compile all the module",
                  ""]
 
-    l_string += ["rule make_clean", "  command = clean_modules.sh",
+    l_string += ["rule make_clean", "  command = module_handler.py clean {0}".format(path_module.rel),
                  "  description = Cleaning module {0}".format(path_module.rel),
                  ""]
 
@@ -711,7 +747,7 @@ def create_build_ninja_module(path_module):
         f.write("\n".join(l_string))
 
 
-def create_build_ninja_global():
+def create_build_ninja_global(l_module):
 
     l_string = ["rule update_build_ninja_root",
                 "   command = {0} update".format(__file__),
@@ -723,7 +759,7 @@ def create_build_ninja_global():
                  ""]
 
     l_string += ["rule make_clean",
-                 "  command = cd {0} ; clean_modules.sh *".format(QP_SRC),
+                 "  command = module_handler.py clean {0}".format(" ".join([m.rel for m in l_module])),
                  "  description = Cleaning all modules", ""]
 
     l_string += ["build dummy_target: update_build_ninja_root",
@@ -782,6 +818,7 @@ if __name__ == "__main__":
 
     l_string += ninja_irpf90_make_rule()
     l_string += ninja_readme_rule()
+    l_string += ninja_gitignore_rule()
 
     l_string += ninja_binaries_rule()
 
@@ -816,7 +853,17 @@ if __name__ == "__main__":
     d_genealogy_path = dict_module_genelogy_path(d_genealogy)
     d_irp = get_file_dependency(d_genealogy_path)
 
+    dict_root = module_instance.dict_root
+    dict_root_path = dict_module_genelogy_path(dict_root)
+
     l_module = d_genealogy_path.keys()
+
+    for module in l_module:
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+        # d o t _ t r e e  & r e a d  m e #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+        l_string += ninja_dot_tree_build(module, l_module)
+        l_string += ninja_readme_build(module, d_irp, dict_root_path)
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # M o d u l e _ t o _ i r p #
@@ -832,7 +879,7 @@ if __name__ == "__main__":
         d_binaries = get_dict_binaries(l_module, mode="development")
         l_module = d_binaries.keys()
 
-    create_build_ninja_global()
+    create_build_ninja_global(l_module)
 
     for module_to_compile in l_module:
 
@@ -853,14 +900,10 @@ if __name__ == "__main__":
         l_string += ninja_irpf90_make_build(module_to_compile, l_children,
                                             d_irp)
 
-        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
-        # d o t _ t r e e  & r e a d  m e #
-        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
-        l_string += ninja_dot_tree_build(module_to_compile)
-        l_string += ninja_readme_build(module_to_compile)
-
         l_string += ninja_binaries_build(module_to_compile, l_children,
                                          d_binaries)
+
+        l_string += ninja_gitignore_build(module_to_compile, l_symlink, d_binaries)
 
     with open(join(QP_ROOT, "config", "build.ninja"), "w+") as f:
         f.write(header)

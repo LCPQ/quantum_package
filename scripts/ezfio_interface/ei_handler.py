@@ -44,6 +44,8 @@ Optional:
     size: <str>         The size information.
                             (by default is one)
                             Example : 1, =sum(ao_num); (ao_num,3)
+                            ATTENTION : The module and the value are separed by a "." not a "_".
+                            For exemple (determinants.n_det)
     ezfio_name: <str>   The name for the EZFIO lib
                              (by default is <provider_name>)
     ezfio_dir: <str>    Will be the folder of EZFIO.
@@ -228,6 +230,8 @@ def get_dict_config_file(module_obj):
         # pvd = provider
         pvd = section.lower()
 
+        d[pvd]["module"] = module_obj
+
         # Create the dictionary who containt the value per default
         d_default = {"ezfio_name": pvd,
                      "ezfio_dir": module_obj.lower,
@@ -255,7 +259,7 @@ def get_dict_config_file(module_obj):
             sys.exit(1)
 
         try:
-            interface = map(str.lower, config_file.get(section, "interface").split(","))
+            interface = [i.lower().strip() for i in config_file.get(section, "interface").split(",")]
         except ConfigParser.NoOptionError:
             error("doc", pvd, module_obj.path)
             sys.exit(1)
@@ -317,7 +321,7 @@ def create_ezfio_provider(dict_ezfio_cfg):
             ez_p.set_doc(dict_info['doc'])
             ez_p.set_ezfio_dir(dict_info['ezfio_dir'])
             ez_p.set_ezfio_name(dict_info['ezfio_name'])
-            ez_p.set_output("output_%s" % dict_info['ezfio_dir'])
+            ez_p.set_output("output_%s" % dict_info['module'].lower)
 
             # (nuclei.nucl_num,pseudo.klocmax) => (nucl_num,klocmax)
             ez_p.set_size(re.sub(r'\w+\.', "", dict_info['size']))
