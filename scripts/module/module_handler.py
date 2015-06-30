@@ -85,7 +85,7 @@ def get_l_module_descendant(d_child, l_module):
             except KeyError:
                 print >> sys.stderr, "`{0}` not submodule".format(module)
                 print >> sys.stderr, "Check the corresponding NEEDED_CHILDREN_MODULES"
-                sys.exit(1)
+                raise
 
     return list(set(l))
 
@@ -123,8 +123,12 @@ class ModuleHandler():
         d_child = self.dict_child
 
         for module_name in d_child:
-            d[module_name] = get_l_module_descendant(d_child,
-                                                     d_child[module_name])
+            try :
+                d[module_name] = get_l_module_descendant(d_child,
+                                                         d_child[module_name])
+            except KeyError:
+                print "Check NEEDED_CHILDREN_MODULES for {0}".format(module_name)
+                sys.exit(1)
 
         return d
 
