@@ -52,6 +52,10 @@ END_PROVIDER
     
     call davidson_diag(psi_det,CI_eigenvectors,CI_electronic_energy, &
         size(CI_eigenvectors,1),N_det,N_states_diag,N_int,output_determinants)
+    do j=1,N_states_diag
+      call get_s2_u0(psi_det,CI_eigenvectors(1,j),N_det,size(CI_eigenvectors,1),CI_eigenvectors_s2(j))
+    enddo
+
     
   else if (diag_algorithm == "Lapack") then
     
@@ -69,7 +73,8 @@ END_PROVIDER
     if (s2_eig) then
       i_state = 0
       do j=1,N_det
-        call get_s2_u0(psi_det,eigenvectors(1,j),N_det,N_det,s2)
+        call get_s2_u0(psi_det,eigenvectors(1,j),N_det,size(eigenvectors,1),s2)
+        print*,'s2 = ',s2
         if(dabs(s2-expected_s2).le.0.3d0)then
         i_state += 1
         do i=1,N_det

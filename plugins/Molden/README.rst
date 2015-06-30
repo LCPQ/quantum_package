@@ -35,6 +35,6 @@ Needed Modules
 
 .. image:: tree_dependency.png
 
-* `MOs <http://github.com/LCPQ/quantum_package/tree/master/src/MOs>`_
+* `MO_Basis <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 
