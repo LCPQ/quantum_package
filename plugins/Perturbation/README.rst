@@ -85,7 +85,7 @@ Documentation
   Undocumented
 
 
-`perturb_buffer_by_mono_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L791>`_
+`perturb_buffer_by_mono_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L161>`_
   Applly pertubration ``delta_rho_one_point`` to the buffer of determinants generated in the H_apply
   routine.
 
@@ -95,12 +95,12 @@ Documentation
   routine.
 
 
-`perturb_buffer_by_mono_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L161>`_
+`perturb_buffer_by_mono_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L686>`_
   Applly pertubration ``epstein_nesbet`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L266>`_
+`perturb_buffer_by_mono_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L791>`_
   Applly pertubration ``epstein_nesbet_2x2`` to the buffer of determinants generated in the H_apply
   routine.
 
@@ -120,17 +120,17 @@ Documentation
   routine.
 
 
-`perturb_buffer_by_mono_h_core <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L56>`_
+`perturb_buffer_by_mono_h_core <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L266>`_
   Applly pertubration ``h_core`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L686>`_
+`perturb_buffer_by_mono_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L56>`_
   Applly pertubration ``moller_plesset`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L740>`_
+`perturb_buffer_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L110>`_
   Applly pertubration ``delta_rho_one_point`` to the buffer of determinants generated in the H_apply
   routine.
 
@@ -140,12 +140,12 @@ Documentation
   routine.
 
 
-`perturb_buffer_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L110>`_
+`perturb_buffer_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L635>`_
   Applly pertubration ``epstein_nesbet`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L215>`_
+`perturb_buffer_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L740>`_
   Applly pertubration ``epstein_nesbet_2x2`` to the buffer of determinants generated in the H_apply
   routine.
 
@@ -165,12 +165,12 @@ Documentation
   routine.
 
 
-`perturb_buffer_h_core <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L5>`_
+`perturb_buffer_h_core <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L215>`_
   Applly pertubration ``h_core`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L635>`_
+`perturb_buffer_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L5>`_
   Applly pertubration ``moller_plesset`` to the buffer of determinants generated in the H_apply
   routine.
 

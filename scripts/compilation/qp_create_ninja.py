@@ -737,7 +737,7 @@ def create_build_ninja_module(path_module):
 
     l_string += ["build dummy_target: update_build_ninja_root", "",
                  "build all: make_all_binaries dummy_target", "",
-                 "build local: make_local_binaries dummy_target",
+                 "build local: make_local_binaries dummy_target", "",
                  "default local", "", "build clean: make_clean dummy_target",
                  ""]
 
@@ -767,7 +767,7 @@ def create_build_ninja_global(l_module):
                  "build all: make_all_binaries dummy_target",
                  "default all",
                  "",
-                 "build clean: make_clean",
+                 "build clean: make_clean dummy_target",
                  "", ]
 
     path_ninja_cur = join(QP_ROOT, "build.ninja")

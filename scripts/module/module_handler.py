@@ -219,7 +219,7 @@ if __name__ == '__main__':
 
     for module in l_module:
         if not is_module(module):
-            print "{0} is not a volide module. Abort".format(module)
+            print "{0} is not a valide module. Abort".format(module)
             print "No NEEDED_CHILDREN_MODULES in it"
             sys.exit(1)
 
@@ -237,8 +237,7 @@ if __name__ == '__main__':
 
         l_dir = ['IRPF90_temp', 'IRPF90_man']
         l_file = ["irpf90_entities", "tags", "irpf90.make",
-                  "Makefile", "Makefile.depend",
-                  "build.ninja", ".ninja_log", ".ninja_deps",
+                  "Makefile", "Makefile.depend", ".ninja_log", ".ninja_deps",
                   "ezfio_interface.irp.f"]
 
         for module in l_module:
