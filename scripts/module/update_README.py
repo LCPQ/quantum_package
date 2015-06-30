@@ -13,6 +13,24 @@ URL = "http://github.com/LCPQ/quantum_package/tree/master/src/"
 import os
 import subprocess
 from collections import namedtuple
+import sys
+
+"""
+NEED to call in a module
+First arg can be the root parent
+"""
+try:
+    ROOT_module = os.path.realpath(sys.argv[1])
+except:
+    ROOT_module = os.getcwd()
+
+if ROOT_module != os.getcwd():
+    change = True
+else:
+    change = False
+
+MODULE_NAME = os.path.basename(os.getcwd())
+
 
 header = """
 .. Do not edit this section. It was auto-generated from the
@@ -71,7 +89,8 @@ def update_needed(data):
 def extract_doc(item):
     """Extracts the documentation contained in IRPF90_man file"""
 
-    with open("IRPF90_man/%s.l" % (item), 'r') as f:
+    path = os.path.join(ROOT_module, "IRPF90_man/%s.l" % (item))
+    with open(path, 'r') as f:
         l_line = f.readlines()
 
     result = []
@@ -97,15 +116,24 @@ def update_documentation(data):
 
     # If the file does not exist, don't do anything
 
-    with open('tags', 'r') as f:
-        l_info = [IRP_info(*i.split()) for i in f.readlines()
-                  if "/" not in i.split()[1]]
+    path = os.path.join(ROOT_module, "tags")
+
+    with open(path, 'r') as f:
+        dump = f.readlines()
+
+    l_info = []
+    for i in dump:
+        name, f, ligne = i.split()
+
+        if not change and "/" not in i:
+            l_info.append(IRP_info(name, f, ligne))
+        elif change and MODULE_NAME in i:
+            l_info.append(IRP_info(name, f.split("/")[-1], ligne))
 
     l_line = []
-    module_name = os.path.basename(os.getcwd())
 
     for irp in l_info:
-        url = os.path.join(URL, module_name, irp.file)
+        url = os.path.join(URL, MODULE_NAME, irp.file)
         doc = extract_doc(irp.name)
 
         l_line += ["`{0} <{1}#L{2}>`_".format(irp.name, url, irp.line), doc,

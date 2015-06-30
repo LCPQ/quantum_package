@@ -30,7 +30,7 @@ subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label)
   double precision, allocatable  :: mo_coef_new(:,:), R(:,:),eigvalues(:)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: mo_coef_new, R
   
-  call write_time(output_mos)
+  call write_time(output_mo_basis)
   if (m /= mo_tot_num) then
     print *, irp_here, ': Error : m/= mo_tot_num'
     stop 1
@@ -40,21 +40,21 @@ subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label)
   
   call lapack_diag(eigvalues,R,matrix,size(matrix,1),size(matrix,2))
   integer :: i
-  write (output_mos,'(A)'), 'MOs are now **'//trim(label)//'**'
-  write (output_mos,'(A)'), ''
-  write (output_mos,'(A)'), 'Eigenvalues'
-  write (output_mos,'(A)'), '-----------'
-  write (output_mos,'(A)'), ''
-  write (output_mos,'(A)'), '======== ================'
+  write (output_mo_basis,'(A)'), 'MOs are now **'//trim(label)//'**'
+  write (output_mo_basis,'(A)'), ''
+  write (output_mo_basis,'(A)'), 'Eigenvalues'
+  write (output_mo_basis,'(A)'), '-----------'
+  write (output_mo_basis,'(A)'), ''
+  write (output_mo_basis,'(A)'), '======== ================'
   do i = 1, m
-   write (output_mos,'(I8,X,F16.10)'), i,eigvalues(i)
+   write (output_mo_basis,'(I8,X,F16.10)'), i,eigvalues(i)
   enddo
-  write (output_mos,'(A)'), '======== ================'
-  write (output_mos,'(A)'), ''
+  write (output_mo_basis,'(A)'), '======== ================'
+  write (output_mo_basis,'(A)'), ''
   
   call dgemm('N','N',ao_num,m,m,1.d0,mo_coef_new,size(mo_coef_new,1),R,size(R,1),0.d0,mo_coef,size(mo_coef,1))
   deallocate(mo_coef_new,R,eigvalues)
-  call write_time(output_mos)
+  call write_time(output_mo_basis)
   
   mo_label = label
   SOFT_TOUCH mo_coef mo_label
@@ -69,7 +69,7 @@ subroutine mo_as_eigvectors_of_mo_matrix_sort_by_observable(matrix,observable,n,
   integer,allocatable :: iorder(:)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: mo_coef_new, R
   
-  call write_time(output_mos)
+  call write_time(output_mo_basis)
   if (m /= mo_tot_num) then
     print *, irp_here, ': Error : m/= mo_tot_num'
     stop 1
@@ -120,21 +120,21 @@ subroutine mo_as_eigvectors_of_mo_matrix_sort_by_observable(matrix,observable,n,
    print*,''
   enddo
 
-  write (output_mos,'(A)'), 'MOs are now **'//trim(label)//'**'
-  write (output_mos,'(A)'), ''
-  write (output_mos,'(A)'), 'Eigenvalues'
-  write (output_mos,'(A)'), '-----------'
-  write (output_mos,'(A)'), ''
-  write (output_mos,'(A)'), '======== ================'
+  write (output_mo_basis,'(A)'), 'MOs are now **'//trim(label)//'**'
+  write (output_mo_basis,'(A)'), ''
+  write (output_mo_basis,'(A)'), 'Eigenvalues'
+  write (output_mo_basis,'(A)'), '-----------'
+  write (output_mo_basis,'(A)'), ''
+  write (output_mo_basis,'(A)'), '======== ================'
   do i = 1, m
-   write (output_mos,'(I8,X,F16.10)'), i,eigvalues(i)
+   write (output_mo_basis,'(I8,X,F16.10)'), i,eigvalues(i)
   enddo
-  write (output_mos,'(A)'), '======== ================'
-  write (output_mos,'(A)'), ''
+  write (output_mo_basis,'(A)'), '======== ================'
+  write (output_mo_basis,'(A)'), ''
   
   call dgemm('N','N',ao_num,m,m,1.d0,mo_coef_new,size(mo_coef_new,1),R,size(R,1),0.d0,mo_coef,size(mo_coef,1))
   deallocate(mo_coef_new,R,eigvalues)
-  call write_time(output_mos)
+  call write_time(output_mo_basis)
   
   mo_label = label
   SOFT_TOUCH mo_coef mo_label
@@ -168,12 +168,12 @@ subroutine mo_sort_by_observable(observable,label)
    enddo
   enddo
 
-  write (output_mos,'(A)'), 'MOs are now **'//trim(label)//'**'
-  write (output_mos,'(A)'), ''
+  write (output_mo_basis,'(A)'), 'MOs are now **'//trim(label)//'**'
+  write (output_mo_basis,'(A)'), ''
 
   
   deallocate(mo_coef_new,value)
-! call write_time(output_mos)
+! call write_time(output_mo_basis)
   
   mo_label = label
   SOFT_TOUCH mo_coef mo_label
