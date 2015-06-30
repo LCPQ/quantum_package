@@ -257,7 +257,7 @@ def ninja_ezfio_rule():
 
     install_lib_ezfio = join(QP_ROOT, 'install', 'EZFIO', "lib", "libezfio.a")
     l_cmd = ["cd {0}".format(QP_EZFIO)] + l_flag
-    l_cmd += ["ninja && ln -sf {0} {1}".format(install_lib_ezfio, EZFIO_LIB)]
+    l_cmd += ["rm -f make.config ; ninja && ln -sf {0} {1}".format(install_lib_ezfio, EZFIO_LIB)]
 
     l_string = ["rule build_ezfio",
                 "   command = {0}".format(" ; ".join(l_cmd)),

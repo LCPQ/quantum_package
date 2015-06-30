@@ -131,7 +131,7 @@ def get_type_dict():
     fancy_type['bool'] = Type(None, "bool", "logical")
 
     fancy_type['character*(32)'] = Type(None, "string", "character*(32)")
-    fancy_type['character*(64)'] = Type(None, "string", "character*(68)")
+    fancy_type['character*(64)'] = Type(None, "string", "character*(64)")
     fancy_type['character*(256)'] = Type(None, "string", "character*(256)")
 
     # ~#~#~#~#~#~#~#~ #
