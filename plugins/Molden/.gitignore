@@ -1,20 +1,18 @@
-#
-# Do not modify this file. Add your ignored files to the gitignore
-# (without the dot at the beginning) file.
-#
+# Automatically created by /home/razoa/quantum_package/scripts/module/module_handler.py 
 IRPF90_temp
 IRPF90_man
-irpf90.make
-tags
-Makefile.depend
 irpf90_entities
-build.ninja
+tags
+irpf90.make
+Makefile
+Makefile.depend
 .ninja_log
 .ninja_deps
-AOs
-MOs
-Electrons
-Utils
-Nuclei
+ezfio_interface.irp.f
 Ezfio_files
+MO_Basis
+Utils
+AO_Basis
+Electrons
+Nuclei
 print_mo

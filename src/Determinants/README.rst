@@ -241,7 +241,7 @@ Documentation
   Computes <i|H|i>
 
 
-`diagonalize_ci <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI.irp.f#L100>`_
+`diagonalize_ci <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI.irp.f#L105>`_
   Replace the coefficients of the CI states by the coefficients of the
   eigenstates of the CI matrix
 
