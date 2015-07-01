@@ -59,6 +59,9 @@ subroutine run_mrcc
     call diagonalize_ci_dressed
     E_new = sum(ci_energy_dressed)
     delta_E = dabs(E_new - E_old)
+    if (iteration > 20) then
+      exit
+    endif
   enddo
   call write_double(6,ci_energy_dressed(1),"Final MRCC energy")
   call ezfio_set_mrcc_energy(ci_energy_dressed(1))
