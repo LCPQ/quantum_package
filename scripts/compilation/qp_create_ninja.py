@@ -333,7 +333,7 @@ def ninja_gitignore_rule():
             "  description = Create gitignore for $module_rel", ""]
 
 
-def ninja_gitignore_build(path_module, l_symlink, d_binaries):
+def ninja_gitignore_build(path_module, d_binaries):
     """
     """
 
@@ -342,9 +342,9 @@ def ninja_gitignore_build(path_module, l_symlink, d_binaries):
     l_b = [i.abs for i in d_binaries[path_module]]
     l_sym = [i.destination for i in l_symlink]
 
-    l_string = ["build {0}: build_gitignore {1} || {2}".format(path_gitignore,
-                                                               " ".join(l_b),
-                                                               " ".join(l_sym)),
+    l_string = ["build {0}: build_gitignore {1} || l_symlink_{2}".format(path_gitignore,
+                                                                         " ".join(l_b),
+                                                                         path_module.rel),
                 "   module_rel = {0}".format(path_module.rel),
                 ""]
 
@@ -519,10 +519,12 @@ def ninja_readme_build(path_module, d_irp, dict_root_path):
     path_readme = join(path_module.abs, "README.rst")
     root_module = dict_root_path[module]
 
-    l_depend = d_irp[path_module]["l_depend"] + [join(root_module.abs, "tags")]
+    tags = join(root_module.abs, "tags")
+    tree = join(root_module.abs, "tree_dependency.png")
 
-    l_string = ["build {0}: build_readme {1}".format(path_readme,
-                                                     " ".join(l_depend)),
+    l_string = ["build {0}: build_readme {1} {2}".format(path_readme,
+                                                         tags,
+                                                         tree),
                 "   module_root = {0}".format(root_module.abs),
                 "   module_abs = {0}".format(path_module.abs),
                 "   module_rel = {0}".format(path_module.rel), ""]
@@ -737,7 +739,7 @@ def create_build_ninja_module(path_module):
 
     l_string += ["build dummy_target: update_build_ninja_root", "",
                  "build all: make_all_binaries dummy_target", "",
-                 "build local: make_local_binaries dummy_target",
+                 "build local: make_local_binaries dummy_target", "",
                  "default local", "", "build clean: make_clean dummy_target",
                  ""]
 
@@ -767,7 +769,7 @@ def create_build_ninja_global(l_module):
                  "build all: make_all_binaries dummy_target",
                  "default all",
                  "",
-                 "build clean: make_clean",
+                 "build clean: make_clean dummy_target",
                  "", ]
 
     path_ninja_cur = join(QP_ROOT, "build.ninja")
@@ -903,7 +905,7 @@ if __name__ == "__main__":
         l_string += ninja_binaries_build(module_to_compile, l_children,
                                          d_binaries)
 
-        l_string += ninja_gitignore_build(module_to_compile, l_symlink, d_binaries)
+        l_string += ninja_gitignore_build(module_to_compile, d_binaries)
 
     with open(join(QP_ROOT, "config", "build.ninja"), "w+") as f:
         f.write(header)
