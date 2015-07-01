@@ -48,7 +48,7 @@ subroutine run_mrcc
   E_new = 0.d0
   delta_E = 1.d0
   iteration = 0
-  do while (delta_E > 1.d-8)
+  do while (delta_E > 1.d-10)
     iteration += 1
     print *,  '===========================' 
     print *,  'MRCC Iteration', iteration

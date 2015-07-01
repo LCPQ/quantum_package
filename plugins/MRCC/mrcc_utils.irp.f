@@ -1,35 +1,78 @@
-
-BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
+ BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
 &BEGIN_PROVIDER [ double precision, lambda_pert, (N_states,psi_det_size) ] 
  implicit none
  BEGIN_DOC
  ! cm/<Psi_0|H|D_m>
  END_DOC
  integer :: i,k
- double precision :: ihpsi(N_states), hij(N_states) 
+ double precision :: ihpsi(N_states), hii
+!integer :: icount 
+!integer :: icount_manu
+!integer :: icount_gregoire
  
+!icount = 0
+!icount_manu = 0
+!icount_gregoire = 0
+ 
+
+   k = 1
+   print*,'psi_cas_energy_diagonalized = ', psi_cas_energy_diagonalized(k) + nuclear_repulsion
 do i=1,N_det_non_cas
+   ! Questions : psi_cas_coef normalized or not ?
    call i_h_psi(psi_non_cas(1,1,i), psi_cas, psi_cas_coef, N_int, N_det_cas, &
      size(psi_cas_coef,1), n_states, ihpsi)
-   call i_h_j(psi_non_cas(1,1,i),psi_non_cas(1,1,i),N_int,hij)
+   call i_h_j(psi_non_cas(1,1,i),psi_non_cas(1,1,i),N_int,hii)
    do k=1,N_states
-   lambda_pert(k,i) = 1d0 / (CI_electronic_energy(k)-hij(k))
+
+   lambda_pert(k,i) = 0.d0
+   lambda_mrcc(k,i) = 0.d0
+   lambda_pert(k,i) = 1.d0 / (psi_cas_energy_diagonalized(k)-hii)
    lambda_mrcc(k,i) = psi_non_cas_coef(i,k)/ihpsi(k)
-     if ((lambda_mrcc(k,i)/lambda_pert(k,i))<0.d0 .or. (lambda_mrcc(k,i)/lambda_pert(k,i))>4.d0) then
-       lambda_mrcc(k,i) = lambda_pert(k,i)
+   lambda_mrcc(k,i) = lambda_pert(k,i)
+   cycle
+   if (dabs(psi_non_cas_coef(i,k)).le.1.d-6) then
+     cycle
+   else
+     lambda_pert(k,i) = 1.d0 / (psi_cas_energy_diagonalized(k)-hii)
+     lambda_mrcc(k,i) = psi_non_cas_coef(i,k)/ihpsi(k)
+     lambda_mrcc(k,i) = lambda_pert(k,i)
+     cycle
+!    icount = icount+1
+     if (dabs(ihpsi(k)).le.1.d-6) then
+       lambda_pert(k,i) = 0.d0
+       lambda_mrcc(k,i) = 0.d0
+!      icount_manu = icount_manu+1
+       cycle
      else
-       if ((lambda_mrcc(k,i)/lambda_pert(k,i))<0.1d0 .or. (lambda_mrcc(k,i)/lambda_pert(k,i))>=0d0) then
-       lambda_mrcc(k,i) = lambda_mrcc(k,i)*((cos((lambda_mrcc(k,i)/lambda_pert(k,i))*3.141592653589793d0/0.1d0+3.141592653589793d0)+1d0)/2.d0) &
-                          + lambda_pert(k,i)*(1.d0-((cos((lambda_mrcc(k,i)/lambda_pert(k,i))*3.141592653589793d0/0.1d0+3.141592653589793d0)+1.d0)/2.d0))
-       elseif ((lambda_mrcc(k,i)/lambda_pert(k,i))<=4.0d0 .or. (lambda_mrcc(k,i)/lambda_pert(k,i))>2.0d0) then
-       lambda_mrcc(k,i) = lambda_mrcc(k,i)*(1.d0-(cos(abs(2.d0-(lambda_mrcc(k,i)/lambda_pert(k,i)))*3.141592653589793d0/2.0d0+3.141592653589793d0)+1.d0)/2d0) &
-                          + lambda_pert(k,i)*((cos(abs(2.d0-(lambda_mrcc(k,i)/lambda_pert(k,i)))*3.141592653589793d0/2.0d0+3.141592653589793d0)+1.d0)/2.d0)
-       else
-       lambda_mrcc(k,i) = lambda_mrcc(k,i)
-       endif
-     endif
+        if ((lambda_mrcc(k,i)*lambda_pert(k,i))<0.d0)then
+          lambda_mrcc(k,i) = lambda_pert(k,i)
+        else if ((lambda_mrcc(k,i)/lambda_pert(k,i))>1.2d0) then
+          lambda_mrcc(k,i) = lambda_pert(k,i)
+!         icount_gregoire = icount_gregoire + 1
+        else
+          if ((lambda_mrcc(k,i)/lambda_pert(k,i))<0.1d0 .or. (lambda_mrcc(k,i)/lambda_pert(k,i))>=0d0) then
+          lambda_mrcc(k,i) = lambda_mrcc(k,i)*((cos((lambda_mrcc(k,i)/lambda_pert(k,i))*3.141592653589793d0/0.1d0+3.141592653589793d0)+1d0)/2.d0) &
+                             + lambda_pert(k,i)*(1.d0-((cos((lambda_mrcc(k,i)/lambda_pert(k,i))*3.141592653589793d0/0.1d0+3.141592653589793d0)+1.d0)/2.d0))
+          elseif ((lambda_mrcc(k,i)/lambda_pert(k,i))<=1.2d0 .or. (lambda_mrcc(k,i)/lambda_pert(k,i))>1.0d0) then
+          lambda_mrcc(k,i) = lambda_mrcc(k,i)*(1.d0-(cos(abs(2.d0-(lambda_mrcc(k,i)/lambda_pert(k,i)))*3.141592653589793d0/0.2d0+3.141592653589793d0)+1.d0)/2d0) &
+                             + lambda_pert(k,i)*((cos(abs(2.d0-(lambda_mrcc(k,i)/lambda_pert(k,i)))*3.141592653589793d0/0.2d0+3.141592653589793d0)+1.d0)/2.d0)
+!           icount_gregoire = icount_gregoire + 1
+          endif
+        endif
+      endif
+    endif
    enddo
  enddo
+!print *, 'icount, icount_manu, icount_gregoire'
+!print *, icount, icount_manu, icount_gregoire
+
+
+!do i=1,N_det_non_cas
+! write(33,*) float(lambda_mrcc(1,i)), float(lambda_pert(1,i))
+!enddo
+!write(33,*) ''
+!write(33,*) ''
+
 END_PROVIDER
 
 
@@ -71,6 +114,23 @@ BEGIN_PROVIDER [ double precision, delta_ij, (N_det,N_det,N_states) ]
     enddo
    enddo
  endif
+ do i = 1, N_det
+  do j = 1, N_det
+   do m = 1, N_states
+    if(isnan(delta_ij(j,i,m)))then
+    delta_ij(j,i,m) = 0.d0
+    endif
+   enddo
+  enddo
+ enddo
+
+!integer :: i_I
+!do i_I = 1, N_det_cas
+! print*,''
+! print*,'i_I = ',i_I
+! print*,'psi_coef_cas = ',psi_coef(idx_cas(i_I), 1)
+! print*,'delta_ij ',delta_ij(idx_cas(i_I),idx_cas(i_I),1)
+!enddo
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det) ]
