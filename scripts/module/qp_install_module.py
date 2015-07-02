@@ -23,10 +23,10 @@ try:
     from module_handler import get_l_module_descendant
     from update_README import Doc_key, Needed_key
     from qp_path import QP_SRC, QP_PLUGINS
-
 except ImportError:
-    print "source .quantum_package.rc"
-    raise
+    print "Please check if you have source the .quantum_package.rc"
+    print "(`source .quantum_package.rc`)"
+    print sys.exit(1)
 
 
 def save_new_module(path, l_child):
