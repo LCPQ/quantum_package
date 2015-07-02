@@ -43,7 +43,8 @@ class H_apply(object):
     self.perturbation = None
 
    #s["omp_parallel"]     = """!$OMP PARALLEL DEFAULT(NONE)          &
-    s["omp_parallel"]     = """!$OMP PARALLEL DEFAULT(SHARED)        &
+    s["omp_parallel"]     = """ PROVIDE elec_num_tab
+        !$OMP PARALLEL DEFAULT(SHARED)        &
         !$OMP PRIVATE(i,j,k,l,keys_out,hole,particle,                &
         !$OMP  occ_particle,occ_hole,j_a,k_a,other_spin,             &
         !$OMP  hole_save,ispin,jj,l_a,ib_jb_pairs,array_pairs,       &

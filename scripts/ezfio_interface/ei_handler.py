@@ -239,13 +239,13 @@ def get_dict_config_file(module_obj):
 
         # Check if type is avalaible
         try:
-            type_ = config_file.get(section, "type")
+            type_ = config_file.get(section, "type").strip()
         except ConfigParser.NoOptionError:
             error("type", pvd, module_obj.path)
             sys.exit(1)
 
         if type_ not in type_dict:
-            print "{0} not avalaible. Choose in:".format(type_)
+            print "{0} not avalaible. Choose in:".format(type_).strip()
             print ", ".join(sorted([i for i in type_dict]))
             sys.exit(1)
         else:
@@ -279,13 +279,16 @@ def get_dict_config_file(module_obj):
                     d[pvd][option] = d_default[option]
 
         # If interface is input we need a default value information
-        if "ocaml" in d[pvd]["interface"]:
-            try:
-                default_raw = config_file.get(section, "default")
-            except ConfigParser.NoOptionError:
+
+        try:
+            default_raw = config_file.get(section, "default")
+        except ConfigParser.NoOptionError:
+            if "ocaml" in d[pvd]["interface"]:
                 error("default", pvd, module_obj.path)
                 sys.exit(1)
-
+            else:
+                pass
+        else:
             try:
                 d[pvd]["default"] = is_bool(default_raw)
             except TypeError:
@@ -435,13 +438,18 @@ def create_ezfio_stuff(dict_ezfio_cfg, config_or_default="config"):
         # It is the last so we don't need to right align it
         str_size = size_format_to_ezfio(size_raw) if size_raw else ""
 
+        if "default" in provider_info and provider_info["default"].fortran.startswith("="):
+            str_default = provider_info["default"].fortran.replace('.', '_')
+        else:
+            str_default = ""
+
         # Get the string in to good format (left align and co)
         str_name = str_name_format(name_raw)
         str_fortran_type = str_type_format(fortran_type_raw)
 
         # Return the string
         if config_or_default == "config":
-            s = "  {0} {1} {2}".format(str_name, str_fortran_type, str_size)
+            s = "  {0} {1} {2} {3}".format(str_name, str_fortran_type, str_size, str_default)
         elif config_or_default == "default":
             try:
                 str_value = provider_info["default"].ocaml

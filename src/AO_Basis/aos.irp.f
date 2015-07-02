@@ -1,17 +1,10 @@
- BEGIN_PROVIDER [ integer, ao_num ]
-&BEGIN_PROVIDER [ integer, ao_num_align ]
+BEGIN_PROVIDER [ integer, ao_num_align ]
    implicit none
    
    BEGIN_DOC
-   ! Number of atomic orbitals
+   ! Number of atomic orbitals align
    END_DOC
    
-   ao_num = -1
-   PROVIDE ezfio_filename
-   call ezfio_get_ao_basis_ao_num(ao_num)
-   if (ao_num <= 0) then
-     stop 'Number of contracted gaussians should be > 0'
-   endif
    integer                        :: align_double
    ao_num_align = align_double(ao_num)
 END_PROVIDER
