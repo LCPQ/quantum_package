@@ -605,10 +605,6 @@ Documentation
   Undocumented
 
 
-`prog_save_casino <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_for_casino.irp.f#L266>`_
-  Undocumented
-
-
 `psi_average_norm_contrib <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L273>`_
   Contribution of determinants to the state-averaged density
 
@@ -813,10 +809,6 @@ Documentation
 
 `s_z2_sz <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/s2.irp.f#L37>`_
   z component of the Spin
-
-
-`save_casino <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_for_casino.irp.f#L1>`_
-  Undocumented
 
 
 `save_natorb <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_natorb.irp.f#L1>`_
