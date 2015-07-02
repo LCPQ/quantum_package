@@ -367,7 +367,7 @@ def create_ezfio_stuff(dict_ezfio_cfg, config_or_default="config"):
 
         size_raw = str(size_raw)
         if size_raw.startswith('='):
-            size_convert = size_raw
+            size_convert = size_raw.replace('.', '_')
         else:
             size_raw = provider_info["size"].translate(None, "()")
             size_raw = size_raw.replace('.', '_')
