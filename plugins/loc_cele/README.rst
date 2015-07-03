@@ -19,10 +19,5 @@ Needed Modules
 
 .. image:: tree_dependency.png
 
-* `AO_Basis <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis>`_
-* `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_
-* `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
 * `MO_Basis <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis>`_
-* `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
-* `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
 

@@ -470,8 +470,10 @@ def create_ninja_and_rc(l_installed):
                                    "qp_create_ninja.py")
 
     l = [qp_create_ninja, "create"] + sys.argv[1:]
+
     try:
-        subprocess.check_call(" ".join(l), shell=True,stderr="/dev/null")
+        with open('/dev/null', 'w') as dnull:
+            subprocess.check_call(" ".join(l), shell=True,stderr=dnull)
     except:
         print "[ FAIL ]"
         print "Check the valididy of the config file provided ({0})".format(sys.argv[1])
