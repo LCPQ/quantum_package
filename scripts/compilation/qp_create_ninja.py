@@ -520,11 +520,14 @@ def ninja_readme_build(path_module, d_irp, dict_root_path):
     root_module = dict_root_path[module]
 
     tags = join(root_module.abs, "tags")
+    str_depend = " ".join(d_irp[path_module]["l_depend"])
+
     tree = join(root_module.abs, "tree_dependency.png")
 
-    l_string = ["build {0}: build_readme {1} {2}".format(path_readme,
-                                                         tags,
-                                                         tree),
+    l_string = ["build {0}: build_readme {1} {2} {3}".format(path_readme,
+                                                             tags,
+                                                             str_depend,
+                                                             tree),
                 "   module_root = {0}".format(root_module.abs),
                 "   module_abs = {0}".format(path_module.abs),
                 "   module_rel = {0}".format(path_module.rel), ""]

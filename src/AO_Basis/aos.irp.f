@@ -1,85 +1,23 @@
- BEGIN_PROVIDER [ integer, ao_num ]
-&BEGIN_PROVIDER [ integer, ao_num_align ]
+BEGIN_PROVIDER [ integer, ao_num_align ]
    implicit none
    
    BEGIN_DOC
-   ! Number of atomic orbitals
+   ! Number of atomic orbitals align
    END_DOC
    
-   ao_num = -1
-   PROVIDE ezfio_filename
-   call ezfio_get_ao_basis_ao_num(ao_num)
-   if (ao_num <= 0) then
-     stop 'Number of contracted gaussians should be > 0'
-   endif
    integer                        :: align_double
    ao_num_align = align_double(ao_num)
-END_PROVIDER
- 
-BEGIN_PROVIDER [ integer, ao_power, (ao_num_align,3) ]
-   implicit none
-   BEGIN_DOC
-   ! Powers of x,y and z read from input
-   END_DOC
-   PROVIDE ezfio_filename
-   
-   integer                        :: i,j,k
-   integer, allocatable           :: ibuffer(:,:)
-   allocate ( ibuffer(ao_num,3) )
-   ibuffer = 0
-   call ezfio_get_ao_basis_ao_power(ibuffer)
-   ao_power = 0
-   do j = 1, 3
-     do i = 1, ao_num
-       ao_power(i,j) = ibuffer(i,j)
-     enddo
-   enddo
-   deallocate(ibuffer)
-   
-END_PROVIDER
+END_PROVIDER 
 
-BEGIN_PROVIDER [ double precision, ao_expo, (ao_num_align,ao_prim_num_max) ]
-  implicit none
-  BEGIN_DOC
-  ! AO Exponents read from input
-  END_DOC
-  PROVIDE ezfio_filename
-  
-  double precision, allocatable  :: buffer(:,:)
-  allocate ( buffer(ao_num,ao_prim_num_max) )
-  integer                        :: i,j,k
-  ao_expo  = 0.d0
-  buffer = 0.d0
-  call ezfio_get_ao_basis_ao_expo(buffer)
-  do j = 1, ao_prim_num_max
-    do i = 1, ao_num
-      ao_expo(i,j) = buffer(i,j)
-    enddo
-  enddo
-  deallocate(buffer)
-END_PROVIDER
-
-BEGIN_PROVIDER [ double precision, ao_coef, (ao_num_align,ao_prim_num_max) ]
-  implicit none
-  BEGIN_DOC
-  ! AO Coefficients, read from input. Those should not be used directly, as
-  ! the MOs are expressed on the basis of **normalized** AOs.
-  END_DOC
-  PROVIDE ezfio_filename
-  
-  double precision, allocatable  :: buffer(:,:)
-  allocate ( buffer(ao_num,ao_prim_num_max) )
-  integer                        :: i,j,k
-  ao_coef  = 0.d0
-  buffer = 0.d0
-  call ezfio_get_ao_basis_ao_coef(buffer)
-  do j = 1, ao_prim_num_max
-    do i = 1, ao_num
-      ao_coef(i,j) = buffer(i,j)
-    enddo
-  enddo
-  deallocate(buffer)
-END_PROVIDER
+ BEGIN_PROVIDER [ integer, ao_prim_num_max ]
+&BEGIN_PROVIDER [ integer, ao_prim_num_max_align ]
+ implicit none
+ ao_prim_num_max = 0
+ PROVIDE ezfio_filename
+ call ezfio_get_ao_basis_ao_prim_num_max(ao_prim_num_max)
+ integer :: align_double
+ ao_prim_num_max_align = align_double(ao_prim_num_max)
+ END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, ao_coef_normalized, (ao_num_align,ao_prim_num_max) ]
   implicit none
@@ -158,7 +96,6 @@ BEGIN_PROVIDER [ double precision, ao_expo_ordered_transp, (ao_prim_num_max_alig
   
 END_PROVIDER
 
-
  BEGIN_PROVIDER [ integer, ao_l, (ao_num) ]
 &BEGIN_PROVIDER [ character*(128), ao_l_char, (ao_num) ]
  implicit none
@@ -172,48 +109,16 @@ END_PROVIDER
  enddo
 END_PROVIDER
 
-
-
-BEGIN_PROVIDER [ integer, ao_prim_num, (ao_num_align) ]
+BEGIN_PROVIDER [ integer, ao_prim_num_max_align ]
  implicit none
-
  BEGIN_DOC
-! Number of primitives per atomic orbital
+! Number of primitives per atomic orbital aligned
  END_DOC
 
- ao_prim_num = 0
- PROVIDE ezfio_filename
- call ezfio_get_ao_basis_ao_prim_num(ao_prim_num)
- integer :: i
- character*(80) :: message
- do i=1,ao_num
-  if (ao_prim_num(i) <= 0) then
-   write(message,'(A,I6,A)') 'Number of primitives of contraction ',i,' should be > 0'
-   print *,  message
-   stop
-  endif
- enddo
-
-END_PROVIDER
-
- BEGIN_PROVIDER [ integer, ao_prim_num_max ]
-&BEGIN_PROVIDER [ integer, ao_prim_num_max_align ]
- implicit none
- ao_prim_num_max = 0
- PROVIDE ezfio_filename
- call ezfio_get_ao_basis_ao_prim_num_max(ao_prim_num_max)
  integer :: align_double
  ao_prim_num_max_align = align_double(ao_prim_num_max)
- END_PROVIDER
-
-BEGIN_PROVIDER [ integer, ao_nucl, (ao_num)]
- BEGIN_DOC
-! Index of the nuclei on which the ao is centered
- END_DOC
- implicit none
- PROVIDE ezfio_filename
- call ezfio_get_ao_basis_ao_nucl(ao_nucl)
 END_PROVIDER
+
 
 BEGIN_PROVIDER [ character*(128), l_to_charater, (0:4)]
  BEGIN_DOC
@@ -399,13 +304,3 @@ BEGIN_PROVIDER [ character*(4), ao_l_char_space, (ao_num) ]
    ao_l_char_space(i) = give_ao_character_space
  enddo
 END_PROVIDER
-
-BEGIN_PROVIDER [ character*(32), ao_md5 ]
- BEGIN_DOC
-! MD5 key characteristic of the AO basis
- END_DOC
- implicit none
- PROVIDE ezfio_filename
- call ezfio_get_ao_basis_ao_md5(ao_md5)
-END_PROVIDER
-

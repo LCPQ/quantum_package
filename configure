@@ -72,8 +72,7 @@ path_github = {"head": "http://github.com/", "tail": "archive/master.tar.gz"}
 
 ocaml = Info(
     url='http://raw.github.com/ocaml/opam/master/shell/opam_installer.sh',
-    description=
-    ' Ocaml, Opam and the Core library (it will take some time roughly 20min)',
+    description=' Ocaml, Opam and the Core library (it will take some time roughly 20min)',
     default_path=join(QP_ROOT_BIN, "opam"))
 
 m4 = Info(
@@ -416,10 +415,8 @@ def create_ninja_and_rc(l_installed):
 
 """
 
-    d_print = {
-        "qp_root": "Creating quantum_package.rc...",
-        "build": "Creating build.ninja..."
-    }
+    d_print = {"qp_root": "Creating quantum_package.rc...",
+               "build": "Creating build.ninja..."}
 
     length = max(map(len, d_print.values()))
 
@@ -473,10 +470,16 @@ def create_ninja_and_rc(l_installed):
                                    "qp_create_ninja.py")
 
     l = [qp_create_ninja, "create"] + sys.argv[1:]
+
     try:
-        subprocess.check_call(" ".join(l), shell=True)
+        with open('/dev/null', 'w') as dnull:
+            subprocess.check_call(" ".join(l), shell=True,stderr=dnull)
     except:
-        raise
+        print "[ FAIL ]"
+        print "Check the valididy of the config file provided ({0})".format(sys.argv[1])
+        print "Exit..."
+        sys.exit(1)
+
     else:
         print "[  OK  ]"
 
