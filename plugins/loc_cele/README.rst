@@ -8,7 +8,7 @@ Documentation
   This program performs a localization of the active orbitals
   of a CASSCF wavefunction, reading the orbitals from a RASORB
   file of molcas.
-  id1=max number of MO in a given symmetry.
+  id1=max is the number of MO in a given symmetry.
 
 Needed Modules
 ==============
