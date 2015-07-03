@@ -19,7 +19,10 @@ try:
     from read_compilation_cfg import get_compilation_option
     from docopt import docopt
 except ImportError:
-    f = os.path.realpath(os.path.join(os.path.dirname(__file__),"..","..","quantum_package.rc"))
+    f = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                      "..",
+                                      "..",
+                                      "quantum_package.rc"))
     print """
 Error:
  source %s
