@@ -18,7 +18,7 @@ MLIFILES=$(wildcard *.mli)
 ALL_TESTS=$(patsubst %.ml,%.byte,$(wildcard test_*.ml))
 ALL_EXE=$(patsubst %.ml,%.native,$(wildcard qp_*.ml)) qp_edit.native
 
-.PHONY: executables default
+.PHONY: executables default remake_executables
 
 
 default: $(ALL_TESTS) $(ALL_EXE) .gitignore
@@ -34,7 +34,7 @@ default: $(ALL_TESTS) $(ALL_EXE) .gitignore
 
 executables: $(QP_ROOT)/data/executables
 
-$(QP_ROOT)/data/executables:
+$(QP_ROOT)/data/executables: remake_executables
 	$(QP_ROOT)/scripts/module/create_executables_list.sh
 
 external_libs:

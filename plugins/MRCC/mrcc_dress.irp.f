@@ -138,7 +138,11 @@ subroutine mrcc_dress(delta_ij_,Ndet,i_generator,n_selected,det_buffer,Nint,ipro
          do i_state=1,N_states
            delta_ij_(idx_non_cas(k_sd),idx_cas(i_I),i_state) += dIa_hla(i_state,k_sd)
            delta_ij_(idx_cas(i_I),idx_non_cas(k_sd),i_state) += dIa_hla(i_state,k_sd)
-           delta_ij_(idx_cas(i_I),idx_cas(i_I),i_state) -= dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_cas_coef(k_sd,i_state)
+           if(dabs(psi_cas_coef(i_I,i_state)).ge.5.d-5)then
+            delta_ij_(idx_cas(i_I),idx_cas(i_I),i_state) -= dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_cas_coef(k_sd,i_state)
+           else
+            delta_ij_(idx_cas(i_I),idx_cas(i_I),i_state)  = 0.d0
+           endif
          enddo
        enddo
        call omp_unset_lock( psi_cas_lock(i_I) )

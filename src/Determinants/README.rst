@@ -401,6 +401,10 @@ Documentation
   H matrix on the basis of the slater determinants defined by psi_det
 
 
+`h_matrix_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L115>`_
+  Undocumented
+
+
 `h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1071>`_
   Computes v_0 = H|u_0>
   .br
@@ -458,7 +462,7 @@ Documentation
   determinants. idx_cas gives the indice of the CAS determinant in psi_det.
 
 
-`idx_non_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L62>`_
+`idx_non_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L65>`_
   Set of determinants which are not part of the CAS, defined from the application
   of the CAS bitmask on the determinants.
   idx_non_cas gives the indice of the determinant in psi_det.
@@ -529,7 +533,7 @@ Documentation
   Max number of determinants in the wave function when you select for a given property
 
 
-`n_det_non_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L63>`_
+`n_det_non_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L66>`_
   Set of determinants which are not part of the CAS, defined from the application
   of the CAS bitmask on the determinants.
   idx_non_cas gives the indice of the determinant in psi_det.
@@ -605,10 +609,6 @@ Documentation
   Undocumented
 
 
-`prog_save_casino <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_for_casino.irp.f#L266>`_
-  Undocumented
-
-
 `psi_average_norm_contrib <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L273>`_
   Contribution of determinants to the state-averaged density
 
@@ -627,12 +627,20 @@ Documentation
   determinants. idx_cas gives the indice of the CAS determinant in psi_det.
 
 
-`psi_cas_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L47>`_
+`psi_cas_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L50>`_
   CAS determinants sorted to accelerate the search of a random determinant in the wave
   function.
 
 
-`psi_cas_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L46>`_
+`psi_cas_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L146>`_
+  Undocumented
+
+
+`psi_cas_energy_diagonalized <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L128>`_
+  Undocumented
+
+
+`psi_cas_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L49>`_
   CAS determinants sorted to accelerate the search of a random determinant in the wave
   function.
 
@@ -640,6 +648,10 @@ Documentation
 `psi_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L227>`_
   The wave function coefficients. Initialized with Hartree-Fock if the EZFIO file
   is empty
+
+
+`psi_coef_cas_diagonalized <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L127>`_
+  Undocumented
 
 
 `psi_coef_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L302>`_
@@ -710,24 +722,24 @@ Documentation
   the research of connected determinants.
 
 
-`psi_non_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L60>`_
+`psi_non_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L63>`_
   Set of determinants which are not part of the CAS, defined from the application
   of the CAS bitmask on the determinants.
   idx_non_cas gives the indice of the determinant in psi_det.
 
 
-`psi_non_cas_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L61>`_
+`psi_non_cas_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L64>`_
   Set of determinants which are not part of the CAS, defined from the application
   of the CAS bitmask on the determinants.
   idx_non_cas gives the indice of the determinant in psi_det.
 
 
-`psi_non_cas_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L100>`_
+`psi_non_cas_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L103>`_
   CAS determinants sorted to accelerate the search of a random determinant in the wave
   function.
 
 
-`psi_non_cas_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L99>`_
+`psi_non_cas_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L102>`_
   CAS determinants sorted to accelerate the search of a random determinant in the wave
   function.
 
@@ -813,10 +825,6 @@ Documentation
 
 `s_z2_sz <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/s2.irp.f#L37>`_
   z component of the Spin
-
-
-`save_casino <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_for_casino.irp.f#L1>`_
-  Undocumented
 
 
 `save_natorb <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_natorb.irp.f#L1>`_
