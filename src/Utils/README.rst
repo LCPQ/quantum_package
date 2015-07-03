@@ -431,7 +431,7 @@ Documentation
   .br
 
 
-`lapack_diag_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L310>`_
+`lapack_diag_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L313>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -453,7 +453,7 @@ Documentation
   .br
 
 
-`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L376>`_
+`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L379>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -597,7 +597,7 @@ Documentation
   to be in integer*8 format
 
 
-`set_zero_extra_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L433>`_
+`set_zero_extra_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L436>`_
   Undocumented
 
 

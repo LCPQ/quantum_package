@@ -42,6 +42,18 @@ Documentation
   Output file for CAS_SD
 
 
+`output_cisd <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L61>`_
+  Output file for CISD
+
+
+`output_cisd_sc2_selected <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L81>`_
+  Output file for CISD_SC2_selected
+
+
+`output_cisd_selected <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L101>`_
+  Output file for CISD_selected
+
+
 `output_cpu_time_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f#L2>`_
   Initial CPU and wall times when printing in the output files
 

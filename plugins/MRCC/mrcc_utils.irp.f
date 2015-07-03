@@ -5,52 +5,45 @@
  ! cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
  END_DOC
  integer :: i,k
- double precision :: ihpsi(N_states), hii
-
-do i=1,N_det_non_cas
-  call i_h_psi(psi_non_cas(1,1,i), psi_cas, psi_cas_coef, N_int, N_det_cas,&
-      size(psi_cas_coef,1), n_states, ihpsi)
-  call i_h_j(psi_non_cas(1,1,i),psi_non_cas(1,1,i),N_int,hii)
-  do k=1,N_states
-    
-    lambda_pert(k,i) = 1.d0 / (psi_cas_energy_diagonalized(k)-hii)
-    lambda_mrcc(k,i) = psi_non_cas_coef(i,k)/ihpsi(k)
-    if (dabs(ihpsi(k)).le.1.d-3) then
-      lambda_mrcc(k,i) = 1.d0 / (psi_cas_energy_diagonalized(k)-hii)
-    endif
-  enddo
-enddo
+ double precision               :: ihpsi(N_states), hii
+ 
+ do i=1,N_det_non_cas
+   call i_h_psi(psi_non_cas(1,1,i), psi_cas, psi_cas_coef, N_int, N_det_cas,&
+       size(psi_cas_coef,1), n_states, ihpsi)
+   call i_h_j(psi_non_cas(1,1,i),psi_non_cas(1,1,i),N_int,hii)
+   do k=1,N_states
+     lambda_pert(k,i) = 1.d0 / (psi_cas_energy_diagonalized(k)-hii)
+     if (dabs(ihpsi(k)).le.1.d-3) then
+       lambda_mrcc(k,i) = lambda_pert(k,i)
+     else
+       lambda_mrcc(k,i) = psi_non_cas_coef(i,k)/ihpsi(k)
+     endif
+   enddo
+ enddo
 
 END_PROVIDER
 
 
 
 
+!BEGIN_PROVIDER [ double precision, delta_ij_non_cas, (N_det_non_cas, N_det_non_cas,N_states) ]
+!implicit none
+!BEGIN_DOC
+!! Dressing matrix in SD basis
+!END_DOC
+!delta_ij_non_cas = 0.d0
+!call H_apply_mrcc_simple(delta_ij_non_cas,N_det_non_cas)
+!END_PROVIDER
 
-BEGIN_PROVIDER [ character*(32), dressing_type ]
- implicit none
- BEGIN_DOC
- ! [ Simple | MRCC ]
- END_DOC
- dressing_type = "MRCC"
-END_PROVIDER
-
-BEGIN_PROVIDER [ double precision, delta_ij_non_cas, (N_det_non_cas, N_det_non_cas,N_states) ]
- implicit none
- BEGIN_DOC
- ! Dressing matrix in SD basis
- END_DOC
- delta_ij_non_cas = 0.d0
- call H_apply_mrcc_simple(delta_ij_non_cas,N_det_non_cas)
-END_PROVIDER
-
-BEGIN_PROVIDER [ double precision, delta_ij, (N_det,N_det,N_states) ]
+ BEGIN_PROVIDER [ double precision, delta_ij, (N_det_cas,N_det_non_cas,N_states) ]
+&BEGIN_PROVIDER [ double precision, delta_ii, (N_det_cas,N_states) ]
  implicit none
  BEGIN_DOC
  ! Dressing matrix in N_det basis
  END_DOC
  integer :: i,j,m
  delta_ij = 0.d0
+<<<<<<< HEAD
  if (dressing_type == "MRCC") then
    call H_apply_mrcc(delta_ij,N_det)
  else if (dressing_type == "Simple") then
@@ -72,20 +65,34 @@ BEGIN_PROVIDER [ double precision, delta_ij, (N_det,N_det,N_states) ]
    enddo
  enddo
 
+=======
+ delta_ii = 0.d0
+ call H_apply_mrcc(delta_ij,delta_ii,N_det_cas,N_det_non_cas)
+>>>>>>> 12e81de1c7275076c25c223979f80c8facb506a3
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det) ]
+BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]
  implicit none
  BEGIN_DOC
  ! Dressed H with Delta_ij
  END_DOC
- integer                        :: i, j
- do j=1,N_det
-   do i=1,N_det
-     h_matrix_dressed(i,j) = h_matrix_all_dets(i,j) + delta_ij(i,j,1)
+ integer                        :: i, j,istate,ii,jj
+ do istate = 1,N_states
+   do j=1,N_det
+     do i=1,N_det
+       h_matrix_dressed(i,j,istate) = h_matrix_all_dets(i,j) 
+     enddo
    enddo
+   do ii = 1, N_det_cas
+     i =idx_cas(ii)
+     h_matrix_dressed(i,i,istate) += delta_ii(ii,istate)
+    do jj = 1, N_det_non_cas
+     j =idx_cas(jj)
+     h_matrix_dressed(i,j,istate) += delta_ij(ii,jj,istate)
+     h_matrix_dressed(j,i,istate) += delta_ij(ii,jj,istate)
+    enddo
+   enddo 
  enddo
-
 END_PROVIDER
 
 

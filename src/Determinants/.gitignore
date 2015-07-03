@@ -27,3 +27,5 @@ guess_doublet
 det_svd
 save_for_casino
 program_initial_determinants
+print_cas_energy
+print_s2
