@@ -13,6 +13,9 @@ use bitmasks
   logical                        :: good
   N_det_cas = 0
   do i=1,N_det
+    do l = 1, N_states
+     psi_cas_coef(i,l) = 0.d0
+    enddo
     do l=1,n_cas_bitmask
       good = .True.
       do k=1,N_int
@@ -108,6 +111,57 @@ END_PROVIDER
 
 END_PROVIDER
 
+
+BEGIN_PROVIDER [double precision, H_matrix_cas, (N_det_cas,N_det_cas)] 
+ implicit none
+ integer :: i,j
+ double precision :: hij
+  do i = 1, N_det_cas
+   do j = 1, N_det_cas
+    call i_H_j(psi_cas(1,1,i),psi_cas(1,1,j),N_int,hij) 
+    H_matrix_cas(i,j) = hij
+   enddo
+  enddo
+END_PROVIDER
+
+ BEGIN_PROVIDER [double precision, psi_coef_cas_diagonalized, (N_det_cas,N_states)]
+&BEGIN_PROVIDER [double precision, psi_cas_energy_diagonalized, (N_states)]
+ implicit none
+ integer :: i,j
+  double precision, allocatable  :: eigenvectors(:,:), eigenvalues(:)
+  allocate (eigenvectors(size(H_matrix_cas,1),N_det_cas))
+  allocate (eigenvalues(N_det_cas))
+  call lapack_diag(eigenvalues,eigenvectors,                       &
+      H_matrix_cas,size(H_matrix_cas,1),N_det_cas)
+  do i = 1, N_states
+   psi_cas_energy_diagonalized(i) = eigenvalues(i)
+   do j = 1, N_det_cas
+    psi_coef_cas_diagonalized(j,i) = eigenvectors(j,i)
+   enddo
+  enddo
+
+
+ END_PROVIDER
+
+ BEGIN_PROVIDER [double precision, psi_cas_energy, (N_states)]
+ implicit none
+ integer :: i,j,k
+ double precision :: hij,norm,u_dot_v
+  psi_cas_energy = 0.d0
+
+
+  do k = 1, N_states
+   norm = 0.d0
+   do i = 1, N_det_cas
+    norm += psi_cas_coef(i,k) * psi_cas_coef(i,k)
+    do j = 1, N_det_cas
+      psi_cas_energy(k) += psi_cas_coef(i,k) * psi_cas_coef(j,k) * H_matrix_cas(i,j)
+    enddo
+   enddo
+   psi_cas_energy(k) = psi_cas_energy(k) /norm
+  enddo
+
+END_PROVIDER 
 
 
 

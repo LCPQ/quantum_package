@@ -1,35 +1,28 @@
-
-BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
+ BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
 &BEGIN_PROVIDER [ double precision, lambda_pert, (N_states,psi_det_size) ] 
  implicit none
  BEGIN_DOC
- ! cm/<Psi_0|H|D_m>
+ ! cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
  END_DOC
  integer :: i,k
- double precision :: ihpsi(N_states), hij(N_states) 
- 
+ double precision :: ihpsi(N_states), hii
+
 do i=1,N_det_non_cas
    call i_h_psi(psi_non_cas(1,1,i), psi_cas, psi_cas_coef, N_int, N_det_cas, &
      size(psi_cas_coef,1), n_states, ihpsi)
-   call i_h_j(psi_non_cas(1,1,i),psi_non_cas(1,1,i),N_int,hij)
+   call i_h_j(psi_non_cas(1,1,i),psi_non_cas(1,1,i),N_int,hii)
    do k=1,N_states
-   lambda_pert(k,i) = 1d0 / (CI_electronic_energy(k)-hij(k))
+
+   lambda_pert(k,i) = 1.d0 / (psi_cas_energy_diagonalized(k)-hii)
    lambda_mrcc(k,i) = psi_non_cas_coef(i,k)/ihpsi(k)
-     if ((lambda_mrcc(k,i)/lambda_pert(k,i))<0.d0 .or. (lambda_mrcc(k,i)/lambda_pert(k,i))>4.d0) then
-       lambda_mrcc(k,i) = lambda_pert(k,i)
-     else
-       if ((lambda_mrcc(k,i)/lambda_pert(k,i))<0.1d0 .or. (lambda_mrcc(k,i)/lambda_pert(k,i))>=0d0) then
-       lambda_mrcc(k,i) = lambda_mrcc(k,i)*((cos((lambda_mrcc(k,i)/lambda_pert(k,i))*3.141592653589793d0/0.1d0+3.141592653589793d0)+1d0)/2.d0) &
-                          + lambda_pert(k,i)*(1.d0-((cos((lambda_mrcc(k,i)/lambda_pert(k,i))*3.141592653589793d0/0.1d0+3.141592653589793d0)+1.d0)/2.d0))
-       elseif ((lambda_mrcc(k,i)/lambda_pert(k,i))<=4.0d0 .or. (lambda_mrcc(k,i)/lambda_pert(k,i))>2.0d0) then
-       lambda_mrcc(k,i) = lambda_mrcc(k,i)*(1.d0-(cos(abs(2.d0-(lambda_mrcc(k,i)/lambda_pert(k,i)))*3.141592653589793d0/2.0d0+3.141592653589793d0)+1.d0)/2d0) &
-                          + lambda_pert(k,i)*((cos(abs(2.d0-(lambda_mrcc(k,i)/lambda_pert(k,i)))*3.141592653589793d0/2.0d0+3.141592653589793d0)+1.d0)/2.d0)
-       else
-       lambda_mrcc(k,i) = lambda_mrcc(k,i)
-       endif
-     endif
+    if (dabs(ihpsi(k)).le.1.d-3) then
+      lambda_mrcc(k,i) = 1.d0 / (psi_cas_energy_diagonalized(k)-hii)
+      icount_manu = icount_manu+1
+      cycle
+    endif
    enddo
  enddo
+
 END_PROVIDER
 
 
@@ -71,6 +64,16 @@ BEGIN_PROVIDER [ double precision, delta_ij, (N_det,N_det,N_states) ]
     enddo
    enddo
  endif
+ do i = 1, N_det
+  do j = 1, N_det
+   do m = 1, N_states
+    if(isnan(delta_ij(j,i,m)))then
+    delta_ij(j,i,m) = 0.d0
+    endif
+   enddo
+  enddo
+ enddo
+
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det) ]
