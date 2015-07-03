@@ -20,19 +20,19 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. by the `update_README.py` script.
 
-`ci_eigenvectors_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L79>`_
+`ci_eigenvectors_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L152>`_
   Eigenvectors/values of the CI matrix
 
 
-`ci_eigenvectors_s2_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L80>`_
+`ci_eigenvectors_s2_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L153>`_
   Eigenvectors/values of the CI matrix
 
 
-`ci_electronic_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L78>`_
+`ci_electronic_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L151>`_
   Eigenvectors/values of the CI matrix
 
 
-`ci_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L145>`_
+`ci_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L218>`_
   N_states lowest eigenvalues of the dressed CI matrix
 
 
@@ -76,24 +76,24 @@ Documentation
   Initial guess vectors are not necessarily orthonormal
 
 
-`delta_ij <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L43>`_
+`delta_ij <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L99>`_
   Dressing matrix in N_det basis
 
 
-`delta_ij_non_cas <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L34>`_
+`delta_ij_non_cas <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L90>`_
   Dressing matrix in SD basis
 
 
-`diagonalize_ci_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L160>`_
+`diagonalize_ci_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L233>`_
   Replace the coefficients of the CI states by the coefficients of the
   eigenstates of the CI matrix
 
 
-`dressing_type <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L26>`_
+`dressing_type <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L82>`_
   [ Simple | MRCC ]
 
 
-`find_triples_and_quadruples <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_dress.irp.f#L202>`_
+`find_triples_and_quadruples <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_dress.irp.f#L206>`_
   Undocumented
 
 
@@ -131,7 +131,7 @@ Documentation
   Assume N_int is already provided.
 
 
-`h_matrix_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L63>`_
+`h_matrix_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L136>`_
   Dressed H with Delta_ij
 
 
@@ -143,7 +143,11 @@ Documentation
   H_jj : array of <j|H|j>
 
 
-`lambda_mrcc <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L2>`_
+`lambda_mrcc <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L1>`_
+  cm/<Psi_0|H|D_m>
+
+
+`lambda_pert <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_utils.irp.f#L2>`_
   cm/<Psi_0|H|D_m>
 
 
@@ -155,7 +159,7 @@ Documentation
   Undocumented
 
 
-`mrcc_dress_simple <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_dress.irp.f#L156>`_
+`mrcc_dress_simple <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC/mrcc_dress.irp.f#L160>`_
   Undocumented
 
 

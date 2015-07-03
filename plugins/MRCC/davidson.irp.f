@@ -35,7 +35,7 @@ subroutine davidson_diag_mrcc(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit,i
   allocate(H_jj(sze))
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP  SHARED(sze,H_jj,N_det_cas,dets_in,Nint,istate,delta_ij,delta_ii,idx_cas)           &
+      !$OMP  SHARED(sze,H_jj,N_det_cas,dets_in,Nint,istate,delta_ii,idx_cas)           &
       !$OMP  PRIVATE(i)
   !$OMP DO SCHEDULE(guided)
   do i=1,sze
@@ -380,7 +380,7 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
   ASSERT (n>0)
-  PROVIDE ref_bitmask_energy delta_ij delta_ii
+  PROVIDE ref_bitmask_energy delta_ij 
   integer, parameter             :: block_size = 157
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,j,k,idx,jj,ii,vt)                             &
@@ -413,8 +413,8 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
     i = idx_cas(ii)
     do jj = 1, n_det_non_cas
         j = idx_non_cas(jj)
-        vt (i) = vt (i) + delta_ij(j,i,istate)*u_0(j)
-        vt (j) = vt (j) + delta_ij(j,i,istate)*u_0(i)
+        vt (i) = vt (i) + delta_ij(ii,jj,istate)*u_0(j)
+        vt (j) = vt (j) + delta_ij(ii,jj,istate)*u_0(i)
     enddo
   enddo
   !$OMP END DO

@@ -1,4 +1,4 @@
-# Automatically created by /home/razoa/quantum_package/scripts/module/module_handler.py 
+# Automatically created by /home/giner/quantum_package/scripts/module/module_handler.py 
 IRPF90_temp
 IRPF90_man
 irpf90_entities
@@ -20,11 +20,13 @@ AO_Basis
 Electrons
 Nuclei
 Integrals_Bielec
-guess_triplet
-guess_singlet
-truncate_wf
-save_natorb
+guess_doublet
 program_initial_determinants
+save_natorb
+guess_singlet
+guess_triplet
+truncate_wf
 save_for_casino
 det_svd
-guess_doublet
+print_cas_energy
+print_s2
