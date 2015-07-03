@@ -1,4 +1,4 @@
-# Automatically created by /home/razoa/quantum_package/scripts/module/module_handler.py 
+# Automatically created by /home/scemama/quantum_package/scripts/module/module_handler.py 
 IRPF90_temp
 IRPF90_man
 irpf90_entities
@@ -26,7 +26,7 @@ MOGuess
 Nuclei
 Hartree_Fock
 Properties
-target_pt2
-full_ci
 var_pt2_ratio
+target_pt2
 full_ci_no_skip
+full_ci
