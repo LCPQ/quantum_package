@@ -1,7 +1,3 @@
-===============
-loc_cele Module
-===============
-
 Documentation
 =============
 
@@ -9,7 +5,10 @@ Documentation
 .. by the `update_README.py` script.
 
 `loc_rasorb <http://github.com/LCPQ/quantum_package/tree/master/src/loc_cele/loc_cele.irp.f#L1>`_
-  Undocumented
+  This program performs a localization of the active orbitals
+  of a CASSCF wavefunction, reading the orbitals from a RASORB
+  file of molcas.
+  id1=max number of MO in a given symmetry.
 
 Needed Modules
 ==============
