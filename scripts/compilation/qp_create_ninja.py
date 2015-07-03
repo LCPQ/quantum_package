@@ -26,6 +26,16 @@ Error:
 """%f
     sys.exit(1)
 
+#  __
+# /__ |  _  |_   _. |       _. ._ o  _. |_  |  _   _
+# \_| | (_) |_) (_| |   \/ (_| |  | (_| |_) | (/_ _>
+#
+
+from qp_path import QP_ROOT, QP_SRC, QP_EZFIO
+
+EZFIO_LIB = join(QP_ROOT, "lib", "libezfio.a")
+ROOT_BUILD_NINJA = join(QP_ROOT, "config", "build.ninja")
+
 header = r"""#
 #  _______                     _____
 #  __  __ \___  _______ _________  /____  ________ ___
@@ -45,17 +55,8 @@ header = r"""#
 # Generated automatically by {0}
 #
 #
-""".format(__file__)
+""".format(__file__).replace(QP_ROOT,"$QP_ROOT")
 
-#  __
-# /__ |  _  |_   _. |       _. ._ o  _. |_  |  _   _
-# \_| | (_) |_) (_| |   \/ (_| |  | (_| |_) | (/_ _>
-#
-
-from qp_path import QP_ROOT, QP_SRC, QP_EZFIO
-
-EZFIO_LIB = join(QP_ROOT, "lib", "libezfio.a")
-ROOT_BUILD_NINJA = join(QP_ROOT, "config", "build.ninja")
 
 #
 # |\ |  _. ._ _   _   _|   _|_     ._  |  _

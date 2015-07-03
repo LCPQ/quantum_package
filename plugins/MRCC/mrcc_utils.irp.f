@@ -43,32 +43,8 @@ END_PROVIDER
  END_DOC
  integer :: i,j,m
  delta_ij = 0.d0
-<<<<<<< HEAD
- if (dressing_type == "MRCC") then
-   call H_apply_mrcc(delta_ij,N_det)
- else if (dressing_type == "Simple") then
-   do m=1,N_states
-     do j=1,N_det_non_cas
-       do i=1,N_det_non_cas
-         delta_ij(idx_non_cas(i),idx_non_cas(j),m) = delta_ij_non_cas(i,j,m)
-       enddo
-     enddo
-   enddo
- endif
- do i = 1, N_det
-   do j = 1, N_det
-     do m = 1, N_states
-       if(isnan(delta_ij(j,i,m)))then
-         delta_ij(j,i,m) = 0.d0
-       endif
-     enddo
-   enddo
- enddo
-
-=======
  delta_ii = 0.d0
  call H_apply_mrcc(delta_ij,delta_ii,N_det_cas,N_det_non_cas)
->>>>>>> 12e81de1c7275076c25c223979f80c8facb506a3
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]

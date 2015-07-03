@@ -213,7 +213,7 @@ Documentation
   Build connection proxy between determinants
 
 
-`det_num <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L116>`_
+`det_num <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L248>`_
   det_num
 
 
@@ -609,14 +609,6 @@ Documentation
   Undocumented
 
 
-`print_psi_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/print_cas_energy.irp.f#L1>`_
-  Undocumented
-
-
-`prog_save_casino <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_for_casino.irp.f#L266>`_
-  Undocumented
-
-
 `psi_average_norm_contrib <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L273>`_
   Contribution of determinants to the state-averaged density
 
@@ -819,7 +811,7 @@ Documentation
   Undocumented
 
 
-`s2_eig <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L248>`_
+`s2_eig <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L116>`_
   Force the wave function to be an eigenfunction of S^2
 
 
