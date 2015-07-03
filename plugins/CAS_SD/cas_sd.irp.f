@@ -9,6 +9,7 @@ program full_ci
   N_st = N_states
   allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st))
   character*(64)                 :: perturbation
+  PROVIDE N_det_cas
   
   N_det_old = 0
   pt2 = 1.d0
@@ -52,7 +53,7 @@ program full_ci
     print *,  'E        = ', CI_energy
     print *,  'E+PT2    = ', CI_energy+pt2
     print *,  '-----'
-    call ezfio_set_cas_sd_energy(CI_energy)
+    call ezfio_set_cas_sd_energy(CI_energy(1))
     if (abort_all) then
       exit
     endif
@@ -60,16 +61,34 @@ program full_ci
       exit
     endif
   enddo
+  call diagonalize_CI
+
+   if(do_pt2_end)then
+    print*,'Last iteration only to compute the PT2'
+    threshold_selectors = 1.d0
+    threshold_generators = 0.999d0
+    call H_apply_CAS_SD_PT2(pt2, norm_pert, H_pert_diag,  N_st)
+
+    print *,  'Final step'
+    print *,  'N_det    = ', N_det
+    print *,  'N_states = ', N_states
+    print *,  'PT2      = ', pt2
+    print *,  'E        = ', CI_energy
+    print *,  'E+PT2    = ', CI_energy+pt2
+    print *,  '-----'
+    call ezfio_set_cas_sd_energy_pt2(CI_energy(1)+pt2(1))
+   endif
+
 
   integer :: exc_max, degree_min
   exc_max = 0
-  print *,  'CAS determinants : ', N_det_generators
-  do i=1,min(N_det_generators,10)
-    do k=i,N_det_generators
-      call get_excitation_degree(psi_det_generators(1,1,k),psi_det_generators(1,1,i),degree,N_int)
+  print *,  'CAS determinants : ', N_det_cas
+  do i=1,min(N_det_cas,10)
+    do k=i,N_det_cas
+      call get_excitation_degree(psi_cas(1,1,k),psi_cas(1,1,i),degree,N_int)
       exc_max = max(exc_max,degree)
     enddo
-    call debug_det(psi_det_generators(1,1,i),N_int)
+    call debug_det(psi_cas(1,1,i),N_int)
     print *,  ''
   enddo
   print *,  'Max excitation degree in the CAS :', exc_max
