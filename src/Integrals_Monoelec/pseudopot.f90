@@ -728,22 +728,29 @@ double precision int_prod_bessel_loc,binom_func,accu,prod,ylm,bigI,arg
    accu=accu+v_k(k)*crochet(n_k(k)+2+ntot,g_a+g_b+dz_k(k))
   enddo
   Vloc=accu*fourpi*bigI(0,0,0,0,n_a(1)+n_b(1),n_a(2)+n_b(2),n_a(3)+n_b(3))
-  !bigI frequantly is null
+  !bigI frequently is null
   return
  endif
 
  freal=dexp(-g_a*ac**2-g_b*bc**2)
  
- d2=0.d0
+ d2 = 0.d0
  do i=1,3
-  d(i)=g_a*(a(i)-c(i))+g_b*(b(i)-c(i))
-  d2=d2+d(i)**2
+  d(i)=g_a*(a(i)-c(i))+g_b*(b(i)-c(i)) 
+  d2=d2+d(i)*d(i)
  enddo
  d2=dsqrt(d2)
  dreal=2.d0*d2
 
+
  theta_DC0=dacos(d(3)/d2)
  phi_DC0=datan2(d(2)/d2,d(1)/d2)
+
+ if (isnan(theta_DC0).or.isnan(phi_DC0)) then
+   print *,  'NaN in /src/Integrals_Monoelec/pseudopot.f90 at line 449.'
+   print *,  'Try to break symmetry in your molecule (1.-16 is OK).'
+   stop 1
+ endif
 
 allocate (array_R_loc(-2:ntot_max+klocmax_max,klocmax_max,0:ntot_max))
 allocate (array_coefs(0:ntot_max,0:ntot_max,0:ntot_max,0:ntot_max,0:ntot_max,0:ntot_max))
