@@ -24,6 +24,5 @@ guess_singlet
 truncate_wf
 save_natorb
 program_initial_determinants
-save_for_casino
 det_svd
 guess_doublet
