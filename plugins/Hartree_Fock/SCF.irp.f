@@ -1,5 +1,10 @@
-
 program scf
+  BEGIN_DOC
+! Produce `Hartree_Fock` MO orbital 
+! output: mo_basis.mo_tot_num mo_basis.mo_label mo_basis.ao_md5 mo_basis.mo_coef mo_basis.mo_occ
+! output: hartree_fock.energy
+! optional: mo_basis.mo_coef
+  END_DOC
   call create_guess
   call orthonormalize_mos
   call run
