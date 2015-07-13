@@ -217,7 +217,7 @@ Documentation
   det_coef
 
 
-`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1139>`_
+`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1138>`_
   Build connection proxy between determinants
 
 
@@ -391,7 +391,11 @@ Documentation
   Returns <S^2>
 
 
-`get_s2_u0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/s2.irp.f#L82>`_
+`get_s2_u0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/s2.irp.f#L109>`_
+  Undocumented
+
+
+`get_s2_u0_old <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/s2.irp.f#L82>`_
   Undocumented
 
 
@@ -508,7 +512,7 @@ Documentation
   Energy of the reference bitmask used in Slater rules
 
 
-`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1131>`_
+`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1130>`_
   Number of integers to represent the connections between determinants
 
 

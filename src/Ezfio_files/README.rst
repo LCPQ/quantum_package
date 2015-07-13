@@ -90,12 +90,12 @@ Documentation
   Output file for MOGuess
 
 
-`output_mrcc <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L281>`_
-  Output file for MRCC
+`output_mrcc_cassd <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L281>`_
+  Output file for MRCC_CASSD
 
 
-`output_mrcc_general <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L301>`_
-  Output file for MRCC_general
+`output_mrcc_utils <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L301>`_
+  Output file for MRCC_Utils
 
 
 `output_nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L321>`_

@@ -3,7 +3,7 @@
 import os
 import sys
 
-sys.path = [ os.environ["QP_ROOT"]+"/EZFIO/Python" ] + sys.path
+sys.path = [ os.environ["QP_ROOT"]+"/install/EZFIO/Python" ] + sys.path
 from ezfio import ezfio
 
 ezfio.set_filename(sys.argv[1])

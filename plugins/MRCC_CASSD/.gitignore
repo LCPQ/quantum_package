@@ -28,5 +28,5 @@ Utils
 ezfio_interface.irp.f
 irpf90.make
 irpf90_entities
-mrcc
+mrcc_cassd
 tags
