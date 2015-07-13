@@ -1,5 +1,9 @@
 program mrcc
   implicit none
+  if (.not.read_wf) then
+    print *,  'read_wf has to be true.'
+    stop 1
+  endif
   call print_cas_coefs
   call run_mrcc
 end
