@@ -97,6 +97,53 @@ BEGIN_PROVIDER [ integer, N_generators_bitmask ]
 
 END_PROVIDER
 
+
+
+
+BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask_restart, (N_int,2,6,N_generators_bitmask) ]
+ implicit none
+ BEGIN_DOC
+ ! Bitmasks for generator determinants.
+ ! (N_int, alpha/beta, hole/particle, generator).
+ !
+ ! 3rd index is :
+ !
+ ! * 1 : hole     for single exc
+ !
+ ! * 2 : particle for single exc
+ !
+ ! * 3 : hole     for 1st exc of double
+ !
+ ! * 4 : particle for 1st exc of double
+ !
+ ! * 5 : hole     for 2nd exc of double
+ !
+ ! * 6 : particle for 2nd exc of double
+ !
+ END_DOC
+ logical                        :: exists
+ PROVIDE ezfio_filename
+
+ call ezfio_has_bitmasks_generators(exists)
+ if (exists) then
+   call ezfio_get_bitmasks_generators(generators_bitmask_restart)
+ else
+   integer :: k, ispin
+   do k=1,N_generators_bitmask
+     do ispin=1,2
+       generators_bitmask_restart(:,ispin,s_hole ,k) = full_ijkl_bitmask(:,d_hole1)
+       generators_bitmask_restart(:,ispin,s_part ,k) = full_ijkl_bitmask(:,d_part1)
+       generators_bitmask_restart(:,ispin,d_hole1,k) = full_ijkl_bitmask(:,d_hole1)
+       generators_bitmask_restart(:,ispin,d_part1,k) = full_ijkl_bitmask(:,d_part1)
+       generators_bitmask_restart(:,ispin,d_hole2,k) = full_ijkl_bitmask(:,d_hole2)
+       generators_bitmask_restart(:,ispin,d_part2,k) = full_ijkl_bitmask(:,d_part2)
+     enddo
+   enddo
+ endif
+
+END_PROVIDER
+
+
 BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_bitmask) ]
  implicit none
  BEGIN_DOC
@@ -176,37 +223,140 @@ BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
  ! Bitmasks for CAS reference determinants. (N_int, alpha/beta, CAS reference)
  END_DOC
  logical                        :: exists
- integer                        :: i
+ integer                        :: i,i_part,i_gen,j
  PROVIDE ezfio_filename
 
  call ezfio_has_bitmasks_cas(exists)
  if (exists) then
    call ezfio_get_bitmasks_cas(cas_bitmask)
  else
+  if(N_generators_bitmask == 1)then
    do i=1,N_cas_bitmask
      cas_bitmask(:,:,i) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
    enddo
+  else 
+   i_part = 2
+   i_gen = 1
+   do j = 1, N_cas_bitmask
+    do i = 1, N_int
+      cas_bitmask(i,1,j) = generators_bitmask(i,1,i_part,i_gen)
+      cas_bitmask(i,2,j) = generators_bitmask(i,2,i_part,i_gen)
+    enddo
+   enddo
+  endif
  endif
 
 END_PROVIDER
 
  BEGIN_PROVIDER [ integer(bit_kind), inact_bitmask, (N_int,2) ]
 &BEGIN_PROVIDER [ integer(bit_kind), virt_bitmask, (N_int,2) ]
+&BEGIN_PROVIDER [ integer, n_inact_orb ]
+&BEGIN_PROVIDER [ integer, n_virt_orb ]
  implicit none
  BEGIN_DOC
  ! Bitmasks for the inactive orbitals that are excited in post CAS method
  END_DOC
  logical                        :: exists
- integer                        :: j
+ integer                        :: j,i
+ integer :: i_hole,i_part,i_gen
  PROVIDE ezfio_filename
- do j = 1, N_int
-  inact_bitmask(j,1) = xor(generators_bitmask(j,1,1,1),cas_bitmask(j,1,1))
-  inact_bitmask(j,2) = xor(generators_bitmask(j,2,1,1),cas_bitmask(j,2,1))
-  virt_bitmask(j,1) = xor(generators_bitmask(j,1,2,1),cas_bitmask(j,1,1))
-  virt_bitmask(j,2) = xor(generators_bitmask(j,2,2,1),cas_bitmask(j,2,1))
- enddo
+!do j = 1, N_int
+! inact_bitmask(j,1) = xor(generators_bitmask(j,1,1,1),cas_bitmask(j,1,1))
+! inact_bitmask(j,2) = xor(generators_bitmask(j,2,1,1),cas_bitmask(j,2,1))
+! virt_bitmask(j,1) = xor(generators_bitmask(j,1,2,1),cas_bitmask(j,1,1))
+! virt_bitmask(j,2) = xor(generators_bitmask(j,2,2,1),cas_bitmask(j,2,1))
+!enddo
+ n_inact_orb = 0
+ n_virt_orb = 0
+ if(N_generators_bitmask == 1)then
+  do j = 1, N_int
+   inact_bitmask(j,1) = xor(generators_bitmask_restart(j,1,1,1),cas_bitmask(j,1,1))
+   inact_bitmask(j,2) = xor(generators_bitmask_restart(j,2,1,1),cas_bitmask(j,2,1))
+   virt_bitmask(j,1) = xor(generators_bitmask_restart(j,1,2,1),cas_bitmask(j,1,1))
+   virt_bitmask(j,2) = xor(generators_bitmask_restart(j,2,2,1),cas_bitmask(j,2,1))
+   n_inact_orb += popcnt(inact_bitmask(j,1))
+   n_virt_orb  += popcnt(virt_bitmask(j,1))
+  enddo
+ else 
+   i_hole = 1
+   i_gen = 1
+   do i = 1, N_int
+     inact_bitmask(i,1) = generators_bitmask(i,1,i_hole,i_gen)
+     inact_bitmask(i,2) = generators_bitmask(i,2,i_hole,i_gen)
+     n_inact_orb += popcnt(inact_bitmask(i,1))
+   enddo
+   i_part = 2
+   i_gen = 3
+   do i = 1, N_int
+     virt_bitmask(i,1) = generators_bitmask(i,1,i_part,i_gen)
+     virt_bitmask(i,2) = generators_bitmask(i,2,i_part,i_gen)
+     n_virt_orb  += popcnt(virt_bitmask(i,1))
+   enddo
+ endif
 
 END_PROVIDER
+
+
+
+ BEGIN_PROVIDER [ integer, list_inact, (n_inact_orb)]
+ &BEGIN_PROVIDER [ integer, list_virt, (n_virt_orb)]
+ implicit none
+ integer :: occ_inact(N_int*bit_kind_size)
+ integer :: itest,i
+ occ_inact = 0
+ call bitstring_to_list(inact_bitmask(1,1), occ_inact(1), itest, N_int)
+ ASSERT(itest==n_inact_orb)
+ do i = 1, n_inact_orb
+  list_inact(i) = occ_inact(i)
+ enddo
+
+ occ_inact = 0
+ call bitstring_to_list(virt_bitmask(1,1), occ_inact(1), itest, N_int)
+ ASSERT(itest==n_virt_orb)
+ do i = 1, n_virt_orb
+  list_virt(i) = occ_inact(i)
+ enddo
+
+ END_PROVIDER 
+
+ BEGIN_PROVIDER [ integer(bit_kind), reunion_of_bitmask, (N_int,2)]
+ implicit none
+ BEGIN_DOC
+ ! Reunion of the inactive, active and virtual bitmasks
+ END_DOC
+ integer :: i,j
+ do i = 1, N_int
+  reunion_of_bitmask(i,1) = ior(ior(cas_bitmask(i,1,1),inact_bitmask(i,1)),virt_bitmask(i,1))
+  reunion_of_bitmask(i,2) = ior(ior(cas_bitmask(i,2,1),inact_bitmask(i,2)),virt_bitmask(i,2))
+ enddo
+ END_PROVIDER
+
+
+ BEGIN_PROVIDER [ integer(bit_kind), inact_virt_bitmask, (N_int,2)]
+ implicit none
+ BEGIN_DOC
+ ! Reunion of the inactive and virtual bitmasks
+ END_DOC
+ integer :: i,j
+ do i = 1, N_int
+  inact_virt_bitmask(i,1) = ior(inact_bitmask(i,1),virt_bitmask(i,1))
+  inact_virt_bitmask(i,2) = ior(inact_bitmask(i,2),virt_bitmask(i,2)) 
+ enddo
+ END_PROVIDER
+
+ BEGIN_PROVIDER [ integer(bit_kind), core_bitmask, (N_int,2)]
+ implicit none
+ BEGIN_DOC
+ ! Reunion of the inactive, active and virtual bitmasks
+ END_DOC
+ integer :: i,j
+ do i = 1, N_int
+  core_bitmask(i,1) = iand(ref_bitmask(i,1),reunion_of_bitmask(i,1))
+  core_bitmask(i,2) = iand(ref_bitmask(i,2),reunion_of_bitmask(i,2))
+ enddo
+ END_PROVIDER 
+
+
 
 BEGIN_PROVIDER [ integer, i_bitmask_gen ]
  implicit none
@@ -217,3 +367,14 @@ BEGIN_PROVIDER [ integer, i_bitmask_gen ]
 END_PROVIDER
 
 
+ BEGIN_PROVIDER [ integer(bit_kind), unpaired_alpha_electrons, (N_int)]
+ implicit none
+ BEGIN_DOC
+ ! Bitmask reprenting the unpaired alpha electrons in the HF_bitmask
+ END_DOC
+ integer :: i
+ unpaired_alpha_electrons = 0_bit_kind
+ do i = 1, N_int
+  unpaired_alpha_electrons(i) = xor(HF_bitmask(i,1),HF_bitmask(i,2))
+ enddo
+ END_PROVIDER
