@@ -2,6 +2,8 @@
 MRCC Module
 ===========
 
+MRCC as a coupled cluster on a CAS+SD wave function.
+
 Needed Modules
 ==============
 

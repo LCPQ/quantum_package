@@ -94,31 +94,47 @@ Documentation
   Output file for MRCC
 
 
-`output_nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L301>`_
+`output_mrcc_general <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L301>`_
+  Output file for MRCC_general
+
+
+`output_nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L321>`_
   Output file for Nuclei
 
 
-`output_perturbation <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L321>`_
+`output_perturbation <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L341>`_
   Output file for Perturbation
 
 
-`output_properties <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L341>`_
+`output_properties <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L361>`_
   Output file for Properties
 
 
-`output_pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L361>`_
+`output_pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L381>`_
   Output file for Pseudo
 
 
-`output_qmcchem <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L381>`_
+`output_psiref_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L401>`_
+  Output file for Psiref_CAS
+
+
+`output_psiref_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L421>`_
+  Output file for Psiref_threshold
+
+
+`output_psiref_utils <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L441>`_
+  Output file for Psiref_Utils
+
+
+`output_qmcchem <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L461>`_
   Output file for QmcChem
 
 
-`output_selectors_full <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L401>`_
+`output_selectors_full <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L481>`_
   Output file for Selectors_full
 
 
-`output_utils <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L421>`_
+`output_utils <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L501>`_
   Output file for Utils
 
 
