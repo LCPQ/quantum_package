@@ -23,10 +23,10 @@ try:
     from module_handler import get_l_module_descendant
     from update_README import Doc_key, Needed_key
     from qp_path import QP_SRC, QP_PLUGINS
-
 except ImportError:
-    print "source .quantum_package.rc"
-    raise
+    print "Please check if you have source the .quantum_package.rc"
+    print "(`source .quantum_package.rc`)"
+    print sys.exit(1)
 
 
 def save_new_module(path, l_child):
@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
         l_children = arguments["<children_module>"]
 
-        path = os.path.join(QP_SRC, arguments["<name>"])
+        path = os.path.join(QP_PLUGINS, arguments["<name>"][0])
 
         print "You will create the module:"
         print path
@@ -103,6 +103,7 @@ if __name__ == '__main__':
         print l_child_reduce
         save_new_module(path, l_child_reduce)
 
+        print "This was a plugin, you can install it now"
     elif arguments["download"]:
         pass
 #        d_local = get_dict_child([QP_SRC])

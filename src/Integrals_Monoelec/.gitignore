@@ -1,21 +1,20 @@
-# Automatically created by /home/giner/quantum_package/scripts/module/module_handler.py 
-IRPF90_temp
-IRPF90_man
-irpf90_entities
-tags
-irpf90.make
-Makefile
-Makefile.depend
-build.ninja
-.ninja_log
+# Automatically created by $QP_ROOT/scripts/module/module_handler.py 
 .ninja_deps
-ezfio_interface.irp.f
-Ezfio_files
-MO_Basis
-Utils
-Pseudo
+.ninja_log
 AO_Basis
 Electrons
+Ezfio_files
+IRPF90_man
+IRPF90_temp
+MO_Basis
+Makefile
+Makefile.depend
 Nuclei
-save_ortho_mos
+Pseudo
+Utils
 check_orthonormality
+ezfio_interface.irp.f
+irpf90.make
+irpf90_entities
+save_ortho_mos
+tags

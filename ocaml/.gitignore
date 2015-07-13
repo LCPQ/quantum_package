@@ -38,12 +38,12 @@ qp_print
 qp_run
 qp_set_ddci
 qp_set_mo_class
-Input_integrals_bielec.ml
-Input_pseudo.ml
-Input_perturbation.ml
-Input_properties.ml
 Input_determinants.ml
 Input_hartree_fock.ml
+Input_integrals_bielec.ml
+Input_perturbation.ml
+Input_properties.ml
+Input_pseudo.ml
 qp_edit.ml
 qp_edit
 qp_edit.native

@@ -24,6 +24,7 @@ import shutil
 try:
     from docopt import docopt
     from qp_path import QP_SRC
+    from qp_path import QP_ROOT
 except ImportError:
     print "source .quantum_package.rc"
     raise
@@ -85,7 +86,7 @@ def get_l_module_descendant(d_child, l_module):
             except KeyError:
                 print >> sys.stderr, "`{0}` not submodule".format(module)
                 print >> sys.stderr, "Check the corresponding NEEDED_CHILDREN_MODULES"
-                sys.exit(1)
+                raise
 
     return list(set(l))
 
@@ -123,8 +124,12 @@ class ModuleHandler():
         d_child = self.dict_child
 
         for module_name in d_child:
-            d[module_name] = get_l_module_descendant(d_child,
-                                                     d_child[module_name])
+            try :
+                d[module_name] = get_l_module_descendant(d_child,
+                                                         d_child[module_name])
+            except KeyError:
+                print "Check NEEDED_CHILDREN_MODULES for {0}".format(module_name)
+                sys.exit(1)
 
         return d
 
@@ -219,7 +224,7 @@ if __name__ == '__main__':
 
     for module in l_module:
         if not is_module(module):
-            print "{0} is not a volide module. Abort".format(module)
+            print "{0} is not a valide module. Abort".format(module)
             print "No NEEDED_CHILDREN_MODULES in it"
             sys.exit(1)
 
@@ -237,8 +242,7 @@ if __name__ == '__main__':
 
         l_dir = ['IRPF90_temp', 'IRPF90_man']
         l_file = ["irpf90_entities", "tags", "irpf90.make",
-                  "Makefile", "Makefile.depend",
-                  "build.ninja", ".ninja_log", ".ninja_deps",
+                  "Makefile", "Makefile.depend", ".ninja_log", ".ninja_deps",
                   "ezfio_interface.irp.f"]
 
         for module in l_module:
@@ -276,5 +280,8 @@ if __name__ == '__main__':
                 path = os.path.join(module_abs, ".gitignore")
 
                 with open(path, "w+") as f:
-                    f.write("# Automatically created by {0} \n".format(__file__))
-                    f.write("\n".join(l_dir + l_file + l_symlink + l_exe))
+                    f.write("# Automatically created by {0} \n".format(__file__).replace(QP_ROOT,"$QP_ROOT"))
+                    l_text = l_dir + l_file + l_symlink + l_exe
+                    l_text.sort()
+                    f.write("\n".join(l_text))
+

@@ -1,5 +1,0 @@
-electrons
-  elec_alpha_num      integer
-  elec_beta_num       integer
-  elec_num            integer           = electrons_elec_alpha_num + electrons_elec_beta_num
-

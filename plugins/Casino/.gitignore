@@ -1,4 +1,4 @@
-# Automatically created by /home/giner/quantum_package/scripts/module/module_handler.py 
+# Automatically created by /home/razoa/quantum_package/scripts/module/module_handler.py 
 IRPF90_temp
 IRPF90_man
 irpf90_entities
@@ -6,25 +6,18 @@ tags
 irpf90.make
 Makefile
 Makefile.depend
-build.ninja
 .ninja_log
 .ninja_deps
 ezfio_interface.irp.f
 Ezfio_files
-Perturbation
 Determinants
-Utils
 Integrals_Monoelec
 MO_Basis
-Selectors_full
-Integrals_Bielec
+Utils
 Pseudo
-Generators_full
 Bitmask
 AO_Basis
 Electrons
-MOGuess
 Nuclei
-Hartree_Fock
-Properties
-mrcc
+Integrals_Bielec
+save_for_casino

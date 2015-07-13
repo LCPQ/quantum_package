@@ -702,7 +702,7 @@ integer n_k(klocmax_max)
 double precision a(3),g_a,b(3),g_b,c(3),d(3)
 integer n_a(3),n_b(3),ntotA,ntotB,ntot,m
 integer i,l,k,ktot,k1,k2,k3,k1p,k2p,k3p
-double precision f,fourpi,ac,bc,freal,d2,dreal,theta_DC0,phi_DC0
+double precision f,fourpi,ac,bc,freal,d2,dreal,theta_DC0,phi_DC0,coef
 double precision,allocatable :: array_R_loc(:,:,:)
 double precision,allocatable :: array_coefs(:,:,:,:,:,:)
 double precision int_prod_bessel_loc,binom_func,accu,prod,ylm,bigI,arg
@@ -713,93 +713,119 @@ double precision int_prod_bessel_loc,binom_func,accu,prod,ylm,bigI,arg
  bc=dsqrt((b(1)-c(1))**2+(b(2)-c(2))**2+(b(3)-c(3))**2)
  arg=g_a*ac**2+g_b*bc**2
  if(arg.gt.-dlog(10.d-20))then
- Vloc=0.d0
- return
+   Vloc=0.d0
+   return
  endif
-
+ 
  ntotA=n_a(1)+n_a(2)+n_a(3)
  ntotB=n_b(1)+n_b(2)+n_b(3)
  ntot=ntotA+ntotB
-
+ 
  if(ac.eq.0.d0.and.bc.eq.0.d0)then
-  accu=0.d0
-
-  do k=1,klocmax 
-   accu=accu+v_k(k)*crochet(n_k(k)+2+ntot,g_a+g_b+dz_k(k))
-  enddo
-  Vloc=accu*fourpi*bigI(0,0,0,0,n_a(1)+n_b(1),n_a(2)+n_b(2),n_a(3)+n_b(3))
-  !bigI frequantly is null
-  return
+   accu=0.d0
+   
+   do k=1,klocmax
+     accu=accu+v_k(k)*crochet(n_k(k)+2+ntot,g_a+g_b+dz_k(k))
+   enddo
+   Vloc=accu*fourpi*bigI(0,0,0,0,n_a(1)+n_b(1),n_a(2)+n_b(2),n_a(3)+n_b(3))
+   !bigI frequently is null
+   return
  endif
-
+ 
  freal=dexp(-g_a*ac**2-g_b*bc**2)
  
- d2=0.d0
+ d2 = 0.d0
  do i=1,3
-  d(i)=g_a*(a(i)-c(i))+g_b*(b(i)-c(i))
-  d2=d2+d(i)**2
+   d(i)=g_a*(a(i)-c(i))+g_b*(b(i)-c(i))
+   d2=d2+d(i)*d(i)
  enddo
  d2=dsqrt(d2)
  dreal=2.d0*d2
-
- theta_DC0=dacos(d(3)/d2)
- phi_DC0=datan2(d(2)/d2,d(1)/d2)
-
-allocate (array_R_loc(-2:ntot_max+klocmax_max,klocmax_max,0:ntot_max))
-allocate (array_coefs(0:ntot_max,0:ntot_max,0:ntot_max,0:ntot_max,0:ntot_max,0:ntot_max))
-
+ 
+ 
+ allocate (array_R_loc(-2:ntot_max+klocmax_max,klocmax_max,0:ntot_max))
+ allocate (array_coefs(0:ntot_max,0:ntot_max,0:ntot_max,0:ntot_max,0:ntot_max,0:ntot_max))
+ 
  do ktot=-2,ntotA+ntotB+klocmax
- do l=0,ntot
- do k=1,klocmax
-  array_R_loc(ktot,k,l)=freal*int_prod_bessel_loc(ktot+2,g_a+g_b+dz_k(k),l,dreal)
- enddo
- enddo
- enddo
-
- do k1=0,n_a(1)
- do k2=0,n_a(2)
- do k3=0,n_a(3)
- do k1p=0,n_b(1)
- do k2p=0,n_b(2)
- do k3p=0,n_b(3)
-  array_coefs(k1,k2,k3,k1p,k2p,k3p)=binom_func(n_a(1),k1)*binom_func(n_a(2),k2)*binom_func(n_a(3),k3)  &
-  *(c(1)-a(1))**(n_a(1)-k1)*(c(2)-a(2))**(n_a(2)-k2)*(c(3)-a(3))**(n_a(3)-k3) &
-  *binom_func(n_b(1),k1p)*binom_func(n_b(2),k2p)*binom_func(n_b(3),k3p)  &
-  *(c(1)-b(1))**(n_b(1)-k1p)*(c(2)-b(2))**(n_b(2)-k2p)*(c(3)-b(3))**(n_b(3)-k3p)
- enddo
- enddo
- enddo
- enddo
- enddo
- enddo
-
- accu=0.d0
- do k=1,klocmax
-  do k1=0,n_a(1)
-  do k2=0,n_a(2)
-  do k3=0,n_a(3)
-  do k1p=0,n_b(1)
-  do k2p=0,n_b(2)
-  do k3p=0,n_b(3)
-
-  do l=0,ntot
-   do m=-l,l
-    prod=ylm(l,m,theta_DC0,phi_DC0)*array_coefs(k1,k2,k3,k1p,k2p,k3p) &
-         *bigI(l,m,0,0,k1+k1p,k2+k2p,k3+k3p)
-    ktot=k1+k2+k3+k1p+k2p+k3p+n_k(k)
-    accu=accu+prod*v_k(k)*array_R_loc(ktot,k,l)
+   do l=0,ntot
+     do k=1,klocmax
+       array_R_loc(ktot,k,l)=freal*int_prod_bessel_loc(ktot+2,g_a+g_b+dz_k(k),l,dreal)
+     enddo
    enddo
-  enddo
-
-  enddo
-  enddo
-  enddo
-  enddo
-  enddo
-  enddo
  enddo
+ 
+ do k1=0,n_a(1)
+   do k2=0,n_a(2)
+     do k3=0,n_a(3)
+       do k1p=0,n_b(1)
+         do k2p=0,n_b(2)
+           do k3p=0,n_b(3)
+             array_coefs(k1,k2,k3,k1p,k2p,k3p)=binom_func(n_a(1),k1)*binom_func(n_a(2),k2)*binom_func(n_a(3),k3)&
+                 *(c(1)-a(1))**(n_a(1)-k1)*(c(2)-a(2))**(n_a(2)-k2)*(c(3)-a(3))**(n_a(3)-k3)&
+                 *binom_func(n_b(1),k1p)*binom_func(n_b(2),k2p)*binom_func(n_b(3),k3p)&
+                 *(c(1)-b(1))**(n_b(1)-k1p)*(c(2)-b(2))**(n_b(2)-k2p)*(c(3)-b(3))**(n_b(3)-k3p)
+           enddo
+         enddo
+       enddo
+     enddo
+   enddo
+ enddo
+ 
+ 
+ accu=0.d0
+ if(d2 == 0.d0)then
+   l=0
+   m=0
+   coef=1.d0/dsqrt(4.d0*dacos(-1.d0))
+   do k=1,klocmax
+     do k1=0,n_a(1)
+       do k2=0,n_a(2)
+         do k3=0,n_a(3)
+           do k1p=0,n_b(1)
+             do k2p=0,n_b(2)
+               do k3p=0,n_b(3)
+                 prod=coef*array_coefs(k1,k2,k3,k1p,k2p,k3p)         &
+                     *bigI(l,m,0,0,k1+k1p,k2+k2p,k3+k3p)
+                 ktot=k1+k2+k3+k1p+k2p+k3p+n_k(k)
+                 accu=accu+prod*v_k(k)*array_R_loc(ktot,k,l)
+               enddo
+             enddo
+           enddo
+         enddo
+       enddo
+     enddo
+   enddo
+   
+ else
+   theta_DC0=dacos(d(3)/d2)
+   phi_DC0=datan2(d(2)/d2,d(1)/d2)
+   
+   do k=1,klocmax
+     do k1=0,n_a(1)
+       do k2=0,n_a(2)
+         do k3=0,n_a(3)
+           do k1p=0,n_b(1)
+             do k2p=0,n_b(2)
+               do k3p=0,n_b(3)
+                 do l=0,ntot
+                   do m=-l,l
+                     coef=ylm(l,m,theta_DC0,phi_DC0)
+                     prod=coef*array_coefs(k1,k2,k3,k1p,k2p,k3p)     &
+                         *bigI(l,m,0,0,k1+k1p,k2+k2p,k3+k3p)
+                     ktot=k1+k2+k3+k1p+k2p+k3p+n_k(k)
+                     accu=accu+prod*v_k(k)*array_R_loc(ktot,k,l)
+                   enddo
+                 enddo
+               enddo
+             enddo
+           enddo
+         enddo
+       enddo
+     enddo
+   enddo
+ endif
  Vloc=f*accu
-
+ 
  deallocate (array_R_loc)
  deallocate (array_coefs)
 end
