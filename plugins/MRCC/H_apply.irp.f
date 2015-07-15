@@ -21,6 +21,7 @@ s.data["finalization"] = ""
 s.data["copy_buffer"] = ""
 s.data["generate_psi_guess"] = ""
 s.data["size_max"] = "3072"
+s.filter_vvvv_excitation()
 print s
 
 
