@@ -16,6 +16,7 @@ Options:
 
 import sys
 import os
+import subprocess
 
 try:
     from docopt import docopt
@@ -152,6 +153,11 @@ if __name__ == '__main__':
                     except OSError:
                         print "Your src directory is broken. Please remove %s" % des
                         raise
+            try:
+                import subprocess
+                subprocess.check_call(["qp_create_ninja.py", "update"])
+            except:
+                raise
             print "Done"
             print "You can now compile as usual"
 
@@ -164,24 +170,29 @@ if __name__ == '__main__':
         l_name = arguments["<name>"]
 
         l_failed = [name for name in l_name if name not in d_local]
+
         if l_failed:
             print "Modules not installed:"
             for name in sorted(l_failed):
                 print "* %s" % name
             sys.exit(1)
+
+        if arguments["--and_ancestor"]:
+
+            l_name_to_remove = l_name + [module for module in m_instance.l_module for name in l_name if name in d_descendant[module]]
+            print "You will remove all of:"
+            print l_name_to_remove
         else:
-            if arguments["--and_ancestor"]:
+            l_name_to_remove = l_name
 
-                l_name_to_remove = l_name + [module for module in m_instance.l_module for name in l_name if name in d_descendant[module]]
-                print "You will remove all of:"
-                print l_name_to_remove
+        for module in l_name_to_remove:
 
-            else:
-                l_name_to_remove = l_name
+            try:
+                subprocess.check_call(["module_handler.py", "clean", module])
+            except:
+                raise
 
-            def unlink(x):
-                try:
-                    os.unlink(os.path.join(QP_SRC, x))
-                except OSError:
-                    print "%s is a core module which can not be renmoved" % x
-            map(unlink, l_name_to_remove)
+            try:
+                os.unlink(os.path.join(QP_SRC, module))
+            except OSError:
+                print "%s is a core module which can not be renmoved" % x
