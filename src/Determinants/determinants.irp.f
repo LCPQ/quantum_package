@@ -446,6 +446,24 @@ subroutine filter_3_highest_electrons( det_in, det_out, Nint )
   enddo
 end
       
+ BEGIN_PROVIDER [ double precision, psi_coef_max, (N_states) ] 
+&BEGIN_PROVIDER [ double precision, psi_coef_min, (N_states) ] 
+&BEGIN_PROVIDER [ double precision, abs_psi_coef_max, (N_states) ] 
+&BEGIN_PROVIDER [ double precision, abs_psi_coef_min, (N_states) ] 
+ implicit none
+ BEGIN_DOC
+ ! Max and min values of the coefficients
+ END_DOC
+ integer:: i
+ do i=1,N_states
+   psi_coef_min(i) = minval(psi_coef(:,i))
+   psi_coef_max(i) = maxval(psi_coef(:,i))
+   abs_psi_coef_min(i) = dabs(psi_coef_min(i))
+   abs_psi_coef_max(i) = dabs(psi_coef_max(i))
+ enddo
+
+END_PROVIDER
+
  BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted_ab, (N_int,2,psi_det_size) ]
 &BEGIN_PROVIDER [ double precision, psi_coef_sorted_ab, (N_det,N_states) ]
 &BEGIN_PROVIDER [ integer, psi_det_sorted_next_ab, (2,psi_det_size) ]

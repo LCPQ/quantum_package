@@ -19,6 +19,7 @@ integer*8 function spin_det_search_key(det,Nint)
   do i=2,Nint
     spin_det_search_key = ieor(spin_det_search_key,det(i))
   enddo
+  spin_det_search_key = iand(huge(det(1)),spin_det_search_key)
 end
 
 

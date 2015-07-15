@@ -1,26 +1,23 @@
-#
-# Do not modify this file. Add your ignored files to the gitignore
-# (without the dot at the beginning) file.
-#
-IRPF90_temp
-IRPF90_man
-irpf90.make
-tags
-Makefile.depend
-irpf90_entities
-build.ninja
-.ninja_log
+# Automatically created by $QP_ROOT/scripts/module/module_handler.py 
 .ninja_deps
-Pseudo
-Integrals_Monoelec
+.ninja_log
+AO_Basis
 Bitmask
-Integrals_Bielec
-AOs
-MOs
 Determinants
 Electrons
-DensityFit
-Utils
-Nuclei
 Ezfio_files
+IRPF90_man
+IRPF90_temp
+Integrals_Bielec
+Integrals_Monoelec
+MO_Basis
+Makefile
+Makefile.depend
+Nuclei
+Pseudo
+Utils
+ezfio_interface.irp.f
+irpf90.make
+irpf90_entities
 save_for_qmcchem
+tags

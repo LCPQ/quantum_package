@@ -21,15 +21,15 @@ function do_gitingore()
 # Do not modify this file. Add your ignored files to the gitignore
 # (without the dot at the beginning) file.
 #
-IRPF90_temp
-IRPF90_man
-irpf90.make
-tags
-Makefile.depend
-irpf90_entities
 build.ninja
-.ninja_log
+irpf90_entities
+irpf90.make
+IRPF90_man
+IRPF90_temp
+Makefile.depend
 .ninja_deps
+.ninja_log
+tags
 EOF
   
   if [[ -f gitignore ]]
@@ -59,3 +59,6 @@ else
   done
 fi
 
+# Sort the .gitignore to reduce conflict in git merges
+sort .gitignore |uniq > .gitignore.new
+mv .gitignore.new .gitignore

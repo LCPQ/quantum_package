@@ -17,9 +17,11 @@ Options:
                   who contains a binary, than you can compile then
                   individualy if you want
 
-Example:
+Examples:
 
     ./configure config/gfortran.cfg --production
+    ./configure config/ifort.cfg    --development
+
 
 """
 
@@ -45,7 +47,7 @@ QP_ROOT = os.getcwd()
 QP_ROOT_BIN = join(QP_ROOT, "bin")
 QP_ROOT_INSTALL = join(QP_ROOT, "install")
 
-os.environ["PATH"] = os.environ["PATH"] + ":"+QP_ROOT_BIN
+os.environ["PATH"] = os.environ["PATH"] + ":" + QP_ROOT_BIN
 
 d_dependency = {
     "ocaml": ["m4", "curl", "zlib", "patch", "gcc"],
@@ -128,12 +130,12 @@ ezfio = Info(
 
 d_info = dict()
 
-for m in ["ocaml", "m4", "curl", "zlib", "path", "irpf90", "docopt", 
+for m in ["ocaml", "m4", "curl", "zlib", "path", "irpf90", "docopt",
           "resultsFile", "ninja", "emsl", "ezfio"]:
     exec ("d_info['{0}']={0}".format(m))
 
 
-def find_path(bin_, l_installed):
+def find_path(bin_, l_installed, var_for_qp_root=False):
     """Use the global variable
     * l_installed
     * d_info
@@ -143,6 +145,10 @@ def find_path(bin_, l_installed):
         locate = l_installed[bin_]
     except KeyError:
         locate = d_info[bin_].default_path
+
+    if var_for_qp_root:
+        locate = locate.replace(QP_ROOT, "${QP_ROOT}")
+
     return locate
 
 
@@ -158,7 +164,8 @@ def check_output(*popenargs, **kwargs):
     >>> check_output(['/usr/bin/python', '--version'])
     Python 2.6.2
     """
-    process = subprocess.Popen(stdout=subprocess.PIPE,stderr=subprocess.PIPE, *popenargs, **kwargs)
+    process = subprocess.Popen(stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, *popenargs, **kwargs)
     output, unused_err = process.communicate()
     retcode = process.poll()
     if retcode:
@@ -277,7 +284,8 @@ def installation(l_install_descendant):
     def create_rule_ninja():
 
         l_rules = [
-            "rule download", "  command = wget --no-check-certificate ${url} -O ${out} -o /dev/null",
+            "rule download",
+            "  command = wget --no-check-certificate ${url} -O ${out} -o /dev/null",
             "  description = Downloading ${descr}", ""
         ]
 
@@ -409,10 +417,8 @@ def create_ninja_and_rc(l_installed):
 
 """
 
-    d_print = {
-        "qp_root": "Creating quantum_package.rc...",
-        "build": "Creating build.ninja..."
-    }
+    d_print = {"qp_root": "Creating quantum_package.rc...",
+               "build": "Creating build.ninja..."}
 
     length = max(map(len, d_print.values()))
 
@@ -429,16 +435,21 @@ def create_ninja_and_rc(l_installed):
             if os.path.isdir(path):
                 l_python.append(path)
 
+    path_ezfio = find_path('ezfio', l_installed, var_for_qp_root=True)
+    path_irpf90 = find_path("irpf90", l_installed, var_for_qp_root=True)
+    path_ninja = find_path("ninja", l_installed, var_for_qp_root=True)
+
     l_rc = [
         'export QP_ROOT={0}'.format(QP_ROOT),
-        'export QP_EZFIO={0}'.format(find_path('ezfio', l_installed)),
-        'export IRPF90={0}'.format(find_path("irpf90", l_installed)),
-        'export NINJA={0}'.format(find_path("ninja", l_installed)),
+        'export QP_EZFIO={0}'.format(path_ezfio),
+        'export IRPF90={0}'.format(path_irpf90),
+        'export NINJA={0}'.format(path_ninja),
         'export QP_PYTHON={0}'.format(":".join(l_python)), "",
         'export PYTHONPATH="${QP_PYTHON}":"${PYTHONPATH}"',
         'export PATH="${QP_PYTHON}":"${QP_ROOT}"/bin:"${QP_ROOT}"/ocaml:"${PATH}"',
         'export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${LD_LIBRARY_PATH}"',
-        'export LIBRARY_PATH="${QP_ROOT}"/lib:"${LIBRARY_PATH}"', ""
+        'export LIBRARY_PATH="${QP_ROOT}"/lib:"${LIBRARY_PATH}"', "",
+        'source ${QP_ROOT}/install/EZFIO/Bash/ezfio.sh', "",
         'source ${HOME}/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true',
         ""
     ]
@@ -449,30 +460,33 @@ def create_ninja_and_rc(l_installed):
 
     print "[  OK  ] ({0})".format(path)
 
-    print str_info("build"),
-
     command = ['bash', '-c', 'source {0} && env'.format(path)]
-
     proc = subprocess.Popen(command, stdout=subprocess.PIPE)
-
     for line in proc.stdout:
         (key, _, value) = line.partition("=")
         os.environ[key] = value.strip()
+
+    print str_info("build"),
 
     qp_create_ninja = os.path.join(QP_ROOT, "scripts", "compilation",
                                    "qp_create_ninja.py")
 
     l = [qp_create_ninja, "create"] + sys.argv[1:]
+
     try:
-        subprocess.check_call(" ".join(l), shell=True)
+        with open('/dev/null', 'w') as dnull:
+            subprocess.check_call(" ".join(l), shell=True,stderr=dnull)
     except:
-        raise
+        print "[ FAIL ]"
+        print "Check the valididy of the config file provided ({0})".format(sys.argv[1])
+        print "Exit..."
+        sys.exit(1)
+
     else:
         print "[  OK  ]"
 
 
 def recommendation():
-    print "Last Step:"
     path = join(QP_ROOT, "quantum_package.rc")
     print "Now :"
     print "   source {0}".format(path)

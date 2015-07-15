@@ -1,4 +1,4 @@
-program full_ci
+program ddci
   implicit none
   integer                        :: i,k
 
