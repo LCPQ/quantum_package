@@ -161,3 +161,16 @@ type: Strictly_negative_float
 doc: Calculated HF energy
 interface: ezfio
 ```
+
+#FAQ
+
+### Error: ezfio_* is already defined.
+
+#### Why ?
+
+You have two or more ezfio configuration file for the same variable. Check in `$QP_ROOT/install/config/`
+
+#### Fix
+
+    - rm $QP_ROOT/install/EZFIO/config/*
+    - ninja 
