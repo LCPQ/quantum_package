@@ -26,130 +26,157 @@ import re
 import subprocess
 import tempfile
 import copy
-import sys
+import dot_parser
 
-try:
-    import dot_parser
-except Exception as e:
-    pass
-    # print >> sys.stderr, "Couldn't import dot_parser, loading of dot files will not be possible."
-
-
-GRAPH_ATTRIBUTES = set(['Damping', 'K', 'URL', 'aspect', 'bb', 'bgcolor',
-                        'center', 'charset', 'clusterrank', 'colorscheme', 'comment', 'compound',
-                        'concentrate', 'defaultdist', 'dim', 'dimen', 'diredgeconstraints',
-                        'dpi', 'epsilon', 'esep', 'fontcolor', 'fontname', 'fontnames',
-                        'fontpath', 'fontsize', 'id', 'label', 'labeljust', 'labelloc',
-                        'landscape', 'layers', 'layersep', 'layout', 'levels', 'levelsgap',
-                        'lheight', 'lp', 'lwidth', 'margin', 'maxiter', 'mclimit', 'mindist',
-                        'mode', 'model', 'mosek', 'nodesep', 'nojustify', 'normalize', 'nslimit',
-                        'nslimit1', 'ordering', 'orientation', 'outputorder', 'overlap',
-                        'overlap_scaling', 'pack', 'packmode', 'pad', 'page', 'pagedir',
-                        'quadtree', 'quantum', 'rankdir', 'ranksep', 'ratio', 'remincross',
-                        'repulsiveforce', 'resolution', 'root', 'rotate', 'searchsize', 'sep',
-                        'showboxes', 'size', 'smoothing', 'sortv', 'splines', 'start',
-                        'stylesheet', 'target', 'truecolor', 'viewport', 'voro_margin',
+GRAPH_ATTRIBUTES = set(['Damping',
+                        'K',
+                        'URL',
+                        'aspect',
+                        'bb',
+                        'bgcolor',
+                        'center',
+                        'charset',
+                        'clusterrank',
+                        'colorscheme',
+                        'comment',
+                        'compound',
+                        'concentrate',
+                        'defaultdist',
+                        'dim',
+                        'dimen',
+                        'diredgeconstraints',
+                        'dpi',
+                        'epsilon',
+                        'esep',
+                        'fontcolor',
+                        'fontname',
+                        'fontnames',
+                        'fontpath',
+                        'fontsize',
+                        'id',
+                        'label',
+                        'labeljust',
+                        'labelloc',
+                        'landscape',
+                        'layers',
+                        'layersep',
+                        'layout',
+                        'levels',
+                        'levelsgap',
+                        'lheight',
+                        'lp',
+                        'lwidth',
+                        'margin',
+                        'maxiter',
+                        'mclimit',
+                        'mindist',
+                        'mode',
+                        'model',
+                        'mosek',
+                        'nodesep',
+                        'nojustify',
+                        'normalize',
+                        'nslimit',
+                        'nslimit1',
+                        'ordering',
+                        'orientation',
+                        'outputorder',
+                        'overlap',
+                        'overlap_scaling',
+                        'pack',
+                        'packmode',
+                        'pad',
+                        'page',
+                        'pagedir',
+                        'quadtree',
+                        'quantum',
+                        'rankdir',
+                        'ranksep',
+                        'ratio',
+                        'remincross',
+                        'repulsiveforce',
+                        'resolution',
+                        'root',
+                        'rotate',
+                        'searchsize',
+                        'sep',
+                        'showboxes',
+                        'size',
+                        'smoothing',
+                        'sortv',
+                        'splines',
+                        'start',
+                        'stylesheet',
+                        'target',
+                        'truecolor',
+                        'viewport',
+                        'voro_margin',
                         # for subgraphs
                         'rank'])
 
+EDGE_ATTRIBUTES = set(
+    ['URL', 'arrowhead', 'arrowsize', 'arrowtail', 'color', 'colorscheme',
+     'comment', 'constraint', 'decorate', 'dir', 'edgeURL', 'edgehref',
+     'edgetarget', 'edgetooltip', 'fontcolor', 'fontname', 'fontsize',
+     'headURL', 'headclip', 'headhref', 'headlabel', 'headport', 'headtarget',
+     'headtooltip', 'href', 'id', 'label', 'labelURL', 'labelangle',
+     'labeldistance', 'labelfloat', 'labelfontcolor', 'labelfontname',
+     'labelfontsize', 'labelhref', 'labeltarget', 'labeltooltip', 'layer',
+     'len', 'lhead', 'lp', 'ltail', 'minlen', 'nojustify', 'penwidth', 'pos',
+     'samehead', 'sametail', 'showboxes', 'style', 'tailURL', 'tailclip',
+     'tailhref', 'taillabel', 'tailport', 'tailtarget', 'tailtooltip',
+     'target', 'tooltip', 'weight', 'rank'])
 
-EDGE_ATTRIBUTES = set(['URL',
-                       'arrowhead',
-                       'arrowsize',
-                       'arrowtail',
+NODE_ATTRIBUTES = set(['URL',
                        'color',
                        'colorscheme',
                        'comment',
-                       'constraint',
-                       'decorate',
-                       'dir',
-                       'edgeURL',
-                       'edgehref',
-                       'edgetarget',
-                       'edgetooltip',
+                       'distortion',
+                       'fillcolor',
+                       'fixedsize',
                        'fontcolor',
                        'fontname',
                        'fontsize',
-                       'headURL',
-                       'headclip',
-                       'headhref',
-                       'headlabel',
-                       'headport',
-                       'headtarget',
-                       'headtooltip',
-                       'href',
+                       'group',
+                       'height',
                        'id',
+                       'image',
+                       'imagescale',
                        'label',
-                       'labelURL',
-                       'labelangle',
-                       'labeldistance',
-                       'labelfloat',
-                       'labelfontcolor',
-                       'labelfontname',
-                       'labelfontsize',
-                       'labelhref',
-                       'labeltarget',
-                       'labeltooltip',
+                       'labelloc',
                        'layer',
-                       'len',
-                       'lhead',
-                       'lp',
-                       'ltail',
-                       'minlen',
+                       'margin',
                        'nojustify',
+                       'orientation',
                        'penwidth',
+                       'peripheries',
+                       'pin',
                        'pos',
-                       'samehead',
-                       'sametail',
+                       'rects',
+                       'regular',
+                       'root',
+                       'samplepoints',
+                       'shape',
+                       'shapefile',
                        'showboxes',
+                       'sides',
+                       'skew',
+                       'sortv',
                        'style',
-                       'tailURL',
-                       'tailclip',
-                       'tailhref',
-                       'taillabel',
-                       'tailport',
-                       'tailtarget',
-                       'tailtooltip',
                        'target',
                        'tooltip',
-                       'weight',
-                       'rank'])
-
-
-NODE_ATTRIBUTES = set(['URL', 'color', 'colorscheme', 'comment',
-                       'distortion', 'fillcolor', 'fixedsize', 'fontcolor', 'fontname',
-                       'fontsize', 'group', 'height', 'id', 'image', 'imagescale', 'label',
-                       'labelloc', 'layer', 'margin', 'nojustify', 'orientation', 'penwidth',
-                       'peripheries', 'pin', 'pos', 'rects', 'regular', 'root', 'samplepoints',
-                       'shape', 'shapefile', 'showboxes', 'sides', 'skew', 'sortv', 'style',
-                       'target', 'tooltip', 'vertices', 'width', 'z',
+                       'vertices',
+                       'width',
+                       'z',
                        # The following are attributes dot2tex
-                       'texlbl', 'texmode'])
+                       'texlbl',
+                       'texmode'])
 
-
-CLUSTER_ATTRIBUTES = set(['K',
-                          'URL',
-                          'bgcolor',
-                          'color',
-                          'colorscheme',
-                          'fillcolor',
-                          'fontcolor',
-                          'fontname',
-                          'fontsize',
-                          'label',
-                          'labeljust',
-                          'labelloc',
-                          'lheight',
-                          'lp',
-                          'lwidth',
-                          'nojustify',
-                          'pencolor',
-                          'penwidth',
-                          'peripheries',
-                          'sortv',
-                          'style',
-                          'target',
-                          'tooltip'])
+CLUSTER_ATTRIBUTES = set(
+    ['K', 'URL', 'bgcolor', 'color', 'colorscheme', 'fillcolor', 'fontcolor',
+     'fontname', 'fontsize', 'label', 'labeljust', 'labelloc', 'lheight', 'lp',
+     'lwidth', 'nojustify', 'pencolor', 'penwidth', 'peripheries', 'sortv',
+     'style', 'target', 'tooltip'])
 
 
 #
@@ -160,9 +187,9 @@ CLUSTER_ATTRIBUTES = set(['K',
 # This version freezes dictionaries used as values within dictionaries.
 #
 class frozendict(dict):
-
     def _blocked_attribute(obj):
         raise AttributeError("A frozendict cannot be modified.")
+
     _blocked_attribute = property(_blocked_attribute)
 
     __delitem__ = __setitem__ = clear = _blocked_attribute
@@ -213,8 +240,7 @@ dot_keywords = ['graph', 'subgraph', 'digraph', 'node', 'edge', 'strict']
 
 id_re_alpha_nums = re.compile('^[_a-zA-Z][a-zA-Z0-9_,]*$', re.UNICODE)
 id_re_alpha_nums_with_ports = re.compile(
-    '^[_a-zA-Z][a-zA-Z0-9_,:\"]*[a-zA-Z0-9_,\"]+$',
-    re.UNICODE)
+    '^[_a-zA-Z][a-zA-Z0-9_,:\"]*[a-zA-Z0-9_,\"]+$', re.UNICODE)
 id_re_num = re.compile('^[0-9,]+$', re.UNICODE)
 id_re_with_port = re.compile('^([^:]*):([^:]*)$', re.UNICODE)
 id_re_dbl_quoted = re.compile('^\".*\"$', re.S | re.UNICODE)
@@ -245,11 +271,9 @@ def needs_quotes(s):
         return True
 
     for test_re in [
-            id_re_alpha_nums,
-            id_re_num,
-            id_re_dbl_quoted,
-            id_re_html,
-            id_re_alpha_nums_with_ports]:
+        id_re_alpha_nums, id_re_num, id_re_dbl_quoted, id_re_html,
+        id_re_alpha_nums_with_ports
+    ]:
         if test_re.match(s):
             return False
 
@@ -274,9 +298,7 @@ def quote_if_necessary(s):
         return s
 
     if needs_quotes(s):
-        replace = {'"': r'\"',
-                   "\n": r'\n',
-                   "\r": r'\r'}
+        replace = {'"': r'\"', "\n": r'\n', "\r": r'\r'}
         for (a, b) in replace.items():
             s = s.replace(a, b)
 
@@ -374,8 +396,7 @@ def graph_from_adjacency_matrix(matrix, node_prefix=u'', directed=False):
         for e in r:
             if e:
                 graph.add_edge(
-                    Edge(node_prefix + node_orig,
-                         node_prefix + node_dest))
+                    Edge(node_prefix + node_orig, node_prefix + node_dest))
             node_dest += 1
         node_orig += 1
 
@@ -410,8 +431,7 @@ def graph_from_incidence_matrix(matrix, node_prefix='', directed=False):
 
         if len(nodes) == 2:
             graph.add_edge(
-                Edge(node_prefix + abs(nodes[0]),
-                     node_prefix + nodes[1]))
+                Edge(node_prefix + abs(nodes[0]), node_prefix + nodes[1]))
 
     if not directed:
         graph.set_simplify(True)
@@ -437,7 +457,8 @@ def __find_executables(path):
         'neato': '',
         'circo': '',
         'fdp': '',
-        'sfdp': ''}
+        'sfdp': ''
+    }
 
     was_quoted = False
     path = path.strip()
@@ -533,11 +554,7 @@ def find_graphviz():
             def RegOpenKeyEx(key, subkey, opt, sam):
                 result = ctypes.c_uint(0)
                 ctypes.windll.advapi32.RegOpenKeyExA(
-                    key,
-                    subkey,
-                    opt,
-                    sam,
-                    ctypes.byref(result))
+                    key, subkey, opt, sam, ctypes.byref(result))
                 return result.value
 
             def RegQueryValueEx(hkey, valuename):
@@ -546,11 +563,7 @@ def find_graphviz():
                 data = ctypes.create_string_buffer(1024)
 
                 res = ctypes.windll.advapi32.RegQueryValueExA(
-                    hkey,
-                    valuename,
-                    0,
-                    ctypes.byref(data_type),
-                    data,
+                    hkey, valuename, 0, ctypes.byref(data_type), data,
                     ctypes.byref(data_len))
 
                 return data.value
@@ -574,8 +587,8 @@ def find_graphviz():
             for potentialKey in potentialKeys:
 
                 try:
-                    hkey = RegOpenKeyEx(HKEY_LOCAL_MACHINE,
-                                        potentialKey, 0, KEY_QUERY_VALUE)
+                    hkey = RegOpenKeyEx(HKEY_LOCAL_MACHINE, potentialKey, 0,
+                                        KEY_QUERY_VALUE)
 
                     if hkey is not None:
                         path = RegQueryValueEx(hkey, "InstallPath")
@@ -625,10 +638,7 @@ def find_graphviz():
             # information, but win32api may not be installed.
 
             path = os.path.join(
-                os.environ['PROGRAMFILES'],
-                'ATT',
-                'GraphViz',
-                'bin')
+                os.environ['PROGRAMFILES'], 'ATT', 'GraphViz', 'bin')
 
         else:
 
@@ -643,10 +653,8 @@ def find_graphviz():
             return progs
 
     for path in (
-            '/usr/bin', '/usr/local/bin',
-            '/opt/local/bin',
-            '/opt/bin', '/sw/bin', '/usr/share',
-            '/Applications/Graphviz.app/Contents/MacOS/'):
+        '/usr/bin', '/usr/local/bin', '/opt/local/bin', '/opt/bin', '/sw/bin',
+        '/usr/share', '/Applications/Graphviz.app/Contents/MacOS/'):
 
         progs = __find_executables(path)
         if progs is not None:
@@ -659,7 +667,6 @@ def find_graphviz():
 
 
 class Common:
-
     """Common information to several classes.
 
     Should not be directly used, several classes are derived from
@@ -771,22 +778,17 @@ class Common:
             # Generate all the Setter methods.
             #
             self.__setattr__(
-                'set_' +
-                attr,
-                lambda x,
-                a=attr: self.obj_dict['attributes'].__setitem__(
-                    a,
-                    x))
+                'set_' + attr,
+                lambda x, a=attr: self.obj_dict['attributes'].__setitem__(
+                    a, x))
 
             # Generate all the Getter methods.
             #
             self.__setattr__(
-                'get_' + attr,
-                lambda a=attr: self.__get_attribute__(a))
+                'get_' + attr, lambda a=attr: self.__get_attribute__(a))
 
 
 class Error(Exception):
-
     """General error handling class.
     """
 
@@ -798,7 +800,6 @@ class Error(Exception):
 
 
 class InvocationException(Exception):
-
     """To indicate that a ploblem occurred while running any of the GraphViz executables.
     """
 
@@ -810,7 +811,6 @@ class InvocationException(Exception):
 
 
 class Node(object, Common):
-
     """A graph node.
 
     This class represents a graph's node with all its attributes.
@@ -919,7 +919,6 @@ class Node(object, Common):
 
 
 class Edge(object, Common):
-
     """A graph edge.
 
     This class represents a graph's edge with all its attributes.
@@ -1011,8 +1010,10 @@ class Edge(object, Common):
             # If the graph is undirected, the edge has neither
             # source nor destination.
             #
-            if ((self.get_source() == edge.get_source() and self.get_destination() == edge.get_destination()) or (
-                    edge.get_source() == self.get_destination() and edge.get_destination() == self.get_source())):
+            if ((self.get_source() == edge.get_source() and
+                 self.get_destination() == edge.get_destination()) or (
+                     edge.get_source() == self.get_destination() and
+                     edge.get_destination() == self.get_source())):
                 return True
 
         else:
@@ -1035,8 +1036,8 @@ class Edge(object, Common):
         node_port_idx = node_str.rfind(':')
 
         if node_port_idx > 0 and node_str[0] == '"' and node_str[
-                node_port_idx -
-                1] == '"':
+            node_port_idx - 1
+        ] == '"':
 
             return node_str
 
@@ -1068,8 +1069,8 @@ class Edge(object, Common):
             edge = [src]
 
         if (self.get_parent_graph() and
-                self.get_parent_graph().get_top_graph_type() and
-                self.get_parent_graph().get_top_graph_type() == 'digraph'):
+            self.get_parent_graph().get_top_graph_type() and
+            self.get_parent_graph().get_top_graph_type() == 'digraph'):
 
             edge.append('->')
 
@@ -1101,7 +1102,6 @@ class Edge(object, Common):
 
 
 class Graph(object, Common):
-
     """Class representing a graph in Graphviz's dot language.
 
     This class implements the methods to work on a representation
@@ -1138,14 +1138,13 @@ class Graph(object, Common):
     """
 
     def __init__(
-            self,
-            graph_name='G',
-            obj_dict=None,
-            graph_type='digraph',
-            strict=False,
-            suppress_disconnected=False,
-            simplify=False,
-            **attrs):
+        self,
+        graph_name='G',
+        obj_dict=None,
+        graph_type='digraph',
+        strict=False,
+        suppress_disconnected=False,
+        simplify=False, **attrs):
 
         if obj_dict is not None:
             self.obj_dict = obj_dict
@@ -1158,8 +1157,8 @@ class Graph(object, Common):
 
             if graph_type not in ['graph', 'digraph']:
                 raise Error(
-                    'Invalid type "%s". Accepted graph types are: graph, digraph, subgraph' %
-                    graph_type)
+                    'Invalid type "%s". Accepted graph types are: graph, digraph, subgraph'
+                    % graph_type)
 
             self.obj_dict['name'] = quote_if_necessary(graph_name)
             self.obj_dict['type'] = graph_type
@@ -1328,17 +1327,17 @@ class Graph(object, Common):
         if not node:
 
             self.obj_dict['nodes'][
-                graph_node.get_name()] = [
-                graph_node.obj_dict]
+                graph_node.get_name()
+            ] = [
+                graph_node.obj_dict
+            ]
 
             #self.node_dict[graph_node.get_name()] = graph_node.attributes
             graph_node.set_parent_graph(self.get_parent_graph())
 
         else:
 
-            self.obj_dict['nodes'][
-                graph_node.get_name()].append(
-                graph_node.obj_dict)
+            self.obj_dict['nodes'][graph_node.get_name()].append(graph_node.obj_dict)
 
         graph_node.set_sequence(self.get_next_sequence_number())
 
@@ -1474,7 +1473,8 @@ class Graph(object, Common):
 
             if index is not None and index < len(
                 self.obj_dict['edges'][
-                    (src, dst)]):
+                    (src, dst)
+                ]):
                 del self.obj_dict['edges'][(src, dst)][index]
                 return True
             else:
@@ -1504,7 +1504,8 @@ class Graph(object, Common):
         match = list()
 
         if edge_points in self.obj_dict['edges'] or (
-                self.get_top_graph_type() == 'graph' and edge_points_reverse in self.obj_dict['edges']):
+            self.get_top_graph_type() == 'graph' and
+            edge_points_reverse in self.obj_dict['edges']):
 
             edges_obj_dict = self.obj_dict['edges'].get(
                 edge_points,
@@ -1513,8 +1514,7 @@ class Graph(object, Common):
             for edge_obj_dict in edges_obj_dict:
                 match.append(
                     Edge(
-                        edge_points[0],
-                        edge_points[1],
+                        edge_points[0], edge_points[1],
                         obj_dict=edge_obj_dict))
 
         return match
@@ -1544,10 +1544,8 @@ class Graph(object, Common):
         """
 
         if not isinstance(
-                sgraph,
-                Subgraph) and not isinstance(
-                sgraph,
-                Cluster):
+            sgraph, Subgraph) and not isinstance(
+                sgraph, Cluster):
             raise TypeError(
                 'add_subgraph() received a non subgraph class object:' +
                 str(sgraph))
@@ -1638,14 +1636,14 @@ class Graph(object, Common):
 
         if self.obj_dict['name'] == '':
             if 'show_keyword' in self.obj_dict and self.obj_dict[
-                    'show_keyword']:
+                'show_keyword'
+            ]:
                 graph.append('subgraph {\n')
             else:
                 graph.append('{\n')
         else:
             graph.append(
-                '%s %s {\n' %
-                (self.obj_dict['type'], self.obj_dict['name']))
+                '%s %s {\n' % (self.obj_dict['type'], self.obj_dict['name']))
 
         for attr in self.obj_dict['attributes'].iterkeys():
 
@@ -1692,7 +1690,7 @@ class Graph(object, Common):
                 if self.obj_dict.get('suppress_disconnected', False):
 
                     if (node.get_name() not in edge_src_set and
-                            node.get_name() not in edge_dst_set):
+                        node.get_name() not in edge_dst_set):
 
                         continue
 
@@ -1720,7 +1718,6 @@ class Graph(object, Common):
 
 
 class Subgraph(Graph):
-
     """Class representing a subgraph in Graphviz's dot language.
 
     This class implements the methods to work on a representation
@@ -1752,20 +1749,18 @@ class Subgraph(Graph):
     # as a graph to all methods
     #
     def __init__(
-            self,
-            graph_name='',
-            obj_dict=None,
-            suppress_disconnected=False,
-            simplify=False,
-            **attrs):
+        self,
+        graph_name='',
+        obj_dict=None,
+        suppress_disconnected=False,
+        simplify=False, **attrs):
 
         Graph.__init__(
             self,
             graph_name=graph_name,
             obj_dict=obj_dict,
             suppress_disconnected=suppress_disconnected,
-            simplify=simplify,
-            **attrs)
+            simplify=simplify, **attrs)
 
         if obj_dict is None:
 
@@ -1773,7 +1768,6 @@ class Subgraph(Graph):
 
 
 class Cluster(Graph):
-
     """Class representing a cluster in Graphviz's dot language.
 
     This class implements the methods to work on a representation
@@ -1802,20 +1796,18 @@ class Cluster(Graph):
     """
 
     def __init__(
-            self,
-            graph_name='subG',
-            obj_dict=None,
-            suppress_disconnected=False,
-            simplify=False,
-            **attrs):
+        self,
+        graph_name='subG',
+        obj_dict=None,
+        suppress_disconnected=False,
+        simplify=False, **attrs):
 
         Graph.__init__(
             self,
             graph_name=graph_name,
             obj_dict=obj_dict,
             suppress_disconnected=suppress_disconnected,
-            simplify=simplify,
-            **attrs)
+            simplify=simplify, **attrs)
 
         if obj_dict is None:
 
@@ -1826,7 +1818,6 @@ class Cluster(Graph):
 
 
 class Dot(Graph):
-
     """A container for handling a dot language file.
 
     This class implements methods to write and process
@@ -1842,42 +1833,12 @@ class Dot(Graph):
         self.progs = None
 
         self.formats = [
-            'canon',
-            'cmap',
-            'cmapx',
-            'cmapx_np',
-            'dia',
-            'dot',
-            'fig',
-            'gd',
-            'gd2',
-            'gif',
-            'hpgl',
-            'imap',
-            'imap_np',
-            'ismap',
-            'jpe',
-            'jpeg',
-            'jpg',
-            'mif',
-            'mp',
-            'pcl',
-            'pdf',
-            'pic',
-            'plain',
-            'plain-ext',
-            'png',
-            'ps',
-            'ps2',
-            'svg',
-            'svgz',
-            'vml',
-            'vmlz',
-            'vrml',
-            'vtx',
-            'wbmp',
-            'xdot',
-            'xlib']
+            'canon', 'cmap', 'cmapx', 'cmapx_np', 'dia', 'dot', 'fig', 'gd',
+            'gd2', 'gif', 'hpgl', 'imap', 'imap_np', 'ismap', 'jpe', 'jpeg',
+            'jpg', 'mif', 'mp', 'pcl', 'pdf', 'pic', 'plain', 'plain-ext',
+            'png', 'ps', 'ps2', 'svg', 'svgz', 'vml', 'vmlz', 'vrml', 'vtx',
+            'wbmp', 'xdot', 'xlib'
+        ]
 
         self.prog = 'dot'
 
@@ -1885,9 +1846,7 @@ class Dot(Graph):
         # of output in any of the supported formats.
         for frmt in self.formats:
             self.__setattr__(
-                'create_' + frmt,
-                lambda f=frmt,
-                prog=self.prog: self.create(
+                'create_' + frmt, lambda f=frmt, prog=self.prog: self.create(
                     format=f,
                     prog=prog))
             f = self.__dict__['create_' + frmt]
@@ -1896,9 +1855,7 @@ class Dot(Graph):
         for frmt in self.formats + ['raw']:
             self.__setattr__(
                 'write_' + frmt,
-                lambda path,
-                f=frmt,
-                prog=self.prog: self.write(
+                lambda path, f=frmt, prog=self.prog: self.write(
                     path,
                     format=f,
                     prog=prog))
@@ -2036,15 +1993,14 @@ class Dot(Graph):
         if self.progs is None:
             self.progs = find_graphviz()
             if self.progs is None:
-                raise InvocationException(
-                    'GraphViz\'s executables not found')
+                raise InvocationException('GraphViz\'s executables not found')
 
         if prog not in self.progs:
             raise InvocationException(
                 'GraphViz\'s executable "%s" not found' % prog)
 
         if not os.path.exists(
-                self.progs[prog]) or not os.path.isfile(
+            self.progs[prog]) or not os.path.isfile(
                 self.progs[prog]):
             raise InvocationException(
                 'GraphViz\'s executable "%s" is not a file or doesn\'t exist' %
@@ -2076,7 +2032,8 @@ class Dot(Graph):
         p = subprocess.Popen(
             cmdline,
             cwd=tmp_dir,
-            stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE)
 
         stderr = p.stderr
         stdout = p.stdout
@@ -2109,7 +2066,8 @@ class Dot(Graph):
         if status != 0:
             raise InvocationException(
                 'Program terminated with status: %d. stderr follows: %s' % (
-                    status, stderr_output))
+                    status, stderr_output
+                ))
         elif stderr_output:
             print stderr_output
 
