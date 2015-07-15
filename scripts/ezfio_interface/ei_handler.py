@@ -86,6 +86,7 @@ from os.path import isdir, join, exists
 from qp_path import QP_ROOT, QP_SRC, QP_OCAML, QP_EZFIO
 
 Type = namedtuple('Type', 'fancy ocaml fortran')
+Module = namedtuple('Module', 'path lower')
 
 
 def is_bool(str_):
@@ -788,8 +789,6 @@ if __name__ == "__main__":
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~# #
 
     l_module_with_ezfio = []
-
-    Module = namedtuple('Module', 'path lower')
 
     for f in l_module:
         path = join(QP_SRC, f, "EZFIO.cfg")
