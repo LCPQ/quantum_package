@@ -819,6 +819,10 @@ Documentation
   Undocumented
 
 
+`routine_count_mono_save_mono <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_wf_only_monos.irp.f#L9>`_
+  Undocumented
+
+
 `s2_eig <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L248>`_
   Force the wave function to be an eigenfunction of S^2
 
@@ -855,8 +859,16 @@ Documentation
   Save the wave function into the EZFIO file
 
 
+`save_wavefunction_specified <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L734>`_
+  Save the wave function into the EZFIO file
+
+
 `save_wavefunction_unsorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L637>`_
   Save the wave function into the EZFIO file
+
+
+`save_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_wf_only_monos.irp.f#L1>`_
+  Undocumented
 
 
 `set_natural_mos <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L180>`_

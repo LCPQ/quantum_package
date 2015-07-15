@@ -22,11 +22,13 @@ Nuclei
 Integrals_Bielec
 guess_doublet
 program_initial_determinants
+save_wf_only_monos
 save_natorb
 guess_singlet
 guess_triplet
 truncate_wf
 save_for_casino
+diag_and_save
 det_svd
 print_cas_energy
 print_s2
