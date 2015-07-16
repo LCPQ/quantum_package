@@ -63,7 +63,8 @@ d_dependency = {
     "gcc": [],
     "python": [],
     "ninja": ["gcc", "python"],
-    "make": []
+    "make": [],
+    "p_graphviz": ["python"]
 }
 
 from collections import namedtuple
@@ -128,10 +129,15 @@ ezfio = Info(
     description=' EZFIO',
     default_path=join(QP_ROOT_INSTALL, "EZFIO"))
 
+p_graphviz = Info(
+    url='https://github.com/xflr6/graphviz/archive/master.tar.gz',
+    description=' Python library for graphviz',
+    default_path=join(QP_ROOT_INSTALL, "p_graphviz"))
+
 d_info = dict()
 
 for m in ["ocaml", "m4", "curl", "zlib", "path", "irpf90", "docopt",
-          "resultsFile", "ninja", "emsl", "ezfio"]:
+          "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz"]:
     exec ("d_info['{0}']={0}".format(m))
 
 
