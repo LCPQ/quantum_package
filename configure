@@ -17,9 +17,11 @@ Options:
                   who contains a binary, than you can compile then
                   individualy if you want
 
-Example:
+Examples:
 
     ./configure config/gfortran.cfg --production
+    ./configure config/ifort.cfg    --development
+
 
 """
 

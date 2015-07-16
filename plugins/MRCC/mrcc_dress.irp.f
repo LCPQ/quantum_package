@@ -12,13 +12,14 @@ BEGIN_PROVIDER [ integer(omp_lock_kind), psi_cas_lock, (psi_det_size) ]
 
 END_PROVIDER
 
-subroutine mrcc_dress(delta_ij_,Ndet,i_generator,n_selected,det_buffer,Nint,iproc)
+subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_cas, Ndet_non_cas,i_generator,n_selected,det_buffer,Nint,iproc)
  use bitmasks
  implicit none
 
   integer, intent(in)            :: i_generator,n_selected, Nint, iproc
-  integer, intent(in) :: Ndet
-  double precision, intent(inout) :: delta_ij_(Ndet,Ndet,*)
+  integer, intent(in) :: Ndet_cas, Ndet_non_cas
+  double precision, intent(inout) :: delta_ij_(Ndet_cas,Ndet_non_cas,*)
+  double precision, intent(inout) :: delta_ii_(Ndet_cas,*)
 
   integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
   integer                        :: i,j,k,l
@@ -42,7 +43,7 @@ subroutine mrcc_dress(delta_ij_,Ndet,i_generator,n_selected,det_buffer,Nint,ipro
 
   call find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq)
 
-  allocate (dIa_hla(N_states,Ndet))
+  allocate (dIa_hla(N_states,Ndet_non_cas))
 
   ! |I>
 
@@ -136,12 +137,11 @@ subroutine mrcc_dress(delta_ij_,Ndet,i_generator,n_selected,det_buffer,Nint,ipro
        do l_sd=1,idx_alpha(0)
          k_sd = idx_alpha(l_sd)
          do i_state=1,N_states
-           delta_ij_(idx_non_cas(k_sd),idx_cas(i_I),i_state) += dIa_hla(i_state,k_sd)
-           delta_ij_(idx_cas(i_I),idx_non_cas(k_sd),i_state) += dIa_hla(i_state,k_sd)
+           delta_ij_(i_I,k_sd,i_state) += dIa_hla(i_state,k_sd)
            if(dabs(psi_cas_coef(i_I,i_state)).ge.5.d-5)then
-            delta_ij_(idx_cas(i_I),idx_cas(i_I),i_state) -= dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_cas_coef(k_sd,i_state)
+            delta_ii_(i_I,i_state) -= dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_cas_coef(k_sd,i_state)
            else
-            delta_ij_(idx_cas(i_I),idx_cas(i_I),i_state)  = 0.d0
+            delta_ii_(i_I,i_state)  = 0.d0
            endif
          enddo
        enddo
