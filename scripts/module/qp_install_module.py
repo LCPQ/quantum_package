@@ -23,7 +23,7 @@ try:
     from module_handler import ModuleHandler, get_dict_child
     from module_handler import get_l_module_descendant
     from update_README import Doc_key, Needed_key
-    from qp_path import QP_SRC, QP_PLUGINS
+    from qp_path import QP_SRC, QP_PLUGINS, QP_ROOT
 except ImportError:
     print "Please check if you have sourced the .quantum_package.rc"
     print "(`source .quantum_package.rc`)"
@@ -163,9 +163,11 @@ if __name__ == '__main__':
                 subprocess.check_call(["qp_create_ninja.py", "update"])
             except:
                 raise
-    
-            print "Done"
+
+            print "[ OK ]"
             print "You can now compile as usual"
+            print "`cd {0} ; ninja` for exemple".format(QP_ROOT)
+            print " or --in developement mode-- you can cd in a directory and compile here"
 
     elif arguments["uninstall"]:
 
