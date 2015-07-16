@@ -66,7 +66,7 @@ def update_needed(data):
     with open('NEEDED_CHILDREN_MODULES', 'r') as f:
         modules = f.read()
 
-    header_image = ".. image:: tree_dependency.pdf\n\n"
+    header_image = ".. image:: tree_dependency.png\n\n"
 
     if modules.strip():
         modules = ['* `{0} <{1}>`_'.format(name, os.path.join(URL, name))

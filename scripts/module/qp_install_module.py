@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Usage: 
+Usage:
        qp_install_module.py create -n <name> [<children_module>...]
        qp_install_module.py download -n <name> [<path_folder>...]
        qp_install_module.py install <name>...

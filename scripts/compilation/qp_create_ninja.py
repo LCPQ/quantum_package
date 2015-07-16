@@ -530,7 +530,7 @@ def ninja_readme_build(path_module, d_irp, dict_root_path):
     tags = join(root_module.abs, "tags")
     str_depend = " ".join(d_irp[path_module]["l_depend"])
 
-    tree = join(root_module.abs, "tree_dependency.pdf")
+    tree = join(root_module.abs, "tree_dependency.png")
 
     l_string = ["build {0}: build_readme {1} {2} {3}".format(path_readme,
                                                              tags,
@@ -663,16 +663,20 @@ def ninja_binaries_build(path_module, l_children, d_binaries):
     # s t r i n g #
     # ~#~#~#~#~#~ #
 
+    path_readme = os.path.join(path_module.abs, "README.rst")
+    path_png = os.path.join(path_module.abs, "tree_dependency.png")
+
     l_string = ["build {0}: build_binaries {1} {2}".format(" ".join(l_abs_bin),
                                                            EZFIO_LIB,
                                                            ninja_module_path),
                 "   module_abs = {0}".format(path_module.abs),
                 "   module_rel = {0}".format(path_module.rel), ""]
 
-    l_string += ["build module_{0}: phony {1} {2}".format(path_module.rel,
-                                                          " ".join(l_abs_bin),
-                                                          os.path.join(path_module.abs,"README.rst")),
-                                                           ""]
+    l_string += ["build module_{0}: phony {1} {2} {3}".format(path_module.rel,
+                                                              " ".join(l_abs_bin),
+                                                              path_readme,
+                                                              path_png
+                                                              ), ""]
 
     return l_string
 
@@ -703,7 +707,7 @@ def ninja_dot_tree_rule():
 
 def ninja_dot_tree_build(path_module, l_module):
 
-    path_tree = join(path_module.abs, "tree_dependency.pdf")
+    path_tree = join(path_module.abs, "tree_dependency.png")
     l_dep = [join(path.abs, "NEEDED_CHILDREN_MODULES") for path in l_module]
     l_string = ["build {0}: build_dot_tree {1}".format(path_tree, " ".join(l_dep)),
                 "   module_abs = {0}".format(path_module.abs),

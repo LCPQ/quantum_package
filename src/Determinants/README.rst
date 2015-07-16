@@ -32,7 +32,7 @@ Needed Modules
 .. Do not edit this section. It was auto-generated from the
 .. by the `update_README.py` script.
 
-.. image:: tree_dependency.pdf
+.. image:: tree_dependency.png
 
 * `Integrals_Monoelec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec>`_
 * `Integrals_Bielec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec>`_

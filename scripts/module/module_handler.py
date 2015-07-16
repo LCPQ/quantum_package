@@ -176,7 +176,8 @@ class ModuleHandler():
     def create_png(self, l_module):
         """Create the png of the dependency tree for a l_module"""
 
-        path = '{0}.png'.format("tree_dependency")
+        basename = "tree_dependency"
+        path = '{0}.png'.format(basename)
 
         # Init
         try:
@@ -199,7 +200,7 @@ class ModuleHandler():
                     draw_module_edge(children, d_ref[children])
                 all_ready_done.append(module)
 
-        graph = Digraph(comment=l_module)
+        graph = Digraph(comment=l_module, format="png", filename=basename)
         d_ref = self.dict_child
 
         # Create all the edge
@@ -207,7 +208,7 @@ class ModuleHandler():
             graph.node(module, fontcolor="red")
             draw_module_edge(module, d_ref[module])
 
-        graph.render('tree_dependency')
+        graph.render(cleanup=True)
 
 
 if __name__ == '__main__':
