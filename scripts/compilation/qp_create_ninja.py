@@ -669,22 +669,11 @@ def ninja_binaries_build(path_module, l_children, d_binaries):
                 "   module_abs = {0}".format(path_module.abs),
                 "   module_rel = {0}".format(path_module.rel), ""]
 
-    l_string += ["build module_{0}: phony {1}".format(path_module.rel,
-                                                      " ".join(l_abs_bin)), ""]
+    l_string += ["build module_{0}: phony {1} {2}".format(path_module.rel,
+                                                          " ".join(l_abs_bin),
+                                                          os.path.join(path_module.abs,"README.rst")),
+                                                           ""]
 
-    return l_string
-
-
-#
-# |\/|  _   _|     |  _
-# |  | (_) (_| |_| | (/_
-#
-def create_module_ninja():
-    """
-    In a module create a build.ninja
-    """
-
-    l_string = ["rule all:"]
     return l_string
 
 

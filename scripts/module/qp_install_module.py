@@ -25,7 +25,7 @@ try:
     from update_README import Doc_key, Needed_key
     from qp_path import QP_SRC, QP_PLUGINS
 except ImportError:
-    print "Please check if you have source the .quantum_package.rc"
+    print "Please check if you have sourced the .quantum_package.rc"
     print "(`source .quantum_package.rc`)"
     print sys.exit(1)
 
@@ -160,7 +160,6 @@ if __name__ == '__main__':
                         print "Your src directory is broken. Please remove %s" % des
                         raise
             try:
-                import subprocess
                 subprocess.check_call(["qp_create_ninja.py", "update"])
             except:
                 raise

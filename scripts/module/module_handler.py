@@ -82,9 +82,10 @@ def get_l_module_descendant(d_child, l_module):
             try:
                 l.extend(get_l_module_descendant(d_child, d_child[module]))
             except KeyError:
-                print >> sys.stderr, "`{0}` not submodule".format(module)
-                print >> sys.stderr, "Check the corresponding NEEDED_CHILDREN_MODULES"
-                raise
+                print >> sys.stderr, "Error: "
+                print >> sys.stderr, "`{0}` is not a submodule".format(module)
+                print >> sys.stderr, "Check the typo (orthograph, case, '/', etc.) "
+                sys.exit(1)
 
     return list(set(l))
 
