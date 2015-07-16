@@ -36,7 +36,7 @@ Needed Modules
 .. Do not edit this section. It was auto-generated from the
 .. by the `update_README.py` script.
 
-.. image:: tree_dependency.pdf
+.. image:: tree_dependency.png
 
 * `AO_Basis <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis>`_
 * `Electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons>`_

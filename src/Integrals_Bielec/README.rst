@@ -16,7 +16,7 @@ Needed Modules
 .. Do not edit this section. It was auto-generated from the
 .. by the `update_README.py` script.
 
-.. image:: tree_dependency.pdf
+.. image:: tree_dependency.png
 
 * `Pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo>`_
 * `Bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask>`_

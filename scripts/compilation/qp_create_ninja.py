@@ -530,7 +530,7 @@ def ninja_readme_build(path_module, d_irp, dict_root_path):
     tags = join(root_module.abs, "tags")
     str_depend = " ".join(d_irp[path_module]["l_depend"])
 
-    tree = join(root_module.abs, "tree_dependency.png")
+    tree = join(path_module.abs, "tree_dependency.png")
 
     l_string = ["build {0}: build_readme {1} {2} {3}".format(path_readme,
                                                              tags,
@@ -878,14 +878,39 @@ if __name__ == "__main__":
         d_binaries = get_dict_binaries(l_all_module, mode="development")
         l_module = d_binaries.keys()
 
-        for module in l_module:
+        for module in l_all_module:
             # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
             # d o t _ t r e e  & r e a d  m e #
             # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
             l_string += ninja_dot_tree_build(module, l_all_module)
             l_string += ninja_readme_build(module, d_irp, dict_root_path)
 
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+    # C h e c k _ c o h e r e n c y #
+    # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+
+    for module in dict_root_path.values():
+
+        if module not in d_binaries:
+            l_msg = ["{0} is a root module but he do not containt a main file",
+                     "Is intolerable !",
+                     "You need a main file:",
+                     "- Create it in {0}",
+                     "- Or delete {0} `qp_install_module.py uninstall {0}`"
+                     "- Or install a module who need {0} with a main "]
+
+            print "\n".join(l_msg).format(module)
+            sys.exit(1)
+
+    # ~#~#~#~#~#~#~#~#~#~#~#~ #
+    # G l o b a l _ b u i l d #
+    # ~#~#~#~#~#~#~#~#~#~#~#~ #
+
     create_build_ninja_global()
+
+    # ~#~#~#~#~#~#~#~#~#~#~#~ #
+    # C r e a t e _ r u l e s #
+    # ~#~#~#~#~#~#~#~#~#~#~#~ #
 
     for module_to_compile in l_module:
 
@@ -911,6 +936,10 @@ if __name__ == "__main__":
 
         l_string += ninja_gitignore_build(module_to_compile, d_binaries,
                                           l_symlink)
+
+    # ~#~#~#~#~ #
+    # S a v e s #
+    # ~#~#~#~#~ #
 
     with open(join(QP_ROOT, "config", "build.ninja"), "w+") as f:
         f.write(header)
