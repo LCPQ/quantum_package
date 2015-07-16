@@ -530,7 +530,7 @@ def ninja_readme_build(path_module, d_irp, dict_root_path):
     tags = join(root_module.abs, "tags")
     str_depend = " ".join(d_irp[path_module]["l_depend"])
 
-    tree = join(root_module.abs, "tree_dependency.png")
+    tree = join(root_module.abs, "tree_dependency.pdf")
 
     l_string = ["build {0}: build_readme {1} {2} {3}".format(path_readme,
                                                              tags,
@@ -714,7 +714,7 @@ def ninja_dot_tree_rule():
 
 def ninja_dot_tree_build(path_module, l_module):
 
-    path_tree = join(path_module.abs, "tree_dependency.png")
+    path_tree = join(path_module.abs, "tree_dependency.pdf")
     l_dep = [join(path.abs, "NEEDED_CHILDREN_MODULES") for path in l_module]
     l_string = ["build {0}: build_dot_tree {1}".format(path_tree, " ".join(l_dep)),
                 "   module_abs = {0}".format(path_module.abs),
@@ -869,14 +869,7 @@ if __name__ == "__main__":
     dict_root = module_instance.dict_root
     dict_root_path = dict_module_genelogy_path(dict_root)
 
-    l_module = d_genealogy_path.keys()
-
-    for module in l_module:
-        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
-        # d o t _ t r e e  & r e a d  m e #
-        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
-        l_string += ninja_dot_tree_build(module, l_module)
-        l_string += ninja_readme_build(module, d_irp, dict_root_path)
+    l_all_module = d_genealogy_path.keys()
 
     # ~#~#~#~#~#~#~#~#~#~#~#~#~ #
     # M o d u l e _ t o _ i r p #
@@ -884,13 +877,20 @@ if __name__ == "__main__":
 
     if arguments["--production"]:
 
-        d_binaries = get_dict_binaries(l_module, mode="production")
+        d_binaries = get_dict_binaries(l_all_module, mode="production")
         l_module = d_binaries.keys()
 
     elif arguments["--development"]:
 
-        d_binaries = get_dict_binaries(l_module, mode="development")
+        d_binaries = get_dict_binaries(l_all_module, mode="development")
         l_module = d_binaries.keys()
+
+        for module in l_module:
+            # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+            # d o t _ t r e e  & r e a d  m e #
+            # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+            l_string += ninja_dot_tree_build(module, l_all_module)
+            l_string += ninja_readme_build(module, d_irp, dict_root_path)
 
     create_build_ninja_global(l_module)
 

@@ -12,7 +12,7 @@ Needed Modules
 .. Do not edit this section. It was auto-generated from the
 .. by the `update_README.py` script.
 
-.. image:: tree_dependency.png
+.. image:: tree_dependency.pdf
 
 * `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_

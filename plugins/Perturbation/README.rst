@@ -356,7 +356,7 @@ Needed Modules
 .. Do not edit this section. It was auto-generated from the
 .. by the `update_README.py` script.
 
-.. image:: tree_dependency.png
+.. image:: tree_dependency.pdf
 
 * `Properties <http://github.com/LCPQ/quantum_package/tree/master/src/Properties>`_
 * `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock>`_

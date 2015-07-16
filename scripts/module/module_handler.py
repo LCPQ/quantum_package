@@ -177,7 +177,7 @@ class ModuleHandler():
 
         # Init
         try:
-            import pydot
+            from graphviz import Digraph
         except:
             with open(path, 'a'):
                 os.utime(path, None)
@@ -191,23 +191,20 @@ class ModuleHandler():
             if module not in all_ready_done:
                 for children in l_children:
                     # Add Edge
-                    edge = pydot.Edge(module, children)
-                    graph.add_edge(edge)
+                    graph.edge(module, children)
                     # Recurs
                     draw_module_edge(children, d_ref[children])
                 all_ready_done.append(module)
 
-        graph = pydot.Dot(graph_type='digraph')
+        graph = Digraph(comment=l_module)
         d_ref = self.dict_child
 
         # Create all the edge
         for module in l_module:
-            node_a = pydot.Node(module, fontcolor="red")
-            graph.add_node(node_a)
+            graph.node(module, fontcolor="red")
             draw_module_edge(module, d_ref[module])
 
-        # Save
-        graph.write_png(path)
+        graph.render('tree_dependency')
 
 
 if __name__ == '__main__':
