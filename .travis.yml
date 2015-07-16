@@ -26,7 +26,6 @@ python:
 
 script: 
   - ./configure  --production ./config/gfortran.cfg
-  - cat ./install/_build/p_graphviz.log 
   - source ./quantum_package.rc
   - qp_install_module.py install Full_CI Hartree_Fock
   - ninja

@@ -128,7 +128,7 @@ ezfio = Info(
     default_path=join(QP_ROOT_INSTALL, "EZFIO"))
 
 p_graphviz = Info(
-    url='https://github.com/xflr6/graphviz/archive/master.zip',
+    url='https://github.com/xflr6/graphviz/archive/master.tar.gz',
     description=' Python library for graphviz',
     default_path=join(QP_ROOT_INSTALL, "p_graphviz"))
 
