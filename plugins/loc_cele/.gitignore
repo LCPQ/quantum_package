@@ -1,18 +1,18 @@
-# Automatically created by /home/razoa/quantum_package/scripts/module/module_handler.py 
-IRPF90_temp
-IRPF90_man
-irpf90_entities
-tags
-irpf90.make
-Makefile
-Makefile.depend
-.ninja_log
+# Automatically created by $QP_ROOT/scripts/module/module_handler.py 
 .ninja_deps
-ezfio_interface.irp.f
-Ezfio_files
-MO_Basis
-Utils
+.ninja_log
 AO_Basis
 Electrons
+Ezfio_files
+IRPF90_man
+IRPF90_temp
+MO_Basis
+Makefile
+Makefile.depend
 Nuclei
+Utils
+ezfio_interface.irp.f
+irpf90.make
+irpf90_entities
 loc_cele
+tags

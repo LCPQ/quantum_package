@@ -24,6 +24,7 @@ import shutil
 try:
     from docopt import docopt
     from qp_path import QP_SRC
+    from qp_path import QP_ROOT
 except ImportError:
     print "source .quantum_package.rc"
     raise
@@ -284,5 +285,8 @@ if __name__ == '__main__':
                 path = os.path.join(module_abs, ".gitignore")
 
                 with open(path, "w+") as f:
-                    f.write("# Automatically created by {0} \n".format(__file__))
-                    f.write("\n".join(l_dir + l_file + l_symlink + l_exe))
+                    f.write("# Automatically created by {0} \n".format(__file__).replace(QP_ROOT,"$QP_ROOT"))
+                    l_text = l_dir + l_file + l_symlink + l_exe
+                    l_text.sort()
+                    f.write("\n".join(l_text))
+
