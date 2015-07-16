@@ -6,7 +6,7 @@ Usage:
        qp_install_module.py download -n <name> [<path_folder>...]
        qp_install_module.py install <name>...
        qp_install_module.py list (--installed | --available-local)
-       qp_install_module.py uninstall <name>... [--and_ancestor]
+       qp_install_module.py uninstall <name>...
 
 
 Options:
@@ -163,6 +163,7 @@ if __name__ == '__main__':
                 subprocess.check_call(["qp_create_ninja.py", "update"])
             except:
                 raise
+    
             print "Done"
             print "You can now compile as usual"
 
@@ -182,22 +183,21 @@ if __name__ == '__main__':
                 print "* %s" % name
             sys.exit(1)
 
-        if arguments["--and_ancestor"]:
+        l_name_to_remove = l_name + [module for module in m_instance.l_module for name in l_name if name in d_descendant[module]]
 
-            l_name_to_remove = l_name + [module for module in m_instance.l_module for name in l_name if name in d_descendant[module]]
-            print "You will remove all of:"
-            print l_name_to_remove
-        else:
-            l_name_to_remove = l_name
+        print "You will remove all of:"
+        print l_name_to_remove
 
-        for module in l_name_to_remove:
+        for module in set(l_name_to_remove):
 
             try:
                 subprocess.check_call(["module_handler.py", "clean", module])
             except:
                 raise
 
+        for module in set(l_name_to_remove):
+
             try:
                 os.unlink(os.path.join(QP_SRC, module))
             except OSError:
-                print "%s is a core module which can not be renmoved" % x
+                print "%s is a core module which can not be renmoved" % module
