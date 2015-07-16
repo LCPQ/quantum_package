@@ -760,7 +760,7 @@ def create_build_ninja_module(path_module):
         f.write("\n".join(l_string))
 
 
-def create_build_ninja_global(l_module):
+def create_build_ninja_global():
 
     l_string = ["rule update_build_ninja_root",
                 "   command = {0} update".format(__file__),
@@ -772,7 +772,7 @@ def create_build_ninja_global(l_module):
                  ""]
 
     l_string += ["rule make_clean",
-                 "  command = module_handler.py clean {0}".format(" ".join([m.rel for m in l_module])),
+                 "  command = module_handler.py clean --all",
                  "  description = Cleaning all modules", ""]
 
     l_string += ["build dummy_target: update_build_ninja_root",
@@ -892,7 +892,7 @@ if __name__ == "__main__":
             l_string += ninja_dot_tree_build(module, l_all_module)
             l_string += ninja_readme_build(module, d_irp, dict_root_path)
 
-    create_build_ninja_global(l_module)
+    create_build_ninja_global()
 
     for module_to_compile in l_module:
 

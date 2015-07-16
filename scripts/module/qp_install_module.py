@@ -80,7 +80,9 @@ if __name__ == '__main__':
 
         l_children = arguments["<children_module>"]
 
-        path = os.path.join(QP_PLUGINS, arguments["<name>"][0])
+        name = arguments["<name>"][0]
+
+        path = os.path.join(QP_PLUGINS, name)
 
         print "You will create the module:"
         print path
@@ -102,9 +104,13 @@ if __name__ == '__main__':
         print "This can be reduce to:"
         l_child_reduce = m_instance.l_reduce_tree(l_children)
         print l_child_reduce
+        print "Installation",
         save_new_module(path, l_child_reduce)
 
-        print "This was a plugin, you can install it now"
+        print "    [ OK ]"
+        print "If this was a plugins, you can install it normaly. Type:"
+        print "` {0} install {1} `".format(os.path.basename(__file__), name)
+
     elif arguments["download"]:
         pass
 #        d_local = get_dict_child([QP_SRC])
