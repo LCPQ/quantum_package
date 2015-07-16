@@ -8,3 +8,4 @@ irpf90
 resultsFile
 zlib
 build.ninja
+p_graphviz

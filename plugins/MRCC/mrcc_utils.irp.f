@@ -17,7 +17,6 @@ do i=1,N_det_non_cas
    lambda_mrcc(k,i) = psi_non_cas_coef(i,k)/ihpsi(k)
     if (dabs(ihpsi(k)).le.1.d-3) then
       lambda_mrcc(k,i) = 1.d0 / (psi_cas_energy_diagonalized(k)-hii)
-      icount_manu = icount_manu+1
       cycle
     endif
    enddo
