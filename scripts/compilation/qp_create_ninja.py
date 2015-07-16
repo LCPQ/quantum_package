@@ -86,7 +86,9 @@ def ninja_create_env_variable(pwd_config_file):
     FC, FCFLAGS, IRPF90, IRPF90_FLAGS
     The env variable is usefull for the generation of EZFIO, and IRPF90
     """
-    l_string = []
+    l_string = ["builddir = {0}".format(os.path.dirname(ROOT_BUILD_NINJA)),
+                ""]
+
     for flag in ["FC", "FCFLAGS", "IRPF90", "IRPF90_FLAGS"]:
         str_ = "{0} = {1}".format(flag, get_compilation_option(pwd_config_file,
                                                                flag))
@@ -722,10 +724,12 @@ def ninja_dot_tree_build(path_module, l_module):
 # |  | (_) (_| |_| | (/_
 #
 def create_build_ninja_module(path_module):
-
-    l_string = ["rule update_build_ninja_root",
-                "   command = {0} update".format(__file__),
+    l_string = ["builddir = {0}".format(os.path.dirname(ROOT_BUILD_NINJA)),
                 ""]
+
+    l_string += ["rule update_build_ninja_root",
+                 "   command = {0} update".format(__file__),
+                 ""]
 
     l_string += ["rule make_local_binaries",
                  "   command = ninja -f {0} module_{1}".format(
@@ -755,6 +759,8 @@ def create_build_ninja_module(path_module):
 
 
 def create_build_ninja_global():
+    l_string = ["builddir = {0}".format(os.path.dirname(ROOT_BUILD_NINJA)),
+                ""]
 
     l_string = ["rule update_build_ninja_root",
                 "   command = {0} update".format(__file__),
@@ -942,6 +948,6 @@ if __name__ == "__main__":
     # S a v e s #
     # ~#~#~#~#~ #
 
-    with open(join(QP_ROOT, "config", "build.ninja"), "w+") as f:
+    with open(ROOT_BUILD_NINJA, "w+") as f:
         f.write(header)
         f.write("\n".join(l_string))
