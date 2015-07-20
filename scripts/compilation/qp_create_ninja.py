@@ -19,11 +19,14 @@ try:
     from read_compilation_cfg import get_compilation_option
     from docopt import docopt
 except ImportError:
-    f = os.path.realpath(os.path.join(os.path.dirname(__file__),"..","..","quantum_package.rc"))
+    f = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                      "..",
+                                      "..",
+                                      "quantum_package.rc"))
     print """
 Error:
  source %s
-"""%f
+""" % f
     sys.exit(1)
 
 #  __
@@ -311,8 +314,11 @@ def ninja_symlink_build(path_module, l_symlink):
     if not l_symlink:
         return []
 
-    l_string = ["build l_symlink_{0} : phony {1}".format(
-        path_module.rel, " ".join([s.destination for s in l_symlink])), ""]
+    l_folder = [s.destination for s in l_symlink]
+
+    l_string = ["build l_symlink_{0} : phony {1}".format(path_module.rel,
+                                                         " ".join(l_folder)),
+                ""]
 
     for symlink in l_symlink:
         l_string += ["build {0}: build_symlink {1}".format(symlink.destination,
@@ -334,20 +340,22 @@ def ninja_gitignore_rule():
             "  description = Create gitignore for $module_rel", ""]
 
 
-def ninja_gitignore_build(path_module, d_binaries):
+def ninja_gitignore_build(path_module, d_binaries, l_symlink):
     """
     """
 
     path_gitignore = join(path_module.abs, ".gitignore")
 
     l_b = [i.abs for i in d_binaries[path_module]]
-    l_sym = [i.destination for i in l_symlink]
 
-    l_string = ["build {0}: build_gitignore {1} || l_symlink_{2}".format(path_gitignore,
-                                                                         " ".join(l_b),
-                                                                         path_module.rel),
-                "   module_rel = {0}".format(path_module.rel),
-                ""]
+    root = "build {0}: build_gitignore {1}".format(path_gitignore,
+                                                   " ".join(l_b))
+    if l_symlink:
+        l_string = ["{0} || l_symlink_{1}".format(root, path_module.rel)]
+    else:
+        l_string = ["{0}".format(root)]
+
+    l_string.extend(("   module_rel = {0}".format(path_module.rel), ""))
 
     return l_string
 
@@ -909,7 +917,8 @@ if __name__ == "__main__":
         l_string += ninja_binaries_build(module_to_compile, l_children,
                                          d_binaries)
 
-        l_string += ninja_gitignore_build(module_to_compile, d_binaries)
+        l_string += ninja_gitignore_build(module_to_compile, d_binaries,
+                                          l_symlink)
 
     with open(join(QP_ROOT, "config", "build.ninja"), "w+") as f:
         f.write(header)

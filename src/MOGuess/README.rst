@@ -34,5 +34,10 @@ Documentation
 
 
 `h_core_guess <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess/H_CORE_guess.irp.f#L1>`_
-  Undocumented
+  Produce `H_core` MO orbital
+  output:  mo_basis.mo_tot_num mo_basis.mo_label mo_basis.ao_md5 mo_basis.mo_coef mo_basis.mo_occ
+
+
+`hcore_guess <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess/h_core_guess_routine.irp.f#L1>`_
+  Produce `H_core` MO orbital
 

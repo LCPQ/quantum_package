@@ -174,8 +174,16 @@ class ModuleHandler():
     def create_png(self, l_module):
         """Create the png of the dependency tree for a l_module"""
 
+        path = '{0}.png'.format("tree_dependency")
+
         # Init
-        import pydot
+        try:
+            import pydot
+        except:
+            with open(path, 'a'):
+                os.utime(path, None)
+            return
+
         all_ready_done = []
 
         def draw_module_edge(module, l_children):
@@ -190,16 +198,7 @@ class ModuleHandler():
                     draw_module_edge(children, d_ref[children])
                 all_ready_done.append(module)
 
-        path = '{0}.png'.format("tree_dependency")
-
-        # Init
-        try:
-            graph = pydot.Dot(graph_type='digraph')
-        except:
-            with open(path, 'a'):
-                os.utime(path, None)
-            return
-
+        graph = pydot.Dot(graph_type='digraph')
         d_ref = self.dict_child
 
         # Create all the edge
