@@ -63,7 +63,7 @@ BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]
      i =idx_ref(ii)
      h_matrix_dressed(i,i,istate) += delta_ii(ii,istate)
     do jj = 1, N_det_non_ref
-     j =idx_ref(jj)
+     j =idx_non_ref(jj)
      h_matrix_dressed(i,j,istate) += delta_ij(ii,jj,istate)
      h_matrix_dressed(j,i,istate) += delta_ij(ii,jj,istate)
     enddo
