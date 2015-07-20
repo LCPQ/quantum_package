@@ -228,7 +228,10 @@ BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
 
  call ezfio_has_bitmasks_cas(exists)
  if (exists) then
+   print*,'---------------------'
+   print*,'CAS BITMASK RESTART'
    call ezfio_get_bitmasks_cas(cas_bitmask)
+   print*,'---------------------'
  else
   if(N_generators_bitmask == 1)then
    do i=1,N_cas_bitmask
@@ -239,8 +242,8 @@ BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
    i_gen = 1
    do j = 1, N_cas_bitmask
     do i = 1, N_int
-      cas_bitmask(i,1,j) = generators_bitmask(i,1,i_part,i_gen)
-      cas_bitmask(i,2,j) = generators_bitmask(i,2,i_part,i_gen)
+      cas_bitmask(i,1,j) = generators_bitmask_restart(i,1,i_part,i_gen)
+      cas_bitmask(i,2,j) = generators_bitmask_restart(i,2,i_part,i_gen)
     enddo
    enddo
   endif

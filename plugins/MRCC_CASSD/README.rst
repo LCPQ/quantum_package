@@ -24,10 +24,10 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. by the `update_README.py` script.
 
-`mrcc <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_CASSD/mrcc.irp.f#L1>`_
+`mrcc <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_CASSD/mrcc_cassd.irp.f#L1>`_
   Undocumented
 
 
-`print_cas_coefs <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_CASSD/mrcc.irp.f#L7>`_
+`print_cas_coefs <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_CASSD/mrcc_cassd.irp.f#L11>`_
   Undocumented
 
