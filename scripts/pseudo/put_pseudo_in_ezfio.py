@@ -30,7 +30,7 @@ p = re.compile(ur'\|(\d+)><\d+\|')
 
 def get_pseudo_str(l_atom):
     """
-    Run EMSL_local for geting the str of the speudo potential
+    Run EMSL_local for getting the str of the pseudo potential
 
     str_ele :
         Element Symbol: Na
