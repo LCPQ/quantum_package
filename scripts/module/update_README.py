@@ -46,8 +46,11 @@ def fetch_splitted_data():
     The result is given as a list of strings
     """
 
-    with open(README, 'r') as f:
-        data = f.read()
+    try:
+        with open(README, 'r') as f:
+            data = f.read()
+    except IOError:
+      return []
 
     # Place sentinels
     data = data.replace(Doc_key, Sentinel + Doc_key)
