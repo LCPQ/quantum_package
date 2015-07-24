@@ -150,12 +150,12 @@ end = struct
 
   let to_string = function
   | Huckel -> \"Huckel\"
-  | HCore  -> \"Hcore\"
+  | HCore  -> \"HCore\"
 
   let of_string  s = 
-    match s with
-    | \"Huckel\" -> Huckel
-    | \"Hcore\"  -> HCore
+    match (String.lowercase s) with
+    | \"huckel\" -> Huckel
+    | \"hcore\"  -> HCore
     | _ -> failwith (\"Wrong Guess type : \"^s)
 
 end
@@ -176,10 +176,10 @@ end = struct
   | Write  -> \"Write\"
   | None   -> \"None\"
   let of_string  s = 
-    match s with
-    | \"Read\"  -> Read
-    | \"Write\" -> Write
-    | \"None\"  -> None
+    match (String.lowercase s) with
+    | \"read\"  -> Read
+    | \"write\" -> Write
+    | \"none\"  -> None
     | _ -> failwith (\"Wrong IO type : \"^s)
 
 end

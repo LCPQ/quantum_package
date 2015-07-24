@@ -20,14 +20,12 @@ Nuclei
 Perturbation
 Properties
 Pseudo
+Psiref_CAS
+Psiref_Utils
 Selectors_full
 Utils
-exc_degree
 ezfio_interface.irp.f
-full_ci
-full_ci_no_skip
 irpf90.make
 irpf90_entities
+mrcc_general
 tags
-target_pt2
-var_pt2_ratio

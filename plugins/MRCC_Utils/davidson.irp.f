@@ -35,7 +35,7 @@ subroutine davidson_diag_mrcc(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit,i
   allocate(H_jj(sze))
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP  SHARED(sze,H_jj,N_det_cas,dets_in,Nint,istate,delta_ii,idx_cas)           &
+      !$OMP  SHARED(sze,H_jj,N_det_ref,dets_in,Nint,istate,delta_ii,idx_ref)           &
       !$OMP  PRIVATE(i)
   !$OMP DO SCHEDULE(guided)
   do i=1,sze
@@ -43,8 +43,8 @@ subroutine davidson_diag_mrcc(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit,i
   enddo
   !$OMP END DO 
   !$OMP DO SCHEDULE(guided)
-  do i=1,N_det_cas
-    H_jj(idx_cas(i)) +=  delta_ii(i,istate)
+  do i=1,N_det_ref
+    H_jj(idx_ref(i)) +=  delta_ii(i,istate)
   enddo
   !$OMP END DO 
   !$OMP END PARALLEL
@@ -384,7 +384,7 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
   integer, parameter             :: block_size = 157
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,j,k,idx,jj,ii,vt)                             &
-      !$OMP SHARED(n_det_cas,n_det_non_cas,idx_cas,idx_non_cas,n,H_jj,u_0,keys_tmp,Nint,v_0,istate,delta_ij)
+      !$OMP SHARED(n_det_ref,n_det_non_ref,idx_ref,idx_non_ref,n,H_jj,u_0,keys_tmp,Nint,v_0,istate,delta_ij)
   !$OMP DO SCHEDULE(static)
   do i=1,n  
     v_0(i) = H_jj(i) * u_0(i)
@@ -409,10 +409,10 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
   !$OMP END DO
 
   !$OMP DO SCHEDULE(guided)
-  do ii=1,n_det_cas
-    i = idx_cas(ii)
-    do jj = 1, n_det_non_cas
-        j = idx_non_cas(jj)
+  do ii=1,n_det_ref
+    i = idx_ref(ii)
+    do jj = 1, n_det_non_ref
+        j = idx_non_ref(jj)
         vt (i) = vt (i) + delta_ij(ii,jj,istate)*u_0(j)
         vt (j) = vt (j) + delta_ij(ii,jj,istate)*u_0(i)
     enddo
