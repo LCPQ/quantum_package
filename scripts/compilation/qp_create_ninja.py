@@ -162,7 +162,7 @@ def get_l_ezfio_config():
 
 def ninja_ezfio_cfg_rule():
     """
-    Return the ezfio_interface rule who will create
+    Return the ezfio_interface rule which will create
     the _ezfio_interface.irp.f the _ezfio_config from the EZFIO.cfg
     """
 
@@ -310,7 +310,7 @@ def ninja_symlink_rule():
 def ninja_symlink_build(path_module, l_symlink):
     """
     Create the symlink
-    and the l_symlink who are all the symlink list
+    and the l_symlink which are all the symlink list
     """
 
     if not l_symlink:
@@ -401,7 +401,7 @@ def get_l_file_for_module(path_module):
 
 def get_file_dependency(d_info_module):
     """
-    For a module return all the irp.f90 file who depend
+    For a module return all the irp.f90 needed files 
     """
     d_irp = defaultdict(dict)
 
@@ -578,13 +578,13 @@ def get_binaries(path_module):
 def get_dict_binaries(l_module, mode="production"):
     """
     Return a dict [module] = list_binaries
-    If a the production mode is enable only header module
-    who will produce all binaries
+    If the production mode is enabled, return header modules
+    which will produce all binaries
 
     Example : The module Full_CI can produce the binary SCF
     so you dont need to compile at all the module Hartree-Fock
 
-    But you need to change the path acordingly
+    But you need to change the path accordingly
     Full_CI/Hartree-Fock/SCF
     """
     d_binaries = defaultdict(list)
@@ -899,12 +899,10 @@ if __name__ == "__main__":
     for module in dict_root_path.values():
 
         if module not in d_binaries:
-            l_msg = ["{0} is a root module but he do not containt a main file",
-                     "Is intolerable !",
-                     "You need a main file:",
+            l_msg = ["{0} is a root module but does not contain a main file.",
                      "- Create it in {0}",
                      "- Or delete {0} `qp_install_module.py uninstall {0}`",
-                     "- Or install a module who need {0} with a main "]
+                     "- Or install a module that needs {0} with a main "]
 
             print "\n".join(l_msg).format(module.rel)
             sys.exit(1)
