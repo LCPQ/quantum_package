@@ -29,7 +29,7 @@ Documentation
   Alpha Fock matrix in AO basis set
 
 
-`create_guess <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L8>`_
+`create_guess <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L13>`_
   Create an MO guess if no MOs are present in the EZFIO directory
 
 
@@ -139,12 +139,15 @@ Documentation
   Maximum number of SCF iterations
 
 
-`run <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L33>`_
+`run <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L38>`_
   Run SCF calculation
 
 
-`scf <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L2>`_
-  Undocumented
+`scf <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/SCF.irp.f#L1>`_
+  Produce `Hartree_Fock` MO orbital
+  output: mo_basis.mo_tot_num mo_basis.mo_label mo_basis.ao_md5 mo_basis.mo_coef mo_basis.mo_occ
+  output: hartree_fock.energy
+  optional: mo_basis.mo_coef
 
 
 `thresh_scf <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock/ezfio_interface.irp.f#L46>`_

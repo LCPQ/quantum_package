@@ -22,6 +22,7 @@ Properties
 Pseudo
 Selectors_full
 Utils
+exc_degree
 ezfio_interface.irp.f
 full_ci
 full_ci_no_skip

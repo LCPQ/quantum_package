@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Usage: 
+Usage:
        qp_install_module.py create -n <name> [<children_module>...]
        qp_install_module.py download -n <name> [<path_folder>...]
        qp_install_module.py install <name>...
        qp_install_module.py list (--installed | --available-local)
-       qp_install_module.py uninstall <name>... [--and_ancestor]
+       qp_install_module.py uninstall <name>...
 
 
 Options:
@@ -16,15 +16,16 @@ Options:
 
 import sys
 import os
+import subprocess
 
 try:
     from docopt import docopt
     from module_handler import ModuleHandler, get_dict_child
     from module_handler import get_l_module_descendant
     from update_README import Doc_key, Needed_key
-    from qp_path import QP_SRC, QP_PLUGINS
+    from qp_path import QP_SRC, QP_PLUGINS, QP_ROOT
 except ImportError:
-    print "Please check if you have source the .quantum_package.rc"
+    print "Please check if you have sourced the .quantum_package.rc"
     print "(`source .quantum_package.rc`)"
     print sys.exit(1)
 
@@ -79,7 +80,9 @@ if __name__ == '__main__':
 
         l_children = arguments["<children_module>"]
 
-        path = os.path.join(QP_PLUGINS, arguments["<name>"][0])
+        name = arguments["<name>"][0]
+
+        path = os.path.join(QP_PLUGINS, name)
 
         print "You will create the module:"
         print path
@@ -101,9 +104,13 @@ if __name__ == '__main__':
         print "This can be reduce to:"
         l_child_reduce = m_instance.l_reduce_tree(l_children)
         print l_child_reduce
+        print "Installation",
         save_new_module(path, l_child_reduce)
 
-        print "This was a plugin, you can install it now"
+        print "    [ OK ]"
+        print "If this was a plugins, you can install it normaly. Type:"
+        print "` {0} install {1} `".format(os.path.basename(__file__), name)
+
     elif arguments["download"]:
         pass
 #        d_local = get_dict_child([QP_SRC])
@@ -152,8 +159,15 @@ if __name__ == '__main__':
                     except OSError:
                         print "Your src directory is broken. Please remove %s" % des
                         raise
-            print "Done"
+            try:
+                subprocess.check_call(["qp_create_ninja.py", "update"])
+            except:
+                raise
+
+            print "[ OK ]"
             print "You can now compile as usual"
+            print "`cd {0} ; ninja` for exemple".format(QP_ROOT)
+            print " or --in developement mode-- you can cd in a directory and compile here"
 
     elif arguments["uninstall"]:
 
@@ -164,24 +178,28 @@ if __name__ == '__main__':
         l_name = arguments["<name>"]
 
         l_failed = [name for name in l_name if name not in d_local]
+
         if l_failed:
             print "Modules not installed:"
             for name in sorted(l_failed):
                 print "* %s" % name
             sys.exit(1)
-        else:
-            if arguments["--and_ancestor"]:
 
-                l_name_to_remove = l_name + [module for module in m_instance.l_module for name in l_name if name in d_descendant[module]]
-                print "You will remove all of:"
-                print l_name_to_remove
+        l_name_to_remove = l_name + [module for module in m_instance.l_module for name in l_name if name in d_descendant[module]]
 
-            else:
-                l_name_to_remove = l_name
+        print "You will remove all of:"
+        print l_name_to_remove
 
-            def unlink(x):
-                try:
-                    os.unlink(os.path.join(QP_SRC, x))
-                except OSError:
-                    print "%s is a core module which can not be renmoved" % x
-            map(unlink, l_name_to_remove)
+        for module in set(l_name_to_remove):
+
+            try:
+                subprocess.check_call(["module_handler.py", "clean", module])
+            except:
+                raise
+
+        for module in set(l_name_to_remove):
+
+            try:
+                os.unlink(os.path.join(QP_SRC, module))
+            except OSError:
+                print "%s is a core module which can not be renmoved" % module

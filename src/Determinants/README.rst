@@ -141,7 +141,7 @@ Documentation
   After calling this subroutine, N_det, psi_det and psi_coef need to be touched
 
 
-`create_wf_of_psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L484>`_
+`create_wf_of_psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L416>`_
   Matrix of wf coefficients. Outer product of alpha and beta determinants
 
 
@@ -347,7 +347,7 @@ Documentation
   Determinants are taken from the psi_det_sorted_ab array
 
 
-`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L539>`_
+`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L471>`_
   Create a wave function from all possible alpha x beta determinants
 
 
@@ -367,11 +367,11 @@ Documentation
   Applies get_excitation_degree to an array of determinants
 
 
-`get_index_in_psi_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L140>`_
+`get_index_in_psi_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L141>`_
   Returns the index of the determinant in the ``psi_det_alpha_unique`` array
 
 
-`get_index_in_psi_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L222>`_
+`get_index_in_psi_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L223>`_
   Returns the index of the determinant in the ``psi_det_beta_unique`` array
 
 
@@ -520,11 +520,11 @@ Documentation
   Number of determinants in the wave function
 
 
-`n_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f_template_135#L4>`_
+`n_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f_template_136#L4>`_
   Unique alpha determinants
 
 
-`n_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f_template_135#L80>`_
+`n_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f_template_136#L80>`_
   Unique beta determinants
 
 
@@ -697,19 +697,19 @@ Documentation
   is empty
 
 
-`psi_det_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L26>`_
+`psi_det_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L27>`_
   List of alpha determinants of psi_det
 
 
-`psi_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f_template_135#L3>`_
+`psi_det_alpha_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f_template_136#L3>`_
   Unique alpha determinants
 
 
-`psi_det_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L40>`_
+`psi_det_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L41>`_
   List of beta determinants of psi_det
 
 
-`psi_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f_template_135#L79>`_
+`psi_det_beta_unique <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f_template_136#L79>`_
   Unique beta determinants
 
 
@@ -770,31 +770,31 @@ Documentation
   psi_occ_pattern(:,2,j) = jth occ_pattern of the wave function : represent all the double occupation
 
 
-`psi_svd_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L579>`_
+`psi_svd_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L511>`_
   SVD wave function
 
 
-`psi_svd_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L580>`_
+`psi_svd_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L512>`_
   SVD wave function
 
 
-`psi_svd_coefs <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L581>`_
+`psi_svd_coefs <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L513>`_
   SVD wave function
 
 
-`psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L468>`_
+`psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L400>`_
   Matrix of wf coefficients. Outer product of alpha and beta determinants
 
 
-`psi_svd_matrix_columns <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L408>`_
+`psi_svd_matrix_columns <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L362>`_
   Matrix of wf coefficients. Outer product of alpha and beta determinants
 
 
-`psi_svd_matrix_rows <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L407>`_
+`psi_svd_matrix_rows <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L361>`_
   Matrix of wf coefficients. Outer product of alpha and beta determinants
 
 
-`psi_svd_matrix_values <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L406>`_
+`psi_svd_matrix_values <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L360>`_
   Matrix of wf coefficients. Outer product of alpha and beta determinants
 
 
@@ -910,6 +910,6 @@ Documentation
   Thresholds on selectors (fraction of the norm)
 
 
-`write_spindeterminants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L304>`_
+`write_spindeterminants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L305>`_
   Undocumented
 
