@@ -1,7 +1,6 @@
-program H_CORE_guess
+subroutine hcore_guess
   BEGIN_DOC
-! Produce `H_core` MO orbital 
-! output:  mo_basis.mo_tot_num mo_basis.mo_label mo_basis.ao_md5 mo_basis.mo_coef mo_basis.mo_occ
+! Produce `H_core` MO orbital
   END_DOC
   implicit none
   character*(64)                 :: label
@@ -13,5 +12,5 @@ program H_CORE_guess
                                      size(mo_mono_elec_integral,2),label)
   print *,  'save mos'
   call save_mos
-  
+  SOFT_TOUCH mo_coef mo_label
 end

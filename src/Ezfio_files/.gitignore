@@ -10,3 +10,4 @@ build.ninja
 .ninja_log
 .ninja_deps
 ezfio_interface.irp.f
+README.rst

@@ -1,17 +1,28 @@
-sudo: true
-#
-#cache:
-#  directories:
-#  - $HOME/.opam/
+#sudo: true
+#before_script:
+#  - sudo apt-get update -q
+#  - sudo apt-get install gfortran liblapack-dev gcc
+#  - sudo apt-get install graphviz
+
+sudo: false
+
+addons:
+  apt:
+    packages:
+    - gfortran
+    - gcc
+    - liblapack-dev
+    - graphviz
+
+cache:
+  directories:
+  - $HOME/.opam/
 
 language: python
 python:
     - "2.6"
 
-before_script:
-  - sudo apt-get update -q
-  - sudo apt-get install gfortran liblapack-dev gcc
-  - sudo apt-get install graphviz
+
 
 script: 
   - ./configure  --production ./config/gfortran.cfg
