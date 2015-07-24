@@ -7,16 +7,16 @@
  integer :: i,k
  double precision               :: ihpsi(N_states), hii
  
- do i=1,N_det_non_cas
-   call i_h_psi(psi_non_cas(1,1,i), psi_cas, psi_cas_coef, N_int, N_det_cas,&
-       size(psi_cas_coef,1), n_states, ihpsi)
-   call i_h_j(psi_non_cas(1,1,i),psi_non_cas(1,1,i),N_int,hii)
+ do i=1,N_det_non_ref
+   call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,&
+       size(psi_ref_coef,1), n_states, ihpsi)
+   call i_h_j(psi_non_ref(1,1,i),psi_non_ref(1,1,i),N_int,hii)
    do k=1,N_states
-     lambda_pert(k,i) = 1.d0 / (psi_cas_energy_diagonalized(k)-hii)
+     lambda_pert(k,i) = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
      if (dabs(ihpsi(k)).le.1.d-3) then
        lambda_mrcc(k,i) = lambda_pert(k,i)
      else
-       lambda_mrcc(k,i) = psi_non_cas_coef(i,k)/ihpsi(k)
+       lambda_mrcc(k,i) = psi_non_ref_coef(i,k)/ihpsi(k)
      endif
    enddo
  enddo
@@ -26,17 +26,17 @@ END_PROVIDER
 
 
 
-!BEGIN_PROVIDER [ double precision, delta_ij_non_cas, (N_det_non_cas, N_det_non_cas,N_states) ]
+!BEGIN_PROVIDER [ double precision, delta_ij_non_ref, (N_det_non_ref, N_det_non_ref,N_states) ]
 !implicit none
 !BEGIN_DOC
 !! Dressing matrix in SD basis
 !END_DOC
-!delta_ij_non_cas = 0.d0
-!call H_apply_mrcc_simple(delta_ij_non_cas,N_det_non_cas)
+!delta_ij_non_ref = 0.d0
+!call H_apply_mrcc_simple(delta_ij_non_ref,N_det_non_ref)
 !END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, delta_ij, (N_det_cas,N_det_non_cas,N_states) ]
-&BEGIN_PROVIDER [ double precision, delta_ii, (N_det_cas,N_states) ]
+ BEGIN_PROVIDER [ double precision, delta_ij, (N_det_ref,N_det_non_ref,N_states) ]
+&BEGIN_PROVIDER [ double precision, delta_ii, (N_det_ref,N_states) ]
  implicit none
  BEGIN_DOC
  ! Dressing matrix in N_det basis
@@ -44,7 +44,7 @@ END_PROVIDER
  integer :: i,j,m
  delta_ij = 0.d0
  delta_ii = 0.d0
- call H_apply_mrcc(delta_ij,delta_ii,N_det_cas,N_det_non_cas)
+ call H_apply_mrcc(delta_ij,delta_ii,N_det_ref,N_det_non_ref)
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]
@@ -59,11 +59,11 @@ BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]
        h_matrix_dressed(i,j,istate) = h_matrix_all_dets(i,j) 
      enddo
    enddo
-   do ii = 1, N_det_cas
-     i =idx_cas(ii)
+   do ii = 1, N_det_ref
+     i =idx_ref(ii)
      h_matrix_dressed(i,i,istate) += delta_ii(ii,istate)
-    do jj = 1, N_det_non_cas
-     j =idx_cas(jj)
+    do jj = 1, N_det_non_ref
+     j =idx_ref(jj)
      h_matrix_dressed(i,j,istate) += delta_ij(ii,jj,istate)
      h_matrix_dressed(j,i,istate) += delta_ij(ii,jj,istate)
     enddo

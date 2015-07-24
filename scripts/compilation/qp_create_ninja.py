@@ -132,7 +132,7 @@ def dict_module_genelogy_path(d_module_genelogy):
 
 def get_l_module_with_ezfio_cfg():
     """
-    Return all the module who have a EZFIO.cfg
+    Return all the modules that have a EZFIO.cfg
     """
     from os import listdir
     from os.path import isfile
@@ -739,7 +739,7 @@ def create_build_ninja_module(path_module):
 
     l_string += ["rule make_all_binaries",
                  "  command = ninja -f {0}".format(ROOT_BUILD_NINJA),
-                 "  pool = console", "  description = Compile all the module",
+                 "  pool = console", "  description = Compiling all modules",
                  ""]
 
     l_string += ["rule make_clean", "  command = module_handler.py clean {0}".format(path_module.rel),
@@ -768,7 +768,7 @@ def create_build_ninja_global():
 
     l_string += ["rule make_all_binaries",
                  "  command = ninja -f {0}".format(ROOT_BUILD_NINJA),
-                 "  pool = console", "  description = Compile all the module",
+                 "  pool = console", "  description = Compiling all modules",
                  ""]
 
     l_string += ["rule make_clean",

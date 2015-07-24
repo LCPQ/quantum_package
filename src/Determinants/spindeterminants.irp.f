@@ -14,11 +14,13 @@ integer*8 function spin_det_search_key(det,Nint)
   END_DOC
   integer, intent(in) :: Nint
   integer(bit_kind), intent(in) :: det(Nint)
+  integer(bit_kind), parameter :: unsigned_shift = not(huge(1_bit_kind)) ! 100...00
   integer :: i
   spin_det_search_key = det(1)
   do i=2,Nint
     spin_det_search_key = ieor(spin_det_search_key,det(i))
   enddo
+  spin_det_search_key = spin_det_search_key-unsigned_shift
 end
 
 
@@ -346,53 +348,6 @@ subroutine write_spindeterminants
   call ezfio_set_spindeterminants_psi_coef_matrix_rows(psi_svd_matrix_rows)
   call ezfio_set_spindeterminants_psi_coef_matrix_columns(psi_svd_matrix_columns)
   
-!  integer                        :: n_svd_coefs
-!  double precision               :: norm, f
-!  f = 1.d0/dble(N_states)
-!  norm = 1.d0
-!  do n_svd_coefs=1,N_det_alpha_unique
-!    do k=1,N_states
-!      norm -= psi_svd_coefs(n_svd_coefs,k)*psi_svd_coefs(n_svd_coefs,k)
-!    enddo
-!    if (norm < 1.d-4) then
-!      exit
-!    endif
-!  enddo
-!  n_svd_coefs -= 1
-!  call ezfio_set_spindeterminants_n_svd_coefs(n_svd_coefs)
-!  
-!  double precision, allocatable  :: dtmp(:,:,:)
-!  allocate(dtmp(N_det_alpha_unique,n_svd_coefs,N_states))
-!  do k=1,N_states
-!    do j=1,n_svd_coefs
-!      do i=1,N_det_alpha_unique
-!        dtmp(i,j,k) = psi_svd_alpha(i,j,k)
-!      enddo
-!    enddo
-!  enddo
-!  call ezfio_set_spindeterminants_psi_svd_alpha(dtmp)
-!  deallocate(dtmp)
-!
-!  allocate(dtmp(N_det_beta_unique,n_svd_coefs,N_states))
-!  do k=1,N_states
-!    do j=1,n_svd_coefs
-!      do i=1,N_det_beta_unique
-!        dtmp(i,j,k) = psi_svd_beta(i,j,k)
-!      enddo
-!    enddo
-!  enddo
-!  call ezfio_set_spindeterminants_psi_svd_beta(dtmp)
-!  deallocate(dtmp)
-!
-!  allocate(dtmp(n_svd_coefs,N_states,1))
-!  do k=1,N_states
-!    do j=1,n_svd_coefs
-!        dtmp(j,k,1) = psi_svd_coefs(j,k)
-!    enddo
-!  enddo
-!  call ezfio_set_spindeterminants_psi_svd_coefs(dtmp)
-!  deallocate(dtmp)
-
 end
 
 
@@ -418,28 +373,6 @@ BEGIN_PROVIDER  [ double precision, psi_svd_matrix_values, (N_det,N_states) ]
 
 
   PROVIDE psi_coef_sorted_bit
-
-!  l=0
-!  do j=1,N_det_beta_unique
-!    do k=1,N_int
-!      tmp_det(k,2) = psi_det_beta_unique(k,j)
-!    enddo
-!    do i=1,N_det_alpha_unique
-!      do k=1,N_int
-!        tmp_det(k,1) = psi_det_alpha_unique(k,i)
-!      enddo
-!      idx = get_index_in_psi_det_sorted_bit(tmp_det,N_int)
-!      if (idx > 0) then
-!        l += 1
-!        psi_svd_matrix_rows(l) = i
-!        psi_svd_matrix_columns(l) = j
-!        do k=1,N_states
-!          psi_svd_matrix_values(l,k) = psi_coef_sorted_bit(idx,k)
-!        enddo
-!      endif
-!    enddo
-!  enddo
-!  ASSERT (l == N_det)
 
   integer, allocatable :: iorder(:), to_sort(:)
   integer, external :: get_index_in_psi_det_alpha_unique

@@ -11,6 +11,7 @@ integer*8 function det_search_key(det,Nint)
   do i=2,Nint
     det_search_key = ieor(det_search_key,iand(det(i,1),det(i,2)))
   enddo
+  det_search_key = iand(huge(det(1,1)),det_search_key)
 end
 
 
@@ -27,6 +28,7 @@ integer*8 function occ_pattern_search_key(det,Nint)
   do i=2,Nint
     occ_pattern_search_key = ieor(occ_pattern_search_key,iand(det(i,1),det(i,2)))
   enddo
+  occ_pattern_search_key = iand(huge(det(1,1)),occ_pattern_search_key)
 end
 
 
