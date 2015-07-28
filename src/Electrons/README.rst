@@ -49,3 +49,34 @@ Documentation
 `elec_num_tab <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L2>`_
   Numbers of alpha ("up") , beta ("down") and total electrons
 
+Needed Modules
+==============
+.. Do not edit this section It was auto-generated
+.. by the `update_README.py` script.
+
+
+.. image:: tree_dependency.png
+
+* `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
+
+Documentation
+=============
+.. Do not edit this section It was auto-generated
+.. by the `update_README.py` script.
+
+
+`elec_alpha_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/ezfio_interface.irp.f#L28>`_
+  Numbers of electrons alpha ("up")
+
+
+`elec_beta_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/ezfio_interface.irp.f#L6>`_
+  Numbers of electrons beta ("down")
+
+
+`elec_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L1>`_
+  Numbers of alpha ("up") , beta ("down") and total electrons
+
+
+`elec_num_tab <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/electrons.irp.f#L2>`_
+  Numbers of alpha ("up") , beta ("down") and total electrons
+

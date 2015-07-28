@@ -25,19 +25,17 @@ import os
 from collections import namedtuple
 from collections import defaultdict
 
-
 def header_format(str_):
-    return "{0}\n{1}\n".format(str_, "=" * len(str_))
 
+    warning = "\n".join([".. Do not edit this section It was auto-generated",
+                        ".. by the `update_README.py` script."])
+
+    return "{0}\n{1}\n{2}\n".format(str_, "=" * len(str_), warning)
 
 D_KEY = {"needed_module": header_format("Needed Modules"),
          "documentation": header_format("Documentation")}
 
-
 URL = "http://github.com/LCPQ/quantum_package/tree/master/src"
-
-HEADER = "\n".join([".. Do not edit this section It was auto-generated",
-                    ".. by the `update_README.py` script."])
 
 # d[Path] ={humain, needed_module, documentation}
 d_readme = defaultdict(dict)
@@ -80,8 +78,7 @@ def update_needed(d_readme):
             l_module = ['* `{0} <{1}>`_'.format(name, os.path.join(URL, name))
                         for name in modules.split()]
 
-            l_module_section = [D_KEY["needed_module"],
-                                HEADER, '',
+            l_module_section = [D_KEY["needed_module"], '',
                                 header_image, '',
                                 '\n'.join(l_module), '', '']
         else:
@@ -156,8 +153,7 @@ def update_documentation(root_module, d_readme):
                       doc,
                       ""]
 
-        l_doc_section = [D_KEY["documentation"],
-                         HEADER, '',
+        l_doc_section = [D_KEY["documentation"], '',
                          "\n".join(l_doc)]
 
         d_readme[path]["documentation"] = "\n".join(l_doc_section)
