@@ -37,11 +37,8 @@ D_KEY = {"needed_module": header_format("Needed Modules"),
 
 URL = "http://github.com/LCPQ/quantum_package/tree/master/src"
 
-# d[Path] ={humain, needed_module, documentation}
-d_readme = defaultdict(dict)
 
-
-def fetch_splitted_data(l_module_readme):
+def fetch_splitted_data(d_readme, l_module_readme):
     """Read the README.rst file and split it in strings:
     * The documentation
     * The needed modules
@@ -110,7 +107,7 @@ def extract_doc(root_module, provider):
     return "\n".join(result) + "\n"
 
 
-def update_documentation(root_module, d_readme):
+def update_documentation(d_readmen, root_module):
     """Reads the BEGIN_DOC ... END_DOC blocks and builds the documentation"""
 
     IRP_info = namedtuple('IRP_info', ["module", "file", "provider", "line"])
@@ -171,8 +168,11 @@ if __name__ == '__main__':
     else:
         l_module_readme = arguments["<module_path>"]
 
+    # d[Path] ={humain, needed_module, documentation}
+    d_readme = defaultdict(dict)
+
     try:
-        fetch_splitted_data(l_module_readme)
+        fetch_splitted_data(d_readme, l_module_readme)
     except IOError:
         print l_module_readme, "is not a module and/or",
         print "have not a `README.rst` file inside"
@@ -180,7 +180,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     update_needed(d_readme)
-    update_documentation(root_module, d_readme)
+    update_documentation(d_readme, root_module)
 
     for path, d in d_readme.iteritems():
 
