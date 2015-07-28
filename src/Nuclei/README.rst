@@ -9,7 +9,7 @@ The coordinates are expressed in atomic units.
 Needed Modules
 ==============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
 
 .. image:: tree_dependency.png
@@ -20,7 +20,7 @@ Needed Modules
 Documentation
 =============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
 
 `element_name <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L172>`_

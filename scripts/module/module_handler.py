@@ -30,7 +30,6 @@ except ImportError:
     raise
 
 
-# Canot cache for namedtuple are not hashable
 def is_module(path_module):
     return os.path.isfile(os.path.join(QP_SRC, path_module,
                                        "NEEDED_CHILDREN_MODULES"))
@@ -290,4 +289,3 @@ if __name__ == '__main__':
                     l_text = l_dir + l_file + l_symlink + l_exe
                     l_text.sort()
                     f.write("\n".join(l_text))
-

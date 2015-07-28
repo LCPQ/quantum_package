@@ -13,7 +13,7 @@ MO integral, use ``get_mo_bielec_integral(i,j,k,l,mo_integrals_map)`` or
 Needed Modules
 ==============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
 
 .. image:: tree_dependency.png
@@ -24,7 +24,7 @@ Needed Modules
 Documentation
 =============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
 
 `add_integrals_to_map <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L42>`_

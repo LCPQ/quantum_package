@@ -2,10 +2,21 @@
 Selectors_full Module
 =====================
 
+Needed Modules
+==============
+
+.. Do not edit this section It was auto-generated
+.. by the `update_README.py` script.
+
+.. image:: tree_dependency.png
+
+* `Determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants>`_
+* `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock>`_
+
 Documentation
 =============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
 
 `coef_hf_selector <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/e_corr_selectors.irp.f#L28>`_
@@ -174,15 +185,4 @@ Documentation
 
 `psi_selectors_size <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full/selectors.irp.f#L3>`_
   Undocumented
-
-Needed Modules
-==============
-
-.. Do not edit this section. It was auto-generated from the
-.. by the `update_README.py` script.
-
-.. image:: tree_dependency.png
-
-* `Determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants>`_
-* `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock>`_
 

@@ -5,7 +5,7 @@ Pseudo Module
 Needed Modules
 ==============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
 
 .. image:: tree_dependency.png
@@ -15,7 +15,7 @@ Needed Modules
 Documentation
 =============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
 
 `do_pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L248>`_

@@ -4,10 +4,22 @@ Full_CI Module
 
 Performs a perturbatively selected Full-CI.
 
+Needed Modules
+==============
+
+.. Do not edit this section It was auto-generated
+.. by the `update_README.py` script.
+
+.. image:: tree_dependency.png
+
+* `Perturbation <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation>`_
+* `Selectors_full <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full>`_
+* `Generators_full <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full>`_
+
 Documentation
 =============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
 
 `full_ci <http://github.com/LCPQ/quantum_package/tree/master/src/Full_CI/full_ci_no_skip.irp.f#L1>`_
@@ -152,16 +164,4 @@ Documentation
 
 `var_pt2_ratio_run <http://github.com/LCPQ/quantum_package/tree/master/src/Full_CI/var_pt2_ratio.irp.f#L1>`_
   Undocumented
-
-Needed Modules
-==============
-
-.. Do not edit this section. It was auto-generated from the
-.. by the `update_README.py` script.
-
-.. image:: tree_dependency.png
-
-* `Perturbation <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation>`_
-* `Selectors_full <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full>`_
-* `Generators_full <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full>`_
 

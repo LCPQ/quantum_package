@@ -2,10 +2,20 @@
 Properties Module
 =================
 
+Needed Modules
+==============
+
+.. Do not edit this section It was auto-generated
+.. by the `update_README.py` script.
+
+.. image:: tree_dependency.png
+
+* `Determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants>`_
+
 Documentation
 =============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
 
 `ao_integrated_delta_rho_all_points <http://github.com/LCPQ/quantum_package/tree/master/src/Properties/delta_rho.irp.f#L61>`_
@@ -141,14 +151,4 @@ Documentation
 
 `z_one_point <http://github.com/LCPQ/quantum_package/tree/master/src/Properties/ezfio_interface.irp.f#L6>`_
   z point on which the integrated delta rho is calculated
-
-Needed Modules
-==============
-
-.. Do not edit this section. It was auto-generated from the
-.. by the `update_README.py` script.
-
-.. image:: tree_dependency.png
-
-* `Determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants>`_
 

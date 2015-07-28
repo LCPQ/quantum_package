@@ -23,11 +23,10 @@ except ImportError:
                                       "..",
                                       "..",
                                       "quantum_package.rc"))
-    print """
-Error:
- source %s
-""" % f
+
+    print "\n".join(["", "Error:", "source %s" % f, ""])
     sys.exit(1)
+
 
 #  __
 # /__ |  _  |_   _. |       _. ._ o  _. |_  |  _   _
@@ -516,7 +515,7 @@ def ninja_readme_rule():
     For not dealted the readme when ninja -t clean and the generator option
     """
     l_string = ["rule build_readme",
-                "   command = cd $module_abs ; update_README.py $module_root",
+                "   command = qp_update_readme.py $module_abs --root_module $module_root",
                 "   description = update_README $module_rel",
                 "   generator = 1", ""]
 
@@ -552,7 +551,8 @@ def ninja_readme_build(path_module, d_irp, dict_root_path):
 #                 /
 def get_binaries(path_module):
     """
-    Return the list of binaries (Path= namedtuple('Path', ['abs', 'rel']) for a module
+    Return the list of binaries
+    (Path= namedtuple('Path', ['abs', 'rel']) for a module
     """
     import subprocess
 
@@ -729,7 +729,7 @@ def ninja_dot_tree_build(path_module, l_module):
 # |\/|  _   _|     |  _
 # |  | (_) (_| |_| | (/_
 #
-def create_build_ninja_module(path_module):
+def save_subninja_file(path_module):
     l_string = ["builddir = {0}".format(os.path.dirname(ROOT_BUILD_NINJA)),
                 ""]
 
@@ -929,9 +929,6 @@ if __name__ == "__main__":
 
     for module_to_compile in l_module:
 
-        if arguments["--development"]:
-            create_build_ninja_module(module_to_compile)
-
         # ~#~#~#~#~#~#~#~ #
         #  S y m l i n k  #
         # ~#~#~#~#~#~#~#~ #
@@ -946,18 +943,17 @@ if __name__ == "__main__":
         l_string += ninja_irpf90_make_build(module_to_compile, l_children,
                                             d_irp)
 
-        if arguments["--development"]:
-            l_string += ninja_binaries_build(module_to_compile, l_children,
-                                             d_binaries)
+        l_string += ninja_binaries_build(module_to_compile, l_children,
+                                         d_binaries)
 
-        elif arguments["--production"]:
-            l_string += ninja_binaries_build(module_to_compile, l_children,
-                                             d_binaries)
+        if arguments["--development"]:
 
             l_string += ninja_module_build(module_to_compile, d_binaries)
 
             l_string += ninja_gitignore_build(module_to_compile, d_binaries,
                                               l_symlink)
+
+            save_subninja_file(module_to_compile)
 
     # ~#~#~#~#~ #
     # S a v e s #

@@ -67,10 +67,21 @@ Assumptions
     pt2_....
 
 
+Needed Modules
+==============
+
+.. Do not edit this section It was auto-generated
+.. by the `update_README.py` script.
+
+.. image:: tree_dependency.png
+
+* `Properties <http://github.com/LCPQ/quantum_package/tree/master/src/Properties>`_
+* `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock>`_
+
 Documentation
 =============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
 
 `do_pt2_end <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/ezfio_interface.irp.f#L6>`_
@@ -349,15 +360,4 @@ Documentation
 `var_pt2_ratio <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/ezfio_interface.irp.f#L51>`_
   The selection process stops when the energy ratio variational/(variational+PT2)
   is equal to var_pt2_ratio
-
-Needed Modules
-==============
-
-.. Do not edit this section. It was auto-generated from the
-.. by the `update_README.py` script.
-
-.. image:: tree_dependency.png
-
-* `Properties <http://github.com/LCPQ/quantum_package/tree/master/src/Properties>`_
-* `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock>`_
 
