@@ -180,13 +180,7 @@ class ModuleHandler():
         basename = "tree_dependency"
         path = '{0}.png'.format(basename)
 
-        # Init
-        try:
-            from graphviz import Digraph
-        except:
-            with open(path, 'a'):
-                os.utime(path, None)
-            return
+        from graphviz import Digraph
 
         all_ready_done = []
 
@@ -209,7 +203,12 @@ class ModuleHandler():
             graph.node(module, fontcolor="red")
             draw_module_edge(module, d_ref[module])
 
-        graph.render(cleanup=True)
+        try:
+            graph.render(cleanup=True)
+        except:
+            with open(path, 'a'):
+                os.utime(path, None)
+            return
 
 
 if __name__ == '__main__':
