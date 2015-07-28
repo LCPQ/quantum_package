@@ -90,10 +90,10 @@ def update_needed(d_readme):
         d_readme[path]["needed_module"] = "\n".join(l_module_section)
 
 
-def extract_doc(item):
+def extract_doc(root_module, provider):
     """Extracts the documentation contained in IRPF90_man file"""
 
-    path = os.path.join(ROOT_module, "IRPF90_man/%s.l" % (item))
+    path = os.path.join(root_module, "IRPF90_man/%s.l" % (provider))
     with open(path, 'r') as f:
         l_line = f.readlines()
 
@@ -113,13 +113,13 @@ def extract_doc(item):
     return "\n".join(result) + "\n"
 
 
-def update_documentation(ROOT_module, d_readme):
+def update_documentation(root_module, d_readme):
     """Reads the BEGIN_DOC ... END_DOC blocks and builds the documentation"""
 
     IRP_info = namedtuple('IRP_info', ["module", "file", "provider", "line"])
 
     # If the file does not exist, don't do anything
-    path = os.path.join(ROOT_module, "tags")
+    path = os.path.join(root_module, "tags")
 
     with open(path, 'r') as f:
         dump = f.readlines()
@@ -133,7 +133,7 @@ def update_documentation(ROOT_module, d_readme):
 
         for path in d_readme:
 
-            if ROOT_module == path and "/" not in irp_file_raw:
+            if root_module == path and "/" not in irp_file_raw:
                 d_info[path].append(IRP_info(os.path.basename(path),
                                              irp_file_raw,
                                              provider,
@@ -150,7 +150,7 @@ def update_documentation(ROOT_module, d_readme):
 
         for irp in d_info[path]:
             url = os.path.join(URL, os.path.basename(path), irp.file)
-            doc = extract_doc(irp.provider)
+            doc = extract_doc(root_module, irp.provider)
 
             l_doc += ["`{0} <{1}#L{2}>`_".format(irp.provider, url, irp.line),
                       doc,
@@ -166,9 +166,9 @@ if __name__ == '__main__':
     arguments = docopt(__doc__)
 
     if arguments["--root_module"]:
-        ROOT_module = os.path.realpath(arguments["--root_module"])
+        root_module = os.path.realpath(arguments["--root_module"])
     else:
-        ROOT_module = os.getcwd()
+        root_module = os.getcwd()
 
     if not arguments["<module_path>"]:
         l_module_readme = [os.path.join(os.getcwd())]
@@ -184,7 +184,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     update_needed(d_readme)
-    update_documentation(ROOT_module, d_readme)
+    update_documentation(root_module, d_readme)
 
     for path, d in d_readme.iteritems():
 
