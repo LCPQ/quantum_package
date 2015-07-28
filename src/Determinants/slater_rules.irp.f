@@ -1095,13 +1095,9 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,j,k,idx,jj,vt)                             &
       !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold)
-  !$OMP DO SCHEDULE(static)
-  do i=1,n
-    v_0(i) = H_jj(i) * u_0(i)
-  enddo
-  !$OMP END DO
   allocate(idx(0:n), vt(n))
   Vt = 0.d0
+  v_0 = 0.d0
   !$OMP DO SCHEDULE(guided)
   do i=1,n
     idx(0) = i
@@ -1123,6 +1119,9 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   !$OMP END CRITICAL
   deallocate(idx,vt)
   !$OMP END PARALLEL
+  do i=1,n
+   v_0(i) += H_jj(i) * u_0(i)
+  enddo
 end
 
 

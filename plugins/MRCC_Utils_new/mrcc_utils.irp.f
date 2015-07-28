@@ -6,6 +6,8 @@
  END_DOC
  integer :: i,k
  double precision               :: ihpsi(N_states), hii
+ integer :: i_ok
+ i_ok = 0
  
  do i=1,N_det_non_ref
    call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,&
@@ -14,12 +16,16 @@
    do k=1,N_states
      lambda_pert(k,i) = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
      if (dabs(ihpsi(k)).le.1.d-3) then
+       i_ok +=1
        lambda_mrcc(k,i) = lambda_pert(k,i)
      else
        lambda_mrcc(k,i) = psi_non_ref_coef(i,k)/ihpsi(k)
      endif
    enddo
  enddo
+ print*,'N_det_non_ref = ',N_det_non_ref
+ print*,'Number of Perturbatively treated determinants = ',i_ok
+ print*,'psi_coef_ref_ratio = ',psi_ref_coef(2,1)/psi_ref_coef(1,1)
 
 END_PROVIDER
 
@@ -44,7 +50,9 @@ END_PROVIDER
  integer :: i,j,m
  delta_ij = 0.d0
  delta_ii = 0.d0
- call H_apply_mrcc(delta_ij,delta_ii,N_det_ref,N_det_non_ref)
+ call mrcc_dress(N_det_ref,N_det_non_ref,N_states,delta_ij,delta_ii)
+ write(33,*)delta_ij
+ write(34,*)delta_ii
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]

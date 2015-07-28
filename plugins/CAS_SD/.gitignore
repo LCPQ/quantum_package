@@ -24,6 +24,7 @@ Selectors_full
 Utils
 cas_sd
 cas_sd_selected
+cas_sd_selected_no_skip
 ezfio_interface.irp.f
 irpf90.make
 irpf90_entities

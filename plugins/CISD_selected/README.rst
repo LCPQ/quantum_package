@@ -43,7 +43,6 @@ Documentation
   particles.
   Assume N_int is already provided.
 
-
 `h_apply_cisd_selection_dipole_moment_z_monoexc <http://github.com/LCPQ/quantum_package/tree/master/src/CISD_selected/H_apply.irp.f_shell_10#L4921>`_
   Generate all single excitations of key_in using the bit masks of holes and
   particles.
