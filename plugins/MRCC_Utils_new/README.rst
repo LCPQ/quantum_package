@@ -2,6 +2,8 @@
 MRCC Module
 ===========
 
+Multi-Reference Coupled Cluster.
+
 Needed Modules
 ==============
 
@@ -17,7 +19,4 @@ Needed Modules
 
 Documentation
 =============
-
-.. Do not edit this section. It was auto-generated from the
-.. by the `update_README.py` script.
 
