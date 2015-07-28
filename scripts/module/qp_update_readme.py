@@ -16,6 +16,7 @@ import sys
 
 try:
     from docopt import docopt
+    from module_handler import is_module, is_plugin
 except:
     print "Please check if you have sourced the .quantum_package.rc"
     print "(`source .quantum_package.rc`)"
@@ -24,6 +25,7 @@ except:
 import os
 from collections import namedtuple
 from collections import defaultdict
+
 
 def header_format(str_):
 
@@ -35,7 +37,17 @@ def header_format(str_):
 D_KEY = {"needed_module": header_format("Needed Modules"),
          "documentation": header_format("Documentation")}
 
-URL = "http://github.com/LCPQ/quantum_package/tree/master/src"
+
+def get_url(path_module_rel):
+    if is_plugin(path_module_rel):
+        url = "http://github.com/LCPQ/quantum_package/tree/master/plugins"
+    elif is_module(path_module_rel):
+        url = "http://github.com/LCPQ/quantum_package/tree/master/src"
+    else:
+        print "{0} Is not a valide module nor plugin".format(path_module_rel)
+        sys.exit(1)
+
+    return os.path.join(url, path_module_rel)
 
 
 def fetch_splitted_data(d_readme, l_module_readme):
@@ -72,7 +84,7 @@ def update_needed(d_readme):
             modules = f.read()
 
         if modules.strip():
-            l_module = ['* `{0} <{1}>`_'.format(name, os.path.join(URL, name))
+            l_module = ['* `{0} <{1}>`_'.format(name, get_url(name))
                         for name in modules.split()]
 
             l_module_section = [D_KEY["needed_module"], '',
@@ -143,7 +155,8 @@ def update_documentation(d_readmen, root_module):
         l_doc = []
 
         for irp in d_info[path]:
-            url = os.path.join(URL, os.path.basename(path), irp.file)
+
+            url = os.path.join(get_url(os.path.basename(path)), irp.file)
             doc = extract_doc(root_module, irp.provider)
 
             l_doc += ["`{0} <{1}#L{2}>`_".format(irp.provider, url, irp.line),

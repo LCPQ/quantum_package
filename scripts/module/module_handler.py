@@ -23,15 +23,19 @@ import shutil
 
 try:
     from docopt import docopt
-    from qp_path import QP_SRC
-    from qp_path import QP_ROOT
+    from qp_path import QP_SRC, QP_ROOT, QP_PLUGINS
 except ImportError:
     print "source .quantum_package.rc"
     raise
 
 
-def is_module(path_module):
-    return os.path.isfile(os.path.join(QP_SRC, path_module,
+def is_module(path_module_rel):
+    return os.path.isfile(os.path.join(QP_SRC, path_module_rel,
+                                       "NEEDED_CHILDREN_MODULES"))
+
+
+def is_plugin(path_module_rel):
+    return os.path.isfile(os.path.join(QP_PLUGINS, path_module_rel,
                                        "NEEDED_CHILDREN_MODULES"))
 
 

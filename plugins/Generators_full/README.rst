@@ -25,7 +25,7 @@ Needed Modules
 .. image:: tree_dependency.png
 
 * `Determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants>`_
-* `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock>`_
+* `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock>`_
 
 Documentation
 =============
@@ -33,29 +33,29 @@ Documentation
 .. by the `update_README.py` script.
 
 
-`degree_max_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L43>`_
+`degree_max_generators <http://github.com/LCPQ/quantum_package/tree/master/plugins/Generators_full/generators.irp.f#L43>`_
   Max degree of excitation (respect to HF) of the generators
 
 
-`n_det_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L3>`_
+`n_det_generators <http://github.com/LCPQ/quantum_package/tree/master/plugins/Generators_full/generators.irp.f#L3>`_
   For Single reference wave functions, the number of generators is 1 : the
   Hartree-Fock determinant
 
 
-`psi_coef_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L26>`_
+`psi_coef_generators <http://github.com/LCPQ/quantum_package/tree/master/plugins/Generators_full/generators.irp.f#L26>`_
   For Single reference wave functions, the generator is the
   Hartree-Fock determinant
 
 
-`psi_det_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L25>`_
+`psi_det_generators <http://github.com/LCPQ/quantum_package/tree/master/plugins/Generators_full/generators.irp.f#L25>`_
   For Single reference wave functions, the generator is the
   Hartree-Fock determinant
 
 
-`select_max <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L66>`_
+`select_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Generators_full/generators.irp.f#L66>`_
   Memo to skip useless selectors
 
 
-`size_select_max <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full/generators.irp.f#L58>`_
+`size_select_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Generators_full/generators.irp.f#L58>`_
   Size of the select_max array
 
