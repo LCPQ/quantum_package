@@ -376,7 +376,7 @@ end
  ! Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
  END_DOC
  davidson_criterion = 'residual'
- davidson_threshold = 1.d-9
+ davidson_threshold = 1.d-10
 END_PROVIDER
 
 subroutine davidson_converged(energy,residual,wall,iterations,cpu,N_st,converged)
