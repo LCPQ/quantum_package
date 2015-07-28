@@ -14,7 +14,7 @@ subroutine mrcc_iterations
   E_new = 0.d0
   delta_E = 1.d0
   iteration = 0
-  do while (delta_E > 100.d0*davidson_threshold)
+  do while (delta_E > 1.d-8)
     iteration += 1
     print *,  '===========================' 
     print *,  'MRCC Iteration', iteration
@@ -25,10 +25,10 @@ subroutine mrcc_iterations
     call diagonalize_ci_dressed
     E_new = sum(ci_energy_dressed)
     delta_E = dabs(E_new - E_old)
-    if (iteration > 20) then
+!   stop
+    if (iteration > 200) then
       exit
     endif
-    call save_wavefunction
   enddo
   call write_double(6,ci_energy_dressed(1),"Final MRCC energy")
   call ezfio_set_mrcc_cassd_energy(ci_energy_dressed(1))

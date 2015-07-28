@@ -34,3 +34,14 @@ subroutine do_mono_excitation(key_in,i_hole,i_particle,ispin,i_ok)
   i_ok = -1
  endif
 end
+
+subroutine set_bite_to_integer(i_physical,key,Nint)
+ use bitmasks
+ implicit none
+ integer, intent(in) :: i_physical,Nint
+ integer(bit_kind), intent(inout) :: key(Nint)
+ integer :: k,j,i
+ k = ishft(i_physical-1,-bit_kind_shift)+1
+ j = i_physical-ishft(k-1,bit_kind_shift)-1
+ key(k) = ibset(key(k),j)
+end
