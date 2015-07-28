@@ -12,7 +12,7 @@ addons:
     - gfortran
     - gcc
     - liblapack-dev
-#    - graphviz
+    - graphviz
 
 cache:
   directories:

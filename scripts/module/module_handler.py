@@ -203,6 +203,8 @@ class ModuleHandler():
             graph.node(module, fontcolor="red")
             draw_module_edge(module, d_ref[module])
 
+        # Try to render the png
+        # If not just touch it
         try:
             graph.render(cleanup=True)
         except:

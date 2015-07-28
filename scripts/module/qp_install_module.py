@@ -108,8 +108,9 @@ if __name__ == '__main__':
         save_new_module(path, l_child_reduce)
 
         print "    [ OK ]"
-        print "If this was a plugins, you can install it normaly. Type:"
+        print "You can now install it normaly. Type:"
         print "` {0} install {1} `".format(os.path.basename(__file__), name)
+        print "And don't forgot to add this to the git if you want"
 
     elif arguments["download"]:
         pass
