@@ -43,7 +43,7 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. by the `update_README.py` script.
 
-`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L962>`_
+`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1097>`_
   Needed for diag_H_mat_elem
 
 
@@ -55,7 +55,7 @@ Documentation
   Max and min values of the coefficients
 
 
-`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1007>`_
+`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1142>`_
   Needed for diag_H_mat_elem
 
 
@@ -217,11 +217,11 @@ Documentation
   det_coef
 
 
-`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1138>`_
+`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1272>`_
   Build connection proxy between determinants
 
 
-`det_num <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L116>`_
+`det_num <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L248>`_
   det_num
 
 
@@ -245,7 +245,7 @@ Documentation
   Diagonalization algorithm (Davidson or Lapack)
 
 
-`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L900>`_
+`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1035>`_
   Computes <i|H|i>
 
 
@@ -363,7 +363,7 @@ Documentation
   Returns the excitation degree between two determinants
 
 
-`get_excitation_degree_vector <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L816>`_
+`get_excitation_degree_vector <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L951>`_
   Applies get_excitation_degree to an array of determinants
 
 
@@ -383,7 +383,7 @@ Documentation
   Returns the excitation operator between two singly excited determinants and the phase
 
 
-`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1055>`_
+`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1190>`_
   Returns a list of occupation numbers from a bitstring
 
 
@@ -417,7 +417,7 @@ Documentation
   Undocumented
 
 
-`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1071>`_
+`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1206>`_
   Computes v_0 = H|u_0>
   .br
   n : number of determinants
@@ -429,15 +429,19 @@ Documentation
   Returns <i|H|j> where i and j are determinants
 
 
-`i_h_j_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L492>`_
+`i_h_j_phase_out <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L491>`_
   Returns <i|H|j> where i and j are determinants
 
 
-`i_h_psi <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L631>`_
+`i_h_j_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L627>`_
+  Returns <i|H|j> where i and j are determinants
+
+
+`i_h_psi <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L766>`_
   <key|H|psi> for the various Nstates
 
 
-`i_h_psi_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L713>`_
+`i_h_psi_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L848>`_
   <key|H|psi> for the various Nstate
   .br
   returns in addition
@@ -451,7 +455,7 @@ Documentation
   to repeat the excitations
 
 
-`i_h_psi_sc2_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L760>`_
+`i_h_psi_sc2_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L895>`_
   <key|H|psi> for the various Nstate
   .br
   returns in addition
@@ -465,7 +469,7 @@ Documentation
   to repeat the excitations
 
 
-`i_h_psi_sec_ord <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L666>`_
+`i_h_psi_sec_ord <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L801>`_
   <key|H|psi> for the various Nstates
 
 
@@ -512,7 +516,7 @@ Documentation
   Energy of the reference bitmask used in Slater rules
 
 
-`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1130>`_
+`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1264>`_
   Number of integers to represent the connections between determinants
 
 
@@ -618,10 +622,6 @@ Documentation
 
 
 `pouet <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/program_initial_determinants.irp.f#L1>`_
-  Undocumented
-
-
-`print_psi_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/print_cas_energy.irp.f#L1>`_
   Undocumented
 
 
@@ -835,11 +835,7 @@ Documentation
   Undocumented
 
 
-`routine_count_mono_save_mono <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_wf_only_monos.irp.f#L9>`_
-  Undocumented
-
-
-`s2_eig <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L248>`_
+`s2_eig <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L116>`_
   Force the wave function to be an eigenfunction of S^2
 
 
@@ -877,10 +873,6 @@ Documentation
 
 `save_wavefunction_unsorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L655>`_
   Save the wave function into the EZFIO file
-
-
-`save_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_wf_only_monos.irp.f#L1>`_
-  Undocumented
 
 
 `set_bite_to_integer <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/create_excitations.irp.f#L38>`_

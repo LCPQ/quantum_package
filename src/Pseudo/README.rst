@@ -26,7 +26,7 @@ Documentation
   test
 
 
-`pseudo_dz_kl <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L226>`_
+`pseudo_dz_kl <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L94>`_
   test
 
 
@@ -42,7 +42,7 @@ Documentation
   test
 
 
-`pseudo_kmax <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L94>`_
+`pseudo_kmax <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L72>`_
   test
 
 
@@ -50,7 +50,7 @@ Documentation
   test
 
 
-`pseudo_n_k <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L72>`_
+`pseudo_n_k <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L226>`_
   test
 
 

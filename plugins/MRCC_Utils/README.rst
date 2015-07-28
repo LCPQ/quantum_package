@@ -139,10 +139,18 @@ Documentation
   Undocumented
 
 
+`mrcc_iterations <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_general.irp.f#L7>`_
+  Undocumented
+
+
 `psi_ref_lock <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_dress.irp.f#L3>`_
   Locks on ref determinants to fill delta_ij
 
 
 `run_mrcc <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_general.irp.f#L1>`_
+  Undocumented
+
+
+`set_generators_bitmasks_as_holes_and_particles <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_general.irp.f#L39>`_
   Undocumented
 

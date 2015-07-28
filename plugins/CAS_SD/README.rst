@@ -13,7 +13,7 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. by the `update_README.py` script.
 
-`full_ci <http://github.com/LCPQ/quantum_package/tree/master/src/CAS_SD/cas_sd_selected_no_skip.irp.f#L1>`_
+`full_ci <http://github.com/LCPQ/quantum_package/tree/master/src/CAS_SD/cas_sd_selected.irp.f#L1>`_
   Undocumented
 
 

@@ -14,7 +14,7 @@ Integrals_Bielec
 Integrals_Monoelec
 MOGuess
 MO_Basis
-MRCC_Utils
+MRCC_Utils_new
 Makefile
 Makefile.depend
 Nuclei
@@ -28,5 +28,4 @@ Utils
 ezfio_interface.irp.f
 irpf90.make
 irpf90_entities
-mrcc_cassd
 tags

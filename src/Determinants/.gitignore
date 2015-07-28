@@ -16,17 +16,13 @@ Nuclei
 Pseudo
 Utils
 det_svd
-diag_and_save
 ezfio_interface.irp.f
 guess_doublet
 guess_singlet
 guess_triplet
 irpf90.make
 irpf90_entities
-print_cas_energy
-print_s2
 program_initial_determinants
 save_natorb
-save_wf_only_monos
 tags
 truncate_wf

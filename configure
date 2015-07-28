@@ -497,7 +497,7 @@ def recommendation():
     print "Now :"
     print "   source {0}".format(path)
     print "   ninja"
-    print "   cd ocaml; make "
+    print "   make -C ocaml"
     print ""
     print "PS : For more info on compiling the code, read the COMPILE_RUN.md file."
 
