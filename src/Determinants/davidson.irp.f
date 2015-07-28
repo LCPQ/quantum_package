@@ -12,7 +12,7 @@ BEGIN_PROVIDER [ integer, davidson_sze_max ]
   ! Max number of Davidson sizes
   END_DOC
   ASSERT (davidson_sze_max <= davidson_iter_max)
-  davidson_sze_max = min(8,2*N_states_diag)
+  davidson_sze_max = max(8,2*N_states_diag)
 END_PROVIDER
 
 subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
