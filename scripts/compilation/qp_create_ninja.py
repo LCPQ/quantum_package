@@ -23,11 +23,10 @@ except ImportError:
                                       "..",
                                       "..",
                                       "quantum_package.rc"))
-    print """
-Error:
- source %s
-""" % f
+
+    print "\n".join(["", "Error:", "source %s" % f, ""])
     sys.exit(1)
+
 
 #  __
 # /__ |  _  |_   _. |       _. ._ o  _. |_  |  _   _
@@ -516,7 +515,7 @@ def ninja_readme_rule():
     For not dealted the readme when ninja -t clean and the generator option
     """
     l_string = ["rule build_readme",
-                "   command = cd $module_abs ; update_README.py $module_root",
+                "   command = qp_update_readme.py $module_abs --root_module $module_root",
                 "   description = update_README $module_rel",
                 "   generator = 1", ""]
 
@@ -552,7 +551,8 @@ def ninja_readme_build(path_module, d_irp, dict_root_path):
 #                 /
 def get_binaries(path_module):
     """
-    Return the list of binaries (Path= namedtuple('Path', ['abs', 'rel']) for a module
+    Return the list of binaries
+    (Path= namedtuple('Path', ['abs', 'rel']) for a module
     """
     import subprocess
 
@@ -666,20 +666,26 @@ def ninja_binaries_build(path_module, l_children, d_binaries):
     # s t r i n g #
     # ~#~#~#~#~#~ #
 
-    path_readme = os.path.join(path_module.abs, "README.rst")
-    path_png = os.path.join(path_module.abs, "tree_dependency.png")
-
     l_string = ["build {0}: build_binaries {1} {2}".format(" ".join(l_abs_bin),
                                                            EZFIO_LIB,
                                                            ninja_module_path),
                 "   module_abs = {0}".format(path_module.abs),
                 "   module_rel = {0}".format(path_module.rel), ""]
 
-    l_string += ["build module_{0}: phony {1} {2} {3}".format(path_module.rel,
-                                                              " ".join(l_abs_bin),
-                                                              path_readme,
-                                                              path_png
-                                                              ), ""]
+    return l_string
+
+
+def ninja_module_build(path_module, d_binaries):
+
+    l_abs_bin = [binary.abs for binary in d_binaries[path_module]]
+
+    path_readme = os.path.join(path_module.abs, "README.rst")
+    path_png = os.path.join(path_module.abs, "tree_dependency.png")
+
+    l_string = ["build module_{0}: phony {1} {2} {3}".format(path_module.rel,
+                                                             " ".join(l_abs_bin),
+                                                             path_readme,
+                                                             path_png), ""]
 
     return l_string
 
@@ -723,7 +729,7 @@ def ninja_dot_tree_build(path_module, l_module):
 # |\/|  _   _|     |  _
 # |  | (_) (_| |_| | (/_
 #
-def create_build_ninja_module(path_module):
+def save_subninja_file(path_module):
     l_string = ["builddir = {0}".format(os.path.dirname(ROOT_BUILD_NINJA)),
                 ""]
 
@@ -732,17 +738,19 @@ def create_build_ninja_module(path_module):
                  ""]
 
     l_string += ["rule make_local_binaries",
-                 "   command = ninja -f {0} module_{1}".format(
-                     ROOT_BUILD_NINJA, path_module.rel), "   pool = console",
+                 "   command = ninja -f {0} module_{1}".format(ROOT_BUILD_NINJA, path_module.rel),
+                 "   pool = console",
                  "   description = Compile only {0}".format(path_module.rel),
                  ""]
 
     l_string += ["rule make_all_binaries",
                  "  command = ninja -f {0}".format(ROOT_BUILD_NINJA),
-                 "  pool = console", "  description = Compiling all modules",
+                 "  pool = console",
+                 "  description = Compiling all modules",
                  ""]
 
-    l_string += ["rule make_clean", "  command = module_handler.py clean {0}".format(path_module.rel),
+    l_string += ["rule make_clean",
+                 "  command = module_handler.py clean {0}".format(path_module.rel),
                  "  description = Cleaning module {0}".format(path_module.rel),
                  ""]
 
@@ -766,7 +774,7 @@ def create_build_ninja_global():
                 "   command = {0} update".format(__file__),
                 ""]
 
-    l_string += ["rule make_all_binaries",
+    l_string += ["rule make_all",
                  "  command = ninja -f {0}".format(ROOT_BUILD_NINJA),
                  "  pool = console", "  description = Compiling all modules",
                  ""]
@@ -777,7 +785,7 @@ def create_build_ninja_global():
 
     l_string += ["build dummy_target: update_build_ninja_root",
                  "",
-                 "build all: make_all_binaries dummy_target",
+                 "build all: make_all dummy_target",
                  "default all",
                  "",
                  "build clean: make_clean dummy_target",
@@ -921,9 +929,6 @@ if __name__ == "__main__":
 
     for module_to_compile in l_module:
 
-        if arguments["--development"]:
-            create_build_ninja_module(module_to_compile)
-
         # ~#~#~#~#~#~#~#~ #
         #  S y m l i n k  #
         # ~#~#~#~#~#~#~#~ #
@@ -941,8 +946,14 @@ if __name__ == "__main__":
         l_string += ninja_binaries_build(module_to_compile, l_children,
                                          d_binaries)
 
-        l_string += ninja_gitignore_build(module_to_compile, d_binaries,
-                                          l_symlink)
+        if arguments["--development"]:
+
+            l_string += ninja_module_build(module_to_compile, d_binaries)
+
+            l_string += ninja_gitignore_build(module_to_compile, d_binaries,
+                                              l_symlink)
+
+            save_subninja_file(module_to_compile)
 
     # ~#~#~#~#~ #
     # S a v e s #

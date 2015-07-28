@@ -21,8 +21,18 @@ Assumptions
 Needed Modules
 ==============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
+
+.. image:: tree_dependency.png
+
+* `Ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files>`_
+
+Needed Modules
+==============
+.. Do not edit this section It was auto-generated
+.. by the `update_README.py` script.
+
 
 .. image:: tree_dependency.png
 
@@ -30,9 +40,9 @@ Needed Modules
 
 Documentation
 =============
-
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
+
 
 `elec_alpha_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/ezfio_interface.irp.f#L28>`_
   Numbers of electrons alpha ("up")

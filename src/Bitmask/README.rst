@@ -37,8 +37,18 @@ Assumptions
 Needed Modules
 ==============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
+
+.. image:: tree_dependency.png
+
+* `MO_Basis <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis>`_
+
+Needed Modules
+==============
+.. Do not edit this section It was auto-generated
+.. by the `update_README.py` script.
+
 
 .. image:: tree_dependency.png
 
@@ -46,9 +56,9 @@ Needed Modules
 
 Documentation
 =============
-
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
+
 
 `bitstring_to_hexa <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L98>`_
   Transform a bit string to a string in hexadecimal format for printing
