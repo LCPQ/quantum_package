@@ -18,17 +18,20 @@ END_PROVIDER
  BEGIN_PROVIDER [ integer(bit_kind), psi_non_ref,  (N_int,2,psi_det_size) ]
 &BEGIN_PROVIDER [ double precision, psi_non_ref_coef, (psi_det_size,n_states) ]
 &BEGIN_PROVIDER [ integer, idx_non_ref,  (psi_det_size) ]
+&BEGIN_PROVIDER [ integer, idx_non_ref_rev,  (psi_det_size) ]
 &BEGIN_PROVIDER [ integer, N_det_non_ref ]
  implicit none
  BEGIN_DOC
   ! Set of determinants which are not part of the reference, defined from the application
   ! of the reference bitmask on the determinants. 
   ! idx_non_ref gives the indice of the determinant in psi_det.
+  ! idx_non_ref_rev gives the reverse.
  END_DOC
  integer                        :: i_non_ref,j,k
  integer                        :: degree
  logical                        :: in_ref
  i_non_ref =0
+ idx_non_ref_rev = 0
  do k=1,N_det
    in_ref = .False.
    do j=1,N_det_ref
@@ -49,6 +52,7 @@ END_PROVIDER
        psi_non_ref_coef(i_non_ref,j) = psi_coef(k,j)
      enddo
      idx_non_ref(i_non_ref) = k
+     idx_non_ref_rev(k) = i_non_ref
    endif
  enddo
  N_det_non_ref = i_non_ref
@@ -119,5 +123,102 @@ END_PROVIDER
 END_PROVIDER 
 
 
+logical function is_in_psi_ref(key,Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! True if the determinant ``det`` is in the wave function
+  END_DOC
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: key(Nint,2)
+  integer, external              :: get_index_in_psi_ref_sorted_bit
 
+  !DIR$ FORCEINLINE
+  is_in_psi_ref = get_index_in_psi_ref_sorted_bit(key,Nint) > 0
+end
+
+integer function get_index_in_psi_ref_sorted_bit(key,Nint)
+  use bitmasks
+  BEGIN_DOC
+! Returns the index of the determinant in the ``psi_ref_sorted_bit`` array
+  END_DOC
+  implicit none
+
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: key(Nint,2)
+
+  integer                        :: i, ibegin, iend, istep, l
+  integer*8                      :: det_ref, det_search
+  integer*8, external            :: det_search_key
+  logical                        :: in_wavefunction
+
+  in_wavefunction = .False.
+  get_index_in_psi_ref_sorted_bit = 0
+  ibegin = 1
+  iend   = N_det+1
+
+  !DIR$ FORCEINLINE
+  det_ref = det_search_key(key,Nint)
+  !DIR$ FORCEINLINE
+  det_search = det_search_key(psi_ref_sorted_bit(1,1,1),Nint)
+
+  istep = ishft(iend-ibegin,-1)
+  i=ibegin+istep
+  do while (istep > 0)
+    !DIR$ FORCEINLINE
+    det_search = det_search_key(psi_ref_sorted_bit(1,1,i),Nint)
+    if ( det_search > det_ref ) then
+      iend = i
+    else if ( det_search == det_ref ) then
+      exit
+    else
+      ibegin = i
+    endif
+    istep = ishft(iend-ibegin,-1)
+    i = ibegin + istep
+  end do
+
+  !DIR$ FORCEINLINE
+  do while (det_search_key(psi_ref_sorted_bit(1,1,i),Nint) == det_ref)
+    i = i-1
+    if (i == 0) then
+      exit
+    endif
+  enddo
+  i += 1
+
+  if (i > N_det) then
+    return
+  endif
+
+  !DIR$ FORCEINLINE
+  do while (det_search_key(psi_ref_sorted_bit(1,1,i),Nint) == det_ref)
+    if ( (key(1,1) /= psi_ref_sorted_bit(1,1,i)).or.                               &
+          (key(1,2) /= psi_ref_sorted_bit(1,2,i)) ) then
+      continue
+    else
+      in_wavefunction = .True.
+      !DIR$ IVDEP
+      !DIR$ LOOP COUNT MIN(3)
+      do l=2,Nint
+        if ( (key(l,1) /= psi_ref_sorted_bit(l,1,i)).or.                           &
+              (key(l,2) /= psi_ref_sorted_bit(l,2,i)) ) then
+          in_wavefunction = .False.
+        endif
+      enddo
+      if (in_wavefunction) then
+        get_index_in_psi_ref_sorted_bit = i
+!        exit
+        return
+      endif
+    endif
+    i += 1
+    if (i > N_det) then
+!      exit
+      return
+    endif
+
+  enddo
+
+end
 

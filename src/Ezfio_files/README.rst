@@ -106,8 +106,8 @@ Documentation
   Output file for MRCC_CASSD
 
 
-`output_mrcc_utils <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L361>`_
-  Output file for MRCC_Utils
+`output_mrcc_utils_new <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L361>`_
+  Output file for MRCC_Utils_new
 
 
 `output_nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L381>`_

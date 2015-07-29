@@ -3,7 +3,7 @@ subroutine mrcc_dress(ndetref,ndetnonref,nstates,delta_ij_,delta_ii_)
  implicit none
  integer, intent(in)            :: ndetref,nstates,ndetnonref
  double precision, intent(inout) :: delta_ii_(ndetref,nstates),delta_ij_(ndetref,ndetnonref,nstates)
- integer                        :: i,j,k,l
+ integer                        :: i,j,k,l,m
  integer                        :: i_state
  integer                        :: N_connect_ref
  integer*2,allocatable          :: excitation_operators(:,:)
@@ -12,13 +12,14 @@ subroutine mrcc_dress(ndetref,ndetnonref,nstates,delta_ij_,delta_ii_)
  integer(bit_kind), allocatable :: key_test(:,:)
  integer, allocatable           :: index_connected(:)
  integer                        :: i_hole,i_particle,ispin,i_ok,connected_to_ref,index_wf
- integer, allocatable           :: idx_vector(:), degree_vector(:)
+ integer, allocatable           :: idx_vector(:)
  double precision               :: phase_ij
  double precision               :: dij,phase_la
  double precision               :: hij,phase
  integer                        :: exc(0:2,2,2),degree
  logical                        :: is_in_wavefunction
  double precision, allocatable  :: delta_ij_tmp(:,:,:), delta_ii_tmp(:,:)
+ logical, external              :: is_in_psi_ref
 
  i_state = 1
  allocate(excitation_operators(5,N_det_non_ref))
@@ -29,15 +30,14 @@ subroutine mrcc_dress(ndetref,ndetnonref,nstates,delta_ij_,delta_ii_)
      !$OMP  SHARED(N_det_ref, N_det_non_ref, psi_ref, i_state,       &
      !$OMP    N_connect_ref,index_connected,psi_non_ref,             &
      !$OMP    excitation_operators,amplitudes_phase_less,            &
-     !$OMP    psi_non_ref_coef,N_int,lambda_mrcc,N_det,              &
+     !$OMP    psi_non_ref_coef,N_int,lambda_mrcc,                    &
      !$OMP    delta_ii_,delta_ij_,psi_ref_coef,nstates,              &
-     !$OMP    mo_integrals_threshold)                                &
+     !$OMP    mo_integrals_threshold,idx_non_ref_rev)                &
      !$OMP  PRIVATE(i,j,k,l,hil,phase_il,exc,degree,t_il,            &
-     !$OMP    key_test,i_ok,phase_la,hij,phase_ij,                   &
-     !$OMP    dij,degree_vector,idx_vector,delta_ij_tmp,             &
+     !$OMP    key_test,i_ok,phase_la,hij,phase_ij,m,                 &
+     !$OMP    dij,idx_vector,delta_ij_tmp,             &
      !$OMP    delta_ii_tmp,phase)
  allocate(idx_vector(0:N_det_non_ref))
- allocate(degree_vector(N_det_non_ref))
  allocate(key_test(N_int,2))
  allocate(delta_ij_tmp(size(delta_ij_,1),size(delta_ij_,2),nstates))
  allocate(delta_ii_tmp(size(delta_ij_,1),nstates))
@@ -52,8 +52,9 @@ subroutine mrcc_dress(ndetref,ndetnonref,nstates,delta_ij_,delta_ii_)
    !$OMP END SINGLE
    !$OMP BARRIER
 
-   !$OMP DO SCHEDULE(guided)
+   !$OMP DO SCHEDULE(dynamic)
    do l = 1, N_det_non_ref
+!     print *,  l, '/', N_det_non_ref
      double precision               :: t_il,phase_il,hil
      call i_H_j_phase_out(psi_ref(1,1,i),psi_non_ref(1,1,l),N_int,hil,phase_il,exc,degree)
      t_il = hil * lambda_mrcc(i_state,l)
@@ -75,7 +76,7 @@ subroutine mrcc_dress(ndetref,ndetnonref,nstates,delta_ij_,delta_ii_)
        if(i_ok.ne.1)cycle
 
        ! we check if such determinant is already in the wave function
-       if(is_in_wavefunction(key_test,N_int,N_det))cycle
+       if(is_in_wavefunction(key_test,N_int))cycle
        
        ! we get the phase for psi_non_ref(l) -> T_I->j |psi_non_ref(l)>
        call get_excitation(psi_non_ref(1,1,l),key_test,exc,degree,phase_la,N_int)
@@ -90,12 +91,14 @@ subroutine mrcc_dress(ndetref,ndetnonref,nstates,delta_ij_,delta_ii_)
        endif
        
        ! we compute the interaction of such determinant with all the non_ref dets
-       call get_excitation_degree_vector(psi_non_ref,key_test,degree_vector,N_int,N_det_non_ref,idx_vector)
+       call filter_connected(psi_non_ref,key_test,N_int,N_det_non_ref,idx_vector)
        
        do k = 1, idx_vector(0)
-         call i_H_j_phase_out(key_test,psi_non_ref(1,1,idx_vector(k)),N_int,hij,phase,exc,degree)
-         delta_ij_tmp(i,idx_vector(k),i_state) += hij * dij
+         m = idx_vector(k) 
+         call i_H_j_phase_out(key_test,psi_non_ref(1,1,m),N_int,hij,phase,exc,degree)
+         delta_ij_tmp(i,m,i_state) += hij * dij
        enddo
+
        
      enddo
      
@@ -117,7 +120,6 @@ subroutine mrcc_dress(ndetref,ndetnonref,nstates,delta_ij_,delta_ii_)
  deallocate(delta_ii_tmp,delta_ij_tmp)
  deallocate(idx_vector)
  deallocate(key_test)
- deallocate(degree_vector)
  !$OMP END PARALLEL
  
  deallocate(excitation_operators)

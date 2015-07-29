@@ -23,7 +23,7 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. by the `update_README.py` script.
 
-`apply_excitation_operator <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils_new/mrcc_dress.irp.f#L78>`_
+`apply_excitation_operator <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils_new/mrcc_dress.irp.f#L138>`_
   Undocumented
 
 
@@ -108,27 +108,27 @@ Documentation
   .br
   excitation_operators(:,i) represents the holes and particles that
   link the ith connected determinant to det_ref
-  if ::
+  if                           ::
   excitation_operators(5,i) =  2 :: double excitation alpha
   excitation_operators(5,i) = -2 :: double excitation beta
-  !! excitation_operators(1,i) :: hole 1
-  !! excitation_operators(2,i) :: particle 1
-  !! excitation_operators(3,i) :: hole 2
-  !! excitation_operators(4,i) :: particle 2
-  else if ::
+  !! excitation_operators(1,i)  :: hole 1
+  !! excitation_operators(2,i)  :: particle 1
+  !! excitation_operators(3,i)  :: hole 2
+  !! excitation_operators(4,i)  :: particle 2
+  else if                      ::
   excitation_operators(5,i) =  1 :: single excitation alpha
-  !! excitation_operators(1,i) :: hole 1
-  !! excitation_operators(2,i) :: particle 1
-  else if ::
+  !! excitation_operators(1,i)  :: hole 1
+  !! excitation_operators(2,i)  :: particle 1
+  else if                      ::
   excitation_operators(5,i) = -1 :: single excitation beta
-  !! excitation_operators(3,i) :: hole 1
-  !! excitation_operators(4,i) :: particle 1
-  else if ::
+  !! excitation_operators(3,i)  :: hole 1
+  !! excitation_operators(4,i)  :: particle 1
+  else if                      ::
   !! excitation_operators(5,i) =  0 :: double excitation alpha/beta
-  !! excitation_operators(1,i) :: hole 1 alpha
-  !! excitation_operators(2,i) :: particle 1 alpha
-  !! excitation_operators(3,i) :: hole 2 beta
-  !! excitation_operators(4,i) :: particle 2 beta
+  !! excitation_operators(1,i)  :: hole 1 alpha
+  !! excitation_operators(2,i)  :: particle 1 alpha
+  !! excitation_operators(3,i)  :: hole 2 beta
+  !! excitation_operators(4,i)  :: particle 2 beta
 
 
 `h_matrix_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils_new/mrcc_utils.irp.f#L58>`_

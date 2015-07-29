@@ -292,7 +292,7 @@ subroutine make_s2_eigenfunction
     endif
     call occ_pattern_to_dets(psi_occ_pattern(1,1,i),d,s,elec_alpha_num,N_int)
     do j=1,s
-      if (.not. is_in_wavefunction( d(1,1,j), N_int, N_det)) then
+      if (.not. is_in_wavefunction(d(1,1,j), N_int) ) then
         N_det_new += 1
         do k=1,N_int
           det_buffer(k,1,N_det_new) = d(k,1,j)

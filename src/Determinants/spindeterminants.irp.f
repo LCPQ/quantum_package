@@ -151,9 +151,9 @@ integer function get_index_in_psi_det_alpha_unique(key,Nint)
   integer                        :: i, ibegin, iend, istep, l
   integer*8                      :: det_ref, det_search
   integer*8, external            :: spin_det_search_key
-  logical                        :: is_in_wavefunction
+  logical                        :: in_wavefunction
 
-  is_in_wavefunction = .False.
+  in_wavefunction = .False.
   get_index_in_psi_det_alpha_unique = 0
   ibegin = 1
   iend   = N_det_alpha_unique + 1
@@ -198,15 +198,15 @@ integer function get_index_in_psi_det_alpha_unique(key,Nint)
     if (key(1) /= psi_det_alpha_unique(1,i)) then
       continue
     else
-      is_in_wavefunction = .True.
+      in_wavefunction = .True.
       !DIR$ IVDEP
       !DIR$ LOOP COUNT MIN(3)
       do l=2,Nint
         if (key(l) /= psi_det_alpha_unique(l,i)) then
-          is_in_wavefunction = .False.
+          in_wavefunction = .False.
         endif
       enddo
-      if (is_in_wavefunction) then
+      if (in_wavefunction) then
         get_index_in_psi_det_alpha_unique = i
         return
       endif
@@ -233,9 +233,9 @@ integer function get_index_in_psi_det_beta_unique(key,Nint)
   integer                        :: i, ibegin, iend, istep, l
   integer*8                      :: det_ref, det_search
   integer*8, external            :: spin_det_search_key
-  logical                        :: is_in_wavefunction
+  logical                        :: in_wavefunction
 
-  is_in_wavefunction = .False.
+  in_wavefunction = .False.
   get_index_in_psi_det_beta_unique = 0
   ibegin = 1
   iend   = N_det_beta_unique + 1
@@ -279,15 +279,15 @@ integer function get_index_in_psi_det_beta_unique(key,Nint)
     if (key(1) /= psi_det_beta_unique(1,i)) then
       continue
     else
-      is_in_wavefunction = .True.
+      in_wavefunction = .True.
       !DIR$ IVDEP
       !DIR$ LOOP COUNT MIN(3)
       do l=2,Nint
         if (key(l) /= psi_det_beta_unique(l,i)) then
-          is_in_wavefunction = .False.
+          in_wavefunction = .False.
         endif
       enddo
-      if (is_in_wavefunction) then
+      if (in_wavefunction) then
         get_index_in_psi_det_beta_unique = i
         return
       endif
@@ -369,7 +369,6 @@ BEGIN_PROVIDER  [ double precision, psi_svd_matrix_values, (N_det,N_states) ]
   integer(bit_kind)               :: tmp_det(N_int,2)
   integer                        :: idx
   integer, external              :: get_index_in_psi_det_sorted_bit
-  logical, external              :: is_in_wavefunction
 
 
   PROVIDE psi_coef_sorted_bit
@@ -423,7 +422,6 @@ subroutine create_wf_of_psi_svd_matrix
   integer(bit_kind)              :: tmp_det(N_int,2)
   integer                        :: idx
   integer, external              :: get_index_in_psi_det_sorted_bit
-  logical, external              :: is_in_wavefunction
   double precision               :: norm(N_states)
 
   call generate_all_alpha_beta_det_products
@@ -494,7 +492,7 @@ subroutine generate_all_alpha_beta_det_products
         tmp_det(k,1,l) = psi_det_alpha_unique(k,i)
         tmp_det(k,2,l) = psi_det_beta_unique (k,j)
       enddo
-      if (.not.is_in_wavefunction(tmp_det(1,1,l),N_int,N_det)) then
+      if (.not.is_in_wavefunction(tmp_det(1,1,l),N_int)) then
         l = l+1
       endif
     enddo

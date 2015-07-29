@@ -31,7 +31,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
       cycle
     endif
     
-    if (is_in_wavefunction(buffer(1,1,i),Nint,N_det)) then
+    if (is_in_wavefunction(buffer(1,1,i),Nint)) then
       cycle
     endif
     
@@ -82,7 +82,7 @@ subroutine perturb_buffer_by_mono_$PERT(i_generator,buffer,buffer_size,e_2_pert_
       cycle
     endif
     
-    if (is_in_wavefunction(buffer(1,1,i),Nint,N_det)) then
+    if (is_in_wavefunction(buffer(1,1,i),Nint)) then
       cycle
     endif
     
