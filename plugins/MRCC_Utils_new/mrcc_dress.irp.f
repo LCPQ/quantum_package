@@ -30,7 +30,8 @@ subroutine mrcc_dress(ndetref,ndetnonref,nstates,delta_ij_,delta_ii_)
      !$OMP    N_connect_ref,index_connected,psi_non_ref,             &
      !$OMP    excitation_operators,amplitudes_phase_less,            &
      !$OMP    psi_non_ref_coef,N_int,lambda_mrcc,N_det,              &
-     !$OMP  delta_ii_,delta_ij_,psi_ref_coef,nstates)                &
+     !$OMP    delta_ii_,delta_ij_,psi_ref_coef,nstates,              &
+     !$OMP    mo_integrals_threshold)                                &
      !$OMP  PRIVATE(i,j,k,l,hil,phase_il,exc,degree,t_il,            &
      !$OMP    key_test,i_ok,phase_la,hij,phase_ij,                   &
      !$OMP    dij,degree_vector,idx_vector,delta_ij_tmp,             &
@@ -51,12 +52,14 @@ subroutine mrcc_dress(ndetref,ndetnonref,nstates,delta_ij_,delta_ii_)
    !$OMP END SINGLE
    !$OMP BARRIER
 
-   !$OMP DO SCHEDULE(dynamic)
+   !$OMP DO SCHEDULE(guided)
    do l = 1, N_det_non_ref
-     print *,  l, '/', N_det_non_ref
      double precision               :: t_il,phase_il,hil
      call i_H_j_phase_out(psi_ref(1,1,i),psi_non_ref(1,1,l),N_int,hil,phase_il,exc,degree)
      t_il = hil * lambda_mrcc(i_state,l)
+     if (dabs(t_il) < mo_integrals_threshold) then
+         cycle
+     endif
      ! loop on the non ref determinants
 
      do j = 1, N_connect_ref
@@ -82,6 +85,9 @@ subroutine mrcc_dress(ndetref,ndetnonref,nstates,delta_ij_,delta_ii_)
        
        ! we compute the contribution to the coef of key_test
        dij =   t_il *  hij * phase_la *phase_ij *lambda_mrcc(i_state,index_connected(j)) * 0.5d0
+       if (dabs(dij) < mo_integrals_threshold) then
+          cycle
+       endif
        
        ! we compute the interaction of such determinant with all the non_ref dets
        call get_excitation_degree_vector(psi_non_ref,key_test,degree_vector,N_int,N_det_non_ref,idx_vector)
