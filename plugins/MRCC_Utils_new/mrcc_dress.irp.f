@@ -51,8 +51,9 @@ subroutine mrcc_dress(ndetref,ndetnonref,nstates,delta_ij_,delta_ii_)
    !$OMP END SINGLE
    !$OMP BARRIER
 
-   !$OMP DO SCHEDULE(guided)
+   !$OMP DO SCHEDULE(dynamic)
    do l = 1, N_det_non_ref
+     print *,  l, '/', N_det_non_ref
      double precision               :: t_il,phase_il,hil
      call i_H_j_phase_out(psi_ref(1,1,i),psi_non_ref(1,1,l),N_int,hil,phase_il,exc,degree)
      t_il = hil * lambda_mrcc(i_state,l)
