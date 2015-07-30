@@ -141,8 +141,9 @@ Documentation
   After calling this subroutine, N_det, psi_det and psi_coef need to be touched
 
 
-`create_wf_of_psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L415>`_
-  Matrix of wf coefficients. Outer product of alpha and beta determinants
+`create_wf_of_psi_bilinear_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L417>`_
+  Generate a wave function containing all possible products
+  of alpha and beta determinants
 
 
 `davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L382>`_
@@ -231,10 +232,6 @@ Documentation
 
 `det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/connected_to_ref.irp.f#L1>`_
   Return an integer*8 corresponding to a determinant index for searching
-
-
-`det_svd <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/det_svd.irp.f#L1>`_
-  Computes the SVD of the Alpha x Beta determinant coefficient matrix
 
 
 `det_to_occ_pattern <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/occ_pattern.irp.f#L2>`_
@@ -347,7 +344,7 @@ Documentation
   Determinants are taken from the psi_det_sorted_ab array
 
 
-`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L469>`_
+`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L472>`_
   Create a wave function from all possible alpha x beta determinants
 
 
@@ -633,6 +630,26 @@ Documentation
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
 
+`psi_bilinear_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L400>`_
+  Coefficient matrix if the wave function is expressed in a bilinear form :
+  D_a^t C D_b
+
+
+`psi_bilinear_matrix_columns <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L362>`_
+  Sparse coefficient matrix if the wave function is expressed in a bilinear form :
+  D_a^t C D_b
+
+
+`psi_bilinear_matrix_rows <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L361>`_
+  Sparse coefficient matrix if the wave function is expressed in a bilinear form :
+  D_a^t C D_b
+
+
+`psi_bilinear_matrix_values <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L360>`_
+  Sparse coefficient matrix if the wave function is expressed in a bilinear form :
+  D_a^t C D_b
+
+
 `psi_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L3>`_
   CAS wave function, defined from the application of the CAS bitmask on the
   determinants. idx_cas gives the indice of the CAS determinant in psi_det.
@@ -772,34 +789,6 @@ Documentation
   array of the occ_pattern present in the wf
   psi_occ_pattern(:,1,j) = jth occ_pattern of the wave function : represent all the single occupation
   psi_occ_pattern(:,2,j) = jth occ_pattern of the wave function : represent all the double occupation
-
-
-`psi_svd_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L509>`_
-  SVD wave function
-
-
-`psi_svd_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L510>`_
-  SVD wave function
-
-
-`psi_svd_coefs <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L511>`_
-  SVD wave function
-
-
-`psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L399>`_
-  Matrix of wf coefficients. Outer product of alpha and beta determinants
-
-
-`psi_svd_matrix_columns <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L362>`_
-  Matrix of wf coefficients. Outer product of alpha and beta determinants
-
-
-`psi_svd_matrix_rows <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L361>`_
-  Matrix of wf coefficients. Outer product of alpha and beta determinants
-
-
-`psi_svd_matrix_values <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L360>`_
-  Matrix of wf coefficients. Outer product of alpha and beta determinants
 
 
 `put_gess <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/guess_triplet.irp.f#L1>`_

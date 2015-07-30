@@ -344,9 +344,9 @@ subroutine write_spindeterminants
   call ezfio_set_spindeterminants_psi_det_beta(psi_det_beta_unique)
   deallocate(tmpdet)
   
-  call ezfio_set_spindeterminants_psi_coef_matrix_values(psi_svd_matrix_values)
-  call ezfio_set_spindeterminants_psi_coef_matrix_rows(psi_svd_matrix_rows)
-  call ezfio_set_spindeterminants_psi_coef_matrix_columns(psi_svd_matrix_columns)
+  call ezfio_set_spindeterminants_psi_coef_matrix_values(psi_bilinear_matrix_values)
+  call ezfio_set_spindeterminants_psi_coef_matrix_rows(psi_bilinear_matrix_rows)
+  call ezfio_set_spindeterminants_psi_coef_matrix_columns(psi_bilinear_matrix_columns)
   
 end
 
@@ -357,13 +357,14 @@ end
 !                                                                              !
 !==============================================================================!
 
-BEGIN_PROVIDER  [ double precision, psi_svd_matrix_values, (N_det,N_states) ]
-&BEGIN_PROVIDER [ integer, psi_svd_matrix_rows, (N_det) ]
-&BEGIN_PROVIDER [ integer, psi_svd_matrix_columns, (N_det) ]
+BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states) ]
+&BEGIN_PROVIDER [ integer, psi_bilinear_matrix_rows, (N_det) ]
+&BEGIN_PROVIDER [ integer, psi_bilinear_matrix_columns, (N_det) ]
   use bitmasks
   implicit none
   BEGIN_DOC
-! Matrix of wf coefficients. Outer product of alpha and beta determinants
+! Sparse coefficient matrix if the wave function is expressed in a bilinear form :
+!  D_a^t C D_b
   END_DOC
   integer                        :: i,j,k, l
   integer(bit_kind)               :: tmp_det(N_int,2)
@@ -382,41 +383,43 @@ BEGIN_PROVIDER  [ double precision, psi_svd_matrix_values, (N_det,N_states) ]
     j = get_index_in_psi_det_beta_unique (psi_det(1,2,k),N_int)
 
     do l=1,N_states
-      psi_svd_matrix_values(k,l) = psi_coef(k,l)
+      psi_bilinear_matrix_values(k,l) = psi_coef(k,l)
     enddo
-    psi_svd_matrix_rows(k) = i
-    psi_svd_matrix_columns(k) = j
+    psi_bilinear_matrix_rows(k) = i
+    psi_bilinear_matrix_columns(k) = j
     to_sort(k) = N_det_alpha_unique * (j-1) + i
     iorder(k) = k
   enddo
   call isort(to_sort, iorder, N_det)
-  call iset_order(psi_svd_matrix_rows,iorder,N_det)
-  call iset_order(psi_svd_matrix_columns,iorder,N_det)
-  call dset_order(psi_svd_matrix_values,iorder,N_det)
+  call iset_order(psi_bilinear_matrix_rows,iorder,N_det)
+  call iset_order(psi_bilinear_matrix_columns,iorder,N_det)
+  call dset_order(psi_bilinear_matrix_values,iorder,N_det)
   deallocate(iorder,to_sort)
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, psi_svd_matrix, (N_det_alpha_unique,N_det_beta_unique,N_states) ]
+BEGIN_PROVIDER [ double precision, psi_bilinear_matrix, (N_det_alpha_unique,N_det_beta_unique,N_states) ]
   implicit none
   BEGIN_DOC
-! Matrix of wf coefficients. Outer product of alpha and beta determinants
+! Coefficient matrix if the wave function is expressed in a bilinear form :
+!  D_a^t C D_b
   END_DOC
   integer :: i,j,k,istate
-  psi_svd_matrix = 0.d0
+  psi_bilinear_matrix = 0.d0
   do k=1,N_det
-    i = psi_svd_matrix_rows(k)
-    j = psi_svd_matrix_columns(k)
+    i = psi_bilinear_matrix_rows(k)
+    j = psi_bilinear_matrix_columns(k)
     do istate=1,N_states
-      psi_svd_matrix(i,j,istate) = psi_svd_matrix_values(k,istate)
+      psi_bilinear_matrix(i,j,istate) = psi_bilinear_matrix_values(k,istate)
     enddo
   enddo
 END_PROVIDER
 
-subroutine create_wf_of_psi_svd_matrix
+subroutine create_wf_of_psi_bilinear_matrix
   use bitmasks
   implicit none
   BEGIN_DOC
-! Matrix of wf coefficients. Outer product of alpha and beta determinants
+! Generate a wave function containing all possible products 
+! of alpha and beta determinants
   END_DOC
   integer                        :: i,j,k
   integer(bit_kind)              :: tmp_det(N_int,2)
@@ -437,8 +440,8 @@ subroutine create_wf_of_psi_svd_matrix
       idx = get_index_in_psi_det_sorted_bit(tmp_det,N_int)
       if (idx > 0) then
         do k=1,N_states
-          psi_coef_sorted_bit(idx,k) = psi_svd_matrix(i,j,k) 
-          norm(k) += psi_svd_matrix(i,j,k)
+          psi_coef_sorted_bit(idx,k) = psi_bilinear_matrix(i,j,k) 
+          norm(k) += psi_bilinear_matrix(i,j,k)
         enddo
       endif
     enddo
@@ -505,52 +508,5 @@ subroutine generate_all_alpha_beta_det_products
   call copy_H_apply_buffer_to_wf
   SOFT_TOUCH psi_det psi_coef N_det
 end
-
- BEGIN_PROVIDER [ double precision, psi_svd_alpha, (N_det_alpha_unique,N_det_alpha_unique,N_states) ]
-&BEGIN_PROVIDER [ double precision, psi_svd_beta , (N_det_beta_unique,N_det_beta_unique,N_states) ]
-&BEGIN_PROVIDER [ double precision, psi_svd_coefs, (N_det_beta_unique,N_states) ]
-  implicit none
-  BEGIN_DOC
-  ! SVD wave function
-  END_DOC
-
-  integer                        :: lwork, info, istate
-  double precision, allocatable  :: work(:), tmp(:,:), copy(:,:)
-  allocate (work(1),tmp(N_det_beta_unique,N_det_beta_unique),    &
-      copy(size(psi_svd_matrix,1),size(psi_svd_matrix,2)))
-
-  do istate = 1,N_states
-    copy(:,:) = psi_svd_matrix(:,:,istate)
-    lwork=-1
-    call dgesvd('A','A', N_det_alpha_unique, N_det_beta_unique,      &
-        copy, size(copy,1),                                          &
-        psi_svd_coefs(1,istate), psi_svd_alpha(1,1,istate),          &
-        size(psi_svd_alpha,1),                                       &
-        tmp, size(psi_svd_beta,2),                                   &
-        work, lwork, info)
-    lwork = work(1)
-    deallocate(work)
-    allocate(work(lwork))
-    call dgesvd('A','A', N_det_alpha_unique, N_det_beta_unique,      &
-        copy, size(copy,1),                                          &
-        psi_svd_coefs(1,istate), psi_svd_alpha(1,1,istate),          &
-        size(psi_svd_alpha,1),                                       &
-        tmp, size(psi_svd_beta,2),                                   &
-        work, lwork, info)
-    deallocate(work)
-    if (info /= 0) then
-      print *,  irp_here//': error in det SVD'
-      stop 1
-    endif
-    integer                        :: i,j
-    do j=1,N_det_beta_unique
-      do i=1,N_det_beta_unique
-        psi_svd_beta(i,j,istate) = tmp(j,i)
-      enddo
-    enddo
-    deallocate(tmp,copy)
-  enddo
-
-END_PROVIDER
 
 

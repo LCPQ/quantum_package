@@ -23,7 +23,7 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. by the `update_README.py` script.
 
-`apply_excitation_operator <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils_new/mrcc_dress.irp.f#L138>`_
+`apply_excitation_operator <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils_new/mrcc_dress.irp.f#L132>`_
   Undocumented
 
 
