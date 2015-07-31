@@ -88,8 +88,14 @@ BEGIN_PROVIDER [ double precision, mo_pseudo_grid, (ao_num,-pseudo_lmax:pseudo_l
    do k=1,nucl_num
      do l=0,pseudo_lmax
        do m=-l,l
-         do j=1,mo_tot_num
-           do i=1,ao_num
+         do i=1,ao_num
+           do j=1,mo_tot_num
+             if (dabs(ao_pseudo_grid(i,m,l,k,n)) < 1.e-12) then
+              cycle
+             endif
+             if (dabs(mo_coef(i,j)) < 1.e-8) then
+              cycle
+             endif
              mo_pseudo_grid(j,m,l,k,n) = mo_pseudo_grid(j,m,l,k,n) + &
                 ao_pseudo_grid(i,m,l,k,n)  * mo_coef(i,j)
            enddo
