@@ -13,3 +13,109 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. by the `update_README.py` script.
 
+`get_index_in_psi_ref_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L182>`_
+  Returns the index of the determinant in the ``psi_ref_sorted_bit`` array
+
+
+`h_matrix_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L116>`_
+  Undocumented
+
+
+`holes_operators <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_excitations_operators.irp.f#L3>`_
+  holes_operators represents an array of integers where all the holes have
+  been done going from psi_ref to psi_non_ref
+  particles_operators represents an array of integers where all the particles have
+  been done going from psi_ref to psi_non_ref
+
+
+`idx_non_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L20>`_
+  Set of determinants which are not part of the reference, defined from the application
+  of the reference bitmask on the determinants.
+  idx_non_ref gives the indice of the determinant in psi_det.
+  idx_non_ref_rev gives the reverse.
+
+
+`idx_non_ref_rev <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L21>`_
+  Set of determinants which are not part of the reference, defined from the application
+  of the reference bitmask on the determinants.
+  idx_non_ref gives the indice of the determinant in psi_det.
+  idx_non_ref_rev gives the reverse.
+
+
+`is_in_psi_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L168>`_
+  True if the determinant ``det`` is in the wave function
+
+
+`n_det_non_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L22>`_
+  Set of determinants which are not part of the reference, defined from the application
+  of the reference bitmask on the determinants.
+  idx_non_ref gives the indice of the determinant in psi_det.
+  idx_non_ref_rev gives the reverse.
+
+
+`particles_operators <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_excitations_operators.irp.f#L4>`_
+  holes_operators represents an array of integers where all the holes have
+  been done going from psi_ref to psi_non_ref
+  particles_operators represents an array of integers where all the particles have
+  been done going from psi_ref to psi_non_ref
+
+
+`psi_coef_ref_diagonalized <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L128>`_
+  Undocumented
+
+
+`psi_non_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L18>`_
+  Set of determinants which are not part of the reference, defined from the application
+  of the reference bitmask on the determinants.
+  idx_non_ref gives the indice of the determinant in psi_det.
+  idx_non_ref_rev gives the reverse.
+
+
+`psi_non_ref_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L19>`_
+  Set of determinants which are not part of the reference, defined from the application
+  of the reference bitmask on the determinants.
+  idx_non_ref gives the indice of the determinant in psi_det.
+  idx_non_ref_rev gives the reverse.
+
+
+`psi_non_ref_coef_restart <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L62>`_
+  Set of determinants which are not part of the reference, defined from the application
+  of the reference bitmask on the determinants.
+  idx_non_ref gives the indice of the determinant in psi_det.
+  But this is with respect to the restart wave function.
+
+
+`psi_non_ref_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L104>`_
+  Reference determinants sorted to accelerate the search of a random determinant in the wave
+  function.
+
+
+`psi_non_ref_restart <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L61>`_
+  Set of determinants which are not part of the reference, defined from the application
+  of the reference bitmask on the determinants.
+  idx_non_ref gives the indice of the determinant in psi_det.
+  But this is with respect to the restart wave function.
+
+
+`psi_non_ref_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L103>`_
+  Reference determinants sorted to accelerate the search of a random determinant in the wave
+  function.
+
+
+`psi_ref_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L5>`_
+  Reference determinants sorted to accelerate the search of a random determinant in the wave
+  function.
+
+
+`psi_ref_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L147>`_
+  Undocumented
+
+
+`psi_ref_energy_diagonalized <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L129>`_
+  Undocumented
+
+
+`psi_ref_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_Utils/psi_ref_utils.irp.f#L4>`_
+  Reference determinants sorted to accelerate the search of a random determinant in the wave
+  function.
+

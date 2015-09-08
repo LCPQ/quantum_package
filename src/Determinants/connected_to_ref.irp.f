@@ -33,13 +33,13 @@ end
 
 
 
-logical function is_in_wavefunction(key,Nint,Ndet)
+logical function is_in_wavefunction(key,Nint)
   use bitmasks
   implicit none
   BEGIN_DOC
 ! True if the determinant ``det`` is in the wave function
   END_DOC
-  integer, intent(in)            :: Nint, Ndet
+  integer, intent(in)            :: Nint
   integer(bit_kind), intent(in)  :: key(Nint,2)
   integer, external              :: get_index_in_psi_det_sorted_bit
 
@@ -60,9 +60,9 @@ integer function get_index_in_psi_det_sorted_bit(key,Nint)
   integer                        :: i, ibegin, iend, istep, l
   integer*8                      :: det_ref, det_search
   integer*8, external            :: det_search_key
-  logical                        :: is_in_wavefunction
+  logical                        :: in_wavefunction
   
-  is_in_wavefunction = .False.
+  in_wavefunction = .False.
   get_index_in_psi_det_sorted_bit = 0
   ibegin = 1
   iend   = N_det+1
@@ -107,16 +107,16 @@ integer function get_index_in_psi_det_sorted_bit(key,Nint)
           (key(1,2) /= psi_det_sorted_bit(1,2,i)) ) then
       continue
     else
-      is_in_wavefunction = .True.
+      in_wavefunction = .True.
       !DIR$ IVDEP
       !DIR$ LOOP COUNT MIN(3)
       do l=2,Nint
         if ( (key(l,1) /= psi_det_sorted_bit(l,1,i)).or.                           &
               (key(l,2) /= psi_det_sorted_bit(l,2,i)) ) then
-          is_in_wavefunction = .False.
+          in_wavefunction = .False.
         endif
       enddo
-      if (is_in_wavefunction) then
+      if (in_wavefunction) then
         get_index_in_psi_det_sorted_bit = i
 !        exit
         return
@@ -131,7 +131,7 @@ integer function get_index_in_psi_det_sorted_bit(key,Nint)
   enddo
 
 ! DEBUG is_in_wf
-! if (is_in_wavefunction) then
+! if (in_wavefunction) then
 !   degree = 1
 !   do i=1,N_det
 !     integer                        :: degree

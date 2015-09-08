@@ -15,7 +15,6 @@ Makefile.depend
 Nuclei
 Pseudo
 Utils
-det_svd
 ezfio_interface.irp.f
 guess_doublet
 guess_singlet

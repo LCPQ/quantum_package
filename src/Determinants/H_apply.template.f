@@ -18,6 +18,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   integer(bit_kind), allocatable :: hole_save(:,:)
   integer(bit_kind), allocatable :: key(:,:),hole(:,:), particle(:,:)
   integer(bit_kind), allocatable :: hole_tmp(:,:), particle_tmp(:,:)
+  integer(bit_kind), allocatable :: key_union_hole_part(:)
   integer                        :: ii,i,jj,j,k,ispin,l
   integer, allocatable           :: occ_particle(:,:), occ_hole(:,:)
   integer, allocatable           :: occ_particle_tmp(:,:), occ_hole_tmp(:,:)
@@ -31,6 +32,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   integer, allocatable           :: ib_jb_pairs(:,:)
   double precision               :: diag_H_mat_elem
   integer                        :: iproc
+  integer                        :: jtest_vvvv
   integer(omp_lock_kind), save   :: lck, ifirst=0
   if (ifirst == 0) then
 !$    call omp_init_lock(lck)
@@ -38,6 +40,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   endif
   
   logical :: check_double_excitation 
+  logical :: b_cycle
   check_double_excitation = .True.
   iproc = iproc_in
 
@@ -50,7 +53,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
       key(N_int,2),hole(N_int,2), particle(N_int,2), hole_tmp(N_int,2),&
       particle_tmp(N_int,2), occ_particle(N_int*bit_kind_size,2),    &
       occ_hole(N_int*bit_kind_size,2), occ_particle_tmp(N_int*bit_kind_size,2),&
-      occ_hole_tmp(N_int*bit_kind_size,2))
+      occ_hole_tmp(N_int*bit_kind_size,2),key_union_hole_part(N_int))
   $init_thread
   
   
@@ -151,6 +154,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
             ASSERT (j_b > 0)
             ASSERT (j_b <= mo_tot_num)
             if (array_pairs(i_b,j_b)) then
+              $filter_vvvv_excitation
               i+= 1
               ib_jb_pairs(1,i) = i_b
               ib_jb_pairs(2,i) = j_b
@@ -200,6 +204,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
           ASSERT (j_b <= mo_tot_num)
           if (j_b <= j_a) cycle
           if (array_pairs(i_b,j_b)) then
+            $filter_vvvv_excitation
             i+= 1
             ib_jb_pairs(1,i) = i_b
             ib_jb_pairs(2,i) = j_b
@@ -245,7 +250,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
       key,hole, particle, hole_tmp,&
       particle_tmp, occ_particle,    &
       occ_hole, occ_particle_tmp,&
-      occ_hole_tmp,array_pairs)
+      occ_hole_tmp,array_pairs,key_union_hole_part)
   $omp_end_parallel
   $finalization
 end
@@ -278,6 +283,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc_in $pa
   integer                        :: N_elec_in_key_hole_1(2),N_elec_in_key_part_1(2)
   integer                        :: N_elec_in_key_hole_2(2),N_elec_in_key_part_2(2)
   logical                        :: is_a_two_holes_two_particles
+  integer(bit_kind), allocatable :: key_union_hole_part(:)
   
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   logical, allocatable           :: array_pairs(:,:)
@@ -305,7 +311,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc_in $pa
       key(N_int,2),hole(N_int,2), particle(N_int,2), hole_tmp(N_int,2),&
       particle_tmp(N_int,2), occ_particle(N_int*bit_kind_size,2),    &
       occ_hole(N_int*bit_kind_size,2), occ_particle_tmp(N_int*bit_kind_size,2),&
-      occ_hole_tmp(N_int*bit_kind_size,2))
+      occ_hole_tmp(N_int*bit_kind_size,2),key_union_hole_part(N_int))
   $init_thread
   !!!! First couple hole particle
   do j = 1, N_int
@@ -376,7 +382,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc_in $pa
       key,hole, particle, hole_tmp,&
       particle_tmp, occ_particle,    &
       occ_hole, occ_particle_tmp,&
-      occ_hole_tmp)
+      occ_hole_tmp,key_union_hole_part)
   $omp_end_parallel
   $finalization
   

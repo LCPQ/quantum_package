@@ -54,11 +54,7 @@ Documentation
 .. by the `update_README.py` script.
 
 
-`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L962>`_
   Needed for diag_H_mat_elem
-
-
-`abs_psi_coef_max <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L451>`_
   Max and min values of the coefficients
 
 
@@ -66,7 +62,7 @@ Documentation
   Max and min values of the coefficients
 
 
-`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1007>`_
+`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1153>`_
   Needed for diag_H_mat_elem
 
 
@@ -152,8 +148,9 @@ Documentation
   After calling this subroutine, N_det, psi_det and psi_coef need to be touched
 
 
-`create_wf_of_psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L416>`_
-  Matrix of wf coefficients. Outer product of alpha and beta determinants
+`create_wf_of_psi_bilinear_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L417>`_
+  Generate a wave function containing all possible products
+  of alpha and beta determinants
 
 
 `davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L382>`_
@@ -228,7 +225,7 @@ Documentation
   det_coef
 
 
-`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1138>`_
+`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1283>`_
   Build connection proxy between determinants
 
 
@@ -244,10 +241,6 @@ Documentation
   Return an integer*8 corresponding to a determinant index for searching
 
 
-`det_svd <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/det_svd.irp.f#L1>`_
-  Computes the SVD of the Alpha x Beta determinant coefficient matrix
-
-
 `det_to_occ_pattern <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/occ_pattern.irp.f#L2>`_
   Transform a determinant to an occupation pattern
 
@@ -256,7 +249,7 @@ Documentation
   Diagonalization algorithm (Davidson or Lapack)
 
 
-`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L900>`_
+`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1046>`_
   Computes <i|H|i>
 
 
@@ -358,7 +351,7 @@ Documentation
   Determinants are taken from the psi_det_sorted_ab array
 
 
-`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L471>`_
+`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L472>`_
   Create a wave function from all possible alpha x beta determinants
 
 
@@ -374,7 +367,7 @@ Documentation
   Returns the excitation degree between two determinants
 
 
-`get_excitation_degree_vector <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L816>`_
+`get_excitation_degree_vector <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L951>`_
   Applies get_excitation_degree to an array of determinants
 
 
@@ -394,7 +387,7 @@ Documentation
   Returns the excitation operator between two singly excited determinants and the phase
 
 
-`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1055>`_
+`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1201>`_
   Returns a list of occupation numbers from a bitstring
 
 
@@ -428,7 +421,7 @@ Documentation
   Undocumented
 
 
-`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1071>`_
+`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1217>`_
   Computes v_0 = H|u_0>
   .br
   n : number of determinants
@@ -440,15 +433,19 @@ Documentation
   Returns <i|H|j> where i and j are determinants
 
 
-`i_h_j_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L492>`_
+`i_h_j_phase_out <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L491>`_
   Returns <i|H|j> where i and j are determinants
 
 
-`i_h_psi <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L631>`_
+`i_h_j_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L627>`_
+  Returns <i|H|j> where i and j are determinants
+
+
+`i_h_psi <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L766>`_
   <key|H|psi> for the various Nstates
 
 
-`i_h_psi_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L713>`_
+`i_h_psi_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L848>`_
   <key|H|psi> for the various Nstate
   .br
   returns in addition
@@ -462,7 +459,7 @@ Documentation
   to repeat the excitations
 
 
-`i_h_psi_sc2_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L760>`_
+`i_h_psi_sc2_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L895>`_
   <key|H|psi> for the various Nstate
   .br
   returns in addition
@@ -476,7 +473,7 @@ Documentation
   to repeat the excitations
 
 
-`i_h_psi_sec_ord <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L666>`_
+`i_h_psi_sec_ord <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L801>`_
   <key|H|psi> for the various Nstates
 
 
@@ -523,7 +520,7 @@ Documentation
   Energy of the reference bitmask used in Slater rules
 
 
-`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1130>`_
+`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1275>`_
   Number of integers to represent the connections between determinants
 
 
@@ -638,6 +635,26 @@ Documentation
 
 `psi_average_norm_contrib_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L303>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
+
+
+`psi_bilinear_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L400>`_
+  Coefficient matrix if the wave function is expressed in a bilinear form :
+  D_a^t C D_b
+
+
+`psi_bilinear_matrix_columns <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L362>`_
+  Sparse coefficient matrix if the wave function is expressed in a bilinear form :
+  D_a^t C D_b
+
+
+`psi_bilinear_matrix_rows <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L361>`_
+  Sparse coefficient matrix if the wave function is expressed in a bilinear form :
+  D_a^t C D_b
+
+
+`psi_bilinear_matrix_values <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L360>`_
+  Sparse coefficient matrix if the wave function is expressed in a bilinear form :
+  D_a^t C D_b
 
 
 `psi_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L3>`_
@@ -781,34 +798,6 @@ Documentation
   psi_occ_pattern(:,2,j) = jth occ_pattern of the wave function : represent all the double occupation
 
 
-`psi_svd_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L511>`_
-  SVD wave function
-
-
-`psi_svd_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L512>`_
-  SVD wave function
-
-
-`psi_svd_coefs <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L513>`_
-  SVD wave function
-
-
-`psi_svd_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L400>`_
-  Matrix of wf coefficients. Outer product of alpha and beta determinants
-
-
-`psi_svd_matrix_columns <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L362>`_
-  Matrix of wf coefficients. Outer product of alpha and beta determinants
-
-
-`psi_svd_matrix_rows <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L361>`_
-  Matrix of wf coefficients. Outer product of alpha and beta determinants
-
-
-`psi_svd_matrix_values <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L360>`_
-  Matrix of wf coefficients. Outer product of alpha and beta determinants
-
-
 `put_gess <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/guess_triplet.irp.f#L1>`_
   Undocumented
 
@@ -874,8 +863,16 @@ Documentation
   Save the wave function into the EZFIO file
 
 
+`save_wavefunction_specified <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L752>`_
+  Save the wave function into the EZFIO file
+
+
 `save_wavefunction_unsorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L655>`_
   Save the wave function into the EZFIO file
+
+
+`set_bite_to_integer <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/create_excitations.irp.f#L38>`_
+  Undocumented
 
 
 `set_natural_mos <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L180>`_
