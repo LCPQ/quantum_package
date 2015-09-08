@@ -16,7 +16,7 @@ Needed Modules
 * `Selectors_full <http://github.com/LCPQ/quantum_package/tree/master/src/Selectors_full>`_
 * `Generators_full <http://github.com/LCPQ/quantum_package/tree/master/src/Generators_full>`_
 * `Psiref_CAS <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_CAS>`_
-* `MRCC_Utils_new <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils_new>`_
+* `MRCC_Utils <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils>`_
 
 Documentation
 =============

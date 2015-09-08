@@ -31,6 +31,14 @@ Documentation
   CAS wave function, defined from the application of the CAS bitmask on the
   determinants. idx_cas gives the indice of the CAS determinant in psi_det.
 
+
+`psi_ref_coef_restart <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_CAS/psi_ref.irp.f#L30>`_
+  Projection of the CAS wave function on the restart wave function.
+
+
+`psi_ref_restart <http://github.com/LCPQ/quantum_package/tree/master/src/Psiref_CAS/psi_ref.irp.f#L29>`_
+  Projection of the CAS wave function on the restart wave function.
+
 Needed Modules
 ==============
 

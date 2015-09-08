@@ -14,7 +14,7 @@ Integrals_Bielec
 Integrals_Monoelec
 MOGuess
 MO_Basis
-MRCC_Utils_new
+MRCC_Utils
 Makefile
 Makefile.depend
 Nuclei

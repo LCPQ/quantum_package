@@ -21,19 +21,19 @@ Documentation
 .. Do not edit this section. It was auto-generated from the
 .. by the `update_README.py` script.
 
-`ci_eigenvectors_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L76>`_
+`ci_eigenvectors_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L166>`_
   Eigenvectors/values of the CI matrix
 
 
-`ci_eigenvectors_s2_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L77>`_
+`ci_eigenvectors_s2_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L167>`_
   Eigenvectors/values of the CI matrix
 
 
-`ci_electronic_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L75>`_
+`ci_electronic_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L165>`_
   Eigenvectors/values of the CI matrix
 
 
-`ci_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L142>`_
+`ci_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L232>`_
   N_states lowest eigenvalues of the dressed CI matrix
 
 
@@ -77,15 +77,15 @@ Documentation
   Initial guess vectors are not necessarily orthonormal
 
 
-`delta_ii <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L39>`_
+`delta_ii <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L104>`_
   Dressing matrix in N_det basis
 
 
-`delta_ij <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L38>`_
+`delta_ij <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L103>`_
   Dressing matrix in N_det basis
 
 
-`diagonalize_ci_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L157>`_
+`diagonalize_ci_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L247>`_
   Replace the coefficients of the CI states by the coefficients of the
   eigenstates of the CI matrix
 
@@ -111,7 +111,7 @@ Documentation
   Assume N_int is already provided.
 
 
-`h_matrix_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L50>`_
+`h_matrix_dressed <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L140>`_
   Dressed H with Delta_ij
 
 
@@ -123,11 +123,15 @@ Documentation
   H_jj : array of <j|H|j>
 
 
-`lambda_mrcc <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L1>`_
+`lambda_mrcc <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L5>`_
   cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
 
 
-`lambda_pert <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L2>`_
+`lambda_mrcc_tmp <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L81>`_
+  Undocumented
+
+
+`lambda_pert <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L6>`_
   cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
 
 
@@ -143,6 +147,14 @@ Documentation
   Undocumented
 
 
+`oscillations <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L86>`_
+  Undocumented
+
+
+`pert_determinants <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_utils.irp.f#L1>`_
+  Undocumented
+
+
 `psi_ref_lock <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_dress.irp.f#L3>`_
   Locks on ref determinants to fill delta_ij
 
@@ -151,6 +163,6 @@ Documentation
   Undocumented
 
 
-`set_generators_bitmasks_as_holes_and_particles <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_general.irp.f#L39>`_
+`set_generators_bitmasks_as_holes_and_particles <http://github.com/LCPQ/quantum_package/tree/master/src/MRCC_Utils/mrcc_general.irp.f#L69>`_
   Undocumented
 
