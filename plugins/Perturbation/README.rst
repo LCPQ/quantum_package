@@ -67,115 +67,137 @@ Assumptions
     pt2_....
 
 
-Documentation
-=============
+Needed Modules
+==============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
 
-`do_pt2_end <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/ezfio_interface.irp.f#L6>`_
+.. image:: tree_dependency.png
+
+* `Properties <http://github.com/LCPQ/quantum_package/tree/master/src/Properties>`_
+* `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock>`_
+
+Needed Modules
+==============
+.. Do not edit this section It was auto-generated
+.. by the `update_README.py` script.
+
+
+.. image:: tree_dependency.png
+
+* `Properties <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties>`_
+* `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock>`_
+
+Documentation
+=============
+.. Do not edit this section It was auto-generated
+.. by the `update_README.py` script.
+
+
+`do_pt2_end <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/ezfio_interface.irp.f#L6>`_
   If true, compute the PT2 at the end of the selection
 
 
-`fill_h_apply_buffer_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L1>`_
+`fill_h_apply_buffer_selection <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/selection.irp.f#L1>`_
   Fill the H_apply buffer with determiants for the selection
 
 
-`max_exc_pert <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/exc_max.irp.f#L1>`_
+`max_exc_pert <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/exc_max.irp.f#L1>`_
   Undocumented
 
 
-`perturb_buffer_by_mono_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L791>`_
+`perturb_buffer_by_mono_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L161>`_
   Applly pertubration ``delta_rho_one_point`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_dipole_moment_z <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L686>`_
+`perturb_buffer_by_mono_dipole_moment_z <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L896>`_
   Applly pertubration ``dipole_moment_z`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L476>`_
+`perturb_buffer_by_mono_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L686>`_
   Applly pertubration ``epstein_nesbet`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L581>`_
+`perturb_buffer_by_mono_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L791>`_
   Applly pertubration ``epstein_nesbet_2x2`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L371>`_
+`perturb_buffer_by_mono_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L581>`_
   Applly pertubration ``epstein_nesbet_sc2`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_epstein_nesbet_sc2_no_projected <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L266>`_
+`perturb_buffer_by_mono_epstein_nesbet_sc2_no_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L476>`_
   Applly pertubration ``epstein_nesbet_sc2_no_projected`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L161>`_
+`perturb_buffer_by_mono_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L371>`_
   Applly pertubration ``epstein_nesbet_sc2_projected`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_h_core <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L56>`_
+`perturb_buffer_by_mono_h_core <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L266>`_
   Applly pertubration ``h_core`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L896>`_
+`perturb_buffer_by_mono_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L56>`_
   Applly pertubration ``moller_plesset`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L740>`_
+`perturb_buffer_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L110>`_
   Applly pertubration ``delta_rho_one_point`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_dipole_moment_z <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L635>`_
+`perturb_buffer_dipole_moment_z <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L845>`_
   Applly pertubration ``dipole_moment_z`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L425>`_
+`perturb_buffer_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L635>`_
   Applly pertubration ``epstein_nesbet`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L530>`_
+`perturb_buffer_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L740>`_
   Applly pertubration ``epstein_nesbet_2x2`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L320>`_
+`perturb_buffer_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L530>`_
   Applly pertubration ``epstein_nesbet_sc2`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_epstein_nesbet_sc2_no_projected <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L215>`_
+`perturb_buffer_epstein_nesbet_sc2_no_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L425>`_
   Applly pertubration ``epstein_nesbet_sc2_no_projected`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L110>`_
+`perturb_buffer_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L320>`_
   Applly pertubration ``epstein_nesbet_sc2_projected`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_h_core <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L5>`_
+`perturb_buffer_h_core <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L215>`_
   Applly pertubration ``h_core`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/perturbation.irp.f_shell_13#L845>`_
+`perturb_buffer_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L5>`_
   Applly pertubration ``moller_plesset`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`pt2_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/delta_rho_perturbation.irp.f#L1>`_
+`pt2_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/delta_rho_perturbation.irp.f#L1>`_
   compute the perturbatibe contribution to the Integrated Spin density at z = z_one point of one determinant
   .br
   for the various n_st states, at various level of theory.
@@ -196,7 +218,7 @@ Documentation
   .br
 
 
-`pt2_dipole_moment_z <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/dipole_moment.irp.f#L1>`_
+`pt2_dipole_moment_z <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/dipole_moment.irp.f#L1>`_
   compute the perturbatibe contribution to the dipole moment of one determinant
   .br
   for the various n_st states, at various level of theory.
@@ -217,7 +239,7 @@ Documentation
   .br
 
 
-`pt2_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L1>`_
+`pt2_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/epstein_nesbet.irp.f#L1>`_
   compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states.
@@ -228,7 +250,7 @@ Documentation
   .br
 
 
-`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/epstein_nesbet.irp.f#L45>`_
+`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/epstein_nesbet.irp.f#L45>`_
   compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
   .br
   for the various N_st states.
@@ -239,7 +261,7 @@ Documentation
   .br
 
 
-`pt2_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/pert_sc2.irp.f#L186>`_
+`pt2_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pert_sc2.irp.f#L186>`_
   compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states, but with the CISD_SC2 energies and coefficients
@@ -250,7 +272,7 @@ Documentation
   .br
 
 
-`pt2_epstein_nesbet_sc2_no_projected <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/pert_sc2.irp.f#L87>`_
+`pt2_epstein_nesbet_sc2_no_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pert_sc2.irp.f#L87>`_
   compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states,
@@ -274,7 +296,7 @@ Documentation
   H_pert_diag = <HF|H|det_pert> c_pert
 
 
-`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/pert_sc2.irp.f#L2>`_
+`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pert_sc2.irp.f#L2>`_
   compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states,
@@ -298,7 +320,7 @@ Documentation
   H_pert_diag = <HF|H|det_pert> c_pert
 
 
-`pt2_h_core <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/pert_single.irp.f#L1>`_
+`pt2_h_core <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pert_single.irp.f#L1>`_
   compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states.
@@ -309,12 +331,12 @@ Documentation
   .br
 
 
-`pt2_max <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/ezfio_interface.irp.f#L28>`_
+`pt2_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/ezfio_interface.irp.f#L28>`_
   The selection process stops when the largest PT2 (for all the state) is lower
   than pt2_max in absolute value
 
 
-`pt2_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/Moller_plesset.irp.f#L1>`_
+`pt2_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/Moller_plesset.irp.f#L1>`_
   compute the standard Moller-Plesset perturbative first order coefficient and second order energetic contribution
   .br
   for the various n_st states.
@@ -325,39 +347,28 @@ Documentation
   .br
 
 
-`remove_small_contributions <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L87>`_
+`remove_small_contributions <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/selection.irp.f#L87>`_
   Remove determinants with small contributions. N_states is assumed to be
   provided.
 
 
-`repeat_all_e_corr <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/pert_sc2.irp.f#L156>`_
+`repeat_all_e_corr <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pert_sc2.irp.f#L156>`_
   Undocumented
 
 
-`selection_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L74>`_
+`selection_criterion <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/selection.irp.f#L74>`_
   Threshold to select determinants. Set by selection routines.
 
 
-`selection_criterion_factor <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L76>`_
+`selection_criterion_factor <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/selection.irp.f#L76>`_
   Threshold to select determinants. Set by selection routines.
 
 
-`selection_criterion_min <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/selection.irp.f#L75>`_
+`selection_criterion_min <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/selection.irp.f#L75>`_
   Threshold to select determinants. Set by selection routines.
 
 
-`var_pt2_ratio <http://github.com/LCPQ/quantum_package/tree/master/src/Perturbation/ezfio_interface.irp.f#L51>`_
+`var_pt2_ratio <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/ezfio_interface.irp.f#L51>`_
   The selection process stops when the energy ratio variational/(variational+PT2)
   is equal to var_pt2_ratio
-
-Needed Modules
-==============
-
-.. Do not edit this section. It was auto-generated from the
-.. by the `update_README.py` script.
-
-.. image:: tree_dependency.png
-
-* `Properties <http://github.com/LCPQ/quantum_package/tree/master/src/Properties>`_
-* `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/src/Hartree_Fock>`_
 

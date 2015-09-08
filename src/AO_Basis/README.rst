@@ -33,8 +33,18 @@ Assumptions
 Needed Modules
 ==============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
+
+.. image:: tree_dependency.png
+
+* `Nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei>`_
+
+Needed Modules
+==============
+.. Do not edit this section It was auto-generated
+.. by the `update_README.py` script.
+
 
 .. image:: tree_dependency.png
 
@@ -42,9 +52,9 @@ Needed Modules
 
 Documentation
 =============
-
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
+
 
 `ao_coef <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/ezfio_interface.irp.f#L24>`_
   AO Coefficients, read from input. Those should not be used directly, as the MOs are expressed on the basis of **normalized** AOs.

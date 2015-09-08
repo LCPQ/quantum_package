@@ -1,8 +1,19 @@
 Needed Modules
 ==============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
+
+.. image:: tree_dependency.png
+
+* `MO_Basis <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis>`_
+* `Pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo>`_
+
+Needed Modules
+==============
+.. Do not edit this section It was auto-generated
+.. by the `update_README.py` script.
+
 
 .. image:: tree_dependency.png
 
@@ -11,9 +22,9 @@ Needed Modules
 
 Documentation
 =============
-
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
+
 
 `ao_deriv2_x <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/kin_ao_ints.irp.f#L1>`_
   second derivatives matrix elements in the ao basis

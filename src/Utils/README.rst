@@ -6,9 +6,9 @@ Contains general purpose utilities.
 
 Documentation
 =============
-
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
+
 
 `a_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L252>`_
   Undocumented
@@ -633,5 +633,4 @@ Documentation
 
 `write_git_log <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L243>`_
   Write the last git commit in file iunit.
-
 

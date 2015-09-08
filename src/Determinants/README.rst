@@ -29,8 +29,19 @@ Assumptions
 Needed Modules
 ==============
 
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
+
+.. image:: tree_dependency.png
+
+* `Integrals_Monoelec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec>`_
+* `Integrals_Bielec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec>`_
+
+Needed Modules
+==============
+.. Do not edit this section It was auto-generated
+.. by the `update_README.py` script.
+
 
 .. image:: tree_dependency.png
 
@@ -39,15 +50,11 @@ Needed Modules
 
 Documentation
 =============
-
-.. Do not edit this section. It was auto-generated from the
+.. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
 
-`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1108>`_
+
   Needed for diag_H_mat_elem
-
-
-`abs_psi_coef_max <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L451>`_
   Max and min values of the coefficients
 
 
