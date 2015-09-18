@@ -960,7 +960,7 @@ subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
   integer, intent(out)           :: degree(sze)
   integer, intent(out)           :: idx(0:sze)
   
-  integer                        :: i,l,d
+  integer                        :: i,l,d,m
   
   ASSERT (Nint > 0)
   ASSERT (sze > 0)
