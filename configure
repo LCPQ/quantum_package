@@ -14,8 +14,8 @@ Options:
                   but the compilation will be lighting fast
 
    --development  It will create a build.ninja for each directory
-                  who contains a binary, than you can compile then
-                  individualy if you want
+                  which contains a binary, than you can compile them
+                  individually if you want
 
 Examples:
 
@@ -163,7 +163,7 @@ def find_path(bin_, l_installed, var_for_qp_root=False):
 # | |_| | | (_  |_ | (_) | |
 #
 def check_output(*popenargs, **kwargs):
-    """Run command with arguments and return its output as a byte string.
+    """Run command with arguments and return its output as a string.
 
     Backported from Python 2.7 as it's implemented as pure python on stdlib.
 
@@ -189,7 +189,7 @@ def check_output(*popenargs, **kwargs):
 def checking(d_dependency):
     """
     For each key in d_dependency check if it
-    it avalabie or not
+    is avalabie or not
     """
 
     def check_python():
@@ -205,8 +205,8 @@ def checking(d_dependency):
 
     def check_availability(binary):
         """
-        If avalable return the path who can find the
-        binary else return 0
+        If avalable return the path where the binary 
+        can be found, else return 0
         """
 
         if binary == "python":
@@ -254,7 +254,7 @@ def checking(d_dependency):
 
     """
 
-    print "Checking what you need to install and what is it avalaible"
+    print "Checking what you need to install and what is avalaible"
     print ""
     l_installed = dict()
     l_needed = []
@@ -327,7 +327,7 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
     d_print = {
         "install_ninja": "Install ninja...",
         "build": "Creating build.ninja...",
-        "install": "Installing the dependency through ninja..."
+        "install": "Installing the dependencies with Ninja..."
     }
 
     length = max(map(len, d_print.values()))
@@ -486,7 +486,7 @@ def create_ninja_and_rc(l_installed):
             subprocess.check_call(" ".join(l), shell=True,stderr=dnull)
     except:
         print "[ FAIL ]"
-        print "Check the valididy of the config file provided ({0})".format(sys.argv[1])
+        print "Check the validity of the config file provided ({0})".format(sys.argv[1])
         print "Exit..."
         sys.exit(1)
 
@@ -498,6 +498,11 @@ def recommendation():
     path = join(QP_ROOT, "quantum_package.rc")
     print "Now :"
     print "   source {0}".format(path)
+    print ""
+    print "Then, install the modules you want to install using :"
+    print "    qp_install_module.py "
+    print ""
+    print "Finally :"
     print "   ninja"
     print "   make -C ocaml"
     print ""
