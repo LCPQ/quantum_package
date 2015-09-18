@@ -1023,9 +1023,9 @@ subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
     do i=1,sze
       d = 0
       !DEC$ LOOP COUNT MIN(4)
-      do l=1,Nint
-        d = d + popcnt(xor( key1(l,1,i), key2(l,1)))                 &
-              + popcnt(xor( key1(l,2,i), key2(l,2)))
+      do m=1,Nint
+        d = d + popcnt(xor( key1(m,1,i), key2(m,1)))                 &
+              + popcnt(xor( key1(m,2,i), key2(m,2)))
       enddo
       if (d > 4) then
         cycle

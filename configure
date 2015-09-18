@@ -7,15 +7,16 @@ Usage: configure <config_file> (--production | --development)
 
 Options:
 
-    config_file   A config file with all the information for the compilation
+    config_file   A config file with all the information for compiling.
                   Example config_files are given in config/
 
-   --production   You can only compile all the modules with this flag,
-                  but the compilation will be lighting fast
+   --production   You can only compile **all** the modules with this flag,
+                  but it will compile lighting fast.
 
-   --development  It will create a build.ninja for each directory
-                  which contains a binary, than you can compile them
-                  individually if you want
+   --development  this will create a build.ninja for each directory which 
+                  contains a binary. In a second step you may compile them
+                  individually if you like.
+
 
 Examples:
 
