@@ -28,7 +28,7 @@ double precision function ao_bielec_integral(i,j,k,l)
   num_l = ao_nucl(l)
   ao_bielec_integral = 0.d0
   
-!  if (num_i /= num_j .or. num_k /= num_l .or. num_j /= num_k)then
+  if (num_i /= num_j .or. num_k /= num_l .or. num_j /= num_k)then
     do p = 1, 3
       I_power(p) = ao_power(i,p)
       J_power(p) = ao_power(j,p)
@@ -71,36 +71,36 @@ double precision function ao_bielec_integral(i,j,k,l)
       enddo   ! q
     enddo    ! p
     
-!  else
-!    
-!    do p = 1, 3
-!      I_power(p) = ao_power(i,p)
-!      J_power(p) = ao_power(j,p)
-!      K_power(p) = ao_power(k,p)
-!      L_power(p) = ao_power(l,p)
-!    enddo
-!    double  precision              :: ERI
-!
-!    do p = 1, ao_prim_num(i)
-!      coef1 = ao_coef_normalized_ordered_transp(p,i)
-!      do q = 1, ao_prim_num(j)
-!        coef2 = coef1*ao_coef_normalized_ordered_transp(q,j)
-!        do r = 1, ao_prim_num(k)
-!          coef3 = coef2*ao_coef_normalized_ordered_transp(r,k)
-!          do s = 1, ao_prim_num(l)
-!            coef4 = coef3*ao_coef_normalized_ordered_transp(s,l)
-!            integral = ERI(                                          &
-!                ao_expo_ordered_transp(p,i),ao_expo_ordered_transp(q,j),ao_expo_ordered_transp(r,k),ao_expo_ordered_transp(s,l),&
-!                I_power(1),J_power(1),K_power(1),L_power(1),         &
-!                I_power(2),J_power(2),K_power(2),L_power(2),         &
-!                I_power(3),J_power(3),K_power(3),L_power(3))
-!            ao_bielec_integral +=  coef4 * integral
-!          enddo ! s
-!        enddo  ! r
-!      enddo   ! q
-!    enddo    ! p
-!    
-!  endif
+  else
+    
+    do p = 1, 3
+      I_power(p) = ao_power(i,p)
+      J_power(p) = ao_power(j,p)
+      K_power(p) = ao_power(k,p)
+      L_power(p) = ao_power(l,p)
+    enddo
+    double  precision              :: ERI
+
+    do p = 1, ao_prim_num(i)
+      coef1 = ao_coef_normalized_ordered_transp(p,i)
+      do q = 1, ao_prim_num(j)
+        coef2 = coef1*ao_coef_normalized_ordered_transp(q,j)
+        do r = 1, ao_prim_num(k)
+          coef3 = coef2*ao_coef_normalized_ordered_transp(r,k)
+          do s = 1, ao_prim_num(l)
+            coef4 = coef3*ao_coef_normalized_ordered_transp(s,l)
+            integral = ERI(                                          &
+                ao_expo_ordered_transp(p,i),ao_expo_ordered_transp(q,j),ao_expo_ordered_transp(r,k),ao_expo_ordered_transp(s,l),&
+                I_power(1),J_power(1),K_power(1),L_power(1),         &
+                I_power(2),J_power(2),K_power(2),L_power(2),         &
+                I_power(3),J_power(3),K_power(3),L_power(3))
+            ao_bielec_integral +=  coef4 * integral
+          enddo ! s
+        enddo  ! r
+      enddo   ! q
+    enddo    ! p
+    
+  endif
   
 end
 
@@ -643,16 +643,7 @@ double precision function general_primitive_integral(dim,            &
   !DEC$ FORCEINLINE
   call multiply_poly(d_poly ,n_pt_tmp ,Iz_pol,n_Iz,d1,n_pt_out)
   double precision               :: rint_sum
-  if (dist /= 0.d0) then
-    double precision :: rho_mu, const_mu
-    rho_mu = 1.d0/( 1.d0/rho + 4.d0 )
-    const_mu = dist * rho_mu
-    accu = accu + dsqrt(const_mu/const) * rint_sum(n_pt_out,const_mu,d1)
-!    print *,  const_mu, const, accu
-!    pause
-  else
-    accu = accu + rint_sum(n_pt_out,const,d1)
-  endif
+  accu = accu + rint_sum(n_pt_out,const,d1)
   
   general_primitive_integral = fact_p * fact_q * accu *pi_5_2*p_inv*q_inv/dsqrt(p+q)
 end
