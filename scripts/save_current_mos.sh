@@ -4,8 +4,6 @@
 # directory, where xxx is the corresponding mo_label.
 # Wed Apr  2 14:35:15 CEST 2014
 
-set -u # Crashes if a variable is uninitialized
-set -e # Exits if any statement returns a non-true return value
 
 if [[ -z ${QP_ROOT} ]]
 then
