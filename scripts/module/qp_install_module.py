@@ -22,7 +22,7 @@ try:
     from docopt import docopt
     from module_handler import ModuleHandler, get_dict_child
     from module_handler import get_l_module_descendant
-    from update_README import Doc_key, Needed_key
+    from qp_update_readme import D_KEY
     from qp_path import QP_SRC, QP_PLUGINS, QP_ROOT
 except ImportError:
     print "Please check if you have sourced the .quantum_package.rc"
@@ -56,8 +56,8 @@ def save_new_module(path, l_child):
 
     with open(os.path.join(path, "README.rst"), "w") as f:
         f.write(header + "\n")
-        f.write(Doc_key + "\n")
-        f.write(Needed_key + "\n")
+        f.write(D_KEY["needed_module"])
+        f.write(D_KEY["documentation"])
 
 
 if __name__ == '__main__':
@@ -108,8 +108,9 @@ if __name__ == '__main__':
         save_new_module(path, l_child_reduce)
 
         print "    [ OK ]"
-        print "If this was a plugins, you can install it normaly. Type:"
+        print "You can now install it normaly. Type:"
         print "` {0} install {1} `".format(os.path.basename(__file__), name)
+        print "And don't forgot to add this to the git if you want"
 
     elif arguments["download"]:
         pass

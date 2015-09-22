@@ -23,16 +23,19 @@ import shutil
 
 try:
     from docopt import docopt
-    from qp_path import QP_SRC
-    from qp_path import QP_ROOT
+    from qp_path import QP_SRC, QP_ROOT, QP_PLUGINS
 except ImportError:
     print "source .quantum_package.rc"
     raise
 
 
-# Canot cache for namedtuple are not hashable
-def is_module(path_module):
-    return os.path.isfile(os.path.join(QP_SRC, path_module,
+def is_module(path_module_rel):
+    return os.path.isfile(os.path.join(QP_SRC, path_module_rel,
+                                       "NEEDED_CHILDREN_MODULES"))
+
+
+def is_plugin(path_module_rel):
+    return os.path.isfile(os.path.join(QP_PLUGINS, path_module_rel,
                                        "NEEDED_CHILDREN_MODULES"))
 
 
@@ -180,13 +183,7 @@ class ModuleHandler():
         basename = "tree_dependency"
         path = '{0}.png'.format(basename)
 
-        # Init
-        try:
-            from graphviz import Digraph
-        except:
-            with open(path, 'a'):
-                os.utime(path, None)
-            return
+        from graphviz import Digraph
 
         all_ready_done = []
 
@@ -209,7 +206,14 @@ class ModuleHandler():
             graph.node(module, fontcolor="red")
             draw_module_edge(module, d_ref[module])
 
-        graph.render(cleanup=True)
+        # Try to render the png
+        # If not just touch it
+        try:
+            graph.render(cleanup=True)
+        except:
+            with open(path, 'a'):
+                os.utime(path, None)
+            return
 
 
 if __name__ == '__main__':
@@ -292,4 +296,3 @@ if __name__ == '__main__':
                     l_text = l_dir + l_file + l_symlink + l_exe
                     l_text.sort()
                     f.write("\n".join(l_text))
-

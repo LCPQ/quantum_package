@@ -7,15 +7,16 @@ Usage: configure <config_file> (--production | --development)
 
 Options:
 
-    config_file   A config file with all the information for the compilation
+    config_file   A config file with all the information for compiling.
                   Example config_files are given in config/
 
-   --production   You can only compile all the modules with this flag,
-                  but the compilation will be lighting fast
+   --production   You can only compile **all** the modules with this flag,
+                  but it will compile lighting fast.
 
-   --development  It will create a build.ninja for each directory
-                  who contains a binary, than you can compile then
-                  individualy if you want
+   --development  this will create a build.ninja for each directory which 
+                  contains a binary. In a second step you may compile them
+                  individually if you like.
+
 
 Examples:
 
@@ -71,7 +72,7 @@ from collections import namedtuple
 
 Info = namedtuple("Info", ["url", "description", "default_path"])
 
-path_github = {"head": "http://github.com/", "tail": "archive/master.tar.gz"}
+path_github = {"head": "http://github.com", "tail": "archive/master.tar.gz"}
 
 ocaml = Info(
     url='http://raw.github.com/ocaml/opam/master/shell/opam_installer.sh',
@@ -163,7 +164,7 @@ def find_path(bin_, l_installed, var_for_qp_root=False):
 # | |_| | | (_  |_ | (_) | |
 #
 def check_output(*popenargs, **kwargs):
-    """Run command with arguments and return its output as a byte string.
+    """Run command with arguments and return its output as a string.
 
     Backported from Python 2.7 as it's implemented as pure python on stdlib.
 
@@ -180,6 +181,8 @@ def check_output(*popenargs, **kwargs):
             cmd = popenargs[0]
         error = subprocess.CalledProcessError(retcode, cmd)
         error.output = output
+#        print output
+#        print unused_err
         raise error
     return output
 
@@ -187,7 +190,7 @@ def check_output(*popenargs, **kwargs):
 def checking(d_dependency):
     """
     For each key in d_dependency check if it
-    it avalabie or not
+    is avalabie or not
     """
 
     def check_python():
@@ -203,8 +206,8 @@ def checking(d_dependency):
 
     def check_availability(binary):
         """
-        If avalable return the path who can find the
-        binary else return 0
+        If avalable return the path where the binary 
+        can be found, else return 0
         """
 
         if binary == "python":
@@ -224,7 +227,7 @@ def checking(d_dependency):
 
             return a
 
-        except subprocess.CalledProcessError:
+        except (OSError,subprocess.CalledProcessError):
             default_path = d_info[binary].default_path
             if os.path.exists(default_path):
                 return default_path
@@ -252,7 +255,7 @@ def checking(d_dependency):
 
     """
 
-    print "Checking what you need to install and what is it avalaible"
+    print "Checking what you need to install and what is avalaible"
     print ""
     l_installed = dict()
     l_needed = []
@@ -325,7 +328,7 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
     d_print = {
         "install_ninja": "Install ninja...",
         "build": "Creating build.ninja...",
-        "install": "Installing the dependency through ninja..."
+        "install": "Installing the dependencies with Ninja..."
     }
 
     length = max(map(len, d_print.values()))
@@ -341,9 +344,9 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
         extension = splitext(url)[1]
         path_archive = "Downloads/{0}{1}".format("ninja", extension)
 
-        l_cmd = ["cd install &&",
-                 "wget {0} -O {1} -o /dev/null &&".format(url, path_archive),
-                 "./scripts/install_ninja.sh 2> /dev/null &&", "cd -"]
+        l_cmd = ["set -x ;", "cd install &&",
+                 "wget {0} -O {1} &&".format(url, path_archive),
+                 "./scripts/install_ninja.sh &&", "cd -"]
 
         try:
             check_output(" ".join(l_cmd), shell=True)
@@ -451,7 +454,7 @@ def create_ninja_and_rc(l_installed):
         'export IRPF90={0}'.format(path_irpf90),
         'export NINJA={0}'.format(path_ninja),
         'export QP_PYTHON={0}'.format(":".join(l_python)), "",
-        'export PYTHONPATH="${QP_PYTHON}":"${PYTHONPATH}"',
+        'export PYTHONPATH="${QP_EZFIO}":"${QP_PYTHON}":"${PYTHONPATH}"',
         'export PATH="${QP_PYTHON}":"${QP_ROOT}"/bin:"${QP_ROOT}"/ocaml:"${PATH}"',
         'export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${LD_LIBRARY_PATH}"',
         'export LIBRARY_PATH="${QP_ROOT}"/lib:"${LIBRARY_PATH}"', "",
@@ -484,7 +487,7 @@ def create_ninja_and_rc(l_installed):
             subprocess.check_call(" ".join(l), shell=True,stderr=dnull)
     except:
         print "[ FAIL ]"
-        print "Check the valididy of the config file provided ({0})".format(sys.argv[1])
+        print "Check the validity of the config file provided ({0})".format(sys.argv[1])
         print "Exit..."
         sys.exit(1)
 
@@ -496,6 +499,11 @@ def recommendation():
     path = join(QP_ROOT, "quantum_package.rc")
     print "Now :"
     print "   source {0}".format(path)
+    print ""
+    print "Then, install the modules you want to install using :"
+    print "    qp_install_module.py "
+    print ""
+    print "Finally :"
     print "   ninja"
     print "   make -C ocaml"
     print ""
