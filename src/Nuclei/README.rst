@@ -38,7 +38,7 @@ Documentation
   Array of the name of element, sorted by nuclear charge (integer)
 
 
-`nucl_charge <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L28>`_
+`nucl_charge <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L24>`_
   Nuclear charges
 
 
@@ -80,11 +80,11 @@ Documentation
   nucl_dist_vec : Nucleus-nucleus distances vectors
 
 
-`nucl_label <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L50>`_
+`nucl_label <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L6>`_
   Nuclear labels
 
 
-`nucl_num <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L6>`_
+`nucl_num <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L46>`_
   Number of nuclei
 
 
