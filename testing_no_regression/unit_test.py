@@ -5,11 +5,6 @@ import subprocess
 import os
 import sys
 
-qpackage_root = os.environ['QP_ROOT']
-
-EZFIO = "{0}/install/EZFIO".format(qpackage_root)
-sys.path = [EZFIO + "/Python"] + sys.path
-
 from ezfio import ezfio
 from collections import defaultdict
 from collections import namedtuple

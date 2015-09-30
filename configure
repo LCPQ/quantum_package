@@ -395,10 +395,10 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
     with open(path, "w+") as f:
         f.write("\n".join(l_string))
 
-    print " [  OK  ] ({0})".format(path)
+    print "[  OK  ] ({0})".format(path)
 
     print str_info("install"),
-    print " [ Running ]"
+    print "[ Running ]"
     try:
         path_ninja = find_path("ninja", l_installed)
         subprocess.check_call("cd install ;{0}".format(path_ninja), shell=True)
@@ -501,7 +501,8 @@ def recommendation():
     print "   ninja"
     print "   make -C ocaml"
     print ""
-    print "PS : For more info on compiling the code, read the COMPILE_RUN.md file."
+    print "You can install more plugin with the qp_install command" 
+    print "PS : For more info on compiling the code, read the README.md"
 
 
 if __name__ == '__main__':
