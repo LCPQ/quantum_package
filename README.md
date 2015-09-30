@@ -18,6 +18,8 @@ For more information, you can visit the [wiki of the project](http://github.com/
 * Python >= 2.6
 * GNU make
 * Bash
+* Blast/Lapack
+* unzip
 
 ## Standard installation
 
@@ -51,19 +53,17 @@ This file contains all the environment variables needed by the quantum package b
 
 ### Optional) Add some new module
 
-      Usage: qp_install_module.py list (--installed|--avalaible-local|--avalaible-remote)
-       qp_install_module.py install <name>...
-       qp_install_module.py create -n <name> [<children_module>...]
-       qp_install_module.py download -n <name> [<path_folder>...]
+      Usage: qp_module.py list (--installed|--avalaible-local|--avalaible-remote)
+       qp_module.py install <name>...
+       qp_module.py create -n <name> [<children_module>...]
+       qp_module.py download -n <name> [<path_folder>...]
 
  For exemple you can type :
-`qp_install_module.py install Full_CI`
+`qp_module.py install Full_CI`
 
 ### 3) Compiling the fortran
 
-    ninja 
-Just type `ninja` if you are in `$QP_ROOT` (or `ninja -f $QP_ROOT/build.ninja`
-elsewhere). The compilation will take approximately 3 min.
+Just type `ninja` if you are in `$QP_ROOT` (or `ninja -f $QP_ROOT/build.ninja` elsewhere). The compilation will take approximately 3 min.
 
 If you have set the `--developement` flag in a specific module you can go in
 the corresponding module directory and run `ninja` to build only this module.
