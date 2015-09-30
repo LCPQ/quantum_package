@@ -33,7 +33,7 @@ Required:
     doc:<str>           The plain text documentation
     type:<str>          A Fancy_type supported by the ocaml.
                             type `ei_handler.py get_supported_type` for a list
-    interface:<str>     The interface is list of string sepeared by ","  who can containt :
+    interface:<str>     The interface is list of string sepeared by ","  which can contain :
                           - ezfio (if you only whant the ezfiolib)
                           - provider (if you want the provider)
                           - ocaml (if you want the ocaml gestion)
@@ -233,7 +233,7 @@ def get_dict_config_file(module_obj):
 
         d[pvd]["module"] = module_obj
 
-        # Create the dictionary who containt the value per default
+        # Create the dictionary which contains the default value 
         d_default = {"ezfio_name": pvd,
                      "ezfio_dir": module_obj.lower,
                      "size": "1"}
@@ -309,7 +309,7 @@ def create_ezfio_provider(dict_ezfio_cfg):
                                   interface,
                                   default
                                   size}
-    create the a list who containt all the code for the provider
+    create the a list which contains all the code for the provider
     output = output_dict_info['ezfio_dir'
     return [code, ...]
     """
@@ -613,8 +613,8 @@ def save_ocaml_input(module_lower, str_ocaml_input):
 
 def get_l_module_with_auto_generate_ocaml_lower():
     """
-    Get all module who have EZFIO.cfg with ocaml data
-        (NB `search` in all the ligne and `match` only in one)
+    Get all modules which have EZFIO.cfg with Ocaml data
+        (NB `search` in all the lines and `match` only in one)
     """
 
     # ~#~#~#~#~#~#~#~ #

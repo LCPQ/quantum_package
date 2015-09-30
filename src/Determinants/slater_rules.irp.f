@@ -488,6 +488,141 @@ end
 
 
 
+subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Returns <i|H|j> where i and j are determinants
+  END_DOC
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: key_i(Nint,2), key_j(Nint,2)
+  double precision, intent(out)  :: hij, phase
+
+  integer,intent(out)            :: exc(0:2,2,2)
+  integer,intent(out)            :: degree
+  double precision               :: get_mo_bielec_integral
+  integer                        :: m,n,p,q
+  integer                        :: i,j,k
+  integer                        :: occ(Nint*bit_kind_size,2)
+  double precision               :: diag_H_mat_elem
+  integer                        :: n_occ_alpha, n_occ_beta
+  logical                        :: has_mipi(Nint*bit_kind_size)
+  double precision               :: mipi(Nint*bit_kind_size), miip(Nint*bit_kind_size)
+  PROVIDE mo_bielec_integrals_in_map mo_integrals_map
+
+  ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
+  ASSERT (sum(popcnt(key_i(:,1))) == elec_alpha_num)
+  ASSERT (sum(popcnt(key_i(:,2))) == elec_beta_num)
+  ASSERT (sum(popcnt(key_j(:,1))) == elec_alpha_num)
+  ASSERT (sum(popcnt(key_j(:,2))) == elec_beta_num)
+
+  hij = 0.d0
+  !DEC$ FORCEINLINE
+  call get_excitation_degree(key_i,key_j,degree,Nint)
+  select case (degree)
+    case (2)
+      call get_double_excitation(key_i,key_j,exc,phase,Nint)
+      if (exc(0,1,1) == 1) then
+        ! Mono alpha, mono beta
+        hij = phase*get_mo_bielec_integral(                          &
+            exc(1,1,1),                                              &
+            exc(1,1,2),                                              &
+            exc(1,2,1),                                              &
+            exc(1,2,2) ,mo_integrals_map)
+      else if (exc(0,1,1) == 2) then
+        ! Double alpha
+        hij = phase*(get_mo_bielec_integral(                         &
+            exc(1,1,1),                                              &
+            exc(2,1,1),                                              &
+            exc(1,2,1),                                              &
+            exc(2,2,1) ,mo_integrals_map) -                          &
+            get_mo_bielec_integral(                                  &
+            exc(1,1,1),                                              &
+            exc(2,1,1),                                              &
+            exc(2,2,1),                                              &
+            exc(1,2,1) ,mo_integrals_map) )
+      else if (exc(0,1,2) == 2) then
+        ! Double beta
+        hij = phase*(get_mo_bielec_integral(                         &
+            exc(1,1,2),                                              &
+            exc(2,1,2),                                              &
+            exc(1,2,2),                                              &
+            exc(2,2,2) ,mo_integrals_map) -                          &
+            get_mo_bielec_integral(                                  &
+            exc(1,1,2),                                              &
+            exc(2,1,2),                                              &
+            exc(2,2,2),                                              &
+            exc(1,2,2) ,mo_integrals_map) )
+      endif
+    case (1)
+      call get_mono_excitation(key_i,key_j,exc,phase,Nint)
+      call bitstring_to_list(key_i(1,1), occ(1,1), n_occ_alpha, Nint)
+      call bitstring_to_list(key_i(1,2), occ(1,2), n_occ_beta, Nint)
+      has_mipi = .False.
+      if (exc(0,1,1) == 1) then
+        ! Mono alpha
+        m = exc(1,1,1)
+        p = exc(1,2,1)
+        do k = 1, elec_alpha_num
+          i = occ(k,1)
+          if (.not.has_mipi(i)) then
+            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            has_mipi(i) = .True.
+          endif
+        enddo
+        do k = 1, elec_beta_num
+          i = occ(k,2)
+          if (.not.has_mipi(i)) then
+            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            has_mipi(i) = .True.
+          endif
+        enddo
+
+        do k = 1, elec_alpha_num
+          hij = hij + mipi(occ(k,1)) - miip(occ(k,1))
+        enddo
+        do k = 1, elec_beta_num
+          hij = hij + mipi(occ(k,2))
+        enddo
+
+      else
+        ! Mono beta
+        m = exc(1,1,2)
+        p = exc(1,2,2)
+        do k = 1, elec_beta_num
+          i = occ(k,2)
+          if (.not.has_mipi(i)) then
+            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            has_mipi(i) = .True.
+          endif
+        enddo
+        do k = 1, elec_alpha_num
+          i = occ(k,1)
+          if (.not.has_mipi(i)) then
+            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            has_mipi(i) = .True.
+          endif
+        enddo
+
+        do k = 1, elec_alpha_num
+          hij = hij + mipi(occ(k,1))
+        enddo
+        do k = 1, elec_beta_num
+          hij = hij + mipi(occ(k,2)) - miip(occ(k,2))
+        enddo
+
+      endif
+      hij = phase*(hij + mo_mono_elec_integral(m,p))
+
+    case (0)
+      hij = diag_H_mat_elem(key_i,Nint)
+  end select
+end
+
+
 
 subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
   use bitmasks
@@ -825,7 +960,7 @@ subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
   integer, intent(out)           :: degree(sze)
   integer, intent(out)           :: idx(0:sze)
   
-  integer                        :: i,l
+  integer                        :: i,l,d
   
   ASSERT (Nint > 0)
   ASSERT (sze > 0)
@@ -835,9 +970,12 @@ subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
     
     !DIR$ LOOP COUNT (1000)
     do i=1,sze
-      degree(l) = ishft(popcnt(xor( key1(1,1,i), key2(1,1))) +       &
-          popcnt(xor( key1(1,2,i), key2(1,2))),-1)
-      if (degree(l) < 3) then
+      d = popcnt(xor( key1(1,1,i), key2(1,1))) +       &
+          popcnt(xor( key1(1,2,i), key2(1,2)))
+      if (d > 4) then
+        cycle
+      else
+        degree(l) = ishft(d,-1)
         idx(l) = i
         l = l+1
       endif
@@ -847,13 +985,16 @@ subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
     
     !DIR$ LOOP COUNT (1000)
     do i=1,sze
-      degree(l) = ishft(popcnt(xor( key1(1,1,i), key2(1,1))) +       &
+      d = popcnt(xor( key1(1,1,i), key2(1,1))) +                     &
           popcnt(xor( key1(1,2,i), key2(1,2))) +                     &
           popcnt(xor( key1(2,1,i), key2(2,1))) +                     &
-          popcnt(xor( key1(2,2,i), key2(2,2))),-1)
-      if (degree(l) < 3) then
-        idx(l) = i
-        l = l+1
+          popcnt(xor( key1(2,2,i), key2(2,2)))
+      if (d > 4) then
+        cycle
+      else
+        degree(l) = ishft(d,-1)
+        idx(l)    = i
+        l         = l+1
       endif
     enddo
     
@@ -861,15 +1002,18 @@ subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
     
     !DIR$ LOOP COUNT (1000)
     do i=1,sze
-      degree(l) = ishft( popcnt(xor( key1(1,1,i), key2(1,1))) +      &
+      d = popcnt(xor( key1(1,1,i), key2(1,1))) +                     &
           popcnt(xor( key1(1,2,i), key2(1,2))) +                     &
           popcnt(xor( key1(2,1,i), key2(2,1))) +                     &
           popcnt(xor( key1(2,2,i), key2(2,2))) +                     &
           popcnt(xor( key1(3,1,i), key2(3,1))) +                     &
-          popcnt(xor( key1(3,2,i), key2(3,2))),-1)
-      if (degree(l) < 3) then
-        idx(l) = i
-        l = l+1
+          popcnt(xor( key1(3,2,i), key2(3,2)))
+      if (d > 4) then
+        cycle
+      else
+        degree(l) = ishft(d,-1)
+        idx(l)    = i
+        l         = l+1
       endif
     enddo
     
@@ -877,16 +1021,18 @@ subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
     
     !DIR$ LOOP COUNT (1000)
     do i=1,sze
-      degree(l) = 0
+      d = 0
       !DEC$ LOOP COUNT MIN(4)
       do l=1,Nint
-        degree(l) = degree(l)+ popcnt(xor( key1(l,1,i), key2(l,1))) +&
-            popcnt(xor( key1(l,2,i), key2(l,2)))
+        d = d + popcnt(xor( key1(l,1,i), key2(l,1)))                 &
+              + popcnt(xor( key1(l,2,i), key2(l,2)))
       enddo
-      degree(l) = ishft(degree(l),-1)
-      if (degree(l) < 3) then
-        idx(l) = i
-        l = l+1
+      if (d > 4) then
+        cycle
+      else
+        degree(l) = ishft(d,-1)
+        idx(l)    = i
+        l         = l+1
       endif
     enddo
     
@@ -1095,13 +1241,9 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,j,k,idx,jj,vt)                             &
       !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold)
-  !$OMP DO SCHEDULE(static)
-  do i=1,n
-    v_0(i) = H_jj(i) * u_0(i)
-  enddo
-  !$OMP END DO
   allocate(idx(0:n), vt(n))
   Vt = 0.d0
+  v_0 = 0.d0
   !$OMP DO SCHEDULE(guided)
   do i=1,n
     idx(0) = i
@@ -1123,6 +1265,9 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   !$OMP END CRITICAL
   deallocate(idx,vt)
   !$OMP END PARALLEL
+  do i=1,n
+   v_0(i) += H_jj(i) * u_0(i)
+  enddo
 end
 
 

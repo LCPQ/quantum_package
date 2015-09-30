@@ -1,21 +1,4 @@
-BEGIN_PROVIDER [ integer, davidson_iter_max ]
-  implicit none
-  BEGIN_DOC
-  ! Max number of Davidson iterations
-  END_DOC
-  davidson_iter_max = 100
-END_PROVIDER
-
-BEGIN_PROVIDER [ integer, davidson_sze_max ]
-  implicit none
-  BEGIN_DOC
-  ! Max number of Davidson sizes
-  END_DOC
-  ASSERT (davidson_sze_max <= davidson_iter_max)
-  davidson_sze_max = max(8,2*N_states_diag)
-END_PROVIDER
-
-subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
+subroutine davidson_diag_mrcc(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit,istate)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -36,7 +19,7 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
   !
   ! Initial guess vectors are not necessarily orthonormal
   END_DOC
-  integer, intent(in)            :: dim_in, sze, N_st, Nint, iunit
+  integer, intent(in)            :: dim_in, sze, N_st, Nint, iunit, istate
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision, intent(inout) :: u_in(dim_in,N_st)
   double precision, intent(out)  :: energies(N_st)
@@ -52,20 +35,25 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
   allocate(H_jj(sze))
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP  SHARED(sze,H_jj,dets_in,Nint)                           &
+      !$OMP  SHARED(sze,H_jj,N_det_ref,dets_in,Nint,istate,delta_ii,idx_ref)           &
       !$OMP  PRIVATE(i)
   !$OMP DO SCHEDULE(guided)
   do i=1,sze
-    H_jj(i) = diag_h_mat_elem(dets_in(1,1,i),Nint)
+    H_jj(i) = diag_h_mat_elem(dets_in(1,1,i),Nint) 
+  enddo
+  !$OMP END DO 
+  !$OMP DO SCHEDULE(guided)
+  do i=1,N_det_ref
+    H_jj(idx_ref(i)) +=  delta_ii(i,istate)
   enddo
   !$OMP END DO 
   !$OMP END PARALLEL
 
-  call davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iunit)
+  call davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iunit,istate)
   deallocate (H_jj)
 end
 
-subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iunit)
+subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iunit,istate)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -88,7 +76,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   !
   ! Initial guess vectors are not necessarily orthonormal
   END_DOC
-  integer, intent(in)            :: dim_in, sze, N_st, Nint
+  integer, intent(in)            :: dim_in, sze, N_st, Nint, istate
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision,  intent(in)  :: H_jj(sze)
   integer,  intent(in)  :: iunit
@@ -217,7 +205,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       ! ----------------------
       
       do k=1,N_st
-        call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint)
+        call H_u_0_mrcc(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint,istate)
       enddo
       
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
@@ -369,50 +357,74 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   abort_here = abort_all
 end
 
- BEGIN_PROVIDER [ character(64), davidson_criterion ]
-&BEGIN_PROVIDER [ double precision, davidson_threshold ]
- implicit none
- BEGIN_DOC
- ! Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
- END_DOC
- davidson_criterion = 'residual'
- davidson_threshold = 1.d-10
-END_PROVIDER
-
-subroutine davidson_converged(energy,residual,wall,iterations,cpu,N_st,converged)
+subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
+  use bitmasks
   implicit none
   BEGIN_DOC
-! True if the Davidson algorithm is converged
+  ! Computes v_0 = H|u_0>
+  !   
+  ! n : number of determinants
+  !     
+  ! H_jj : array of <j|H|j>
   END_DOC
-  integer, intent(in) :: N_st, iterations
-  logical, intent(out) :: converged
-  double precision, intent(in) :: energy(N_st), residual(N_st)
-  double precision, intent(in) :: wall, cpu
-  double precision :: E(N_st), time
-  double precision, allocatable, save :: energy_old(:)
+  integer, intent(in)            :: n,Nint,istate
+  double precision, intent(out)  :: v_0(n)
+  double precision, intent(in)   :: u_0(n)
+  double precision, intent(in)   :: H_jj(n)
+  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
+  integer, allocatable           :: idx(:)
+  double precision               :: hij
+  double precision, allocatable  :: vt(:)
+  integer                        :: i,j,k,l, jj,ii
+  integer                        :: i0, j0
+  ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
+  ASSERT (n>0)
+  PROVIDE ref_bitmask_energy delta_ij 
+  integer, parameter             :: block_size = 157
+  !$OMP PARALLEL DEFAULT(NONE)                                       &
+      !$OMP PRIVATE(i,hij,j,k,idx,jj,ii,vt)                             &
+      !$OMP SHARED(n_det_ref,n_det_non_ref,idx_ref,idx_non_ref,n,H_jj,u_0,keys_tmp,Nint,v_0,istate,delta_ij)
+  !$OMP DO SCHEDULE(static)
+  do i=1,n  
+    v_0(i) = H_jj(i) * u_0(i)
+  enddo 
+  !$OMP END DO
+  allocate(idx(0:n), vt(n))
+  Vt = 0.d0
+  !$OMP DO SCHEDULE(guided)
+  do i=1,n
+    idx(0) = i
+    call filter_connected_davidson(keys_tmp,keys_tmp(1,1,i),Nint,i-1,idx)
+    do jj=1,idx(0)
+      j = idx(jj)
+      if ( (dabs(u_0(j)) > 1.d-7).or.((dabs(u_0(i)) > 1.d-7)) ) then
+        call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
+        hij = hij 
+        vt (i) = vt (i) + hij*u_0(j)
+        vt (j) = vt (j) + hij*u_0(i)
+      endif
+    enddo
+  enddo
+  !$OMP END DO
 
-  if (.not.allocated(energy_old)) then
-    allocate(energy_old(N_st))
-    energy_old = 0.d0
-  endif
-
-  E = energy - energy_old
-  energy_old = energy
-  if (davidson_criterion == 'energy') then
-    converged = dabs(maxval(E(1:N_st))) < davidson_threshold 
-  else if (davidson_criterion == 'residual') then
-    converged = dabs(maxval(residual(1:N_st))) < davidson_threshold 
-  else if (davidson_criterion == 'both') then
-    converged = dabs(maxval(residual(1:N_st))) + dabs(maxval(E(1:N_st)) ) &
-       < davidson_threshold  
-  else if (davidson_criterion == 'wall_time') then
-    call wall_time(time)
-    converged = time - wall > davidson_threshold
-  else if (davidson_criterion == 'cpu_time') then
-    call cpu_time(time)
-    converged = time - cpu > davidson_threshold
-  else if (davidson_criterion == 'iterations') then
-    converged = iterations >= int(davidson_threshold)
-  endif
-  converged = converged.or.abort_here
+  !$OMP DO SCHEDULE(guided)
+  do ii=1,n_det_ref
+    i = idx_ref(ii)
+    do jj = 1, n_det_non_ref
+        j = idx_non_ref(jj)
+        vt (i) = vt (i) + delta_ij(ii,jj,istate)*u_0(j)
+        vt (j) = vt (j) + delta_ij(ii,jj,istate)*u_0(i)
+    enddo
+  enddo
+  !$OMP END DO
+  !$OMP CRITICAL
+  do i=1,n
+    v_0(i) = v_0(i) + vt(i)
+  enddo
+  !$OMP END CRITICAL
+  deallocate(idx,vt)
+  !$OMP END PARALLEL
 end
+
+

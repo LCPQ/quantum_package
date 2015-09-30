@@ -244,7 +244,10 @@ if __name__ == '__main__':
             print " ".join(sorted(m.l_descendant_unique([module])))
 
     if arguments["create_png"]:
-        m.create_png(l_module)
+        try:
+            m.create_png(l_module)
+        except RuntimeError:
+            pass
 
     if arguments["clean"] or arguments["create_git_ignore"]:
 

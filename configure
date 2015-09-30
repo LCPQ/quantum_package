@@ -71,7 +71,7 @@ from collections import namedtuple
 
 Info = namedtuple("Info", ["url", "description", "default_path"])
 
-path_github = {"head": "http://github.com/", "tail": "archive/master.tar.gz"}
+path_github = {"head": "http://github.com", "tail": "archive/master.tar.gz"}
 
 ocaml = Info(
     url='http://raw.github.com/ocaml/opam/master/shell/opam_installer.sh',
@@ -180,6 +180,8 @@ def check_output(*popenargs, **kwargs):
             cmd = popenargs[0]
         error = subprocess.CalledProcessError(retcode, cmd)
         error.output = output
+#        print output
+#        print unused_err
         raise error
     return output
 
@@ -224,7 +226,7 @@ def checking(d_dependency):
 
             return a
 
-        except subprocess.CalledProcessError:
+        except (OSError,subprocess.CalledProcessError):
             default_path = d_info[binary].default_path
             if os.path.exists(default_path):
                 return default_path
@@ -341,9 +343,9 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
         extension = splitext(url)[1]
         path_archive = "Downloads/{0}{1}".format("ninja", extension)
 
-        l_cmd = ["cd install &&",
-                 "wget {0} -O {1} -o /dev/null &&".format(url, path_archive),
-                 "./scripts/install_ninja.sh 2> /dev/null &&", "cd -"]
+        l_cmd = ["set -x ;", "cd install &&",
+                 "wget {0} -O {1} &&".format(url, path_archive),
+                 "./scripts/install_ninja.sh &&", "cd -"]
 
         try:
             check_output(" ".join(l_cmd), shell=True)
@@ -497,7 +499,7 @@ def recommendation():
     print "Now :"
     print "   source {0}".format(path)
     print "   ninja"
-    print "   cd ocaml; make "
+    print "   make -C ocaml"
     print ""
     print "PS : For more info on compiling the code, read the COMPILE_RUN.md file."
 

@@ -749,3 +749,91 @@ end
 
 
 
+subroutine save_wavefunction_specified(ndet,nstates,psidet,psicoef,ndetsave,index_det_save)
+  implicit none
+  BEGIN_DOC
+!  Save the wave function into the EZFIO file
+  END_DOC
+  use bitmasks
+  integer, intent(in) :: ndet,nstates
+  integer(bit_kind), intent(in) :: psidet(N_int,2,ndet)
+  double precision, intent(in)  :: psicoef(ndet,nstates)
+  integer, intent(in)           :: index_det_save(ndet)
+  integer, intent(in)           :: ndetsave
+  integer*8, allocatable         :: psi_det_save(:,:,:)
+  double precision, allocatable  :: psi_coef_save(:,:)
+  integer*8                      :: det_8(100)
+  integer(bit_kind)              :: det_bk((100*8)/bit_kind)
+  integer                        :: N_int2
+  equivalence (det_8, det_bk)
+
+  integer :: i,k
+
+  PROVIDE progress_bar
+  call start_progress(7,'Saving wfunction',0.d0)
+
+  progress_bar(1) = 1
+  progress_value = dble(progress_bar(1))
+  call ezfio_set_determinants_N_int(N_int)
+  progress_bar(1) = 2
+  progress_value = dble(progress_bar(1))
+  call ezfio_set_determinants_bit_kind(bit_kind)
+  progress_bar(1) = 3
+  progress_value = dble(progress_bar(1))
+  call ezfio_set_determinants_N_det(ndetsave)
+  progress_bar(1) = 4
+  progress_value = dble(progress_bar(1))
+  call ezfio_set_determinants_n_states(nstates)
+  progress_bar(1) = 5
+  progress_value = dble(progress_bar(1))
+  call ezfio_set_determinants_mo_label(mo_label)
+
+  progress_bar(1) = 6
+  progress_value = dble(progress_bar(1))
+
+  N_int2 = (N_int*bit_kind)/8
+  allocate (psi_det_save(N_int2,2,ndetsave))
+  do i=1,ndetsave
+    do k=1,N_int
+      det_bk(k) = psidet(k,1,index_det_save(i))
+    enddo
+    do k=1,N_int2
+      psi_det_save(k,1,i) = det_8(k)
+    enddo
+    do k=1,N_int
+      det_bk(k) = psidet(k,2,index_det_save(i))
+    enddo
+    do k=1,N_int2
+      psi_det_save(k,2,i) = det_8(k)
+    enddo
+  enddo
+  call ezfio_set_determinants_psi_det(psi_det_save)
+  deallocate (psi_det_save)
+
+  progress_bar(1) = 7
+  progress_value = dble(progress_bar(1))
+  allocate (psi_coef_save(ndetsave,nstates))
+  double precision :: accu_norm(nstates)
+  accu_norm = 0.d0
+  do k=1,nstates
+    do i=1,ndetsave
+      accu_norm(k) = accu_norm(k) + psicoef(index_det_save(i),k) * psicoef(index_det_save(i),k)
+      psi_coef_save(i,k) = psicoef(index_det_save(i),k)
+    enddo
+  enddo
+  do k = 1, nstates
+   accu_norm(k) = 1.d0/dsqrt(accu_norm(k))
+  enddo
+  do k=1,nstates
+    do i=1,ndetsave
+      psi_coef_save(i,k) = psi_coef_save(i,k) * accu_norm(k)
+    enddo
+  enddo
+
+  call ezfio_set_determinants_psi_coef(psi_coef_save)
+  call write_int(output_determinants,ndet,'Saved determinants')
+  call stop_progress
+  deallocate (psi_coef_save)
+end
+
+
