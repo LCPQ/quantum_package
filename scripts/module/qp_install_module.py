@@ -109,8 +109,9 @@ if __name__ == '__main__':
         save_new_module(path, l_child_reduce)
 
         print "    [ OK ]"
-        print "You can now install it normally. Type:"
-        print "` {0} install {1} `".format(os.path.basename(__file__), name)
+        print "Your module is created in the `plugins` directory."
+        print "You need to create some `.irp.f` to be able to install it."
+#        print "` {0} install {1} `".format(os.path.basename(__file__), name)
         print ""
 
     elif arguments["download"]:
