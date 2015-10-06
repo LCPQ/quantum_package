@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Usage:
-       qp_install_module.py create -n <name> [<children_module>...]
+       qp_install_module.py create -n <name> [<children_modules>...]
        qp_install_module.py download -n <name> [<path_folder>...]
        qp_install_module.py install <name>...
        qp_install_module.py list (--installed | --available-local)
@@ -10,7 +10,7 @@ Usage:
 
 
 Options:
-    list: List all the module available
+    list: List all the modules available
     create: Create a new module
 """
 
@@ -25,8 +25,8 @@ try:
     from qp_update_readme import D_KEY
     from qp_path import QP_SRC, QP_PLUGINS, QP_ROOT
 except ImportError:
-    print "Please check if you have sourced the .quantum_package.rc"
-    print "(`source .quantum_package.rc`)"
+    print "Please check if you have sourced the ${QP_ROOT}/quantum_package.rc"
+    print "(`source ${QP_ROOT}/quantum_package.rc`)"
     print sys.exit(1)
 
 
@@ -39,7 +39,7 @@ def save_new_module(path, l_child):
     try:
         os.makedirs(path)
     except OSError:
-        print "The module ({0}) already exist...".format(path)
+        print "The module ({0}) already exists...".format(path)
         sys.exit(1)
 
     with open(os.path.join(path, "NEEDED_CHILDREN_MODULES"), "w") as f:
@@ -78,39 +78,40 @@ if __name__ == '__main__':
     elif arguments["create"]:
         m_instance = ModuleHandler([QP_SRC])
 
-        l_children = arguments["<children_module>"]
+        l_children = arguments["<children_modules>"]
 
         name = arguments["<name>"][0]
 
         path = os.path.join(QP_PLUGINS, name)
 
-        print "You will create the module:"
-        print path
+        print "Created module:"
+        print path, '\n'
 
         for children in l_children:
             if children not in m_instance.dict_descendant:
-                print "This module ({0}) is not a valide module.".format(children)
-                print "Run `list` flag for the list of module available"
-                print "Maybe you need to install some module first"
+                print "This module ({0}) is not a valid module.".format(children)
+                print "Run `list` for the list of available modules."
+                print "Maybe you need to install some other module first."
                 print "Aborting..."
                 sys.exit(1)
 
-        print "You ask for this submodule:"
-        print l_children
+        print "Needed module:"
+        print l_children, '\n'
 
-        print "You can use all the routine in this module"
-        print l_children + m_instance.l_descendant_unique(l_children)
+        print "This corresponds to using the following modules:"
+        print l_children + m_instance.l_descendant_unique(l_children), '\n'
 
-        print "This can be reduce to:"
+        print "Which is reduced to:"
         l_child_reduce = m_instance.l_reduce_tree(l_children)
-        print l_child_reduce
+        print l_child_reduce, '\n'
+
         print "Installation",
         save_new_module(path, l_child_reduce)
 
         print "    [ OK ]"
-        print "You can now install it normaly. Type:"
+        print "You can now install it normally. Type:"
         print "` {0} install {1} `".format(os.path.basename(__file__), name)
-        print "And don't forgot to add this to the git if you want"
+        print ""
 
     elif arguments["download"]:
         pass
@@ -203,4 +204,5 @@ if __name__ == '__main__':
             try:
                 os.unlink(os.path.join(QP_SRC, module))
             except OSError:
-                print "%s is a core module which can not be renmoved" % module
+                print "%s is a core module which can't be removed" % module
+

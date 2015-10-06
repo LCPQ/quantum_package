@@ -30,9 +30,12 @@ subroutine damping_SCF
   
   call write_time(output_hartree_fock)
 
-  write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16, X, A4 )'), '====','================','================','================', '===='
-  write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16, X, A4 )'), '  N ', 'Energy  ', 'Energy diff  ', 'Density diff  ', 'Save'
-  write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16, X, A4 )'), '====','================','================','================', '===='
+  write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16, X, A4 )'), &
+    '====','================','================','================', '===='
+  write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16, X, A4 )'), &
+    '  N ', 'Energy  ', 'Energy diff  ', 'Density diff  ', 'Save'
+  write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16, X, A4 )'), &
+    '====','================','================','================', '===='
 
   E = HF_energy + 1.d0
   E_min = HF_energy
