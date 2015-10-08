@@ -33,7 +33,7 @@ For example you can type `./configure config/gfortran.cfg --production`
 This command have to purpose :
 
  - Download and install all the requirements.
-   Installing OCaml and the Core library may take somme time (up to 20min on an old machine).
+   Installing OCaml and the Core library may take some time (up to 20min on an old machine).
  - And create the file which contains all the tree dependencies for the binaries.  
    It's not a Makefile, but a Ninja file (so don't type `make` is hopeless, type `ninja` instead)
 

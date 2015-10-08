@@ -26,6 +26,9 @@ program var_pt2_ratio_run
     soft_touch N_det psi_det psi_coef
     call diagonalize_CI
     ratio = (CI_energy(1) - HF_energy) / (CI_energy(1)+pt2(1) - HF_energy)
+    if (N_det > 20000) then
+      exit
+    endif
   enddo
 
   threshold_selectors = 1.d0

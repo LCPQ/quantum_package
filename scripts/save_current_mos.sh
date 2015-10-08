@@ -4,6 +4,7 @@
 # directory, where xxx is the corresponding mo_label.
 # Wed Apr  2 14:35:15 CEST 2014
 
+
 if [[ -z ${QP_ROOT} ]]
 then
   print "The QP_ROOT environment variable is not set."
@@ -11,40 +12,40 @@ then
   exit -1
 fi
 
-EZFIO=$1
+EZFIO="$1"
 
-if [[ -z ${EZFIO} ]]
+if [[ -z "${EZFIO}" ]]
 then
   echo "Error in $0"
   exit 1
 fi
 
-if [[ ! -f ${EZFIO}/mo_basis/mo_label ]]
+if [[ ! -f "${EZFIO}/mo_basis/mo_label" ]]
 then
   LABEL='no_label'
 else
-  LABEL=$(head -1 ${EZFIO}/mo_basis/mo_label)
+  LABEL=$(head -1 "${EZFIO}/mo_basis/mo_label")
 fi
 
 DESTINATION="save/mo_basis/${LABEL}"
 
-cd ${EZFIO}
+cd "${EZFIO}"
 
 if [[ ! -d save/mo_basis ]]
 then
         mkdir -p save/mo_basis
 fi
 
-BACKUP=${DESTINATION}.old 
-if [[ -d ${BACKUP} ]]
+BACKUP="${DESTINATION}.old"
+if [[ -d "${BACKUP}" ]]
 then
-        rm -rf ${BACKUP}
+        rm -rf "${BACKUP}"
 fi
 
-if [[ -d ${DESTINATION} ]]
+if [[ -d "${DESTINATION}" ]]
 then
-        mv ${DESTINATION} ${BACKUP}
+        mv "${DESTINATION}" "${BACKUP}"
 fi
 
-cp -r mo_basis ${DESTINATION}
+cp -r mo_basis "${DESTINATION}"
 
