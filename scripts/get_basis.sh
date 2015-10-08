@@ -8,12 +8,15 @@
 # Prints in stdout the name of a temporary file containing the basis set.
 #
 
+
+
 if [[ -z ${QP_ROOT} ]]
 then
   print "The QP_ROOT environment variable is not set."
   print "Please reload the quantum_package.rc file."
   exit -1
 fi
+
 
 export EMSL_API_ROOT="${QP_ROOT}"/install/emsl
 
