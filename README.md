@@ -20,6 +20,7 @@ For more information, you can visit the [wiki of the project](http://github.com/
 * Bash
 * Blast/Lapack
 * unzip
+* g++ (For ninja)
 
 ## Standard installation
 
