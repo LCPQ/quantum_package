@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Usage:
-       qp_module.py create -n <name> [<children_module>...]
+       qp_module.py create -n <name> [<children_modules>...]
        qp_module.py download -n <name> [<path_folder>...]
        qp_module.py install <name>...
        qp_module.py list (--installed | --available-local)
