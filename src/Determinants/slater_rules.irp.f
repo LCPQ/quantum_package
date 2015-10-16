@@ -787,6 +787,7 @@ subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   ASSERT (Ndet > 0)
   ASSERT (Ndet_max >= Ndet)
   i_H_psi_array = 0.d0
+  
   call filter_connected_i_H_psi0(keys,key,Nint,Ndet,idx)
   do ii=1,idx(0)
     i = idx(ii)
