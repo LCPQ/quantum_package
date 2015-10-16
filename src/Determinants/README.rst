@@ -54,7 +54,11 @@ Documentation
 .. by the `update_README.py` script.
 
 
+`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1109>`_
   Needed for diag_H_mat_elem
+
+
+`abs_psi_coef_max <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L451>`_
   Max and min values of the coefficients
 
 
@@ -62,7 +66,7 @@ Documentation
   Max and min values of the coefficients
 
 
-`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1153>`_
+`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1154>`_
   Needed for diag_H_mat_elem
 
 
@@ -225,7 +229,7 @@ Documentation
   det_coef
 
 
-`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1283>`_
+`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1284>`_
   Build connection proxy between determinants
 
 
@@ -249,7 +253,7 @@ Documentation
   Diagonalization algorithm (Davidson or Lapack)
 
 
-`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1046>`_
+`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1047>`_
   Computes <i|H|i>
 
 
@@ -367,7 +371,7 @@ Documentation
   Returns the excitation degree between two determinants
 
 
-`get_excitation_degree_vector <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L951>`_
+`get_excitation_degree_vector <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L952>`_
   Applies get_excitation_degree to an array of determinants
 
 
@@ -387,7 +391,7 @@ Documentation
   Returns the excitation operator between two singly excited determinants and the phase
 
 
-`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1201>`_
+`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1202>`_
   Returns a list of occupation numbers from a bitstring
 
 
@@ -421,7 +425,7 @@ Documentation
   Undocumented
 
 
-`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1217>`_
+`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1218>`_
   Computes v_0 = H|u_0>
   .br
   n : number of determinants
@@ -445,7 +449,7 @@ Documentation
   <key|H|psi> for the various Nstates
 
 
-`i_h_psi_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L848>`_
+`i_h_psi_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L849>`_
   <key|H|psi> for the various Nstate
   .br
   returns in addition
@@ -459,7 +463,7 @@ Documentation
   to repeat the excitations
 
 
-`i_h_psi_sc2_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L895>`_
+`i_h_psi_sc2_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L896>`_
   <key|H|psi> for the various Nstate
   .br
   returns in addition
@@ -473,7 +477,7 @@ Documentation
   to repeat the excitations
 
 
-`i_h_psi_sec_ord <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L801>`_
+`i_h_psi_sec_ord <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L802>`_
   <key|H|psi> for the various Nstates
 
 
@@ -520,7 +524,7 @@ Documentation
   Energy of the reference bitmask used in Slater rules
 
 
-`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1275>`_
+`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1276>`_
   Number of integers to represent the connections between determinants
 
 

@@ -169,7 +169,7 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
   
   ! output :   0 : not connected
   !            i : connected to determinant i of the past
-  !           -i : is the ith determinant of the refernce wf keys
+  !           -i : is the ith determinant of the reference wf keys
   
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
