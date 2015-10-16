@@ -29,7 +29,7 @@ Documentation
 
 
 `do_pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L248>`_
-  Using pseudo potential integral of not
+  Using pseudo potential integral or not
 
 
 `pseudo_dz_k <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L204>`_

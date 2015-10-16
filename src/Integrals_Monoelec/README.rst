@@ -93,6 +93,11 @@ Documentation
   : sum of the kinetic and nuclear electronic potential
 
 
+`ao_mono_elec_integral_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/ao_mono_ints.irp.f#L2>`_
+  array of the mono electronic hamiltonian on the AOs basis
+  : sum of the kinetic and nuclear electronic potential
+
+
 `ao_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L1>`_
   interaction nuclear electron
 

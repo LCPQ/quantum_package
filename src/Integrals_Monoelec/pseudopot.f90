@@ -1829,11 +1829,12 @@ end
 double precision function binom_gen(alpha,n)
  implicit none
  integer :: n,k
- double precision :: fact,alpha,prod
+ double precision :: fact,alpha,prod, factn_inv
  prod=1.d0
+ factn_inv = 1.d0/fact(n)
  do k=0,n-1
    prod=prod*(alpha-k)
-   binom_gen = prod/(fact(n))
+   binom_gen = prod*factn_inv
  enddo
 end
 
@@ -1881,6 +1882,7 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
   double precision :: term_A, term_B, term_rap,  expo
   double precision :: s_q_0, s_q_k, s_0_0, a_over_b_square
   double precision :: int_prod_bessel_loc
+  double precision :: inverses(0:300)
 
   logical done
 
@@ -1927,18 +1929,32 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
     ! Initialise the first recurence terme for the q loop
     s_q_0 = s_0_0
 
+
     ! Loop over q for the convergence of the sequence
     do while (.not.done)  
 
       ! Init
-      sum=0
       s_q_k=s_q_0
+      sum=s_q_0
 
-      ! Iteration of k
-      do k=0,q
+      if (q>300) then
+        stop 'pseudopot.f90 : q > 300'
+      endif
+
+      do k=0,q-1
+        s_q_k = ( dble(2*(q-k+m)+1)*dble(q-k)*inverses(k) ) * s_q_k
         sum=sum+s_q_k
-        s_q_k = a_over_b_square * ( dble(2*(q-k+m)+1)/dble(2*(k+n)+3) ) * ( dble(q-k)/dble(k+1)) * s_q_k
       enddo
+      inverses(q) = a_over_b_square/(dble(2*(q+n)+3) * dble(q+1)) 
+!      do k=0,q
+!        sum=sum+s_q_k
+!        s_q_k = a_over_b_square * ( dble(2*(q-k+m)+1)*dble(q-k)/(dble(2*(k+n)+3) * dble(k+1)) ) * s_q_k
+!      enddo
+      ! Iteration of k
+!      do k=0,q
+!        sum=sum+s_q_k
+!        s_q_k = a_over_b_square * ( dble(2*(q-k+m)+1)*dble(q-k)/(dble(2*(k+n)+3) * dble(k+1)) ) * s_q_k
+!      enddo
     
       int=int+sum
 
@@ -2120,15 +2136,14 @@ parameter (ntot_max=14)
 integer l,m
 double precision a(3),g_a,c(3)
 double precision prod,binom_func,accu,bigI,ylm,bessel_mod
-double precision theta_AC0,phi_AC0,ac,factor,fourpi,arg,r,areal
+double precision theta_AC0,phi_AC0,ac,ac2,factor,fourpi,arg,r,areal
 integer ntotA,mu,k1,k2,k3,lambda
 integer n_a(3)
-double precision &
-array_I_A(0:lmax_max+ntot_max,-(lmax_max+ntot_max):lmax_max+ntot_max,0:ntot_max,0:ntot_max,0:ntot_max)
 double precision array_coefs_A(0:ntot_max,0:ntot_max,0:ntot_max), y
 
+ac2=(a(1)-c(1))**2+(a(2)-c(2))**2+(a(3)-c(3))**2
 ac=dsqrt((a(1)-c(1))**2+(a(2)-c(2))**2+(a(3)-c(3))**2)
-arg=g_a*(ac**2+r**2)
+arg=g_a*(ac2+r*r)
 fourpi=4.d0*dacos(-1.d0)
 factor=fourpi*dexp(-arg)
 areal=2.d0*g_a*ac
@@ -2154,39 +2169,27 @@ else
   enddo
  enddo
 
- do lambda=0,l+ntotA
-  do mu=-lambda,lambda
-   do k1=0,n_a(1)
-   do k2=0,n_a(2)
-   do k3=0,n_a(3)
-    array_I_A(lambda,mu,k1,k2,k3)=bigI(lambda,mu,l,m,k1,k2,k3)
-   enddo
-   enddo
-   enddo
-  enddo
- enddo
-
  accu=0.d0
  do lambda=0,l+ntotA
-  do mu=-lambda,lambda
-   y = ylm(lambda,mu,theta_AC0,phi_AC0)
-   if (y == 0.d0) then
-     cycle
-   endif
-   do k1=0,n_a(1)
-   do k2=0,n_a(2)
-   do k3=0,n_a(3)
-    prod=y*array_coefs_A(k1,k2,k3)*array_I_A(lambda,mu,k1,k2,k3)
-    if (prod == 0.d0) then
-      cycle
-    endif
-    if (areal*r < 100.d0) then ! overflow!
-      accu=accu+prod*bessel_mod(areal*r,lambda)
-    endif
+   do mu=-lambda,lambda
+     y = ylm(lambda,mu,theta_AC0,phi_AC0)
+     if (y == 0.d0) then
+       cycle
+     endif
+     do k1=0,n_a(1)
+       do k2=0,n_a(2)
+         do k3=0,n_a(3)
+           prod=y*array_coefs_A(k1,k2,k3)*bigI(lambda,mu,l,m,k1,k2,k3)
+           if (prod == 0.d0) then
+             cycle
+           endif
+           if (areal*r < 100.d0) then ! overflow!
+             accu=accu+prod*bessel_mod(areal*r,lambda)
+           endif
+         enddo
+       enddo
+     enddo
    enddo
-   enddo
-   enddo
-  enddo
  enddo
  ylm_orb=factor*accu
  return

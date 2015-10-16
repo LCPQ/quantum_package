@@ -27,11 +27,8 @@ subroutine huckel_guess
     Fock_matrix_ao(j,j) = Fock_matrix_alpha_ao(j,j)
   enddo
   TOUCH Fock_matrix_ao
-  print *,  "Huckel matrix computed"
   mo_coef = eigenvectors_fock_matrix_mo
   SOFT_TOUCH mo_coef
-  print *,  "Saving MOs"
   call save_mos
-  print *,  "Saving MOs saved"
 
 end
