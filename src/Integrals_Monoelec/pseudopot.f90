@@ -1755,7 +1755,7 @@ double precision theta,phi,pm,factor,twopi,x,fact,sign
 DIMENSION PM(0:100,0:100)
 twopi=2.d0*dacos(-1.d0)
 x=dcos(theta)
-if (iand(m,1)) then
+if (iand(m,1) == 1) then
   sign=-1.d0
 else
   sign=1.d0
