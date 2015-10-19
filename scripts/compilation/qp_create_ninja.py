@@ -707,7 +707,7 @@ def ninja_dot_tree_rule():
     l_string = [
         "rule build_dot_tree", "   command = {0}".format(" ; ".join(l_cmd)),
         "   generator = 1",
-        "   description = Generate Png representtion of the Tree Dependencies of $module_rel",
+        "   description = Generating Png representation of the Tree Dependencies of $module_rel",
         ""
     ]
 

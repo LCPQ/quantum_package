@@ -66,7 +66,11 @@ Documentation
   title="f(|r-r_A|) = \int Y_{lm}^{C} (|r-r_C|, \Omega_C) \chi_i^{A} (r-r_A) d\Omega_C" />
 
 
-`e_curve <http://github.com/LCPQ/quantum_package/tree/master/plugins/QmcChem/e_curve_qmc.irp.f#L1>`_
+`compute_energy <http://github.com/LCPQ/quantum_package/tree/master/plugins/QmcChem/target_pt2_qmc.irp.f#L80>`_
+  Compute an energy when a threshold is applied
+
+
+`e_curve <http://github.com/LCPQ/quantum_package/tree/master/plugins/QmcChem/target_pt2_qmc.irp.f#L1>`_
   Undocumented
 
 

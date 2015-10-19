@@ -152,7 +152,7 @@ Documentation
   After calling this subroutine, N_det, psi_det and psi_coef need to be touched
 
 
-`create_wf_of_psi_bilinear_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L417>`_
+`create_wf_of_psi_bilinear_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L445>`_
   Generate a wave function containing all possible products
   of alpha and beta determinants
 
@@ -225,16 +225,24 @@ Documentation
   degree : Degree of excitation
 
 
+`det_alpha_norm <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L353>`_
+  Norm of the alpha and beta spin determinants in the wave function:
+  .br
+  ||Da||_i \sum_j C_{ij}**2
+
+
+`det_beta_norm <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L354>`_
+  Norm of the alpha and beta spin determinants in the wave function:
+  .br
+  ||Da||_i \sum_j C_{ij}**2
+
+
 `det_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L138>`_
   det_coef
 
 
 `det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1283>`_
   Build connection proxy between determinants
-
-
-`det_num <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L248>`_
-  det_num
 
 
 `det_occ <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L226>`_
@@ -355,7 +363,7 @@ Documentation
   Determinants are taken from the psi_det_sorted_ab array
 
 
-`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L472>`_
+`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L500>`_
   Create a wave function from all possible alpha x beta determinants
 
 
@@ -641,22 +649,22 @@ Documentation
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
 
-`psi_bilinear_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L400>`_
+`psi_bilinear_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L428>`_
   Coefficient matrix if the wave function is expressed in a bilinear form :
   D_a^t C D_b
 
 
-`psi_bilinear_matrix_columns <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L362>`_
+`psi_bilinear_matrix_columns <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L390>`_
   Sparse coefficient matrix if the wave function is expressed in a bilinear form :
   D_a^t C D_b
 
 
-`psi_bilinear_matrix_rows <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L361>`_
+`psi_bilinear_matrix_rows <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L389>`_
   Sparse coefficient matrix if the wave function is expressed in a bilinear form :
   D_a^t C D_b
 
 
-`psi_bilinear_matrix_values <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L360>`_
+`psi_bilinear_matrix_values <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L388>`_
   Sparse coefficient matrix if the wave function is expressed in a bilinear form :
   D_a^t C D_b
 
@@ -810,7 +818,7 @@ Documentation
   Reads the determinants from the EZFIO file
 
 
-`read_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L160>`_
+`read_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L116>`_
   If true, read the wave function from the EZFIO file
 
 
@@ -835,7 +843,7 @@ Documentation
   Undocumented
 
 
-`s2_eig <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L116>`_
+`s2_eig <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L248>`_
   Force the wave function to be an eigenfunction of S^2
 
 
@@ -908,6 +916,10 @@ Documentation
 
 `state_average_weight <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L207>`_
   Weights in the state-average calculation of the density matrix
+
+
+`target_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L160>`_
+  Energy that should be obtained when truncating the wave function (optional)
 
 
 `threshold_convergence_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_SC2.irp.f#L18>`_
