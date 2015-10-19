@@ -47,15 +47,15 @@ program e_curve
     psi_bilinear_matrix_values_save = psi_bilinear_matrix_values(:,1)
     do j=1,n
       i = iorder(j)
-      if (i>0) then
+      if (i<0) then
         do k=1,n_det
-          if (psi_bilinear_matrix_columns(k) == i) then
+          if (psi_bilinear_matrix_columns(k) == -i) then
             psi_bilinear_matrix_values_save(k) = 0.d0
           endif
         enddo
       else
         do k=1,n_det
-          if (psi_bilinear_matrix_rows(k) == -i) then
+          if (psi_bilinear_matrix_rows(k) == i) then
             psi_bilinear_matrix_values_save(k) = 0.d0
           endif
         enddo
@@ -99,15 +99,15 @@ subroutine compute_energy(psi_bilinear_matrix_values_save, E, m, norm)
         cycle
       endif
       ci = psi_bilinear_matrix_values_save(k)
-      det_i(:,1) = psi_det_alpha_unique(:,psi_bilinear_matrix_columns(k))
-      det_i(:,2) = psi_det_beta_unique(:,psi_bilinear_matrix_rows(k))
+      det_i(:,1) = psi_det_alpha_unique(:,psi_bilinear_matrix_rows(k))
+      det_i(:,2) = psi_det_beta_unique(:,psi_bilinear_matrix_columns(k))
       do l=1,n_det
         if (psi_bilinear_matrix_values_save(l) == 0.d0) then
           cycle
         endif
         cj = psi_bilinear_matrix_values_save(l)
-        det_j(:,1) = psi_det_alpha_unique(:,psi_bilinear_matrix_columns(l))
-        det_j(:,2) = psi_det_beta_unique(:,psi_bilinear_matrix_rows(l))
+        det_j(:,1) = psi_det_alpha_unique(:,psi_bilinear_matrix_rows(l))
+        det_j(:,2) = psi_det_beta_unique(:,psi_bilinear_matrix_columns(l))
         call i_h_j(det_i, det_j, N_int, hij)
         num = num + ci*cj*hij
       enddo

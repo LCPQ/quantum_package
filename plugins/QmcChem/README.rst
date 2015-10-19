@@ -70,7 +70,7 @@ Documentation
   Compute an energy when a threshold is applied
 
 
-`e_curve <http://github.com/LCPQ/quantum_package/tree/master/plugins/QmcChem/target_pt2_qmc.irp.f#L1>`_
+`e_curve <http://github.com/LCPQ/quantum_package/tree/master/plugins/QmcChem/test.irp.f#L1>`_
   Undocumented
 
 
