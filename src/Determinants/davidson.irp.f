@@ -65,6 +65,106 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
   deallocate (H_jj)
 end
 
+
+logical function det_inf(key1, key2, Nint)
+  use bitmasks
+  implicit none
+  integer(bit_kind),intent(in)       :: key1(Nint, 2), key2(Nint, 2)
+  integer,intent(in)                 :: Nint
+  integer                            :: i,j
+  
+  det_inf = .false.
+  
+  do i=1,2
+    do j=Nint,1,-1
+      if(key1(j,i) < key2(j,i)) then
+        det_inf = .true.
+        return
+      else if(key1(j,i) > key2(j,i)) then
+        return
+      end if
+    end do
+  end do
+end function
+
+
+subroutine tamiser(key, idx, no, n, Nint, N_key)
+  use bitmasks
+  
+  implicit none
+  integer(bit_kind),intent(inout)       :: key(Nint, 2, N_key)
+  integer,intent(in)                    :: no, n, Nint, N_key
+  integer,intent(inout)                 :: idx(N_key)
+  integer                               :: k,j,tmpidx
+  integer(bit_kind)                     :: tmp(Nint, 2)
+  logical                               :: det_inf
+  
+  k = no
+  j = 2*k
+  do while(j <= n)
+    if(j < n .and. det_inf(key(:,:,j), key(:,:,j+1), Nint)) then
+      j = j+1
+    end if
+    if(det_inf(key(:,:,k), key(:,:,j), Nint)) then
+      tmp(:,:) = key(:,:,k)
+      key(:,:,k) = key(:,:,j)
+      key(:,:,j) = tmp(:,:)
+      tmpidx = idx(k)
+      idx(k) = idx(j)
+      idx(j) = tmpidx
+      k = j
+      j = 2*k
+    else
+      return
+    end if
+  end do
+end subroutine
+
+
+subroutine sort_dets_ab(key, idx, shortcut, N_key, Nint)
+  use bitmasks
+  implicit none
+  
+  integer(bit_kind),intent(inout)       :: key(Nint,2,N_key)
+  integer,intent(out)                   :: idx(N_key)
+  integer,intent(out)                   :: shortcut(0:N_key+1)
+  integer, intent(in)                   :: Nint, N_key
+  integer(bit_kind)                     :: tmp(Nint, 2)
+  integer                               :: tmpidx,i,ni
+  
+  do i=1,N_key
+    idx(i) = i
+  end do
+  
+  do i=N_key/2,1,-1
+    call tamiser(key, idx, i, N_key, Nint, N_key)
+  end do
+  
+  do i=N_key,2,-1
+    tmp(:,:) = key(:,:,i)
+    key(:,:,i) = key(:,:,1)
+    key(:,:,1) = tmp(:,:)
+    tmpidx = idx(i)
+    idx(i) = idx(1)
+    idx(1) = tmpidx
+    call tamiser(key, idx, 1, i-1, Nint, N_key)
+  end do
+  
+  shortcut(0) = 1
+  shortcut(1) = 1
+  do i=2,N_key
+    do ni=1,nint
+      if(key(ni,1,i) /= key(ni,1,i-1)) then
+        shortcut(0) = shortcut(0) + 1
+        shortcut(shortcut(0)) = i
+        exit
+      end if
+    end do
+  end do
+  shortcut(shortcut(0)+1) = N_key+1
+end subroutine
+
+
 subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iunit)
   use bitmasks
   implicit none
@@ -106,13 +206,16 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   integer                        :: k_pairs, kl
   
   integer                        :: iter2
-  double precision, allocatable  :: W(:,:,:),  U(:,:,:), R(:,:)
+  double precision, allocatable  :: W(:,:,:),  U(:,:,:), R(:,:), Wt(:)
   double precision, allocatable  :: y(:,:,:,:), h(:,:,:,:), lambda(:)
   double precision               :: diag_h_mat_elem
   double precision               :: residual_norm(N_st)
   character*(16384)              :: write_buffer
   double precision               :: to_print(2,N_st)
   double precision               :: cpu, wall
+  
+  integer(bit_kind)              :: dets_in_sorted(Nint, 2, sze)
+  integer                        :: idx(sze), shortcut(0:sze+1)
   
   PROVIDE det_connections
 
@@ -145,6 +248,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   allocate(                                                          &
       kl_pairs(2,N_st*(N_st+1)/2),                                   &
       W(sze,N_st,davidson_sze_max),                                                   &
+      Wt(sze),                                                        &
       U(sze,N_st,davidson_sze_max),                                  &
       R(sze,N_st),                                                   &
       h(N_st,davidson_sze_max,N_st,davidson_sze_max),                &
@@ -159,6 +263,9 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   ! Initialization
   ! ==============
   
+  dets_in_sorted(:,:,:) = dets_in(:,:,:)
+  call sort_dets_ab(dets_in_sorted, idx, shortcut, sze, Nint)
+  
   k_pairs=0
   do l=1,N_st
     do k=1,l
@@ -170,7 +277,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP  SHARED(U,sze,N_st,overlap,kl_pairs,k_pairs,             &
-      !$OMP  Nint,dets_in,u_in)                                 &
+      !$OMP  Nint,dets_in_sorted,dets_in,u_in)                                 &
       !$OMP  PRIVATE(k,l,kl,i)
   
   
@@ -217,8 +324,9 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       ! ----------------------
       
       do k=1,N_st
-        call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint)
+         call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in_sorted,shortcut,idx,Nint)
       enddo
+      
       
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
       ! -------------------------------------------
@@ -274,7 +382,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
         to_print(1,k) = lambda(k) + nuclear_repulsion
         to_print(2,k) = residual_norm(k)
       enddo
-
+      
       write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))'), iter, to_print(:,1:N_st)
       call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
       if (converged) then
@@ -360,6 +468,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   deallocate (                                                       &
       kl_pairs,                                                      &
       W,                                                             &
+      Wt,                                                            &
       U,                                                             &
       R,                                                             &
       h,                                                             &

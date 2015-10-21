@@ -1,3 +1,6 @@
+
+
+
 subroutine davidson_diag_mrcc(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit,istate)
   use bitmasks
   implicit none
@@ -102,6 +105,9 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
   double precision               :: to_print(2,N_st)
   double precision               :: cpu, wall
   
+  integer(bit_kind)              :: dets_in_sorted(Nint,2,sze)
+  integer                        :: idx(sze), shortcut(0:sze+1),sh,ii,tmp
+  
   PROVIDE det_connections
 
   call write_time(iunit)
@@ -146,6 +152,9 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
   
   ! Initialization
   ! ==============
+  
+  dets_in_sorted(:,:,:) = dets_in(:,:,:)
+  call sort_dets_ab(dets_in_sorted, idx, shortcut, sze, Nint)
   
   k_pairs=0
   do l=1,N_st
@@ -205,7 +214,8 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
       ! ----------------------
       
       do k=1,N_st
-        call H_u_0_mrcc(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint,istate)
+        call H_u_0_mrcc(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in_sorted,shortcut,idx,Nint,istate)
+        !call H_u_0_mrcc_org(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint,istate)
       enddo
       
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
@@ -357,7 +367,7 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
   abort_here = abort_all
 end
 
-subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
+subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,shortcut,sort_idx,Nint,istate)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -377,6 +387,166 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
   double precision, allocatable  :: vt(:)
   integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0
+  
+  integer,intent(in)             :: shortcut(0:n+1), sort_idx(n)
+  integer                        :: tmp, warp(2,0:n+1), sh, ni
+!   
+  
+  ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
+  ASSERT (n>0)
+  PROVIDE ref_bitmask_energy delta_ij
+  integer, parameter             :: block_size = 157
+  
+  
+  !$OMP PARALLEL DEFAULT(NONE)                                       &
+      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt,ii,warp,tmp,sh)                             &
+      !$OMP SHARED(n_det_ref,n_det_non_ref,idx_ref,idx_non_ref,n,H_jj,u_0,keys_tmp,Nint,v_0,istate,delta_ij,shortcut,sort_idx)
+      
+  !$OMP DO SCHEDULE(static)
+  do i=1,n  
+    v_0(i) = H_jj(i) * u_0(i)
+  enddo 
+  !$OMP END DO
+
+  allocate(idx(0:n), vt(n))
+  Vt = 0.d0
+  !$OMP DO SCHEDULE(dynamic)
+  do sh=1,shortcut(0)
+    warp(1,0) = 0
+    do ii=1,sh!shortcut(0)
+      tmp = 0
+      do ni=1,Nint
+        tmp = popcnt(xor(keys_tmp(ni,1, shortcut(ii)), keys_tmp(ni,1,shortcut(sh))))
+      end do
+      if(tmp <= 4) then
+        tmp = warp(1,0) + 1
+        warp(1,0) = tmp
+        warp(1,tmp) = shortcut(ii)
+        warp(2,tmp) = shortcut(ii+1)-1
+      end if
+    end do
+    
+    do ii=shortcut(sh),shortcut(sh+1)-1
+      idx(0) = ii
+      
+      
+      !call filter_connected_davidson_mwen(keys_tmp,shortcut,keys_tmp(1,1,ii),Nint,ii-1,idx)
+      call filter_connected_davidson_warp(keys_tmp,warp,keys_tmp(1,1,ii),Nint,ii-1,idx)
+      i = sort_idx(ii)
+      
+      do jj=1,idx(0)
+        j = sort_idx(idx(jj))
+        !j = idx(jj)
+        if ( (dabs(u_0(j)) > 1.d-7).or.((dabs(u_0(i)) > 1.d-7)) ) then
+          call i_H_j(keys_tmp(1,1,idx(jj)),keys_tmp(1,1,ii),Nint,hij)
+          vt (i) = vt (i) + hij*u_0(j)
+          vt (j) = vt (j) + hij*u_0(i)
+        endif
+      enddo
+    enddo
+  enddo
+  !$OMP END DO
+  
+  
+  
+  !$OMP DO SCHEDULE(guided)
+  do ii=1,n_det_ref
+    i = idx_ref(ii)
+    do jj = 1, n_det_non_ref
+        j = idx_non_ref(jj)
+        vt (i) = vt (i) + delta_ij(ii,jj,istate)*u_0(j)
+        vt (j) = vt (j) + delta_ij(ii,jj,istate)*u_0(i)
+    enddo
+  enddo
+  !$OMP END DO
+  !$OMP CRITICAL
+  do i=1,n
+    v_0(i) = v_0(i) + vt(i)
+  enddo
+  !$OMP END CRITICAL
+  deallocate(idx,vt)
+  !$OMP END PARALLEL
+! 
+! 
+!   
+!   ASSERT (Nint > 0)
+!   ASSERT (Nint == N_int)
+!   ASSERT (n>0)
+!   PROVIDE ref_bitmask_energy delta_ij 
+!   integer, parameter             :: block_size = 157
+!   !$OMP PARALLEL DEFAULT(NONE)                                       &
+!       !$OMP PRIVATE(i,hij,j,k,idx,jj,ii,vt)                             &
+!       !$OMP SHARED(n_det_ref,n_det_non_ref,idx_ref,idx_non_ref,n,H_jj,u_0,keys_tmp,Nint,v_0,istate,delta_ij)
+!   !$OMP DO SCHEDULE(static)
+!   do i=1,n  
+!     v_0(i) = H_jj(i) * u_0(i)
+!   enddo 
+!   !$OMP END DO
+!   allocate(idx(0:n), vt(n))
+!   Vt = 0.d0
+!   !$OMP DO SCHEDULE(guided)
+!   do i=1,n
+!     idx(0) = i
+!     call filter_connected_davidson(keys_tmp,keys_tmp(1,1,i),Nint,i-1,idx)
+!     do jj=1,idx(0)
+!       j = idx(jj)
+! !     if ( (dabs(u_0(j)) > 1.d-7).or.((dabs(u_0(i)) > 1.d-7)) ) then
+!         call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
+!         hij = hij 
+!         vt (i) = vt (i) + hij*u_0(j)
+!         vt (j) = vt (j) + hij*u_0(i)
+! !     endif
+!     enddo
+!   enddo
+!   !$OMP END DO
+! 
+!   !$OMP DO SCHEDULE(guided)
+!   do ii=1,n_det_ref
+!     i = idx_ref(ii)
+!     do jj = 1, n_det_non_ref
+!         j = idx_non_ref(jj)
+!         vt (i) = vt (i) + delta_ij(ii,jj,istate)*u_0(j)
+!         vt (j) = vt (j) + delta_ij(ii,jj,istate)*u_0(i)
+!     enddo
+!   enddo
+!   !$OMP END DO
+!   !$OMP CRITICAL
+!   do i=1,n
+!     v_0(i) = v_0(i) + vt(i)
+!   enddo
+!   !$OMP END CRITICAL
+!   deallocate(idx,vt)
+!   !$OMP END PARALLEL
+end
+
+
+
+subroutine H_u_0_mrcc_org(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes v_0 = H|u_0>
+  !   
+  ! n : number of determinants
+  !     
+  ! H_jj : array of <j|H|j>
+  END_DOC
+  integer, intent(in)            :: n,Nint,istate
+  double precision, intent(out)  :: v_0(n)
+  double precision, intent(in)   :: u_0(n)
+  double precision, intent(in)   :: H_jj(n)
+  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
+  integer, allocatable           :: idx(:)
+  double precision               :: hij
+  double precision, allocatable  :: vt(:)
+  integer                        :: i,j,k,l, jj,ii
+  integer                        :: i0, j0
+  
+
+  
+
+  
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
   ASSERT (n>0)
@@ -426,5 +596,4 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
   deallocate(idx,vt)
   !$OMP END PARALLEL
 end
-
 
