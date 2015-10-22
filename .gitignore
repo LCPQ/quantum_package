@@ -6,4 +6,3 @@ build.ninja
 bin/
 lib/
 config/qp_create_ninja.pickle
-*/*/README.rst

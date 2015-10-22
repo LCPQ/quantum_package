@@ -464,7 +464,7 @@ Documentation
   Dressed H with Delta_ij
 
 
-`h_u_0_mrcc <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/davidson.irp.f#L370>`_
+`h_u_0_mrcc <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/davidson.irp.f#L385>`_
   Computes v_0 = H|u_0>
   .br
   n : number of determinants
@@ -472,7 +472,7 @@ Documentation
   H_jj : array of <j|H|j>
 
 
-`h_u_0_mrcc_org <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/davidson.irp.f#L525>`_
+`h_u_0_mrcc_org <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/davidson.irp.f#L489>`_
   Computes v_0 = H|u_0>
   .br
   n : number of determinants
