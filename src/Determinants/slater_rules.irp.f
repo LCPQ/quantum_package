@@ -138,51 +138,6 @@ subroutine decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
   end select
 end
 
-! 
-! subroutine get_double_excitation(det1, det2, exc, phase, Nint)
-!   integer, intent(in)            :: Nint
-!   integer(bit_kind), intent(in)  :: det1(Nint,2)
-!   integer(bit_kind), intent(in)  :: det2(Nint,2)
-!   integer, intent(out)           :: exc(0:2,2,2)
-!   double precision, intent(out)  :: phase
-!   
-!   integer(bit_kind)  ::         detp, deth, detp_f, deth_f, tmp
-!   integer                       :: i,sp,hole_fnd
-!   
-!   fi(:) = 0
-!   fs(:) = 0
-!   fn = 0
-!   detp = 0
-!   deth = 0
-!   tmp = 0
-!   deth_f = 0
-!   detp_f = 0
-!   do sp=1,2
-!     do i=1,Nint
-!       tmp = xor(det1(i,sp), det2(i,sp))
-!       if(tmp == 0) then
-!         cycle
-!       end if
-!       detp = iand(det2(i,sp), tmp)
-!       deth = iand(det1(i,sp), tmp)
-!       
-!       detp_f = ior(detp_f, detp)
-!       deth_f = ior(deth_f, deth)
-!       
-!       if(detp /= 0) then
-!         fn = fn + 1
-!         fs(fn) = sp
-!         fi(fn) = i
-!       end if
-!     end do
-!   end do
-!   if(fn /= 2) then
-!     print *, "WHUUUUT??"
-!     stop 1
-!   end if
-!   
-! end subroutine
-
 
 subroutine get_double_excitation(det1,det2,exc,phase,Nint)
   use bitmasks
@@ -1296,7 +1251,7 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,shortcut,sort_idx,Nint)
   allocate(idx(0:n), vt(n))
   Vt = 0.d0
   v_0 = 0.d0
-  !$OMP DO SCHEDULE(guided)
+  !$OMP DO SCHEDULE(dynamic)
   
   
   do sh=1,shortcut(0)
@@ -1330,6 +1285,74 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,shortcut,sort_idx,Nint)
       enddo
     enddo
   enddo
+  !$OMP END DO
+  !$OMP CRITICAL
+  do i=1,n
+    v_0(i) = v_0(i) + vt(i)
+  enddo
+  !$OMP END CRITICAL
+  deallocate(idx,vt)
+  !$OMP END PARALLEL
+  do i=1,n
+    v_0(i) += H_jj(i) * u_0(i)
+  enddo
+end
+
+
+subroutine H_u_0_org(v_0,u_0,H_jj,n,keys_tmp,Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes v_0 = H|u_0>
+  !
+  ! n : number of determinants
+  !
+  ! H_jj : array of <j|H|j>
+  END_DOC
+  integer, intent(in)            :: n,Nint
+  double precision, intent(out)  :: v_0(n)
+  double precision, intent(in)   :: u_0(n)
+  double precision, intent(in)   :: H_jj(n)
+  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
+  integer, allocatable           :: idx(:)
+  double precision               :: hij
+  double precision, allocatable  :: vt(:)
+  integer                        :: i,j,k,l, jj,ii,sh
+  integer                        :: i0, j0
+  
+  
+
+  ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
+  ASSERT (n>0)
+  PROVIDE ref_bitmask_energy
+  !$OMP PARALLEL DEFAULT(NONE)                                       &
+      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt,ii)                             &
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold)
+  allocate(idx(0:n), vt(n))
+  Vt = 0.d0
+  v_0 = 0.d0
+  !$OMP DO SCHEDULE(guided)
+  
+  
+
+    
+    
+    do ii=1,n
+      idx(0) = ii
+      i = ii
+      call filter_connected_davidson(keys_tmp,keys_tmp(1,1,ii),Nint,ii-1,idx)
+      
+      do jj=1,idx(0)
+        j = idx(jj)
+        if ( dabs(u_0(j)) + dabs(u_0(i)) > davidson_threshold ) then
+          call i_H_j(keys_tmp(1,1,idx(jj)),keys_tmp(1,1,ii),Nint,hij)
+          vt (i) = vt (i) + hij*u_0(j)
+          vt (j) = vt (j) + hij*u_0(i)
+        endif
+      enddo
+    enddo
+
   !$OMP END DO
   !$OMP CRITICAL
   do i=1,n

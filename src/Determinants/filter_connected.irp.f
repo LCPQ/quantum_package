@@ -198,16 +198,15 @@ subroutine filter_connected_davidson_warp(key1,warp,key2,Nint,sze,idx)
       end do
       endloop = min(warp(2,i_alpha), sze)
       if(exc_a == 4) then
-        do i_beta=warp(1,i_alpha),endloop
+        beta_loop : do i_beta=warp(1,i_alpha),endloop
           do ni=1,Nint
             if(key1(ni,2,i_beta) /= key2(ni,2)) then
-              exit
-            else if(ni == Nint) then
-              idx(l) = i_beta
-              l = l + 1
+              cycle beta_loop
             end if
           end do
-        end do
+          idx(l) = i_beta
+          l = l + 1
+        end do beta_loop
       else
         do i_beta=warp(1,i_alpha),endloop
           exc_b = 0
@@ -283,7 +282,6 @@ subroutine filter_connected_davidson_shortcut(key1,shortcut,key2,Nint,sze,idx)
   if (Nint==1) then
     do while(shortcut(i_alpha+1) < sze)
       i_alpha = i_alpha + 1
-      !print *, i_alpha, shortcut(i_alpha), sze
       exc_a = popcnt(xor(key1(1,1,shortcut(i_alpha)), key2(1,1)))
       if(exc_a > 4) then
         cycle
@@ -338,6 +336,7 @@ subroutine filter_connected_davidson(key1,key2,Nint,sze,idx)
   integer*8 :: itmp
   
   PROVIDE N_con_int det_connections
+  
   ASSERT (Nint > 0)
   ASSERT (sze >= 0)
 
