@@ -66,11 +66,11 @@ Documentation
   Alpha Fock matrix in AO basis set
 
 
-`fock_matrix_alpha_mo <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L231>`_
+`fock_matrix_alpha_mo <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L254>`_
   Fock matrix on the MO basis
 
 
-`fock_matrix_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L289>`_
+`fock_matrix_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L312>`_
   Fock matrix in AO basis set
 
 
@@ -78,7 +78,7 @@ Documentation
   Alpha Fock matrix in AO basis set
 
 
-`fock_matrix_beta_mo <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L251>`_
+`fock_matrix_beta_mo <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L274>`_
   Fock matrix on the MO basis
 
 
@@ -114,7 +114,7 @@ Documentation
   .br
 
 
-`fock_mo_to_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L332>`_
+`fock_mo_to_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L355>`_
   Undocumented
 
 
@@ -134,7 +134,7 @@ Documentation
   S^-1 Beta density matrix in the AO basis x S^-1
 
 
-`hf_energy <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L270>`_
+`hf_energy <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L293>`_
   Hartree-Fock energy
 
 

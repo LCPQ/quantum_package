@@ -203,8 +203,8 @@ Documentation
   Output file for Bitmask
 
 
-`output_cas_sd <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L41>`_
-  Output file for CAS_SD
+`output_cisd <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L41>`_
+  Output file for CISD
 
 
 `output_cpu_time_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f#L2>`_
@@ -227,40 +227,40 @@ Documentation
   Output file for Full_CI
 
 
-`output_generators_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L141>`_
-  Output file for Generators_CAS
-
-
-`output_generators_full <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L161>`_
+`output_generators_full <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L141>`_
   Output file for Generators_full
 
 
-`output_hartree_fock <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L181>`_
+`output_hartree_fock <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L161>`_
   Output file for Hartree_Fock
 
 
-`output_integrals_bielec <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L201>`_
+`output_integrals_bielec <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L181>`_
   Output file for Integrals_Bielec
 
 
-`output_integrals_monoelec <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L221>`_
+`output_integrals_monoelec <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L201>`_
   Output file for Integrals_Monoelec
 
 
-`output_mo_basis <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L241>`_
+`output_mo_basis <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L221>`_
   Output file for MO_Basis
 
 
-`output_moguess <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L261>`_
+`output_moguess <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L241>`_
   Output file for MOGuess
 
 
-`output_mrcc_cassd <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L281>`_
+`output_mrcc_cassd <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L261>`_
   Output file for MRCC_CASSD
 
 
-`output_mrcc_utils <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L301>`_
+`output_mrcc_utils <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L281>`_
   Output file for MRCC_Utils
+
+
+`output_myhartreefock <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L301>`_
+  Output file for MyHartreeFock
 
 
 `output_nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L321>`_
@@ -291,7 +291,11 @@ Documentation
   Output file for Selectors_full
 
 
-`output_utils <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L461>`_
+`output_singlerefmethod <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L461>`_
+  Output file for SingleRefMethod
+
+
+`output_utils <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L481>`_
   Output file for Utils
 
 
