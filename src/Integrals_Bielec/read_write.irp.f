@@ -20,7 +20,13 @@ implicit none
         read_ao_integrals = .False.
         write_ao_integrals = .False.
 
-    else if (disk_access_mo_integrals.EQ.'Read') then
+    else
+        print *, 'bielec_integrals/disk_access_ao_integrals has a wrong type'
+        stop 1
+
+    endif
+
+    if (disk_access_mo_integrals.EQ.'Read') then
         read_mo_integrals =  .True.
         write_mo_integrals = .False.
 
@@ -33,8 +39,8 @@ implicit none
         write_mo_integrals = .False.
 
     else
-        print *, 'bielec_integrals/disk_acces not of a the good type'
-        stop "1"
+        print *, 'bielec_integrals/disk_access_mo_integrals has a wrong type'
+        stop 1
 
     endif
 

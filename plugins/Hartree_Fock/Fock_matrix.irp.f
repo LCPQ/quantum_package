@@ -111,18 +111,27 @@ END_PROVIDER
  integer*8                      :: p,q
  double precision               :: integral
  double precision               :: ao_bielec_integral
+ double precision, allocatable  :: ao_bi_elec_integral_alpha_tmp(:,:)
+ double precision, allocatable  :: ao_bi_elec_integral_beta_tmp(:,:)
+ !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: ao_bi_elec_integral_beta_tmp
+ !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: ao_bi_elec_integral_alpha_tmp
+
+ ao_bi_elec_integral_alpha = 0.d0
+ ao_bi_elec_integral_beta  = 0.d0
  if (do_direct_integrals) then
 
-   ao_bi_elec_integral_alpha = 0.d0
-   ao_bi_elec_integral_beta  = 0.d0
    !$OMP PARALLEL DEFAULT(NONE)                                      &
-       !$OMP PRIVATE(i,j,l,k1,k,integral,ii,jj,kk,ll,i8,keys,values,p,q,r,s)&
-       !$OMP SHARED(ao_num,HF_density_matrix_ao_alpha,HF_density_matrix_ao_beta,&
+       !$OMP PRIVATE(i,j,l,k1,k,integral,ii,jj,kk,ll,i8,keys,values,p,q,r,s, &
+       !$OMP ao_bi_elec_integral_alpha_tmp,ao_bi_elec_integral_beta_tmp)&
+       !$OMP SHARED(ao_num,ao_num_align,HF_density_matrix_ao_alpha,HF_density_matrix_ao_beta,&
        !$OMP ao_integrals_map,ao_integrals_threshold, ao_bielec_integral_schwartz, &
-       !$OMP ao_overlap_abs) &
-       !$OMP REDUCTION(+:ao_bi_elec_integral_alpha,ao_bi_elec_integral_beta)
+       !$OMP ao_overlap_abs, ao_bi_elec_integral_alpha, ao_bi_elec_integral_beta)  
 
    allocate(keys(1), values(1))
+   allocate(ao_bi_elec_integral_alpha_tmp(ao_num_align,ao_num), &
+            ao_bi_elec_integral_beta_tmp(ao_num_align,ao_num))
+   ao_bi_elec_integral_alpha_tmp = 0.d0
+   ao_bi_elec_integral_beta_tmp  = 0.d0
 
    q = ao_num*ao_num*ao_num*ao_num
    !$OMP DO SCHEDULE(dynamic)
@@ -160,15 +169,21 @@ END_PROVIDER
              k = kk(k2)
              l = ll(k2)
              integral = (HF_density_matrix_ao_alpha(k,l)+HF_density_matrix_ao_beta(k,l)) * values(1)
-             ao_bi_elec_integral_alpha(i,j) += integral
-             ao_bi_elec_integral_beta (i,j) += integral
+             ao_bi_elec_integral_alpha_tmp(i,j) += integral
+             ao_bi_elec_integral_beta_tmp (i,j) += integral
              integral = values(1)
-             ao_bi_elec_integral_alpha(l,j) -= HF_density_matrix_ao_alpha(k,i) * integral
-             ao_bi_elec_integral_beta (l,j) -= HF_density_matrix_ao_beta (k,i) * integral
+             ao_bi_elec_integral_alpha_tmp(l,j) -= HF_density_matrix_ao_alpha(k,i) * integral
+             ao_bi_elec_integral_beta_tmp (l,j) -= HF_density_matrix_ao_beta (k,i) * integral
            enddo
    enddo
-   !$OMP END DO
-   deallocate(keys,values)
+   !$OMP END DO NOWAIT
+   !$OMP CRITICAL
+   ao_bi_elec_integral_alpha += ao_bi_elec_integral_alpha_tmp
+   !$OMP END CRITICAL
+   !$OMP CRITICAL
+   ao_bi_elec_integral_beta  += ao_bi_elec_integral_beta_tmp
+   !$OMP END CRITICAL
+   deallocate(keys,values,ao_bi_elec_integral_alpha_tmp,ao_bi_elec_integral_beta_tmp)
    !$OMP END PARALLEL
  else
    PROVIDE ao_bielec_integrals_in_map 
@@ -180,16 +195,18 @@ END_PROVIDER
    integer(key_kind), allocatable :: keys(:)
    double precision, allocatable  :: values(:)
 
-   ao_bi_elec_integral_alpha = 0.d0
-   ao_bi_elec_integral_beta  = 0.d0
    !$OMP PARALLEL DEFAULT(NONE)                                      &
-       !$OMP PRIVATE(i,j,l,k1,k,integral,ii,jj,kk,ll,i8,keys,values,n_elements_max,n_elements)&
-       !$OMP SHARED(ao_num,HF_density_matrix_ao_alpha,HF_density_matrix_ao_beta,&
-       !$OMP ao_integrals_map) &
-       !$OMP REDUCTION(+:ao_bi_elec_integral_alpha,ao_bi_elec_integral_beta)
+       !$OMP PRIVATE(i,j,l,k1,k,integral,ii,jj,kk,ll,i8,keys,values,n_elements_max, &
+       !$OMP  n_elements,ao_bi_elec_integral_alpha_tmp,ao_bi_elec_integral_beta_tmp)&
+       !$OMP SHARED(ao_num,ao_num_align,HF_density_matrix_ao_alpha,HF_density_matrix_ao_beta,&
+       !$OMP  ao_integrals_map, ao_bi_elec_integral_alpha, ao_bi_elec_integral_beta) 
 
    call get_cache_map_n_elements_max(ao_integrals_map,n_elements_max)
    allocate(keys(n_elements_max), values(n_elements_max))
+   allocate(ao_bi_elec_integral_alpha_tmp(ao_num_align,ao_num), &
+            ao_bi_elec_integral_beta_tmp(ao_num_align,ao_num))
+   ao_bi_elec_integral_alpha_tmp = 0.d0
+   ao_bi_elec_integral_beta_tmp  = 0.d0
 
    !$OMP DO SCHEDULE(dynamic)
    do i8=0_8,ao_integrals_map%map_size
@@ -207,16 +224,22 @@ END_PROVIDER
          k = kk(k2)
          l = ll(k2)
          integral = (HF_density_matrix_ao_alpha(k,l)+HF_density_matrix_ao_beta(k,l)) * values(k1)
-         ao_bi_elec_integral_alpha(i,j) += integral
-         ao_bi_elec_integral_beta (i,j) += integral
+         ao_bi_elec_integral_alpha_tmp(i,j) += integral
+         ao_bi_elec_integral_beta_tmp (i,j) += integral
          integral = values(k1)
-         ao_bi_elec_integral_alpha(l,j) -= HF_density_matrix_ao_alpha(k,i) * integral
-         ao_bi_elec_integral_beta (l,j) -= HF_density_matrix_ao_beta (k,i) * integral
+         ao_bi_elec_integral_alpha_tmp(l,j) -= HF_density_matrix_ao_alpha(k,i) * integral
+         ao_bi_elec_integral_beta_tmp (l,j) -= HF_density_matrix_ao_beta (k,i) * integral
        enddo
      enddo
    enddo
-   !$OMP END DO
-   deallocate(keys,values)
+   !$OMP END DO NOWAIT
+   !$OMP CRITICAL
+   ao_bi_elec_integral_alpha += ao_bi_elec_integral_alpha_tmp
+   !$OMP END CRITICAL
+   !$OMP CRITICAL
+   ao_bi_elec_integral_beta  += ao_bi_elec_integral_beta_tmp
+   !$OMP END CRITICAL
+   deallocate(keys,values,ao_bi_elec_integral_alpha_tmp,ao_bi_elec_integral_beta_tmp)
    !$OMP END PARALLEL
 
  endif

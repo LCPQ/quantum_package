@@ -102,14 +102,37 @@ subroutine $subroutine_diexcP(key_in, fs1, fh1, particl_1, fs2, fh2, particl_2, 
   integer                               :: n_minilist, n_alpha, n_beta, deg(2), i, ni
   $declarations
   
-  p1_mask(:,:) = 0
-  p2_mask(:,:) = 0
+  p1_mask(:,:) = 0_bit_kind
+  p2_mask(:,:) = 0_bit_kind
   p1_mask(ishft(fh1,-bit_kind_shift) + 1, fs1) = ishft(1,iand(fh1-1,bit_kind_size-1))
   p2_mask(ishft(fh2,-bit_kind_shift) + 1, fs2) = ishft(1,iand(fh2-1,bit_kind_size-1))
   
   key_mask(:,:) = key_in(:,:)
+
   key_mask(ishft(fh1,-bit_kind_shift) + 1, fs1) -= ishft(1,iand(fh1-1,bit_kind_size-1))
   key_mask(ishft(fh2,-bit_kind_shift) + 1, fs2) -= ishft(1,iand(fh2-1,bit_kind_size-1))
+
+!   do i=1,N_int
+!     n_alpha = n_alpha + popcnt(key_mask(i, 1))
+!     n_beta = n_beta + popcnt(key_mask(i, 2))
+!   end do
+!   
+!   do i=1, N_det
+!     deg(1) = n_alpha
+!     deg(2) = n_beta
+!     
+!     do ni = 1, N_int
+! !       deg(1) = deg(1) - popcnt(iand(key_mask(ni, 1), psi_non_ref(ni, 1, i)))
+! !       deg(2) = deg(2) - popcnt(iand(key_mask(ni, 2), psi_non_ref(ni, 2, i)))
+!     end do
+!     
+!     
+!     if(deg(1) + deg(2) <= 2) then
+! !       ndet_out = ndet_out + 1
+! !       idx(ndet_out) = i
+!     end if
+!   end do
+>>>>>>> 9107aee5ac0e251a0c91d82ef9c686fcef599fb5
 
   call $subroutine_diexcOrg(key_in, key_mask, p1_mask, particl_1, p2_mask, particl_2, i_generator, iproc_in $parameters )
 end subroutine
@@ -412,7 +435,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc_in $pa
   
   logical :: check_double_excitation 
   
-  key_mask(:,:) = 0_8
+  key_mask(:,:) = 0_bit_kind
   
   iproc = iproc_in
 

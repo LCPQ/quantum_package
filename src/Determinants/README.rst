@@ -54,7 +54,11 @@ Documentation
 .. by the `update_README.py` script.
 
 
+`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1108>`_
   Needed for diag_H_mat_elem
+
+
+`abs_psi_coef_max <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L451>`_
   Max and min values of the coefficients
 
 
