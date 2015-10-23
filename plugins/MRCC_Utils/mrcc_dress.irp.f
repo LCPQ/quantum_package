@@ -1,4 +1,5 @@
 use omp_lib
+use bitmasks
 
 BEGIN_PROVIDER [ integer(omp_lock_kind), psi_ref_lock, (psi_det_size) ]
  implicit none
@@ -92,7 +93,6 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n
   
   integer(bit_kind)              :: miniList(Nint, 2, N_det_non_ref), key_mask(Nint, 2)
   integer                        :: idx_miniList(N_det_non_ref), N_miniList
-  
   
   
   call find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq)
@@ -285,6 +285,7 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
   integer, intent(out)           :: N_tq
   integer                        :: c_ref
   integer                        :: connected_to_ref
+  
 
   N_tq = 0
   do i=1,N_selected

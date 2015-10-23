@@ -158,7 +158,160 @@ subroutine filter_connected_sorted_ab(key1,key2,next,Nint,sze,idx)
 end
 
 
+subroutine filter_connected_davidson_warp(key1,warp,key2,Nint,sze,idx)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Filters out the determinants that are not connected by H
+  ! returns the array idx which contains the index of the 
+  ! determinants in the array key1 that interact 
+  ! via the H operator with key2.
+  !
+  ! idx(0) is the number of determinants that interact with key1
+  ! key1 should come from psi_det_sorted_ab.
+  END_DOC
+  integer, intent(in)            :: Nint, sze
+  integer(bit_kind), intent(in)  :: key1(Nint,2,sze)
+  integer(bit_kind), intent(in)  :: key2(Nint,2)
+  integer, intent(out)           :: idx(0:sze)
+  
+  integer,intent(in)             :: warp(2,0:sze+1)
+  
+  integer                        :: i,j,k,l
+  integer                        :: degree_x2
+  integer :: i_alpha, i_beta, exc_a, exc_b, endloop, ni
+  integer(bit_kind) :: tmp1, tmp2
+  
+  ASSERT (Nint > 0)
+  ASSERT (sze >= 0)
 
+  l=1
+  i_alpha = 0
+  
+  
+  if (Nint /= 1) then
+    do while(i_alpha < warp(1,0) .and. warp(1,i_alpha+1) <= sze)
+      i_alpha = i_alpha + 1
+      exc_a = 0
+      do ni=1,Nint
+        exc_a += popcnt(xor(key1(ni,1,warp(1,i_alpha)), key2(ni,1)))
+      end do
+      endloop = min(warp(2,i_alpha), sze)
+      if(exc_a == 4) then
+        beta_loop : do i_beta=warp(1,i_alpha),endloop
+          do ni=1,Nint
+            if(key1(ni,2,i_beta) /= key2(ni,2)) then
+              cycle beta_loop
+            end if
+          end do
+          idx(l) = i_beta
+          l = l + 1
+        end do beta_loop
+      else
+        do i_beta=warp(1,i_alpha),endloop
+          exc_b = 0
+          do ni=1,Nint
+            exc_b += popcnt(xor(key1(ni,2,i_beta), key2(ni,2)))
+          end do
+          if(exc_b + exc_a <= 4) then
+            idx(l) = i_beta
+            l = l + 1
+          end if                          
+        end do
+      end if
+    end do
+  else
+    do while(i_alpha < warp(1,0) .and. warp(1,i_alpha+1) <= sze)
+      i_alpha = i_alpha + 1
+      exc_a = popcnt(xor(key1(1,1,warp(1,i_alpha)), key2(1,1)))
+      endloop = min(warp(2,i_alpha), sze)
+      if(exc_a == 4) then
+        do i_beta=warp(1,i_alpha),endloop
+          if(key1(1,2,i_beta) == key2(1,2)) then
+            idx(l) = i_beta
+            l = l + 1
+            exit
+          end if
+        end do
+      else
+        do i_beta=warp(1,i_alpha),endloop
+          exc_b = popcnt(xor(key1(1,2,i_beta), key2(1,2)))
+          if(exc_b + exc_a <= 4) then
+            idx(l) = i_beta
+            l = l + 1
+          end if                          
+        end do
+      end if
+    end do
+  end if
+    
+  idx(0) = l-1
+end
+
+
+subroutine filter_connected_davidson_shortcut(key1,shortcut,key2,Nint,sze,idx)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Filters out the determinants that are not connected by H
+  ! returns the array idx which contains the index of the 
+  ! determinants in the array key1 that interact 
+  ! via the H operator with key2.
+  !
+  ! idx(0) is the number of determinants that interact with key1
+  ! key1 should come from psi_det_sorted_ab.
+  END_DOC
+  integer, intent(in)            :: Nint, sze
+  integer(bit_kind), intent(in)  :: key1(Nint,2,sze)
+  integer(bit_kind), intent(in)  :: key2(Nint,2)
+  integer, intent(out)           :: idx(0:sze)
+  
+  integer,intent(in)             :: shortcut(0:sze+1)
+  
+  integer                        :: i,j,k,l
+  integer                        :: degree_x2
+  integer :: i_alpha, i_beta, exc_a, exc_b, endloop
+  integer(bit_kind) :: tmp1, tmp2
+  
+  ASSERT (Nint > 0)
+  ASSERT (sze >= 0)
+
+  l=1
+  i_alpha = 0
+  
+  if (Nint==1) then
+    do while(shortcut(i_alpha+1) < sze)
+      i_alpha = i_alpha + 1
+      exc_a = popcnt(xor(key1(1,1,shortcut(i_alpha)), key2(1,1)))
+      if(exc_a > 4) then
+        cycle
+      end if
+      endloop = min(shortcut(i_alpha+1)-1, sze)
+      if(exc_a == 4) then
+        do i_beta = shortcut(i_alpha), endloop
+          if(key1(1,2,i_beta) == key2(1,2)) then
+            idx(l) = i_beta
+            l = l + 1
+            exit
+          end if
+        end do
+      else
+        do i_beta = shortcut(i_alpha), endloop
+          exc_b = popcnt(xor(key1(1,2,i_beta), key2(1,2)))
+          if(exc_b + exc_a <= 4) then
+            idx(l) = i_beta
+            l = l + 1
+          end if
+        end do
+      end if
+    end do
+  else
+    print *, "TBD : filter_connected_davidson_shortcut Nint>1"
+    stop
+  end if
+    
+  idx(0) = l-1
+end
 
 subroutine filter_connected_davidson(key1,key2,Nint,sze,idx)
   use bitmasks
@@ -183,6 +336,7 @@ subroutine filter_connected_davidson(key1,key2,Nint,sze,idx)
   integer*8 :: itmp
   
   PROVIDE N_con_int det_connections
+  
   ASSERT (Nint > 0)
   ASSERT (sze >= 0)
 
@@ -190,7 +344,7 @@ subroutine filter_connected_davidson(key1,key2,Nint,sze,idx)
   
   if (Nint==1) then
 
-    i = idx(0)
+    i = idx(0) ! lecture dans un intent(out) ?
     do j_int=1,N_con_int
       itmp = det_connections(j_int,i)
       do while (itmp /= 0_8)
