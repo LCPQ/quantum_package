@@ -54,7 +54,7 @@ Documentation
 .. by the `update_README.py` script.
 
 
-`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1108>`_
+`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1110>`_
   Needed for diag_H_mat_elem
 
 
@@ -66,7 +66,7 @@ Documentation
   Max and min values of the coefficients
 
 
-`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1153>`_
+`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1155>`_
   Needed for diag_H_mat_elem
 
 
@@ -157,11 +157,11 @@ Documentation
   of alpha and beta determinants
 
 
-`davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L382>`_
+`davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L492>`_
   True if the Davidson algorithm is converged
 
 
-`davidson_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L372>`_
+`davidson_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L482>`_
   Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
 
@@ -184,7 +184,7 @@ Documentation
   Initial guess vectors are not necessarily orthonormal
 
 
-`davidson_diag_hjj <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L68>`_
+`davidson_diag_hjj <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L168>`_
   Davidson diagonalization with specific diagonal elements of the H matrix
   .br
   H_jj : specific diagonal H matrix elements to diagonalize de Davidson
@@ -213,7 +213,7 @@ Documentation
   Max number of Davidson sizes
 
 
-`davidson_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L373>`_
+`davidson_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L483>`_
   Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
 
@@ -229,8 +229,12 @@ Documentation
   det_coef
 
 
-`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1283>`_
+`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1379>`_
   Build connection proxy between determinants
+
+
+`det_inf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L69>`_
+  Undocumented
 
 
 `det_num <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L248>`_
@@ -253,7 +257,7 @@ Documentation
   Diagonalization algorithm (Davidson or Lapack)
 
 
-`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1046>`_
+`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1048>`_
   Computes <i|H|i>
 
 
@@ -313,7 +317,7 @@ Documentation
   idx(0) is the number of determinants that interact with key1
 
 
-`filter_connected_davidson <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L163>`_
+`filter_connected_davidson <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L316>`_
   Filters out the determinants that are not connected by H
   returns the array idx which contains the index of the
   determinants in the array key1 that interact
@@ -323,7 +327,27 @@ Documentation
   key1 should come from psi_det_sorted_ab.
 
 
-`filter_connected_i_h_psi0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L293>`_
+`filter_connected_davidson_shortcut <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L252>`_
+  Filters out the determinants that are not connected by H
+  returns the array idx which contains the index of the
+  determinants in the array key1 that interact
+  via the H operator with key2.
+  .br
+  idx(0) is the number of determinants that interact with key1
+  key1 should come from psi_det_sorted_ab.
+
+
+`filter_connected_davidson_warp <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L161>`_
+  Filters out the determinants that are not connected by H
+  returns the array idx which contains the index of the
+  determinants in the array key1 that interact
+  via the H operator with key2.
+  .br
+  idx(0) is the number of determinants that interact with key1
+  key1 should come from psi_det_sorted_ab.
+
+
+`filter_connected_i_h_psi0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L447>`_
   returns the array idx which contains the index of the
   .br
   determinants in the array key1 that interact
@@ -333,7 +357,7 @@ Documentation
   idx(0) is the number of determinants that interact with key1
 
 
-`filter_connected_i_h_psi0_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L392>`_
+`filter_connected_i_h_psi0_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L546>`_
   standard filter_connected_i_H_psi but returns in addition
   .br
   the array of the index of the non connected determinants to key1
@@ -359,7 +383,7 @@ Documentation
   Create a wave function from all possible alpha x beta determinants
 
 
-`get_double_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L141>`_
+`get_double_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L142>`_
   Returns the two excitation operators between two doubly excited determinants and the phase
 
 
@@ -371,7 +395,7 @@ Documentation
   Returns the excitation degree between two determinants
 
 
-`get_excitation_degree_vector <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L951>`_
+`get_excitation_degree_vector <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L953>`_
   Applies get_excitation_degree to an array of determinants
 
 
@@ -387,11 +411,11 @@ Documentation
   Returns the index of the determinant in the ``psi_det_sorted_bit`` array
 
 
-`get_mono_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L274>`_
+`get_mono_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L275>`_
   Returns the excitation operator between two singly excited determinants and the phase
 
 
-`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1201>`_
+`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1203>`_
   Returns a list of occupation numbers from a bitstring
 
 
@@ -425,7 +449,7 @@ Documentation
   Undocumented
 
 
-`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1217>`_
+`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1219>`_
   Computes v_0 = H|u_0>
   .br
   n : number of determinants
@@ -433,23 +457,31 @@ Documentation
   H_jj : array of <j|H|j>
 
 
-`i_h_j <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L355>`_
+`h_u_0_org <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1302>`_
+  Computes v_0 = H|u_0>
+  .br
+  n : number of determinants
+  .br
+  H_jj : array of <j|H|j>
+
+
+`i_h_j <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L356>`_
   Returns <i|H|j> where i and j are determinants
 
 
-`i_h_j_phase_out <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L491>`_
+`i_h_j_phase_out <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L492>`_
   Returns <i|H|j> where i and j are determinants
 
 
-`i_h_j_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L627>`_
+`i_h_j_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L628>`_
   Returns <i|H|j> where i and j are determinants
 
 
-`i_h_psi <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L766>`_
+`i_h_psi <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L767>`_
   <key|H|psi> for the various Nstates
 
 
-`i_h_psi_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L848>`_
+`i_h_psi_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L850>`_
   <key|H|psi> for the various Nstate
   .br
   returns in addition
@@ -463,7 +495,7 @@ Documentation
   to repeat the excitations
 
 
-`i_h_psi_sc2_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L895>`_
+`i_h_psi_sc2_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L897>`_
   <key|H|psi> for the various Nstate
   .br
   returns in addition
@@ -477,7 +509,7 @@ Documentation
   to repeat the excitations
 
 
-`i_h_psi_sec_ord <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L801>`_
+`i_h_psi_sec_ord <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L803>`_
   <key|H|psi> for the various Nstates
 
 
@@ -524,7 +556,7 @@ Documentation
   Energy of the reference bitmask used in Slater rules
 
 
-`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1275>`_
+`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1371>`_
   Number of integers to represent the connections between determinants
 
 
@@ -889,6 +921,10 @@ Documentation
   for a given couple of hole/particle excitations i.
 
 
+`sort_dets_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L124>`_
+  Undocumented
+
+
 `sort_dets_by_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L489>`_
   Determinants on which we apply <i|H|j>.
   They are sorted by the 3 highest electrons in the alpha part,
@@ -908,6 +944,10 @@ Documentation
 
 `state_average_weight <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L207>`_
   Weights in the state-average calculation of the density matrix
+
+
+`tamiser <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L91>`_
+  Undocumented
 
 
 `threshold_convergence_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_SC2.irp.f#L18>`_
