@@ -120,6 +120,71 @@ subroutine tamiser(key, idx, no, n, Nint, N_key)
   end do
 end subroutine
 
+subroutine sort_dets_ba_v(key, idx, shortcut, version, N_key, Nint)
+  use bitmasks
+  implicit none
+  integer(bit_kind),intent(inout)       :: key(Nint,2,N_key)
+  integer,intent(out)                   :: idx(N_key)
+  integer,intent(out)                   :: shortcut(0:N_key+1)
+    integer(bit_kind),intent(out)       :: version(Nint,N_key+1)
+  integer, intent(in)                   :: Nint, N_key
+  integer(bit_kind)                     :: tmp(Nint, 2,N_key)
+  
+  tmp(:,1,:N_key) = key(:,2,:N_key)
+  tmp(:,2,:N_key) = key(:,1,:N_key)
+  
+  call sort_dets_ab_v(tmp, idx, shortcut, version, N_key, Nint)
+  
+  key(:,1,:N_key) = tmp(:,2,:N_key)
+  key(:,2,:N_key) = tmp(:,1,:N_key)
+end subroutine
+
+
+subroutine sort_dets_ab_v(key, idx, shortcut, version, N_key, Nint)
+  use bitmasks
+  implicit none
+  
+  integer(bit_kind),intent(inout)       :: key(Nint,2,N_key)
+  integer,intent(out)                   :: idx(N_key)
+  integer,intent(out)                   :: shortcut(0:N_key+1)
+  integer(bit_kind),intent(out)         :: version(Nint,N_key+1)
+  integer, intent(in)                   :: Nint, N_key
+  integer(bit_kind)                     :: tmp(Nint, 2)
+  integer                               :: tmpidx,i,ni
+  
+  do i=1,N_key
+    idx(i) = i
+  end do
+  
+  do i=N_key/2,1,-1
+    call tamiser(key, idx, i, N_key, Nint, N_key)
+  end do
+  
+  do i=N_key,2,-1
+    tmp(:,:) = key(:,:,i)
+    key(:,:,i) = key(:,:,1)
+    key(:,:,1) = tmp(:,:)
+    tmpidx = idx(i)
+    idx(i) = idx(1)
+    idx(1) = tmpidx
+    call tamiser(key, idx, 1, i-1, Nint, N_key)
+  end do
+  
+  shortcut(0) = 1
+  shortcut(1) = 1
+  do i=2,N_key
+    do ni=1,nint
+      if(key(ni,1,i) /= key(ni,1,i-1)) then
+        shortcut(0) = shortcut(0) + 1
+        shortcut(shortcut(0)) = i
+        version(:,shortcut(0)) = key(:,1,i)
+        exit
+      end if
+    end do
+  end do
+  shortcut(shortcut(0)+1) = N_key+1
+end subroutine
+
 
 subroutine sort_dets_ab(key, idx, shortcut, N_key, Nint)
   use bitmasks

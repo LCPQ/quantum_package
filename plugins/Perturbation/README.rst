@@ -107,22 +107,22 @@ Documentation
   Undocumented
 
 
-`perturb_buffer_by_mono_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L161>`_
+`perturb_buffer_by_mono_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L896>`_
   Applly pertubration ``delta_rho_one_point`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_dipole_moment_z <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L266>`_
+`perturb_buffer_by_mono_dipole_moment_z <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L476>`_
   Applly pertubration ``dipole_moment_z`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L371>`_
+`perturb_buffer_by_mono_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L266>`_
   Applly pertubration ``epstein_nesbet`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L476>`_
+`perturb_buffer_by_mono_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L371>`_
   Applly pertubration ``epstein_nesbet_2x2`` to the buffer of determinants generated in the H_apply
   routine.
 
@@ -142,7 +142,7 @@ Documentation
   routine.
 
 
-`perturb_buffer_by_mono_h_core <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L896>`_
+`perturb_buffer_by_mono_h_core <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L161>`_
   Applly pertubration ``h_core`` to the buffer of determinants generated in the H_apply
   routine.
 
@@ -152,22 +152,22 @@ Documentation
   routine.
 
 
-`perturb_buffer_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L110>`_
+`perturb_buffer_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L845>`_
   Applly pertubration ``delta_rho_one_point`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_dipole_moment_z <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L215>`_
+`perturb_buffer_dipole_moment_z <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L425>`_
   Applly pertubration ``dipole_moment_z`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L320>`_
+`perturb_buffer_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L215>`_
   Applly pertubration ``epstein_nesbet`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L425>`_
+`perturb_buffer_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L320>`_
   Applly pertubration ``epstein_nesbet_2x2`` to the buffer of determinants generated in the H_apply
   routine.
 
@@ -187,7 +187,7 @@ Documentation
   routine.
 
 
-`perturb_buffer_h_core <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L845>`_
+`perturb_buffer_h_core <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L110>`_
   Applly pertubration ``h_core`` to the buffer of determinants generated in the H_apply
   routine.
 

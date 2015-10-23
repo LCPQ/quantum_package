@@ -374,7 +374,7 @@ Documentation
   Find A.C = B
 
 
-`find_triples_and_quadruples <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L271>`_
+`find_triples_and_quadruples <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L298>`_
   Undocumented
 
 
@@ -397,6 +397,22 @@ Documentation
 
 
 `gcf <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/need.irp.f#L211>`_
+  Undocumented
+
+
+`gen_det_idx <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L288>`_
+  Undocumented
+
+
+`gen_det_shortcut <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L286>`_
+  Undocumented
+
+
+`gen_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L285>`_
+  Undocumented
+
+
+`gen_det_version <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L287>`_
   Undocumented
 
 
@@ -778,10 +794,6 @@ Documentation
 
 
 `mrcc_dress <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L65>`_
-  Undocumented
-
-
-`mrcc_dress_simple <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L225>`_
   Undocumented
 
 

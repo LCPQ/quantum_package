@@ -157,11 +157,11 @@ Documentation
   of alpha and beta determinants
 
 
-`davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L492>`_
+`davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L557>`_
   True if the Davidson algorithm is converged
 
 
-`davidson_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L482>`_
+`davidson_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L547>`_
   Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
 
@@ -184,7 +184,7 @@ Documentation
   Initial guess vectors are not necessarily orthonormal
 
 
-`davidson_diag_hjj <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L168>`_
+`davidson_diag_hjj <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L233>`_
   Davidson diagonalization with specific diagonal elements of the H matrix
   .br
   H_jj : specific diagonal H matrix elements to diagonalize de Davidson
@@ -213,7 +213,7 @@ Documentation
   Max number of Davidson sizes
 
 
-`davidson_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L483>`_
+`davidson_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L548>`_
   Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
 
@@ -229,7 +229,7 @@ Documentation
   det_coef
 
 
-`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1379>`_
+`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1380>`_
   Build connection proxy between determinants
 
 
@@ -457,7 +457,7 @@ Documentation
   H_jj : array of <j|H|j>
 
 
-`h_u_0_org <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1302>`_
+`h_u_0_org <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1303>`_
   Computes v_0 = H|u_0>
   .br
   n : number of determinants
@@ -556,7 +556,7 @@ Documentation
   Energy of the reference bitmask used in Slater rules
 
 
-`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1371>`_
+`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1372>`_
   Number of integers to represent the connections between determinants
 
 
@@ -921,7 +921,15 @@ Documentation
   for a given couple of hole/particle excitations i.
 
 
-`sort_dets_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L124>`_
+`sort_dets_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L189>`_
+  Undocumented
+
+
+`sort_dets_ab_v <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L143>`_
+  Undocumented
+
+
+`sort_dets_ba_v <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L123>`_
   Undocumented
 
 
