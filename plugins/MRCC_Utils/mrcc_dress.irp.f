@@ -268,6 +268,21 @@ subroutine mrcc_dress_simple(delta_ij_non_ref_,Ndet_non_ref,i_generator,n_select
 end
 
 
+ BEGIN_PROVIDER [ integer(bit_kind), gen_det_sorted,  (N_int,2,N_det_generators,2) ]
+&BEGIN_PROVIDER [ integer, gen_det_shortcut, (0:N_det_generators,2) ]
+&BEGIN_PROVIDER [ integer, gen_det_idx, (N_det_generators,2) ]
+  
+  !integer(bit_kind)             :: aa(N_int,2,N_det_generators), bb(N_int,2,N_det_generators)
+  
+  gen_det_sorted(:,:,:,1) = psi_det_generators(:,:,:N_det_generators)
+  gen_det_sorted(:,:,:,2) = psi_det_generators(:,:,:N_det_generators)
+  call sort_dets_ab(gen_det_sorted(:,:,:,1), gen_det_idx(0:,1), gen_det_shortcut(:,1), N_det_generators, Nint)
+  call sort_dets_ba(gen_det_sorted(:,:,:,2), gen_det_idx(0:,2), gen_det_shortcut(:,2), N_det_generators, Nint)
+  
+  
+END_PROVIDER
+
+
 subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq)
  use bitmasks
  implicit none
@@ -286,9 +301,41 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
   integer                        :: c_ref
   integer                        :: connected_to_ref
   
-
+  
+  integer :: na, nt, mex, lex, sh,ni,i,j
+  
+  !provide generator_sorted_a, generator_sorted_b, generator_shortcut_a, generator_shortcut_b
+  
   N_tq = 0
   do i=1,N_selected
+    na = popcnt(iand(det_buffer(1,1,i), not(ishft(1,elec_alpha_num)-1)))
+    nb = popcnt(iand(det_buffer(1,1,i), not(ishft(1,elec_beta_num)-1)))
+    if(na > nb) then ! alpha + exite
+      mex = 1
+      lex = 2
+    else
+      mex = 2
+      lex = 1
+    end if
+    
+    do sh = 1,gen_det_shortcut(0,mex)
+      na = 0
+      do i=1,ni
+        na += popcnt(xor(det_buffer(ni,mex,i), gen_det_sorted(gen_det_shortcut(sh, mex))))
+      end do
+      if(na > 4) then
+        cycle
+      end if
+      do j=get_det_shortcut(sh, mex), gen_det_shortcut(sh+1,mex)-1
+        if(gen_get_idx(j,mex
+        nt = na
+        do i=1,ni
+          nt += popcnt(xor(det_buffer(ni,mex,i), gen_det_sorted(gen_det_shortcut(sh, mex))))
+        end do
+        if(na <
+      end do
+    end do
+    
     c_ref = connected_to_ref(det_buffer(1,1,i),psi_det_generators,Nint, &
        i_generator,N_det_generators)
 

@@ -120,6 +120,24 @@ subroutine tamiser(key, idx, no, n, Nint, N_key)
   end do
 end subroutine
 
+subroutine sort_dets_ba(key, idx, shortcut, N_key, Nint)
+  use bitmasks
+  implicit none
+  integer(bit_kind),intent(inout)       :: key(Nint,2,N_key)
+  integer,intent(out)                   :: idx(N_key)
+  integer,intent(out)                   :: shortcut(0:N_key+1)
+  integer, intent(in)                   :: Nint, N_key
+  integer(bit_kind)                     :: tmp(Nint, 2,N_key)
+  
+  tmp(:,1,:N_key) = key(:,2,:N_key)
+  tmp(:,2,:N_key) = key(:,1,:N_key)
+  
+  call sort_dets_ab(tmp, idx, shortcut, N_key, Nint)
+  
+  key(:,1,:N_key) = tmp(:,2,:N_key)
+  key(:,2,:N_key) = tmp(:,1,:N_key)
+end subroutine
+
 
 subroutine sort_dets_ab(key, idx, shortcut, N_key, Nint)
   use bitmasks

@@ -1251,9 +1251,10 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,shortcut,sort_idx,Nint)
   allocate(idx(0:n), vt(n))
   Vt = 0.d0
   v_0 = 0.d0
+
   !$OMP DO SCHEDULE(dynamic)
   
-  
+
   do sh=1,shortcut(0)
     warp(1,0) = 0
     do ii=1,sh!shortcut(0)

@@ -374,7 +374,7 @@ Documentation
   Find A.C = B
 
 
-`find_triples_and_quadruples <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L271>`_
+`find_triples_and_quadruples <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L289>`_
   Undocumented
 
 
@@ -397,6 +397,30 @@ Documentation
 
 
 `gcf <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/need.irp.f#L211>`_
+  Undocumented
+
+
+`generator_idx_a <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L275>`_
+  Undocumented
+
+
+`generator_idx_b <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L276>`_
+  Undocumented
+
+
+`generator_shortcut_a <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L273>`_
+  Undocumented
+
+
+`generator_shortcut_b <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L274>`_
+  Undocumented
+
+
+`generator_sorted_a <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L271>`_
+  Undocumented
+
+
+`generator_sorted_b <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L272>`_
   Undocumented
 
 
