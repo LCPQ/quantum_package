@@ -296,6 +296,7 @@ END_PROVIDER
 
 
 subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_miniList)
+
  use bitmasks
  implicit none
 
@@ -459,6 +460,7 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
 !         end do sh_loop4
 !       end if
 !     end if
+
 
 
     c_ref = connected_to_ref(det_buffer(1,1,i),psi_det_generators,Nint, &

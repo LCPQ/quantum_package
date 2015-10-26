@@ -120,7 +120,9 @@ subroutine tamiser(key, idx, no, n, Nint, N_key)
   end do
 end subroutine
 
+
 subroutine sort_dets_ba_v(key, idx, shortcut, version, N_key, Nint)
+
   use bitmasks
   implicit none
   integer(bit_kind),intent(inout)       :: key(Nint,2,N_key)
@@ -133,11 +135,14 @@ subroutine sort_dets_ba_v(key, idx, shortcut, version, N_key, Nint)
   tmp(:,1,:N_key) = key(:,2,:N_key)
   tmp(:,2,:N_key) = key(:,1,:N_key)
   
+
   call sort_dets_ab_v(tmp, idx, shortcut, version, N_key, Nint)
+
   
   key(:,1,:N_key) = tmp(:,2,:N_key)
   key(:,2,:N_key) = tmp(:,1,:N_key)
 end subroutine
+
 
 
 subroutine sort_dets_ab_v(key, idx, shortcut, version, N_key, Nint)
@@ -185,6 +190,7 @@ subroutine sort_dets_ab_v(key, idx, shortcut, version, N_key, Nint)
   shortcut(shortcut(0)+1) = N_key+1
 end subroutine
 
+c
 
 subroutine sort_dets_ab(key, idx, shortcut, N_key, Nint)
   use bitmasks
