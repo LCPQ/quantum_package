@@ -9,7 +9,7 @@ s.data["declarations"] += """
     double precision, intent(in) :: delta_ij_(Ndet_ref,Ndet_non_ref,*)
     double precision, intent(in) :: delta_ii_(Ndet_ref,*)
 """
-s.data["keys_work"] = "call mrcc_dress(delta_ij_,delta_ii_,Ndet_ref,Ndet_non_ref,i_generator,key_idx,keys_out,N_int,iproc)"
+s.data["keys_work"] = "call mrcc_dress(delta_ij_,delta_ii_,Ndet_ref,Ndet_non_ref,i_generator,key_idx,keys_out,N_int,iproc,key_mask)"
 s.data["params_post"] += ", delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref"
 s.data["params_main"] += "delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref"
 s.data["decls_main"] += """

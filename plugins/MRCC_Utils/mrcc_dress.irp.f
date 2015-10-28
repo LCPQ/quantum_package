@@ -1,4 +1,5 @@
 use omp_lib
+use bitmasks
 
 BEGIN_PROVIDER [ integer(omp_lock_kind), psi_ref_lock, (psi_det_size) ]
  implicit none
@@ -12,12 +13,61 @@ BEGIN_PROVIDER [ integer(omp_lock_kind), psi_ref_lock, (psi_det_size) ]
 
 END_PROVIDER
 
-subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n_selected,det_buffer,Nint,iproc)
+
+subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullList, N_miniList, Nint)
+  use bitmasks
+  implicit none
+  
+  integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
+  integer, intent(in)                      :: N_fullList
+  integer(bit_kind),intent(out)            :: miniList(Nint, 2, N_fullList)
+  integer,intent(out)                      :: idx_miniList(N_fullList), N_miniList
+  integer, intent(in)                      :: Nint
+  integer(bit_kind)                        :: key_mask(Nint, 2)
+  integer                                  :: ni, i, n_a, n_b, e_a, e_b
+  
+  
+  n_a = 0
+  n_b = 0
+  do ni=1,nint
+    n_a = n_a + popcnt(key_mask(ni,1))
+    n_b = n_b + popcnt(key_mask(ni,2))
+  end do
+  
+  if(n_a == 0) then
+    N_miniList = N_fullList
+    miniList(:,:,:) = fullList(:,:,:)
+    do i=1,N_fullList
+      idx_miniList(i) = i
+    end do
+    return
+  end if
+  
+  N_miniList = 0
+  
+  do i=1,N_fullList
+    e_a = n_a
+    e_b = n_b
+    do ni=1,nint
+      e_a -= popcnt(iand(fullList(ni, 1, i), key_mask(ni, 1)))
+      e_b -= popcnt(iand(fullList(ni, 2, i), key_mask(ni, 2)))
+    end do
+    
+    if(e_a + e_b <= 2) then
+      N_miniList = N_miniList + 1
+      miniList(:,:,N_miniList) = fullList(:,:,i)
+      idx_miniList(N_miniList) = i
+    end if
+  end do
+end subroutine
+
+
+subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n_selected,det_buffer,Nint,iproc,key_mask)
  use bitmasks
  implicit none
 
   integer, intent(in)            :: i_generator,n_selected, Nint, iproc
-  integer, intent(in) :: Ndet_ref, Ndet_non_ref
+  integer, intent(in)            :: Ndet_ref, Ndet_non_ref
   double precision, intent(inout) :: delta_ij_(Ndet_ref,Ndet_non_ref,*)
   double precision, intent(inout) :: delta_ii_(Ndet_ref,*)
 
@@ -40,7 +90,11 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n
   integer(bit_kind)              :: tmp_det(Nint,2)
   integer                        :: iint, ipos
   integer                        :: i_state, k_sd, l_sd, i_I, i_alpha
-
+  
+  integer(bit_kind)              :: miniList(Nint, 2, N_det_non_ref), key_mask(Nint, 2)
+  integer                        :: idx_miniList(N_det_non_ref), N_miniList
+  
+  
   call find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq)
 
   allocate (dIa_hla(N_states,Ndet_non_ref))
@@ -48,9 +102,20 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n
   ! |I>
 
   ! |alpha>
+  
+   if(N_tq > 0) then
+     call create_minilist(key_mask, psi_non_ref, miniList, idx_miniList, N_det_non_ref, N_minilist, Nint)
+   end if
+  
+  
   do i_alpha=1,N_tq
-    call get_excitation_degree_vector(psi_non_ref,tq(1,1,i_alpha),degree_alpha,Nint,N_det_non_ref,idx_alpha)
-
+!    call get_excitation_degree_vector(psi_non_ref,tq(1,1,i_alpha),degree_alpha,Nint,N_det_non_ref,idx_alpha)
+    call get_excitation_degree_vector(miniList,tq(1,1,i_alpha),degree_alpha,Nint,N_minilist,idx_alpha)
+    
+    do j=1,idx_alpha(0)
+      idx_alpha(j) = idx_miniList(idx_alpha(j))
+    end do
+     
     ! |I>
     do i_I=1,N_det_ref
        ! Find triples and quadruple grand parents
@@ -220,6 +285,7 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
   integer, intent(out)           :: N_tq
   integer                        :: c_ref
   integer                        :: connected_to_ref
+  
 
   N_tq = 0
   do i=1,N_selected
@@ -233,7 +299,8 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
     ! Select determinants that are triple or quadruple excitations
     ! from the ref
     good = .True.
-    call get_excitation_degree_vector(psi_ref,det_buffer(1,1,i),degree,Nint,N_det_ref,idx)
+    call get_excitation_degree_vector(psi_ref,det_buffer(1,1,i),degree,Nint,N_det_ref,idx) 
+    !good=(idx(0) == 0) tant que degree > 2 pas retourné par get_excitation_degree_vector
     do k=1,idx(0)
       if (degree(k) < 3) then
         good = .False.
