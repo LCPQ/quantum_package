@@ -9,9 +9,11 @@ function eq() {
     awk -v n1=${1#-} -v n2=${2#-} -v p=$3 'BEGIN{ if ((n1-n2)^2 < p^2) exit 0; exit 1}'
 }
 
-source ${QP_ROOT}/install/EZFIO/Bash/ezfio.sh
+#: "${QP_ROOT?Pls set your quantum_package.rc}"
 
+source ${QP_ROOT}/install/EZFIO/Bash/ezfio.sh
 TEST_DIR=${QP_ROOT}/test/work/
+mkdir -p ${TEST_DIR}
 cd ${TEST_DIR}
 
 @test "init HBO STO-3G" {

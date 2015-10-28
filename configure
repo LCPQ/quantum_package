@@ -65,7 +65,8 @@ d_dependency = {
     "python": [],
     "ninja": ["gcc", "python"],
     "make": [],
-    "p_graphviz": ["python"]
+    "p_graphviz": ["python"],
+    "bats": []
 }
 
 from collections import namedtuple
@@ -135,10 +136,15 @@ p_graphviz = Info(
     description=' Python library for graphviz',
     default_path=join(QP_ROOT_INSTALL, "p_graphviz"))
 
+bats = Info(
+    url='https://github.com/sstephenson/bats/archive/master.tar.gz',
+    description=' Bash Automated Testing System',
+    default_path=join(QP_ROOT_INSTALL, "bats"))
+
 d_info = dict()
 
 for m in ["ocaml", "m4", "curl", "zlib", "path", "irpf90", "docopt",
-          "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz"]:
+          "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz",'bats']:
     exec ("d_info['{0}']={0}".format(m))
 
 
