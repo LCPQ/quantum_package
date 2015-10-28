@@ -25,9 +25,12 @@ cd ${TEST_DIR}
 
 @test "hartree fock HBO STO-3G" {
   run init HBO STO-3G
+  ezfio set_file HBO.ezfio
+  ezfio hartree_fock thresh_scf 1E-8
+
   qp_run SCF HBO.ezfio
   # Check energy
-  ezfio set_file HBO.ezfio
+
   energy="$(ezfio get hartree_fock energy)"
   eq $energy -98.82519856228865 1E-6
 }
