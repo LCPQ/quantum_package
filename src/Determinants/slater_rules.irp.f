@@ -138,6 +138,7 @@ subroutine decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
   end select
 end
 
+
 subroutine get_double_excitation(det1,det2,exc,phase,Nint)
   use bitmasks
   implicit none
@@ -787,6 +788,7 @@ subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   ASSERT (Ndet > 0)
   ASSERT (Ndet_max >= Ndet)
   i_H_psi_array = 0.d0
+  
   call filter_connected_i_H_psi0(keys,key,Nint,Ndet,idx)
   do ii=1,idx(0)
     i = idx(ii)
@@ -1214,7 +1216,7 @@ subroutine get_occ_from_key(key,occ,Nint)
   
 end
 
-subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
+subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,shortcut,sort_idx,Nint)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -1232,29 +1234,55 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   integer, allocatable           :: idx(:)
   double precision               :: hij
   double precision, allocatable  :: vt(:)
-  integer                        :: i,j,k,l, jj
+  integer                        :: i,j,k,l, jj,ii,sh
   integer                        :: i0, j0
+  
+  integer,intent(in)             :: shortcut(0:n+1), sort_idx(n)
+  integer                        :: tmp, warp(2,0:n+1), ni
+  
+
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
   ASSERT (n>0)
   PROVIDE ref_bitmask_energy
   !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt)                             &
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold)
+      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt,ii,warp,tmp,sh)                             &
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold,shortcut,sort_idx)
   allocate(idx(0:n), vt(n))
   Vt = 0.d0
   v_0 = 0.d0
-  !$OMP DO SCHEDULE(guided)
-  do i=1,n
-    idx(0) = i
-    call filter_connected_davidson(keys_tmp,keys_tmp(1,1,i),Nint,i-1,idx)
-    do jj=1,idx(0)
-      j = idx(jj)
-      if ( dabs(u_0(j)) + dabs(u_0(i)) > davidson_threshold ) then
-        call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
-        vt (i) = vt (i) + hij*u_0(j)
-        vt (j) = vt (j) + hij*u_0(i)
-      endif
+  !$OMP DO SCHEDULE(dynamic)
+  
+  
+  do sh=1,shortcut(0)
+    warp(1,0) = 0
+    do ii=1,sh!shortcut(0)
+      tmp = 0
+      do ni=1,Nint
+        tmp = popcnt(xor(keys_tmp(ni,1, shortcut(ii)), keys_tmp(ni,1,shortcut(sh))))
+      end do
+      if(tmp <= 4) then
+        warp(1,0) = warp(1,0) + 1
+        warp(1,warp(1,0)) = shortcut(ii)
+        warp(2,warp(1,0)) = shortcut(ii+1)-1
+      end if
+    end do
+    
+    
+    do ii=shortcut(sh),shortcut(sh+1)-1
+      idx(0) = ii
+      
+      call filter_connected_davidson_warp(keys_tmp,warp,keys_tmp(1,1,ii),Nint,ii-1,idx)
+      i = sort_idx(ii)
+      
+      do jj=1,idx(0)
+        j = sort_idx(idx(jj))
+        if ( dabs(u_0(j)) + dabs(u_0(i)) > davidson_threshold ) then
+          call i_H_j(keys_tmp(1,1,idx(jj)),keys_tmp(1,1,ii),Nint,hij)
+          vt (i) = vt (i) + hij*u_0(j)
+          vt (j) = vt (j) + hij*u_0(i)
+        endif
+      enddo
     enddo
   enddo
   !$OMP END DO
@@ -1266,7 +1294,75 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   deallocate(idx,vt)
   !$OMP END PARALLEL
   do i=1,n
-   v_0(i) += H_jj(i) * u_0(i)
+    v_0(i) += H_jj(i) * u_0(i)
+  enddo
+end
+
+
+subroutine H_u_0_org(v_0,u_0,H_jj,n,keys_tmp,Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes v_0 = H|u_0>
+  !
+  ! n : number of determinants
+  !
+  ! H_jj : array of <j|H|j>
+  END_DOC
+  integer, intent(in)            :: n,Nint
+  double precision, intent(out)  :: v_0(n)
+  double precision, intent(in)   :: u_0(n)
+  double precision, intent(in)   :: H_jj(n)
+  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
+  integer, allocatable           :: idx(:)
+  double precision               :: hij
+  double precision, allocatable  :: vt(:)
+  integer                        :: i,j,k,l, jj,ii,sh
+  integer                        :: i0, j0
+  
+  
+
+  ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
+  ASSERT (n>0)
+  PROVIDE ref_bitmask_energy
+  !$OMP PARALLEL DEFAULT(NONE)                                       &
+      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt,ii)                             &
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold)
+  allocate(idx(0:n), vt(n))
+  Vt = 0.d0
+  v_0 = 0.d0
+  !$OMP DO SCHEDULE(guided)
+  
+  
+
+    
+    
+    do ii=1,n
+      idx(0) = ii
+      i = ii
+      call filter_connected_davidson(keys_tmp,keys_tmp(1,1,ii),Nint,ii-1,idx)
+      
+      do jj=1,idx(0)
+        j = idx(jj)
+        if ( dabs(u_0(j)) + dabs(u_0(i)) > davidson_threshold ) then
+          call i_H_j(keys_tmp(1,1,idx(jj)),keys_tmp(1,1,ii),Nint,hij)
+          vt (i) = vt (i) + hij*u_0(j)
+          vt (j) = vt (j) + hij*u_0(i)
+        endif
+      enddo
+    enddo
+
+  !$OMP END DO
+  !$OMP CRITICAL
+  do i=1,n
+    v_0(i) = v_0(i) + vt(i)
+  enddo
+  !$OMP END CRITICAL
+  deallocate(idx,vt)
+  !$OMP END PARALLEL
+  do i=1,n
+    v_0(i) += H_jj(i) * u_0(i)
   enddo
 end
 

@@ -1,4 +1,122 @@
-subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_generator, iproc_in $parameters )
+
+
+subroutine $subroutine_diexc(key_in, key_prev, hole_1,particl_1, hole_2, particl_2, i_generator, iproc_in $parameters )
+  
+  integer(bit_kind), intent(in)         :: key_in(N_int, 2), hole_1(N_int, 2), hole_2(N_int, 2)
+  integer(bit_kind), intent(in)         :: particl_1(N_int, 2), particl_2(N_int, 2)
+  integer(bit_kind)                     :: p1_mask(N_int, 2), p2_mask(N_int, 2), tmp
+  integer,intent(in)                    :: i_generator,iproc_in
+  integer(bit_kind)                     :: status(N_int*bit_kind_size, 2)
+  integer                               :: highest, p1,p2,sp,ni,i,mi,nt,ns
+  
+  integer(bit_kind), intent(in)          :: key_prev(N_int, 2, *)
+  $declarations
+  
+  
+  highest = 0
+  status(:,:) = 0
+  do sp=1,2
+    do ni=1,N_int
+      do i=1,bit_kind_size
+        if(iand(1,ishft(key_in(ni, sp), -(i-1))) == 0) then
+          cycle
+        end if
+        mi = (ni-1)*bit_kind_size+i
+        status(mi, sp) = iand(1,ishft(hole_1(ni, sp), -(i-1)))
+        status(mi, sp) = status(mi, sp) + 2*iand(1,ishft(hole_2(ni, sp), -(i-1)))
+        if(status(mi, sp) /= 0 .and. mi > highest) then
+          highest = mi
+        end if
+      end do
+    end do
+  end do
+  
+! GEL D'ELECTRONS
+!  nt = 0
+!   do i=1,i_generator-1
+!     if(key_in(1,1) == key_prev(1,1,i)) then
+!       tmp = xor(key_in(1,2), key_prev(1,2,i))
+!       if(popcnt(tmp) == 2) then
+!         ns = 1+trailz(iand(tmp, key_in(1,2)))
+!         if(status(ns, 2) /= 0) then
+!           nt += 1
+!         end if
+!         status(ns, 2) = 0
+!       end if
+!     else if(key_in(1,2) == key_prev(1,2,i)) then
+!       tmp = xor(key_in(1,1), key_prev(1,1,i))
+!       if(popcnt(tmp) == 2) then
+!         ns = 1+trailz(iand(tmp, key_in(1,1)))
+!         if(status(ns, 1) /= 0) then
+!           nt += 1
+!         end if
+!         status(ns, 1) = 0
+!       end if
+!     end if
+!   end do
+!  print *, "nt", nt, i_generator
+  
+  
+  do sp=1,2
+    do p1=1,highest
+      if(status(p1, sp) == 0) then
+        cycle
+      end if
+      do p2=1,highest
+        if(status(p2, sp) == 0) then
+          cycle
+        end if
+        if((status(p1, sp) == 1 .and. status(p2, sp) > 1) .or. &
+            (status(p1, sp) == 2 .and. status(p2, sp) == 3) .or. &
+            (status(p1, sp) == 3 .and. status(p2, sp) == 3 .and. p2 > p1)) then
+          call $subroutine_diexcP(key_in, sp, p1, particl_1, sp, p2, particl_2, i_generator, iproc_in $parameters )
+        end if
+      end do
+    end do
+  end do
+  do p1=1,highest
+    if(status(p1, 1) == 0) then
+      cycle
+    end if
+    do p2=1,highest
+      if(status(p2, 2) == 0) then
+        cycle
+      end if
+      if((status(p1, 1) == 3) .or. &
+          (status(p1, 1) == 1 .and. status(p2, 2) >= 2) .or. &
+          (status(p1, 1) == 2 .and. status(p2, 2) /= 2)) then
+          
+          call $subroutine_diexcP(key_in, 1, p1, particl_1, 2, p2, particl_2, i_generator, iproc_in $parameters )
+      end if
+    end do
+  end do
+end subroutine
+
+
+subroutine $subroutine_diexcP(key_in, fs1, fh1, particl_1, fs2, fh2, particl_2, i_generator, iproc_in $parameters )
+  
+  integer(bit_kind), intent(in)         :: key_in(N_int, 2), particl_1(N_int, 2), particl_2(N_int, 2)
+  integer(bit_kind)                     :: p1_mask(N_int, 2), p2_mask(N_int, 2), key_mask(N_int, 2)
+  integer,intent(in)                    :: fh1,fh2,fs1,fs2,i_generator,iproc_in
+  integer(bit_kind)                     :: miniList(N_int, 2, N_det)
+  integer                               :: n_minilist, n_alpha, n_beta, deg(2), i, ni
+  $declarations
+  
+  p1_mask(:,:) = 0_bit_kind
+  p2_mask(:,:) = 0_bit_kind
+  p1_mask(ishft(fh1,-bit_kind_shift) + 1, fs1) = ishft(1,iand(fh1-1,bit_kind_size-1))
+  p2_mask(ishft(fh2,-bit_kind_shift) + 1, fs2) = ishft(1,iand(fh2-1,bit_kind_size-1))
+  
+  key_mask(:,:) = key_in(:,:)
+
+  key_mask(ishft(fh1,-bit_kind_shift) + 1, fs1) -= ishft(1,iand(fh1-1,bit_kind_size-1))
+  key_mask(ishft(fh2,-bit_kind_shift) + 1, fs2) -= ishft(1,iand(fh2-1,bit_kind_size-1))
+
+  call $subroutine_diexcOrg(key_in, key_mask, p1_mask, particl_1, p2_mask, particl_2, i_generator, iproc_in $parameters )
+end subroutine
+
+
+subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl_2, i_generator, iproc_in $parameters )
   use omp_lib
   use bitmasks
   implicit none
@@ -10,7 +128,7 @@ subroutine $subroutine_diexc(key_in, hole_1,particl_1, hole_2, particl_2, i_gene
   integer,parameter              :: size_max = $size_max
   $declarations
   integer          ,intent(in)   :: i_generator
-  integer(bit_kind),intent(in)   :: key_in(N_int,2)
+  integer(bit_kind),intent(in)   :: key_in(N_int,2), key_mask(N_int, 2)
   integer(bit_kind),allocatable  :: keys_out(:,:,:)
   integer(bit_kind), intent(in)  :: hole_1(N_int,2), particl_1(N_int,2)
   integer(bit_kind), intent(in)  :: hole_2(N_int,2), particl_2(N_int,2)
@@ -290,13 +408,18 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc_in $pa
   double precision               :: diag_H_mat_elem
   integer(omp_lock_kind), save   :: lck, ifirst=0
   integer                        :: iproc
-
+  
+  integer(bit_kind)              :: key_mask(N_int, 2)
+  
   logical :: check_double_excitation 
+  
+  key_mask(:,:) = 0_bit_kind
+  
   iproc = iproc_in
 
   check_double_excitation = .True.
   $check_double_excitation
-
+  
 
   if (ifirst == 0) then
     ifirst=1
@@ -412,7 +535,6 @@ subroutine $subroutine($params_main)
 
   
   nmax = mod( N_det_generators,nproc )
- 
 
   !$ call omp_init_lock(lck)
   call start_progress(N_det_generators,'Selection (norm)',0.d0)
@@ -455,6 +577,7 @@ subroutine $subroutine($params_main)
     enddo
     if($do_double_excitations)then
      call $subroutine_diexc(psi_det_generators(1,1,i_generator),      &
+         psi_det_generators(1,1,1),                                   &
          mask(1,1,d_hole1), mask(1,1,d_part1),                        &
          mask(1,1,d_hole2), mask(1,1,d_part2),                        &
          i_generator, iproc $params_post)
@@ -515,6 +638,7 @@ subroutine $subroutine($params_main)
 
     if($do_double_excitations)then
       call $subroutine_diexc(psi_det_generators(1,1,i_generator),    &
+        psi_det_generators(1,1,1),                                   &
         mask(1,1,d_hole1), mask(1,1,d_part1),                        &
         mask(1,1,d_hole2), mask(1,1,d_part2),                        &
         i_generator, iproc $params_post)
