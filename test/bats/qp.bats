@@ -37,13 +37,13 @@ cd ${TEST_DIR}
 
   ezfio set_file HBO.ezfio
   ezfio set perturbation do_pt2_end 1
-  ezfio set determinants n_det_max 10000
+  ezfio set determinants n_det_max 1000
 
   qp_run full_ci HBO.ezfio
   energy="$(ezfio get full_ci energy)"
-  eq $energy -98.9661013229156 1E-6
+  eq $energy -98.964772590532306 1E-6
   energy_pt2="$(ezfio get full_ci energy_pt2)"
-  eq $energy_pt2 -98.966293393389 1E-6
+  eq $energy_pt2 -98.966227811130594 1E-6
 }
 
 
