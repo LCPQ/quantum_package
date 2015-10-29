@@ -91,22 +91,42 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n
   integer                        :: iint, ipos
   integer                        :: i_state, k_sd, l_sd, i_I, i_alpha
   
-  integer(bit_kind)              :: miniList(Nint, 2, N_det_non_ref), key_mask(Nint, 2)
-  integer                        :: idx_miniList(N_det_non_ref), N_miniList
+  integer(bit_kind),allocatable  :: miniList(:,:,:)
+  integer(bit_kind),intent(in)   :: key_mask(Nint, 2)
+  integer,allocatable            :: idx_miniList(:)
+  integer                        :: N_miniList, ni
   
   
   
-!   N_miniList = 0
-!   do i=i_generator-1,1,-1
-!     k = popcnt(key_mask(1,1)) + popcnt(key_mask(1,2)) - popcnt(iand(key_mask(1,1), psi_det_generators(1,1,i))) - popcnt(iand(key_mask(1,2), psi_det_generators(1,2,i)))
-!     if(k == 0) then
-!       return
-!     end if
-!     if(k <= 2) then
-!       N_minilist += 1
-!       miniList(:,:,N_minilist) = psi_det_generators(:,:,i)
-!     end if
-!   end do
+  allocate(miniList(Nint, 2, max(N_det_generators, N_det_non_ref)), idx_miniList(max(N_det_generators, N_det_non_ref)))
+  
+  l = 0
+  do ni = 1,Nint
+    l += popcnt(key_mask(ni,1)) + popcnt(key_mask(ni,2))
+  end do
+  
+  if(l == 0) then
+    N_miniList = i_generator-1
+    miniList(:,:,:N_miniList) = psi_det_generators(:,:,:N_minilist)
+  else
+    N_miniList = 0
+    do i=i_generator-1,1,-1
+      k = l
+      do ni=1,nint
+        k -= popcnt(iand(key_mask(ni,1), psi_det_generators(ni,1,i))) + popcnt(iand(key_mask(ni,2), psi_det_generators(ni,2,i)))
+      end do
+      
+      if(k == 0) then
+        deallocate(miniList, idx_miniList)
+        return
+      end if
+      if(k <= 2) then
+        N_minilist += 1
+        miniList(:,:,N_minilist) = psi_det_generators(:,:,i)
+      end if
+    end do                                                                                                                           
+  end if
+  
   
   call find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_minilist)
 
@@ -227,71 +247,19 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n
     enddo
   enddo
   deallocate (dIa_hla)
+  deallocate(miniList, idx_miniList)
 end
 
-
-
-
-
-
-
-! subroutine mrcc_dress_simple(delta_ij_non_ref_,Ndet_non_ref,i_generator,n_selected,det_buffer,Nint,iproc)
-!  use bitmasks
-!  implicit none
-! 
-!   integer, intent(in)            :: i_generator,n_selected, Nint, iproc
-!   integer, intent(in) :: Ndet_non_ref
-!   double precision, intent(inout) :: delta_ij_non_ref_(Ndet_non_ref,Ndet_non_ref,*)
-! 
-!   integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
-!   integer                        :: i,j,k,m
-!   integer                        :: new_size
-!   integer                        :: degree(psi_det_size)
-!   integer                        :: idx(0:psi_det_size)
-!   logical                        :: good
-! 
-!   integer(bit_kind)              :: tq(Nint,2,n_selected)
-!   integer                        :: N_tq, c_ref
-!   integer                        :: connected_to_ref
-!   
-! 
-!   call find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq)
-! 
-!   ! Compute <k|H|a><a|H|j> / (E0 - Haa)
-!   double precision :: hka, haa
-!   double precision :: haj
-!   double precision :: f(N_states)
-! 
-!   do i=1,N_tq
-!     call get_excitation_degree_vector(psi_non_ref,tq(1,1,i),degree,Nint,Ndet_non_ref,idx)
-!     call i_h_j(tq(1,1,i),tq(1,1,i),Nint,haa)
-!     do m=1,N_states
-!       f(m) = 1.d0/(ci_electronic_energy(m)-haa)
-!     enddo
-!     do k=1,idx(0)
-!       call i_h_j(tq(1,1,i),psi_non_ref(1,1,idx(k)),Nint,hka)
-!       do j=k,idx(0)
-!         call i_h_j(tq(1,1,i),psi_non_ref(1,1,idx(j)),Nint,haj)
-!         do m=1,N_states
-!           delta_ij_non_ref_(idx(k), idx(j),m) += haj*hka* f(m)
-!           delta_ij_non_ref_(idx(j), idx(k),m) += haj*hka* f(m)
-!         enddo
-!       enddo 
-!     enddo
-!   enddo
-! end
 
 
  BEGIN_PROVIDER [ integer(bit_kind), gen_det_sorted,  (N_int,2,N_det_generators,2) ]
 &BEGIN_PROVIDER [ integer, gen_det_shortcut, (0:N_det_generators,2) ]
 &BEGIN_PROVIDER [ integer, gen_det_version, (N_int, N_det_generators,2) ]
 &BEGIN_PROVIDER [ integer, gen_det_idx, (N_det_generators,2) ]
-  
   gen_det_sorted(:,:,:,1) = psi_det_generators(:,:,:N_det_generators)
   gen_det_sorted(:,:,:,2) = psi_det_generators(:,:,:N_det_generators)
   call sort_dets_ab_v(gen_det_sorted(:,:,:,1), gen_det_idx(:,1), gen_det_shortcut(0:,1), gen_det_version(:,:,1), N_det_generators, N_int)
   call sort_dets_ba_v(gen_det_sorted(:,:,:,2), gen_det_idx(:,2), gen_det_shortcut(0:,2), gen_det_version(:,:,2), N_det_generators, N_int)
-  print *, " *********************** ", gen_det_shortcut(0,:)
 END_PROVIDER
 
 
@@ -311,165 +279,31 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
 
   integer(bit_kind), intent(out) :: tq(Nint,2,n_selected)
   integer, intent(out)           :: N_tq
-  integer                        :: c_ref
-  integer                        :: connected_to_ref
   
   
-  integer :: na, nb, nt,mex, lex, sh,ni
+  integer                        :: nt,ni
   
   
-  integer(bit_kind),intent(in)              :: miniList(Nint,2,N_det_generators)
+  integer(bit_kind),intent(in)  :: miniList(Nint,2,N_det_generators)
   integer,intent(in)            :: N_miniList
   
   
   
-  
   N_tq = 0
-  do i=1,N_selected
-!     c_ref = 0
-!     do j=1,N_miniList
-!       na = popcnt(xor(miniList(1,1,j), det_buffer(1,1,i)))
-!       nb = popcnt(xor(miniList(1,2,j), det_buffer(1,2,i)))
-!       if(na+nb <= 4) then
-!         c_ref = 1
-!         exit
-!       end if
-!     end do
- 
-  
-!   
-!     if(Nint /= 1) then
-!       c_ref = 0
-!       na = 0
-!       nb = 0
-!       do ni=1,Nint
-!         na += popcnt(xor(det_buffer(ni,1,i), psi_ref(ni,1,1)))
-!         nb += popcnt(xor(det_buffer(ni,2,i), psi_ref(ni,2,1)))
-!       end do
-!       if(na > nb) then
-!         mex = 1
-!         lex = 2
-!       else
-!         mex = 2
-!         lex = 1
-!       end if
-!       
-!       
-!       sh_loop : do sh=1,gen_det_shortcut(0,lex)
-!         do ni=1,Nint
-!           if(det_buffer(ni,lex,i) /= gen_det_sorted(ni,lex,gen_det_shortcut(sh, lex),lex)) then
-!             cycle sh_loop
-!           end if
-!         end do
-!         do j=gen_det_shortcut(sh,lex),gen_det_shortcut(sh+1,lex)-1
-!           if(gen_det_idx(j,lex) >= i_generator) then
-!             cycle
-!           end if
-!           nt = 0
-!           do ni=1,nint
-!             nt += popcnt(xor(det_buffer(ni,mex,i), gen_det_sorted(ni,mex,j,lex)))
-!           end do
-!           if(nt <= 4) then
-!   !           if(gen_det_idx(j,lex) < i_generator) then
-!               c_ref = 1!gen_det_idx(j,lex)
-!               exit sh_loop
-!   !           end if
-!           end if
-!         end do
-!         exit sh_loop
-!       end do sh_loop
-!       
-!       if(c_ref == 0) then
-!         sh_loop2 : do sh = 1,gen_det_shortcut(0,mex)
-!           na = 0
-!           do ni=1,Nint
-!             na += popcnt(xor(det_buffer(ni,mex,i), gen_det_sorted(ni,mex,gen_det_shortcut(sh, mex),mex)))
-!           end do
-!           if(na > 2) then
-!             cycle
-!           end if
-
-!           do j=gen_det_shortcut(sh, mex), gen_det_shortcut(sh+1,mex)-1
-!             if(gen_det_idx(j,mex) >= i_generator) then
-!               cycle
-!             end if
-!             nt = na
-!             do ni=1,Nint
-!               nt += popcnt(xor(det_buffer(ni,lex,i), gen_det_sorted(ni,lex,j,mex)))
-!             end do
-!             if(nt <= 4) then
-!   !             if(gen_det_idx(j,mex) < i_generator) then
-!                 c_ref = 2!gen_det_idx(j,mex)
-!                 exit sh_loop2
-!   !             end if
-!             end if
-!           end do
-!         end do sh_loop2
-!       end if
-!     else
-!       c_ref = 0
-!       na = popcnt(xor(det_buffer(1,1,i), psi_ref(1,1,1)))
-!       nb = popcnt(xor(det_buffer(1,2,i), psi_ref(1,2,1)))
-!       if(na > nb) then
-!         mex = 1
-!         lex = 2
-!       else
-!         mex = 2
-!         lex = 1
-!       end if
-!       
-!       
-!       sh_loop3 : do sh=1,gen_det_shortcut(0,lex)
-!         if(det_buffer(1,lex,i) /= gen_det_version(1,sh,lex)) then!gen_det_sorted(1,lex,gen_det_shortcut(sh, lex),lex)) then
-!           cycle sh_loop3
-!         end if
-!         do j=gen_det_shortcut(sh,lex),gen_det_shortcut(sh+1,lex)-1
-!           if(gen_det_idx(j,lex) >= i_generator) then
-!             cycle
-!           end if
-!           nt =  popcnt(xor(det_buffer(1,mex,i), gen_det_sorted(1,mex,j,lex)))
-!           if(nt <= 4) then
-!   !           if(gen_det_idx(j,lex) < i_generator) then
-!               c_ref = 1!gen_det_idx(j,lex)
-!               exit sh_loop3
-!   !           end if
-!           end if
-!         end do
-!         exit sh_loop3
-!       end do sh_loop3
-!       
-!       if(c_ref == 0) then
-!         sh_loop4 : do sh = 1,gen_det_shortcut(0,mex)
-!           na = popcnt(xor(det_buffer(1,mex,i),gen_det_version(1,sh,mex)))! gen_det_sorted(1,mex,gen_det_shortcut(sh, mex),mex)))
-!           if(na > 2) then
-!             cycle sh_loop4
-!           end if
-!           do j=gen_det_shortcut(sh, mex), gen_det_shortcut(sh+1,mex)-1
-!             if(gen_det_idx(j,mex) >= i_generator) then
-!               cycle
-!             end if
-!             nt = na
-!             nt += popcnt(xor(det_buffer(1,lex,i), gen_det_sorted(1,lex,j,mex)))
-!             if(nt <= 4) then
-!   !             if(gen_det_idx(j,mex) < i_generator) then
-!                 c_ref = 2!gen_det_idx(j,mex)
-!                 exit sh_loop4
-!   !             end if
-!             end if
-!           end do
-!         end do sh_loop4
-!       end if
+  i_loop : do i=1,N_selected
+    do j=1,N_miniList
+      nt = 0
+      do ni=1,Nint
+        nt += popcnt(xor(miniList(ni,1,j), det_buffer(ni,1,i))) + popcnt(xor(miniList(ni,2,j), det_buffer(ni,2,i)))
+      end do
+      if(nt <= 4) then
+        cycle i_loop
+      end if
+    end do
+!     if(connected_to_ref(det_buffer(1,1,i),psi_det_generators,Nint, &
+!        i_generator,N_det_generators) /= 0) then
+!         cycle i_loop
 !     end if
-
-
-
-    c_ref = connected_to_ref(det_buffer(1,1,i),psi_det_generators,Nint, &
-       i_generator,N_det_generators)
-
-
-    if (c_ref /= 0) then
-      cycle
-    endif
 
     ! Select determinants that are triple or quadruple excitations
     ! from the ref
@@ -491,8 +325,7 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
         enddo
       endif
     endif
-  enddo
-
+  enddo i_loop
 end
 
 
