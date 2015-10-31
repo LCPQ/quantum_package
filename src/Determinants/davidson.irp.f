@@ -288,7 +288,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   integer(bit_kind)              :: dets_in_sorted(Nint, 2, sze)
   integer                        :: idx(sze), shortcut(0:sze+1)
   
-  PROVIDE det_connections
+  !PROVIDE det_connections
 
   call write_time(iunit)
   call wall_time(wall)
