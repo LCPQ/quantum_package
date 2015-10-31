@@ -1,42 +1,3 @@
-===========
-Dets Module
-===========
-
-This module contains the determinants of the CI wave function.
-
-H is applied on the list of generator determinants. Selected determinants
-are added into the *H_apply buffer*. Then the new wave function is
-constructred as the concatenation of the odl wave function and
-some determinants of the H_apply buffer. Generator determinants are built
-as a subset of the determinants of the wave function.
-
-
-Assumptions
-===========
-
-.. Do not edit this section. It was auto-generated from the
-.. NEEDED_MODULES_CHILDREN file by the `update_README.py` script.
-
-* The MOs are orthonormal
-* All the determinants have the same number of electrons
-* The determinants are orthonormal
-* The number of generator determinants <= the number of determinants
-* All the determinants in the H_apply buffer are supposed to be different from the 
-  wave function determinants
-* All the determinants in the H_apply buffer are supposed to be unique
-
-
-Needed Modules
-==============
-
-.. Do not edit this section It was auto-generated
-.. by the `update_README.py` script.
-
-.. image:: tree_dependency.png
-
-* `Integrals_Monoelec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec>`_
-* `Integrals_Bielec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec>`_
-
 Needed Modules
 ==============
 .. Do not edit this section It was auto-generated
@@ -157,11 +118,11 @@ Documentation
   of alpha and beta determinants
 
 
-`davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L492>`_
+`davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L563>`_
   True if the Davidson algorithm is converged
 
 
-`davidson_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L482>`_
+`davidson_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L553>`_
   Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
 
@@ -184,7 +145,7 @@ Documentation
   Initial guess vectors are not necessarily orthonormal
 
 
-`davidson_diag_hjj <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L168>`_
+`davidson_diag_hjj <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L239>`_
   Davidson diagonalization with specific diagonal elements of the H matrix
   .br
   H_jj : specific diagonal H matrix elements to diagonalize de Davidson
@@ -213,7 +174,7 @@ Documentation
   Max number of Davidson sizes
 
 
-`davidson_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L483>`_
+`davidson_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L554>`_
   Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
 
@@ -229,7 +190,7 @@ Documentation
   det_coef
 
 
-`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1379>`_
+`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1380>`_
   Build connection proxy between determinants
 
 
@@ -317,7 +278,7 @@ Documentation
   idx(0) is the number of determinants that interact with key1
 
 
-`filter_connected_davidson <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L316>`_
+`filter_connected_davidson <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L257>`_
   Filters out the determinants that are not connected by H
   returns the array idx which contains the index of the
   determinants in the array key1 that interact
@@ -327,7 +288,7 @@ Documentation
   key1 should come from psi_det_sorted_ab.
 
 
-`filter_connected_davidson_shortcut <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L252>`_
+`filter_connected_davidson_shortcut <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L193>`_
   Filters out the determinants that are not connected by H
   returns the array idx which contains the index of the
   determinants in the array key1 that interact
@@ -337,7 +298,7 @@ Documentation
   key1 should come from psi_det_sorted_ab.
 
 
-`filter_connected_davidson_warp <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L161>`_
+`filter_connected_davidson_warp <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L102>`_
   Filters out the determinants that are not connected by H
   returns the array idx which contains the index of the
   determinants in the array key1 that interact
@@ -347,7 +308,7 @@ Documentation
   key1 should come from psi_det_sorted_ab.
 
 
-`filter_connected_i_h_psi0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L447>`_
+`filter_connected_i_h_psi0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L389>`_
   returns the array idx which contains the index of the
   .br
   determinants in the array key1 that interact
@@ -357,7 +318,7 @@ Documentation
   idx(0) is the number of determinants that interact with key1
 
 
-`filter_connected_i_h_psi0_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L546>`_
+`filter_connected_i_h_psi0_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L488>`_
   standard filter_connected_i_H_psi but returns in addition
   .br
   the array of the index of the non connected determinants to key1
@@ -367,16 +328,6 @@ Documentation
   idx_repeat(0) is the number of determinants that can be used
   .br
   to repeat the excitations
-
-
-`filter_connected_sorted_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L101>`_
-  Filters out the determinants that are not connected by H
-  returns the array idx which contains the index of the
-  determinants in the array key1 that interact
-  via the H operator with key2.
-  idx(0) is the number of determinants that interact with key1
-  .br
-  Determinants are taken from the psi_det_sorted_ab array
 
 
 `generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L472>`_
@@ -457,7 +408,7 @@ Documentation
   H_jj : array of <j|H|j>
 
 
-`h_u_0_org <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1302>`_
+`h_u_0_org <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1303>`_
   Computes v_0 = H|u_0>
   .br
   n : number of determinants
@@ -556,7 +507,7 @@ Documentation
   Energy of the reference bitmask used in Slater rules
 
 
-`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1371>`_
+`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1372>`_
   Number of integers to represent the connections between determinants
 
 
@@ -921,7 +872,15 @@ Documentation
   for a given couple of hole/particle excitations i.
 
 
-`sort_dets_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L124>`_
+`sort_dets_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L195>`_
+  Undocumented
+
+
+`sort_dets_ab_v <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L148>`_
+  Undocumented
+
+
+`sort_dets_ba_v <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L124>`_
   Undocumented
 
 

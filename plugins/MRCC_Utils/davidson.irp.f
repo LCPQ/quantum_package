@@ -431,7 +431,6 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,shortcut,sort_idx,Nint,istate)
     do ii=shortcut(sh),shortcut(sh+1)-1
       idx(0) = ii
       
-      
       !call filter_connected_davidson_mwen(keys_tmp,shortcut,keys_tmp(1,1,ii),Nint,ii-1,idx)
       call filter_connected_davidson_warp(keys_tmp,warp,keys_tmp(1,1,ii),Nint,ii-1,idx)
       i = sort_idx(ii)

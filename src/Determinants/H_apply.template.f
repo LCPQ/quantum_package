@@ -31,30 +31,30 @@ subroutine $subroutine_diexc(key_in, key_prev, hole_1,particl_1, hole_2, particl
     end do
   end do
   
-! GEL D'ELECTRONS
-!  nt = 0
+! ! GEL D'ELECTRONS
+! !  nt = 0
 !   do i=1,i_generator-1
 !     if(key_in(1,1) == key_prev(1,1,i)) then
 !       tmp = xor(key_in(1,2), key_prev(1,2,i))
 !       if(popcnt(tmp) == 2) then
 !         ns = 1+trailz(iand(tmp, key_in(1,2)))
-!         if(status(ns, 2) /= 0) then
-!           nt += 1
-!         end if
+! !         if(status(ns, 2) /= 0) then
+! !           nt += 1
+! !         end if
 !         status(ns, 2) = 0
 !       end if
 !     else if(key_in(1,2) == key_prev(1,2,i)) then
 !       tmp = xor(key_in(1,1), key_prev(1,1,i))
 !       if(popcnt(tmp) == 2) then
 !         ns = 1+trailz(iand(tmp, key_in(1,1)))
-!         if(status(ns, 1) /= 0) then
-!           nt += 1
-!         end if
+! !         if(status(ns, 1) /= 0) then
+! !           nt += 1
+! !         end if
 !         status(ns, 1) = 0
 !       end if
 !     end if
 !   end do
-!  print *, "nt", nt, i_generator
+! !  print *, "nt", nt, i_generator
   
   
   do sp=1,2
