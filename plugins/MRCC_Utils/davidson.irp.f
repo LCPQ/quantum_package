@@ -215,8 +215,9 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
       ! ----------------------
       
       do k=1,N_st
-        call H_u_0_mrcc(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in_sorted,shortcut,idx,Nint,istate)
+        !call H_u_0_mrcc(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in_sorted,shortcut,idx,Nint,istate)
         !call H_u_0_mrcc_org(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint,istate)
+        call H_u_0_mrcc(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint,istate)
       enddo
       
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
@@ -368,7 +369,9 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
   abort_here = abort_all
 end
 
-subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,shortcut,sort_idx,Nint,istate)
+
+
+subroutine H_u_0_mrcc_myold(v_0,u_0,H_jj,n,keys_tmp,shortcut,sort_idx,Nint,istate)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -446,6 +449,131 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,shortcut,sort_idx,Nint,istate)
     enddo
   enddo
   !$OMP END DO
+  
+  
+  
+  !$OMP DO SCHEDULE(guided)
+  do ii=1,n_det_ref
+    i = idx_ref(ii)
+    do jj = 1, n_det_non_ref
+        j = idx_non_ref(jj)
+        vt (i) = vt (i) + delta_ij(ii,jj,istate)*u_0(j)
+        vt (j) = vt (j) + delta_ij(ii,jj,istate)*u_0(i)
+    enddo
+  enddo
+  !$OMP END DO
+  !$OMP CRITICAL
+  do i=1,n
+    v_0(i) = v_0(i) + vt(i)
+  enddo
+  !$OMP END CRITICAL
+  deallocate(idx,vt)
+  !$OMP END PARALLEL
+end
+
+
+subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes v_0 = H|u_0>
+  !   
+  ! n : number of determinants
+  !     
+  ! H_jj : array of <j|H|j>
+  END_DOC
+  integer, intent(in)            :: n,Nint,istate
+  double precision, intent(out)  :: v_0(n)
+  double precision, intent(in)   :: u_0(n)
+  double precision, intent(in)   :: H_jj(n)
+  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
+  integer, allocatable           :: idx(:)
+  double precision               :: hij
+  double precision, allocatable  :: vt(:)
+  integer                        :: i,j,k,l, jj,ii
+  integer                        :: i0, j0
+  
+  integer                        :: shortcut(0:n+1), sort_idx(n)
+  integer(bit_kind)              :: sorted(Nint,n), version(Nint,n)
+  integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, pass
+!   
+  
+  ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
+  ASSERT (n>0)
+  PROVIDE ref_bitmask_energy delta_ij
+  integer, parameter             :: block_size = 157
+  
+ 
+   !$OMP PARALLEL DEFAULT(NONE)                                       &
+      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt,ii,sh, sh2, ni, exa, ext, org_i, org_j, endi, pass)                             &
+      !$OMP SHARED(n_det_ref,n_det_non_ref,idx_ref,idx_non_ref,n,H_jj,u_0,keys_tmp,Nint,v_0,istate,delta_ij,sorted,shortcut,sort_idx,version)
+      
+      
+      
+ !$OMP DO SCHEDULE(static)
+  do i=1,n  
+    v_0(i) = H_jj(i) * u_0(i)
+  enddo 
+  !$OMP END DO
+
+  allocate(idx(0:n), vt(n))
+  Vt = 0.d0
+  
+  do pass=1,2
+    if(pass == 1) then
+      call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
+    else
+      call sort_dets_ba_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
+    end if
+    
+
+    !$OMP DO SCHEDULE(dynamic)
+    do sh=1,shortcut(0)
+    
+    if(pass == 2) then
+      endi = sh
+    else
+      endi = 1
+    end if
+    
+    do sh2=endi,sh
+      exa = 0
+      do ni=1,Nint
+        exa += popcnt(xor(version(ni,sh), version(ni,sh2)))
+      end do
+      if(exa > 2) then
+        cycle
+      end if
+      
+      do i=shortcut(sh),shortcut(sh+1)-1
+        if(sh==sh2) then
+          endi = i-1
+        else
+          endi = shortcut(sh2+1)-1
+        end if
+        
+        do j=shortcut(sh2),endi
+          ext = exa
+          do ni=1,Nint
+            ext += popcnt(xor(sorted(ni,i), sorted(ni,j)))
+          end do
+          if(ext <= 4) then
+            org_i = sort_idx(i)
+            org_j = sort_idx(j)
+            if ( (dabs(u_0(org_j)) > 1.d-7).or.((dabs(u_0(org_i)) > 1.d-7)) ) then
+              call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
+              vt (org_i) = vt (org_i) + hij*u_0(org_j)
+              vt (org_j) = vt (org_j) + hij*u_0(org_i)
+            endif
+          end if
+        end do
+      end do
+    end do
+    enddo
+   !$OMP END DO
+  end do
+ 
   
   
   
