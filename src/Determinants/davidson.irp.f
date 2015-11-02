@@ -178,6 +178,7 @@ subroutine sort_dets_ab_v(key_in, key_out, idx, shortcut, version, N_key, Nint)
   
   shortcut(0) = 1
   shortcut(1) = 1
+  version(:,1) = key(:,1,1)
   do i=2,N_key
     do ni=1,nint
       if(key(ni,1,i) /= key(ni,1,i-1)) then

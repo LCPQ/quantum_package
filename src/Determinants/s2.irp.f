@@ -132,62 +132,78 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
       !$OMP REDUCTION(+:s2)
   allocate(idx(0:n))
   
-  do pass=1,2
-    if(pass == 1) then
-      call sort_dets_ab_v(psi_keys_tmp, sorted, sort_idx, shortcut, version, n, N_int)
-    else
-      call sort_dets_ba_v(psi_keys_tmp, sorted, sort_idx, shortcut, version, n, N_int)
+  
+  !$OMP SINGLE
+  call sort_dets_ab_v(psi_keys_tmp, sorted, sort_idx, shortcut, version, n, N_int)
+  !$OMP END SINGLE
+  
+  !$OMP DO SCHEDULE(dynamic)
+  do sh=1,shortcut(0)
+  
+  do sh2=1,sh
+    exa = 0
+    do ni=1,N_int
+      exa += popcnt(xor(version(ni,sh), version(ni,sh2)))
+    end do
+    if(exa > 2) then
+      cycle
     end if
     
-    
-    !$OMP DO SCHEDULE(dynamic)
-    do sh=1,shortcut(0)
-    
-    if(pass == 2) then
-      endi = sh
-    else
-      endi = 1
-    end if
-    
-    do sh2=endi,sh
-      exa = 0
-      do ni=1,N_int
-        exa += popcnt(xor(version(ni,sh), version(ni,sh2)))
-      end do
-      if(exa > 2) then
-        cycle
+    do i=shortcut(sh),shortcut(sh+1)-1
+      if(sh==sh2) then
+        endi = i-1
+      else
+        endi = shortcut(sh2+1)-1
       end if
       
-      do i=shortcut(sh),shortcut(sh+1)-1
-        if(sh==sh2) then
-          endi = i-1
-        else
-          endi = shortcut(sh2+1)-1
-        end if
-        
-        do j=shortcut(sh2),endi
-          ext = exa
-          do ni=1,N_int
-            ext += popcnt(xor(sorted(ni,i), sorted(ni,j)))
-          end do
-          if(ext <= 4) then
-            org_i = sort_idx(i)
-            org_j = sort_idx(j)
-            
-            
-            if ( dabs(psi_coefs_tmp(org_j)) + dabs(psi_coefs_tmp(org_i))            &
-                  > davidson_threshold ) then
-              call get_s2(psi_keys_tmp(1,1,org_i),psi_keys_tmp(1,1,org_j),s2_tmp,N_int)
-              s2 = s2 + psi_coefs_tmp(org_i)*psi_coefs_tmp(org_j)*s2_tmp
-            endif
-
-          end if
+      do j=shortcut(sh2),endi
+        ext = exa
+        do ni=1,N_int
+          ext += popcnt(xor(sorted(ni,i), sorted(ni,j)))
         end do
+        if(ext <= 4) then
+          org_i = sort_idx(i)
+          org_j = sort_idx(j)
+          
+          if ( dabs(psi_coefs_tmp(org_j)) + dabs(psi_coefs_tmp(org_i))            &
+                > davidson_threshold ) then
+            call get_s2(psi_keys_tmp(1,1,org_i),psi_keys_tmp(1,1,org_j),s2_tmp,N_int)
+            s2 = s2 + psi_coefs_tmp(org_i)*psi_coefs_tmp(org_j)*s2_tmp
+          endif
+        end if
       end do
     end do
-    enddo
-   !$OMP END DO
   end do
+  enddo
+  !$OMP END DO
+  
+  !$OMP SINGLE
+  call sort_dets_ba_v(psi_keys_tmp, sorted, sort_idx, shortcut, version, n, N_int)
+  !$OMP END SINGLE
+  
+  !$OMP DO SCHEDULE(dynamic)
+  do sh=1,shortcut(0)
+    do i=shortcut(sh),shortcut(sh+1)-1    
+      do j=shortcut(sh),i-1
+        ext = 0
+        do ni=1,N_int
+          ext += popcnt(xor(sorted(ni,i), sorted(ni,j)))
+        end do
+        if(ext <= 4) then
+          org_i = sort_idx(i)
+          org_j = sort_idx(j)
+          
+          if ( dabs(psi_coefs_tmp(org_j)) + dabs(psi_coefs_tmp(org_i))            &
+                > davidson_threshold ) then
+            call get_s2(psi_keys_tmp(1,1,org_i),psi_keys_tmp(1,1,org_j),s2_tmp,N_int)
+            s2 = s2 + psi_coefs_tmp(org_i)*psi_coefs_tmp(org_j)*s2_tmp
+          endif
+        end if
+      end do
+    end do          
+  enddo
+  !$OMP END DO
+  
  deallocate(idx)
  !$OMP END PARALLEL
  s2 = s2+s2

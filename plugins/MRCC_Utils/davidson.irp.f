@@ -495,6 +495,8 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
   
   integer                        :: shortcut(0:n+1), sort_idx(n)
   integer(bit_kind)              :: sorted(Nint,n), version(Nint,n)
+  
+  
   integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, pass
 !   
   
@@ -520,61 +522,72 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
   allocate(idx(0:n), vt(n))
   Vt = 0.d0
   
-  do pass=1,2
-    if(pass == 1) then
-      call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
-    else
-      call sort_dets_ba_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
-    end if
-    
+  
+  !$OMP SINGLE
+  call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
+  !$OMP END SINGLE
+  
 
-    !$OMP DO SCHEDULE(dynamic)
-    do sh=1,shortcut(0)
-    
-    if(pass == 2) then
-      endi = sh
-    else
-      endi = 1
+  !$OMP DO SCHEDULE(dynamic)
+  do sh=1,shortcut(0)
+  do sh2=1,sh
+    exa = 0
+    do ni=1,Nint
+      exa += popcnt(xor(version(ni,sh), version(ni,sh2)))
+    end do
+    if(exa > 2) then
+      cycle
     end if
     
-    do sh2=endi,sh
-      exa = 0
-      do ni=1,Nint
-        exa += popcnt(xor(version(ni,sh), version(ni,sh2)))
-      end do
-      if(exa > 2) then
-        cycle
+    do i=shortcut(sh),shortcut(sh+1)-1
+      if(sh==sh2) then
+        endi = i-1
+      else
+        endi = shortcut(sh2+1)-1
       end if
       
-      do i=shortcut(sh),shortcut(sh+1)-1
-        if(sh==sh2) then
-          endi = i-1
-        else
-          endi = shortcut(sh2+1)-1
-        end if
-        
-        do j=shortcut(sh2),endi
-          ext = exa
-          do ni=1,Nint
-            ext += popcnt(xor(sorted(ni,i), sorted(ni,j)))
-          end do
-          if(ext <= 4) then
-            org_i = sort_idx(i)
-            org_j = sort_idx(j)
-            if ( (dabs(u_0(org_j)) > 1.d-7).or.((dabs(u_0(org_i)) > 1.d-7)) ) then
-              call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
-              vt (org_i) = vt (org_i) + hij*u_0(org_j)
-              vt (org_j) = vt (org_j) + hij*u_0(org_i)
-            endif
-          end if
+      do j=shortcut(sh2),endi
+        ext = exa
+        do ni=1,Nint
+          ext += popcnt(xor(sorted(ni,i), sorted(ni,j)))
         end do
+        if(ext <= 4) then
+          org_i = sort_idx(i)
+          org_j = sort_idx(j)
+          
+          call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
+          vt (org_i) = vt (org_i) + hij*u_0(org_j)
+          vt (org_j) = vt (org_j) + hij*u_0(org_i)
+        end if
       end do
     end do
-    enddo
-   !$OMP END DO
   end do
- 
+  enddo
+  !$OMP END DO
   
+  !$OMP SINGLE
+  call sort_dets_ba_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
+  !$OMP END SINGLE
+ 
+  !$OMP DO SCHEDULE(dynamic)
+  do sh=1,shortcut(0)
+    do i=shortcut(sh),shortcut(sh+1)-1
+      do j=shortcut(sh),i-1
+        ext = 0
+        do ni=1,Nint
+          ext += popcnt(xor(sorted(ni,i), sorted(ni,j)))
+        end do
+        if(ext <= 4) then
+          org_i = sort_idx(i)
+          org_j = sort_idx(j)
+          call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
+          vt (org_i) = vt (org_i) + hij*u_0(org_j)
+          vt (org_j) = vt (org_j) + hij*u_0(org_i)
+        end if
+      end do
+    end do
+  enddo
+  !$OMP END DO
   
   
   !$OMP DO SCHEDULE(guided)
