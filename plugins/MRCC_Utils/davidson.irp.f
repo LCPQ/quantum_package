@@ -577,7 +577,7 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
         do ni=1,Nint
           ext += popcnt(xor(sorted(ni,i), sorted(ni,j)))
         end do
-        if(ext <= 4) then
+        if(ext == 4) then
           org_i = sort_idx(i)
           org_j = sort_idx(j)
           call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)

@@ -189,7 +189,7 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
         do ni=1,N_int
           ext += popcnt(xor(sorted(ni,i), sorted(ni,j)))
         end do
-        if(ext <= 4) then
+        if(ext == 4) then
           org_i = sort_idx(i)
           org_j = sort_idx(j)
           
