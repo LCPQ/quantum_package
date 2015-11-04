@@ -107,35 +107,103 @@ subroutine get_s2_u0_old(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
 end
 
 subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
- implicit none
- use bitmasks
- integer(bit_kind), intent(in) :: psi_keys_tmp(N_int,2,nmax)
- integer, intent(in) :: n,nmax
- double precision, intent(in) :: psi_coefs_tmp(nmax)
- double precision, intent(out) :: s2
- double precision :: s2_tmp
- integer :: i,j,l,jj
- integer, allocatable           :: idx(:)
- s2 = 0.d0
- !$OMP PARALLEL DEFAULT(NONE)                                        &
-     !$OMP PRIVATE(i,j,s2_tmp,idx)                                   &
-     !$OMP SHARED(n,psi_coefs_tmp,psi_keys_tmp,N_int,davidson_threshold)&
-     !$OMP REDUCTION(+:s2)
- allocate(idx(0:n))
- !$OMP DO SCHEDULE(dynamic)
- do i=1,n
-   idx(0) = i
-   call filter_connected_davidson(psi_keys_tmp,psi_keys_tmp(1,1,i),N_int,i-1,idx)
-   do jj=1,idx(0)
-     j = idx(jj)
-     if ( dabs(psi_coefs_tmp(j)) + dabs(psi_coefs_tmp(i))            &
-           > davidson_threshold ) then
-       call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,j),s2_tmp,N_int)
-       s2 = s2 + psi_coefs_tmp(i)*psi_coefs_tmp(j)*s2_tmp
-     endif
-   enddo
- enddo
- !$OMP END DO
+  implicit none
+  use bitmasks
+  integer(bit_kind), intent(in) :: psi_keys_tmp(N_int,2,nmax)
+  integer, intent(in) :: n,nmax
+  double precision, intent(in) :: psi_coefs_tmp(nmax)
+  double precision, intent(out) :: s2
+  double precision :: s2_tmp
+  integer :: i,j,l,jj,ii
+  integer, allocatable           :: idx(:)
+ 
+  integer                        :: shortcut(0:n+1), sort_idx(n)
+  integer(bit_kind)              :: sorted(N_int,n), version(N_int,n)
+  integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, pass
+  double precision               :: davidson_threshold_bis
+
+  !PROVIDE davidson_threshold
+  
+  s2 = 0.d0
+  davidson_threshold_bis = davidson_threshold
+  !$OMP PARALLEL DEFAULT(NONE)                                        &
+      !$OMP PRIVATE(i,j,s2_tmp,idx,sh, sh2, ni, exa, ext, org_i, org_j, endi, pass)                                   &
+      !$OMP SHARED(n,psi_coefs_tmp,psi_keys_tmp,N_int,davidson_threshold,shortcut,sorted,sort_idx,version)&
+      !$OMP REDUCTION(+:s2)
+  allocate(idx(0:n))
+  
+  
+  !$OMP SINGLE
+  call sort_dets_ab_v(psi_keys_tmp, sorted, sort_idx, shortcut, version, n, N_int)
+  !$OMP END SINGLE
+  
+  !$OMP DO SCHEDULE(dynamic)
+  do sh=1,shortcut(0)
+  
+  do sh2=1,sh
+    exa = 0
+    do ni=1,N_int
+      exa += popcnt(xor(version(ni,sh), version(ni,sh2)))
+    end do
+    if(exa > 2) then
+      cycle
+    end if
+    
+    do i=shortcut(sh),shortcut(sh+1)-1
+      if(sh==sh2) then
+        endi = i-1
+      else
+        endi = shortcut(sh2+1)-1
+      end if
+      
+      do j=shortcut(sh2),endi
+        ext = exa
+        do ni=1,N_int
+          ext += popcnt(xor(sorted(ni,i), sorted(ni,j)))
+        end do
+        if(ext <= 4) then
+          org_i = sort_idx(i)
+          org_j = sort_idx(j)
+          
+          if ( dabs(psi_coefs_tmp(org_j)) + dabs(psi_coefs_tmp(org_i))            &
+                > davidson_threshold ) then
+            call get_s2(psi_keys_tmp(1,1,org_i),psi_keys_tmp(1,1,org_j),s2_tmp,N_int)
+            s2 = s2 + psi_coefs_tmp(org_i)*psi_coefs_tmp(org_j)*s2_tmp
+          endif
+        end if
+      end do
+    end do
+  end do
+  enddo
+  !$OMP END DO
+  
+  !$OMP SINGLE
+  call sort_dets_ba_v(psi_keys_tmp, sorted, sort_idx, shortcut, version, n, N_int)
+  !$OMP END SINGLE
+  
+  !$OMP DO SCHEDULE(dynamic)
+  do sh=1,shortcut(0)
+    do i=shortcut(sh),shortcut(sh+1)-1    
+      do j=shortcut(sh),i-1
+        ext = 0
+        do ni=1,N_int
+          ext += popcnt(xor(sorted(ni,i), sorted(ni,j)))
+        end do
+        if(ext == 4) then
+          org_i = sort_idx(i)
+          org_j = sort_idx(j)
+          
+          if ( dabs(psi_coefs_tmp(org_j)) + dabs(psi_coefs_tmp(org_i))            &
+                > davidson_threshold ) then
+            call get_s2(psi_keys_tmp(1,1,org_i),psi_keys_tmp(1,1,org_j),s2_tmp,N_int)
+            s2 = s2 + psi_coefs_tmp(org_i)*psi_coefs_tmp(org_j)*s2_tmp
+          endif
+        end if
+      end do
+    end do          
+  enddo
+  !$OMP END DO
+  
  deallocate(idx)
  !$OMP END PARALLEL
  s2 = s2+s2
@@ -145,4 +213,5 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
  enddo
  s2 = s2 + S_z2_Sz
 end
+
 

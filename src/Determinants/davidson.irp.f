@@ -121,35 +121,34 @@ subroutine tamiser(key, idx, no, n, Nint, N_key)
 end subroutine
 
 
-subroutine sort_dets_ba_v(key, idx, shortcut, version, N_key, Nint)
-
+subroutine sort_dets_ba_v(key_in, key_out, idx, shortcut, version, N_key, Nint)
   use bitmasks
   implicit none
-  integer(bit_kind),intent(inout)       :: key(Nint,2,N_key)
+  integer(bit_kind),intent(in)          :: key_in(Nint,2,N_key)
+  integer(bit_kind)                     :: key(Nint,2,N_key)
+  integer(bit_kind),intent(out)         :: key_out(Nint,N_key)
   integer,intent(out)                   :: idx(N_key)
   integer,intent(out)                   :: shortcut(0:N_key+1)
     integer(bit_kind),intent(out)       :: version(Nint,N_key+1)
   integer, intent(in)                   :: Nint, N_key
   integer(bit_kind)                     :: tmp(Nint, 2,N_key)
   
-  tmp(:,1,:N_key) = key(:,2,:N_key)
-  tmp(:,2,:N_key) = key(:,1,:N_key)
+  key(:,1,:N_key) = key_in(:,2,:N_key)
+  key(:,2,:N_key) = key_in(:,1,:N_key)
   
 
-  call sort_dets_ab_v(tmp, idx, shortcut, version, N_key, Nint)
-
-  
-  key(:,1,:N_key) = tmp(:,2,:N_key)
-  key(:,2,:N_key) = tmp(:,1,:N_key)
+  call sort_dets_ab_v(key, key_out, idx, shortcut, version, N_key, Nint)
 end subroutine
 
 
 
-subroutine sort_dets_ab_v(key, idx, shortcut, version, N_key, Nint)
+subroutine sort_dets_ab_v(key_in, key_out, idx, shortcut, version, N_key, Nint)
   use bitmasks
   implicit none
   
-  integer(bit_kind),intent(inout)       :: key(Nint,2,N_key)
+  integer(bit_kind),intent(in)          :: key_in(Nint,2,N_key)
+  integer(bit_kind)                     :: key(Nint,2,N_key)
+  integer(bit_kind),intent(out)         :: key_out(Nint,N_key)
   integer,intent(out)                   :: idx(N_key)
   integer,intent(out)                   :: shortcut(0:N_key+1)
   integer(bit_kind),intent(out)         :: version(Nint,N_key+1)
@@ -157,6 +156,7 @@ subroutine sort_dets_ab_v(key, idx, shortcut, version, N_key, Nint)
   integer(bit_kind)                     :: tmp(Nint, 2)
   integer                               :: tmpidx,i,ni
   
+  key(:,:,:) = key_in(:,:,:)
   do i=1,N_key
     idx(i) = i
   end do
@@ -177,6 +177,7 @@ subroutine sort_dets_ab_v(key, idx, shortcut, version, N_key, Nint)
   
   shortcut(0) = 1
   shortcut(1) = 1
+  version(:,1) = key(:,1,1)
   do i=2,N_key
     do ni=1,nint
       if(key(ni,1,i) /= key(ni,1,i-1)) then
@@ -188,6 +189,7 @@ subroutine sort_dets_ab_v(key, idx, shortcut, version, N_key, Nint)
     end do
   end do
   shortcut(shortcut(0)+1) = N_key+1
+  key_out(:,:) = key(:,2,:)
 end subroutine
 
 c
@@ -288,7 +290,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   integer(bit_kind)              :: dets_in_sorted(Nint, 2, sze)
   integer                        :: idx(sze), shortcut(0:sze+1)
   
-  PROVIDE det_connections
+  !PROVIDE det_connections
 
   call write_time(iunit)
   call wall_time(wall)
