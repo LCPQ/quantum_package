@@ -122,7 +122,6 @@ end subroutine
 
 
 subroutine sort_dets_ba_v(key_in, key_out, idx, shortcut, version, N_key, Nint)
-
   use bitmasks
   implicit none
   integer(bit_kind),intent(in)          :: key_in(Nint,2,N_key)
