@@ -99,7 +99,7 @@ class H_apply(object):
   deallocate(H_jj,iorder)
     """
 
-    s["size_max"] = str(1024*128) 
+    s["size_max"] = "256"
     s["copy_buffer"] = """call copy_H_apply_buffer_to_wf
   if (s2_eig) then
     call make_s2_eigenfunction
@@ -266,7 +266,7 @@ class H_apply(object):
       double precision, intent(inout) :: select_max_out"""
 
       self.data["params_post"] += ", select_max(min(i_generator,size(select_max,1)))"
-      self.data["size_max"] = str(1024*128) 
+      self.data["size_max"] = "256"
       self.data["copy_buffer"] = """
       call copy_H_apply_buffer_to_wf
       if (s2_eig) then

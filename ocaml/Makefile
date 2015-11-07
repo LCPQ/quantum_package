@@ -30,7 +30,7 @@ default: $(ALL_TESTS) $(ALL_EXE) .gitignore
 	qp_edit.ml qp_edit qp_edit.native Input_auto_generated.ml;\
 	do \
 	   echo $$i ; \
-	done > .gitignore
+	done |sort | uniq > .gitignore
 
 executables: $(QP_ROOT)/data/executables
 
