@@ -16,8 +16,11 @@ Makefile.depend
 Nuclei
 Pseudo
 Utils
+e_curve_qmc
 ezfio_interface.irp.f
 irpf90.make
 irpf90_entities
 save_for_qmcchem
 tags
+target_pt2_qmc
+test

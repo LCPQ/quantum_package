@@ -161,6 +161,10 @@ Documentation
   optional: mo_basis.mo_coef
 
 
+`simple_scf <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/simple_SCF.irp.f#L1>`_
+  Undocumented
+
+
 `thresh_scf <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L46>`_
   Threshold on the convergence of the Hartree Fock energy
 

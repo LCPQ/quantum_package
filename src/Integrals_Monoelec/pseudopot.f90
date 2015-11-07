@@ -214,13 +214,14 @@ integer :: l,k, nkl_max
 ! |_) | (_|   (_| |  | (_| \/ 
 !        _|                /  
 
-double precision, allocatable :: array_coefs_A(:,:,:)
-double precision, allocatable :: array_coefs_B(:,:,:)
+double precision, allocatable :: array_coefs_A(:,:)
+double precision, allocatable :: array_coefs_B(:,:)
 
 double precision, allocatable :: array_R(:,:,:,:,:)
 double precision, allocatable :: array_I_A(:,:,:,:,:)
 double precision, allocatable :: array_I_B(:,:,:,:,:)
 
+double precision :: f1, f2, f3
 
 !  _                
 ! /   _. |  _     | 
@@ -255,14 +256,14 @@ nkl_max=4
 ! A l l o c a t e !
 !=!=!=!=!=!=!=!=!=!
 
-allocate (array_coefs_A(0:ntot,0:ntot,0:ntot))
-allocate (array_coefs_B(0:ntot,0:ntot,0:ntot))
+allocate (array_coefs_A(0:ntot,3))
+allocate (array_coefs_B(0:ntot,3))
 
-allocate (array_R(0:ntot+nkl_max,kmax,0:lmax,0:lmax+ntot,0:lmax+ntot))
+allocate (array_R(kmax,0:ntot+nkl_max,0:lmax,0:lmax+ntot,0:lmax+ntot))
 
-allocate (array_I_A(0:lmax+ntot,-(lmax+ntot):lmax+ntot,0:ntot,0:ntot,0:ntot))
-
-allocate (array_I_B(0:lmax+ntot,-(lmax+ntot):lmax+ntot,0:ntot,0:ntot,0:ntot))
+allocate (array_I_A(-(lmax+ntot):lmax+ntot,0:lmax+ntot,0:ntot,0:ntot,0:ntot))
+                                                       
+allocate (array_I_B(-(lmax+ntot):lmax+ntot,0:lmax+ntot,0:ntot,0:ntot,0:ntot))
 
 if(ac.eq.0.d0.and.bc.eq.0.d0)then
 
@@ -310,108 +311,110 @@ else if(ac.ne.0.d0.and.bc.ne.0.d0)then
  phi_BC0=datan2((b(2)-c(2))/bc,(b(1)-c(1))/bc)
 
 
-
-
- do ktot=0,ntotA+ntotB+nkl_max
+ do lambdap=0,lmax+ntotB
    do lambda=0,lmax+ntotA
-   do lambdap=0,lmax+ntotB
+     do l=0,lmax
+       do ktot=0,ntotA+ntotB+nkl_max
         do k=1,kmax
-          do l=0,lmax
-          array_R(ktot,k,l,lambda,lambdap)= int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),lambda,lambdap,areal,breal,arg)
-          enddo
-        enddo
-   enddo
+           array_R(k,ktot,l,lambda,lambdap)= int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),lambda,lambdap,areal,breal,arg)
+         enddo
+       enddo
+     enddo
    enddo
  enddo
-
+ 
  do k1=0,n_a(1)
+   array_coefs_A(k1,1) = binom_func(n_a(1),k1)*(c(1)-a(1))**(n_a(1)-k1)
+ enddo
  do k2=0,n_a(2)
+   array_coefs_A(k2,2) = binom_func(n_a(2),k2)*(c(2)-a(2))**(n_a(2)-k2)
+ enddo
  do k3=0,n_a(3)
-  array_coefs_A(k1,k2,k3)=binom_func(n_a(1),k1)*binom_func(n_a(2),k2)*binom_func(n_a(3),k3)  &
-                          *(c(1)-a(1))**(n_a(1)-k1)*(c(2)-a(2))**(n_a(2)-k2)*(c(3)-a(3))**(n_a(3)-k3)
- enddo
- enddo
+   array_coefs_A(k3,3) = binom_func(n_a(3),k3)*(c(3)-a(3))**(n_a(3)-k3)
  enddo
 
  do k1p=0,n_b(1)
+   array_coefs_B(k1p,1) = binom_func(n_b(1),k1p)*(c(1)-b(1))**(n_b(1)-k1p)
+ enddo
  do k2p=0,n_b(2)
+   array_coefs_B(k2p,2) = binom_func(n_b(2),k2p)*(c(2)-b(2))**(n_b(2)-k2p)
+ enddo
  do k3p=0,n_b(3)
-  array_coefs_B(k1p,k2p,k3p)=binom_func(n_b(1),k1p)*binom_func(n_b(2),k2p)*binom_func(n_b(3),k3p)  &
-                             *(c(1)-b(1))**(n_b(1)-k1p)*(c(2)-b(2))**(n_b(2)-k2p)*(c(3)-b(3))**(n_b(3)-k3p)
+   array_coefs_B(k3p,3) = binom_func(n_b(3),k3p)*(c(3)-b(3))**(n_b(3)-k3p)
  enddo
- enddo
- enddo
-
+ 
  !=!=!=!=!=!=!=!
  ! c a l c u l !
  !=!=!=!=!=!=!=!
 
  accu=0.d0
  do l=0,lmax
-  do m=-l,l
-
-       do lambda=0,l+ntotA
-        do mu=-lambda,lambda
-           do k1=0,n_a(1)
-           do k2=0,n_a(2)
-           do k3=0,n_a(3)
-                array_I_A(lambda,mu,k1,k2,k3)=bigI(lambda,mu,l,m,k1,k2,k3)
+   do m=-l,l
+     
+     do k3=0,n_a(3)
+       do k2=0,n_a(2)
+         do k1=0,n_a(1)
+           do lambda=0,l+ntotA
+             do mu=-lambda,lambda
+               array_I_A(mu,lambda,k1,k2,k3)=bigI(lambda,mu,l,m,k1,k2,k3)
+             enddo
            enddo
-           enddo
-           enddo
-        enddo
+         enddo
        enddo
-
-       do lambdap=0,l+ntotB
-        do mup=-lambdap,lambdap
-           do k1p=0,n_b(1)
-           do k2p=0,n_b(2)
-           do k3p=0,n_b(3)
-                  array_I_B(lambdap,mup,k1p,k2p,k3p)=bigI(lambdap,mup,l,m,k1p,k2p,k3p)
-            enddo
-            enddo
-            enddo
-        enddo
+     enddo
+     
+     do k3p=0,n_b(3)
+       do k2p=0,n_b(2)
+         do k1p=0,n_b(1)
+           do lambdap=0,l+ntotB
+             do mup=-lambdap,lambdap
+               array_I_B(mup,lambdap,k1p,k2p,k3p)=bigI(lambdap,mup,l,m,k1p,k2p,k3p)
+             enddo
+           enddo
+         enddo
        enddo
-
-       do lambda=0,l+ntotA
-        do mu=-lambda,lambda
-
-          do k1=0,n_a(1)
-          do k2=0,n_a(2)
-          do k3=0,n_a(3)
-
-              prod=ylm(lambda,mu,theta_AC0,phi_AC0)*array_coefs_A(k1,k2,k3)*array_I_A(lambda,mu,k1,k2,k3)
-
-              do lambdap=0,l+ntotB
-               do mup=-lambdap,lambdap
-
-                    do k1p=0,n_b(1)
-                    do k2p=0,n_b(2)
-                    do k3p=0,n_b(3)
-
-                        prodp=ylm(lambdap,mup,theta_BC0,phi_BC0)*array_coefs_B(k1p,k2p,k3p)*array_I_B(lambdap,mup,k1p,k2p,k3p)
-
-                        do k=1,kmax
-                            ktot=k1+k2+k3+k1p+k2p+k3p+n_kl(k,l)
-                            accu=accu+prod*prodp*v_kl(k,l)*array_R(ktot,k,l,lambda,lambdap)
-                        enddo
-
-                    enddo
-                    enddo
-                    enddo
-
+     enddo
+     
+     do k3=0,n_a(3)
+       do k2=0,n_a(2)
+         do k1=0,n_a(1)
+           
+           do lambda=0,l+ntotA
+             do mu=-lambda,lambda
+               
+               prod=ylm(lambda,mu,theta_AC0,phi_AC0)*array_coefs_A(k1,1)*array_coefs_A(k2,2)*array_coefs_A(k3,3)*array_I_A(mu,lambda,k1,k2,k3)
+               
+               
+               do k3p=0,n_b(3)
+                 do k2p=0,n_b(2)
+                   do k1p=0,n_b(1)
+                     do lambdap=0,l+ntotB
+                       do mup=-lambdap,lambdap
+                         
+                         prodp=prod*ylm(lambdap,mup,theta_BC0,phi_BC0)* &
+                            array_coefs_B(k1p,1)*array_coefs_B(k2p,2)*array_coefs_B(k3p,3)* &
+                            array_I_B(mup,lambdap,k1p,k2p,k3p)
+                         
+                         do k=1,kmax
+                           ktot=k1+k2+k3+k1p+k2p+k3p+n_kl(k,l)
+                           accu=accu+prodp*v_kl(k,l)*array_R(k,ktot,l,lambda,lambdap)
+                         enddo
+                         
+                       enddo
+                     enddo
+                   enddo
+                   
+                 enddo
                enddo
-              enddo
-
-          enddo
-          enddo
-          enddo
-
-        enddo
+               
+             enddo
+           enddo
+         enddo
+         
        enddo
-
-  enddo
+     enddo
+     
+   enddo
  enddo
 
  !=!=!=!=!
@@ -434,24 +437,24 @@ else if(ac.eq.0.d0.and.bc.ne.0.d0)then
  breal=2.d0*g_b*bc
  freal=dexp(-g_a*ac**2-g_b*bc**2)
 
- do ktot=0,ntotA+ntotB+nkl_max
-  do lambdap=0,lmax+ntotB
-    do k=1,kmax
-      do l=0,lmax
-        array_R(ktot,k,l,0,lambdap)=  int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),0,lambdap,areal,breal,arg)
+ do lambdap=0,lmax+ntotB
+   do l=0,lmax
+     do ktot=0,ntotA+ntotB+nkl_max
+       do k=1,kmax
+         array_R(k,ktot,l,0,lambdap)=  int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),0,lambdap,areal,breal,arg)
        enddo
-    enddo
-  enddo
+     enddo
+   enddo
  enddo
 
  do k1p=0,n_b(1)
+   array_coefs_B(k1p,1) = binom_func(n_b(1),k1p)*(c(1)-b(1))**(n_b(1)-k1p)
+ enddo
  do k2p=0,n_b(2)
+   array_coefs_B(k2p,2) = binom_func(n_b(2),k2p)*(c(2)-b(2))**(n_b(2)-k2p)
+ enddo
  do k3p=0,n_b(3)
-
-  array_coefs_B(k1p,k2p,k3p)=binom_func(n_b(1),k1p)*binom_func(n_b(2),k2p)*binom_func(n_b(3),k3p)  &
-                             *(c(1)-b(1))**(n_b(1)-k1p)*(c(2)-b(2))**(n_b(2)-k2p)*(c(3)-b(3))**(n_b(3)-k3p)
- enddo
- enddo
+   array_coefs_B(k3p,3) = binom_func(n_b(3),k3p)*(c(3)-b(3))**(n_b(3)-k3p)
  enddo
 
  !=!=!=!=!=!=!=!
@@ -460,43 +463,43 @@ else if(ac.eq.0.d0.and.bc.ne.0.d0)then
 
  accu=0.d0
  do l=0,lmax
-  do m=-l,l
-
-    do lambdap=0,l+ntotB
-      do mup=-lambdap,lambdap
-        do k1p=0,n_b(1)
-        do k2p=0,n_b(2)
-        do k3p=0,n_b(3)
-          array_I_B(lambdap,mup,k1p,k2p,k3p)=bigI(lambdap,mup,l,m,k1p,k2p,k3p)
-        enddo
-        enddo
-        enddo
-      enddo
-     enddo
-    
-    prod=bigI(0,0,l,m,n_a(1),n_a(2),n_a(3))
-    
-    do lambdap=0,l+ntotB
-      do mup=-lambdap,lambdap
+   do m=-l,l
+     
+     do k3p=0,n_b(3)
+       do k2p=0,n_b(2)
          do k1p=0,n_b(1)
-         do k2p=0,n_b(2)
-         do k3p=0,n_b(3)
-    
-          prodp=array_coefs_B(k1p,k2p,k3p)*ylm(lambdap,mup,theta_BC0,phi_BC0)*array_I_B(lambdap,mup,k1p,k2p,k3p)
-    
-          do k=1,kmax
-
-            ktot=ntotA+k1p+k2p+k3p+n_kl(k,l)
-            accu=accu+prod*prodp*v_kl(k,l)*array_R(ktot,k,l,0,lambdap)
-
-          enddo
-
+           do lambdap=0,l+ntotB
+             do mup=-lambdap,lambdap
+               array_I_B(mup,lambdap,k1p,k2p,k3p)=bigI(lambdap,mup,l,m,k1p,k2p,k3p)
+             enddo
+           enddo
          enddo
-         enddo
-         enddo
+       enddo
      enddo
-    enddo
-  enddo
+     
+     prod=bigI(0,0,l,m,n_a(1),n_a(2),n_a(3))
+     
+     do k3p=0,n_b(3)
+       do k2p=0,n_b(2)
+         do k1p=0,n_b(1)
+           do lambdap=0,l+ntotB
+             do mup=-lambdap,lambdap
+               
+               prodp=prod*array_coefs_B(k1p,1)*array_coefs_B(k2p,2)*array_coefs_B(k3p,3)*ylm(lambdap,mup,theta_BC0,phi_BC0)*array_I_B(mup,lambdap,k1p,k2p,k3p)
+               
+               do k=1,kmax
+                 
+                 ktot=ntotA+k1p+k2p+k3p+n_kl(k,l)
+                 accu=accu+prodp*v_kl(k,l)*array_R(k,ktot,l,0,lambdap)
+                 
+               enddo
+               
+             enddo
+           enddo
+         enddo
+       enddo
+     enddo
+   enddo
  enddo
 
  !=!=!=!=!
@@ -519,26 +522,24 @@ else if(ac.ne.0.d0.and.bc.eq.0.d0)then
  breal=2.d0*g_b*bc
  freal=dexp(-g_a*ac**2-g_b*bc**2)
 
- do ktot=0,ntotA+ntotB+nkl_max
-  do lambda=0,lmax+ntotA
-    do k=1,kmax
-      do l=0,lmax
-
-      array_R(ktot,k,l,lambda,0)= int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),lambda,0,areal,breal,arg)
-      enddo
-    enddo
-  enddo
+ do lambda=0,lmax+ntotA
+   do l=0,lmax
+     do ktot=0,ntotA+ntotB+nkl_max
+       do k=1,kmax
+         array_R(k,ktot,l,lambda,0)= int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),lambda,0,areal,breal,arg)
+       enddo
+     enddo
+   enddo
  enddo
 
  do k1=0,n_a(1)
+   array_coefs_A(k1,1) = binom_func(n_a(1),k1)*(c(1)-a(1))**(n_a(1)-k1)
+ enddo
  do k2=0,n_a(2)
+   array_coefs_A(k2,2) = binom_func(n_a(2),k2)*(c(2)-a(2))**(n_a(2)-k2)
+ enddo
  do k3=0,n_a(3)
-
-  array_coefs_A(k1,k2,k3)=binom_func(n_a(1),k1)*binom_func(n_a(2),k2)*binom_func(n_a(3),k3)  &
-                          *(c(1)-a(1))**(n_a(1)-k1)*(c(2)-a(2))**(n_a(2)-k2)*(c(3)-a(3))**(n_a(3)-k3)
-
- enddo
- enddo
+   array_coefs_A(k3,3) = binom_func(n_a(3),k3)*(c(3)-a(3))**(n_a(3)-k3)
  enddo
 
  !=!=!=!=!=!=!=!
@@ -549,36 +550,36 @@ else if(ac.ne.0.d0.and.bc.eq.0.d0)then
  do l=0,lmax
   do m=-l,l
 
-    do lambda=0,l+ntotA
-      do mu=-lambda,lambda
+    do k3=0,n_a(3)
+      do k2=0,n_a(2)
         do k1=0,n_a(1)
-        do k2=0,n_a(2)
-        do k3=0,n_a(3)
-          array_I_A(lambda,mu,k1,k2,k3)=bigI(lambda,mu,l,m,k1,k2,k3)
-        enddo
-        enddo
+          do lambda=0,l+ntotA
+            do mu=-lambda,lambda
+              array_I_A(mu,lambda,k1,k2,k3)=bigI(lambda,mu,l,m,k1,k2,k3)
+            enddo
+          enddo
         enddo
       enddo
     enddo
 
-    do lambda=0,l+ntotA
-      do mu=-lambda,lambda
+    do k3=0,n_a(3)
+      do k2=0,n_a(2)
         do k1=0,n_a(1)
-        do k2=0,n_a(2)
-        do k3=0,n_a(3)
-
-          prod=array_coefs_A(k1,k2,k3)*ylm(lambda,mu,theta_AC0,phi_AC0)*array_I_A(lambda,mu,k1,k2,k3)
-          prodp=bigI(0,0,l,m,n_b(1),n_b(2),n_b(3))
-
-          do k=1,kmax
-            ktot=k1+k2+k3+ntotB+n_kl(k,l)
-            accu=accu+prod*prodp*v_kl(k,l)*array_R(ktot,k,l,lambda,0)
+          do lambda=0,l+ntotA
+            do mu=-lambda,lambda
+              
+              prod=array_coefs_A(k1,1)*array_coefs_A(k2,2)*array_coefs_A(k3,3)*ylm(lambda,mu,theta_AC0,phi_AC0)*array_I_A(mu,lambda,k1,k2,k3)
+              prodp=prod*bigI(0,0,l,m,n_b(1),n_b(2),n_b(3))
+              
+              do k=1,kmax
+                ktot=k1+k2+k3+ntotB+n_kl(k,l)
+                accu=accu+prodp*v_kl(k,l)*array_R(k,ktot,l,lambda,0)
+              enddo
+              
+            enddo
           enddo
-
         enddo
-        enddo
-        enddo
-     enddo
+      enddo
     enddo
 
   enddo
@@ -850,22 +851,27 @@ implicit none
 integer lambda,mu,l,m,k1,k2,k3
 integer k,i,kp,ip
 double precision pi,sum,factor1,factor2,cylm,cylmp,bigA,binom_func,fact,coef_pm
+double precision sgn, sgnp
 pi=dacos(-1.d0)
 
 if(mu.gt.0.and.m.gt.0)then
 sum=0.d0
-factor1=dsqrt((2*lambda+1)*fact(lambda-iabs(mu))/(4.d0*pi*fact(lambda+iabs(mu))))
-factor2=dsqrt((2*l+1)*fact(l-iabs(m))/(4.d0*pi*fact(l+iabs(m))))
+factor1=dsqrt((2*lambda+1)*fact(lambda-iabs(mu))/(2.d0*pi*fact(lambda+iabs(mu))))
+factor2=dsqrt((2*l+1)*fact(l-iabs(m))/(2.d0*pi*fact(l+iabs(m))))
+sgn = 1.d0
 do k=0,mu/2
  do i=0,lambda-mu
+  sgnp = 1.d0
   do kp=0,m/2
    do ip=0,l-m
-    cylm=(-1.d0)**k*factor1*dsqrt(2.d0)*binom_func(mu,2*k)*fact(mu+i)/fact(i)*coef_pm(lambda,i+mu)
-    cylmp=(-1.d0)**kp*factor2*dsqrt(2.d0)*binom_func(m,2*kp)*fact(m+ip)/fact(ip)*coef_pm(l,ip+m)
+    cylm=sgn*factor1*binom_func(mu,2*k)*fact(mu+i)/fact(i)*coef_pm(lambda,i+mu)
+    cylmp=sgnp*factor2*binom_func(m,2*kp)*fact(m+ip)/fact(ip)*coef_pm(l,ip+m)
     sum=sum+cylm*cylmp*bigA(mu-2*k+m-2*kp+k1,2*k+2*kp+k2,i+ip+k3)
    enddo
+   sgnp = -sgnp
   enddo
  enddo
+ sgn = -sgn
 enddo
 bigI=sum
 return
@@ -888,15 +894,17 @@ endif
 
 if(mu.eq.0.and.m.gt.0)then
 factor1=dsqrt((2*lambda+1)/(4.d0*pi))
-factor2=dsqrt((2*l+1)*fact(l-iabs(m))/(4.d0*pi*fact(l+iabs(m))))
+factor2=dsqrt((2*l+1)*fact(l-iabs(m))/(2.d0*pi*fact(l+iabs(m))))
 sum=0.d0
 do i=0,lambda
+ sgnp = 1.d0
  do kp=0,m/2
   do ip=0,l-m
    cylm=factor1*coef_pm(lambda,i)
-   cylmp=(-1.d0)**kp*factor2*dsqrt(2.d0)*binom_func(m,2*kp)*fact(m+ip)/fact(ip)*coef_pm(l,ip+m)
+   cylmp=sgnp*factor2*binom_func(m,2*kp)*fact(m+ip)/fact(ip)*coef_pm(l,ip+m)
    sum=sum+cylm*cylmp*bigA(m-2*kp+k1,2*kp+k2,i+ip+k3)
   enddo
+  sgnp = -sgnp
  enddo
 enddo
 bigI=sum
@@ -905,16 +913,18 @@ endif
 
 if(mu.gt.0.and.m.eq.0)then
 sum=0.d0
-factor1=dsqrt((2*lambda+1)*fact(lambda-iabs(mu))/(4.d0*pi*fact(lambda+iabs(mu))))
+factor1=dsqrt((2*lambda+1)*fact(lambda-iabs(mu))/(2.d0*pi*fact(lambda+iabs(mu))))
 factor2=dsqrt((2*l+1)/(4.d0*pi))
+sgn = 1.d0
 do k=0,mu/2
  do i=0,lambda-mu
   do ip=0,l
-   cylm=(-1.d0)**k*factor1*dsqrt(2.d0)*binom_func(mu,2*k)*fact(mu+i)/fact(i)*coef_pm(lambda,i+mu)
+   cylm=sgn*factor1*binom_func(mu,2*k)*fact(mu+i)/fact(i)*coef_pm(lambda,i+mu)
    cylmp=factor2*coef_pm(l,ip)
    sum=sum+cylm*cylmp*bigA(mu-2*k +k1,2*k +k2,i+ip +k3)
   enddo
  enddo
+ sgn = -sgn
 enddo
 bigI=sum
 return
@@ -923,19 +933,23 @@ endif
 if(mu.lt.0.and.m.lt.0)then
 mu=-mu
 m=-m
-factor1=dsqrt((2*lambda+1)*fact(lambda-iabs(mu))/(4.d0*pi*fact(lambda+iabs(mu))))
-factor2=dsqrt((2*l+1)*fact(l-iabs(m))/(4.d0*pi*fact(l+iabs(m))))
+factor1=dsqrt((2*lambda+1)*fact(lambda-iabs(mu))/(2.d0*pi*fact(lambda+iabs(mu))))
+factor2=dsqrt((2*l+1)*fact(l-iabs(m))/(2.d0*pi*fact(l+iabs(m))))
 sum=0.d0
+sgn = 1.d0
 do k=0,(mu-1)/2
  do i=0,lambda-mu
+  sgnp = 1.d0
   do kp=0,(m-1)/2
    do ip=0,l-m
-    cylm=(-1.d0)**k*factor1*dsqrt(2.d0)*binom_func(mu,2*k+1)*fact(mu+i)/fact(i)*coef_pm(lambda,i+mu)
-    cylmp=(-1.d0)**kp*factor2*dsqrt(2.d0)*binom_func(m,2*kp+1)*fact(m+ip)/fact(ip)*coef_pm(l,ip+m)
+    cylm=sgn*factor1*binom_func(mu,2*k+1)*fact(mu+i)/fact(i)*coef_pm(lambda,i+mu)
+    cylmp=sgnp*factor2*binom_func(m,2*kp+1)*fact(m+ip)/fact(ip)*coef_pm(l,ip+m)
     sum=sum+cylm*cylmp*bigA(mu-(2*k+1)+m-(2*kp+1)+k1,(2*k+1)+(2*kp+1)+k2,i+ip+k3)
    enddo
+   sgnp = -sgnp
   enddo
  enddo
+ sgn = -sgn
 enddo
 mu=-mu
 m=-m
@@ -946,15 +960,17 @@ endif
 if(mu.eq.0.and.m.lt.0)then
 m=-m
 factor1=dsqrt((2*lambda+1)/(4.d0*pi))
-factor2=dsqrt((2*l+1)*fact(l-iabs(m))/(4.d0*pi*fact(l+iabs(m))))
+factor2=dsqrt((2*l+1)*fact(l-iabs(m))/(2.d0*pi*fact(l+iabs(m))))
 sum=0.d0
 do i=0,lambda
+ sgnp = 1.d0
  do kp=0,(m-1)/2
   do ip=0,l-m
    cylm=factor1*coef_pm(lambda,i)
-   cylmp=(-1.d0)**kp*factor2*dsqrt(2.d0)*binom_func(m,2*kp+1)*fact(m+ip)/fact(ip)*coef_pm(l,ip+m)
+   cylmp=sgnp*factor2*binom_func(m,2*kp+1)*fact(m+ip)/fact(ip)*coef_pm(l,ip+m)
    sum=sum+cylm*cylmp*bigA(m-(2*kp+1)+k1,2*kp+1+k2,i+ip+k3)
   enddo
+  sgnp = -sgnp
  enddo
 enddo
 m=-m
@@ -965,16 +981,18 @@ endif
 if(mu.lt.0.and.m.eq.0)then
 sum=0.d0
 mu=-mu
-factor1=dsqrt((2*lambda+1)*fact(lambda-iabs(mu))/(4.d0*pi*fact(lambda+iabs(mu))))
+factor1=dsqrt((2*lambda+1)*fact(lambda-iabs(mu))/(2.d0*pi*fact(lambda+iabs(mu))))
 factor2=dsqrt((2*l+1)/(4.d0*pi))
+sgn = 1.d0
 do k=0,(mu-1)/2
  do i=0,lambda-mu
    do ip=0,l
-    cylm=(-1.d0)**k*factor1*dsqrt(2.d0)*binom_func(mu,2*k+1)*fact(mu+i)/fact(i)*coef_pm(lambda,i+mu)
+    cylm=sgn*factor1*binom_func(mu,2*k+1)*fact(mu+i)/fact(i)*coef_pm(lambda,i+mu)
     cylmp=factor2*coef_pm(l,ip)
     sum=sum+cylm*cylmp*bigA(mu-(2*k+1)+k1,2*k+1+k2,i+ip+k3)
    enddo
  enddo
+ sgn = -sgn
 enddo
 mu=-mu
 bigI=sum
@@ -983,19 +1001,23 @@ endif
 
 if(mu.gt.0.and.m.lt.0)then
 sum=0.d0
-factor1=dsqrt((2*lambda+1)*fact(lambda-iabs(mu))/(4.d0*pi*fact(lambda+iabs(mu))))
-factor2=dsqrt((2*l+1)*fact(l-iabs(m))/(4.d0*pi*fact(l+iabs(m))))
+factor1=dsqrt((2*lambda+1)*fact(lambda-iabs(mu))/(2.d0*pi*fact(lambda+iabs(mu))))
+factor2=dsqrt((2*l+1)*fact(l-iabs(m))/(2.d0*pi*fact(l+iabs(m))))
 m=-m
+sgn=1.d0
 do k=0,mu/2
  do i=0,lambda-mu
+  sgnp=1.d0
   do kp=0,(m-1)/2
    do ip=0,l-m
-    cylm=(-1.d0)**k*factor1*dsqrt(2.d0)*binom_func(mu,2*k)*fact(mu+i)/fact(i)*coef_pm(lambda,i+mu)
-    cylmp=(-1.d0)**kp*factor2*dsqrt(2.d0)*binom_func(m,2*kp+1)*fact(m+ip)/fact(ip)*coef_pm(l,ip+m)
+    cylm =sgn *factor1*binom_func(mu,2*k)*fact(mu+i)/fact(i)*coef_pm(lambda,i+mu)
+    cylmp=sgnp*factor2*binom_func(m,2*kp+1)*fact(m+ip)/fact(ip)*coef_pm(l,ip+m)
     sum=sum+cylm*cylmp*bigA(mu-2*k+m-(2*kp+1)+k1,2*k+2*kp+1+k2,i+ip+k3)
    enddo
+   sgnp = -sgnp
   enddo
  enddo
+ sgn = -sgn
 enddo
 m=-m
 bigI=sum
@@ -1004,19 +1026,23 @@ endif
 
 if(mu.lt.0.and.m.gt.0)then
 mu=-mu
-factor1=dsqrt((2*lambda+1)*fact(lambda-iabs(mu))/(4.d0*pi*fact(lambda+iabs(mu))))
-factor2=dsqrt((2*l+1)*fact(l-iabs(m))/(4.d0*pi*fact(l+iabs(m))))
+factor1=dsqrt((2*lambda+1)*fact(lambda-iabs(mu))/(2.d0*pi*fact(lambda+iabs(mu))))
+factor2=dsqrt((2*l+1)*fact(l-iabs(m))/(2.d0*pi*fact(l+iabs(m))))
 sum=0.d0
+sgn = 1.d0
 do k=0,(mu-1)/2
  do i=0,lambda-mu
+  sgnp = 1.d0
   do kp=0,m/2
    do ip=0,l-m
-    cylm=(-1.d0)**k*factor1*dsqrt(2.d0)*binom_func(mu,2*k+1)*fact(mu+i)/fact(i)*coef_pm(lambda,i+mu)
-    cylmp=(-1.d0)**kp*factor2*dsqrt(2.d0)*binom_func(m,2*kp)*fact(m+ip)/fact(ip)*coef_pm(l,ip+m)
+    cylm=sgn*factor1  *binom_func(mu,2*k+1)*fact(mu+i)/fact(i)*coef_pm(lambda,i+mu)
+    cylmp=sgnp*factor2*binom_func(m,2*kp)*fact(m+ip)/fact(ip)*coef_pm(l,ip+m)
     sum=sum+cylm*cylmp*bigA(mu-(2*k+1)+m-2*kp+k1,2*k+1+2*kp+k2,i+ip+k3)
    enddo
+   sgnp = -sgnp
   enddo
  enddo
+ sgn = -sgn
 enddo
 bigI=sum
 mu=-mu
@@ -1128,28 +1154,49 @@ end
 !
         IMPLICIT DOUBLE PRECISION (P,X)
         DIMENSION PM(0:MM,0:(N+1))
-        DO 10 I=0,N
-        DO 10 J=0,M
-10         PM(J,I)=0.0D0
+        DOUBLE PRECISION, SAVE ::  INVERSE(100) = 0.D0
+        DOUBLE PRECISION       :: LS, II, JJ
+        IF (INVERSE(1) == 0.d0) THEN
+          DO I=1,100
+            INVERSE(I) = 1.D0/DBLE(I)
+          ENDDO
+        ENDIF
+        DO I=0,N
+          DO J=0,M
+            PM(J,I)=0.0D0
+          ENDDO
+        ENDDO
         PM(0,0)=1.0D0
         IF (DABS(X).EQ.1.0D0) THEN
-           DO 15 I=1,N
-15            PM(0,I)=X**I
+           DO I=1,N
+              PM(0,I)=X**I
+           ENDDO
            RETURN
         ENDIF
-        LS=1
-        IF (DABS(X).GT.1.0D0) LS=-1
+        LS=1.D0
+        IF (DABS(X).GT.1.0D0) LS=-1.D0
         XQ=DSQRT(LS*(1.0D0-X*X))
         XS=LS*(1.0D0-X*X)
-        DO 30 I=1,M
-30         PM(I,I)=-LS*(2.0D0*I-1.0D0)*XQ*PM(I-1,I-1)
-        DO 35 I=0,M
-35         PM(I,I+1)=(2.0D0*I+1.0D0)*X*PM(I,I)
+        II = 1.D0
+        DO I=1,M
+          PM(I,I)=-LS*II*XQ*PM(I-1,I-1)
+          II = II+2.D0
+        ENDDO
+        II = 1.D0
+        DO I=0,M
+          PM(I,I+1)=II*X*PM(I,I)
+          II = II+2.D0
+        ENDDO
 
-        DO 40 I=0,M
-        DO 40 J=I+2,N
-           PM(I,J)=((2.0D0*J-1.0D0)*X*PM(I,J-1)- (I+J-1.0D0)*PM(I,J-2))/(J-I)
-40      CONTINUE
+        II = 0.D0
+        DO I=0,M 
+          JJ = II+2.D0
+          DO J=I+2,N
+            PM(I,J)=((2.0D0*JJ-1.0D0)*X*PM(I,J-1)- (II+JJ-1.0D0)*PM(I,J-2))*INVERSE(J-I)
+            JJ = JJ+1.D0
+          ENDDO
+          II = II+1.D0
+        ENDDO
         END
 
 
@@ -1703,17 +1750,37 @@ end
 !c
 double precision function ylm(l,m,theta,phi)
 implicit none
-integer l,m
-double precision theta,phi,pm,factor,pi,x,fact,sign
+integer l,m,i
+double precision theta,phi,pm,factor,twopi,x,fact,sign
 DIMENSION PM(0:100,0:100)
-pi=dacos(-1.d0)
+twopi=2.d0*dacos(-1.d0)
 x=dcos(theta)
-sign=(-1.d0)**m
+if (iand(m,1) == 1) then
+  sign=-1.d0
+else
+  sign=1.d0
+endif
 CALL LPMN(100,l,l,X,PM)
-factor=dsqrt( (2*l+1)*fact(l-iabs(m)) /(4.d0*pi*fact(l+iabs(m))) )
-if(m.gt.0)ylm=sign*dsqrt(2.d0)*factor*pm(m,l)*dcos(dfloat(m)*phi)
-if(m.eq.0)ylm=factor*pm(m,l)
-if(m.lt.0)ylm=sign*dsqrt(2.d0)*factor*pm(iabs(m),l)*dsin(dfloat(iabs(m))*phi)
+if (m > 0) then
+  factor=dsqrt((l+l+1)*fact(l-m) /(twopi*fact(l+m)) )
+!  factor = dble(l+m)
+!  do i=-m,m-1
+!    factor = factor * (factor - 1.d0)
+!  enddo
+!  factor=dsqrt(dble(l+l+1)/(twopi*factor) )
+  ylm=sign*factor*pm(m,l)*dcos(dfloat(m)*phi)
+else if (m == 0) then
+  factor=dsqrt( 0.5d0*(l+l+1) /twopi )
+  ylm=factor*pm(m,l)
+else if (m < 0) then
+  factor=dsqrt( (l+l+1)*fact(l+m) /(twopi*fact(l-m)) )
+!  factor = dble(l-m)
+!  do i=m,-m-1
+!    factor = factor * (factor - 1.d0)
+!  enddo
+!  factor=dsqrt(dble(l+l+1)/(twopi*factor) )
+  ylm=sign*factor*pm(-m,l)*dsin(dfloat(-m)*phi)
+endif
 end
 
 !c Explicit representation of Legendre polynomials P_n(x) 
@@ -1829,11 +1896,12 @@ end
 double precision function binom_gen(alpha,n)
  implicit none
  integer :: n,k
- double precision :: fact,alpha,prod
+ double precision :: fact,alpha,prod, factn_inv
  prod=1.d0
+ factn_inv = 1.d0/fact(n)
  do k=0,n-1
    prod=prod*(alpha-k)
-   binom_gen = prod/(fact(n))
+   binom_gen = prod*factn_inv
  enddo
 end
 
@@ -1881,6 +1949,7 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
   double precision :: term_A, term_B, term_rap,  expo
   double precision :: s_q_0, s_q_k, s_0_0, a_over_b_square
   double precision :: int_prod_bessel_loc
+  double precision :: inverses(0:300)
 
   logical done
 
@@ -1927,18 +1996,32 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
     ! Initialise the first recurence terme for the q loop
     s_q_0 = s_0_0
 
+
     ! Loop over q for the convergence of the sequence
     do while (.not.done)  
 
       ! Init
-      sum=0
       s_q_k=s_q_0
+      sum=s_q_0
 
-      ! Iteration of k
-      do k=0,q
+      if (q>300) then
+        stop 'pseudopot.f90 : q > 300'
+      endif
+
+      do k=0,q-1
+        s_q_k = ( dble(2*(q-k+m)+1)*dble(q-k)*inverses(k) ) * s_q_k
         sum=sum+s_q_k
-        s_q_k = a_over_b_square * ( dble(2*(q-k+m)+1)/dble(2*(k+n)+3) ) * ( dble(q-k)/dble(k+1)) * s_q_k
       enddo
+      inverses(q) = a_over_b_square/(dble(2*(q+n)+3) * dble(q+1)) 
+!      do k=0,q
+!        sum=sum+s_q_k
+!        s_q_k = a_over_b_square * ( dble(2*(q-k+m)+1)*dble(q-k)/(dble(2*(k+n)+3) * dble(k+1)) ) * s_q_k
+!      enddo
+      ! Iteration of k
+!      do k=0,q
+!        sum=sum+s_q_k
+!        s_q_k = a_over_b_square * ( dble(2*(q-k+m)+1)*dble(q-k)/(dble(2*(k+n)+3) * dble(k+1)) ) * s_q_k
+!      enddo
     
       int=int+sum
 
@@ -2120,15 +2203,15 @@ parameter (ntot_max=14)
 integer l,m
 double precision a(3),g_a,c(3)
 double precision prod,binom_func,accu,bigI,ylm,bessel_mod
-double precision theta_AC0,phi_AC0,ac,factor,fourpi,arg,r,areal
+double precision theta_AC0,phi_AC0,ac,ac2,factor,fourpi,arg,r,areal
 integer ntotA,mu,k1,k2,k3,lambda
 integer n_a(3)
-double precision &
-array_I_A(0:lmax_max+ntot_max,-(lmax_max+ntot_max):lmax_max+ntot_max,0:ntot_max,0:ntot_max,0:ntot_max)
-double precision array_coefs_A(0:ntot_max,0:ntot_max,0:ntot_max), y
+double precision y, f1, f2
+double precision, allocatable :: array_coefs_A(:,:)
 
-ac=dsqrt((a(1)-c(1))**2+(a(2)-c(2))**2+(a(3)-c(3))**2)
-arg=g_a*(ac**2+r**2)
+ac2=(a(1)-c(1))**2+(a(2)-c(2))**2+(a(3)-c(3))**2
+ac=dsqrt(ac2)
+arg=g_a*(ac2+r*r)
 fourpi=4.d0*dacos(-1.d0)
 factor=fourpi*dexp(-arg)
 areal=2.d0*g_a*ac
@@ -2144,51 +2227,45 @@ else
  theta_AC0=dacos( (a(3)-c(3))/ac )
  phi_AC0=datan2((a(2)-c(2))/ac,(a(1)-c(1))/ac)
 
+ allocate (array_coefs_A(0:ntotA,3))
  do k1=0,n_a(1)
-  do k2=0,n_a(2)
-   do k3=0,n_a(3)
-  array_coefs_A(k1,k2,k3)=binom_func(n_a(1),k1)*binom_func(n_a(2),k2)*binom_func(n_a(3),k3)  &
-  *(c(1)-a(1))**(n_a(1)-k1)*(c(2)-a(2))**(n_a(2)-k2)*(c(3)-a(3))**(n_a(3)-k3) &
-  *r**(k1+k2+k3)
-   enddo
-  enddo
+   array_coefs_A(k1,1) = binom_func(n_a(1),k1)*(c(1)-a(1))**(n_a(1)-k1)*r**(k1)
  enddo
-
- do lambda=0,l+ntotA
-  do mu=-lambda,lambda
-   do k1=0,n_a(1)
-   do k2=0,n_a(2)
-   do k3=0,n_a(3)
-    array_I_A(lambda,mu,k1,k2,k3)=bigI(lambda,mu,l,m,k1,k2,k3)
-   enddo
-   enddo
-   enddo
-  enddo
+ do k2=0,n_a(2)
+   array_coefs_A(k2,2) = binom_func(n_a(2),k2)*(c(2)-a(2))**(n_a(2)-k2)*r**(k2)
+ enddo
+ do k3=0,n_a(3)
+   array_coefs_A(k3,3) = binom_func(n_a(3),k3)*(c(3)-a(3))**(n_a(3)-k3)*r**(k3)
  enddo
 
  accu=0.d0
  do lambda=0,l+ntotA
-  do mu=-lambda,lambda
-   y = ylm(lambda,mu,theta_AC0,phi_AC0)
-   if (y == 0.d0) then
-     cycle
-   endif
-   do k1=0,n_a(1)
-   do k2=0,n_a(2)
-   do k3=0,n_a(3)
-    prod=y*array_coefs_A(k1,k2,k3)*array_I_A(lambda,mu,k1,k2,k3)
-    if (prod == 0.d0) then
-      cycle
-    endif
-    if (areal*r < 100.d0) then ! overflow!
-      accu=accu+prod*bessel_mod(areal*r,lambda)
-    endif
+   do mu=-lambda,lambda
+     y = ylm(lambda,mu,theta_AC0,phi_AC0)
+     if (y == 0.d0) then
+       cycle
+     endif
+     do k3=0,n_a(3)
+       f1 = y*array_coefs_A(k3,3)
+       if (f1 == 0.d0) cycle
+       do k2=0,n_a(2)
+         f2 = f1*array_coefs_A(k2,2)
+         if (f2 == 0.d0) cycle
+         do k1=0,n_a(1)
+           prod=f2*array_coefs_A(k1,1)*bigI(lambda,mu,l,m,k1,k2,k3)
+           if (prod == 0.d0) then
+             cycle
+           endif
+           if (areal*r < 100.d0) then ! overflow!
+             accu=accu+prod*bessel_mod(areal*r,lambda)
+           endif
+         enddo
+       enddo
+     enddo
    enddo
-   enddo
-   enddo
-  enddo
  enddo
  ylm_orb=factor*accu
+ deallocate (array_coefs_A)
  return
 endif
 

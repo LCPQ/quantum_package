@@ -20,6 +20,7 @@ Pseudo
 Selectors_full
 SingleRefMethod
 Utils
+cisd
 cisd_lapack
 ezfio_interface.irp.f
 irpf90.make

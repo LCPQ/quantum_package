@@ -7,8 +7,6 @@ module Determinants_by_hand : sig
     { n_int                  : N_int_number.t;
       bit_kind               : Bit_kind.t;
       n_det                  : Det_number.t;
-      n_states               : States_number.t;
-      n_states_diag          : States_number.t;
       expected_s2            : Positive_float.t;
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
@@ -23,8 +21,6 @@ end = struct
     { n_int                  : N_int_number.t;
       bit_kind               : Bit_kind.t;
       n_det                  : Det_number.t;
-      n_states               : States_number.t;
-      n_states_diag          : States_number.t;
       expected_s2            : Positive_float.t;
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
@@ -146,11 +142,12 @@ end = struct
     |> Array.map ~f:Det_coef.of_float
   ;;
 
-  let write_psi_coef ~n_det ~n_states c =
+  let write_psi_coef ~n_det c =
     let n_det = Det_number.to_int n_det
     and c = Array.to_list c
             |> List.map ~f:Det_coef.to_float
-    and n_states = States_number.to_int n_states
+    and n_states = 
+      read_n_states () |> States_number.to_int
     in
     Ezfio.ezfio_array_of_list ~rank:2 ~dim:[| n_det ; n_states |] ~data:c
     |> Ezfio.set_determinants_psi_coef 
@@ -214,8 +211,6 @@ end = struct
       { n_int                  = read_n_int ()                ;
         bit_kind               = read_bit_kind ()             ;
         n_det                  = read_n_det ()                ;
-        n_states               = read_n_states ()             ;
-        n_states_diag          = read_n_states_diag ()        ;
         expected_s2            = read_expected_s2 ()          ;
         psi_coef               = read_psi_coef ()             ;
         psi_det                = read_psi_det ()              ;
@@ -227,8 +222,6 @@ end = struct
   let write { n_int                ;
               bit_kind             ;
               n_det                ;
-              n_states             ;
-              n_states_diag        ;
               expected_s2          ;
               psi_coef             ;
               psi_det              ;
@@ -236,10 +229,8 @@ end = struct
      write_n_int n_int ;
      write_bit_kind bit_kind;
      write_n_det n_det;
-     write_n_states n_states;
-     write_n_states_diag ~n_states:n_states n_states_diag;
      write_expected_s2 expected_s2;
-     write_psi_coef ~n_det:n_det psi_coef ~n_states:n_states;
+     write_psi_coef ~n_det:n_det psi_coef ;
      write_psi_det ~n_int:n_int ~n_det:n_det psi_det;
   ;;
 
@@ -249,7 +240,7 @@ end = struct
     let mo_tot_num = MO_number.of_int mo_tot_num ~max:mo_tot_num in
     let det_text = 
       let nstates =
-        States_number.to_int b.n_states
+        read_n_states () |> States_number.to_int
       and ndet =
         Det_number.to_int b.n_det
       in
@@ -284,12 +275,6 @@ If true, input the expected value of S^2 ::
 
   expected_s2 = %s
 
-Number of requested states, and number of states used for the
-Davidson diagonalization ::
-
-  n_states      = %s
-  n_states_diag = %s
-
 Number of determinants ::
 
   n_det = %s
@@ -299,8 +284,6 @@ Determinants ::
 %s
 "
      (b.expected_s2   |> Positive_float.to_string)
-     (b.n_states      |> States_number.to_string)
-     (b.n_states_diag |> States_number.to_string)
      (b.n_det         |> Det_number.to_string)
      det_text
      |> Rst_string.of_string
@@ -313,8 +296,6 @@ Determinants ::
 n_int                  = %s
 bit_kind               = %s
 n_det                  = %s
-n_states               = %s
-n_states_diag          = %s
 expected_s2            = %s
 psi_coef               = %s
 psi_det                = %s
@@ -322,8 +303,6 @@ psi_det                = %s
      (b.n_int         |> N_int_number.to_string)
      (b.bit_kind      |> Bit_kind.to_string)
      (b.n_det         |> Det_number.to_string)
-     (b.n_states      |> States_number.to_string)
-     (b.n_states_diag |> States_number.to_string)
      (b.expected_s2   |> Positive_float.to_string)
      (b.psi_coef  |> Array.to_list |> List.map ~f:Det_coef.to_string
       |> String.concat ~sep:", ")

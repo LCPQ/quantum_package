@@ -350,6 +350,34 @@ subroutine write_spindeterminants
   
 end
 
+ BEGIN_PROVIDER [ double precision, det_alpha_norm, (N_det_alpha_unique) ]
+&BEGIN_PROVIDER [ double precision, det_beta_norm, (N_det_beta_unique) ]
+ implicit none
+ BEGIN_DOC
+ ! Norm of the alpha and beta spin determinants in the wave function:
+ !
+ ! ||Da||_i \sum_j C_{ij}**2
+ END_DOC
+
+ integer :: i,j,k,l
+ double precision :: f
+
+ det_alpha_norm = 0.d0
+ det_beta_norm  = 0.d0
+ do k=1,N_det
+   i = psi_bilinear_matrix_rows(k)
+   j = psi_bilinear_matrix_columns(k)
+   do l=1,N_states
+    f = psi_bilinear_matrix_values(k,l)*psi_bilinear_matrix_values(k,l)
+   enddo
+   det_alpha_norm(i) += f
+   det_beta_norm(j)  += f
+ enddo
+ det_alpha_norm = det_alpha_norm / dble(N_states)
+ det_beta_norm = det_beta_norm / dble(N_states)
+
+END_PROVIDER
+
 
 !==============================================================================!
 !                                                                              !

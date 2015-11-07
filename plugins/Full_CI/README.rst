@@ -23,6 +23,10 @@ Documentation
 .. by the `update_README.py` script.
 
 
+`e_curve <http://github.com/LCPQ/quantum_package/tree/master/plugins/Full_CI/e_curve.irp.f#L1>`_
+  Undocumented
+
+
 `full_ci <http://github.com/LCPQ/quantum_package/tree/master/plugins/Full_CI/full_ci_no_skip.irp.f#L1>`_
   Undocumented
 
