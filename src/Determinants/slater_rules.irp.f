@@ -138,6 +138,7 @@ subroutine decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
   end select
 end
 
+
 subroutine get_double_excitation(det1,det2,exc,phase,Nint)
   use bitmasks
   implicit none
@@ -787,6 +788,7 @@ subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   ASSERT (Ndet > 0)
   ASSERT (Ndet_max >= Ndet)
   i_H_psi_array = 0.d0
+  
   call filter_connected_i_H_psi0(keys,key,Nint,Ndet,idx)
   do ii=1,idx(0)
     i = idx(ii)
@@ -1214,7 +1216,7 @@ subroutine get_occ_from_key(key,occ,Nint)
   
 end
 
-subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
+subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,shortcut,sort_idx,Nint)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -1232,29 +1234,56 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   integer, allocatable           :: idx(:)
   double precision               :: hij
   double precision, allocatable  :: vt(:)
-  integer                        :: i,j,k,l, jj
+  integer                        :: i,j,k,l, jj,ii,sh
   integer                        :: i0, j0
+  
+  integer,intent(in)             :: shortcut(0:n+1), sort_idx(n)
+  integer                        :: tmp, warp(2,0:n+1), ni
+  
+
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
   ASSERT (n>0)
   PROVIDE ref_bitmask_energy
   !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt)                             &
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold)
+      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt,ii,warp,tmp,sh)                             &
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold,shortcut,sort_idx)
   allocate(idx(0:n), vt(n))
   Vt = 0.d0
   v_0 = 0.d0
-  !$OMP DO SCHEDULE(guided)
-  do i=1,n
-    idx(0) = i
-    call filter_connected_davidson(keys_tmp,keys_tmp(1,1,i),Nint,i-1,idx)
-    do jj=1,idx(0)
-      j = idx(jj)
-      if ( dabs(u_0(j)) + dabs(u_0(i)) > davidson_threshold ) then
-        call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
-        vt (i) = vt (i) + hij*u_0(j)
-        vt (j) = vt (j) + hij*u_0(i)
-      endif
+
+  !$OMP DO SCHEDULE(dynamic)
+  
+
+  do sh=1,shortcut(0)
+    warp(1,0) = 0
+    do ii=1,sh!shortcut(0)
+      tmp = 0
+      do ni=1,Nint
+        tmp = popcnt(xor(keys_tmp(ni,1, shortcut(ii)), keys_tmp(ni,1,shortcut(sh))))
+      end do
+      if(tmp <= 4) then
+        warp(1,0) = warp(1,0) + 1
+        warp(1,warp(1,0)) = shortcut(ii)
+        warp(2,warp(1,0)) = shortcut(ii+1)-1
+      end if
+    end do
+    
+    
+    do ii=shortcut(sh),shortcut(sh+1)-1
+      idx(0) = ii
+      
+      call filter_connected_davidson_warp(keys_tmp,warp,keys_tmp(1,1,ii),Nint,ii-1,idx)
+      i = sort_idx(ii)
+      
+      do jj=1,idx(0)
+        j = sort_idx(idx(jj))
+        if ( dabs(u_0(j)) + dabs(u_0(i)) > davidson_threshold ) then
+          call i_H_j(keys_tmp(1,1,idx(jj)),keys_tmp(1,1,ii),Nint,hij)
+          vt (i) = vt (i) + hij*u_0(j)
+          vt (j) = vt (j) + hij*u_0(i)
+        endif
+      enddo
     enddo
   enddo
   !$OMP END DO
@@ -1266,180 +1295,8 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   deallocate(idx,vt)
   !$OMP END PARALLEL
   do i=1,n
-   v_0(i) += H_jj(i) * u_0(i)
+    v_0(i) += H_jj(i) * u_0(i)
   enddo
 end
 
-
-
-BEGIN_PROVIDER [ integer, N_con_int ]
-  implicit none
-  BEGIN_DOC
-  ! Number of integers to represent the connections between determinants
-  END_DOC
-  N_con_int = 1 + ishft(N_det-1,-11)
-END_PROVIDER
-
-BEGIN_PROVIDER [ integer*8, det_connections, (N_con_int,N_det) ]
-  implicit none
-  BEGIN_DOC
-  ! Build connection proxy between determinants
-  END_DOC
-  integer                        :: i,j
-  integer                        :: degree
-  integer                        :: j_int, j_k, j_l
-  integer, allocatable           :: idx(:)
-  integer                        :: thread_num
-  integer                        :: omp_get_thread_num
-  
-  PROVIDE progress_bar
-  call start_progress(N_det,'Det connections',0.d0)
-
-  select case(N_int)
-      
-    case(1)
-      
-
-      !$OMP PARALLEL DEFAULT (NONE)                                  &
-          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections, &
-          !$OMP progress_bar,progress_value)&
-          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx,thread_num)
-
-      !$  thread_num = omp_get_thread_num()
-      allocate (idx(0:N_det))
-      !$OMP DO SCHEDULE(guided)
-      do i=1,N_det
-        if (thread_num == 0) then
-          progress_bar(1) = i
-          progress_value = dble(i)
-        endif
-        do j_int=1,N_con_int
-          det_connections(j_int,i) = 0_8
-          j_k = ishft(j_int-1,11)
-          do j_l = j_k,min(j_k+2047,N_det), 32
-            do j = j_l+1,min(j_l+32,i)
-              degree = popcnt(xor( psi_det(1,1,i),psi_det(1,1,j))) + &
-                  popcnt(xor( psi_det(1,2,i),psi_det(1,2,j)))
-              if (degree < 5) then
-                det_connections(j_int,i) = ibset( det_connections(j_int,i), iand(63,ishft(j_l,-5)) )
-                exit
-              endif
-            enddo
-          enddo
-        enddo
-      enddo
-      !$OMP ENDDO
-      deallocate(idx)
-      !$OMP END PARALLEL
-      
-    case(2)
-      
-      !$OMP PARALLEL DEFAULT (NONE)                                  &
-          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections,&
-          !$OMP progress_bar,progress_value)&
-          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx,thread_num)
-      !$  thread_num = omp_get_thread_num()
-      allocate (idx(0:N_det))
-      !$OMP DO SCHEDULE(guided)
-      do i=1,N_det
-        if (thread_num == 0) then
-          progress_bar(1) = i
-          progress_value = dble(i)
-        endif
-        do j_int=1,N_con_int
-          det_connections(j_int,i) = 0_8
-          j_k = ishft(j_int-1,11)
-          do j_l = j_k,min(j_k+2047,N_det), 32
-            do j = j_l+1,min(j_l+32,i)
-              degree = popcnt(xor( psi_det(1,1,i),psi_det(1,1,j))) + &
-                  popcnt(xor( psi_det(1,2,i),psi_det(1,2,j))) +      &
-                  popcnt(xor( psi_det(2,1,i),psi_det(2,1,j))) +      &
-                  popcnt(xor( psi_det(2,2,i),psi_det(2,2,j)))
-              if (degree < 5) then
-                det_connections(j_int,i) = ibset( det_connections(j_int,i), iand(63,ishft(j_l,-5)) )
-                exit
-              endif
-            enddo
-          enddo
-        enddo
-      enddo
-      !$OMP ENDDO
-      deallocate(idx)
-      !$OMP END PARALLEL
-      
-    case(3)
-      
-      !$OMP PARALLEL DEFAULT (NONE)                                  &
-          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections,&
-          !$OMP progress_bar,progress_value)&
-          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx,thread_num)
-      !$  thread_num = omp_get_thread_num()
-      allocate (idx(0:N_det))
-      !$OMP DO SCHEDULE(guided)
-      do i=1,N_det
-        if (thread_num == 0) then
-          progress_bar(1) = i
-          progress_value = dble(i)
-        endif
-        do j_int=1,N_con_int
-          det_connections(j_int,i) = 0_8
-          j_k = ishft(j_int-1,11)
-          do j_l = j_k,min(j_k+2047,N_det), 32
-            do j = j_l+1,min(j_l+32,i)
-              degree = popcnt(xor( psi_det(1,1,i),psi_det(1,1,j))) + &
-                  popcnt(xor( psi_det(1,2,i),psi_det(1,2,j))) +      &
-                  popcnt(xor( psi_det(2,1,i),psi_det(2,1,j))) +      &
-                  popcnt(xor( psi_det(2,2,i),psi_det(2,2,j))) +      &
-                  popcnt(xor( psi_det(3,1,i),psi_det(3,1,j))) +      &
-                  popcnt(xor( psi_det(3,2,i),psi_det(3,2,j)))
-              if (degree < 5) then
-                det_connections(j_int,i) = ibset( det_connections(j_int,i), iand(63,ishft(j_l,-5)) )
-                exit
-              endif
-            enddo
-          enddo
-        enddo
-      enddo
-      !$OMP ENDDO
-      deallocate(idx)
-      !$OMP END PARALLEL
-      
-    case default
-      
-      
-      !$OMP PARALLEL DEFAULT (NONE)                                  &
-          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections,&
-          !$OMP progress_bar,progress_value)&
-          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx,thread_num)
-      !$  thread_num = omp_get_thread_num()
-      allocate (idx(0:N_det))
-      !$OMP DO SCHEDULE(guided)
-      do i=1,N_det
-        if (thread_num == 0) then
-          progress_bar(1) = i
-          progress_value = dble(i)
-        endif
-        do j_int=1,N_con_int
-          det_connections(j_int,i) = 0_8
-          j_k = ishft(j_int-1,11)
-          do j_l = j_k,min(j_k+2047,N_det), 32
-            do j = j_l+1,min(j_l+32,i)
-              !DIR$ FORCEINLINE
-              call get_excitation_degree(psi_det(1,1,i),psi_det(1,1,j),degree,N_int)
-              if (degree < 3) then
-                det_connections(j_int,i) = ibset( det_connections(j_int,i), iand(63,ishft(j_l,-5)) )
-                exit
-              endif
-            enddo
-          enddo
-        enddo
-      enddo
-      !$OMP ENDDO
-      deallocate(idx)
-      !$OMP END PARALLEL
-      
-  end select
-  call stop_progress
-
-END_PROVIDER
 

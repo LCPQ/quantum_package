@@ -1,3 +1,6 @@
+
+
+
 subroutine davidson_diag_mrcc(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit,istate)
   use bitmasks
   implicit none
@@ -102,7 +105,10 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
   double precision               :: to_print(2,N_st)
   double precision               :: cpu, wall
   
-  PROVIDE det_connections
+  integer(bit_kind)              :: dets_in_sorted(Nint,2,sze)
+  integer                        :: idx(sze), shortcut(0:sze+1),sh,ii,tmp
+  
+  !PROVIDE det_connections
 
   call write_time(iunit)
   call wall_time(wall)
@@ -146,6 +152,10 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
   
   ! Initialization
   ! ==============
+  
+  
+  dets_in_sorted(:,:,:) = dets_in(:,:,:)
+  call sort_dets_ab(dets_in_sorted, idx, shortcut, sze, Nint)
   
   k_pairs=0
   do l=1,N_st
@@ -205,6 +215,8 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
       ! ----------------------
       
       do k=1,N_st
+        !call H_u_0_mrcc(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in_sorted,shortcut,idx,Nint,istate)
+        !call H_u_0_mrcc_org(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint,istate)
         call H_u_0_mrcc(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint,istate)
       enddo
       
@@ -357,6 +369,8 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
   abort_here = abort_all
 end
 
+
+
 subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
   use bitmasks
   implicit none
@@ -377,37 +391,104 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
   double precision, allocatable  :: vt(:)
   integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0
+  
+  integer                        :: shortcut(0:n+1), sort_idx(n)
+  integer(bit_kind)              :: sorted(Nint,n), version(Nint,n)
+  
+  
+  integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, pass
+!   
+  
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
   ASSERT (n>0)
-  PROVIDE ref_bitmask_energy delta_ij 
+  PROVIDE ref_bitmask_energy delta_ij
   integer, parameter             :: block_size = 157
-  !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(i,hij,j,k,idx,jj,ii,vt)                             &
-      !$OMP SHARED(n_det_ref,n_det_non_ref,idx_ref,idx_non_ref,n,H_jj,u_0,keys_tmp,Nint,v_0,istate,delta_ij)
-  !$OMP DO SCHEDULE(static)
+  
+ 
+   !$OMP PARALLEL DEFAULT(NONE)                                       &
+      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt,ii,sh, sh2, ni, exa, ext, org_i, org_j, endi, pass)                             &
+      !$OMP SHARED(n_det_ref,n_det_non_ref,idx_ref,idx_non_ref,n,H_jj,u_0,keys_tmp,Nint,v_0,istate,delta_ij,sorted,shortcut,sort_idx,version)
+      
+      
+      
+ !$OMP DO SCHEDULE(static)
   do i=1,n  
     v_0(i) = H_jj(i) * u_0(i)
   enddo 
   !$OMP END DO
+
   allocate(idx(0:n), vt(n))
   Vt = 0.d0
-  !$OMP DO SCHEDULE(guided)
-  do i=1,n
-    idx(0) = i
-    call filter_connected_davidson(keys_tmp,keys_tmp(1,1,i),Nint,i-1,idx)
-    do jj=1,idx(0)
-      j = idx(jj)
-!     if ( (dabs(u_0(j)) > 1.d-7).or.((dabs(u_0(i)) > 1.d-7)) ) then
-        call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
-        hij = hij 
-        vt (i) = vt (i) + hij*u_0(j)
-        vt (j) = vt (j) + hij*u_0(i)
-!     endif
-    enddo
+  
+  
+  !$OMP SINGLE
+  call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
+  !$OMP END SINGLE
+  
+
+  !$OMP DO SCHEDULE(dynamic)
+  do sh=1,shortcut(0)
+  do sh2=1,sh
+    exa = 0
+    do ni=1,Nint
+      exa += popcnt(xor(version(ni,sh), version(ni,sh2)))
+    end do
+    if(exa > 2) then
+      cycle
+    end if
+    
+    do i=shortcut(sh),shortcut(sh+1)-1
+      if(sh==sh2) then
+        endi = i-1
+      else
+        endi = shortcut(sh2+1)-1
+      end if
+      
+      do j=shortcut(sh2),endi
+        ext = exa
+        do ni=1,Nint
+          ext += popcnt(xor(sorted(ni,i), sorted(ni,j)))
+        end do
+        if(ext <= 4) then
+          org_i = sort_idx(i)
+          org_j = sort_idx(j)
+          
+          call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
+          vt (org_i) = vt (org_i) + hij*u_0(org_j)
+          vt (org_j) = vt (org_j) + hij*u_0(org_i)
+        end if
+      end do
+    end do
+  end do
   enddo
   !$OMP END DO
-
+  
+  !$OMP SINGLE
+  call sort_dets_ba_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
+  !$OMP END SINGLE
+ 
+  !$OMP DO SCHEDULE(dynamic)
+  do sh=1,shortcut(0)
+    do i=shortcut(sh),shortcut(sh+1)-1
+      do j=shortcut(sh),i-1
+        ext = 0
+        do ni=1,Nint
+          ext += popcnt(xor(sorted(ni,i), sorted(ni,j)))
+        end do
+        if(ext == 4) then
+          org_i = sort_idx(i)
+          org_j = sort_idx(j)
+          call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
+          vt (org_i) = vt (org_i) + hij*u_0(org_j)
+          vt (org_j) = vt (org_j) + hij*u_0(org_i)
+        end if
+      end do
+    end do
+  enddo
+  !$OMP END DO
+  
+  
   !$OMP DO SCHEDULE(guided)
   do ii=1,n_det_ref
     i = idx_ref(ii)
@@ -426,5 +507,4 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
   deallocate(idx,vt)
   !$OMP END PARALLEL
 end
-
 
