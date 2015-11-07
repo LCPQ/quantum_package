@@ -168,7 +168,15 @@ def update_documentation(d_readmen, root_module):
 
         d_readme[path]["documentation"] = "\n".join(l_doc_section)
 
+
 if __name__ == '__main__':
+
+    # Update documentation only if the remote repository is
+    # the main repository
+    from is_master_repository import is_master_repository
+    if not is_master_repository:
+        sys.exit(0)
+
     arguments = docopt(__doc__)
 
     if arguments["--root_module"]:
