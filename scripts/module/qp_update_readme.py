@@ -159,7 +159,6 @@ def update_documentation(d_readmen, root_module):
             doc = extract_doc(root_module, irp.provider)
 
             if ".irp.f_shell_" in irp.file:
-                print irp.file
                 l_doc += ["{0}".format(irp.provider),
                           doc,
                           ""]
