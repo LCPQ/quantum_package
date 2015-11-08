@@ -314,21 +314,7 @@ Documentation
   to repeat the excitations
 
 
-<<<<<<< HEAD
-`filter_connected_sorted_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L101>`_
-  Filters out the determinants that are not connected by H
-  returns the array idx which contains the index of the
-  determinants in the array key1 that interact
-  via the H operator with key2.
-  idx(0) is the number of determinants that interact with key1
-  .br
-  Determinants are taken from the psi_det_sorted_ab array
-
-
 `generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L500>`_
-=======
-`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L472>`_
->>>>>>> 2d3ba8003b05cb406674cc93a9bfc917d94db7fc
   Create a wave function from all possible alpha x beta determinants
 
 
@@ -891,13 +877,12 @@ Documentation
   Weights in the state-average calculation of the density matrix
 
 
-<<<<<<< HEAD
-`target_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L160>`_
-  Energy that should be obtained when truncating the wave function (optional)
-=======
 `tamiser <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L91>`_
   Undocumented
->>>>>>> 2d3ba8003b05cb406674cc93a9bfc917d94db7fc
+
+
+`target_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L160>`_
+  Energy that should be obtained when truncating the wave function (optional)
 
 
 `threshold_convergence_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_SC2.irp.f#L18>`_
