@@ -107,92 +107,92 @@ Documentation
   Undocumented
 
 
-`perturb_buffer_by_mono_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L161>`_
+perturb_buffer_by_mono_delta_rho_one_point
   Applly pertubration ``delta_rho_one_point`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_dipole_moment_z <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L56>`_
+perturb_buffer_by_mono_dipole_moment_z
   Applly pertubration ``dipole_moment_z`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L266>`_
+perturb_buffer_by_mono_epstein_nesbet
   Applly pertubration ``epstein_nesbet`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L371>`_
+perturb_buffer_by_mono_epstein_nesbet_2x2
   Applly pertubration ``epstein_nesbet_2x2`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L896>`_
+perturb_buffer_by_mono_epstein_nesbet_sc2
   Applly pertubration ``epstein_nesbet_sc2`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_epstein_nesbet_sc2_no_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L791>`_
+perturb_buffer_by_mono_epstein_nesbet_sc2_no_projected
   Applly pertubration ``epstein_nesbet_sc2_no_projected`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L686>`_
+perturb_buffer_by_mono_epstein_nesbet_sc2_projected
   Applly pertubration ``epstein_nesbet_sc2_projected`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_h_core <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L476>`_
+perturb_buffer_by_mono_h_core
   Applly pertubration ``h_core`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_by_mono_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L581>`_
+perturb_buffer_by_mono_moller_plesset
   Applly pertubration ``moller_plesset`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L110>`_
+perturb_buffer_delta_rho_one_point
   Applly pertubration ``delta_rho_one_point`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_dipole_moment_z <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L5>`_
+perturb_buffer_dipole_moment_z
   Applly pertubration ``dipole_moment_z`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L215>`_
+perturb_buffer_epstein_nesbet
   Applly pertubration ``epstein_nesbet`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L320>`_
+perturb_buffer_epstein_nesbet_2x2
   Applly pertubration ``epstein_nesbet_2x2`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L845>`_
+perturb_buffer_epstein_nesbet_sc2
   Applly pertubration ``epstein_nesbet_sc2`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_epstein_nesbet_sc2_no_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L740>`_
+perturb_buffer_epstein_nesbet_sc2_no_projected
   Applly pertubration ``epstein_nesbet_sc2_no_projected`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L635>`_
+perturb_buffer_epstein_nesbet_sc2_projected
   Applly pertubration ``epstein_nesbet_sc2_projected`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_h_core <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L425>`_
+perturb_buffer_h_core
   Applly pertubration ``h_core`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-`perturb_buffer_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/perturbation.irp.f_shell_13#L530>`_
+perturb_buffer_moller_plesset
   Applly pertubration ``moller_plesset`` to the buffer of determinants generated in the H_apply
   routine.
 

@@ -195,31 +195,31 @@ Documentation
   .br
 
 
-`output_ao_basis <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L1>`_
+output_ao_basis
   Output file for AO_Basis
 
 
-`output_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L21>`_
+output_bitmask
   Output file for Bitmask
 
 
-`output_cas_sd <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L41>`_
+output_cas_sd
   Output file for CAS_SD
 
 
-`output_cid <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L61>`_
+output_cid
   Output file for CID
 
 
-`output_cisd <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L81>`_
+output_cisd
   Output file for CISD
 
 
-`output_cisd_sc2_selected <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L101>`_
+output_cisd_sc2_selected
   Output file for CISD_SC2_selected
 
 
-`output_cisd_selected <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L121>`_
+output_cisd_selected
   Output file for CISD_selected
 
 
@@ -227,115 +227,115 @@ Documentation
   Initial CPU and wall times when printing in the output files
 
 
-`output_ddci_selected <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L141>`_
+output_ddci_selected
   Output file for DDCI_selected
 
 
-`output_determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L161>`_
+output_determinants
   Output file for Determinants
 
 
-`output_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L181>`_
+output_electrons
   Output file for Electrons
 
 
-`output_ezfio_files <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L201>`_
+output_ezfio_files
   Output file for Ezfio_files
 
 
-`output_fcidump <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L221>`_
+output_fcidump
   Output file for FCIdump
 
 
-`output_full_ci <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L241>`_
+output_full_ci
   Output file for Full_CI
 
 
-`output_generators_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L261>`_
+output_generators_cas
   Output file for Generators_CAS
 
 
-`output_generators_full <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L281>`_
+output_generators_full
   Output file for Generators_full
 
 
-`output_hartree_fock <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L301>`_
+output_hartree_fock
   Output file for Hartree_Fock
 
 
-`output_integrals_bielec <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L321>`_
+output_integrals_bielec
   Output file for Integrals_Bielec
 
 
-`output_integrals_monoelec <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L341>`_
+output_integrals_monoelec
   Output file for Integrals_Monoelec
 
 
-`output_loc_cele <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L361>`_
+output_loc_cele
   Output file for loc_cele
 
 
-`output_mo_basis <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L381>`_
+output_mo_basis
   Output file for MO_Basis
 
 
-`output_moguess <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L401>`_
+output_moguess
   Output file for MOGuess
 
 
-`output_molden <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L421>`_
+output_molden
   Output file for Molden
 
 
-`output_mp2 <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L441>`_
+output_mp2
   Output file for MP2
 
 
-`output_mrcc_cassd <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L461>`_
+output_mrcc_cassd
   Output file for MRCC_CASSD
 
 
-`output_mrcc_utils <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L481>`_
+output_mrcc_utils
   Output file for MRCC_Utils
 
 
-`output_nuclei <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L501>`_
+output_nuclei
   Output file for Nuclei
 
 
-`output_perturbation <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L521>`_
+output_perturbation
   Output file for Perturbation
 
 
-`output_properties <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L541>`_
+output_properties
   Output file for Properties
 
 
-`output_pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L561>`_
+output_pseudo
   Output file for Pseudo
 
 
-`output_psiref_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L581>`_
+output_psiref_cas
   Output file for Psiref_CAS
 
 
-`output_psiref_utils <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L601>`_
+output_psiref_utils
   Output file for Psiref_Utils
 
 
-`output_qmcchem <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L621>`_
+output_qmcchem
   Output file for QmcChem
 
 
-`output_selectors_full <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L641>`_
+output_selectors_full
   Output file for Selectors_full
 
 
-`output_singlerefmethod <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L661>`_
+output_singlerefmethod
   Output file for SingleRefMethod
 
 
-`output_utils <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f_shell_40#L681>`_
+output_utils
   Output file for Utils
 
 
