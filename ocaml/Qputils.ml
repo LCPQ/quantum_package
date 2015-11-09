@@ -12,7 +12,6 @@ let rec transpose = function
 ;;
 *)
 
-
 let input_to_sexp s =
     let result = 
       String.split_lines s 

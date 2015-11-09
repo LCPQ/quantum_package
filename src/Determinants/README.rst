@@ -113,16 +113,16 @@ Documentation
   After calling this subroutine, N_det, psi_det and psi_coef need to be touched
 
 
-`create_wf_of_psi_bilinear_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L417>`_
+`create_wf_of_psi_bilinear_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L445>`_
   Generate a wave function containing all possible products
   of alpha and beta determinants
 
 
-`davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L563>`_
+`davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L565>`_
   True if the Davidson algorithm is converged
 
 
-`davidson_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L553>`_
+`davidson_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L555>`_
   Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
 
@@ -145,7 +145,7 @@ Documentation
   Initial guess vectors are not necessarily orthonormal
 
 
-`davidson_diag_hjj <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L239>`_
+`davidson_diag_hjj <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L241>`_
   Davidson diagonalization with specific diagonal elements of the H matrix
   .br
   H_jj : specific diagonal H matrix elements to diagonalize de Davidson
@@ -174,7 +174,7 @@ Documentation
   Max number of Davidson sizes
 
 
-`davidson_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L554>`_
+`davidson_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L556>`_
   Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
 
@@ -186,20 +186,24 @@ Documentation
   degree : Degree of excitation
 
 
+`det_alpha_norm <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L353>`_
+  Norm of the alpha and beta spin determinants in the wave function:
+  .br
+  ||Da||_i \sum_j C_{ij}**2
+
+
+`det_beta_norm <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L354>`_
+  Norm of the alpha and beta spin determinants in the wave function:
+  .br
+  ||Da||_i \sum_j C_{ij}**2
+
+
 `det_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L138>`_
   det_coef
 
 
-`det_connections <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1380>`_
-  Build connection proxy between determinants
-
-
 `det_inf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L69>`_
   Undocumented
-
-
-`det_num <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L248>`_
-  det_num
 
 
 `det_occ <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L226>`_
@@ -278,26 +282,6 @@ Documentation
   idx(0) is the number of determinants that interact with key1
 
 
-`filter_connected_davidson <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L257>`_
-  Filters out the determinants that are not connected by H
-  returns the array idx which contains the index of the
-  determinants in the array key1 that interact
-  via the H operator with key2.
-  .br
-  idx(0) is the number of determinants that interact with key1
-  key1 should come from psi_det_sorted_ab.
-
-
-`filter_connected_davidson_shortcut <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L193>`_
-  Filters out the determinants that are not connected by H
-  returns the array idx which contains the index of the
-  determinants in the array key1 that interact
-  via the H operator with key2.
-  .br
-  idx(0) is the number of determinants that interact with key1
-  key1 should come from psi_det_sorted_ab.
-
-
 `filter_connected_davidson_warp <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L102>`_
   Filters out the determinants that are not connected by H
   returns the array idx which contains the index of the
@@ -308,7 +292,7 @@ Documentation
   key1 should come from psi_det_sorted_ab.
 
 
-`filter_connected_i_h_psi0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L389>`_
+`filter_connected_i_h_psi0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L390>`_
   returns the array idx which contains the index of the
   .br
   determinants in the array key1 that interact
@@ -318,7 +302,7 @@ Documentation
   idx(0) is the number of determinants that interact with key1
 
 
-`filter_connected_i_h_psi0_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L488>`_
+`filter_connected_i_h_psi0_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L489>`_
   standard filter_connected_i_H_psi but returns in addition
   .br
   the array of the index of the non connected determinants to key1
@@ -330,7 +314,7 @@ Documentation
   to repeat the excitations
 
 
-`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L472>`_
+`generate_all_alpha_beta_det_products <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L500>`_
   Create a wave function from all possible alpha x beta determinants
 
 
@@ -401,14 +385,6 @@ Documentation
 
 
 `h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1219>`_
-  Computes v_0 = H|u_0>
-  .br
-  n : number of determinants
-  .br
-  H_jj : array of <j|H|j>
-
-
-`h_u_0_org <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1303>`_
   Computes v_0 = H|u_0>
   .br
   n : number of determinants
@@ -505,10 +481,6 @@ Documentation
 
 `mono_elec_ref_bitmask_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ref_bitmask.irp.f#L2>`_
   Energy of the reference bitmask used in Slater rules
-
-
-`n_con_int <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1372>`_
-  Number of integers to represent the connections between determinants
 
 
 `n_det <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L3>`_
@@ -624,22 +596,22 @@ Documentation
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
 
-`psi_bilinear_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L400>`_
+`psi_bilinear_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L428>`_
   Coefficient matrix if the wave function is expressed in a bilinear form :
   D_a^t C D_b
 
 
-`psi_bilinear_matrix_columns <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L362>`_
+`psi_bilinear_matrix_columns <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L390>`_
   Sparse coefficient matrix if the wave function is expressed in a bilinear form :
   D_a^t C D_b
 
 
-`psi_bilinear_matrix_rows <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L361>`_
+`psi_bilinear_matrix_rows <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L389>`_
   Sparse coefficient matrix if the wave function is expressed in a bilinear form :
   D_a^t C D_b
 
 
-`psi_bilinear_matrix_values <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L360>`_
+`psi_bilinear_matrix_values <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L388>`_
   Sparse coefficient matrix if the wave function is expressed in a bilinear form :
   D_a^t C D_b
 
@@ -793,7 +765,7 @@ Documentation
   Reads the determinants from the EZFIO file
 
 
-`read_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L160>`_
+`read_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L116>`_
   If true, read the wave function from the EZFIO file
 
 
@@ -818,7 +790,7 @@ Documentation
   Undocumented
 
 
-`s2_eig <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L116>`_
+`s2_eig <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L248>`_
   Force the wave function to be an eigenfunction of S^2
 
 
@@ -872,11 +844,11 @@ Documentation
   for a given couple of hole/particle excitations i.
 
 
-`sort_dets_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L195>`_
+`sort_dets_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L197>`_
   Undocumented
 
 
-`sort_dets_ab_v <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L148>`_
+`sort_dets_ab_v <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L145>`_
   Undocumented
 
 
@@ -907,6 +879,10 @@ Documentation
 
 `tamiser <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L91>`_
   Undocumented
+
+
+`target_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L160>`_
+  Energy that should be obtained when truncating the wave function (optional)
 
 
 `threshold_convergence_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_SC2.irp.f#L18>`_

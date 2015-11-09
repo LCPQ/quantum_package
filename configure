@@ -62,8 +62,9 @@ d_dependency = {
     "resultsFile": ["python"],
     "emsl": ["python"],
     "gcc": [],
+    "g++": [],
     "python": [],
-    "ninja": ["gcc", "python"],
+    "ninja": ["g++", "python"],
     "make": [],
     "p_graphviz": ["python"]
 }

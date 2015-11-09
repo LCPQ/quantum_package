@@ -13,7 +13,6 @@ then
 fi
 source ${QP_ROOT}/scripts/qp_include.sh
 
-
 function do_gitingore()
 { 
   cat << EOF > .gitignore

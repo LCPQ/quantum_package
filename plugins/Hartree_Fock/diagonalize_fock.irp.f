@@ -73,19 +73,19 @@ BEGIN_PROVIDER [double precision, diagonal_Fock_matrix_mo_sum, (mo_tot_num)]
  END_DOC
  integer :: i,j
  double precision :: accu
- do i = 1,elec_alpha_num
+ do j = 1,elec_alpha_num
   accu = 0.d0
-  do j = 1, elec_alpha_num
+  do i = 1, elec_alpha_num
    accu += 2.d0 * mo_bielec_integral_jj_from_ao(i,j) - mo_bielec_integral_jj_exchange_from_ao(i,j)
   enddo
-  diagonal_Fock_matrix_mo_sum(i) = accu + mo_mono_elec_integral(i,i)
+  diagonal_Fock_matrix_mo_sum(j) = accu + mo_mono_elec_integral(j,j)
  enddo
- do i = elec_alpha_num+1,mo_tot_num
+ do j = elec_alpha_num+1,mo_tot_num
   accu = 0.d0
-  do j = 1, elec_alpha_num
+  do i = 1, elec_alpha_num
    accu += 2.d0 * mo_bielec_integral_jj_from_ao(i,j) - mo_bielec_integral_jj_exchange_from_ao(i,j)
   enddo
-  diagonal_Fock_matrix_mo_sum(i) = accu + mo_mono_elec_integral(i,i)
+  diagonal_Fock_matrix_mo_sum(j) = accu + mo_mono_elec_integral(j,j)
  enddo
 
 END_PROVIDER
