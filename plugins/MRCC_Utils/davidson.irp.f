@@ -105,9 +105,6 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
   double precision               :: to_print(2,N_st)
   double precision               :: cpu, wall
   
-  integer(bit_kind)              :: dets_in_sorted(Nint,2,sze)
-  integer                        :: idx(sze), shortcut(0:sze+1),sh,ii,tmp
-  
   !PROVIDE det_connections
 
   call write_time(iunit)
@@ -154,8 +151,6 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
   ! ==============
   
   
-  dets_in_sorted(:,:,:) = dets_in(:,:,:)
-  call sort_dets_ab(dets_in_sorted, idx, shortcut, sze, Nint)
   
   k_pairs=0
   do l=1,N_st
@@ -215,8 +210,6 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
       ! ----------------------
       
       do k=1,N_st
-        !call H_u_0_mrcc(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in_sorted,shortcut,idx,Nint,istate)
-        !call H_u_0_mrcc_org(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint,istate)
         call H_u_0_mrcc(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint,istate)
       enddo
       

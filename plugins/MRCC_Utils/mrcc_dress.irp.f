@@ -91,16 +91,19 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n
   integer                        :: iint, ipos
   integer                        :: i_state, k_sd, l_sd, i_I, i_alpha
   
-  integer(bit_kind),allocatable  :: miniList(:,:,:)
+  integer(bit_kind),allocatable  :: miniList(:,:,:), supalist(:,:,:)
   integer(bit_kind),intent(in)   :: key_mask(Nint, 2)
   integer,allocatable            :: idx_miniList(:)
-  integer                        :: N_miniList, ni
+  integer                        :: N_miniList, N_supalist, ni, leng
   
   
-  
-  allocate(miniList(Nint, 2, max(N_det_generators, N_det_non_ref)), idx_miniList(max(N_det_generators, N_det_non_ref)))
+  leng = max(N_det_generators, N_det_non_ref)
+  allocate(miniList(Nint, 2, leng), idx_miniList(leng), supalist(Nint,2,leng))
   
   l = 0
+  N_miniList = 0
+  N_supalist = 0
+    
   do ni = 1,Nint
     l += popcnt(key_mask(ni,1)) + popcnt(key_mask(ni,2))
   end do
@@ -109,22 +112,36 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n
     N_miniList = i_generator-1
     miniList(:,:,:N_miniList) = psi_det_generators(:,:,:N_minilist)
   else
-    N_miniList = 0
     do i=i_generator-1,1,-1
       k = l
       do ni=1,nint
         k -= popcnt(iand(key_mask(ni,1), psi_det_generators(ni,1,i))) + popcnt(iand(key_mask(ni,2), psi_det_generators(ni,2,i)))
       end do
       
-      if(k == 0) then
-        deallocate(miniList, idx_miniList)
-        return
-      end if
-      if(k <= 2) then
+!       if(k == 0) then
+!         deallocate(miniList, supalist, idx_miniList)
+!         return
+!       else if(k <= 2) then
+!         N_minilist += 1
+!         miniList(:,:,N_minilist) = psi_det_generators(:,:,i)
+!       end if
+!       
+      if(k == 2) then
+        N_supalist += 1
+        supalist(:,:,N_supalist) = psi_det_generators(:,:,i)
+      else if(k == 1) then
         N_minilist += 1
         miniList(:,:,N_minilist) = psi_det_generators(:,:,i)
+      else if(k == 0) then
+        deallocate(miniList, supalist, idx_miniList)
+        return
       end if
-    end do                                                                                                                           
+    end do
+  end if
+  
+  if(N_supalist > 0) then
+    miniList(:,:,N_minilist+1:N_minilist+N_supalist) = supalist(:,:,:N_supalist)
+    N_minilist = N_minilist + N_supalist
   end if
   
   
@@ -286,10 +303,12 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
   
   integer(bit_kind),intent(in)  :: miniList(Nint,2,N_det_generators)
   integer,intent(in)            :: N_miniList
-  
+
   
   
   N_tq = 0
+  
+  
   i_loop : do i=1,N_selected
     do j=1,N_miniList
       nt = 0
