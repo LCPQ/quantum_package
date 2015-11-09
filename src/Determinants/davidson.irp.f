@@ -287,10 +287,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   double precision               :: to_print(2,N_st)
   double precision               :: cpu, wall
   
-  integer(bit_kind)              :: dets_in_sorted(Nint, 2, sze)
-  integer                        :: idx(sze), shortcut(0:sze+1)
-  
-  !PROVIDE det_connections
+
 
   call write_time(iunit)
   call wall_time(wall)
@@ -336,9 +333,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   ! Initialization
   ! ==============
   
-  dets_in_sorted(:,:,:) = dets_in(:,:,:)
-  call sort_dets_ab(dets_in_sorted, idx, shortcut, sze, Nint)
-  
+
   k_pairs=0
   do l=1,N_st
     do k=1,l
@@ -348,9 +343,9 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
     enddo
   enddo
   
-  !$OMP PARALLEL DEFAULT(NONE)                                       &
+  !$OMP PARALLEL DEFAULT(NONE)                                      &
       !$OMP  SHARED(U,sze,N_st,overlap,kl_pairs,k_pairs,             &
-      !$OMP  Nint,dets_in_sorted,dets_in,u_in)                                 &
+      !$OMP  Nint,dets_in,u_in)                                 &
       !$OMP  PRIVATE(k,l,kl,i)
   
   
@@ -397,8 +392,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       ! ----------------------
       
       do k=1,N_st
-!          call H_u_0_org(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint)
-         call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in_sorted,shortcut,idx,Nint)
+          call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint)
       enddo
       
       
