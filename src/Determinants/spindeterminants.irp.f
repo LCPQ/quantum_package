@@ -442,13 +442,14 @@ BEGIN_PROVIDER [ double precision, psi_bilinear_matrix, (N_det_alpha_unique,N_de
   enddo
 END_PROVIDER
 
-subroutine create_wf_of_psi_bilinear_matrix
+subroutine create_wf_of_psi_bilinear_matrix(truncate)
   use bitmasks
   implicit none
   BEGIN_DOC
 ! Generate a wave function containing all possible products 
 ! of alpha and beta determinants
   END_DOC
+  logical, intent(in)            :: truncate
   integer                        :: i,j,k
   integer(bit_kind)              :: tmp_det(N_int,2)
   integer                        :: idx
@@ -488,8 +489,10 @@ subroutine create_wf_of_psi_bilinear_matrix
   norm(1) = 0.d0
   do i=1,N_det
     norm(1) += psi_average_norm_contrib_sorted(i)
-    if (norm(1) >= 0.999999d0) then
-      exit
+    if (truncate) then
+      if (norm(1) >= 0.999999d0) then
+        exit
+      endif
     endif
   enddo
   N_det = min(i,N_det)
@@ -532,7 +535,6 @@ subroutine generate_all_alpha_beta_det_products
   !$OMP END DO NOWAIT
   deallocate(tmp_det)
   !$OMP END PARALLEL
-  deallocate (tmp_det)
   call copy_H_apply_buffer_to_wf
   SOFT_TOUCH psi_det psi_coef N_det
 end

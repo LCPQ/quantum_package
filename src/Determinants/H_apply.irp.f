@@ -41,6 +41,15 @@ type(H_apply_buffer_type), pointer :: H_apply_buffer(:)
     call omp_init_lock(H_apply_buffer_lock(1,iproc))
     !$OMP END PARALLEL
   endif
+  do iproc=2,nproc-1
+    if (.not.allocated(H_apply_buffer(iproc)%det)) then
+      print *,  ' ===================== Error =================== '
+      print *,  'H_apply_buffer_allocated  should be provided outside'
+      print *,  'of an OpenMP section'
+      print *,  ' =============================================== '
+      stop
+    endif
+  enddo
   
 END_PROVIDER
 
@@ -111,7 +120,6 @@ subroutine copy_H_apply_buffer_to_wf
   double precision, allocatable  :: buffer_coef(:,:)
   integer                        :: i,j,k
   integer                        :: N_det_old
-  integer                        :: iproc
   
   PROVIDE H_apply_buffer_allocated
   
@@ -158,7 +166,7 @@ subroutine copy_H_apply_buffer_to_wf
   enddo
   !$OMP PARALLEL DEFAULT(SHARED)                                     &
       !$OMP PRIVATE(j,k,i) FIRSTPRIVATE(N_det_old)                   &
-      !$OMP SHARED(N_int,H_apply_buffer,psi_det,psi_coef,N_states)
+      !$OMP SHARED(N_int,H_apply_buffer,psi_det,psi_coef,N_states,psi_det_size)
   j=0
   !$ j=omp_get_thread_num()
   do k=0,j-1
