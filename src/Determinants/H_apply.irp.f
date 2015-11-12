@@ -2,11 +2,11 @@ use bitmasks
 use omp_lib
 
 type H_apply_buffer_type
-integer                        :: N_det
-integer                        :: sze
-integer(bit_kind), pointer     :: det(:,:,:)
-double precision , pointer     :: coef(:,:)
-double precision , pointer     :: e2(:,:)
+  integer                        :: N_det
+  integer                        :: sze
+  integer(bit_kind), pointer     :: det(:,:,:)
+  double precision , pointer     :: coef(:,:)
+  double precision , pointer     :: e2(:,:)
 end type H_apply_buffer_type
 
 type(H_apply_buffer_type), pointer :: H_apply_buffer(:)
@@ -42,7 +42,7 @@ type(H_apply_buffer_type), pointer :: H_apply_buffer(:)
     !$OMP END PARALLEL
   endif
   do iproc=2,nproc-1
-    if (.not.allocated(H_apply_buffer(iproc)%det)) then
+    if (.not.associated(H_apply_buffer(iproc)%det)) then
       print *,  ' ===================== Error =================== '
       print *,  'H_apply_buffer_allocated  should be provided outside'
       print *,  'of an OpenMP section'
