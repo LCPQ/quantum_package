@@ -102,9 +102,11 @@ subroutine tamiser(key, idx, no, n, Nint, N_key)
   k = no
   j = 2*k
   do while(j <= n)
-    if(j < n .and. det_inf(key(:,:,j), key(:,:,j+1), Nint)) then
-      j = j+1
-    end if
+    if(j < n) then
+      if (det_inf(key(:,:,j), key(:,:,j+1), Nint)) then
+        j = j+1
+      endif
+    endif
     if(det_inf(key(:,:,k), key(:,:,j), Nint)) then
       tmp(:,:) = key(:,:,k)
       key(:,:,k) = key(:,:,j)
@@ -113,11 +115,11 @@ subroutine tamiser(key, idx, no, n, Nint, N_key)
       idx(k) = idx(j)
       idx(j) = tmpidx
       k = j
-      j = 2*k
+      j = k+k
     else
       return
-    end if
-  end do
+    endif
+  enddo
 end subroutine
 
 

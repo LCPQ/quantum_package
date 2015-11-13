@@ -9,13 +9,19 @@ program first_guess
   double precision               :: E
   integer, allocatable           :: kept(:)
   integer                        :: nelec_kept(2)
+  character                      :: occ_char, keep_char
   
-  PROVIDE H_apply_buffer_allocated
+  PROVIDE H_apply_buffer_allocated psi_det
   allocate (orb_energy(mo_tot_num), kept(0:mo_tot_num))
   nelec_kept(1:2) = 0
   kept(0) = 0
 
+  print *,  'Orbital energies'
+  print *,  '================'
+  print *,  ''
   do i=1,mo_tot_num
+    keep_char = ' '
+    occ_char = '-'
     orb_energy(i) = mo_mono_elec_integral(i,i)
     do j=1,elec_beta_num
       if (i==j) cycle
@@ -24,8 +30,9 @@ program first_guess
     do j=1,elec_alpha_num
       orb_energy(i) += mo_bielec_integral_jj(i,j)
     enddo
-    if ( (orb_energy(i) > -1.d0).and.(orb_energy(i) < .5d0) ) then
+    if ( (orb_energy(i) > -.5d0).and.(orb_energy(i) < .1d0) ) then
       kept(0) += 1
+      keep_char = 'X'
       kept( kept(0) ) = i
       if (i <= elec_beta_num) then
         nelec_kept(2) += 1
@@ -34,7 +41,16 @@ program first_guess
         nelec_kept(1) += 1
       endif
     endif
+    if (i <= elec_alpha_num) then
+      if (i <= elec_beta_num) then
+        occ_char = '#'
+      else
+        occ_char = '+'
+      endif
+    endif
+    print '(I4, 3X, A, 3X, F10.6, 3X, A)', i, occ_char, orb_energy(i), keep_char 
   enddo
+
   
   integer, allocatable           :: list  (:,:)
   integer(bit_kind), allocatable :: string(:,:)
@@ -50,35 +66,11 @@ program first_guess
   N_det_beta_unique  = 1
 
   integer :: i1,i2,i3,i4,i5,i6,i7,i8,i9
-!  select case (nelec_kept(1))
-!
-!    case(0)
-!      continue
-!
-!    case(1)
-!      do i1=kept(0),1,-1
-!        list(elec_alpha_num-0,1) = kept(i1)
-!        call list_to_bitstring( string(1,1), list(1,1), elec_alpha_num, N_int)
-!        N_det_alpha_unique += 1
-!        psi_det_alpha_unique(:,N_det_alpha_unique) = string(:,1)
-!      enddo
-!
-!    case(2)
-!      do i1=kept(0),1,-1
-!        list(elec_alpha_num-0,1) = kept(i1)
-!        call list_to_bitstring( string(1,1), list(1,1), elec_alpha_num, N_int)
-!        N_det_alpha_unique += 1
-!        psi_det_alpha_unique(:,N_det_alpha_unique) = string(:,1)
-!        do i2=i1-1,1,-1
-!          list(elec_alpha_num-1,1) = kept(i2)
-!          call list_to_bitstring( string(1,1), list(1,1), elec_alpha_num, N_int)
-!          N_det_alpha_unique += 1
-!          psi_det_alpha_unique(:,N_det_alpha_unique) = string(:,1)
-!        enddo
-!      enddo
 
-psi_det_size = kept(0)**(nelec_kept(1)+nelec_kept(2))
-TOUCH psi_det_size
+  psi_det_size = kept(0)**(nelec_kept(1)+nelec_kept(2))
+  print *,  kept(0), nelec_kept(:)
+  call write_int(6,psi_det_size,'psi_det_size')
+  TOUCH psi_det_size
 
 BEGIN_SHELL [ /usr/bin/python ]
 
