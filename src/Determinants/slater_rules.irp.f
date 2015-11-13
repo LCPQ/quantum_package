@@ -1250,16 +1250,14 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   ASSERT (n>0)
   PROVIDE ref_bitmask_energy davidson_criterion
   v_0 = 0.d0
+
+  call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
+  
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,j,k,idx,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi)                             &
       !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold,sorted,shortcut,sort_idx,version)
   allocate(idx(0:n), vt(n))
   Vt = 0.d0
-  
-  !$OMP SINGLE
-  call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
-  !$OMP END SINGLE
-  !$OMP BARRIER
   
   !$OMP DO SCHEDULE(dynamic)
   do sh=1,shortcut(0)
@@ -1299,12 +1297,23 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   enddo
   !$OMP END DO
   
-  integer :: omp_get_num_threads , omp_get_thread_num
-  !$OMP SINGLE
+  !$OMP CRITICAL
+  do i=1,n
+    v_0(i) = v_0(i) + vt(i)
+  enddo
+  !$OMP END CRITICAL
+
+  deallocate(idx,vt)
+  !$OMP END PARALLEL
+
   call sort_dets_ba_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
-  !$OMP END SINGLE
-  !$OMP BARRIER
  
+  !$OMP PARALLEL DEFAULT(NONE)                                       &
+      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi)                             &
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold,sorted,shortcut,sort_idx,version)
+  allocate(idx(0:n), vt(n))
+  Vt = 0.d0
+  
   !$OMP DO SCHEDULE(dynamic)
   do sh=1,shortcut(0)
     do i=shortcut(sh),shortcut(sh+1)-1
@@ -1334,6 +1343,7 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   !$OMP END CRITICAL
   deallocate(idx,vt)
   !$OMP END PARALLEL
+
   do i=1,n
     v_0(i) += H_jj(i) * u_0(i)
   enddo
