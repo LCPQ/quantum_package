@@ -8,6 +8,7 @@ BEGIN_PROVIDER [ integer, N_det ]
  logical                        :: exists
  character*64                   :: label
  PROVIDE ezfio_filename
+ PROVIDE nproc
  if (read_wf) then
    call ezfio_has_determinants_n_det(exists)
    if (exists) then

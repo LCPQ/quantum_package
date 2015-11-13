@@ -93,7 +93,7 @@ subroutine compute_energy(psi_bilinear_matrix_values_save, E, m, norm)
     m = 0
     !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(k,l,det_i,det_j,ci,cj,hij) REDUCTION(+:norm,m,num)
     allocate( det_i(N_int,2), det_j(N_int,2))
-    !$OMP DO 
+    !$OMP DO schedule(guided)
     do k=1,n_det
       if (psi_bilinear_matrix_values_save(k) == 0.d0) then
         cycle

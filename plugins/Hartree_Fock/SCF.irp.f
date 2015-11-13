@@ -48,10 +48,7 @@ subroutine run
    
   E0 = HF_energy 
 
-  thresh_SCF = 1.d-10
-  call damping_SCF
   mo_label = "Canonical"
-  TOUCH mo_label mo_coef
-  call save_mos
+  call damping_SCF
   
 end
