@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import subprocess
-pipe = subprocess.Popen("git config --local --get remote.origin.url", \
+pipe = subprocess.Popen("git config --get remote.origin.url", \
               shell=True, stdout=subprocess.PIPE)
 result = pipe.stdout.read()
 is_master_repository = "LCPQ/quantum_package" in result
