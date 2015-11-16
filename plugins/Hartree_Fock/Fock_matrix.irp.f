@@ -73,8 +73,13 @@
      enddo
      
    endif
+   ! Introduce level shift here
+   do i = elec_alpha_num+1, mo_tot_num
+     Fock_matrix_mo(i,i) += level_shift
+   enddo
+
    do i = 1, mo_tot_num
-     Fock_matrix_diag_mo(i) = Fock_matrix_mo(i,i)
+     Fock_matrix_diag_mo(i) = Fock_matrix_mo(i,i) 
    enddo
 END_PROVIDER
  
@@ -315,7 +320,9 @@ BEGIN_PROVIDER [ double precision, Fock_matrix_ao, (ao_num_align, ao_num) ]
  ! Fock matrix in AO basis set
  END_DOC
  
- if (elec_alpha_num == elec_beta_num) then
+ if ( (elec_alpha_num == elec_beta_num).and. &
+      (level_shift == 0.) ) &
+ then
    integer                        :: i,j
    do j=1,ao_num
      !DIR$ VECTOR ALIGNED
