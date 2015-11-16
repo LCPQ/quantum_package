@@ -122,15 +122,13 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
   integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, pass
   double precision               :: davidson_threshold_bis
   
-  !PROVIDE davidson_threshold
-  
   s2 = 0.d0
-  davidson_threshold_bis = davidson_threshold
+  davidson_threshold_bis = threshold_davidson
   call sort_dets_ab_v(psi_keys_tmp, sorted, sort_idx, shortcut, version, n, N_int)
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,j,s2_tmp,sh, sh2, ni, exa, ext, org_i, org_j, endi, pass)&
-      !$OMP SHARED(n,psi_coefs_tmp,psi_keys_tmp,N_int,davidson_threshold,shortcut,sorted,sort_idx,version)&
+      !$OMP SHARED(n,psi_coefs_tmp,psi_keys_tmp,N_int,threshold_davidson,shortcut,sorted,sort_idx,version)&
       !$OMP REDUCTION(+:s2)
   
   !$OMP DO SCHEDULE(dynamic)
@@ -162,7 +160,7 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
             org_j = sort_idx(j)
             
             if ( dabs(psi_coefs_tmp(org_j)) + dabs(psi_coefs_tmp(org_i))&
-                  > davidson_threshold ) then
+                  > threshold_davidson ) then
               call get_s2(psi_keys_tmp(1,1,org_i),psi_keys_tmp(1,1,org_j),s2_tmp,N_int)
               s2 = s2 + psi_coefs_tmp(org_i)*psi_coefs_tmp(org_j)*s2_tmp
             endif
@@ -179,7 +177,7 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,j,s2_tmp,sh, sh2, ni, exa, ext, org_i, org_j, endi, pass)&
-      !$OMP SHARED(n,psi_coefs_tmp,psi_keys_tmp,N_int,davidson_threshold,shortcut,sorted,sort_idx,version)&
+      !$OMP SHARED(n,psi_coefs_tmp,psi_keys_tmp,N_int,threshold_davidson,shortcut,sorted,sort_idx,version)&
       !$OMP REDUCTION(+:s2)
   
   !$OMP DO SCHEDULE(dynamic)
@@ -195,7 +193,7 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
           org_j = sort_idx(j)
           
           if ( dabs(psi_coefs_tmp(org_j)) + dabs(psi_coefs_tmp(org_i))&
-                > davidson_threshold ) then
+                > threshold_davidson ) then
             call get_s2(psi_keys_tmp(1,1,org_i),psi_keys_tmp(1,1,org_j),s2_tmp,N_int)
             s2 = s2 + psi_coefs_tmp(org_i)*psi_coefs_tmp(org_j)*s2_tmp
           endif

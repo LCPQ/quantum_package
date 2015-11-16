@@ -1256,7 +1256,7 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,local_threshold,sorted_i)&
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold,sorted,shortcut,sort_idx,version)
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,threshold_davidson,sorted,shortcut,sort_idx,version)
   allocate(vt(n))
   Vt = 0.d0
   
@@ -1273,7 +1273,7 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
       
       do i=shortcut(sh),shortcut(sh+1)-1
         org_i = sort_idx(i)
-        local_threshold = davidson_threshold - dabs(u_0(org_i))
+        local_threshold = threshold_davidson - dabs(u_0(org_i))
         if(sh==sh2) then
           endi = i-1
         else
@@ -1315,14 +1315,14 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,local_threshold)&
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold,sorted,shortcut,sort_idx,version)
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,threshold_davidson,sorted,shortcut,sort_idx,version)
   allocate(vt(n))
   Vt = 0.d0
   
   !$OMP DO SCHEDULE(dynamic)
   do sh=1,shortcut(0)
     do i=shortcut(sh),shortcut(sh+1)-1
-      local_threshold = davidson_threshold - dabs(u_0(org_i))
+      local_threshold = threshold_davidson - dabs(u_0(org_i))
       org_i = sort_idx(i)
       do j=shortcut(sh),i-1
         org_j = sort_idx(j)
