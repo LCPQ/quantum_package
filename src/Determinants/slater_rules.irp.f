@@ -365,7 +365,7 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
   
   integer                        :: exc(0:2,2,2)
   integer                        :: degree
-  double precision               :: get_mo_bielec_integral
+  double precision               :: get_mo_bielec_integral_schwartz
   integer                        :: m,n,p,q
   integer                        :: i,j,k
   integer                        :: occ(Nint*bit_kind_size,2)
@@ -390,31 +390,31 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
       call get_double_excitation(key_i,key_j,exc,phase,Nint)
       if (exc(0,1,1) == 1) then
         ! Mono alpha, mono beta
-        hij = phase*get_mo_bielec_integral(                          &
+        hij = phase*get_mo_bielec_integral_schwartz(                          &
             exc(1,1,1),                                              &
             exc(1,1,2),                                              &
             exc(1,2,1),                                              &
             exc(1,2,2) ,mo_integrals_map)
       else if (exc(0,1,1) == 2) then
         ! Double alpha
-        hij = phase*(get_mo_bielec_integral(                         &
+        hij = phase*(get_mo_bielec_integral_schwartz(                         &
             exc(1,1,1),                                              &
             exc(2,1,1),                                              &
             exc(1,2,1),                                              &
             exc(2,2,1) ,mo_integrals_map) -                          &
-            get_mo_bielec_integral(                                  &
+            get_mo_bielec_integral_schwartz(                                  &
             exc(1,1,1),                                              &
             exc(2,1,1),                                              &
             exc(2,2,1),                                              &
             exc(1,2,1) ,mo_integrals_map) )
       else if (exc(0,1,2) == 2) then
         ! Double beta
-        hij = phase*(get_mo_bielec_integral(                         &
+        hij = phase*(get_mo_bielec_integral_schwartz(                         &
             exc(1,1,2),                                              &
             exc(2,1,2),                                              &
             exc(1,2,2),                                              &
             exc(2,2,2) ,mo_integrals_map) -                          &
-            get_mo_bielec_integral(                                  &
+            get_mo_bielec_integral_schwartz(                                  &
             exc(1,1,2),                                              &
             exc(2,1,2),                                              &
             exc(2,2,2),                                              &
@@ -432,15 +432,15 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
         do k = 1, elec_alpha_num
           i = occ(k,1)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral_schwartz(m,i,i,p,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
         do k = 1, elec_beta_num
           i = occ(k,2)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
@@ -459,15 +459,15 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
         do k = 1, elec_beta_num
           i = occ(k,2)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral_schwartz(m,i,i,p,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
         do k = 1, elec_alpha_num
           i = occ(k,1)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
@@ -501,7 +501,7 @@ subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
 
   integer,intent(out)            :: exc(0:2,2,2)
   integer,intent(out)            :: degree
-  double precision               :: get_mo_bielec_integral
+  double precision               :: get_mo_bielec_integral_schwartz
   integer                        :: m,n,p,q
   integer                        :: i,j,k
   integer                        :: occ(Nint*bit_kind_size,2)
@@ -526,31 +526,31 @@ subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
       call get_double_excitation(key_i,key_j,exc,phase,Nint)
       if (exc(0,1,1) == 1) then
         ! Mono alpha, mono beta
-        hij = phase*get_mo_bielec_integral(                          &
+        hij = phase*get_mo_bielec_integral_schwartz(                          &
             exc(1,1,1),                                              &
             exc(1,1,2),                                              &
             exc(1,2,1),                                              &
             exc(1,2,2) ,mo_integrals_map)
       else if (exc(0,1,1) == 2) then
         ! Double alpha
-        hij = phase*(get_mo_bielec_integral(                         &
+        hij = phase*(get_mo_bielec_integral_schwartz(                         &
             exc(1,1,1),                                              &
             exc(2,1,1),                                              &
             exc(1,2,1),                                              &
             exc(2,2,1) ,mo_integrals_map) -                          &
-            get_mo_bielec_integral(                                  &
+            get_mo_bielec_integral_schwartz(                                  &
             exc(1,1,1),                                              &
             exc(2,1,1),                                              &
             exc(2,2,1),                                              &
             exc(1,2,1) ,mo_integrals_map) )
       else if (exc(0,1,2) == 2) then
         ! Double beta
-        hij = phase*(get_mo_bielec_integral(                         &
+        hij = phase*(get_mo_bielec_integral_schwartz(                         &
             exc(1,1,2),                                              &
             exc(2,1,2),                                              &
             exc(1,2,2),                                              &
             exc(2,2,2) ,mo_integrals_map) -                          &
-            get_mo_bielec_integral(                                  &
+            get_mo_bielec_integral_schwartz(                                  &
             exc(1,1,2),                                              &
             exc(2,1,2),                                              &
             exc(2,2,2),                                              &
@@ -568,15 +568,15 @@ subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
         do k = 1, elec_alpha_num
           i = occ(k,1)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral_schwartz(m,i,i,p,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
         do k = 1, elec_beta_num
           i = occ(k,2)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
@@ -595,15 +595,15 @@ subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
         do k = 1, elec_beta_num
           i = occ(k,2)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral_schwartz(m,i,i,p,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
         do k = 1, elec_alpha_num
           i = occ(k,1)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
@@ -637,7 +637,7 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
   
   integer                        :: exc(0:2,2,2)
   integer                        :: degree
-  double precision               :: get_mo_bielec_integral
+  double precision               :: get_mo_bielec_integral_schwartz
   integer                        :: m,n,p,q
   integer                        :: i,j,k
   integer                        :: occ(Nint*bit_kind_size,2)
@@ -664,31 +664,31 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
       call get_double_excitation(key_i,key_j,exc,phase,Nint)
       if (exc(0,1,1) == 1) then
         ! Mono alpha, mono beta
-        hij = phase*get_mo_bielec_integral(                          &
+        hij = phase*get_mo_bielec_integral_schwartz(                          &
             exc(1,1,1),                                              &
             exc(1,1,2),                                              &
             exc(1,2,1),                                              &
             exc(1,2,2) ,mo_integrals_map)
       else if (exc(0,1,1) == 2) then
         ! Double alpha
-        hij = phase*(get_mo_bielec_integral(                         &
+        hij = phase*(get_mo_bielec_integral_schwartz(                         &
             exc(1,1,1),                                              &
             exc(2,1,1),                                              &
             exc(1,2,1),                                              &
             exc(2,2,1) ,mo_integrals_map) -                          &
-            get_mo_bielec_integral(                                  &
+            get_mo_bielec_integral_schwartz(                                  &
             exc(1,1,1),                                              &
             exc(2,1,1),                                              &
             exc(2,2,1),                                              &
             exc(1,2,1) ,mo_integrals_map) )
       else if (exc(0,1,2) == 2) then
         ! Double beta
-        hij = phase*(get_mo_bielec_integral(                         &
+        hij = phase*(get_mo_bielec_integral_schwartz(                         &
             exc(1,1,2),                                              &
             exc(2,1,2),                                              &
             exc(1,2,2),                                              &
             exc(2,2,2) ,mo_integrals_map) -                          &
-            get_mo_bielec_integral(                                  &
+            get_mo_bielec_integral_schwartz(                                  &
             exc(1,1,2),                                              &
             exc(2,1,2),                                              &
             exc(2,2,2),                                              &
@@ -706,15 +706,15 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
         do k = 1, elec_alpha_num
           i = occ(k,1)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral_schwartz(m,i,i,p,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
         do k = 1, elec_beta_num
           i = occ(k,2)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
@@ -733,15 +733,15 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
         do k = 1, elec_beta_num
           i = occ(k,2)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral_schwartz(m,i,i,p,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
         do k = 1, elec_alpha_num
           i = occ(k,1)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
@@ -1256,7 +1256,7 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,local_threshold,sorted_i)&
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold,sorted,shortcut,sort_idx,version)
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,threshold_davidson,sorted,shortcut,sort_idx,version)
   allocate(vt(n))
   Vt = 0.d0
   
@@ -1273,7 +1273,7 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
       
       do i=shortcut(sh),shortcut(sh+1)-1
         org_i = sort_idx(i)
-        local_threshold = davidson_threshold - dabs(u_0(org_i))
+        local_threshold = threshold_davidson - dabs(u_0(org_i))
         if(sh==sh2) then
           endi = i-1
         else
@@ -1315,14 +1315,14 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,local_threshold)&
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold,sorted,shortcut,sort_idx,version)
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,threshold_davidson,sorted,shortcut,sort_idx,version)
   allocate(vt(n))
   Vt = 0.d0
   
   !$OMP DO SCHEDULE(dynamic)
   do sh=1,shortcut(0)
     do i=shortcut(sh),shortcut(sh+1)-1
-      local_threshold = davidson_threshold - dabs(u_0(org_i))
+      local_threshold = threshold_davidson - dabs(u_0(org_i))
       org_i = sort_idx(i)
       do j=shortcut(sh),i-1
         org_j = sort_idx(j)

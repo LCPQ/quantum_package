@@ -35,7 +35,8 @@ except ImportError:
 
 from qp_path import QP_ROOT, QP_SRC, QP_EZFIO
 
-EZFIO_LIB = join(QP_ROOT, "lib", "libezfio.a")
+LIB = "" # join(QP_ROOT, "lib", "rdtsc.o") 
+EZFIO_LIB = join(QP_ROOT, "lib", "libezfio.a") 
 ROOT_BUILD_NINJA = join(QP_ROOT, "config", "build.ninja")
 
 header = r"""#
@@ -94,7 +95,7 @@ def ninja_create_env_variable(pwd_config_file):
         l_string.append(str_)
 
     lib_lapack = get_compilation_option(pwd_config_file, "LAPACK_LIB")
-    l_string.append("{0} = {1} {2}".format("LIB", lib_lapack, EZFIO_LIB))
+    l_string.append("LIB = {0} {1} {2}".format(LIB, lib_lapack, EZFIO_LIB))
 
     l_string.append("")
 

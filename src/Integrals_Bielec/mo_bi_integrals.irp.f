@@ -488,3 +488,19 @@ END_PROVIDER
  enddo
   
 END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, mo_bielec_integral_schwartz,(mo_tot_num,mo_tot_num)  ]
+  implicit none
+  BEGIN_DOC
+  !  Needed to compute Schwartz inequalities
+  END_DOC
+  
+  integer                        :: i,k
+  
+  do i=1,mo_tot_num
+    do k=1,mo_tot_num
+      mo_bielec_integral_schwartz(k,i) = dsqrt(mo_bielec_integral_jj(k,i))
+    enddo
+  enddo
+  
+END_PROVIDER

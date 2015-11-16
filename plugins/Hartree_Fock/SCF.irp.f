@@ -42,7 +42,7 @@ subroutine run
   BEGIN_DOC
 ! Run SCF calculation
   END_DOC
-  double precision               :: SCF_energy_before,SCF_energy_after,diag_H_mat_elem,get_mo_bielec_integral
+  double precision               :: SCF_energy_before,SCF_energy_after,diag_H_mat_elem
   double precision               :: E0
   integer                        :: i_it, i, j, k
    

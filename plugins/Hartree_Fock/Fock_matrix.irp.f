@@ -73,8 +73,13 @@
      enddo
      
    endif
+   ! Introduce level shift here
+   do i = elec_alpha_num+1, mo_tot_num
+     Fock_matrix_mo(i,i) += level_shift
+   enddo
+
    do i = 1, mo_tot_num
-     Fock_matrix_diag_mo(i) = Fock_matrix_mo(i,i)
+     Fock_matrix_diag_mo(i) = Fock_matrix_mo(i,i) 
    enddo
 END_PROVIDER
  
@@ -108,9 +113,10 @@ END_PROVIDER
  END_DOC
  
  integer                        :: i,j,k,l,k1,r,s
+ integer                        :: i0,j0,k0,l0
  integer*8                      :: p,q
- double precision               :: integral
- double precision               :: ao_bielec_integral
+ double precision               :: integral, c0, c1, c2
+ double precision               :: ao_bielec_integral, local_threshold
  double precision, allocatable  :: ao_bi_elec_integral_alpha_tmp(:,:)
  double precision, allocatable  :: ao_bi_elec_integral_beta_tmp(:,:)
  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: ao_bi_elec_integral_beta_tmp
@@ -121,11 +127,12 @@ END_PROVIDER
  if (do_direct_integrals) then
 
    !$OMP PARALLEL DEFAULT(NONE)                                      &
-       !$OMP PRIVATE(i,j,l,k1,k,integral,ii,jj,kk,ll,i8,keys,values,p,q,r,s, &
-       !$OMP ao_bi_elec_integral_alpha_tmp,ao_bi_elec_integral_beta_tmp)&
+       !$OMP PRIVATE(i,j,l,k1,k,integral,ii,jj,kk,ll,i8,keys,values,p,q,r,s,i0,j0,k0,l0, &
+       !$OMP ao_bi_elec_integral_alpha_tmp,ao_bi_elec_integral_beta_tmp, c0, c1, c2, &
+       !$OMP local_threshold)&
        !$OMP SHARED(ao_num,ao_num_align,HF_density_matrix_ao_alpha,HF_density_matrix_ao_beta,&
        !$OMP ao_integrals_map,ao_integrals_threshold, ao_bielec_integral_schwartz, &
-       !$OMP ao_overlap_abs, ao_bi_elec_integral_alpha, ao_bi_elec_integral_beta)  
+       !$OMP ao_overlap_abs, ao_bi_elec_integral_alpha, ao_bi_elec_integral_beta)
 
    allocate(keys(1), values(1))
    allocate(ao_bi_elec_integral_alpha_tmp(ao_num_align,ao_num), &
@@ -152,14 +159,16 @@ END_PROVIDER
               < ao_integrals_threshold) then
              cycle
            endif
-           if (ao_bielec_integral_schwartz(k,l)*ao_bielec_integral_schwartz(i,j)  &
-              < ao_integrals_threshold) then
+           local_threshold = ao_bielec_integral_schwartz(k,l)*ao_bielec_integral_schwartz(i,j)
+           if (local_threshold < ao_integrals_threshold) then
              cycle
            endif
-           values(1) = ao_bielec_integral(k,l,i,j)
-           if (abs(values(1)) < ao_integrals_threshold) then
-             cycle
-           endif
+           i0 = i
+           j0 = j
+           k0 = k
+           l0 = l
+           values(1) = 0.d0
+           local_threshold = ao_integrals_threshold/local_threshold
            do k2=1,8
              if (kk(k2)==0) then
                cycle
@@ -168,12 +177,21 @@ END_PROVIDER
              j = jj(k2)
              k = kk(k2)
              l = ll(k2)
-             integral = (HF_density_matrix_ao_alpha(k,l)+HF_density_matrix_ao_beta(k,l)) * values(1)
+             c0 = HF_density_matrix_ao_alpha(k,l)+HF_density_matrix_ao_beta(k,l)
+             c1 = HF_density_matrix_ao_alpha(k,i)
+             c2 = HF_density_matrix_ao_beta(k,i)
+             if ( dabs(c0)+dabs(c1)+dabs(c2) < local_threshold) then
+               cycle
+             endif
+             if (values(1) == 0.d0) then
+               values(1) = ao_bielec_integral(k0,l0,i0,j0)
+             endif
+             integral = c0 * values(1)
              ao_bi_elec_integral_alpha_tmp(i,j) += integral
              ao_bi_elec_integral_beta_tmp (i,j) += integral
              integral = values(1)
-             ao_bi_elec_integral_alpha_tmp(l,j) -= HF_density_matrix_ao_alpha(k,i) * integral
-             ao_bi_elec_integral_beta_tmp (l,j) -= HF_density_matrix_ao_beta (k,i) * integral
+             ao_bi_elec_integral_alpha_tmp(l,j) -= c1 * integral
+             ao_bi_elec_integral_beta_tmp (l,j) -= c2 * integral
            enddo
    enddo
    !$OMP END DO NOWAIT
@@ -315,7 +333,9 @@ BEGIN_PROVIDER [ double precision, Fock_matrix_ao, (ao_num_align, ao_num) ]
  ! Fock matrix in AO basis set
  END_DOC
  
- if (elec_alpha_num == elec_beta_num) then
+ if ( (elec_alpha_num == elec_beta_num).and. &
+      (level_shift == 0.) ) &
+ then
    integer                        :: i,j
    do j=1,ao_num
      !DIR$ VECTOR ALIGNED

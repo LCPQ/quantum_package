@@ -291,8 +291,31 @@ double precision function get_mo_bielec_integral(i,j,k,l,map)
   PROVIDE mo_bielec_integrals_in_map
   !DIR$ FORCEINLINE
   call bielec_integrals_index(i,j,k,l,idx)
+  !DIR$ FORCEINLINE
   call map_get(map,idx,tmp)
   get_mo_bielec_integral = dble(tmp)
+end
+
+double precision function get_mo_bielec_integral_schwartz(i,j,k,l,map)
+  use map_module
+  implicit none
+  BEGIN_DOC
+  ! Returns one integral <ij|kl> in the MO basis
+  END_DOC
+  integer, intent(in)            :: i,j,k,l
+  integer(key_kind)              :: idx
+  type(map_type), intent(inout)  :: map
+  real(integral_kind)            :: tmp
+  PROVIDE mo_bielec_integrals_in_map
+  if (mo_bielec_integral_schwartz(i,k)*mo_bielec_integral_schwartz(j,l) > mo_integrals_threshold) then
+    !DIR$ FORCEINLINE
+    call bielec_integrals_index(i,j,k,l,idx)
+    !DIR$ FORCEINLINE
+    call map_get(map,idx,tmp)
+  else
+    tmp = 0.d0
+  endif
+  get_mo_bielec_integral_schwartz = dble(tmp)
 end
 
 double precision function mo_bielec_integral(i,j,k,l)
@@ -301,9 +324,9 @@ double precision function mo_bielec_integral(i,j,k,l)
   ! Returns one integral <ij|kl> in the MO basis
   END_DOC
   integer, intent(in)            :: i,j,k,l
-  double precision               :: get_mo_bielec_integral
+  double precision               :: get_mo_bielec_integral_schwartz
   PROVIDE mo_bielec_integrals_in_map
-  mo_bielec_integral = get_mo_bielec_integral(i,j,k,l,mo_integrals_map)
+  mo_bielec_integral = get_mo_bielec_integral_schwartz(i,j,k,l,mo_integrals_map)
   return
 end
 
