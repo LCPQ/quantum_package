@@ -204,7 +204,7 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
             integral = general_primitive_integral(dim1,              &
                 P_new,P_center,fact_p,pp,p_inv,iorder_p,             &
                 Q_new,Q_center,fact_q,qq,q_inv,iorder_q)
-            ao_bielec_integral_schwartz_accel +=  coef4 * integral
+            ao_bielec_integral_schwartz_accel = ao_bielec_integral_schwartz_accel + coef4 * integral
           enddo ! s
         enddo  ! r
       enddo   ! q
@@ -264,7 +264,7 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
                 I_power(1),J_power(1),K_power(1),L_power(1),         &
                 I_power(2),J_power(2),K_power(2),L_power(2),         &
                 I_power(3),J_power(3),K_power(3),L_power(3))
-            ao_bielec_integral_schwartz_accel +=  coef4 * integral
+            ao_bielec_integral_schwartz_accel = ao_bielec_integral_schwartz_accel +  coef4 * integral
           enddo ! s
         enddo  ! r
       enddo   ! q
@@ -307,9 +307,17 @@ subroutine compute_ao_bielec_integrals(j,k,l,sze,buffer_value)
     buffer_value = 0._integral_kind
     return
   endif
+  if (ao_bielec_integral_schwartz(j,l) < thresh ) then
+    buffer_value = 0._integral_kind
+    return
+  endif
   
   do i = 1, ao_num
     if (ao_overlap_abs(i,k)*ao_overlap_abs(j,l) < thresh) then
+      buffer_value(i) = 0._integral_kind
+      cycle
+    endif
+    if (ao_bielec_integral_schwartz(i,k)*ao_bielec_integral_schwartz(j,l) < thresh ) then
       buffer_value(i) = 0._integral_kind
       cycle
     endif
@@ -669,32 +677,44 @@ double precision function ERI(alpha,beta,delta,gama,a_x,b_x,c_x,d_x,a_y,b_y,c_y,
   integer                        :: n_pt_sup
   double precision               :: p,q,denom,coeff
   double precision               :: I_f
+  integer                        :: nx,ny,nz
   include 'Utils/constants.include.F'
-  if(iand(a_x+b_x+c_x+d_x,1).eq.1.or.iand(a_y+b_y+c_y+d_y,1).eq.1.or.iand(a_z+b_z+c_z+d_z,1).eq.1)then
+  nx = a_x+b_x+c_x+d_x
+  if(iand(nx,1) == 1) then
     ERI = 0.d0
     return
-  else
-    
-    ASSERT (alpha >= 0.d0)
-    ASSERT (beta >= 0.d0)
-    ASSERT (delta >= 0.d0)
-    ASSERT (gama >= 0.d0)
-    p = alpha + beta
-    q = delta + gama
-    ASSERT (p+q >= 0.d0)
-    coeff = pi_5_2 / (p * q * dsqrt(p+q))
-    !DIR$ FORCEINLINE
-    n_pt = n_pt_sup(a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z)
-    
-    if (n_pt == 0) then
-      ERI = coeff
-      return
-    endif
-    
-    call integrale_new(I_f,a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z,p,q,n_pt)
-    
-    ERI = I_f * coeff
   endif
+
+  ny = a_y+b_y+c_y+d_y
+  if(iand(ny,1) == 1) then
+    ERI = 0.d0
+    return
+  endif
+
+  nz = a_z+b_z+c_z+d_z
+  if(iand(nz,1) == 1) then
+    ERI = 0.d0
+    return
+  endif
+    
+  ASSERT (alpha >= 0.d0)
+  ASSERT (beta >= 0.d0)
+  ASSERT (delta >= 0.d0)
+  ASSERT (gama >= 0.d0)
+  p = alpha + beta
+  q = delta + gama
+  ASSERT (p+q >= 0.d0)
+  n_pt =  ishft( nx+ny+nz,1 )
+  
+  coeff = pi_5_2 / (p * q * dsqrt(p+q))
+  if (n_pt == 0) then
+    ERI = coeff
+    return
+  endif
+  
+  call integrale_new(I_f,a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z,p,q,n_pt)
+  
+  ERI = I_f * coeff
 end
 
 
