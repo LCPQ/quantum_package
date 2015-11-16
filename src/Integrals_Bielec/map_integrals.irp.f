@@ -291,6 +291,7 @@ double precision function get_mo_bielec_integral(i,j,k,l,map)
   PROVIDE mo_bielec_integrals_in_map
   !DIR$ FORCEINLINE
   call bielec_integrals_index(i,j,k,l,idx)
+  !DIR$ FORCEINLINE
   call map_get(map,idx,tmp)
   get_mo_bielec_integral = dble(tmp)
 end
@@ -306,12 +307,13 @@ double precision function get_mo_bielec_integral_schwartz(i,j,k,l,map)
   type(map_type), intent(inout)  :: map
   real(integral_kind)            :: tmp
   PROVIDE mo_bielec_integrals_in_map
-  !DIR$ FORCEINLINE
-  if (mo_bielec_integral_schwartz(i,k)*mo_bielec_integral_schwartz(j,l) < mo_integrals_threshold) then
-    tmp = 0.d0
-  else
+  if (mo_bielec_integral_schwartz(i,k)*mo_bielec_integral_schwartz(j,l) > mo_integrals_threshold) then
+    !DIR$ FORCEINLINE
     call bielec_integrals_index(i,j,k,l,idx)
+    !DIR$ FORCEINLINE
     call map_get(map,idx,tmp)
+  else
+    tmp = 0.d0
   endif
   get_mo_bielec_integral_schwartz = dble(tmp)
 end
