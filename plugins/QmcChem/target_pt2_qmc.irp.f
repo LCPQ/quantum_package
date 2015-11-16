@@ -62,7 +62,7 @@ program e_curve
       endif
     enddo
     call compute_energy(psi_bilinear_matrix_values_save,E,m,norm)
-    print '(E9.1,2X,I8,2X,F10.2,2X,F10.8,2X,F12.6)',  norm_sort(n), m, &
+    print '(E9.1,2X,I8,2X,F10.2,2X,F10.6,2X,F12.6)',  norm_sort(n), m, &
       dble( elec_alpha_num**3 + elec_alpha_num**2 * m ) / &
       dble( elec_alpha_num**3 + elec_alpha_num**2 * n ), norm, E
     if (E < target_energy) then
