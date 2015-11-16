@@ -378,8 +378,9 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
       !$OMP DEFAULT(NONE)                                            &
       !$OMP SHARED (ao_num, jl_pairs, ao_integrals_map,thresh,       &
       !$OMP    cpu_1,wall_1,lock, lmax,n_centers,ao_nucl,            &
-      !$OMP    ao_overlap_abs,ao_overlap,abort_here,   &
-      !$OMP    wall_0,progress_bar,progress_value)
+      !$OMP    ao_overlap_abs,ao_overlap,abort_here,                 &
+      !$OMP    wall_0,progress_bar,progress_value,                   &
+      !$OMP    ao_bielec_integral_schwartz)
   
   allocate(buffer_i(size_buffer))
   allocate(buffer_value(size_buffer))
@@ -416,6 +417,9 @@ IRP_ENDIF
           exit
         endif
         if (ao_overlap_abs(i,k)*ao_overlap_abs(j,l) < thresh) then
+          cycle
+        endif
+        if (ao_bielec_integral_schwartz(i,k)*ao_bielec_integral_schwartz(j,l) < thresh ) then
           cycle
         endif
         !DIR$ FORCEINLINE
