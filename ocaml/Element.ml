@@ -1,4 +1,5 @@
-open Core.Std;;
+open Core.Std
+open Qptypes
 
 exception ElementError of string
 
@@ -8,49 +9,49 @@ type t =
 |Li|Be                              |B |C |N |O |F |Ne
 |Na|Mg                              |Al|Si|P |S |Cl|Ar
 |K |Ca|Sc|Ti|V |Cr|Mn|Fe|Co|Ni|Cu|Zn|Ga|Ge|As|Se|Br|Kr
-with sexp;;
+with sexp
 
 let of_string x = 
   match (String.capitalize (String.lowercase x)) with
-| "X"  | "Dummy" -> X
-| "H"  | "Hydrogen" -> H
-| "He" | "Helium" -> He
-| "Li" | "Lithium" -> Li
-| "Be" | "Beryllium" -> Be
-| "B"  | "Boron" -> B
-| "C"  | "Carbon" -> C
-| "N"  | "Nitrogen" -> N
-| "O"  | "Oxygen" -> O
-| "F"  | "Fluorine" -> F
-| "Ne" | "Neon" -> Ne
-| "Na" | "Sodium" -> Na
-| "Mg" | "Magnesium" -> Mg
-| "Al" | "Aluminum" -> Al
-| "Si" | "Silicon" -> Si
-| "P"  | "Phosphorus" -> P
-| "S"  | "Sulfur" -> S
-| "Cl" | "Chlorine" -> Cl
-| "Ar" | "Argon" -> Ar
-| "K"  | "Potassium" -> K
-| "Ca" | "Calcium" -> Ca
-| "Sc" | "Scandium" -> Sc
-| "Ti" | "Titanium" -> Ti
-| "V"  | "Vanadium" -> V
-| "Cr" | "Chromium" -> Cr
-| "Mn" | "Manganese" -> Mn
-| "Fe" | "Iron" -> Fe
-| "Co" | "Cobalt" -> Co
-| "Ni" | "Nickel" -> Ni
-| "Cu" | "Copper" -> Cu
-| "Zn" | "Zinc" -> Zn
-| "Ga" | "Gallium" -> Ga
-| "Ge" | "Germanium" -> Ge
-| "As" | "Arsenic" -> As
-| "Se" | "Selenium" -> Se
-| "Br" | "Bromine" -> Br
-| "Kr" | "Krypton" -> Kr
+|  "X"   |  "Dummy"       ->  X
+|  "H"   |  "Hydrogen"    ->  H
+|  "He"  |  "Helium"      ->  He
+|  "Li"  |  "Lithium"     ->  Li
+|  "Be"  |  "Beryllium"   ->  Be
+|  "B"   |  "Boron"       ->  B
+|  "C"   |  "Carbon"      ->  C
+|  "N"   |  "Nitrogen"    ->  N
+|  "O"   |  "Oxygen"      ->  O
+|  "F"   |  "Fluorine"    ->  F
+|  "Ne"  |  "Neon"        ->  Ne
+|  "Na"  |  "Sodium"      ->  Na
+|  "Mg"  |  "Magnesium"   ->  Mg
+|  "Al"  |  "Aluminum"    ->  Al
+|  "Si"  |  "Silicon"     ->  Si
+|  "P"   |  "Phosphorus"  ->  P
+|  "S"   |  "Sulfur"      ->  S
+|  "Cl"  |  "Chlorine"    ->  Cl
+|  "Ar"  |  "Argon"       ->  Ar
+|  "K"   |  "Potassium"   ->  K
+|  "Ca"  |  "Calcium"     ->  Ca
+|  "Sc"  |  "Scandium"    ->  Sc
+|  "Ti"  |  "Titanium"    ->  Ti
+|  "V"   |  "Vanadium"    ->  V
+|  "Cr"  |  "Chromium"    ->  Cr
+|  "Mn"  |  "Manganese"   ->  Mn
+|  "Fe"  |  "Iron"        ->  Fe
+|  "Co"  |  "Cobalt"      ->  Co
+|  "Ni"  |  "Nickel"      ->  Ni
+|  "Cu"  |  "Copper"      ->  Cu
+|  "Zn"  |  "Zinc"        ->  Zn
+|  "Ga"  |  "Gallium"     ->  Ga
+|  "Ge"  |  "Germanium"   ->  Ge
+|  "As"  |  "Arsenic"     ->  As
+|  "Se"  |  "Selenium"    ->  Se
+|  "Br"  |  "Bromine"     ->  Br
+|  "Kr"  |  "Krypton"     ->  Kr
 | x -> raise (ElementError ("Element "^x^" unknown"))
-;;
+
 
 let to_string = function
 | X   -> "X"
@@ -90,7 +91,7 @@ let to_string = function
 | Se  -> "Se"
 | Br  -> "Br"
 | Kr  -> "Kr"
-;;
+
 
 let to_long_string = function
 | X   -> "Dummy"
@@ -130,7 +131,7 @@ let to_long_string = function
 | Se  -> "Selenium"
 | Br  -> "Bromine"
 | Kr  -> "Krypton"
-;;
+
 
 let to_charge c = 
   let result = match c with
@@ -172,7 +173,7 @@ let to_charge c =
   | Br  -> 35
   | Kr  -> 36
   in Charge.of_int result
-;;
+
 
 let of_charge c = match (Charge.to_int c) with
 |  0   ->  X   
@@ -213,5 +214,134 @@ let of_charge c = match (Charge.to_int c) with
 |  35  ->  Br  
 |  36  ->  Kr  
 | x -> raise (ElementError ("Element of charge "^(string_of_int x)^" unknown"))
-;;
+
+
+let covalent_radius x = 
+  let result = function
+  | X   -> 0.
+  | H   -> 0.37
+  | He  -> 0.70
+  | Li  -> 1.23
+  | Be  -> 0.89
+  | B   -> 0.90
+  | C   -> 0.85
+  | N   -> 0.74
+  | O   -> 0.74
+  | F   -> 0.72
+  | Ne  -> 0.70
+  | Na  -> 1.00
+  | Mg  -> 1.36
+  | Al  -> 1.25
+  | Si  -> 1.17
+  | P   -> 1.10
+  | S   -> 1.10
+  | Cl  -> 0.99
+  | Ar  -> 0.70
+  | K   -> 2.03
+  | Ca  -> 1.74
+  | Sc  -> 1.44
+  | Ti  -> 1.32
+  | V   -> 1.22
+  | Cr  -> 0.00
+  | Mn  -> 1.16
+  | Fe  -> 0.00
+  | Co  -> 1.15
+  | Ni  -> 1.17
+  | Cu  -> 1.25
+  | Zn  -> 1.25
+  | Ga  -> 1.20
+  | Ge  -> 1.21
+  | As  -> 1.16
+  | Se  -> 0.70
+  | Br  -> 1.24
+  | Kr  -> 1.91
+  in
+  Units.angstrom_to_bohr *. (result x)
+  |> Positive_float.of_float
+
+let vdw_radius x = 
+  let result = function
+  | X    -> 0.
+  | H    -> 1.20
+  | He  ->  1.70
+  | Li  ->  1.70
+  | Be  ->  1.70
+  | B   ->  1.70
+  | C   ->  1.70
+  | N   ->  1.55
+  | O   ->  1.52
+  | F   ->  1.47
+  | Ne  ->  1.70
+  | Na  ->  1.70
+  | Mg  ->  1.70
+  | Al  ->  1.94
+  | Si  ->  2.10
+  | P   ->  1.80
+  | S   ->  1.80
+  | Cl  ->  1.75
+  | Ar  ->  1.70
+  | K   ->  1.70
+  | Ca  ->  1.70
+  | Sc  ->  1.70
+  | Ti  ->  1.70
+  | V   ->  1.98
+  | Cr  ->  1.94
+  | Mn  ->  1.93
+  | Fe  ->  1.93
+  | Co  ->  1.92
+  | Ni  ->  1.70
+  | Cu  ->  1.70
+  | Zn  ->  1.70
+  | Ga  ->  2.02
+  | Ge  ->  1.70
+  | As  ->  1.96
+  | Se  ->  1.70
+  | Br  ->  2.10
+  | Kr  ->  1.70
+  in
+  Units.angstrom_to_bohr *. (result x)
+  |> Positive_float.of_float
+
+let mass x =
+  let result = function
+  | X   ->    0.
+  | H   ->    1.0079
+  | He  ->    4.00260
+  | Li  ->    6.941
+  | Be  ->    9.01218
+  | B   ->   10.81
+  | C   ->   12.011
+  | N   ->   14.0067
+  | O   ->   15.9994
+  | F   ->   18.998403
+  | Ne  ->   20.179
+  | Na  ->   22.98977
+  | Mg  ->   24.305
+  | Al  ->   26.98154
+  | Si  ->   28.0855
+  | P   ->   30.97376
+  | S   ->   32.06
+  | Cl  ->   35.453
+  | Ar  ->   39.948
+  | K   ->   39.0983
+  | Ca  ->   40.08
+  | Sc  ->   44.9559
+  | Ti  ->   47.90
+  | V   ->   50.9415
+  | Cr  ->   51.996
+  | Mn  ->   54.9380
+  | Fe  ->   55.9332
+  | Co  ->   58.9332
+  | Ni  ->   58.70
+  | Cu  ->   63.546
+  | Zn  ->   65.38
+  | Ga  ->   69.72
+  | Ge  ->   72.59
+  | As  ->   74.9216
+  | Se  ->   78.96
+  | Br  ->   79.904
+  | Kr  ->   83.80
+  in
+  result x
+  |> Positive_float.of_float
 

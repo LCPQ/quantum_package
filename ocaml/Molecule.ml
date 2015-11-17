@@ -10,27 +10,36 @@ type t = {
 } with sexp
 
 let get_charge { nuclei  ; elec_alpha ; elec_beta } =
-  let result = (Elec_alpha_number.to_int elec_alpha) +
-     (Elec_beta_number.to_int elec_beta) in
+  let result =
+     (Elec_alpha_number.to_int elec_alpha) +
+     (Elec_beta_number.to_int elec_beta)
+  in
   let rec nucl_charge = function
   | a::rest -> (Charge.to_float a.Atom.charge) +. nucl_charge rest
   | [] -> 0.
   in
   Charge.of_float (nucl_charge nuclei  -. (Float.of_int result))
-;;
+
 
 let get_multiplicity m = 
-  let elec_alpha = m.elec_alpha in
+  let elec_alpha =
+     m.elec_alpha
+  in
   Multiplicity.of_alpha_beta elec_alpha m.elec_beta
-;;
+
 
 let get_nucl_num m =
-  let nmax = (List.length m.nuclei) in
+  let nmax =
+    List.length m.nuclei 
+  in
   Nucl_number.of_int nmax ~max:nmax
-;;
+
 
 let name m = 
-  let cm = Charge.to_int (get_charge m) in
+  let cm =
+    get_charge m
+    |> Charge.to_int
+  in
   let c = 
      match cm with
      | 0 -> ""
@@ -39,8 +48,12 @@ let name m =
      | i when i>1 -> Printf.sprintf " (%d+)" i
      | i -> Printf.sprintf " (%d-)" (-i)
   in
-  let mult = Multiplicity.to_string (get_multiplicity m) in
-  let { nuclei  ; elec_alpha ; elec_beta } = m in
+  let mult =
+    get_multiplicity m
+    |> Multiplicity.to_string
+  in
+  let { nuclei  ; elec_alpha ; elec_beta } = m
+  in
   let rec build_list accu = function
   | a::rest ->
       begin
@@ -53,7 +66,9 @@ let name m =
   in
   let rec build_name accu = function
   | (a, n)::rest ->
-    let a = Element.to_string a in
+    let a =
+      Element.to_string a
+    in
     begin
       match n with 
       | 1 -> build_name (a::accu) rest
@@ -64,19 +79,25 @@ let name m =
     end
   | [] -> accu
   in
-  let result = build_list [] nuclei |> build_name [c ; ", " ; mult]
+  let result =
+     build_list [] nuclei |> build_name [c ; ", " ; mult]
   in
   String.concat (result)
-;;
+
 
 let to_string m =
-  let { nuclei  ; elec_alpha ; elec_beta } = m in
-  let n = List.length nuclei in
-  let title = name m in
-  [ Int.to_string n ; title ] @ (List.map ~f:(fun x -> Atom.to_string
-  Units.Angstrom x) nuclei)
+  let { nuclei  ; elec_alpha ; elec_beta } = m
+  in
+  let n =
+    List.length nuclei
+  in
+  let title =
+     name m
+  in
+  [ Int.to_string n ; title ] @ 
+   (List.map ~f:(fun x -> Atom.to_string Units.Angstrom x) nuclei)
   |> String.concat ~sep:"\n"
-;;
+
 
 let of_xyz_string
     ?(charge=(Charge.of_int 0)) ?(multiplicity=(Multiplicity.of_int 1))
@@ -94,7 +115,9 @@ let of_xyz_string
       ) + 1 - (Charge.to_int charge)
       |> Elec_number.of_int 
   in
-  let (na,nb) = Multiplicity.to_alpha_beta ne multiplicity in
+  let (na,nb) =
+     Multiplicity.to_alpha_beta ne multiplicity
+  in
   let result = 
   { nuclei = l ;
     elec_alpha = na ;
@@ -109,7 +132,7 @@ let of_xyz_string
      raise (MultiplicityError msg);
   else () ;
   result
-;;
+
 
 
 let of_xyz_file
@@ -121,8 +144,33 @@ let of_xyz_file
   let (_,buffer) = String.lsplit2_exn buffer ~on:'\n' in
   of_xyz_string ~charge:charge ~multiplicity:multiplicity 
     ~units:units buffer
-;;
 
-include To_md5;;
+
+
+let distance_matrix molecule =
+  let coord =
+    molecule.nuclei
+    |> List.map ~f:(fun x -> x.Atom.coord)
+    |> Array.of_list
+  in
+  let n = 
+    Array.length coord
+  in
+  let result =
+    Array.make_matrix ~dimx:n  ~dimy:n 0.
+  in
+  for i = 0 to (n-1)
+  do
+    for j = 0 to (n-1)
+    do
+      result.(i).(j) <- Point3d.distance coord.(i) coord.(j)
+    done;
+  done;
+  result
+  
+  
+  
+
+include To_md5
 let to_md5 = to_md5 sexp_of_t
-;;
+

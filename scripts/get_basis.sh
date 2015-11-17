@@ -9,7 +9,6 @@
 #
 
 
-
 if [[ -z ${QP_ROOT} ]]
 then
   print "The QP_ROOT environment variable is not set."

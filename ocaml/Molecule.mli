@@ -34,5 +34,9 @@ val of_xyz_string :
   ?multiplicity:Multiplicity.t ->
   ?units:Units.units -> string -> t
 
+(** Creates the distance matrix between all the atoms *)
+val distance_matrix :
+  t -> (float array) array
+
 (** Computes the MD5 hash *)
 val to_md5 : t -> Qptypes.MD5.t
