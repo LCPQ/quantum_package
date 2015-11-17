@@ -5,41 +5,41 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral, (ao_num_align,ao_num)]
   END_DOC
   if (do_pseudo) then
     ao_pseudo_integral = ao_pseudo_integral_local + ao_pseudo_integral_non_local 
-!    ao_pseudo_integral = ao_pseudo_integral_local 
-!    ao_pseudo_integral = ao_pseudo_integral_non_local 
   else
     ao_pseudo_integral = 0.d0
   endif
 END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_num)]
+BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_num)]
   implicit none
   BEGIN_DOC
-! Local pseudo-potential
+  ! Local pseudo-potential
   END_DOC
- double precision  :: alpha, beta, gama, delta
- integer           :: num_A,num_B
- double precision  :: A_center(3),B_center(3),C_center(3)
- integer           :: power_A(3),power_B(3)
- integer           :: i,j,k,l,n_pt_in,m
- double precision  ::  Vloc, Vpseudo
-
- double precision  :: cpu_1, cpu_2, wall_1, wall_2, wall_0
- integer           :: thread_num
-
+  double precision               :: alpha, beta, gama, delta
+  integer                        :: num_A,num_B
+  double precision               :: A_center(3),B_center(3),C_center(3)
+  integer                        :: power_A(3),power_B(3)
+  integer                        :: i,j,k,l,n_pt_in,m
+  double precision               :: Vloc, Vpseudo
+  
+  double precision               :: cpu_1, cpu_2, wall_1, wall_2, wall_0
+  integer                        :: thread_num
+  !$ integer                     :: omp_get_thread_num
+  
   ao_pseudo_integral_local = 0.d0
-
-  !! Dump array 
-  integer, allocatable ::  n_k_dump(:)
-  double precision, allocatable ::  v_k_dump(:), dz_k_dump(:) 
- 
+  
+  !! Dump array
+  integer, allocatable           :: n_k_dump(:)
+  double precision, allocatable  :: v_k_dump(:), dz_k_dump(:)
+  
   allocate(n_k_dump(1:pseudo_klocmax), v_k_dump(1:pseudo_klocmax), dz_k_dump(1:pseudo_klocmax))
   
   print*, 'Providing the nuclear electron pseudo integrals (local)'
   
   call wall_time(wall_1)
   call cpu_time(cpu_1)
-
+  
+  thread_num = 0
   !$OMP PARALLEL                                                     &
       !$OMP DEFAULT (NONE)                                           &
       !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B,&
@@ -51,7 +51,8 @@ END_PROVIDER
       !$OMP         pseudo_klocmax,pseudo_lmax,pseudo_kmax,pseudo_v_k,pseudo_n_k, pseudo_dz_k,&
       !$OMP         wall_1)
   
-  !$OMP DO SCHEDULE (static,1)
+  !$ thread_num = omp_get_thread_num()
+  !$OMP DO SCHEDULE (guided)
   
   do j = 1, ao_num
     
@@ -119,31 +120,32 @@ END_PROVIDER
  BEGIN_PROVIDER [ double precision, ao_pseudo_integral_non_local, (ao_num_align,ao_num)]
   implicit none
   BEGIN_DOC
-! Local pseudo-potential
+  ! Local pseudo-potential
   END_DOC
- double precision  :: alpha, beta, gama, delta
- integer           :: num_A,num_B
- double precision  :: A_center(3),B_center(3),C_center(3)
- integer           :: power_A(3),power_B(3)
- integer           :: i,j,k,l,n_pt_in,m
- double precision  ::  Vloc, Vpseudo
-
- double precision  :: cpu_1, cpu_2, wall_1, wall_2, wall_0
- integer           :: thread_num
-
+  double precision               :: alpha, beta, gama, delta
+  integer                        :: num_A,num_B
+  double precision               :: A_center(3),B_center(3),C_center(3)
+  integer                        :: power_A(3),power_B(3)
+  integer                        :: i,j,k,l,n_pt_in,m
+  double precision               :: Vloc, Vpseudo
+  !$ integer                     :: omp_get_thread_num
+  
+  double precision               :: cpu_1, cpu_2, wall_1, wall_2, wall_0
+  integer                        :: thread_num
+  
   ao_pseudo_integral_non_local = 0.d0
-
-  !! Dump array 
-  integer, allocatable ::  n_kl_dump(:,:)
-  double precision, allocatable ::  v_kl_dump(:,:), dz_kl_dump(:,:) 
- 
-  allocate(n_kl_dump(pseudo_kmax,0:pseudo_lmax), v_kl_dump(pseudo_kmax,0:pseudo_lmax), dz_kl_dump(pseudo_kmax,0:pseudo_lmax)) 
-
+  
+  !! Dump array
+  integer, allocatable           :: n_kl_dump(:,:)
+  double precision, allocatable  :: v_kl_dump(:,:), dz_kl_dump(:,:)
+  
+  allocate(n_kl_dump(pseudo_kmax,0:pseudo_lmax), v_kl_dump(pseudo_kmax,0:pseudo_lmax), dz_kl_dump(pseudo_kmax,0:pseudo_lmax))
+  
   print*, 'Providing the nuclear electron pseudo integrals (non-local)'
   
   call wall_time(wall_1)
   call cpu_time(cpu_1)
-  
+  thread_num = 0
   !$OMP PARALLEL                                                     &
       !$OMP DEFAULT (NONE)                                           &
       !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B,&
@@ -155,7 +157,8 @@ END_PROVIDER
       !$OMP         pseudo_klocmax,pseudo_lmax,pseudo_kmax,pseudo_n_kl, pseudo_v_kl, pseudo_dz_kl,&
       !$OMP         wall_1)
   
-  !$OMP DO SCHEDULE (static,1)
+  !$ thread_num = omp_get_thread_num()
+  !$OMP DO SCHEDULE (guided)
   
   do j = 1, ao_num
     
@@ -181,7 +184,7 @@ END_PROVIDER
                 < 1.d-10) then
             cycle
           endif
-
+          
           do  k = 1, nucl_num
             double precision               :: Z
             Z = nucl_charge(k)
@@ -216,9 +219,9 @@ END_PROVIDER
   
   
   deallocate(n_kl_dump,v_kl_dump, dz_kl_dump)
-
-
- END_PROVIDER
+  
+  
+END_PROVIDER
 
 
 
