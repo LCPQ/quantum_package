@@ -11,26 +11,92 @@ let spec =
      ~doc:"string Name of basis set."
   +> flag "c" (optional_with_default 0 int)
      ~doc:"int Total charge of the molecule. Default is 0."
+  +> flag "d" (optional_with_default 0. float)
+     ~doc:"float Add dummy atoms. x * (covalent radii of the atoms)"
   +> flag "m" (optional_with_default 1 int)
      ~doc:"int Spin multiplicity (2S+1) of the molecule. Default is 1."
   +> flag "p" no_arg
      ~doc:" Using pseudopotentials"
   +> anon ("xyz_file" %: string)
-;;
 
-let run ?o b c m p xyz_file =
+
+let dummy_centers ~threshold ~molecule ~nuclei =
+  let d =
+    Molecule.distance_matrix molecule
+  in
+  let n =
+    Array.length d
+  in
+  let nuclei =
+    Array.of_list nuclei
+  in
+  let rec aux accu = function
+  | (-1,_) -> accu
+  | (i,-1) -> aux accu (i-1,i-1)
+  | (i,j) when (i>j) ->
+    let new_accu = 
+      let x,y =
+          Element.covalent_radius (nuclei.(i)).Atom.element |> Positive_float.to_float, 
+          Element.covalent_radius (nuclei.(j)).Atom.element |> Positive_float.to_float
+      in 
+      let r =
+        ( x +. y ) *. threshold
+      in
+      if d.(i).(j) < r then
+        (i,x,j,y,d.(i).(j)) :: accu
+      else
+        accu
+    in aux new_accu (i,j-1)
+  | (i,j) when (i=j) -> aux accu (i,j-1)
+  | _ -> assert false
+  in
+  aux [] (n-1,n-1)
+  |> List.map ~f:(fun (i,x,j,y,r) ->
+    let f = 
+      x /. (x +. y)
+    in
+    let u = 
+      Point3d.of_tuple ~units:Units.Bohr
+      ( nuclei.(i).Atom.coord.Point3d.x +. 
+          (nuclei.(j).Atom.coord.Point3d.x -. nuclei.(i).Atom.coord.Point3d.x) *. f, 
+        nuclei.(i).Atom.coord.Point3d.y +. 
+          (nuclei.(j).Atom.coord.Point3d.y -. nuclei.(i).Atom.coord.Point3d.y) *. f, 
+        nuclei.(i).Atom.coord.Point3d.z +. 
+          (nuclei.(j).Atom.coord.Point3d.z -. nuclei.(i).Atom.coord.Point3d.z) *. f) 
+    in
+    Atom.{ element = Element.X ; charge = Charge.of_int 0 ; coord = u }
+    )
+     
+    
+   
+  
+
+let run ?o b c d m p xyz_file =
 
   (* Read molecule *)
   let molecule =
     (Molecule.of_xyz_file xyz_file ~charge:(Charge.of_int c)
       ~multiplicity:(Multiplicity.of_int m) )
   in
-  let nuclei = molecule.Molecule.nuclei in
+  let dummy =
+    dummy_centers ~threshold:d ~molecule ~nuclei:molecule.Molecule.nuclei
+  in
+(*
+  List.iter dummy ~f:(fun x ->
+    Printf.printf "%s\n" (Atom.to_string ~units:Units.Angstrom x)
+  );
+*)
+  let nuclei =
+    molecule.Molecule.nuclei @ dummy
+  in
+
 
   let basis_table = Hashtbl.Poly.create () in
   (* Open basis set channels *)
   let basis_channel element =
-    let key = Element.to_string element in
+    let key =
+      Element.to_string element
+    in
     match Hashtbl.find basis_table key with
     | Some in_channel -> 
         in_channel
@@ -80,7 +146,8 @@ let run ?o b c m p xyz_file =
           in
           Unix.unlink filename;
           List.iter nuclei ~f:(fun elem->
-            let key = Element.to_string elem.Atom.element
+            let key = 
+              Element.to_string elem.Atom.element
             in
             match Hashtbl.add basis_table ~key:key ~data:new_channel with
             | `Ok -> ()
@@ -92,7 +159,8 @@ let run ?o b c m p xyz_file =
           let elem  = Element.of_string key
           and basis = String.lowercase basis
           in
-          let key = Element.to_string elem
+          let key = 
+             Element.to_string elem
           in
           let command =
               Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename ^
@@ -175,7 +243,12 @@ let run ?o b c m p xyz_file =
     |> List.rev
     |> List.map ~f:(fun (x,i) ->
        try 
-         Basis.read_element (basis_channel x.Atom.element) i x.Atom.element
+         let e =
+           match x.Atom.element with
+           | Element.X -> Element.H
+           | e -> e
+         in
+         Basis.read_element (basis_channel x.Atom.element) i e
        with
        | End_of_file -> 
          begin
@@ -264,7 +337,7 @@ let run ?o b c m p xyz_file =
   | None -> failwith "Error in basis"
   | Some x -> Input.Ao_basis.write x
  
-;;
+
 
 let command = 
     Command.basic 
@@ -279,13 +352,13 @@ elements can be defined as follows:
 
       ")
     spec
-    (fun o b c m p xyz_file () ->
-       run ?o b c m p xyz_file )
-;;
+    (fun o b c d m p xyz_file () ->
+       run ?o b c d m p xyz_file )
+
 
 let () =
     Command.run command
-;;
+
 
 
 

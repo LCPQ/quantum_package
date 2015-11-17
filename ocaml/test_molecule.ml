@@ -39,6 +39,15 @@ H        0.54386314      0.00000000     -0.92559535
   let m = Molecule.of_xyz_file "c2h6.xyz"  in
   print_string (Molecule.to_string m);
 
+  print_string "\nDistance matrix\n";
+  print_string   "---------------\n";
+  let d = 
+    Molecule.distance_matrix m
+  in
+  Array.iter d ~f:(fun x ->
+    Array.iter x ~f:(fun y -> Printf.printf "%12.8f " y);
+    print_newline ();
+  )  
 ;;
 
 test_molecule ();;

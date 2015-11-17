@@ -525,7 +525,8 @@ integer function load_$ao_integrals(filename)
   integer*8                      :: i
   integer(cache_key_kind), pointer :: key(:)
   real(integral_kind), pointer   :: val(:)
-  integer                        :: iknd, kknd, n, j
+  integer                        :: iknd, kknd
+  integer*8                      :: n, j
   load_$ao_integrals = 1
   open(unit=66,file=filename,FORM='unformatted',STATUS='UNKNOWN')
   read(66,err=98,end=98) iknd, kknd
@@ -555,12 +556,8 @@ integer function load_$ao_integrals(filename)
   return
   99 continue
   call map_deinit($ao_integrals_map)
-  FREE $ao_integrals_map
-  if (.True.) then
-    PROVIDE $ao_integrals_map
-  endif
-  stop 'Problem reading $ao_integrals_map file in work/'
   98 continue
+  stop 'Problem reading $ao_integrals_map file in work/'
   
 end
 

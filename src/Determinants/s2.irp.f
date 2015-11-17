@@ -117,11 +117,12 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
   integer                        :: i,j,l,jj,ii
   integer, allocatable           :: idx(:)
   
-  integer                        :: shortcut(0:n+1), sort_idx(n)
-  integer(bit_kind)              :: sorted(N_int,n), version(N_int,n)
+  integer, allocatable           :: shortcut(:), sort_idx(:)
+  integer(bit_kind), allocatable :: sorted(:,:), version(:,:)
   integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, pass
   double precision               :: davidson_threshold_bis
   
+  allocate (shortcut(0:n+1), sort_idx(n), sorted(N_int,n), version(N_int,n))
   s2 = 0.d0
   davidson_threshold_bis = threshold_davidson
   call sort_dets_ab_v(psi_keys_tmp, sorted, sort_idx, shortcut, version, n, N_int)
@@ -210,6 +211,7 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
     s2 = s2 + psi_coefs_tmp(i)*psi_coefs_tmp(i)*s2_tmp
   enddo
   s2 = s2 + S_z2_Sz
+  deallocate (shortcut, sort_idx, sorted, version)
 end
 
 
