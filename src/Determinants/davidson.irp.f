@@ -135,19 +135,19 @@ end subroutine
 subroutine sort_dets_ba_v(key_in, key_out, idx, shortcut, version, N_key, Nint)
   use bitmasks
   implicit none
+  BEGIN_DOC
+! Uncodumented : TODO
+  END_DOC
   integer, intent(in)            :: Nint, N_key
   integer(bit_kind),intent(in)   :: key_in(Nint,2,N_key)
-  integer(bit_kind)              :: key(Nint,2,N_key)
   integer(bit_kind),intent(out)  :: key_out(Nint,N_key)
   integer,intent(out)            :: idx(N_key)
   integer,intent(out)            :: shortcut(0:N_key+1)
   integer(bit_kind),intent(out)  :: version(Nint,N_key+1)
-  integer(bit_kind)              :: tmp(Nint, 2,N_key)
+  integer(bit_kind), allocatable :: key(:,:,:)
   integer                        :: i,ni
   
-  BEGIN_DOC
-! Uncodumented : TODO
-  END_DOC
+  allocate ( key(Nint,2,N_key) )
   do i=1,N_key
     do ni=1,Nint
       key(ni,1,i) = key_in(ni,2,i)
@@ -155,8 +155,8 @@ subroutine sort_dets_ba_v(key_in, key_out, idx, shortcut, version, N_key, Nint)
     enddo
   enddo
   
-
   call sort_dets_ab_v(key, key_out, idx, shortcut, version, N_key, Nint)
+  deallocate ( key )
 end subroutine
 
 
@@ -170,14 +170,15 @@ subroutine sort_dets_ab_v(key_in, key_out, idx, shortcut, version, N_key, Nint)
   END_DOC
   integer, intent(in)                   :: Nint, N_key
   integer(bit_kind),intent(in)          :: key_in(Nint,2,N_key)
-  integer(bit_kind)                     :: key(Nint,2,N_key)
   integer(bit_kind),intent(out)         :: key_out(Nint,N_key)
   integer,intent(out)                   :: idx(N_key)
   integer,intent(out)                   :: shortcut(0:N_key+1)
   integer(bit_kind),intent(out)         :: version(Nint,N_key+1)
+  integer(bit_kind), allocatable        :: key(:,:,:)
   integer(bit_kind)                     :: tmp(Nint, 2)
   integer                               :: tmpidx,i,ni
   
+  allocate (key(Nint,2,N_key))
   do i=1,N_key
     do ni=1,Nint
       key(ni,1,i) = key_in(ni,1,i)
@@ -226,6 +227,7 @@ subroutine sort_dets_ab_v(key_in, key_out, idx, shortcut, version, N_key, Nint)
       key_out(ni,i) = key(ni,2,i)
     enddo
   enddo
+  deallocate (key)
 end subroutine
 
 
