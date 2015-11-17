@@ -1237,10 +1237,9 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0
   
-  integer                        :: shortcut(0:n+1), sort_idx(n)
-  integer(bit_kind)              :: sorted(Nint,n), version(Nint,n)
+  integer, allocatable           :: shortcut(:), sort_idx(:)
+  integer(bit_kind), allocatable :: sorted(:,:), version(:,:)
   integer(bit_kind)              :: sorted_i(Nint)
-  
   
   integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi
   double precision               :: local_threshold
@@ -1250,6 +1249,8 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   ASSERT (Nint == N_int)
   ASSERT (n>0)
   PROVIDE ref_bitmask_energy davidson_criterion
+
+  allocate (shortcut(0:n+1), sort_idx(n), sorted(Nint,n), version(Nint,n))
   v_0 = 0.d0
 
   call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
@@ -1353,5 +1354,6 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   do i=1,n
     v_0(i) += H_jj(i) * u_0(i)
   enddo
+  deallocate (shortcut, sort_idx, sorted, version)
 end
 
