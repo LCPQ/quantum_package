@@ -25,7 +25,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   integer(bit_kind) :: minilist_gen(Nint,2,N_det_generators)
   integer :: N_minilist_gen
   logical :: fullMatch
-  
+  logical, external :: is_connected_to
 
   
 
@@ -55,11 +55,15 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
 !       end if
 !     end do
     
-    c_ref = connected_to_ref(buffer(1,1,i),miniList_gen,Nint,N_minilist_gen+1,N_minilist_gen)
+!     c_ref = connected_to_ref(buffer(1,1,i),miniList_gen,Nint,N_minilist_gen+1,N_minilist_gen)
+! 
+!     if (c_ref /= 0) then
+!       cycle
+!     endif
 
-    if (c_ref /= 0) then
+    if(is_connected_to(buffer(1,1,i), miniList_gen, Nint, N_minilist_gen)) then
       cycle
-    endif
+    end if
     
     if (is_in_wavefunction(buffer(1,1,i),Nint)) then
       cycle

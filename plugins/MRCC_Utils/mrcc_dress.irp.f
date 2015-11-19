@@ -79,7 +79,6 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n
 
   integer(bit_kind)              :: tq(Nint,2,n_selected)
   integer                        :: N_tq, c_ref ,degree
-  integer                        :: connected_to_ref
 
   double precision               :: hIk, hla, hIl, dIk(N_states), dka(N_states), dIa(N_states)
   double precision, allocatable  :: dIa_hla(:,:)
@@ -262,6 +261,7 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
   
   
   integer                        :: nt,ni
+  logical, external              :: is_connected_to
   
   
   integer(bit_kind),intent(in)  :: miniList(Nint,2,N_det_generators)
@@ -273,15 +273,18 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
   
   
   i_loop : do i=1,N_selected
-    do j=1,N_miniList
-      nt = 0
-      do ni=1,Nint
-        nt += popcnt(xor(miniList(ni,1,j), det_buffer(ni,1,i))) + popcnt(xor(miniList(ni,2,j), det_buffer(ni,2,i)))
-      end do
-      if(nt <= 4) then
-        cycle i_loop
-      end if
-    end do
+    if(is_connected_to(det_buffer(ni,1,i), miniList, Nint, N_miniList)) then
+      cycle
+    end if
+!     do j=1,N_miniList
+!       nt = 0
+!       do ni=1,Nint
+!         nt += popcnt(xor(miniList(ni,1,j), det_buffer(ni,1,i))) + popcnt(xor(miniList(ni,2,j), det_buffer(ni,2,i)))
+!       end do
+!       if(nt <= 4) then
+!         cycle i_loop
+!       end if
+!     end do
 !     if(connected_to_ref(det_buffer(1,1,i),psi_det_generators,Nint, &
 !        i_generator,N_det_generators) /= 0) then
 !         cycle i_loop
