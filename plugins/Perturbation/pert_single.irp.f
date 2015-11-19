@@ -1,10 +1,14 @@
-subroutine pt2_h_core(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_st)
+subroutine pt2_h_core(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_st,minilist,idx_minilist,N_minilist)
   use bitmasks
   implicit none
   integer, intent(in)            :: Nint,ndet,N_st
   integer(bit_kind), intent(in)  :: det_pert(Nint,2)
   double precision , intent(out) :: c_pert(N_st),e_2_pert(N_st),H_pert_diag(N_st)
   double precision               :: i_H_psi_array(N_st)
+  
+  integer, intent(in)            :: N_minilist
+  integer, intent(in)            :: idx_minilist(0:N_det_selectors)
+  integer(bit_kind), intent(in)  :: minilist(Nint,2,N_det_selectors)
   
   BEGIN_DOC
   ! compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
