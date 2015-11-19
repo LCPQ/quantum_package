@@ -23,39 +23,43 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   integer :: idx_minilist(N_det_selectors), N_minilist
   
   integer(bit_kind) :: minilist_gen(Nint,2,N_det_generators)
-  integer :: idx_minilist_gen(N_det_generators), N_minilist_gen
+  integer :: N_minilist_gen
+  logical :: fullMatch
   
 
-  call create_minilist(key_mask, psi_selectors, miniList, idx_miniList, N_det_selectors, N_minilist, Nint)
-  call create_minilist(key_mask, psi_det_generators, miniList_gen, idx_miniList_gen, N_det_generators, N_minilist_gen, Nint)
-
   
+
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
   ASSERT (buffer_size >= 0)
   ASSERT (minval(sum_norm_pert) >= 0.d0)
   ASSERT (N_st > 0)
   
+  call create_minilist(key_mask, psi_selectors, miniList, idx_miniList, N_det_selectors, N_minilist, Nint)
+  call create_minilist_find_previous(key_mask, psi_det_generators, miniList_gen, i_generator-1, N_minilist_gen, fullMatch, Nint)
+  
+  if(fullMatch) then
+    return
+  end if
+  
+  
   buffer_loop : do i = 1,buffer_size
     
-    do k=1,N_minilist_gen
-      if(idx_minilist_gen(k) >= i_generator) then
-        exit
-      end if
-      ex = 0
-      do ni=1,Nint
-        ex += popcnt(xor(minilist_gen(ni,1,k), buffer(ni,1,i))) + popcnt(xor(minilist_gen(ni,2,k), buffer(ni,2,i)))
-      end do
-      if(ex <= 4) then
-        cycle buffer_loop
-      end if
-    end do
+!     do k=1,N_minilist_gen
+!       ex = 0
+!       do ni=1,Nint
+!         ex += popcnt(xor(minilist_gen(ni,1,k), buffer(ni,1,i))) + popcnt(xor(minilist_gen(ni,2,k), buffer(ni,2,i)))
+!       end do
+!       if(ex <= 4) then
+!         cycle buffer_loop
+!       end if
+!     end do
     
-!     c_ref = connected_to_ref(buffer(1,1,i),psi_det_generators,Nint,i_generator,N_det_generators)
-! 
-!     if (c_ref /= 0) then
-!       cycle
-!     endif
+    c_ref = connected_to_ref(buffer(1,1,i),miniList_gen,Nint,N_minilist_gen+1,N_minilist_gen)
+
+    if (c_ref /= 0) then
+      cycle
+    endif
     
     if (is_in_wavefunction(buffer(1,1,i),Nint)) then
       cycle

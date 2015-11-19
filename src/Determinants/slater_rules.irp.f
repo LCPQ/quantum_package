@@ -810,6 +810,58 @@ subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullLis
   end do
 end subroutine
 
+subroutine create_minilist_find_previous(key_mask, fullList, miniList, N_fullList, N_miniList, fullMatch, Nint)
+  use bitmasks
+  implicit none
+  
+  integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
+  integer, intent(in)                      :: N_fullList
+  integer(bit_kind),intent(out)            :: miniList(Nint, 2, N_fullList)
+  integer(bit_kind)                        :: subList(Nint, 2, N_fullList)
+  logical,intent(out)                      :: fullMatch
+  integer,intent(out)                      :: N_miniList
+  integer, intent(in)                      :: Nint
+  integer(bit_kind)                        :: key_mask(Nint, 2)
+  integer                                  :: ni, i, k, l, N_subList
+  
+  
+  fullMatch = .false.
+  l = 0
+  N_miniList = 0
+  N_subList = 0
+    
+  do ni = 1,Nint
+    l += popcnt(key_mask(ni,1)) + popcnt(key_mask(ni,2))
+  end do
+  
+  if(l == 0) then
+    N_miniList = N_fullList
+    miniList(:,:,:N_miniList) = fullList(:,:,:N_minilist)
+  else
+    do i=N_fullList,1,-1
+      k = l
+      do ni=1,nint
+        k -= popcnt(iand(key_mask(ni,1), fullList(ni,1,i))) + popcnt(iand(key_mask(ni,2), fullList(ni,2,i)))
+      end do
+      if(k == 2) then
+        N_subList += 1
+        subList(:,:,N_subList) = fullList(:,:,i)
+      else if(k == 1) then
+        N_minilist += 1
+        miniList(:,:,N_minilist) = fullList(:,:,i)
+      else if(k == 0) then
+        fullMatch = .true.
+        return
+      end if
+    end do
+  end if
+  
+  if(N_subList > 0) then
+    miniList(:,:,N_minilist+1:N_minilist+N_subList) = sublist(:,:,:N_subList)
+    N_minilist = N_minilist + N_subList
+  end if
+end subroutine
+
 
 subroutine i_H_psi_nominilist(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   use bitmasks
