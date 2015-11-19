@@ -810,6 +810,7 @@ subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullLis
   end do
 end subroutine
 
+
 subroutine i_H_psi_nominilist(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   use bitmasks
   implicit none
