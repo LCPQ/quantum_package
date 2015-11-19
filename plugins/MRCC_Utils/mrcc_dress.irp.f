@@ -14,52 +14,52 @@ BEGIN_PROVIDER [ integer(omp_lock_kind), psi_ref_lock, (psi_det_size) ]
 END_PROVIDER
 
 
-subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullList, N_miniList, Nint)
-  use bitmasks
-  implicit none
-  
-  integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
-  integer, intent(in)                      :: N_fullList
-  integer(bit_kind),intent(out)            :: miniList(Nint, 2, N_fullList)
-  integer,intent(out)                      :: idx_miniList(N_fullList), N_miniList
-  integer, intent(in)                      :: Nint
-  integer(bit_kind)                        :: key_mask(Nint, 2)
-  integer                                  :: ni, i, n_a, n_b, e_a, e_b
-  
-  
-  n_a = 0
-  n_b = 0
-  do ni=1,nint
-    n_a = n_a + popcnt(key_mask(ni,1))
-    n_b = n_b + popcnt(key_mask(ni,2))
-  end do
-  
-  if(n_a == 0) then
-    N_miniList = N_fullList
-    miniList(:,:,:) = fullList(:,:,:)
-    do i=1,N_fullList
-      idx_miniList(i) = i
-    end do
-    return
-  end if
-  
-  N_miniList = 0
-  
-  do i=1,N_fullList
-    e_a = n_a
-    e_b = n_b
-    do ni=1,nint
-      e_a -= popcnt(iand(fullList(ni, 1, i), key_mask(ni, 1)))
-      e_b -= popcnt(iand(fullList(ni, 2, i), key_mask(ni, 2)))
-    end do
-    
-    if(e_a + e_b <= 2) then
-      N_miniList = N_miniList + 1
-      miniList(:,:,N_miniList) = fullList(:,:,i)
-      idx_miniList(N_miniList) = i
-    end if
-  end do
-end subroutine
+! subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullList, N_miniList, Nint)
+!   use bitmasks
+!   implicit none
+!   
+!   integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
+!   integer, intent(in)                      :: N_fullList
+!   integer(bit_kind),intent(out)            :: miniList(Nint, 2, N_fullList)
+!   integer,intent(out)                      :: idx_miniList(N_fullList), N_miniList
+!   integer, intent(in)                      :: Nint
+!   integer(bit_kind)                        :: key_mask(Nint, 2)
+!   integer                                  :: ni, i, n_a, n_b, e_a, e_b
+!   
+!   
+!   n_a = 0
+!   n_b = 0
+!   do ni=1,nint
+!     n_a = n_a + popcnt(key_mask(ni,1))
+!     n_b = n_b + popcnt(key_mask(ni,2))
+!   end do
+!   
+!   if(n_a == 0) then
+!     N_miniList = N_fullList
+!     miniList(:,:,:) = fullList(:,:,:)
+!     do i=1,N_fullList
+!       idx_miniList(i) = i
+!     end do
+!     return
+!   end if
+!   
+!   N_miniList = 0
+!   
+!   do i=1,N_fullList
+!     e_a = n_a
+!     e_b = n_b
+!     do ni=1,nint
+!       e_a -= popcnt(iand(fullList(ni, 1, i), key_mask(ni, 1)))
+!       e_b -= popcnt(iand(fullList(ni, 2, i), key_mask(ni, 2)))
+!     end do
+!     
+!     if(e_a + e_b <= 2) then
+!       N_miniList = N_miniList + 1
+!       miniList(:,:,N_miniList) = fullList(:,:,i)
+!       idx_miniList(N_miniList) = i
+!     end if
+!   end do
+! end subroutine
 
 
 subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n_selected,det_buffer,Nint,iproc,key_mask)
