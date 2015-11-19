@@ -810,8 +810,43 @@ subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullLis
   end do
 end subroutine
 
-!call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
-  call i_H_psi(det_pert,minilist,idx_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
+subroutine i_H_psi_nominilist(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
+  use bitmasks
+  implicit none
+  integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate
+  integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
+  integer(bit_kind), intent(in)  :: key(Nint,2)
+  double precision, intent(in)   :: coef(Ndet_max,Nstate)
+  double precision, intent(out)  :: i_H_psi_array(Nstate)
+  
+  integer                        :: i, ii,j
+  double precision               :: phase
+  integer                        :: exc(0:2,2,2)
+  double precision               :: hij
+  integer                        :: idx(0:Ndet)
+  BEGIN_DOC
+  ! <key|H|psi> for the various Nstates
+  END_DOC
+  
+  ASSERT (Nint > 0)
+  ASSERT (N_int == Nint)
+  ASSERT (Nstate > 0)
+  ASSERT (Ndet > 0)
+  ASSERT (Ndet_max >= Ndet)
+  i_H_psi_array = 0.d0
+  
+  call filter_connected_i_H_psi0(keys,key,Nint,Ndet,idx)
+  do ii=1,idx(0)
+    i = idx(ii)
+    !DEC$ FORCEINLINE
+    call i_H_j(keys(1,1,i),key,Nint,hij)
+    do j = 1, Nstate
+      i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
+    enddo
+  enddo
+end
+
+
 subroutine i_H_psi(key,keys,idx_key,N_minilist,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   use bitmasks
   implicit none
