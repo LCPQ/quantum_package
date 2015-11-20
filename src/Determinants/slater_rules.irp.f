@@ -15,7 +15,7 @@ subroutine get_excitation_degree(key1,key2,degree,Nint)
   
   degree = popcnt(xor( key1(1,1), key2(1,1))) +                      &
       popcnt(xor( key1(1,2), key2(1,2)))
-  !DEC$ NOUNROLL
+  !DIR$ NOUNROLL
   do l=2,Nint
     degree = degree+ popcnt(xor( key1(l,1), key2(l,1))) +            &
         popcnt(xor( key1(l,2), key2(l,2)))
@@ -383,7 +383,7 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
   ASSERT (sum(popcnt(key_j(:,2))) == elec_beta_num)
   
   hij = 0.d0
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call get_excitation_degree(key_i,key_j,degree,Nint)
   select case (degree)
     case (2)
@@ -519,7 +519,7 @@ subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
   ASSERT (sum(popcnt(key_j(:,2))) == elec_beta_num)
 
   hij = 0.d0
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call get_excitation_degree(key_i,key_j,degree,Nint)
   select case (degree)
     case (2)
@@ -657,7 +657,7 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
   hij = 0.d0
   hmono = 0.d0
   hdouble = 0.d0
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call get_excitation_degree(key_i,key_j,degree,Nint)
   select case (degree)
     case (2)
@@ -863,9 +863,17 @@ subroutine create_minilist_find_previous(key_mask, fullList, miniList, N_fullLis
 end subroutine
 
 
-subroutine i_H_psi_nominilist(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
+subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   use bitmasks
   implicit none
+  BEGIN_DOC
+! Computes <i|H|Psi> = \sum_J c_J <i|H|J>.
+!
+! Uses filter_connected_i_H_psi0 to get all the |J> to which |i>
+! is connected.
+! The i_H_psi_minilist is much faster but requires to build the
+! minilists
+  END_DOC
   integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate
   integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
   integer(bit_kind), intent(in)  :: key(Nint,2)
@@ -877,9 +885,6 @@ subroutine i_H_psi_nominilist(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_ar
   integer                        :: exc(0:2,2,2)
   double precision               :: hij
   integer                        :: idx(0:Ndet)
-  BEGIN_DOC
-  ! <key|H|psi> for the various Nstates
-  END_DOC
   
   ASSERT (Nint > 0)
   ASSERT (N_int == Nint)
@@ -891,7 +896,7 @@ subroutine i_H_psi_nominilist(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_ar
   call filter_connected_i_H_psi0(keys,key,Nint,Ndet,idx)
   do ii=1,idx(0)
     i = idx(ii)
-    !DEC$ FORCEINLINE
+    !DIR$ FORCEINLINE
     call i_H_j(keys(1,1,i),key,Nint,hij)
     do j = 1, Nstate
       i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
@@ -900,7 +905,7 @@ subroutine i_H_psi_nominilist(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_ar
 end
 
 
-subroutine i_H_psi(key,keys,idx_key,N_minilist,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
+subroutine i_H_psi_minilist(key,keys,idx_key,N_minilist,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   use bitmasks
   implicit none
   integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate,idx_key(Ndet), N_minilist
@@ -915,7 +920,10 @@ subroutine i_H_psi(key,keys,idx_key,N_minilist,coef,Nint,Ndet,Ndet_max,Nstate,i_
   double precision               :: hij
   integer                        :: idx(0:Ndet)
   BEGIN_DOC
-  ! <key|H|psi> for the various Nstates
+! Computes <i|H|Psi> = \sum_J c_J <i|H|J>.
+!
+! Uses filter_connected_i_H_psi0 to get all the |J> to which |i>
+! is connected. The |J> are searched in short pre-computed lists.
   END_DOC
   
   ASSERT (Nint > 0)
@@ -925,17 +933,11 @@ subroutine i_H_psi(key,keys,idx_key,N_minilist,coef,Nint,Ndet,Ndet_max,Nstate,i_
   ASSERT (Ndet_max >= Ndet)
   i_H_psi_array = 0.d0
   
-  !call filter_connected_i_H_psi0(keys,key,Nint,Ndet,idx)
   call filter_connected_i_H_psi0(keys,key,Nint,N_minilist,idx)
   do ii=1,idx(0)
-    !i = idx_key(idx(ii))
     i_in_key = idx(ii)
     i_in_coef = idx_key(idx(ii))
-    !DEC$ FORCEINLINE
-! !     call i_H_j(keys(1,1,i),key,Nint,hij)
-! !     do j = 1, Nstate
-! !       i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
-! !     enddo
+    !DIR$ FORCEINLINE
     call i_H_j(keys(1,1,i_in_key),key,Nint,hij)
     do j = 1, Nstate
       i_H_psi_array(j) = i_H_psi_array(j) + coef(i_in_coef,j)*hij
@@ -973,7 +975,7 @@ subroutine i_H_psi_sec_ord(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array
   n_interact = 0
   do ii=1,idx(0)
     i = idx(ii)
-    !DEC$ FORCEINLINE
+    !DIR$ FORCEINLINE
     call i_H_j(keys(1,1,i),key,Nint,hij)
     if(dabs(hij).ge.1.d-8)then
      if(i.ne.1)then
@@ -1028,7 +1030,7 @@ subroutine i_H_psi_SC2(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array,idx
   call filter_connected_i_H_psi0_SC2(keys,key,Nint,Ndet,idx,idx_repeat)
   do ii=1,idx(0)
     i = idx(ii)
-    !DEC$ FORCEINLINE
+    !DIR$ FORCEINLINE
     call i_H_j(keys(1,1,i),key,Nint,hij)
     do j = 1, Nstate
       i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
@@ -1077,7 +1079,7 @@ subroutine i_H_psi_SC2_verbose(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_a
   do ii=1,idx(0)
     print*,'--'
     i = idx(ii)
-    !DEC$ FORCEINLINE
+    !DIR$ FORCEINLINE
     call i_H_j(keys(1,1,i),key,Nint,hij)
     if (i==1)then
      print*,'i==1 !!'
@@ -1167,7 +1169,7 @@ subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
     !DIR$ LOOP COUNT (1000)
     do i=1,sze
       d = 0
-      !DEC$ LOOP COUNT MIN(4)
+      !DIR$ LOOP COUNT MIN(4)
       do m=1,Nint
         d = d + popcnt(xor( key1(m,1,i), key2(m,1)))                 &
               + popcnt(xor( key1(m,2,i), key2(m,2)))

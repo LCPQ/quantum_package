@@ -51,7 +51,7 @@ subroutine pt2_delta_rho_one_point(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,nde
   call i_O1_psi_alpha_beta(mo_integrated_delta_rho_one_point,det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_O1_psi_array)
 
   !call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
-  call i_H_psi(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
+  call i_H_psi_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
 
   h   = diag_H_mat_elem(det_pert,Nint)
   oii = diag_O1_mat_elem_alpha_beta(mo_integrated_delta_rho_one_point,det_pert,N_int)
