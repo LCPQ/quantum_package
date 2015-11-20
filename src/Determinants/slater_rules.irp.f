@@ -349,6 +349,80 @@ subroutine get_mono_excitation(det1,det2,exc,phase,Nint)
   enddo
 end
 
+subroutine bitstring_to_list_ab( string, list, n_elements, Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Gives the inidices(+1) of the bits set to 1 in the bit string
+  ! For alpha/beta determinants
+  END_DOC
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: string(Nint,2)
+  integer, intent(out)           :: list(Nint*bit_kind_size,2)
+  integer, intent(out)           :: n_elements(2)
+
+  integer                        :: i, j, ishift
+  integer(bit_kind)              :: l
+
+  n_elements(1) = 0
+  n_elements(2) = 0
+  ishift = 1
+  do i=1,Nint
+    l = string(i,1)
+    do while (l /= 0_bit_kind)
+      j = trailz(l)
+      n_elements(1) = n_elements(1)+1
+      l = ibclr(l,j)
+      list(n_elements(1),1) = ishift+j
+    enddo
+    l = string(i,2)
+    do while (l /= 0_bit_kind)
+      j = trailz(l)
+      n_elements(2) = n_elements(2)+1
+      l = ibclr(l,j)
+      list(n_elements(2),2) = ishift+j
+    enddo
+    ishift = ishift + bit_kind_size
+  enddo
+
+end
+
+subroutine bitstring_to_list_ab_old( string, list, n_elements, Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Gives the inidices(+1) of the bits set to 1 in the bit string
+  ! For alpha/beta determinants
+  END_DOC
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: string(Nint,2)
+  integer, intent(out)           :: list(Nint*bit_kind_size,2)
+  integer, intent(out)           :: n_elements(2)
+
+  integer                        :: i, ishift
+  integer(bit_kind)              :: l
+
+  n_elements(1) = 0
+  n_elements(2) = 0
+  ishift = 2
+  do i=1,Nint
+    l = string(i,1)
+    do while (l /= 0_bit_kind)
+      n_elements(1) = n_elements(1)+1
+      list(n_elements(1),1) = ishift+popcnt(l-1_bit_kind) - popcnt(l)
+      l = iand(l,l-1_bit_kind)
+    enddo
+    l = string(i,2)
+    do while (l /= 0_bit_kind)
+      n_elements(2) = n_elements(2)+1
+      list(n_elements(2),2) = ishift+popcnt(l-1_bit_kind) - popcnt(l)
+      l = iand(l,l-1_bit_kind)
+    enddo
+    ishift = ishift + bit_kind_size
+  enddo
+
+end
+
 
 
 
@@ -370,7 +444,7 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
   integer                        :: i,j,k
   integer                        :: occ(Nint*bit_kind_size,2)
   double precision               :: diag_H_mat_elem, phase,phase_2
-  integer                        :: n_occ_alpha, n_occ_beta
+  integer                        :: n_occ_ab(2)
   logical                        :: has_mipi(Nint*bit_kind_size)
   double precision               :: mipi(Nint*bit_kind_size), miip(Nint*bit_kind_size)
   PROVIDE mo_bielec_integrals_in_map mo_integrals_map
@@ -422,8 +496,8 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
       endif
     case (1)
       call get_mono_excitation(key_i,key_j,exc,phase,Nint)
-      call bitstring_to_list(key_i(1,1), occ(1,1), n_occ_alpha, Nint)
-      call bitstring_to_list(key_i(1,2), occ(1,2), n_occ_beta, Nint)
+      !DIR$ FORCEINLINE
+      call bitstring_to_list_ab(key_i, occ, n_occ_ab, Nint)
       has_mipi = .False.
       if (exc(0,1,1) == 1) then
         ! Mono alpha
@@ -506,7 +580,7 @@ subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
   integer                        :: i,j,k
   integer                        :: occ(Nint*bit_kind_size,2)
   double precision               :: diag_H_mat_elem
-  integer                        :: n_occ_alpha, n_occ_beta
+  integer                        :: n_occ_ab(2)
   logical                        :: has_mipi(Nint*bit_kind_size)
   double precision               :: mipi(Nint*bit_kind_size), miip(Nint*bit_kind_size)
   PROVIDE mo_bielec_integrals_in_map mo_integrals_map
@@ -558,8 +632,8 @@ subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
       endif
     case (1)
       call get_mono_excitation(key_i,key_j,exc,phase,Nint)
-      call bitstring_to_list(key_i(1,1), occ(1,1), n_occ_alpha, Nint)
-      call bitstring_to_list(key_i(1,2), occ(1,2), n_occ_beta, Nint)
+      !DIR$ FORCEINLINE
+      call bitstring_to_list_ab(key_i, occ, n_occ_ab, Nint)
       has_mipi = .False.
       if (exc(0,1,1) == 1) then
         ! Mono alpha
@@ -642,7 +716,7 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
   integer                        :: i,j,k
   integer                        :: occ(Nint*bit_kind_size,2)
   double precision               :: diag_H_mat_elem, phase,phase_2
-  integer                        :: n_occ_alpha, n_occ_beta
+  integer                        :: n_occ_ab(2)
   logical                        :: has_mipi(Nint*bit_kind_size)
   double precision               :: mipi(Nint*bit_kind_size), miip(Nint*bit_kind_size)
   PROVIDE mo_bielec_integrals_in_map mo_integrals_map
@@ -696,8 +770,8 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
       endif
     case (1)
       call get_mono_excitation(key_i,key_j,exc,phase,Nint)
-      call bitstring_to_list(key_i(1,1), occ(1,1), n_occ_alpha, Nint)
-      call bitstring_to_list(key_i(1,2), occ(1,2), n_occ_beta, Nint)
+      !DIR$ FORCEINLINE
+      call bitstring_to_list_ab(key_i, occ, n_occ_ab, Nint)
       has_mipi = .False.
       if (exc(0,1,1) == 1) then
         ! Mono alpha
@@ -1229,15 +1303,15 @@ double precision function diag_H_mat_elem(det_in,Nint)
   endif
   
   !call debug_det(det_in,Nint)
-  integer                        :: tmp
-  call bitstring_to_list(particle(1,1), occ_particle(1,1), tmp, Nint)
-  ASSERT (tmp == nexc(1))
-  call bitstring_to_list(particle(1,2), occ_particle(1,2), tmp, Nint)
-  ASSERT (tmp == nexc(2))
-  call bitstring_to_list(hole(1,1), occ_hole(1,1), tmp, Nint)
-  ASSERT (tmp == nexc(1))
-  call bitstring_to_list(hole(1,2), occ_hole(1,2), tmp, Nint)
-  ASSERT (tmp == nexc(2))
+  integer                        :: tmp(2)
+  !DIR$ FORCEINLINE
+  call bitstring_to_list_ab(particle, occ_particle, tmp, Nint)
+  ASSERT (tmp(1) == nexc(1))
+  ASSERT (tmp(2) == nexc(2))
+  !DIR$ FORCEINLINE
+  call bitstring_to_list_ab(hole, occ_hole, tmp, Nint)
+  ASSERT (tmp(1) == nexc(1))
+  ASSERT (tmp(2) == nexc(2))
   
   det_tmp = ref_bitmask
   do ispin=1,2
@@ -1266,6 +1340,7 @@ subroutine a_operator(iorb,ispin,key,hjj,Nint,na,nb)
   integer                        :: occ(Nint*bit_kind_size,2)
   integer                        :: other_spin
   integer                        :: k,l,i
+  integer                        :: tmp(2)
   
   ASSERT (iorb > 0)
   ASSERT (ispin > 0)
@@ -1279,19 +1354,19 @@ subroutine a_operator(iorb,ispin,key,hjj,Nint,na,nb)
   other_spin = iand(ispin,1)+1
   
   !DIR$ FORCEINLINE
-  call get_occ_from_key(key,occ,Nint)
-  na -= 1
+  call bitstring_to_list_ab(key, occ, tmp, Nint)
+  na = na-1
   
-  hjj -= mo_mono_elec_integral(iorb,iorb)
+  hjj = hjj - mo_mono_elec_integral(iorb,iorb)
   
   ! Same spin
   do i=1,na
-    hjj -= mo_bielec_integral_jj_anti(occ(i,ispin),iorb)
+    hjj = hjj - mo_bielec_integral_jj_anti(occ(i,ispin),iorb)
   enddo
   
   ! Opposite spin
   do i=1,nb
-    hjj -= mo_bielec_integral_jj(occ(i,other_spin),iorb)
+    hjj = hjj - mo_bielec_integral_jj(occ(i,other_spin),iorb)
   enddo
   
 end
@@ -1317,13 +1392,11 @@ subroutine ac_operator(iorb,ispin,key,hjj,Nint,na,nb)
   ASSERT (ispin < 3)
   ASSERT (Nint > 0)
   
-  integer                        :: tmp
+  integer                        :: tmp(2)
   !DIR$ FORCEINLINE
-  call bitstring_to_list(key(1,1), occ(1,1), tmp, Nint)
-  ASSERT (tmp == elec_alpha_num)
-  !DIR$ FORCEINLINE
-  call bitstring_to_list(key(1,2), occ(1,2), tmp, Nint)
-  ASSERT (tmp == elec_beta_num)
+  call bitstring_to_list_ab(key, occ, tmp, Nint)
+  ASSERT (tmp(1) == elec_alpha_num)
+  ASSERT (tmp(2) == elec_beta_num)
   
   k = ishft(iorb-1,-bit_kind_shift)+1
   ASSERT (k > 0)
@@ -1331,18 +1404,18 @@ subroutine ac_operator(iorb,ispin,key,hjj,Nint,na,nb)
   key(k,ispin) = ibset(key(k,ispin),l)
   other_spin = iand(ispin,1)+1
   
-  hjj += mo_mono_elec_integral(iorb,iorb)
+  hjj = hjj + mo_mono_elec_integral(iorb,iorb)
   
   ! Same spin
   do i=1,na
-    hjj += mo_bielec_integral_jj_anti(occ(i,ispin),iorb)
+    hjj = hjj + mo_bielec_integral_jj_anti(occ(i,ispin),iorb)
   enddo
   
   ! Opposite spin
   do i=1,nb
-    hjj += mo_bielec_integral_jj(occ(i,other_spin),iorb)
+    hjj = hjj + mo_bielec_integral_jj(occ(i,other_spin),iorb)
   enddo
-  na += 1
+  na = na+1
 end
 
 subroutine get_occ_from_key(key,occ,Nint)
@@ -1354,10 +1427,10 @@ subroutine get_occ_from_key(key,occ,Nint)
   integer(bit_kind), intent(in)  :: key(Nint,2)
   integer          , intent(in)  :: Nint
   integer         , intent(out)  :: occ(Nint*bit_kind_size,2)
-  integer                        :: tmp
+  integer                        :: tmp(2)
   
-  call bitstring_to_list(key(1,1), occ(1,1), tmp, Nint)
-  call bitstring_to_list(key(1,2), occ(1,2), tmp, Nint)
+  !DIR$ FORCEINLINE
+  call bitstring_to_list_ab(key, occ, tmp, Nint)
   
 end
 

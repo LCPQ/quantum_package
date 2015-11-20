@@ -26,10 +26,18 @@ subroutine pt2_moller_plesset(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,n_s
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
   call get_excitation(ref_bitmask,det_pert,exc,degree,phase,Nint)
-  call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
-  delta_e = Fock_matrix_diag_mo(h1) + Fock_matrix_diag_mo(h2) - &
-           (Fock_matrix_diag_mo(p1) + Fock_matrix_diag_mo(p2))
-  delta_e = 1.d0/delta_e
+  if (degree == 2) then
+    call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+    delta_e = Fock_matrix_diag_mo(h1) + Fock_matrix_diag_mo(h2) - &
+            (Fock_matrix_diag_mo(p1) + Fock_matrix_diag_mo(p2))
+    delta_e = 1.d0/delta_e
+  else if (degree == 1) then
+    call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+    delta_e = Fock_matrix_diag_mo(h1) - Fock_matrix_diag_mo(p1) 
+    delta_e = 1.d0/delta_e
+  else
+    delta_e = 0.d0
+  endif
 
   call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det,psi_selectors_size,n_st,i_H_psi_array)
   h = diag_H_mat_elem(det_pert,Nint)

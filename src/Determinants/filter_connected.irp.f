@@ -132,7 +132,7 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
           popcnt(xor( key1(1,2,i), key2(1,2)))
       if (degree_x2 > 4) then
         cycle
-      else if(degree_x2 .ne. 0)then
+      else if(degree_x2 /= 0)then
         idx(l) = i
         l = l+1
       endif
@@ -148,7 +148,7 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
           popcnt(xor( key1(2,2,i), key2(2,2)))
       if (degree_x2 > 4) then
         cycle
-      else if(degree_x2 .ne. 0)then
+      else if(degree_x2 /= 0)then
         idx(l) = i
         l = l+1
       endif
@@ -166,7 +166,7 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
           popcnt(xor( key1(3,2,i), key2(3,2)))
       if (degree_x2 > 4) then
         cycle
-      else if(degree_x2 .ne. 0)then
+      else if(degree_x2 /= 0)then
         idx(l) = i
         l = l+1
       endif
@@ -175,23 +175,28 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
   else
     
     !DIR$ LOOP COUNT (1000)
-    do i=1,sze
+    outer: do i=1,sze
       degree_x2 = 0
       !DEC$ LOOP COUNT MIN(4)
       do m=1,Nint
-        degree_x2 = degree_x2+ popcnt(xor( key1(m,1,i), key2(m,1))) +&
-            popcnt(xor( key1(m,2,i), key2(m,2)))
-        if (degree_x2 > 4) then
-          exit
+        if ( key1(m,1,i) /=  key2(m,1)) then
+          degree_x2 = degree_x2+ popcnt(xor( key1(m,1,i), key2(m,1))) 
+          if (degree_x2 > 4) then
+            cycle outer
+          endif
+        endif
+        if ( key1(m,2,i) /=  key2(m,2)) then
+          degree_x2 = degree_x2+ popcnt(xor( key1(m,2,i), key2(m,2)))
+          if (degree_x2 > 4) then
+            cycle outer
+          endif
         endif
       enddo
-      if (degree_x2 > 4) then
-        cycle
-      else if(degree_x2 .ne. 0)then
+      if(degree_x2 /= 0)then
           idx(l) = i
           l = l+1
       endif
-    enddo
+    enddo outer
     
   endif
   idx(0) = l-1
