@@ -763,8 +763,107 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
 end
 
 
+subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullList, N_miniList, Nint)
+  use bitmasks
+  implicit none
+  
+  integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
+  integer, intent(in)                      :: N_fullList
+  integer(bit_kind),intent(out)            :: miniList(Nint, 2, N_fullList)
+  integer,intent(out)                      :: idx_miniList(N_fullList), N_miniList
+  integer, intent(in)                      :: Nint
+  integer(bit_kind)                        :: key_mask(Nint, 2)
+  integer                                  :: ni, i, n_a, n_b, e_a, e_b
+  
+  
+  n_a = 0
+  n_b = 0
+  do ni=1,nint
+    n_a = n_a + popcnt(key_mask(ni,1))
+    n_b = n_b + popcnt(key_mask(ni,2))
+  end do
+  
+  if(n_a == 0) then
+    N_miniList = N_fullList
+    miniList(:,:,:) = fullList(:,:,:)
+    do i=1,N_fullList
+      idx_miniList(i) = i
+    end do
+    return
+  end if
+  
+  N_miniList = 0
+  
+  do i=1,N_fullList
+    e_a = n_a
+    e_b = n_b
+    do ni=1,nint
+      e_a -= popcnt(iand(fullList(ni, 1, i), key_mask(ni, 1)))
+      e_b -= popcnt(iand(fullList(ni, 2, i), key_mask(ni, 2)))
+    end do
+    
+    if(e_a + e_b <= 2) then
+      N_miniList = N_miniList + 1
+      miniList(:,:,N_miniList) = fullList(:,:,i)
+      idx_miniList(N_miniList) = i
+    end if
+  end do
+end subroutine
 
-subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
+subroutine create_minilist_find_previous(key_mask, fullList, miniList, N_fullList, N_miniList, fullMatch, Nint)
+  use bitmasks
+  implicit none
+  
+  integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
+  integer, intent(in)                      :: N_fullList
+  integer(bit_kind),intent(out)            :: miniList(Nint, 2, N_fullList)
+  integer(bit_kind)                        :: subList(Nint, 2, N_fullList)
+  logical,intent(out)                      :: fullMatch
+  integer,intent(out)                      :: N_miniList
+  integer, intent(in)                      :: Nint
+  integer(bit_kind)                        :: key_mask(Nint, 2)
+  integer                                  :: ni, i, k, l, N_subList
+  
+  
+  fullMatch = .false.
+  l = 0
+  N_miniList = 0
+  N_subList = 0
+    
+  do ni = 1,Nint
+    l += popcnt(key_mask(ni,1)) + popcnt(key_mask(ni,2))
+  end do
+  
+  if(l == 0) then
+    N_miniList = N_fullList
+    miniList(:,:,:N_miniList) = fullList(:,:,:N_minilist)
+  else
+    do i=N_fullList,1,-1
+      k = l
+      do ni=1,nint
+        k -= popcnt(iand(key_mask(ni,1), fullList(ni,1,i))) + popcnt(iand(key_mask(ni,2), fullList(ni,2,i)))
+      end do
+      if(k == 2) then
+        N_subList += 1
+        subList(:,:,N_subList) = fullList(:,:,i)
+      else if(k == 1) then
+        N_minilist += 1
+        miniList(:,:,N_minilist) = fullList(:,:,i)
+      else if(k == 0) then
+        fullMatch = .true.
+        return
+      end if
+    end do
+  end if
+  
+  if(N_subList > 0) then
+    miniList(:,:,N_minilist+1:N_minilist+N_subList) = sublist(:,:,:N_subList)
+    N_minilist = N_minilist + N_subList
+  end if
+end subroutine
+
+
+subroutine i_H_psi_nominilist(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   use bitmasks
   implicit none
   integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate
@@ -796,6 +895,50 @@ subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
     call i_H_j(keys(1,1,i),key,Nint,hij)
     do j = 1, Nstate
       i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
+    enddo
+  enddo
+end
+
+
+subroutine i_H_psi(key,keys,idx_key,N_minilist,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
+  use bitmasks
+  implicit none
+  integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate,idx_key(Ndet), N_minilist
+  integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
+  integer(bit_kind), intent(in)  :: key(Nint,2)
+  double precision, intent(in)   :: coef(Ndet_max,Nstate)
+  double precision, intent(out)  :: i_H_psi_array(Nstate)
+  
+  integer                        :: i, ii,j, i_in_key, i_in_coef
+  double precision               :: phase
+  integer                        :: exc(0:2,2,2)
+  double precision               :: hij
+  integer                        :: idx(0:Ndet)
+  BEGIN_DOC
+  ! <key|H|psi> for the various Nstates
+  END_DOC
+  
+  ASSERT (Nint > 0)
+  ASSERT (N_int == Nint)
+  ASSERT (Nstate > 0)
+  ASSERT (Ndet > 0)
+  ASSERT (Ndet_max >= Ndet)
+  i_H_psi_array = 0.d0
+  
+  !call filter_connected_i_H_psi0(keys,key,Nint,Ndet,idx)
+  call filter_connected_i_H_psi0(keys,key,Nint,N_minilist,idx)
+  do ii=1,idx(0)
+    !i = idx_key(idx(ii))
+    i_in_key = idx(ii)
+    i_in_coef = idx_key(idx(ii))
+    !DEC$ FORCEINLINE
+! !     call i_H_j(keys(1,1,i),key,Nint,hij)
+! !     do j = 1, Nstate
+! !       i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
+! !     enddo
+    call i_H_j(keys(1,1,i_in_key),key,Nint,hij)
+    do j = 1, Nstate
+      i_H_psi_array(j) = i_H_psi_array(j) + coef(i_in_coef,j)*hij
     enddo
   enddo
 end

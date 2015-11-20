@@ -14,52 +14,52 @@ BEGIN_PROVIDER [ integer(omp_lock_kind), psi_ref_lock, (psi_det_size) ]
 END_PROVIDER
 
 
-subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullList, N_miniList, Nint)
-  use bitmasks
-  implicit none
-  
-  integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
-  integer, intent(in)                      :: N_fullList
-  integer(bit_kind),intent(out)            :: miniList(Nint, 2, N_fullList)
-  integer,intent(out)                      :: idx_miniList(N_fullList), N_miniList
-  integer, intent(in)                      :: Nint
-  integer(bit_kind)                        :: key_mask(Nint, 2)
-  integer                                  :: ni, i, n_a, n_b, e_a, e_b
-  
-  
-  n_a = 0
-  n_b = 0
-  do ni=1,nint
-    n_a = n_a + popcnt(key_mask(ni,1))
-    n_b = n_b + popcnt(key_mask(ni,2))
-  end do
-  
-  if(n_a == 0) then
-    N_miniList = N_fullList
-    miniList(:,:,:) = fullList(:,:,:)
-    do i=1,N_fullList
-      idx_miniList(i) = i
-    end do
-    return
-  end if
-  
-  N_miniList = 0
-  
-  do i=1,N_fullList
-    e_a = n_a
-    e_b = n_b
-    do ni=1,nint
-      e_a -= popcnt(iand(fullList(ni, 1, i), key_mask(ni, 1)))
-      e_b -= popcnt(iand(fullList(ni, 2, i), key_mask(ni, 2)))
-    end do
-    
-    if(e_a + e_b <= 2) then
-      N_miniList = N_miniList + 1
-      miniList(:,:,N_miniList) = fullList(:,:,i)
-      idx_miniList(N_miniList) = i
-    end if
-  end do
-end subroutine
+! subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullList, N_miniList, Nint)
+!   use bitmasks
+!   implicit none
+!   
+!   integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
+!   integer, intent(in)                      :: N_fullList
+!   integer(bit_kind),intent(out)            :: miniList(Nint, 2, N_fullList)
+!   integer,intent(out)                      :: idx_miniList(N_fullList), N_miniList
+!   integer, intent(in)                      :: Nint
+!   integer(bit_kind)                        :: key_mask(Nint, 2)
+!   integer                                  :: ni, i, n_a, n_b, e_a, e_b
+!   
+!   
+!   n_a = 0
+!   n_b = 0
+!   do ni=1,nint
+!     n_a = n_a + popcnt(key_mask(ni,1))
+!     n_b = n_b + popcnt(key_mask(ni,2))
+!   end do
+!   
+!   if(n_a == 0) then
+!     N_miniList = N_fullList
+!     miniList(:,:,:) = fullList(:,:,:)
+!     do i=1,N_fullList
+!       idx_miniList(i) = i
+!     end do
+!     return
+!   end if
+!   
+!   N_miniList = 0
+!   
+!   do i=1,N_fullList
+!     e_a = n_a
+!     e_b = n_b
+!     do ni=1,nint
+!       e_a -= popcnt(iand(fullList(ni, 1, i), key_mask(ni, 1)))
+!       e_b -= popcnt(iand(fullList(ni, 2, i), key_mask(ni, 2)))
+!     end do
+!     
+!     if(e_a + e_b <= 2) then
+!       N_miniList = N_miniList + 1
+!       miniList(:,:,N_miniList) = fullList(:,:,i)
+!       idx_miniList(N_miniList) = i
+!     end if
+!   end do
+! end subroutine
 
 
 subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n_selected,det_buffer,Nint,iproc,key_mask)
@@ -75,11 +75,10 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n
   integer                        :: i,j,k,l
   integer                        :: degree_alpha(psi_det_size)
   integer                        :: idx_alpha(0:psi_det_size)
-  logical                        :: good
+  logical                        :: good, fullMatch
 
   integer(bit_kind)              :: tq(Nint,2,n_selected)
   integer                        :: N_tq, c_ref ,degree
-  integer                        :: connected_to_ref
 
   double precision               :: hIk, hla, hIl, dIk(N_states), dka(N_states), dIa(N_states)
   double precision, allocatable  :: dIa_hla(:,:)
@@ -91,57 +90,20 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n
   integer                        :: iint, ipos
   integer                        :: i_state, k_sd, l_sd, i_I, i_alpha
   
-  integer(bit_kind),allocatable  :: miniList(:,:,:), supalist(:,:,:)
+  integer(bit_kind),allocatable  :: miniList(:,:,:)
   integer(bit_kind),intent(in)   :: key_mask(Nint, 2)
   integer,allocatable            :: idx_miniList(:)
-  integer                        :: N_miniList, N_supalist, ni, leng
+  integer                        :: N_miniList, ni, leng
   
   
   leng = max(N_det_generators, N_det_non_ref)
-  allocate(miniList(Nint, 2, leng), idx_miniList(leng), supalist(Nint,2,leng))
+  allocate(miniList(Nint, 2, leng), idx_miniList(leng))
   
-  l = 0
-  N_miniList = 0
-  N_supalist = 0
-    
-  do ni = 1,Nint
-    l += popcnt(key_mask(ni,1)) + popcnt(key_mask(ni,2))
-  end do
+  !create_minilist_find_previous(key_mask, fullList, miniList, N_fullList, N_miniList, fullMatch, Nint)
+  call create_minilist_find_previous(key_mask, psi_det_generators, miniList, i_generator-1, N_miniList, fullMatch, Nint)
   
-  if(l == 0) then
-    N_miniList = i_generator-1
-    miniList(:,:,:N_miniList) = psi_det_generators(:,:,:N_minilist)
-  else
-    do i=i_generator-1,1,-1
-      k = l
-      do ni=1,nint
-        k -= popcnt(iand(key_mask(ni,1), psi_det_generators(ni,1,i))) + popcnt(iand(key_mask(ni,2), psi_det_generators(ni,2,i)))
-      end do
-      
-!       if(k == 0) then
-!         deallocate(miniList, supalist, idx_miniList)
-!         return
-!       else if(k <= 2) then
-!         N_minilist += 1
-!         miniList(:,:,N_minilist) = psi_det_generators(:,:,i)
-!       end if
-!       
-      if(k == 2) then
-        N_supalist += 1
-        supalist(:,:,N_supalist) = psi_det_generators(:,:,i)
-      else if(k == 1) then
-        N_minilist += 1
-        miniList(:,:,N_minilist) = psi_det_generators(:,:,i)
-      else if(k == 0) then
-        deallocate(miniList, supalist, idx_miniList)
-        return
-      end if
-    end do
-  end if
-  
-  if(N_supalist > 0) then
-    miniList(:,:,N_minilist+1:N_minilist+N_supalist) = supalist(:,:,:N_supalist)
-    N_minilist = N_minilist + N_supalist
+  if(fullMatch) then
+    return
   end if
   
   
@@ -299,6 +261,7 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
   
   
   integer                        :: nt,ni
+  logical, external              :: is_connected_to
   
   
   integer(bit_kind),intent(in)  :: miniList(Nint,2,N_det_generators)
@@ -310,15 +273,18 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
   
   
   i_loop : do i=1,N_selected
-    do j=1,N_miniList
-      nt = 0
-      do ni=1,Nint
-        nt += popcnt(xor(miniList(ni,1,j), det_buffer(ni,1,i))) + popcnt(xor(miniList(ni,2,j), det_buffer(ni,2,i)))
-      end do
-      if(nt <= 4) then
-        cycle i_loop
-      end if
-    end do
+    if(is_connected_to(det_buffer(ni,1,i), miniList, Nint, N_miniList)) then
+      cycle
+    end if
+!     do j=1,N_miniList
+!       nt = 0
+!       do ni=1,Nint
+!         nt += popcnt(xor(miniList(ni,1,j), det_buffer(ni,1,i))) + popcnt(xor(miniList(ni,2,j), det_buffer(ni,2,i)))
+!       end do
+!       if(nt <= 4) then
+!         cycle i_loop
+!       end if
+!     end do
 !     if(connected_to_ref(det_buffer(1,1,i),psi_det_generators,Nint, &
 !        i_generator,N_det_generators) /= 0) then
 !         cycle i_loop
