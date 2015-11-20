@@ -71,7 +71,6 @@
      one_body_dm_mo_beta  = one_body_dm_mo_beta  + tmp_b
      !$OMP END CRITICAL
      deallocate(tmp_a,tmp_b)
-     !$OMP BARRIER
      !$OMP END PARALLEL
 
    endif
@@ -157,7 +156,6 @@ END_PROVIDER
    one_body_single_double_dm_mo_beta  = one_body_single_double_dm_mo_beta  + tmp_b
    !$OMP END CRITICAL
    deallocate(tmp_a,tmp_b)
-   !$OMP BARRIER
    !$OMP END PARALLEL
 END_PROVIDER
 

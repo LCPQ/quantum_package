@@ -60,7 +60,7 @@ class H_apply(object):
     s["omp_master"]       = "!$OMP MASTER"
     s["omp_end_master"]   = "!$OMP END MASTER"
     s["omp_barrier"]      = "!$OMP BARRIER"
-    s["omp_do"]           = "!$OMP DO SCHEDULE (static)"
+    s["omp_do"]           = "!$OMP DO SCHEDULE (static,1)"
     s["omp_enddo"]        = "!$OMP ENDDO NOWAIT"
 
     d = { True : '.True.', False : '.False.'}
