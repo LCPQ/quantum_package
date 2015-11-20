@@ -58,17 +58,35 @@ def get_pseudo_str(l_atom):
     str_ = ""
 
     for a in l_atom:
-        l_cmd_atom = ["--atom", a]
 
-        l_cmd_head = [EMSL_path, "get_basis_data",
-                      "--db_path", db_path,
-                      "--basis", "BFD-Pseudo"]
+        if a is not 'X':
+            l_cmd_atom = ["--atom", a]
 
-        process = Popen(l_cmd_head + l_cmd_atom, stdout=PIPE, stderr=PIPE)
+            l_cmd_head = [EMSL_path, "get_basis_data",
+                          "--db_path", db_path,
+                          "--basis", "BFD-Pseudo"]
 
-        stdout, _ = process.communicate()
-        str_ += stdout.strip() + "\n"
+            process = Popen(l_cmd_head + l_cmd_atom, stdout=PIPE, stderr=PIPE)
 
+            stdout, _ = process.communicate()
+            str_ += stdout.strip() + "\n"
+
+        else: # Dummy atoms
+            str_ += """Element Symbol: X
+Number of replaced protons: 0
+Number of projectors: 0
+
+Pseudopotential data:
+
+Local component: 
+Coeff.		r^n	Exp.
+0.0  -1   0.
+0.0   1   0.
+0.0   0   0.
+
+Non-local component: 
+Coeff.		r^n	Exp.		Proj.
+"""
     return str_
 
 

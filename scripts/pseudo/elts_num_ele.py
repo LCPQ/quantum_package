@@ -1,4 +1,5 @@
-name_to_elec = {"H": 1,
+name_to_elec = {"X": 0,
+                "H": 1,
                 "He": 2,
                 "Li": 3,
                 "Be": 4,

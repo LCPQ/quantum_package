@@ -86,7 +86,7 @@ subroutine damping_SCF
       if ((E_half > E).and.(E_new < E)) then
         lambda = 1.d0
         exit
-      else if ((E_half > E).and.(lambda > 5.d-2)) then
+      else if ((E_half > E).and.(lambda > 5.d-4)) then
         lambda = 0.5d0 * lambda
         E_new = E_half
       else

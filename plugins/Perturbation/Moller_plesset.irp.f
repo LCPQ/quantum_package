@@ -31,8 +31,7 @@ subroutine pt2_moller_plesset(det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,n_s
            (Fock_matrix_diag_mo(p1) + Fock_matrix_diag_mo(p2))
   delta_e = 1.d0/delta_e
 
-  !call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det,psi_selectors_size,n_st,i_H_psi_array)
-  call i_H_psi_nominilist(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det,psi_selectors_size,n_st,i_H_psi_array)
+  call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det,psi_selectors_size,n_st,i_H_psi_array)
   h = diag_H_mat_elem(det_pert,Nint)
   do i =1,n_st
     H_pert_diag(i) = h

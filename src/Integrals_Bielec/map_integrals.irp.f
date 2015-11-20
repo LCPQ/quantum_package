@@ -291,8 +291,31 @@ double precision function get_mo_bielec_integral(i,j,k,l,map)
   PROVIDE mo_bielec_integrals_in_map
   !DIR$ FORCEINLINE
   call bielec_integrals_index(i,j,k,l,idx)
+  !DIR$ FORCEINLINE
   call map_get(map,idx,tmp)
   get_mo_bielec_integral = dble(tmp)
+end
+
+double precision function get_mo_bielec_integral_schwartz(i,j,k,l,map)
+  use map_module
+  implicit none
+  BEGIN_DOC
+  ! Returns one integral <ij|kl> in the MO basis
+  END_DOC
+  integer, intent(in)            :: i,j,k,l
+  integer(key_kind)              :: idx
+  type(map_type), intent(inout)  :: map
+  real(integral_kind)            :: tmp
+  PROVIDE mo_bielec_integrals_in_map
+  if (mo_bielec_integral_schwartz(i,k)*mo_bielec_integral_schwartz(j,l) > mo_integrals_threshold) then
+    !DIR$ FORCEINLINE
+    call bielec_integrals_index(i,j,k,l,idx)
+    !DIR$ FORCEINLINE
+    call map_get(map,idx,tmp)
+  else
+    tmp = 0.d0
+  endif
+  get_mo_bielec_integral_schwartz = dble(tmp)
 end
 
 double precision function mo_bielec_integral(i,j,k,l)
@@ -301,9 +324,9 @@ double precision function mo_bielec_integral(i,j,k,l)
   ! Returns one integral <ij|kl> in the MO basis
   END_DOC
   integer, intent(in)            :: i,j,k,l
-  double precision               :: get_mo_bielec_integral
+  double precision               :: get_mo_bielec_integral_schwartz
   PROVIDE mo_bielec_integrals_in_map
-  mo_bielec_integral = get_mo_bielec_integral(i,j,k,l,mo_integrals_map)
+  mo_bielec_integral = get_mo_bielec_integral_schwartz(i,j,k,l,mo_integrals_map)
   return
 end
 
@@ -502,7 +525,8 @@ integer function load_$ao_integrals(filename)
   integer*8                      :: i
   integer(cache_key_kind), pointer :: key(:)
   real(integral_kind), pointer   :: val(:)
-  integer                        :: iknd, kknd, n, j
+  integer                        :: iknd, kknd
+  integer*8                      :: n, j
   load_$ao_integrals = 1
   open(unit=66,file=filename,FORM='unformatted',STATUS='UNKNOWN')
   read(66,err=98,end=98) iknd, kknd
@@ -532,12 +556,8 @@ integer function load_$ao_integrals(filename)
   return
   99 continue
   call map_deinit($ao_integrals_map)
-  FREE $ao_integrals_map
-  if (.True.) then
-    PROVIDE $ao_integrals_map
-  endif
-  stop 'Problem reading $ao_integrals_map file in work/'
   98 continue
+  stop 'Problem reading $ao_integrals_map file in work/'
   
 end
 

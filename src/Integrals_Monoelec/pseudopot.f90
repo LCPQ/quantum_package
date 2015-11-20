@@ -197,8 +197,8 @@ integer, intent(in) :: n_a(3),n_b(3)
 double precision, intent(in) :: v_kl(kmax,0:lmax),dz_kl(kmax,0:lmax)
 
 !                     
-! |   _   _  _. |  _  
-! |_ (_) (_ (_| | (/_ 
+! |   _   _  _. | 
+! |_ (_) (_ (_| | 
 !                     
 
 double precision :: fourpi,f,prod,prodp,binom_func,accu,bigR,bigI,ylm
@@ -223,11 +223,6 @@ double precision, allocatable :: array_I_B(:,:,:,:,:)
 
 double precision :: f1, f2, f3
 
-!  _                
-! /   _. |  _     | 
-! \_ (_| | (_ |_| | 
-!                   
-
 if (kmax.eq.1.and.lmax.eq.0.and.v_kl(1,0).eq.0.d0) then
   Vpseudo=0.d0
   return
@@ -236,7 +231,7 @@ end if
 fourpi=4.d0*dacos(-1.d0)
 ac=dsqrt((a(1)-c(1))**2+(a(2)-c(2))**2+(a(3)-c(3))**2)
 bc=dsqrt((b(1)-c(1))**2+(b(2)-c(2))**2+(b(3)-c(3))**2)
-arg=g_a*ac**2+g_b*bc**2
+arg= g_a*ac*ac + g_b*bc*bc
 
 if(arg.gt.-dlog(1.d-20))then
   Vpseudo=0.d0
@@ -290,6 +285,21 @@ if(ac.eq.0.d0.and.bc.eq.0.d0)then
    enddo
   enddo
  enddo
+! do k=1,kmax
+!   do l=0,lmax
+!     ktot=ntot+n_kl(k,l)
+!     do m=-l,l
+!       prod =bigI(0,0,l,m,n_a(1),n_a(2),n_a(3))*v_kl(k,l)
+!       prodp=bigI(0,0,l,m,n_b(1),n_b(2),n_b(3))*prod
+!       if (dabs (prodp) < 1.d-15) then
+!         cycle
+!       endif
+!       
+!       accu=accu+prodp*int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),0,0,areal,breal,arg)
+!       
+!     enddo
+!   enddo
+! enddo
 
  !=!=!=!=!
  ! E n d !
@@ -625,8 +635,8 @@ double precision, intent(in) :: v_kl(kmax,0:lmax),dz_kl(kmax,0:lmax)
 double precision, intent(in) :: rmax
 
 !                     
-! |   _   _  _. |  _  
-! |_ (_) (_ (_| | (/_ 
+! |   _   _  _. |
+! |_ (_) (_ (_| |
 !                     
 
 integer :: l,m,k,kk
@@ -1950,6 +1960,7 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
   double precision :: s_q_0, s_q_k, s_0_0, a_over_b_square
   double precision :: int_prod_bessel_loc
   double precision :: inverses(0:300)
+  double precision :: two_qkmp1, qk
 
   logical done
 
@@ -2008,16 +2019,15 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
         stop 'pseudopot.f90 : q > 300'
       endif
 
+      two_qkmp1 = dble(2*(q+m)+1)
+      qk = dble(q)
       do k=0,q-1
-        s_q_k = ( dble(2*(q-k+m)+1)*dble(q-k)*inverses(k) ) * s_q_k
+        s_q_k = ( two_qkmp1*qk*inverses(k) ) * s_q_k
         sum=sum+s_q_k
+        two_qkmp1 = two_qkmp1-2.d0
+        qk = qk-1.d0 
       enddo
       inverses(q) = a_over_b_square/(dble(2*(q+n)+3) * dble(q+1)) 
-!      do k=0,q
-!        sum=sum+s_q_k
-!        s_q_k = a_over_b_square * ( dble(2*(q-k+m)+1)*dble(q-k)/(dble(2*(k+n)+3) * dble(k+1)) ) * s_q_k
-!      enddo
-      ! Iteration of k
 !      do k=0,q
 !        sum=sum+s_q_k
 !        s_q_k = a_over_b_square * ( dble(2*(q-k+m)+1)*dble(q-k)/(dble(2*(k+n)+3) * dble(k+1)) ) * s_q_k
