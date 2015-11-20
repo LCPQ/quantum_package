@@ -10,6 +10,9 @@ subroutine $subroutine_diexc(key_in, key_prev, hole_1,particl_1, hole_2, particl
   integer                               :: highest, p1,p2,sp,ni,i,mi,nt,ns
   
   integer(bit_kind), intent(in)          :: key_prev(N_int, 2, *)
+  PROVIDE N_int
+  PROVIDE N_det
+ 
   $declarations
   
   
