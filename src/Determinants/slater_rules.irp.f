@@ -361,6 +361,44 @@ subroutine bitstring_to_list_ab( string, list, n_elements, Nint)
   integer, intent(out)           :: list(Nint*bit_kind_size,2)
   integer, intent(out)           :: n_elements(2)
 
+  integer                        :: i, j, ishift
+  integer(bit_kind)              :: l
+
+  n_elements(1) = 0
+  n_elements(2) = 0
+  ishift = 1
+  do i=1,Nint
+    l = string(i,1)
+    do while (l /= 0_bit_kind)
+      n_elements(1) = n_elements(1)+1
+      j = trailz(l)
+      list(n_elements(1),1) = ishift+j
+      l = ibclr(l,j)
+    enddo
+    l = string(i,2)
+    do while (l /= 0_bit_kind)
+      n_elements(2) = n_elements(2)+1
+      j = trailz(l)
+      list(n_elements(2),2) = ishift+j
+      l = ibclr(l,j)
+    enddo
+    ishift = ishift + bit_kind_size
+  enddo
+
+end
+
+subroutine bitstring_to_list_ab_old( string, list, n_elements, Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Gives the inidices(+1) of the bits set to 1 in the bit string
+  ! For alpha/beta determinants
+  END_DOC
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: string(Nint,2)
+  integer, intent(out)           :: list(Nint*bit_kind_size,2)
+  integer, intent(out)           :: n_elements(2)
+
   integer                        :: i, ishift
   integer(bit_kind)              :: l
 

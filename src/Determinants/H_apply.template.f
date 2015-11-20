@@ -186,10 +186,8 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
     particle(j,1) = iand(xor(particl_1(j,1),key_in(j,1)),particl_1(j,1))
     particle(j,2) = iand(xor(particl_1(j,2),key_in(j,2)),particl_1(j,2))
   enddo
-  call bitstring_to_list(particle(1,1),occ_particle(1,1),N_elec_in_key_part_1(1),N_int)
-  call bitstring_to_list(particle(1,2),occ_particle(1,2),N_elec_in_key_part_1(2),N_int)
-  call bitstring_to_list(hole(1,1),occ_hole(1,1),N_elec_in_key_hole_1(1),N_int)
-  call bitstring_to_list(hole(1,2),occ_hole(1,2),N_elec_in_key_hole_1(2),N_int)
+  call bitstring_to_list_ab(particle,occ_particle,N_elec_in_key_part_1,N_int)
+  call bitstring_to_list_ab(hole,occ_hole,N_elec_in_key_hole_1,N_int)
   allocate (ia_ja_pairs(2,0:(elec_alpha_num)*mo_tot_num,2),          &
             ib_jb_pairs(2,0:(elec_alpha_num)*mo_tot_num))
   
@@ -252,10 +250,8 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
         particle_tmp(j,2) = iand(xor(particl_2(j,2),hole(j,2)),particl_2(j,2))
       enddo
       
-      call bitstring_to_list(particle_tmp(1,1),occ_particle_tmp(1,1),N_elec_in_key_part_2(1),N_int)
-      call bitstring_to_list(particle_tmp(1,2),occ_particle_tmp(1,2),N_elec_in_key_part_2(2),N_int)
-      call bitstring_to_list(hole_tmp    (1,1),occ_hole_tmp    (1,1),N_elec_in_key_hole_2(1),N_int)
-      call bitstring_to_list(hole_tmp    (1,2),occ_hole_tmp    (1,2),N_elec_in_key_hole_2(2),N_int)
+      call bitstring_to_list_ab(particle_tmp,occ_particle_tmp,N_elec_in_key_part_2,N_int)
+      call bitstring_to_list_ab(hole_tmp,occ_hole_tmp,N_elec_in_key_hole_2,N_int)
       
       !   hole = a^(+)_j_a(ispin) a_i_a(ispin)|key_in> : mono exc :: orb(i_a,ispin) --> orb(j_a,ispin)
       hole_save = hole
@@ -447,10 +443,8 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc_in $pa
     particle(j,2) = iand(xor(particl_1(j,2),key_in(j,2)),particl_1(j,2))
   enddo
   
-  call bitstring_to_list(particle(1,1),occ_particle(1,1),N_elec_in_key_part_1(1),N_int)
-  call bitstring_to_list(particle(1,2),occ_particle(1,2),N_elec_in_key_part_1(2),N_int)
-  call bitstring_to_list(hole    (1,1),occ_hole    (1,1),N_elec_in_key_hole_1(1),N_int)
-  call bitstring_to_list(hole    (1,2),occ_hole    (1,2),N_elec_in_key_hole_1(2),N_int)
+  call bitstring_to_list_ab(particle,occ_particle,N_elec_in_key_part_1,N_int)
+  call bitstring_to_list_ab(hole,occ_hole,N_elec_in_key_hole_1,N_int)
   allocate (ia_ja_pairs(2,0:(elec_alpha_num)*mo_tot_num,2))
   
   do ispin=1,2
