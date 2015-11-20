@@ -370,17 +370,17 @@ subroutine bitstring_to_list_ab( string, list, n_elements, Nint)
   do i=1,Nint
     l = string(i,1)
     do while (l /= 0_bit_kind)
-      n_elements(1) = n_elements(1)+1
       j = trailz(l)
-      list(n_elements(1),1) = ishift+j
+      n_elements(1) = n_elements(1)+1
       l = ibclr(l,j)
+      list(n_elements(1),1) = ishift+j
     enddo
     l = string(i,2)
     do while (l /= 0_bit_kind)
-      n_elements(2) = n_elements(2)+1
       j = trailz(l)
-      list(n_elements(2),2) = ishift+j
+      n_elements(2) = n_elements(2)+1
       l = ibclr(l,j)
+      list(n_elements(2),2) = ishift+j
     enddo
     ishift = ishift + bit_kind_size
   enddo
@@ -1340,6 +1340,7 @@ subroutine a_operator(iorb,ispin,key,hjj,Nint,na,nb)
   integer                        :: occ(Nint*bit_kind_size,2)
   integer                        :: other_spin
   integer                        :: k,l,i
+  integer                        :: tmp(2)
   
   ASSERT (iorb > 0)
   ASSERT (ispin > 0)
@@ -1353,19 +1354,19 @@ subroutine a_operator(iorb,ispin,key,hjj,Nint,na,nb)
   other_spin = iand(ispin,1)+1
   
   !DIR$ FORCEINLINE
-  call get_occ_from_key(key,occ,Nint)
-  na -= 1
+  call bitstring_to_list_ab(key, occ, tmp, Nint)
+  na = na-1
   
-  hjj -= mo_mono_elec_integral(iorb,iorb)
+  hjj = hjj - mo_mono_elec_integral(iorb,iorb)
   
   ! Same spin
   do i=1,na
-    hjj -= mo_bielec_integral_jj_anti(occ(i,ispin),iorb)
+    hjj = hjj - mo_bielec_integral_jj_anti(occ(i,ispin),iorb)
   enddo
   
   ! Opposite spin
   do i=1,nb
-    hjj -= mo_bielec_integral_jj(occ(i,other_spin),iorb)
+    hjj = hjj - mo_bielec_integral_jj(occ(i,other_spin),iorb)
   enddo
   
 end
@@ -1403,18 +1404,18 @@ subroutine ac_operator(iorb,ispin,key,hjj,Nint,na,nb)
   key(k,ispin) = ibset(key(k,ispin),l)
   other_spin = iand(ispin,1)+1
   
-  hjj += mo_mono_elec_integral(iorb,iorb)
+  hjj = hjj + mo_mono_elec_integral(iorb,iorb)
   
   ! Same spin
   do i=1,na
-    hjj += mo_bielec_integral_jj_anti(occ(i,ispin),iorb)
+    hjj = hjj + mo_bielec_integral_jj_anti(occ(i,ispin),iorb)
   enddo
   
   ! Opposite spin
   do i=1,nb
-    hjj += mo_bielec_integral_jj(occ(i,other_spin),iorb)
+    hjj = hjj + mo_bielec_integral_jj(occ(i,other_spin),iorb)
   enddo
-  na += 1
+  na = na+1
 end
 
 subroutine get_occ_from_key(key,occ,Nint)
