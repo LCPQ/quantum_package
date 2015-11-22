@@ -100,26 +100,21 @@ let run ?o b c d m p xyz_file =
     match Hashtbl.find basis_table key with
     | Some in_channel -> 
         in_channel
-    | None ->
-        begin
-         Printf.printf "%s is not defined in basis %s.\nEnter alternate basis : %!"
-          (Element.to_long_string element) b ;
-          let bas =
-             match In_channel.input_line stdin with
-             | Some line -> String.strip line |> String.lowercase
-             | None -> failwith "Aborted"
-          in
-          let new_channel = In_channel.create 
-            (Qpackage.root ^ "/data/basis/" ^ bas)
-          in
-          Hashtbl.add_exn basis_table ~key:key ~data:new_channel;
-          new_channel
-        end
+    | None -> 
+         let msg = 
+           Printf.sprintf "%s is not defined in basis %s.%!"
+           (Element.to_long_string element) b ;
+         in
+         failwith msg
   in
   
   let temp_filename =
     Filename.temp_file "qp_create_" ".basis"
   in
+  let () = 
+    Sys.remove temp_filename
+  in
+
   let rec build_basis = function
   | [] -> ()
   | elem_and_basis_name :: rest -> 
@@ -130,10 +125,10 @@ let run ?o b c d m p xyz_file =
         let command =
           if (p) then  
             Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
-              ^ "\" \"" ^ basis ^"\" pseudo"
+              ^ "." ^ basis ^ "\" \"" ^ basis ^"\" pseudo"
           else
             Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
-              ^ "\" \"" ^ basis ^"\""
+              ^ "." ^ basis ^ "\" \"" ^ basis ^"\""
         in
         begin
           let filename = 
@@ -163,8 +158,8 @@ let run ?o b c d m p xyz_file =
              Element.to_string elem
           in
           let command =
-              Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename ^
-                "\" \"" ^ basis ^ "\" " ^ key
+              Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
+              ^ "." ^ basis ^ "\" \"" ^ basis ^ "\" "
           in
           begin
             let filename = 
@@ -232,11 +227,15 @@ let run ?o b c d m p xyz_file =
   (* Write Basis set *)
   let basis =
 
-    let nmax = Nucl_number.get_max () in
+    let nmax =
+       Nucl_number.get_max ()
+    in
     let rec do_work (accu:(Atom.t*Nucl_number.t) list) (n:int) = function
     | [] -> accu
     | e::tail ->
-      let new_accu = (e,(Nucl_number.of_int ~max:nmax n))::accu in
+      let new_accu =
+        (e,(Nucl_number.of_int ~max:nmax n))::accu
+      in
       do_work new_accu (n+1) tail
     in
     let result = do_work [] 1  nuclei
@@ -250,15 +249,8 @@ let run ?o b c d m p xyz_file =
          in
          Basis.read_element (basis_channel x.Atom.element) i e
        with
-       | End_of_file -> 
-         begin
-           let alt_channel = basis_channel x.Atom.element in
-           try
-             Basis.read_element alt_channel i x.Atom.element 
-           with
-           End_of_file -> failwith
-             ("Element "^(Element.to_string x.Atom.element)^" not found")
-         end
+       | End_of_file -> failwith
+             ("Element "^(Element.to_string x.Atom.element)^" not found in basis set.")
        ) 
     |> List.concat
     in

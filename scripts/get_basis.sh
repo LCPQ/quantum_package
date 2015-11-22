@@ -8,6 +8,8 @@
 # Prints in stdout the name of a temporary file containing the basis set.
 #
 
+#DEBUG:
+#echo $0 $@ 1>&2
 
 if [[ -z ${QP_ROOT} ]]
 then
