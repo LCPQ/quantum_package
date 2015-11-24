@@ -17,7 +17,7 @@ subroutine pt2_epstein_nesbet ($arguments)
   END_DOC
   
   integer                        :: i,j
-  double precision               :: diag_H_mat_elem, h
+  double precision               :: diag_H_mat_elem_fock, h
   double precision               :: i_H_psi_array(N_st)
   PROVIDE  selection_criterion
 
@@ -27,7 +27,7 @@ subroutine pt2_epstein_nesbet ($arguments)
   call i_H_psi_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
   
   
-  h = diag_H_mat_elem(det_pert,Nint)
+  h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
   do i =1,N_st
     if(CI_electronic_energy(i)>h.and.CI_electronic_energy(i).ne.0.d0)then
       c_pert(i) = -1.d0
@@ -62,7 +62,7 @@ subroutine pt2_epstein_nesbet_2x2 ($arguments)
   END_DOC
   
   integer                        :: i,j
-  double precision               :: diag_H_mat_elem,delta_e, h
+  double precision               :: diag_H_mat_elem_fock,delta_e, h
   double precision               :: i_H_psi_array(N_st)
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
@@ -71,7 +71,7 @@ subroutine pt2_epstein_nesbet_2x2 ($arguments)
   !call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
   call i_H_psi_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
   
-  h = diag_H_mat_elem(det_pert,Nint)
+  h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
   do i =1,N_st
     if (i_H_psi_array(i) /= 0.d0) then
       delta_e = h - CI_electronic_energy(i)
@@ -112,7 +112,7 @@ subroutine pt2_moller_plesset ($arguments)
   END_DOC
   
   integer                        :: i,j
-  double precision               :: diag_H_mat_elem
+  double precision               :: diag_H_mat_elem_fock
   integer                        :: exc(0:2,2,2)
   integer                        :: degree
   double precision               :: phase,delta_e,h
@@ -135,7 +135,7 @@ subroutine pt2_moller_plesset ($arguments)
   endif
 
   call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det,psi_selectors_size,n_st,i_H_psi_array)
-  h = diag_H_mat_elem(det_pert,Nint)
+  h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
   do i =1,n_st
     H_pert_diag(i) = h
     c_pert(i) = i_H_psi_array(i) *delta_e
@@ -176,7 +176,7 @@ subroutine pt2_epstein_nesbet_SC2_projected ($arguments)
   double precision               :: i_H_psi_array(N_st)
   integer                        :: idx_repeat(0:ndet)
   integer                        :: i,j,degree,l
-  double precision               :: diag_H_mat_elem,accu_e_corr,hij,h0j,h,delta_E
+  double precision               :: diag_H_mat_elem_fock,accu_e_corr,hij,h0j,h,delta_E
   double precision               :: repeat_all_e_corr,accu_e_corr_tmp,e_2_pert_fonda
 
   ASSERT (Nint == N_int)
@@ -188,7 +188,8 @@ subroutine pt2_epstein_nesbet_SC2_projected ($arguments)
   do i = 1, idx_repeat(0)
    accu_e_corr = accu_e_corr + E_corr_per_selectors(idx_repeat(i))
   enddo
-  h =  diag_H_mat_elem(det_pert,Nint) + accu_e_corr
+  h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
+  h = h + accu_e_corr
   delta_E = 1.d0/(CI_SC2_electronic_energy(1) - h)
 
 
@@ -258,7 +259,7 @@ subroutine pt2_epstein_nesbet_SC2_no_projected ($arguments)
   double precision               :: i_H_psi_array(N_st)
   integer                        :: idx_repeat(0:ndet)
   integer                        :: i,j,degree,l
-  double precision               :: diag_H_mat_elem,accu_e_corr,hij,h0j,h,delta_E
+  double precision               :: diag_H_mat_elem_fock,accu_e_corr,hij,h0j,h,delta_E
   double precision               :: repeat_all_e_corr,accu_e_corr_tmp,e_2_pert_fonda
 
   ASSERT (Nint == N_int)
@@ -270,7 +271,8 @@ subroutine pt2_epstein_nesbet_SC2_no_projected ($arguments)
   do i = 1, idx_repeat(0)
    accu_e_corr = accu_e_corr + E_corr_per_selectors(idx_repeat(i))
   enddo
-  h =  diag_H_mat_elem(det_pert,Nint) + accu_e_corr
+  h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
+  h = h + accu_e_corr
   delta_E = 1.d0/(CI_SC2_electronic_energy(1) - h)
 
 
@@ -310,7 +312,7 @@ subroutine pt2_epstein_nesbet_sc2 ($arguments)
   
   integer                        :: i,j
   double precision               :: i_H_psi_array(N_st)
-  double precision               :: diag_H_mat_elem, h
+  double precision               :: diag_H_mat_elem_fock, h
   PROVIDE  selection_criterion
 
   ASSERT (Nint == N_int)
@@ -319,7 +321,7 @@ subroutine pt2_epstein_nesbet_sc2 ($arguments)
   call i_H_psi_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
 
   
-  h = diag_H_mat_elem(det_pert,Nint)
+  h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
   do i =1,N_st
     if(CI_SC2_electronic_energy(i)>h.and.CI_SC2_electronic_energy(i).ne.0.d0)then
       c_pert(i) = -1.d0
@@ -341,13 +343,15 @@ end
 
 SUBST [ arguments, declarations ]
 
-det_pert,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_st,minilist,idx_minilist,N_minilist ;
+det_ref,det_pert,fock_diag_tmp,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_st,minilist,idx_minilist,N_minilist ;
 
     integer, intent(in)             :: Nint
     integer, intent(in)             :: ndet
     integer, intent(in)             :: N_st
     integer, intent(in)             :: N_minilist
+    integer(bit_kind), intent(in)   :: det_ref (Nint,2)
     integer(bit_kind), intent(in)   :: det_pert(Nint,2)
+    double precision , intent(in)   :: fock_diag_tmp(2,mo_tot_num+1)
     double precision , intent(out)  :: c_pert(N_st)
     double precision , intent(out)  :: e_2_pert(N_st)
     double precision, intent(out)   :: H_pert_diag(N_st)

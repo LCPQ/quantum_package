@@ -204,7 +204,7 @@ class H_apply(object):
       """
       self.data["keys_work"] = """
       call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-       sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask)
+       sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
       """%(pert,)
       self.data["finalization"] = """
       """

@@ -2,7 +2,7 @@ BEGIN_SHELL [ /usr/bin/env python ]
 import perturbation
 END_SHELL
 
-subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert,sum_norm_pert,sum_H_pert_diag,N_st,Nint,key_mask)
+subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert,sum_norm_pert,sum_H_pert_diag,N_st,Nint,key_mask,fock_diag_tmp)
   implicit none
   BEGIN_DOC
   !  Applly pertubration ``$PERT`` to the buffer of determinants generated in the H_apply
@@ -12,6 +12,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   integer, intent(in)            :: Nint, N_st, buffer_size, i_generator
   integer(bit_kind), intent(in)  :: buffer(Nint,2,buffer_size)
   integer(bit_kind),intent(in)    :: key_mask(Nint,2)
+  double precision, intent(in)    :: fock_diag_tmp(2,0:mo_tot_num)
   double precision, intent(inout) :: sum_norm_pert(N_st),sum_e_2_pert(N_st)
   double precision, intent(inout) :: coef_pert_buffer(N_st,buffer_size),e_2_pert_buffer(N_st,buffer_size),sum_H_pert_diag(N_st)
   double precision               :: c_pert(N_st), e_2_pert(N_st),  H_pert_diag(N_st)
@@ -55,7 +56,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
     
     integer :: degree
     call get_excitation_degree(HF_bitmask,buffer(1,1,i),degree,N_int)
-    call pt2_$PERT(buffer(1,1,i),         &
+    call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
          c_pert,e_2_pert,H_pert_diag,Nint,N_minilist,n_st,minilist,idx_minilist,N_minilist) 
 
     do k = 1,N_st

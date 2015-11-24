@@ -1,6 +1,6 @@
 
 
-subroutine $subroutine_diexc(key_in, key_prev, hole_1,particl_1, hole_2, particl_2, i_generator, iproc_in $parameters )
+subroutine $subroutine_diexc(key_in, key_prev, hole_1,particl_1, hole_2, particl_2, fock_diag_tmp, i_generator, iproc_in $parameters )
   
   integer(bit_kind), intent(in)         :: key_in(N_int, 2), hole_1(N_int, 2), hole_2(N_int, 2)
   integer(bit_kind), intent(in)         :: particl_1(N_int, 2), particl_2(N_int, 2)
@@ -8,8 +8,8 @@ subroutine $subroutine_diexc(key_in, key_prev, hole_1,particl_1, hole_2, particl
   integer,intent(in)                    :: i_generator,iproc_in
   integer(bit_kind)                     :: status(N_int*bit_kind_size, 2)
   integer                               :: highest, p1,p2,sp,ni,i,mi,nt,ns
-  
-  integer(bit_kind), intent(in)          :: key_prev(N_int, 2, *)
+  double precision, intent(in)          :: fock_diag_tmp(2,mo_tot_num+1)
+  integer(bit_kind), intent(in)         :: key_prev(N_int, 2, *)
   PROVIDE N_int
   PROVIDE N_det
  
@@ -72,7 +72,7 @@ subroutine $subroutine_diexc(key_in, key_prev, hole_1,particl_1, hole_2, particl
         if((status(p1, sp) == 1 .and. status(p2, sp) > 1) .or. &
             (status(p1, sp) == 2 .and. status(p2, sp) == 3) .or. &
             (status(p1, sp) == 3 .and. status(p2, sp) == 3 .and. p2 > p1)) then
-          call $subroutine_diexcP(key_in, sp, p1, particl_1, sp, p2, particl_2, i_generator, iproc_in $parameters )
+          call $subroutine_diexcP(key_in, sp, p1, particl_1, sp, p2, particl_2, fock_diag_tmp, i_generator, iproc_in $parameters )
         end if
       end do
     end do
@@ -89,16 +89,17 @@ subroutine $subroutine_diexc(key_in, key_prev, hole_1,particl_1, hole_2, particl
           (status(p1, 1) == 1 .and. status(p2, 2) >= 2) .or. &
           (status(p1, 1) == 2 .and. status(p2, 2) /= 2)) then
           
-          call $subroutine_diexcP(key_in, 1, p1, particl_1, 2, p2, particl_2, i_generator, iproc_in $parameters )
+          call $subroutine_diexcP(key_in, 1, p1, particl_1, 2, p2, particl_2, fock_diag_tmp, i_generator, iproc_in $parameters )
       end if
     end do
   end do
 end subroutine
 
 
-subroutine $subroutine_diexcP(key_in, fs1, fh1, particl_1, fs2, fh2, particl_2, i_generator, iproc_in $parameters )
+subroutine $subroutine_diexcP(key_in, fs1, fh1, particl_1, fs2, fh2, particl_2, fock_diag_tmp, i_generator, iproc_in $parameters )
   
   integer(bit_kind), intent(in)         :: key_in(N_int, 2), particl_1(N_int, 2), particl_2(N_int, 2)
+  double precision, intent(in)          :: fock_diag_tmp(2,mo_tot_num+1)
   integer(bit_kind)                     :: p1_mask(N_int, 2), p2_mask(N_int, 2), key_mask(N_int, 2)
   integer,intent(in)                    :: fh1,fh2,fs1,fs2,i_generator,iproc_in
   integer(bit_kind)                     :: miniList(N_int, 2, N_det)
@@ -115,11 +116,11 @@ subroutine $subroutine_diexcP(key_in, fs1, fh1, particl_1, fs2, fh2, particl_2, 
   key_mask(ishft(fh1,-bit_kind_shift) + 1, fs1) -= ishft(1,iand(fh1-1,bit_kind_size-1))
   key_mask(ishft(fh2,-bit_kind_shift) + 1, fs2) -= ishft(1,iand(fh2-1,bit_kind_size-1))
 
-  call $subroutine_diexcOrg(key_in, key_mask, p1_mask, particl_1, p2_mask, particl_2, i_generator, iproc_in $parameters )
+  call $subroutine_diexcOrg(key_in, key_mask, p1_mask, particl_1, p2_mask, particl_2, fock_diag_tmp, i_generator, iproc_in $parameters )
 end subroutine
 
 
-subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl_2, i_generator, iproc_in $parameters )
+subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl_2, fock_diag_tmp, i_generator, iproc_in $parameters )
   use omp_lib
   use bitmasks
   implicit none
@@ -136,6 +137,7 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
   integer(bit_kind), intent(in)  :: hole_1(N_int,2), particl_1(N_int,2)
   integer(bit_kind), intent(in)  :: hole_2(N_int,2), particl_2(N_int,2)
   integer, intent(in)            :: iproc_in
+  double precision, intent(in)   :: fock_diag_tmp(2,mo_tot_num+1)
   integer(bit_kind), allocatable :: hole_save(:,:)
   integer(bit_kind), allocatable :: key(:,:),hole(:,:), particle(:,:)
   integer(bit_kind), allocatable :: hole_tmp(:,:), particle_tmp(:,:)
@@ -175,6 +177,7 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
       particle_tmp(N_int,2), occ_particle(N_int*bit_kind_size,2),    &
       occ_hole(N_int*bit_kind_size,2), occ_particle_tmp(N_int*bit_kind_size,2),&
       occ_hole_tmp(N_int*bit_kind_size,2),key_union_hole_part(N_int))
+
   $init_thread
   
   
@@ -362,17 +365,17 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
   enddo   ! ispin
   $keys_work
   $deinit_thread
-  deallocate (ia_ja_pairs, ib_jb_pairs, &
-      keys_out, hole_save,          &
-      key,hole, particle, hole_tmp,&
-      particle_tmp, occ_particle,    &
-      occ_hole, occ_particle_tmp,&
+  deallocate (ia_ja_pairs, ib_jb_pairs,                              &
+      keys_out, hole_save,                                           &
+      key,hole, particle, hole_tmp,                                  &
+      particle_tmp, occ_particle,                                    &
+      occ_hole, occ_particle_tmp,                                    &
       occ_hole_tmp,array_pairs,key_union_hole_part)
   $omp_end_parallel
   $finalization
 end
 
-subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc_in $parameters )
+subroutine $subroutine_monoexc(key_in, hole_1,particl_1,fock_diag_tmp,i_generator,iproc_in $parameters )
   use omp_lib
   use bitmasks
   implicit none
@@ -387,6 +390,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,i_generator,iproc_in $pa
   integer(bit_kind),intent(in)   :: key_in(N_int,2)
   integer(bit_kind),intent(in)   :: hole_1(N_int,2), particl_1(N_int,2)
   integer, intent(in)            :: iproc_in
+  double precision, intent(in)   :: fock_diag_tmp(2,mo_tot_num+1)
   integer(bit_kind),allocatable  :: keys_out(:,:,:)
   integer(bit_kind),allocatable  :: hole_save(:,:)
   integer(bit_kind),allocatable  :: key(:,:),hole(:,:), particle(:,:)
@@ -526,6 +530,7 @@ subroutine $subroutine($params_main)
   integer(bit_kind), allocatable :: mask(:,:,:)
   integer                        :: ispin, k
   integer                        :: iproc
+  double precision, allocatable  :: fock_diag_tmp(:,:)
 
   $initialization
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators
@@ -539,7 +544,7 @@ subroutine $subroutine($params_main)
   call wall_time(wall_0)
 
   iproc = 0
-  allocate( mask(N_int,2,6) )
+  allocate( mask(N_int,2,6), fock_diag_tmp(2,mo_tot_num+1) )
   do i_generator=1,nmax
 
     progress_bar(1) = i_generator
@@ -548,6 +553,9 @@ subroutine $subroutine($params_main)
       exit
     endif
     $skip
+
+    ! Compute diagonal of the Fock matrix
+    call build_fock_tmp(fock_diag_tmp,psi_det_generators(1,1,i_generator),N_int)
 
     ! Create bit masks for holes and particles
     do ispin=1,2
@@ -577,12 +585,12 @@ subroutine $subroutine($params_main)
          psi_det_generators(1,1,1),                                   &
          mask(1,1,d_hole1), mask(1,1,d_part1),                        &
          mask(1,1,d_hole2), mask(1,1,d_part2),                        &
-         i_generator, iproc $params_post)
+         fock_diag_tmp, i_generator, iproc $params_post)
     endif
     if($do_mono_excitations)then
      call $subroutine_monoexc(psi_det_generators(1,1,i_generator),    &
          mask(1,1,s_hole ), mask(1,1,s_part ),                        &
-         i_generator, iproc $params_post)
+         fock_diag_tmp, i_generator, iproc $params_post)
     endif
     call wall_time(wall_1)
     $printout_always
@@ -592,13 +600,13 @@ subroutine $subroutine($params_main)
     endif
   enddo
 
-  deallocate( mask )
+  deallocate( mask, fock_diag_tmp )
 
   !$OMP PARALLEL DEFAULT(SHARED) &
-  !$OMP PRIVATE(i_generator,wall_1,wall_0,ispin,k,mask,iproc) 
+  !$OMP PRIVATE(i_generator,wall_1,wall_0,ispin,k,mask,iproc,fock_diag_tmp) 
   call wall_time(wall_0)
   !$ iproc = omp_get_thread_num()
-  allocate( mask(N_int,2,6) )
+  allocate( mask(N_int,2,6), fock_diag_tmp(2,mo_tot_num+1) )
   !$OMP DO SCHEDULE(dynamic,1)
   do i_generator=nmax+1,N_det_generators
     if (iproc == 0) then
@@ -608,6 +616,9 @@ subroutine $subroutine($params_main)
       cycle
     endif
     $skip
+
+    ! Compute diagonal of the Fock matrix
+    call build_fock_tmp(fock_diag_tmp,psi_det_generators(1,1,i_generator),N_int)
 
     ! Create bit masks for holes and particles
     do ispin=1,2
@@ -638,12 +649,12 @@ subroutine $subroutine($params_main)
         psi_det_generators(1,1,1),                                   &
         mask(1,1,d_hole1), mask(1,1,d_part1),                        &
         mask(1,1,d_hole2), mask(1,1,d_part2),                        &
-        i_generator, iproc $params_post)
+        fock_diag_tmp, i_generator, iproc $params_post)
     endif
     if($do_mono_excitations)then
       call $subroutine_monoexc(psi_det_generators(1,1,i_generator),  &
         mask(1,1,s_hole ), mask(1,1,s_part ),                        &
-        i_generator, iproc $params_post)
+        fock_diag_tmp, i_generator, iproc $params_post)
     endif
     !$ call omp_set_lock(lck)
     call wall_time(wall_1)
@@ -655,7 +666,7 @@ subroutine $subroutine($params_main)
     !$ call omp_unset_lock(lck)
   enddo
   !$OMP END DO 
-  deallocate( mask )
+  deallocate( mask, fock_diag_tmp )
   !$OMP END PARALLEL
   !$ call omp_destroy_lock(lck)
 

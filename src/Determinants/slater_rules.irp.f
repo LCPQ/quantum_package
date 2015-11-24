@@ -1264,6 +1264,75 @@ end
 
 
 
+double precision function diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes <i|H|i> when i is at most a double excitation from
+  ! a reference.
+  END_DOC
+  integer,intent(in)             :: Nint
+  integer(bit_kind),intent(in)   :: det_ref(Nint,2), det_pert(Nint,2)
+  double precision, intent(in)   :: fock_diag_tmp(2,mo_tot_num+1)
+
+  integer                        :: degree
+  double precision               :: phase, E0
+  integer                        :: exc(0:2,2,2)
+  integer                        :: h1, p1, h2, p2, s1, s2
+
+  call get_excitation_degree(det_ref,det_pert,degree,Nint)
+  E0 = fock_diag_tmp(1,mo_tot_num+1)
+  if (degree == 2) then
+    call get_double_excitation(det_ref,det_pert,exc,phase,Nint)
+    call decode_exc(exc,2,h1,p1,h2,p2,s1,s2)
+
+    if ( (s1 == 1).and.(s2 == 1) ) then      ! alpha/alpha
+      diag_H_mat_elem_fock = E0 &
+        - fock_diag_tmp(1,h1) &
+        + ( fock_diag_tmp(1,p1) - mo_bielec_integral_jj_anti(h1,p1) ) &
+        - ( fock_diag_tmp(1,h2) - mo_bielec_integral_jj_anti(h1,h2)   &
+            + mo_bielec_integral_jj_anti(p1,h2) )                     &
+        + ( fock_diag_tmp(1,p2) - mo_bielec_integral_jj_anti(h1,p2)   &
+            + mo_bielec_integral_jj_anti(p1,p2) - mo_bielec_integral_jj_anti(h2,p2) )
+
+    else if ( (s1 == 2).and.(s2 == 2) ) then ! beta/beta
+      diag_H_mat_elem_fock = E0 &
+        - fock_diag_tmp(2,h1) &
+        + ( fock_diag_tmp(2,p1) - mo_bielec_integral_jj_anti(h1,p1) ) &
+        - ( fock_diag_tmp(2,h2) - mo_bielec_integral_jj_anti(h1,h2)   &
+            + mo_bielec_integral_jj_anti(p1,h2) )                     &
+        + ( fock_diag_tmp(2,p2) - mo_bielec_integral_jj_anti(h1,p2)   &
+            + mo_bielec_integral_jj_anti(p1,p2) - mo_bielec_integral_jj_anti(h2,p2) )
+
+    else                                    ! alpha/beta
+      diag_H_mat_elem_fock = E0 &
+        - fock_diag_tmp(1,h1) &
+        + ( fock_diag_tmp(1,p1) - mo_bielec_integral_jj_anti(h1,p1) ) &
+        - ( fock_diag_tmp(2,h2) - mo_bielec_integral_jj(h1,h2)        &
+            + mo_bielec_integral_jj(p1,h2) )                          &
+        + ( fock_diag_tmp(2,p2) - mo_bielec_integral_jj(h1,p2)        &
+            + mo_bielec_integral_jj(p1,p2) - mo_bielec_integral_jj_anti(h2,p2) )
+
+    endif
+
+  else if (degree == 1) then
+    call get_mono_excitation(det_ref,det_pert,exc,phase,Nint)
+    call decode_exc(exc,1,h1,p1,h2,p2,s1,s2)
+    if (s1 == 1) then
+      diag_H_mat_elem_fock = E0 - fock_diag_tmp(1,h1) &
+        + ( fock_diag_tmp(1,p1) - mo_bielec_integral_jj_anti(h1,p1) ) 
+    else 
+      diag_H_mat_elem_fock = E0 - fock_diag_tmp(2,h1) &
+        + ( fock_diag_tmp(2,p1) - mo_bielec_integral_jj_anti(h1,p1) ) 
+    endif
+
+  else if (degree == 0) then
+    diag_H_mat_elem_fock = E0
+  else
+    STOP 'Bug in diag_H_mat_elem_fock'
+  endif
+end
+
 double precision function diag_H_mat_elem(det_in,Nint)
   implicit none
   BEGIN_DOC
@@ -1541,8 +1610,8 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   !$OMP DO SCHEDULE(dynamic)
   do sh=1,shortcut(0)
     do i=shortcut(sh),shortcut(sh+1)-1
-      local_threshold = threshold_davidson - dabs(u_0(org_i))
       org_i = sort_idx(i)
+      local_threshold = threshold_davidson - dabs(u_0(org_i))
       do j=shortcut(sh),i-1
         org_j = sort_idx(j)
         if ( dabs(u_0(org_j)) > local_threshold ) then
