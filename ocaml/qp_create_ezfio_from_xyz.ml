@@ -345,12 +345,14 @@ let command =
     Command.basic 
     ~summary: "Quantum Package command"
     ~readme:(fun () -> "
-Creates an EZFIO directory from a standard xyz file.
-The basis set is defined as a single string if all the
-atoms are taken from the same basis set, otherwise specific
-elements can be defined as follows:
+Creates an EZFIO directory from a standard xyz file.  The basis set is defined
+as a single string if all the atoms are taken from the same basis set,
+otherwise specific elements can be defined as follows:
 
  -b \"cc-pcvdz | H:cc-pvdz | C:6-31g\"
+
+If a file with the same name as the basis set exists, this file will be read.
+Otherwise, the basis set is obtained from the database.
 
       ")
     spec
