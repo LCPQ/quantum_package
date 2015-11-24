@@ -91,7 +91,10 @@ let run ?o b c d m p xyz_file =
   in
 
 
-  let basis_table = Hashtbl.Poly.create () in
+  let basis_table =
+     Hashtbl.Poly.create ()
+  in
+
   (* Open basis set channels *)
   let basis_channel element =
     let key =
@@ -115,31 +118,46 @@ let run ?o b c d m p xyz_file =
     Sys.remove temp_filename
   in
 
+  let fetch_channel basis =
+    let command =
+      if (p) then  
+        Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
+          ^ "." ^ basis ^ "\" \"" ^ basis ^"\" pseudo"
+      else
+        Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
+          ^ "." ^ basis ^ "\" \"" ^ basis ^"\""
+    in
+    match Sys.is_file basis with
+    | `Yes -> 
+          In_channel.create basis
+    | _ -> 
+      begin
+        let filename = 
+          Unix.open_process_in command
+          |> In_channel.input_all
+          |> String.strip
+        in
+        let new_channel =
+          In_channel.create filename
+        in
+        Unix.unlink filename;
+        new_channel
+      end
+  in
+
   let rec build_basis = function
   | [] -> ()
   | elem_and_basis_name :: rest -> 
     begin
       match (String.lsplit2 ~on:':' elem_and_basis_name) with
       | None -> (* Principal basis *)
-        let basis = elem_and_basis_name in
-        let command =
-          if (p) then  
-            Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
-              ^ "." ^ basis ^ "\" \"" ^ basis ^"\" pseudo"
-          else
-            Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
-              ^ "." ^ basis ^ "\" \"" ^ basis ^"\""
-        in
         begin
-          let filename = 
-            Unix.open_process_in command
-            |> In_channel.input_all
-            |> String.strip
+          let basis = 
+            elem_and_basis_name 
           in
           let new_channel =
-            In_channel.create filename
+            fetch_channel basis
           in
-          Unix.unlink filename;
           List.iter nuclei ~f:(fun elem->
             let key = 
               Element.to_string elem.Atom.element
@@ -151,26 +169,18 @@ let run ?o b c d m p xyz_file =
         end
       | Some (key, basis) -> (*Aux basis *)
         begin
-          let elem  = Element.of_string key
-          and basis = String.lowercase basis
+          let elem  = 
+            Element.of_string key
+          and basis =
+            String.lowercase basis
           in
           let key = 
              Element.to_string elem
           in
-          let command =
-              Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
-              ^ "." ^ basis ^ "\" \"" ^ basis ^ "\" "
+          let new_channel =
+            fetch_channel basis
           in
           begin
-            let filename = 
-              Unix.open_process_in command
-              |> In_channel.input_all
-              |> String.strip
-            in
-            let new_channel =
-              In_channel.create filename
-            in
-            Unix.unlink filename;
             match Hashtbl.add basis_table ~key:key ~data:new_channel with
             | `Ok -> ()
             | `Duplicate -> failwith ("Duplicate definition of basis for "^(Element.to_long_string elem))
