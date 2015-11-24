@@ -2,7 +2,7 @@ BEGIN_SHELL [ /usr/bin/env python ]
 import perturbation
 END_SHELL
 
-subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert,sum_norm_pert,sum_H_pert_diag,N_st,Nint,key_mask)
+subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert,sum_norm_pert,sum_H_pert_diag,N_st,Nint,key_mask,fock_diag_tmp)
   implicit none
   BEGIN_DOC
   !  Applly pertubration ``$PERT`` to the buffer of determinants generated in the H_apply
@@ -12,6 +12,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   integer, intent(in)            :: Nint, N_st, buffer_size, i_generator
   integer(bit_kind), intent(in)  :: buffer(Nint,2,buffer_size)
   integer(bit_kind),intent(in)    :: key_mask(Nint,2)
+  double precision, intent(in)    :: fock_diag_tmp(2,0:mo_tot_num)
   double precision, intent(inout) :: sum_norm_pert(N_st),sum_e_2_pert(N_st)
   double precision, intent(inout) :: coef_pert_buffer(N_st,buffer_size),e_2_pert_buffer(N_st,buffer_size),sum_H_pert_diag(N_st)
   double precision               :: c_pert(N_st), e_2_pert(N_st),  H_pert_diag(N_st)
@@ -43,24 +44,8 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   end if
   
   
-  buffer_loop : do i = 1,buffer_size
+  do i=1,buffer_size
     
-!     do k=1,N_minilist_gen
-!       ex = 0
-!       do ni=1,Nint
-!         ex += popcnt(xor(minilist_gen(ni,1,k), buffer(ni,1,i))) + popcnt(xor(minilist_gen(ni,2,k), buffer(ni,2,i)))
-!       end do
-!       if(ex <= 4) then
-!         cycle buffer_loop
-!       end if
-!     end do
-    
-!     c_ref = connected_to_ref(buffer(1,1,i),miniList_gen,Nint,N_minilist_gen+1,N_minilist_gen)
-! 
-!     if (c_ref /= 0) then
-!       cycle
-!     endif
-
     if(is_connected_to(buffer(1,1,i), miniList_gen, Nint, N_minilist_gen)) then
       cycle
     end if
@@ -71,20 +56,18 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
     
     integer :: degree
     call get_excitation_degree(HF_bitmask,buffer(1,1,i),degree,N_int)
-!     call pt2_$PERT(buffer(1,1,i),         &
-!         c_pert,e_2_pert,H_pert_diag,Nint,N_det_selectors,n_st,minilist,idx_minilist)
-    call pt2_$PERT(buffer(1,1,i),         &
-         c_pert,e_2_pert,H_pert_diag,Nint,N_minilist,n_st,minilist,idx_minilist,N_minilist) !!!!!!!!!!!!!!!!! MAUVAISE SIGNATURE PR LES AUTRES PT2_* !!!!!
+    call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
+         c_pert,e_2_pert,H_pert_diag,Nint,N_minilist,n_st,minilist,idx_minilist,N_minilist) 
 
     do k = 1,N_st
-      e_2_pert_buffer(k,i) = e_2_pert(k)
-      coef_pert_buffer(k,i) = c_pert(k)
-      sum_norm_pert(k) += c_pert(k) * c_pert(k)
-      sum_e_2_pert(k) += e_2_pert(k)
-      sum_H_pert_diag(k) +=  H_pert_diag(k)
+      e_2_pert_buffer(k,i)   = e_2_pert(k)
+      coef_pert_buffer(k,i)  = c_pert(k)
+      sum_norm_pert(k)       = sum_norm_pert(k)   + c_pert(k) * c_pert(k)
+      sum_e_2_pert(k)        = sum_e_2_pert(k)    + e_2_pert(k)
+      sum_H_pert_diag(k)     = sum_H_pert_diag(k) + H_pert_diag(k)
     enddo
     
-  enddo buffer_loop
+  enddo 
   
 end
 
