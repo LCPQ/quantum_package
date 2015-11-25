@@ -371,13 +371,16 @@ subroutine get_mo_bielec_integrals_ij(k,l,sze,out_array,map)
   ! i, j for k,l fixed.
   END_DOC
   integer, intent(in)            :: k,l, sze
-  logical, intent(out)           :: out_array(sze,sze)
+  double precision, intent(out)  :: out_array(sze,sze)
   type(map_type), intent(inout)  :: map
   integer                        :: i,j,kk,ll,m
   integer(key_kind),allocatable  :: hash(:)
   integer  ,allocatable          :: pairs(:,:), iorder(:)
+  real(integral_kind), allocatable :: tmp_val(:)
+
   PROVIDE mo_bielec_integrals_in_map
-  allocate (hash(sze*sze), pairs(2,sze*sze),iorder(sze*sze))
+  allocate (hash(sze*sze), pairs(2,sze*sze),iorder(sze*sze), &
+  tmp_val(sze*sze))
   
   kk=0
   out_array = 0.d0
@@ -401,16 +404,16 @@ subroutine get_mo_bielec_integrals_ij(k,l,sze,out_array,map)
     call i2radix_sort(hash,iorder,kk,-1)
   endif
 
-  call map_exists_many(mo_integrals_map, hash, kk)
+  call map_get_many(mo_integrals_map, hash, tmp_val, kk)
 
   do ll=1,kk
     m = iorder(ll)
     i=pairs(1,m)
     j=pairs(2,m)
-    out_array(i,j) = (hash(ll) /= 0_8)
+    out_array(i,j) = tmp_val(ll)
   enddo  
 
-  deallocate(pairs,hash,iorder)
+  deallocate(pairs,hash,iorder,tmp_val)
 end
 
 integer*8 function get_mo_map_size()

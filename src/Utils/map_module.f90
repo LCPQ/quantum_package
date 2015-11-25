@@ -496,13 +496,16 @@ subroutine cache_map_get_interval(map, key, value, ibegin, iend, idx)
   integer(cache_map_size_kind), intent(in) :: ibegin, iend
   real(integral_kind), intent(out) :: value
   integer(cache_map_size_kind), intent(inout) :: idx
+  double precision, pointer :: v(:)
+  integer :: i
   
-  call search_key_big_interval(key,map%key, map%n_elements, idx, ibegin, iend)
-  if (idx > 0) then
-    value = map%value(idx)
-  else
-    value = 0._integral_kind
-  endif
+!  call search_key_big_interval(key,map%key, map%n_elements, idx, ibegin, iend)
+  call search_key_value_big_interval(key, value, map%key, map%value, map%n_elements, idx, ibegin, iend)
+!  if (idx > 0) then
+!    value = v(idx)
+!  else
+!    value = 0._integral_kind
+!  endif
 end
 
 
@@ -612,7 +615,7 @@ subroutine search_key_big_interval(key,X,sze,idx,ibegin_in,iend_in)
     
     istep = ishft(iend-ibegin,-1)
     idx = ibegin + istep
-    do while (istep > 32)
+    do while (istep > 16)
       idx = ibegin + istep
       if (cache_key < X(idx)) then
         iend = idx
@@ -649,8 +652,8 @@ subroutine search_key_big_interval(key,X,sze,idx,ibegin_in,iend_in)
       endif
     enddo
     idx = ibegin
-    if (min(iend_in,sze) > ibegin+64) then
-      iend = ibegin+64
+    if (min(iend_in,sze) > ibegin+16) then
+      iend = ibegin+16
       !DIR$ VECTOR ALIGNED
       do while (cache_key > X(idx))
         idx = idx+1
@@ -687,6 +690,126 @@ subroutine search_key_big_interval(key,X,sze,idx,ibegin_in,iend_in)
     endif
     if (cache_key == X(iend)) then
       idx = iend
+      return
+    endif
+  endif
+  
+end
+
+subroutine search_key_value_big_interval(key,value,X,Y,sze,idx,ibegin_in,iend_in)
+  use map_module
+  implicit none
+  integer(cache_map_size_kind), intent(in) :: sze
+  integer(key_kind)           , intent(in) :: key
+  real(integral_kind)         , intent(out) :: value
+  integer(cache_key_kind)     , intent(in) :: X(sze)
+  real(integral_kind)         , intent(in) :: Y(sze)
+  integer(cache_map_size_kind), intent(in) :: ibegin_in, iend_in
+  integer(cache_map_size_kind), intent(out) :: idx
+  
+  integer(cache_map_size_kind)   :: istep, ibegin, iend, i
+  integer(cache_key_kind)        :: cache_key
+  
+  if (sze /= 0) then
+    continue
+  else
+    idx = -1
+    value = 0.d0
+    return
+  endif
+  cache_key = iand(key,map_mask)
+  ibegin = min(ibegin_in,sze)
+  iend   = min(iend_in,sze)
+  if ((cache_key > X(ibegin)) .and. (cache_key < X(iend))) then
+    
+    istep = ishft(iend-ibegin,-1)
+    idx = ibegin + istep
+    do while (istep > 16)
+      idx = ibegin + istep
+      if (cache_key < X(idx)) then
+        iend = idx
+        istep = ishft(idx-ibegin,-1)
+        idx = ibegin + istep
+        if (cache_key < X(idx)) then
+          iend = idx
+          istep = ishft(idx-ibegin,-1)
+          cycle
+        else if (cache_key > X(idx)) then
+          ibegin = idx
+          istep = ishft(iend-idx,-1)
+          cycle
+        else
+          value = Y(idx)
+          return
+        endif
+      else if (cache_key > X(idx)) then
+        ibegin = idx
+        istep = ishft(iend-idx,-1)
+        idx = idx + istep
+        if (cache_key < X(idx)) then
+          iend = idx
+          istep = ishft(idx-ibegin,-1)
+          cycle
+        else if (cache_key > X(idx)) then
+          ibegin = idx
+          istep = ishft(iend-idx,-1)
+          cycle
+        else
+          value = Y(idx)
+          return
+        endif
+      else
+        value = Y(idx)
+        return
+      endif
+    enddo
+    idx = ibegin
+    value = Y(idx)
+    if (min(iend_in,sze) > ibegin+16) then
+      iend = ibegin+16
+      !DIR$ VECTOR ALIGNED
+      do while (cache_key > X(idx))
+        idx = idx+1
+        value = Y(idx)
+      end do
+    else
+      !DIR$ VECTOR ALIGNED
+      do while (cache_key > X(idx))
+        idx = idx+1
+        value = Y(idx)
+        if (idx /= iend) then
+          cycle
+        else
+          exit
+        endif
+      end do
+    endif
+    if (cache_key /= X(idx)) then
+      idx = 1-idx
+      value = 0.d0
+    endif
+    return
+    
+  else
+    
+    if (cache_key < X(ibegin)) then
+      idx = -ibegin
+      value = 0.d0
+      return
+    endif
+    if (cache_key > X(iend)) then
+      idx = -iend
+      value = 0.d0
+      return
+    endif
+    if (cache_key == X(ibegin)) then
+      idx = ibegin
+      value = Y(idx)
+      return
+    endif
+    if (cache_key == X(iend)) then
+      idx = iend
+      value = Y(idx)
       return
     endif
   endif
