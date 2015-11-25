@@ -4,6 +4,9 @@ TARGET=f77zmq
 
 function _install()
 {
+  cd ..
+  QP_ROOT=$PWD
+  cd -
   export C_INCLUDE_PATH="${C_INCLUDE_PATH}":"${QP_ROOT}"/lib
   set -e
   set -u

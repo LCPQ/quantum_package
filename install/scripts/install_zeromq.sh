@@ -4,6 +4,9 @@ TARGET=zeromq
 
 function _install()
 {
+  cd ..
+  QP_ROOT=$PWD
+  cd -
   export C_INCLUDE_PATH="${C_INCLUDE_PATH}":./
   set -e
   set -u
