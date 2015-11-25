@@ -417,7 +417,16 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
         path_ninja = find_path("ninja", l_installed)
         subprocess.check_call("cd install ;{0}".format(path_ninja), shell=True)
     except:
-        raise
+        prefix = os.path.join('install', '_build')
+        for filename in os.listdir(prefix):
+            if filename.endswith(".log"):
+                with open( os.path.join(prefix,filename) ,'r') as f:
+                    print "\n\n"
+                    print "=-=-=-=-=-=- %s =-=-=-=-=-=-" %(filename)
+                    print f.read()
+                    print "=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n\n"
+        print "Error in installation of dependencies"
+        sys.exit(1)
     else:
         print r"""
  _________
