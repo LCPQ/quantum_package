@@ -203,32 +203,8 @@ output_bitmask
   Output file for Bitmask
 
 
-output_cas_sd
-  Output file for CAS_SD
-
-
-output_cid
-  Output file for CID
-
-
-output_cisd
-  Output file for CISD
-
-
-output_cisd_sc2_selected
-  Output file for CISD_SC2_selected
-
-
-output_cisd_selected
-  Output file for CISD_selected
-
-
 `output_cpu_time_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f#L2>`_
   Initial CPU and wall times when printing in the output files
-
-
-output_ddci_selected
-  Output file for DDCI_selected
 
 
 output_determinants
@@ -243,16 +219,8 @@ output_ezfio_files
   Output file for Ezfio_files
 
 
-output_fcidump
-  Output file for FCIdump
-
-
 output_full_ci
   Output file for Full_CI
-
-
-output_generators_cas
-  Output file for Generators_CAS
 
 
 output_generators_full
@@ -271,24 +239,12 @@ output_integrals_monoelec
   Output file for Integrals_Monoelec
 
 
-output_loc_cele
-  Output file for loc_cele
-
-
 output_mo_basis
   Output file for MO_Basis
 
 
 output_moguess
   Output file for MOGuess
-
-
-output_molden
-  Output file for Molden
-
-
-output_mp2
-  Output file for MP2
 
 
 output_mrcc_cassd
@@ -323,16 +279,8 @@ output_psiref_utils
   Output file for Psiref_Utils
 
 
-output_qmcchem
-  Output file for QmcChem
-
-
 output_selectors_full
   Output file for Selectors_full
-
-
-output_singlerefmethod
-  Output file for SingleRefMethod
 
 
 output_utils

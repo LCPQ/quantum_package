@@ -90,10 +90,6 @@ Documentation
   N_states lowest eigenvalues of the dressed CI matrix
 
 
-`create_minilist <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L17>`_
-  Undocumented
-
-
 `davidson_diag_hjj_mrcc <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/davidson.irp.f#L59>`_
   Davidson diagonalization with specific diagonal elements of the H matrix
   .br
@@ -206,7 +202,7 @@ Documentation
   Find A.C = B
 
 
-`find_triples_and_quadruples <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L266>`_
+`find_triples_and_quadruples <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L245>`_
   Undocumented
 
 
@@ -232,19 +228,19 @@ Documentation
   Undocumented
 
 
-`gen_det_idx <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L258>`_
+`gen_det_idx <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L237>`_
   Undocumented
 
 
-`gen_det_shortcut <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L256>`_
+`gen_det_shortcut <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L235>`_
   Undocumented
 
 
-`gen_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L255>`_
+`gen_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L234>`_
   Undocumented
 
 
-`gen_det_version <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L257>`_
+`gen_det_version <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L236>`_
   Undocumented
 
 
@@ -312,7 +308,7 @@ h_apply_mrcc_monoexc
   Dressed H with Delta_ij
 
 
-`h_u_0_mrcc <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/davidson.irp.f#L374>`_
+`h_u_0_mrcc <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/davidson.irp.f#L367>`_
   Computes v_0 = H|u_0>
   .br
   n : number of determinants
