@@ -63,6 +63,8 @@ d_dependency = {
     "emsl": ["python"],
     "gcc": [],
     "g++": [],
+    "zeromq" : [ "g++" ],
+    "f77zmq" : [ "zeromq", "python" ],
     "python": [],
     "ninja": ["g++", "python"],
     "make": [],
@@ -121,8 +123,7 @@ ninja = Info(
     default_path=join(QP_ROOT_BIN, "ninja"))
 
 emsl = Info(
-    url='{head}/LCPQ/EMSL_Basis_Set_Exchange_Local/{tail}'.format(**
-                                                                  path_github),
+    url='{head}/LCPQ/EMSL_Basis_Set_Exchange_Local/{tail}'.format(**path_github),
     description=' EMSL basis set library',
     default_path=join(QP_ROOT_INSTALL, "emsl"))
 
@@ -130,6 +131,16 @@ ezfio = Info(
     url='{head}/LCPQ/EZFIO/{tail}'.format(**path_github),
     description=' EZFIO',
     default_path=join(QP_ROOT_INSTALL, "EZFIO"))
+
+zeromq = Info(
+    url='http://download.zeromq.org/zeromq-4.1.3.tar.gz',
+    description=' ZeroMQ',
+    default_path=join(QP_ROOT_INSTALL, "zeromq"))
+
+f77zmq = Info(
+    url='{head}/zeromq/f77zmq/{tail}'.format(**path_github),
+    description=' F77-ZeroMQ',
+    default_path=join(QP_ROOT_INSTALL, "f77zmq"))
 
 p_graphviz = Info(
     url='https://github.com/xflr6/graphviz/archive/master.tar.gz',
@@ -139,7 +150,8 @@ p_graphviz = Info(
 d_info = dict()
 
 for m in ["ocaml", "m4", "curl", "zlib", "path", "irpf90", "docopt",
-          "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz"]:
+          "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz",
+          "zeromq", "f77zmq" ]:
     exec ("d_info['{0}']={0}".format(m))
 
 
@@ -190,8 +202,7 @@ def check_output(*popenargs, **kwargs):
 
 def checking(d_dependency):
     """
-    For each key in d_dependency check if it
-    is avalabie or not
+    For each key in d_dependency check if it is avalabie 
     """
 
     def check_python():
@@ -261,7 +272,7 @@ def checking(d_dependency):
     l_installed = dict()
     l_needed = []
 
-    # Check all the other
+    # Check all the others
     length = max(map(len, d_dependency))
 
     for i in d_dependency.keys():
@@ -276,7 +287,7 @@ def checking(d_dependency):
             l_needed.append(i)
     print ""
 
-    # Expend the need_stuff for all the genealogy
+    # Expand the needed stuff for all the genealogy
     l_install_descendant = get_list_descendant(d_dependency, l_installed,
                                                l_needed)
 
@@ -329,7 +340,7 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
     d_print = {
         "install_ninja": "Install ninja...",
         "build": "Creating build.ninja...",
-        "install": "Installing the dependencies with Ninja..."
+        "install": "Installing the dependencies using Ninja..."
     }
 
     length = max(map(len, d_print.values()))
@@ -373,7 +384,7 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
         descr = d_info[need].description
         default_path = d_info[need].default_path
 
-        # Build to dowload
+        # Build to download
         l_build += ["build {0}: download".format(archive_path),
                     "   url = {0}".format(url), "   descr = {0}".format(descr),
                     ""]
@@ -527,3 +538,4 @@ if __name__ == '__main__':
     create_ninja_and_rc(l_installed)
 
     recommendation()
+
