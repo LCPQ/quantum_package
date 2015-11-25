@@ -727,6 +727,7 @@ subroutine integrale_new(I_f,a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z,p,q
   
   
   implicit none
+  include 'Utils/constants.include.F'
   double precision               :: p,q
   integer                        :: a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z
   integer                        :: i, n_iter, n_pt, j
@@ -741,8 +742,9 @@ subroutine integrale_new(I_f,a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z,p,q
   p01_1 = 0.5d0/q
   p10_2 = 0.5d0 *  q /(p * q + p * p)
   p01_2 = 0.5d0 *  p /(q * q + q * p)
-  double precision               :: B10(n_pt), B01(n_pt), B00(n_pt)
-  double precision               :: t1(n_pt), t2(n_pt)
+  double precision               :: B00(n_pt_max_integrals)
+  double precision               :: B10(n_pt_max_integrals), B01(n_pt_max_integrals)
+  double precision               :: t1(n_pt_max_integrals), t2(n_pt_max_integrals)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: t1, t2, B10, B01, B00
   ix = a_x+b_x
   jx = c_x+d_x
@@ -797,10 +799,11 @@ recursive subroutine I_x1_new(a,c,B_10,B_01,B_00,res,n_pt)
   !  recursive function involved in the bielectronic integral
   END_DOC
   implicit none
+  include 'Utils/constants.include.F'
   integer, intent(in)            :: a,c,n_pt
-  double precision, intent(in)   :: B_10(n_pt),B_01(n_pt),B_00(n_pt)
-  double precision, intent(out)  :: res(n_pt)
-  double precision               :: res2(n_pt)
+  double precision, intent(in)   :: B_10(n_pt_max_integrals),B_01(n_pt_max_integrals),B_00(n_pt_max_integrals)
+  double precision, intent(out)  :: res(n_pt_max_integrals)
+  double precision               :: res2(n_pt_max_integrals)
   integer                        :: i
   
   if(c<0)then
@@ -832,9 +835,10 @@ recursive subroutine I_x2_new(c,B_10,B_01,B_00,res,n_pt)
   BEGIN_DOC
   !  recursive function involved in the bielectronic integral
   END_DOC
+  include 'Utils/constants.include.F'
   integer, intent(in)            :: c, n_pt
-  double precision, intent(in)   :: B_10(n_pt),B_01(n_pt),B_00(n_pt)
-  double precision, intent(out)  :: res(n_pt)
+  double precision, intent(in)   :: B_10(n_pt_max_integrals),B_01(n_pt_max_integrals),B_00(n_pt_max_integrals)
+  double precision, intent(out)  :: res(n_pt_max_integrals)
   integer                        :: i
   
   if(c==1)then
