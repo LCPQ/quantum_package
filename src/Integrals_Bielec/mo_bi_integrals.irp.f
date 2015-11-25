@@ -102,7 +102,7 @@ subroutine add_integrals_to_map(mask_ijkl)
       !$OMP  mo_coef_transp,                                         &
       !$OMP  mo_coef_transp_is_built, list_ijkl,                     &
       !$OMP  mo_coef_is_built, wall_1, abort_here,                   &
-      !$OMP  mo_coef,mo_integrals_threshold,ao_integrals_map,mo_integrals_map,progress_bar,progress_value)
+      !$OMP  mo_coef,mo_integrals_threshold,mo_integrals_map,progress_bar,progress_value)
   n_integrals = 0
   allocate(bielec_tmp_3(mo_tot_num_align, n_j, n_k),                 &
       bielec_tmp_1(mo_tot_num_align),                                &
@@ -314,7 +314,6 @@ IRP_ENDIF
     call dump_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin')
     call ezfio_set_integrals_bielec_disk_access_mo_integrals("Read")
   endif
-  
   
 end
 

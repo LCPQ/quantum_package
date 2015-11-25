@@ -318,6 +318,7 @@ double precision function get_mo_bielec_integral_schwartz(i,j,k,l,map)
   get_mo_bielec_integral_schwartz = dble(tmp)
 end
 
+
 double precision function mo_bielec_integral(i,j,k,l)
   implicit none
   BEGIN_DOC
@@ -356,36 +357,37 @@ subroutine get_mo_bielec_integrals(j,k,l,sze,out_val,map)
     call map_get_many(map, hash, tmp_val, sze)
     ! Conversion to double precision 
     do i=1,sze
-      out_val(i) = tmp_val(i)
+      out_val(i) = dble(tmp_val(i))
     enddo
   endif
 end
 
-subroutine get_mo_bielec_integrals_existing_ik(j,l,sze,out_array,map)
+subroutine get_mo_bielec_integrals_ij(k,l,sze,out_array,map)
   use map_module
   implicit none
   BEGIN_DOC
   ! Returns multiple integrals <ij|kl> in the MO basis, all
-  ! i(1)j(1) 1/r12 k(2)l(2)
-  ! i for j,k,l fixed.
+  ! i(1)j(2) 1/r12 k(1)l(2)
+  ! i, j for k,l fixed.
   END_DOC
-  integer, intent(in)            :: j,l, sze
+  integer, intent(in)            :: k,l, sze
   logical, intent(out)           :: out_array(sze,sze)
   type(map_type), intent(inout)  :: map
-  integer                        :: i,k,kk,ll,m
+  integer                        :: i,j,kk,ll,m
   integer(key_kind),allocatable  :: hash(:)
   integer  ,allocatable          :: pairs(:,:), iorder(:)
   PROVIDE mo_bielec_integrals_in_map
   allocate (hash(sze*sze), pairs(2,sze*sze),iorder(sze*sze))
   
   kk=0
-  do k=1,sze
+  out_array = 0.d0
+  do j=1,sze
    do i=1,sze
     kk += 1
     !DIR$ FORCEINLINE
     call bielec_integrals_index(i,j,k,l,hash(kk))
     pairs(1,kk) = i
-    pairs(2,kk) = k
+    pairs(2,kk) = j
     iorder(kk) = kk
    enddo
   enddo
@@ -404,8 +406,8 @@ subroutine get_mo_bielec_integrals_existing_ik(j,l,sze,out_array,map)
   do ll=1,kk
     m = iorder(ll)
     i=pairs(1,m)
-    k=pairs(2,m)
-    out_array(i,k) = (hash(ll) /= 0_8)
+    j=pairs(2,m)
+    out_array(i,j) = (hash(ll) /= 0_8)
   enddo  
 
   deallocate(pairs,hash,iorder)
