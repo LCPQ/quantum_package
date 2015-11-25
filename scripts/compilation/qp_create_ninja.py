@@ -37,6 +37,7 @@ from qp_path import QP_ROOT, QP_SRC, QP_EZFIO
 
 LIB = "" # join(QP_ROOT, "lib", "rdtsc.o") 
 EZFIO_LIB = join(QP_ROOT, "lib", "libezfio.a") 
+ZMQ_LIB   = join(QP_ROOT, "lib", "libzmq.a") + " "  + join(QP_ROOT, "lib", "libf77zmq.a") 
 ROOT_BUILD_NINJA = join(QP_ROOT, "config", "build.ninja")
 
 header = r"""#
@@ -95,7 +96,7 @@ def ninja_create_env_variable(pwd_config_file):
         l_string.append(str_)
 
     lib_lapack = get_compilation_option(pwd_config_file, "LAPACK_LIB")
-    l_string.append("LIB = {0} {1} {2}".format(LIB, lib_lapack, EZFIO_LIB))
+    l_string.append("LIB = {0} {1} {2} {3}".format(LIB, lib_lapack, EZFIO_LIB, ZMQ_LIB))
 
     l_string.append("")
 

@@ -46,6 +46,7 @@ if len(sys.argv) != 3:
 
 QP_ROOT = os.getcwd()
 QP_ROOT_BIN = join(QP_ROOT, "bin")
+QP_ROOT_LIB = join(QP_ROOT, "lib")
 QP_ROOT_INSTALL = join(QP_ROOT, "install")
 
 os.environ["PATH"] = os.environ["PATH"] + ":" + QP_ROOT_BIN
@@ -95,12 +96,12 @@ curl = Info(
 zlib = Info(
     url='http://zlib.net/zlib-1.2.8.tar.gz',
     description=' zlib',
-    default_path=join(QP_ROOT_INSTALL, "zlib"))
+    default_path=join(QP_ROOT_LIB, "libz.a"))
 
-path = Info(
+patch = Info(
     url='ftp://ftp.gnu.org/gnu/patch/patch-2.7.5.tar.gz',
-    description=' path',
-    default_path=join(QP_ROOT, "lib", "libz.a"))
+    description=' patch',
+    default_path=join(QP_ROOT_BIN, "patch"))
 
 irpf90 = Info(
     url='{head}/LCPQ/irpf90/{tail}'.format(**path_github),
@@ -119,7 +120,7 @@ resultsFile = Info(
 
 ninja = Info(
     url='{head}/martine/ninja/{tail}'.format(**path_github),
-    description=' nina',
+    description=' ninja',
     default_path=join(QP_ROOT_BIN, "ninja"))
 
 emsl = Info(
@@ -135,12 +136,12 @@ ezfio = Info(
 zeromq = Info(
     url='http://download.zeromq.org/zeromq-4.1.3.tar.gz',
     description=' ZeroMQ',
-    default_path=join(QP_ROOT_INSTALL, "zeromq"))
+    default_path=join(QP_ROOT_LIB, "libzmq.a"))
 
 f77zmq = Info(
-    url='{head}/zeromq/f77zmq/{tail}'.format(**path_github),
+    url='{head}/zeromq/f77_zmq/{tail}'.format(**path_github),
     description=' F77-ZeroMQ',
-    default_path=join(QP_ROOT_INSTALL, "f77zmq"))
+    default_path=join(QP_ROOT_LIB, "libf77zmq.a"))
 
 p_graphviz = Info(
     url='https://github.com/xflr6/graphviz/archive/master.tar.gz',
@@ -149,7 +150,7 @@ p_graphviz = Info(
 
 d_info = dict()
 
-for m in ["ocaml", "m4", "curl", "zlib", "path", "irpf90", "docopt",
+for m in ["ocaml", "m4", "curl", "zlib", "patch", "irpf90", "docopt",
           "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz",
           "zeromq", "f77zmq" ]:
     exec ("d_info['{0}']={0}".format(m))
