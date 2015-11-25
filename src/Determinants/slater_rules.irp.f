@@ -1541,8 +1541,8 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   !$OMP DO SCHEDULE(dynamic)
   do sh=1,shortcut(0)
     do i=shortcut(sh),shortcut(sh+1)-1
-      local_threshold = threshold_davidson - dabs(u_0(org_i))
       org_i = sort_idx(i)
+      local_threshold = threshold_davidson - dabs(u_0(org_i))
       do j=shortcut(sh),i-1
         org_j = sort_idx(j)
         if ( dabs(u_0(org_j)) > local_threshold ) then
