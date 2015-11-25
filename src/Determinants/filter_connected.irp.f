@@ -130,9 +130,7 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
     do i=1,sze
       degree_x2 = popcnt(xor( key1(1,1,i), key2(1,1))) +             &
           popcnt(xor( key1(1,2,i), key2(1,2)))
-      if (degree_x2 > 4) then
-        cycle
-      else if(degree_x2 /= 0)then
+      if (degree_x2 <= 4) then
         idx(l) = i
         l = l+1
       endif
@@ -146,9 +144,7 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
           popcnt(xor( key1(2,1,i), key2(2,1))) +                     &
           popcnt(xor( key1(1,2,i), key2(1,2))) +                     &
           popcnt(xor( key1(2,2,i), key2(2,2)))
-      if (degree_x2 > 4) then
-        cycle
-      else if(degree_x2 /= 0)then
+      if (degree_x2 <= 4) then
         idx(l) = i
         l = l+1
       endif
@@ -164,9 +160,7 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
           popcnt(xor( key1(2,2,i), key2(2,2))) +                     &
           popcnt(xor( key1(3,1,i), key2(3,1))) +                     &
           popcnt(xor( key1(3,2,i), key2(3,2)))
-      if (degree_x2 > 4) then
-        cycle
-      else if(degree_x2 /= 0)then
+      if (degree_x2 <= 4) then
         idx(l) = i
         l = l+1
       endif
@@ -174,6 +168,8 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
     
   else
     
+
+    integer, save :: icount(4) = (/0,0,0,0/)
     !DIR$ LOOP COUNT (1000)
     outer: do i=1,sze
       degree_x2 = 0
@@ -181,21 +177,17 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
       do m=1,Nint
         if ( key1(m,1,i) /=  key2(m,1)) then
           degree_x2 = degree_x2+ popcnt(xor( key1(m,1,i), key2(m,1))) 
-          if (degree_x2 > 4) then
-            cycle outer
-          endif
         endif
         if ( key1(m,2,i) /=  key2(m,2)) then
           degree_x2 = degree_x2+ popcnt(xor( key1(m,2,i), key2(m,2)))
-          if (degree_x2 > 4) then
-            cycle outer
-          endif
+        endif
+        if (degree_x2 > 4) then
+          cycle outer
         endif
       enddo
-      if(degree_x2 /= 0)then
-          idx(l) = i
-          l = l+1
-      endif
+      idx(l) = i
+      l = l+1
+      icount(3) = icount(3) + 1_8
     enddo outer
     
   endif
