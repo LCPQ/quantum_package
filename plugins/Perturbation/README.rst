@@ -239,7 +239,7 @@ perturb_buffer_moller_plesset
   .br
 
 
-`pt2_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/epstein_nesbet.irp.f#L1>`_
+`pt2_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_363#L3>`_
   compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states.
@@ -250,7 +250,7 @@ perturb_buffer_moller_plesset
   .br
 
 
-`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/epstein_nesbet.irp.f#L45>`_
+`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_363#L59>`_
   compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
   .br
   for the various N_st states.
@@ -261,7 +261,7 @@ perturb_buffer_moller_plesset
   .br
 
 
-`pt2_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pert_sc2.irp.f#L186>`_
+`pt2_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_363#L353>`_
   compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states, but with the CISD_SC2 energies and coefficients
@@ -272,7 +272,7 @@ perturb_buffer_moller_plesset
   .br
 
 
-`pt2_epstein_nesbet_sc2_no_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pert_sc2.irp.f#L87>`_
+`pt2_epstein_nesbet_sc2_no_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_363#L275>`_
   compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states,
@@ -296,7 +296,7 @@ perturb_buffer_moller_plesset
   H_pert_diag = <HF|H|det_pert> c_pert
 
 
-`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pert_sc2.irp.f#L2>`_
+`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_363#L181>`_
   compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states,
@@ -336,7 +336,7 @@ perturb_buffer_moller_plesset
   than pt2_max in absolute value
 
 
-`pt2_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/Moller_plesset.irp.f#L1>`_
+`pt2_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_363#L120>`_
   compute the standard Moller-Plesset perturbative first order coefficient and second order energetic contribution
   .br
   for the various n_st states.
@@ -352,7 +352,7 @@ perturb_buffer_moller_plesset
   provided.
 
 
-`repeat_all_e_corr <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pert_sc2.irp.f#L156>`_
+`repeat_all_e_corr <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pert_sc2.irp.f#L1>`_
   Undocumented
 
 

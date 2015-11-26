@@ -111,11 +111,11 @@ Documentation
   Pseudo-potential
 
 
-`ao_pseudo_integral_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L15>`_
+`ao_pseudo_integral_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L13>`_
   Local pseudo-potential
 
 
-`ao_pseudo_integral_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L121>`_
+`ao_pseudo_integral_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L120>`_
   Local pseudo-potential
 
 

@@ -131,10 +131,10 @@ class H_apply(object):
   def filter_vvvv_excitation(self):
     self["filter_vvvv_excitation"] = """
      key_union_hole_part = 0_bit_kind
-     call set_bite_to_integer(i_a,key_union_hole_part,N_int)
-     call set_bite_to_integer(j_a,key_union_hole_part,N_int)
-     call set_bite_to_integer(i_b,key_union_hole_part,N_int)
-     call set_bite_to_integer(j_b,key_union_hole_part,N_int)
+     call set_bit_to_integer(i_a,key_union_hole_part,N_int)
+     call set_bit_to_integer(j_a,key_union_hole_part,N_int)
+     call set_bit_to_integer(i_b,key_union_hole_part,N_int)
+     call set_bit_to_integer(j_b,key_union_hole_part,N_int)
      do jtest_vvvv = 1, N_int
       if(iand(key_union_hole_part(jtest_vvvv),virt_bitmask(jtest_vvvv,1).ne.key_union_hole_part(jtest_vvvv)))then
        b_cycle = .False.
@@ -157,7 +157,6 @@ class H_apply(object):
 
   def set_filter_2h_2p(self):
     self["filter2h2p"] = """
-!    ! DIR$ FORCEINLINE
      if (is_a_two_holes_two_particles(key)) cycle
     """
 
@@ -205,7 +204,7 @@ class H_apply(object):
       """
       self.data["keys_work"] = """
       call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-       sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask)
+       sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
       """%(pert,)
       self.data["finalization"] = """
       """
