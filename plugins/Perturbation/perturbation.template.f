@@ -20,14 +20,18 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   integer, external              :: connected_to_ref
   logical, external              :: is_in_wavefunction
   
-  integer(bit_kind) :: minilist(Nint,2,N_det_selectors)
-  integer :: idx_minilist(N_det_selectors), N_minilist
+  integer(bit_kind), allocatable :: minilist(:,:,:)
+  integer, allocatable           :: idx_minilist(:)
+  integer                        :: N_minilist
   
-  integer(bit_kind) :: minilist_gen(Nint,2,N_det_generators)
+  integer(bit_kind), allocatable :: minilist_gen(:,:,:)
   integer :: N_minilist_gen
   logical :: fullMatch
   logical, external :: is_connected_to
 
+  allocate( minilist(Nint,2,N_det_selectors),                        &
+      minilist_gen(Nint,2,N_det_generators),                         &
+      idx_minilist(N_det_selectors) )
   
 
   ASSERT (Nint > 0)
@@ -40,6 +44,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   call create_minilist_find_previous(key_mask, psi_det_generators, miniList_gen, i_generator-1, N_minilist_gen, fullMatch, Nint)
   
   if(fullMatch) then
+    deallocate( minilist, minilist_gen, idx_minilist )
     return
   end if
   
@@ -66,6 +71,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
     enddo
     
   enddo 
+  deallocate( minilist, minilist_gen, idx_minilist )
   
 end
 
@@ -89,14 +95,18 @@ subroutine perturb_buffer_by_mono_$PERT(i_generator,buffer,buffer_size,e_2_pert_
   integer, external              :: connected_to_ref_by_mono
   logical, external              :: is_in_wavefunction
   
-  integer(bit_kind) :: minilist(Nint,2,N_det_selectors)
-  integer :: idx_minilist(N_det_selectors), N_minilist
+  integer(bit_kind), allocatable :: minilist(:,:,:)
+  integer, allocatable           :: idx_minilist(:)
+  integer                        :: N_minilist
   
-  integer(bit_kind) :: minilist_gen(Nint,2,N_det_generators)
+  integer(bit_kind), allocatable :: minilist_gen(:,:,:)
   integer :: N_minilist_gen
   logical :: fullMatch
   logical, external :: is_connected_to
 
+  allocate( minilist(Nint,2,N_det_selectors),                        &
+      minilist_gen(Nint,2,N_det_generators),                         &
+      idx_minilist(N_det_selectors) )
   
 
   ASSERT (Nint > 0)
@@ -109,6 +119,7 @@ subroutine perturb_buffer_by_mono_$PERT(i_generator,buffer,buffer_size,e_2_pert_
   call create_minilist_find_previous(key_mask, psi_det_generators, miniList_gen, i_generator-1, N_minilist_gen, fullMatch, Nint)
   
   if(fullMatch) then
+    deallocate( minilist, minilist_gen, idx_minilist )
     return
   end if
   
@@ -137,6 +148,7 @@ subroutine perturb_buffer_by_mono_$PERT(i_generator,buffer,buffer_size,e_2_pert_
     enddo
     
   enddo 
+  deallocate( minilist, minilist_gen, idx_minilist )
   
 end
 
