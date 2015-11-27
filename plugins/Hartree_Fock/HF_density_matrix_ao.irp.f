@@ -4,7 +4,7 @@ BEGIN_PROVIDER [ double precision, HF_density_matrix_ao_alpha, (ao_num_align,ao_
    ! S^-1 x Alpha density matrix in the AO basis x S^-1
    END_DOC
    
-   call dgemm('N','T',ao_num,mo_tot_num,elec_alpha_num,1.d0, &
+   call dgemm('N','T',ao_num,ao_num,elec_alpha_num,1.d0, &
         mo_coef, size(mo_coef,1), &
         mo_coef, size(mo_coef,1), 0.d0, &
         HF_density_matrix_ao_alpha, size(HF_density_matrix_ao_alpha,1))
@@ -17,7 +17,7 @@ BEGIN_PROVIDER [ double precision, HF_density_matrix_ao_beta,  (ao_num_align,ao_
    ! S^-1 Beta density matrix in the AO basis x S^-1
    END_DOC
    
-   call dgemm('N','T',ao_num,mo_tot_num,elec_beta_num,1.d0, &
+   call dgemm('N','T',ao_num,ao_num,elec_beta_num,1.d0, &
         mo_coef, size(mo_coef,1), &
         mo_coef, size(mo_coef,1), 0.d0, &
         HF_density_matrix_ao_beta, size(HF_density_matrix_ao_beta,1))
