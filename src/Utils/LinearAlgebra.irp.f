@@ -1,3 +1,48 @@
+subroutine svd(A,LDA,U,LDU,D,Vt,LDVt,m,n)
+  implicit none
+  BEGIN_DOC
+  ! Compute A = U.D.Vt
+  !
+  ! LDx : leftmost dimension of x
+  !
+  ! Dimsneion of A is m x n
+  !
+  END_DOC
+  
+  integer, intent(in)             :: LDA, LDU, LDVt, m, n
+  double precision, intent(in)    :: A(LDA,n)
+  double precision, intent(out)   :: U(LDU,n)
+  double precision,intent(out)    :: Vt(LDVt,n)
+  double precision,intent(out)    :: D(n)
+  double precision,allocatable    :: work(:)
+  integer                         :: info, lwork, i, j, k
+  
+  double precision,allocatable    :: A_tmp(:,:)
+  allocate (A_tmp(LDA,n))
+  A_tmp = A
+  
+  ! Find optimal size for temp arrays
+  allocate(work(1))
+  lwork = -1
+  call dgesvd('A','A', n, n, A_tmp, LDA,                             &
+      D, U, LDU, Vt, LDVt, work, lwork, info)
+  lwork = work(1)
+  deallocate(work)
+
+  allocate(work(lwork))
+  call dgesvd('A','A', n, n, A_tmp, LDA,                             &
+      D, U, LDU, Vt, LDVt, work, lwork, info)
+  deallocate(work,A_tmp)
+
+  if (info /= 0) then
+    print *,  info, ': SVD failed'
+    stop
+  endif
+  
+end
+
+
+
 subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   implicit none
   BEGIN_DOC
@@ -29,25 +74,8 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D, work
   integer                        :: info, lwork, i, j, k
   
-  double precision,allocatable   :: overlap_tmp(:,:)
-  allocate (overlap_tmp(lda,n))
-  overlap_tmp = overlap
-  
-  allocate(work(1))
-  lwork = -1
-  call dgesvd('A','A', n, n, overlap_tmp, lda,                       &
-      D, U, ldc, Vt, lda, work, lwork, info)
-  lwork = work(1)
-  deallocate(work)
-  allocate(work(lwork))
-  call dgesvd('A','A', n, n, overlap_tmp, lda,                       &
-      D, U, ldc, Vt, lda, work, lwork, info)
-  deallocate(work,overlap_tmp)
-  if (info /= 0) then
-    print *,  info, ': SVD failed'
-    stop
-  endif
-  
+  call svd(overlap,lda,U,ldc,D,Vt,lda,m,n)
+
   !$OMP PARALLEL DEFAULT(NONE) &
   !$OMP SHARED(S_half,U,D,Vt,n,C,m) &
   !$OMP PRIVATE(i,j,k)

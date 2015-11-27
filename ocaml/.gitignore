@@ -13,6 +13,7 @@ qp_basis_clean.native
 qp_create_ezfio_from_xyz
 qp_create_ezfio_from_xyz.native
 qp_edit
+qp_edit.ml
 qp_edit.native
 qp_print
 qp_print.native
