@@ -60,7 +60,6 @@
   enddo
   !$OMP END PARALLEL DO
 
-  ! Check for linear dependencies in the basis set
 END_PROVIDER
 
 

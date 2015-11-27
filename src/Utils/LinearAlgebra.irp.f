@@ -82,8 +82,8 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
 
   !$OMP DO
   do i=1,n
-    if ( D(i) < 1.d-6 ) then
-      D(i) = 0.d0
+    if ( D(i) < 1.d-12 ) then
+      stop 'Linear dependence in basis set'
     else
       D(i) = 1.d0/dsqrt(D(i))
     endif

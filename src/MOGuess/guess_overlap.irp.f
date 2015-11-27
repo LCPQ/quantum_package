@@ -4,6 +4,7 @@ program guess_mimi
   END_DOC
   implicit none
   character*(64)                 :: label
+
   mo_coef = ao_ortho_lowdin_coef
   TOUCH mo_coef
   label = "Guess"
