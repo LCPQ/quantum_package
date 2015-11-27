@@ -212,7 +212,7 @@ let run check_only ezfio_filename =
   match check_only with
   | true  -> ()
   | false -> 
-    Printf.sprintf "%s %s ; tput init &> /dev/null" editor temp_filename 
+    Printf.sprintf "%s %s ; tput sgr0 2> /dev/null" editor temp_filename 
     |> Sys.command_exn 
   ;
 
