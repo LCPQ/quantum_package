@@ -262,13 +262,7 @@ END_PROVIDER
  logical                        :: exists
  integer                        :: j,i
  integer :: i_hole,i_part,i_gen
- PROVIDE ezfio_filename
-!do j = 1, N_int
-! inact_bitmask(j,1) = xor(generators_bitmask(j,1,1,1),cas_bitmask(j,1,1))
-! inact_bitmask(j,2) = xor(generators_bitmask(j,2,1,1),cas_bitmask(j,2,1))
-! virt_bitmask(j,1) = xor(generators_bitmask(j,1,2,1),cas_bitmask(j,1,1))
-! virt_bitmask(j,2) = xor(generators_bitmask(j,2,2,1),cas_bitmask(j,2,1))
-!enddo
+
  n_inact_orb = 0
  n_virt_orb = 0
  if(N_generators_bitmask == 1)then

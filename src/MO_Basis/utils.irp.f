@@ -98,7 +98,6 @@ subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label,sign)
   call write_time(output_mo_basis)
   
   mo_label = label
-  SOFT_TOUCH mo_coef mo_label
 end
 
 subroutine mo_as_eigvectors_of_mo_matrix_sort_by_observable(matrix,observable,n,m,label)

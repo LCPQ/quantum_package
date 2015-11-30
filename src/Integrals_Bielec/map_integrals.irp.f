@@ -424,15 +424,6 @@ integer*8 function get_mo_map_size()
   get_mo_map_size = mo_integrals_map % n_elements
 end
 
-subroutine clear_mo_map
-  implicit none
-  BEGIN_DOC
-  ! Frees the memory of the MO map
-  END_DOC
-  call map_deinit(mo_integrals_map)
-  FREE mo_integrals_map
-end
-
 BEGIN_TEMPLATE
 
 subroutine dump_$ao_integrals(filename)
