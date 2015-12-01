@@ -247,8 +247,7 @@ BEGIN_PROVIDER [ type(map_type), mo_integrals_map ]
   print*, 'MO map initialized'
 END_PROVIDER
 
-subroutine insert_into_ao_integrals_map(n_integrals,                 &
-      buffer_i, buffer_values)
+subroutine insert_into_ao_integrals_map(n_integrals,buffer_i, buffer_values)
   use map_module
   implicit none
   BEGIN_DOC
@@ -422,15 +421,6 @@ integer*8 function get_mo_map_size()
   ! Return the number of elements in the MO map
   END_DOC
   get_mo_map_size = mo_integrals_map % n_elements
-end
-
-subroutine clear_mo_map
-  implicit none
-  BEGIN_DOC
-  ! Frees the memory of the MO map
-  END_DOC
-  call map_deinit(mo_integrals_map)
-  FREE mo_integrals_map
 end
 
 BEGIN_TEMPLATE
