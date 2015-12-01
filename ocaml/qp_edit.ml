@@ -169,7 +169,7 @@ let run check_only ezfio_filename =
 
   (* Open EZFIO *)
   if (not (Sys.file_exists_exn ezfio_filename)) then
-    failwith (ezfio_filename^" does not exists");
+    failwith (ezfio_filename^" does not exist");
 
   Ezfio.set_file ezfio_filename;
 
