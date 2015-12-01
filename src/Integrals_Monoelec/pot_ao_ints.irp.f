@@ -26,7 +26,7 @@
 
   n_pt_in = n_pt_max_integrals
   
-  !$OMP DO SCHEDULE (guided)
+  !$OMP DO SCHEDULE (dynamic)
 
   do j = 1, ao_num
     num_A = ao_nucl(j)
@@ -81,23 +81,17 @@
  integer :: power_A(3),power_B(3)
  integer :: i,j,k,l,n_pt_in,m
  double precision ::overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult
- ! Important for OpenMP
 
  ao_nucl_elec_integral_per_atom = 0.d0
 
-
- do  k = 1, nucl_num
-  C_center(1) = nucl_coord(k,1)
-  C_center(2) = nucl_coord(k,2)
-  C_center(3) = nucl_coord(k,3)
  !$OMP PARALLEL &
  !$OMP DEFAULT (NONE) &
- !$OMP PRIVATE (i,j,l,m,alpha,beta,A_center,B_center,power_A,power_B, &
- !$OMP  num_A,num_B,c,n_pt_in) &
- !$OMP SHARED (k,ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp, &
- !$OMP  n_pt_max_integrals,ao_nucl_elec_integral_per_atom,nucl_num,C_center)
+ !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,power_A,power_B, &
+ !$OMP  num_A,num_B,c,n_pt_in,C_center) &
+ !$OMP SHARED (ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp, &
+ !$OMP  n_pt_max_integrals,ao_nucl_elec_integral_per_atom,nucl_num)
  n_pt_in = n_pt_max_integrals
- !$OMP DO SCHEDULE (guided)
+ !$OMP DO SCHEDULE (dynamic)
 
   double precision :: c
   do j = 1, ao_num
@@ -108,29 +102,33 @@
    A_center(1) = nucl_coord(num_A,1)
    A_center(2) = nucl_coord(num_A,2)
    A_center(3) = nucl_coord(num_A,3)
-   do i = 1, ao_num
-    power_B(1)= ao_power(i,1)
-    power_B(2)= ao_power(i,2)
-    power_B(3)= ao_power(i,3)
-    num_B = ao_nucl(i)
-    B_center(1) = nucl_coord(num_B,1)
-    B_center(2) = nucl_coord(num_B,2)
-    B_center(3) = nucl_coord(num_B,3)
-    c = 0.d0
-    do l=1,ao_prim_num(j)
-     alpha = ao_expo_ordered_transp(l,j)
-     do m=1,ao_prim_num(i)
-      beta = ao_expo_ordered_transp(m,i)
-      c = c + NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in) &
-          * ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i)
+   do  k = 1, nucl_num
+    C_center(1) = nucl_coord(k,1)
+    C_center(2) = nucl_coord(k,2)
+    C_center(3) = nucl_coord(k,3)
+    do i = 1, ao_num
+     power_B(1)= ao_power(i,1)
+     power_B(2)= ao_power(i,2)
+     power_B(3)= ao_power(i,3)
+     num_B = ao_nucl(i)
+     B_center(1) = nucl_coord(num_B,1)
+     B_center(2) = nucl_coord(num_B,2)
+     B_center(3) = nucl_coord(num_B,3)
+     c = 0.d0
+     do l=1,ao_prim_num(j)
+      alpha = ao_expo_ordered_transp(l,j)
+      do m=1,ao_prim_num(i)
+       beta = ao_expo_ordered_transp(m,i)
+       c = c + NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in) &
+           * ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i)
+      enddo
      enddo
+     ao_nucl_elec_integral_per_atom(i,j,k) = -c
     enddo
-    ao_nucl_elec_integral_per_atom(i,j,k) = -c
    enddo
   enddo
  !$OMP END DO 
  !$OMP END PARALLEL
- enddo
 
 END_PROVIDER
 
