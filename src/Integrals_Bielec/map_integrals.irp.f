@@ -247,8 +247,7 @@ BEGIN_PROVIDER [ type(map_type), mo_integrals_map ]
   print*, 'MO map initialized'
 END_PROVIDER
 
-subroutine insert_into_ao_integrals_map(n_integrals,                 &
-      buffer_i, buffer_values)
+subroutine insert_into_ao_integrals_map(n_integrals,buffer_i, buffer_values)
   use map_module
   implicit none
   BEGIN_DOC

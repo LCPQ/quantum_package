@@ -301,7 +301,7 @@ subroutine compute_ao_bielec_integrals(j,k,l,sze,buffer_value)
   double precision               :: thresh
   thresh = ao_integrals_threshold
   
-  integer                        :: n_centers, i
+  integer                        :: i
   
   if (ao_overlap_abs(j,l) < thresh) then
     buffer_value = 0._integral_kind
@@ -329,6 +329,7 @@ end
 
 BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   implicit none
+  use f77_zmq
   use map_module
   BEGIN_DOC
   !  Map of Atomic integrals
@@ -345,9 +346,8 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   integer(key_kind),allocatable  :: buffer_i(:)
   integer,parameter              :: size_buffer = 1024*64
   real(integral_kind),allocatable :: buffer_value(:)
-  integer(omp_lock_kind)         :: lock
   
-  integer                        :: n_integrals, n_centers, thread_num
+  integer                        :: n_integrals, rc
   integer                        :: jl_pairs(2,ao_num*(ao_num+1)/2), kk, m, j1, i1, lmax
   
   integral = ao_bielec_integral(1,1,1,1)
@@ -363,120 +363,61 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
     endif
   endif
   
-  kk=1
-  do l = 1, ao_num   ! r2
-    do j = 1, l       ! r2
-      jl_pairs(1,kk) = j
-      jl_pairs(2,kk) = l
-      kk += 1
-    enddo
-  enddo
-  
-  PROVIDE progress_bar
-  call omp_init_lock(lock)
-  lmax = ao_num*(ao_num+1)/2
   print*, 'Providing the AO integrals'
   call wall_time(wall_0)
   call wall_time(wall_1)
   call cpu_time(cpu_1)
-  call start_progress(lmax,'AO integrals (MB)',0.d0)
-  !$OMP PARALLEL PRIVATE(i,j,k,l,kk,                                 &
-      !$OMP integral,buffer_i,buffer_value,n_integrals,              &
-      !$OMP cpu_2,wall_2,i1,j1,thread_num)                           &
-      !$OMP DEFAULT(NONE)                                            &
-      !$OMP SHARED (ao_num, jl_pairs, ao_integrals_map,thresh,       &
-      !$OMP    cpu_1,wall_1,lock, lmax,n_centers,ao_nucl,            &
-      !$OMP    ao_overlap_abs,ao_overlap,abort_here,                 &
-      !$OMP    wall_0,progress_bar,progress_value,                   &
-      !$OMP    ao_bielec_integral_schwartz)
-  
-  allocate(buffer_i(size_buffer))
-  allocate(buffer_value(size_buffer))
-  n_integrals = 0
-!$  thread_num = omp_get_thread_num()
-  
-  !$OMP DO SCHEDULE(dynamic)
-  do kk=1,lmax
-IRP_IF COARRAY
-    if (mod(kk-this_image(),num_images()) /= 0) then
-      cycle
-    endif
-IRP_ENDIF
-    if (abort_here) then
-      cycle
-    endif
-    if (thread_num == 0) then
-      progress_bar(1) = kk
-    endif
-    j = jl_pairs(1,kk)
-    l = jl_pairs(2,kk)
-    j1 = j+ishft(l*l-l,-1)
-    if (ao_overlap_abs(j,l) < thresh) then
-      cycle
-    endif
-    do k = 1, ao_num           ! r1
-      i1 = ishft(k*k-k,-1)
-      if (i1 > j1) then
-        exit
-      endif
-      do i = 1, k
-        i1 += 1
-        if (i1 > j1) then
-          exit
-        endif
-        if (ao_overlap_abs(i,k)*ao_overlap_abs(j,l) < thresh) then
-          cycle
-        endif
-        if (ao_bielec_integral_schwartz(i,k)*ao_bielec_integral_schwartz(j,l) < thresh ) then
-          cycle
-        endif
-        !DIR$ FORCEINLINE
-        integral = ao_bielec_integral(i,k,j,l)
-        if (abs(integral) < thresh) then
-          cycle
-        endif
-        n_integrals += 1
-        !DIR$ FORCEINLINE
-        call bielec_integrals_index(i,j,k,l,buffer_i(n_integrals))
-        buffer_value(n_integrals) = integral
-        if (n_integrals > 1024 ) then
-          if (omp_test_lock(lock)) then
-            call insert_into_ao_integrals_map(n_integrals,buffer_i,buffer_value)
-            n_integrals = 0
-            call omp_unset_lock(lock)
-          endif
-        endif
-        if (n_integrals == size(buffer_i)) then
-          call insert_into_ao_integrals_map(n_integrals,buffer_i,buffer_value)
-          n_integrals = 0
-        endif
-      enddo
-    enddo
-    call wall_time(wall_2)
-    
-    if (thread_num == 0) then
-      if (wall_2 - wall_0 > 1.d0) then
-        wall_0 = wall_2
-        print*, 100.*float(kk)/float(lmax), '% in ',  &
-            wall_2-wall_1, 's', map_mb(ao_integrals_map) ,'MB'
-        progress_value = dble(map_mb(ao_integrals_map))
-      endif
-    endif
-  enddo
-  !$OMP END DO NOWAIT
-  call insert_into_ao_integrals_map(n_integrals,buffer_i,buffer_value)
-  deallocate(buffer_i)
-  deallocate(buffer_value)
-  !$OMP END PARALLEL
-  call omp_destroy_lock(lock)
-  call stop_progress
-  if (abort_here) then
-    stop 'Aborting in AO integrals calculation'
+
+  integer(ZMQ_PTR)               :: zmq_socket_rep_inproc, zmq_socket_push_inproc 
+  zmq_socket_rep_inproc = f77_zmq_socket(zmq_context, ZMQ_REP)
+  rc = f77_zmq_bind(zmq_socket_rep_inproc, 'inproc://req_rep')
+  if (rc /= 0) then
+    stop 'Unable to connect zmq_socket_rep_inproc'
   endif
-IRP_IF COARRAY
-  print*, 'Communicating the map'
-  call communicate_ao_integrals()
-IRP_ENDIF COARRAY
+  
+  integer(ZMQ_PTR)               :: thread(0:nproc)
+  external                       :: ao_bielec_integrals_in_map_slave, ao_bielec_integrals_in_map_collector
+  rc = pthread_create( thread(0), ao_bielec_integrals_in_map_collector )
+  ! Create client threads
+  do i=1,nproc
+    rc = pthread_create( thread(i), ao_bielec_integrals_in_map_slave )
+  enddo
+  
+  character*(64)                 :: message_string
+  
+  do l = ao_num, 1, -1
+    rc = f77_zmq_recv( zmq_socket_rep_inproc, message_string, 64, 0)
+    print *,  l
+    ! TODO : error handling
+    ASSERT (rc >= 0)
+    ASSERT (message == 'get_ao_integrals')
+    rc = f77_zmq_send( zmq_socket_rep_inproc, l, 4, 0)
+  enddo
+  do i=1,nproc
+    rc = f77_zmq_recv( zmq_socket_rep_inproc, message_string, 64, 0)
+    ! TODO : error handling
+    ASSERT (rc >= 0)
+    ASSERT (message == 'get_ao_integrals')
+    rc = f77_zmq_send( zmq_socket_rep_inproc, 0, 4, 0)
+  enddo
+  ! TODO terminer thread(0)
+  
+  rc = f77_zmq_unbind(zmq_socket_rep_inproc, 'inproc://req_rep')
+  do i=1,nproc
+    rc = pthread_join( thread(i) )
+  enddo
+
+  zmq_socket_push_inproc = f77_zmq_socket(zmq_context, ZMQ_PUSH)
+  rc = f77_zmq_connect(zmq_socket_push_inproc, 'inproc://push_pull')
+  if (rc /= 0) then
+    stop 'Unable to connect zmq_socket_push_inproc'
+  endif
+  rc = f77_zmq_send( zmq_socket_push_inproc, -1, 4, ZMQ_SNDMORE)
+  rc = f77_zmq_send( zmq_socket_push_inproc, 0_key_kind, key_kind, ZMQ_SNDMORE)
+  rc = f77_zmq_send( zmq_socket_push_inproc, 0_integral_kind, integral_kind, 0)
+  
+  rc = pthread_join( thread(0) )
+
   print*, 'Sorting the map'
   call map_sort(ao_integrals_map)
   call cpu_time(cpu_2)
@@ -1256,3 +1197,57 @@ recursive subroutine I_x2_pol_mult(c,B_10,B_01,B_00,C_00,D_00,d,nd,dim)
 end
 
 
+  
+
+subroutine compute_ao_integrals_jl(j,l,n_integrals,buffer_i,buffer_value)
+  implicit none
+  use map_module
+  BEGIN_DOC
+  !  Parallel client for AO integrals
+  END_DOC
+  
+  integer, intent(in)            :: j,l
+  integer,intent(out)            :: n_integrals
+  integer(key_kind),intent(out)  :: buffer_i(ao_num*ao_num)
+  real(integral_kind),intent(out) :: buffer_value(ao_num*ao_num)
+
+  integer                        :: i,k
+  double precision               :: ao_bielec_integral,cpu_1,cpu_2, wall_1, wall_2
+  double precision               :: integral, wall_0
+  double precision               :: thresh
+  integer                        :: kk, m, j1, i1
+
+  thresh = ao_integrals_threshold
+  
+  n_integrals = 0
+  
+  j1 = j+ishft(l*l-l,-1)
+  do k = 1, ao_num           ! r1
+    i1 = ishft(k*k-k,-1)
+    if (i1 > j1) then
+      exit
+    endif
+    do i = 1, k
+      i1 += 1
+      if (i1 > j1) then
+        exit
+      endif
+      if (ao_overlap_abs(i,k)*ao_overlap_abs(j,l) < thresh) then
+        cycle
+      endif
+      if (ao_bielec_integral_schwartz(i,k)*ao_bielec_integral_schwartz(j,l) < thresh ) then
+        cycle
+      endif
+      !DIR$ FORCEINLINE
+      integral = ao_bielec_integral(i,k,j,l)
+      if (abs(integral) < thresh) then
+        cycle
+      endif
+      n_integrals += 1
+      !DIR$ FORCEINLINE
+      call bielec_integrals_index(i,j,k,l,buffer_i(n_integrals))
+      buffer_value(n_integrals) = integral
+    enddo
+  enddo
+    
+end
