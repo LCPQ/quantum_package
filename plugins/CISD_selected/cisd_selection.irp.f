@@ -31,9 +31,9 @@ program cisd
      print *,  'PT2                          = ', pt2(i)
      print *,  'E                            = ', CI_energy(i) 
      print *,  'E_before     +PT2            = ', (E_old(i)+pt2(i)) 
-!   print *,  'E+PT2_new= ', (E_old(1)+1.d0*pt2(1)+H_pert_diag(1))/(1.d0 +norm_pert(1))
     enddo
     E_old = CI_energy
+    call save_wavefunction
     if (abort_all) then
       exit
     endif
@@ -42,7 +42,7 @@ program cisd
   touch N_det psi_det psi_coef
   call diagonalize_CI
   deallocate(pt2,norm_pert,H_pert_diag)
-    call save_wavefunction
+  call save_wavefunction
   call ezfio_set_cisd_selected_energy(CI_energy)
   call ezfio_set_cisd_selected_energy_pt2(CI_energy+pt2)
 end
