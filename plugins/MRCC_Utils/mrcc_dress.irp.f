@@ -273,7 +273,7 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
   
   
   i_loop : do i=1,N_selected
-    if(is_connected_to(det_buffer(ni,1,i), miniList, Nint, N_miniList)) then
+    if(is_connected_to(det_buffer(1,1,i), miniList, Nint, N_miniList)) then
       cycle
     end if
 !     do j=1,N_miniList
