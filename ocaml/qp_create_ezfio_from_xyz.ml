@@ -17,7 +17,7 @@ let spec =
      ~doc:"int Spin multiplicity (2S+1) of the molecule. Default is 1."
   +> flag "p" no_arg
      ~doc:" Using pseudopotentials"
-  +> anon ("xyz_file" %: string)
+  +> anon ("xyz_file" %: file )
 
 
 let dummy_centers ~threshold ~molecule ~nuclei =
@@ -68,8 +68,21 @@ let dummy_centers ~threshold ~molecule ~nuclei =
     )
      
     
-   
-  
+let list_basis () =
+  let basis_list = 
+    Qpackage.root ^ "/install/emsl/EMSL_api.py list_basis" 
+    |> Unix.open_process_in 
+    |> In_channel.input_lines
+    |> List.map ~f:(fun x -> 
+       match String.split x ~on:'\'' with
+       | [] -> ""
+       | a :: [] 
+       | _ :: a :: _ -> String.strip a
+      )
+  in 
+  List.sort basis_list ~cmp:String.ascending
+  |> String.concat ~sep:"\t" 
+
 
 let run ?o b c d m p xyz_file =
 
@@ -345,6 +358,13 @@ let command =
     Command.basic 
     ~summary: "Quantum Package command"
     ~readme:(fun () -> "
+
+=== Available basis sets ===
+
+" ^ (list_basis ()) ^ "
+
+============================
+
 Creates an EZFIO directory from a standard xyz file.  The basis set is defined
 as a single string if all the atoms are taken from the same basis set,
 otherwise specific elements can be defined as follows:
@@ -354,7 +374,7 @@ otherwise specific elements can be defined as follows:
 If a file with the same name as the basis set exists, this file will be read.
 Otherwise, the basis set is obtained from the database.
 
-      ")
+" )
     spec
     (fun o b c d m p xyz_file () ->
        run ?o b c d m p xyz_file )

@@ -13,7 +13,7 @@ subroutine huckel_guess
   label = "Guess"
   call mo_as_eigvectors_of_mo_matrix(mo_mono_elec_integral,          &
                                      size(mo_mono_elec_integral,1),  &
-                                     size(mo_mono_elec_integral,2),label)
+                                     size(mo_mono_elec_integral,2),label,1)
   TOUCH mo_coef
 
   c = 0.5d0 * 1.75d0

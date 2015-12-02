@@ -344,29 +344,46 @@ BEGIN_PROVIDER [ double precision, Fock_matrix_ao, (ao_num_align, ao_num) ]
      enddo
    enddo
  else
-   double precision, allocatable :: T(:,:), M(:,:)
+   double precision, allocatable  :: T(:,:), M(:,:)
+   integer                        :: ierr
    ! F_ao = S C F_mo C^t S
-   allocate (T(ao_num_align,ao_num),M(ao_num_align,ao_num))
-   call dgemm('N','N', ao_num,ao_num,ao_num, 1.d0,                   &
+   allocate (T(ao_num_align,ao_num),M(ao_num_align,ao_num),stat=ierr)
+   if (ierr /=0 ) then
+      print *,  irp_here, ' : allocation failed'
+   endif
+
+!  ao_overlap (ao_num,ao_num) . mo_coef (ao_num,mo_tot_num)
+!  -> M(ao_num,mo_tot_num)
+   call dgemm('N','N', ao_num,mo_tot_num,ao_num, 1.d0,               &
        ao_overlap, size(ao_overlap,1),                               &
        mo_coef, size(mo_coef,1),                                     &
        0.d0,                                                         &
        M, size(M,1))
+
+!  M(ao_num,mo_tot_num) . Fock_matrix_mo (mo_tot_num,mo_tot_num)
+!  -> T(ao_num,mo_tot_num)
    call dgemm('N','N', ao_num,mo_tot_num,mo_tot_num, 1.d0,           &
        M, size(M,1),                                                 &
        Fock_matrix_mo, size(Fock_matrix_mo,1),                       &
        0.d0,                                                         &
        T, size(T,1))
-   call dgemm('N','T', mo_tot_num,ao_num,mo_tot_num, 1.d0,           &
+
+!  T(ao_num,mo_tot_num) . mo_coef^T (mo_tot_num,ao_num)
+!  -> M(ao_num,ao_num)
+   call dgemm('N','T', ao_num,ao_num,mo_tot_num, 1.d0,           &
        T, size(T,1),                                                 &
        mo_coef, size(mo_coef,1),                                     &
        0.d0,                                                         &
        M, size(M,1))
+
+!  M(ao_num,ao_num) . ao_overlap (ao_num,ao_num)
+!  -> Fock_matrix_ao(ao_num,ao_num)
    call dgemm('N','N', ao_num,ao_num,ao_num, 1.d0,                   &
        M, size(M,1),                                                 &
        ao_overlap, size(ao_overlap,1),                               &
        0.d0,                                                         &
        Fock_matrix_ao, size(Fock_matrix_ao,1))
+
 
    deallocate(T)
  endif
@@ -380,23 +397,39 @@ subroutine Fock_mo_to_ao(FMO,LDFMO,FAO,LDFAO)
   double precision, intent(out)  :: FAO(LDFAO,*)
   
   double precision, allocatable  :: T(:,:), M(:,:)
+  integer                        :: ierr
   ! F_ao = S C F_mo C^t S
-  allocate (T(ao_num_align,ao_num),M(ao_num_align,ao_num))
-  call dgemm('N','N', ao_num,ao_num,ao_num, 1.d0,                    &
+  allocate (T(ao_num_align,ao_num),M(ao_num_align,ao_num),stat=ierr)
+  if (ierr /=0 ) then
+     print *,  irp_here, ' : allocation failed'
+  endif
+
+!  ao_overlap (ao_num,ao_num) . mo_coef (ao_num,mo_tot_num)
+!  -> M(ao_num,mo_tot_num)
+  call dgemm('N','N', ao_num,mo_tot_num,ao_num, 1.d0,                    &
       ao_overlap, size(ao_overlap,1),                                &
       mo_coef, size(mo_coef,1),                                      &
       0.d0,                                                          &
       M, size(M,1))
+
+!  M(ao_num,mo_tot_num) . FMO (mo_tot_num,mo_tot_num)
+!  -> T(ao_num,mo_tot_num)
   call dgemm('N','N', ao_num,mo_tot_num,mo_tot_num, 1.d0,            &
       M, size(M,1),                                                  &
       FMO, size(FMO,1),                                              &
       0.d0,                                                          &
       T, size(T,1))
-  call dgemm('N','T', mo_tot_num,ao_num,mo_tot_num, 1.d0,            &
+
+!  T(ao_num,mo_tot_num) . mo_coef^T (mo_tot_num,ao_num)
+!  -> M(ao_num,ao_num)
+  call dgemm('N','T', ao_num,ao_num,mo_tot_num, 1.d0,            &
       T, size(T,1),                                                  &
       mo_coef, size(mo_coef,1),                                      &
       0.d0,                                                          &
       M, size(M,1))
+
+!  M(ao_num,ao_num) . ao_overlap (ao_num,ao_num)
+!  -> Fock_matrix_ao(ao_num,ao_num)
   call dgemm('N','N', ao_num,ao_num,ao_num, 1.d0,                    &
       M, size(M,1),                                                  &
       ao_overlap, size(ao_overlap,1),                                &

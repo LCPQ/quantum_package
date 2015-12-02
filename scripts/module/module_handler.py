@@ -88,7 +88,7 @@ def get_l_module_descendant(d_child, l_module):
             except KeyError:
                 print >> sys.stderr, "Error: "
                 print >> sys.stderr, "`{0}` is not a submodule".format(module)
-                print >> sys.stderr, "Check the typo (orthograph, case, '/', etc.) "
+                print >> sys.stderr, "Check the typo (spelling, case, '/', etc.) "
                 sys.exit(1)
 
     return list(set(l))
