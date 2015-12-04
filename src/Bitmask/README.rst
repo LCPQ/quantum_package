@@ -80,7 +80,7 @@ Documentation
   Bitmask to include all possible single excitations from Hartree-Fock
 
 
-`core_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L350>`_
+`core_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L344>`_
   Reunion of the inactive, active and virtual bitmasks
 
 
@@ -142,7 +142,7 @@ Documentation
   Hartree Fock bit mask
 
 
-`i_bitmask_gen <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L364>`_
+`i_bitmask_gen <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L358>`_
   Current bitmask for the generators
 
 
@@ -150,7 +150,7 @@ Documentation
   Bitmasks for the inactive orbitals that are excited in post CAS method
 
 
-`inact_virt_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L338>`_
+`inact_virt_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L332>`_
   Reunion of the inactive and virtual bitmasks
 
 
@@ -158,7 +158,7 @@ Documentation
   Undocumented
 
 
-`list_inact <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L304>`_
+`list_inact <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L298>`_
   Undocumented
 
 
@@ -167,7 +167,7 @@ Documentation
   occupations "list(N_int*bit_kind_size,2)
 
 
-`list_virt <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L305>`_
+`list_virt <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L299>`_
   Undocumented
 
 
@@ -219,11 +219,11 @@ Documentation
   Reference bit mask, used in Slater rules, chosen as Hartree-Fock bitmask
 
 
-`reunion_of_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L325>`_
+`reunion_of_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L319>`_
   Reunion of the inactive, active and virtual bitmasks
 
 
-`unpaired_alpha_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L373>`_
+`unpaired_alpha_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L367>`_
   Bitmask reprenting the unpaired alpha electrons in the HF_bitmask
 
 

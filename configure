@@ -134,7 +134,7 @@ ezfio = Info(
     default_path=join(QP_ROOT_INSTALL, "EZFIO"))
 
 zeromq = Info(
-    url='http://download.zeromq.org/zeromq-4.1.3.tar.gz',
+    url='http://download.zeromq.org/zeromq-4.0.7.tar.gz',
     description=' ZeroMQ',
     default_path=join(QP_ROOT_LIB, "libzmq.a"))
 
