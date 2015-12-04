@@ -203,6 +203,14 @@ output_bitmask
   Output file for Bitmask
 
 
+output_cisd
+  Output file for CISD
+
+
+output_cisd_selected
+  Output file for CISD_selected
+
+
 `output_cpu_time_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f#L2>`_
   Initial CPU and wall times when printing in the output files
 
@@ -217,6 +225,10 @@ output_electrons
 
 output_ezfio_files
   Output file for Ezfio_files
+
+
+output_fcidump
+  Output file for FCIdump
 
 
 output_full_ci
@@ -247,12 +259,8 @@ output_moguess
   Output file for MOGuess
 
 
-output_mrcc_cassd
-  Output file for MRCC_CASSD
-
-
-output_mrcc_utils
-  Output file for MRCC_Utils
+output_mp2
+  Output file for MP2
 
 
 output_nuclei
@@ -271,16 +279,12 @@ output_pseudo
   Output file for Pseudo
 
 
-output_psiref_cas
-  Output file for Psiref_CAS
-
-
-output_psiref_utils
-  Output file for Psiref_Utils
-
-
 output_selectors_full
   Output file for Selectors_full
+
+
+output_singlerefmethod
+  Output file for SingleRefMethod
 
 
 output_utils
@@ -289,6 +293,10 @@ output_utils
 
 `output_wall_time_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f#L1>`_
   Initial CPU and wall times when printing in the output files
+
+
+output_zmq
+  Output file for ZMQ
 
 
 `write_bool <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f#L88>`_
