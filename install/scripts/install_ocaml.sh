@@ -5,7 +5,7 @@ QP_ROOT=$PWD
 cd -
 
 # Normal installation
-PACKAGES="core cryptokit ocamlfind sexplib"
+PACKAGES="core cryptokit ocamlfind sexplib ZMQ"
 
 declare -i i
 i=$(gcc -dumpversion | cut -d '.' -f 2)
