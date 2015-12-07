@@ -348,7 +348,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   real(integral_kind),allocatable :: buffer_value(:)
   
   integer                        :: n_integrals, rc
-  integer                        :: jl_pairs(2,ao_num*(ao_num+1)/2), kk, m, j1, i1, lmax
+  integer                        :: kk, m, j1, i1, lmax
   
   integral = ao_bielec_integral(1,1,1,1)
   
@@ -368,55 +368,23 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   call wall_time(wall_1)
   call cpu_time(cpu_1)
 
-  integer(ZMQ_PTR)               :: zmq_socket_rep_inproc, zmq_socket_push_inproc 
-  zmq_socket_rep_inproc = f77_zmq_socket(zmq_context, ZMQ_REP)
-  rc = f77_zmq_bind(zmq_socket_rep_inproc, 'inproc://req_rep')
-  if (rc /= 0) then
-    stop 'Unable to connect zmq_socket_rep_inproc'
-  endif
-  
-  integer(ZMQ_PTR)               :: thread(0:nproc)
-  external                       :: ao_bielec_integrals_in_map_slave, ao_bielec_integrals_in_map_collector
-  rc = pthread_create( thread(0), ao_bielec_integrals_in_map_collector )
-  ! Create client threads
-  do i=1,nproc
-    rc = pthread_create( thread(i), ao_bielec_integrals_in_map_slave )
-  enddo
-  
-  character*(64)                 :: message_string
-  
-  do l = ao_num, 1, -1
-    rc = f77_zmq_recv( zmq_socket_rep_inproc, message_string, 64, 0)
-    print *,  l
-    ! TODO : error handling
-    ASSERT (rc >= 0)
-    ASSERT (message == 'get_ao_integrals')
-    rc = f77_zmq_send( zmq_socket_rep_inproc, l, 4, 0)
-  enddo
-  do i=1,nproc
-    rc = f77_zmq_recv( zmq_socket_rep_inproc, message_string, 64, 0)
-    ! TODO : error handling
-    ASSERT (rc >= 0)
-    ASSERT (message == 'get_ao_integrals')
-    rc = f77_zmq_send( zmq_socket_rep_inproc, 0, 4, 0)
-  enddo
-  ! TODO terminer thread(0)
-  
-  rc = f77_zmq_unbind(zmq_socket_rep_inproc, 'inproc://req_rep')
-  do i=1,nproc
-    rc = pthread_join( thread(i) )
-  enddo
+  integer(ZMQ_PTR) :: zmq_to_qp_run_socket
+  call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
 
-  zmq_socket_push_inproc = f77_zmq_socket(zmq_context, ZMQ_PUSH)
-  rc = f77_zmq_connect(zmq_socket_push_inproc, 'inproc://push_pull')
-  if (rc /= 0) then
-    stop 'Unable to connect zmq_socket_push_inproc'
-  endif
-  rc = f77_zmq_send( zmq_socket_push_inproc, -1, 4, ZMQ_SNDMORE)
-  rc = f77_zmq_send( zmq_socket_push_inproc, 0_key_kind, key_kind, ZMQ_SNDMORE)
-  rc = f77_zmq_send( zmq_socket_push_inproc, 0_integral_kind, integral_kind, 0)
+  character*(32) :: task
+  do l=1,ao_num
+    do j = 1, l
+      if (ao_overlap_abs(j,l) < ao_integrals_threshold) then
+        cycle
+      endif
+      write(task,*) j, l
+      call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+    enddo
+  enddo
+  external :: ao_bielec_integrals_in_map_slave_inproc, ao_bielec_integrals_in_map_collector
+  call new_parallel_threads(ao_bielec_integrals_in_map_slave_inproc, ao_bielec_integrals_in_map_collector)
   
-  rc = pthread_join( thread(0) )
+  call end_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
 
   print*, 'Sorting the map'
   call map_sort(ao_integrals_map)

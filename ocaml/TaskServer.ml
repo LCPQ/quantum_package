@@ -66,19 +66,15 @@ let ip_address = lazy (
       end
 )
 
-(** Initial ZeroMQ port :
-    Random port number between 49152 and 65535 *)
-let port = lazy (
-  1024 + (Random.int (49151-1024)) )
 
-let stop () =
+let stop ~port =
   let zmq_context =
     ZMQ.Context.create ()
   in
   let req_socket = 
     ZMQ.Socket.create zmq_context ZMQ.Socket.req
   and address =
-    Printf.sprintf "tcp://%s:%d" (Lazy.force ip_address) (Lazy.force port)
+    Printf.sprintf "tcp://%s:%d" (Lazy.force ip_address) port
   in
   ZMQ.Socket.connect req_socket address;
 
@@ -100,7 +96,7 @@ let stop () =
   
 
 (** Run the task server *)
-let run () =
+let run ~port =
 
   let zmq_context =
     ZMQ.Context.create ()
@@ -109,7 +105,7 @@ let run () =
   let rep_socket = 
     ZMQ.Socket.create zmq_context ZMQ.Socket.rep
   and address =
-    Printf.sprintf "tcp://%s:%d" (Lazy.force ip_address) (Lazy.force port)
+    Printf.sprintf "tcp://%s:%d" (Lazy.force ip_address) port
   in
   bind_socket "REP" rep_socket address;
 
@@ -117,6 +113,8 @@ let run () =
     ZMQ.Poll.mask_of
       [| (rep_socket, ZMQ.Poll.In) |]
   in
+
+  Printf.printf "Task server running : %s\n%!" address;
 
   (** State variables *)
   let q = ref
@@ -194,7 +192,13 @@ let run () =
         Queuing_system.del_client ~client_id:c !q
       in
       q := new_q;
-      Message.to_string ok
+      let finished =
+        Queuing_system.number_of_queued !q +
+        Queuing_system.number_of_running !q = 0
+      in
+      Message.DisconnectReply (Message.DisconnectReply_msg.create
+        ~state ~finished)
+      |> Message.to_string 
       |> ZMQ.Socket.send rep_socket
 
     and add_task state msg =
@@ -257,8 +261,12 @@ let run () =
         let message = 
           Message.of_string raw_message
         in
-        Printf.printf "%s\n%!" (Message.to_string message);
-        Printf.printf "%s\n%!" (Queuing_system.to_string !q);
+(*
+        Printf.printf "%d %d : %s\n%!"
+        (Queuing_system.number_of_queued !q)
+        (Queuing_system.number_of_running !q)
+        (Message.to_string message);
+          Printf.printf "%s\n%!" (Queuing_system.to_string !q);  *)
         match (state, message) with
         | _     , Message.Terminate   _ -> terminate ()
         | None  , Message.Newjob      x -> newjob x
@@ -280,7 +288,9 @@ let run () =
   ZMQ.Socket.close rep_socket 
 
 
+(*
 let () =
   Printf.printf "export QP_RUN_ADDRESS=tcp://%s:%d\n%!" (Lazy.force ip_address) (Lazy.force port)
+*)
 
 

@@ -106,6 +106,27 @@ end = struct
       (Id.Client.to_int x.client_id)
 end
 
+module DisconnectReply_msg : sig
+  type t = 
+  { finished: bool ;
+    state: State.t ;
+  }
+  val create : state:State.t -> finished:bool -> t
+  val to_string : t -> string
+end = struct
+  type t = 
+  { finished: bool;
+    state: State.t ;
+  }
+  let create ~state ~finished = 
+    { state ; finished }
+  let to_string x =
+    Printf.sprintf "disconnect_reply %s %d"
+      (State.to_string x.state)
+      (if x.finished then 1 else 0)
+end
+
+
 
 (** AddTask : Add a new task to the queue *)
 module AddTask_msg : sig
@@ -245,6 +266,7 @@ type t =
 | Connect         of Connect_msg.t
 | ConnectReply    of ConnectReply_msg.t
 | Disconnect      of Disconnect_msg.t
+| DisconnectReply of DisconnectReply_msg.t
 | GetTask         of GetTask_msg.t
 | GetTaskReply    of GetTaskReply_msg.t
 | AddTask         of AddTask_msg.t
@@ -289,6 +311,7 @@ let to_string = function
 | Connect       x -> Connect_msg.to_string      x
 | ConnectReply  x -> ConnectReply_msg.to_string x
 | Disconnect    x -> Disconnect_msg.to_string   x
+| DisconnectReply  x -> DisconnectReply_msg.to_string x
 | GetTask       x -> GetTask_msg.to_string      x
 | GetTaskReply  x -> GetTaskReply_msg.to_string x
 | AddTask       x -> AddTask_msg.to_string      x

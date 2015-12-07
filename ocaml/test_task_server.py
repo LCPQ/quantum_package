@@ -11,7 +11,7 @@ def main():
 
   def send(msg,expected):
     print "Send  : ", msg
-    socket.send(msg)
+    print " -> ", socket.send(msg)
     reply = socket.recv()
     print "Reply : ", reply
     print ""
@@ -28,7 +28,7 @@ def main():
   send("connect  tcp","connect_reply ao_integrals 1 tcp://130.120.229.139:12345")
   send("connect  inproc","connect_reply ao_integrals 2 inproc://ao_integrals")
   send("disconnect ao_integrals 3","error Queuing_system.ml:65:2 : disconnect ao_integrals 3")
-  send("disconnect ao_integrals 2","ok")
+  send("disconnect ao_integrals 2","disconnect_reply ao_integrals 1")
   send("connect  inproc","connect_reply ao_integrals 3 inproc://ao_integrals")
 
   for i in range(10):

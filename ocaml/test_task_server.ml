@@ -1,5 +1,5 @@
 open Core
 
 let () =
-  TaskServer.run ()
+  TaskServer.run 12345
 
