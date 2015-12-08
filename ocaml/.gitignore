@@ -1,6 +1,7 @@
 _build
 ezfio.ml
 .gitignore
+Git.ml
 Input_auto_generated.ml
 Input_determinants.ml
 Input_hartree_fock.ml
