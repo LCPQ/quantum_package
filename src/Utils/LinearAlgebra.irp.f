@@ -82,7 +82,7 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
 
   !$OMP DO
   do i=1,n
-    if ( D(i) < 1.d-12 ) then
+    if ( D(i) < 1.d-4 ) then
       D(i) = 0.d0
     else
       D(i) = 1.d0/dsqrt(D(i))
@@ -94,13 +94,15 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   !$OMP END DO
 
   do k=1,n
-    !$OMP DO
-    do j=1,n
-      do i=1,n
-        S_half(i,j) = S_half(i,j) + U(i,k)*D(k)*Vt(k,j)
+    if (D(k) /= 0.d0) then
+      !$OMP DO
+      do j=1,n
+        do i=1,n
+          S_half(i,j) = S_half(i,j) + U(i,k)*D(k)*Vt(k,j)
+        enddo
       enddo
-    enddo
-    !$OMP END DO NOWAIT
+      !$OMP END DO NOWAIT
+    endif
   enddo
   
   !$OMP BARRIER
