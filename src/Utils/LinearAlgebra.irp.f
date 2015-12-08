@@ -70,9 +70,8 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   double precision               :: Vt(lda,n)
   double precision               :: D(n)
   double precision               :: S_half(lda,n)
-  double precision,allocatable   :: work(:)
-  !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D, work
-  integer                        :: info, lwork, i, j, k
+  !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
+  integer                        :: info, i, j, k
   
   call svd(overlap,lda,U,ldc,D,Vt,lda,m,n)
 

@@ -10,7 +10,7 @@
    double precision               :: ck, cl, ckl
    double precision               :: phase
    integer                        :: h1,h2,p1,p2,s1,s2, degree
-   integer                        :: exc(0:2,2,2),n_occ_alpha
+   integer                        :: exc(0:2,2,2),n_occ(2)
    double precision, allocatable  :: tmp_a(:,:), tmp_b(:,:)
 
    if(only_single_double_dm)then
@@ -22,7 +22,7 @@
      one_body_dm_mo_beta  = 0.d0
      !$OMP PARALLEL DEFAULT(NONE)                                         &
         !$OMP PRIVATE(j,k,l,m,occ,ck, cl, ckl,phase,h1,h2,p1,p2,s1,s2, degree,exc, &
-        !$OMP  tmp_a, tmp_b, n_occ_alpha)&
+        !$OMP  tmp_a, tmp_b, n_occ)&
         !$OMP SHARED(psi_det,psi_coef,N_int,N_states,state_average_weight,elec_alpha_num,&
         !$OMP  elec_beta_num,one_body_dm_mo_alpha,one_body_dm_mo_beta,N_det,mo_tot_num_align,&
         !$OMP  mo_tot_num)
@@ -31,8 +31,7 @@
      tmp_b = 0.d0
      !$OMP DO SCHEDULE(dynamic)
      do k=1,N_det
-       call bitstring_to_list(psi_det(1,1,k), occ(1,1), n_occ_alpha, N_int)
-       call bitstring_to_list(psi_det(1,2,k), occ(1,2), n_occ_alpha, N_int)
+       call bitstring_to_list_ab(psi_det(1,1,k), occ, n_occ, N_int)
        do m=1,N_states
          ck = psi_coef(k,m)*psi_coef(k,m) * state_average_weight(m)
          do l=1,elec_alpha_num
@@ -182,13 +181,10 @@ subroutine set_natural_mos
  END_DOC
  character*(64) :: label
  double precision, allocatable :: tmp(:,:)
- allocate(tmp(size(one_body_dm_mo,1),size(one_body_dm_mo,2)))
 
- ! Negation to have the occupied MOs first after the diagonalization
- tmp = one_body_dm_mo
  label = "Natural"
- call mo_as_eigvectors_of_mo_matrix(tmp,size(tmp,1),size(tmp,2),label,-1)
- deallocate(tmp)
+! call mo_as_eigvectors_of_mo_matrix(one_body_dm_mo,size(one_body_dm_mo,1),mo_tot_num,label,-1)
+ call mo_as_svd_vectors_of_mo_matrix(one_body_dm_mo,size(one_body_dm_mo,1),mo_tot_num,mo_tot_num,label)
 
 end
 subroutine save_natural_mos
