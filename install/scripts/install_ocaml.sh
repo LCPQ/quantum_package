@@ -7,12 +7,28 @@ cd -
 # Normal installation
 PACKAGES="core cryptokit ocamlfind sexplib ZMQ"
 
+# Needed for ZeroMQ
+export C_INCLUDE_PATH="${QP_ROOT}"/lib:"${C_INCLUDE_PATH}"
+export LIBRARY_PATH="${QP_ROOT}"/lib:"${LIBRARY_PATH}"
+export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${LD_LIBRARY_PATH}"
+
 declare -i i
-i=$(gcc -dumpversion | cut -d '.' -f 2)
-if [[ i -lt 6 ]]
+i=$(gcc -dumpversion | cut -d '.' -f 1)
+if [[ i -lt 4 ]]
 then
    echo "GCC version $(gcc -dumpversion) too old. GCC >= 4.6 required."
    exit 1
+fi
+
+
+if [[ i -eq 4 ]]
+then
+  i=$(gcc -dumpversion | cut -d '.' -f 2)
+  if [[ i -lt 6 ]]
+  then
+    echo "GCC version $(gcc -dumpversion) too old. GCC >= 4.6 required."
+    exit 1
+  fi
 fi
 
 if [[ -d ${HOME}/.opam ]]
