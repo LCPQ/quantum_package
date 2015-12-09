@@ -87,7 +87,8 @@ end
   zmq_socket_push_tcp_address    = trim(qp_run_address)//':'//zmq_port(1)
   zmq_socket_pull_inproc_address = 'inproc://'//zmq_port(1)
 
-  zmq_socket_pull = f77_zmq_socket(zmq_context, ZMQ_PULL)
+!  zmq_socket_pull = f77_zmq_socket(zmq_context, ZMQ_PULL)
+  zmq_socket_pull = f77_zmq_socket(zmq_context, ZMQ_REP )
   rc = f77_zmq_bind(zmq_socket_pull, zmq_socket_pull_tcp_address)
   rc = f77_zmq_bind(zmq_socket_pull, zmq_socket_pull_inproc_address)
   if (rc /= 0) then
@@ -104,7 +105,7 @@ END_PROVIDER
 ! Threads executing work through the ZeroMQ interface
   END_DOC
   zmq_thread = 0_ZMQ_PTR
-  zmq_state = ''
+  zmq_state = 'No_state'
 END_PROVIDER
 
 subroutine new_parallel_job(zmq_to_qp_run_socket,name)
@@ -317,6 +318,7 @@ subroutine end_parallel_job(zmq_to_qp_run_socket,name)
     stop 'Wrong end of job'
   endif
 
+  ! Wait for Slaves
   do i=1,nproc
     rc = pthread_join( zmq_thread(i) )
     if (rc /= 0) then
@@ -324,11 +326,17 @@ subroutine end_parallel_job(zmq_to_qp_run_socket,name)
       stop -1
     endif
     zmq_thread(i) = 0
+    print *,  'joined ', i
   enddo
-  zmq_state = 'None'
+  ! Wait for collector
+  rc = pthread_join( zmq_thread(0) )
+  zmq_thread(0) = 0
+    print *,  'joined ', 0
+  zmq_state = 'No_state'
   character*(8), external        :: zmq_port
   rc = f77_zmq_disconnect(zmq_to_qp_run_socket, trim(qp_run_address)//':'//trim(zmq_port(0)))
   rc = f77_zmq_close(zmq_to_qp_run_socket)
+
 
   SOFT_TOUCH zmq_thread zmq_state
 

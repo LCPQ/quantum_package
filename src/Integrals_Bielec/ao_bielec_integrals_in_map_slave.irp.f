@@ -38,7 +38,8 @@ subroutine ao_bielec_integrals_in_map_slave(thread)
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   
   integer(ZMQ_PTR)               :: zmq_socket_push
-  zmq_socket_push = f77_zmq_socket(zmq_context, ZMQ_PUSH)
+!  zmq_socket_push = f77_zmq_socket(zmq_context, ZMQ_PUSH)
+  zmq_socket_push = f77_zmq_socket(zmq_context, ZMQ_REQ )
   if (thread == 1) then
     rc = f77_zmq_connect(zmq_socket_push, trim(zmq_socket_pull_inproc_address))
   else
@@ -63,6 +64,8 @@ subroutine ao_bielec_integrals_in_map_slave(thread)
     rc = f77_zmq_send( zmq_socket_push, buffer_i, key_kind*n_integrals, ZMQ_SNDMORE)
     rc = f77_zmq_send( zmq_socket_push, buffer_value, integral_kind*n_integrals, 0)
     call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id)
+    character*(2) :: ok
+    rc = f77_zmq_recv( zmq_socket_push, ok, 2, 0)
   enddo
 
   deallocate( buffer_i, buffer_value )
@@ -72,6 +75,7 @@ subroutine ao_bielec_integrals_in_map_slave(thread)
 
   if (finished /= 0) then
     rc = f77_zmq_send( zmq_socket_push, -1, 4, 0)
+    rc = f77_zmq_recv( zmq_socket_push, ok, 2, ZMQ_NOBLOCK)
   endif
 
   rc = f77_zmq_disconnect(zmq_socket_push,trim(zmq_socket_push_tcp_address))
@@ -102,7 +106,10 @@ subroutine ao_bielec_integrals_in_map_collector
     if (n_integrals >= 0) then
       rc = f77_zmq_recv( zmq_socket_pull, buffer_i, key_kind*n_integrals, 0)
       rc = f77_zmq_recv( zmq_socket_pull, buffer_value, integral_kind*n_integrals, 0)
+      rc = f77_zmq_send( zmq_socket_pull, 'ok', 2, 0)
       call insert_into_ao_integrals_map(n_integrals,buffer_i,buffer_value)
+    else
+      rc = f77_zmq_send( zmq_socket_pull, 'ok', 2, 0)
     endif
 
   enddo
