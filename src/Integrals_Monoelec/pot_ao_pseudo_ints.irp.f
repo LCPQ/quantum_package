@@ -24,7 +24,7 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
   
   double precision               :: cpu_1, cpu_2, wall_1, wall_2, wall_0
   integer                        :: thread_num
-  !$ integer                     :: omp_get_thread_num
+  integer                        :: omp_get_thread_num
   
   ao_pseudo_integral_local = 0.d0
   
@@ -118,7 +118,7 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
   integer                        :: power_A(3),power_B(3)
   integer                        :: i,j,k,l,n_pt_in,m
   double precision               :: Vloc, Vpseudo
-  !$ integer                     :: omp_get_thread_num
+  integer                        :: omp_get_thread_num
   
   double precision               :: cpu_1, cpu_2, wall_1, wall_2, wall_0
   integer                        :: thread_num

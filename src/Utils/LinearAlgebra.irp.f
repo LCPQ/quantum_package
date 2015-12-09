@@ -79,7 +79,7 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
 
   m=n
   do i=1,n
-    if ( D(i) >= 1.d-4 ) then
+    if ( D(i) >= 1.d-6 ) then
       D(i) = 1.d0/dsqrt(D(i))
     else
       m = i-1
@@ -151,7 +151,7 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
 
   !$OMP DO
   do i=1,n
-    if ( D(i) < 1.d-5 ) then
+    if ( D(i) < 1.d-6 ) then
       D(i) = 0.d0
     else
       D(i) = 1.d0/dsqrt(D(i))
