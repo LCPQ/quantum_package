@@ -280,9 +280,8 @@ type t =
 let of_string s = 
   let l =
     String.split ~on:' ' s
-    |> List.map ~f:String.strip
-    |> List.map ~f:String.lowercase
     |> List.filter ~f:(fun x -> (String.strip x) <> "")
+    |> List.map ~f:String.lowercase
   in
   match l with
   | "add_task"   :: state :: task ->

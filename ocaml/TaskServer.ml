@@ -80,7 +80,7 @@ let stop ~port =
 
   Message.Terminate (Message.Terminate_msg.create ())
   |> Message.to_string
-  |> ZMQ.Socket.send req_socket ;
+  |> ZMQ.Socket.send ~block:false req_socket ;
 
   let msg = 
     ZMQ.Socket.recv req_socket
@@ -158,13 +158,13 @@ let run ~port =
     let terminate () = 
       running := false;
       Message.to_string ok
-      |> ZMQ.Socket.send rep_socket 
+      |> ZMQ.Socket.send ~block:false rep_socket 
 
     and newjob x =
       q := Queuing_system.create ();
       job := Some x;
       Message.to_string ok
-      |> ZMQ.Socket.send rep_socket 
+      |> ZMQ.Socket.send ~block:false rep_socket 
 
     and connect state msg = 
       let push_address = 
@@ -180,7 +180,7 @@ let run ~port =
       Message.ConnectReply (Message.ConnectReply_msg.create
         ~state ~client_id ~push_address)
       |> Message.to_string
-      |> ZMQ.Socket.send rep_socket
+      |> ZMQ.Socket.send ~block:false rep_socket
 
     and disconnect state msg = 
       let s, c =
@@ -199,7 +199,7 @@ let run ~port =
       Message.DisconnectReply (Message.DisconnectReply_msg.create
         ~state ~finished)
       |> Message.to_string 
-      |> ZMQ.Socket.send rep_socket
+      |> ZMQ.Socket.send ~block:false rep_socket
 
     and add_task state msg =
       let s, task =
@@ -207,12 +207,53 @@ let run ~port =
         msg.Message.AddTask_msg.task
       in
       assert (s = state);
-      let new_q, task_id = 
-        Queuing_system.add_task ~task !q
-      in
-      q := new_q;
       Message.to_string ok
-      |> ZMQ.Socket.send rep_socket
+      |> ZMQ.Socket.send ~block:false rep_socket
+      ;
+      begin
+        match 
+           String.split ~on:' ' msg.Message.AddTask_msg.task
+           |> List.filter ~f:(fun x -> x <> "")
+        with
+        | "triangle" :: str_l :: [] ->
+          begin
+            let l =
+              Int.of_string str_l
+            in
+            for j=1 to l
+            do
+              let task = 
+                Printf.sprintf "%d %s" j str_l
+              in
+              let new_q, _ = 
+                Queuing_system.add_task ~task !q
+              in
+              q := new_q
+            done
+          end
+        | "range" :: str_i :: str_j :: [] ->
+          begin
+            let i, j =
+              Int.of_string str_i,
+              Int.of_string str_j
+            in
+            for k=i to (j+1)
+            do
+              let task = 
+                Int.to_string k
+              in
+              let new_q, task_id = 
+                Queuing_system.add_task ~task !q
+              in
+              q := new_q
+            done
+          end
+        | _ ->
+            let new_q, task_id = 
+              Queuing_system.add_task ~task !q
+            in
+            q := new_q
+      end
       
     and get_task state msg =
       let s, client_id =
@@ -231,7 +272,7 @@ let run ~port =
         | _ -> Message.Terminate (Message.Terminate_msg.create ())
       in
       Message.to_string reply
-      |> ZMQ.Socket.send rep_socket
+      |> ZMQ.Socket.send ~block:false rep_socket
       
     and task_done state msg =
       let s, client_id, task_id =
@@ -245,12 +286,12 @@ let run ~port =
       in
       q := new_q;
       Message.to_string ok
-      |> ZMQ.Socket.send rep_socket
+      |> ZMQ.Socket.send ~block:false rep_socket
       
     and error msg = 
       Message.Error (Message.Error_msg.create msg)
       |> Message.to_string
-      |> ZMQ.Socket.send rep_socket
+      |> ZMQ.Socket.send ~block:false rep_socket
     in
 
     if (polling.(0) = Some ZMQ.Poll.In) then

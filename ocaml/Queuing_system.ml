@@ -29,10 +29,12 @@ let add_task ~task q =
     q.next_task_id 
   in
   { q with
-    queued = q.queued @ [ task_id ] ;
+    queued = task_id :: q.queued ;
     tasks  = Map.add q.tasks ~key:task_id ~data:task ;
     next_task_id = Id.Task.increment task_id ;
   }, task_id
+
+
 
 
 let add_client q =

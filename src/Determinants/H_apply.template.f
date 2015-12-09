@@ -261,6 +261,7 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
 
       ! Build array of the non-zero integrals of second excitation
       $filter_integrals
+
       if (ispin == 1) then
         integer                        :: jjj
         
@@ -269,7 +270,7 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
           i_b = occ_hole_tmp(kk,other_spin)
           ASSERT (i_b > 0)
           ASSERT (i_b <= mo_tot_num)
-          do jjj=1,N_elec_in_key_part_2(other_spin)     ! particule
+          do jjj=1,N_elec_in_key_part_2(other_spin)     ! particle
             j_b = occ_particle_tmp(jjj,other_spin)
             ASSERT (j_b > 0)
             ASSERT (j_b <= mo_tot_num)
