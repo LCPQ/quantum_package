@@ -141,7 +141,8 @@ zeromq = Info(
 f77zmq = Info(
     url='{head}/zeromq/f77_zmq/{tail}'.format(**path_github),
     description=' F77-ZeroMQ',
-    default_path=join(QP_ROOT_LIB, "libf77zmq.a"))
+    default_path=join(QP_ROOT_LIB, "libf77zmq.a") + " " + \
+                 join(QP_ROOT, "src", "ZMQ", "f77zmq.h") )
 
 p_graphviz = Info(
     url='https://github.com/xflr6/graphviz/archive/master.tar.gz',
