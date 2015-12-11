@@ -1,4 +1,4 @@
-integer, parameter :: max_dim = 255
+integer, parameter :: max_dim = 511
 integer, parameter :: SIMD_vector = 32
 
 double precision, parameter :: pi =  dacos(-1.d0)

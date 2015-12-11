@@ -40,24 +40,22 @@ double precision function ao_bielec_integral(i,j,k,l)
       L_center(p) = nucl_coord(num_l,p)
     enddo
     
+    double precision               :: coef1, coef2, coef3, coef4
+    double precision               :: p_inv,q_inv
+    double precision               :: general_primitive_integral
+
     do p = 1, ao_prim_num(i)
-      double precision               :: coef1
       coef1 = ao_coef_normalized_ordered_transp(p,i)
       do q = 1, ao_prim_num(j)
-        double precision               :: coef2
         coef2 = coef1*ao_coef_normalized_ordered_transp(q,j)
-        double precision               :: p_inv,q_inv
         call give_explicit_poly_and_gaussian(P_new,P_center,pp,fact_p,iorder_p,&
             ao_expo_ordered_transp(p,i),ao_expo_ordered_transp(q,j),                 &
             I_power,J_power,I_center,J_center,dim1)
         p_inv = 1.d0/pp
         do r = 1, ao_prim_num(k)
-          double precision               :: coef3
           coef3 = coef2*ao_coef_normalized_ordered_transp(r,k)
           do s = 1, ao_prim_num(l)
-            double precision               :: coef4
             coef4 = coef3*ao_coef_normalized_ordered_transp(s,l)
-            double precision               :: general_primitive_integral
             call give_explicit_poly_and_gaussian(Q_new,Q_center,qq,fact_q,iorder_q,&
                 ao_expo_ordered_transp(r,k),ao_expo_ordered_transp(s,l),             &
                 K_power,L_power,K_center,L_center,dim1)
@@ -65,7 +63,7 @@ double precision function ao_bielec_integral(i,j,k,l)
             integral = general_primitive_integral(dim1,              &
                 P_new,P_center,fact_p,pp,p_inv,iorder_p,             &
                 Q_new,Q_center,fact_q,qq,q_inv,iorder_q)
-            ao_bielec_integral +=  coef4 * integral
+            ao_bielec_integral = ao_bielec_integral +  coef4 * integral
           enddo ! s
         enddo  ! r
       enddo   ! q
@@ -94,7 +92,7 @@ double precision function ao_bielec_integral(i,j,k,l)
                 I_power(1),J_power(1),K_power(1),L_power(1),         &
                 I_power(2),J_power(2),K_power(2),L_power(2),         &
                 I_power(3),J_power(3),K_power(3),L_power(3))
-            ao_bielec_integral +=  coef4 * integral
+            ao_bielec_integral = ao_bielec_integral + coef4 * integral
           enddo ! s
         enddo  ! r
       enddo   ! q
@@ -479,11 +477,11 @@ double precision function general_primitive_integral(dim,            &
   enddo
   n_Ix = 0
   do ix = 0, iorder_p(1)
-    if (abs(P_new(ix,1)) < 1.d-8) cycle
+    if (abs(P_new(ix,1)) < ao_integrals_threshold) cycle
     a = P_new(ix,1)
     do jx = 0, iorder_q(1)
       d = a*Q_new(jx,1)
-      if (abs(d) < 1.d-8) cycle
+      if (abs(d) < ao_integrals_threshold) cycle
       !DEC$ FORCEINLINE
       call give_polynom_mult_center_x(P_center(1),Q_center(1),ix,jx,p,q,iorder,pq_inv,pq_inv_2,p10_1,p01_1,p10_2,p01_2,dx,nx)
       !DEC$ FORCEINLINE
@@ -500,11 +498,11 @@ double precision function general_primitive_integral(dim,            &
   enddo
   n_Iy = 0
   do iy = 0, iorder_p(2)
-    if (abs(P_new(iy,2)) > 1.d-8) then
+    if (abs(P_new(iy,2)) > ao_integrals_threshold) then
       b = P_new(iy,2)
       do jy = 0, iorder_q(2)
         e = b*Q_new(jy,2)
-        if (abs(e) < 1.d-8) cycle
+        if (abs(e) < ao_integrals_threshold) cycle
         !DEC$ FORCEINLINE
         call   give_polynom_mult_center_x(P_center(2),Q_center(2),iy,jy,p,q,iorder,pq_inv,pq_inv_2,p10_1,p01_1,p10_2,p01_2,dy,ny)
         !DEC$ FORCEINLINE
@@ -522,11 +520,11 @@ double precision function general_primitive_integral(dim,            &
   enddo
   n_Iz = 0
   do iz = 0, iorder_p(3)
-    if (abs(P_new(iz,3)) > 1.d-8) then
+    if (abs(P_new(iz,3)) > ao_integrals_threshold) then
       c = P_new(iz,3)
       do jz = 0, iorder_q(3)
         f = c*Q_new(jz,3)
-        if (abs(f) < 1.d-8) cycle
+        if (abs(f) < ao_integrals_threshold) cycle
         !DEC$ FORCEINLINE
         call   give_polynom_mult_center_x(P_center(3),Q_center(3),iz,jz,p,q,iorder,pq_inv,pq_inv_2,p10_1,p01_1,p10_2,p01_2,dz,nz)
         !DEC$ FORCEINLINE

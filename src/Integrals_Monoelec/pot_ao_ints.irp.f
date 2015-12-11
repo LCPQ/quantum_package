@@ -171,7 +171,7 @@ include 'Utils/constants.include.F'
   enddo
   const_factor = dist*rho
   const = p * dist_integral
-  if(const_factor.ge.80.d0)then
+  if(const_factor > 80.d0)then
    NAI_pol_mult = 0.d0
    return
   endif
@@ -375,10 +375,10 @@ recursive subroutine I_x1_pol_mult_mono_elec(a,c,R1x,R1xp,R2x,d,nd,n_pt_in)
        Y(ix) = 0.d0
      enddo
      call I_x2_pol_mult_mono_elec(c-1,R1x,R1xp,R2x,X,nx,n_pt_in)
-       do ix=0,nx
-         X(ix) *= c
-       enddo
-       call multiply_poly(X,nx,R2x,2,d,nd)
+     do ix=0,nx
+       X(ix) *= dble(c)
+     enddo
+     call multiply_poly(X,nx,R2x,2,d,nd)
      ny=0
      call I_x2_pol_mult_mono_elec(c,R1x,R1xp,R2x,Y,ny,n_pt_in)
      call multiply_poly(Y,ny,R1x,2,d,nd)
@@ -390,10 +390,10 @@ recursive subroutine I_x1_pol_mult_mono_elec(a,c,R1x,R1xp,R2x,d,nd,n_pt_in)
      nx = 0
      call I_x1_pol_mult_mono_elec(a-2,c,R1x,R1xp,R2x,X,nx,n_pt_in)
 !    print*,'nx a-2,c= ',nx
-       do ix=0,nx
-         X(ix) *= a-1
-       enddo
-       call multiply_poly(X,nx,R2x,2,d,nd)
+     do ix=0,nx
+       X(ix) *= dble(a-1)
+     enddo
+     call multiply_poly(X,nx,R2x,2,d,nd)
 !    print*,'nd out = ',nd
 
      nx = nd
@@ -403,7 +403,7 @@ recursive subroutine I_x1_pol_mult_mono_elec(a,c,R1x,R1xp,R2x,d,nd,n_pt_in)
      call I_x1_pol_mult_mono_elec(a-1,c-1,R1x,R1xp,R2x,X,nx,n_pt_in)
 !      print*,'nx a-1,c-1 = ',nx
        do ix=0,nx
-         X(ix) *= c
+         X(ix) *= dble(c)
        enddo
        call multiply_poly(X,nx,R2x,2,d,nd)
      ny=0
@@ -444,7 +444,7 @@ recursive subroutine I_x2_pol_mult_mono_elec(c,R1x,R1xp,R2x,d,nd,dim)
      call I_x1_pol_mult_mono_elec(0,c-2,R1x,R1xp,R2x,X,nx,dim)
 !      print*,'nx 0,c-2 = ',nx
        do ix=0,nx
-         X(ix) *= c-1
+         X(ix) *= dble(c-1)
        enddo
        call multiply_poly(X,nx,R2x,2,d,nd)
 !      print*,'nd = ',nd

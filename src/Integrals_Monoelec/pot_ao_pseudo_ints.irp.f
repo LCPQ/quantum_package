@@ -68,7 +68,7 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
           c = 0.d0
           
           if (dabs(ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i))&
-                < 1.d-10) then
+                < ao_integrals_threshold) then
             cycle
           endif
           do  k = 1, nucl_num
@@ -165,10 +165,10 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
           c = 0.d0
           
           if (dabs(ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i))&
-                < 1.d-10) then
+                < ao_integrals_threshold) then
             cycle
           endif
-          
+
           do  k = 1, nucl_num
             double precision               :: Z
             Z = nucl_charge(k)

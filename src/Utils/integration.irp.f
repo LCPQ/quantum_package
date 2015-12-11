@@ -78,7 +78,7 @@ subroutine give_explicit_poly_and_gaussian(P_new,P_center,p,fact_k,iorder,alpha,
   
   !DEC$ FORCEINLINE
   call gaussian_product(alpha,A_center,beta,B_center,fact_k,p,P_center)
-  if (fact_k < 1.d-8) then
+  if (fact_k < ao_integrals_threshold) then
     fact_k = 0.d0
     return
   endif
@@ -210,7 +210,7 @@ subroutine gaussian_product(a,xa,b,xb,k,p,xp)
   xab(3) = xa(3)-xb(3)
   ab = ab*p_inv
   k = ab*(xab(1)*xab(1)+xab(2)*xab(2)+xab(3)*xab(3))
-  if (k > 20.d0) then
+  if (k > 40.d0) then
     k=0.d0
     return
   endif
@@ -249,7 +249,7 @@ subroutine gaussian_product_x(a,xa,b,xb,k,p,xp)
   xab = xa-xb
   ab = ab*p_inv
   k = ab*xab*xab
-  if (k > 20.d0) then
+  if (k > 40.d0) then
     k=0.d0
     return
   endif
@@ -580,7 +580,7 @@ double precision function rint_large_n(n,rho)
     enddo
     t2=0.d0
     do l=0,k
-      t2=t2+(-1.d0)**l/fact(l+1)/fact(k-l)
+      t2=t2+(-1.d0)**l/(fact(l+1)*fact(k-l))
     enddo
     alpha_k=t2*fact(k+1)*fact(k)*(-1.d0)**k
     alpha_k= alpha_k/t1

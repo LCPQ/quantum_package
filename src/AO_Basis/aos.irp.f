@@ -24,9 +24,9 @@ BEGIN_PROVIDER [ double precision, ao_coef_normalized, (ao_num_align,ao_prim_num
   BEGIN_DOC
   ! Coefficients including the AO normalization
   END_DOC
-  double precision               :: norm, norm2,overlap_x,overlap_y,overlap_z,C_A(3)
+  double precision               :: norm, norm2,overlap_x,overlap_y,overlap_z,C_A(3), c
   integer                        :: l, powA(3), nz
-  integer                        :: i,j
+  integer                        :: i,j,k
   nz=100
   C_A(1) = 0.d0
   C_A(2) = 0.d0
@@ -38,6 +38,17 @@ BEGIN_PROVIDER [ double precision, ao_coef_normalized, (ao_num_align,ao_prim_num
     do j=1,ao_prim_num(i)
       call overlap_gaussian_xyz(C_A,C_A,ao_expo(i,j),ao_expo(i,j),powA,powA,overlap_x,overlap_y,overlap_z,norm,nz)
       ao_coef_normalized(i,j) = ao_coef(i,j)/sqrt(norm)
+    enddo
+    ! Normalization of the contracted basis functions
+    norm = 0.d0
+    do j=1,ao_prim_num(i)
+     do k=1,ao_prim_num(i)
+      call overlap_gaussian_xyz(C_A,C_A,ao_expo(i,j),ao_expo(i,k),powA,powA,overlap_x,overlap_y,overlap_z,c,nz)
+      norm = norm+c*ao_coef_normalized(i,j)*ao_coef_normalized(i,k)
+     enddo
+    enddo
+    do j=1,ao_prim_num(i)
+      ao_coef_normalized(i,j) = ao_coef_normalized(i,j)/sqrt(norm)
     enddo
   enddo
 END_PROVIDER

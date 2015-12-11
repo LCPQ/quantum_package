@@ -83,12 +83,21 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
       D(i) = 1.d0/dsqrt(D(i))
     else
       m = i-1
+      print *,  'Removed Linear dependencies below:', 1.d0/D(m)
       exit
     endif
   enddo
   do i=m+1,n
+    print *,  D(i)
     D(i) = 0.d0
   enddo
+
+  do i=1,m
+    if ( D(i) >= 1.d5 ) then
+      print *,  'Warning: Basis set may have linear dependence problems'
+    endif
+  enddo
+
 
   !$OMP PARALLEL DEFAULT(NONE) &
   !$OMP SHARED(S_half,U,D,Vt,n,C,m) &
