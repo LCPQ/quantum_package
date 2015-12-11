@@ -123,8 +123,8 @@ subroutine pt2_moller_plesset ($arguments)
   call get_excitation(ref_bitmask,det_pert,exc,degree,phase,Nint)
   if (degree == 2) then
     call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
-    delta_e = (Fock_matrix_diag_mo(h1) + Fock_matrix_diag_mo(h2)) - &
-              (Fock_matrix_diag_mo(p1) + Fock_matrix_diag_mo(p2))
+    delta_e = (Fock_matrix_diag_mo(h1) - Fock_matrix_diag_mo(p1)) + &
+              (Fock_matrix_diag_mo(h2) - Fock_matrix_diag_mo(p2))
     delta_e = 1.d0/delta_e
   else if (degree == 1) then
     call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
@@ -142,7 +142,7 @@ subroutine pt2_moller_plesset ($arguments)
     i_H_psi_array(:) = 0.d0
     h = 0.d0
   endif
-  do i =1,n_st
+  do i =1,N_st
     H_pert_diag(i) = h
     c_pert(i) = i_H_psi_array(i) *delta_e
     e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
