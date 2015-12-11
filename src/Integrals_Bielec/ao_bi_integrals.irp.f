@@ -127,8 +127,8 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
   num_k = ao_nucl(k)
   num_l = ao_nucl(l)
   ao_bielec_integral_schwartz_accel = 0.d0
-  double precision               :: thresh
-  thresh = ao_integrals_threshold*ao_integrals_threshold
+  double precision               :: thr
+  thr = ao_integrals_threshold*ao_integrals_threshold
   
   allocate(schwartz_kl(0:ao_prim_num(l),0:ao_prim_num(k)))
 
@@ -179,18 +179,18 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
             P_new,P_center,fact_p,pp,p_inv,iorder_p,                 &
             P_new,P_center,fact_p,pp,p_inv,iorder_p) *               &
             coef2*coef2
-        if (schwartz_kl(0,0)*schwartz_ij < thresh) then
+        if (schwartz_kl(0,0)*schwartz_ij < thr) then
            cycle
         endif
         do r = 1, ao_prim_num(k)
-          if (schwartz_kl(0,r)*schwartz_ij < thresh) then
+          if (schwartz_kl(0,r)*schwartz_ij < thr) then
              cycle
           endif
           double precision               :: coef3
           coef3 = coef2*ao_coef_normalized_ordered_transp(r,k)
           do s = 1, ao_prim_num(l)
             double precision               :: coef4
-            if (schwartz_kl(s,r)*schwartz_ij < thresh) then
+            if (schwartz_kl(s,r)*schwartz_ij < thr) then
                cycle
             endif
             coef4 = coef3*ao_coef_normalized_ordered_transp(s,l)
@@ -244,16 +244,16 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
                 I_power(1),J_power(1),I_power(1),J_power(1),         &
                 I_power(2),J_power(2),I_power(2),J_power(2),         &
                 I_power(3),J_power(3),I_power(3),J_power(3))*coef2*coef2
-        if (schwartz_kl(0,0)*schwartz_ij < thresh) then
+        if (schwartz_kl(0,0)*schwartz_ij < thr) then
            cycle
         endif
         do r = 1, ao_prim_num(k)
-          if (schwartz_kl(0,r)*schwartz_ij < thresh) then
+          if (schwartz_kl(0,r)*schwartz_ij < thr) then
              cycle
           endif
           coef3 = coef2*ao_coef_normalized_ordered_transp(r,k)
           do s = 1, ao_prim_num(l)
-            if (schwartz_kl(s,r)*schwartz_ij < thresh) then
+            if (schwartz_kl(s,r)*schwartz_ij < thr) then
                cycle
             endif
             coef4 = coef3*ao_coef_normalized_ordered_transp(s,l)
@@ -293,11 +293,10 @@ subroutine compute_ao_bielec_integrals(j,k,l,sze,buffer_value)
   ! Compute AO 1/r12 integrals for all i and fixed j,k,l
   END_DOC
   
+  include 'Utils/constants.include.F'
   integer, intent(in)            :: j,k,l,sze
   real(integral_kind), intent(out) :: buffer_value(sze)
   double precision               :: ao_bielec_integral
-  double precision               :: thresh
-  thresh = ao_integrals_threshold
   
   integer                        :: i
   
@@ -337,8 +336,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   integer                        :: i,j,k,l
   double precision               :: ao_bielec_integral,cpu_1,cpu_2, wall_1, wall_2
   double precision               :: integral, wall_0
-  double precision               :: thresh
-  thresh = ao_integrals_threshold
+  include 'Utils/constants.include.F'
   
   ! For integrals file
   integer(key_kind),allocatable  :: buffer_i(:)
@@ -477,11 +475,11 @@ double precision function general_primitive_integral(dim,            &
   enddo
   n_Ix = 0
   do ix = 0, iorder_p(1)
-    if (abs(P_new(ix,1)) < ao_integrals_threshold) cycle
+    if (abs(P_new(ix,1)) < thresh) cycle
     a = P_new(ix,1)
     do jx = 0, iorder_q(1)
       d = a*Q_new(jx,1)
-      if (abs(d) < ao_integrals_threshold) cycle
+      if (abs(d) < thresh) cycle
       !DEC$ FORCEINLINE
       call give_polynom_mult_center_x(P_center(1),Q_center(1),ix,jx,p,q,iorder,pq_inv,pq_inv_2,p10_1,p01_1,p10_2,p01_2,dx,nx)
       !DEC$ FORCEINLINE
@@ -498,11 +496,11 @@ double precision function general_primitive_integral(dim,            &
   enddo
   n_Iy = 0
   do iy = 0, iorder_p(2)
-    if (abs(P_new(iy,2)) > ao_integrals_threshold) then
+    if (abs(P_new(iy,2)) > thresh) then
       b = P_new(iy,2)
       do jy = 0, iorder_q(2)
         e = b*Q_new(jy,2)
-        if (abs(e) < ao_integrals_threshold) cycle
+        if (abs(e) < thresh) cycle
         !DEC$ FORCEINLINE
         call   give_polynom_mult_center_x(P_center(2),Q_center(2),iy,jy,p,q,iorder,pq_inv,pq_inv_2,p10_1,p01_1,p10_2,p01_2,dy,ny)
         !DEC$ FORCEINLINE
@@ -520,11 +518,11 @@ double precision function general_primitive_integral(dim,            &
   enddo
   n_Iz = 0
   do iz = 0, iorder_p(3)
-    if (abs(P_new(iz,3)) > ao_integrals_threshold) then
+    if (abs(P_new(iz,3)) > thresh) then
       c = P_new(iz,3)
       do jz = 0, iorder_q(3)
         f = c*Q_new(jz,3)
-        if (abs(f) < ao_integrals_threshold) cycle
+        if (abs(f) < thresh) cycle
         !DEC$ FORCEINLINE
         call   give_polynom_mult_center_x(P_center(3),Q_center(3),iz,jz,p,q,iorder,pq_inv,pq_inv_2,p10_1,p01_1,p10_2,p01_2,dz,nz)
         !DEC$ FORCEINLINE
@@ -1178,10 +1176,10 @@ subroutine compute_ao_integrals_jl(j,l,n_integrals,buffer_i,buffer_value)
   integer                        :: i,k
   double precision               :: ao_bielec_integral,cpu_1,cpu_2, wall_1, wall_2
   double precision               :: integral, wall_0
-  double precision               :: thresh
+  double precision               :: thr
   integer                        :: kk, m, j1, i1
 
-  thresh = ao_integrals_threshold
+  thr = ao_integrals_threshold
   
   n_integrals = 0
   
@@ -1196,15 +1194,15 @@ subroutine compute_ao_integrals_jl(j,l,n_integrals,buffer_i,buffer_value)
       if (i1 > j1) then
         exit
       endif
-      if (ao_overlap_abs(i,k)*ao_overlap_abs(j,l) < thresh) then
+      if (ao_overlap_abs(i,k)*ao_overlap_abs(j,l) < thr) then
         cycle
       endif
-      if (ao_bielec_integral_schwartz(i,k)*ao_bielec_integral_schwartz(j,l) < thresh ) then
+      if (ao_bielec_integral_schwartz(i,k)*ao_bielec_integral_schwartz(j,l) < thr ) then
         cycle
       endif
       !DIR$ FORCEINLINE
       integral = ao_bielec_integral(i,k,j,l)
-      if (abs(integral) < thresh) then
+      if (abs(integral) < thr) then
         cycle
       endif
       n_integrals += 1
