@@ -158,7 +158,7 @@ d_info = dict()
 
 for m in ["ocaml", "m4", "curl", "zlib", "patch", "irpf90", "docopt",
           "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz",
-          "zeromq", "f77zmq" ]:
+          "zeromq", "f77zmq","bats" ]:
     exec ("d_info['{0}']={0}".format(m))
 
 
