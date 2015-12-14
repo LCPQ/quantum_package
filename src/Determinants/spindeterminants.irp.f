@@ -350,6 +350,34 @@ subroutine write_spindeterminants
   
 end
 
+ BEGIN_PROVIDER [ double precision, det_alpha_norm, (N_det_alpha_unique) ]
+&BEGIN_PROVIDER [ double precision, det_beta_norm, (N_det_beta_unique) ]
+ implicit none
+ BEGIN_DOC
+ ! Norm of the alpha and beta spin determinants in the wave function:
+ !
+ ! ||Da||_i \sum_j C_{ij}**2
+ END_DOC
+
+ integer :: i,j,k,l
+ double precision :: f
+
+ det_alpha_norm = 0.d0
+ det_beta_norm  = 0.d0
+ do k=1,N_det
+   i = psi_bilinear_matrix_rows(k)
+   j = psi_bilinear_matrix_columns(k)
+   do l=1,N_states
+    f = psi_bilinear_matrix_values(k,l)*psi_bilinear_matrix_values(k,l)
+   enddo
+   det_alpha_norm(i) += f
+   det_beta_norm(j)  += f
+ enddo
+ det_alpha_norm = det_alpha_norm / dble(N_states)
+ det_beta_norm = det_beta_norm / dble(N_states)
+
+END_PROVIDER
+
 
 !==============================================================================!
 !                                                                              !
@@ -414,13 +442,14 @@ BEGIN_PROVIDER [ double precision, psi_bilinear_matrix, (N_det_alpha_unique,N_de
   enddo
 END_PROVIDER
 
-subroutine create_wf_of_psi_bilinear_matrix
+subroutine create_wf_of_psi_bilinear_matrix(truncate)
   use bitmasks
   implicit none
   BEGIN_DOC
 ! Generate a wave function containing all possible products 
 ! of alpha and beta determinants
   END_DOC
+  logical, intent(in)            :: truncate
   integer                        :: i,j,k
   integer(bit_kind)              :: tmp_det(N_int,2)
   integer                        :: idx
@@ -460,8 +489,10 @@ subroutine create_wf_of_psi_bilinear_matrix
   norm(1) = 0.d0
   do i=1,N_det
     norm(1) += psi_average_norm_contrib_sorted(i)
-    if (norm(1) >= 0.999999d0) then
-      exit
+    if (truncate) then
+      if (norm(1) >= 0.999999d0) then
+        exit
+      endif
     endif
   enddo
   N_det = min(i,N_det)
@@ -504,7 +535,6 @@ subroutine generate_all_alpha_beta_det_products
   !$OMP END DO NOWAIT
   deallocate(tmp_det)
   !$OMP END PARALLEL
-  deallocate (tmp_det)
   call copy_H_apply_buffer_to_wf
   SOFT_TOUCH psi_det psi_coef N_det
 end

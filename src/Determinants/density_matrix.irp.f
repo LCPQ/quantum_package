@@ -71,7 +71,6 @@
      one_body_dm_mo_beta  = one_body_dm_mo_beta  + tmp_b
      !$OMP END CRITICAL
      deallocate(tmp_a,tmp_b)
-     !$OMP BARRIER
      !$OMP END PARALLEL
 
    endif
@@ -157,7 +156,6 @@ END_PROVIDER
    one_body_single_double_dm_mo_beta  = one_body_single_double_dm_mo_beta  + tmp_b
    !$OMP END CRITICAL
    deallocate(tmp_a,tmp_b)
-   !$OMP BARRIER
    !$OMP END PARALLEL
 END_PROVIDER
 
@@ -187,9 +185,9 @@ subroutine set_natural_mos
  allocate(tmp(size(one_body_dm_mo,1),size(one_body_dm_mo,2)))
 
  ! Negation to have the occupied MOs first after the diagonalization
- tmp = -one_body_dm_mo
+ tmp = one_body_dm_mo
  label = "Natural"
- call mo_as_eigvectors_of_mo_matrix(tmp,size(tmp,1),size(tmp,2),label)
+ call mo_as_eigvectors_of_mo_matrix(tmp,size(tmp,1),size(tmp,2),label,-1)
  deallocate(tmp)
 
 end

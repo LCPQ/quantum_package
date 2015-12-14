@@ -44,7 +44,7 @@ def get_url(path_module_rel):
     elif is_module(path_module_rel):
         url = "http://github.com/LCPQ/quantum_package/tree/master/src"
     else:
-        print "{0} Is not a valide module nor plugin".format(path_module_rel)
+        print "{0} Is not a valid module nor plugin".format(path_module_rel)
         sys.exit(1)
 
     return os.path.join(url, path_module_rel)
@@ -155,20 +155,32 @@ def update_documentation(d_readmen, root_module):
         l_doc = []
 
         for irp in d_info[path]:
-
             url = os.path.join(get_url(os.path.basename(path)), irp.file)
             doc = extract_doc(root_module, irp.provider)
 
-            l_doc += ["`{0} <{1}#L{2}>`_".format(irp.provider, url, irp.line),
-                      doc,
-                      ""]
+            if ".irp.f_shell_" in irp.file:
+                l_doc += ["{0}".format(irp.provider),
+                          doc,
+                          ""]
+            else:
+                l_doc += ["`{0} <{1}#L{2}>`_".format(irp.provider, url, irp.line),
+                          doc,
+                          ""]
 
         l_doc_section = [D_KEY["documentation"], '',
                          "\n".join(l_doc)]
 
         d_readme[path]["documentation"] = "\n".join(l_doc_section)
 
+
 if __name__ == '__main__':
+
+    # Update documentation only if the remote repository is
+    # the main repository
+    from is_master_repository import is_master_repository
+    if not is_master_repository:
+        sys.exit(0)
+
     arguments = docopt(__doc__)
 
     if arguments["--root_module"]:
@@ -188,8 +200,8 @@ if __name__ == '__main__':
         fetch_splitted_data(d_readme, l_module_readme)
     except IOError:
         print l_module_readme, "is not a module and/or",
-        print "have not a `README.rst` file inside"
-        print "Abort..."
+        print "has not a `README.rst` file inside"
+        print "Aborting..."
         sys.exit(1)
 
     update_needed(d_readme)

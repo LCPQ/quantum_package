@@ -93,6 +93,11 @@ Documentation
   : sum of the kinetic and nuclear electronic potential
 
 
+`ao_mono_elec_integral_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/ao_mono_ints.irp.f#L2>`_
+  array of the mono electronic hamiltonian on the AOs basis
+  : sum of the kinetic and nuclear electronic potential
+
+
 `ao_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L1>`_
   interaction nuclear electron
 
@@ -106,11 +111,11 @@ Documentation
   Pseudo-potential
 
 
-`ao_pseudo_integral_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L15>`_
+`ao_pseudo_integral_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L13>`_
   Local pseudo-potential
 
 
-`ao_pseudo_integral_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L121>`_
+`ao_pseudo_integral_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L120>`_
   Local pseudo-potential
 
 

@@ -15,7 +15,7 @@ subroutine get_excitation_degree(key1,key2,degree,Nint)
   
   degree = popcnt(xor( key1(1,1), key2(1,1))) +                      &
       popcnt(xor( key1(1,2), key2(1,2)))
-  !DEC$ NOUNROLL
+  !DIR$ NOUNROLL
   do l=2,Nint
     degree = degree+ popcnt(xor( key1(l,1), key2(l,1))) +            &
         popcnt(xor( key1(l,2), key2(l,2)))
@@ -349,6 +349,80 @@ subroutine get_mono_excitation(det1,det2,exc,phase,Nint)
   enddo
 end
 
+subroutine bitstring_to_list_ab( string, list, n_elements, Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Gives the inidices(+1) of the bits set to 1 in the bit string
+  ! For alpha/beta determinants
+  END_DOC
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: string(Nint,2)
+  integer, intent(out)           :: list(Nint*bit_kind_size,2)
+  integer, intent(out)           :: n_elements(2)
+
+  integer                        :: i, j, ishift
+  integer(bit_kind)              :: l
+
+  n_elements(1) = 0
+  n_elements(2) = 0
+  ishift = 1
+  do i=1,Nint
+    l = string(i,1)
+    do while (l /= 0_bit_kind)
+      j = trailz(l)
+      n_elements(1) = n_elements(1)+1
+      l = ibclr(l,j)
+      list(n_elements(1),1) = ishift+j
+    enddo
+    l = string(i,2)
+    do while (l /= 0_bit_kind)
+      j = trailz(l)
+      n_elements(2) = n_elements(2)+1
+      l = ibclr(l,j)
+      list(n_elements(2),2) = ishift+j
+    enddo
+    ishift = ishift + bit_kind_size
+  enddo
+
+end
+
+subroutine bitstring_to_list_ab_old( string, list, n_elements, Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Gives the inidices(+1) of the bits set to 1 in the bit string
+  ! For alpha/beta determinants
+  END_DOC
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: string(Nint,2)
+  integer, intent(out)           :: list(Nint*bit_kind_size,2)
+  integer, intent(out)           :: n_elements(2)
+
+  integer                        :: i, ishift
+  integer(bit_kind)              :: l
+
+  n_elements(1) = 0
+  n_elements(2) = 0
+  ishift = 2
+  do i=1,Nint
+    l = string(i,1)
+    do while (l /= 0_bit_kind)
+      n_elements(1) = n_elements(1)+1
+      list(n_elements(1),1) = ishift+popcnt(l-1_bit_kind) - popcnt(l)
+      l = iand(l,l-1_bit_kind)
+    enddo
+    l = string(i,2)
+    do while (l /= 0_bit_kind)
+      n_elements(2) = n_elements(2)+1
+      list(n_elements(2),2) = ishift+popcnt(l-1_bit_kind) - popcnt(l)
+      l = iand(l,l-1_bit_kind)
+    enddo
+    ishift = ishift + bit_kind_size
+  enddo
+
+end
+
 
 
 
@@ -365,12 +439,12 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
   
   integer                        :: exc(0:2,2,2)
   integer                        :: degree
-  double precision               :: get_mo_bielec_integral
+  double precision               :: get_mo_bielec_integral_schwartz
   integer                        :: m,n,p,q
   integer                        :: i,j,k
   integer                        :: occ(Nint*bit_kind_size,2)
   double precision               :: diag_H_mat_elem, phase,phase_2
-  integer                        :: n_occ_alpha, n_occ_beta
+  integer                        :: n_occ_ab(2)
   logical                        :: has_mipi(Nint*bit_kind_size)
   double precision               :: mipi(Nint*bit_kind_size), miip(Nint*bit_kind_size)
   PROVIDE mo_bielec_integrals_in_map mo_integrals_map
@@ -383,38 +457,38 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
   ASSERT (sum(popcnt(key_j(:,2))) == elec_beta_num)
   
   hij = 0.d0
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call get_excitation_degree(key_i,key_j,degree,Nint)
   select case (degree)
     case (2)
       call get_double_excitation(key_i,key_j,exc,phase,Nint)
       if (exc(0,1,1) == 1) then
         ! Mono alpha, mono beta
-        hij = phase*get_mo_bielec_integral(                          &
+        hij = phase*get_mo_bielec_integral_schwartz(                          &
             exc(1,1,1),                                              &
             exc(1,1,2),                                              &
             exc(1,2,1),                                              &
             exc(1,2,2) ,mo_integrals_map)
       else if (exc(0,1,1) == 2) then
         ! Double alpha
-        hij = phase*(get_mo_bielec_integral(                         &
+        hij = phase*(get_mo_bielec_integral_schwartz(                         &
             exc(1,1,1),                                              &
             exc(2,1,1),                                              &
             exc(1,2,1),                                              &
             exc(2,2,1) ,mo_integrals_map) -                          &
-            get_mo_bielec_integral(                                  &
+            get_mo_bielec_integral_schwartz(                                  &
             exc(1,1,1),                                              &
             exc(2,1,1),                                              &
             exc(2,2,1),                                              &
             exc(1,2,1) ,mo_integrals_map) )
       else if (exc(0,1,2) == 2) then
         ! Double beta
-        hij = phase*(get_mo_bielec_integral(                         &
+        hij = phase*(get_mo_bielec_integral_schwartz(                         &
             exc(1,1,2),                                              &
             exc(2,1,2),                                              &
             exc(1,2,2),                                              &
             exc(2,2,2) ,mo_integrals_map) -                          &
-            get_mo_bielec_integral(                                  &
+            get_mo_bielec_integral_schwartz(                                  &
             exc(1,1,2),                                              &
             exc(2,1,2),                                              &
             exc(2,2,2),                                              &
@@ -422,8 +496,8 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
       endif
     case (1)
       call get_mono_excitation(key_i,key_j,exc,phase,Nint)
-      call bitstring_to_list(key_i(1,1), occ(1,1), n_occ_alpha, Nint)
-      call bitstring_to_list(key_i(1,2), occ(1,2), n_occ_beta, Nint)
+      !DIR$ FORCEINLINE
+      call bitstring_to_list_ab(key_i, occ, n_occ_ab, Nint)
       has_mipi = .False.
       if (exc(0,1,1) == 1) then
         ! Mono alpha
@@ -432,15 +506,15 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
         do k = 1, elec_alpha_num
           i = occ(k,1)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral_schwartz(m,i,i,p,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
         do k = 1, elec_beta_num
           i = occ(k,2)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
@@ -459,15 +533,15 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
         do k = 1, elec_beta_num
           i = occ(k,2)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral_schwartz(m,i,i,p,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
         do k = 1, elec_alpha_num
           i = occ(k,1)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
@@ -501,12 +575,12 @@ subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
 
   integer,intent(out)            :: exc(0:2,2,2)
   integer,intent(out)            :: degree
-  double precision               :: get_mo_bielec_integral
+  double precision               :: get_mo_bielec_integral_schwartz
   integer                        :: m,n,p,q
   integer                        :: i,j,k
   integer                        :: occ(Nint*bit_kind_size,2)
   double precision               :: diag_H_mat_elem
-  integer                        :: n_occ_alpha, n_occ_beta
+  integer                        :: n_occ_ab(2)
   logical                        :: has_mipi(Nint*bit_kind_size)
   double precision               :: mipi(Nint*bit_kind_size), miip(Nint*bit_kind_size)
   PROVIDE mo_bielec_integrals_in_map mo_integrals_map
@@ -519,38 +593,38 @@ subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
   ASSERT (sum(popcnt(key_j(:,2))) == elec_beta_num)
 
   hij = 0.d0
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call get_excitation_degree(key_i,key_j,degree,Nint)
   select case (degree)
     case (2)
       call get_double_excitation(key_i,key_j,exc,phase,Nint)
       if (exc(0,1,1) == 1) then
         ! Mono alpha, mono beta
-        hij = phase*get_mo_bielec_integral(                          &
+        hij = phase*get_mo_bielec_integral_schwartz(                          &
             exc(1,1,1),                                              &
             exc(1,1,2),                                              &
             exc(1,2,1),                                              &
             exc(1,2,2) ,mo_integrals_map)
       else if (exc(0,1,1) == 2) then
         ! Double alpha
-        hij = phase*(get_mo_bielec_integral(                         &
+        hij = phase*(get_mo_bielec_integral_schwartz(                         &
             exc(1,1,1),                                              &
             exc(2,1,1),                                              &
             exc(1,2,1),                                              &
             exc(2,2,1) ,mo_integrals_map) -                          &
-            get_mo_bielec_integral(                                  &
+            get_mo_bielec_integral_schwartz(                                  &
             exc(1,1,1),                                              &
             exc(2,1,1),                                              &
             exc(2,2,1),                                              &
             exc(1,2,1) ,mo_integrals_map) )
       else if (exc(0,1,2) == 2) then
         ! Double beta
-        hij = phase*(get_mo_bielec_integral(                         &
+        hij = phase*(get_mo_bielec_integral_schwartz(                         &
             exc(1,1,2),                                              &
             exc(2,1,2),                                              &
             exc(1,2,2),                                              &
             exc(2,2,2) ,mo_integrals_map) -                          &
-            get_mo_bielec_integral(                                  &
+            get_mo_bielec_integral_schwartz(                                  &
             exc(1,1,2),                                              &
             exc(2,1,2),                                              &
             exc(2,2,2),                                              &
@@ -558,8 +632,8 @@ subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
       endif
     case (1)
       call get_mono_excitation(key_i,key_j,exc,phase,Nint)
-      call bitstring_to_list(key_i(1,1), occ(1,1), n_occ_alpha, Nint)
-      call bitstring_to_list(key_i(1,2), occ(1,2), n_occ_beta, Nint)
+      !DIR$ FORCEINLINE
+      call bitstring_to_list_ab(key_i, occ, n_occ_ab, Nint)
       has_mipi = .False.
       if (exc(0,1,1) == 1) then
         ! Mono alpha
@@ -568,15 +642,15 @@ subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
         do k = 1, elec_alpha_num
           i = occ(k,1)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral_schwartz(m,i,i,p,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
         do k = 1, elec_beta_num
           i = occ(k,2)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
@@ -595,15 +669,15 @@ subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
         do k = 1, elec_beta_num
           i = occ(k,2)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral_schwartz(m,i,i,p,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
         do k = 1, elec_alpha_num
           i = occ(k,1)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
@@ -637,12 +711,12 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
   
   integer                        :: exc(0:2,2,2)
   integer                        :: degree
-  double precision               :: get_mo_bielec_integral
+  double precision               :: get_mo_bielec_integral_schwartz
   integer                        :: m,n,p,q
   integer                        :: i,j,k
   integer                        :: occ(Nint*bit_kind_size,2)
   double precision               :: diag_H_mat_elem, phase,phase_2
-  integer                        :: n_occ_alpha, n_occ_beta
+  integer                        :: n_occ_ab(2)
   logical                        :: has_mipi(Nint*bit_kind_size)
   double precision               :: mipi(Nint*bit_kind_size), miip(Nint*bit_kind_size)
   PROVIDE mo_bielec_integrals_in_map mo_integrals_map
@@ -657,38 +731,38 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
   hij = 0.d0
   hmono = 0.d0
   hdouble = 0.d0
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call get_excitation_degree(key_i,key_j,degree,Nint)
   select case (degree)
     case (2)
       call get_double_excitation(key_i,key_j,exc,phase,Nint)
       if (exc(0,1,1) == 1) then
         ! Mono alpha, mono beta
-        hij = phase*get_mo_bielec_integral(                          &
+        hij = phase*get_mo_bielec_integral_schwartz(                          &
             exc(1,1,1),                                              &
             exc(1,1,2),                                              &
             exc(1,2,1),                                              &
             exc(1,2,2) ,mo_integrals_map)
       else if (exc(0,1,1) == 2) then
         ! Double alpha
-        hij = phase*(get_mo_bielec_integral(                         &
+        hij = phase*(get_mo_bielec_integral_schwartz(                         &
             exc(1,1,1),                                              &
             exc(2,1,1),                                              &
             exc(1,2,1),                                              &
             exc(2,2,1) ,mo_integrals_map) -                          &
-            get_mo_bielec_integral(                                  &
+            get_mo_bielec_integral_schwartz(                                  &
             exc(1,1,1),                                              &
             exc(2,1,1),                                              &
             exc(2,2,1),                                              &
             exc(1,2,1) ,mo_integrals_map) )
       else if (exc(0,1,2) == 2) then
         ! Double beta
-        hij = phase*(get_mo_bielec_integral(                         &
+        hij = phase*(get_mo_bielec_integral_schwartz(                         &
             exc(1,1,2),                                              &
             exc(2,1,2),                                              &
             exc(1,2,2),                                              &
             exc(2,2,2) ,mo_integrals_map) -                          &
-            get_mo_bielec_integral(                                  &
+            get_mo_bielec_integral_schwartz(                                  &
             exc(1,1,2),                                              &
             exc(2,1,2),                                              &
             exc(2,2,2),                                              &
@@ -696,8 +770,8 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
       endif
     case (1)
       call get_mono_excitation(key_i,key_j,exc,phase,Nint)
-      call bitstring_to_list(key_i(1,1), occ(1,1), n_occ_alpha, Nint)
-      call bitstring_to_list(key_i(1,2), occ(1,2), n_occ_beta, Nint)
+      !DIR$ FORCEINLINE
+      call bitstring_to_list_ab(key_i, occ, n_occ_ab, Nint)
       has_mipi = .False.
       if (exc(0,1,1) == 1) then
         ! Mono alpha
@@ -706,15 +780,15 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
         do k = 1, elec_alpha_num
           i = occ(k,1)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral_schwartz(m,i,i,p,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
         do k = 1, elec_beta_num
           i = occ(k,2)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
@@ -733,15 +807,15 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
         do k = 1, elec_beta_num
           i = occ(k,2)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            miip(i) = get_mo_bielec_integral_schwartz(m,i,i,p,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
         do k = 1, elec_alpha_num
           i = occ(k,1)
           if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
             has_mipi(i) = .True.
           endif
         enddo
@@ -763,10 +837,117 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
 end
 
 
+subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullList, N_miniList, Nint)
+  use bitmasks
+  implicit none
+  
+  integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
+  integer, intent(in)                      :: N_fullList
+  integer(bit_kind),intent(out)            :: miniList(Nint, 2, N_fullList)
+  integer,intent(out)                      :: idx_miniList(N_fullList), N_miniList
+  integer, intent(in)                      :: Nint
+  integer(bit_kind)                        :: key_mask(Nint, 2)
+  integer                                  :: ni, i, n_a, n_b, e_a, e_b
+  
+  
+  n_a = 0
+  n_b = 0
+  do ni=1,nint
+    n_a = n_a + popcnt(key_mask(ni,1))
+    n_b = n_b + popcnt(key_mask(ni,2))
+  end do
+  
+  if(n_a == 0) then
+    N_miniList = N_fullList
+    miniList(:,:,:) = fullList(:,:,:)
+    do i=1,N_fullList
+      idx_miniList(i) = i
+    end do
+    return
+  end if
+  
+  N_miniList = 0
+  
+  do i=1,N_fullList
+    e_a = n_a
+    e_b = n_b
+    do ni=1,nint
+      e_a -= popcnt(iand(fullList(ni, 1, i), key_mask(ni, 1)))
+      e_b -= popcnt(iand(fullList(ni, 2, i), key_mask(ni, 2)))
+    end do
+    
+    if(e_a + e_b <= 2) then
+      N_miniList = N_miniList + 1
+      miniList(:,:,N_miniList) = fullList(:,:,i)
+      idx_miniList(N_miniList) = i
+    end if
+  end do
+end subroutine
+
+subroutine create_minilist_find_previous(key_mask, fullList, miniList, N_fullList, N_miniList, fullMatch, Nint)
+  use bitmasks
+  implicit none
+  
+  integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
+  integer, intent(in)                      :: N_fullList
+  integer(bit_kind),intent(out)            :: miniList(Nint, 2, N_fullList)
+  integer(bit_kind)                        :: subList(Nint, 2, N_fullList)
+  logical,intent(out)                      :: fullMatch
+  integer,intent(out)                      :: N_miniList
+  integer, intent(in)                      :: Nint
+  integer(bit_kind)                        :: key_mask(Nint, 2)
+  integer                                  :: ni, i, k, l, N_subList
+  
+  
+  fullMatch = .false.
+  l = 0
+  N_miniList = 0
+  N_subList = 0
+    
+  do ni = 1,Nint
+    l += popcnt(key_mask(ni,1)) + popcnt(key_mask(ni,2))
+  end do
+  
+  if(l == 0) then
+    N_miniList = N_fullList
+    miniList(:,:,:N_miniList) = fullList(:,:,:N_minilist)
+  else
+    do i=N_fullList,1,-1
+      k = l
+      do ni=1,nint
+        k -= popcnt(iand(key_mask(ni,1), fullList(ni,1,i))) + popcnt(iand(key_mask(ni,2), fullList(ni,2,i)))
+      end do
+      if(k == 2) then
+        N_subList += 1
+        subList(:,:,N_subList) = fullList(:,:,i)
+      else if(k == 1) then
+        N_minilist += 1
+        miniList(:,:,N_minilist) = fullList(:,:,i)
+      else if(k == 0) then
+        fullMatch = .true.
+        return
+      end if
+    end do
+  end if
+  
+  if(N_subList > 0) then
+    miniList(:,:,N_minilist+1:N_minilist+N_subList) = sublist(:,:,:N_subList)
+    N_minilist = N_minilist + N_subList
+  end if
+end subroutine
+
 
 subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   use bitmasks
   implicit none
+  BEGIN_DOC
+! Computes <i|H|Psi> = \sum_J c_J <i|H|J>.
+!
+! Uses filter_connected_i_H_psi0 to get all the |J> to which |i>
+! is connected.
+! The i_H_psi_minilist is much faster but requires to build the
+! minilists
+  END_DOC
   integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate
   integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
   integer(bit_kind), intent(in)  :: key(Nint,2)
@@ -778,9 +959,6 @@ subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   integer                        :: exc(0:2,2,2)
   double precision               :: hij
   integer                        :: idx(0:Ndet)
-  BEGIN_DOC
-  ! <key|H|psi> for the various Nstates
-  END_DOC
   
   ASSERT (Nint > 0)
   ASSERT (N_int == Nint)
@@ -792,10 +970,51 @@ subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   call filter_connected_i_H_psi0(keys,key,Nint,Ndet,idx)
   do ii=1,idx(0)
     i = idx(ii)
-    !DEC$ FORCEINLINE
+    !DIR$ FORCEINLINE
     call i_H_j(keys(1,1,i),key,Nint,hij)
     do j = 1, Nstate
       i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
+    enddo
+  enddo
+end
+
+
+subroutine i_H_psi_minilist(key,keys,idx_key,N_minilist,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
+  use bitmasks
+  implicit none
+  integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate,idx_key(Ndet), N_minilist
+  integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
+  integer(bit_kind), intent(in)  :: key(Nint,2)
+  double precision, intent(in)   :: coef(Ndet_max,Nstate)
+  double precision, intent(out)  :: i_H_psi_array(Nstate)
+  
+  integer                        :: i, ii,j, i_in_key, i_in_coef
+  double precision               :: phase
+  integer                        :: exc(0:2,2,2)
+  double precision               :: hij
+  integer                        :: idx(0:Ndet)
+  BEGIN_DOC
+! Computes <i|H|Psi> = \sum_J c_J <i|H|J>.
+!
+! Uses filter_connected_i_H_psi0 to get all the |J> to which |i>
+! is connected. The |J> are searched in short pre-computed lists.
+  END_DOC
+  
+  ASSERT (Nint > 0)
+  ASSERT (N_int == Nint)
+  ASSERT (Nstate > 0)
+  ASSERT (Ndet > 0)
+  ASSERT (Ndet_max >= Ndet)
+  i_H_psi_array = 0.d0
+  
+  call filter_connected_i_H_psi0(keys,key,Nint,N_minilist,idx)
+  do ii=1,idx(0)
+    i_in_key = idx(ii)
+    i_in_coef = idx_key(idx(ii))
+    !DIR$ FORCEINLINE
+    call i_H_j(keys(1,1,i_in_key),key,Nint,hij)
+    do j = 1, Nstate
+      i_H_psi_array(j) = i_H_psi_array(j) + coef(i_in_coef,j)*hij
     enddo
   enddo
 end
@@ -830,7 +1049,7 @@ subroutine i_H_psi_sec_ord(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array
   n_interact = 0
   do ii=1,idx(0)
     i = idx(ii)
-    !DEC$ FORCEINLINE
+    !DIR$ FORCEINLINE
     call i_H_j(keys(1,1,i),key,Nint,hij)
     if(dabs(hij).ge.1.d-8)then
      if(i.ne.1)then
@@ -885,7 +1104,7 @@ subroutine i_H_psi_SC2(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array,idx
   call filter_connected_i_H_psi0_SC2(keys,key,Nint,Ndet,idx,idx_repeat)
   do ii=1,idx(0)
     i = idx(ii)
-    !DEC$ FORCEINLINE
+    !DIR$ FORCEINLINE
     call i_H_j(keys(1,1,i),key,Nint,hij)
     do j = 1, Nstate
       i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
@@ -934,7 +1153,7 @@ subroutine i_H_psi_SC2_verbose(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_a
   do ii=1,idx(0)
     print*,'--'
     i = idx(ii)
-    !DEC$ FORCEINLINE
+    !DIR$ FORCEINLINE
     call i_H_j(keys(1,1,i),key,Nint,hij)
     if (i==1)then
      print*,'i==1 !!'
@@ -1024,7 +1243,7 @@ subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
     !DIR$ LOOP COUNT (1000)
     do i=1,sze
       d = 0
-      !DEC$ LOOP COUNT MIN(4)
+      !DIR$ LOOP COUNT MIN(4)
       do m=1,Nint
         d = d + popcnt(xor( key1(m,1,i), key2(m,1)))                 &
               + popcnt(xor( key1(m,2,i), key2(m,2)))
@@ -1044,6 +1263,75 @@ end
 
 
 
+
+double precision function diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes <i|H|i> when i is at most a double excitation from
+  ! a reference.
+  END_DOC
+  integer,intent(in)             :: Nint
+  integer(bit_kind),intent(in)   :: det_ref(Nint,2), det_pert(Nint,2)
+  double precision, intent(in)   :: fock_diag_tmp(2,mo_tot_num+1)
+
+  integer                        :: degree
+  double precision               :: phase, E0
+  integer                        :: exc(0:2,2,2)
+  integer                        :: h1, p1, h2, p2, s1, s2
+
+  call get_excitation_degree(det_ref,det_pert,degree,Nint)
+  E0 = fock_diag_tmp(1,mo_tot_num+1)
+  if (degree == 2) then
+    call get_double_excitation(det_ref,det_pert,exc,phase,Nint)
+    call decode_exc(exc,2,h1,p1,h2,p2,s1,s2)
+
+    if ( (s1 == 1).and.(s2 == 1) ) then      ! alpha/alpha
+      diag_H_mat_elem_fock = E0 &
+        - fock_diag_tmp(1,h1) &
+        + ( fock_diag_tmp(1,p1) - mo_bielec_integral_jj_anti(h1,p1) ) &
+        - ( fock_diag_tmp(1,h2) - mo_bielec_integral_jj_anti(h1,h2)   &
+            + mo_bielec_integral_jj_anti(p1,h2) )                     &
+        + ( fock_diag_tmp(1,p2) - mo_bielec_integral_jj_anti(h1,p2)   &
+            + mo_bielec_integral_jj_anti(p1,p2) - mo_bielec_integral_jj_anti(h2,p2) )
+
+    else if ( (s1 == 2).and.(s2 == 2) ) then ! beta/beta
+      diag_H_mat_elem_fock = E0 &
+        - fock_diag_tmp(2,h1) &
+        + ( fock_diag_tmp(2,p1) - mo_bielec_integral_jj_anti(h1,p1) ) &
+        - ( fock_diag_tmp(2,h2) - mo_bielec_integral_jj_anti(h1,h2)   &
+            + mo_bielec_integral_jj_anti(p1,h2) )                     &
+        + ( fock_diag_tmp(2,p2) - mo_bielec_integral_jj_anti(h1,p2)   &
+            + mo_bielec_integral_jj_anti(p1,p2) - mo_bielec_integral_jj_anti(h2,p2) )
+
+    else                                    ! alpha/beta
+      diag_H_mat_elem_fock = E0 &
+        - fock_diag_tmp(1,h1) &
+        + ( fock_diag_tmp(1,p1) - mo_bielec_integral_jj_anti(h1,p1) ) &
+        - ( fock_diag_tmp(2,h2) - mo_bielec_integral_jj(h1,h2)        &
+            + mo_bielec_integral_jj(p1,h2) )                          &
+        + ( fock_diag_tmp(2,p2) - mo_bielec_integral_jj(h1,p2)        &
+            + mo_bielec_integral_jj(p1,p2) - mo_bielec_integral_jj_anti(h2,p2) )
+
+    endif
+
+  else if (degree == 1) then
+    call get_mono_excitation(det_ref,det_pert,exc,phase,Nint)
+    call decode_exc(exc,1,h1,p1,h2,p2,s1,s2)
+    if (s1 == 1) then
+      diag_H_mat_elem_fock = E0 - fock_diag_tmp(1,h1) &
+        + ( fock_diag_tmp(1,p1) - mo_bielec_integral_jj_anti(h1,p1) ) 
+    else 
+      diag_H_mat_elem_fock = E0 - fock_diag_tmp(2,h1) &
+        + ( fock_diag_tmp(2,p1) - mo_bielec_integral_jj_anti(h1,p1) ) 
+    endif
+
+  else if (degree == 0) then
+    diag_H_mat_elem_fock = E0
+  else
+    STOP 'Bug in diag_H_mat_elem_fock'
+  endif
+end
 
 double precision function diag_H_mat_elem(det_in,Nint)
   implicit none
@@ -1068,14 +1356,14 @@ double precision function diag_H_mat_elem(det_in,Nint)
   nexc(1) = 0
   nexc(2) = 0
   do i=1,Nint
-    hole(i,1)     =  xor(det_in(i,1),ref_bitmask(i,1))
-    hole(i,2)     =  xor(det_in(i,2),ref_bitmask(i,2))
+    hole(i,1)     = xor(det_in(i,1),ref_bitmask(i,1))
+    hole(i,2)     = xor(det_in(i,2),ref_bitmask(i,2))
     particle(i,1) = iand(hole(i,1),det_in(i,1))
     particle(i,2) = iand(hole(i,2),det_in(i,2))
     hole(i,1)     = iand(hole(i,1),ref_bitmask(i,1))
     hole(i,2)     = iand(hole(i,2),ref_bitmask(i,2))
-    nexc(1)      += popcnt(hole(i,1))
-    nexc(2)      += popcnt(hole(i,2))
+    nexc(1)       = nexc(1) + popcnt(hole(i,1))
+    nexc(2)       = nexc(2) + popcnt(hole(i,2))
   enddo
   
   diag_H_mat_elem = ref_bitmask_energy
@@ -1084,15 +1372,15 @@ double precision function diag_H_mat_elem(det_in,Nint)
   endif
   
   !call debug_det(det_in,Nint)
-  integer                        :: tmp
-  call bitstring_to_list(particle(1,1), occ_particle(1,1), tmp, Nint)
-  ASSERT (tmp == nexc(1))
-  call bitstring_to_list(particle(1,2), occ_particle(1,2), tmp, Nint)
-  ASSERT (tmp == nexc(2))
-  call bitstring_to_list(hole(1,1), occ_hole(1,1), tmp, Nint)
-  ASSERT (tmp == nexc(1))
-  call bitstring_to_list(hole(1,2), occ_hole(1,2), tmp, Nint)
-  ASSERT (tmp == nexc(2))
+  integer                        :: tmp(2)
+  !DIR$ FORCEINLINE
+  call bitstring_to_list_ab(particle, occ_particle, tmp, Nint)
+  ASSERT (tmp(1) == nexc(1))
+  ASSERT (tmp(2) == nexc(2))
+  !DIR$ FORCEINLINE
+  call bitstring_to_list_ab(hole, occ_hole, tmp, Nint)
+  ASSERT (tmp(1) == nexc(1))
+  ASSERT (tmp(2) == nexc(2))
   
   det_tmp = ref_bitmask
   do ispin=1,2
@@ -1121,6 +1409,7 @@ subroutine a_operator(iorb,ispin,key,hjj,Nint,na,nb)
   integer                        :: occ(Nint*bit_kind_size,2)
   integer                        :: other_spin
   integer                        :: k,l,i
+  integer                        :: tmp(2)
   
   ASSERT (iorb > 0)
   ASSERT (ispin > 0)
@@ -1134,19 +1423,19 @@ subroutine a_operator(iorb,ispin,key,hjj,Nint,na,nb)
   other_spin = iand(ispin,1)+1
   
   !DIR$ FORCEINLINE
-  call get_occ_from_key(key,occ,Nint)
-  na -= 1
+  call bitstring_to_list_ab(key, occ, tmp, Nint)
+  na = na-1
   
-  hjj -= mo_mono_elec_integral(iorb,iorb)
+  hjj = hjj - mo_mono_elec_integral(iorb,iorb)
   
   ! Same spin
   do i=1,na
-    hjj -= mo_bielec_integral_jj_anti(occ(i,ispin),iorb)
+    hjj = hjj - mo_bielec_integral_jj_anti(occ(i,ispin),iorb)
   enddo
   
   ! Opposite spin
   do i=1,nb
-    hjj -= mo_bielec_integral_jj(occ(i,other_spin),iorb)
+    hjj = hjj - mo_bielec_integral_jj(occ(i,other_spin),iorb)
   enddo
   
 end
@@ -1172,13 +1461,11 @@ subroutine ac_operator(iorb,ispin,key,hjj,Nint,na,nb)
   ASSERT (ispin < 3)
   ASSERT (Nint > 0)
   
-  integer                        :: tmp
+  integer                        :: tmp(2)
   !DIR$ FORCEINLINE
-  call bitstring_to_list(key(1,1), occ(1,1), tmp, Nint)
-  ASSERT (tmp == elec_alpha_num)
-  !DIR$ FORCEINLINE
-  call bitstring_to_list(key(1,2), occ(1,2), tmp, Nint)
-  ASSERT (tmp == elec_beta_num)
+  call bitstring_to_list_ab(key, occ, tmp, Nint)
+  ASSERT (tmp(1) == elec_alpha_num)
+  ASSERT (tmp(2) == elec_beta_num)
   
   k = ishft(iorb-1,-bit_kind_shift)+1
   ASSERT (k > 0)
@@ -1186,18 +1473,18 @@ subroutine ac_operator(iorb,ispin,key,hjj,Nint,na,nb)
   key(k,ispin) = ibset(key(k,ispin),l)
   other_spin = iand(ispin,1)+1
   
-  hjj += mo_mono_elec_integral(iorb,iorb)
+  hjj = hjj + mo_mono_elec_integral(iorb,iorb)
   
   ! Same spin
   do i=1,na
-    hjj += mo_bielec_integral_jj_anti(occ(i,ispin),iorb)
+    hjj = hjj + mo_bielec_integral_jj_anti(occ(i,ispin),iorb)
   enddo
   
   ! Opposite spin
   do i=1,nb
-    hjj += mo_bielec_integral_jj(occ(i,other_spin),iorb)
+    hjj = hjj + mo_bielec_integral_jj(occ(i,other_spin),iorb)
   enddo
-  na += 1
+  na = na+1
 end
 
 subroutine get_occ_from_key(key,occ,Nint)
@@ -1209,14 +1496,14 @@ subroutine get_occ_from_key(key,occ,Nint)
   integer(bit_kind), intent(in)  :: key(Nint,2)
   integer          , intent(in)  :: Nint
   integer         , intent(out)  :: occ(Nint*bit_kind_size,2)
-  integer                        :: tmp
+  integer                        :: tmp(2)
   
-  call bitstring_to_list(key(1,1), occ(1,1), tmp, Nint)
-  call bitstring_to_list(key(1,2), occ(1,2), tmp, Nint)
+  !DIR$ FORCEINLINE
+  call bitstring_to_list_ab(key, occ, tmp, Nint)
   
 end
 
-subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,shortcut,sort_idx,Nint)
+subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -1234,308 +1521,126 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,shortcut,sort_idx,Nint)
   integer, allocatable           :: idx(:)
   double precision               :: hij
   double precision, allocatable  :: vt(:)
-  integer                        :: i,j,k,l, jj,ii,sh
+  integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0
   
-  integer,intent(in)             :: shortcut(0:n+1), sort_idx(n)
-  integer                        :: tmp, warp(2,0:n+1), ni
+  integer, allocatable           :: shortcut(:), sort_idx(:)
+  integer(bit_kind), allocatable :: sorted(:,:), version(:,:)
+  integer(bit_kind)              :: sorted_i(Nint)
+  
+  integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi
+  double precision               :: local_threshold
   
 
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
   ASSERT (n>0)
-  PROVIDE ref_bitmask_energy
-  !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt,ii,warp,tmp,sh)                             &
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold,shortcut,sort_idx)
-  allocate(idx(0:n), vt(n))
-  Vt = 0.d0
+  PROVIDE ref_bitmask_energy davidson_criterion
+
+  allocate (shortcut(0:n+1), sort_idx(n), sorted(Nint,n), version(Nint,n))
   v_0 = 0.d0
+
+  call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
+  
+  !$OMP PARALLEL DEFAULT(NONE)                                       &
+      !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,local_threshold,sorted_i)&
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,threshold_davidson,sorted,shortcut,sort_idx,version)
+  allocate(vt(n))
+  Vt = 0.d0
+  
   !$OMP DO SCHEDULE(dynamic)
-  
-  
   do sh=1,shortcut(0)
-    warp(1,0) = 0
-    do ii=1,sh!shortcut(0)
-      tmp = 0
+    do sh2=1,sh
+      exa = 0
       do ni=1,Nint
-        tmp = popcnt(xor(keys_tmp(ni,1, shortcut(ii)), keys_tmp(ni,1,shortcut(sh))))
+        exa = exa + popcnt(xor(version(ni,sh), version(ni,sh2)))
       end do
-      if(tmp <= 4) then
-        warp(1,0) = warp(1,0) + 1
-        warp(1,warp(1,0)) = shortcut(ii)
-        warp(2,warp(1,0)) = shortcut(ii+1)-1
+      if(exa > 2) then
+        cycle
       end if
-    end do
-    
-    
-    do ii=shortcut(sh),shortcut(sh+1)-1
-      idx(0) = ii
       
-      call filter_connected_davidson_warp(keys_tmp,warp,keys_tmp(1,1,ii),Nint,ii-1,idx)
-      i = sort_idx(ii)
-      
-      do jj=1,idx(0)
-        j = sort_idx(idx(jj))
-        if ( dabs(u_0(j)) + dabs(u_0(i)) > davidson_threshold ) then
-          call i_H_j(keys_tmp(1,1,idx(jj)),keys_tmp(1,1,ii),Nint,hij)
-          vt (i) = vt (i) + hij*u_0(j)
-          vt (j) = vt (j) + hij*u_0(i)
-        endif
+      do i=shortcut(sh),shortcut(sh+1)-1
+        org_i = sort_idx(i)
+        local_threshold = threshold_davidson - dabs(u_0(org_i))
+        if(sh==sh2) then
+          endi = i-1
+        else
+          endi = shortcut(sh2+1)-1
+        end if
+        do ni=1,Nint
+          sorted_i(ni) = sorted(ni,i)
+        enddo
+        
+        do j=shortcut(sh2),endi
+          org_j = sort_idx(j)
+          if ( dabs(u_0(org_j)) > local_threshold ) then
+            ext = exa
+            do ni=1,Nint
+              ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j)))
+            end do
+            if(ext <= 4) then
+              call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
+              vt (org_i) = vt (org_i) + hij*u_0(org_j)
+              vt (org_j) = vt (org_j) + hij*u_0(org_i)
+            endif
+          endif
+        enddo
       enddo
     enddo
   enddo
   !$OMP END DO
+  
   !$OMP CRITICAL
   do i=1,n
     v_0(i) = v_0(i) + vt(i)
   enddo
   !$OMP END CRITICAL
-  deallocate(idx,vt)
+  
+  deallocate(vt)
   !$OMP END PARALLEL
-  do i=1,n
-    v_0(i) += H_jj(i) * u_0(i)
-  enddo
-end
-
-
-subroutine H_u_0_org(v_0,u_0,H_jj,n,keys_tmp,Nint)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Computes v_0 = H|u_0>
-  !
-  ! n : number of determinants
-  !
-  ! H_jj : array of <j|H|j>
-  END_DOC
-  integer, intent(in)            :: n,Nint
-  double precision, intent(out)  :: v_0(n)
-  double precision, intent(in)   :: u_0(n)
-  double precision, intent(in)   :: H_jj(n)
-  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
-  integer, allocatable           :: idx(:)
-  double precision               :: hij
-  double precision, allocatable  :: vt(:)
-  integer                        :: i,j,k,l, jj,ii,sh
-  integer                        :: i0, j0
   
+  call sort_dets_ba_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
   
-
-  ASSERT (Nint > 0)
-  ASSERT (Nint == N_int)
-  ASSERT (n>0)
-  PROVIDE ref_bitmask_energy
   !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(i,hij,j,k,idx,jj,vt,ii)                             &
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,davidson_threshold)
-  allocate(idx(0:n), vt(n))
+      !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,local_threshold)&
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,threshold_davidson,sorted,shortcut,sort_idx,version)
+  allocate(vt(n))
   Vt = 0.d0
-  v_0 = 0.d0
-  !$OMP DO SCHEDULE(guided)
   
-  
-
-    
-    
-    do ii=1,n
-      idx(0) = ii
-      i = ii
-      call filter_connected_davidson(keys_tmp,keys_tmp(1,1,ii),Nint,ii-1,idx)
-      
-      do jj=1,idx(0)
-        j = idx(jj)
-        if ( dabs(u_0(j)) + dabs(u_0(i)) > davidson_threshold ) then
-          call i_H_j(keys_tmp(1,1,idx(jj)),keys_tmp(1,1,ii),Nint,hij)
-          vt (i) = vt (i) + hij*u_0(j)
-          vt (j) = vt (j) + hij*u_0(i)
-        endif
-      enddo
-    enddo
-
+  !$OMP DO SCHEDULE(dynamic)
+  do sh=1,shortcut(0)
+    do i=shortcut(sh),shortcut(sh+1)-1
+      org_i = sort_idx(i)
+      local_threshold = threshold_davidson - dabs(u_0(org_i))
+      do j=shortcut(sh),i-1
+        org_j = sort_idx(j)
+        if ( dabs(u_0(org_j)) > local_threshold ) then
+          ext = 0
+          do ni=1,Nint
+            ext = ext + popcnt(xor(sorted(ni,i), sorted(ni,j)))
+          end do
+          if(ext == 4) then
+            call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
+            vt (org_i) = vt (org_i) + hij*u_0(org_j)
+            vt (org_j) = vt (org_j) + hij*u_0(org_i)
+          end if
+        end if
+      end do
+    end do
+  enddo
   !$OMP END DO
+  
   !$OMP CRITICAL
   do i=1,n
     v_0(i) = v_0(i) + vt(i)
   enddo
   !$OMP END CRITICAL
-  deallocate(idx,vt)
+  deallocate(vt)
   !$OMP END PARALLEL
+  
   do i=1,n
     v_0(i) += H_jj(i) * u_0(i)
   enddo
+  deallocate (shortcut, sort_idx, sorted, version)
 end
-
-
-
-BEGIN_PROVIDER [ integer, N_con_int ]
-  implicit none
-  BEGIN_DOC
-  ! Number of integers to represent the connections between determinants
-  END_DOC
-  N_con_int = 1 + ishft(N_det-1,-11)
-END_PROVIDER
-
-BEGIN_PROVIDER [ integer*8, det_connections, (N_con_int,N_det) ]
-  implicit none
-  BEGIN_DOC
-  ! Build connection proxy between determinants
-  END_DOC
-  integer                        :: i,j
-  integer                        :: degree
-  integer                        :: j_int, j_k, j_l
-  integer, allocatable           :: idx(:)
-  integer                        :: thread_num
-  integer                        :: omp_get_thread_num
-  
-  PROVIDE progress_bar
-  call start_progress(N_det,'Det connections',0.d0)
-
-  select case(N_int)
-      
-    case(1)
-      
-
-      !$OMP PARALLEL DEFAULT (NONE)                                  &
-          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections, &
-          !$OMP progress_bar,progress_value)&
-          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx,thread_num)
-
-      !$  thread_num = omp_get_thread_num()
-      allocate (idx(0:N_det))
-      !$OMP DO SCHEDULE(guided)
-      do i=1,N_det
-        if (thread_num == 0) then
-          progress_bar(1) = i
-          progress_value = dble(i)
-        endif
-        do j_int=1,N_con_int
-          det_connections(j_int,i) = 0_8
-          j_k = ishft(j_int-1,11)
-          do j_l = j_k,min(j_k+2047,N_det), 32
-            do j = j_l+1,min(j_l+32,i)
-              degree = popcnt(xor( psi_det(1,1,i),psi_det(1,1,j))) + &
-                  popcnt(xor( psi_det(1,2,i),psi_det(1,2,j)))
-              if (degree < 5) then
-                det_connections(j_int,i) = ibset( det_connections(j_int,i), iand(63,ishft(j_l,-5)) )
-                exit
-              endif
-            enddo
-          enddo
-        enddo
-      enddo
-      !$OMP ENDDO
-      deallocate(idx)
-      !$OMP END PARALLEL
-      
-    case(2)
-      
-      !$OMP PARALLEL DEFAULT (NONE)                                  &
-          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections,&
-          !$OMP progress_bar,progress_value)&
-          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx,thread_num)
-      !$  thread_num = omp_get_thread_num()
-      allocate (idx(0:N_det))
-      !$OMP DO SCHEDULE(guided)
-      do i=1,N_det
-        if (thread_num == 0) then
-          progress_bar(1) = i
-          progress_value = dble(i)
-        endif
-        do j_int=1,N_con_int
-          det_connections(j_int,i) = 0_8
-          j_k = ishft(j_int-1,11)
-          do j_l = j_k,min(j_k+2047,N_det), 32
-            do j = j_l+1,min(j_l+32,i)
-              degree = popcnt(xor( psi_det(1,1,i),psi_det(1,1,j))) + &
-                  popcnt(xor( psi_det(1,2,i),psi_det(1,2,j))) +      &
-                  popcnt(xor( psi_det(2,1,i),psi_det(2,1,j))) +      &
-                  popcnt(xor( psi_det(2,2,i),psi_det(2,2,j)))
-              if (degree < 5) then
-                det_connections(j_int,i) = ibset( det_connections(j_int,i), iand(63,ishft(j_l,-5)) )
-                exit
-              endif
-            enddo
-          enddo
-        enddo
-      enddo
-      !$OMP ENDDO
-      deallocate(idx)
-      !$OMP END PARALLEL
-      
-    case(3)
-      
-      !$OMP PARALLEL DEFAULT (NONE)                                  &
-          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections,&
-          !$OMP progress_bar,progress_value)&
-          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx,thread_num)
-      !$  thread_num = omp_get_thread_num()
-      allocate (idx(0:N_det))
-      !$OMP DO SCHEDULE(guided)
-      do i=1,N_det
-        if (thread_num == 0) then
-          progress_bar(1) = i
-          progress_value = dble(i)
-        endif
-        do j_int=1,N_con_int
-          det_connections(j_int,i) = 0_8
-          j_k = ishft(j_int-1,11)
-          do j_l = j_k,min(j_k+2047,N_det), 32
-            do j = j_l+1,min(j_l+32,i)
-              degree = popcnt(xor( psi_det(1,1,i),psi_det(1,1,j))) + &
-                  popcnt(xor( psi_det(1,2,i),psi_det(1,2,j))) +      &
-                  popcnt(xor( psi_det(2,1,i),psi_det(2,1,j))) +      &
-                  popcnt(xor( psi_det(2,2,i),psi_det(2,2,j))) +      &
-                  popcnt(xor( psi_det(3,1,i),psi_det(3,1,j))) +      &
-                  popcnt(xor( psi_det(3,2,i),psi_det(3,2,j)))
-              if (degree < 5) then
-                det_connections(j_int,i) = ibset( det_connections(j_int,i), iand(63,ishft(j_l,-5)) )
-                exit
-              endif
-            enddo
-          enddo
-        enddo
-      enddo
-      !$OMP ENDDO
-      deallocate(idx)
-      !$OMP END PARALLEL
-      
-    case default
-      
-      
-      !$OMP PARALLEL DEFAULT (NONE)                                  &
-          !$OMP SHARED(N_det, N_con_int, psi_det,N_int, det_connections,&
-          !$OMP progress_bar,progress_value)&
-          !$OMP PRIVATE(i,j_int,j_k,j_l,j,degree,idx,thread_num)
-      !$  thread_num = omp_get_thread_num()
-      allocate (idx(0:N_det))
-      !$OMP DO SCHEDULE(guided)
-      do i=1,N_det
-        if (thread_num == 0) then
-          progress_bar(1) = i
-          progress_value = dble(i)
-        endif
-        do j_int=1,N_con_int
-          det_connections(j_int,i) = 0_8
-          j_k = ishft(j_int-1,11)
-          do j_l = j_k,min(j_k+2047,N_det), 32
-            do j = j_l+1,min(j_l+32,i)
-              !DIR$ FORCEINLINE
-              call get_excitation_degree(psi_det(1,1,i),psi_det(1,1,j),degree,N_int)
-              if (degree < 3) then
-                det_connections(j_int,i) = ibset( det_connections(j_int,i), iand(63,ishft(j_l,-5)) )
-                exit
-              endif
-            enddo
-          enddo
-        enddo
-      enddo
-      !$OMP ENDDO
-      deallocate(idx)
-      !$OMP END PARALLEL
-      
-  end select
-  call stop_progress
-
-END_PROVIDER
 

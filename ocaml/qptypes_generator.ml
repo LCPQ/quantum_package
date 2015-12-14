@@ -83,6 +83,12 @@ let input_data = "
   assert (x >= 0.) ;
   assert (x <= 1.) ;
 
+* Energy : float
+  assert (x <=0.) ;
+
+* S2 : float
+  assert (x >=0.) ;
+
 * PT2_energy : float
   assert (x >=0.) ;
 

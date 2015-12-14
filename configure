@@ -33,8 +33,8 @@ import sys
 from os.path import join
 
 if not any(i in ["--production", "--development"] for i in sys.argv):
-    print __doc__
-    sys.exit()
+    sys.argv += ["--development"]
+
 if len(sys.argv) != 3:
     print __doc__
     sys.exit()
@@ -46,6 +46,7 @@ if len(sys.argv) != 3:
 
 QP_ROOT = os.getcwd()
 QP_ROOT_BIN = join(QP_ROOT, "bin")
+QP_ROOT_LIB = join(QP_ROOT, "lib")
 QP_ROOT_INSTALL = join(QP_ROOT, "install")
 
 os.environ["PATH"] = os.environ["PATH"] + ":" + QP_ROOT_BIN
@@ -62,8 +63,11 @@ d_dependency = {
     "resultsFile": ["python"],
     "emsl": ["python"],
     "gcc": [],
+    "g++": [],
+    "zeromq" : [ "g++" ],
+    "f77zmq" : [ "zeromq", "python" ],
     "python": [],
-    "ninja": ["gcc", "python"],
+    "ninja": ["g++", "python"],
     "make": [],
     "p_graphviz": ["python"]
 }
@@ -92,12 +96,12 @@ curl = Info(
 zlib = Info(
     url='http://zlib.net/zlib-1.2.8.tar.gz',
     description=' zlib',
-    default_path=join(QP_ROOT_INSTALL, "zlib"))
+    default_path=join(QP_ROOT_LIB, "libz.a"))
 
-path = Info(
+patch = Info(
     url='ftp://ftp.gnu.org/gnu/patch/patch-2.7.5.tar.gz',
-    description=' path',
-    default_path=join(QP_ROOT, "lib", "libz.a"))
+    description=' patch',
+    default_path=join(QP_ROOT_BIN, "patch"))
 
 irpf90 = Info(
     url='{head}/LCPQ/irpf90/{tail}'.format(**path_github),
@@ -116,12 +120,11 @@ resultsFile = Info(
 
 ninja = Info(
     url='{head}/martine/ninja/{tail}'.format(**path_github),
-    description=' nina',
+    description=' ninja',
     default_path=join(QP_ROOT_BIN, "ninja"))
 
 emsl = Info(
-    url='{head}/LCPQ/EMSL_Basis_Set_Exchange_Local/{tail}'.format(**
-                                                                  path_github),
+    url='{head}/LCPQ/EMSL_Basis_Set_Exchange_Local/{tail}'.format(**path_github),
     description=' EMSL basis set library',
     default_path=join(QP_ROOT_INSTALL, "emsl"))
 
@@ -130,6 +133,16 @@ ezfio = Info(
     description=' EZFIO',
     default_path=join(QP_ROOT_INSTALL, "EZFIO"))
 
+zeromq = Info(
+    url='http://download.zeromq.org/zeromq-4.1.3.tar.gz',
+    description=' ZeroMQ',
+    default_path=join(QP_ROOT_LIB, "libzmq.a"))
+
+f77zmq = Info(
+    url='{head}/zeromq/f77_zmq/{tail}'.format(**path_github),
+    description=' F77-ZeroMQ',
+    default_path=join(QP_ROOT_LIB, "libf77zmq.a"))
+
 p_graphviz = Info(
     url='https://github.com/xflr6/graphviz/archive/master.tar.gz',
     description=' Python library for graphviz',
@@ -137,8 +150,9 @@ p_graphviz = Info(
 
 d_info = dict()
 
-for m in ["ocaml", "m4", "curl", "zlib", "path", "irpf90", "docopt",
-          "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz"]:
+for m in ["ocaml", "m4", "curl", "zlib", "patch", "irpf90", "docopt",
+          "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz",
+          "zeromq", "f77zmq" ]:
     exec ("d_info['{0}']={0}".format(m))
 
 
@@ -189,8 +203,7 @@ def check_output(*popenargs, **kwargs):
 
 def checking(d_dependency):
     """
-    For each key in d_dependency check if it
-    is avalabie or not
+    For each key in d_dependency check if it is avalabie 
     """
 
     def check_python():
@@ -260,7 +273,7 @@ def checking(d_dependency):
     l_installed = dict()
     l_needed = []
 
-    # Check all the other
+    # Check all the others
     length = max(map(len, d_dependency))
 
     for i in d_dependency.keys():
@@ -275,7 +288,7 @@ def checking(d_dependency):
             l_needed.append(i)
     print ""
 
-    # Expend the need_stuff for all the genealogy
+    # Expand the needed stuff for all the genealogy
     l_install_descendant = get_list_descendant(d_dependency, l_installed,
                                                l_needed)
 
@@ -328,7 +341,7 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
     d_print = {
         "install_ninja": "Install ninja...",
         "build": "Creating build.ninja...",
-        "install": "Installing the dependencies with Ninja..."
+        "install": "Installing the dependencies using Ninja..."
     }
 
     length = max(map(len, d_print.values()))
@@ -372,7 +385,7 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
         descr = d_info[need].description
         default_path = d_info[need].default_path
 
-        # Build to dowload
+        # Build to download
         l_build += ["build {0}: download".format(archive_path),
                     "   url = {0}".format(url), "   descr = {0}".format(descr),
                     ""]
@@ -404,7 +417,16 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
         path_ninja = find_path("ninja", l_installed)
         subprocess.check_call("cd install ;{0}".format(path_ninja), shell=True)
     except:
-        raise
+        prefix = os.path.join('install', '_build')
+        for filename in os.listdir(prefix):
+            if filename.endswith(".log"):
+                with open( os.path.join(prefix,filename) ,'r') as f:
+                    print "\n\n"
+                    print "=-=-=-=-=-=- %s =-=-=-=-=-=-" %(filename)
+                    print f.read()
+                    print "=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n\n"
+        print "Error in installation of dependencies"
+        sys.exit(1)
     else:
         print r"""
  _________
@@ -437,11 +459,12 @@ def create_ninja_and_rc(l_installed):
     print str_info("qp_root"),
     python_path = [join(QP_ROOT, "scripts"), join(QP_ROOT, "install")]
 
-    l_python = [join(QP_ROOT, "scripts")]
+    l_python = [join("${QP_ROOT}", "scripts")]
     for dir_ in python_path:
         for folder in os.listdir(dir_):
             path = join(dir_, folder)
             if os.path.isdir(path):
+                path = path.replace(QP_ROOT,"${QP_ROOT}")
                 l_python.append(path)
 
     path_ezfio = find_path('ezfio', l_installed, var_for_qp_root=True)
@@ -450,9 +473,9 @@ def create_ninja_and_rc(l_installed):
 
     l_rc = [
         'export QP_ROOT={0}'.format(QP_ROOT),
-        'export QP_EZFIO={0}'.format(path_ezfio),
-        'export IRPF90={0}'.format(path_irpf90),
-        'export NINJA={0}'.format(path_ninja),
+        'export QP_EZFIO={0}'.format(path_ezfio.replace(QP_ROOT,"${QP_ROOT}")),
+        'export IRPF90={0}'.format(path_irpf90.replace(QP_ROOT,"${QP_ROOT}")),
+        'export NINJA={0}'.format(path_ninja.replace(QP_ROOT,"${QP_ROOT}")),
         'export QP_PYTHON={0}'.format(":".join(l_python)), "",
         'export PYTHONPATH="${QP_EZFIO}/Python":"${QP_PYTHON}":"${PYTHONPATH}"',
         'export PATH="${QP_PYTHON}":"${QP_ROOT}"/bin:"${QP_ROOT}"/ocaml:"${PATH}"',
@@ -526,3 +549,4 @@ if __name__ == '__main__':
     create_ninja_and_rc(l_installed)
 
     recommendation()
+

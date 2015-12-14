@@ -57,10 +57,48 @@ def save_new_module(path, l_child):
         f.write(D_KEY["needed_module"])
         f.write(D_KEY["documentation"])
 
+    with open(os.path.join(path, "%s.main.irp.f"%(module_name) ), "w") as f:
+        f.write("program {0}".format(module_name) )
+        f.write("""  implicit none
+  BEGIN_DOC
+! TODO
+  END_DOC
+  print *, '  _/                              '
+  print *, ' -:\_?,     _Jm####La             '
+  print *, 'J"(:" >  _]#AZ#Z#UUZ##,           '
+  print *, '_,::./   %(|i%12XmX1*1XL      _?, '
+  print *, '  \..\ _\(vmWQwodY+ia%lnL  _",/ ( '
+  print *, '   .:< ]J=mQD?WXn<uQWmmvd, -.-:=!\'
+  print *, '   "{Z jC]QW|=3Zv)Bi3BmXv3  =   _7'
+  print *, '    ]h[Z6)WQ;)jZs]C;|$BZv+, : ./  '
+  print *, '    -#sJX%$Wmm#ev]hinW#Xi:` c ;   '
+  print *, '     #X#X23###1}vI$WWmX1>|,)nr"   '
+  print *, '     4XZ#Xov1v}=)vnXAX1nnv;1n"    '
+  print *, '     ]XX#ZXoovvvivnnnlvvo2*i7     '
+  print *, '     "23Z#1S2oo2XXSnnnoSo2>v"     '
+  print *, '      miX#L -~`""!!1}oSoe|i7      '
+  print *, '      4cn#m,        v221=|v[      '
+  print *, '      ]hI3Zma,;..__wXSe=+vo       '
+  print *, '      ]Zov*XSUXXZXZXSe||vo2       '
+  print *, '      ]Z#><iiii|i||||==vn2(       '
+  print *, '      ]Z#i<ii||+|=||=:{no2[       '
+  print *, '      ]ZUsiiiiivi|=||=vo22[       '
+  print *, '      ]XZvlliiIi|i=|+|vooo        '
+  print *, '      =v1llli||||=|||||lii(       '
+  print *, '      ]iillii||||||||=>=|<        '
+  print *, '      -ziiiii||||||+||==+>        '
+  print *, '       -%|+++||=|=+|=|==/         '
+  print *, '        -a>====+|====-:-          '
+  print *, '          "~,- --   /-            '
+  print *, '            -.     )>             '
+  print *, '           .~      +-             '
+  print *, '           . .... : .             '
+  print *, '            -------~              '
+  print *, ''
+end
+""")
 
-if __name__ == '__main__':
-    arguments = docopt(__doc__)
-
+def main(arguments):
     if arguments["list"]:
 
         if arguments["--installed"]:
@@ -107,12 +145,14 @@ if __name__ == '__main__':
         save_new_module(path, l_child_reduce)
 
         print "    [ OK ]"
-        print "Your module is created in the `plugins` directory."
-        print "You need to create some `.irp.f` to be able to install it."
 #        print "` {0} install {1} `".format(os.path.basename(__file__), name)
         print ""
+        arguments["create"]=False
+        arguments["install"]=True
+        main(arguments)
 
     elif arguments["download"]:
+        print "Not yet implemented"
         pass
 #        d_local = get_dict_child([QP_SRC])
 #        d_remote = get_dict_child(arguments["<path_folder>"])
@@ -204,4 +244,9 @@ if __name__ == '__main__':
                 os.unlink(os.path.join(QP_SRC, module))
             except OSError:
                 print "%s is a core module which can't be removed" % module
+
+
+if __name__ == '__main__':
+    arguments = docopt(__doc__)
+    main(arguments)
 

@@ -42,7 +42,7 @@ let run exe ezfio_file =
 let spec = 
   let open Command.Spec in
   empty
-  +> anon ("exectuable" %: string)
+  +> anon ("executable" %: string)
   +> anon ("ezfio_file" %: string)
 ;;
 

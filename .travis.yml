@@ -27,7 +27,7 @@ python:
 script: 
   - ./configure  --production ./config/gfortran.cfg
   - source ./quantum_package.rc
-  - qp_module.py install Full_CI Hartree_Fock
+  - qp_install_module.py install Full_CI Hartree_Fock CAS_SD MRCC_CASSD
   - ninja
   - cd ocaml ; make ; cd -
   - cd testing_no_regression ; ./unit_test.py

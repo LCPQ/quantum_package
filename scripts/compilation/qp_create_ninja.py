@@ -35,7 +35,9 @@ except ImportError:
 
 from qp_path import QP_ROOT, QP_SRC, QP_EZFIO
 
-EZFIO_LIB = join(QP_ROOT, "lib", "libezfio.a")
+LIB = "" # join(QP_ROOT, "lib", "rdtsc.o") 
+EZFIO_LIB = join(QP_ROOT, "lib", "libezfio_irp.a") 
+ZMQ_LIB   = join(QP_ROOT, "lib", "libf77zmq.a") + " "  + join(QP_ROOT, "lib", "libzmq.a") + " -lstdc++ -lrt"
 ROOT_BUILD_NINJA = join(QP_ROOT, "config", "build.ninja")
 
 header = r"""#
@@ -94,7 +96,7 @@ def ninja_create_env_variable(pwd_config_file):
         l_string.append(str_)
 
     lib_lapack = get_compilation_option(pwd_config_file, "LAPACK_LIB")
-    l_string.append("{0} = {1} {2}".format("LIB", lib_lapack, EZFIO_LIB))
+    l_string.append("LIB = {0} {1} {2} {3}".format(LIB, lib_lapack, EZFIO_LIB, ZMQ_LIB))
 
     l_string.append("")
 
@@ -260,7 +262,7 @@ def ninja_ezfio_rule():
     l_flag = ["export {0}='${0}'".format(flag)
               for flag in ["FC", "FCFLAGS", "IRPF90"]]
 
-    install_lib_ezfio = join(QP_ROOT, 'install', 'EZFIO', "lib", "libezfio.a")
+    install_lib_ezfio = join(QP_ROOT, 'install', 'EZFIO', "lib", "libezfio_irp.a")
     l_cmd = ["cd {0}".format(QP_EZFIO)] + l_flag
     l_cmd += ["rm -f make.config ; ninja && ln -sf {0} {1}".format(install_lib_ezfio, EZFIO_LIB)]
 
@@ -707,7 +709,7 @@ def ninja_dot_tree_rule():
     l_string = [
         "rule build_dot_tree", "   command = {0}".format(" ; ".join(l_cmd)),
         "   generator = 1",
-        "   description = Generate Png representtion of the Tree Dependencies of $module_rel",
+        "   description = Generating Png representation of the Tree Dependencies of $module_rel",
         ""
     ]
 

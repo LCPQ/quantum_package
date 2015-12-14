@@ -102,7 +102,7 @@ subroutine add_integrals_to_map(mask_ijkl)
       !$OMP  mo_coef_transp,                                         &
       !$OMP  mo_coef_transp_is_built, list_ijkl,                     &
       !$OMP  mo_coef_is_built, wall_1, abort_here,                   &
-      !$OMP  mo_coef,mo_integrals_threshold,ao_integrals_map,mo_integrals_map,progress_bar,progress_value)
+      !$OMP  mo_coef,mo_integrals_threshold,mo_integrals_map,progress_bar,progress_value)
   n_integrals = 0
   allocate(bielec_tmp_3(mo_tot_num_align, n_j, n_k),                 &
       bielec_tmp_1(mo_tot_num_align),                                &
@@ -312,9 +312,8 @@ IRP_ENDIF
   
   if (write_mo_integrals) then
     call dump_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin')
-    call ezfio_set_integrals_bielec_disk_access_mo_integrals(.True.)
+    call ezfio_set_integrals_bielec_disk_access_mo_integrals("Read")
   endif
-  
   
 end
 
@@ -488,3 +487,30 @@ END_PROVIDER
  enddo
   
 END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, mo_bielec_integral_schwartz,(mo_tot_num,mo_tot_num)  ]
+  implicit none
+  BEGIN_DOC
+  !  Needed to compute Schwartz inequalities
+  END_DOC
+  
+  integer                        :: i,k
+  
+  do i=1,mo_tot_num
+    do k=1,mo_tot_num
+      mo_bielec_integral_schwartz(k,i) = dsqrt(mo_bielec_integral_jj(k,i))
+    enddo
+  enddo
+  
+END_PROVIDER
+
+
+subroutine clear_mo_map
+  implicit none
+  BEGIN_DOC
+  ! Frees the memory of the MO map
+  END_DOC
+  call map_deinit(mo_integrals_map)
+  FREE mo_integrals_map mo_bielec_integral_schwartz mo_bielec_integral_jj mo_bielec_integral_jj_anti
+  FREE mo_bielec_integral_jj_exchange mo_bielec_integrals_in_map
+end

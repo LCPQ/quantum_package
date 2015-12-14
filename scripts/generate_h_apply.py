@@ -60,7 +60,7 @@ class H_apply(object):
     s["omp_master"]       = "!$OMP MASTER"
     s["omp_end_master"]   = "!$OMP END MASTER"
     s["omp_barrier"]      = "!$OMP BARRIER"
-    s["omp_do"]           = "!$OMP DO SCHEDULE (static)"
+    s["omp_do"]           = "!$OMP DO SCHEDULE (static,1)"
     s["omp_enddo"]        = "!$OMP ENDDO NOWAIT"
 
     d = { True : '.True.', False : '.False.'}
@@ -99,7 +99,7 @@ class H_apply(object):
   deallocate(H_jj,iorder)
     """
 
-    s["size_max"] = str(1024*128) 
+    s["size_max"] = "256"
     s["copy_buffer"] = """call copy_H_apply_buffer_to_wf
   if (s2_eig) then
     call make_s2_eigenfunction
@@ -131,10 +131,10 @@ class H_apply(object):
   def filter_vvvv_excitation(self):
     self["filter_vvvv_excitation"] = """
      key_union_hole_part = 0_bit_kind
-     call set_bite_to_integer(i_a,key_union_hole_part,N_int)
-     call set_bite_to_integer(j_a,key_union_hole_part,N_int)
-     call set_bite_to_integer(i_b,key_union_hole_part,N_int)
-     call set_bite_to_integer(j_b,key_union_hole_part,N_int)
+     call set_bit_to_integer(i_a,key_union_hole_part,N_int)
+     call set_bit_to_integer(j_a,key_union_hole_part,N_int)
+     call set_bit_to_integer(i_b,key_union_hole_part,N_int)
+     call set_bit_to_integer(j_b,key_union_hole_part,N_int)
      do jtest_vvvv = 1, N_int
       if(iand(key_union_hole_part(jtest_vvvv),virt_bitmask(jtest_vvvv,1).ne.key_union_hole_part(jtest_vvvv)))then
        b_cycle = .False.
@@ -157,7 +157,6 @@ class H_apply(object):
 
   def set_filter_2h_2p(self):
     self["filter2h2p"] = """
-!    ! DIR$ FORCEINLINE
      if (is_a_two_holes_two_particles(key)) cycle
     """
 
@@ -201,11 +200,11 @@ class H_apply(object):
       """
       self.data["size_max"] = "256" 
       self.data["initialization"] = """
-      PROVIDE CI_electronic_energy psi_selectors_coef psi_selectors E_corr_per_selectors psi_det_sorted_bit
+      PROVIDE psi_selectors_coef psi_selectors E_corr_per_selectors psi_det_sorted_bit
       """
       self.data["keys_work"] = """
       call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-       sum_norm_pert,sum_H_pert_diag,N_st,N_int)
+       sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
       """%(pert,)
       self.data["finalization"] = """
       """
@@ -219,7 +218,7 @@ class H_apply(object):
   double precision, intent(inout):: norm_pert(N_st) 
   double precision, intent(inout):: H_pert_diag(N_st)
   double precision               :: delta_pt2(N_st), norm_psi(N_st), pt2_old(N_st)
-  PROVIDE CI_electronic_energy N_det_generators 
+  PROVIDE N_det_generators 
   do k=1,N_st
     pt2(k) = 0.d0
     norm_pert(k) = 0.d0
@@ -266,7 +265,7 @@ class H_apply(object):
       double precision, intent(inout) :: select_max_out"""
 
       self.data["params_post"] += ", select_max(min(i_generator,size(select_max,1)))"
-      self.data["size_max"] = str(1024*128) 
+      self.data["size_max"] = "256"
       self.data["copy_buffer"] = """
       call copy_H_apply_buffer_to_wf
       if (s2_eig) then

@@ -27,6 +27,8 @@ program var_pt2_ratio_run
     call diagonalize_CI
     ratio = (CI_energy(1) - HF_energy) / (CI_energy(1)+pt2(1) - HF_energy)
     if (N_det > 20000) then
+      N_det = 20000
+      TOUCH N_det
       exit
     endif
   enddo

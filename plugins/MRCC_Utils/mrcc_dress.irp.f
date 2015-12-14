@@ -14,54 +14,6 @@ BEGIN_PROVIDER [ integer(omp_lock_kind), psi_ref_lock, (psi_det_size) ]
 END_PROVIDER
 
 
-subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullList, N_miniList, Nint)
-  use bitmasks
-  implicit none
-  
-  integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
-  integer, intent(in)                      :: N_fullList
-  integer(bit_kind),intent(out)            :: miniList(Nint, 2, N_fullList)
-  integer,intent(out)                      :: idx_miniList(N_fullList), N_miniList
-  integer, intent(in)                      :: Nint
-  integer(bit_kind)                        :: key_mask(Nint, 2)
-  integer                                  :: ni, i, n_a, n_b, e_a, e_b
-  
-  
-  n_a = 0
-  n_b = 0
-  do ni=1,nint
-    n_a = n_a + popcnt(key_mask(ni,1))
-    n_b = n_b + popcnt(key_mask(ni,2))
-  end do
-  
-  if(n_a == 0) then
-    N_miniList = N_fullList
-    miniList(:,:,:) = fullList(:,:,:)
-    do i=1,N_fullList
-      idx_miniList(i) = i
-    end do
-    return
-  end if
-  
-  N_miniList = 0
-  
-  do i=1,N_fullList
-    e_a = n_a
-    e_b = n_b
-    do ni=1,nint
-      e_a -= popcnt(iand(fullList(ni, 1, i), key_mask(ni, 1)))
-      e_b -= popcnt(iand(fullList(ni, 2, i), key_mask(ni, 2)))
-    end do
-    
-    if(e_a + e_b <= 2) then
-      N_miniList = N_miniList + 1
-      miniList(:,:,N_miniList) = fullList(:,:,i)
-      idx_miniList(N_miniList) = i
-    end if
-  end do
-end subroutine
-
-
 subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n_selected,det_buffer,Nint,iproc,key_mask)
  use bitmasks
  implicit none
@@ -75,11 +27,10 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n
   integer                        :: i,j,k,l
   integer                        :: degree_alpha(psi_det_size)
   integer                        :: idx_alpha(0:psi_det_size)
-  logical                        :: good
+  logical                        :: good, fullMatch
 
   integer(bit_kind)              :: tq(Nint,2,n_selected)
   integer                        :: N_tq, c_ref ,degree
-  integer                        :: connected_to_ref
 
   double precision               :: hIk, hla, hIl, dIk(N_states), dka(N_states), dIa(N_states)
   double precision, allocatable  :: dIa_hla(:,:)
@@ -91,11 +42,24 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n
   integer                        :: iint, ipos
   integer                        :: i_state, k_sd, l_sd, i_I, i_alpha
   
-  integer(bit_kind)              :: miniList(Nint, 2, N_det_non_ref), key_mask(Nint, 2)
-  integer                        :: idx_miniList(N_det_non_ref), N_miniList
+  integer(bit_kind),allocatable  :: miniList(:,:,:)
+  integer(bit_kind),intent(in)   :: key_mask(Nint, 2)
+  integer,allocatable            :: idx_miniList(:)
+  integer                        :: N_miniList, ni, leng
   
   
-  call find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq)
+  leng = max(N_det_generators, N_det_non_ref)
+  allocate(miniList(Nint, 2, leng), idx_miniList(leng))
+  
+  !create_minilist_find_previous(key_mask, fullList, miniList, N_fullList, N_miniList, fullMatch, Nint)
+  call create_minilist_find_previous(key_mask, psi_det_generators, miniList, i_generator-1, N_miniList, fullMatch, Nint)
+  
+  if(fullMatch) then
+    return
+  end if
+  
+  
+  call find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_minilist)
 
   allocate (dIa_hla(N_states,Ndet_non_ref))
 
@@ -214,61 +178,24 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Ndet_ref, Ndet_non_ref,i_generator,n
     enddo
   enddo
   deallocate (dIa_hla)
+  deallocate(miniList, idx_miniList)
 end
 
 
 
+ BEGIN_PROVIDER [ integer(bit_kind), gen_det_sorted,  (N_int,2,N_det_generators,2) ]
+&BEGIN_PROVIDER [ integer, gen_det_shortcut, (0:N_det_generators,2) ]
+&BEGIN_PROVIDER [ integer, gen_det_version, (N_int, N_det_generators,2) ]
+&BEGIN_PROVIDER [ integer, gen_det_idx, (N_det_generators,2) ]
+  gen_det_sorted(:,:,:,1) = psi_det_generators(:,:,:N_det_generators)
+  gen_det_sorted(:,:,:,2) = psi_det_generators(:,:,:N_det_generators)
+  call sort_dets_ab_v(gen_det_sorted(:,:,:,1), gen_det_idx(:,1), gen_det_shortcut(0:,1), gen_det_version(:,:,1), N_det_generators, N_int)
+  call sort_dets_ba_v(gen_det_sorted(:,:,:,2), gen_det_idx(:,2), gen_det_shortcut(0:,2), gen_det_version(:,:,2), N_det_generators, N_int)
+END_PROVIDER
 
 
+subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_miniList)
 
-
-subroutine mrcc_dress_simple(delta_ij_non_ref_,Ndet_non_ref,i_generator,n_selected,det_buffer,Nint,iproc)
- use bitmasks
- implicit none
-
-  integer, intent(in)            :: i_generator,n_selected, Nint, iproc
-  integer, intent(in) :: Ndet_non_ref
-  double precision, intent(inout) :: delta_ij_non_ref_(Ndet_non_ref,Ndet_non_ref,*)
-
-  integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
-  integer                        :: i,j,k,m
-  integer                        :: new_size
-  integer                        :: degree(psi_det_size)
-  integer                        :: idx(0:psi_det_size)
-  logical                        :: good
-
-  integer(bit_kind)              :: tq(Nint,2,n_selected)
-  integer                        :: N_tq, c_ref
-  integer                        :: connected_to_ref
-
-  call find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq)
-
-  ! Compute <k|H|a><a|H|j> / (E0 - Haa)
-  double precision :: hka, haa
-  double precision :: haj
-  double precision :: f(N_states)
-
-  do i=1,N_tq
-    call get_excitation_degree_vector(psi_non_ref,tq(1,1,i),degree,Nint,Ndet_non_ref,idx)
-    call i_h_j(tq(1,1,i),tq(1,1,i),Nint,haa)
-    do m=1,N_states
-      f(m) = 1.d0/(ci_electronic_energy(m)-haa)
-    enddo
-    do k=1,idx(0)
-      call i_h_j(tq(1,1,i),psi_non_ref(1,1,idx(k)),Nint,hka)
-      do j=k,idx(0)
-        call i_h_j(tq(1,1,i),psi_non_ref(1,1,idx(j)),Nint,haj)
-        do m=1,N_states
-          delta_ij_non_ref_(idx(k), idx(j),m) += haj*hka* f(m)
-          delta_ij_non_ref_(idx(j), idx(k),m) += haj*hka* f(m)
-        enddo
-      enddo 
-    enddo
-  enddo
-end
-
-
-subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq)
  use bitmasks
  implicit none
 
@@ -283,18 +210,24 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
 
   integer(bit_kind), intent(out) :: tq(Nint,2,n_selected)
   integer, intent(out)           :: N_tq
-  integer                        :: c_ref
-  integer                        :: connected_to_ref
   
+  
+  integer                        :: nt,ni
+  logical, external              :: is_connected_to
+  
+  
+  integer(bit_kind),intent(in)  :: miniList(Nint,2,N_det_generators)
+  integer,intent(in)            :: N_miniList
 
+  
+  
   N_tq = 0
-  do i=1,N_selected
-    c_ref = connected_to_ref(det_buffer(1,1,i),psi_det_generators,Nint, &
-       i_generator,N_det_generators)
-
-    if (c_ref /= 0) then
+  
+  
+  i_loop : do i=1,N_selected
+    if(is_connected_to(det_buffer(1,1,i), miniList, Nint, N_miniList)) then
       cycle
-    endif
+    end if
 
     ! Select determinants that are triple or quadruple excitations
     ! from the ref
@@ -316,8 +249,7 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
         enddo
       endif
     endif
-  enddo
-
+  enddo i_loop
 end
 
 

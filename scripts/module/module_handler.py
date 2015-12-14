@@ -88,7 +88,7 @@ def get_l_module_descendant(d_child, l_module):
             except KeyError:
                 print >> sys.stderr, "Error: "
                 print >> sys.stderr, "`{0}` is not a submodule".format(module)
-                print >> sys.stderr, "Check the typo (orthograph, case, '/', etc.) "
+                print >> sys.stderr, "Check the typo (spelling, case, '/', etc.) "
                 sys.exit(1)
 
     return list(set(l))
@@ -179,6 +179,11 @@ class ModuleHandler():
 
     def create_png(self, l_module):
         """Create the png of the dependency tree for a l_module"""
+
+        # Don't update if we are not in the main repository
+        from is_master_repository import is_master_repository
+        if not is_master_repository:
+            return
 
         basename = "tree_dependency"
         path = '{0}.png'.format(basename)
@@ -289,6 +294,12 @@ if __name__ == '__main__':
                         pass
 
             if arguments["create_git_ignore"]:
+
+                # Don't update if we are not in the main repository
+                from is_master_repository import is_master_repository
+                if not is_master_repository:
+                    sys.exit()
+
                 path = os.path.join(module_abs, ".gitignore")
 
                 with open(path, "w+") as f:

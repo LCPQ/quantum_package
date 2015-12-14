@@ -147,7 +147,7 @@ nucl_coord       = %s
     (b.nucl_charge |> Array.to_list |> List.map
       ~f:(Charge.to_string) |> String.concat ~sep:", " )
     (b.nucl_coord  |> Array.to_list |> List.map
-      ~f:(Point3d.to_string Units.Bohr) |> String.concat ~sep:"\n" )
+      ~f:(Point3d.to_string ~units:Units.Bohr) |> String.concat ~sep:"\n" )
   ;;
 
 
@@ -161,7 +161,7 @@ nucl_coord       = %s
          Printf.sprintf "  %-3s  %d   %s"
           (b.nucl_label.(i)  |> Element.to_string)
           (b.nucl_charge.(i) |> Charge.to_int )
-          (b.nucl_coord.(i)  |> Point3d.to_string Units.Angstrom) )
+          (b.nucl_coord.(i)  |> Point3d.to_string ~units:Units.Angstrom) )
       ) |> String.concat ~sep:"\n"
      in
      Printf.sprintf "

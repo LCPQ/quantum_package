@@ -35,7 +35,7 @@ subroutine do_mono_excitation(key_in,i_hole,i_particle,ispin,i_ok)
  endif
 end
 
-subroutine set_bite_to_integer(i_physical,key,Nint)
+subroutine set_bit_to_integer(i_physical,key,Nint)
  use bitmasks
  implicit none
  integer, intent(in) :: i_physical,Nint
