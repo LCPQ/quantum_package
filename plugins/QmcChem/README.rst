@@ -66,6 +66,14 @@ Documentation
   title="f(|r-r_A|) = \int Y_{lm}^{C} (|r-r_C|, \Omega_C) \chi_i^{A} (r-r_A) d\Omega_C" />
 
 
+`compute_energy <http://github.com/LCPQ/quantum_package/tree/master/plugins/QmcChem/target_pt2_qmc.irp.f#L80>`_
+  Compute an energy when a threshold is applied
+
+
+`e_curve <http://github.com/LCPQ/quantum_package/tree/master/plugins/QmcChem/target_pt2_qmc.irp.f#L1>`_
+  Undocumented
+
+
 `mo_pseudo_grid <http://github.com/LCPQ/quantum_package/tree/master/plugins/QmcChem/pot_ao_pseudo_ints.irp.f#L56>`_
   Grid points for f(|r-r_A|) = \int Y_{lm}^{C} (|r-r_C|, \Omega_C) \phi_i^{A} (r-r_A) d\Omega_C
   .br

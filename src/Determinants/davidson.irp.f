@@ -90,34 +90,144 @@ end function
 
 subroutine tamiser(key, idx, no, n, Nint, N_key)
   use bitmasks
-  
   implicit none
-  integer(bit_kind),intent(inout)       :: key(Nint, 2, N_key)
+  
+  BEGIN_DOC
+! Uncodumented : TODO
+  END_DOC
   integer,intent(in)                    :: no, n, Nint, N_key
+  integer(bit_kind),intent(inout)       :: key(Nint, 2, N_key)
   integer,intent(inout)                 :: idx(N_key)
   integer                               :: k,j,tmpidx
   integer(bit_kind)                     :: tmp(Nint, 2)
   logical                               :: det_inf
+  integer                               :: ni
   
   k = no
   j = 2*k
   do while(j <= n)
-    if(j < n .and. det_inf(key(:,:,j), key(:,:,j+1), Nint)) then
-      j = j+1
-    end if
-    if(det_inf(key(:,:,k), key(:,:,j), Nint)) then
-      tmp(:,:) = key(:,:,k)
-      key(:,:,k) = key(:,:,j)
-      key(:,:,j) = tmp(:,:)
+    if(j < n) then
+      if (det_inf(key(1,1,j), key(1,1,j+1), Nint)) then
+        j = j+1
+      endif
+    endif
+    if(det_inf(key(1,1,k), key(1,1,j), Nint)) then
+      do ni=1,Nint
+        tmp(ni,1)   = key(ni,1,k)
+        tmp(ni,2)   = key(ni,2,k)
+        key(ni,1,k) = key(ni,1,j)
+        key(ni,2,k) = key(ni,2,j)
+        key(ni,1,j) = tmp(ni,1)
+        key(ni,2,j) = tmp(ni,2)
+      enddo
       tmpidx = idx(k)
       idx(k) = idx(j)
       idx(j) = tmpidx
       k = j
-      j = 2*k
+      j = k+k
     else
       return
-    end if
+    endif
+  enddo
+end subroutine
+
+
+subroutine sort_dets_ba_v(key_in, key_out, idx, shortcut, version, N_key, Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Uncodumented : TODO
+  END_DOC
+  integer, intent(in)            :: Nint, N_key
+  integer(bit_kind),intent(in)   :: key_in(Nint,2,N_key)
+  integer(bit_kind),intent(out)  :: key_out(Nint,N_key)
+  integer,intent(out)            :: idx(N_key)
+  integer,intent(out)            :: shortcut(0:N_key+1)
+  integer(bit_kind),intent(out)  :: version(Nint,N_key+1)
+  integer(bit_kind), allocatable :: key(:,:,:)
+  integer                        :: i,ni
+  
+  allocate ( key(Nint,2,N_key) )
+  do i=1,N_key
+    do ni=1,Nint
+      key(ni,1,i) = key_in(ni,2,i)
+      key(ni,2,i) = key_in(ni,1,i)
+    enddo
+  enddo
+  
+  call sort_dets_ab_v(key, key_out, idx, shortcut, version, N_key, Nint)
+  deallocate ( key )
+end subroutine
+
+
+
+subroutine sort_dets_ab_v(key_in, key_out, idx, shortcut, version, N_key, Nint)
+  use bitmasks
+  implicit none
+  
+  BEGIN_DOC
+! Uncodumented : TODO
+  END_DOC
+  integer, intent(in)                   :: Nint, N_key
+  integer(bit_kind),intent(in)          :: key_in(Nint,2,N_key)
+  integer(bit_kind),intent(out)         :: key_out(Nint,N_key)
+  integer,intent(out)                   :: idx(N_key)
+  integer,intent(out)                   :: shortcut(0:N_key+1)
+  integer(bit_kind),intent(out)         :: version(Nint,N_key+1)
+  integer(bit_kind), allocatable        :: key(:,:,:)
+  integer(bit_kind)                     :: tmp(Nint, 2)
+  integer                               :: tmpidx,i,ni
+  
+  allocate (key(Nint,2,N_key))
+  do i=1,N_key
+    do ni=1,Nint
+      key(ni,1,i) = key_in(ni,1,i)
+      key(ni,2,i) = key_in(ni,2,i)
+    enddo
+    idx(i) = i
   end do
+  
+  do i=N_key/2,1,-1
+    call tamiser(key, idx, i, N_key, Nint, N_key)
+  end do
+  
+  do i=N_key,2,-1
+    do ni=1,Nint
+      tmp(ni,1) = key(ni,1,i)
+      tmp(ni,2) = key(ni,2,i)
+      key(ni,1,i) = key(ni,1,1)
+      key(ni,2,i) = key(ni,2,1)
+      key(ni,1,1) = tmp(ni,1)
+      key(ni,2,1) = tmp(ni,2)
+    enddo
+    tmpidx = idx(i)
+    idx(i) = idx(1)
+    idx(1) = tmpidx
+    call tamiser(key, idx, 1, i-1, Nint, N_key)
+  end do
+  
+  shortcut(0) = 1
+  shortcut(1) = 1
+  do ni=1,Nint
+    version(ni,1) = key(ni,1,1)
+  enddo
+  do i=2,N_key
+    do ni=1,nint
+      if(key(ni,1,i) /= key(ni,1,i-1)) then
+        shortcut(0) = shortcut(0) + 1
+        shortcut(shortcut(0)) = i
+        version(:,shortcut(0)) = key(:,1,i)
+        exit
+      end if
+    end do
+  end do
+  shortcut(shortcut(0)+1) = N_key+1
+  do i=1,N_key
+    do ni=1,Nint
+      key_out(ni,i) = key(ni,2,i)
+    enddo
+  enddo
+  deallocate (key)
 end subroutine
 
 
@@ -125,6 +235,10 @@ subroutine sort_dets_ab(key, idx, shortcut, N_key, Nint)
   use bitmasks
   implicit none
   
+  
+  BEGIN_DOC
+! Uncodumented : TODO
+  END_DOC
   integer(bit_kind),intent(inout)       :: key(Nint,2,N_key)
   integer,intent(out)                   :: idx(N_key)
   integer,intent(out)                   :: shortcut(0:N_key+1)
@@ -141,9 +255,15 @@ subroutine sort_dets_ab(key, idx, shortcut, N_key, Nint)
   end do
   
   do i=N_key,2,-1
-    tmp(:,:) = key(:,:,i)
-    key(:,:,i) = key(:,:,1)
-    key(:,:,1) = tmp(:,:)
+    do ni=1,Nint
+      tmp(ni,1) = key(ni,1,i)
+      tmp(ni,2) = key(ni,2,i)
+      key(ni,1,i) = key(ni,1,1)
+      key(ni,2,i) = key(ni,2,1)
+      key(ni,1,1) = tmp(ni,1)
+      key(ni,2,1) = tmp(ni,2)
+    enddo
+
     tmpidx = idx(i)
     idx(i) = idx(1)
     idx(1) = tmpidx
@@ -214,10 +334,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   double precision               :: to_print(2,N_st)
   double precision               :: cpu, wall
   
-  integer(bit_kind)              :: dets_in_sorted(Nint, 2, sze)
-  integer                        :: idx(sze), shortcut(0:sze+1)
-  
-  PROVIDE det_connections
+
 
   call write_time(iunit)
   call wall_time(wall)
@@ -263,9 +380,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   ! Initialization
   ! ==============
   
-  dets_in_sorted(:,:,:) = dets_in(:,:,:)
-  call sort_dets_ab(dets_in_sorted, idx, shortcut, sze, Nint)
-  
+
   k_pairs=0
   do l=1,N_st
     do k=1,l
@@ -275,9 +390,9 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
     enddo
   enddo
   
-  !$OMP PARALLEL DEFAULT(NONE)                                       &
+  !$OMP PARALLEL DEFAULT(NONE)                                      &
       !$OMP  SHARED(U,sze,N_st,overlap,kl_pairs,k_pairs,             &
-      !$OMP  Nint,dets_in_sorted,dets_in,u_in)                                 &
+      !$OMP  Nint,dets_in,u_in)                                 &
       !$OMP  PRIVATE(k,l,kl,i)
   
   
@@ -324,8 +439,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       ! ----------------------
       
       do k=1,N_st
-!          call H_u_0_org(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint)
-         call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in_sorted,shortcut,idx,Nint)
+          call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint)
       enddo
       
       
@@ -479,14 +593,12 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   abort_here = abort_all
 end
 
- BEGIN_PROVIDER [ character(64), davidson_criterion ]
-&BEGIN_PROVIDER [ double precision, davidson_threshold ]
+BEGIN_PROVIDER [ character(64), davidson_criterion ]
  implicit none
  BEGIN_DOC
  ! Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
  END_DOC
  davidson_criterion = 'residual'
- davidson_threshold = 1.d-10
 END_PROVIDER
 
 subroutine davidson_converged(energy,residual,wall,iterations,cpu,N_st,converged)
@@ -509,20 +621,20 @@ subroutine davidson_converged(energy,residual,wall,iterations,cpu,N_st,converged
   E = energy - energy_old
   energy_old = energy
   if (davidson_criterion == 'energy') then
-    converged = dabs(maxval(E(1:N_st))) < davidson_threshold 
+    converged = dabs(maxval(E(1:N_st))) < threshold_davidson 
   else if (davidson_criterion == 'residual') then
-    converged = dabs(maxval(residual(1:N_st))) < davidson_threshold 
+    converged = dabs(maxval(residual(1:N_st))) < threshold_davidson 
   else if (davidson_criterion == 'both') then
     converged = dabs(maxval(residual(1:N_st))) + dabs(maxval(E(1:N_st)) ) &
-       < davidson_threshold  
+       < threshold_davidson  
   else if (davidson_criterion == 'wall_time') then
     call wall_time(time)
-    converged = time - wall > davidson_threshold
+    converged = time - wall > threshold_davidson
   else if (davidson_criterion == 'cpu_time') then
     call cpu_time(time)
-    converged = time - cpu > davidson_threshold
+    converged = time - cpu > threshold_davidson
   else if (davidson_criterion == 'iterations') then
-    converged = iterations >= int(davidson_threshold)
+    converged = iterations >= int(threshold_davidson)
   endif
   converged = converged.or.abort_here
 end

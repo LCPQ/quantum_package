@@ -86,7 +86,7 @@ subroutine damping_SCF
       if ((E_half > E).and.(E_new < E)) then
         lambda = 1.d0
         exit
-      else if ((E_half > E).and.(lambda > 5.d-2)) then
+      else if ((E_half > E).and.(lambda > 5.d-4)) then
         lambda = 0.5d0 * lambda
         E_new = E_half
       else
@@ -119,7 +119,7 @@ subroutine damping_SCF
   write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16, X, A4 )'), '====','================','================','================', '===='
   write(output_hartree_fock,*)
   
-  call mo_as_eigvectors_of_mo_matrix(Fock_matrix_mo,size(Fock_matrix_mo,1),size(Fock_matrix_mo,2),mo_label)
+  call mo_as_eigvectors_of_mo_matrix(Fock_matrix_mo,size(Fock_matrix_mo,1),size(Fock_matrix_mo,2),mo_label,1)
 
   call write_double(output_hartree_fock, E_min, 'Hartree-Fock energy')
   call ezfio_set_hartree_fock_energy(E_min)

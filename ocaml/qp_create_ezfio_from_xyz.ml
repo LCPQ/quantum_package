@@ -11,76 +11,169 @@ let spec =
      ~doc:"string Name of basis set."
   +> flag "c" (optional_with_default 0 int)
      ~doc:"int Total charge of the molecule. Default is 0."
+  +> flag "d" (optional_with_default 0. float)
+     ~doc:"float Add dummy atoms. x * (covalent radii of the atoms)"
   +> flag "m" (optional_with_default 1 int)
      ~doc:"int Spin multiplicity (2S+1) of the molecule. Default is 1."
   +> flag "p" no_arg
      ~doc:" Using pseudopotentials"
-  +> anon ("xyz_file" %: string)
-;;
+  +> anon ("xyz_file" %: file )
 
-let run ?o b c m p xyz_file =
+
+let dummy_centers ~threshold ~molecule ~nuclei =
+  let d =
+    Molecule.distance_matrix molecule
+  in
+  let n =
+    Array.length d
+  in
+  let nuclei =
+    Array.of_list nuclei
+  in
+  let rec aux accu = function
+  | (-1,_) -> accu
+  | (i,-1) -> aux accu (i-1,i-1)
+  | (i,j) when (i>j) ->
+    let new_accu = 
+      let x,y =
+          Element.covalent_radius (nuclei.(i)).Atom.element |> Positive_float.to_float, 
+          Element.covalent_radius (nuclei.(j)).Atom.element |> Positive_float.to_float
+      in 
+      let r =
+        ( x +. y ) *. threshold
+      in
+      if d.(i).(j) < r then
+        (i,x,j,y,d.(i).(j)) :: accu
+      else
+        accu
+    in aux new_accu (i,j-1)
+  | (i,j) when (i=j) -> aux accu (i,j-1)
+  | _ -> assert false
+  in
+  aux [] (n-1,n-1)
+  |> List.map ~f:(fun (i,x,j,y,r) ->
+    let f = 
+      x /. (x +. y)
+    in
+    let u = 
+      Point3d.of_tuple ~units:Units.Bohr
+      ( nuclei.(i).Atom.coord.Point3d.x +. 
+          (nuclei.(j).Atom.coord.Point3d.x -. nuclei.(i).Atom.coord.Point3d.x) *. f, 
+        nuclei.(i).Atom.coord.Point3d.y +. 
+          (nuclei.(j).Atom.coord.Point3d.y -. nuclei.(i).Atom.coord.Point3d.y) *. f, 
+        nuclei.(i).Atom.coord.Point3d.z +. 
+          (nuclei.(j).Atom.coord.Point3d.z -. nuclei.(i).Atom.coord.Point3d.z) *. f) 
+    in
+    Atom.{ element = Element.X ; charge = Charge.of_int 0 ; coord = u }
+    )
+     
+    
+let list_basis () =
+  let basis_list = 
+    Qpackage.root ^ "/install/emsl/EMSL_api.py list_basis" 
+    |> Unix.open_process_in 
+    |> In_channel.input_lines
+    |> List.map ~f:(fun x -> 
+       match String.split x ~on:'\'' with
+       | [] -> ""
+       | a :: [] 
+       | _ :: a :: _ -> String.strip a
+      )
+  in 
+  List.sort basis_list ~cmp:String.ascending
+  |> String.concat ~sep:"\t" 
+
+
+let run ?o b c d m p xyz_file =
 
   (* Read molecule *)
   let molecule =
     (Molecule.of_xyz_file xyz_file ~charge:(Charge.of_int c)
       ~multiplicity:(Multiplicity.of_int m) )
   in
-  let nuclei = molecule.Molecule.nuclei in
+  let dummy =
+    dummy_centers ~threshold:d ~molecule ~nuclei:molecule.Molecule.nuclei
+  in
+(*
+  List.iter dummy ~f:(fun x ->
+    Printf.printf "%s\n" (Atom.to_string ~units:Units.Angstrom x)
+  );
+*)
+  let nuclei =
+    molecule.Molecule.nuclei @ dummy
+  in
 
-  let basis_table = Hashtbl.Poly.create () in
+
+  let basis_table =
+     Hashtbl.Poly.create ()
+  in
+
   (* Open basis set channels *)
   let basis_channel element =
-    let key = Element.to_string element in
+    let key =
+      Element.to_string element
+    in
     match Hashtbl.find basis_table key with
     | Some in_channel -> 
         in_channel
-    | None ->
-        begin
-         Printf.printf "%s is not defined in basis %s.\nEnter alternate basis : %!"
-          (Element.to_long_string element) b ;
-          let bas =
-             match In_channel.input_line stdin with
-             | Some line -> String.strip line |> String.lowercase
-             | None -> failwith "Aborted"
-          in
-          let new_channel = In_channel.create 
-            (Qpackage.root ^ "/data/basis/" ^ bas)
-          in
-          Hashtbl.add_exn basis_table ~key:key ~data:new_channel;
-          new_channel
-        end
+    | None -> 
+         let msg = 
+           Printf.sprintf "%s is not defined in basis %s.%!"
+           (Element.to_long_string element) b ;
+         in
+         failwith msg
   in
   
   let temp_filename =
     Filename.temp_file "qp_create_" ".basis"
   in
+  let () = 
+    Sys.remove temp_filename
+  in
+
+  let fetch_channel basis =
+    let command =
+      if (p) then  
+        Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
+          ^ "." ^ basis ^ "\" \"" ^ basis ^"\" pseudo"
+      else
+        Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
+          ^ "." ^ basis ^ "\" \"" ^ basis ^"\""
+    in
+    match Sys.is_file basis with
+    | `Yes -> 
+          In_channel.create basis
+    | _ -> 
+      begin
+        let filename = 
+          Unix.open_process_in command
+          |> In_channel.input_all
+          |> String.strip
+        in
+        let new_channel =
+          In_channel.create filename
+        in
+        Unix.unlink filename;
+        new_channel
+      end
+  in
+
   let rec build_basis = function
   | [] -> ()
   | elem_and_basis_name :: rest -> 
     begin
       match (String.lsplit2 ~on:':' elem_and_basis_name) with
       | None -> (* Principal basis *)
-        let basis = elem_and_basis_name in
-        let command =
-          if (p) then  
-            Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
-              ^ "\" \"" ^ basis ^"\" pseudo"
-          else
-            Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
-              ^ "\" \"" ^ basis ^"\""
-        in
         begin
-          let filename = 
-            Unix.open_process_in command
-            |> In_channel.input_all
-            |> String.strip
+          let basis = 
+            elem_and_basis_name 
           in
           let new_channel =
-            In_channel.create filename
+            fetch_channel basis
           in
-          Unix.unlink filename;
           List.iter nuclei ~f:(fun elem->
-            let key = Element.to_string elem.Atom.element
+            let key = 
+              Element.to_string elem.Atom.element
             in
             match Hashtbl.add basis_table ~key:key ~data:new_channel with
             | `Ok -> ()
@@ -89,25 +182,18 @@ let run ?o b c m p xyz_file =
         end
       | Some (key, basis) -> (*Aux basis *)
         begin
-          let elem  = Element.of_string key
-          and basis = String.lowercase basis
+          let elem  = 
+            Element.of_string key
+          and basis =
+            String.lowercase basis
           in
-          let key = Element.to_string elem
+          let key = 
+             Element.to_string elem
           in
-          let command =
-              Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename ^
-                "\" \"" ^ basis ^ "\" " ^ key
+          let new_channel =
+            fetch_channel basis
           in
           begin
-            let filename = 
-              Unix.open_process_in command
-              |> In_channel.input_all
-              |> String.strip
-            in
-            let new_channel =
-              In_channel.create filename
-            in
-            Unix.unlink filename;
             match Hashtbl.add basis_table ~key:key ~data:new_channel with
             | `Ok -> ()
             | `Duplicate -> failwith ("Duplicate definition of basis for "^(Element.to_long_string elem))
@@ -164,28 +250,30 @@ let run ?o b c m p xyz_file =
   (* Write Basis set *)
   let basis =
 
-    let nmax = Nucl_number.get_max () in
+    let nmax =
+       Nucl_number.get_max ()
+    in
     let rec do_work (accu:(Atom.t*Nucl_number.t) list) (n:int) = function
     | [] -> accu
     | e::tail ->
-      let new_accu = (e,(Nucl_number.of_int ~max:nmax n))::accu in
+      let new_accu =
+        (e,(Nucl_number.of_int ~max:nmax n))::accu
+      in
       do_work new_accu (n+1) tail
     in
     let result = do_work [] 1  nuclei
     |> List.rev
     |> List.map ~f:(fun (x,i) ->
        try 
-         Basis.read_element (basis_channel x.Atom.element) i x.Atom.element
+         let e =
+           match x.Atom.element with
+           | Element.X -> Element.H
+           | e -> e
+         in
+         Basis.read_element (basis_channel x.Atom.element) i e
        with
-       | End_of_file -> 
-         begin
-           let alt_channel = basis_channel x.Atom.element in
-           try
-             Basis.read_element alt_channel i x.Atom.element 
-           with
-           End_of_file -> failwith
-             ("Element "^(Element.to_string x.Atom.element)^" not found")
-         end
+       | End_of_file -> failwith
+             ("Element "^(Element.to_string x.Atom.element)^" not found in basis set.")
        ) 
     |> List.concat
     in
@@ -264,28 +352,37 @@ let run ?o b c m p xyz_file =
   | None -> failwith "Error in basis"
   | Some x -> Input.Ao_basis.write x
  
-;;
+
 
 let command = 
     Command.basic 
     ~summary: "Quantum Package command"
     ~readme:(fun () -> "
-Creates an EZFIO directory from a standard xyz file.
-The basis set is defined as a single string if all the
-atoms are taken from the same basis set, otherwise specific
-elements can be defined as follows:
+
+=== Available basis sets ===
+
+" ^ (list_basis ()) ^ "
+
+============================
+
+Creates an EZFIO directory from a standard xyz file.  The basis set is defined
+as a single string if all the atoms are taken from the same basis set,
+otherwise specific elements can be defined as follows:
 
  -b \"cc-pcvdz | H:cc-pvdz | C:6-31g\"
 
-      ")
+If a file with the same name as the basis set exists, this file will be read.
+Otherwise, the basis set is obtained from the database.
+
+" )
     spec
-    (fun o b c m p xyz_file () ->
-       run ?o b c m p xyz_file )
-;;
+    (fun o b c d m p xyz_file () ->
+       run ?o b c d m p xyz_file )
+
 
 let () =
     Command.run command
-;;
+
 
 
 

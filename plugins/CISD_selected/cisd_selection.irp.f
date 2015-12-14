@@ -41,8 +41,8 @@ program cisd
   N_det = min(N_det,N_det_max)
   touch N_det psi_det psi_coef
   call diagonalize_CI
-  deallocate(pt2,norm_pert,H_pert_diag)
-    call save_wavefunction
+  call save_wavefunction
   call ezfio_set_cisd_selected_energy(CI_energy)
   call ezfio_set_cisd_selected_energy_pt2(CI_energy+pt2)
+  deallocate(pt2,norm_pert,H_pert_diag)
 end

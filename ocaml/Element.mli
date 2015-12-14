@@ -13,6 +13,8 @@ val of_string : string -> t
 val to_string : t -> string
 val to_long_string : t -> string
 
-(** get the positive charge *)
+(** Properties *)
 val to_charge : t -> Charge.t
 val of_charge : Charge.t -> t
+val covalent_radius : t -> Qptypes.Positive_float.t
+val vdw_radius : t -> Qptypes.Positive_float.t
