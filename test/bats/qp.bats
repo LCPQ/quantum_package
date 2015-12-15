@@ -22,17 +22,16 @@ cd ${TEST_DIR}
   qp_edit -c HBO.ezfio
 }
 
-
 @test "hartree fock HBO STO-3G" {
   run init HBO STO-3G
   ezfio set_file HBO.ezfio
-  ezfio hartree_fock thresh_scf 1E-2
+  ezfio hartree_fock thresh_scf 1E-5
 
   qp_run SCF HBO.ezfio
   # Check energy
 
   energy="$(ezfio get hartree_fock energy)"
-  eq $energy -98.82519856228865 1E-2
+  eq $energy -98.8251985622549 1E-5
 }
 
 @test "full ci HBO STO-3G" {
@@ -44,11 +43,10 @@ cd ${TEST_DIR}
 
   qp_run full_ci HBO.ezfio
   energy="$(ezfio get full_ci energy)"
-  eq $energy -98.964772590532306 1E-2
+  eq $energy -98.9649618899175 1E-2
   energy_pt2="$(ezfio get full_ci energy_pt2)"
-  eq $energy_pt2 -98.966227811130594 1E-2
+  eq $energy_pt2 -98.966228232164 1E-5
 }
-
 
 @test "cas_sd_selected HBO STO-3G" {
   run hartree fock HBO STO-3G
@@ -59,7 +57,7 @@ cd ${TEST_DIR}
   qp_run cas_sd_selected HBO.ezfio
   # Check energy
   energy="$(ezfio get cas_sd energy)"
-  eq $energy -98.9640982255169 1E-2
+  eq $energy -98.9646946027433 1E-5
 }
 
 @test "mrcc_cassd HBO STO-3G" {
@@ -70,7 +68,7 @@ cd ${TEST_DIR}
   qp_run mrcc_cassd HBO.ezfio
   # Check energy
   energy="$(ezfio get mrcc_cassd energy)"
-  eq $energy -98.9647967033634 1E-2
+  eq $energy -98.9653606184686 1E-5
 }
 
 @test "script conversion HBO.out" {
@@ -80,5 +78,5 @@ cd ${TEST_DIR}
   qp_run SCF HBO.out.ezfio
   ezfio set_file HBO.out.ezfio
   energy="$(ezfio get hartree_fock energy)"
-  eq $energy -100.0185822553404 1E-2
+  eq $energy -100.01858225534 1E-5
 }
