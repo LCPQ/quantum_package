@@ -136,14 +136,54 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
   integer, intent(out) :: N_microlist(mo_tot_num*2), idx_microlist(N_minilist, mo_tot_num*2)
   integer(bit_kind), intent(out) :: microlist(Nint,2,N_minilist, mo_tot_num*2)
   
-  integer :: i,j,k
+  integer :: i,j,k,nt,n_element(2)
+  integer :: list(Nint*bit_kind_size,2)
+  integer(bit_kind) :: key_mask_neg(Nint,2)
+
   
-  N_microlist(:) = N_minilist
-  do i=1,mo_tot_num*2
-    microlist(:,:,:,i) = minilist(:,:,:)
+  if(Nint /= 1) then
+    print *, "UNIMPLEMENTed"
+    stop
+  end if
+  
+  do i=1,Nint
+    key_mask_neg(i,1) = not(key_mask(i,1))
+    key_mask_neg(i,2) = not(key_mask(i,2))
   end do
-  do i=1,N_minilist
-    idx_microlist(i,:) = i
+  
+  N_microlist(:) = 0
+  
+  
+  do i=1, N_minilist
+    call bitstring_to_list(iand(key_mask_neg(1,1), minilist(1,1,i)), list(:,1), n_element(1), Nint)
+    call bitstring_to_list(iand(key_mask_neg(1,2), minilist(1,2,i)), list(:,2), n_element(2), Nint)
+    
+    if(n_element(1) + n_element(2) > 4) then
+      print *, "WTF???"
+      stop
+    end if
+    
+    if(n_element(1) + n_element(2) /= 4) then
+      do j=1,mo_tot_num*2
+        N_microlist(j) = N_microlist(j) + 1
+        idx_microlist(N_microlist(j),j) = i
+        microlist(:,:,N_microlist(j),j) = minilist(:,:,i)
+      end do
+    else
+      do j=1,n_element(1)
+        nt = list(j,1)
+        N_microlist(nt) = N_microlist(nt) + 1
+        idx_microlist(N_microlist(nt),nt) = i
+        microlist(:,:,N_microlist(nt),nt) = minilist(:,:,i)
+      end do
+      
+      do j=1,n_element(2)
+        nt = list(j,2) + mo_tot_num
+        N_microlist(nt) = N_microlist(nt) + 1
+        idx_microlist(N_microlist(nt),nt) = i
+        microlist(:,:,N_microlist(nt),nt) = minilist(:,:,i)
+      end do
+    end if
   end do
 end subroutine
   
