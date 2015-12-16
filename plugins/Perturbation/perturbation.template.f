@@ -2,6 +2,8 @@ BEGIN_SHELL [ /usr/bin/env python ]
 import perturbation
 END_SHELL
 
+
+  
 subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert,sum_norm_pert,sum_H_pert_diag,N_st,Nint,key_mask,fock_diag_tmp)
   implicit none
   BEGIN_DOC
@@ -19,6 +21,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   integer                        :: i,k, c_ref, ni, ex
   integer, external              :: connected_to_ref
   logical, external              :: is_in_wavefunction
+  external :: commoner
   
   integer(bit_kind), allocatable :: minilist(:,:,:)
   integer, allocatable           :: idx_minilist(:)
@@ -28,10 +31,16 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   integer :: N_minilist_gen
   logical :: fullMatch
   logical, external :: is_connected_to
+  
+  integer(bit_kind), allocatable :: microlist(:,:,:,:)
+  integer, allocatable           :: idx_microlist(:,:), N_microlist(:)
+  integer :: mobiles(2), smallerlist
+  
 
   allocate( minilist(Nint,2,N_det_selectors),                        &
       minilist_gen(Nint,2,N_det_generators),                         &
-      idx_minilist(N_det_selectors) )
+      idx_minilist(N_det_selectors))
+      
   
 
   ASSERT (Nint > 0)
@@ -40,13 +49,27 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   ASSERT (minval(sum_norm_pert) >= 0.d0)
   ASSERT (N_st > 0)
   
-  call create_minilist(key_mask, psi_selectors, miniList, idx_miniList, N_det_selectors, N_minilist, Nint)
+  call create_minilist(key_mask, psi_selectors, minilist, idx_miniList, N_det_selectors, N_minilist, Nint) !! deplacer apres fullmatch ??
   call create_minilist_find_previous(key_mask, psi_det_generators, miniList_gen, i_generator-1, N_minilist_gen, fullMatch, Nint)
+  
   
   if(fullMatch) then
     deallocate( minilist, minilist_gen, idx_minilist )
     return
   end if
+  
+  allocate(   microlist(Nint,2,N_minilist, mo_tot_num*2),               &
+       idx_microlist(N_minilist, mo_tot_num*2),                  &
+       N_microlist(mo_tot_num*2) )
+      
+  call create_microlist(minilist, N_minilist, key_mask, microlist, idx_microlist, N_microlist,Nint)
+  
+  
+  do i=1,mo_tot_num*2
+  do k=1,N_microlist(i)
+    idx_microlist(k,i) = idx_minilist(idx_microlist(k,i))
+  end do
+  end do
   
   
   do i=1,buffer_size
@@ -59,8 +82,21 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
       cycle
     endif
     
+    ! create_microlist
+    call getMobiles(buffer(1,1,i), key_mask, mobiles, Nint)
+    
+    if(N_microlist(mobiles(1)) < N_microlist(mobiles(2))) then
+      smallerlist = mobiles(1)
+    else
+      smallerlist = mobiles(2)
+    end if
+    
     call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
-         c_pert,e_2_pert,H_pert_diag,Nint,N_minilist,n_st,minilist,idx_minilist,N_minilist) 
+          c_pert,e_2_pert,H_pert_diag,Nint,N_microlist(smallerlist),n_st,microlist(:,:,:,smallerList),idx_microlist(:,smallerlist),N_microlist(smallerlist)) 
+    !det_ref,det_pert,fock_diag_tmp,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_st,minilist,idx_minilist,N_minilist ;
+    
+!     call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
+!          c_pert,e_2_pert,H_pert_diag,Nint,N_minilist,n_st,minilist,idx_minilist,N_minilist) 
 
     do k = 1,N_st
       e_2_pert_buffer(k,i)   = e_2_pert(k)
@@ -72,6 +108,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
     
   enddo 
   deallocate( minilist, minilist_gen, idx_minilist )
+  deallocate( microlist, idx_microlist, N_microlist )
   
 end
 

@@ -98,6 +98,56 @@ subroutine filter_connected(key1,key2,Nint,sze,idx)
 end
 
 
+subroutine getMobiles(key,key_mask, mobiles,Nint)
+  use bitmasks
+  integer(bit_kind),intent(in) :: key(Nint,2), key_mask(Nint,2)
+  integer,intent(out) :: mobiles(2)
+  integer,intent(in) :: Nint
+  
+  integer(bit_kind) :: mobileMask(2)
+  
+  if(Nint /= 1) then
+    print *, "GETMOBILES UNIMPLEMENTED"
+    stop
+  end if
+  
+  
+  mobileMask(1) = xor(key(1,1), key_mask(1,1))
+  mobileMask(2) = xor(key(1,2), key_mask(1,2))
+  
+  if(mobileMask(1) /= 0 .and. mobileMask(2) /= 0) then
+    mobiles(1) = trailz(mobileMask(1)) + 1
+    mobiles(2) = bit_kind*8 - leadz(mobileMask(2)) + mo_tot_num
+  else if(mobileMask(1) /= 0) then
+    mobiles(1) = trailz(mobileMask(1)) + 1
+    mobiles(2) = bit_kind*8 - leadz(mobileMask(1))
+  else
+    mobiles(1) = (trailz(mobileMask(2)) + 1) + mo_tot_num
+    mobiles(2) = bit_kind*8 - leadz(mobileMask(2)) + mo_tot_num
+  end if
+end subroutine
+  
+
+subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_microlist, N_microlist, Nint)
+  use bitmasks
+  integer, intent(in) :: Nint, N_minilist
+  integer(bit_kind), intent(in) :: minilist(Nint,2,N_minilist), key_mask(Nint,2)
+  
+  integer, intent(out) :: N_microlist(mo_tot_num*2), idx_microlist(N_minilist, mo_tot_num*2)
+  integer(bit_kind), intent(out) :: microlist(Nint,2,N_minilist, mo_tot_num*2)
+  
+  integer :: i,j,k
+  
+  N_microlist(:) = N_minilist
+  do i=1,mo_tot_num*2
+    microlist(:,:,:,i) = minilist(:,:,:)
+  end do
+  do i=1,N_minilist
+    idx_microlist(i,:) = i
+  end do
+end subroutine
+  
+  
 subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
   use bitmasks
   BEGIN_DOC
