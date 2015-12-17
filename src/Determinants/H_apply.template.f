@@ -108,13 +108,13 @@ subroutine $subroutine_diexcP(key_in, fs1, fh1, particl_1, fs2, fh2, particl_2, 
   
   p1_mask(:,:) = 0_bit_kind
   p2_mask(:,:) = 0_bit_kind
-  p1_mask(ishft(fh1,-bit_kind_shift) + 1, fs1) = ishft(1,iand(fh1-1,bit_kind_size-1))
-  p2_mask(ishft(fh2,-bit_kind_shift) + 1, fs2) = ishft(1,iand(fh2-1,bit_kind_size-1))
+  p1_mask(ishft(fh1-1,-bit_kind_shift) + 1, fs1) = ishft(1_8,iand(fh1-1,bit_kind_size-1))
+  p2_mask(ishft(fh2-1,-bit_kind_shift) + 1, fs2) = ishft(1_8,iand(fh2-1,bit_kind_size-1))
   
   key_mask(:,:) = key_in(:,:)
 
-  key_mask(ishft(fh1,-bit_kind_shift) + 1, fs1) -= ishft(1,iand(fh1-1,bit_kind_size-1))
-  key_mask(ishft(fh2,-bit_kind_shift) + 1, fs2) -= ishft(1,iand(fh2-1,bit_kind_size-1))
+  key_mask(ishft(fh1-1,-bit_kind_shift) + 1, fs1) -= ishft(1_8,iand(fh1-1,bit_kind_size-1))
+  key_mask(ishft(fh2-1,-bit_kind_shift) + 1, fs2) -= ishft(1_8,iand(fh2-1,bit_kind_size-1))
 
   call $subroutine_diexcOrg(key_in, key_mask, p1_mask, particl_1, p2_mask, particl_2, fock_diag_tmp, i_generator, iproc_in $parameters )
 end subroutine
