@@ -104,27 +104,39 @@ subroutine getMobiles(key,key_mask, mobiles,Nint)
   integer,intent(out) :: mobiles(2)
   integer,intent(in) :: Nint
   
-  integer(bit_kind) :: mobileMask(2)
+  integer(bit_kind) :: mobileMask(Nint,2)
+  integer :: list(Nint*bit_kind_size), nel
   
-  if(Nint /= 1) then
-    print *, "GETMOBILES UNIMPLEMENTED"
-    stop
-  end if
+  do j=1,Nint
+    mobileMask(j,1) = xor(key(j,1), key_mask(j,1))
+    mobileMask(j,2) = xor(key(j,2), key_mask(j,2))
+!     print '(3(B70))', mobileMask(j,1), mobileMask(j,2)
+  end do
+!  print *, "=="
   
-  
-  mobileMask(1) = xor(key(1,1), key_mask(1,1))
-  mobileMask(2) = xor(key(1,2), key_mask(1,2))
-  
-  if(mobileMask(1) /= 0 .and. mobileMask(2) /= 0) then
-    mobiles(1) = trailz(mobileMask(1)) + 1
-    mobiles(2) = bit_kind*8 - leadz(mobileMask(2)) + mo_tot_num
-  else if(mobileMask(1) /= 0) then
-    mobiles(1) = trailz(mobileMask(1)) + 1
-    mobiles(2) = bit_kind*8 - leadz(mobileMask(1))
+  call bitstring_to_list(mobileMask(:,1), list(:), nel, Nint)
+  if(nel == 2) then
+    mobiles(1) = list(1)
+    mobiles(2) = list(2)
+  else if(nel == 1) then
+    mobiles(1) = list(1)
+    call bitstring_to_list(mobileMask(:,2), list(:), nel, Nint)
+    mobiles(2) = list(1) + mo_tot_num
   else
-    mobiles(1) = (trailz(mobileMask(2)) + 1) + mo_tot_num
-    mobiles(2) = bit_kind*8 - leadz(mobileMask(2)) + mo_tot_num
+    call bitstring_to_list(mobileMask(:,2), list(:), nel, Nint)
+    mobiles(1) = list(1) + mo_tot_num
+    mobiles(2) = list(2) + mo_tot_num
   end if
+!   if(mobiles(1) > 218 .or. mobiles(2) > 218 .or. mobiles(1) < 0 .or. mobiles(2) < 0) then
+!     print *," MOB", mobiles
+!     print '(3(B70))', mobileMask(:,1)
+!     print '(3(B70))', mobileMask(:,2)
+!     print '(3(B70))', key(:,1)
+!     print '(3(B70))', key(:,2)
+!     print '(3(B70))', key_mask(:,1)
+!     print '(3(B70))', key_mask(:,2)
+!     stop
+!   end if
 end subroutine
   
 
@@ -133,18 +145,13 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
   integer, intent(in) :: Nint, N_minilist
   integer(bit_kind), intent(in) :: minilist(Nint,2,N_minilist), key_mask(Nint,2)
   
-  integer, intent(out) :: N_microlist(mo_tot_num*2), idx_microlist(N_minilist, mo_tot_num*2)
-  integer(bit_kind), intent(out) :: microlist(Nint,2,N_minilist, mo_tot_num*2)
+  integer, intent(out) :: N_microlist(0:mo_tot_num*2), idx_microlist(N_minilist, 0:mo_tot_num*2)
+  integer(bit_kind), intent(out) :: microlist(Nint,2,N_minilist, 0:mo_tot_num*2)
   
   integer :: i,j,k,nt,n_element(2)
   integer :: list(Nint*bit_kind_size,2)
-  integer(bit_kind) :: key_mask_neg(Nint,2)
+  integer(bit_kind) :: key_mask_neg(Nint,2), mobileMask(Nint,2)
 
-  
-  if(Nint /= 1) then
-    print *, "UNIMPLEMENTed"
-    stop
-  end if
   
   do i=1,Nint
     key_mask_neg(i,1) = not(key_mask(i,1))
@@ -153,22 +160,29 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
   
   N_microlist(:) = 0
   
-  
   do i=1, N_minilist
-    call bitstring_to_list(iand(key_mask_neg(1,1), minilist(1,1,i)), list(:,1), n_element(1), Nint)
-    call bitstring_to_list(iand(key_mask_neg(1,2), minilist(1,2,i)), list(:,2), n_element(2), Nint)
+    do j=1,Nint
+      mobileMask(j,1) = iand(key_mask_neg(j,1), minilist(j,1,i))
+      mobileMask(j,2) = iand(key_mask_neg(j,2), minilist(j,2,i))
+    end do
     
-    if(n_element(1) + n_element(2) > 4) then
-      print *, "WTF???"
-      stop
-    end if
+    call bitstring_to_list(mobileMask(:,1), list(:,1), n_element(1), Nint)
+    call bitstring_to_list(mobileMask(:,2), list(:,2), n_element(2), Nint)
+    
+!     if(n_element(1) + n_element(2) > 4) then
+!       print *, "WTF???"
+!       stop
+!     end if
     
     if(n_element(1) + n_element(2) /= 4) then
-      do j=1,mo_tot_num*2
-        N_microlist(j) = N_microlist(j) + 1
-        idx_microlist(N_microlist(j),j) = i
-        microlist(:,:,N_microlist(j),j) = minilist(:,:,i)
-      end do
+      N_microlist(0) = N_microlist(0) + 1
+      idx_microlist(N_microlist(0),0) = i
+      microlist(:,:,N_microlist(0),0) = minilist(:,:,i)
+      !do j=1,mo_tot_num*2
+!         N_microlist(j) = N_microlist(j) + 1
+!         idx_microlist(N_microlist(j),j) = i
+!         microlist(:,:,N_microlist(j),j) = minilist(:,:,i)
+      !end do
     else
       do j=1,n_element(1)
         nt = list(j,1)

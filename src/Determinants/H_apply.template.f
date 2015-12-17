@@ -97,25 +97,31 @@ end subroutine
 
 
 subroutine $subroutine_diexcP(key_in, fs1, fh1, particl_1, fs2, fh2, particl_2, fock_diag_tmp, i_generator, iproc_in $parameters )
-  
+  implicit none
   integer(bit_kind), intent(in)         :: key_in(N_int, 2), particl_1(N_int, 2), particl_2(N_int, 2)
   double precision, intent(in)          :: fock_diag_tmp(2,mo_tot_num+1)
   integer(bit_kind)                     :: p1_mask(N_int, 2), p2_mask(N_int, 2), key_mask(N_int, 2)
-  integer,intent(in)                    :: fh1,fh2,fs1,fs2,i_generator,iproc_in
+  integer,intent(in)                    :: fs1,fs2,i_generator,iproc_in, fh1,fh2
   integer(bit_kind)                     :: miniList(N_int, 2, N_det)
   integer                               :: n_minilist, n_alpha, n_beta, deg(2), i, ni
   $declarations
+  integer(bit_kind), parameter :: one = 1_8
   
   p1_mask(:,:) = 0_bit_kind
   p2_mask(:,:) = 0_bit_kind
-  p1_mask(ishft(fh1,-bit_kind_shift) + 1, fs1) = ishft(1,iand(fh1-1,bit_kind_size-1))
-  p2_mask(ishft(fh2,-bit_kind_shift) + 1, fs2) = ishft(1,iand(fh2-1,bit_kind_size-1))
+  p1_mask(ishft(fh1-1,-bit_kind_shift) + 1, fs1) = ishft(one,iand(fh1-1,bit_kind_size-1))
+  p2_mask(ishft(fh2-1,-bit_kind_shift) + 1, fs2) = ishft(one,iand(fh2-1,bit_kind_size-1))
   
   key_mask(:,:) = key_in(:,:)
 
-  key_mask(ishft(fh1,-bit_kind_shift) + 1, fs1) -= ishft(1,iand(fh1-1,bit_kind_size-1))
-  key_mask(ishft(fh2,-bit_kind_shift) + 1, fs2) -= ishft(1,iand(fh2-1,bit_kind_size-1))
-
+  key_mask(ishft(fh1-1,-bit_kind_shift) + 1, fs1) -= ishft(one,iand(fh1-1,bit_kind_size-1))
+  key_mask(ishft(fh2-1,-bit_kind_shift) + 1, fs2) -= ishft(one,iand(fh2-1,bit_kind_size-1))
+  
+!   if(popcnt(key_mask(1,1)) + popcnt(key_mask(1,2)) + popcnt(key_mask(2,1)) + popcnt(key_mask(2,2)) /= 30) then
+!     print *, "wtf"
+!     print *, fh1, fh2, fs1, fs2
+!   end if
+      
   call $subroutine_diexcOrg(key_in, key_mask, p1_mask, particl_1, p2_mask, particl_2, fock_diag_tmp, i_generator, iproc_in $parameters )
 end subroutine
 

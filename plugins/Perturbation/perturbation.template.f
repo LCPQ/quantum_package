@@ -56,10 +56,10 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
     deallocate( minilist, minilist_gen, idx_minilist )
     return
   end if
-  call create_minilist(key_mask, psi_selectors, minilist, idx_miniList, N_det_selectors, N_minilist, Nint) !! deplacer apres fullmatch ??
-  allocate(   microlist(Nint,2,N_minilist, mo_tot_num*2),               &
-       idx_microlist(N_minilist, mo_tot_num*2),                  &
-       N_microlist(mo_tot_num*2) )
+  call create_minilist(key_mask, psi_selectors, minilist, idx_miniList, N_det_selectors, N_minilist, Nint)
+  allocate(   microlist(Nint,2,N_minilist, 0:mo_tot_num*2),               &
+       idx_microlist(N_minilist, 0:mo_tot_num*2),                  &
+       N_microlist(0:mo_tot_num*2) )
   
 
 
@@ -84,19 +84,30 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
     
     
     if(key_mask(1,1) /= 0) then
-      call getMobiles(buffer(1,1,i), key_mask, mobiles, Nint)
+      call getMobiles(buffer(:,:,i), key_mask, mobiles, Nint)
+!       if(popcnt(buffer(1,1,i)) + popcnt(buffer(2,1,i)) /= 16 .or. popcnt(buffer(1,2,i)) + popcnt(buffer(2,2,i)) /= 16 .or. popcnt(key_mask(1,1)) + popcnt(key_mask(1,2)) /= 30) then
+!         print *, "wtf?"
+!         print '(3(B70))', buffer(:,1,i)
+!         print '(3(B70))', buffer(:,2,i)
+!         print '(3(B70))', popcnt(key_mask(1,1))
+!         print '(3(B70))', popcnt(key_mask(1,2))
+!       end if
       
       if(N_microlist(mobiles(1)) < N_microlist(mobiles(2))) then
         smallerlist = mobiles(1)
       else
         smallerlist = mobiles(2)
       end if
+      microlist(:,:,N_microlist(0)+1:N_microlist(0)+N_microlist(smallerlist),0) = microlist(:,:,1:N_microlist(smallerlist),smallerlist)
+      idx_microlist(N_microlist(0)+1:N_microlist(0)+N_microlist(smallerlist),0) = idx_microlist(1:N_microlist(smallerlist),smallerlist)
+!       call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
+!           c_pert,e_2_pert,H_pert_diag,Nint,N_microlist(smallerlist),n_st,microlist(:,:,:,smallerList),idx_microlist(:,smallerlist),N_microlist(smallerlist)) 
       call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
-          c_pert,e_2_pert,H_pert_diag,Nint,N_microlist(smallerlist),n_st,microlist(:,:,:,smallerList),idx_microlist(:,smallerlist),N_microlist(smallerlist)) 
+           c_pert,e_2_pert,H_pert_diag,Nint,N_microlist(smallerlist)+N_microlist(0),n_st,microlist(:,:,:,0),idx_microlist(:,0),N_microlist(smallerlist)+N_microlist(0)) 
     
-      else
-        call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
-          c_pert,e_2_pert,H_pert_diag,Nint,N_minilist,n_st,minilist,idx_minilist,N_minilist) 
+    else
+      call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
+        c_pert,e_2_pert,H_pert_diag,Nint,N_minilist,n_st,minilist,idx_minilist,N_minilist) 
     end if
     
     !det_ref,det_pert,fock_diag_tmp,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_st,minilist,idx_minilist,N_minilist ;
