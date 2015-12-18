@@ -35,7 +35,10 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   integer, allocatable           :: idx_microlist(:,:), N_microlist(:)
   integer :: mobiles(2), smallerlist
   
-
+  
+  integer(bit_kind), allocatable :: microlist_gen(:,:,:,:)
+  integer, allocatable           :: idx_microlist_gen(:,:), N_microlist_gen(:)
+  
   allocate( minilist(Nint,2,N_det_selectors),                        &
       minilist_gen(Nint,2,N_det_generators),                         &
       idx_minilist(N_det_selectors))
@@ -61,10 +64,13 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
        idx_microlist(N_minilist, 0:mo_tot_num*2),                  &
        N_microlist(0:mo_tot_num*2) )
   
-
+  allocate(   microlist_gen(Nint,2,N_minilist_gen, 0:mo_tot_num*2),               &
+      idx_microlist_gen(N_minilist_gen, 0:mo_tot_num*2),                  &
+       N_microlist_gen(0:mo_tot_num*2) )
 
   if(key_mask(1,1) /= 0) then
     call create_microlist(minilist, N_minilist, key_mask, microlist, idx_microlist, N_microlist,Nint)
+    call create_microlist(minilist_gen, N_minilist_gen, key_mask, microlist_gen, idx_microlist_gen, N_microlist_gen,Nint)
     do i=0,mo_tot_num*2
     do k=1,N_microlist(i)
       idx_microlist(k,i) = idx_minilist(idx_microlist(k,i))
@@ -74,30 +80,28 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   
   do i=1,buffer_size
     
-    if(is_connected_to(buffer(1,1,i), miniList_gen, Nint, N_minilist_gen)) then
-      cycle
-    end if
-    
     if (is_in_wavefunction(buffer(1,1,i),Nint)) then
       cycle
     endif
-    
-    
-    if(key_mask(1,1) /= 0) then
-      call getMobiles(buffer(:,:,i), key_mask, mobiles, Nint)
-!       if(popcnt(buffer(1,1,i)) + popcnt(buffer(2,1,i)) /= 16 .or. popcnt(buffer(1,2,i)) + popcnt(buffer(2,2,i)) /= 16 .or. popcnt(key_mask(1,1)) + popcnt(key_mask(1,2)) /= 30) then
-!         print *, "wtf?"
-!         print '(3(B70))', buffer(:,1,i)
-!         print '(3(B70))', buffer(:,2,i)
-!         print '(3(B70))', popcnt(key_mask(1,1))
-!         print '(3(B70))', popcnt(key_mask(1,2))
-!       end if
       
+    if(key_mask(1,1) /= 0) then
+      call getMobiles(buffer(:,:,i), key_mask, mobiles, Nint) 
       if(N_microlist(mobiles(1)) < N_microlist(mobiles(2))) then
         smallerlist = mobiles(1)
       else
         smallerlist = mobiles(2)
       end if
+      
+      if(N_microlist(smallerlist) > 0) then
+        if(is_connected_to(buffer(1,1,i), microlist_gen(:,:,:,smallerlist), Nint, N_microlist_gen(smallerlist))) then
+          cycle
+        end if
+      end if
+      
+      if(is_connected_to(buffer(1,1,i), microlist_gen(:,:,:,0), Nint, N_microlist_gen(0))) then
+        cycle
+      end if
+      
       
       if(N_microlist(smallerlist) > 0) then
         microlist(:,:,N_microlist(0)+1:N_microlist(0)+N_microlist(smallerlist),0) = microlist(:,:,1:N_microlist(smallerlist),smallerlist)
@@ -110,6 +114,10 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
            c_pert,e_2_pert,H_pert_diag,Nint,N_microlist(smallerlist)+N_microlist(0),n_st,microlist(:,:,:,0),idx_microlist(:,0),N_microlist(smallerlist)+N_microlist(0)) 
     
     else
+      if(is_connected_to(buffer(1,1,i), miniList_gen, Nint, N_minilist_gen)) then
+        cycle
+      end if
+    
       call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
         c_pert,e_2_pert,H_pert_diag,Nint,N_minilist,n_st,minilist,idx_minilist,N_minilist) 
     end if
