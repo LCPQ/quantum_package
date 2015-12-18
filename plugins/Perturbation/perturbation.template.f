@@ -98,9 +98,13 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
       else
         smallerlist = mobiles(2)
       end if
-      microlist(:,:,N_microlist(0)+1:N_microlist(0)+N_microlist(smallerlist),0) = microlist(:,:,1:N_microlist(smallerlist),smallerlist)
-      idx_microlist(N_microlist(0)+1:N_microlist(0)+N_microlist(smallerlist),0) = idx_microlist(1:N_microlist(smallerlist),smallerlist)
-!       call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
+      
+      if(N_microlist(smallerlist) > 0) then
+        microlist(:,:,N_microlist(0)+1:N_microlist(0)+N_microlist(smallerlist),0) = microlist(:,:,1:N_microlist(smallerlist),smallerlist)
+        idx_microlist(N_microlist(0)+1:N_microlist(0)+N_microlist(smallerlist),0) = idx_microlist(1:N_microlist(smallerlist),smallerlist)
+      end if
+      !if (N_minilist > 23 .and. N_minilist < 500) print *, "***************", N_det_selectors, N_minilist, N_microlist(0), N_microlist(smallerlist), buffer_size
+        !       call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
 !           c_pert,e_2_pert,H_pert_diag,Nint,N_microlist(smallerlist),n_st,microlist(:,:,:,smallerList),idx_microlist(:,smallerlist),N_microlist(smallerlist)) 
       call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
            c_pert,e_2_pert,H_pert_diag,Nint,N_microlist(smallerlist)+N_microlist(0),n_st,microlist(:,:,:,0),idx_microlist(:,0),N_microlist(smallerlist)+N_microlist(0)) 
