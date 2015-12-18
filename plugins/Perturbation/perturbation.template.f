@@ -51,13 +51,15 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   
   do i=1,buffer_size
     
+    if (is_in_wavefunction(buffer(1,1,i),Nint)) then
+      cycle
+    endif
+    
     if(is_connected_to(buffer(1,1,i), miniList_gen, Nint, N_minilist_gen)) then
       cycle
     end if
     
-    if (is_in_wavefunction(buffer(1,1,i),Nint)) then
-      cycle
-    endif
+
     
     call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
          c_pert,e_2_pert,H_pert_diag,Nint,N_minilist,n_st,minilist,idx_minilist,N_minilist) 
