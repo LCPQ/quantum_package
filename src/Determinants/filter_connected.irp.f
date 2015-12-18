@@ -178,11 +178,11 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
       N_microlist(0) = N_microlist(0) + 1
       idx_microlist(N_microlist(0),0) = i
       microlist(:,:,N_microlist(0),0) = minilist(:,:,i)
-      !do j=1,mo_tot_num*2
+!       do j=1,mo_tot_num*2
 !         N_microlist(j) = N_microlist(j) + 1
 !         idx_microlist(N_microlist(j),j) = i
 !         microlist(:,:,N_microlist(j),j) = minilist(:,:,i)
-      !end do
+!       end do
     else
       do j=1,n_element(1)
         nt = list(j,1)
