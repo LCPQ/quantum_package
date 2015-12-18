@@ -199,8 +199,24 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
       end do
     end if
   end do
+!   
+!   do j=1,mo_tot_num*2
+!     idx_microlist(N_microlist(j)+1:N_microlist(j)+N_microlist(0),j) = idx_microlist(1:N_microlist(0),0)
+!     microlist(:,:,N_microlist(j)+1:N_microlist(j)+N_microlist(0),j) = microlist(:,:,1:N_microlist(0),0)
+!     N_microlist(j) += N_microlist(0)
+!   end do
 end subroutine
   
+  
+subroutine merdge(mic, idx_mic, N_mic, mic0, idx_mic0, N_mic0, Nint)
+  use bitmasks
+  integer(bit_kind) :: mic(Nint,2,N_mic), mic0(Nint,2,*)
+  integer :: idx_mic(N_mic), idx_mic0(N_mic0), N_mic, N_mic0
+  
+  mic0(:,:,N_mic0+1:N_mic0+N_mic) = mic(:,:,:)
+  idx_mic0(N_mic0+1:N_mic0+N_mic) = idx_mic(:)
+end subroutine
+
   
 subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
   use bitmasks
