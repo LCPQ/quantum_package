@@ -135,7 +135,6 @@ subroutine pt2_moller_plesset ($arguments)
   endif
 
   if (delta_e /= 0.d0) then
-  !  call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det,psi_selectors_size,n_st,i_H_psi_array)
     call i_H_psi_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
     h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
   else

@@ -73,10 +73,6 @@
      enddo
      
    endif
-   ! Introduce level shift here
-   do i = elec_alpha_num+1, mo_tot_num
-     Fock_matrix_mo(i,i) += level_shift
-   enddo
 
    do i = 1, mo_tot_num
      Fock_matrix_diag_mo(i) = Fock_matrix_mo(i,i) 
