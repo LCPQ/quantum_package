@@ -71,12 +71,6 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
        N_microlist_gen(0:mo_tot_num*2) )
 
   if(key_mask(1,1) /= 0) then
-!     ptr_microlist(0) = 1
-!     ptr_microlist_gen(0) = 1
-!     do i=1,mo_tot_num*2+1
-!       ptr_microlist(i) = ptr_microlist(i-1) + N_microlist(i-1)
-!       ptr_microlist_gen(i) = ptr_microlist_gen(i-1) + N_microlist_gen(i-1)
-!     end do
     
     call create_microlist(minilist, N_minilist, key_mask, microlist, idx_microlist, N_microlist, ptr_microlist, Nint)
     call create_microlist(minilist_gen, N_minilist_gen, key_mask, microlist_gen, idx_microlist_gen, N_microlist_gen,ptr_microlist_gen,Nint)
@@ -127,14 +121,8 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
       if(N_microlist(smallerlist) > 0) then
          microlist_zero(:,:,ptr_microlist(1):ptr_microlist(1)+N_microlist(smallerlist)-1) = microlist(:,:,ptr_microlist(smallerlist):ptr_microlist(smallerlist+1)-1)
          idx_microlist_zero(ptr_microlist(1):ptr_microlist(1)+N_microlist(smallerlist)-1) = idx_microlist(ptr_microlist(smallerlist):ptr_microlist(smallerlist+1)-1)
-         !idx_microlist(N_microlist(0)+1:N_microlist(0)+N_microlist(smallerlist)) = idx_microlist(1:N_microlist(smallerlist))
 !       call merdge(microlist(:,:,:,smallerlist), idx_microlist(:,smallerlist), N_microlist(smallerlist), microlist(:,:,:,0), idx_microlist(:,0), N_microlist(0))
       end if
-      !if (N_minilist > 23 .and. N_minilist < 500) print *, "***************", N_det_selectors, N_minilist, N_microlist(0), N_microlist(smallerlist), buffer_size
-!               call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
-!           c_pert,e_2_pert,H_pert_diag,Nint,N_microlist(smallerlist),n_st,microlist(:,:,:,smallerList),idx_microlist(:,smallerlist),N_microlist(smallerlist)) 
-!       call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
-!            c_pert,e_2_pert,H_pert_diag,Nint,N_microlist(smallerlist)+N_microlist(0),n_st,microlist(:,:,:,0),idx_microlist(:,0),N_microlist(smallerlist)+N_microlist(0)) 
       call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
             c_pert,e_2_pert,H_pert_diag,Nint,N_microlist(smallerlist)+N_microlist(0),n_st,microlist_zero(:,:,:),idx_microlist_zero(:),N_microlist(smallerlist)+N_microlist(0)) 
     else
@@ -145,8 +133,6 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
       call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
         c_pert,e_2_pert,H_pert_diag,Nint,N_minilist,n_st,minilist,idx_minilist,N_minilist) 
     end if
-    
-    !det_ref,det_pert,fock_diag_tmp,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_st,minilist,idx_minilist,N_minilist ;
     
 !     call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
 !          c_pert,e_2_pert,H_pert_diag,Nint,N_minilist,n_st,minilist,idx_minilist,N_minilist) 
