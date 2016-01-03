@@ -147,7 +147,8 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
     
   enddo 
   deallocate( minilist, minilist_gen, idx_minilist )
-  deallocate( microlist, idx_microlist, N_microlist )
+  deallocate( microlist, idx_microlist, N_microlist,ptr_microlist )
+  deallocate( microlist_gen, idx_microlist_gen,N_microlist_gen,ptr_microlist_gen )
 end
 
 
