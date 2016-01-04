@@ -12,9 +12,18 @@ export C_INCLUDE_PATH="${QP_ROOT}"/lib:"${C_INCLUDE_PATH}"
 export LIBRARY_PATH="${QP_ROOT}"/lib:"${LIBRARY_PATH}"
 export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${LD_LIBRARY_PATH}"
 
-declare -i i
-i=$(gcc -dumpversion | cut -d '.' -f 1)
-if [[ i -lt 4 ]]
+# return 0 if program version is equal or greater than check version
+check_version()
+{
+    local version=$1 check=$2
+    local winner=$(echo -e "$version\n$check" | sed '/^$/d' | sort -nr | head -1)
+    [[ "$winner" = "$version" ]] && return 0
+    return 1
+}
+
+i=$(gcc -dumpversion)
+
+if check_version i 4.6
 then
    echo "GCC version $(gcc -dumpversion) too old. GCC >= 4.6 required."
    exit 1
