@@ -13,31 +13,31 @@ This file is autogenerad by
 (** Keywords used to define input sections *)
 type keyword = 
 | Ao_basis
+| Determinants
 | Determinants_by_hand
 | Electrons
+| Hartree_fock
+| Integrals_bielec
 | Mo_basis
 | Nuclei
-| Determinants
-| Integrals_bielec
-| Pseudo
 | Perturbation
 | Properties
-| Hartree_fock
+| Pseudo
 ;;
 
 
 let keyword_to_string = function
 | Ao_basis              -> "AO basis"
 | Determinants_by_hand  -> "Determinants_by_hand"
+| Determinants -> "Determinants"
 | Electrons             -> "Electrons"
+| Hartree_fock -> "Hartree_fock"
+| Integrals_bielec -> "Integrals_bielec"
 | Mo_basis              -> "MO basis"
 | Nuclei                -> "Molecule"
-| Determinants -> "Determinants"
-| Integrals_bielec -> "Integrals_bielec"
-| Pseudo -> "Pseudo"
 | Perturbation -> "Perturbation"
 | Properties -> "Properties"
-| Hartree_fock -> "Hartree_fock"
+| Pseudo -> "Pseudo"
 ;;
 
 
@@ -94,10 +94,10 @@ let get s =
            f Pseudo.(read, to_rst)
          | Perturbation ->
            f Perturbation.(read, to_rst)
-         | Properties ->
-           f Properties.(read, to_rst)
          | Hartree_fock ->
            f Hartree_fock.(read, to_rst)
+         | Properties ->
+           f Properties.(read, to_rst)
       end
     with
     | Sys_error msg -> (Printf.eprintf "Info: %s\n%!" msg ; "")
@@ -139,8 +139,8 @@ let set str s =
         | Integrals_bielec -> write Integrals_bielec.(of_rst, write) s
         | Pseudo -> write Pseudo.(of_rst, write) s
         | Perturbation -> write Perturbation.(of_rst, write) s
-        | Properties -> write Properties.(of_rst, write) s
         | Hartree_fock -> write Hartree_fock.(of_rst, write) s
+        | Properties -> write Properties.(of_rst, write) s
         | Electrons        -> write Electrons.(of_rst, write) s
         | Determinants_by_hand     -> write Determinants_by_hand.(of_rst, write) s
         | Nuclei           -> write Nuclei.(of_rst, write) s
@@ -192,8 +192,8 @@ let run check_only ezfio_filename =
       Integrals_bielec ; 
       Pseudo ; 
       Perturbation ; 
-      Properties ; 
       Hartree_fock ; 
+      Properties ; 
       Mo_basis;
       Determinants_by_hand ;
   ]
@@ -212,7 +212,7 @@ let run check_only ezfio_filename =
   match check_only with
   | true  -> ()
   | false -> 
-    Printf.sprintf "%s %s ; tput sgr0 2> /dev/null" editor temp_filename 
+    Printf.sprintf "%s %s" editor temp_filename 
     |> Sys.command_exn 
   ;
 
