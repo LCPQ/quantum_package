@@ -64,18 +64,18 @@ function run_HF() {
 }
 
 function run_FCI() {
-  thresh=1.e-4
+  thresh=1.e-5
   test_exe full_ci || skip
   ezfio set_file $1
   ezfio set perturbation do_pt2_end True
-  ezfio set determinants n_det_max 2000
+  ezfio set determinants n_det_max $2
   ezfio set determinants threshold_davidson 1.e-10
 
   qp_run full_ci $1
   energy="$(ezfio get full_ci energy)"
-  eq $energy $2 $thresh
+  eq $energy $3 $thresh
   energy_pt2="$(ezfio get full_ci energy_pt2)"
-  eq $energy_pt2 $3 $thresh
+  eq $energy_pt2 $4 $thresh
 }
 
 # ================== TESTS =======================
@@ -90,7 +90,7 @@ function run_FCI() {
 
 @test "FCI HBO STO-3G" {
   run "SCF HBO STO-3G" 
-  run_FCI  hbo.ezfio  -98.965709048681845  -98.965709048681504
+  run_FCI  hbo.ezfio 5000   -98.9661184343292  -98.9662954089732
 }
 
 
@@ -108,7 +108,7 @@ function run_FCI() {
 
 @test "FCI H2O cc-pVDZ" {
   run "SCF H2O cc-pVDZ"
-  run_FCI  h2o.ezfio  -76.2340571014912  -76.2472677390010
+  run_FCI h2o.ezfio 2000  -76.2340571014912  -76.2472677390010
 }
 
 @test "CAS_SD H2O cc-pVDZ" {
@@ -150,7 +150,7 @@ function run_FCI() {
 }
 
 @test "FCI H2O VDZ pseudo" {
-  run_FCI  h2o_pseudo.ezfio  -17.1593408979096  -17.1699581040506
+  run_FCI h2o_pseudo.ezfio 2000    -17.1593408979096  -17.1699581040506
 }
 
 
