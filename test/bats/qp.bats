@@ -64,7 +64,7 @@ function run_HF() {
 }
 
 function run_FCI() {
-  thresh=1.e-5
+  thresh=1.e-4
   test_exe full_ci || skip
   ezfio set_file $1
   ezfio set perturbation do_pt2_end True
@@ -90,7 +90,7 @@ function run_FCI() {
 
 @test "FCI HBO STO-3G" {
   run "SCF HBO STO-3G" 
-  run_FCI  hbo.ezfio  -98.965287146032395  -98.966244481929749
+  run_FCI  hbo.ezfio  -98.965709048681845  -98.965709048681504
 }
 
 
@@ -184,4 +184,6 @@ function run_FCI() {
 # TODO mod(64) MOs
 # TODO All G2 SCF energies
 # TODO Long and short tests
+# TODO MP2
+# TODO CISD_selected
 
