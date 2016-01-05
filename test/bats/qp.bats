@@ -88,12 +88,6 @@ function run_FCI() {
   run_HF  hbo.ezfio  -98.8251985678084 
 }
 
-@test "FCI HBO STO-3G" {
-  run "SCF HBO STO-3G" 
-  run_FCI  hbo.ezfio 5000   -98.9661184343292  -98.9662954089732
-}
-
-
 
 
 
