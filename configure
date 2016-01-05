@@ -26,6 +26,8 @@ Examples:
 
 """
 
+OK="✓"
+FAIL="✗"
 import subprocess
 import os
 import sys
@@ -288,10 +290,10 @@ def checking(d_dependency):
 
         r = check_availability(i)
         if r:
-            print "[  OK  ] ( {0} )".format(r.strip())
+            print OK+" ( {0} )".format(r.strip())
             l_installed[i] = r.strip()
         else:
-            print "[ FAIL ]"
+            print FAIL
             l_needed.append(i)
     print ""
 
@@ -373,7 +375,7 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
         except:
             raise
         else:
-            print "[  OK  ]"
+            print OK
 
         l_install_descendant.remove("ninja")
 
@@ -416,10 +418,10 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
     with open(path, "w+") as f:
         f.write("\n".join(l_string))
 
-    print "[  OK  ] ({0})".format(path)
+    print OK+" ({0})".format(path)
 
     print str_info("install"),
-    print "[ Running ]"
+    print "Running"
     try:
         path_ninja = find_path("ninja", l_installed)
         subprocess.check_call("cd install ;{0}".format(path_ninja), shell=True)
@@ -497,7 +499,7 @@ def create_ninja_and_rc(l_installed):
     with open(path, "w+") as f:
         f.write("\n".join(l_rc))
 
-    print "[  OK  ] ({0})".format(path)
+    print OK+" ({0})".format(path)
 
     command = ['bash', '-c', 'source {0} && env'.format(path)]
     proc = subprocess.Popen(command, stdout=subprocess.PIPE)
@@ -522,7 +524,7 @@ def create_ninja_and_rc(l_installed):
         sys.exit(1)
 
     else:
-        print "[  OK  ]"
+        print OK
 
 
 def recommendation():

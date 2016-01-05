@@ -19,7 +19,7 @@ END_PROVIDER
  ao_prim_num_max_align = align_double(ao_prim_num_max)
  END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, ao_coef_normalized, (ao_num_align,ao_prim_num_max) ]
+BEGIN_PROVIDER [ double precision, ao_coef_normalized, (ao_num,ao_prim_num_max) ]
   implicit none
   BEGIN_DOC
   ! Coefficients including the AO normalization
@@ -31,6 +31,7 @@ BEGIN_PROVIDER [ double precision, ao_coef_normalized, (ao_num_align,ao_prim_num
   C_A(1) = 0.d0
   C_A(2) = 0.d0
   C_A(3) = 0.d0
+  ao_coef_normalized = 0.d0
   do i=1,ao_num
     powA(1) = ao_power(i,1)
     powA(2) = ao_power(i,2)
