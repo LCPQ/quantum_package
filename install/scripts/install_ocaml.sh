@@ -23,22 +23,13 @@ check_version()
 
 i=$(gcc -dumpversion)
 
-if check_version i 4.6
+check_version i 4.6
+if [[ $? -ne 0 ]]
 then
    echo "GCC version $(gcc -dumpversion) too old. GCC >= 4.6 required."
    exit 1
 fi
 
-
-if [[ i -eq 4 ]]
-then
-  i=$(gcc -dumpversion | cut -d '.' -f 2)
-  if [[ i -lt 6 ]]
-  then
-    echo "GCC version $(gcc -dumpversion) too old. GCC >= 4.6 required."
-    exit 1
-  fi
-fi
 
 if [[ -d ${HOME}/.opam ]]
 then
