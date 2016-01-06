@@ -19,7 +19,7 @@ END_PROVIDER
  ao_prim_num_max_align = align_double(ao_prim_num_max)
  END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, ao_coef_normalized, (ao_num,ao_prim_num_max) ]
+BEGIN_PROVIDER [ double precision, ao_coef_normalized, (ao_num_align,ao_prim_num_max) ]
   implicit none
   BEGIN_DOC
   ! Coefficients including the AO normalization

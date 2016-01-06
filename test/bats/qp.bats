@@ -5,7 +5,6 @@
 # If the numbers are not equal, the exit code is 1 else it is 0
 # So we strip the "-", is the abs value of the poor
 function eq() {
-#    awk -v d1=$1 -v d2=$2 -v n1=${1#-} -v n2=${2#-} -v p=$3 'BEGIN{ if ((n1-n2)^2 < p^2) exit 0; { print (d1-d2) " " d1 " " d2 ; exit 1} }'
     declare -a diff
     diff=($(awk -v d1=$1 -v d2=$2 -v n1=${1#-} -v n2=${2#-} -v p=$3 'BEGIN{ if ((n1-n2)^2 < p^2) print 0; print 1 " " (d1-d2) " " d1 " " d2 }'))
     if [[ "${diff[0]}" == "0" ]]
@@ -101,13 +100,11 @@ function run_FCI() {
 }
 
 @test "FCI H2O cc-pVDZ" {
-  run "SCF H2O cc-pVDZ"
   run_FCI h2o.ezfio 2000  -76.2340571014912  -76.2472677390010
 }
 
 @test "CAS_SD H2O cc-pVDZ" {
   test_exe cas_sd_selected || skip
-  run "SCF H2O cc-pVDZ"
   INPUT=h2o.ezfio
   ezfio set_file $INPUT
   ezfio set perturbation do_pt2_end False
@@ -120,7 +117,6 @@ function run_FCI() {
 
 @test "MRCC H2O cc-pVDZ" {
   test_exe mrcc_cassd || skip
-  run "CAS_SD H2O cc-pVDZ"
   INPUT=h2o.ezfio
   ezfio set_file $INPUT
   ezfio set determinants threshold_generators 1.
