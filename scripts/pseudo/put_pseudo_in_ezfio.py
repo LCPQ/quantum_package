@@ -4,7 +4,7 @@
 Create the pseudo potential for a given atom
 
 Usage:
-    put_pseudo_in_ezfio.py <ezfio_path>
+    put_pseudo_in_ezfio.py <ezfio_path> <pseudo_name>  [<db_path>]
 
 Help:
     atom is the Abreviation of the atom
@@ -28,7 +28,7 @@ import re
 p = re.compile(ur'\|(\d+)><\d+\|')
 
 
-def get_pseudo_str(l_atom):
+def get_pseudo_str(db_path,pseudo_name,l_atom):
     """
     Run EMSL_local for getting the str of the pseudo potential
 
@@ -53,7 +53,6 @@ def get_pseudo_str(l_atom):
 
     EMSL_root = "{0}/install/emsl/".format(qpackage_root)
     EMSL_path = "{0}/EMSL_api.py".format(EMSL_root)
-    db_path = "{0}/db/Pseudo.db".format(EMSL_root)
 
     str_ = ""
 
@@ -64,7 +63,7 @@ def get_pseudo_str(l_atom):
 
             l_cmd_head = [EMSL_path, "get_basis_data",
                           "--db_path", db_path,
-                          "--basis", "BFD-Pseudo"]
+                          "--basis", pseudo_name]
 
             process = Popen(l_cmd_head + l_cmd_atom, stdout=PIPE, stderr=PIPE)
 
@@ -180,19 +179,22 @@ def get_zeff_alpha_beta(str_ele):
     #
 
     from elts_num_ele import name_to_elec
+    from math import ceil, floor
     z = name_to_elec[name]
 
     z_eff = z - z_remove
 
-    alpha = (z_remove / 2)
-    beta = (z_remove / 2)
+    alpha = int(ceil(z_remove / 2.))
+    beta = int(floor(z_remove / 2.))
+
+    # Remove more alpha, than beta
 
     #  _
     # |_)  _ _|_     ._ ._
     # | \ (/_ |_ |_| |  | |
     #
 
-    return [z_eff, alpha, beta]
+    return [z_remove, z_eff, alpha, beta]
 
 
 def add_zero(array, size, type):
@@ -224,6 +226,12 @@ def make_it_square(matrix, dim, type=float):
 
     return matrix
 
+def full_path(path):
+    path = os.path.expanduser(path)
+    path = os.path.expandvars(path)
+    path = os.path.abspath(path)
+    return path
+
 if __name__ == "__main__":
     arguments = docopt(__doc__)
     # ___
@@ -235,19 +243,22 @@ if __name__ == "__main__":
     # E Z F I O #
     # ~#~#~#~#~ #
 
-    ezfio_path = arguments["<ezfio_path>"]
-    ezfio_path = os.path.expanduser(ezfio_path)
-    ezfio_path = os.path.expandvars(ezfio_path)
-    ezfio_path = os.path.abspath(ezfio_path)
-
+    ezfio_path = full_path(arguments["<ezfio_path>"])
     ezfio.set_file("{0}".format(ezfio_path))
 
     # ~#~#~#~#~#~#~#~#~#~#~ #
     # P s e u d o _ d a t a #
     # ~#~#~#~#~#~#~#~#~#~#~ #
 
+    if arguments["<db_path>"]:
+        db_path = full_path(arguments["<db_path>"])
+    else:
+        db_path= full_path("{0}/data/BFD-Pseudo.db".format(qpackage_root))
+
+    pseudo_name = arguments["<pseudo_name>"]
     l_ele = ezfio.get_nuclei_nucl_label()
-    str_ = get_pseudo_str(l_ele)
+
+    str_ = get_pseudo_str(db_path,pseudo_name,l_ele)
 
     #  _
     # |_) _. ._ _  _
@@ -257,7 +268,7 @@ if __name__ == "__main__":
     l_str_ele = [str_ele for str_ele in str_.split("Element Symbol: ")
                  if str_ele]
 
-    for i in "l_zeff v_k n_k dz_k v_kl n_kl dz_kl".split():
+    for i in "l_zeff l_remove v_k n_k dz_k v_kl n_kl dz_kl".split():
         exec("{0} = []".format(i))
 
     alpha_tot = 0
@@ -296,11 +307,13 @@ if __name__ == "__main__":
         # Z _ e f f , a l p h a / b e t a _ e l e c #
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
-        zeff, alpha, beta = get_zeff_alpha_beta(str_ele)
+        zremove, zeff, alpha, beta = get_zeff_alpha_beta(str_ele)
 
         alpha_tot += alpha
         beta_tot += beta
         l_zeff.append(zeff)
+        l_remove.append(zremove)
+
     #                                  _
     #  /\   _|  _|   _|_  _     _  _ _|_ o  _
     # /--\ (_| (_|    |_ (_)   (/_ /_ |  | (_)
@@ -311,6 +324,7 @@ if __name__ == "__main__":
     # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
     ezfio.nuclei_nucl_charge = l_zeff
+    ezfio.pseudo_nucl_charge_remove = l_remove
 
     alpha_tot = ezfio.get_electrons_elec_alpha_num() - alpha_tot
     beta_tot = ezfio.get_electrons_elec_beta_num() - beta_tot
