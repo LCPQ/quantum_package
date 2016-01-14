@@ -47,8 +47,8 @@ check_version () {
 
 i=$(gcc -dumpversion)
 
-check_version i 4.6
-if [[ $? -ne 0 ]]
+check_version 4.6 $i 
+if [[ $? == 1 ]]
 then
    echo "GCC version $(gcc -dumpversion) too old. GCC >= 4.6 required."
    exit 1
