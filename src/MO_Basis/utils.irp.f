@@ -100,6 +100,53 @@ subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label,sign)
   mo_label = label
 end
 
+subroutine mo_as_svd_vectors_of_mo_matrix(matrix,lda,m,n,label)
+  implicit none
+  integer,intent(in)             :: lda,m,n
+  character*(64), intent(in)     :: label
+  double precision, intent(in)   :: matrix(lda,n)
+  
+  integer :: i,j
+  double precision, allocatable  :: mo_coef_new(:,:), U(:,:),D(:), A(:,:), Vt(:,:), work(:)
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: mo_coef_new, U, Vt, A
+  
+  call write_time(output_mo_basis)
+  if (m /= mo_tot_num) then
+    print *, irp_here, ': Error : m/= mo_tot_num'
+    stop 1
+  endif
+
+  allocate(A(lda,n),U(lda,n),mo_coef_new(ao_num_align,m),D(m),Vt(lda,n))
+
+  do j=1,n
+    do i=1,m
+      A(i,j) = matrix(i,j)
+    enddo
+  enddo
+  mo_coef_new = mo_coef
+  
+  call svd(A,lda,U,lda,D,Vt,lda,m,n)
+
+  write (output_mo_basis,'(A)'), 'MOs are now **'//trim(label)//'**'
+  write (output_mo_basis,'(A)'), ''
+  write (output_mo_basis,'(A)'), 'Eigenvalues'
+  write (output_mo_basis,'(A)'), '-----------'
+  write (output_mo_basis,'(A)'), ''
+  write (output_mo_basis,'(A)'), '======== ================'
+
+  do i=1,m
+    write (output_mo_basis,'(I8,X,F16.10)'), i,D(i)
+  enddo
+  write (output_mo_basis,'(A)'), '======== ================'
+  write (output_mo_basis,'(A)'), ''
+  
+  call dgemm('N','N',ao_num,m,m,1.d0,mo_coef_new,size(mo_coef_new,1),U,size(U,1),0.d0,mo_coef,size(mo_coef,1))
+  deallocate(A,mo_coef_new,U,Vt,D)
+  call write_time(output_mo_basis)
+  
+  mo_label = label
+end
+
 subroutine mo_as_eigvectors_of_mo_matrix_sort_by_observable(matrix,observable,n,m,label)
   implicit none
   integer,intent(in)             :: n,m

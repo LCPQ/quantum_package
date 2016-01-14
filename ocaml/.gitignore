@@ -1,6 +1,7 @@
 _build
 ezfio.ml
 .gitignore
+Git.ml
 Input_auto_generated.ml
 Input_determinants.ml
 Input_hartree_fock.ml
@@ -41,9 +42,15 @@ test_excitation
 test_excitation.byte
 test_gto
 test_gto.byte
+test_message
+test_message.byte
 test_mo_label
 test_mo_label.byte
 test_molecule
 test_molecule.byte
 test_point3d
 test_point3d.byte
+test_queuing_system
+test_queuing_system.byte
+test_task_server
+test_task_server.byte
