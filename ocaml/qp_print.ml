@@ -41,7 +41,7 @@ let run_i ~action ezfio_filename =
   let action = create_i_action action in
 
   if (not (Sys.file_exists_exn ezfio_filename)) then
-    failwith (ezfio_filename^" does not exists");
+    failwith (ezfio_filename^" does not exist");
 
   Ezfio.set_file ezfio_filename;
 
@@ -133,7 +133,7 @@ let run_i ~action ezfio_filename =
 let run_o ~action ezfio_filename =
 
   if (not (Sys.file_exists_exn ezfio_filename)) then
-    failwith (ezfio_filename^" does not exists");
+    failwith (ezfio_filename^" does not exist");
 
   (* Open EZFIO *)
   Ezfio.set_file ezfio_filename;

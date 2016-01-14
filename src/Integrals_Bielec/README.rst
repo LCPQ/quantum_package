@@ -31,6 +31,7 @@ Needed Modules
 
 * `Pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo>`_
 * `Bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask>`_
+* `ZMQ <http://github.com/LCPQ/quantum_package/tree/master/src/ZMQ>`_
 
 Documentation
 =============
@@ -47,7 +48,7 @@ Documentation
   i(r1) j(r1) 1/r12 k(r2) l(r2)
 
 
-`ao_bielec_integral_schwartz <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L501>`_
+`ao_bielec_integral_schwartz <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L442>`_
   Needed to compute Schwartz inequalities
 
 
@@ -59,6 +60,14 @@ Documentation
 `ao_bielec_integrals_in_map <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L330>`_
   Map of Atomic integrals
   i(r1) j(r2) 1/r12 k(r1) l(r2)
+
+
+`ao_bielec_integrals_in_map_collector <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bielec_integrals_in_map_slave.irp.f#L57>`_
+  Collects results from the AO integral calculation
+
+
+`ao_bielec_integrals_in_map_slave <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bielec_integrals_in_map_slave.irp.f#L1>`_
+  Computes a buffer of integrals
 
 
 `ao_integrals_map <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f#L6>`_
@@ -89,12 +98,16 @@ Documentation
   Frees the memory of the AO map
 
 
-`clear_mo_map <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f#L422>`_
+`clear_mo_map <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L508>`_
   Frees the memory of the MO map
 
 
 `compute_ao_bielec_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L290>`_
   Compute AO 1/r12 integrals for all i and fixed j,k,l
+
+
+`compute_ao_integrals_jl <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L1202>`_
+  Parallel client for AO integrals
 
 
 `disk_access_ao_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ezfio_interface.irp.f#L28>`_
@@ -109,15 +122,15 @@ Documentation
   Compute integrals on the fly
 
 
-`dump_ao_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f_template_567#L3>`_
+`dump_ao_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f_template_562#L3>`_
   Save to disk the $ao integrals
 
 
-`dump_mo_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f_template_567#L137>`_
+`dump_mo_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f_template_562#L137>`_
   Save to disk the $ao integrals
 
 
-`eri <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L664>`_
+`eri <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L605>`_
   ATOMIC PRIMTIVE bielectronic integral between the 4 primitives ::
   primitive_1 = x1**(a_x) y1**(a_y) z1**(a_z) exp(-alpha * r1**2)
   primitive_2 = x1**(b_x) y1**(b_y) z1**(b_z) exp(- beta * r1**2)
@@ -139,7 +152,7 @@ Documentation
   t_w(i,2,k) = t(i)
 
 
-`general_primitive_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L526>`_
+`general_primitive_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L467>`_
   Computes the integral <pq|rs> where p,q,r,s are Gaussian primitives
 
 
@@ -161,11 +174,11 @@ Documentation
   Returns the number of elements in the AO map
 
 
-`get_mo_bielec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f#L281>`_
+`get_mo_bielec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f#L280>`_
   Returns one integral <ij|kl> in the MO basis
 
 
-`get_mo_bielec_integral_schwartz <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f#L299>`_
+`get_mo_bielec_integral_schwartz <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f#L298>`_
   Returns one integral <ij|kl> in the MO basis
 
 
@@ -174,47 +187,47 @@ Documentation
   i for j,k,l fixed.
 
 
-`get_mo_bielec_integrals_existing_ik <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f#L364>`_
+`get_mo_bielec_integrals_ij <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f#L364>`_
   Returns multiple integrals <ij|kl> in the MO basis, all
-  i(1)j(1) 1/r12 k(2)l(2)
-  i for j,k,l fixed.
+  i(1)j(2) 1/r12 k(1)l(2)
+  i, j for k,l fixed.
 
 
-`get_mo_map_size <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f#L414>`_
+`get_mo_map_size <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f#L418>`_
   Return the number of elements in the MO map
 
 
-`give_polynom_mult_center_x <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L874>`_
+`give_polynom_mult_center_x <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L819>`_
   subroutine that returns the explicit polynom in term of the "t"
   variable of the following polynomw :
   I_x1(a_x, d_x,p,q) * I_x1(a_y, d_y,p,q) * I_x1(a_z, d_z,p,q)
 
 
-`i_x1_new <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L795>`_
+`i_x1_new <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L738>`_
   recursive function involved in the bielectronic integral
 
 
-`i_x1_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L937>`_
+`i_x1_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L882>`_
   recursive function involved in the bielectronic integral
 
 
-`i_x1_pol_mult_a1 <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L1057>`_
+`i_x1_pol_mult_a1 <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L1002>`_
   recursive function involved in the bielectronic integral
 
 
-`i_x1_pol_mult_a2 <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L1111>`_
+`i_x1_pol_mult_a2 <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L1056>`_
   recursive function involved in the bielectronic integral
 
 
-`i_x1_pol_mult_recurs <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L971>`_
+`i_x1_pol_mult_recurs <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L916>`_
   recursive function involved in the bielectronic integral
 
 
-`i_x2_new <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L830>`_
+`i_x2_new <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L774>`_
   recursive function involved in the bielectronic integral
 
 
-`i_x2_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L1173>`_
+`i_x2_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L1118>`_
   recursive function involved in the bielectronic integral
 
 
@@ -222,21 +235,21 @@ Documentation
   Create new entry into AO map
 
 
-`insert_into_mo_integrals_map <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f#L265>`_
+`insert_into_mo_integrals_map <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f#L264>`_
   Create new entry into MO map, or accumulate in an existing entry
 
 
-`integrale_new <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L721>`_
+`integrale_new <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L662>`_
   calculate the integral of the polynom ::
   I_x1(a_x+b_x, c_x+d_x,p,q) * I_x1(a_y+b_y, c_y+d_y,p,q) * I_x1(a_z+b_z, c_z+d_z,p,q)
   between ( 0 ; 1)
 
 
-`load_ao_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f_template_567#L89>`_
+`load_ao_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f_template_562#L89>`_
   Read from disk the $ao integrals
 
 
-`load_mo_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f_template_567#L223>`_
+`load_mo_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f_template_562#L223>`_
   Read from disk the $ao integrals
 
 
@@ -244,43 +257,43 @@ Documentation
   Returns one integral <ij|kl> in the MO basis
 
 
-`mo_bielec_integral_jj <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L465>`_
+`mo_bielec_integral_jj <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L464>`_
   mo_bielec_integral_jj(i,j) = J_ij
   mo_bielec_integral_jj_exchange(i,j) = K_ij
   mo_bielec_integral_jj_anti(i,j) = J_ij - K_ij
 
 
-`mo_bielec_integral_jj_anti <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L467>`_
+`mo_bielec_integral_jj_anti <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L466>`_
   mo_bielec_integral_jj(i,j) = J_ij
   mo_bielec_integral_jj_exchange(i,j) = K_ij
   mo_bielec_integral_jj_anti(i,j) = J_ij - K_ij
 
 
-`mo_bielec_integral_jj_anti_from_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L327>`_
+`mo_bielec_integral_jj_anti_from_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L326>`_
   mo_bielec_integral_jj_from_ao(i,j) = J_ij
   mo_bielec_integral_jj_exchange_from_ao(i,j) = J_ij
   mo_bielec_integral_jj_anti_from_ao(i,j) = J_ij - K_ij
 
 
-`mo_bielec_integral_jj_exchange <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L466>`_
+`mo_bielec_integral_jj_exchange <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L465>`_
   mo_bielec_integral_jj(i,j) = J_ij
   mo_bielec_integral_jj_exchange(i,j) = K_ij
   mo_bielec_integral_jj_anti(i,j) = J_ij - K_ij
 
 
-`mo_bielec_integral_jj_exchange_from_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L326>`_
+`mo_bielec_integral_jj_exchange_from_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L325>`_
   mo_bielec_integral_jj_from_ao(i,j) = J_ij
   mo_bielec_integral_jj_exchange_from_ao(i,j) = J_ij
   mo_bielec_integral_jj_anti_from_ao(i,j) = J_ij - K_ij
 
 
-`mo_bielec_integral_jj_from_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L325>`_
+`mo_bielec_integral_jj_from_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L324>`_
   mo_bielec_integral_jj_from_ao(i,j) = J_ij
   mo_bielec_integral_jj_exchange_from_ao(i,j) = J_ij
   mo_bielec_integral_jj_anti_from_ao(i,j) = J_ij - K_ij
 
 
-`mo_bielec_integral_schwartz <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L492>`_
+`mo_bielec_integral_schwartz <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/mo_bi_integrals.irp.f#L491>`_
   Needed to compute Schwartz inequalities
 
 
@@ -304,7 +317,7 @@ Documentation
   Aligned n_pt_max_integrals
 
 
-`n_pt_sup <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L860>`_
+`n_pt_sup <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L805>`_
   Returns the upper boundary of the degree of the polynomial involved in the
   bielctronic integral :
   Ix(a_x,b_x,c_x,d_x) * Iy(a_y,b_y,c_y,d_y) * Iz(a_z,b_z,c_z,d_z)

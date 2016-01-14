@@ -141,6 +141,19 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask_restart, (N_int,2,6,N_gen
    enddo
  endif
 
+ integer :: i
+ do k=1,N_generators_bitmask
+   do ispin=1,2
+     do i=1,N_int
+      generators_bitmask_restart(i,ispin,s_hole ,k) = iand(full_ijkl_bitmask(i,d_hole1),generators_bitmask_restart(i,ispin,s_hole,k) )
+      generators_bitmask_restart(i,ispin,s_part ,k) = iand(full_ijkl_bitmask(i,d_part1),generators_bitmask_restart(i,ispin,s_part,k) )
+      generators_bitmask_restart(i,ispin,d_hole1,k) = iand(full_ijkl_bitmask(i,d_hole1),generators_bitmask_restart(i,ispin,d_hole1,k) )
+      generators_bitmask_restart(i,ispin,d_part1,k) = iand(full_ijkl_bitmask(i,d_part1),generators_bitmask_restart(i,ispin,d_part1,k) )
+      generators_bitmask_restart(i,ispin,d_hole2,k) = iand(full_ijkl_bitmask(i,d_hole2),generators_bitmask_restart(i,ispin,d_hole2,k) )
+      generators_bitmask_restart(i,ispin,d_part2,k) = iand(full_ijkl_bitmask(i,d_part2),generators_bitmask_restart(i,ispin,d_part2,k) )
+     enddo
+   enddo
+ enddo
 END_PROVIDER
 
 
@@ -172,7 +185,7 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_
  if (exists) then
    call ezfio_get_bitmasks_generators(generators_bitmask)
  else
-   integer :: k, ispin
+   integer :: k, ispin, i
    do k=1,N_generators_bitmask
      do ispin=1,2
        generators_bitmask(:,ispin,s_hole ,k) = full_ijkl_bitmask(:,d_hole1)
@@ -185,6 +198,18 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_
    enddo
  endif
 
+ do k=1,N_generators_bitmask
+   do ispin=1,2
+     do i=1,N_int
+      generators_bitmask(i,ispin,s_hole ,k) = iand(full_ijkl_bitmask(i,d_hole1),generators_bitmask(i,ispin,s_hole,k) )
+      generators_bitmask(i,ispin,s_part ,k) = iand(full_ijkl_bitmask(i,d_part1),generators_bitmask(i,ispin,s_part,k) )
+      generators_bitmask(i,ispin,d_hole1,k) = iand(full_ijkl_bitmask(i,d_hole1),generators_bitmask(i,ispin,d_hole1,k) )
+      generators_bitmask(i,ispin,d_part1,k) = iand(full_ijkl_bitmask(i,d_part1),generators_bitmask(i,ispin,d_part1,k) )
+      generators_bitmask(i,ispin,d_hole2,k) = iand(full_ijkl_bitmask(i,d_hole2),generators_bitmask(i,ispin,d_hole2,k) )
+      generators_bitmask(i,ispin,d_part2,k) = iand(full_ijkl_bitmask(i,d_part2),generators_bitmask(i,ispin,d_part2,k) )
+     enddo
+   enddo
+ enddo
 END_PROVIDER
 
 BEGIN_PROVIDER [ integer, N_cas_bitmask ]
@@ -223,7 +248,7 @@ BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
  ! Bitmasks for CAS reference determinants. (N_int, alpha/beta, CAS reference)
  END_DOC
  logical                        :: exists
- integer                        :: i,i_part,i_gen,j
+ integer                        :: i,i_part,i_gen,j,k
  PROVIDE ezfio_filename
 
  call ezfio_has_bitmasks_cas(exists)
@@ -240,14 +265,21 @@ BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
   else 
    i_part = 2
    i_gen = 1
-   do j = 1, N_cas_bitmask
-    do i = 1, N_int
+   do j=1, N_cas_bitmask
+    do i=1, N_int
       cas_bitmask(i,1,j) = generators_bitmask_restart(i,1,i_part,i_gen)
       cas_bitmask(i,2,j) = generators_bitmask_restart(i,2,i_part,i_gen)
     enddo
    enddo
   endif
  endif
+ do i=1,N_cas_bitmask
+   do j = 1, N_cas_bitmask
+     do k=1,N_int
+       cas_bitmask(k,j,i) = iand(cas_bitmask(k,j,i),full_ijkl_bitmask(k,j))
+     enddo
+   enddo
+ enddo
 
 END_PROVIDER
 

@@ -52,7 +52,7 @@ Documentation
   Diagonal Fock matrix in the MO basis
 
 
-`diagonal_fock_matrix_mo_sum <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/diagonalize_fock.irp.f#L67>`_
+`diagonal_fock_matrix_mo_sum <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/diagonalize_fock.irp.f#L112>`_
   diagonal element of the fock matrix calculated as the sum over all the interactions
   with all the electrons in the RHF determinant
   diagonal_Fock_matrix_mo_sum(i) = sum_{j=1, N_elec} 2 J_ij -K_ij
@@ -114,7 +114,7 @@ Documentation
   .br
 
 
-`fock_mo_to_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L375>`_
+`fock_mo_to_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L392>`_
   Undocumented
 
 

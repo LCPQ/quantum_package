@@ -43,6 +43,10 @@ Documentation
   supposed to be the Identity
 
 
+`guess_mimi <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess/guess_overlap.irp.f#L1>`_
+  Produce `H_core` MO orbital
+
+
 `h_core_guess <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess/H_CORE_guess.irp.f#L1>`_
   Produce `H_core` MO orbital
   output:  mo_basis.mo_tot_num mo_basis.mo_label mo_basis.ao_md5 mo_basis.mo_coef mo_basis.mo_occ
@@ -50,4 +54,8 @@ Documentation
 
 `hcore_guess <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess/h_core_guess_routine.irp.f#L1>`_
   Produce `H_core` MO orbital
+
+
+`prog_truncate_mo <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess/truncate_mos.irp.f#L1>`_
+  Truncate MO set
 

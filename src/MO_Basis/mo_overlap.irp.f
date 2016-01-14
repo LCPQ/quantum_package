@@ -4,7 +4,7 @@ BEGIN_PROVIDER [ double precision, mo_overlap,(mo_tot_num_align,mo_tot_num)]
   integer :: i,j,n,l
   double precision :: f
   integer :: lmax
-  lmax = iand(ao_num,-4)
+  lmax = (ao_num/4) * 4
   !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
   !$OMP  PRIVATE(i,j,n,l) &
   !$OMP  SHARED(mo_overlap,mo_coef,ao_overlap, &

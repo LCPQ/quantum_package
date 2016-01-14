@@ -24,7 +24,7 @@ ALL_EXE=$(patsubst %.ml,%.native,$(wildcard qp_*.ml)) qp_edit.native
 default: $(ALL_TESTS) $(ALL_EXE) .gitignore
 
 .gitignore: $(MLFILES)
-	@for i in .gitignore ezfio.ml Qptypes.ml qptypes_generator.byte _build $(ALL_EXE) $(ALL_TESTS) \
+	@for i in .gitignore ezfio.ml Qptypes.ml Git.ml qptypes_generator.byte _build $(ALL_EXE) $(ALL_TESTS) \
 	$(patsubst %.ml,%,$(wildcard test_*.ml)) $(patsubst %.ml,%,$(wildcard qp_*.ml)) \
 	$(shell grep Input Input_auto_generated.ml | awk '{print $$2 ".ml"}') \
 	qp_edit.ml qp_edit qp_edit.native Input_auto_generated.ml;\
@@ -33,6 +33,7 @@ default: $(ALL_TESTS) $(ALL_EXE) .gitignore
 	done |sort | uniq > .gitignore
 
 executables: $(QP_ROOT)/data/executables
+
 
 $(QP_ROOT)/data/executables: remake_executables
 	$(QP_ROOT)/scripts/module/create_executables_list.sh
@@ -68,8 +69,9 @@ ezfio.ml: ${QP_ROOT}/install/EZFIO/Ocaml/ezfio.ml
 qptypes_generator.byte: qptypes_generator.ml
 	$(OCAMLBUILD) qptypes_generator.byte  -use-ocamlfind 
 
-Qptypes.ml: qptypes_generator.byte
+Git.ml Qptypes.ml: qptypes_generator.byte
 	./qptypes_generator.byte > Qptypes.ml
+	./create_git_sha1.sh
 
 ${QP_ROOT}/install/EZFIO/Ocaml/ezfio.ml: 
 	$(NINJA) -C ${QP_ROOT}/install/EZFIO
@@ -78,5 +80,5 @@ Input_auto_generated.ml qp_edit.ml:
 	ei_handler.py ocaml_global
 
 clean: 
-	rm -rf _build Qptypes.ml Input_auto_generated.ml $(ALL_EXE) $(ALL_TESTS)
+	rm -rf _build Qptypes.ml Git.ml Input_auto_generated.ml $(ALL_EXE) $(ALL_TESTS)
 
