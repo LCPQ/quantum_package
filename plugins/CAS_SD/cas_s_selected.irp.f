@@ -30,7 +30,7 @@ program full_ci
   endif
 
   do while (N_det < N_det_max.and.maxval(abs(pt2(1:N_st))) > pt2_max)
-    call H_apply_CAS_S_selected(pt2, norm_pert, H_pert_diag,  N_st)
+    call H_apply_CAS_S_selected_no_skip(pt2, norm_pert, H_pert_diag,  N_st)
 
     PROVIDE  psi_coef
     PROVIDE  psi_det

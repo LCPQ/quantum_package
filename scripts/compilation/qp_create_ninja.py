@@ -637,7 +637,7 @@ def ninja_binaries_rule():
     # c m d #
     # ~#~#~ #
 
-    l_cmd = ["cd $module_abs/IRPF90_temp", "ninja $out && touch $out"]
+    l_cmd = ["cd $module_abs/IRPF90_temp", "ninja $out && for i in $out ; do [ -x $$i ] && touch $$i ; done"]
 
     # ~#~#~#~#~#~ #
     # s t r i n g #

@@ -16,6 +16,7 @@ Makefile.depend
 Nuclei
 Pseudo
 Utils
+ZMQ
 ezfio_interface.irp.f
 fcidump
 irpf90.make

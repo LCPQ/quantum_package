@@ -55,7 +55,6 @@ let executables = lazy (
     In_channel.input_lines in_channel
      |> List.map ~f:(fun x ->
          let e = String.split ~on:' ' x
-           |> List.map ~f:String.strip
            |> List.filter ~f:(fun x -> x <> "")
          in
          match e with

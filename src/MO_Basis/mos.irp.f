@@ -9,8 +9,9 @@ BEGIN_PROVIDER [ integer, mo_tot_num ]
   if (exists) then
     call ezfio_get_mo_basis_mo_tot_num(mo_tot_num)
   else
-    mo_tot_num = ao_num
+    mo_tot_num = ao_ortho_canonical_num
   endif
+  call write_int(6,mo_tot_num,'mo_tot_num')
   ASSERT (mo_tot_num > 0)
 END_PROVIDER
 
@@ -56,7 +57,14 @@ END_PROVIDER
     deallocate(buffer)
   else
     ! Orthonormalized AO basis
-    mo_coef = 0.
+    do i=1,mo_tot_num
+      do j=1,ao_num
+        mo_coef(j,i) = ao_ortho_canonical_coef(j,i)
+      enddo
+      do j=ao_num+1,ao_num_align
+        mo_coef(j,i) = 0.d0
+      enddo
+    enddo
   endif
 END_PROVIDER
 

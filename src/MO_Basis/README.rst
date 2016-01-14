@@ -76,11 +76,11 @@ Documentation
   by convention, the '-' MO is in the greater index (max(j,k))
 
 
-`mo_as_eigvectors_of_mo_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L24>`_
+`mo_as_eigvectors_of_mo_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L47>`_
   Undocumented
 
 
-`mo_as_eigvectors_of_mo_matrix_sort_by_observable <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L62>`_
+`mo_as_eigvectors_of_mo_matrix_sort_by_observable <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L103>`_
   Undocumented
 
 
@@ -116,7 +116,7 @@ Documentation
   Undocumented
 
 
-`mo_sort_by_observable <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L144>`_
+`mo_sort_by_observable <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L185>`_
   Undocumented
 
 
@@ -141,5 +141,9 @@ Documentation
 
 
 `save_mos <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L1>`_
+  Undocumented
+
+
+`save_mos_truncated <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L24>`_
   Undocumented
 
