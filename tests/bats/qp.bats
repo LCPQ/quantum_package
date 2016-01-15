@@ -129,22 +129,17 @@ function run_FCI() {
 
 
 
-
-
 @test "init H2O VDZ pseudo" {
-  run_init h2o.xyz "-p -b vdz" h2o_pseudo.ezfio
+  run_init h2o.xyz "-b 6-31g -p" h2o_pseudo.ezfio
 }
 
 @test "SCF H2O VDZ pseudo" {
-  run_HF  h2o_pseudo.ezfio  -16.94878419417625
+  run_HF  h2o_pseudo.ezfio  -16.83640423847896
 }
 
 @test "FCI H2O VDZ pseudo" {
-  run_FCI h2o_pseudo.ezfio 2000    -17.1593408979096  -17.1699581040506
+  run_FCI h2o_pseudo.ezfio 2000   -16.9735668007886 -16.9746915941369
 }
-
-
-
 
 
 @test "gamess convert HBO.out" {
