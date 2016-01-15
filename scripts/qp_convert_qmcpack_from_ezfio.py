@@ -9,11 +9,25 @@ ezfio_path = sys.argv[1]
 
 ezfio.set_file(ezfio_path)
 
+
+do_pseudo = ezfio.get_pseudo_do_pseudo()
+if do_pseudo:
+	print "do_pseudo True"
+	zcore = ezfio.get_pseudo_nucl_charge_remove()
+else:
+	print "do_pseudo False"
+
+n_det =ezfio.get_determinants_n_det()
+if n_det == 1:
+	print "multi_det False"
+else:
+	print "multi_det True"
+
 ao_num = ezfio.get_ao_basis_ao_num()
-print ao_num
+print "ao_num", ao_num
 
 mo_num = ezfio.get_mo_basis_mo_tot_num()
-print mo_num
+print "mo_num", mo_num
 
 
 alpha = ezfio.get_electrons_elec_alpha_num()
@@ -23,15 +37,21 @@ print "elec_beta_num", beta
 print "elec_tot_num",  alpha + beta
 print "spin_multiplicity", 2*(alpha-beta)+1
 
-print "Atomic coord in Bohr"
 l_label = ezfio.get_nuclei_nucl_label()
 l_charge = ezfio.get_nuclei_nucl_charge()
 l_coord = ezfio.get_nuclei_nucl_coord()
 
 l_coord_str = [" ".join(map(str,i)) for i in l_coord]
 
-for i in zip(l_label,l_charge,l_coord_str):
-	print " ".join(map(str,i))
+print "nucl_num",len(l_label)
+print "Atomic coord in Bohr"
+
+for i,t in enumerate(zip(l_label,l_charge,l_coord_str)):
+	try :
+		l = (t[0],t[1]+zcore[i],t[1])
+	except NameError:
+		l = t
+	print " ".join(map(str,l))
 
 
 import subprocess
@@ -45,6 +65,7 @@ for i,l in enumerate(l_label):
 	basis_without_header=basis_without_header.replace('Atom {0}'.format(i+1),l)
 
 print "BEGIN_BASIS_SET"
+print ""
 print basis_without_header
 print "END_BASIS_SET"
 
@@ -101,9 +122,6 @@ l_l_sym = [i.split() for i in l_sym_without_header]
 for l in l_l_sym:
 	l[2] = expend_and_order_sym(l[2])
 
-
-print l_l_sym
-
 l_l_sym_iter = iter(l_l_sym)
 for i,l in enumerate(l_l_sym_iter):
 	n = get_nb_permutation(l[2])
@@ -135,59 +153,80 @@ for block in l_block:
 
 print "END_MO"
 
-
-print "BEGIN_PSEUDO"
-do_pseudo = ezfio.get_pseudo_do_pseudo()
-
-zcore = ezfio.get_pseudo_nucl_charge_remove()
-klocmax = ezfio.get_pseudo_pseudo_klocmax()
-kmax = ezfio.get_pseudo_pseudo_kmax()
-lmax = ezfio.get_pseudo_pseudo_lmax()
-
-
-n_k = ezfio.get_pseudo_pseudo_n_k()
-v_k = ezfio.get_pseudo_pseudo_v_k()
-dz_k = ezfio.get_pseudo_pseudo_dz_k()
-
-n_kl = ezfio.get_pseudo_pseudo_n_kl()
-v_kl = ezfio.get_pseudo_pseudo_v_kl()
-dz_kl = ezfio.get_pseudo_pseudo_dz_kl()
-
-def list_to_string(l):
-	return " ".join(map(str,l))
-
-for i,a in enumerate(l_label):
-
-	l_str = []
-
-	l_dump = []
-	for k in range(klocmax):
-			if v_k[k][i]:
-				l_ = list_to_string([v_k[k][i], n_k[k][i]+2, dz_k[k][i]])
-				l_dump.append(l_)
-
-	l_str.append(l_dump)
-	print "non loc"
-	for l in range(lmax+1):
+if do_pseudo:
+	print ""
+	print "BEGIN_PSEUDO"
+	klocmax = ezfio.get_pseudo_pseudo_klocmax()
+	kmax = ezfio.get_pseudo_pseudo_kmax()
+	lmax = ezfio.get_pseudo_pseudo_lmax()
+	
+	
+	n_k = ezfio.get_pseudo_pseudo_n_k()
+	v_k = ezfio.get_pseudo_pseudo_v_k()
+	dz_k = ezfio.get_pseudo_pseudo_dz_k()
+	
+	n_kl = ezfio.get_pseudo_pseudo_n_kl()
+	v_kl = ezfio.get_pseudo_pseudo_v_kl()
+	dz_kl = ezfio.get_pseudo_pseudo_dz_kl()
+	
+	def list_to_string(l):
+		return " ".join(map(str,l))
+	
+	for i,a in enumerate(l_label):
+	
+		l_str = []
+	
 		l_dump = []
-		for k in range(kmax):
-			if v_kl[l][k][i]:
-				l_ = list_to_string([v_kl[l][k][i], n_kl[l][k][i]+2, dz_kl[l][k][i]])
-				l_dump.append(l_)
-		if l_dump:
-			l_str.append(l_dump)
-
-	str_ = "PARAMETERS FOR {0} ON ATOM {1} WITH ZCORE {2} AND LMAX {3} ARE"
-	print str_.format(a,i+1,zcore[i],len(l_str))
-
-	for i, l in enumerate(l_str):
-		str_ = "FOR L= {0} COEFF N ZETA"
-		print str_.format(len(l_str)-i-1)
-		for ii, ll in enumerate(l):
-			print " ",ii+1, ll
-
-str_ = "THE ECP RUN REMOVES {0} CORE ELECTRONS, AND THE SAME NUMBER OF PROTONS."
-print str_.format(sum(zcore))
-print "END_PSEUDO"
-
+		for k in range(klocmax):
+				if v_k[k][i]:
+					l_ = list_to_string([v_k[k][i], n_k[k][i]+2, dz_k[k][i]])
+					l_dump.append(l_)
+	
+		l_str.append(l_dump)
+		for l in range(lmax+1):
+			l_dump = []
+			for k in range(kmax):
+				if v_kl[l][k][i]:
+					l_ = list_to_string([v_kl[l][k][i], n_kl[l][k][i]+2, dz_kl[l][k][i]])
+					l_dump.append(l_)
+			if l_dump:
+				l_str.append(l_dump)
+	
+		str_ = "PARAMETERS FOR {0} ON ATOM {1} WITH ZCORE {2} AND LMAX {3} ARE"
+		print str_.format(a,i+1,zcore[i],len(l_str))
+	
+		for i, l in enumerate(l_str):
+			str_ = "FOR L= {0} COEFF N ZETA"
+			print str_.format(len(l_str)-i-1)
+			for ii, ll in enumerate(l):
+				print " ",ii+1, ll
+	
+	str_ = "THE ECP RUN REMOVES {0} CORE ELECTRONS, AND THE SAME NUMBER OF PROTONS."
+	print str_.format(sum(zcore))
+	print "END_PSEUDO"
+	
+print ""
 print "BEGIN_DET"
+print ""
+print "mo_num", mo_num
+print "det_num", n_det
+print ""
+
+psi_det = ezfio.get_determinants_psi_det()
+psi_coef = ezfio.get_determinants_psi_coef()[0]
+
+
+for c, (l_det_bit_alpha, l_det_bit_beta) in zip(psi_coef,psi_det):
+	print c
+	for det in l_det_bit_alpha:
+		bin_det_raw = "{0:b}".format(det)[::-1]
+		bin_det = bin_det_raw+"0"*(mo_num-len(bin_det_raw))
+	print bin_det
+
+	for det in l_det_bit_beta:
+		bin_det_raw = "{0:b}".format(det)[::-1]
+		bin_det = bin_det_raw+"0"*(mo_num-len(bin_det_raw))
+	print bin_det
+	print ""
+
+print "END_DET"
