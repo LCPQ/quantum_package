@@ -48,7 +48,7 @@ print "Atomic coord in Bohr"
 
 for i,t in enumerate(zip(l_label,l_charge,l_coord_str)):
 	try :
-		l = (t[0],t[1]+zcore[i],t[1])
+		l = (t[0],t[1]+zcore[i],t[2])
 	except NameError:
 		l = t
 	print " ".join(map(str,l))
@@ -193,11 +193,11 @@ if do_pseudo:
 				l_str.append(l_dump)
 	
 		str_ = "PARAMETERS FOR {0} ON ATOM {1} WITH ZCORE {2} AND LMAX {3} ARE"
-		print str_.format(a,i+1,zcore[i],len(l_str))
+		print str_.format(a,i+1,int(zcore[i]),int(len(l_str)-1))
 	
 		for i, l in enumerate(l_str):
 			str_ = "FOR L= {0} COEFF N ZETA"
-			print str_.format(len(l_str)-i-1)
+			print str_.format(int(len(l_str)-i-1))
 			for ii, ll in enumerate(l):
 				print " ",ii+1, ll
 	
