@@ -1,5 +1,9 @@
 #!/usr/bin/env bats
 
+#                
+#   |\/| o  _  _ 
+#   |  | | _> (_ 
+#                
 # floating point number comparison
 # Compare two numbers ($1, $2) with a given precision ($3)
 # If the numbers are not equal, the exit code is 1 else it is 0
@@ -19,19 +23,23 @@ function eq() {
     fi
 }
 
-#: "${QP_ROOT?Please source your quantum_package.rc}"
 
+function debug() {
+  echo $@
+  $@
+}
+
+
+#   ___           
+#    |  ._  o _|_ 
+#   _|_ | | |  |_ 
+#                 
 source ${QP_ROOT}/install/EZFIO/Bash/ezfio.sh
 TEST_DIR=${QP_ROOT}/tests/work/
 
 mkdir -p "${TEST_DIR}"
 
 cd "${TEST_DIR}" || exit 1
-
-function debug() {
-  echo $@
-  $@
-}
 
 function run_init() {
   cp "${QP_ROOT}/tests/input/$1" .
@@ -49,8 +57,6 @@ function test_exe() {
     return 127
   fi
 }
-
-
 
 function run_HF() {
   thresh=1.e-8
@@ -77,8 +83,12 @@ function run_FCI() {
   eq $energy_pt2 $4 $thresh
 }
 
-# ================== TESTS =======================
+#   ___             
+#    |  _   _ _|_   
+#    | (/_ _>  |_   
+#                   
 
+#=== HBO
 @test "init HBO STO-3G" {
   run_init HBO.xyz "-b STO-3G" hbo.ezfio
 }
@@ -88,9 +98,7 @@ function run_FCI() {
 }
 
 
-
-
-
+#=== H2O
 @test "init H2O cc-pVDZ" {
   run_init h2o.xyz "-b cc-pvdz" h2o.ezfio
 }
@@ -128,7 +136,7 @@ function run_FCI() {
 }
 
 
-
+#=== H2O Pseudo
 @test "init H2O VDZ pseudo" {
   run_init h2o.xyz "-b 6-31g -p" h2o_pseudo.ezfio
 }
@@ -141,7 +149,7 @@ function run_FCI() {
   run_FCI h2o_pseudo.ezfio 2000   -16.9735668007886 -16.9746915941369
 }
 
-
+#=== Convert
 @test "gamess convert HBO.out" {
   cp ${QP_ROOT}/tests/input/HBO.out .
   qp_convert_output_to_ezfio.py HBO.out
@@ -161,8 +169,6 @@ function run_FCI() {
   energy="$(ezfio get hartree_fock energy)"
   eq $energy -76.0270218704265 1E-10
 }
-
-
 
 
 # TODO N_int = 1,2,3,4,5
