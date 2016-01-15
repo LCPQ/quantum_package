@@ -4,7 +4,7 @@
 Create the pseudo potential for a given atom
 
 Usage:
-    put_pseudo_in_ezfio.py <ezfio_path> <pseudo_name>  [<db_path>]
+    put_pseudo_in_ezfio.py <ezfio_path> <pseudo_name>  [<db_dump_path>]
 
 Help:
     atom is the Abreviation of the atom
@@ -28,7 +28,7 @@ import re
 p = re.compile(ur'\|(\d+)><\d+\|')
 
 
-def get_pseudo_str(db_path,pseudo_name,l_atom):
+def get_pseudo_str(db_dump_path,pseudo_name,l_atom):
     """
     Run EMSL_local for getting the str of the pseudo potential
 
@@ -62,7 +62,7 @@ def get_pseudo_str(db_path,pseudo_name,l_atom):
             l_cmd_atom = ["--atom", a]
 
             l_cmd_head = [EMSL_path, "get_basis_data",
-                          "--db_path", db_path,
+                          "--db_dump_path", db_dump_path,
                           "--basis", pseudo_name]
 
             process = Popen(l_cmd_head + l_cmd_atom, stdout=PIPE, stderr=PIPE)
@@ -250,15 +250,15 @@ if __name__ == "__main__":
     # P s e u d o _ d a t a #
     # ~#~#~#~#~#~#~#~#~#~#~ #
 
-    if arguments["<db_path>"]:
-        db_path = full_path(arguments["<db_path>"])
+    if arguments["<db_dump_path>"]:
+        db_dump_path = full_path(arguments["<db_dump_path>"])
     else:
-        db_path= full_path("{0}/data/BFD-Pseudo.db".format(qpackage_root))
+        db_dump_path= full_path("{0}/data/BFD-Pseudo.dump".format(qpackage_root))
 
     pseudo_name = arguments["<pseudo_name>"]
     l_ele = ezfio.get_nuclei_nucl_label()
 
-    str_ = get_pseudo_str(db_path,pseudo_name,l_ele)
+    str_ = get_pseudo_str(db_dump_path,pseudo_name,l_ele)
 
     #  _
     # |_) _. ._ _  _

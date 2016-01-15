@@ -127,7 +127,7 @@ ninja = Info(
     default_path=join(QP_ROOT_BIN, "ninja"))
 
 emsl = Info(
-    url='{head}/LCPQ/EMSL_Basis_Set_Exchange_Local/{tail}'.format(**path_github),
+    url='{head}/TApplencourt/EMSL_Basis_Set_Exchange_Local/{tail}'.format(**path_github),
     description=' EMSL basis set library',
     default_path=join(QP_ROOT_INSTALL, "emsl"))
 
