@@ -1,7 +1,7 @@
 open Core.Std
 open Qptypes
 
-let () =
+let basis ()=
   let ezfio_filename =
     Sys.argv.(1)
   in
@@ -14,7 +14,26 @@ let () =
     | _ -> failwith "Error reading basis set"
   in
   Input.Ao_basis.to_rst basis
-  |> Rst_string.to_string 
-  |> print_endline 
-  
+  |> Rst_string.to_string
+  |> print_endline
+  ;;
 
+let mo ()=
+  let ezfio_filename =
+    Sys.argv.(1)
+  in
+  if (not (Sys.file_exists_exn ezfio_filename)) then
+    failwith "Error reading EZFIO file";
+  Ezfio.set_file ezfio_filename;
+  let mo_coef =
+    match Input.Mo_basis.read () with
+    | Some mo_coef -> mo_coef
+    | _ -> failwith "Error reading the mo set"
+  in
+  Input.Mo_basis.to_rst mo_coef 
+  |> Rst_string.to_string
+  |> print_endline
+  ;;
+
+basis ();;
+mo ();;
