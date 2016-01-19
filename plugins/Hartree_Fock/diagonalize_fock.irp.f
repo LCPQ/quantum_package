@@ -71,8 +71,12 @@
        
 
        ! Insert level shift here
+       do i = elec_beta_num+1, elec_alpha_num
+         F(i,i) += 0.5d0*level_shift
+       enddo
+
        do i = elec_alpha_num+1, mo_tot_num
-         Fock_matrix_mo(i,i) += level_shift
+         F(i,i) += level_shift
        enddo
 
        n = mo_tot_num
@@ -111,10 +115,6 @@
          0.d0, eigenvectors_Fock_matrix_mo, size(eigenvectors_Fock_matrix_mo,1))
        deallocate(work, iwork, F)
 
-       ! Remove level shift 
-       do i = elec_alpha_num+1, mo_tot_num
-         Fock_matrix_mo(i,i) -= level_shift
-       enddo
 
 !  endif
 
