@@ -19,7 +19,8 @@ END_PROVIDER
  ao_prim_num_max_align = align_double(ao_prim_num_max)
  END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, ao_coef_normalized, (ao_num_align,ao_prim_num_max) ]
+ BEGIN_PROVIDER [ double precision, ao_coef_normalized, (ao_num_align,ao_prim_num_max) ]
+&BEGIN_PROVIDER [ double precision, ao_coef_normalization_factor, (ao_num) ]
   implicit none
   BEGIN_DOC
   ! Coefficients including the AO normalization
@@ -48,8 +49,9 @@ BEGIN_PROVIDER [ double precision, ao_coef_normalized, (ao_num_align,ao_prim_num
       norm = norm+c*ao_coef_normalized(i,j)*ao_coef_normalized(i,k)
      enddo
     enddo
+    ao_coef_normalization_factor(i) = 1.d0/sqrt(norm)
     do j=1,ao_prim_num(i)
-      ao_coef_normalized(i,j) = ao_coef_normalized(i,j)/sqrt(norm)
+      ao_coef_normalized(i,j) = ao_coef_normalized(i,j) * ao_coef_normalization_factor(i)
     enddo
   enddo
 END_PROVIDER
