@@ -79,6 +79,10 @@ let input_data = "
 * AO_prim_number : int
   assert (x > 0) ;
 
+* R_power : int
+  assert (x >= -2) ;
+  assert (x <= 8)  ;
+
 * Threshold : float
   assert (x >= 0.) ;
   assert (x <= 1.) ;
@@ -138,7 +142,7 @@ let input_ezfio = "
 * Det_number : int
   determinants_n_det
   1 : 100000000
-  More than 100 million determinants
+  More than 100 million of determinants
 
 "
 ;;
