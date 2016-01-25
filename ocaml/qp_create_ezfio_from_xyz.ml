@@ -138,9 +138,15 @@ let run ?o b c d m p xyz_file =
       Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
           ^ "." ^ basis ^ "\" \"" ^ basis ^"\""
     in
-    match Sys.is_file basis with
-    | `Yes -> 
-          In_channel.create basis
+    let long_basis = 
+      Qpackage.root ^ "/data/basis/" ^ basis
+    in
+    match 
+      Sys.is_file basis,
+      Sys.is_file long_basis
+    with
+    | `Yes, _    -> In_channel.create basis
+    | `No , `Yes -> In_channel.create long_basis
     | _ -> 
       begin
         let filename = 
@@ -229,8 +235,15 @@ let run ?o b c d m p xyz_file =
   in
 
   let fetch_channel pseudo =
-    match Sys.is_file pseudo with
-    | `Yes -> In_channel.create pseudo
+    let long_pseudo =
+      Qpackage.root ^ "/data/pseudo/" ^ pseudo
+    in
+    match 
+      Sys.is_file pseudo,
+      Sys.is_file long_pseudo
+    with
+    | `Yes, _    -> In_channel.create pseudo
+    | `No , `Yes -> In_channel.create long_pseudo
     | _    -> failwith ("Pseudo file "^pseudo^" not found.")
   in
 
@@ -312,7 +325,6 @@ let run ?o b c d m p xyz_file =
          | None -> Pseudo.empty x.Atom.element
        ) 
   in
-  List.iter pseudo ~f:(fun x -> Pseudo.to_string x |> print_endline) ;
 
   let molecule =     
     let n_elec_to_remove =
@@ -339,7 +351,9 @@ let run ?o b c d m p xyz_file =
         )
     }
   in
-  List.iter molecule.Molecule.nuclei ~f:(fun x -> print_endline (Atom.to_string x ~units:Units.Bohr));
+  let nuclei =
+    molecule.Molecule.nuclei @ dummy
+  in
     
 
   (* Write Electrons *)
