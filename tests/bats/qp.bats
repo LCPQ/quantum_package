@@ -15,7 +15,7 @@ function eq() {
        echo "Error     : " ${diff[1]}
        echo "Reference : " ${diff[3]}
        echo "Computed  : " ${diff[2]}
-       exit 127
+       exit 1
     fi
 }
 
@@ -27,11 +27,6 @@ TEST_DIR=${QP_ROOT}/tests/work/
 mkdir -p "${TEST_DIR}"
 
 cd "${TEST_DIR}" || exit 1
-
-function debug() {
-  echo $@
-  $@
-}
 
 function run_init() {
   cp "${QP_ROOT}/tests/input/$1" .
@@ -100,7 +95,7 @@ function run_FCI() {
 }
 
 @test "FCI H2O cc-pVDZ" {
-  run_FCI h2o.ezfio 2000  -76.2340571376198  -76.2472677528236
+  run_FCI h2o.ezfio 10000  -76.241461732569   -76.2471202055693
 }
 
 @test "CAS_SD H2O cc-pVDZ" {
@@ -136,11 +131,11 @@ function run_FCI() {
 }
 
 @test "SCF H2O VDZ pseudo" {
-  run_HF  h2o_pseudo.ezfio  -16.9487846289347
+  run_HF  h2o_pseudo.ezfio  -16.9487841972853
 }
 
 @test "FCI H2O VDZ pseudo" {
-  run_FCI h2o_pseudo.ezfio 2000    -17.1593409055786  -17.1699581088593
+  run_FCI h2o_pseudo.ezfio 2000    -17.1593409053142  -17.1699581090466
 }
 
 
