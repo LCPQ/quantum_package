@@ -211,10 +211,10 @@ subroutine get_double_excitation(det1,det2,exc,phase,Nint)
         
         ASSERT (low > 0)
         j = ishft(low-1,-bit_kind_shift)+1   ! Find integer in array(Nint)
-        n = iand(low,bit_kind_size-1)        ! mod(low,bit_kind_size)
+        n = iand(low-1,bit_kind_size-1)+1        ! mod(low,bit_kind_size)
         ASSERT (high > 0)
         k = ishft(high-1,-bit_kind_shift)+1
-        m = iand(high,bit_kind_size-1)
+        m = iand(high-1,bit_kind_size-1)+1
         
         if (j==k) then
           nperm = nperm + popcnt(iand(det1(j,ispin),                 &
@@ -237,10 +237,10 @@ subroutine get_double_excitation(det1,det2,exc,phase,Nint)
           
           ASSERT (low > 0)
           j = ishft(low-1,-bit_kind_shift)+1   ! Find integer in array(Nint)
-          n = iand(low,bit_kind_size-1)        ! mod(low,bit_kind_size)
+          n = iand(low-1,bit_kind_size-1)+1        ! mod(low,bit_kind_size)
           ASSERT (high > 0)
           k = ishft(high-1,-bit_kind_shift)+1
-          m = iand(high,bit_kind_size-1)
+          m = iand(high-1,bit_kind_size-1)+1
           
           if (j==k) then
             nperm = nperm + popcnt(iand(det1(j,ispin),               &
@@ -328,15 +328,16 @@ subroutine get_mono_excitation(det1,det2,exc,phase,Nint)
       
       ASSERT (low > 0)
       j = ishft(low-1,-bit_kind_shift)+1   ! Find integer in array(Nint)
-      n = iand(low,bit_kind_size-1)        ! mod(low,bit_kind_size)
+      n = iand(low-1,bit_kind_size-1)+1      ! mod(low,bit_kind_size)
       ASSERT (high > 0)
       k = ishft(high-1,-bit_kind_shift)+1
-      m = iand(high,bit_kind_size-1)
+      m = iand(high-1,bit_kind_size-1)+1
       if (j==k) then
         nperm = popcnt(iand(det1(j,ispin),                           &
             iand(ibset(0_bit_kind,m-1)-1_bit_kind,ibclr(-1_bit_kind,n)+1_bit_kind)))
       else
-        nperm = nperm + popcnt(iand(det1(k,ispin),ibset(0_bit_kind,m-1)-1_bit_kind)) +&
+        nperm = nperm + &
+            popcnt(iand(det1(k,ispin),ibset(0_bit_kind,m-1)-1_bit_kind)) +&
             popcnt(iand(det1(j,ispin),ibclr(-1_bit_kind,n)+1_bit_kind))
         do i=j+1,k-1
           nperm = nperm + popcnt(det1(i,ispin))
