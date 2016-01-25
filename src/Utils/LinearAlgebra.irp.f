@@ -42,11 +42,90 @@ subroutine svd(A,LDA,U,LDU,D,Vt,LDVt,m,n)
 end
 
 
+subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
+  implicit none
+  BEGIN_DOC
+  ! Compute C_new=C_old.U.s^-1/2 canonical orthogonalization.
+  !
+  ! overlap : overlap matrix 
+  !
+  ! LDA : leftmost dimension of overlap array
+  !
+  ! N : Overlap matrix is NxN (array is (LDA,N) )
+  !
+  ! C : Coefficients of the vectors to orthogonalize. On exit,
+  !     orthogonal vectors
+  !
+  ! LDC : leftmost dimension of C
+  !
+  ! m : Coefficients matrix is MxN, ( array is (LDC,N) )
+  !
+  END_DOC
+  
+  integer, intent(in)            :: lda, ldc, n
+  integer, intent(out)           :: m
+  double precision, intent(in)   :: overlap(lda,n)
+  double precision, intent(inout) :: C(ldc,n)
+  double precision, allocatable  :: U(:,:)
+  double precision, allocatable  :: Vt(:,:)
+  double precision, allocatable  :: D(:)
+  double precision, allocatable  :: S_half(:,:)
+  !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
+  integer                        :: info, i, j
+  
+  allocate (U(ldc,n), Vt(lda,n), D(n), S_half(lda,n))
+
+  call svd(overlap,lda,U,ldc,D,Vt,lda,n,n)
+
+  m=n
+  do i=1,n
+    if ( D(i) >= 1.d-6 ) then
+      D(i) = 1.d0/dsqrt(D(i))
+    else
+      m = i-1
+      print *,  'Removed Linear dependencies below:', 1.d0/D(m)
+      exit
+    endif
+  enddo
+  do i=m+1,n
+    print *,  D(i)
+    D(i) = 0.d0
+  enddo
+
+  do i=1,m
+    if ( D(i) >= 1.d5 ) then
+      print *,  'Warning: Basis set may have linear dependence problems'
+    endif
+  enddo
+
+
+  !$OMP PARALLEL DEFAULT(NONE) &
+  !$OMP SHARED(S_half,U,D,Vt,n,C,m) &
+  !$OMP PRIVATE(i,j)
+
+  !$OMP DO
+  do j=1,n
+    do i=1,n
+      S_half(i,j) = U(i,j)*D(j)
+    enddo
+    do i=1,n
+      U(i,j) = C(i,j)
+    enddo
+  enddo
+  !$OMP END DO
+  
+  !$OMP END PARALLEL
+
+  call dgemm('N','N',n,m,n,1.d0,U,size(U,1),S_half,size(S_half,1),0.d0,C,size(C,1))
+  deallocate (U, Vt, D, S_half)
+  
+end
+
 
 subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   implicit none
   BEGIN_DOC
-  ! Compute C_new=C_old.S^-1/2 canonical orthogonalization.
+  ! Compute C_new=C_old.S^-1/2 orthogonalization.
   !
   ! overlap : overlap matrix 
   !
@@ -70,9 +149,8 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   double precision               :: Vt(lda,n)
   double precision               :: D(n)
   double precision               :: S_half(lda,n)
-  double precision,allocatable   :: work(:)
-  !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D, work
-  integer                        :: info, lwork, i, j, k
+  !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
+  integer                        :: info, i, j, k
   
   call svd(overlap,lda,U,ldc,D,Vt,lda,m,n)
 
@@ -82,7 +160,7 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
 
   !$OMP DO
   do i=1,n
-    if ( D(i) < 1.d-12 ) then
+    if ( D(i) < 1.d-6 ) then
       D(i) = 0.d0
     else
       D(i) = 1.d0/dsqrt(D(i))
@@ -94,13 +172,15 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   !$OMP END DO
 
   do k=1,n
-    !$OMP DO
-    do j=1,n
-      do i=1,n
-        S_half(i,j) = S_half(i,j) + U(i,k)*D(k)*Vt(k,j)
+    if (D(k) /= 0.d0) then
+      !$OMP DO
+      do j=1,n
+        do i=1,n
+          S_half(i,j) = S_half(i,j) + U(i,k)*D(k)*Vt(k,j)
+        enddo
       enddo
-    enddo
-    !$OMP END DO NOWAIT
+      !$OMP END DO NOWAIT
+    endif
   enddo
   
   !$OMP BARRIER

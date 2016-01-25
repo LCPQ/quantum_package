@@ -637,7 +637,7 @@ def ninja_binaries_rule():
     # c m d #
     # ~#~#~ #
 
-    l_cmd = ["cd $module_abs/IRPF90_temp", "ninja $out && touch $out"]
+    l_cmd = ["cd $module_abs/IRPF90_temp", "ninja $out && for i in $out ; do [ -x $$i ] && touch $$i ; done"]
 
     # ~#~#~#~#~#~ #
     # s t r i n g #
@@ -911,7 +911,7 @@ if __name__ == "__main__":
         if module not in d_binaries:
             l_msg = ["{0} is a root module but does not contain a main file.",
                      "- Create it in {0}",
-                     "- Or delete {0} `qp_install_module.py uninstall {0}`",
+                     "- Or delete {0} `qp_module.py uninstall {0}`",
                      "- Or install a module that needs {0} with a main "]
 
             print "\n".join(l_msg).format(module.rel)

@@ -23,6 +23,7 @@ Pseudo
 Selectors_full
 SingleRefMethod
 Utils
+ZMQ
 cisd_selection
 ezfio_interface.irp.f
 irpf90.make

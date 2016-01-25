@@ -22,8 +22,10 @@ Pseudo
 Selectors_full
 SingleRefMethod
 Utils
+ZMQ
 ezfio_interface.irp.f
 irpf90.make
 irpf90_entities
 mp2
+mp2_wf
 tags

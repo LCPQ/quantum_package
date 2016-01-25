@@ -40,24 +40,22 @@ double precision function ao_bielec_integral(i,j,k,l)
       L_center(p) = nucl_coord(num_l,p)
     enddo
     
+    double precision               :: coef1, coef2, coef3, coef4
+    double precision               :: p_inv,q_inv
+    double precision               :: general_primitive_integral
+
     do p = 1, ao_prim_num(i)
-      double precision               :: coef1
       coef1 = ao_coef_normalized_ordered_transp(p,i)
       do q = 1, ao_prim_num(j)
-        double precision               :: coef2
         coef2 = coef1*ao_coef_normalized_ordered_transp(q,j)
-        double precision               :: p_inv,q_inv
         call give_explicit_poly_and_gaussian(P_new,P_center,pp,fact_p,iorder_p,&
             ao_expo_ordered_transp(p,i),ao_expo_ordered_transp(q,j),                 &
             I_power,J_power,I_center,J_center,dim1)
         p_inv = 1.d0/pp
         do r = 1, ao_prim_num(k)
-          double precision               :: coef3
           coef3 = coef2*ao_coef_normalized_ordered_transp(r,k)
           do s = 1, ao_prim_num(l)
-            double precision               :: coef4
             coef4 = coef3*ao_coef_normalized_ordered_transp(s,l)
-            double precision               :: general_primitive_integral
             call give_explicit_poly_and_gaussian(Q_new,Q_center,qq,fact_q,iorder_q,&
                 ao_expo_ordered_transp(r,k),ao_expo_ordered_transp(s,l),             &
                 K_power,L_power,K_center,L_center,dim1)
@@ -65,7 +63,7 @@ double precision function ao_bielec_integral(i,j,k,l)
             integral = general_primitive_integral(dim1,              &
                 P_new,P_center,fact_p,pp,p_inv,iorder_p,             &
                 Q_new,Q_center,fact_q,qq,q_inv,iorder_q)
-            ao_bielec_integral +=  coef4 * integral
+            ao_bielec_integral = ao_bielec_integral +  coef4 * integral
           enddo ! s
         enddo  ! r
       enddo   ! q
@@ -94,7 +92,7 @@ double precision function ao_bielec_integral(i,j,k,l)
                 I_power(1),J_power(1),K_power(1),L_power(1),         &
                 I_power(2),J_power(2),K_power(2),L_power(2),         &
                 I_power(3),J_power(3),K_power(3),L_power(3))
-            ao_bielec_integral +=  coef4 * integral
+            ao_bielec_integral = ao_bielec_integral + coef4 * integral
           enddo ! s
         enddo  ! r
       enddo   ! q
@@ -129,8 +127,8 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
   num_k = ao_nucl(k)
   num_l = ao_nucl(l)
   ao_bielec_integral_schwartz_accel = 0.d0
-  double precision               :: thresh
-  thresh = ao_integrals_threshold*ao_integrals_threshold
+  double precision               :: thr
+  thr = ao_integrals_threshold*ao_integrals_threshold
   
   allocate(schwartz_kl(0:ao_prim_num(l),0:ao_prim_num(k)))
 
@@ -181,18 +179,18 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
             P_new,P_center,fact_p,pp,p_inv,iorder_p,                 &
             P_new,P_center,fact_p,pp,p_inv,iorder_p) *               &
             coef2*coef2
-        if (schwartz_kl(0,0)*schwartz_ij < thresh) then
+        if (schwartz_kl(0,0)*schwartz_ij < thr) then
            cycle
         endif
         do r = 1, ao_prim_num(k)
-          if (schwartz_kl(0,r)*schwartz_ij < thresh) then
+          if (schwartz_kl(0,r)*schwartz_ij < thr) then
              cycle
           endif
           double precision               :: coef3
           coef3 = coef2*ao_coef_normalized_ordered_transp(r,k)
           do s = 1, ao_prim_num(l)
             double precision               :: coef4
-            if (schwartz_kl(s,r)*schwartz_ij < thresh) then
+            if (schwartz_kl(s,r)*schwartz_ij < thr) then
                cycle
             endif
             coef4 = coef3*ao_coef_normalized_ordered_transp(s,l)
@@ -246,16 +244,16 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
                 I_power(1),J_power(1),I_power(1),J_power(1),         &
                 I_power(2),J_power(2),I_power(2),J_power(2),         &
                 I_power(3),J_power(3),I_power(3),J_power(3))*coef2*coef2
-        if (schwartz_kl(0,0)*schwartz_ij < thresh) then
+        if (schwartz_kl(0,0)*schwartz_ij < thr) then
            cycle
         endif
         do r = 1, ao_prim_num(k)
-          if (schwartz_kl(0,r)*schwartz_ij < thresh) then
+          if (schwartz_kl(0,r)*schwartz_ij < thr) then
              cycle
           endif
           coef3 = coef2*ao_coef_normalized_ordered_transp(r,k)
           do s = 1, ao_prim_num(l)
-            if (schwartz_kl(s,r)*schwartz_ij < thresh) then
+            if (schwartz_kl(s,r)*schwartz_ij < thr) then
                cycle
             endif
             coef4 = coef3*ao_coef_normalized_ordered_transp(s,l)
@@ -295,11 +293,10 @@ subroutine compute_ao_bielec_integrals(j,k,l,sze,buffer_value)
   ! Compute AO 1/r12 integrals for all i and fixed j,k,l
   END_DOC
   
+  include 'Utils/constants.include.F'
   integer, intent(in)            :: j,k,l,sze
   real(integral_kind), intent(out) :: buffer_value(sze)
   double precision               :: ao_bielec_integral
-  double precision               :: thresh
-  thresh = ao_integrals_threshold
   
   integer                        :: i
   
@@ -339,8 +336,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   integer                        :: i,j,k,l
   double precision               :: ao_bielec_integral,cpu_1,cpu_2, wall_1, wall_2
   double precision               :: integral, wall_0
-  double precision               :: thresh
-  thresh = ao_integrals_threshold
+  include 'Utils/constants.include.F'
   
   ! For integrals file
   integer(key_kind),allocatable  :: buffer_i(:)
@@ -348,7 +344,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   real(integral_kind),allocatable :: buffer_value(:)
   
   integer                        :: n_integrals, rc
-  integer                        :: jl_pairs(2,ao_num*(ao_num+1)/2), kk, m, j1, i1, lmax
+  integer                        :: kk, m, j1, i1, lmax
   
   integral = ao_bielec_integral(1,1,1,1)
   
@@ -368,55 +364,21 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   call wall_time(wall_1)
   call cpu_time(cpu_1)
 
-  integer(ZMQ_PTR)               :: zmq_socket_rep_inproc, zmq_socket_push_inproc 
-  zmq_socket_rep_inproc = f77_zmq_socket(zmq_context, ZMQ_REP)
-  rc = f77_zmq_bind(zmq_socket_rep_inproc, 'inproc://req_rep')
-  if (rc /= 0) then
-    stop 'Unable to connect zmq_socket_rep_inproc'
-  endif
+  integer(ZMQ_PTR) :: zmq_to_qp_run_socket
+  call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
+
   
-  integer(ZMQ_PTR)               :: thread(0:nproc)
-  external                       :: ao_bielec_integrals_in_map_slave, ao_bielec_integrals_in_map_collector
-  rc = pthread_create( thread(0), ao_bielec_integrals_in_map_collector )
-  ! Create client threads
-  do i=1,nproc
-    rc = pthread_create( thread(i), ao_bielec_integrals_in_map_slave )
-  enddo
-  
-  character*(64)                 :: message_string
-  
-  do l = ao_num, 1, -1
-    rc = f77_zmq_recv( zmq_socket_rep_inproc, message_string, 64, 0)
-    print *,  l
-    ! TODO : error handling
-    ASSERT (rc >= 0)
-    ASSERT (message == 'get_ao_integrals')
-    rc = f77_zmq_send( zmq_socket_rep_inproc, l, 4, 0)
-  enddo
-  do i=1,nproc
-    rc = f77_zmq_recv( zmq_socket_rep_inproc, message_string, 64, 0)
-    ! TODO : error handling
-    ASSERT (rc >= 0)
-    ASSERT (message == 'get_ao_integrals')
-    rc = f77_zmq_send( zmq_socket_rep_inproc, 0, 4, 0)
-  enddo
-  ! TODO terminer thread(0)
-  
-  rc = f77_zmq_unbind(zmq_socket_rep_inproc, 'inproc://req_rep')
-  do i=1,nproc
-    rc = pthread_join( thread(i) )
+  character*(32) :: task
+
+  do l=1,ao_num
+    write(task,*) 'triangle', l
+    call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   enddo
 
-  zmq_socket_push_inproc = f77_zmq_socket(zmq_context, ZMQ_PUSH)
-  rc = f77_zmq_connect(zmq_socket_push_inproc, 'inproc://push_pull')
-  if (rc /= 0) then
-    stop 'Unable to connect zmq_socket_push_inproc'
-  endif
-  rc = f77_zmq_send( zmq_socket_push_inproc, -1, 4, ZMQ_SNDMORE)
-  rc = f77_zmq_send( zmq_socket_push_inproc, 0_key_kind, key_kind, ZMQ_SNDMORE)
-  rc = f77_zmq_send( zmq_socket_push_inproc, 0_integral_kind, integral_kind, 0)
-  
-  rc = pthread_join( thread(0) )
+  external :: ao_bielec_integrals_in_map_slave_inproc, ao_bielec_integrals_in_map_collector
+  call new_parallel_threads(ao_bielec_integrals_in_map_slave_inproc, ao_bielec_integrals_in_map_collector)
+
+  call end_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
 
   print*, 'Sorting the map'
   call map_sort(ao_integrals_map)
@@ -513,11 +475,11 @@ double precision function general_primitive_integral(dim,            &
   enddo
   n_Ix = 0
   do ix = 0, iorder_p(1)
-    if (abs(P_new(ix,1)) < 1.d-8) cycle
+    if (abs(P_new(ix,1)) < thresh) cycle
     a = P_new(ix,1)
     do jx = 0, iorder_q(1)
       d = a*Q_new(jx,1)
-      if (abs(d) < 1.d-8) cycle
+      if (abs(d) < thresh) cycle
       !DEC$ FORCEINLINE
       call give_polynom_mult_center_x(P_center(1),Q_center(1),ix,jx,p,q,iorder,pq_inv,pq_inv_2,p10_1,p01_1,p10_2,p01_2,dx,nx)
       !DEC$ FORCEINLINE
@@ -534,11 +496,11 @@ double precision function general_primitive_integral(dim,            &
   enddo
   n_Iy = 0
   do iy = 0, iorder_p(2)
-    if (abs(P_new(iy,2)) > 1.d-8) then
+    if (abs(P_new(iy,2)) > thresh) then
       b = P_new(iy,2)
       do jy = 0, iorder_q(2)
         e = b*Q_new(jy,2)
-        if (abs(e) < 1.d-8) cycle
+        if (abs(e) < thresh) cycle
         !DEC$ FORCEINLINE
         call   give_polynom_mult_center_x(P_center(2),Q_center(2),iy,jy,p,q,iorder,pq_inv,pq_inv_2,p10_1,p01_1,p10_2,p01_2,dy,ny)
         !DEC$ FORCEINLINE
@@ -556,11 +518,11 @@ double precision function general_primitive_integral(dim,            &
   enddo
   n_Iz = 0
   do iz = 0, iorder_p(3)
-    if (abs(P_new(iz,3)) > 1.d-8) then
+    if (abs(P_new(iz,3)) > thresh) then
       c = P_new(iz,3)
       do jz = 0, iorder_q(3)
         f = c*Q_new(jz,3)
-        if (abs(f) < 1.d-8) cycle
+        if (abs(f) < thresh) cycle
         !DEC$ FORCEINLINE
         call   give_polynom_mult_center_x(P_center(3),Q_center(3),iz,jz,p,q,iorder,pq_inv,pq_inv_2,p10_1,p01_1,p10_2,p01_2,dz,nz)
         !DEC$ FORCEINLINE
@@ -1214,10 +1176,10 @@ subroutine compute_ao_integrals_jl(j,l,n_integrals,buffer_i,buffer_value)
   integer                        :: i,k
   double precision               :: ao_bielec_integral,cpu_1,cpu_2, wall_1, wall_2
   double precision               :: integral, wall_0
-  double precision               :: thresh
+  double precision               :: thr
   integer                        :: kk, m, j1, i1
 
-  thresh = ao_integrals_threshold
+  thr = ao_integrals_threshold
   
   n_integrals = 0
   
@@ -1232,15 +1194,15 @@ subroutine compute_ao_integrals_jl(j,l,n_integrals,buffer_i,buffer_value)
       if (i1 > j1) then
         exit
       endif
-      if (ao_overlap_abs(i,k)*ao_overlap_abs(j,l) < thresh) then
+      if (ao_overlap_abs(i,k)*ao_overlap_abs(j,l) < thr) then
         cycle
       endif
-      if (ao_bielec_integral_schwartz(i,k)*ao_bielec_integral_schwartz(j,l) < thresh ) then
+      if (ao_bielec_integral_schwartz(i,k)*ao_bielec_integral_schwartz(j,l) < thr ) then
         cycle
       endif
       !DIR$ FORCEINLINE
       integral = ao_bielec_integral(i,k,j,l)
-      if (abs(integral) < thresh) then
+      if (abs(integral) < thr) then
         cycle
       endif
       n_integrals += 1

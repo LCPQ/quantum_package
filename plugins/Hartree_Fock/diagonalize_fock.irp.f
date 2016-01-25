@@ -11,55 +11,55 @@
    double precision, allocatable  :: work(:), F(:,:), S(:,:)
    
 
-   if (mo_tot_num == ao_num) then
-       ! Solve H.C = E.S.C in AO basis set
-
-       allocate(F(ao_num_align,ao_num), S(ao_num_align,ao_num) )
-       do j=1,ao_num
-         do i=1,ao_num
-           S(i,j) = ao_overlap(i,j)
-           F(i,j) = Fock_matrix_ao(i,j)
-         enddo
-       enddo
-
-       n = ao_num
-       lwork = 1+6*n + 2*n*n
-       liwork = 3 + 5*n
-       
-       allocate(work(lwork), iwork(liwork) )
-
-       lwork = -1
-       liwork = -1
-
-       call dsygvd(1,'v','u',ao_num,F,size(F,1),S,size(S,1),&
-         diagonal_Fock_matrix_mo, work, lwork, iwork, liwork, info)
-
-       if (info /= 0) then
-         print *,  irp_here//' failed : ', info
-         stop 1
-       endif
-       lwork = int(work(1))
-       liwork = iwork(1)
-       deallocate(work,iwork)
-       allocate(work(lwork), iwork(liwork) )
-
-       call dsygvd(1,'v','u',ao_num,F,size(F,1),S,size(S,1),&
-         diagonal_Fock_matrix_mo, work, lwork, iwork, liwork, info)
-
-       if (info /= 0) then
-         print *,  irp_here//' failed : ', info
-         stop 1
-       endif
-       do j=1,mo_tot_num
-         do i=1,ao_num
-           eigenvectors_Fock_matrix_mo(i,j) = F(i,j)
-         enddo
-       enddo
-
-       deallocate(work, iwork, F, S)
-
-  else 
-
+!   if (mo_tot_num == ao_num) then
+!       ! Solve H.C = E.S.C in AO basis set
+!
+!       allocate(F(ao_num_align,ao_num), S(ao_num_align,ao_num) )
+!       do j=1,ao_num
+!         do i=1,ao_num
+!           S(i,j) = ao_overlap(i,j)
+!           F(i,j) = Fock_matrix_ao(i,j)
+!         enddo
+!       enddo
+!
+!       n = ao_num
+!       lwork = 1+6*n + 2*n*n
+!       liwork = 3 + 5*n
+!       
+!       allocate(work(lwork), iwork(liwork) )
+!
+!       lwork = -1
+!       liwork = -1
+!
+!       call dsygvd(1,'v','u',ao_num,F,size(F,1),S,size(S,1),&
+!         diagonal_Fock_matrix_mo, work, lwork, iwork, liwork, info)
+!
+!       if (info /= 0) then
+!         print *,  irp_here//' failed : ', info
+!         stop 1
+!       endif
+!       lwork = int(work(1))
+!       liwork = iwork(1)
+!       deallocate(work,iwork)
+!       allocate(work(lwork), iwork(liwork) )
+!
+!       call dsygvd(1,'v','u',ao_num,F,size(F,1),S,size(S,1),&
+!         diagonal_Fock_matrix_mo, work, lwork, iwork, liwork, info)
+!
+!       if (info /= 0) then
+!         print *,  irp_here//' failed : ', info
+!         stop 1
+!       endif
+!       do j=1,mo_tot_num
+!         do i=1,ao_num
+!           eigenvectors_Fock_matrix_mo(i,j) = F(i,j)
+!         enddo
+!       enddo
+!
+!       deallocate(work, iwork, F, S)
+!
+!  else 
+!
        ! Solve H.C = E.C in MO basis set
        
        allocate( F(mo_tot_num_align,mo_tot_num) )
@@ -69,6 +69,16 @@
          enddo
        enddo
        
+
+       ! Insert level shift here
+       do i = elec_beta_num+1, elec_alpha_num
+         F(i,i) += 0.5d0*level_shift
+       enddo
+
+       do i = elec_alpha_num+1, mo_tot_num
+         F(i,i) += level_shift
+       enddo
+
        n = mo_tot_num
        lwork = 1+6*n + 2*n*n
        liwork = 3 + 5*n
@@ -105,7 +115,8 @@
          0.d0, eigenvectors_Fock_matrix_mo, size(eigenvectors_Fock_matrix_mo,1))
        deallocate(work, iwork, F)
 
-  endif
+
+!  endif
 
 END_PROVIDER
  

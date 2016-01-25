@@ -70,7 +70,7 @@ subroutine add_integrals_to_map(mask_ijkl)
   
   integer                        :: i1,j1,k1,l1, ii1, kmax, thread_num
   integer                        :: i2,i3,i4
-  double precision,parameter     :: thr_coef = 0.d0
+  double precision,parameter     :: thr_coef = 1.d-10
   
   PROVIDE ao_bielec_integrals_in_map 
   

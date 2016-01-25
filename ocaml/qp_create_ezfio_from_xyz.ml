@@ -133,10 +133,6 @@ let run ?o b c d m p xyz_file =
 
   let fetch_channel basis =
     let command =
-      if (p) then  
-        Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
-          ^ "." ^ basis ^ "\" \"" ^ basis ^"\" pseudo"
-      else
         Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
           ^ "." ^ basis ^ "\" \"" ^ basis ^"\""
     in
@@ -344,7 +340,7 @@ let run ?o b c d m p xyz_file =
   (* Doesn't work... *)
   if (p) then 
     begin
-      Qpackage.root ^ "/scripts/pseudo/put_pseudo_in_ezfio.py " ^ ezfio_file
+      Qpackage.root ^ "/scripts/pseudo/put_pseudo_in_ezfio.py " ^ ezfio_file ^ " " ^ " BFD-Pseudo"
       |> Sys.command_exn
     end;
 

@@ -150,19 +150,19 @@ subroutine overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,&
   
   integer                        :: i
   do i = 1,iorder_p(1)
-    overlap_x += P_new(i,1) * F_integral_tab(i)
+    overlap_x = overlap_x + P_new(i,1) * F_integral_tab(i)
   enddo
   call gaussian_product_x(alpha,A_center(1),beta,B_center(1),fact_p,p,P_center(1))
   overlap_x *= fact_p
   
   do i = 1,iorder_p(2)
-    overlap_y += P_new(i,2) * F_integral_tab(i)
+    overlap_y = overlap_y + P_new(i,2) * F_integral_tab(i)
   enddo
   call gaussian_product_x(alpha,A_center(2),beta,B_center(2),fact_p,p,P_center(2))
   overlap_y *= fact_p
   
   do i = 1,iorder_p(3)
-    overlap_z += P_new(i,3) * F_integral_tab(i)
+    overlap_z = overlap_z + P_new(i,3) * F_integral_tab(i)
   enddo
   call gaussian_product_x(alpha,A_center(3),beta,B_center(3),fact_p,p,P_center(3))
   overlap_z *= fact_p
