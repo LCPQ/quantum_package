@@ -12,8 +12,7 @@ program mp2_wf
   allocate (pt2(N_st), norm_pert(N_st), H_pert_diag(N_st))
   
   pt2 = 1.d0
-  selection_criterion = 1.e-12
-  selection_criterion_min = 1.e-12
+  selection_criterion_factor = 0.d0
   TOUCH selection_criterion_min selection_criterion selection_criterion_factor
   call H_apply_mp2_selection(pt2, norm_pert, H_pert_diag,  N_st)
   psi_det = psi_det_sorted

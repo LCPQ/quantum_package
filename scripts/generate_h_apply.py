@@ -99,7 +99,8 @@ class H_apply(object):
   deallocate(H_jj,iorder)
     """
 
-    s["size_max"] = "2048"
+    s["size_max"] = "8192"
+
     s["copy_buffer"] = """call copy_H_apply_buffer_to_wf
   if (s2_eig) then
     call make_s2_eigenfunction
@@ -198,7 +199,9 @@ class H_apply(object):
       !$ call omp_unset_lock(lck)
       deallocate (e_2_pert_buffer, coef_pert_buffer)
       """
-      self.data["size_max"] = "2048" 
+
+      self.data["size_max"] = "8192" 
+
       self.data["initialization"] = """
       PROVIDE psi_selectors_coef psi_selectors E_corr_per_selectors psi_det_sorted_bit
       """
@@ -265,7 +268,7 @@ class H_apply(object):
       double precision, intent(inout) :: select_max_out"""
 
       self.data["params_post"] += ", select_max(min(i_generator,size(select_max,1)))"
-      self.data["size_max"] = "2048"
+      self.data["size_max"] = "8192"
       self.data["copy_buffer"] = """
       call copy_H_apply_buffer_to_wf
       if (s2_eig) then

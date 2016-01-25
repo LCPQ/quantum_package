@@ -36,7 +36,7 @@ Documentation
   Compute 1st dimension such that it is aligned for vectorization.
 
 
-`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L168>`_
+`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L196>`_
   Apply the rotation found by find_rotation
 
 
@@ -122,7 +122,7 @@ Documentation
   1/n!
 
 
-`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L149>`_
+`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L177>`_
   Find A.C = B
 
 
@@ -148,7 +148,7 @@ Documentation
   Undocumented
 
 
-`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L95>`_
+`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L123>`_
   Find C = A^-1
 
 
@@ -420,7 +420,7 @@ Documentation
   contains the new order of the elements.
 
 
-`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L247>`_
+`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L275>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -431,7 +431,7 @@ Documentation
   .br
 
 
-`lapack_diag_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L310>`_
+`lapack_diag_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L338>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -442,7 +442,7 @@ Documentation
   .br
 
 
-`lapack_diagd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L180>`_
+`lapack_diagd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L208>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -453,7 +453,7 @@ Documentation
   .br
 
 
-`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L376>`_
+`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L404>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -482,7 +482,7 @@ Documentation
   Number of current OpenMP threads
 
 
-`ortho_lowdin <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L1>`_
+`ortho_lowdin <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L46>`_
   Compute C_new=C_old.S^-1/2 canonical orthogonalization.
   .br
   overlap : overlap matrix
@@ -597,7 +597,7 @@ Documentation
   to be in integer*8 format
 
 
-`set_zero_extra_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L433>`_
+`set_zero_extra_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L461>`_
   Undocumented
 
 
@@ -613,6 +613,15 @@ Documentation
 
 `stop_progress <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/progress.irp.f#L19>`_
   Stop the progress bar
+
+
+`svd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L1>`_
+  Compute A = U.D.Vt
+  .br
+  LDx : leftmost dimension of x
+  .br
+  Dimsneion of A is m x n
+  .br
 
 
 `trap_signals <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/abort.irp.f#L19>`_
