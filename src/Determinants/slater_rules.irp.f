@@ -199,8 +199,6 @@ subroutine get_double_excitation(det1,det2,exc,phase,Nint)
       endif
     enddo
     
-    ! TODO : Voir si il faut sortir i,n,k,m du case.
-    
     select case (exc(0,1,ispin))
       case(0)
         cycle

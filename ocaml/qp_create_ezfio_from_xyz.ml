@@ -423,30 +423,61 @@ let run ?o b c d m p xyz_file =
           R_power.to_int y.Pseudo.Primitive_local.r_power 
         in
         tmp_array_dz_k.(i).(j) <- y;
-        tmp_array_n_k.(i).(j) <- z;
+        tmp_array_n_k.(i).(j)  <- z;
       )
     );
-    let v_k = 
-      Array.map tmp_array_v_k ~f:Array.to_list
-      |> Array.to_list
-      |> List.concat
-    in
-    Ezfio.ezfio_array_of_list ~rank:2 ~dim:[|nucl_num ; klocmax|] ~data: v_k
+    let concat_2d tmp_array = 
+      let data = 
+        Array.map tmp_array ~f:Array.to_list
+        |> Array.to_list
+        |> List.concat
+      in
+      Ezfio.ezfio_array_of_list ~rank:2 ~dim:[|nucl_num ; klocmax|] ~data
+    in  
+    concat_2d tmp_array_v_k 
     |> Ezfio.set_pseudo_pseudo_v_k ;
-    let dz_k = 
-      Array.map tmp_array_dz_k ~f:Array.to_list
-      |> Array.to_list
-      |> List.concat
-    in
-    Ezfio.ezfio_array_of_list ~rank:2 ~dim:[|nucl_num ; klocmax|] ~data: dz_k
+    concat_2d tmp_array_dz_k 
     |> Ezfio.set_pseudo_pseudo_dz_k;
-    let n_k = 
-      Array.map tmp_array_n_k ~f:Array.to_list
-      |> Array.to_list
-      |> List.concat
-    in
-    Ezfio.ezfio_array_of_list ~rank:2 ~dim:[|nucl_num ; klocmax|] ~data: n_k
+    concat_2d tmp_array_n_k 
     |> Ezfio.set_pseudo_pseudo_n_k;
+
+    let tmp_array_v_kl, tmp_array_dz_kl, tmp_array_n_kl = 
+      Array.create ~len:(lmax+1) 
+       (Array.make_matrix ~dimx:kmax ~dimy:nucl_num 0. ),
+      Array.create ~len:(lmax+1) 
+       (Array.make_matrix ~dimx:kmax ~dimy:nucl_num 0. ),
+      Array.create ~len:(lmax+1) 
+       (Array.make_matrix ~dimx:kmax ~dimy:nucl_num 0 )
+    in
+    List.iteri pseudo ~f:(fun j x -> 
+      List.iteri x.Pseudo.non_local ~f:(fun i (y,c) ->
+        let k, y, z =
+          Positive_int.to_int y.Pseudo.Primitive_non_local.proj,
+          AO_expo.to_float y.Pseudo.Primitive_non_local.expo,
+          R_power.to_int y.Pseudo.Primitive_non_local.r_power
+        in
+        tmp_array_v_kl.(k).(i).(j)  <- AO_coef.to_float c;
+        tmp_array_dz_kl.(k).(i).(j) <- y;
+        tmp_array_n_kl.(k).(i).(j)  <- z;
+      ) 
+    );    
+    let concat_3d tmp_array = 
+      let data = 
+        Array.map tmp_array ~f:(fun x -> 
+          Array.map x ~f:Array.to_list
+          |> Array.to_list
+          |> List.concat)
+        |> Array.to_list
+        |> List.concat
+      in
+      Ezfio.ezfio_array_of_list ~rank:3 ~dim:[|nucl_num ; kmax ; lmax+1|] ~data
+    in
+    concat_3d tmp_array_v_kl
+    |> Ezfio.set_pseudo_pseudo_v_kl ;
+    concat_3d tmp_array_dz_kl
+    |> Ezfio.set_pseudo_pseudo_dz_kl ;
+    concat_3d tmp_array_n_kl
+    |> Ezfio.set_pseudo_pseudo_n_kl ;
   in
     
 
