@@ -77,3 +77,4 @@ NCPUs=$(cat /proc/cpuinfo  | grep -i  MHz | wc -l)
 ${QP_ROOT}/bin/opam install -j ${NCPUs} ${PACKAGES} -y -q || exit 1
 
 rm -f ../_build/ocaml.log
+

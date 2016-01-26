@@ -1,7 +1,7 @@
 open Core.Std
 open Qptypes
 
-let basis ()=
+let basis () =
   let ezfio_filename =
     Sys.argv.(1)
   in
@@ -16,9 +16,9 @@ let basis ()=
   Input.Ao_basis.to_rst basis
   |> Rst_string.to_string
   |> print_endline
-  ;;
 
-let mo ()=
+
+let mo () =
   let ezfio_filename =
     Sys.argv.(1)
   in
@@ -33,7 +33,9 @@ let mo ()=
   Input.Mo_basis.to_rst mo_coef 
   |> Rst_string.to_string
   |> print_endline
-  ;;
 
-basis ();;
-mo ();;
+
+let () = 
+  basis ();
+  mo ()
+
