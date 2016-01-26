@@ -15,11 +15,12 @@ let spec =
      ~doc:"float Add dummy atoms. x * (covalent radii of the atoms)"
   +> flag "m" (optional_with_default 1 int)
      ~doc:"int Spin multiplicity (2S+1) of the molecule. Default is 1."
-  +> flag "p" no_arg
-     ~doc:" Using pseudopotentials"
+  +> flag "p" (optional string)
+     ~doc:"string Name of the pseudopotential"
   +> anon ("xyz_file" %: file )
 
 
+(** Handle dummy atoms placed on bonds *)
 let dummy_centers ~threshold ~molecule ~nuclei =
   let d =
     Molecule.distance_matrix molecule
@@ -68,6 +69,7 @@ let dummy_centers ~threshold ~molecule ~nuclei =
     )
      
     
+(** Returns the list of available basis sets *)
 let list_basis () =
   let basis_list = 
     Qpackage.root ^ "/install/emsl/EMSL_api.py list_basis" 
@@ -84,6 +86,7 @@ let list_basis () =
   |> String.concat ~sep:"\t" 
 
 
+(** Run the program *)
 let run ?o b c d m p xyz_file =
 
   (* Read molecule *)
@@ -94,15 +97,14 @@ let run ?o b c d m p xyz_file =
   let dummy =
     dummy_centers ~threshold:d ~molecule ~nuclei:molecule.Molecule.nuclei
   in
-(*
-  List.iter dummy ~f:(fun x ->
-    Printf.printf "%s\n" (Atom.to_string ~units:Units.Angstrom x)
-  );
-*)
   let nuclei =
     molecule.Molecule.nuclei @ dummy
   in
 
+
+ (**********
+  Basis set
+  **********)
 
   let basis_table =
      Hashtbl.Poly.create ()
@@ -133,12 +135,18 @@ let run ?o b c d m p xyz_file =
 
   let fetch_channel basis =
     let command =
-        Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
+      Qpackage.root ^ "/scripts/get_basis.sh \"" ^ temp_filename 
           ^ "." ^ basis ^ "\" \"" ^ basis ^"\""
     in
-    match Sys.is_file basis with
-    | `Yes -> 
-          In_channel.create basis
+    let long_basis = 
+      Qpackage.root ^ "/data/basis/" ^ basis
+    in
+    match 
+      Sys.is_file basis,
+      Sys.is_file long_basis
+    with
+    | `Yes, _    -> In_channel.create basis
+    | `No , `Yes -> In_channel.create long_basis
     | _ -> 
       begin
         let filename = 
@@ -202,6 +210,96 @@ let run ?o b c d m p xyz_file =
   |> List.rev_map ~f:String.strip 
   |> build_basis;
 
+
+
+ (*************** 
+  Pseudopotential 
+  ***************)
+
+  let pseudo_table =
+     Hashtbl.Poly.create ()
+  in
+
+  (* Open pseudo channels *)
+  let pseudo_channel element =
+    let key =
+      Element.to_string element
+    in
+    Hashtbl.find pseudo_table key 
+  in
+  let temp_filename =
+    Filename.temp_file "qp_create_" ".pseudo"
+  in
+  let () =
+    Sys.remove temp_filename
+  in
+
+  let fetch_channel pseudo =
+    let long_pseudo =
+      Qpackage.root ^ "/data/pseudo/" ^ pseudo
+    in
+    match 
+      Sys.is_file pseudo,
+      Sys.is_file long_pseudo
+    with
+    | `Yes, _    -> In_channel.create pseudo
+    | `No , `Yes -> In_channel.create long_pseudo
+    | _    -> failwith ("Pseudo file "^pseudo^" not found.")
+  in
+
+  let rec build_pseudo = function
+  | [] -> ()
+  | elem_and_pseudo_name :: rest ->
+    begin
+      match (String.lsplit2 ~on:':' elem_and_pseudo_name) with
+      | None -> (* Principal pseudo *)
+        begin
+          let pseudo =
+            elem_and_pseudo_name
+          in
+          let new_channel =
+            fetch_channel pseudo
+          in
+          List.iter nuclei ~f:(fun elem->
+            let key =
+              Element.to_string elem.Atom.element
+            in
+            match Hashtbl.add pseudo_table ~key:key ~data:new_channel with
+            | `Ok -> ()
+            | `Duplicate -> ()
+          )
+        end
+      | Some (key, pseudo) -> (*Aux pseudo *)
+        begin
+          let elem  =
+            Element.of_string key
+          and pseudo =
+            String.lowercase pseudo
+          in
+          let key =
+             Element.to_string elem
+          in
+          let new_channel =
+            fetch_channel pseudo
+          in
+          begin
+            match Hashtbl.add pseudo_table ~key:key ~data:new_channel with
+            | `Ok -> ()
+            | `Duplicate -> failwith ("Duplicate definition of pseudo for "^(Element.to_long_string elem))
+          end
+       end
+    end;
+    build_pseudo rest
+  in
+  let () = 
+    match p with
+    | None -> ()
+    | Some p ->
+      String.split ~on:'|' p
+      |> List.rev_map ~f:String.strip
+      |> build_pseudo
+  in
+
   (* Build EZFIO File name *)
   let ezfio_file =
     match o with
@@ -218,6 +316,45 @@ let run ?o b c d m p xyz_file =
 
   (* Create EZFIO *)
   Ezfio.set_file ezfio_file;
+
+  (* Write Pseudo *)
+  let pseudo =
+    List.map nuclei ~f:(fun x ->
+         match pseudo_channel x.Atom.element with
+         | Some channel -> Pseudo.read_element channel x.Atom.element
+         | None -> Pseudo.empty x.Atom.element
+       ) 
+  in
+
+  let molecule =     
+    let n_elec_to_remove =
+      List.fold pseudo ~init:0 ~f:(fun accu x ->
+        accu + (Positive_int.to_int x.Pseudo.n_elec))
+    in
+    { Molecule.elec_alpha = 
+        (Elec_alpha_number.to_int molecule.Molecule.elec_alpha)
+         - n_elec_to_remove/2
+        |> Elec_alpha_number.of_int;
+      Molecule.elec_beta = 
+        (Elec_beta_number.to_int molecule.Molecule.elec_beta)
+         - (n_elec_to_remove - n_elec_to_remove/2)
+        |> Elec_beta_number.of_int;
+      Molecule.nuclei = 
+        let charges =
+          List.map pseudo ~f:(fun x -> Positive_int.to_int x.Pseudo.n_elec
+            |> Float.of_int)
+          |> Array.of_list
+        in
+        List.mapi molecule.Molecule.nuclei ~f:(fun i x ->
+          { x with Atom.charge = (Charge.to_float x.Atom.charge) -. charges.(i)
+            |> Charge.of_float }
+        )
+    }
+  in
+  let nuclei =
+    molecule.Molecule.nuclei @ dummy
+  in
+    
 
   (* Write Electrons *)
   Ezfio.set_electrons_elec_alpha_num ( Elec_alpha_number.to_int
@@ -242,6 +379,123 @@ let run ?o b c d m p xyz_file =
     ~rank:1 ~dim:[| nucl_num |] ~data:charges);
   Ezfio.set_nuclei_nucl_coord  (Ezfio.ezfio_array_of_list 
     ~rank:2 ~dim:[| nucl_num ; 3 |] ~data:coords);
+
+
+  (* Write pseudopotential *)
+  let () = 
+    match p with
+    | None -> Ezfio.set_pseudo_do_pseudo false
+    | _    -> Ezfio.set_pseudo_do_pseudo true
+  in
+
+  let klocmax = 
+    List.fold pseudo ~init:0 ~f:(fun accu x -> 
+      let x = 
+        List.length x.Pseudo.local
+      in
+      if (x > accu) then x
+      else accu
+    )
+  and kmax = 
+    List.fold pseudo ~init:0 ~f:(fun accu x -> 
+      let x = 
+        List.length x.Pseudo.non_local
+      in
+      if (x > accu) then x
+      else accu
+    )
+  and lmax = 
+    List.fold pseudo ~init:0 ~f:(fun accu x -> 
+      let x = 
+        List.fold x.Pseudo.non_local ~init:0 ~f:(fun accu (x,_) ->
+          let x = 
+             Positive_int.to_int x.Pseudo.Primitive_non_local.proj
+          in
+          if (x > accu) then x
+          else accu
+        )
+      in
+      if (x > accu) then x
+      else accu
+    )
+  in
+          
+  let () = 
+    Ezfio.set_pseudo_pseudo_klocmax klocmax;
+    Ezfio.set_pseudo_pseudo_kmax kmax;
+    Ezfio.set_pseudo_pseudo_lmax lmax;
+    let tmp_array_v_k, tmp_array_dz_k, tmp_array_n_k =
+      Array.make_matrix ~dimx:klocmax ~dimy:nucl_num 0. ,
+      Array.make_matrix ~dimx:klocmax ~dimy:nucl_num 0. ,
+      Array.make_matrix ~dimx:klocmax ~dimy:nucl_num 0
+    in
+    List.iteri pseudo ~f:(fun j x -> 
+      List.iteri x.Pseudo.local ~f:(fun i (y,c) ->
+        tmp_array_v_k.(i).(j)  <- AO_coef.to_float c;
+        let y, z =
+          AO_expo.to_float y.Pseudo.Primitive_local.expo, 
+          R_power.to_int y.Pseudo.Primitive_local.r_power 
+        in
+        tmp_array_dz_k.(i).(j) <- y;
+        tmp_array_n_k.(i).(j)  <- z;
+      )
+    );
+    let concat_2d tmp_array = 
+      let data = 
+        Array.map tmp_array ~f:Array.to_list
+        |> Array.to_list
+        |> List.concat
+      in
+      Ezfio.ezfio_array_of_list ~rank:2 ~dim:[|nucl_num ; klocmax|] ~data
+    in  
+    concat_2d tmp_array_v_k 
+    |> Ezfio.set_pseudo_pseudo_v_k ;
+    concat_2d tmp_array_dz_k 
+    |> Ezfio.set_pseudo_pseudo_dz_k;
+    concat_2d tmp_array_n_k 
+    |> Ezfio.set_pseudo_pseudo_n_k;
+
+    let tmp_array_v_kl, tmp_array_dz_kl, tmp_array_n_kl = 
+      Array.create ~len:(lmax+1) 
+       (Array.make_matrix ~dimx:kmax ~dimy:nucl_num 0. ),
+      Array.create ~len:(lmax+1) 
+       (Array.make_matrix ~dimx:kmax ~dimy:nucl_num 0. ),
+      Array.create ~len:(lmax+1) 
+       (Array.make_matrix ~dimx:kmax ~dimy:nucl_num 0 )
+    in
+    List.iteri pseudo ~f:(fun j x -> 
+      List.iteri x.Pseudo.non_local ~f:(fun i (y,c) ->
+        let k, y, z =
+          Positive_int.to_int y.Pseudo.Primitive_non_local.proj,
+          AO_expo.to_float y.Pseudo.Primitive_non_local.expo,
+          R_power.to_int y.Pseudo.Primitive_non_local.r_power
+        in
+        tmp_array_v_kl.(k).(i).(j)  <- AO_coef.to_float c;
+        tmp_array_dz_kl.(k).(i).(j) <- y;
+        tmp_array_n_kl.(k).(i).(j)  <- z;
+      ) 
+    );    
+    let concat_3d tmp_array = 
+      let data = 
+        Array.map tmp_array ~f:(fun x -> 
+          Array.map x ~f:Array.to_list
+          |> Array.to_list
+          |> List.concat)
+        |> Array.to_list
+        |> List.concat
+      in
+      Ezfio.ezfio_array_of_list ~rank:3 ~dim:[|nucl_num ; kmax ; lmax+1|] ~data
+    in
+    concat_3d tmp_array_v_kl
+    |> Ezfio.set_pseudo_pseudo_v_kl ;
+    concat_3d tmp_array_dz_kl
+    |> Ezfio.set_pseudo_pseudo_dz_kl ;
+    concat_3d tmp_array_n_kl
+    |> Ezfio.set_pseudo_pseudo_n_kl ;
+  in
+    
+
+
 
   (* Write Basis set *)
   let basis =
@@ -292,7 +546,9 @@ let run ?o b c d m p xyz_file =
     if x > s then x
     else s) ao_prim_num
   in
-  let gtos = List.map long_basis ~f:(fun (_,x,_) -> x) in
+  let gtos = 
+     List.map long_basis ~f:(fun (_,x,_) -> x)
+  in
 
   let create_expo_coef ec = 
       let coefs = 
@@ -325,25 +581,18 @@ let run ?o b c d m p xyz_file =
   let ao_coef = create_expo_coef `Coefs
   and ao_expo = create_expo_coef `Expos
   in
-  Ezfio.set_ao_basis_ao_prim_num (Ezfio.ezfio_array_of_list
-    ~rank:1 ~dim:[| ao_num |] ~data:ao_prim_num) ;
-  Ezfio.set_ao_basis_ao_nucl(Ezfio.ezfio_array_of_list
-    ~rank:1 ~dim:[| ao_num |] ~data:ao_nucl) ;
-  Ezfio.set_ao_basis_ao_power(Ezfio.ezfio_array_of_list
-  ~rank:2 ~dim:[| ao_num ; 3 |] ~data:ao_power) ;
-  Ezfio.set_ao_basis_ao_coef(Ezfio.ezfio_array_of_list
-  ~rank:2 ~dim:[| ao_num ; ao_prim_num_max |] ~data:ao_coef) ;
-  Ezfio.set_ao_basis_ao_expo(Ezfio.ezfio_array_of_list
-  ~rank:2 ~dim:[| ao_num ; ao_prim_num_max |] ~data:ao_expo) ;
-
-
-  (* Doesn't work... *)
-  if (p) then 
-    begin
-      Qpackage.root ^ "/scripts/pseudo/put_pseudo_in_ezfio.py " ^ ezfio_file ^ " " ^ " BFD-Pseudo"
-      |> Sys.command_exn
-    end;
-
+  let () =
+    Ezfio.set_ao_basis_ao_prim_num (Ezfio.ezfio_array_of_list
+      ~rank:1 ~dim:[| ao_num |] ~data:ao_prim_num) ;
+    Ezfio.set_ao_basis_ao_nucl(Ezfio.ezfio_array_of_list
+      ~rank:1 ~dim:[| ao_num |] ~data:ao_nucl) ;
+    Ezfio.set_ao_basis_ao_power(Ezfio.ezfio_array_of_list
+    ~rank:2 ~dim:[| ao_num ; 3 |] ~data:ao_power) ;
+    Ezfio.set_ao_basis_ao_coef(Ezfio.ezfio_array_of_list
+    ~rank:2 ~dim:[| ao_num ; ao_prim_num_max |] ~data:ao_coef) ;
+    Ezfio.set_ao_basis_ao_expo(Ezfio.ezfio_array_of_list
+    ~rank:2 ~dim:[| ao_num ; ao_prim_num_max |] ~data:ao_expo) ;
+  in
   match Input.Ao_basis.read () with
   | None -> failwith "Error in basis"
   | Some x -> Input.Ao_basis.write x
@@ -378,6 +627,7 @@ Otherwise, the basis set is obtained from the database.
 
 let () =
     Command.run command
+
 
 
 
