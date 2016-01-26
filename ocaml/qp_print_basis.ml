@@ -1,7 +1,7 @@
 open Core.Std
 open Qptypes
 
-let basis ()=
+let basis () =
   let ezfio_filename =
     Sys.argv.(1)
   in
@@ -18,7 +18,7 @@ let basis ()=
   |> print_endline
 
 
-let mo ()=
+let mo () =
   let ezfio_filename =
     Sys.argv.(1)
   in
@@ -35,5 +35,7 @@ let mo ()=
   |> print_endline
 
 
-basis ();;
-mo ();;
+let () = 
+  basis ();
+  mo ()
+
