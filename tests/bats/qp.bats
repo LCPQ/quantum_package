@@ -24,10 +24,6 @@ function eq() {
 }
 
 
-function debug() {
-  echo $@
-  $@
-}
 
 
 #   ___           

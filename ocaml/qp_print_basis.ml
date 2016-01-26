@@ -16,7 +16,7 @@ let basis ()=
   Input.Ao_basis.to_rst basis
   |> Rst_string.to_string
   |> print_endline
-  ;;
+
 
 let mo ()=
   let ezfio_filename =
@@ -33,7 +33,7 @@ let mo ()=
   Input.Mo_basis.to_rst mo_coef 
   |> Rst_string.to_string
   |> print_endline
-  ;;
+
 
 basis ();;
 mo ();;
