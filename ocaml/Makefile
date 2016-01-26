@@ -13,17 +13,18 @@ LIBS=
 PKGS=
 OCAMLCFLAGS="-g -warn-error A"
 OCAMLBUILD=ocamlbuild -j 0 -syntax camlp4o -cflags $(OCAMLCFLAGS) -lflags $(OCAMLCFLAGS) 
-MLFILES=$(wildcard *.ml) ezfio.ml Qptypes.ml Input_auto_generated.ml qp_edit.ml
-MLIFILES=$(wildcard *.mli) 
+MLFILES=$(wildcard *.ml) ezfio.ml Qptypes.ml Input_auto_generated.ml qp_edit.ml 
+MLIFILES=$(wildcard *.mli) git
 ALL_TESTS=$(patsubst %.ml,%.byte,$(wildcard test_*.ml))
 ALL_EXE=$(patsubst %.ml,%.native,$(wildcard qp_*.ml)) qp_edit.native
 
 .PHONY: executables default remake_executables
 
 
-default: $(ALL_TESTS) $(ALL_EXE) .gitignore
+default: $(ALL_EXE) .gitignore
+tests: $(ALL_TESTS) 
 
-.gitignore: $(MLFILES)
+.gitignore: $(MLFILES) $(MLIFILES)
 	@for i in .gitignore ezfio.ml Qptypes.ml Git.ml qptypes_generator.byte _build $(ALL_EXE) $(ALL_TESTS) \
 	$(patsubst %.ml,%,$(wildcard test_*.ml)) $(patsubst %.ml,%,$(wildcard qp_*.ml)) \
 	$(shell grep Input Input_auto_generated.ml | awk '{print $$2 ".ml"}') \
@@ -69,8 +70,10 @@ ezfio.ml: ${QP_ROOT}/install/EZFIO/Ocaml/ezfio.ml
 qptypes_generator.byte: qptypes_generator.ml
 	$(OCAMLBUILD) qptypes_generator.byte  -use-ocamlfind 
 
-Git.ml Qptypes.ml: qptypes_generator.byte
+Qptypes.ml: qptypes_generator.byte
 	./qptypes_generator.byte > Qptypes.ml
+
+git: 
 	./create_git_sha1.sh
 
 ${QP_ROOT}/install/EZFIO/Ocaml/ezfio.ml: 
