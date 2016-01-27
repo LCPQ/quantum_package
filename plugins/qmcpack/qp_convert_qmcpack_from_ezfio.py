@@ -2,6 +2,11 @@
 
 print "#QP -> QMCPACK"
 
+# ___           
+#  |  ._  o _|_ 
+# _|_ | | |  |_ 
+#               
+
 from ezfio import ezfio
 
 import sys
@@ -9,76 +14,99 @@ ezfio_path = sys.argv[1]
 
 ezfio.set_file(ezfio_path)
 
-
 do_pseudo = ezfio.get_pseudo_do_pseudo()
 if do_pseudo:
-	print "do_pseudo True"
-	zcore = ezfio.get_pseudo_nucl_charge_remove()
+    print "do_pseudo True"
+    zcore = ezfio.get_pseudo_nucl_charge_remove()
 else:
-	print "do_pseudo False"
+    print "do_pseudo False"
 
 try:
-        n_det =ezfio.get_determinants_n_det()
+    n_det = ezfio.get_determinants_n_det()
 except IOError:
-        n_det = 1
+    n_det = 1
 
 if n_det == 1:
-	print "multi_det False"
+    print "multi_det False"
 else:
-	print "multi_det True"
+    print "multi_det True"
 
+#             
+# |\/| o  _  _ 
+# |  | | _> (_ 
+#              
 ao_num = ezfio.get_ao_basis_ao_num()
 print "ao_num", ao_num
 
 mo_num = ezfio.get_mo_basis_mo_tot_num()
 print "mo_num", mo_num
 
-
 alpha = ezfio.get_electrons_elec_alpha_num()
 beta = ezfio.get_electrons_elec_beta_num()
 print "elec_alpha_num", alpha
 print "elec_beta_num", beta
-print "elec_tot_num",  alpha + beta
-print "spin_multiplicity", 2*(alpha-beta)+1
+print "elec_tot_num", alpha + beta
+print "spin_multiplicity", 2 * (alpha - beta) + 1
 
 l_label = ezfio.get_nuclei_nucl_label()
 l_charge = ezfio.get_nuclei_nucl_charge()
 l_coord = ezfio.get_nuclei_nucl_coord()
 
-l_coord_str = [" ".join(map(str,i)) for i in l_coord]
+l_coord_str = [" ".join(map(str, i)) for i in l_coord]
 
-print "nucl_num",len(l_label)
+print "nucl_num", len(l_label)
+
+#  _               
+# /   _   _  ._ _| 
+# \_ (_) (_) | (_| 
+#                  
 print "Atomic coord in Bohr"
 
-for i,t in enumerate(zip(l_label,l_charge,l_coord_str)):
-	try :
-		l = (t[0],t[1]+zcore[i],t[2])
-	except NameError:
-		l = t
-	print " ".join(map(str,l))
+for i, t in enumerate(zip(l_label, l_charge, l_coord_str)):
+    try:
+        l = (t[0], t[1] + zcore[i], t[2])
+    except NameError:
+        l = t
+    print " ".join(map(str, l))
 
-
+#
+# Call externet process to get the sysmetry
+#
 import subprocess
-process = subprocess.Popen(['qp_print_basis', ezfio_path], stdout=subprocess.PIPE)
+process = subprocess.Popen(
+    ['qp_print_basis', ezfio_path],
+    stdout=subprocess.PIPE)
 out, err = process.communicate()
 
-basis_raw, sym_raw, mo_raw = out.split("\n\n\n")
+basis_raw, sym_raw, _ = out.split("\n\n\n")
+
+#  _                 __        
+# |_)  _.  _ o  _   (_   _ _|_ 
+# |_) (_| _> | _>   __) (/_ |_ 
+#                              
+
 
 basis_without_header = "\n".join(basis_raw.split("\n")[7:])
-for i,l in enumerate(l_label):
-	basis_without_header=basis_without_header.replace('Atom {0}'.format(i+1),l)
+for i, l in enumerate(l_label):
+    basis_without_header = basis_without_header.replace('Atom {0}'.format(i + 1), l)
 
 print "BEGIN_BASIS_SET"
 print ""
 print basis_without_header
 print "END_BASIS_SET"
 
+
 #       _     
 # |\/| / \  _ 
 # |  | \_/ _> 
-#             
+#
+
+#
+# Function
+#
 def same_character(item1):
-    return item1==item1[0]* len(item1)
+    return item1 == item1[0] * len(item1)
+
 
 def compare_gamess_style(item1, item2):
     if len(item1) < len(item2):
@@ -92,123 +120,190 @@ def compare_gamess_style(item1, item2):
             return 1
     elif same_character(item1) and not same_character(item2):
         return -1
-    elif not same_character(item1) and  same_character(item2):
+    elif not same_character(item1) and same_character(item2):
         return 1
     else:
-        return compare_gamess_style(item1[:-1],item2[:-1])
+        return compare_gamess_style(item1[:-1], item2[:-1])
+
 
 def expend_and_order_sym(str_):
-	#Expend
-	for i,c in enumerate(str_):
-		try:
-			n = int(c)
-		except ValueError: 
-			pass
-		else:
-			str_ = str_[:i-1] + str_[i-1]*n + str_[i+1:]
+    #Expend
+    for i, c in enumerate(str_):
+        try:
+            n = int(c)
+        except ValueError:
+            pass
+        else:
+            str_ = str_[:i - 1] + str_[i - 1] * n + str_[i + 1:]
 
-	#Order by frequency
-	return "".join(sorted(str_,key=str_.count,reverse=True))
+    #Order by frequency
+    return "".join(sorted(str_, key=str_.count, reverse=True))
+
 
 def get_nb_permutation(str_):
 
-	l = len(str_)-1
-	if l==0:
-		return 1
-	else:
-		return 2*(2*l + 1)
+    l = len(str_) - 1
+    if l == 0:
+        return 1
+    else:
+        return 2 * (2 * l + 1)
 
-## We will order the symetry
+#==========================
+# We will order the symetry
+#==========================
+
 l_sym_without_header = sym_raw.split("\n")[3:-2]
 
 l_l_sym = [i.split() for i in l_sym_without_header]
 
 for l in l_l_sym:
-	l[2] = expend_and_order_sym(l[2])
+    l[2] = expend_and_order_sym(l[2])
 
 l_l_sym_iter = iter(l_l_sym)
-for i,l in enumerate(l_l_sym_iter):
-	n = get_nb_permutation(l[2])
-	if n !=1:
-		l_l_sym[i:i+n] = sorted(l_l_sym[i:i+n],key=lambda x : x[2], cmp=compare_gamess_style)
-		for next_ in range(n-1):
-			next(l_l_sym_iter)
-
-#Is orderd now
-
-l_block = mo_raw.split("\n\n")[5:-1]
+for i, l in enumerate(l_l_sym_iter):
+    n = get_nb_permutation(l[2])
+    if n != 1:
+        l_l_sym[i:i + n] = sorted(l_l_sym[i:i + n],
+                                  key=lambda x: x[2],
+                                  cmp=compare_gamess_style)
+        for next_ in range(n - 1):
+            next(l_l_sym_iter)
 
 
-l_block_format=[]
+#========
+#MO COEF
+#========
+def order_phase(mo_coef):
+    #Order
+    mo_coef_phase = []
+    import math
 
-print ""
-print "BEGIN_MO"
-for block in l_block:
-	print ""
-	l_ligne = block.split("\n")
-	print l_ligne.pop(0)
+    for i in mo_coef:
+        if abs(max(i)) > abs(min(i)):
+            sign_max = math.copysign(1, max(i))
+        else:
+            sign_max = math.copysign(1, min(i))
 
-	for l  in l_l_sym:
-		i = int(l[0]) - 1
-		i_a = int(l[1]) - 1
-		sym = l[2]
+        if sign_max == -1:
+            ii = [-1 * l for l in i]
+        else:
+            ii = i
 
-		print l_label[i_a],sym,l_ligne[i]
+        mo_coef_phase.append(ii)
+    return mo_coef_phase
 
-print "END_MO"
 
+def order_by_sim(mo_coef, l_l_sym):
+    l_sym_oder = [int(l[0]) - 1 for l in l_l_sym]
+    mo_coef_order = [[x for (y, x) in sorted(zip(l_sym_oder, i))]
+                     for i in mo_coef]
+    return mo_coef_order
+
+
+def chunked(mo_coef, chunks_size):
+    mo_coef_block = []
+    for i in mo_coef:
+        chunks = [i[x:x + chunks_size] for x in xrange(0, len(i), chunks_size)]
+        mo_coef_block.append(chunks)
+    return mo_coef_block
+
+
+def print_mo_coef(mo_coef_block, l_l_sym):
+    print ""
+    print "BEGIN_MO"
+    print ""
+    len_block_curent = 0
+    nb_block = len(mo_coef_block[0])
+    for i_block in range(0, nb_block):
+        a = [i[i_block] for i in mo_coef_block]
+
+        print " ".join([str(
+            i + 1) for i in range(len_block_curent, len_block_curent + len(a[
+                0]))])
+
+        len_block_curent += len(a[0])
+
+        for l in l_l_sym:
+            i = int(l[0]) - 1
+            i_a = int(l[1]) - 1
+            sym = l[2]
+
+            print l_label[i_a], sym, " ".join('{: 3.8f}'.format(i)
+                                              for i in a[i])
+
+        if i_block != nb_block - 1:
+            print ""
+        else:
+            print "END_MO"
+
+
+mo_coef = ezfio.get_mo_basis_mo_coef()
+mo_coef_phase = order_phase(mo_coef)
+mo_coef_phase_order = order_by_sim(mo_coef_phase, l_l_sym)
+mo_coef_transp = zip(*mo_coef_phase_order)
+mo_coef_block = chunked(mo_coef_transp, 4)
+print_mo_coef(mo_coef_block, l_l_sym)
+
+#  _                    
+# |_) _  _       _|  _  
+# |  _> (/_ |_| (_| (_) 
+#
 if do_pseudo:
-	print ""
-	print "BEGIN_PSEUDO"
-	klocmax = ezfio.get_pseudo_pseudo_klocmax()
-	kmax = ezfio.get_pseudo_pseudo_kmax()
-	lmax = ezfio.get_pseudo_pseudo_lmax()
-	
-	
-	n_k = ezfio.get_pseudo_pseudo_n_k()
-	v_k = ezfio.get_pseudo_pseudo_v_k()
-	dz_k = ezfio.get_pseudo_pseudo_dz_k()
-	
-	n_kl = ezfio.get_pseudo_pseudo_n_kl()
-	v_kl = ezfio.get_pseudo_pseudo_v_kl()
-	dz_kl = ezfio.get_pseudo_pseudo_dz_kl()
-	
-	def list_to_string(l):
-		return " ".join(map(str,l))
-	
-	for i,a in enumerate(l_label):
-	
-		l_str = []
-	
-		l_dump = []
-		for k in range(klocmax):
-				if v_k[k][i]:
-					l_ = list_to_string([v_k[k][i], n_k[k][i]+2, dz_k[k][i]])
-					l_dump.append(l_)
-	
-		l_str.append(l_dump)
-		for l in range(lmax+1):
-			l_dump = []
-			for k in range(kmax):
-				if v_kl[l][k][i]:
-					l_ = list_to_string([v_kl[l][k][i], n_kl[l][k][i]+2, dz_kl[l][k][i]])
-					l_dump.append(l_)
-			if l_dump:
-				l_str.append(l_dump)
-	
-		str_ = "PARAMETERS FOR {0} ON ATOM {1} WITH ZCORE {2} AND LMAX {3} ARE"
-		print str_.format(a,i+1,int(zcore[i]),int(len(l_str)-1))
-	
-		for i, l in enumerate(l_str):
-			str_ = "FOR L= {0} COEFF N ZETA"
-			print str_.format(int(len(l_str)-i-1))
-			for ii, ll in enumerate(l):
-				print " ",ii+1, ll
-	
-	str_ = "THE ECP RUN REMOVES {0} CORE ELECTRONS, AND THE SAME NUMBER OF PROTONS."
-	print str_.format(sum(zcore))
-	print "END_PSEUDO"
-	
+    print ""
+    print "BEGIN_PSEUDO"
+    klocmax = ezfio.get_pseudo_pseudo_klocmax()
+    kmax = ezfio.get_pseudo_pseudo_kmax()
+    lmax = ezfio.get_pseudo_pseudo_lmax()
+
+    n_k = ezfio.get_pseudo_pseudo_n_k()
+    v_k = ezfio.get_pseudo_pseudo_v_k()
+    dz_k = ezfio.get_pseudo_pseudo_dz_k()
+
+    n_kl = ezfio.get_pseudo_pseudo_n_kl()
+    v_kl = ezfio.get_pseudo_pseudo_v_kl()
+    dz_kl = ezfio.get_pseudo_pseudo_dz_kl()
+
+    def list_to_string(l):
+        return " ".join(map(str, l))
+
+    for i, a in enumerate(l_label):
+
+        l_str = []
+
+        l_dump = []
+        for k in range(klocmax):
+            if v_k[k][i]:
+                l_ = list_to_string([v_k[k][i], n_k[k][i] + 2, dz_k[k][i]])
+                l_dump.append(l_)
+
+        l_str.append(l_dump)
+        for l in range(lmax + 1):
+            l_dump = []
+            for k in range(kmax):
+                if v_kl[l][k][i]:
+                    l_ = list_to_string([v_kl[l][k][i], n_kl[l][k][i] + 2,
+                                         dz_kl[l][k][i]])
+                    l_dump.append(l_)
+            if l_dump:
+                l_str.append(l_dump)
+
+        str_ = "PARAMETERS FOR {0} ON ATOM {1} WITH ZCORE {2} AND LMAX {3} ARE"
+        print str_.format(a, i + 1, int(zcore[i]), int(len(l_str) - 1))
+
+        for i, l in enumerate(l_str):
+            str_ = "FOR L= {0} COEFF N ZETA"
+            print str_.format(int(len(l_str) - i - 1))
+            for ii, ll in enumerate(l):
+                print " ", ii + 1, ll
+
+    str_ = "THE ECP RUN REMOVES {0} CORE ELECTRONS, AND THE SAME NUMBER OF PROTONS."
+    print str_.format(sum(zcore))
+    print "END_PSEUDO"
+
+#  _         
+# | \  _ _|_ 
+# |_/ (/_ |_ 
+#
 print ""
 print "BEGIN_DET"
 print ""
@@ -219,18 +314,17 @@ print ""
 psi_det = ezfio.get_determinants_psi_det()
 psi_coef = ezfio.get_determinants_psi_coef()[0]
 
+for c, (l_det_bit_alpha, l_det_bit_beta) in zip(psi_coef, psi_det):
+    print c
+    for det in l_det_bit_alpha:
+        bin_det_raw = "{0:b}".format(det)[::-1]
+        bin_det = bin_det_raw + "0" * (mo_num - len(bin_det_raw))
+    print bin_det
 
-for c, (l_det_bit_alpha, l_det_bit_beta) in zip(psi_coef,psi_det):
-	print c
-	for det in l_det_bit_alpha:
-		bin_det_raw = "{0:b}".format(det)[::-1]
-		bin_det = bin_det_raw+"0"*(mo_num-len(bin_det_raw))
-	print bin_det
-
-	for det in l_det_bit_beta:
-		bin_det_raw = "{0:b}".format(det)[::-1]
-		bin_det = bin_det_raw+"0"*(mo_num-len(bin_det_raw))
-	print bin_det
-	print ""
+    for det in l_det_bit_beta:
+        bin_det_raw = "{0:b}".format(det)[::-1]
+        bin_det = bin_det_raw + "0" * (mo_num - len(bin_det_raw))
+    print bin_det
+    print ""
 
 print "END_DET"
