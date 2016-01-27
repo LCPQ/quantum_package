@@ -175,7 +175,11 @@ def main(arguments):
         d_child = d_local.copy()
         d_child.update(d_plugin)
 
-        l_name = arguments["<name>"]
+        normalize_case = {}
+        for name in d_local.keys() + d_plugin.keys():
+            normalize_case [ name.lower() ] = name
+
+        l_name = [ normalize_case[name.lower()] for name in arguments["<name>"] ]
 
         for name in l_name:
             if name in d_local:
@@ -206,6 +210,7 @@ def main(arguments):
                 raise
 
             print "[ OK ]"
+            print ""
             print "You can now compile as usual"
             print "`cd {0} ; ninja` for exemple".format(QP_ROOT)
             print " or --in developement mode-- you can cd in a directory and compile here"
