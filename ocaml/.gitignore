@@ -54,5 +54,7 @@ test_pseudo
 test_pseudo.byte
 test_queuing_system
 test_queuing_system.byte
+test_symmetry
+test_symmetry.byte
 test_task_server
 test_task_server.byte

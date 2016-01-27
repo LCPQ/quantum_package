@@ -17,6 +17,8 @@ let spec =
      ~doc:"int Spin multiplicity (2S+1) of the molecule. Default is 1."
   +> flag "p" (optional string)
      ~doc:"string Name of the pseudopotential"
+  +> flag "cart" no_arg
+     ~doc:" Compute AOs in the Cartesian basis set (6d, 10f, ...)"
   +> anon ("xyz_file" %: file )
 
 
@@ -87,7 +89,7 @@ let list_basis () =
 
 
 (** Run the program *)
-let run ?o b c d m p xyz_file =
+let run ?o b c d m p cart xyz_file =
 
   (* Read molecule *)
   let molecule =
@@ -592,6 +594,7 @@ let run ?o b c d m p xyz_file =
     ~rank:2 ~dim:[| ao_num ; ao_prim_num_max |] ~data:ao_coef) ;
     Ezfio.set_ao_basis_ao_expo(Ezfio.ezfio_array_of_list
     ~rank:2 ~dim:[| ao_num ; ao_prim_num_max |] ~data:ao_expo) ;
+    Ezfio.set_ao_basis_ao_cartesian(cart);
   in
   match Input.Ao_basis.read () with
   | None -> failwith "Error in basis"
@@ -621,8 +624,8 @@ Otherwise, the basis set is obtained from the database.
 
 " )
     spec
-    (fun o b c d m p xyz_file () ->
-       run ?o b c d m p xyz_file )
+    (fun o b c d m p cart xyz_file () ->
+       run ?o b c d m p cart xyz_file )
 
 
 let () =
