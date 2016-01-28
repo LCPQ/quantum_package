@@ -26,7 +26,11 @@
 ! TODO --- Test perturbatif  ------
    do k=1,N_states
      lambda_pert(k,i) = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
+     ! TODO : i_h_psi peut sortir de la boucle?
      call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,size(psi_ref_coef,1), n_states, ihpsi_current)
+     if (ihpsi_current(k) == 0.d0) then
+       ihpsi_current(k) = 1.d-32
+     endif
      tmp = psi_non_ref_coef(i,k)/ihpsi_current(k)
      i_pert = 0
      ! Perturbation only if 1st order < 0.5 x second order
