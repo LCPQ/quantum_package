@@ -1,4 +1,3 @@
-
 BEGIN_PROVIDER [double precision, ao_ortho_lowdin_coef, (ao_num_align,ao_num)]
   implicit none
   BEGIN_DOC
@@ -8,13 +7,9 @@ BEGIN_PROVIDER [double precision, ao_ortho_lowdin_coef, (ao_num_align,ao_num)]
   END_DOC
   integer                        :: i,j,k,l
   double precision               :: tmp_matrix(ao_num_align,ao_num),accu
+  tmp_matrix(:,:) = 0.d0
   do j=1, ao_num
-    do i=1, ao_num
-      tmp_matrix(i,j) = 0.d0
-    enddo
-  enddo
-  do i=1, ao_num
-    tmp_matrix(i,i) = 1.d0
+    tmp_matrix(j,j) = 1.d0
   enddo
   call ortho_lowdin(ao_overlap,ao_num_align,ao_num,tmp_matrix,ao_num_align,ao_num)
   do i=1, ao_num
@@ -23,6 +18,7 @@ BEGIN_PROVIDER [double precision, ao_ortho_lowdin_coef, (ao_num_align,ao_num)]
     enddo
   enddo
 END_PROVIDER
+
 BEGIN_PROVIDER [double precision, ao_ortho_lowdin_overlap, (ao_num_align,ao_num)]
   implicit none
   BEGIN_DOC
@@ -40,7 +36,7 @@ BEGIN_PROVIDER [double precision, ao_ortho_lowdin_overlap, (ao_num_align,ao_num)
     do j=1, ao_num
       c = 0.d0
       do l=1, ao_num
-        c = ao_ortho_lowdin_coef(j,l) * ao_overlap(k,l)
+        c +=  ao_ortho_lowdin_coef(j,l) * ao_overlap(k,l)
       enddo
       do i=1, ao_num
         ao_ortho_lowdin_overlap(i,j) += ao_ortho_lowdin_coef(i,k) * c

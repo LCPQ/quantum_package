@@ -1,2 +1,2 @@
-true: package(core,sexplib.syntax,cryptokit)
+true: package(core,sexplib.syntax,cryptokit,ZMQ)
 true: thread

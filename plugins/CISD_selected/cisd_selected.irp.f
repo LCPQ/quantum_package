@@ -31,9 +31,9 @@ program cisd
      print *,  'PT2                          = ', pt2(i)
      print *,  'E                            = ', CI_energy(i) 
      print *,  'E_before     +PT2            = ', (E_old(i)+pt2(i)) 
-!   print *,  'E+PT2_new= ', (E_old(1)+1.d0*pt2(1)+H_pert_diag(1))/(1.d0 +norm_pert(1))
     enddo
     E_old = CI_energy
+    call save_wavefunction
     if (abort_all) then
       exit
     endif

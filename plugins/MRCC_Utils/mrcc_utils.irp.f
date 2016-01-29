@@ -23,25 +23,28 @@
    call i_h_psi(psi_non_ref(1,1,i), psi_ref_restart, psi_ref_coef_restart, N_int, N_det_ref,&
        size(psi_ref_coef_restart,1), n_states, ihpsi)
    call i_H_j(psi_non_ref(1,1,i),psi_non_ref(1,1,i),N_int,hii)
+! TODO --- Test perturbatif  ------
    do k=1,N_states
      lambda_pert(k,i) = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
      call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,size(psi_ref_coef,1), n_states, ihpsi_current)
      tmp = psi_non_ref_coef(i,k)/ihpsi_current(k)
-     i_pert = 1
-     if((ihpsi(k) * lambda_pert(k,i))/psi_non_ref_coef_restart(i,k) .ge. 0.5d0 & 
-        .and. (ihpsi(k) * lambda_pert(k,i))/psi_non_ref_coef_restart(i,k) > 0.d0 )then  ! test on the first order coefficient
-      i_pert = 0
-     endif
-     do j = 1, N_det_ref
-      call i_H_j(psi_non_ref(1,1,i),psi_ref(1,1,j),N_int,hij)
-      if(dabs(hij * tmp).ge.0.5d0)then
-       i_pert_count +=1
+     i_pert = 0
+     ! Perturbation only if 1st order < 0.5 x second order
+     if((ihpsi(k) * lambda_pert(k,i)) < 0.5d0 * psi_non_ref_coef_restart(i,k)  )then
        i_pert = 1
-       exit
-      endif
-     enddo
+     else
+       do j = 1, N_det_ref
+         call i_H_j(psi_non_ref(1,1,i),psi_ref(1,1,j),N_int,hij)
+         ! Perturbation diverges when hij*tmp > 0.5
+         if(dabs(hij * tmp).ge.0.5d0)then
+           i_pert_count +=1
+           i_pert = 1
+           exit
+         endif
+       enddo
+     endif
      if( i_pert == 1)then
-      pert_determinants(k,i) = i_pert
+       pert_determinants(k,i) = i_pert
      endif
      if(pert_determinants(k,i) == 1)then
        i_ok +=1
@@ -50,6 +53,7 @@
        lambda_mrcc(k,i) = psi_non_ref_coef(i,k)/ihpsi_current(k)
      endif
    enddo
+! TODO --- Fin test perturbatif ------
  enddo
 !if(oscillations)then
 ! print*,'AVERAGING the lambda_mrcc with those of the previous iterations'

@@ -1,7 +1,7 @@
-open Core.Std;;
-open Qptypes;;
+open Core.Std
+open Qptypes
 
-type t = (Gto.t * Nucl_number.t) list with sexp;;
+type t = (Gto.t * Nucl_number.t) list with sexp
 
 (** Read all the basis functions of an element *)
 let read in_channel at_number =
@@ -12,7 +12,7 @@ let read in_channel at_number =
     with
     | Gto.End_Of_Basis -> List.rev result
   in read []  
-;;
+
 
 (** Find an element in the basis set file *)
 let find in_channel element =
@@ -27,13 +27,13 @@ let find in_channel element =
     | Element.ElementError _ -> ()
   done ;
   !element_read
-;;
+
 
 (** Read an element from the file *)
 let read_element in_channel at_number element =
   ignore (find in_channel element) ;
-  read in_channel at_number ;
-;;
+  read in_channel at_number 
+
 
 let to_string b =
   let new_nucleus n = 
@@ -55,9 +55,9 @@ let to_string b =
   in
   do_work [new_nucleus 1] 1 b
   |> String.concat ~sep:"\n"
-;;
 
-include To_md5;;
+
+include To_md5
 let to_md5 = to_md5 sexp_of_t
-;;
+
 

@@ -26,6 +26,8 @@ Examples:
 
 """
 
+OK="✓"
+FAIL="✗"
 import subprocess
 import os
 import sys
@@ -52,7 +54,7 @@ QP_ROOT_INSTALL = join(QP_ROOT, "install")
 os.environ["PATH"] = os.environ["PATH"] + ":" + QP_ROOT_BIN
 
 d_dependency = {
-    "ocaml": ["m4", "curl", "zlib", "patch", "gcc"],
+    "ocaml": ["m4", "curl", "zlib", "patch", "gcc", "zeromq"],
     "m4": ["make"],
     "curl": ["make"],
     "zlib": ["gcc", "make"],
@@ -69,7 +71,8 @@ d_dependency = {
     "python": [],
     "ninja": ["g++", "python"],
     "make": [],
-    "p_graphviz": ["python"]
+    "p_graphviz": ["python"],
+    "bats": []
 }
 
 from collections import namedtuple
@@ -134,25 +137,31 @@ ezfio = Info(
     default_path=join(QP_ROOT_INSTALL, "EZFIO"))
 
 zeromq = Info(
-    url='http://download.zeromq.org/zeromq-4.1.3.tar.gz',
+    url='http://download.zeromq.org/zeromq-4.0.7.tar.gz',
     description=' ZeroMQ',
     default_path=join(QP_ROOT_LIB, "libzmq.a"))
 
 f77zmq = Info(
     url='{head}/zeromq/f77_zmq/{tail}'.format(**path_github),
     description=' F77-ZeroMQ',
-    default_path=join(QP_ROOT_LIB, "libf77zmq.a"))
+    default_path=join(QP_ROOT_LIB, "libf77zmq.a") + " " + \
+                 join(QP_ROOT, "src", "ZMQ", "f77zmq.h") )
 
 p_graphviz = Info(
     url='https://github.com/xflr6/graphviz/archive/master.tar.gz',
     description=' Python library for graphviz',
     default_path=join(QP_ROOT_INSTALL, "p_graphviz"))
 
+bats = Info(
+    url='https://github.com/sstephenson/bats/archive/master.tar.gz',
+    description=' Bash Automated Testing System',
+    default_path=join(QP_ROOT_INSTALL, "bats"))
+
 d_info = dict()
 
 for m in ["ocaml", "m4", "curl", "zlib", "patch", "irpf90", "docopt",
           "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz",
-          "zeromq", "f77zmq" ]:
+          "zeromq", "f77zmq","bats" ]:
     exec ("d_info['{0}']={0}".format(m))
 
 
@@ -281,10 +290,10 @@ def checking(d_dependency):
 
         r = check_availability(i)
         if r:
-            print "[  OK  ] ( {0} )".format(r.strip())
+            print OK+" ( {0} )".format(r.strip())
             l_installed[i] = r.strip()
         else:
-            print "[ FAIL ]"
+            print FAIL
             l_needed.append(i)
     print ""
 
@@ -366,7 +375,7 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
         except:
             raise
         else:
-            print "[  OK  ]"
+            print OK
 
         l_install_descendant.remove("ninja")
 
@@ -409,10 +418,10 @@ _|_ | | _>  |_ (_| | | (_|  |_ | (_) | |
     with open(path, "w+") as f:
         f.write("\n".join(l_string))
 
-    print " [  OK  ] ({0})".format(path)
+    print OK+" ({0})".format(path)
 
     print str_info("install"),
-    print " [ Running ]"
+    print "Running"
     try:
         path_ninja = find_path("ninja", l_installed)
         subprocess.check_call("cd install ;{0}".format(path_ninja), shell=True)
@@ -477,7 +486,7 @@ def create_ninja_and_rc(l_installed):
         'export IRPF90={0}'.format(path_irpf90.replace(QP_ROOT,"${QP_ROOT}")),
         'export NINJA={0}'.format(path_ninja.replace(QP_ROOT,"${QP_ROOT}")),
         'export QP_PYTHON={0}'.format(":".join(l_python)), "",
-        'export PYTHONPATH="${QP_EZFIO}":"${QP_PYTHON}":"${PYTHONPATH}"',
+        'export PYTHONPATH="${QP_EZFIO}/Python":"${QP_PYTHON}":"${PYTHONPATH}"',
         'export PATH="${QP_PYTHON}":"${QP_ROOT}"/bin:"${QP_ROOT}"/ocaml:"${PATH}"',
         'export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${LD_LIBRARY_PATH}"',
         'export LIBRARY_PATH="${QP_ROOT}"/lib:"${LIBRARY_PATH}"', "",
@@ -490,7 +499,7 @@ def create_ninja_and_rc(l_installed):
     with open(path, "w+") as f:
         f.write("\n".join(l_rc))
 
-    print "[  OK  ] ({0})".format(path)
+    print OK+" ({0})".format(path)
 
     command = ['bash', '-c', 'source {0} && env'.format(path)]
     proc = subprocess.Popen(command, stdout=subprocess.PIPE)
@@ -515,7 +524,7 @@ def create_ninja_and_rc(l_installed):
         sys.exit(1)
 
     else:
-        print "[  OK  ]"
+        print OK
 
 
 def recommendation():
@@ -530,7 +539,8 @@ def recommendation():
     print "   ninja"
     print "   make -C ocaml"
     print ""
-    print "PS : For more info on compiling the code, read the COMPILE_RUN.md file."
+    print "You can install more plugin with the qp_install command" 
+    print "PS : For more info on compiling the code, read the README.md"
 
 
 if __name__ == '__main__':

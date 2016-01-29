@@ -8,7 +8,7 @@ s.set_perturbation("Moller_plesset")
 print s
 
 s = H_apply("mp2_selection")
-s.set_selection_pt2("Moller_plesset")
+s.set_selection_pt2("Moller_Plesset")
 print s
 END_SHELL
 
