@@ -4,10 +4,7 @@ ezfio.ml
 Git.ml
 Input_auto_generated.ml
 Input_determinants.ml
-Input_hartree_fock.ml
 Input_integrals_bielec.ml
-Input_perturbation.ml
-Input_properties.ml
 Input_pseudo.ml
 qp_basis_clean
 qp_basis_clean.native

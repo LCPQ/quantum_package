@@ -18,11 +18,8 @@ type keyword =
 | Mo_basis
 | Nuclei
 | Determinants
-| Perturbation
-| Pseudo
 | Integrals_bielec
-| Properties
-| Hartree_fock
+| Pseudo
 ;;
 
 
@@ -33,11 +30,8 @@ let keyword_to_string = function
 | Mo_basis              -> "MO basis"
 | Nuclei                -> "Molecule"
 | Determinants -> "Determinants"
-| Perturbation -> "Perturbation"
-| Pseudo -> "Pseudo"
 | Integrals_bielec -> "Integrals_bielec"
-| Properties -> "Properties"
-| Hartree_fock -> "Hartree_fock"
+| Pseudo -> "Pseudo"
 ;;
 
 
@@ -88,16 +82,10 @@ let get s =
            f Determinants_by_hand.(read, to_rst)
          | Determinants ->
            f Determinants.(read, to_rst)
-         | Perturbation ->
-           f Perturbation.(read, to_rst)
-         | Pseudo ->
-           f Pseudo.(read, to_rst)
          | Integrals_bielec ->
            f Integrals_bielec.(read, to_rst)
-         | Properties ->
-           f Properties.(read, to_rst)
-         | Hartree_fock ->
-           f Hartree_fock.(read, to_rst)
+         | Pseudo ->
+           f Pseudo.(read, to_rst)
       end
     with
     | Sys_error msg -> (Printf.eprintf "Info: %s\n%!" msg ; "")
@@ -136,11 +124,8 @@ let set str s =
       let open Input in
         match s with
         | Determinants -> write Determinants.(of_rst, write) s
-        | Perturbation -> write Perturbation.(of_rst, write) s
-        | Pseudo -> write Pseudo.(of_rst, write) s
         | Integrals_bielec -> write Integrals_bielec.(of_rst, write) s
-        | Properties -> write Properties.(of_rst, write) s
-        | Hartree_fock -> write Hartree_fock.(of_rst, write) s
+        | Pseudo -> write Pseudo.(of_rst, write) s
         | Electrons        -> write Electrons.(of_rst, write) s
         | Determinants_by_hand     -> write Determinants_by_hand.(of_rst, write) s
         | Nuclei           -> write Nuclei.(of_rst, write) s
@@ -189,11 +174,8 @@ let run check_only ezfio_filename =
       Ao_basis;
       Electrons ;
       Determinants ; 
-      Perturbation ; 
-      Pseudo ; 
       Integrals_bielec ; 
-      Properties ; 
-      Hartree_fock ; 
+      Pseudo ; 
       Mo_basis;
       Determinants_by_hand ;
   ]
