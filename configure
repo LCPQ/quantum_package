@@ -533,7 +533,7 @@ def recommendation():
     print "   source {0}".format(path)
     print ""
     print "Then, install the modules you want to install using :"
-    print "    qp_install_module.py "
+    print "    qp_module.py"
     print ""
     print "Finally :"
     print "   ninja"
