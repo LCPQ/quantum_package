@@ -5,7 +5,7 @@ print "#QP -> QMCPACK"
 # ___           
 #  |  ._  o _|_ 
 # _|_ | | |  |_ 
-#               
+#
 
 from ezfio import ezfio
 
@@ -34,7 +34,12 @@ else:
 #             
 # |\/| o  _  _ 
 # |  | | _> (_ 
-#              
+#
+
+def list_to_string(l):
+    return " ".join(map(str, l))
+
+
 ao_num = ezfio.get_ao_basis_ao_num()
 print "ao_num", ao_num
 
@@ -52,14 +57,14 @@ l_label = ezfio.get_nuclei_nucl_label()
 l_charge = ezfio.get_nuclei_nucl_charge()
 l_coord = ezfio.get_nuclei_nucl_coord()
 
-l_coord_str = [" ".join(map(str, i)) for i in l_coord]
+l_coord_str = [list_to_string(i) for i in zip(*l_coord)]
 
 print "nucl_num", len(l_label)
 
 #  _               
 # /   _   _  ._ _| 
 # \_ (_) (_) | (_| 
-#                  
+#
 print "Atomic coord in Bohr"
 
 for i, t in enumerate(zip(l_label, l_charge, l_coord_str)):
@@ -67,7 +72,7 @@ for i, t in enumerate(zip(l_label, l_charge, l_coord_str)):
         l = (t[0], t[1] + zcore[i], t[2])
     except NameError:
         l = t
-    print " ".join(map(str, l))
+    print list_to_string(l)
 
 #
 # Call externet process to get the sysmetry
@@ -78,28 +83,40 @@ process = subprocess.Popen(
     stdout=subprocess.PIPE)
 out, err = process.communicate()
 
-basis_raw, sym_raw, _ = out.split("\n\n\n")
+basis_raw, sym_raw, _= out.split("\n\n\n")
 
 #  _                 __        
 # |_)  _.  _ o  _   (_   _ _|_ 
 # |_) (_| _> | _>   __) (/_ |_ 
-#                              
-
+#
 
 basis_without_header = "\n".join(basis_raw.split("\n")[7:])
-for i, l in enumerate(l_label):
-    basis_without_header = basis_without_header.replace('Atom {0}'.format(i + 1), l)
 
-print "BEGIN_BASIS_SET"
-print ""
-print basis_without_header
+import re
+l_basis_raw = re.split('\n\s*\n', basis_without_header)
+
+a_already_print = []
+
+l_basis_clean = []
+
+
+for i, (a,b) in enumerate(zip(l_label,l_basis_raw)):
+
+    if a not in a_already_print:
+        l_basis_clean.append(b.replace('Atom {0}'.format(i + 1), a))
+        a_already_print.append(a)
+    else:
+        continue
+
+print "BEGIN_BASIS_SET\n"
+print "\n\n".join(l_basis_clean)
 print "END_BASIS_SET"
-
 
 #       _     
 # |\/| / \  _ 
 # |  | \_/ _> 
 #
+
 
 #
 # Function
@@ -126,8 +143,9 @@ def compare_gamess_style(item1, item2):
         return compare_gamess_style(item1[:-1], item2[:-1])
 
 
-def expend_and_order_sym(str_):
-    #Expend
+def expend_sym_str(str_):
+    #Expend x2 -> xx
+    # yx2 -> xxy
     for i, c in enumerate(str_):
         try:
             n = int(c)
@@ -140,6 +158,13 @@ def expend_and_order_sym(str_):
     return "".join(sorted(str_, key=str_.count, reverse=True))
 
 
+def expend_sym_l(l_l_sym):
+    for l in l_l_sym:
+        l[2] = expend_sym_str(l[2])
+
+    return l_l_sym
+
+
 def get_nb_permutation(str_):
 
     l = len(str_) - 1
@@ -148,26 +173,29 @@ def get_nb_permutation(str_):
     else:
         return 2 * (2 * l + 1)
 
+
+def order_l_l_sym(l_l_sym):
+    l_l_sym_iter = iter(l_l_sym)
+    for i, l in enumerate(l_l_sym_iter):
+        n = get_nb_permutation(l[2])
+        if n != 1:
+            l_l_sym[i:i + n] = sorted(l_l_sym[i:i + n],
+                                      key=lambda x: x[2],
+                                      cmp=compare_gamess_style)
+            for next_ in range(n - 1):
+                next(l_l_sym_iter)
+    return l_l_sym
+
 #==========================
 # We will order the symetry
 #==========================
 
 l_sym_without_header = sym_raw.split("\n")[3:-2]
 
-l_l_sym = [i.split() for i in l_sym_without_header]
+l_l_sym_raw = [i.split() for i in l_sym_without_header]
+l_l_sym_expend_sym = expend_sym_l(l_l_sym_raw)
 
-for l in l_l_sym:
-    l[2] = expend_and_order_sym(l[2])
-
-l_l_sym_iter = iter(l_l_sym)
-for i, l in enumerate(l_l_sym_iter):
-    n = get_nb_permutation(l[2])
-    if n != 1:
-        l_l_sym[i:i + n] = sorted(l_l_sym[i:i + n],
-                                  key=lambda x: x[2],
-                                  cmp=compare_gamess_style)
-        for next_ in range(n - 1):
-            next(l_l_sym_iter)
+l_l_sym_ordered = order_l_l_sym(l_l_sym_expend_sym)
 
 
 #========
@@ -200,12 +228,12 @@ def order_by_sim(mo_coef, l_l_sym):
     return mo_coef_order
 
 
-def chunked(mo_coef, chunks_size):
-    mo_coef_block = []
-    for i in mo_coef:
+def chunked(l, chunks_size):
+    l_block = []
+    for i in l:
         chunks = [i[x:x + chunks_size] for x in xrange(0, len(i), chunks_size)]
-        mo_coef_block.append(chunks)
-    return mo_coef_block
+        l_block.append(chunks)
+    return l_block
 
 
 def print_mo_coef(mo_coef_block, l_l_sym):
@@ -216,10 +244,8 @@ def print_mo_coef(mo_coef_block, l_l_sym):
     nb_block = len(mo_coef_block[0])
     for i_block in range(0, nb_block):
         a = [i[i_block] for i in mo_coef_block]
-
-        print " ".join([str(
-            i + 1) for i in range(len_block_curent, len_block_curent + len(a[
-                0]))])
+        r_ = range(len_block_curent, len_block_curent + len(a[0]))
+        print " ".join([str(i + 1) for i in r_])
 
         len_block_curent += len(a[0])
 
@@ -238,11 +264,12 @@ def print_mo_coef(mo_coef_block, l_l_sym):
 
 
 mo_coef = ezfio.get_mo_basis_mo_coef()
-mo_coef_phase = order_phase(mo_coef)
-mo_coef_phase_order = order_by_sim(mo_coef_phase, l_l_sym)
+#mo_coef_phase = order_phase(mo_coef)
+mo_coef_phase = mo_coef
+mo_coef_phase_order = order_by_sim(mo_coef_phase, l_l_sym_ordered)
 mo_coef_transp = zip(*mo_coef_phase_order)
 mo_coef_block = chunked(mo_coef_transp, 4)
-print_mo_coef(mo_coef_block, l_l_sym)
+print_mo_coef(mo_coef_block, l_l_sym_ordered)
 
 #  _                    
 # |_) _  _       _|  _  
@@ -263,13 +290,11 @@ if do_pseudo:
     v_kl = ezfio.get_pseudo_pseudo_v_kl()
     dz_kl = ezfio.get_pseudo_pseudo_dz_kl()
 
-    def list_to_string(l):
-        return " ".join(map(str, l))
-
     for i, a in enumerate(l_label):
 
         l_str = []
 
+        #Local
         l_dump = []
         for k in range(klocmax):
             if v_k[k][i]:
@@ -277,6 +302,8 @@ if do_pseudo:
                 l_dump.append(l_)
 
         l_str.append(l_dump)
+
+        #Non local
         for l in range(lmax + 1):
             l_dump = []
             for k in range(kmax):
