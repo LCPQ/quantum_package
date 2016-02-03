@@ -56,10 +56,14 @@ This file contains all the environment variables needed by the quantum package b
 
 ### Optional) Add some modules
 
-      Usage: qp_module.py list (--installed|--avalaible-local|--avalaible-remote)
-       qp_module.py install <name>...
-       qp_module.py create -n <name> [<children_module>...]
+```
+Usage:
+       qp_module.py create -n <name> [<children_modules>...]
        qp_module.py download -n <name> [<path_folder>...]
+       qp_module.py install <name>...
+       qp_module.py list (--installed | --available-local)
+       qp_module.py uninstall <name>
+```
 
  For exemple you can type :
 `qp_module.py install Full_CI`
