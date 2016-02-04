@@ -100,11 +100,11 @@ function run_FCI() {
 }
 
 @test "SCF H2O cc-pVDZ" {
-  run_HF  h2o.ezfio  -76.0230273511649
+  run_HF  h2o.ezfio  -0.760270218692179E+02
 }
 
 @test "FCI H2O cc-pVDZ" {
-  run_FCI h2o.ezfio 10000  -76.2315960087713  -76.237428352199
+  run_FCI h2o.ezfio 10000  -0.762382562429778E+02 -0.762433933485226E+02
 }
 
 @test "CAS_SD H2O cc-pVDZ" {
@@ -113,10 +113,10 @@ function run_FCI() {
   ezfio set_file $INPUT
   ezfio set perturbation do_pt2_end False
   ezfio set determinants n_det_max 1000
-  qp_set_mo_class $INPUT -core "[1]" -inact "[2,5]" -act "[3,4,6,7]" -virt "[8-23]"
+  qp_set_mo_class $INPUT -core "[1]" -inact "[2,5]" -act "[3,4,6,7]" -virt "[8-24]"
   qp_run cas_sd_selected $INPUT 
   energy="$(ezfio get cas_sd energy)"
-  eq $energy -76.2085511296300 1.E-6
+  eq $energy -0.762219854008117E+02 1.E-5
 }
 
 @test "MRCC H2O cc-pVDZ" {
@@ -128,7 +128,7 @@ function run_FCI() {
   ezfio set determinants read_wf True
   qp_run mrcc_cassd $INPUT 
   energy="$(ezfio get mrcc_cassd energy)"
-  eq $energy -76.2165731870755 1.E-3
+  eq $energy -0.762303253805911E+02 1.E-3
   
 }
 
@@ -139,11 +139,11 @@ function run_FCI() {
 }
 
 @test "SCF H2O VDZ pseudo" {
-  run_HF  h2o_pseudo.ezfio  -16.9457263818675
+  run_HF  h2o_pseudo.ezfio  -0.169483703904991E+02
 }
 
 @test "FCI H2O VDZ pseudo" {
-  run_FCI h2o_pseudo.ezfio 2000    -17.1476897854369  -17.1598005211929
+  run_FCI h2o_pseudo.ezfio 2000    -0.171550015498807E+02 -0.171645044185009E+02
 }
 
 #=== Convert
