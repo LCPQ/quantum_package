@@ -90,7 +90,7 @@ basis_raw, sym_raw, _= out.split("\n\n\n")
 # |_) (_| _> | _>   __) (/_ |_ 
 #
 
-basis_without_header = "\n".join(basis_raw.split("\n")[7:])
+basis_without_header = "\n".join(basis_raw.split("\n")[11:])
 
 import re
 l_basis_raw = re.split('\n\s*\n', basis_without_header)
