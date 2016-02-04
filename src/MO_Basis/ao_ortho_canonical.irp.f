@@ -16,15 +16,15 @@
   do while (i <= ao_num)
     select case ( ao_l(i) )
       case (0)
-        ao_cart_to_sphe_coef(i,i) = 1.d0
-        i += 1
         ao_cart_to_sphe_num += 1
+        ao_cart_to_sphe_coef(i,ao_cart_to_sphe_num) = 1.d0
+        i += 1
       BEGIN_TEMPLATE
       case ($SHELL)
         if (ao_power(i,1) == $SHELL) then
           do k=1,size(cart_to_sphe_$SHELL,2)
             do j=1,size(cart_to_sphe_$SHELL,1)
-              ao_cart_to_sphe_coef(i+j-1,i+k-1) = cart_to_sphe_$SHELL(j,k)
+              ao_cart_to_sphe_coef(i+j-1,ao_cart_to_sphe_num+k) = cart_to_sphe_$SHELL(j,k)
             enddo
           enddo
           i += size(cart_to_sphe_$SHELL,1)
