@@ -85,7 +85,7 @@ let list_basis () =
       )
   in 
   List.sort basis_list ~cmp:String.ascending
-  |> String.concat ~sep:"\t" 
+  |> String.concat ~sep:"\n" 
 
 
 (** Run the program *)
