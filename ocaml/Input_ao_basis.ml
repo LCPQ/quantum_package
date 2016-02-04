@@ -12,6 +12,7 @@ module Ao_basis : sig
       ao_power        : Symmetry.Xyz.t array;
       ao_coef         : AO_coef.t array;
       ao_expo         : AO_expo.t array;
+      ao_cartesian    : bool;
     } with sexp
   ;;
   val read : unit -> t option
@@ -29,6 +30,7 @@ end = struct
       ao_power        : Symmetry.Xyz.t array;
       ao_coef         : AO_coef.t array;
       ao_expo         : AO_expo.t array;
+      ao_cartesian    : bool;
     } with sexp
   ;;
 
@@ -93,6 +95,15 @@ end = struct
     |> Array.map ~f:AO_expo.of_float
   ;;
 
+  let read_ao_cartesian () =
+    if not (Ezfio.has_ao_basis_ao_cartesian ()) then
+       get_default "ao_cartesian"
+       |> Bool.of_string
+       |> Ezfio.set_ao_basis_ao_cartesian
+    ;
+    Ezfio.get_ao_basis_ao_cartesian ()
+  ;;
+
   let to_long_basis b =
     let ao_num = AO_number.to_int b.ao_num in
     let gto_array = Array.init (AO_number.to_int b.ao_num)
@@ -154,6 +165,7 @@ end = struct
          ao_power        ;
          ao_coef         ;
          ao_expo         ;
+         ao_cartesian    ;
        } = b
      in
      write_md5 b ;
@@ -173,6 +185,7 @@ end = struct
             ao_power        = read_ao_power ();
             ao_coef         = read_ao_coef () ;
             ao_expo         = read_ao_expo () ;
+            ao_cartesian    = read_ao_cartesian () ;
           }
         in
         to_md5 result
@@ -204,7 +217,11 @@ Name of the AO basis ::
 
   ao_basis = %s
 
-Basis set ::
+Cartesian coordinates (6d,10f,...) ::
+
+  ao_cartesian = %s
+
+Basis set (read-only) ::
   
 %s
 
@@ -215,12 +232,14 @@ Basis set ::
 %s
 ======= ========= ===========
 
-" (AO_basis_name.to_string b.ao_basis)
+"   (AO_basis_name.to_string b.ao_basis)
+    (Bool.to_string b.ao_cartesian)
     (Basis.to_string short_basis 
-     |> String.split ~on:'\n'
-     |> List.map ~f:(fun x-> "  "^x)
-     |> String.concat ~sep:"\n"
+       |> String.split ~on:'\n'
+       |> List.map ~f:(fun x-> "  "^x)
+       |> String.concat ~sep:"\n"
     ) print_sym
+  
   |> Rst_string.of_string
   ;;
 
@@ -232,7 +251,7 @@ Basis set ::
     | [] -> failwith "Error in basis set"
     | line :: tail ->
       let line = String.strip line in
-      if line = "Basis set ::" then
+      if line = "Basis set (read-only) ::" then
         String.concat tail ~sep:"\n"
       else
         extract_basis tail
@@ -250,6 +269,7 @@ ao_nucl         = %s
 ao_power        = %s
 ao_coef         = %s
 ao_expo         = %s
+ao_cartesian    = %s
 md5             = %s
 "
     (AO_basis_name.to_string b.ao_basis)
@@ -265,6 +285,7 @@ md5             = %s
       |> String.concat ~sep:", ")
     (b.ao_expo  |> Array.to_list |> List.map ~f:AO_expo.to_string
       |> String.concat ~sep:", ")
+    (b.ao_cartesian |> Bool.to_string) 
     (to_md5 b |> MD5.to_string )
 
   ;;

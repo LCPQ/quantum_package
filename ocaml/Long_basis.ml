@@ -10,7 +10,7 @@ let of_basis b =
         begin
           let new_accu = 
             Symmetry.Xyz.of_symmetry g.Gto.sym 
-            |> List.map ~f:(fun x-> (x,g,n)) 
+            |> List.rev_map ~f:(fun x-> (x,g,n)) 
           in
           do_work (new_accu@accu) tail
         end

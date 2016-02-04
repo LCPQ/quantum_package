@@ -1,5 +1,5 @@
-open Core.Std;;
-open Qptypes;;
+open Core.Std
+open Qptypes
 
 exception GTO_Read_Failure of string
 exception End_Of_Basis
@@ -8,7 +8,7 @@ type t =
 { sym  : Symmetry.t ;
   lc   : ((Primitive.t * AO_coef.t) list)
 } with sexp
-;;
+
 
 let of_prim_coef_list pc =
   let (p,c) = List.hd_exn pc in
@@ -27,7 +27,7 @@ let of_prim_coef_list pc =
   { sym = sym ;
     lc  = pc
   }
-;;
+
 
 
 let read_one in_channel =
@@ -65,7 +65,7 @@ let read_one in_channel =
   in read_lines [] n
   |> List.rev
   |> of_prim_coef_list
-;;
+
 
 
 (** Transform the gto to a string *)
@@ -86,5 +86,5 @@ let to_string { sym = sym ; lc = lc } =
   in
   (do_work [result] 1 lc)
   |> String.concat ~sep:"\n"
-;;
+
 
