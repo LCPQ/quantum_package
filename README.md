@@ -11,6 +11,12 @@ Set of quantum chemistry programs and libraries.
 
 For more information, you can visit the [wiki of the project](http://github.com/LCPQ/quantum_package/wiki>), or below for the installation instructions.
 
+Demo
+====
+
+[![Full-CI energy of C2 in 2 minutes](http://img.youtube.com/vi/b89MpnQGDVo/0.jpg)](http://www.youtube.com/watch?v=b89MpnQGDVo "Quantum Package Demo")
+
+
 # Installation
 
 
