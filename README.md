@@ -14,7 +14,7 @@ For more information, you can visit the [wiki of the project](http://github.com/
 Demo
 ====
 
-[![Full-CI energy of C2 in 2 minutes](http://img.youtube.com/vi/b89MpnQGDVo/0.jpg)](http://www.youtube.com/watch?v=b89MpnQGDVo "Quantum Package Demo")
+[![Full-CI energy of C2 in 2 minutes](https://i.vimeocdn.com/video/555047954_130x73.jpg)](https://vimeo.com/scemama/quantum_package_demo "Quantum Package Demo")
 
 
 # Installation
