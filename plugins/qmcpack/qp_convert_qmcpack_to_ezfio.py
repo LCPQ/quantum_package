@@ -258,9 +258,7 @@ def print_mo_coef(mo_coef_block, l_l_sym):
 
 
 mo_coef = ezfio.get_mo_basis_mo_coef()
-mo_coef_phase = mo_coef
-mo_coef_phase_order = mo_coef_phase
-mo_coef_transp = zip(*mo_coef_phase_order)
+mo_coef_transp = zip(*mo_coef)
 mo_coef_block = chunked(mo_coef_transp, 4)
 print_mo_coef(mo_coef_block, l_l_sym_ordered)
 
@@ -336,14 +334,25 @@ psi_coef = ezfio.get_determinants_psi_coef()[0]
 
 for c, (l_det_bit_alpha, l_det_bit_beta) in zip(psi_coef, psi_det):
     print c
-    for det in l_det_bit_alpha:
-        bin_det_raw = "{0:b}".format(det)[::-1]
-        bin_det = bin_det_raw + "0" * (mo_num - len(bin_det_raw))
+
+    bin_det = ""
+    for i,int_det in enumerate(l_det_bit_alpha):
+        bin_det_raw = "{0:b}".format(int_det)[::-1]
+        if mo_num - 64*(i+1) > 0:
+            bin_det += bin_det_raw + "0" * (64*(i+1) - len(bin_det_raw))
+        else:
+            bin_det += bin_det_raw + "0" * (mo_num-64*i - len(bin_det_raw))
+
     print bin_det
 
-    for det in l_det_bit_beta:
-        bin_det_raw = "{0:b}".format(det)[::-1]
-        bin_det = bin_det_raw + "0" * (mo_num - len(bin_det_raw))
+    bin_det = ""
+    for i,int_det in enumerate(l_det_bit_beta):
+        bin_det_raw = "{0:b}".format(int_det)[::-1]
+        if mo_num - 64*(i+1) > 0:
+            bin_det += bin_det_raw + "0" * (64*(i+1) - len(bin_det_raw))
+        else:
+            bin_det += bin_det_raw + "0" * (mo_num-64*i - len(bin_det_raw))
+
     print bin_det
     print ""
 
