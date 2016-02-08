@@ -175,28 +175,30 @@ def get_nb_permutation(str_):
 
 
 def order_l_l_sym(l_l_sym):
-    l_l_sym_iter = iter(l_l_sym)
-    for i, l in enumerate(l_l_sym_iter):
-        n = get_nb_permutation(l[2])
+    n = 1
+    for i in range(len(l_l_sym)):
         if n != 1:
-            l_l_sym[i:i + n] = sorted(l_l_sym[i:i + n],
-                                      key=lambda x: x[2],
-                                      cmp=compare_gamess_style)
-            for next_ in range(n - 1):
-                next(l_l_sym_iter)
+            n += -1
+            continue 
+
+        l = l_l_sym[i]
+        n = get_nb_permutation(l[2])
+
+        l_l_sym[i:i + n] = sorted(l_l_sym[i:i + n],
+                                  key=lambda x: x[2],
+                                  cmp=compare_gamess_style)
+
     return l_l_sym
+
 
 #==========================
 # We will order the symetry
 #==========================
 
 l_sym_without_header = sym_raw.split("\n")[3:-2]
-
 l_l_sym_raw = [i.split() for i in l_sym_without_header]
 l_l_sym_expend_sym = expend_sym_l(l_l_sym_raw)
-
 l_l_sym_ordered = order_l_l_sym(l_l_sym_expend_sym)
-
 
 #========
 #MO COEF
@@ -219,14 +221,6 @@ def order_phase(mo_coef):
 
         mo_coef_phase.append(ii)
     return mo_coef_phase
-
-
-def order_by_sim(mo_coef, l_l_sym):
-    l_sym_oder = [int(l[0]) - 1 for l in l_l_sym]
-    mo_coef_order = [[x for (y, x) in sorted(zip(l_sym_oder, i))]
-                     for i in mo_coef]
-    return mo_coef_order
-
 
 def chunked(l, chunks_size):
     l_block = []
@@ -264,9 +258,8 @@ def print_mo_coef(mo_coef_block, l_l_sym):
 
 
 mo_coef = ezfio.get_mo_basis_mo_coef()
-#mo_coef_phase = order_phase(mo_coef)
 mo_coef_phase = mo_coef
-mo_coef_phase_order = order_by_sim(mo_coef_phase, l_l_sym_ordered)
+mo_coef_phase_order = mo_coef_phase
 mo_coef_transp = zip(*mo_coef_phase_order)
 mo_coef_block = chunked(mo_coef_transp, 4)
 print_mo_coef(mo_coef_block, l_l_sym_ordered)
