@@ -69,7 +69,6 @@ subroutine cache_map_init(map,sze)
   implicit none
   type (cache_map_type), intent(inout) :: map
   integer(cache_map_size_kind)   :: sze
-  call omp_init_lock(map%lock)
   call omp_set_lock(map%lock)
   map%n_elements = 0_8
   map%map_size = 0_8
@@ -101,6 +100,9 @@ subroutine map_init(map,keymax)
     stop 5
   endif
   sze = 2
+  do i=0_8,map%map_size
+    call omp_init_lock(map%map(i)%lock)
+  enddo
   !$OMP PARALLEL DEFAULT(NONE) SHARED(map,sze) PRIVATE(i)
   !$OMP DO SCHEDULE(STATIC,512)
   do i=0_8,map%map_size
