@@ -407,3 +407,31 @@ END_PROVIDER
   unpaired_alpha_electrons(i) = xor(HF_bitmask(i,1),HF_bitmask(i,2))
  enddo
  END_PROVIDER
+
+BEGIN_PROVIDER [ integer, n_act_orb]
+ BEGIN_DOC
+ ! number of active orbitals
+ END_DOC
+ implicit none
+ integer :: i,j
+ n_act_orb = 0
+ do i = 1, N_int
+  n_act_orb += popcnt(cas_bitmask(i,1,1))
+ enddo
+END_PROVIDER
+
+BEGIN_PROVIDER [integer, list_act, (n_act_orb)]
+ BEGIN_DOC
+ ! list of active orbitals
+ END_DOC
+ implicit none
+ integer :: occ_act(N_int*bit_kind_size)
+ integer :: itest,i
+ occ_act = 0
+ call bitstring_to_list(cas_bitmask(1,1,1), occ_act(1), itest, N_int)
+ ASSERT(itest==n_act_orb)
+ do i = 1, n_act_orb
+  list_act(i) = occ_act(i)
+ enddo
+
+END_PROVIDER

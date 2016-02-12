@@ -1,0 +1,21 @@
+// ['Orbital_Entanglement']
+digraph {
+	Orbital_Entanglement [fontcolor=red]
+		Orbital_Entanglement -> Determinants
+		Determinants -> Integrals_Monoelec
+		Integrals_Monoelec -> MO_Basis
+		MO_Basis -> AO_Basis
+		AO_Basis -> Nuclei
+		Nuclei -> Ezfio_files
+		Nuclei -> Utils
+		MO_Basis -> Electrons
+		Electrons -> Ezfio_files
+		Integrals_Monoelec -> Pseudo
+		Pseudo -> Nuclei
+		Determinants -> Integrals_Bielec
+		Integrals_Bielec -> Pseudo
+		Integrals_Bielec -> Bitmask
+		Bitmask -> MO_Basis
+		Integrals_Bielec -> ZMQ
+		ZMQ -> Utils
+}
