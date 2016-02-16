@@ -24,6 +24,8 @@ skip
 init_main
 filter_integrals
 filter2h2p
+filter_only_1h1p_single
+filter_only_1h1p_double
 filterhole
 filterparticle
 do_double_excitations
@@ -150,6 +152,18 @@ class H_apply(object):
     self["filterparticle"] = """
      if(iand(ibset(0_bit_kind,j_a),hole(k_a,other_spin)).eq.0_bit_kind )cycle
     """
+
+  def filter_only_1h1p(self):
+    self["filter_only_1h1p_single"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_1h1p(hole).eq..False.) cycle
+    """
+    self["filter_only_1h1p_double"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_1h1p(key).eq..False.) cycle
+    """
+
+
   def unset_skip(self):
     self["skip"] = """
     """
