@@ -1507,6 +1507,33 @@ subroutine get_occ_from_key(key,occ,Nint)
   
 end
 
+subroutine u0_H_u_0(e_0,u_0,n,keys_tmp,Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes e_0 = <u_0|H|u_0>/<u_0|u_0>
+  !
+  ! n : number of determinants
+  !
+  END_DOC
+  integer, intent(in)            :: n,Nint
+  double precision, intent(out)  :: e_0
+  double precision, intent(in)   :: u_0(n)
+  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
+  
+  double precision               :: H_jj(n)
+  double precision               :: v_0(n)
+  double precision               :: u_dot_u,u_dot_v,diag_H_mat_elem
+  integer :: i,j
+  do i = 1, n
+   H_jj(i) = diag_H_mat_elem(keys_tmp(1,1,i),Nint)
+  enddo
+  
+  call H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
+  e_0 = u_dot_v(v_0,u_0,n)/u_dot_u(u_0,n)
+end
+
+
 subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   use bitmasks
   implicit none
