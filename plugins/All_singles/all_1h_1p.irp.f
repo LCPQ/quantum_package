@@ -69,6 +69,7 @@ subroutine routine
     print*,'Delta E = ',CI_energy(i)+ pt2(i) - (CI_energy(1) + pt2(1))
    enddo
   endif
+  call ezfio_set_all_singles_energy(CI_energy)
 
   call save_wavefunction
   deallocate(pt2,norm_pert)
