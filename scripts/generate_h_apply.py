@@ -156,11 +156,11 @@ class H_apply(object):
   def filter_only_1h1p(self):
     self["filter_only_1h1p_single"] = """
 !    ! DIR$ FORCEINLINE
-     if (is_a_1h1p(hole).eq..False.) cycle
+     if (is_a_1h1p(hole).eqv..False.) cycle
     """
     self["filter_only_1h1p_double"] = """
 !    ! DIR$ FORCEINLINE
-     if (is_a_1h1p(key).eq..False.) cycle
+     if (is_a_1h1p(key).eqv..False.) cycle
     """
 
 

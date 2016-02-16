@@ -206,3 +206,54 @@ BEGIN_PROVIDER [ double precision, state_average_weight, (N_states) ]
  state_average_weight = 1.d0/dble(N_states)
 END_PROVIDER
 
+
+BEGIN_PROVIDER [ double precision, one_body_spin_density_ao, (ao_num_align,ao_num) ]
+ BEGIN_DOC
+! one body spin density matrix on the AO basis : rho_AO(alpha) - rho_AO(beta)
+ END_DOC
+ implicit none
+ integer :: i,j,k,l
+ double precision :: dm_mo
+
+ one_body_spin_density_ao = 0.d0
+ do k = 1, ao_num
+  do l = 1, ao_num
+   do i = 1, mo_tot_num
+    do j = 1, mo_tot_num
+     dm_mo = one_body_spin_density_mo(j,i)
+!    if(dabs(dm_mo).le.1.d-10)cycle
+     one_body_spin_density_ao(l,k) += mo_coef(k,i) * mo_coef(l,j) * dm_mo
+
+    enddo
+   enddo
+  enddo
+ enddo
+
+END_PROVIDER
+
+ BEGIN_PROVIDER [ double precision, one_body_dm_ao_alpha, (ao_num_align,ao_num) ]
+&BEGIN_PROVIDER [ double precision, one_body_dm_ao_beta, (ao_num_align,ao_num) ]
+ BEGIN_DOC
+! one body density matrix on the AO basis : rho_AO(alpha) , rho_AO(beta)
+ END_DOC
+ implicit none
+ integer :: i,j,k,l
+ double precision :: dm_mo
+
+ one_body_spin_density_ao = 0.d0
+ do k = 1, ao_num
+  do l = 1, ao_num
+   do i = 1, mo_tot_num
+    do j = 1, mo_tot_num
+     dm_mo = one_body_dm_mo_alpha(j,i)
+!    if(dabs(dm_mo).le.1.d-10)cycle
+     one_body_dm_ao_alpha(l,k) += mo_coef(k,i) * mo_coef(l,j) * dm_mo
+     one_body_dm_ao_beta(l,k) += mo_coef(k,i) * mo_coef(l,j) * dm_mo
+
+    enddo
+   enddo
+  enddo
+ enddo
+
+END_PROVIDER
+
