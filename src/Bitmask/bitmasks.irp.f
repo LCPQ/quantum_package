@@ -289,7 +289,12 @@ END_PROVIDER
 &BEGIN_PROVIDER [ integer, n_virt_orb ]
  implicit none
  BEGIN_DOC
- ! Bitmasks for the inactive orbitals that are excited in post CAS method
+ ! inact_bitmask : Bitmask of the inactive orbitals which are supposed to be doubly excited 
+ ! in post CAS methods
+ ! n_inact_orb   : Number of inactive orbitals
+ ! virt_bitmask  : Bitmaks of vritual orbitals which are supposed to be recieve electrons 
+ ! in post CAS methods
+ ! n_virt_orb    : Number of virtual orbitals
  END_DOC
  logical                        :: exists
  integer                        :: j,i
@@ -327,8 +332,14 @@ END_PROVIDER
 
 
 
- BEGIN_PROVIDER [ integer, list_inact, (n_inact_orb)]
+  BEGIN_PROVIDER [ integer, list_inact, (n_inact_orb)]
  &BEGIN_PROVIDER [ integer, list_virt, (n_virt_orb)]
+ BEGIN_DOC
+ ! list_inact : List of the inactive orbitals which are supposed to be doubly excited 
+ ! in post CAS methods
+ ! list_virt  : List of vritual orbitals which are supposed to be recieve electrons 
+ ! in post CAS methods
+ END_DOC
  implicit none
  integer :: occ_inact(N_int*bit_kind_size)
  integer :: itest,i
@@ -347,6 +358,21 @@ END_PROVIDER
  enddo
 
  END_PROVIDER 
+
+ BEGIN_PROVIDER [ integer(bit_kind), reunion_of_core_inact_bitmask, (N_int,2)]
+ implicit none
+ BEGIN_DOC
+ ! Reunion of the inactive, active and virtual bitmasks
+ END_DOC
+ integer :: i,j
+ do i = 1, N_int
+  reunion_of_core_inact_bitmask(i,1) = ior(core_bitmask(i,1),inact_bitmask(i,1))
+  reunion_of_core_inact_bitmask(i,2) = ior(core_bitmask(i,2),inact_bitmask(i,2))
+ enddo
+ END_PROVIDER
+
+
+
 
  BEGIN_PROVIDER [ integer(bit_kind), reunion_of_bitmask, (N_int,2)]
  implicit none
@@ -376,7 +402,7 @@ END_PROVIDER
  BEGIN_PROVIDER [ integer(bit_kind), core_bitmask, (N_int,2)]
  implicit none
  BEGIN_DOC
- ! Reunion of the inactive, active and virtual bitmasks
+ ! Bitmask of the core orbitals that are never excited in post CAS method
  END_DOC
  integer :: i,j
  do i = 1, N_int
@@ -385,6 +411,35 @@ END_PROVIDER
  enddo
  END_PROVIDER 
 
+ BEGIN_PROVIDER [integer, list_core, (n_core_orb)]
+ BEGIN_DOC
+ ! List of the core orbitals that are never excited in post CAS method
+ END_DOC
+ implicit none
+ integer :: occ_core(N_int*bit_kind_size)
+ integer :: itest,i
+ occ_core = 0
+ call bitstring_to_list(core_bitmask(1,1), occ_core(1), itest, N_int)
+ ASSERT(itest==n_core_orb)
+ do i = 1, n_core_orb
+  list_core(i) = occ_core(i)
+ enddo
+ END_PROVIDER
+
+ BEGIN_PROVIDER [ integer, n_core_orb ]
+ implicit none
+ BEGIN_DOC
+ ! Number of core orbitals that are never excited in post CAS method
+ END_DOC
+ logical                        :: exists
+ integer                        :: j,i
+ integer :: i_hole,i_part,i_gen
+
+ n_core_orb = 0
+ do j = 1, N_int
+  n_core_orb += popcnt(core_bitmask(j,1))
+ enddo
+ END_PROVIDER 
 
 
 BEGIN_PROVIDER [ integer, i_bitmask_gen ]
