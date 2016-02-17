@@ -23,7 +23,12 @@ deinit_thread
 skip
 init_main
 filter_integrals
+filter2p
 filter2h2p
+filter1h
+filter1p
+only_2p_single
+only_2p_double
 filter_only_1h1p_single
 filter_only_1h1p_double
 filterhole
@@ -152,6 +157,32 @@ class H_apply(object):
     self["filterparticle"] = """
      if(iand(ibset(0_bit_kind,j_a),hole(k_a,other_spin)).eq.0_bit_kind )cycle
     """
+  def filter_1h(self):
+    self["filter1h"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_1h(hole)) cycle
+    """
+  def filter_2p(self):
+    self["filter2p"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_2p(hole)) cycle
+    """
+  def filter_1p(self):
+    self["filter0p"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_1p(hole)) cycle
+    """
+
+  def filter_only_2p(self):
+    self["only_2p_single"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_2p(hole).eq..False.) cycle
+    """
+    self["only_2p_double"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_2p(key).eq..False.) cycle
+    """
+
 
   def filter_only_1h1p(self):
     self["filter_only_1h1p_single"] = """
@@ -217,9 +248,16 @@ class H_apply(object):
       PROVIDE psi_selectors_coef psi_selectors E_corr_per_selectors psi_det_sorted_bit
       """
       self.data["keys_work"] = """
-      call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-       sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
-      """%(pert,)
+       if(check_double_excitation)then
+        call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
+         sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
+       else 
+        call perturb_buffer_by_mono_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
+         sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
+       endif
+      """%(pert,pert)
+
+
       self.data["finalization"] = """
       """
       self.data["copy_buffer"] = ""
