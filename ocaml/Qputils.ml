@@ -1,4 +1,4 @@
-open Core.Std;;
+open Core.Std
 
 (*
 let rec transpose = function
@@ -24,5 +24,21 @@ let input_to_sexp s =
     print_endline ("("^result^")");
     "("^result^")"
     |> Sexp.of_string
-;;
+
+let rmdir dirname =
+  let rec remove_one dir =
+    Sys.chdir dir;
+    Sys.readdir "."
+    |> Array.iter ~f:(fun x ->
+      match (Sys.is_directory x, Sys.is_file x) with
+      | (`Yes, _) -> remove_one x
+      | (_, `Yes) -> Sys.remove x
+      | _ -> failwith ("Unable to remove file "^x^".")
+    );
+    Sys.chdir "..";
+    Unix.rmdir dir
+  in
+  remove_one dirname
+  
+    
 

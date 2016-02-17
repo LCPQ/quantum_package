@@ -15,6 +15,6 @@ program qmcpack
   enddo
   call ezfio_set_ao_basis_ao_coef(ao_coef)
   call system('rm '//trim(ezfio_filename)//'/mo_basis/ao_md5')
-  call system('$QP_ROOT/src/qmcpack/qp_convert_qmcpack_from_ezfio.py '//trim(ezfio_filename))
+  call system('$QP_ROOT/src/qmcpack/qp_convert_qmcpack_to_ezfio.py '//trim(ezfio_filename))
 
 end

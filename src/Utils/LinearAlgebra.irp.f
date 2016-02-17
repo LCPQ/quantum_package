@@ -88,7 +88,6 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
     endif
   enddo
   do i=m+1,n
-    print *,  D(i)
     D(i) = 0.d0
   enddo
 

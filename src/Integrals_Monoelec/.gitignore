@@ -12,9 +12,7 @@ Makefile.depend
 Nuclei
 Pseudo
 Utils
-check_orthonormality
 ezfio_interface.irp.f
 irpf90.make
 irpf90_entities
-save_ortho_mos
 tags

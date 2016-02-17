@@ -445,3 +445,47 @@ integer function number_of_particles_verbose(key_in)
       + popcnt( iand( iand( xor(key_in(1,2),iand(key_in(1,2),cas_bitmask(1,2,1))), virt_bitmask(1,2) ), virt_bitmask(1,2)) ) 
 end
 
+logical function is_a_1h1p(key_in)
+ implicit none
+ integer(bit_kind), intent(in) :: key_in(N_int,2)
+ integer :: number_of_particles, number_of_holes
+ is_a_1h1p = .False.
+ if(number_of_holes(key_in).eq.1 .and. number_of_particles(key_in).eq.1)then
+  is_a_1h1p = .True.
+ endif
+
+end
+
+logical function is_a_1h(key_in)
+ implicit none
+ integer(bit_kind), intent(in) :: key_in(N_int,2)
+ integer :: number_of_particles, number_of_holes
+ is_a_1h = .False.
+ if(number_of_holes(key_in).eq.1 .and. number_of_particles(key_in).eq.0)then
+  is_a_1h = .True.
+ endif
+
+end
+
+logical function is_a_1p(key_in)
+ implicit none
+ integer(bit_kind), intent(in) :: key_in(N_int,2)
+ integer :: number_of_particles, number_of_holes
+ is_a_1p = .False.
+ if(number_of_holes(key_in).eq.0 .and. number_of_particles(key_in).eq.1)then
+  is_a_1p = .True.
+ endif
+
+end
+
+logical function is_a_2p(key_in)
+ implicit none
+ integer(bit_kind), intent(in) :: key_in(N_int,2)
+ integer :: number_of_particles, number_of_holes
+ is_a_2p = .False.
+ if(number_of_holes(key_in).eq.0 .and. number_of_particles(key_in).eq.2)then
+  is_a_2p = .True.
+ endif
+
+end
+

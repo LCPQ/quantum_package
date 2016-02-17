@@ -165,6 +165,7 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
   endif
   
   logical :: check_double_excitation 
+  logical :: is_a_1h1p
   logical :: b_cycle
   check_double_excitation = .True.
   iproc = iproc_in
@@ -298,6 +299,7 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
           l = j_b-ishft(k-1,bit_kind_shift)-1
           key(k,other_spin) = ibset(key(k,other_spin),l)
           $filter2h2p
+          $filter_only_1h1p_double
           key_idx += 1
           do k=1,N_int
             keys_out(k,1,key_idx) = key(k,1)
@@ -348,6 +350,7 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
         l = j_b-ishft(k-1,bit_kind_shift)-1
         key(k,ispin) = ibset(key(k,ispin),l)
         $filter2h2p
+        $filter_only_1h1p_double
         key_idx += 1
         do k=1,N_int
           keys_out(k,1,key_idx) = key(k,1)
@@ -418,6 +421,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,fock_diag_tmp,i_generato
   integer(bit_kind)              :: key_mask(N_int, 2)
   
   logical :: check_double_excitation 
+  logical :: is_a_1h1p
   
   key_mask(:,:) = 0_bit_kind
   
@@ -490,6 +494,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,fock_diag_tmp,i_generato
   $filterparticle
       hole(k_a,ispin) = ibset(hole(k_a,ispin),l_a)
       $filter2h2p
+      $filter_only_1h1p_single
       key_idx += 1
       do k=1,N_int
         keys_out(k,1,key_idx) = hole(k,1)

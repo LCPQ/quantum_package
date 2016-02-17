@@ -11,6 +11,12 @@ Set of quantum chemistry programs and libraries.
 
 For more information, you can visit the [wiki of the project](http://github.com/LCPQ/quantum_package/wiki>), or below for the installation instructions.
 
+Demo
+====
+
+[![Full-CI energy of C2 in 2 minutes](https://i.vimeocdn.com/video/555047954_295x166.jpg)](https://vimeo.com/scemama/quantum_package_demo "Quantum Package Demo")
+
+
 # Installation
 
 
@@ -56,10 +62,14 @@ This file contains all the environment variables needed by the quantum package b
 
 ### Optional) Add some modules
 
-      Usage: qp_module.py list (--installed|--avalaible-local|--avalaible-remote)
-       qp_module.py install <name>...
-       qp_module.py create -n <name> [<children_module>...]
+```
+Usage:
+       qp_module.py create -n <name> [<children_modules>...]
        qp_module.py download -n <name> [<path_folder>...]
+       qp_module.py install <name>...
+       qp_module.py list (--installed | --available-local)
+       qp_module.py uninstall <name>
+```
 
  For exemple you can type :
 `qp_module.py install Full_CI`
@@ -138,3 +148,20 @@ You have two or more ezfio configuration files for the same variable. Check file
 
     - rm $QP_ROOT/install/EZFIO/config/*
     - ninja 
+    
+
+### Error: Seg Fault (139)
+
+```
+Segmentation fault (core dumped)
+Program exited with code 139.
+```
+
+#### Why ?
+
+It's caused when we call the DGEM routine of LAPACK. 
+
+##### Fix
+
+Set `ulimit -s unlimited`, before runing `qp_run`. It seem to fix the problem.
+

@@ -95,11 +95,12 @@ integer function get_index_in_psi_det_sorted_bit(key,Nint)
       exit
     endif
   enddo
-  i += 1
 
-  if (i > N_det) then
+  if (i >= N_det) then
     return
   endif
+
+  i += 1
 
   !DIR$ FORCEINLINE
   do while (det_search_key(psi_det_sorted_bit(1,1,i),Nint) == det_ref)
