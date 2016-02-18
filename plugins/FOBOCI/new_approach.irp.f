@@ -408,7 +408,6 @@ subroutine new_approach
  deallocate(dressing_matrix_restart_2h1p)
  deallocate(dressing_diag_good_det)
 
- print*,'YOUPI C EST FINI !!'
 end
 
 

@@ -59,9 +59,8 @@ program full_ci
 
    if(do_pt2_end)then
     print*,'Last iteration only to compute the PT2'
-!   threshold_selectors = 1.d0
-!   threshold_generators = 0.999d0
-!   soft_touch threshold_selectors 
+    threshold_selectors = 1.d0
+    threshold_generators = 0.999d0
     call H_apply_CAS_SD_PT2(pt2, norm_pert, H_pert_diag,  N_st)
 
     print *,  'Final step'
