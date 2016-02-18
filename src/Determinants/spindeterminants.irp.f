@@ -14,13 +14,13 @@ integer*8 function spin_det_search_key(det,Nint)
   END_DOC
   integer, intent(in) :: Nint
   integer(bit_kind), intent(in) :: det(Nint)
-  integer(bit_kind), parameter :: unsigned_shift = not(huge(1_bit_kind)) ! 100...00
+  integer(bit_kind), parameter :: unsigned_shift = -huge(1_bit_kind) ! 100...00
   integer :: i
   spin_det_search_key = det(1)
   do i=2,Nint
     spin_det_search_key = ieor(spin_det_search_key,det(i))
   enddo
-  spin_det_search_key = spin_det_search_key-unsigned_shift
+  spin_det_search_key = spin_det_search_key+1_bit_kind-unsigned_shift
 end
 
 

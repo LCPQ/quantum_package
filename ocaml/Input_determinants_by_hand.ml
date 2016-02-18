@@ -29,6 +29,8 @@ end = struct
 
   let get_default = Qpackage.get_ezfio_default "determinants";;
 
+  let n_det_read_max = 50_000_000 ;;
+
   let read_n_int () =
     if not (Ezfio.has_determinants_n_int()) then
        Ezfio.get_mo_basis_mo_tot_num ()
@@ -207,14 +209,20 @@ end = struct
 
   let read () =
     if (Ezfio.has_mo_basis_mo_tot_num ()) then
-      Some
-      { n_int                  = read_n_int ()                ;
-        bit_kind               = read_bit_kind ()             ;
-        n_det                  = read_n_det ()                ;
-        expected_s2            = read_expected_s2 ()          ;
-        psi_coef               = read_psi_coef ()             ;
-        psi_det                = read_psi_det ()              ;
-      }
+      let n_det = 
+         read_n_det ()
+      in
+      if ( (Det_number.to_int n_det) > n_det_read_max ) then
+        None
+      else
+        Some
+        { n_int                  = read_n_int ()                ;
+          bit_kind               = read_bit_kind ()             ;
+          n_det                  = read_n_det ()                ;
+          expected_s2            = read_expected_s2 ()          ;
+          psi_coef               = read_psi_coef ()             ;
+          psi_det                = read_psi_det ()              ;
+        }
     else
       None
   ;;
@@ -393,22 +401,35 @@ psi_det                = %s
       in
       let rec read_dets accu = function
       | [] -> List.rev accu
-      | ""::c::alpha::beta::tail -> 
+      | ""::_::alpha::beta::tail -> 
           begin
-            let alpha = String.rev alpha |> Bitlist.of_string ~zero:'-' ~one:'+'
-            and beta  = String.rev beta  |> Bitlist.of_string ~zero:'-' ~one:'+'
-            in
-            let newdet = Determinant.of_bitlist_couple 
-              ~alpha:n_alpha ~beta:n_beta (alpha,beta) 
-            |> Determinant.sexp_of_t |> Sexplib.Sexp.to_string
+            let newdet =
+               (Bitlist.of_string ~zero:'-' ~one:'+' alpha ,
+               Bitlist.of_string ~zero:'-' ~one:'+' beta)
+               |> Determinant.of_bitlist_couple  ~alpha:n_alpha ~beta:n_beta 
+               |> Determinant.sexp_of_t
+               |> Sexplib.Sexp.to_string
             in
             read_dets (newdet::accu) tail
           end
       | _::tail -> read_dets accu tail
       in
-      let a = read_dets [] dets
-      |> String.concat 
+      let dets = 
+        List.map ~f:String.rev dets
       in
+      let sze = 
+        List.fold ~init:0 ~f:(fun accu x -> accu + (String.length x)) dets
+      in
+      let control =
+        Gc.get ()
+      in
+      Gc.tune ~minor_heap_size:(sze) ~space_overhead:(sze/10)
+        ~max_overhead:100000 ~major_heap_increment:(sze/10) ();
+      let a =
+        read_dets [] dets
+        |> String.concat
+      in
+      Gc.set control;
       "(psi_det ("^a^"))"
     in
 

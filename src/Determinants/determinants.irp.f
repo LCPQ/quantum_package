@@ -412,7 +412,7 @@ subroutine int_of_3_highest_electrons( det_in, res, Nint )
     do while (ix /= 0_bit_kind)
       i = bit_kind_size-1-leadz(ix)
       ix = ibclr(ix,i)
-      res = ior(ishft(res, 21), i+ishft(k-1,bit_kind_shift))
+      res = ior(ishft(res, 21_8), i+ishft(k-1,bit_kind_shift))
       icount -= 1
       if (icount == 0) then
         return
@@ -645,7 +645,9 @@ end
 subroutine save_ref_determinant
  implicit none
   use bitmasks
-  call save_wavefunction_general(1,1,ref_bitmask,1,1.d0)
+  double precision :: buffer(1,1)
+  buffer(1,1) = 1.d0
+  call save_wavefunction_general(1,1,ref_bitmask,1,buffer)
 end
 
 

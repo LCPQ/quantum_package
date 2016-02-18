@@ -359,7 +359,6 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
       y,                                                             &
       lambda                                                         &
       )
-  abort_here = abort_all
 end
 
 
