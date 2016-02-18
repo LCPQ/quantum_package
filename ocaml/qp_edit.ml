@@ -22,6 +22,7 @@ type keyword =
 | Integrals_bielec
 | Perturbation
 | Properties
+| Foboci
 | Determinants
 ;;
 
@@ -37,6 +38,7 @@ let keyword_to_string = function
 | Integrals_bielec -> "Integrals_bielec"
 | Perturbation -> "Perturbation"
 | Properties -> "Properties"
+| Foboci -> "Foboci"
 | Determinants -> "Determinants"
 ;;
 
@@ -96,6 +98,8 @@ let get s =
            f Perturbation.(read, to_rst)
          | Properties ->
            f Properties.(read, to_rst)
+         | Foboci ->
+           f Foboci.(read, to_rst)
          | Determinants ->
            f Determinants.(read, to_rst)
       end
@@ -140,6 +144,7 @@ let set str s =
         | Integrals_bielec -> write Integrals_bielec.(of_rst, write) s
         | Perturbation -> write Perturbation.(of_rst, write) s
         | Properties -> write Properties.(of_rst, write) s
+        | Foboci -> write Foboci.(of_rst, write) s
         | Determinants -> write Determinants.(of_rst, write) s
         | Electrons        -> write Electrons.(of_rst, write) s
         | Determinants_by_hand     -> write Determinants_by_hand.(of_rst, write) s
@@ -193,6 +198,7 @@ let run check_only ezfio_filename =
       Integrals_bielec ; 
       Perturbation ; 
       Properties ; 
+      Foboci ; 
       Determinants ; 
       Mo_basis;
       Determinants_by_hand ;

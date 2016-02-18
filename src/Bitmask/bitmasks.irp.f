@@ -399,18 +399,6 @@ END_PROVIDER
  enddo
  END_PROVIDER
 
- BEGIN_PROVIDER [ integer(bit_kind), core_bitmask, (N_int,2)]
- implicit none
- BEGIN_DOC
- ! Bitmask of the core orbitals that are never excited in post CAS method
- END_DOC
- integer :: i,j
- do i = 1, N_int
-  core_bitmask(i,1) = iand(ref_bitmask(i,1),reunion_of_bitmask(i,1))
-  core_bitmask(i,2) = iand(ref_bitmask(i,2),reunion_of_bitmask(i,2))
- enddo
- END_PROVIDER 
-
  BEGIN_PROVIDER [integer, list_core, (n_core_orb)]
  BEGIN_DOC
  ! List of the core orbitals that are never excited in post CAS method
@@ -426,20 +414,21 @@ END_PROVIDER
  enddo
  END_PROVIDER
 
- BEGIN_PROVIDER [ integer, n_core_orb ]
+ BEGIN_PROVIDER [ integer(bit_kind), core_bitmask, (N_int,2)]
+&BEGIN_PROVIDER [ integer, n_core_orb]
  implicit none
  BEGIN_DOC
- ! Number of core orbitals that are never excited in post CAS method
+ ! Core orbitals bitmask
  END_DOC
- logical                        :: exists
- integer                        :: j,i
- integer :: i_hole,i_part,i_gen
-
+ integer :: i,j
  n_core_orb = 0
- do j = 1, N_int
-  n_core_orb += popcnt(core_bitmask(j,1))
+ do i = 1, N_int
+  core_bitmask(i,1) = xor(closed_shell_ref_bitmask(i,1),reunion_of_cas_inact_bitmask(i,1))
+  core_bitmask(i,2) = xor(closed_shell_ref_bitmask(i,2),reunion_of_cas_inact_bitmask(i,2))
+  n_core_orb += popcnt(core_bitmask(i,1))
  enddo
- END_PROVIDER 
+ print*,'n_core_orb = ',n_core_orb
+ END_PROVIDER
 
 
 BEGIN_PROVIDER [ integer, i_bitmask_gen ]
@@ -490,3 +479,27 @@ BEGIN_PROVIDER [integer, list_act, (n_act_orb)]
  enddo
 
 END_PROVIDER
+
+ BEGIN_PROVIDER [integer(bit_kind), closed_shell_ref_bitmask, (N_int,2)]
+ implicit none
+ integer :: i,j
+ do i = 1, N_int
+   closed_shell_ref_bitmask(i,1) = ior(ref_bitmask(i,1),cas_bitmask(i,1,1))
+   closed_shell_ref_bitmask(i,2) = ior(ref_bitmask(i,2),cas_bitmask(i,2,1))
+ enddo
+ END_PROVIDER
+
+
+ BEGIN_PROVIDER [ integer(bit_kind), reunion_of_cas_inact_bitmask, (N_int,2)]
+ implicit none
+ BEGIN_DOC
+ ! Reunion of the inactive, active and virtual bitmasks
+ END_DOC
+ integer :: i,j
+ do i = 1, N_int
+  reunion_of_cas_inact_bitmask(i,1) = ior(cas_bitmask(i,1,1),inact_bitmask(i,1))
+  reunion_of_cas_inact_bitmask(i,2) = ior(cas_bitmask(i,2,1),inact_bitmask(i,2))
+ enddo
+ END_PROVIDER
+
+

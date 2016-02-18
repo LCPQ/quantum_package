@@ -642,6 +642,14 @@ subroutine read_dets(det,Nint,Ndet)
   
 end
 
+subroutine save_ref_determinant
+ implicit none
+  use bitmasks
+  call save_wavefunction_general(1,1,ref_bitmask,1,1.d0)
+end
+
+
+
 
 subroutine save_wavefunction
   implicit none

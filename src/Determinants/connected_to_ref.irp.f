@@ -189,6 +189,39 @@ logical function is_connected_to(key,keys,Nint,Ndet)
   enddo
 end
 
+logical function is_connected_to_by_mono(key,keys,Nint,Ndet)
+  use bitmasks
+  implicit none
+  integer, intent(in)            :: Nint, Ndet
+  integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
+  integer(bit_kind), intent(in)  :: key(Nint,2)
+  
+  integer                        :: i, l
+  integer                        :: degree_x2
+  
+  
+  ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
+  
+  is_connected_to_by_mono = .false.
+
+  do i=1,Ndet
+    degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
+        popcnt(xor( key(1,2), keys(1,2,i)))
+    !DEC$ LOOP COUNT MIN(3)
+    do l=2,Nint
+      degree_x2 = degree_x2 + popcnt(xor( key(l,1), keys(l,1,i))) +&
+          popcnt(xor( key(l,2), keys(l,2,i)))
+    enddo
+    if (degree_x2 > 2) then
+      cycle
+    else
+      is_connected_to_by_mono = .true.
+      return
+    endif
+  enddo
+end
+
 
 integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
   use bitmasks
