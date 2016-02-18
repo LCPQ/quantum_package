@@ -49,7 +49,7 @@ class H_apply(object):
 
     self.selection_pt2 = None
     self.perturbation = None
-
+    self.do_double_exc = do_double_exc
    #s["omp_parallel"]     = """!$OMP PARALLEL DEFAULT(NONE)          &
     s["omp_parallel"]     = """ PROVIDE elec_num_tab
         !$OMP PARALLEL DEFAULT(SHARED)        &
@@ -247,15 +247,21 @@ class H_apply(object):
       self.data["initialization"] = """
       PROVIDE psi_selectors_coef psi_selectors E_corr_per_selectors psi_det_sorted_bit
       """
-      self.data["keys_work"] = """
-       if(check_double_excitation)then
-        call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-         sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
-       else 
-        call perturb_buffer_by_mono_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-         sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
-       endif
-      """%(pert,pert)
+      if self.do_double_exc == True:
+       self.data["keys_work"] = """
+!       if(check_double_excitation)then
+         call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
+          sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
+!       else 
+!        call perturb_buffer_by_mono_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
+!         sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
+!       endif
+       """%(pert,pert)
+      else: 
+       self.data["keys_work"] = """
+         call perturb_buffer_by_mono_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
+          sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
+       """%(pert)
 
 
       self.data["finalization"] = """
