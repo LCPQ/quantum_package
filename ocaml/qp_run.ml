@@ -54,7 +54,11 @@ let run ~master exe ezfio_file =
 
   let executables = Lazy.force Qpackage.executables in
   if (not (List.exists ~f:(fun (x,_) -> x = exe) executables)) then
-    failwith ("Executable "^exe^" not found");
+    begin
+        Printf.printf "\nPossible choices:\n";
+        List.iter executables ~f:(fun (x,_) -> Printf.printf "* %s\n%!" x);
+        failwith ("Executable "^exe^" not found")
+    end;
 
   Printf.printf "%s\n" (Time.to_string time_start);
   Printf.printf "===============\nQuantum Package\n===============\n\n";
@@ -96,8 +100,8 @@ let run ~master exe ezfio_file =
     | None -> ""
   and exe =
     match (List.find ~f:(fun (x,_) -> x = exe) executables) with
-    | None -> assert false
     | Some (_,x) -> x^" "
+    | None -> assert false
   in
   match (Sys.command (prefix^exe^ezfio_file)) with
   | 0 -> ()
