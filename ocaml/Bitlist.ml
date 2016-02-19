@@ -28,20 +28,30 @@ let of_string ?(zero='0') ?(one='1') s =
      else if (c = one) then Bit.One
      else (failwith ("Error in bitstring ") ) )
 
+let of_string_mp s =
+  String.to_list s
+  |> List.rev_map ~f:(function
+    | '-' -> Bit.Zero
+    | '+' -> Bit.One
+    | _   -> failwith ("Error in bitstring ") ) 
     
 
 (* Create a bit list from an int64 *)
 let of_int64 i = 
-  let rec do_work = function
-  | 0L -> [ Bit.Zero ]
-  | 1L -> [ Bit.One ]
-  | i -> let b =
-    match (Int64.bit_and i 1L ) with
-    | 0L -> Bit.Zero
-    | 1L -> Bit.One 
-    | _ -> raise (Failure "i land 1 not in (0,1)")  
-    in b:: ( do_work (Int64.shift_right_logical i 1) )
+
+  let rec do_work accu = function
+  | 0L -> Bit.Zero :: accu |> List.rev
+  | 1L -> Bit.One  :: accu |> List.rev
+  | i  -> 
+    let b =
+      match (Int64.bit_and i 1L ) with
+      | 0L -> Bit.Zero
+      | 1L -> Bit.One 
+      | _ -> raise (Failure "i land 1 not in (0,1)")  
+    in
+    do_work (b :: accu) (Int64.shift_right_logical i 1)
   in
+
   let adjust_length result = 
     let rec do_work accu = function
     | 64 -> List.rev accu 
@@ -51,7 +61,7 @@ let of_int64 i =
     in
     do_work (List.rev result) (List.length result)
   in
-  adjust_length (do_work i)
+  adjust_length (do_work [] i)
 
 
 (* Create an int64 from a bit list *)
@@ -102,6 +112,10 @@ let to_int64_list l =
   in
   List.rev_map ~f:to_int64 l
 
+(* Create an array of int64 from a bit list *)
+let to_int64_array l =
+    to_int64_list l
+    |> Array.of_list
 
 (* Create a bit list from a list of MO indices *)
 let of_mo_number_list n_int l = 
@@ -163,11 +177,10 @@ let not_operator   b = logical_operator1 Bit.not_operator   b
 
 
 let popcnt b = 
-  let rec popcnt accu = function
-    | [] -> accu
-    | Bit.One::rest -> popcnt (accu+1) rest
-    | Bit.Zero::rest -> popcnt (accu) rest
-  in popcnt 0 b
+  List.fold_left b ~init:0 ~f:(fun accu -> function
+    | Bit.One -> accu+1
+    | Bit.Zero -> accu
+  ) 
 
 
 

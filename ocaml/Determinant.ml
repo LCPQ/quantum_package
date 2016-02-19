@@ -55,12 +55,18 @@ let of_int64_array ~n_int ~alpha ~beta x =
      end;
    x
 
+let of_int64_array_no_check x = x
 
-let of_bitlist_couple ~alpha ~beta (xa,xb) =
-  let ba = Bitlist.to_int64_list xa in
-  let bb = Bitlist.to_int64_list xb in
-  let n_int = Bitlist.n_int_of_mo_tot_num (List.length xa) in
-  of_int64_array ~n_int:n_int ~alpha:alpha ~beta:beta (Array.of_list (ba@bb))
+let of_bitlist_couple ?n_int ~alpha ~beta (xa,xb) =
+  let ba, bb =
+    Bitlist.to_int64_array xa ,
+    Bitlist.to_int64_array xb 
+  and n_int = 
+    match n_int with
+    | Some x -> x
+    | None -> Bitlist.n_int_of_mo_tot_num (List.length xa)
+  in
+  of_int64_array ~n_int ~alpha ~beta (Array.concat [ba;bb])
 
 
 let to_string ~mo_tot_num x = 
