@@ -168,7 +168,7 @@ class H_apply(object):
      if (is_a_2p(hole)) cycle
     """
   def filter_1p(self):
-    self["filter0p"] = """
+    self["filter1p"] = """
 !    ! DIR$ FORCEINLINE
      if (is_a_1p(hole)) cycle
     """

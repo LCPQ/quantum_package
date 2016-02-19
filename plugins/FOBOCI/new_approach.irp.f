@@ -24,6 +24,7 @@ subroutine new_approach
  double precision, allocatable :: dressing_matrix_1h1p(:,:)
  double precision, allocatable :: dressing_matrix_2h1p(:,:)
  double precision, allocatable :: dressing_matrix_1h2p(:,:)
+ double precision, allocatable :: dressing_matrix_extra_1h_or_1p(:,:)
  double precision, allocatable :: H_matrix_tmp(:,:)
  logical :: verbose,is_ok
 
@@ -81,12 +82,14 @@ subroutine new_approach
    ! so all the mono excitation on the new generators 
    allocate(dressing_matrix_1h1p(N_det_generators,N_det_generators))
    allocate(dressing_matrix_2h1p(N_det_generators,N_det_generators))
+   allocate(dressing_matrix_extra_1h_or_1p(N_det_generators,N_det_generators))
    dressing_matrix_1h1p = 0.d0
    dressing_matrix_2h1p = 0.d0
+   dressing_matrix_extra_1h_or_1p = 0.d0
    if(.not.do_it_perturbative)then
     n_good_hole +=1
 !   call all_single_split_for_1h(dressing_matrix_1h1p,dressing_matrix_2h1p)
-    call all_single_for_1h(dressing_matrix_1h1p,dressing_matrix_2h1p)
+    call all_single_for_1h(i_hole_foboci,dressing_matrix_1h1p,dressing_matrix_2h1p,dressing_matrix_extra_1h_or_1p)
     allocate(H_matrix_tmp(N_det_generators,N_det_generators))
     do j = 1,N_det_generators
      do k = 1, N_det_generators
@@ -96,7 +99,7 @@ subroutine new_approach
     enddo
     do j = 1, N_det_generators
      do k = 1, N_det_generators
-      H_matrix_tmp(j,k) += dressing_matrix_1h1p(j,k) + dressing_matrix_2h1p(j,k)
+      H_matrix_tmp(j,k) += dressing_matrix_1h1p(j,k) + dressing_matrix_2h1p(j,k) + dressing_matrix_extra_1h_or_1p(j,k)
      enddo
     enddo
     hjk = H_matrix_tmp(1,1)
@@ -130,6 +133,7 @@ subroutine new_approach
    endif
    deallocate(dressing_matrix_1h1p)
    deallocate(dressing_matrix_2h1p)
+   deallocate(dressing_matrix_extra_1h_or_1p)
  enddo
  
  print*,''
@@ -155,12 +159,14 @@ subroutine new_approach
    ! so all the mono excitation on the new generators 
    allocate(dressing_matrix_1h1p(N_det_generators,N_det_generators))
    allocate(dressing_matrix_1h2p(N_det_generators,N_det_generators))
+   allocate(dressing_matrix_extra_1h_or_1p(N_det_generators,N_det_generators))
    dressing_matrix_1h1p = 0.d0
    dressing_matrix_1h2p = 0.d0
+   dressing_matrix_extra_1h_or_1p = 0.d0
    if(.not.do_it_perturbative)then
     n_good_hole +=1
 !   call all_single_split_for_1p(dressing_matrix_1h1p,dressing_matrix_1h2p)
-    call all_single_for_1p(dressing_matrix_1h1p,dressing_matrix_1h2p)
+    call all_single_for_1p(i_particl_osoci,dressing_matrix_1h1p,dressing_matrix_1h2p,dressing_matrix_extra_1h_or_1p)
     allocate(H_matrix_tmp(N_det_generators,N_det_generators))
     do j = 1,N_det_generators
      do k = 1, N_det_generators
@@ -170,7 +176,7 @@ subroutine new_approach
     enddo
     do j = 1, N_det_generators
      do k = 1, N_det_generators
-      H_matrix_tmp(j,k) += dressing_matrix_1h1p(j,k) + dressing_matrix_1h2p(j,k)
+      H_matrix_tmp(j,k) += dressing_matrix_1h1p(j,k) + dressing_matrix_1h2p(j,k) + dressing_matrix_extra_1h_or_1p(j,k)
      enddo
     enddo
     hjk = H_matrix_tmp(1,1)
@@ -205,6 +211,7 @@ subroutine new_approach
    endif
    deallocate(dressing_matrix_1h1p)
    deallocate(dressing_matrix_1h2p)
+   deallocate(dressing_matrix_extra_1h_or_1p)
  enddo
  double precision, allocatable :: H_matrix_total(:,:)
  integer :: n_det_total
@@ -221,7 +228,7 @@ subroutine new_approach
    !!! Adding the averaged dressing coming from the 1h1p that are redundant for each of the "n_good_hole" 1h
    H_matrix_total(i,j) += dressing_matrix_restart_1h1p(i,j)/dble(n_good_hole+n_good_particl)  
    !!! Adding the dressing coming from the 2h1p that are not redundant for the any of CI calculations
-   H_matrix_total(i,j) += dressing_matrix_restart_2h1p(i,j)
+   H_matrix_total(i,j) += dressing_matrix_restart_2h1p(i,j) + dressing_matrix_restart_1h2p(i,j)
   enddo
  enddo
  do i = 1, n_good_det

@@ -6,7 +6,7 @@ subroutine all_single
   double precision,allocatable :: E_before(:)
   N_st = N_states
   allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st),E_before(N_st))
-  selection_criterion = 1.d-8
+  selection_criterion = 0.d0
   soft_touch selection_criterion
   threshold_davidson = 1.d-5
   soft_touch threshold_davidson davidson_criterion
@@ -79,6 +79,8 @@ subroutine all_single_no_1h_or_1p
   double precision,allocatable :: E_before(:)
   N_st = N_states
   allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st),E_before(N_st))
+  selection_criterion = 0.d0
+  soft_touch selection_criterion
   threshold_davidson = 1.d-5
   soft_touch threshold_davidson davidson_criterion
   i = 0

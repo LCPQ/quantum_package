@@ -32,46 +32,57 @@ subroutine all_single_split(psi_det_generators_input,psi_coef_generators_input,N
 end
 
 
-subroutine all_single_for_1h(dressing_matrix_1h1p,dressing_matrix_2h1p)
+subroutine all_single_for_1h(i_hole,dressing_matrix_1h1p,dressing_matrix_2h1p,dressing_matrix_extra_1h_or_1p)
  implicit none
  use bitmasks
+ integer, intent(in)             :: i_hole
  double precision, intent(inout) :: dressing_matrix_1h1p(N_det_generators,N_det_generators)
  double precision, intent(inout) :: dressing_matrix_2h1p(N_det_generators,N_det_generators)
- integer :: i,i_hole
+ double precision, intent(inout) :: dressing_matrix_extra_1h_or_1p(N_det_generators,N_det_generators)
+ integer :: i
  n_det_max_jacobi = 50
  soft_touch n_det_max_jacobi
 
- integer :: n_det_1h1p,n_det_2h1p
+ integer :: n_det_1h1p,n_det_2h1p,n_det_extra_1h_or_1p
  integer(bit_kind), allocatable :: psi_ref_out(:,:,:)
  integer(bit_kind), allocatable :: psi_1h1p(:,:,:)
  integer(bit_kind), allocatable :: psi_2h1p(:,:,:)
+ integer(bit_kind), allocatable :: psi_extra_1h_or_1p(:,:,:)
  double precision, allocatable :: psi_ref_coef_out(:,:)
  double precision, allocatable :: psi_coef_1h1p(:,:)
  double precision, allocatable :: psi_coef_2h1p(:,:)
- call all_single_no_1h_or_1p
+ double precision, allocatable :: psi_coef_extra_1h_or_1p(:,:)
+!call all_single_no_1h_or_1p
+ call all_single
  
  threshold_davidson = 1.d-12
  soft_touch threshold_davidson davidson_criterion
  call diagonalize_CI
- call give_n_1h1p_and_n_2h1p_in_psi_det(n_det_1h1p,n_det_2h1p)
+ call give_n_1h1p_and_n_2h1p_in_psi_det(i_hole,n_det_extra_1h_or_1p,n_det_1h1p,n_det_2h1p)
  allocate(psi_ref_out(N_int,2,N_det_generators))
  allocate(psi_1h1p(N_int,2,n_det_1h1p))
  allocate(psi_2h1p(N_int,2,n_det_2h1p))
+ allocate(psi_extra_1h_or_1p(N_int,2,n_det_extra_1h_or_1p))
  allocate(psi_ref_coef_out(N_det_generators,N_states))
  allocate(psi_coef_1h1p(n_det_1h1p,N_states))
  allocate(psi_coef_2h1p(n_det_2h1p,N_states))
- call split_wf_generators_and_1h1p_and_2h1p(n_det_1h1p,n_det_2h1p,psi_ref_out,psi_ref_coef_out,psi_1h1p,psi_coef_1h1p,psi_2h1p,psi_coef_2h1p)
+ allocate(psi_coef_extra_1h_or_1p(n_det_extra_1h_or_1p,N_states))
+ call split_wf_generators_and_1h1p_and_2h1p(i_hole,n_det_extra_1h_or_1p,n_det_1h1p,n_det_2h1p,psi_ref_out,psi_ref_coef_out,psi_1h1p,psi_coef_1h1p,psi_2h1p,psi_coef_2h1p,psi_extra_1h_or_1p,psi_coef_extra_1h_or_1p)
  call provide_matrix_dressing_general(dressing_matrix_1h1p,psi_ref_out,psi_ref_coef_out,N_det_generators, &
                                                         psi_1h1p,psi_coef_1h1p,n_det_1h1p)
  call provide_matrix_dressing_general(dressing_matrix_2h1p,psi_ref_out,psi_ref_coef_out,N_det_generators, &
                                                         psi_2h1p,psi_coef_2h1p,n_det_2h1p)
+ call provide_matrix_dressing_for_extra_1h_or_1p(dressing_matrix_extra_1h_or_1p,psi_ref_out,psi_ref_coef_out,N_det_generators, &
+                                                        psi_extra_1h_or_1p,psi_coef_extra_1h_or_1p,n_det_extra_1h_or_1p)
 
  deallocate(psi_ref_out)
  deallocate(psi_1h1p)
  deallocate(psi_2h1p)
+ deallocate(psi_extra_1h_or_1p)
  deallocate(psi_ref_coef_out)
  deallocate(psi_coef_1h1p)
  deallocate(psi_coef_2h1p)
+ deallocate(psi_coef_extra_1h_or_1p)
 
 end
 
@@ -197,39 +208,48 @@ subroutine all_single_split_for_1p(dressing_matrix_1h1p,dressing_matrix_1h2p)
  soft_touch n_det_max_jacobi
 end
 
-subroutine all_single_for_1p(dressing_matrix_1h1p,dressing_matrix_1h2p)
+subroutine all_single_for_1p(i_particl,dressing_matrix_1h1p,dressing_matrix_1h2p,dressing_matrix_extra_1h_or_1p)
  implicit none
  use bitmasks
+ integer, intent(in )            :: i_particl
  double precision, intent(inout) :: dressing_matrix_1h1p(N_det_generators,N_det_generators)
  double precision, intent(inout) :: dressing_matrix_1h2p(N_det_generators,N_det_generators)
- integer :: i,i_hole
+ double precision, intent(inout) :: dressing_matrix_extra_1h_or_1p(N_det_generators,N_det_generators)
+ integer :: i
  n_det_max_jacobi = 50
  soft_touch n_det_max_jacobi
 
- integer :: n_det_1h1p,n_det_1h2p
+ integer :: n_det_1h1p,n_det_1h2p,n_det_extra_1h_or_1p
  integer(bit_kind), allocatable :: psi_ref_out(:,:,:)
  integer(bit_kind), allocatable :: psi_1h1p(:,:,:)
  integer(bit_kind), allocatable :: psi_1h2p(:,:,:)
+ integer(bit_kind), allocatable :: psi_extra_1h_or_1p(:,:,:)
  double precision, allocatable :: psi_ref_coef_out(:,:)
  double precision, allocatable :: psi_coef_1h1p(:,:)
  double precision, allocatable :: psi_coef_1h2p(:,:)
- call all_single_no_1h_or_1p_or_2p
+ double precision, allocatable :: psi_coef_extra_1h_or_1p(:,:)
+!call all_single_no_1h_or_1p_or_2p
+ call all_single
  
  threshold_davidson = 1.d-12
  soft_touch threshold_davidson davidson_criterion
  call diagonalize_CI
- call give_n_1h1p_and_n_1h2p_in_psi_det(n_det_1h1p,n_det_1h2p)
+ call give_n_1h1p_and_n_1h2p_in_psi_det(i_particl,n_det_extra_1h_or_1p,n_det_1h1p,n_det_1h2p)
  allocate(psi_ref_out(N_int,2,N_det_generators))
  allocate(psi_1h1p(N_int,2,n_det_1h1p))
  allocate(psi_1h2p(N_int,2,n_det_1h2p))
+ allocate(psi_extra_1h_or_1p(N_int,2,n_det_extra_1h_or_1p))
  allocate(psi_ref_coef_out(N_det_generators,N_states))
  allocate(psi_coef_1h1p(n_det_1h1p,N_states))
  allocate(psi_coef_1h2p(n_det_1h2p,N_states))
- call split_wf_generators_and_1h1p_and_1h2p(n_det_1h1p,n_det_1h2p,psi_ref_out,psi_ref_coef_out,psi_1h1p,psi_coef_1h1p,psi_1h2p,psi_coef_1h2p)
+ allocate(psi_coef_extra_1h_or_1p(n_det_extra_1h_or_1p,N_states))
+ call split_wf_generators_and_1h1p_and_1h2p(i_particl,n_det_extra_1h_or_1p,n_det_1h1p,n_det_1h2p,psi_ref_out,psi_ref_coef_out,psi_1h1p,psi_coef_1h1p,psi_1h2p,psi_coef_1h2p,psi_extra_1h_or_1p,psi_coef_extra_1h_or_1p)
  call provide_matrix_dressing_general(dressing_matrix_1h1p,psi_ref_out,psi_ref_coef_out,N_det_generators, &
                                                         psi_1h1p,psi_coef_1h1p,n_det_1h1p)
  call provide_matrix_dressing_general(dressing_matrix_1h2p,psi_ref_out,psi_ref_coef_out,N_det_generators, &
                                                         psi_1h2p,psi_coef_1h2p,n_det_1h2p)
+ call provide_matrix_dressing_for_extra_1h_or_1p(dressing_matrix_extra_1h_or_1p,psi_ref_out,psi_ref_coef_out,N_det_generators, &
+                                                        psi_extra_1h_or_1p,psi_coef_extra_1h_or_1p,n_det_extra_1h_or_1p)
 
  deallocate(psi_ref_out)
  deallocate(psi_1h1p)
