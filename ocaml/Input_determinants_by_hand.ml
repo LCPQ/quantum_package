@@ -340,7 +340,7 @@ psi_det                = %s
     let idx = String.substr_index_exn r ~pos:0 ~pattern:"\nDeterminants"
     in
     let (header, dets) = 
-       (String.prefix r idx, String.suffix r ((String.length r)-idx) )
+       (String.prefix r idx, String.suffix r ((String.length r)-idx-1) )
     in
 
     (* Handle header *)
@@ -360,94 +360,119 @@ psi_det                = %s
     |> String.concat 
     in
 
-    (* Handle determinant coefs *)
-    let dets = match ( dets
-      |> String.split ~on:'\n'
-      |> List.map ~f:(String.strip)
-    ) with 
-    | _::lines -> lines 
-    | _ -> failwith "Error in determinants"
-    in
+    (* Handle determinants and coefs *)
+    let dets_stream = 
 
-    let psi_coef = 
-      let rec read_coefs accu = function
-      | [] -> List.rev accu
-      | "" :: "" :: tail -> read_coefs accu tail
-      | "" :: c :: tail -> 
-          let c =
-            String.split ~on:'\t' c
-            |> List.map ~f:(fun x -> Det_coef.of_float (Float.of_string x))
-            |> Array.of_list
-          in
-          read_coefs (c :: accu) tail
-      | _ :: tail -> read_coefs accu tail
+      let ipos, jmax =
+        ref (-1),  String.length dets
       in
-      let a =
-        let buffer = 
-          read_coefs [] dets
-        in
-        let nstates =
-          List.hd_exn buffer
-          |> Array.length
-        in
-        let extract_state i = 
-          let i = 
-            i-1
-          in
-          List.map ~f:(fun x -> x.(i)) buffer
-        in
-        let rec build_result accu = function
-        | 0 -> accu
-        | i -> 
-            let new_accu =
-               (extract_state i) :: accu
+      let next_line =
+        Stream.from (fun _ ->
+          let rec loop line =
+            let j = 
+              !ipos + 1
             in
-            build_result new_accu (i-1)
-        in
-        build_result [] nstates 
+            ipos := j;
+            if (j < jmax) then
+              match dets.[j] with
+              | '\n' -> Some (String.of_char_list @@ List.rev line )
+              | ' '  -> loop line 
+              | c    -> loop (c :: line) 
+            else
+              None
+          in loop []
+        )
       in
-      List.concat a
-      |> Array.of_list
+      ignore @@ Stream.next next_line; (* Determinants :: *)
+      ignore @@ Stream.next next_line; (*                 *)
+      Stream.from (fun _ ->
+          try
+            begin
+              let result =
+                let coefs = 
+                  let line = 
+                     Stream.next next_line
+                  in
+                  String.split ~on:'\t' line
+                  |> Array.of_list
+                  |> Array.map ~f:(fun x -> Det_coef.of_float @@ Float.of_string x)
+                in
+                Some (coefs,
+                      Stream.next next_line |> String.rev,
+                      Stream.next next_line |> String.rev )
+              in
+              ignore @@ Stream.next next_line;
+              result
+            end
+          with
+          | Stream.Failure -> None
+      )
     in
+      
+ 
+        
+    let psi_coef, psi_det = 
 
-(*
-    let dets = match ( dets
-      |> String.split ~on:'\n'
-      |> List.map ~f:(String.strip)
-    ) with 
-    | _::lines -> lines 
-    | _ -> failwith "Error in determinants"
-    in
-*)
-
-    (* Handle determinants *)
-    let psi_det = 
-      let alpha = Ezfio.get_electrons_elec_alpha_num ()
+      let alpha =
+        Ezfio.get_electrons_elec_alpha_num ()
         |> Elec_alpha_number.of_int 
-      and beta = Ezfio.get_electrons_elec_beta_num ()
+      and beta = 
+        Ezfio.get_electrons_elec_beta_num ()
         |> Elec_beta_number.of_int 
       and n_int =
         N_int_number.get_max ()
         |> N_int_number.of_int
       in
-      let rec read_dets accu = function
-      | [] -> List.rev  accu
-      | ""::_::alpha_str::beta_str::tail -> 
-          begin
-            let newdet =
-               (Bitlist.of_string_mp alpha_str, Bitlist.of_string_mp beta_str)
-               |> Determinant.of_bitlist_couple ~n_int ~alpha ~beta
+
+      let rec read coefs dets_bit = function
+        | None -> (List.rev coefs), (List.rev dets_bit)
+        | Some (c, alpha_str, beta_str) -> 
+            begin
+                ignore @@ Stream.next dets_stream;
+                let new_coefs = 
+                   c :: coefs
+                and new_dets =
+                  let newdet =
+                    (Bitlist.of_string_mp alpha_str, Bitlist.of_string_mp beta_str)
+                    |> Determinant.of_bitlist_couple ~n_int ~alpha ~beta
+                  in
+                  newdet :: dets_bit
+                in
+                read new_coefs new_dets (Stream.peek dets_stream)
+            end
+      in
+        
+      let coefs, dets_bit = 
+          read [] [] (Stream.peek dets_stream)
+      in
+      let nstates =
+          List.hd_exn coefs |> Array.length
+      in
+      let a =
+          let extract_state i = 
+            let i = 
+              i-1
             in
-            read_dets (newdet::accu) tail
-          end
-      | _::tail -> read_dets accu tail
+            List.map ~f:(fun x -> x.(i)) coefs
+          in
+          let rec build_result accu = function
+          | 0 -> accu
+          | i -> 
+              let new_accu =
+                (extract_state i) :: accu
+              in
+              build_result new_accu (i-1)
+          in
+          build_result [] nstates 
       in
-      let dets = 
-        List.map ~f:String.rev dets
+      let new_coefs =
+          List.concat a |> Array.of_list
+      and new_dets = 
+          Array.of_list dets_bit
       in
-      read_dets [] dets
-      |> Array.of_list
+      new_coefs, new_dets
     in
+
 
     let bitkind = 
       Printf.sprintf "(bit_kind %d)" (Lazy.force Qpackage.bit_kind
