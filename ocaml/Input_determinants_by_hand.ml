@@ -333,18 +333,18 @@ psi_det                = %s
   ;;
 
   let of_rst r =
-    let r = Rst_string.to_string r
+    let dets = Rst_string.to_string r
     in
 
     (* Split into header and determinants data *)
-    let idx = String.substr_index_exn r ~pos:0 ~pattern:"\nDeterminants"
+    let idx = String.substr_index_exn dets ~pos:0 ~pattern:"\nDeterminants"
     in
-    let (header, dets) = 
-       (String.prefix r idx, String.suffix r ((String.length r)-idx-1) )
+    let header = 
+       String.prefix dets idx
     in
 
     (* Handle header *)
-    let header = r
+    let header = header
     |> String.split ~on:'\n'
     |> List.filter ~f:(fun line ->
         if (line = "") then
@@ -364,7 +364,7 @@ psi_det                = %s
     let dets_stream = 
 
       let ipos, jmax =
-        ref (-1),  String.length dets
+        ref idx,  String.length dets
       in
       let next_line =
         Stream.from (fun _ ->
