@@ -17,7 +17,7 @@ C
       data small/1.d-6/
 
       zprt=.true.
-      niter=100
+      niter=500
       conv=1.d-8
 
       write (6,5) n,m,conv

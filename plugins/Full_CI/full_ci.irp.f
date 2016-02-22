@@ -64,9 +64,9 @@ program full_ci
     print *,  'N_states       = ', N_states
     do  k = 1, N_states
     print*,'State ',k
-    print *,  'PT2            = ', pt2
-    print *,  'E              = ', CI_energy
-    print *,  'E(before)+PT2  = ', E_CI_before+pt2
+    print *,  'PT2            = ', pt2(k)
+    print *,  'E              = ', CI_energy(k)
+    print *,  'E(before)+PT2  = ', E_CI_before(k)+pt2(k)
     enddo
     print *,  '-----'
     E_CI_before = CI_energy
