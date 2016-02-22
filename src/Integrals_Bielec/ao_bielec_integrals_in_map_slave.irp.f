@@ -114,6 +114,7 @@ subroutine ao_bielec_integrals_in_map_slave(thread,iproc)
   deallocate( buffer_i, buffer_value )
 
   call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
+  call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
 
 end

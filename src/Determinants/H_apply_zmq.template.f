@@ -24,10 +24,10 @@ subroutine $subroutine($params_main)
 
   integer(ZMQ_PTR), external     :: new_zmq_pair_socket
   integer(ZMQ_PTR)               :: zmq_socket_pair
-  zmq_socket_pair = new_zmq_pair_socket(.True.)
 
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
   call new_parallel_job(zmq_to_qp_run_socket,'$subroutine')
+  zmq_socket_pair = new_zmq_pair_socket(.True.)
 
   call zmq_put_psi(zmq_to_qp_run_socket,1)
 
@@ -55,13 +55,9 @@ subroutine $subroutine($params_main)
 
   rc = pthread_join(collector_thread)
 
+  call end_zmq_pair_socket(zmq_socket_pair)
   call end_parallel_job(zmq_to_qp_run_socket,'$subroutine')
 
-  rc = f77_zmq_close(zmq_socket_pair)
-  if (rc /= 0) then
-    print *,  'f77_zmq_close(zmq_socket_pair)'
-    stop 'error'
-  endif
 
   $copy_buffer
   $generate_psi_guess
@@ -182,6 +178,7 @@ subroutine $subroutine_slave(thread, iproc)
   deallocate( mask, fock_diag_tmp, pt2, norm_pert, H_pert_diag )
 
   call end_zmq_push_socket(zmq_socket_push,thread)
+  call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
 
 end
 

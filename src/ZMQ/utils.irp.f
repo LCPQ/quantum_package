@@ -324,6 +324,11 @@ subroutine end_zmq_pair_socket(zmq_socket_pair)
 !    stop 'error'
 !  endif
   
+  rc = f77_zmq_setsockopt(zmq_socket_pair,ZMQ_LINGER,0,4)
+  if (rc /= 0) then
+    stop 'Unable to set ZMQ_LINGER on zmq_socket_pair'
+  endif
+
   rc = f77_zmq_close(zmq_socket_pair)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_pair)'
@@ -356,6 +361,11 @@ subroutine end_zmq_pull_socket(zmq_socket_pull)
     stop 'error'
   endif
   
+  rc = f77_zmq_setsockopt(zmq_socket_pull,ZMQ_LINGER,0,4)
+  if (rc /= 0) then
+    stop 'Unable to set ZMQ_LINGER on zmq_socket_pull'
+  endif
+
   rc = f77_zmq_close(zmq_socket_pull)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_pull)'
@@ -391,6 +401,11 @@ subroutine end_zmq_push_socket(zmq_socket_push,thread)
   endif
 
   
+  rc = f77_zmq_setsockopt(zmq_socket_push,ZMQ_LINGER,0,4)
+  if (rc /= 0) then
+    stop 'Unable to set ZMQ_LINGER on push socket'
+  endif
+
   rc = f77_zmq_close(zmq_socket_push)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_push)'
@@ -423,6 +438,9 @@ subroutine new_parallel_job(zmq_to_qp_run_socket,name_in)
   integer(ZMQ_PTR), intent(out)  :: zmq_to_qp_run_socket
 
   zmq_context = f77_zmq_ctx_new ()
+  if (zmq_context == 0_ZMQ_PTR) then
+     stop 'ZMQ_PTR is null'
+  endif
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   name = name_in
   sze = len(trim(name))
@@ -684,6 +702,11 @@ subroutine end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
 !    print *,  'f77_zmq_disconnect(zmq_to_qp_run_socket, trim(qp_run_address)//'':''//trim(zmq_port(0)))'
 !    stop 'error'
 !  endif
+
+  rc = f77_zmq_setsockopt(zmq_to_qp_run_socket,ZMQ_LINGER,0,4)
+  if (rc /= 0) then
+    stop 'Unable to set ZMQ_LINGER on zmq_to_qp_run_socket'
+  endif
 
   rc = f77_zmq_close(zmq_to_qp_run_socket)
   if (rc /= 0) then
