@@ -29,7 +29,7 @@ end = struct
 
   let get_default = Qpackage.get_ezfio_default "determinants";;
 
-  let n_det_read_max = 50_000_000 ;;
+  let n_det_read_max = 10_000 ;;
 
   let read_n_int () =
     if not (Ezfio.has_determinants_n_int()) then
@@ -258,11 +258,16 @@ end = struct
 
 
   let to_rst b =
-    let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () in
-    let mo_tot_num = MO_number.of_int mo_tot_num ~max:mo_tot_num in
+    let max =
+      Ezfio.get_mo_basis_mo_tot_num () 
+    in
+    let mo_tot_num =
+      MO_number.of_int ~max max
+    in
     let det_text = 
       let nstates =
-        read_n_states () |> States_number.to_int
+        read_n_states ()
+        |> States_number.to_int
       and ndet =
         Det_number.to_int b.n_det
       in
@@ -281,13 +286,9 @@ end = struct
         |> String.concat_array ~sep:"\t"
       in
       Array.init ndet ~f:(fun i ->
-        Printf.sprintf "  %s\n%s\n"
-          (coefs_string i)
-          (Determinant.to_string ~mo_tot_num:mo_tot_num b.psi_det.(i)
-           |> String.split ~on:'\n'
-           |> List.map ~f:(fun x -> "  "^x)
-           |> String.concat ~sep:"\n"
-          )
+        String.concat [ "  " ; 
+          (coefs_string i) ; "\n" ; 
+          (Determinant.to_string ~mo_tot_num b.psi_det.(i)) ; "\n" ]
       )
       |> String.concat_array ~sep:"\n"
     in

@@ -79,6 +79,12 @@ let of_int64_list l =
   List.map ~f:of_int64 l 
   |> List.concat
 
+(* Create a bit list from an array of int64 *)
+let of_int64_array l = 
+  Array.map ~f:of_int64 l 
+  |> Array.to_list
+  |> List.concat
+
 
 (* Compute n_int *)
 let n_int_of_mo_tot_num mo_tot_num =

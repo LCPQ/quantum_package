@@ -18,6 +18,7 @@ val of_int64 : int64 -> t
 val to_int64 : t -> int64
 
 val of_int64_list  : int64 list -> t
+val of_int64_array : int64 array -> t
 val to_int64_list  : t -> int64 list
 val to_int64_array : t -> int64 array
 

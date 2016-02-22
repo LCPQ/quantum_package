@@ -15,21 +15,25 @@ let to_alpha_beta x =
 
 let to_bitlist_couple x =
   let (xa,xb) = to_alpha_beta x in
-  let xa = to_int64_array xa
-  |> Array.to_list
-  |> Bitlist.of_int64_list
-  and xb = to_int64_array xb
-  |> Array.to_list
-  |> Bitlist.of_int64_list
+  let xa =
+    to_int64_array xa
+    |> Bitlist.of_int64_array
+  and xb = 
+    to_int64_array xb
+    |> Bitlist.of_int64_array
   in (xa,xb)
 
 
 let bitlist_to_string ~mo_tot_num x =
-  List.map x ~f:(fun i -> match i with
-    | Bit.Zero -> "-"
-    | Bit.One  -> "+" )
+  let len = 
+    MO_number.to_int mo_tot_num
+  in
+  List.map x ~f:(function
+      | Bit.Zero -> "-"
+      | Bit.One  -> "+" 
+  )
   |> String.concat
-  |> String.sub ~pos:0 ~len:(MO_number.to_int mo_tot_num) 
+  |> String.sub ~pos:0 ~len 
 
 
 
@@ -71,8 +75,8 @@ let of_bitlist_couple ?n_int ~alpha ~beta (xa,xb) =
 
 let to_string ~mo_tot_num x = 
   let (xa,xb) = to_bitlist_couple x in
-  [ bitlist_to_string ~mo_tot_num:mo_tot_num xa ;
-    bitlist_to_string ~mo_tot_num:mo_tot_num xb ]
-  |> String.concat ~sep:"\n"
+  [ "  " ; bitlist_to_string ~mo_tot_num xa ; "\n" ;
+    "  " ; bitlist_to_string ~mo_tot_num xb ]
+  |> String.concat 
 
 
