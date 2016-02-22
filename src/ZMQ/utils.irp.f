@@ -12,7 +12,7 @@ BEGIN_PROVIDER [ integer(ZMQ_PTR), zmq_context ]
   ! Context for the ZeroMQ library
   END_DOC
   call omp_init_lock(zmq_lock)
-  zmq_context = f77_zmq_ctx_new ()
+  zmq_context = 0_ZMQ_PTR
 END_PROVIDER
 
 
@@ -421,7 +421,8 @@ subroutine new_parallel_job(zmq_to_qp_run_socket,name_in)
   integer                        :: rc, sze
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR), intent(out)  :: zmq_to_qp_run_socket
-  
+
+  zmq_context = f77_zmq_ctx_new ()
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   name = name_in
   sze = len(trim(name))
@@ -474,6 +475,11 @@ subroutine end_parallel_job(zmq_to_qp_run_socket,name_in)
   zmq_state = 'No_state'
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
 
+  rc = f77_zmq_ctx_term(zmq_context)
+  if (rc /= 0) then
+    print *,  'Unable to terminate ZMQ context'
+    stop 'error'
+  endif
 end
 
 subroutine connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
