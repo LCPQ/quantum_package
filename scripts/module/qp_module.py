@@ -59,7 +59,8 @@ def save_new_module(path, l_child):
 
     with open(os.path.join(path, "%s.main.irp.f"%(module_name) ), "w") as f:
         f.write("program {0}".format(module_name) )
-        f.write("""  implicit none
+        f.write("""
+  implicit none
   BEGIN_DOC
 ! TODO
   END_DOC
