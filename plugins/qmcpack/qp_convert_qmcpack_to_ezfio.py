@@ -331,22 +331,30 @@ for c, (l_det_bit_alpha, l_det_bit_beta) in zip(psi_coef, psi_det):
     print c
 
     bin_det = ""
-    for i,int_det in enumerate(l_det_bit_alpha):
-        bin_det_raw = "{0:b}".format(int_det)[::-1]
-        if mo_num - 64*(i+1) > 0:
-            bin_det += bin_det_raw + "0" * (64*(i+1) - len(bin_det_raw))
-        else:
-            bin_det += bin_det_raw + "0" * (mo_num-64*i - len(bin_det_raw))
+    int_det = l_det_bit_alpha[0]
+    bin_det_raw = "{0:b}".format(int_det)[::-1]
+    bin_det += bin_det_raw + "0" * (mo_num - len(bin_det_raw))
+    
+#    for i,int_det in enumerate(l_det_bit_alpha):
+#        bin_det_raw = "{0:b}".format(int_det)[::-1]
+#        if mo_num - 64*(i+1) > 0:
+#            bin_det += bin_det_raw + "0" * (64*(i+1) - len(bin_det_raw))
+#        else:
+#            bin_det += bin_det_raw + "0" * (mo_num-64*i - len(bin_det_raw))
 
     print bin_det
 
     bin_det = ""
-    for i,int_det in enumerate(l_det_bit_beta):
-        bin_det_raw = "{0:b}".format(int_det)[::-1]
-        if mo_num - 64*(i+1) > 0:
-            bin_det += bin_det_raw + "0" * (64*(i+1) - len(bin_det_raw))
-        else:
-            bin_det += bin_det_raw + "0" * (mo_num-64*i - len(bin_det_raw))
+    int_det = l_det_bit_beta[0]
+    bin_det_raw = "{0:b}".format(int_det)[::-1]
+    bin_det += bin_det_raw + "0" * (mo_num - len(bin_det_raw))
+
+#    for i,int_det in enumerate(l_det_bit_beta):
+#        bin_det_raw = "{0:b}".format(int_det)[::-1]
+#        if mo_num - 64*(i+1) > 0:
+#            bin_det += bin_det_raw + "0" * (64*(i+1) - len(bin_det_raw))
+#        else:
+#            bin_det += bin_det_raw + "0" * (mo_num-64*i - len(bin_det_raw))
 
     print bin_det
     print ""
