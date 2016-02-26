@@ -17,7 +17,7 @@ ezfio.set_file(ezfio_path)
 do_pseudo = ezfio.get_pseudo_do_pseudo()
 if do_pseudo:
     print "do_pseudo True"
-    zcore = ezfio.get_pseudo_nucl_charge_remove()
+    print "The charge of nucl will be decreasced for taking into acount the pseudo potentiel"
 else:
     print "do_pseudo False"
 
@@ -68,11 +68,7 @@ print "nucl_num", len(l_label)
 print "Atomic coord in Bohr"
 
 for i, t in enumerate(zip(l_label, l_charge, l_coord_str)):
-    try:
-        l = (t[0], t[1] + zcore[i], t[2])
-    except NameError:
-        l = t
-    print list_to_string(l)
+    print list_to_string(t)
 
 #
 # Call externet process to get the sysmetry
@@ -305,8 +301,8 @@ if do_pseudo:
             if l_dump:
                 l_str.append(l_dump)
 
-        str_ = "PARAMETERS FOR {0} ON ATOM {1} WITH ZCORE {2} AND LMAX {3} ARE"
-        print str_.format(a, i + 1, int(zcore[i]), int(len(l_str) - 1))
+        str_ = "PARAMETERS FOR {0} ON ATOM {1} WITH ZCORE -1 AND LMAX {2} ARE"
+        print str_.format(a, i + 1, int(len(l_str) - 1))
 
         for i, l in enumerate(l_str):
             str_ = "FOR L= {0} COEFF N ZETA"
@@ -314,8 +310,7 @@ if do_pseudo:
             for ii, ll in enumerate(l):
                 print " ", ii + 1, ll
 
-    str_ = "THE ECP RUN REMOVES {0} CORE ELECTRONS, AND THE SAME NUMBER OF PROTONS."
-    print str_.format(sum(zcore))
+    str_ = "THE ECP RUN REMOVES -1 CORE ELECTRONS, AND THE SAME NUMBER OF PROTONS."
     print "END_PSEUDO"
 
 #  _         
