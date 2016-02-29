@@ -79,7 +79,8 @@ process = subprocess.Popen(
     stdout=subprocess.PIPE)
 out, err = process.communicate()
 
-basis_raw, sym_raw, _= out.split("\n\n\n")
+print len(out.split("\n\n\n"))
+basis_raw, sym_raw, _ , det_raw, _ = out.split("\n\n\n")
 
 #  _                 __        
 # |_)  _.  _ o  _   (_   _ _|_ 
@@ -324,39 +325,14 @@ print "mo_num", mo_num
 print "det_num", n_det
 print ""
 
-psi_det = ezfio.get_determinants_psi_det()
-psi_coef = ezfio.get_determinants_psi_coef()[0]
 
-for c, (l_det_bit_alpha, l_det_bit_beta) in zip(psi_coef, psi_det):
-    print c
 
-    bin_det = ""
-    int_det = l_det_bit_alpha[0]
-    bin_det_raw = "{0:b}".format(int_det)[::-1]
-    bin_det += bin_det_raw + "0" * (mo_num - len(bin_det_raw))
-    
-#    for i,int_det in enumerate(l_det_bit_alpha):
-#        bin_det_raw = "{0:b}".format(int_det)[::-1]
-#        if mo_num - 64*(i+1) > 0:
-#            bin_det += bin_det_raw + "0" * (64*(i+1) - len(bin_det_raw))
-#        else:
-#            bin_det += bin_det_raw + "0" * (mo_num-64*i - len(bin_det_raw))
+token = "Determinants ::"
+pos = det_raw.rfind(token) + len(token)
 
-    print bin_det
+det_without_header = det_raw[pos+2::]
 
-    bin_det = ""
-    int_det = l_det_bit_beta[0]
-    bin_det_raw = "{0:b}".format(int_det)[::-1]
-    bin_det += bin_det_raw + "0" * (mo_num - len(bin_det_raw))
-
-#    for i,int_det in enumerate(l_det_bit_beta):
-#        bin_det_raw = "{0:b}".format(int_det)[::-1]
-#        if mo_num - 64*(i+1) > 0:
-#            bin_det += bin_det_raw + "0" * (64*(i+1) - len(bin_det_raw))
-#        else:
-#            bin_det += bin_det_raw + "0" * (mo_num-64*i - len(bin_det_raw))
-
-    print bin_det
-    print ""
+print det_without_header
 
 print "END_DET"
+
