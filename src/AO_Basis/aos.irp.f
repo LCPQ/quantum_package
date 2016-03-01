@@ -54,6 +54,13 @@ END_PROVIDER
       ao_coef_normalized(i,j) = ao_coef_normalized(i,j) * ao_coef_normalization_factor(i)
     enddo
   enddo
+
+!   do i=1,ao_num
+!   do j=1,ao_prim_num(i)
+!       ao_coef_normalized(i,j) = ao_coef(i,j)
+!    enddo
+!    enddo
+
 END_PROVIDER
 
  BEGIN_PROVIDER [ double precision, ao_coef_normalized_ordered, (ao_num_align,ao_prim_num_max) ]
@@ -72,8 +79,8 @@ END_PROVIDER
        d(j,1) = ao_expo(i,j)
        d(j,2) = ao_coef_normalized(i,j)
      enddo
-     call dsort(d(1,1),iorder,ao_prim_num(i))
-     call dset_order(d(1,2),iorder,ao_prim_num(i))
+!     call dsort(d(1,1),iorder,ao_prim_num(i))
+!     call dset_order(d(1,2),iorder,ao_prim_num(i))
      do j=1,ao_prim_num(i)
        ao_expo_ordered(i,j) = d(j,1)
        ao_coef_normalized_ordered(i,j) = d(j,2)

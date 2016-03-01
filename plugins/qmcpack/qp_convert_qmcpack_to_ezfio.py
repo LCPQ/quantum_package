@@ -17,7 +17,7 @@ ezfio.set_file(ezfio_path)
 do_pseudo = ezfio.get_pseudo_do_pseudo()
 if do_pseudo:
     print "do_pseudo True"
-    zcore = ezfio.get_pseudo_nucl_charge_remove()
+    print "The charge of nucl will be decreasced for taking into acount the pseudo potentiel"
 else:
     print "do_pseudo False"
 
@@ -68,11 +68,7 @@ print "nucl_num", len(l_label)
 print "Atomic coord in Bohr"
 
 for i, t in enumerate(zip(l_label, l_charge, l_coord_str)):
-    try:
-        l = (t[0], t[1] + zcore[i], t[2])
-    except NameError:
-        l = t
-    print list_to_string(l)
+    print list_to_string(t)
 
 #
 # Call externet process to get the sysmetry
@@ -83,7 +79,8 @@ process = subprocess.Popen(
     stdout=subprocess.PIPE)
 out, err = process.communicate()
 
-basis_raw, sym_raw, _= out.split("\n\n\n")
+print len(out.split("\n\n\n"))
+basis_raw, sym_raw, _ , det_raw, _ = out.split("\n\n\n")
 
 #  _                 __        
 # |_)  _.  _ o  _   (_   _ _|_ 
@@ -175,6 +172,9 @@ def get_nb_permutation(str_):
 
 
 def order_l_l_sym(l_l_sym):
+
+    l_order_mo = [i for i,_ in enumerate(l_l_sym)]
+
     n = 1
     for i in range(len(l_l_sym)):
         if n != 1:
@@ -184,11 +184,11 @@ def order_l_l_sym(l_l_sym):
         l = l_l_sym[i]
         n = get_nb_permutation(l[2])
 
-        l_l_sym[i:i + n] = sorted(l_l_sym[i:i + n],
-                                  key=lambda x: x[2],
-                                  cmp=compare_gamess_style)
+        l_l_sym[i:i + n], l_order_mo[i:i+n] = zip(*sorted(zip(l_l_sym[i:i + n],l_order_mo[i:i+n]),
+                                              key=lambda x: x[0][2],
+                                              cmp=compare_gamess_style))
 
-    return l_l_sym
+    return l_l_sym, l_order_mo
 
 
 #==========================
@@ -197,8 +197,13 @@ def order_l_l_sym(l_l_sym):
 
 l_sym_without_header = sym_raw.split("\n")[3:-2]
 l_l_sym_raw = [i.split() for i in l_sym_without_header]
+print len(l_l_sym_raw)
+
 l_l_sym_expend_sym = expend_sym_l(l_l_sym_raw)
-l_l_sym_ordered = order_l_l_sym(l_l_sym_expend_sym)
+print len(l_l_sym_expend_sym)
+
+l_l_sym_ordered, l_order_mo = order_l_l_sym(l_l_sym_expend_sym)
+
 
 #========
 #MO COEF
@@ -305,8 +310,8 @@ if do_pseudo:
             if l_dump:
                 l_str.append(l_dump)
 
-        str_ = "PARAMETERS FOR {0} ON ATOM {1} WITH ZCORE {2} AND LMAX {3} ARE"
-        print str_.format(a, i + 1, int(zcore[i]), int(len(l_str) - 1))
+        str_ = "PARAMETERS FOR {0} ON ATOM {1} WITH ZCORE -1 AND LMAX {2} ARE"
+        print str_.format(a, i + 1, int(len(l_str) - 1))
 
         for i, l in enumerate(l_str):
             str_ = "FOR L= {0} COEFF N ZETA"
@@ -314,8 +319,7 @@ if do_pseudo:
             for ii, ll in enumerate(l):
                 print " ", ii + 1, ll
 
-    str_ = "THE ECP RUN REMOVES {0} CORE ELECTRONS, AND THE SAME NUMBER OF PROTONS."
-    print str_.format(sum(zcore))
+    str_ = "THE ECP RUN REMOVES -1 CORE ELECTRONS, AND THE SAME NUMBER OF PROTONS."
     print "END_PSEUDO"
 
 #  _         
@@ -329,31 +333,29 @@ print "mo_num", mo_num
 print "det_num", n_det
 print ""
 
-psi_det = ezfio.get_determinants_psi_det()
-psi_coef = ezfio.get_determinants_psi_coef()[0]
 
-for c, (l_det_bit_alpha, l_det_bit_beta) in zip(psi_coef, psi_det):
-    print c
 
-    bin_det = ""
-    for i,int_det in enumerate(l_det_bit_alpha):
-        bin_det_raw = "{0:b}".format(int_det)[::-1]
-        if mo_num - 64*(i+1) > 0:
-            bin_det += bin_det_raw + "0" * (64*(i+1) - len(bin_det_raw))
-        else:
-            bin_det += bin_det_raw + "0" * (mo_num-64*i - len(bin_det_raw))
+token = "Determinants ::"
+pos = det_raw.rfind(token) + len(token)
 
-    print bin_det
+d_rep={"+":"1","-":"0"}
 
-    bin_det = ""
-    for i,int_det in enumerate(l_det_bit_beta):
-        bin_det_raw = "{0:b}".format(int_det)[::-1]
-        if mo_num - 64*(i+1) > 0:
-            bin_det += bin_det_raw + "0" * (64*(i+1) - len(bin_det_raw))
-        else:
-            bin_det += bin_det_raw + "0" * (mo_num-64*i - len(bin_det_raw))
+det_without_header = det_raw[pos+2::]
 
-    print bin_det
-    print ""
+for line_raw in det_without_header.split("\n"):
+    line = line_raw
+
+    if line_raw:
+        try:
+            float(line)
+        except ValueError:
+            print line_raw.strip(), len(line_raw.strip())
+            print l_order_mo, len(l_order_mo)
+
+            line_order = [line_raw[i] for i in l_order_mo]
+            line= "".join([d_rep[x] if x in d_rep else x for x in line_order])
+
+    print line
 
 print "END_DET"
+
