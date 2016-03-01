@@ -332,7 +332,19 @@ pos = det_raw.rfind(token) + len(token)
 
 det_without_header = det_raw[pos+2::]
 
-print det_without_header
+d_rep={"+":"1","-":"0"}
+
+det_without_header = det_raw[pos+2::]
+
+for line_raw in det_without_header.split("\n"):
+    line = line_raw
+
+    if line_raw:
+        try:
+            float(line)
+        except ValueError:
+            line= "".join([d_rep[x] if x in d_rep else x for x in line_raw])
+
+    print line.strip()
 
 print "END_DET"
-
