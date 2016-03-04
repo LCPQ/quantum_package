@@ -1,4 +1,5 @@
 open Core.Std
+open Qptypes
 
 (** New job : Request to create a new multi-tasked job *)
 
@@ -32,10 +33,28 @@ end = struct
       address_inproc = Address.Inproc.of_string address_inproc ;
     }
   let to_string t =
-    Printf.sprintf "newjob %s %s %s"
+    Printf.sprintf "new_job %s %s %s"
      ( State.to_string t.state ) 
      ( Address.Tcp.to_string t.address_tcp ) 
      ( Address.Inproc.to_string t.address_inproc ) 
+end
+
+module Endjob_msg : sig
+  type t = 
+  { state: State.t;
+  }
+  val create : state:string -> t
+  val to_string : t -> string
+end = struct
+  type t = 
+  { state: State.t;
+  }
+  let create ~state =
+    { state = State.of_string state;
+    }
+  let to_string t =
+    Printf.sprintf "end_job %s"
+     ( State.to_string t.state ) 
 end
 
 
@@ -108,22 +127,21 @@ end
 
 module DisconnectReply_msg : sig
   type t = 
-  { finished: bool ;
+  { 
     state: State.t ;
   }
-  val create : state:State.t -> finished:bool -> t
+  val create : state:State.t -> t
   val to_string : t -> string
 end = struct
   type t = 
-  { finished: bool;
+  { 
     state: State.t ;
   }
-  let create ~state ~finished = 
-    { state ; finished }
+  let create ~state = 
+    { state }
   let to_string x =
-    Printf.sprintf "disconnect_reply %s %d"
+    Printf.sprintf "disconnect_reply %s"
       (State.to_string x.state)
-      (if x.finished then 1 else 0)
 end
 
 
@@ -158,6 +176,52 @@ end = struct
   let to_string x =
     Printf.sprintf "add_task_reply %d" (Id.Task.to_int x)
 end
+
+
+(** DelTask : Remove a task from the queue *)
+module DelTask_msg : sig
+  type t = 
+  { state:  State.t;
+    task_id:  Id.Task.t
+  }
+  val create : state:string -> task_id:string -> t
+  val to_string : t -> string
+end = struct
+  type t = 
+  { state:  State.t;
+    task_id:  Id.Task.t
+  }
+  let create ~state ~task_id =
+    { state = State.of_string state ; 
+      task_id = Id.Task.of_string task_id
+    }
+  let to_string x =
+    Printf.sprintf "del_task %s %d" 
+      (State.to_string x.state)
+      (Id.Task.to_int x.task_id)
+end
+
+
+(** DelTaskReply : Reply to the DelTask message *)
+module DelTaskReply_msg : sig
+  type t  
+  val create : task_id:Id.Task.t -> more:bool -> t
+  val to_string : t -> string
+end = struct
+  type t = {
+    task_id : Id.Task.t ;
+    more    : bool;
+  }
+  let create ~task_id ~more = { task_id ; more }
+  let to_string x =
+    let more = 
+      if x.more then "more"
+      else "done"
+    in
+    Printf.sprintf "del_task_reply %s %d" 
+     more (Id.Task.to_int x.task_id) 
+end
+
 
 
 (** GetTask : get a new task to do *)
@@ -196,14 +260,240 @@ end = struct
     Printf.sprintf "get_task_reply %d %s" (Id.Task.to_int x.task_id) x.task
 end
 
+(** GetPsi : get the current variational wave function *)
+module GetPsi_msg : sig
+  type t = 
+  { client_id: Id.Client.t ;
+  }
+  val create : client_id:string -> t
+  val to_string : t -> string
+end = struct
+  type t = 
+  { client_id: Id.Client.t ;
+  }
+  let create ~client_id = 
+    { client_id = Id.Client.of_string client_id }
+  let to_string x =
+    Printf.sprintf "get_psi %d"
+      (Id.Client.to_int x.client_id)
+end
+
+module Psi : sig
+  type t = 
+  {
+      n_state   :  Strictly_positive_int.t   ;
+      n_det     :  Strictly_positive_int.t   ;
+      psi_det_size :  Strictly_positive_int.t ;
+      n_det_generators : Strictly_positive_int.t option;
+      n_det_selectors : Strictly_positive_int.t option;
+      psi_det   :  string                    ;
+      psi_coef  :  string                    ;
+  }
+  val create : n_state:Strictly_positive_int.t
+     -> n_det:Strictly_positive_int.t 
+     -> psi_det_size:Strictly_positive_int.t 
+     -> n_det_generators:Strictly_positive_int.t option
+     -> n_det_selectors:Strictly_positive_int.t option
+     -> psi_det:string -> psi_coef:string -> t
+end = struct
+  type t = 
+  {
+      n_state   :  Strictly_positive_int.t   ;
+      n_det     :  Strictly_positive_int.t   ;
+      psi_det_size :  Strictly_positive_int.t ;
+      n_det_generators : Strictly_positive_int.t option;
+      n_det_selectors : Strictly_positive_int.t option;
+      psi_det   :  string                    ;
+      psi_coef  :  string                    ;
+  }
+  let create ~n_state ~n_det ~psi_det_size
+    ~n_det_generators ~n_det_selectors ~psi_det ~psi_coef =
+    assert (Strictly_positive_int.to_int n_det <=
+            Strictly_positive_int.to_int psi_det_size );
+    {  n_state; n_det ; psi_det_size ;
+       n_det_generators ; n_det_selectors ;
+       psi_det ; psi_coef }
+end
+
+(** GetPsiReply_msg : Reply to the GetPsi message *)
+module GetPsiReply_msg : sig
+  type t =
+  { client_id :  Id.Client.t ;
+    psi       :  Psi.t }
+  val create : client_id:Id.Client.t -> psi:Psi.t -> t
+  val to_string_list : t -> string list
+  val to_string : t -> string
+end = struct
+  type t = 
+  { client_id :  Id.Client.t ;
+    psi       :  Psi.t }
+  let create ~client_id ~psi =
+    {  client_id ; psi }
+  let to_string_list x =
+    let g, s = 
+      match x.psi.Psi.n_det_generators, x.psi.Psi.n_det_selectors with
+      | Some g, Some s -> Strictly_positive_int.to_int g, Strictly_positive_int.to_int s
+      | _ -> -1, -1
+    in
+    [ Printf.sprintf "get_psi_reply %d %d %d %d %d %d"
+      (Id.Client.to_int x.client_id)
+      (Strictly_positive_int.to_int x.psi.Psi.n_state)
+      (Strictly_positive_int.to_int x.psi.Psi.n_det) 
+      (Strictly_positive_int.to_int x.psi.Psi.psi_det_size)
+      g s ;
+      x.psi.Psi.psi_det ; x.psi.Psi.psi_coef ]
+  let to_string x =
+    let g, s = 
+      match x.psi.Psi.n_det_generators, x.psi.Psi.n_det_selectors with
+      | Some g, Some s -> Strictly_positive_int.to_int g, Strictly_positive_int.to_int s
+      | _ -> -1, -1
+    in
+    Printf.sprintf "get_psi_reply %d %d %d %d %d %d"
+      (Id.Client.to_int x.client_id)
+      (Strictly_positive_int.to_int x.psi.Psi.n_state)
+      (Strictly_positive_int.to_int x.psi.Psi.n_det) 
+      (Strictly_positive_int.to_int x.psi.Psi.psi_det_size) 
+      g s
+end
+
+
+(** PutPsi : put the current variational wave function *)
+module PutPsi_msg : sig
+  type t = 
+  { client_id :  Id.Client.t ;
+    n_state   :  Strictly_positive_int.t ;
+    n_det     :  Strictly_positive_int.t ;
+    psi_det_size :  Strictly_positive_int.t ;
+    n_det_generators : Strictly_positive_int.t option;
+    n_det_selectors  : Strictly_positive_int.t option;
+    psi       :  Psi.t option }
+  val create : 
+     client_id:string ->
+     n_state:string ->
+     n_det:string ->
+     psi_det_size:string ->
+     psi_det:string option ->
+     psi_coef:string option ->
+     n_det_generators: string option -> 
+     n_det_selectors:string option ->  t
+  val to_string_list : t -> string list
+  val to_string : t -> string 
+end = struct
+  type t = 
+  { client_id :  Id.Client.t ;
+    n_state   :  Strictly_positive_int.t ;
+    n_det     :  Strictly_positive_int.t ;
+    psi_det_size :  Strictly_positive_int.t ;
+    n_det_generators : Strictly_positive_int.t option;
+    n_det_selectors  : Strictly_positive_int.t option;
+    psi       :  Psi.t option }
+  let create ~client_id ~n_state ~n_det ~psi_det_size ~psi_det ~psi_coef 
+    ~n_det_generators ~n_det_selectors  =
+    let n_state, n_det, psi_det_size = 
+       Int.of_string n_state 
+       |> Strictly_positive_int.of_int ,
+       Int.of_string n_det
+       |> Strictly_positive_int.of_int ,
+       Int.of_string psi_det_size
+       |> Strictly_positive_int.of_int
+    in
+    assert (Strictly_positive_int.to_int psi_det_size >=
+      Strictly_positive_int.to_int n_det);
+    let n_det_generators, n_det_selectors  =
+      match n_det_generators, n_det_selectors  with
+      | Some x, Some y -> 
+         Some (Strictly_positive_int.of_int @@ Int.of_string x), 
+         Some (Strictly_positive_int.of_int @@ Int.of_string y)
+      | _ -> None, None
+    in
+    let psi =
+      match (psi_det, psi_coef) with
+      | (Some psi_det, Some psi_coef) ->
+        Some (Psi.create ~n_state ~n_det ~psi_det_size ~psi_det
+          ~psi_coef ~n_det_generators ~n_det_selectors)
+      | _ -> None
+    in
+    { client_id = Id.Client.of_string client_id ;
+      n_state ; n_det ; psi_det_size ; n_det_generators ;
+      n_det_selectors ; psi }
+  let to_string_list x =
+    match x.n_det_generators, x.n_det_selectors, x.psi with
+    | Some g, Some s, Some psi ->
+      [ Printf.sprintf "put_psi %d %d %d %d %d %d"
+        (Id.Client.to_int x.client_id)
+        (Strictly_positive_int.to_int x.n_state)
+        (Strictly_positive_int.to_int x.n_det) 
+        (Strictly_positive_int.to_int x.psi_det_size)  
+        (Strictly_positive_int.to_int g)  
+        (Strictly_positive_int.to_int s) ; 
+          psi.Psi.psi_det ; psi.Psi.psi_coef ]
+    | Some g, Some s, None ->
+      [ Printf.sprintf "put_psi %d %d %d %d %d %d"
+        (Id.Client.to_int x.client_id)
+        (Strictly_positive_int.to_int x.n_state)
+        (Strictly_positive_int.to_int x.n_det) 
+        (Strictly_positive_int.to_int x.psi_det_size)  
+        (Strictly_positive_int.to_int g)  
+        (Strictly_positive_int.to_int s) ; 
+          "None" ; "None" ]
+    | _ ->
+      [ Printf.sprintf "put_psi %d %d %d %d -1 -1"
+        (Id.Client.to_int x.client_id)
+        (Strictly_positive_int.to_int x.n_state)
+        (Strictly_positive_int.to_int x.n_det) 
+        (Strictly_positive_int.to_int x.psi_det_size) ;
+          "None" ; "None" ]
+  let to_string x =
+    match x.n_det_generators, x.n_det_selectors, x.psi with
+    | Some g, Some s, Some psi ->
+      Printf.sprintf "put_psi %d %d %d %d %d %d"
+        (Id.Client.to_int x.client_id)
+        (Strictly_positive_int.to_int x.n_state)
+        (Strictly_positive_int.to_int x.n_det) 
+        (Strictly_positive_int.to_int x.psi_det_size)  
+        (Strictly_positive_int.to_int g)  
+        (Strictly_positive_int.to_int s) 
+    | Some g, Some s, None ->
+      Printf.sprintf "put_psi %d %d %d %d %d %d"
+        (Id.Client.to_int x.client_id)
+        (Strictly_positive_int.to_int x.n_state)
+        (Strictly_positive_int.to_int x.n_det) 
+        (Strictly_positive_int.to_int x.psi_det_size)  
+        (Strictly_positive_int.to_int g)  
+        (Strictly_positive_int.to_int s) 
+    | _, _, _ ->
+      Printf.sprintf "put_psi %d %d %d %d %d %d"
+        (Id.Client.to_int x.client_id)
+        (Strictly_positive_int.to_int x.n_state)
+        (Strictly_positive_int.to_int x.n_det) 
+        (Strictly_positive_int.to_int x.psi_det_size)  
+        (-1) (-1)
+end
+
+(** PutPsiReply_msg : Reply to the PutPsi message *)
+module PutPsiReply_msg : sig
+  type t
+  val create : client_id:Id.Client.t -> t
+  val to_string : t -> string
+end = struct
+  type t = 
+  { client_id :  Id.Client.t ;
+  }
+  let create ~client_id =
+    { client_id; }
+  let to_string x =
+    Printf.sprintf "put_psi_reply %d"
+      (Id.Client.to_int x.client_id)
+end
+
 
 (** TaskDone : Inform the server that a task is finished *)
 module TaskDone_msg : sig
   type t =
-  { client_id: Id.Client.t ;
-    state: State.t ;
-    task_id:  Id.Task.t;
-  }
+    { client_id: Id.Client.t ;
+      state:     State.t ;
+      task_id:   Id.Task.t ;
+    }
   val create : state:string -> client_id:string -> task_id:string -> t
   val to_string : t -> string
 end = struct
@@ -215,7 +505,9 @@ end = struct
   let create ~state ~client_id ~task_id = 
     { client_id = Id.Client.of_string client_id ; 
       state = State.of_string state ;
-      task_id  = Id.Task.of_string task_id }
+      task_id  = Id.Task.of_string task_id;
+    }
+
   let to_string x =
     Printf.sprintf "task_done %s %d %d"
       (State.to_string x.state)
@@ -262,19 +554,26 @@ end
 (** Message *)
 
 type t =
-| Newjob          of Newjob_msg.t
-| Connect         of Connect_msg.t
-| ConnectReply    of ConnectReply_msg.t
-| Disconnect      of Disconnect_msg.t
-| DisconnectReply of DisconnectReply_msg.t
-| GetTask         of GetTask_msg.t
-| GetTaskReply    of GetTaskReply_msg.t
-| AddTask         of AddTask_msg.t
-| AddTaskReply    of AddTaskReply_msg.t
-| TaskDone        of TaskDone_msg.t
-| Terminate       of Terminate_msg.t
-| Ok              of Ok_msg.t
-| Error           of Error_msg.t
+| GetPsi              of  GetPsi_msg.t
+| PutPsi              of  PutPsi_msg.t
+| GetPsiReply         of  GetPsiReply_msg.t
+| PutPsiReply         of  PutPsiReply_msg.t
+| Newjob              of  Newjob_msg.t
+| Endjob              of  Endjob_msg.t
+| Connect             of  Connect_msg.t
+| ConnectReply        of  ConnectReply_msg.t
+| Disconnect          of  Disconnect_msg.t
+| DisconnectReply     of  DisconnectReply_msg.t
+| GetTask             of  GetTask_msg.t
+| GetTaskReply        of  GetTaskReply_msg.t
+| DelTask             of  DelTask_msg.t
+| DelTaskReply        of  DelTaskReply_msg.t
+| AddTask             of  AddTask_msg.t
+| AddTaskReply        of  AddTaskReply_msg.t
+| TaskDone            of  TaskDone_msg.t
+| Terminate           of  Terminate_msg.t
+| Ok                  of  Ok_msg.t
+| Error               of  Error_msg.t
 
 
 let of_string s = 
@@ -286,6 +585,8 @@ let of_string s =
   match l with
   | "add_task"   :: state :: task ->
        AddTask (AddTask_msg.create ~state ~task:(String.concat ~sep:" " task) )
+  | "del_task"   :: state :: task_id :: [] ->
+       DelTask (DelTask_msg.create ~state ~task_id)
   | "get_task"   :: state :: client_id :: [] ->
        GetTask (GetTask_msg.create ~state ~client_id)
   | "task_done"  :: state :: client_id :: task_id :: [] ->
@@ -296,8 +597,19 @@ let of_string s =
        Connect (Connect_msg.create t)
   | "new_job"    :: state :: push_address_tcp :: push_address_inproc :: [] -> 
        Newjob (Newjob_msg.create push_address_tcp push_address_inproc state)
+  | "end_job"    :: state :: [] -> 
+       Endjob (Endjob_msg.create state)
   | "terminate"  :: [] ->
        Terminate (Terminate_msg.create () )
+  | "get_psi"    :: client_id :: [] ->
+       GetPsi   (GetPsi_msg.create ~client_id)
+  | "put_psi"    :: client_id :: n_state :: n_det :: psi_det_size :: n_det_generators :: n_det_selectors :: [] ->
+       PutPsi   (PutPsi_msg.create ~client_id ~n_state ~n_det ~psi_det_size
+                 ~n_det_generators:(Some n_det_generators) ~n_det_selectors:(Some n_det_selectors)
+                 ~psi_det:None ~psi_coef:None )
+  | "put_psi"    :: client_id :: n_state :: n_det :: psi_det_size :: [] ->
+       PutPsi   (PutPsi_msg.create ~client_id ~n_state ~n_det ~psi_det_size ~n_det_generators:None
+                ~n_det_selectors:None ~psi_det:None ~psi_coef:None )
   | "ok"         :: [] ->
        Ok (Ok_msg.create ())
   | "error"      :: rest ->
@@ -306,18 +618,29 @@ let of_string s =
     
 
 let to_string = function
-| Newjob        x -> Newjob_msg.to_string       x
-| Connect       x -> Connect_msg.to_string      x
-| ConnectReply  x -> ConnectReply_msg.to_string x
-| Disconnect    x -> Disconnect_msg.to_string   x
-| DisconnectReply  x -> DisconnectReply_msg.to_string x
-| GetTask       x -> GetTask_msg.to_string      x
-| GetTaskReply  x -> GetTaskReply_msg.to_string x
-| AddTask       x -> AddTask_msg.to_string      x
-| AddTaskReply  x -> AddTaskReply_msg.to_string x
-| TaskDone      x -> TaskDone_msg.to_string     x
-| Terminate     x -> Terminate_msg.to_string    x
-| Ok            x -> Ok_msg.to_string           x
-| Error         x -> Error_msg.to_string        x
+| GetPsi              x -> GetPsi_msg.to_string             x
+| PutPsiReply         x -> PutPsiReply_msg.to_string        x
+| Newjob              x -> Newjob_msg.to_string             x
+| Endjob              x -> Endjob_msg.to_string             x
+| Connect             x -> Connect_msg.to_string            x
+| ConnectReply        x -> ConnectReply_msg.to_string       x
+| Disconnect          x -> Disconnect_msg.to_string         x
+| DisconnectReply     x -> DisconnectReply_msg.to_string    x
+| GetTask             x -> GetTask_msg.to_string            x
+| GetTaskReply        x -> GetTaskReply_msg.to_string       x
+| DelTask             x -> DelTask_msg.to_string           x
+| DelTaskReply        x -> DelTaskReply_msg.to_string      x
+| AddTask             x -> AddTask_msg.to_string            x
+| AddTaskReply        x -> AddTaskReply_msg.to_string       x
+| TaskDone            x -> TaskDone_msg.to_string           x
+| Terminate           x -> Terminate_msg.to_string          x
+| Ok                  x -> Ok_msg.to_string                 x
+| Error               x -> Error_msg.to_string              x
+| PutPsi              x -> PutPsi_msg.to_string             x
+| GetPsiReply         x -> GetPsiReply_msg.to_string        x
 
 
+let to_string_list = function
+| PutPsi           x -> PutPsi_msg.to_string_list     x
+| GetPsiReply      x -> GetPsiReply_msg.to_string_list x
+| _                  -> assert false

@@ -14,7 +14,7 @@ program cisd_sc2_selected
   perturbation = "epstein_nesbet_sc2_projected"
                  
   E_old(1) = HF_energy
-  davidson_threshold = 1.d-10
+  threshold_davidson = 1.d-10
   if (N_det > N_det_max) then
     call diagonalize_CI_SC2
     call save_wavefunction
@@ -59,9 +59,6 @@ program cisd_sc2_selected
      else 
       i_count = 0
      endif
-    if (abort_all) then
-      exit
-    endif
 
     ! =~=~=~=~=~=~=~=~=~=~=~=~=~!
     ! W r i t e _ o n _ d i s k !
@@ -71,8 +68,8 @@ program cisd_sc2_selected
 
   enddo
   N_det = min(N_det_max,N_det)
-  davidson_threshold = 1.d-10
-  touch N_det psi_det psi_coef davidson_threshold davidson_criterion
+  threshold_davidson = 1.d-10
+  touch N_det psi_det psi_coef threshold_davidson davidson_criterion
   call diagonalize_CI_SC2
   pt2 = 0.d0
  

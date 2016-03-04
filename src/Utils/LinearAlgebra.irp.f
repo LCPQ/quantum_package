@@ -277,10 +277,10 @@ subroutine apply_rotation(A,LDA,R,LDR,B,LDB,m,n)
   BEGIN_DOC
   ! Apply the rotation found by find_rotation
   END_DOC
+  integer, intent(in)            :: m,n, LDA, LDB, LDR
   double precision, intent(in)   :: R(LDR,n)
   double precision, intent(in)   :: A(LDA,n)
   double precision, intent(out)  :: B(LDB,n)
-  integer, intent(in)            :: m,n, LDA, LDB, LDR
   call dgemm('N','N',m,n,n,1.d0,A,LDA,R,LDR,0.d0,B,LDB)
 end
 

@@ -29,6 +29,8 @@ end = struct
 
   let get_default = Qpackage.get_ezfio_default "determinants";;
 
+  let n_det_read_max = 10_000 ;;
+
   let read_n_int () =
     if not (Ezfio.has_determinants_n_int()) then
        Ezfio.get_mo_basis_mo_tot_num ()
@@ -155,44 +157,58 @@ end = struct
 
 
   let read_psi_det () =
-    let n_int = read_n_int () 
-    and n_alpha = Ezfio.get_electrons_elec_alpha_num ()
+      let n_int = 
+        read_n_int () 
+      and alpha =
+        Ezfio.get_electrons_elec_alpha_num ()
         |> Elec_alpha_number.of_int 
-    and n_beta = Ezfio.get_electrons_elec_beta_num ()
+      and beta =
+        Ezfio.get_electrons_elec_beta_num ()
         |> Elec_beta_number.of_int 
-    in
-    if not (Ezfio.has_determinants_psi_det ()) then
-      begin
-        let mo_tot_num = MO_number.get_max () in
-        let rec build_data accu =  function
-          | 0 -> accu
-          | n -> build_data ((MO_number.of_int ~max:mo_tot_num n)::accu) (n-1)
-        in
-        let det_a = build_data [] (Elec_alpha_number.to_int n_alpha)
-          |> Bitlist.of_mo_number_list n_int
-        and det_b = build_data [] (Elec_beta_number.to_int n_beta)
-          |> Bitlist.of_mo_number_list n_int
-        in
-        let data = ( (Bitlist.to_int64_list det_a) @ 
-          (Bitlist.to_int64_list det_b) ) 
-        in
-        Ezfio.ezfio_array_of_list ~rank:3 ~dim:[| N_int_number.to_int n_int ; 2 ; 1 |] ~data:data
-          |> Ezfio.set_determinants_psi_det ;
-      end  ;
-    let n_int = N_int_number.to_int n_int in
-    let psi_det_array = Ezfio.get_determinants_psi_det () in
-    let dim = psi_det_array.Ezfio.dim
-    and data =  Ezfio.flattened_ezfio psi_det_array
-    in
-    assert (n_int = dim.(0));
-    assert (dim.(1) = 2);
-    assert (dim.(2) = (Det_number.to_int (read_n_det ())));
-    List.init dim.(2) ~f:(fun i ->
-      Array.sub ~pos:(2*n_int*i) ~len:(2*n_int) data)
-    |> List.map ~f:(Determinant.of_int64_array
-      ~n_int:(N_int_number.of_int n_int)
-      ~alpha:n_alpha ~beta:n_beta )
-    |> Array.of_list
+      in
+      if not (Ezfio.has_determinants_psi_det ()) then
+        begin
+            let mo_tot_num =
+                MO_number.get_max ()
+            in
+            let rec build_data accu =  function
+              | 0 -> accu
+              | n -> build_data ((MO_number.of_int ~max:mo_tot_num n)::accu) (n-1)
+            in
+            let det_a =
+                build_data [] (Elec_alpha_number.to_int alpha)
+                |> Bitlist.of_mo_number_list n_int
+            and det_b =
+                build_data [] (Elec_beta_number.to_int beta)
+                |> Bitlist.of_mo_number_list n_int
+            in
+            let data =
+              ( (Bitlist.to_int64_list det_a) @ 
+                (Bitlist.to_int64_list det_b) ) 
+            in
+            Ezfio.ezfio_array_of_list ~rank:3 ~dim:[| N_int_number.to_int n_int ; 2 ; 1 |] ~data:data
+              |> Ezfio.set_determinants_psi_det ;
+        end  ;
+      let n_int_i =
+          N_int_number.to_int n_int in
+      let psi_det_array =
+          Ezfio.get_determinants_psi_det ()
+      in
+      let dim =
+          psi_det_array.Ezfio.dim
+      and data = 
+          Ezfio.flattened_ezfio psi_det_array
+      in
+      assert (n_int_i = dim.(0));
+      assert (dim.(1) = 2);
+      assert (dim.(2) = (Det_number.to_int (read_n_det ())));
+      let len = 
+        2 * n_int_i
+      in
+      Array.init dim.(2) ~f:(fun i ->
+         Array.sub ~pos:(len * i) ~len data
+         |> Determinant.of_int64_array ~n_int ~alpha ~beta 
+      )
   ;;
 
   let write_psi_det ~n_int ~n_det d =
@@ -207,14 +223,20 @@ end = struct
 
   let read () =
     if (Ezfio.has_mo_basis_mo_tot_num ()) then
-      Some
-      { n_int                  = read_n_int ()                ;
-        bit_kind               = read_bit_kind ()             ;
-        n_det                  = read_n_det ()                ;
-        expected_s2            = read_expected_s2 ()          ;
-        psi_coef               = read_psi_coef ()             ;
-        psi_det                = read_psi_det ()              ;
-      }
+      let n_det = 
+         read_n_det ()
+      in
+      if ( (Det_number.to_int n_det) > n_det_read_max ) then
+        None
+      else
+        Some
+        { n_int                  = read_n_int ()                ;
+          bit_kind               = read_bit_kind ()             ;
+          n_det                  = read_n_det ()                ;
+          expected_s2            = read_expected_s2 ()          ;
+          psi_coef               = read_psi_coef ()             ;
+          psi_det                = read_psi_det ()              ;
+        }
     else
       None
   ;;
@@ -236,11 +258,16 @@ end = struct
 
 
   let to_rst b =
-    let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () in
-    let mo_tot_num = MO_number.of_int mo_tot_num ~max:mo_tot_num in
+    let max =
+      Ezfio.get_mo_basis_mo_tot_num () 
+    in
+    let mo_tot_num =
+      MO_number.of_int ~max max
+    in
     let det_text = 
       let nstates =
-        read_n_states () |> States_number.to_int
+        read_n_states ()
+        |> States_number.to_int
       and ndet =
         Det_number.to_int b.n_det
       in
@@ -259,13 +286,9 @@ end = struct
         |> String.concat_array ~sep:"\t"
       in
       Array.init ndet ~f:(fun i ->
-        Printf.sprintf "  %s\n%s\n"
-          (coefs_string i)
-          (Determinant.to_string ~mo_tot_num:mo_tot_num b.psi_det.(i)
-           |> String.split ~on:'\n'
-           |> List.map ~f:(fun x -> "  "^x)
-           |> String.concat ~sep:"\n"
-          )
+        String.concat [ "  " ; 
+          (coefs_string i) ; "\n" ; 
+          (Determinant.to_string ~mo_tot_num b.psi_det.(i)) ; "\n" ]
       )
       |> String.concat_array ~sep:"\n"
     in
@@ -311,18 +334,18 @@ psi_det                = %s
   ;;
 
   let of_rst r =
-    let r = Rst_string.to_string r
+    let dets = Rst_string.to_string r
     in
 
     (* Split into header and determinants data *)
-    let idx = String.substr_index_exn r ~pos:0 ~pattern:"\nDeterminants"
+    let idx = String.substr_index_exn dets ~pos:0 ~pattern:"\nDeterminants"
     in
-    let (header, dets) = 
-       (String.prefix r idx, String.suffix r ((String.length r)-idx) )
+    let header = 
+       String.prefix dets idx
     in
 
     (* Handle header *)
-    let header = r
+    let header = header
     |> String.split ~on:'\n'
     |> List.filter ~f:(fun line ->
         if (line = "") then
@@ -338,87 +361,136 @@ psi_det                = %s
     |> String.concat 
     in
 
-    (* Handle determinant coefs *)
-    let dets = match ( dets
-      |> String.split ~on:'\n'
-      |> List.map ~f:(String.strip)
-    ) with 
-    | _::lines -> lines 
-    | _ -> failwith "Error in determinants"
-    in
+    (* Handle determinants and coefs *)
+    let dets_stream = 
 
-    let psi_coef = 
-      let rec read_coefs accu = function
-      | [] -> List.rev accu
-      | ""::""::tail -> read_coefs accu tail
-      | ""::c::tail -> 
-          let c =
-            String.split ~on:'\t' c
-            |> List.map ~f:(fun x -> Det_coef.of_float (Float.of_string x))
-            |> Array.of_list
-          in
-          read_coefs (c::accu) tail
-      | _::tail -> read_coefs accu tail
+      let ipos, jmax =
+        ref idx,  String.length dets
+      in
+      let next_line =
+        Stream.from (fun _ ->
+          let rec loop line =
+            let j = 
+              !ipos + 1
+            in
+            ipos := j;
+            if (j < jmax) then
+              match dets.[j] with
+              | '\n' -> Some (String.of_char_list @@ List.rev line )
+              | ' '  -> loop line 
+              | c    -> loop (c :: line) 
+            else
+              None
+          in loop []
+        )
+      in
+      ignore @@ Stream.next next_line; (* Determinants :: *)
+      ignore @@ Stream.next next_line; (*                 *)
+      Stream.from (fun _ ->
+          try
+            begin
+              let result =
+                let coefs = 
+                  let line = 
+                     Stream.next next_line
+                  in
+                  String.split ~on:'\t' line
+                  |> Array.of_list
+                  |> Array.map ~f:(fun x -> Det_coef.of_float @@ Float.of_string x)
+                in
+                Some (coefs,
+                      Stream.next next_line |> String.rev,
+                      Stream.next next_line |> String.rev )
+              in
+              ignore @@ Stream.next next_line;
+              result
+            end
+          with
+          | Stream.Failure -> None
+      )
+    in
+      
+ 
+        
+    let psi_coef, psi_det = 
+
+      let alpha =
+        Ezfio.get_electrons_elec_alpha_num ()
+        |> Elec_alpha_number.of_int 
+      and beta = 
+        Ezfio.get_electrons_elec_beta_num ()
+        |> Elec_beta_number.of_int 
+      and n_int =
+        N_int_number.get_max ()
+        |> N_int_number.of_int
+      in
+
+      let rec read coefs dets_bit = function
+        | None -> (List.rev coefs), (List.rev dets_bit)
+        | Some (c, alpha_str, beta_str) -> 
+            begin
+                ignore @@ Stream.next dets_stream;
+                let new_coefs = 
+                   c :: coefs
+                and new_dets =
+                  let newdet =
+                    (Bitlist.of_string_mp alpha_str, Bitlist.of_string_mp beta_str)
+                    |> Determinant.of_bitlist_couple ~n_int ~alpha ~beta
+                  in
+                  newdet :: dets_bit
+                in
+                read new_coefs new_dets (Stream.peek dets_stream)
+            end
+      in
+        
+      let coefs, dets_bit = 
+          read [] [] (Stream.peek dets_stream)
+      in
+      let nstates =
+          List.hd_exn coefs |> Array.length
       in
       let a =
-        let buffer = 
-          read_coefs [] dets
-        in
-        let nstates =
-          List.hd_exn buffer
-          |> Array.length
-        in
-        let extract_state i = 
-          let i = 
-            i-1
+          let extract_state i = 
+            let i = 
+              i-1
+            in
+            List.map ~f:(fun x -> x.(i)) coefs
           in
-          List.map ~f:(fun x -> Det_coef.to_string x.(i)) buffer
-          |> String.concat ~sep:" "
-        in
-        let rec build_result = function
-        | 1 -> extract_state 1
-        | i -> (build_result (i-1))^" "^(extract_state i)
-        in
-        build_result nstates 
+          let rec build_result accu = function
+          | 0 -> accu
+          | i -> 
+              let new_accu =
+                (extract_state i) :: accu
+              in
+              build_result new_accu (i-1)
+          in
+          build_result [] nstates 
       in
-      "(psi_coef ("^a^"))"
+      let new_coefs =
+          List.concat a |> Array.of_list
+      and new_dets = 
+          Array.of_list dets_bit
+      in
+      new_coefs, new_dets
     in
 
-    (* Handle determinants *)
-    let psi_det = 
-      let n_alpha = Ezfio.get_electrons_elec_alpha_num ()
-        |> Elec_alpha_number.of_int 
-      and n_beta = Ezfio.get_electrons_elec_beta_num ()
-        |> Elec_beta_number.of_int 
-      in
-      let rec read_dets accu = function
-      | [] -> List.rev accu
-      | ""::c::alpha::beta::tail -> 
-          begin
-            let alpha = String.rev alpha |> Bitlist.of_string ~zero:'-' ~one:'+'
-            and beta  = String.rev beta  |> Bitlist.of_string ~zero:'-' ~one:'+'
-            in
-            let newdet = Determinant.of_bitlist_couple 
-              ~alpha:n_alpha ~beta:n_beta (alpha,beta) 
-            |> Determinant.sexp_of_t |> Sexplib.Sexp.to_string
-            in
-            read_dets (newdet::accu) tail
-          end
-      | _::tail -> read_dets accu tail
-      in
-      let a = read_dets [] dets
-      |> String.concat 
-      in
-      "(psi_det ("^a^"))"
-    in
 
-    let bitkind = Printf.sprintf "(bit_kind %d)" (Lazy.force Qpackage.bit_kind
+    let bitkind = 
+      Printf.sprintf "(bit_kind %d)" (Lazy.force Qpackage.bit_kind
       |> Bit_kind.to_int)
-    and n_int = Printf.sprintf "(n_int %d)" (N_int_number.get_max ()) in
-    let s = String.concat [ header ; bitkind ; n_int ; psi_coef ; psi_det]
+    and n_int =
+      Printf.sprintf "(n_int %d)" (N_int_number.get_max ())
     in
-
-    Generic_input_of_rst.evaluate_sexp t_of_sexp s
+    let s =
+      [ header ; bitkind ; n_int ; "(psi_coef ())" ; "(psi_det ())"]
+      |> String.concat 
+    in
+    let result = 
+      Generic_input_of_rst.evaluate_sexp t_of_sexp s
+    in
+    match result with
+    | Some x -> Some { x with psi_coef ; psi_det }
+    | None -> None
   ;;
 
 end

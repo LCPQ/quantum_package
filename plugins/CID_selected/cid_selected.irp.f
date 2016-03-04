@@ -26,9 +26,6 @@ program cisd
 !   print *,  'E+PT2_new= ', (E_old(1)+1.d0*pt2(1)+H_pert_diag(1))/(1.d0 +norm_pert(1))
     enddo
     E_old = CI_energy
-    if (abort_all) then
-      exit
-    endif
   enddo
   deallocate(pt2,norm_pert,H_pert_diag)
 end

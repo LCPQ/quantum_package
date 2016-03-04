@@ -84,9 +84,6 @@ program full_ci
     endif
     E_CI_before = CI_energy
     call ezfio_set_full_ci_energy(CI_energy)
-    if (abort_all) then
-      exit
-    endif
   enddo
    N_det = min(N_det_max,N_det)
    touch N_det psi_det psi_coef
