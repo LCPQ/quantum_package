@@ -51,9 +51,6 @@ program full_ci
     print *,  'E+PT2    = ', CI_energy+pt2
     print *,  '-----'
     call ezfio_set_cas_sd_energy(CI_energy(1))
-    if (abort_all) then
-      exit
-    endif
   enddo
   call diagonalize_CI
 

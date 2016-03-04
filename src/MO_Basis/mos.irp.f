@@ -146,9 +146,9 @@ subroutine ao_to_mo(A_ao,LDA_ao,A_mo,LDA_mo)
   BEGIN_DOC
   ! Transform A from the AO basis to the MO basis
   END_DOC
+  integer, intent(in)            :: LDA_ao,LDA_mo
   double precision, intent(in)   :: A_ao(LDA_ao)
   double precision, intent(out)  :: A_mo(LDA_mo)
-  integer, intent(in)            :: LDA_ao,LDA_mo
   double precision, allocatable  :: T(:,:)
   
   allocate ( T(ao_num_align,mo_tot_num) )
@@ -172,9 +172,9 @@ subroutine mo_to_ao(A_mo,LDA_mo,A_ao,LDA_ao)
   BEGIN_DOC
   ! Transform A from the MO basis to the AO basis
   END_DOC
+  integer, intent(in)            :: LDA_ao,LDA_mo
   double precision, intent(in)   :: A_mo(LDA_mo)
   double precision, intent(out)  :: A_ao(LDA_ao)
-  integer, intent(in)            :: LDA_ao,LDA_mo
   double precision, allocatable  :: T(:,:), SC(:,:)
   
   allocate ( SC(ao_num_align,mo_tot_num) )
@@ -204,9 +204,9 @@ subroutine mo_to_ao_no_overlap(A_mo,LDA_mo,A_ao,LDA_ao)
   BEGIN_DOC
   ! Transform A from the MO basis to the S^-1 AO basis
   END_DOC
+  integer, intent(in)            :: LDA_ao,LDA_mo
   double precision, intent(in)   :: A_mo(LDA_mo)
   double precision, intent(out)  :: A_ao(LDA_ao)
-  integer, intent(in)            :: LDA_ao,LDA_mo
   double precision, allocatable  :: T(:,:)
   
   allocate ( T(mo_tot_num_align,ao_num) )

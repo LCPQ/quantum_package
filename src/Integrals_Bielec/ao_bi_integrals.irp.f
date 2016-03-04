@@ -378,20 +378,31 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   call cpu_time(cpu_1)
 
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
-  call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
-
-  
   character*(32) :: task
 
+  call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
+
   do l=1,ao_num
-    write(task,*) 'triangle', l
+    write(task,*) l
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   enddo
 
-  external :: ao_bielec_integrals_in_map_slave_inproc, ao_bielec_integrals_in_map_collector
-  call new_parallel_threads(ao_bielec_integrals_in_map_slave_inproc, ao_bielec_integrals_in_map_collector)
+  integer(ZMQ_PTR)               :: collector_thread
+  external                       :: ao_bielec_integrals_in_map_collector
+  rc = pthread_create(collector_thread, ao_bielec_integrals_in_map_collector)
 
-  call end_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
+  !$OMP PARALLEL DEFAULT(private) 
+    !$OMP TASK PRIVATE(i) 
+      i = omp_get_thread_num()
+      call ao_bielec_integrals_in_map_slave_inproc(i)
+    !$OMP END TASK
+    !$OMP TASKWAIT
+  !$OMP END PARALLEL
+
+  rc = pthread_join(collector_thread)
+
+  call end_parallel_job(zmq_to_qp_run_socket, 'ao_integrals')
+
 
   print*, 'Sorting the map'
   call map_sort(ao_integrals_map)

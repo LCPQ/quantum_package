@@ -119,9 +119,6 @@ program casscf
     E_CI = sum(CI_energy(1:N_states)+pt2(1:N_states))/dble(N_states)
 
     call ezfio_set_casscf_energy(CI_energy(1))
-    if (abort_all) then
-      exit
-    endif
     if (N_det == N_det_old) then
       exit
     endif

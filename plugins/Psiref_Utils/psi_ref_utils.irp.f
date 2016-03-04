@@ -125,7 +125,7 @@ BEGIN_PROVIDER [double precision, H_matrix_ref, (N_det_ref,N_det_ref)]
   enddo
 END_PROVIDER
 
- BEGIN_PROVIDER [double precision, psi_coef_ref_diagonalized, (N_det_ref,N_states)]
+ BEGIN_PROVIDER [double precision, psi_ref_coef_diagonalized, (N_det_ref,N_states)]
 &BEGIN_PROVIDER [double precision, psi_ref_energy_diagonalized, (N_states)]
  implicit none
  integer :: i,j
@@ -137,9 +137,11 @@ END_PROVIDER
   do i = 1, N_states
    psi_ref_energy_diagonalized(i) = eigenvalues(i)
    do j = 1, N_det_ref
-    psi_coef_ref_diagonalized(j,i) = eigenvectors(j,i)
+    psi_ref_coef_diagonalized(j,i) = eigenvectors(j,i)
    enddo
   enddo
+  deallocate (eigenvectors)
+  deallocate (eigenvalues)
 
 
  END_PROVIDER
@@ -263,4 +265,19 @@ integer function get_index_in_psi_ref_sorted_bit(key,Nint)
   enddo
 
 end
+
+BEGIN_PROVIDER [double precision, ref_hamiltonian_matrix, (n_det_ref,n_det_ref)]
+ BEGIN_DOC
+ ! H matrix in the Reference space
+ END_DOC
+ implicit none
+ integer :: i,j
+ double precision :: hij
+ do i = 1, N_det_ref
+  do j = 1, N_det_ref
+   call i_H_j(psi_ref(1,1,i),psi_ref(1,1,j),N_int,hij)
+   ref_hamiltonian_matrix(i,j) = hij
+  enddo
+ enddo
+END_PROVIDER
 

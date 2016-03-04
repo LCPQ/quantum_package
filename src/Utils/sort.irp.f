@@ -6,9 +6,9 @@ BEGIN_TEMPLATE
   ! iorder in input should be (1,2,3,...,isize), and in output
   ! contains the new order of the elements.
   END_DOC
+  integer,intent(in)             :: isize
   $type,intent(inout)            :: x(isize)
   integer,intent(inout)          :: iorder(isize)
-  integer,intent(in)             :: isize
   $type                          :: xtmp
   integer                        :: i, i0, j, jmax
   
@@ -36,9 +36,9 @@ BEGIN_TEMPLATE
   ! iorder in input should be (1,2,3,...,isize), and in output
   ! contains the new order of the elements.
   END_DOC
+  integer,intent(in)             :: isize
   $type,intent(inout)            :: x(isize)
   integer,intent(inout)          :: iorder(isize)
-  integer,intent(in)             :: isize
   
   integer                        :: i, k, j, l, i0
   $type                          :: xtemp
@@ -101,9 +101,9 @@ BEGIN_TEMPLATE
   ! This is a version for very large arrays where the indices need
   ! to be in integer*8 format
   END_DOC
+  integer*8,intent(in)           :: isize
   $type,intent(inout)            :: x(isize)
   integer*8,intent(inout)        :: iorder(isize)
-  integer*8,intent(in)           :: isize
   
   integer*8                      :: i, k, j, l, i0
   $type                          :: xtemp
@@ -165,9 +165,9 @@ BEGIN_TEMPLATE
   ! iorder in input should be (1,2,3,...,isize), and in output
   ! contains the new order of the elements.
   END_DOC
+  integer,intent(in)             :: isize
   $type,intent(inout)            :: x(isize)
   integer,intent(inout)          :: iorder(isize)
-  integer,intent(in)             :: isize
   if (isize < 32) then
     call insertion_$Xsort(x,iorder,isize)
   else
@@ -226,9 +226,9 @@ BEGIN_TEMPLATE
   ! This is a version for very large arrays where the indices need
   ! to be in integer*8 format
   END_DOC
+  integer*8,intent(in)           :: isize
   $type,intent(inout)            :: x(isize)
   integer*8,intent(inout)        :: iorder(isize)
-  integer*8,intent(in)           :: isize
   $type                          :: xtmp
   integer*8                      :: i, i0, j, jmax
   
@@ -298,6 +298,7 @@ BEGIN_TEMPLATE
   integer, intent(in)            :: iradix
   integer                        :: iradix_new
   $type, allocatable             :: x2(:), x1(:)
+  $type                          :: i4
   $int_type, allocatable         :: iorder1(:),iorder2(:)
   $int_type                      :: i0, i1, i2, i3, i
   integer, parameter             :: integer_size=$octets
@@ -311,11 +312,12 @@ BEGIN_TEMPLATE
     ! Find most significant bit
     
     i0 = 0_8
-    i3 = -1_8
+    i4 = -1_8
     
     do i=1,isize
-      i3 = max(i3,x(i))
+      i4 = max(i4,x(i))
     enddo
+    i3 = i4  ! Type conversion
     
     iradix_new = integer_size-1-leadz(i3)
     mask = ibset(zero,iradix_new)

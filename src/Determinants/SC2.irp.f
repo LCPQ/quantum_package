@@ -91,9 +91,6 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
   e_corr_double_before = e_corr_double
   iter = 0
   do while (.not.converged)
-    if (abort_here) then
-      exit
-    endif
     iter +=1
     !$OMP PARALLEL DEFAULT(NONE)                                     &
         !$OMP PRIVATE(i,j,degree,accu)                               &
@@ -191,14 +188,14 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
     write(output_determinants,'(A)') 'State Energy          '
     write(output_determinants,'(A)') '===== ================'
     do i=1,N_st
-      write(output_determinants,'(I5,X,F16.10)') i, energies(i)+nuclear_repulsion
+      write(output_determinants,'(I5,1X,F16.10)') i, energies(i)+nuclear_repulsion
     enddo
     write(output_determinants,'(A)') '===== ================'
     write(output_determinants,'(A)') ''
     call write_double(output_determinants,(e_corr_double - e_corr_double_before),&
         'Delta(E_corr)')
     converged =  dabs(e_corr_double - e_corr_double_before) < convergence
-    converged = converged .or. abort_here
+    converged = converged 
     if (converged) then
       exit
     endif

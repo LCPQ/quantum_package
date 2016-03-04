@@ -11,6 +11,12 @@ Set of quantum chemistry programs and libraries.
 
 For more information, you can visit the [wiki of the project](http://github.com/LCPQ/quantum_package/wiki>), or below for the installation instructions.
 
+Demo
+====
+
+[![Full-CI energy of C2 in 2 minutes](https://i.vimeocdn.com/video/555047954_295x166.jpg)](https://vimeo.com/scemama/quantum_package_demo "Quantum Package Demo")
+
+
 # Installation
 
 
@@ -142,3 +148,20 @@ You have two or more ezfio configuration files for the same variable. Check file
 
     - rm $QP_ROOT/install/EZFIO/config/*
     - ninja 
+    
+
+### Error: Seg Fault (139)
+
+```
+Segmentation fault (core dumped)
+Program exited with code 139.
+```
+
+#### Why ?
+
+It's caused when we call the DGEM routine of LAPACK. 
+
+##### Fix
+
+Set `ulimit -s unlimited`, before runing `qp_run`. It seem to fix the problem.
+

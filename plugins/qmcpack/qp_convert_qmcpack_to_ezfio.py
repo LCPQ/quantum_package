@@ -338,9 +338,12 @@ print ""
 token = "Determinants ::"
 pos = det_raw.rfind(token) + len(token)
 
+det_without_header = det_raw[pos+2::]
+
 d_rep={"+":"1","-":"0"}
 
 det_without_header = det_raw[pos+2::]
+
 
 for line_raw in det_without_header.split("\n"):
     line = line_raw
@@ -349,13 +352,14 @@ for line_raw in det_without_header.split("\n"):
         try:
             float(line)
         except ValueError:
+
             print line_raw.strip(), len(line_raw.strip())
             print l_order_mo, len(l_order_mo)
 
             line_order = [line_raw[i] for i in l_order_mo]
-            line= "".join([d_rep[x] if x in d_rep else x for x in line_order])
+            line= "".join([d_rep[x] if x in d_rep else x for x in line_raw])
 
-    print line
+    print line.strip()
 
 print "END_DET"
 

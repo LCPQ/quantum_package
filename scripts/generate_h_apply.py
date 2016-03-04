@@ -1,39 +1,59 @@
 #!/usr/bin/env python
 
 import os
-file = open(os.environ["QP_ROOT"]+'/src/Determinants/H_apply.template.f','r')
-template = file.read()
-file.close()
 
 keywords = """
-subroutine
-parameters
-params_main
-initialization
+check_double_excitation
+copy_buffer
 declarations
 decls_main
-keys_work
-copy_buffer
+deinit_thread
+do_double_excitations
+filter1h
+filter1p
+filter2h2p
+filter2p
+filterhole
+filter_integrals
+filter_only_1h1p_double
+filter_only_1h1p_single
+filterparticle
+filter_vvvv_excitation
 finalization
 generate_psi_guess
-init_thread
-printout_now
-printout_always
-deinit_thread
-skip
+initialization
 init_main
-filter_integrals
-filter2h2p
-filterhole
-filterparticle
-do_double_excitations
-check_double_excitation
-filter_vvvv_excitation
+init_thread
+keys_work
+omp_barrier
+omp_do
+omp_enddo
+omp_end_master
+omp_end_parallel
+omp_master
+omp_parallel
+only_2p_double
+only_2p_single
+parameters
+params_main
+printout_always
+printout_now
+skip
+subroutine
 """.split()
 
 class H_apply(object):
 
+  def read_template(self):
+    file = open(os.environ["QP_ROOT"]+'/src/Determinants/H_apply.template.f','r')
+    self.template = file.read()
+    file.close()
+    file = open(os.environ["QP_ROOT"]+'/src/Determinants/H_apply_nozmq.template.f','r')
+    self.template += file.read()
+    file.close()
+
   def __init__(self,sub,SingleRef=False,do_mono_exc=True, do_double_exc=True):
+    self.read_template()
     s = {}
     for k in keywords:
       s[k] = ""
@@ -42,7 +62,7 @@ class H_apply(object):
 
     self.selection_pt2 = None
     self.perturbation = None
-
+    self.do_double_exc = do_double_exc
    #s["omp_parallel"]     = """!$OMP PARALLEL DEFAULT(NONE)          &
     s["omp_parallel"]     = """ PROVIDE elec_num_tab
         !$OMP PARALLEL DEFAULT(SHARED)        &
@@ -117,7 +137,7 @@ class H_apply(object):
     return self.data[key]
 
   def __repr__(self):
-    buffer = template
+    buffer = self.template
     for key,value in self.data.items():
       buffer = buffer.replace('$'+key, value)
     return buffer
@@ -150,6 +170,44 @@ class H_apply(object):
     self["filterparticle"] = """
      if(iand(ibset(0_bit_kind,j_a),hole(k_a,other_spin)).eq.0_bit_kind )cycle
     """
+  def filter_1h(self):
+    self["filter1h"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_1h(hole)) cycle
+    """
+  def filter_2p(self):
+    self["filter2p"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_2p(hole)) cycle
+    """
+  def filter_1p(self):
+    self["filter0p"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_1p(hole)) cycle
+    """
+
+  def filter_only_2p(self):
+    self["only_2p_single"] = """
+!    ! DIR$ FORCEINLINE
+     if (.not. is_a_2p(hole)) cycle
+    """
+    self["only_2p_double"] = """
+!    ! DIR$ FORCEINLINE
+     if (.not. is_a_2p(key)) cycle
+    """
+
+
+  def filter_only_1h1p(self):
+    self["filter_only_1h1p_single"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_1h1p(hole).eqv..False.) cycle
+    """
+    self["filter_only_1h1p_double"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_1h1p(key).eqv..False.) cycle
+    """
+
+
   def unset_skip(self):
     self["skip"] = """
     """
@@ -202,10 +260,19 @@ class H_apply(object):
       self.data["initialization"] = """
       PROVIDE psi_selectors_coef psi_selectors E_corr_per_selectors psi_det_sorted_bit
       """
-      self.data["keys_work"] = """
-      call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-       sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
-      """%(pert,)
+      if self.do_double_exc == True:
+          self.data["keys_work"] = """
+!          if(check_double_excitation)then
+            call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
+             sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
+          """%(pert)
+      else: 
+          self.data["keys_work"] = """
+            call perturb_buffer_by_mono_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
+             sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
+          """%(pert)
+
+
       self.data["finalization"] = """
       """
       self.data["copy_buffer"] = ""
@@ -227,9 +294,9 @@ class H_apply(object):
     delta_pt2(k) = 0.d0
     pt2_old(k) = 0.d0
   enddo
-        write(output_determinants,'(A12, X, A8, 3(2X, A9), 2X, A8, 2X, A8, 2X, A8)') &
+        write(output_determinants,'(A12, 1X, A8, 3(2X, A9), 2X, A8, 2X, A8, 2X, A8)') &
                  'N_generators', 'Norm', 'Delta PT2', 'PT2', 'Est. PT2', 'secs'
-        write(output_determinants,'(A12, X, A8, 3(2X, A9), 2X, A8, 2X, A8, 2X, A8)') &
+        write(output_determinants,'(A12, 1X, A8, 3(2X, A9), 2X, A8, 2X, A8, 2X, A8)') &
                  '============', '========', '=========', '=========', '=========', &
                  '========='
       """ 
@@ -248,7 +315,6 @@ class H_apply(object):
                  wall_1-wall_0
          pt2_old(k) = pt2(k)
       enddo
-      progress_value = norm_psi(1)
       """
       self.data["omp_parallel"]    += """&
  !$OMP SHARED(N_st) PRIVATE(e_2_pert_buffer,coef_pert_buffer) &
@@ -292,9 +358,7 @@ class H_apply(object):
           !$ call omp_set_lock(lck)
           do k=1,N_st
             norm_psi(k) = norm_psi(k) + psi_coef_generators(i_generator,k)*psi_coef_generators(i_generator,k)
-!            delta_pt2(k) = 0.d0
-             pt2_old(k) = 0.d0
-!            pt2(k) = select_max(i_generator)
+            pt2_old(k) = 0.d0
           enddo
           !$ call omp_unset_lock(lck)
           cycle
@@ -304,3 +368,50 @@ class H_apply(object):
       """
 
 
+  def unset_openmp(self):
+    for k in keywords:
+      if k.startswith("omp_"):
+        self[k] = ""
+
+
+class H_apply_zmq(H_apply):
+
+  def read_template(self):
+    file = open(os.environ["QP_ROOT"]+'/src/Determinants/H_apply.template.f','r')
+    self.template = file.read()
+    file.close()
+    file = open(os.environ["QP_ROOT"]+'/src/Determinants/H_apply_zmq.template.f','r')
+    self.template += file.read()
+    file.close()
+
+  def set_perturbation(self,pert):
+     H_apply.set_perturbation(self,pert)
+     self.data["printout_now"] = ""
+     self.data["printout_always"] = ""
+     self.data["decls_main"] = """  integer, intent(in)            :: N_st 
+  double precision, intent(inout):: pt2(N_st) 
+  double precision, intent(inout):: norm_pert(N_st) 
+  double precision, intent(inout):: H_pert_diag(N_st)
+  double precision               :: delta_pt2(N_st), norm_psi(N_st), pt2_old(N_st)
+  PROVIDE N_det_generators 
+  do k=1,N_st
+    pt2(k) = 0.d0
+    norm_pert(k) = 0.d0
+    H_pert_diag(k) = 0.d0
+    norm_psi(k) = 0.d0
+  enddo
+      """ 
+
+  def set_selection_pt2(self,pert):
+     H_apply.set_selection_pt2(self,pert)
+     self.data["skip"] = """
+      if (i_generator < size_select_max) then
+        if (select_max(i_generator) < selection_criterion_min*selection_criterion_factor) then
+          do k=1,N_st
+            pt2(k) = select_max(i_generator)
+          enddo
+          cycle
+        endif
+        select_max(i_generator) = 0.d0
+      endif
+      """
