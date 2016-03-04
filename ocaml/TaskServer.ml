@@ -32,14 +32,19 @@ let zmq_context =
 
 
 let bind_socket ~socket_type ~socket ~address =
-  try
-    ZMQ.Socket.bind socket address
-  with
-  | Unix.Unix_error (_, message, f) ->
-    failwith @@ Printf.sprintf
-        "\n%s\nUnable to bind the %s socket :\n %s\n%s"
-        f socket_type address message
-  | other_exception -> raise other_exception
+  let rec loop = function
+  | 0 -> failwith @@ Printf.sprintf
+        "Unable to bind the %s socket : %s "
+        socket_type address
+  | -1 -> ();
+  | i -> 
+      try
+        ZMQ.Socket.bind socket address;
+        loop (-1)
+      with
+      | Unix.Unix_error _ -> (Time.pause @@ Time.Span.of_float 1. ; loop (i-1) )
+      | other_exception -> raise other_exception
+  in loop 10
 
 
 let hostname = lazy (

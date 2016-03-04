@@ -32,12 +32,12 @@ let run ~master exe ezfio_file =
             let address = 
               Printf.sprintf "tcp://%s:%d" (Lazy.force TaskServer.ip_address) (port_number+i)
             in
-            TaskServer.bind_socket "REP" dummy_socket address ;
+            ZMQ.Socket.bind dummy_socket address;
             ZMQ.Socket.unbind dummy_socket address;
         );
         port_number
       with
-      | Failure _ -> try_new_port (port_number+100)
+      | Unix.Unix_error _ -> try_new_port (port_number+100)
     in
     let result = 
       try_new_port 41279
