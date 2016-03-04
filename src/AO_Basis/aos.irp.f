@@ -34,9 +34,9 @@ END_PROVIDER
   C_A(3) = 0.d0
   ao_coef_normalized = 0.d0
   do i=1,ao_num
-    powA(1) = ao_power(i,1)
-    powA(2) = ao_power(i,2)
-    powA(3) = ao_power(i,3)
+    powA(1) = ao_l(i)
+    powA(2) = 0
+    powA(3) = 0
     do j=1,ao_prim_num(i)
       call overlap_gaussian_xyz(C_A,C_A,ao_expo(i,j),ao_expo(i,j),powA,powA,overlap_x,overlap_y,overlap_z,norm,nz)
       ao_coef_normalized(i,j) = ao_coef(i,j)/sqrt(norm)
@@ -54,12 +54,6 @@ END_PROVIDER
       ao_coef_normalized(i,j) = ao_coef_normalized(i,j) * ao_coef_normalization_factor(i)
     enddo
   enddo
-
-!   do i=1,ao_num
-!   do j=1,ao_prim_num(i)
-!       ao_coef_normalized(i,j) = ao_coef(i,j)
-!    enddo
-!    enddo
 
 END_PROVIDER
 
@@ -79,8 +73,8 @@ END_PROVIDER
        d(j,1) = ao_expo(i,j)
        d(j,2) = ao_coef_normalized(i,j)
      enddo
-!     call dsort(d(1,1),iorder,ao_prim_num(i))
-!     call dset_order(d(1,2),iorder,ao_prim_num(i))
+     call dsort(d(1,1),iorder,ao_prim_num(i))
+     call dset_order(d(1,2),iorder,ao_prim_num(i))
      do j=1,ao_prim_num(i)
        ao_expo_ordered(i,j) = d(j,1)
        ao_coef_normalized_ordered(i,j) = d(j,2)
