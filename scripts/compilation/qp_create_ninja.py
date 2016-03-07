@@ -37,8 +37,8 @@ from qp_path import QP_ROOT, QP_SRC, QP_EZFIO
 
 LIB = "" # join(QP_ROOT, "lib", "rdtsc.o") 
 EZFIO_LIB = join(QP_ROOT, "lib", "libezfio_irp.a") 
-ZMQ_LIB   = join(QP_ROOT, "lib", "libf77zmq.a") + " "  + join(QP_ROOT, "lib", "libzmq.a") + " -lstdc++ -lrt"
-INT_LIB = "/home/razoa/libint/libint-2.1.0-beta2/lib/.libs/libint2.a"
+ZMQ_LIB = join(QP_ROOT, "lib", "libf77zmq.a") + " "  + join(QP_ROOT, "lib", "libzmq.a") + " -lstdc++ -lrt"
+INT_LIB = join(QP_ROOT, "libint","lib", ".libs", "libint2.a")
 ROOT_BUILD_NINJA = join(QP_ROOT, "config", "build.ninja")
 
 header = r"""#
