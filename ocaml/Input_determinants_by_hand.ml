@@ -11,7 +11,8 @@ module Determinants_by_hand : sig
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
     } with sexp
-  val read  : unit -> t option
+  val read  : unit -> t
+  val read_maybe  : unit -> t option
   val write : t -> unit
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
@@ -210,13 +211,6 @@ end = struct
 
   let read () =
     if (Ezfio.has_mo_basis_mo_tot_num ()) then
-      let n_det = 
-         read_n_det ()
-      in
-      if ( (Det_number.to_int n_det) > n_det_read_max ) then
-        None
-      else
-        Some
         { n_int                  = read_n_int ()                ;
           bit_kind               = read_bit_kind ()             ;
           n_det                  = read_n_det ()                ;
@@ -224,6 +218,17 @@ end = struct
           psi_coef               = read_psi_coef ()             ;
           psi_det                = read_psi_det ()              ;
         }
+    else
+      failwith "No molecular orbitals, so no determinants"
+  ;;
+
+  let read_maybe () =
+    let n_det = 
+       read_n_det ()
+    in
+    if ( (Det_number.to_int n_det) < n_det_read_max ) then
+      try Some (read ()) with
+      | Failure _ -> None
     else
       None
   ;;
