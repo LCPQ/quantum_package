@@ -43,9 +43,7 @@ let psi_det () =
     failwith "Error reading EZFIO file";
   Ezfio.set_file ezfio_filename;
   let psi_det =
-    match Input.Determinants_by_hand.read () with
-    | Some psi_det -> psi_det
-    | _ -> failwith "Error reading the mo set"
+    Input.Determinants_by_hand.read () 
   in
   Input.Determinants_by_hand.to_rst psi_det 
   |> Rst_string.to_string
@@ -56,5 +54,5 @@ let psi_det () =
 let () = 
   basis ();
   mo ();
-  psi_det ();
+  psi_det ()
 
