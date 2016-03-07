@@ -79,25 +79,31 @@
                            
                            !Compute the norm
                            double precision:: coef1, coef2, coef3, coef4, norm
-   
-                           coef1 = ao_coef_normalization_factor(bf1)
-                           coef2 = ao_coef_normalization_factor(bf2)
-                           coef3 = ao_coef_normalization_factor(bf3)
-                           coef4 = ao_coef_normalization_factor(bf4)
+
+                           coef1 = ao_coef_normalization_libint_factor(bf1)
+                           coef2 = ao_coef_normalization_libint_factor(bf2) 
+                           coef3 = ao_coef_normalization_libint_factor(bf3) 
+                           coef4 = ao_coef_normalization_libint_factor(bf4)
+
                            norm = coef1*coef2*coef3*coef4
    
                            double precision:: libint, ref
    
                            !Value of itegral bf1,bf2,bf3, bf4
                            libint = buffer_int(f1234) * norm
-               
+
                            !Verify with the manu's one
 !                           ref = ao_bielec_integral(bf1,bf2,bf3,bf4)
 !   
 !                           if ( (ABS(ABS(ref) - ABS(libint)).GE.1e-6) )  THEN
+!
 !                              print*, bf1,bf2,bf3,bf4
-!                              print*, ref
-!                              print*, libint
+!                              print*,"r", ref
+!                              print*,"l", libint
+!                              print*,"r/l", ref/libint
+!                              print*,"l/r", libint/ref
+!                              print*,"n", norm
+!
 !                              call exit(1)
 !                           end if
 

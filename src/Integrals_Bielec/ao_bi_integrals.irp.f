@@ -4,11 +4,6 @@ double precision function ao_bielec_integral(i,j,k,l)
   !  integral of the AO basis <ik|jl> or (ij|kl)
   !     i(r1) j(r1) 1/r12 k(r2) l(r2)
   END_DOC
- 
- ! use libint_module
- ! call init_libint(trim(ezfio_filename)//char(0))
- ! ao_bielec_integral = ao_bielec_integral_libint(i,j,k,l)
- ! return
 
   integer,intent(in)             :: i,j,k,l
   integer                        :: p,q,r,s
