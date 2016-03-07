@@ -36,7 +36,7 @@ let bind_socket ~socket_type ~socket ~address =
   | 0 -> failwith @@ Printf.sprintf
         "Unable to bind the %s socket : %s "
         socket_type address
-  | -1 -> ();
+  | -1 -> ()
   | i -> 
       try
         ZMQ.Socket.bind socket address;

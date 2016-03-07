@@ -1,7 +1,7 @@
 open Core.Std
 
 let () =
-  Message.of_string "new_job tcp://127.0.0.1 inproc://ao_ints:12345 ao_integrals"
+  Message.of_string "new_job ao_integrals tcp://127.0.0.1 inproc://ao_ints:12345"
   |> Message.to_string 
   |> print_endline
   ;
@@ -37,7 +37,7 @@ let () =
   ;
 
   try
-    Message.of_string "new_job inproc://ao_ints tcp://127.0.0.1:12345 ao_integrals"
+    Message.of_string "new_job ao_integrals inproc://ao_ints tcp://127.0.0.1:12345"
     |> Message.to_string 
     |> print_endline
     ;
