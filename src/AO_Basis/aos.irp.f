@@ -52,9 +52,6 @@ END_PROVIDER
      enddo
     enddo
     ao_coef_normalization_factor(i) = 1.d0/sqrt(norm)
-    do j=1,ao_prim_num(i)
-      ao_coef_normalized(i,j) = ao_coef_normalized(i,j) * ao_coef_normalization_factor(i)
-    enddo
   enddo
 
 END_PROVIDER
