@@ -9,6 +9,7 @@ print "#QP -> QMCPACK"
 
 from ezfio import ezfio
 
+import os
 import sys
 ezfio_path = sys.argv[1]
 
@@ -17,7 +18,15 @@ ezfio.set_file(ezfio_path)
 do_pseudo = ezfio.get_pseudo_do_pseudo()
 if do_pseudo:
     print "do_pseudo True"
-    print "The charge of nucl will be decreasced for taking into acount the pseudo potentiel"
+    from qp_path import QP_ROOT
+
+    l_ele_path = os.path.join(QP_ROOT,"data","list_element.txt")
+    with open(l_ele_path, "r") as f:
+        data_raw = f.read()
+
+    l_element_raw = data_raw.split("\n")
+    l_element = [element_raw.split() for element_raw in l_element_raw]
+    d_z = dict((abr, z) for (z, abr, ele) in l_element)
 else:
     print "do_pseudo False"
 
@@ -68,7 +77,10 @@ print "nucl_num", len(l_label)
 print "Atomic coord in Bohr"
 
 for i, t in enumerate(zip(l_label, l_charge, l_coord_str)):
-    print list_to_string(t)
+    t_1 = d_z[t[0]] if do_pseudo else t[1]
+    
+    t_new = [t[0],t_1,t[2]]
+    print list_to_string(t_new)
 
 #
 # Call externet process to get the sysmetry
@@ -79,7 +91,6 @@ process = subprocess.Popen(
     stdout=subprocess.PIPE)
 out, err = process.communicate()
 
-print len(out.split("\n\n\n"))
 basis_raw, sym_raw, _ , det_raw, _ = out.split("\n\n\n")
 
 #  _                 __        
@@ -302,8 +313,8 @@ if do_pseudo:
             if l_dump:
                 l_str.append(l_dump)
 
-        str_ = "PARAMETERS FOR {0} ON ATOM {1} WITH ZCORE -1 AND LMAX {2} ARE"
-        print str_.format(a, i + 1, int(len(l_str) - 1))
+        str_ = "PARAMETERS FOR {0} ON ATOM {1} WITH ZCORE {2} AND LMAX {3} ARE"
+        print str_.format(a, i + 1, int(d_z[a])-int(l_charge[i]), int(len(l_str) - 1))
 
         for i, l in enumerate(l_str):
             str_ = "FOR L= {0} COEFF N ZETA"
@@ -311,7 +322,8 @@ if do_pseudo:
             for ii, ll in enumerate(l):
                 print " ", ii + 1, ll
 
-    str_ = "THE ECP RUN REMOVES -1 CORE ELECTRONS, AND THE SAME NUMBER OF PROTONS."
+    str_ = "THE ECP RUN REMOVES {0} CORE ELECTRONS, AND THE SAME NUMBER OF PROTONS."
+    print str_.format(sum([int(d_z[a])-int(l_charge[i]) for i,a in enumerate(l_label)]))
     print "END_PSEUDO"
 
 #  _         
