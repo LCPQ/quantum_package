@@ -213,6 +213,8 @@ subroutine new_approach
    deallocate(dressing_matrix_1h2p)
    deallocate(dressing_matrix_extra_1h_or_1p)
  enddo
+
+
  double precision, allocatable :: H_matrix_total(:,:)
  integer :: n_det_total
  n_det_total = N_det_generators_restart + n_good_det
@@ -251,25 +253,79 @@ subroutine new_approach
    H_matrix_total(n_det_generators_restart+j,n_det_generators_restart+i) = hij 
   enddo
  enddo
- print*,'H matrix to diagonalize'
- double precision :: href
- href = H_matrix_total(1,1)
- do i = 1, n_det_total
-  H_matrix_total(i,i) -= href
+
+ ! Adding the correlation energy 
+ logical :: orb_taken_good_det(mo_tot_num)
+ double precision :: phase
+ integer :: n_h,n_p,number_of_holes,number_of_particles
+ integer :: exc(0:2,2,2)
+ integer :: degree
+ integer :: h1,h2,p1,p2,s1,s2
+ logical, allocatable :: one_hole_or_one_p(:)
+ integer, allocatable :: holes_or_particle(:)
+ allocate(one_hole_or_one_p(n_good_det), holes_or_particle(n_good_det))
+ orb_taken_good_det = .False.
+ do i = 1, n_good_det
+  n_h = number_of_holes(psi_good_det(1,1,i))
+  n_p = number_of_particles(psi_good_det(1,1,i))
+  call get_excitation(ref_bitmask,psi_good_det(1,1,i),exc,degree,phase,N_int)
+  call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+  if(n_h == 0 .and. n_p == 1)then
+   orb_taken_good_det(h1) = .True.
+   one_hole_or_one_p(i) = .True.
+   holes_or_particle(i) = h1
+  endif
+  if(n_h == 1 .and. n_p == 0)then
+   orb_taken_good_det(p1) = .True.
+   one_hole_or_one_p(i) = .False.
+   holes_or_particle(i) = p1
+  endif
  enddo
- do i = 1, n_det_total
-   write(*,'(100(X,F16.8))')H_matrix_total(i,:)
- enddo
- double precision, allocatable :: eigvalues(:),eigvectors(:,:)
- allocate(eigvalues(n_det_total),eigvectors(n_det_total,n_det_total))
- call lapack_diag(eigvalues,eigvectors,H_matrix_total,n_det_total,n_det_total)
- print*,'e_dressed  = ',eigvalues(1) + nuclear_repulsion + href
- do i = 1, n_det_total
-  print*,'coef = ',eigvectors(i,1)
- enddo
- integer(bit_kind), allocatable :: psi_det_final(:,:,:)
- double precision, allocatable :: psi_coef_final(:,:)
- double precision :: norm
+ 
+  do i = 1, N_det_generators_restart
+   ! Add the 2h2p, 2h1p and 1h2p correlation energy
+   H_matrix_total(i,i) += total_corr_e_2h2p + total_corr_e_2h1p + total_corr_e_1h2p + total_corr_e_1h1p_spin_flip
+   ! Substract the 2h1p part that have already been taken into account
+   do j = 1, n_inact_orb
+    iorb = list_inact(j)
+    if(.not.orb_taken_good_det(iorb))cycle
+    H_matrix_total(i,i) -= corr_energy_2h1p_per_orb_ab(iorb) - corr_energy_2h1p_per_orb_bb(iorb) - corr_energy_1h1p_spin_flip_per_orb(iorb)
+   enddo
+   ! Substract the 1h2p part that have already been taken into account
+   do j = 1, n_virt_orb
+    iorb = list_virt(j)
+    if(.not.orb_taken_good_det(iorb))cycle
+    H_matrix_total(i,i) -= corr_energy_1h2p_per_orb_ab(iorb) - corr_energy_1h2p_per_orb_aa(iorb)
+   enddo
+  enddo
+  
+  do i = 1, N_good_det
+   ! Repeat the 2h2p correlation energy
+   H_matrix_total(N_det_generators_restart+i,N_det_generators_restart+i) += total_corr_e_2h2p 
+   ! Substract the part that can not be repeated
+   ! If it is a 1h
+   if(one_hole_or_one_p(i))then
+    ! 2h2p 
+    H_matrix_total(N_det_generators_restart+i,N_det_generators_restart+i) += -corr_energy_2h2p_per_orb_ab(holes_or_particle(i)) &  
+                                                                             -corr_energy_2h2p_per_orb_bb(holes_or_particle(i))  
+    ! You can repeat a certain part of the 1h2p correlation energy
+    ! that is everything except the part that involves the hole of the 1h
+    H_matrix_total(N_det_generators_restart+i,N_det_generators_restart+i) += total_corr_e_1h2p 
+    H_matrix_total(N_det_generators_restart+i,N_det_generators_restart+i) += -corr_energy_1h2p_per_orb_ab(holes_or_particle(i)) &  
+                                                                             -corr_energy_1h2p_per_orb_bb(holes_or_particle(i))  
+   
+   else
+    ! 2h2p 
+    H_matrix_total(N_det_generators_restart+i,N_det_generators_restart+i) += -corr_energy_2h2p_per_orb_ab(holes_or_particle(i)) &  
+                                                                             -corr_energy_2h2p_per_orb_aa(holes_or_particle(i))  
+    ! You can repeat a certain part of the 2h1p correlation energy
+    ! that is everything except the part that involves the hole of the 1p
+    ! 2h1p
+    H_matrix_total(N_det_generators_restart+i,N_det_generators_restart+i) += -corr_energy_2h1p_per_orb_ab(holes_or_particle(i)) &  
+                                                                             -corr_energy_2h1p_per_orb_aa(holes_or_particle(i))  
+   endif
+  enddo
+
  allocate(psi_coef_final(n_det_total, N_states))
  allocate(psi_det_final(N_int,2,n_det_total))
  do i = 1, N_det_generators_restart
@@ -284,22 +340,222 @@ subroutine new_approach
    psi_det_final(j,2,n_det_generators_restart+i) = psi_good_det(j,2,i)
   enddo
  enddo
- norm = 0.d0
+
+
+ double precision :: href
+ double precision, allocatable :: eigvalues(:),eigvectors(:,:)
+ integer(bit_kind), allocatable :: psi_det_final(:,:,:)
+ double precision, allocatable :: psi_coef_final(:,:)
+ double precision :: norm
+ allocate(eigvalues(n_det_total),eigvectors(n_det_total,n_det_total))
+
+ call lapack_diag(eigvalues,eigvectors,H_matrix_total,n_det_total,n_det_total)
+ print*,''
+ print*,''
+ print*,'H_matrix_total(1,1) = ',H_matrix_total(1,1)
+ print*,'e_dressed  = ',eigvalues(1) + nuclear_repulsion
  do i = 1, n_det_total
-  do j = 1, N_states
-   psi_coef_final(i,j) = eigvectors(i,j)
-  enddo
-  norm += psi_coef_final(i,1)**2
-! call debug_det(psi_det_final(1, 1, i), N_int)
+  print*,'coef = ',eigvectors(i,1),H_matrix_total(i,i) - H_matrix_total(1,1)
  enddo
- print*,'norm = ',norm
+
+ integer(bit_kind), allocatable :: psi_det_remaining_1h_or_1p(:,:,:)
+ integer(bit_kind), allocatable :: key_tmp(:,:)
+ integer :: n_det_remaining_1h_or_1p
+ integer :: ispin,i_ok
+ allocate(key_tmp(N_int,2),psi_det_remaining_1h_or_1p(N_int,2,n_inact_orb*n_act_orb+n_virt_orb*n_act_orb))
+ logical :: is_already_present
+ logical, allocatable :: one_hole_or_one_p_bis(:)
+ integer, allocatable :: holes_or_particle_bis(:)
+ double precision,allocatable :: H_array(:)
+ allocate(one_hole_or_one_p_bis(n_inact_orb*n_act_orb+n_virt_orb*n_act_orb), holes_or_particle_bis(n_inact_orb*n_act_orb+n_virt_orb*n_act_orb))
+ allocate(H_array(n_det_total))
+ ! Dressing with the remaining 1h determinants
+ print*,''
+ print*,''
+ print*,'Dressing with the remaining 1h determinants'
+ n_det_remaining_1h_or_1p = 0
+ do i = 1, n_inact_orb
+  iorb = list_inact(i)
+  if(orb_taken_good_det(iorb))cycle
+  do j = 1, n_act_orb
+   jorb = list_act(j)
+   ispin = 2
+   key_tmp = ref_bitmask
+   call do_mono_excitation(key_tmp,iorb,jorb,ispin,i_ok)
+   if(i_ok .ne.1)cycle
+   is_already_present = .False.
+   H_array = 0.d0
+   call i_h_j(key_tmp,key_tmp,N_int,hij)
+   href = ref_bitmask_energy - hij
+   href = 1.d0/href
+   do k = 1, n_det_total
+    call get_excitation_degree(psi_det_final(1,1,k),key_tmp,degree,N_int)
+    if(degree == 0)then
+     is_already_present = .True.
+     exit
+    endif
+   enddo
+   if(is_already_present)cycle
+   n_det_remaining_1h_or_1p +=1
+   one_hole_or_one_p_bis(n_det_remaining_1h_or_1p) = .True.
+   holes_or_particle_bis(n_det_remaining_1h_or_1p) = iorb
+   do k = 1, N_int
+    psi_det_remaining_1h_or_1p(k,1,n_det_remaining_1h_or_1p) = key_tmp(k,1)
+    psi_det_remaining_1h_or_1p(k,2,n_det_remaining_1h_or_1p) = key_tmp(k,2)
+   enddo
+ ! do k = 1, n_det_total
+ !   call i_h_j(psi_det_final(1,1,k),key_tmp,N_int,hij)
+ !   H_array(k) = hij
+ ! enddo
+ ! do k = 1, n_det_total 
+ !  do l = 1, n_det_total
+ !   H_matrix_total(k,l) += H_array(k) * H_array(l) * href
+ !  enddo
+ ! enddo
+  enddo
+ enddo
+ ! Dressing with the remaining 1p determinants
+ print*,'n_det_remaining_1h_or_1p = ',n_det_remaining_1h_or_1p
+ print*,'Dressing with the remaining 1p determinants'
+ do i = 1, n_virt_orb
+  iorb = list_virt(i)
+  if(orb_taken_good_det(iorb))cycle
+  do j = 1, n_act_orb
+   jorb = list_act(j)
+   ispin = 1
+   key_tmp = ref_bitmask
+   call do_mono_excitation(key_tmp,jorb,iorb,ispin,i_ok)
+   if(i_ok .ne.1)cycle
+   is_already_present = .False.
+   H_array = 0.d0
+   call i_h_j(key_tmp,key_tmp,N_int,hij)
+   href = ref_bitmask_energy - hij
+   href = 1.d0/href
+   do k = 1, n_det_total
+    call get_excitation_degree(psi_det_final(1,1,k),key_tmp,degree,N_int)
+    if(degree == 0)then
+     is_already_present = .True.
+     exit
+    endif
+   enddo
+   if(is_already_present)cycle
+   n_det_remaining_1h_or_1p +=1
+   one_hole_or_one_p_bis(n_det_remaining_1h_or_1p) = .False.
+   holes_or_particle_bis(n_det_remaining_1h_or_1p) = iorb
+   do k = 1, N_int
+    psi_det_remaining_1h_or_1p(k,1,n_det_remaining_1h_or_1p) = key_tmp(k,1)
+    psi_det_remaining_1h_or_1p(k,2,n_det_remaining_1h_or_1p) = key_tmp(k,2)
+   enddo
+!  do k = 1, n_det_total
+!    call i_h_j(psi_det_final(1,1,k),key_tmp,N_int,hij)
+!    H_array(k) = hij
+!  enddo
+!  do k = 1, n_det_total 
+!   do l = 1, n_det_total
+!    H_matrix_total(k,l) += H_array(k) * H_array(l) * href
+!   enddo
+!  enddo
+  enddo
+ enddo
+ print*,'n_det_remaining_1h_or_1p = ',n_det_remaining_1h_or_1p
+ deallocate(key_tmp,H_array)
+
+ double precision, allocatable :: eigvalues_bis(:),eigvectors_bis(:,:),H_matrix_total_bis(:,:)
+ integer :: n_det_final
+ n_det_final = n_det_total + n_det_remaining_1h_or_1p
+ allocate(eigvalues_bis(n_det_final),eigvectors_bis(n_det_final,n_det_final),H_matrix_total_bis(n_det_final,n_det_final))
+ print*,'passed the allocate, building the big matrix'
+ do i = 1, n_det_total 
+  do j = 1, n_det_total
+   H_matrix_total_bis(i,j) = H_matrix_total(i,j)
+  enddo
+ enddo
+ do i = 1, n_det_remaining_1h_or_1p
+  do j = 1, n_det_remaining_1h_or_1p
+   call i_h_j(psi_det_remaining_1h_or_1p(1,1,i),psi_det_remaining_1h_or_1p(1,1,j),N_int,hij)
+   H_matrix_total_bis(n_det_total+i,n_det_total+j) = hij
+  enddo
+ enddo
+ do i = 1, n_det_total
+  do j = 1, n_det_remaining_1h_or_1p
+   call i_h_j(psi_det_final(1,1,i),psi_det_remaining_1h_or_1p(1,1,j),N_int,hij)
+   H_matrix_total_bis(i,n_det_total+j) = hij 
+   H_matrix_total_bis(n_det_total+j,i) = hij 
+  enddo
+ enddo
+ print*,'passed the matrix'
+ do i = 1, n_det_remaining_1h_or_1p
+   if(one_hole_or_one_p_bis(i))then
+    H_matrix_total_bis(n_det_total+i,n_det_total+i) += total_corr_e_2h2p -corr_energy_2h2p_per_orb_ab(holes_or_particle_bis(i)) &
+                                                                         -corr_energy_2h2p_per_orb_bb(holes_or_particle_bis(i))  
+    H_matrix_total_bis(n_det_total+i,n_det_total+i) += total_corr_e_1h2p -corr_energy_1h2p_per_orb_ab(holes_or_particle_bis(i)) &  
+                                                                         -corr_energy_1h2p_per_orb_bb(holes_or_particle_bis(i))  
+   else
+    H_matrix_total_bis(n_det_total+i,n_det_total+i) += total_corr_e_2h2p -corr_energy_2h2p_per_orb_ab(holes_or_particle_bis(i)) &
+                                                                         -corr_energy_2h2p_per_orb_aa(holes_or_particle_bis(i))  
+    H_matrix_total_bis(n_det_total+i,n_det_total+i) += total_corr_e_1h2p -corr_energy_2h1p_per_orb_ab(holes_or_particle_bis(i)) &  
+                                                                         -corr_energy_2h1p_per_orb_aa(holes_or_particle_bis(i))  
+ 
+   endif
+ enddo
+ do i = 2, n_det_final
+  do  j = i+1, n_det_final
+   H_matrix_total_bis(i,j) = 0.d0
+   H_matrix_total_bis(j,i) = 0.d0
+  enddo
+ enddo
+ do i = 1, n_det_final
+   write(*,'(500(F10.5,X))')H_matrix_total_bis(i,:)
+ enddo
+ call lapack_diag(eigvalues_bis,eigvectors_bis,H_matrix_total_bis,n_det_final,n_det_final)
+ print*,'e_dressed  = ',eigvalues_bis(1) + nuclear_repulsion
+ do i = 1, n_det_final
+  print*,'coef = ',eigvectors_bis(i,1),H_matrix_total_bis(i,i) - H_matrix_total_bis(1,1)
+ enddo
+ do j = 1, N_states
+  do i = 1, n_det_total
+   psi_coef_final(i,j) = eigvectors_bis(i,j)
+   norm += psi_coef_final(i,j)**2
+  enddo
+  norm = 1.d0/dsqrt(norm)
+  do i = 1, n_det_total
+   psi_coef_final(i,j) = psi_coef_final(i,j) * norm
+  enddo
+ enddo
+
+
+ deallocate(eigvalues_bis,eigvectors_bis,H_matrix_total_bis)
+
+
+!print*,'H matrix to diagonalize'
+!href = H_matrix_total(1,1)
+!do i = 1, n_det_total
+! H_matrix_total(i,i) -= href
+!enddo
+!do i = 1, n_det_total
+!  write(*,'(100(X,F16.8))')H_matrix_total(i,:)
+!enddo
+!call lapack_diag(eigvalues,eigvectors,H_matrix_total,n_det_total,n_det_total)
+!print*,'H_matrix_total(1,1) = ',H_matrix_total(1,1)
+!print*,'e_dressed  = ',eigvalues(1) + nuclear_repulsion
+!do i = 1, n_det_total
+! print*,'coef = ',eigvectors(i,1),H_matrix_total(i,i) - H_matrix_total(1,1)
+!enddo
+!norm = 0.d0
+!do i = 1, n_det_total
+! do j = 1, N_states
+!  psi_coef_final(i,j) = eigvectors(i,j)
+! enddo
+! norm += psi_coef_final(i,1)**2
+!enddo
+!print*,'norm = ',norm
   
  call set_psi_det_as_input_psi(n_det_total,psi_det_final,psi_coef_final)
- print*,''
-!do i = 1, N_det
-!  call debug_det(psi_det(1,1,i),N_int)
-!  print*,'coef = ',psi_coef(i,1)
-!enddo
+
+ do i = 1, N_det
+   call debug_det(psi_det(1,1,i),N_int)
+   print*,'coef = ',psi_coef(i,1)
+ enddo
  provide one_body_dm_mo
 
  integer :: i_core,iorb,jorb,i_inact,j_inact,i_virt,j_virt,j_core

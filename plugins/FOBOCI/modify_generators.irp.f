@@ -6,6 +6,7 @@ subroutine set_generators_to_psi_det
  END_DOC
  N_det_generators = N_det
  integer :: i,k 
+ print*,'N_det = ',N_det
  do i=1,N_det_generators
    do k=1,N_int
      psi_det_generators(k,1,i) = psi_det(k,1,i)

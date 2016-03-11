@@ -449,8 +449,8 @@ subroutine H_apply_dressed_pert(delta_ij_generators_,  Ndet_generators,psi_det_g
   
   
     integer, intent(in) :: Ndet_generators
-    integer(bit_kind), intent(in) :: psi_det_generators_input(N_int,2,Ndet_generators),E_ref
-    double precision, intent(in) :: delta_ij_generators_(Ndet_generators,Ndet_generators)
+    integer(bit_kind), intent(in) :: psi_det_generators_input(N_int,2,Ndet_generators)
+    double precision, intent(in) :: delta_ij_generators_(Ndet_generators,Ndet_generators),E_ref
 
   
   integer                        :: i_generator, nmax

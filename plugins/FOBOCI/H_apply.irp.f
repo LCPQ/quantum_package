@@ -18,8 +18,22 @@ print s
 
 
 
-s = H_apply("standard")
+s = H_apply("only_1h2p")
 s.set_selection_pt2("epstein_nesbet")
+s.filter_only_1h2p()
+s.unset_skip()
+print s
+
+s = H_apply("only_2h2p")
+s.set_selection_pt2("epstein_nesbet")
+s.filter_only_2h2p()
+s.unset_skip()
+print s
+
+
+s = H_apply("only_2p")
+s.set_selection_pt2("epstein_nesbet")
+s.filter_only_2p()
 s.unset_skip()
 print s
 

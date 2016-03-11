@@ -72,7 +72,7 @@ subroutine add_integrals_to_map(mask_ijkl)
   integer                        :: i2,i3,i4
   double precision,parameter     :: thr_coef = 1.d-10
   
-  PROVIDE ao_bielec_integrals_in_map 
+  PROVIDE ao_bielec_integrals_in_map  mo_coef
   
   !Get list of MOs for i,j,k and l
   !-------------------------------
@@ -341,7 +341,7 @@ end
   double precision, allocatable  :: iqrs(:,:), iqsr(:,:), iqis(:), iqri(:)
   
   if (.not.do_direct_integrals) then
-    PROVIDE ao_bielec_integrals_in_map
+    PROVIDE ao_bielec_integrals_in_map mo_coef
   endif
   
   mo_bielec_integral_jj_from_ao = 0.d0
@@ -513,4 +513,13 @@ subroutine clear_mo_map
   call map_deinit(mo_integrals_map)
   FREE mo_integrals_map mo_bielec_integral_schwartz mo_bielec_integral_jj mo_bielec_integral_jj_anti
   FREE mo_bielec_integral_jj_exchange mo_bielec_integrals_in_map
+
+
+end
+
+subroutine provide_all_mo_integrals
+ implicit none
+ provide mo_integrals_map mo_bielec_integral_schwartz mo_bielec_integral_jj mo_bielec_integral_jj_anti
+ provide mo_bielec_integral_jj_exchange mo_bielec_integrals_in_map
+
 end

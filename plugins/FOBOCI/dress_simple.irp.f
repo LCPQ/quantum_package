@@ -85,33 +85,6 @@ subroutine standard_dress(delta_ij_generators_,size_buffer,Ndet_generators,i_gen
          delta_ij_generators_(idx(j), idx(k)) += contrib
        enddo 
      enddo
-!      H_matrix_tmp_bis(idx(k),idx(k)) += contrib
-!        H_matrix_tmp_bis(idx(k),idx(j)) += contrib
-!        H_matrix_tmp_bis(idx(j),idx(k)) += contrib
-!    do k = 1, Ndet_generators
-!     do j = 1, Ndet_generators
-!      H_matrix_tmp_bis(k,j) = H_matrix_tmp(k,j)
-!     enddo
-!    enddo
-!    double precision :: H_matrix_tmp_bis(Ndet_generators,Ndet_generators)
-!    double precision :: eigenvectors_bis(Ndet_generators,Ndet_generators), eigenvalues_bis(Ndet_generators)
-!    call lapack_diag(eigenvalues_bis,eigenvectors_bis,H_matrix_tmp_bis,Ndet_generators,Ndet_generators)
-!    print*,'f,lambda_i = ',f,lambda_i
-!    print*,'eigenvalues_bi(1)',eigenvalues_bis(1)
-!    print*,'eigenvalues      ',eigenvalues(1)
-!    do k = 1, Ndet_generators
-!     print*,'coef,coef_dres = ', eigenvectors(k,1), eigenvectors_bis(k,1)
-!    enddo
-!    pause
-!    accu = 0.d0
-!    do k = 1, Ndet_generators
-!     do j = 1, Ndet_generators
-!      accu += eigenvectors(k,1) * eigenvectors(j,1) * (H_matrix_tmp(k,j) + delta_ij_generators_(k,j))
-!     enddo
-!    enddo
-!    print*,'accu,eigv = ',accu,eigenvalues(1)
-!    pause
-
   enddo
 end
 

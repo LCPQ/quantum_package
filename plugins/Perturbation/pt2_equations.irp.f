@@ -126,6 +126,8 @@ subroutine pt2_moller_plesset ($arguments)
     delta_e = (Fock_matrix_diag_mo(h1) - Fock_matrix_diag_mo(p1)) + &
               (Fock_matrix_diag_mo(h2) - Fock_matrix_diag_mo(p2))
     delta_e = 1.d0/delta_e
+!   print*,'h1,p1',h1,p1
+!   print*,'h2,p2',h2,p2
   else if (degree == 1) then
     call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
     delta_e = Fock_matrix_diag_mo(h1) - Fock_matrix_diag_mo(p1) 

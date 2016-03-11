@@ -332,20 +332,20 @@ subroutine save_osoci_natural_mos
  enddo
 
  tmp = tmp_bis
-!! Symetrization act-virt
- do j = 1, n_virt_orb
-  j_virt= list_virt(j)
-  accu = 0.d0
-  do i = 1, n_act_orb
-   jorb = list_act(i)
-   accu += dabs(tmp_bis(j_virt,jorb))
-  enddo
-  do i = 1, n_act_orb
-   iorb = list_act(i)
-   tmp(j_virt,iorb) = dsign(accu/dble(n_act_orb),tmp_bis(j_virt,iorb))
-   tmp(iorb,j_virt) = dsign(accu/dble(n_act_orb),tmp_bis(j_virt,iorb))
-  enddo
- enddo
+!!! Symetrization act-virt
+! do j = 1, n_virt_orb
+!  j_virt= list_virt(j)
+!  accu = 0.d0
+!  do i = 1, n_act_orb
+!   jorb = list_act(i)
+!   accu += dabs(tmp_bis(j_virt,jorb))
+!  enddo
+!  do i = 1, n_act_orb
+!   iorb = list_act(i)
+!   tmp(j_virt,iorb) = dsign(accu/dble(n_act_orb),tmp_bis(j_virt,iorb))
+!   tmp(iorb,j_virt) = dsign(accu/dble(n_act_orb),tmp_bis(j_virt,iorb))
+!  enddo
+! enddo
 
 !! Symetrization act-inact
 !do j = 1, n_inact_orb
@@ -389,14 +389,14 @@ subroutine save_osoci_natural_mos
    jorb = list_inact(j)
    if(dabs(tmp(iorb,jorb)).gt.threshold_singles)then
     print*,'INACTIVE  '
-    print*,'DM ',iorb,jorb,dabs(tmp(iorb,jorb))
+    print*,'DM ',iorb,jorb,(tmp(iorb,jorb))
    endif
   enddo
   do j = 1, n_virt_orb
    jorb = list_virt(j)
    if(dabs(tmp(iorb,jorb)).gt.threshold_singles)then
     print*,'VIRT      '
-    print*,'DM ',iorb,jorb,dabs(tmp(iorb,jorb))
+    print*,'DM ',iorb,jorb,(tmp(iorb,jorb))
    endif
   enddo
  enddo
@@ -410,8 +410,9 @@ subroutine save_osoci_natural_mos
  enddo
 
  label = "Natural"
+ 
  call mo_as_eigvectors_of_mo_matrix(tmp,size(tmp,1),size(tmp,2),label,1)
- soft_touch mo_coef
+!soft_touch mo_coef
  deallocate(tmp,occ)
 
 
@@ -520,14 +521,14 @@ subroutine set_osoci_natural_mos
    jorb = list_inact(j)
    if(dabs(tmp(iorb,jorb)).gt.threshold_singles)then
     print*,'INACTIVE  '
-    print*,'DM ',iorb,jorb,dabs(tmp(iorb,jorb))
+    print*,'DM ',iorb,jorb,(tmp(iorb,jorb))
    endif
   enddo
   do j = 1, n_virt_orb
    jorb = list_virt(j)
    if(dabs(tmp(iorb,jorb)).gt.threshold_singles)then
     print*,'VIRT      '
-    print*,'DM ',iorb,jorb,dabs(tmp(iorb,jorb))
+    print*,'DM ',iorb,jorb,(tmp(iorb,jorb))
    endif
   enddo
  enddo
@@ -602,15 +603,7 @@ end
  
  subroutine provide_properties
    implicit none
-   integer :: i
-   double precision :: accu
-   if(.True.)then
-    accu= 0.d0
-    do i = 1, nucl_num
-     accu += mulliken_spin_densities(i)
-     print*,i,nucl_charge(i),mulliken_spin_densities(i)
-    enddo
-    print*,'Sum of Mulliken SD = ',accu
-   endif
+   call print_mulliken_sd
+   call print_hcc
  end
 

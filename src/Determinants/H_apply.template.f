@@ -166,6 +166,7 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
   
   logical :: check_double_excitation 
   logical :: is_a_1h1p
+  logical :: is_a_1h2p
   logical :: is_a_1h
   logical :: is_a_1p
   logical :: is_a_2p
@@ -301,8 +302,10 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
           k = ishft(j_b-1,-bit_kind_shift)+1
           l = j_b-ishft(k-1,bit_kind_shift)-1
           key(k,other_spin) = ibset(key(k,other_spin),l)
-          $filter2h2p
+          $filter2h2p_double
           $filter_only_1h1p_double
+          $filter_only_1h2p_double
+          $filter_only_2h2p_double
           $only_2p_double
           key_idx += 1
           do k=1,N_int
@@ -353,8 +356,10 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
         k = ishft(j_b-1,-bit_kind_shift)+1
         l = j_b-ishft(k-1,bit_kind_shift)-1
         key(k,ispin) = ibset(key(k,ispin),l)
-        $filter2h2p
+        $filter2h2p_double
         $filter_only_1h1p_double
+        $filter_only_1h2p_double
+        $filter_only_2h2p_double
         $only_2p_double
         key_idx += 1
         do k=1,N_int
@@ -427,6 +432,7 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,fock_diag_tmp,i_generato
   
   logical :: check_double_excitation 
   logical :: is_a_1h1p
+  logical :: is_a_1h2p
   logical :: is_a_1h
   logical :: is_a_1p
   logical :: is_a_2p
@@ -505,8 +511,10 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,fock_diag_tmp,i_generato
       $filter1h
       $filter1p
       $filter2p
-      $filter2h2p
+      $filter2h2p_single
       $filter_only_1h1p_single
+      $filter_only_1h2p_single
+      $filter_only_2h2p_single
       key_idx += 1
       do k=1,N_int
         keys_out(k,1,key_idx) = hole(k,1)
@@ -566,7 +574,6 @@ subroutine $subroutine($params_main)
   iproc = 0
   allocate( mask(N_int,2,6), fock_diag_tmp(2,mo_tot_num+1) )
   do i_generator=1,nmax
-
     progress_bar(1) = i_generator
 
     if (abort_here) then
@@ -600,6 +607,16 @@ subroutine $subroutine($params_main)
             not(psi_det_generators(k,ispin,i_generator)) )
       enddo
     enddo
+!   print*,'generator in '
+!   call debug_det(psi_det_generators(1,1,i_generator),N_int)
+!   print*,'hole 1'
+!   call debug_det(mask(1,1,d_hole1),N_int)
+!   print*,'hole 2'
+!   call debug_det(mask(1,1,d_hole2),N_int)
+!   print*,'part 1'
+!   call debug_det(mask(1,1,d_part1),N_int)
+!   print*,'part 2'
+!   call debug_det(mask(1,1,d_part2),N_int)
     if($do_double_excitations)then
      call $subroutine_diexc(psi_det_generators(1,1,i_generator),      &
          psi_det_generators(1,1,1),                                   &
