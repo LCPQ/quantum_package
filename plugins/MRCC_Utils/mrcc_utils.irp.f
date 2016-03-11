@@ -1,3 +1,4 @@
+
  BEGIN_PROVIDER [integer, pert_determinants, (N_states, psi_det_size) ]
  END_PROVIDER 
 
@@ -47,6 +48,7 @@
          endif
        enddo
      endif
+     i_pert = 0
      if( i_pert == 1)then
        pert_determinants(k,i) = i_pert
      endif
@@ -110,7 +112,6 @@ END_PROVIDER
 
  BEGIN_PROVIDER [ double precision, delta_ij, (N_det_ref,N_det_non_ref,N_states) ]
 &BEGIN_PROVIDER [ double precision, delta_ii, (N_det_ref,N_states) ]
-&BEGIN_PROVIDER [ double precision, delta_cas, (N_det_ref,N_det_ref,N_states) ]
  implicit none
  BEGIN_DOC
  ! Dressing matrix in N_det basis
@@ -118,7 +119,6 @@ END_PROVIDER
  integer :: i,j,m
  delta_ij = 0.d0
  delta_ii = 0.d0
-
  call H_apply_mrcc(delta_ij,delta_ii,N_det_ref,N_det_non_ref)
  double precision :: max_delta
  double precision :: accu
@@ -135,6 +135,7 @@ END_PROVIDER
    endif
   enddo
  enddo
+ !stop "movais delta"
  print*,''
  print*,''
  print*,'<psi| Delta H |psi> = ',accu
@@ -159,17 +160,6 @@ BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]
        h_matrix_dressed(i,j,istate) = h_matrix_all_dets(i,j) 
      enddo
    enddo
-   
-   !!!!!!!!!!
-   do ii = 1, N_det_ref
-   do jj = 1, N_det_ref
-    i = idx_ref(ii)
-    j = idx_ref(jj)
-    h_matrix_dressed(i,j,istate) += delta_cas(ii,jj,istate)
-    h_matrix_dressed(j,i,istate) += delta_cas(ii,jj,istate)
-   end do
-   end do
-   !!!!!!!!!!!!!
    do ii = 1, N_det_ref
      i =idx_ref(ii)
      h_matrix_dressed(i,i,istate) += delta_ii(ii,istate)
@@ -272,11 +262,14 @@ subroutine diagonalize_CI_dressed
 !  eigenstates of the CI matrix
   END_DOC
   integer :: i,j
+  double precision, parameter :: speed = 1d0
+  
   do j=1,N_states_diag
     do i=1,N_det
-      psi_coef(i,j) = CI_eigenvectors_dressed(i,j)
+      psi_coef(i,j) = CI_eigenvectors_dressed(i,j) * speed + psi_coef(i,j) * (1d0 - speed)
     enddo
   enddo
   SOFT_TOUCH psi_coef 
 
 end
+

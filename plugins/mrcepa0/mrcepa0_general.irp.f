@@ -55,7 +55,7 @@ subroutine mrcepa0_iterations
     do i = 1, N_det_ref
      print*,''
      print*,'psi_ref_coef(i,1) = ',psi_ref_coef(i,1)
-     print*,'delta_ii(i,1)     = ',delta_ii(i,1)
+     print*,'delta_ii(i,1)     = ',delta_cas(i,i,1)
     enddo
     print*,'------------'
   enddo
