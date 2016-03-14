@@ -92,7 +92,7 @@ subroutine collect_lmct_mlct(hole_particle,n_couples)
   iorb = list_act(i)
   do j = 1, n_inact_orb
    jorb = list_inact(j)
-   if(dabs(tmp(iorb,jorb)).gt.threshold_singles)then
+   if(dabs(tmp(iorb,jorb)).gt.threshold_lmct)then
     n_couples +=1
     hole_particle(n_couples,1) = jorb
     hole_particle(n_couples,2) = iorb
@@ -102,7 +102,7 @@ subroutine collect_lmct_mlct(hole_particle,n_couples)
   enddo
   do j = 1, n_virt_orb
    jorb = list_virt(j)
-   if(dabs(tmp(iorb,jorb)).gt.threshold_singles)then
+   if(dabs(tmp(iorb,jorb)).gt.threshold_mlct)then
     n_couples +=1
     hole_particle(n_couples,1) = iorb
     hole_particle(n_couples,2) = jorb

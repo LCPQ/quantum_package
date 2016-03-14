@@ -9,12 +9,9 @@ subroutine FOBOCI_lmct_mlct_old_thr
  double precision :: norm_tmp(N_states),norm_total(N_states)
  logical :: test_sym
  double precision :: thr,hij
- double precision :: threshold
  double precision, allocatable :: dressing_matrix(:,:)
  logical :: verbose,is_ok
  verbose = .True.
- threshold = threshold_singles
- print*,'threshold = ',threshold
  thr = 1.d-12
  allocate(unpaired_bitmask(N_int,2))
  allocate (occ(N_int*bit_kind_size,2))
@@ -36,11 +33,14 @@ subroutine FOBOCI_lmct_mlct_old_thr
  print*,''
  print*,''
  print*,'DOING FIRST LMCT !!'
+ print*,'Threshold_lmct = ',threshold_lmct
  integer(bit_kind) , allocatable :: zero_bitmask(:,:)
  integer(bit_kind) , allocatable :: psi_singles(:,:,:)
+ logical :: lmct
  double precision, allocatable :: psi_singles_coef(:,:)
  allocate( zero_bitmask(N_int,2) )
   do i = 1, n_inact_orb
+   lmct = .True.
    integer :: i_hole_osoci
    i_hole_osoci = list_inact(i)
    print*,'--------------------------'
@@ -55,7 +55,7 @@ subroutine FOBOCI_lmct_mlct_old_thr
    print*,'Passed set generators'
    call set_bitmask_particl_as_input(reunion_of_bitmask)
    call set_bitmask_hole_as_input(reunion_of_bitmask)
-   call is_a_good_candidate(threshold,is_ok,verbose)
+   call is_a_good_candidate(threshold_lmct,is_ok,verbose)
    print*,'is_ok = ',is_ok
    if(.not.is_ok)cycle
    allocate(dressing_matrix(N_det_generators,N_det_generators))
@@ -81,6 +81,9 @@ subroutine FOBOCI_lmct_mlct_old_thr
     call set_bitmask_particl_as_input(reunion_of_bitmask)
     call set_bitmask_hole_as_input(reunion_of_bitmask)
     call all_single
+!   if(dressing_2h2p)then
+!    call diag_dressed_2h2p_hamiltonian_and_update_psi_det(i_hole_osoci,lmct)
+!   endif
 
 !   ! Change the mask of the holes and particles to perform all the 
 !   ! double excitations that starts from the active space in order 
@@ -148,9 +151,12 @@ subroutine FOBOCI_lmct_mlct_old_thr
  if(.True.)then
   print*,''
   print*,'DOING THEN THE MLCT !!'
+  print*,'Threshold_mlct = ',threshold_mlct
+   lmct = .False.
    do i = 1, n_virt_orb
     integer :: i_particl_osoci
     i_particl_osoci = list_virt(i)
+
     print*,'--------------------------'
     ! First set the current generators to the one of restart
     call set_generators_to_generators_restart
@@ -172,7 +178,7 @@ subroutine FOBOCI_lmct_mlct_old_thr
     call set_bitmask_particl_as_input(reunion_of_bitmask)
     call set_bitmask_hole_as_input(reunion_of_bitmask)
 !!  ! so all the mono excitation on the new generators 
-    call is_a_good_candidate(threshold,is_ok,verbose)
+    call is_a_good_candidate(threshold_mlct,is_ok,verbose)
     print*,'is_ok = ',is_ok
     if(.not.is_ok)cycle
      allocate(dressing_matrix(N_det_generators,N_det_generators))
@@ -187,6 +193,9 @@ subroutine FOBOCI_lmct_mlct_old_thr
  !   call all_single_split(psi_det_generators,psi_coef_generators,N_det_generators,dressing_matrix)
  !   call diag_dressed_matrix_and_set_to_psi_det(psi_det_generators,N_det_generators,dressing_matrix)
      call all_single
+!    if(dressing_2h2p)then
+!     call diag_dressed_2h2p_hamiltonian_and_update_psi_det(i_particl_osoci,lmct)
+!    endif
     endif
     call set_intermediate_normalization_mlct_old(norm_tmp,i_particl_osoci)
     do k = 1, N_states
@@ -221,10 +230,8 @@ subroutine FOBOCI_mlct_old
  double precision :: norm_tmp,norm_total
  logical :: test_sym
  double precision :: thr
- double precision :: threshold
  logical :: verbose,is_ok
  verbose = .False.
- threshold = 1.d-2
  thr = 1.d-12
  allocate(unpaired_bitmask(N_int,2))
  allocate (occ(N_int*bit_kind_size,2))
@@ -263,7 +270,7 @@ subroutine FOBOCI_mlct_old
    call set_bitmask_particl_as_input(reunion_of_bitmask)
    call set_bitmask_hole_as_input(reunion_of_bitmask)
 !  ! so all the mono excitation on the new generators 
-   call is_a_good_candidate(threshold,is_ok,verbose)
+   call is_a_good_candidate(threshold_mlct,is_ok,verbose)
    print*,'is_ok = ',is_ok
    is_ok =.True.
    if(.not.is_ok)cycle
@@ -297,10 +304,8 @@ subroutine FOBOCI_lmct_old
  double precision :: norm_tmp,norm_total
  logical :: test_sym
  double precision :: thr
- double precision :: threshold
  logical :: verbose,is_ok
  verbose = .False.
- threshold = 1.d-2
  thr = 1.d-12
  allocate(unpaired_bitmask(N_int,2))
  allocate (occ(N_int*bit_kind_size,2))
@@ -337,7 +342,7 @@ subroutine FOBOCI_lmct_old
    call set_generators_to_psi_det
    call set_bitmask_particl_as_input(reunion_of_bitmask)
    call set_bitmask_hole_as_input(reunion_of_bitmask)
-   call is_a_good_candidate(threshold,is_ok,verbose)
+   call is_a_good_candidate(threshold_lmct,is_ok,verbose)
    print*,'is_ok = ',is_ok
    if(.not.is_ok)cycle
 !  ! so all the mono excitation on the new generators 

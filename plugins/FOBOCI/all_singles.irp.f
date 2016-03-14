@@ -66,7 +66,7 @@ subroutine all_single
    print*,'E        = ',CI_energy(i)
    print*,'S^2      = ',CI_eigenvectors_s2(i)
   enddo
-  do i = 1, 2
+  do i = 1, max(2,N_det_generators)
    print*,'psi_coef = ',psi_coef(i,1)
   enddo
   deallocate(pt2,norm_pert,E_before)

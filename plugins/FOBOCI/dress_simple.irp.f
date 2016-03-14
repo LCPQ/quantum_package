@@ -58,24 +58,24 @@ subroutine standard_dress(delta_ij_generators_,size_buffer,Ndet_generators,i_gen
        call i_h_j(det_buffer(1,1,i),det_buffer(1,1,i),Nint,haa)
        f = 1.d0/(E_ref-haa)
        
-     if(second_order_h)then
+!    if(second_order_h)then
       lambda_i = f
-     else
-       ! You write the new Hamiltonian matrix
-       do k = 1, Ndet_generators
-        H_matrix_tmp(k,Ndet_generators+1) = H_array(k)
-        H_matrix_tmp(Ndet_generators+1,k) = H_array(k)
-       enddo
-       H_matrix_tmp(Ndet_generators+1,Ndet_generators+1) = haa
-       ! Then diagonalize it
-       call lapack_diag(eigenvalues,eigenvectors,H_matrix_tmp,Ndet_generators+1,Ndet_generators+1)
-       ! Then you extract the effective denominator
-       accu = 0.d0
-       do k = 1, Ndet_generators
-        accu += eigenvectors(k,1) * H_array(k)
-       enddo
-       lambda_i = eigenvectors(Ndet_generators+1,1)/accu
-     endif
+!    else
+!      ! You write the new Hamiltonian matrix
+!      do k = 1, Ndet_generators
+!       H_matrix_tmp(k,Ndet_generators+1) = H_array(k)
+!       H_matrix_tmp(Ndet_generators+1,k) = H_array(k)
+!      enddo
+!      H_matrix_tmp(Ndet_generators+1,Ndet_generators+1) = haa
+!      ! Then diagonalize it
+!      call lapack_diag(eigenvalues,eigenvectors,H_matrix_tmp,Ndet_generators+1,Ndet_generators+1)
+!      ! Then you extract the effective denominator
+!      accu = 0.d0
+!      do k = 1, Ndet_generators
+!       accu += eigenvectors(k,1) * H_array(k)
+!      enddo
+!      lambda_i = eigenvectors(Ndet_generators+1,1)/accu
+!    endif
      do k=1,idx(0)
        contrib = H_array(idx(k)) * H_array(idx(k)) * lambda_i
        delta_ij_generators_(idx(k), idx(k)) += contrib

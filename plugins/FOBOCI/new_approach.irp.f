@@ -46,7 +46,7 @@ subroutine new_approach
 
 
  verbose = .True.
- threshold = threshold_singles
+ threshold = threshold_lmct
  print*,'threshold = ',threshold
  thr = 1.d-12
  print*,''
@@ -623,14 +623,14 @@ subroutine new_approach
   print*,'ACTIVE ORBITAL  ',iorb
   do j = 1, n_inact_orb
    jorb = list_inact(j)
-   if(dabs(one_body_dm_mo(iorb,jorb)).gt.threshold_singles)then
+   if(dabs(one_body_dm_mo(iorb,jorb)).gt.threshold_lmct)then
     print*,'INACTIVE  '
     print*,'DM ',iorb,jorb,dabs(one_body_dm_mo(iorb,jorb))
    endif
   enddo
   do j = 1, n_virt_orb
    jorb = list_virt(j)
-   if(dabs(one_body_dm_mo(iorb,jorb)).gt.threshold_singles)then
+   if(dabs(one_body_dm_mo(iorb,jorb)).gt.threshold_mlct)then
     print*,'VIRT      '
     print*,'DM ',iorb,jorb,dabs(one_body_dm_mo(iorb,jorb))
    endif
