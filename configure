@@ -144,8 +144,8 @@ zeromq = Info(
 f77zmq = Info(
     url='{head}/zeromq/f77_zmq/{tail}'.format(**path_github),
     description=' F77-ZeroMQ',
-    default_path=join(QP_ROOT_LIB, "libf77zmq.a") + " " + \
-                 join(QP_ROOT, "src", "ZMQ", "f77zmq.h") )
+    default_path=join(QP_ROOT_LIB, "libf77zmq.a") )
+#                join(QP_ROOT, "src", "ZMQ", "f77zmq.h") )
 
 p_graphviz = Info(
     url='https://github.com/xflr6/graphviz/archive/master.tar.gz',
@@ -334,7 +334,7 @@ def installation(l_install_descendant):
 
         l_rules += [
             "rule install_verbose",
-            "  command = ./scripts/install_${target}.sh | tee _build/${target}.log 2>&1",
+            '  command = bash -o pipefail -c "./scripts/install_${target}.sh | tee _build/${target}.log 2>&1"  ',
             "  description = Installing ${descr}", "  pool = console", ""
         ]
 
@@ -488,10 +488,11 @@ def create_ninja_and_rc(l_installed):
 
     l_rc = [
         'export QP_ROOT={0}'.format(QP_ROOT),
+        '#export QP_NIC=ib0   # Choose the correct network inuterface',
         'export QP_EZFIO={0}'.format(path_ezfio.replace(QP_ROOT,"${QP_ROOT}")),
+        'export QP_PYTHON={0}'.format(":".join(l_python)), "",
         'export IRPF90={0}'.format(path_irpf90.replace(QP_ROOT,"${QP_ROOT}")),
         'export NINJA={0}'.format(path_ninja.replace(QP_ROOT,"${QP_ROOT}")),
-        'export QP_PYTHON={0}'.format(":".join(l_python)), "",
         'export PYTHONPATH="${QP_EZFIO}/Python":"${QP_PYTHON}":"${PYTHONPATH}"',
         'export PATH="${QP_PYTHON}":"${QP_ROOT}"/bin:"${QP_ROOT}"/ocaml:"${PATH}"',
         'export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${LD_LIBRARY_PATH}"',

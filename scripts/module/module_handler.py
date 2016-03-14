@@ -40,7 +40,7 @@ def is_plugin(path_module_rel):
 
 
 def is_exe(fpath):
-    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+    return os.path.isfile(fpath) and os.access(fpath, os.X_OK) and not fpath.endswith(".py")
 
 
 def get_dict_child(l_root_abs=None):

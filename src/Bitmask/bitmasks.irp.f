@@ -9,7 +9,7 @@ BEGIN_PROVIDER [ integer, N_int ]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ integer(bit_kind), full_ijkl_bitmask, (N_int,4) ]
+BEGIN_PROVIDER [ integer(bit_kind), full_ijkl_bitmask, (N_int) ]
   implicit none
   BEGIN_DOC
   ! Bitmask to include all possible MOs
@@ -18,29 +18,26 @@ BEGIN_PROVIDER [ integer(bit_kind), full_ijkl_bitmask, (N_int,4) ]
   integer                        :: i,j,n
   n = mod(mo_tot_num-1,bit_kind_size)+1
   full_ijkl_bitmask = 0_bit_kind
-  do j=1,4
-    do i=1,N_int-1
-      full_ijkl_bitmask(i,j) = not(0_bit_kind)
-    enddo
-    do i=1,n
-      full_ijkl_bitmask(N_int,j) = ibset(full_ijkl_bitmask(N_int,j),i-1)
-    enddo
+  do i=1,N_int-1
+    full_ijkl_bitmask(i) = not(0_bit_kind)
+  enddo
+  do i=1,n
+    full_ijkl_bitmask(N_int) = ibset(full_ijkl_bitmask(N_int),i-1)
+  enddo
+END_PROVIDER
+
+BEGIN_PROVIDER [ integer(bit_kind), full_ijkl_bitmask_4, (N_int,4) ]
+  implicit none
+  integer :: i
+  do i=1,N_int
+      full_ijkl_bitmask_4(i,1) = full_ijkl_bitmask(i)
+      full_ijkl_bitmask_4(i,2) = full_ijkl_bitmask(i)
+      full_ijkl_bitmask_4(i,3) = full_ijkl_bitmask(i)
+      full_ijkl_bitmask_4(i,4) = full_ijkl_bitmask(i)
   enddo
 END_PROVIDER
 
  
-BEGIN_PROVIDER [ integer(bit_kind), cis_ijkl_bitmask, (N_int,4) ]
-  implicit none
-  BEGIN_DOC
-  ! Bitmask to include all possible single excitations from Hartree-Fock
-  END_DOC
-  
-  integer                        :: i,j,n
-  cis_ijkl_bitmask = full_ijkl_bitmask
-  cis_ijkl_bitmask(:,1) = HF_bitmask(:,1)
-END_PROVIDER
-
-
 BEGIN_PROVIDER [ integer(bit_kind), HF_bitmask, (N_int,2)]
   implicit none
   BEGIN_DOC
@@ -131,12 +128,14 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask_restart, (N_int,2,6,N_gen
    integer :: k, ispin
    do k=1,N_generators_bitmask
      do ispin=1,2
-       generators_bitmask_restart(:,ispin,s_hole ,k) = full_ijkl_bitmask(:,d_hole1)
-       generators_bitmask_restart(:,ispin,s_part ,k) = full_ijkl_bitmask(:,d_part1)
-       generators_bitmask_restart(:,ispin,d_hole1,k) = full_ijkl_bitmask(:,d_hole1)
-       generators_bitmask_restart(:,ispin,d_part1,k) = full_ijkl_bitmask(:,d_part1)
-       generators_bitmask_restart(:,ispin,d_hole2,k) = full_ijkl_bitmask(:,d_hole2)
-       generators_bitmask_restart(:,ispin,d_part2,k) = full_ijkl_bitmask(:,d_part2)
+      do i=1,N_int
+       generators_bitmask_restart(i,ispin,s_hole ,k) = full_ijkl_bitmask(i)
+       generators_bitmask_restart(i,ispin,s_part ,k) = full_ijkl_bitmask(i)
+       generators_bitmask_restart(i,ispin,d_hole1,k) = full_ijkl_bitmask(i)
+       generators_bitmask_restart(i,ispin,d_part1,k) = full_ijkl_bitmask(i)
+       generators_bitmask_restart(i,ispin,d_hole2,k) = full_ijkl_bitmask(i)
+       generators_bitmask_restart(i,ispin,d_part2,k) = full_ijkl_bitmask(i)
+      enddo
      enddo
    enddo
  endif
@@ -145,12 +144,12 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask_restart, (N_int,2,6,N_gen
  do k=1,N_generators_bitmask
    do ispin=1,2
      do i=1,N_int
-      generators_bitmask_restart(i,ispin,s_hole ,k) = iand(full_ijkl_bitmask(i,d_hole1),generators_bitmask_restart(i,ispin,s_hole,k) )
-      generators_bitmask_restart(i,ispin,s_part ,k) = iand(full_ijkl_bitmask(i,d_part1),generators_bitmask_restart(i,ispin,s_part,k) )
-      generators_bitmask_restart(i,ispin,d_hole1,k) = iand(full_ijkl_bitmask(i,d_hole1),generators_bitmask_restart(i,ispin,d_hole1,k) )
-      generators_bitmask_restart(i,ispin,d_part1,k) = iand(full_ijkl_bitmask(i,d_part1),generators_bitmask_restart(i,ispin,d_part1,k) )
-      generators_bitmask_restart(i,ispin,d_hole2,k) = iand(full_ijkl_bitmask(i,d_hole2),generators_bitmask_restart(i,ispin,d_hole2,k) )
-      generators_bitmask_restart(i,ispin,d_part2,k) = iand(full_ijkl_bitmask(i,d_part2),generators_bitmask_restart(i,ispin,d_part2,k) )
+      generators_bitmask_restart(i,ispin,s_hole ,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,s_hole,k) )
+      generators_bitmask_restart(i,ispin,s_part ,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,s_part,k) )
+      generators_bitmask_restart(i,ispin,d_hole1,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,d_hole1,k) )
+      generators_bitmask_restart(i,ispin,d_part1,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,d_part1,k) )
+      generators_bitmask_restart(i,ispin,d_hole2,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,d_hole2,k) )
+      generators_bitmask_restart(i,ispin,d_part2,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,d_part2,k) )
      enddo
    enddo
  enddo
@@ -188,12 +187,14 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_
    integer :: k, ispin, i
    do k=1,N_generators_bitmask
      do ispin=1,2
-       generators_bitmask(:,ispin,s_hole ,k) = full_ijkl_bitmask(:,d_hole1)
-       generators_bitmask(:,ispin,s_part ,k) = full_ijkl_bitmask(:,d_part1)
-       generators_bitmask(:,ispin,d_hole1,k) = full_ijkl_bitmask(:,d_hole1)
-       generators_bitmask(:,ispin,d_part1,k) = full_ijkl_bitmask(:,d_part1)
-       generators_bitmask(:,ispin,d_hole2,k) = full_ijkl_bitmask(:,d_hole2)
-       generators_bitmask(:,ispin,d_part2,k) = full_ijkl_bitmask(:,d_part2)
+      do i=1,N_int
+       generators_bitmask(i,ispin,s_hole ,k) = full_ijkl_bitmask(i)
+       generators_bitmask(i,ispin,s_part ,k) = full_ijkl_bitmask(i)
+       generators_bitmask(i,ispin,d_hole1,k) = full_ijkl_bitmask(i)
+       generators_bitmask(i,ispin,d_part1,k) = full_ijkl_bitmask(i)
+       generators_bitmask(i,ispin,d_hole2,k) = full_ijkl_bitmask(i)
+       generators_bitmask(i,ispin,d_part2,k) = full_ijkl_bitmask(i)
+      enddo
      enddo
    enddo
  endif
@@ -201,12 +202,12 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_
  do k=1,N_generators_bitmask
    do ispin=1,2
      do i=1,N_int
-      generators_bitmask(i,ispin,s_hole ,k) = iand(full_ijkl_bitmask(i,d_hole1),generators_bitmask(i,ispin,s_hole,k) )
-      generators_bitmask(i,ispin,s_part ,k) = iand(full_ijkl_bitmask(i,d_part1),generators_bitmask(i,ispin,s_part,k) )
-      generators_bitmask(i,ispin,d_hole1,k) = iand(full_ijkl_bitmask(i,d_hole1),generators_bitmask(i,ispin,d_hole1,k) )
-      generators_bitmask(i,ispin,d_part1,k) = iand(full_ijkl_bitmask(i,d_part1),generators_bitmask(i,ispin,d_part1,k) )
-      generators_bitmask(i,ispin,d_hole2,k) = iand(full_ijkl_bitmask(i,d_hole2),generators_bitmask(i,ispin,d_hole2,k) )
-      generators_bitmask(i,ispin,d_part2,k) = iand(full_ijkl_bitmask(i,d_part2),generators_bitmask(i,ispin,d_part2,k) )
+      generators_bitmask(i,ispin,s_hole ,k) = iand(full_ijkl_bitmask(i),generators_bitmask(i,ispin,s_hole,k) )
+      generators_bitmask(i,ispin,s_part ,k) = iand(full_ijkl_bitmask(i),generators_bitmask(i,ispin,s_part,k) )
+      generators_bitmask(i,ispin,d_hole1,k) = iand(full_ijkl_bitmask(i),generators_bitmask(i,ispin,d_hole1,k) )
+      generators_bitmask(i,ispin,d_part1,k) = iand(full_ijkl_bitmask(i),generators_bitmask(i,ispin,d_part1,k) )
+      generators_bitmask(i,ispin,d_hole2,k) = iand(full_ijkl_bitmask(i),generators_bitmask(i,ispin,d_hole2,k) )
+      generators_bitmask(i,ispin,d_part2,k) = iand(full_ijkl_bitmask(i),generators_bitmask(i,ispin,d_part2,k) )
      enddo
    enddo
  enddo
@@ -259,8 +260,11 @@ BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
    print*,'---------------------'
  else
   if(N_generators_bitmask == 1)then
-   do i=1,N_cas_bitmask
-     cas_bitmask(:,:,i) = iand(not(HF_bitmask(:,:)),full_ijkl_bitmask(:,:))
+   do j=1, N_cas_bitmask
+    do i=1, N_int
+     cas_bitmask(i,1,j) = iand(not(HF_bitmask(i,1)),full_ijkl_bitmask(i))
+     cas_bitmask(i,2,j) = iand(not(HF_bitmask(i,2)),full_ijkl_bitmask(i))
+    enddo
    enddo
   else 
    i_part = 2
@@ -276,7 +280,7 @@ BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
  do i=1,N_cas_bitmask
    do j = 1, N_cas_bitmask
      do k=1,N_int
-       cas_bitmask(k,j,i) = iand(cas_bitmask(k,j,i),full_ijkl_bitmask(k,j))
+       cas_bitmask(k,j,i) = iand(cas_bitmask(k,j,i),full_ijkl_bitmask(k))
      enddo
    enddo
  enddo
@@ -289,7 +293,12 @@ END_PROVIDER
 &BEGIN_PROVIDER [ integer, n_virt_orb ]
  implicit none
  BEGIN_DOC
- ! Bitmasks for the inactive orbitals that are excited in post CAS method
+ ! inact_bitmask : Bitmask of the inactive orbitals which are supposed to be doubly excited 
+ ! in post CAS methods
+ ! n_inact_orb   : Number of inactive orbitals
+ ! virt_bitmask  : Bitmaks of vritual orbitals which are supposed to be recieve electrons 
+ ! in post CAS methods
+ ! n_virt_orb    : Number of virtual orbitals
  END_DOC
  logical                        :: exists
  integer                        :: j,i
@@ -327,8 +336,14 @@ END_PROVIDER
 
 
 
- BEGIN_PROVIDER [ integer, list_inact, (n_inact_orb)]
+  BEGIN_PROVIDER [ integer, list_inact, (n_inact_orb)]
  &BEGIN_PROVIDER [ integer, list_virt, (n_virt_orb)]
+ BEGIN_DOC
+ ! list_inact : List of the inactive orbitals which are supposed to be doubly excited 
+ ! in post CAS methods
+ ! list_virt  : List of vritual orbitals which are supposed to be recieve electrons 
+ ! in post CAS methods
+ END_DOC
  implicit none
  integer :: occ_inact(N_int*bit_kind_size)
  integer :: itest,i
@@ -347,6 +362,21 @@ END_PROVIDER
  enddo
 
  END_PROVIDER 
+
+ BEGIN_PROVIDER [ integer(bit_kind), reunion_of_core_inact_bitmask, (N_int,2)]
+ implicit none
+ BEGIN_DOC
+ ! Reunion of the inactive, active and virtual bitmasks
+ END_DOC
+ integer :: i,j
+ do i = 1, N_int
+  reunion_of_core_inact_bitmask(i,1) = ior(core_bitmask(i,1),inact_bitmask(i,1))
+  reunion_of_core_inact_bitmask(i,2) = ior(core_bitmask(i,2),inact_bitmask(i,2))
+ enddo
+ END_PROVIDER
+
+
+
 
  BEGIN_PROVIDER [ integer(bit_kind), reunion_of_bitmask, (N_int,2)]
  implicit none
@@ -373,18 +403,36 @@ END_PROVIDER
  enddo
  END_PROVIDER
 
+ BEGIN_PROVIDER [integer, list_core, (n_core_orb)]
+ BEGIN_DOC
+ ! List of the core orbitals that are never excited in post CAS method
+ END_DOC
+ implicit none
+ integer :: occ_core(N_int*bit_kind_size)
+ integer :: itest,i
+ occ_core = 0
+ call bitstring_to_list(core_bitmask(1,1), occ_core(1), itest, N_int)
+ ASSERT(itest==n_core_orb)
+ do i = 1, n_core_orb
+  list_core(i) = occ_core(i)
+ enddo
+ END_PROVIDER
+
  BEGIN_PROVIDER [ integer(bit_kind), core_bitmask, (N_int,2)]
+&BEGIN_PROVIDER [ integer, n_core_orb]
  implicit none
  BEGIN_DOC
- ! Reunion of the inactive, active and virtual bitmasks
+ ! Core orbitals bitmask
  END_DOC
  integer :: i,j
+ n_core_orb = 0
  do i = 1, N_int
-  core_bitmask(i,1) = iand(ref_bitmask(i,1),reunion_of_bitmask(i,1))
-  core_bitmask(i,2) = iand(ref_bitmask(i,2),reunion_of_bitmask(i,2))
+  core_bitmask(i,1) = xor(closed_shell_ref_bitmask(i,1),reunion_of_cas_inact_bitmask(i,1))
+  core_bitmask(i,2) = xor(closed_shell_ref_bitmask(i,2),reunion_of_cas_inact_bitmask(i,2))
+  n_core_orb += popcnt(core_bitmask(i,1))
  enddo
- END_PROVIDER 
-
+ print*,'n_core_orb = ',n_core_orb
+ END_PROVIDER
 
 
 BEGIN_PROVIDER [ integer, i_bitmask_gen ]
@@ -435,3 +483,27 @@ BEGIN_PROVIDER [integer, list_act, (n_act_orb)]
  enddo
 
 END_PROVIDER
+
+ BEGIN_PROVIDER [integer(bit_kind), closed_shell_ref_bitmask, (N_int,2)]
+ implicit none
+ integer :: i,j
+ do i = 1, N_int
+   closed_shell_ref_bitmask(i,1) = ior(ref_bitmask(i,1),cas_bitmask(i,1,1))
+   closed_shell_ref_bitmask(i,2) = ior(ref_bitmask(i,2),cas_bitmask(i,2,1))
+ enddo
+ END_PROVIDER
+
+
+ BEGIN_PROVIDER [ integer(bit_kind), reunion_of_cas_inact_bitmask, (N_int,2)]
+ implicit none
+ BEGIN_DOC
+ ! Reunion of the inactive, active and virtual bitmasks
+ END_DOC
+ integer :: i,j
+ do i = 1, N_int
+  reunion_of_cas_inact_bitmask(i,1) = ior(cas_bitmask(i,1,1),inact_bitmask(i,1))
+  reunion_of_cas_inact_bitmask(i,2) = ior(cas_bitmask(i,2,1),inact_bitmask(i,2))
+ enddo
+ END_PROVIDER
+
+

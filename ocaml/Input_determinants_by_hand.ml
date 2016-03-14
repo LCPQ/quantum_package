@@ -11,11 +11,13 @@ module Determinants_by_hand : sig
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
     } with sexp
-  val read  : unit -> t option
+  val read  : unit -> t
+  val read_maybe  : unit -> t option
   val write : t -> unit
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
   val of_rst : Rst_string.t -> t option
+  val read_n_int : unit -> N_int_number.t
 end = struct
   type t = 
     { n_int                  : N_int_number.t;
@@ -28,6 +30,8 @@ end = struct
   ;;
 
   let get_default = Qpackage.get_ezfio_default "determinants";;
+
+  let n_det_read_max = 10_000 ;;
 
   let read_n_int () =
     if not (Ezfio.has_determinants_n_int()) then
@@ -207,14 +211,24 @@ end = struct
 
   let read () =
     if (Ezfio.has_mo_basis_mo_tot_num ()) then
-      Some
-      { n_int                  = read_n_int ()                ;
-        bit_kind               = read_bit_kind ()             ;
-        n_det                  = read_n_det ()                ;
-        expected_s2            = read_expected_s2 ()          ;
-        psi_coef               = read_psi_coef ()             ;
-        psi_det                = read_psi_det ()              ;
-      }
+        { n_int                  = read_n_int ()                ;
+          bit_kind               = read_bit_kind ()             ;
+          n_det                  = read_n_det ()                ;
+          expected_s2            = read_expected_s2 ()          ;
+          psi_coef               = read_psi_coef ()             ;
+          psi_det                = read_psi_det ()              ;
+        }
+    else
+      failwith "No molecular orbitals, so no determinants"
+  ;;
+
+  let read_maybe () =
+    let n_det = 
+       read_n_det ()
+    in
+    if ( (Det_number.to_int n_det) < n_det_read_max ) then
+      try Some (read ()) with
+      | Failure _ -> None
     else
       None
   ;;
@@ -236,11 +250,16 @@ end = struct
 
 
   let to_rst b =
-    let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () in
-    let mo_tot_num = MO_number.of_int mo_tot_num ~max:mo_tot_num in
+    let max =
+      Ezfio.get_mo_basis_mo_tot_num () 
+    in
+    let mo_tot_num =
+      MO_number.of_int ~max max
+    in
     let det_text = 
       let nstates =
-        read_n_states () |> States_number.to_int
+        read_n_states ()
+        |> States_number.to_int
       and ndet =
         Det_number.to_int b.n_det
       in
@@ -393,29 +412,47 @@ psi_det                = %s
       in
       let rec read_dets accu = function
       | [] -> List.rev accu
-      | ""::c::alpha::beta::tail -> 
+      | ""::_::alpha::beta::tail -> 
           begin
-            let alpha = String.rev alpha |> Bitlist.of_string ~zero:'-' ~one:'+'
-            and beta  = String.rev beta  |> Bitlist.of_string ~zero:'-' ~one:'+'
-            in
-            let newdet = Determinant.of_bitlist_couple 
-              ~alpha:n_alpha ~beta:n_beta (alpha,beta) 
-            |> Determinant.sexp_of_t |> Sexplib.Sexp.to_string
+            let newdet =
+               (Bitlist.of_string ~zero:'-' ~one:'+' alpha ,
+               Bitlist.of_string ~zero:'-' ~one:'+' beta)
+               |> Determinant.of_bitlist_couple  ~alpha:n_alpha ~beta:n_beta 
+               |> Determinant.sexp_of_t
+               |> Sexplib.Sexp.to_string
             in
             read_dets (newdet::accu) tail
           end
       | _::tail -> read_dets accu tail
       in
-      let a = read_dets [] dets
-      |> String.concat 
+      let dets = 
+        List.map ~f:String.rev dets
       in
+      let sze = 
+        List.fold ~init:0 ~f:(fun accu x -> accu + (String.length x)) dets
+      in
+      let control =
+        Gc.get ()
+      in
+      Gc.tune ~minor_heap_size:(sze) ~space_overhead:(sze/10)
+        ~max_overhead:100000 ~major_heap_increment:(sze/10) ();
+      let a =
+        read_dets [] dets
+        |> String.concat
+      in
+      Gc.set control;
       "(psi_det ("^a^"))"
     in
 
-    let bitkind = Printf.sprintf "(bit_kind %d)" (Lazy.force Qpackage.bit_kind
+
+    let bitkind = 
+      Printf.sprintf "(bit_kind %d)" (Lazy.force Qpackage.bit_kind
       |> Bit_kind.to_int)
-    and n_int = Printf.sprintf "(n_int %d)" (N_int_number.get_max ()) in
-    let s = String.concat [ header ; bitkind ; n_int ; psi_coef ; psi_det]
+    and n_int =
+      Printf.sprintf "(n_int %d)" (N_int_number.get_max ())
+    in
+    let s = 
+       String.concat [ header ; bitkind ; n_int ; psi_coef ; psi_det]
     in
 
     Generic_input_of_rst.evaluate_sexp t_of_sexp s

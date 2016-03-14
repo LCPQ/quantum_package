@@ -9,7 +9,7 @@
       !     id1=max is the number of MO in a given symmetry.
       END_DOC
 
-      integer id1
+      integer id1,i_atom,shift,shift_h
 
       parameter (id1=300)
 
@@ -366,11 +366,6 @@
         s(i,j,1) =  ao_overlap(i,j)
        enddo
       enddo
-
-
-
- 
-
       !Now big loop over symmetry
 
  

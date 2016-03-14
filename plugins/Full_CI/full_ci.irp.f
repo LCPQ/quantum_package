@@ -62,15 +62,28 @@ program full_ci
     endif
     print *,  'N_det          = ', N_det
     print *,  'N_states       = ', N_states
-    print *,  'PT2            = ', pt2
-    print *,  'E              = ', CI_energy
-    print *,  'E(before)+PT2  = ', E_CI_before+pt2
+    do  k = 1, N_states
+    print*,'State ',k
+    print *,  'PT2            = ', pt2(k)
+    print *,  'E              = ', CI_energy(k)
+    print *,  'E(before)+PT2  = ', E_CI_before(k)+pt2(k)
+    enddo
     print *,  '-----'
     E_CI_before = CI_energy
-    call ezfio_set_full_ci_energy(CI_energy)
-    if (abort_all) then
-      exit
+    if(N_states.gt.1)then
+     print*,'Variational Energy difference'
+     do i = 2, N_states
+      print*,'Delta E = ',CI_energy(i) - CI_energy(1)
+     enddo
     endif
+    if(N_states.gt.1)then
+     print*,'Variational + perturbative Energy difference'
+     do i = 2, N_states
+      print*,'Delta E = ',E_CI_before(i)+ pt2(i) - (E_CI_before(1) + pt2(1))
+     enddo
+    endif
+    E_CI_before = CI_energy
+    call ezfio_set_full_ci_energy(CI_energy)
   enddo
    N_det = min(N_det_max,N_det)
    touch N_det psi_det psi_coef

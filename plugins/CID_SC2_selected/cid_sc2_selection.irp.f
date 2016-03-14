@@ -13,7 +13,7 @@ program cisd_sc2_selected
   pt2 = 1.d0
   perturbation = "epstein_nesbet_sc2_projected"
   E_old(1) = HF_energy
-  davidson_threshold = 1.d-6 
+  threshold_davidson = 1.d-6 
 
   do while (maxval(abs(pt2(1:N_st))) > 1.d-4)
     print*,'----'
@@ -33,14 +33,11 @@ program cisd_sc2_selected
      E_old(i) = CI_SC2_energy(i)
     enddo
 !   print *,  'E corr           = ', (E_old(1)) - HF_energy
-    if (abort_all) then
-      exit
-    endif
   enddo
   pt2 = 0.d0
   call H_apply_PT2(pt2, norm_pert, H_pert_diag,  N_st)
-  davidson_threshold = 1.d-10
-  touch davidson_threshold davidson_criterion
+  threshold_davidson = 1.d-10
+  touch threshold_davidson davidson_criterion
   do i = 1, N_st
    max = 0.d0
 

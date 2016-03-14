@@ -82,8 +82,8 @@ END_PROVIDER
 subroutine get_s2_u0_old(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
  implicit none
  use bitmasks
- integer(bit_kind), intent(in) :: psi_keys_tmp(N_int,2,nmax)
  integer, intent(in) :: n,nmax
+ integer(bit_kind), intent(in) :: psi_keys_tmp(N_int,2,nmax)
  double precision, intent(in) :: psi_coefs_tmp(nmax)
  double precision, intent(out) :: s2
  integer :: i,j,l
@@ -109,8 +109,8 @@ end
 subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
   implicit none
   use bitmasks
-  integer(bit_kind), intent(in)  :: psi_keys_tmp(N_int,2,nmax)
   integer, intent(in)            :: n,nmax
+  integer(bit_kind), intent(in)  :: psi_keys_tmp(N_int,2,nmax)
   double precision, intent(in)   :: psi_coefs_tmp(nmax)
   double precision, intent(out)  :: s2
   double precision               :: s2_tmp
@@ -214,4 +214,175 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
   deallocate (shortcut, sort_idx, sorted, version)
 end
 
+subroutine get_uJ_s2_uI(psi_keys_tmp,psi_coefs_tmp,n,nmax_coefs,nmax_keys,s2,nstates)
+ implicit none
+ use bitmasks
+ integer(bit_kind), intent(in) :: psi_keys_tmp(N_int,2,nmax_keys)
+ integer, intent(in) :: n,nmax_coefs,nmax_keys,nstates
+ double precision, intent(in) :: psi_coefs_tmp(nmax_coefs,nstates)
+ double precision, intent(out) :: s2(nstates,nstates)
+ double precision :: s2_tmp,accu
+ integer :: i,j,l,jj,ll,kk
+ integer, allocatable           :: idx(:)
+ double precision, allocatable :: tmp(:,:)
+ BEGIN_DOC
+ ! returns the matrix elements of S^2 "s2(i,j)" between the "nstates" states 
+ ! psi_coefs_tmp(:,i) and psi_coefs_tmp(:,j)
+ END_DOC
+ s2 = 0.d0
+ do ll = 1, nstates
+  do jj = 1, nstates
+ accu = 0.d0
+ !$OMP PARALLEL DEFAULT(NONE)                                         &
+ !$OMP PRIVATE (i,j,kk,idx,tmp,s2_tmp) & 
+ !$OMP SHARED (ll,jj,psi_keys_tmp,psi_coefs_tmp,N_int,n,nstates)      &
+ !$OMP REDUCTION(+:accu)
+ allocate(idx(0:n))
+   !$OMP DO SCHEDULE(dynamic)
+   do i = 1, n
+    call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,i),s2_tmp,N_int)
+    accu += psi_coefs_tmp(i,ll) * s2_tmp * psi_coefs_tmp(i,jj)
+    call filter_connected(psi_keys_tmp,psi_keys_tmp(1,1,i),N_int,i-1,idx)
+    do kk=1,idx(0)
+     j = idx(kk)
+     call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,j),s2_tmp,N_int)
+     accu += psi_coefs_tmp(i,ll) * s2_tmp * psi_coefs_tmp(j,jj) + psi_coefs_tmp(i,jj) * s2_tmp * psi_coefs_tmp(j,ll)
+    enddo
+   enddo
+   !$OMP END DO NOWAIT
+ deallocate(idx)
+ !$OMP BARRIER
+ !$OMP END PARALLEL
+   s2(ll,jj) += accu
+  enddo
+ enddo
+ do i = 1, nstates
+  do j =i+1,nstates
+   accu = 0.5d0 * (s2(i,j) + s2(j,i))
+   s2(i,j) = accu
+   s2(j,i) = accu
+  enddo
+ enddo
+end
+
+subroutine diagonalize_s2_betweenstates(keys_tmp,psi_coefs_inout,n,nmax_keys,nmax_coefs,nstates,s2_eigvalues)
+ BEGIN_DOC
+! You enter with nstates vectors in psi_coefs_inout that may be coupled by S^2
+! The subroutine diagonalize the S^2 operator in the basis of these states. 
+! The vectors that you obtain in output are no more coupled by S^2, 
+! which does not necessary mean that they are eigenfunction of S^2. 
+! n,nmax,nstates = number of determinants, physical dimension of the arrays and number of states
+! keys_tmp = array of integer(bit_kind) that represents the determinants 
+! psi_coefs(i,j) = coeff of the ith determinant in the jth state
+! VECTORS ARE SUPPOSED TO BE ORTHONORMAL IN INPUT
+ END_DOC
+ implicit none
+ use bitmasks
+ integer, intent(in) :: n,nmax_keys,nmax_coefs,nstates
+ integer(bit_kind), intent(in) :: keys_tmp(N_int,2,nmax_keys)
+ double precision, intent(inout) :: psi_coefs_inout(nmax_coefs,nstates)
+
+!integer, intent(in) :: ndets_real,ndets_keys,ndets_coefs,nstates
+!integer(bit_kind), intent(in) :: keys_tmp(N_int,2,ndets_keys)
+!double precision, intent(inout) :: psi_coefs_inout(ndets_coefs,nstates)
+ double precision, intent(out)   :: s2_eigvalues(nstates)
+
+
+ double precision,allocatable :: s2(:,:),overlap(:,:)
+ double precision, allocatable :: eigvalues(:),eigvectors(:,:)
+ integer :: i,j,k
+ double precision, allocatable :: psi_coefs_tmp(:,:)
+ double precision :: accu,coef_contract
+ double precision :: u_dot_u,u_dot_v
+
+ print*,''
+ print*,'*********************************************************************'
+ print*,'Cleaning the various vectors by diagonalization of the S^2 matrix ...'
+ print*,''
+ print*,'nstates = ',nstates
+ allocate(s2(nstates,nstates),overlap(nstates,nstates))
+  do i = 1, nstates
+    overlap(i,i) = u_dot_u(psi_coefs_inout(1,i),n)
+    do j = i+1, nstates
+      overlap(i,j) = u_dot_v(psi_coefs_inout(1,j),psi_coefs_inout(1,i),n)
+      overlap(j,i) = overlap(i,j)
+    enddo
+  enddo
+ print*,'Overlap matrix in the basis of the states considered'
+ do i = 1, nstates
+  write(*,'(10(F16.10,X))')overlap(i,:)
+ enddo
+ call ortho_lowdin(overlap,size(overlap,1),nstates,psi_coefs_inout,size(psi_coefs_inout,1),n)
+ print*,'passed ortho'
+
+  do i = 1, nstates
+    overlap(i,i) = u_dot_u(psi_coefs_inout(1,i),n)
+    do j = i+1, nstates
+      overlap(i,j) = u_dot_v(psi_coefs_inout(1,j),psi_coefs_inout(1,i),n)
+      overlap(j,i) = overlap(i,j)
+    enddo
+  enddo
+ print*,'Overlap matrix in the basis of the Lowdin orthonormalized states '
+ do i = 1, nstates
+  write(*,'(10(F16.10,X))')overlap(i,:)
+ enddo
+
+ call get_uJ_s2_uI(keys_tmp,psi_coefs_inout,n_det,size(psi_coefs_inout,1),size(keys_tmp,3),s2,nstates)
+ print*,'S^2 matrix in the basis of the states considered'
+ double precision :: accu_precision_diag,accu_precision_of_diag
+ accu_precision_diag = 0.d0
+ accu_precision_of_diag = 0.d0
+ do i = 1, nstates
+  do j = i+1, nstates
+   if(  ( dabs(s2(i,i) - s2(j,j)) .le.1.d-10 ) .and. (dabs(s2(i,j) + dabs(s2(i,j)))) .le.1.d-10) then
+    s2(i,j) = 0.d0
+    s2(j,i) = 0.d0
+   endif
+  enddo
+ enddo
+ do i = 1, nstates
+  write(*,'(10(F10.6,X))')s2(i,:)
+ enddo
+
+ print*,'Diagonalizing the S^2 matrix'
+
+ allocate(eigvalues(nstates),eigvectors(nstates,nstates))
+ call lapack_diagd(eigvalues,eigvectors,s2,nstates,nstates)
+ print*,'Eigenvalues of s^2'
+ do i = 1, nstates
+  print*,'s2 = ',eigvalues(i)
+  s2_eigvalues(i) = eigvalues(i)
+ enddo
+
+ print*,'Building the eigenvectors of the S^2 matrix'
+ allocate(psi_coefs_tmp(nmax_coefs,nstates))
+ psi_coefs_tmp = 0.d0
+ do j = 1, nstates
+  do k = 1, nstates
+   coef_contract =  eigvectors(k,j)    !  <phi_k|Psi_j>
+   do i = 1, n_det
+    psi_coefs_tmp(i,j) += psi_coefs_inout(i,k) * coef_contract
+   enddo
+  enddo
+ enddo
+ do j = 1, nstates
+  accu = 0.d0
+   do i = 1, n_det
+    accu += psi_coefs_tmp(i,j) * psi_coefs_tmp(i,j)
+   enddo
+   print*,'Norm of vector = ',accu
+   accu = 1.d0/dsqrt(accu)
+   do i = 1, n_det
+    psi_coefs_inout(i,j) = psi_coefs_tmp(i,j) * accu
+   enddo
+ enddo
+!call get_uJ_s2_uI(keys_tmp,psi_coefs_inout,n_det,size(psi_coefs_inout,1),size(keys_tmp,3),s2,nstates)
+!print*,'S^2 matrix in the basis of the NEW states considered'
+!do i = 1, nstates
+! write(*,'(10(F16.10,X))')s2(i,:)
+!enddo
+
+ deallocate(s2,eigvalues,eigvectors,psi_coefs_tmp,overlap)
+
+end
 

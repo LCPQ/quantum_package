@@ -13,6 +13,9 @@ let input_data = "
 * Strictly_negative_float : float  
   assert (x < 0.) ; 
 
+* Positive_int64 : int64
+  assert (x >= 0L) ; 
+
 * Positive_int : int  
   assert (x >= 0) ; 
 
