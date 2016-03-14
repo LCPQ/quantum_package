@@ -117,14 +117,8 @@ subroutine H_apply_dressed_pert_diexc(key_in, hole_1,particl_1, hole_2, particl_
   accu = 0.d0
   do ispin=1,2
     other_spin = iand(ispin,1)+1
-    if (abort_here) then
-      exit
-    endif
 !   !$OMP DO SCHEDULE (static)
     do ii=1,ia_ja_pairs(1,0,ispin)
-      if (abort_here) then
-        cycle
-      endif
       i_a = ia_ja_pairs(1,ii,ispin)
       ASSERT (i_a > 0)
       ASSERT (i_a <= mo_tot_num)
@@ -202,9 +196,6 @@ subroutine H_apply_dressed_pert_diexc(key_in, hole_1,particl_1, hole_2, particl_
             call standard_dress(delta_ij_generators_,size_max,Ndet_generators,i_generator,key_idx,keys_out,N_int,iproc,psi_det_generators_input,E_ref)
             key_idx = 0
           endif
-          if (abort_here) then
-            exit
-          endif
         enddo
       endif
 
@@ -252,9 +243,6 @@ subroutine H_apply_dressed_pert_diexc(key_in, hole_1,particl_1, hole_2, particl_
         if (key_idx == size_max) then
           call standard_dress(delta_ij_generators_,size_max,Ndet_generators,i_generator,key_idx,keys_out,N_int,iproc,psi_det_generators_input,E_ref)
           key_idx = 0
-        endif
-        if (abort_here) then
-          exit
         endif
       enddo ! kk
 
@@ -467,21 +455,11 @@ subroutine H_apply_dressed_pert(delta_ij_generators_,  Ndet_generators,psi_det_g
  
 
 ! !$ call omp_init_lock(lck)
-  call start_progress(Ndet_generators,'Selection (norm)',0.d0)
-
   call wall_time(wall_0)
 
   iproc = 0
   allocate( mask(N_int,2,6) )
   do i_generator=1,nmax
-
-    progress_bar(1) = i_generator
-
-    if (abort_here) then
-      exit
-    endif
-    
-    
 
 !   ! Create bit masks for holes and particles
     do ispin=1,2
@@ -535,14 +513,6 @@ subroutine H_apply_dressed_pert(delta_ij_generators_,  Ndet_generators,psi_det_g
   allocate( mask(N_int,2,6) )
 ! !$OMP DO SCHEDULE(dynamic,1)
   do i_generator=nmax+1,Ndet_generators
-    if (iproc == 0) then
-      progress_bar(1) = i_generator
-    endif
-    if (abort_here) then
-      cycle
-    endif
-    
-    
 
     ! Create bit masks for holes and particles
     do ispin=1,2
@@ -594,11 +564,6 @@ subroutine H_apply_dressed_pert(delta_ij_generators_,  Ndet_generators,psi_det_g
 ! !$OMP END PARALLEL
 ! !$ call omp_destroy_lock(lck)
 
-  abort_here = abort_all
-  call stop_progress
-  
-  
-  
   
 end
 

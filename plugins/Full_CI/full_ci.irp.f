@@ -64,9 +64,9 @@ program full_ci
     print *,  'N_states       = ', N_states
     do  k = 1, N_states
     print*,'State ',k
-    print *,  'PT2            = ', pt2
-    print *,  'E              = ', CI_energy
-    print *,  'E(before)+PT2  = ', E_CI_before+pt2
+    print *,  'PT2            = ', pt2(k)
+    print *,  'E              = ', CI_energy(k)
+    print *,  'E(before)+PT2  = ', E_CI_before(k)+pt2(k)
     enddo
     print *,  '-----'
     E_CI_before = CI_energy
@@ -84,9 +84,6 @@ program full_ci
     endif
     E_CI_before = CI_energy
     call ezfio_set_full_ci_energy(CI_energy)
-    if (abort_all) then
-      exit
-    endif
   enddo
    N_det = min(N_det_max,N_det)
    touch N_det psi_det psi_coef

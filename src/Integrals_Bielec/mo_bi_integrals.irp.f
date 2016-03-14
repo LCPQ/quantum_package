@@ -36,7 +36,7 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
     endif
   endif
   
-  call add_integrals_to_map(full_ijkl_bitmask)
+  call add_integrals_to_map(full_ijkl_bitmask_4)
 END_PROVIDER
 
 subroutine add_integrals_to_map(mask_ijkl)
@@ -90,8 +90,6 @@ subroutine add_integrals_to_map(mask_ijkl)
   
   call wall_time(wall_1)
   call cpu_time(cpu_1)
-  PROVIDE progress_bar
-  call start_progress(ao_num,'MO integrals (MB)',0.d0)
   
   !$OMP PARALLEL PRIVATE(l1,k1,j1,i1,i2,i3,i4,i,j,k,l,c, ii1,kmax,   &
       !$OMP  bielec_tmp_0_idx, bielec_tmp_0, bielec_tmp_1,bielec_tmp_2,bielec_tmp_3,&
@@ -101,9 +99,10 @@ subroutine add_integrals_to_map(mask_ijkl)
       !$OMP  SHARED(size_buffer,ao_num,mo_tot_num,n_i,n_j,n_k,n_l,mo_tot_num_align,&
       !$OMP  mo_coef_transp,                                         &
       !$OMP  mo_coef_transp_is_built, list_ijkl,                     &
-      !$OMP  mo_coef_is_built, wall_1, abort_here,                   &
-      !$OMP  mo_coef,mo_integrals_threshold,mo_integrals_map,progress_bar,progress_value)
+      !$OMP  mo_coef_is_built, wall_1,                               &
+      !$OMP  mo_coef,mo_integrals_threshold,mo_integrals_map)
   n_integrals = 0
+  wall_0 = wall_1
   allocate(bielec_tmp_3(mo_tot_num_align, n_j, n_k),                 &
       bielec_tmp_1(mo_tot_num_align),                                &
       bielec_tmp_0(ao_num,ao_num),                                   &
@@ -112,20 +111,15 @@ subroutine add_integrals_to_map(mask_ijkl)
       buffer_i(size_buffer),                                         &
       buffer_value(size_buffer) )
   
+  thread_num = 0
 !$  thread_num = omp_get_thread_num()
   !$OMP DO SCHEDULE(guided)
   do l1 = 1,ao_num
-    if (thread_num == 0) then
-      progress_bar(1) = l1
-    endif
-IRP_IF COARRAY
-    if (mod(l1-this_image(),num_images()) /= 0 ) then
-      cycle
-    endif
-IRP_ENDIF
-    if (abort_here) then
-      cycle
-    endif
+!IRP_IF COARRAY
+!    if (mod(l1-this_image(),num_images()) /= 0 ) then
+!      cycle
+!    endif
+!IRP_ENDIF
     !DEC$ VECTOR ALIGNED
     bielec_tmp_3 = 0.d0
     do k1 = 1,ao_num
@@ -274,8 +268,6 @@ IRP_ENDIF
         wall_0 = wall_2
         print*, 100.*float(l1)/float(ao_num), '% in ',  &
             wall_2-wall_1, 's', map_mb(mo_integrals_map) ,'MB'
-        progress_value = dble(map_mb(mo_integrals_map))
-
       endif
     endif
   enddo
@@ -286,14 +278,10 @@ IRP_ENDIF
       real(mo_integrals_threshold,integral_kind))
   deallocate(buffer_i, buffer_value)
   !$OMP END PARALLEL
-  call stop_progress
-  if (abort_here) then
-    stop 'Aborting in MO integrals calculation'
-  endif
-IRP_IF COARRAY
-  print*, 'Communicating the map'
-  call communicate_mo_integrals()
-IRP_ENDIF
+!IRP_IF COARRAY
+!  print*, 'Communicating the map'
+!  call communicate_mo_integrals()
+!IRP_ENDIF
   call map_unique(mo_integrals_map)
   
   call wall_time(wall_2)
@@ -354,7 +342,7 @@ end
       !$OMP PRIVATE (i,j,p,q,r,s,integral,c,n,pp,int_value,int_idx,  &
       !$OMP  iqrs, iqsr,iqri,iqis)                                   &
       !$OMP SHARED(mo_tot_num,mo_coef_transp,mo_tot_num_align,ao_num,&
-      !$OMP  ao_integrals_threshold,do_direct_integrals,abort_here)  &
+      !$OMP  ao_integrals_threshold,do_direct_integrals)  &
       !$OMP REDUCTION(+:mo_bielec_integral_jj_from_ao,mo_bielec_integral_jj_exchange_from_ao)
   
   allocate( int_value(ao_num), int_idx(ao_num),                      &
@@ -363,9 +351,6 @@ end
   
   !$OMP DO SCHEDULE (guided)
   do s=1,ao_num
-    if (abort_here) then
-      cycle
-    endif
     do q=1,ao_num
       
       do j=1,ao_num
@@ -451,9 +436,6 @@ end
   !$OMP END DO NOWAIT
   deallocate(iqrs,iqsr,int_value,int_idx)
   !$OMP END PARALLEL
-  if (abort_here) then
-    stop 'Aborting in MO integrals calculation'
-  endif
   
   mo_bielec_integral_jj_anti_from_ao = mo_bielec_integral_jj_from_ao - mo_bielec_integral_jj_exchange_from_ao
   

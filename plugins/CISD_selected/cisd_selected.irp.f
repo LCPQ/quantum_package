@@ -34,9 +34,6 @@ program cisd
     enddo
     E_old = CI_energy
     call save_wavefunction
-    if (abort_all) then
-      exit
-    endif
   enddo
   N_det = min(N_det,N_det_max)
   touch N_det psi_det psi_coef

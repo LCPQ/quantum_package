@@ -9,6 +9,7 @@ print "#QP -> QMCPACK"
 
 from ezfio import ezfio
 
+import os
 import sys
 ezfio_path = sys.argv[1]
 
@@ -17,7 +18,15 @@ ezfio.set_file(ezfio_path)
 do_pseudo = ezfio.get_pseudo_do_pseudo()
 if do_pseudo:
     print "do_pseudo True"
-    zcore = ezfio.get_pseudo_nucl_charge_remove()
+    from qp_path import QP_ROOT
+
+    l_ele_path = os.path.join(QP_ROOT,"data","list_element.txt")
+    with open(l_ele_path, "r") as f:
+        data_raw = f.read()
+
+    l_element_raw = data_raw.split("\n")
+    l_element = [element_raw.split() for element_raw in l_element_raw]
+    d_z = dict((abr, z) for (z, abr, ele) in l_element)
 else:
     print "do_pseudo False"
 
@@ -68,11 +77,10 @@ print "nucl_num", len(l_label)
 print "Atomic coord in Bohr"
 
 for i, t in enumerate(zip(l_label, l_charge, l_coord_str)):
-    try:
-        l = (t[0], t[1] + zcore[i], t[2])
-    except NameError:
-        l = t
-    print list_to_string(l)
+    t_1 = d_z[t[0]] if do_pseudo else t[1]
+    
+    t_new = [t[0],t_1,t[2]]
+    print list_to_string(t_new)
 
 #
 # Call externet process to get the sysmetry
@@ -83,7 +91,7 @@ process = subprocess.Popen(
     stdout=subprocess.PIPE)
 out, err = process.communicate()
 
-basis_raw, sym_raw, _= out.split("\n\n\n")
+basis_raw, sym_raw, _ , det_raw, _ = out.split("\n\n\n")
 
 #  _                 __        
 # |_)  _.  _ o  _   (_   _ _|_ 
@@ -248,7 +256,7 @@ def print_mo_coef(mo_coef_block, l_l_sym):
             i_a = int(l[1]) - 1
             sym = l[2]
 
-            print l_label[i_a], sym, " ".join('{: 3.8f}'.format(i)
+            print l_label[i_a], sym, " ".join('{0: 3.8f}'.format(i)
                                               for i in a[i])
 
         if i_block != nb_block - 1:
@@ -306,7 +314,7 @@ if do_pseudo:
                 l_str.append(l_dump)
 
         str_ = "PARAMETERS FOR {0} ON ATOM {1} WITH ZCORE {2} AND LMAX {3} ARE"
-        print str_.format(a, i + 1, int(zcore[i]), int(len(l_str) - 1))
+        print str_.format(a, i + 1, int(d_z[a])-int(l_charge[i]), int(len(l_str) - 1))
 
         for i, l in enumerate(l_str):
             str_ = "FOR L= {0} COEFF N ZETA"
@@ -315,7 +323,7 @@ if do_pseudo:
                 print " ", ii + 1, ll
 
     str_ = "THE ECP RUN REMOVES {0} CORE ELECTRONS, AND THE SAME NUMBER OF PROTONS."
-    print str_.format(sum(zcore))
+    print str_.format(sum([int(d_z[a])-int(l_charge[i]) for i,a in enumerate(l_label)]))
     print "END_PSEUDO"
 
 #  _         
@@ -329,31 +337,26 @@ print "mo_num", mo_num
 print "det_num", n_det
 print ""
 
-psi_det = ezfio.get_determinants_psi_det()
-psi_coef = ezfio.get_determinants_psi_coef()[0]
 
-for c, (l_det_bit_alpha, l_det_bit_beta) in zip(psi_coef, psi_det):
-    print c
 
-    bin_det = ""
-    for i,int_det in enumerate(l_det_bit_alpha):
-        bin_det_raw = "{0:b}".format(int_det)[::-1]
-        if mo_num - 64*(i+1) > 0:
-            bin_det += bin_det_raw + "0" * (64*(i+1) - len(bin_det_raw))
-        else:
-            bin_det += bin_det_raw + "0" * (mo_num-64*i - len(bin_det_raw))
+token = "Determinants ::"
+pos = det_raw.rfind(token) + len(token)
 
-    print bin_det
+det_without_header = det_raw[pos+2::]
 
-    bin_det = ""
-    for i,int_det in enumerate(l_det_bit_beta):
-        bin_det_raw = "{0:b}".format(int_det)[::-1]
-        if mo_num - 64*(i+1) > 0:
-            bin_det += bin_det_raw + "0" * (64*(i+1) - len(bin_det_raw))
-        else:
-            bin_det += bin_det_raw + "0" * (mo_num-64*i - len(bin_det_raw))
+d_rep={"+":"1","-":"0"}
 
-    print bin_det
-    print ""
+det_without_header = det_raw[pos+2::]
+
+for line_raw in det_without_header.split("\n"):
+    line = line_raw
+
+    if line_raw:
+        try:
+            float(line)
+        except ValueError:
+            line= "".join([d_rep[x] if x in d_rep else x for x in line_raw])
+
+    print line.strip()
 
 print "END_DET"

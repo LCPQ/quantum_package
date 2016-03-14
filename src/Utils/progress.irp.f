@@ -59,8 +59,8 @@ recursive subroutine run_progress
     write(unit=0,fmt="(a1,a1,a70)") '+',char(13), bar
   else
     prog = int( progress_bar(1)*100./progress_bar(2) )
-    write(bar(1:25),'(A)'),progress_title
-    write(bar(29:47),'(G17.10)'),progress_value
+    write(bar(1:25),'(A)') progress_title
+    write(bar(29:47),'(G17.10)') progress_value
     write(bar(72:74),'(i3)') prog
    
     integer :: k,j

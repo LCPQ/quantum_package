@@ -295,6 +295,18 @@ BEGIN_PROVIDER [ integer, nproc ]
   !$OMP END PARALLEL
 END_PROVIDER
 
+BEGIN_PROVIDER [ integer, iproc_save, (nproc) ]
+ implicit none
+ BEGIN_DOC
+ ! iproc_save(i) = i-1. Used to start threads with pthreads.
+ END_DOC
+ integer :: i
+ do i=1,nproc
+   iproc_save(i) = i-1
+ enddo
+
+END_PROVIDER
+
 
 double precision function u_dot_v(u,v,sze)
   implicit none
@@ -401,5 +413,21 @@ end
 
 
 
-
+subroutine lowercase(txt,n)
+  implicit none
+  BEGIN_DOC
+! Transform to lower case
+  END_DOC
+  character*(*), intent(inout)   :: txt
+  integer, intent(in)            :: n
+  character( * ), PARAMETER      :: LOWER_CASE = 'abcdefghijklmnopqrstuvwxyz'
+  character( * ), PARAMETER      :: UPPER_CASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  integer                        :: i, ic
+  do i=1,n
+    ic = index( UPPER_CASE, txt(i:i) )
+    if (ic /= 0) then
+      txt(i:i) = LOWER_CASE(ic:ic)
+    endif
+  enddo
+end
 
