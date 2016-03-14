@@ -1,5 +1,5 @@
 use bitmasks
-
+ 
 BEGIN_PROVIDER [ integer, N_det_generators ]
  implicit none
  BEGIN_DOC
@@ -8,17 +8,18 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
  integer :: i
  integer, save :: ifirst = 0
  double precision :: norm
- read_wf = .True.
  if(ifirst == 0)then
-  N_det_generators = N_det
+  call ezfio_get_determinants_n_det(N_det_generators)
   ifirst = 1
+ else
+  print*,'PB in generators restart !!!'
  endif
  call write_int(output_determinants,N_det_generators,'Number of generators')
 END_PROVIDER
 
 
- BEGIN_PROVIDER [ integer(bit_kind), psi_det_generators, (N_int,2,psi_det_size) ]
-&BEGIN_PROVIDER [ double precision, psi_coef_generators, (psi_det_size,N_states) ]
+ BEGIN_PROVIDER [ integer(bit_kind), psi_det_generators, (N_int,2,N_det_generators) ]
+&BEGIN_PROVIDER [ double precision, psi_coef_generators, (N_det_generators,N_states) ]
  implicit none
  BEGIN_DOC
  ! read wf
@@ -26,17 +27,20 @@ END_PROVIDER
  END_DOC
  integer                        :: i, k
  integer, save :: ifirst = 0
+ double precision, allocatable  :: psi_coef_read(:,:)
  if(ifirst == 0)then
-  do i=1,N_det_generators
-    do k=1,N_int
-      psi_det_generators(k,1,i) = psi_det(k,1,i)
-      psi_det_generators(k,2,i) = psi_det(k,2,i)
-    enddo
+  call read_dets(psi_det_generators,N_int,N_det_generators)
+   allocate (psi_coef_read(N_det_generators,N_states))
+   call ezfio_get_determinants_psi_coef(psi_coef_read)
    do k = 1, N_states
-    psi_coef_generators(i,k) = psi_coef(i,k)
+    do i = 1, N_det_generators
+     psi_coef_generators(i,k) = psi_coef_read(i,k)
+    enddo
    enddo
-  enddo
   ifirst = 1
+  deallocate(psi_coef_read)
+ else 
+  print*,'PB in generators restart !!!'
  endif
 
 END_PROVIDER

@@ -8,11 +8,22 @@ copy_buffer
 declarations
 decls_main
 deinit_thread
-do_double_excitations
+skip
+init_main
+filter_integrals
+filter2p
+filter2h2p_double
+filter2h2p_single
 filter1h
 filter1p
-filter2h2p
-filter2p
+only_2p_single
+only_2p_double
+filter_only_1h1p_single
+filter_only_1h1p_double
+filter_only_1h2p_single
+filter_only_1h2p_double
+filter_only_2h2p_single
+filter_only_2h2p_double
 filterhole
 filter_integrals
 filter_only_1h1p_double
@@ -181,7 +192,7 @@ class H_apply(object):
      if (is_a_2p(hole)) cycle
     """
   def filter_1p(self):
-    self["filter0p"] = """
+    self["filter1p"] = """
 !    ! DIR$ FORCEINLINE
      if (is_a_1p(hole)) cycle
     """
@@ -207,6 +218,27 @@ class H_apply(object):
      if (is_a_1h1p(key).eqv..False.) cycle
     """
 
+  def filter_only_2h2p(self):
+    self["filter_only_2h2p_single"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_two_holes_two_particles(hole).eqv..False.) cycle
+    """
+    self["filter_only_1h1p_double"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_two_holes_two_particles(key).eqv..False.) cycle
+    """
+
+
+  def filter_only_1h2p(self):
+    self["filter_only_1h2p_single"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_1h2p(hole).eqv..False.) cycle
+    """
+    self["filter_only_1h2p_double"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_1h2p(key).eqv..False.) cycle
+    """
+
 
   def unset_skip(self):
     self["skip"] = """
@@ -214,8 +246,11 @@ class H_apply(object):
 
 
   def set_filter_2h_2p(self):
-    self["filter2h2p"] = """
+    self["filter2h2p_double"] = """
      if (is_a_two_holes_two_particles(key)) cycle
+    """
+    self["filter2h2p_single"] = """
+     if (is_a_two_holes_two_particles(hole)) cycle
     """
 
 

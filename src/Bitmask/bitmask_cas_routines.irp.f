@@ -212,6 +212,12 @@ logical function is_a_two_holes_two_particles(key_in)
  implicit none
  integer(bit_kind), intent(in) :: key_in(N_int,2)
  integer :: i,i_diff
+ integer :: number_of_holes, number_of_particles
+ is_a_two_holes_two_particles = .False.
+ if(number_of_holes(key_in) == 2 .and. number_of_particles(key_in) == 2)then
+  is_a_two_holes_two_particles = .True. 
+  return
+ endif
  i_diff = 0
  if(N_int == 1)then
    i_diff = i_diff  &
@@ -452,6 +458,17 @@ logical function is_a_1h1p(key_in)
  is_a_1h1p = .False.
  if(number_of_holes(key_in).eq.1 .and. number_of_particles(key_in).eq.1)then
   is_a_1h1p = .True.
+ endif
+
+end
+
+logical function is_a_1h2p(key_in)
+ implicit none
+ integer(bit_kind), intent(in) :: key_in(N_int,2)
+ integer :: number_of_particles, number_of_holes
+ is_a_1h2p = .False.
+ if(number_of_holes(key_in).eq.1 .and. number_of_particles(key_in).eq.2)then
+  is_a_1h2p = .True.
  endif
 
 end
