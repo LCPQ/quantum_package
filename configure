@@ -251,6 +251,12 @@ def checking(d_dependency):
 
         except (OSError,subprocess.CalledProcessError):
             default_path = d_info[binary].default_path
+            if binary == 'f77zmq':
+             print ' ------------------- '
+             print ' ------------------- '
+             print default_path
+             print ' ------------------- '
+             print ' ------------------- '
             if os.path.exists(default_path):
                 return default_path
             else:
