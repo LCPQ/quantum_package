@@ -1,5 +1,5 @@
-open Qptypes;;
-open Core.Std;;
+open Qptypes
+open Core.Std
 
 (*
 Type for bits strings
@@ -19,39 +19,50 @@ let to_string b =
       in do_work new_accu tail
   in
   do_work "" b
-;;
+
 
 let of_string ?(zero='0') ?(one='1') s =
   String.to_list s
   |> List.rev_map ~f:( fun c ->
      if (c = zero) then Bit.Zero
      else if (c = one) then Bit.One
-     else (failwith ("Error in string "^s) ) )
-;;
+     else (failwith ("Error in bitstring ") ) )
+
+let of_string_mp s =
+  String.to_list s
+  |> List.rev_map ~f:(function
+    | '-' -> Bit.Zero
+    | '+' -> Bit.One
+    | _   -> failwith ("Error in bitstring ") ) 
+    
 
 (* Create a bit list from an int64 *)
 let of_int64 i = 
-  let rec do_work = function
-  | 0L -> [ Bit.Zero ]
-  | 1L -> [ Bit.One ]
-  | i -> let b =
-    match (Int64.bit_and i 1L ) with
-    | 0L -> Bit.Zero
-    | 1L -> Bit.One 
-    | _ -> raise (Failure "i land 1 not in (0,1)")  
-    in b:: ( do_work (Int64.shift_right_logical i 1) )
+
+  let rec do_work accu = function
+  | 0L -> Bit.Zero :: accu |> List.rev
+  | 1L -> Bit.One  :: accu |> List.rev
+  | i  -> 
+    let b =
+      match (Int64.bit_and i 1L ) with
+      | 0L -> Bit.Zero
+      | 1L -> Bit.One 
+      | _ -> raise (Failure "i land 1 not in (0,1)")  
+    in
+    do_work (b :: accu) (Int64.shift_right_logical i 1)
   in
+
   let adjust_length result = 
     let rec do_work accu = function
-    | 64 -> accu 
+    | 64 -> List.rev accu 
     | i when i>64 -> raise (Failure "Error in of_int64 > 64")
     | i when i<0 -> raise (Failure "Error in of_int64 < 0")
-    | i -> do_work (accu@[Bit.Zero])  (i+1)
+    | i -> do_work (Bit.Zero :: accu)  (i+1)
     in
-    do_work result (List.length result)
+    do_work (List.rev result) (List.length result)
   in
-  adjust_length (do_work i)
-;;
+  adjust_length (do_work [] i)
+
 
 (* Create an int64 from a bit list *)
 let to_int64 l =
@@ -61,26 +72,32 @@ let to_int64 l =
     | Bit.Zero::tail -> do_work Int64.(shift_left accu 1) tail
     | Bit.One::tail  -> do_work Int64.(bit_or one (shift_left accu 1)) tail
   in do_work Int64.zero (List.rev l)
-;;
+
 
 (* Create a bit list from a list of int64 *)
 let of_int64_list l = 
   List.map ~f:of_int64 l 
   |> List.concat
-;;
+
+(* Create a bit list from an array of int64 *)
+let of_int64_array l = 
+  Array.map ~f:of_int64 l 
+  |> Array.to_list
+  |> List.concat
+
 
 (* Compute n_int *)
 let n_int_of_mo_tot_num mo_tot_num =
   let bit_kind_size = Bit_kind_size.to_int (Lazy.force Qpackage.bit_kind_size) in
   N_int_number.of_int ( (mo_tot_num-1)/bit_kind_size + 1 )
-;;
+
 
 (* Create a zero bit list *)
 let zero n_int =
   let n_int = N_int_number.to_int n_int in
   let a = Array.init n_int (fun i-> 0L)  in
   of_int64_list ( Array.to_list a )
-;;
+
 
 (* Create an int64 list from a bit list *)
 let to_int64_list l =
@@ -100,7 +117,11 @@ let to_int64_list l =
   let l = do_work [] [] 1 l
   in
   List.rev_map ~f:to_int64 l
-;;
+
+(* Create an array of int64 from a bit list *)
+let to_int64_array l =
+    to_int64_list l
+    |> Array.of_list
 
 (* Create a bit list from a list of MO indices *)
 let of_mo_number_list n_int l = 
@@ -109,7 +130,7 @@ let of_mo_number_list n_int l =
   let a = Array.create length (Bit.Zero) in
   List.iter ~f:(fun i-> a.((MO_number.to_int i)-1) <- Bit.One) l;
   Array.to_list a
-;;
+
 
 let to_mo_number_list l =
   let a = Array.of_list l in
@@ -127,7 +148,7 @@ let to_mo_number_list l =
       end
   in
   do_work [] (List.length l)
-;;
+
 
 
 
@@ -142,7 +163,7 @@ let logical_operator2 op a b =
     in  do_work_binary (newbit::result) ta tb
   in
   List.rev (do_work_binary [] a b)
-;;
+
 
 let logical_operator1 op b =
   let rec do_work_unary result b = 
@@ -153,20 +174,19 @@ let logical_operator1 op b =
     in  do_work_unary (newbit::result) tb
   in
   List.rev (do_work_unary [] b)
-;;
 
-let and_operator a b = logical_operator2 Bit.and_operator a b;;
-let xor_operator a b = logical_operator2 Bit.xor_operator a b;;
-let  or_operator a b = logical_operator2  Bit.or_operator a b;;
-let not_operator   b = logical_operator1 Bit.not_operator   b ;;
+
+let and_operator a b = logical_operator2 Bit.and_operator a b
+let xor_operator a b = logical_operator2 Bit.xor_operator a b
+let  or_operator a b = logical_operator2  Bit.or_operator a b
+let not_operator   b = logical_operator1 Bit.not_operator   b
 
 
 let popcnt b = 
-  let rec popcnt accu = function
-    | [] -> accu
-    | Bit.One::rest -> popcnt (accu+1) rest
-    | Bit.Zero::rest -> popcnt (accu) rest
-  in popcnt 0 b
-;;
+  List.fold_left b ~init:0 ~f:(fun accu -> function
+    | Bit.One -> accu+1
+    | Bit.Zero -> accu
+  ) 
+
 
 

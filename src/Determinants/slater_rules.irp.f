@@ -845,25 +845,30 @@ subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullLis
   use bitmasks
   implicit none
   
-  integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
   integer, intent(in)                      :: N_fullList
+  integer, intent(in)                      :: Nint
+  integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
   integer(bit_kind),intent(out)            :: miniList(Nint, 2, N_fullList)
   integer,intent(out)                      :: idx_miniList(N_fullList), N_miniList
-  integer, intent(in)                      :: Nint
   integer(bit_kind)                        :: key_mask(Nint, 2)
-  integer                                  :: ni, i, n_a, n_b, e_a, e_b
+  integer                                  :: ni, k, i, n_a, n_b, e_a, e_b
   
   
-  n_a = 0
-  n_b = 0
-  do ni=1,nint
+  n_a = popcnt(key_mask(1,1))
+  n_b = popcnt(key_mask(1,2))
+  do ni=2,nint
     n_a = n_a + popcnt(key_mask(ni,1))
     n_b = n_b + popcnt(key_mask(ni,2))
   end do
   
   if(n_a == 0) then
     N_miniList = N_fullList
-    miniList(:,:,:) = fullList(:,:,:)
+    do k=1,N_fullList
+      do ni=1,Nint
+        miniList(ni,1,k) = fullList(ni,1,k)
+        miniList(ni,2,k) = fullList(ni,2,k)
+      enddo
+    enddo
     do i=1,N_fullList
       idx_miniList(i) = i
     end do
@@ -873,16 +878,19 @@ subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullLis
   N_miniList = 0
   
   do i=1,N_fullList
-    e_a = n_a
-    e_b = n_b
-    do ni=1,nint
+    e_a = n_a - popcnt(iand(fullList(1, 1, i), key_mask(1, 1)))
+    e_b = n_b - popcnt(iand(fullList(1, 2, i), key_mask(1, 2)))
+    do ni=2,nint
       e_a -= popcnt(iand(fullList(ni, 1, i), key_mask(ni, 1)))
       e_b -= popcnt(iand(fullList(ni, 2, i), key_mask(ni, 2)))
     end do
     
     if(e_a + e_b <= 2) then
       N_miniList = N_miniList + 1
-      miniList(:,:,N_miniList) = fullList(:,:,i)
+      do ni=1,Nint
+        miniList(ni,1,N_miniList) = fullList(ni,1,i)
+        miniList(ni,2,N_miniList) = fullList(ni,2,i)
+      enddo
       idx_miniList(N_miniList) = i
     end if
   end do
@@ -892,29 +900,34 @@ subroutine create_minilist_find_previous(key_mask, fullList, miniList, N_fullLis
   use bitmasks
   implicit none
   
-  integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
   integer, intent(in)                      :: N_fullList
+  integer, intent(in)                      :: Nint
+  integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
   integer(bit_kind),intent(out)            :: miniList(Nint, 2, N_fullList)
   integer(bit_kind)                        :: subList(Nint, 2, N_fullList)
   logical,intent(out)                      :: fullMatch
   integer,intent(out)                      :: N_miniList
-  integer, intent(in)                      :: Nint
   integer(bit_kind)                        :: key_mask(Nint, 2)
   integer                                  :: ni, i, k, l, N_subList
   
   
   fullMatch = .false.
-  l = 0
   N_miniList = 0
   N_subList = 0
     
-  do ni = 1,Nint
-    l += popcnt(key_mask(ni,1)) + popcnt(key_mask(ni,2))
+  l = popcnt(key_mask(1,1)) + popcnt(key_mask(1,2))
+  do ni = 2,Nint
+    l = l + popcnt(key_mask(ni,1)) + popcnt(key_mask(ni,2))
   end do
   
   if(l == 0) then
     N_miniList = N_fullList
-    miniList(:,:,:N_miniList) = fullList(:,:,:N_minilist)
+    do k=1,N_fullList
+      do ni=1,Nint
+        miniList(ni,1,k) = fullList(ni,1,k)
+        miniList(ni,2,k) = fullList(ni,2,k)
+      enddo
+    enddo
   else
     do i=N_fullList,1,-1
       k = l
@@ -923,10 +936,16 @@ subroutine create_minilist_find_previous(key_mask, fullList, miniList, N_fullLis
       end do
       if(k == 2) then
         N_subList += 1
-        subList(:,:,N_subList) = fullList(:,:,i)
+        do ni=1,Nint
+          subList(ni,1,N_subList) = fullList(ni,1,i)
+          subList(ni,2,N_subList) = fullList(ni,2,i)
+        enddo
       else if(k == 1) then
         N_minilist += 1
-        miniList(:,:,N_minilist) = fullList(:,:,i)
+        do ni=1,Nint
+          miniList(ni,1,N_minilist) = fullList(ni,1,i)
+          miniList(ni,2,N_minilist) = fullList(ni,2,i)
+        enddo
       else if(k == 0) then
         fullMatch = .true.
         return
@@ -935,7 +954,12 @@ subroutine create_minilist_find_previous(key_mask, fullList, miniList, N_fullLis
   end if
   
   if(N_subList > 0) then
-    miniList(:,:,N_minilist+1:N_minilist+N_subList) = sublist(:,:,:N_subList)
+    do k=1,N_subList
+      do ni=1,Nint
+        miniList(ni,1,N_minilist+k) = sublist(ni,1,k)
+        miniList(ni,2,N_minilist+k) = sublist(ni,2,k)
+      enddo
+    enddo
     N_minilist = N_minilist + N_subList
   end if
 end subroutine
@@ -972,14 +996,28 @@ subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   i_H_psi_array = 0.d0
   
   call filter_connected_i_H_psi0(keys,key,Nint,Ndet,idx)
-  do ii=1,idx(0)
-    i = idx(ii)
-    !DIR$ FORCEINLINE
-    call i_H_j(keys(1,1,i),key,Nint,hij)
-    do j = 1, Nstate
-      i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
+  if (Nstate == 1) then
+
+    do ii=1,idx(0)
+      i = idx(ii)
+      !DIR$ FORCEINLINE
+      call i_H_j(keys(1,1,i),key,Nint,hij)
+      i_H_psi_array(1) = i_H_psi_array(1) + coef(i,1)*hij
     enddo
-  enddo
+
+  else
+
+    do ii=1,idx(0)
+      i = idx(ii)
+      !DIR$ FORCEINLINE
+      call i_H_j(keys(1,1,i),key,Nint,hij)
+      do j = 1, Nstate
+        i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
+      enddo
+    enddo
+
+  endif
+
 end
 
 
@@ -1012,15 +1050,30 @@ subroutine i_H_psi_minilist(key,keys,idx_key,N_minilist,coef,Nint,Ndet,Ndet_max,
   i_H_psi_array = 0.d0
   
   call filter_connected_i_H_psi0(keys,key,Nint,N_minilist,idx)
-  do ii=1,idx(0)
-    i_in_key = idx(ii)
-    i_in_coef = idx_key(idx(ii))
-    !DIR$ FORCEINLINE
-    call i_H_j(keys(1,1,i_in_key),key,Nint,hij)
-    do j = 1, Nstate
-      i_H_psi_array(j) = i_H_psi_array(j) + coef(i_in_coef,j)*hij
+  if (Nstate == 1) then
+
+    do ii=1,idx(0)
+      i_in_key = idx(ii)
+      i_in_coef = idx_key(idx(ii))
+      !DIR$ FORCEINLINE
+      call i_H_j(keys(1,1,i_in_key),key,Nint,hij)
+      i_H_psi_array(1) = i_H_psi_array(1) + coef(i_in_coef,1)*hij
     enddo
-  enddo
+
+  else
+
+    do ii=1,idx(0)
+      i_in_key = idx(ii)
+      i_in_coef = idx_key(idx(ii))
+      !DIR$ FORCEINLINE
+      call i_H_j(keys(1,1,i_in_key),key,Nint,hij)
+      do j = 1, Nstate
+        i_H_psi_array(j) = i_H_psi_array(j) + coef(i_in_coef,j)*hij
+      enddo
+    enddo
+
+  endif
+
 end
 
 subroutine i_H_psi_sec_ord(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array,idx_interaction,interactions)
@@ -1497,8 +1550,8 @@ subroutine get_occ_from_key(key,occ,Nint)
   BEGIN_DOC
   ! Returns a list of occupation numbers from a bitstring
   END_DOC
-  integer(bit_kind), intent(in)  :: key(Nint,2)
   integer          , intent(in)  :: Nint
+  integer(bit_kind), intent(in)  :: key(Nint,2)
   integer         , intent(out)  :: occ(Nint*bit_kind_size,2)
   integer                        :: tmp(2)
   
@@ -1506,6 +1559,33 @@ subroutine get_occ_from_key(key,occ,Nint)
   call bitstring_to_list_ab(key, occ, tmp, Nint)
   
 end
+
+subroutine u0_H_u_0(e_0,u_0,n,keys_tmp,Nint)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes e_0 = <u_0|H|u_0>/<u_0|u_0>
+  !
+  ! n : number of determinants
+  !
+  END_DOC
+  integer, intent(in)            :: n,Nint
+  double precision, intent(out)  :: e_0
+  double precision, intent(in)   :: u_0(n)
+  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
+  
+  double precision               :: H_jj(n)
+  double precision               :: v_0(n)
+  double precision               :: u_dot_u,u_dot_v,diag_H_mat_elem
+  integer :: i,j
+  do i = 1, n
+   H_jj(i) = diag_H_mat_elem(keys_tmp(1,1,i),Nint)
+  enddo
+  
+  call H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
+  e_0 = u_dot_v(v_0,u_0,n)/u_dot_u(u_0,n)
+end
+
 
 subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   use bitmasks

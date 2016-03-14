@@ -6,16 +6,21 @@ val zero : Qptypes.N_int_number.t -> t
 (** Convert to a string for printing *)
 val to_string : t -> string
 
-(** Convert to a string for printing *)
+(** Read from a string *)
 val of_string : ?zero:char -> ?one:char -> string -> t
+
+(** Read from a string with the ++-- notation *)
+val of_string_mp : string -> t
 
 (** int64 conversion functions *)
 
 val of_int64 : int64 -> t
 val to_int64 : t -> int64
 
-val of_int64_list : int64 list -> t
-val to_int64_list : t -> int64 list
+val of_int64_list  : int64 list -> t
+val of_int64_array : int64 array -> t
+val to_int64_list  : t -> int64 list
+val to_int64_array : t -> int64 array
 
 (** Get the number of needed int64 elements to encode the bit list *)
 val n_int_of_mo_tot_num : int -> Qptypes.N_int_number.t
