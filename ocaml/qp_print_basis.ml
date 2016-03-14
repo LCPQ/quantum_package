@@ -35,7 +35,24 @@ let mo () =
   |> print_endline
 
 
+let psi_det () =
+  let ezfio_filename =
+    Sys.argv.(1)
+  in
+  if (not (Sys.file_exists_exn ezfio_filename)) then
+    failwith "Error reading EZFIO file";
+  Ezfio.set_file ezfio_filename;
+  let psi_det =
+    Input.Determinants_by_hand.read () 
+  in
+  Input.Determinants_by_hand.to_rst psi_det 
+  |> Rst_string.to_string
+  |> print_endline
+
+
+
 let () = 
   basis ();
-  mo ()
+  mo ();
+  psi_det ()
 

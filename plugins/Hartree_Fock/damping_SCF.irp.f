@@ -30,11 +30,11 @@ subroutine damping_SCF
   
   call write_time(output_hartree_fock)
 
-  write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16, X, A4 )'), &
+  write(output_hartree_fock,'(A4,1X,A16, 1X, A16, 1X, A16, 1X, A4 )')  &
     '====','================','================','================', '===='
-  write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16, X, A4 )'), &
+  write(output_hartree_fock,'(A4,1X,A16, 1X, A16, 1X, A16, 1X, A4 )')  &
     '  N ', 'Energy  ', 'Energy diff  ', 'Density diff  ', 'Save'
-  write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16, X, A4 )'), &
+  write(output_hartree_fock,'(A4,1X,A16, 1X, A16, 1X, A16, 1X, A4 )')  &
     '====','================','================','================', '===='
 
   E = HF_energy + 1.d0
@@ -58,7 +58,7 @@ subroutine damping_SCF
       save_char = ' '
     endif
 
-    write(output_hartree_fock,'(I4,X,F16.10, X, F16.10, X, F16.10, 3X, A )'), &
+    write(output_hartree_fock,'(I4,1X,F16.10, 1X, F16.10, 1X, F16.10, 3X, A )')  &
       k, E, delta_E, delta_D, save_char
     
     D_alpha = HF_density_matrix_ao_alpha
@@ -116,7 +116,7 @@ subroutine damping_SCF
 
 
   enddo
-  write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16, X, A4 )'), '====','================','================','================', '===='
+  write(output_hartree_fock,'(A4,1X,A16, 1X, A16, 1X, A16, 1X, A4 )')  '====','================','================','================', '===='
   write(output_hartree_fock,*)
   
   if(.not.no_oa_or_av_opt)then
