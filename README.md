@@ -1,11 +1,6 @@
-Quantum package
-===============
-
-
-
+![QP](https://raw.githubusercontent.com/LCPQ/quantum_package/master/data/qp.png)     
 [![Build Status](https://travis-ci.org/LCPQ/quantum_package.svg?branch=master)](https://travis-ci.org/LCPQ/quantum_package)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/LCPQ/quantum_package?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-![QP](https://raw.githubusercontent.com/LCPQ/quantum_package/master/data/qp.png)]
 
 Set of quantum chemistry programs and libraries. 
 (under GNU GENERAL PUBLIC LICENSE v2)
