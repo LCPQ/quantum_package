@@ -17,6 +17,7 @@ module Ao_basis : sig
   ;;
   val read : unit -> t option
   val to_string : t -> string
+  val to_basis  : t -> Basis.t
   val write  : t -> unit
   val to_md5 : t -> MD5.t
   val to_rst : t -> Rst_string.t

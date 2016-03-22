@@ -1,4 +1,4 @@
-open Core.Std;;
+open Core.Std
 
 exception AtomError of string
 
@@ -27,12 +27,18 @@ let of_string ~units s =
       coord   = Point3d.of_string ~units (String.concat [x; y; z] ~sep:" ")
     }
   | _ -> raise (AtomError s)
-;;
+
   
 let to_string ~units a =
   [ Element.to_string a.element ;
     Charge.to_string  a.charge ;
     Point3d.to_string ~units a.coord ]
   |> String.concat ~sep:"   "
-;;
+
+
+let to_xyz a =
+  Printf.sprintf "%-3s  %s" 
+    (Element.to_string a.element)
+    (Point3d.to_string ~units:Units.Angstrom a.coord)
+
 

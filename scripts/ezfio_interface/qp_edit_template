@@ -6,7 +6,7 @@ open Core.Std;;
 
 WARNING 
 This file is autogenerad by
-`${{QP_ROOT}}/script/ezfio_interface/ei_handler.py`
+`${{QP_ROOT}}/scripts/ezfio_interface/ei_handler.py`
 *)
 
 
@@ -120,7 +120,7 @@ let set str s =
         | Nuclei           -> write Nuclei.(of_rst, write) s
         | Ao_basis         -> () (* TODO *)
         | Mo_basis         -> () (* TODO *)
-    end 
+    end
 ;;
 
 
@@ -169,7 +169,9 @@ let run check_only ezfio_filename =
   in
 
   (* Create the temp file *)
-  let temp_filename = create_temp_file ezfio_filename tasks in
+  let temp_filename =
+      create_temp_file ezfio_filename tasks
+  in
 
   (* Open the temp file with external editor *)
   let editor = 
@@ -191,9 +193,10 @@ let run check_only ezfio_filename =
       In_channel.input_all in_channel) 
   in
   List.iter ~f:(fun x -> set temp_string x) tasks;
+  Libint.write_files (!Ezfio.ezfio_filename);
 
   (* Remove temp_file *)
-  Sys.remove temp_filename;
+  Sys.remove temp_filename
 ;;
 
 

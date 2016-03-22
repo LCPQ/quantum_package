@@ -18,7 +18,7 @@
  */
 
 #if __cplusplus <= 199711L
-# error "Hartree-Fock test requires C++11 support"
+# error "C++11 support is required"
 #endif
 
 // standard C++ headers
@@ -244,4 +244,4 @@ void compute_ao_bielec_integrals_shell(int s1, int s2, int s3, int s4, int sze, 
 
   for(auto i=0; i!=sze; i++)
     values[i] = buf_1234[i];
-  };
+};

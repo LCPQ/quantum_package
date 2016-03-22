@@ -35,11 +35,11 @@ let read_element in_channel at_number element =
   read in_channel at_number 
 
 
-let to_string b =
+
+let to_string_general ~fmt ~atom_sep b =
   let new_nucleus n = 
     Printf.sprintf "Atom %d" n
   in
-  
   let rec do_work accu current_nucleus = function
   | [] -> List.rev accu
   | (g,n)::tail -> 
@@ -47,14 +47,28 @@ let to_string b =
     in
     let accu = 
        if (n <> current_nucleus) then
-         (new_nucleus n)::""::accu
+         (new_nucleus n)::atom_sep::accu
        else
          accu
     in
-    do_work ((Gto.to_string g)::accu) n tail
+    do_work ((Gto.to_string ~fmt g)::accu) n tail
   in
   do_work [new_nucleus 1] 1 b
   |> String.concat ~sep:"\n"
+
+let to_string_gamess =
+    to_string_general ~fmt:Gto.Gamess ~atom_sep:""
+
+let to_string_gaussian b =
+  String.concat ~sep:"\n" [ "****" ;
+    to_string_general ~fmt:Gto.Gaussian ~atom_sep:"****" b ;
+    "****"
+  ]
+
+let to_string ?(fmt=Gto.Gamess) =
+  match fmt with
+  | Gto.Gamess   -> to_string_gamess
+  | Gto.Gaussian -> to_string_gaussian
 
 
 include To_md5

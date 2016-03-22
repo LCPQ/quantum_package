@@ -7,3 +7,4 @@ val sexp_of_t : t -> Sexplib.Sexp.t
 
 val of_string : units:Units.units -> string -> t
 val to_string : units:Units.units -> t -> string
+val to_xyz    : t -> string
