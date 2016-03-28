@@ -12,6 +12,7 @@
    integer :: n1,n2,n3,n4
    integer :: f1,f2,f3,f4,f1234
 
+   PROVIDE has_libint
    ! =================== !
    ! Loop over the shell !
    ! =================== !
@@ -85,7 +86,6 @@
                            !Verify with the manu's one
                            ref = ao_bielec_integral(bf1,bf2,bf3,bf4)
    
-                           if ( (ABS(ABS(ref) - ABS(libint)).GE.1e-6) )  THEN
 
                               print*, bf1,bf2,bf3,bf4
                               print*,"r", ref
@@ -94,6 +94,7 @@
                               print*,"l/r", libint/ref
                               print*,"n", norm
 
+                           if ( (ABS(ABS(ref) - ABS(libint)) >= 1.e-6) )  THEN
                               call exit(1)
                            end if
 
