@@ -1,3 +1,3 @@
-true: package(core,sexplib,pa_sexp_conv,cryptokit,ZMQ)
+true: package(core,cryptokit,ZMQ,sexplib.syntax)
 true: thread
 false: profile
