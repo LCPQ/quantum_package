@@ -155,7 +155,7 @@ function run_all_1h_1p() {
   ezfio set determinants read_wf True
   qp_run mrcc_cassd $INPUT  
   energy="$(ezfio get mrcc_cassd energy)"
-  eq $energy -0.762303253805911E+02 1.E-3
+  eq $energy -76.2289109271715     1.E-3
   
 }
 
