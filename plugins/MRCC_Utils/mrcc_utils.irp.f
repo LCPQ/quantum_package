@@ -1,100 +1,33 @@
- BEGIN_PROVIDER [integer, pert_determinants, (N_states, psi_det_size) ]
- END_PROVIDER 
-
-
- BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
-&BEGIN_PROVIDER [ double precision, lambda_pert, (N_states,psi_det_size) ] 
+BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
  implicit none
  BEGIN_DOC
  ! cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
  END_DOC
- integer :: i,k,j
- double precision               :: ihpsi(N_states), hii,delta_e_eff,ihpsi_current(N_states),hij
- integer :: i_ok,i_pert,i_pert_count
- i_ok = 0
-
- double precision :: phase_restart(N_states),tmp
- do k = 1, N_states
-  phase_restart(k) = dsign(1.d0,psi_ref_coef_restart(1,k)/psi_ref_coef(1,k))
- enddo
- i_pert_count = 0
+ integer :: i,k
+ double precision               :: ihpsi(N_states),ihpsi_current(N_states)
+ integer :: i_pert_count
  
- do i=1,N_det_non_ref
-   call i_h_psi(psi_non_ref(1,1,i), psi_ref_restart, psi_ref_coef_restart, N_int, N_det_ref,&
-       size(psi_ref_coef_restart,1), n_states, ihpsi)
-   call i_H_j(psi_non_ref(1,1,i),psi_non_ref(1,1,i),N_int,hii)
-! TODO --- Test perturbatif  ------
-   do k=1,N_states
-     lambda_pert(k,i) = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
-     ! TODO : i_h_psi peut sortir de la boucle?
-     call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,size(psi_ref_coef,1), n_states, ihpsi_current)
-     if (ihpsi_current(k) == 0.d0) then
-       ihpsi_current(k) = 1.d-32
-     endif
-     tmp = psi_non_ref_coef(i,k)/ihpsi_current(k)
-     i_pert = 0
-     ! Perturbation only if 1st order < 0.5 x second order
-     if((ihpsi(k) * lambda_pert(k,i)) < 0.5d0 * psi_non_ref_coef_restart(i,k)  )then
-       i_pert = 1
-     else
-       do j = 1, N_det_ref
-         call i_H_j(psi_non_ref(1,1,i),psi_ref(1,1,j),N_int,hij)
-         ! Perturbation diverges when hij*tmp > 0.5
-         if(dabs(hij * tmp).ge.0.5d0)then
-           i_pert_count +=1
-           i_pert = 1
-           exit
-         endif
-       enddo
-     endif
-     if( i_pert == 1)then
-       pert_determinants(k,i) = i_pert
-     endif
-     if(pert_determinants(k,i) == 1)then
-       i_ok +=1
-       lambda_mrcc(k,i) = lambda_pert(k,i)
-     else
-       lambda_mrcc(k,i) = psi_non_ref_coef(i,k)/ihpsi_current(k)
-     endif
-   enddo
-! TODO --- Fin test perturbatif ------
+ i_pert_count = 0
+ lambda_mrcc = 0.d0
+ 
+  do i=1,N_det_non_ref
+    call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,size(psi_ref_coef,1), n_states, ihpsi_current)
+    do k=1,N_states
+      if (ihpsi_current(k) == 0.d0) then
+        ihpsi_current(k) = 1.d-32
+      endif
+      if(dabs(ihpsi_current(k) * psi_non_ref_coef(i,k)) < 1d-5) then
+        i_pert_count +=1
+      else
+        lambda_mrcc(k,i) = psi_non_ref_coef(i,k)/ihpsi_current(k)
+      endif
+    enddo
  enddo
-!if(oscillations)then
-! print*,'AVERAGING the lambda_mrcc with those of the previous iterations'
-! do i = 1, N_det_non_ref
-!  do k = 1, N_states
 
-!   double precision :: tmp
-!   tmp = lambda_mrcc(k,i)
-!   lambda_mrcc(k,i) += lambda_mrcc_tmp(k,i)
-!   lambda_mrcc(k,i) = lambda_mrcc(k,i) * 0.5d0
-!   if(dabs(tmp - lambda_mrcc(k,i)).ge.1.d-9)then
-!   print*,''
-!   print*,'i = ',i
-!   print*,'psi_non_ref_coef(i,k) = ',psi_non_ref_coef(i,k)
-!   print*,'lambda_mrcc(k,i)     = ',lambda_mrcc(k,i)
-!   print*,'                 tmp = ',tmp
-!   endif
-!  enddo
-! enddo
-!endif
  print*,'N_det_non_ref = ',N_det_non_ref
- print*,'Number of Perturbatively treated determinants = ',i_ok
- print*,'i_pert_count = ',i_pert_count
+ print*,'Number of ignored determinants = ',i_pert_count
  print*,'psi_coef_ref_ratio = ',psi_ref_coef(2,1)/psi_ref_coef(1,1)
-
 END_PROVIDER
-
-
-BEGIN_PROVIDER [ double precision, lambda_mrcc_tmp, (N_states,psi_det_size) ]
- implicit none
- lambda_mrcc_tmp = 0.d0
-END_PROVIDER 
-
-BEGIN_PROVIDER [ logical, oscillations ]
- implicit none
- oscillations = .False.
-END_PROVIDER 
 
 
 
