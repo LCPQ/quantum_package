@@ -41,8 +41,22 @@ END_PROVIDER
 !call H_apply_mrcc_simple(delta_ij_non_ref,N_det_non_ref)
 !END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, delta_ij, (N_det_ref,N_det_non_ref,N_states) ]
-&BEGIN_PROVIDER [ double precision, delta_ii, (N_det_ref,N_states) ]
+BEGIN_PROVIDER [ double precision, hij_mrcc, (N_det_non_ref,N_det_ref) ]
+ implicit none
+ BEGIN_DOC
+ ! < ref | H | Non-ref > matrix
+ END_DOC
+ integer :: i_I, k_sd
+  do i_I=1,N_det_ref
+    do k_sd=1,N_det_non_ref
+      call i_h_j(psi_ref(1,1,i_I),psi_non_ref(1,1,k_sd),N_int,hij_mrcc(k_sd,i_I))
+    enddo
+  enddo
+
+END_PROVIDER
+
+ BEGIN_PROVIDER [ double precision, delta_ij, (N_states,N_det_non_ref,N_det_ref) ]
+&BEGIN_PROVIDER [ double precision, delta_ii, (N_states,N_det_ref) ]
  implicit none
  BEGIN_DOC
  ! Dressing matrix in N_det basis
@@ -50,32 +64,7 @@ END_PROVIDER
  integer :: i,j,m
  delta_ij = 0.d0
  delta_ii = 0.d0
- call H_apply_mrcc(delta_ij,delta_ii,N_det_ref,N_det_non_ref)
- double precision :: max_delta
- double precision :: accu
- integer :: imax,jmax
- max_delta = 0.d0
- accu = 0.d0
- do i = 1, N_det_ref
-  do j = 1, N_det_non_ref
-   accu += psi_non_ref_coef(j,1) * psi_ref_coef(i,1) * delta_ij(i,j,1)
-   if(dabs(delta_ij(i,j,1)).gt.max_delta)then
-    max_delta = dabs(delta_ij(i,j,1))
-    imax = i
-    jmax = j
-   endif
-  enddo
- enddo
- print*,''
- print*,''
- print*,'<psi| Delta H |psi> = ',accu
- print*,'MAX VAL OF DRESING = ',delta_ij(imax,jmax,1)
- print*,'imax,jmax = ',imax,jmax
- print*,'psi_ref_coef(imax,1)     = ',psi_ref_coef(imax,1)
- print*,'psi_non_ref_coef(jmax,1) = ',psi_non_ref_coef(jmax,1)
- do i = 1, N_det_ref
-  print*,'delta_ii(i,1)     = ',delta_ii(i,1)
- enddo
+ call H_apply_mrcc(delta_ij,delta_ii,N_states,N_det_non_ref,N_det_ref)
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]
@@ -92,11 +81,11 @@ BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]
    enddo
    do ii = 1, N_det_ref
      i =idx_ref(ii)
-     h_matrix_dressed(i,i,istate) += delta_ii(ii,istate)
+     h_matrix_dressed(i,i,istate) += delta_ii(istate,ii)
     do jj = 1, N_det_non_ref
      j =idx_non_ref(jj)
-     h_matrix_dressed(i,j,istate) += delta_ij(ii,jj,istate)
-     h_matrix_dressed(j,i,istate) += delta_ij(ii,jj,istate)
+     h_matrix_dressed(i,j,istate) += delta_ij(istate,jj,ii)
+     h_matrix_dressed(j,i,istate) += delta_ij(istate,jj,ii)
     enddo
    enddo 
  enddo
@@ -200,3 +189,4 @@ subroutine diagonalize_CI_dressed
   SOFT_TOUCH psi_coef 
 
 end
+
