@@ -31,23 +31,7 @@ subroutine mrcc_iterations
 
     E_past(j) = E_new
     j +=1
-    if(j>4)then
-     j=1
-    endif
-    if(iteration > 4) then 
-     if(delta_E > 1.d-10)then
-      if(dabs(E_past(1) - E_past(3)) .le. delta_E .and. dabs(E_past(2) - E_past(4)).le. delta_E)then 
-       print*,'OSCILLATIONS !!!'
-       oscillations = .True.
-       i_oscillations +=1
-       lambda_mrcc_tmp = lambda_mrcc
-      endif
-     endif
-    endif
     call save_wavefunction
-!   if (i_oscillations > 5) then
-!    exit
-!   endif
     if (iteration > 200) then
       exit
     endif
