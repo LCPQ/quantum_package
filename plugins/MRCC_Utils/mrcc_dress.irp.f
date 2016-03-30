@@ -24,9 +24,9 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
   double precision, intent(inout) :: delta_ii_(Nstates,Ndet_ref)
 
   integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
-  integer                        :: i,j,k,l
-  integer                        :: degree_alpha(psi_det_size)
-  integer                        :: idx_alpha(0:psi_det_size)
+  integer                        :: i,j,k,l,m
+  integer                        :: degree_alpha(psi_det_size), degree_alpha_tmp(psi_det_size)
+  integer                        :: idx_alpha(0:psi_det_size), idx_alpha_tmp(0:psi_det_size)
   logical                        :: good, fullMatch
 
   integer(bit_kind)              :: tq(Nint,2,n_selected)
@@ -48,9 +48,14 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
   integer                        :: N_miniList, ni, leng
   double precision, allocatable  :: hij_cache(:)
   
+  integer(bit_kind), allocatable :: microlist(:,:,:), microlist_zero(:,:,:)
+  integer, allocatable           :: idx_microlist(:), N_microlist(:), ptr_microlist(:), idx_microlist_zero(:)
+  integer :: mobiles(2), smallerlist
+  
+  
   
   leng = max(N_det_generators, N_det_non_ref)
-  allocate(miniList(Nint, 2, leng), idx_miniList(leng), hij_cache(N_det_non_ref))
+  allocate(miniList(Nint, 2, leng), idx_minilist(leng), hij_cache(N_det_non_ref))
   
   !create_minilist_find_previous(key_mask, fullList, miniList, N_fullList, N_miniList, fullMatch, Nint)
   call create_minilist_find_previous(key_mask, psi_det_generators, miniList, i_generator-1, N_miniList, fullMatch, Nint)
@@ -59,8 +64,26 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
     return
   end if
   
+  allocate(ptr_microlist(0:mo_tot_num*2+1),  &
+      N_microlist(0:mo_tot_num*2) )
+  allocate(   microlist(Nint,2,N_minilist*4),               &
+    idx_microlist(N_minilist*4))
   
-  call find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_minilist)
+  if(key_mask(1,1) /= 0) then
+    call create_microlist(miniList, N_minilist, key_mask, microlist, idx_microlist, N_microlist, ptr_microlist, Nint)
+    call find_triples_and_quadruples_micro(i_generator,n_selected,det_buffer,Nint,tq,N_tq,microlist,ptr_microlist,N_microlist,key_mask)
+  else
+    call find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_minilist)
+!     microlist(:N_miniList) = minilist(:N_miniList)
+!     idx_microlist(:N_minilist) = idx_minilist(:)
+!     N_microlist(0) = N_miniList
+!     ptr_microlist(1) = 1
+!     ptr_microlist(2) = N_miniList + 1
+  end if
+  
+  
+  
+  deallocate(microlist, idx_microlist)
   
   allocate (dIa_hla(Nstates,Ndet_non_ref))
   
@@ -69,17 +92,101 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
   ! |alpha>
   
   if(N_tq > 0) then
-    call create_minilist(key_mask, psi_non_ref, miniList, idx_miniList, N_det_non_ref, N_minilist, Nint)
+    call create_minilist(key_mask, psi_non_ref, miniList, idx_minilist, N_det_non_ref, N_minilist, Nint)
+    if(N_minilist == 0) return
+    
+    
+    if(key_mask(1,1) /= 0) then !!!!!!!!!!! PAS GENERAL !!!!!!!!!
+      allocate(microlist_zero(Nint,2,N_minilist), idx_microlist_zero(N_minilist))
+      
+      allocate(   microlist(Nint,2,N_minilist*4),               &
+        idx_microlist(N_minilist*4))
+      call create_microlist(miniList, N_minilist, key_mask, microlist, idx_microlist, N_microlist, ptr_microlist, Nint)
+      
+      
+      do i=0,mo_tot_num*2
+        do k=ptr_microlist(i),ptr_microlist(i+1)-1
+          idx_microlist(k) = idx_minilist(idx_microlist(k))
+        end do
+      end do
+      
+      do l=1,N_microlist(0)
+        do k=1,Nint
+          microlist_zero(k,1,l) = microlist(k,1,l)
+          microlist_zero(k,2,l) = microlist(k,2,l)
+        enddo
+        idx_microlist_zero(l) = idx_microlist(l)
+      enddo
+    end if
   end if
   
   
+      
+ 
   do i_alpha=1,N_tq
-    !    call get_excitation_degree_vector(psi_non_ref,tq(1,1,i_alpha),degree_alpha,Nint,N_det_non_ref,idx_alpha)
-    call get_excitation_degree_vector(miniList,tq(1,1,i_alpha),degree_alpha,Nint,N_minilist,idx_alpha)
+    if(key_mask(1,1) /= 0) then
+      call getMobiles(tq(1,1,i_alpha), key_mask, mobiles, Nint) 
+      
+      if(N_microlist(mobiles(1)) < N_microlist(mobiles(2))) then
+        smallerlist = mobiles(1)
+      else
+        smallerlist = mobiles(2)
+      end if
+      
     
-    do j=1,idx_alpha(0)
-      idx_alpha(j) = idx_miniList(idx_alpha(j))
-    end do
+      do l=0,N_microlist(smallerlist)-1
+        microlist_zero(:,:,ptr_microlist(1) + l) = microlist(:,:,ptr_microlist(smallerlist) + l)
+        idx_microlist_zero(ptr_microlist(1) + l) = idx_microlist(ptr_microlist(smallerlist) + l)
+      end do
+      
+      call get_excitation_degree_vector(microlist_zero,tq(1,1,i_alpha),degree_alpha_tmp,Nint,N_microlist(smallerlist)+N_microlist(0),idx_alpha_tmp)
+      do j=1,idx_alpha_tmp(0)
+        idx_alpha_tmp(j) = idx_microlist_zero(idx_alpha_tmp(j))
+      end do
+      
+      
+      i = 1
+      j = 2
+      do j = 2, idx_alpha_tmp(0)
+        if(idx_alpha_tmp(j) < idx_alpha_tmp(j-1)) exit
+      end do
+      
+      m = j
+      
+      idx_alpha(0) = idx_alpha_tmp(0)
+      
+      do l = 1, idx_alpha(0)
+        if(j > idx_alpha_tmp(0)) then
+          k = i
+          i += 1
+        else if(i >= m) then
+          k = j
+          j += 1
+        else if(idx_alpha_tmp(i) < idx_alpha_tmp(j)) then
+          k = i
+          i += 1
+        else
+          k = j
+          j += 1
+        end if
+        
+        idx_alpha(l) = idx_alpha_tmp(k)
+        degree_alpha(l) = degree_alpha_tmp(k)
+      end do
+      
+    else
+      call get_excitation_degree_vector(miniList,tq(1,1,i_alpha),degree_alpha,Nint,N_minilist,idx_alpha)
+      do j=1,idx_alpha(0)
+        idx_alpha(j) = idx_miniList(idx_alpha(j))
+      end do
+    end if
+    
+    
+!     call get_excitation_degree_vector(miniList,tq(1,1,i_alpha),degree_alpha,Nint,N_minilist,idx_alpha)
+!     do j=1,idx_alpha(0)
+!       idx_alpha(j) = idx_miniList(idx_alpha(j))
+!     end do
+    !print *, idx_alpha(:idx_alpha(0))
     
     do l_sd=1,idx_alpha(0)
       k_sd = idx_alpha(l_sd)
@@ -211,21 +318,10 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
       call omp_unset_lock( psi_ref_lock(i_I) )
     enddo
   enddo
-  deallocate (dIa_hla,hij_cache)
-  deallocate(miniList, idx_miniList)
+  !deallocate (dIa_hla,hij_cache)
+  !deallocate(miniList, idx_miniList)
 end
 
-
-
- BEGIN_PROVIDER [ integer(bit_kind), gen_det_sorted,  (N_int,2,N_det_generators,2) ]
-&BEGIN_PROVIDER [ integer, gen_det_shortcut, (0:N_det_generators,2) ]
-&BEGIN_PROVIDER [ integer, gen_det_version, (N_int, N_det_generators,2) ]
-&BEGIN_PROVIDER [ integer, gen_det_idx, (N_det_generators,2) ]
-  gen_det_sorted(:,:,:,1) = psi_det_generators(:,:,:N_det_generators)
-  gen_det_sorted(:,:,:,2) = psi_det_generators(:,:,:N_det_generators)
-  call sort_dets_ab_v(gen_det_sorted(:,:,:,1), gen_det_idx(:,1), gen_det_shortcut(0:,1), gen_det_version(:,:,1), N_det_generators, N_int)
-  call sort_dets_ba_v(gen_det_sorted(:,:,:,2), gen_det_idx(:,2), gen_det_shortcut(0:,2), gen_det_version(:,:,2), N_det_generators, N_int)
-END_PROVIDER
 
 
 subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_miniList)
@@ -258,6 +354,7 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
   N_tq = 0
   
   
+  
   i_loop : do i=1,N_selected
     if(is_connected_to(det_buffer(1,1,i), miniList, Nint, N_miniList)) then
       cycle
@@ -286,6 +383,82 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
   enddo i_loop
 end
 
+
+subroutine find_triples_and_quadruples_micro(i_generator,n_selected,det_buffer,Nint,tq,N_tq,microlist,ptr_microlist,N_microlist,key_mask)
+
+ use bitmasks
+ implicit none
+
+  integer, intent(in)            :: i_generator,n_selected, Nint
+
+  integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
+  integer                        :: i,j,k,m
+  logical                        :: is_in_wavefunction
+  integer                        :: degree(psi_det_size)
+  integer                        :: idx(0:psi_det_size)
+  logical                        :: good
+
+  integer(bit_kind), intent(out) :: tq(Nint,2,n_selected)
+  integer, intent(out)           :: N_tq
+  
+  
+  integer                        :: nt,ni
+  logical, external              :: is_connected_to
+  
+  
+  integer(bit_kind),intent(in)  :: microlist(Nint,2,*)
+  integer,intent(in)  :: ptr_microlist(0:*)
+  integer,intent(in)            :: N_microlist(0:*)
+  integer(bit_kind),intent(in)   :: key_mask(Nint, 2)
+  
+  integer :: mobiles(2), smallerlist
+  
+  N_tq = 0
+  
+  
+  
+  i_loop : do i=1,N_selected
+    call getMobiles(det_buffer(1,1,i), key_mask, mobiles, Nint) 
+    if(N_microlist(mobiles(1)) < N_microlist(mobiles(2))) then
+      smallerlist = mobiles(1)
+    else
+      smallerlist = mobiles(2)
+    end if
+    
+    if(N_microlist(smallerlist) > 0) then
+      if(is_connected_to(det_buffer(1,1,i), microlist(1,1,ptr_microlist(smallerlist)), Nint, N_microlist(smallerlist))) then
+        cycle
+      end if
+    end if
+    
+    if(N_microlist(0) > 0) then
+      if(is_connected_to(det_buffer(1,1,i), microlist, Nint, N_microlist(0))) then
+        cycle
+      end if
+    end if
+
+    ! Select determinants that are triple or quadruple excitations
+    ! from the ref
+    good = .True.
+    call get_excitation_degree_vector(psi_ref,det_buffer(1,1,i),degree,Nint,N_det_ref,idx) 
+    !good=(idx(0) == 0) tant que degree > 2 pas retourné par get_excitation_degree_vector
+    do k=1,idx(0)
+      if (degree(k) < 3) then
+        good = .False.
+        exit
+      endif
+    enddo
+    if (good) then
+      if (.not. is_in_wavefunction(det_buffer(1,1,i),Nint,N_det)) then
+        N_tq += 1
+        do k=1,N_int
+          tq(k,1,N_tq) = det_buffer(k,1,i)
+          tq(k,2,N_tq) = det_buffer(k,2,i)
+        enddo
+      endif
+    endif
+  enddo i_loop
+end
 
 
 
