@@ -24,8 +24,6 @@ function eq() {
 }
 
 
-
-
 #   ___           
 #    |  ._  o _|_ 
 #   _|_ | | |  |_ 
@@ -59,20 +57,20 @@ function run_HF() {
   test_exe SCF || skip
   ezfio set_file $1
   ezfio set hartree_fock thresh_scf 1.e-10
-  qp_run SCF $1
+  qp_run SCF $1 
   energy="$(ezfio get hartree_fock energy)"
   eq $energy $2 $thresh
 }
 
 function run_FCI() {
-  thresh=1.e-5
+  thresh=5.e-5
   test_exe full_ci || skip
   ezfio set_file $1
   ezfio set perturbation do_pt2_end True
   ezfio set determinants n_det_max $2
   ezfio set determinants threshold_davidson 1.e-10
 
-  qp_run full_ci $1
+  qp_run full_ci $1 
   energy="$(ezfio get full_ci energy)"
   eq $energy $3 $thresh
   energy_pt2="$(ezfio get full_ci energy_pt2)"
@@ -132,7 +130,8 @@ function run_all_1h_1p() {
 }
 
 @test "FCI H2O cc-pVDZ" {
-  run_FCI h2o.ezfio 10000  -0.762382562429778E+02 -0.762433933485226E+02
+  qp_set_mo_class h2o.ezfio -core "[1]" -act "[2-12]" -del "[13-24]"
+  run_FCI h2o.ezfio 2000  -0.761255633582109E+02 -0.761258377850042E+02
 }
 
 @test "CAS_SD H2O cc-pVDZ" {
@@ -141,8 +140,8 @@ function run_all_1h_1p() {
   ezfio set_file $INPUT
   ezfio set perturbation do_pt2_end False
   ezfio set determinants n_det_max 1000
-  qp_set_mo_class $INPUT -core "[1]" -inact "[2,5]" -act "[3,4,6,7]" -virt "[8-24]"
-  qp_run cas_sd_selected $INPUT 
+  qp_set_mo_class $INPUT -core "[1]" -inact "[2,5]" -act "[3,4,6,7]" -virt "[8-24]" 
+  qp_run cas_sd_selected $INPUT  
   energy="$(ezfio get cas_sd energy)"
   eq $energy -0.762219854008117E+02 1.E-5
 }
@@ -154,9 +153,9 @@ function run_all_1h_1p() {
   ezfio set determinants threshold_generators 1.
   ezfio set determinants threshold_selectors  1.
   ezfio set determinants read_wf True
-  qp_run mrcc_cassd $INPUT 
+  qp_run mrcc_cassd $INPUT  
   energy="$(ezfio get mrcc_cassd energy)"
-  eq $energy -0.762303253805911E+02 1.E-3
+  eq $energy -76.2289109271715     1.E-3
   
 }
 
@@ -171,7 +170,8 @@ function run_all_1h_1p() {
 }
 
 @test "FCI H2O VDZ pseudo" {
-  run_FCI h2o_pseudo.ezfio 2000    -0.171550015498807E+02 -0.171645044185009E+02
+  qp_set_mo_class h2o_pseudo.ezfio -core "[1]" -act "[2-12]" -del "[13-23]"
+  run_FCI h2o_pseudo.ezfio 2000    -0.170399597228904E+02 -0.170400168816800E+02
 }
 
 #=== Convert
@@ -179,7 +179,7 @@ function run_all_1h_1p() {
   cp ${QP_ROOT}/tests/input/HBO.out .
   qp_convert_output_to_ezfio.py HBO.out
   ezfio set_file HBO.out.ezfio
-  qp_run SCF HBO.out.ezfio
+  qp_run SCF HBO.out.ezfio 
   # Check energy
   energy="$(ezfio get hartree_fock energy)"
   eq $energy -100.0185822590964 1.e-10
@@ -189,7 +189,7 @@ function run_all_1h_1p() {
   cp ${QP_ROOT}/tests/input/h2o.log .
   qp_convert_output_to_ezfio.py h2o.log
   ezfio set_file h2o.log.ezfio
-  qp_run SCF h2o.log.ezfio
+  qp_run SCF h2o.log.ezfio 
   # Check energy
   energy="$(ezfio get hartree_fock energy)"
   eq $energy -76.0270218704265 1E-10

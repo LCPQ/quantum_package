@@ -69,8 +69,8 @@ end
 logical function det_inf(key1, key2, Nint)
   use bitmasks
   implicit none
-  integer(bit_kind),intent(in)       :: key1(Nint, 2), key2(Nint, 2)
   integer,intent(in)                 :: Nint
+  integer(bit_kind),intent(in)       :: key1(Nint, 2), key2(Nint, 2)
   integer                            :: i,j
   
   det_inf = .false.
@@ -239,10 +239,10 @@ subroutine sort_dets_ab(key, idx, shortcut, N_key, Nint)
   BEGIN_DOC
 ! Uncodumented : TODO
   END_DOC
+  integer, intent(in)                   :: Nint, N_key
   integer(bit_kind),intent(inout)       :: key(Nint,2,N_key)
   integer,intent(out)                   :: idx(N_key)
   integer,intent(out)                   :: shortcut(0:N_key+1)
-  integer, intent(in)                   :: Nint, N_key
   integer(bit_kind)                     :: tmp(Nint, 2)
   integer                               :: tmpidx,i,ni
   
@@ -498,7 +498,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
         to_print(2,k) = residual_norm(k)
       enddo
       
-      write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))'), iter, to_print(:,1:N_st)
+      write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))')  iter, to_print(:,1:N_st)
       call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
       if (converged) then
         exit
@@ -590,7 +590,6 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       y,                                                             &
       lambda                                                         &
       )
-  abort_here = abort_all
 end
 
 BEGIN_PROVIDER [ character(64), davidson_criterion ]
@@ -636,5 +635,4 @@ subroutine davidson_converged(energy,residual,wall,iterations,cpu,N_st,converged
   else if (davidson_criterion == 'iterations') then
     converged = iterations >= int(threshold_davidson)
   endif
-  converged = converged.or.abort_here
 end

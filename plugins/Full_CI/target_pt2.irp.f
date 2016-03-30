@@ -73,9 +73,6 @@ program var_pt2_ratio_run
     print *,  'N_det     = ', N_det
     print *,  'E         = ', CI_energy(1)
     call ezfio_set_full_ci_energy(CI_energy)
-    if (abort_all) then
-      exit
-    endif
   enddo
   deallocate(pt2,norm_pert)
 end
