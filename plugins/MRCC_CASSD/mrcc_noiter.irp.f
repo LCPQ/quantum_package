@@ -1,7 +1,8 @@
 program mrcc_noiter
   implicit none
   read_wf = .True.
-  SOFT_TOUCH read_wf
+  threshold_generators = .9999d0
+  SOFT_TOUCH read_wf threshold_generators
   call print_cas_coefs
   call set_generators_bitmasks_as_holes_and_particles
   call run

@@ -12,7 +12,7 @@ BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
   lambda_mrcc = 0.d0
 
     do i=1,N_det_non_ref
-      call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,&
+      call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef_normalized, N_int, N_det_ref,&
           size(psi_ref_coef,1), N_states,ihpsi_current)
       call i_H_j(psi_non_ref(1,1,i),psi_non_ref(1,1,i),N_int,hii)
       do k=1,N_states
@@ -21,8 +21,7 @@ BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
         endif
         lambda_mrcc(k,i) = min(0.d0,psi_non_ref_coef(i,k)/ihpsi_current(k) )
         lambda_pert = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
-        if ((lambda_pert  < 0.5d0 * lambda_mrcc(k,i)).or.  &
-            (lambda_pert  > 2.0d0 * lambda_mrcc(k,i)) ) then
+        if (lambda_pert / lambda_mrcc(k,i)  < 0.5d0) then
           i_pert_count += 1
           lambda_mrcc(k,i) = 0.d0
         endif
