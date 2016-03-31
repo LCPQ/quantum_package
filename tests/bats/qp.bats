@@ -166,7 +166,7 @@ function run_all_1h_1p() {
 }
 
 @test "SCF H2O VDZ pseudo" {
-  run_HF  h2o_pseudo.ezfio  -16.9483708496728
+  run_HF  h2o_pseudo.ezfio  -0.169483703903844E+02
 }
 
 @test "FCI H2O VDZ pseudo" {
