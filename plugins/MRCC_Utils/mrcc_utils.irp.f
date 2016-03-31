@@ -1,40 +1,34 @@
 BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
- implicit none
- BEGIN_DOC
- ! cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
- END_DOC
- integer :: i,k
+  implicit none
+  BEGIN_DOC
+  ! cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
+  END_DOC
+  integer                        :: i,k
   double precision               :: ihpsi_current(N_states)
-  integer :: i_pert_count
-  double precision :: hii, lambda_pert
+  integer                        :: i_pert_count
   
   i_pert_count = 0
   lambda_mrcc = 0.d0
   
-   do i=1,N_det_non_ref
-     call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref, &
-                  size(psi_ref_coef,1), N_states,ihpsi_current)
-     call i_H_j(psi_non_ref(1,1,i),psi_non_ref(1,1,i),N_int,hii)
-     do k=1,N_states
-       if (ihpsi_current(k) == 0.d0) then
-         ihpsi_current(k) = 1.d-32
-       endif
-       lambda_mrcc(k,i) = psi_non_ref_coef(i,k)/ihpsi_current(k) 
-      if ( dabs(psi_non_ref_coef(i,k)*ihpsi_current(k)) < 1.d-8 ) then
-           i_pert_count += 1
-             lambda_mrcc(k,i) = 0.d0
-!          lambda_pert = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
-!          if((ihpsi_current(k) * lambda_pert) < 0.5d0 * psi_non_ref_coef_restart(i,k) ) then
-!             lambda_mrcc(k,i) = 0.d0
-!          endif
+  do i=1,N_det_non_ref
+    call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,&
+        size(psi_ref_coef,1), N_states,ihpsi_current)
+    do k=1,N_states
+      if (ihpsi_current(k) == 0.d0) then
+        ihpsi_current(k) = 1.d-32
       endif
-       double precision, parameter :: x = 2.d0
-       if (lambda_mrcc(k,i) > x) then
-         lambda_mrcc(k,i) = x
-       else if (lambda_mrcc(k,i) < -x) then
-         lambda_mrcc(k,i) = -x
-       endif
-     enddo
+      lambda_mrcc(k,i) = psi_non_ref_coef(i,k)/ihpsi_current(k)
+      if ( dabs(psi_non_ref_coef(i,k)*ihpsi_current(k)) < 1.d-6 ) then
+        i_pert_count += 1
+        lambda_mrcc(k,i) = 0.d0
+      endif
+      double precision, parameter    :: x = 2.d0
+      if (lambda_mrcc(k,i) > x) then
+        lambda_mrcc(k,i) = x
+      else if (lambda_mrcc(k,i) < -x) then
+        lambda_mrcc(k,i) = -x
+      endif
+    enddo
   enddo
  
   print*,'N_det_non_ref = ',N_det_non_ref
@@ -43,8 +37,6 @@ BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
   print*,'lambda min/max = ',maxval(dabs(lambda_mrcc)), minval(dabs(lambda_mrcc))
 
 END_PROVIDER
-
-
 
 
 !BEGIN_PROVIDER [ double precision, delta_ij_non_ref, (N_det_non_ref, N_det_non_ref,N_states) ]
