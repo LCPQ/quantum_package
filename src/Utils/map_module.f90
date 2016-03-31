@@ -76,7 +76,6 @@ subroutine cache_map_init(map,sze)
   NULLIFY(map%value, map%key)
   call cache_map_reallocate(map,sze)
   call omp_unset_lock(map%lock)
-  
 end
 
 subroutine map_init(map,keymax)

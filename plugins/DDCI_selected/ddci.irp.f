@@ -50,9 +50,6 @@ program ddci
     print *,  'E+PT2    = ', CI_energy+pt2
     print *,  '-----'
     call ezfio_set_ddci_selected_energy(CI_energy)
-    if (abort_all) then
-      exit
-    endif
   enddo
   if(do_pt2_end)then
     call H_apply_DDCI_pt2(pt2, norm_pert, H_pert_diag,  N_st)

@@ -76,22 +76,22 @@ subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label,sign)
   mo_coef_new = mo_coef
   
   call lapack_diag(eigvalues,R,A,n,m)
-  write (output_mo_basis,'(A)'), 'MOs are now **'//trim(label)//'**'
-  write (output_mo_basis,'(A)'), ''
-  write (output_mo_basis,'(A)'), 'Eigenvalues'
-  write (output_mo_basis,'(A)'), '-----------'
-  write (output_mo_basis,'(A)'), ''
-  write (output_mo_basis,'(A)'), '======== ================'
+  write (output_mo_basis,'(A)')  'MOs are now **'//trim(label)//'**'
+  write (output_mo_basis,'(A)') ''
+  write (output_mo_basis,'(A)')  'Eigenvalues'
+  write (output_mo_basis,'(A)') '-----------'
+  write (output_mo_basis,'(A)')  ''
+  write (output_mo_basis,'(A)') '======== ================'
   if (sign == -1) then
     do i=1,m
       eigvalues(i) = -eigvalues(i)
     enddo
   endif
   do i=1,m
-    write (output_mo_basis,'(I8,X,F16.10)'), i,eigvalues(i)
+    write (output_mo_basis,'(I8,X,F16.10)')  i,eigvalues(i)
   enddo
-  write (output_mo_basis,'(A)'), '======== ================'
-  write (output_mo_basis,'(A)'), ''
+  write (output_mo_basis,'(A)') '======== ================'
+  write (output_mo_basis,'(A)')  ''
   
   call dgemm('N','N',ao_num,m,m,1.d0,mo_coef_new,size(mo_coef_new,1),R,size(R,1),0.d0,mo_coef,size(mo_coef,1))
   deallocate(A,mo_coef_new,R,eigvalues)
@@ -127,18 +127,18 @@ subroutine mo_as_svd_vectors_of_mo_matrix(matrix,lda,m,n,label)
   
   call svd(A,lda,U,lda,D,Vt,lda,m,n)
 
-  write (output_mo_basis,'(A)'), 'MOs are now **'//trim(label)//'**'
-  write (output_mo_basis,'(A)'), ''
-  write (output_mo_basis,'(A)'), 'Eigenvalues'
-  write (output_mo_basis,'(A)'), '-----------'
-  write (output_mo_basis,'(A)'), ''
-  write (output_mo_basis,'(A)'), '======== ================'
+  write (output_mo_basis,'(A)') 'MOs are now **'//trim(label)//'**'
+  write (output_mo_basis,'(A)')  ''
+  write (output_mo_basis,'(A)') 'Eigenvalues'
+  write (output_mo_basis,'(A)')  '-----------'
+  write (output_mo_basis,'(A)') ''
+  write (output_mo_basis,'(A)')  '======== ================'
 
   do i=1,m
-    write (output_mo_basis,'(I8,X,F16.10)'), i,D(i)
+    write (output_mo_basis,'(I8,X,F16.10)')  i,D(i)
   enddo
-  write (output_mo_basis,'(A)'), '======== ================'
-  write (output_mo_basis,'(A)'), ''
+  write (output_mo_basis,'(A)')  '======== ================'
+  write (output_mo_basis,'(A)')  ''
   
   call dgemm('N','N',ao_num,m,m,1.d0,mo_coef_new,size(mo_coef_new,1),U,size(U,1),0.d0,mo_coef,size(mo_coef,1))
   deallocate(A,mo_coef_new,U,Vt,D)
@@ -208,17 +208,17 @@ subroutine mo_as_eigvectors_of_mo_matrix_sort_by_observable(matrix,observable,n,
    print*,''
   enddo
 
-  write (output_mo_basis,'(A)'), 'MOs are now **'//trim(label)//'**'
-  write (output_mo_basis,'(A)'), ''
-  write (output_mo_basis,'(A)'), 'Eigenvalues'
-  write (output_mo_basis,'(A)'), '-----------'
-  write (output_mo_basis,'(A)'), ''
-  write (output_mo_basis,'(A)'), '======== ================'
+  write (output_mo_basis,'(A)')  'MOs are now **'//trim(label)//'**'
+  write (output_mo_basis,'(A)')  ''
+  write (output_mo_basis,'(A)')  'Eigenvalues'
+  write (output_mo_basis,'(A)')  '-----------'
+  write (output_mo_basis,'(A)')  ''
+  write (output_mo_basis,'(A)')  '======== ================'
   do i = 1, m
-   write (output_mo_basis,'(I8,X,F16.10)'), i,eigvalues(i)
+   write (output_mo_basis,'(I8,X,F16.10)')  i,eigvalues(i)
   enddo
-  write (output_mo_basis,'(A)'), '======== ================'
-  write (output_mo_basis,'(A)'), ''
+  write (output_mo_basis,'(A)')  '======== ================'
+  write (output_mo_basis,'(A)')  ''
   
   call dgemm('N','N',ao_num,m,m,1.d0,mo_coef_new,size(mo_coef_new,1),R,size(R,1),0.d0,mo_coef,size(mo_coef,1))
   deallocate(mo_coef_new,R,eigvalues)
@@ -256,8 +256,8 @@ subroutine mo_sort_by_observable(observable,label)
    enddo
   enddo
 
-  write (output_mo_basis,'(A)'), 'MOs are now **'//trim(label)//'**'
-  write (output_mo_basis,'(A)'), ''
+  write (output_mo_basis,'(A)')  'MOs are now **'//trim(label)//'**'
+  write (output_mo_basis,'(A)')  ''
 
   
   deallocate(mo_coef_new,value)

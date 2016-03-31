@@ -112,16 +112,16 @@ subroutine getMobiles(key,key_mask, mobiles,Nint)
     mobileMask(j,2) = xor(key(j,2), key_mask(j,2))
   end do
   
-  call bitstring_to_list(mobileMask(:,1), list(:), nel, Nint)
+  call bitstring_to_list(mobileMask(1,1), list, nel, Nint)
   if(nel == 2) then
     mobiles(1) = list(1)
     mobiles(2) = list(2)
   else if(nel == 1) then
     mobiles(1) = list(1)
-    call bitstring_to_list(mobileMask(:,2), list(:), nel, Nint)
+    call bitstring_to_list(mobileMask(1,2), list, nel, Nint)
     mobiles(2) = list(1) + mo_tot_num
   else
-    call bitstring_to_list(mobileMask(:,2), list(:), nel, Nint)
+    call bitstring_to_list(mobileMask(1,2), list, nel, Nint)
     mobiles(1) = list(1) + mo_tot_num
     mobiles(2) = list(2) + mo_tot_num
   end if
@@ -139,6 +139,8 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
   integer :: i,j,k,nt,n_element(2)
   integer :: list(Nint*bit_kind_size,2), cur_microlist(0:mo_tot_num*2+1)
   integer(bit_kind) :: key_mask_neg(Nint,2), mobileMask(Nint,2)
+  integer :: mo_tot_num_2
+  mo_tot_num_2 = mo_tot_num+mo_tot_num
 
   
   do i=1,Nint
@@ -146,7 +148,9 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
     key_mask_neg(i,2) = not(key_mask(i,2))
   end do
   
-  N_microlist(:) = 0
+  do i=0,mo_tot_num_2
+    N_microlist(i) = 0
+  enddo
   
   do i=1, N_minilist
     do j=1,Nint
@@ -154,8 +158,8 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
       mobileMask(j,2) = iand(key_mask_neg(j,2), minilist(j,2,i))
     end do
     
-    call bitstring_to_list(mobileMask(:,1), list(:,1), n_element(1), Nint)
-    call bitstring_to_list(mobileMask(:,2), list(:,2), n_element(2), Nint)
+    call bitstring_to_list(mobileMask(1,1), list(1,1), n_element(1), Nint)
+    call bitstring_to_list(mobileMask(1,2), list(1,2), n_element(2), Nint)
     
     if(n_element(1) + n_element(2) /= 4) then
       N_microlist(0) = N_microlist(0) + 1
@@ -173,11 +177,14 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
   end do
   
   ptr_microlist(0) = 1
-  do i=1,mo_tot_num*2+1
+  do i=1,mo_tot_num_2+1
     ptr_microlist(i) = ptr_microlist(i-1) + N_microlist(i-1)
   end do
+
+  do i=0,mo_tot_num_2+1
+    cur_microlist(i) = ptr_microlist(i)
+  end do
   
-  cur_microlist(:) = ptr_microlist(:)
   
   do i=1, N_minilist
     do j=1,Nint
@@ -185,42 +192,41 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
       mobileMask(j,2) = iand(key_mask_neg(j,2), minilist(j,2,i))
     end do
     
-    call bitstring_to_list(mobileMask(:,1), list(:,1), n_element(1), Nint)
-    call bitstring_to_list(mobileMask(:,2), list(:,2), n_element(2), Nint)
+    call bitstring_to_list(mobileMask(1,1), list(1,1), n_element(1), Nint)
+    call bitstring_to_list(mobileMask(1,2), list(1,2), n_element(2), Nint)
 
     
     if(n_element(1) + n_element(2) /= 4) then
       idx_microlist(cur_microlist(0)) = i
-      microlist(:,:,cur_microlist(0)) = minilist(:,:,i)
+      do k=1,Nint
+        microlist(k,1,cur_microlist(0)) = minilist(k,1,i)
+        microlist(k,2,cur_microlist(0)) = minilist(k,2,i)
+      enddo
       cur_microlist(0) = cur_microlist(0) + 1
     else
       do j=1,n_element(1)
         nt = list(j,1)
         idx_microlist(cur_microlist(nt)) = i
-        microlist(:,:,cur_microlist(nt)) = minilist(:,:,i)
+        do k=1,Nint
+          microlist(k,1,cur_microlist(nt)) = minilist(k,1,i)
+          microlist(k,2,cur_microlist(nt)) = minilist(k,2,i)
+        enddo
         cur_microlist(nt) = cur_microlist(nt) + 1
       end do
       
       do j=1,n_element(2)
         nt = list(j,2) + mo_tot_num
         idx_microlist(cur_microlist(nt)) = i
-        microlist(:,:,cur_microlist(nt)) = minilist(:,:,i)
+        do k=1,Nint
+          microlist(k,1,cur_microlist(nt)) = minilist(k,1,i)
+          microlist(k,2,cur_microlist(nt)) = minilist(k,2,i)
+        enddo
         cur_microlist(nt) = cur_microlist(nt) + 1
       end do
     end if
   end do
 end subroutine
   
-  
-subroutine merdge(mic, idx_mic, N_mic, mic0, idx_mic0, N_mic0, Nint)
-  use bitmasks
-  integer(bit_kind) :: mic(Nint,2,N_mic), mic0(Nint,2,*)
-  integer :: idx_mic(N_mic), idx_mic0(N_mic0), N_mic, N_mic0
-  
-  mic0(:,:,N_mic0+1:N_mic0+N_mic) = mic(:,:,:)
-  idx_mic0(N_mic0+1:N_mic0+N_mic) = idx_mic(:)
-end subroutine
-
   
 subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
   use bitmasks

@@ -82,8 +82,8 @@ END_PROVIDER
 subroutine get_s2_u0_old(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
  implicit none
  use bitmasks
- integer(bit_kind), intent(in) :: psi_keys_tmp(N_int,2,nmax)
  integer, intent(in) :: n,nmax
+ integer(bit_kind), intent(in) :: psi_keys_tmp(N_int,2,nmax)
  double precision, intent(in) :: psi_coefs_tmp(nmax)
  double precision, intent(out) :: s2
  integer :: i,j,l
@@ -109,8 +109,8 @@ end
 subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
   implicit none
   use bitmasks
-  integer(bit_kind), intent(in)  :: psi_keys_tmp(N_int,2,nmax)
   integer, intent(in)            :: n,nmax
+  integer(bit_kind), intent(in)  :: psi_keys_tmp(N_int,2,nmax)
   double precision, intent(in)   :: psi_coefs_tmp(nmax)
   double precision, intent(out)  :: s2
   double precision               :: s2_tmp

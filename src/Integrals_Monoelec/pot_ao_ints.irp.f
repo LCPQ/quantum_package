@@ -139,6 +139,7 @@ double precision function NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,b
 !       int{dr} of (x-A_x)^ax (x-B_X)^bx exp(-alpha (x-A_x)^2 - beta (x-B_x)^2 ) 1/(r-R_c)
 
 implicit none
+integer, intent(in) :: n_pt_in
 double precision,intent(in) :: C_center(3),A_center(3),B_center(3),alpha,beta
 integer :: power_A(3),power_B(3)
 integer :: i,j,k,l,n_pt
@@ -146,6 +147,8 @@ double precision :: P_center(3)
 double precision :: d(0:n_pt_in),pouet,coeff,rho,dist,const,pouet_2,p,p_inv,factor
 double precision :: I_n_special_exact,integrate_bourrin,I_n_bibi
 double precision ::  V_e_n,const_factor,dist_integral,tmp
+double precision :: accu,epsilo,rint
+integer :: n_pt_out,lmax
 include 'Utils/constants.include.F'
   if ( (A_center(1)/=B_center(1)).or. &
        (A_center(2)/=B_center(2)).or. &
@@ -198,8 +201,6 @@ include 'Utils/constants.include.F'
    NAI_pol_mult = 0.d0
    return
   endif
-  double precision :: accu,epsilo,rint
-  integer :: n_pt_in,n_pt_out,lmax
   accu = 0.d0
 
 ! 1/r1 standard attraction integral

@@ -126,6 +126,7 @@ def get_type_dict():
     fancy_type['integer*8'] = Type(None, "int", "integer*8")
 
     fancy_type['int'] = Type(None, "int", "integer")
+    fancy_type['int64'] = Type(None, "int64", "integer*8")
 
     fancy_type['float'] = Type(None, "float", "double precision")
     fancy_type['double precision'] = Type(None, "float", "double precision")
@@ -143,6 +144,7 @@ def get_type_dict():
 
     # Dict to change ocaml LowLevel type into FortranLowLevel type
     ocaml_to_fortran = {"int": "integer",
+                        "int64": "integer*8",
                         "float": "double precision",
                         "logical": "logical",
                         "string": "character*32"}

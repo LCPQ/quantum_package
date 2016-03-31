@@ -1,4 +1,5 @@
 open Core.Std
+open Qptypes
 
 
 type t =
@@ -32,7 +33,7 @@ let add_task ~task q =
     queued = task_id :: q.queued ;
     tasks  = Map.add q.tasks ~key:task_id ~data:task ;
     next_task_id = Id.Task.increment task_id ;
-  }, task_id
+  }
 
 
 
@@ -81,13 +82,25 @@ let end_task ~task_id ~client_id q =
   in
   { q with
     running  = Map.remove running task_id ;
-    tasks    = Map.remove tasks task_id ;
   }
     
+let del_task ~task_id q = 
+  let { tasks ; _ } =
+    q
+  in
+  
+  if (Map.mem tasks task_id) then
+      { q with
+        tasks    = Map.remove tasks task_id ;
+      }
+  else
+      Printf.sprintf "Task %d is already deleted" (Id.Task.to_int task_id)
+      |> failwith
 
+    
 
 let number_of_queued q =
-  List.length q.queued
+  Map.length q.tasks
 
 let number_of_running q =
   Map.length q.running

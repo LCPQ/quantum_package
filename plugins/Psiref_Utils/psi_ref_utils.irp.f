@@ -14,6 +14,31 @@ use bitmasks
 END_PROVIDER
 
 
+BEGIN_PROVIDER [ double precision, psi_ref_coef_transp, (n_states,psi_det_size) ]
+ implicit none
+ BEGIN_DOC
+! Transposed psi_ref_coef
+ END_DOC
+ integer :: i,j
+ do j=1,N_det_ref
+   do i=1, n_states
+     psi_ref_coef_transp(i,j) = psi_ref_coef(j,i)
+   enddo
+ enddo
+END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, psi_non_ref_coef_transp, (n_states,psi_det_size) ]
+ implicit none
+ BEGIN_DOC
+! Transposed psi_non_ref_coef
+ END_DOC
+ integer :: i,j
+ do j=1,N_det_non_ref
+   do i=1, n_states
+     psi_non_ref_coef_transp(i,j) = psi_non_ref_coef(j,i)
+   enddo
+ enddo
+END_PROVIDER
 
  BEGIN_PROVIDER [ integer(bit_kind), psi_non_ref,  (N_int,2,psi_det_size) ]
 &BEGIN_PROVIDER [ double precision, psi_non_ref_coef, (psi_det_size,n_states) ]
