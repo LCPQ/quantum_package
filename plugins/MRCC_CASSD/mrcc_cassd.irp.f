@@ -18,7 +18,6 @@ subroutine run
   E_new = 0.d0
   delta_E = 1.d0
   iteration = 0
-  call diagonalize_ci_dressed(lambda)
   lambda = 1.d0
   do while (delta_E > thresh_mrcc)
     iteration += 1
