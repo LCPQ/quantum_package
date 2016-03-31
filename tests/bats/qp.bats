@@ -155,7 +155,7 @@ function run_all_1h_1p() {
   ezfio set determinants read_wf True
   qp_run mrcc_cassd $INPUT  
   energy="$(ezfio get mrcc_cassd energy)"
-  eq $energy -76.2288641014933  1.e-4
+  eq $energy -76.2286679037553  1.e-4
   
 }
 
@@ -166,7 +166,7 @@ function run_all_1h_1p() {
 }
 
 @test "SCF H2O VDZ pseudo" {
-  run_HF  h2o_pseudo.ezfio  -0.169483703903844E+02
+  run_HF  h2o_pseudo.ezfio  -16.9483708495521
 }
 
 @test "FCI H2O VDZ pseudo" {
