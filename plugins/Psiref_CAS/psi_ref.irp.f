@@ -23,6 +23,7 @@ use bitmasks
       psi_ref_coef(i,k) = psi_cas_coef(i,k)
     enddo
   enddo
+  call normalize(psi_ref_coef, N_det_ref)
 
 END_PROVIDER
 

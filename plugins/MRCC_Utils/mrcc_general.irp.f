@@ -11,12 +11,13 @@ subroutine mrcc_iterations
 
   double precision :: E_new, E_old, delta_e
   integer :: iteration,i_oscillations
-  double precision :: E_past(4)
+  double precision :: E_past(4), lambda
   E_new = 0.d0
   delta_E = 1.d0
   iteration = 0
   j = 1
   i_oscillations = 0
+  lambda = 1.d0
   do while (delta_E > 1.d-7)
     iteration += 1
     print *,  '===========================' 
@@ -25,10 +26,15 @@ subroutine mrcc_iterations
     print *,  ''
     E_old = sum(ci_energy_dressed)
     call write_double(6,ci_energy_dressed(1),"MRCC energy")
-    call diagonalize_ci_dressed
+    call diagonalize_ci_dressed(lambda)
     E_new = sum(ci_energy_dressed)
     delta_E = dabs(E_new - E_old)
-
+!    if (E_new > E_old) then
+!       lambda = lambda * 0.7d0
+!    else
+!       lambda = min(1.d0, lambda * 1.1d0)
+!    endif
+!    print *,  'energy lambda ', lambda
     E_past(j) = E_new
     j +=1
     call save_wavefunction
