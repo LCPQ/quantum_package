@@ -1728,3 +1728,55 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   deallocate (shortcut, sort_idx, sorted, version)
 end
 
+
+subroutine apply_excitation(det, exc, res, ok, Nint)
+  use bitmasks
+  implicit none
+  
+  integer, intent(in) :: Nint
+  integer, intent(in) :: exc(0:2,2,2)
+  integer(bit_kind),intent(in) :: det(Nint, 2)
+  integer(bit_kind),intent(out) :: res(Nint, 2)
+  logical, intent(out) :: ok
+  integer :: h1,p1,h2,p2,s1,s2,degree
+  integer :: ii, pos 
+  
+  
+  ok = .false.
+  degree = exc(0,1,1) + exc(0,1,2)
+  
+  if(.not. (degree > 0 .and. degree <= 2)) then
+    print *, degree
+    print *, "apply ex"
+    STOP
+  endif
+  
+  call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+  res = det 
+  
+  ii = (h1-1)/bit_kind_size + 1 
+  pos = mod(h1-1, 64)!iand(h1-1,bit_kind_size-1) ! mod 64
+  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
+  res(ii, s1) = ibclr(res(ii, s1), pos)
+  
+  ii = (p1-1)/bit_kind_size + 1 
+  pos = mod(p1-1, 64)!iand(p1-1,bit_kind_size-1)
+  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) return
+  res(ii, s1) = ibset(res(ii, s1), pos)
+  
+  if(degree == 2) then
+    ii = (h2-1)/bit_kind_size + 1 
+    pos = mod(h2-1, 64)!iand(h2-1,bit_kind_size-1)
+    if(iand(det(ii, s2), ishft(1_bit_kind, pos)) == 0_8) return
+    res(ii, s2) = ibclr(res(ii, s2), pos)
+    
+    ii = (p2-1)/bit_kind_size + 1 
+    pos = mod(p2-1, 64)!iand(p2-1,bit_kind_size-1)
+    if(iand(det(ii, s2), ishft(1_bit_kind, pos)) /= 0_8) return
+    res(ii, s2) = ibset(res(ii, s2), pos)
+  endif
+
+  ok = .true.
+end subroutine
+
+
