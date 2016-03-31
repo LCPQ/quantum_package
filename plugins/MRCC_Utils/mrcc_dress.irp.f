@@ -25,8 +25,8 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
 
   integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
   integer                        :: i,j,k,l,m
-  integer                        :: degree_alpha(psi_det_size), degree_alpha_tmp(psi_det_size)
-  integer                        :: idx_alpha(0:psi_det_size), idx_alpha_tmp(0:psi_det_size)
+  integer                        :: degree_alpha(psi_det_size)
+  integer                        :: idx_alpha(0:psi_det_size)
   logical                        :: good, fullMatch
 
   integer(bit_kind)              :: tq(Nint,2,n_selected)
@@ -74,11 +74,6 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
     call find_triples_and_quadruples_micro(i_generator,n_selected,det_buffer,Nint,tq,N_tq,microlist,ptr_microlist,N_microlist,key_mask)
   else
     call find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_minilist)
-!     microlist(:N_miniList) = minilist(:N_miniList)
-!     idx_microlist(:N_minilist) = idx_minilist(:)
-!     N_microlist(0) = N_miniList
-!     ptr_microlist(1) = 1
-!     ptr_microlist(2) = N_miniList + 1
   end if
   
   
@@ -139,41 +134,41 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
         idx_microlist_zero(ptr_microlist(1) + l) = idx_microlist(ptr_microlist(smallerlist) + l)
       end do
       
-      call get_excitation_degree_vector(microlist_zero,tq(1,1,i_alpha),degree_alpha_tmp,Nint,N_microlist(smallerlist)+N_microlist(0),idx_alpha_tmp)
-      do j=1,idx_alpha_tmp(0)
-        idx_alpha_tmp(j) = idx_microlist_zero(idx_alpha_tmp(j))
+      call get_excitation_degree_vector(microlist_zero,tq(1,1,i_alpha),degree_alpha,Nint,N_microlist(smallerlist)+N_microlist(0),idx_alpha)
+      do j=1,idx_alpha(0)
+        idx_alpha(j) = idx_microlist_zero(idx_alpha(j))
       end do
       
       
-      i = 1
-      j = 2
-      do j = 2, idx_alpha_tmp(0)
-        if(idx_alpha_tmp(j) < idx_alpha_tmp(j-1)) exit
-      end do
-      
-      m = j
-      
-      idx_alpha(0) = idx_alpha_tmp(0)
-      
-      do l = 1, idx_alpha(0)
-        if(j > idx_alpha_tmp(0)) then
-          k = i
-          i += 1
-        else if(i >= m) then
-          k = j
-          j += 1
-        else if(idx_alpha_tmp(i) < idx_alpha_tmp(j)) then
-          k = i
-          i += 1
-        else
-          k = j
-          j += 1
-        end if
-        
-        idx_alpha(l) = idx_alpha_tmp(k)
-        degree_alpha(l) = degree_alpha_tmp(k)
-      end do
-      
+!       i = 1
+!       j = 2
+!       do j = 2, idx_alpha_tmp(0)
+!         if(idx_alpha_tmp(j) < idx_alpha_tmp(j-1)) exit
+!       end do
+!       
+!       m = j
+!       
+!       idx_alpha(0) = idx_alpha_tmp(0)
+!           
+!       do l = 1, idx_alpha(0)      
+!         if(j > idx_alpha_tmp(0)) then
+!           k = i
+!           i += 1
+!         else if(i >= m) then
+!           k = j
+!           j += 1
+!         else if(idx_alpha_tmp(i) < idx_alpha_tmp(j)) then
+!           k = i
+!           i += 1
+!         else
+!           k = j
+!           j += 1
+!         end if
+! !  k=l       
+!         idx_alpha(l) = idx_alpha_tmp(k)
+!         degree_alpha(l) = degree_alpha_tmp(k)
+!       end do
+!       
     else
       call get_excitation_degree_vector(miniList,tq(1,1,i_alpha),degree_alpha,Nint,N_minilist,idx_alpha)
       do j=1,idx_alpha(0)
@@ -240,32 +235,17 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
           tmp_det(k,1) = psi_ref(k,1,i_I)
           tmp_det(k,2) = psi_ref(k,2,i_I)
         enddo
-        ! Hole (see list_to_bitstring)
-        iint = ishft(h1-1,-bit_kind_shift) + 1
-        ipos = h1-ishft((iint-1),bit_kind_shift)-1
-        tmp_det(iint,s1) = ibclr(tmp_det(iint,s1),ipos)
         
-        ! Particle
-        iint = ishft(p1-1,-bit_kind_shift) + 1
-        ipos = p1-ishft((iint-1),bit_kind_shift)-1
-        tmp_det(iint,s1) = ibset(tmp_det(iint,s1),ipos)
-        if (degree_alpha(k_sd) == 2) then
-          ! Hole (see list_to_bitstring)
-          iint = ishft(h2-1,-bit_kind_shift) + 1
-          ipos = h2-ishft((iint-1),bit_kind_shift)-1
-          tmp_det(iint,s2) = ibclr(tmp_det(iint,s2),ipos)
-          
-          ! Particle
-          iint = ishft(p2-1,-bit_kind_shift) + 1
-          ipos = p2-ishft((iint-1),bit_kind_shift)-1
-          tmp_det(iint,s2) = ibset(tmp_det(iint,s2),ipos)
-        endif
+        logical :: ok
+        call apply_excitation(psi_ref(1,1,i_I), exc, tmp_det, ok, Nint)
+        if(.not. ok) cycle
         
         ! <I| \l/ |alpha>
         do i_state=1,Nstates
           dka(i_state) = 0.d0
         enddo
         do l_sd=k_sd+1,idx_alpha(0)
+
           call get_excitation_degree(tmp_det,psi_non_ref(1,1,idx_alpha(l_sd)),degree,Nint)
           if (degree == 0) then
             
@@ -279,11 +259,12 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
             if (.not.loop) then
               call get_excitation(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(l_sd)),exc,degree,phase2,Nint)
               hIl = hij_mrcc(idx_alpha(l_sd),i_I)
-              !               call i_h_j(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,hIl)
+!                             call i_h_j(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,hIl)
               do i_state=1,Nstates
                 dka(i_state) = hIl * lambda_mrcc(i_state,idx_alpha(l_sd)) * phase * phase2
               enddo
             endif
+
             exit
           endif
         enddo
@@ -321,6 +302,9 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
   !deallocate (dIa_hla,hij_cache)
   !deallocate(miniList, idx_miniList)
 end
+
+
+
 
 
 
