@@ -22,12 +22,12 @@ BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
         i_pert_count += 1
         lambda_mrcc(k,i) = 0.d0
       endif
-      double precision, parameter    :: x = 2.d0
-      if (lambda_mrcc(k,i) > x) then
-        lambda_mrcc(k,i) = x
-      else if (lambda_mrcc(k,i) < -x) then
-        lambda_mrcc(k,i) = -x
-      endif
+!      double precision, parameter    :: x = 2.d0
+!      if (lambda_mrcc(k,i) > x) then
+!        lambda_mrcc(k,i) = x
+!      else if (lambda_mrcc(k,i) < -x) then
+!        lambda_mrcc(k,i) = -x
+!      endif
     enddo
   enddo
  

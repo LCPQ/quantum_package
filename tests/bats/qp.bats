@@ -53,7 +53,7 @@ function test_exe() {
 }
 
 function run_HF() {
-  thresh=1.e-8
+  thresh=1.e-7
   test_exe SCF || skip
   ezfio set_file $1
   ezfio set hartree_fock thresh_scf 1.e-10
@@ -155,7 +155,7 @@ function run_all_1h_1p() {
   ezfio set determinants read_wf True
   qp_run mrcc_cassd $INPUT  
   energy="$(ezfio get mrcc_cassd energy)"
-  eq $energy -76.2289109271715     1.E-3
+  eq $energy -76.2288641014933E+02  1.e-4
   
 }
 
@@ -166,7 +166,7 @@ function run_all_1h_1p() {
 }
 
 @test "SCF H2O VDZ pseudo" {
-  run_HF  h2o_pseudo.ezfio  -0.169483703904991E+02
+  run_HF  h2o_pseudo.ezfio  -16.9483705
 }
 
 @test "FCI H2O VDZ pseudo" {
