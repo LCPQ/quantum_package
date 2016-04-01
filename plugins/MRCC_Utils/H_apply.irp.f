@@ -24,5 +24,12 @@ s.data["size_max"] = "3072"
 print s
 
 
+
+s = H_apply_zmq("mrcc_PT2")
+s.energy = "ci_electronic_energy_dressed"
+s.set_perturbation("epstein_nesbet_2x2")
+s.unset_openmp()
+print s
+
 END_SHELL
 
