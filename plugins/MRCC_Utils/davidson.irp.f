@@ -486,8 +486,8 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
     i = idx_ref(ii)
     do jj = 1, n_det_non_ref
         j = idx_non_ref(jj)
-        vt (i) = vt (i) + delta_ij(ii,jj,istate)*u_0(j)
-        vt (j) = vt (j) + delta_ij(ii,jj,istate)*u_0(i)
+        vt (i) = vt (i) + delta_ij(istate,jj,ii)*u_0(j)
+        vt (j) = vt (j) + delta_ij(istate,jj,ii)*u_0(i)
     enddo
   enddo
   !$OMP END DO

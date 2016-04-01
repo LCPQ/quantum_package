@@ -191,4 +191,3 @@ subroutine diagonalize_CI_dressed(lambda)
   SOFT_TOUCH psi_coef 
 
 end
-

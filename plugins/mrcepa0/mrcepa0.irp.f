@@ -1,5 +1,7 @@
 program mrcepa0
   implicit none
+  !mrmode : 1=mrcepa0, 2=mrsc2 add, 3=mrsc2 sub
+  mrmode = 1
   if (.not.read_wf) then
     print *,  'read_wf has to be true.'
     stop 1

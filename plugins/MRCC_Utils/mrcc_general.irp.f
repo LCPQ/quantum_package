@@ -35,8 +35,8 @@ subroutine mrcc_iterations
 !       lambda = min(1.d0, lambda * 1.1d0)
 !    endif
 !    print *,  'energy lambda ', lambda
-    E_past(j) = E_new
-    j +=1
+!     E_past(j) = E_new
+!     j +=1
     call save_wavefunction
     if (iteration > 200) then
       exit
