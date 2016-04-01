@@ -468,7 +468,6 @@ END_PROVIDER
         call i_h_j(psi_ref(1,1,II), det_tmp, N_int, HIl)
         
         do k=1,N_det_non_ref
-!           if(lambda_mrcc(i_state, k) == 0d0) cycle
           if(lambda_mrcc(i_state, k) == 0d0) cycle
           call get_excitation(psi_ref(1,1,II),psi_non_ref(1,1,k),exc_Ik,degree2,phase_Ik,N_int)
           
@@ -589,7 +588,6 @@ implicit none
             det_tmp(1,2) = iand(xor(HF_bitmask(1,2), psi_non_ref(1,2,i)), not(active_sorb(2)))
             ok = ok .and. (popcnt(det_tmp(1,1)) + popcnt(det_tmp(1,2)) == popcnt(xor(det_tmp(1,1), det_tmp(1,2))))
           if(.not. ok) cycle
-          !if(ok) cycle
           
           
     
@@ -618,11 +616,6 @@ implicit none
           !dkI(i_state) = HkI * lambda_mrcc(i_state,k) * phase_Jl * phase_Ik * Xref(I_i)
           dkI(i_state) = HkI * lambda_mrcc(i_state, k) * phase_Jl * phase_Ik
     
-          
-          !!!!
-          call get_excitation(psi_ref(1,1,J),psi_non_ref(1,1,k),exc_Ik,degree,phase_Ik,N_int)
-          if(degree /= 2 .and. degree /= 0) cycle
-          !!!!!!
           
           !$OMP CRITICAL          
           contrib = dkI(i_state) * delta_JI
