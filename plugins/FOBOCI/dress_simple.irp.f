@@ -279,9 +279,11 @@ subroutine dress_H_matrix_from_psi_det_input(psi_det_generators_input,Ndet_gener
     do k = 1, N_states 
      accu = 0.d0
      do j =1, Ndet_generators
+      print*,'',eigvectors(j,i) , psi_coef_ref(j,k)
       accu += eigvectors(j,i) * psi_coef_ref(j,k)
      enddo
-     if(dabs(accu).ge.0.8d0)then
+     print*,'accu = ',accu
+     if(dabs(accu).ge.0.72d0)then
       i_good_state(0) +=1
       i_good_state(i_good_state(0)) = i
      endif
