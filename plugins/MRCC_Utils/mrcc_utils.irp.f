@@ -1,45 +1,54 @@
-BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
- implicit none
- BEGIN_DOC
- ! cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
- END_DOC
- integer :: i,k
- double precision               :: ihpsi(N_states),ihpsi_current(N_states)
- integer :: i_pert_count
- 
- i_pert_count = 0
- lambda_mrcc = 0.d0
- 
-  do i=1,N_det_non_ref
-    call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,size(psi_ref_coef,1), n_states, ihpsi_current)
-    do k=1,N_states
-      if (ihpsi_current(k) == 0.d0) then
-        ihpsi_current(k) = 1.d-32
-      endif
-      if(dabs(ihpsi_current(k) * psi_non_ref_coef(i,k)) < 1d-5) then
-        i_pert_count +=1
-      else
-        lambda_mrcc(k,i) = psi_non_ref_coef(i,k)/ihpsi_current(k)
-      endif
-    enddo
- enddo
+ BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
+&BEGIN_PROVIDER [ integer, lambda_mrcc_pt2, (0:psi_det_size) ]
+  implicit none
+  BEGIN_DOC
+  ! cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
+  END_DOC
+  integer :: i,k
+  double precision               :: ihpsi_current(N_states)
+  integer                        :: i_pert_count
+  double precision               :: hii, lambda_pert
+  integer                        :: N_lambda_mrcc_pt2
 
- print*,'N_det_non_ref = ',N_det_non_ref
- print*,'Number of ignored determinants = ',i_pert_count
- print*,'psi_coef_ref_ratio = ',psi_ref_coef(2,1)/psi_ref_coef(1,1)
+  i_pert_count = 0
+  lambda_mrcc = 0.d0
+  N_lambda_mrcc_pt2 = 0
+  lambda_mrcc_pt2(0) = 0
+
+    do i=1,N_det_non_ref
+      call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef_normalized, N_int, N_det_ref,&
+          size(psi_ref_coef,1), N_states,ihpsi_current)
+      call i_H_j(psi_non_ref(1,1,i),psi_non_ref(1,1,i),N_int,hii)
+      do k=1,N_states
+        if (ihpsi_current(k) == 0.d0) then
+          ihpsi_current(k) = 1.d-32
+        endif
+        lambda_mrcc(k,i) = min(0.d0,psi_non_ref_coef(i,k)/ihpsi_current(k) )
+        lambda_pert = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
+        if (lambda_pert / lambda_mrcc(k,i)  < 0.5d0) then
+          i_pert_count += 1
+          lambda_mrcc(k,i) = 0.d0
+          if (lambda_mrcc_pt2(N_lambda_mrcc_pt2) /= i) then
+            N_lambda_mrcc_pt2 += 1
+            lambda_mrcc_pt2(N_lambda_mrcc_pt2) = i
+          endif
+        endif
+      enddo
+    enddo
+    lambda_mrcc_pt2(0) = N_lambda_mrcc_pt2
+  
+  print*,'N_det_non_ref = ',N_det_non_ref
+  print*,'Number of ignored determinants = ',i_pert_count  
+  print*,'psi_coef_ref_ratio = ',psi_ref_coef(2,1)/psi_ref_coef(1,1)
+  print*,'lambda max = ',maxval(dabs(lambda_mrcc))
+
 END_PROVIDER
 
 
 
 
-!BEGIN_PROVIDER [ double precision, delta_ij_non_ref, (N_det_non_ref, N_det_non_ref,N_states) ]
-!implicit none
-!BEGIN_DOC
-!! Dressing matrix in SD basis
-!END_DOC
-!delta_ij_non_ref = 0.d0
-!call H_apply_mrcc_simple(delta_ij_non_ref,N_det_non_ref)
-!END_PROVIDER
+
+
 
 BEGIN_PROVIDER [ double precision, hij_mrcc, (N_det_non_ref,N_det_ref) ]
  implicit none
@@ -174,17 +183,19 @@ BEGIN_PROVIDER [ double precision, CI_energy_dressed, (N_states_diag) ]
 
 END_PROVIDER
 
-subroutine diagonalize_CI_dressed
+subroutine diagonalize_CI_dressed(lambda)
   implicit none
   BEGIN_DOC
 !  Replace the coefficients of the CI states by the coefficients of the 
 !  eigenstates of the CI matrix
   END_DOC
+  double precision, intent(in) :: lambda
   integer :: i,j
   do j=1,N_states_diag
     do i=1,N_det
-      psi_coef(i,j) = CI_eigenvectors_dressed(i,j)
+      psi_coef(i,j) = lambda * CI_eigenvectors_dressed(i,j) + (1.d0 - lambda) * psi_coef(i,j) 
     enddo
+    call normalize(psi_coef(1,j), N_det)
   enddo
   SOFT_TOUCH psi_coef 
 

@@ -61,6 +61,7 @@ class H_apply(object):
     s["params_post"] = ""
 
     self.selection_pt2 = None
+    self.energy = "CI_electronic_energy"
     self.perturbation = None
     self.do_double_exc = do_double_exc
    #s["omp_parallel"]     = """!$OMP PARALLEL DEFAULT(NONE)          &
@@ -264,13 +265,13 @@ class H_apply(object):
           self.data["keys_work"] = """
 !          if(check_double_excitation)then
             call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-             sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
-          """%(pert)
+             sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp,%s)
+          """%(pert,self.energy)
       else: 
           self.data["keys_work"] = """
             call perturb_buffer_by_mono_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-             sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
-          """%(pert)
+             sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp,%s)
+          """%(pert,self.energy)
 
 
       self.data["finalization"] = """
