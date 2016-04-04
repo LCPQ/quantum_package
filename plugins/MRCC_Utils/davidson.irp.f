@@ -47,7 +47,7 @@ subroutine davidson_diag_mrcc(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit,i
   !$OMP END DO 
   !$OMP DO SCHEDULE(guided)
   do i=1,N_det_ref
-    H_jj(idx_ref(i)) +=  delta_ii(i,istate)
+    H_jj(idx_ref(i)) +=  delta_ii(istate,i)
   enddo
   !$OMP END DO 
   !$OMP END PARALLEL

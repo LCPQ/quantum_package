@@ -42,7 +42,7 @@ subroutine mrcepa0_iterations
 !     E_past(j) = E_new
 !     j +=1
     call save_wavefunction
-    if (iteration > 200) then
+    if (iteration > 0) then
       exit
     endif
     print*,'------------'
@@ -55,9 +55,9 @@ subroutine mrcepa0_iterations
     print*,'------------'
   enddo
   call write_double(6,ci_energy_dressed(1),"Final MRCEPA0 energy")
+  call write_double(6,ci_energy_dressed(1)+rest,"Final MRCEPA0+rest energy")
   call ezfio_set_mrcc_cassd_energy(ci_energy_dressed(1))
   call save_wavefunction
-
 end
 
 subroutine set_generators_bitmasks_as_holes_and_particles
@@ -85,7 +85,26 @@ subroutine set_generators_bitmasks_as_holes_and_particles
   enddo
  enddo
  touch generators_bitmask
-
-
-
 end
+
+
+BEGIN_PROVIDER [ double precision, rest ]
+  integer :: i, j
+  double precision :: hij, c0
+  
+  c0 = 1d0
+  do i=1,N_det_non_ref
+    c0 += psi_non_ref_coef(i,1)**2
+  end do
+  c0 = dsqrt(c0)
+  print *, "C", c0
+  rest = 0d0
+  do i=1, N_det_non_ref
+    if(lambda_mrcc(1, i) == 0d0) then
+      do j=1, N_det_ref
+        call i_h_j(psi_ref(1,1,j), psi_non_ref(1,1,i), N_int, hij)
+        rest += hij * psi_non_ref_coef(i,1) * psi_ref_coef(j,1) / c0
+      end do
+    end if
+  end do
+END_PROVIDER

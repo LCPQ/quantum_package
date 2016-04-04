@@ -25,6 +25,7 @@ subroutine mrcc_iterations
     print *,  '===========================' 
     print *,  ''
     E_old = sum(ci_energy_dressed)
+    print *, iteration, ci_energy_dressed(1)
     call write_double(6,ci_energy_dressed(1),"MRCC energy")
     call diagonalize_ci_dressed(lambda)
     E_new = sum(ci_energy_dressed)
@@ -38,7 +39,7 @@ subroutine mrcc_iterations
 !     E_past(j) = E_new
 !     j +=1
     call save_wavefunction
-    if (iteration > 200) then
+    if (iteration > 0) then
       exit
     endif
     print*,'------------'
