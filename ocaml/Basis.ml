@@ -60,10 +60,8 @@ let to_string_gamess =
     to_string_general ~fmt:Gto.Gamess ~atom_sep:""
 
 let to_string_gaussian b =
-  String.concat ~sep:"\n" [ "****" ;
-    to_string_general ~fmt:Gto.Gaussian ~atom_sep:"****" b ;
-    "****"
-  ]
+  String.concat ~sep:"\n"
+  [ to_string_general ~fmt:Gto.Gaussian ~atom_sep:"****" b ; "****" ]
 
 let to_string ?(fmt=Gto.Gamess) =
   match fmt with

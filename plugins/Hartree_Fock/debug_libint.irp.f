@@ -87,6 +87,7 @@
                            ref = ao_bielec_integral(bf1,bf2,bf3,bf4)
    
 
+                           if ( (ABS(ABS(ref) - ABS(libint)) >= 1.e-6) )  THEN
                               print*, bf1,bf2,bf3,bf4
                               print*,"r", ref
                               print*,"l", libint
@@ -94,7 +95,6 @@
                               print*,"l/r", libint/ref
                               print*,"n", norm
 
-                           if ( (ABS(ABS(ref) - ABS(libint)) >= 1.e-6) )  THEN
                               call exit(1)
                            end if
 
