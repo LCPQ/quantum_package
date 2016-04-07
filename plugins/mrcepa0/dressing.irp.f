@@ -124,7 +124,7 @@ END_PROVIDER
   
   provide lambda_mrcc
   do i_state = 1, N_states
-    !$OMP PARALLEL DO default(none) schedule(dynamic) private(j,k,Hjk,Hki,degree) shared(lambda_mrcc,i_state, N_det_non_ref,psi_ref, psi_non_ref,N_int,delta_cas)
+    !$OMP PARALLEL DO default(none) schedule(dynamic) private(j,k,Hjk,Hki,degree) shared(lambda_mrcc,i_state, N_det_non_ref,psi_ref, psi_non_ref,N_int,delta_cas,N_det_ref)
     do i=1,N_det_ref
       do j=1,i
         call get_excitation_degree(psi_ref(1,1,i), psi_ref(1,1,j), degree, N_int)
