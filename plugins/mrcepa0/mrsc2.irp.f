@@ -1,26 +1,20 @@
-program mrcepa0
+program mrsc2
   implicit none
+  double precision, allocatable  :: energy(:)
+  allocate (energy(N_states))
+  
   !mrmode : 1=mrcepa0, 2=mrsc2 add, 3=mrsc2 sub
   mrmode = 2
-  if (.not.read_wf) then
-    print *,  'read_wf has to be true.'
-    stop 1
-  endif
+  
+  read_wf = .True.
+  SOFT_TOUCH read_wf
   call print_cas_coefs
-  call run_mrcepa0
+  call set_generators_bitmasks_as_holes_and_particles
+  call run(N_states,energy)
+  if(do_pt2_end)then
+    call run_pt2(N_states,energy)
+  endif
+  deallocate(energy)
 end
 
-subroutine print_cas_coefs
-  implicit none
-
-  integer :: i,j
-  print *,  'CAS'
-  print *,  '==='
-  do i=1,N_det_cas
-    print *,  psi_cas_coef(i,:)
-    call debug_det(psi_cas(1,1,i),N_int)
-  enddo
-
-  call write_double(6,ci_energy(1),"Initial CI energy")
-end
 
