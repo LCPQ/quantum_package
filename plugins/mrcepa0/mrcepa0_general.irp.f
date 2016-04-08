@@ -1,10 +1,5 @@
 
 
-BEGIN_PROVIDER [ integer, mrmode ]
-  
-END_PROVIDER
-
-
 subroutine run(N_st,energy)
   implicit none
   
@@ -108,72 +103,4 @@ subroutine print_cas_coefs
 
 end
 
-
-
-
-
-
-
-
-
-
-
-! subroutine run_mrcepa0
-!   implicit none
-!   call set_generators_bitmasks_as_holes_and_particles
-!   call mrcepa0_iterations
-! end
-! 
-
-! 
-! subroutine mrcepa0_iterations
-!   implicit none
-!   
-!   integer :: i,j
-! 
-!   double precision :: E_new, E_old, delta_e
-!   integer :: iteration,i_oscillations
-!   double precision :: E_past(4), lambda
-!   E_new = 0.d0
-!   delta_E = 1.d0
-!   iteration = 0
-!   j = 1
-!   i_oscillations = 0
-!   lambda = 1.d0
-!   do while (delta_E > 1.d-7)
-!     iteration += 1
-!     print *,  '===========================' 
-!     print *,  'MRCEPA0 Iteration', iteration
-!     print *,  '===========================' 
-!     print *,  ''
-!     E_old = sum(ci_energy_dressed)
-!     call write_double(6,ci_energy_dressed(1),"MRCEPA0 energy")
-!     call diagonalize_ci_dressed(lambda)
-!     E_new = sum(ci_energy_dressed)
-!     delta_E = dabs(E_new - E_old)
-! !    if (E_new > E_old) then
-! !       lambda = lambda * 0.7d0
-! !    else
-! !       lambda = min(1.d0, lambda * 1.1d0)
-! !    endif
-! !    print *,  'energy lambda ', lambda
-! !     E_past(j) = E_new
-! !     j +=1
-!     call save_wavefunction
-!     if (iteration > 10) then
-!       exit
-!     endif
-!     print*,'------------'
-!     print*,'VECTOR'
-!     do i = 1, N_det_ref
-!      print*,''
-!      print*,'psi_ref_coef(i,1) = ',psi_ref_coef(i,1)
-!      print*,'delta_ii(i,1)     = ',delta_ii(i,1)
-!     enddo
-!     print*,'------------'
-!   enddo
-!   call write_double(6,ci_energy_dressed(1),"Final MRCEPA0 energy")
-!   call ezfio_set_mrcc_cassd_energy(ci_energy_dressed(1))
-!   call save_wavefunction
-! end
 
