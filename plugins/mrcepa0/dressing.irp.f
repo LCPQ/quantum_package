@@ -128,8 +128,8 @@ END_PROVIDER
     do i=1,N_det_ref
       do j=1,i
         call get_excitation_degree(psi_ref(1,1,i), psi_ref(1,1,j), degree, N_int)
-        if(no_mono_dressing .and. degree == 1) cycle
         delta_cas(i,j,i_state) = 0d0
+        if(no_mono_dressing .and. degree == 1) cycle
         do k=1,N_det_non_ref
 
           call i_h_j(psi_ref(1,1,j), psi_non_ref(1,1,k),N_int,Hjk)
@@ -137,10 +137,14 @@ END_PROVIDER
           
           delta_cas(i,j,i_state) += Hjk * Hki * lambda_mrcc(i_state, k)
         end do
-        delta_cas(j,i,i_state) = delta_cas(i,j,i_state)
       end do
     end do
     !$OMP END PARALLEL DO
+    do i=1,N_det_ref
+    do j=1,i
+        delta_cas(j,i,i_state) = delta_cas(i,j,i_state)
+    end do
+    end do 
   end do
  END_PROVIDER
  
