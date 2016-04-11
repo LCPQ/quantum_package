@@ -27,6 +27,22 @@ BEGIN_PROVIDER [ double precision, psi_ref_coef_transp, (n_states,psi_det_size) 
  enddo
 END_PROVIDER
 
+BEGIN_PROVIDER [ double precision, psi_ref_coef_normalized,  (psi_det_size,n_states) ]
+ implicit none
+ BEGIN_DOC
+! Normalized coefficients of the reference
+ END_DOC
+ integer :: i,j,k
+ do k=1,N_states
+   do j=1,N_det_ref
+     psi_ref_coef_normalized(j,k) = psi_ref_coef(j,k)
+   enddo
+   call normalize(psi_ref_coef_normalized(1,k), N_det_ref)
+ enddo
+
+END_PROVIDER
+
+
 BEGIN_PROVIDER [ double precision, psi_non_ref_coef_transp, (n_states,psi_det_size) ]
  implicit none
  BEGIN_DOC
