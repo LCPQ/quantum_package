@@ -129,7 +129,7 @@ END_PROVIDER
       do j=1,i
         call get_excitation_degree(psi_ref(1,1,i), psi_ref(1,1,j), degree, N_int)
         delta_cas(i,j,i_state) = 0d0
-        if(no_mono_dressing .and. degree == 1) cycle
+        !if(no_mono_dressing .and. degree == 1) cycle
         do k=1,N_det_non_ref
 
           call i_h_j(psi_ref(1,1,j), psi_non_ref(1,1,k),N_int,Hjk)
@@ -220,7 +220,7 @@ end function
         end do
       
         
-  kloop: do k=cepa0_shortcut(blok), cepa0_shortcut(blok+1)-1
+  kloop: do k=cepa0_shortcut(blok), i ! cepa0_shortcut(blok+1)-1
           if(lambda_mrcc(i_state, det_cepa0_idx(k)) == 0d0) cycle
           
           do ni=1,N_int
@@ -426,7 +426,7 @@ implicit none
       
         call i_h_j(psi_non_ref(1,1,i), psi_ref(1,1,i_I),N_int,hIi)
         diI = hIi * lambda_mrcc(i_state, i)
-        do J = 1 , N_det_ref !!! 
+        do J = 1 , i_I ! N_det_ref !!! 
           call get_excitation(psi_ref(1,1,i_I),psi_ref(1,1,J),exc_IJ,degree,phase_IJ,N_int)
           call i_h_j(psi_non_ref(1,1,i), psi_ref(1,1,J),N_int,hJi)
           delta_JI = hJi * diI 
