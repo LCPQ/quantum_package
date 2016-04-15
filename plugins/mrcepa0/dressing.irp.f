@@ -50,8 +50,8 @@ END_PROVIDER
   use bitmasks
   implicit none
   
-  integer(bit_kind) :: det_noactive(N_int, 2, N_det_non_ref), nonactive_sorb(N_int,2)
-  integer i, II, j, k
+  integer(bit_kind) :: det_noactive(N_int, 2, N_det_non_ref), nonactive_sorb(N_int,2), det(N_int, 2)
+  integer i, II, j, k, ni
   logical, external :: detEq
   
   active_sorb(:,:) = 0_8
@@ -115,7 +115,7 @@ END_PROVIDER
 
 
 
- BEGIN_PROVIDER [ double precision, delta_cas, (N_det_ref, N_det_ref, N_states) ]
+ BEGIN_PROVIDER [ double precision, delta_cas_old, (N_det_ref, N_det_ref, N_states) ]
   use bitmasks
   implicit none
   integer :: i,j,k
@@ -127,7 +127,7 @@ END_PROVIDER
     !$OMP PARALLEL DO default(none) schedule(dynamic) private(j,k,Hjk,Hki,degree) shared(no_mono_dressing,lambda_mrcc,i_state, N_det_non_ref,psi_ref, psi_non_ref,N_int,delta_cas,N_det_ref)
     do i=1,N_det_ref
       do j=1,i
-        call get_excitation_degree(psi_ref(1,1,i), psi_ref(1,1,j), degree, N_int)
+        !call get_excitation_degree(psi_ref(1,1,i), psi_ref(1,1,j), degree, N_int)
         delta_cas(i,j,i_state) = 0d0
         !if(no_mono_dressing .and. degree == 1) cycle
         do k=1,N_det_non_ref
@@ -149,6 +149,53 @@ END_PROVIDER
  END_PROVIDER
  
  
+ BEGIN_PROVIDER [ double precision, delta_cas, (N_det_ref, N_det_ref, N_states) ]
+  use bitmasks
+  implicit none
+  integer :: i,j,k
+  double precision :: Hjk, Hki, Hij, pre(N_det_ref), wall
+  integer :: i_state, degree, npre, ipre(N_det_ref)
+  
+  provide lambda_mrcc
+
+  delta_cas = 0d0
+  call wall_time(wall)
+  print *, wall
+  do i_state = 1, N_states
+    !$OMP PARALLEL DO default(none) schedule(dynamic) private(pre,npre,ipre,j,k,Hjk,Hki,degree) shared(no_mono_dressing,lambda_mrcc,i_state, N_det_non_ref,psi_ref, psi_non_ref,N_int,delta_cas,N_det_ref)
+    do k=1,N_det_non_ref
+      if(lambda_mrcc(i_state, k) == 0d0) cycle
+      npre = 0
+      do i=1,N_det_ref
+        call i_h_j(psi_non_ref(1,1,k),psi_ref(1,1,i), N_int,Hki)
+        if(Hki /= 0d0) then
+          npre += 1
+          ipre(npre) = i
+          pre(npre) = Hki
+        end if
+      end do
+      do i=1,npre
+      do j=1,i
+        !$OMP ATOMIC
+        delta_cas(ipre(i),ipre(j),i_state) += pre(i) * pre(j) * lambda_mrcc(i_state, k)
+      end do
+      end do
+    end do
+    !$OMP END PARALLEL DO
+    
+    do i=1,N_det_ref
+    do j=1,i
+        delta_cas(j,i,i_state) = delta_cas(i,j,i_state)
+    end do
+    end do 
+  end do
+  
+  call wall_time(wall)
+  print *, wall
+!   stop
+ END_PROVIDER
+ 
+ 
 logical function detEq(a,b,Nint)
    use bitmasks
    implicit none
@@ -165,6 +212,93 @@ logical function detEq(a,b,Nint)
    detEq = .true.
 end function
 
+integer function detCmp(a,b,Nint)
+   use bitmasks
+   implicit none
+   integer, intent(in) :: Nint
+   integer(bit_kind), intent(in) :: a(Nint,2), b(Nint,2)
+   integer :: ni, i
+ 
+   detCmp = 0
+   do i=1,2
+   do ni=Nint,1,-1
+   
+     if(a(ni,i) < b(ni,i)) then
+       detCmp = -1
+       return
+     else if(a(ni,i) > b(ni,i)) then
+       detCmp = 1
+       return
+     end if
+     
+   end do
+   end do
+end function
+
+
+integer function searchDet(dets, det, n, Nint)
+  implicit none
+  use bitmasks
+  
+  integer(bit_kind),intent(in) :: dets(Nint,2,n), det(Nint,2)
+  integer, intent(in) :: nint, n
+  integer :: l, h, c
+  integer, external :: detCmp
+  
+  l = 1
+  h = n
+  do while(.true.)
+    searchDet = (l+h)/2
+    c = detCmp(dets(1,1,searchDet), det(:,:), Nint)
+    if(c == 0) return
+    if(c == 1) then
+      h = searchDet-1
+    else
+      l = searchDet+1
+    end if
+    if(l > h) then
+      searchDet = -1
+      return
+    end if
+    
+  end do
+end function
+
+
+subroutine sort_det(key, idx, N_key, Nint)
+  implicit none
+  
+
+  integer, intent(in)                   :: Nint, N_key
+  integer(8),intent(inout)       :: key(Nint,2,N_key)
+  integer,intent(out)                   :: idx(N_key)
+  integer(8)                     :: tmp(Nint, 2)
+  integer                               :: tmpidx,i,ni
+  
+  do i=1,N_key
+    idx(i) = i
+  end do
+  
+  do i=N_key/2,1,-1
+    call tamiser(key, idx, i, N_key, Nint, N_key)
+  end do
+  
+  do i=N_key,2,-1
+    do ni=1,Nint
+      tmp(ni,1) = key(ni,1,i)
+      tmp(ni,2) = key(ni,2,i)
+      key(ni,1,i) = key(ni,1,1)
+      key(ni,2,i) = key(ni,2,1)
+      key(ni,1,1) = tmp(ni,1)
+      key(ni,2,1) = tmp(ni,2)
+    enddo
+
+    tmpidx = idx(i)
+    idx(i) = idx(1)
+    idx(1) = tmpidx
+    call tamiser(key, idx, 1, i-1, Nint, N_key)
+  end do
+end subroutine 
 
 
 
@@ -174,21 +308,24 @@ end function
   implicit none
   
   integer                         :: i_state, i, i_I, J, k, degree, degree2, m, l, deg, ni
-  integer                         :: p1,p2,h1,h2,s1,s2, p1_,p2_,h1_,h2_,s1_,s2_
+  integer                         :: p1,p2,h1,h2,s1,s2, p1_,p2_,h1_,h2_,s1_,s2_, sortRefIdx(N_det_ref)
   logical                         :: ok
   double precision                :: phase_iI, phase_Ik, phase_Jl, phase_IJ, phase_al, diI, hIi, hJi, delta_JI, dkI(1), HkI, ci_inv(1), dia_hla(1)
   double precision                :: contrib, HIIi, HJk
   integer, dimension(0:2,2,2)     :: exc_iI, exc_Ik, exc_IJ
-  integer(bit_kind)               :: det_tmp(N_int, 2), made_hole(N_int,2), made_particle(N_int,2), myActive(N_int,2)
+  integer(bit_kind)               :: det_tmp(N_int, 2), made_hole(N_int,2), made_particle(N_int,2), myActive(N_int,2), sortRef(N_int,2,N_det_ref)
   integer, allocatable            :: idx_sorted_bit(:)
-  integer, external               :: get_index_in_psi_det_sorted_bit
-  logical, external               :: is_in_wavefunction
+  integer, external               :: get_index_in_psi_det_sorted_bit, searchDet
+  logical, external               :: is_in_wavefunction, detEq
   
   integer :: II, blok
   
   provide det_cepa0_active delta_cas lambda_mrcc
   provide mo_bielec_integrals_in_map
   allocate(idx_sorted_bit(N_det))
+  
+  sortRef = det_ref_active(:,:,:N_det_ref)
+  call sort_det(sortRef, sortRefIdx, N_det_ref, N_int)
   
   idx_sorted_bit(:) = -1
   do i=1,N_det_non_ref
@@ -201,10 +338,10 @@ end function
     delta_mrcepa0_ij(:,:,:) = 0d0
 
     !$OMP PARALLEL DO default(none) schedule(dynamic) shared(delta_mrcepa0_ij, delta_mrcepa0_ii)       &
-    !$OMP private(i,II,J,k,degree,myActive,made_hole,made_particle,hjk,contrib)       &
+    !$OMP private(m,i,II,J,k,degree,myActive,made_hole,made_particle,hjk,contrib)       &
     !$OMP shared(active_sorb, psi_non_ref, psi_non_ref_coef, psi_ref, psi_ref_coef, cepa0_shortcut, det_cepa0_active)     &
     !$OMP shared(N_det_ref, N_det_non_ref,N_int,det_cepa0_idx,lambda_mrcc,det_ref_active, delta_cas) &
-    !$OMP shared(i_state)
+    !$OMP shared(i_state, sortRef, sortRefIdx)
     do blok=1,cepa0_shortcut(0)
     do i=cepa0_shortcut(blok), cepa0_shortcut(blok+1)-1
       do II=1,N_det_ref
@@ -214,13 +351,13 @@ end function
         do ni=1,N_int
           made_hole(ni,1) = iand(det_ref_active(ni,1,II), xor(det_cepa0_active(ni,1,i), det_ref_active(ni,1,II)))
           made_hole(ni,2) = iand(det_ref_active(ni,2,II), xor(det_cepa0_active(ni,2,i), det_ref_active(ni,2,II)))
-          !made_particle = iand(det_cepa0_active(i),  xor(det_cepa0_active(i), det_ref_active(II)))
+          
           made_particle(ni,1) = iand(det_cepa0_active(ni,1,i), xor(det_cepa0_active(ni,1,i), det_ref_active(ni,1,II)))
           made_particle(ni,2) = iand(det_cepa0_active(ni,2,i), xor(det_cepa0_active(ni,2,i), det_ref_active(ni,2,II)))
         end do
       
         
-  kloop: do k=cepa0_shortcut(blok), i ! cepa0_shortcut(blok+1)-1
+  kloop: do k=cepa0_shortcut(blok), i
           if(lambda_mrcc(i_state, det_cepa0_idx(k)) == 0d0) cycle
           
           do ni=1,N_int
@@ -236,23 +373,20 @@ end function
             myActive(ni,2) = xor(myActive(ni,2), made_particle(ni,2))
           end do
           
-  jloop:  do J=1,N_det_ref
-            do ni=1,N_int !!! replace with sort+search
-              if(det_ref_active(ni,1,J) /= myActive(ni,1)) cycle jloop
-              if(det_ref_active(ni,2,J) /= myActive(ni,2)) cycle jloop
-            end do
-            call i_h_j(psi_non_ref(1,1,det_cepa0_idx(k)),psi_ref(1,1,J),N_int,HJk)
-            contrib = delta_cas(II, J, i_state) * HJk * lambda_mrcc(i_state, det_cepa0_idx(k))
+          j = searchDet(sortRef, myActive, N_det_ref, N_int)
+          if(j == -1) cycle
+          j = sortRefIdx(j)
+
+          call i_h_j(psi_non_ref(1,1,det_cepa0_idx(k)),psi_ref(1,1,J),N_int,HJk)
+          contrib = delta_cas(II, J, i_state) * HJk * lambda_mrcc(i_state, det_cepa0_idx(k))
+          !$OMP ATOMIC
+          delta_mrcepa0_ij(J, det_cepa0_idx(i), i_state) += contrib
+          
+          if(dabs(psi_ref_coef(J,i_state)).ge.5.d-5) then
             !$OMP ATOMIC
-            delta_mrcepa0_ij(J, det_cepa0_idx(i), i_state) += contrib
-            
-            if(dabs(psi_ref_coef(J,i_state)).ge.5.d-5) then
-              !$OMP ATOMIC
-              delta_mrcepa0_ii(J,i_state) -= contrib / psi_ref_coef(J, i_state) * psi_non_ref_coef(det_cepa0_idx(k),i_state)
-            end if
-            
-            exit
-          end do jloop
+            delta_mrcepa0_ii(J,i_state) -= contrib / psi_ref_coef(J, i_state) * psi_non_ref_coef(det_cepa0_idx(k),i_state)
+          end if
+
         end do kloop
       end do
     end do
@@ -310,8 +444,7 @@ END_PROVIDER
         
         do II=1,N_det_ref
           call apply_excitation(psi_ref(1,1,II),exc_Ji,det_tmp,ok,N_int)
-          !call get_excitation(psi_ref(1,1,II),psi_non_ref(1,1,i),exc_Ii,degree,phase_Ii,N_int)
-          
+
           if(.not. ok) cycle
           l = get_index_in_psi_det_sorted_bit(det_tmp, N_int)
           if(l == 0) cycle
@@ -386,7 +519,7 @@ implicit none
   double precision                :: phase_iI, phase_Ik, phase_Jl, phase_IJ, phase_al, diI, hIi, hJi, delta_JI, dkI(N_states), HkI, ci_inv(N_states), dia_hla(N_states)
   double precision                :: contrib
   integer, dimension(0:2,2,2)     :: exc_iI, exc_Ik, exc_IJ
-  integer(bit_kind)               :: det_tmp(N_int, 2), det_tmp2(N_int, 2)
+  integer(bit_kind)               :: det_tmp(N_int, 2), det_tmp2(N_int, 2), inac, virt
   integer, allocatable :: idx_sorted_bit(:)
   integer, external               :: get_index_in_psi_det_sorted_bit
   logical, external               :: is_in_wavefunction
@@ -408,7 +541,7 @@ implicit none
     delta_ij_old(:,:,:) = 0 
     
     !$OMP PARALLEL DO default(none) schedule(dynamic,10) shared(delta_ij_old, delta_ii_old)       &
-    !$OMP private(i, J, k, degree, degree2, l, deg, ni)       &
+    !$OMP private(i, J, k, degree, degree2, l, deg, ni, inac, virt)       &
     !$OMP private(ok,p1,p2,h1,h2,s1,s2, p1_,p2_,h1_,h2_,s1_,s2_)     &
     !$OMP private(phase_iI, phase_Ik, phase_Jl, phase_IJ, phase_al, diI, hIi, hJi, delta_JI, dkI, HkI, ci_inv, dia_hla) &
     !$OMP private(contrib, exc_iI, exc_Ik, exc_IJ, det_tmp, det_tmp2)    &
@@ -429,6 +562,7 @@ implicit none
         do J = 1 , i_I ! N_det_ref !!! 
           call get_excitation(psi_ref(1,1,i_I),psi_ref(1,1,J),exc_IJ,degree,phase_IJ,N_int)
           call i_h_j(psi_non_ref(1,1,i), psi_ref(1,1,J),N_int,hJi)
+          if(hJi == 0) cycle
           delta_JI = hJi * diI 
           do k = 1 , N_det_non_ref
             if(lambda_mrcc(i_state, k) == 0d0) cycle
@@ -442,28 +576,33 @@ implicit none
             det_tmp(:,:) = 0_bit_kind
             det_tmp2(:,:) = 0_bit_kind
             
-            ok = .true.
-            do ni=1,N_int
-              det_tmp(ni,1) = iand(xor(HF_bitmask(ni,1), psi_non_ref(ni,1,k)), not(active_sorb(ni,1)))
-              det_tmp(ni,2) = iand(xor(HF_bitmask(ni,1), psi_non_ref(ni,1,i)), not(active_sorb(ni,1)))
-              ok = ok .and. (popcnt(det_tmp(ni,1)) + popcnt(det_tmp(ni,2)) == popcnt(xor(det_tmp(ni,1), det_tmp(ni,2))))
-              
-              det_tmp(ni,1) = iand(xor(HF_bitmask(ni,2), psi_non_ref(ni,2,k)), not(active_sorb(ni,2)))
-              det_tmp(ni,2) = iand(xor(HF_bitmask(ni,2), psi_non_ref(ni,2,i)), not(active_sorb(ni,2)))
-              ok = ok .and. (popcnt(det_tmp(ni,1)) + popcnt(det_tmp(ni,2)) == popcnt(xor(det_tmp(ni,1), det_tmp(ni,2))))
-            end do
-            
-            if(.not. ok) cycle
-            
             
       
             call apply_excitation(psi_non_ref(1,1,i),exc_Ik,det_tmp,ok,N_int)
-      
-            call get_excitation(psi_non_ref(1,1,i), det_tmp, exc_Ik, degree, phase_al, N_int)
+            
+            
+            if(.not. ok) cycle
+            !if(is_in_wavefunction(det_tmp, N_int)) cycle
+            inac = iand(HF_bitmask(1,1), not(active_sorb(1,1)))
+            virt = iand(not(HF_bitmask(1,1)), not(active_sorb(1,1)))
+
+            deg = 0
+            deg += popcnt(xor(iand(inac,det_tmp(1,1)), inac))
+            deg += popcnt(xor(iand(inac,det_tmp(1,2)), inac))
+            if(deg <= 2) then
+              deg = 0
+              deg += popcnt(iand(virt, det_tmp(1,1)))
+              deg += popcnt(iand(virt, det_tmp(1,2)))
+              if(deg <= 2) then
+                cycle
+              end if
+            end if
+
+            
+            !call get_excitation(psi_non_ref(1,1,i), det_tmp, exc_Ik, degree, phase_al, N_int)
 
       
-            if(.not. ok) cycle
-            if(is_in_wavefunction(det_tmp, N_int)) cycle
+            !if(is_in_wavefunction(det_tmp, N_int)) cycle
       
 
             call apply_excitation(psi_ref(1,1,J),exc_Ik,det_tmp,ok,N_int)
@@ -473,14 +612,14 @@ implicit none
       
             l = get_index_in_psi_det_sorted_bit(det_tmp, N_int)
             if(l == 0) cycle
-            l = idx_sorted_bit(get_index_in_psi_det_sorted_bit(det_tmp, N_int))
+            l = idx_sorted_bit(l)
             if(l ==-1) cycle
             
             
 
             call i_h_j(psi_non_ref(1,1,k), psi_ref(1,1,i_I),N_int,HkI)
-            dkI(i_state) = HkI * lambda_mrcc(i_state, k) * phase_Jl * phase_Ik
-                    
+            dkI(i_state) = HkI * lambda_mrcc(i_state, k)! * phase_Jl * phase_Ik
+            !if( phase_Jl * phase_Ik < 0d0 ) stop "STOOOOOOP"
             contrib = dkI(i_state) * delta_JI
             !$OMP ATOMIC  
             delta_ij_old(i_I,l,i_state) += contrib
@@ -497,8 +636,6 @@ implicit none
   end do
   deallocate(idx_sorted_bit)
 END_PROVIDER
-
-
 
 
 
