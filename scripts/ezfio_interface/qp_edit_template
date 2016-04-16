@@ -180,6 +180,7 @@ let run check_only ezfio_filename =
     | None -> "vi"
   in
 
+  Libint.write_files (!Ezfio.ezfio_filename);
   match check_only with
   | true  -> ()
   | false -> 
@@ -193,7 +194,6 @@ let run check_only ezfio_filename =
       In_channel.input_all in_channel) 
   in
   List.iter ~f:(fun x -> set temp_string x) tasks;
-  Libint.write_files (!Ezfio.ezfio_filename);
 
   (* Remove temp_file *)
   Sys.remove temp_filename

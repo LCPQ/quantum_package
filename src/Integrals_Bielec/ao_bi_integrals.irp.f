@@ -375,29 +375,136 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
   character*(32) :: task
 
-  call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
+  if (.not.has_libint) then
 
-  do l=1,ao_num
-    write(task,*) l
-    call add_task_to_taskserver(zmq_to_qp_run_socket,task)
-  enddo
+    call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
 
-  integer(ZMQ_PTR)               :: collector_thread
-  external                       :: ao_bielec_integrals_in_map_collector
-  rc = pthread_create(collector_thread, ao_bielec_integrals_in_map_collector)
+    do l=1,ao_num
+      write(task,*) l
+      call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+    enddo
 
-  !$OMP PARALLEL DEFAULT(private) 
-    !$OMP TASK PRIVATE(i) 
-      i = omp_get_thread_num()
-      call ao_bielec_integrals_in_map_slave_inproc(i)
-    !$OMP END TASK
-    !$OMP TASKWAIT
-  !$OMP END PARALLEL
+    integer(ZMQ_PTR)               :: collector_thread
+    external                       :: ao_bielec_integrals_in_map_collector
+    rc = pthread_create(collector_thread, ao_bielec_integrals_in_map_collector)
 
-  rc = pthread_join(collector_thread)
+    !$OMP PARALLEL DEFAULT(private) 
+      !$OMP TASK PRIVATE(i) 
+        i = omp_get_thread_num()
+        call ao_bielec_integrals_in_map_slave_inproc(i)
+      !$OMP END TASK
+      !$OMP TASKWAIT
+    !$OMP END PARALLEL
 
-  call end_parallel_job(zmq_to_qp_run_socket, 'ao_integrals')
+    rc = pthread_join(collector_thread)
 
+    call end_parallel_job(zmq_to_qp_run_socket, 'ao_integrals')
+
+  else
+
+   double precision, allocatable :: buffer_int(:)
+
+   PROVIDE has_libint
+
+   integer :: s1, s2,s3,s4
+   integer :: bf1,bf2,bf3,bf4
+   integer :: bf1_begin,bf2_begin,bf3_begin,bf4_begin
+   integer :: bf1_end,bf2_end,bf3_end,bf4_end
+   integer :: n1,n2,n3,n4
+   integer :: f1,f2,f3,f4,f1234
+
+   ! =================== !
+   ! Loop over the shell !
+   ! =================== !
+
+   do s1 = 1, shell_num
+
+      print*, s1, "/", shell_num
+
+      bf1_begin = shell_idx(1,s1)
+      bf1_end = shell_idx(2,s1)
+      n1 = 1 + bf1_end - bf1_begin
+   
+      do s2 = 1, shell_num
+   
+         bf2_begin = shell_idx(1,s2)
+         bf2_end = shell_idx(2,s2)
+         n2 = 1 + bf2_end - bf2_begin
+   
+         do s3 = 1, shell_num
+     
+            bf3_begin = shell_idx(1,s3)
+            bf3_end = shell_idx(2,s3)
+            n3 = 1 + bf3_end - bf3_begin
+   
+            do s4 = 1, shell_num
+   
+               bf4_begin = shell_idx(1,s4)
+               bf4_end = shell_idx(2,s4)     
+               n4 = 1 + bf4_end - bf4_begin
+   
+               ! ========================== !
+               ! Compute the shell integral !
+               ! ========================== !
+               integer :: sze
+               sze = n1*n2*n3*n4
+               allocate(buffer_int(sze))
+               allocate(buffer_i(sze))
+               allocate(buffer_value(sze))
+               call compute_ao_bielec_integrals_shell(s1,s2,s3,s4,sze,buffer_int)
+   
+               ! ============================ !
+               ! Loop over the basis function !
+               ! ============================ !
+   
+               do bf1 = bf1_begin, bf1_end
+                  do bf2 = bf2_begin, bf2_end
+                     do bf3 = bf3_begin, bf3_end
+                        do bf4 = bf4_begin, bf4_end
+   
+                           f1 = bf1 - bf1_begin
+                           f2 = bf2 - bf2_begin
+                           f3 = bf3 - bf3_begin
+                           f4 = bf4 - bf4_begin
+
+!                           if (bf1 > bf3) cycle
+!                           if (bf2 > bf4) cycle
+!                           if (bf1 > bf2) cycle
+                           
+                           !Get the integral from the buffer
+                           f1234 = f1*n2*n3*n4+f2*n3*n4+f3*n4+f4 + 1;
+                           
+                           !Compute the norm
+                           double precision:: coef1, coef2, coef3, coef4, norm
+
+                           coef1 = ao_coef_normalization_libint_factor(bf1)
+                           coef2 = ao_coef_normalization_libint_factor(bf2) 
+                           coef3 = ao_coef_normalization_libint_factor(bf3) 
+                           coef4 = ao_coef_normalization_libint_factor(bf4)
+
+                           norm = coef1*coef2*coef3*coef4
+   
+                           n_integrals += 1
+                           buffer_value(n_integrals) = buffer_int(f1234) * norm
+                           call bielec_integrals_index(bf1,bf2,bf3,bf4,buffer_i(n_integrals))
+                           
+                         enddo
+                     enddo
+                  enddo
+               enddo
+           
+               !Deallocate the buffer_intergral for the shell
+               deallocate(buffer_int, buffer_i, buffer_value)
+               if (n_integrals >= 0) then
+                  call insert_into_ao_integrals_map(n_integrals,buffer_i,buffer_value)
+               endif
+
+            enddo
+         enddo
+      enddo
+   enddo
+
+  endif
 
   print*, 'Sorting the map'
   call map_sort(ao_integrals_map)
