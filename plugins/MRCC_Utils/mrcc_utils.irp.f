@@ -16,7 +16,7 @@
   lambda_mrcc_pt2(0) = 0
 
     do i=1,N_det_non_ref
-      call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef_normalized, N_int, N_det_ref,&
+      call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,&
           size(psi_ref_coef,1), N_states,ihpsi_current)
       call i_H_j(psi_non_ref(1,1,i),psi_non_ref(1,1,i),N_int,hii)
       do k=1,N_states

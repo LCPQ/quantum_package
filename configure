@@ -46,7 +46,12 @@ if len(sys.argv) != 3:
 # \_| |_ (_) |_) (_| |   | | | | (_)
 #
 
-QP_ROOT = os.getcwd()
+try:
+  QP_ROOT = os.environ["QP_ROOT"]
+except KeyError:
+  QP_ROOT = os.getcwd()
+  os.environ["QP_ROOT"] = QP_ROOT
+
 QP_ROOT_BIN = join(QP_ROOT, "bin")
 QP_ROOT_LIB = join(QP_ROOT, "lib")
 QP_ROOT_INSTALL = join(QP_ROOT, "install")
