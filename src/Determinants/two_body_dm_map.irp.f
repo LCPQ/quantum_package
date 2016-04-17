@@ -268,8 +268,6 @@ BEGIN_PROVIDER [double precision, two_body_dm_ab_big_array, (n_act_orb,n_act_orb
  enddo
  print*,'Big array for density matrix provided !'
 
-
-
 END_PROVIDER 
 
 subroutine insert_into_two_body_dm_big_array(big_array,dim1,dim2,dim3,dim4,contrib,h1,p1,h2,p2)
@@ -290,4 +288,31 @@ subroutine insert_into_two_body_dm_big_array(big_array,dim1,dim2,dim3,dim4,contr
 !big_array(p2,h2,p1,h1) += 1.d0 * contrib  
 !endif
  
+end
+
+double precision function compute_two_body_dm_ab(r1,r2)
+ implicit none
+ double precision :: r1(3),r2(3)
+ integer :: i,j,k,l
+ double precision :: mos_array_r1(mo_tot_num),mos_array_r2(mo_tot_num)
+ double precision :: contrib
+ compute_two_body_dm_ab = 0.d0
+ call give_all_mos_at_r(r1,mos_array_r1)
+ call give_all_mos_at_r(r2,mos_array_r2)
+ do l = 1, n_act_orb  ! p2 
+  contrib = mos_array_r2(l)
+  if(dabs(contrib).lt.1.d-6)cycle
+  do k = 1, n_act_orb  ! h2 
+    contrib *= mos_array_r2(k)
+   if(dabs(contrib).lt.1.d-6)cycle
+   do j = 1, n_act_orb  ! p1 
+    contrib *= mos_array_r1(j)
+    if(dabs(contrib).lt.1.d-6)cycle
+    do i = 1,n_act_orb   ! h1 
+     compute_two_body_dm_ab += two_body_dm_ab_big_array(i,j,k,l) * mos_array_r1(i) * contrib
+    enddo
+   enddo
+  enddo
+ enddo
+
 end
