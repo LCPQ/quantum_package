@@ -8,7 +8,8 @@ program qp_ao_ints
 
   call switch_qp_run_to_master
 
-  PROVIDE zmq_context
+  zmq_context = f77_zmq_ctx_new ()
+
   ! Set the state of the ZMQ
   zmq_state = 'ao_integrals'
 
