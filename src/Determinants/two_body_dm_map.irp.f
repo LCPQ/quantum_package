@@ -242,7 +242,24 @@ BEGIN_PROVIDER [double precision, two_body_dm_ab_big_array, (n_act_orb,n_act_orb
    if(degree>2)cycle
    call get_excitation(psi_det(1,1,i),psi_det(1,1,j),exc,degree,phase,N_int)
    call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+!  if(i==3.or.j==3)then
+!   print*,'i,j = ',i,j
+!   call debug_det(psi_det(1,1,i),N_int)
+!   call debug_det(psi_det(1,1,j),N_int)
+!   print*,degree,s1,s2
+!   print*,h1,p1,h2,p2
+!   print*,phase
+!   pause
+!  endif
    contrib = 0.5d0 * psi_coef(i,1) * psi_coef(j,1) * phase
+!   print*,'coucou'
+!   print*,'i,j = ',i,j
+!   print*,'contrib = ',contrib
+!   print*,h1,p1,h2,p2
+!   print*,'s1,s2',s1,s2
+!   call debug_det(psi_det(1,1,i),N_int)
+!   call debug_det(psi_det(1,1,j),N_int)
+!   pause
    if(degree==2)then  ! case of the DOUBLE EXCITATIONS  ************************************
     if(s1==s2)cycle  ! Only the alpha/beta two body density matrix
     ! <J| a^{\dagger}_{p1 s1} a^{\dagger}_{p2 s2} a_{h2 s2} a_{h1 s1} |I> * c_I * c_J
@@ -288,7 +305,7 @@ end
 
 double precision function compute_extra_diag_two_body_dm_ab(r1,r2)
  implicit none
- double precision :: r1(3),r2(3)
+ double precision, intent(in) :: r1(3),r2(3)
  integer :: i,j,k,l
  double precision :: mos_array_r1(mo_tot_num),mos_array_r2(mo_tot_num)
  double precision :: contrib
@@ -298,16 +315,16 @@ double precision function compute_extra_diag_two_body_dm_ab(r1,r2)
  call give_all_act_mos_at_r(r1,mos_array_r1)
  call give_all_act_mos_at_r(r2,mos_array_r2)
  do l = 1, n_act_orb  ! p2 
-  contrib = mos_array_r2(l)
-! if(dabs(contrib).lt.threshld_two_bod_dm)cycle
   do k = 1, n_act_orb  ! h2 
-!  contrib *= mos_array_r2(k)
-!  if(dabs(contrib*mos_array_r2(k)).lt.threshld_two_bod_dm)cycle
    do j = 1, n_act_orb  ! p1 
-!   contrib *= mos_array_r1(j)
-!   if(dabs(contrib).lt.threshld_two_bod_dm)cycle
     do i = 1,n_act_orb   ! h1 
      double precision :: contrib_tmp
+!    print*,'i,j',i,j
+!    print*,mos_array_r1(i) , mos_array_r1(j)
+!    print*,'k,l',k,l
+!    print*,mos_array_r2(k) * mos_array_r2(l)
+!    print*,'gama = ',two_body_dm_ab_big_array(i,j,k,l)
+!    pause
      contrib_tmp = mos_array_r1(i) * mos_array_r1(j) * mos_array_r2(k) * mos_array_r2(l)
      compute_extra_diag_two_body_dm_ab += two_body_dm_ab_big_array(i,j,k,l) * contrib_tmp
     enddo
