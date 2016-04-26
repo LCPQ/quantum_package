@@ -37,6 +37,19 @@ use bitmasks
       stop "invalid mrmode"
     end if
   end do
+  do i=1,N_det_ref
+    print *, delta_ii(1,i)
+  end do
+  do i=1,N_det_non_ref
+    print *, delta_ij(1,i,:)
+  end do
+!   stop
+  
+!      5.7717252361566333E-005
+!   -1.4525812360153183E-005
+!   -3.3282906594800186E-005
+!   -1.3864228814283882E-004
+
 END_PROVIDER
 
 
@@ -52,7 +65,7 @@ END_PROVIDER
   implicit none
   
   integer(bit_kind) :: det_noactive(N_int, 2, N_det_non_ref), nonactive_sorb(N_int,2), det(N_int, 2)
-  integer i, II, j, k, ni
+  integer i, II, j, k, n, ni, idx(N_det_non_ref), shortcut(0:N_det_non_ref+1)
   logical, external :: detEq
   
   active_sorb(:,:) = 0_8
@@ -82,30 +95,13 @@ END_PROVIDER
   
   call sort_dets_ab(det_noactive, det_cepa0_idx, cepa0_shortcut, N_det_non_ref, N_int)
   
-  do i=1,N_det_ref
-  do k=1, N_int
-    det_ref_active(k,1,i) = iand(psi_ref(k,1,i), active_sorb(k,1))
-    det_ref_active(k,2,i) = iand(psi_ref(k,2,i), active_sorb(k,2))
-    !det_ref_active(i) = det_ref_active(i) + iand(psi_ref(1,2,i), active_sorb(2)) * 2_8**32_8
-  end do
-  end do
-
-  cepa0_shortcut(0) = 1
-  cepa0_shortcut(1) = 1
-  do k=1, N_int
-    det_cepa0_active(k,1,1) = iand(psi_non_ref(k,1,det_cepa0_idx(1)), active_sorb(k,1))
-    det_cepa0_active(k,2,1) = iand(psi_non_ref(k,2,det_cepa0_idx(1)), active_sorb(k,2))
-    !det_cepa0_active(1) = det_cepa0_active(1) + iand(psi_non_ref(1,2,det_cepa0_idx(1)), active_sorb(2)) * 2_8**32_8
+  do i=1,N_det_non_ref
+    det_cepa0(:,:,i) = psi_non_ref(:,:,det_cepa0_idx(i))
   end do
   
+  cepa0_shortcut(0) = 1
+  cepa0_shortcut(1) = 1
   do i=2,N_det_non_ref
-    do k=1, N_int
-      det_cepa0_active(k,1,i) = iand(psi_non_ref(k,1,det_cepa0_idx(i)), active_sorb(k,1))
-      det_cepa0_active(k,2,i) = iand(psi_non_ref(k,2,det_cepa0_idx(i)), active_sorb(k,2))
-    end do
-!     det_cepa0_active(i) = iand(psi_non_ref(1,1,det_cepa0_idx(i)), active_sorb(1))
-!     det_cepa0_active(i) = det_cepa0_active(i) + iand(psi_non_ref(1,2,det_cepa0_idx(i)), active_sorb(2)) * 2_8**32_8
-    
     if(.not. detEq(det_noactive(1,1,i), det_noactive(1,1,i-1), N_int)) then
       cepa0_shortcut(0) += 1
       cepa0_shortcut(cepa0_shortcut(0)) = i
@@ -113,10 +109,35 @@ END_PROVIDER
   end do
   cepa0_shortcut(cepa0_shortcut(0)+1) = N_det_non_ref+1
   
-  do i=1,N_det_non_ref
-    det_cepa0(:,:,i) = psi_non_ref(:,:,det_cepa0_idx(i))
+  if(.true.) then 
+  do i=1,cepa0_shortcut(0)
+    n = cepa0_shortcut(i+1) - cepa0_shortcut(i)
+    call sort_dets_ab(det_cepa0(1,1,cepa0_shortcut(i)), idx, shortcut, n, N_int)
+    do k=1,n
+      idx(k) = det_cepa0_idx(cepa0_shortcut(i)-1+idx(k))
+    end do
+    det_cepa0_idx(cepa0_shortcut(i):cepa0_shortcut(i)+n-1) = idx(:n)
+  end do
+  end if
+  
+  
+  do i=1,N_det_ref
+  do k=1, N_int
+    det_ref_active(k,1,i) = iand(psi_ref(k,1,i), active_sorb(k,1))
+    det_ref_active(k,2,i) = iand(psi_ref(k,2,i), active_sorb(k,2))
+  end do
   end do
   
+  do i=1,N_det_non_ref
+  do k=1, N_int
+    det_cepa0_active(k,1,i) = iand(psi_non_ref(k,1,det_cepa0_idx(i)), active_sorb(k,1))
+    det_cepa0_active(k,2,i) = iand(psi_non_ref(k,2,det_cepa0_idx(i)), active_sorb(k,2))
+  end do
+  end do
+
+  do i=1,N_det_non_ref
+    if(.not. detEq(psi_non_ref(1,1,det_cepa0_idx(i)), det_cepa0(1,1,i),N_int)) stop "STOOOP"
+  end do
   print *, "pre done"
 END_PROVIDER
 
@@ -199,7 +220,7 @@ END_PROVIDER
       npre += npres(i)
     end do
     print *, npre
-    stop
+    !stop
     do i=1,N_det_ref
     do j=1,i
         delta_cas(j,i,i_state) = delta_cas(i,j,i_state)
@@ -294,7 +315,18 @@ integer function searchDet(dets, det, n, Nint)
   integer, intent(in) :: nint, n
   integer :: l, h, c
   integer, external :: detCmp
-  
+  logical, external :: detEq
+
+  !do l=1,n
+  !  if(detEq(det(1,1), dets(1,1,l),Nint)) then
+  !    searchDet = l
+  !    return
+  !  end if
+  !end do
+  !searchDet = -1
+  !return
+
+
   l = 1
   h = n
   do while(.true.)
@@ -369,14 +401,15 @@ end subroutine
   logical, external               :: is_in_wavefunction, detEq
   
   integer :: II, blok
-  
+  integer*8, save :: notf = 0
+
   call wall_time(wall)
   print *, "cepa0", wall
   provide det_cepa0_active delta_cas lambda_mrcc
   provide mo_bielec_integrals_in_map
   allocate(idx_sorted_bit(N_det))
   
-  sortRef = det_ref_active(:,:,:N_det_ref)
+  sortRef(:,:,:) = det_ref_active(:,:,:)
   call sort_det(sortRef, sortRefIdx, N_det_ref, N_int)
   
   idx_sorted_bit(:) = -1
@@ -393,7 +426,7 @@ end subroutine
     !$OMP private(m,i,II,J,k,degree,myActive,made_hole,made_particle,hjk,contrib)       &
     !$OMP shared(active_sorb, psi_non_ref, psi_non_ref_coef, psi_ref, psi_ref_coef, cepa0_shortcut, det_cepa0_active)     &
     !$OMP shared(N_det_ref, N_det_non_ref,N_int,det_cepa0_idx,lambda_mrcc,det_ref_active, delta_cas) &
-    !$OMP shared(i_state, sortRef, sortRefIdx)
+    !$OMP shared(notf,i_state, sortRef, sortRefIdx)
     do blok=1,cepa0_shortcut(0)
     do i=cepa0_shortcut(blok), cepa0_shortcut(blok+1)-1
       do II=1,N_det_ref
@@ -409,7 +442,7 @@ end subroutine
         end do
       
         
-  kloop: do k=cepa0_shortcut(blok), i
+  kloop: do k=cepa0_shortcut(blok), cepa0_shortcut(blok+1)-1 !i
           if(lambda_mrcc(i_state, det_cepa0_idx(k)) == 0d0) cycle
           
           do ni=1,N_int
@@ -426,9 +459,17 @@ end subroutine
           end do
           
           j = searchDet(sortRef, myActive, N_det_ref, N_int)
-          if(j == -1) cycle
+          if(j == -1) then
+           cycle
+          end if
           j = sortRefIdx(j)
-
+          !$OMP ATOMIC
+          notf = notf+1
+          !if(i/=k .and. dabs(psi_non_ref_coef(det_cepa0_idx(i),i_state)) < dabs(psi_non_ref_coef(det_cepa0_idx(k),i_state))) cycle
+!           if(dabs(lambda_mrcc(i_state,det_cepa0_idx(i))) > dabs(lambda_mrcc(i_state,det_cepa0_idx(k)))) cycle
+!           if(dabs(lambda_mrcc(i_state,det_cepa0_idx(i))) == dabs(lambda_mrcc(i_state,det_cepa0_idx(k))) .and. i < k) cycle
+          !if(.not. j==II .and. dabs(psi_ref_coef(II,i_state)) < dabs(psi_ref_coef(j,i_state))) cycle
+          
           call i_h_j(psi_non_ref(1,1,det_cepa0_idx(k)),psi_ref(1,1,J),N_int,HJk)
           contrib = delta_cas(II, J, i_state) * HJk * lambda_mrcc(i_state, det_cepa0_idx(k))
           !$OMP ATOMIC
@@ -436,7 +477,7 @@ end subroutine
           
           if(dabs(psi_ref_coef(J,i_state)).ge.5.d-5) then
             !$OMP ATOMIC
-            delta_mrcepa0_ii(J,i_state) -= contrib / psi_ref_coef(J, i_state) * psi_non_ref_coef(det_cepa0_idx(k),i_state)
+            delta_mrcepa0_ii(J,i_state) -= contrib / psi_ref_coef(J, i_state) * psi_non_ref_coef(det_cepa0_idx(i),i_state)
           end if
 
         end do kloop
@@ -447,8 +488,8 @@ end subroutine
   end do
   deallocate(idx_sorted_bit)
   call wall_time(wall)
-  print *, "cepa0", wall
-  stop
+  print *, "cepa0", wall, notf
+  !stop
 END_PROVIDER
 
 
@@ -564,21 +605,31 @@ subroutine set_det_bit(det, p, s)
 end subroutine
 
 
+BEGIN_PROVIDER [ double precision, h_, (N_det_ref,N_det_non_ref) ]
+  integer :: i,j
+  do i=1,N_det_ref
+  do j=1,N_det_non_ref
+    call i_h_j(psi_ref(1,1,i), psi_non_ref(1,1,j), N_int, h_(i,j))
+  end do
+  end do
+END_PROVIDER
+
+
  BEGIN_PROVIDER [ double precision, delta_ij_old, (N_det_ref,N_det_non_ref,N_states) ]
 &BEGIN_PROVIDER [ double precision, delta_ii_old, (N_det_ref,N_states) ]
   implicit none
   
   integer                         :: i_state, i, i_I, J, k, kk, degree, degree2, m, l, deg, ni
-  integer                         :: p1,p2,h1,h2,s1,s2, blok
+  integer                         :: p1,p2,h1,h2,s1,s2, blok, I_s, J_s
   integer, allocatable            :: linked(:,:), blokMwen(:, :), nlink(:)
   logical                         :: ok
-  double precision                :: phase_iI, phase_Ik, phase_Jl, phase_IJ, phase_al, diI, hIi, hJi, delta_JI, dkI(N_states), HkI, ci_inv(N_states), dia_hla(N_states)
+  double precision                :: phase_iI, phase_Ik, phase_Jl, phase_Ji, phase_al, diI, hIi, hJi, delta_JI, dkI(N_states), HkI, ci_inv(N_states), dia_hla(N_states)
   double precision                :: contrib, wall, iwall
   integer, dimension(0:2,2,2)     :: exc_iI, exc_Ik, exc_IJ
   integer(bit_kind)               :: det_tmp(N_int, 2), det_tmp2(N_int, 2), inac, virt
-  integer, allocatable :: idx_sorted_bit(:)
-  integer, external               :: get_index_in_psi_det_sorted_bit, searchDet
-  logical, external               :: is_in_wavefunction, isInCassd
+  integer, allocatable            :: idx_sorted_bit(:)
+  integer, external               :: get_index_in_psi_det_sorted_bit, searchDet, detCmp
+  logical, external               :: is_in_wavefunction, isInCassd, detEq
   
   
   call wall_time(iwall)
@@ -593,10 +644,10 @@ end subroutine
   
   do i_state = 1, N_states 
 
-    delta_ii_old(:,:) = 0 
-    delta_ij_old(:,:,:) = 0 
+    delta_ii_old(:,:) = 0d0
+    delta_ij_old(:,:,:) = 0d0
     
-    !$OMP PARALLEL DO default(none) schedule(dynamic) private(blok,k,degree) shared(linked,blokMwen,psi_ref, det_cepa0,cepa0_shortcut, N_int)
+    !$OMP PARALLEL DO default(none) schedule(dynamic) private(blok,k,degree) shared(nlink,linked,blokMwen,psi_ref, det_cepa0,cepa0_shortcut, N_det_ref, N_int)
     do J = 1, N_det_ref
       nlink(J) = 0
       do blok=1,cepa0_shortcut(0)
@@ -615,13 +666,13 @@ end subroutine
      
      
     !$OMP PARALLEL DO default(none) schedule(dynamic,10) shared(delta_ij_old, delta_ii_old)       &
-    !$OMP private(kk, i, J, k, degree, degree2, l, deg, ni, inac, virt)       &
-    !$OMP private(ok,p1,p2,h1,h2,s1,s2, blok, wall)     &
-    !$OMP private(phase_iI, phase_Ik, phase_Jl, phase_IJ, diI, hIi, hJi, delta_JI, dkI, HkI, ci_inv, dia_hla) &
+    !$OMP private(m,kk, i_I, i, J, k, degree, degree2, l, deg, ni, inac, virt)       &
+    !$OMP private(ok,p1,p2,h1,h2,s1,s2, blok, wall, I_s, J_s)     &
+    !$OMP private(phase_iI, phase_Ik, phase_Ji, phase_al, diI, hIi, hJi, delta_JI, dkI, HkI, ci_inv, dia_hla) &
     !$OMP private(contrib, exc_iI, exc_Ik, exc_IJ, det_tmp, det_tmp2)    &
     !$OMP shared(idx_sorted_bit, N_det_non_ref, N_det_ref, N_int, psi_non_ref, psi_non_ref_coef, psi_ref, psi_ref_coef)   &
     !$OMP shared(i_state, lambda_mrcc, hf_bitmask, active_sorb,cepa0_shortcut,det_cepa0) &
-    !$OMP shared(det_cepa0_idx, linked, blokMwen, nlink, iwall)
+    !$OMP shared(h_,det_cepa0_idx, linked, blokMwen, nlink, iwall)
     do i = 1 , N_det_non_ref
       if(mod(i,100) == 0) then
         call wall_time(wall)
@@ -632,28 +683,38 @@ end subroutine
       if(lambda_mrcc(i_state, i) == 0d0) cycle
         
         
-      do i_I = 1, N_det_ref
+      do I_s = 1, N_det_ref
+        do J_s = 1, N_det_ref
         
-        call get_excitation(psi_ref(1,1,i_I),psi_non_ref(1,1,i),exc_iI,degree2,phase_iI,N_int)
-        if(degree2 == -1) cycle
-        
-        
-        ci_inv(i_state) = 1.d0 / psi_ref_coef(i_I,i_state)
-
-      
-        call i_h_j(psi_non_ref(1,1,i), psi_ref(1,1,i_I),N_int,hIi)
-        diI = hIi * lambda_mrcc(i_state, i)
-        do J = 1 , i_I ! N_det_ref !!! 
-          call i_h_j(psi_non_ref(1,1,i), psi_ref(1,1,J),N_int,hJi)
+          if(.true. .or. nlink(I_s) < nlink(J_s)) then
+            i_I = I_s
+            J = J_s
+          else
+            i_I = J_s
+            J = I_s
+          end if
+         
+          !call i_h_j(psi_non_ref(1,1,i), psi_ref(1,1,J),N_int,hJi)
+          !!!!
+          call get_excitation(psi_ref(1,1,J),psi_non_ref(1,1,i),exc_IJ,degree2,phase_Ji,N_int)
+          !!!!!!
+          hJi = h_(J,i)
           if(hJi == 0) cycle
+          hIi = h_(i_I,i)
+          if(hIi == 0) cycle
+
+          diI = hIi * lambda_mrcc(i_state, i)
           delta_JI = hJi * diI 
+           
+          call get_excitation(psi_ref(1,1,i_I),psi_non_ref(1,1,i),exc_iI,degree2,phase_iI,N_int)
+          if(degree2 == -1) cycle
+          !call i_h_j(psi_non_ref(1,1,i), psi_ref(1,1,i_I),N_int,hIi)
           
           do kk = 1 , nlink(i_I)
             k = linked(kk,i_I)
             blok = blokMwen(kk,i_I)
             
-            if(lambda_mrcc(i_state, det_cepa0_idx(k)) == 0d0) cycle
-            
+            !if(lambda_mrcc(i_state, det_cepa0_idx(k)) == 0d0) cycle
             
             
             call get_excitation(psi_ref(1,1,i_I),det_cepa0(1,1,k),exc_Ik,degree,phase_Ik,N_int)
@@ -661,44 +722,72 @@ end subroutine
             if(degree == -1) stop "STOP; ( linked )"
             
             
-            call apply_excitation(det_cepa0(1,1,i),exc_Ik,det_tmp,ok,N_int)
+            call apply_excitation(psi_non_ref(1,1,i),exc_Ik,det_tmp,ok,N_int)
             if(.not. ok) cycle
             
-
-
             call apply_excitation(psi_ref(1,1,J),exc_Ik,det_tmp2,ok,N_int)
             if(.not. ok) cycle
             
             if(isInCassd(det_tmp, N_int)) cycle
+            
+            
+            l = searchDet(det_cepa0(1,1,cepa0_shortcut(blok)), det_tmp2, cepa0_shortcut(blok+1)-cepa0_shortcut(blok), N_int)
+            if(l == -1) cycle
+            l = det_cepa0_idx(cepa0_shortcut(blok)-1+l)
+            !call i_h_j(det_cepa0(1,1,k), det_tmp, N_int, HiI)
+            !call i_h_j(psi_non_ref(1,1,l), det_tmp, N_int, HJi)
+            call get_excitation(det_tmp,psi_non_ref(1,1,l),exc_IJ,degree2,phase_al,N_int)
+            
+            diI = hIi * lambda_mrcc(i_state, i)
+            delta_JI = hJi * diI * phase_al * phase_Ji
+            
+             
 
-            l = searchDet(det_cepa0(1,1,cepa0_shortcut(blok)), det_tmp2, cepa0_shortcut(blok+1) - cepa0_shortcut(blok), N_int)
-            !print *, "LL", l
-            if(l == -1) cycle !! -1 pour
-            l += cepa0_shortcut(blok) - 1
-            l = det_cepa0_idx(l)
-            
-            l = idx_sorted_bit(l)
-            if(l ==-1) cycle
-            
-            
+           
+              !if(psi_ref_coef(I_i,i_state) < psi_ref_coef(J,i_state)) then
+              ci_inv(i_state) = 1.d0 / psi_ref_coef(i_I,i_state)
+              HkI = h_(i_I,det_cepa0_idx(k))
+              dkI(i_state) = HkI * lambda_mrcc(i_state, det_cepa0_idx(k))
+              contrib = dkI(i_state) * delta_JI
+              !!$OMP ATOMIC  
+              delta_ij_old(i_I,l,i_state) += contrib
+              if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5) then
+                !!$OMP ATOMIC  
+                delta_ii_old(i_I,i_state) -= contrib * ci_inv(i_state) * psi_non_ref_coef(l,i_state)
+              else
+                  delta_ii_old(i_I,i_state)  = 0.d0
+              endif
+!             
 
-            call i_h_j(det_cepa0(1,1,k), psi_ref(1,1,i_I),N_int,HkI)
-            dkI(i_state) = HkI * lambda_mrcc(i_state, det_cepa0_idx(k))
-            contrib = dkI(i_state) * delta_JI
-            !$OMP ATOMIC  
-            delta_ij_old(i_I,l,i_state) += contrib
-            if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5) then
-              !$OMP ATOMIC  
-              delta_ii_old(i_I,i_state) -= contrib * ci_inv(i_state) * psi_non_ref_coef(det_cepa0_idx(k),i_state)
-            endif
+
+
+!               ci_inv(i_state) = 1.d0 / psi_ref_coef(J,i_state)
+!               HkI = h_(J,l)
+!               dkI(i_state) = HkI * lambda_mrcc(i_state, l)
+!               contrib = dkI(i_state) * delta_JI
+!               !!$OMP ATOMIC
+!               delta_ij_old(J,det_cepa0_idx(k),i_state) += contrib
+!               if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5) then
+!                 !!$OMP ATOMIC
+!                 delta_ii_old(J,i_state) -= contrib * ci_inv(i_state) * psi_non_ref_coef(l,i_state)
+! 
+
+!             end if
 
           enddo
         enddo
       enddo
     enddo
-    !$OMP END PARALLEL DO 
+    !$OMP END PARALLEL DO
+    
+!     do i=1,N_det_non_ref
+!       print *, delta_ij_old(:,i,i_state)
+!     end do
+!     stop
   end do
   deallocate(idx_sorted_bit)
+    
+
 !   call wall_time(wall)
 !   print *, "old ", wall
 END_PROVIDER

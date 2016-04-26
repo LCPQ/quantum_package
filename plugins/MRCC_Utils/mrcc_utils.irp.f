@@ -82,6 +82,8 @@ END_PROVIDER
   integer                        :: i_pert_count
   double precision               :: hii, lambda_pert
   integer                        :: N_lambda_mrcc_pt2
+  integer                        :: histo(200), j
+  histo = 0
   
   if(old_lambda) then
     lambda_mrcc = lambda_mrcc_old
@@ -110,11 +112,18 @@ END_PROVIDER
             lambda_mrcc_pt2(N_lambda_mrcc_pt2) = i
           endif
         endif
+        j = int(lambda_mrcc(k,i) * 100)
+        if(j < -200) j = -200
+        if(j > 200) j = 200
+        histo(j) += 1
       enddo
     enddo
     lambda_mrcc_pt2(0) = N_lambda_mrcc_pt2
   end if
   
+!   do i=-200,200
+!     print *, i, histo(i)
+!   end do
   print*,'N_det_non_ref = ',N_det_non_ref
   !print*,'Number of ignored determinants = ',i_pert_count  
   print*,'psi_coef_ref_ratio = ',psi_ref_coef(2,1)/psi_ref_coef(1,1)
@@ -152,6 +161,7 @@ END_PROVIDER
  delta_ij = 0.d0
  delta_ii = 0.d0
  call H_apply_mrcc(delta_ij,delta_ii,N_states,N_det_non_ref,N_det_ref)
+
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]
