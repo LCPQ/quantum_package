@@ -112,10 +112,10 @@ END_PROVIDER
             lambda_mrcc_pt2(N_lambda_mrcc_pt2) = i
           endif
         endif
-        j = int(lambda_mrcc(k,i) * 100)
-        if(j < -200) j = -200
-        if(j > 200) j = 200
-        histo(j) += 1
+!         j = int(lambda_mrcc(k,i) * 100)
+!         if(j < -200) j = -200
+!         if(j > 200) j = 200
+!         histo(j) += 1
       enddo
     enddo
     lambda_mrcc_pt2(0) = N_lambda_mrcc_pt2
