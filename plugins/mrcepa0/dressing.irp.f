@@ -20,10 +20,16 @@ use bitmasks
         end do
       end do
     else if(mrmode == 2) then
+!       do i = 1, N_det_ref
+!         delta_ii(i_state,i)= delta_ii_old(i,i_state)
+!         do j = 1, N_det_non_ref
+!           delta_ij(i_state,j,i) = delta_ij_old(i,j,i_state)
+!         end do
+!       end do
       do i = 1, N_det_ref
-        delta_ii(i_state,i)= delta_ii_old(i,i_state)
+        delta_ii(i_state,i)= delta_ii_old(i_state,i)
         do j = 1, N_det_non_ref
-          delta_ij(i_state,j,i) = delta_ij_old(i,j,i_state)
+          delta_ij(i_state,j,i) = delta_ij_old(i_state,j,i)
         end do
       end do
     else if(mrmode == 1) then
@@ -37,12 +43,12 @@ use bitmasks
       stop "invalid mrmode"
     end if
   end do
-  do i=1,N_det_ref
-    print *, delta_ii(1,i)
-  end do
-  do i=1,min(N_det_non_ref,100)
-    print *, delta_ij(1,i,:)
-  end do
+!   do i=1,N_det_ref
+!     print *, delta_ii(1,i)
+!   end do
+!   do i=1,min(N_det_non_ref,100)
+!     print *, delta_ij(1,i,:)
+!   end do
 !   stop
   
 
@@ -57,11 +63,17 @@ END_PROVIDER
 &BEGIN_PROVIDER [ integer(bit_kind), det_ref_active, (N_int,2,N_det_ref) ]
 &BEGIN_PROVIDER [ integer(bit_kind), active_sorb, (N_int,2) ]
 &BEGIN_PROVIDER [ integer(bit_kind), det_cepa0, (N_int,2,N_det_non_ref) ]
+&BEGIN_PROVIDER [ integer, nlink, (N_det_ref) ]
+&BEGIN_PROVIDER [ integer, linked, (N_det_non_ref,N_det_ref) ]
+&BEGIN_PROVIDER [ integer, blokMwen, (N_det_non_ref,N_det_ref) ]
+&BEGIN_PROVIDER [ double precision, searchance, (N_det_ref) ]
+&BEGIN_PROVIDER [ integer, child_num, (N_det_non_ref,N_det_ref) ]
+
   use bitmasks
   implicit none
   
   integer(bit_kind) :: det_noactive(N_int, 2, N_det_non_ref), nonactive_sorb(N_int,2), det(N_int, 2)
-  integer i, II, j, k, n, ni, idx(N_det_non_ref), shortcut(0:N_det_non_ref+1)
+  integer i, II, j, k, n, ni, idx(N_det_non_ref), shortcut(0:N_det_non_ref+1), blok, degree
   logical, external :: detEq
   
   active_sorb(:,:) = 0_8
@@ -134,6 +146,25 @@ END_PROVIDER
   do i=1,N_det_non_ref
     if(.not. detEq(psi_non_ref(1,1,det_cepa0_idx(i)), det_cepa0(1,1,i),N_int)) stop "STOOOP"
   end do
+  
+  searchance = 0d0
+  child_num = 0
+  do J = 1, N_det_ref
+    nlink(J) = 0
+    do blok=1,cepa0_shortcut(0)
+    do k=cepa0_shortcut(blok), cepa0_shortcut(blok+1)-1
+      call get_excitation_degree(psi_ref(1,1,J),det_cepa0(1,1,k),degree,N_int)
+      if(degree <= 2) then
+        nlink(J) += 1
+        linked(nlink(J),J) = k
+        child_num(k, J) = nlink(J)
+        blokMwen(nlink(J),J) = blok
+        searchance(J) += 1d0 + log(dfloat(cepa0_shortcut(blok+1) - cepa0_shortcut(blok)))
+      end if
+    end do
+    end do
+  end do
+  
   print *, "pre done"
 END_PROVIDER
 
@@ -186,14 +217,14 @@ END_PROVIDER
   call wall_time(wall)
   print *, "dcas ", wall
   do i_state = 1, N_states
-    !$OMP PARALLEL DO default(none) schedule(dynamic) private(pre,npre,ipre,j,k,Hjk,Hki,degree) shared(npres,lambda_mrcc,i_state, N_det_non_ref,psi_ref, psi_non_ref,N_int,delta_cas,N_det_ref)
+    !!$OMP PARALLEL DO default(none) schedule(dynamic) private(pre,npre,ipre,j,k,Hjk,Hki,degree) shared(npres,lambda_mrcc,i_state, N_det_non_ref,psi_ref, psi_non_ref,N_int,delta_cas,N_det_ref)
     do k=1,N_det_non_ref
       if(lambda_mrcc(i_state, k) == 0d0) cycle
       npre = 0
       do i=1,N_det_ref
         call i_h_j(psi_non_ref(1,1,k),psi_ref(1,1,i), N_int,Hki)
         if(Hki /= 0d0) then
-          !$OMP ATOMIC
+          !!$OMP ATOMIC
           npres(i) += 1
           npre += 1
           ipre(npre) = i
@@ -204,12 +235,12 @@ END_PROVIDER
       
       do i=1,npre
       do j=1,i
-        !$OMP ATOMIC
+        !!$OMP ATOMIC
         delta_cas(ipre(i),ipre(j),i_state) += pre(i) * pre(j) * lambda_mrcc(i_state, k)
       end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !!$OMP END PARALLEL DO
     print *, npres
     npre=0
     do i=1,N_det_ref
@@ -618,10 +649,10 @@ END_PROVIDER
   
   integer                         :: i_state, i, i_I, J, k, kk, degree, degree2, m, l, deg, ni
   integer                         :: p1,p2,h1,h2,s1,s2, blok, I_s, J_s
-  integer, allocatable            :: linked(:,:), blokMwen(:, :), nlink(:)
+!   integer, allocatable            :: linked(:,:), blokMwen(:, :), nlink(:)
   logical                         :: ok
   double precision                :: phase_iI, phase_Ik, phase_Jl, phase_Ji, phase_al, diI, hIi, hJi, delta_JI, dkI(N_states), HkI, ci_inv(N_states), dia_hla(N_states)
-  double precision                :: contrib, wall, iwall, searchance(N_det_ref)
+  double precision                :: contrib, wall, iwall ! , searchance(N_det_ref)
   double precision, allocatable   :: deltaMwen(:,:,:), deltaIImwen(:,:)
   integer, dimension(0:2,2,2)     :: exc_iI, exc_Ik, exc_IJ
   integer(bit_kind)               :: det_tmp(N_int, 2), det_tmp2(N_int, 2), inac, virt
@@ -634,7 +665,7 @@ END_PROVIDER
 
   call wall_time(iwall)
   allocate(idx_sorted_bit(N_det))
-  allocate(linked(N_det_non_ref, N_det_ref), blokMwen(N_det_non_ref, N_det_ref), nlink(N_det_ref))
+!   allocate(linked(N_det_non_ref, N_det_ref), blokMwen(N_det_non_ref, N_det_ref), nlink(N_det_ref))
   
   idx_sorted_bit(:) = -1
   do i=1,N_det_non_ref
@@ -800,10 +831,10 @@ END_PROVIDER
 !   
 !   integer                         :: i_state, i, i_I, J, k, kk, degree, degree2, m, l, deg, ni, m2
 !   integer                         :: p1,p2,h1,h2,s1,s2, blok, I_s, J_s
-!   integer, allocatable            :: linked(:,:), blokMwen(:, :), nlink(:)
+! !   integer, allocatable            :: linked(:,:), blokMwen(:, :), nlink(:)
 !   logical                         :: ok
 !   double precision                :: phase_iI, phase_Ik, phase_Jl, phase_Ji, phase_al, diI, hIi, hJi, delta_JI, dkI(N_states), HkI, ci_inv(N_states), dia_hla(N_states)
-!   double precision                :: contrib, wall, iwall, searchance(N_det_ref)
+!   double precision                :: contrib, wall, iwall !, searchance(N_det_ref)
 !   double precision, allocatable   :: deltaMwen(:,:,:), deltaIImwen(:,:)
 !   integer, dimension(0:2,2,2)     :: exc_iI, exc_Ik, exc_IJ
 !   integer(bit_kind)               :: det_tmp(N_int, 2), det_tmp2(N_int, 2), inac, virt
@@ -814,27 +845,27 @@ END_PROVIDER
 !   !    -459.6346665282306
 ! 
 !   call wall_time(iwall)
-!   allocate(linked(N_det_non_ref, N_det_ref), blokMwen(N_det_non_ref, N_det_ref), nlink(N_det_ref))
+!   !allocate(linked(N_det_non_ref, N_det_ref), blokMwen(N_det_non_ref, N_det_ref), nlink(N_det_ref))
 !   
 ! 
 !   delta_ii_old(:,:) = 0d0
 !   delta_ij_old(:,:,:) = 0d0
 ! 
-!   searchance = 0d0
-!   do J = 1, N_det_ref
-!     nlink(J) = 0
-!     do blok=1,cepa0_shortcut(0)
-!     do k=cepa0_shortcut(blok), cepa0_shortcut(blok+1)-1
-!       call get_excitation_degree(psi_ref(1,1,J),det_cepa0(1,1,k),degree,N_int)
-!       if(degree <= 2) then
-!         nlink(J) += 1
-!         linked(nlink(J),J) = k
-!         blokMwen(nlink(J),J) = blok
-!         searchance(J) += log(dfloat(cepa0_shortcut(blok+1) - cepa0_shortcut(blok)))
-!       end if
-!     end do
-!     end do
-!   end do
+! !   searchance = 0d0
+! !   do J = 1, N_det_ref
+! !     nlink(J) = 0
+! !     do blok=1,cepa0_shortcut(0)
+! !     do k=cepa0_shortcut(blok), cepa0_shortcut(blok+1)-1
+! !       call get_excitation_degree(psi_ref(1,1,J),det_cepa0(1,1,k),degree,N_int)
+! !       if(degree <= 2) then
+! !         nlink(J) += 1
+! !         linked(nlink(J),J) = k
+! !         blokMwen(nlink(J),J) = blok
+! !         searchance(J) += log(dfloat(cepa0_shortcut(blok+1) - cepa0_shortcut(blok)))
+! !       end if
+! !     end do
+! !     end do
+! !   end do
 ! 
 !      
 ! 
@@ -848,7 +879,9 @@ END_PROVIDER
 ! 
 !     do J_s = 1, I_s
 !     
-!     
+!       call get_excitation_degree(psi_ref(1,1,J_s), psi_ref(1,1,I_s), degree, N_int)
+!       if(degree > 3) cycle
+!       
 !       if(searchance(I_s) < searchance(J_s)) then
 !         i_I = I_s
 !         J = J_s
@@ -856,7 +889,15 @@ END_PROVIDER
 !         i_I = J_s
 !         J = I_s
 !       end if
-! 
+!       
+!     !$OMP PARALLEL DO default(none) schedule(dynamic,1) shared(delta_ij_old, delta_ii_old)       &
+!     !$OMP private(m,m2,kk, i, k, degree, degree2, l, deg, ni, inac, virt)       &
+!     !$OMP private(ok,p1,p2,h1,h2,s1,s2, blok, wall, I_s, J_s)     &
+!     !$OMP private(phase_iI, phase_Ik, phase_Ji, phase_al, diI, hIi, hJi, delta_JI, dkI, HkI, ci_inv, dia_hla) &
+!     !$OMP private(i_state, contrib, exc_iI, exc_Ik, exc_IJ, det_tmp, det_tmp2)    &
+!     !$OMP shared(N_det_non_ref, N_det_ref, N_int, psi_non_ref, psi_non_ref_coef, psi_ref, psi_ref_coef)   &
+!     !$OMP shared(lambda_mrcc, hf_bitmask, active_sorb,cepa0_shortcut,det_cepa0,N_states) &
+!     !$OMP shared(i_I, J, h_,det_cepa0_idx, linked, blokMwen, nlink, iwall, searchance)
 !       do kk = 1 , nlink(i_I)
 !         k = linked(kk,i_I)
 !         blok = blokMwen(kk,i_I)
@@ -915,8 +956,10 @@ END_PROVIDER
 !               HkI = h_(i_I,det_cepa0_idx(k))
 !               dkI(i_state) = HkI * lambda_mrcc(i_state, det_cepa0_idx(k))
 !               contrib = dkI(i_state) * delta_JI
+!               !$OMP ATOMIC
 !               delta_ij_old(i_I,l,i_state) += contrib
 !               if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5) then
+!                 !$OMP ATOMIC
 !                 delta_ii_old(i_I,i_state) -= contrib * ci_inv(i_state) * psi_non_ref_coef(l,i_state)
 !               endif
 ! !             
@@ -929,8 +972,10 @@ END_PROVIDER
 !               HkI = h_(J,l)
 !               dkI(i_state) = HkI * lambda_mrcc(i_state, l)
 !               contrib = dkI(i_state) * delta_JI
+!               !$OMP ATOMIC
 !               delta_ij_old(J,det_cepa0_idx(k),i_state) += contrib
 !               if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5) then
+!                 !$OMP ATOMIC
 !                 delta_ii_old(J,i_state) -= contrib * ci_inv(i_state) * psi_non_ref_coef(det_cepa0_idx(k),i_state)
 !               end if
 !             enddo !i_state
@@ -941,6 +986,6 @@ END_PROVIDER
 !     enddo !I
 !       
 ! END_PROVIDER
-
-
+! ! 
+! 
 
