@@ -315,6 +315,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   double precision, intent(inout) :: u_in(dim_in,N_st)
   double precision, intent(out)  :: energies(N_st)
   
+  integer                        :: sze_8
   integer                        :: iter
   integer                        :: i,j,k,l,m
   logical                        :: converged
@@ -334,6 +335,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   double precision               :: to_print(2,N_st)
   double precision               :: cpu, wall
   
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: U, W, R, Wt, y, h, lambda
 
 
   call write_time(iunit)
@@ -362,12 +364,15 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   enddo
   write(iunit,'(A)') trim(write_buffer)
 
+  integer, external :: align_double
+  sze_8 = align_double(sze)
+
   allocate(                                                          &
       kl_pairs(2,N_st*(N_st+1)/2),                                   &
-      W(sze,N_st,davidson_sze_max),                                                   &
+      W(sze_8,N_st,davidson_sze_max),                                                   &
       Wt(sze),                                                        &
-      U(sze,N_st,davidson_sze_max),                                  &
-      R(sze,N_st),                                                   &
+      U(sze_8,N_st,davidson_sze_max),                                  &
+      R(sze_8,N_st),                                                   &
       h(N_st,davidson_sze_max,N_st,davidson_sze_max),                &
       y(N_st,davidson_sze_max,N_st,davidson_sze_max),                &
       lambda(N_st*davidson_sze_max))
@@ -473,7 +478,10 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       ! Express eigenvectors of h in the determinant basis
       ! --------------------------------------------------
       
+     !$OMP PARALLEL DEFAULT(NONE)                                     &
+        !$OMP PRIVATE(k,i,l,iter2) SHARED(U,W,R,y,iter,lambda,N_st,sze)
       do k=1,N_st
+        !$OMP DO
         do i=1,sze
           U(i,k,iter+1) = 0.d0
           W(i,k,iter+1) = 0.d0
@@ -484,7 +492,9 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
             enddo
           enddo
         enddo
+        !$OMP END DO
       enddo
+      !$OMP END PARALLEL
       
       ! Compute residual vector
       ! -----------------------

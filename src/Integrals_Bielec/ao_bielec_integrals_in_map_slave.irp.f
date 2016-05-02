@@ -57,13 +57,15 @@ subroutine push_integrals(zmq_socket_push, n_integrals, buffer_i, buffer_value, 
   endif
 
 ! Activate is zmq_socket_push is a REQ
-  integer :: idummy
-  rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0)
-  if (rc /= 4) then
-    print *, irp_here, 'f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
-    stop 'error'
-  endif
+!  integer :: idummy
+!  rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0)
+!  if (rc /= 4) then
+!    print *, irp_here, 'f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
+!    stop 'error'
+!  endif
 end
+
+
 
 
 
@@ -107,7 +109,7 @@ subroutine ao_bielec_integrals_in_map_slave(thread,iproc)
       call push_integrals(zmq_socket_push, n_integrals, buffer_i, buffer_value, 0)
     enddo
     call compute_ao_integrals_jl(l,l,n_integrals,buffer_i,buffer_value) 
-    call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id,n_integrals)
+    call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id)
     call push_integrals(zmq_socket_push, n_integrals, buffer_i, buffer_value, task_id)
   enddo
 
@@ -127,7 +129,7 @@ subroutine pull_integrals(zmq_socket_pull, n_integrals, buffer_i, buffer_value, 
   BEGIN_DOC
   ! How the collector pulls the computed integrals
   END_DOC
-  integer(ZMQ_PTR), intent(out)  :: zmq_socket_pull
+  integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
   integer, intent(out)           :: n_integrals
   integer(key_kind), intent(out) :: buffer_i(*)
   real(integral_kind), intent(out) :: buffer_value(*)
@@ -167,11 +169,11 @@ subroutine pull_integrals(zmq_socket_pull, n_integrals, buffer_i, buffer_value, 
   endif
 
 ! Activate if zmq_socket_pull is a REP
-  rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)
-  if (rc /= 4) then
-    print *,  irp_here, ' f77_zmq_send (zmq_socket_pull,...'
-    stop 'error'
-  endif
+!  rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)
+!  if (rc /= 4) then
+!    print *,  irp_here, ' f77_zmq_send (zmq_socket_pull,...'
+!    stop 'error'
+!  endif
 
 end
 

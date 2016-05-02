@@ -324,6 +324,7 @@ double precision function u_dot_v(u,v,sze)
   t3 = t2+t2
   t4 = t3+t2
   u_dot_v = 0.d0
+  !DIR$ VECTOR ALWAYS
   do i=1,t2
     u_dot_v = u_dot_v + u(t1+i)*v(t1+i) + u(t2+i)*v(t2+i) +          &
         u(t3+i)*v(t3+i) + u(t4+i)*v(t4+i)
@@ -359,6 +360,7 @@ double precision function u_dot_u(u,sze)
 !   u_dot_u = u_dot_u+u(i)*u(i)
 ! enddo
   
+  !DIR$ VECTOR ALWAYS
   do i=1,sze
     u_dot_u = u_dot_u + u(i)*u(i)
   enddo
