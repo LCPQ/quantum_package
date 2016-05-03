@@ -138,14 +138,14 @@ subroutine mrsc2_dressing_slave(thread,iproc)
           komon(kn) = i
           
           
-          call get_excitation(psi_ref(1,1,J),psi_non_ref(1,1,i),exc_IJ,degree2,phase_Ji,N_int)
-          if(I_i /= J) call get_excitation(psi_ref(1,1,I_i),psi_non_ref(1,1,i),exc_IJ,degree2,phase_Ii,N_int)
-          if(I_i == J) phase_Ii = phase_Ji
+!           call get_excitation(psi_ref(1,1,J),psi_non_ref(1,1,i),exc_IJ,degree2,phase_Ji,N_int)
+!           if(I_i /= J) call get_excitation(psi_ref(1,1,I_i),psi_non_ref(1,1,i),exc_IJ,degree2,phase_Ii,N_int)
+!           if(I_i == J) phase_Ii = phase_Ji
           
           do i_state = 1,N_states
             dkI = h_(J,i) * h_(i_I,i) * lambda_mrcc(i_state, i)
-            dleat(i_state, kn, 1) = dkI * phase_Ii
-            dleat(i_state, kn, 2) = dkI * phase_Ji
+            dleat(i_state, kn, 1) = dkI
+            dleat(i_state, kn, 2) = dkI
           end do
 
         end do
@@ -158,7 +158,7 @@ subroutine mrsc2_dressing_slave(thread,iproc)
         
         i = komon(m)
         
-        if(HP(1,i) + HP(1,k) <= 2 .and. HP(2,i) + HP(2,k) <= 2) cycle
+        !if(HP(1,i) + HP(1,k) <= 2 .and. HP(2,i) + HP(2,k) <= 2) cycle
 
         hJi = h_(J,i)
         hIi = h_(i_I,i)
@@ -166,14 +166,18 @@ subroutine mrsc2_dressing_slave(thread,iproc)
 
         call apply_excitation(psi_non_ref(1,1,i),exc_Ik,det_tmp,ok,N_int)
         if(.not. ok) cycle
+        if(HP(1,i) + HP(1,k) <= 2 .and. HP(2,i) + HP(2,k) <= 2) then
+          if(is_in_wavefunction(det_tmp, N_int)) cycle
+        end if
+        
         !if(isInCassd(det_tmp, N_int)) cycle
           
         do i_state = 1, N_states 
           if(lambda_mrcc(i_state, i) == 0d0) cycle
           
 
-          call get_excitation(det_tmp,psi_non_ref(1,1,l),exc_IJ,degree2,phase_al,N_int)
-          contrib = h_(i_I,k) * lambda_mrcc(i_state, k) * dleat(i_state, m, 2) * phase_al
+!           call get_excitation(det_tmp,psi_non_ref(1,1,l),exc_IJ,degree2,phase_al,N_int)
+          contrib = h_(i_I,k) * lambda_mrcc(i_state, k) * dleat(i_state, m, 2)! * phase_al
 !           if(l /= det_cepa0_idx(linked(ll, J))) stop "SPTPqsdT"
           delta(i_state,ll,1) += contrib
           if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5) then
@@ -181,9 +185,9 @@ subroutine mrsc2_dressing_slave(thread,iproc)
           endif
           
           if(I_i == J) cycle
-          call get_excitation(det_tmp,psi_non_ref(1,1,k),exc_IJ,degree2,phase_al,N_int)
+!           call get_excitation(det_tmp,psi_non_ref(1,1,k),exc_IJ,degree2,phase_al,N_int)
 !           cj_inv(i_state) = 1.d0 / psi_ref_coef(J,i_state)
-          contrib = h_(J,l) * lambda_mrcc(i_state, l) * dleat(i_state, m, 1) * phase_al
+          contrib = h_(J,l) * lambda_mrcc(i_state, l) * dleat(i_state, m, 1)! * phase_al
 !           if(k /= linked(kk, I_i)) stop "SPTPT"
           delta(i_state,kk,2) += contrib
           !delta(i_state,det_cepa0_idx(k),2) += contrib
