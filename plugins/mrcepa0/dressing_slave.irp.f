@@ -157,13 +157,16 @@ subroutine mrsc2_dressing_slave(thread,iproc)
       do m = 1, komon(0)
         
         i = komon(m)
+        
+        if(HP(1,i) + HP(1,k) <= 2 .and. HP(2,i) + HP(2,k) <= 2) cycle
 
         hJi = h_(J,i)
         hIi = h_(i_I,i)
         
+
         call apply_excitation(psi_non_ref(1,1,i),exc_Ik,det_tmp,ok,N_int)
         if(.not. ok) cycle
-        if(isInCassd(det_tmp, N_int)) cycle
+        !if(isInCassd(det_tmp, N_int)) cycle
           
         do i_state = 1, N_states 
           if(lambda_mrcc(i_state, i) == 0d0) cycle

@@ -55,7 +55,12 @@ use bitmasks
 END_PROVIDER
 
 
-
+BEGIN_PROVIDER [ integer, HP, (2,N_det_non_ref) ]
+  integer :: i
+  do i=1,N_det_non_ref
+    call getHP(psi_non_ref(1,1,i), HP(1,i), HP(2,i), N_int)
+  end do 
+END_PROVIDER
 
  BEGIN_PROVIDER [ integer, cepa0_shortcut, (0:N_det_non_ref+1) ]
 &BEGIN_PROVIDER [ integer, det_cepa0_idx, (N_det_non_ref) ]
@@ -93,7 +98,8 @@ END_PROVIDER
       active_sorb(k,2) = iand(active_sorb(k,2), not(nonactive_sorb(k,2)))
     end do
   end if
-    
+  
+  
   do i=1, N_det_non_ref
   do k=1, N_int
     det_noactive(k,1,i) = iand(psi_non_ref(k,1,i), not(active_sorb(k,1)))
@@ -277,6 +283,7 @@ logical function detEq(a,b,Nint)
    detEq = .true.
 end function
 
+
 logical function isInCassd(a,Nint)
   use bitmasks
   implicit none
@@ -287,10 +294,9 @@ logical function isInCassd(a,Nint)
 
   
   isInCassd = .false.
-  
-   
+     
   deg = 0
-  do i=1,2
+   do i=1,2
     do ni=1,Nint
       virt = iand(not(HF_bitmask(ni,i)), not(active_sorb(ni,i)))
       deg += popcnt(iand(virt, a(ni,i)))
@@ -306,8 +312,44 @@ logical function isInCassd(a,Nint)
       if(deg > 2) return
     end do
   end do
-  
   isInCassd = .true.
+end function
+
+
+subroutine getHP(a,h,p,Nint)
+  use bitmasks
+  implicit none
+  integer, intent(in) :: Nint
+  integer(bit_kind), intent(in) :: a(Nint,2)
+  integer, intent(out) :: h, p
+  integer(bit_kind) :: inac, virt
+  integer :: ni, i, deg
+
+  
+  !isInCassd = .false.
+  h = 0
+  p = 0
+   
+  deg = 0
+  lp : do i=1,2
+    do ni=1,Nint
+      virt = iand(not(HF_bitmask(ni,i)), not(active_sorb(ni,i)))
+      deg += popcnt(iand(virt, a(ni,i)))
+      if(deg > 2) exit lp
+    end do
+  end do lp
+  p = deg
+
+  deg = 0
+  lh : do i=1,2
+    do ni=1,Nint
+      inac = iand(HF_bitmask(ni,i), not(active_sorb(ni,i)))
+      deg += popcnt(xor(iand(inac,a(ni,i)), inac))
+      if(deg > 2) exit lh
+    end do
+  end do lh
+  h = deg
+  !isInCassd = .true.
 end function
 
 integer function detCmp(a,b,Nint)
