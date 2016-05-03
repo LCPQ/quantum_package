@@ -9,7 +9,7 @@ print s
 
 s = H_apply_zmq("FCI_PT2")
 s.set_perturbation("epstein_nesbet_2x2")
-#s.unset_openmp()
+s.unset_openmp()
 print s
 
 s = H_apply("FCI_no_skip")

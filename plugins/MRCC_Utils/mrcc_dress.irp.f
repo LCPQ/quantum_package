@@ -274,7 +274,7 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
       enddo
       
       do i_state=1,Nstates
-        ci_inv(i_state) = 1.d0/psi_ref_coef(i_I,i_state)
+        ci_inv(i_state) = psi_ref_coef_inv(i_I,i_state)
       enddo
       do l_sd=1,idx_alpha(0)
         k_sd = idx_alpha(l_sd)
@@ -285,16 +285,20 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
         enddo
       enddo
       call omp_set_lock( psi_ref_lock(i_I) )
-      do l_sd=1,idx_alpha(0)
-        k_sd = idx_alpha(l_sd)
-        do i_state=1,Nstates
-          delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
-          if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5)then
-            delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
-          else
-            delta_ii_(i_state,i_I)  = 0.d0
-          endif
-        enddo
+      do i_state=1,Nstates
+        if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5)then
+          do l_sd=1,idx_alpha(0)
+            k_sd = idx_alpha(l_sd)
+              delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
+              delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
+          enddo
+        else
+          delta_ii_(i_state,i_I)  = 0.d0
+          do l_sd=1,idx_alpha(0)
+            k_sd = idx_alpha(l_sd)
+              delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
+          enddo
+        endif
       enddo
       call omp_unset_lock( psi_ref_lock(i_I) )
     enddo
