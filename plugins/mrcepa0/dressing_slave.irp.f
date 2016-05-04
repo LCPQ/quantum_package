@@ -582,16 +582,14 @@ ntot = 0
 !  external                       ∷ ao_bielec_integrals_in_map_collector
 !  rc = pthread_create(collector_thread, mrsc2_dressing_collector)
   print *, nzer, ntot, float(nzer) / float(ntot)
-  !$OMP PARALLEL DEFAULT(none)  SHARED(delta_ii_old,delta_ij_old)  PRIVATE(i)
-    !$OMP TASK
+  provide nproc
+  !$OMP PARALLEL DEFAULT(none)  SHARED(delta_ii_old,delta_ij_old)  PRIVATE(i) NUM_THREADS(nproc+1)
       i = omp_get_thread_num()
       if (i==0) then
         call mrsc2_dressing_collector(delta_ii_old,delta_ij_old)
       else
         call mrsc2_dressing_slave_inproc(i)
       endif
-    !$OMP END TASK
-    !$OMP TASKWAIT
   !$OMP END PARALLEL
 
 !  rc = pthread_join(collector_thread)
