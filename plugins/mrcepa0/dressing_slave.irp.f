@@ -158,16 +158,11 @@ subroutine mrsc2_dressing_slave(thread,iproc)
         
         i = komon(m)
         
-        !if(HP(1,i) + HP(1,k) <= 2 .and. HP(2,i) + HP(2,k) <= 2) cycle
-
-        hJi = h_(J,i)
-        hIi = h_(i_I,i)
-        
-
         call apply_excitation(psi_non_ref(1,1,i),exc_Ik,det_tmp,ok,N_int)
         if(.not. ok) cycle
         if(HP(1,i) + HP(1,k) <= 2 .and. HP(2,i) + HP(2,k) <= 2) then
-          if(is_in_wavefunction(det_tmp, N_int)) cycle
+!           if(is_in_wavefunction(det_tmp, N_int)) cycle
+          cycle
         end if
         
         !if(isInCassd(det_tmp, N_int)) cycle
