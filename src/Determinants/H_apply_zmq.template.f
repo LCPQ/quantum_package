@@ -10,6 +10,7 @@ subroutine $subroutine($params_main)
   
   $decls_main
   
+  integer                        :: i
   integer                        :: i_generator
   double precision               :: wall_0, wall_1
   integer(omp_lock_kind)         :: lck
@@ -37,23 +38,21 @@ subroutine $subroutine($params_main)
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   enddo
 
-  integer(ZMQ_PTR)               :: collector_thread
-  external                       :: $subroutine_collector
-  rc = pthread_create(collector_thread, $subroutine_collector)
-
-  !$OMP PARALLEL DEFAULT(private) 
-    !$OMP TASK PRIVATE(rc) 
-      rc = omp_get_thread_num()
-      call $subroutine_slave_inproc(rc)
-    !$OMP END TASK
-    !$OMP TASKWAIT
+  PROVIDE nproc
+  !$OMP PARALLEL DEFAULT(NONE) &
+  !$OMP PRIVATE(i, pt2, norm_pert, H_pert_diag, N_st, n, task_id)  &
+  !$OMP SHARED(zmq_socket_pair) & 
+  !$OMP num_threads(nproc+1)
+      i = omp_get_thread_num()
+      if (i == 0) then
+        call  $subroutine_collector()
+        integer :: n, task_id
+        call pull_pt2(zmq_socket_pair, pt2, norm_pert, H_pert_diag, N_st, n, task_id)
+      else
+        call $subroutine_slave_inproc(i)
+      endif
   !$OMP END PARALLEL
 
-
-  integer :: n, task_id
-  call pull_pt2(zmq_socket_pair, pt2, norm_pert, H_pert_diag, N_st, n, task_id)
-
-  rc = pthread_join(collector_thread)
 
   call end_zmq_pair_socket(zmq_socket_pair)
   call end_parallel_job(zmq_to_qp_run_socket,'$subroutine')

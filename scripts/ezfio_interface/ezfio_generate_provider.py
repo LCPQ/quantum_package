@@ -56,6 +56,8 @@ END_PROVIDER
 
     def set_write(self):
         self.write = ""
+        if "size" in self.__dict__:
+            return
         if self.type in self.write_correspondance:
             write = self.write_correspondance[self.type]
             output = self.output
