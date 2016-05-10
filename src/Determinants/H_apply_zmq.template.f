@@ -38,16 +38,16 @@ subroutine $subroutine($params_main)
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   enddo
 
-  PROVIDE nproc
+  PROVIDE nproc N_states
   !$OMP PARALLEL DEFAULT(NONE) &
-  !$OMP PRIVATE(i, pt2, norm_pert, H_pert_diag, N_st, n, task_id)  &
-  !$OMP SHARED(zmq_socket_pair) & 
+  !$OMP PRIVATE(i) & 
+  !$OMP SHARED(zmq_socket_pair,N_states, pt2, norm_pert, H_pert_diag, n, task_id)  & 
   !$OMP num_threads(nproc+1)
       i = omp_get_thread_num()
       if (i == 0) then
         call  $subroutine_collector()
         integer :: n, task_id
-        call pull_pt2(zmq_socket_pair, pt2, norm_pert, H_pert_diag, N_st, n, task_id)
+        call pull_pt2(zmq_socket_pair, pt2, norm_pert, H_pert_diag, N_states, n, task_id)
       else
         call $subroutine_slave_inproc(i)
       endif
