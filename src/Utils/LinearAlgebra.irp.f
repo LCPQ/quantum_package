@@ -73,6 +73,10 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
   !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
   integer                        :: info, i, j
   
+  if (n < 2) then
+    return
+  endif
+
   allocate (U(ldc,n), Vt(lda,n), D(n), S_half(lda,n))
 
   call svd(overlap,lda,U,ldc,D,Vt,lda,n,n)
@@ -151,6 +155,10 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
   integer                        :: info, i, j, k
   
+  if (n < 2) then
+    return
+  endif
+
   call svd(overlap,lda,U,ldc,D,Vt,lda,m,n)
 
   !$OMP PARALLEL DEFAULT(NONE) &
