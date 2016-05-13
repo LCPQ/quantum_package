@@ -1757,4 +1757,3 @@ subroutine apply_excitation(det, exc, res, ok, Nint)
   ok = .true.
 end subroutine
 
-

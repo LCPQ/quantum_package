@@ -303,12 +303,6 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
       call omp_unset_lock( psi_ref_lock(i_I) )
     enddo
   enddo
-
-!      5.7717252361566333E-005
-!   -1.4525812360153183E-005
-!   -3.3282906594800186E-005
-!   -1.3864228814283882E-004
-
   !deallocate (dIa_hla,hij_cache)
   !deallocate(miniList, idx_miniList)
 end
