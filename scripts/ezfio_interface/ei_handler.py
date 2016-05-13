@@ -345,7 +345,7 @@ def save_ezfio_provider(path_head, dict_code_provider):
     path = "{0}/ezfio_interface.irp.f".format(path_head)
 
     l_output = ["! DO NOT MODIFY BY HAND",
-                "! Created by $QP_ROOT/scripts/ezfio_interface.py",
+                "! Created by $QP_ROOT/scripts/ezfio_interface/ei_handler.py",
                 "! from file {0}/EZFIO.cfg".format(path_head),
                 "\n"]
 

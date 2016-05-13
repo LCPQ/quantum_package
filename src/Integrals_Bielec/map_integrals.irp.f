@@ -323,9 +323,9 @@ double precision function mo_bielec_integral(i,j,k,l)
   ! Returns one integral <ij|kl> in the MO basis
   END_DOC
   integer, intent(in)            :: i,j,k,l
-  double precision               :: get_mo_bielec_integral_schwartz
+  double precision               :: get_mo_bielec_integral
   PROVIDE mo_bielec_integrals_in_map
-  mo_bielec_integral = get_mo_bielec_integral_schwartz(i,j,k,l,mo_integrals_map)
+  mo_bielec_integral = get_mo_bielec_integral(i,j,k,l,mo_integrals_map)
   return
 end
 

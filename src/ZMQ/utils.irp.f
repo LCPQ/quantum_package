@@ -361,6 +361,8 @@ subroutine end_zmq_pull_socket(zmq_socket_pull)
     stop 'error'
   endif
   
+  call sleep(1) ! see https://github.com/zeromq/libzmq/issues/1922
+
   rc = f77_zmq_setsockopt(zmq_socket_pull,ZMQ_LINGER,0,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_LINGER on zmq_socket_pull'

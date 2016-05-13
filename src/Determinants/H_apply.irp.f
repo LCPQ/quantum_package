@@ -386,7 +386,11 @@ subroutine pull_pt2(zmq_socket_pull,pt2,norm_pert,H_pert_diag,N_st,n,task_id)
 
     rc = f77_zmq_recv( zmq_socket_pull, pt2(1), 8*N_st, 0)
     if (rc /= 8*N_st) then
-      print *, irp_here,  'f77_zmq_recv( zmq_socket_pull, pt2(1,1) , 8*N_st, 0)'
+      print *,  ''
+      print *,  ''
+      print *,  ''
+      print *, irp_here,  'f77_zmq_recv( zmq_socket_pull, pt2(1) , 8*N_st, 0)'
+      print *,  rc
       stop 'error'
     endif
 

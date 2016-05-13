@@ -29,11 +29,11 @@ subroutine pt2_epstein_nesbet ($arguments)
   
   h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
   do i =1,N_st
-    if(CI_electronic_energy(i)>h.and.CI_electronic_energy(i).ne.0.d0)then
+    if(electronic_energy(i)>h.and.electronic_energy(i).ne.0.d0)then
       c_pert(i) = -1.d0
       e_2_pert(i) = selection_criterion*selection_criterion_factor*2.d0
-    else if  (dabs(CI_electronic_energy(i) - h) > 1.d-6) then
-        c_pert(i) = i_H_psi_array(i) / (CI_electronic_energy(i) - h)
+    else if  (dabs(electronic_energy(i) - h) > 1.d-6) then
+        c_pert(i) = i_H_psi_array(i) / (electronic_energy(i) - h)
         H_pert_diag(i) = h*c_pert(i)*c_pert(i)
         e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
     else
@@ -66,7 +66,6 @@ subroutine pt2_epstein_nesbet_2x2 ($arguments)
   double precision               :: i_H_psi_array(N_st)
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
-  PROVIDE CI_electronic_energy
 
   !call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
   call i_H_psi_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
@@ -74,7 +73,7 @@ subroutine pt2_epstein_nesbet_2x2 ($arguments)
   h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
   do i =1,N_st
     if (i_H_psi_array(i) /= 0.d0) then
-      delta_e = h - CI_electronic_energy(i)
+      delta_e = h - electronic_energy(i)
       if (delta_e > 0.d0) then
         e_2_pert(i) = 0.5d0 * (delta_e - dsqrt(delta_e * delta_e + 4.d0 * i_H_psi_array(i) * i_H_psi_array(i)))
       else
@@ -167,7 +166,7 @@ subroutine pt2_epstein_nesbet_SC2_projected ($arguments)
   ! 
   ! that can be repeated by repeating all the double excitations
   !
-  ! : you repeat all the correlation energy already taken into account in CI_electronic_energy(1)
+  ! : you repeat all the correlation energy already taken into account in electronic_energy(1)
   ! 
   ! that could be repeated to this determinant.
   !
@@ -197,16 +196,16 @@ subroutine pt2_epstein_nesbet_SC2_projected ($arguments)
   enddo
   h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
   h = h + accu_e_corr
-  delta_E = 1.d0/(CI_SC2_electronic_energy(1) - h)
+  delta_E = 1.d0/(electronic_energy(1) - h)
 
 
-  c_pert(1) = i_H_psi_array(1) /(CI_SC2_electronic_energy(1) - h)
+  c_pert(1) = i_H_psi_array(1) /(electronic_energy(1) - h)
   e_2_pert(1) = i_H_psi_array(1) * c_pert(1)
 
   do i =2,N_st
     H_pert_diag(i) = h
-    if  (dabs(CI_SC2_electronic_energy(i) - h) > 1.d-6) then
-      c_pert(i) = i_H_psi_array(i) / (-dabs(CI_SC2_electronic_energy(i) - h))
+    if  (dabs(electronic_energy(i) - h) > 1.d-6) then
+      c_pert(i) = i_H_psi_array(i) / (-dabs(electronic_energy(i) - h))
       e_2_pert(i) = (c_pert(i) * i_H_psi_array(i))
     else
       c_pert(i) = i_H_psi_array(i)
@@ -250,7 +249,7 @@ subroutine pt2_epstein_nesbet_SC2_no_projected ($arguments)
   ! 
   ! that can be repeated by repeating all the double excitations
   !
-  ! : you repeat all the correlation energy already taken into account in CI_electronic_energy(1)
+  ! : you repeat all the correlation energy already taken into account in electronic_energy(1)
   ! 
   ! that could be repeated to this determinant.
   !
@@ -280,16 +279,16 @@ subroutine pt2_epstein_nesbet_SC2_no_projected ($arguments)
   enddo
   h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
   h = h + accu_e_corr
-  delta_E = 1.d0/(CI_SC2_electronic_energy(1) - h)
+  delta_E = 1.d0/(electronic_energy(1) - h)
 
 
-  c_pert(1) = i_H_psi_array(1) /(CI_SC2_electronic_energy(1) - h)
+  c_pert(1) = i_H_psi_array(1) /(electronic_energy(1) - h)
   e_2_pert(1) = i_H_psi_array(1) * c_pert(1)
 
   do i =2,N_st
     H_pert_diag(i) = h
-    if  (dabs(CI_SC2_electronic_energy(i) - h) > 1.d-6) then
-      c_pert(i) = i_H_psi_array(i) / (-dabs(CI_SC2_electronic_energy(i) - h))
+    if  (dabs(electronic_energy(i) - h) > 1.d-6) then
+      c_pert(i) = i_H_psi_array(i) / (-dabs(electronic_energy(i) - h))
       e_2_pert(i) = (c_pert(i) * i_H_psi_array(i))
     else
       c_pert(i) = i_H_psi_array(i)
@@ -330,11 +329,11 @@ subroutine pt2_epstein_nesbet_sc2 ($arguments)
   
   h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
   do i =1,N_st
-    if(CI_SC2_electronic_energy(i)>h.and.CI_SC2_electronic_energy(i).ne.0.d0)then
+    if(electronic_energy(i)>h.and.electronic_energy(i).ne.0.d0)then
       c_pert(i) = -1.d0
       e_2_pert(i) = selection_criterion*selection_criterion_factor*2.d0
-    else if  (dabs(CI_SC2_electronic_energy(i) - h) > 1.d-6) then
-        c_pert(i) = i_H_psi_array(i) / (CI_SC2_electronic_energy(i) - h)
+    else if  (dabs(electronic_energy(i) - h) > 1.d-6) then
+        c_pert(i) = i_H_psi_array(i) / (electronic_energy(i) - h)
         H_pert_diag(i) = h*c_pert(i)*c_pert(i)
         e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
     else
@@ -350,7 +349,7 @@ end
 
 SUBST [ arguments, declarations ]
 
-det_ref,det_pert,fock_diag_tmp,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_st,minilist,idx_minilist,N_minilist ;
+electronic_energy,det_ref,det_pert,fock_diag_tmp,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_st,minilist,idx_minilist,N_minilist ;
 
     integer, intent(in)             :: Nint
     integer, intent(in)             :: ndet
@@ -359,6 +358,7 @@ det_ref,det_pert,fock_diag_tmp,c_pert,e_2_pert,H_pert_diag,Nint,ndet,N_st,minili
     integer(bit_kind), intent(in)   :: det_ref (Nint,2)
     integer(bit_kind), intent(in)   :: det_pert(Nint,2)
     double precision , intent(in)   :: fock_diag_tmp(2,mo_tot_num+1)
+    double precision , intent(in)    :: electronic_energy(N_st)
     double precision , intent(out)  :: c_pert(N_st)
     double precision , intent(out)  :: e_2_pert(N_st)
     double precision, intent(out)   :: H_pert_diag(N_st)

@@ -184,7 +184,7 @@ def ninja_ezfio_config_rule():
 
 def get_children_of_ezfio_cfg(l_module_with_ezfio_cfg):
     """
-    From a module list of ezfio_cfg return all the stuff create by him
+    From a module list of ezfio_cfg return all the stuff created by it
     """
     config_folder = join(QP_EZFIO, "config")
 

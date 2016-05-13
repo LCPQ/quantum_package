@@ -189,10 +189,10 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
   ! Davidson iterations
   ! ===================
   
-  converged = .False.
   
+  integer :: iteration
+  converged = .False.
   do while (.not.converged)
-    
     !$OMP PARALLEL DEFAULT(NONE)                                     &
         !$OMP PRIVATE(k,i) SHARED(U,u_in,sze,N_st)
     do k=1,N_st
@@ -206,6 +206,7 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
     
     do iter=1,davidson_sze_max-1
       
+
       ! Compute W_k = H |u_k>
       ! ----------------------
       

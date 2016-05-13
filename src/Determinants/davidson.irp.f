@@ -315,6 +315,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   double precision, intent(inout) :: u_in(dim_in,N_st)
   double precision, intent(out)  :: energies(N_st)
   
+  integer                        :: sze_8
   integer                        :: iter
   integer                        :: i,j,k,l,m
   logical                        :: converged
@@ -334,6 +335,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   double precision               :: to_print(2,N_st)
   double precision               :: cpu, wall
   
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: U, W, R, Wt, y, h, lambda
 
 
   call write_time(iunit)
@@ -362,12 +364,15 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   enddo
   write(iunit,'(A)') trim(write_buffer)
 
+  integer, external :: align_double
+  sze_8 = align_double(sze)
+
   allocate(                                                          &
       kl_pairs(2,N_st*(N_st+1)/2),                                   &
-      W(sze,N_st,davidson_sze_max),                                                   &
+      W(sze_8,N_st,davidson_sze_max),                                                   &
       Wt(sze),                                                        &
-      U(sze,N_st,davidson_sze_max),                                  &
-      R(sze,N_st),                                                   &
+      U(sze_8,N_st,davidson_sze_max),                                  &
+      R(sze_8,N_st),                                                   &
       h(N_st,davidson_sze_max,N_st,davidson_sze_max),                &
       y(N_st,davidson_sze_max,N_st,davidson_sze_max),                &
       lambda(N_st*davidson_sze_max))
@@ -381,39 +386,52 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   ! ==============
   
 
-  k_pairs=0
-  do l=1,N_st
-    do k=1,l
-      k_pairs+=1
-      kl_pairs(1,k_pairs) = k
-      kl_pairs(2,k_pairs) = l
-    enddo
-  enddo
-  
-  !$OMP PARALLEL DEFAULT(NONE)                                      &
-      !$OMP  SHARED(U,sze,N_st,overlap,kl_pairs,k_pairs,             &
-      !$OMP  Nint,dets_in,u_in)                                 &
-      !$OMP  PRIVATE(k,l,kl,i)
-  
-  
-  ! Orthonormalize initial guess
-  ! ============================
-  
-  !$OMP DO
-  do kl=1,k_pairs
-    k = kl_pairs(1,kl)
-    l = kl_pairs(2,kl)
-    if (k/=l) then
-      overlap(k,l) = u_dot_v(U_in(1,k),U_in(1,l),sze)
-      overlap(l,k) = overlap(k,l)
-    else
-      overlap(k,k) = u_dot_u(U_in(1,k),sze)
-    endif
-  enddo
-  !$OMP END DO
-  !$OMP END PARALLEL
+  if (N_st > 1) then 
 
-  call ortho_lowdin(overlap,size(overlap,1),N_st,U_in,size(U_in,1),sze)
+    k_pairs=0
+    do l=1,N_st
+      do k=1,l
+        k_pairs+=1
+        kl_pairs(1,k_pairs) = k
+        kl_pairs(2,k_pairs) = l
+      enddo
+    enddo
+    
+    !$OMP PARALLEL DEFAULT(NONE)                                      &
+        !$OMP  SHARED(U,sze,N_st,overlap,kl_pairs,k_pairs,             &
+        !$OMP  Nint,dets_in,u_in)                                 &
+        !$OMP  PRIVATE(k,l,kl)  
+    
+    
+    ! Orthonormalize initial guess
+    ! ============================
+    
+    !$OMP DO
+    do kl=1,k_pairs
+      k = kl_pairs(1,kl)
+      l = kl_pairs(2,kl)
+      if (k/=l) then
+        overlap(k,l) = u_dot_v(U_in(1,k),U_in(1,l),sze)
+        overlap(l,k) = overlap(k,l)
+      else
+        overlap(k,k) = u_dot_u(U_in(1,k),sze)
+      endif
+    enddo
+    !$OMP END DO
+    !$OMP END PARALLEL
+
+    call ortho_lowdin(overlap,size(overlap,1),N_st,U_in,size(U_in,1),sze)
+
+  else
+
+    overlap(1,1) = u_dot_u(U_in(1,1),sze)
+    double precision :: f
+    f = 1.d0 / dsqrt(overlap(1,1))
+    do i=1,sze
+      U_in(i,1) = U_in(i,1) * f
+    enddo
+
+  endif
   
   ! Davidson iterations
   ! ===================
@@ -473,7 +491,10 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       ! Express eigenvectors of h in the determinant basis
       ! --------------------------------------------------
       
+     !$OMP PARALLEL DEFAULT(NONE)                                     &
+        !$OMP PRIVATE(k,i,l,iter2) SHARED(U,W,R,y,iter,lambda,N_st,sze)
       do k=1,N_st
+        !$OMP DO
         do i=1,sze
           U(i,k,iter+1) = 0.d0
           W(i,k,iter+1) = 0.d0
@@ -484,7 +505,9 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
             enddo
           enddo
         enddo
+        !$OMP END DO
       enddo
+      !$OMP END PARALLEL
       
       ! Compute residual vector
       ! -----------------------
