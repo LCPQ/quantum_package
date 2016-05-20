@@ -8,23 +8,18 @@ use bitmasks
   implicit none
   integer :: gen, h, p, i_state, n, t, i, h1, h2, p1, p2, s1, s2, iproc
   integer(bit_kind) :: mask(N_int, 2), omask(N_int, 2)
-  integer(bit_kind), allocatable :: buf(:,:,:)
-  double precision, allocatable :: delta_ij_mwen(:,:,:,:), delta_ii_mwen(:,:,:)
+  integer(bit_kind) :: buf(N_int, 2, N_det_non_ref)
   logical :: ok
   logical, external :: detEq
   
   delta_ij_mrcc = 0d0
   delta_ii_mrcc = 0d0
   i_state = 1
-  provide hh_shortcut psi_det_size
-  allocate(delta_ij_mwen(N_states,N_det_non_ref,N_det_ref,nproc), delta_ii_mwen(N_states,N_det_ref,nproc))
-  allocate(buf(N_int, 2, N_det_non_ref))
-  delta_ij_mwen = 0d0
-  delta_ii_mwen = 0d0
+  provide hh_shortcut psi_det_size lambda_mrcc
   
   !$OMP PARALLEL DO default(none)  schedule(dynamic) &
   !$OMP shared(psi_det_generators, N_det_generators, hh_exists, pp_exists, N_int, hh_shortcut) &
-  !$OMP shared(N_states, N_det_non_ref, N_det_ref, delta_ii_mwen, delta_ij_mwen) &
+  !$OMP shared(N_states, N_det_non_ref, N_det_ref, delta_ii_mrcc, delta_ij_mrcc) &
   !$OMP private(h, n, mask, omask, buf, ok, iproc)
   do gen= 1, N_det_generators
     iproc = omp_get_thread_num() + 1
@@ -40,14 +35,10 @@ use bitmasks
         if(ok) n = n + 1
       end do
       n = n - 1
-      if(n /= 0) call mrcc_part_dress(delta_ij_mwen(1,1,1,iproc), delta_ii_mwen(1,1,iproc),gen,n,buf,N_int,omask)
+      if(n /= 0) call mrcc_part_dress(delta_ij_mrcc, delta_ii_mrcc,gen,n,buf,N_int,omask)
     end do
   end do
   !$OMP END PARALLEL DO
-  do iproc=1, nproc
-    delta_ij_mrcc = delta_ij_mrcc + delta_ij_mwen(:,:,:,iproc)
-    delta_ii_mrcc = delta_ii_mrcc + delta_ii_mwen(:,:,iproc)
-  end do
 END_PROVIDER
 
 
