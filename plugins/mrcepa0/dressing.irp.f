@@ -6,16 +6,28 @@ use bitmasks
 &BEGIN_PROVIDER [ double precision, delta_ii_mrcc, (N_states, N_det_ref) ]
   use bitmasks
   implicit none
-  integer :: gen, h, p, i_state, n, t, i, h1, h2, p1, p2, s1, s2
-  integer(bit_kind) :: mask(N_int, 2), omask(N_int, 2), buf(N_int, 2, N_det_non_ref)
+  integer :: gen, h, p, i_state, n, t, i, h1, h2, p1, p2, s1, s2, iproc
+  integer(bit_kind) :: mask(N_int, 2), omask(N_int, 2)
+  integer(bit_kind), allocatable :: buf(:,:,:)
+  double precision, allocatable :: delta_ij_mwen(:,:,:,:), delta_ii_mwen(:,:,:)
   logical :: ok
   logical, external :: detEq
   
   delta_ij_mrcc = 0d0
   delta_ii_mrcc = 0d0
   i_state = 1
+  provide hh_shortcut psi_det_size
+  allocate(delta_ij_mwen(N_states,N_det_non_ref,N_det_ref,nproc), delta_ii_mwen(N_states,N_det_ref,nproc))
+  allocate(buf(N_int, 2, N_det_non_ref))
+  delta_ij_mwen = 0d0
+  delta_ii_mwen = 0d0
   
+  !$OMP PARALLEL DO default(none)  schedule(dynamic) &
+  !$OMP shared(psi_det_generators, N_det_generators, hh_exists, pp_exists, N_int, hh_shortcut) &
+  !$OMP shared(N_states, N_det_non_ref, N_det_ref, delta_ii_mwen, delta_ij_mwen) &
+  !$OMP private(h, n, mask, omask, buf, ok, iproc)
   do gen= 1, N_det_generators
+    iproc = omp_get_thread_num() + 1
     print *, gen, "/", N_det_generators
     do h=1, hh_shortcut(0)
       call apply_hole(psi_det_generators(1,1,gen), hh_exists(1, h), mask, ok, N_int)
@@ -28,10 +40,21 @@ use bitmasks
         if(ok) n = n + 1
       end do
       n = n - 1
-      if(n /= 0) call mrcc_part_dress(delta_ij_mrcc, delta_ii_mrcc,gen,n,buf,N_int,omask)
+      if(n /= 0) call mrcc_part_dress(delta_ij_mwen(1,1,1,iproc), delta_ii_mwen(1,1,iproc),gen,n,buf,N_int,omask)
     end do
   end do
+  !$OMP END PARALLEL DO
+  do iproc=1, nproc
+    delta_ij_mrcc = delta_ij_mrcc + delta_ij_mwen(:,:,:,iproc)
+    delta_ii_mrcc = delta_ii_mrcc + delta_ii_mwen(:,:,iproc)
+  end do
 END_PROVIDER
+
+
+! subroutine blit(b1, b2)
+!   double precision :: b1(N_states,N_det_non_ref,N_det_ref), b2(N_states,N_det_non_ref,N_det_ref)
+!   b1 = b1 + b2
+! end subroutine
 
 
 subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffer,Nint,key_mask)
@@ -463,7 +486,7 @@ END_PROVIDER
   double precision :: Hjk, Hki, Hij, pre(N_det_ref), wall
   integer :: i_state, degree, npre, ipre(N_det_ref), npres(N_det_ref)
   
-  provide lambda_mrcc
+!   provide lambda_mrcc
   npres = 0
   delta_cas = 0d0
   call wall_time(wall)
@@ -605,8 +628,8 @@ end function
 
   call wall_time(wall)
   print *, "cepa0", wall
-  provide det_cepa0_active delta_cas lambda_mrcc
-  provide mo_bielec_integrals_in_map
+!   provide det_cepa0_active delta_cas lambda_mrcc
+!   provide mo_bielec_integrals_in_map
   allocate(idx_sorted_bit(N_det))
   
   sortRef(:,:,:) = det_ref_active(:,:,:)

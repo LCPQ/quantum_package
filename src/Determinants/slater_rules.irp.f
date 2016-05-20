@@ -139,6 +139,72 @@ subroutine decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
 end
 
 
+subroutine decode_exc_int2(exc,degree,h1,p1,h2,p2,s1,s2)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Decodes the exc arrays returned by get_excitation.
+  ! h1,h2 : Holes
+  ! p1,p2 : Particles
+  ! s1,s2 : Spins (1:alpha, 2:beta)
+  ! degree : Degree of excitation
+  END_DOC
+  integer, intent(in)            :: exc(0:2,2,2),degree
+  integer*2, intent(out)           :: h1,h2,p1,p2,s1,s2
+  ASSERT (degree > 0)
+  ASSERT (degree < 3)
+  
+  select case(degree)
+    case(2)
+      if (exc(0,1,1) == 2) then
+        h1 = exc(1,1,1)
+        h2 = exc(2,1,1)
+        p1 = exc(1,2,1)
+        p2 = exc(2,2,1)
+        s1 = 1
+        s2 = 1
+      else if (exc(0,1,2) == 2) then
+        h1 = exc(1,1,2)
+        h2 = exc(2,1,2)
+        p1 = exc(1,2,2)
+        p2 = exc(2,2,2)
+        s1 = 2
+        s2 = 2
+      else
+        h1 = exc(1,1,1)
+        h2 = exc(1,1,2)
+        p1 = exc(1,2,1)
+        p2 = exc(1,2,2)
+        s1 = 1
+        s2 = 2
+      endif
+    case(1)
+      if (exc(0,1,1) == 1) then
+        h1 = exc(1,1,1)
+        h2 = 0
+        p1 = exc(1,2,1)
+        p2 = 0
+        s1 = 1
+        s2 = 0
+      else
+        h1 = exc(1,1,2)
+        h2 = 0
+        p1 = exc(1,2,2)
+        p2 = 0
+        s1 = 2
+        s2 = 0
+      endif
+    case(0)
+      h1 = 0
+      p1 = 0
+      h2 = 0
+      p2 = 0
+      s1 = 0
+      s2 = 0
+  end select
+end
+
+
 subroutine get_double_excitation(det1,det2,exc,phase,Nint)
   use bitmasks
   implicit none
