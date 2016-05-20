@@ -112,20 +112,12 @@ END_PROVIDER
             lambda_mrcc_pt2(N_lambda_mrcc_pt2) = i
           endif
         endif
-!         j = int(lambda_mrcc(k,i) * 100)
-!         if(j < -200) j = -200
-!         if(j > 200) j = 200
-!         histo(j) += 1
       enddo
     enddo
     lambda_mrcc_pt2(0) = N_lambda_mrcc_pt2
   end if
-  
-!   do i=-200,200
-!     print *, i, histo(i)
-!   end do
   print*,'N_det_non_ref = ',N_det_non_ref
-  !print*,'Number of ignored determinants = ',i_pert_count  
+  print*,'Number of ignored determinants = ',i_pert_count  
   print*,'psi_coef_ref_ratio = ',psi_ref_coef(2,1)/psi_ref_coef(1,1)
   print*,'lambda max = ',maxval(dabs(lambda_mrcc))
 
@@ -163,6 +155,7 @@ END_PROVIDER
  call H_apply_mrcc(delta_ij,delta_ii,N_states,N_det_non_ref,N_det_ref)
 
 END_PROVIDER
+             
 
 BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]
  implicit none
@@ -288,3 +281,447 @@ subroutine diagonalize_CI_dressed(lambda)
   SOFT_TOUCH psi_coef 
 
 end
+
+
+logical function is_generable(det1, det2, Nint)
+  use bitmasks
+  implicit none
+  integer, intent(in) :: Nint
+  integer(bit_kind) :: det1(Nint, 2), det2(Nint, 2)
+  integer :: degree, f, exc(0:2, 2, 2), h1, h2, p1, p2, s1, s2, t
+  integer, external :: searchExc
+  logical, external :: excEq
+  double precision :: phase
+  
+  is_generable = .false.
+  call get_excitation(det1, det2, exc, degree, phase, Nint)
+  if(degree == -1) return
+  if(degree == 0) then
+    is_generable = .true.
+    return
+  end if
+  if(degree > 2) stop "?22??"
+  !!!!!
+!   call dec_exc(exc, h1, h2, p1, p2)
+!   f = searchExc(toutmoun(1,1), (/h1, h2, p1, p2/), hh_shortcut(hh_shortcut(0)+1)-1)
+!   !print *, toutmoun(:,1), hh_shortcut(hh_shortcut(0)+1)-1, (/h1, h2, p1, p2/)
+!   if(f /= -1) then
+!     is_generable = .true.
+!     if(.not. excEq(toutmoun(1,f), (/h1, h2, p1, p2/))) stop "????"
+!   end if
+! !   print *, f
+!   return
+  
+  call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+  
+  if(degree == 1) then
+    h2 = h1
+    p2 = p1
+    s2 = s1
+    h1 = 0
+    p1 = 0
+    s1 = 0
+  end if
+  
+  if(h1 + s1*mo_tot_num < h2 + s2*mo_tot_num) then
+    f = searchExc(hh_exists(1,1), (/s1, h1, s2, h2/),  hh_shortcut(0))
+  else
+    f = searchExc(hh_exists(1,1), (/s2, h2, s1, h1/), hh_shortcut(0))
+  end if
+  if(f == -1) return
+  
+  if(p1 + s1*mo_tot_num < p2 + s2*mo_tot_num) then
+    f = searchExc(pp_exists(1,hh_shortcut(f)), (/s1, p1, s2, p2/), hh_shortcut(f+1)-hh_shortcut(f))
+  else
+    f = searchExc(pp_exists(1,hh_shortcut(f)), (/s2, p2, s1, p1/), hh_shortcut(f+1)-hh_shortcut(f))
+  end if
+  
+  if(f /= -1) is_generable = .true.
+end function
+
+
+
+integer function searchDet(dets, det, n, Nint)
+  implicit none
+  use bitmasks
+  
+  integer(bit_kind),intent(in) :: dets(Nint,2,n), det(Nint,2)
+  integer, intent(in) :: nint, n
+  integer :: l, h, c
+  integer, external :: detCmp
+  logical, external :: detEq
+
+  l = 1
+  h = n
+  do while(.true.)
+    searchDet = (l+h)/2
+    c = detCmp(dets(1,1,searchDet), det(:,:), Nint)
+    if(c == 0) return
+    if(c == 1) then
+      h = searchDet-1
+    else
+      l = searchDet+1
+    end if
+    if(l > h) then
+      searchDet = -1
+      return
+    end if
+    
+  end do
+end function
+
+
+integer function searchExc(excs, exc, n)
+  implicit none
+  use bitmasks
+  
+  integer, intent(in) :: n
+  integer,intent(in) :: excs(4,n), exc(4)
+  integer :: l, h, c
+  integer, external :: excCmp
+  logical, external :: excEq
+
+  l = 1
+  h = n
+  do
+    searchExc = (l+h)/2
+    c = excCmp(excs(1,searchExc), exc(:))
+    if(c == 0) return
+    if(c == 1) then
+      h = searchExc-1
+    else
+      l = searchExc+1
+    end if
+    if(l > h) then
+      searchExc = -1
+      return
+    end if
+  end do
+end function
+
+
+subroutine sort_det(key, idx, N_key, Nint)
+  implicit none
+  
+
+  integer, intent(in)                   :: Nint, N_key
+  integer(8),intent(inout)       :: key(Nint,2,N_key)
+  integer,intent(out)                   :: idx(N_key)
+  integer(8)                     :: tmp(Nint, 2)
+  integer                               :: tmpidx,i,ni
+  
+  do i=1,N_key
+    idx(i) = i
+  end do
+  
+  do i=N_key/2,1,-1
+    call tamiser(key, idx, i, N_key, Nint, N_key)
+  end do
+  
+  do i=N_key,2,-1
+    do ni=1,Nint
+      tmp(ni,1) = key(ni,1,i)
+      tmp(ni,2) = key(ni,2,i)
+      key(ni,1,i) = key(ni,1,1)
+      key(ni,2,i) = key(ni,2,1)
+      key(ni,1,1) = tmp(ni,1)
+      key(ni,2,1) = tmp(ni,2)
+    enddo
+
+    tmpidx = idx(i)
+    idx(i) = idx(1)
+    idx(1) = tmpidx
+    call tamiser(key, idx, 1, i-1, Nint, N_key)
+  end do
+end subroutine 
+
+
+subroutine sort_exc(key, N_key)
+  implicit none
+  
+
+  integer, intent(in)                   :: N_key
+  integer,intent(inout)       :: key(4,N_key)
+  integer                     :: tmp(4)
+  integer                               :: i,ni
+  
+  
+  do i=N_key/2,1,-1
+    call tamise_exc(key, i, N_key, N_key)
+  end do
+  
+  do i=N_key,2,-1
+    do ni=1,4
+      tmp(ni) = key(ni,i)
+      key(ni,i) = key(ni,1)
+      key(ni,1) = tmp(ni)
+    enddo
+
+    call tamise_exc(key, 1, i-1, N_key)
+  end do
+end subroutine 
+
+
+logical function exc_inf(exc1, exc2)
+  implicit none
+  integer,intent(in) :: exc1(4), exc2(4)
+  integer :: i
+  exc_inf = .false.
+  do i=1,4
+    if(exc1(i) < exc2(i)) then
+      exc_inf = .true.
+      return
+    else if(exc1(i) > exc2(i)) then
+      return
+    end if
+  end do
+end function
+
+
+subroutine tamise_exc(key, no, n, N_key)
+  use bitmasks
+  implicit none
+  
+  BEGIN_DOC
+! Uncodumented : TODO
+  END_DOC
+  integer,intent(in)                    :: no, n, N_key
+  integer,intent(inout)       :: key(4, N_key)
+  integer                               :: k,j
+  integer                    :: tmp(4)
+  logical                               :: exc_inf
+  integer                               :: ni
+  
+  k = no
+  j = 2*k
+  do while(j <= n)
+    if(j < n) then
+      if (exc_inf(key(1,j), key(1,j+1))) then
+        j = j+1
+      endif
+    endif
+    if(exc_inf(key(1,k), key(1,j))) then
+      do ni=1,4
+        tmp(ni)   = key(ni,k)
+        key(ni,k) = key(ni,j)
+        key(ni,j) = tmp(ni)
+      enddo
+      k = j
+      j = k+k
+    else
+      return
+    endif
+  enddo
+end subroutine
+
+
+subroutine dec_exc(exc, h1, h2, p1, p2)
+  implicit none
+  integer :: exc(0:2,2,2), s1, s2, degree
+  integer, intent(out) :: h1, h2, p1, p2
+  
+  degree = exc(0,1,1) + exc(0,1,2)
+  
+  h1 = 0
+  h2 = 0
+  p1 = 0
+  p2 = 0
+    
+  if(degree == 0) return
+  
+  call decode_exc(exc, degree, h1, p1, h2, p2, s1, s2)
+  
+  h1 += mo_tot_num * (s1-1)
+  p1 += mo_tot_num * (s1-1)
+  
+  if(degree == 2) then
+    h2 += mo_tot_num * (s2-1)
+    p2 += mo_tot_num * (s2-1)
+    if(h1 > h2) then
+      s1 = h1
+      h1 = h2
+      h2 = s1
+    end if
+    if(p1 > p2) then
+      s1 = p1
+      p1 = p2
+      p2 = s1
+    end if
+  else
+    h2 = h1
+    p2 = p1
+    p1 = 0
+    h1 = 0
+  end if
+end subroutine
+
+
+ BEGIN_PROVIDER [ integer, hh_exists, (4, N_det_ref * N_det_non_ref) ]
+&BEGIN_PROVIDER [ integer, hh_shortcut, (0:N_det_ref * N_det_non_ref + 1) ]
+&BEGIN_PROVIDER [ integer, pp_exists, (4, N_det_ref * N_det_non_ref) ]
+  implicit none
+  integer,allocatable :: num(:,:)
+  integer :: exc(0:2, 2, 2), degree, n, on, s, h1, h2, p1, p2, l, i
+  double precision :: phase
+  logical, external :: excEq
+  
+  allocate(num(4, N_det_ref * N_det_non_ref))
+  
+  hh_shortcut = 0
+  hh_exists = 0
+  pp_exists = 0
+  num = 0
+  
+  n = 0
+  do i=1, N_det_ref
+    do l=1, N_det_non_ref
+      call get_excitation(psi_ref(1,1,i), psi_non_ref(1,1,l), exc, degree, phase, N_int)
+      if(degree == -1) cycle
+      call dec_exc(exc, h1, h2, p1, p2)
+      n += 1
+      num(:, n) = (/h1, h2, p1, p2/)
+    end do
+  end do
+  
+  call sort_exc(num, n)
+  
+  hh_shortcut(0) = 1
+  hh_shortcut(1) = 1
+  hh_exists(:,1) = (/1, num(1,1), 1, num(2,1)/)
+  pp_exists(:,1) = (/1, num(3,1), 1, num(4,1)/)
+  s = 1
+  do i=2,n
+    if(.not. excEq(num(1,i), num(1,s))) then
+      s += 1
+      num(:, s) = num(:, i)
+      pp_exists(:,s) = (/1, num(3,s), 1, num(4,s)/)
+      if(hh_exists(2, hh_shortcut(0)) /= num(1,s) .or. &
+            hh_exists(4, hh_shortcut(0)) /= num(2,s)) then
+        hh_shortcut(0) += 1
+        hh_shortcut(hh_shortcut(0)) = s
+        hh_exists(:,hh_shortcut(0)) = (/1, num(1,s), 1, num(2,s)/)
+      end if
+    end if
+  end do
+  hh_shortcut(hh_shortcut(0)+1) = s+1
+  
+  do s=2,4,2
+    do i=1,hh_shortcut(0)
+      if(hh_exists(s, i) == 0) then
+        hh_exists(s-1, i) = 0
+      else if(hh_exists(s, i) > mo_tot_num) then
+        hh_exists(s, i) -= mo_tot_num
+        hh_exists(s-1, i) = 2
+      end if
+    end do
+    
+    do i=1,hh_shortcut(hh_shortcut(0)+1)-1
+      if(pp_exists(s, i) == 0) then
+        pp_exists(s-1, i) = 0
+      else if(pp_exists(s, i) > mo_tot_num) then
+        pp_exists(s, i) -= mo_tot_num
+        pp_exists(s-1, i) = 2
+      end if
+    end do
+  end do
+END_PROVIDER
+
+
+logical function excEq(exc1, exc2)
+  implicit none
+  integer, intent(in) :: exc1(4), exc2(4)
+  integer :: i
+  excEq = .false.
+  do i=1, 4
+    if(exc1(i) /= exc2(i)) return
+  end do
+  excEq = .true.
+end function
+
+
+integer function excCmp(exc1, exc2)
+  implicit none
+  integer, intent(in) :: exc1(4), exc2(4)
+  integer :: i
+  excCmp = 0
+  do i=1, 4
+    if(exc1(i) > exc2(i)) then
+      excCmp = 1
+      return
+    else if(exc1(i) < exc2(i)) then
+      excCmp = -1
+      return
+    end if
+  end do
+end function
+
+
+subroutine apply_hole(det, exc, res, ok, Nint)
+  use bitmasks
+  implicit none
+  integer, intent(in) :: Nint
+  integer, intent(in) :: exc(4)
+  integer :: s1, s2, h1, h2
+  integer(bit_kind),intent(in) :: det(Nint, 2)
+  integer(bit_kind),intent(out) :: res(Nint, 2)
+  logical, intent(out) :: ok
+  integer :: ii, pos
+  
+  ok = .false.
+  s1 = exc(1)
+  h1 = exc(2)
+  s2 = exc(3)
+  h2 = exc(4)
+  res = det
+  
+  if(h1 /= 0) then
+  ii = (h1-1)/bit_kind_size + 1 
+  pos = mod(h1-1, 64)!iand(h1-1,bit_kind_size-1) ! mod 64
+  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
+  res(ii, s1) = ibclr(res(ii, s1), pos)
+  end if
+  
+    ii = (h2-1)/bit_kind_size + 1 
+    pos = mod(h2-1, 64)!iand(h2-1,bit_kind_size-1)
+    if(iand(det(ii, s2), ishft(1_bit_kind, pos)) == 0_8) return
+    res(ii, s2) = ibclr(res(ii, s2), pos)
+
+  
+  ok = .true.
+end subroutine
+
+
+subroutine apply_particle(det, exc, res, ok, Nint)
+  use bitmasks
+  implicit none
+  integer, intent(in) :: Nint
+  integer, intent(in) :: exc(4)
+  integer :: s1, s2, p1, p2
+  integer(bit_kind),intent(in) :: det(Nint, 2)
+  integer(bit_kind),intent(out) :: res(Nint, 2)
+  logical, intent(out) :: ok
+  integer :: ii, pos 
+  
+  ok = .false.
+  s1 = exc(1)
+  p1 = exc(2)
+  s2 = exc(3)
+  p2 = exc(4)
+  res = det 
+  
+  if(p1 /= 0) then
+  ii = (p1-1)/bit_kind_size + 1 
+  pos = mod(p1-1, 64)!iand(p1-1,bit_kind_size-1)
+  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) return
+  res(ii, s1) = ibset(res(ii, s1), pos)
+  end if
+
+    ii = (p2-1)/bit_kind_size + 1 
+    pos = mod(p2-1, 64)!iand(p2-1,bit_kind_size-1)
+    if(iand(det(ii, s2), ishft(1_bit_kind, pos)) /= 0_8) return
+    res(ii, s2) = ibset(res(ii, s2), pos)
+
+  
+  ok = .true.
+end subroutine
+

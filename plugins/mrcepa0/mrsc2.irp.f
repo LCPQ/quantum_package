@@ -3,9 +3,8 @@ program mrsc2
   double precision, allocatable  :: energy(:)
   allocate (energy(N_states))
   
-  !mrmode : 1=mrcepa0, 2=mrsc2 add, 3=mrsc2 sub
+  !mrmode : 1=mrcepa0, 2=mrsc2 add, 3=mrcc
   mrmode = 2
-  
   read_wf = .True.
   SOFT_TOUCH read_wf
   call print_cas_coefs

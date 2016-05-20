@@ -914,7 +914,6 @@ subroutine create_minilist_find_previous(key_mask, fullList, miniList, N_fullLis
   fullMatch = .false.
   N_miniList = 0
   N_subList = 0
-    
   l = popcnt(key_mask(1,1)) + popcnt(key_mask(1,2))
   do ni = 2,Nint
     l = l + popcnt(key_mask(ni,1)) + popcnt(key_mask(ni,2))
@@ -947,8 +946,13 @@ subroutine create_minilist_find_previous(key_mask, fullList, miniList, N_fullLis
           miniList(ni,2,N_minilist) = fullList(ni,2,i)
         enddo
       else if(k == 0) then
-        fullMatch = .true.
-        return
+        N_minilist += 1
+        do ni=1,Nint
+          miniList(ni,1,N_minilist) = fullList(ni,1,i)
+          miniList(ni,2,N_minilist) = fullList(ni,2,i)
+        enddo
+!         fullMatch = .true.
+!         return
       end if
     end do
   end if

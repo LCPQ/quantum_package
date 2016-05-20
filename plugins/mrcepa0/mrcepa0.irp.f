@@ -3,7 +3,7 @@ program mrcepa0
   double precision, allocatable  :: energy(:)
   allocate (energy(N_states))
   
-  !mrmode : 1=mrcepa0, 2=mrsc2 add, 3=mrsc2 sub
+  !mrmode : 1=mrcepa0, 2=mrsc2 add, 3=mrcc
   mrmode = 1
   
   read_wf = .True.

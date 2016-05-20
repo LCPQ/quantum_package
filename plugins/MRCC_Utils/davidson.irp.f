@@ -269,7 +269,7 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
         to_print(2,k) = residual_norm(k)
       enddo
 
-      write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))'), iter, to_print(:,1:N_st)
+      write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))') iter, to_print(:,1:N_st)
       call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
       if (converged) then
         exit

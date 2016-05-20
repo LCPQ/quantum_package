@@ -15,6 +15,7 @@ subroutine run(N_st,energy)
   integer :: n_it_mrcc_max
   double precision :: thresh_mrcc
   
+
   thresh_mrcc = 1d-7
   n_it_mrcc_max = 10
 

@@ -1,233 +1,37 @@
 use bitmasks
 
 
-subroutine dec_exc(exc, h1, h2, p1, p2)
-  implicit none
-  integer :: exc(0:2,2,2), s1, s2, degree
-  integer, intent(out) :: h1, h2, p1, p2
-  
-  degree = exc(0,1,1) + exc(0,1,2)
-  
-  h1 = 0
-  h2 = 0
-  p1 = 0
-  p2 = 0
-    
-  if(degree == 0) return
-  
-  call decode_exc(exc, degree, h1, p1, h2, p2, s1, s2)
-  
-  h1 += mo_tot_num * (s1-1)
-  p1 += mo_tot_num * (s1-1)
-  
-  if(degree == 2) then
-    h2 += mo_tot_num * (s2-1)
-    p2 += mo_tot_num * (s2-1)
-    if(h1 > h2) then
-      s1 = h1
-      h1 = h2
-      h2 = s1
-    end if
-    if(p1 > p2) then
-      s1 = p1
-      p1 = p2
-      p2 = s1
-    end if
-  else
-    h2 = h1
-    p2 = p1
-    p1 = 0
-    h1 = 0
-  end if
-end subroutine
-
-
-
- BEGIN_PROVIDER [ integer, hh_exists, (4, N_det_ref * N_det_non_ref) ]
-&BEGIN_PROVIDER [ integer, hh_shortcut, (0:N_det_ref * N_det_non_ref + 1) ]
-&BEGIN_PROVIDER [ integer, pp_exists, (4, N_det_ref * N_det_non_ref) ]
-  implicit none
-  integer :: num(0:mo_tot_num*2, 0:mo_tot_num*2)
-  integer :: exc(0:2, 2, 2), degree, n, on, s, h1, h2, p1, p2, l, i
-  double precision :: phase
-  
-  hh_shortcut = 0
-  hh_exists = 0
-  pp_exists = 0
-  num = 0
-  
-  do i=1, N_det_ref
-    do l=1, N_det_non_ref
-      call get_excitation(psi_ref(1,1,i), psi_non_ref(1,1,l), exc, degree, phase, N_int)
-      if(degree == -1) cycle
-      call dec_exc(exc, h1, h2, p1, p2)
-      num(h1, h2) += 1
-    end do
-  end do
-  
-  n = 1
-  do l=0,mo_tot_num*2
-  do i=0,l
-    on = num(i,l)
-    if(on /= 0) then
-      hh_shortcut(0) += 1
-      hh_shortcut(hh_shortcut(0)) = n
-      hh_exists(:, hh_shortcut(0)) = (/1, i, 1, l/)
-    end if
-    
-    num(i,l) = n
-    n += on
-  end do
-  end do
-  
-  hh_shortcut(hh_shortcut(0)+1) = n
-  
-  do i=1, N_det_ref
-    do l=1, N_det_non_ref
-      call get_excitation(psi_ref(1,1,i), psi_non_ref(1,1,l), exc, degree, phase, N_int)
-      if(degree == -1) cycle
-      call dec_exc(exc, h1, h2, p1, p2)
-      pp_exists(:, num(h1, h2)) = (/1,p1,1,p2/)
-      num(h1, h2) += 1
-    end do
-  end do
-  
-  do s=2,4,2
-    do i=1,hh_shortcut(0)
-      if(hh_exists(s, i) == 0) then
-        hh_exists(s-1, i) = 0
-      else if(hh_exists(s, i) > mo_tot_num) then
-        hh_exists(s, i) -= mo_tot_num
-        hh_exists(s-1, i) = 2
-      end if
-    end do
-    
-    do i=1,hh_shortcut(hh_shortcut(0)+1)-1
-      if(pp_exists(s, i) == 0) then
-        pp_exists(s-1, i) = 0
-      else if(pp_exists(s, i) > mo_tot_num) then
-        pp_exists(s, i) -= mo_tot_num
-        pp_exists(s-1, i) = 2
-      end if
-    end do
-  end do
-  
-END_PROVIDER
-
-
-
-
-subroutine apply_hole(det, exc, res, ok, Nint)
-  use bitmasks
-  implicit none
-  integer, intent(in) :: Nint
-  integer, intent(in) :: exc(4)
-  integer :: s1, s2, h1, h2
-  integer(bit_kind),intent(in) :: det(Nint, 2)
-  integer(bit_kind),intent(out) :: res(Nint, 2)
-  logical, intent(out) :: ok
-  integer :: ii, pos
-  
-  ok = .false.
-  s1 = exc(1)
-  h1 = exc(2)
-  s2 = exc(3)
-  h2 = exc(4)
-  res = det
-  
-  if(h1 /= 0) then
-  ii = (h1-1)/bit_kind_size + 1 
-  pos = mod(h1-1, 64)!iand(h1-1,bit_kind_size-1) ! mod 64
-  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
-  res(ii, s1) = ibclr(res(ii, s1), pos)
-  end if
-  
-    ii = (h2-1)/bit_kind_size + 1 
-    pos = mod(h2-1, 64)!iand(h2-1,bit_kind_size-1)
-    if(iand(det(ii, s2), ishft(1_bit_kind, pos)) == 0_8) return
-    res(ii, s2) = ibclr(res(ii, s2), pos)
-
-  
-  ok = .true.
-end subroutine
-
-
-subroutine apply_particle(det, exc, res, ok, Nint)
-  use bitmasks
-  implicit none
-  integer, intent(in) :: Nint
-  integer, intent(in) :: exc(4)
-  integer :: s1, s2, p1, p2
-  integer(bit_kind),intent(in) :: det(Nint, 2)
-  integer(bit_kind),intent(out) :: res(Nint, 2)
-  logical, intent(out) :: ok
-  integer :: ii, pos 
-  
-  ok = .false.
-  s1 = exc(1)
-  p1 = exc(2)
-  s2 = exc(3)
-  p2 = exc(4)
-  res = det 
-  
-  if(p1 /= 0) then
-  ii = (p1-1)/bit_kind_size + 1 
-  pos = mod(p1-1, 64)!iand(p1-1,bit_kind_size-1)
-  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) return
-  res(ii, s1) = ibset(res(ii, s1), pos)
-  end if
-
-    ii = (p2-1)/bit_kind_size + 1 
-    pos = mod(p2-1, 64)!iand(p2-1,bit_kind_size-1)
-    if(iand(det(ii, s2), ishft(1_bit_kind, pos)) /= 0_8) return
-    res(ii, s2) = ibset(res(ii, s2), pos)
-
-  
-  ok = .true.
-end subroutine
-
 
  BEGIN_PROVIDER [ double precision, delta_ij_mrcc, (N_states,N_det_non_ref,N_det_ref) ]
 &BEGIN_PROVIDER [ double precision, delta_ii_mrcc, (N_states, N_det_ref) ]
   use bitmasks
   implicit none
-  integer :: gen, h, p, i_state, n, t
+  integer :: gen, h, p, i_state, n, t, i, h1, h2, p1, p2, s1, s2
   integer(bit_kind) :: mask(N_int, 2), omask(N_int, 2), buf(N_int, 2, N_det_non_ref)
   logical :: ok
+  logical, external :: detEq
   
   delta_ij_mrcc = 0d0
   delta_ii_mrcc = 0d0
   i_state = 1
   
-  do gen=1, N_det_generators
-    !print *, gen, "/", N_det_generators
+  do gen= 1, N_det_generators
+    print *, gen, "/", N_det_generators
     do h=1, hh_shortcut(0)
       call apply_hole(psi_det_generators(1,1,gen), hh_exists(1, h), mask, ok, N_int)
       if(.not. ok) cycle
-      omask = 0
+      omask = 0_bit_kind
       if(hh_exists(1, h) /= 0) omask = mask
-      !-459.6378590456251
-      !-199.0659502581943
       n = 1
-      ploop : do p=hh_shortcut(h), hh_shortcut(h+1)-1
-        
-        do t=hh_shortcut(h), p-1
-          if(pp_exists(1, p) == pp_exists(1,t) .and. &
-              pp_exists(2, p) == pp_exists(2,t) .and. &
-              pp_exists(3, p) == pp_exists(3,t) .and. &
-              pp_exists(4, p) == pp_exists(4,t)) cycle ploop
-        end do
+      do p=hh_shortcut(h), hh_shortcut(h+1)-1
         call apply_particle(mask, pp_exists(1, p), buf(1,1,n), ok, N_int)
-        !-459.6379081607463
-        !-199.0659982685706
         if(ok) n = n + 1
-      end do ploop
+      end do
       n = n - 1
       if(n /= 0) call mrcc_part_dress(delta_ij_mrcc, delta_ii_mrcc,gen,n,buf,N_int,omask)
     end do
   end do
 END_PROVIDER
-
 
 
 subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffer,Nint,key_mask)
@@ -258,7 +62,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
   integer                        :: i_state, k_sd, l_sd, i_I, i_alpha
   
   integer(bit_kind),allocatable  :: miniList(:,:,:)
-  integer(bit_kind),intent(in)   :: key_mask(Nint, 2)
+  integer(bit_kind)              :: key_mask(Nint, 2)
   integer,allocatable            :: idx_miniList(:)
   integer                        :: N_miniList, ni, leng
   double precision, allocatable  :: hij_cache(:)
@@ -266,18 +70,18 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
   integer(bit_kind), allocatable :: microlist(:,:,:), microlist_zero(:,:,:)
   integer, allocatable           :: idx_microlist(:), N_microlist(:), ptr_microlist(:), idx_microlist_zero(:)
   integer :: mobiles(2), smallerlist
-  
-  
-  
+  logical, external :: detEq, is_generable
+
+
   leng = max(N_det_generators, N_det_non_ref)
   allocate(miniList(Nint, 2, leng), idx_minilist(leng), hij_cache(N_det_non_ref))
   
   !create_minilist_find_previous(key_mask, fullList, miniList, N_fullList, N_miniList, fullMatch, Nint)
   call create_minilist_find_previous(key_mask, psi_det_generators, miniList, i_generator-1, N_miniList, fullMatch, Nint)
   
-  if(fullMatch) then
-    return
-  end if
+!   if(fullMatch) then
+!     return
+!   end if
   
   allocate(ptr_microlist(0:mo_tot_num*2+1),  &
       N_microlist(0:mo_tot_num*2) )
@@ -286,9 +90,9 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
   
   if(key_mask(1,1) /= 0) then
     call create_microlist(miniList, N_minilist, key_mask, microlist, idx_microlist, N_microlist, ptr_microlist, Nint)
-    call find_triples_and_quadruples_micro(i_generator,n_selected,det_buffer,Nint,tq,N_tq,microlist,ptr_microlist,N_microlist,key_mask)
+    call filter_tq_micro(i_generator,n_selected,det_buffer,Nint,tq,N_tq,microlist,ptr_microlist,N_microlist,key_mask)
   else
-    call find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_minilist)
+    call filter_tq(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_minilist)
   end if
   
   
@@ -332,7 +136,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
       
  
   do i_alpha=1,N_tq
-    if(key_mask(1,1) /= 0) then
+   if(key_mask(1,1) /= 0) then
       call getMobiles(tq(1,1,i_alpha), key_mask, mobiles, Nint) 
       
       if(N_microlist(mobiles(1)) < N_microlist(mobiles(2))) then
@@ -463,26 +267,27 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
         enddo
       enddo
       call omp_set_lock( psi_ref_lock(i_I) )
+
       do i_state=1,N_states
         if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5)then
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
-              delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
-              delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
+            delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
+            delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
           enddo
         else
           delta_ii_(i_state,i_I)  = 0.d0
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
-              delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
+            delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
           enddo
         endif
       enddo
       call omp_unset_lock( psi_ref_lock(i_I) )
     enddo
   enddo
-  !deallocate (dIa_hla,hij_cache)
-  !deallocate(miniList, idx_miniList)
+  deallocate (dIa_hla,hij_cache)
+  deallocate(miniList, idx_miniList)
 end
 
 
@@ -494,29 +299,30 @@ end
   implicit none
   integer :: i, j, i_state
   
-  !mrmode : 1=mrcepa0, 2=mrsc2 add, 3=mrsc2 sub
+  !mrmode : 1=mrcepa0, 2=mrsc2 add, 3=mrcc
   
   do i_state = 1, N_states
     if(mrmode == 3) then
-      do i = 1, N_det_ref
-        delta_ii(i_state,i)= delta_mrcepa0_ii(i,i_state) - delta_sub_ii(i,i_state)
-        do j = 1, N_det_non_ref
-          delta_ij(i_state,j,i) = delta_mrcepa0_ij(i,j,i_state) - delta_sub_ij(i,j,i_state)
-        end do
+    do i = 1, N_det_ref
+      delta_ii(i_state,i)= delta_ii_mrcc(i_state,i)
+      do j = 1, N_det_non_ref
+        delta_ij(i_state,j,i) = delta_ij_mrcc(i_state,j,i)
       end do
-    else if(mrmode == 2) then
-      do i = 1, N_det_ref
-        delta_ii(i_state,i)= delta_ii_mrcc(i_state,i)
-        do j = 1, N_det_non_ref
-          delta_ij(i_state,j,i) = delta_ij_mrcc(i_state,j,i)
-        end do
-      end do
+    end do
+!       
 !       do i = 1, N_det_ref
-!         delta_ii(i_state,i)= delta_ii_old(i_state,i)
+!         delta_ii(i_state,i)= delta_mrcepa0_ii(i,i_state) - delta_sub_ii(i,i_state)
 !         do j = 1, N_det_non_ref
-!           delta_ij(i_state,j,i) = delta_ij_old(i_state,j,i)
+!           delta_ij(i_state,j,i) = delta_mrcepa0_ij(i,j,i_state) - delta_sub_ij(i,j,i_state)
 !         end do
 !       end do
+    else if(mrmode == 2) then
+      do i = 1, N_det_ref
+        delta_ii(i_state,i)= delta_ii_old(i_state,i)
+        do j = 1, N_det_non_ref
+          delta_ij(i_state,j,i) = delta_ij_old(i_state,j,i)
+        end do
+      end do
     else if(mrmode == 1) then
       do i = 1, N_det_ref
         delta_ii(i_state,i)= delta_mrcepa0_ii(i,i_state)
@@ -646,7 +452,6 @@ END_PROVIDER
     end do
     end do
   end do
-  
   print *, "pre done"
 END_PROVIDER
 
@@ -708,21 +513,6 @@ END_PROVIDER
  END_PROVIDER
  
  
-logical function detEq(a,b,Nint)
-   use bitmasks
-   implicit none
-   integer, intent(in) :: Nint
-   integer(bit_kind), intent(in) :: a(Nint,2), b(Nint,2)
-   integer :: ni, i
- 
-   detEq = .false.
-   do i=1,2
-   do ni=1,Nint
-     if(a(ni,i) /= b(ni,i)) return
-   end do
-   end do
-   detEq = .true.
-end function
 
 
 logical function isInCassd(a,Nint)
@@ -792,106 +582,6 @@ subroutine getHP(a,h,p,Nint)
   h = deg
   !isInCassd = .true.
 end function
-
-integer function detCmp(a,b,Nint)
-   use bitmasks
-   implicit none
-   integer, intent(in) :: Nint
-   integer(bit_kind), intent(in) :: a(Nint,2), b(Nint,2)
-   integer :: ni, i
- 
-   detCmp = 0
-   do i=1,2
-   do ni=Nint,1,-1
-   
-     if(a(ni,i) < b(ni,i)) then
-       detCmp = -1
-       return
-     else if(a(ni,i) > b(ni,i)) then
-       detCmp = 1
-       return
-     end if
-     
-   end do
-   end do
-end function
-
-
-integer function searchDet(dets, det, n, Nint)
-  implicit none
-  use bitmasks
-  
-  integer(bit_kind),intent(in) :: dets(Nint,2,n), det(Nint,2)
-  integer, intent(in) :: nint, n
-  integer :: l, h, c
-  integer, external :: detCmp
-  logical, external :: detEq
-
-  !do l=1,n
-  !  if(detEq(det(1,1), dets(1,1,l),Nint)) then
-  !    searchDet = l
-  !    return
-  !  end if
-  !end do
-  !searchDet = -1
-  !return
-
-
-  l = 1
-  h = n
-  do while(.true.)
-    searchDet = (l+h)/2
-    c = detCmp(dets(1,1,searchDet), det(:,:), Nint)
-    if(c == 0) return
-    if(c == 1) then
-      h = searchDet-1
-    else
-      l = searchDet+1
-    end if
-    if(l > h) then
-      searchDet = -1
-      return
-    end if
-    
-  end do
-end function
-
-
-subroutine sort_det(key, idx, N_key, Nint)
-  implicit none
-  
-
-  integer, intent(in)                   :: Nint, N_key
-  integer(8),intent(inout)       :: key(Nint,2,N_key)
-  integer,intent(out)                   :: idx(N_key)
-  integer(8)                     :: tmp(Nint, 2)
-  integer                               :: tmpidx,i,ni
-  
-  do i=1,N_key
-    idx(i) = i
-  end do
-  
-  do i=N_key/2,1,-1
-    call tamiser(key, idx, i, N_key, Nint, N_key)
-  end do
-  
-  do i=N_key,2,-1
-    do ni=1,Nint
-      tmp(ni,1) = key(ni,1,i)
-      tmp(ni,2) = key(ni,2,i)
-      key(ni,1,i) = key(ni,1,1)
-      key(ni,2,i) = key(ni,2,1)
-      key(ni,1,1) = tmp(ni,1)
-      key(ni,2,1) = tmp(ni,2)
-    enddo
-
-    tmpidx = idx(i)
-    idx(i) = idx(1)
-    idx(1) = tmpidx
-    call tamiser(key, idx, 1, i-1, Nint, N_key)
-  end do
-end subroutine 
-
 
 
  BEGIN_PROVIDER [ double precision, delta_mrcepa0_ij, (N_det_ref,N_det_non_ref,N_states) ]
@@ -1116,6 +806,7 @@ end subroutine
 
 
 BEGIN_PROVIDER [ double precision, h_, (N_det_ref,N_det_non_ref) ]
+  implicit none
   integer :: i,j
   do i=1,N_det_ref
   do j=1,N_det_non_ref
@@ -1123,5 +814,137 @@ BEGIN_PROVIDER [ double precision, h_, (N_det_ref,N_det_non_ref) ]
   end do
   end do
 END_PROVIDER
+
+
+
+subroutine filter_tq(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_miniList)
+
+ use bitmasks
+ implicit none
+
+  integer, intent(in)            :: i_generator,n_selected, Nint
+
+  integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
+  integer                        :: i,j,k,m
+  logical                        :: is_in_wavefunction
+  integer                        :: degree(psi_det_size)
+  integer                        :: idx(0:psi_det_size)
+  logical                        :: good
+
+  integer(bit_kind), intent(out) :: tq(Nint,2,n_selected)
+  integer, intent(out)           :: N_tq
+  
+  integer                        :: nt,ni
+  logical, external              :: is_connected_to, is_generable
+  
+  integer(bit_kind),intent(in)  :: miniList(Nint,2,N_det_generators)
+  integer,intent(in)            :: N_miniList
+  
+  
+  N_tq = 0
+
+  i_loop : do i=1,N_selected
+    do k=1, N_minilist
+      if(is_generable(miniList(1,1,k), det_buffer(1,1,i), Nint)) cycle i_loop
+    end do
+
+    ! Select determinants that are triple or quadruple excitations
+    ! from the ref
+    good = .True.
+    call get_excitation_degree_vector(psi_ref,det_buffer(1,1,i),degree,Nint,N_det_ref,idx) 
+    !good=(idx(0) == 0) tant que degree > 2 pas retourné par get_excitation_degree_vector
+    do k=1,idx(0)
+      if (degree(k) < 3) then
+        good = .False.
+        exit
+      endif
+    enddo
+    if (good) then
+      if (.not. is_in_wavefunction(det_buffer(1,1,i),Nint)) then
+        N_tq += 1
+        do k=1,N_int
+          tq(k,1,N_tq) = det_buffer(k,1,i)
+          tq(k,2,N_tq) = det_buffer(k,2,i)
+        enddo
+      endif
+    endif
+  enddo i_loop
+end
+
+
+subroutine filter_tq_micro(i_generator,n_selected,det_buffer,Nint,tq,N_tq,microlist,ptr_microlist,N_microlist,key_mask)
+
+ use bitmasks
+ implicit none
+
+  integer, intent(in)            :: i_generator,n_selected, Nint
+
+  integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
+  integer                        :: i,j,k,m
+  logical                        :: is_in_wavefunction
+  integer                        :: degree(psi_det_size)
+  integer                        :: idx(0:psi_det_size)
+  logical                        :: good
+
+  integer(bit_kind), intent(out) :: tq(Nint,2,n_selected)
+  integer, intent(out)           :: N_tq
+  
+  integer                        :: nt,ni
+  logical, external              :: is_connected_to, is_generable
+
+  integer(bit_kind),intent(in)  :: microlist(Nint,2,*)
+  integer,intent(in)  :: ptr_microlist(0:*)
+  integer,intent(in)            :: N_microlist(0:*)
+  integer(bit_kind),intent(in)   :: key_mask(Nint, 2)
+  
+  integer :: mobiles(2), smallerlist
+  
+  
+  N_tq = 0
+  
+  i_loop : do i=1,N_selected
+    call getMobiles(det_buffer(1,1,i), key_mask, mobiles, Nint) 
+    if(N_microlist(mobiles(1)) < N_microlist(mobiles(2))) then
+      smallerlist = mobiles(1)
+    else
+      smallerlist = mobiles(2)
+    end if
+    
+    if(N_microlist(smallerlist) > 0) then
+      do k=ptr_microlist(smallerlist), ptr_microlist(smallerlist)+N_microlist(smallerlist)-1
+        if(is_generable(microlist(1,1,k), det_buffer(1,1,i), Nint)) cycle i_loop
+      end do
+    end if
+    
+    if(N_microlist(0) > 0) then
+      do k=1, N_microlist(0)
+        if(is_generable(microlist(1,1,k), det_buffer(1,1,i), Nint)) cycle i_loop
+      end do
+    end if
+
+    ! Select determinants that are triple or quadruple excitations
+    ! from the ref
+    good = .True.
+    call get_excitation_degree_vector(psi_ref,det_buffer(1,1,i),degree,Nint,N_det_ref,idx) 
+    !good=(idx(0) == 0) tant que degree > 2 pas retourné par get_excitation_degree_vector
+    do k=1,idx(0)
+      if (degree(k) < 3) then
+        good = .False.
+        exit
+      endif
+    enddo
+    if (good) then
+      if (.not. is_in_wavefunction(det_buffer(1,1,i),Nint)) then
+        N_tq += 1
+        do k=1,N_int
+          tq(k,1,N_tq) = det_buffer(k,1,i)
+          tq(k,2,N_tq) = det_buffer(k,2,i)
+        enddo
+      endif
+    endif
+  enddo i_loop
+end
+
+
 
 
