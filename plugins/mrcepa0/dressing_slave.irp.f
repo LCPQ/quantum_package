@@ -42,17 +42,18 @@ subroutine mrsc2_dressing_slave(thread,iproc)
 
 
   integer                         :: i_state, i, i_I, J, k, k2, k1, kk, ll, degree, degree2, m, l, deg, ni, m2
-  integer                         :: idx(N_det_non_ref, 2), n(2)
+  integer                         :: n(2)
   integer                         :: p1,p2,h1,h2,s1,s2, blok, I_s, J_s, kn
   logical                         :: ok
   double precision                :: phase_iI, phase_Ik, phase_Jl, phase_Ji, phase_al
   double precision                :: diI, hIi, hJi, delta_JI, dkI, HkI, ci_inv(N_states), cj_inv(N_states)
-  double precision                :: contrib, wall, iwall, dleat(N_states,N_det_non_ref,2)
+  double precision                :: contrib, wall, iwall
+  double precision, allocatable   :: dleat(:,:,:)
   integer, dimension(0:2,2,2)     :: exc_iI, exc_Ik, exc_IJ
   integer(bit_kind)               :: det_tmp(N_int, 2), det_tmp2(N_int, 2), inac, virt
   integer, external               :: get_index_in_psi_det_sorted_bit, searchDet, detCmp
   logical, external               :: is_in_wavefunction, isInCassd, detEq
-  integer :: komon(0:N_det_non_ref)
+  integer,allocatable :: komon(:)
   logical :: komoned
 
      
@@ -61,8 +62,8 @@ subroutine mrsc2_dressing_slave(thread,iproc)
 
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
 
-  allocate (delta(N_states,0:N_det_non_ref, 2))
-
+  allocate (dleat(N_states, N_det_non_ref, 2), delta(N_states,0:N_det_non_ref, 2))
+  allocate(komon(0:N_det_non_ref))
 
   do 
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task)
@@ -219,12 +220,14 @@ subroutine push_mrsc2_results(zmq_socket_push, I_i, J, delta, task_id)
 
   integer, intent(in)            :: i_I, J
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_push 
-  double precision               :: delta(N_states, 0:N_det_non_ref, 2)
+  double precision,intent(inout) :: delta(N_states, 0:N_det_non_ref, 2)
   integer, intent(in)            :: task_id 
   integer                        :: rc , i_state,  i, kk, li
-  integer        :: idx(N_det_non_ref,2), n(2)
+  integer,allocatable            :: idx(:,:)
+  integer                        ::n(2)
   logical :: ok
   
+  allocate(idx(N_det_non_ref,2))
   rc = f77_zmq_send( zmq_socket_push, i_I, 4, ZMQ_SNDMORE) 
   if (rc /= 4) then 
     print *, irp_here,  'f77_zmq_send( zmq_socket_push, i_I, 4, ZMQ_SNDMORE)' 
@@ -317,9 +320,9 @@ subroutine pull_mrsc2_results(zmq_socket_pull, I_i, J, n, idx, delta, task_id)
   double precision, intent(inout) :: delta(N_states, 0:N_det_non_ref, 2)
   integer, intent(out)           :: task_id 
   integer                        :: rc , i, kk
-  integer,intent(out) :: idx(N_det_non_ref, 2)
+  integer,intent(inout) :: idx(N_det_non_ref,2)
   logical :: ok
-   
+  
   rc = f77_zmq_recv( zmq_socket_pull, i_I, 4, ZMQ_SNDMORE) 
   if (rc /= 4) then 
     print *, irp_here,  'f77_zmq_recv( zmq_socket_pull, i_I, 4, ZMQ_SNDMORE)' 
@@ -397,7 +400,7 @@ subroutine mrsc2_dressing_collector(delta_ii_,delta_ij_)
   integer                        :: task_id, more 
  
   integer                        :: I_i, J, l, i_state, n(2), kk
-  integer :: idx(N_det_non_ref,2)
+  integer,allocatable :: idx(:,:)
   
   delta_ii_(:,:) = 0d0
   delta_ij_(:,:,:) = 0d0
@@ -406,10 +409,11 @@ subroutine mrsc2_dressing_collector(delta_ii_,delta_ij_)
   zmq_socket_pull = new_zmq_pull_socket() 
  
   allocate ( delta(N_states,0:N_det_non_ref,2) ) 
-
+  
+  allocate(idx(N_det_non_ref,2))
   more = 1 
   do while (more == 1) 
-     
+         
     call pull_mrsc2_results(zmq_socket_pull, I_i, J, n, idx, delta, task_id)
     
 
@@ -453,8 +457,6 @@ subroutine mrsc2_dressing_collector(delta_ii_,delta_ij_)
 
  
   enddo 
-    print *, "-------------" , delta_ii_(1,:) 
-  print *, "dfdf", delta_ij_(1,10,:)
   deallocate( delta )
  
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)

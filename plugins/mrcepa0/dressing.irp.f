@@ -8,7 +8,7 @@ use bitmasks
   implicit none
   integer :: gen, h, p, i_state, n, t, i, h1, h2, p1, p2, s1, s2, iproc
   integer(bit_kind) :: mask(N_int, 2), omask(N_int, 2)
-  integer(bit_kind) :: buf(N_int, 2, N_det_non_ref)
+  integer(bit_kind),allocatable :: buf(:,:,:)
   logical :: ok
   logical, external :: detEq
   
@@ -16,27 +16,29 @@ use bitmasks
   delta_ii_mrcc = 0d0
   i_state = 1
   provide hh_shortcut psi_det_size lambda_mrcc
-  
   !$OMP PARALLEL DO default(none)  schedule(dynamic) &
   !$OMP shared(psi_det_generators, N_det_generators, hh_exists, pp_exists, N_int, hh_shortcut) &
   !$OMP shared(N_states, N_det_non_ref, N_det_ref, delta_ii_mrcc, delta_ij_mrcc) &
   !$OMP private(h, n, mask, omask, buf, ok, iproc)
   do gen= 1, N_det_generators
+    allocate(buf(N_int, 2, N_det_non_ref))
     iproc = omp_get_thread_num() + 1
     print *, gen, "/", N_det_generators
     do h=1, hh_shortcut(0)
       call apply_hole(psi_det_generators(1,1,gen), hh_exists(1, h), mask, ok, N_int)
       if(.not. ok) cycle
       omask = 0_bit_kind
-      if(hh_exists(1, h) /= 0) omask = mask
+      !if(hh_exists(1, h) /= 0) omask = mask
       n = 1
       do p=hh_shortcut(h), hh_shortcut(h+1)-1
         call apply_particle(mask, pp_exists(1, p), buf(1,1,n), ok, N_int)
         if(ok) n = n + 1
+        if(n > N_det_non_ref) stop "MRCC..."
       end do
       n = n - 1
       if(n /= 0) call mrcc_part_dress(delta_ij_mrcc, delta_ii_mrcc,gen,n,buf,N_int,omask)
     end do
+    deallocate(buf)
   end do
   !$OMP END PARALLEL DO
 END_PROVIDER
@@ -58,11 +60,10 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
 
   integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
   integer                        :: i,j,k,l,m
-  integer                        :: degree_alpha(psi_det_size)
-  integer                        :: idx_alpha(0:psi_det_size)
+  integer,allocatable            :: idx_alpha(:), degree_alpha(:)
   logical                        :: good, fullMatch
 
-  integer(bit_kind)              :: tq(Nint,2,n_selected)
+  integer(bit_kind),allocatable  :: tq(:,:,:)
   integer                        :: N_tq, c_ref ,degree
 
   double precision               :: hIk, hla, hIl, dIk(N_states), dka(N_states), dIa(N_states)
@@ -76,7 +77,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
   integer                        :: i_state, k_sd, l_sd, i_I, i_alpha
   
   integer(bit_kind),allocatable  :: miniList(:,:,:)
-  integer(bit_kind)              :: key_mask(Nint, 2)
+  integer(bit_kind),intent(in)   :: key_mask(Nint, 2)
   integer,allocatable            :: idx_miniList(:)
   integer                        :: N_miniList, ni, leng
   double precision, allocatable  :: hij_cache(:)
@@ -88,8 +89,8 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
 
 
   leng = max(N_det_generators, N_det_non_ref)
-  allocate(miniList(Nint, 2, leng), idx_minilist(leng), hij_cache(N_det_non_ref))
-  
+  allocate(miniList(Nint, 2, leng), tq(Nint,2,n_selected), idx_minilist(leng), hij_cache(N_det_non_ref))
+  allocate(idx_alpha(0:psi_det_size), degree_alpha(psi_det_size))
   !create_minilist_find_previous(key_mask, fullList, miniList, N_fullList, N_miniList, fullMatch, Nint)
   call create_minilist_find_previous(key_mask, psi_det_generators, miniList, i_generator-1, N_miniList, fullMatch, Nint)
   
@@ -373,10 +374,15 @@ END_PROVIDER
   use bitmasks
   implicit none
   
-  integer(bit_kind) :: det_noactive(N_int, 2, N_det_non_ref), nonactive_sorb(N_int,2), det(N_int, 2)
-  integer i, II, j, k, n, ni, idx(N_det_non_ref), shortcut(0:N_det_non_ref+1), blok, degree
+  integer(bit_kind),allocatable :: det_noactive(:,:,:)
+  integer, allocatable :: shortcut(:), idx(:)
+  integer(bit_kind) :: nonactive_sorb(N_int,2), det(N_int, 2)
+  integer i, II, j, k, n, ni, blok, degree
   logical, external :: detEq
   
+  allocate(det_noactive(N_int, 2, N_det_non_ref))
+  allocate(idx(N_det_non_ref), shortcut(0:N_det_non_ref+1))
+  print *, "pre start"
   active_sorb(:,:) = 0_8
   nonactive_sorb(:,:) = not(0_8)
   
@@ -507,12 +513,10 @@ END_PROVIDER
       end do
     end do
     !!$OMP END PARALLEL DO
-    print *, npres
     npre=0
     do i=1,N_det_ref
       npre += npres(i)
     end do
-    print *, npre
     !stop
     do i=1,N_det_ref
     do j=1,i
@@ -609,7 +613,8 @@ end function
   double precision                :: phase_iI, phase_Ik, phase_Jl, phase_IJ, phase_al, diI, hIi, hJi, delta_JI, dkI(1), HkI, ci_inv(1), dia_hla(1)
   double precision                :: contrib, HIIi, HJk, wall
   integer, dimension(0:2,2,2)     :: exc_iI, exc_Ik, exc_IJ
-  integer(bit_kind)               :: det_tmp(N_int, 2), made_hole(N_int,2), made_particle(N_int,2), myActive(N_int,2), sortRef(N_int,2,N_det_ref)
+  integer(bit_kind)               :: det_tmp(N_int, 2), made_hole(N_int,2), made_particle(N_int,2), myActive(N_int,2)
+  integer(bit_kind),allocatable   :: sortRef(:,:,:)
   integer, allocatable            :: idx_sorted_bit(:)
   integer, external               :: get_index_in_psi_det_sorted_bit, searchDet
   logical, external               :: is_in_wavefunction, detEq
@@ -618,10 +623,7 @@ end function
   integer*8, save :: notf = 0
 
   call wall_time(wall)
-  print *, "cepa0", wall
-!   provide det_cepa0_active delta_cas lambda_mrcc
-!   provide mo_bielec_integrals_in_map
-  allocate(idx_sorted_bit(N_det))
+  allocate(idx_sorted_bit(N_det), sortRef(N_int,2,N_det_ref))
   
   sortRef(:,:,:) = det_ref_active(:,:,:)
   call sort_det(sortRef, sortRefIdx, N_det_ref, N_int)
@@ -842,10 +844,10 @@ subroutine filter_tq(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_m
   integer                        :: i,j,k,m
   logical                        :: is_in_wavefunction
   integer                        :: degree(psi_det_size)
-  integer                        :: idx(0:psi_det_size)
+  integer,allocatable            :: idx(:)
   logical                        :: good
 
-  integer(bit_kind), intent(out) :: tq(Nint,2,n_selected)
+  integer(bit_kind), intent(inout) :: tq(Nint,2,n_selected) !! intent(out)
   integer, intent(out)           :: N_tq
   
   integer                        :: nt,ni
@@ -854,7 +856,7 @@ subroutine filter_tq(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_m
   integer(bit_kind),intent(in)  :: miniList(Nint,2,N_det_generators)
   integer,intent(in)            :: N_miniList
   
-  
+  allocate(idx(0:psi_det_size))
   N_tq = 0
 
   i_loop : do i=1,N_selected
@@ -897,10 +899,10 @@ subroutine filter_tq_micro(i_generator,n_selected,det_buffer,Nint,tq,N_tq,microl
   integer                        :: i,j,k,m
   logical                        :: is_in_wavefunction
   integer                        :: degree(psi_det_size)
-  integer                        :: idx(0:psi_det_size)
+  integer,allocatable            :: idx(:)
   logical                        :: good
 
-  integer(bit_kind), intent(out) :: tq(Nint,2,n_selected)
+  integer(bit_kind), intent(inout) :: tq(Nint,2,n_selected) !! intent(out)
   integer, intent(out)           :: N_tq
   
   integer                        :: nt,ni
@@ -914,6 +916,7 @@ subroutine filter_tq_micro(i_generator,n_selected,det_buffer,Nint,tq,N_tq,microl
   integer :: mobiles(2), smallerlist
   
   
+  allocate(idx(0:psi_det_size))
   N_tq = 0
   
   i_loop : do i=1,N_selected

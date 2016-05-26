@@ -102,7 +102,7 @@ END_PROVIDER
         if (ihpsi_current(k) == 0.d0) then
           ihpsi_current(k) = 1.d-32
         endif
-        lambda_mrcc(k,i) = min(0.d0,psi_non_ref_coef(i,k)/ihpsi_current(k) )
+        lambda_mrcc(k,i) = min(1.d-32,psi_non_ref_coef(i,k)/ihpsi_current(k) )
         lambda_pert = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
         if (lambda_pert / lambda_mrcc(k,i)  < 0.5d0) then
           i_pert_count += 1
@@ -356,7 +356,7 @@ integer function searchDet(dets, det, n, Nint)
   h = n
   do while(.true.)
     searchDet = (l+h)/2
-    c = detCmp(dets(1,1,searchDet), det(:,:), Nint)
+    c = detCmp(dets(1,1,searchDet), det(1,1), Nint)
     if(c == 0) return
     if(c == 1) then
       h = searchDet-1
@@ -386,7 +386,7 @@ integer function searchExc(excs, exc, n)
   h = n
   do
     searchExc = (l+h)/2
-    c = excCmp(excs(1,searchExc), exc(:))
+    c = excCmp(excs(1,searchExc), exc(1))
     if(c == 0) return
     if(c == 1) then
       h = searchExc-1
@@ -407,7 +407,7 @@ subroutine sort_det(key, idx, N_key, Nint)
 
   integer, intent(in)                   :: Nint, N_key
   integer(8),intent(inout)       :: key(Nint,2,N_key)
-  integer,intent(out)                   :: idx(N_key)
+  integer,intent(inout)                   :: idx(N_key)
   integer(8)                     :: tmp(Nint, 2)
   integer                               :: tmpidx,i,ni
   
@@ -557,9 +557,44 @@ subroutine dec_exc(exc, h1, h2, p1, p2)
 end subroutine
 
 
- BEGIN_PROVIDER [ integer*2, hh_exists, (4, N_det_ref * N_det_non_ref) ]
-&BEGIN_PROVIDER [ integer, hh_shortcut, (0:N_det_ref * N_det_non_ref + 1) ]
-&BEGIN_PROVIDER [ integer*2, pp_exists, (4, N_det_ref * N_det_non_ref) ]
+ BEGIN_PROVIDER [ integer, N_hh_exists ]
+&BEGIN_PROVIDER [ integer, N_pp_exists ]
+&BEGIN_PROVIDER [ integer, N_ex_exists ]
+  implicit none
+  integer :: exc(0:2, 2, 2), degree, n, on, s, l, i
+  integer*2 :: h1, h2, p1, p2
+  double precision :: phase
+  logical,allocatable :: hh(:,:) , pp(:,:)
+  
+  allocate(hh(0:mo_tot_num*2, 0:mo_tot_num*2))
+  allocate(pp(0:mo_tot_num*2, 0:mo_tot_num*2))
+  hh = .false.
+  pp = .false.
+  N_hh_exists = 0
+  N_pp_exists = 0
+  N_ex_exists = 0
+
+  n = 0
+  do i=1, N_det_ref
+    do l=1, N_det_non_ref
+      call get_excitation(psi_ref(1,1,i), psi_non_ref(1,1,l), exc, degree, phase, N_int)
+      if(degree == -1) cycle
+      call dec_exc(exc, h1, h2, p1, p2)
+      N_ex_exists += 1
+      if(.not. hh(h1,h2)) N_hh_exists = N_hh_exists + 1
+      if(.not. pp(p1,p2)) N_pp_exists = N_pp_exists + 1
+      hh(h1,h2) = .true.
+      pp(p1,p2) = .true.
+    end do
+  end do
+  N_pp_exists = min(N_ex_exists, N_pp_exists * N_hh_exists)
+END_PROVIDER
+
+
+
+ BEGIN_PROVIDER [ integer*2, hh_exists, (4, N_hh_exists) ]
+&BEGIN_PROVIDER [ integer, hh_shortcut, (0:N_hh_exists + 1) ]
+&BEGIN_PROVIDER [ integer*2, pp_exists, (4, N_pp_exists) ]
   implicit none
   integer*2,allocatable :: num(:,:)
   integer :: exc(0:2, 2, 2), degree, n, on, s, l, i
@@ -567,7 +602,7 @@ end subroutine
   double precision :: phase
   logical, external :: excEq
   
-  allocate(num(4, N_det_ref * N_det_non_ref))
+  allocate(num(4, N_ex_exists+1))
   
   hh_shortcut = 0
   hh_exists = 0
