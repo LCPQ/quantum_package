@@ -843,7 +843,7 @@ subroutine filter_tq(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_m
   integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
   integer                        :: i,j,k,m
   logical                        :: is_in_wavefunction
-  integer                        :: degree(psi_det_size)
+  integer,allocatable            :: degree(:)
   integer,allocatable            :: idx(:)
   logical                        :: good
 
@@ -856,6 +856,7 @@ subroutine filter_tq(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_m
   integer(bit_kind),intent(in)  :: miniList(Nint,2,N_det_generators)
   integer,intent(in)            :: N_miniList
   
+  allocate(degree(psi_det_size)) 
   allocate(idx(0:psi_det_size))
   N_tq = 0
 
@@ -898,7 +899,7 @@ subroutine filter_tq_micro(i_generator,n_selected,det_buffer,Nint,tq,N_tq,microl
   integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
   integer                        :: i,j,k,m
   logical                        :: is_in_wavefunction
-  integer                        :: degree(psi_det_size)
+  integer,allocatable            :: degree(:)
   integer,allocatable            :: idx(:)
   logical                        :: good
 
@@ -916,6 +917,7 @@ subroutine filter_tq_micro(i_generator,n_selected,det_buffer,Nint,tq,N_tq,microl
   integer :: mobiles(2), smallerlist
   
   
+  allocate(degree(psi_det_size)) 
   allocate(idx(0:psi_det_size))
   N_tq = 0
   
