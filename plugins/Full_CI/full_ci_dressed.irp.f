@@ -89,6 +89,7 @@ program full_ci
    N_det = min(N_det_max,N_det)
    touch N_det psi_det psi_coef
    call diagonalize_CI
+   call ezfio_set_full_ci_energy(CI_energy)
    if(do_pt2_end)then
     threshold_selectors = 1.d0
     threshold_generators = 0.999d0
@@ -117,9 +118,10 @@ program full_ci
     call davidson_diag_dressed(dressing,psi_det,psi_coef,energy, &
         size(psi_det,1),N_det,N_states_diag,N_int,output_determinants)
  
+    energy = energy + nuclear_repulsion
     print *,  'E dressed = ', energy
     print *,  '----------- '
-    call ezfio_set_full_ci_energy_pt2(energy)
+    call ezfio_set_full_ci_energy_pt2(energy(1))
     deallocate(pt2_generators,norm_pert_generators)
    endif
    call save_wavefunction
