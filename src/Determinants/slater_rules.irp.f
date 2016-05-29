@@ -1628,7 +1628,7 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i)&
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,sorted,shortcut,sort_idx,version)
+      !$OMP SHARED(n,u_0,keys_tmp,Nint,v_0,sorted,shortcut,sort_idx,version)
   allocate(vt(n))
   Vt = 0.d0
   

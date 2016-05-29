@@ -393,13 +393,10 @@ class H_apply_zmq(H_apply):
   double precision, intent(inout):: pt2(N_st) 
   double precision, intent(inout):: norm_pert(N_st) 
   double precision, intent(inout):: H_pert_diag(N_st)
-  double precision               :: delta_pt2(N_st), norm_psi(N_st), pt2_old(N_st)
-  PROVIDE N_det_generators 
   do k=1,N_st
     pt2(k) = 0.d0
     norm_pert(k) = 0.d0
     H_pert_diag(k) = 0.d0
-    norm_psi(k) = 0.d0
   enddo
      """ 
      self.data["copy_buffer"] = """
@@ -410,6 +407,21 @@ class H_apply_zmq(H_apply):
       H_pert_diag(k) = H_pert_diag(k) + H_pert_diag_generators(k,i)
     enddo
   enddo
+     """
+
+  def set_perturbation_dressed(self,pert):
+     H_apply.set_perturbation(self,pert)
+     self.data["printout_now"] = ""
+     self.data["printout_always"] = ""
+     self.data["decls_main"] = """  integer, intent(in)            :: N_st 
+  double precision, intent(inout):: pt2(N_st*N_det_generators) 
+  double precision, intent(inout):: norm_pert(N_st*N_det_generators) 
+  double precision, intent(inout):: H_pert_diag(N_st*N_det_generators)
+     """ 
+     self.data["copy_buffer"] = """
+  pt2 = reshape(pt2_generators, (/ N_states * N_det_generators /))
+  norm_pert = reshape(norm_pert_generators, (/ N_states * N_det_generators /))
+  H_pert_diag = reshape(H_pert_diag_generators, (/ N_states * N_det_generators /))
      """
 
   def set_selection_pt2(self,pert):
