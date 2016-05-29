@@ -27,6 +27,9 @@ subroutine $subroutine($params_main)
   integer(ZMQ_PTR)               :: zmq_socket_pair
 
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
+  double precision, allocatable :: pt2_generators(:,:), norm_pert_generators(:,:)
+  double precision, allocatable :: H_pert_diag_generators(:,:)
+
   call new_parallel_job(zmq_to_qp_run_socket,'$subroutine')
   zmq_socket_pair = new_zmq_pair_socket(.True.)
 
@@ -38,16 +41,20 @@ subroutine $subroutine($params_main)
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   enddo
 
+  allocate ( pt2_generators(N_states,N_det_generators), &
+       norm_pert_generators(N_states,N_det_generators), &
+     H_pert_diag_generators(N_states,N_det_generators) )
+
   PROVIDE nproc N_states
   !$OMP PARALLEL DEFAULT(NONE) &
   !$OMP PRIVATE(i) & 
-  !$OMP SHARED(zmq_socket_pair,N_states, pt2, norm_pert, H_pert_diag, n, task_id, i_generator)  & 
+  !$OMP SHARED(zmq_socket_pair,N_states, pt2_generators, norm_pert_generators, H_pert_diag_generators, n, task_id, i_generator)  & 
   !$OMP num_threads(nproc+1)
       i = omp_get_thread_num()
       if (i == 0) then
         call  $subroutine_collector()
         integer :: n, task_id
-        call pull_pt2(zmq_socket_pair, pt2, norm_pert, H_pert_diag, i_generator, N_states, n, task_id)
+        call pull_pt2(zmq_socket_pair, pt2_generators, norm_pert_generators, H_pert_diag_generators, i_generator, size(pt2_generators), n, task_id)
       else
         call $subroutine_slave_inproc(i)
       endif
@@ -61,6 +68,7 @@ subroutine $subroutine($params_main)
   $copy_buffer
   $generate_psi_guess
 
+  deallocate ( pt2_generators, norm_pert_generators, H_pert_diag_generators)
 end
 
 subroutine $subroutine_slave_tcp(iproc)
@@ -185,7 +193,7 @@ subroutine $subroutine_collector
   use f77_zmq
   implicit none
   BEGIN_DOC
-! Collects results from the selection
+! Collects results from the selection in an array of generators
   END_DOC
 
   integer :: k, rc
@@ -201,12 +209,15 @@ subroutine $subroutine_collector
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_pull = new_zmq_pull_socket()
 
-  double precision, allocatable :: pt2(:,:), norm_pert(:,:), H_pert_diag(:,:)
-  allocate ( pt2(N_states,2), norm_pert(N_states,2), H_pert_diag(N_states,2))
+  double precision, allocatable :: pt2(:), norm_pert(:), H_pert_diag(:)
+  double precision, allocatable :: pt2_result(:,:), norm_pert_result(:,:), H_pert_diag_result(:,:)
+  allocate (pt2(N_states), norm_pert(N_states), H_pert_diag(N_states))
+  allocate (pt2_result(N_states,N_det_generators), norm_pert_result(N_states,N_det_generators), &
+            H_pert_diag_result(N_states,N_det_generators))
 
-  pt2 = 0.d0
-  norm_pert = 0.d0
-  H_pert_diag = 0.d0
+  pt2_result = 0.d0
+  norm_pert_result = 0.d0
+  H_pert_diag_result = 0.d0
   accu = 0_8
   more = 1
   do while (more == 1)
@@ -214,9 +225,9 @@ subroutine $subroutine_collector
     call pull_pt2(zmq_socket_pull, pt2, norm_pert, H_pert_diag, i_generator, N_states, n, task_id)
     if (n > 0) then
       do k=1,N_states
-        pt2(k,2) = pt2(k,1) + pt2(k,2)
-        norm_pert(k,2) = norm_pert(k,1) + norm_pert(k,2)
-        H_pert_diag(k,2) = H_pert_diag(k,1) + H_pert_diag(k,2)
+        pt2_result(k,i_generator) = pt2(k)
+        norm_pert_result(k,i_generator) = norm_pert(k)
+        H_pert_diag_result(k,i_generator) = H_pert_diag(k)
       enddo
       accu = accu + 1_8
       call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
@@ -233,9 +244,10 @@ subroutine $subroutine_collector
 
   socket_result = new_zmq_pair_socket(.False.)
 
-  call push_pt2(socket_result, pt2(1,2), norm_pert(1,2), H_pert_diag(1,2), i_generator, N_states,0)
+  call push_pt2(socket_result, pt2_result, norm_pert_result, H_pert_diag_result, i_generator, &
+     N_states*N_det_generators,0)
 
-  deallocate ( pt2, norm_pert, H_pert_diag)
+  deallocate (pt2, norm_pert, H_pert_diag, pt2_result, norm_pert_result, H_pert_diag_result)
 
   call end_zmq_pair_socket(socket_result)
 
