@@ -41,13 +41,13 @@ subroutine $subroutine($params_main)
   PROVIDE nproc N_states
   !$OMP PARALLEL DEFAULT(NONE) &
   !$OMP PRIVATE(i) & 
-  !$OMP SHARED(zmq_socket_pair,N_states, pt2, norm_pert, H_pert_diag, n, task_id)  & 
+  !$OMP SHARED(zmq_socket_pair,N_states, pt2, norm_pert, H_pert_diag, n, task_id, i_generator)  & 
   !$OMP num_threads(nproc+1)
       i = omp_get_thread_num()
       if (i == 0) then
         call  $subroutine_collector()
         integer :: n, task_id
-        call pull_pt2(zmq_socket_pair, pt2, norm_pert, H_pert_diag, N_states, n, task_id)
+        call pull_pt2(zmq_socket_pair, pt2, norm_pert, H_pert_diag, i_generator, N_states, n, task_id)
       else
         call $subroutine_slave_inproc(i)
       endif
@@ -168,7 +168,7 @@ subroutine $subroutine_slave(thread, iproc)
     endif
 
     call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id,1)
-    call push_pt2(zmq_socket_push,pt2,norm_pert,H_pert_diag,N_st,task_id)
+    call push_pt2(zmq_socket_push,pt2,norm_pert,H_pert_diag,i_generator,N_st,task_id)
 
   enddo
   
@@ -193,7 +193,7 @@ subroutine $subroutine_collector
   integer(ZMQ_PTR), external     :: new_zmq_pull_socket
   integer(ZMQ_PTR)               :: zmq_socket_pull
   integer*8                      :: control, accu
-  integer                        :: n, more, task_id
+  integer                        :: n, more, task_id, i_generator
 
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
@@ -211,7 +211,7 @@ subroutine $subroutine_collector
   more = 1
   do while (more == 1)
 
-    call pull_pt2(zmq_socket_pull, pt2, norm_pert, H_pert_diag, N_states, n, task_id)
+    call pull_pt2(zmq_socket_pull, pt2, norm_pert, H_pert_diag, i_generator, N_states, n, task_id)
     if (n > 0) then
       do k=1,N_states
         pt2(k,2) = pt2(k,1) + pt2(k,2)
@@ -233,7 +233,7 @@ subroutine $subroutine_collector
 
   socket_result = new_zmq_pair_socket(.False.)
 
-  call push_pt2(socket_result, pt2(1,2), norm_pert(1,2), H_pert_diag(1,2), N_states,0)
+  call push_pt2(socket_result, pt2(1,2), norm_pert(1,2), H_pert_diag(1,2), i_generator, N_states,0)
 
   deallocate ( pt2, norm_pert, H_pert_diag)
 
