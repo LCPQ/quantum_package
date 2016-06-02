@@ -31,5 +31,11 @@ s.set_perturbation("epstein_nesbet_2x2")
 s.unset_openmp()
 print s
 
+s = H_apply_zmq("mrcepa_PT2")
+s.energy = "psi_ref_energy_diagonalized"
+s.set_perturbation("epstein_nesbet_2x2")
+s.unset_openmp()
+print s
+
 END_SHELL
 

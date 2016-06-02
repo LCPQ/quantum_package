@@ -73,6 +73,7 @@ END_PROVIDER
 
  BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
 &BEGIN_PROVIDER [ integer, lambda_mrcc_pt2, (0:psi_det_size) ]
+&BEGIN_PROVIDER [ integer, lambda_mrcc_pt3, (0:psi_det_size) ]
   implicit none
   BEGIN_DOC
   ! cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
@@ -81,7 +82,7 @@ END_PROVIDER
   double precision               :: ihpsi_current(N_states)
   integer                        :: i_pert_count
   double precision               :: hii, lambda_pert
-  integer                        :: N_lambda_mrcc_pt2
+  integer                        :: N_lambda_mrcc_pt2, N_lambda_mrcc_pt3
   integer                        :: histo(200), j
   histo = 0
   
@@ -92,7 +93,9 @@ END_PROVIDER
     i_pert_count = 0
     lambda_mrcc = 0.d0
     N_lambda_mrcc_pt2 = 0
+    N_lambda_mrcc_pt3 = 0
     lambda_mrcc_pt2(0) = 0
+    lambda_mrcc_pt3(0) = 0
 
     do i=1,N_det_non_ref
       call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,&
@@ -111,15 +114,21 @@ END_PROVIDER
             N_lambda_mrcc_pt2 += 1
             lambda_mrcc_pt2(N_lambda_mrcc_pt2) = i
           endif
+        else
+          if (lambda_mrcc_pt3(N_lambda_mrcc_pt3) /= i) then
+            N_lambda_mrcc_pt3 += 1
+            lambda_mrcc_pt3(N_lambda_mrcc_pt3) = i
+          endif
         endif
       enddo
     enddo
     lambda_mrcc_pt2(0) = N_lambda_mrcc_pt2
+    lambda_mrcc_pt3(0) = N_lambda_mrcc_pt3
   end if
   print*,'N_det_non_ref = ',N_det_non_ref
-  print*,'Number of ignored determinants = ',i_pert_count  
   print*,'psi_coef_ref_ratio = ',psi_ref_coef(2,1)/psi_ref_coef(1,1)
   print*,'lambda max = ',maxval(dabs(lambda_mrcc))
+  print*,'Number of ignored determinants = ',i_pert_count  
 
 END_PROVIDER
 
