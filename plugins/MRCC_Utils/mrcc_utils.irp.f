@@ -16,6 +16,7 @@ END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, lambda_mrcc_old, (N_states,psi_det_size) ]
 &BEGIN_PROVIDER [ integer, lambda_mrcc_pt2_old, (0:psi_det_size) ]
+&BEGIN_PROVIDER [ integer, lambda_mrcc_pt3_old, (0:psi_det_size) ]
  implicit none
  BEGIN_DOC
  cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
@@ -24,14 +25,21 @@ BEGIN_PROVIDER [ double precision, lambda_mrcc_old, (N_states,psi_det_size) ]
   double precision               :: ihpsi_current(N_states)
   integer :: i_pert_count
   double precision :: hii, lambda_pert
-  integer                        :: N_lambda_mrcc_pt2
+  integer                        :: N_lambda_mrcc_pt2, N_lambda_mrcc_pt3
   double precision, parameter :: x = 2.d0
-  
+  double precision :: nurm 
   i_pert_count = 0
   lambda_mrcc_old = 0.d0
   N_lambda_mrcc_pt2 = 0
+  N_lambda_mrcc_pt3 = 0
   lambda_mrcc_pt2_old(0) = 0
-  
+  lambda_mrcc_pt3_old(0) = 0
+  if(N_states > 1) stop "old lambda N_states == 1"
+  nurm = 0d0
+  do i=1,N_det_ref
+    nurm += psi_ref_coef(i,1)**2
+  end do
+
    do i=1,N_det_non_ref
      call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref, &
                   size(psi_ref_coef,1), N_states,ihpsi_current)
@@ -41,18 +49,24 @@ BEGIN_PROVIDER [ double precision, lambda_mrcc_old, (N_states,psi_det_size) ]
          ihpsi_current(k) = 1.d-32
        endif
        lambda_mrcc_old(k,i) = psi_non_ref_coef(i,k)/ihpsi_current(k) 
-      if ( dabs(psi_non_ref_coef(i,k)*ihpsi_current(k)) < 1.d-5 ) then
+      !if ( dabs(psi_non_ref_coef(i,k)*ihpsi_current(k)) < 1.d-5 .or. lambda_mrcc_old(k,i) > 0d0) then
+      if ( dabs(ihpsi_current(k))*sqrt(psi_non_ref_coef(i,k)**2 / nurm) < 1.d-5 .or. lambda_mrcc_old(k,i) > 0d0) then
         i_pert_count += 1
         lambda_mrcc_old(k,i) = 0.d0
         if (lambda_mrcc_pt2_old(N_lambda_mrcc_pt2) /= i) then
-           N_lambda_mrcc_pt2 += 1
-           lambda_mrcc_pt2_old(N_lambda_mrcc_pt2) = i
+          N_lambda_mrcc_pt2 += 1
+          lambda_mrcc_pt2_old(N_lambda_mrcc_pt2) = i
         endif
+      else
+        if (lambda_mrcc_pt3_old(N_lambda_mrcc_pt3) /= i) then
+          N_lambda_mrcc_pt3 += 1
+          lambda_mrcc_pt3_old(N_lambda_mrcc_pt3) = i
+        endif
+      endif
 !         lambda_pert = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
 !         if((ihpsi_current(k) * lambda_pert) < 0.5d0 * psi_non_ref_coef_restart(i,k) ) then
 !            lambda_mrcc_old(k,i) = 0.d0
 !         endif
-      endif
       
       if (lambda_mrcc_old(k,i) > x) then
         lambda_mrcc_old(k,i) = x
@@ -62,6 +76,7 @@ BEGIN_PROVIDER [ double precision, lambda_mrcc_old, (N_states,psi_det_size) ]
      enddo
   enddo
   lambda_mrcc_pt2_old(0) = N_lambda_mrcc_pt2
+  lambda_mrcc_pt3_old(0) = N_lambda_mrcc_pt3
   
   print*,'N_det_non_ref = ',N_det_non_ref
   print*,'Number of ignored determinants = ',i_pert_count
@@ -89,6 +104,7 @@ END_PROVIDER
   if(old_lambda) then
     lambda_mrcc = lambda_mrcc_old
     lambda_mrcc_pt2 = lambda_mrcc_pt2_old
+    lambda_mrcc_pt3 = lambda_mrcc_pt3_old
   else
     i_pert_count = 0
     lambda_mrcc = 0.d0
@@ -105,7 +121,7 @@ END_PROVIDER
         if (ihpsi_current(k) == 0.d0) then
           ihpsi_current(k) = 1.d-32
         endif
-        lambda_mrcc(k,i) = min(1.d-32,psi_non_ref_coef(i,k)/ihpsi_current(k) )
+        lambda_mrcc(k,i) = min(-1.d-32,psi_non_ref_coef(i,k)/ihpsi_current(k) )
         lambda_pert = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
         if (lambda_pert / lambda_mrcc(k,i)  < 0.5d0) then
           i_pert_count += 1
