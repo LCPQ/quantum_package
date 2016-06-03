@@ -1608,12 +1608,11 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0
   
-  integer, allocatable           :: shortcut(:), sort_idx(:)
-  integer(bit_kind), allocatable :: sorted(:,:), version(:,:)
+  integer, allocatable           :: shortcut(:,:), sort_idx(:,:)
+  integer(bit_kind), allocatable :: sorted(:,:,:), version(:,:,:)
   integer(bit_kind)              :: sorted_i(Nint)
   
   integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi
-  double precision               :: local_threshold
   
 
   ASSERT (Nint > 0)
@@ -1621,104 +1620,83 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   ASSERT (n>0)
   PROVIDE ref_bitmask_energy davidson_criterion
 
-  allocate (shortcut(0:n+1), sort_idx(n), sorted(Nint,n), version(Nint,n))
+  allocate (shortcut(0:n+1,2), sort_idx(n,2), sorted(Nint,n,2), version(Nint,n,2))
   v_0 = 0.d0
 
-  call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
+  call sort_dets_ab_v(keys_tmp, sorted(1,1,1), sort_idx(1,1), shortcut(0,1), version(1,1,1), n, Nint)
+  call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,local_threshold,sorted_i)&
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,threshold_davidson,sorted,shortcut,sort_idx,version)
+      !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i)&
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,sorted,shortcut,sort_idx,version)
   allocate(vt(n))
   Vt = 0.d0
   
   !$OMP DO SCHEDULE(dynamic)
-  do sh=1,shortcut(0)
-    do sh2=1,sh
+  do sh=1,shortcut(0,1)
+    do sh2=sh,shortcut(0,1)
       exa = 0
       do ni=1,Nint
-        exa = exa + popcnt(xor(version(ni,sh), version(ni,sh2)))
+        exa = exa + popcnt(xor(version(ni,sh,1), version(ni,sh2,1)))
       end do
       if(exa > 2) then
         cycle
       end if
       
-      do i=shortcut(sh),shortcut(sh+1)-1
-        org_i = sort_idx(i)
-        local_threshold = threshold_davidson - dabs(u_0(org_i))
+      do i=shortcut(sh,1),shortcut(sh+1,1)-1
+        org_i = sort_idx(i,1)
         if(sh==sh2) then
           endi = i-1
         else
-          endi = shortcut(sh2+1)-1
+          endi = shortcut(sh2+1,1)-1
         end if
         do ni=1,Nint
-          sorted_i(ni) = sorted(ni,i)
+          sorted_i(ni) = sorted(ni,i,1)
         enddo
         
-        do j=shortcut(sh2),endi
-          org_j = sort_idx(j)
-          if ( dabs(u_0(org_j)) > local_threshold ) then
-            ext = exa
-            do ni=1,Nint
-              ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j)))
-            end do
-            if(ext <= 4) then
-              call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
-              vt (org_i) = vt (org_i) + hij*u_0(org_j)
-              vt (org_j) = vt (org_j) + hij*u_0(org_i)
-            endif
+        do j=shortcut(sh2,1),endi
+          org_j = sort_idx(j,1)
+          ext = exa
+          do ni=1,Nint
+            ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
+          end do
+          if(ext <= 4) then
+            call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
+            vt (org_i) = vt (org_i) + hij*u_0(org_j)
+            vt (org_j) = vt (org_j) + hij*u_0(org_i)
           endif
         enddo
       enddo
     enddo
   enddo
-  !$OMP END DO
-  
-  !$OMP CRITICAL
-  do i=1,n
-    v_0(i) = v_0(i) + vt(i)
-  enddo
-  !$OMP END CRITICAL
-  
-  deallocate(vt)
-  !$OMP END PARALLEL
-  
-  call sort_dets_ba_v(keys_tmp, sorted, sort_idx, shortcut, version, n, Nint)
-  
-  !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,local_threshold)&
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,threshold_davidson,sorted,shortcut,sort_idx,version)
-  allocate(vt(n))
-  Vt = 0.d0
+  !$OMP END DO NOWAIT
   
   !$OMP DO SCHEDULE(dynamic)
-  do sh=1,shortcut(0)
-    do i=shortcut(sh),shortcut(sh+1)-1
-      org_i = sort_idx(i)
-      local_threshold = threshold_davidson - dabs(u_0(org_i))
-      do j=shortcut(sh),i-1
-        org_j = sort_idx(j)
-        if ( dabs(u_0(org_j)) > local_threshold ) then
-          ext = 0
-          do ni=1,Nint
-            ext = ext + popcnt(xor(sorted(ni,i), sorted(ni,j)))
-          end do
-          if(ext == 4) then
-            call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
-            vt (org_i) = vt (org_i) + hij*u_0(org_j)
-            vt (org_j) = vt (org_j) + hij*u_0(org_i)
-          end if
+  do sh=1,shortcut(0,2)
+    do i=shortcut(sh,2),shortcut(sh+1,2)-1
+      org_i = sort_idx(i,2)
+      do j=shortcut(sh,2),i-1
+        org_j = sort_idx(j,2)
+        ext = 0
+        do ni=1,Nint
+          ext = ext + popcnt(xor(sorted(ni,i,2), sorted(ni,j,2)))
+        end do
+        if(ext == 4) then
+          call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
+          vt (org_i) = vt (org_i) + hij*u_0(org_j)
+          vt (org_j) = vt (org_j) + hij*u_0(org_i)
         end if
       end do
     end do
   enddo
-  !$OMP END DO
+  !$OMP END DO NOWAIT
   
   !$OMP CRITICAL
-  do i=1,n
+  do i=n,1,-1
     v_0(i) = v_0(i) + vt(i)
   enddo
   !$OMP END CRITICAL
+
   deallocate(vt)
   !$OMP END PARALLEL
   

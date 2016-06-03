@@ -180,7 +180,6 @@ let run check_only ezfio_filename =
     | None -> "vi"
   in
 
-  Libint.write_files (!Ezfio.ezfio_filename);
   match check_only with
   | true  -> ()
   | false -> 
