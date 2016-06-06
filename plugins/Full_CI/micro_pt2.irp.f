@@ -35,6 +35,8 @@ subroutine run_wf
   call provide_everything
   integer :: rc, i
 
+  print *,  'Contribution to PT2 running'
+
   !$OMP PARALLEL PRIVATE(i)
   i = omp_get_thread_num()
   call H_apply_FCI_PT2_slave_tcp(i)
