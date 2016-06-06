@@ -350,11 +350,11 @@ subroutine end_zmq_pull_socket(zmq_socket_pull)
 !  endif
 
   rc = f77_zmq_unbind(zmq_socket_pull,zmq_socket_pull_tcp_address)
-  if (rc /= 0) then
-    print *,  rc
-    print *,  irp_here, 'f77_zmq_unbind(zmq_socket_pull,zmq_socket_pull_tcp_address)'
-    stop 'error'
-  endif
+!  if (rc /= 0) then
+!    print *,  rc
+!    print *,  irp_here, 'f77_zmq_unbind(zmq_socket_pull,zmq_socket_pull_tcp_address)'
+!    stop 'error'
+!  endif
   
   call sleep(1) ! see https://github.com/zeromq/libzmq/issues/1922
 

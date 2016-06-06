@@ -214,8 +214,13 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
     duplicate(i) = .False.
   enddo
 
-  do i=1,N_det-1
+  found_duplicates = .False.
+  i=0
+  j=0
+  do while (i<N_det-1)
+    i = max(i+1,j)
     if (duplicate(i)) then
+      found_duplicates = .True.
       cycle
     endif
     j = i+1
@@ -237,14 +242,6 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
         exit
       endif
     enddo
-  enddo
-
-  found_duplicates = .False.
-  do i=1,N_det
-    if (duplicate(i)) then
-      found_duplicates = .True.
-      exit
-    endif
   enddo
 
   if (found_duplicates) then

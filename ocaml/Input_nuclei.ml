@@ -13,6 +13,7 @@ module Nuclei : sig
   val read  : unit -> t option
   val write : t -> unit 
   val to_string : t -> string
+  val to_atom_list : t -> Atom.t list
   val to_rst : t -> Rst_string.t
   val of_rst : Rst_string.t -> t option
 end = struct
@@ -133,6 +134,22 @@ end = struct
     write_nucl_coord  ~nucl_num:nucl_num nucl_coord;
   ;;         
 
+
+  let to_atom_list b =
+     let rec loop accu (coord, charge, label) = function 
+        | -1 -> accu 
+        | i ->  
+            let atom = 
+               { Atom.element = label.(i) ; 
+                 Atom.charge  = charge.(i) ; 
+                 Atom.coord   = coord.(i) ; 
+               } 
+            in 
+            loop (atom::accu)  (coord, charge, label) (i-1) 
+     in 
+     loop [] (b.nucl_coord, b.nucl_charge, b.nucl_label) 
+          ( (Nucl_number.to_int b.nucl_num) - 1) 
+  ;;
 
   let to_string b =
     Printf.sprintf "
