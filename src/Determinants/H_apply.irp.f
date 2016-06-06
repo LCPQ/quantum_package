@@ -214,8 +214,13 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
     duplicate(i) = .False.
   enddo
 
-  do i=1,N_det-1
+  found_duplicates = .False.
+  i=0
+  j=0
+  do while (i<N_det-1)
+    i = max(i+1,j)
     if (duplicate(i)) then
+      found_duplicates = .True.
       cycle
     endif
     j = i+1
@@ -237,14 +242,6 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
         exit
       endif
     enddo
-  enddo
-
-  found_duplicates = .False.
-  do i=1,N_det
-    if (duplicate(i)) then
-      found_duplicates = .True.
-      exit
-    endif
   enddo
 
   if (found_duplicates) then
@@ -307,14 +304,14 @@ subroutine fill_H_apply_buffer_no_selection(n_selected,det_buffer,Nint,iproc)
 end
 
 
-subroutine push_pt2(zmq_socket_push,pt2,norm_pert,H_pert_diag,N_st,task_id)
+subroutine push_pt2(zmq_socket_push,pt2,norm_pert,H_pert_diag,i_generator,N_st,task_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
 ! Push PT2 calculation to the collector
   END_DOC
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_push
-  integer, intent(in)            :: N_st
+  integer, intent(in)            :: N_st, i_generator
   double precision, intent(in)   :: pt2(N_st), norm_pert(N_st), H_pert_diag(N_st)
   integer, intent(in)            :: task_id
   integer :: rc
@@ -343,6 +340,12 @@ subroutine push_pt2(zmq_socket_push,pt2,norm_pert,H_pert_diag,N_st,task_id)
     stop 'error'
   endif
 
+  rc = f77_zmq_send( zmq_socket_push, i_generator, 4, ZMQ_SNDMORE)
+  if (rc /= 4) then
+    print *, irp_here,  'f77_zmq_send( zmq_socket_push, i_generator, 4, 0)'
+    stop 'error'
+  endif
+
   rc = f77_zmq_send( zmq_socket_push, task_id, 4, 0)
   if (rc /= 4) then
     print *, irp_here,  'f77_zmq_send( zmq_socket_push, task_id, 4, 0)'
@@ -358,7 +361,7 @@ subroutine push_pt2(zmq_socket_push,pt2,norm_pert,H_pert_diag,N_st,task_id)
 !  endif
 end
 
-subroutine pull_pt2(zmq_socket_pull,pt2,norm_pert,H_pert_diag,N_st,n,task_id)
+subroutine pull_pt2(zmq_socket_pull,pt2,norm_pert,H_pert_diag,i_generator,N_st,n,task_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -368,7 +371,7 @@ subroutine pull_pt2(zmq_socket_pull,pt2,norm_pert,H_pert_diag,N_st,n,task_id)
   integer, intent(in)            :: N_st
   double precision, intent(out)  :: pt2(N_st), norm_pert(N_st), H_pert_diag(N_st)
   integer, intent(out)           :: task_id
-  integer, intent(out)           :: n
+  integer, intent(out)           :: n, i_generator
   integer                        :: rc
 
   n=0
@@ -403,6 +406,12 @@ subroutine pull_pt2(zmq_socket_pull,pt2,norm_pert,H_pert_diag,N_st,n,task_id)
     rc = f77_zmq_recv( zmq_socket_pull, H_pert_diag(1), 8*N_st, 0)
     if (rc /= 8*N_st) then
       print *, irp_here,  'f77_zmq_recv( zmq_socket_pull, H_pert_diag(1,1), 8*N_st)'
+      stop 'error'
+    endif
+
+    rc = f77_zmq_recv( zmq_socket_pull, i_generator, 4, 0)
+    if (rc /= 4) then
+      print *, irp_here,  'f77_zmq_recv( zmq_socket_pull, i_generator, 4, 0)'
       stop 'error'
     endif
 

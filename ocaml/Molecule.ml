@@ -85,7 +85,7 @@ let name m =
   String.concat (result)
 
 
-let to_string m =
+let to_string_general ~f m = 
   let { nuclei  ; elec_alpha ; elec_beta } = m
   in
   let n =
@@ -94,9 +94,14 @@ let to_string m =
   let title =
      name m
   in
-  [ Int.to_string n ; title ] @ 
-   (List.map ~f:(fun x -> Atom.to_string Units.Angstrom x) nuclei)
+  [ Int.to_string n ; title ] @  (List.map ~f nuclei)
   |> String.concat ~sep:"\n"
+
+let to_string =
+  to_string_general ~f:(fun x -> Atom.to_string Units.Angstrom x)
+
+let to_xyz = 
+  to_string_general ~f:Atom.to_xyz 
 
 
 let of_xyz_string

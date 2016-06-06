@@ -20,6 +20,7 @@ val name : t -> string
 
 (** Conversion for printing *)
 val to_string : t -> string
+val to_xyz    : t -> string
 
 
 (** Creates a molecule from an xyz file *)

@@ -4,6 +4,7 @@ double precision function ao_bielec_integral(i,j,k,l)
   !  integral of the AO basis <ik|jl> or (ij|kl)
   !     i(r1) j(r1) 1/r12 k(r2) l(r2)
   END_DOC
+
   integer,intent(in)             :: i,j,k,l
   integer                        :: p,q,r,s
   double precision               :: I_center(3),J_center(3),K_center(3),L_center(3)

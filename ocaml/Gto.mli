@@ -1,5 +1,9 @@
 exception GTO_Read_Failure of string
 exception End_Of_Basis
+type fmt =
+| Gamess
+| Gaussian
+
 type t =
   { sym : Symmetry.t ;
     lc  : (Primitive.t * Qptypes.AO_coef.t) list;
@@ -13,4 +17,4 @@ val of_prim_coef_list :
 val read_one : in_channel -> t
 
 (** Convert to string for printing *)
-val to_string : t -> string
+val to_string : ?fmt:fmt -> t -> string

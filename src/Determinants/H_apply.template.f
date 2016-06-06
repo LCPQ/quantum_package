@@ -167,11 +167,6 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
   double precision               :: diag_H_mat_elem
   integer                        :: iproc
   integer                        :: jtest_vvvv
-  integer(omp_lock_kind), save   :: lck, ifirst=0
-  if (ifirst == 0) then
-!$    call omp_init_lock(lck)
-    ifirst=1
-  endif
   
   logical :: check_double_excitation 
   logical :: is_a_1h1p
@@ -422,7 +417,6 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,fock_diag_tmp,i_generato
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   logical, allocatable           :: array_pairs(:,:)
   double precision               :: diag_H_mat_elem
-  integer(omp_lock_kind), save   :: lck, ifirst=0
   integer                        :: iproc
   
   integer(bit_kind)              :: key_mask(N_int, 2)
@@ -445,11 +439,6 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,fock_diag_tmp,i_generato
   $check_double_excitation
   
 
-  if (ifirst == 0) then
-    ifirst=1
-!$    call omp_init_lock(lck)
-  endif
-  
   $initialization
   
   $omp_parallel
