@@ -30,7 +30,7 @@ END_PROVIDER
  ! Hartree-Fock determinant
  END_DOC
  integer                        :: i, k
- do i=1,N_det
+ do i=1,N_det_generators
    do k=1,N_int
      psi_det_generators(k,1,i) = psi_det_sorted(k,1,i)
      psi_det_generators(k,2,i) = psi_det_sorted(k,2,i)
