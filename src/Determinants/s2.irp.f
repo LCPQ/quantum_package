@@ -301,11 +301,13 @@ subroutine diagonalize_s2_betweenstates(keys_tmp,psi_coefs_inout,n,nmax_keys,nma
  print*,''
  print*,'nstates = ',nstates
  allocate(s2(nstates,nstates),overlap(nstates,nstates))
- !$OMP PARALLEL DO COLLAPSE(2) DEFAULT(NONE)                         &
+ !$OMP PARALLEL DO COLLAPSE(2) DEFAULT(NONE) SCHEDULE(dynamic) &
      !$OMP  PRIVATE(i,j) SHARED(overlap,psi_coefs_inout,nstates,n)
  do i = 1, nstates
-   do j = i+1, nstates
-     if (i == j) then
+   do j = 1, nstates
+     if (i < j) then
+        cycle
+     else if (i == j) then
        overlap(i,i) = u_dot_u(psi_coefs_inout(1,i),n)
      else
        overlap(i,j) = u_dot_v(psi_coefs_inout(1,j),psi_coefs_inout(1,i),n)
@@ -321,11 +323,13 @@ subroutine diagonalize_s2_betweenstates(keys_tmp,psi_coefs_inout,n,nmax_keys,nma
  call ortho_lowdin(overlap,size(overlap,1),nstates,psi_coefs_inout,size(psi_coefs_inout,1),n)
  print*,'passed ortho'
 
- !$OMP PARALLEL DO COLLAPSE(2) DEFAULT(NONE)                         &
+ !$OMP PARALLEL DO COLLAPSE(2) DEFAULT(NONE) SCHEDULE(dynamic) &
      !$OMP  PRIVATE(i,j) SHARED(overlap,psi_coefs_inout,nstates,n)
  do i = 1, nstates
-   do j = i+1, nstates
-     if (i == j) then
+   do j = 1, nstates
+     if (i < j) then
+        cycle
+     else if (i == j) then
        overlap(i,i) = u_dot_u(psi_coefs_inout(1,i),n)
      else
        overlap(i,j) = u_dot_v(psi_coefs_inout(1,j),psi_coefs_inout(1,i),n)

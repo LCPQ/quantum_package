@@ -13,7 +13,6 @@ subroutine $subroutine($params_main)
   integer                        :: i
   integer                        :: i_generator
   double precision               :: wall_0, wall_1
-  integer(omp_lock_kind)         :: lck
   integer(bit_kind), allocatable :: mask(:,:,:)
   integer                        :: ispin, k
   integer                        :: rc
