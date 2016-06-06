@@ -65,57 +65,6 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
   deallocate (H_jj)
 end
 
-subroutine davidson_diag_dressed(dressing,dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Davidson diagonalization with diagonal dressing.
-  !
-  ! dets_in : bitmasks corresponding to determinants
-  !
-  ! u_in : guess coefficients on the various states. Overwritten
-  !   on exit
-  !
-  ! dim_in : leftmost dimension of u_in
-  !
-  ! sze : Number of determinants
-  !
-  ! N_st : Number of eigenstates
-  !
-  ! iunit : Unit number for the I/O
-  !
-  ! Initial guess vectors are not necessarily orthonormal
-  END_DOC
-  integer, intent(in)            :: dim_in, sze, N_st, Nint, iunit
-  double precision, intent(in)   :: dressing(dim_in)
-  integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
-  double precision, intent(inout) :: u_in(dim_in,N_st)
-  double precision, intent(out)  :: energies(N_st)
-  double precision, allocatable  :: H_jj(:)
-  
-  double precision               :: diag_h_mat_elem
-  integer                        :: i
-  ASSERT (N_st > 0)
-  ASSERT (sze > 0)
-  ASSERT (Nint > 0)
-  ASSERT (Nint == N_int)
-  PROVIDE mo_bielec_integrals_in_map
-  allocate(H_jj(sze))
-  
-  !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP  SHARED(sze,H_jj,dets_in,dressing,Nint)                  &
-      !$OMP  PRIVATE(i)
-  !$OMP DO SCHEDULE(guided)
-  do i=1,sze
-    H_jj(i) = diag_h_mat_elem(dets_in(1,1,i),Nint) + dressing(i)
-  enddo
-  !$OMP END DO 
-  !$OMP END PARALLEL
-
-  call davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iunit)
-  deallocate (H_jj)
-end
-
 
 logical function det_inf(key1, key2, Nint)
   use bitmasks
