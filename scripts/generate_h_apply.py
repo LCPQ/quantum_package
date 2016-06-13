@@ -248,13 +248,13 @@ class H_apply(object):
       """ 
 
       self.data["deinit_thread"] = """
-      !$OMP CRITICAL
+      ! OMP CRITICAL
       do k=1,N_st
         sum_e_2_pert_in(k) = sum_e_2_pert_in(k) + sum_e_2_pert(k)
         sum_norm_pert_in(k) = sum_norm_pert_in(k) + sum_norm_pert(k)
         sum_H_pert_diag_in(k) = sum_H_pert_diag_in(k) + sum_H_pert_diag(k)
       enddo
-      !$OMP END CRITICAL
+      ! OMP END CRITICAL
       deallocate (e_2_pert_buffer, coef_pert_buffer)
       """
       self.data["size_max"] = "8192" 
@@ -356,12 +356,12 @@ class H_apply(object):
       self.data["skip"] = """
       if (i_generator < size_select_max) then
         if (select_max(i_generator) < selection_criterion_min*selection_criterion_factor) then
-          !$OMP CRITICAL
+          ! OMP CRITICAL
           do k=1,N_st
             norm_psi(k) = norm_psi(k) + psi_coef_generators(i_generator,k)*psi_coef_generators(i_generator,k)
             pt2_old(k) = 0.d0
           enddo
-          !$OMP END CRITICAL
+          ! OMP END CRITICAL
           cycle
         endif
         select_max(i_generator) = 0.d0
