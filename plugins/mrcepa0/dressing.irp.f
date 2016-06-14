@@ -86,7 +86,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
   integer, allocatable           :: idx_microlist(:), N_microlist(:), ptr_microlist(:), idx_microlist_zero(:)
   integer :: mobiles(2), smallerlist
   logical, external :: detEq, is_generable
-
+  double precision, external :: get_dij
 
   leng = max(N_det_generators, N_det_non_ref)
   allocate(miniList(Nint, 2, leng), tq(Nint,2,n_selected), idx_minilist(leng), hij_cache(N_det_non_ref))
@@ -202,16 +202,16 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
         
         ! Loop if lambda == 0
         logical                        :: loop
-        loop = .True.
-        do i_state=1,N_states
-          if (lambda_mrcc(i_state,idx_alpha(k_sd)) /= 0.d0) then
-            loop = .False.
-            exit
-          endif
-        enddo
-        if (loop) then
-          cycle
-        endif
+!         loop = .True.
+!         do i_state=1,N_states
+!           if (lambda_mrcc(i_state,idx_alpha(k_sd)) /= 0.d0) then
+!             loop = .False.
+!             exit
+!           endif
+!         enddo
+!         if (loop) then
+!           cycle
+!         endif
         
         call get_excitation_degree(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(k_sd)),degree,Nint)
         if (degree > 2) then
@@ -222,9 +222,14 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
         ! <I|H|k>
         hIk = hij_mrcc(idx_alpha(k_sd),i_I)
         !         call i_h_j(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(k_sd)),Nint,hIk)
+        
+        
         do i_state=1,N_states
-          dIk(i_state) = hIk * lambda_mrcc(i_state,idx_alpha(k_sd))
+          dIk(i_state) = get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,idx_alpha(k_sd)), N_int) !!hIk * lambda_mrcc(i_state,idx_alpha(k_sd))
         enddo
+        
+        
+        
         ! |l> = Exc(k -> alpha) |I>
         call get_excitation(psi_non_ref(1,1,idx_alpha(k_sd)),tq(1,1,i_alpha),exc,degree,phase,Nint)
         call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
@@ -246,19 +251,20 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
           call get_excitation_degree(tmp_det,psi_non_ref(1,1,idx_alpha(l_sd)),degree,Nint)
           if (degree == 0) then
             
-            loop = .True.
-            do i_state=1,N_states
-              if (lambda_mrcc(i_state,idx_alpha(l_sd)) /= 0.d0) then
-                loop = .False.
-                exit
-              endif
-            enddo
+!             loop = .True.
+!             do i_state=1,N_states
+!               if (lambda_mrcc(i_state,idx_alpha(l_sd)) /= 0.d0) then
+!                 loop = .False.
+!                 exit
+!               endif
+!             enddo
+            loop = .false.
             if (.not.loop) then
               call get_excitation(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(l_sd)),exc,degree,phase2,Nint)
               hIl = hij_mrcc(idx_alpha(l_sd),i_I)
 !                             call i_h_j(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,hIl)
               do i_state=1,N_states
-                dka(i_state) = hIl * lambda_mrcc(i_state,idx_alpha(l_sd)) * phase * phase2
+                dka(i_state) = get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,idx_alpha(l_sd)), N_int) * phase * phase2 !hIl * lambda_mrcc(i_state,idx_alpha(l_sd)) * phase * phase2
               enddo
             endif
 
