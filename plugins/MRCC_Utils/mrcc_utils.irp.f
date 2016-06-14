@@ -148,10 +148,44 @@ END_PROVIDER
 
 END_PROVIDER
 
-
-
-
-
+!  BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
+! &BEGIN_PROVIDER [ integer, lambda_mrcc_pt2, (0:psi_det_size) ]
+! &BEGIN_PROVIDER [ integer, lambda_mrcc_pt3, (0:psi_det_size) ]
+!   implicit none
+!   BEGIN_DOC
+!   ! cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
+!   END_DOC
+!   integer :: i,ii,k
+!   double precision               :: ihpsi_current(N_states)
+!   integer                        :: i_pert_count
+!   double precision               :: hii, lambda_pert, phase
+!   integer                        :: N_lambda_mrcc_pt2, N_lambda_mrcc_pt3, degree
+!   integer               :: exc(N_int, 2)
+!   histo = 0
+!   
+!   i_pert_count = 0
+!   lambda_mrcc = 0.d0
+!   N_lambda_mrcc_pt2 = 0
+!   N_lambda_mrcc_pt3 = 0
+!   lambda_mrcc_pt2(0) = 0
+!   lambda_mrcc_pt3(0) = 0
+!   
+!   do ii=1, N_det_ref
+!   do i=1,N_det_non_ref
+!     call get_excitation(psi_ref(1,1,II), psi_non_ref(1,1,i), exc, degree, phase, N_int)
+!     if(degree == -1) cycle
+!     call i_H_j(psi_non_ref(1,1,ii),psi_non_ref(1,1,i),N_int,hii)
+!     
+!     
+!   lambda_mrcc_pt2(0) = N_lambda_mrcc_pt2
+!   lambda_mrcc_pt3(0) = N_lambda_mrcc_pt3
+!   
+!   print*,'N_det_non_ref = ',N_det_non_ref
+!   print*,'psi_coef_ref_ratio = ',psi_ref_coef(2,1)/psi_ref_coef(1,1)
+!   print*,'lambda max = ',maxval(dabs(lambda_mrcc))
+!   print*,'Number of ignored determinants = ',i_pert_count  
+! 
+! END_PROVIDER
 
 
 BEGIN_PROVIDER [ double precision, hij_mrcc, (N_det_non_ref,N_det_ref) ]
@@ -397,6 +431,26 @@ integer function searchDet(dets, det, n, Nint)
 end function
 
 
+integer function unsortedSearchDet(dets, det, n, Nint)
+  implicit none
+  use bitmasks
+  
+  integer(bit_kind),intent(in) :: dets(Nint,2,n), det(Nint,2)
+  integer, intent(in) :: nint, n
+  integer :: l, h, c
+  integer, external :: detCmp
+  logical, external :: detEq
+
+  do l=1, n
+    if(detEq(det, dets(1,1,l), N_int)) then
+      unsortedSearchDet = l
+      return
+    end if
+  end do
+  unsortedSearchDet = -1
+end function
+
+
 integer function searchExc(excs, exc, n)
   implicit none
   use bitmasks
@@ -615,6 +669,119 @@ end subroutine
   N_pp_exists = min(N_ex_exists, N_pp_exists * N_hh_exists)
 END_PROVIDER
 
+
+
+BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
+  implicit none
+  logical :: ok
+  integer :: II, pp, hh, ind, wk
+  integer, external :: unsortedSearchDet
+  integer(bit_kind) :: myDet(N_int, 2), myMask(N_int, 2)
+  double precision, allocatable :: A(:,:)
+  integer :: N, IPIV(N_det_non_ref), INFO
+  double precision, allocatable :: WORK(:)
+  integer, allocatable :: IWORK(:)
+  
+  print *, "TI", hh_shortcut(hh_shortcut(0)+1)-1, N_det_non_ref
+  allocate(A(N_det_non_ref, hh_shortcut(hh_shortcut(0)+1)-1))
+  A = 0d0
+  do II = 1, N_det_ref
+    do hh = 1, hh_shortcut(0)
+      call apply_hole(psi_ref(1,1,II), hh_exists(1, hh), myMask, ok, N_int)
+      if(.not. ok) cycle
+      do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
+        call apply_particle(myMask, pp_exists(1, pp), myDet, ok, N_int)
+        if(.not. ok) cycle
+        ind = unsortedSearchDet(psi_non_ref(1,1,1), myDet, N_det_non_ref, N_int)
+        if(ind /= -1) then
+          A(ind, pp) += psi_ref_coef(II, 1)
+        end if
+      end do
+    end do
+  end do
+  
+  double precision :: B(N_det_non_ref), S(N_det_non_ref)
+  integer :: rank
+  B = psi_non_ref_coef(:,1)
+  allocate(WORK(1), IWORK(1))
+  call DGELSD(N_det_non_ref, &
+              hh_shortcut(hh_shortcut(0)+1)-1, &
+              1, &
+              A, N_det_non_ref, &
+              B, N_det_non_ref, &
+              S, &
+              1d-6, &
+              rank, &
+              WORK, -1, &
+              IWORK, &
+              INFO )
+  wk = int(work(1))
+  print *, "WORK:", wk
+  deallocate(WORK, IWORK)
+  allocate(WORK(wk), IWORK(wk))
+  call DGELSD(N_det_non_ref, &
+              hh_shortcut(hh_shortcut(0)+1)-1, &
+              1, &
+              A, N_det_non_ref, &
+              B, N_det_non_ref, &
+              S, &
+              1d-6, &
+              rank, &
+              WORK, size(WORK), &
+              IWORK, &
+              INFO )
+  print *, INFO, size(dIj), size(B)
+  dIj(:size(dIj)) = B(:size(dIj))
+  print *, "diden"
+END_PROVIDER
+
+
+double precision function get_dij(det1, det2, Nint)
+  use bitmasks
+  implicit none
+  integer, intent(in) :: Nint
+  integer(bit_kind) :: det1(Nint, 2), det2(Nint, 2)
+  integer :: degree, f, exc(0:2, 2, 2), t
+  integer*2 :: h1, h2, p1, p2, s1, s2
+  integer, external :: searchExc
+  logical, external :: excEq
+  double precision :: phase
+  
+  get_dij = 0d0
+  call get_excitation(det1, det2, exc, degree, phase, Nint)
+  if(degree == -1) return
+  if(degree == 0) then
+    stop "get_dij"
+  end if
+  
+  call decode_exc_int2(exc,degree,h1,p1,h2,p2,s1,s2)
+  
+  if(degree == 1) then
+    h2 = h1
+    p2 = p1
+    s2 = s1
+    h1 = 0
+    p1 = 0
+    s1 = 0
+  end if
+  
+  if(h1 + (s1-1)*mo_tot_num < h2 + (s2-1)*mo_tot_num) then
+    f = searchExc(hh_exists(1,1), (/s1, h1, s2, h2/),  hh_shortcut(0))
+  else
+    f = searchExc(hh_exists(1,1), (/s2, h2, s1, h1/), hh_shortcut(0))
+  end if
+  if(f == -1) return
+  
+  if(p1 + (s1-1)*mo_tot_num < p2 + (s2-1)*mo_tot_num) then
+    t = searchExc(pp_exists(1,hh_shortcut(f)), (/s1, p1, s2, p2/), hh_shortcut(f+1)-hh_shortcut(f))
+  else
+    t = searchExc(pp_exists(1,hh_shortcut(f)), (/s2, p2, s1, p1/), hh_shortcut(f+1)-hh_shortcut(f))
+  end if
+  
+  if(t /= -1) then
+    get_dij = dIj(t - 1 + hh_shortcut(f))
+  end if
+end function
 
 
  BEGIN_PROVIDER [ integer*2, hh_exists, (4, N_hh_exists) ]

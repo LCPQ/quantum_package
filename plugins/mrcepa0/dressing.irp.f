@@ -476,58 +476,89 @@ END_PROVIDER
 END_PROVIDER
 
  
+!  BEGIN_PROVIDER [ double precision, delta_cas, (N_det_ref, N_det_ref, N_states) ]
+!   use bitmasks
+!   implicit none
+!   integer :: i,j,k
+!   double precision :: Hjk, Hki, Hij, pre(N_det_ref), wall
+!   integer :: i_state, degree, npre, ipre(N_det_ref), npres(N_det_ref)
+!   
+! !   provide lambda_mrcc
+!   npres = 0
+!   delta_cas = 0d0
+!   call wall_time(wall)
+!   print *, "dcas ", wall
+!   do i_state = 1, N_states
+!     !!$OMP PARALLEL DO default(none) schedule(dynamic) private(pre,npre,ipre,j,k,Hjk,Hki,degree) shared(npres,lambda_mrcc,i_state, N_det_non_ref,psi_ref, psi_non_ref,N_int,delta_cas,N_det_ref)
+!     do k=1,N_det_non_ref
+!       if(lambda_mrcc(i_state, k) == 0d0) cycle
+!       npre = 0
+!       do i=1,N_det_ref
+!         call i_h_j(psi_non_ref(1,1,k),psi_ref(1,1,i), N_int,Hki)
+!         if(Hki /= 0d0) then
+!           !!$OMP ATOMIC
+!           npres(i) += 1
+!           npre += 1
+!           ipre(npre) = i
+!           pre(npre) = Hki
+!         end if
+!       end do
+!       
+!       
+!       do i=1,npre
+!       do j=1,i
+!         !!$OMP ATOMIC
+!         delta_cas(ipre(i),ipre(j),i_state) += pre(i) * pre(j) * lambda_mrcc(i_state, k)
+!       end do
+!       end do
+!     end do
+!     !!$OMP END PARALLEL DO
+!     npre=0
+!     do i=1,N_det_ref
+!       npre += npres(i)
+!     end do
+!     !stop
+!     do i=1,N_det_ref
+!     do j=1,i
+!         delta_cas(j,i,i_state) = delta_cas(i,j,i_state)
+!     end do
+!     end do 
+!   end do
+!   
+!   call wall_time(wall)
+!   print *, "dcas", wall
+! !   stop
+!  END_PROVIDER
+ 
+ 
  BEGIN_PROVIDER [ double precision, delta_cas, (N_det_ref, N_det_ref, N_states) ]
   use bitmasks
   implicit none
   integer :: i,j,k
-  double precision :: Hjk, Hki, Hij, pre(N_det_ref), wall
-  integer :: i_state, degree, npre, ipre(N_det_ref), npres(N_det_ref)
+  double precision :: Hjk, Hki, Hij
+  double precision, external :: get_dij
+  integer i_state, degree
   
-!   provide lambda_mrcc
-  npres = 0
-  delta_cas = 0d0
-  call wall_time(wall)
-  print *, "dcas ", wall
+  provide lambda_mrcc
   do i_state = 1, N_states
-    !!$OMP PARALLEL DO default(none) schedule(dynamic) private(pre,npre,ipre,j,k,Hjk,Hki,degree) shared(npres,lambda_mrcc,i_state, N_det_non_ref,psi_ref, psi_non_ref,N_int,delta_cas,N_det_ref)
-    do k=1,N_det_non_ref
-      if(lambda_mrcc(i_state, k) == 0d0) cycle
-      npre = 0
-      do i=1,N_det_ref
-        call i_h_j(psi_non_ref(1,1,k),psi_ref(1,1,i), N_int,Hki)
-        if(Hki /= 0d0) then
-          !!$OMP ATOMIC
-          npres(i) += 1
-          npre += 1
-          ipre(npre) = i
-          pre(npre) = Hki
-        end if
-      end do
-      
-      
-      do i=1,npre
+    !$OMP PARALLEL DO default(none) schedule(dynamic) private(j,k,Hjk,Hki,degree) shared(no_mono_dressing,lambda_mrcc,i_state, N_det_non_ref,psi_ref, psi_non_ref,N_int,delta_cas,N_det_ref)
+    do i=1,N_det_ref
       do j=1,i
-        !!$OMP ATOMIC
-        delta_cas(ipre(i),ipre(j),i_state) += pre(i) * pre(j) * lambda_mrcc(i_state, k)
-      end do
-      end do
-    end do
-    !!$OMP END PARALLEL DO
-    npre=0
-    do i=1,N_det_ref
-      npre += npres(i)
-    end do
-    !stop
-    do i=1,N_det_ref
-    do j=1,i
+        call get_excitation_degree(psi_ref(1,1,i), psi_ref(1,1,j), degree, N_int)
+        delta_cas(i,j,i_state) = 0d0
+        do k=1,N_det_non_ref
+
+          call i_h_j(psi_ref(1,1,j), psi_non_ref(1,1,k),N_int,Hjk)
+          call i_h_j(psi_non_ref(1,1,k),psi_ref(1,1,i), N_int,Hki)
+          
+          delta_cas(i,j,i_state) += Hjk * get_dij(psi_ref(1,1,i), psi_non_ref(1,1,k), N_int) ! * Hki * lambda_mrcc(i_state, k)
+          !print *, Hjk * get_dij(psi_ref(1,1,i), psi_non_ref(1,1,k), N_int), Hki * get_dij(psi_ref(1,1,j), psi_non_ref(1,1,k), N_int)
+        end do
         delta_cas(j,i,i_state) = delta_cas(i,j,i_state)
+      end do
     end do
-    end do 
+    !$OMP END PARALLEL DO
   end do
-  
-  call wall_time(wall)
-  print *, "dcas", wall
-!   stop
  END_PROVIDER
  
  
@@ -618,7 +649,7 @@ end function
   integer, allocatable            :: idx_sorted_bit(:)
   integer, external               :: get_index_in_psi_det_sorted_bit, searchDet
   logical, external               :: is_in_wavefunction, detEq
-  
+  double precision, external      :: get_dij
   integer :: II, blok
   integer*8, save :: notf = 0
 
@@ -659,7 +690,7 @@ end function
       
         
   kloop: do k=cepa0_shortcut(blok), cepa0_shortcut(blok+1)-1 !i
-          if(lambda_mrcc(i_state, det_cepa0_idx(k)) == 0d0) cycle
+          !if(lambda_mrcc(i_state, det_cepa0_idx(k)) == 0d0) cycle
           
           do ni=1,N_int
             if(iand(made_hole(ni,1), det_cepa0_active(ni,1,k)) /= 0) cycle kloop
@@ -681,13 +712,10 @@ end function
           j = sortRefIdx(j)
           !$OMP ATOMIC
           notf = notf+1
-          !if(i/=k .and. dabs(psi_non_ref_coef(det_cepa0_idx(i),i_state)) < dabs(psi_non_ref_coef(det_cepa0_idx(k),i_state))) cycle
-!           if(dabs(lambda_mrcc(i_state,det_cepa0_idx(i))) > dabs(lambda_mrcc(i_state,det_cepa0_idx(k)))) cycle
-!           if(dabs(lambda_mrcc(i_state,det_cepa0_idx(i))) == dabs(lambda_mrcc(i_state,det_cepa0_idx(k))) .and. i < k) cycle
-          !if(.not. j==II .and. dabs(psi_ref_coef(II,i_state)) < dabs(psi_ref_coef(j,i_state))) cycle
-          
+
           call i_h_j(psi_non_ref(1,1,det_cepa0_idx(k)),psi_ref(1,1,J),N_int,HJk)
-          contrib = delta_cas(II, J, i_state) * HJk * lambda_mrcc(i_state, det_cepa0_idx(k))
+          !contrib = delta_cas(II, J, i_state) * HJk * lambda_mrcc(i_state, det_cepa0_idx(k))
+          contrib = delta_cas(II, J, i_state) * get_dij(psi_ref(1,1,J), psi_non_ref(1,1,det_cepa0_idx(k)), N_int)
           !$OMP ATOMIC
           delta_mrcepa0_ij(J, det_cepa0_idx(i), i_state) += contrib
           
