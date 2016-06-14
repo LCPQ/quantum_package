@@ -30,8 +30,8 @@ module map_module
  integer*8, parameter           :: map_mask  = ibset(0_8,15)-1_8
 
  type cache_map_type
-  integer(cache_key_kind), pointer :: key(:)
   real(integral_kind), pointer   :: value(:)
+  integer(cache_key_kind), pointer :: key(:)
   logical                        :: sorted
   integer(cache_map_size_kind)   :: map_size
   integer(cache_map_size_kind)   :: n_elements
@@ -39,10 +39,14 @@ module map_module
  end type cache_map_type
 
  type map_type
-  type(cache_map_type), allocatable :: map(:)
+  type(cache_map_type), pointer  :: map(:)
+  real(integral_kind), pointer   :: consolidated_value(:)
+  integer(cache_key_kind), pointer :: consolidated_key(:)
+  integer*8, pointer             :: consolidated_idx(:)
+  logical                        :: sorted
+  logical                        :: consolidated
   integer(map_size_kind)         :: map_size
   integer(map_size_kind)         :: n_elements
-  logical                        :: sorted
   integer(omp_lock_kind)         :: lock
  end type map_type
 
@@ -92,6 +96,7 @@ subroutine map_init(map,keymax)
   
   map%n_elements = 0_8
   map%map_size = ishft(keymax,map_shift)
+  map%consolidated = .False.
   
   allocate(map%map(0_8:map%map_size),stat=err)
   if (err /= 0) then
@@ -655,12 +660,10 @@ subroutine search_key_big_interval(key,X,sze,idx,ibegin_in,iend_in)
     idx = ibegin
     if (min(iend_in,sze) > ibegin+16) then
       iend = ibegin+16
-      !DIR$ VECTOR ALIGNED
       do while (cache_key > X(idx))
         idx = idx+1
       end do
     else
-      !DIR$ VECTOR ALIGNED
       do while (cache_key > X(idx))
         idx = idx+1
         if (idx /= iend) then
@@ -768,13 +771,11 @@ subroutine search_key_value_big_interval(key,value,X,Y,sze,idx,ibegin_in,iend_in
     value = Y(idx)
     if (min(iend_in,sze) > ibegin+16) then
       iend = ibegin+16
-      !DIR$ VECTOR ALIGNED
       do while (cache_key > X(idx))
         idx = idx+1
         value = Y(idx)
       end do
     else
-      !DIR$ VECTOR ALIGNED
       do while (cache_key > X(idx))
         idx = idx+1
         value = Y(idx)
@@ -853,3 +854,121 @@ subroutine get_cache_map(map,map_idx,keys,values,n_elements)
   enddo
   
 end
+
+
+subroutine map_save_to_disk(filename,map)
+  use map_module
+  use mmap_module
+  implicit none
+  character*(*), intent(in)      :: filename
+  type(map_type), intent(inout)  :: map
+  type(c_ptr)                    :: c_pointer(3)
+  integer                        :: fd(3)
+  integer*8                      :: i,k
+  integer                        :: j
+
+
+
+  if (map % consolidated) then
+    stop 'map already consolidated'
+  endif
+
+  call mmap(trim(filename)//'_consolidated_idx', (/ map % map_size + 2_8 /), 8, fd(1), .False., c_pointer(1))
+  call c_f_pointer(c_pointer(1),map % consolidated_idx, (/ map % map_size +2_8/))
+
+  call mmap(trim(filename)//'_consolidated_key', (/ map % n_elements /), cache_key_kind, fd(2), .False., c_pointer(2))
+  call c_f_pointer(c_pointer(2),map % consolidated_key, (/ map % n_elements /))
+
+  call mmap(trim(filename)//'_consolidated_value', (/ map % n_elements /), integral_kind, fd(3), .False., c_pointer(3))
+  call c_f_pointer(c_pointer(3),map % consolidated_value, (/ map % n_elements /))
+
+  if (.not.associated(map%consolidated_key)) then
+    stop 'cannot consolidate map : consolidated_key not associated'
+  endif
+
+  if (.not.associated(map%consolidated_value)) then
+    stop 'cannot consolidate map : consolidated_value not associated'
+  endif
+
+  if (.not.associated(map%consolidated_idx)) then
+    stop 'cannot consolidate map : consolidated_idx not associated'
+  endif
+
+  call map_sort(map)
+  k = 1_8
+  do i=0_8, map % map_size
+    map % consolidated_idx (i+1) = k
+    do j=1, map % map(i) % n_elements
+      map % consolidated_value(k) = map % map(i) % value(j)
+      map % consolidated_key  (k) = map % map(i) % key(j)
+      k = k+1_8
+    enddo
+    deallocate(map % map(i) % value)
+    deallocate(map % map(i) % key)
+    map % map(i) % value => map % consolidated_value ( map % consolidated_idx (i+1) :)
+    map % map(i) % key   => map % consolidated_key   ( map % consolidated_idx (i+1) :)
+  enddo
+  map % consolidated_idx (map % map_size + 2_8) = k
+  map % consolidated = .True.
+
+
+  call munmap( (/ map % map_size + 2_8 /), 8, fd(1), c_pointer(1))
+  call mmap(trim(filename)//'_consolidated_idx', (/ map % map_size + 2_8 /), 8, fd(1), .True., c_pointer(1))
+  call c_f_pointer(c_pointer(1),map % consolidated_idx, (/ map % map_size +2_8/))
+
+  call munmap( (/ map % n_elements /), cache_key_kind, fd(2), c_pointer(2))
+  call mmap(trim(filename)//'_consolidated_key', (/ map % n_elements /), cache_key_kind, fd(2), .True., c_pointer(2))
+  call c_f_pointer(c_pointer(2),map % consolidated_key, (/ map % n_elements /))
+
+  call munmap( (/ map % n_elements /), integral_kind, fd(3), c_pointer(3))
+  call mmap(trim(filename)//'_consolidated_value', (/ map % n_elements /), integral_kind, fd(3), .True., c_pointer(3))
+  call c_f_pointer(c_pointer(3),map % consolidated_value, (/ map % n_elements /))
+
+end
+
+subroutine map_load_from_disk(filename,map)
+  use map_module
+  use mmap_module
+  implicit none
+  character*(*), intent(in)      :: filename
+  type(map_type), intent(inout)  :: map
+  type(c_ptr)                    :: c_pointer(3)
+  integer                        :: fd(3)
+  integer*8                      :: i,k
+  integer                        :: n_elements
+
+
+
+  if (map % consolidated) then
+    stop 'map already consolidated'
+  endif
+
+  call mmap(trim(filename)//'_consolidated_idx', (/ map % map_size + 2_8 /), 8, fd(1), .True., c_pointer(1))
+  call c_f_pointer(c_pointer(1),map % consolidated_idx, (/ map % map_size + 2_8/))
+
+  map% n_elements = map % consolidated_idx (map % map_size+2_8)-1
+
+  call mmap(trim(filename)//'_consolidated_key', (/ map % n_elements /), cache_key_kind, fd(2), .True., c_pointer(2))
+  call c_f_pointer(c_pointer(2),map % consolidated_key, (/ map % n_elements /))
+
+  call mmap(trim(filename)//'_consolidated_value', (/ map % n_elements /), integral_kind, fd(3), .True., c_pointer(3))
+  call c_f_pointer(c_pointer(3),map % consolidated_value, (/ map % n_elements /))
+
+  k = 1_8
+  do i=0_8, map % map_size
+    deallocate(map % map(i) % value)
+    deallocate(map % map(i) % key)
+    map % map(i) % value => map % consolidated_value ( map % consolidated_idx (i+1) :)
+    map % map(i) % key   => map % consolidated_key   ( map % consolidated_idx (i+1) :)
+    map % map(i) % sorted = .True.
+    n_elements = map % consolidated_idx (i+2) - k
+    k = map % consolidated_idx (i+2)
+    map % map(i) % map_size = n_elements
+    map % map(i) % n_elements = n_elements
+  enddo
+  map % n_elements = k-1
+  map % sorted = .True. 
+  map % consolidated = .True.
+
+end
+
