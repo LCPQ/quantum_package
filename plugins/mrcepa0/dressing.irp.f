@@ -15,7 +15,7 @@ use bitmasks
   delta_ij_mrcc = 0d0
   delta_ii_mrcc = 0d0
   i_state = 1
-  provide hh_shortcut psi_det_size lambda_mrcc
+  provide hh_shortcut psi_det_size! lambda_mrcc
   !$OMP PARALLEL DO default(none)  schedule(dynamic) &
   !$OMP shared(psi_det_generators, N_det_generators, hh_exists, pp_exists, N_int, hh_shortcut) &
   !$OMP shared(N_states, N_det_non_ref, N_det_ref, delta_ii_mrcc, delta_ij_mrcc) &
@@ -545,7 +545,7 @@ END_PROVIDER
   double precision, external :: get_dij
   integer i_state, degree
   
-  provide lambda_mrcc
+  !provide lambda_mrcc
   do i_state = 1, N_states
     !$OMP PARALLEL DO default(none) schedule(dynamic) private(j,k,Hjk,Hki,degree) shared(no_mono_dressing,lambda_mrcc,i_state, N_det_non_ref,psi_ref, psi_non_ref,N_int,delta_cas,N_det_ref)
     do i=1,N_det_ref

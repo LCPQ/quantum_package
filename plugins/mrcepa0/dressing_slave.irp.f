@@ -55,7 +55,7 @@ subroutine mrsc2_dressing_slave(thread,iproc)
   logical, external               :: is_in_wavefunction, isInCassd, detEq
   integer,allocatable :: komon(:)
   logical :: komoned
-
+  double precision, external :: get_dij
      
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_push      = new_zmq_push_socket(thread)
@@ -124,14 +124,14 @@ subroutine mrsc2_dressing_slave(thread,iproc)
           if(h_(J,i) == 0.d0) cycle
           if(h_(i_I,i) == 0.d0) cycle
           
-          ok = .false.
-          do i_state=1, N_states
-            if(lambda_mrcc(i_state, i) /= 0d0) then
-              ok = .true.
-              exit
-            end if
-          end do
-          if(.not. ok) cycle
+          !ok = .false.
+          !do i_state=1, N_states
+          !  if(lambda_mrcc(i_state, i) /= 0d0) then
+          !    ok = .true.
+          !    exit
+          !  end if
+          !end do
+          !if(.not. ok) cycle
 !         
           
           komon(0) += 1
@@ -144,7 +144,8 @@ subroutine mrsc2_dressing_slave(thread,iproc)
 !           if(I_i == J) phase_Ii = phase_Ji
           
           do i_state = 1,N_states
-            dkI = h_(J,i) * h_(i_I,i) * lambda_mrcc(i_state, i)
+            dkI = h_(J,i) * get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,i), N_int)
+            !dkI = h_(J,i) * h_(i_I,i) * lambda_mrcc(i_state, i)
             dleat(i_state, kn, 1) = dkI
             dleat(i_state, kn, 2) = dkI
           end do
@@ -169,24 +170,20 @@ subroutine mrsc2_dressing_slave(thread,iproc)
         !if(isInCassd(det_tmp, N_int)) cycle
           
         do i_state = 1, N_states 
-          if(lambda_mrcc(i_state, i) == 0d0) cycle
+          !if(lambda_mrcc(i_state, i) == 0d0) cycle
           
 
-!           call get_excitation(det_tmp,psi_non_ref(1,1,l),exc_IJ,degree2,phase_al,N_int)
-          contrib = h_(i_I,k) * lambda_mrcc(i_state, k) * dleat(i_state, m, 2)! * phase_al
-!           if(l /= det_cepa0_idx(linked(ll, J))) stop "SPTPqsdT"
+          !contrib = h_(i_I,k) * lambda_mrcc(i_state, k) * dleat(i_state, m, 2)! * phase_al
+          contrib =  get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,k), N_int) * dleat(i_state, m, 2)
           delta(i_state,ll,1) += contrib
           if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5) then
             delta(i_state,0,1) -= contrib * ci_inv(i_state) * psi_non_ref_coef(l,i_state)
           endif
           
           if(I_i == J) cycle
-!           call get_excitation(det_tmp,psi_non_ref(1,1,k),exc_IJ,degree2,phase_al,N_int)
-!           cj_inv(i_state) = 1.d0 / psi_ref_coef(J,i_state)
-          contrib = h_(J,l) * lambda_mrcc(i_state, l) * dleat(i_state, m, 1)! * phase_al
-!           if(k /= linked(kk, I_i)) stop "SPTPT"
+          !contrib = h_(J,l) * lambda_mrcc(i_state, l) * dleat(i_state, m, 1)! * phase_al
+          contrib =  get_dij(psi_ref(1,1,J), psi_non_ref(1,1,l), N_int) * dleat(i_state, m, 1)
           delta(i_state,kk,2) += contrib
-          !delta(i_state,det_cepa0_idx(k),2) += contrib
           if(dabs(psi_ref_coef(J,i_state)).ge.5.d-5) then
             delta(i_state,0,2) -= contrib * cj_inv(i_state) * psi_non_ref_coef(k,i_state)
           end if
