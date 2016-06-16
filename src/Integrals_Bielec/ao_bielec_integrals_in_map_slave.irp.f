@@ -227,9 +227,11 @@ subroutine ao_bielec_integrals_in_map_collector
   control = get_ao_map_size(ao_integrals_map)
 
   if (control /= accu) then
-      print *, irp_here,  'Control : ', control
-      print *,  'Accu    : ', accu
-      print *, 'Some integrals were lost during the parallel computation. (2)'
+      print *, ''
+      print *, irp_here
+      print *, 'Control : ', control
+      print *, 'Accu    : ', accu
+      print *, 'Some integrals were lost during the parallel computation.'
       print *, 'Try to reduce the number of threads.'
       stop
   endif

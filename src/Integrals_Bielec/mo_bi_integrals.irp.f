@@ -28,7 +28,6 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
 
   mo_bielec_integrals_in_map = .True.
   if (read_mo_integrals) then
-    integer                        :: load_mo_integrals
     print*,'Reading the MO integrals'
     call map_load_from_disk(trim(ezfio_filename)//'/work/mo_ints',mo_integrals_map)
     print*, 'MO integrals provided'
