@@ -674,7 +674,7 @@ END_PROVIDER
 BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
   implicit none
   logical :: ok
-  integer :: II, pp, hh, ind, wk
+  integer :: i, j, k, II, pp, hh, ind, wk, nex
   integer, external :: unsortedSearchDet
   integer(bit_kind) :: myDet(N_int, 2), myMask(N_int, 2)
   double precision, allocatable :: A(:,:)
@@ -682,8 +682,9 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
   double precision, allocatable :: WORK(:)
   integer, allocatable :: IWORK(:)
   
-  print *, "TI", hh_shortcut(hh_shortcut(0)+1)-1, N_det_non_ref
-  allocate(A(N_det_non_ref, hh_shortcut(hh_shortcut(0)+1)-1))
+  nex = hh_shortcut(hh_shortcut(0)+1)-1
+  print *, "TI", nex, N_det_non_ref
+  allocate(A(N_det_non_ref, nex))
   A = 0d0
   do II = 1, N_det_ref
     do hh = 1, hh_shortcut(0)
@@ -700,39 +701,37 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
     end do
   end do
   
-  double precision :: B(N_det_non_ref), S(N_det_non_ref)
-  integer :: rank
-  B = psi_non_ref_coef(:,1)
-  allocate(WORK(1), IWORK(1))
-  call DGELSD(N_det_non_ref, &
-              hh_shortcut(hh_shortcut(0)+1)-1, &
-              1, &
-              A, N_det_non_ref, &
-              B, N_det_non_ref, &
-              S, &
-              1d-6, &
-              rank, &
-              WORK, -1, &
-              IWORK, &
-              INFO )
-  wk = int(work(1))
-  print *, "WORK:", wk
-  deallocate(WORK, IWORK)
-  allocate(WORK(wk), IWORK(wk))
-  call DGELSD(N_det_non_ref, &
-              hh_shortcut(hh_shortcut(0)+1)-1, &
-              1, &
-              A, N_det_non_ref, &
-              B, N_det_non_ref, &
-              S, &
-              1d-6, &
-              rank, &
-              WORK, size(WORK), &
-              IWORK, &
-              INFO )
-  print *, INFO, size(dIj), size(B)
-  dIj(:size(dIj)) = B(:size(dIj))
-  print *, "diden"
+  double precision, allocatable :: IAtA(:,:), AtB(:), X(:), X_new(:)
+  double precision :: norm
+  allocate(IAtA(nex, nex), AtB(nex), X(nex), X_new(nex))
+  print *, "allocated", size(IAtA, 1), size(A, 2)
+  !IAtA = -matmul(transpose(A), A)
+  
+  IAtA = 0.d0
+  do i=1, size(A,2)
+    IAtA(i,i) = 1d0
+  end do
+  call dgemm('T','N',nex,nex,N_det_non_ref,1.d0,A,size(A,1),A,size(A,1),-1.d0,IAtA,size(IAtA,1))
+  IaTa = -IATa
+
+  call dgemv('T',N_det_non_ref,nex,1.d0,A,size(A,1),psi_non_ref_coef(1,1),1,0.d0,AtB,1)
+
+  !AtB = matmul(transpose(A), psi_non_ref_coef(:,1))
+
+  X = AtB
+  do k=1, 1000
+    !X_new = matmul(IAtA, X) + AtB
+  x_new = AtB
+  call dgemv('N',nex,nex,1.d0,IAtA,size(IAtA,1),X,1,1.d0,x_new,1)
+    norm = 0d0
+    do j=1, size(X)
+      norm += (X_new(j) - X(j))**2
+      X(j) = X_new(j)
+    end do
+    print *, "resudu ", norm
+  end do
+  dIj = X
+  print *, "done"
 END_PROVIDER
 
 
