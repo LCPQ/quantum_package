@@ -6,24 +6,23 @@ BEGIN_PROVIDER [double precision, mo_nucl_elec_integral, (mo_tot_num_align,mo_to
 ! interaction nuclear electron on the MO basis
  END_DOC
 
- mo_nucl_elec_integral = 0.d0
- !$OMP PARALLEL DO DEFAULT(none) &
- !$OMP PRIVATE(i,j,i1,j1,c_j1,c_i1) &
- !$OMP SHARED(mo_tot_num,ao_num,mo_coef, &
- !$OMP   mo_nucl_elec_integral, ao_nucl_elec_integral)
- do i = 1, mo_tot_num
-   do j = 1, mo_tot_num
-    do i1 = 1,ao_num
-     c_i1 = mo_coef(i1,i)
-     do j1 = 1,ao_num
-       c_j1 = c_i1*mo_coef(j1,j)
-       mo_nucl_elec_integral(j,i) = mo_nucl_elec_integral(j,i) + &
-                             c_j1 * ao_nucl_elec_integral(j1,i1)
-     enddo
-    enddo
-   enddo
- enddo
- !$OMP END PARALLEL DO
+ double precision, allocatable :: X(:,:)
+ allocate(X(ao_num_align,mo_tot_num))
+
+ call dgemm('N','N',ao_num,mo_tot_num,ao_num,                        &
+     1.d0,                                                           &
+     ao_nucl_elec_integral, size(ao_nucl_elec_integral,1),           &
+     mo_coef,size(mo_coef,1),                                        &
+     0.d0, X, size(X,1))
+
+ call dgemm('T','N',mo_tot_num,mo_tot_num,ao_num,                    &
+     1.d0,                                                           &
+     mo_coef,size(mo_coef,1),                                        &
+     X, size(X,1),                                                   &
+     0.d0, mo_nucl_elec_integral, size(mo_nucl_elec_integral,1))
+
+ deallocate(X)
+
 END_PROVIDER
 
 
@@ -36,25 +35,25 @@ BEGIN_PROVIDER [double precision, mo_nucl_elec_integral_per_atom, (mo_tot_num_al
 ! where Rk is the geometry of the kth atom
  END_DOC
 
- mo_nucl_elec_integral_per_atom = 0.d0
- do k = 1, nucl_num 
- !$OMP PARALLEL DO DEFAULT(none) &
- !$OMP PRIVATE(i,j,i1,j1,c_j1,c_i1) &
- !$OMP SHARED(mo_tot_num,ao_num,mo_coef, &
- !$OMP   mo_nucl_elec_integral_per_atom, ao_nucl_elec_integral_per_atom,k)
-  do i = 1, mo_tot_num
-    do j = 1, mo_tot_num
-     do i1 = 1,ao_num
-      c_i1 = mo_coef(i1,i)
-      do j1 = 1,ao_num
-        c_j1 = c_i1*mo_coef(j1,j)
-        mo_nucl_elec_integral_per_atom(j,i,k) = mo_nucl_elec_integral_per_atom(j,i,k) + &
-                                            c_j1 * ao_nucl_elec_integral_per_atom(j1,i1,k)
-      enddo
-     enddo
-    enddo
-  enddo
- !$OMP END PARALLEL DO
+ allocate(X(ao_num_align,mo_tot_num))
+ double precision, allocatable  :: X(:,:)
+ 
+ do k = 1, nucl_num
+   
+   call dgemm('N','N',ao_num,mo_tot_num,ao_num,                      &
+       1.d0,                                                         &
+       ao_nucl_elec_integral_per_atom, size(ao_nucl_elec_integral_per_atom,1),&
+       mo_coef,size(mo_coef,1),                                      &
+       0.d0, X, size(X,1))
+   
+   call dgemm('T','N',mo_tot_num,mo_tot_num,ao_num,                  &
+       1.d0,                                                         &
+       mo_coef,size(mo_coef,1),                                      &
+       X, size(X,1),                                                 &
+       0.d0, mo_nucl_elec_integral_per_atom(1,1,k), size(mo_nucl_elec_integral_per_atom,1))
+   
  enddo
+
+ deallocate(X)
 END_PROVIDER
 
