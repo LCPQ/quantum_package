@@ -687,27 +687,28 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
   integer, external :: searchDet, unsortedSearchDet
   integer(bit_kind) :: myDet(N_int, 2), myMask(N_int, 2)
   integer :: N, INFO, AtA_size, r1, r2
-  double precision , allocatable:: AtB(:), AtA_val(:), A_dense(:), A_val(:,:), x(:), x_new(:), A_val_mwen(:)
+  double precision , allocatable:: AtB(:), AtA_val(:), A_val(:,:), x(:), x_new(:), A_val_mwen(:)
   double precision :: t, norm, cx
-  integer, allocatable :: A_ind(:,:), AtA_ind(:), A_ind_mwen(:), col_shortcut(:), N_col(:)
+  integer, allocatable :: A_ind(:,:), lref(:), AtA_ind(:), A_ind_mwen(:), col_shortcut(:), N_col(:)
   
   
   nex = hh_shortcut(hh_shortcut(0)+1)-1
   print *, "TI", nex, N_det_non_ref
   allocate(A_ind(N_det_ref+1, nex), A_val(N_det_ref+1, nex))
   allocate(AtA_ind(N_det_ref * nex), AtA_val(N_det_ref * nex)) !!!!! MAY BE TOO SMALL !!!!!!!!
-  allocate(x(nex), AtB(nex), A_dense(N_det_non_ref))
+  allocate(x(nex), AtB(nex))
   allocate(A_val_mwen(nex), A_ind_mwen(nex))
   allocate(N_col(nex), col_shortcut(nex))
   A_val = 0d0
   A_ind = 0
   !$OMP PARALLEL DO schedule(static,10) default(none) shared(psi_non_ref, hh_exists, pp_exists, N_int, A_val, A_ind) &
   !$OMP shared(hh_shortcut, psi_ref_coef, N_det_non_ref, psi_non_ref_sorted, psi_non_ref_sorted_idx, psi_ref, N_det_ref) &
-  !$OMP private(pp, II, ok, myMask, myDet, ind, wk)
+  !$OMP private(lref, pp, II, ok, myMask, myDet, ind, wk)
   do hh = 1, hh_shortcut(0)
     !print *, hh, "/", hh_shortcut(0)
     do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
-      wk = 0
+      allocate(lref(N_det_non_ref))    
+      lref = 0
       do II = 1, N_det_ref
         call apply_hole(psi_ref(1,1,II), hh_exists(1, hh), myMask, ok, N_int)
         if(.not. ok) cycle
@@ -716,16 +717,25 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
         !ind = unsortedSearchDet(psi_non_ref(1,1,1), myDet, N_det_non_ref, N_int)
         ind = searchDet(psi_non_ref_sorted(1,1,1), myDet(1,1), N_det_non_ref, N_int)
         if(ind /= -1) then
-          wk = wk+1
-          A_val(wk, pp) = psi_ref_coef(II, 1)
-          A_ind(wk, pp) = psi_non_ref_sorted_idx(ind)
+          !iwk = wk+1
+          !A_val(wk, pp) = psi_ref_coef(II, 1)
+          !A_ind(wk, pp) = psi_non_ref_sorted_idx(ind)
+          lref(psi_non_ref_sorted_idx(ind)) = II
         end if
       end do
+      wk = 0
+      do i=1, N_det_non_ref
+        if(lref(i) /= 0) then
+          wk += 1
+          A_val(wk, pp) = psi_ref_coef(lref(i), 1)
+          A_ind(wk, pp) = i
+        end if
+      end do
+      deallocate(lref)
     end do
   end do
   !$OMP END PARALLEL DO
  
-  A_dense = 0d0
   AtB = 0d0
   AtA_size = 0
   wk = 0
@@ -737,7 +747,6 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
   do at_row = 1, nex
     wk = 0
     if(mod(at_row, 1000) == 0) print *, "AtA", at_row, "/", nex
-    !A_dense = 0d0
     do i=1,N_det_ref
       if(A_ind(i, at_row) == 0) exit
       AtB(at_row) = AtB(at_row) + psi_non_ref_coef(A_ind(i, at_row), 1) * A_val(i, at_row)
@@ -791,11 +800,12 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
   enddo
 
   do k=0,100000
-    !$OMP PARALLEL DO default(shared)
+    ! df $ fg OMP PARALLEL DO default(shared)
     do i=1,nex
       x_new(i) = AtB(i)
     enddo
-   !$OMP PARALLEL DO default(shared) private(cx, i)
+
+   ! sdf $OMP PARALLEL DO default(shared) private(cx, i)
    do a_col = 1, nex
      cx = 0d0
      do i=col_shortcut(a_col), col_shortcut(a_col) + N_col(a_col) - 1
@@ -803,7 +813,7 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
      end do
      x_new(a_col) += cx
    end do
-   !$OMP END PARALLEL DO
+   ! sdf $OMP END PARALLEL DO
 
     norm = 0d0
 
