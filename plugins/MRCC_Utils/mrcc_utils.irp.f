@@ -767,7 +767,10 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
         end if
       end do
 
-      if(a_col == at_row) t = (t + 1d0)! / 2d0
+      if(a_col == at_row) then
+        t = (t + 1d0)! / 2d0
+        !print *, a_col, t-1d0
+      end if
       if(t /= 0d0) then
         wk += 1
         !AtA_ind(1, wk) = at_row
@@ -814,16 +817,29 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
      x_new(a_col) += cx
    end do
    ! sdf $OMP END PARALLEL DO
+    double precision :: norm_cas
+    norm_cas = 0d0
+    do i = 1, N_det_ref
+      norm_cas += psi_ref_coef(i,1)**2
+    end do
 
     norm = 0d0
+    t = 0d0
 
+    do j=1, size(X)
+      t = t + X_new(j) * X_new(j)
+    end do
+
+    x_new = x_new / sqrt(norm_cas + t)
+    
     do j=1, size(X)
       norm += (X_new(j) - X(j))**2
       x(j) = x_new(j)
     end do
-    
+    !print *, "NORM X_new", t
+
     if(mod(k, 1000) == 0) print *, "residu ", k, norm
-    if(norm < 1d-9) exit
+    if(norm < 1d-16) exit
   end do
   print *, "CONVERGENCE : ", norm
     
