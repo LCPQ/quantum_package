@@ -62,7 +62,7 @@ module mmap_module
       length = PRODUCT( shape(:) ) * bytes
       fd_ = fd
       call c_munmap( length, fd_, map)
-  end 
+  end subroutine
 
 end module mmap_module
 
