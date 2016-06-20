@@ -1,3 +1,4 @@
+use bitmasks
 
  BEGIN_PROVIDER [ integer, mrmode ]
 &BEGIN_PROVIDER [ logical, old_lambda ]
@@ -671,66 +672,202 @@ END_PROVIDER
 
 
 
+ BEGIN_PROVIDER [ integer(bit_kind), psi_non_ref_sorted, (N_int, 2, N_det_non_ref) ]
+&BEGIN_PROVIDER [ integer, psi_non_ref_sorted_idx, (N_det_non_ref) ]
+  implicit none
+  psi_non_ref_sorted = psi_non_ref
+  call sort_det(psi_non_ref_sorted, psi_non_ref_sorted_idx, N_det_non_ref, N_int)
+END_PROVIDER
+
+
 BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
   implicit none
   logical :: ok
-  integer :: i, j, k, II, pp, hh, ind, wk, nex
-  integer, external :: unsortedSearchDet
+  integer :: i, j, k, II, pp, hh, ind, wk, nex, a_col, at_row
+  integer, external :: searchDet, unsortedSearchDet
   integer(bit_kind) :: myDet(N_int, 2), myMask(N_int, 2)
-  double precision, allocatable :: A(:,:)
-  integer :: N, IPIV(N_det_non_ref), INFO
-  double precision, allocatable :: WORK(:)
-  integer, allocatable :: IWORK(:)
+  integer :: N, INFO, AtA_size, r1, r2
+  double precision , allocatable:: AtB(:), AtA_val(:), A_dense(:), A_val(:,:), x(:), x_new(:), A_val_mwen(:)
+  double precision :: t, norm, cx
+  integer, allocatable :: A_ind(:,:), AtA_ind(:), A_ind_mwen(:), col_shortcut(:), N_col(:)
+  
   
   nex = hh_shortcut(hh_shortcut(0)+1)-1
   print *, "TI", nex, N_det_non_ref
-  allocate(A(N_det_non_ref, nex))
-  A = 0d0
-  do II = 1, N_det_ref
-    do hh = 1, hh_shortcut(0)
-      call apply_hole(psi_ref(1,1,II), hh_exists(1, hh), myMask, ok, N_int)
-      if(.not. ok) cycle
-      do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
+  allocate(A_ind(N_det_ref+1, nex), A_val(N_det_ref+1, nex))
+  allocate(AtA_ind(N_det_ref * nex), AtA_val(N_det_ref * nex)) !!!!! MAY BE TOO SMALL !!!!!!!!
+  allocate(x(nex), AtB(nex), A_dense(N_det_non_ref))
+  allocate(A_val_mwen(nex), A_ind_mwen(nex))
+  allocate(N_col(nex), col_shortcut(nex))
+  A_val = 0d0
+  A_ind = 0
+  !$OMP PARALLEL DO schedule(static,10) default(none) shared(psi_non_ref, hh_exists, pp_exists, N_int, A_val, A_ind) &
+  !$OMP shared(hh_shortcut, psi_ref_coef, N_det_non_ref, psi_non_ref_sorted, psi_non_ref_sorted_idx, psi_ref, N_det_ref) &
+  !$OMP private(pp, II, ok, myMask, myDet, ind, wk)
+  do hh = 1, hh_shortcut(0)
+    !print *, hh, "/", hh_shortcut(0)
+    do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
+      wk = 0
+      do II = 1, N_det_ref
+        call apply_hole(psi_ref(1,1,II), hh_exists(1, hh), myMask, ok, N_int)
+        if(.not. ok) cycle
         call apply_particle(myMask, pp_exists(1, pp), myDet, ok, N_int)
         if(.not. ok) cycle
-        ind = unsortedSearchDet(psi_non_ref(1,1,1), myDet, N_det_non_ref, N_int)
+        !ind = unsortedSearchDet(psi_non_ref(1,1,1), myDet, N_det_non_ref, N_int)
+        ind = searchDet(psi_non_ref_sorted(1,1,1), myDet(1,1), N_det_non_ref, N_int)
         if(ind /= -1) then
-          A(ind, pp) += psi_ref_coef(II, 1)
+          wk = wk+1
+          A_val(wk, pp) = psi_ref_coef(II, 1)
+          A_ind(wk, pp) = psi_non_ref_sorted_idx(ind)
         end if
       end do
     end do
   end do
-  
-  double precision, allocatable :: IAtA(:,:), AtB(:), X(:), X_new(:)
-  double precision :: norm
-  allocate(IAtA(nex, nex), AtB(nex), X(nex), X_new(nex))
-  print *, "allocated", size(IAtA, 1), size(A, 2)
-  !IAtA = -matmul(transpose(A), A)
-  
-  IAtA = 0.d0
-  do i=1, size(A,2)
-    IAtA(i,i) = 1d0
+  !$OMP END PARALLEL DO
+ 
+  A_dense = 0d0
+  AtB = 0d0
+  AtA_size = 0
+  wk = 0
+  col_shortcut = 0
+  N_col = 0
+  !$OMP PARALLEL DO schedule(dynamic, 100) default(none) shared(k, psi_non_ref_coef, A_ind, A_val, x, N_det_ref, nex, N_det_non_ref) &
+  !$OMP private(at_row, a_col, t, i, r1, r2, wk, A_ind_mwen, A_val_mwen) &
+  !$OMP shared(col_shortcut, N_col, AtB, AtA_size, AtA_val, AtA_ind) 
+  do at_row = 1, nex
+    wk = 0
+    if(mod(at_row, 1000) == 0) print *, "AtA", at_row, "/", nex
+    !A_dense = 0d0
+    do i=1,N_det_ref
+      if(A_ind(i, at_row) == 0) exit
+      AtB(at_row) = AtB(at_row) + psi_non_ref_coef(A_ind(i, at_row), 1) * A_val(i, at_row)
+    end do
+    do a_col = 1, nex
+      t = 0d0
+      r1 = 1
+      r2 = 1
+      do while(A_ind(r1, at_row) * A_ind(r2, a_col) /= 0)
+        if(A_ind(r1, at_row) < A_ind(r2, a_col)) then
+          r1 += 1
+        else if(A_ind(r1, at_row) > A_ind(r2, a_col)) then
+          r2 += 1
+        else
+          t = t - A_val(r1, at_row) * A_val(r2, a_col)
+          r1 += 1
+          r2 += 1
+        end if
+      end do
+
+      if(a_col == at_row) t = (t + 1d0)! / 2d0
+      if(t /= 0d0) then
+        wk += 1
+        !AtA_ind(1, wk) = at_row
+        !AtA_ind(2, wk) = a_col
+        A_ind_mwen(wk) = a_col
+        !AtA_val(wk) = t
+        A_val_mwen(wk) = t
+      end if
+    end do
+
+    if(wk /= 0) then
+      !$OMP CRITICAL
+      col_shortcut(at_row) = AtA_size+1
+      N_col(at_row) = wk
+      AtA_ind(AtA_size+1:AtA_size+wk) = A_ind_mwen(:wk)
+      AtA_val(AtA_size+1:AtA_size+wk) = A_val_mwen(:wk)
+      AtA_size += wk
+      !$OMP END CRITICAL
+    end if
   end do
-  call dgemm('T','N',nex,nex,N_det_non_ref,1.d0,A,size(A,1),A,size(A,1),-1.d0,IAtA,size(IAtA,1))
-  IaTa = -IATa
+  
+  x = AtB
+  if(AtA_size > size(AtA_val)) stop "SIZA"
+  print *, "ATA SIZE", ata_size 
+  allocate (x_new(nex))
+  integer :: iproc, omp_get_thread_num
+  iproc = omp_get_thread_num()
+  do i=1,nex
+    x_new(i) = 0.D0
+  enddo
 
-  call dgemv('T',N_det_non_ref,nex,1.d0,A,size(A,1),psi_non_ref_coef(1,1),1,0.d0,AtB,1)
+  do k=0,100000
+    !$OMP PARALLEL DO default(shared)
+    do i=1,nex
+      x_new(i) = AtB(i)
+    enddo
+   !$OMP PARALLEL DO default(shared) private(cx, i)
+   do a_col = 1, nex
+     cx = 0d0
+     do i=col_shortcut(a_col), col_shortcut(a_col) + N_col(a_col) - 1
+       cx += x(AtA_ind(i)) * AtA_val(i)
+     end do
+     x_new(a_col) += cx
+   end do
+   !$OMP END PARALLEL DO
 
-  !AtB = matmul(transpose(A), psi_non_ref_coef(:,1))
-
-  X = AtB
-  do k=1, 1000
-    !X_new = matmul(IAtA, X) + AtB
-  x_new = AtB
-  call dgemv('N',nex,nex,1.d0,IAtA,size(IAtA,1),X,1,1.d0,x_new,1)
     norm = 0d0
+
     do j=1, size(X)
       norm += (X_new(j) - X(j))**2
-      X(j) = X_new(j)
+      x(j) = x_new(j)
     end do
-    print *, "resudu ", norm
+    
+    if(mod(k, 1000) == 0) print *, "residu ", k, norm
+    if(norm < 1d-9) exit
   end do
-  dIj = X
+  print *, "CONVERGENCE : ", norm
+    
+
+!do k=0,500
+! if(k == 1) print *, X(:10)
+! x_new = 0d0
+! A_dense = 0d0
+! !!$OMP PARALLEL DO schedule(dynamic, 10) default(none) shared(k, psi_non_ref_coef, x_new, A_ind, A_val, x, N_det_ref, nex, N_det_non_ref) &
+! !!$OMP private(a_col, t, i, cx) &
+! !!$OMP firstprivate(A_dense)
+! do at_row = 1, nex
+!   ! ! d DIR$ IVDEP
+!   cx = 0d0
+!   do i=1,N_det_ref
+!     if(A_ind(i, at_row) == 0) exit
+!     if(k /= 0) A_dense(A_ind(i, at_row)) = A_val(i, at_row)
+!     cx = cx + psi_non_ref_coef(A_ind(i, at_row), 1) * A_val(i, at_row)
+!     !x_new(at_row) = x_new(at_row) + psi_non_ref_coef(A_ind(i, at_row), 1) * A_val(i, at_row)
+!   end do 
+!   if(k == 0) then
+!     x_new(at_row) = cx
+!     cycle
+!   end if
+!   do a_col = 1, nex
+!     t = 0d0
+!     do i = 1, N_det_ref
+!       if(A_ind(i, a_col) == 0) exit
+!       t = t - A_val(i, a_col) * A_dense(A_ind(i, a_col)) ! -= pcq I-A
+!     end do
+!     if(a_col == at_row) t = t + 1d0
+!     cx = cx + t * x(a_col)
+!     !x_new(at_row) = x_new(at_row) + t * x(a_col)
+!   end do
+!   x_new(at_row) = cx
+!   do i=1,N_det_ref
+!     if(A_ind(i, at_row) == 0) exit
+!     A_dense(A_ind(i, at_row)) = 0d0
+!   end do
+! end do
+! !!$OMP END PARALLEL DO
+
+! norm = 0d0
+! do j=1, size(X)
+!   norm += (X_new(j) - X(j))**2
+!   X(j) = X_new(j)
+! end do
+! print *, "residu ", k, norm
+! if(norm < 1d-10) exit
+!end do
+!
+
+  dIj(:size(X)) = X(:)
+  !print *, X
   print *, "done"
 END_PROVIDER
 

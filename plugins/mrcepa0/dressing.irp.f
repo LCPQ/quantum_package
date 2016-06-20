@@ -544,8 +544,8 @@ END_PROVIDER
   double precision :: Hjk, Hki, Hij
   double precision, external :: get_dij
   integer i_state, degree
-  
-  !provide lambda_mrcc
+   
+  provide lambda_mrcc dIj
   do i_state = 1, N_states
     !$OMP PARALLEL DO default(none) schedule(dynamic) private(j,k,Hjk,Hki,degree) shared(no_mono_dressing,lambda_mrcc,i_state, N_det_non_ref,psi_ref, psi_non_ref,N_int,delta_cas,N_det_ref)
     do i=1,N_det_ref
@@ -670,6 +670,8 @@ end function
     idx_sorted_bit(get_index_in_psi_det_sorted_bit(psi_non_ref(1,1,i), N_int)) = i
   enddo
     
+  ! To provide everything
+  contrib = get_dij(psi_ref(1,1,1), psi_non_ref(1,1,1), N_int)
   
   do i_state = 1, N_states
     delta_mrcepa0_ii(:,:) = 0d0
