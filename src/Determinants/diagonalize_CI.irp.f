@@ -225,6 +225,7 @@ END_PROVIDER
          call u0_H_u_0(e_0,CI_eigenvectors(1,i_state + i_other_state),n_det,psi_det,N_int)
          CI_electronic_energy(i_state + i_other_state) = e_0
        enddo
+       deallocate(index_good_state_array,good_state_array)
        
      else
        
@@ -247,7 +248,6 @@ END_PROVIDER
        deallocate(e_array,iorder)
      endif
      deallocate(s2_eigvalues)
-     deallocate(index_good_state_array,good_state_array)
      
    endif
    
