@@ -174,7 +174,7 @@ subroutine $subroutine_slave(thread, iproc)
         fock_diag_tmp, i_generator, iproc $params_post)
     endif
 
-    call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id,1)
+    call task_done_to_taskserver(zmq_to_qp_run_socket, worker_id, task_id)
     call push_pt2(zmq_socket_push,pt2,norm_pert,H_pert_diag,i_generator,N_st,task_id)
 
   enddo
