@@ -6,7 +6,7 @@ use bitmasks
 &BEGIN_PROVIDER [ double precision, delta_ii_mrcc, (N_states, N_det_ref) ]
   use bitmasks
   implicit none
-  integer :: gen, h, p, i_state, n, t, i, h1, h2, p1, p2, s1, s2, iproc
+  integer :: gen, h, p, n, t, i, h1, h2, p1, p2, s1, s2, iproc
   integer(bit_kind) :: mask(N_int, 2), omask(N_int, 2)
   integer(bit_kind),allocatable :: buf(:,:,:)
   logical :: ok
@@ -14,16 +14,16 @@ use bitmasks
   
   delta_ij_mrcc = 0d0
   delta_ii_mrcc = 0d0
-  i_state = 1
+  print *, "Dij", dij(1,1,1)
   provide hh_shortcut psi_det_size! lambda_mrcc
   !$OMP PARALLEL DO default(none)  schedule(dynamic) &
   !$OMP shared(psi_det_generators, N_det_generators, hh_exists, pp_exists, N_int, hh_shortcut) &
-  !$OMP shared(N_states, N_det_non_ref, N_det_ref, delta_ii_mrcc, delta_ij_mrcc) &
+  !$OMP shared(N_det_non_ref, N_det_ref, delta_ii_mrcc, delta_ij_mrcc) &
   !$OMP private(h, n, mask, omask, buf, ok, iproc)
   do gen= 1, N_det_generators
     allocate(buf(N_int, 2, N_det_non_ref))
     iproc = omp_get_thread_num() + 1
-    print *, gen, "/", N_det_generators
+    if(mod(gen, 10) == 0) print *, "mrcc ", gen, "/", N_det_generators
     do h=1, hh_shortcut(0)
       call apply_hole(psi_det_generators(1,1,gen), hh_exists(1, h), mask, ok, N_int)
       if(.not. ok) cycle
@@ -36,7 +36,9 @@ use bitmasks
         if(n > N_det_non_ref) stop "MRCC..."
       end do
       n = n - 1
+
       if(n /= 0) call mrcc_part_dress(delta_ij_mrcc, delta_ii_mrcc,gen,n,buf,N_int,omask)
+
     end do
     deallocate(buf)
   end do
@@ -86,7 +88,8 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
   integer, allocatable           :: idx_microlist(:), N_microlist(:), ptr_microlist(:), idx_microlist_zero(:)
   integer :: mobiles(2), smallerlist
   logical, external :: detEq, is_generable
-  double precision, external :: get_dij, get_dij_index
+  !double precision, external :: get_dij, get_dij_index
+  
 
   leng = max(N_det_generators, N_det_non_ref)
   allocate(miniList(Nint, 2, leng), tq(Nint,2,n_selected), idx_minilist(leng), hij_cache(N_det_non_ref))
@@ -171,7 +174,6 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
         idx_alpha(j) = idx_microlist_zero(idx_alpha(j))
       end do
       
-
     else
       call get_excitation_degree_vector(miniList,tq(1,1,i_alpha),degree_alpha,Nint,N_minilist,idx_alpha)
       do j=1,idx_alpha(0)
@@ -184,7 +186,6 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
       k_sd = idx_alpha(l_sd)
       call i_h_j(tq(1,1,i_alpha),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,hij_cache(k_sd))
     enddo
-
     ! |I>
     do i_I=1,N_det_ref
       ! Find triples and quadruple grand parents
@@ -199,7 +200,6 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
       
       ! <I|  <>  |alpha>
       do k_sd=1,idx_alpha(0)
-        
         ! Loop if lambda == 0
         logical                        :: loop
 !         loop = .True.
@@ -220,16 +220,14 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
         
         ! <I| /k\ |alpha>
         ! <I|H|k>
-        hIk = hij_mrcc(idx_alpha(k_sd),i_I)
+        !hIk = hij_mrcc(idx_alpha(k_sd),i_I)
         !         call i_h_j(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(k_sd)),Nint,hIk)
         
-        
         do i_state=1,N_states
-          dIK(i_state) = get_dij_index(i_I, idx_alpha(k_sd), Nint)
+          dIK(i_state) = dij(i_I, idx_alpha(k_sd), i_state)
           !dIk(i_state) = get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,idx_alpha(k_sd)), N_int) !!hIk * lambda_mrcc(i_state,idx_alpha(k_sd))
           !dIk(i_state) = psi_non_ref_coef(idx_alpha(k_sd), i_state) / psi_ref_coef(i_I, i_state)
         enddo
-        
         
         
         ! |l> = Exc(k -> alpha) |I>
@@ -239,7 +237,6 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
           tmp_det(k,1) = psi_ref(k,1,i_I)
           tmp_det(k,2) = psi_ref(k,2,i_I)
         enddo
-        
         logical :: ok
         call apply_excitation(psi_ref(1,1,i_I), exc, tmp_det, ok, Nint)
         if(.not. ok) cycle
@@ -249,7 +246,6 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
           dka(i_state) = 0.d0
         enddo
         do l_sd=k_sd+1,idx_alpha(0)
-
           call get_excitation_degree(tmp_det,psi_non_ref(1,1,idx_alpha(l_sd)),degree,Nint)
           if (degree == 0) then
             
@@ -266,7 +262,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
               hIl = hij_mrcc(idx_alpha(l_sd),i_I)
 !                             call i_h_j(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,hIl)
               do i_state=1,N_states
-                dka(i_state) = get_dij_index(i_I, idx_alpha(l_sd), N_int) * phase * phase2
+                dka(i_state) = dij(i_I, idx_alpha(l_sd), i_state) * phase * phase2
                 !dka(i_state) = get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,idx_alpha(l_sd)), N_int) * phase * phase2 !hIl * lambda_mrcc(i_state,idx_alpha(l_sd)) * phase * phase2
                 !dka(i_state) = psi_non_ref_coef(idx_alpha(l_sd), i_state) / psi_ref_coef(i_I, i_state) * phase * phase2 
               enddo
@@ -279,7 +275,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
           dIa(i_state) = dIa(i_state) + dIk(i_state) * dka(i_state)
         enddo
       enddo
-      
+     
       do i_state=1,N_states
         ci_inv(i_state) = psi_ref_coef_inv(i_I,i_state)
       enddo
@@ -292,7 +288,6 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
         enddo
       enddo
       call omp_set_lock( psi_ref_lock(i_I) )
-
       do i_state=1,N_states
         if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5)then
           do l_sd=1,idx_alpha(0)
@@ -546,12 +541,12 @@ END_PROVIDER
   implicit none
   integer :: i,j,k
   double precision :: Hjk, Hki, Hij
-  double precision, external :: get_dij
+  !double precision, external :: get_dij
   integer i_state, degree
    
   provide lambda_mrcc dIj
   do i_state = 1, N_states
-    !$OMP PARALLEL DO default(none) schedule(dynamic) private(j,k,Hjk,Hki,degree) shared(no_mono_dressing,lambda_mrcc,i_state, N_det_non_ref,psi_ref, psi_non_ref,N_int,delta_cas,N_det_ref)
+    !$OMP PARALLEL DO default(none) schedule(dynamic) private(j,k,Hjk,Hki,degree) shared(lambda_mrcc,i_state, N_det_non_ref,psi_ref, psi_non_ref,N_int,delta_cas,N_det_ref,dij)
     do i=1,N_det_ref
       do j=1,i
         call get_excitation_degree(psi_ref(1,1,i), psi_ref(1,1,j), degree, N_int)
@@ -561,7 +556,7 @@ END_PROVIDER
           call i_h_j(psi_ref(1,1,j), psi_non_ref(1,1,k),N_int,Hjk)
           call i_h_j(psi_non_ref(1,1,k),psi_ref(1,1,i), N_int,Hki)
           
-          delta_cas(i,j,i_state) += Hjk * get_dij(psi_ref(1,1,i), psi_non_ref(1,1,k), N_int) ! * Hki * lambda_mrcc(i_state, k)
+          delta_cas(i,j,i_state) += Hjk * dij(i, k, i_state) ! * Hki * lambda_mrcc(i_state, k)
           !print *, Hjk * get_dij(psi_ref(1,1,i), psi_non_ref(1,1,k), N_int), Hki * get_dij(psi_ref(1,1,j), psi_non_ref(1,1,k), N_int)
         end do
         delta_cas(j,i,i_state) = delta_cas(i,j,i_state)
@@ -659,7 +654,7 @@ end function
   integer, allocatable            :: idx_sorted_bit(:)
   integer, external               :: get_index_in_psi_det_sorted_bit, searchDet
   logical, external               :: is_in_wavefunction, detEq
-  double precision, external      :: get_dij
+  !double precision, external      :: get_dij
   integer :: II, blok
   integer*8, save :: notf = 0
 
@@ -675,7 +670,7 @@ end function
   enddo
     
   ! To provide everything
-  contrib = get_dij(psi_ref(1,1,1), psi_non_ref(1,1,1), N_int)
+  contrib = dij(1, 1, 1)
   
   do i_state = 1, N_states
     delta_mrcepa0_ii(:,:) = 0d0
@@ -685,7 +680,7 @@ end function
     !$OMP private(m,i,II,J,k,degree,myActive,made_hole,made_particle,hjk,contrib)       &
     !$OMP shared(active_sorb, psi_non_ref, psi_non_ref_coef, psi_ref, psi_ref_coef, cepa0_shortcut, det_cepa0_active)     &
     !$OMP shared(N_det_ref, N_det_non_ref,N_int,det_cepa0_idx,lambda_mrcc,det_ref_active, delta_cas) &
-    !$OMP shared(notf,i_state, sortRef, sortRefIdx)
+    !$OMP shared(notf,i_state, sortRef, sortRefIdx, dij)
     do blok=1,cepa0_shortcut(0)
     do i=cepa0_shortcut(blok), cepa0_shortcut(blok+1)-1
       do II=1,N_det_ref
@@ -727,7 +722,7 @@ end function
 
           call i_h_j(psi_non_ref(1,1,det_cepa0_idx(k)),psi_ref(1,1,J),N_int,HJk)
           !contrib = delta_cas(II, J, i_state) * HJk * lambda_mrcc(i_state, det_cepa0_idx(k))
-          contrib = delta_cas(II, J, i_state) * get_dij(psi_ref(1,1,J), psi_non_ref(1,1,det_cepa0_idx(k)), N_int)
+          contrib = delta_cas(II, J, i_state) * dij(J, det_cepa0_idx(k), i_state)
           !$OMP ATOMIC
           delta_mrcepa0_ij(J, det_cepa0_idx(i), i_state) += contrib
           

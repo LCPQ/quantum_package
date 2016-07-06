@@ -16,10 +16,11 @@ subroutine run(N_st,energy)
   double precision :: thresh_mrcc
   
 
+  
   thresh_mrcc = 1d-7
   n_it_mrcc_max = 10
 
-  if(no_mono_dressing) then
+  if(n_it_mrcc_max == 1) then
     do j=1,N_states_diag
       do i=1,N_det
         psi_coef(i,j) = CI_eigenvectors_dressed(i,j)
@@ -73,44 +74,8 @@ subroutine run_pt2(N_st,energy)
   print*,'Last iteration only to compute the PT2' 
   threshold_selectors = 1.d0 
   threshold_generators = 0.999d0 
- 
-!   N_det_generators = lambda_mrcc_pt2(0) 
-!   do i=1,N_det_generators 
-!     j = lambda_mrcc_pt2(i)  
-!     do k=1,N_int 
-!       psi_det_generators(k,1,i) = psi_non_ref(k,1,j) 
-!       psi_det_generators(k,2,i) = psi_non_ref(k,2,j) 
-!     enddo 
-!     do k=1,N_st 
-!       psi_coef_generators(i,k) = psi_non_ref_coef(j,k) 
-!     enddo 
-!   enddo 
-!   SOFT_TOUCH N_det_generators psi_det_generators psi_coef_generators ci_eigenvectors_dressed ci_eigenvectors_s2_dressed ci_electronic_energy_dressed 
- 
- 
-!  
-!   N_det_generators = lambda_mrcc_pt2(0) + N_det_cas
-!   do i=1,N_det_cas
-!     do k=1,N_int
-!       psi_det_generators(k,1,i) = psi_ref(k,1,i)
-!       psi_det_generators(k,2,i) = psi_ref(k,2,i)
-!     enddo
-!     do k=1,N_st
-!       psi_coef_generators(i,k) = psi_ref_coef(i,k)
-!     enddo
-!   enddo
-!   do i=N_det_cas+1,N_det_generators
-!     j = lambda_mrcc_pt2(i - N_det_cas)
-!     do k=1,N_int
-!       psi_det_generators(k,1,i) = psi_non_ref(k,1,j)
-!       psi_det_generators(k,2,i) = psi_non_ref(k,2,j)
-!     enddo
-!     do k=1,N_st
-!       psi_coef_generators(i,k) = psi_non_ref_coef(j,k)
-!     enddo
-!   enddo
-!   SOFT_TOUCH N_det_generators psi_det_generators psi_coef_generators ci_eigenvectors_dressed ci_eigenvectors_s2_dressed ci_electronic_energy_dressed
- 
+  
+  
   N_det_generators = lambda_mrcc_pt3(0) + N_det_ref
   N_det_selectors = lambda_mrcc_pt3(0) + N_det_ref
   

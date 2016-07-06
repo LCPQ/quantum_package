@@ -55,7 +55,7 @@ subroutine mrsc2_dressing_slave(thread,iproc)
   logical, external               :: is_in_wavefunction, isInCassd, detEq
   integer,allocatable :: komon(:)
   logical :: komoned
-  double precision, external :: get_dij
+  !double precision, external :: get_dij
      
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_push      = new_zmq_push_socket(thread)
@@ -144,7 +144,7 @@ subroutine mrsc2_dressing_slave(thread,iproc)
 !           if(I_i == J) phase_Ii = phase_Ji
           
           do i_state = 1,N_states
-            dkI = h_(J,i) * get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,i), N_int)
+            dkI = h_(J,i) * dij(i_I, i, i_state)!get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,i), N_int)
             !dkI = h_(J,i) * h_(i_I,i) * lambda_mrcc(i_state, i)
             dleat(i_state, kn, 1) = dkI
             dleat(i_state, kn, 2) = dkI
@@ -174,7 +174,7 @@ subroutine mrsc2_dressing_slave(thread,iproc)
           
 
           !contrib = h_(i_I,k) * lambda_mrcc(i_state, k) * dleat(i_state, m, 2)! * phase_al
-          contrib =  get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,k), N_int) * dleat(i_state, m, 2)
+          contrib =  dij(i_I, k, i_state) * dleat(i_state, m, 2)
           delta(i_state,ll,1) += contrib
           if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5) then
             delta(i_state,0,1) -= contrib * ci_inv(i_state) * psi_non_ref_coef(l,i_state)
@@ -182,7 +182,7 @@ subroutine mrsc2_dressing_slave(thread,iproc)
           
           if(I_i == J) cycle
           !contrib = h_(J,l) * lambda_mrcc(i_state, l) * dleat(i_state, m, 1)! * phase_al
-          contrib =  get_dij(psi_ref(1,1,J), psi_non_ref(1,1,l), N_int) * dleat(i_state, m, 1)
+          contrib =  dij(J, l, i_state) * dleat(i_state, m, 1)
           delta(i_state,kk,2) += contrib
           if(dabs(psi_ref_coef(J,i_state)).ge.5.d-5) then
             delta(i_state,0,2) -= contrib * cj_inv(i_state) * psi_non_ref_coef(k,i_state)
@@ -482,9 +482,6 @@ end
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
   
   integer :: KKsize = 1000000
-  
-  !    -459.6346665282306
-  !    -459.6346665282306
   
   
   call new_parallel_job(zmq_to_qp_run_socket,'mrsc2')
