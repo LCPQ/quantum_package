@@ -86,7 +86,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
   integer, allocatable           :: idx_microlist(:), N_microlist(:), ptr_microlist(:), idx_microlist_zero(:)
   integer :: mobiles(2), smallerlist
   logical, external :: detEq, is_generable
-  double precision, external :: get_dij
+  double precision, external :: get_dij, get_dij_index
 
   leng = max(N_det_generators, N_det_non_ref)
   allocate(miniList(Nint, 2, leng), tq(Nint,2,n_selected), idx_minilist(leng), hij_cache(N_det_non_ref))
@@ -225,7 +225,9 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
         
         
         do i_state=1,N_states
-          dIk(i_state) = get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,idx_alpha(k_sd)), N_int) !!hIk * lambda_mrcc(i_state,idx_alpha(k_sd))
+          dIK(i_state) = get_dij_index(i_I, idx_alpha(k_sd), Nint)
+          !dIk(i_state) = get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,idx_alpha(k_sd)), N_int) !!hIk * lambda_mrcc(i_state,idx_alpha(k_sd))
+          !dIk(i_state) = psi_non_ref_coef(idx_alpha(k_sd), i_state) / psi_ref_coef(i_I, i_state)
         enddo
         
         
@@ -264,7 +266,9 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
               hIl = hij_mrcc(idx_alpha(l_sd),i_I)
 !                             call i_h_j(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,hIl)
               do i_state=1,N_states
-                dka(i_state) = get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,idx_alpha(l_sd)), N_int) * phase * phase2 !hIl * lambda_mrcc(i_state,idx_alpha(l_sd)) * phase * phase2
+                dka(i_state) = get_dij_index(i_I, idx_alpha(l_sd), N_int) * phase * phase2
+                !dka(i_state) = get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,idx_alpha(l_sd)), N_int) * phase * phase2 !hIl * lambda_mrcc(i_state,idx_alpha(l_sd)) * phase * phase2
+                !dka(i_state) = psi_non_ref_coef(idx_alpha(l_sd), i_state) / psi_ref_coef(i_I, i_state) * phase * phase2 
               enddo
             endif
 

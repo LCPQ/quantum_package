@@ -687,18 +687,19 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
   integer, external :: searchDet, unsortedSearchDet
   integer(bit_kind) :: myDet(N_int, 2), myMask(N_int, 2)
   integer :: N, INFO, AtA_size, r1, r2
-  double precision , allocatable:: AtB(:), AtA_val(:), A_val(:,:), x(:), x_new(:), A_val_mwen(:)
+  double precision , allocatable:: B(:), AtB(:), AtA_val(:), A_val(:,:), x(:), x_new(:), A_val_mwen(:)
   double precision :: t, norm, cx
   integer, allocatable :: A_ind(:,:), lref(:), AtA_ind(:), A_ind_mwen(:), col_shortcut(:), N_col(:)
   
-  
+  if(n_states /= 1) stop "n_states /= 1"
+
   nex = hh_shortcut(hh_shortcut(0)+1)-1
   print *, "TI", nex, N_det_non_ref
   allocate(A_ind(N_det_ref+1, nex), A_val(N_det_ref+1, nex))
   allocate(AtA_ind(N_det_ref * nex), AtA_val(N_det_ref * nex)) !!!!! MAY BE TOO SMALL !!!!!!!!
   allocate(x(nex), AtB(nex))
   allocate(A_val_mwen(nex), A_ind_mwen(nex))
-  allocate(N_col(nex), col_shortcut(nex))
+  allocate(N_col(nex), col_shortcut(nex), B(N_det_non_ref))
   A_val = 0d0
   A_ind = 0
   !$OMP PARALLEL DO schedule(static,10) default(none) shared(psi_non_ref, hh_exists, pp_exists, N_int, A_val, A_ind) &
@@ -746,7 +747,7 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
   !$OMP shared(col_shortcut, N_col, AtB, AtA_size, AtA_val, AtA_ind) 
   do at_row = 1, nex
     wk = 0
-    if(mod(at_row, 1000) == 0) print *, "AtA", at_row, "/", nex
+    if(mod(at_row, 10000) == 0) print *, "AtA", at_row, "/", nex
     do i=1,N_det_ref
       if(A_ind(i, at_row) == 0) exit
       AtB(at_row) = AtB(at_row) + psi_non_ref_coef(A_ind(i, at_row), 1) * A_val(i, at_row)
@@ -803,12 +804,12 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
   enddo
 
   do k=0,100000
-    ! df $ fg OMP PARALLEL DO default(shared)
+    !$OMP PARALLEL DO default(shared)
     do i=1,nex
       x_new(i) = AtB(i)
     enddo
 
-   ! sdf $OMP PARALLEL DO default(shared) private(cx, i)
+   !$OMP PARALLEL DO default(shared) private(cx, i)
    do a_col = 1, nex
      cx = 0d0
      do i=col_shortcut(a_col), col_shortcut(a_col) + N_col(a_col) - 1
@@ -816,13 +817,13 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
      end do
      x_new(a_col) += cx
    end do
-   ! sdf $OMP END PARALLEL DO
+   !$OMP END PARALLEL DO
     double precision :: norm_cas
     norm_cas = 0d0
     do i = 1, N_det_ref
       norm_cas += psi_ref_coef(i,1)**2
     end do
-
+    
     norm = 0d0
     t = 0d0
 
@@ -830,15 +831,37 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
       t = t + X_new(j) * X_new(j)
     end do
 
-    x_new = x_new / sqrt(norm_cas + t)
-    
+    !t = (1d0 - norm_cas) / t
+    !x_new = x_new * sqrt(t)
+ !!!!!!!!!!!!!!   
+      !B = 0d0
+      !do i=1, nex
+      !  do j=1, N_det_ref
+      !    if(A_ind(j, i) == 0) exit
+      !    B(A_ind(j, i)) += A_val(j, i) * x(i)
+      !  end do
+      !end do
+      !t = 0d0
+      !do i=1, size(B)
+      !  t += B(i)**2
+      !end do
+      !print *, "NORMT", sqrt(t + norm_cas)
+      !x_new = x_new / sqrt(t + norm_cas)
+!!!!!!!!!!
+
+    t = (1d0 / norm_cas - 1d0) / t
+    x_new = x_new * sqrt(t)
+
     do j=1, size(X)
       norm += (X_new(j) - X(j))**2
       x(j) = x_new(j)
     end do
-    !print *, "NORM X_new", t
 
-    if(mod(k, 1000) == 0) print *, "residu ", k, norm
+
+    if(mod(k, 50) == 0) then
+      print *, "residu ", k, norm, "norm t", sqrt(t)
+    end if
+    
     if(norm < 1d-16) exit
   end do
   print *, "CONVERGENCE : ", norm
@@ -896,6 +919,18 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
   !print *, X
   print *, "done"
 END_PROVIDER
+
+
+double precision function get_dij_index(II, i, Nint)
+  integer, intent(in) :: II, i, Nint
+  double precision, external :: get_dij
+
+  if(dabs(psi_ref_coef(II, 1)) > 1d-1) then
+    get_dij_index = psi_non_ref_coef(i, 1) / psi_ref_coef(II, 1)
+  else
+    get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), Nint)
+  end if
+end function
 
 
 double precision function get_dij(det1, det2, Nint)
