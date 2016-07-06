@@ -104,6 +104,8 @@ subroutine write_Ao_basis(i_unit_output)
  write(i_unit_output,*)''
  write(i_unit_output,'(A47,2X,I3)')'TOTAL NUMBER OF BASIS SET SHELLS             =', i_shell
  write(i_unit_output,'(A47,2X,I3)')'NUMBER OF CARTESIAN GAUSSIAN BASIS FUNCTIONS =', ao_num
+! this is for the new version of molden
+ write(i_unit_output,'(A12)')'PP    =NONE'    
  write(i_unit_output,*)''
 
 
@@ -126,7 +128,9 @@ subroutine write_Mo_basis(i_unit_output)
   write(i_unit_output,'(18X,F8.5)')-1.d0
   write(i_unit_output,*)''
   do i = 1, ao_num
-   write(i_unit_output,'(2X,I3, 2X A1,  I3, 2X A4 , F9.6)')i,trim(element_name(int(nucl_charge(ao_nucl(i))))),ao_nucl(i),(ao_l_char_space(i)),mo_coef(i,j)
+!   write(i_unit_output,'(2X,I3, 2X A1,  I3, 2X A4 , F9.6)')i,trim(element_name(int(nucl_charge(ao_nucl(i))))),ao_nucl(i),(ao_l_char_space(i)),mo_coef(i,j)
+! F12.6 for larger coefficients...
+   write(i_unit_output,'(2X,I3, 2X A1,  I3, 2X A4 , F12.6)')i,trim(element_name(int(nucl_charge(ao_nucl(i))))),ao_nucl(i),(ao_l_char_space(i)),mo_coef(i,j)
 !  write(i_unit_output,'(I3, X A1, X I3, X A4 X F16.8)')i,trim(element_name(int(nucl_charge(ao_nucl(i))))),ao_nucl(i),(ao_l_char_space(i))
   enddo
   write(i_unit_output,*)''
