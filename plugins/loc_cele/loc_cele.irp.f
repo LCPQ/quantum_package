@@ -92,13 +92,182 @@
 
 
 
-      nrot(1) = 6   ! number of orbitals to be localized
+      nrot(1) = 64  ! number of orbitals to be localized
 
 
       integer :: index_rot(1000,1)
 
 
        cmoref = 0.d0
+       irot = 0
+
+! H2 molecule for the mixed localization
+      do i=1,64
+       irot(i,1) = i+2
+      enddo
+
+      do i=1,17
+       cmoref(i+1,i,1)=1.d0
+      enddo
+       cmoref(19,19-1,1)=1.d0
+       cmoref(20,19-1,1)=-1.d0
+       cmoref(19,20-1,1)=-1.d0
+       cmoref(20,20-1,1)=-1.d0
+       cmoref(21,20-1,1)=2.d0
+       cmoref(22,21-1,1)=1.d0
+       cmoref(23,22-1,1)=1.d0
+       cmoref(24,23-1,1)=1.d0
+
+
+       cmoref(25,24-1,1)=1.d0
+       cmoref(26,24-1,1)=-1.d0
+       cmoref(25,25-1,1)=-1.d0
+       cmoref(26,25-1,1)=-1.d0
+       cmoref(27,25-1,1)=2.d0
+       cmoref(28,26-1,1)=1.d0
+       cmoref(29,27-1,1)=1.d0
+       cmoref(30,28-1,1)=1.d0
+      
+       cmoref(31,29-1,1)=1.d0
+       cmoref(32,29-1,1)=-1.d0
+       cmoref(31,30-1,1)=-1.d0
+       cmoref(32,30-1,1)=-1.d0
+       cmoref(33,30-1,1)=2.d0
+       cmoref(34,31-1,1)=1.d0
+       cmoref(35,32-1,1)=1.d0
+       cmoref(36,33-1,1)=1.d0
+
+       do i=33,49
+        cmoref(i+5,i,1)= 1.d0
+       enddo
+
+       cmoref(55,52-2,1)=1.d0
+       cmoref(56,52-2,1)=-1.d0
+       cmoref(55,53-2,1)=-1.d0
+       cmoref(56,53-2,1)=-1.d0
+       cmoref(57,53-2,1)=2.d0
+       cmoref(58,54-2,1)=1.d0
+       cmoref(59,55-2,1)=1.d0
+       cmoref(60,56-2,1)=1.d0
+
+       cmoref(61,57-2,1)=1.d0
+       cmoref(62,57-2,1)=-1.d0
+       cmoref(61,58-2,1)=-1.d0
+       cmoref(62,58-2,1)=-1.d0
+       cmoref(63,58-2,1)=2.d0
+       cmoref(64,59-2,1)=1.d0
+       cmoref(65,60-2,1)=1.d0
+       cmoref(66,61-2,1)=1.d0
+
+       cmoref(67,62-2,1)=1.d0
+       cmoref(68,62-2,1)=-1.d0
+       cmoref(67,63-2,1)=-1.d0
+       cmoref(68,63-2,1)=-1.d0
+       cmoref(69,63-2,1)=2.d0
+       cmoref(70,64-2,1)=1.d0
+       cmoref(71,65-2,1)=1.d0
+       cmoref(72,66-2,1)=1.d0
+! H2 molecule
+!      do i=1,66
+!       irot(i,1) = i
+!      enddo
+!
+!      do i=1,18
+!       cmoref(i,i,1)=1.d0
+!      enddo
+!       cmoref(19,19,1)=1.d0
+!       cmoref(20,19,1)=-1.d0
+!       cmoref(19,20,1)=-1.d0
+!       cmoref(20,20,1)=-1.d0
+!       cmoref(21,20,1)=2.d0
+!       cmoref(22,21,1)=1.d0
+!       cmoref(23,22,1)=1.d0
+!       cmoref(24,23,1)=1.d0
+!
+!
+!       cmoref(25,24,1)=1.d0
+!       cmoref(26,24,1)=-1.d0
+!       cmoref(25,25,1)=-1.d0
+!       cmoref(26,25,1)=-1.d0
+!       cmoref(27,25,1)=2.d0
+!       cmoref(28,26,1)=1.d0
+!       cmoref(29,27,1)=1.d0
+!       cmoref(30,28,1)=1.d0
+!      
+!       cmoref(31,29,1)=1.d0
+!       cmoref(32,29,1)=-1.d0
+!       cmoref(31,30,1)=-1.d0
+!       cmoref(32,30,1)=-1.d0
+!       cmoref(33,30,1)=2.d0
+!       cmoref(34,31,1)=1.d0
+!       cmoref(35,32,1)=1.d0
+!       cmoref(36,33,1)=1.d0
+!
+!       do i=34,51
+!        cmoref(i+3,i,1)= 1.d0
+!       enddo
+!
+!       cmoref(55,52,1)=1.d0
+!       cmoref(56,52,1)=-1.d0
+!       cmoref(55,53,1)=-1.d0
+!       cmoref(56,53,1)=-1.d0
+!       cmoref(57,53,1)=2.d0
+!       cmoref(58,54,1)=1.d0
+!       cmoref(59,55,1)=1.d0
+!       cmoref(60,56,1)=1.d0
+!
+!       cmoref(61,57,1)=1.d0
+!       cmoref(62,57,1)=-1.d0
+!       cmoref(61,58,1)=-1.d0
+!       cmoref(62,58,1)=-1.d0
+!       cmoref(63,58,1)=2.d0
+!       cmoref(64,59,1)=1.d0
+!       cmoref(65,60,1)=1.d0
+!       cmoref(66,61,1)=1.d0
+!
+!       cmoref(67,62,1)=1.d0
+!       cmoref(68,62,1)=-1.d0
+!       cmoref(67,63,1)=-1.d0
+!       cmoref(68,63,1)=-1.d0
+!       cmoref(69,63,1)=2.d0
+!       cmoref(70,64,1)=1.d0
+!       cmoref(71,65,1)=1.d0
+!       cmoref(72,66,1)=1.d0
+! H atom
+!      do i=1,33
+!       irot(i,1) = i
+!      enddo
+!
+!      do i=1,18
+!       cmoref(i,i,1)=1.d0
+!      enddo
+!       cmoref(19,19,1)=1.d0
+!       cmoref(20,19,1)=-1.d0
+!       cmoref(19,20,1)=-1.d0
+!       cmoref(20,20,1)=-1.d0
+!       cmoref(21,20,1)=2.d0
+!       cmoref(22,21,1)=1.d0
+!       cmoref(23,22,1)=1.d0
+!       cmoref(24,23,1)=1.d0
+
+
+!       cmoref(25,24,1)=1.d0
+!       cmoref(26,24,1)=-1.d0
+!       cmoref(25,25,1)=-1.d0
+!       cmoref(26,25,1)=-1.d0
+!       cmoref(27,25,1)=2.d0
+!       cmoref(28,26,1)=1.d0
+!       cmoref(29,27,1)=1.d0
+!       cmoref(30,28,1)=1.d0
+!      
+!       cmoref(31,29,1)=1.d0
+!       cmoref(32,29,1)=-1.d0
+!       cmoref(31,30,1)=-1.d0
+!       cmoref(32,30,1)=-1.d0
+!       cmoref(33,30,1)=2.d0
+!       cmoref(34,31,1)=1.d0
+!       cmoref(35,32,1)=1.d0
+!       cmoref(36,33,1)=1.d0
  
        ! Definition of the index of the MO to be rotated
 !      irot(2,1) = 21  ! the first mo to be rotated is the 21 th MO 
@@ -106,25 +275,67 @@
 !      irot(4,1) = 23  ! 
 !      irot(5,1) = 24  ! 
 !      irot(6,1) = 25  ! 
-!      do i = 1,12
-!        irot(i,1) = i+6
-!      enddo
-       irot(1,1) = 5
-       irot(2,1) = 6
-       irot(3,1) = 7
-       irot(4,1) = 8
-       irot(5,1) = 9
-       irot(6,1) = 10
+
+!N2
+!       irot(1,1) = 5
+!       irot(2,1) = 6
+!       irot(3,1) = 7
+!       irot(4,1) = 8
+!       irot(5,1) = 9
+!       irot(6,1) = 10
+!
+!       cmoref(5,1,1) = 1.d0   ! 
+!       cmoref(6,2,1) = 1.d0   ! 
+!       cmoref(7,3,1) = 1.d0   ! 
+!       cmoref(40,4,1) = 1.d0   ! 
+!       cmoref(41,5,1) = 1.d0   ! 
+!       cmoref(42,6,1) =  1.d0   ! 
+!END N2
+
+!HEXATRIENE
+!       irot(1,1) = 20
+!       irot(2,1) = 21
+!       irot(3,1) = 22
+!       irot(4,1) = 23
+!       irot(5,1) = 24
+!       irot(6,1) = 25
+!
+!       cmoref(7,1,1)   = 1.d0   ! 
+!       cmoref(26,1,1)  = 1.d0   ! 
+!       cmoref(45,2,1)  = 1.d0   ! 
+!       cmoref(64,2,1)  = 1.d0   ! 
+!       cmoref(83,3,1)  = 1.d0   ! 
+!       cmoref(102,3,1) = 1.d0   ! 
+!       cmoref(7,4,1)   = 1.d0   ! 
+!       cmoref(26,4,1)  = -1.d0   ! 
+!       cmoref(45,5,1)  = 1.d0   ! 
+!       cmoref(64,5,1)  = -1.d0   ! 
+!       cmoref(83,6,1)  = 1.d0   ! 
+!       cmoref(102,6,1) = -1.d0   ! 
+!END HEXATRIENE
+
+!!!!H2                                 H2 CAS
+!        irot(1,1) = 1
+!        irot(2,1) = 2
+!        
+!        cmoref(1,1,1) = 1.d0
+!        cmoref(37,2,1) = 1.d0  
+!END H2
+!!!!  LOCALIZATION ON THE BASIS FUNCTIONS
+!        do i = 1, nrot(1)
+!          irot(i,1) = i 
+!          cmoref(i,i,1) = 1.d0
+!        enddo
+
+!END BASISLOC
+
+!       do i = 1, nrot(1)
+!        irot(i,1) = 4+i 
+!       enddo
        do i = 1, nrot(1)
         print*,'irot(i,1) = ',irot(i,1)
        enddo
-       pause
-       cmoref(4,1,1) =  1.d0 ! 2S function
-       cmoref(5,2,1) =  1.d0 ! 2S function
-       cmoref(6,3,1) =  1.d0 ! 2S function
-       cmoref(19,4,1) =  1.d0 ! 2S function
-       cmoref(20,5,1) =  1.d0 ! 2S function
-       cmoref(21,6,1) =  1.d0 ! 2S function
+!       pause
  
        ! you define the guess vectors that you want 
        ! the new MO to be close to
@@ -138,233 +349,21 @@
        ! own guess vectors for the MOs
        ! The new MOs are provided in output 
        ! in the same order than the guess MOs 
-       
-       ! C-C bonds 
-       ! 1-2
-!      i_atom = 1
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,1,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,1,1) =  0.18d0  ! 
-!      cmoref(3+shift,1,1) =  0.1d0   ! 
-
-!      cmoref(5+shift,1,1) = -0.1d0   ! 2pX function
-!      cmoref(6+shift,1,1) = -0.1d0   ! 2pZ function
-
-!      i_atom = 2
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,1,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,1,1) =  0.18d0  ! 
-!      cmoref(3+shift,1,1) =  0.1d0   ! 
-
-!      cmoref(5+shift,1,1) =  0.1d0   ! 2pX function
-!      cmoref(6+shift,1,1) =  0.1d0   ! 2pZ function
-
-
-!      ! 1-3
-!      i_atom = 1
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,2,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,2,1) =  0.18d0  ! 
-!      cmoref(3+shift,2,1) =  0.1d0   ! 
-
-!      cmoref(5+shift,2,1) =  0.1d0   ! 2pX function
-!      cmoref(6+shift,2,1) = -0.1d0   ! 2pZ function
-
-!      i_atom = 3
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,2,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,2,1) =  0.18d0  ! 
-!      cmoref(3+shift,2,1) =  0.1d0   ! 
-
-!      cmoref(5+shift,2,1) = -0.1d0   ! 2pX function
-!      cmoref(6+shift,2,1) =  0.1d0   ! 2pZ function
-
-!      ! 4-6
-!      i_atom = 4
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,3,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,3,1) =  0.18d0  ! 
-!      cmoref(3+shift,3,1) =  0.1d0   ! 
-
-!      cmoref(5+shift,3,1) =  0.1d0   ! 2pX function
-!      cmoref(6+shift,3,1) = -0.1d0   ! 2pZ function
-
-!      i_atom = 6
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,3,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,3,1) =  0.18d0  ! 
-!      cmoref(3+shift,3,1) =  0.1d0   ! 
-
-!      cmoref(5+shift,3,1) = -0.1d0   ! 2pX function
-!      cmoref(6+shift,3,1) =  0.1d0   ! 2pZ function
-
-
-!      ! 6-5
-!      i_atom = 6
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,4,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,4,1) =  0.18d0  ! 
-!      cmoref(3+shift,4,1) =  0.1d0   ! 
-
-!      cmoref(5+shift,4,1) =  0.1d0   ! 2pX function
-!      cmoref(6+shift,4,1) =  0.1d0   ! 2pZ function
-
-!      i_atom = 5
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,4,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,4,1) =  0.18d0  ! 
-!      cmoref(3+shift,4,1) =  0.1d0   ! 
-
-!      cmoref(5+shift,4,1) = -0.1d0   ! 2pX function
-!      cmoref(6+shift,4,1) = -0.1d0   ! 2pZ function
-
-
-!      ! 2-4
-!      i_atom = 2
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,5,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,5,1) =  0.18d0  ! 
-!      cmoref(3+shift,5,1) =  0.1d0   ! 
-
-!      cmoref(6+shift,5,1) =  0.1d0   ! 2pZ function
-
-!      i_atom = 4
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,5,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,5,1) =  0.18d0  ! 
-!      cmoref(3+shift,5,1) =  0.1d0   ! 
-
-!      cmoref(6+shift,5,1) = -0.1d0   ! 2pZ function
-
-
-!      ! 3-5
-!      i_atom = 3
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,6,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,6,1) =  0.18d0  ! 
-!      cmoref(3+shift,6,1) =  0.1d0   ! 
-
-!      cmoref(6+shift,6,1) =  0.1d0   ! 2pZ function
-
-!      i_atom = 5
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,6,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,6,1) =  0.18d0  ! 
-!      cmoref(3+shift,6,1) =  0.1d0   ! 
-
-!      cmoref(6+shift,6,1) = -0.1d0   ! 2pZ function
-
-!      ! C-H bonds 
-!      ! 2-7
-!      i_atom = 2
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,7,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,7,1) =  0.18d0  ! 
-!      cmoref(3+shift,7,1) =  0.1d0   ! 
-
-!      cmoref(5+shift,7,1) = -0.1d0   ! 2pX function
-!      cmoref(6+shift,7,1) =  0.1d0   ! 2pZ function
-!      
-!      i_atom = 7
-!      shift_h = (6-1) * 15 + (i_atom - 6)*5
-!      cmoref(1+shift_h,7,1) = 0.12d0 ! 1S function
-
-!      ! 4-10
-!      i_atom = 4
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,8,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,8,1) =  0.18d0  ! 
-!      cmoref(3+shift,8,1) =  0.1d0   ! 
-
-!      cmoref(5+shift,8,1) = -0.1d0   ! 2pX function
-!      cmoref(6+shift,8,1) = -0.1d0   ! 2pZ function
-!      
-!      i_atom = 10
-!      shift_h = (6-1) * 15 + (i_atom - 6)*5
-!      cmoref(1+shift_h,8,1) = 0.12d0 ! 1S function
-
-!      ! 5-11
-!      i_atom = 5
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,9,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,9,1) =  0.18d0  ! 
-!      cmoref(3+shift,9,1) =  0.1d0   ! 
-
-!      cmoref(5+shift,9,1) =  0.1d0   ! 2pX function
-!      cmoref(6+shift,9,1) = -0.1d0   ! 2pZ function
-!      
-!      i_atom = 11
-!      shift_h = (6-1) * 15 + (i_atom - 6)*5
-!      cmoref(1+shift_h,9,1) = 0.12d0 ! 1S function
-
-!      ! 3-8 
-!      i_atom = 3
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,10,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,10,1) =  0.18d0  ! 
-!      cmoref(3+shift,10,1) =  0.1d0   ! 
-!                       
-!      cmoref(5+shift,10,1) =  0.1d0   ! 2pX function
-!      cmoref(6+shift,10,1) =  0.1d0   ! 2pZ function
-!      
-!      i_atom = 8 
-!      shift_h = (6-1) * 15 + (i_atom - 6)*5
-!      cmoref(1+shift_h,10,1) = 0.12d0 ! 1S function
-
-!      ! 1-9
-!      i_atom = 1
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,11,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,11,1) =  0.18d0  ! 
-!      cmoref(3+shift,11,1) =  0.1d0   ! 
-!                       
-!      cmoref(6+shift,11,1) =  0.1d0   ! 2pZ function
-
-!      i_atom = 9 
-!      shift_h = (6-1) * 15 + (i_atom - 6)*5
-!      cmoref(1+shift_h,11,1) = 0.12d0 ! 1S function
-
-!      
-!      ! 6-12
-!      i_atom = 6
-!      shift = (i_atom -1) * 15
-!      cmoref(1+shift,12,1) = -0.012d0 ! 2S function
-!      cmoref(2+shift,12,1) =  0.18d0  ! 
-!      cmoref(3+shift,12,1) =  0.1d0   ! 
-!                       
-!      cmoref(6+shift,12,1) = -0.1d0   ! 2pZ function
-
-!      i_atom = 12 
-!      shift_h = (6-1) * 15 + (i_atom - 6)*5
-!      cmoref(1+shift_h,12,1) = 0.12d0 ! 1S function
-!      cmoref(12,1,1) = 1.d0   ! 
-
-!      cmoref(21,2,1) = 1.d0   ! 
-!      cmoref(30,2,1) = 1.d0   ! 
-
-!      cmoref(39,3,1) = 1.d0   ! 
-!      cmoref(48,3,1) = 1.d0   ! 
-
-!      cmoref(3,4,1)  = 1.d0   ! 
-!      cmoref(12,4,1) =-1.d0   ! 
-
-!      cmoref(21,5,1) = 1.d0   ! 
-!      cmoref(30,5,1) =-1.d0   ! 
-
-!      cmoref(39,6,1) = 1.d0   ! 
-!      cmoref(48,6,1) =-1.d0   ! 
+!      do i = 1, nrot(1)
+!       j = 5+(i-1)*15
+!       cmoref(j,i,1)    = 0.2d0
+!       cmoref(j+3,i,1)  = 0.12d0
+!       print*,'j = ',j
+!      enddo
+!      pause
 
 
 
 
       print*,'passed the definition of the referent vectors '
-      !Building the S (overlap) matrix in the AO basis. 
-
- 
-
       do i = 1, ao_num
-       do j = 1, ao_num
-        s(i,j,1) = ao_overlap(i,j)
+       do j =1, ao_num
+        s(i,j,1) =  ao_overlap(i,j)
        enddo
       enddo
       !Now big loop over symmetry
@@ -398,20 +397,13 @@
 
 
 !     do i=1,nmo(isym)
-      do i=1,ao_num
-
       do j=1,nrot(isym)
-
-      ddum(i,j)=0.d0
-
-      do k=1,ao_num
-
-      ddum(i,j)=ddum(i,j)+s(i,k,isym)*cmo(k,irot(j,isym),isym)
-
-      enddo
-
-      enddo
-
+       do i=1,ao_num
+        ddum(i,j)=0.d0
+        do k=1,ao_num
+         ddum(i,j)=ddum(i,j)+s(i,k,isym)*cmo(k,irot(j,isym),isym)
+        enddo
+       enddo
       enddo
 
 
@@ -441,7 +433,7 @@
 
       do i=1,nrot(isym)
         do j=1,ao_num
-         write (6,*) 'isym,',isym,nrot(isym),nmo(isym)
+!         write (6,*) 'isym,',isym,nrot(isym),nmo(isym)
          newcmo(j,irot(i,isym),isym)=0.d0
           do k=1,nrot(isym)
            newcmo(j,irot(i,isym),isym)=newcmo(j,irot(i,isym),isym) + cmo(j,irot(k,isym),isym)*t(k,i)
@@ -459,7 +451,7 @@
 
       enddo !big loop over symmetry
 
-      10 format (4E20.12)
+      10 format (4E18.12)
 
 
 !  Now we copyt the newcmo into the mo_coef
@@ -472,9 +464,7 @@
         enddo
        enddo
       enddo
-!     if(dabs(newcmo(3,19,1) - mo_coef(3,19)) .gt.1.d-10 )then
-      print*,'mo_coef(3,19)',mo_coef(3,19)
-      pause
+!      pause
 
 
 ! we say that it hase been touched, and valid and that everything that 

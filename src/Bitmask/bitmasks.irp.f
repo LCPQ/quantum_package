@@ -95,9 +95,40 @@ BEGIN_PROVIDER [ integer, N_generators_bitmask ]
 END_PROVIDER
 
 
+BEGIN_PROVIDER [ integer, N_generators_bitmask_restart ]
+ implicit none
+ BEGIN_DOC
+ ! Number of bitmasks for generators
+ END_DOC
+ logical                        :: exists
+ PROVIDE ezfio_filename
+ 
+ call ezfio_has_bitmasks_N_mask_gen(exists)
+ if (exists) then
+   call ezfio_get_bitmasks_N_mask_gen(N_generators_bitmask_restart)
+   integer                        :: N_int_check
+   integer                        :: bit_kind_check
+   call ezfio_get_bitmasks_bit_kind(bit_kind_check)
+   if (bit_kind_check /= bit_kind) then
+     print *,  bit_kind_check, bit_kind
+     print *,  'Error: bit_kind is not correct in EZFIO file'
+   endif
+   call ezfio_get_bitmasks_N_int(N_int_check)
+   if (N_int_check /= N_int) then
+     print *,  N_int_check, N_int
+     print *,  'Error: N_int is not correct in EZFIO file'
+   endif
+ else
+   N_generators_bitmask_restart = 1
+ endif
+ ASSERT (N_generators_bitmask_restart > 0)
+
+END_PROVIDER
 
 
-BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask_restart, (N_int,2,6,N_generators_bitmask) ]
+
+
+BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask_restart, (N_int,2,6,N_generators_bitmask_restart) ]
  implicit none
  BEGIN_DOC
  ! Bitmasks for generator determinants.
@@ -306,7 +337,7 @@ END_PROVIDER
 
  n_inact_orb = 0
  n_virt_orb = 0
- if(N_generators_bitmask == 1)then
+ if(N_generators_bitmask_restart == 1)then
   do j = 1, N_int
    inact_bitmask(j,1) = xor(generators_bitmask_restart(j,1,1,1),cas_bitmask(j,1,1))
    inact_bitmask(j,2) = xor(generators_bitmask_restart(j,2,1,1),cas_bitmask(j,2,1))
@@ -319,15 +350,15 @@ END_PROVIDER
    i_hole = 1
    i_gen = 1
    do i = 1, N_int
-     inact_bitmask(i,1) = generators_bitmask(i,1,i_hole,i_gen)
-     inact_bitmask(i,2) = generators_bitmask(i,2,i_hole,i_gen)
+     inact_bitmask(i,1) = generators_bitmask_restart(i,1,i_hole,i_gen)
+     inact_bitmask(i,2) = generators_bitmask_restart(i,2,i_hole,i_gen)
      n_inact_orb += popcnt(inact_bitmask(i,1))
    enddo
    i_part = 2
    i_gen = 3
    do i = 1, N_int
-     virt_bitmask(i,1) = generators_bitmask(i,1,i_part,i_gen)
-     virt_bitmask(i,2) = generators_bitmask(i,2,i_part,i_gen)
+     virt_bitmask(i,1) = generators_bitmask_restart(i,1,i_part,i_gen)
+     virt_bitmask(i,2) = generators_bitmask_restart(i,2,i_part,i_gen)
      n_virt_orb  += popcnt(virt_bitmask(i,1))
    enddo
  endif
