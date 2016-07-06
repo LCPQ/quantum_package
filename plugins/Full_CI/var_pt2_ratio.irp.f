@@ -11,7 +11,7 @@ program var_pt2_ratio_run
   
   double precision, allocatable  :: psi_det_save(:,:,:), psi_coef_save(:,:)
 
-  double precision :: E_fci, E_var, ratio, E_ref
+  double precision :: E_fci, E_var, ratio, E_ref, selection_criterion_save
   integer :: Nmin, Nmax
 
   pt2 = 1.d0
@@ -30,6 +30,7 @@ program var_pt2_ratio_run
 
   threshold_selectors = 1.d0
   threshold_generators = 0.999d0
+  selection_criterion_save = selection_criterion
   call diagonalize_CI
   call H_apply_FCI_PT2(pt2, norm_pert, H_pert_diag,  N_st)
   E_ref = CI_energy(1) + pt2(1)
@@ -46,6 +47,8 @@ program var_pt2_ratio_run
       Nmax = max(Nmax,Nmin+10)
       ! Select new determinants
       call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
+      selection_criterion = selection_criterion_save
+      SOFT_TOUCH selection_criterion selection_criterion_min selection_criterion_factor
     else
       Nmax = N_det
       N_det = Nmin + (Nmax-Nmin)/2
