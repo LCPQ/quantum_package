@@ -970,12 +970,13 @@ subroutine create_minilist_find_previous(key_mask, fullList, miniList, N_fullLis
   integer, intent(in)                      :: Nint
   integer(bit_kind), intent(in)            :: fullList(Nint, 2, N_fullList)
   integer(bit_kind),intent(out)            :: miniList(Nint, 2, N_fullList)
-  integer(bit_kind)                        :: subList(Nint, 2, N_fullList)
+  integer(bit_kind), allocatable           :: subList(:,:,:)
   logical,intent(out)                      :: fullMatch
   integer,intent(out)                      :: N_miniList
   integer(bit_kind)                        :: key_mask(Nint, 2)
   integer                                  :: ni, i, k, l, N_subList
   
+  allocate (subList(Nint, 2, N_fullList))
   
   fullMatch = .false.
   N_miniList = 0
@@ -1032,6 +1033,8 @@ subroutine create_minilist_find_previous(key_mask, fullList, miniList, N_fullLis
     enddo
     N_minilist = N_minilist + N_subList
   end if
+
+  deallocate(sublist)
 end subroutine
 
 

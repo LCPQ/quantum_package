@@ -23,8 +23,10 @@ END_PROVIDER
  threshold_convergence_SC2 = 1.d-10
 
  END_PROVIDER
+
  BEGIN_PROVIDER [ double precision, CI_SC2_electronic_energy, (N_states_diag) ]
 &BEGIN_PROVIDER [ double precision, CI_SC2_eigenvectors, (N_det,N_states_diag) ]
+&BEGIN_PROVIDER [ double precision, Diag_H_elements_SC2, (N_det) ]
   implicit none
   BEGIN_DOC
   ! Eigenvectors/values of the CI matrix
@@ -39,7 +41,8 @@ END_PROVIDER
   enddo
   
   call CISD_SC2(psi_det,CI_SC2_eigenvectors,CI_SC2_electronic_energy, &
-        size(CI_SC2_eigenvectors,1),N_det,N_states_diag,N_int,threshold_convergence_SC2)
+!       size(CI_SC2_eigenvectors,1),N_det,N_states_diag,N_int,threshold_convergence_SC2)
+        diag_H_elements_SC2,size(CI_SC2_eigenvectors,1),N_det,N_states_diag,N_int,threshold_convergence_SC2)
 END_PROVIDER
 
 subroutine diagonalize_CI_SC2
@@ -54,5 +57,6 @@ subroutine diagonalize_CI_SC2
       psi_coef(i,j) = CI_SC2_eigenvectors(i,j)
     enddo
   enddo
-  SOFT_TOUCH psi_coef CI_SC2_electronic_energy CI_SC2_energy CI_SC2_eigenvectors
+  SOFT_TOUCH psi_coef CI_SC2_electronic_energy CI_SC2_energy CI_SC2_eigenvectors diag_h_elements_sc2
+! SOFT_TOUCH psi_coef CI_SC2_electronic_energy CI_SC2_energy CI_SC2_eigenvectors 
 end

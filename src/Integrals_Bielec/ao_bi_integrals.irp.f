@@ -4,6 +4,7 @@ double precision function ao_bielec_integral(i,j,k,l)
   !  integral of the AO basis <ik|jl> or (ij|kl)
   !     i(r1) j(r1) 1/r12 k(r2) l(r2)
   END_DOC
+
   integer,intent(in)             :: i,j,k,l
   integer                        :: p,q,r,s
   double precision               :: I_center(3),J_center(3),K_center(3),L_center(3)
@@ -374,19 +375,15 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   enddo
 
-  integer(ZMQ_PTR)               :: collector_thread
-  external                       :: ao_bielec_integrals_in_map_collector
-  rc = pthread_create(collector_thread, ao_bielec_integrals_in_map_collector)
-
-  !$OMP PARALLEL DEFAULT(private) 
-    !$OMP TASK PRIVATE(i) 
+  PROVIDE nproc
+  !$OMP PARALLEL DEFAULT(private) num_threads(nproc+1)
       i = omp_get_thread_num()
-      call ao_bielec_integrals_in_map_slave_inproc(i)
-    !$OMP END TASK
-    !$OMP TASKWAIT
+      if (i==0) then
+        call ao_bielec_integrals_in_map_collector(i)
+      else
+        call ao_bielec_integrals_in_map_slave_inproc(i)
+      endif
   !$OMP END PARALLEL
-
-  rc = pthread_join(collector_thread)
 
   call end_parallel_job(zmq_to_qp_run_socket, 'ao_integrals')
 

@@ -24,6 +24,8 @@ subroutine run_wf
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
 
   print *,  'Getting wave function'
+  zmq_context = f77_zmq_ctx_new ()
+
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
 
   call zmq_get_psi(zmq_to_qp_run_socket, 1)
@@ -32,6 +34,8 @@ subroutine run_wf
 
   call provide_everything
   integer :: rc, i
+
+  print *,  'Contribution to PT2 running'
 
   !$OMP PARALLEL PRIVATE(i)
   i = omp_get_thread_num()

@@ -17,9 +17,11 @@ C
       data small/1.d-6/
 
       zprt=.true.
-      niter=500
+      niter=1000000
       conv=1.d-8
 
+C      niter=1000000
+C      conv=1.d-6
       write (6,5) n,m,conv
     5 format (//5x,'Unitary transformation of',i3,'  vectors'/
      * 5x,'following the principle of maximum overlap with a set of',

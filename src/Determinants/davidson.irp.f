@@ -386,39 +386,52 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   ! ==============
   
 
-  k_pairs=0
-  do l=1,N_st
-    do k=1,l
-      k_pairs+=1
-      kl_pairs(1,k_pairs) = k
-      kl_pairs(2,k_pairs) = l
-    enddo
-  enddo
-  
-  !$OMP PARALLEL DEFAULT(NONE)                                      &
-      !$OMP  SHARED(U,sze,N_st,overlap,kl_pairs,k_pairs,             &
-      !$OMP  Nint,dets_in,u_in)                                 &
-      !$OMP  PRIVATE(k,l,kl,i)
-  
-  
-  ! Orthonormalize initial guess
-  ! ============================
-  
-  !$OMP DO
-  do kl=1,k_pairs
-    k = kl_pairs(1,kl)
-    l = kl_pairs(2,kl)
-    if (k/=l) then
-      overlap(k,l) = u_dot_v(U_in(1,k),U_in(1,l),sze)
-      overlap(l,k) = overlap(k,l)
-    else
-      overlap(k,k) = u_dot_u(U_in(1,k),sze)
-    endif
-  enddo
-  !$OMP END DO
-  !$OMP END PARALLEL
+  if (N_st > 1) then 
 
-  call ortho_lowdin(overlap,size(overlap,1),N_st,U_in,size(U_in,1),sze)
+    k_pairs=0
+    do l=1,N_st
+      do k=1,l
+        k_pairs+=1
+        kl_pairs(1,k_pairs) = k
+        kl_pairs(2,k_pairs) = l
+      enddo
+    enddo
+    
+    !$OMP PARALLEL DEFAULT(NONE)                                      &
+        !$OMP  SHARED(U,sze,N_st,overlap,kl_pairs,k_pairs,             &
+        !$OMP  Nint,dets_in,u_in)                                 &
+        !$OMP  PRIVATE(k,l,kl)  
+    
+    
+    ! Orthonormalize initial guess
+    ! ============================
+    
+    !$OMP DO
+    do kl=1,k_pairs
+      k = kl_pairs(1,kl)
+      l = kl_pairs(2,kl)
+      if (k/=l) then
+        overlap(k,l) = u_dot_v(U_in(1,k),U_in(1,l),sze)
+        overlap(l,k) = overlap(k,l)
+      else
+        overlap(k,k) = u_dot_u(U_in(1,k),sze)
+      endif
+    enddo
+    !$OMP END DO
+    !$OMP END PARALLEL
+
+    call ortho_lowdin(overlap,size(overlap,1),N_st,U_in,size(U_in,1),sze)
+
+  else
+
+    overlap(1,1) = u_dot_u(U_in(1,1),sze)
+    double precision :: f
+    f = 1.d0 / dsqrt(overlap(1,1))
+    do i=1,sze
+      U_in(i,1) = U_in(i,1) * f
+    enddo
+
+  endif
   
   ! Davidson iterations
   ! ===================

@@ -3,10 +3,14 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral, (ao_num_align,ao_num)]
   BEGIN_DOC
 ! Pseudo-potential
   END_DOC
+  ao_pseudo_integral = 0.d0
   if (do_pseudo) then
-    ao_pseudo_integral = ao_pseudo_integral_local + ao_pseudo_integral_non_local 
-  else
-    ao_pseudo_integral = 0.d0
+    if (pseudo_klocmax > 0) then
+      ao_pseudo_integral += ao_pseudo_integral_local
+    endif
+    if (pseudo_kmax > 0) then
+      ao_pseudo_integral += ao_pseudo_integral_non_local 
+    endif
   endif
 END_PROVIDER
 
