@@ -664,3 +664,44 @@ subroutine save_wavefunction_specified(ndet,nstates,psidet,psicoef,ndetsave,inde
 end
 
 
+logical function detEq(a,b,Nint)
+   use bitmasks
+   implicit none
+   integer, intent(in) :: Nint
+   integer(bit_kind), intent(in) :: a(Nint,2), b(Nint,2)
+   integer :: ni, i
+ 
+   detEq = .false.
+   do i=1,2
+   do ni=1,Nint
+     if(a(ni,i) /= b(ni,i)) return
+   end do
+   end do
+   detEq = .true.
+end function
+
+
+integer function detCmp(a,b,Nint)
+   use bitmasks
+   implicit none
+   integer, intent(in) :: Nint
+   integer(bit_kind), intent(in) :: a(Nint,2), b(Nint,2)
+   integer :: ni, i
+ 
+   detCmp = 0
+   do i=1,2
+   do ni=Nint,1,-1
+   
+     if(a(ni,i) < b(ni,i)) then
+       detCmp = -1
+       return
+     else if(a(ni,i) > b(ni,i)) then
+       detCmp = 1
+       return
+     end if
+     
+   end do
+   end do
+end function
+
+

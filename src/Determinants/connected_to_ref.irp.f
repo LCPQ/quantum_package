@@ -165,7 +165,7 @@ logical function is_connected_to(key,keys,Nint,Ndet)
   
   integer                        :: i, l
   integer                        :: degree_x2
-  
+  logical, external :: is_generable_cassd
   
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
@@ -183,11 +183,34 @@ logical function is_connected_to(key,keys,Nint,Ndet)
     if (degree_x2 > 4) then
       cycle
     else
+!       if(.not. is_generable_cassd(keys(1,1,i), key(1,1), Nint)) cycle  !!!Nint==1 !!!!!
       is_connected_to = .true.
       return
     endif
   enddo
 end
+
+
+logical function is_generable_cassd(det1, det2, Nint) !!! TEST Cl HARD !!!!!
+  use bitmasks
+  implicit none
+  integer, intent(in) :: Nint
+  integer(bit_kind) :: det1(Nint, 2), det2(Nint, 2)
+  integer :: degree, f, exc(0:2, 2, 2), h1, h2, p1, p2, s1, s2, t
+  double precision :: phase
+  
+  is_generable_cassd = .false.
+  call get_excitation(det1, det2, exc, degree, phase, Nint)
+  if(degree == -1) return
+  if(degree == 0) then
+    is_generable_cassd = .true.
+    return
+  end if
+  call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+  if(degree == 1 .and. h1 <= 11) is_generable_cassd = .true.
+  if(degree == 2 .and. h1 <= 11 .and. h2 <= 11) is_generable_cassd = .true.
+end function
+
 
 logical function is_connected_to_by_mono(key,keys,Nint,Ndet)
   use bitmasks

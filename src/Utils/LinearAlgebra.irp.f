@@ -148,16 +148,18 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   integer, intent(in)            :: LDA, ldc, n, m
   double precision, intent(in)   :: overlap(lda,n)
   double precision, intent(inout) :: C(ldc,n)
-  double precision               :: U(ldc,n)
-  double precision               :: Vt(lda,n)
-  double precision               :: D(n)
-  double precision               :: S_half(lda,n)
+  double precision, allocatable  :: U(:,:)
+  double precision, allocatable  :: Vt(:,:)
+  double precision, allocatable  :: D(:)
+  double precision, allocatable  :: S_half(:,:)
   !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
   integer                        :: info, i, j, k
   
   if (n < 2) then
     return
   endif
+
+  allocate(U(ldc,n),Vt(lda,n),S_half(lda,n),D(n))
 
   call svd(overlap,lda,U,ldc,D,Vt,lda,m,n)
 
@@ -203,6 +205,7 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
 
   call dgemm('N','N',m,n,n,1.d0,U,size(U,1),S_half,size(S_half,1),0.d0,C,size(C,1))
   
+  deallocate(U,Vt,S_half,D)
 end
 
 
