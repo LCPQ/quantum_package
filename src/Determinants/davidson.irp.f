@@ -241,8 +241,8 @@ subroutine sort_dets_ab(key, idx, shortcut, N_key, Nint)
   END_DOC
   integer, intent(in)                   :: Nint, N_key
   integer(bit_kind),intent(inout)       :: key(Nint,2,N_key)
-  integer,intent(out)                   :: idx(N_key)
-  integer,intent(out)                   :: shortcut(0:N_key+1)
+  integer,intent(inout)                   :: idx(N_key)
+  integer,intent(inout)                   :: shortcut(0:N_key+1)
   integer(bit_kind)                     :: tmp(Nint, 2)
   integer                               :: tmpidx,i,ni
   

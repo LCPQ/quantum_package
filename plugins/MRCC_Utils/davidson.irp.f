@@ -47,7 +47,7 @@ subroutine davidson_diag_mrcc(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit,i
   !$OMP END DO 
   !$OMP DO SCHEDULE(guided)
   do i=1,N_det_ref
-    H_jj(idx_ref(i)) +=  delta_ii(i,istate)
+    H_jj(idx_ref(i)) +=  delta_ii(istate,i)
   enddo
   !$OMP END DO 
   !$OMP END PARALLEL
@@ -269,7 +269,7 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
         to_print(2,k) = residual_norm(k)
       enddo
 
-      write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))'), iter, to_print(:,1:N_st)
+      write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))') iter, to_print(:,1:N_st)
       call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
       if (converged) then
         exit
@@ -487,8 +487,8 @@ subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate)
     i = idx_ref(ii)
     do jj = 1, n_det_non_ref
         j = idx_non_ref(jj)
-        vt (i) = vt (i) + delta_ij(ii,jj,istate)*u_0(j)
-        vt (j) = vt (j) + delta_ij(ii,jj,istate)*u_0(i)
+        vt (i) = vt (i) + delta_ij(istate,jj,ii)*u_0(j)
+        vt (j) = vt (j) + delta_ij(istate,jj,ii)*u_0(i)
     enddo
   enddo
   !$OMP END DO
