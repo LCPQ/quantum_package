@@ -126,6 +126,9 @@ function new_zmq_to_qp_run_socket()
   integer(ZMQ_PTR)               :: new_zmq_to_qp_run_socket
   
   call omp_set_lock(zmq_lock)
+  if (zmq_context == 0_ZMQ_PTR) then
+     stop 'zmq_context is uninitialized'
+  endif
   new_zmq_to_qp_run_socket = f77_zmq_socket(zmq_context, ZMQ_REQ)
   call omp_unset_lock(zmq_lock)
   if (new_zmq_to_qp_run_socket == 0_ZMQ_PTR) then
@@ -162,6 +165,9 @@ function new_zmq_pair_socket(bind)
   integer(ZMQ_PTR)               :: new_zmq_pair_socket
   
   call omp_set_lock(zmq_lock)
+  if (zmq_context == 0_ZMQ_PTR) then
+     stop 'zmq_context is uninitialized'
+  endif
   new_zmq_pair_socket = f77_zmq_socket(zmq_context, ZMQ_PAIR)
   call omp_unset_lock(zmq_lock)
   if (new_zmq_pair_socket == 0_ZMQ_PTR) then
@@ -217,6 +223,9 @@ function new_zmq_pull_socket()
   integer(ZMQ_PTR)               :: new_zmq_pull_socket
   
   call omp_set_lock(zmq_lock)
+  if (zmq_context == 0_ZMQ_PTR) then
+     stop 'zmq_context is uninitialized'
+  endif
   new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_PULL)
 !  new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_REP)
   call omp_unset_lock(zmq_lock)
@@ -262,6 +271,9 @@ function new_zmq_push_socket(thread)
   integer(ZMQ_PTR)               :: new_zmq_push_socket
   
   call omp_set_lock(zmq_lock)
+  if (zmq_context == 0_ZMQ_PTR) then
+     stop 'zmq_context is uninitialized'
+  endif
   new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_PUSH)
 !  new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_REQ)
   call omp_unset_lock(zmq_lock)
