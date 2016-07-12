@@ -1,3 +1,6 @@
+
+
+
 subroutine select_connected(i_generator,thr,E0,zmq_socket_push)
   use f77_zmq
   use bitmasks
@@ -12,9 +15,9 @@ subroutine select_connected(i_generator,thr,E0,zmq_socket_push)
   ASSERT (thr >= 0.d0)
   integer(bit_kind)              :: hole_mask(N_int,2), particle_mask(N_int,2)
 
-  double precision               :: fock_diag_tmp(mo_tot_num)
-  call build_fock_tmp(fock_diag_tmp,psi_det_generators(1,1,i_generator),N_int)
+  double precision               :: fock_diag_tmp(2,mo_tot_num+1)
 
+  call build_fock_tmp(fock_diag_tmp,psi_det_generators(1,1,i_generator),N_int)
   integer :: k,l
   do l=1,N_generators_bitmask
     do k=1,N_int
@@ -23,10 +26,9 @@ subroutine select_connected(i_generator,thr,E0,zmq_socket_push)
       particle_mask(k,1) = iand(generators_bitmask(k,1,s_part,l), not(psi_det_generators(k,1,i_generator)) )
       particle_mask(k,2) = iand(generators_bitmask(k,2,s_part,l), not(psi_det_generators(k,2,i_generator)) )
     enddo
-
     call select_singles(i_generator,thr,hole_mask,particle_mask,fock_diag_tmp,E0,zmq_socket_push)
+    call select_doubles(i_generator,thr,hole_mask,particle_mask,fock_diag_tmp,E0,zmq_socket_push)
   enddo
- 
 end
 
 subroutine receive_selected_determinants()
@@ -65,7 +67,7 @@ subroutine select_singles(i_generator,thr,hole_mask,particle_mask,fock_diag_tmp,
   integer(bit_kind), intent(in)  :: hole_mask(N_int,2), particle_mask(N_int,2)
   double precision, intent(in)   :: E0(N_states)
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_push
-
+  
   ASSERT (thr >= 0.d0)
 
   integer                        :: i,j,k,l
@@ -136,6 +138,7 @@ subroutine select_singles(i_generator,thr,hole_mask,particle_mask,fock_diag_tmp,
       double precision :: psi_coef_microlist(psi_selectors_size * 4, N_states)
       
       call create_microlist_single(psi_selectors, i_generator, N_det_selectors, ion_det, microlist, idx_microlist, N_microlist, ptr_microlist, N_int)
+      
       do j=1, ptr_microlist(mo_tot_num * 2 + 1) - 1
         psi_coef_microlist(j,:) = psi_selectors_coef(idx_microlist(j),:)
       enddo
@@ -166,13 +169,17 @@ subroutine select_singles(i_generator,thr,hole_mask,particle_mask,fock_diag_tmp,
         if (.not. is_in_wavefunction(exc_det,N_int)) then
           ! Compute perturbative contribution and select determinant
           double precision :: i_H_psi_value(N_states), i_H_psi_value2(N_states)
+          i_H_psi_value = 0d0
+          i_H_psi_value2 = 0d0
+          
           integer :: sporb
-!           call i_H_psi(exc_det,psi_det_connected,psi_coef_connected,N_int,N_det_connected,psi_selectors_size,N_states,i_H_psi_value)
-          !!!!!!!!!!! psi_selectors_size ?
+          
+!           call i_H_psi(exc_det,psi_selectors,psi_selectors_coef,N_int,N_det_selectors,psi_selectors_size,N_states,i_H_psi_value)
+! 
           sporb = i_particle + (ispin - 1) * mo_tot_num
-          call i_H_psi(exc_det,microlist,psi_coef_microlist,N_int,N_microlist(0),psi_selectors_size*4,N_states,i_H_psi_value)
-          call i_H_psi(exc_det,microlist(1,1,ptr_microlist(sporb)),psi_coef_microlist(ptr_microlist(sporb), 1),N_int,N_microlist(sporb),psi_selectors_size*4,N_states,i_H_psi_value2)
-          i_H_psi_value += i_H_psi_value2
+          if(N_microlist(0) > 0) call i_H_psi(exc_det,microlist,psi_coef_microlist,N_int,N_microlist(0),psi_selectors_size*4,N_states,i_H_psi_value)
+          if(N_microlist(sporb) > 0) call i_H_psi(exc_det,microlist(1,1,ptr_microlist(sporb)),psi_coef_microlist(ptr_microlist(sporb), 1),N_int,N_microlist(sporb),psi_selectors_size*4,N_states,i_H_psi_value2)
+          i_H_psi_value(:) = i_H_psi_value(:) + i_H_psi_value2(:)
           double precision :: Hii, diag_H_mat_elem_fock
           Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),exc_det,fock_diag_tmp,N_int)
 
@@ -185,13 +192,18 @@ subroutine select_singles(i_generator,thr,hole_mask,particle_mask,fock_diag_tmp,
             else
               e_pert = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * i_H_psi_value(k) * i_H_psi_value(k)) - delta_E) 
             endif
+            
+            
             if (dabs(e_pert) > thr) then
-              integer :: rc
-              rc = f77_zmq_send(zmq_socket_push, exc_det, msg_size,0)
-              if (rc /= msg_size) then
-                stop 'Unable to send selected determinant'
-              endif
+              call debug_det(exc_det, N_int)
+!               integer :: rc
+!               rc = f77_zmq_send(zmq_socket_push, exc_det, msg_size,0)
+!               if (rc /= msg_size) then
+!                 stop 'Unable to send selected determinant'
+!               endif
             endif
+            
+            
           enddo
         endif
 
@@ -220,10 +232,10 @@ subroutine select_doubles(i_generator,thr,hole_mask,particle_mask,fock_diag_tmp,
   integer(bit_kind), intent(in)  :: hole_mask(N_int,2), particle_mask(N_int,2)
   double precision, intent(in)   :: E0(N_states)
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_push
-
+  
   ASSERT (thr >= 0.d0)
 
-  integer                        :: i,j,k,l,j1,j2,i1,i2
+  integer                        :: i,j,k,l,j1,j2,i1,i2,ib,jb
 
   integer :: msg_size
   msg_size = bit_kind*N_int*2
@@ -265,26 +277,25 @@ subroutine select_doubles(i_generator,thr,hole_mask,particle_mask,fock_diag_tmp,
 
   do ispin1=1,2
   do ispin2=1,ispin1
-    ion_det = psi_det_generators(k,1,i_generator)
 !     do k=1,N_int
 !       ion_det(k,1) = psi_det_generators(k,1,i_generator)
 !       ion_det(k,2) = psi_det_generators(k,2,i_generator)
 !     enddo
-    
     integer :: i_hole1, i_hole2, j_hole, k_hole
     do i1=1, N_holes(ispin1)
-    do i2=i1+1, N_holes(ispin2)
-      i_hole1 = hole_list(i,ispin1)
+    ib = 1
+    if(ispin1 == ispin2) ib = i1+1
+    do i2=ib, N_holes(ispin2)
+      ion_det(:,:) = psi_det_generators(:,:,i_generator)
+      i_hole1 = hole_list(i1,ispin1)
       k_hole = ishft(i_hole1-1,-bit_kind_shift)+1        ! N_int
       j_hole = i_hole1-ishft(k_hole-1,bit_kind_shift)-1  ! bit index
-      ion_det(k_hole,ispin1) = ibclr(psi_det_generators(k_hole,ispin1,i_generator),j_hole)
-    
-      i_hole2 = hole_list(i,ispin2)
+      ion_det(k_hole,ispin1) = ibclr(ion_det(k_hole,ispin1),j_hole)
+      
+      i_hole2 = hole_list(i2,ispin2)
       k_hole = ishft(i_hole2-1,-bit_kind_shift)+1        ! N_int
       j_hole = i_hole2-ishft(k_hole-1,bit_kind_shift)-1  ! bit index
-      ion_det(k_hole,ispin2) = ibclr(psi_det_generators(k_hole,ispin2,i_generator),j_hole)
-      
-      
+      ion_det(k_hole,ispin2) = ibclr(ion_det(k_hole,ispin2),j_hole)
       ! Create the mini wave function where <i|H|psi_mini> = <i|H|psi>
       ! --------------------------------------------------------------
 
@@ -297,7 +308,9 @@ subroutine select_doubles(i_generator,thr,hole_mask,particle_mask,fock_diag_tmp,
       integer(bit_kind) :: microlist(N_int, 2, N_det_selectors * 4)
       double precision :: psi_coef_microlist(psi_selectors_size * 4, N_states)
       
+      
       call create_microlist_double(psi_selectors, i_generator, N_det_selectors, ion_det, microlist, idx_microlist, N_microlist, ptr_microlist, N_int)
+      
       do j=1, ptr_microlist(mo_tot_num * 2 + 1) - 1
         psi_coef_microlist(j,:) = psi_selectors_coef(idx_microlist(j),:) !!!!!! :
       enddo
@@ -305,32 +318,28 @@ subroutine select_doubles(i_generator,thr,hole_mask,particle_mask,fock_diag_tmp,
       if(ptr_microlist(mo_tot_num * 2 + 1) == 1) then
         cycle
       endif
-
       ! Create particles
       ! ----------------
 
       do j1=1,N_particles(ispin1)
-      do j2=j1+1,N_particles(ispin2)
+      jb = 1
+      if(ispin1 == ispin2) jb = j1+1
+      do j2=jb,N_particles(ispin2)
         exc_det = ion_det
         
-        integer :: i_particle2
+        integer :: i_particle2, k_particle, j_particle
         i_particle2 = particle_list(j2, ispin2)
-
         ! Apply the particle
         k_particle = ishft(i_particle2-1,-bit_kind_shift)+1            ! N_int
         j_particle = i_particle2-ishft(k_particle-1,bit_kind_shift)-1  ! bit index
-        exc_det(k_particle,ispin2) = ibset(ion_det(k_particle,ispin2),j_particle)
+        exc_det(k_particle,ispin2) = ibset(exc_det(k_particle,ispin2),j_particle)
         
         integer :: i_particle1
-        i_particle1 = particle_list(j1,ispin1)
-
+        i_particle1 = particle_list(j1, ispin1)
         ! Apply the particle
-        integer :: j_particle, k_particle
         k_particle = ishft(i_particle1-1,-bit_kind_shift)+1            ! N_int
         j_particle = i_particle1-ishft(k_particle-1,bit_kind_shift)-1  ! bit index
-        exc_det(k_particle,ispin1) = ibset(ion_det(k_particle,ispin1),j_particle)
-        
-        
+        exc_det(k_particle,ispin1) = ibset(exc_det(k_particle,ispin1),j_particle)
         
         
         if(N_microlist(i_particle1 + (ispin1 - 1) * mo_tot_num) < N_microlist(i_particle2 + (ispin2 - 1) * mo_tot_num)) then
@@ -345,15 +354,16 @@ subroutine select_doubles(i_generator,thr,hole_mask,particle_mask,fock_diag_tmp,
         if (.not. is_in_wavefunction(exc_det,N_int)) then
           ! Compute perturbative contribution and select determinant
           double precision :: i_H_psi_value(N_states), i_H_psi_value2(N_states)
+          i_H_psi_value = 0d0
+          i_H_psi_value2 = 0d0
           integer :: sporb
-!           call i_H_psi(exc_det,psi_det_connected,psi_coef_connected,N_int,N_det_connected,psi_selectors_size,N_states,i_H_psi_value)
-          !!!!!!!!!!! psi_selectors_size ?
-          call i_H_psi(exc_det,microlist,psi_coef_microlist,N_int,N_microlist(0),psi_selectors_size*4,N_states,i_H_psi_value)
-          call i_H_psi(exc_det,microlist(1,1,ptr_microlist(sporb)),psi_coef_microlist(ptr_microlist(sporb), 1),N_int,N_microlist(sporb),psi_selectors_size*4,N_states,i_H_psi_value2)
-          i_H_psi_value += i_H_psi_value2
+!           call i_H_psi(exc_det,psi_selectors,psi_selectors_coef,N_int,N_det_selectors,psi_selectors_size,N_states,i_H_psi_value)
+          
+          if(N_microlist(0) > 0) call i_H_psi(exc_det,microlist,psi_coef_microlist,N_int,N_microlist(0),psi_selectors_size*4,N_states,i_H_psi_value)
+          if(N_microlist(sporb) > 0) call i_H_psi(exc_det,microlist(1,1,ptr_microlist(sporb)),psi_coef_microlist(ptr_microlist(sporb), 1),N_int,N_microlist(sporb),psi_selectors_size*4,N_states,i_H_psi_value2)
+          i_H_psi_value = i_H_psi_value + i_H_psi_value2
           double precision :: Hii, diag_H_mat_elem_fock
           Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),exc_det,fock_diag_tmp,N_int)
-
           double precision :: delta_E, e_pert
           do k=1,N_states
             if (i_H_psi_value(k) == 0.d0) cycle
@@ -364,6 +374,7 @@ subroutine select_doubles(i_generator,thr,hole_mask,particle_mask,fock_diag_tmp,
               e_pert = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * i_H_psi_value(k) * i_H_psi_value(k)) - delta_E) 
             endif
             if (dabs(e_pert) > thr) then
+!               call debug_det(exc_det, N_int)
               integer :: rc
               rc = f77_zmq_send(zmq_socket_push, exc_det, msg_size,0)
               if (rc /= msg_size) then
@@ -422,7 +433,7 @@ subroutine create_microlist_single(minilist, i_cur, N_minilist, key_mask, microl
     if(nt > 3) then !! TOO MANY DIFFERENCES
       continue
     else if(nt < 3) then
-      if(i < i_cur) then
+      if(i < i_cur .and. .false.) then !!!!!!!!!!!!!!!!!!!!! DESACTIVADO
         N_microlist = 0  !!!! PAST LINKED TO EVERYBODY!
         ptr_microlist = 1
         return  
@@ -469,16 +480,16 @@ subroutine create_microlist_single(minilist, i_cur, N_minilist, key_mask, microl
         microlist(k,2,cur_microlist(0)) = minilist(k,2,i)
       enddo
       cur_microlist(0) = cur_microlist(0) + 1
-    else
+    else if(n_element(1) + n_element(2) == 3) then
       do s = 1, 2
         do j=1,n_element(s)
-	  nt = list(j,s) + mo_tot_num * (s-1)
-	  idx_microlist(cur_microlist(nt)) = i
-	  do k=1,Nint
-	    microlist(k,1,cur_microlist(nt)) = minilist(k,1,i)
-	    microlist(k,2,cur_microlist(nt)) = minilist(k,2,i)
-	  enddo
-	  cur_microlist(nt) = cur_microlist(nt) + 1
+          nt = list(j,s) + mo_tot_num * (s-1)
+          idx_microlist(cur_microlist(nt)) = i
+          do k=1,Nint
+            microlist(k,1,cur_microlist(nt)) = minilist(k,1,i)
+            microlist(k,2,cur_microlist(nt)) = minilist(k,2,i)
+          enddo
+          cur_microlist(nt) = cur_microlist(nt) + 1
         end do
       end do
     end if
@@ -520,7 +531,7 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
     
     if(nt > 4) then !! TOO MANY DIFFERENCES
       continue
-    else if(nt < 3 .and. i < i_cur) then
+    else if(nt < 3 .and. i < i_cur .and. .false.) then
       N_microlist = 0  !!!! PAST LINKED TO EVERYBODY!
       ptr_microlist = 1
       return  
@@ -566,7 +577,7 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
         microlist(k,2,cur_microlist(0)) = minilist(k,2,i)
       enddo
       cur_microlist(0) = cur_microlist(0) + 1
-    else
+    else if(n_element(1) + n_element(2) == 4) then
       do s = 1, 2
         do j=1,n_element(s)
           nt = list(j,s) + mo_tot_num * (s-1)

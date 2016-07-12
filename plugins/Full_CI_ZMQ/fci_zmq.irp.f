@@ -1,3 +1,4 @@
+
 program Full_CI_ZMQ
   use f77_zmq
   implicit none
@@ -19,13 +20,15 @@ program Full_CI_ZMQ
     call receive_selected_determinants()
   else
     zmq_socket_push = new_zmq_push_socket()
+    
     do i=ithread,N_det_generators,nproc
-      print *,  i , N_det_generators
+      print *,  i , "/", N_det_generators
       !$OMP TASK DEFAULT(SHARED)
       call select_connected(i, 1.d-6, ci_electronic_energy,zmq_socket_push)
       !$OMP END TASK
     enddo
     !$OMP TASKWAIT
+    print *, "END .... "
     if (ithread == 1) then
       integer :: rc
       rc = f77_zmq_send(zmq_socket_push,0,1,0)
