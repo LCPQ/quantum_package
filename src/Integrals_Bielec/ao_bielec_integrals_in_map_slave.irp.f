@@ -34,25 +34,25 @@ subroutine push_integrals(zmq_socket_push, n_integrals, buffer_i, buffer_value, 
   
   rc = f77_zmq_send( zmq_socket_push, n_integrals, 4, ZMQ_SNDMORE)
   if (rc /= 4) then
-    print *, irp_here,  'f77_zmq_send( zmq_socket_push, n_integrals, 4, ZMQ_SNDMORE)'
+    print *, irp_here,  ': f77_zmq_send( zmq_socket_push, n_integrals, 4, ZMQ_SNDMORE)'
     stop 'error'
   endif
   
   rc = f77_zmq_send( zmq_socket_push, buffer_i, key_kind*n_integrals, ZMQ_SNDMORE)
   if (rc /= key_kind*n_integrals) then
-    print *, irp_here,  'f77_zmq_send( zmq_socket_push, buffer_i, key_kind*n_integrals, ZMQ_SNDMORE)'
+    print *, irp_here,  ': f77_zmq_send( zmq_socket_push, buffer_i, key_kind*n_integrals, ZMQ_SNDMORE)'
     stop 'error'
   endif
   
   rc = f77_zmq_send( zmq_socket_push, buffer_value, integral_kind*n_integrals, ZMQ_SNDMORE)
   if (rc /= integral_kind*n_integrals) then
-    print *, irp_here,  'f77_zmq_send( zmq_socket_push, buffer_value, integral_kind*n_integrals, 0)'
+    print *, irp_here,  ': f77_zmq_send( zmq_socket_push, buffer_value, integral_kind*n_integrals, 0)'
     stop 'error'
   endif
   
   rc = f77_zmq_send( zmq_socket_push, task_id, 4, 0)
   if (rc /= 4) then
-    print *, irp_here,  'f77_zmq_send( zmq_socket_push, task_id, 4, 0)'
+    print *, irp_here,  ': f77_zmq_send( zmq_socket_push, task_id, 4, 0)'
     stop 'error'
   endif
 
@@ -60,7 +60,7 @@ subroutine push_integrals(zmq_socket_push, n_integrals, buffer_i, buffer_value, 
 !  integer :: idummy
 !  rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0)
 !  if (rc /= 4) then
-!    print *, irp_here, 'f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
+!    print *, irp_here, ': f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
 !    stop 'error'
 !  endif
 end
@@ -138,7 +138,7 @@ subroutine pull_integrals(zmq_socket_pull, n_integrals, buffer_i, buffer_value, 
     return
   endif
   if (rc /= 4) then
-    print *, irp_here,  'f77_zmq_recv( zmq_socket_pull, n_integrals, 4, 0)'
+    print *, irp_here,  ': f77_zmq_recv( zmq_socket_pull, n_integrals, 4, 0)'
     stop 'error'
   endif
   
@@ -146,19 +146,20 @@ subroutine pull_integrals(zmq_socket_pull, n_integrals, buffer_i, buffer_value, 
     
     rc = f77_zmq_recv( zmq_socket_pull, buffer_i, key_kind*n_integrals, 0)
     if (rc /= key_kind*n_integrals) then
-      print *, irp_here,  'f77_zmq_recv( zmq_socket_pull, buffer_i, key_kind*n_integrals, 0)'
+      print *,  rc, key_kind, n_integrals
+      print *, irp_here,  ': f77_zmq_recv( zmq_socket_pull, buffer_i, key_kind*n_integrals, 0)'
       stop 'error'
     endif
     
     rc = f77_zmq_recv( zmq_socket_pull, buffer_value, integral_kind*n_integrals, 0)
     if (rc /= integral_kind*n_integrals) then
-      print *, irp_here,  'f77_zmq_recv( zmq_socket_pull, buffer_value, integral_kind*n_integrals, 0)'
+      print *, irp_here,  ': f77_zmq_recv( zmq_socket_pull, buffer_value, integral_kind*n_integrals, 0)'
       stop 'error'
     endif
     
     rc = f77_zmq_recv( zmq_socket_pull, task_id, 4, 0)
     if (rc /= 4) then
-      print *, irp_here,  'f77_zmq_recv( zmq_socket_pull, task_id, 4, 0)'
+      print *, irp_here,  ': f77_zmq_recv( zmq_socket_pull, task_id, 4, 0)'
       stop 'error'
     endif
     
@@ -167,7 +168,7 @@ subroutine pull_integrals(zmq_socket_pull, n_integrals, buffer_i, buffer_value, 
 ! Activate if zmq_socket_pull is a REP
 !  rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)
 !  if (rc /= 4) then
-!    print *,  irp_here, ' f77_zmq_send (zmq_socket_pull,...'
+!    print *,  irp_here, ' : f77_zmq_send (zmq_socket_pull,...'
 !    stop 'error'
 !  endif
 
@@ -207,7 +208,9 @@ subroutine ao_bielec_integrals_in_map_collector
   do while (more == 1)
     
     call pull_integrals(zmq_socket_pull, n_integrals, buffer_i, buffer_value, task_id)
+
     if (n_integrals >= 0) then
+      
       call insert_into_ao_integrals_map(n_integrals,buffer_i,buffer_value)
       accu += n_integrals
       if (task_id /= 0) then

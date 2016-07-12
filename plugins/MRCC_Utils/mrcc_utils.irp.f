@@ -699,7 +699,7 @@ BEGIN_PROVIDER [ double precision, dIj_unique, (hh_shortcut(hh_shortcut(0)+1)-1,
     end do
 
 
-    t = (1d0 / norm_cas - 1d0) / t
+    t = (1d0 - norm_cas ) / t
     x_new = x_new * sqrt(t)
 
     do j=1, size(X)
