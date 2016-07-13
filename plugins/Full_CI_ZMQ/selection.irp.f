@@ -17,6 +17,9 @@ subroutine select_connected(i_generator,thr,E0,zmq_socket_push)
 
   double precision               :: fock_diag_tmp(2,mo_tot_num+1)
   
+!   print *, i_generator, "MM"
+!   return
+  
   
   call build_fock_tmp(fock_diag_tmp,psi_det_generators(1,1,i_generator),N_int)
   integer :: k,l
@@ -49,20 +52,22 @@ subroutine receive_selected_determinants()
 ! Receive via ZMQ the selected determinants
   END_DOC
   integer(ZMQ_PTR) :: zmq_socket_pull
-  integer(ZMQ_PTR) :: new_zmq_pull_socket
+  integer(ZMQ_PTR), external :: new_zmq_pull_socket
 
-  integer(bit_kind) :: received_det(N_int,2), shtak(N_int, 2, 100000)
+  integer(bit_kind) :: received_det(N_int,2), shtak(N_int, 2, 100)
   integer :: msg_size, rc
-  integer :: acc, tac, j
-  logical, external :: detEq
+  integer :: acc, tac, j, robin
+  logical, external :: detEq, is_in_wavefunction
   acc = 0
   tac = 0
+  robin = 0
   msg_size = bit_kind*N_int*2
 
   zmq_socket_pull = new_zmq_pull_socket()
 
   grab : do while (f77_zmq_recv(zmq_socket_pull, received_det, msg_size, 0) == msg_size)
-    tac += 1   
+    tac += 1
+    if (is_in_wavefunction(received_det,N_int)) stop "???..."
     do j=1,acc
       if(detEq(received_det, shtak(1,1,j), N_int)) then
         cycle grab
@@ -70,12 +75,21 @@ subroutine receive_selected_determinants()
     end do
     acc += 1
     shtak(:,:,acc) = received_det
+    print *, acc, size(shtak, 3)
+    if(acc == size(shtak, 3)) then
+      print *, robin, nproc
+      call fill_H_apply_buffer_no_selection(acc,shtak,N_int,robin)
+      acc = 0
+      robin += 1
+      if(robin == nproc) robin = 0
+    end if
+    
     call debug_det(received_det,N_int)
     print *, "tot ", acc, tac
   end do grab
   print *, "tot ", acc, tac
+  call fill_H_apply_buffer_no_selection(acc,shtak,N_int,robin)
   call end_zmq_pull_socket(zmq_socket_pull)
-
 end
 
 subroutine select_singles(i_generator,thr,hole_mask,particle_mask,fock_diag_tmp,E0,zmq_socket_push)
