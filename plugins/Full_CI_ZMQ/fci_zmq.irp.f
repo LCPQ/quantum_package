@@ -23,11 +23,11 @@ program Full_CI_ZMQ
     
     do i=ithread,N_det_generators,nproc
       print *,  i , "/", N_det_generators
-      !$OMP TASK DEFAULT(SHARED)
+      !!$OMP TASK DEFAULT(SHARED)
       call select_connected(i, 1.d-6, ci_electronic_energy,zmq_socket_push)
-      !$OMP END TASK
+      !!$OMP END TASK
     enddo
-    !$OMP TASKWAIT
+    !!$OMP TASKWAIT
     print *, "END .... "
     if (ithread == 1) then
       integer :: rc
