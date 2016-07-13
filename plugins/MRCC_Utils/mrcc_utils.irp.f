@@ -728,6 +728,7 @@ END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, dij, (N_det_ref, N_det_non_ref, N_states) ]
   integer :: s,i,j
+  double precision, external :: get_dij_index
   print *, "computing amplitudes..."
   do s=1, N_states
     do i=1, N_det_non_ref
