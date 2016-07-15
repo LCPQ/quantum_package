@@ -207,6 +207,7 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
       do j=1,n_element(1)
         nt = list(j,1)
         idx_microlist(cur_microlist(nt)) = i
+        ! TODO : Page faults
         do k=1,Nint
           microlist(k,1,cur_microlist(nt)) = minilist(k,1,i)
           microlist(k,2,cur_microlist(nt)) = minilist(k,2,i)

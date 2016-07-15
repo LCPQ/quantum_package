@@ -103,12 +103,8 @@ subroutine ao_bielec_integrals_in_map_slave(thread,iproc)
   do 
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task)
     if (task_id == 0) exit
-    read(task,*) l
-    do j=1,l-1
-      call compute_ao_integrals_jl(j,l,n_integrals,buffer_i,buffer_value) 
-      call push_integrals(zmq_socket_push, n_integrals, buffer_i, buffer_value, 0)
-    enddo
-    call compute_ao_integrals_jl(l,l,n_integrals,buffer_i,buffer_value) 
+    read(task,*) j, l
+    call compute_ao_integrals_jl(j,l,n_integrals,buffer_i,buffer_value) 
     call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id)
     call push_integrals(zmq_socket_push, n_integrals, buffer_i, buffer_value, task_id)
   enddo
@@ -227,9 +223,11 @@ subroutine ao_bielec_integrals_in_map_collector
   control = get_ao_map_size(ao_integrals_map)
 
   if (control /= accu) then
-      print *, irp_here,  'Control : ', control
-      print *,  'Accu    : ', accu
-      print *, 'Some integrals were lost during the parallel computation. (2)'
+      print *, ''
+      print *, irp_here
+      print *, 'Control : ', control
+      print *, 'Accu    : ', accu
+      print *, 'Some integrals were lost during the parallel computation.'
       print *, 'Try to reduce the number of threads.'
       stop
   endif

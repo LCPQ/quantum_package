@@ -28,12 +28,10 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
 
   mo_bielec_integrals_in_map = .True.
   if (read_mo_integrals) then
-    integer                        :: load_mo_integrals
     print*,'Reading the MO integrals'
-    if (load_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin') == 0) then
-      print*, 'MO integrals provided'
-      return
-    endif
+    call map_load_from_disk(trim(ezfio_filename)//'/work/mo_ints',mo_integrals_map)
+    print*, 'MO integrals provided'
+    return
   endif
   
   call add_integrals_to_map(full_ijkl_bitmask_4)
@@ -299,7 +297,8 @@ subroutine add_integrals_to_map(mask_ijkl)
   print*,' wall time :',wall_2 - wall_1, 's  ( x ', (cpu_2-cpu_1)/(wall_2-wall_1), ')'
   
   if (write_mo_integrals) then
-    call dump_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin')
+    call ezfio_set_work_empty(.False.)
+    call map_save_to_disk(trim(ezfio_filename)//'/work/mo_ints',mo_integrals_map)
     call ezfio_set_integrals_bielec_disk_access_mo_integrals("Read")
   endif
   
