@@ -256,7 +256,7 @@ subroutine make_s2_eigenfunction
   integer                        :: N_det_new
   integer, parameter             :: bufsze = 1000
   logical, external              :: is_in_wavefunction
-  return
+! return
 
 !  !TODO DEBUG
 !  do i=1,N_det

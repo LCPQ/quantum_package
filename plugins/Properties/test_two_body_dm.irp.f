@@ -7,28 +7,67 @@ end
 subroutine routine
  implicit none
  integer :: i,j,k,l
+ integer :: h1,p1,h2,p2,s1,s2
  double precision :: accu,get_two_body_dm_ab_map_element,get_mo_bielec_integral_schwartz
  accu = 0.d0
 
- ! Diag part of the two body dm
+ ! Diag part of the core two body dm 
+ do i = 1, n_core_orb
+  h1 = list_core(i)
+  do j = 1, n_core_orb
+   h2 = list_core(j)
+   accu += two_body_dm_ab_diag_core(j,i) * mo_bielec_integral_jj(h1,h2)
+  enddo
+ enddo
+
+ ! Diag part of the active two body dm
  do i = 1, n_act_orb
+  h1 = list_act(i)
   do j = 1, n_act_orb
-   accu += two_body_dm_ab_diag(i,j) * mo_bielec_integral_jj(i,j)
+   h2 = list_act(j)
+   accu += two_body_dm_ab_diag_act(j,i) * mo_bielec_integral_jj(h1,h2)
+  enddo
+ enddo
+
+ ! Diag part of the active <-> core two body dm
+ do i = 1, n_act_orb
+  h1 = list_act(i)
+  do j = 1, n_core_orb
+   h2 = list_core(j)
+   accu += two_body_dm_diag_core_act(j,i) * mo_bielec_integral_jj(h1,h2)
   enddo
  enddo
  print*,'BI ELECTRONIC   =  ',accu
 
  double precision :: accu_extra_diag
  accu_extra_diag = 0.d0
+ ! purely active part of the two body dm 
  do l = 1, n_act_orb  ! p2 
+  p2 = list_act(l)
   do k = 1, n_act_orb  ! h2 
+   h2 = list_act(k)
    do j = 1, n_act_orb  ! p1 
+    p1 = list_act(j)
     do i = 1,n_act_orb   ! h1 
-     accu_extra_diag += two_body_dm_ab_big_array(i,j,k,l) * get_mo_bielec_integral_schwartz(i,k,j,l,mo_integrals_map)
+     h1 = list_act(i)
+     accu_extra_diag += two_body_dm_ab_big_array_act(i,j,k,l) * get_mo_bielec_integral_schwartz(h1,h2,p1,p2,mo_integrals_map)
     enddo
    enddo
   enddo
  enddo
+ 
+ ! core <-> active part of the two body dm  
+ do l = 1, n_act_orb  ! p1 
+  p1 = list_act(l)
+  do k = 1, n_act_orb  ! h1 
+   h1 = list_act(k)
+    do i = 1,n_core_orb ! h2 
+     h2 = list_core(i)
+     accu_extra_diag += two_body_dm_ab_big_array_core_act(i,k,l) * get_mo_bielec_integral_schwartz(h1,h2,p1,h2,mo_integrals_map)
+    enddo
+  enddo
+ enddo
+
  print*,'extra_diag = ',accu_extra_diag
  double precision :: average_mono
  call get_average(mo_mono_elec_integral,one_body_dm_mo,average_mono)
@@ -41,7 +80,6 @@ subroutine routine
  print*,'<Psi| H |Psi>   =  ',e_0 + nuclear_repulsion
  integer :: degree
  integer                        :: exc(0:2,2,2)
- integer                        :: h1,h2,p1,p2,s1,s2
  double precision               :: phase
  integer :: n_elements
  n_elements = 0

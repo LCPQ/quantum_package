@@ -28,7 +28,7 @@ subroutine routine
     i += 1
     print*,'-----------------------'
     print*,'i = ',i
-    call H_apply_just_1h_1p(pt2, norm_pert, H_pert_diag,  N_st)
+    call H_apply_just_1h_1p_singles(pt2, norm_pert, H_pert_diag,  N_st)
     call diagonalize_CI
     print*,'N_det = ',N_det
     print*,'E        = ',CI_energy(1)

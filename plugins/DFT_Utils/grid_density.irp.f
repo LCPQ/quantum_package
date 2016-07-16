@@ -1,11 +1,11 @@
 BEGIN_PROVIDER [integer, n_points_angular_grid]
  implicit none
- n_points_angular_grid = 51
+ n_points_angular_grid = 50
 END_PROVIDER 
 
 BEGIN_PROVIDER [integer, n_points_radial_grid]
  implicit none
- n_points_radial_grid = 1000
+ n_points_radial_grid = 10000
 END_PROVIDER 
 
 
@@ -15,8 +15,28 @@ END_PROVIDER
  BEGIN_DOC
 ! weights and grid points for the integration on the angular variables on 
 ! the unit sphere centered on (0,0,0)
+! According to the LEBEDEV scheme
  END_DOC
  call cal_quad(n_points_angular_grid, angular_quadrature_points,weights_angular_points)
+ include 'constants.include.F'
+ integer :: i
+ double precision :: accu
+ double precision :: degre_rad
+!degre_rad = 180.d0/pi
+!accu = 0.d0
+!do i = 1, n_points_integration_angular_lebedev
+! accu += weights_angular_integration_lebedev(i)
+! weights_angular_points(i) = weights_angular_integration_lebedev(i) * 2.d0 * pi
+! angular_quadrature_points(i,1) = dcos ( degre_rad *  theta_angular_integration_lebedev(i)) & 
+!                                * dsin ( degre_rad *  phi_angular_integration_lebedev(i))
+! angular_quadrature_points(i,2) = dsin ( degre_rad *  theta_angular_integration_lebedev(i)) & 
+!                                * dsin ( degre_rad *  phi_angular_integration_lebedev(i))
+! angular_quadrature_points(i,3) = dcos ( degre_rad *  phi_angular_integration_lebedev(i))   
+!enddo
+!print*,'ANGULAR'
+!print*,''
+!print*,'accu = ',accu
+!ASSERT( dabs(accu - 1.D0) < 1.d-10)
 
 END_PROVIDER 
 
@@ -55,7 +75,7 @@ BEGIN_PROVIDER [double precision, grid_points_per_atom, (3,n_points_angular_grid
   x_ref = nucl_coord(i,1)
   y_ref = nucl_coord(i,2)
   z_ref = nucl_coord(i,3)
-  do j = 1, n_points_radial_grid
+  do j = 1, n_points_radial_grid-1
    double precision :: x,r
    x = grid_points_radial(j) ! x value for the mapping of the [0, +\infty] to [0,1]
    r = knowles_function(alpha_knowles(int(nucl_charge(i))),m_knowles,x) ! value of the radial coordinate for the integration 
@@ -81,7 +101,7 @@ BEGIN_PROVIDER [double precision, weight_functions_at_grid_points, (n_points_ang
  double precision :: tmp_array(nucl_num)
  ! run over all points in space
   do j = 1, nucl_num  ! that are referred to each atom 
-   do k = 1, n_points_radial_grid  !for each radial grid attached to the "jth" atom
+   do k = 1, n_points_radial_grid -1  !for each radial grid attached to the "jth" atom
     do l = 1, n_points_angular_grid ! for each angular point attached to the "jth" atom
      r(1) = grid_points_per_atom(1,l,k,j)
      r(2) = grid_points_per_atom(2,l,k,j)
@@ -95,6 +115,7 @@ BEGIN_PROVIDER [double precision, weight_functions_at_grid_points, (n_points_ang
      enddo
      accu = 1.d0/accu
      weight_functions_at_grid_points(l,k,j) = tmp_array(j) * accu 
+!    print*,weight_functions_at_grid_points(l,k,j)
     enddo
    enddo
   enddo
@@ -110,7 +131,7 @@ END_PROVIDER
  double precision :: r(3)
  double precision :: aos_array(ao_num),mos_array(mo_tot_num)
   do j = 1, nucl_num
-   do k = 1, n_points_radial_grid
+   do k = 1, n_points_radial_grid -1
     do l = 1, n_points_angular_grid
      one_body_dm_mo_alpha_at_grid_points(l,k,j) = 0.d0
      one_body_dm_mo_beta_at_grid_points(l,k,j) = 0.d0

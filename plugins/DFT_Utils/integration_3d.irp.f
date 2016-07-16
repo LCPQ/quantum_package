@@ -4,12 +4,18 @@ double precision function step_function_becke(x)
  double precision :: f_function_becke
  integer :: i,n_max_becke
 
- step_function_becke = f_function_becke(x)
- n_max_becke = 3
- do i = 1, n_max_becke
-  step_function_becke = f_function_becke(step_function_becke)
- enddo
- step_function_becke = 0.5d0*(1.d0 - step_function_becke)
+!if(x.lt.-1.d0)then
+! step_function_becke = 0.d0
+!else if (x .gt.1)then
+! step_function_becke = 0.d0
+!else 
+  step_function_becke = f_function_becke(x)
+!!n_max_becke = 1
+  do i = 1, 4
+   step_function_becke = f_function_becke(step_function_becke)
+  enddo
+  step_function_becke = 0.5d0*(1.d0 - step_function_becke)
+!endif
 end
 
 double precision function f_function_becke(x)
@@ -46,19 +52,3 @@ double precision function cell_function_becke(r,atom_number)
  enddo
 end
 
-double precision function weight_function_becke(r,atom_number)
- implicit none
- double precision, intent(in) :: r(3)
- integer, intent(in) :: atom_number
- BEGIN_DOC
- ! atom_number :: atom on which the weight function of Becke (1988, JCP,88(4))
- ! r(1:3) :: x,y,z coordinantes of the current point 
- END_DOC
- double precision :: cell_function_becke,accu
- integer :: j
- accu = 0.d0
- do j = 1, nucl_num
-  accu += cell_function_becke(r,j)
- enddo
- weight_function_becke = cell_function_becke(r,atom_number)/accu
-end

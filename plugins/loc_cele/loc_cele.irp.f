@@ -92,7 +92,7 @@
 
 
 
-      nrot(1) = 64  ! number of orbitals to be localized
+      nrot(1) = 6   ! number of orbitals to be localized
 
 
       integer :: index_rot(1000,1)
@@ -101,261 +101,72 @@
        cmoref = 0.d0
        irot = 0
 
-! H2 molecule for the mixed localization
-      do i=1,64
-       irot(i,1) = i+2
+      do i=1,nrot(1)
+       irot(i,1) = 19+i 
       enddo
 
-      do i=1,17
-       cmoref(i+1,i,1)=1.d0
-      enddo
-       cmoref(19,19-1,1)=1.d0
-       cmoref(20,19-1,1)=-1.d0
-       cmoref(19,20-1,1)=-1.d0
-       cmoref(20,20-1,1)=-1.d0
-       cmoref(21,20-1,1)=2.d0
-       cmoref(22,21-1,1)=1.d0
-       cmoref(23,22-1,1)=1.d0
-       cmoref(24,23-1,1)=1.d0
+! ESATRIENE with 3 bonding and anti bonding orbitals 
+! First bonding orbital for esa
+!      cmoref(7,1,1)   = 1.d0   ! 
+!      cmoref(26,1,1)  = 1.d0   ! 
+! Second bonding orbital for esa
+!      cmoref(45,2,1)  = 1.d0   ! 
+!      cmoref(64,2,1)  = 1.d0   ! 
+! Third bonding orbital for esa
+!      cmoref(83,3,1)  = 1.d0   ! 
+!      cmoref(102,3,1) = 1.d0   ! 
+
+! First anti bonding orbital for esa
+!      cmoref(7,4,1)   = 1.d0   ! 
+!      cmoref(26,4,1)  = -1.d0   ! 
+! Second anti bonding orbital for esa
+!      cmoref(45,5,1)  = 1.d0   ! 
+!      cmoref(64,5,1)  = -1.d0   ! 
+! Third anti bonding orbital for esa
+!      cmoref(83,6,1)  = 1.d0   ! 
+!      cmoref(102,6,1) = -1.d0   ! 
+
+! ESATRIENE with 2 bonding and anti bonding orbitals 
+! AND 2 radical orbitals
+! First radical orbital 
+!      cmoref(7,1,1)   = 1.d0   ! 
+! First bonding orbital 
+!      cmoref(26,2,1)  = 1.d0   ! 
+!      cmoref(45,2,1)  = 1.d0   ! 
+! Second bonding orbital 
+!      cmoref(64,3,1)  = 1.d0   ! 
+!      cmoref(83,3,1)  = 1.d0   ! 
+! Second radical orbital for esa
+!      cmoref(102,4,1) = 1.d0   ! 
+
+! First anti bonding orbital for esa
+!      cmoref(26,5,1)  = 1.d0   ! 
+!      cmoref(45,5,1)  =-1.d0   ! 
+! Second anti bonding orbital for esa
+!      cmoref(64,6,1)  = 1.d0   ! 
+!      cmoref(83,6,1)  =-1.d0   ! 
+
+! ESATRIENE with 1 central bonding and anti bonding orbitals 
+! AND 4 radical orbitals
+! First radical orbital 
+       cmoref(7,1,1)   = 1.d0   ! 
+! Second radical orbital 
+       cmoref(26,2,1)  = 1.d0   ! 
+! First bonding orbital 
+       cmoref(45,3,1)  = 1.d0   ! 
+       cmoref(64,3,1)  = 1.d0   ! 
+! Third radical orbital for esa
+       cmoref(83,4,1)  = 1.d0   ! 
+! Fourth radical orbital for esa
+       cmoref(102,5,1) = 1.d0   ! 
+! First anti bonding orbital 
+       cmoref(45,6,1)  = 1.d0   ! 
+       cmoref(64,6,1)  =-1.d0   ! 
 
 
-       cmoref(25,24-1,1)=1.d0
-       cmoref(26,24-1,1)=-1.d0
-       cmoref(25,25-1,1)=-1.d0
-       cmoref(26,25-1,1)=-1.d0
-       cmoref(27,25-1,1)=2.d0
-       cmoref(28,26-1,1)=1.d0
-       cmoref(29,27-1,1)=1.d0
-       cmoref(30,28-1,1)=1.d0
-      
-       cmoref(31,29-1,1)=1.d0
-       cmoref(32,29-1,1)=-1.d0
-       cmoref(31,30-1,1)=-1.d0
-       cmoref(32,30-1,1)=-1.d0
-       cmoref(33,30-1,1)=2.d0
-       cmoref(34,31-1,1)=1.d0
-       cmoref(35,32-1,1)=1.d0
-       cmoref(36,33-1,1)=1.d0
-
-       do i=33,49
-        cmoref(i+5,i,1)= 1.d0
-       enddo
-
-       cmoref(55,52-2,1)=1.d0
-       cmoref(56,52-2,1)=-1.d0
-       cmoref(55,53-2,1)=-1.d0
-       cmoref(56,53-2,1)=-1.d0
-       cmoref(57,53-2,1)=2.d0
-       cmoref(58,54-2,1)=1.d0
-       cmoref(59,55-2,1)=1.d0
-       cmoref(60,56-2,1)=1.d0
-
-       cmoref(61,57-2,1)=1.d0
-       cmoref(62,57-2,1)=-1.d0
-       cmoref(61,58-2,1)=-1.d0
-       cmoref(62,58-2,1)=-1.d0
-       cmoref(63,58-2,1)=2.d0
-       cmoref(64,59-2,1)=1.d0
-       cmoref(65,60-2,1)=1.d0
-       cmoref(66,61-2,1)=1.d0
-
-       cmoref(67,62-2,1)=1.d0
-       cmoref(68,62-2,1)=-1.d0
-       cmoref(67,63-2,1)=-1.d0
-       cmoref(68,63-2,1)=-1.d0
-       cmoref(69,63-2,1)=2.d0
-       cmoref(70,64-2,1)=1.d0
-       cmoref(71,65-2,1)=1.d0
-       cmoref(72,66-2,1)=1.d0
-! H2 molecule
-!      do i=1,66
-!       irot(i,1) = i
-!      enddo
-!
-!      do i=1,18
-!       cmoref(i,i,1)=1.d0
-!      enddo
-!       cmoref(19,19,1)=1.d0
-!       cmoref(20,19,1)=-1.d0
-!       cmoref(19,20,1)=-1.d0
-!       cmoref(20,20,1)=-1.d0
-!       cmoref(21,20,1)=2.d0
-!       cmoref(22,21,1)=1.d0
-!       cmoref(23,22,1)=1.d0
-!       cmoref(24,23,1)=1.d0
-!
-!
-!       cmoref(25,24,1)=1.d0
-!       cmoref(26,24,1)=-1.d0
-!       cmoref(25,25,1)=-1.d0
-!       cmoref(26,25,1)=-1.d0
-!       cmoref(27,25,1)=2.d0
-!       cmoref(28,26,1)=1.d0
-!       cmoref(29,27,1)=1.d0
-!       cmoref(30,28,1)=1.d0
-!      
-!       cmoref(31,29,1)=1.d0
-!       cmoref(32,29,1)=-1.d0
-!       cmoref(31,30,1)=-1.d0
-!       cmoref(32,30,1)=-1.d0
-!       cmoref(33,30,1)=2.d0
-!       cmoref(34,31,1)=1.d0
-!       cmoref(35,32,1)=1.d0
-!       cmoref(36,33,1)=1.d0
-!
-!       do i=34,51
-!        cmoref(i+3,i,1)= 1.d0
-!       enddo
-!
-!       cmoref(55,52,1)=1.d0
-!       cmoref(56,52,1)=-1.d0
-!       cmoref(55,53,1)=-1.d0
-!       cmoref(56,53,1)=-1.d0
-!       cmoref(57,53,1)=2.d0
-!       cmoref(58,54,1)=1.d0
-!       cmoref(59,55,1)=1.d0
-!       cmoref(60,56,1)=1.d0
-!
-!       cmoref(61,57,1)=1.d0
-!       cmoref(62,57,1)=-1.d0
-!       cmoref(61,58,1)=-1.d0
-!       cmoref(62,58,1)=-1.d0
-!       cmoref(63,58,1)=2.d0
-!       cmoref(64,59,1)=1.d0
-!       cmoref(65,60,1)=1.d0
-!       cmoref(66,61,1)=1.d0
-!
-!       cmoref(67,62,1)=1.d0
-!       cmoref(68,62,1)=-1.d0
-!       cmoref(67,63,1)=-1.d0
-!       cmoref(68,63,1)=-1.d0
-!       cmoref(69,63,1)=2.d0
-!       cmoref(70,64,1)=1.d0
-!       cmoref(71,65,1)=1.d0
-!       cmoref(72,66,1)=1.d0
-! H atom
-!      do i=1,33
-!       irot(i,1) = i
-!      enddo
-!
-!      do i=1,18
-!       cmoref(i,i,1)=1.d0
-!      enddo
-!       cmoref(19,19,1)=1.d0
-!       cmoref(20,19,1)=-1.d0
-!       cmoref(19,20,1)=-1.d0
-!       cmoref(20,20,1)=-1.d0
-!       cmoref(21,20,1)=2.d0
-!       cmoref(22,21,1)=1.d0
-!       cmoref(23,22,1)=1.d0
-!       cmoref(24,23,1)=1.d0
-
-
-!       cmoref(25,24,1)=1.d0
-!       cmoref(26,24,1)=-1.d0
-!       cmoref(25,25,1)=-1.d0
-!       cmoref(26,25,1)=-1.d0
-!       cmoref(27,25,1)=2.d0
-!       cmoref(28,26,1)=1.d0
-!       cmoref(29,27,1)=1.d0
-!       cmoref(30,28,1)=1.d0
-!      
-!       cmoref(31,29,1)=1.d0
-!       cmoref(32,29,1)=-1.d0
-!       cmoref(31,30,1)=-1.d0
-!       cmoref(32,30,1)=-1.d0
-!       cmoref(33,30,1)=2.d0
-!       cmoref(34,31,1)=1.d0
-!       cmoref(35,32,1)=1.d0
-!       cmoref(36,33,1)=1.d0
- 
-       ! Definition of the index of the MO to be rotated
-!      irot(2,1) = 21  ! the first mo to be rotated is the 21 th MO 
-!      irot(3,1) = 22  ! etc....
-!      irot(4,1) = 23  ! 
-!      irot(5,1) = 24  ! 
-!      irot(6,1) = 25  ! 
-
-!N2
-!       irot(1,1) = 5
-!       irot(2,1) = 6
-!       irot(3,1) = 7
-!       irot(4,1) = 8
-!       irot(5,1) = 9
-!       irot(6,1) = 10
-!
-!       cmoref(5,1,1) = 1.d0   ! 
-!       cmoref(6,2,1) = 1.d0   ! 
-!       cmoref(7,3,1) = 1.d0   ! 
-!       cmoref(40,4,1) = 1.d0   ! 
-!       cmoref(41,5,1) = 1.d0   ! 
-!       cmoref(42,6,1) =  1.d0   ! 
-!END N2
-
-!HEXATRIENE
-!       irot(1,1) = 20
-!       irot(2,1) = 21
-!       irot(3,1) = 22
-!       irot(4,1) = 23
-!       irot(5,1) = 24
-!       irot(6,1) = 25
-!
-!       cmoref(7,1,1)   = 1.d0   ! 
-!       cmoref(26,1,1)  = 1.d0   ! 
-!       cmoref(45,2,1)  = 1.d0   ! 
-!       cmoref(64,2,1)  = 1.d0   ! 
-!       cmoref(83,3,1)  = 1.d0   ! 
-!       cmoref(102,3,1) = 1.d0   ! 
-!       cmoref(7,4,1)   = 1.d0   ! 
-!       cmoref(26,4,1)  = -1.d0   ! 
-!       cmoref(45,5,1)  = 1.d0   ! 
-!       cmoref(64,5,1)  = -1.d0   ! 
-!       cmoref(83,6,1)  = 1.d0   ! 
-!       cmoref(102,6,1) = -1.d0   ! 
-!END HEXATRIENE
-
-!!!!H2                                 H2 CAS
-!        irot(1,1) = 1
-!        irot(2,1) = 2
-!        
-!        cmoref(1,1,1) = 1.d0
-!        cmoref(37,2,1) = 1.d0  
-!END H2
-!!!!  LOCALIZATION ON THE BASIS FUNCTIONS
-!        do i = 1, nrot(1)
-!          irot(i,1) = i 
-!          cmoref(i,i,1) = 1.d0
-!        enddo
-
-!END BASISLOC
-
-!       do i = 1, nrot(1)
-!        irot(i,1) = 4+i 
-!       enddo
        do i = 1, nrot(1)
         print*,'irot(i,1) = ',irot(i,1)
        enddo
-!       pause
- 
-       ! you define the guess vectors that you want 
-       ! the new MO to be close to
-       ! cmore(i,j,1) = < AO_i | guess_vector_MO(j) >
-       ! i goes from 1 to ao_num 
-       ! j goes from 1 to nrot(1) 
-
-       ! Here you must go to the GAMESS output file 
-       ! where the AOs are listed and explicited 
-       ! From the basis of this knowledge you can build your 
-       ! own guess vectors for the MOs
-       ! The new MOs are provided in output 
-       ! in the same order than the guess MOs 
-!      do i = 1, nrot(1)
-!       j = 5+(i-1)*15
-!       cmoref(j,i,1)    = 0.2d0
-!       cmoref(j+3,i,1)  = 0.12d0
-!       print*,'j = ',j
-!      enddo
-!      pause
 
 
 

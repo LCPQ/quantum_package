@@ -21,6 +21,7 @@ end
 
 BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
   implicit none
+  integer(bit_kind) :: mask_ijkl(N_int,4)
   
   BEGIN_DOC
   ! If True, the map of MO bielectronic integrals is provided
@@ -36,7 +37,44 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
     endif
   endif
   
-  call add_integrals_to_map(full_ijkl_bitmask_4)
+  if(no_vvvv_integrals)then
+   integer :: i,j,k,l
+   ! (core+inact+act) ^ 4
+   do i = 1,N_int
+    mask_ijkl(i,1) =  core_inact_act_bitmask_4(i,1)
+    mask_ijkl(i,2) =  core_inact_act_bitmask_4(i,2)
+    mask_ijkl(i,3) =  core_inact_act_bitmask_4(i,3)
+    mask_ijkl(i,4) =  core_inact_act_bitmask_4(i,4)
+   enddo
+   call add_integrals_to_map(mask_ijkl)
+   ! (core+inact+act) ^ 3  (virt) ^1
+   do i = 1,N_int
+    mask_ijkl(i,1) =  core_inact_act_bitmask_4(i,1)
+    mask_ijkl(i,2) =  core_inact_act_bitmask_4(i,2)
+    mask_ijkl(i,3) =  core_inact_act_bitmask_4(i,3)
+    mask_ijkl(i,4) =  virt_bitmask(i,1)
+   enddo
+   call add_integrals_to_map(mask_ijkl)
+   ! (core+inact+act) ^ 2  (virt) ^2
+   do i = 1,N_int
+    mask_ijkl(i,1) =  core_inact_act_bitmask_4(i,1)
+    mask_ijkl(i,2) =  core_inact_act_bitmask_4(i,2)
+    mask_ijkl(i,3) =  virt_bitmask(i,1)
+    mask_ijkl(i,4) =  virt_bitmask(i,1)
+   enddo
+   call add_integrals_to_map(mask_ijkl)
+   ! (core+inact+act) ^ 1  (virt) ^3
+   do i = 1,N_int
+    mask_ijkl(i,1) =  core_inact_act_bitmask_4(i,1)
+    mask_ijkl(i,2) =  virt_bitmask(i,1)
+    mask_ijkl(i,3) =  virt_bitmask(i,1)
+    mask_ijkl(i,4) =  virt_bitmask(i,1)
+   enddo
+   call add_integrals_to_map(mask_ijkl)
+    
+  else
+   call add_integrals_to_map(full_ijkl_bitmask_4)
+  endif
 END_PROVIDER
 
 subroutine add_integrals_to_map(mask_ijkl)

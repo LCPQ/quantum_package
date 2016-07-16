@@ -16,7 +16,7 @@
    do j = 1, nucl_num 
     integral_density_alpha_knowles_becke_per_atom(j) = 0.d0
     integral_density_beta_knowles_becke_per_atom(j) = 0.d0
-    do i = 1, n_points_radial_grid
+    do i = 1, n_points_radial_grid-1
      ! Angular integration over the solid angle Omega for a FIXED angular coordinate "r"
      f_average_angular_alpha = 0.d0
      f_average_angular_beta = 0.d0
@@ -48,7 +48,6 @@ END_PROVIDER
  double precision, intent(in) :: alpha,x
  integer, intent(in) :: m
  knowles_function = -alpha * dlog(1.d0-x**m)
-!knowles_function = 1.d0
  end
 
  double precision function derivative_knowles_function(alpha,m,x)

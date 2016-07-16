@@ -81,6 +81,8 @@ subroutine FOBOCI_lmct_mlct_old_thr
     call set_bitmask_particl_as_input(reunion_of_bitmask)
     call set_bitmask_hole_as_input(reunion_of_bitmask)
     call all_single
+    call make_s2_eigenfunction
+    call diagonalize_ci
 !   if(dressing_2h2p)then
 !    call diag_dressed_2h2p_hamiltonian_and_update_psi_det(i_hole_osoci,lmct)
 !   endif
@@ -193,6 +195,8 @@ subroutine FOBOCI_lmct_mlct_old_thr
  !   call all_single_split(psi_det_generators,psi_coef_generators,N_det_generators,dressing_matrix)
  !   call diag_dressed_matrix_and_set_to_psi_det(psi_det_generators,N_det_generators,dressing_matrix)
      call all_single
+     call make_s2_eigenfunction
+     call diagonalize_ci
 !    if(dressing_2h2p)then
 !     call diag_dressed_2h2p_hamiltonian_and_update_psi_det(i_particl_osoci,lmct)
 !    endif

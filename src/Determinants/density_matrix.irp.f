@@ -238,17 +238,19 @@ END_PROVIDER
  END_DOC
  implicit none
  integer :: i,j,k,l
- double precision :: dm_mo
+ double precision :: mo_alpha,mo_beta
 
- one_body_spin_density_ao = 0.d0
+ one_body_dm_ao_alpha = 0.d0
+ one_body_dm_ao_beta = 0.d0
  do k = 1, ao_num
   do l = 1, ao_num
    do i = 1, mo_tot_num
     do j = 1, mo_tot_num
-     dm_mo = one_body_dm_mo_alpha(j,i)
+     mo_alpha = one_body_dm_mo_alpha(j,i)
+     mo_beta = one_body_dm_mo_beta(j,i)
 !    if(dabs(dm_mo).le.1.d-10)cycle
-     one_body_dm_ao_alpha(l,k) += mo_coef(k,i) * mo_coef(l,j) * dm_mo
-     one_body_dm_ao_beta(l,k) += mo_coef(k,i) * mo_coef(l,j) * dm_mo
+     one_body_dm_ao_alpha(l,k) += mo_coef(k,i) * mo_coef(l,j) *  mo_alpha
+     one_body_dm_ao_beta(l,k) += mo_coef(k,i) * mo_coef(l,j)  *  mo_beta        
 
     enddo
    enddo
