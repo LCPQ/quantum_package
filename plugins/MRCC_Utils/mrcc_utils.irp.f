@@ -628,7 +628,7 @@ BEGIN_PROVIDER [ double precision, dIj_unique, (hh_shortcut(hh_shortcut(0)+1)-1,
       t = 0d0
       r1 = 1
       r2 = 1
-      do while(A_ind(r1, at_row) * A_ind(r2, a_col) /= 0)
+      do while ((A_ind(r1, at_row) /= 0).and.(A_ind(r2, a_col) /= 0))
         if(A_ind(r1, at_row) < A_ind(r2, a_col)) then
           r1 += 1
         else if(A_ind(r1, at_row) > A_ind(r2, a_col)) then
