@@ -483,9 +483,6 @@ end
   
   integer :: KKsize = 1000000
   
-  !    -459.6346665282306
-  !    -459.6346665282306
-  
   
   call new_parallel_job(zmq_to_qp_run_socket,'mrsc2')
 

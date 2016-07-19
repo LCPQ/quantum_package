@@ -14,6 +14,13 @@ subroutine $subroutine_diexc(key_in, key_prev, hole_1,particl_1, hole_2, particl
   
   $declarations
   
+!   print *, "bbbbbbbbbbbbbbb"
+!   call debug_det(key_in, N_int)
+!   call debug_det(hole_1, N_int)
+!   call debug_det(hole_2, N_int)
+!   call debug_det(particl_1, N_int)
+!   call debug_det(particl_2, N_int)
+!   print *, "eeeeeeeeeeeeeeee"
   
   highest = 0
   do k=1,N_int*bit_kind_size
