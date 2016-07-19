@@ -816,13 +816,13 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
   integer, intent(out) :: N_tmicrolist(0:mo_tot_num*2), ptr_tmicrolist(0:mo_tot_num*2+1), idx_tmicrolist(N_minilist*4)
   integer(bit_kind), intent(out) :: tmicrolist(Nint,2,N_minilist*4)
   
-  integer :: i,j,k,s,nt,n_element(2)
-  integer :: list(Nint*bit_kind_size,2), cur_microlist(0:mo_tot_num*2+1), cur_tmicrolist(0:mo_tot_num*2+1)
+  integer :: i,j,k,s,nt,n_element(2,N_minilist), idx(0:N_minilist)
+  integer :: list(4,2,N_minilist), cur_microlist(0:mo_tot_num*2+1), cur_tmicrolist(0:mo_tot_num*2+1)
   integer(bit_kind) :: key_mask_neg(Nint,2), mobileMask(Nint,2)
   integer :: mo_tot_num_2
   mo_tot_num_2 = mo_tot_num+mo_tot_num
 
-  
+  idx(0) = 0
   do i=1,Nint
     key_mask_neg(i,1) = not(key_mask(i,1))
     key_mask_neg(i,2) = not(key_mask(i,2))
@@ -841,9 +841,12 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
       nt += popcnt(mobileMask(j, 1)) + popcnt(mobileMask(j, 2))
     end do
     
-    if(nt > 4) then !! TOO MANY DIFFERENCES
-      cycle
-    else if(nt < 3) then
+    if(nt > 4) cycle !! TOO MANY DIFFERENCES
+    
+    idx(0) += 1
+    idx(idx(0)) = i
+    
+    if(nt < 3) then
       if(i < i_cur) then
         N_microlist = 0  !!!! PAST LINKED TO EVERYBODY!
         ptr_microlist = 1
@@ -851,15 +854,16 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
         ptr_tmicrolist = 1
         return  
       else
+        n_element(:, idx(0)) = (/2, 0/)
         N_microlist(0) = N_microlist(0) + 1
       endif
     else
-      call bitstring_to_list(mobileMask(1,1), list(1,1), n_element(1), Nint)
-      call bitstring_to_list(mobileMask(1,2), list(1,2), n_element(2), Nint)
+      call bitstring_to_list(mobileMask(1,1), list(1,1,idx(0)), n_element(1, idx(0)), Nint)
+      call bitstring_to_list(mobileMask(1,2), list(1,2,idx(0)), n_element(2, idx(0)), Nint)
       
       do s=1,2
-        do j=1,n_element(s)
-          k = list(j,s) + mo_tot_num * (s-1)
+        do j=1,n_element(s,idx(0))
+          k = list(j,s,idx(0)) + mo_tot_num * (s-1)
           if(nt == 4) N_microlist(k) = N_microlist(k) + 1
           if(nt == 3) N_tmicrolist(k) = N_tmicrolist(k) + 1
         end do
@@ -880,41 +884,32 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
   end do
   
   
-  do i=1, N_minilist
-    do j=1,Nint
-      mobileMask(j,1) = iand(key_mask_neg(j,1), minilist(j,1,i))
-      mobileMask(j,2) = iand(key_mask_neg(j,2), minilist(j,2,i))
-    end do
-    
-    call bitstring_to_list(mobileMask(1,1), list(1,1), n_element(1), Nint)
-    call bitstring_to_list(mobileMask(1,2), list(1,2), n_element(2), Nint)
-
-    if(n_element(1) + n_element(2) > 4) then
-      cycle
-    else if(n_element(1) + n_element(2) < 3) then
-      idx_microlist(cur_microlist(0)) = i
+  do i=1, idx(0)
+    if(n_element(1, i) + n_element(2, i) > 4) stop "wired"
+    if(n_element(1, i) + n_element(2, i) < 3) then
+      idx_microlist(cur_microlist(0)) = idx(i)
       do k=1,Nint
-        microlist(k,1,cur_microlist(0)) = minilist(k,1,i)
-        microlist(k,2,cur_microlist(0)) = minilist(k,2,i)
+        microlist(k,1,cur_microlist(0)) = minilist(k,1,idx(i))
+        microlist(k,2,cur_microlist(0)) = minilist(k,2,idx(i))
       enddo
       cur_microlist(0) = cur_microlist(0) + 1
-    else ! if(n_element(1) + n_element(2) == 4) then
+    else
       do s = 1, 2
-        do j=1,n_element(s)
-          nt = list(j,s) + mo_tot_num * (s-1)
+        do j=1,n_element(s,i)
+          nt = list(j,s,i) + mo_tot_num * (s-1)
           
-          if(n_element(1) + n_element(2) == 4) then
-            idx_microlist(cur_microlist(nt)) = i
+          if(n_element(1,i) + n_element(2,i) == 4) then
+            idx_microlist(cur_microlist(nt)) = idx(i)
             do k=1,Nint
-              microlist(k,1,cur_microlist(nt)) = minilist(k,1,i)
-              microlist(k,2,cur_microlist(nt)) = minilist(k,2,i)
+              microlist(k,1,cur_microlist(nt)) = minilist(k,1,idx(i))
+              microlist(k,2,cur_microlist(nt)) = minilist(k,2,idx(i))
             enddo
             cur_microlist(nt) = cur_microlist(nt) + 1
           else
-            idx_tmicrolist(cur_tmicrolist(nt)) = i
+            idx_tmicrolist(cur_tmicrolist(nt)) = idx(i)
             do k=1,Nint
-              tmicrolist(k,1,cur_tmicrolist(nt)) = minilist(k,1,i)
-              tmicrolist(k,2,cur_tmicrolist(nt)) = minilist(k,2,i)
+              tmicrolist(k,1,cur_tmicrolist(nt)) = minilist(k,1,idx(i))
+              tmicrolist(k,2,cur_tmicrolist(nt)) = minilist(k,2,idx(i))
             enddo
             cur_tmicrolist(nt) = cur_tmicrolist(nt) + 1
           endif
@@ -947,6 +942,7 @@ subroutine check_past(det, list, idx, N, cur, ok, Nint)
     end if
   end do
 end subroutine
+
 
 subroutine check_past_s(det, list, N, ok, Nint)
   implicit none
