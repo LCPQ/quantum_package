@@ -9,7 +9,6 @@ program fci_zmq
   integer                        :: N_st, degree
   N_st = N_states
   allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st))
-  character*(64)                 :: perturbation
   
   pt2 = 1.d0
   diag_algorithm = "Lapack"
@@ -32,24 +31,15 @@ program fci_zmq
   endif
   double precision :: i_H_psi_array(N_states),diag_H_mat_elem,h,i_O1_psi_array(N_states)
   double precision :: E_CI_before(N_states)
-    provide selection_criterion
-  if(read_wf)then
-   call i_H_psi(psi_det(1,1,N_det),psi_det,psi_coef,N_int,N_det,psi_det_size,N_states,i_H_psi_array)
-   h = diag_H_mat_elem(psi_det(1,1,N_det),N_int)
-   selection_criterion = dabs(psi_coef(N_det,1) *  (i_H_psi_array(1) - h * psi_coef(N_det,1))) * 0.1d0
-   soft_touch selection_criterion
-  endif
 
 
   integer :: n_det_before
   print*,'Beginning the selection ...'
   E_CI_before = CI_energy
   do while (N_det < N_det_max.and.maxval(abs(pt2(1:N_st))) > pt2_max)
-    !selection_criterion = 1d-7
-    print *, selection_criterion, "+++++++++++++++++++++++++++++++++++++++", N_det
     n_det_before = N_det
 !     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
-    call ZMQ_selection()
+    call ZMQ_selection(max(N_det, 1000-N_det))
     PROVIDE  psi_coef
     PROVIDE  psi_det
     PROVIDE  psi_det_sorted
@@ -62,9 +52,7 @@ program fci_zmq
     endif
     call diagonalize_CI
     call save_wavefunction
-    if(n_det_before == N_det)then
-     selection_criterion = selection_criterion * 0.1d0
-    endif
+
     print *,  'N_det          = ', N_det
     print *,  'N_states       = ', N_states
     do  k = 1, N_states
@@ -113,45 +101,99 @@ end
 
 
 
-subroutine ZMQ_selection()
-  use f77_zmq
-  implicit none
-  BEGIN_DOC
-! Massively parallel Full-CI
-  END_DOC
 
-  integer :: i,ithread
-  integer(ZMQ_PTR) :: zmq_socket_push
-  integer(ZMQ_PTR), external :: new_zmq_push_socket
-  zmq_context = f77_zmq_ctx_new ()
-  PROVIDE H_apply_buffer_allocated
+subroutine ZMQ_selection(N)
+  use f77_zmq
+  use selection_types
   
-    PROVIDE ci_electronic_energy
-    PROVIDE nproc
-    !$OMP PARALLEL PRIVATE(i,ithread,zmq_socket_push) num_threads(nproc+1)
-    ithread = omp_get_thread_num()
-    if (ithread == 0) then
-      call receive_selected_determinants()
-    else
-      zmq_socket_push = new_zmq_push_socket(1)
-      
-      do i=ithread,N_det_generators,nproc
-        print *, i, "/", N_det_generators
-        call select_connected(i, max(100, N_det), ci_electronic_energy,zmq_socket_push)
-      enddo
-      
-      if (ithread == 1) then
-        integer :: rc
-        rc = f77_zmq_send(zmq_socket_push,0,1,0)
-        if (rc /= 1) then
-          stop 'Error sending termination signal'
-        endif
+  implicit none
+  
+  character*(512)                :: task 
+  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
+  integer, intent(in)            :: N
+  type(selection_buffer)         :: b
+  integer                        :: i
+  integer, external              :: omp_get_thread_num
+  call new_parallel_job(zmq_to_qp_run_socket,'selection')
+  
+  call create_selection_buffer(N, N*2, b)
+  
+  do i=1, N_det_generators
+    write(task,*) i, N
+    call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+  end do
+
+  provide nproc
+  !$OMP PARALLEL DEFAULT(none)  SHARED(b)  PRIVATE(i) NUM_THREADS(nproc+1)
+      i = omp_get_thread_num()
+      if (i==0) then
+        call selection_collector(b)
+      else
+        call selection_dressing_slave_inproc(i)
       endif
-      call end_zmq_push_socket(zmq_socket_push, 1)
-    endif
-    !$OMP END PARALLEL
-    call copy_H_apply_buffer_to_wf()
+  !$OMP END PARALLEL
+  call end_parallel_job(zmq_to_qp_run_socket, 'selection') 
+  call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) !!! PAS DE ROBIN
+  call copy_H_apply_buffer_to_wf()
+end subroutine
+
+
+subroutine selection_dressing_slave_tcp(i)
+  implicit none
+  integer, intent(in)            :: i
+
+  call selection_slave(0,i)
 end
+
+
+subroutine selection_dressing_slave_inproc(i)
+  implicit none
+  integer, intent(in)            :: i
+
+  call selection_slave(1,i)
+end
+
+
+
+! subroutine ZMQ_selection()
+!   use f77_zmq
+!   implicit none
+!   BEGIN_DOC
+! ! Massively parallel Full-CI
+!   END_DOC
+! 
+!   integer :: i,ithread
+!   integer(ZMQ_PTR) :: zmq_socket_push
+!   integer(ZMQ_PTR), external :: new_zmq_push_socket
+!   zmq_context = f77_zmq_ctx_new ()
+!   PROVIDE H_apply_buffer_allocated
+!   
+!     PROVIDE ci_electronic_energy
+!     PROVIDE nproc
+!     !$OMP PARALLEL PRIVATE(i,ithread,zmq_socket_push) num_threads(nproc+1)
+!     ithread = omp_get_thread_num()
+!     if (ithread == 0) then
+!       call receive_selected_determinants()
+!     else
+!       zmq_socket_push = new_zmq_push_socket(1)
+!       
+!       do i=ithread,N_det_generators,nproc
+!         print *, i, "/", N_det_generators
+!         call select_connected(i, max(100, N_det), ci_electronic_energy,zmq_socket_push)
+!       enddo
+!       
+!       if (ithread == 1) then
+!         integer :: rc
+!         rc = f77_zmq_send(zmq_socket_push,0,1,0)
+!         if (rc /= 1) then
+!           stop 'Error sending termination signal'
+!         endif
+!       endif
+!       call end_zmq_push_socket(zmq_socket_push, 1)
+!     endif
+!     !$OMP END PARALLEL
+!     call copy_H_apply_buffer_to_wf()
+! end
 
 
 

@@ -1,28 +1,126 @@
 
 
+subroutine selection_slave(thread,iproc)
+  use f77_zmq
+  use selection_types
+  implicit none
+  
+  integer,  intent(in)            :: thread, iproc
+  integer                        :: rc, i
+
+  integer                        :: worker_id, task_id(100), ctask, ltask
+  character*(512)                :: task 
+ 
+  integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket 
+  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
+ 
+  integer(ZMQ_PTR), external     :: new_zmq_push_socket 
+  integer(ZMQ_PTR)               :: zmq_socket_push 
+  
+  type(selection_buffer) :: buf
+  logical :: done
+  
+  zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
+  zmq_socket_push      = new_zmq_push_socket(thread)
+  call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
+  
+  buf%N = 0
+  ctask = 1
+  
+  do 
+    call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(ctask), task)
+    done = task_id(ctask) == 0
+    if (.not. done) then
+      integer :: i_generator, N
+      read (task,*) i_generator, N
+      if(buf%N == 0) call create_selection_buffer(N, N*2, buf)
+      call select_connected(i_generator,ci_electronic_energy,buf) !! ci_electronic_energy ??
+    end if
+    
+    if(done) ctask = ctask - 1
+    
+    if(done .or. ctask == size(task_id)) then 
+      if(ctask > 0) call push_selection_results(zmq_socket_push, buf, task_id(1), ctask)
+      do i=1, ctask
+         call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i))
+      end do
+      ctask = 0
+    end if
+    
+    if(done) exit
+    ctask = ctask + 1
+  end do
+  
+  call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
+  call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
+  call end_zmq_push_socket(zmq_socket_push,thread)
+  
+end subroutine
 
 
-subroutine select_connected(i_generator,N,E0,zmq_socket_push)
+subroutine push_selection_results(zmq_socket_push, b, task_id, ntask)
+  use f77_zmq
+  use selection_types
+  implicit none
+  
+  integer(ZMQ_PTR), intent(in)   :: zmq_socket_push 
+  type(selection_buffer), intent(inout) :: b
+  integer, intent(in) :: ntask, task_id(*)
+  integer :: rc
+  
+  call sort_selection_buffer(b)
+  
+  rc = f77_zmq_send( zmq_socket_push, b%cur, 4, ZMQ_SNDMORE)
+  
+  rc = f77_zmq_send( zmq_socket_push, b%val(1), 8*b%cur, ZMQ_SNDMORE) 
+  
+  rc = f77_zmq_send( zmq_socket_push, b%det(1,1,1), bit_kind*N_int*2*b%cur, ZMQ_SNDMORE) 
+  
+  rc = f77_zmq_send( zmq_socket_push, ntask, 4, ZMQ_SNDMORE) 
+  
+  rc = f77_zmq_send( zmq_socket_push, task_id(1), ntask*4, 0) 
+  
+end subroutine
+
+
+subroutine pull_selection_results(zmq_socket_pull, val, det, N, task_id, ntask)
+  use f77_zmq
+  use selection_types
+  implicit none
+  integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull 
+  double precision, intent(out) :: val(*)
+  integer(bit_kind), intent(out) :: det(N_int, 2, *)
+  integer, intent(out) :: N, ntask, task_id(*)
+  integer :: rc, rn, i
+  
+  rc = f77_zmq_recv( zmq_socket_pull, N, 4, ZMQ_SNDMORE) 
+  
+  rc = f77_zmq_recv( zmq_socket_pull, val(1), 8*N, ZMQ_SNDMORE) 
+  
+  rc = f77_zmq_recv( zmq_socket_pull, det(1,1,1), bit_kind*N_int*2*N, ZMQ_SNDMORE) 
+  
+  rc = f77_zmq_recv( zmq_socket_pull, ntask, 4, ZMQ_SNDMORE) 
+  
+  rc = f77_zmq_recv( zmq_socket_pull, task_id(1), ntask*4, 0) 
+end subroutine
+
+
+subroutine select_connected(i_generator,E0,b)
   use f77_zmq
   use bitmasks
   use selection_types
   implicit none
   integer, intent(in)            :: i_generator
-  integer, intent(in)   :: N
+  type(selection_buffer), intent(inout) :: b
+  integer :: k,l
   double precision, intent(in)   :: E0(N_states)
-  integer(ZMQ_PTR), intent(in)   :: zmq_socket_push
-  BEGIN_DOC
-! Select determinants connected to i_det by H
-  END_DOC
+
   integer(bit_kind)              :: hole_mask(N_int,2), particle_mask(N_int,2)
   double precision               :: fock_diag_tmp(2,mo_tot_num+1)
   
   
   call build_fock_tmp(fock_diag_tmp,psi_det_generators(1,1,i_generator),N_int)
-  integer :: k,l
-  type(selection_buffer) :: buf
-  call create_selection_buffer(N, N*2, buf)
-  buf%mini = 1d-7
+  
   do l=1,N_generators_bitmask
     do k=1,N_int
       hole_mask(k,1) = iand(generators_bitmask(k,1,s_hole,l), psi_det_generators(k,1,i_generator))
@@ -35,22 +133,9 @@ subroutine select_connected(i_generator,N,E0,zmq_socket_push)
       particle_mask(k,:) = hole_mask(k,:)
     enddo
     
-    call select_singles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,buf)
-    call select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,buf)
+    call select_singles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,b)
+    call select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,b)
   enddo
-  
-  call sort_selection_buffer(buf)
-  
-!   integer :: rc
-!   rc = f77_zmq_send(zmq_socket_push, exc_det, msg_size,0)
-!   if (rc /= msg_size) then
-!     stop 'Unable to send selected determinant'
-!   endif
-
-!   do k=1,buf%cur
-!     print *, buf%val(k)
-!     call debug_det(buf%det(1,1,k), N_int)
-!   end do
 end
 
   
@@ -62,6 +147,7 @@ subroutine create_selection_buffer(N, siz, res)
   type(selection_buffer), intent(out) :: res
   
   allocate(res%det(N_int, 2, siz), res%val(siz))
+  
   res%val = 0d0
   res%det = 0_8
   res%N = N
@@ -102,6 +188,7 @@ subroutine sort_selection_buffer(b)
   
   nmwen = min(b%N, b%cur)
   
+  
   allocate(iorder(b%cur), detmp(N_int, 2, nmwen), absval(b%cur), vals(nmwen))
   absval = -dabs(b%val(:b%cur))
   do i=1,b%cur
@@ -122,40 +209,49 @@ subroutine sort_selection_buffer(b)
 end subroutine
 
 
-subroutine receive_selected_determinants()
+subroutine selection_collector(b)
   use f77_zmq
+  use selection_types
   use bitmasks
   implicit none
-  BEGIN_DOC
-! Receive via ZMQ the selected determinants
-  END_DOC
   
-  integer(ZMQ_PTR) :: zmq_socket_pull
-  integer(ZMQ_PTR), external :: new_zmq_pull_socket
-
-  integer(bit_kind) :: received_det(N_int,2), shtak(N_int, 2, 10000)
-  integer :: msg_size, rc
-  integer :: acc, j, robin
   
-  acc = 0
-  robin = 0
-  msg_size = bit_kind*N_int*2
+  type(selection_buffer), intent(inout) :: b
+  integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket 
+  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
+   
+  integer(ZMQ_PTR), external     :: new_zmq_pull_socket 
+  integer(ZMQ_PTR)               :: zmq_socket_pull 
 
-  zmq_socket_pull = new_zmq_pull_socket()
+  integer :: msg_size, rc, more
+  integer :: acc, i, j, robin, N, ntask
+  double precision, allocatable :: val(:)
+  integer(bit_kind), allocatable :: det(:,:,:)
+  integer, allocatable :: task_id(:)
+  
+  zmq_to_qp_run_socket = new_zmq_to_qp_run_socket() 
+  zmq_socket_pull = new_zmq_pull_socket() 
+  allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det))
+  
+  more = 1 
+  do while (more == 1) 
+    call pull_selection_results(zmq_socket_pull, val(1), det(1,1,1), N, task_id, ntask)
+    do i=1, N
+      call add_to_selection_buffer(b, det(1,1,i), val(i))
+    end do
+      
+    do i=1, ntask
+      if (task_id(i) /= 0) then 
+        call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more) 
+      endif
+    end do
+  end do
 
-  grab : do while (f77_zmq_recv(zmq_socket_pull, received_det, msg_size, 0) == msg_size)
-    acc += 1
-    shtak(:,:,acc) = received_det
-    if(acc == size(shtak, 3)) then
-      call fill_H_apply_buffer_no_selection(acc,shtak,N_int,robin)
-      acc = 0
-      robin += 1
-      if(robin == nproc) robin = 0
-    end if
-  end do grab
-  call fill_H_apply_buffer_no_selection(acc,shtak,N_int,robin)
+  call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_pull_socket(zmq_socket_pull)
-end
+  call sort_selection_buffer(b)
+end subroutine
+  
 
 subroutine select_singles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,buf)
   use f77_zmq
@@ -297,24 +393,22 @@ subroutine select_singles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,b
           i_H_psi_value(:) = i_H_psi_value(:) + i_H_psi_value2(:)
           double precision :: Hii, diag_H_mat_elem_fock
           Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),exc_det,fock_diag_tmp,N_int)
-
-          double precision :: delta_E, e_pert
+          
+          double precision :: delta_E, e_pert(N_states), e_pertm
+          e_pert(:) = 0d0
+          e_pertm = 0d0
+          
           do k=1,N_states
             if (i_H_psi_value(k) == 0.d0) cycle
             delta_E = E0(k) - Hii
             if (delta_E < 0.d0) then
-              e_pert = 0.5d0 * (-dsqrt(delta_E * delta_E + 4.d0 * i_H_psi_value(k) * i_H_psi_value(k)) - delta_E) 
+              e_pert(k) = 0.5d0 * (-dsqrt(delta_E * delta_E + 4.d0 * i_H_psi_value(k) * i_H_psi_value(k)) - delta_E) 
             else
-              e_pert = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * i_H_psi_value(k) * i_H_psi_value(k)) - delta_E) 
+              e_pert(k) = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * i_H_psi_value(k) * i_H_psi_value(k)) - delta_E) 
             endif
-            
-            
-            if (dabs(e_pert) >= buf%mini) then
-              call add_to_selection_buffer(buf, exc_det, e_pert)
-            endif
-            
-            
+            if(dabs(e_pert(k)) > dabs(e_pertm)) e_pertm = e_pert(k)
           enddo
+          call add_to_selection_buffer(buf, exc_det, e_pertm)
         endif
 
         ! Reset exc_det
@@ -522,11 +616,16 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0, 
           c2 = ptr_futur_tmicrolist(p2)
           do while(.true.)
             if(c1 >= ptr_tmicrolist(p1+1) .or. c2 >= ptr_tmicrolist(p2+1)) then
-              call i_H_psi(exc_det,tmicrolist(1,1,c1),psi_coef_tmicrolist(c1, 1),N_int, ptr_tmicrolist(p1+1)-c1 ,psi_selectors_size*4,N_states,i_H_psi_value2)
-              i_H_psi_value = i_H_psi_value + i_H_psi_value2
+              if(ptr_tmicrolist(p1+1) /= c1) then
+                call i_H_psi(exc_det,tmicrolist(1,1,c1),psi_coef_tmicrolist(c1, 1),N_int, ptr_tmicrolist(p1+1)-c1 ,psi_selectors_size*4,N_states,i_H_psi_value2)
+                i_H_psi_value = i_H_psi_value + i_H_psi_value2
+              end if
               
-              call i_H_psi(exc_det,tmicrolist(1,1,c2),psi_coef_tmicrolist(c2, 1),N_int, ptr_tmicrolist(p2+1)-c2 ,psi_selectors_size*4,N_states,i_H_psi_value2)
-              i_H_psi_value = i_H_psi_value + i_H_psi_value2
+              if(ptr_tmicrolist(p2+1) /= c2) then
+                call i_H_psi(exc_det,tmicrolist(1,1,c2),psi_coef_tmicrolist(c2, 1),N_int, ptr_tmicrolist(p2+1)-c2 ,psi_selectors_size*4,N_states,i_H_psi_value2)
+                i_H_psi_value = i_H_psi_value + i_H_psi_value2
+              endif
+              
               exit
             endif
             
@@ -548,22 +647,23 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0, 
           
           double precision :: Hii, diag_H_mat_elem_fock
           Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),exc_det,fock_diag_tmp,N_int)
-          double precision :: delta_E, e_pert
+          double precision :: delta_E, e_pert(N_states), e_pertm
+          e_pert(:) = 0d0
+          e_pertm = 0d0
           
           do k=1,N_states
             if (i_H_psi_value(k) == 0.d0) cycle
             delta_E = E0(k) - Hii
             if (delta_E < 0.d0) then
-              e_pert = 0.5d0 * (-dsqrt(delta_E * delta_E + 4.d0 * i_H_psi_value(k) * i_H_psi_value(k)) - delta_E) 
+              e_pert(k) = 0.5d0 * (-dsqrt(delta_E * delta_E + 4.d0 * i_H_psi_value(k) * i_H_psi_value(k)) - delta_E) 
             else
-              e_pert = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * i_H_psi_value(k) * i_H_psi_value(k)) - delta_E) 
+              e_pert(k) = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * i_H_psi_value(k) * i_H_psi_value(k)) - delta_E) 
             endif
-            if (dabs(e_pert) >= buf%mini) then
-              if (.not. is_in_wavefunction(exc_det,N_int)) then
-                call add_to_selection_buffer(buf, exc_det, e_pert)
-              endif
-            endif
+            if(dabs(e_pert(k)) > dabs(e_pertm)) e_pertm = e_pert(k)
           enddo
+          if(dabs(e_pertm) > dabs(buf%mini)) then
+            if(.not. is_in_wavefunction(exc_det, N_int)) call add_to_selection_buffer(buf, exc_det, e_pertm)
+          end if
 !         endif ! iwf
 
         

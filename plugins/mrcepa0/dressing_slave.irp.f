@@ -221,7 +221,7 @@ subroutine push_mrsc2_results(zmq_socket_push, I_i, J, delta, task_id)
   integer, intent(in)            :: task_id 
   integer                        :: rc , i_state,  i, kk, li
   integer,allocatable            :: idx(:,:)
-  integer                        ::n(2)
+  integer                        :: n(2)
   logical :: ok
   
   allocate(idx(N_det_non_ref,2))
@@ -510,8 +510,8 @@ end
      
      
 !   stop
-nzer = 0
-ntot = 0
+  nzer = 0
+  ntot = 0
   do nex = 3, 0, -1
     print *, "los ",nex
     do I_s = N_det_ref, 1, -1
