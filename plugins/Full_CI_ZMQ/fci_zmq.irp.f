@@ -128,7 +128,7 @@ subroutine ZMQ_selection(N, pt2)
   integer                        :: i
   integer, external              :: omp_get_thread_num
   double precision, intent(out)  :: pt2(N_states)
-  
+  call flip_generators()
   call new_parallel_job(zmq_to_qp_run_socket,'selection')
   
   call create_selection_buffer(N, N*2, b)
@@ -149,6 +149,7 @@ subroutine ZMQ_selection(N, pt2)
       endif
   !$OMP END PARALLEL
   call end_parallel_job(zmq_to_qp_run_socket, 'selection') 
+  call flip_generators()
   call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) !!! PAS DE ROBIN
   call copy_H_apply_buffer_to_wf()
 end subroutine

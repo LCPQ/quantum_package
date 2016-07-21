@@ -330,6 +330,24 @@ END_PROVIDER
 
 END_PROVIDER
 
+subroutine flip_generators()
+  integer :: i,j,k
+  integer(bit_kind) :: detmp(N_int,2)
+  double precision :: tmp(N_states)
+  
+  do i=1,N_det_generators/2
+    detmp(:,:) = psi_det_sorted(:,:,i)
+    tmp = psi_coef_sorted(i, :)
+    psi_det_sorted(:,:,i) = psi_det_sorted(:,:,N_det_generators+1-i)
+    psi_coef_sorted(i, :) = psi_coef_sorted(N_det_generators+1-i, :)
+    
+    psi_det_sorted(:,:,N_det_generators+1-i) = detmp(:,:)
+    psi_coef_sorted(N_det_generators+1-i, :) = tmp
+  end do
+  
+  TOUCH psi_det_sorted psi_coef_sorted psi_average_norm_contrib_sorted
+end subroutine
+
  BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted_bit, (N_int,2,psi_det_size) ]
 &BEGIN_PROVIDER [ double precision, psi_coef_sorted_bit, (psi_det_size,N_states) ]
  implicit none
