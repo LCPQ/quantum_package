@@ -28,7 +28,6 @@ subroutine selection_slave(thread,iproc)
   buf%N = 0
   ctask = 1
   pt2 = 0d0
-  
   do 
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(ctask), task)
     done = task_id(ctask) == 0
