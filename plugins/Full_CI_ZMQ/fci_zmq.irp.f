@@ -3,10 +3,13 @@
 program fci_zmq
   implicit none
   integer                        :: i,k
-
+  logical, external :: detEq
   
   double precision, allocatable  :: pt2(:), norm_pert(:), H_pert_diag(:)
   integer                        :: N_st, degree
+  integer :: it, mit(0:5)
+  mit = (/1, 268, 1517, 10018, 45096, 100000/)
+  it = 0
   N_st = N_states
   allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st))
   
@@ -31,7 +34,7 @@ program fci_zmq
   endif
   double precision :: i_H_psi_array(N_states),diag_H_mat_elem,h,i_O1_psi_array(N_states)
   double precision :: E_CI_before(N_states)
-
+  
 
   integer :: n_det_before
   print*,'Beginning the selection ...'
@@ -39,7 +42,17 @@ program fci_zmq
   do while (N_det < N_det_max.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     n_det_before = N_det
 !     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
-    call ZMQ_selection(max(N_det, 1000-N_det))
+    it += 1
+    if(it > 5) stop
+    call ZMQ_selection(mit(it) - mit(it-1), pt2) !(max(N_det*3, 1000-N_det))
+    
+    do i=1, N_det
+      !if(popcnt(psi_det(1,1,i)) + popcnt(psi_det(2,1,i)) /= 23) stop "ZZ1" -2099.2504682049275
+      !if(popcnt(psi_det(1,2,i)) + popcnt(psi_det(2,2,i)) /= 23) stop "ZZ2"
+      do k=1,i-1
+        if(detEq(psi_det(1,1,i), psi_det(1,1,k), N_int)) stop "ATRRGRZER"
+      end do
+    end do
     PROVIDE  psi_coef
     PROVIDE  psi_det
     PROVIDE  psi_det_sorted
@@ -102,7 +115,7 @@ end
 
 
 
-subroutine ZMQ_selection(N)
+subroutine ZMQ_selection(N, pt2)
   use f77_zmq
   use selection_types
   
@@ -114,20 +127,23 @@ subroutine ZMQ_selection(N)
   type(selection_buffer)         :: b
   integer                        :: i
   integer, external              :: omp_get_thread_num
+  double precision, intent(out)  :: pt2(N_states)
+  
   call new_parallel_job(zmq_to_qp_run_socket,'selection')
   
   call create_selection_buffer(N, N*2, b)
   
-  do i=1, N_det_generators
+  do i= N_det_generators, 1, -1
     write(task,*) i, N
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   end do
 
   provide nproc
-  !$OMP PARALLEL DEFAULT(none)  SHARED(b)  PRIVATE(i) NUM_THREADS(nproc+1)
+  provide ci_electronic_energy
+  !$OMP PARALLEL DEFAULT(none)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
       i = omp_get_thread_num()
       if (i==0) then
-        call selection_collector(b)
+        call selection_collector(b, pt2)
       else
         call selection_dressing_slave_inproc(i)
       endif
