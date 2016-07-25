@@ -7,8 +7,8 @@ program fci_zmq
   
   double precision, allocatable  :: pt2(:), norm_pert(:), H_pert_diag(:)
   integer                        :: N_st, degree
-  integer :: it, mit(0:5)
-  mit = (/1, 268, 1517, 10018, 45096, 100000/)
+  integer :: it, mit(0:6)
+  mit = (/1, 246, 1600, 17528, 112067, 519459, 2685970/)
   it = 0
   N_st = N_states
   allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st))
@@ -41,18 +41,18 @@ program fci_zmq
   E_CI_before = CI_energy
   do while (N_det < N_det_max.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     n_det_before = N_det
-!     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
+    ! call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
     it += 1
-    if(it > 5) stop
-    call ZMQ_selection(mit(it) - mit(it-1), pt2) !(max(N_det*3, 1000-N_det))
+    if(it > 6) stop
+    call ZMQ_selection(mit(it) - mit(it-1), pt2) ! max(1000-N_det, N_det), pt2)
     
-    do i=1, N_det
+    !do i=1, N_det
       !if(popcnt(psi_det(1,1,i)) + popcnt(psi_det(2,1,i)) /= 23) stop "ZZ1" -2099.2504682049275
       !if(popcnt(psi_det(1,2,i)) + popcnt(psi_det(2,2,i)) /= 23) stop "ZZ2"
-      do k=1,i-1
-        if(detEq(psi_det(1,1,i), psi_det(1,1,k), N_int)) stop "ATRRGRZER"
-      end do
-    end do
+    !  do k=1,i-1
+    !    if(detEq(psi_det(1,1,i), psi_det(1,1,k), N_int)) stop "ATRRGRZER"
+    !  end do
+    !end do
     PROVIDE  psi_coef
     PROVIDE  psi_det
     PROVIDE  psi_det_sorted
@@ -128,11 +128,10 @@ subroutine ZMQ_selection(N, pt2)
   integer                        :: i
   integer, external              :: omp_get_thread_num
   double precision, intent(out)  :: pt2(N_states)
-  call flip_generators()
+  !call flip_generators()
   call new_parallel_job(zmq_to_qp_run_socket,'selection')
   
   call create_selection_buffer(N, N*2, b)
-  
   do i= N_det_generators, 1, -1
     write(task,*) i, N
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
@@ -149,7 +148,7 @@ subroutine ZMQ_selection(N, pt2)
       endif
   !$OMP END PARALLEL
   call end_parallel_job(zmq_to_qp_run_socket, 'selection') 
-  call flip_generators()
+  !call flip_generators()
   call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) !!! PAS DE ROBIN
   call copy_H_apply_buffer_to_wf()
 end subroutine
