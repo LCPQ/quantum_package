@@ -1,5 +1,18 @@
 
 
+BEGIN_PROVIDER [ double precision, integral8, (mo_tot_num,  mo_tot_num, mo_tot_num, mo_tot_num) ]
+  integral8 = 0d0
+  integer :: h1, h2
+  print *, "provide int"
+  do h1=1, mo_tot_num
+  do h2=1, mo_tot_num
+    call get_mo_bielec_integrals_ij(h1, h2 ,mo_tot_num,integral8(1,1,h1,h2),mo_integrals_map)
+  end do
+  end do
+  print *, "end provide int"
+END_PROVIDER
+
+
 subroutine selection_slave(thread,iproc)
   use f77_zmq
   use selection_types
@@ -611,11 +624,13 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
         call check_past_s(exc_det, microlist(1,1,ptr_microlist(sporb)), N_microlist(sporb) - N_futur_microlist(sporb), nok, N_int)
         if(nok) cycle
         !DET DRIVEN
-        if(N_futur_microlist(0) > 0) then
-          call i_H_psi(exc_det,microlist(1,1,ptr_futur_microlist(0)),psi_coef_microlist(ptr_futur_microlist(0), 1),N_int,N_futur_microlist(0),psi_selectors_size*4,N_states,i_H_psi_value)
-        end if
+!         if(N_futur_microlist(0) > 0) then
+!           call i_H_psi(exc_det,microlist(1,1,ptr_futur_microlist(0)),psi_coef_microlist(ptr_futur_microlist(0), 1),N_int,N_futur_microlist(0),psi_selectors_size*4,N_states,i_H_psi_value)
+!         end if
         !INTEGRAL DRIVEN
-!       i_H_psi_value = d0s(mod(p1-1, mo_tot_num)+1, mod(p2-1, mo_tot_num)+1, :)
+        do j=1, N_states
+          i_H_psi_value(j) = d0s(mod(p1-1, mo_tot_num)+1, mod(p2-1, mo_tot_num)+1, j)
+        end do
 
         
         if(N_futur_microlist(sporb) > 0) then
@@ -888,10 +903,13 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
   integer, allocatable :: n_element(:,:), idx(:), list(:,:,:)
   integer :: cur_microlist(0:mo_tot_num*2+1), cur_tmicrolist(0:mo_tot_num*2+1)
   integer(bit_kind) :: key_mask_neg(Nint,2), mobileMask(Nint,2)
-  integer :: mo_tot_num_2
+  integer :: mo_tot_num_2, pwen(4), pweni
   logical,intent(out) :: isinwf(mo_tot_num*2, mo_tot_num*2)
   double precision, intent(out) :: d0s(mo_tot_num, mo_tot_num, N_states)
   double precision :: integ(mo_tot_num, mo_tot_num)
+  logical :: banned(mo_tot_num*2), banned_pair(mo_tot_num*2, mo_tot_num*2)
+  banned = .false.
+  banned_pair = .false.
 
   allocate(list(4,2,N_minilist), n_element(2,N_minilist), idx(0:N_minilist))
 
@@ -962,6 +980,44 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
 
 
   do i=1, idx(0)
+    if(n_element(1, i) + n_element(2, i) == 2) cycle
+    pweni = 0
+    do s = 1, 2
+      do j=1,n_element(s,i)
+        nt = list(j,s,i) + mo_tot_num * (s-1)
+        if(n_element(1,i) + n_element(2,i) == 4) then
+          pweni += 1
+          pwen(pweni) = nt
+        
+          idx_microlist(cur_microlist(nt)) = idx(i)
+          do k=1,Nint
+            microlist(k,1,cur_microlist(nt)) = minilist(k,1,idx(i))
+            microlist(k,2,cur_microlist(nt)) = minilist(k,2,idx(i))
+          enddo
+          cur_microlist(nt) = cur_microlist(nt) + 1
+        else
+          if(idx(i) < i_cur) banned(nt) = .true.
+          idx_tmicrolist(cur_tmicrolist(nt)) = idx(i)
+          do k=1,Nint
+            tmicrolist(k,1,cur_tmicrolist(nt)) = minilist(k,1,idx(i))
+            tmicrolist(k,2,cur_tmicrolist(nt)) = minilist(k,2,idx(i))
+          enddo
+          cur_tmicrolist(nt) = cur_tmicrolist(nt) + 1
+        endif
+      end do
+    end do
+    if(idx(i) < i_cur .and. pweni == 4) then
+      do j=1,4
+      do k=j+1,4
+        banned_pair(pwen(j), pwen(k)) = .true.
+        banned_pair(pwen(k), pwen(j)) = .true.
+      end do
+      end do
+    end if
+  end do
+  
+  
+  do i=1, idx(0)
     if(n_element(1, i) + n_element(2, i) <= 2) then
       idx_microlist(cur_microlist(0)) = idx(i)
       do k=1,Nint
@@ -978,108 +1034,47 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
       isinwf(nt, nt2) = .true.
       isinwf(nt2, nt) = .true.
       !!!! INTEGRAL DRIVEN
-      !!!!!!!!!!!!!!!!!!!!
-!       call get_d0(minilist(1,1,idx(i)), integ, key_mask, 1+(nt2-1)/mo_tot_num, 1+(nt-1)/mo_tot_num, &
-!       mod(nt2-1, mo_tot_num)+1, mod(nt-1, mo_tot_num)+1)
-! 
-!       do j=1, N_states
-!       do nt=1, mo_tot_num
-!       do nt2=1, mo_tot_num
-!          d0s(nt,nt2,j) = d0s(nt,nt2,j) + (integ(nt,nt2) * psi_selectors_coef(idx(i), j)) !!! SUPPOSE MINILIST = SELECTORS !!!!
-!       end do
-!       end do
-!       end do
-    else
-      do s = 1, 2
-        do j=1,n_element(s,i)
-          nt = list(j,s,i) + mo_tot_num * (s-1)
+!       !!!!!!!!!!!!!!!!!!!!
+      call get_d0(minilist(1,1,idx(i)), banned, banned_pair, integ, key_mask, 1+(nt2-1)/mo_tot_num, 1+(nt-1)/mo_tot_num, &
+      mod(nt2-1, mo_tot_num)+1, mod(nt-1, mo_tot_num)+1)
 
-          if(n_element(1,i) + n_element(2,i) == 4) then
-            idx_microlist(cur_microlist(nt)) = idx(i)
-            do k=1,Nint
-              microlist(k,1,cur_microlist(nt)) = minilist(k,1,idx(i))
-              microlist(k,2,cur_microlist(nt)) = minilist(k,2,idx(i))
-            enddo
-            cur_microlist(nt) = cur_microlist(nt) + 1
-          else
-            idx_tmicrolist(cur_tmicrolist(nt)) = idx(i)
-            do k=1,Nint
-              tmicrolist(k,1,cur_tmicrolist(nt)) = minilist(k,1,idx(i))
-              tmicrolist(k,2,cur_tmicrolist(nt)) = minilist(k,2,idx(i))
-            enddo
-            cur_tmicrolist(nt) = cur_tmicrolist(nt) + 1
-          endif
-        end do
+      do j=1, N_states
+      do nt2=1, mo_tot_num
+      do nt=1, mo_tot_num
+          d0s(nt,nt2,j) = d0s(nt,nt2,j) + (integ(nt,nt2) * psi_selectors_coef(idx(i), j)) !!! SUPPOSE MINILIST = SELECTORS !!!!
+      end do
+      end do
       end do
     end if
   end do
+  
+  
 end subroutine
 
 
-subroutine check_past(det, list, idx, N, cur, ok, Nint)
-  implicit none
-  use bitmasks
-
-  integer(bit_kind), intent(in) :: det(Nint, 2), list(Nint, 2, N)
-  integer, intent(in) :: Nint, idx(N), N, cur
-  logical, intent(out) :: ok
-  integer :: i,s,ni
-
-  ok = .false.
-  do i=1,N
-    if(idx(i) >= cur) exit
-    s = 0
-    do ni=1,Nint
-      s += popcnt(xor(det(ni,1), list(ni,1,i))) + popcnt(xor(det(ni,2), list(ni,2,i)))
-    end do
-    if(s <= 4) then
-      ok = .true.
-      return
-    end if
-  end do
-end subroutine
-
-
-subroutine check_past_s(det, list, N, ok, Nint)
-  implicit none
-  use bitmasks
-
-  integer(bit_kind), intent(in) :: det(Nint, 2), list(Nint, 2, N)
-  integer, intent(in) :: Nint, N
-  logical, intent(out) :: ok
-  integer :: i,s,ni
-
-  ok = .false.
-  do i=1,N
-    s = 0
-    do ni=1,Nint
-      s += popcnt(xor(det(ni,1), list(ni,1,i))) + popcnt(xor(det(ni,2), list(ni,2,i)))
-    end do
-    if(s <= 4) then
-      ok = .true.
-      return
-    end if
-  end do
-end subroutine
-
-
-subroutine get_d0(gen, mat, mask, s1, s2, h1, h2)
+subroutine get_d0(gen, banned, banned_pair, mat, mask, s1, s2, h1, h2)
   use bitmasks
   implicit none
 
   double precision, intent(out) :: mat(mo_tot_num, mo_tot_num)
+  logical, intent(in) :: banned(mo_tot_num*2), banned_pair(mo_tot_num*2, mo_tot_num*2)
   double precision :: mat_mwen(mo_tot_num, mo_tot_num) 
   integer, intent(in) :: h1, h2, s1, s2
   integer(bit_kind), intent(in) :: mask(N_int, 2), gen(N_int, 2)
   integer(bit_kind) :: det1(N_int, 2), det2(N_int, 2)
   logical :: ok, mono
   double precision :: phase, phase2, inv
-  integer :: p1, p2, hmi, hma
+  integer :: p1, p2, hmi, hma, ns1, ns2
   logical, external :: detEq
   integer :: exc(0:2, 2, 2), exc2(0:2,2,2)
   
   exc = 0
-  call get_mo_bielec_integrals_ij(h1, h2 ,mo_tot_num,mat_mwen,mo_integrals_map)
+!   mat_mwen = integral8(:,:,h1,h2)
+  !call get_mo_bielec_integrals_ij(h1, h2 ,mo_tot_num,mat_mwen,mo_integrals_map)
+  
+  ns1 = mo_tot_num*(s1-1)
+  ns2 = mo_tot_num*(s2-1)
+  
   mat = 0d0 
   if(s1 == s2) then
     hmi = min(h1, h2)
@@ -1089,20 +1084,22 @@ subroutine get_d0(gen, mat, mask, s1, s2, h1, h2)
     exc(0, :, s1) = 2
     exc(1, 1, s1) = hmi
     exc(2, 1, s1) = hma
-    do p1=1,mo_tot_num
     do p2=1,mo_tot_num
+    if(banned(p2 + ns2)) cycle
+    do p1=1,mo_tot_num
+      if(banned(p1 + ns1)) cycle
       if(p1 == p2) cycle
+      if(banned_pair(p1 + ns1, p2 + ns2)) cycle
       call apply_particle(mask, (/s1,p1,s2,p2/), det2, ok, N_int)
       if(.not. ok) cycle
       mono = (hmi == p1 .or. hma == p2 .or. hmi == p2 .or. hma == p1)
       if(mono) then
         call i_h_j(gen, det2, N_int, mat(p1, p2))
-        !mat(p1, p2) = phase
       else
         exc(1, 2, s1) = min(p1, p2)
         exc(2, 2, s2) = max(p2, p1)
         call get_double_excitation_phase(gen, det2, exc, phase, N_int)
-        mat(p1, p2) = inv * (mat_mwen(p1, p2) - mat_mwen(p2, p1)) * phase
+        mat(p1, p2) = inv * (integral8(p1, p2, h1, h2) - integral8(p2, p1, h1, h2)) * phase
       end if
     end do
     end do
@@ -1113,19 +1110,21 @@ subroutine get_d0(gen, mat, mask, s1, s2, h1, h2)
     exc(1, 1, 1) = h2
     exc(1, 1, 2) = h1
 
-    do p1=1, mo_tot_num
     do p2=1, mo_tot_num
+    if(banned(p2 + ns2)) cycle
+    do p1=1, mo_tot_num
+      if(banned(p1 + ns1)) cycle
+      if(banned_pair(p1 + ns1, p2 + ns2)) cycle
       call apply_particle(mask, (/s1,p1,s2,p2/), det2, ok, N_int)
       if(.not. ok) cycle
       mono = (h1 == p1 .or. h2 == p2)
       if(mono) then
-        call i_h_j(gen, det2, N_int, phase)
-        mat(p1, p2) = phase
+        call i_h_j(gen, det2, N_int, mat(p1, p2))
       else
         exc(1, 2, s1) = p1
         exc(1, 2, s2) = p2
         call get_double_excitation_phase(gen, det2, exc, phase, N_int)
-        mat(p1, p2) = mat_mwen(p1, p2) * phase
+        mat(p1, p2) = integral8(p1, p2, h1, h2) * phase
       end if
     end do
     end do
@@ -1263,3 +1262,52 @@ subroutine get_double_excitation_phase(det1,det2,exc,phase,Nint)
   enddo
   phase = phase_dble(iand(nperm,1))
 end
+
+
+
+subroutine check_past(det, list, idx, N, cur, ok, Nint)
+  implicit none
+  use bitmasks
+
+  integer(bit_kind), intent(in) :: det(Nint, 2), list(Nint, 2, N)
+  integer, intent(in) :: Nint, idx(N), N, cur
+  logical, intent(out) :: ok
+  integer :: i,s,ni
+
+  ok = .false.
+  do i=1,N
+    if(idx(i) >= cur) exit
+    s = 0
+    do ni=1,Nint
+      s += popcnt(xor(det(ni,1), list(ni,1,i))) + popcnt(xor(det(ni,2), list(ni,2,i)))
+    end do
+    if(s <= 4) then
+      ok = .true.
+      return
+    end if
+  end do
+end subroutine
+
+
+subroutine check_past_s(det, list, N, ok, Nint)
+  implicit none
+  use bitmasks
+
+  integer(bit_kind), intent(in) :: det(Nint, 2), list(Nint, 2, N)
+  integer, intent(in) :: Nint, N
+  logical, intent(out) :: ok
+  integer :: i,s,ni
+
+  ok = .false.
+  do i=1,N
+    s = 0
+    do ni=1,Nint
+      s += popcnt(xor(det(ni,1), list(ni,1,i))) + popcnt(xor(det(ni,2), list(ni,2,i)))
+    end do
+    if(s <= 4) then
+      ok = .true.
+      return
+    end if
+  end do
+end subroutine
+
