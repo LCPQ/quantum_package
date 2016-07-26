@@ -28,6 +28,8 @@ subroutine run_wf
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
 
+  ! TODO : do loop here
+  ! TODO : wait_state
   call zmq_get_psi(zmq_to_qp_run_socket, 1)
   call write_double(6,ci_energy,'Energy')
   zmq_state = 'h_apply_fci_pt2'

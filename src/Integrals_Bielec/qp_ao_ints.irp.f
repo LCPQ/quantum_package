@@ -17,10 +17,15 @@ program qp_ao_ints
   double precision :: integral, ao_bielec_integral
   integral = ao_bielec_integral(1,1,1,1)
 
-  !$OMP PARALLEL DEFAULT(PRIVATE) PRIVATE(i)
-  i = omp_get_thread_num()
-  call ao_bielec_integrals_in_map_slave_tcp(i)
-  !$OMP END PARALLEL
+  character*(64) :: state
+  call wait_for_state(zmq_state,state)
+  do while (state /= 'Stopped')
+    !$OMP PARALLEL DEFAULT(PRIVATE) PRIVATE(i)
+    i = omp_get_thread_num()
+    call ao_bielec_integrals_in_map_slave_tcp(i)
+    !$OMP END PARALLEL
+    call wait_for_state(zmq_state,state)
+  enddo
 
   print *,  'Done'
 end

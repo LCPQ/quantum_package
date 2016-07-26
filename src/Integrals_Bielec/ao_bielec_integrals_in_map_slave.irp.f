@@ -93,6 +93,8 @@ subroutine ao_bielec_integrals_in_map_slave(thread,iproc)
   integer(ZMQ_PTR), external     :: new_zmq_push_socket
   integer(ZMQ_PTR)               :: zmq_socket_push
 
+  character*(64)                 :: state
+
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_push      = new_zmq_push_socket(thread)
 
@@ -109,16 +111,13 @@ subroutine ao_bielec_integrals_in_map_slave(thread,iproc)
     call push_integrals(zmq_socket_push, n_integrals, buffer_i, buffer_value, task_id)
   enddo
 
-  deallocate( buffer_i, buffer_value )
 
   call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
+  deallocate( buffer_i, buffer_value )
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
 
 end
-
-
-
 
 
 subroutine ao_bielec_integrals_in_map_collector

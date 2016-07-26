@@ -43,10 +43,10 @@ val stop : port:int -> unit
 (** {1} Server functions *)
 
 (** Create a new job *)
-val new_job : Message.Newjob_msg.t -> t -> [> `Req ] ZMQ.Socket.t -> t
+val new_job : Message.Newjob_msg.t -> t -> [> `Req ] ZMQ.Socket.t -> [> `Pair] ZMQ.Socket.t -> t
 
 (** Finish a running job *)
-val end_job : Message.Endjob_msg.t -> t -> [> `Req ] ZMQ.Socket.t -> t
+val end_job : Message.Endjob_msg.t -> t -> [> `Req ] ZMQ.Socket.t -> [> `Pair] ZMQ.Socket.t -> t
 
 (** Connect a client *)
 val connect: Message.Connect_msg.t -> t -> [> `Req ] ZMQ.Socket.t -> t
@@ -64,7 +64,7 @@ val task_done: Message.TaskDone_msg.t -> t -> [> `Req ] ZMQ.Socket.t -> t
 val del_task: Message.DelTask_msg.t -> t -> [> `Req ] ZMQ.Socket.t -> t
 
 (** The client get a new task to execute *)
-val get_task: Message.GetTask_msg.t -> t -> [> `Req ] ZMQ.Socket.t -> t
+val get_task: Message.GetTask_msg.t -> t -> [> `Req ] ZMQ.Socket.t ->  [> `Pair] ZMQ.Socket.t -> t
 
 (** Terminate server *)
 val terminate : t -> [> `Req ] ZMQ.Socket.t -> t
