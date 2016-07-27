@@ -658,41 +658,42 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
           i_H_psi_value = i_H_psi_value + i_H_psi_value2
         end if
 
+        if(.false.) then ! DET DRIVEN
+          integer :: c1, c2
+          double precision :: hij
+          c1 = ptr_futur_tmicrolist(p1)
+          c2 = ptr_futur_tmicrolist(p2)
+          do while(.true.)
+            if(c1 >= ptr_tmicrolist(p1+1) .or. c2 >= ptr_tmicrolist(p2+1)) then
+              if(ptr_tmicrolist(p1+1) /= c1) then
+                call i_H_psi(exc_det,tmicrolist(1,1,c1),psi_coef_tmicrolist(c1, 1),N_int, ptr_tmicrolist(p1+1)-c1 ,psi_selectors_size*3,N_states,i_H_psi_value2)
+                i_H_psi_value = i_H_psi_value + i_H_psi_value2
+              end if
 
-        integer :: c1, c2
-        double precision :: hij
-        c1 = ptr_futur_tmicrolist(p1)
-        c2 = ptr_futur_tmicrolist(p2)
-        do while(.true.)
-          if(c1 >= ptr_tmicrolist(p1+1) .or. c2 >= ptr_tmicrolist(p2+1)) then
-            if(ptr_tmicrolist(p1+1) /= c1) then
-              call i_H_psi(exc_det,tmicrolist(1,1,c1),psi_coef_tmicrolist(c1, 1),N_int, ptr_tmicrolist(p1+1)-c1 ,psi_selectors_size*3,N_states,i_H_psi_value2)
-              i_H_psi_value = i_H_psi_value + i_H_psi_value2
-            end if
+              if(ptr_tmicrolist(p2+1) /= c2) then
+                call i_H_psi(exc_det,tmicrolist(1,1,c2),psi_coef_tmicrolist(c2, 1),N_int, ptr_tmicrolist(p2+1)-c2 ,psi_selectors_size*3,N_states,i_H_psi_value2)
+                i_H_psi_value = i_H_psi_value + i_H_psi_value2
+              endif
 
-            if(ptr_tmicrolist(p2+1) /= c2) then
-              call i_H_psi(exc_det,tmicrolist(1,1,c2),psi_coef_tmicrolist(c2, 1),N_int, ptr_tmicrolist(p2+1)-c2 ,psi_selectors_size*3,N_states,i_H_psi_value2)
-              i_H_psi_value = i_H_psi_value + i_H_psi_value2
+              exit
             endif
 
-            exit
-          endif
-
-          if(idx_tmicrolist(c1) < idx_tmicrolist(c2)) then
-            call i_H_j(exc_det,tmicrolist(1,1,c1),N_int,hij)
-            do j = 1, N_states
-              i_H_psi_value(j) = i_H_psi_value(j) + psi_coef_tmicrolist(c1,j)*hij
-            enddo
-            c1 += 1
-          else
-            call i_H_j(exc_det,tmicrolist(1,1,c2),N_int,hij)
-            do j = 1, N_states
-              i_H_psi_value(j) = i_H_psi_value(j) + psi_coef_tmicrolist(c2,j)*hij
-            enddo
-            if(idx_tmicrolist(c1) == idx_tmicrolist(c2)) c1 = c1 + 1
-            c2 += 1
-          end if
-        enddo
+            if(idx_tmicrolist(c1) < idx_tmicrolist(c2)) then
+              call i_H_j(exc_det,tmicrolist(1,1,c1),N_int,hij)
+              do j = 1, N_states
+                i_H_psi_value(j) = i_H_psi_value(j) + psi_coef_tmicrolist(c1,j)*hij
+              enddo
+              c1 += 1
+            else
+              call i_H_j(exc_det,tmicrolist(1,1,c2),N_int,hij)
+              do j = 1, N_states
+                i_H_psi_value(j) = i_H_psi_value(j) + psi_coef_tmicrolist(c2,j)*hij
+              enddo
+              if(idx_tmicrolist(c1) == idx_tmicrolist(c2)) c1 = c1 + 1
+              c2 += 1
+            end if
+          enddo
+        end if
 
         double precision :: Hii, diag_H_mat_elem_fock
         Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),exc_det,fock_diag_tmp,N_int)
@@ -902,12 +903,12 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
   integer :: i,j,k,s,nt,nt2
   integer, allocatable :: n_element(:,:), idx(:), list(:,:,:)
   integer :: cur_microlist(0:mo_tot_num*2+1), cur_tmicrolist(0:mo_tot_num*2+1)
-  integer(bit_kind) :: key_mask_neg(Nint,2), mobileMask(Nint,2)
+  integer(bit_kind) :: key_mask_neg(Nint,2), mobileMask(Nint,2), tmp_det(Nint, 2)
   integer :: mo_tot_num_2, pwen(4), pweni
   logical,intent(out) :: isinwf(mo_tot_num*2, mo_tot_num*2)
   double precision, intent(out) :: d0s(mo_tot_num, mo_tot_num, N_states)
   double precision :: integ(mo_tot_num, mo_tot_num)
-  logical :: banned(mo_tot_num*2), banned_pair(mo_tot_num*2, mo_tot_num*2)
+  logical :: localbanned(mo_tot_num*2), banned(mo_tot_num*2), banned_pair(mo_tot_num*2, mo_tot_num*2), ok
   banned = .false.
   banned_pair = .false.
 
@@ -960,7 +961,10 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
         do j=1,n_element(s,idx(0))
           k = list(j,s,idx(0)) + mo_tot_num * (s-1)
           if(nt == 4) N_microlist(k) = N_microlist(k) + 1
-          if(nt == 3) N_tmicrolist(k) = N_tmicrolist(k) + 1
+          if(nt == 3) then
+            N_tmicrolist(k) = N_tmicrolist(k) + 1
+            if(idx(i) < i_cur) banned(nt) = .true.
+          end if
         end do
       end do
     endif
@@ -985,10 +989,9 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
     do s = 1, 2
       do j=1,n_element(s,i)
         nt = list(j,s,i) + mo_tot_num * (s-1)
+        pweni += 1
+        pwen(pweni) = nt
         if(n_element(1,i) + n_element(2,i) == 4) then
-          pweni += 1
-          pwen(pweni) = nt
-        
           idx_microlist(cur_microlist(nt)) = idx(i)
           do k=1,Nint
             microlist(k,1,cur_microlist(nt)) = minilist(k,1,idx(i))
@@ -996,7 +999,6 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
           enddo
           cur_microlist(nt) = cur_microlist(nt) + 1
         else
-          if(idx(i) < i_cur) banned(nt) = .true.
           idx_tmicrolist(cur_tmicrolist(nt)) = idx(i)
           do k=1,Nint
             tmicrolist(k,1,cur_tmicrolist(nt)) = minilist(k,1,idx(i))
@@ -1035,16 +1037,36 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
       isinwf(nt2, nt) = .true.
       !!!! INTEGRAL DRIVEN
 !       !!!!!!!!!!!!!!!!!!!!
-      call get_d0(minilist(1,1,idx(i)), banned, banned_pair, integ, key_mask, 1+(nt2-1)/mo_tot_num, 1+(nt-1)/mo_tot_num, &
-      mod(nt2-1, mo_tot_num)+1, mod(nt-1, mo_tot_num)+1)
+      call get_d0(minilist(1,1,idx(i)), banned, banned_pair, d0s, key_mask, 1+(nt2-1)/mo_tot_num, 1+(nt-1)/mo_tot_num, &
+      mod(nt2-1, mo_tot_num)+1, mod(nt-1, mo_tot_num)+1, psi_selectors_coef(idx(i), :))
 
-      do j=1, N_states
-      do nt2=1, mo_tot_num
-      do nt=1, mo_tot_num
-          d0s(nt,nt2,j) = d0s(nt,nt2,j) + (integ(nt,nt2) * psi_selectors_coef(idx(i), j)) !!! SUPPOSE MINILIST = SELECTORS !!!!
+!       do j=1, N_states
+!       do nt2=1, mo_tot_num
+!       do nt=1, mo_tot_num
+!           d0s(nt,nt2,j) = d0s(nt,nt2,j) + (integ(nt,nt2) * psi_selectors_coef(idx(i), j)) !!! SUPPOSE MINILIST = SELECTORS !!!!
+!       end do
+!       end do
+!       end do
+    else if(.true. .and. n_element(1, i) + n_element(2, i) == 3) then ! INTEGRAL DRIVEN
+      !  -459.6399263191298 
+      pweni = 0
+      do s = 1, 2
+        do j=1,n_element(s,i)
+          nt = list(j,s,i) + mo_tot_num * (s-1)
+          pweni += 1
+          pwen(pweni) = nt
+        end do
       end do
-      end do
-      end do
+      
+      call get_d1(minilist(1,1,idx(i)), banned, banned_pair, d0s, key_mask, pwen, psi_selectors_coef(idx(i), :))
+          
+!       do k=1, N_states
+!       do nt2=1, mo_tot_num
+!       do nt=1, mo_tot_num
+!           d0s(nt,nt2,k) = d0s(nt,nt2,k) + (integ(nt,nt2) * psi_selectors_coef(idx(i), k)) !!! SUPPOSE MINILIST = SELECTORS !!!!
+!       end do
+!       end do
+!       end do
     end if
   end do
   
@@ -1052,19 +1074,171 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
 end subroutine
 
 
-subroutine get_d0(gen, banned, banned_pair, mat, mask, s1, s2, h1, h2)
+subroutine get_d1(gen, banned, banned_pair, mat, mask, pwen, coefs)
+  use bitmasks
+  implicit none
+  
+  integer(bit_kind), intent(in) :: mask(N_int, 2), gen(N_int, 2)
+  logical, intent(in) :: banned(mo_tot_num*2), banned_pair(mo_tot_num*2, mo_tot_num*2)
+  integer(bit_kind) :: deth(N_int, 2), det(N_int, 2), i8
+  double precision, intent(in) :: coefs(N_states)
+  double precision, intent(inout) :: mat(mo_tot_num, mo_tot_num, N_states)
+  double precision :: hij, phase, inv, inv2
+  integer, intent(in) :: pwen(3)
+  integer :: s(3), p(3), i, j, k, h1, h2, ns(2), sm, mwen, a1, a2, pwens(2), sp, st
+  integer :: sfix, pfix
+  integer :: exc(0:2, 2, 2)
+  logical :: lbanned(mo_tot_num*2)
+  logical :: ok, mono, ab
+  
+  lbanned = banned
+  !mat = 0d0
+  pwens = 0
+  
+  ns = 0
+  do sp=1,2
+    do i=1, N_int
+      ns(sp) += popcnt(gen(i, sp)) - popcnt(mask(i, sp))
+      i8 = iand(not(gen(i, sp)), mask(i, sp))
+      if(i8 /= 0_8) then
+        sfix = sp
+        pfix = 1+trailz(i8) + bit_kind*8*(i-1)
+      end if
+    end do
+  end do
+  
+  
+  do i=1,3
+    s(i) = 1+(pwen(i)-1)/mo_tot_num
+    p(i) = 1+mod(pwen(i)-1, mo_tot_num)
+    pwens(s(i)) += 1
+  end do
+  
+  do i=1,3
+    if(s(i) == 1 .and. ns(1) == 0) cycle
+    if(s(i) == 2 .and. ns(2) == 0) cycle
+    if(lbanned(pwen(i))) cycle
+    ab = pwens(s(i)) == 2
+    
+    if(ns(1) == 1) sm = mod(s(i), 2) + 1
+    if(ns(1) == 2) sm = 1
+    if(ns(2) == 2) sm = 2
+    
+    lbanned(pwen(i)) = .true.
+    
+    if(ab) then
+      if(s(mod(i,3)+1) == 2) then
+        a1 = mod(i, 3) + 1
+        a2 = mod(i+1, 3) + 1
+      else
+        a2 = mod(i,3)+1
+        a1 = mod(i+1,3)+1
+      end if
+      
+      exc(0, :, 1) = 1
+      exc(0, :, 2) = 1
+      exc(1, 1, 1) = p(a2)
+      exc(1, 1, 2) = p(a1)
+      exc(1, 2, sfix) = pfix
+      
+      call apply_particle(mask, (/0, 0 ,s(i), p(i) /), deth, ok, N_int)
+      
+      do j=1,mo_tot_num
+        mwen = j + (sm-1)*mo_tot_num
+        if(lbanned(mwen)) cycle
+        call apply_particle(deth, (/0,0,sm,j/), det, ok, N_int)
+        if(.not. ok) cycle
+        
+        mono = mwen == pwen(a1) .or. mwen == pwen(a2)
+        if(mono) then
+          call i_h_j(gen, det, N_int, hij)
+        else
+          exc(1, 2, sm) = j
+          call get_double_excitation_phase(gen, det, exc, phase, N_int)
+          if(sfix == 1) hij = integral8(j, pfix, p(a1), p(a2)) * phase
+          if(sfix == 2) hij = integral8(pfix, j, p(a1), p(a2)) * phase
+        end if
+        
+        if(ns(1) == 1) then
+          do st=1, N_states
+            if(sm == 2) mat(j, p(i), st) = mat(j, p(i), st) + hij * coefs(st)
+            if(sm == 1) mat(p(i), j, st) = mat(p(i), j, st) + hij * coefs(st)
+          end do
+        else
+          do st=1, N_states
+            mat(j, p(i), st) += hij * coefs(st)
+            mat(p(i), j, st) += hij * coefs(st)
+          end do
+        end if
+      end do
+    
+    else !! AA / BB
+      a1 = mod(i,3)+1
+      a2 = mod(i+1,3)+1
+      
+      h1 = p(a1)
+      h2 = p(a2)
+      inv = 1d0
+      if(h1 > h2) inv = -1d0
+      
+      if(pwens(s(i)) == 1) sp = mod(s(i), 2)+1
+      if(pwens(s(i)) == 3) sp = s(i)
+      
+      exc(0, :, sp) = 2
+      exc(0, :, mod(sp, 2)+1) = 0
+      exc(1, 1, sp) = min(h1, h2)
+      exc(2, 1, sp) = max(h1, h2)
+      
+      call apply_particle(mask, (/0, 0 ,s(i), p(i) /), deth, ok, N_int)
+    
+      do j=1,mo_tot_num
+        if(j == pfix) inv = -inv
+        mwen = j + (sm-1)*mo_tot_num
+        if(lbanned(mwen)) cycle
+        call apply_particle(deth, (/0,0,sm,j/), det, ok, N_int)
+        if(.not. ok) cycle
+        
+        mono = mwen == pwen(a1) .or. mwen == pwen(a2)
+        if(mono) then
+          call i_h_j(gen, det, N_int, hij)
+        else
+          exc(1, 2, sfix) = min(j,pfix)
+          exc(2, 2, sp) = max(j,pfix)
+          call get_double_excitation_phase(gen, det, exc, phase, N_int)
+          hij = (integral8(j, pfix, h1, h2) - integral8(pfix,j, h1, h2))*phase*inv
+        end if
+        if(ns(1) == 1) then
+          do st=1, N_states
+            if(sm == 2) mat(j, p(i), st) = mat(j, p(i), st) + hij * coefs(st)
+            if(sm == 1) mat(p(i), j, st) = mat(p(i), j, st) + hij * coefs(st)
+          end do
+        else
+          do st=1, N_states
+            mat(j, p(i), st) += hij * coefs(st)
+            mat(p(i), j, st) += hij * coefs(st)
+          end do
+        end if
+      end do
+    end if
+  end do
+  
+end subroutine
+
+
+subroutine get_d0(gen, banned, banned_pair, mat, mask, s1, s2, h1, h2, coefs)
   use bitmasks
   implicit none
 
-  double precision, intent(out) :: mat(mo_tot_num, mo_tot_num)
+  double precision, intent(inout) :: mat(mo_tot_num, mo_tot_num, N_states)
   logical, intent(in) :: banned(mo_tot_num*2), banned_pair(mo_tot_num*2, mo_tot_num*2)
   double precision :: mat_mwen(mo_tot_num, mo_tot_num) 
+  double precision, intent(in) :: coefs(N_states)
   integer, intent(in) :: h1, h2, s1, s2
   integer(bit_kind), intent(in) :: mask(N_int, 2), gen(N_int, 2)
   integer(bit_kind) :: det1(N_int, 2), det2(N_int, 2)
   logical :: ok, mono
-  double precision :: phase, phase2, inv
-  integer :: p1, p2, hmi, hma, ns1, ns2
+  double precision :: phase, phase2, inv, hij
+  integer :: p1, p2, hmi, hma, ns1, ns2, st
   logical, external :: detEq
   integer :: exc(0:2, 2, 2), exc2(0:2,2,2)
   
@@ -1075,7 +1249,7 @@ subroutine get_d0(gen, banned, banned_pair, mat, mask, s1, s2, h1, h2)
   ns1 = mo_tot_num*(s1-1)
   ns2 = mo_tot_num*(s2-1)
   
-  mat = 0d0 
+  !mat = 0d0 
   if(s1 == s2) then
     hmi = min(h1, h2)
     hma = max(h1, h2)
@@ -1094,12 +1268,18 @@ subroutine get_d0(gen, banned, banned_pair, mat, mask, s1, s2, h1, h2)
       if(.not. ok) cycle
       mono = (hmi == p1 .or. hma == p2 .or. hmi == p2 .or. hma == p1)
       if(mono) then
-        call i_h_j(gen, det2, N_int, mat(p1, p2))
+        
+        call i_h_j(gen, det2, N_int, hij)
+        do st=1, N_states
+          mat(p1, p2, st) += hij * coefs(st)
+        end do
       else
         exc(1, 2, s1) = min(p1, p2)
         exc(2, 2, s2) = max(p2, p1)
         call get_double_excitation_phase(gen, det2, exc, phase, N_int)
-        mat(p1, p2) = inv * (integral8(p1, p2, h1, h2) - integral8(p2, p1, h1, h2)) * phase
+        do st=1, N_states
+          mat(p1, p2, st) += coefs(st) * inv * (integral8(p1, p2, h1, h2) - integral8(p2, p1, h1, h2)) * phase
+        end do
       end if
     end do
     end do
@@ -1119,12 +1299,18 @@ subroutine get_d0(gen, banned, banned_pair, mat, mask, s1, s2, h1, h2)
       if(.not. ok) cycle
       mono = (h1 == p1 .or. h2 == p2)
       if(mono) then
-        call i_h_j(gen, det2, N_int, mat(p1, p2))
+        call i_h_j(gen, det2, N_int, hij)
+        do st=1, N_states
+          mat(p1, p2, st) += hij * coefs(st)
+        end do
       else
         exc(1, 2, s1) = p1
         exc(1, 2, s2) = p2
         call get_double_excitation_phase(gen, det2, exc, phase, N_int)
-        mat(p1, p2) = integral8(p1, p2, h1, h2) * phase
+        do st=1, N_states
+          mat(p1, p2, st) += coefs(st) * integral8(p1, p2, h1, h2) * phase
+        end do
+        !mat(p1, p2) = integral8(p1, p2, h1, h2) * phase
       end if
     end do
     end do
@@ -1164,6 +1350,41 @@ subroutine apply_particle(det, exc, res, ok, Nint)
 
   ok = .true.
 end subroutine
+
+
+subroutine apply_hole(det, exc, res, ok, Nint)
+  use bitmasks
+  implicit none
+  integer, intent(in) :: Nint
+  integer, intent(in) :: exc(4)
+  integer :: s1, s2, p1, p2
+  integer(bit_kind),intent(in) :: det(Nint, 2)
+  integer(bit_kind),intent(out) :: res(Nint, 2)
+  logical, intent(out) :: ok
+  integer :: ii, pos 
+  
+  ok = .false.
+  s1 = exc(1)
+  p1 = exc(2)
+  s2 = exc(3)
+  p2 = exc(4)
+  res = det 
+  
+  if(p1 /= 0) then
+  ii = (p1-1)/bit_kind_size + 1 
+  pos = mod(p1-1, 64)!iand(p1-1,bit_kind_size-1)
+  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
+  res(ii, s1) = ibclr(res(ii, s1), pos)
+  end if
+
+  ii = (p2-1)/bit_kind_size + 1 
+  pos = mod(p2-1, 64)!iand(p2-1,bit_kind_size-1)
+  if(iand(det(ii, s2), ishft(1_bit_kind, pos)) == 0_8) return
+  res(ii, s2) = ibclr(res(ii, s2), pos)
+
+  ok = .true.
+end subroutine
+
 
 
 subroutine get_double_excitation_phase(det1,det2,exc,phase,Nint)
