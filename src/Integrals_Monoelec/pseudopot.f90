@@ -1068,7 +1068,7 @@ integer n
 double precision g,dble_fact,expo
 double precision, parameter :: sq_pi_ov_2=dsqrt(dacos(-1.d0)*0.5d0)
 expo=0.5d0*dfloat(n+1)
-crochet=dble_fact(n-1)/(2.d0*g)**expo
+crochet=dble_fact(n-1)/(g+g)**expo
 if(mod(n,2).eq.0)crochet=crochet*sq_pi_ov_2
 end
 
@@ -1840,8 +1840,8 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
     int=0.d0
     done=.false.
 
-    n_1 = 2*(n)+1
-    m_1 = 2*m+1
+    n_1 = n+n+1
+    m_1 = m+m+1
     nlm = n+m+l
     pi=dacos(-1.d0)
     a_over_b_square = (a/b)**2
@@ -1892,7 +1892,7 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
 
         !Compute the s_q+1_0
 !        s_q_0=s_q_0*(2.d0*q+nlm+1)*b**2/((2.d0*(m+q)+3)*4.d0*(q+1)*gam)
-        s_q_0=s_q_0*(2.d0*q+nlm+1)*b*b/((8.d0*(m+q)+12.d0)*(q+1)*gam)
+        s_q_0=s_q_0*(q+q+nlm+1)*b*b/(dble(8*(m+q)+12)*(q+1)*gam)
         
         if(mod(n+m+l,2).eq.1)s_q_0=s_q_0*dsqrt(pi*.5d0)
         ! Increment q
@@ -1933,7 +1933,7 @@ double precision function int_prod_bessel_large(l,gam,n,m,a,b,arg)
       double precision xq(100),wq(100)
 
       u=(a+b)/(2.d0*dsqrt(gam))
-      factor=dexp(u**2-arg)/dsqrt(gam)
+      factor=dexp(u*u-arg)/dsqrt(gam)
 
 xq(1)= 5.38748089001123    
 xq(2)= 4.60368244955074   
