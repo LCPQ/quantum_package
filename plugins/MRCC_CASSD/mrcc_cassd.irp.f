@@ -65,8 +65,17 @@ subroutine run_pt2(N_st,energy)
   threshold_selectors = 1.d0 
   threshold_generators = 0.999d0 
  
-  N_det_generators = lambda_mrcc_pt2(0) 
-  do i=1,N_det_generators 
+  N_det_generators = lambda_mrcc_pt2(0) + N_det_cas
+  do i=1,N_det_cas
+    do k=1,N_int 
+      psi_det_generators(k,1,i) = psi_ref(k,1,i) 
+      psi_det_generators(k,2,i) = psi_ref(k,2,i) 
+    enddo 
+    do k=1,N_st 
+      psi_coef_generators(i,k) = psi_ref_coef(i,k) 
+    enddo 
+  enddo 
+  do i=N_det_cas+1,N_det_generators
     j = lambda_mrcc_pt2(i)  
     do k=1,N_int 
       psi_det_generators(k,1,i) = psi_non_ref(k,1,j) 

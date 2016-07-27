@@ -13,7 +13,7 @@ BEGIN_PROVIDER [ type(map_type), ao_integrals_map ]
   call bielec_integrals_index(ao_num,ao_num,ao_num,ao_num,key_max)
   sze = key_max
   call map_init(ao_integrals_map,sze)
-  print*,  'AO map initialized'
+  print*,  'AO map initialized : ', sze
 END_PROVIDER
 
 subroutine bielec_integrals_index(i,j,k,l,i1)
@@ -228,7 +228,6 @@ subroutine clear_ao_map
   call map_deinit(ao_integrals_map)
   FREE ao_integrals_map
 end
-
 
 
 !! MO Map

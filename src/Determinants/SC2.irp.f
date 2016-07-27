@@ -1,4 +1,4 @@
-subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
+subroutine CISD_SC2(dets_in,u_in,energies,diag_H_elements,dim_in,sze,N_st,Nint,convergence)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -21,6 +21,7 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision, intent(inout) :: u_in(dim_in,N_st)
   double precision, intent(out)  :: energies(N_st)
+  double precision, intent(out)  :: diag_H_elements(dim_in)
   double precision, intent(in)   :: convergence
   ASSERT (N_st > 0)
   ASSERT (sze > 0)
@@ -197,6 +198,9 @@ subroutine CISD_SC2(dets_in,u_in,energies,dim_in,sze,N_st,Nint,convergence)
     converged =  dabs(e_corr_double - e_corr_double_before) < convergence
     converged = converged 
     if (converged) then
+      do i = 1, dim_in
+       diag_H_elements(i) = H_jj_dressed(i) - H_jj_ref(i)
+      enddo
       exit
     endif
     e_corr_double_before = e_corr_double

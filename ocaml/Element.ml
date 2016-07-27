@@ -9,6 +9,7 @@ type t =
 |Li|Be                              |B |C |N |O |F |Ne
 |Na|Mg                              |Al|Si|P |S |Cl|Ar
 |K |Ca|Sc|Ti|V |Cr|Mn|Fe|Co|Ni|Cu|Zn|Ga|Ge|As|Se|Br|Kr
+|Rb|Sr|Y |Zr|Nb|Mo|Tc|Ru|Rh|Pd|Ag|Cd|In|Sn|Sb|Te|I |Xe
 with sexp
 
 let of_string x = 
@@ -50,6 +51,24 @@ let of_string x =
 |  "Se"  |  "Selenium"    ->  Se
 |  "Br"  |  "Bromine"     ->  Br
 |  "Kr"  |  "Krypton"     ->  Kr
+|  "Rb"  |  "Rubidium"    ->  Rb
+|  "Sr"  |  "Strontium"   ->  Sr
+|  "Y"   |  "Yttrium"     ->  Y
+|  "Zr"  |  "Zirconium"   ->  Zr
+|  "Nb"  |  "Niobium"     ->  Nb
+|  "Mo"  |  "Molybdenum"  ->  Mo
+|  "Tc"  |  "Technetium"  ->  Tc
+|  "Ru"  |  "Ruthenium"   ->  Ru
+|  "Rh"  |  "Rhodium"     ->  Rh
+|  "Pd"  |  "Palladium"   ->  Pd
+|  "Ag"  |  "Silver"      ->  Ag
+|  "Cd"  |  "Cadmium"     ->  Cd
+|  "In"  |  "Indium"      ->  In
+|  "Sn"  |  "Tin"         ->  Sn
+|  "Sb"  |  "Antimony"    ->  Sb
+|  "Te"  |  "Tellurium"   ->  Te
+|  "I"   |  "Iodine"      ->  I
+|  "Xe"  |  "Xenon"       ->  Xe
 | x -> raise (ElementError ("Element "^x^" unknown"))
 
 
@@ -91,6 +110,24 @@ let to_string = function
 | Se  -> "Se"
 | Br  -> "Br"
 | Kr  -> "Kr"
+| Rb  -> "Rb"
+| Sr  -> "Sr"
+| Y   -> "Y"
+| Zr  -> "Zr"
+| Nb  -> "Nb"
+| Mo  -> "Mo"
+| Tc  -> "Tc"
+| Ru  -> "Ru"
+| Rh  -> "Rh"
+| Pd  -> "Pd"
+| Ag  -> "Ag"
+| Cd  -> "Cd"
+| In  -> "In"
+| Sn  -> "Sn"
+| Sb  -> "Sb"
+| Te  -> "Te"
+| I   -> "I"
+| Xe  -> "Xe"
 
 
 let to_long_string = function
@@ -131,6 +168,24 @@ let to_long_string = function
 | Se  -> "Selenium"
 | Br  -> "Bromine"
 | Kr  -> "Krypton"
+| Rb  ->  "Rubidium"
+| Sr  ->  "Strontium"
+| Y   ->  "Yttrium"
+| Zr  ->  "Zirconium"
+| Nb  ->  "Niobium"
+| Mo  ->  "Molybdenum"
+| Tc  ->  "Technetium"
+| Ru  ->  "Ruthenium"
+| Rh  ->  "Rhodium"
+| Pd  ->  "Palladium"
+| Ag  ->  "Silver"
+| Cd  ->  "Cadmium"
+| In  ->  "Indium"
+| Sn  ->  "Tin"
+| Sb  ->  "Antimony"
+| Te  ->  "Tellurium"
+| I   ->  "Iodine"
+| Xe  ->  "Xenon"
 
 
 let to_charge c = 
@@ -172,47 +227,83 @@ let to_charge c =
   | Se  -> 34
   | Br  -> 35
   | Kr  -> 36
+  | Rb  -> 37
+  | Sr  -> 38
+  | Y   -> 39
+  | Zr  -> 40
+  | Nb  -> 41
+  | Mo  -> 42
+  | Tc  -> 43
+  | Ru  -> 44
+  | Rh  -> 45
+  | Pd  -> 46
+  | Ag  -> 47
+  | Cd  -> 48
+  | In  -> 49
+  | Sn  -> 50
+  | Sb  -> 51
+  | Te  -> 52
+  | I   -> 53
+  | Xe  -> 54
   in Charge.of_int result
 
 
 let of_charge c = match (Charge.to_int c) with
-|  0   ->  X   
-|  1   ->  H   
-|  2   ->  He  
-|  3   ->  Li  
-|  4   ->  Be  
-|  5   ->  B   
-|  6   ->  C   
-|  7   ->  N   
-|  8   ->  O   
-|  9   ->  F   
-|  10  ->  Ne  
-|  11  ->  Na  
-|  12  ->  Mg  
-|  13  ->  Al  
-|  14  ->  Si  
-|  15  ->  P   
-|  16  ->  S   
-|  17  ->  Cl  
-|  18  ->  Ar  
-|  19  ->  K   
-|  20  ->  Ca  
-|  21  ->  Sc  
-|  22  ->  Ti  
-|  23  ->  V   
-|  24  ->  Cr  
-|  25  ->  Mn  
-|  26  ->  Fe  
-|  27  ->  Co  
-|  28  ->  Ni  
-|  29  ->  Cu  
-|  30  ->  Zn  
-|  31  ->  Ga  
-|  32  ->  Ge  
-|  33  ->  As  
-|  34  ->  Se  
-|  35  ->  Br  
-|  36  ->  Kr  
+|  0   -> X   
+|  1   -> H   
+|  2   -> He  
+|  3   -> Li  
+|  4   -> Be  
+|  5   -> B   
+|  6   -> C   
+|  7   -> N   
+|  8   -> O   
+|  9   -> F   
+|  10  -> Ne  
+|  11  -> Na  
+|  12  -> Mg  
+|  13  -> Al  
+|  14  -> Si  
+|  15  -> P   
+|  16  -> S   
+|  17  -> Cl  
+|  18  -> Ar  
+|  19  -> K   
+|  20  -> Ca  
+|  21  -> Sc  
+|  22  -> Ti  
+|  23  -> V   
+|  24  -> Cr  
+|  25  -> Mn  
+|  26  -> Fe  
+|  27  -> Co  
+|  28  -> Ni  
+|  29  -> Cu  
+|  30  -> Zn  
+|  31  -> Ga  
+|  32  -> Ge  
+|  33  -> As  
+|  34  -> Se  
+|  35  -> Br  
+|  36  -> Kr  
+|  37  -> Rb
+|  38  -> Sr
+|  39  -> Y
+|  40  -> Zr
+|  41  -> Nb
+|  42  -> Mo
+|  43  -> Tc
+|  44  -> Ru
+|  45  -> Rh
+|  46  -> Pd
+|  47  -> Ag
+|  48  -> Cd
+|  49  -> In
+|  50  -> Sn
+|  51  -> Sb
+|  52  -> Te
+|  53  -> I
+|  54  -> Xe
 | x -> raise (ElementError ("Element of charge "^(string_of_int x)^" unknown"))
 
 
@@ -255,6 +346,24 @@ let covalent_radius x =
   | Se  -> 0.70
   | Br  -> 1.24
   | Kr  -> 1.91
+  | Rb  -> 2.20
+  | Sr  -> 1.95
+  | Y   -> 1.90 
+  | Zr  -> 1.75
+  | Nb  -> 1.64
+  | Mo  -> 1.54
+  | Tc  -> 1.47
+  | Ru  -> 1.46 
+  | Rh  -> 1.42 
+  | Pd  -> 1.39
+  | Ag  -> 1.45
+  | Cd  -> 1.44
+  | In  -> 1.42
+  | Sn  -> 1.39
+  | Sb  -> 1.39
+  | Te  -> 1.38
+  | I   -> 1.39
+  | Xe  -> 1.40
   in
   Units.angstrom_to_bohr *. (result x)
   |> Positive_float.of_float
@@ -298,6 +407,24 @@ let vdw_radius x =
   | Se  ->  1.70
   | Br  ->  2.10
   | Kr  ->  1.70
+  | Rb  -> 3.03
+  | Sr  -> 2.49
+  | Y   -> 0.
+  | Zr  -> 0.
+  | Nb  -> 0.
+  | Mo  -> 0.
+  | Tc  -> 0.
+  | Ru  -> 0.
+  | Rh  -> 0.
+  | Pd  -> 1.63
+  | Ag  -> 1.72
+  | Cd  -> 1.58
+  | In  -> 1.93
+  | Sn  -> 2.17
+  | Sb  -> 2.06
+  | Te  -> 2.06
+  | I   -> 1.98
+  | Xe  -> 2.16
   in
   Units.angstrom_to_bohr *. (result x)
   |> Positive_float.of_float
@@ -341,6 +468,24 @@ let mass x =
   | Se  ->   78.96
   | Br  ->   79.904
   | Kr  ->   83.80
+  | Rb  -> 85.4678
+  | Sr  -> 87.62
+  | Y   -> 88.90584
+  | Zr  -> 91.224
+  | Nb  -> 92.90637
+  | Mo  -> 95.95
+  | Tc  -> 98.
+  | Ru  -> 101.07
+  | Rh  -> 102.90550
+  | Pd  -> 106.42
+  | Ag  -> 107.8682
+  | Cd  -> 112.414
+  | In  -> 114.818
+  | Sn  -> 118.710
+  | Sb  -> 121.760
+  | Te  -> 127.60
+  | I   -> 126.90447
+  | Xe  -> 131.293
   in
   result x
   |> Positive_float.of_float

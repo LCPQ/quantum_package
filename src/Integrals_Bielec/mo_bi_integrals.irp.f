@@ -28,12 +28,10 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
 
   mo_bielec_integrals_in_map = .True.
   if (read_mo_integrals) then
-    integer                        :: load_mo_integrals
     print*,'Reading the MO integrals'
-    if (load_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin') == 0) then
-      print*, 'MO integrals provided'
-      return
-    endif
+    call map_load_from_disk(trim(ezfio_filename)//'/work/mo_ints',mo_integrals_map)
+    print*, 'MO integrals provided'
+    return
   endif
   
   call add_integrals_to_map(full_ijkl_bitmask_4)
@@ -72,7 +70,7 @@ subroutine add_integrals_to_map(mask_ijkl)
   integer                        :: i2,i3,i4
   double precision,parameter     :: thr_coef = 1.d-10
   
-  PROVIDE ao_bielec_integrals_in_map 
+  PROVIDE ao_bielec_integrals_in_map  mo_coef
   
   !Get list of MOs for i,j,k and l
   !-------------------------------
@@ -299,7 +297,8 @@ subroutine add_integrals_to_map(mask_ijkl)
   print*,' wall time :',wall_2 - wall_1, 's  ( x ', (cpu_2-cpu_1)/(wall_2-wall_1), ')'
   
   if (write_mo_integrals) then
-    call dump_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin')
+    call ezfio_set_work_empty(.False.)
+    call map_save_to_disk(trim(ezfio_filename)//'/work/mo_ints',mo_integrals_map)
     call ezfio_set_integrals_bielec_disk_access_mo_integrals("Read")
   endif
   
@@ -329,7 +328,7 @@ end
   double precision, allocatable  :: iqrs(:,:), iqsr(:,:), iqis(:), iqri(:)
   
   if (.not.do_direct_integrals) then
-    PROVIDE ao_bielec_integrals_in_map
+    PROVIDE ao_bielec_integrals_in_map mo_coef
   endif
   
   mo_bielec_integral_jj_from_ao = 0.d0
@@ -495,4 +494,13 @@ subroutine clear_mo_map
   call map_deinit(mo_integrals_map)
   FREE mo_integrals_map mo_bielec_integral_schwartz mo_bielec_integral_jj mo_bielec_integral_jj_anti
   FREE mo_bielec_integral_jj_exchange mo_bielec_integrals_in_map
+
+
+end
+
+subroutine provide_all_mo_integrals
+ implicit none
+ provide mo_integrals_map mo_bielec_integral_schwartz mo_bielec_integral_jj mo_bielec_integral_jj_anti
+ provide mo_bielec_integral_jj_exchange mo_bielec_integrals_in_map
+
 end

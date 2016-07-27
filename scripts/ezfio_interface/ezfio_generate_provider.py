@@ -22,6 +22,7 @@ BEGIN_PROVIDER [ %(type)s, %(name)s %(size)s ]
 
   logical                        :: has
   PROVIDE ezfio_filename
+  %(test_null_size)s
   call ezfio_has_%(ezfio_dir)s_%(ezfio_name)s(has)
   if (has) then
     call ezfio_get_%(ezfio_dir)s_%(ezfio_name)s(%(name)s)
@@ -44,6 +45,7 @@ END_PROVIDER
 
     def __repr__(self):
         self.set_write()
+        self.set_test_null_size()
         for v in self.values:
             if not v:
                 msg = "Error : %s is not set in EZFIO.cfg" % (v)
@@ -54,20 +56,31 @@ END_PROVIDER
 
         return self.data % self.__dict__
 
+    def set_test_null_size(self):
+        if "size" not in self.__dict__:
+            self.__dict__["size"] = ""
+        if self.size != "":
+            self.test_null_size = "if (size(%s) == 0) return\n" % ( self.name )
+        else:
+            self.test_null_size = ""
+
     def set_write(self):
         self.write = ""
-        if self.type in self.write_correspondance:
-            write = self.write_correspondance[self.type]
-            output = self.output
-            name = self.name
+        if "size" in self.__dict__:
+            return
+        else:
+            if self.type in self.write_correspondance:
+                write = self.write_correspondance[self.type]
+                output = self.output
+                name = self.name
 
-            l_write = ["",
-                       "  call write_time(%(output)s)",
-                       "  call %(write)s(%(output)s, %(name)s, &",
-                       "     '%(name)s')",
-                       ""]
+                l_write = ["",
+                          "  call write_time(%(output)s)",
+                          "  call %(write)s(%(output)s, %(name)s, &",
+                          "     '%(name)s')",
+                          ""]
 
-            self.write = "\n".join(l_write) % locals()
+                self.write = "\n".join(l_write) % locals()
 
     def set_type(self, t):
         self.type = t.lower()

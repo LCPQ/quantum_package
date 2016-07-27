@@ -183,6 +183,9 @@ def get_nb_permutation(str_):
 
 
 def order_l_l_sym(l_l_sym):
+
+    l_order_mo = [i for i,_ in enumerate(l_l_sym)]
+
     n = 1
     for i in range(len(l_l_sym)):
         if n != 1:
@@ -192,11 +195,11 @@ def order_l_l_sym(l_l_sym):
         l = l_l_sym[i]
         n = get_nb_permutation(l[2])
 
-        l_l_sym[i:i + n] = sorted(l_l_sym[i:i + n],
-                                  key=lambda x: x[2],
-                                  cmp=compare_gamess_style)
+        l_l_sym[i:i + n], l_order_mo[i:i+n] = zip(*sorted(zip(l_l_sym[i:i + n],l_order_mo[i:i+n]),
+                                              key=lambda x: x[0][2],
+                                              cmp=compare_gamess_style))
 
-    return l_l_sym
+    return l_l_sym, l_order_mo
 
 
 #==========================
@@ -205,8 +208,13 @@ def order_l_l_sym(l_l_sym):
 
 l_sym_without_header = sym_raw.split("\n")[3:-2]
 l_l_sym_raw = [i.split() for i in l_sym_without_header]
+print len(l_l_sym_raw)
+
 l_l_sym_expend_sym = expend_sym_l(l_l_sym_raw)
-l_l_sym_ordered = order_l_l_sym(l_l_sym_expend_sym)
+print len(l_l_sym_expend_sym)
+
+l_l_sym_ordered, l_order_mo = order_l_l_sym(l_l_sym_expend_sym)
+
 
 #========
 #MO COEF
@@ -256,7 +264,7 @@ def print_mo_coef(mo_coef_block, l_l_sym):
             i_a = int(l[1]) - 1
             sym = l[2]
 
-            print l_label[i_a], sym, " ".join('{: 3.8f}'.format(i)
+            print l_label[i_a], sym, " ".join('{0: 3.8f}'.format(i)
                                               for i in a[i])
 
         if i_block != nb_block - 1:
@@ -348,6 +356,7 @@ d_rep={"+":"1","-":"0"}
 
 det_without_header = det_raw[pos+2::]
 
+
 for line_raw in det_without_header.split("\n"):
     line = line_raw
 
@@ -355,8 +364,14 @@ for line_raw in det_without_header.split("\n"):
         try:
             float(line)
         except ValueError:
+
+            print line_raw.strip(), len(line_raw.strip())
+            print l_order_mo, len(l_order_mo)
+
+            line_order = [line_raw[i] for i in l_order_mo]
             line= "".join([d_rep[x] if x in d_rep else x for x in line_raw])
 
     print line.strip()
 
 print "END_DET"
+

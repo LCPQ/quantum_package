@@ -295,18 +295,6 @@ BEGIN_PROVIDER [ integer, nproc ]
   !$OMP END PARALLEL
 END_PROVIDER
 
-BEGIN_PROVIDER [ integer, iproc_save, (nproc) ]
- implicit none
- BEGIN_DOC
- ! iproc_save(i) = i-1. Used to start threads with pthreads.
- END_DOC
- integer :: i
- do i=1,nproc
-   iproc_save(i) = i-1
- enddo
-
-END_PROVIDER
-
 
 double precision function u_dot_v(u,v,sze)
   implicit none

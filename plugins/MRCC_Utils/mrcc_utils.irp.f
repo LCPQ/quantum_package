@@ -1,93 +1,11 @@
 use bitmasks
 
  BEGIN_PROVIDER [ integer, mrmode ]
-&BEGIN_PROVIDER [ logical, old_lambda ]
-&BEGIN_PROVIDER [ logical, no_mono_dressing ]
-  implicit none
-  CHARACTER(len=255) :: test
-  CALL get_environment_variable("OLD_LAMBDA", test)
-  old_lambda = trim(test) /= "" .and. trim(test) /= "0"
-  CALL get_environment_variable("NO_MONO_DRESSING", test)
-  no_mono_dressing = trim(test) /= "" .and. trim(test) /= "0"
-  print *, "old", old_lambda, "mono", no_mono_dressing
   mrmode = 0
 END_PROVIDER
  
  
-
-BEGIN_PROVIDER [ double precision, lambda_mrcc_old, (N_states,psi_det_size) ]
-&BEGIN_PROVIDER [ integer, lambda_mrcc_pt2_old, (0:psi_det_size) ]
-&BEGIN_PROVIDER [ integer, lambda_mrcc_pt3_old, (0:psi_det_size) ]
- implicit none
- BEGIN_DOC
- cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
- END_DOC
- integer :: i,k
-  double precision               :: ihpsi_current(N_states)
-  integer :: i_pert_count
-  double precision :: hii, lambda_pert
-  integer                        :: N_lambda_mrcc_pt2, N_lambda_mrcc_pt3
-  double precision, parameter :: x = 2.d0
-  double precision :: nurm 
-  i_pert_count = 0
-  lambda_mrcc_old = 0.d0
-  N_lambda_mrcc_pt2 = 0
-  N_lambda_mrcc_pt3 = 0
-  lambda_mrcc_pt2_old(0) = 0
-  lambda_mrcc_pt3_old(0) = 0
-  if(N_states > 1) stop "old lambda N_states == 1"
-  nurm = 0d0
-  do i=1,N_det_ref
-    nurm += psi_ref_coef(i,1)**2
-  end do
-
-   do i=1,N_det_non_ref
-     call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref, &
-                  size(psi_ref_coef,1), N_states,ihpsi_current)
-     call i_H_j(psi_non_ref(1,1,i),psi_non_ref(1,1,i),N_int,hii)
-     do k=1,N_states
-       if (ihpsi_current(k) == 0.d0) then
-         ihpsi_current(k) = 1.d-32
-       endif
-       lambda_mrcc_old(k,i) = psi_non_ref_coef(i,k)/ihpsi_current(k) 
-      !if ( dabs(psi_non_ref_coef(i,k)*ihpsi_current(k)) < 1.d-5 .or. lambda_mrcc_old(k,i) > 0d0) then
-      if ( dabs(ihpsi_current(k))*sqrt(psi_non_ref_coef(i,k)**2 / nurm) < 1.d-5 .or. lambda_mrcc_old(k,i) > 0d0) then
-        i_pert_count += 1
-        lambda_mrcc_old(k,i) = 0.d0
-        if (lambda_mrcc_pt2_old(N_lambda_mrcc_pt2) /= i) then
-          N_lambda_mrcc_pt2 += 1
-          lambda_mrcc_pt2_old(N_lambda_mrcc_pt2) = i
-        endif
-      else
-        if (lambda_mrcc_pt3_old(N_lambda_mrcc_pt3) /= i) then
-          N_lambda_mrcc_pt3 += 1
-          lambda_mrcc_pt3_old(N_lambda_mrcc_pt3) = i
-        endif
-      endif
-!         lambda_pert = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
-!         if((ihpsi_current(k) * lambda_pert) < 0.5d0 * psi_non_ref_coef_restart(i,k) ) then
-!            lambda_mrcc_old(k,i) = 0.d0
-!         endif
-      
-      if (lambda_mrcc_old(k,i) > x) then
-        lambda_mrcc_old(k,i) = x
-      else if (lambda_mrcc_old(k,i) < -x) then
-        lambda_mrcc_old(k,i) = -x
-      endif
-     enddo
-  enddo
-  lambda_mrcc_pt2_old(0) = N_lambda_mrcc_pt2
-  lambda_mrcc_pt3_old(0) = N_lambda_mrcc_pt3
-  
-  print*,'N_det_non_ref = ',N_det_non_ref
-  print*,'Number of ignored determinants = ',i_pert_count
-  print*,'psi_coef_ref_ratio = ',psi_ref_coef(2,1)/psi_ref_coef(1,1)
-  print*,'lambda min/max = ',maxval(dabs(lambda_mrcc_old)), minval(dabs(lambda_mrcc_old))
-
-END_PROVIDER
-
-
- BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
+ BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states, N_det_non_ref) ]
 &BEGIN_PROVIDER [ integer, lambda_mrcc_pt2, (0:psi_det_size) ]
 &BEGIN_PROVIDER [ integer, lambda_mrcc_pt3, (0:psi_det_size) ]
   implicit none
@@ -99,49 +17,41 @@ END_PROVIDER
   integer                        :: i_pert_count
   double precision               :: hii, lambda_pert
   integer                        :: N_lambda_mrcc_pt2, N_lambda_mrcc_pt3
-  integer                        :: histo(200), j
-  histo = 0
   
-  if(old_lambda) then
-    lambda_mrcc = lambda_mrcc_old
-    lambda_mrcc_pt2 = lambda_mrcc_pt2_old
-    lambda_mrcc_pt3 = lambda_mrcc_pt3_old
-  else
-    i_pert_count = 0
-    lambda_mrcc = 0.d0
-    N_lambda_mrcc_pt2 = 0
-    N_lambda_mrcc_pt3 = 0
-    lambda_mrcc_pt2(0) = 0
-    lambda_mrcc_pt3(0) = 0
+  i_pert_count = 0
+  lambda_mrcc = 0.d0
+  N_lambda_mrcc_pt2 = 0
+  N_lambda_mrcc_pt3 = 0
+  lambda_mrcc_pt2(0) = 0
+  lambda_mrcc_pt3(0) = 0
 
-    do i=1,N_det_non_ref
-      call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,&
-          size(psi_ref_coef,1), N_states,ihpsi_current)
-      call i_H_j(psi_non_ref(1,1,i),psi_non_ref(1,1,i),N_int,hii)
-      do k=1,N_states
-        if (ihpsi_current(k) == 0.d0) then
-          ihpsi_current(k) = 1.d-32
+  do i=1,N_det_non_ref
+    call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,&
+        size(psi_ref_coef,1), N_states,ihpsi_current)
+    call i_H_j(psi_non_ref(1,1,i),psi_non_ref(1,1,i),N_int,hii)
+    do k=1,N_states
+      if (ihpsi_current(k) == 0.d0) then
+        ihpsi_current(k) = 1.d-32
+      endif
+      lambda_mrcc(k,i) = min(-1.d-32,psi_non_ref_coef(i,k)/ihpsi_current(k) )
+      lambda_pert = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
+      if (lambda_pert / lambda_mrcc(k,i)  < 0.5d0) then
+        i_pert_count += 1
+        lambda_mrcc(k,i) = 0.d0
+        if (lambda_mrcc_pt2(N_lambda_mrcc_pt2) /= i) then
+          N_lambda_mrcc_pt2 += 1
+          lambda_mrcc_pt2(N_lambda_mrcc_pt2) = i
         endif
-        lambda_mrcc(k,i) = min(-1.d-32,psi_non_ref_coef(i,k)/ihpsi_current(k) )
-        lambda_pert = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
-        if (lambda_pert / lambda_mrcc(k,i)  < 0.5d0) then
-          i_pert_count += 1
-          lambda_mrcc(k,i) = 0.d0
-          if (lambda_mrcc_pt2(N_lambda_mrcc_pt2) /= i) then
-            N_lambda_mrcc_pt2 += 1
-            lambda_mrcc_pt2(N_lambda_mrcc_pt2) = i
-          endif
-        else
-          if (lambda_mrcc_pt3(N_lambda_mrcc_pt3) /= i) then
-            N_lambda_mrcc_pt3 += 1
-            lambda_mrcc_pt3(N_lambda_mrcc_pt3) = i
-          endif
+      else
+        if (lambda_mrcc_pt3(N_lambda_mrcc_pt3) /= i) then
+          N_lambda_mrcc_pt3 += 1
+          lambda_mrcc_pt3(N_lambda_mrcc_pt3) = i
         endif
-      enddo
+      endif
     enddo
-    lambda_mrcc_pt2(0) = N_lambda_mrcc_pt2
-    lambda_mrcc_pt3(0) = N_lambda_mrcc_pt3
-  end if
+  enddo
+  lambda_mrcc_pt2(0) = N_lambda_mrcc_pt2
+  lambda_mrcc_pt3(0) = N_lambda_mrcc_pt3
   print*,'N_det_non_ref = ',N_det_non_ref
   print*,'psi_coef_ref_ratio = ',psi_ref_coef(2,1)/psi_ref_coef(1,1)
   print*,'lambda max = ',maxval(dabs(lambda_mrcc))
@@ -149,44 +59,6 @@ END_PROVIDER
 
 END_PROVIDER
 
-!  BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states,psi_det_size) ]
-! &BEGIN_PROVIDER [ integer, lambda_mrcc_pt2, (0:psi_det_size) ]
-! &BEGIN_PROVIDER [ integer, lambda_mrcc_pt3, (0:psi_det_size) ]
-!   implicit none
-!   BEGIN_DOC
-!   ! cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
-!   END_DOC
-!   integer :: i,ii,k
-!   double precision               :: ihpsi_current(N_states)
-!   integer                        :: i_pert_count
-!   double precision               :: hii, lambda_pert, phase
-!   integer                        :: N_lambda_mrcc_pt2, N_lambda_mrcc_pt3, degree
-!   integer               :: exc(N_int, 2)
-!   histo = 0
-!   
-!   i_pert_count = 0
-!   lambda_mrcc = 0.d0
-!   N_lambda_mrcc_pt2 = 0
-!   N_lambda_mrcc_pt3 = 0
-!   lambda_mrcc_pt2(0) = 0
-!   lambda_mrcc_pt3(0) = 0
-!   
-!   do ii=1, N_det_ref
-!   do i=1,N_det_non_ref
-!     call get_excitation(psi_ref(1,1,II), psi_non_ref(1,1,i), exc, degree, phase, N_int)
-!     if(degree == -1) cycle
-!     call i_H_j(psi_non_ref(1,1,ii),psi_non_ref(1,1,i),N_int,hii)
-!     
-!     
-!   lambda_mrcc_pt2(0) = N_lambda_mrcc_pt2
-!   lambda_mrcc_pt3(0) = N_lambda_mrcc_pt3
-!   
-!   print*,'N_det_non_ref = ',N_det_non_ref
-!   print*,'psi_coef_ref_ratio = ',psi_ref_coef(2,1)/psi_ref_coef(1,1)
-!   print*,'lambda max = ',maxval(dabs(lambda_mrcc))
-!   print*,'Number of ignored determinants = ',i_pert_count  
-! 
-! END_PROVIDER
 
 
 BEGIN_PROVIDER [ double precision, hij_mrcc, (N_det_non_ref,N_det_ref) ]
@@ -362,16 +234,6 @@ logical function is_generable(det1, det2, Nint)
     return
   end if
   if(degree > 2) stop "?22??"
-  !!!!!
-!   call dec_exc(exc, h1, h2, p1, p2)
-!   f = searchExc(toutmoun(1,1), (/h1, h2, p1, p2/), hh_shortcut(hh_shortcut(0)+1)-1)
-!   !print *, toutmoun(:,1), hh_shortcut(hh_shortcut(0)+1)-1, (/h1, h2, p1, p2/)
-!   if(f /= -1) then
-!     is_generable = .true.
-!     if(.not. excEq(toutmoun(1,f), (/h1, h2, p1, p2/))) stop "????"
-!   end if
-! !   print *, f
-!   return
   
   call decode_exc_int2(exc,degree,h1,p1,h2,p2,s1,s2)
   
@@ -680,10 +542,10 @@ END_PROVIDER
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
+BEGIN_PROVIDER [ double precision, dIj_unique, (hh_shortcut(hh_shortcut(0)+1)-1, N_states) ]
   implicit none
   logical :: ok
-  integer :: i, j, k, II, pp, hh, ind, wk, nex, a_col, at_row
+  integer :: i, j, k, s, II, pp, hh, ind, wk, nex, a_col, at_row
   integer, external :: searchDet, unsortedSearchDet
   integer(bit_kind) :: myDet(N_int, 2), myMask(N_int, 2)
   integer :: N, INFO, AtA_size, r1, r2
@@ -691,22 +553,36 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
   double precision :: t, norm, cx
   integer, allocatable :: A_ind(:,:), lref(:), AtA_ind(:), A_ind_mwen(:), col_shortcut(:), N_col(:)
   
-  if(n_states /= 1) stop "n_states /= 1"
+
 
   nex = hh_shortcut(hh_shortcut(0)+1)-1
   print *, "TI", nex, N_det_non_ref
   allocate(A_ind(N_det_ref+1, nex), A_val(N_det_ref+1, nex))
-  allocate(AtA_ind(N_det_ref * nex), AtA_val(N_det_ref * nex)) !!!!! MAY BE TOO SMALL !!!!!!!!
+  allocate(AtA_ind(N_det_ref * nex), AtA_val(N_det_ref * nex)) !!!!! MAY BE TOO SMALL ? !!!!!!!!
   allocate(x(nex), AtB(nex))
   allocate(A_val_mwen(nex), A_ind_mwen(nex))
   allocate(N_col(nex), col_shortcut(nex), B(N_det_non_ref))
+  allocate (x_new(nex))
+
+  do s = 1, N_states
+
   A_val = 0d0
   A_ind = 0
+  AtA_ind = 0
+  AtA_val = 0d0
+  x = 0d0
+  AtB = 0d0
+  A_val_mwen = 0d0
+  A_ind_mwen = 0
+  N_col = 0
+  col_shortcut = 0
+  B = 0d0
+  x_new = 0d0
+  
   !$OMP PARALLEL DO schedule(static,10) default(none) shared(psi_non_ref, hh_exists, pp_exists, N_int, A_val, A_ind) &
-  !$OMP shared(hh_shortcut, psi_ref_coef, N_det_non_ref, psi_non_ref_sorted, psi_non_ref_sorted_idx, psi_ref, N_det_ref) &
+  !$OMP shared(s, hh_shortcut, psi_ref_coef, N_det_non_ref, psi_non_ref_sorted, psi_non_ref_sorted_idx, psi_ref, N_det_ref) &
   !$OMP private(lref, pp, II, ok, myMask, myDet, ind, wk)
   do hh = 1, hh_shortcut(0)
-    !print *, hh, "/", hh_shortcut(0)
     do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
       allocate(lref(N_det_non_ref))    
       lref = 0
@@ -715,12 +591,8 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
         if(.not. ok) cycle
         call apply_particle(myMask, pp_exists(1, pp), myDet, ok, N_int)
         if(.not. ok) cycle
-        !ind = unsortedSearchDet(psi_non_ref(1,1,1), myDet, N_det_non_ref, N_int)
         ind = searchDet(psi_non_ref_sorted(1,1,1), myDet(1,1), N_det_non_ref, N_int)
         if(ind /= -1) then
-          !iwk = wk+1
-          !A_val(wk, pp) = psi_ref_coef(II, 1)
-          !A_ind(wk, pp) = psi_non_ref_sorted_idx(ind)
           lref(psi_non_ref_sorted_idx(ind)) = II
         end if
       end do
@@ -728,7 +600,7 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
       do i=1, N_det_non_ref
         if(lref(i) /= 0) then
           wk += 1
-          A_val(wk, pp) = psi_ref_coef(lref(i), 1)
+          A_val(wk, pp) = psi_ref_coef(lref(i), s)
           A_ind(wk, pp) = i
         end if
       end do
@@ -744,19 +616,19 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
   N_col = 0
   !$OMP PARALLEL DO schedule(dynamic, 100) default(none) shared(k, psi_non_ref_coef, A_ind, A_val, x, N_det_ref, nex, N_det_non_ref) &
   !$OMP private(at_row, a_col, t, i, r1, r2, wk, A_ind_mwen, A_val_mwen) &
-  !$OMP shared(col_shortcut, N_col, AtB, AtA_size, AtA_val, AtA_ind) 
+  !$OMP shared(col_shortcut, N_col, AtB, AtA_size, AtA_val, AtA_ind, s) 
   do at_row = 1, nex
     wk = 0
     if(mod(at_row, 10000) == 0) print *, "AtA", at_row, "/", nex
     do i=1,N_det_ref
       if(A_ind(i, at_row) == 0) exit
-      AtB(at_row) = AtB(at_row) + psi_non_ref_coef(A_ind(i, at_row), 1) * A_val(i, at_row)
+      AtB(at_row) = AtB(at_row) + psi_non_ref_coef(A_ind(i, at_row), s) * A_val(i, at_row)
     end do
     do a_col = 1, nex
       t = 0d0
       r1 = 1
       r2 = 1
-      do while(A_ind(r1, at_row) * A_ind(r2, a_col) /= 0)
+      do while ((A_ind(r1, at_row) /= 0).and.(A_ind(r2, a_col) /= 0))
         if(A_ind(r1, at_row) < A_ind(r2, a_col)) then
           r1 += 1
         else if(A_ind(r1, at_row) > A_ind(r2, a_col)) then
@@ -769,15 +641,11 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
       end do
 
       if(a_col == at_row) then
-        t = (t + 1d0)! / 2d0
-        !print *, a_col, t-1d0
+        t = (t + 1d0)
       end if
       if(t /= 0d0) then
         wk += 1
-        !AtA_ind(1, wk) = at_row
-        !AtA_ind(2, wk) = a_col
         A_ind_mwen(wk) = a_col
-        !AtA_val(wk) = t
         A_val_mwen(wk) = t
       end if
     end do
@@ -796,7 +664,6 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
   x = AtB
   if(AtA_size > size(AtA_val)) stop "SIZA"
   print *, "ATA SIZE", ata_size 
-  allocate (x_new(nex))
   integer :: iproc, omp_get_thread_num
   iproc = omp_get_thread_num()
   do i=1,nex
@@ -821,7 +688,7 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
     double precision :: norm_cas
     norm_cas = 0d0
     do i = 1, N_det_ref
-      norm_cas += psi_ref_coef(i,1)**2
+      norm_cas += psi_ref_coef(i,s)**2
     end do
     
     norm = 0d0
@@ -831,25 +698,8 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
       t = t + X_new(j) * X_new(j)
     end do
 
-    !t = (1d0 - norm_cas) / t
-    !x_new = x_new * sqrt(t)
- !!!!!!!!!!!!!!   
-      !B = 0d0
-      !do i=1, nex
-      !  do j=1, N_det_ref
-      !    if(A_ind(j, i) == 0) exit
-      !    B(A_ind(j, i)) += A_val(j, i) * x(i)
-      !  end do
-      !end do
-      !t = 0d0
-      !do i=1, size(B)
-      !  t += B(i)**2
-      !end do
-      !print *, "NORMT", sqrt(t + norm_cas)
-      !x_new = x_new / sqrt(t + norm_cas)
-!!!!!!!!!!
 
-    t = (1d0 / norm_cas - 1d0) / t
+    t = (1d0 - norm_cas ) / t
     x_new = x_new * sqrt(t)
 
     do j=1, size(X)
@@ -858,7 +708,7 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
     end do
 
 
-    if(mod(k, 50) == 0) then
+    if(mod(k, 100) == 0) then
       print *, "residu ", k, norm, "norm t", sqrt(t)
     end if
     
@@ -866,77 +716,51 @@ BEGIN_PROVIDER [ double precision, dIj, (hh_shortcut(hh_shortcut(0)+1)-1) ]
   end do
   print *, "CONVERGENCE : ", norm
     
+  dIj_unique(:size(X), s) = X(:)
+  
 
-!do k=0,500
-! if(k == 1) print *, X(:10)
-! x_new = 0d0
-! A_dense = 0d0
-! !!$OMP PARALLEL DO schedule(dynamic, 10) default(none) shared(k, psi_non_ref_coef, x_new, A_ind, A_val, x, N_det_ref, nex, N_det_non_ref) &
-! !!$OMP private(a_col, t, i, cx) &
-! !!$OMP firstprivate(A_dense)
-! do at_row = 1, nex
-!   ! ! d DIR$ IVDEP
-!   cx = 0d0
-!   do i=1,N_det_ref
-!     if(A_ind(i, at_row) == 0) exit
-!     if(k /= 0) A_dense(A_ind(i, at_row)) = A_val(i, at_row)
-!     cx = cx + psi_non_ref_coef(A_ind(i, at_row), 1) * A_val(i, at_row)
-!     !x_new(at_row) = x_new(at_row) + psi_non_ref_coef(A_ind(i, at_row), 1) * A_val(i, at_row)
-!   end do 
-!   if(k == 0) then
-!     x_new(at_row) = cx
-!     cycle
-!   end if
-!   do a_col = 1, nex
-!     t = 0d0
-!     do i = 1, N_det_ref
-!       if(A_ind(i, a_col) == 0) exit
-!       t = t - A_val(i, a_col) * A_dense(A_ind(i, a_col)) ! -= pcq I-A
-!     end do
-!     if(a_col == at_row) t = t + 1d0
-!     cx = cx + t * x(a_col)
-!     !x_new(at_row) = x_new(at_row) + t * x(a_col)
-!   end do
-!   x_new(at_row) = cx
-!   do i=1,N_det_ref
-!     if(A_ind(i, at_row) == 0) exit
-!     A_dense(A_ind(i, at_row)) = 0d0
-!   end do
-! end do
-! !!$OMP END PARALLEL DO
+  end do
 
-! norm = 0d0
-! do j=1, size(X)
-!   norm += (X_new(j) - X(j))**2
-!   X(j) = X_new(j)
-! end do
-! print *, "residu ", k, norm
-! if(norm < 1d-10) exit
-!end do
-!
 
-  dIj(:size(X)) = X(:)
-  !print *, X
   print *, "done"
 END_PROVIDER
 
 
-double precision function get_dij_index(II, i, Nint)
-  integer, intent(in) :: II, i, Nint
-  double precision, external :: get_dij
+BEGIN_PROVIDER [ double precision, dij, (N_det_ref, N_det_non_ref, N_states) ]
+  integer :: s,i,j
+  double precision, external :: get_dij_index
+  print *, "computing amplitudes..."
+  do s=1, N_states
+    do i=1, N_det_non_ref
+      do j=1, N_det_ref
+        dij(j, i, s) = get_dij_index(j, i, s, N_int)
+      end do
+    end do
+  end do
+  print *, "done computing amplitudes"
+END_PROVIDER
 
-  if(dabs(psi_ref_coef(II, 1)) > 1d-1) then
-    get_dij_index = psi_non_ref_coef(i, 1) / psi_ref_coef(II, 1)
+
+
+
+double precision function get_dij_index(II, i, s, Nint)
+  integer, intent(in) :: II, i, s, Nint
+  double precision, external :: get_dij
+  double precision :: HIi
+
+  if(lambda_type == 0) then
+    get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint)
   else
-    get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), Nint)
+    call i_h_j(psi_ref(1,1,II), psi_non_ref(1,1,i), Nint, HIi)
+    get_dij_index = HIi * lambda_mrcc(s, i)
   end if
 end function
 
 
-double precision function get_dij(det1, det2, Nint)
+double precision function get_dij(det1, det2, s, Nint)
   use bitmasks
   implicit none
-  integer, intent(in) :: Nint
+  integer, intent(in) :: s, Nint
   integer(bit_kind) :: det1(Nint, 2), det2(Nint, 2)
   integer :: degree, f, exc(0:2, 2, 2), t
   integer*2 :: h1, h2, p1, p2, s1, s2
@@ -976,7 +800,7 @@ double precision function get_dij(det1, det2, Nint)
   end if
   
   if(t /= -1) then
-    get_dij = dIj(t - 1 + hh_shortcut(f))
+    get_dij = dIj_unique(t - 1 + hh_shortcut(f), s)
   end if
 end function
 

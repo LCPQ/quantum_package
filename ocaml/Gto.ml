@@ -4,6 +4,10 @@ open Qptypes
 exception GTO_Read_Failure of string
 exception End_Of_Basis
 
+type fmt =
+| Gamess
+| Gaussian
+
 type t =
 { sym  : Symmetry.t ;
   lc   : ((Primitive.t * AO_coef.t) list)
@@ -68,8 +72,8 @@ let read_one in_channel =
 
 
 
-(** Transform the gto to a string *)
-let to_string { sym = sym ; lc = lc } =
+(** Write the GTO in Gamess format *)
+let to_string_gamess { sym = sym ; lc = lc } =
   let result = 
     Printf.sprintf "%s %3d" (Symmetry.to_string sym) (List.length lc)
   in
@@ -86,5 +90,32 @@ let to_string { sym = sym ; lc = lc } =
   in
   (do_work [result] 1 lc)
   |> String.concat ~sep:"\n"
+
+
+(** Write the GTO in Gaussian format *)
+let to_string_gaussian { sym = sym ; lc = lc } =
+  let result = 
+    Printf.sprintf "%s %3d   1.00" (Symmetry.to_string sym) (List.length lc)
+  in
+  let rec do_work accu i = function
+  | [] -> List.rev accu
+  | (p,c)::tail -> 
+    let p = AO_expo.to_float p.Primitive.expo
+    and c = AO_coef.to_float c
+    in
+    let result = 
+      Printf.sprintf "%15.7f       %15.7f" p c
+    in
+    do_work (result::accu) (i+1) tail
+  in
+  (do_work [result] 1 lc)
+  |> String.concat ~sep:"\n"
+
+
+(** Transform the gto to a string *)
+let to_string ?(fmt=Gamess) =
+  match fmt with
+  | Gamess   -> to_string_gamess
+  | Gaussian -> to_string_gaussian
 
 

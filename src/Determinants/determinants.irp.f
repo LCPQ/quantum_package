@@ -58,7 +58,7 @@ BEGIN_PROVIDER [ integer, psi_det_size ]
  else
    psi_det_size = 1
  endif
- psi_det_size = max(psi_det_size,10000)
+ psi_det_size = max(psi_det_size,100000)
  call write_int(output_determinants,psi_det_size,'Dimension of the psi arrays')
 
 END_PROVIDER

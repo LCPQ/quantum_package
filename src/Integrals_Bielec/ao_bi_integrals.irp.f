@@ -4,6 +4,7 @@ double precision function ao_bielec_integral(i,j,k,l)
   !  integral of the AO basis <ik|jl> or (ij|kl)
   !     i(r1) j(r1) 1/r12 k(r2) l(r2)
   END_DOC
+
   integer,intent(in)             :: i,j,k,l
   integer                        :: p,q,r,s
   double precision               :: I_center(3),J_center(3),K_center(3),L_center(3)
@@ -350,13 +351,11 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   
   real                           :: map_mb
   if (read_ao_integrals) then
-    integer                        :: load_ao_integrals
     print*,'Reading the AO integrals'
-    if (load_ao_integrals(trim(ezfio_filename)//'/work/ao_integrals.bin') == 0) then
+      call map_load_from_disk(trim(ezfio_filename)//'/work/ao_ints',ao_integrals_map)
       print*, 'AO integrals provided'
       ao_bielec_integrals_in_map = .True.
       return
-    endif
   endif
   
   print*, 'Providing the AO integrals'
@@ -370,23 +369,19 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
 
   do l=1,ao_num
-    write(task,*) l
+    write(task,*) "triangle ", l
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   enddo
 
-  integer(ZMQ_PTR)               :: collector_thread
-  external                       :: ao_bielec_integrals_in_map_collector
-  rc = pthread_create(collector_thread, ao_bielec_integrals_in_map_collector)
-
-  !$OMP PARALLEL DEFAULT(private) 
-    !$OMP TASK PRIVATE(i) 
+  PROVIDE nproc
+  !$OMP PARALLEL DEFAULT(private) num_threads(nproc+1)
       i = omp_get_thread_num()
-      call ao_bielec_integrals_in_map_slave_inproc(i)
-    !$OMP END TASK
-    !$OMP TASKWAIT
+      if (i==0) then
+        call ao_bielec_integrals_in_map_collector(i)
+      else
+        call ao_bielec_integrals_in_map_slave_inproc(i)
+      endif
   !$OMP END PARALLEL
-
-  rc = pthread_join(collector_thread)
 
   call end_parallel_job(zmq_to_qp_run_socket, 'ao_integrals')
 
@@ -405,8 +400,10 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   print*, ' wall time :',wall_2 - wall_1, 's  ( x ', (cpu_2-cpu_1)/(wall_2-wall_1+tiny(1.d0)), ' )'
   
   ao_bielec_integrals_in_map = .True.
+
   if (write_ao_integrals) then
-    call dump_ao_integrals(trim(ezfio_filename)//'/work/ao_integrals.bin')
+    call ezfio_set_work_empty(.False.)
+    call map_save_to_disk(trim(ezfio_filename)//'/work/ao_ints',ao_integrals_map)
     call ezfio_set_integrals_bielec_disk_access_ao_integrals("Read")
   endif
   

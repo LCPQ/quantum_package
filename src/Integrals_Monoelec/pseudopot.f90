@@ -109,9 +109,10 @@ end
         DIMENSION PM(0:100,0:100)
         MM=100
         pi=dacos(-1.d0)
+        fourpi=4.d0*pi
         iabs_m=iabs(m)
         if(iabs_m.gt.l)stop 'm must be between -l and l'
-        factor= dsqrt( ((2*l+1)*fact(l-iabs_m))/(4.d0*pi*fact(l+iabs_m)) )
+        factor= dsqrt( ((l+l+1)*fact(l-iabs_m))/(fourpi*fact(l+iabs_m)) )
         if(dabs(x).gt.1.d0)then
          print*,'pb. in ylm_no'
          print*,'x=',x
@@ -124,7 +125,6 @@ end
         if(m.eq.0)ylm_real=coef
         if(m.lt.0)ylm_real=dsqrt(2.d0)*coef*dsin(iabs_m*phi)
 
-         fourpi=4.d0*dacos(-1.d0)
          if(l.eq.0)ylm_real=dsqrt(1.d0/fourpi)
 
          xchap=dsqrt(1.d0-x**2)*dcos(phi)
@@ -134,9 +134,9 @@ end
          if(l.eq.1.and.m.eq.0)ylm_real=dsqrt(3.d0/fourpi)*zchap
          if(l.eq.1.and.m.eq.-1)ylm_real=dsqrt(3.d0/fourpi)*ychap
 
-         if(l.eq.2.and.m.eq.2)ylm_real=dsqrt(15.d0/16.d0/pi)*(xchap**2-ychap**2)
+         if(l.eq.2.and.m.eq.2)ylm_real=dsqrt(15.d0/16.d0/pi)*(xchap*xchap-ychap*ychap)
          if(l.eq.2.and.m.eq.1)ylm_real=dsqrt(15.d0/fourpi)*xchap*zchap
-         if(l.eq.2.and.m.eq.0)ylm_real=dsqrt(5.d0/16.d0/pi)*(-xchap**2-ychap**2+2.d0*zchap**2)
+         if(l.eq.2.and.m.eq.0)ylm_real=dsqrt(5.d0/16.d0/pi)*(-xchap*xchap-ychap*ychap+2.d0*zchap*zchap)
          if(l.eq.2.and.m.eq.-1)ylm_real=dsqrt(15.d0/fourpi)*ychap*zchap
          if(l.eq.2.and.m.eq.-2)ylm_real=dsqrt(15.d0/fourpi)*xchap*ychap
 
@@ -313,7 +313,7 @@ else if(ac.ne.0.d0.and.bc.ne.0.d0)then
  ! I n i t !
  !=!=!=!=!=!
 
- f=fourpi**2
+ f=fourpi*fourpi
 
  theta_AC0=dacos( (a(3)-c(3))/ac )
  phi_AC0=datan2((a(2)-c(2))/ac,(a(1)-c(1))/ac)
@@ -1775,15 +1775,6 @@ double precision function binom_gen(alpha,n)
  enddo
 end
 
-      double precision FUNCTION ERF(X)
-      implicit double precision(a-h,o-z)
-      IF(X.LT.0.d0)THEN
-        ERF=-GAMMP(.5d0,X**2)
-      ELSE
-        ERF=GAMMP(.5d0,X**2)
-      ENDIF
-      RETURN
-      END
 
 double precision function coef_nk(n,k)
   implicit none
@@ -1791,7 +1782,7 @@ double precision function coef_nk(n,k)
 
   double precision gam,dble_fact,fact
 
-  gam=dble_fact(2*(n+k)+1)
+  gam=dble_fact(n+n+k+k+1)
 
 !  coef_nk=1.d0/(dble(ISHFT(1,k))*fact(k)*gam)
   
@@ -1862,7 +1853,7 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
     term_rap = term_a / (2.d0*gam)**expo
 
     s_0_0=term_rap*a**(n)*b**(m)
-    if(mod(nlm,2).eq.0)s_0_0=s_0_0*dsqrt(pi/2.d0)
+    if(mod(nlm,2).eq.0)s_0_0=s_0_0*dsqrt(pi*.5d0)
 
     ! Initialise the first recurence terme for the q loop
     s_q_0 = s_0_0
@@ -1887,7 +1878,7 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
         two_qkmp1 = two_qkmp1-2.d0
         qk = qk-1.d0 
       enddo
-      inverses(q) = a_over_b_square/(dble(2*(q+n)+3) * dble(q+1)) 
+      inverses(q) = a_over_b_square/(dble(q+n+q+n+3) * dble(q+1)) 
 !      do k=0,q
 !        sum=sum+s_q_k
 !        s_q_k = a_over_b_square * ( dble(2*(q-k+m)+1)*dble(q-k)/(dble(2*(k+n)+3) * dble(k+1)) ) * s_q_k
@@ -1900,9 +1891,10 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
       else
 
         !Compute the s_q+1_0
-        s_q_0=s_q_0*(2.d0*q+nlm+1)*b**2/((2.d0*(m+q)+3)*4.d0*(q+1)*gam)
+!        s_q_0=s_q_0*(2.d0*q+nlm+1)*b**2/((2.d0*(m+q)+3)*4.d0*(q+1)*gam)
+        s_q_0=s_q_0*(2.d0*q+nlm+1)*b*b/((8.d0*(m+q)+12.d0)*(q+1)*gam)
         
-        if(mod(n+m+l,2).eq.1)s_q_0=s_q_0*dsqrt(pi/2.d0)
+        if(mod(n+m+l,2).eq.1)s_q_0=s_q_0*dsqrt(pi*.5d0)
         ! Increment q
         q=q+1
         intold=int
@@ -2017,7 +2009,7 @@ double precision function int_prod_bessel_loc(l,gam,n,a)
   ! Int f_0
   coef_nk=1.d0/dble_fact( n+n+1 )
   expo=0.5d0*dfloat(n+l+1)
-  crochet=dble_fact(n+l-1)/(2.d0*gam)**expo
+  crochet=dble_fact(n+l-1)/(gam+gam)**expo
   if(mod(n+l,2).eq.0)crochet=crochet*dsqrt(0.5d0*pi)
 
   f_0 = coef_nk*a**n*crochet
@@ -2029,7 +2021,7 @@ double precision function int_prod_bessel_loc(l,gam,n,a)
 
     int=int+f_k
 
-    f_k = f_k*(a**2*(2*(k+1)+n+l-1)) / (2*(k+1)*(2*(n+k+1)+1)*2*gam)
+    f_k = f_k*(a*a*dble(k+k+2+n+l-1)) / (dble((k+k+2)*(2*(n+k+1)+1)*2)*gam)
 
     if(dabs(int-intold).lt.1d-15)then
       done=.true.
