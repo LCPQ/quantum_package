@@ -483,9 +483,9 @@ let put_psi msg rest_of_msg program_state rep_socket =
         | Some x -> x
         | None ->
           begin
-            let psi_det, psi_coef =
+            let psi_det, psi_coef, energy =
               match rest_of_msg with
-              | [ x ; y ] -> x, y
+              | [ x ; y ; e ] -> x, y, e
               | _ -> failwith "Badly formed put_psi message"
             in
             Message.Psi.create
@@ -496,6 +496,7 @@ let put_psi msg rest_of_msg program_state rep_socket =
               ~n_det_selectors:msg.Message.PutPsi_msg.n_det_selectors
               ~psi_det
               ~psi_coef
+              ~energy
           end
     in
     let new_program_state =

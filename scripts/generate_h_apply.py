@@ -435,8 +435,9 @@ class H_apply_zmq(H_apply):
     norm_pert(k) = 0.d0
     H_pert_diag(k) = 0.d0
     norm_psi(k) = 0.d0
+    energy(k) = %s(k)
   enddo
-     """ 
+     """ % (self.energy)
      self.data["copy_buffer"] = """
   do i=1,N_det_generators
     do k=1,N_st

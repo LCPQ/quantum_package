@@ -28,11 +28,12 @@ subroutine $subroutine($params_main)
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
   double precision, allocatable :: pt2_generators(:,:), norm_pert_generators(:,:)
   double precision, allocatable :: H_pert_diag_generators(:,:)
+  double precision              :: energy(N_st)
 
   call new_parallel_job(zmq_to_qp_run_socket,'$subroutine')
   zmq_socket_pair = new_zmq_pair_socket(.True.)
 
-  call zmq_put_psi(zmq_to_qp_run_socket,1)
+  call zmq_put_psi(zmq_to_qp_run_socket,1,energy,size(energy))
 
   do i_generator=N_det_generators,1,-1
     $skip
