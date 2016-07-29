@@ -1,4 +1,4 @@
-subroutine zmq_put_psi(zmq_to_qp_run_socket,worker_id)
+subroutine zmq_put_psi(zmq_to_qp_run_socket,worker_id, energy, size_energy)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -6,6 +6,8 @@ subroutine zmq_put_psi(zmq_to_qp_run_socket,worker_id)
   END_DOC
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   integer, intent(in)            :: worker_id
+  integer, intent(in)            :: size_energy
+  double precision, intent(out)  :: energy(size_energy)
   integer                        :: rc
   character*(256)                :: msg
 
@@ -23,9 +25,15 @@ subroutine zmq_put_psi(zmq_to_qp_run_socket,worker_id)
     stop 'error'
   endif
 
-  rc = f77_zmq_send(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,0)
+  rc = f77_zmq_send(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,ZMQ_SNDMORE)
   if (rc /= psi_det_size*N_states*8) then
-    print *, 'f77_zmq_send(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,0)'
+    print *, 'f77_zmq_send(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,ZMQ_SNDMORE)'
+    stop 'error'
+  endif
+
+  rc = f77_zmq_send(zmq_to_qp_run_socket,energy,size_energy*8,0)
+  if (rc /= size_energy*8) then
+    print *, 'f77_zmq_send(zmq_to_qp_run_socket,energy,size_energy*8,0)'
     stop 'error'
   endif
 
@@ -40,7 +48,7 @@ end
 
 
 
-subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id)
+subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id, energy, size_energy)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -48,6 +56,8 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id)
   END_DOC
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   integer, intent(in)            :: worker_id
+  integer, intent(in)            :: size_energy
+  double precision, intent(out)  :: energy(size_energy)
   integer                        :: rc
   character*(64)                 :: msg
 
@@ -86,9 +96,15 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id)
     stop 'error'
   endif
 
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,0)
+  rc = f77_zmq_recv(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,ZMQ_SNDMORE)
   if (rc /= psi_det_size*N_states*8) then
-    print *, '77_zmq_recv(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,0)'
+    print *, '77_zmq_recv(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,ZMQ_SNDMORE)'
+    stop 'error'
+  endif
+
+  rc = f77_zmq_recv(zmq_to_qp_run_socket,energy,size_energy*8,0)
+  if (rc /= size_energy*8) then
+    print *, '77_zmq_recv(zmq_to_qp_run_socket,energy,size_energy*8,0)'
     stop 'error'
   endif
 

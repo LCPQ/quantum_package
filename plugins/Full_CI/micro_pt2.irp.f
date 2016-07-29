@@ -22,6 +22,7 @@ subroutine run_wf
 
   integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
+  double precision :: energy(N_states_diag)
 
   print *,  'Getting wave function'
   zmq_context = f77_zmq_ctx_new ()
@@ -30,7 +31,21 @@ subroutine run_wf
 
   ! TODO : do loop here
   ! TODO : wait_state
-  call zmq_get_psi(zmq_to_qp_run_socket, 1)
+  call zmq_get_psi(zmq_to_qp_run_socket,1,energy,size(energy))
+  integer :: j,k
+  do j=1,N_states_diag
+    do k=1,N_det
+     CI_eigenvectors(k,j) = psi_coef(k,j)
+    enddo
+    call get_s2_u0(psi_det,CI_eigenvectors(1,j),N_det,size(CI_eigenvectors,1),CI_eigenvectors_s2(j))
+  enddo
+  if (.True.) then
+    do k=1,size(ci_electronic_energy)
+      ci_electronic_energy(k) = energy(k)
+    enddo
+    SOFT_TOUCH ci_electronic_energy CI_eigenvectors_s2 CI_eigenvectors
+    print *,  energy(:)
+  endif
   call write_double(6,ci_energy,'Energy')
   zmq_state = 'h_apply_fci_pt2'
 
