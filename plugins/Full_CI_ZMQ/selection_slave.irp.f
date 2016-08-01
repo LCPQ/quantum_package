@@ -31,17 +31,14 @@ subroutine run_wf
   call provide_everything
   
   zmq_context = f77_zmq_ctx_new ()
+  zmq_state = 'selection'
+  state = 'Waiting'
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
 
   do
-    call wait_for_state("selection", zmq_state)
-    if(trim(zmq_state) /= "selection") exit
-    if(oki < 0) then
-      oki += 1
-      cycle
-    end if
-    oki = 0
+    call wait_for_state(zmq_state,state)
+    if(trim(state) /= 'selection') exit
     print *,  'Getting wave function'
     call zmq_get_psi(zmq_to_qp_run_socket,1,energy,size(energy))
     integer :: j,k
@@ -59,7 +56,6 @@ subroutine run_wf
     endif
   
     call write_double(6,ci_energy,'Energy')
-    !zmq_state = 'selection'
  
   
     integer :: rc, i

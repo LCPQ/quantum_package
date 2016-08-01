@@ -62,9 +62,9 @@ subroutine selection_slaved(thread,iproc)
       !print *, "psi_selectors_coef ", psi_selectors_coef(N_det_selectors-5:N_det_selectors, 1)
       !call debug_det(psi_selectors(1,1,N_det_selectors), N_int)
       call select_connected(i_generator,ci_electronic_energy,pt2,buf)
-    end if
-
-    if(done) ctask = ctask - 1
+    else
+      ctask = ctask - 1
+    endif
 
     if(done .or. ctask == size(task_id)) then
       if(buf%N == 0 .and. ctask > 0) stop "uninitialized selection_buffer"
@@ -76,7 +76,6 @@ subroutine selection_slaved(thread,iproc)
         pt2 = 0d0
         buf%cur = 0
       end if
-
 
       ctask = 0
     end if

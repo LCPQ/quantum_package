@@ -872,8 +872,8 @@ subroutine wait_for_state(state_wait,state)
   integer                        :: rc
 
   zmq_socket_sub       = new_zmq_sub_socket()
-  state = "Waiting"
-  do while (trim(state) /= trim(state_wait) .and. trim(state) /= "Stopped")
+  state = 'Waiting'
+  do while (trim(state) /= trim(state_wait) .and. trim(state) /= 'Stopped')
     rc = f77_zmq_recv( zmq_socket_sub, state, 64, 0)
     if (rc > 0) then
       state = trim(state(1:rc))
@@ -881,6 +881,7 @@ subroutine wait_for_state(state_wait,state)
       print *,  'Timeout reached. Stopping'
       state = "Stopped"
     endif
+print *, '|'//trim(state(1:rc))//'|'//trim(state_wait)//'|'
   end do
   call end_zmq_sub_socket(zmq_socket_sub)
 end
