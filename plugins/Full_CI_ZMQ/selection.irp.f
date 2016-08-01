@@ -13,7 +13,7 @@ BEGIN_PROVIDER [ double precision, integral8, (mo_tot_num,  mo_tot_num, mo_tot_n
 END_PROVIDER
 
 
-subroutine selection_slave(thread,iproc)
+subroutine selection_slaved(thread,iproc)
   use f77_zmq
   use selection_types
   implicit none
@@ -37,7 +37,13 @@ subroutine selection_slave(thread,iproc)
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_push      = new_zmq_push_socket(thread)
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
-
+  if(worker_id == -1) then
+    print *, "WORKER -1"
+    !call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
+    call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
+    call end_zmq_push_socket(zmq_socket_push,thread)
+    return
+  end if
   buf%N = 0
   ctask = 1
   pt2 = 0d0
@@ -53,7 +59,9 @@ subroutine selection_slave(thread,iproc)
       else
         if(N /= buf%N) stop "N changed... wtf man??"
       end if
-      call select_connected(i_generator,ci_electronic_energy,pt2,buf) !! ci_electronic_energy ??
+      !print *, "psi_selectors_coef ", psi_selectors_coef(N_det_selectors-5:N_det_selectors, 1)
+      !call debug_det(psi_selectors(1,1,N_det_selectors), N_int)
+      call select_connected(i_generator,ci_electronic_energy,pt2,buf)
     end if
 
     if(done) ctask = ctask - 1
@@ -159,7 +167,6 @@ subroutine select_connected(i_generator,E0,pt2,b)
 
   integer(bit_kind)              :: hole_mask(N_int,2), particle_mask(N_int,2)
   double precision               :: fock_diag_tmp(2,mo_tot_num+1)
-
 
   call build_fock_tmp(fock_diag_tmp,psi_det_generators(1,1,i_generator),N_int)
 

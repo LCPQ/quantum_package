@@ -136,7 +136,7 @@ subroutine $subroutine_slave(thread, iproc)
 
     pt2 = 0.d0
     norm_pert = 0.d0
-    H_pert_diag = 0.d0
+    H_pert_diag = 0.d0 
 
     ! Create bit masks for holes and particles
     do ispin=1,2
