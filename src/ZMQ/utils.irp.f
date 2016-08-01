@@ -394,10 +394,10 @@ subroutine end_zmq_pair_socket(zmq_socket_pair)
 !    stop 'error'
 !  endif
   
-  rc = f77_zmq_setsockopt(zmq_socket_pair,ZMQ_LINGER,0,4)
-  if (rc /= 0) then
-    stop 'Unable to set ZMQ_LINGER on zmq_socket_pair'
-  endif
+!  rc = f77_zmq_setsockopt(zmq_socket_pair,0ZMQ_LINGER,1000,4)
+!  if (rc /= 0) then
+!    stop 'Unable to set ZMQ_LINGER on zmq_socket_pair'
+!  endif
 
   rc = f77_zmq_close(zmq_socket_pair)
   if (rc /= 0) then
@@ -433,10 +433,10 @@ subroutine end_zmq_pull_socket(zmq_socket_pull)
   
   call sleep(1) ! see https://github.com/zeromq/libzmq/issues/1922
 
-  rc = f77_zmq_setsockopt(zmq_socket_pull,ZMQ_LINGER,0,4)
-  if (rc /= 0) then
-    stop 'Unable to set ZMQ_LINGER on zmq_socket_pull'
-  endif
+!  rc = f77_zmq_setsockopt(zmq_socket_pull,ZMQ_LINGER,10000,4)
+!  if (rc /= 0) then
+!    stop 'Unable to set ZMQ_LINGER on zmq_socket_pull'
+!  endif
 
   rc = f77_zmq_close(zmq_socket_pull)
   if (rc /= 0) then
@@ -473,10 +473,10 @@ subroutine end_zmq_push_socket(zmq_socket_push,thread)
   endif
 
   
-  rc = f77_zmq_setsockopt(zmq_socket_push,ZMQ_LINGER,0,4)
-  if (rc /= 0) then
-    stop 'Unable to set ZMQ_LINGER on push socket'
-  endif
+!  rc = f77_zmq_setsockopt(zmq_socket_push,ZMQ_LINGER,20000,4)
+!  if (rc /= 0) then
+!    stop 'Unable to set ZMQ_LINGER on push socket'
+!  endif
 
   rc = f77_zmq_close(zmq_socket_push)
   if (rc /= 0) then
@@ -805,7 +805,7 @@ subroutine end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
 !    stop 'error'
 !  endif
 
-  rc = f77_zmq_setsockopt(zmq_to_qp_run_socket,ZMQ_LINGER,0,4)
+  rc = f77_zmq_setsockopt(zmq_to_qp_run_socket,ZMQ_LINGER,1000,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_LINGER on zmq_to_qp_run_socket'
   endif

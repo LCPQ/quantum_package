@@ -19,7 +19,7 @@ subroutine selection_slaved(thread,iproc)
   integer,  intent(in)            :: thread, iproc
   integer                        :: rc, i
 
-  integer                        :: worker_id, task_id(1), ctask, ltask
+  integer                        :: worker_id, task_id(10), ctask, ltask
   character*(512)                :: task
 
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
@@ -293,7 +293,7 @@ subroutine selection_collector(b, pt2)
     end do
 
     do i=1, ntask
-      if(task_id(i) == 0) stop "collector"
+      if(task_id(i) == 0) stop "Error in collector"
       call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more)
     end do
     done += ntask
