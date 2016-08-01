@@ -881,7 +881,6 @@ subroutine wait_for_state(state_wait,state)
       print *,  'Timeout reached. Stopping'
       state = "Stopped"
     endif
-print *, '|'//trim(state(1:rc))//'|'//trim(state_wait)//'|'
   end do
   call end_zmq_sub_socket(zmq_socket_sub)
 end

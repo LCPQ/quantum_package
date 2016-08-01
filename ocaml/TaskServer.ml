@@ -589,7 +589,6 @@ let start_pub_thread ~port =
           else
             state
         in
-print_endline (string_of_pub_state new_state);
         ZMQ.Socket.send pub_socket @@ string_of_pub_state new_state;
         match state with
         | Stopped -> ()

@@ -3,13 +3,11 @@
 BEGIN_PROVIDER [ double precision, integral8, (mo_tot_num,  mo_tot_num, mo_tot_num, mo_tot_num) ]
   integral8 = 0d0
   integer :: h1, h2
-  print *, "provide int"
   do h1=1, mo_tot_num
-  do h2=1, mo_tot_num
-    call get_mo_bielec_integrals_ij(h1, h2 ,mo_tot_num,integral8(1,1,h1,h2),mo_integrals_map)
+    do h2=1, mo_tot_num
+      call get_mo_bielec_integrals_ij(h1, h2 ,mo_tot_num,integral8(1,1,h1,h2),mo_integrals_map)
+    end do
   end do
-  end do
-  print *, "end provide int"
 END_PROVIDER
 
 
@@ -21,7 +19,7 @@ subroutine selection_slaved(thread,iproc)
   integer,  intent(in)            :: thread, iproc
   integer                        :: rc, i
 
-  integer                        :: worker_id, task_id(100), ctask, ltask
+  integer                        :: worker_id, task_id(1), ctask, ltask
   character*(512)                :: task
 
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
@@ -51,7 +49,9 @@ subroutine selection_slaved(thread,iproc)
   do
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(ctask), task)
     done = task_id(ctask) == 0
-    if (.not. done) then
+    if (done) then
+      ctask = ctask - 1
+    else
       integer :: i_generator, N
       read (task,*) i_generator, N
       if(buf%N == 0) then
@@ -62,8 +62,6 @@ subroutine selection_slaved(thread,iproc)
       !print *, "psi_selectors_coef ", psi_selectors_coef(N_det_selectors-5:N_det_selectors, 1)
       !call debug_det(psi_selectors(1,1,N_det_selectors), N_int)
       call select_connected(i_generator,ci_electronic_energy,pt2,buf)
-    else
-      ctask = ctask - 1
     endif
 
     if(done .or. ctask == size(task_id)) then
@@ -300,7 +298,7 @@ subroutine selection_collector(b, pt2)
     end do
     done += ntask
     call CPU_TIME(time)
-    print *, "DONE" , done, time - time0
+!    print *, "DONE" , done, time - time0
   end do
 
 

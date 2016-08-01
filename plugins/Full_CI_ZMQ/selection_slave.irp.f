@@ -52,7 +52,7 @@ subroutine run_wf
       do k=1,size(ci_electronic_energy)
         ci_electronic_energy(k) = energy(k)
       enddo
-      SOFT_TOUCH ci_electronic_energy CI_eigenvectors_s2 CI_eigenvectors
+      TOUCH ci_electronic_energy CI_eigenvectors_s2 CI_eigenvectors
     endif
   
     call write_double(6,ci_energy,'Energy')
