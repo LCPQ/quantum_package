@@ -248,16 +248,20 @@ end
 (** GetTaskReply : Reply to the GetTask message *)
 module GetTaskReply_msg : sig
   type t  
-  val create : task_id:Id.Task.t -> task:string -> t
+  val create : task_id:Id.Task.t option -> task:string option -> t
   val to_string : t -> string
 end = struct
   type t =
-  { task_id: Id.Task.t ;
-    task   : string ;
+  { task_id: Id.Task.t option ;
+    task   : string option ;
   }
   let create ~task_id ~task = { task_id ; task }
   let to_string x =
-    Printf.sprintf "get_task_reply %d %s" (Id.Task.to_int x.task_id) x.task
+    match x.task_id, x.task with
+    | Some task_id, Some task -> 
+      Printf.sprintf "get_task_reply %d %s" (Id.Task.to_int task_id) task
+    | _ ->
+      Printf.sprintf "get_task_reply 0"
 end
 
 (** GetPsi : get the current variational wave function *)

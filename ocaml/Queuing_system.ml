@@ -99,8 +99,11 @@ let del_task ~task_id q =
 
     
 
-let number_of_queued q =
+let number q =
   Map.length q.tasks
+
+let number_of_queued q =
+  List.length q.queued
 
 let number_of_running q =
   Map.length q.running

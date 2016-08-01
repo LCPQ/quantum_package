@@ -305,8 +305,7 @@ let del_task msg program_state rep_socket =
             }
         in
         let more = 
-            (Queuing_system.number_of_queued new_program_state.queue +
-             Queuing_system.number_of_running new_program_state.queue) > 0
+            (Queuing_system.number new_program_state.queue > 0)
         in
         Message.DelTaskReply (Message.DelTaskReply_msg.create ~task_id ~more)
         |> Message.to_string
@@ -427,21 +426,10 @@ let get_task msg program_state rep_socket pair_socket =
             }
         in
 
-        match (task, task_id) with
-          | Some task, Some task_id -> 
-              begin
-                Message.GetTaskReply (Message.GetTaskReply_msg.create ~task ~task_id)
-                |> Message.to_string
-                |> ZMQ.Socket.send rep_socket ;
-                new_program_state
-              end
-          | _ -> 
-              begin
-                Message.Terminate (Message.Terminate_msg.create ())
-                |> Message.to_string
-                |> ZMQ.Socket.send rep_socket ;
-                program_state
-              end
+        Message.GetTaskReply (Message.GetTaskReply_msg.create ~task ~task_id)
+        |> Message.to_string
+        |> ZMQ.Socket.send rep_socket ;
+        new_program_state
 
     in
 
@@ -601,6 +589,7 @@ let start_pub_thread ~port =
           else
             state
         in
+print_endline (string_of_pub_state new_state);
         ZMQ.Socket.send pub_socket @@ string_of_pub_state new_state;
         match state with
         | Stopped -> ()
