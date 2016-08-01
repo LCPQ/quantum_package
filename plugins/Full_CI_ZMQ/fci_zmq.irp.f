@@ -155,6 +155,6 @@ subroutine selection_dressing_slave_inproc(i)
   implicit none
   integer, intent(in)            :: i
 
-  call selection_slaved(1,i)
+  call selection_slaved(1,i,ci_electronic_energy)
 end
 

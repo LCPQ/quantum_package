@@ -40,22 +40,7 @@ subroutine run_wf
     call wait_for_state(zmq_state,state)
     if(trim(state) /= 'selection') exit
     print *,  'Getting wave function'
-    call zmq_get_psi(zmq_to_qp_run_socket,1,energy,size(energy))
-    integer :: j,k
-     do j=1,N_states_diag
-      do k=1,N_det
-       CI_eigenvectors(k,j) = psi_coef(k,j)
-      enddo
-      call get_s2_u0(psi_det,CI_eigenvectors(1,j),N_det,size(CI_eigenvectors,1),CI_eigenvectors_s2(j))
-    enddo
-    if (.True.) then
-      do k=1,size(ci_electronic_energy)
-        ci_electronic_energy(k) = energy(k)
-      enddo
-      TOUCH ci_electronic_energy CI_eigenvectors_s2 CI_eigenvectors
-    endif
-  
-    call write_double(6,ci_energy,'Energy')
+    call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states_diag)
  
   
     integer :: rc, i
@@ -64,16 +49,39 @@ subroutine run_wf
  
     !$OMP PARALLEL PRIVATE(i)
     i = omp_get_thread_num()
-    call selection_dressing_slave_tcp(i)
+    call selection_dressing_slave_tcp(i, energy)
     !$OMP END PARALLEL
   end do
 end
 
-
-subroutine selection_dressing_slave_tcp(i)
+subroutine update_energy(energy)
   implicit none
+  double precision, intent(in) :: energy(N_states_diag)
+  BEGIN_DOC
+! Update energy when it is received from ZMQ
+  END_DOC
+  integer :: j,k
+    do j=1,N_states_diag
+    do k=1,N_det
+      CI_eigenvectors(k,j) = psi_coef(k,j)
+    enddo
+    call get_s2_u0(psi_det,CI_eigenvectors(1,j),N_det,size(CI_eigenvectors,1),CI_eigenvectors_s2(j))
+  enddo
+  if (.True.) then
+    do k=1,size(ci_electronic_energy)
+      ci_electronic_energy(k) = energy(k)
+    enddo
+    TOUCH ci_electronic_energy CI_eigenvectors_s2 CI_eigenvectors
+  endif
+
+  call write_double(6,ci_energy,'Energy')
+end
+
+subroutine selection_dressing_slave_tcp(i,energy)
+  implicit none
+  double precision, intent(in) :: energy(N_states_diag)
   integer, intent(in)            :: i
 
-  call selection_slaved(0,i)
+  call selection_slaved(0,i,energy)
 end
 

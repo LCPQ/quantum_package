@@ -145,12 +145,12 @@ function new_zmq_to_qp_run_socket()
 
   rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_SNDTIMEO, 120000, 4)
   if (rc /= 0) then
-    stop 'Unable to set send timout in new_zmq_to_qp_run_socket'
+    stop 'Unable to set send timeout in new_zmq_to_qp_run_socket'
   endif
 
   rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_RCVTIMEO, 120000, 4)
   if (rc /= 0) then
-    stop 'Unable to set recv timout in new_zmq_to_qp_run_socket'
+    stop 'Unable to set recv timeout in new_zmq_to_qp_run_socket'
   endif
 
   rc = f77_zmq_connect(new_zmq_to_qp_run_socket, trim(qp_run_address)//':'//trim(zmq_port(0)))
@@ -247,7 +247,12 @@ function new_zmq_pull_socket()
     stop 'Unable to set ZMQ_LINGER on pull socket'
   endif
   
-  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVHWM,1000,4)
+  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVBUF,100000000,4)
+  if (rc /= 0) then
+    stop 'Unable to set ZMQ_RCVBUF on pull socket'
+  endif
+  
+  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVHWM,1,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_RCVHWM on pull socket'
   endif
@@ -295,9 +300,14 @@ function new_zmq_push_socket(thread)
     stop 'Unable to set ZMQ_LINGER on push socket'
   endif
   
-  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDHWM,1000,4)
+  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDHWM,1,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_SNDHWM on push socket'
+  endif
+  
+  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDBUF,100000000,4)
+  if (rc /= 0) then
+    stop 'Unable to set ZMQ_RCVBUF on push socket'
   endif
   
   rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_IMMEDIATE,1,4)
@@ -345,6 +355,11 @@ function new_zmq_sub_socket()
   rc = f77_zmq_setsockopt(new_zmq_sub_socket,ZMQ_RCVTIMEO,10000,4)
   if (rc /= 0) then
     stop 'Unable to set timeout in new_zmq_sub_socket'
+  endif
+
+  rc = f77_zmq_setsockopt(new_zmq_sub_socket,ZMQ_CONFLATE,1,4)
+  if (rc /= 0) then
+    stop 'Unable to set conflate in new_zmq_sub_socket'
   endif
 
   rc = f77_zmq_setsockopt(new_zmq_sub_socket,ZMQ_SUBSCRIBE,"",0)
@@ -431,7 +446,7 @@ subroutine end_zmq_pull_socket(zmq_socket_pull)
 !    stop 'error'
 !  endif
   
-  call sleep(1) ! see https://github.com/zeromq/libzmq/issues/1922
+!  call sleep(1) ! see https://github.com/zeromq/libzmq/issues/1922
 
 !  rc = f77_zmq_setsockopt(zmq_socket_pull,ZMQ_LINGER,10000,4)
 !  if (rc /= 0) then

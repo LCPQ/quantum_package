@@ -11,15 +11,16 @@ BEGIN_PROVIDER [ double precision, integral8, (mo_tot_num,  mo_tot_num, mo_tot_n
 END_PROVIDER
 
 
-subroutine selection_slaved(thread,iproc)
+subroutine selection_slaved(thread,iproc,energy)
   use f77_zmq
   use selection_types
   implicit none
 
+  double precision, intent(in)    :: energy(N_states_diag)
   integer,  intent(in)            :: thread, iproc
   integer                        :: rc, i
 
-  integer                        :: worker_id, task_id(10), ctask, ltask
+  integer                        :: worker_id, task_id(1), ctask, ltask
   character*(512)                :: task
 
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
@@ -61,7 +62,7 @@ subroutine selection_slaved(thread,iproc)
       end if
       !print *, "psi_selectors_coef ", psi_selectors_coef(N_det_selectors-5:N_det_selectors, 1)
       !call debug_det(psi_selectors(1,1,N_det_selectors), N_int)
-      call select_connected(i_generator,ci_electronic_energy,pt2,buf)
+      call select_connected(i_generator,energy,pt2,buf)
     endif
 
     if(done .or. ctask == size(task_id)) then
@@ -117,6 +118,8 @@ subroutine push_selection_results(zmq_socket_push, pt2, b, task_id, ntask)
   rc = f77_zmq_send( zmq_socket_push, task_id(1), ntask*4, 0)
   if(rc /= 4*ntask) stop "push"
 
+! Activate is zmq_socket_push is a REQ
+!  rc = f77_zmq_recv( zmq_socket_push, task_id(1), ntask*4, 0)
 end subroutine
 
 
@@ -131,23 +134,26 @@ subroutine pull_selection_results(zmq_socket_pull, pt2, val, det, N, task_id, nt
   integer, intent(out) :: N, ntask, task_id(*)
   integer :: rc, rn, i
 
-  rc = f77_zmq_recv( zmq_socket_pull, N, 4, ZMQ_SNDMORE)
+  rc = f77_zmq_recv( zmq_socket_pull, N, 4, 0)
   if(rc /= 4) stop "pull"
 
-  rc = f77_zmq_recv( zmq_socket_pull, pt2, N_states*8, ZMQ_SNDMORE)
+  rc = f77_zmq_recv( zmq_socket_pull, pt2, N_states*8, 0)
   if(rc /= 8*N_states) stop "pull"
 
-  rc = f77_zmq_recv( zmq_socket_pull, val(1), 8*N, ZMQ_SNDMORE)
+  rc = f77_zmq_recv( zmq_socket_pull, val(1), 8*N, 0)
   if(rc /= 8*N) stop "pull"
 
-  rc = f77_zmq_recv( zmq_socket_pull, det(1,1,1), bit_kind*N_int*2*N, ZMQ_SNDMORE)
+  rc = f77_zmq_recv( zmq_socket_pull, det(1,1,1), bit_kind*N_int*2*N, 0)
   if(rc /= bit_kind*N_int*2*N) stop "pull"
 
-  rc = f77_zmq_recv( zmq_socket_pull, ntask, 4, ZMQ_SNDMORE)
+  rc = f77_zmq_recv( zmq_socket_pull, ntask, 4, 0)
   if(rc /= 4) stop "pull"
 
   rc = f77_zmq_recv( zmq_socket_pull, task_id(1), ntask*4, 0)
   if(rc /= 4*ntask) stop "pull"
+
+! Activate is zmq_socket_pull is a REP
+!  rc = f77_zmq_send( zmq_socket_pull, task_id(1), ntask*4, 0)
 end subroutine
 
 
@@ -293,7 +299,9 @@ subroutine selection_collector(b, pt2)
     end do
 
     do i=1, ntask
-      if(task_id(i) == 0) stop "Error in collector"
+      if(task_id(i) == 0) then
+          print *,  "Error in collector"
+      endif
       call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more)
     end do
     done += ntask
@@ -389,7 +397,7 @@ subroutine select_singles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
       call create_microlist_single(psi_selectors, i_generator, N_det_selectors, ion_det, microlist, idx_microlist, N_microlist, ptr_microlist, N_int)
 
       do j=1, ptr_microlist(mo_tot_num * 2 + 1) - 1
-        psi_coef_microlist(j,:) = psi_selectors_coef(idx_microlist(j),:)
+        psi_coef_microlist(j,:) = psi_selectors_coef_transp(:,idx_microlist(j))
       enddo
 
       if(ptr_microlist(mo_tot_num * 2 + 1) == 1) then
@@ -568,10 +576,10 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
 
 
       do j=1, ptr_microlist(mo_tot_num * 2 + 1) - 1
-        psi_coef_microlist(j,:) = psi_selectors_coef(idx_microlist(j),:)
+        psi_coef_microlist(j,:) = psi_selectors_coef_transp(:,idx_microlist(j))
       enddo
       do j=1, ptr_tmicrolist(mo_tot_num * 2 + 1) - 1
-        psi_coef_tmicrolist(j,:) = psi_selectors_coef(idx_tmicrolist(j),:)
+        psi_coef_tmicrolist(j,:) = psi_selectors_coef_transp(:,idx_tmicrolist(j))
       enddo
 
 
@@ -1042,7 +1050,7 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
       !!!! INTEGRAL DRIVEN
 !       !!!!!!!!!!!!!!!!!!!!
       call get_d0(minilist(1,1,idx(i)), banned, banned_pair, d0s, key_mask, 1+(nt2-1)/mo_tot_num, 1+(nt-1)/mo_tot_num, &
-      mod(nt2-1, mo_tot_num)+1, mod(nt-1, mo_tot_num)+1, psi_selectors_coef(idx(i), :))
+      mod(nt2-1, mo_tot_num)+1, mod(nt-1, mo_tot_num)+1, psi_selectors_coef_transp(1,idx(i)))
 
 !       do j=1, N_states
 !       do nt2=1, mo_tot_num
@@ -1062,7 +1070,7 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
         end do
       end do
       
-      call get_d1(minilist(1,1,idx(i)), banned, banned_pair, d0s, key_mask, pwen, psi_selectors_coef(idx(i), :))
+      call get_d1(minilist(1,1,idx(i)), banned, banned_pair, d0s, key_mask, pwen, psi_selectors_coef_transp(1,idx(i)))
           
 !       do k=1, N_states
 !       do nt2=1, mo_tot_num
@@ -1094,6 +1102,7 @@ subroutine get_d1(gen, banned, banned_pair, mat, mask, pwen, coefs)
   integer :: exc(0:2, 2, 2)
   logical :: lbanned(mo_tot_num*2)
   logical :: ok, mono, ab
+  integer :: tmp_array(4)
   
   lbanned = banned
   !mat = 0d0
@@ -1145,12 +1154,14 @@ subroutine get_d1(gen, banned, banned_pair, mat, mask, pwen, coefs)
       exc(1, 1, 2) = p(a1)
       exc(1, 2, sfix) = pfix
       
-      call apply_particle(mask, (/0, 0 ,s(i), p(i) /), deth, ok, N_int)
+      tmp_array = (/0, 0 ,s(i), p(i) /)
+      call apply_particle(mask, tmp_array, deth, ok, N_int)
       
       do j=1,mo_tot_num
         mwen = j + (sm-1)*mo_tot_num
         if(lbanned(mwen)) cycle
-        call apply_particle(deth, (/0,0,sm,j/), det, ok, N_int)
+        tmp_array =  (/0,0,sm,j/)
+        call apply_particle(deth, tmp_array, det, ok, N_int)
         if(.not. ok) cycle
         
         mono = mwen == pwen(a1) .or. mwen == pwen(a2)
@@ -1193,13 +1204,14 @@ subroutine get_d1(gen, banned, banned_pair, mat, mask, pwen, coefs)
       exc(1, 1, sp) = min(h1, h2)
       exc(2, 1, sp) = max(h1, h2)
       
-      call apply_particle(mask, (/0, 0 ,s(i), p(i) /), deth, ok, N_int)
+      tmp_array = (/0, 0 ,s(i), p(i) /)
+      call apply_particle(mask, tmp_array, deth, ok, N_int)
     
       do j=1,mo_tot_num
         if(j == pfix) inv = -inv
         mwen = j + (sm-1)*mo_tot_num
         if(lbanned(mwen)) cycle
-        call apply_particle(deth, (/0,0,sm,j/), det, ok, N_int)
+        call apply_particle(deth, tmp_array, det, ok, N_int)
         if(.not. ok) cycle
         
         mono = mwen == pwen(a1) .or. mwen == pwen(a2)
@@ -1245,6 +1257,7 @@ subroutine get_d0(gen, banned, banned_pair, mat, mask, s1, s2, h1, h2, coefs)
   integer :: p1, p2, hmi, hma, ns1, ns2, st
   logical, external :: detEq
   integer :: exc(0:2, 2, 2), exc2(0:2,2,2)
+  integer :: tmp_array(4)
   
   exc = 0
 !   mat_mwen = integral8(:,:,h1,h2)
@@ -1268,7 +1281,8 @@ subroutine get_d0(gen, banned, banned_pair, mat, mask, s1, s2, h1, h2, coefs)
       if(banned(p1 + ns1)) cycle
       if(p1 == p2) cycle
       if(banned_pair(p1 + ns1, p2 + ns2)) cycle
-      call apply_particle(mask, (/s1,p1,s2,p2/), det2, ok, N_int)
+      tmp_array = (/s1,p1,s2,p2/)
+      call apply_particle(mask, tmp_array, det2, ok, N_int)
       if(.not. ok) cycle
       mono = (hmi == p1 .or. hma == p2 .or. hmi == p2 .or. hma == p1)
       if(mono) then
@@ -1299,7 +1313,8 @@ subroutine get_d0(gen, banned, banned_pair, mat, mask, s1, s2, h1, h2, coefs)
     do p1=1, mo_tot_num
       if(banned(p1 + ns1)) cycle
       if(banned_pair(p1 + ns1, p2 + ns2)) cycle
-      call apply_particle(mask, (/s1,p1,s2,p2/), det2, ok, N_int)
+      tmp_array = (/s1,p1,s2,p2/)
+      call apply_particle(mask, tmp_array, det2, ok, N_int)
       if(.not. ok) cycle
       mono = (h1 == p1 .or. h2 == p2)
       if(mono) then

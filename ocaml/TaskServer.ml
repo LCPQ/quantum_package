@@ -681,9 +681,10 @@ let run ~port =
               in
 
               (** Debug input *)
-              Printf.sprintf "%d %d : %s\n%!"
+              Printf.sprintf "q:%d  r:%d  n:%d  : %s\n%!"
               (Queuing_system.number_of_queued program_state.queue)
               (Queuing_system.number_of_running program_state.queue)
+              (Queuing_system.number program_state.queue)
               (Message.to_string message)
               |> debug;
 
