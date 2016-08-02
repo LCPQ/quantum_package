@@ -29,7 +29,7 @@ subroutine selection_slaved(thread,iproc,energy)
   integer(ZMQ_PTR), external     :: new_zmq_push_socket
   integer(ZMQ_PTR)               :: zmq_socket_push
 
-  type(selection_buffer) :: buf
+  type(selection_buffer) :: buf, buf2
   logical :: done
   double precision :: pt2(N_states)
 
@@ -56,7 +56,9 @@ subroutine selection_slaved(thread,iproc,energy)
       integer :: i_generator, N
       read (task,*) i_generator, N
       if(buf%N == 0) then
+        ! Only first time 
         call create_selection_buffer(N, N*2, buf)
+        call create_selection_buffer(N, N*3, buf2)
       else
         if(N /= buf%N) stop "N changed... wtf man??"
       end if
@@ -72,10 +74,14 @@ subroutine selection_slaved(thread,iproc,energy)
       end do
       if(ctask > 0) then
         call push_selection_results(zmq_socket_push, pt2, buf, task_id(1), ctask)
+        do i=1,buf%cur
+          call add_to_selection_buffer(buf2, buf%det(1,1,i), buf%val(i))
+        enddo
+        call sort_selection_buffer(buf2)
+        buf%mini = buf2%mini
         pt2 = 0d0
         buf%cur = 0
       end if
-
       ctask = 0
     end if
 
@@ -185,8 +191,8 @@ subroutine select_connected(i_generator,E0,pt2,b)
       particle_mask(k,:) = hole_mask(k,:)
     enddo
 
-    call select_singles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
     call select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
+    call select_singles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
   enddo
 end
 
@@ -256,7 +262,7 @@ subroutine sort_selection_buffer(b)
   b%det(:,:,nmwen+1:) = 0_bit_kind
   b%val(:nmwen) = vals(:)
   b%val(nmwen+1:) = 0d0
-  b%mini = dabs(b%val(b%N))
+  b%mini = max(b%mini,dabs(b%val(b%N)))
   b%cur = nmwen
 end subroutine
 
@@ -545,10 +551,13 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   do ispin1=1,2
   do ispin2=1,ispin1
     integer :: i_hole1, i_hole2, j_hole, k_hole
-    do i1=1, N_holes(ispin1)
-    ib = 1
-    if(ispin1 == ispin2) ib = i1+1
-    do i2=ib, N_holes(ispin2)
+    do i1=N_holes(ispin1),1,-1   ! Generate low excitations first
+    if(ispin1 == ispin2) then
+      ib = i1+1
+    else
+      ib = 1
+    endif
+    do i2=N_holes(ispin2),ib,-1   ! Generate low excitations first
       ion_det(:,:) = psi_det_generators(:,:,i_generator)
 
       i_hole1 = hole_list(i1,ispin1)
@@ -721,7 +730,8 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
           else
             e_pert(k) = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * i_H_psi_value(k) * i_H_psi_value(k)) - delta_E)
           endif
-          if(dabs(e_pert(k)) > dabs(e_pertm)) e_pertm = e_pert(k)
+          e_pertm += dabs(e_pert(k))
+!          if(dabs(e_pert(k)) > dabs(e_pertm)) e_pertm = e_pert(k)
           pt2(k) += e_pert(k)
         enddo
         if(dabs(e_pertm) > dabs(buf%mini)) then
