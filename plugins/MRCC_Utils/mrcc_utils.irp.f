@@ -663,8 +663,6 @@ END_PROVIDER
      
      if(AtA_size > size(AtA_val)) stop "SIZA"
      print *, "ATA SIZE", ata_size
-     integer                        :: iproc, omp_get_thread_num
-     iproc = omp_get_thread_num()
      do i=1,nex
        x(i) = AtB(i)
      enddo
@@ -705,7 +703,7 @@ END_PROVIDER
          print *, "residu ", k, res
        end if
        
-       if(res < 1d-16) exit
+       if(res < 1d-10) exit
      end do
      
      norm = 0.d0
@@ -754,6 +752,7 @@ double precision function get_dij_index(II, i, s, Nint)
 
   if(lambda_type == 0) then
     get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint)
+    get_dij_index = get_dij_index * rho_mrcc(i,s)
   else
     call i_h_j(psi_ref(1,1,II), psi_non_ref(1,1,i), Nint, HIi)
     get_dij_index = HIi * lambda_mrcc(s, i)
