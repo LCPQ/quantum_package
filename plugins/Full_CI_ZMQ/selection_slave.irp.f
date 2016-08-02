@@ -25,9 +25,7 @@ subroutine run_wf
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
   double precision :: energy(N_states_diag)
   character*(64) :: state
-  integer :: oki
   
-  oki = 0
   call provide_everything
   
   zmq_context = f77_zmq_ctx_new ()

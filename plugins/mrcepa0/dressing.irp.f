@@ -23,7 +23,7 @@ use bitmasks
   do gen= 1, N_det_generators
     allocate(buf(N_int, 2, N_det_non_ref))
     iproc = omp_get_thread_num() + 1
-    if(mod(gen, 10) == 0) print *, "mrcc ", gen, "/", N_det_generators
+    if(mod(gen, 1000) == 0) print *, "mrcc ", gen, "/", N_det_generators
     do h=1, hh_shortcut(0)
       call apply_hole(psi_det_generators(1,1,gen), hh_exists(1, h), mask, ok, N_int)
       if(.not. ok) cycle

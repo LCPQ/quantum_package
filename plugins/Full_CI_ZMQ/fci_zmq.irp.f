@@ -132,8 +132,16 @@ subroutine ZMQ_selection(N, pt2)
   call zmq_put_psi(zmq_to_qp_run_socket,1,ci_electronic_energy,size(ci_electronic_energy))
   call zmq_set_running(zmq_to_qp_run_socket)
   call create_selection_buffer(N, N*2, b)
-  do i= N_det_generators, 1, -1
-    write(task,*) i, N
+
+  integer :: i_generator, i_generator_start, i_generator_max, step
+!  step = int(max(1.,10*elec_num/mo_tot_num)
+
+  step = int(10000000.d0 / dble(N_int * N_states * elec_num * elec_num * mo_tot_num * mo_tot_num ))
+  step = max(1,step)
+  do i= N_det_generators, 1, -step
+    i_generator_start = max(i-step+1,1)
+    i_generator_max = i
+    write(task,*) i_generator_start, i_generator_max, 1, N
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   end do
 

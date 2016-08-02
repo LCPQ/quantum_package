@@ -718,10 +718,32 @@ END_PROVIDER
      
      dIj_unique(:size(X), s) = X(:)
      
-     do i=1,N_det_non_ref
-       rho_mrcc(i,s) = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
+     norm = 0.d0
+     do i=1,N_det_ref
+       norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
      enddo
-     
+     double precision :: f
+     do i=1,N_det_non_ref
+       f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
+       ! Avoid numerical instabilities
+       f = min(f, 3.d0)
+       f = max(f,-3.d0)
+!       norm = norm + (psi_non_ref_coef(i,s) * f * rho_mrcc(i,s))
+       norm = norm + ( f * rho_mrcc(i,s))**2
+       rho_mrcc(i,s) = f
+     enddo
+
+     print *,  '<Psi | (1+T) Psi_0> = ', norm
+
+     f = 1.d0/norm
+     norm = 0.d0
+     do i=1,N_det_ref
+       norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
+     enddo
+     do i=1,N_det_non_ref
+       rho_mrcc(i,s) = rho_mrcc(i,s) * f
+     enddo
+
    end do
    
    print *, "done"
