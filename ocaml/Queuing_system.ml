@@ -9,6 +9,7 @@ type t =
   clients        : Id.Client.t Set.Poly.t;
   next_client_id : Id.Client.t;
   next_task_id   : Id.Task.t;
+  number_of_queued : int;
 }
 
 
@@ -20,6 +21,7 @@ let create () =
     clients        = Set.Poly.empty;
     next_client_id = Id.Client.of_int 1;
     next_task_id   = Id.Task.of_int 1;
+    number_of_queued = 0;
   }
 
 
@@ -33,6 +35,7 @@ let add_task ~task q =
     queued = task_id :: q.queued ;
     tasks  = Map.add q.tasks ~key:task_id ~data:task ;
     next_task_id = Id.Task.increment task_id ;
+    number_of_queued = q.number_of_queued + 1;
   }
 
 
@@ -59,6 +62,7 @@ let pop_task ~client_id q =
       { q with
         queued = new_queue ;
         running = Map.add running ~key:task_id ~data:client_id ;
+        number_of_queued = q.number_of_queued - 1;
       }
     in new_q, Some task_id, (Map.find q.tasks task_id)
   | [] -> q, None, None
@@ -99,8 +103,11 @@ let del_task ~task_id q =
 
     
 
-let number_of_queued q =
+let number q =
   Map.length q.tasks
+
+let number_of_queued q =
+  q.number_of_queued
 
 let number_of_running q =
   Map.length q.running

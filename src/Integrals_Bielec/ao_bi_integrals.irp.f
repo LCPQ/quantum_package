@@ -372,6 +372,8 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
     write(task,*) "triangle ", l
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   enddo
+  
+  call zmq_set_running(zmq_to_qp_run_socket)
 
   PROVIDE nproc
   !$OMP PARALLEL DEFAULT(private) num_threads(nproc+1)

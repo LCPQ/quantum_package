@@ -248,16 +248,20 @@ end
 (** GetTaskReply : Reply to the GetTask message *)
 module GetTaskReply_msg : sig
   type t  
-  val create : task_id:Id.Task.t -> task:string -> t
+  val create : task_id:Id.Task.t option -> task:string option -> t
   val to_string : t -> string
 end = struct
   type t =
-  { task_id: Id.Task.t ;
-    task   : string ;
+  { task_id: Id.Task.t option ;
+    task   : string option ;
   }
   let create ~task_id ~task = { task_id ; task }
   let to_string x =
-    Printf.sprintf "get_task_reply %d %s" (Id.Task.to_int x.task_id) x.task
+    match x.task_id, x.task with
+    | Some task_id, Some task -> 
+      Printf.sprintf "get_task_reply %d %s" (Id.Task.to_int task_id) task
+    | _ ->
+      Printf.sprintf "get_task_reply 0"
 end
 
 (** GetPsi : get the current variational wave function *)
@@ -541,6 +545,9 @@ type t =
 | Terminate           of  Terminate_msg.t
 | Ok                  of  Ok_msg.t
 | Error               of  Error_msg.t
+| SetStopped 
+| SetWaiting 
+| SetRunning 
 
 
 let of_string s = 
@@ -577,10 +584,11 @@ let of_string s =
   | "put_psi"    :: client_id :: n_state :: n_det :: psi_det_size :: [] ->
        PutPsi   (PutPsi_msg.create ~client_id ~n_state ~n_det ~psi_det_size ~n_det_generators:None
                 ~n_det_selectors:None ~psi_det:None ~psi_coef:None ~energy:None)
-  | "ok"         :: [] ->
-       Ok (Ok_msg.create ())
-  | "error"      :: rest ->
-       Error (Error_msg.create (String.concat ~sep:" " rest))
+  | "ok"         :: [] -> Ok (Ok_msg.create ())
+  | "error"      :: rest -> Error (Error_msg.create (String.concat ~sep:" " rest))
+  | "set_stopped"       :: [] -> SetStopped
+  | "set_running"       :: [] -> SetRunning 
+  | "set_waiting"       :: [] -> SetWaiting
   | _ -> failwith "Message not understood"
     
 
@@ -605,6 +613,9 @@ let to_string = function
 | Error               x -> Error_msg.to_string              x
 | PutPsi              x -> PutPsi_msg.to_string             x
 | GetPsiReply         x -> GetPsiReply_msg.to_string        x
+| SetStopped            -> "set_stopped"
+| SetRunning            -> "set_running"
+| SetWaiting            -> "set_waiting"
 
 
 let to_string_list = function

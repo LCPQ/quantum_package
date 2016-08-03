@@ -1,5 +1,3 @@
-
-
 program fci_zmq
   implicit none
   integer                        :: i,k
@@ -7,9 +5,7 @@ program fci_zmq
   
   double precision, allocatable  :: pt2(:), norm_pert(:), H_pert_diag(:)
   integer                        :: N_st, degree
-  integer :: it, mit(0:6)
-  mit = (/1, 246, 1600, 17528, 112067, 519459, 2685970/)
-  it = 0
+  integer(bit_kind) :: chk
   N_st = N_states
   allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st))
   
@@ -39,20 +35,12 @@ program fci_zmq
   integer :: n_det_before
   print*,'Beginning the selection ...'
   E_CI_before = CI_energy
+  
   do while (N_det < N_det_max.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     n_det_before = N_det
     ! call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
-    it += 1
-    if(it > 6) stop
-    call ZMQ_selection(mit(it) - mit(it-1), pt2) ! max(1000-N_det, N_det), pt2)
+    call ZMQ_selection(max(1024-N_det, N_det), pt2)
     
-    !do i=1, N_det
-      !if(popcnt(psi_det(1,1,i)) + popcnt(psi_det(2,1,i)) /= 23) stop "ZZ1" -2099.2504682049275
-      !if(popcnt(psi_det(1,2,i)) + popcnt(psi_det(2,2,i)) /= 23) stop "ZZ2"
-    !  do k=1,i-1
-    !    if(detEq(psi_det(1,1,i), psi_det(1,1,k), N_int)) stop "ATRRGRZER"
-    !  end do
-    !end do
     PROVIDE  psi_coef
     PROVIDE  psi_det
     PROVIDE  psi_det_sorted
@@ -65,6 +53,14 @@ program fci_zmq
     endif
     call diagonalize_CI
     call save_wavefunction
+  ! chk = 0_8
+  ! do i=1, N_det
+  ! do k=1, N_int
+  !   chk = xor(psi_det(k,1,i), chk)
+  !   chk = xor(psi_det(k,2,i), chk)
+  ! end do
+  ! end do
+  ! print *, "CHK ", chk
 
     print *,  'N_det          = ', N_det
     print *,  'N_states       = ', N_states
@@ -128,18 +124,28 @@ subroutine ZMQ_selection(N, pt2)
   integer                        :: i
   integer, external              :: omp_get_thread_num
   double precision, intent(out)  :: pt2(N_states)
-  !call flip_generators()
-  call new_parallel_job(zmq_to_qp_run_socket,'selection')
   
+  
+  provide nproc
+  provide ci_electronic_energy
+  call new_parallel_job(zmq_to_qp_run_socket,"selection")
+  call zmq_put_psi(zmq_to_qp_run_socket,1,ci_electronic_energy,size(ci_electronic_energy))
+  call zmq_set_running(zmq_to_qp_run_socket)
   call create_selection_buffer(N, N*2, b)
-  do i= N_det_generators, 1, -1
-    write(task,*) i, N
+
+  integer :: i_generator, i_generator_start, i_generator_max, step
+!  step = int(max(1.,10*elec_num/mo_tot_num)
+
+  step = int(10000000.d0 / dble(N_int * N_states * elec_num * elec_num * mo_tot_num * mo_tot_num ))
+  step = max(1,step)
+  do i= N_det_generators, 1, -step
+    i_generator_start = max(i-step+1,1)
+    i_generator_max = i
+    write(task,*) i_generator_start, i_generator_max, 1, N
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   end do
 
-  provide nproc
-  provide ci_electronic_energy
-  !$OMP PARALLEL DEFAULT(none)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
+    !$OMP PARALLEL DEFAULT(none)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1) shared(ci_electronic_energy_is_built, n_det_generators_is_built, n_states_is_built, n_int_is_built, nproc_is_built)
       i = omp_get_thread_num()
       if (i==0) then
         call selection_collector(b, pt2)
@@ -148,125 +154,15 @@ subroutine ZMQ_selection(N, pt2)
       endif
   !$OMP END PARALLEL
   call end_parallel_job(zmq_to_qp_run_socket, 'selection') 
-  !call flip_generators()
   call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) !!! PAS DE ROBIN
   call copy_H_apply_buffer_to_wf()
 end subroutine
-
-
-subroutine selection_dressing_slave_tcp(i)
-  implicit none
-  integer, intent(in)            :: i
-
-  call selection_slave(0,i)
-end
 
 
 subroutine selection_dressing_slave_inproc(i)
   implicit none
   integer, intent(in)            :: i
 
-  call selection_slave(1,i)
+  call selection_slaved(1,i,ci_electronic_energy)
 end
 
-
-
-! subroutine ZMQ_selection()
-!   use f77_zmq
-!   implicit none
-!   BEGIN_DOC
-! ! Massively parallel Full-CI
-!   END_DOC
-! 
-!   integer :: i,ithread
-!   integer(ZMQ_PTR) :: zmq_socket_push
-!   integer(ZMQ_PTR), external :: new_zmq_push_socket
-!   zmq_context = f77_zmq_ctx_new ()
-!   PROVIDE H_apply_buffer_allocated
-!   
-!     PROVIDE ci_electronic_energy
-!     PROVIDE nproc
-!     !$OMP PARALLEL PRIVATE(i,ithread,zmq_socket_push) num_threads(nproc+1)
-!     ithread = omp_get_thread_num()
-!     if (ithread == 0) then
-!       call receive_selected_determinants()
-!     else
-!       zmq_socket_push = new_zmq_push_socket(1)
-!       
-!       do i=ithread,N_det_generators,nproc
-!         print *, i, "/", N_det_generators
-!         call select_connected(i, max(100, N_det), ci_electronic_energy,zmq_socket_push)
-!       enddo
-!       
-!       if (ithread == 1) then
-!         integer :: rc
-!         rc = f77_zmq_send(zmq_socket_push,0,1,0)
-!         if (rc /= 1) then
-!           stop 'Error sending termination signal'
-!         endif
-!       endif
-!       call end_zmq_push_socket(zmq_socket_push, 1)
-!     endif
-!     !$OMP END PARALLEL
-!     call copy_H_apply_buffer_to_wf()
-! end
-
-
-
-
-
-
-
-
-
-
-
-
-
-! program Full_CI_ZMQ
-!   use f77_zmq
-!   implicit none
-!   BEGIN_DOC
-! ! Massively parallel Full-CI
-!   END_DOC
-! 
-!   integer :: i,ithread
-! 
-!   integer(ZMQ_PTR) :: zmq_socket_push
-!   integer(ZMQ_PTR), external :: new_zmq_push_socket
-!   zmq_context = f77_zmq_ctx_new ()
-!   PROVIDE H_apply_buffer_allocated
-!   
-!   do while (N_det < N_det_max)
-! 
-!     PROVIDE ci_electronic_energy
-!     PROVIDE nproc
-!     !$OMP PARALLEL PRIVATE(i,ithread,zmq_socket_push) num_threads(nproc+1)
-!     ithread = omp_get_thread_num()
-!     if (ithread == 0) then
-!       call receive_selected_determinants()
-!     else
-!       zmq_socket_push = new_zmq_push_socket(0)
-!       
-!       do i=ithread,N_det_generators,nproc
-!         print *,  i , "/", N_det_generators
-!         call select_connected(i, 1.d-7, ci_electronic_energy,zmq_socket_push)
-!       enddo
-!       print *, "END .... "
-!       
-!       if (ithread == 1) then
-!         integer :: rc
-!         rc = f77_zmq_send(zmq_socket_push,0,1,0)
-!         if (rc /= 1) then
-!           stop 'Error sending termination signal'
-!         endif
-!       endif
-!       call end_zmq_push_socket(zmq_socket_push, 0)
-!     endif
-!     !$OMP END PARALLEL
-!     call copy_H_apply_buffer_to_wf()
-!     call diagonalize_CI()
-!     call save_wavefunction()
-!   end do    
-! 
-! end

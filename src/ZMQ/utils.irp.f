@@ -143,19 +143,19 @@ function new_zmq_to_qp_run_socket()
      stop 'Unable to create zmq req socket'
   endif
 
-  rc = f77_zmq_connect(new_zmq_to_qp_run_socket, trim(qp_run_address)//':'//trim(zmq_port(0)))
-  if (rc /= 0) then
-    stop 'Unable to connect new_zmq_to_qp_run_socket'
-  endif
-
   rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_SNDTIMEO, 120000, 4)
   if (rc /= 0) then
-    stop 'Unable to set send timout in new_zmq_to_qp_run_socket'
+    stop 'Unable to set send timeout in new_zmq_to_qp_run_socket'
   endif
 
   rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_RCVTIMEO, 120000, 4)
   if (rc /= 0) then
-    stop 'Unable to set recv timout in new_zmq_to_qp_run_socket'
+    stop 'Unable to set recv timeout in new_zmq_to_qp_run_socket'
+  endif
+
+  rc = f77_zmq_connect(new_zmq_to_qp_run_socket, trim(qp_run_address)//':'//trim(zmq_port(0)))
+  if (rc /= 0) then
+    stop 'Unable to connect new_zmq_to_qp_run_socket'
   endif
 
 end
@@ -182,18 +182,6 @@ function new_zmq_pair_socket(bind)
      stop 'Unable to create zmq pair socket'
   endif
 
-  if (bind) then
-    rc = f77_zmq_bind(new_zmq_pair_socket,zmq_socket_pair_inproc_address)
-    if (rc /= 0) then
-      print *,  'f77_zmq_bind(new_zmq_pair_socket, zmq_socket_pair_inproc_address)'
-      stop 'error'
-    endif
-  else
-    rc = f77_zmq_connect(new_zmq_pair_socket,zmq_socket_pair_inproc_address)
-    if (rc /= 0) then
-      stop 'Unable to connect new_zmq_pair_socket'
-    endif
-  endif
 
   rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 1, 4)
   if (rc /= 0) then
@@ -213,6 +201,19 @@ function new_zmq_pair_socket(bind)
   rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_LINGER, 600000, 4)
   if (rc /= 0) then
     stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_LINGER, 60000, 4)'
+  endif
+
+  if (bind) then
+    rc = f77_zmq_bind(new_zmq_pair_socket,zmq_socket_pair_inproc_address)
+    if (rc /= 0) then
+      print *,  'f77_zmq_bind(new_zmq_pair_socket, zmq_socket_pair_inproc_address)'
+      stop 'error'
+    endif
+  else
+    rc = f77_zmq_connect(new_zmq_pair_socket,zmq_socket_pair_inproc_address)
+    if (rc /= 0) then
+      stop 'Unable to connect new_zmq_pair_socket'
+    endif
   endif
 
 end
@@ -246,7 +247,12 @@ function new_zmq_pull_socket()
     stop 'Unable to set ZMQ_LINGER on pull socket'
   endif
   
-  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVHWM,1000,4)
+  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVBUF,100000000,4)
+  if (rc /= 0) then
+    stop 'Unable to set ZMQ_RCVBUF on pull socket'
+  endif
+  
+  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVHWM,1,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_RCVHWM on pull socket'
   endif
@@ -294,9 +300,14 @@ function new_zmq_push_socket(thread)
     stop 'Unable to set ZMQ_LINGER on push socket'
   endif
   
-  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDHWM,1000,4)
+  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDHWM,1,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_SNDHWM on push socket'
+  endif
+  
+  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDBUF,100000000,4)
+  if (rc /= 0) then
+    stop 'Unable to set ZMQ_RCVBUF on push socket'
   endif
   
   rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_IMMEDIATE,1,4)
@@ -346,6 +357,11 @@ function new_zmq_sub_socket()
     stop 'Unable to set timeout in new_zmq_sub_socket'
   endif
 
+  rc = f77_zmq_setsockopt(new_zmq_sub_socket,ZMQ_CONFLATE,1,4)
+  if (rc /= 0) then
+    stop 'Unable to set conflate in new_zmq_sub_socket'
+  endif
+
   rc = f77_zmq_setsockopt(new_zmq_sub_socket,ZMQ_SUBSCRIBE,"",0)
   if (rc /= 0) then
     stop 'Unable to subscribe new_zmq_sub_socket'
@@ -393,10 +409,10 @@ subroutine end_zmq_pair_socket(zmq_socket_pair)
 !    stop 'error'
 !  endif
   
-  rc = f77_zmq_setsockopt(zmq_socket_pair,ZMQ_LINGER,0,4)
-  if (rc /= 0) then
-    stop 'Unable to set ZMQ_LINGER on zmq_socket_pair'
-  endif
+!  rc = f77_zmq_setsockopt(zmq_socket_pair,0ZMQ_LINGER,1000,4)
+!  if (rc /= 0) then
+!    stop 'Unable to set ZMQ_LINGER on zmq_socket_pair'
+!  endif
 
   rc = f77_zmq_close(zmq_socket_pair)
   if (rc /= 0) then
@@ -430,12 +446,12 @@ subroutine end_zmq_pull_socket(zmq_socket_pull)
 !    stop 'error'
 !  endif
   
-  call sleep(1) ! see https://github.com/zeromq/libzmq/issues/1922
+!  call sleep(1) ! see https://github.com/zeromq/libzmq/issues/1922
 
-  rc = f77_zmq_setsockopt(zmq_socket_pull,ZMQ_LINGER,0,4)
-  if (rc /= 0) then
-    stop 'Unable to set ZMQ_LINGER on zmq_socket_pull'
-  endif
+!  rc = f77_zmq_setsockopt(zmq_socket_pull,ZMQ_LINGER,10000,4)
+!  if (rc /= 0) then
+!    stop 'Unable to set ZMQ_LINGER on zmq_socket_pull'
+!  endif
 
   rc = f77_zmq_close(zmq_socket_pull)
   if (rc /= 0) then
@@ -472,10 +488,10 @@ subroutine end_zmq_push_socket(zmq_socket_push,thread)
   endif
 
   
-  rc = f77_zmq_setsockopt(zmq_socket_push,ZMQ_LINGER,0,4)
-  if (rc /= 0) then
-    stop 'Unable to set ZMQ_LINGER on push socket'
-  endif
+!  rc = f77_zmq_setsockopt(zmq_socket_push,ZMQ_LINGER,20000,4)
+!  if (rc /= 0) then
+!    stop 'Unable to set ZMQ_LINGER on push socket'
+!  endif
 
   rc = f77_zmq_close(zmq_socket_push)
   if (rc /= 0) then
@@ -535,6 +551,34 @@ subroutine new_parallel_job(zmq_to_qp_run_socket,name_in)
   
 end
 
+subroutine zmq_set_running(zmq_to_qp_run_socket)
+  use f77_zmq
+  implicit none
+  BEGIN_DOC
+  ! Set the job to Running in QP-run
+  END_DOC
+  
+  integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
+  character*(512)                :: message
+  integer                        :: rc, sze
+
+  message = 'set_running'
+  sze = len(trim(message))
+  rc = f77_zmq_send(zmq_to_qp_run_socket,message,sze,0)
+  if (rc /= sze) then
+    print *,  irp_here, ':f77_zmq_send(zmq_to_qp_run_socket,message,sze,0)'
+    stop 'error'
+  endif
+  rc = f77_zmq_recv(zmq_to_qp_run_socket,message,510,0)
+  message = trim(message(1:rc))
+  if (message(1:2) /= 'ok') then
+    print *,  'Unable to set qp_run to Running'
+    stop 1
+  endif
+  
+  
+end
+
 
 subroutine end_parallel_job(zmq_to_qp_run_socket,name_in)
   use f77_zmq
@@ -584,7 +628,6 @@ subroutine connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   character*(512)                :: message
   character*(128)                :: reply, state, address
   integer                        :: rc
-  
   if (thread == 1) then
     rc = f77_zmq_send(zmq_to_qp_run_socket, "connect inproc", 14, 0)
     if (rc /= 14) then
@@ -601,6 +644,10 @@ subroutine connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
   message = trim(message(1:rc))
+  if(message(1:5) == "error") then
+    worker_id = -1
+    return
+  end if
   read(message,*) reply, state, worker_id, address
   if ( (trim(reply) /= 'connect_reply') .and.                        &
         (trim(state) /= trim(zmq_state)) ) then
@@ -609,7 +656,6 @@ subroutine connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
     print *,  'Address: ', trim(address)
     stop -1
   endif
-  
 end
 
 subroutine disconnect_from_taskserver(zmq_to_qp_run_socket, &
@@ -774,7 +820,7 @@ subroutine end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
 !    stop 'error'
 !  endif
 
-  rc = f77_zmq_setsockopt(zmq_to_qp_run_socket,ZMQ_LINGER,0,4)
+  rc = f77_zmq_setsockopt(zmq_to_qp_run_socket,ZMQ_LINGER,1000,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_LINGER on zmq_to_qp_run_socket'
   endif
@@ -841,8 +887,8 @@ subroutine wait_for_state(state_wait,state)
   integer                        :: rc
 
   zmq_socket_sub       = new_zmq_sub_socket()
-  state = "Waiting"
-  do while (state /= state_wait .and. state /= "Stopped")
+  state = 'Waiting'
+  do while (trim(state) /= trim(state_wait) .and. trim(state) /= 'Stopped')
     rc = f77_zmq_recv( zmq_socket_sub, state, 64, 0)
     if (rc > 0) then
       state = trim(state(1:rc))

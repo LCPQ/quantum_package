@@ -160,10 +160,30 @@ let new_job msg program_state rep_socket pair_socket =
       }
     in
     reply_ok rep_socket;
-    string_of_pub_state (Running (Message.State.to_string state))
+    string_of_pub_state Waiting
     |> ZMQ.Socket.send pair_socket ;
     result
 
+let change_pub_state msg program_state rep_socket pair_socket =
+  let msg = 
+    match msg with
+    | `Waiting -> Waiting 
+    | `Stopped -> Stopped
+    | `Running ->
+      begin
+	let state =
+	   match program_state.state with
+	   | Some x -> x
+	   | None  -> failwith "Trying to change pub state while no job is ready"
+        in
+        Running (Message.State.to_string state)
+      end
+  in
+  reply_ok rep_socket;
+  string_of_pub_state msg
+  |> ZMQ.Socket.send pair_socket ;
+
+  program_state
 
 let end_job msg program_state rep_socket pair_socket =
 
@@ -285,8 +305,7 @@ let del_task msg program_state rep_socket =
             }
         in
         let more = 
-            (Queuing_system.number_of_queued new_program_state.queue +
-             Queuing_system.number_of_running new_program_state.queue) > 0
+            (Queuing_system.number new_program_state.queue > 0)
         in
         Message.DelTaskReply (Message.DelTaskReply_msg.create ~task_id ~more)
         |> Message.to_string
@@ -407,21 +426,10 @@ let get_task msg program_state rep_socket pair_socket =
             }
         in
 
-        match (task, task_id) with
-          | Some task, Some task_id -> 
-              begin
-                Message.GetTaskReply (Message.GetTaskReply_msg.create ~task ~task_id)
-                |> Message.to_string
-                |> ZMQ.Socket.send rep_socket ;
-                new_program_state
-              end
-          | _ -> 
-              begin
-                Message.Terminate (Message.Terminate_msg.create ())
-                |> Message.to_string
-                |> ZMQ.Socket.send rep_socket ;
-                program_state
-              end
+        Message.GetTaskReply (Message.GetTaskReply_msg.create ~task ~task_id)
+        |> Message.to_string
+        |> ZMQ.Socket.send rep_socket ;
+        new_program_state
 
     in
 
@@ -531,6 +539,9 @@ let get_psi msg program_state rep_socket =
 let terminate program_state rep_socket =
     reply_ok rep_socket;
     { program_state with
+      psi = None;
+      address_tcp = None;
+      address_inproc = None;
       running = false
     }
 
@@ -670,9 +681,10 @@ let run ~port =
               in
 
               (** Debug input *)
-              Printf.sprintf "%d %d : %s\n%!"
+              Printf.sprintf "q:%d  r:%d  n:%d  : %s\n%!"
               (Queuing_system.number_of_queued program_state.queue)
               (Queuing_system.number_of_running program_state.queue)
+              (Queuing_system.number program_state.queue)
               (Message.to_string message)
               |> debug;
 
@@ -685,6 +697,9 @@ let run ~port =
                   | None  , Message.Newjob      x -> new_job x program_state rep_socket pair_socket
                   | _     , Message.Newjob      _ -> error "A job is already running" program_state rep_socket
                   | Some _, Message.Endjob      x -> end_job x program_state rep_socket pair_socket
+                  | Some _, Message.SetRunning    -> change_pub_state `Running program_state rep_socket pair_socket
+                  | _, Message.SetWaiting    -> change_pub_state `Waiting program_state rep_socket pair_socket
+                  | _, Message.SetStopped    -> change_pub_state `Stopped program_state rep_socket pair_socket
                   | None  ,                     _ -> error "No job is running" program_state rep_socket
                   | Some _, Message.Connect     x -> connect x program_state rep_socket
                   | Some _, Message.Disconnect  x -> disconnect x program_state rep_socket

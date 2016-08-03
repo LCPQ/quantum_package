@@ -58,6 +58,4 @@ subroutine run_wf
   i = omp_get_thread_num()
   call H_apply_FCI_PT2_slave_tcp(i)
   !$OMP END PARALLEL
-
-
 end
