@@ -530,7 +530,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       !$OMP END PARALLEL
       
       write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))')  iter, to_print(:,1:N_st)
-      call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
+      call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_states,converged)
       if (converged) then
         exit
       endif

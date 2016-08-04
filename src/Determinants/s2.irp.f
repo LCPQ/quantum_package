@@ -215,54 +215,52 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
 end
 
 subroutine get_uJ_s2_uI(psi_keys_tmp,psi_coefs_tmp,n,nmax_coefs,nmax_keys,s2,nstates)
- implicit none
- use bitmasks
- integer(bit_kind), intent(in) :: psi_keys_tmp(N_int,2,nmax_keys)
- integer, intent(in) :: n,nmax_coefs,nmax_keys,nstates
- double precision, intent(in) :: psi_coefs_tmp(nmax_coefs,nstates)
- double precision, intent(out) :: s2(nstates,nstates)
- double precision :: s2_tmp,accu
- integer :: i,j,l,jj,ll,kk
- integer, allocatable           :: idx(:)
- double precision, allocatable :: tmp(:,:)
- BEGIN_DOC
- ! returns the matrix elements of S^2 "s2(i,j)" between the "nstates" states 
- ! psi_coefs_tmp(:,i) and psi_coefs_tmp(:,j)
- END_DOC
- s2 = 0.d0
- do ll = 1, nstates
-  do jj = 1, nstates
- accu = 0.d0
- !$OMP PARALLEL DEFAULT(NONE)                                         &
- !$OMP PRIVATE (i,j,kk,idx,tmp,s2_tmp) & 
- !$OMP SHARED (ll,jj,psi_keys_tmp,psi_coefs_tmp,N_int,n,nstates)      &
- !$OMP REDUCTION(+:accu)
- allocate(idx(0:n))
-   !$OMP DO SCHEDULE(dynamic)
-   do i = 1, n
-    call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,i),s2_tmp,N_int)
-    accu += psi_coefs_tmp(i,ll) * s2_tmp * psi_coefs_tmp(i,jj)
-    call filter_connected(psi_keys_tmp,psi_keys_tmp(1,1,i),N_int,i-1,idx)
-    do kk=1,idx(0)
-     j = idx(kk)
-     call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,j),s2_tmp,N_int)
-     accu += psi_coefs_tmp(i,ll) * s2_tmp * psi_coefs_tmp(j,jj) + psi_coefs_tmp(i,jj) * s2_tmp * psi_coefs_tmp(j,ll)
+  implicit none
+  use bitmasks
+  integer(bit_kind), intent(in)  :: psi_keys_tmp(N_int,2,nmax_keys)
+  integer, intent(in)            :: n,nmax_coefs,nmax_keys,nstates
+  double precision, intent(in)   :: psi_coefs_tmp(nmax_coefs,nstates)
+  double precision, intent(out)  :: s2(nstates,nstates)
+  double precision               :: s2_tmp,accu
+  integer                        :: i,j,l,jj,ll,kk
+  integer, allocatable           :: idx(:)
+  BEGIN_DOC
+  ! returns the matrix elements of S^2 "s2(i,j)" between the "nstates" states
+  ! psi_coefs_tmp(:,i) and psi_coefs_tmp(:,j)
+  END_DOC
+  s2 = 0.d0
+  do ll = 1, nstates
+    do jj = 1, nstates
+      accu = 0.d0
+      !$OMP PARALLEL DEFAULT(NONE)                                   &
+          !$OMP PRIVATE (i,j,kk,idx,s2_tmp)                          &
+          !$OMP SHARED (ll,jj,psi_keys_tmp,psi_coefs_tmp,N_int,n,nstates)&
+          !$OMP REDUCTION(+:accu)
+      allocate(idx(0:n))
+      !$OMP DO SCHEDULE(dynamic)
+      do i = n,1,-1   ! Better OMP scheduling
+        call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,i),s2_tmp,N_int)
+        accu += psi_coefs_tmp(i,ll) * s2_tmp * psi_coefs_tmp(i,jj)
+        call filter_connected(psi_keys_tmp,psi_keys_tmp(1,1,i),N_int,i-1,idx)
+        do kk=1,idx(0)
+          j = idx(kk)
+          call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,j),s2_tmp,N_int)
+          accu += psi_coefs_tmp(i,ll) * s2_tmp * psi_coefs_tmp(j,jj) + psi_coefs_tmp(i,jj) * s2_tmp * psi_coefs_tmp(j,ll)
+        enddo
+      enddo
+      !$OMP END DO
+      deallocate(idx)
+      !$OMP END PARALLEL
+      s2(ll,jj) += accu
     enddo
-   enddo
-   !$OMP END DO NOWAIT
- deallocate(idx)
- !$OMP BARRIER
- !$OMP END PARALLEL
-   s2(ll,jj) += accu
   enddo
- enddo
- do i = 1, nstates
-  do j =i+1,nstates
-   accu = 0.5d0 * (s2(i,j) + s2(j,i))
-   s2(i,j) = accu
-   s2(j,i) = accu
+  do i = 1, nstates
+    do j =i+1,nstates
+      accu = 0.5d0 * (s2(i,j) + s2(j,i))
+      s2(i,j) = accu
+      s2(j,i) = accu
+    enddo
   enddo
- enddo
 end
 
 subroutine diagonalize_s2_betweenstates(keys_tmp,psi_coefs_inout,n,nmax_keys,nmax_coefs,nstates,s2_eigvalues)
