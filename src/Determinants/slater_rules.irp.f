@@ -1831,3 +1831,17 @@ subroutine apply_excitation(det, exc, res, ok, Nint)
   ok = .true.
 end subroutine
 
+subroutine get_phase(key1,key2,phase,Nint)
+  use bitmasks
+  implicit none
+  integer(bit_kind), intent(in)  :: key1(Nint,2), key2(Nint,2)
+  integer, intent(in)            :: Nint
+  double precision, intent(out)  :: phase
+  BEGIN_DOC
+! Returns the phase between key1 and key2
+  END_DOC
+  integer                        :: exc(0:2, 2, 2), degree
+
+  !DIR$ FORCEINLINE
+  call get_excitation(key1, key2, exc, degree, phase, Nint)
+end

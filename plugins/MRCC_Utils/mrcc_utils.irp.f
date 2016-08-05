@@ -662,6 +662,7 @@ END_PROVIDER
    double precision , allocatable :: AtB(:), AtA_val(:), A_val(:,:), x(:), x_new(:), A_val_mwen(:)
    double precision               :: t, norm, cx, res
    integer, allocatable           :: A_ind(:,:), lref(:), AtA_ind(:), A_ind_mwen(:), col_shortcut(:), N_col(:)
+   double precision               :: phase
    
    
    
@@ -688,7 +689,7 @@ END_PROVIDER
      
      !$OMP PARALLEL DO schedule(static,10) default(none) shared(psi_non_ref, hh_exists, pp_exists, N_int, A_val, A_ind)&
          !$OMP shared(s, hh_shortcut, psi_ref_coef, N_det_non_ref, psi_non_ref_sorted, psi_non_ref_sorted_idx, psi_ref, N_det_ref)&
-         !$OMP private(lref, pp, II, ok, myMask, myDet, ind, wk)
+         !$OMP private(lref, pp, II, ok, myMask, myDet, ind, phase, wk)
      do hh = 1, hh_shortcut(0)
        do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
          allocate(lref(N_det_non_ref))
@@ -700,14 +701,23 @@ END_PROVIDER
            if(.not. ok) cycle
            ind = searchDet(psi_non_ref_sorted(1,1,1), myDet(1,1), N_det_non_ref, N_int)
            if(ind /= -1) then
-             lref(psi_non_ref_sorted_idx(ind)) = II
+             call get_phase(myDet(1,1), psi_ref(1,1,II), phase, N_int)
+             if (phase  > 0.d0) then
+               lref(psi_non_ref_sorted_idx(ind)) =  II
+             else
+               lref(psi_non_ref_sorted_idx(ind)) = -II
+             endif
            end if
          end do
          wk = 0
          do i=1, N_det_non_ref
-           if(lref(i) /= 0) then
+           if(lref(i) > 0) then
              wk += 1
              A_val(wk, pp) = psi_ref_coef(lref(i), s)
+             A_ind(wk, pp) = i
+           else if(lref(i) < 0) then
+             wk += 1
+             A_val(wk, pp) = -psi_ref_coef(-lref(i), s)
              A_ind(wk, pp) = i
            end if
          end do
@@ -748,9 +758,9 @@ END_PROVIDER
          end do
          
          if(a_col == at_row) then
-           t = (t + 1d0)
+           t = t + 1.d0
          end if
-         if(t /= 0d0) then
+         if(t /= 0.d0) then
            wk += 1
            A_ind_mwen(wk) = a_col
            A_val_mwen(wk) = t
@@ -807,10 +817,10 @@ END_PROVIDER
        end do
        
        if(mod(k, 100) == 0) then
-         print *, "residu ", k, res
+         print *, "res", k, res
        end if
        
-       if(res < 1d-10) exit
+       if(res < 1d-8) exit
      end do
      
      norm = 0.d0
@@ -826,27 +836,28 @@ END_PROVIDER
      dIj_unique(:size(X), s) = X(:)
      
      norm = 0.d0
-     do i=1,N_det_ref
-       norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
-     enddo
      double precision :: f
      do i=1,N_det_non_ref
+       if (rho_mrcc(i,s) == 0.d0) then
+         rho_mrcc(i,s) = 1.d-32
+       endif
        f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
        ! Avoid numerical instabilities
-       f = min(f, 3.d0)
-       f = max(f,-3.d0)
-!       norm = norm + (psi_non_ref_coef(i,s) * f * rho_mrcc(i,s))
-       norm = norm + ( f * rho_mrcc(i,s))**2
+       f = min(f, 10.d0)
+       f = max(f, -10.d0)
+       norm = norm + f*f *rho_mrcc(i,s)*rho_mrcc(i,s)
        rho_mrcc(i,s) = f
      enddo
 
-     print *,  '<Psi | (1+T) Psi_0> = ', norm
-
      f = 1.d0/norm
      norm = 0.d0
-     do i=1,N_det_ref
-       norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
+     do i=1,N_det_non_ref
+       norm = norm + psi_non_ref_coef(i,s)*psi_non_ref_coef(i,s)
      enddo
+     f = dsqrt(f*norm)
+
+     print *,  'norm of |T Psi_0> = ', norm*f*f
+
      do i=1,N_det_non_ref
        rho_mrcc(i,s) = rho_mrcc(i,s) * f
      enddo
@@ -877,11 +888,13 @@ END_PROVIDER
 double precision function get_dij_index(II, i, s, Nint)
   integer, intent(in) :: II, i, s, Nint
   double precision, external :: get_dij
-  double precision :: HIi
+  double precision :: HIi, phase
 
   if(lambda_type == 0) then
     get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint)
-    get_dij_index = get_dij_index * rho_mrcc(i,s)
+!    get_dij_index = get_dij_index * rho_mrcc(i,s) 
+    call get_phase(psi_ref(1,1,II), psi_non_ref(1,1,i), phase, N_int)
+    get_dij_index = get_dij_index * rho_mrcc(i,s) * phase
   else
     call i_h_j(psi_ref(1,1,II), psi_non_ref(1,1,i), Nint, HIi)
     get_dij_index = HIi * lambda_mrcc(s, i)
