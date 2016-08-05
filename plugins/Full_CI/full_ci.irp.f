@@ -42,7 +42,6 @@ program full_ci
   print*,'Beginning the selection ...'
   E_CI_before = CI_energy
   do while (N_det < N_det_max.and.maxval(abs(pt2(1:N_st))) > pt2_max)
-    print *, selection_criterion, "*******************"
     n_det_before = N_det
     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
 

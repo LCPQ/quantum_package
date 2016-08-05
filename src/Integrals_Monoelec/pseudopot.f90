@@ -2021,7 +2021,8 @@ double precision function int_prod_bessel_loc(l,gam,n,a)
 
     int=int+f_k
 
-    f_k = f_k*(a*a*dble(k+k+2+n+l-1)) / (dble((k+k+2)*(2*(n+k+1)+1)*2)*gam)
+!    f_k = f_k*(a**2*(2*(k+1)+n+l-1)) / (2*(k+1)*(2*(n+k+1)+1)*2*gam)
+    f_k = f_k*(a*a*dble(k+k+1+n+l)) / (dble((k+k+2)*(4*(n+k+1)+2))*gam)
 
     if(dabs(int-intold).lt.1d-15)then
       done=.true.
