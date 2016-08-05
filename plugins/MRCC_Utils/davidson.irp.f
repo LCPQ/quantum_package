@@ -116,6 +116,7 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
   write(iunit,'(A)') ''
   call write_int(iunit,N_st,'Number of states')
   call write_int(iunit,sze,'Number of determinants')
+  call write_int(iunit,istate,'Using dressing for state ') 
   write(iunit,'(A)') ''
   write_buffer = '===== '
   do i=1,N_st

@@ -135,8 +135,9 @@ END_PROVIDER
    double precision, allocatable  :: e_array(:)
    integer, allocatable           :: iorder(:)
 
-   integer, parameter :: mrcc_state = 1
+   integer :: mrcc_state 
    
+   mrcc_state = N_states
    do j=1,N_states_diag
      do i=1,N_det
        CI_eigenvectors_dressed(i,j) = psi_coef(i,j)
@@ -145,10 +146,8 @@ END_PROVIDER
    
    if (diag_algorithm == "Davidson") then
      
-     do i_state=1,N_states
-        call davidson_diag_mrcc(psi_det,CI_eigenvectors_dressed,CI_electronic_energy_dressed,&
+     call davidson_diag_mrcc(psi_det,CI_eigenvectors_dressed,CI_electronic_energy_dressed,&
           size(CI_eigenvectors_dressed,1),N_det,N_states_diag,N_int,output_determinants,mrcc_state)
-     enddo
      do j=1,N_states_diag
        call get_s2_u0(psi_det,CI_eigenvectors_dressed(1,j),N_det,size(CI_eigenvectors_dressed,1),CI_eigenvectors_s2_dressed(j))
      enddo
