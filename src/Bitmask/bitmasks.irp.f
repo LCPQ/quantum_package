@@ -431,12 +431,40 @@ END_PROVIDER
 
  END_PROVIDER 
 
+
+ BEGIN_PROVIDER [ integer, list_core_inact, (n_core_inact_orb)]
+&BEGIN_PROVIDER [ integer, list_core_inact_reverse, (mo_tot_num)]
+
+ implicit none
+ integer :: occ_inact(N_int*bit_kind_size)
+ integer :: itest,i
+ occ_inact = 0
+
+ call bitstring_to_list(reunion_of_core_inact_bitmask(1,1), occ_inact(1), itest, N_int)
+
+ list_core_inact_reverse = 0
+ do i = 1, n_core_inact_orb
+  list_core_inact(i) = occ_inact(i)
+  list_core_inact_reverse(occ_inact(i)) = i
+ enddo
+
+ END_PROVIDER 
+
+ BEGIN_PROVIDER [ integer, n_core_inact_orb ]
+ implicit none
+ integer :: i
+ n_core_inact_orb = 0
+ do i = 1, N_int
+  n_core_inact_orb += popcnt(reunion_of_core_inact_bitmask(i,1))
+ enddo
+ ENd_PROVIDER
+
  BEGIN_PROVIDER [ integer(bit_kind), reunion_of_core_inact_bitmask, (N_int,2)]
  implicit none
  BEGIN_DOC
  ! Reunion of the core and inactive and virtual bitmasks
  END_DOC
- integer :: i,j
+ integer :: i
  do i = 1, N_int
   reunion_of_core_inact_bitmask(i,1) = ior(core_bitmask(i,1),inact_bitmask(i,1))
   reunion_of_core_inact_bitmask(i,2) = ior(core_bitmask(i,2),inact_bitmask(i,2))
@@ -474,6 +502,7 @@ END_PROVIDER
 
 
  BEGIN_PROVIDER [ integer(bit_kind), inact_virt_bitmask, (N_int,2)]
+&BEGIN_PROVIDER [ integer(bit_kind), core_inact_virt_bitmask, (N_int,2)]
  implicit none
  BEGIN_DOC
  ! Reunion of the inactive and virtual bitmasks
@@ -482,6 +511,8 @@ END_PROVIDER
  do i = 1, N_int
   inact_virt_bitmask(i,1) = ior(inact_bitmask(i,1),virt_bitmask(i,1))
   inact_virt_bitmask(i,2) = ior(inact_bitmask(i,2),virt_bitmask(i,2)) 
+  core_inact_virt_bitmask(i,1) = ior(core_bitmask(i,1),inact_virt_bitmask(i,1))
+  core_inact_virt_bitmask(i,2) = ior(core_bitmask(i,2),inact_virt_bitmask(i,2)) 
  enddo
  END_PROVIDER
 
