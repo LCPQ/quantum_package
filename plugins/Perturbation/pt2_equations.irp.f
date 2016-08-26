@@ -45,6 +45,36 @@ subroutine pt2_epstein_nesbet ($arguments)
   
 end
 
+
+subroutine pt2_decontracted ($arguments)
+  use bitmasks
+  implicit none
+  $declarations
+  
+  BEGIN_DOC
+  END_DOC
+  
+  integer                        :: i,j
+  double precision               :: diag_H_mat_elem_fock, h
+  double precision               :: i_H_psi_array(N_st)
+  double precision               :: coef_pert
+  PROVIDE  selection_criterion
+
+  ASSERT (Nint == N_int)
+  ASSERT (Nint > 0)
+  !call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
+  call i_H_psi_pert_new_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array,coef_pert)
+  
+  
+  c_pert(1) = coef_pert
+  e_2_pert(1) = coef_pert * i_H_psi_array(1)
+! print*,coef_pert,i_H_psi_array(1)
+  
+end
+
+
+
+
 subroutine pt2_epstein_nesbet_2x2 ($arguments)
   use bitmasks
   implicit none
@@ -68,8 +98,8 @@ subroutine pt2_epstein_nesbet_2x2 ($arguments)
   ASSERT (Nint > 0)
   PROVIDE CI_electronic_energy
 
-  !call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
-  call i_H_psi_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
+   call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
+  !call i_H_psi_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
   
   h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
   do i =1,N_st
@@ -86,12 +116,29 @@ subroutine pt2_epstein_nesbet_2x2 ($arguments)
         c_pert(i) = 0.d0
       endif
       H_pert_diag(i) = h*c_pert(i)*c_pert(i)
+!     print*, 'N_det,N_det_selectors = ',N_det,N_det_selectors
+!     print*, 'threshold_selectors',threshold_selectors
+!     print*, delta_e,i_H_psi_array(1)
+!     double precision :: hij,accu
+!     accu = 0.d0
+!     do j = 1, N_det
+!       call i_H_j(det_pert,psi_selectors(1,1,j),N_int,hij)
+!       print*, 'psi_selectors_coef(j,1 = ',psi_selectors_coef(j,1),psi_coef(j,1)
+!       call debug_det(psi_det(1,1,i),N_int)
+!       call debug_det(psi_selectors(1,1,i),N_int)
+!       accu += psi_selectors_coef(j,1) * hij
+!     enddo
+!     print*, 'accu,ihpsi0',accu,i_H_psi_array(1)
+!     stop
     else
       e_2_pert(i) = 0.d0
       c_pert(i) = 0.d0
       H_pert_diag(i) = 0.d0
     endif
   enddo
+! if( e_2_pert(1) .ne. 0.d0)then
+! print*,' e_2_pert(1) ', e_2_pert(1)
+! endif
 
 end
 

@@ -10,7 +10,9 @@ end
 
 subroutine routine_3
  implicit none
- provide one_creation
+!provide fock_virt_total_spin_trace
+ provide energy_cas_dyall
+ print*, 'nuclear_reuplsion = ',nuclear_repulsion
 
 end
 

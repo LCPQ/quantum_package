@@ -1,88 +1,88 @@
 
-BEGIN_PROVIDER [ double precision, one_creation_spin_averaged, (n_act_orb)]
+BEGIN_PROVIDER [ double precision, one_creat_spin_trace, (n_act_orb)]
  implicit none
  integer :: i
  do i = 1, n_act_orb
-  one_creation_spin_averaged(i) = one_creation(i,1) + one_creation(i,2)
-  one_creation_spin_averaged(i) = 0.5d0 * one_creation_spin_averaged(i)
+  one_creat_spin_trace(i) = one_creat(i,1) + one_creat(i,2)
+  one_creat_spin_trace(i) = 0.5d0 * one_creat_spin_trace(i)
  enddo
 END_PROVIDER 
 
 
-BEGIN_PROVIDER [ double precision, one_anhilation_spin_averaged, (n_act_orb)]
+BEGIN_PROVIDER [ double precision, one_anhil_spin_trace, (n_act_orb)]
  implicit none
  integer :: i
  do i = 1, n_act_orb
-  one_anhilation_spin_averaged(i) = one_anhilation(i,1) + one_anhilation(i,2)
-  one_anhilation_spin_averaged(i) = 0.5d0 * one_anhilation_spin_averaged(i)
+  one_anhil_spin_trace(i) = one_anhil(i,1) + one_anhil(i,2)
+  one_anhil_spin_trace(i) = 0.5d0 * one_anhil_spin_trace(i)
  enddo
 
 END_PROVIDER 
 
-BEGIN_PROVIDER [ double precision, two_creation_spin_averaged, (n_act_orb,n_act_orb)]
+BEGIN_PROVIDER [ double precision, two_creat_spin_trace, (n_act_orb,n_act_orb)]
  implicit none
  integer :: i,j
  integer :: ispin,jspin
  double precision :: counting
  do i = 1, n_act_orb
   do j = 1, n_act_orb 
-   two_creation_spin_averaged(j,i) = 0.d0
+   two_creat_spin_trace(j,i) = 0.d0
    counting = 0.d0
    do ispin = 1, 2
     do jspin = 1,2 
-     two_creation_spin_averaged(j,i) += two_creation(j,i,ispin,jspin)
+     two_creat_spin_trace(j,i) += two_creat(j,i,ispin,jspin)
      counting += 1.d0 
     enddo
    enddo 
-   two_creation_spin_averaged(j,i) = two_creation_spin_averaged(j,i) / counting
+   two_creat_spin_trace(j,i) = two_creat_spin_trace(j,i) / counting
   enddo
  enddo
 END_PROVIDER 
 
-BEGIN_PROVIDER [ double precision, two_anhilation_spin_averaged, (n_act_orb,n_act_orb)]
+BEGIN_PROVIDER [ double precision, two_anhil_spin_trace, (n_act_orb,n_act_orb)]
  implicit none
  integer :: i,j
  integer :: ispin,jspin
  double precision :: counting
  do i = 1, n_act_orb
   do j = 1, n_act_orb 
-   two_anhilation_spin_averaged(j,i) = 0.d0
+   two_anhil_spin_trace(j,i) = 0.d0
    counting = 0.d0
    do ispin = 1, 2
     do jspin = 1,2 
-     two_anhilation_spin_averaged(j,i) += two_anhilation(j,i,ispin,jspin)
+     two_anhil_spin_trace(j,i) += two_anhil(j,i,ispin,jspin)
      counting += 1.d0 
     enddo
    enddo 
-   two_anhilation_spin_averaged(j,i) = two_anhilation_spin_averaged(j,i) / counting
+   two_anhil_spin_trace(j,i) = two_anhil_spin_trace(j,i) / counting
   enddo
  enddo
 END_PROVIDER 
 
 
-BEGIN_PROVIDER [ double precision, one_anhilation_one_creation_spin_averaged, (n_act_orb,n_act_orb)]
+BEGIN_PROVIDER [ double precision, one_anhil_one_creat_spin_trace, (n_act_orb,n_act_orb)]
  implicit none
  integer :: i,j
  integer :: ispin,jspin
  double precision :: counting
  do i = 1, n_act_orb
   do j = 1, n_act_orb 
-   one_anhilation_one_creation_spin_averaged(j,i) = 0.d0
+   one_anhil_one_creat_spin_trace(j,i) = 0.d0
    counting = 0.d0
    do ispin = 1, 2
     do jspin = 1,2 
-     one_anhilation_one_creation_spin_averaged(j,i) += one_anhilation_one_creation(j,i,jspin,ispin)
+     one_anhil_one_creat_spin_trace(j,i) += one_anhil_one_creat(j,i,jspin,ispin)
      counting += 1.d0 
     enddo
    enddo
-   one_anhilation_one_creation_spin_averaged(j,i) = one_anhilation_one_creation_spin_averaged(j,i) / counting
+   one_anhil_one_creat_spin_trace(j,i) = one_anhil_one_creat_spin_trace(j,i) / counting
   enddo
  enddo
   
 END_PROVIDER
  
 
-BEGIN_PROVIDER [ double precision, two_anhilation_one_creation_spin_averaged, (n_act_orb,n_act_orb,n_act_orb)]
+BEGIN_PROVIDER [ double precision, two_anhil_one_creat_spin_trace, (n_act_orb,n_act_orb,n_act_orb)]
  implicit none
  integer :: i,j,k
  integer :: ispin,jspin,kspin
@@ -91,16 +91,16 @@ BEGIN_PROVIDER [ double precision, two_anhilation_one_creation_spin_averaged, (n
  do i = 1, n_act_orb 
   do j = 1, n_act_orb 
    do k = 1, n_act_orb
-    two_anhilation_one_creation_spin_averaged(k,j,i) = 0.d0
+    two_anhil_one_creat_spin_trace(k,j,i) = 0.d0
     counting = 0.d0
     do ispin = 1, 2 
      do jspin = 1,2
       do kspin = 1,2
-       two_anhilation_one_creation_spin_averaged(k,j,i)  += two_anhilation_one_creation(k,j,i,kspin,jspin,ispin)
+       two_anhil_one_creat_spin_trace(k,j,i)  += two_anhil_one_creat(k,j,i,kspin,jspin,ispin)
        counting += 1.d0
       enddo 
      enddo
-     two_anhilation_one_creation_spin_averaged(k,j,i) = two_anhilation_one_creation_spin_averaged(k,j,i) / counting
+     two_anhil_one_creat_spin_trace(k,j,i) = two_anhil_one_creat_spin_trace(k,j,i) / counting
     enddo
    enddo
   enddo
@@ -108,7 +108,7 @@ BEGIN_PROVIDER [ double precision, two_anhilation_one_creation_spin_averaged, (n
 
 END_PROVIDER 
 
-BEGIN_PROVIDER [ double precision, two_creation_one_anhilation_spin_averaged, (n_act_orb,n_act_orb,n_act_orb)]
+BEGIN_PROVIDER [ double precision, two_creat_one_anhil_spin_trace, (n_act_orb,n_act_orb,n_act_orb)]
  implicit none
  integer :: i,j,k
  integer :: ispin,jspin,kspin
@@ -117,43 +117,16 @@ BEGIN_PROVIDER [ double precision, two_creation_one_anhilation_spin_averaged, (n
  do i = 1, n_act_orb 
   do j = 1, n_act_orb 
    do k = 1, n_act_orb
-    two_creation_one_anhilation_spin_averaged(k,j,i) = 0.d0
+    two_creat_one_anhil_spin_trace(k,j,i) = 0.d0
     counting = 0.d0
     do ispin = 1, 2 
      do jspin = 1,2
       do kspin = 1,2
-       two_creation_one_anhilation_spin_averaged(k,j,i)  += two_creation_one_anhilation(k,j,i,kspin,jspin,ispin)
+       two_creat_one_anhil_spin_trace(k,j,i)  += two_creat_one_anhil(k,j,i,kspin,jspin,ispin)
        counting += 1.d0
       enddo 
      enddo
-     two_creation_one_anhilation_spin_averaged(k,j,i) = two_creation_one_anhilation_spin_averaged(k,j,i) / counting
-    enddo
-   enddo
-  enddo
- enddo
-
-END_PROVIDER 
-
-
-BEGIN_PROVIDER [ double precision, three_creation_spin_averaged, (n_act_orb,n_act_orb,n_act_orb)]
- implicit none
- integer :: i,j,k
- integer :: ispin,jspin,kspin
- double precision :: counting
- 
- do i = 1, n_act_orb 
-  do j = 1, n_act_orb 
-   do k = 1, n_act_orb
-    three_creation_spin_averaged(k,j,i) = 0.d0
-    counting = 0.d0
-    do ispin = 1, 2 
-     do jspin = 1,2
-      do kspin = 1,2
-       three_creation_spin_averaged(k,j,i)  += three_creation(k,j,i,kspin,jspin,ispin)
-       counting += 1.d0
-      enddo 
-     enddo
-     three_creation_spin_averaged(k,j,i) = three_creation_spin_averaged(k,j,i) / counting
+     two_creat_one_anhil_spin_trace(k,j,i) = two_creat_one_anhil_spin_trace(k,j,i) / counting
     enddo
    enddo
   enddo
@@ -162,7 +135,7 @@ BEGIN_PROVIDER [ double precision, three_creation_spin_averaged, (n_act_orb,n_ac
 END_PROVIDER 
 
 
-BEGIN_PROVIDER [ double precision, three_anhilation_spin_averaged, (n_act_orb,n_act_orb,n_act_orb)]
+BEGIN_PROVIDER [ double precision, three_creat_spin_trace, (n_act_orb,n_act_orb,n_act_orb)]
  implicit none
  integer :: i,j,k
  integer :: ispin,jspin,kspin
@@ -171,16 +144,43 @@ BEGIN_PROVIDER [ double precision, three_anhilation_spin_averaged, (n_act_orb,n_
  do i = 1, n_act_orb 
   do j = 1, n_act_orb 
    do k = 1, n_act_orb
-    three_anhilation_spin_averaged(k,j,i) = 0.d0
+    three_creat_spin_trace(k,j,i) = 0.d0
     counting = 0.d0
     do ispin = 1, 2 
      do jspin = 1,2
       do kspin = 1,2
-       three_anhilation_spin_averaged(k,j,i)  += three_anhilation(k,j,i,kspin,jspin,ispin)
+       three_creat_spin_trace(k,j,i)  += three_creat(k,j,i,kspin,jspin,ispin)
        counting += 1.d0
       enddo 
      enddo
-     three_anhilation_spin_averaged(k,j,i) = three_anhilation_spin_averaged(k,j,i) / counting
+     three_creat_spin_trace(k,j,i) = three_creat_spin_trace(k,j,i) / counting
+    enddo
+   enddo
+  enddo
+ enddo
+
+END_PROVIDER 
+
+
+BEGIN_PROVIDER [ double precision, three_anhil_spin_trace, (n_act_orb,n_act_orb,n_act_orb)]
+ implicit none
+ integer :: i,j,k
+ integer :: ispin,jspin,kspin
+ double precision :: counting
+ 
+ do i = 1, n_act_orb 
+  do j = 1, n_act_orb 
+   do k = 1, n_act_orb
+    three_anhil_spin_trace(k,j,i) = 0.d0
+    counting = 0.d0
+    do ispin = 1, 2 
+     do jspin = 1,2
+      do kspin = 1,2
+       three_anhil_spin_trace(k,j,i)  += three_anhil(k,j,i,kspin,jspin,ispin)
+       counting += 1.d0
+      enddo 
+     enddo
+     three_anhil_spin_trace(k,j,i) = three_anhil_spin_trace(k,j,i) / counting
     enddo
    enddo
   enddo
