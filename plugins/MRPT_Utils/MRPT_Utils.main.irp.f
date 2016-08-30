@@ -18,6 +18,8 @@ subroutine routine_3
  print *,  'PT2      = ', second_order_pt_new(1)
  print *,  'E        = ', CI_energy
  print *,  'E+PT2    = ', CI_energy+second_order_pt_new(1)
+ print *,'****** DIAGONALIZATION OF DRESSED MATRIX ******'
+ print *,  'E dressed= ', CI_dressed_pt2_new_energy(1)
 
 end
 

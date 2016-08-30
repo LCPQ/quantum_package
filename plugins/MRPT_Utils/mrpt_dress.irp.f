@@ -71,12 +71,17 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
       idx_alpha(j) = idx_miniList(idx_alpha(j))
     enddo
      
+!   double precision :: ihpsi0,coef_pert
+!   ihpsi0 = 0.d0
+!   coef_pert = 0.d0
     do i = 1,idx_alpha(0)
       index_i = idx_alpha(i)
       call get_delta_e_dyall(psi_det(1,1,index_i),tq(1,1,i_alpha),delta_e_final)
       call i_h_j(tq(1,1,i_alpha),psi_det(1,1,index_i),Nint,hialpha)
       delta_e_array(index_i) = 1.d0/delta_e_final
       hij_array(index_i) = hialpha
+   !  ihpsi0 += hialpha * psi_coef(index_i,1) 
+   !  coef_pert += hialpha * psi_coef(index_i,1) *  delta_e_array(index_i)
     enddo
     
     do i=1,idx_alpha(0)

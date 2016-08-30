@@ -127,7 +127,6 @@
   enddo
   fock_virt_from_act(i_virt_orb,1) = accu_coulomb + accu_exchange(1) 
   fock_virt_from_act(i_virt_orb,2) = accu_coulomb + accu_exchange(2) 
-  print*, fock_virt_from_act(i_virt_orb,1) ,  fock_virt_from_act(i_virt_orb,2)
  enddo
  END_PROVIDER
 
@@ -160,7 +159,6 @@
   fock_virt_total(i_virt_orb,1) = fock_virt_from_core_inact(i_virt_orb) + fock_virt_from_act(i_virt_orb,1)+ mo_mono_elec_integral(i_virt_orb,i_virt_orb)
   fock_virt_total(i_virt_orb,2) = fock_virt_from_core_inact(i_virt_orb) + fock_virt_from_act(i_virt_orb,2)+ mo_mono_elec_integral(i_virt_orb,i_virt_orb)
   fock_virt_total_spin_trace(i_virt_orb) = 0.5d0 * ( fock_virt_total(i_virt_orb,1) + fock_virt_total(i_virt_orb,2) )
-  print*, fock_virt_total_spin_trace(i_virt_orb)
  enddo
  END_PROVIDER
 
