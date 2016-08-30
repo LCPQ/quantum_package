@@ -11,8 +11,13 @@ end
 subroutine routine_3
  implicit none
 !provide fock_virt_total_spin_trace
- provide energy_cas_dyall
- print*, 'nuclear_reuplsion = ',nuclear_repulsion
+ provide delta_ij 
+ 
+ print *,  'N_det    = ', N_det
+ print *,  'N_states = ', N_states
+ print *,  'PT2      = ', second_order_pt_new(1)
+ print *,  'E        = ', CI_energy
+ print *,  'E+PT2    = ', CI_energy+second_order_pt_new(1)
 
 end
 

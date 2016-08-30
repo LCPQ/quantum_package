@@ -35,7 +35,7 @@ program pouet
  do j = 1, nx
 ! call give_all_aos_at_r(r,aos_array)
   call give_all_mos_at_r(r,mos_array)
-   write(36,'(100(F16.10,X))') r(1), mos_array(1), mos_array(2), mos_array(1)* mos_array(2)
+   write(36,'(100(F16.10,X))') r(1), mos_array(1), mos_array(2), mos_array(3), mos_array(17), mos_array(23)
   !write(36,'(100(F16.10,X))') r(1), mos_array(1), mos_array(2), mos_array(4)
   !write(37,'(100(F16.10,X))') r(1),mos_array(1) * mos_array(2), mos_array(4)*mos_array(2)
 !  if(val_max.le.aos_array(1)  * aos_array(2) )then
