@@ -30,19 +30,19 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
   integer                        :: degree_alpha(psi_det_size)
   logical                        :: fullMatch
  
-  double precision               :: delta_e_array(psi_det_size)
+  double precision               :: delta_e_inv_array(psi_det_size,N_states)
   double precision               :: hij_array(psi_det_size)
 
   integer(bit_kind)              :: tq(Nint,2,n_selected)
   integer                        :: N_tq
 
-  double precision               :: hialpha
+  double precision               :: hialpha,hij
   integer                        :: i_state, i_alpha
   
   integer(bit_kind),allocatable  :: miniList(:,:,:)
   integer,allocatable            :: idx_miniList(:)
   integer                        :: N_miniList, leng
-  double precision               :: delta_e_final,hij_tmp
+  double precision               :: delta_e(N_states),hij_tmp
   integer                        :: index_i,index_j
   
   
@@ -76,12 +76,12 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
 !   coef_pert = 0.d0
     do i = 1,idx_alpha(0)
       index_i = idx_alpha(i)
-      call get_delta_e_dyall(psi_det(1,1,index_i),tq(1,1,i_alpha),delta_e_final)
+      call get_delta_e_dyall(psi_det(1,1,index_i),tq(1,1,i_alpha),delta_e)
       call i_h_j(tq(1,1,i_alpha),psi_det(1,1,index_i),Nint,hialpha)
-      delta_e_array(index_i) = 1.d0/delta_e_final
       hij_array(index_i) = hialpha
-   !  ihpsi0 += hialpha * psi_coef(index_i,1) 
-   !  coef_pert += hialpha * psi_coef(index_i,1) *  delta_e_array(index_i)
+      do i_state = 1,N_states
+       delta_e_inv_array(index_i,i_state) = 1.d0/delta_e(i_state)
+      enddo
     enddo
     
     do i=1,idx_alpha(0)
@@ -91,7 +91,8 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
       do j = 1, idx_alpha(0)
        index_j = idx_alpha(j)
        do i_state=1,N_states
-         delta_ij_(index_i,index_j,i_state) += hij_array(index_j) * hij_tmp * delta_e_array(index_j)
+! standard dressing first order
+         delta_ij_(index_i,index_j,i_state) += hij_array(index_j) * hij_tmp * delta_e_inv_array(index_j,i_state)
        enddo
       enddo
       call omp_unset_lock( psi_ref_bis_lock(index_i))

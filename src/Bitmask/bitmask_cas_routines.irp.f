@@ -7,12 +7,6 @@ use bitmasks
  integer :: i
  number_of_holes = 0
 
-   do i = 1, N_int
-    number_of_holes = number_of_holes  & 
-   + popcnt( xor( iand(reunion_of_core_inact_bitmask(i,1), xor(key_in(i,1),iand(key_in(i,1),cas_bitmask(i,1,1)))), reunion_of_core_inact_bitmask(i,1)) )&   
-   + popcnt( xor( iand(reunion_of_core_inact_bitmask(i,1), xor(key_in(i,2),iand(key_in(i,2),cas_bitmask(i,1,1)))), reunion_of_core_inact_bitmask(i,1)) )
-   enddo
-   return
  if(N_int == 1)then
     number_of_holes = number_of_holes  & 
    + popcnt( xor( iand(reunion_of_core_inact_bitmask(1,1), xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1)))), reunion_of_core_inact_bitmask(1,1)) )&   

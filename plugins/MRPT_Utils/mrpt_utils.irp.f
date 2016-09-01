@@ -14,7 +14,8 @@
  ! Dressing matrix in N_det basis
  END_DOC
  integer :: i,j,m
- double precision :: accu
+ integer :: i_state
+ double precision :: accu(N_states)
  double precision, allocatable :: delta_ij_tmp(:,:,:)
 
 
@@ -27,118 +28,136 @@
  delta_ij_tmp = 0.d0
  call H_apply_mrpt_1h(delta_ij_tmp,N_det)
  accu = 0.d0
+ do i_state = 1, N_states
  do i = 1, N_det
   do j = 1, N_det
-   accu += delta_ij_tmp(j,i,1) * psi_coef(i,1) * psi_coef(j,1)
-   delta_ij(j,i,1) += delta_ij_tmp(j,i,1)
+   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
+   second_order_pt_new_1h(i_state) = accu(i_state) 
+ enddo
  print*, '1h   = ',accu
- second_order_pt_new_1h(1) = accu
  
  ! 1p 
  delta_ij_tmp = 0.d0
  call H_apply_mrpt_1p(delta_ij_tmp,N_det)
  accu = 0.d0
+ do i_state = 1, N_states
  do i = 1, N_det
   do j = 1, N_det
-   accu += delta_ij_tmp(j,i,1) * psi_coef(i,1) * psi_coef(j,1)
-   delta_ij(j,i,1) += delta_ij_tmp(j,i,1)
+   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
+ second_order_pt_new_1p(i_state) = accu(i_state) 
+ enddo
  print*, '1p   = ',accu
- second_order_pt_new_1p(1) = accu
 
  ! 1h1p 
  delta_ij_tmp = 0.d0
  call H_apply_mrpt_1h1p(delta_ij_tmp,N_det)
  accu = 0.d0
+ do i_state = 1, N_states
  do i = 1, N_det
   do j = 1, N_det
-   accu += delta_ij_tmp(j,i,1) * psi_coef(i,1) * psi_coef(j,1)
-   delta_ij(j,i,1) += delta_ij_tmp(j,i,1)
+   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
+ second_order_pt_new_1h1p(i_state) = accu(i_state) 
+ enddo
  print*, '1h1p = ',accu
- second_order_pt_new_1h1p(1) = accu
 
  ! 2h   
  delta_ij_tmp = 0.d0
  call H_apply_mrpt_2h(delta_ij_tmp,N_det)
  accu = 0.d0
+ do i_state = 1, N_states
  do i = 1, N_det
   do j = 1, N_det
-   accu += delta_ij_tmp(j,i,1) * psi_coef(i,1) * psi_coef(j,1)
-   delta_ij(j,i,1) += delta_ij_tmp(j,i,1)
+   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
+ second_order_pt_new_2h(i_state) = accu(i_state) 
+ enddo
  print*, '2h   = ',accu
- second_order_pt_new_2h(1) = accu
 
  ! 2p   
  delta_ij_tmp = 0.d0
  call H_apply_mrpt_2p(delta_ij_tmp,N_det)
  accu = 0.d0
+ do i_state = 1, N_states
  do i = 1, N_det
   do j = 1, N_det
-   accu += delta_ij_tmp(j,i,1) * psi_coef(i,1) * psi_coef(j,1)
-   delta_ij(j,i,1) += delta_ij_tmp(j,i,1)
+   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
+ second_order_pt_new_2p(i_state) = accu(i_state) 
+ enddo
  print*, '2p   = ',accu
- second_order_pt_new_2p(1) = accu
 
  ! 1h2p   
  delta_ij_tmp = 0.d0
  call H_apply_mrpt_1h2p(delta_ij_tmp,N_det)
  accu = 0.d0
+ do i_state = 1, N_states
  do i = 1, N_det
   do j = 1, N_det
-   accu += delta_ij_tmp(j,i,1) * psi_coef(i,1) * psi_coef(j,1)
-   delta_ij(j,i,1) += delta_ij_tmp(j,i,1)
+   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
+ second_order_pt_new_1h2p(i_state) = accu(i_state) 
+ enddo
  print*, '1h2p = ',accu
- second_order_pt_new_1h2p(1) = accu
 
  ! 2h1p   
  delta_ij_tmp = 0.d0
  call H_apply_mrpt_2h1p(delta_ij_tmp,N_det)
  accu = 0.d0
+ do i_state = 1, N_states
  do i = 1, N_det
   do j = 1, N_det
-   accu += delta_ij_tmp(j,i,1) * psi_coef(i,1) * psi_coef(j,1)
-   delta_ij(j,i,1) += delta_ij_tmp(j,i,1)
+   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
+ second_order_pt_new_2h1p(i_state) = accu(i_state) 
+ enddo
  print*, '2h1p = ',accu
- second_order_pt_new_2h1p(1) = accu
 
  ! 2h2p   
  delta_ij_tmp = 0.d0
  call H_apply_mrpt_2h2p(delta_ij_tmp,N_det)
  accu = 0.d0
+ do i_state = 1, N_states
  do i = 1, N_det
   do j = 1, N_det
-   accu += delta_ij_tmp(j,i,1) * psi_coef(i,1) * psi_coef(j,1)
-   delta_ij(j,i,1) += delta_ij_tmp(j,i,1)
+   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
+ second_order_pt_new_2h2p(i_state) = accu(i_state) 
+ enddo
  print*, '2h2p = ',accu
- second_order_pt_new_2h2p(1) = accu
 
  ! total  
  accu = 0.d0
+ do i_state = 1, N_states
  do i = 1, N_det
-  do j = 1, N_det
-   accu += delta_ij(j,i,1) * psi_coef(i,1) * psi_coef(j,1)
+  write(*,'(1000(F16.10,x))')delta_ij(i,:,:)
+  do j = i_state, N_det
+   accu(i_state) += delta_ij(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
   enddo
  enddo
- print*, 'total= ',accu
- second_order_pt_new(1) = accu
+ second_order_pt_new(i_state) = accu(i_state) 
+ print*, 'total= ',accu(i_state)
+ enddo
 
 
-! write(*,'(1000(F16.10,x))')delta_ij(i,:,:)
 
 
 END_PROVIDER
