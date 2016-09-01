@@ -53,14 +53,6 @@ program fci_zmq
     endif
     call diagonalize_CI
     call save_wavefunction
-  ! chk = 0_8
-  ! do i=1, N_det
-  ! do k=1, N_int
-  !   chk = xor(psi_det(k,1,i), chk)
-  !   chk = xor(psi_det(k,2,i), chk)
-  ! end do
-  ! end do
-  ! print *, "CHK ", chk
 
     print *,  'N_det          = ', N_det
     print *,  'N_states       = ', N_states
@@ -163,6 +155,60 @@ subroutine selection_dressing_slave_inproc(i)
   implicit none
   integer, intent(in)            :: i
 
-  call selection_slaved(1,i,ci_electronic_energy)
+  call run_selection_slave(1,i,ci_electronic_energy)
 end
+
+subroutine selection_collector(b, pt2)
+  use f77_zmq
+  use selection_types
+  use bitmasks
+  implicit none
+
+
+  type(selection_buffer), intent(inout) :: b
+  double precision, intent(out)       :: pt2(N_states)
+  double precision                   :: pt2_mwen(N_states)
+  integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
+  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
+
+  integer(ZMQ_PTR), external     :: new_zmq_pull_socket
+  integer(ZMQ_PTR)               :: zmq_socket_pull
+
+  integer :: msg_size, rc, more
+  integer :: acc, i, j, robin, N, ntask
+  double precision, allocatable :: val(:)
+  integer(bit_kind), allocatable :: det(:,:,:)
+  integer, allocatable :: task_id(:)
+  integer :: done
+  real :: time, time0
+  zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
+  zmq_socket_pull = new_zmq_pull_socket()
+  allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det))
+  done = 0
+  more = 1
+  pt2(:) = 0d0
+  call CPU_TIME(time0)
+  do while (more == 1)
+    call pull_selection_results(zmq_socket_pull, pt2_mwen, val(1), det(1,1,1), N, task_id, ntask)
+    pt2 += pt2_mwen
+    do i=1, N
+      call add_to_selection_buffer(b, det(1,1,i), val(i))
+    end do
+
+    do i=1, ntask
+      if(task_id(i) == 0) then
+          print *,  "Error in collector"
+      endif
+      call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more)
+    end do
+    done += ntask
+    call CPU_TIME(time)
+!    print *, "DONE" , done, time - time0
+  end do
+
+
+  call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
+  call end_zmq_pull_socket(zmq_socket_pull)
+  call sort_selection_buffer(b)
+end subroutine
 

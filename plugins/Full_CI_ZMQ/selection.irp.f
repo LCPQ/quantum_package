@@ -11,162 +11,8 @@ BEGIN_PROVIDER [ double precision, integral8, (mo_tot_num,  mo_tot_num, mo_tot_n
 END_PROVIDER
 
 
-subroutine selection_slaved(thread,iproc,energy)
-  use f77_zmq
-  use selection_types
-  implicit none
-
-  double precision, intent(in)    :: energy(N_states_diag)
-  integer,  intent(in)            :: thread, iproc
-  integer                        :: rc, i
-
-  integer                        :: worker_id, task_id(1), ctask, ltask
-  character*(512)                :: task
-
-  integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
-  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
-
-  integer(ZMQ_PTR), external     :: new_zmq_push_socket
-  integer(ZMQ_PTR)               :: zmq_socket_push
-
-  type(selection_buffer) :: buf, buf2
-  logical :: done
-  double precision :: pt2(N_states)
-
-  zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  zmq_socket_push      = new_zmq_push_socket(thread)
-  call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
-  if(worker_id == -1) then
-    print *, "WORKER -1"
-    !call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
-    call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-    call end_zmq_push_socket(zmq_socket_push,thread)
-    return
-  end if
-  buf%N = 0
-  ctask = 1
-  pt2 = 0d0
-
-  do
-    call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(ctask), task)
-    done = task_id(ctask) == 0
-    if (done) then
-      ctask = ctask - 1
-    else
-      integer :: i_generator, i_generator_start, i_generator_max, step, N
-      read (task,*) i_generator_start, i_generator_max, step, N
-      if(buf%N == 0) then
-        ! Only first time 
-        call create_selection_buffer(N, N*2, buf)
-        call create_selection_buffer(N, N*3, buf2)
-      else
-        if(N /= buf%N) stop "N changed... wtf man??"
-      end if
-      !print *, "psi_selectors_coef ", psi_selectors_coef(N_det_selectors-5:N_det_selectors, 1)
-      !call debug_det(psi_selectors(1,1,N_det_selectors), N_int)
-      do i_generator=i_generator_start,i_generator_max,step
-        call select_connected(i_generator,energy,pt2,buf)
-      enddo
-    endif
-
-    if(done .or. ctask == size(task_id)) then
-      if(buf%N == 0 .and. ctask > 0) stop "uninitialized selection_buffer"
-      do i=1, ctask
-         call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i))
-      end do
-      if(ctask > 0) then
-        call push_selection_results(zmq_socket_push, pt2, buf, task_id(1), ctask)
-        do i=1,buf%cur
-          call add_to_selection_buffer(buf2, buf%det(1,1,i), buf%val(i))
-        enddo
-        call sort_selection_buffer(buf2)
-        buf%mini = buf2%mini
-        pt2 = 0d0
-        buf%cur = 0
-      end if
-      ctask = 0
-    end if
-
-    if(done) exit
-    ctask = ctask + 1
-  end do
-  call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
-  call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-  call end_zmq_push_socket(zmq_socket_push,thread)
-end subroutine
-
-
-subroutine push_selection_results(zmq_socket_push, pt2, b, task_id, ntask)
-  use f77_zmq
-  use selection_types
-  implicit none
-
-  integer(ZMQ_PTR), intent(in)   :: zmq_socket_push
-  double precision, intent(in)   :: pt2(N_states)
-  type(selection_buffer), intent(inout) :: b
-  integer, intent(in) :: ntask, task_id(*)
-  integer :: rc
-
-  call sort_selection_buffer(b)
-
-  rc = f77_zmq_send( zmq_socket_push, b%cur, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "push"
-  rc = f77_zmq_send( zmq_socket_push, pt2, 8*N_states, ZMQ_SNDMORE)
-  if(rc /= 8*N_states) stop "push"
-
-  rc = f77_zmq_send( zmq_socket_push, b%val(1), 8*b%cur, ZMQ_SNDMORE)
-  if(rc /= 8*b%cur) stop "push"
-
-  rc = f77_zmq_send( zmq_socket_push, b%det(1,1,1), bit_kind*N_int*2*b%cur, ZMQ_SNDMORE)
-  if(rc /= bit_kind*N_int*2*b%cur) stop "push"
-
-  rc = f77_zmq_send( zmq_socket_push, ntask, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "push"
-
-  rc = f77_zmq_send( zmq_socket_push, task_id(1), ntask*4, 0)
-  if(rc /= 4*ntask) stop "push"
-
-! Activate is zmq_socket_push is a REQ
-!  rc = f77_zmq_recv( zmq_socket_push, task_id(1), ntask*4, 0)
-end subroutine
-
-
-subroutine pull_selection_results(zmq_socket_pull, pt2, val, det, N, task_id, ntask)
-  use f77_zmq
-  use selection_types
-  implicit none
-  integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
-  double precision, intent(inout) :: pt2(N_states)
-  double precision, intent(out) :: val(*)
-  integer(bit_kind), intent(out) :: det(N_int, 2, *)
-  integer, intent(out) :: N, ntask, task_id(*)
-  integer :: rc, rn, i
-
-  rc = f77_zmq_recv( zmq_socket_pull, N, 4, 0)
-  if(rc /= 4) stop "pull"
-
-  rc = f77_zmq_recv( zmq_socket_pull, pt2, N_states*8, 0)
-  if(rc /= 8*N_states) stop "pull"
-
-  rc = f77_zmq_recv( zmq_socket_pull, val(1), 8*N, 0)
-  if(rc /= 8*N) stop "pull"
-
-  rc = f77_zmq_recv( zmq_socket_pull, det(1,1,1), bit_kind*N_int*2*N, 0)
-  if(rc /= bit_kind*N_int*2*N) stop "pull"
-
-  rc = f77_zmq_recv( zmq_socket_pull, ntask, 4, 0)
-  if(rc /= 4) stop "pull"
-
-  rc = f77_zmq_recv( zmq_socket_pull, task_id(1), ntask*4, 0)
-  if(rc /= 4*ntask) stop "pull"
-
-! Activate is zmq_socket_pull is a REP
-!  rc = f77_zmq_send( zmq_socket_pull, task_id(1), ntask*4, 0)
-end subroutine
-
-
 subroutine select_connected(i_generator,E0,pt2,b)
-  use f77_zmq
+  !use f77_zmq
   use bitmasks
   use selection_types
   implicit none
@@ -199,133 +45,9 @@ subroutine select_connected(i_generator,E0,pt2,b)
 end
 
 
-subroutine create_selection_buffer(N, siz, res)
-  use selection_types
-  implicit none
-
-  integer, intent(in) :: N, siz
-  type(selection_buffer), intent(out) :: res
-
-  allocate(res%det(N_int, 2, siz), res%val(siz))
-
-  res%val = 0d0
-  res%det = 0_8
-  res%N = N
-  res%mini = 0d0
-  res%cur = 0
-end subroutine
-
-
-subroutine add_to_selection_buffer(b, det, val)
-  use selection_types
-  implicit none
-
-  type(selection_buffer), intent(inout) :: b
-  integer(bit_kind), intent(in) :: det(N_int, 2)
-  double precision, intent(in) :: val
-  integer :: i
-
-  if(dabs(val) >= b%mini) then
-    b%cur += 1
-    b%det(:,:,b%cur) = det(:,:)
-    b%val(b%cur) = val
-    if(b%cur == size(b%val)) then
-      call sort_selection_buffer(b)
-    end if
-  end if
-end subroutine
-
-
-subroutine sort_selection_buffer(b)
-  use selection_types
-  implicit none
-
-  type(selection_buffer), intent(inout) :: b
-  double precision, allocatable :: vals(:), absval(:)
-  integer, allocatable :: iorder(:)
-  integer(bit_kind), allocatable :: detmp(:,:,:)
-  integer :: i, nmwen
-  logical, external :: detEq
-  nmwen = min(b%N, b%cur)
-
-
-  allocate(iorder(b%cur), detmp(N_int, 2, nmwen), absval(b%cur), vals(nmwen))
-  absval = -dabs(b%val(:b%cur))
-  do i=1,b%cur
-    iorder(i) = i
-  end do
-  call dsort(absval, iorder, b%cur)
-
-  do i=1, nmwen
-    detmp(:,:,i) = b%det(:,:,iorder(i))
-    vals(i) = b%val(iorder(i))
-  end do
-  b%det(:,:,:nmwen) = detmp(:,:,:)
-  b%det(:,:,nmwen+1:) = 0_bit_kind
-  b%val(:nmwen) = vals(:)
-  b%val(nmwen+1:) = 0d0
-  b%mini = max(b%mini,dabs(b%val(b%N)))
-  b%cur = nmwen
-end subroutine
-
-
-subroutine selection_collector(b, pt2)
-  use f77_zmq
-  use selection_types
-  use bitmasks
-  implicit none
-
-
-  type(selection_buffer), intent(inout) :: b
-  double precision, intent(out)       :: pt2(N_states)
-  double precision                   :: pt2_mwen(N_states)
-  integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
-  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
-
-  integer(ZMQ_PTR), external     :: new_zmq_pull_socket
-  integer(ZMQ_PTR)               :: zmq_socket_pull
-
-  integer :: msg_size, rc, more
-  integer :: acc, i, j, robin, N, ntask
-  double precision, allocatable :: val(:)
-  integer(bit_kind), allocatable :: det(:,:,:)
-  integer, allocatable :: task_id(:)
-  integer :: done
-  real :: time, time0
-  zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  zmq_socket_pull = new_zmq_pull_socket()
-  allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det))
-  done = 0
-  more = 1
-  pt2(:) = 0d0
-  call CPU_TIME(time0)
-  do while (more == 1)
-    call pull_selection_results(zmq_socket_pull, pt2_mwen, val(1), det(1,1,1), N, task_id, ntask)
-    pt2 += pt2_mwen
-    do i=1, N
-      call add_to_selection_buffer(b, det(1,1,i), val(i))
-    end do
-
-    do i=1, ntask
-      if(task_id(i) == 0) then
-          print *,  "Error in collector"
-      endif
-      call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more)
-    end do
-    done += ntask
-    call CPU_TIME(time)
-!    print *, "DONE" , done, time - time0
-  end do
-
-
-  call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-  call end_zmq_pull_socket(zmq_socket_pull)
-  call sort_selection_buffer(b)
-end subroutine
-
 
 subroutine select_singles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf)
-  use f77_zmq
+  !use f77_zmq
   use bitmasks
   use selection_types
   implicit none
@@ -477,7 +199,7 @@ end
 
 
 subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf)
-  use f77_zmq
+  !use f77_zmq
   use bitmasks
   use selection_types
   implicit none
@@ -647,13 +369,13 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
         call check_past_s(exc_det, microlist(1,1,ptr_microlist(sporb)), N_microlist(sporb) - N_futur_microlist(sporb), nok, N_int)
         if(nok) cycle
         !DET DRIVEN
-!         if(N_futur_microlist(0) > 0) then
-!           call i_H_psi(exc_det,microlist(1,1,ptr_futur_microlist(0)),psi_coef_microlist(ptr_futur_microlist(0), 1),N_int,N_futur_microlist(0),psi_selectors_size*4,N_states,i_H_psi_value)
-!         end if
+        if(N_futur_microlist(0) > 0) then
+          call i_H_psi(exc_det,microlist(1,1,ptr_futur_microlist(0)),psi_coef_microlist(ptr_futur_microlist(0), 1),N_int,N_futur_microlist(0),psi_selectors_size*4,N_states,i_H_psi_value)
+        end if
         !INTEGRAL DRIVEN
-        do j=1, N_states
-          i_H_psi_value(j) = d0s(mod(p1-1, mo_tot_num)+1, mod(p2-1, mo_tot_num)+1, j)
-        end do
+!         do j=1, N_states
+!           i_H_psi_value(j) = d0s(mod(p1-1, mo_tot_num)+1, mod(p2-1, mo_tot_num)+1, j)
+!         end do
 
         
         if(N_futur_microlist(sporb) > 0) then
@@ -681,7 +403,7 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
           i_H_psi_value = i_H_psi_value + i_H_psi_value2
         end if
 
-        if(.false.) then ! DET DRIVEN
+        if(.true.) then ! DET DRIVEN
           integer :: c1, c2
           double precision :: hij
           c1 = ptr_futur_tmicrolist(p1)
@@ -1071,7 +793,7 @@ subroutine create_microlist_double(minilist, i_cur, N_minilist, key_mask, microl
 !       end do
 !       end do
 !       end do
-    else if(.true. .and. n_element(1, i) + n_element(2, i) == 3) then ! INTEGRAL DRIVEN
+    else if(.false. .and. n_element(1, i) + n_element(2, i) == 3) then ! INTEGRAL DRIVEN
       !  -459.6399263191298 
       pweni = 0
       do s = 1, 2
@@ -1166,14 +888,13 @@ subroutine get_d1(gen, banned, banned_pair, mat, mask, pwen, coefs)
       exc(1, 1, 2) = p(a1)
       exc(1, 2, sfix) = pfix
       
-      tmp_array = (/0, 0 ,s(i), p(i) /)
-      call apply_particle(mask, tmp_array, deth, ok, N_int)
+      call apply_particle(mask, 0, 0 ,s(i), p(i), deth, ok, N_int)
       
       do j=1,mo_tot_num
         mwen = j + (sm-1)*mo_tot_num
         if(lbanned(mwen)) cycle
         tmp_array =  (/0,0,sm,j/)
-        call apply_particle(deth, tmp_array, det, ok, N_int)
+        call apply_particle(deth, 0, 0 ,s(i), p(i), det, ok, N_int)
         if(.not. ok) cycle
         
         mono = mwen == pwen(a1) .or. mwen == pwen(a2)
@@ -1216,14 +937,13 @@ subroutine get_d1(gen, banned, banned_pair, mat, mask, pwen, coefs)
       exc(1, 1, sp) = min(h1, h2)
       exc(2, 1, sp) = max(h1, h2)
       
-      tmp_array = (/0, 0 ,s(i), p(i) /)
-      call apply_particle(mask, tmp_array, deth, ok, N_int)
+      call apply_particle(mask, 0, 0 ,s(i), p(i) , deth, ok, N_int)
     
       do j=1,mo_tot_num
         if(j == pfix) inv = -inv
         mwen = j + (sm-1)*mo_tot_num
         if(lbanned(mwen)) cycle
-        call apply_particle(deth, tmp_array, det, ok, N_int)
+        call apply_particle(deth, 0, 0 ,s(i), p(i) , det, ok, N_int)
         if(.not. ok) cycle
         
         mono = mwen == pwen(a1) .or. mwen == pwen(a2)
@@ -1293,8 +1013,8 @@ subroutine get_d0(gen, banned, banned_pair, mat, mask, s1, s2, h1, h2, coefs)
       if(banned(p1 + ns1)) cycle
       if(p1 == p2) cycle
       if(banned_pair(p1 + ns1, p2 + ns2)) cycle
-      tmp_array = (/s1,p1,s2,p2/)
-      call apply_particle(mask, tmp_array, det2, ok, N_int)
+      !tmp_array = (/s1,p1,s2,p2/)
+      call apply_particle(mask, s1,p1,s2,p2, det2, ok, N_int)
       if(.not. ok) cycle
       mono = (hmi == p1 .or. hma == p2 .or. hmi == p2 .or. hma == p1)
       if(mono) then
@@ -1325,8 +1045,8 @@ subroutine get_d0(gen, banned, banned_pair, mat, mask, s1, s2, h1, h2, coefs)
     do p1=1, mo_tot_num
       if(banned(p1 + ns1)) cycle
       if(banned_pair(p1 + ns1, p2 + ns2)) cycle
-      tmp_array = (/s1,p1,s2,p2/)
-      call apply_particle(mask, tmp_array, det2, ok, N_int)
+      !tmp_array = (/s1,p1,s2,p2/)
+      call apply_particle(mask, s1,p1,s2,p2, det2, ok, N_int)
       if(.not. ok) cycle
       mono = (h1 == p1 .or. h2 == p2)
       if(mono) then
@@ -1347,174 +1067,6 @@ subroutine get_d0(gen, banned, banned_pair, mat, mask, s1, s2, h1, h2, coefs)
     end do
   end if
 end subroutine
-
-
-subroutine apply_particle(det, exc, res, ok, Nint)
-  use bitmasks
-  implicit none
-  integer, intent(in) :: Nint
-  integer, intent(in) :: exc(4)
-  integer :: s1, s2, p1, p2
-  integer(bit_kind),intent(in) :: det(Nint, 2)
-  integer(bit_kind),intent(out) :: res(Nint, 2)
-  logical, intent(out) :: ok
-  integer :: ii, pos 
-  
-  ok = .false.
-  s1 = exc(1)
-  p1 = exc(2)
-  s2 = exc(3)
-  p2 = exc(4)
-  res = det 
-  
-  if(p1 /= 0) then
-  ii = (p1-1)/bit_kind_size + 1 
-  pos = mod(p1-1, 64)!iand(p1-1,bit_kind_size-1)
-  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) return
-  res(ii, s1) = ibset(res(ii, s1), pos)
-  end if
-
-  ii = (p2-1)/bit_kind_size + 1 
-  pos = mod(p2-1, 64)!iand(p2-1,bit_kind_size-1)
-  if(iand(det(ii, s2), ishft(1_bit_kind, pos)) /= 0_8) return
-  res(ii, s2) = ibset(res(ii, s2), pos)
-
-  ok = .true.
-end subroutine
-
-
-subroutine apply_hole(det, exc, res, ok, Nint)
-  use bitmasks
-  implicit none
-  integer, intent(in) :: Nint
-  integer, intent(in) :: exc(4)
-  integer :: s1, s2, p1, p2
-  integer(bit_kind),intent(in) :: det(Nint, 2)
-  integer(bit_kind),intent(out) :: res(Nint, 2)
-  logical, intent(out) :: ok
-  integer :: ii, pos 
-  
-  ok = .false.
-  s1 = exc(1)
-  p1 = exc(2)
-  s2 = exc(3)
-  p2 = exc(4)
-  res = det 
-  
-  if(p1 /= 0) then
-  ii = (p1-1)/bit_kind_size + 1 
-  pos = mod(p1-1, 64)!iand(p1-1,bit_kind_size-1)
-  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
-  res(ii, s1) = ibclr(res(ii, s1), pos)
-  end if
-
-  ii = (p2-1)/bit_kind_size + 1 
-  pos = mod(p2-1, 64)!iand(p2-1,bit_kind_size-1)
-  if(iand(det(ii, s2), ishft(1_bit_kind, pos)) == 0_8) return
-  res(ii, s2) = ibclr(res(ii, s2), pos)
-
-  ok = .true.
-end subroutine
-
-
-
-subroutine get_double_excitation_phase(det1,det2,exc,phase,Nint)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Returns the two excitation operators between two doubly excited determinants and the phase
-  END_DOC
-  integer, intent(in)            :: Nint
-  integer(bit_kind), intent(in)  :: det1(Nint,2)
-  integer(bit_kind), intent(in)  :: det2(Nint,2)
-  integer, intent(in)           :: exc(0:2,2,2)
-  double precision, intent(out)  :: phase
-  integer                        :: tz
-  integer                        :: l, ispin, idx_hole, idx_particle, ishift
-  integer                        :: nperm
-  integer                        :: i,j,k,m,n
-  integer                        :: high, low
-  integer                        :: a,b,c,d
-  integer(bit_kind)              :: hole, particle, tmp
-  double precision, parameter    :: phase_dble(0:1) = (/ 1.d0, -1.d0 /)
-
-  ASSERT (Nint > 0)
-  nperm = 0
-  do ispin = 1,2
-    select case (exc(0,1,ispin))
-      case(0)
-        cycle
-
-      case(1)
-        low  = min(exc(1,1,ispin), exc(1,2,ispin))
-        high = max(exc(1,1,ispin), exc(1,2,ispin))
-
-        ASSERT (low > 0)
-        j = ishft(low-1,-bit_kind_shift)+1   ! Find integer in array(Nint)
-        n = iand(low-1,bit_kind_size-1)+1        ! mod(low,bit_kind_size)
-        ASSERT (high > 0)
-        k = ishft(high-1,-bit_kind_shift)+1
-        m = iand(high-1,bit_kind_size-1)+1
-
-        if (j==k) then
-          nperm = nperm + popcnt(iand(det1(j,ispin),                 &
-              iand( ibset(0_bit_kind,m-1)-1_bit_kind,                &
-              ibclr(-1_bit_kind,n)+1_bit_kind ) ))
-        else
-          nperm = nperm + popcnt(iand(det1(k,ispin),                 &
-              ibset(0_bit_kind,m-1)-1_bit_kind))
-          if (n < bit_kind_size) then
-              nperm = nperm + popcnt(iand(det1(j,ispin), ibclr(-1_bit_kind,n) +1_bit_kind))
-          endif
-          do i=j+1,k-1
-            nperm = nperm + popcnt(det1(i,ispin))
-          end do
-        endif
-
-      case (2)
-
-        do i=1,2
-          low  = min(exc(i,1,ispin), exc(i,2,ispin))
-          high = max(exc(i,1,ispin), exc(i,2,ispin))
-
-          ASSERT (low > 0)
-          j = ishft(low-1,-bit_kind_shift)+1   ! Find integer in array(Nint)
-          n = iand(low-1,bit_kind_size-1)+1        ! mod(low,bit_kind_size)
-          ASSERT (high > 0)
-          k = ishft(high-1,-bit_kind_shift)+1
-          m = iand(high-1,bit_kind_size-1)+1
-
-          if (j==k) then
-            nperm = nperm + popcnt(iand(det1(j,ispin),               &
-                iand( ibset(0_bit_kind,m-1)-1_bit_kind,              &
-                ibclr(-1_bit_kind,n)+1_bit_kind ) ))
-          else
-            nperm = nperm + popcnt(iand(det1(k,ispin),               &
-                ibset(0_bit_kind,m-1)-1_bit_kind))
-            if (n < bit_kind_size) then
-               nperm = nperm + popcnt(iand(det1(j,ispin), ibclr(-1_bit_kind,n) +1_bit_kind))
-            endif
-            do l=j+1,k-1
-              nperm = nperm + popcnt(det1(l,ispin))
-            end do
-          endif
-
-        enddo
-
-        a = min(exc(1,1,ispin), exc(1,2,ispin))
-        b = max(exc(1,1,ispin), exc(1,2,ispin))
-        c = min(exc(2,1,ispin), exc(2,2,ispin))
-        d = max(exc(2,1,ispin), exc(2,2,ispin))
-        if (c>a .and. c<b .and. d>b) then
-          nperm = nperm + 1
-        endif
-        exit
-    end select
-
-  enddo
-  phase = phase_dble(iand(nperm,1))
-end
-
 
 
 subroutine check_past(det, list, idx, N, cur, ok, Nint)
@@ -1562,4 +1114,3 @@ subroutine check_past_s(det, list, N, ok, Nint)
     end if
   end do
 end subroutine
-

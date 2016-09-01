@@ -723,3 +723,111 @@ integer function detCmp(a,b,Nint)
 end function
 
 
+subroutine apply_excitation(det, exc, res, ok, Nint)
+  use bitmasks
+  implicit none
+  
+  integer, intent(in) :: Nint
+  integer, intent(in) :: exc(0:2,2,2)
+  integer(bit_kind),intent(in) :: det(Nint, 2)
+  integer(bit_kind),intent(out) :: res(Nint, 2)
+  logical, intent(out) :: ok
+  integer :: h1,p1,h2,p2,s1,s2,degree
+  integer :: ii, pos 
+  
+  
+  ok = .false.
+  degree = exc(0,1,1) + exc(0,1,2)
+  
+  if(.not. (degree > 0 .and. degree <= 2)) then
+    print *, degree
+    print *, "apply ex"
+    STOP
+  endif
+  
+  call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+  res = det 
+  
+  ii = (h1-1)/bit_kind_size + 1 
+  pos = mod(h1-1, 64)!iand(h1-1,bit_kind_size-1) ! mod 64
+  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
+  res(ii, s1) = ibclr(res(ii, s1), pos)
+  
+  ii = (p1-1)/bit_kind_size + 1 
+  pos = mod(p1-1, 64)!iand(p1-1,bit_kind_size-1)
+  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) return
+  res(ii, s1) = ibset(res(ii, s1), pos)
+  
+  if(degree == 2) then
+    ii = (h2-1)/bit_kind_size + 1 
+    pos = mod(h2-1, 64)!iand(h2-1,bit_kind_size-1)
+    if(iand(det(ii, s2), ishft(1_bit_kind, pos)) == 0_8) return
+    res(ii, s2) = ibclr(res(ii, s2), pos)
+    
+    ii = (p2-1)/bit_kind_size + 1 
+    pos = mod(p2-1, 64)!iand(p2-1,bit_kind_size-1)
+    if(iand(det(ii, s2), ishft(1_bit_kind, pos)) /= 0_8) return
+    res(ii, s2) = ibset(res(ii, s2), pos)
+  endif
+
+  ok = .true.
+end subroutine
+
+
+subroutine apply_particle(det, s1, p1, s2, p2, res, ok, Nint)
+  use bitmasks
+  implicit none
+  integer, intent(in) :: Nint
+  integer, intent(in) :: s1, p1, s2, p2
+  integer(bit_kind),intent(in) :: det(Nint, 2)
+  integer(bit_kind),intent(out) :: res(Nint, 2)
+  logical, intent(out) :: ok
+  integer :: ii, pos 
+  
+  ok = .false.
+  res = det 
+  
+  if(p1 /= 0) then
+  ii = (p1-1)/bit_kind_size + 1 
+  pos = mod(p1-1, 64)!iand(p1-1,bit_kind_size-1)
+  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) return
+  res(ii, s1) = ibset(res(ii, s1), pos)
+  end if
+
+  ii = (p2-1)/bit_kind_size + 1 
+  pos = mod(p2-1, 64)!iand(p2-1,bit_kind_size-1)
+  if(iand(det(ii, s2), ishft(1_bit_kind, pos)) /= 0_8) return
+  res(ii, s2) = ibset(res(ii, s2), pos)
+
+  ok = .true.
+end subroutine
+
+
+subroutine apply_hole(det, s1, h1, s2, h2, res, ok, Nint)
+  use bitmasks
+  implicit none
+  integer, intent(in) :: Nint
+  integer, intent(in) :: s1, h1, s2, h2
+  integer(bit_kind),intent(in) :: det(Nint, 2)
+  integer(bit_kind),intent(out) :: res(Nint, 2)
+  logical, intent(out) :: ok
+  integer :: ii, pos 
+  
+  ok = .false.
+  res = det 
+  
+  if(h1 /= 0) then
+  ii = (h1-1)/bit_kind_size + 1 
+  pos = mod(h1-1, 64)!iand(h1-1,bit_kind_size-1)
+  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
+  res(ii, s1) = ibclr(res(ii, s1), pos)
+  end if
+
+  ii = (h2-1)/bit_kind_size + 1 
+  pos = mod(h2-1, 64)!iand(h2-1,bit_kind_size-1)
+  if(iand(det(ii, s2), ishft(1_bit_kind, pos)) == 0_8) return
+  res(ii, s2) = ibclr(res(ii, s2), pos)
+
+  ok = .true.
+end subroutine
+
