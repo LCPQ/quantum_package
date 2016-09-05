@@ -774,7 +774,7 @@ subroutine apply_excitation(det, exc, res, ok, Nint)
 end subroutine
 
 
-subroutine apply_particle(det, s1, p1, s2, p2, res, ok, Nint)
+subroutine apply_particles(det, s1, p1, s2, p2, res, ok, Nint)
   use bitmasks
   implicit none
   integer, intent(in) :: Nint
@@ -803,7 +803,7 @@ subroutine apply_particle(det, s1, p1, s2, p2, res, ok, Nint)
 end subroutine
 
 
-subroutine apply_hole(det, s1, h1, s2, h2, res, ok, Nint)
+subroutine apply_holes(det, s1, h1, s2, h2, res, ok, Nint)
   use bitmasks
   implicit none
   integer, intent(in) :: Nint
@@ -831,3 +831,45 @@ subroutine apply_hole(det, s1, h1, s2, h2, res, ok, Nint)
   ok = .true.
 end subroutine
 
+subroutine apply_particle(det, s1, p1, res, ok, Nint)
+  use bitmasks
+  implicit none
+  integer, intent(in) :: Nint
+  integer, intent(in) :: s1, p1
+  integer(bit_kind),intent(in) :: det(Nint, 2)
+  integer(bit_kind),intent(out) :: res(Nint, 2)
+  logical, intent(out) :: ok
+  integer :: ii, pos 
+  
+  ok = .false.
+  res = det 
+  
+  ii = (p1-1)/bit_kind_size + 1 
+  pos = mod(p1-1, 64)!iand(p1-1,bit_kind_size-1)
+  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) return
+  res(ii, s1) = ibset(res(ii, s1), pos)
+
+  ok = .true.
+end subroutine
+
+
+subroutine apply_hole(det, s1, h1, res, ok, Nint)
+  use bitmasks
+  implicit none
+  integer, intent(in) :: Nint
+  integer, intent(in) :: s1, h1
+  integer(bit_kind),intent(in) :: det(Nint, 2)
+  integer(bit_kind),intent(out) :: res(Nint, 2)
+  logical, intent(out) :: ok
+  integer :: ii, pos 
+  
+  ok = .false.
+  res = det 
+  
+  ii = (h1-1)/bit_kind_size + 1 
+  pos = mod(h1-1, 64)!iand(h1-1,bit_kind_size-1)
+  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
+  res(ii, s1) = ibclr(res(ii, s1), pos)
+
+  ok = .true.
+end subroutine
