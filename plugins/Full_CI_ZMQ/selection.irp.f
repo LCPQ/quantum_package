@@ -20,8 +20,6 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_phasemask, (N_int, 2, N_det)]
   implicit none
   
   integer :: i
-  print *, "pro"
-  print *, "pross"
   do i=1, N_det
     call get_mask_phase(psi_det_sorted(1,1,i), psi_phasemask(1,1,i))
   end do
@@ -73,8 +71,6 @@ subroutine select_connected(i_generator,E0,pt2,b)
   integer(bit_kind)              :: hole_mask(N_int,2), particle_mask(N_int,2)
   double precision               :: fock_diag_tmp(2,mo_tot_num+1)
   
-  print *, "BEG"
-  
   
   call build_fock_tmp(fock_diag_tmp,psi_det_generators(1,1,i_generator),N_int)
 
@@ -90,15 +86,9 @@ subroutine select_connected(i_generator,E0,pt2,b)
       particle_mask(k,:) = hole_mask(k,:)
     enddo
     
-    print *, "sel"
-!     call select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
-    print *, "poivre"
-    print *, b%cur, b%N
+    call select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
     call select_singles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
-    print *, b%cur, b%N
-    print *, "paprika"
   enddo
-  print *, "safran"
 end subroutine
 
 
