@@ -42,17 +42,7 @@ subroutine i_H_psi_pert_new_minilist(key,keys,idx_key,N_minilist,coef,Nint,Ndet,
       i_H_psi_array(1) = i_H_psi_array(1) + coef(i_in_coef,1)*hij
       call get_delta_e_dyall(keys(1,1,i_in_key),key,delta_e_final)
 
-      if(delta_e_final == 0.d0)then
-       call get_delta_e_dyall_verbose(keys(1,1,i_in_key),key,delta_e_final)
-       call debug_det(keys(1,1,i_in_key),N_int)
-       call debug_det(key,N_int)
-       stop
-      endif
       coef_pert +=  coef(i_in_coef,1)*hij / delta_e_final
-!     print*, 'delta_e_final = ',delta_e_final
-
-!     call i_H_j(key,key,Nint,hjj)
-!     coef_pert +=  coef(i_in_coef,1)*hij / (CI_electronic_energy(1) - hjj)
     enddo
     if     (coef_pert * i_H_psi_array(1) > 0.d0)then
       print*, coef_pert * i_H_psi_array(1)

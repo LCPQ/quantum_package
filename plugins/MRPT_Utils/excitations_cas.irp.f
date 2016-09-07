@@ -129,6 +129,24 @@ double precision function diag_H_mat_elem_no_elec_check(det_in,Nint)
     diag_H_mat_elem_no_elec_check +=  mo_bielec_integral_jj(jorb,iorb)
    enddo
   enddo 
+
+  ! alpha - core-act
+  do i = 1, elec_num_tab_local(1)
+   iorb =  occ(i,1)
+   do j = 1, n_core_inact_orb
+    jorb = list_core_inact(j)
+    diag_H_mat_elem_no_elec_check +=  2.d0 * mo_bielec_integral_jj(jorb,iorb) - mo_bielec_integral_jj_exchange(jorb,iorb)
+   enddo
+  enddo 
+
+  ! beta - core-act
+  do i = 1, elec_num_tab_local(2)
+   iorb =  occ(i,2)
+   do j = 1, n_core_inact_orb
+    jorb = list_core_inact(j)
+    diag_H_mat_elem_no_elec_check +=  2.d0 * mo_bielec_integral_jj(jorb,iorb) - mo_bielec_integral_jj_exchange(jorb,iorb)
+   enddo
+  enddo 
   
 end
 

@@ -3,7 +3,7 @@ BEGIN_PROVIDER [ double precision, energy_cas_dyall, (N_states)]
  integer :: i 
  double precision :: energies(N_states_diag)
  do i = 1, N_states
-  call u0_H_dyall_u0(energies,psi_det,psi_coef,n_det,psi_det_size,psi_det_size,N_states_diag,i)
+  call u0_H_dyall_u0(energies,psi_active,psi_coef,n_det,psi_det_size,psi_det_size,N_states_diag,i)
   energy_cas_dyall(i) = energies(i)
   print*,  'energy_cas_dyall(i)',  energy_cas_dyall(i)
  enddo
@@ -33,8 +33,8 @@ BEGIN_PROVIDER [ double precision, one_creat, (n_act_orb,2,N_states)]
       psi_in_out_coef(i,j) = psi_coef(i,j)
     enddo
     do j = 1, N_int
-     psi_in_out(j,1,i) =  psi_det(j,1,i) 
-     psi_in_out(j,2,i) =  psi_det(j,2,i) 
+     psi_in_out(j,1,i) =  psi_active(j,1,i) 
+     psi_in_out(j,2,i) =  psi_active(j,2,i) 
     enddo
    enddo
     do  state_target = 1,N_states
@@ -71,8 +71,8 @@ BEGIN_PROVIDER [ double precision, one_anhil, (n_act_orb,2,N_states)]
       psi_in_out_coef(i,j) = psi_coef(i,j)
     enddo
     do j = 1, N_int
-     psi_in_out(j,1,i) =  psi_det(j,1,i) 
-     psi_in_out(j,2,i) =  psi_det(j,2,i) 
+     psi_in_out(j,1,i) =  psi_active(j,1,i) 
+     psi_in_out(j,2,i) =  psi_active(j,2,i) 
     enddo
    enddo
    do state_target = 1, N_states
@@ -115,8 +115,8 @@ BEGIN_PROVIDER [ double precision, two_creat, (n_act_orb,n_act_orb,2,2,N_states)
         psi_in_out_coef(i,j) = psi_coef(i,j)
       enddo
       do j = 1, N_int
-       psi_in_out(j,1,i) =  psi_det(j,1,i) 
-       psi_in_out(j,2,i) =  psi_det(j,2,i) 
+       psi_in_out(j,1,i) =  psi_active(j,1,i) 
+       psi_in_out(j,2,i) =  psi_active(j,2,i) 
       enddo
      enddo
      do state_target = 1 , N_states
@@ -164,8 +164,8 @@ BEGIN_PROVIDER [ double precision, two_anhil, (n_act_orb,n_act_orb,2,2,N_states)
         psi_in_out_coef(i,j) = psi_coef(i,j)
       enddo
       do j = 1, N_int
-       psi_in_out(j,1,i) =  psi_det(j,1,i) 
-       psi_in_out(j,2,i) =  psi_det(j,2,i) 
+       psi_in_out(j,1,i) =  psi_active(j,1,i) 
+       psi_in_out(j,2,i) =  psi_active(j,2,i) 
       enddo
      enddo
      call apply_exc_to_psi(orb_i,hole_particle_i,spin_exc_i, & 
@@ -210,8 +210,8 @@ BEGIN_PROVIDER [ double precision, one_anhil_one_creat, (n_act_orb,n_act_orb,2,2
         psi_in_out_coef(i,j) = psi_coef(i,j)
       enddo
       do j = 1, N_int
-       psi_in_out(j,1,i) =  psi_det(j,1,i) 
-       psi_in_out(j,2,i) =  psi_det(j,2,i) 
+       psi_in_out(j,1,i) =  psi_active(j,1,i) 
+       psi_in_out(j,2,i) =  psi_active(j,2,i) 
       enddo
      enddo
      do state_target = 1, N_states
@@ -265,8 +265,8 @@ BEGIN_PROVIDER [ double precision, two_anhil_one_creat, (n_act_orb,n_act_orb,n_a
           psi_in_out_coef(i,j) = psi_coef(i,j)
         enddo
         do j = 1, N_int
-         psi_in_out(j,1,i) =  psi_det(j,1,i) 
-         psi_in_out(j,2,i) =  psi_det(j,2,i) 
+         psi_in_out(j,1,i) =  psi_active(j,1,i) 
+         psi_in_out(j,2,i) =  psi_active(j,2,i) 
         enddo
        enddo
 
@@ -325,8 +325,8 @@ BEGIN_PROVIDER [ double precision, two_creat_one_anhil, (n_act_orb,n_act_orb,n_a
           psi_in_out_coef(i,j) = psi_coef(i,j)
         enddo
         do j = 1, N_int
-         psi_in_out(j,1,i) =  psi_det(j,1,i) 
-         psi_in_out(j,2,i) =  psi_det(j,2,i) 
+         psi_in_out(j,1,i) =  psi_active(j,1,i) 
+         psi_in_out(j,2,i) =  psi_active(j,2,i) 
         enddo
        enddo
        do state_target = 1, N_states
@@ -384,8 +384,8 @@ BEGIN_PROVIDER [ double precision, three_creat, (n_act_orb,n_act_orb,n_act_orb,2
           psi_in_out_coef(i,j) = psi_coef(i,j)
         enddo
         do j = 1, N_int
-         psi_in_out(j,1,i) =  psi_det(j,1,i) 
-         psi_in_out(j,2,i) =  psi_det(j,2,i) 
+         psi_in_out(j,1,i) =  psi_active(j,1,i) 
+         psi_in_out(j,2,i) =  psi_active(j,2,i) 
         enddo
        enddo
        do state_target = 1, N_states
@@ -443,8 +443,8 @@ BEGIN_PROVIDER [ double precision, three_anhil, (n_act_orb,n_act_orb,n_act_orb,2
           psi_in_out_coef(i,j) = psi_coef(i,j)
         enddo
         do j = 1, N_int
-         psi_in_out(j,1,i) =  psi_det(j,1,i) 
-         psi_in_out(j,2,i) =  psi_det(j,2,i) 
+         psi_in_out(j,1,i) =  psi_active(j,1,i) 
+         psi_in_out(j,2,i) =  psi_active(j,2,i) 
         enddo
        enddo
        do state_target = 1, N_states

@@ -92,7 +92,7 @@
 
 
 
-      nrot(1) = 6   ! number of orbitals to be localized
+      nrot(1) = 2   ! number of orbitals to be localized
 
 
       integer :: index_rot(1000,1)
@@ -101,9 +101,10 @@
        cmoref = 0.d0
        irot = 0
 
-      do i=1,nrot(1)
-       irot(i,1) = 19+i 
-      enddo
+       irot(1,1) = 11
+       irot(2,1) = 12
+       cmoref(15,1,1)   = 1.d0   ! 
+       cmoref(14,2,1)   = 1.d0   ! 
 
 ! ESATRIENE with 3 bonding and anti bonding orbitals 
 ! First bonding orbital for esa

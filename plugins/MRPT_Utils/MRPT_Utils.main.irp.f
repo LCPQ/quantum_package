@@ -16,8 +16,8 @@ subroutine routine_3
  print *,  'N_det    = ', N_det
  print *,  'N_states = ', N_states
  print *,  'PT2      = ', second_order_pt_new(1)
- print *,  'E        = ', CI_energy
- print *,  'E+PT2    = ', CI_energy+second_order_pt_new(1)
+ print *,  'E        = ', CI_energy(1)
+ print *,  'E+PT2    = ', CI_energy(1)+second_order_pt_new(1)
  print *,'****** DIAGONALIZATION OF DRESSED MATRIX ******'
  print *,  'E dressed= ', CI_dressed_pt2_new_energy(1)
 
