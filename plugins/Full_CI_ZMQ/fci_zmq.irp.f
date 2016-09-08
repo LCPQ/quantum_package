@@ -1,11 +1,12 @@
 program fci_zmq
   implicit none
-  integer                        :: i,k
+  integer                        :: i,j,k
   logical, external :: detEq
   
   double precision, allocatable  :: pt2(:), norm_pert(:), H_pert_diag(:)
   integer                        :: N_st, degree
   integer(bit_kind) :: chk
+
   N_st = N_states
   allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st))
   
@@ -78,6 +79,15 @@ program fci_zmq
     endif
     E_CI_before = CI_energy
     call ezfio_set_full_ci_energy(CI_energy)
+    print *, N_det , N_det_max,maxval(abs(pt2(1:N_st))), pt2_max
+    do i=1, N_det
+      call assert(popcnt(psi_det_sorted(1,2,i)) == 9, "nelec...")
+      call assert(popcnt(psi_det_sorted(1,1,i)) == 9, "nelec...")
+      !call debug_det(psi_det_sorted(1,1,i), N_int)
+      do j=1,i-1
+        call assert(.not. detEq(psi_det_sorted(1,1,i), psi_det_sorted(1,1,j), N_int), "OOQSDSD")
+      end do
+    end do
   enddo
    N_det = min(N_det_max,N_det)
    touch N_det psi_det psi_coef

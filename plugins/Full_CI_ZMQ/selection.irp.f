@@ -46,6 +46,7 @@ subroutine get_mask_phase(det, phasemask)
   integer :: s, ni, i
   logical :: change
 
+  phasemask = 0_8
   do s=1,2
     change = .false.
     do ni=1,N_int
@@ -71,7 +72,6 @@ subroutine select_connected(i_generator,E0,pt2,b)
   integer(bit_kind)              :: hole_mask(N_int,2), particle_mask(N_int,2)
   double precision               :: fock_diag_tmp(2,mo_tot_num+1)
   
-  
   call build_fock_tmp(fock_diag_tmp,psi_det_generators(1,1,i_generator),N_int)
 
   do l=1,N_generators_bitmask
@@ -85,7 +85,6 @@ subroutine select_connected(i_generator,E0,pt2,b)
       hole_mask(k,2) = ior(generators_bitmask(k,2,s_hole,l), generators_bitmask(k,2,s_part,l))
       particle_mask(k,:) = hole_mask(k,:)
     enddo
-    
     call select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
     call select_singles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
   enddo
@@ -96,15 +95,13 @@ subroutine spot_occupied(mask, bannedOrb)
   use bitmasks
   implicit none
 
-  integer(bit_kind),intent(in) :: mask(N_int, 2)
-  logical, intent(inout) :: bannedOrb(mo_tot_num, 2)
-  integer :: s, i, ne, list(mo_tot_num)
+  integer(bit_kind),intent(in) :: mask(N_int)
+  logical, intent(inout) :: bannedOrb(mo_tot_num)
+  integer :: i, ne, list(mo_tot_num)
 
-  do s=1,2
-    call bitstring_to_list(mask(1,s), list, ne, N_int)
-    do i=1, ne
-      bannedOrb(list(i), s) = .true.
-    end do
+  call bitstring_to_list(mask, list, ne, N_int)
+  do i=1, ne
+    bannedOrb(list(i)) = .true.
   end do
 end subroutine
 
@@ -116,20 +113,21 @@ double precision function get_phase_bi(phasemask, s1, s2, h1, p1, h2, p2)
   integer(bit_kind), intent(in) :: phasemask(N_int, 2)
   integer, intent(in) :: s1, s2, h1, h2, p1, p2
   logical :: change
+  integer :: np
+  double precision, parameter :: res(0:1) = (/1d0, -1d0/)
 
-  !ASSERT(h1 <= h2 .and. p1 <= p2)
-  change = btest(phasemask(ishft(h1, bit_kind_shift), s1), iand(h1, 63_8))
-  change = xor(change, btest(phasemask(ishft(p1, bit_kind_shift), s1), iand(p1, 63_8)))
+  call assert(s1 /= s2 .or. (h1 <= h2 .and. p1 <= p2), irp_here)
+  np = 0
+  change = btest(phasemask(1+ishft(h1, -6), s1), iand(h1-1, 63))
+  change = xor(change, btest(phasemask(1+ishft(p1, -6), s1), iand(p1-1, 63)))
+  if(xor(change, p1 < h1)) np = 1
 
-  change = xor(change, btest(phasemask(ishft(h2, bit_kind_shift), s2), iand(h2, 63_8)))
-  change = xor(change, btest(phasemask(ishft(p2, bit_kind_shift), s2), iand(p2, 63_8)))
-
-  get_phase_bi = 1d0
-  if(s1 == s2) then
-    if(xor(change, max(h1, p1) > min(h2, p2))) get_phase_bi = -1d0
-  else
-    if(change) get_phase_bi = -1d0
-  end if
+  change = btest(phasemask(1+ishft(h2, -6), s2), iand(h2-1, 63))
+  change = xor(change, btest(phasemask(1+ishft(p2, -6), s2), iand(p2-1, 63)))
+  if(xor(change, p2 < h2)) np = np + 1
+  
+  if(s1 == s2 .and. max(h1, p1) > min(h2, p2)) np = np + 1
+  get_phase_bi = res(iand(np,1))
 end subroutine
 
 
@@ -140,6 +138,7 @@ double precision function get_phase_mono(phasemask, s1, h1, p1)
   integer(bit_kind), intent(in) :: phasemask(N_int, 2)
   integer, intent(in) :: s1, h1, p1
   logical :: change
+  stop "phase moni BUGGED"
 
   change = btest(phasemask(ishft(h1, bit_kind_shift), s1), iand(h1, 63_8))
   change = xor(change, btest(phasemask(ishft(p1, bit_kind_shift), s1), iand(p1, 63_8)))
