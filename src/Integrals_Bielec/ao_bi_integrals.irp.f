@@ -1211,7 +1211,7 @@ subroutine compute_ao_integrals_jl(j,l,n_integrals,buffer_i,buffer_value)
         cycle
       endif
       !DIR$ FORCEINLINE
-      integral = ao_bielec_integral(i,k,j,l)
+      integral = ao_bielec_integral(i,k,j,l)  ! i,k : r1    j,l : r2
       if (abs(integral) < thr) then
         cycle
       endif

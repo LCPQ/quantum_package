@@ -19,3 +19,4 @@ val to_charge : t -> Charge.t
 val of_charge : Charge.t -> t
 val covalent_radius : t -> Qptypes.Positive_float.t
 val vdw_radius : t -> Qptypes.Positive_float.t
+val mass : t -> Qptypes.Positive_float.t
