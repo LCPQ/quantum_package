@@ -133,6 +133,7 @@ let of_string t =
   let l = 
     match l with
     | First _ :: Second _ :: Third _ :: _
+    | First _ :: Second _ :: Coord _ :: []
     | First _ :: Second _ :: []
     | First _ :: [] -> l
     | _ -> failwith "Syntax error"
@@ -312,15 +313,14 @@ let to_xyz (z,map) =
     | Some x -> x
     | None -> failwith "Some atoms were not defined" ) result
   in
-  result
+  Array.to_list result
 
 
 let to_xyz_string (l,map) =
   String.concat "\n" 
     ( to_xyz (l,map) 
-      |> Array.map (fun (e,x,y,z) -> 
-        Printf.sprintf "%s %f %f %f\n" (Element.to_string e) x y z) 
-      |> Array.to_list )
+      |> List.map (fun (e,x,y,z) -> 
+        Printf.sprintf "%s %f %f %f\n" (Element.to_string e) x y z)  )
 
 
 
