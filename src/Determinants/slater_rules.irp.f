@@ -1730,19 +1730,15 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
         
         do j=shortcut(sh2,1),endi
           org_j = sort_idx(j,1)
-          ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
-          if(ext > 4) then
-            cycle
-          endif
-          do ni=2,Nint
+          ext = exa
+          do ni=1,Nint
             ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
           end do
-          if(ext > 4) then
-            cycle
+          if(ext <= 4) then
+            call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
+            vt (org_i) = vt (org_i) + hij*u_0(org_j)
+            vt (org_j) = vt (org_j) + hij*u_0(org_i)
           endif
-          call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
-          vt (org_i) = vt (org_i) + hij*u_0(org_j)
-          vt (org_j) = vt (org_j) + hij*u_0(org_i)
         enddo
       enddo
     enddo
