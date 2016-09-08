@@ -103,7 +103,8 @@ subroutine splash_p(mask, sp, det, phasemask, coefs, N_sel, bannedOrb, vect)
   use bitmasks
   implicit none
 
-  integer(bit_kind),intent(in) :: mask(N_int, 2), det(N_int,2,N_sel), phasemask(N_int,2,N_sel)
+  integer(bit_kind),intent(in) :: mask(N_int, 2), det(N_int,2,N_sel)
+  integer(1), intent(in) :: phasemask(N_int*bit_kind_size, 2, N_sel)
   double precision, intent(in) :: coefs(N_states, N_sel)
   integer, intent(in) :: sp, N_sel
   logical, intent(inout) :: bannedOrb(mo_tot_num)
@@ -153,7 +154,8 @@ subroutine get_m2(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   use bitmasks
   implicit none
   
-  integer(bit_kind), intent(in) :: gen(N_int, 2), phasemask(N_int, 2), mask(N_int, 2)
+  integer(bit_kind), intent(in) :: gen(N_int, 2), mask(N_int, 2)
+  integer(1), intent(in) :: phasemask(N_int*bit_kind_size, 2)
   logical, intent(in) :: bannedOrb(mo_tot_num)
   double precision, intent(in) :: coefs(N_states)
   double precision, intent(inout) :: vect(N_states, mo_tot_num)
@@ -214,7 +216,8 @@ subroutine get_m1(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   use bitmasks
   implicit none
   
-  integer(bit_kind), intent(in) :: gen(N_int, 2), phasemask(N_int, 2), mask(N_int, 2)
+  integer(bit_kind), intent(in) :: gen(N_int, 2), mask(N_int, 2)
+  integer(1), intent(in) :: phasemask(N_int*bit_kind_size, 2)
   logical, intent(in) :: bannedOrb(mo_tot_num)
   double precision, intent(in) :: coefs(N_states)
   double precision, intent(inout) :: vect(N_states, mo_tot_num)
@@ -282,7 +285,8 @@ subroutine get_m0(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   use bitmasks
   implicit none
   
-  integer(bit_kind), intent(in) :: gen(N_int, 2), phasemask(N_int, 2), mask(N_int, 2)
+  integer(bit_kind), intent(in) :: gen(N_int, 2), mask(N_int, 2)
+  integer(1), intent(in) :: phasemask(N_int*bit_kind_size, 2)
   logical, intent(in) :: bannedOrb(mo_tot_num)
   double precision, intent(in) :: coefs(N_states)
   double precision, intent(inout) :: vect(N_states, mo_tot_num)

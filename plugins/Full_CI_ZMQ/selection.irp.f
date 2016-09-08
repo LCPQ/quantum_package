@@ -25,7 +25,7 @@ double precision function integral8(i,j,k,l)
 end function
 
 
-BEGIN_PROVIDER [ integer(bit_kind), psi_phasemask, (N_int, 2, N_det)]
+BEGIN_PROVIDER [ integer(1), psi_phasemask, (N_int*bit_kind_size, 2, N_det)]
   use bitmasks
   implicit none
   
@@ -52,17 +52,19 @@ subroutine get_mask_phase(det, phasemask)
   implicit none
 
   integer(bit_kind), intent(in) :: det(N_int, 2)
-  integer(bit_kind), intent(out) :: phasemask(N_int, 2)
+  integer(1), intent(out) :: phasemask(N_int*bit_kind_size, 2)
   integer :: s, ni, i
   logical :: change
 
-  phasemask = 0_8
+!   phasemask = 0_8
+  phasemask = 0_1
   do s=1,2
     change = .false.
     do ni=1,N_int
       do i=0,bit_kind_size-1
         if(BTEST(det(ni, s), i)) change = .not. change
-        if(change) phasemask(ni, s) = ibset(phasemask(ni, s), i)
+!         if(change) phasemask(ni, s) = ibset(phasemask(ni, s), i)
+          if(change) phasemask((ni-1)*bit_kind_size + i + 1, s) = 1_1
       end do
     end do
   end do
@@ -120,41 +122,28 @@ double precision function get_phase_bi(phasemask, s1, s2, h1, p1, h2, p2)
   use bitmasks
   implicit none
 
-  integer(bit_kind), intent(in) :: phasemask(N_int, 2)
+  integer(1), intent(in) :: phasemask(N_int*bit_kind_size, 2)
   integer, intent(in) :: s1, s2, h1, h2, p1, p2
   logical :: change
-  integer :: np
+  integer(1) :: np
   double precision, parameter :: res(0:1) = (/1d0, -1d0/)
 
-  call assert(s1 /= s2 .or. (h1 <= h2 .and. p1 <= p2), irp_here)
-  np = 0
-  change = btest(phasemask(1+ishft(h1, -6), s1), iand(h1-1, 63))
-  change = xor(change, btest(phasemask(1+ishft(p1, -6), s1), iand(p1-1, 63)))
-  if(xor(change, p1 < h1)) np = 1
-
-  change = btest(phasemask(1+ishft(h2, -6), s2), iand(h2-1, 63))
-  change = xor(change, btest(phasemask(1+ishft(p2, -6), s2), iand(p2-1, 63)))
-  if(xor(change, p2 < h2)) np = np + 1
+!   call assert(s1 /= s2 .or. (h1 <= h2 .and. p1 <= p2), irp_here)
+!   np = 0
+!   change = btest(phasemask(1+ishft(h1, -6), s1), iand(h1-1, 63))
+!   change = xor(change, btest(phasemask(1+ishft(p1, -6), s1), iand(p1-1, 63)))
+!   if(xor(change, p1 < h1)) np = 1
+! 
+!   change = btest(phasemask(1+ishft(h2, -6), s2), iand(h2-1, 63))
+!   change = xor(change, btest(phasemask(1+ishft(p2, -6), s2), iand(p2-1, 63)))
+!   if(xor(change, p2 < h2)) np = np + 1
   
-  if(s1 == s2 .and. max(h1, p1) > min(h2, p2)) np = np + 1
-  get_phase_bi = res(iand(np,1))
-end subroutine
-
-
-double precision function get_phase_mono(phasemask, s1, h1, p1)
-  use bitmasks
-  implicit none
-
-  integer(bit_kind), intent(in) :: phasemask(N_int, 2)
-  integer, intent(in) :: s1, h1, p1
-  logical :: change
-  stop "phase moni BUGGED"
-
-  change = btest(phasemask(ishft(h1, bit_kind_shift), s1), iand(h1, 63_8))
-  change = xor(change, btest(phasemask(ishft(p1, bit_kind_shift), s1), iand(p1, 63_8)))
-
-  get_phase_mono = 1d0
-  if(change) get_phase_mono = -1d0
+  np = phasemask(h1,s1) + phasemask(p1,s1) + phasemask(h2,s2) + phasemask(p2,s2)
+  if(p1 < h1) np = np + 1_1
+  if(p2 < h2) np = np + 1_1
+  
+  if(s1 == s2 .and. max(h1, p1) > min(h2, p2)) np = np + 1_1
+  get_phase_bi = res(iand(np,1_1))
 end subroutine
 
 
