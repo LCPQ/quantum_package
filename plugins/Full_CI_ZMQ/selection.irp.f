@@ -1,18 +1,28 @@
 use bitmasks
 
-BEGIN_PROVIDER [ double precision, integral8, (mo_tot_num,  mo_tot_num, mo_tot_num, mo_tot_num) ]
-  use bitmasks
+! BEGIN_PROVIDER [ double precision, integral8, (mo_tot_num,  mo_tot_num, mo_tot_num, mo_tot_num) ]
+!   use bitmasks
+!   implicit none
+!   
+!   integer :: h1, h2
+!   
+!   integral8 = 0d0
+!   do h1=1, mo_tot_num
+!     do h2=1, mo_tot_num
+!       call get_mo_bielec_integrals_ij(h1, h2 ,mo_tot_num,integral8(1,1,h1,h2),mo_integrals_map)
+!     end do
+!   end do
+! END_PROVIDER
+
+
+double precision function integral8(i,j,k,l)
   implicit none
   
-  integer :: h1, h2
+  integer, intent(in) :: i,j,k,l
+  double precision, external :: get_mo_bielec_integral
   
-  integral8 = 0d0
-  do h1=1, mo_tot_num
-    do h2=1, mo_tot_num
-      call get_mo_bielec_integrals_ij(h1, h2 ,mo_tot_num,integral8(1,1,h1,h2),mo_integrals_map)
-    end do
-  end do
-END_PROVIDER
+  integral8 = get_mo_bielec_integral(i,j,k,l,mo_integrals_map)
+end function
 
 
 BEGIN_PROVIDER [ integer(bit_kind), psi_phasemask, (N_int, 2, N_det)]

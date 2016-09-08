@@ -160,7 +160,7 @@ subroutine get_m2(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   integer, intent(in) :: sp, h(0:2, 2), p(0:3, 2)
   integer :: i, j, h1, h2, p1, p2, sfix, hfix, pfix, hmob, pmob, puti
   double precision :: hij
-  double precision, external :: get_phase_bi
+  double precision, external :: get_phase_bi, integral8
   
   integer, parameter :: turn3_2(2,3) = reshape((/2,3, 1,3, 1,2/), (/2,3/))
   integer, parameter :: turn2(2) = (/2,1/) 
@@ -170,6 +170,7 @@ subroutine get_m2(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
     h2 = h(2, sp)
     do i=1,3
       puti = p(i, sp)
+      if(bannedOrb(puti)) cycle
       p1 = p(turn3_2(1,i), sp)
       p2 = p(turn3_2(2,i), sp)
       hij = integral8(p1, p2, h1, h2) - integral8(p2, p1, h1, h2)
@@ -184,6 +185,7 @@ subroutine get_m2(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
     hmob = h(1,sp)
     do j=1,2
       puti = p(j, sp)
+      if(bannedOrb(puti)) cycle
       pmob = p(turn2(j), sp)
       hij = integral8(pfix, pmob, hfix, hmob)
       hij *= get_phase_bi(phasemask, sp, sfix, hmob, pmob, hfix, pfix)
@@ -192,15 +194,17 @@ subroutine get_m2(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
     end do
   else
     puti = p(1,sp)
-    sfix = turn2(sp)
-    p1 = p(1,sfix)
-    p2 = p(2,sfix)
-    h1 = h(1,sfix)
-    h2 = h(2,sfix)
-    hij = (integral8(p1,p2,h1,h2) - integral8(p2,p1,h1,h2))
-    hij *= get_phase_bi(phasemask, sfix, sfix, h1, p1, h2, p2)
-    !call debug_hij_mo(hij, gen, mask, sp, puti)
-    vect(:, puti) += hij * coefs
+    if(.not. bannedOrb(puti)) then
+      sfix = turn2(sp)
+      p1 = p(1,sfix)
+      p2 = p(2,sfix)
+      h1 = h(1,sfix)
+      h2 = h(2,sfix)
+      hij = (integral8(p1,p2,h1,h2) - integral8(p2,p1,h1,h2))
+      hij *= get_phase_bi(phasemask, sfix, sfix, h1, p1, h2, p2)
+      !call debug_hij_mo(hij, gen, mask, sp, puti)
+      vect(:, puti) += hij * coefs
+    end if
   end if
 end subroutine
 
@@ -219,7 +223,7 @@ subroutine get_m1(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   logical :: ok, lbanned(mo_tot_num)
   integer(bit_kind) :: det(N_int, 2)
   double precision :: hij
-  double precision, external :: get_phase_bi
+  double precision, external :: get_phase_bi, integral8
   
   lbanned = bannedOrb
   sh = 1
@@ -246,7 +250,7 @@ subroutine get_m1(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
       if(lbanned(i)) cycle
       hij = (integral8(p1, p2, hole, i) - integral8(p2, p1, hole, i))
       hij *= get_phase_bi(phasemask, sp, sp, hole, p1, i, p2)
-      call  debug_hij_mo(hij, gen, mask, sp, i)
+      !call  debug_hij_mo(hij, gen, mask, sp, i)
       vect(:,i) += hij * coefs
     end do
 
@@ -363,7 +367,7 @@ subroutine debug_hij_mo(hij, gen, mask, s1, p1)
   integer :: degree
   integer :: exc(0:2,2,2)
   logical, external :: detEq
-
+  
   call apply_particle(mask, s1, p1, det, ok, N_int)
   !call assert(ok, "nokey_mo")
   !call assert(.not. detEq(det, gen, N_int), "Hii ...")
