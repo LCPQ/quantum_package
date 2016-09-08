@@ -97,16 +97,31 @@ double precision function diag_H_mat_elem_no_elec_check(det_in,Nint)
   integer                        :: occ(Nint*bit_kind_size,2)
   integer                        ::  elec_num_tab_local(2)
 
+  double precision :: core_act
+  double precision :: alpha_alpha
+  double precision :: alpha_beta
+  double precision :: beta_beta
+  double precision :: mono_elec
+  core_act = 0.d0
+  alpha_alpha = 0.d0
+  alpha_beta = 0.d0
+  beta_beta = 0.d0
+  mono_elec = 0.d0
+
   diag_H_mat_elem_no_elec_check = 0.d0
   call bitstring_to_list(det_in(1,1), occ(1,1), elec_num_tab_local(1), N_int)
   call bitstring_to_list(det_in(1,2), occ(1,2), elec_num_tab_local(2), N_int)
   ! alpha - alpha 
+! print*, 'elec_num_tab_local(1)',elec_num_tab_local(1)
+! print*, 'elec_num_tab_local(2)',elec_num_tab_local(2)
   do i = 1, elec_num_tab_local(1)
    iorb =  occ(i,1)
    diag_H_mat_elem_no_elec_check += mo_mono_elec_integral(iorb,iorb)
+   mono_elec += mo_mono_elec_integral(iorb,iorb)
    do j = i+1, elec_num_tab_local(1)
     jorb = occ(j,1)
     diag_H_mat_elem_no_elec_check +=  mo_bielec_integral_jj_anti(jorb,iorb)
+    alpha_alpha += mo_bielec_integral_jj_anti(jorb,iorb)
    enddo
   enddo 
 
@@ -114,9 +129,11 @@ double precision function diag_H_mat_elem_no_elec_check(det_in,Nint)
   do i = 1, elec_num_tab_local(2)
    iorb =  occ(i,2)
    diag_H_mat_elem_no_elec_check += mo_mono_elec_integral(iorb,iorb)
+   mono_elec += mo_mono_elec_integral(iorb,iorb)
    do j = i+1, elec_num_tab_local(2)
     jorb = occ(j,2)
     diag_H_mat_elem_no_elec_check +=  mo_bielec_integral_jj_anti(jorb,iorb)
+    beta_beta +=  mo_bielec_integral_jj_anti(jorb,iorb)
    enddo
   enddo 
   
@@ -127,8 +144,10 @@ double precision function diag_H_mat_elem_no_elec_check(det_in,Nint)
    do j = 1, elec_num_tab_local(1)
     jorb = occ(j,1)
     diag_H_mat_elem_no_elec_check +=  mo_bielec_integral_jj(jorb,iorb)
+    alpha_beta += mo_bielec_integral_jj(jorb,iorb)
    enddo
   enddo 
+  
 
   ! alpha - core-act
   do i = 1, elec_num_tab_local(1)
@@ -136,6 +155,7 @@ double precision function diag_H_mat_elem_no_elec_check(det_in,Nint)
    do j = 1, n_core_inact_orb
     jorb = list_core_inact(j)
     diag_H_mat_elem_no_elec_check +=  2.d0 * mo_bielec_integral_jj(jorb,iorb) - mo_bielec_integral_jj_exchange(jorb,iorb)
+    core_act += 2.d0 * mo_bielec_integral_jj(jorb,iorb) - mo_bielec_integral_jj_exchange(jorb,iorb)
    enddo
   enddo 
 
@@ -145,102 +165,54 @@ double precision function diag_H_mat_elem_no_elec_check(det_in,Nint)
    do j = 1, n_core_inact_orb
     jorb = list_core_inact(j)
     diag_H_mat_elem_no_elec_check +=  2.d0 * mo_bielec_integral_jj(jorb,iorb) - mo_bielec_integral_jj_exchange(jorb,iorb)
+    core_act += 2.d0 * mo_bielec_integral_jj(jorb,iorb) - mo_bielec_integral_jj_exchange(jorb,iorb)
    enddo
   enddo 
-  
-end
+! print*,'core_act    = ',core_act
+! print*,'alpha_alpha = ',alpha_alpha
+! print*,'alpha_beta  = ',alpha_beta
+! print*,'beta_beta   = ',beta_beta
+! print*,'mono_elec   = ',mono_elec
 
-subroutine a_operator_no_check(iorb,ispin,key,hjj,Nint,na,nb)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Needed for diag_H_mat_elem
-  END_DOC
-  integer, intent(in)            :: iorb, ispin, Nint
-  integer, intent(inout)         :: na, nb
-  integer(bit_kind), intent(inout) :: key(Nint,2)
-  double precision, intent(inout) :: hjj
-  
-  integer                        :: occ(Nint*bit_kind_size,2)
-  integer                        :: other_spin
-  integer                        :: k,l,i
-  integer                        :: tmp(2)
-  
-  ASSERT (iorb > 0)
-  ASSERT (ispin > 0)
-  ASSERT (ispin < 3)
-  ASSERT (Nint > 0)
-  
-  k = ishft(iorb-1,-bit_kind_shift)+1
-  ASSERT (k > 0)
-  l = iorb - ishft(k-1,bit_kind_shift)-1
-  key(k,ispin) = ibclr(key(k,ispin),l)
-  other_spin = iand(ispin,1)+1
-  
-  !DIR$ FORCEINLINE
-  call bitstring_to_list_ab(key, occ, tmp, Nint)
-  na = na-1
-  
-  hjj = hjj - mo_mono_elec_integral(iorb,iorb)
-  
-  ! Same spin
-  do i=1,na
-    hjj = hjj - mo_bielec_integral_jj_anti(occ(i,ispin),iorb)
+! do i = 1, n_core_inact_orb
+!  iorb = list_core_inact(i)
+!  diag_H_mat_elem_no_elec_check += 2.d0 * fock_core_inactive_total_spin_trace(iorb,1)
+! enddo
+
+
+!!!!!!!!!!!!
+return
+!!!!!!!!!!!!
+
+
+  ! alpha - alpha
+  do i = 1, n_core_inact_orb
+   iorb = list_core_inact(i)
+   diag_H_mat_elem_no_elec_check += 1.d0 * mo_mono_elec_integral(iorb,iorb)
+   do j = i+1, n_core_inact_orb
+    jorb = list_core_inact(j)
+    diag_H_mat_elem_no_elec_check += 1.d0 * mo_bielec_integral_jj(jorb,iorb) - 1.d0 *  mo_bielec_integral_jj_exchange(jorb,iorb)
+   enddo
   enddo
-  
-  ! Opposite spin
-  do i=1,nb
-    hjj = hjj - mo_bielec_integral_jj(occ(i,other_spin),iorb)
+
+  do i = 1, n_core_inact_orb
+   iorb = list_core_inact(i)
+   diag_H_mat_elem_no_elec_check += 1.d0 * mo_mono_elec_integral(iorb,iorb)
+   do j = i+1, n_core_inact_orb
+    jorb = list_core_inact(j)
+    diag_H_mat_elem_no_elec_check += 1.d0 * mo_bielec_integral_jj(jorb,iorb) - 1.d0 *  mo_bielec_integral_jj_exchange(jorb,iorb)
+   enddo
+  enddo
+
+  do i = 1, n_core_inact_orb
+   iorb = list_core_inact(i)
+   do j = 1, n_core_inact_orb
+    jorb = list_core_inact(j)
+    diag_H_mat_elem_no_elec_check += 1.d0 * mo_bielec_integral_jj(jorb,iorb) 
+   enddo
   enddo
   
 end
-
-
-subroutine ac_operator_no_check(iorb,ispin,key,hjj,Nint,na,nb)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Needed for diag_H_mat_elem
-  END_DOC
-  integer, intent(in)            :: iorb, ispin, Nint
-  integer, intent(inout)         :: na, nb
-  integer(bit_kind), intent(inout) :: key(Nint,2)
-  double precision, intent(inout) :: hjj
-  
-  integer                        :: occ(Nint*bit_kind_size,2)
-  integer                        :: other_spin
-  integer                        :: k,l,i
-  
-  ASSERT (iorb > 0)
-  ASSERT (ispin > 0)
-  ASSERT (ispin < 3)
-  ASSERT (Nint > 0)
-  
-  integer                        :: tmp(2)
-  !DIR$ FORCEINLINE
-  call bitstring_to_list_ab(key, occ, tmp, Nint)
-  
-  k = ishft(iorb-1,-bit_kind_shift)+1
-  ASSERT (k > 0)
-  l = iorb - ishft(k-1,bit_kind_shift)-1
-  key(k,ispin) = ibset(key(k,ispin),l)
-  other_spin = iand(ispin,1)+1
-  
-  hjj = hjj + mo_mono_elec_integral(iorb,iorb)
-  
-  print*,'na.nb = ',na,nb
-  ! Same spin
-  do i=1,na
-    hjj = hjj + mo_bielec_integral_jj_anti(occ(i,ispin),iorb)
-  enddo
-  
-  ! Opposite spin
-  do i=1,nb
-    hjj = hjj + mo_bielec_integral_jj(occ(i,other_spin),iorb)
-  enddo
-  na = na+1
-end
-
 
 subroutine i_H_j_dyall(key_i,key_j,Nint,hij)
   use bitmasks
@@ -399,7 +371,8 @@ subroutine u0_H_dyall_u0(energies,psi_in,psi_in_coef,ndet,dim_psi_in,dim_psi_coe
    if(psi_coef_tmp(j)==0.d0)cycle
    call i_H_j_dyall(psi_in(1,1,i),psi_in(1,1,j),N_int,hij)
 !  call i_H_j(psi_in(1,1,i),psi_in(1,1,j),N_int,hij_bis)
-!  print*, hij_bis,hij
+!  print*, 'i,j',i,j
+!  print*, hij
    accu += psi_coef_tmp(i) * psi_coef_tmp(j) * hij
   enddo
  enddo

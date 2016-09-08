@@ -8,11 +8,14 @@ BEGIN_PROVIDER [integer(bit_kind), psi_active, (N_int,2,psi_det_size)]
   use bitmasks
  integer :: i,j,k,l
  provide cas_bitmask
+ print*, 'psi_active '
  do i = 1, N_det
   do j = 1, N_int
    psi_active(j,1,i) = iand(psi_det(j,1,i),cas_bitmask(j,1,1))
    psi_active(j,2,i) = iand(psi_det(j,2,i),cas_bitmask(j,1,1))
   enddo
+  
+  call debug_det(psi_active(1,1,i),N_int)
  enddo
 END_PROVIDER
 
