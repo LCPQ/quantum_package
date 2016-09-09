@@ -36,7 +36,7 @@ program fci_zmq
   print*,'Beginning the selection ...'
   E_CI_before = CI_energy
   
-  do while (N_det < N_det_max.and.maxval(abs(pt2(1:N_st))) > pt2_max)
+  do while ( (N_det < N_det_max) .and. (maxval(abs(pt2(1:N_st))) > pt2_max) )
     n_det_before = N_det
     call ZMQ_selection(max(1024-N_det, N_det), pt2)
     
