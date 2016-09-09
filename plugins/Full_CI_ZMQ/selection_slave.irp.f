@@ -9,7 +9,6 @@ program selection_slave
   call provide_everything
   call switch_qp_run_to_master
   call run_wf
-
 end
 
 subroutine provide_everything
@@ -80,6 +79,6 @@ subroutine selection_dressing_slave_tcp(i,energy)
   double precision, intent(in) :: energy(N_states_diag)
   integer, intent(in)            :: i
 
-  call selection_slaved(0,i,energy)
+  call run_selection_slave(0,i,energy)
 end
 
