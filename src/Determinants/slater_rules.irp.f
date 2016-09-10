@@ -1237,6 +1237,97 @@ subroutine i_H_psi_SC2_verbose(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_a
   print*,'------'
 end
 
+subroutine get_excitation_degree_vector_mono(key1,key2,degree,Nint,sze,idx)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Applies get_excitation_degree to an array of determinants and return only the mono excitations
+  END_DOC
+  integer, intent(in)            :: Nint, sze
+  integer(bit_kind), intent(in)  :: key1(Nint,2,sze)
+  integer(bit_kind), intent(in)  :: key2(Nint,2)
+  integer, intent(out)           :: degree(sze)
+  integer, intent(out)           :: idx(0:sze)
+  
+  integer                        :: i,l,d,m
+  
+  ASSERT (Nint > 0)
+  ASSERT (sze > 0)
+  
+  l=1
+  if (Nint==1) then
+    
+    !DIR$ LOOP COUNT (1000)
+    do i=1,sze
+      d = popcnt(xor( key1(1,1,i), key2(1,1))) +       &
+          popcnt(xor( key1(1,2,i), key2(1,2)))
+      if (d > 2) then
+        cycle
+      else
+        degree(l) = ishft(d,-1)
+        idx(l) = i
+        l = l+1
+      endif
+    enddo
+    
+  else if (Nint==2) then
+    
+    !DIR$ LOOP COUNT (1000)
+    do i=1,sze
+      d = popcnt(xor( key1(1,1,i), key2(1,1))) +                     &
+          popcnt(xor( key1(1,2,i), key2(1,2))) +                     &
+          popcnt(xor( key1(2,1,i), key2(2,1))) +                     &
+          popcnt(xor( key1(2,2,i), key2(2,2)))
+      if (d > 2) then
+        cycle
+      else
+        degree(l) = ishft(d,-1)
+        idx(l)    = i
+        l         = l+1
+      endif
+    enddo
+    
+  else if (Nint==3) then
+    
+    !DIR$ LOOP COUNT (1000)
+    do i=1,sze
+      d = popcnt(xor( key1(1,1,i), key2(1,1))) +                     &
+          popcnt(xor( key1(1,2,i), key2(1,2))) +                     &
+          popcnt(xor( key1(2,1,i), key2(2,1))) +                     &
+          popcnt(xor( key1(2,2,i), key2(2,2))) +                     &
+          popcnt(xor( key1(3,1,i), key2(3,1))) +                     &
+          popcnt(xor( key1(3,2,i), key2(3,2)))
+      if (d > 2) then
+        cycle
+      else
+        degree(l) = ishft(d,-1)
+        idx(l)    = i
+        l         = l+1
+      endif
+    enddo
+    
+  else
+    
+    !DIR$ LOOP COUNT (1000)
+    do i=1,sze
+      d = 0
+      !DIR$ LOOP COUNT MIN(4)
+      do m=1,Nint
+        d = d + popcnt(xor( key1(m,1,i), key2(m,1)))                 &
+              + popcnt(xor( key1(m,2,i), key2(m,2)))
+      enddo
+      if (d > 2) then
+        cycle
+      else
+        degree(l) = ishft(d,-1)
+        idx(l)    = i
+        l         = l+1
+      endif
+    enddo
+    
+  endif
+  idx(0) = l-1
+end
 
 
 subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
