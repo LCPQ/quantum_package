@@ -130,19 +130,30 @@
  print*, '2h1p = ',accu
 
  ! 2h2p   
- delta_ij_tmp = 0.d0
- call H_apply_mrpt_2h2p(delta_ij_tmp,N_det)
- accu = 0.d0
+!delta_ij_tmp = 0.d0
+!call H_apply_mrpt_2h2p(delta_ij_tmp,N_det)
+!accu = 0.d0
+!do i_state = 1, N_states
+!do i = 1, N_det
+! do j = 1, N_det
+!  accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+!  delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+! enddo
+!enddo
+!second_order_pt_new_2h2p(i_state) = accu(i_state) 
+!enddo
+!print*, '2h2p = ',accu
+
+ double precision :: contrib_2h2p(N_states)
+ call give_2h2p(contrib_2h2p)
  do i_state = 1, N_states
  do i = 1, N_det
-  do j = 1, N_det
-   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-  enddo
+   delta_ij(i,i,i_state) += contrib_2h2p(i_state)
  enddo
- second_order_pt_new_2h2p(i_state) = accu(i_state) 
+ second_order_pt_new_2h2p(i_state) = contrib_2h2p(i_state) 
  enddo
- print*, '2h2p = ',accu
+ print*, '2h2p = ',contrib_2h2p(1) 
+ 
 
  ! total  
  accu = 0.d0

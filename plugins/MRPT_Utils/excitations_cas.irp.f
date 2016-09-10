@@ -370,9 +370,6 @@ subroutine u0_H_dyall_u0(energies,psi_in,psi_in_coef,ndet,dim_psi_in,dim_psi_coe
   do j = 1, ndet
    if(psi_coef_tmp(j)==0.d0)cycle
    call i_H_j_dyall(psi_in(1,1,i),psi_in(1,1,j),N_int,hij)
-!  call i_H_j(psi_in(1,1,i),psi_in(1,1,j),N_int,hij_bis)
-!  print*, 'i,j',i,j
-!  print*, hij
    accu += psi_coef_tmp(i) * psi_coef_tmp(j) * hij
   enddo
  enddo

@@ -183,6 +183,8 @@ subroutine get_delta_e_dyall(det_1,det_2,delta_e_final)
  double precision :: delta_e_inactive(N_states)
  integer :: i_hole_inact
 
+
+
  call give_holes_in_inactive_space(det_2,n_holes_spin,n_holes,holes_list)
  delta_e_inactive = 0.d0
  do i = 1, n_holes_spin(1)
@@ -432,7 +434,7 @@ subroutine get_delta_e_dyall(det_1,det_2,delta_e_final)
 
 
  do i_state = 1, n_states
- delta_e_final(i_state) = delta_e_act(i_state)  + delta_e_inactive(i_state) - delta_e_virt(i_state)
-  enddo
+  delta_e_final(i_state) = delta_e_act(i_state)  + delta_e_inactive(i_state) - delta_e_virt(i_state)
+ enddo
 
 end

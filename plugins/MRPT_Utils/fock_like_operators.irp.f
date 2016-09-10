@@ -11,8 +11,6 @@
   accu = 0.d0
   i_inact_core_orb = list_core_inact(i)
   do j = 1, n_core_inact_orb
-! do j = 1, elec_alpha_num
-!  j_inact_core_orb = j
    j_inact_core_orb = list_core_inact(j)
    accu += 2.d0 * mo_bielec_integral_jj(i_inact_core_orb,j_inact_core_orb)  & 
                 - mo_bielec_integral_jj_exchange(i_inact_core_orb,j_inact_core_orb)
@@ -84,8 +82,8 @@
      accu_exchange(2) += 2.d0 * nb * exchange
     enddo
    enddo
-   fock_core_inactive_from_act(i_inact_core_orb,1,i_state) = accu_coulomb + accu_exchange(1) 
-   fock_core_inactive_from_act(i_inact_core_orb,2,i_state) = accu_coulomb + accu_exchange(2) 
+   fock_core_inactive_from_act(i_inact_core_orb,1,i_state) = accu_coulomb - accu_exchange(1) 
+   fock_core_inactive_from_act(i_inact_core_orb,2,i_state) = accu_coulomb - accu_exchange(2) 
   enddo
  enddo
  END_PROVIDER
@@ -131,8 +129,8 @@
      accu_exchange(2) += 2.d0 * nb * exchange
     enddo
    enddo
-   fock_virt_from_act(i_virt_orb,1,i_state) = accu_coulomb + accu_exchange(1) 
-   fock_virt_from_act(i_virt_orb,2,i_state) = accu_coulomb + accu_exchange(2) 
+   fock_virt_from_act(i_virt_orb,1,i_state) = accu_coulomb - accu_exchange(1) 
+   fock_virt_from_act(i_virt_orb,2,i_state) = accu_coulomb - accu_exchange(2) 
   enddo
  enddo
  END_PROVIDER
