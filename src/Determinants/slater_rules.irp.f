@@ -773,6 +773,18 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
 
       else if (exc(0,1,2) == 2) then
         ! Double beta
+        print*,'phase hij = ',phase 
+        print*, get_mo_bielec_integral_schwartz(                         &
+            exc(1,1,2),                                              &
+            exc(2,1,2),                                              &
+            exc(1,2,2),                                              &
+            exc(2,2,2) ,mo_integrals_map )
+        print*,     get_mo_bielec_integral_schwartz(                                  &
+            exc(1,1,2),                                              &
+            exc(2,1,2),                                              &   
+            exc(2,2,2),                                              &
+            exc(1,2,2) ,mo_integrals_map)                    
+
         hij = phase*(get_mo_bielec_integral_schwartz(                         &
             exc(1,1,2),                                              &
             exc(2,1,2),                                              &
