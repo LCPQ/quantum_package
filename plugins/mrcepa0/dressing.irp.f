@@ -25,13 +25,13 @@ use bitmasks
     iproc = omp_get_thread_num() + 1
     if(mod(gen, 1000) == 0) print *, "mrcc ", gen, "/", N_det_generators
     do h=1, hh_shortcut(0)
-      call apply_hole(psi_det_generators(1,1,gen), hh_exists(1, h), mask, ok, N_int)
+      call apply_hole_local(psi_det_generators(1,1,gen), hh_exists(1, h), mask, ok, N_int)
       if(.not. ok) cycle
       omask = 0_bit_kind
       if(hh_exists(1, h) /= 0) omask = mask
       n = 1
       do p=hh_shortcut(h), hh_shortcut(h+1)-1
-        call apply_particle(mask, pp_exists(1, p), buf(1,1,n), ok, N_int)
+        call apply_particle_local(mask, pp_exists(1, p), buf(1,1,n), ok, N_int)
         if(ok) n = n + 1
         if(n > N_det_non_ref) stop "MRCC..."
       end do

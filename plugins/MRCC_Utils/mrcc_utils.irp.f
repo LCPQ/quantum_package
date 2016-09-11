@@ -694,9 +694,9 @@ END_PROVIDER
          allocate(lref(N_det_non_ref))
          lref = 0
          do II = 1, N_det_ref
-           call apply_hole(psi_ref(1,1,II), hh_exists(1, hh), myMask, ok, N_int)
+           call apply_hole_local(psi_ref(1,1,II), hh_exists(1, hh), myMask, ok, N_int)
            if(.not. ok) cycle
-           call apply_particle(myMask, pp_exists(1, pp), myDet, ok, N_int)
+           call apply_particle_local(myMask, pp_exists(1, pp), myDet, ok, N_int)
            if(.not. ok) cycle
            ind = searchDet(psi_non_ref_sorted(1,1,1), myDet(1,1), N_det_non_ref, N_int)
            if(ind /= -1) then
@@ -1054,7 +1054,7 @@ integer function excCmp(exc1, exc2)
 end function
 
 
-subroutine apply_hole(det, exc, res, ok, Nint)
+subroutine apply_hole_local(det, exc, res, ok, Nint)
   use bitmasks
   implicit none
   integer, intent(in) :: Nint
@@ -1089,7 +1089,7 @@ subroutine apply_hole(det, exc, res, ok, Nint)
 end subroutine
 
 
-subroutine apply_particle(det, exc, res, ok, Nint)
+subroutine apply_particle_local(det, exc, res, ok, Nint)
   use bitmasks
   implicit none
   integer, intent(in) :: Nint
