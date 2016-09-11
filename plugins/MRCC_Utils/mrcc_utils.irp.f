@@ -842,8 +842,8 @@ END_PROVIDER
        endif
        f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
        ! Avoid numerical instabilities
-       f = min(f, 10.d0)
-       f = max(f, -10.d0)
+       f = min(f,10.d0)
+       f = max(f,-10.d0)
        norm = norm + f*f *rho_mrcc(i,s)*rho_mrcc(i,s)
        rho_mrcc(i,s) = f
      enddo
