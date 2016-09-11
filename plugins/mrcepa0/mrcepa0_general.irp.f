@@ -76,16 +76,16 @@ subroutine run_pt2(N_st,energy)
   threshold_generators = 0.999d0 
   
   
-  N_det_generators = lambda_mrcc_pt3(0) + N_det_ref
-  N_det_selectors = lambda_mrcc_pt3(0) + N_det_ref
+  N_det_generators = lambda_mrcc_pt3(0) 
+  N_det_selectors = lambda_mrcc_pt3(0) 
   
-  psi_det_generators(:,:,:N_det_ref) = psi_ref(:,:,:N_det_ref)
-  psi_selectors(:,:,:N_det_ref) = psi_ref(:,:,:N_det_ref)
-  psi_coef_generators(:N_det_ref,:) = psi_ref_coef(:N_det_ref,:)
-  psi_selectors_coef(:N_det_ref,:) = psi_ref_coef(:N_det_ref,:)
+!  psi_det_generators(:,:,:N_det_ref) = psi_ref(:,:,:N_det_ref)
+!  psi_selectors(:,:,:N_det_ref) = psi_ref(:,:,:N_det_ref)
+!  psi_coef_generators(:N_det_ref,:) = psi_ref_coef(:N_det_ref,:)
+!  psi_selectors_coef(:N_det_ref,:) = psi_ref_coef(:N_det_ref,:)
   
-  do i=N_det_ref+1,N_det_generators
-    j = lambda_mrcc_pt3(i-N_det_ref)
+  do i=1,N_det_generators
+    j = lambda_mrcc_pt3(i)
     do k=1,N_int
       psi_det_generators(k,1,i) = psi_non_ref(k,1,j)
       psi_det_generators(k,2,i) = psi_non_ref(k,2,j)
@@ -133,9 +133,9 @@ subroutine run_pt2(N_st,energy)
 
   
 
-  print *, "2-3 :",pt2, pt3
+  print *, "3-2 :",pt3, pt2
   print *, lambda_mrcc_pt3(0), N_det, N_det_ref, psi_coef(1,1), psi_ref_coef(1,1)
-  pt2 = pt2 - pt3
+  pt2 = pt3 - pt2
   
   print *,  'Final step' 
   print *,  'N_det    = ', N_det 
