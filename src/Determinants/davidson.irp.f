@@ -457,7 +457,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       ! ----------------------
       
       do k=1,N_st
-          call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint)
+        call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint)
       enddo
       
       
@@ -530,7 +530,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       !$OMP END PARALLEL
       
       write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))')  iter, to_print(:,1:N_st)
-      call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_states,converged)
+      call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_states_diag,converged)
       if (converged) then
         exit
       endif
@@ -554,14 +554,14 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
           do l=1,N_st
             c = u_dot_v(U(1,k,iter+1),U(1,l,iter2),sze)
             do i=1,sze
-              U(i,k,iter+1) -= c * U(i,l,iter2)
+              U(i,k,iter+1) = U(i,k,iter+1) - c * U(i,l,iter2)
             enddo
           enddo
         enddo
         do l=1,k-1
           c = u_dot_v(U(1,k,iter+1),U(1,l,iter+1),sze)
           do i=1,sze
-            U(i,k,iter+1) -= c * U(i,l,iter+1)
+            U(i,k,iter+1) = U(i,k,iter+1) - c * U(i,l,iter+1)
           enddo
         enddo
         call normalize( U(1,k,iter+1), sze )

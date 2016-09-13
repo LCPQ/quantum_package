@@ -348,7 +348,8 @@ subroutine diagonalize_s2_betweenstates(keys_tmp,psi_coefs_inout,n,nmax_keys,nma
  accu_precision_of_diag = 0.d0
  do i = 1, nstates
   do j = i+1, nstates
-   if(  ( dabs(s2(i,i) - s2(j,j)) .le.1.d-10 ) .and. (dabs(s2(i,j) + dabs(s2(i,j)))) .le.1.d-10) then
+   ! Do not combine states of the same spin symmetry
+   if( dabs(s2(i,i) - s2(j,j)) .le.0.5d0) then
     s2(i,j) = 0.d0
     s2(j,i) = 0.d0
    endif
@@ -356,13 +357,14 @@ subroutine diagonalize_s2_betweenstates(keys_tmp,psi_coefs_inout,n,nmax_keys,nma
  enddo
  do i = 1, nstates
   write(*,'(10(F10.6,X))')s2(i,:)
+  s2(i,i) = s2(i,i) 
  enddo
 
  print*,'Diagonalizing the S^2 matrix'
 
  allocate(eigvalues(nstates),eigvectors(nstates,nstates))
  call lapack_diagd(eigvalues,eigvectors,s2,nstates,nstates)
- print*,'Eigenvalues of s^2'
+ print*,'Shifted Eigenvalues of s^2'
  do i = 1, nstates
   print*,'s2 = ',eigvalues(i)
   s2_eigvalues(i) = eigvalues(i)
