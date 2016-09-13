@@ -783,6 +783,9 @@ END_PROVIDER
        x(i) = AtB(i)
      enddo
      
+     double precision :: factor, resold
+     factor = 1.d0
+     resold = huge(1.d0)
      do k=0,100000
        !$OMP PARALLEL default(shared) private(cx, i, j, a_col)
        
@@ -798,7 +801,7 @@ END_PROVIDER
          do i=col_shortcut(a_col), col_shortcut(a_col) + N_col(a_col) - 1
            cx = cx + x(AtA_ind(i)) * AtA_val(i)
          end do
-         x_new(a_col) = AtB(a_col) + cx
+         x_new(a_col) = AtB(a_col) + cx * factor
        end do
        !$OMP END DO
        
@@ -806,15 +809,24 @@ END_PROVIDER
        
        res = 0.d0
        do a_col=1,nex
-         do j=1,N_det_non_ref
-           i = A_ind(j,a_col)
-           if (i==0) exit
-           rho_mrcc(i,s) = rho_mrcc(i,s) + A_val(j,a_col) * X_new(a_col)
-         enddo
-         res = res + (X_new(a_col) - X(a_col))**2
-         X(a_col) = X_new(a_col)
+         res = res + (X_new(a_col) - X(a_col))*(X_new(a_col) - X(a_col))
        end do
        
+       if (res < resold) then
+          do a_col=1,nex
+            do j=1,N_det_non_ref
+              i = A_ind(j,a_col)
+              if (i==0) exit
+              rho_mrcc(i,s) = rho_mrcc(i,s) + A_val(j,a_col) * X_new(a_col)
+            enddo
+            X(a_col) = X_new(a_col)
+          end do
+!          factor = 1.d0
+       else
+          factor = -factor * 0.5d0
+       endif
+       resold = res
+
        if(mod(k, 100) == 0) then
          print *, "res", k, res
        end if
@@ -842,8 +854,8 @@ END_PROVIDER
        endif
        f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
        ! Avoid numerical instabilities
-       f = min(f,10.d0)
-       f = max(f,-10.d0)
+       f = min(f,2.d0)
+       f = max(f,-2.d0)
        norm = norm + f*f *rho_mrcc(i,s)*rho_mrcc(i,s)
        rho_mrcc(i,s) = f
      enddo
