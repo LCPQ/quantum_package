@@ -92,7 +92,7 @@ END_PROVIDER
          call get_s2_u0(psi_det,eigenvectors(1,j),N_det,size(eigenvectors,1),s2)
          s2_eigvalues(j) = s2
          ! Select at least n_states states with S^2 values closed to "expected_s2"
-         if(dabs(s2-expected_s2).le.0.3d0)then
+         if(dabs(s2-expected_s2).le.0.5d0)then
            i_state +=1
            index_good_state_array(i_state) = j
            good_state_array(j) = .True.
@@ -133,7 +133,7 @@ END_PROVIDER
          print*,'  We did not find any state with S^2 values close to ',expected_s2
          print*,'  We will then set the first N_states eigenvectors of the H matrix'
          print*,'  as the CI_eigenvectors'
-         print*,'  You should consider more states and maybe ask for diagonalize_s2 to be .True. or just enlarge the CI space'
+         print*,'  You should consider more states and maybe ask for s2_eig to be .True. or just enlarge the CI space'
          print*,''
          do j=1,min(N_states_diag,N_det)
            do i=1,N_det
@@ -159,94 +159,73 @@ END_PROVIDER
      deallocate(eigenvectors,eigenvalues)
    endif
    
-   if(diagonalize_s2.and.n_states_diag > 1.and. n_det >= n_states_diag)then
-     ! Diagonalizing S^2 within the "n_states_diag" states found
-     allocate(s2_eigvalues(N_states_diag))
-     call diagonalize_s2_betweenstates(psi_det,CI_eigenvectors,n_det,size(psi_det,3),size(CI_eigenvectors,1),min(n_states_diag,n_det),s2_eigvalues)
+
+   if( s2_eig.and.(n_states_diag > 1).and.(n_det >= n_states_diag) )then
+      ! Diagonalizing S^2 within the "n_states_diag" states found
+      allocate(s2_eigvalues(N_states_diag))
+      call diagonalize_s2_betweenstates(psi_det,CI_eigenvectors,n_det,size(psi_det,3),size(CI_eigenvectors,1),min(n_states_diag,n_det),s2_eigvalues)
+      
+      do j = 1, N_states_diag
+        do i = 1, N_det
+          psi_coef(i,j) = CI_eigenvectors(i,j)
+        enddo
+      enddo
      
-     do j = 1, N_states_diag
-       do i = 1, N_det
-         psi_coef(i,j) = CI_eigenvectors(i,j)
-       enddo
-     enddo
-     
-     if(s2_eig)then
+      ! Browsing the "n_states_diag" states and getting the lowest in energy "n_states" ones that have the S^2 value
+      ! closer to the "expected_s2" set as input
+      
+      allocate(index_good_state_array(N_det),good_state_array(N_det))
+      good_state_array = .False.
+      i_state = 0
+      do j = 1, N_states_diag
+        if(dabs(s2_eigvalues(j)-expected_s2).le.0.5d0)then
+          good_state_array(j) = .True.
+          i_state +=1
+          index_good_state_array(i_state) = j
+        endif
+      enddo
+      ! Sorting the i_state good states by energy
+      allocate(e_array(i_state),iorder(i_state))
+      do j = 1, i_state
+        do i = 1, N_det
+          CI_eigenvectors(i,j) = psi_coef(i,index_good_state_array(j))
+        enddo
+        CI_eigenvectors_s2(j) = s2_eigvalues(index_good_state_array(j))
+        call u0_H_u_0(e_0,CI_eigenvectors(1,j),n_det,psi_det,N_int)
+        CI_electronic_energy(j) = e_0
+        e_array(j) = e_0
+        iorder(j) = j
+      enddo
+      call dsort(e_array,iorder,i_state)
+      do j = 1, i_state
+        CI_electronic_energy(j) = e_array(j)
+        CI_eigenvectors_s2(j) = s2_eigvalues(index_good_state_array(iorder(j)))
+        do i = 1, N_det
+          CI_eigenvectors(i,j) = psi_coef(i,index_good_state_array(iorder(j)))
+        enddo
+        !    call u0_H_u_0(e_0,CI_eigenvectors(1,j),n_det,psi_det,N_int)
+        !    print*,'e    = ',CI_electronic_energy(j)
+        !    print*,'<e>  = ',e_0
+        !    call get_s2_u0(psi_det,CI_eigenvectors(1,j),N_det,size(CI_eigenvectors,1),s2)
+        !    print*,'s^2  = ',CI_eigenvectors_s2(j)
+        !    print*,'<s^2>= ',s2
+      enddo
+      deallocate(e_array,iorder)
+      
+      ! Then setting the other states without any specific energy order
+      i_other_state = 0
+      do j = 1, N_states_diag
+        if(good_state_array(j))cycle
+        i_other_state +=1
+        do i = 1, N_det
+          CI_eigenvectors(i,i_state + i_other_state) = psi_coef(i,j)
+        enddo
+        CI_eigenvectors_s2(i_state + i_other_state) = s2_eigvalues(j)
+        call u0_H_u_0(e_0,CI_eigenvectors(1,i_state + i_other_state),n_det,psi_det,N_int)
+        CI_electronic_energy(i_state + i_other_state) = e_0
+      enddo
+      deallocate(index_good_state_array,good_state_array)
        
-       ! Browsing the "n_states_diag" states and getting the lowest in energy "n_states" ones that have the S^2 value
-       ! closer to the "expected_s2" set as input
-       
-       allocate(index_good_state_array(N_det),good_state_array(N_det))
-       good_state_array = .False.
-       i_state = 0
-       do j = 1, N_states_diag
-         if(dabs(s2_eigvalues(j)-expected_s2).le.0.3d0)then
-           good_state_array(j) = .True.
-           i_state +=1
-           index_good_state_array(i_state) = j
-         endif
-       enddo
-       ! Sorting the i_state good states by energy
-       allocate(e_array(i_state),iorder(i_state))
-       do j = 1, i_state
-         do i = 1, N_det
-           CI_eigenvectors(i,j) = psi_coef(i,index_good_state_array(j))
-         enddo
-         CI_eigenvectors_s2(j) = s2_eigvalues(index_good_state_array(j))
-         call u0_H_u_0(e_0,CI_eigenvectors(1,j),n_det,psi_det,N_int)
-         CI_electronic_energy(j) = e_0
-         e_array(j) = e_0
-         iorder(j) = j
-       enddo
-       call dsort(e_array,iorder,i_state)
-       do j = 1, i_state
-         CI_electronic_energy(j) = e_array(j)
-         CI_eigenvectors_s2(j) = s2_eigvalues(index_good_state_array(iorder(j)))
-         do i = 1, N_det
-           CI_eigenvectors(i,j) = psi_coef(i,index_good_state_array(iorder(j)))
-         enddo
-         !    call u0_H_u_0(e_0,CI_eigenvectors(1,j),n_det,psi_det,N_int)
-         !    print*,'e    = ',CI_electronic_energy(j)
-         !    print*,'<e>  = ',e_0
-         !    call get_s2_u0(psi_det,CI_eigenvectors(1,j),N_det,size(CI_eigenvectors,1),s2)
-         !    print*,'s^2  = ',CI_eigenvectors_s2(j)
-         !    print*,'<s^2>= ',s2
-       enddo
-       deallocate(e_array,iorder)
-       
-       ! Then setting the other states without any specific energy order
-       i_other_state = 0
-       do j = 1, N_states_diag
-         if(good_state_array(j))cycle
-         i_other_state +=1
-         do i = 1, N_det
-           CI_eigenvectors(i,i_state + i_other_state) = psi_coef(i,j)
-         enddo
-         CI_eigenvectors_s2(i_state + i_other_state) = s2_eigvalues(j)
-         call u0_H_u_0(e_0,CI_eigenvectors(1,i_state + i_other_state),n_det,psi_det,N_int)
-         CI_electronic_energy(i_state + i_other_state) = e_0
-       enddo
-       deallocate(index_good_state_array,good_state_array)
-       
-     else
-       
-       ! Sorting the N_states_diag by energy, whatever the S^2 value is
-       
-       allocate(e_array(n_states_diag),iorder(n_states_diag))
-       do j = 1, N_states_diag
-         call u0_H_u_0(e_0,CI_eigenvectors(1,j),n_det,psi_det,N_int)
-         e_array(j) = e_0
-         iorder(j) = j
-       enddo
-       call dsort(e_array,iorder,n_states_diag)
-       do j = 1, N_states_diag
-         CI_electronic_energy(j) = e_array(j)
-         do i = 1, N_det
-           CI_eigenvectors(i,j) = psi_coef(i,iorder(j))
-         enddo
-         CI_eigenvectors_s2(j) = s2_eigvalues(iorder(j))
-       enddo
-       deallocate(e_array,iorder)
-     endif
      deallocate(s2_eigvalues)
      
    endif
