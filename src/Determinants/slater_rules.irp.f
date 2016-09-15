@@ -1341,6 +1341,162 @@ subroutine get_excitation_degree_vector_mono(key1,key2,degree,Nint,sze,idx)
   idx(0) = l-1
 end
 
+subroutine get_excitation_degree_vector_mono_or_exchange(key1,key2,degree,Nint,sze,idx)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Applies get_excitation_degree to an array of determinants and return only the mono excitations
+  ! and the connections through exchange integrals 
+  END_DOC
+  integer, intent(in)            :: Nint, sze
+  integer(bit_kind), intent(in)  :: key1(Nint,2,sze)
+  integer(bit_kind), intent(in)  :: key2(Nint,2)
+  integer, intent(out)           :: degree(sze)
+  integer, intent(out)           :: idx(0:sze)
+  
+  integer                        :: i,l,d,m
+  integer                        :: exchange_1,exchange_2
+  
+  ASSERT (Nint > 0)
+  ASSERT (sze > 0)
+  
+  l=1
+  if (Nint==1) then
+    
+    !DIR$ LOOP COUNT (1000)
+    do i=1,sze
+      d = popcnt(xor( key1(1,1,i), key2(1,1))) +       &
+          popcnt(xor( key1(1,2,i), key2(1,2)))
+      exchange_1 = popcnt(xor(iand(key1(1,1,i),key1(1,2,i)),iand(key2(1,1),key2(1,2))))
+      exchange_2 = popcnt(iand(xor(key1(1,1,i),key2(1,1)),xor(key1(1,2,i),key2(1,2))))
+      if (d > 4)cycle
+      if (d ==4)then  
+       if(exchange_1 .eq. 0 ) then
+        degree(l) = ishft(d,-1)
+        idx(l) = i
+        l = l+1
+       else if (exchange_1 .eq. 2 .and. exchange_2.eq.2)then
+        degree(l) = ishft(d,-1)
+        idx(l) = i
+        l = l+1
+       else 
+        cycle
+       endif
+!      pause
+      else 
+        degree(l) = ishft(d,-1)
+        idx(l) = i
+        l = l+1
+      endif
+    enddo
+  else if (Nint==2) then
+    
+    !DIR$ LOOP COUNT (1000)
+    do i=1,sze
+      d = popcnt(xor( key1(1,1,i), key2(1,1))) +                     &
+          popcnt(xor( key1(1,2,i), key2(1,2))) +                     &
+          popcnt(xor( key1(2,1,i), key2(2,1))) +                     &
+          popcnt(xor( key1(2,2,i), key2(2,2)))
+      exchange_1 = popcnt(xor(iand(key1(1,1,i),key1(1,2,i)),iand(key2(1,2),key2(1,2))))   +  & 
+                   popcnt(xor(iand(key1(2,1,i),key1(2,2,i)),iand(key2(2,2),key2(2,2))))
+      exchange_2 = popcnt(iand(xor(key1(1,1,i),key2(1,1)),xor(key1(1,2,i),key2(1,2))))    +  & 
+                   popcnt(iand(xor(key1(2,1,i),key2(2,1)),xor(key1(2,2,i),key2(2,2))))
+      if (d > 4)cycle
+      if (d ==4)then  
+       if(exchange_1 .eq. 0 ) then
+        degree(l) = ishft(d,-1)
+        idx(l) = i
+        l = l+1
+       else if (exchange_1 .eq. 2 .and. exchange_2.eq.2)then
+        degree(l) = ishft(d,-1)
+        idx(l) = i
+        l = l+1
+       else 
+        cycle
+       endif
+!      pause
+      else 
+        degree(l) = ishft(d,-1)
+        idx(l) = i
+        l = l+1
+      endif
+    enddo
+    
+  else if (Nint==3) then
+    
+    !DIR$ LOOP COUNT (1000)
+    do i=1,sze
+      d = popcnt(xor( key1(1,1,i), key2(1,1))) +                     &
+          popcnt(xor( key1(1,2,i), key2(1,2))) +                     &
+          popcnt(xor( key1(2,1,i), key2(2,1))) +                     &
+          popcnt(xor( key1(2,2,i), key2(2,2))) +                     &
+          popcnt(xor( key1(3,1,i), key2(3,1))) +                     &
+          popcnt(xor( key1(3,2,i), key2(3,2)))
+      exchange_1 = popcnt(xor(iand(key1(1,1,i),key1(1,2,i)),iand(key2(1,1),key2(1,2))))   +  & 
+                   popcnt(xor(iand(key1(2,1,i),key1(2,2,i)),iand(key2(2,1),key2(2,2))))   +  &
+                   popcnt(xor(iand(key1(3,1,i),key1(3,2,i)),iand(key2(3,1),key2(3,2))))
+      exchange_2 = popcnt(iand(xor(key1(1,1,i),key2(1,1)),xor(key1(1,2,i),key2(1,2))))    +  & 
+                   popcnt(iand(xor(key1(2,1,i),key2(2,1)),xor(key1(2,2,i),key2(2,2))))    +  &
+                   popcnt(iand(xor(key1(3,1,i),key2(3,1)),xor(key1(3,2,i),key2(3,2))))
+      if (d > 4)cycle
+      if (d ==4)then  
+       if(exchange_1 .eq. 0 ) then
+        degree(l) = ishft(d,-1)
+        idx(l) = i
+        l = l+1
+       else if (exchange_1 .eq. 2 .and. exchange_2.eq.2)then
+        degree(l) = ishft(d,-1)
+        idx(l) = i
+        l = l+1
+       else 
+        cycle
+       endif
+!      pause
+      else 
+        degree(l) = ishft(d,-1)
+        idx(l) = i
+        l = l+1
+      endif
+    enddo
+    
+  else
+    
+    !DIR$ LOOP COUNT (1000)
+    do i=1,sze
+      d = 0
+      exchange_1 = 0
+      !DIR$ LOOP COUNT MIN(4)
+      do m=1,Nint
+        d = d + popcnt(xor( key1(m,1,i), key2(m,1)))                 &
+              + popcnt(xor( key1(m,2,i), key2(m,2)))
+        exchange_1 = popcnt(xor(iand(key1(m,1,i),key1(m,2,i)),iand(key2(m,1),key2(m,2))))  
+        exchange_2 = popcnt(iand(xor(key1(m,1,i),key2(m,1)),xor(key1(m,2,i),key2(m,2))))   
+      enddo
+      if (d > 4)cycle
+      if (d ==4)then  
+       if(exchange_1 .eq. 0 ) then
+        degree(l) = ishft(d,-1)
+        idx(l) = i
+        l = l+1
+       else if (exchange_1 .eq. 2 .and. exchange_2.eq.2)then
+        degree(l) = ishft(d,-1)
+        idx(l) = i
+        l = l+1
+       else 
+        cycle
+       endif
+!      pause
+      else 
+        degree(l) = ishft(d,-1)
+        idx(l) = i
+        l = l+1
+      endif
+    enddo
+    
+  endif
+  idx(0) = l-1
+end
+
 
 subroutine get_excitation_degree_vector(key1,key2,degree,Nint,sze,idx)
   use bitmasks

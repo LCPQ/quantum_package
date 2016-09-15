@@ -31,6 +31,8 @@ subroutine do_mono_excitation(key_in,i_hole,i_particle,ispin,i_ok)
   n_elec_tmp += popcnt(key_in(i,1)) + popcnt(key_in(i,2))
  enddo
  if(n_elec_tmp .ne. elec_num)then
+  print*, n_elec_tmp,elec_num
+  call debug_det(key_in,N_int)
   i_ok = -1
  endif
 end
