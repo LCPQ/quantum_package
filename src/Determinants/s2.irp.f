@@ -314,12 +314,7 @@ subroutine diagonalize_s2_betweenstates(keys_tmp,psi_coefs_inout,n,nmax_keys,nma
    enddo
  enddo
  !$OMP END PARALLEL DO
- print*,'Overlap matrix in the basis of the states considered'
- do i = 1, nstates
-  write(*,'(10(F16.10,X))')overlap(i,:)
- enddo
  call ortho_lowdin(overlap,size(overlap,1),nstates,psi_coefs_inout,size(psi_coefs_inout,1),n)
- print*,'passed ortho'
 
  !$OMP PARALLEL DO COLLAPSE(2) DEFAULT(NONE) SCHEDULE(dynamic) &
      !$OMP  PRIVATE(i,j) SHARED(overlap,psi_coefs_inout,nstates,n)
@@ -336,41 +331,49 @@ subroutine diagonalize_s2_betweenstates(keys_tmp,psi_coefs_inout,n,nmax_keys,nma
    enddo
  enddo
  !$OMP END PARALLEL DO
- print*,'Overlap matrix in the basis of the Lowdin orthonormalized states '
- do i = 1, nstates
-  write(*,'(10(F16.10,X))')overlap(i,:)
- enddo
 
  call get_uJ_s2_uI(keys_tmp,psi_coefs_inout,n_det,size(psi_coefs_inout,1),size(keys_tmp,3),s2,nstates)
  print*,'S^2 matrix in the basis of the states considered'
- double precision :: accu_precision_diag,accu_precision_of_diag
- accu_precision_diag = 0.d0
- accu_precision_of_diag = 0.d0
- do i = 1, nstates
-  do j = i+1, nstates
-   ! Do not combine states of the same spin symmetry
-   if( dabs(s2(i,i) - s2(j,j)) .le.0.5d0) then
-    s2(i,j) = 0.d0
-    s2(j,i) = 0.d0
-   endif
-  enddo
- enddo
  do i = 1, nstates
   write(*,'(10(F10.6,X))')s2(i,:)
   s2(i,i) = s2(i,i) 
  enddo
 
- print*,'Diagonalizing the S^2 matrix'
+ double precision :: accu_precision_diag,accu_precision_of_diag
+ accu_precision_diag = 0.d0
+ accu_precision_of_diag = 0.d0
+ do i = 1, nstates
+  ! Do not combine states of the same spin symmetry
+  do j = i+1, nstates
+   if( dabs(s2(i,i) - s2(j,j)) .le.0.5d0) then
+    s2(i,j) = 0.d0
+    s2(j,i) = 0.d0
+   endif
+  enddo
+  ! Do not rotate if the diagonal is correct
+  if( dabs(s2(i,i) - expected_s2).le.5.d-3) then
+   do j = 1, nstates
+    if (j==i) cycle
+    s2(i,j) = 0.d0
+    s2(j,i) = 0.d0
+   enddo
+  endif
+ enddo
+
+ print*,'Modified S^2 matrix that will be diagonalized'
+ do i = 1, nstates
+  write(*,'(10(F10.6,X))')s2(i,:)
+  s2(i,i) = s2(i,i) 
+ enddo
 
  allocate(eigvalues(nstates),eigvectors(nstates,nstates))
  call lapack_diagd(eigvalues,eigvectors,s2,nstates,nstates)
- print*,'Shifted Eigenvalues of s^2'
+ print*,'Eigenvalues'
  do i = 1, nstates
   print*,'s2 = ',eigvalues(i)
   s2_eigvalues(i) = eigvalues(i)
  enddo
 
- print*,'Building the eigenvectors of the S^2 matrix'
  allocate(psi_coefs_tmp(nmax_coefs,nstates))
  psi_coefs_tmp = 0.d0
  do j = 1, nstates
@@ -386,7 +389,6 @@ subroutine diagonalize_s2_betweenstates(keys_tmp,psi_coefs_inout,n,nmax_keys,nma
    do i = 1, n_det
     accu += psi_coefs_tmp(i,j) * psi_coefs_tmp(i,j)
    enddo
-   print*,'Norm of vector = ',accu
    accu = 1.d0/dsqrt(accu)
    do i = 1, n_det
     psi_coefs_inout(i,j) = psi_coefs_tmp(i,j) * accu

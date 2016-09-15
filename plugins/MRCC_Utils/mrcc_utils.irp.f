@@ -298,6 +298,8 @@ BEGIN_PROVIDER [ double precision, CI_energy_dressed, (N_states_diag) ]
   call write_time(output_determinants)
   do j=1,N_states_diag
     CI_energy_dressed(j) = CI_electronic_energy_dressed(j) + nuclear_repulsion
+    call write_double(output_determinants,CI_energy(j),'Energy of state '//trim(st))
+    call write_double(output_determinants,CI_eigenvectors_s2(j),'S^2 of state '//trim(st))
   enddo
 
 END_PROVIDER
