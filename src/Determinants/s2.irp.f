@@ -59,7 +59,6 @@ BEGIN_PROVIDER [ double precision, expected_s2]
      double precision :: S
      S = (elec_alpha_num-elec_beta_num)*0.5d0 
      expected_s2 = S * (S+1.d0)
-!     expected_s2 = elec_alpha_num - elec_beta_num + 0.5d0 * ((elec_alpha_num - elec_beta_num)**2*0.5d0 - (elec_alpha_num-elec_beta_num))
    endif
 
 END_PROVIDER 

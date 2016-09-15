@@ -274,11 +274,11 @@ BEGIN_PROVIDER [ double precision, CI_energy_dressed, (N_states_diag) ]
   integer                        :: j
   character*(8)                  :: st
   call write_time(output_determinants)
-  do j=1,N_states_diag
+  do j=1,min(N_det,N_states_diag)
     write(st,'(I4)') j
     CI_energy_dressed(j) = CI_electronic_energy_dressed(j) + nuclear_repulsion
-    call write_double(output_determinants,CI_energy(j),'Energy of state '//trim(st))
-    call write_double(output_determinants,CI_eigenvectors_s2(j),'S^2 of state '//trim(st))
+    call write_double(output_determinants,CI_energy_dressed(j),'Energy of state '//trim(st))
+    call write_double(output_determinants,CI_eigenvectors_s2_dressed(j),'S^2 of state '//trim(st))
   enddo
 
 END_PROVIDER
@@ -346,7 +346,9 @@ logical function is_generable(det1, det2, Nint)
   else
     tmp_array = (/s2, p2, s1, p1/)
   end if
-  f = searchExc(pp_exists(1,hh_shortcut(f)), tmp_array, hh_shortcut(f+1)-hh_shortcut(f))
+  if (f /= -1) then
+    f = searchExc(pp_exists(1,hh_shortcut(f)), tmp_array, hh_shortcut(f+1)-hh_shortcut(f))
+  endif
 
   is_generable = (f /= -1) 
 end function
@@ -667,12 +669,13 @@ END_PROVIDER
      N_col = 0
      col_shortcut = 0
      
-     !$OMP PARALLEL DO schedule(static,10) default(none) shared(psi_non_ref, hh_exists, pp_exists, N_int, A_val, A_ind)&
+     !$OMP PARALLEL default(none) shared(psi_non_ref, hh_exists, pp_exists, N_int, A_val, A_ind)&
          !$OMP shared(s, hh_shortcut, psi_ref_coef, N_det_non_ref, psi_non_ref_sorted, psi_non_ref_sorted_idx, psi_ref, N_det_ref)&
          !$OMP private(lref, pp, II, ok, myMask, myDet, ind, phase, wk)
+      allocate(lref(N_det_non_ref))
+     !$OMP DO schedule(static,10) 
      do hh = 1, hh_shortcut(0)
        do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
-         allocate(lref(N_det_non_ref))
          lref = 0
          do II = 1, N_det_ref
            call apply_hole_local(psi_ref(1,1,II), hh_exists(1, hh), myMask, ok, N_int)
@@ -701,10 +704,11 @@ END_PROVIDER
              A_ind(wk, pp) = i
            end if
          end do
-         deallocate(lref)
        end do
      end do
-     !$OMP END PARALLEL DO
+     !$OMP END DO
+     deallocate(lref)
+     !$OMP END PARALLEL
      
      AtB = 0d0
      AtA_size = 0
