@@ -1647,17 +1647,35 @@ subroutine u0_H_u_0(e_0,u_0,n,keys_tmp,Nint)
   double precision, intent(out)  :: e_0
   double precision, intent(in)   :: u_0(n)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
+  call u0_H_u_0_nstates(e_0,u_0,n,keys_tmp,Nint,1,n)
+end
+
+subroutine u0_H_u_0_nstates(e_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes e_0 = <u_0|H|u_0>/<u_0|u_0>
+  !
+  ! n : number of determinants
+  !
+  END_DOC
+  integer, intent(in)            :: n,Nint, N_st, sze_8
+  double precision, intent(out)  :: e_0(N_st)
+  double precision, intent(in)   :: u_0(sze_8,N_st)
+  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   
-  double precision               :: H_jj(n)
-  double precision               :: v_0(n)
+  double precision, allocatable  :: H_jj(:), v_0(:,:)
   double precision               :: u_dot_u,u_dot_v,diag_H_mat_elem
   integer :: i,j
+  allocate (H_jj(n), v_0(sze_8,N_st))
   do i = 1, n
    H_jj(i) = diag_H_mat_elem(keys_tmp(1,1,i),Nint)
   enddo
   
-  call H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
-  e_0 = u_dot_v(v_0,u_0,n)/u_dot_u(u_0,n)
+  call H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
+  do i=1,N_st
+    e_0(i) = u_dot_v(v_0(1,i),u_0(1,i),n)/u_dot_u(u_0(1,i),n)
+  enddo
 end
 
 
@@ -1676,9 +1694,26 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   double precision, intent(in)   :: u_0(n)
   double precision, intent(in)   :: H_jj(n)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
-  integer, allocatable           :: idx(:)
+  call H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,1,n)
+end
+
+subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes v_0 = H|u_0>
+  !
+  ! n : number of determinants
+  !
+  ! H_jj : array of <j|H|j>
+  END_DOC
+  integer, intent(in)            :: N_st,n,Nint, sze_8
+  double precision, intent(out)  :: v_0(sze_8,N_st)
+  double precision, intent(in)   :: u_0(sze_8,N_st)
+  double precision, intent(in)   :: H_jj(n)
+  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   double precision               :: hij
-  double precision, allocatable  :: vt(:)
+  double precision, allocatable  :: vt(:,:)
   integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0
   
@@ -1686,7 +1721,7 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   integer(bit_kind), allocatable :: sorted(:,:,:), version(:,:,:)
   integer(bit_kind)              :: sorted_i(Nint)
   
-  integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi
+  integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, istate
   
 
   ASSERT (Nint > 0)
@@ -1701,9 +1736,9 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i)&
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,sorted,shortcut,sort_idx,version)
-  allocate(vt(n))
+      !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i,istate)&
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,sorted,shortcut,sort_idx,version,N_st,sze_8)
+  allocate(vt(sze_8,N_st))
   Vt = 0.d0
   
   !$OMP DO SCHEDULE(dynamic)
@@ -1736,8 +1771,10 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
           end do
           if(ext <= 4) then
             call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
-            vt (org_i) = vt (org_i) + hij*u_0(org_j)
-            vt (org_j) = vt (org_j) + hij*u_0(org_i)
+            do istate=1,N_st
+              vt (org_i,istate) = vt (org_i,istate) + hij*u_0(org_j,istate)
+              vt (org_j,istate) = vt (org_j,istate) + hij*u_0(org_i,istate)
+            enddo
           endif
         enddo
       enddo
@@ -1757,8 +1794,10 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
         end do
         if(ext == 4) then
           call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
-          vt (org_i) = vt (org_i) + hij*u_0(org_j)
-          vt (org_j) = vt (org_j) + hij*u_0(org_i)
+          do istate=1,N_st
+            vt (org_i,istate) = vt (org_i,istate) + hij*u_0(org_j,istate)
+            vt (org_j,istate) = vt (org_j,istate) + hij*u_0(org_i,istate)
+          enddo
         end if
       end do
     end do
@@ -1766,16 +1805,20 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   !$OMP END DO NOWAIT
   
   !$OMP CRITICAL
-  do i=n,1,-1
-    v_0(i) = v_0(i) + vt(i)
+  do istate=1,N_st
+    do i=n,1,-1
+      v_0(i,istate) = v_0(i,istate) + vt(i,istate)
+    enddo
   enddo
   !$OMP END CRITICAL
 
   deallocate(vt)
   !$OMP END PARALLEL
   
-  do i=1,n
-    v_0(i) += H_jj(i) * u_0(i)
+  do istate=1,N_st
+    do i=1,n
+      v_0(i,istate) += H_jj(i) * u_0(i,istate)
+    enddo
   enddo
   deallocate (shortcut, sort_idx, sorted, version)
 end

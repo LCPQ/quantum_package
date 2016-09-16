@@ -456,9 +456,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       ! Compute W_k = H |u_k>
       ! ----------------------
       
-      do k=1,N_st
-        call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint)
-      enddo
+      call H_u_0_nstates(W(1,1,iter),U(1,1,iter),H_jj,sze,dets_in,Nint,N_st,sze_8)
       
       
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
