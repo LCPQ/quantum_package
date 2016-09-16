@@ -69,46 +69,158 @@ BEGIN_PROVIDER [ double precision, s2_values, (N_states) ]
 ! array of the averaged values of the S^2 operator on the various states
  END_DOC
  integer :: i
- double precision :: s2
- do i = 1, N_states
-  call get_s2_u0(psi_det,psi_coef(1,i),n_det,size(psi_coef,1),s2)
-  s2_values(i) = s2
- enddo
+ call get_s2_u0_nstates(s2_values,psi_coef,n_det,psi_det,N_int,N_states,psi_det_size)
 
 END_PROVIDER
 
 
-subroutine get_s2_u0_old(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
- implicit none
- use bitmasks
- integer, intent(in) :: n,nmax
- integer(bit_kind), intent(in) :: psi_keys_tmp(N_int,2,nmax)
- double precision, intent(in) :: psi_coefs_tmp(nmax)
- double precision, intent(out) :: s2
- integer :: i,j,l
- double precision :: s2_tmp
- s2 = 0.d0
- !$OMP PARALLEL DO DEFAULT(NONE) &
- !$OMP PRIVATE(i,j,s2_tmp) SHARED(n,psi_coefs_tmp,psi_keys_tmp,N_int) REDUCTION(+:s2) SCHEDULE(dynamic) 
- do i=1,n
-   do j=i+1,n
-     call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,j),s2_tmp,N_int)
-     s2 += psi_coefs_tmp(i)*psi_coefs_tmp(j)*s2_tmp
-   enddo
- enddo
- !$OMP END PARALLEL DO
- s2 = s2+s2
- do i=1,n
-   call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,i),s2_tmp,N_int)
-   s2 += psi_coefs_tmp(i)*psi_coefs_tmp(i)*s2_tmp
- enddo
- s2 +=  S_z2_Sz
-end
 
 subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
   implicit none
   use bitmasks
   integer, intent(in)            :: n,nmax
+  integer(bit_kind), intent(in)  :: psi_keys_tmp(N_int,2,nmax)
+  double precision, intent(in)   :: psi_coefs_tmp(nmax)
+  double precision, intent(out)  :: s2
+  call get_s2_u0_nstates(s2,psi_coefs_tmp,n,psi_keys_tmp,N_int,1,nmax)
+end
+
+
+subroutine get_s2_u0_nstates(s2,u_0,n,keys_tmp,Nint,N_st,sze_8)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes s2  = <u_0|S^2|u_0>
+  !
+  ! n : number of determinants
+  !
+  END_DOC
+  integer, intent(in)            :: N_st,n,Nint, sze_8
+  double precision, intent(out)  :: s2(N_st)
+  double precision, intent(in)   :: u_0(sze_8,N_st)
+  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
+  double precision               :: s2_tmp
+  double precision               :: s2t(N_st)
+  integer                        :: i,j,k,l, jj,ii
+  integer                        :: i0, j0
+  
+  integer, allocatable           :: shortcut(:,:), sort_idx(:,:)
+  integer(bit_kind), allocatable :: sorted(:,:,:), version(:,:,:)
+  integer(bit_kind)              :: sorted_i(Nint)
+  
+  integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, istate
+  
+
+  ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
+  ASSERT (n>0)
+  PROVIDE ref_bitmask_energy davidson_criterion
+
+  allocate (shortcut(0:n+1,2), sort_idx(n,2), sorted(Nint,n,2), version(Nint,n,2))
+  s2 = 0.d0
+
+  call sort_dets_ab_v(keys_tmp, sorted(1,1,1), sort_idx(1,1), shortcut(0,1), version(1,1,1), n, Nint)
+  call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
+  
+  !$OMP PARALLEL DEFAULT(NONE)                                       &
+      !$OMP PRIVATE(i,s2_tmp,j,k,jj,s2t,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i,istate)&
+      !$OMP SHARED(n,u_0,keys_tmp,Nint,s2,sorted,shortcut,sort_idx,version,N_st,sze_8)
+  s2t = 0.d0
+  
+  !$OMP DO SCHEDULE(dynamic)
+  do sh=1,shortcut(0,1)
+    do sh2=sh,shortcut(0,1)
+      exa = 0
+      do ni=1,Nint
+        exa = exa + popcnt(xor(version(ni,sh,1), version(ni,sh2,1)))
+      end do
+      if(exa > 2) then
+        cycle
+      end if
+      
+      do i=shortcut(sh,1),shortcut(sh+1,1)-1
+        org_i = sort_idx(i,1)
+        if(sh==sh2) then
+          endi = i-1
+        else
+          endi = shortcut(sh2+1,1)-1
+        end if
+        do ni=1,Nint
+          sorted_i(ni) = sorted(ni,i,1)
+        enddo
+        
+        do j=shortcut(sh2,1),endi
+          org_j = sort_idx(j,1)
+          ext = exa
+          do ni=1,Nint
+            ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
+          end do
+          if(ext <= 4) then
+            call get_s2(keys_tmp(1,1,org_i),keys_tmp(1,1,org_j),s2_tmp,Nint)
+            do istate=1,N_st
+              s2t(istate)  = s2t(istate) + u_0(org_i,istate)*u_0(org_j,istate)*s2_tmp
+            enddo
+          endif
+        enddo
+      enddo
+    enddo
+  enddo
+  !$OMP END DO NOWAIT
+  
+  !$OMP DO SCHEDULE(dynamic)
+  do sh=1,shortcut(0,2)
+    do i=shortcut(sh,2),shortcut(sh+1,2)-1
+      org_i = sort_idx(i,2)
+      do j=shortcut(sh,2),i-1
+        org_j = sort_idx(j,2)
+        ext = 0
+        do ni=1,Nint
+          ext = ext + popcnt(xor(sorted(ni,i,2), sorted(ni,j,2)))
+        end do
+        if(ext == 4) then
+          call get_s2(keys_tmp(1,1,org_i),keys_tmp(1,1,org_j),s2_tmp,Nint)
+          do istate=1,N_st
+            s2t(istate)  = s2t(istate) + u_0(org_i,istate)*u_0(org_j,istate)*s2_tmp
+          enddo
+        end if
+      end do
+    end do
+  enddo
+  !$OMP END DO NOWAIT
+  
+  !$OMP CRITICAL
+  do istate=1,N_st
+      s2(istate) = s2(istate) + 2.d0*s2t(istate)
+  enddo
+  !$OMP END CRITICAL
+
+  !$OMP END PARALLEL
+  
+  do i=1,n
+    call get_s2(keys_tmp(1,1,i),keys_tmp(1,1,i),s2_tmp,Nint)
+    do istate=1,N_st
+      s2(istate) = s2(istate) + u_0(i,istate)*u_0(i,istate)*s2_tmp
+    enddo
+  enddo
+  do istate=1,N_st
+      s2(istate) += S_z2_Sz
+  enddo
+  deallocate (shortcut, sort_idx, sorted, version)
+end
+
+
+
+
+
+
+
+
+
+
+subroutine get_s2_u0_nstates_old(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2,N_st)
+  implicit none
+  use bitmasks
+  integer, intent(in)            :: n,nmax, N_st
   integer(bit_kind), intent(in)  :: psi_keys_tmp(N_int,2,nmax)
   double precision, intent(in)   :: psi_coefs_tmp(nmax)
   double precision, intent(out)  :: s2
@@ -119,13 +231,12 @@ subroutine get_s2_u0(psi_keys_tmp,psi_coefs_tmp,n,nmax,s2)
   integer, allocatable           :: shortcut(:), sort_idx(:)
   integer(bit_kind), allocatable :: sorted(:,:), version(:,:)
   integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, pass
-  double precision               :: davidson_threshold_bis
   
   allocate (shortcut(0:n+1), sort_idx(n), sorted(N_int,n), version(N_int,n))
   s2 = 0.d0
-  davidson_threshold_bis = threshold_davidson
   call sort_dets_ab_v(psi_keys_tmp, sorted, sort_idx, shortcut, version, n, N_int)
   
+  PROVIDE threshold_davidson
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,j,s2_tmp,sh, sh2, ni, exa, ext, org_i, org_j, endi, pass)&
       !$OMP SHARED(n,psi_coefs_tmp,psi_keys_tmp,N_int,threshold_davidson,shortcut,sorted,sort_idx,version)&
