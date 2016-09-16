@@ -129,7 +129,7 @@ END_PROVIDER
    integer                        :: i_other_state
    double precision, allocatable  :: eigenvectors(:,:), eigenvalues(:)
    integer                        :: i_state
-   double precision               :: s2,e_0
+   double precision               :: e_0
    integer                        :: i,j,k
    double precision, allocatable  :: s2_eigvalues(:)
    double precision, allocatable  :: e_array(:)
@@ -168,7 +168,7 @@ END_PROVIDER
          N_det,size(eigenvectors,1))
        do j=1,N_det
          ! Select at least n_states states with S^2 values closed to "expected_s2"
-         if(dabs(s2-expected_s2).le.0.5d0)then
+         if(dabs(s2_eigvalues(j)-expected_s2).le.0.5d0)then
            i_state += 1
            index_good_state_array(i_state) = j
            good_state_array(j) = .True.

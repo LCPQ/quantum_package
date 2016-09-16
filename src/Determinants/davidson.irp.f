@@ -327,7 +327,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   integer                        :: k_pairs, kl
   
   integer                        :: iter2
-  double precision, allocatable  :: W(:,:,:),  U(:,:,:), R(:,:), Wt(:)
+  double precision, allocatable  :: W(:,:,:),  U(:,:,:), R(:,:)
   double precision, allocatable  :: y(:,:,:,:), h(:,:,:,:), lambda(:)
   double precision               :: diag_h_mat_elem
   double precision               :: residual_norm(N_st)
@@ -335,7 +335,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   double precision               :: to_print(2,N_st)
   double precision               :: cpu, wall
   
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: U, W, R, Wt, y, h, lambda
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: U, W, R, y, h, lambda
 
 
   call write_time(iunit)
@@ -369,10 +369,9 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
 
   allocate(                                                          &
       kl_pairs(2,N_st*(N_st+1)/2),                                   &
-      W(sze_8,N_st,davidson_sze_max),                                                   &
-      Wt(sze),                                                        &
-      U(sze_8,N_st,davidson_sze_max),                                  &
-      R(sze_8,N_st),                                                   &
+      W(sze_8,N_st,davidson_sze_max),                                &
+      U(sze_8,N_st,davidson_sze_max),                                &
+      R(sze_8,N_st),                                                 &
       h(N_st,davidson_sze_max,N_st,davidson_sze_max),                &
       y(N_st,davidson_sze_max,N_st,davidson_sze_max),                &
       lambda(N_st*davidson_sze_max))
@@ -612,7 +611,6 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   deallocate (                                                       &
       kl_pairs,                                                      &
       W,                                                             &
-      Wt,                                                            &
       U,                                                             &
       R,                                                             &
       h,                                                             &
