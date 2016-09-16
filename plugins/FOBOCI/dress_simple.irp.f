@@ -207,16 +207,16 @@ subroutine dress_H_matrix_from_psi_det_input(psi_det_generators_input,Ndet_gener
 
  call lapack_diagd(eigvalues,eigvectors,dressed_H_matrix,Ndet_generators,Ndet_generators)  ! Diagonalize the Dressed_H_matrix
  
- double precision :: s2,E_ref(N_states)
+ double precision :: s2(N_det_generators),E_ref(N_states)
  integer :: i_state(N_states)
  integer :: n_state_good
  n_state_good = 0
  if(s2_eig)then
+  call u_0_S2_u_0_nstates(s2,eigvectors,Ndet_generators,psi_det_generators_input,N_int,N_det_generators,size(eigvectors,1))
   do i = 1, Ndet_generators
-    call get_s2_u0(psi_det_generators_input,eigvectors(1,i),Ndet_generators,Ndet_generators,s2)
-    print*,'s2 = ',s2
-    print*,dabs(s2-expected_s2)
-    if(dabs(s2-expected_s2).le.0.3d0)then
+    print*,'s2 = ',s2(i)
+    print*,dabs(s2(i)-expected_s2)
+    if(dabs(s2(i)-expected_s2).le.0.3d0)then
      n_state_good +=1
      i_state(n_state_good) = i
      E_ref(n_state_good) = eigvalues(i)
@@ -274,7 +274,6 @@ subroutine dress_H_matrix_from_psi_det_input(psi_det_generators_input,Ndet_gener
  integer :: i_good_state(0:N_states)
  i_good_state(0) = 0
   do i = 1, Ndet_generators
-    call get_s2_u0(psi_det_generators_input,eigvectors(1,i),Ndet_generators,Ndet_generators,s2)
     ! State following
     do k = 1, N_states 
      accu = 0.d0

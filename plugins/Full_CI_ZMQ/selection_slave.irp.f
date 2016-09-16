@@ -58,12 +58,12 @@ subroutine update_energy(energy)
 ! Update energy when it is received from ZMQ
   END_DOC
   integer :: j,k
-    do j=1,N_states_diag
+  do j=1,N_states_diag
     do k=1,N_det
       CI_eigenvectors(k,j) = psi_coef(k,j)
     enddo
-    call get_s2_u0(psi_det,CI_eigenvectors(1,j),N_det,size(CI_eigenvectors,1),CI_eigenvectors_s2(j))
   enddo
+  call u_0_S2_u_0(CI_eigenvectors_s2,CI_eigenvectors,N_det,psi_det,N_int)
   if (.True.) then
     do k=1,size(ci_electronic_energy)
       ci_electronic_energy(k) = energy(k)

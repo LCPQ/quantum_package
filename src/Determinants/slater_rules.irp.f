@@ -1634,7 +1634,7 @@ subroutine get_occ_from_key(key,occ,Nint)
   
 end
 
-subroutine u0_H_u_0(e_0,u_0,n,keys_tmp,Nint)
+subroutine u_0_H_u_0(e_0,u_0,n,keys_tmp,Nint)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -1647,10 +1647,10 @@ subroutine u0_H_u_0(e_0,u_0,n,keys_tmp,Nint)
   double precision, intent(out)  :: e_0
   double precision, intent(in)   :: u_0(n)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
-  call u0_H_u_0_nstates(e_0,u_0,n,keys_tmp,Nint,1,n)
+  call u_0_H_u_0_nstates(e_0,u_0,n,keys_tmp,Nint,1,n)
 end
 
-subroutine u0_H_u_0_nstates(e_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
+subroutine u_0_H_u_0_nstates(e_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
   use bitmasks
   implicit none
   BEGIN_DOC
