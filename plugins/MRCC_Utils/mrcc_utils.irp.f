@@ -7,7 +7,7 @@ END_PROVIDER
  
  BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states, N_det_non_ref) ]
 &BEGIN_PROVIDER [ integer, lambda_mrcc_pt2, (0:psi_det_size) ]
-&BEGIN_PROVIDER [ integer, lambda_mrcc_pt3, (0:psi_det_size) ]
+&BEGIN_PROVIDER [ integer, lambda_mrcc_kept, (0:psi_det_size) ]
   implicit none
   BEGIN_DOC
   ! cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
@@ -23,7 +23,7 @@ END_PROVIDER
   N_lambda_mrcc_pt2 = 0
   N_lambda_mrcc_pt3 = 0
   lambda_mrcc_pt2(0) = 0
-  lambda_mrcc_pt3(0) = 0
+  lambda_mrcc_kept(0) = 0
 
   do i=1,N_det_non_ref
     call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,&
@@ -36,6 +36,7 @@ END_PROVIDER
       lambda_mrcc(k,i) = min(-1.d-32,psi_non_ref_coef(i,k)/ihpsi_current(k) )
       lambda_pert = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
       if (lambda_pert / lambda_mrcc(k,i)  < 0.5d0) then
+        ! Ignore lamdba
         i_pert_count += 1
         lambda_mrcc(k,i) = 0.d0
         if (lambda_mrcc_pt2(N_lambda_mrcc_pt2) /= i) then
@@ -43,15 +44,16 @@ END_PROVIDER
           lambda_mrcc_pt2(N_lambda_mrcc_pt2) = i
         endif
       else
-        if (lambda_mrcc_pt3(N_lambda_mrcc_pt3) /= i) then
+        ! Keep lamdba
+        if (lambda_mrcc_kept(N_lambda_mrcc_pt3) /= i) then
           N_lambda_mrcc_pt3 += 1
-          lambda_mrcc_pt3(N_lambda_mrcc_pt3) = i
+          lambda_mrcc_kept(N_lambda_mrcc_pt3) = i
         endif
       endif
     enddo
   enddo
   lambda_mrcc_pt2(0) = N_lambda_mrcc_pt2
-  lambda_mrcc_pt3(0) = N_lambda_mrcc_pt3
+  lambda_mrcc_kept(0) = N_lambda_mrcc_pt3
   print*,'N_det_non_ref = ',N_det_non_ref
   print*,'psi_coef_ref_ratio = ',psi_ref_coef(2,1)/psi_ref_coef(1,1)
   print*,'lambda max = ',maxval(dabs(lambda_mrcc))
