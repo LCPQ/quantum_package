@@ -246,7 +246,7 @@ END_PROVIDER
           psi_coef(i,j) = CI_eigenvectors_dressed(i,j)
         enddo
       enddo
-      call u_0_H_u_0_nstates(e_array,psi_coef,n_det,psi_det,N_int,N_states_diag,psi_det_size)
+      call u_0_H_u_0_mrcc_nstates(e_array,psi_coef,n_det,psi_det,N_int,mrcc_state,N_states_diag,psi_det_size)
      
       ! Browsing the "n_states_diag" states and getting the lowest in energy "n_states" ones that have the S^2 value
       ! closer to the "expected_s2" set as input

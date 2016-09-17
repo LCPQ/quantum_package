@@ -404,14 +404,14 @@ subroutine u_0_H_u_0_mrcc_nstates(e_0,u_0,n,keys_tmp,Nint,istate,N_st,sze_8)
   END_DOC
   integer, intent(in)            :: n,Nint,N_st,sze_8
   double precision, intent(out)  :: e_0(N_st)
-  double precision, intent(in)   :: u_0(n,N_st)
+  double precision, intent(in)   :: u_0(sze_8,N_st)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   integer,intent(in)             :: istate
   
-  double precision               :: H_jj(n)
-  double precision               :: v_0(n,N_st)
+  double precision, allocatable  :: v_0(:,:), H_jj(:)
   double precision               :: u_dot_u,u_dot_v,diag_H_mat_elem
   integer :: i,j
+  allocate(H_jj(n), v_0(sze_8,N_st))
   do i = 1, n
    H_jj(i) = diag_H_mat_elem(keys_tmp(1,1,i),Nint)
   enddo
@@ -424,6 +424,7 @@ subroutine u_0_H_u_0_mrcc_nstates(e_0,u_0,n,keys_tmp,Nint,istate,N_st,sze_8)
   do i=1,N_st
     e_0(i) = u_dot_v(v_0(1,i),u_0(1,i),n)/u_dot_u(u_0(1,i),n)
   enddo
+  deallocate(H_jj, v_0)
 end
 
 
