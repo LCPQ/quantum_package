@@ -44,6 +44,7 @@ subroutine routine
    accu += matrix_1h2p(i,j,1) * psi_coef(i,1) * psi_coef(j,1)
   enddo
  enddo
+ endif
  print*, 'third  order ', accu
 
  deallocate (matrix_1h2p)
