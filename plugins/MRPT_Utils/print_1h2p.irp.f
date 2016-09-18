@@ -17,7 +17,8 @@ subroutine routine
    enddo
   enddo
  enddo
- call give_1h2p_contrib_sec_order(matrix_1h2p)
+ if(.False.)then
+ call give_1h2p_contrib(matrix_1h2p)
  double precision :: accu
  accu = 0.d0
  do i = 1, N_det
@@ -25,7 +26,25 @@ subroutine routine
    accu += matrix_1h2p(i,j,1) * psi_coef(i,1) * psi_coef(j,1)
   enddo
  enddo
- print*, 'accu', accu
+ print*, 'second order ', accu
+ endif
+
+ if(.True.)then
+ do i = 1, N_det
+  do j = 1, N_det
+   do istate = 1, N_states
+    matrix_1h2p(i,j,istate) = 0.d0
+   enddo
+  enddo
+ enddo
+ call give_1h2p_new(matrix_1h2p)
+ accu = 0.d0
+ do i = 1, N_det
+  do j = 1, N_det 
+   accu += matrix_1h2p(i,j,1) * psi_coef(i,1) * psi_coef(j,1)
+  enddo
+ enddo
+ print*, 'third  order ', accu
 
  deallocate (matrix_1h2p)
 end
