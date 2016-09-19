@@ -747,6 +747,8 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
             exc(1,1,2),                                              &
             exc(1,2,1),                                              &
             exc(1,2,2) ,mo_integrals_map)
+        print*, 'hij verbose  ',hij * phase
+        print*, 'phase verbose',phase
       else if (exc(0,1,1) == 2) then
         ! Double alpha
         print*,'phase hij = ',phase 
