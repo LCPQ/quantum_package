@@ -1,20 +1,3 @@
-BEGIN_PROVIDER [ integer, davidson_iter_max ]
-  implicit none
-  BEGIN_DOC
-  ! Max number of Davidson iterations
-  END_DOC
-  davidson_iter_max = 100
-END_PROVIDER
-
-BEGIN_PROVIDER [ integer, davidson_sze_max ]
-  implicit none
-  BEGIN_DOC
-  ! Max number of Davidson sizes
-  END_DOC
-  ASSERT (davidson_sze_max <= davidson_iter_max)
-  davidson_sze_max = max(8,2*N_states_diag)
-END_PROVIDER
-
 subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
   use bitmasks
   implicit none
@@ -69,6 +52,9 @@ end
 logical function det_inf(key1, key2, Nint)
   use bitmasks
   implicit none
+  BEGIN_DOC
+! Ordering function for determinants
+  END_DOC
   integer,intent(in)                 :: Nint
   integer(bit_kind),intent(in)       :: key1(Nint, 2), key2(Nint, 2)
   integer                            :: i,j
@@ -91,7 +77,6 @@ end function
 subroutine tamiser(key, idx, no, n, Nint, N_key)
   use bitmasks
   implicit none
-  
   BEGIN_DOC
 ! Uncodumented : TODO
   END_DOC
@@ -619,47 +604,3 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       )
 end
 
-BEGIN_PROVIDER [ character(64), davidson_criterion ]
- implicit none
- BEGIN_DOC
- ! Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
- END_DOC
- davidson_criterion = 'residual'
-END_PROVIDER
-
-subroutine davidson_converged(energy,residual,wall,iterations,cpu,N_st,converged)
-  implicit none
-  BEGIN_DOC
-! True if the Davidson algorithm is converged
-  END_DOC
-  integer, intent(in) :: N_st, iterations
-  logical, intent(out) :: converged
-  double precision, intent(in) :: energy(N_st), residual(N_st)
-  double precision, intent(in) :: wall, cpu
-  double precision :: E(N_st), time
-  double precision, allocatable, save :: energy_old(:)
-
-  if (.not.allocated(energy_old)) then
-    allocate(energy_old(N_st))
-    energy_old = 0.d0
-  endif
-
-  E = energy - energy_old
-  energy_old = energy
-  if (davidson_criterion == 'energy') then
-    converged = dabs(maxval(E(1:N_st))) < threshold_davidson 
-  else if (davidson_criterion == 'residual') then
-    converged = dabs(maxval(residual(1:N_st))) < threshold_davidson 
-  else if (davidson_criterion == 'both') then
-    converged = dabs(maxval(residual(1:N_st))) + dabs(maxval(E(1:N_st)) ) &
-       < threshold_davidson  
-  else if (davidson_criterion == 'wall_time') then
-    call wall_time(time)
-    converged = time - wall > threshold_davidson
-  else if (davidson_criterion == 'cpu_time') then
-    call cpu_time(time)
-    converged = time - cpu > threshold_davidson
-  else if (davidson_criterion == 'iterations') then
-    converged = iterations >= int(threshold_davidson)
-  endif
-end

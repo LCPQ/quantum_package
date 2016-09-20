@@ -1,5 +1,22 @@
 use bitmasks
 
+BEGIN_PROVIDER [ character*(64), diag_algorithm ]
+  implicit none
+  BEGIN_DOC
+  ! Diagonalization algorithm (Davidson or Lapack)
+  END_DOC
+  if (N_det > N_det_max_jacobi) then
+    diag_algorithm = "Davidson"
+  else
+    diag_algorithm = "Lapack"
+  endif
+
+  if (N_det < N_states_diag) then
+    diag_algorithm = "Lapack"
+  endif
+END_PROVIDER
+
+
 BEGIN_PROVIDER [ integer, N_det ]
  implicit none
  BEGIN_DOC
