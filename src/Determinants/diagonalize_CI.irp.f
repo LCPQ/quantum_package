@@ -92,7 +92,7 @@ END_PROVIDER
         call get_s2_u0(psi_det,eigenvectors(1,j),N_det,size(eigenvectors,1),s2)
         s2_eigvalues(j) = s2
         print*, 's2 in lapack',s2
-        print*, eigenvalues(j)
+        print*, eigenvalues(j) + nuclear_repulsion
         ! Select at least n_states states with S^2 values closed to "expected_s2"
         if(dabs(s2-expected_s2).le.0.3d0)then
          i_state +=1

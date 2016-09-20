@@ -21,6 +21,11 @@ subroutine apply_exc_to_psi(orb,hole_particle,spin_exc, &
   END_DOC
 
   integer :: elec_num_tab_local(2)
+  integer :: i,j,accu_elec,k
+  integer :: det_tmp(N_int), det_tmp_bis(N_int)
+  double precision :: phase
+  double precision :: norm_factor
+
   elec_num_tab_local = 0
   do i = 1, ndet
    if( psi_in_out_coef (i,1) .ne. 0.d0)then
@@ -31,7 +36,6 @@ subroutine apply_exc_to_psi(orb,hole_particle,spin_exc, &
     exit
    endif
   enddo
-  integer :: i,j,accu_elec
   if(hole_particle == 1)then
    do i = 1, ndet
      call set_bit_to_integer(orb,psi_in_out(1,spin_exc,i),N_int) 
@@ -48,8 +52,28 @@ subroutine apply_exc_to_psi(orb,hole_particle,spin_exc, &
        psi_in_out_coef(i,j) = 0.d0
       enddo
      endif
+     phase = 1.d0
+     do k = 1, orb
+      do j = 1, N_int
+       det_tmp(j) = 0_bit_kind
+      enddo
+      call set_bit_to_integer(k,det_tmp,N_int) 
+      accu_elec = 0
+      do j = 1, N_int
+       det_tmp_bis(j) = iand(det_tmp(j),(psi_in_out(j,spin_exc,i)))
+       accu_elec += popcnt(det_tmp_bis(j))
+      enddo
+      if(accu_elec == 1)then
+       phase = phase * -1.d0
+      endif
+     enddo
+     do j = 1, N_states_in
+      psi_in_out_coef(i,j) = psi_in_out_coef(i,j)  * phase
+     enddo
    enddo
+
   else if (hole_particle == -1)then
+
    do i = 1, ndet
      call clear_bit_to_integer(orb,psi_in_out(1,spin_exc,i),N_int) 
      accu_elec = 0
@@ -65,10 +89,30 @@ subroutine apply_exc_to_psi(orb,hole_particle,spin_exc, &
        psi_in_out_coef(i,j) = 0.d0
       enddo
      endif
+
+     phase = 1.d0
+     do k = 1, orb-1
+      do j = 1, N_int
+       det_tmp(j) = 0_bit_kind
+      enddo
+      call set_bit_to_integer(k,det_tmp,N_int) 
+      accu_elec = 0
+      do j = 1, N_int
+       det_tmp_bis(j) = iand(det_tmp(j),(psi_in_out(j,spin_exc,i)))
+       accu_elec += popcnt(det_tmp_bis(j)) 
+      enddo
+      if(accu_elec == 1)then
+       phase = phase * -1.d0
+      endif
+     enddo
+     do j = 1, N_states_in
+      psi_in_out_coef(i,j) = psi_in_out_coef(i,j)  * phase
+     enddo
    enddo
   endif
+
+
   norm_out = 0.d0
-  double precision :: norm_factor
   do j = 1, N_states_in
    do i = 1, ndet
     norm_out(j) += psi_in_out_coef(i,j) * psi_in_out_coef(i,j)
@@ -337,7 +381,9 @@ subroutine i_H_j_dyall(key_i,key_j,Nint,hij)
         enddo
         
       endif
-      hij = phase*(hij + mo_mono_elec_integral(m,p) + fock_operator_active_from_core_inact(m,p) )
+      hij = phase*(hij + mo_mono_elec_integral(m,p)  + fock_operator_active_from_core_inact(m,p) )
+!     hij = phase*(mo_mono_elec_integral(m,p) ) ! + fock_operator_active_from_core_inact(m,p) )
+!     hij = 0.d0
       
     case (0)
       hij = diag_H_mat_elem_no_elec_check(key_i,Nint)
