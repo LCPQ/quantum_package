@@ -239,7 +239,7 @@ perturb_buffer_moller_plesset
   .br
 
 
-`pt2_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_363#L3>`_
+`pt2_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_370#L3>`_
   compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states.
@@ -250,7 +250,7 @@ perturb_buffer_moller_plesset
   .br
 
 
-`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_363#L59>`_
+`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_370#L60>`_
   compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
   .br
   for the various N_st states.
@@ -261,7 +261,7 @@ perturb_buffer_moller_plesset
   .br
 
 
-`pt2_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_363#L353>`_
+`pt2_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_370#L364>`_
   compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states, but with the CISD_SC2 energies and coefficients
@@ -272,7 +272,7 @@ perturb_buffer_moller_plesset
   .br
 
 
-`pt2_epstein_nesbet_sc2_no_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_363#L275>`_
+`pt2_epstein_nesbet_sc2_no_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_370#L285>`_
   compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states,
@@ -283,7 +283,7 @@ perturb_buffer_moller_plesset
   .br
   that can be repeated by repeating all the double excitations
   .br
-  : you repeat all the correlation energy already taken into account in CI_electronic_energy(1)
+  : you repeat all the correlation energy already taken into account in electronic_energy(1)
   .br
   that could be repeated to this determinant.
   .br
@@ -296,7 +296,7 @@ perturb_buffer_moller_plesset
   H_pert_diag = <HF|H|det_pert> c_pert
 
 
-`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_363#L181>`_
+`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_370#L190>`_
   compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states,
@@ -307,7 +307,7 @@ perturb_buffer_moller_plesset
   .br
   that can be repeated by repeating all the double excitations
   .br
-  : you repeat all the correlation energy already taken into account in CI_electronic_energy(1)
+  : you repeat all the correlation energy already taken into account in electronic_energy(1)
   .br
   that could be repeated to this determinant.
   .br
@@ -336,7 +336,7 @@ perturb_buffer_moller_plesset
   than pt2_max in absolute value
 
 
-`pt2_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_363#L120>`_
+`pt2_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_370#L121>`_
   compute the standard Moller-Plesset perturbative first order coefficient and second order energetic contribution
   .br
   for the various n_st states.
@@ -347,7 +347,7 @@ perturb_buffer_moller_plesset
   .br
 
 
-`remove_small_contributions <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/selection.irp.f#L87>`_
+`remove_small_contributions <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/selection.irp.f#L77>`_
   Remove determinants with small contributions. N_states is assumed to be
   provided.
 
@@ -356,15 +356,15 @@ perturb_buffer_moller_plesset
   Undocumented
 
 
-`selection_criterion <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/selection.irp.f#L74>`_
+`selection_criterion <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/selection.irp.f#L64>`_
   Threshold to select determinants. Set by selection routines.
 
 
-`selection_criterion_factor <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/selection.irp.f#L76>`_
+`selection_criterion_factor <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/selection.irp.f#L66>`_
   Threshold to select determinants. Set by selection routines.
 
 
-`selection_criterion_min <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/selection.irp.f#L75>`_
+`selection_criterion_min <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/selection.irp.f#L65>`_
   Threshold to select determinants. Set by selection routines.
 
 

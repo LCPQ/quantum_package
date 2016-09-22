@@ -25,6 +25,7 @@ Needed Modules
 
 * `Integrals_Bielec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec>`_
 * `MOGuess <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess>`_
+* `Bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask>`_
 
 Documentation
 =============
@@ -32,11 +33,11 @@ Documentation
 .. by the `update_README.py` script.
 
 
-`ao_bi_elec_integral_alpha <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L107>`_
+`ao_bi_elec_integral_alpha <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L103>`_
   Alpha Fock matrix in AO basis set
 
 
-`ao_bi_elec_integral_beta <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L108>`_
+`ao_bi_elec_integral_beta <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L104>`_
   Alpha Fock matrix in AO basis set
 
 
@@ -52,7 +53,7 @@ Documentation
   Diagonal Fock matrix in the MO basis
 
 
-`diagonal_fock_matrix_mo_sum <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/diagonalize_fock.irp.f#L112>`_
+`diagonal_fock_matrix_mo_sum <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/diagonalize_fock.irp.f#L95>`_
   diagonal element of the fock matrix calculated as the sum over all the interactions
   with all the electrons in the RHF determinant
   diagonal_Fock_matrix_mo_sum(i) = sum_{j=1, N_elec} 2 J_ij -K_ij
@@ -62,23 +63,23 @@ Documentation
   Diagonal Fock matrix in the MO basis
 
 
-`fock_matrix_alpha_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L88>`_
+`fock_matrix_alpha_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L84>`_
   Alpha Fock matrix in AO basis set
 
 
-`fock_matrix_alpha_mo <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L272>`_
+`fock_matrix_alpha_mo <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L268>`_
   Fock matrix on the MO basis
 
 
-`fock_matrix_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L330>`_
+`fock_matrix_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L326>`_
   Fock matrix in AO basis set
 
 
-`fock_matrix_beta_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L89>`_
+`fock_matrix_beta_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L85>`_
   Alpha Fock matrix in AO basis set
 
 
-`fock_matrix_beta_mo <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L292>`_
+`fock_matrix_beta_mo <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L288>`_
   Fock matrix on the MO basis
 
 
@@ -114,7 +115,7 @@ Documentation
   .br
 
 
-`fock_mo_to_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L392>`_
+`fock_mo_to_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L388>`_
   Undocumented
 
 
@@ -134,7 +135,7 @@ Documentation
   S^-1 Beta density matrix in the AO basis x S^-1
 
 
-`hf_energy <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L311>`_
+`hf_energy <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L307>`_
   Hartree-Fock energy
 
 
@@ -142,16 +143,20 @@ Documentation
   Build the MOs using the extended Huckel model
 
 
-`level_shift <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L28>`_
+`level_shift <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L25>`_
   Energy shift on the virtual MOs to improve SCF convergence
 
 
-`mo_guess_type <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L50>`_
+`mo_guess_type <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L6>`_
   Initial MO guess. Can be [ Huckel | HCore ]
 
 
-`n_it_scf_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L6>`_
+`n_it_scf_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L63>`_
   Maximum number of SCF iterations
+
+
+`no_oa_or_av_opt <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L82>`_
+  If true, skip the (inactive+core) --> (active) and the (active) --> (virtual) orbital rotations within the SCF procedure
 
 
 `run <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/SCF.irp.f#L38>`_
@@ -165,6 +170,6 @@ Documentation
   optional: mo_basis.mo_coef
 
 
-`thresh_scf <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L68>`_
+`thresh_scf <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L44>`_
   Threshold on the convergence of the Hartree Fock energy
 

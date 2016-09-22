@@ -72,16 +72,16 @@ Documentation
   Transform a bit string to a string for printing
 
 
-`cas_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L220>`_
+`cas_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L277>`_
   Bitmasks for CAS reference determinants. (N_int, alpha/beta, CAS reference)
 
 
-`cis_ijkl_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L32>`_
-  Bitmask to include all possible single excitations from Hartree-Fock
+`closed_shell_ref_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L518>`_
+  Undocumented
 
 
-`core_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L344>`_
-  Reunion of the inactive, active and virtual bitmasks
+`core_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L452>`_
+  Core orbitals bitmask
 
 
 `debug_det <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L120>`_
@@ -98,7 +98,11 @@ Documentation
   Bitmask to include all possible MOs
 
 
-`generators_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L147>`_
+`full_ijkl_bitmask_4 <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L29>`_
+  Undocumented
+
+
+`generators_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L190>`_
   Bitmasks for generator determinants.
   (N_int, alpha/beta, hole/particle, generator).
   .br
@@ -118,7 +122,7 @@ Documentation
   .br
 
 
-`generators_bitmask_restart <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L103>`_
+`generators_bitmask_restart <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L131>`_
   Bitmasks for generator determinants.
   (N_int, alpha/beta, hole/particle, generator).
   .br
@@ -138,28 +142,84 @@ Documentation
   .br
 
 
-`hf_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L44>`_
+`hf_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L41>`_
   Hartree Fock bit mask
 
 
-`i_bitmask_gen <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L358>`_
+`i_bitmask_gen <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L469>`_
   Current bitmask for the generators
 
 
-`inact_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L254>`_
-  Bitmasks for the inactive orbitals that are excited in post CAS method
+`inact_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L321>`_
+  inact_bitmask : Bitmask of the inactive orbitals which are supposed to be doubly excited
+  in post CAS methods
+  n_inact_orb   : Number of inactive orbitals
+  virt_bitmask  : Bitmaks of vritual orbitals which are supposed to be recieve electrons
+  in post CAS methods
+  n_virt_orb    : Number of virtual orbitals
 
 
-`inact_virt_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L332>`_
+`inact_virt_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L425>`_
   Reunion of the inactive and virtual bitmasks
+
+
+`index_holes_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/modify_bitmasks.irp.f#L260>`_
+  Index of the holes in the generators_bitmasks
+
+
+`index_particl_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/modify_bitmasks.irp.f#L271>`_
+  Index of the holes in the generators_bitmasks
+
+
+`initialize_bitmask_to_restart_ones <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/modify_bitmasks.irp.f#L3>`_
+  Initialization of the generators_bitmask to the restart bitmask
+
+
+`is_a_1h <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L476>`_
+  Undocumented
+
+
+`is_a_1h1p <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L454>`_
+  Undocumented
+
+
+`is_a_1h2p <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L465>`_
+  Undocumented
+
+
+`is_a_1p <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L487>`_
+  Undocumented
+
+
+`is_a_2p <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L498>`_
+  Undocumented
 
 
 `is_a_two_holes_two_particles <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L206>`_
   Undocumented
 
 
-`list_inact <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L298>`_
+`is_the_hole_in_det <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/find_hole.irp.f#L1>`_
   Undocumented
+
+
+`is_the_particl_in_det <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/find_hole.irp.f#L29>`_
+  Undocumented
+
+
+`list_act <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L502>`_
+  list of active orbitals
+
+
+`list_core <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L437>`_
+  List of the core orbitals that are never excited in post CAS method
+
+
+`list_inact <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L370>`_
+  list_inact : List of the inactive orbitals which are supposed to be doubly excited
+  in post CAS methods
+  list_virt  : List of vritual orbitals which are supposed to be recieve electrons
+  in post CAS methods
 
 
 `list_to_bitstring <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L29>`_
@@ -167,35 +227,75 @@ Documentation
   occupations "list(N_int*bit_kind_size,2)
 
 
-`list_virt <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L299>`_
-  Undocumented
+`list_virt <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L371>`_
+  list_inact : List of the inactive orbitals which are supposed to be doubly excited
+  in post CAS methods
+  list_virt  : List of vritual orbitals which are supposed to be recieve electrons
+  in post CAS methods
 
 
-`n_cas_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L190>`_
+`modify_bitmasks_for_hole <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/modify_bitmasks.irp.f#L25>`_
+  modify the generators_bitmask in order that one can only excite
+  the electrons occupying i_hole
+
+
+`modify_bitmasks_for_hole_in_out <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/modify_bitmasks.irp.f#L60>`_
+  modify the generators_bitmask in order that one can only excite
+  the electrons occupying i_hole
+
+
+`modify_bitmasks_for_particl <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/modify_bitmasks.irp.f#L83>`_
+  modify the generators_bitmask in order that one can only excite
+  the electrons to the orbital i_part
+
+
+`n_act_orb <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L490>`_
+  number of active orbitals
+
+
+`n_cas_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L247>`_
   Number of bitmasks for CAS
 
 
-`n_generators_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L70>`_
+`n_core_orb <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L453>`_
+  Core orbitals bitmask
+
+
+`n_generators_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L67>`_
   Number of bitmasks for generators
 
 
-`n_inact_orb <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L256>`_
-  Bitmasks for the inactive orbitals that are excited in post CAS method
+`n_generators_bitmask_restart <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L98>`_
+  Number of bitmasks for generators
+
+
+`n_inact_orb <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L323>`_
+  inact_bitmask : Bitmask of the inactive orbitals which are supposed to be doubly excited
+  in post CAS methods
+  n_inact_orb   : Number of inactive orbitals
+  virt_bitmask  : Bitmaks of vritual orbitals which are supposed to be recieve electrons
+  in post CAS methods
+  n_virt_orb    : Number of virtual orbitals
 
 
 `n_int <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L3>`_
   Number of 64-bit integers needed to represent determinants as binary strings
 
 
-`n_virt_orb <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L257>`_
-  Bitmasks for the inactive orbitals that are excited in post CAS method
+`n_virt_orb <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L324>`_
+  inact_bitmask : Bitmask of the inactive orbitals which are supposed to be doubly excited
+  in post CAS methods
+  n_inact_orb   : Number of inactive orbitals
+  virt_bitmask  : Bitmaks of vritual orbitals which are supposed to be recieve electrons
+  in post CAS methods
+  n_virt_orb    : Number of virtual orbitals
 
 
 `number_of_holes <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L1>`_
   Undocumented
 
 
-`number_of_holes_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L394>`_
+`number_of_holes_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L400>`_
   Undocumented
 
 
@@ -203,7 +303,7 @@ Documentation
   Undocumented
 
 
-`number_of_particles_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L422>`_
+`number_of_particles_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmask_cas_routines.irp.f#L428>`_
   Undocumented
 
 
@@ -211,22 +311,61 @@ Documentation
   Subroutine to print the content of a determinant using the '+-' notation
 
 
+`print_generators_bitmasks_holes <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/modify_bitmasks.irp.f#L169>`_
+  Undocumented
+
+
+`print_generators_bitmasks_holes_for_one_generator <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/modify_bitmasks.irp.f#L213>`_
+  Undocumented
+
+
+`print_generators_bitmasks_particles <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/modify_bitmasks.irp.f#L191>`_
+  Undocumented
+
+
+`print_generators_bitmasks_particles_for_one_generator <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/modify_bitmasks.irp.f#L236>`_
+  Undocumented
+
+
 `print_spindet <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks_routines.irp.f#L171>`_
   Subroutine to print the content of a determinant using the '+-' notation
 
 
-`ref_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L62>`_
+`ref_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L59>`_
   Reference bit mask, used in Slater rules, chosen as Hartree-Fock bitmask
 
 
-`reunion_of_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L319>`_
+`reunion_of_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L412>`_
   Reunion of the inactive, active and virtual bitmasks
 
 
-`unpaired_alpha_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L367>`_
+`reunion_of_cas_inact_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L528>`_
+  Reunion of the inactive, active and virtual bitmasks
+
+
+`reunion_of_core_inact_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L397>`_
+  Reunion of the inactive, active and virtual bitmasks
+
+
+`set_bitmask_hole_as_input <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/modify_bitmasks.irp.f#L144>`_
+  set the generators_bitmask for the holes
+  as the input_bimask
+
+
+`set_bitmask_particl_as_input <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/modify_bitmasks.irp.f#L119>`_
+  set the generators_bitmask for the particles
+  as the input_bimask
+
+
+`unpaired_alpha_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L478>`_
   Bitmask reprenting the unpaired alpha electrons in the HF_bitmask
 
 
-`virt_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L255>`_
-  Bitmasks for the inactive orbitals that are excited in post CAS method
+`virt_bitmask <http://github.com/LCPQ/quantum_package/tree/master/src/Bitmask/bitmasks.irp.f#L322>`_
+  inact_bitmask : Bitmask of the inactive orbitals which are supposed to be doubly excited
+  in post CAS methods
+  n_inact_orb   : Number of inactive orbitals
+  virt_bitmask  : Bitmaks of vritual orbitals which are supposed to be recieve electrons
+  in post CAS methods
+  n_virt_orb    : Number of virtual orbitals
 

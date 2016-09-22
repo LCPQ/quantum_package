@@ -24,8 +24,9 @@ Psiref_CAS
 Psiref_Utils
 Selectors_full
 Utils
+ZMQ
 ezfio_interface.irp.f
 irpf90.make
 irpf90_entities
-mrcc_general
+mrcc_dummy
 tags

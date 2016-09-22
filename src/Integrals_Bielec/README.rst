@@ -88,6 +88,10 @@ Documentation
   AO integrals
 
 
+`ao_integrals_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ezfio_interface.irp.f#L46>`_
+  If |<pq|rs>| < ao_integrals_threshold then <pq|rs> is zero
+
+
 `ao_l4 <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L278>`_
   Computes the product of l values of i,j,k,and l
 
@@ -118,6 +122,18 @@ Documentation
 
 `compute_ao_integrals_jl <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ao_bi_integrals.irp.f#L1172>`_
   Parallel client for AO integrals
+
+
+`disk_access_ao_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ezfio_interface.irp.f#L28>`_
+  Read/Write AO integrals from/to disk [ Write | Read | None ]
+
+
+`disk_access_mo_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ezfio_interface.irp.f#L68>`_
+  Read/Write MO integrals from/to disk [ Write | Read | None ]
+
+
+`do_direct_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ezfio_interface.irp.f#L6>`_
+  Compute integrals on the fly
 
 
 `dump_ao_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f_template_561#L3>`_
@@ -305,6 +321,10 @@ Documentation
 
 `mo_integrals_map <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/map_integrals.irp.f#L236>`_
   MO integrals
+
+
+`mo_integrals_threshold <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/ezfio_interface.irp.f#L86>`_
+  If |<ij|kl>| < ao_integrals_threshold then <pq|rs> is zero
 
 
 `n_pt_max_integrals_16 <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Bielec/gauss_legendre.irp.f#L1>`_

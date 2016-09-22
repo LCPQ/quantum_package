@@ -102,20 +102,20 @@ Documentation
   interaction nuclear electron
 
 
-`ao_nucl_elec_integral_per_atom <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L72>`_
+`ao_nucl_elec_integral_per_atom <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L85>`_
   ao_nucl_elec_integral_per_atom(i,j,k) = -<AO(i)|1/|r-Rk|AO(j)>
   where Rk is the geometry of the kth atom
 
 
 `ao_pseudo_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L1>`_
-  Pseudo-potential
+  Pseudo-potential integrals
 
 
-`ao_pseudo_integral_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L17>`_
+`ao_pseudo_integral_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L32>`_
   Local pseudo-potential
 
 
-`ao_pseudo_integral_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L115>`_
+`ao_pseudo_integral_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L130>`_
   Local pseudo-potential
 
 
@@ -153,38 +153,20 @@ Documentation
   Undocumented
 
 
-`give_polynom_mult_center_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L217>`_
+`give_polynom_mult_center_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L230>`_
   Undocumented
 
 
-`i_x1_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L345>`_
+`i_x1_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L358>`_
   Undocumented
 
 
-`i_x2_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L416>`_
+`i_x2_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L429>`_
   Undocumented
 
 
-`int_gaus_pol <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L487>`_
+`int_gaus_pol <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L500>`_
   Undocumented
-
-
-`mo_deriv_1_x <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/spread_dipole_mo.irp.f#L69>`_
-  array of the integrals of MO_i * d/dx  MO_j
-  array of the integrals of MO_i * d/dy  MO_j
-  array of the integrals of MO_i * d/dz  MO_j
-
-
-`mo_deriv_1_y <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/spread_dipole_mo.irp.f#L70>`_
-  array of the integrals of MO_i * d/dx  MO_j
-  array of the integrals of MO_i * d/dy  MO_j
-  array of the integrals of MO_i * d/dz  MO_j
-
-
-`mo_deriv_1_z <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/spread_dipole_mo.irp.f#L71>`_
-  array of the integrals of MO_i * d/dx  MO_j
-  array of the integrals of MO_i * d/dy  MO_j
-  array of the integrals of MO_i * d/dz  MO_j
 
 
 `mo_dipole_x <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/spread_dipole_mo.irp.f#L1>`_
@@ -206,12 +188,12 @@ Documentation
 
 
 `mo_kinetic_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/kin_mo_ints.irp.f#L1>`_
-  Undocumented
+  Kinetic energy integrals in the MO basis
 
 
 `mo_mono_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/mo_mono_ints.irp.f#L1>`_
-  array of the mono electronic hamiltonian on the MOs basis
-  : sum of the kinetic and nuclear electronic potential
+  array of the mono electronic hamiltonian on the MOs basis :
+  sum of the kinetic and nuclear electronic potential
 
 
 `mo_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_mo_ints.irp.f#L1>`_
@@ -227,25 +209,25 @@ Documentation
   interaction nuclear electron on the MO basis
 
 
-`mo_spread_x <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/spread_dipole_mo.irp.f#L36>`_
+`mo_spread_x <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/spread_dipole_mo.irp.f#L32>`_
   array of the integrals of MO_i * x^2 MO_j
   array of the integrals of MO_i * y^2 MO_j
   array of the integrals of MO_i * z^2 MO_j
 
 
-`mo_spread_y <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/spread_dipole_mo.irp.f#L37>`_
+`mo_spread_y <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/spread_dipole_mo.irp.f#L33>`_
   array of the integrals of MO_i * x^2 MO_j
   array of the integrals of MO_i * y^2 MO_j
   array of the integrals of MO_i * z^2 MO_j
 
 
-`mo_spread_z <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/spread_dipole_mo.irp.f#L38>`_
+`mo_spread_z <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/spread_dipole_mo.irp.f#L34>`_
   array of the integrals of MO_i * x^2 MO_j
   array of the integrals of MO_i * y^2 MO_j
   array of the integrals of MO_i * z^2 MO_j
 
 
-`nai_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L137>`_
+`nai_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L150>`_
   Undocumented
 
 
@@ -277,27 +259,27 @@ Documentation
   Undocumented
 
 
-`pseudo_dz_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L216>`_
+`pseudo_dz_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L231>`_
   Transposed arrays for pseudopotentials
 
 
-`pseudo_dz_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L234>`_
+`pseudo_dz_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L249>`_
   Transposed arrays for pseudopotentials
 
 
-`pseudo_n_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L215>`_
+`pseudo_n_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L230>`_
   Transposed arrays for pseudopotentials
 
 
-`pseudo_n_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L233>`_
+`pseudo_n_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L248>`_
   Transposed arrays for pseudopotentials
 
 
-`pseudo_v_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L214>`_
+`pseudo_v_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L229>`_
   Transposed arrays for pseudopotentials
 
 
-`pseudo_v_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L232>`_
+`pseudo_v_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L247>`_
   Transposed arrays for pseudopotentials
 
 
@@ -317,23 +299,23 @@ Documentation
   Undocumented
 
 
-`v_e_n <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L468>`_
+`v_e_n <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L481>`_
   Undocumented
 
 
-`v_phi <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L532>`_
+`v_phi <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L545>`_
   Undocumented
 
 
-`v_r <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L516>`_
+`v_r <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L529>`_
   Undocumented
 
 
-`v_theta <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L545>`_
+`v_theta <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L558>`_
   Undocumented
 
 
-`wallis <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L561>`_
+`wallis <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L574>`_
   Undocumented
 
 

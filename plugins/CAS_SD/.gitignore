@@ -22,6 +22,9 @@ Properties
 Pseudo
 Selectors_full
 Utils
+ZMQ
+cas_s
+cas_s_selected
 cas_sd
 cas_sd_selected
 ezfio_interface.irp.f
