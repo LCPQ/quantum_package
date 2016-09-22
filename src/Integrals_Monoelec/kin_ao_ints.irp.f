@@ -123,26 +123,37 @@
 END_PROVIDER
 
 BEGIN_PROVIDER [double precision, ao_kinetic_integral, (ao_num_align,ao_num)]
- implicit none
- BEGIN_DOC
- ! array of the priminitve basis kinetic integrals
- !  \langle \chi_i |\hat{T}| \chi_j \rangle
- END_DOC
- integer :: i,j,k,l
-
- !$OMP PARALLEL DO DEFAULT(NONE) &
- !$OMP  PRIVATE(i,j) &
- !$OMP  SHARED(ao_num, ao_num_align, ao_kinetic_integral,ao_deriv2_x,ao_deriv2_y,ao_deriv2_z)
- do j = 1, ao_num
-  !DEC$ VECTOR ALWAYS
-  !DEC$ VECTOR ALIGNED
-  do i = 1, ao_num
-   ao_kinetic_integral(i,j) = -0.5d0 * (ao_deriv2_x(i,j) + ao_deriv2_y(i,j) + ao_deriv2_z(i,j) )
-  enddo
-  do i = ao_num +1,ao_num_align
-    ao_kinetic_integral(i,j) = 0.d0
-  enddo
- enddo
- !$OMP END PARALLEL DO
+  implicit none
+  BEGIN_DOC
+  ! array of the priminitve basis kinetic integrals
+  !  \langle \chi_i |\hat{T}| \chi_j \rangle
+  END_DOC
+  integer                        :: i,j,k,l
+  
+  if (read_ao_one_integrals) then
+    call read_one_e_integrals('ao_kinetic_integral', ao_kinetic_integral,&
+       size(ao_kinetic_integral,1), size(ao_kinetic_integral,2))
+    print *,  'AO kinetic integrals read from disk'
+  else
+    !$OMP PARALLEL DO DEFAULT(NONE) &
+    !$OMP  PRIVATE(i,j) &
+    !$OMP  SHARED(ao_num, ao_num_align, ao_kinetic_integral,ao_deriv2_x,ao_deriv2_y,ao_deriv2_z)
+    do j = 1, ao_num
+      !DEC$ VECTOR ALWAYS
+      !DEC$ VECTOR ALIGNED
+      do i = 1, ao_num
+      ao_kinetic_integral(i,j) = -0.5d0 * (ao_deriv2_x(i,j) + ao_deriv2_y(i,j) + ao_deriv2_z(i,j) )
+      enddo
+      do i = ao_num +1,ao_num_align
+        ao_kinetic_integral(i,j) = 0.d0
+      enddo
+    enddo
+    !$OMP END PARALLEL DO
+  endif
+  if (write_ao_one_integrals) then
+    call write_one_e_integrals('ao_kinetic_integral', ao_kinetic_integral,&
+       size(ao_kinetic_integral,1), size(ao_kinetic_integral,2))
+    print *,  'AO kinetic integrals written to disk'
+  endif
 END_PROVIDER
 

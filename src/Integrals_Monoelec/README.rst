@@ -111,11 +111,11 @@ Documentation
   Pseudo-potential
 
 
-`ao_pseudo_integral_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L13>`_
+`ao_pseudo_integral_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L17>`_
   Local pseudo-potential
 
 
-`ao_pseudo_integral_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L120>`_
+`ao_pseudo_integral_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L115>`_
   Local pseudo-potential
 
 
@@ -141,23 +141,31 @@ Documentation
   Undocumented
 
 
+`disk_access_ao_one_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/ezfio_interface.irp.f#L25>`_
+  Read/Write AO one-electron integrals from/to disk [ Write | Read | None ]
+
+
+`disk_access_mo_one_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/ezfio_interface.irp.f#L6>`_
+  Read/Write MO one-electron integrals from/to disk [ Write | Read | None ]
+
+
 `do_print <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/check_orthonormality.irp.f#L11>`_
   Undocumented
 
 
-`give_polynom_mult_center_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L218>`_
+`give_polynom_mult_center_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L217>`_
   Undocumented
 
 
-`i_x1_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L346>`_
+`i_x1_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L345>`_
   Undocumented
 
 
-`i_x2_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L417>`_
+`i_x2_pol_mult_mono_elec <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L416>`_
   Undocumented
 
 
-`int_gaus_pol <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L488>`_
+`int_gaus_pol <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L487>`_
   Undocumented
 
 
@@ -237,7 +245,7 @@ Documentation
   array of the integrals of MO_i * z^2 MO_j
 
 
-`nai_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L139>`_
+`nai_pol_mult <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L137>`_
   Undocumented
 
 
@@ -269,26 +277,74 @@ Documentation
   Undocumented
 
 
+`pseudo_dz_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L216>`_
+  Transposed arrays for pseudopotentials
+
+
+`pseudo_dz_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L234>`_
+  Transposed arrays for pseudopotentials
+
+
+`pseudo_n_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L215>`_
+  Transposed arrays for pseudopotentials
+
+
+`pseudo_n_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L233>`_
+  Transposed arrays for pseudopotentials
+
+
+`pseudo_v_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L214>`_
+  Transposed arrays for pseudopotentials
+
+
+`pseudo_v_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L232>`_
+  Transposed arrays for pseudopotentials
+
+
+`read_ao_one_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/read_write.irp.f#L1>`_
+  One level of abstraction for disk_access_ao_integrals and disk_access_mo_integrals
+
+
+`read_mo_one_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/read_write.irp.f#L2>`_
+  One level of abstraction for disk_access_ao_integrals and disk_access_mo_integrals
+
+
+`read_one_e_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/read_write.irp.f#L67>`_
+  Read the 1-electron integrals into in A(m,n) from file 'filename'
+
+
 `save_ortho_mos <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/save_ortho_mos.irp.f#L1>`_
   Undocumented
 
 
-`v_e_n <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L469>`_
+`v_e_n <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L468>`_
   Undocumented
 
 
-`v_phi <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L533>`_
+`v_phi <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L532>`_
   Undocumented
 
 
-`v_r <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L517>`_
+`v_r <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L516>`_
   Undocumented
 
 
-`v_theta <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L546>`_
+`v_theta <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L545>`_
   Undocumented
 
 
-`wallis <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L562>`_
+`wallis <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_ints.irp.f#L561>`_
   Undocumented
+
+
+`write_ao_one_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/read_write.irp.f#L3>`_
+  One level of abstraction for disk_access_ao_integrals and disk_access_mo_integrals
+
+
+`write_mo_one_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/read_write.irp.f#L4>`_
+  One level of abstraction for disk_access_ao_integrals and disk_access_mo_integrals
+
+
+`write_one_e_integrals <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/read_write.irp.f#L49>`_
+  Write the 1-electron integrals stored in A(m,n) into file 'filename'
 
