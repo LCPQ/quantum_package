@@ -59,49 +59,89 @@ subroutine run(N_st,energy)
 end
 
 
-subroutine run_pt2(N_st,energy) 
+subroutine print_cas_coefs
+  implicit none
+
+  integer :: i,j
+  print *,  'CAS'
+  print *,  '==='
+  do i=1,N_det_cas
+    print *,  psi_cas_coef(i,:)
+    call debug_det(psi_cas(1,1,i),N_int)
+  enddo
+  call write_double(6,ci_energy(1),"Initial CI energy")
+
+end
+
+
+
+
+subroutine run_pt2_old(N_st,energy) 
   implicit none 
   integer :: i,j,k 
-  double precision, allocatable  :: pt2(:), norm_pert(:), H_pert_diag(:) 
   integer, intent(in)          :: N_st 
   double precision, intent(in) :: energy(N_st) 
-  double precision :: pt3(N_st)
-  allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st)) 
-  pt2 = 0.d0 
-  pt3 = 0d0
+  double precision :: pt2_redundant(N_st), pt2(N_st)
+  double precision :: norm_pert(N_st),H_pert_diag(N_st)
+  
+  pt2_redundant = 0.d0 
+  pt2 = 0d0
   !if(lambda_mrcc_pt2(0)  == 0) return
   
   print*,'Last iteration only to compute the PT2' 
-  threshold_selectors = 1.d0 
-  threshold_generators = 0.999d0 
   
-  
-  N_det_generators = lambda_mrcc_pt3(0) 
-  N_det_selectors = lambda_mrcc_pt3(0) 
-  
-!  psi_det_generators(:,:,:N_det_ref) = psi_ref(:,:,:N_det_ref)
-!  psi_selectors(:,:,:N_det_ref) = psi_ref(:,:,:N_det_ref)
-!  psi_coef_generators(:N_det_ref,:) = psi_ref_coef(:N_det_ref,:)
-!  psi_selectors_coef(:N_det_ref,:) = psi_ref_coef(:N_det_ref,:)
-  
-  do i=1,N_det_generators
-    j = lambda_mrcc_pt3(i)
-    do k=1,N_int
-      psi_det_generators(k,1,i) = psi_non_ref(k,1,j)
-      psi_det_generators(k,2,i) = psi_non_ref(k,2,j)
-      psi_selectors(k,1,i) = psi_non_ref(k,1,j)
-      psi_selectors(k,2,i) = psi_non_ref(k,2,j)
+  print * ,'Computing the redundant PT2 contribution'
+
+  if (mrmode == 1) then
+
+    N_det_generators = lambda_mrcc_kept(0) 
+    N_det_selectors = lambda_mrcc_kept(0) 
+
+    do i=1,N_det_generators
+      j = lambda_mrcc_kept(i)
+      do k=1,N_int
+        psi_det_generators(k,1,i) = psi_non_ref(k,1,j)
+        psi_det_generators(k,2,i) = psi_non_ref(k,2,j)
+        psi_selectors(k,1,i) = psi_non_ref(k,1,j)
+        psi_selectors(k,2,i) = psi_non_ref(k,2,j)
+      enddo
+      do k=1,N_st
+        psi_coef_generators(i,k) = psi_non_ref_coef(j,k)
+        psi_selectors_coef(i,k) = psi_non_ref_coef(j,k)
+      enddo
     enddo
-    do k=1,N_st
-      psi_coef_generators(i,k) = psi_non_ref_coef(j,k)
-      psi_selectors_coef(i,k) = psi_non_ref_coef(j,k)
+
+  else
+
+    N_det_generators = N_det_non_ref
+    N_det_selectors = N_det_non_ref
+
+    do i=1,N_det_generators
+      j = i
+      do k=1,N_int
+        psi_det_generators(k,1,i) = psi_non_ref(k,1,j)
+        psi_det_generators(k,2,i) = psi_non_ref(k,2,j)
+        psi_selectors(k,1,i) = psi_non_ref(k,1,j)
+        psi_selectors(k,2,i) = psi_non_ref(k,2,j)
+      enddo
+      do k=1,N_st
+        psi_coef_generators(i,k) = psi_non_ref_coef(j,k)
+        psi_selectors_coef(i,k) = psi_non_ref_coef(j,k)
+      enddo
     enddo
-  enddo
+
+  endif
   
   SOFT_TOUCH N_det_selectors psi_selectors_coef psi_selectors N_det_generators psi_det_generators psi_coef_generators ci_eigenvectors_dressed ci_eigenvectors_s2_dressed ci_electronic_energy_dressed
-  SOFT_TOUCH psi_ref_coef_diagonalized psi_ref_energy_diagonalized! psi_coef_energy_diagonalized
-  call H_apply_mrcepa_PT2(pt2, norm_pert, H_pert_diag,  N_st) 
+  SOFT_TOUCH psi_ref_coef_diagonalized psi_ref_energy_diagonalized
+
+  call H_apply_mrcepa_PT2(pt2_redundant, norm_pert, H_pert_diag,  N_st) 
   
+  print * ,'Computing the remaining contribution'
+
+  threshold_selectors = 1.d0 
+  threshold_generators = 0.999d0 
+
   N_det_generators = N_det_non_ref + N_det_ref
   N_det_selectors = N_det_non_ref + N_det_ref
   
@@ -125,17 +165,15 @@ subroutine run_pt2(N_st,energy)
   enddo
   
   SOFT_TOUCH N_det_selectors psi_selectors_coef psi_selectors N_det_generators psi_det_generators psi_coef_generators ci_eigenvectors_dressed ci_eigenvectors_s2_dressed ci_electronic_energy_dressed
-  SOFT_TOUCH psi_ref_coef_diagonalized psi_ref_energy_diagonalized! psi_coef_energy_diagonalized
-  call H_apply_mrcepa_PT2(pt3, norm_pert, H_pert_diag,  N_st) 
+  SOFT_TOUCH psi_ref_coef_diagonalized psi_ref_energy_diagonalized
+
+  call H_apply_mrcepa_PT2(pt2, norm_pert, H_pert_diag,  N_st) 
  
 
-!!!!!!!!!!!!!!!!
-
-  
-
-  print *, "3-2 :",pt3, pt2
-  print *, lambda_mrcc_pt3(0), N_det, N_det_ref, psi_coef(1,1), psi_ref_coef(1,1)
-  pt2 = pt3 - pt2
+  print *, "Redundant PT2 :",pt2_redundant
+  print *, "Full      PT2 :",pt2
+  print *, lambda_mrcc_kept(0), N_det, N_det_ref, psi_coef(1,1), psi_ref_coef(1,1)
+  pt2 = pt2 - pt2_redundant
   
   print *,  'Final step' 
   print *,  'N_det    = ', N_det 
@@ -146,24 +184,59 @@ subroutine run_pt2(N_st,energy)
   print *,  '-----' 
  
 
-  call ezfio_set_full_ci_energy_pt2(energy+pt2)
-  deallocate(pt2,norm_pert)
+!  call ezfio_set_full_ci_energy_pt2(energy+pt2)
 
 end 
 
+subroutine run_pt2(N_st,energy) 
+  implicit none 
+  integer :: i,j,k 
+  integer, intent(in)          :: N_st 
+  double precision, intent(in) :: energy(N_st) 
+  double precision :: pt2(N_st)
+  double precision :: norm_pert(N_st),H_pert_diag(N_st)
+  
+  pt2 = 0d0
+  !if(lambda_mrcc_pt2(0)  == 0) return
+  
+  print*,'Last iteration only to compute the PT2' 
+  
+  N_det_generators = N_det_cas
+  N_det_selectors = N_det_non_ref
 
-subroutine print_cas_coefs
-  implicit none
-
-  integer :: i,j
-  print *,  'CAS'
-  print *,  '==='
-  do i=1,N_det_cas
-    print *,  psi_cas_coef(i,:)
-    call debug_det(psi_cas(1,1,i),N_int)
+  do i=1,N_det_generators
+    do k=1,N_int
+      psi_det_generators(k,1,i) = psi_ref(k,1,i)
+      psi_det_generators(k,2,i) = psi_ref(k,2,i)
+    enddo
+    do k=1,N_st
+      psi_coef_generators(i,k) = psi_ref_coef(i,k)
+    enddo
   enddo
-  call write_double(6,ci_energy(1),"Initial CI energy")
+  do i=1,N_det
+    do k=1,N_int
+      psi_selectors(k,1,i) = psi_det_sorted(k,1,i)
+      psi_selectors(k,2,i) = psi_det_sorted(k,2,i)
+    enddo
+    do k=1,N_st
+      psi_selectors_coef(i,k) = psi_coef_sorted(i,k)
+    enddo
+  enddo
 
-end
+  SOFT_TOUCH N_det_selectors psi_selectors_coef psi_selectors N_det_generators psi_det_generators psi_coef_generators ci_eigenvectors_dressed ci_eigenvectors_s2_dressed ci_electronic_energy_dressed
+  SOFT_TOUCH psi_ref_coef_diagonalized psi_ref_energy_diagonalized
 
+  call H_apply_mrcepa_PT2(pt2, norm_pert, H_pert_diag,  N_st) 
+  
+!  call ezfio_set_full_ci_energy_pt2(energy+pt2)
+
+  print *,  'Final step' 
+  print *,  'N_det    = ', N_det 
+  print *,  'N_states = ', N_states 
+  print *,  'PT2      = ', pt2 
+  print *,  'E        = ', energy 
+  print *,  'E+PT2    = ', energy+pt2 
+  print *,  '-----' 
+
+end 
 
