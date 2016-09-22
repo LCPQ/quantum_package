@@ -32,6 +32,7 @@ BEGIN_PROVIDER [double precision, mo_nucl_elec_integral_per_atom, (mo_tot_num_al
 ! where Rk is the geometry of the kth atom
  END_DOC
 
+ integer :: k
  mo_nucl_elec_integral_per_atom = 0.d0
  do k = 1, nucl_num 
    call ao_to_mo(                                                    &
