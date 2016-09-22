@@ -75,22 +75,6 @@ END_PROVIDER
 
 
 
-subroutine u_0_S2_u_0(e_0,u_0,n,keys_tmp,Nint)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Computes e_0 = <u_0|S2|u_0>/<u_0|u_0>
-  !
-  ! n : number of determinants
-  !
-  END_DOC
-  integer, intent(in)            :: n,Nint
-  double precision, intent(out)  :: e_0
-  double precision, intent(in)   :: u_0(n)
-  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
-  call u_0_S2_u_0_nstates(e_0,u_0,n,keys_tmp,Nint,1,n)
-end
-
 subroutine u_0_S2_u_0_nstates(e_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
   use bitmasks
   implicit none

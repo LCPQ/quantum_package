@@ -377,22 +377,6 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
 end
 
 
-subroutine u_0_H_u_0_mrcc(e_0,u_0,n,keys_tmp,Nint,istate)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Computes e_0 = <u_0|H|u_0>/<u_0|u_0>
-  !
-  ! n : number of determinants
-  !
-  END_DOC
-  integer, intent(in)            :: n,Nint,istate
-  double precision, intent(out)  :: e_0
-  double precision, intent(in)   :: u_0(n)
-  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
-  call u_0_H_u_0_mrcc_nstates(e_0,u_0,n,keys_tmp,Nint,1,n,istate)
-end
-
 subroutine u_0_H_u_0_mrcc_nstates(e_0,u_0,n,keys_tmp,Nint,istate,N_st,sze_8)
   use bitmasks
   implicit none
@@ -427,24 +411,6 @@ subroutine u_0_H_u_0_mrcc_nstates(e_0,u_0,n,keys_tmp,Nint,istate,N_st,sze_8)
   deallocate(H_jj, v_0)
 end
 
-
-subroutine H_u_0_mrcc(v_0,u_0,H_jj,n,keys_tmp,Nint,istate_in)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Computes v_0 = H|u_0>
-  !
-  ! n : number of determinants
-  !
-  ! H_jj : array of <j|H|j>
-  END_DOC
-  integer, intent(in)            :: n,Nint,istate_in
-  double precision, intent(out)  :: v_0(n)
-  double precision, intent(in)   :: u_0(n)
-  double precision, intent(in)   :: H_jj(n)
-  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
-  call H_u_0_mrcc_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,1,n)
-end
 
 subroutine H_u_0_mrcc_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,istate_in,N_st,sze_8)
   use bitmasks
