@@ -75,6 +75,10 @@ Documentation
   determinants. idx_cas gives the indice of the CAS determinant in psi_det.
 
 
+`overwrite_w_cas <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/overwrite_with_cas.irp.f#L1>`_
+  Undocumented
+
+
 `psi_ref <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/psi_ref.irp.f#L3>`_
   CAS wave function, defined from the application of the CAS bitmask on the
   determinants. idx_cas gives the indice of the CAS determinant in psi_det.
@@ -85,10 +89,14 @@ Documentation
   determinants. idx_cas gives the indice of the CAS determinant in psi_det.
 
 
-`psi_ref_coef_restart <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/psi_ref.irp.f#L30>`_
+`psi_ref_coef_inv <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/psi_ref.irp.f#L29>`_
+  1/psi_ref_coef
+
+
+`psi_ref_coef_restart <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/psi_ref.irp.f#L45>`_
   Projection of the CAS wave function on the restart wave function.
 
 
-`psi_ref_restart <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/psi_ref.irp.f#L29>`_
+`psi_ref_restart <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/psi_ref.irp.f#L44>`_
   Projection of the CAS wave function on the restart wave function.
 

@@ -1,17 +1,32 @@
 BEGIN_PROVIDER [ double precision, ao_pseudo_integral, (ao_num_align,ao_num)]
   implicit none
   BEGIN_DOC
-! Pseudo-potential
+  ! Pseudo-potential integrals
   END_DOC
-  ao_pseudo_integral = 0.d0
-  if (do_pseudo) then
-    if (pseudo_klocmax > 0) then
-      ao_pseudo_integral += ao_pseudo_integral_local
-    endif
-    if (pseudo_kmax > 0) then
-      ao_pseudo_integral += ao_pseudo_integral_non_local 
+  
+  if (read_ao_one_integrals) then
+    call read_one_e_integrals('ao_pseudo_integral', ao_pseudo_integral,&
+        size(ao_pseudo_integral,1), size(ao_pseudo_integral,2))
+    print *,  'AO pseudopotential integrals read from disk'
+  else
+    
+    ao_pseudo_integral = 0.d0
+    if (do_pseudo) then
+      if (pseudo_klocmax > 0) then
+        ao_pseudo_integral += ao_pseudo_integral_local
+      endif
+      if (pseudo_kmax > 0) then
+        ao_pseudo_integral += ao_pseudo_integral_non_local
+      endif
     endif
   endif
+  
+  if (write_ao_one_integrals) then
+    call write_one_e_integrals('ao_pseudo_integral', ao_pseudo_integral,&
+        size(ao_pseudo_integral,1), size(ao_pseudo_integral,2))
+    print *,  'AO pseudopotential integrals written to disk'
+  endif
+  
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_num)]

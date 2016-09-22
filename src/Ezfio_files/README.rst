@@ -181,6 +181,10 @@ Documentation
   variable if it is set, or as the 1st argument of the command line.
 
 
+`ezfio_work_dir <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/ezfio.irp.f#L34>`_
+  EZFIO/work/
+
+
 `getunitandopen <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/get_unit_and_open.irp.f#L1>`_
   :f:
   file name
@@ -195,6 +199,10 @@ Documentation
   .br
 
 
+output_all_singles
+  Output file for All_singles
+
+
 output_ao_basis
   Output file for AO_Basis
 
@@ -203,12 +211,8 @@ output_bitmask
   Output file for Bitmask
 
 
-output_cisd
-  Output file for CISD
-
-
-output_cisd_selected
-  Output file for CISD_selected
+output_cas_sd
+  Output file for CAS_SD
 
 
 `output_cpu_time_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f#L2>`_
@@ -227,16 +231,20 @@ output_ezfio_files
   Output file for Ezfio_files
 
 
-output_fcidump
-  Output file for FCIdump
-
-
 output_full_ci
   Output file for Full_CI
 
 
+output_generators_cas
+  Output file for Generators_CAS
+
+
 output_generators_full
   Output file for Generators_full
+
+
+output_generators_restart
+  Output file for Generators_restart
 
 
 output_hartree_fock
@@ -259,8 +267,12 @@ output_moguess
   Output file for MOGuess
 
 
-output_mp2
-  Output file for MP2
+output_mrcc_cassd
+  Output file for MRCC_CASSD
+
+
+output_mrcc_utils
+  Output file for MRCC_Utils
 
 
 output_nuclei
@@ -279,12 +291,20 @@ output_pseudo
   Output file for Pseudo
 
 
+output_psiref_cas
+  Output file for Psiref_CAS
+
+
+output_psiref_utils
+  Output file for Psiref_Utils
+
+
 output_selectors_full
   Output file for Selectors_full
 
 
-output_singlerefmethod
-  Output file for SingleRefMethod
+output_selectors_no_sorted
+  Output file for Selectors_no_sorted
 
 
 output_utils

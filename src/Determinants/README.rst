@@ -15,20 +15,24 @@ Documentation
 .. by the `update_README.py` script.
 
 
-`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1398>`_
+`a_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1458>`_
   Needed for diag_H_mat_elem
 
 
-`abs_psi_coef_max <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L452>`_
+`abs_psi_coef_max <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L392>`_
   Max and min values of the coefficients
 
 
-`abs_psi_coef_min <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L453>`_
+`abs_psi_coef_min <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L393>`_
   Max and min values of the coefficients
 
 
-`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1444>`_
+`ac_operator <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1504>`_
   Needed for diag_H_mat_elem
+
+
+`apply_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1713>`_
+  Undocumented
 
 
 `apply_mono <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/excitations_utils.irp.f#L1>`_
@@ -39,12 +43,12 @@ Documentation
   Energy of the reference bitmask used in Slater rules
 
 
-`bitstring_to_list_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L352>`_
+`bitstring_to_list_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L356>`_
   Gives the inidices(+1) of the bits set to 1 in the bit string
   For alpha/beta determinants
 
 
-`bitstring_to_list_ab_old <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L390>`_
+`bitstring_to_list_ab_old <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L394>`_
   Gives the inidices(+1) of the bits set to 1 in the bit string
   For alpha/beta determinants
 
@@ -82,11 +86,11 @@ Documentation
   N_states lowest eigenvalues of the CI matrix
 
 
-`ci_sc2_eigenvectors <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_SC2.irp.f#L27>`_
+`ci_sc2_eigenvectors <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_SC2.irp.f#L28>`_
   Eigenvectors/values of the CI matrix
 
 
-`ci_sc2_electronic_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_SC2.irp.f#L26>`_
+`ci_sc2_electronic_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_SC2.irp.f#L27>`_
   Eigenvectors/values of the CI matrix
 
 
@@ -115,11 +119,11 @@ Documentation
   Initial guess vectors are not necessarily orthonormal
 
 
-`connected_to_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/connected_to_ref.irp.f#L192>`_
+`connected_to_ref <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/connected_to_ref.irp.f#L226>`_
   Undocumented
 
 
-`connected_to_ref_by_mono <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/connected_to_ref.irp.f#L290>`_
+`connected_to_ref_by_mono <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/connected_to_ref.irp.f#L324>`_
   Undocumented
 
 
@@ -128,11 +132,15 @@ Documentation
   After calling this subroutine, N_det, psi_det and psi_coef need to be touched
 
 
-`create_minilist <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L840>`_
+`create_microlist <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L131>`_
   Undocumented
 
 
-`create_minilist_find_previous <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L887>`_
+`create_minilist <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L844>`_
+  Undocumented
+
+
+`create_minilist_find_previous <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L899>`_
   Undocumented
 
 
@@ -141,11 +149,11 @@ Documentation
   of alpha and beta determinants
 
 
-`davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L604>`_
+`davidson_converged <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L626>`_
   True if the Davidson algorithm is converged
 
 
-`davidson_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L596>`_
+`davidson_criterion <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/davidson.irp.f#L618>`_
   Can be : [  energy  | residual | both | wall_time | cpu_time | iterations ]
 
 
@@ -217,7 +225,7 @@ Documentation
   ||Da||_i \sum_j C_{ij}**2
 
 
-`det_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L138>`_
+`det_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L139>`_
   det_coef
 
 
@@ -225,7 +233,7 @@ Documentation
   Undocumented
 
 
-`det_occ <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L248>`_
+`det_occ <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L235>`_
   det_occ
 
 
@@ -241,16 +249,20 @@ Documentation
   Diagonalization algorithm (Davidson or Lapack)
 
 
-`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1336>`_
+`diag_h_elements_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_SC2.irp.f#L29>`_
+  Eigenvectors/values of the CI matrix
+
+
+`diag_h_mat_elem <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1396>`_
   Computes <i|H|i>
 
 
-`diag_h_mat_elem_fock <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1267>`_
+`diag_h_mat_elem_fock <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1327>`_
   Computes <i|H|i> when i is at most a double excitation from
   a reference.
 
 
-`diagonalize_ci <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI.irp.f#L105>`_
+`diagonalize_ci <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI.irp.f#L258>`_
   Replace the coefficients of the CI states by the coefficients of the
   eigenstates of the CI matrix
 
@@ -260,9 +272,24 @@ Documentation
   eigenstates of the CI matrix
 
 
-`diagonalize_ci_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_SC2.irp.f#L45>`_
+`diagonalize_ci_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/diagonalize_CI_SC2.irp.f#L48>`_
   Replace the coefficients of the CI states_diag by the coefficients of the
   eigenstates of the CI matrix
+
+
+`diagonalize_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L120>`_
+  Diagonalize the S^2 operator within the n_states_diag states required. Notice : the vectors are sorted by increasing S^2 values.
+
+
+`diagonalize_s2_betweenstates <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/s2.irp.f#L268>`_
+  You enter with nstates vectors in psi_coefs_inout that may be coupled by S^2
+  The subroutine diagonalize the S^2 operator in the basis of these states.
+  The vectors that you obtain in output are no more coupled by S^2,
+  which does not necessary mean that they are eigenfunction of S^2.
+  n,nmax,nstates = number of determinants, physical dimension of the arrays and number of states
+  keys_tmp = array of integer(bit_kind) that represents the determinants
+  psi_coefs(i,j) = coeff of the ith determinant in the jth state
+  VECTORS ARE SUPPOSED TO BE ORTHONORMAL IN INPUT
 
 
 `do_mono_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/create_excitations.irp.f#L1>`_
@@ -282,16 +309,32 @@ Documentation
   for a given couple of hole/particle excitations i.
 
 
+`doubly_occ_empty_in_couple <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/usefull_for_ovb.irp.f#L41>`_
+  n_couples is the number of couples of orbitals to be checked
+  couples(i,1) = first orbital of the ith couple
+  couples(i,2) = second orbital of the ith couple
+  returns the array couples_out
+  couples_out(i) = .True. if det_in contains
+  an orbital empty in the ith couple  AND
+  an orbital doubly occupied in the ith couple
+
+
+`doubly_occ_empty_in_couple_and_no_hund_elsewhere <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/usefull_for_ovb.irp.f#L135>`_
+  n_couples is the number of couples of orbitals to be checked
+  couples(i,1) = first orbital of the ith couple
+  couples(i,2) = second orbital of the ith couple
+  returns the array couples_out
+  couples_out(i) = .True. if det_in contains
+  an orbital empty in the ith couple  AND
+  an orbital doubly occupied in the ith couple
+
+
 `expected_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/s2.irp.f#L48>`_
   Expected value of S2 : S*(S+1)
 
 
-`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L266>`_
+`fill_h_apply_buffer_no_selection <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L264>`_
   Fill the H_apply buffer with determiants for CISD
-
-
-`filter_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L424>`_
-  Returns a determinant with only the 3 highest electrons
 
 
 `filter_connected <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L2>`_
@@ -306,7 +349,7 @@ Documentation
   idx(0) is the number of determinants that interact with key1
 
 
-`filter_connected_i_h_psi0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L101>`_
+`filter_connected_i_h_psi0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L231>`_
   returns the array idx which contains the index of the
   .br
   determinants in the array key1 that interact
@@ -316,7 +359,7 @@ Documentation
   idx(0) is the number of determinants that interact with key1
 
 
-`filter_connected_i_h_psi0_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L197>`_
+`filter_connected_i_h_psi0_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L327>`_
   standard filter_connected_i_H_psi but returns in addition
   .br
   the array of the index of the non connected determinants to key1
@@ -348,7 +391,7 @@ Documentation
   Returns the excitation degree between two determinants
 
 
-`get_excitation_degree_vector <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1172>`_
+`get_excitation_degree_vector <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1232>`_
   Applies get_excitation_degree to an array of determinants
 
 
@@ -364,11 +407,11 @@ Documentation
   Returns the index of the determinant in the ``psi_det_sorted_bit`` array
 
 
-`get_mono_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L275>`_
+`get_mono_excitation <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L277>`_
   Returns the excitation operator between two singly excited determinants and the phase
 
 
-`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1490>`_
+`get_occ_from_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1550>`_
   Returns a list of occupation numbers from a bitstring
 
 
@@ -381,6 +424,19 @@ Documentation
 
 
 `get_s2_u0_old <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/s2.irp.f#L82>`_
+  Undocumented
+
+
+`get_uj_s2_ui <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/s2.irp.f#L217>`_
+  returns the matrix elements of S^2 "s2(i,j)" between the "nstates" states
+  psi_coefs_tmp(:,i) and psi_coefs_tmp(:,j)
+
+
+`getmobiles <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/filter_connected.irp.f#L101>`_
+  Undocumented
+
+
+`give_index_of_doubly_occ_in_active_space <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/usefull_for_ovb.irp.f#L97>`_
   Undocumented
 
 
@@ -402,7 +458,7 @@ Documentation
   Undocumented
 
 
-`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1506>`_
+`h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1593>`_
   Computes v_0 = H|u_0>
   .br
   n : number of determinants
@@ -410,19 +466,19 @@ Documentation
   H_jj : array of <j|H|j>
 
 
-`i_h_j <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L430>`_
+`i_h_j <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L434>`_
   Returns <i|H|j> where i and j are determinants
 
 
-`i_h_j_phase_out <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L566>`_
+`i_h_j_phase_out <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L570>`_
   Returns <i|H|j> where i and j are determinants
 
 
-`i_h_j_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L702>`_
+`i_h_j_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L706>`_
   Returns <i|H|j> where i and j are determinants
 
 
-`i_h_psi <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L940>`_
+`i_h_psi <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L971>`_
   Computes <i|H|Psi> = \sum_J c_J <i|H|J>.
   .br
   Uses filter_connected_i_H_psi0 to get all the |J> to which |i>
@@ -431,14 +487,14 @@ Documentation
   minilists
 
 
-`i_h_psi_minilist <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L982>`_
+`i_h_psi_minilist <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1027>`_
   Computes <i|H|Psi> = \sum_J c_J <i|H|J>.
   .br
   Uses filter_connected_i_H_psi0 to get all the |J> to which |i>
   is connected. The |J> are searched in short pre-computed lists.
 
 
-`i_h_psi_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1069>`_
+`i_h_psi_sc2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1129>`_
   <key|H|psi> for the various Nstate
   .br
   returns in addition
@@ -452,7 +508,7 @@ Documentation
   to repeat the excitations
 
 
-`i_h_psi_sc2_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1116>`_
+`i_h_psi_sc2_verbose <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1176>`_
   <key|H|psi> for the various Nstate
   .br
   returns in addition
@@ -466,7 +522,7 @@ Documentation
   to repeat the excitations
 
 
-`i_h_psi_sec_ord <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1022>`_
+`i_h_psi_sec_ord <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1082>`_
   <key|H|psi> for the various Nstates
 
 
@@ -481,19 +537,11 @@ Documentation
   idx_non_cas gives the indice of the determinant in psi_det.
 
 
-`int_of_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L389>`_
-  Returns an integer*8 as :
-  .br
-  |_<--- 21 bits ---><--- 21 bits ---><--- 21 bits --->|
-  .br
-  |0<---   i1    ---><---   i2    ---><---   i3    --->|
-  .br
-  It encodes the value of the indices of the 3 highest MOs
-  in descending order
-  .br
+`is_connected_to <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/connected_to_ref.irp.f#L159>`_
+  Undocumented
 
 
-`is_connected_to <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/connected_to_ref.irp.f#L158>`_
+`is_connected_to_by_mono <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/connected_to_ref.irp.f#L192>`_
   Undocumented
 
 
@@ -517,6 +565,14 @@ Documentation
   Energy of the reference bitmask used in Slater rules
 
 
+`n_closed_shell <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/usefull_for_ovb.irp.f#L13>`_
+  Undocumented
+
+
+`n_closed_shell_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/usefull_for_ovb.irp.f#L24>`_
+  Undocumented
+
+
 `n_det <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L3>`_
   Number of determinants in the wave function
 
@@ -534,15 +590,15 @@ Documentation
   determinants. idx_cas gives the indice of the CAS determinant in psi_det.
 
 
-`n_det_max <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L50>`_
+`n_det_max <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L44>`_
   Max number of determinants in the wave function
 
 
-`n_det_max_jacobi <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L94>`_
+`n_det_max_jacobi <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L82>`_
   Maximum number of determinants diagonalized by Jacobi
 
 
-`n_det_max_property <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L314>`_
+`n_det_max_property <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L293>`_
   Max number of determinants in the wave function when you select for a given property
 
 
@@ -562,16 +618,30 @@ Documentation
   psi_occ_pattern(:,2,j) = jth occ_pattern of the wave function : represent all the double occupation
 
 
+`n_open_shell <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/usefull_for_ovb.irp.f#L2>`_
+  Undocumented
+
+
 `n_single_exc_bitmasks <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants_bitmasks.irp.f#L8>`_
   Number of single excitation bitmasks
 
 
-`n_states <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L72>`_
+`n_states <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L63>`_
   Number of states to consider
 
 
 `n_states_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/options.irp.f#L1>`_
   Number of states to consider for the diagonalization
+
+
+`neutral_no_hund_in_couple <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/usefull_for_ovb.irp.f#L220>`_
+  n_couples is the number of couples of orbitals to be checked
+  couples(i,1) = first orbital of the ith couple
+  couples(i,2) = second orbital of the ith couple
+  returns the array couples_out
+  couples_out(i) = .True. if det_in contains
+  an orbital empty in the ith couple  AND
+  an orbital doubly occupied in the ith couple
 
 
 `nucl_elec_ref_bitmask_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ref_bitmask.irp.f#L4>`_
@@ -590,7 +660,15 @@ Documentation
   Number of possible determinants for a given occ_pattern
 
 
-`one_body_dm_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L162>`_
+`one_body_dm_ao_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L234>`_
+  one body density matrix on the AO basis : rho_AO(alpha) , rho_AO(beta)
+
+
+`one_body_dm_ao_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L235>`_
+  one body density matrix on the AO basis : rho_AO(alpha) , rho_AO(beta)
+
+
+`one_body_dm_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L161>`_
   One-body density matrix
 
 
@@ -602,19 +680,23 @@ Documentation
   Alpha and beta one-body density matrix for each state
 
 
-`one_body_single_double_dm_mo_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L79>`_
+`one_body_single_double_dm_mo_alpha <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L78>`_
   Alpha and beta one-body density matrix for each state
 
 
-`one_body_single_double_dm_mo_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L80>`_
+`one_body_single_double_dm_mo_beta <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L79>`_
   Alpha and beta one-body density matrix for each state
 
 
-`one_body_spin_density_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L170>`_
+`one_body_spin_density_ao <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L210>`_
+  one body spin density matrix on the AO basis : rho_AO(alpha) - rho_AO(beta)
+
+
+`one_body_spin_density_mo <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L169>`_
   rho(alpha) - rho(beta)
 
 
-`only_single_double_dm <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L182>`_
+`only_single_double_dm <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L178>`_
   If true, The One body DM is calculated with ignoring the Double<->Doubles extra diag elements
 
 
@@ -683,23 +765,16 @@ Documentation
   Undocumented
 
 
-`psi_coef_max <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L450>`_
+`psi_coef_max <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L390>`_
   Max and min values of the coefficients
 
 
-`psi_coef_min <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L451>`_
+`psi_coef_min <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L391>`_
   Max and min values of the coefficients
 
 
 `psi_coef_sorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L303>`_
   Wave function sorted by determinants contribution to the norm (state-averaged)
-
-
-`psi_coef_sorted_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L469>`_
-  Determinants on which we apply <i|H|j>.
-  They are sorted by the 3 highest electrons in the alpha part,
-  then by the 3 highest electrons in the beta part to accelerate
-  the research of connected determinants.
 
 
 `psi_coef_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L334>`_
@@ -738,25 +813,11 @@ Documentation
   Wave function sorted by determinants contribution to the norm (state-averaged)
 
 
-`psi_det_sorted_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L468>`_
-  Determinants on which we apply <i|H|j>.
-  They are sorted by the 3 highest electrons in the alpha part,
-  then by the 3 highest electrons in the beta part to accelerate
-  the research of connected determinants.
-
-
 `psi_det_sorted_bit <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L333>`_
   Determinants on which we apply <i|H|psi> for perturbation.
   They are sorted by determinants interpreted as integers. Useful
   to accelerate the search of a random determinant in the wave
   function.
-
-
-`psi_det_sorted_next_ab <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L470>`_
-  Determinants on which we apply <i|H|j>.
-  They are sorted by the 3 highest electrons in the alpha part,
-  then by the 3 highest electrons in the beta part to accelerate
-  the research of connected determinants.
 
 
 `psi_non_cas <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/psi_cas.irp.f#L63>`_
@@ -787,15 +848,23 @@ Documentation
   psi_occ_pattern(:,2,j) = jth occ_pattern of the wave function : represent all the double occupation
 
 
+`pull_pt2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L364>`_
+  Pull PT2 calculation in the collector
+
+
+`push_pt2 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/H_apply.irp.f#L307>`_
+  Push PT2 calculation to the collector
+
+
 `put_gess <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/guess_triplet.irp.f#L1>`_
   Undocumented
 
 
-`read_dets <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L599>`_
+`read_dets <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L415>`_
   Reads the determinants from the EZFIO file
 
 
-`read_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L116>`_
+`read_wf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L101>`_
   If true, read the wave function from the EZFIO file
 
 
@@ -816,7 +885,7 @@ Documentation
   be set before calling this function.
 
 
-`s2_eig <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L270>`_
+`s2_eig <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L255>`_
   Force the wave function to be an eigenfunction of S^2
 
 
@@ -832,27 +901,35 @@ Documentation
   z component of the Spin
 
 
+`save_hf <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_HF_determinant.irp.f#L1>`_
+  Undocumented
+
+
 `save_natorb <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/save_natorb.irp.f#L1>`_
   Undocumented
 
 
-`save_natural_mos <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L194>`_
+`save_natural_mos <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L190>`_
   Save natural orbitals, obtained by diagonalization of the one-body density matrix in the MO basis
 
 
-`save_wavefunction <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L646>`_
+`save_ref_determinant <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L461>`_
+  Undocumented
+
+
+`save_wavefunction <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L472>`_
   Save the wave function into the EZFIO file
 
 
-`save_wavefunction_general <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L665>`_
+`save_wavefunction_general <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L491>`_
   Save the wave function into the EZFIO file
 
 
-`save_wavefunction_specified <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L753>`_
+`save_wavefunction_specified <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L579>`_
   Save the wave function into the EZFIO file
 
 
-`save_wavefunction_unsorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L656>`_
+`save_wavefunction_unsorted <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L482>`_
   Save the wave function into the EZFIO file
 
 
@@ -860,7 +937,7 @@ Documentation
   Undocumented
 
 
-`set_natural_mos <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L178>`_
+`set_natural_mos <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L177>`_
   Set natural orbitals, obtained by diagonalization of the one-body density matrix in the MO basis
 
 
@@ -882,13 +959,6 @@ Documentation
   Uncodumented : TODO
 
 
-`sort_dets_by_3_highest_electrons <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L490>`_
-  Determinants on which we apply <i|H|j>.
-  They are sorted by the 3 highest electrons in the alpha part,
-  then by the 3 highest electrons in the beta part to accelerate
-  the research of connected determinants.
-
-
 `sort_dets_by_det_search_key <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/determinants.irp.f#L347>`_
   Determinants are sorted are sorted according to their det_search_key.
   Useful to accelerate the search of a random determinant in the wave
@@ -899,7 +969,7 @@ Documentation
   Return an integer*8 corresponding to a determinant index for searching
 
 
-`state_average_weight <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L205>`_
+`state_average_weight <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/density_matrix.irp.f#L201>`_
   Weights in the state-average calculation of the density matrix
 
 
@@ -907,7 +977,7 @@ Documentation
   Uncodumented : TODO
 
 
-`target_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L160>`_
+`target_energy <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L159>`_
   Energy that should be obtained when truncating the wave function (optional)
 
 
@@ -915,16 +985,23 @@ Documentation
   convergence of the correlation energy of SC2 iterations
 
 
-`threshold_davidson <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L204>`_
+`threshold_davidson <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L197>`_
   Thresholds of Davidson's algorithm
 
 
-`threshold_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L292>`_
+`threshold_generators <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L274>`_
   Thresholds on generators (fraction of the norm)
 
 
 `threshold_selectors <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/ezfio_interface.irp.f#L6>`_
   Thresholds on selectors (fraction of the norm)
+
+
+`u0_h_u_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/slater_rules.irp.f#L1566>`_
+  Computes e_0 = <u_0|H|u_0>/<u_0|u_0>
+  .br
+  n : number of determinants
+  .br
 
 
 `write_spindeterminants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants/spindeterminants.irp.f#L305>`_

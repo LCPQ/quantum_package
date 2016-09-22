@@ -1,73 +1,86 @@
- BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral, (ao_num_align,ao_num)]
- BEGIN_DOC
-! interaction nuclear electron
- END_DOC
- implicit none
- double precision  :: alpha, beta, gama, delta
- integer           :: num_A,num_B
- double precision  :: A_center(3),B_center(3),C_center(3)
- integer           :: power_A(3),power_B(3)
- integer           :: i,j,k,l,n_pt_in,m
- double precision  ::overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult
-
-  ao_nucl_elec_integral = 0.d0
-
-  !        _  
-  ! /|  / |_) 
-  !  | /  | \ 
-  !          
-
-  !$OMP PARALLEL &
-  !$OMP DEFAULT (NONE) &
-  !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B, &
-  !$OMP          num_A,num_B,Z,c,n_pt_in) &
-  !$OMP SHARED (ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp, &
-  !$OMP         n_pt_max_integrals,ao_nucl_elec_integral,nucl_num,nucl_charge) 
-
-  n_pt_in = n_pt_max_integrals
-  
-  !$OMP DO SCHEDULE (dynamic)
-
-  do j = 1, ao_num
-    num_A = ao_nucl(j)
-    power_A(1:3)= ao_power(j,1:3)
-    A_center(1:3) = nucl_coord(num_A,1:3)
-    
-    do i = 1, ao_num
-      
-      num_B = ao_nucl(i)
-      power_B(1:3)= ao_power(i,1:3)
-      B_center(1:3) = nucl_coord(num_B,1:3)
-      
-      do l=1,ao_prim_num(j)
-        alpha = ao_expo_ordered_transp(l,j)
-        
-        do m=1,ao_prim_num(i)
-          beta = ao_expo_ordered_transp(m,i)
-          
-          double precision               :: c
-          c = 0.d0
-          
-          do  k = 1, nucl_num
-            double precision               :: Z
-            Z = nucl_charge(k)
-            
-            C_center(1:3) = nucl_coord(k,1:3)
-            
-            c = c - Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)
-            
-          enddo
-          ao_nucl_elec_integral(i,j) = ao_nucl_elec_integral(i,j) +  &
-                                       ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i)*c
-        enddo
-      enddo
-    enddo
-  enddo
-
- !$OMP END DO 
- !$OMP END PARALLEL
-
- END_PROVIDER
+BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral, (ao_num_align,ao_num)]
+   BEGIN_DOC
+   ! interaction nuclear electron
+   END_DOC
+   implicit none
+   double precision               :: alpha, beta, gama, delta
+   integer                        :: num_A,num_B
+   double precision               :: A_center(3),B_center(3),C_center(3)
+   integer                        :: power_A(3),power_B(3)
+   integer                        :: i,j,k,l,n_pt_in,m
+   double precision               :: overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult
+   
+   if (read_ao_one_integrals) then
+     call read_one_e_integrals('ao_ne_integral', ao_nucl_elec_integral, &
+         size(ao_nucl_elec_integral,1), size(ao_nucl_elec_integral,2))
+     print *,  'AO N-e integrals read from disk'
+   else
+     
+     ao_nucl_elec_integral = 0.d0
+     
+     !        _
+     ! /|  / |_)
+     !  | /  | \
+     !
+     
+     !$OMP PARALLEL                                                  &
+         !$OMP DEFAULT (NONE)                                        &
+         !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B,&
+         !$OMP          num_A,num_B,Z,c,n_pt_in)                     &
+         !$OMP SHARED (ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp,&
+         !$OMP         n_pt_max_integrals,ao_nucl_elec_integral,nucl_num,nucl_charge)
+     
+     n_pt_in = n_pt_max_integrals
+     
+     !$OMP DO SCHEDULE (dynamic)
+     
+     do j = 1, ao_num
+       num_A = ao_nucl(j)
+       power_A(1:3)= ao_power(j,1:3)
+       A_center(1:3) = nucl_coord(num_A,1:3)
+       
+       do i = 1, ao_num
+         
+         num_B = ao_nucl(i)
+         power_B(1:3)= ao_power(i,1:3)
+         B_center(1:3) = nucl_coord(num_B,1:3)
+         
+         do l=1,ao_prim_num(j)
+           alpha = ao_expo_ordered_transp(l,j)
+           
+           do m=1,ao_prim_num(i)
+             beta = ao_expo_ordered_transp(m,i)
+             
+             double precision               :: c
+             c = 0.d0
+             
+             do  k = 1, nucl_num
+               double precision               :: Z
+               Z = nucl_charge(k)
+               
+               C_center(1:3) = nucl_coord(k,1:3)
+               
+               c = c - Z*NAI_pol_mult(A_center,B_center,power_A,power_B,alpha,beta,C_center,n_pt_in)
+               
+             enddo
+             ao_nucl_elec_integral(i,j) = ao_nucl_elec_integral(i,j) +&
+                 ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i)*c
+           enddo
+         enddo
+       enddo
+     enddo
+     
+     !$OMP END DO
+     !$OMP END PARALLEL
+   endif
+   if (write_ao_one_integrals) then
+     call write_one_e_integrals('ao_ne_integral', ao_nucl_elec_integral, &
+         size(ao_nucl_elec_integral,1), size(ao_nucl_elec_integral,2))
+     print *,  'AO N-e integrals written to disk'
+   endif
+   
+   
+END_PROVIDER
 
  BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral_per_atom, (ao_num_align,ao_num,nucl_num)]
  BEGIN_DOC

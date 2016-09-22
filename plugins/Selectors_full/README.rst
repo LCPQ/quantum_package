@@ -165,35 +165,22 @@ Documentation
   Determinants on which we apply <i|H|psi> for perturbation.
 
 
-`psi_selectors_ab <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/selectors.irp.f#L64>`_
-  Determinants on which we apply <i|H|j>.
-  They are sorted by the 3 highest electrons in the alpha part,
-  then by the 3 highest electrons in the beta part to accelerate
-  the research of connected determinants.
-
-
 `psi_selectors_coef <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/selectors.irp.f#L31>`_
   Determinants on which we apply <i|H|psi> for perturbation.
-
-
-`psi_selectors_coef_ab <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/selectors.irp.f#L65>`_
-  Determinants on which we apply <i|H|j>.
-  They are sorted by the 3 highest electrons in the alpha part,
-  then by the 3 highest electrons in the beta part to accelerate
-  the research of connected determinants.
 
 
 `psi_selectors_diag_h_mat <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/selectors.irp.f#L51>`_
   Diagonal elements of the H matrix for each selectors
 
 
-`psi_selectors_next_ab <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/selectors.irp.f#L66>`_
-  Determinants on which we apply <i|H|j>.
-  They are sorted by the 3 highest electrons in the alpha part,
-  then by the 3 highest electrons in the beta part to accelerate
-  the research of connected determinants.
-
-
 `psi_selectors_size <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/selectors.irp.f#L3>`_
   Undocumented
+
+
+`zmq_get_psi <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/zmq.irp.f#L43>`_
+  Get the wave function from the qp_run scheduler
+
+
+`zmq_put_psi <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/zmq.irp.f#L1>`_
+  Put the wave function on the qp_run scheduler
 
