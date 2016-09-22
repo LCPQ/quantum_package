@@ -12,19 +12,19 @@
       ao_dipole_x,                                                   &
       size(ao_dipole_x,1),                                           &
       mo_dipole_x,                                                   &
-      size(mo_dipole_x,1),                                           &
+      size(mo_dipole_x,1)                                            &
       )
   call ao_to_mo(                                                     &
       ao_dipole_y,                                                   &
       size(ao_dipole_y,1),                                           &
       mo_dipole_y,                                                   &
-      size(mo_dipole_y,1),                                           &
+      size(mo_dipole_y,1)                                            &
       )
   call ao_to_mo(                                                     &
       ao_dipole_z,                                                   &
       size(ao_dipole_z,1),                                           &
       mo_dipole_z,                                                   &
-      size(mo_dipole_z,1),                                           &
+      size(mo_dipole_z,1)                                            &
       )
 
 END_PROVIDER
@@ -42,19 +42,19 @@ END_PROVIDER
       ao_spread_x,                                                   &
       size(ao_spread_x,1),                                           &
       mo_spread_x,                                                   &
-      size(mo_spread_x,1),                                           &
+      size(mo_spread_x,1)                                            &
       )
   call ao_to_mo(                                                     &
       ao_spread_y,                                                   &
       size(ao_spread_y,1),                                           &
       mo_spread_y,                                                   &
-      size(mo_spread_y,1),                                           &
+      size(mo_spread_y,1)                                            &
       )
   call ao_to_mo(                                                     &
       ao_spread_z,                                                   &
       size(ao_spread_z,1),                                           &
       mo_spread_z,                                                   &
-      size(mo_spread_z,1),                                           &
+      size(mo_spread_z,1)                                            &
       )
 END_PROVIDER
 

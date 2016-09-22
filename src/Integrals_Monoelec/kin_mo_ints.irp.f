@@ -13,7 +13,7 @@ BEGIN_PROVIDER [double precision, mo_kinetic_integral, (mo_tot_num_align,mo_tot_
         ao_kinetic_integral,                                         &
         size(ao_kinetic_integral,1),                                 &
         mo_kinetic_integral,                                         &
-        size(mo_kinetic_integral,1),                                 &
+        size(mo_kinetic_integral,1)                                  &
         )
   endif
   if (write_mo_one_integrals) then
