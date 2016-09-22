@@ -15,7 +15,7 @@ BEGIN_PROVIDER [double precision, mo_nucl_elec_integral, (mo_tot_num_align,mo_to
         ao_nucl_elec_integral,                                       &
         size(ao_nucl_elec_integral,1),                               &
         mo_nucl_elec_integral,                                       &
-        size(mo_nucl_elec_integral,1),                               &
+        size(mo_nucl_elec_integral,1)                                &
         )
   endif
   if (write_mo_one_integrals) then
@@ -42,7 +42,7 @@ BEGIN_PROVIDER [double precision, mo_nucl_elec_integral_per_atom, (mo_tot_num_al
        ao_nucl_elec_integral_per_atom(1,1,k),                        &
        size(ao_nucl_elec_integral_per_atom,1),                       &
        mo_nucl_elec_integral_per_atom(1,1,k),                        &
-       size(mo_nucl_elec_integral_per_atom,1),                       &
+       size(mo_nucl_elec_integral_per_atom,1)                        &
        )
  enddo
 END_PROVIDER
