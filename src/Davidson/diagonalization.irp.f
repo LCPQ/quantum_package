@@ -316,6 +316,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
   integer                        :: iter2
   double precision, allocatable  :: W(:,:,:),  U(:,:,:), R(:,:)
   double precision, allocatable  :: y(:,:,:,:), h(:,:,:,:), lambda(:)
+  double precision, allocatable  :: c(:), H_small(:,:)
   double precision               :: diag_h_mat_elem
   double precision, allocatable  :: residual_norm(:)
   character*(16384)              :: write_buffer
@@ -365,6 +366,8 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
       y(N_st_diag,davidson_sze_max,N_st_diag,davidson_sze_max),      &
       residual_norm(N_st_diag),                                      &
       overlap(N_st_diag,N_st_diag),                                  &
+      c(N_st_diag*davidson_sze_max),                                 &
+      H_small(N_st_diag,N_st_diag),                                  &
       lambda(N_st_diag*davidson_sze_max))
   
   ASSERT (N_st > 0)
@@ -393,17 +396,19 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
       enddo
     enddo
     
-    ! Compute overlap matrix
+    ! Compute overlap matrix Ut.U to orthonormalize U
+    ! -----------------------------------------------
+
     call DGEMM('T','N', N_st_diag, N_st_diag, sze,                   &
         1.d0, U(1,1,1), size(U,1), U(1,1,1), size(U,1),              &
         0.d0, overlap, size(overlap,1))
-
+    
     call ortho_lowdin(overlap,size(overlap,1),N_st_diag,U,size(U,1),sze)
 
     do iter=1,davidson_sze_max-1
       
-      ! Compute W_k = H |u_k>
-      ! ----------------------
+      ! Compute |W_k> = \sum_i |i><i|H|u_k>
+      ! -----------------------------------------
       
       call H_u_0_nstates(W(1,1,iter),U(1,1,iter),H_jj,sze,dets_in,Nint,N_st_diag,sze_8)
       
@@ -411,34 +416,10 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
       ! -------------------------------------------
 
-      !$OMP PARALLEL PRIVATE(k,l,iter2) SHARED(h,U,W,sze,iter)
-      do l=1,N_st_diag
-        !$OMP DO 
-        do k=1,N_st_diag
-          do iter2=1,iter-1
-            h(k,iter2,l,iter) = u_dot_v(U(1,k,iter2),W(1,l,iter),sze)
-            h(k,iter,l,iter2) = h(k,iter2,l,iter)
-          enddo
-        enddo
-        !$OMP END DO
-      enddo
-      do l=1,N_st_diag
-        !$OMP DO 
-        do k=1,l
-          h(k,iter,l,iter) = u_dot_v(U(1,k,iter),W(1,l,iter),sze)
-          h(l,iter,k,iter) = h(k,iter,l,iter)
-        enddo
-        !$OMP END DO 
-      enddo
-      !$OMP END PARALLEL 
+      call dgemm('T','N', N_st_diag*iter, N_st_diag, sze,               &
+          1.d0, U, size(U,1), W(1,1,iter), size(W,1),   &
+          0.d0, h(1,1,1,iter), size(h,1)*size(h,2))
 
-      !DEBUG H MATRIX
-      !do i=1,iter
-      !  print '(10(x,F16.10))',  h(1,i,1,1:i)
-      !enddo
-      !print *,  ''
-      !END
-      
       ! Diagonalize h
       ! -------------
       call lapack_diag(lambda,y,h,N_st_diag*davidson_sze_max,N_st_diag*iter)
@@ -446,45 +427,24 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
       ! Express eigenvectors of h in the determinant basis
       ! --------------------------------------------------
       
-     !$OMP PARALLEL DEFAULT(NONE)                                     &
-        !$OMP PRIVATE(k,i,l,iter2) &
-        !$OMP SHARED(U,W,R,y,iter,lambda,N_st_diag,sze,to_print, &
-        !$OMP residual_norm,nuclear_repulsion,N_st)
+      call dgemm('N','N', sze, N_st_diag, N_st_diag*iter, &
+       1.d0, U, size(U,1), y, size(y,1)*size(y,2), 0.d0, U(1,1,iter+1), size(U,1))
+      call dgemm('N','N',sze,N_st_diag,N_st_diag*iter, &
+       1.d0, W, size(W,1), y, size(y,1)*size(y,2), 0.d0, W(1,1,iter+1), size(W,1))
+
+      ! Compute residual vector
+      ! -----------------------
+      
       do k=1,N_st_diag
-        !$OMP DO
-        do i=1,sze
-          U(i,k,iter+1) = 0.d0
-          W(i,k,iter+1) = 0.d0
-        enddo
-        !$OMP END DO
-         do iter2=1,iter
-          do l=1,N_st_diag
-            !$OMP DO
-            do i=1,sze
-              U(i,k,iter+1) = U(i,k,iter+1) + U(i,l,iter2)*y(l,iter2,k,1)
-              W(i,k,iter+1) = W(i,k,iter+1) + W(i,l,iter2)*y(l,iter2,k,1)
-            enddo
-            !$OMP END DO NOWAIT
-          enddo
-        enddo
-      
-        ! Compute residual vector
-        ! -----------------------
-      
-        !$OMP DO
         do i=1,sze
           R(i,k) = lambda(k) * U(i,k,iter+1) - W(i,k,iter+1)
         enddo
-        !$OMP END DO
-        !$OMP SINGLE
         if (k <= N_st) then
           residual_norm(k) = u_dot_u(R(1,k),sze)
           to_print(1,k) = lambda(k) + nuclear_repulsion
           to_print(2,k) = residual_norm(k)
         endif
-        !$OMP END SINGLE
       enddo
-      !$OMP END PARALLEL
       
       write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))')  iter, to_print(:,1:N_st)
       call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
@@ -505,34 +465,17 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
       ! Gram-Schmidt
       ! ------------
       
-      double precision               :: c(N_st_diag)
       do k=1,N_st_diag
-        do iter2=1,iter
-          call dgemv('T',sze,N_st_diag,1.d0,U(1,1,iter2),size(U,1),  &
+        call dgemv('T',sze,N_st_diag*iter,1.d0,U,size(U,1),  &
               U(1,k,iter+1),1,0.d0,c,1)
-          call dgemv('N',sze,N_st_diag,-1.d0,U(1,1,iter2),size(U,1), &
+        call dgemv('N',sze,N_st_diag*iter,-1.d0,U,size(U,1), &
               c,1,1.d0,U(1,k,iter+1),1)
-        enddo
         call dgemv('T',sze,N_st_diag,1.d0,U(1,1,iter+1),size(U,1),   &
             U(1,k,iter+1),1,0.d0,c,1)
         call dgemv('N',sze,k-1,-1.d0,U(1,1,iter+1),size(U,1),        &
             c,1,1.d0,U(1,k,iter+1),1)
         call normalize( U(1,k,iter+1), sze )
       enddo
-
-    
-      !DEBUG : CHECK OVERLAP
-      !print *,  '==='
-      !do k=1,iter+1
-      !  do l=1,k
-      !  c = u_dot_v(U(1,1,k),U(1,1,l),sze)
-      !  print *,  k,l, c
-      !  enddo
-      !enddo
-      !print *,  '==='
-      !pause
-      !END DEBUG
-
 
     enddo
 
@@ -545,15 +488,10 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
     
     do k=1,N_st_diag
       energies(k) = lambda(k)
-      do i=1,sze
-        u_in(i,k) = 0.d0
-        do iter2=1,iter
-          do l=1,N_st_diag
-            u_in(i,k) += U(i,l,iter2)*y(l,iter2,k,1)
-          enddo
-        enddo
-      enddo
     enddo
+    call dgemm('N','N', sze, N_st_diag, N_st_diag*iter, 1.d0,      &
+        U, size(U,1), y, size(y,1)*size(y,2),                      &
+        0.d0, u_in, size(u_in,1))
 
   enddo
 
@@ -569,7 +507,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
       kl_pairs,                                                      &
       W, residual_norm,                                              &
       U, overlap,                                                    &
-      R,                                                             &
+      R, c,                                                          &
       h,                                                             &
       y,                                                             &
       lambda                                                         &
