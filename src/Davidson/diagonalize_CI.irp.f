@@ -56,7 +56,7 @@ END_PROVIDER
      call davidson_diag(psi_det,CI_eigenvectors,CI_electronic_energy,&
          size(CI_eigenvectors,1),N_det,N_states_diag,N_int,output_determinants)
 
-     call u_0_S2_u_0_nstates(CI_eigenvectors_s2,CI_eigenvectors,N_det,psi_det,N_int,&
+     call u_0_S2_u_0(CI_eigenvectors_s2,CI_eigenvectors,N_det,psi_det,N_int,&
          N_states_diag,size(CI_eigenvectors,1))
      
      
@@ -72,7 +72,7 @@ END_PROVIDER
        allocate (s2_eigvalues(N_det))
        allocate(index_good_state_array(N_det),good_state_array(N_det))
        good_state_array = .False.
-       call u_0_S2_u_0_nstates(s2_eigvalues,eigenvectors,N_det,psi_det,N_int,&
+       call u_0_S2_u_0(s2_eigvalues,eigenvectors,N_det,psi_det,N_int,&
          N_det,size(eigenvectors,1))
        do j=1,N_det
          ! Select at least n_states states with S^2 values closed to "expected_s2"
@@ -129,7 +129,7 @@ END_PROVIDER
        deallocate(index_good_state_array,good_state_array)
        deallocate(s2_eigvalues)
      else
-       call u_0_S2_u_0_nstates(CI_eigenvectors_s2,eigenvectors,N_det,psi_det,N_int,&
+       call u_0_S2_u_0(CI_eigenvectors_s2,eigenvectors,N_det,psi_det,N_int,&
           min(N_det,N_states_diag),size(eigenvectors,1))
        ! Select the "N_states_diag" states of lowest energy
        do j=1,min(N_det,N_states_diag)
@@ -153,7 +153,7 @@ END_PROVIDER
           psi_coef(i,j) = CI_eigenvectors(i,j)
         enddo
       enddo
-      call u_0_H_u_0_nstates(e_array,psi_coef,n_det,psi_det,N_int,N_states_diag,psi_det_size)
+      call u_0_H_u_0(e_array,psi_coef,n_det,psi_det,N_int,N_states_diag,psi_det_size)
      
       ! Browsing the "n_states_diag" states and getting the lowest in energy "n_states" ones that have the S^2 value
       ! closer to the "expected_s2" set as input

@@ -212,7 +212,7 @@ subroutine dress_H_matrix_from_psi_det_input(psi_det_generators_input,Ndet_gener
  integer :: n_state_good
  n_state_good = 0
  if(s2_eig)then
-  call u_0_S2_u_0_nstates(s2,eigvectors,Ndet_generators,psi_det_generators_input,N_int,N_det_generators,size(eigvectors,1))
+  call u_0_S2_u_0(s2,eigvectors,Ndet_generators,psi_det_generators_input,N_int,N_det_generators,size(eigvectors,1))
   do i = 1, Ndet_generators
     print*,'s2 = ',s2(i)
     print*,dabs(s2(i)-expected_s2)

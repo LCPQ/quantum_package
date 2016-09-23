@@ -63,7 +63,7 @@ subroutine update_energy(energy)
       CI_eigenvectors(k,j) = psi_coef(k,j)
     enddo
   enddo
-  call u_0_S2_u_0_nstates(CI_eigenvectors_s2,CI_eigenvectors,N_det,psi_det,N_int)
+  call u_0_S2_u_0(CI_eigenvectors_s2,CI_eigenvectors,N_det,psi_det,N_int)
   if (.True.) then
     do k=1,size(ci_electronic_energy)
       ci_electronic_energy(k) = energy(k)

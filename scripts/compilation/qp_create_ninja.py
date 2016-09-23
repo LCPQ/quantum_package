@@ -788,9 +788,17 @@ def create_build_ninja_global():
                  "  command = module_handler.py clean --all",
                  "  description = Cleaning all modules", ""]
 
+    l_string += ["rule make_ocaml",
+                 "  command = make -C {0}/ocaml".format(QP_ROOT),
+                 "  pool = console",
+                 "  description = Compiling OCaml tools",
+                 ""]
+
+
     l_string += ["build dummy_target: update_build_ninja_root",
+                 "build ocaml_target: make_ocaml",
                  "",
-                 "build all: make_all dummy_target",
+                 "build all: make_all dummy_target ocaml_target",
                  "default all",
                  "",
                  "build clean: make_clean dummy_target",

@@ -69,13 +69,13 @@ BEGIN_PROVIDER [ double precision, s2_values, (N_states) ]
 ! array of the averaged values of the S^2 operator on the various states
  END_DOC
  integer :: i
- call u_0_S2_u_0_nstates(s2_values,psi_coef,n_det,psi_det,N_int,N_states,psi_det_size)
+ call u_0_S2_u_0(s2_values,psi_coef,n_det,psi_det,N_int,N_states,psi_det_size)
 
 END_PROVIDER
 
 
 
-subroutine u_0_S2_u_0_nstates(e_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
+subroutine u_0_S2_u_0(e_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
   use bitmasks
   implicit none
   BEGIN_DOC
