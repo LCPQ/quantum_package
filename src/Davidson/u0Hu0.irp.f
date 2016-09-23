@@ -27,24 +27,6 @@ subroutine u_0_H_u_0_nstates(e_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
 end
 
 
-subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Computes v_0 = H|u_0>
-  !
-  ! n : number of determinants
-  !
-  ! H_jj : array of <j|H|j>
-  END_DOC
-  integer, intent(in)            :: n,Nint
-  double precision, intent(out)  :: v_0(n)
-  double precision, intent(in)   :: u_0(n)
-  double precision, intent(in)   :: H_jj(n)
-  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
-  call H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,1,n)
-end
-
 subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   use bitmasks
   implicit none
