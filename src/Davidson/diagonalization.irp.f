@@ -380,30 +380,31 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
   ! ===================
   
   converged = .False.
+
+  do k=N_st+1,N_st_diag
+    do i=1,sze
+      call RANDOM_NUMBER(u_in(i,k))
+      u_in(i,k) = u_in(i,k) - 0.5d0
+    enddo
+    
+    ! Gram-Schmidt
+    ! ------------
+    call dgemv('T',sze,k-1,1.d0,u_in,size(u_in,1),   &
+        u_in(1,k),1,0.d0,c,1)
+    call dgemv('N',sze,k-1,-1.d0,u_in,size(u_in,1),        &
+        c,1,1.d0,u_in(1,k),1)
+    call normalize( u_in(1,k), sze )
+
+  enddo
+
   
   do while (.not.converged)
     
-    do k=1,N_st
+    do k=1,N_st_diag
       do i=1,sze
         U(i,k,1) = u_in(i,k)
       enddo
     enddo
-
-    do k=N_st+1,N_st_diag
-      do i=1,sze
-        call RANDOM_NUMBER(U(i,k,1))
-        U(i,k,1) = U(i,k,1) - 0.5d0
-      enddo
-    enddo
-    
-    ! Compute overlap matrix Ut.U to orthonormalize U
-    ! -----------------------------------------------
-
-    call DGEMM('T','N', N_st_diag, N_st_diag, sze,                   &
-        1.d0, U(1,1,1), size(U,1), U(1,1,1), size(U,1),              &
-        0.d0, overlap, size(overlap,1))
-    
-    call ortho_lowdin(overlap,size(overlap,1),N_st_diag,U,size(U,1),sze)
 
     do iter=1,davidson_sze_max-1
       
@@ -416,9 +417,24 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
       ! -------------------------------------------
 
+!
+!      do l=1,N_st_diag
+!        do k=1,N_st_diag
+!          do iter2=1,iter-1
+!            h(k,iter2,l,iter) = u_dot_v(U(1,k,iter2),W(1,l,iter),sze)
+!            h(k,iter,l,iter2) = h(k,iter2,l,iter)
+!          enddo
+!        enddo
+!        do k=1,l
+!          h(k,iter,l,iter) = u_dot_v(U(1,k,iter),W(1,l,iter),sze)
+!          h(l,iter,k,iter) = h(k,iter,l,iter)
+!        enddo
+!      enddo
+
       call dgemm('T','N', N_st_diag*iter, N_st_diag, sze,               &
           1.d0, U, size(U,1), W(1,1,iter), size(W,1),   &
           0.d0, h(1,1,1,iter), size(h,1)*size(h,2))
+
 
       ! Diagonalize h
       ! -------------
@@ -427,10 +443,27 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
       ! Express eigenvectors of h in the determinant basis
       ! --------------------------------------------------
       
-      call dgemm('N','N', sze, N_st_diag, N_st_diag*iter, &
-       1.d0, U, size(U,1), y, size(y,1)*size(y,2), 0.d0, U(1,1,iter+1), size(U,1))
-      call dgemm('N','N',sze,N_st_diag,N_st_diag*iter, &
-       1.d0, W, size(W,1), y, size(y,1)*size(y,2), 0.d0, W(1,1,iter+1), size(W,1))
+      do k=1,N_st_diag
+        do i=1,sze
+          U(i,k,iter+1) = 0.d0
+          W(i,k,iter+1) = 0.d0
+        enddo
+         do iter2=1,iter
+          do l=1,N_st_diag
+            do i=1,sze
+              U(i,k,iter+1) = U(i,k,iter+1) + U(i,l,iter2)*y(l,iter2,k,1)
+              W(i,k,iter+1) = W(i,k,iter+1) + W(i,l,iter2)*y(l,iter2,k,1)
+            enddo
+          enddo
+        enddo
+      enddo
+
+
+!      call dgemm('N','N', sze, N_st_diag, N_st_diag*iter, &
+!       1.d0, U, size(U,1), y, size(y,1)*size(y,2), 0.d0, U(1,1,iter+1), size(U,1))
+!      call dgemm('N','N',sze,N_st_diag,N_st_diag*iter, &
+!       1.d0, W, size(W,1), y, size(y,1)*size(y,2), 0.d0, W(1,1,iter+1), size(W,1))
+
 
       ! Compute residual vector
       ! -----------------------
@@ -452,7 +485,6 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
         exit
       endif
       
-      
       ! Davidson step
       ! -------------
       
@@ -466,14 +498,33 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
       ! ------------
       
       do k=1,N_st_diag
+
+!        do iter2=1,iter
+!          do l=1,N_st_diag
+!            c(1) = u_dot_v(U(1,k,iter+1),U(1,l,iter2),sze)
+!            do i=1,sze
+!              U(i,k,iter+1) = U(i,k,iter+1) - c(1) * U(i,l,iter2)
+!            enddo
+!          enddo
+!        enddo
+
         call dgemv('T',sze,N_st_diag*iter,1.d0,U,size(U,1),  &
               U(1,k,iter+1),1,0.d0,c,1)
         call dgemv('N',sze,N_st_diag*iter,-1.d0,U,size(U,1), &
               c,1,1.d0,U(1,k,iter+1),1)
-        call dgemv('T',sze,N_st_diag,1.d0,U(1,1,iter+1),size(U,1),   &
+
+!        do l=1,k-1
+!          c(1) = u_dot_v(U(1,k,iter+1),U(1,l,iter+1),sze)
+!          do i=1,sze
+!            U(i,k,iter+1) = U(i,k,iter+1) - c(1) * U(i,l,iter+1)
+!          enddo
+!        enddo
+
+        call dgemv('T',sze,k-1,1.d0,U(1,1,iter+1),size(U,1),   &
             U(1,k,iter+1),1,0.d0,c,1)
         call dgemv('N',sze,k-1,-1.d0,U(1,1,iter+1),size(U,1),        &
             c,1,1.d0,U(1,k,iter+1),1)
+
         call normalize( U(1,k,iter+1), sze )
       enddo
 
@@ -489,9 +540,21 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
     do k=1,N_st_diag
       energies(k) = lambda(k)
     enddo
-    call dgemm('N','N', sze, N_st_diag, N_st_diag*iter, 1.d0,      &
-        U, size(U,1), y, size(y,1)*size(y,2),                      &
-        0.d0, u_in, size(u_in,1))
+
+    do k=1,N_st_diag
+      do i=1,sze
+        u_in(i,k) = 0.d0
+        do iter2=1,iter
+          do l=1,N_st_diag
+            u_in(i,k) += U(i,l,iter2)*y(l,iter2,k,1)
+          enddo
+        enddo
+      enddo
+    enddo
+
+!    call dgemm('N','N', sze, N_st_diag, N_st_diag*iter, 1.d0,      &
+!        U, size(U,1), y, N_st_diag*davidson_sze_max, &
+!        0.d0, u_in, size(u_in,1))
 
   enddo
 

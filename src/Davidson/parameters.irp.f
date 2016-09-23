@@ -13,6 +13,7 @@ BEGIN_PROVIDER [ integer, davidson_sze_max ]
   END_DOC
   ASSERT (davidson_sze_max <= davidson_iter_max)
   davidson_sze_max = max(8,2*N_states_diag)
+  davidson_sze_max = 3
 END_PROVIDER
 
 
