@@ -1,7 +1,4 @@
-
-
-
-subroutine davidson_diag_mrcc(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit,istate)
+subroutine davidson_diag_mrcc(dets_in,u_in,energies,dim_in,sze,N_st,N_st_diag,Nint,iunit,istate)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -22,7 +19,7 @@ subroutine davidson_diag_mrcc(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit,i
   !
   ! Initial guess vectors are not necessarily orthonormal
   END_DOC
-  integer, intent(in)            :: dim_in, sze, N_st, Nint, iunit, istate
+  integer, intent(in)            :: dim_in, sze, N_st, Nint, iunit, istate, N_st_diag
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision, intent(inout) :: u_in(dim_in,N_st)
   double precision, intent(out)  :: energies(N_st)
@@ -31,6 +28,7 @@ subroutine davidson_diag_mrcc(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit,i
   double precision               :: diag_h_mat_elem
   integer                        :: i
   ASSERT (N_st > 0)
+  ASSERT (N_st_diag >= N_st)
   ASSERT (sze > 0)
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
@@ -52,11 +50,11 @@ subroutine davidson_diag_mrcc(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit,i
   !$OMP END DO 
   !$OMP END PARALLEL
 
-  call davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iunit,istate)
+  call davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_diag,Nint,iunit,istate)
   deallocate (H_jj)
 end
 
-subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iunit,istate)
+subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_diag,Nint,iunit,istate)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -79,7 +77,7 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
   !
   ! Initial guess vectors are not necessarily orthonormal
   END_DOC
-  integer, intent(in)            :: dim_in, sze, N_st, Nint, istate
+  integer, intent(in)            :: dim_in, sze, N_st, Nint, istate, N_st_diag
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision,  intent(in)  :: H_jj(sze)
   integer,  intent(in)  :: iunit
@@ -106,6 +104,9 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nin
   double precision               :: cpu, wall
   
   !PROVIDE det_connections
+if (N_st_diag /= N_st) then
+  stop 'N_st_diag /= N_st todo in davidson'
+endif
 
   call write_time(iunit)
   call wall_time(wall)

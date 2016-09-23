@@ -12,6 +12,9 @@ BEGIN_PROVIDER [ integer, N_states_diag ]
   else
     N_states_diag = N_states
   endif
+  if (N_states_diag < N_states) then
+    N_states_diag = N_states
+  endif
   
   call write_time(output_determinants)
   call write_int(output_determinants, N_states_diag, &

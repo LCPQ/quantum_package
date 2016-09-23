@@ -149,7 +149,7 @@ END_PROVIDER
    if (diag_algorithm == "Davidson") then
      
      call davidson_diag_mrcc(psi_det,CI_eigenvectors_dressed,CI_electronic_energy_dressed,&
-          size(CI_eigenvectors_dressed,1),N_det,N_states_diag,N_int,output_determinants,mrcc_state)
+          size(CI_eigenvectors_dressed,1),N_det,N_states,N_states_diag,N_int,output_determinants,mrcc_state)
      call u_0_S2_u_0(CI_eigenvectors_s2_dressed,CI_eigenvectors_dressed,N_det,psi_det,N_int,&
          N_states_diag,size(CI_eigenvectors_dressed,1))
 

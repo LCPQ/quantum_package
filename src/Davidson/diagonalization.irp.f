@@ -1,4 +1,4 @@
-subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
+subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,N_st_diag,Nint,iunit)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -19,9 +19,9 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
   !
   ! Initial guess vectors are not necessarily orthonormal
   END_DOC
-  integer, intent(in)            :: dim_in, sze, N_st, Nint, iunit
+  integer, intent(in)            :: dim_in, sze, N_st, N_st_diag, Nint, iunit
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
-  double precision, intent(inout) :: u_in(dim_in,N_st)
+  double precision, intent(inout) :: u_in(dim_in,N_st_diag)
   double precision, intent(out)  :: energies(N_st)
   double precision, allocatable  :: H_jj(:)
   
@@ -44,7 +44,7 @@ subroutine davidson_diag(dets_in,u_in,energies,dim_in,sze,N_st,Nint,iunit)
   !$OMP END DO 
   !$OMP END PARALLEL
 
-  call davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iunit)
+  call davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_diag,Nint,iunit)
   deallocate (H_jj)
 end
 
@@ -270,7 +270,7 @@ subroutine sort_dets_ab(key, idx, shortcut, N_key, Nint)
 end subroutine
 
 
-subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iunit)
+subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_diag,Nint,iunit)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -288,24 +288,26 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   ! sze : Number of determinants
   !
   ! N_st : Number of eigenstates
+  ! 
+  ! N_st_diag : Number of states in which H is diagonalized
   !
   ! iunit : Unit for the I/O
   !
   ! Initial guess vectors are not necessarily orthonormal
   END_DOC
-  integer, intent(in)            :: dim_in, sze, N_st, Nint
+  integer, intent(in)            :: dim_in, sze, N_st, N_st_diag, Nint
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision,  intent(in)  :: H_jj(sze)
   integer,  intent(in)  :: iunit
-  double precision, intent(inout) :: u_in(dim_in,N_st)
-  double precision, intent(out)  :: energies(N_st)
+  double precision, intent(inout) :: u_in(dim_in,N_st_diag)
+  double precision, intent(out)  :: energies(N_st_diag)
   
   integer                        :: sze_8
   integer                        :: iter
   integer                        :: i,j,k,l,m
   logical                        :: converged
   
-  double precision               :: overlap(N_st,N_st)
+  double precision, allocatable  :: overlap(:,:)
   double precision               :: u_dot_v, u_dot_u
   
   integer, allocatable           :: kl_pairs(:,:)
@@ -315,13 +317,14 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   double precision, allocatable  :: W(:,:,:),  U(:,:,:), R(:,:)
   double precision, allocatable  :: y(:,:,:,:), h(:,:,:,:), lambda(:)
   double precision               :: diag_h_mat_elem
-  double precision               :: residual_norm(N_st)
+  double precision, allocatable  :: residual_norm(:)
   character*(16384)              :: write_buffer
   double precision               :: to_print(2,N_st)
   double precision               :: cpu, wall
   
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: U, W, R, y, h, lambda
 
+  PROVIDE nuclear_repulsion
 
   call write_time(iunit)
   call wall_time(wall)
@@ -331,6 +334,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   write(iunit,'(A)') '------------------------'
   write(iunit,'(A)') ''
   call write_int(iunit,N_st,'Number of states')
+  call write_int(iunit,N_st_diag,'Number of states in diagonalization')
   call write_int(iunit,sze,'Number of determinants')
   write(iunit,'(A)') ''
   write_buffer = '===== '
@@ -353,69 +357,21 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   sze_8 = align_double(sze)
 
   allocate(                                                          &
-      kl_pairs(2,N_st*(N_st+1)/2),                                   &
-      W(sze_8,N_st,davidson_sze_max),                                &
-      U(sze_8,N_st,davidson_sze_max),                                &
-      R(sze_8,N_st),                                                 &
-      h(N_st,davidson_sze_max,N_st,davidson_sze_max),                &
-      y(N_st,davidson_sze_max,N_st,davidson_sze_max),                &
-      lambda(N_st*davidson_sze_max))
+      kl_pairs(2,N_st_diag*(N_st_diag+1)/2),                         &
+      W(sze_8,N_st_diag,davidson_sze_max),                           &
+      U(sze_8,N_st_diag,davidson_sze_max),                           &
+      R(sze_8,N_st_diag),                                            &
+      h(N_st_diag,davidson_sze_max,N_st_diag,davidson_sze_max),      &
+      y(N_st_diag,davidson_sze_max,N_st_diag,davidson_sze_max),      &
+      residual_norm(N_st_diag),                                      &
+      overlap(N_st_diag,N_st_diag),                                  &
+      lambda(N_st_diag*davidson_sze_max))
   
   ASSERT (N_st > 0)
+  ASSERT (N_st_diag >= N_st)
   ASSERT (sze > 0)
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
-  
-  ! Initialization
-  ! ==============
-  
-
-  if (N_st > 1) then 
-
-    k_pairs=0
-    do l=1,N_st
-      do k=1,l
-        k_pairs+=1
-        kl_pairs(1,k_pairs) = k
-        kl_pairs(2,k_pairs) = l
-      enddo
-    enddo
-    
-    !$OMP PARALLEL DEFAULT(NONE)                                      &
-        !$OMP  SHARED(U,sze,N_st,overlap,kl_pairs,k_pairs,             &
-        !$OMP  Nint,dets_in,u_in)                                 &
-        !$OMP  PRIVATE(k,l,kl)  
-    
-    
-    ! Orthonormalize initial guess
-    ! ============================
-    
-    !$OMP DO
-    do kl=1,k_pairs
-      k = kl_pairs(1,kl)
-      l = kl_pairs(2,kl)
-      if (k/=l) then
-        overlap(k,l) = u_dot_v(U_in(1,k),U_in(1,l),sze)
-        overlap(l,k) = overlap(k,l)
-      else
-        overlap(k,k) = u_dot_u(U_in(1,k),sze)
-      endif
-    enddo
-    !$OMP END DO
-    !$OMP END PARALLEL
-
-    call ortho_lowdin(overlap,size(overlap,1),N_st,U_in,size(U_in,1),sze)
-
-  else
-
-    overlap(1,1) = u_dot_u(U_in(1,1),sze)
-    double precision :: f
-    f = 1.d0 / dsqrt(overlap(1,1))
-    do i=1,sze
-      U_in(i,1) = U_in(i,1) * f
-    enddo
-
-  endif
   
   ! Davidson iterations
   ! ===================
@@ -424,40 +380,57 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   
   do while (.not.converged)
     
-    !$OMP PARALLEL DEFAULT(NONE)                                     &
-        !$OMP PRIVATE(k,i) SHARED(U,u_in,sze,N_st)
     do k=1,N_st
-      !$OMP DO
       do i=1,sze
         U(i,k,1) = u_in(i,k)
       enddo
-      !$OMP END DO 
     enddo
-    !$OMP END PARALLEL
+
+    do k=N_st+1,N_st_diag
+      do i=1,sze
+        call RANDOM_NUMBER(U(i,k,1))
+        U(i,k,1) = U(i,k,1) - 0.5d0
+      enddo
+    enddo
     
+    ! Compute overlap matrix
+    call DGEMM('T','N', N_st_diag, N_st_diag, sze,                   &
+        1.d0, U(1,1,1), size(U,1), U(1,1,1), size(U,1),              &
+        0.d0, overlap, size(overlap,1))
+
+    call ortho_lowdin(overlap,size(overlap,1),N_st_diag,U,size(U,1),sze)
+
     do iter=1,davidson_sze_max-1
       
       ! Compute W_k = H |u_k>
       ! ----------------------
       
-      call H_u_0_nstates(W(1,1,iter),U(1,1,iter),H_jj,sze,dets_in,Nint,N_st,sze_8)
+      call H_u_0_nstates(W(1,1,iter),U(1,1,iter),H_jj,sze,dets_in,Nint,N_st_diag,sze_8)
       
       
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
       ! -------------------------------------------
 
-      do l=1,N_st
-        do k=1,N_st
+      !$OMP PARALLEL PRIVATE(k,l,iter2) SHARED(h,U,W,sze,iter)
+      do l=1,N_st_diag
+        !$OMP DO 
+        do k=1,N_st_diag
           do iter2=1,iter-1
             h(k,iter2,l,iter) = u_dot_v(U(1,k,iter2),W(1,l,iter),sze)
             h(k,iter,l,iter2) = h(k,iter2,l,iter)
           enddo
         enddo
+        !$OMP END DO
+      enddo
+      do l=1,N_st_diag
+        !$OMP DO 
         do k=1,l
           h(k,iter,l,iter) = u_dot_v(U(1,k,iter),W(1,l,iter),sze)
           h(l,iter,k,iter) = h(k,iter,l,iter)
         enddo
+        !$OMP END DO 
       enddo
+      !$OMP END PARALLEL 
 
       !DEBUG H MATRIX
       !do i=1,iter
@@ -468,16 +441,16 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       
       ! Diagonalize h
       ! -------------
-      call lapack_diag(lambda,y,h,N_st*davidson_sze_max,N_st*iter)
+      call lapack_diag(lambda,y,h,N_st_diag*davidson_sze_max,N_st_diag*iter)
       
       ! Express eigenvectors of h in the determinant basis
       ! --------------------------------------------------
       
      !$OMP PARALLEL DEFAULT(NONE)                                     &
         !$OMP PRIVATE(k,i,l,iter2) &
-        !$OMP SHARED(U,W,R,y,iter,lambda,N_st,sze,to_print, &
-        !$OMP residual_norm,nuclear_repulsion)
-      do k=1,N_st
+        !$OMP SHARED(U,W,R,y,iter,lambda,N_st_diag,sze,to_print, &
+        !$OMP residual_norm,nuclear_repulsion,N_st)
+      do k=1,N_st_diag
         !$OMP DO
         do i=1,sze
           U(i,k,iter+1) = 0.d0
@@ -485,7 +458,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
         enddo
         !$OMP END DO
          do iter2=1,iter
-          do l=1,N_st
+          do l=1,N_st_diag
             !$OMP DO
             do i=1,sze
               U(i,k,iter+1) = U(i,k,iter+1) + U(i,l,iter2)*y(l,iter2,k,1)
@@ -504,15 +477,17 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
         enddo
         !$OMP END DO
         !$OMP SINGLE
-        residual_norm(k) = u_dot_u(R(1,k),sze)
-        to_print(1,k) = lambda(k) + nuclear_repulsion
-        to_print(2,k) = residual_norm(k)
+        if (k <= N_st) then
+          residual_norm(k) = u_dot_u(R(1,k),sze)
+          to_print(1,k) = lambda(k) + nuclear_repulsion
+          to_print(2,k) = residual_norm(k)
+        endif
         !$OMP END SINGLE
       enddo
       !$OMP END PARALLEL
       
       write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))')  iter, to_print(:,1:N_st)
-      call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_states_diag,converged)
+      call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
       if (converged) then
         exit
       endif
@@ -521,7 +496,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       ! Davidson step
       ! -------------
       
-      do k=1,N_st
+      do k=1,N_st_diag
         do i=1,sze
           U(i,k,iter+1) = -1.d0/max(H_jj(i) - lambda(k),1.d-2) * R(i,k)
         enddo
@@ -531,9 +506,9 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       ! ------------
       
       double precision               :: c
-      do k=1,N_st
+      do k=1,N_st_diag
         do iter2=1,iter
-          do l=1,N_st
+          do l=1,N_st_diag
             c = u_dot_v(U(1,k,iter+1),U(1,l,iter2),sze)
             do i=1,sze
               U(i,k,iter+1) = U(i,k,iter+1) - c * U(i,l,iter2)
@@ -571,12 +546,12 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
     ! Re-contract to u_in
     ! -----------
     
-    do k=1,N_st
+    do k=1,N_st_diag
       energies(k) = lambda(k)
       do i=1,sze
         u_in(i,k) = 0.d0
         do iter2=1,iter
-          do l=1,N_st
+          do l=1,N_st_diag
             u_in(i,k) += U(i,l,iter2)*y(l,iter2,k,1)
           enddo
         enddo
@@ -595,8 +570,8 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
 
   deallocate (                                                       &
       kl_pairs,                                                      &
-      W,                                                             &
-      U,                                                             &
+      W, residual_norm,                                              &
+      U, overlap,                                                    &
       R,                                                             &
       h,                                                             &
       y,                                                             &
