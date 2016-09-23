@@ -505,24 +505,21 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
       ! Gram-Schmidt
       ! ------------
       
-      double precision               :: c
+      double precision               :: c(N_st_diag)
       do k=1,N_st_diag
         do iter2=1,iter
-          do l=1,N_st_diag
-            c = u_dot_v(U(1,k,iter+1),U(1,l,iter2),sze)
-            do i=1,sze
-              U(i,k,iter+1) = U(i,k,iter+1) - c * U(i,l,iter2)
-            enddo
-          enddo
+          call dgemv('T',sze,N_st_diag,1.d0,U(1,1,iter2),size(U,1),  &
+              U(1,k,iter+1),1,0.d0,c,1)
+          call dgemv('N',sze,N_st_diag,-1.d0,U(1,1,iter2),size(U,1), &
+              c,1,1.d0,U(1,k,iter+1),1)
         enddo
-        do l=1,k-1
-          c = u_dot_v(U(1,k,iter+1),U(1,l,iter+1),sze)
-          do i=1,sze
-            U(i,k,iter+1) = U(i,k,iter+1) - c * U(i,l,iter+1)
-          enddo
-        enddo
+        call dgemv('T',sze,N_st_diag,1.d0,U(1,1,iter+1),size(U,1),   &
+            U(1,k,iter+1),1,0.d0,c,1)
+        call dgemv('N',sze,k-1,-1.d0,U(1,1,iter+1),size(U,1),        &
+            c,1,1.d0,U(1,k,iter+1),1)
         call normalize( U(1,k,iter+1), sze )
       enddo
+
     
       !DEBUG : CHECK OVERLAP
       !print *,  '==='

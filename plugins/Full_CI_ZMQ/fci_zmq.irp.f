@@ -3,12 +3,10 @@ program fci_zmq
   integer                        :: i,j,k
   logical, external :: detEq
   
-  double precision, allocatable  :: pt2(:), norm_pert(:), H_pert_diag(:)
-  integer                        :: N_st, degree
-  integer(bit_kind) :: chk
+  double precision, allocatable  :: pt2(:)
+  integer                        :: degree
 
-  N_st = N_states
-  allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st))
+  allocate (pt2(N_states))
   
   pt2 = 1.d0
   diag_algorithm = "Lapack"
@@ -24,20 +22,22 @@ program fci_zmq
     call save_wavefunction
     print *,  'N_det    = ', N_det
     print *,  'N_states = ', N_states
-    print *,  'PT2      = ', pt2
-    print *,  'E        = ', CI_energy
-    print *,  'E+PT2    = ', CI_energy+pt2
-    print *,  '-----'
+    do k=1,N_states
+      print*,'State ',k
+      print *,  'PT2      = ', pt2(k)
+      print *,  'E        = ', CI_energy(k)
+      print *,  'E+PT2    = ', CI_energy(k) + pt2(k)
+      print *,  '-----'
+    enddo
   endif
-  double precision :: i_H_psi_array(N_states),diag_H_mat_elem,h,i_O1_psi_array(N_states)
   double precision :: E_CI_before(N_states)
   
 
   integer :: n_det_before
   print*,'Beginning the selection ...'
-  E_CI_before = CI_energy
+  E_CI_before(1:N_states) = CI_energy(1:N_states)
   
-  do while ( (N_det < N_det_max) .and. (maxval(abs(pt2(1:N_st))) > pt2_max) )
+  do while ( (N_det < N_det_max) .and. (maxval(abs(pt2(1:N_states))) > pt2_max) )
     n_det_before = N_det
     call ZMQ_selection(max(1024-N_det, N_det), pt2)
     
@@ -56,14 +56,13 @@ program fci_zmq
 
     print *,  'N_det          = ', N_det
     print *,  'N_states       = ', N_states
-    do  k = 1, N_states
-    print*,'State ',k
-    print *,  'PT2            = ', pt2(k)
-    print *,  'E              = ', CI_energy(k)
-    print *,  'E(before)+PT2  = ', E_CI_before(k)+pt2(k)
+    do k=1, N_states
+      print*,'State ',k
+      print *,  'PT2            = ', pt2(k)
+      print *,  'E              = ', CI_energy(k)
+      print *,  'E(before)+PT2  = ', E_CI_before(k)+pt2(k)
     enddo
     print *,  '-----'
-    E_CI_before = CI_energy
     if(N_states.gt.1)then
      print*,'Variational Energy difference'
      do i = 2, N_states
@@ -76,7 +75,7 @@ program fci_zmq
       print*,'Delta E = ',E_CI_before(i)+ pt2(i) - (E_CI_before(1) + pt2(1))
      enddo
     endif
-    E_CI_before = CI_energy
+    E_CI_before(1:N_states) = CI_energy(1:N_states)
     call ezfio_set_full_ci_energy(CI_energy)
   enddo
    N_det = min(N_det_max,N_det)
@@ -86,15 +85,18 @@ program fci_zmq
      print*,'Last iteration only to compute the PT2'
      threshold_selectors = 1.d0
      threshold_generators = 0.9999d0
-     E_CI_before = CI_energy
+     E_CI_before(1:N_states) = CI_energy(1:N_states)
      call ZMQ_selection(1, pt2)
      print *,  'Final step'
      print *,  'N_det    = ', N_det
      print *,  'N_states = ', N_states
-     print *,  'PT2      = ', pt2
-     print *,  'E        = ', E_CI_before
-     print *,  'E+PT2    = ', E_CI_before+pt2
-     print *,  '-----'
+     do k=1,N_states
+        print *, 'State', k 
+        print *,  'PT2      = ', pt2
+        print *,  'E        = ', E_CI_before
+        print *,  'E+PT2    = ', E_CI_before+pt2
+        print *,  '-----'
+     enddo
      call ezfio_set_full_ci_energy_pt2(E_CI_before+pt2)
    endif
    call save_wavefunction

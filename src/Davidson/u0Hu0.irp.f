@@ -43,7 +43,7 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   double precision, intent(in)   :: H_jj(n)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   double precision               :: hij
-  double precision, allocatable  :: vt(:,:)
+  double precision, allocatable  :: vt(:,:), ut(:,:)
   integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0
   
@@ -52,7 +52,12 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   integer(bit_kind)              :: sorted_i(Nint)
   
   integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, istate
+  integer                        :: N_st_8
   
+  integer, external              :: align_double
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut
+
+  N_st_8 = align_double(N_st)
 
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
@@ -60,15 +65,23 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   PROVIDE ref_bitmask_energy 
 
   allocate (shortcut(0:n+1,2), sort_idx(n,2), sorted(Nint,n,2), version(Nint,n,2))
+  allocate(ut(N_st_8,n))
+
   v_0 = 0.d0
+
+  do i=1,n
+    do istate=1,N_st
+      ut(istate,i) = u_0(i,istate)
+    enddo
+  enddo
 
   call sort_dets_ab_v(keys_tmp, sorted(1,1,1), sort_idx(1,1), shortcut(0,1), version(1,1,1), n, Nint)
   call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i,istate)&
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,sorted,shortcut,sort_idx,version,N_st,sze_8)
-  allocate(vt(sze_8,N_st))
+      !$OMP SHARED(n,H_jj,keys_tmp,ut,Nint,v_0,sorted,shortcut,sort_idx,version,N_st,N_st_8)
+  allocate(vt(N_st_8,n))
   Vt = 0.d0
   
   !$OMP DO SCHEDULE(dynamic)
@@ -102,8 +115,8 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
           if(ext <= 4) then
             call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
             do istate=1,N_st
-              vt (org_i,istate) = vt (org_i,istate) + hij*u_0(org_j,istate)
-              vt (org_j,istate) = vt (org_j,istate) + hij*u_0(org_i,istate)
+              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,org_j)
+              vt (istate,org_j) = vt (istate,org_j) + hij*ut(istate,org_i)
             enddo
           endif
         enddo
@@ -125,8 +138,8 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
         if(ext == 4) then
           call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
           do istate=1,N_st
-            vt (org_i,istate) = vt (org_i,istate) + hij*u_0(org_j,istate)
-            vt (org_j,istate) = vt (org_j,istate) + hij*u_0(org_i,istate)
+            vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,org_j)
+            vt (istate,org_j) = vt (istate,org_j) + hij*ut(istate,org_i)
           enddo
         end if
       end do
@@ -137,7 +150,7 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   !$OMP CRITICAL
   do istate=1,N_st
     do i=n,1,-1
-      v_0(i,istate) = v_0(i,istate) + vt(i,istate)
+      v_0(i,istate) = v_0(i,istate) + vt(istate,i)
     enddo
   enddo
   !$OMP END CRITICAL
@@ -150,7 +163,7 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
       v_0(i,istate) += H_jj(i) * u_0(i,istate)
     enddo
   enddo
-  deallocate (shortcut, sort_idx, sorted, version)
+  deallocate (shortcut, sort_idx, sorted, version, ut)
 end
 
 BEGIN_PROVIDER [ double precision, psi_energy, (N_states) ]

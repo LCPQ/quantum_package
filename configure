@@ -543,7 +543,6 @@ def recommendation():
     print ""
     print "Finally :"
     print "   ninja"
-    print "   make -C ocaml"
     print ""
     print "You can install more plugin with the qp_module.py install command" 
     print "PS : For more info on compiling the code, read the README.md"
