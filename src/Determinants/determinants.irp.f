@@ -242,7 +242,7 @@ END_PROVIDER
 END_PROVIDER 
 
 
-BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states_diag) ]
+BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
   implicit none
   BEGIN_DOC
   ! The wave function coefficients. Initialized with Hartree-Fock if the EZFIO file
@@ -255,7 +255,7 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states_diag) ]
   character*(64)                 :: label
 
   psi_coef = 0.d0
-  do i=1,N_states_diag
+  do i=1,N_states
     psi_coef(i,i) = 1.d0
   enddo
 

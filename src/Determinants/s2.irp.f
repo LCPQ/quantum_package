@@ -300,123 +300,120 @@ subroutine get_uJ_s2_uI(psi_keys_tmp,psi_coefs_tmp,n,nmax_coefs,nmax_keys,s2,nst
 end
 
 subroutine diagonalize_s2_betweenstates(keys_tmp,u_0,n,nmax_keys,nmax_coefs,nstates,s2_eigvalues)
- BEGIN_DOC
-! You enter with nstates vectors in u_0 that may be coupled by S^2
-! The subroutine diagonalize the S^2 operator in the basis of these states. 
-! The vectors that you obtain in output are no more coupled by S^2, 
-! which does not necessary mean that they are eigenfunction of S^2. 
-! n,nmax,nstates = number of determinants, physical dimension of the arrays and number of states
-! keys_tmp = array of integer(bit_kind) that represents the determinants 
-! psi_coefs(i,j) = coeff of the ith determinant in the jth state
-! VECTORS ARE SUPPOSED TO BE ORTHONORMAL IN INPUT
- END_DOC
- implicit none
- use bitmasks
- integer, intent(in) :: n,nmax_keys,nmax_coefs,nstates
- integer(bit_kind), intent(in) :: keys_tmp(N_int,2,nmax_keys)
- double precision, intent(inout) :: u_0(nmax_coefs,nstates)
- double precision, intent(out)   :: s2_eigvalues(nstates)
-
-
- double precision,allocatable :: s2(:,:),overlap(:,:)
- double precision, allocatable :: eigvalues(:),eigvectors(:,:)
- integer :: i,j,k
- double precision, allocatable :: psi_coefs_tmp(:,:)
- double precision :: accu,coef_contract
- double precision :: u_dot_u,u_dot_v
-
- print*,''
- print*,'*********************************************************************'
- print*,'Cleaning the various vectors by diagonalization of the S^2 matrix ...'
- print*,''
- print*,'nstates = ',nstates
- allocate(s2(nstates,nstates),overlap(nstates,nstates))
- !$OMP PARALLEL DO COLLAPSE(2) DEFAULT(NONE) SCHEDULE(dynamic) &
-     !$OMP  PRIVATE(i,j) SHARED(overlap,u_0,nstates,n)
- do i = 1, nstates
-   do j = 1, nstates
-     if (i < j) then
-        cycle
-     else if (i == j) then
-       overlap(i,i) = u_dot_u(u_0(1,i),n)
-     else
-       overlap(i,j) = u_dot_v(u_0(1,j),u_0(1,i),n)
-       overlap(j,i) = overlap(i,j)
-     endif
-   enddo
- enddo
- !$OMP END PARALLEL DO
- call ortho_lowdin(overlap,size(overlap,1),nstates,u_0,size(u_0,1),n)
-
- double precision, allocatable :: v_0(:,:)
- allocate ( v_0(size(u_0,1),nstates) )
- call S2_u_0_nstates(v_0,u_0,n,keys_tmp,N_int,nstates,size(u_0,1))
-      
- do i=1, nstates
-  do j=1,i
-    s2(j,i) = u_dot_v(u_0(1,i), v_0(1,j),n)
-    s2(i,j) = s2(j,i) 
+  BEGIN_DOC
+  ! You enter with nstates vectors in u_0 that may be coupled by S^2
+  ! The subroutine diagonalize the S^2 operator in the basis of these states.
+  ! The vectors that you obtain in output are no more coupled by S^2,
+  ! which does not necessary mean that they are eigenfunction of S^2.
+  ! n,nmax,nstates = number of determinants, physical dimension of the arrays and number of states
+  ! keys_tmp = array of integer(bit_kind) that represents the determinants
+  ! psi_coefs(i,j) = coeff of the ith determinant in the jth state
+  ! VECTORS ARE SUPPOSED TO BE ORTHONORMAL IN INPUT
+  END_DOC
+  implicit none
+  use bitmasks
+  integer, intent(in)            :: n,nmax_keys,nmax_coefs,nstates
+  integer(bit_kind), intent(in)  :: keys_tmp(N_int,2,nmax_keys)
+  double precision, intent(inout) :: u_0(nmax_coefs,nstates)
+  double precision, intent(out)  :: s2_eigvalues(nstates)
+  
+  
+  double precision,allocatable   :: s2(:,:),overlap(:,:)
+  double precision, allocatable  :: eigvectors(:,:,:)
+  integer                        :: i,j,k
+  double precision, allocatable  :: psi_coefs_tmp(:,:)
+  double precision               :: accu,coef_contract
+  double precision               :: u_dot_u,u_dot_v
+  
+  print*,''
+  print*,'*********************************************************************'
+  print*,'Cleaning the various vectors by diagonalization of the S^2 matrix ...'
+  print*,''
+  print*,'nstates = ',nstates
+  allocate(s2(nstates,nstates),overlap(nstates,nstates))
+  overlap = 0.d0
+  call dgemm('T','N',nstates,nstates,n, 1.d0, u_0, size(u_0,1),      &
+      u_0, size(u_0,1), 0.d0, overlap, size(overlap,1))
+  call ortho_lowdin(overlap,size(overlap,1),nstates,u_0,size(u_0,1),n)
+  
+  double precision, allocatable  :: v_0(:,:)
+  allocate ( v_0(size(u_0,1),nstates) )
+  call S2_u_0_nstates(v_0,u_0,n,keys_tmp,N_int,nstates,size(u_0,1))
+  
+  call dgemm('T','N',nstates,nstates,n, 1.d0, u_0, size(u_0,1),      &
+      v_0, size(v_0,1), 0.d0, s2, size(s2,1))
+  
+  print*,'S^2 matrix in the basis of the states considered'
+  do i = 1, nstates
+    write(*,'(100(F5.2,X))')s2(i,:)
   enddo
- enddo
-
-! call get_uJ_s2_uI(keys_tmp,u_0,n_det,size(u_0,1),size(keys_tmp,3),s2,nstates)
- print*,'S^2 matrix in the basis of the states considered'
- do i = 1, nstates
-  write(*,'(10(F10.6,X))')s2(i,:)
- enddo
-
- double precision :: accu_precision_diag,accu_precision_of_diag
- accu_precision_diag = 0.d0
- accu_precision_of_diag = 0.d0
- do i = 1, nstates
-  ! Do not combine states of the same spin symmetry
-  do j = i+1, nstates
-   if( dabs(s2(i,i) - s2(j,j)) .le.0.5d0) then
-    s2(i,j) = 0.d0
-    s2(j,i) = 0.d0
-   endif
+  
+  double precision               :: accu_precision_diag,accu_precision_of_diag
+  accu_precision_diag = 0.d0
+  accu_precision_of_diag = 0.d0
+  do i = 1, nstates
+    ! Do not combine states of the same spin symmetry
+    do j = i+1, nstates
+      if( dabs(s2(i,i) - s2(j,j)) .le.0.5d0) then
+        s2(i,j) = 0.d0
+        s2(j,i) = 0.d0
+      endif
+    enddo
+    ! Do not rotate if the diagonal is correct
+    if( dabs(s2(i,i) - expected_s2).le.5.d-3) then
+      do j = 1, nstates
+        if (j==i) cycle
+        s2(i,j) = 0.d0
+        s2(j,i) = 0.d0
+      enddo
+    endif
   enddo
-  ! Do not rotate if the diagonal is correct
-  if( dabs(s2(i,i) - expected_s2).le.5.d-3) then
-   do j = 1, nstates
-    if (j==i) cycle
-    s2(i,j) = 0.d0
-    s2(j,i) = 0.d0
-   enddo
-  endif
- enddo
-
- print*,'Modified S^2 matrix that will be diagonalized'
- do i = 1, nstates
-  write(*,'(10(F10.6,X))')s2(i,:)
-  s2(i,i) = s2(i,i) 
- enddo
-
- allocate(eigvectors(nstates,nstates))
- call lapack_diagd(s2_eigvalues,eigvectors,s2,nstates,nstates)
- print*,'Eigenvalues'
- do i = 1, nstates
-  print*,'s2 = ',s2_eigvalues(i)
- enddo
-
- allocate(psi_coefs_tmp(nmax_coefs,nstates))
- psi_coefs_tmp = 0.d0
- do j = 1, nstates
-  do k = 1, nstates
-   coef_contract =  eigvectors(k,j)    !  <phi_k|Psi_j>
-   do i = 1, n_det
-    psi_coefs_tmp(i,j) += u_0(i,k) * coef_contract
-   enddo
+  
+  print*,'Modified S^2 matrix that will be diagonalized'
+  do i = 1, nstates
+    write(*,'(10(F5.2,X))')s2(i,:)
+    s2(i,i) = s2(i,i)
   enddo
- enddo
- do j = 1, nstates
-   accu = 1.d0/u_dot_u(psi_coefs_tmp(1,j),n_det)
-   do i = 1, n_det
-    u_0(i,j) = psi_coefs_tmp(i,j) * accu
-   enddo
- enddo
+  
+  allocate(eigvectors(nstates,nstates,2))
+!  call svd(s2, size(s2,1), eigvectors, size(eigvectors,1), s2_eigvalues,&
+!      eigvectors(1,1,2), size(eigvectors,1), nstates, nstates)
 
- deallocate(s2,v_0,eigvectors,psi_coefs_tmp,overlap)
+  call lapack_diagd(s2_eigvalues,eigvectors,s2,nstates,nstates)
+  print*,'Eigenvalues'
+  double precision :: t(nstates), iorder(nstates)
+  do i = 1, nstates
+    t(i) = dabs(s2_eigvalues(i))
+    iorder(i) = i
+  enddo
+  call dsort(t,iorder,nstates)
 
+  do i = 1, nstates
+    s2_eigvalues(i) = t(i)
+    do j=1,nstates
+      eigvectors(j,i,2) = eigvectors(j,iorder(i),1)
+    enddo
+    print*,'s2 = ',s2_eigvalues(i)
+  enddo
+  
+  allocate(psi_coefs_tmp(nmax_coefs,nstates))
+  psi_coefs_tmp = 0.d0
+  do j = 1, nstates
+    do k = 1, nstates
+      coef_contract =  eigvectors(k,j,2)    !  <phi_k|Psi_j>
+      do i = 1, n_det
+        psi_coefs_tmp(i,j) += u_0(i,k) * coef_contract
+      enddo
+    enddo
+  enddo
+  do j = 1, nstates
+    accu = 1.d0/u_dot_u(psi_coefs_tmp(1,j),n_det)
+    do i = 1, n_det
+      u_0(i,j) = psi_coefs_tmp(i,j) * accu
+    enddo
+  enddo
+  
+  deallocate(s2,v_0,eigvectors,psi_coefs_tmp,overlap )
+  
 end
 
