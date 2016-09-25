@@ -796,10 +796,10 @@ def create_build_ninja_global():
 
 
     l_string += ["build dummy_target: update_build_ninja_root",
-                 "build ocaml_target: make_ocaml | dummy_target",
+                 "build ocaml_target: make_ocaml all",
                  "",
-                 "build all: make_all dummy_target ocaml_target",
-                 "default all",
+                 "build all: make_all dummy_target",
+                 "default ocaml_target",
                  "",
                  "build clean: make_clean dummy_target",
                  "", ]

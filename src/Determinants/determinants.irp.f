@@ -11,7 +11,7 @@ BEGIN_PROVIDER [ character*(64), diag_algorithm ]
     diag_algorithm = "Lapack"
   endif
 
-  if (N_det < N_states_diag) then
+  if (N_det < N_states) then
     diag_algorithm = "Lapack"
   endif
 END_PROVIDER
