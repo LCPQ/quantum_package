@@ -388,8 +388,6 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
       call random_number(r1)
       call random_number(r2)
       u_in(i,k) = dsqrt(-2.d0*dlog(r1))*dcos(dtwo_pi*r2)
-!      call RANDOM_NUMBER(u_in(i,k))
-!      u_in(i,k) = u_in(i,k) - 0.5d0
     enddo
     
     ! Gram-Schmidt
@@ -422,7 +420,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
       ! -------------------------------------------
 
-!
+
 !      do l=1,N_st_diag
 !        do k=1,N_st_diag
 !          do iter2=1,iter-1
@@ -436,10 +434,9 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
 !        enddo
 !      enddo
 
-      call dgemm('T','N', N_st_diag*iter, N_st_diag, sze,               &
-          1.d0, U, size(U,1), W(1,1,iter), size(W,1),   &
+      call dgemm('T','N', N_st_diag*iter, N_st_diag, sze,            &
+          1.d0, U, size(U,1), W(1,1,iter), size(W,1),                &
           0.d0, h(1,1,1,iter), size(h,1)*size(h,2))
-
 
       ! Diagonalize h
       ! -------------
@@ -453,21 +450,23 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
           U(i,k,iter+1) = 0.d0
           W(i,k,iter+1) = 0.d0
         enddo
-         do iter2=1,iter
-          do l=1,N_st_diag
-            do i=1,sze
-              U(i,k,iter+1) = U(i,k,iter+1) + U(i,l,iter2)*y(l,iter2,k,1)
-              W(i,k,iter+1) = W(i,k,iter+1) + W(i,l,iter2)*y(l,iter2,k,1)
-            enddo
-          enddo
-        enddo
       enddo
+!      do k=1,N_st_diag
+!         do iter2=1,iter
+!          do l=1,N_st_diag
+!            do i=1,sze
+!              U(i,k,iter+1) = U(i,k,iter+1) + U(i,l,iter2)*y(l,iter2,k,1)
+!              W(i,k,iter+1) = W(i,k,iter+1) + W(i,l,iter2)*y(l,iter2,k,1)
+!            enddo
+!          enddo
+!        enddo
+!      enddo
 
 
-!      call dgemm('N','N', sze, N_st_diag, N_st_diag*iter, &
-!       1.d0, U, size(U,1), y, size(y,1)*size(y,2), 0.d0, U(1,1,iter+1), size(U,1))
-!      call dgemm('N','N',sze,N_st_diag,N_st_diag*iter, &
-!       1.d0, W, size(W,1), y, size(y,1)*size(y,2), 0.d0, W(1,1,iter+1), size(W,1))
+      call dgemm('N','N', sze, N_st_diag, N_st_diag*iter,            &
+          1.d0, U, size(U,1), y, size(y,1)*size(y,2), 0.d0, U(1,1,iter+1), size(U,1))
+      call dgemm('N','N',sze,N_st_diag,N_st_diag*iter,               &
+          1.d0, W, size(W,1), y, size(y,1)*size(y,2), 0.d0, W(1,1,iter+1), size(W,1))
 
 
       ! Compute residual vector
@@ -544,22 +543,23 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
     
     do k=1,N_st_diag
       energies(k) = lambda(k)
-    enddo
-
-    do k=1,N_st_diag
       do i=1,sze
         u_in(i,k) = 0.d0
-        do iter2=1,iter
-          do l=1,N_st_diag
-            u_in(i,k) += U(i,l,iter2)*y(l,iter2,k,1)
-          enddo
-        enddo
       enddo
     enddo
+!    do k=1,N_st_diag
+!      do i=1,sze
+!        do iter2=1,iter
+!          do l=1,N_st_diag
+!            u_in(i,k) += U(i,l,iter2)*y(l,iter2,k,1)
+!          enddo
+!        enddo
+!      enddo
+!    enddo
 
-!    call dgemm('N','N', sze, N_st_diag, N_st_diag*iter, 1.d0,      &
-!        U, size(U,1), y, N_st_diag*davidson_sze_max, &
-!        0.d0, u_in, size(u_in,1))
+    call dgemm('N','N', sze, N_st_diag, N_st_diag*iter, 1.d0,      &
+        U, size(U,1), y, N_st_diag*davidson_sze_max, &
+        0.d0, u_in, size(u_in,1))
 
   enddo
 
