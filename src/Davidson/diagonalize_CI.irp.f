@@ -8,8 +8,10 @@ BEGIN_PROVIDER [ double precision, CI_energy, (N_states_diag) ]
   integer                        :: j
   character*(8)                  :: st
   call write_time(output_determinants)
-  do j=1,min(N_det,N_states)
+  do j=1,min(N_det,N_states_diag)
     CI_energy(j) = CI_electronic_energy(j) + nuclear_repulsion
+  enddo
+  do j=1,min(N_det,N_states)
     write(st,'(I4)') j
     call write_double(output_determinants,CI_energy(j),'Energy of state '//trim(st))
     call write_double(output_determinants,CI_eigenvectors_s2(j),'S^2 of state '//trim(st))
@@ -38,14 +40,14 @@ END_PROVIDER
    double precision, allocatable  :: e_array(:)
    integer, allocatable           :: iorder(:)
    
-   ! Guess values for the "N_states_diag" states of the CI_eigenvectors
+   ! Guess values for the "N_states" states of the CI_eigenvectors
    do j=1,min(N_states,N_det)
      do i=1,N_det
        CI_eigenvectors(i,j) = psi_coef(i,j)
      enddo
    enddo
    
-   do j=N_det+1,N_states_diag
+   do j=min(N_states,N_det)+1,N_states_diag
      do i=1,N_det
        CI_eigenvectors(i,j) = 0.d0
      enddo
@@ -143,14 +145,15 @@ END_PROVIDER
    endif
    
 
-   if( s2_eig.and.(n_states_diag > 1).and.(n_det >= n_states_diag) )then
+   if( s2_eig.and.(N_states_diag > 1).and.(N_det >= N_states_diag) )then
       ! Diagonalizing S^2 within the "n_states_diag" states found
       allocate(s2_eigvalues(N_states_diag), e_array(N_states_diag))
-      call diagonalize_s2_betweenstates(psi_det,CI_eigenvectors,n_det,size(psi_det,3),size(CI_eigenvectors,1),min(n_states_diag,n_det),s2_eigvalues)
+      call diagonalize_s2_betweenstates(psi_det,CI_eigenvectors,N_det,size(psi_det,3), &
+        size(CI_eigenvectors,1),min(n_states_diag,n_det),s2_eigvalues)
       
       double precision, allocatable :: psi_coef_tmp(:,:)
       allocate(psi_coef_tmp(psi_det_size,N_states_diag))
-      do j = 1, N_states
+      do j = 1, N_states_diag
         do i = 1, N_det
           psi_coef_tmp(i,j) = CI_eigenvectors(i,j)
         enddo
@@ -199,11 +202,6 @@ END_PROVIDER
         enddo
         CI_eigenvectors_s2(i_state + i_other_state) = s2_eigvalues(j)
         CI_electronic_energy(i_state + i_other_state) = e_array(i_state + i_other_state)
-      enddo
-      do j=1,N_states
-        do i=1,N_det
-          psi_coef(i,j) = psi_coef_tmp(i,j)
-        enddo
       enddo
       deallocate(iorder,e_array,index_good_state_array,good_state_array,psi_coef_tmp)
        

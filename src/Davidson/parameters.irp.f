@@ -12,7 +12,7 @@ BEGIN_PROVIDER [ integer, davidson_sze_max ]
   ! Max number of Davidson sizes
   END_DOC
   ASSERT (davidson_sze_max <= davidson_iter_max)
-  davidson_sze_max = 8*N_states
+  davidson_sze_max = N_states+7
 END_PROVIDER
 
 

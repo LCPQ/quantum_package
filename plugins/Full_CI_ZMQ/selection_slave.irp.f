@@ -58,7 +58,7 @@ subroutine update_energy(energy)
 ! Update energy when it is received from ZMQ
   END_DOC
   integer :: j,k
-  do j=1,N_states_diag
+  do j=1,N_states
     do k=1,N_det
       CI_eigenvectors(k,j) = psi_coef(k,j)
     enddo
