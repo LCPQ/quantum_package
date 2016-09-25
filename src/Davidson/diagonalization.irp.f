@@ -322,6 +322,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
   character*(16384)              :: write_buffer
   double precision               :: to_print(2,N_st)
   double precision               :: cpu, wall
+  include 'constants.include.F'
   
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: U, W, R, y, h, lambda
 
@@ -382,9 +383,13 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
   converged = .False.
 
   do k=N_st+1,N_st_diag
+    double precision :: r1, r2
     do i=1,sze
-      call RANDOM_NUMBER(u_in(i,k))
-      u_in(i,k) = u_in(i,k) - 0.5d0
+      call random_number(r1)
+      call random_number(r2)
+      u_in(i,k) = dsqrt(-2.d0*dlog(r1))*dcos(dtwo_pi*r2)
+!      call RANDOM_NUMBER(u_in(i,k))
+!      u_in(i,k) = u_in(i,k) - 0.5d0
     enddo
     
     ! Gram-Schmidt
