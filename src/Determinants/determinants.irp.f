@@ -90,6 +90,7 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
   logical                        :: exists
   character*64                   :: label
   
+  psi_det = 0_bit_kind
   if (read_wf) then
     call ezfio_has_determinants_N_int(exists)
     if (exists) then
@@ -255,7 +256,7 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
   character*(64)                 :: label
 
   psi_coef = 0.d0
-  do i=1,N_states
+  do i=1,min(N_states,psi_det_size)
     psi_coef(i,i) = 1.d0
   enddo
 
@@ -331,7 +332,6 @@ END_PROVIDER
    iorder(i) = i
  enddo
  call dsort(psi_average_norm_contrib_sorted,iorder,N_det)
- !DIR$ IVDEP
  do i=1,N_det
   do j=1,N_int
     psi_det_sorted(j,1,i) = psi_det(j,1,iorder(i))

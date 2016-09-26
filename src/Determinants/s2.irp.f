@@ -381,7 +381,8 @@ subroutine diagonalize_s2_betweenstates(keys_tmp,u_0,n,nmax_keys,nmax_coefs,nsta
 
   call lapack_diagd(s2_eigvalues,eigvectors,s2,nstates,nstates)
   print*,'Eigenvalues'
-  double precision :: t(nstates), iorder(nstates)
+  double precision :: t(nstates)
+  integer :: iorder(nstates)
   do i = 1, nstates
     t(i) = dabs(s2_eigvalues(i))
     iorder(i) = i

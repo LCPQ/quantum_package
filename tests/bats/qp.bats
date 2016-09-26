@@ -68,7 +68,7 @@ function run_FCI() {
   ezfio set_file $1
   ezfio set perturbation do_pt2_end True
   ezfio set determinants n_det_max $2
-  ezfio set determinants threshold_davidson 1.e-10
+  ezfio set davidson threshold_davidson 1.e-10
 
   qp_run full_ci $1 
   energy="$(ezfio get full_ci energy)"
@@ -83,7 +83,7 @@ function run_all_1h_1p() {
   ezfio set_file $1
   ezfio set determinants n_det_max $2
   ezfio set perturbation pt2_max $3
-  ezfio set determinants threshold_davidson 1.e-10
+  ezfio set davidson threshold_davidson 1.e-10
 
   qp_run all_1h_1p $1 | tee $1.F1h1p.out
   energy="$(ezfio get all_singles energy)"

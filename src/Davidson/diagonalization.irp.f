@@ -381,24 +381,27 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
   ! ===================
   
   converged = .False.
+  
+  do k=1,N_st_diag
 
-  do k=N_st+1,N_st_diag
-    double precision :: r1, r2
-    do i=1,sze
-      call random_number(r1)
-      call random_number(r2)
-      u_in(i,k) = dsqrt(-2.d0*dlog(r1))*dcos(dtwo_pi*r2)
-    enddo
+    if (k > N_st) then
+      do i=1,sze
+        double precision               :: r1, r2
+        call random_number(r1)
+        call random_number(r2)
+        u_in(i,k) = dsqrt(-2.d0*dlog(r1))*dcos(dtwo_pi*r2)
+      enddo
+    endif
     
     ! Gram-Schmidt
     ! ------------
-    call dgemv('T',sze,k-1,1.d0,u_in,size(u_in,1),   &
+    call dgemv('T',sze,k-1,1.d0,u_in,size(u_in,1),                   &
         u_in(1,k),1,0.d0,c,1)
-    call dgemv('N',sze,k-1,-1.d0,u_in,size(u_in,1),        &
+    call dgemv('N',sze,k-1,-1.d0,u_in,size(u_in,1),                  &
         c,1,1.d0,u_in(1,k),1)
-    call normalize( u_in(1,k), sze )
-
+    call normalize(u_in(1,k),sze)
   enddo
+
 
   
   do while (.not.converged)
@@ -461,8 +464,8 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
 !          enddo
 !        enddo
 !      enddo
-
-
+!
+!
       call dgemm('N','N', sze, N_st_diag, N_st_diag*iter,            &
           1.d0, U, size(U,1), y, size(y,1)*size(y,2), 0.d0, U(1,1,iter+1), size(U,1))
       call dgemm('N','N',sze,N_st_diag,N_st_diag*iter,               &
@@ -511,19 +514,19 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
 !            enddo
 !          enddo
 !        enddo
-
+!
         call dgemv('T',sze,N_st_diag*iter,1.d0,U,size(U,1),  &
               U(1,k,iter+1),1,0.d0,c,1)
         call dgemv('N',sze,N_st_diag*iter,-1.d0,U,size(U,1), &
               c,1,1.d0,U(1,k,iter+1),1)
-
+!
 !        do l=1,k-1
 !          c(1) = u_dot_v(U(1,k,iter+1),U(1,l,iter+1),sze)
 !          do i=1,sze
 !            U(i,k,iter+1) = U(i,k,iter+1) - c(1) * U(i,l,iter+1)
 !          enddo
 !        enddo
-
+!
         call dgemv('T',sze,k-1,1.d0,U(1,1,iter+1),size(U,1),   &
             U(1,k,iter+1),1,0.d0,c,1)
         call dgemv('N',sze,k-1,-1.d0,U(1,1,iter+1),size(U,1),        &

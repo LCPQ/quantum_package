@@ -44,6 +44,8 @@ program fci_zmq
     PROVIDE  psi_coef
     PROVIDE  psi_det
     PROVIDE  psi_det_sorted
+
+    call diagonalize_CI
     
     if (N_det > N_det_max) then
       psi_det = psi_det_sorted
@@ -51,7 +53,6 @@ program fci_zmq
       N_det = N_det_max
       soft_touch N_det psi_det psi_coef
     endif
-    call diagonalize_CI
     call save_wavefunction
     
     print *,  'N_det          = ', N_det
