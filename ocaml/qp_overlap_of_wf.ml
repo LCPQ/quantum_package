@@ -51,7 +51,6 @@ let () =
         norm'+. c'*. c' ) 
       ) wf (0.,0.,0.)
     in 
-    Printf.printf "%f %f %f\n" result norm norm';
     result /. (norm *. norm')
   in
 
@@ -63,5 +62,5 @@ let () =
   let o = 
     overlap wf wf'
   in
-  Printf.printf "Overlap : %f\n" o
+  print_float (abs_float o)
   

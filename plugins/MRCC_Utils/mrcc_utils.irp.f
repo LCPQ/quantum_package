@@ -140,7 +140,7 @@ END_PROVIDER
    integer :: mrcc_state 
    
    mrcc_state = N_states
-   do j=1,N_states_diag
+   do j=1,min(N_states,N_det)
      do i=1,N_det
        CI_eigenvectors_dressed(i,j) = psi_coef(i,j)
      enddo
@@ -241,12 +241,14 @@ END_PROVIDER
       allocate(s2_eigvalues(N_states_diag), e_array(N_states_diag))
       call diagonalize_s2_betweenstates(psi_det,CI_eigenvectors_dressed,n_det,size(psi_det,3),size(CI_eigenvectors_dressed,1),min(n_states_diag,n_det),s2_eigvalues)
       
+      double precision, allocatable :: psi_coef_tmp(:,:)
+      allocate(psi_coef_tmp(psi_det_size,N_states_diag))
       do j = 1, N_states_diag
         do i = 1, N_det
-          psi_coef(i,j) = CI_eigenvectors_dressed(i,j)
+          psi_coef_tmp(i,j) = CI_eigenvectors_dressed(i,j)
         enddo
       enddo
-      call u_0_H_u_0_mrcc_nstates(e_array,psi_coef,n_det,psi_det,N_int,mrcc_state,N_states_diag,psi_det_size)
+      call u_0_H_u_0_mrcc_nstates(e_array,psi_coef_tmp,n_det,psi_det,N_int,mrcc_state,N_states,psi_det_size)
      
       ! Browsing the "n_states_diag" states and getting the lowest in energy "n_states" ones that have the S^2 value
       ! closer to the "expected_s2" set as input
@@ -265,7 +267,7 @@ END_PROVIDER
       allocate(iorder(i_state))
       do j = 1, i_state
         do i = 1, N_det
-          CI_eigenvectors_dressed(i,j) = psi_coef(i,index_good_state_array(j))
+          CI_eigenvectors_dressed(i,j) = psi_coef_tmp(i,index_good_state_array(j))
         enddo
         CI_eigenvectors_s2_dressed(j) = s2_eigvalues(index_good_state_array(j))
         CI_electronic_energy_dressed(j) = e_array(j)
@@ -276,7 +278,7 @@ END_PROVIDER
         CI_electronic_energy_dressed(j) = e_array(j)
         CI_eigenvectors_s2_dressed(j) = s2_eigvalues(index_good_state_array(iorder(j)))
         do i = 1, N_det
-          CI_eigenvectors_dressed(i,j) = psi_coef(i,index_good_state_array(iorder(j)))
+          CI_eigenvectors_dressed(i,j) = psi_coef_tmp(i,index_good_state_array(iorder(j)))
         enddo
       enddo
       
@@ -286,12 +288,12 @@ END_PROVIDER
         if(good_state_array(j))cycle
         i_other_state +=1
         do i = 1, N_det
-          CI_eigenvectors_dressed(i,i_state + i_other_state) = psi_coef(i,j)
+          CI_eigenvectors_dressed(i,i_state + i_other_state) = psi_coef_tmp(i,j)
         enddo
         CI_eigenvectors_s2_dressed(i_state + i_other_state) = s2_eigvalues(j)
         CI_electronic_energy_dressed(i_state + i_other_state) = e_array(i_state + i_other_state)
       enddo
-      deallocate(iorder,e_array,index_good_state_array,good_state_array)
+      deallocate(iorder,e_array,index_good_state_array,good_state_array,psi_coef_tmp)
        
      deallocate(s2_eigvalues)
      
@@ -325,7 +327,7 @@ subroutine diagonalize_CI_dressed(lambda)
   END_DOC
   double precision, intent(in) :: lambda
   integer :: i,j
-  do j=1,N_states_diag
+  do j=1,N_states
     do i=1,N_det
       psi_coef(i,j) = lambda * CI_eigenvectors_dressed(i,j) + (1.d0 - lambda) * psi_coef(i,j) 
     enddo
