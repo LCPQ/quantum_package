@@ -686,12 +686,12 @@ END_PROVIDER
    
    nex = hh_shortcut(hh_shortcut(0)+1)-1
    print *, "TI", nex, N_det_non_ref
-   allocate(A_ind(N_det_ref+1, nex), A_val(N_det_ref+1, nex))
+   allocate(A_ind(0:N_det_ref+1, nex), A_val(N_det_ref+1, nex))
    allocate(AtA_ind(N_det_ref * nex), AtA_val(N_det_ref * nex)) !!!!! MAY BE TOO SMALL ? !!!!!!!!
    allocate(x(nex), AtB(nex))
    allocate(A_val_mwen(nex), A_ind_mwen(nex))
    allocate(N_col(nex), col_shortcut(nex))
-   allocate (x_new(nex))
+   allocate(x_new(nex))
    
    do s = 1, N_states
      
@@ -740,6 +740,7 @@ END_PROVIDER
              A_ind(wk, pp) = i
            end if
          end do
+         A_ind(0,pp) = wk
        end do
      end do
      !$OMP END DO
@@ -748,32 +749,32 @@ END_PROVIDER
      
      AtB = 0d0
      AtA_size = 0
-     wk = 0
      col_shortcut = 0
      N_col = 0
-     !$OMP PARALLEL DO schedule(dynamic, 100) default(none) shared(k, psi_non_ref_coef, A_ind, A_val, x, N_det_ref, nex, N_det_non_ref)&
+     !$OMP PARALLEL default(none) shared(k, psi_non_ref_coef, A_ind, A_val, x, N_det_ref, nex, N_det_non_ref)&
          !$OMP private(at_row, a_col, t, i, r1, r2, wk, A_ind_mwen, A_val_mwen)&
          !$OMP shared(col_shortcut, N_col, AtB, AtA_size, AtA_val, AtA_ind, s)
+     !$OMP DO schedule(dynamic, 100)
      do at_row = 1, nex
        wk = 0
        if(mod(at_row, 10000) == 0) print *, "AtA", at_row, "/", nex
-       do i=1,N_det_ref
-         if(A_ind(i, at_row) == 0) exit
+       do i=1,A_ind(0,at_row)
          AtB(at_row) = AtB(at_row) + psi_non_ref_coef(A_ind(i, at_row), s) * A_val(i, at_row)
        end do
+
        do a_col = 1, nex
          t = 0d0
          r1 = 1
          r2 = 1
          do while ((A_ind(r1, at_row) /= 0).and.(A_ind(r2, a_col) /= 0))
            if(A_ind(r1, at_row) < A_ind(r2, a_col)) then
-             r1 += 1
+             r1 = r1+1
            else if(A_ind(r1, at_row) > A_ind(r2, a_col)) then
-             r2 += 1
+             r2 = r2+1
            else
              t = t - A_val(r1, at_row) * A_val(r2, a_col)
-             r1 += 1
-             r2 += 1
+             r1 = r1+1
+             r2 = r2+1
            end if
          end do
          
@@ -791,12 +792,20 @@ END_PROVIDER
          !$OMP CRITICAL
          col_shortcut(at_row) = AtA_size+1
          N_col(at_row) = wk
-         AtA_ind(AtA_size+1:AtA_size+wk) = A_ind_mwen(:wk)
-         AtA_val(AtA_size+1:AtA_size+wk) = A_val_mwen(:wk)
+         if (AtA_size+wk > size(AtA_ind,1)) then
+            print *, AtA_size+wk , size(AtA_ind,1)
+            stop 'too small'
+         endif
+         do i=1,wk
+          AtA_ind(AtA_size+i) = A_ind_mwen(i)
+          AtA_val(AtA_size+i) = A_val_mwen(i)
+         enddo
          AtA_size += wk
          !$OMP END CRITICAL
        end if
      end do
+     !$OMP END DO
+     !$OMP END PARALLEL
      
      if(AtA_size > size(AtA_val)) stop "SIZA"
      print *, "ATA SIZE", ata_size
