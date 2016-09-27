@@ -43,6 +43,7 @@ let run ~master exe ezfio_file =
       try_new_port 41279
     in
     ZMQ.Socket.close dummy_socket;
+    ZMQ.Context.terminate zmq_context;
     result
   in
   let time_start = 
