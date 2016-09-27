@@ -4,15 +4,15 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   use selection_types
   implicit none
   
-  integer, intent(in)             :: i_generator
-  integer(bit_kind), intent(in)   :: hole_mask(N_int,2), particle_mask(N_int,2)
-  double precision, intent(in)           :: fock_diag_tmp(mo_tot_num)
-  double precision, intent(in)    :: E0(N_states)
+  integer, intent(in)            :: i_generator
+  integer(bit_kind), intent(in)  :: hole_mask(N_int,2), particle_mask(N_int,2)
+  double precision, intent(in)   :: fock_diag_tmp(mo_tot_num)
+  double precision, intent(in)   :: E0(N_states)
   double precision, intent(inout) :: pt2(N_states)
   type(selection_buffer), intent(inout) :: buf
   
   double precision                :: mat(N_states, mo_tot_num, mo_tot_num)
-  integer                         :: h1,h2,s1,s2,i1,i2,ib,sp,k
+  integer                         :: h1,h2,s1,s2,s3,i1,i2,ib,sp,k,i
   integer(bit_kind)               :: hole(N_int,2), particle(N_int,2), mask(N_int, 2)
   logical                         :: fullMatch, ok
   
@@ -30,40 +30,48 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   call bitstring_to_list_ab(hole    , hole_list    , N_holes    , N_int)
   call bitstring_to_list_ab(particle, particle_list, N_particles, N_int)
 
+
   !call assert(psi_det_generators(1,1,i_generator) == psi_det_sorted(1,1,i_generator), "sorted selex")
   do s1=1,2
-  do s2=s1,2
-    sp = s1
-    if(s1 /= s2) sp = 3
-    do i1=N_holes(s1),1,-1   ! Generate low excitations first
-    ib = 1
-    if(s1 == s2) ib = i1+1
-    do i2=N_holes(s2),ib,-1   ! Generate low excitations first
-      h1 = hole_list(i1,s1)
-      h2 = hole_list(i2,s2)
-      call apply_holes(psi_det_generators(1,1,i_generator), s1,h1,s2,h2, mask, ok, N_int)
-      !call assert(ok, irp_here)
-
-      logical :: banned(mo_tot_num, mo_tot_num,2)
-      logical :: bannedOrb(mo_tot_num, 2)
-
-      banned = .false.
-      bannedOrb = .false.
-      bannedOrb(h1, s1) = .true.
-      bannedOrb(h2, s2) = .true.
-      
-      call spot_isinwf(mask, psi_det_sorted, i_generator, N_det, banned, fullMatch)
-      if(fullMatch) cycle
-      if(sp /= 2) call spot_occupied(mask(1,1), bannedOrb(1,1))
-      if(sp /= 1) call spot_occupied(mask(1,2), bannedOrb(1,2))
-      
-      mat = 0d0
-      call splash_pq(mask, sp, psi_det_sorted, i_generator, N_det_selectors, bannedOrb, banned, mat)
-      call fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_diag_tmp, E0, pt2, mat, buf)
-    end do
-    end do
-  end do
-  end do
+    do s2=s1,2
+      sp = s1
+      if(s1 /= s2) sp = 3
+      do i1=N_holes(s1),1,-1   ! Generate low excitations first
+        ib = 1
+        if(s1 == s2) ib = i1+1
+        do i2=N_holes(s2),ib,-1   ! Generate low excitations first
+          h1 = hole_list(i1,s1)
+          h2 = hole_list(i2,s2)
+          call apply_holes(psi_det_generators(1,1,i_generator), s1,h1,s2,h2, mask, ok, N_int)
+          !call assert(ok, irp_here)
+          
+          logical                        :: banned(mo_tot_num, mo_tot_num,2)
+          logical                        :: bannedOrb(mo_tot_num, 2)
+          
+          banned = .false.
+          bannedOrb(h1, s1) = .true.
+          bannedOrb(h2, s2) = .true.
+          
+          bannedOrb(1:mo_tot_num, 1:2) = .true.
+          do s3=1,2
+            do i=1,N_particles(s3)
+              bannedOrb(particle_list(i,s3), s3) = .false.
+            enddo
+          enddo
+          
+          
+          call spot_isinwf(mask, psi_det_sorted, i_generator, N_det, banned, fullMatch)
+          if(fullMatch) cycle
+          if(sp /= 2) call spot_occupied(mask(1,1), bannedOrb(1,1))
+          if(sp /= 1) call spot_occupied(mask(1,2), bannedOrb(1,2))
+          
+          mat = 0d0
+          call splash_pq(mask, sp, psi_det_sorted, i_generator, N_det_selectors, bannedOrb, banned, mat)
+          call fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_diag_tmp, E0, pt2, mat, buf)
+        enddo
+      enddo
+    enddo
+  enddo
 end subroutine
 
 

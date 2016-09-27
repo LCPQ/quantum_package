@@ -306,6 +306,10 @@ BEGIN_PROVIDER [ double precision, psi_average_norm_contrib, (psi_det_size) ]
        psi_coef(i,k)*psi_coef(i,k)*f
    enddo
  enddo
+ f = 1.d0/sum(psi_average_norm_contrib(1:N_det))
+ do i=1,N_det
+   psi_average_norm_contrib(i) = psi_average_norm_contrib(i)*f
+ enddo
 END_PROVIDER
 
 

@@ -93,19 +93,7 @@ subroutine select_connected(i_generator,E0,pt2,b)
       particle_mask(k,1) = iand(generators_bitmask(k,1,s_part,l), not(psi_det_generators(k,1,i_generator)) )
       particle_mask(k,2) = iand(generators_bitmask(k,2,s_part,l), not(psi_det_generators(k,2,i_generator)) )
 
-!      hole_mask(k,1) = ior(generators_bitmask(k,1,s_hole,l), generators_bitmask(k,1,s_part,l))
-!      hole_mask(k,2) = ior(generators_bitmask(k,2,s_hole,l), generators_bitmask(k,2,s_part,l))
-!      particle_mask(k,1) = hole_mask(k,1)
-!      particle_mask(k,2) = hole_mask(k,2)
     enddo
-    print *, 'det'
-    call debug_det(psi_det_generators(1,1,i_generator),N_int)
-    print *, 'hole'
-    call debug_det(hole_mask,N_int)
-    print *, 'particle_mask'
-    call debug_det(particle_mask,N_int)
-    print *,  ''
-    pause
     call select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
     call select_singles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
   enddo

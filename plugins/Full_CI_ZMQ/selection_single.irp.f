@@ -16,7 +16,7 @@ subroutine select_singles(i_gen,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf
   
   double precision                :: vect(N_states, mo_tot_num)
   logical                         :: bannedOrb(mo_tot_num)
-  integer                         :: i, k
+  integer                         :: i, j, k
   integer                         :: h1,h2,s1,s2,i1,i2,ib,sp
   integer(bit_kind)               :: hole(N_int,2), particle(N_int,2), mask(N_int, 2)
   logical                         :: fullMatch, ok
@@ -44,8 +44,10 @@ subroutine select_singles(i_gen,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf
       h1 = hole_list(i,sp)
       call apply_hole(psi_det_generators(1,1,i_gen), sp, h1, mask, ok, N_int)
       !call assert(ok, irp_here)
-      bannedOrb = .false.
-      bannedOrb(h1) = .true.
+      bannedOrb = .true.
+      do j=1,N_particles(sp)
+        bannedOrb(particle_list(j, sp)) = .false.
+      end do
       call spot_hasBeen(mask, sp, psi_det_sorted, i_gen, N_det, bannedOrb, fullMatch)
       if(fullMatch) cycle
       call spot_occupied(mask(1,sp), bannedOrb)
