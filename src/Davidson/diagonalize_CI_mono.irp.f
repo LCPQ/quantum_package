@@ -34,7 +34,7 @@
     i_state = 0
     if (s2_eig) then
       do j=1,N_det
-        call get_s2_u0(psi_det,eigenvectors(1,j),N_det,N_det,s2)
+        call get_s2_u0(psi_det,eigenvectors(1,j),N_det,s2,N_det)
         if(dabs(s2-expected_s2).le.0.3d0)then
           print*,'j = ',j
           print*,'e = ',eigenvalues(j)
@@ -54,7 +54,7 @@
       enddo
     else
       do j=1,N_states_diag
-        call get_s2_u0(psi_det,eigenvectors(1,j),N_det,N_det,s2)
+        call get_s2_u0(psi_det,eigenvectors(1,j),N_det,s2,N_det)
         if(dabs(eigenvectors(1,j)).gt.0.9d0)then
           i_state += 1
           do i=1,N_det

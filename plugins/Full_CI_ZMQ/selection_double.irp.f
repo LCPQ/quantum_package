@@ -425,19 +425,19 @@ subroutine get_d1(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
         if(lbanned(putj, ma) .or. banned(putj, puti,bant)) cycle
         hij = (integral8(p1, p2, putj, hfix)-integral8(p2,p1,putj,hfix)) * get_phase_bi(phasemask, ma, ma, putj, p1, hfix, p2)
         !call debug_hij(hij, gen, mask, mi, ma, puti, putj)
-        tmp_row(:,putj) += hij * coefs
+        tmp_row(1:N_states,putj) += hij * coefs(1:N_states)
       end do
       do putj=hfix+1, mo_tot_num
         if(lbanned(putj, ma) .or. banned(putj, puti,bant)) cycle
         hij = (integral8(p1, p2, hfix, putj)-integral8(p2,p1,hfix,putj)) * get_phase_bi(phasemask, ma, ma, hfix, p1, putj, p2)
         !call debug_hij(hij, gen, mask, mi, ma, puti, putj)
-        tmp_row(:,putj) += hij * coefs
+        tmp_row(1:N_states,putj) += hij * coefs(1:N_states)
       end do
 
       if(ma == 1) then           
-        mat(:,:,puti) += tmp_row(:,:)
+        mat(1:N_states,1:mo_tot_num,puti) += tmp_row(1:N_states,1:mo_tot_num)
       else
-        mat(:,puti,:) += tmp_row(:,:)
+        mat(1:N_states,puti,1:mo_tot_num) += tmp_row(1:N_states,1:mo_tot_num)
       end if
     end if
 
@@ -585,12 +585,12 @@ subroutine get_d0(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
           call apply_particles(mask, 1,p1,2,p2, det, ok, N_int)
           !call assert(ok, "zsdq")
           call i_h_j(gen, det, N_int, hij)
-          mat(:, p1, p2) += coefs * hij
+          mat(:, p1, p2) += coefs(:) * hij
         else
           hij = integral8(p1, p2, h1, h2) * get_phase_bi(phasemask, 1, 2, h1, p1, h2, p2)
           phase = get_phase_bi(phasemask, 1, 2, h1, p1, h2, p2)
           !call debug_hij(hij, gen, mask, 1, 2, p1, p2)
-          mat(:, p1, p2) += coefs * hij
+          mat(:, p1, p2) += coefs(:) * hij
         end if
       end do
     end do
@@ -605,10 +605,10 @@ subroutine get_d0(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
         if(puti == p1 .or. putj == p2 .or. puti == p2 .or. putj == p1) then
           call apply_particles(mask, sp,puti,sp,putj, det, ok, N_int)
           call i_h_j(gen, det, N_int, hij)
-          mat(:, puti, putj) += coefs * hij
+          mat(:, puti, putj) += coefs(:) * hij
         else
           hij = (integral8(p1, p2, puti, putj) -  integral8(p2, p1, puti, putj))* get_phase_bi(phasemask, sp, sp, puti, p1 , putj, p2)
-          mat(:, puti, putj) += coefs * hij
+          mat(:, puti, putj) += coefs(:) * hij
           !call debug_hij(hij, gen, mask, sp, sp, puti, putj)
         end if
       end do

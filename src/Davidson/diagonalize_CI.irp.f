@@ -55,12 +55,13 @@ END_PROVIDER
    
    if (diag_algorithm == "Davidson") then
      
-     call davidson_diag(psi_det,CI_eigenvectors,CI_electronic_energy,&
-         size(CI_eigenvectors,1),N_det,N_states,N_states_diag,N_int,output_determinants)
+     call davidson_diag_HS2(psi_det,CI_eigenvectors,                 &
+         size(CI_eigenvectors,1),CI_electronic_energy,               &
+         N_det,N_states,N_states_diag,N_int,output_determinants)
 
      call u_0_S2_u_0(CI_eigenvectors_s2,CI_eigenvectors,N_det,psi_det,N_int,&
          N_states_diag,size(CI_eigenvectors,1))
-     
+
      
    else if (diag_algorithm == "Lapack") then
      

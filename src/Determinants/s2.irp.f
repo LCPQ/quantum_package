@@ -1,4 +1,4 @@
-subroutine get_s2(key_i,key_j,s2,Nint)
+subroutine get_s2(key_i,key_j,Nint,s2)
  implicit none
  use bitmasks
  BEGIN_DOC
@@ -189,7 +189,7 @@ subroutine S2_u_0_nstates(v_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
             ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
           end do
           if(ext <= 4) then
-            call get_s2(keys_tmp(1,1,org_i),keys_tmp(1,1,org_j),s2_tmp,Nint)
+            call get_s2(keys_tmp(1,1,org_i),keys_tmp(1,1,org_j),Nint,s2_tmp)
             do istate=1,N_st
               vt (org_i,istate) = vt (org_i,istate) + s2_tmp*u_0(org_j,istate)
               vt (org_j,istate) = vt (org_j,istate) + s2_tmp*u_0(org_i,istate)
@@ -212,7 +212,7 @@ subroutine S2_u_0_nstates(v_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
           ext = ext + popcnt(xor(sorted(ni,i,2), sorted(ni,j,2)))
         end do
         if(ext == 4) then
-          call get_s2(keys_tmp(1,1,org_i),keys_tmp(1,1,org_j),s2_tmp,Nint)
+          call get_s2(keys_tmp(1,1,org_i),keys_tmp(1,1,org_j),Nint,s2_tmp)
           do istate=1,N_st
             vt (org_i,istate) = vt (org_i,istate) + s2_tmp*u_0(org_j,istate)
             vt (org_j,istate) = vt (org_j,istate) + s2_tmp*u_0(org_i,istate)
@@ -235,7 +235,7 @@ subroutine S2_u_0_nstates(v_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
   !$OMP END PARALLEL
   
   do i=1,n
-    call get_s2(keys_tmp(1,1,i),keys_tmp(1,1,i),s2_tmp,Nint)
+    call get_s2(keys_tmp(1,1,i),keys_tmp(1,1,i),Nint,s2_tmp)
     do istate=1,N_st
       v_0(i,istate) += s2_tmp * u_0(i,istate)
     enddo
@@ -275,12 +275,12 @@ subroutine get_uJ_s2_uI(psi_keys_tmp,psi_coefs_tmp,n,nmax_coefs,nmax_keys,s2,nst
       allocate(idx(0:n))
       !$OMP DO SCHEDULE(dynamic)
       do i = n,1,-1   ! Better OMP scheduling
-        call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,i),s2_tmp,N_int)
+        call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,i),N_int,s2_tmp)
         accu += psi_coefs_tmp(i,ll) * s2_tmp * psi_coefs_tmp(i,jj)
         call filter_connected(psi_keys_tmp,psi_keys_tmp(1,1,i),N_int,i-1,idx)
         do kk=1,idx(0)
           j = idx(kk)
-          call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,j),s2_tmp,N_int)
+          call get_s2(psi_keys_tmp(1,1,i),psi_keys_tmp(1,1,j),N_int,s2_tmp)
           accu += psi_coefs_tmp(i,ll) * s2_tmp * psi_coefs_tmp(j,jj) + psi_coefs_tmp(i,jj) * s2_tmp * psi_coefs_tmp(j,ll)
         enddo
       enddo
@@ -418,3 +418,58 @@ subroutine diagonalize_s2_betweenstates(keys_tmp,u_0,n,nmax_keys,nmax_coefs,nsta
   
 end
 
+subroutine i_S2_psi_minilist(key,keys,idx_key,N_minilist,coef,Nint,Ndet,Ndet_max,Nstate,i_S2_psi_array)
+  use bitmasks
+  implicit none
+  integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate,idx_key(Ndet), N_minilist
+  integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
+  integer(bit_kind), intent(in)  :: key(Nint,2)
+  double precision, intent(in)   :: coef(Ndet_max,Nstate)
+  double precision, intent(out)  :: i_S2_psi_array(Nstate)
+  
+  integer                        :: i, ii,j, i_in_key, i_in_coef
+  double precision               :: phase
+  integer                        :: exc(0:2,2,2)
+  double precision               :: s2ij
+  integer                        :: idx(0:Ndet)
+  BEGIN_DOC
+! Computes <i|S2|Psi> = \sum_J c_J <i|S2|J>.
+!
+! Uses filter_connected_i_H_psi0 to get all the |J> to which |i>
+! is connected. The |J> are searched in short pre-computed lists.
+  END_DOC
+  
+  ASSERT (Nint > 0)
+  ASSERT (N_int == Nint)
+  ASSERT (Nstate > 0)
+  ASSERT (Ndet > 0)
+  ASSERT (Ndet_max >= Ndet)
+  i_S2_psi_array = 0.d0
+  
+  call filter_connected_i_H_psi0(keys,key,Nint,N_minilist,idx)
+  if (Nstate == 1) then
+
+    do ii=1,idx(0)
+      i_in_key = idx(ii)
+      i_in_coef = idx_key(idx(ii))
+      !DIR$ FORCEINLINE
+      call get_s2(keys(1,1,i_in_key),key,Nint,s2ij)
+      ! TODO : Cache misses
+      i_S2_psi_array(1) = i_S2_psi_array(1) + coef(i_in_coef,1)*s2ij
+    enddo
+
+  else
+
+    do ii=1,idx(0)
+      i_in_key = idx(ii)
+      i_in_coef = idx_key(idx(ii))
+      !DIR$ FORCEINLINE
+      call get_s2(keys(1,1,i_in_key),key,Nint,s2ij)
+      do j = 1, Nstate
+        i_S2_psi_array(j) = i_S2_psi_array(j) + coef(i_in_coef,j)*s2ij
+      enddo
+    enddo
+
+  endif
+
+end
