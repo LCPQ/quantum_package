@@ -270,7 +270,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       ! -----------------------
       
       do k=1,N_st_diag
-        s2(k) = u_dot_v(U(1,k,iter+1), S(1,k,iter+1), sze)
+        s2(k) = u_dot_v(U(1,k,iter+1), S(1,k,iter+1), sze) + S_z2_Sz
       enddo
 
       do k=1,N_st_diag
