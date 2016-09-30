@@ -84,10 +84,8 @@ double precision function fact(n)
     memo(i) = memo(i-1)*dble(i)
   enddo
   memomax = min(n,100)
-  fact = memo(memomax)
-  do i=101,n
-    fact = fact*dble(i)
-  enddo
+  double precision :: logfact
+  fact = dexp(logfact(n))
 end function
 
 double precision function logfact(n)
@@ -164,12 +162,27 @@ double precision function dble_fact_even(n) result(fact2)
 
   ASSERT (iand(n,1) /= 1)
 
-  prod=1.d0
-  do k=2,n,2
-   prod=prod*dfloat(k)
+  if (n <= memomax) then
+    if (n < 2) then
+      fact2 = 1.d0
+    else
+      fact2 = memo(n)
+    endif
+    return
+  endif
+
+  integer                        :: i
+  memo(1)=1.d0
+  do i=memomax+2,min(n,100),2
+    memo(i) = memo(i-2)* dble(i)
   enddo
-  fact2=prod
-  return
+  memomax = min(n,100)
+  fact2 = memo(memomax)
+  
+  if (n > 100) then
+    double precision :: dble_logfact
+    fact2 = dexp(dble_logfact(n))
+  endif
 
 end function
 

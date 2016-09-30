@@ -136,7 +136,7 @@ end
 
          if(l.eq.2.and.m.eq.2)ylm_real=dsqrt(15.d0/16.d0/pi)*(xchap*xchap-ychap*ychap)
          if(l.eq.2.and.m.eq.1)ylm_real=dsqrt(15.d0/fourpi)*xchap*zchap
-         if(l.eq.2.and.m.eq.0)ylm_real=dsqrt(5.d0/16.d0/pi)*(-xchap*xchap-ychap*ychap+2.d0*zchap*zchap)
+         if(l.eq.2.and.m.eq.0)ylm_real=dsqrt(5.d0/16.d0/pi)*(2.d0*zchap*zchap-xchap*xchap-ychap*ychap)
          if(l.eq.2.and.m.eq.-1)ylm_real=dsqrt(15.d0/fourpi)*ychap*zchap
          if(l.eq.2.and.m.eq.-2)ylm_real=dsqrt(15.d0/fourpi)*xchap*ychap
 
@@ -279,8 +279,7 @@ if(ac.eq.0.d0.and.bc.eq.0.d0)then
    do m=-l,l
     prod=bigI(0,0,l,m,n_a(1),n_a(2),n_a(3))
     prodp=bigI(0,0,l,m,n_b(1),n_b(2),n_b(3))
-
-      accu=accu+prod*prodp*v_kl(k,l)*int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),0,0,areal,breal,arg)
+    accu=accu+prod*prodp*v_kl(k,l)*int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),0,0,areal,breal,arg)
 
    enddo
   enddo
@@ -1783,10 +1782,8 @@ double precision function coef_nk(n,k)
   double precision gam,dble_fact,fact
 
   gam=dble_fact(n+n+k+k+1)
-
-!  coef_nk=1.d0/(dble(ISHFT(1,k))*fact(k)*gam)
-  
-  coef_nk=1.d0/(2.d0**k*fact(k)*gam)
+!  coef_nk=1.d0/(2.d0**k*fact(k)*gam)
+  coef_nk=1.d0/(dble(ibset(0,k))*fact(k)*gam)
   
   return
 
@@ -1815,7 +1812,7 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
 
   logical done
 
-  u=(a+b)/(2.d0*dsqrt(gam))
+  u=(a+b)*0.5d0/dsqrt(gam)
   freal=dexp(-arg)
 
   if(a.eq.0.d0.and.b.eq.0.d0)then
