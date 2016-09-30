@@ -71,7 +71,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   !
   ! N_st : Number of eigenstates
   ! 
-  ! N_st_diag : Number of states in which H is diagonalized
+  ! N_st_diag : Number of states in which H is diagonalized. Assumed > sze
   !
   ! iunit : Unit for the I/O
   !
@@ -107,6 +107,9 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   include 'constants.include.F'
   
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: U, W, R, S, y, h, lambda
+  if (N_st_diag > sze) then
+     stop 'error in Davidson : N_st_diag > sze'
+  endif
 
   PROVIDE nuclear_repulsion
 
@@ -174,16 +177,13 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   
   converged = .False.
   
-  do k=1,N_st_diag
-
-    if (k > N_st) then
+  do k=N_st+1,N_st_diag
       do i=1,sze
         double precision               :: r1, r2
         call random_number(r1)
         call random_number(r2)
         u_in(i,k) = dsqrt(-2.d0*dlog(r1))*dcos(dtwo_pi*r2)
       enddo
-    endif
     
     ! Gram-Schmidt
     ! ------------
@@ -247,12 +247,14 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
           S(i,k,iter+1) = 0.d0
         enddo
       enddo
+
 !      do k=1,N_st_diag
 !         do iter2=1,iter
 !          do l=1,N_st_diag
 !            do i=1,sze
 !              U(i,k,iter+1) = U(i,k,iter+1) + U(i,l,iter2)*y(l,iter2,k,1)
 !              W(i,k,iter+1) = W(i,k,iter+1) + W(i,l,iter2)*y(l,iter2,k,1)
+!              S(i,k,iter+1) = W(i,k,iter+1) + S(i,l,iter2)*y(l,iter2,k,1)
 !            enddo
 !          enddo
 !        enddo
@@ -276,13 +278,16 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       do k=1,N_st_diag
         do i=1,sze
           R(i,k) = (lambda(k) * U(i,k,iter+1) - W(i,k,iter+1) ) &
-            * (1.d0 + s2(k) * U(i,k,iter+1) - S(i,k,iter+1) )
+            * (1.d0 + s2(k) * U(i,k,iter+1) - S(i,k,iter+1) - S_z2_Sz)
         enddo
         if (k <= N_st) then
           residual_norm(k) = u_dot_u(R(1,k),sze)
           to_print(1,k) = lambda(k) + nuclear_repulsion
           to_print(2,k) = s2(k)
           to_print(3,k) = residual_norm(k)
+          if (residual_norm(k) > 1.e9) then
+            stop 'Davidson failed'
+          endif
         endif
       enddo
       
