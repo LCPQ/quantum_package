@@ -115,7 +115,7 @@ program full_ci
       call get_excitation_degree(psi_cas(1,1,k),psi_cas(1,1,i),degree,N_int)
       exc_max = max(exc_max,degree)
     enddo
-    print *,  psi_coef_cas_diagonalized(i,:)
+    print *,  psi_cas_coef(i,:)
     call debug_det(psi_cas(1,1,i),N_int)
     print *,  ''
   enddo

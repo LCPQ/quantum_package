@@ -177,6 +177,10 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   
   converged = .False.
   
+  do k=1,N_st
+    call normalize(u_in(1,k),sze)
+  enddo
+
   do k=N_st+1,N_st_diag
       do i=1,sze
         double precision               :: r1, r2
@@ -193,7 +197,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
         c,1,1.d0,u_in(1,k),1)
     call normalize(u_in(1,k),sze)
   enddo
-
 
   
   do while (.not.converged)
