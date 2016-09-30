@@ -177,11 +177,6 @@ BEGIN_PROVIDER [ double precision, psi_energy, (N_states) ]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ double precision, ut, (N_states, N_det) ]
-  ut = 0d0
-END_PROVIDER
-
-
 subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   use bitmasks
   use f77_zmq
@@ -231,7 +226,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
 
   v_0 = 0.d0
   s_0 = 0.d0
-  provide ut
+  
   do i=1,n
     do istate=1,N_st
       ut(istate,i) =  u_0(i,istate)

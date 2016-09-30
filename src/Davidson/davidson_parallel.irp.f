@@ -2,6 +2,7 @@
 !brought to you by garniroy inc.
 
 use bitmasks
+use f77_zmq
 
 subroutine davidson_process(block, N, idx, vt, st)
   
@@ -58,10 +59,10 @@ subroutine davidson_process(block, N, idx, vt, st)
           call i_h_j (psi_det(1,1,org_j),psi_det(1,1,org_i),n_int,hij)
           call get_s2(psi_det(1,1,org_j),psi_det(1,1,org_i),n_int,s2) 
           do istate=1,N_states
-            vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,org_j)
-            vt (istate,org_j) = vt (istate,org_j) + hij*ut(istate,org_i)
-            st (istate,org_i) = st (istate,org_i) + s2*ut(istate,org_j)
-            st (istate,org_j) = st (istate,org_j) + s2*ut(istate,org_i)
+            vt (istate,org_i) = vt (istate,org_i) + hij*dav_ut(istate,org_j)
+            vt (istate,org_j) = vt (istate,org_j) + hij*dav_ut(istate,org_i)
+            st (istate,org_i) = st (istate,org_i) + s2*dav_ut(istate,org_j)
+            st (istate,org_j) = st (istate,org_j) + s2*dav_ut(istate,org_i)
           enddo
         endif
       enddo
@@ -69,15 +70,6 @@ subroutine davidson_process(block, N, idx, vt, st)
   enddo
 end subroutine
 
-
- BEGIN_PROVIDER [ integer, shortcut_, (0:N_det+1, 2) ]
-&BEGIN_PROVIDER [ integer(bit_kind), version_, (N_int, N_det, 2) ]
-&BEGIN_PROVIDER [ integer(bit_kind), sorted_, (N_int, N_det, 2) ]
-&BEGIN_PROVIDER [ integer, sort_idx_, (N_det, 2) ]
-  implicit none
-  call sort_dets_ab_v(psi_det, sorted_(1,1,1), sort_idx_(1,1), shortcut_(0,1), version_(1,1,1), n_det, N_int)
-  call sort_dets_ba_v(psi_det, sorted_(1,1,2), sort_idx_(1,2), shortcut_(0,2), version_(1,1,2), n_det, N_int)
-END_PROVIDER
 
 
 
@@ -202,6 +194,8 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, worker_id)
   allocate(idx(N_det)) 
   allocate(vt(N_states, N_det)) 
   allocate(st(N_states, N_det)) 
+  
+  call hobo_get()
   
   do
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task)
@@ -353,6 +347,9 @@ subroutine davidson_run(zmq_to_qp_run_socket , v0, s0)
       call davidson_collector(zmq_collector, zmq_socket_pull , v0, s0)
       call end_zmq_to_qp_run_socket(zmq_collector)
       call end_zmq_pull_socket(zmq_socket_pull)
+      call hobo_server_end()
+    else if(i==1) then
+      call hobo_server()
     else
       call davidson_slave_inproc(i)
     endif
@@ -362,5 +359,112 @@ end subroutine
 
 
 
+subroutine hobo_server()
+  use f77_zmq
+  implicit none
+  integer(ZMQ_PTR)        context
+  integer(ZMQ_PTR)        responder
+  character*(64)          address
+  character(len=:), allocatable :: buffer
+  integer                 rc
   
+  allocate (character(len=20) :: buffer)
+  address = 'tcp://*:11223'
+  
+  context   = f77_zmq_ctx_new()
+  responder = f77_zmq_socket(context, ZMQ_REP)
+  rc        = f77_zmq_bind(responder,address)
+  
+  do
+    rc = f77_zmq_recv(responder, buffer, 5, 0)
+    if (buffer(1:rc) /= 'end') then
+      rc = f77_zmq_send (responder, N_det, 4, ZMQ_SNDMORE)
+      rc = f77_zmq_send (responder, psi_det, 16*N_int*N_det, ZMQ_SNDMORE)
+      rc = f77_zmq_send (responder, ut, 8*N_det*N_states, 0)
+    else
+      rc = f77_zmq_send (responder, "end", 3, 0)
+      exit
+    endif
+  enddo
 
+  rc = f77_zmq_close(responder)
+  rc = f77_zmq_ctx_destroy(context)
+end subroutine
+
+
+subroutine hobo_server_end()
+  implicit none
+  use f77_zmq
+  
+  integer(ZMQ_PTR)        context
+  integer(ZMQ_PTR)        requester
+  character*(64)          address
+  integer                 rc
+  character*(64)          buf
+  
+  address = trim(qp_run_address)//':11223'
+  context   = f77_zmq_ctx_new()
+  requester = f77_zmq_socket(context, ZMQ_REQ)
+  rc        = f77_zmq_connect(requester,address)
+
+  rc = f77_zmq_send(requester, "end", 3, 0)
+  rc = f77_zmq_recv(requester, buf, 3, 0)
+  rc = f77_zmq_close(requester)
+  rc = f77_zmq_ctx_destroy(context)
+end subroutine
+
+  
+subroutine hobo_get()
+  implicit none
+  use f77_zmq
+  
+  integer(ZMQ_PTR)        context
+  integer(ZMQ_PTR)        requester
+  character*(64)          address
+  character*(20)          buffer
+!   integer(8),  intent(inout) :: det(N_int,2,*)
+!   double precision, intent(inout) :: u_0(*)
+!   integer,intent(out) :: nd
+  integer                 rc
+  
+  address = trim(qp_run_address)//':11223'
+  
+  context   = f77_zmq_ctx_new()
+  requester = f77_zmq_socket(context, ZMQ_REQ)
+  rc        = f77_zmq_connect(requester,address)
+
+  rc = f77_zmq_send(requester, "Hello", 5, 0)
+  rc = f77_zmq_recv(requester, dav_size, 4, 0)
+  TOUCH dav_size
+  rc = f77_zmq_recv(requester, dav_det, 16*N_int*dav_size, 0)
+  rc = f77_zmq_recv(requester, dav_ut, 8*dav_size*N_states, 0)
+  rc = f77_zmq_close(requester)
+  rc = f77_zmq_ctx_destroy(context)
+end subroutine
+
+
+
+BEGIN_PROVIDER [ integer(bit_kind), dav_det, (N_int, 2, dav_size) ]
+END_PROVIDER
+
+
+BEGIN_PROVIDER [ double precision, dav_ut, (N_states, dav_size) ]
+END_PROVIDER
+
+
+BEGIN_PROVIDER [ double precision, ut, (N_states, N_det) ]
+END_PROVIDER
+
+
+BEGIN_PROVIDER [ integer, dav_size ]
+END_PROVIDER
+
+
+ BEGIN_PROVIDER [ integer, shortcut_, (0:dav_size+1, 2) ]
+&BEGIN_PROVIDER [ integer(bit_kind), version_, (N_int, dav_size, 2) ]
+&BEGIN_PROVIDER [ integer(bit_kind), sorted_, (N_int, dav_size, 2) ]
+&BEGIN_PROVIDER [ integer, sort_idx_, (dav_size, 2) ]
+  implicit none
+  call sort_dets_ab_v(dav_det, sorted_(1,1,1), sort_idx_(1,1), shortcut_(0,1), version_(1,1,1), dav_size, N_int)
+  call sort_dets_ba_v(dav_det, sorted_(1,1,2), sort_idx_(1,2), shortcut_(0,2), version_(1,1,2), dav_size, N_int)
+END_PROVIDER
