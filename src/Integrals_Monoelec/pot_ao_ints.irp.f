@@ -12,7 +12,6 @@ BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral, (ao_num_align,ao_num)]
    
    if (read_ao_one_integrals) then
      call ezfio_get_ao_basis_integral_nuclear(ao_nucl_elec_integral(1:ao_num, 1:ao_num))
- call ezfio_set_ao_basis_integral_nuclear(ao_nucl_elec_integral(1:ao_num, 1:ao_num))
      print *,  'AO N-e integrals read from disk'
    else
      
