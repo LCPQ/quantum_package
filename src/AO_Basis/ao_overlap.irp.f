@@ -14,11 +14,10 @@
   double precision :: alpha, beta, c
   double precision :: A_center(3), B_center(3)
   integer :: power_A(3), power_B(3)
-   if (read_ao_one_integrals) then
-     call ezfio_get_ao_basis_integral_overlap(ao_overlap(1:ao_num, 1:ao_num))
- call ezfio_set_ao_basis_integral_overlap(ao_overlap(1:ao_num, 1:ao_num))
-     print *,  'AO overlap integrals read from disk'
-  else
+!   if (read_ao_one_integrals) then
+!     call ezfio_get_ao_basis_integral_overlap(ao_overlap(1:ao_num, 1:ao_num))
+!     print *,  'AO overlap integrals read from disk'
+!  else
     dim1=100
     !$OMP PARALLEL DO SCHEDULE(GUIDED) &
     !$OMP DEFAULT(NONE) &
@@ -64,11 +63,11 @@
     enddo
     enddo
     !$OMP END PARALLEL DO
-  endif
-  if (write_ao_one_integrals) then
-     call ezfio_set_ao_basis_integral_overlap(ao_overlap(1:ao_num, 1:ao_num))
-     print *,  'AO overlap integrals written to disk'
-  endif
+!  endif
+!  if (write_ao_one_integrals) then
+!     call ezfio_set_ao_basis_integral_overlap(ao_overlap(1:ao_num, 1:ao_num))
+!     print *,  'AO overlap integrals written to disk'
+!  endif
 
 END_PROVIDER
 
