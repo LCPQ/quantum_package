@@ -227,6 +227,8 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   v_0 = 0.d0
   s_0 = 0.d0
   
+  if(n /= N_det) stop "n /= N_det"
+  
   do i=1,n
     do istate=1,N_st
       ut(istate,i) =  u_0(i,istate)
@@ -234,7 +236,11 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   enddo
   call sort_dets_ab_v(keys_tmp, sorted(1,1,1), sort_idx(1,1), shortcut(0,1), version(1,1,1), n, Nint)
   call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
-  
+    
+  dav_size = n
+  dav_det = psi_det
+  dav_ut = ut
+
   call davidson_init(handler)
 
   do sh=shortcut(0,1),1,-1

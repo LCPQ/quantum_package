@@ -22,7 +22,7 @@ subroutine davidson_process(block, N, idx, vt, st)
   vt = 0d0
   st = 0d0
   
-  N = N_det
+  N = dav_size ! N_det
   do i=1,N
     idx(i) = i
   end do
@@ -56,8 +56,8 @@ subroutine davidson_process(block, N, idx, vt, st)
           ext = ext + popcnt(xor(sorted_i(ni), sorted_(ni,j,1)))
         end do
         if(ext <= 4) then
-          call i_h_j (psi_det(1,1,org_j),psi_det(1,1,org_i),n_int,hij)
-          call get_s2(psi_det(1,1,org_j),psi_det(1,1,org_i),n_int,s2) 
+          call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij) ! psi_det
+          call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2) 
           do istate=1,N_states
             vt (istate,org_i) = vt (istate,org_i) + hij*dav_ut(istate,org_j)
             vt (istate,org_j) = vt (istate,org_j) + hij*dav_ut(istate,org_i)
@@ -100,6 +100,7 @@ subroutine davidson_init(zmq_to_qp_run_socket)
   
   integer(ZMQ_PTR), intent(out) :: zmq_to_qp_run_socket ! zmq_to_qp_run_socket
   
+  touch dav_size dav_det dav_ut
   call new_parallel_job(zmq_to_qp_run_socket,'davidson')
 end subroutine
 
@@ -195,7 +196,7 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, worker_id)
   allocate(vt(N_states, N_det)) 
   allocate(st(N_states, N_det)) 
   
-  call hobo_get()
+  !call hobo_get()
   
   do
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task)
@@ -347,9 +348,9 @@ subroutine davidson_run(zmq_to_qp_run_socket , v0, s0)
       call davidson_collector(zmq_collector, zmq_socket_pull , v0, s0)
       call end_zmq_to_qp_run_socket(zmq_collector)
       call end_zmq_pull_socket(zmq_socket_pull)
-      call hobo_server_end()
+      call davidson_miniserver_end()
     else if(i==1) then
-      call hobo_server()
+      call davidson_miniserver_run()
     else
       call davidson_slave_inproc(i)
     endif
@@ -359,7 +360,7 @@ end subroutine
 
 
 
-subroutine hobo_server()
+subroutine davidson_miniserver_run()
   use f77_zmq
   implicit none
   integer(ZMQ_PTR)        context
@@ -378,9 +379,9 @@ subroutine hobo_server()
   do
     rc = f77_zmq_recv(responder, buffer, 5, 0)
     if (buffer(1:rc) /= 'end') then
-      rc = f77_zmq_send (responder, N_det, 4, ZMQ_SNDMORE)
-      rc = f77_zmq_send (responder, psi_det, 16*N_int*N_det, ZMQ_SNDMORE)
-      rc = f77_zmq_send (responder, ut, 8*N_det*N_states, 0)
+      rc = f77_zmq_send (responder, dav_size, 4, ZMQ_SNDMORE)
+      rc = f77_zmq_send (responder, dav_det, 16*N_int*N_det, ZMQ_SNDMORE)
+      rc = f77_zmq_send (responder, dav_ut, 8*N_det*N_states, 0)
     else
       rc = f77_zmq_send (responder, "end", 3, 0)
       exit
@@ -392,7 +393,7 @@ subroutine hobo_server()
 end subroutine
 
 
-subroutine hobo_server_end()
+subroutine davidson_miniserver_end()
   implicit none
   use f77_zmq
   
@@ -414,7 +415,7 @@ subroutine hobo_server_end()
 end subroutine
 
   
-subroutine hobo_get()
+subroutine davidson_miniserver_get()
   implicit none
   use f77_zmq
   
@@ -440,6 +441,8 @@ subroutine hobo_get()
   rc = f77_zmq_recv(requester, dav_ut, 8*dav_size*N_states, 0)
   rc = f77_zmq_close(requester)
   rc = f77_zmq_ctx_destroy(context)
+  
+  touch dav_det dav_ut
 end subroutine
 
 
