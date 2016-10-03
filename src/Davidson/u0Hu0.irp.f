@@ -44,7 +44,7 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   double precision               :: hij
   double precision, allocatable  :: vt(:,:)
-!   double precision, allocatable  :: ut(:,:)
+  double precision, allocatable  :: ut(:,:)
   integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0
   
@@ -197,7 +197,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   double precision               :: hij,s2 
   double precision, allocatable  :: vt(:,:), st(:,:)
-  !double precision, allocatable  :: ut(:,:)
+  double precision, allocatable  :: ut(:,:)
   integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0
   
@@ -222,7 +222,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   PROVIDE ref_bitmask_energy 
 
   allocate (shortcut(0:n+1,2), sort_idx(n,2), sorted(Nint,n,2), version(Nint,n,2))
-  !allocate(ut(N_st_8,n))
+  allocate(ut(N_st_8,n))
 
   v_0 = 0.d0
   s_0 = 0.d0
@@ -240,9 +240,8 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   dav_size = n
   dav_det = psi_det
   dav_ut = ut
-
+  
   call davidson_init(handler)
-
   do sh=shortcut(0,1),1,-1
     call davidson_add_task(handler, sh)
   enddo
