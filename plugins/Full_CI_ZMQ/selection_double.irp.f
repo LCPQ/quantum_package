@@ -31,7 +31,6 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   call bitstring_to_list_ab(particle, particle_list, N_particles, N_int)
 
 
-  !call assert(psi_det_generators(1,1,i_generator) == psi_det_sorted(1,1,i_generator), "sorted selex")
   do s1=1,2
     do s2=s1,2
       sp = s1
@@ -43,7 +42,6 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
           h1 = hole_list(i1,s1)
           h2 = hole_list(i2,s2)
           call apply_holes(psi_det_generators(1,1,i_generator), s1,h1,s2,h2, mask, ok, N_int)
-          !call assert(ok, irp_here)
           
           logical                        :: banned(mo_tot_num, mo_tot_num,2)
           logical                        :: bannedOrb(mo_tot_num, 2)
@@ -88,14 +86,13 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
   double precision, intent(inout) :: pt2(N_states) 
   type(selection_buffer), intent(inout) :: buf
   logical :: ok
-  integer :: s1, s2, p1, p2, ib, j
+  integer :: s1, s2, p1, p2, ib, j, istate
   integer(bit_kind) :: mask(N_int, 2), det(N_int, 2)
-  double precision :: e_pert, delta_E, val, Hii
+  double precision :: e_pert, delta_E, val, Hii, max_e_pert
   double precision, external :: diag_H_mat_elem_fock
   
   logical, external :: detEq
-
-  if(N_states > 1) stop "fill_buffer_double N_states > 1"
+  
   
   if(sp == 3) then
     s1 = 1
@@ -106,7 +103,7 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
   end if
   
   call apply_holes(psi_det_generators(1,1,i_generator), s1, h1, s2, h2, mask, ok, N_int)
-  !call assert(ok, "sosoqs") 
+  
   do p1=1,mo_tot_num
     if(bannedOrb(p1, s1)) cycle
     ib = 1
@@ -116,19 +113,24 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
       if(banned(p1,p2)) cycle
       if(mat(1, p1, p2) == 0d0) cycle
       call apply_particles(mask, s1, p1, s2, p2, det, ok, N_int)
-      !call assert(ok, "ododod")
+      
       val = mat(1, p1, p2)
       
       Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),det,fock_diag_tmp,N_int)
-    
-      delta_E = E0(1) - Hii
-      if (delta_E < 0.d0) then
-        e_pert = 0.5d0 * (-dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
-      else
-        e_pert = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
-      endif
-      pt2(1) += e_pert
-      if(dabs(e_pert) > buf%mini) then
+      max_e_pert = 0d0
+      
+      do istate=1,N_states
+        delta_E = E0(istate) - Hii
+        if (delta_E < 0.d0) then
+          e_pert = 0.5d0 * (-dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
+        else
+          e_pert = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
+        endif
+        pt2(istate) += e_pert
+        if(dabs(e_pert) > dabs(max_e_pert)) max_e_pert = e_pert
+      end do
+      
+      if(dabs(max_e_pert) > buf%mini) then
 !         do j=1,buf%cur-1
 !           if(detEq(buf%det(1,1,j), det, N_int)) then
 !             print *, "tops"
@@ -136,7 +138,7 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
 !             stop
 !           end if
 !         end do
-        call add_to_selection_buffer(buf, det, e_pert)
+        call add_to_selection_buffer(buf, det, max_e_pert)
       end if
     end do
   end do

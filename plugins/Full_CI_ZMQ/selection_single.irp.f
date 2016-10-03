@@ -72,12 +72,11 @@ subroutine fill_buffer_single(i_generator, sp, h1, bannedOrb, fock_diag_tmp, E0,
   double precision, intent(inout) :: pt2(N_states)
   type(selection_buffer), intent(inout) :: buf
   logical :: ok
-  integer :: s1, s2, p1, p2, ib
+  integer :: s1, s2, p1, p2, ib, istate
   integer(bit_kind) :: mask(N_int, 2), det(N_int, 2)
-  double precision :: e_pert, delta_E, val, Hii
+  double precision :: e_pert, delta_E, val, Hii, max_e_pert
   double precision, external :: diag_H_mat_elem_fock
   
-  if(N_states > 1) stop "fill_buffer_single N_states > 1"
   
   call apply_hole(psi_det_generators(1,1,i_generator), sp, h1, mask, ok, N_int)
   
@@ -88,15 +87,20 @@ subroutine fill_buffer_single(i_generator, sp, h1, bannedOrb, fock_diag_tmp, E0,
     val = vect(1, p1)
     
     Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),det,fock_diag_tmp,N_int)
+    max_e_pert = 0d0
     
-    delta_E = E0(1) - Hii
-    if (delta_E < 0.d0) then
-      e_pert = 0.5d0 * (-dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
-    else
-      e_pert = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
-    endif
-    pt2(1) += e_pert
-    if(dabs(e_pert) > buf%mini) call add_to_selection_buffer(buf, det, e_pert)
+    do istate=1,N_states
+      delta_E = E0(istate) - Hii
+      if (delta_E < 0.d0) then
+        e_pert = 0.5d0 * (-dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
+      else
+        e_pert = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
+      endif
+      pt2(istate) += e_pert
+      if(dabs(e_pert) > dabs(max_e_pert)) max_e_pert = e_pert
+    end do
+    
+    if(dabs(max_e_pert) > buf%mini) call add_to_selection_buffer(buf, det, max_e_pert)
   end do
 end subroutine
 
