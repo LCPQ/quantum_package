@@ -364,7 +364,7 @@ subroutine davidson_run(zmq_to_qp_run_socket , v0, s0)
   
   PROVIDE nproc
   
-  !$OMP PARALLEL DEFAULT(shared) private(i) num_threads(3) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NPROC !!!!!
+  !$OMP PARALLEL DEFAULT(shared) private(i) num_threads(nproc+2)
     i = omp_get_thread_num()
     if (i==0) then
       call davidson_collector(zmq_collector, zmq_socket_pull , v0, s0)
