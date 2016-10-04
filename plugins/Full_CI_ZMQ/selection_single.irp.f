@@ -83,12 +83,13 @@ subroutine fill_buffer_single(i_generator, sp, h1, bannedOrb, fock_diag_tmp, E0,
     if(bannedOrb(p1)) cycle
     if(vect(1, p1) == 0d0) cycle
     call apply_particle(mask, sp, p1, det, ok, N_int)
-    val = vect(1, p1)
+    
     
     Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),det,fock_diag_tmp,N_int)
     max_e_pert = 0d0
     
     do istate=1,N_states
+      val = vect(istate, p1)
       delta_E = E0(istate) - Hii
       if (delta_E < 0.d0) then
         e_pert = 0.5d0 * (-dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)

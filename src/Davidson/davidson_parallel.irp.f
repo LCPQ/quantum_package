@@ -444,9 +444,6 @@ subroutine davidson_miniserver_get()
   integer(ZMQ_PTR)        requester
   character*(64)          address
   character*(20)          buffer
-!   integer(8),  intent(inout) :: det(N_int,2,*)
-!   double precision, intent(inout) :: u_0(*)
-!   integer,intent(out) :: nd
   integer                 rc
   
   address = trim(qp_run_address)//':11223'
