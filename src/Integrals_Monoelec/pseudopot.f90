@@ -1860,7 +1860,7 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
   double precision :: s_q_0, s_q_k, s_0_0, a_over_b_square
   double precision :: int_prod_bessel_loc
   double precision :: inverses(0:300)
-  double precision :: two_qkmp1, qk
+  double precision :: two_qkmp1, qk, mk, nk
 
   logical done
 
@@ -1908,6 +1908,7 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
     s_q_0 = s_0_0
 
 
+    mk = dble(m)
     ! Loop over q for the convergence of the sequence
     do while (.not.done)  
 
@@ -1919,10 +1920,10 @@ double precision function int_prod_bessel(l,gam,n,m,a,b,arg)
         stop 'pseudopot.f90 : q > 300'
       endif
 
-      two_qkmp1 = dble(2*(q+m)+1)
       qk = dble(q)
+      two_qkmp1 = 2.d0*(qk+mk)+1.d0
       do k=0,q-1
-        s_q_k = ( two_qkmp1*qk*inverses(k) ) * s_q_k
+        s_q_k = two_qkmp1*qk*inverses(k)*s_q_k
         sum=sum+s_q_k
         two_qkmp1 = two_qkmp1-2.d0
         qk = qk-1.d0 
