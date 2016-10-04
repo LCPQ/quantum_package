@@ -49,7 +49,6 @@ subroutine select_singles(i_gen,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf
       end do
       call spot_hasBeen(mask, sp, psi_det_sorted, i_gen, N_det, bannedOrb, fullMatch)
       if(fullMatch) cycle
-      call spot_occupied(mask(1,sp), bannedOrb)
       vect = 0d0
       call splash_p(mask, sp, psi_selectors(1,1,i_gen), psi_phasemask(1,1,i_gen), psi_selectors_coef_transp(1,i_gen), N_det_selectors - i_gen + 1, bannedOrb, vect)
       call fill_buffer_single(i_gen, sp, h1, bannedOrb, fock_diag_tmp, E0, pt2, vect, buf)
@@ -352,30 +351,4 @@ subroutine spot_hasBeen(mask, sp, det, i_gen, N, banned, fullMatch)
 end subroutine
 
 
-
-subroutine debug_hij_mo(hij, gen, mask, s1, p1)
-  use bitmasks
-  implicit none
-
-  integer(bit_kind), intent(in) :: gen(N_int,2), mask(N_int,2)
-  double precision, intent(in) :: hij
-  integer, intent(in) :: s1, p1
-  integer(bit_kind) :: det(N_int,2)
-  double precision :: hij_ref, phase_ref
-  logical :: ok
-  integer :: degree
-  integer :: exc(0:2,2,2)
-  logical, external :: detEq
-  
-  call apply_particle(mask, s1, p1, det, ok, N_int)
-  call i_H_j_phase_out(gen,det,N_int,hij_ref,phase_ref,exc,degree)
-  if(hij /= hij_ref) then
-    print *, hij, hij_ref
-    print *, s1, p1
-    call debug_det(gen, N_int)
-    call debug_det(mask, N_int)
-    call debug_det(det, N_int)
-    stop
-    end if
-end function
 
