@@ -18,9 +18,11 @@ subroutine davidson_process(block, N, idx, vt, st)
   integer :: i, j, sh, sh2, exa, ext, org_i, org_j, istate, ni, endi
   integer(bit_kind) :: sorted_i(N_int)
   double precision :: s2, hij
+  logical :: wrotten(dav_size)
+  wrotten = .false.
   
-  vt = 0d0
-  st = 0d0
+!   vt = 0d0
+!   st = 0d0
   
   N = dav_size
   do i=1,N
@@ -58,11 +60,21 @@ subroutine davidson_process(block, N, idx, vt, st)
         if(ext <= 4) then
           call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij) ! psi_det
           call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2) 
+          if(.not. wrotten(org_i)) then
+            wrotten(org_i) = .true.
+            vt (:,org_i) = 0d0
+            st (:,org_i) = 0d0
+          end if
+          if(.not. wrotten(org_j)) then
+            wrotten(org_j) = .true.
+            vt (:,org_j) = 0d0
+            st (:,org_j) = 0d0
+          end if
           do istate=1,N_states
-            vt (istate,org_i) = vt (istate,org_i) + hij*dav_ut(istate,org_j)
-            vt (istate,org_j) = vt (istate,org_j) + hij*dav_ut(istate,org_i)
-            st (istate,org_i) = st (istate,org_i) + s2*dav_ut(istate,org_j)
-            st (istate,org_j) = st (istate,org_j) + s2*dav_ut(istate,org_i)
+            vt (istate,org_i) += hij*dav_ut(istate,org_j)
+            st (istate,org_i) += s2*dav_ut(istate,org_j)
+            vt (istate,org_j) += hij*dav_ut(istate,org_i)
+            st (istate,org_j) += s2*dav_ut(istate,org_i)
           enddo
         endif
       enddo
@@ -71,7 +83,7 @@ subroutine davidson_process(block, N, idx, vt, st)
   
   N = 0
   do i=1, dav_size
-    if(vt(1, i) /= 0d0 .or. st(1, i) /= 0d0) then
+    if(wrotten(i)) then
       N = N+1
       do istate=1,N_states
         vt (istate,N) = vt (istate,i)
