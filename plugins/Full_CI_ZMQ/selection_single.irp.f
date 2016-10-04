@@ -43,7 +43,6 @@ subroutine select_singles(i_gen,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf
     do i=1, N_holes(sp)
       h1 = hole_list(i,sp)
       call apply_hole(psi_det_generators(1,1,i_gen), sp, h1, mask, ok, N_int)
-      !call assert(ok, irp_here)
       bannedOrb = .true.
       do j=1,N_particles(sp)
         bannedOrb(particle_list(j, sp)) = .false.
@@ -183,7 +182,6 @@ subroutine get_m2(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
       p2 = p(turn3_2(2,i), sp)
       hij = integral8(p1, p2, h1, h2) - integral8(p2, p1, h1, h2)
       hij *= get_phase_bi(phasemask, sp, sp, h1, p1, h2, p2)
-      !call debug_hij_mo(hij, gen, mask, sp, puti)
       vect(:, puti) += hij * coefs
     end do
   else if(h(0,sp) == 1) then
@@ -197,7 +195,6 @@ subroutine get_m2(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
       pmob = p(turn2(j), sp)
       hij = integral8(pfix, pmob, hfix, hmob)
       hij *= get_phase_bi(phasemask, sp, sfix, hmob, pmob, hfix, pfix)
-      !call debug_hij_mo(hij, gen, mask, sp, puti)
       vect(:, puti) += hij * coefs
     end do
   else
@@ -210,7 +207,6 @@ subroutine get_m2(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
       h2 = h(2,sfix)
       hij = (integral8(p1,p2,h1,h2) - integral8(p2,p1,h1,h2))
       hij *= get_phase_bi(phasemask, sfix, sfix, h1, p1, h2, p2)
-      !call debug_hij_mo(hij, gen, mask, sp, puti)
       vect(:, puti) += hij * coefs
     end if
   end if
@@ -252,19 +248,16 @@ subroutine get_m1(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
       if(lbanned(i)) cycle
       hij = (integral8(p1, p2, i, hole) - integral8(p2, p1, i, hole))
       hij *= get_phase_bi(phasemask, sp, sp, i, p1, hole, p2)
-      !call debug_hij_mo(hij, gen, mask, sp, i)
       vect(:,i) += hij * coefs
     end do
     do i=hole+1,mo_tot_num
       if(lbanned(i)) cycle
       hij = (integral8(p1, p2, hole, i) - integral8(p2, p1, hole, i))
       hij *= get_phase_bi(phasemask, sp, sp, hole, p1, i, p2)
-      !call  debug_hij_mo(hij, gen, mask, sp, i)
       vect(:,i) += hij * coefs
     end do
 
     call apply_particle(mask, sp, p2, det, ok,  N_int)
-    !call assert(ok, "OKE223")
     call i_h_j(gen, det, N_int, hij)
     vect(:, p2) += hij * coefs
   else
@@ -273,17 +266,13 @@ subroutine get_m1(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
       if(lbanned(i)) cycle
       hij = integral8(p1, p2, i, hole)
       hij *= get_phase_bi(phasemask, sp, sh, i, p1, hole, p2)
-      !call debug_hij_mo(hij, gen, mask, sp, i)
       vect(:,i) += hij * coefs
     end do
   end if
 
   call apply_particle(mask, sp, p1, det, ok,  N_int)
-  !call assert(ok, "OKQQE2")
   call i_h_j(gen, det, N_int, hij)
   vect(:, p1) += hij * coefs
-
-  !print *, "endouille"
 end subroutine
 
 
@@ -307,7 +296,6 @@ subroutine get_m0(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   do i=1,mo_tot_num
     if(lbanned(i)) cycle
     call apply_particle(mask, sp, i, det, ok, N_int)
-    !call assert(ok, "qsdo")
     call i_h_j(gen, det, N_int, hij)
     vect(:, i) += hij * coefs
   end do
@@ -379,8 +367,6 @@ subroutine debug_hij_mo(hij, gen, mask, s1, p1)
   logical, external :: detEq
   
   call apply_particle(mask, s1, p1, det, ok, N_int)
-  !call assert(ok, "nokey_mo")
-  !call assert(.not. detEq(det, gen, N_int), "Hii ...")
   call i_H_j_phase_out(gen,det,N_int,hij_ref,phase_ref,exc,degree)
   if(hij /= hij_ref) then
     print *, hij, hij_ref

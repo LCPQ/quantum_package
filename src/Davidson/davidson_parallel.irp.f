@@ -19,7 +19,6 @@ subroutine davidson_process(block, N, idx, vt, st)
   integer(bit_kind) :: sorted_i(N_int)
   double precision :: s2, hij
   
-!   print *, "processing block", block, "/", shortcut_(0,1)
   vt = 0d0
   st = 0d0
   
@@ -81,7 +80,6 @@ subroutine davidson_process(block, N, idx, vt, st)
       enddo
     end if
   end do
-!   print *, "done processing block", block, "/", shortcut_(0,1)
 end subroutine
 
 
