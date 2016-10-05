@@ -43,14 +43,12 @@ subroutine select_singles(i_gen,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf
     do i=1, N_holes(sp)
       h1 = hole_list(i,sp)
       call apply_hole(psi_det_generators(1,1,i_gen), sp, h1, mask, ok, N_int)
-      !call assert(ok, irp_here)
       bannedOrb = .true.
       do j=1,N_particles(sp)
         bannedOrb(particle_list(j, sp)) = .false.
       end do
       call spot_hasBeen(mask, sp, psi_det_sorted, i_gen, N_det, bannedOrb, fullMatch)
       if(fullMatch) cycle
-      call spot_occupied(mask(1,sp), bannedOrb)
       vect = 0d0
       call splash_p(mask, sp, psi_selectors(1,1,i_gen), psi_phasemask(1,1,i_gen), psi_selectors_coef_transp(1,i_gen), N_det_selectors - i_gen + 1, bannedOrb, vect)
       call fill_buffer_single(i_gen, sp, h1, bannedOrb, fock_diag_tmp, E0, pt2, vect, buf)
@@ -72,12 +70,11 @@ subroutine fill_buffer_single(i_generator, sp, h1, bannedOrb, fock_diag_tmp, E0,
   double precision, intent(inout) :: pt2(N_states)
   type(selection_buffer), intent(inout) :: buf
   logical :: ok
-  integer :: s1, s2, p1, p2, ib
+  integer :: s1, s2, p1, p2, ib, istate
   integer(bit_kind) :: mask(N_int, 2), det(N_int, 2)
-  double precision :: e_pert, delta_E, val, Hii
+  double precision :: e_pert, delta_E, val, Hii, max_e_pert
   double precision, external :: diag_H_mat_elem_fock
   
-  if(N_states > 1) stop "fill_buffer_single N_states > 1"
   
   call apply_hole(psi_det_generators(1,1,i_generator), sp, h1, mask, ok, N_int)
   
@@ -85,18 +82,24 @@ subroutine fill_buffer_single(i_generator, sp, h1, bannedOrb, fock_diag_tmp, E0,
     if(bannedOrb(p1)) cycle
     if(vect(1, p1) == 0d0) cycle
     call apply_particle(mask, sp, p1, det, ok, N_int)
-    val = vect(1, p1)
+    
     
     Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),det,fock_diag_tmp,N_int)
+    max_e_pert = 0d0
     
-    delta_E = E0(1) - Hii
-    if (delta_E < 0.d0) then
-      e_pert = 0.5d0 * (-dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
-    else
-      e_pert = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
-    endif
-    pt2(1) += e_pert
-    if(dabs(e_pert) > buf%mini) call add_to_selection_buffer(buf, det, e_pert)
+    do istate=1,N_states
+      val = vect(istate, p1)
+      delta_E = E0(istate) - Hii
+      if (delta_E < 0.d0) then
+        e_pert = 0.5d0 * (-dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
+      else
+        e_pert = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
+      endif
+      pt2(istate) += e_pert
+      if(dabs(e_pert) > dabs(max_e_pert)) max_e_pert = e_pert
+    end do
+    
+    if(dabs(max_e_pert) > buf%mini) call add_to_selection_buffer(buf, det, max_e_pert)
   end do
 end subroutine
 
@@ -179,7 +182,6 @@ subroutine get_m2(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
       p2 = p(turn3_2(2,i), sp)
       hij = integral8(p1, p2, h1, h2) - integral8(p2, p1, h1, h2)
       hij *= get_phase_bi(phasemask, sp, sp, h1, p1, h2, p2)
-      !call debug_hij_mo(hij, gen, mask, sp, puti)
       vect(:, puti) += hij * coefs
     end do
   else if(h(0,sp) == 1) then
@@ -193,7 +195,6 @@ subroutine get_m2(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
       pmob = p(turn2(j), sp)
       hij = integral8(pfix, pmob, hfix, hmob)
       hij *= get_phase_bi(phasemask, sp, sfix, hmob, pmob, hfix, pfix)
-      !call debug_hij_mo(hij, gen, mask, sp, puti)
       vect(:, puti) += hij * coefs
     end do
   else
@@ -206,7 +207,6 @@ subroutine get_m2(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
       h2 = h(2,sfix)
       hij = (integral8(p1,p2,h1,h2) - integral8(p2,p1,h1,h2))
       hij *= get_phase_bi(phasemask, sfix, sfix, h1, p1, h2, p2)
-      !call debug_hij_mo(hij, gen, mask, sp, puti)
       vect(:, puti) += hij * coefs
     end if
   end if
@@ -248,19 +248,16 @@ subroutine get_m1(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
       if(lbanned(i)) cycle
       hij = (integral8(p1, p2, i, hole) - integral8(p2, p1, i, hole))
       hij *= get_phase_bi(phasemask, sp, sp, i, p1, hole, p2)
-      !call debug_hij_mo(hij, gen, mask, sp, i)
       vect(:,i) += hij * coefs
     end do
     do i=hole+1,mo_tot_num
       if(lbanned(i)) cycle
       hij = (integral8(p1, p2, hole, i) - integral8(p2, p1, hole, i))
       hij *= get_phase_bi(phasemask, sp, sp, hole, p1, i, p2)
-      !call  debug_hij_mo(hij, gen, mask, sp, i)
       vect(:,i) += hij * coefs
     end do
 
     call apply_particle(mask, sp, p2, det, ok,  N_int)
-    !call assert(ok, "OKE223")
     call i_h_j(gen, det, N_int, hij)
     vect(:, p2) += hij * coefs
   else
@@ -269,17 +266,13 @@ subroutine get_m1(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
       if(lbanned(i)) cycle
       hij = integral8(p1, p2, i, hole)
       hij *= get_phase_bi(phasemask, sp, sh, i, p1, hole, p2)
-      !call debug_hij_mo(hij, gen, mask, sp, i)
       vect(:,i) += hij * coefs
     end do
   end if
 
   call apply_particle(mask, sp, p1, det, ok,  N_int)
-  !call assert(ok, "OKQQE2")
   call i_h_j(gen, det, N_int, hij)
   vect(:, p1) += hij * coefs
-
-  !print *, "endouille"
 end subroutine
 
 
@@ -303,7 +296,6 @@ subroutine get_m0(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   do i=1,mo_tot_num
     if(lbanned(i)) cycle
     call apply_particle(mask, sp, i, det, ok, N_int)
-    !call assert(ok, "qsdo")
     call i_h_j(gen, det, N_int, hij)
     vect(:, i) += hij * coefs
   end do
@@ -359,32 +351,4 @@ subroutine spot_hasBeen(mask, sp, det, i_gen, N, banned, fullMatch)
 end subroutine
 
 
-
-subroutine debug_hij_mo(hij, gen, mask, s1, p1)
-  use bitmasks
-  implicit none
-
-  integer(bit_kind), intent(in) :: gen(N_int,2), mask(N_int,2)
-  double precision, intent(in) :: hij
-  integer, intent(in) :: s1, p1
-  integer(bit_kind) :: det(N_int,2)
-  double precision :: hij_ref, phase_ref
-  logical :: ok
-  integer :: degree
-  integer :: exc(0:2,2,2)
-  logical, external :: detEq
-  
-  call apply_particle(mask, s1, p1, det, ok, N_int)
-  !call assert(ok, "nokey_mo")
-  !call assert(.not. detEq(det, gen, N_int), "Hii ...")
-  call i_H_j_phase_out(gen,det,N_int,hij_ref,phase_ref,exc,degree)
-  if(hij /= hij_ref) then
-    print *, hij, hij_ref
-    print *, s1, p1
-    call debug_det(gen, N_int)
-    call debug_det(mask, N_int)
-    call debug_det(det, N_int)
-    stop
-    end if
-end function
 
