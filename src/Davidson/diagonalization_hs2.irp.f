@@ -269,7 +269,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       if (s2_eig) then
         logical :: state_ok(N_st_diag*davidson_sze_max)
         do k=1,shift2
-          state_ok(k) = (dabs(s2(k)-expected_s2) < 0.3d0)
+          state_ok(k) = (dabs(s2(k)-expected_s2) < 0.6d0)
         enddo
         do k=1,shift2
           if (.not. state_ok(k)) then
