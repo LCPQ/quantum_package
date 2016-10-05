@@ -238,6 +238,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
     
   dav_size = n
+  touch dav_size
   dav_det = psi_det
   dav_ut = ut
   
