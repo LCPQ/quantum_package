@@ -587,6 +587,7 @@ end subroutine
   N_ex_exists = 0
 
   n = 0
+  !TODO Openmp
   do i=1, N_det_ref
     do l=1, N_det_non_ref
       call get_excitation(psi_ref(1,1,i), psi_non_ref(1,1,l), exc, degree, phase, N_int)
