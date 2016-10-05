@@ -17,8 +17,11 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   logical                         :: fullMatch, ok
   
   integer(bit_kind) :: mobMask(N_int, 2), negMask(N_int, 2)
-  integer                         :: preinteresting(0:N_det_selectors), interesting(0:N_det_selectors)
-  integer(bit_kind) :: minilist(N_int, 2, N_det_selectors)
+  integer,allocatable               :: preinteresting(:), prefullinteresting(:), interesting(:), fullinteresting(:)
+  integer(bit_kind), allocatable :: minilist(:, :, :), fullminilist(:, :, :)
+  
+  allocate(minilist(N_int, 2, N_det_selectors), fullminilist(N_int, 2, N_det))
+  allocate(preinteresting(0:N_det_selectors), prefullinteresting(0:N_det), interesting(0:N_det_selectors), fullinteresting(0:N_det))
   
   do k=1,N_int
     hole    (k,1) = iand(psi_det_generators(k,1,i_generator), hole_mask(k,1))
@@ -35,13 +38,15 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   call bitstring_to_list_ab(particle, particle_list, N_particles, N_int)
 
   
+  preinteresting(0) = 0
+  prefullinteresting(0) = 0
+  
   do i=1,N_int
     negMask(i,1) = not(psi_det_generators(i,1,i_generator))
     negMask(i,2) = not(psi_det_generators(i,2,i_generator))
   end do
   
-  preinteresting(0) = 0
-  do i=1,N_det_selectors
+  do i=1,N_det
     nt = 0
     do j=1,N_int
       mobMask(j,1) = iand(negMask(j,1), psi_det_sorted(j,1,i))
@@ -50,55 +55,85 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
     end do
 
     if(nt <= 4) then
-      preinteresting(0) += 1
-      preinteresting(preinteresting(0)) = i
+      if(i <= N_det_selectors) then
+        preinteresting(0) += 1
+        preinteresting(preinteresting(0)) = i
+      else if(nt <= 2) then
+        prefullinteresting(0) += 1
+        prefullinteresting(prefullinteresting(0)) = i
+      end if
     end if
   end do
-        
+  
         
   do s1=1,2
-    do s2=s1,2
-      sp = s1
-      if(s1 /= s2) sp = 3
-      do i1=N_holes(s1),1,-1   ! Generate low excitations first
-        h1 = hole_list(i1,s1)
-        call apply_hole(psi_det_generators(1,1,i_generator), s1,h1, pmask, ok, N_int)
-        
-        
-        do i=1,N_int
-          negMask(i,1) = not(pmask(i,1))
-          negMask(i,2) = not(pmask(i,2))
+    do i1=N_holes(s1),1,-1   ! Generate low excitations first
+      h1 = hole_list(i1,s1)
+      call apply_hole(psi_det_generators(1,1,i_generator), s1,h1, pmask, ok, N_int)
+      
+      do i=1,N_int
+        negMask(i,1) = not(pmask(i,1))
+        negMask(i,2) = not(pmask(i,2))
+      end do
+      
+      interesting(0) = 0
+      fullinteresting(0) = 0
+      
+      do ii=1,preinteresting(0)
+        i = preinteresting(ii)
+        nt = 0
+        do j=1,N_int
+          mobMask(j,1) = iand(negMask(j,1), psi_det_sorted(j,1,i))
+          mobMask(j,2) = iand(negMask(j,2), psi_det_sorted(j,2,i))
+          nt += popcnt(mobMask(j, 1)) + popcnt(mobMask(j, 2))
         end do
         
-        interesting(0) = 0
-        do ii=1,preinteresting(0)
-          i = preinteresting(ii)
-          nt = 0
-          do j=1,N_int
-            mobMask(j,1) = iand(negMask(j,1), psi_det_sorted(j,1,i))
-            mobMask(j,2) = iand(negMask(j,2), psi_det_sorted(j,2,i))
-            nt += popcnt(mobMask(j, 1)) + popcnt(mobMask(j, 2))
-          end do
-
-          if(nt <= 4) then
-            interesting(0) += 1
-            interesting(interesting(0)) = i
-            minilist(:,:,interesting(0)) = psi_det_sorted(:,:,i)
+        if(nt <= 4) then
+          interesting(0) += 1
+          interesting(interesting(0)) = i
+          minilist(:,:,interesting(0)) = psi_det_sorted(:,:,i)
+          if(nt <= 2) then
+            fullinteresting(0) += 1
+            fullinteresting(fullinteresting(0)) = i
+            fullminilist(:,:,fullinteresting(0)) = psi_det_sorted(:,:,i)
           end if
+        end if
+      end do
+      
+      do ii=1,prefullinteresting(0)
+        i = prefullinteresting(ii)
+        nt = 0
+        do j=1,N_int
+          mobMask(j,1) = iand(negMask(j,1), psi_det_sorted(j,1,i))
+          mobMask(j,2) = iand(negMask(j,2), psi_det_sorted(j,2,i))
+          nt += popcnt(mobMask(j, 1)) + popcnt(mobMask(j, 2))
         end do
+
+        if(nt <= 2) then
+          fullinteresting(0) += 1
+          fullinteresting(fullinteresting(0)) = i
+          fullminilist(:,:,fullinteresting(0)) = psi_det_sorted(:,:,i)
+        end if
+      end do
+      
+      do s2=s1,2
+        sp = s1
+        if(s1 /= s2) sp = 3
+        
         ib = 1
         if(s1 == s2) ib = i1+1
         do i2=N_holes(s2),ib,-1   ! Generate low excitations first
           
           h2 = hole_list(i2,s2)
           call apply_hole(pmask, s2,h2, mask, ok, N_int)
-!           call apply_holes(psi_det_generators(1,1,i_generator), s1,h1,s2,h2, mask, ok, N_int)
           
           logical                        :: banned(mo_tot_num, mo_tot_num,2)
           logical                        :: bannedOrb(mo_tot_num, 2)
           
           banned = .false.
-          call spot_isinwf(mask, psi_det_sorted, i_generator, N_det, banned, fullMatch)
+          
+          call spot_isinwf(mask, fullminilist, i_generator, fullinteresting(0), banned, fullMatch, fullinteresting)
+          
           if(fullMatch) cycle
           
           bannedOrb(1:mo_tot_num, 1:2) = .true.
@@ -109,7 +144,6 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
           enddo
              
           mat = 0d0
-!           call splash_pq(mask, sp, psi_det_sorted, i_generator, N_det_selectors, bannedOrb, banned, mat, interesting)
           call splash_pq(mask, sp, minilist, i_generator, interesting(0), bannedOrb, banned, mat, interesting)
           call fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_diag_tmp, E0, pt2, mat, buf)
         enddo
@@ -647,10 +681,11 @@ end subroutine
 
 
 
-subroutine spot_isinwf(mask, det, i_gen, N, banned, fullMatch)
+subroutine spot_isinwf(mask, det, i_gen, N, banned, fullMatch, interesting)
   use bitmasks
   implicit none
   
+  integer, intent(in) :: interesting(0:N)
   integer(bit_kind),intent(in) :: mask(N_int, 2), det(N_int, 2, N)
   integer, intent(in) :: i_gen, N
   logical, intent(inout) :: banned(mo_tot_num, mo_tot_num)
@@ -673,7 +708,7 @@ subroutine spot_isinwf(mask, det, i_gen, N, banned, fullMatch)
       if(iand(det(j,2,i), mask(j,2)) /= mask(j, 2)) cycle genl
     end do
 
-    if(i < i_gen) then
+    if(interesting(i) < i_gen) then
       fullMatch = .true.
       return
     end if

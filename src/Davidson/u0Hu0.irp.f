@@ -213,7 +213,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   
   integer(ZMQ_PTR) :: handler
   
-  if(N_st /= N_states .or. sze_8 /= N_det) stop "SPEP"
+  if(N_st /= N_states .or. sze_8 < N_det) stop "assert fail in H_S2_u_0_nstates"
   N_st_8 = N_st !! align_double(N_st)
 
   ASSERT (Nint > 0)
@@ -254,50 +254,6 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   allocate(vt(N_st_8,n),st(N_st_8,n))
   Vt = 0.d0
   St = 0.d0
-  
-! !   !$OMP DO SCHEDULE(dynamic)
-! !   do sh=1,shortcut(0,1)
-! !     do sh2=sh,shortcut(0,1)
-! !       exa = 0
-! !       do ni=1,Nint
-! !         exa = exa + popcnt(xor(version(ni,sh,1), version(ni,sh2,1)))
-! !       end do
-! !       if(exa > 2) then
-! !         cycle
-! !       end if
-! !       
-! !       do i=shortcut(sh,1),shortcut(sh+1,1)-1
-! !         org_i = sort_idx(i,1)
-! !         if(sh==sh2) then
-! !           endi = i-1
-! !         else
-! !           endi = shortcut(sh2+1,1)-1
-! !         end if
-! !         do ni=1,Nint
-! !           sorted_i(ni) = sorted(ni,i,1)
-! !         enddo
-! !         
-! !         do j=shortcut(sh2,1),endi
-! !           org_j = sort_idx(j,1)
-! !           ext = exa
-! !           do ni=1,Nint
-! !             ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
-! !           end do
-! !           if(ext <= 4) then
-! !             call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
-! !             call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2) 
-! !             do istate=1,n_st
-! !               vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,org_j)
-! !               vt (istate,org_j) = vt (istate,org_j) + hij*ut(istate,org_i)
-! !               st (istate,org_i) = st (istate,org_i) + s2*ut(istate,org_j)
-! !               st (istate,org_j) = st (istate,org_j) + s2*ut(istate,org_i)
-! !             enddo
-! !           endif
-! !         enddo
-! !       enddo
-! !     enddo
-! !   enddo
-! !   !$OMP END DO NOWAIT
   
   !$OMP DO SCHEDULE(dynamic)
   do sh=1,shortcut(0,2)

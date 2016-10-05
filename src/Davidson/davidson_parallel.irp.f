@@ -19,16 +19,9 @@ subroutine davidson_process(block, N, idx, vt, st)
   integer(bit_kind) :: sorted_i(N_int)
   double precision :: s2, hij
   logical :: wrotten(dav_size)
+  
+  
   wrotten = .false.
-  
-!   vt = 0d0
-!   st = 0d0
-  
-  N = dav_size
-  do i=1,N
-    idx(i) = i
-  end do
-  
   sh = block
   
   do sh2=1,sh
