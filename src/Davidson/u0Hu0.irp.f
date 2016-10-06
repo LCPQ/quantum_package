@@ -249,7 +249,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   call davidson_init(handler)
   do sh=shortcut(0,1),1,-1
     workload += (shortcut(sh+1,1) - shortcut(sh,1))**2
-    if(workload > 1000) then
+    if(workload > 10000) then
       blocke = sh
       call davidson_add_task(handler, blocke, blockb)
       blockb = sh-1

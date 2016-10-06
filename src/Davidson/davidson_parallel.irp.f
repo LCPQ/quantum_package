@@ -18,9 +18,9 @@ subroutine davidson_process(blockb, blocke, N, idx, vt, st)
   integer :: i, j, sh, sh2, exa, ext, org_i, org_j, istate, ni, endi
   integer(bit_kind) :: sorted_i(N_int)
   double precision :: s2, hij
-  logical :: wrotten(dav_size)
+  logical, allocatable :: wrotten(:)
   
-  
+  allocate(wrotten(dav_size))
   wrotten = .false.
 
   do sh = blockb, blocke
@@ -51,7 +51,7 @@ subroutine davidson_process(blockb, blocke, N, idx, vt, st)
           ext = ext + popcnt(xor(sorted_i(ni), sorted_(ni,j,1)))
         end do
         if(ext <= 4) then
-          call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij) ! psi_det
+          call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij)
           call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2) 
           if(.not. wrotten(org_i)) then
             wrotten(org_i) = .true.
@@ -116,7 +116,7 @@ subroutine davidson_init(zmq_to_qp_run_socket)
   use f77_zmq
   implicit none
   
-  integer(ZMQ_PTR), intent(out) :: zmq_to_qp_run_socket ! zmq_to_qp_run_socket
+  integer(ZMQ_PTR), intent(out) :: zmq_to_qp_run_socket
   
   touch dav_size dav_det dav_ut
   call new_parallel_job(zmq_to_qp_run_socket,"davidson")
@@ -184,8 +184,6 @@ subroutine davidson_run_slave(thread,iproc)
   end if
   
   call davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, worker_id)
-!   print *, "done slavin'"
-  !call sleep(1)
   call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
@@ -444,7 +442,6 @@ subroutine davidson_miniserver_end()
   rc = f77_zmq_recv(requester, buf, 3, 0)
   rc = f77_zmq_close(requester)
   rc = f77_zmq_ctx_destroy(context)
-!   print *, "closed miniserver"
 end subroutine
 
   

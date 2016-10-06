@@ -473,26 +473,6 @@ subroutine end_zmq_push_socket(zmq_socket_push,thread)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
-  if (thread == 1) then
-    rc = f77_zmq_disconnect(zmq_socket_push,zmq_socket_push_inproc_address)
-!    if (rc /= 0) then
-!      print *,  'f77_zmq_disconnect(zmq_socket_push,zmq_socket_push_inproc_address)'
-!      stop 'error'
-!    endif
-  else
-    rc = f77_zmq_disconnect(zmq_socket_push,zmq_socket_push_tcp_address)
-    if (rc /= 0) then
-      print *,  'f77_zmq_disconnect(zmq_socket_push,zmq_socket_push_tcp_address)'
-      stop 'error'
-    endif
-  endif
-
-  
-!  rc = f77_zmq_setsockopt(zmq_socket_push,ZMQ_LINGER,20000,4)
-!  if (rc /= 0) then
-!    stop 'Unable to set ZMQ_LINGER on push socket'
-!  endif
-
   rc = f77_zmq_close(zmq_socket_push)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_push)'
