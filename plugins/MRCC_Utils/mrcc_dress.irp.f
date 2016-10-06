@@ -53,7 +53,6 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
   integer :: mobiles(2), smallerlist
   logical, external :: is_generable
   
-  print *, i_generator
   leng = max(N_det_generators, N_det_non_ref)
   allocate(miniList(Nint, 2, leng), idx_minilist(leng), hij_cache(N_det_non_ref))
   

@@ -156,12 +156,19 @@ double precision function dble_fact_even(n) result(fact2)
   ! n!!
   END_DOC
   integer                        :: n,k
-  double precision, save         :: memo(1:100)
-  integer, save                  :: memomax = 2
+  double precision, save         :: memo(0:100)
+  integer, save                  :: memomax = 0
   double precision               :: prod
 
   ASSERT (iand(n,1) /= 1)
 
+!  prod=1.d0
+!  do k=2,n,2
+!   prod=prod*dfloat(k)
+!  enddo
+!  fact2=prod
+!  return
+!
   if (n <= memomax) then
     if (n < 2) then
       fact2 = 1.d0
@@ -172,6 +179,7 @@ double precision function dble_fact_even(n) result(fact2)
   endif
 
   integer                        :: i
+  memo(0)=1.d0
   memo(1)=1.d0
   do i=memomax+2,min(n,100),2
     memo(i) = memo(i-2)* dble(i)

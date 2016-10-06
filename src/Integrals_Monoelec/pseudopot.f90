@@ -282,8 +282,7 @@ if(ac.eq.0.d0.and.bc.eq.0.d0)then
     if (prod == 0.d0) cycle
     prodp=bigI(0,0,l,m,n_b(1),n_b(2),n_b(3))
     if (prodp == 0.d0) cycle
-    accu=accu+prod*prodp*v_kl(k,l)*int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),0,0,areal,breal,arg)
-
+     accu=accu+prod*prodp*v_kl(k,l)*int_prod_bessel(ktot+2,g_a+g_b+dz_kl(k,l),0,0,areal,breal,arg)
    enddo
   enddo
  enddo
@@ -1829,13 +1828,15 @@ end
 
 double precision function coef_nk(n,k)
   implicit none
-  integer n,k, ISHFT
+  integer n,k
 
   double precision gam,dble_fact,fact
 
+  if (k<0) stop 'pseudopot.f90 : coef_nk'
+  if (k>63) stop 'pseudopot.f90 : coef_nk'
   gam=dble_fact(n+n+k+k+1)
 !  coef_nk=1.d0/(2.d0**k*fact(k)*gam)
-  coef_nk=1.d0/(dble(ibset(0,k))*fact(k)*gam)
+  coef_nk=1.d0/(dble(ibset(0_8,k))*fact(k)*gam)
   
   return
 
