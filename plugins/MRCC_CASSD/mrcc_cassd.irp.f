@@ -35,10 +35,10 @@ subroutine run(N_st,energy)
     print *,  'MRCC Iteration', iteration
     print *,  '===========================' 
     print *,  ''
-    E_old = sum(ci_energy_dressed)
+    E_old = sum(ci_energy_dressed(1:N_st))
     call write_double(6,ci_energy_dressed(1),"MRCC energy")
     call diagonalize_ci_dressed(lambda)
-    E_new = sum(ci_energy_dressed)
+    E_new = sum(ci_energy_dressed(1:N_st))
     delta_E = dabs(E_new - E_old)
     call save_wavefunction
     call ezfio_set_mrcc_cassd_energy(ci_energy_dressed(1))
@@ -47,7 +47,7 @@ subroutine run(N_st,energy)
     endif
   enddo
   call write_double(6,ci_energy_dressed(1),"Final MRCC energy")
-  energy(:) = ci_energy_dressed(:)
+  energy(1:N_st) = ci_energy_dressed(1:N_st)
 
 end
 

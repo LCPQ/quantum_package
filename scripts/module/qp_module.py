@@ -213,7 +213,7 @@ def main(arguments):
             print "[ OK ]"
             print ""
             print "You can now compile as usual"
-            print "`cd {0} ; ninja` for exemple".format(QP_ROOT)
+            print "`cd {0} ; ninja` for example".format(QP_ROOT)
             print " or --in developement mode-- you can cd in a directory and compile here"
 
     elif arguments["uninstall"]:
