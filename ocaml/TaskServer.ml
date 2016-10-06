@@ -61,7 +61,7 @@ let bind_socket ~socket_type ~socket ~address =
       with
       | Unix.Unix_error _ -> (Time.pause @@ Time.Span.of_float 1. ; loop (i-1) )
       | other_exception -> raise other_exception
-  in loop 10
+  in loop 60
 
 
 let hostname = lazy (
