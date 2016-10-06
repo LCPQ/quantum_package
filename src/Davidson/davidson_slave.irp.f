@@ -36,5 +36,5 @@ program davidson_slave
 end
 
 ! subroutine provide_everything
-!   PROVIDE mo_bielec_integrals_in_map psi_det_sorted_bit N_states zmq_context
+!   PROVIDE mo_bielec_integrals_in_map psi_det_sorted_bit N_states_diag zmq_context
 ! end subroutine
