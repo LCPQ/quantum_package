@@ -547,7 +547,6 @@ let terminate program_state rep_socket =
 
   
 let error msg program_state rep_socket =
-    Printf.printf "%s\n%!" msg;
     Message.Error (Message.Error_msg.create msg)
     |> Message.to_string
     |> ZMQ.Socket.send rep_socket ;

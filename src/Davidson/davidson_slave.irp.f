@@ -8,7 +8,7 @@ program davidson_slave
   double precision :: energy(N_states_diag)
   character*(64) :: state
   
-!   call provide_everything
+  call provide_everything
   call switch_qp_run_to_master
   
   zmq_context = f77_zmq_ctx_new ()
@@ -35,6 +35,6 @@ program davidson_slave
   end do
 end
 
-! subroutine provide_everything
-!   PROVIDE mo_bielec_integrals_in_map psi_det_sorted_bit N_states_diag zmq_context
-! end subroutine
+subroutine provide_everything
+  PROVIDE mo_bielec_integrals_in_map psi_det_sorted_bit N_states_diag zmq_context
+end subroutine

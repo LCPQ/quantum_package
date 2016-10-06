@@ -89,7 +89,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   integer                        :: i,j,k,l,m
   logical                        :: converged
   
-  double precision, allocatable  :: overlap(:,:)
   double precision               :: u_dot_v, u_dot_u
   
   integer, allocatable           :: kl_pairs(:,:)
@@ -144,14 +143,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   integer, external :: align_double
   sze_8 = align_double(sze)
 
-  double precision :: delta
-
-  if (s2_eig) then
-    delta = 1.d0
-  else
-    delta = 0.d0
-  endif
-
   allocate(                                                          &
       kl_pairs(2,N_st_diag*(N_st_diag+1)/2),                         &
       W(sze_8,N_st_diag*davidson_sze_max),                           &
@@ -163,11 +154,20 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       s_(N_st_diag*davidson_sze_max,N_st_diag*davidson_sze_max),     &
       s_tmp(N_st_diag*davidson_sze_max,N_st_diag*davidson_sze_max),  &
       residual_norm(N_st_diag),                                      &
-      overlap(N_st_diag,N_st_diag),                                  &
       c(N_st_diag*davidson_sze_max),                                 &
       s2(N_st_diag*davidson_sze_max),                                &
       lambda(N_st_diag*davidson_sze_max))
   
+  h  = 0.d0
+  s_ = 0.d0
+  s_tmp = 0.d0
+  c = 0.d0
+  U = 0.d0
+  S = 0.d0
+  R = 0.d0
+  y = 0.d0
+
+
   ASSERT (N_st > 0)
   ASSERT (N_st_diag >= N_st)
   ASSERT (sze > 0)
@@ -425,7 +425,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   deallocate (                                                       &
       kl_pairs,                                                      &
       W, residual_norm,                                              &
-      U, overlap,                                                    &
+      U,                                                             &
       R, c, S,                                                       &
       h,                                                             &
       y, s_, s_tmp,                                                  &
