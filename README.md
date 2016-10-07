@@ -7,6 +7,8 @@ Set of quantum chemistry programs and libraries.
 
 For more information, you can visit the [wiki of the project](http://github.com/LCPQ/quantum_package/wiki>), or below for the installation instructions.
 
+[![Frozen-core Full-CI energy of Ti](https://raw.githubusercontent.com/LCPQ/quantum_package/master/data/Titanium.png)](https://raw.githubusercontent.com/LCPQ/quantum_package/master/data/Titanium.png "Convergence of Ti in cc-pv{DTQ}Z")
+
 Demo
 ====
 
@@ -155,7 +157,7 @@ Program exited with code 139.
 
 #### Why ?
 
-It's caused when we call the DGEM routine of LAPACK. 
+It's caused when we call the DGEMM routine of LAPACK. 
 
 ##### Fix
 
