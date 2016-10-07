@@ -5,7 +5,7 @@ use bitmasks
 use f77_zmq
 
 subroutine davidson_process(blockb, blocke, N, idx, vt, st)
-  
+  use f77_zmq 
   implicit none
   
 
@@ -19,12 +19,21 @@ subroutine davidson_process(blockb, blocke, N, idx, vt, st)
   integer(bit_kind) :: sorted_i(N_int)
   double precision :: s2, hij
   logical, allocatable :: wrotten(:)
+  integer, external              :: omp_get_thread_num
   
   allocate(wrotten(dav_size))
   wrotten = .false.
+  provide dav_det dav_ut shortcut_
+  !useless calls not to provide in the parallel section
+  call i_h_j (dav_det(1,1,1),dav_det(1,1,dav_size),n_int,hij)
+  call get_s2(dav_det(1,1,1),dav_det(1,1,dav_size),n_int,s2)
+  !!!!!
 
   do sh = blockb, blocke
-  do sh2=1,sh
+  !$OMP PARALLEL DO default(none) schedule(dynamic) &
+  !$OMP shared(vt, st, wrotten, blockb, blocke, sh, shortcut_, version_, sorted_, sort_idx_, dav_det, dav_ut, N_int, N_states_diag) &
+  !$OMP private(exa, ni, ext, org_i, org_j, sorted_i, endi, hij, s2)
+  do sh2=1,sh 
     exa = 0
     do ni=1,N_int
       exa = exa + popcnt(xor(version_(ni,sh,1), version_(ni,sh2,1)))
@@ -53,6 +62,7 @@ subroutine davidson_process(blockb, blocke, N, idx, vt, st)
         if(ext <= 4) then
           call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij)
           call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2) 
+          !$OMP CRITICAL
           if(.not. wrotten(org_i)) then
             wrotten(org_i) = .true.
             vt (:,org_i) = 0d0
@@ -69,13 +79,18 @@ subroutine davidson_process(blockb, blocke, N, idx, vt, st)
             vt (istate,org_j) += hij*dav_ut(istate,org_i)
             st (istate,org_j) += s2*dav_ut(istate,org_i)
           enddo
+          !$OMP END CRITICAL
         endif
       enddo
     enddo
   enddo
+  !$OMP END PARALLEL DO
   enddo
-  
+   
   do sh=blockb,min(blocke, shortcut_(0,2))
+  !$OMP PARALLEL DO default(none) schedule(dynamic) &
+  !$OMP shared(vt, st, wrotten, blockb, blocke, sh, shortcut_, version_, sorted_, sort_idx_, dav_det, dav_ut, N_int, N_states_diag) &
+  !$OMP private(exa, ni, ext, org_i, org_j, sorted_i, endi, hij, s2)
   do sh2=sh, shortcut_(0,2), shortcut_(0,1)
     do i=shortcut_(sh2,2),shortcut_(sh2+1,2)-1
       org_i = sort_idx_(i,2)
@@ -88,6 +103,7 @@ subroutine davidson_process(blockb, blocke, N, idx, vt, st)
         if(ext == 4) then
          call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij)
          call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2)
+         !$OMP CRITICAL
          if(.not. wrotten(org_i)) then
            wrotten(org_i) = .true.
            vt (:,org_i) = 0d0
@@ -104,10 +120,12 @@ subroutine davidson_process(blockb, blocke, N, idx, vt, st)
            st (istate,org_i) = st (istate,org_i) + s2*dav_ut(istate,org_j)
            st (istate,org_j) = st (istate,org_j) + s2*dav_ut(istate,org_i)
          enddo
+         !$OMP END CRITICAL
         end if
       end do
     end do
   enddo
+  !$OMP END PARALLEL DO
   enddo
 
   N = 0
@@ -120,7 +138,7 @@ subroutine davidson_process(blockb, blocke, N, idx, vt, st)
         idx(N) = i
       enddo
     end if
-  end do
+  end do 
 end subroutine
 
 
@@ -186,6 +204,12 @@ subroutine davidson_slave_inproc(i)
   call davidson_run_slave(1,i)
 end
 
+integer function davidson_slave_inproc_omp()
+  implicit none
+
+  call davidson_run_slave(1,2)
+  davidson_slave_inproc_omp = 0
+end subroutine
 
 subroutine davidson_slave_tcp(i)
   implicit none
@@ -397,41 +421,39 @@ subroutine davidson_run(zmq_to_qp_run_socket , v0, s0)
   integer(ZMQ_PTR)             :: zmq_collector
   integer(ZMQ_PTR), external     :: new_zmq_pull_socket
   integer(ZMQ_PTR)               :: zmq_socket_pull
-  
+  integer(ZMQ_PTR) :: pthread_slave, pthread_miniserver
+
+
   integer :: i
   integer, external              :: omp_get_thread_num
 
   double precision    , intent(inout)     :: v0(dav_size, N_states_diag)
   double precision    , intent(inout)     :: s0(dav_size, N_states_diag)
-  
+  integer, external :: davidson_miniserver_run, davidson_slave_inproc_omp
   call zmq_set_running(zmq_to_qp_run_socket)
   
   zmq_collector = new_zmq_to_qp_run_socket()
   zmq_socket_pull = new_zmq_pull_socket()
-  i = omp_get_thread_num()
   
   
   PROVIDE nproc
   
-  !$OMP PARALLEL DEFAULT(shared) private(i) num_threads(nproc+2)
-    i = omp_get_thread_num()
-    if (i==0) then
-      call davidson_collector(zmq_collector, zmq_socket_pull , v0, s0)
-      call end_zmq_to_qp_run_socket(zmq_collector)
-      call end_zmq_pull_socket(zmq_socket_pull)
-      call davidson_miniserver_end()
-    else if(i==1) then
-      call davidson_miniserver_run()
-    else
-      call davidson_slave_inproc(i)
-    endif
-  !$OMP END PARALLEL
+  
+  i = pthread_create ( pthread_miniserver, davidson_miniserver_run )
+  i = pthread_create ( pthread_slave, davidson_slave_inproc_omp )
+  
+  call davidson_collector(zmq_collector, zmq_socket_pull , v0, s0)
+  call end_zmq_to_qp_run_socket(zmq_collector)
+  call end_zmq_pull_socket(zmq_socket_pull)
+  call davidson_miniserver_end()
+  i = pthread_join(pthread_miniserver)
+  i = pthread_join(pthread_slave)
+
   call end_parallel_job(zmq_to_qp_run_socket, 'davidson')
 end subroutine
 
 
-
-subroutine davidson_miniserver_run()
+integer function davidson_miniserver_run()
   use f77_zmq
   implicit none
   integer(ZMQ_PTR)        responder
@@ -458,6 +480,7 @@ subroutine davidson_miniserver_run()
   enddo
 
   rc = f77_zmq_close(responder)
+  davidson_miniserver_run = 0
 end subroutine
 
 

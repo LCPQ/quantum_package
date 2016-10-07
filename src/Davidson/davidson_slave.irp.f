@@ -20,21 +20,20 @@ program davidson_slave
   do
     call wait_for_state(zmq_state,state)
     if(trim(state) /= "davidson") exit
-    !print *,  'Getting wave function'
-    !call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states_diag)
     call davidson_miniserver_get()
     
     integer :: rc, i
  
     print *,  'Davidson slave running'
  
-    !$OMP PARALLEL PRIVATE(i)
-    i = omp_get_thread_num()
-    call davidson_slave_tcp(i)
-    !$OMP END PARALLEL
+    ! !$OMP PARALLEL PRIVATE(i)
+    !i = omp_get_thread_num()
+    call davidson_slave_tcp(0)
+    !!$OMP END PARALLEL
   end do
 end
 
 subroutine provide_everything
   PROVIDE mo_bielec_integrals_in_map psi_det_sorted_bit N_states_diag zmq_context
 end subroutine
+
