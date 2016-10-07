@@ -17,8 +17,8 @@ subroutine run(N_st,energy)
   
 
   
-  thresh_mrcc = 1d-7
-  n_it_mrcc_max = 10
+  thresh_mrcc = thresh_dressed_ci
+  n_it_mrcc_max = n_it_max_dressed_ci
 
   if(n_it_mrcc_max == 1) then
     do j=1,N_states_diag
@@ -48,8 +48,8 @@ subroutine run(N_st,energy)
       E_new = sum(ci_energy_dressed)
       delta_E = dabs(E_new - E_old)
       call save_wavefunction
-      call ezfio_set_mrcc_cassd_energy(ci_energy_dressed(1))
-      if (iteration > n_it_mrcc_max) then
+      call ezfio_set_mrcepa0_energy(ci_energy_dressed(1))
+      if (iteration >= n_it_mrcc_max) then
         exit
       endif
     enddo
@@ -184,7 +184,7 @@ subroutine run_pt2_old(N_st,energy)
   print *,  '-----' 
  
 
-!  call ezfio_set_full_ci_energy_pt2(energy+pt2)
+  call ezfio_set_mrcepa0_energy_pt2(energy(1)+pt2(1))
 
 end 
 
@@ -237,6 +237,8 @@ subroutine run_pt2(N_st,energy)
   print *,  'E        = ', energy 
   print *,  'E+PT2    = ', energy+pt2 
   print *,  '-----' 
+
+  call ezfio_set_mrcepa0_energy_pt2(energy(1)+pt2(1))
 
 end 
 

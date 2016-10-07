@@ -15,11 +15,10 @@ subroutine routine
   call diagonalize_CI
   call test_hcc
   call test_mulliken
-! call SC2_1h1p(psi_det,psi_coef,energies, &
-!       diag_H_elements,size(psi_coef,1),N_det,N_states_diag,N_int,threshold_convergence_SC2)
   allocate(H_matrix(N_det,N_det))
-  call SC2_1h1p_full(psi_det,psi_coef,energies, &
-        H_matrix,size(psi_coef,1),N_det,N_states_diag,N_int,threshold_convergence_SC2)
+  stop 'SC2_1h1p_full is not in the git!'
+!  call SC2_1h1p_full(psi_det,psi_coef,energies, &
+!        H_matrix,size(psi_coef,1),N_det,N_states_diag,N_int,threshold_convergence_SC2)
   deallocate(H_matrix)
   integer :: i,j
   double precision :: accu,coef_hf
