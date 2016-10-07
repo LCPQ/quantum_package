@@ -74,6 +74,41 @@ subroutine davidson_process(blockb, blocke, N, idx, vt, st)
     enddo
   enddo
   enddo
+  
+  do sh=blockb,min(blocke, shortcut_(0,2))
+  do sh2=sh, shortcut_(0,2), shortcut_(0,1)
+    do i=shortcut_(sh2,2),shortcut_(sh2+1,2)-1
+      org_i = sort_idx_(i,2)
+      do j=shortcut_(sh2,2),i-1
+        org_j = sort_idx_(j,2)
+        ext = 0
+        do ni=1,N_int
+          ext = ext + popcnt(xor(sorted_(ni,i,2), sorted_(ni,j,2)))
+        end do
+        if(ext == 4) then
+         call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij)
+         call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2)
+         if(.not. wrotten(org_i)) then
+           wrotten(org_i) = .true.
+           vt (:,org_i) = 0d0
+           st (:,org_i) = 0d0
+         end if
+         if(.not. wrotten(org_j)) then
+           wrotten(org_j) = .true.
+           vt (:,org_j) = 0d0
+           st (:,org_j) = 0d0
+         end if
+         do istate=1,N_states_diag
+           vt (istate,org_i) = vt (istate,org_i) + hij*dav_ut(istate,org_j)
+           vt (istate,org_j) = vt (istate,org_j) + hij*dav_ut(istate,org_i)
+           st (istate,org_i) = st (istate,org_i) + s2*dav_ut(istate,org_j)
+           st (istate,org_j) = st (istate,org_j) + s2*dav_ut(istate,org_i)
+         enddo
+        end if
+      end do
+    end do
+  enddo
+  enddo
 
   N = 0
   do i=1, dav_size

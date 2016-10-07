@@ -196,7 +196,6 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   double precision, intent(in)   :: H_jj(n), S2_jj(n)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   double precision               :: hij,s2 
-  double precision, allocatable  :: vt(:,:), st(:,:)
   double precision, allocatable  :: ut(:,:)
   integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0
@@ -210,7 +209,6 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   
   integer, external              :: align_double
   integer :: workload, blockb, blocke
-  !!!DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut
   
   integer(ZMQ_PTR) :: handler
   
@@ -235,8 +233,8 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
       ut(istate,i) =  u_0(i,istate)
     enddo
   enddo
-  call sort_dets_ab_v(keys_tmp, sorted(1,1,1), sort_idx(1,1), shortcut(0,1), version(1,1,1), n, Nint)
-  call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
+   call sort_dets_ab_v(keys_tmp, sorted(1,1,1), sort_idx(1,1), shortcut(0,1), version(1,1,1), n, Nint)
+   call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
     
   dav_size = n
   touch dav_size
@@ -260,50 +258,6 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   if(blockb > 0) call davidson_add_task(handler, 1, blockb)
   call davidson_run(handler, v_0, s_0)
 
-  !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(i,hij,s2,j,k,jj,vt,st,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i,istate)&
-      !$OMP SHARED(n,keys_tmp,ut,Nint,v_0,s_0,sorted,shortcut,sort_idx,version,N_st,N_st_8)
-
-  allocate(vt(N_st_8,n),st(N_st_8,n))
-  Vt = 0.d0
-  St = 0.d0
-  
-  !$OMP DO SCHEDULE(dynamic)
-  do sh=1,shortcut(0,2)
-    do i=shortcut(sh,2),shortcut(sh+1,2)-1
-      org_i = sort_idx(i,2)
-      do j=shortcut(sh,2),i-1
-        org_j = sort_idx(j,2)
-        ext = 0
-        do ni=1,Nint
-          ext = ext + popcnt(xor(sorted(ni,i,2), sorted(ni,j,2)))
-        end do
-        if(ext == 4) then
-            call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
-            call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2) 
-            do istate=1,n_st
-              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,org_j)
-              vt (istate,org_j) = vt (istate,org_j) + hij*ut(istate,org_i)
-              st (istate,org_i) = st (istate,org_i) + s2*ut(istate,org_j)
-              st (istate,org_j) = st (istate,org_j) + s2*ut(istate,org_i)
-            enddo
-        end if
-      end do
-    end do
-  enddo
-  !$OMP END DO NOWAIT
-  
-  !$OMP CRITICAL
-  do istate=1,N_st
-    do i=n,1,-1
-      v_0(i,istate) = v_0(i,istate) + vt(istate,i)
-      s_0(i,istate) = s_0(i,istate) + st(istate,i)
-    enddo
-  enddo
-  !$OMP END CRITICAL
-
-  deallocate(vt,st)
-  !$OMP END PARALLEL
   
   do istate=1,N_st
     do i=1,n
@@ -311,7 +265,5 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
       s_0(i,istate) = s_0(i,istate) + s2_jj(i)* u_0(i,istate)
     enddo
   enddo
-
-  deallocate (shortcut, sort_idx, sorted, version)
 end
 
