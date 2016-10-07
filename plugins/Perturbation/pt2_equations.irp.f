@@ -345,6 +345,37 @@ subroutine pt2_epstein_nesbet_sc2 ($arguments)
   
 end
 
+subroutine pt2_dummy ($arguments)
+  use bitmasks
+  implicit none
+  $declarations
+  
+  BEGIN_DOC
+  ! Dummy perturbation to add all connected determinants.
+  END_DOC
+  
+  integer                        :: i,j
+  double precision               :: diag_H_mat_elem_fock, h
+  double precision               :: i_H_psi_array(N_st)
+  PROVIDE  selection_criterion
+
+  call i_H_psi_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
+  
+  h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
+  do i =1,N_st
+    if (i_H_psi_array(i) /= 0.d0) then
+     c_pert(i) = i_H_psi_array(i) / (electronic_energy(i) - h)
+     H_pert_diag(i) = h*c_pert(i)*c_pert(i)
+     e_2_pert(i) = 1.d0
+    else
+      c_pert(i) = 0.d0
+      e_2_pert(i) = 0.d0
+      H_pert_diag(i) = 0.d0
+    endif
+  enddo
+  
+end
+
 
 
 SUBST [ arguments, declarations ]

@@ -12,8 +12,8 @@ subroutine davidson_process(blockb, blocke, N, idx, vt, st)
   integer             , intent(in)        :: blockb, blocke
   integer             , intent(inout)     :: N
   integer             , intent(inout)     :: idx(dav_size)
-  double precision    , intent(inout)     :: vt(N_states, dav_size)
-  double precision    , intent(inout)     :: st(N_states, dav_size)
+  double precision    , intent(inout)     :: vt(N_states_diag, dav_size)
+  double precision    , intent(inout)     :: st(N_states_diag, dav_size)
   
   integer :: i, j, sh, sh2, exa, ext, org_i, org_j, istate, ni, endi
   integer(bit_kind) :: sorted_i(N_int)
@@ -63,7 +63,7 @@ subroutine davidson_process(blockb, blocke, N, idx, vt, st)
             vt (:,org_j) = 0d0
             st (:,org_j) = 0d0
           end if
-          do istate=1,N_states
+          do istate=1,N_states_diag
             vt (istate,org_i) += hij*dav_ut(istate,org_j)
             st (istate,org_i) += s2*dav_ut(istate,org_j)
             vt (istate,org_j) += hij*dav_ut(istate,org_i)
@@ -79,7 +79,7 @@ subroutine davidson_process(blockb, blocke, N, idx, vt, st)
   do i=1, dav_size
     if(wrotten(i)) then
       N = N+1
-      do istate=1,N_states
+      do istate=1,N_states_diag
         vt (istate,N) = vt (istate,i)
         st (istate,N) = st (istate,i)
         idx(N) = i
@@ -91,23 +91,28 @@ end subroutine
 
 
 
-subroutine davidson_collect(blockb, blocke, N, idx, vt, st , v0, s0)
+subroutine davidson_collect(blockb, blocke, N, idx, vt, st , v0t, s0t)
   implicit none
 
 
   integer             , intent(in)        :: blockb, blocke
   integer             , intent(in)        :: N
   integer             , intent(in)        :: idx(N)
-  double precision    , intent(in)        :: vt(N_states, N)
-  double precision    , intent(in)        :: st(N_states, N)
-  double precision    , intent(inout)     :: v0(dav_size, N_states)
-  double precision    , intent(inout)     :: s0(dav_size, N_states)
+  double precision    , intent(in)        :: vt(N_states_diag, N)
+  double precision    , intent(in)        :: st(N_states_diag, N)
+  double precision    , intent(inout)     :: v0t(N_states_diag,dav_size)
+  double precision    , intent(inout)     :: s0t(N_states_diag,dav_size)
 
-  integer :: i
+  integer :: i, j, k
 
+  !DIR$ IVDEP
   do i=1,N
-    v0(idx(i), :) += vt(:, i)
-    s0(idx(i), :) += st(:, i)
+    k = idx(i)
+    !DIR$ IVDEP
+    do j=1,N_states_diag
+      v0t(j,k) = v0t(j,k) + vt(j,i)
+      s0t(j,k) = s0t(j,k) + st(j,i)
+    enddo
   end do
 end subroutine
 
@@ -210,8 +215,8 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, worker_id)
   
   
   allocate(idx(dav_size)) 
-  allocate(vt(N_states, dav_size)) 
-  allocate(st(N_states, dav_size)) 
+  allocate(vt(N_states_diag, dav_size)) 
+  allocate(st(N_states_diag, dav_size)) 
   
   
   do
@@ -221,7 +226,6 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, worker_id)
     
     call davidson_process(blockb, blocke, N, idx, vt, st)
     
-    ! reverse ?
     call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id)
     call davidson_push_results(zmq_socket_push, blockb, blocke, N, idx, vt, st, task_id)
   end do
@@ -239,8 +243,8 @@ subroutine davidson_push_results(zmq_socket_push, blockb, blocke, N, idx, vt, st
   integer             ,intent(in)    :: blockb, blocke
   integer             ,intent(in)    :: N
   integer             ,intent(in)    :: idx(N)
-  double precision    ,intent(in)    :: vt(N_states, N)
-  double precision    ,intent(in)    :: st(N_states, N)
+  double precision    ,intent(in)    :: vt(N_states_diag, N)
+  double precision    ,intent(in)    :: st(N_states_diag, N)
   integer                            :: rc
 
   rc = f77_zmq_send( zmq_socket_push, blockb, 4, ZMQ_SNDMORE)
@@ -255,11 +259,11 @@ subroutine davidson_push_results(zmq_socket_push, blockb, blocke, N, idx, vt, st
   rc = f77_zmq_send( zmq_socket_push, idx, 4*N, ZMQ_SNDMORE)
   if(rc /= 4*N) stop "davidson_push_results failed to push idx"
 
-  rc = f77_zmq_send( zmq_socket_push, vt, 8*N_states* N, ZMQ_SNDMORE)
-  if(rc /= 8*N_states* N) stop "davidson_push_results failed to push vt"
+  rc = f77_zmq_send( zmq_socket_push, vt, 8*N_states_diag* N, ZMQ_SNDMORE)
+  if(rc /= 8*N_states_diag* N) stop "davidson_push_results failed to push vt"
 
-  rc = f77_zmq_send( zmq_socket_push, st, 8*N_states* N, ZMQ_SNDMORE)
-  if(rc /= 8*N_states* N) stop "davidson_push_results failed to push st"
+  rc = f77_zmq_send( zmq_socket_push, st, 8*N_states_diag* N, ZMQ_SNDMORE)
+  if(rc /= 8*N_states_diag* N) stop "davidson_push_results failed to push st"
 
   rc = f77_zmq_send( zmq_socket_push, task_id, 4, 0)
   if(rc /= 4) stop "davidson_push_results failed to push task_id"
@@ -276,8 +280,8 @@ subroutine davidson_pull_results(zmq_socket_pull, blockb, blocke, N, idx, vt, st
   integer             ,intent(out)    :: blockb, blocke
   integer             ,intent(out)    :: N
   integer             ,intent(out)    :: idx(dav_size)
-  double precision    ,intent(out)    :: vt(N_states, dav_size)
-  double precision    ,intent(out)    :: st(N_states, dav_size)
+  double precision    ,intent(out)    :: vt(N_states_diag, dav_size)
+  double precision    ,intent(out)    :: st(N_states_diag, dav_size)
 
   integer                            :: rc
 
@@ -293,11 +297,11 @@ subroutine davidson_pull_results(zmq_socket_pull, blockb, blocke, N, idx, vt, st
   rc = f77_zmq_recv( zmq_socket_pull, idx, 4*N, 0)
   if(rc /= 4*N) stop "davidson_push_results failed to pull idx"
 
-  rc = f77_zmq_recv( zmq_socket_pull, vt, 8*N_states* N, 0)
-  if(rc /= 8*N_states* N) stop "davidson_push_results failed to pull vt"
+  rc = f77_zmq_recv( zmq_socket_pull, vt, 8*N_states_diag* N, 0)
+  if(rc /= 8*N_states_diag* N) stop "davidson_push_results failed to pull vt"
 
-  rc = f77_zmq_recv( zmq_socket_pull, st, 8*N_states* N, 0)
-  if(rc /= 8*N_states* N) stop "davidson_push_results failed to pull st"
+  rc = f77_zmq_recv( zmq_socket_pull, st, 8*N_states_diag* N, 0)
+  if(rc /= 8*N_states_diag* N) stop "davidson_push_results failed to pull st"
 
   rc = f77_zmq_recv( zmq_socket_pull, task_id, 4, 0)
   if(rc /= 4) stop "davidson_pull_results failed to pull task_id"
@@ -312,8 +316,8 @@ subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull , v0, s0)
   integer(ZMQ_PTR), intent(in)     :: zmq_to_qp_run_socket
   integer(ZMQ_PTR), intent(in)     :: zmq_socket_pull
 
-  double precision    ,intent(inout)    :: v0(dav_size, N_states)
-  double precision    ,intent(inout)    :: s0(dav_size, N_states)
+  double precision    ,intent(inout)    :: v0(dav_size, N_states_diag)
+  double precision    ,intent(inout)    :: s0(dav_size, N_states_diag)
 
   integer                          :: more, task_id
   
@@ -321,29 +325,31 @@ subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull , v0, s0)
   integer                  :: blockb, blocke
   integer                  :: N
   integer             , allocatable      :: idx(:)
-  double precision    , allocatable      :: vt(:,:)
+  double precision    , allocatable      :: vt(:,:), v0t(:,:), s0t(:,:)
   double precision    , allocatable      :: st(:,:)
-  integer :: deleted
-  logical, allocatable :: done(:)
-  allocate(done(shortcut_(0,1)))
-  deleted = 0
-  done = .false.
   
   allocate(idx(dav_size)) 
-  allocate(vt(N_states, dav_size)) 
-  allocate(st(N_states, dav_size)) 
+  allocate(vt(N_states_diag, dav_size)) 
+  allocate(st(N_states_diag, dav_size)) 
+  allocate(v0t(N_states_diag, dav_size)) 
+  allocate(s0t(N_states_diag, dav_size)) 
   
+  v0t = 00.d0
+  s0t = 00.d0
+
   more = 1
   
   do while (more == 1)
     call davidson_pull_results(zmq_socket_pull, blockb, blocke, N, idx, vt, st, task_id)
-    call davidson_collect(blockb, blocke, N, idx, vt, st , v0, s0)
-!     done(block) = .true.
+    !DIR$ FORCEINLINE
+    call davidson_collect(blockb, blocke, N, idx, vt, st , v0t, s0t)
     call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
-    deleted += 1
-!     print *, "DELETED", deleted, done
   end do
-!   print *, "done collector"
+  deallocate(idx,vt,st)
+
+  call dtranspose(v0t,size(v0t,1), v0, size(v0,1), N_states_diag, dav_size)
+  call dtranspose(s0t,size(s0t,1), s0, size(s0,1), N_states_diag, dav_size)
+  deallocate(v0t,s0t)
 end subroutine
 
 
@@ -360,8 +366,8 @@ subroutine davidson_run(zmq_to_qp_run_socket , v0, s0)
   integer :: i
   integer, external              :: omp_get_thread_num
 
-  double precision    , intent(inout)     :: v0(dav_size, N_states)
-  double precision    , intent(inout)     :: s0(dav_size, N_states)
+  double precision    , intent(inout)     :: v0(dav_size, N_states_diag)
+  double precision    , intent(inout)     :: s0(dav_size, N_states_diag)
   
   call zmq_set_running(zmq_to_qp_run_socket)
   
@@ -393,7 +399,6 @@ end subroutine
 subroutine davidson_miniserver_run()
   use f77_zmq
   implicit none
-  integer(ZMQ_PTR)        context
   integer(ZMQ_PTR)        responder
   character*(64)          address
   character(len=:), allocatable :: buffer
@@ -402,8 +407,7 @@ subroutine davidson_miniserver_run()
   allocate (character(len=20) :: buffer)
   address = 'tcp://*:11223'
   
-  context   = f77_zmq_ctx_new()
-  responder = f77_zmq_socket(context, ZMQ_REP)
+  responder = f77_zmq_socket(zmq_context, ZMQ_REP)
   rc        = f77_zmq_bind(responder,address)
   
   do
@@ -411,7 +415,7 @@ subroutine davidson_miniserver_run()
     if (buffer(1:rc) /= 'end') then
       rc = f77_zmq_send (responder, dav_size, 4, ZMQ_SNDMORE)
       rc = f77_zmq_send (responder, dav_det, 16*N_int*dav_size, ZMQ_SNDMORE)
-      rc = f77_zmq_send (responder, dav_ut, 8*dav_size*N_states, 0)
+      rc = f77_zmq_send (responder, dav_ut, 8*dav_size*N_states_diag, 0)
     else
       rc = f77_zmq_send (responder, "end", 3, 0)
       exit
@@ -419,7 +423,6 @@ subroutine davidson_miniserver_run()
   enddo
 
   rc = f77_zmq_close(responder)
-  rc = f77_zmq_ctx_destroy(context)
 end subroutine
 
 
@@ -427,21 +430,18 @@ subroutine davidson_miniserver_end()
   implicit none
   use f77_zmq
   
-  integer(ZMQ_PTR)        context
   integer(ZMQ_PTR)        requester
   character*(64)          address
   integer                 rc
   character*(64)          buf
   
   address = trim(qp_run_address)//':11223'
-  context   = f77_zmq_ctx_new()
-  requester = f77_zmq_socket(context, ZMQ_REQ)
+  requester = f77_zmq_socket(zmq_context, ZMQ_REQ)
   rc        = f77_zmq_connect(requester,address)
 
   rc = f77_zmq_send(requester, "end", 3, 0)
   rc = f77_zmq_recv(requester, buf, 3, 0)
   rc = f77_zmq_close(requester)
-  rc = f77_zmq_ctx_destroy(context)
 end subroutine
 
   
@@ -449,7 +449,6 @@ subroutine davidson_miniserver_get()
   implicit none
   use f77_zmq
   
-  integer(ZMQ_PTR)        context
   integer(ZMQ_PTR)        requester
   character*(64)          address
   character*(20)          buffer
@@ -457,21 +456,17 @@ subroutine davidson_miniserver_get()
   
   address = trim(qp_run_address)//':11223'
   
-  context   = f77_zmq_ctx_new()
-  requester = f77_zmq_socket(context, ZMQ_REQ)
+  requester = f77_zmq_socket(zmq_context, ZMQ_REQ)
   rc        = f77_zmq_connect(requester,address)
 
   rc = f77_zmq_send(requester, "Hello", 5, 0)
   rc = f77_zmq_recv(requester, dav_size, 4, 0)
   TOUCH dav_size
   rc = f77_zmq_recv(requester, dav_det, 16*N_int*dav_size, 0)
-  rc = f77_zmq_recv(requester, dav_ut, 8*dav_size*N_states, 0)
+  rc = f77_zmq_recv(requester, dav_ut, 8*dav_size*N_states_diag, 0)
   TOUCH dav_det dav_ut
 
-  rc = f77_zmq_close(requester)
-  rc = f77_zmq_ctx_destroy(context)
   
-  touch dav_det dav_ut
 end subroutine
 
 
@@ -480,7 +475,7 @@ BEGIN_PROVIDER [ integer(bit_kind), dav_det, (N_int, 2, dav_size) ]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ double precision, dav_ut, (N_states, dav_size) ]
+BEGIN_PROVIDER [ double precision, dav_ut, (N_states_diag, dav_size) ]
 END_PROVIDER
 
 

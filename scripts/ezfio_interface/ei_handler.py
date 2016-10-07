@@ -45,7 +45,7 @@ Optional:
                             (by default is one)
                             Example : 1, =sum(ao_num); (ao_num,3)
                             ATTENTION : The module and the value are separed by a "." not a "_".
-                            For exemple (determinants.n_det)
+                            For example (determinants.n_det)
     ezfio_name: <str>   The name for the EZFIO lib
                              (by default is <provider_name>)
     ezfio_dir: <str>    Will be the folder of EZFIO.

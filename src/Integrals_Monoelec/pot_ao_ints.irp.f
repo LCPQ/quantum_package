@@ -11,8 +11,7 @@ BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral, (ao_num_align,ao_num)]
    double precision               :: overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult
    
    if (read_ao_one_integrals) then
-     call read_one_e_integrals('ao_ne_integral', ao_nucl_elec_integral, &
-         size(ao_nucl_elec_integral,1), size(ao_nucl_elec_integral,2))
+     call ezfio_get_ao_basis_integral_nuclear(ao_nucl_elec_integral(1:ao_num, 1:ao_num))
      print *,  'AO N-e integrals read from disk'
    else
      
@@ -74,8 +73,7 @@ BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral, (ao_num_align,ao_num)]
      !$OMP END PARALLEL
    endif
    if (write_ao_one_integrals) then
-     call write_one_e_integrals('ao_ne_integral', ao_nucl_elec_integral, &
-         size(ao_nucl_elec_integral,1), size(ao_nucl_elec_integral,2))
+     call ezfio_set_ao_basis_integral_nuclear(ao_nucl_elec_integral(1:ao_num, 1:ao_num))
      print *,  'AO N-e integrals written to disk'
    endif
    

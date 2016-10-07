@@ -131,8 +131,8 @@ BEGIN_PROVIDER [double precision, ao_kinetic_integral, (ao_num_align,ao_num)]
   integer                        :: i,j,k,l
   
   if (read_ao_one_integrals) then
-    call read_one_e_integrals('ao_kinetic_integral', ao_kinetic_integral,&
-       size(ao_kinetic_integral,1), size(ao_kinetic_integral,2))
+     call ezfio_get_ao_basis_integral_kinetic(ao_kinetic_integral(1:ao_num, 1:ao_num))
+ call ezfio_set_ao_basis_integral_kinetic(ao_kinetic_integral(1:ao_num, 1:ao_num))
     print *,  'AO kinetic integrals read from disk'
   else
     !$OMP PARALLEL DO DEFAULT(NONE) &
@@ -151,8 +151,7 @@ BEGIN_PROVIDER [double precision, ao_kinetic_integral, (ao_num_align,ao_num)]
     !$OMP END PARALLEL DO
   endif
   if (write_ao_one_integrals) then
-    call write_one_e_integrals('ao_kinetic_integral', ao_kinetic_integral,&
-       size(ao_kinetic_integral,1), size(ao_kinetic_integral,2))
+    call ezfio_set_ao_basis_integral_kinetic(ao_kinetic_integral(1:ao_num, 1:ao_num))
     print *,  'AO kinetic integrals written to disk'
   endif
 END_PROVIDER

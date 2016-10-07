@@ -11,7 +11,7 @@ program full_ci
   
   pt2 = 1.d0
   diag_algorithm = "Lapack"
-  
+
   if (N_det > N_det_max) then
     call diagonalize_CI
     call save_wavefunction

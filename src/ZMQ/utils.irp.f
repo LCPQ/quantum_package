@@ -473,6 +473,11 @@ subroutine end_zmq_push_socket(zmq_socket_push,thread)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
+  rc = f77_zmq_setsockopt(zmq_socket_push,ZMQ_LINGER,300000,4)
+  if (rc /= 0) then
+    stop 'Unable to set ZMQ_LINGER on push socket'
+  endif
+
   rc = f77_zmq_close(zmq_socket_push)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_push)'
@@ -794,12 +799,6 @@ subroutine end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   character*(8), external        :: zmq_port
   integer                        :: rc
 
-  rc = f77_zmq_disconnect(zmq_to_qp_run_socket, trim(qp_run_address)//':'//trim(zmq_port(0)))
-!  if (rc /= 0) then
-!    print *,  'f77_zmq_disconnect(zmq_to_qp_run_socket, trim(qp_run_address)//'':''//trim(zmq_port(0)))'
-!    stop 'error'
-!  endif
-
   rc = f77_zmq_setsockopt(zmq_to_qp_run_socket,ZMQ_LINGER,1000,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_LINGER on zmq_to_qp_run_socket'
@@ -905,5 +904,39 @@ subroutine wait_for_state(state_wait,state)
   call end_zmq_sub_socket(zmq_socket_sub)
 end
 
+
+
+subroutine wait_for_states(state_wait,state,n)
+  use f77_zmq
+  implicit none
+  BEGIN_DOC
+! Wait for the ZMQ state to be ready
+  END_DOC
+  integer, intent(in)            :: n
+  character*(64), intent(in)     :: state_wait(n)
+  character*(64), intent(out)    :: state
+  integer(ZMQ_PTR)               :: zmq_socket_sub
+  integer(ZMQ_PTR), external     :: new_zmq_sub_socket
+  integer                        :: rc, i
+  logical                        :: condition
+
+  zmq_socket_sub       = new_zmq_sub_socket()
+  state = 'Waiting'
+  condition = .True.
+  do while (condition)
+    rc = f77_zmq_recv( zmq_socket_sub, state, 64, 0)
+    if (rc > 0) then
+      state = trim(state(1:rc))
+    else
+      print *,  'Timeout reached. Stopping'
+      state = "Stopped"
+    endif
+    condition = trim(state) /= 'Stopped'
+    do i=1,n
+      condition = condition .and. (trim(state) /= trim(state_wait(i)))
+    enddo
+  end do
+  call end_zmq_sub_socket(zmq_socket_sub)
+end
 
 

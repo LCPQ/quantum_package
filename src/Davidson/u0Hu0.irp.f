@@ -58,8 +58,8 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   integer, external              :: align_double
   !!!DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut
 
-  if(N_st /= N_states) stop "H_u_0_nstates N_st /= N_states"
-  N_st_8 = N_states ! align_double(N_st)
+  if(N_st /= N_states_diag) stop "H_u_0_nstates N_st /= N_states_diag"
+  N_st_8 = N_states_diag ! align_double(N_st)
 
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
@@ -214,7 +214,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   
   integer(ZMQ_PTR) :: handler
   
-  if(N_st /= N_states .or. sze_8 < N_det) stop "assert fail in H_S2_u_0_nstates"
+  if(N_st /= N_states_diag .or. sze_8 < N_det) stop "assert fail in H_S2_u_0_nstates"
   N_st_8 = N_st !! align_double(N_st)
 
   ASSERT (Nint > 0)
@@ -249,7 +249,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   call davidson_init(handler)
   do sh=shortcut(0,1),1,-1
     workload += (shortcut(sh+1,1) - shortcut(sh,1))**2
-    if(workload > 10000) then
+    if(workload > 100000) then
       blocke = sh
       call davidson_add_task(handler, blocke, blockb)
       blockb = sh-1
@@ -257,13 +257,13 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
     end if
   enddo
   
-  if(blockb) call davidson_add_task(handler, 1, blockb)
-
+  if(blockb > 0) call davidson_add_task(handler, 1, blockb)
   call davidson_run(handler, v_0, s_0)
-  
+
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,s2,j,k,jj,vt,st,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i,istate)&
       !$OMP SHARED(n,keys_tmp,ut,Nint,v_0,s_0,sorted,shortcut,sort_idx,version,N_st,N_st_8)
+
   allocate(vt(N_st_8,n),st(N_st_8,n))
   Vt = 0.d0
   St = 0.d0
@@ -311,6 +311,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
       s_0(i,istate) = s_0(i,istate) + s2_jj(i)* u_0(i,istate)
     enddo
   enddo
+
   deallocate (shortcut, sort_idx, sorted, version)
 end
 
