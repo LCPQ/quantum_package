@@ -28,26 +28,37 @@ subroutine run_wf
   call provide_everything
   
   zmq_context = f77_zmq_ctx_new ()
-  zmq_state = 'selection'
   state = 'Waiting'
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
 
   do
-    call wait_for_state(zmq_state,state)
-    if(trim(state) /= 'selection') exit
-    print *,  'Getting wave function'
-    call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states_diag)
+    call wait_for_next_state(state)
+    print *, "STATE ", trim(state)
+    if(trim(state) == "Stopped") exit
+    if(trim(state) == 'selection') then
+  zmq_state = 'selection'
+      print *,  'Getting wave function'
+      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states_diag)
  
   
-    integer :: rc, i
+      integer :: rc, i
  
-    print *,  'Selection slave running'
+      print *,  'Selection slave running'
  
-    !$OMP PARALLEL PRIVATE(i)
-    i = omp_get_thread_num()
-    call selection_dressing_slave_tcp(i, energy)
-    !$OMP END PARALLEL
+      !$OMP PARALLEL PRIVATE(i)
+      i = omp_get_thread_num()
+      call selection_dressing_slave_tcp(i, energy)
+      !$OMP END PARALLEL
+    else if(trim(state) == "davidson") then
+  zmq_state = 'davidson'
+      call davidson_miniserver_get()
+      print *, "Davidson slave running"
+      !$OMP PARALLEL PRIVATE(i)
+        i = omp_get_thread_num()
+        call davidson_slave_tcp(i)
+      !$OMP END PARALLEL
+    end if
   end do
 end
 
