@@ -58,7 +58,6 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   integer, external              :: align_double
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut
 
-  if(N_st /= N_states_diag) stop "H_u_0_nstates N_st /= N_states_diag"
   N_st_8 = align_double(N_st)
 
   ASSERT (Nint > 0)
