@@ -327,11 +327,6 @@ subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull , v0, s0)
   integer             , allocatable      :: idx(:)
   double precision    , allocatable      :: vt(:,:), v0t(:,:), s0t(:,:)
   double precision    , allocatable      :: st(:,:)
-  integer :: deleted
-  logical, allocatable :: done(:)
-  allocate(done(shortcut_(0,1)))
-  deleted = 0
-  done = .false.
   
   allocate(idx(dav_size)) 
   allocate(vt(N_states_diag, dav_size)) 
@@ -339,6 +334,9 @@ subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull , v0, s0)
   allocate(v0t(N_states_diag, dav_size)) 
   allocate(s0t(N_states_diag, dav_size)) 
   
+  v0t = 00.d0
+  s0t = 00.d0
+
   more = 1
   
   do while (more == 1)
@@ -346,9 +344,8 @@ subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull , v0, s0)
     !DIR$ FORCEINLINE
     call davidson_collect(blockb, blocke, N, idx, vt, st , v0t, s0t)
     call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
-    deleted += 1
   end do
-  deallocate(idx,vt,st,done)
+  deallocate(idx,vt,st)
 
   call dtranspose(v0t,size(v0t,1), v0, size(v0,1), N_states_diag, dav_size)
   call dtranspose(s0t,size(s0t,1), s0, size(s0,1), N_states_diag, dav_size)
@@ -391,7 +388,7 @@ subroutine davidson_run(zmq_to_qp_run_socket , v0, s0)
     else if(i==1) then
       call davidson_miniserver_run()
     else
-      call davidson_slave_inproc(i-1)
+      call davidson_slave_inproc(i)
     endif
   !$OMP END PARALLEL
   call end_parallel_job(zmq_to_qp_run_socket, 'davidson')
@@ -442,10 +439,8 @@ subroutine davidson_miniserver_end()
   requester = f77_zmq_socket(zmq_context, ZMQ_REQ)
   rc        = f77_zmq_connect(requester,address)
 
-  rc = f77_zmq_send(requester, "end", 3, ZMQ_NOBLOCK)
-  if (rc > 0) then
-    rc = f77_zmq_recv(requester, buf, 3, 0)
-  endif
+  rc = f77_zmq_send(requester, "end", 3, 0)
+  rc = f77_zmq_recv(requester, buf, 3, 0)
   rc = f77_zmq_close(requester)
 end subroutine
 
@@ -471,7 +466,6 @@ subroutine davidson_miniserver_get()
   rc = f77_zmq_recv(requester, dav_ut, 8*dav_size*N_states_diag, 0)
   TOUCH dav_det dav_ut
 
-  rc = f77_zmq_close(requester)
   
 end subroutine
 
