@@ -89,7 +89,7 @@ program fci_zmq
     threshold_selectors = 1.d0
     threshold_generators = 0.9999d0
     E_CI_before(1:N_states) = CI_energy(1:N_states)
-    call ZMQ_selection(1, pt2)
+    call ZMQ_selection(0, pt2)
     print *,  'Final step'
     print *,  'N_det    = ', N_det
     print *,  'N_states = ', N_states
@@ -108,7 +108,7 @@ end
 
 
 
-subroutine ZMQ_selection(N, pt2)
+subroutine ZMQ_selection(N_in, pt2)
   use f77_zmq
   use selection_types
   
@@ -116,13 +116,14 @@ subroutine ZMQ_selection(N, pt2)
   
   character*(512)                :: task 
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
-  integer, intent(in)            :: N
+  integer, intent(in)            :: N_in
   type(selection_buffer)         :: b
-  integer                        :: i
+  integer                        :: i, N
   integer, external              :: omp_get_thread_num
   double precision, intent(out)  :: pt2(N_states)
   
   
+  N = max(N_in,1)
   provide nproc
   provide ci_electronic_energy
   call new_parallel_job(zmq_to_qp_run_socket,"selection")
@@ -147,16 +148,18 @@ subroutine ZMQ_selection(N, pt2)
       if (i==0) then
         call selection_collector(b, pt2)
       else
-        call selection_dressing_slave_inproc(i)
+        call selection_slave_inproc(i)
       endif
   !$OMP END PARALLEL
   call end_parallel_job(zmq_to_qp_run_socket, 'selection') 
-  call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) !!! PAS DE ROBIN
-  call copy_H_apply_buffer_to_wf()
+  if (N_in > 0) then
+    call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) !!! PAS DE ROBIN
+    call copy_H_apply_buffer_to_wf()
+  endif
 end subroutine
 
 
-subroutine selection_dressing_slave_inproc(i)
+subroutine selection_slave_inproc(i)
   implicit none
   integer, intent(in)            :: i
 
