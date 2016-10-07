@@ -7,13 +7,14 @@ Set of quantum chemistry programs and libraries.
 
 For more information, you can visit the [wiki of the project](http://github.com/LCPQ/quantum_package/wiki>), or below for the installation instructions.
 
-[![Frozen-core Full-CI energy of Ti](https://raw.githubusercontent.com/LCPQ/quantum_package/master/data/Titanium.png)](https://raw.githubusercontent.com/LCPQ/quantum_package/master/data/Titanium.png "Convergence of Ti in cc-pv{DTQ}Z")
+
 
 Demo
 ====
 
 [![Full-CI energy of C2 in 2 minutes](https://i.vimeocdn.com/video/555047954_295x166.jpg)](https://vimeo.com/scemama/quantum_package_demo "Quantum Package Demo")
 
+[![Frozen-core Full-CI energy of Ti](https://raw.githubusercontent.com/LCPQ/quantum_package/master/data/Titanium.png)](https://raw.githubusercontent.com/LCPQ/quantum_package/master/data/Titanium.png "Convergence of Ti in cc-pv{DTQ}Z")
 
 # Installation
 
