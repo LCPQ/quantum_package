@@ -52,7 +52,7 @@ subroutine run_wf
   
       !$OMP PARALLEL PRIVATE(i)
       i = omp_get_thread_num()
-      call selection_dressing_slave_tcp(i, energy)
+      call selection_slave_tcp(i, energy)
       !$OMP END PARALLEL
       print *,  'Selection done'
 
@@ -63,11 +63,7 @@ subroutine run_wf
 
       print *,  'Davidson'
       call davidson_miniserver_get()
-
-      !$OMP PARALLEL PRIVATE(i)
-      i = omp_get_thread_num()
-      call davidson_slave_tcp(i)
-      !$OMP END PARALLEL
+      call davidson_slave_tcp(0)
       print *,  'Davidson done'
 
     endif
@@ -98,7 +94,7 @@ subroutine update_energy(energy)
   call write_double(6,ci_energy,'Energy')
 end
 
-subroutine selection_dressing_slave_tcp(i,energy)
+subroutine selection_slave_tcp(i,energy)
   implicit none
   double precision, intent(in) :: energy(N_states_diag)
   integer, intent(in)            :: i

@@ -853,6 +853,31 @@ subroutine zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
   endif
 end
 
+
+subroutine wait_for_next_state(state)
+  use f77_zmq
+  implicit none
+
+  character*(64), intent(out)    :: state
+  integer(ZMQ_PTR)               :: zmq_socket_sub
+  integer(ZMQ_PTR), external     :: new_zmq_sub_socket
+  integer                        :: rc
+
+  zmq_socket_sub       = new_zmq_sub_socket()
+  state = 'Waiting'
+  do while(state == "Waiting")
+    rc = f77_zmq_recv( zmq_socket_sub, state, 64, 0)
+    if (rc > 0) then
+      state = trim(state(1:rc))
+    else
+      print *,  'Timeout reached. Stopping'
+      state = "Stopped"
+    end if 
+  end do
+  call end_zmq_sub_socket(zmq_socket_sub)
+end subroutine
+
+
 subroutine wait_for_state(state_wait,state)
   use f77_zmq
   implicit none
