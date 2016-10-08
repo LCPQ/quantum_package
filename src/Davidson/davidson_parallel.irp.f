@@ -16,18 +16,14 @@ subroutine davidson_process(blockb, blocke, vt, st)
   integer :: i, j, sh, sh2, exa, ext, org_i, org_j, istate, ni, endi
   integer(bit_kind) :: sorted_i(N_int)
   double precision :: s2, hij
-  integer, external              :: omp_get_thread_num
   
-  provide dav_det dav_ut shortcut_
+  provide dav_det dav_ut shortcut_ 
   !useless calls not to provide in the parallel section
   call i_h_j (dav_det(1,1,1),dav_det(1,1,dav_size),n_int,hij)
   call get_s2(dav_det(1,1,1),dav_det(1,1,dav_size),n_int,s2)
   !!!!!
 
   do sh = blockb, blocke
-  !$OMP PARALLEL DO default(none) schedule(dynamic) &
-  !$OMP shared(vt, st, blockb, blocke, sh, shortcut_, version_, sorted_, sort_idx_, dav_det, dav_ut, N_int, N_states_diag) &
-  !$OMP private(exa, ni, ext, org_i, org_j, sorted_i, endi, hij, s2)
   do sh2=1,sh 
     exa = 0
     do ni=1,N_int
@@ -57,25 +53,23 @@ subroutine davidson_process(blockb, blocke, vt, st)
         if(ext <= 4) then
           call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij)
           call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2) 
-          !$OMP CRITICAL
+!          call daxpy(N_states_diag,hij,dav_ut(1,org_j),1,vt(1,org_i),1)
+!          call daxpy(N_states_diag,hij,dav_ut(1,org_i),1,vt(1,org_j),1)
+!          call daxpy(N_states_diag,s2, dav_ut(1,org_j),1,st(1,org_i),1)
+!          call daxpy(N_states_diag,s2, dav_ut(1,org_i),1,st(1,org_j),1)
           do istate=1,N_states_diag
             vt(istate,org_i) = vt(istate,org_i) + hij*dav_ut(istate,org_j)
             st(istate,org_i) = st(istate,org_i) + s2 *dav_ut(istate,org_j)
             vt(istate,org_j) = vt(istate,org_j) + hij*dav_ut(istate,org_i)
             st(istate,org_j) = st(istate,org_j) + s2 *dav_ut(istate,org_i)
           enddo
-          !$OMP END CRITICAL
         endif
       enddo
     enddo
   enddo
-  !$OMP END PARALLEL DO
   enddo
    
   do sh=blockb,min(blocke, shortcut_(0,2))
-  !$OMP PARALLEL DO default(none) schedule(dynamic) &
-  !$OMP shared(vt, st, blockb, blocke, sh, shortcut_, version_, sorted_, sort_idx_, dav_det, dav_ut, N_int, N_states_diag) &
-  !$OMP private(exa, ni, ext, org_i, org_j, sorted_i, endi, hij, s2)
   do sh2=sh, shortcut_(0,2), shortcut_(0,1)
     do i=shortcut_(sh2,2),shortcut_(sh2+1,2)-1
       org_i = sort_idx_(i,2)
@@ -88,20 +82,22 @@ subroutine davidson_process(blockb, blocke, vt, st)
         if(ext == 4) then
          call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij)
          call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2)
-         !$OMP CRITICAL
+!         call daxpy(N_states_diag,hij,dav_ut(1,org_j),1,vt(1,org_i),1)
+!         call daxpy(N_states_diag,hij,dav_ut(1,org_i),1,vt(1,org_j),1)
+!         call daxpy(N_states_diag,s2, dav_ut(1,org_j),1,st(1,org_i),1)
+!         call daxpy(N_states_diag,s2, dav_ut(1,org_i),1,st(1,org_j),1)
          do istate=1,N_states_diag
            vt (istate,org_i) = vt (istate,org_i) + hij*dav_ut(istate,org_j)
            vt (istate,org_j) = vt (istate,org_j) + hij*dav_ut(istate,org_i)
            st (istate,org_i) = st (istate,org_i) + s2*dav_ut(istate,org_j)
            st (istate,org_j) = st (istate,org_j) + s2*dav_ut(istate,org_i)
          enddo
-         !$OMP END CRITICAL
         end if
       end do
     end do
   enddo
-  !$OMP END PARALLEL DO
   enddo
+
 end subroutine
 
 
@@ -273,8 +269,8 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, worker_id)
       taskn += 1
       task_id(taskn) = myTask
     end if
-    
-    
+
+
     if(myTask == 0 .or. taskn == size(task_id)) then
       N = 0
       do i=1, dav_size
@@ -287,7 +283,7 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, worker_id)
           enddo
         end if
       end do
-      
+
       do i = 1, taskn
         call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i))
       end do
@@ -299,6 +295,7 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, worker_id)
       taskn = 0
     end if
   end do
+
 end subroutine
 
 
@@ -453,7 +450,6 @@ subroutine davidson_run(zmq_to_qp_run_socket , v0, s0, LDA)
   double precision    , intent(inout)     :: v0(LDA, N_states_diag)
   double precision    , intent(inout)     :: s0(LDA, N_states_diag)
   
-  integer, external :: davidson_miniserver_run, davidson_slave_inproc_omp
   call zmq_set_running(zmq_to_qp_run_socket)
   
   zmq_collector = new_zmq_to_qp_run_socket()
@@ -462,21 +458,26 @@ subroutine davidson_run(zmq_to_qp_run_socket , v0, s0, LDA)
   
   PROVIDE nproc
   
-  i = pthread_create ( pthread_miniserver, davidson_miniserver_run )
-  i = pthread_create ( pthread_slave, davidson_slave_inproc_omp )
   
-  call davidson_collector(zmq_collector, zmq_socket_pull , v0, s0)
-  call end_zmq_to_qp_run_socket(zmq_collector)
-  call end_zmq_pull_socket(zmq_socket_pull)
-  call davidson_miniserver_end()
-  i = pthread_join(pthread_miniserver)
-  i = pthread_join(pthread_slave)
+  !$OMP PARALLEL NUM_THREADS(nproc+2) PRIVATE(i)
+  i = omp_get_thread_num()
+  if (i == 0 ) then
+    call davidson_collector(zmq_collector, zmq_socket_pull , v0, s0)
+    call end_zmq_to_qp_run_socket(zmq_collector)
+    call end_zmq_pull_socket(zmq_socket_pull)
+    call davidson_miniserver_end()
+  else if (i == 1 ) then
+    call davidson_miniserver_run ()
+  else
+    call davidson_slave_inproc(i)
+  endif
+  !$OMP END PARALLEL
 
   call end_parallel_job(zmq_to_qp_run_socket, 'davidson')
 end subroutine
 
 
-integer function davidson_miniserver_run()
+subroutine davidson_miniserver_run()
   use f77_zmq
   implicit none
   integer(ZMQ_PTR)        responder
@@ -503,7 +504,6 @@ integer function davidson_miniserver_run()
   enddo
 
   rc = f77_zmq_close(responder)
-  davidson_miniserver_run = 0
 end subroutine
 
 

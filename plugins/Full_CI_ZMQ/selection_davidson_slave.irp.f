@@ -63,7 +63,10 @@ subroutine run_wf
 
       print *,  'Davidson'
       call davidson_miniserver_get()
-      call davidson_slave_tcp(0)
+      !$OMP PARALLEL PRIVATE(i)
+      i = omp_get_thread_num()
+      call davidson_slave_tcp(i)
+      !$OMP END PARALLEL
       print *,  'Davidson done'
 
     endif
