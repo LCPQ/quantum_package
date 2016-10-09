@@ -222,11 +222,6 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
 
   allocate (shortcut(0:n+1,2), sort_idx(n), sorted(Nint,n), version(Nint,n))
   allocate(ut(N_st_8,n))
-print *, ( size(shortcut)*4)/1048576, ' shortcut ', irp_here
-print *, ( size(sort_idx)*4)/1048576, ' sort_idx ', irp_here
-print *, ( size(sorted)*4)/1048576, ' sorted ', irp_here
-print *, ( size(version)*4)/1048576, ' version ', irp_here
-print *, ( size(ut)*8)/1048576, ' ut ', irp_here
 
   v_0 = 0.d0
   s_0 = 0.d0
