@@ -432,8 +432,8 @@ subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull , v0, s0, LD
   do j=1,N_states_diag
    !DIR$ IVDEP
    do i=1,dav_size
-     vt(i,j) = v0t(j,i)
-     st(i,j) = s0t(j,i)
+     v0(i,j) = v0t(j,i)
+     s0(i,j) = s0t(j,i)
    enddo
   enddo
 
