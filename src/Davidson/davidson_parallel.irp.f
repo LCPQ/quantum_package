@@ -17,7 +17,8 @@ subroutine davidson_process(blockb, blocke, vt, st)
   integer(bit_kind) :: sorted_i(N_int)
   double precision :: s2, hij
   integer, external              :: omp_get_thread_num
-  
+  double precision, allocatable :: locals(:,:), localv(:,:)
+
   provide dav_det dav_ut shortcut_
   !useless calls not to provide in the parallel section
   call i_h_j (dav_det(1,1,1),dav_det(1,1,dav_size),n_int,hij)
@@ -25,9 +26,15 @@ subroutine davidson_process(blockb, blocke, vt, st)
   !!!!!
 
   do sh = blockb, blocke
-  !$OMP PARALLEL DO default(none) schedule(dynamic) &
+  !$OMP PARALLEL &
+  !$OMP default(none) &
   !$OMP shared(vt, st, blockb, blocke, sh, shortcut_, version_, sorted_, sort_idx_, dav_det, dav_ut, N_int, N_states_diag) &
-  !$OMP private(exa, ni, ext, org_i, org_j, sorted_i, endi, hij, s2)
+  !$OMP private(i,j,sh2, locals, localv, exa, ni, ext, org_i, org_j, sorted_i, endi, hij, s2)
+  allocate(locals(N_states_diag, shortcut_(sh+1,1) - shortcut_(sh,1)))
+  allocate(localv(N_states_diag, shortcut_(sh+1,1) - shortcut_(sh,1)))
+  locals = 0d0
+  localv = 0d0
+  !$OMP DO
   do sh2=1,sh 
     exa = 0
     do ni=1,N_int
@@ -57,21 +64,41 @@ subroutine davidson_process(blockb, blocke, vt, st)
         if(ext <= 4) then
           call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij)
           call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2) 
-          !$OMP CRITICAL
-          do istate=1,N_states_diag
-            vt (istate,org_i) += hij*dav_ut(istate,org_j)
-            st (istate,org_i) += s2*dav_ut(istate,org_j)
-            vt (istate,org_j) += hij*dav_ut(istate,org_i)
-            st (istate,org_j) += s2*dav_ut(istate,org_i)
-          enddo
-          !$OMP END CRITICAL
+           
+          if(sh == sh2) then
+            !$OMP CRITICAL
+            do istate=1,N_states_diag
+              localv (istate,i+1-shortcut_(sh,1)) += hij*dav_ut(istate,org_j)
+              locals (istate,i+1-shortcut_(sh,1)) += s2*dav_ut(istate,org_j)
+              vt (istate,org_j) += hij*dav_ut(istate,org_i)
+              st (istate,org_j) += s2*dav_ut(istate,org_i)
+            enddo
+            !$OMP END CRITICAL
+          else
+            do istate=1,N_states_diag
+              localv (istate,i+1-shortcut_(sh,1)) += hij*dav_ut(istate,org_j)
+              locals (istate,i+1-shortcut_(sh,1)) += s2*dav_ut(istate,org_j)
+              vt (istate,org_j) += hij*dav_ut(istate,org_i)
+              st (istate,org_j) += s2*dav_ut(istate,org_i)
+            enddo
+          end if
         endif
       enddo
     enddo
   enddo
-  !$OMP END PARALLEL DO
+  !$OMP ENDDO
+  !$OMP CRITICAL
+  do i=1,shortcut_(sh+1,1) - shortcut_(sh,1)
+    do istate=1,N_states_diag
+      vt(istate, sort_idx_(shortcut_(sh,1) - 1 + i, 1)) += localv(istate,i)
+      st(istate, sort_idx_(shortcut_(sh,1) - 1 + i, 1)) += locals(istate,i)
+    end do
+  end do
+  !$OMP END CRITICAL
+  !$OMP END PARALLEL
   enddo
    
+  
   do sh=blockb,min(blocke, shortcut_(0,2))
   !$OMP PARALLEL DO default(none) schedule(dynamic) &
   !$OMP shared(vt, st, blockb, blocke, sh, shortcut_, version_, sorted_, sort_idx_, dav_det, dav_ut, N_int, N_states_diag) &
