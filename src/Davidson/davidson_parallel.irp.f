@@ -51,8 +51,8 @@ subroutine davidson_process(blockb, blocke, vt, st)
           ext = ext + popcnt(xor(sorted_i(ni), sorted_(ni,j,1)))
         end do
         if(ext <= 4) then
-          call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij)
           call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2) 
+          call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij)
 !          call daxpy(N_states_diag,hij,dav_ut(1,org_j),1,vt(1,org_i),1)
 !          call daxpy(N_states_diag,hij,dav_ut(1,org_i),1,vt(1,org_j),1)
 !          call daxpy(N_states_diag,s2, dav_ut(1,org_j),1,st(1,org_i),1)
@@ -401,7 +401,7 @@ subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull , v0, s0, LD
   double precision    , allocatable :: vt(:,:), v0t(:,:), s0t(:,:)
   double precision    , allocatable :: st(:,:)
   
-  integer :: i
+  integer :: i,j
 
   allocate(idx(dav_size)) 
   allocate(vt(N_states_diag, dav_size)) 
@@ -425,8 +425,18 @@ subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull , v0, s0, LD
   end do
   deallocate(idx,vt,st)
 
-  call dtranspose(v0t,size(v0t,1), v0, size(v0,1), N_states_diag, dav_size)
-  call dtranspose(s0t,size(s0t,1), s0, size(s0,1), N_states_diag, dav_size)
+!  call dtranspose(v0t,size(v0t,1), v0, size(v0,1), N_states_diag, dav_size)
+!  call dtranspose(s0t,size(s0t,1), s0, size(s0,1), N_states_diag, dav_size)
+
+  !DIR$ IVDEP
+  do j=1,N_states_diag
+   !DIR$ IVDEP
+   do i=1,dav_size
+     vt(i,j) = v0t(j,i)
+     st(i,j) = s0t(j,i)
+   enddo
+  enddo
+
   deallocate(v0t,s0t)
 end subroutine
 

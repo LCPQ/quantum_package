@@ -24,6 +24,7 @@ subroutine u_0_H_u_0(e_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
   do i=1,N_st
     e_0(i) = u_dot_v(v_0(1,i),u_0(1,i),n)/u_dot_u(u_0(1,i),n)
   enddo
+  deallocate (H_jj, v_0)
 end
 
 
@@ -199,8 +200,8 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0
   
-  integer, allocatable           :: shortcut(:,:), sort_idx(:,:)
-  integer(bit_kind), allocatable :: sorted(:,:,:), version(:,:,:)
+  integer, allocatable           :: shortcut(:,:), sort_idx(:)
+  integer(bit_kind), allocatable :: sorted(:,:), version(:,:)
   integer(bit_kind)              :: sorted_i(Nint)
   
   integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, istate
@@ -219,8 +220,13 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   ASSERT (n>0)
   PROVIDE ref_bitmask_energy 
 
-  allocate (shortcut(0:n+1,2), sort_idx(n,2), sorted(Nint,n,2), version(Nint,n,2))
+  allocate (shortcut(0:n+1,2), sort_idx(n), sorted(Nint,n), version(Nint,n))
   allocate(ut(N_st_8,n))
+print *, ( size(shortcut)*4)/1048576, ' shortcut ', irp_here
+print *, ( size(sort_idx)*4)/1048576, ' sort_idx ', irp_here
+print *, ( size(sorted)*4)/1048576, ' sorted ', irp_here
+print *, ( size(version)*4)/1048576, ' version ', irp_here
+print *, ( size(ut)*8)/1048576, ' ut ', irp_here
 
   v_0 = 0.d0
   s_0 = 0.d0
@@ -230,8 +236,8 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
       ut(istate,i) =  u_0(i,istate)
     enddo
   enddo
-   call sort_dets_ab_v(keys_tmp, sorted(1,1,1), sort_idx(1,1), shortcut(0,1), version(1,1,1), n, Nint)
-   call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
+   call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut(0,1), version, n, Nint)
+   call sort_dets_ba_v(keys_tmp, sorted, sort_idx, shortcut(0,2), version, n, Nint)
     
   workload = 0
   blockb = shortcut(0,1)
@@ -255,5 +261,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
       s_0(i,istate) = s_0(i,istate) + s2_jj(i)* u_0(i,istate)
     enddo
   enddo
+  deallocate(shortcut, sort_idx, sorted, version)
+  deallocate(ut)
 end
 
