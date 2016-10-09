@@ -472,7 +472,7 @@ subroutine davidson_run(zmq_to_qp_run_socket , v0, s0, LDA)
   !$OMP PARALLEL NUM_THREADS(nproc+2) PRIVATE(i)
   i = omp_get_thread_num()
   if (i == 0 ) then
-    call davidson_collector(zmq_collector, zmq_socket_pull , v0, s0)
+    call davidson_collector(zmq_collector, zmq_socket_pull , v0, s0, LDA)
     call end_zmq_to_qp_run_socket(zmq_collector)
     call end_zmq_pull_socket(zmq_socket_pull)
     call davidson_miniserver_end()
