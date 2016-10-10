@@ -240,9 +240,9 @@ subroutine add_integrals_to_map(mask_ijkl)
               exit
             endif
             bielec_tmp_1(i) = c*bielec_tmp_3(i,j0,k0)
-!          enddo
-!          
-!          do i = 1, min(k,j1-i1)
+          enddo
+          
+          do i = 1, min(k,j1-i1)
             if (abs(bielec_tmp_1(i)) < mo_integrals_threshold) then
               cycle
             endif
