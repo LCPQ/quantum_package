@@ -34,8 +34,8 @@ subroutine davidson_process(blockb, blocke, vt, st)
   allocate(localv(N_states_diag, shortcut_(sh+1,1) - shortcut_(sh,1)))
   locals = 0d0
   localv = 0d0
-  !$OMP DO
-  do sh2=1,sh 
+  !$OMP DO schedule(static, 1)
+  do sh2=sh, shortcut_(0,1) !1,sh
     exa = 0
     do ni=1,N_int
       exa = exa + popcnt(xor(version_(ni,sh,1), version_(ni,sh2,1)))
