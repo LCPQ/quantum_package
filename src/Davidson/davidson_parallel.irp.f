@@ -252,7 +252,7 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, worker_id)
   double precision    ,  allocatable      :: vt(:,:)
   double precision    ,  allocatable      :: st(:,:)
   
-  allocate(task_id(100))
+  allocate(task_id(10))
   allocate(idx(dav_size)) 
   allocate(vt(N_states_diag, dav_size)) 
   allocate(st(N_states_diag, dav_size)) 
