@@ -90,8 +90,8 @@ subroutine davidson_process(blockb, blocke, N, idx, vt, st, bs)
            vt (:,ii) = 0d0
            st (:,ii) = 0d0
          end if
-!         call daxpy(N_states_diag,hij,dav_ut(1,org_j),1,vt(1,org_i),1)
-!         call daxpy(N_states_diag,s2, dav_ut(1,org_j),1,st(1,org_i),1)
+!         call daxpy(N_states_diag,hij,dav_ut(1,org_j),1,vt(1,ii),1)
+!         call daxpy(N_states_diag,s2, dav_ut(1,org_j),1,st(1,ii),1)
          do istate=1,N_states_diag
            vt (istate,ii) += hij*dav_ut(istate,org_j)
            st (istate,ii) += s2*dav_ut(istate,org_j)
