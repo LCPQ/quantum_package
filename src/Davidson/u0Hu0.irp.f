@@ -240,19 +240,21 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   touch dav_size
   dav_det = psi_det
   dav_ut = ut
+  
   workload = 0
   blockb = shortcut(0,1)
   blocke = blockb
   call davidson_init(handler)
   do sh=shortcut(0,1),1,-1
     workload += (shortcut(sh+1,1) - shortcut(sh,1))**2
-    if(workload > 1000) then
+    if(workload > max_workload) then
       blocke = sh
       call davidson_add_task(handler, blocke, blockb)
       blockb = sh-1
       workload = 0
     end if
   enddo
+  
   if(blockb > 0) call davidson_add_task(handler, 1, blockb)
   call davidson_run(handler, v_0, s_0)
 
@@ -264,4 +266,10 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
     enddo
   enddo
 end
+
+
+BEGIN_PROVIDER [ integer, max_workload ]
+  max_workload = 1000
+END_PROVIDER
+
 
