@@ -253,7 +253,7 @@ BEGIN_PROVIDER [ double precision, CI_energy_dressed, (N_states_diag) ]
   integer                        :: j
   character*(8)                  :: st
   call write_time(output_determinants)
-  do j=1,min(N_det,N_states_diag)
+  do j=1,min(N_det,N_states)
     write(st,'(I4)') j
     CI_energy_dressed(j) = CI_electronic_energy_dressed(j) + nuclear_repulsion
     call write_double(output_determinants,CI_energy_dressed(j),'Energy of state '//trim(st))

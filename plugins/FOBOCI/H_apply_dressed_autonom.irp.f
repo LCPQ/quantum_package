@@ -273,7 +273,7 @@ subroutine H_apply_dressed_pert_monoexc(key_in, hole_1,particl_1,i_generator,ipr
   integer,parameter              :: size_max = 3072
   
     integer, intent(in) :: Ndet_generators
-    double precision, intent(in) :: E_ref
+    double precision, intent(inout) :: E_ref
     double precision, intent(inout) :: delta_ij_generators_(Ndet_generators,Ndet_generators)
     integer(bit_kind), intent(in) :: psi_det_generators_input(N_int,2,Ndet_generators)
 
@@ -438,7 +438,7 @@ subroutine H_apply_dressed_pert(delta_ij_generators_,  Ndet_generators,psi_det_g
   
   
     integer, intent(in) :: Ndet_generators
-    double precision, intent(in) :: E_ref
+    double precision, intent(inout) :: E_ref
     double precision, intent(inout) :: delta_ij_generators_(Ndet_generators,Ndet_generators)
     integer(bit_kind), intent(in) :: psi_det_generators_input(N_int,2,Ndet_generators)
 

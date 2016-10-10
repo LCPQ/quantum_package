@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-with open('bats/qp.bats','r') as f:
+import sys
+
+with open(sys.argv[1],'r') as f:
   raw_data = f.read()
 
 output = []
