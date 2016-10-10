@@ -349,8 +349,9 @@ integer function searchDet(dets, det, n, Nint)
   do while(.true.)
     searchDet = (l+h)/2
     c = detCmp(dets(1,1,searchDet), det(1,1), Nint)
-    if(c == 0) return
-    if(c == 1) then
+    if(c == 0) then
+      return
+    else if(c == 1) then
       h = searchDet-1
     else
       l = searchDet+1
@@ -498,12 +499,12 @@ subroutine tamise_exc(key, no, n, N_key)
   BEGIN_DOC
 ! Uncodumented : TODO
   END_DOC
-  integer,intent(in)                    :: no, n, N_key
+  integer,intent(in)            :: no, n, N_key
   integer*2,intent(inout)       :: key(4, N_key)
-  integer                               :: k,j
-  integer*2                    :: tmp(4)
-  logical                               :: exc_inf
-  integer                               :: ni
+  integer                       :: k,j
+  integer*2                     :: tmp(4)
+  logical                       :: exc_inf
+  integer                       :: ni
   
   k = no
   j = 2*k
@@ -633,7 +634,6 @@ END_PROVIDER
    allocate(A_ind(0:N_det_ref+1, nex), A_val(N_det_ref+1, nex))
    allocate(AtA_ind(N_det_ref * nex), AtA_val(N_det_ref * nex)) !!!!! MAY BE TOO SMALL ? !!!!!!!!
    allocate(x(nex), AtB(nex))
-   allocate(A_val_mwen(nex), A_ind_mwen(nex))
    allocate(N_col(nex), col_shortcut(nex))
    allocate(x_new(nex))
    
@@ -645,7 +645,6 @@ END_PROVIDER
      AtA_val = 0d0
      x = 0d0
      A_val_mwen = 0d0
-     A_ind_mwen = 0
      N_col = 0
      col_shortcut = 0
      
@@ -689,7 +688,8 @@ END_PROVIDER
      end do
      !$OMP END DO
      deallocate(lref)
-     !$OMP END PARALLEL
+     !$OMP END PARALLEL   
+ print *,  'Done building A_val, A_ind'
      
      AtB = 0d0
      AtA_size = 0
@@ -698,6 +698,8 @@ END_PROVIDER
      !$OMP PARALLEL default(none) shared(k, psi_non_ref_coef, A_ind, A_val, x, N_det_ref, nex, N_det_non_ref)&
          !$OMP private(at_row, a_col, t, i, r1, r2, wk, A_ind_mwen, A_val_mwen)&
          !$OMP shared(col_shortcut, N_col, AtB, AtA_size, AtA_val, AtA_ind, s)
+     allocate(A_val_mwen(nex), A_ind_mwen(nex))
+     A_ind_mwen = 0
      !$OMP DO schedule(dynamic, 100)
      do at_row = 1, nex
        wk = 0
@@ -711,10 +713,10 @@ END_PROVIDER
          r1 = 1
          r2 = 1
          do while ((A_ind(r1, at_row) /= 0).and.(A_ind(r2, a_col) /= 0))
-           if(A_ind(r1, at_row) < A_ind(r2, a_col)) then
-             r1 = r1+1
-           else if(A_ind(r1, at_row) > A_ind(r2, a_col)) then
+           if(A_ind(r1, at_row) > A_ind(r2, a_col)) then
              r2 = r2+1
+           else if(A_ind(r1, at_row) < A_ind(r2, a_col)) then
+             r1 = r1+1
            else
              t = t - A_val(r1, at_row) * A_val(r2, a_col)
              r1 = r1+1
@@ -748,7 +750,8 @@ END_PROVIDER
          !$OMP END CRITICAL
        end if
      end do
-     !$OMP END DO
+     !$OMP END DO NOWAIT
+     deallocate (A_ind_mwen, A_val_mwen)
      !$OMP END PARALLEL
      
      if(AtA_size > size(AtA_val)) stop "SIZA"
@@ -1059,18 +1062,20 @@ subroutine apply_hole_local(det, exc, res, ok, Nint)
   res = det
   
   if(h1 /= 0) then
-  ii = (h1-1)/bit_kind_size + 1 
-  pos = mod(h1-1, 64)!iand(h1-1,bit_kind_size-1) ! mod 64
-  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
-  res(ii, s1) = ibclr(res(ii, s1), pos)
+    ii = (h1-1)/bit_kind_size + 1 
+    pos = iand(h1-1,bit_kind_size-1) ! mod 64
+    if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) then
+      return
+    endif
+    res(ii, s1) = ibclr(res(ii, s1), pos)
   end if
   
-    ii = (h2-1)/bit_kind_size + 1 
-    pos = mod(h2-1, 64)!iand(h2-1,bit_kind_size-1)
-    if(iand(det(ii, s2), ishft(1_bit_kind, pos)) == 0_8) return
-    res(ii, s2) = ibclr(res(ii, s2), pos)
-
-  
+  ii = (h2-1)/bit_kind_size + 1 
+  pos = iand(h2-1,bit_kind_size-1) ! mod 64
+  if(iand(det(ii, s2), ishft(1_bit_kind, pos)) == 0_8) then
+    return
+  endif
+  res(ii, s2) = ibclr(res(ii, s2), pos)
   ok = .true.
 end subroutine
 
@@ -1094,16 +1099,20 @@ subroutine apply_particle_local(det, exc, res, ok, Nint)
   res = det 
   
   if(p1 /= 0) then
-  ii = (p1-1)/bit_kind_size + 1 
-  pos = mod(p1-1, 64)!iand(p1-1,bit_kind_size-1)
-  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) return
-  res(ii, s1) = ibset(res(ii, s1), pos)
+    ii = (p1-1)/bit_kind_size + 1 
+    pos = iand(p1-1,bit_kind_size-1)
+    if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) then
+      return
+    endif
+    res(ii, s1) = ibset(res(ii, s1), pos)
   end if
 
-    ii = (p2-1)/bit_kind_size + 1 
-    pos = mod(p2-1, 64)!iand(p2-1,bit_kind_size-1)
-    if(iand(det(ii, s2), ishft(1_bit_kind, pos)) /= 0_8) return
-    res(ii, s2) = ibset(res(ii, s2), pos)
+  ii = (p2-1)/bit_kind_size + 1 
+  pos = iand(p2-1,bit_kind_size-1)
+  if(iand(det(ii, s2), ishft(1_bit_kind, pos)) /= 0_8) then
+    return
+  endif
+  res(ii, s2) = ibset(res(ii, s2), pos)
 
   
   ok = .true.
