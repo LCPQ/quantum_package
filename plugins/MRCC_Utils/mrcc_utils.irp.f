@@ -810,14 +810,18 @@ END_PROVIDER
        
        if(res < 1d-8) exit
      end do
-     
+     ! rho_mrcc now contains A.X
+
      norm = 0.d0
      do i=1,N_det_non_ref
        norm = norm + rho_mrcc(i,s)*rho_mrcc(i,s)
      enddo
+     ! Norm now contains the norm of A.X
+
      do i=1,N_det_ref
        norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
      enddo
+     ! Norm now contains the norm of Psi + A.X
      
      print *, k, "res : ", res, "norm : ", sqrt(norm)
      
@@ -829,30 +833,46 @@ END_PROVIDER
        if (rho_mrcc(i,s) == 0.d0) then
          rho_mrcc(i,s) = 1.d-32
        endif
+
+       ! f is such that f.\tilde{c_i} = c_i
        f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
+
        ! Avoid numerical instabilities
        f = min(f,2.d0)
        f = max(f,-2.d0)
+
        norm = norm + f*f *rho_mrcc(i,s)*rho_mrcc(i,s)
        rho_mrcc(i,s) = f
      enddo
+     ! norm now contains the norm of |T.Psi_0>
+     ! rho_mrcc now contains the f factors
 
      f = 1.d0/norm
-     norm = 0.d0
-     do i=1,N_det_non_ref
-       norm = norm + psi_non_ref_coef(i,s)*psi_non_ref_coef(i,s)
-     enddo
-     f = dsqrt(f*norm)
+     ! f now contains 1/ <T.Psi_0|T.Psi_0>
 
-     print *,  'norm of |T Psi_0> = ', norm*f*f
+     norm = 1.d0
+     do i=1,N_det_ref
+       norm = norm - psi_ref_coef(i,s)*psi_ref_coef(i,s)
+     enddo
+     ! norm now contains <Psi_SD|Psi_SD>
+     f = dsqrt(f*norm)
+     ! f normalises T.Psi_0 such that (1+T)|Psi> is normalized
+
+     norm = norm*f
+     print *,  'norm of |T Psi_0> = ', dsqrt(norm)
+
+     do i=1,N_det_ref
+       norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
+     enddo
 
      do i=1,N_det_non_ref
        rho_mrcc(i,s) = rho_mrcc(i,s) * f
      enddo
+     ! rho_mrcc now contains the product of the scaling factors and the
+     ! normalization constant
 
    end do
    
-   print *, "done"
 END_PROVIDER
 
 
@@ -860,13 +880,17 @@ BEGIN_PROVIDER [ double precision, dij, (N_det_ref, N_det_non_ref, N_states) ]
   integer :: s,i,j
   double precision, external :: get_dij_index
   print *, "computing amplitudes..."
+  !$OMP PARALLEL DEFAULT(shared) PRIVATE(s,i,j)
   do s=1, N_states
+    !$OMP DO
     do i=1, N_det_non_ref
       do j=1, N_det_ref
         dij(j, i, s) = get_dij_index(j, i, s, N_int)
       end do
     end do
+    !$OMP END DO 
   end do
+  !$OMP END PARALLEL
   print *, "done computing amplitudes"
 END_PROVIDER
 
@@ -879,10 +903,9 @@ double precision function get_dij_index(II, i, s, Nint)
   double precision :: HIi, phase
 
   if(lambda_type == 0) then
-    get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint)
-!    get_dij_index = get_dij_index * rho_mrcc(i,s) 
     call get_phase(psi_ref(1,1,II), psi_non_ref(1,1,i), phase, N_int)
-    get_dij_index = get_dij_index * rho_mrcc(i,s) * phase
+    get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint) * phase
+    get_dij_index = get_dij_index * rho_mrcc(i,s) 
   else
     call i_h_j(psi_ref(1,1,II), psi_non_ref(1,1,i), Nint, HIi)
     get_dij_index = HIi * lambda_mrcc(s, i)
