@@ -4,12 +4,12 @@
 use bitmasks
 use f77_zmq
 
-subroutine davidson_process(blockb, blocke, N, idx, vt, st, bs)
+subroutine davidson_process(blockb, blockb2, N, idx, vt, st, bs, istep)
   
   implicit none
   
 
-  integer             , intent(in)        :: blockb, blocke, bs
+  integer             , intent(in)        :: blockb, bs, blockb2, istep
   integer             , intent(inout)     :: N
   integer             , intent(inout)     :: idx(bs)
   double precision    , intent(inout)     :: vt(N_states_diag, bs)
