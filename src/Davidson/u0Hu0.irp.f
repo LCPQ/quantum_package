@@ -208,7 +208,8 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   integer                        :: N_st_8
   
   integer, external              :: align_double
-  integer :: workload, blockb, blocke
+  integer :: blockb, blockb2, istep
+  double precision :: ave_workload, workload
   
   integer(ZMQ_PTR) :: handler
   
@@ -234,21 +235,38 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
    call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut(0,1), version, n, Nint)
    call sort_dets_ba_v(keys_tmp, sorted, sort_idx, shortcut(0,2), version, n, Nint)
     
-  workload = 0
   blockb = shortcut(0,1)
-  blocke = blockb
   call davidson_init(handler,n,N_st_8,ut)
+
+
+  ave_workload = 0.d0
+  do sh=1,shortcut(0,1)
+    ave_workload += shortcut(0,1)
+    ave_workload += (shortcut(sh+1,1) - shortcut(sh,1))**2
+    do i=sh, shortcut(0,2), shortcut(0,1)
+      do j=i, min(i, shortcut(0,2))
+        ave_workload += (shortcut(j+1,2) - shortcut(j, 2))**2
+      end do
+    end do
+  enddo
+  ave_workload = ave_workload/dble(shortcut(0,1))
+
+
+  print *,  'Ave workload :', ave_workload
+
   do sh=shortcut(0,1),1,-1
-    workload += (shortcut(sh+1,1) - shortcut(sh,1))**2
-    if(workload > max_workload) then
-      blocke = sh
-      call davidson_add_task(handler, blocke, blockb)
-      blockb = sh-1
-      workload = 0
-    end if
+    workload = shortcut(0,1)+dble(shortcut(sh+1,1) - shortcut(sh,1))**2
+    do i=sh, shortcut(0,2), shortcut(0,1)
+      do j=i, min(i, shortcut(0,2))
+        workload += (shortcut(j+1,2) - shortcut(j, 2))**2
+      end do
+    end do
+    istep = 1+ int(0.5d0*workload/ave_workload)
+    do blockb2=0, istep-1
+      call davidson_add_task(handler, sh, blockb2, istep)
+    enddo
   enddo
   
-  if(blockb > 0) call davidson_add_task(handler, 1, blockb)
   call davidson_run(handler, v_0, s_0, size(v_0,1))
 
   do istate=1,N_st
@@ -261,9 +279,5 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   deallocate(ut)
 end
 
-
-BEGIN_PROVIDER [ integer, max_workload ]
-  max_workload = 1000
-END_PROVIDER
 
 
