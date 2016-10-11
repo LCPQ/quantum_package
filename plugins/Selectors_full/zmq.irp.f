@@ -101,6 +101,7 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id, energy, size_energy)
     print *, '77_zmq_recv(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,ZMQ_SNDMORE)'
     stop 'error'
   endif
+  TOUCH psi_det psi_coef
 
   rc = f77_zmq_recv(zmq_to_qp_run_socket,energy,size_energy*8,0)
   if (rc /= size_energy*8) then
@@ -110,11 +111,12 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id, energy, size_energy)
 
   if (N_det_generators_read > 0) then
     N_det_generators = N_det_generators_read
+    TOUCH N_det_generators
   endif
   if (N_det_selectors_read > 0) then
     N_det_selectors  = N_det_selectors_read
+    TOUCH N_det_selectors
   endif
-  SOFT_TOUCH psi_det psi_coef N_det_selectors N_det_generators
 
 end
 
