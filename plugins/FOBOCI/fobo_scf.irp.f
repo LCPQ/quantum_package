@@ -1,6 +1,6 @@
 program foboscf
  implicit none
- call run_prepare
+!call run_prepare
  no_oa_or_av_opt = .True.
  touch no_oa_or_av_opt
  call routine_fobo_scf

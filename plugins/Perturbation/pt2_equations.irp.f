@@ -192,6 +192,11 @@ subroutine pt2_moller_plesset ($arguments)
   endif
   do i =1,N_st
     H_pert_diag(i) = h
+!   if(dabs(i_H_psi_array(i)).gt.1.d-8)then
+!   print*, i_H_psi_array(i)
+!    call debug_det(det_pert,N_int)
+!    print*, h1,p1,h2,p2,s1,s2
+!   endif
     c_pert(i) = i_H_psi_array(i) *delta_e
     e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
   enddo

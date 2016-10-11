@@ -14,8 +14,6 @@ BEGIN_PROVIDER [integer(bit_kind), psi_active, (N_int,2,psi_det_size)]
    psi_active(j,1,i) = iand(psi_det(j,1,i),cas_bitmask(j,1,1))
    psi_active(j,2,i) = iand(psi_det(j,2,i),cas_bitmask(j,1,1))
   enddo
-  
-! call debug_det(psi_active(1,1,i),N_int)
  enddo
 END_PROVIDER
 
@@ -154,7 +152,7 @@ subroutine give_particles_in_virt_space(det_1,n_particles_spin,n_particles,parti
 
 end
 
-subroutine get_delta_e_dyall(det_1,det_2,delta_e_final)
+subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
  BEGIN_DOC
  ! routine that returns the delta_e with the Moller Plesset and Dyall operators
  !
@@ -172,6 +170,7 @@ subroutine get_delta_e_dyall(det_1,det_2,delta_e_final)
   use bitmasks
  double precision, intent(out) :: delta_e_final(N_states)
  integer(bit_kind), intent(in) :: det_1(N_int,2),det_2(N_int,2)
+ double precision, intent(in) :: coef_array(N_states),hij
  integer :: i,j,k,l
  integer :: i_state
  
@@ -292,23 +291,52 @@ subroutine get_delta_e_dyall(det_1,det_2,delta_e_final)
 ! delta_e_act += one_creat_spin_trace(i_particle_act )
   ispin = particle_list_practical(1,1)
   i_particle_act =  particle_list_practical(2,1)
-  do i_state = 1, N_states
-   delta_e_act(i_state) += one_creat(i_particle_act,ispin,i_state)
-  enddo
+  call get_excitation_degree(det_1,det_2,degree,N_int)
+  if(degree == 1)then
+   call get_excitation(det_1,det_2,exc,degree,phase,N_int)
+   call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+   i_hole =  list_inact_reverse(h1)
+   i_part =  list_act_reverse(p1)
+   do i_state = 1, N_states
+    delta_e_act(i_state) += one_anhil_inact(i_hole,i_part,i_state)
+   enddo
+  else if (degree == 2)then
+   do i_state = 1, N_states
+    delta_e_act(i_state) += one_creat(i_particle_act,ispin,i_state)
+   enddo
+  endif
 
  else if (n_holes_act == 1 .and. n_particles_act == 0) then
 ! i_hole_act =  holes_active_list_spin_traced(1)
 ! delta_e_act += one_anhil_spin_trace(i_hole_act )
   ispin = hole_list_practical(1,1)
   i_hole_act =  hole_list_practical(2,1)
-  do i_state = 1, N_states
-   delta_e_act(i_state) += one_anhil(i_hole_act , ispin,i_state)
-  enddo
+  call get_excitation_degree(det_1,det_2,degree,N_int)
+  if(degree == 1)then
+   call get_excitation(det_1,det_2,exc,degree,phase,N_int)
+   call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+   i_hole =  list_act_reverse(h1)
+   i_part =  list_virt_reverse(p1)
+   do i_state = 1, N_states
+    if(isnan(one_creat_virt(i_hole,i_part,i_state)))then
+     print*, i_hole,i_part,i_state
+     call debug_det(det_1,N_int)
+     call debug_det(det_2,N_int)
+     stop 
+    endif
+    delta_e_act(i_state) += one_creat_virt(i_hole,i_part,i_state)
+   enddo
+  else if (degree == 2)then
+   do i_state = 1, N_states
+    delta_e_act(i_state) += one_anhil(i_hole_act , ispin,i_state)
+   enddo
+  endif
 
  else if (n_holes_act == 1 .and. n_particles_act == 1) then
 ! i_hole_act =  holes_active_list_spin_traced(1)
 ! i_particle_act =  particles_active_list_spin_traced(1)
 ! delta_e_act += one_anhil_one_creat_spin_trace(i_hole_act,i_particle_act)
+
   ! first hole
   ispin = hole_list_practical(1,1)
   i_hole_act =  hole_list_practical(2,1)
@@ -422,6 +450,34 @@ subroutine get_delta_e_dyall(det_1,det_2,delta_e_final)
   do i_state = 1, N_states
    delta_e_act(i_state) += three_creat(i_particle_act,j_particle_act,k_particle_act,ispin,jspin,kspin,i_state)
   enddo
+ 
+ else if (n_holes_act .eq. 0 .and. n_particles_act .eq.0)then
+  integer :: degree
+  integer(bit_kind) :: det_1_active(N_int,2)
+  integer          :: h1,h2,p1,p2,s1,s2
+  integer          :: exc(0:2,2,2)
+  integer          :: i_hole, i_part
+  double precision :: phase
+  call get_excitation_degree(det_1,det_2,degree,N_int)
+  if(degree == 1)then
+!  call debug_det(det_1,N_int)
+   call get_excitation(det_1,det_2,exc,degree,phase,N_int)
+   call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+   i_hole =  list_inact_reverse(h1)
+   i_part =  list_virt_reverse(p1)
+   do i_state = 1, N_states
+!   if(one_anhil_one_creat_inact_virt_norm(i_hole,i_part,i_state,s1).gt.1.d-10)then
+!    print*, hij, one_anhil_one_creat_inact_virt_norm(i_hole,i_part,i_state,s1)
+!    delta_e_act(i_state) += one_anhil_one_creat_inact_virt(i_hole,i_part,i_state) & 
+!    * coef_array(i_state)* hij*coef_array(i_state)* hij *one_anhil_one_creat_inact_virt_norm(i_hole,i_part,i_state,s1)
+!     print*, coef_array(i_state)* hij*coef_array(i_state)* hij,one_anhil_one_creat_inact_virt_norm(i_hole,i_part,i_state,s1), &
+!          coef_array(i_state)* hij*coef_array(i_state)* hij *one_anhil_one_creat_inact_virt_norm(i_hole,i_part,i_state,s1)
+!   else 
+     delta_e_act(i_state) += one_anhil_one_creat_inact_virt(i_hole,i_part,i_state) 
+!   endif
+   enddo
+  endif
+
 
  else if (n_holes_act .ge. 2 .and. n_particles_act .ge.2) then
 
@@ -438,3 +494,4 @@ subroutine get_delta_e_dyall(det_1,det_2,delta_e_final)
  enddo
 
 end
+

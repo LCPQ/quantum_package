@@ -484,6 +484,7 @@ subroutine map_get(map, key, value)
   integer(map_size_kind)         :: idx_cache
   integer(cache_map_size_kind)   :: idx
   
+  ! index in tha pointers array
   idx_cache = ishft(key,map_shift)
   !DIR$ FORCEINLINE
   call cache_map_get_interval(map%map(idx_cache), key, value, 1, map%map(idx_cache)%n_elements,idx)
@@ -850,6 +851,28 @@ subroutine get_cache_map(map,map_idx,keys,values,n_elements)
   do i=1,n_elements
     keys(i) = map%map(map_idx)%key(i) + shift
     values(i) = map%map(map_idx)%value(i)
+  enddo
+  
+end
+
+subroutine get_cache_map_verbose(map,map_idx)
+  use map_module
+  implicit none
+  type (map_type), intent(in)    :: map
+  integer(map_size_kind), intent(in) :: map_idx
+  integer(cache_map_size_kind) :: n_elements
+  integer(key_kind) :: keys(2**16)
+  double precision :: values(2**16)
+  integer(cache_map_size_kind)   :: i
+  integer(key_kind)              :: shift
+  
+  shift = ishft(map_idx,-map_shift)
+  
+  n_elements = map%map(map_idx)%n_elements
+  do i=1,n_elements
+    keys(i) = map%map(map_idx)%key(i) + shift
+    values(i) = map%map(map_idx)%value(i)
+    print*, ',key,values',keys(i),values(i) 
   enddo
   
 end

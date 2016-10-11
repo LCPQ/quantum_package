@@ -57,6 +57,9 @@
  ! 1h1p 
  delta_ij_tmp = 0.d0
  call H_apply_mrpt_1h1p(delta_ij_tmp,N_det)
+ double precision :: e_corr_from_1h1p_singles(N_states)
+!call give_singles_and_partial_doubles_1h1p_contrib(delta_ij_tmp,e_corr_from_1h1p_singles)
+!call give_1h1p_only_doubles_spin_cross(delta_ij_tmp)
  accu = 0.d0
  do i_state = 1, N_states
  do i = 1, N_det
@@ -68,6 +71,23 @@
  second_order_pt_new_1h1p(i_state) = accu(i_state) 
  enddo
  print*, '1h1p = ',accu
+
+ ! 1h1p third order
+ delta_ij_tmp = 0.d0
+ call give_1h1p_sec_order_singles_contrib(delta_ij_tmp)
+!call give_singles_and_partial_doubles_1h1p_contrib(delta_ij_tmp,e_corr_from_1h1p_singles)
+!call give_1h1p_only_doubles_spin_cross(delta_ij_tmp)
+ accu = 0.d0
+ do i_state = 1, N_states
+ do i = 1, N_det
+  do j = 1, N_det
+   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+  enddo
+ enddo
+ second_order_pt_new_1h1p(i_state) = accu(i_state) 
+ enddo
+ print*, '1h1p(3)',accu
 
  ! 2h   
  delta_ij_tmp = 0.d0
@@ -101,6 +121,7 @@
 
  ! 1h2p   
  delta_ij_tmp = 0.d0
+!call give_1h2p_contrib(delta_ij_tmp)
  call H_apply_mrpt_1h2p(delta_ij_tmp,N_det)
  accu = 0.d0
  do i_state = 1, N_states
@@ -116,6 +137,7 @@
 
  ! 2h1p   
  delta_ij_tmp = 0.d0
+!call give_2h1p_contrib(delta_ij_tmp)
  call H_apply_mrpt_2h1p(delta_ij_tmp,N_det)
  accu = 0.d0
  do i_state = 1, N_states
@@ -159,7 +181,7 @@
  accu = 0.d0
  do i_state = 1, N_states
  do i = 1, N_det
-  write(*,'(1000(F16.10,x))')delta_ij(i,:,:)
+! write(*,'(1000(F16.10,x))')delta_ij(i,:,:)
   do j = i_state, N_det
    accu(i_state) += delta_ij(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
   enddo

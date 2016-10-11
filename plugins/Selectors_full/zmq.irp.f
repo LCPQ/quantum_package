@@ -98,7 +98,14 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id)
   if (N_det_selectors_read > 0) then
     N_det_selectors  = N_det_selectors_read
   endif
-  SOFT_TOUCH psi_det psi_coef N_det_selectors N_det_generators
+  SOFT_TOUCH psi_det psi_coef N_det_selectors N_det_generators psi_coef_generators  psi_det_generators 
+! n_det_generators
+! n_det_selectors
+! psi_coef
+! psi_coef_generators
+! psi_det
+! psi_det_generators 
+
 
 end
 

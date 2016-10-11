@@ -212,8 +212,8 @@ subroutine update_density_matrix_osoci
  integer :: iorb,jorb
  do i = 1, mo_tot_num
   do j = 1, mo_tot_num
-   one_body_dm_mo_alpha_osoci(i,j) = one_body_dm_mo_alpha_osoci(i,j) + (one_body_dm_mo_alpha(i,j) - one_body_dm_mo_alpha_generators_restart(i,j))
-   one_body_dm_mo_beta_osoci(i,j) = one_body_dm_mo_beta_osoci(i,j) + (one_body_dm_mo_beta(i,j) - one_body_dm_mo_beta_generators_restart(i,j))
+   one_body_dm_mo_alpha_osoci(i,j) = one_body_dm_mo_alpha_osoci(i,j) + (one_body_dm_mo_alpha_average(i,j) - one_body_dm_mo_alpha_generators_restart(i,j))
+   one_body_dm_mo_beta_osoci(i,j) = one_body_dm_mo_beta_osoci(i,j) + (one_body_dm_mo_beta_average(i,j) - one_body_dm_mo_beta_generators_restart(i,j))
   enddo
  enddo
 
@@ -588,14 +588,14 @@ end
    integer :: i
    double precision :: accu_tot,accu_sd
    print*,'touched the one_body_dm_mo_beta'
-   one_body_dm_mo_alpha = one_body_dm_mo_alpha_osoci
-   one_body_dm_mo_beta = one_body_dm_mo_beta_osoci
+   one_body_dm_mo_alpha_average = one_body_dm_mo_alpha_osoci
+   one_body_dm_mo_beta_average = one_body_dm_mo_beta_osoci
    touch one_body_dm_mo_alpha  one_body_dm_mo_beta 
    accu_tot = 0.d0
    accu_sd  = 0.d0
    do i = 1, mo_tot_num
-    accu_tot += one_body_dm_mo_alpha(i,i) + one_body_dm_mo_beta(i,i)
-    accu_sd  += one_body_dm_mo_alpha(i,i) - one_body_dm_mo_beta(i,i)
+    accu_tot += one_body_dm_mo_alpha_average(i,i) + one_body_dm_mo_beta_average(i,i)
+    accu_sd  += one_body_dm_mo_alpha_average(i,i) - one_body_dm_mo_beta_average(i,i)
    enddo
    print*,'accu_tot = ',accu_tot
    print*,'accu_sdt = ',accu_sd 

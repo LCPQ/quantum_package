@@ -382,8 +382,6 @@ subroutine i_H_j_dyall(key_i,key_j,Nint,hij)
         
       endif
       hij = phase*(hij + mo_mono_elec_integral(m,p)  + fock_operator_active_from_core_inact(m,p) )
-!     hij = phase*(mo_mono_elec_integral(m,p) ) ! + fock_operator_active_from_core_inact(m,p) )
-!     hij = 0.d0
       
     case (0)
       hij = diag_H_mat_elem_no_elec_check(key_i,Nint)
@@ -416,6 +414,292 @@ subroutine u0_H_dyall_u0(energies,psi_in,psi_in_coef,ndet,dim_psi_in,dim_psi_coe
   do j = 1, ndet
    if(psi_coef_tmp(j)==0.d0)cycle
    call i_H_j_dyall(psi_in(1,1,i),psi_in(1,1,j),N_int,hij)
+   accu += psi_coef_tmp(i) * psi_coef_tmp(j) * hij
+  enddo
+ enddo
+ energies(state_target) = accu
+ deallocate(psi_coef_tmp)
+end
+
+
+double precision function coulomb_value_no_check(det_in,Nint)
+  implicit none
+  BEGIN_DOC
+  ! Computes <i|H|i>
+  END_DOC
+  integer,intent(in)             :: Nint
+  integer(bit_kind),intent(in)   :: det_in(Nint,2)
+  
+  integer                        :: i, j, iorb, jorb 
+  integer                        :: occ(Nint*bit_kind_size,2)
+  integer                        ::  elec_num_tab_local(2)
+
+  double precision :: core_act
+  double precision :: alpha_alpha
+  double precision :: alpha_beta
+  double precision :: beta_beta
+  double precision :: mono_elec
+  core_act = 0.d0
+  alpha_alpha = 0.d0
+  alpha_beta = 0.d0
+  beta_beta = 0.d0
+  mono_elec = 0.d0
+
+  coulomb_value_no_check = 0.d0
+  call bitstring_to_list(det_in(1,1), occ(1,1), elec_num_tab_local(1), N_int)
+  call bitstring_to_list(det_in(1,2), occ(1,2), elec_num_tab_local(2), N_int)
+  ! alpha - alpha 
+  do i = 1, elec_num_tab_local(1)
+   iorb =  occ(i,1)
+   do j = i+1, elec_num_tab_local(1)
+    jorb = occ(j,1)
+    coulomb_value_no_check +=  mo_bielec_integral_jj_anti(jorb,iorb)
+    alpha_alpha += mo_bielec_integral_jj_anti(jorb,iorb)
+   enddo
+  enddo 
+
+  ! beta - beta   
+  do i = 1, elec_num_tab_local(2)
+   iorb =  occ(i,2)
+   do j = i+1, elec_num_tab_local(2)
+    jorb = occ(j,2)
+    coulomb_value_no_check +=  mo_bielec_integral_jj_anti(jorb,iorb)
+    beta_beta +=  mo_bielec_integral_jj_anti(jorb,iorb)
+   enddo
+  enddo 
+  
+
+  ! alpha - beta   
+  do i = 1, elec_num_tab_local(2)
+   iorb =  occ(i,2)
+   do j = 1, elec_num_tab_local(1)
+    jorb = occ(j,1)
+    coulomb_value_no_check +=  mo_bielec_integral_jj(jorb,iorb)
+    alpha_beta += mo_bielec_integral_jj(jorb,iorb)
+   enddo
+  enddo 
+  
+
+end
+
+subroutine i_H_j_dyall_no_exchange(key_i,key_j,Nint,hij)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Returns <i|H|j> where i and j are determinants
+  END_DOC
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: key_i(Nint,2), key_j(Nint,2)
+  double precision, intent(out)  :: hij
+  
+  integer                        :: exc(0:2,2,2)
+  integer                        :: degree
+  double precision               :: get_mo_bielec_integral_schwartz
+  integer                        :: m,n,p,q
+  integer                        :: i,j,k
+  integer                        :: occ(Nint*bit_kind_size,2)
+  double precision               :: diag_H_mat_elem_no_elec_check_no_exchange, phase,phase_2
+  integer                        :: n_occ_ab(2)
+  logical                        :: has_mipi(Nint*bit_kind_size)
+  double precision               :: mipi(Nint*bit_kind_size)
+  PROVIDE mo_bielec_integrals_in_map mo_integrals_map
+  
+  ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
+  
+  hij = 0.d0
+  !DIR$ FORCEINLINE
+  call get_excitation_degree(key_i,key_j,degree,Nint)
+  select case (degree)
+    case (2)
+      call get_double_excitation(key_i,key_j,exc,phase,Nint)
+      if (exc(0,1,1) == 1) then
+        ! Mono alpha, mono beta
+        if(exc(1,1,1) == exc(1,2,2) .and. exc(1,2,1) == exc(1,1,2))then
+         hij = 0.d0
+        else 
+         hij = phase*get_mo_bielec_integral_schwartz(                          &
+            exc(1,1,1),                                              &
+            exc(1,1,2),                                              &
+            exc(1,2,1),                                              &
+            exc(1,2,2) ,mo_integrals_map)
+        endif
+      else if (exc(0,1,1) == 2) then
+        ! Double alpha
+        hij = phase*get_mo_bielec_integral_schwartz(                &
+            exc(1,1,1),                                              &
+            exc(2,1,1),                                              &
+            exc(1,2,1),                                              &
+            exc(2,2,1) ,mo_integrals_map) 
+      else if (exc(0,1,2) == 2) then
+        ! Double beta
+        hij = phase*get_mo_bielec_integral_schwartz(                         &
+            exc(1,1,2),                                              &
+            exc(2,1,2),                                              &
+            exc(1,2,2),                                              &
+            exc(2,2,2) ,mo_integrals_map) 
+      endif
+    case (1)
+      call get_mono_excitation(key_i,key_j,exc,phase,Nint)
+      !DIR$ FORCEINLINE
+      call bitstring_to_list_ab(key_i, occ, n_occ_ab, Nint)
+      has_mipi = .False.
+      if (exc(0,1,1) == 1) then
+        ! Mono alpha
+        m = exc(1,1,1)
+        p = exc(1,2,1)
+        do k = 1, n_occ_ab(1)
+          i = occ(k,1)
+          if (.not.has_mipi(i)) then
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            has_mipi(i) = .True.
+          endif
+        enddo
+        do k = 1, n_occ_ab(2)
+          i = occ(k,2)
+          if (.not.has_mipi(i)) then
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            has_mipi(i) = .True.
+          endif
+        enddo
+        
+        do k = 1, n_occ_ab(1)
+          hij = hij + mipi(occ(k,1)) 
+        enddo
+        do k = 1, n_occ_ab(2)
+          hij = hij + mipi(occ(k,2))
+        enddo
+        
+      else
+        ! Mono beta
+        m = exc(1,1,2)
+        p = exc(1,2,2)
+        do k = 1, n_occ_ab(2)
+          i = occ(k,2)
+          if (.not.has_mipi(i)) then
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            has_mipi(i) = .True.
+          endif
+        enddo
+        do k = 1, n_occ_ab(1)
+          i = occ(k,1)
+          if (.not.has_mipi(i)) then
+            mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+            has_mipi(i) = .True.
+          endif
+        enddo
+        
+        do k = 1, n_occ_ab(1)
+          hij = hij + mipi(occ(k,1))
+        enddo
+        do k = 1, n_occ_ab(2)
+          hij = hij + mipi(occ(k,2)) 
+        enddo
+        
+      endif
+      hij = phase*(hij + mo_mono_elec_integral(m,p)  + fock_operator_active_from_core_inact(m,p) )
+      
+    case (0)
+      hij = diag_H_mat_elem_no_elec_check_no_exchange(key_i,Nint)
+  end select
+end
+
+
+double precision function diag_H_mat_elem_no_elec_check_no_exchange(det_in,Nint)
+  implicit none
+  BEGIN_DOC
+  ! Computes <i|H|i>
+  END_DOC
+  integer,intent(in)             :: Nint
+  integer(bit_kind),intent(in)   :: det_in(Nint,2)
+  
+  integer                        :: i, j, iorb, jorb 
+  integer                        :: occ(Nint*bit_kind_size,2)
+  integer                        ::  elec_num_tab_local(2)
+
+  double precision :: core_act_exchange(2)
+  core_act_exchange = 0.d0
+  diag_H_mat_elem_no_elec_check_no_exchange = 0.d0
+  call bitstring_to_list(det_in(1,1), occ(1,1), elec_num_tab_local(1), N_int)
+  call bitstring_to_list(det_in(1,2), occ(1,2), elec_num_tab_local(2), N_int)
+  ! alpha - alpha 
+  do i = 1, elec_num_tab_local(1)
+   iorb =  occ(i,1)
+   diag_H_mat_elem_no_elec_check_no_exchange += mo_mono_elec_integral(iorb,iorb)
+   do j = i+1, elec_num_tab_local(1)
+    jorb = occ(j,1)
+    diag_H_mat_elem_no_elec_check_no_exchange +=  mo_bielec_integral_jj(jorb,iorb)
+   enddo
+  enddo 
+
+  ! beta - beta   
+  do i = 1, elec_num_tab_local(2)
+   iorb =  occ(i,2)
+   diag_H_mat_elem_no_elec_check_no_exchange += mo_mono_elec_integral(iorb,iorb)
+   do j = i+1, elec_num_tab_local(2)
+    jorb = occ(j,2)
+    diag_H_mat_elem_no_elec_check_no_exchange +=  mo_bielec_integral_jj(jorb,iorb)
+   enddo
+  enddo 
+  
+
+  ! alpha - beta   
+  do i = 1, elec_num_tab_local(2)
+   iorb =  occ(i,2)
+   do j = 1, elec_num_tab_local(1)
+    jorb = occ(j,1)
+    diag_H_mat_elem_no_elec_check_no_exchange +=  mo_bielec_integral_jj(jorb,iorb)
+   enddo
+  enddo 
+  
+
+  ! alpha - core-act
+  do i = 1, elec_num_tab_local(1)
+   iorb =  occ(i,1)
+   do j = 1, n_core_inact_orb
+    jorb = list_core_inact(j)
+    diag_H_mat_elem_no_elec_check_no_exchange +=  2.d0 * mo_bielec_integral_jj(jorb,iorb) 
+    core_act_exchange(1) += - mo_bielec_integral_jj_exchange(jorb,iorb)
+   enddo
+  enddo 
+
+  ! beta - core-act
+  do i = 1, elec_num_tab_local(2)
+   iorb =  occ(i,2)
+   do j = 1, n_core_inact_orb
+    jorb = list_core_inact(j)
+    diag_H_mat_elem_no_elec_check_no_exchange +=  2.d0 * mo_bielec_integral_jj(jorb,iorb) 
+    core_act_exchange(2) += - mo_bielec_integral_jj_exchange(jorb,iorb)
+   enddo
+  enddo 
+  
+end
+
+subroutine u0_H_dyall_u0_no_exchange(energies,psi_in,psi_in_coef,ndet,dim_psi_in,dim_psi_coef,N_states_in,state_target)
+  use bitmasks
+ implicit none
+ integer, intent(in) :: N_states_in,ndet,dim_psi_in,dim_psi_coef,state_target
+ integer(bit_kind), intent(in) :: psi_in(N_int,2,dim_psi_in)
+ double precision,  intent(in) :: psi_in_coef(dim_psi_coef,N_states_in)
+ double precision,  intent(out) :: energies(N_states_in)
+ 
+ integer :: i,j 
+ double precision :: hij,accu
+ energies = 0.d0
+ accu = 0.d0
+ double precision, allocatable :: psi_coef_tmp(:)
+ allocate(psi_coef_tmp(ndet))
+ 
+ do i = 1, ndet
+  psi_coef_tmp(i) = psi_in_coef(i,state_target)
+ enddo
+
+ double precision :: hij_bis
+ do i = 1, ndet
+  if(psi_coef_tmp(i)==0.d0)cycle
+  do j = 1, ndet
+   if(psi_coef_tmp(j)==0.d0)cycle
+   call i_H_j_dyall_no_exchange(psi_in(1,1,i),psi_in(1,1,j),N_int,hij)
    accu += psi_coef_tmp(i) * psi_coef_tmp(j) * hij
   enddo
  enddo

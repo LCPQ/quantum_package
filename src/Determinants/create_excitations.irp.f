@@ -37,6 +37,72 @@ subroutine do_mono_excitation(key_in,i_hole,i_particle,ispin,i_ok)
  endif
 end
 
+subroutine do_spin_flip(key_in,i_flip,ispin,i_ok)
+ implicit none
+ BEGIN_DOC
+ ! flip the spin ispin in the orbital i_flip
+ ! on key_in 
+ ! ispin = 1  == alpha
+ ! ispin = 2  == beta
+ ! i_ok = 1  == the flip is possible
+ ! i_ok = -1 == the flip is not possible
+ END_DOC
+ integer, intent(in) :: i_flip,ispin
+ integer(bit_kind), intent(inout) :: key_in(N_int,2)
+ integer, intent(out) :: i_ok
+ integer :: k,j,i
+ integer(bit_kind) :: key_tmp(N_int,2)
+ i_ok = -1
+ key_tmp = 0_bit_kind
+ k = ishft(i_flip-1,-bit_kind_shift)+1
+ j = i_flip-ishft(k-1,bit_kind_shift)-1
+ key_tmp(k,1) = ibset(key_tmp(k,1),j)
+ integer :: other_spin(2)
+ other_spin(1) = 2
+ other_spin(2) = 1
+ if(popcnt(iand(key_tmp(k,1),key_in(k,ispin))) == 1 .and. popcnt(iand(key_tmp(k,1),key_in(k,other_spin(ispin)))) == 0  )then
+   ! There is a spin "ispin" in the orbital i_flip   AND  There is no electron of opposit spin in the same orbital "i_flip"
+  key_in(k,ispin) = ibclr(key_in(k,ispin),j)  ! destroy the electron ispin in the orbital i_flip
+  key_in(k,other_spin(ispin)) = ibset(key_in(k,other_spin(ispin)),j)  ! create an electron of spin other_spin in the same orbital
+  i_ok = 1
+ else 
+  return
+ endif
+ 
+
+
+end
+
+logical function is_spin_flip_possible(key_in,i_flip,ispin)
+ implicit none
+ BEGIN_DOC
+ ! returns .True. if the spin-flip of spin ispin in the orbital i_flip is possible
+ ! on key_in 
+ END_DOC
+ integer, intent(in) :: i_flip,ispin
+ integer(bit_kind), intent(in) :: key_in(N_int,2)
+ integer :: k,j,i
+ integer(bit_kind) :: key_tmp(N_int,2)
+ is_spin_flip_possible = .False. 
+ key_tmp = 0_bit_kind
+ k = ishft(i_flip-1,-bit_kind_shift)+1
+ j = i_flip-ishft(k-1,bit_kind_shift)-1
+ key_tmp(k,1) = ibset(key_tmp(k,1),j)
+ integer :: other_spin(2)
+ other_spin(1) = 2
+ other_spin(2) = 1
+ if(popcnt(iand(key_tmp(k,1),key_in(k,ispin))) == 1 .and. popcnt(iand(key_tmp(k,1),key_in(k,other_spin(ispin)))) == 0  )then
+   ! There is a spin "ispin" in the orbital i_flip   AND  There is no electron of opposit spin in the same orbital "i_flip"
+  is_spin_flip_possible = .True.
+  return
+ else 
+  return
+ endif
+ 
+
+
+end
+
 subroutine set_bit_to_integer(i_physical,key,Nint)
  use bitmasks
  implicit none

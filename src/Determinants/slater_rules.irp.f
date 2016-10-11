@@ -1389,6 +1389,55 @@ subroutine get_excitation_degree_vector_mono_or_exchange(key1,key2,degree,Nint,s
         l = l+1
       endif
     enddo
+  else 
+    
+    print*, 'get_excitation_degree_vector_mono_or_exchange not yet implemented for N_int > 1 ...'
+    stop
+    
+  endif
+  idx(0) = l-1
+end
+
+
+
+
+subroutine get_excitation_degree_vector_double_alpha_beta(key1,key2,degree,Nint,sze,idx)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Applies get_excitation_degree to an array of determinants and return only the mono excitations
+  ! and the connections through exchange integrals 
+  END_DOC
+  integer, intent(in)            :: Nint, sze
+  integer(bit_kind), intent(in)  :: key1(Nint,2,sze)
+  integer(bit_kind), intent(in)  :: key2(Nint,2)
+  integer, intent(out)           :: degree(sze)
+  integer, intent(out)           :: idx(0:sze)
+  integer(bit_kind)              :: key_tmp(Nint,2)
+  
+  integer                        :: i,l,d,m
+  integer :: degree_alpha, degree_beta
+  
+  ASSERT (Nint > 0)
+  ASSERT (sze > 0)
+  
+  l=1
+  if (Nint==1) then
+    
+    !DIR$ LOOP COUNT (1000)
+    do i=1,sze
+      d = popcnt(xor( key1(1,1,i), key2(1,1))) +       &
+          popcnt(xor( key1(1,2,i), key2(1,2)))
+      if (d .ne.4)cycle
+      key_tmp(1,1) = xor(key1(1,1,i),key2(1,1))
+      key_tmp(1,2) = xor(key1(1,2,i),key2(1,2))
+      degree_alpha = popcnt(key_tmp(1,1))
+      degree_beta  = popcnt(key_tmp(1,2))
+      if(degree_alpha .gt.3 .or. degree_beta .gt.3 )cycle !! no double excitations of same spin
+        degree(l) = ishft(d,-1)
+        idx(l) = i
+        l = l+1
+    enddo
   else if (Nint==2) then
     
     !DIR$ LOOP COUNT (1000)
@@ -1397,29 +1446,17 @@ subroutine get_excitation_degree_vector_mono_or_exchange(key1,key2,degree,Nint,s
           popcnt(xor( key1(1,2,i), key2(1,2))) +                     &
           popcnt(xor( key1(2,1,i), key2(2,1))) +                     &
           popcnt(xor( key1(2,2,i), key2(2,2)))
-      exchange_1 = popcnt(xor(ior(key1(1,1,i),key1(1,2,i)),ior(key2(1,2),key2(1,2))))   +  & 
-                   popcnt(xor(ior(key1(2,1,i),key1(2,2,i)),ior(key2(2,2),key2(2,2))))
-      exchange_2 = popcnt(ior(xor(key1(1,1,i),key2(1,1)),xor(key1(1,2,i),key2(1,2))))    +  & 
-                   popcnt(ior(xor(key1(2,1,i),key2(2,1)),xor(key1(2,2,i),key2(2,2))))
-      if (d > 4)cycle
-      if (d ==4)then  
-       if(exchange_1 .eq. 0 ) then
+      if (d .ne.4)cycle
+      key_tmp(1,1) = xor(key1(1,1,i),key2(1,1))
+      key_tmp(1,2) = xor(key1(1,2,i),key2(1,2))
+      key_tmp(2,1) = xor(key1(2,1,i),key2(2,1))
+      key_tmp(2,2) = xor(key1(2,2,i),key2(2,2))
+      degree_alpha = popcnt(key_tmp(1,1)) + popcnt(key_tmp(2,1)) 
+      degree_beta  = popcnt(key_tmp(1,2)) + popcnt(key_tmp(2,2)) 
+      if(degree_alpha .gt.3 .or. degree_beta .gt.3 )cycle !! no double excitations of same spin
         degree(l) = ishft(d,-1)
         idx(l) = i
         l = l+1
-       else if (exchange_1 .eq. 2 .and. exchange_2.eq.2)then
-        degree(l) = ishft(d,-1)
-        idx(l) = i
-        l = l+1
-       else 
-        cycle
-       endif
-!      pause
-      else 
-        degree(l) = ishft(d,-1)
-        idx(l) = i
-        l = l+1
-      endif
     enddo
     
   else if (Nint==3) then
@@ -1432,31 +1469,19 @@ subroutine get_excitation_degree_vector_mono_or_exchange(key1,key2,degree,Nint,s
           popcnt(xor( key1(2,2,i), key2(2,2))) +                     &
           popcnt(xor( key1(3,1,i), key2(3,1))) +                     &
           popcnt(xor( key1(3,2,i), key2(3,2)))
-      exchange_1 = popcnt(xor(ior(key1(1,1,i),key1(1,2,i)),ior(key2(1,1),key2(1,2))))   +  & 
-                   popcnt(xor(ior(key1(2,1,i),key1(2,2,i)),ior(key2(2,1),key2(2,2))))   +  &
-                   popcnt(xor(ior(key1(3,1,i),key1(3,2,i)),ior(key2(3,1),key2(3,2))))
-      exchange_2 = popcnt(ior(xor(key1(1,1,i),key2(1,1)),xor(key1(1,2,i),key2(1,2))))    +  & 
-                   popcnt(ior(xor(key1(2,1,i),key2(2,1)),xor(key1(2,2,i),key2(2,2))))    +  &
-                   popcnt(ior(xor(key1(3,1,i),key2(3,1)),xor(key1(3,2,i),key2(3,2))))
-      if (d > 4)cycle
-      if (d ==4)then  
-       if(exchange_1 .eq. 0 ) then
+      if (d .ne.4)cycle
+      key_tmp(1,1) = xor(key1(1,1,i),key2(1,1))
+      key_tmp(1,2) = xor(key1(1,2,i),key2(1,2))
+      key_tmp(2,1) = xor(key1(2,1,i),key2(2,1))
+      key_tmp(2,2) = xor(key1(2,2,i),key2(2,2))
+      key_tmp(3,1) = xor(key1(3,1,i),key2(3,1))
+      key_tmp(3,2) = xor(key1(3,2,i),key2(3,2))
+      degree_alpha = popcnt(key_tmp(1,1)) + popcnt(key_tmp(2,1)) + popcnt(key_tmp(3,1)) 
+      degree_beta  = popcnt(key_tmp(1,2)) + popcnt(key_tmp(2,2)) + popcnt(key_tmp(3,2)) 
+      if(degree_alpha .gt.3 .or. degree_beta .gt.3 )cycle !! no double excitations of same spin
         degree(l) = ishft(d,-1)
         idx(l) = i
         l = l+1
-       else if (exchange_1 .eq. 2 .and. exchange_2.eq.2)then
-        degree(l) = ishft(d,-1)
-        idx(l) = i
-        l = l+1
-       else 
-        cycle
-       endif
-!      pause
-      else 
-        degree(l) = ishft(d,-1)
-        idx(l) = i
-        l = l+1
-      endif
     enddo
     
   else
@@ -1464,38 +1489,25 @@ subroutine get_excitation_degree_vector_mono_or_exchange(key1,key2,degree,Nint,s
     !DIR$ LOOP COUNT (1000)
     do i=1,sze
       d = 0
-      exchange_1 = 0
       !DIR$ LOOP COUNT MIN(4)
       do m=1,Nint
         d = d + popcnt(xor( key1(m,1,i), key2(m,1)))                 &
               + popcnt(xor( key1(m,2,i), key2(m,2)))
-        exchange_1 = popcnt(xor(ior(key1(m,1,i),key1(m,2,i)),ior(key2(m,1),key2(m,2))))  
-        exchange_2 = popcnt(ior(xor(key1(m,1,i),key2(m,1)),xor(key1(m,2,i),key2(m,2))))   
+        key_tmp(m,1) = xor(key1(m,1,i),key2(m,1))
+        key_tmp(m,2) = xor(key1(m,2,i),key2(m,2))
+        degree_alpha = popcnt(key_tmp(m,1)) 
+        degree_beta  = popcnt(key_tmp(m,2)) 
       enddo
-      if (d > 4)cycle
-      if (d ==4)then  
-       if(exchange_1 .eq. 0 ) then
+      if(degree_alpha .gt.3 .or. degree_beta .gt.3 )cycle !! no double excitations of same spin
         degree(l) = ishft(d,-1)
         idx(l) = i
         l = l+1
-       else if (exchange_1 .eq. 2 .and. exchange_2.eq.2)then
-        degree(l) = ishft(d,-1)
-        idx(l) = i
-        l = l+1
-       else 
-        cycle
-       endif
-!      pause
-      else 
-        degree(l) = ishft(d,-1)
-        idx(l) = i
-        l = l+1
-      endif
     enddo
     
   endif
   idx(0) = l-1
 end
+
 
 subroutine get_excitation_degree_vector_mono_or_exchange_verbose(key1,key2,degree,Nint,sze,idx)
   use bitmasks

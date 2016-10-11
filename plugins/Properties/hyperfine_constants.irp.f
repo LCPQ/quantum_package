@@ -102,6 +102,11 @@ END_PROVIDER
  conversion_factor_gauss_hcc(3) = 619.9027742370165d0
  conversion_factor_cm_1_hcc(3) = 579.4924475562677d0
 
+ ! boron 
+ conversion_factor_mhz_hcc(5) = 1434.3655101868d0
+ conversion_factor_gauss_hcc(5) = 511.817264334d0   
+ conversion_factor_cm_1_hcc(5) = 478.4528336953d0     
+
  ! carbon
  conversion_factor_mhz_hcc(6) = 1124.18303629792945d0
  conversion_factor_gauss_hcc(6) = 401.136570647523058d0

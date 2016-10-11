@@ -334,7 +334,7 @@ subroutine diagonalize_s2_betweenstates(keys_tmp,psi_coefs_inout,n,nmax_keys,nma
  accu_precision_of_diag = 0.d0
  do i = 1, nstates
   do j = i+1, nstates
-   if(  ( dabs(s2(i,i) - s2(j,j)) .le.1.d-10 ) .and. (dabs(s2(i,j) + dabs(s2(i,j)))) .le.1.d-10) then
+   if(  ( dabs(s2(i,i) - s2(j,j)) .le.0.5d0 ) ) then
     s2(i,j) = 0.d0
     s2(j,i) = 0.d0
    endif

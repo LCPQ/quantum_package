@@ -89,11 +89,11 @@ subroutine standard_dress(delta_ij_generators_,size_buffer,Ndet_generators,i_gen
 end
 
 
-subroutine is_a_good_candidate(threshold,is_ok,verbose)
+subroutine is_a_good_candidate(threshold,is_ok,verbose,exit_loop)
  use bitmasks
  implicit none
  double precision, intent(in) :: threshold
- logical, intent(out) :: is_ok
+ logical, intent(out) :: is_ok,exit_loop
  logical, intent(in) :: verbose
  
  integer :: l,k,m
@@ -111,7 +111,7 @@ subroutine is_a_good_candidate(threshold,is_ok,verbose)
   enddo
  enddo
 !call H_apply_dressed_pert(dressed_H_matrix,N_det_generators,psi_det_generators_input)
- call dress_H_matrix_from_psi_det_input(psi_det_generators_input,N_det_generators,is_ok,psi_coef_diagonalized_tmp, dressed_H_matrix,threshold,verbose)
+ call dress_H_matrix_from_psi_det_input(psi_det_generators_input,N_det_generators,is_ok,psi_coef_diagonalized_tmp, dressed_H_matrix,threshold,verbose,exit_loop)
  if(do_it_perturbative)then
   if(is_ok)then
    N_det = N_det_generators
@@ -135,14 +135,14 @@ subroutine is_a_good_candidate(threshold,is_ok,verbose)
 
 end
 
-subroutine dress_H_matrix_from_psi_det_input(psi_det_generators_input,Ndet_generators,is_ok,psi_coef_diagonalized_tmp, dressed_H_matrix,threshold,verbose)
+subroutine dress_H_matrix_from_psi_det_input(psi_det_generators_input,Ndet_generators,is_ok,psi_coef_diagonalized_tmp, dressed_H_matrix,threshold,verbose,exit_loop)
  use bitmasks
  implicit none
  integer(bit_kind), intent(in) :: psi_det_generators_input(N_int,2,Ndet_generators)
  integer, intent(in) :: Ndet_generators
  double precision, intent(in) :: threshold
  logical, intent(in) :: verbose
- logical, intent(out) :: is_ok
+ logical, intent(out) :: is_ok,exit_loop
  double precision, intent(out) :: psi_coef_diagonalized_tmp(Ndet_generators,N_states)
  double precision, intent(inout) :: dressed_H_matrix(Ndet_generators, Ndet_generators)
 
@@ -151,6 +151,7 @@ subroutine dress_H_matrix_from_psi_det_input(psi_det_generators_input,Ndet_gener
  double precision :: eigvalues(Ndet_generators), eigvectors(Ndet_generators,Ndet_generators),hij
  double precision :: psi_coef_ref(Ndet_generators,N_states),diag_h_mat_average,diag_h_mat_no_ref_average
  logical :: is_a_ref_det(Ndet_generators)
+ exit_loop = .False.
  
  is_a_ref_det = .False.
  do i = 1, N_det_generators
@@ -191,6 +192,7 @@ subroutine dress_H_matrix_from_psi_det_input(psi_det_generators_input,Ndet_gener
   if(number_of_holes(psi_det_generators_input(1,1,i)).eq.0 .and. number_of_particles(psi_det_generators_input(1,1,i)).eq.1)then
    if(diag_h_mat_average - dressed_H_matrix(index_ref_generators_restart,index_ref_generators_restart) .gt.2.d0)then
     is_ok = .False.
+    exit_loop = .True.
     return
    endif
   endif
