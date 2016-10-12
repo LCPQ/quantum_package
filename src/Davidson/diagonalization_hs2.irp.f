@@ -1,4 +1,4 @@
-subroutine davidson_diag_hs2(dets_in,u_in,dim_in,energies,sze,N_st,N_st_diag,Nint,iunit)
+subroutine davidson_diag_hs2(dets_in,u_in,s2_out,dim_in,energies,sze,N_st,N_st_diag,Nint,iunit)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -22,7 +22,7 @@ subroutine davidson_diag_hs2(dets_in,u_in,dim_in,energies,sze,N_st,N_st_diag,Nin
   integer, intent(in)            :: dim_in, sze, N_st, N_st_diag, Nint, iunit
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision, intent(inout) :: u_in(dim_in,N_st_diag)
-  double precision, intent(out)  :: energies(N_st)
+  double precision, intent(out)  :: energies(N_st), s2_out(N_st)
   double precision, allocatable  :: H_jj(:), S2_jj(:)
   
   double precision               :: diag_h_mat_elem
@@ -46,6 +46,9 @@ subroutine davidson_diag_hs2(dets_in,u_in,dim_in,energies,sze,N_st,N_st_diag,Nin
   !$OMP END PARALLEL
 
   call davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_st,N_st_diag,Nint,iunit)
+  do i=1,N_st_diag
+    s2_out(i) = S2_jj(i)
+  enddo
   deallocate (H_jj,S2_jj)
 end
 
@@ -79,7 +82,8 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   END_DOC
   integer, intent(in)            :: dim_in, sze, N_st, N_st_diag, Nint
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
-  double precision,  intent(in)  :: H_jj(sze), S2_jj(sze)
+  double precision,  intent(in)  :: H_jj(sze)
+  double precision,  intent(inout)  :: S2_jj(sze)
   integer,  intent(in)  :: iunit
   double precision, intent(inout) :: u_in(dim_in,N_st_diag)
   double precision, intent(out)  :: energies(N_st_diag)
@@ -200,7 +204,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
     call normalize(u_in(1,k),sze)
   enddo
 
-  
+
   do while (.not.converged)
     
     do k=1,N_st_diag
@@ -239,12 +243,12 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
 !        enddo
 !      enddo
 
-      call dgemm('T','N', shift2, N_st_diag, sze,            &
-          1.d0, U, size(U,1), W(1,shift+1), size(W,1),                &
+      call dgemm('T','N', shift2, N_st_diag, sze,                    &
+          1.d0, U, size(U,1), W(1,shift+1), size(W,1),               &
           0.d0, h(1,shift+1), size(h,1))
 
-      call dgemm('T','N', shift2, N_st_diag, sze,            &
-          1.d0, U, size(U,1), S(1,shift+1), size(S,1),                &
+      call dgemm('T','N', shift2, N_st_diag, sze,                    &
+          1.d0, U, size(U,1), S(1,shift+1), size(S,1),               &
           0.d0, s_(1,shift+1), size(s_,1))
 
       ! Diagonalize h
@@ -254,14 +258,14 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       ! Compute S2 for each eigenvector
       ! -------------------------------
 
-      call dgemm('N','N',shift2,shift2,shift2,                            &
-          1.d0, s_, size(s_,1), y, size(y,1), &
+      call dgemm('N','N',shift2,shift2,shift2,                       &
+          1.d0, s_, size(s_,1), y, size(y,1),                        &
           0.d0, s_tmp, size(s_tmp,1))
-
-      call dgemm('T','N',shift2,shift2,shift2,                            &
-          1.d0, y, size(y,1), s_tmp, size(s_tmp,1), &
+      
+      call dgemm('T','N',shift2,shift2,shift2,                       &
+          1.d0, y, size(y,1), s_tmp, size(s_tmp,1),                  &
           0.d0, s_, size(s_,1))
-
+      
       do k=1,shift2
         s2(k) = s_(k,k) + S_z2_Sz
       enddo
@@ -326,8 +330,8 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
 !      enddo
       do k=1,N_st_diag
         do i=1,sze
-          R(i,k) = (lambda(k) * U(i,shift2+k) - W(i,shift2+k) ) &
-            * (1.d0 + s2(k) * U(i,shift2+k) - S(i,shift2+k) - S_z2_Sz)
+          R(i,k) = (lambda(k) * U(i,shift2+k) - W(i,shift2+k) )      &
+              * (1.d0 + s2(k) * U(i,shift2+k) - S(i,shift2+k) - S_z2_Sz)
         enddo
         if (k <= N_st) then
           residual_norm(k) = u_dot_u(R(1,k),sze)
@@ -367,10 +371,10 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
 !            enddo
 !        enddo
 !
-        call dgemv('T',sze,N_st_diag*iter,1.d0,U,size(U,1),  &
-              U(1,shift2+k),1,0.d0,c,1)
-        call dgemv('N',sze,N_st_diag*iter,-1.d0,U,size(U,1), &
-              c,1,1.d0,U(1,shift2+k),1)
+        call dgemv('T',sze,N_st_diag*iter,1.d0,U,size(U,1),          &
+            U(1,shift2+k),1,0.d0,c,1)
+        call dgemv('N',sze,N_st_diag*iter,-1.d0,U,size(U,1),         &
+            c,1,1.d0,U(1,shift2+k),1)
 !
 !        do l=1,k-1
 !          c(1) = u_dot_v(U(1,shift2+k),U(1,shift2+l),sze)
@@ -379,7 +383,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
 !          enddo
 !        enddo
 !
-        call dgemv('T',sze,k-1,1.d0,U(1,shift2+1),size(U,1),   &
+        call dgemv('T',sze,k-1,1.d0,U(1,shift2+1),size(U,1),         &
             U(1,shift2+k),1,0.d0,c,1)
         call dgemv('N',sze,k-1,-1.d0,U(1,shift2+1),size(U,1),        &
             c,1,1.d0,U(1,shift2+k),1)

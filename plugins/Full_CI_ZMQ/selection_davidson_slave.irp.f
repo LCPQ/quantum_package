@@ -12,7 +12,7 @@ program selection_slave
 end
 
 subroutine provide_everything
-  PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators psi_det_sorted_bit psi_selectors n_det_generators n_states generators_bitmask zmq_context
+  PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators psi_det_sorted_bit psi_selectors n_det_generators n_states generators_bitmask zmq_context mo_mono_elec_integral
 !   PROVIDE ci_electronic_energy mo_tot_num N_int
 end
 
@@ -23,19 +23,20 @@ subroutine run_wf
   integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
   double precision :: energy(N_states_diag)
-  character*(64) :: states(1)
+  character*(64) :: states(2)
   integer :: rc, i
   
   call provide_everything
   
   zmq_context = f77_zmq_ctx_new ()
   states(1) = 'selection'
+  states(2) = 'davidson'
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
 
   do
 
-    call wait_for_states(states,zmq_state,1)
+    call wait_for_states(states,zmq_state,2)
 
     if(trim(zmq_state) == 'Stopped') then
 
@@ -54,6 +55,19 @@ subroutine run_wf
       call selection_slave_tcp(i, energy)
       !$OMP END PARALLEL
       print *,  'Selection done'
+
+    else if (trim(zmq_state) == 'davidson') then
+
+      ! Davidson
+      ! --------
+
+      print *,  'Davidson'
+      call davidson_miniserver_get()
+      !$OMP PARALLEL PRIVATE(i)
+      i = omp_get_thread_num()
+      call davidson_slave_tcp(i)
+      !$OMP END PARALLEL
+      print *,  'Davidson done'
 
     endif
 

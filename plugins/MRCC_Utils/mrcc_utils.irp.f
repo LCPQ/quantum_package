@@ -253,7 +253,7 @@ BEGIN_PROVIDER [ double precision, CI_energy_dressed, (N_states_diag) ]
   integer                        :: j
   character*(8)                  :: st
   call write_time(output_determinants)
-  do j=1,min(N_det,N_states_diag)
+  do j=1,min(N_det,N_states)
     write(st,'(I4)') j
     CI_energy_dressed(j) = CI_electronic_energy_dressed(j) + nuclear_repulsion
     call write_double(output_determinants,CI_energy_dressed(j),'Energy of state '//trim(st))
@@ -349,8 +349,9 @@ integer function searchDet(dets, det, n, Nint)
   do while(.true.)
     searchDet = (l+h)/2
     c = detCmp(dets(1,1,searchDet), det(1,1), Nint)
-    if(c == 0) return
-    if(c == 1) then
+    if(c == 0) then
+      return
+    else if(c == 1) then
       h = searchDet-1
     else
       l = searchDet+1
@@ -498,12 +499,12 @@ subroutine tamise_exc(key, no, n, N_key)
   BEGIN_DOC
 ! Uncodumented : TODO
   END_DOC
-  integer,intent(in)                    :: no, n, N_key
+  integer,intent(in)            :: no, n, N_key
   integer*2,intent(inout)       :: key(4, N_key)
-  integer                               :: k,j
-  integer*2                    :: tmp(4)
-  logical                               :: exc_inf
-  integer                               :: ni
+  integer                       :: k,j
+  integer*2                     :: tmp(4)
+  logical                       :: exc_inf
+  integer                       :: ni
   
   k = no
   j = 2*k
@@ -633,7 +634,6 @@ END_PROVIDER
    allocate(A_ind(0:N_det_ref+1, nex), A_val(N_det_ref+1, nex))
    allocate(AtA_ind(N_det_ref * nex), AtA_val(N_det_ref * nex)) !!!!! MAY BE TOO SMALL ? !!!!!!!!
    allocate(x(nex), AtB(nex))
-   allocate(A_val_mwen(nex), A_ind_mwen(nex))
    allocate(N_col(nex), col_shortcut(nex))
    allocate(x_new(nex))
    
@@ -645,7 +645,6 @@ END_PROVIDER
      AtA_val = 0d0
      x = 0d0
      A_val_mwen = 0d0
-     A_ind_mwen = 0
      N_col = 0
      col_shortcut = 0
      
@@ -689,7 +688,8 @@ END_PROVIDER
      end do
      !$OMP END DO
      deallocate(lref)
-     !$OMP END PARALLEL
+     !$OMP END PARALLEL   
+ print *,  'Done building A_val, A_ind'
      
      AtB = 0d0
      AtA_size = 0
@@ -698,6 +698,8 @@ END_PROVIDER
      !$OMP PARALLEL default(none) shared(k, psi_non_ref_coef, A_ind, A_val, x, N_det_ref, nex, N_det_non_ref)&
          !$OMP private(at_row, a_col, t, i, r1, r2, wk, A_ind_mwen, A_val_mwen)&
          !$OMP shared(col_shortcut, N_col, AtB, AtA_size, AtA_val, AtA_ind, s)
+     allocate(A_val_mwen(nex), A_ind_mwen(nex))
+     A_ind_mwen = 0
      !$OMP DO schedule(dynamic, 100)
      do at_row = 1, nex
        wk = 0
@@ -711,10 +713,10 @@ END_PROVIDER
          r1 = 1
          r2 = 1
          do while ((A_ind(r1, at_row) /= 0).and.(A_ind(r2, a_col) /= 0))
-           if(A_ind(r1, at_row) < A_ind(r2, a_col)) then
-             r1 = r1+1
-           else if(A_ind(r1, at_row) > A_ind(r2, a_col)) then
+           if(A_ind(r1, at_row) > A_ind(r2, a_col)) then
              r2 = r2+1
+           else if(A_ind(r1, at_row) < A_ind(r2, a_col)) then
+             r1 = r1+1
            else
              t = t - A_val(r1, at_row) * A_val(r2, a_col)
              r1 = r1+1
@@ -748,7 +750,8 @@ END_PROVIDER
          !$OMP END CRITICAL
        end if
      end do
-     !$OMP END DO
+     !$OMP END DO NOWAIT
+     deallocate (A_ind_mwen, A_val_mwen)
      !$OMP END PARALLEL
      
      if(AtA_size > size(AtA_val)) stop "SIZA"
@@ -807,14 +810,18 @@ END_PROVIDER
        
        if(res < 1d-8) exit
      end do
-     
+     ! rho_mrcc now contains A.X
+
      norm = 0.d0
      do i=1,N_det_non_ref
        norm = norm + rho_mrcc(i,s)*rho_mrcc(i,s)
      enddo
+     ! Norm now contains the norm of A.X
+
      do i=1,N_det_ref
        norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
      enddo
+     ! Norm now contains the norm of Psi + A.X
      
      print *, k, "res : ", res, "norm : ", sqrt(norm)
      
@@ -826,30 +833,46 @@ END_PROVIDER
        if (rho_mrcc(i,s) == 0.d0) then
          rho_mrcc(i,s) = 1.d-32
        endif
+
+       ! f is such that f.\tilde{c_i} = c_i
        f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
+
        ! Avoid numerical instabilities
        f = min(f,2.d0)
        f = max(f,-2.d0)
+
        norm = norm + f*f *rho_mrcc(i,s)*rho_mrcc(i,s)
        rho_mrcc(i,s) = f
      enddo
+     ! norm now contains the norm of |T.Psi_0>
+     ! rho_mrcc now contains the f factors
 
      f = 1.d0/norm
-     norm = 0.d0
-     do i=1,N_det_non_ref
-       norm = norm + psi_non_ref_coef(i,s)*psi_non_ref_coef(i,s)
-     enddo
-     f = dsqrt(f*norm)
+     ! f now contains 1/ <T.Psi_0|T.Psi_0>
 
-     print *,  'norm of |T Psi_0> = ', norm*f*f
+     norm = 1.d0
+     do i=1,N_det_ref
+       norm = norm - psi_ref_coef(i,s)*psi_ref_coef(i,s)
+     enddo
+     ! norm now contains <Psi_SD|Psi_SD>
+     f = dsqrt(f*norm)
+     ! f normalises T.Psi_0 such that (1+T)|Psi> is normalized
+
+     norm = norm*f
+     print *,  'norm of |T Psi_0> = ', dsqrt(norm)
+
+     do i=1,N_det_ref
+       norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
+     enddo
 
      do i=1,N_det_non_ref
        rho_mrcc(i,s) = rho_mrcc(i,s) * f
      enddo
+     ! rho_mrcc now contains the product of the scaling factors and the
+     ! normalization constant
 
    end do
    
-   print *, "done"
 END_PROVIDER
 
 
@@ -857,13 +880,17 @@ BEGIN_PROVIDER [ double precision, dij, (N_det_ref, N_det_non_ref, N_states) ]
   integer :: s,i,j
   double precision, external :: get_dij_index
   print *, "computing amplitudes..."
+  !$OMP PARALLEL DEFAULT(shared) PRIVATE(s,i,j)
   do s=1, N_states
+    !$OMP DO
     do i=1, N_det_non_ref
       do j=1, N_det_ref
         dij(j, i, s) = get_dij_index(j, i, s, N_int)
       end do
     end do
+    !$OMP END DO 
   end do
+  !$OMP END PARALLEL
   print *, "done computing amplitudes"
 END_PROVIDER
 
@@ -876,10 +903,9 @@ double precision function get_dij_index(II, i, s, Nint)
   double precision :: HIi, phase
 
   if(lambda_type == 0) then
-    get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint)
-!    get_dij_index = get_dij_index * rho_mrcc(i,s) 
     call get_phase(psi_ref(1,1,II), psi_non_ref(1,1,i), phase, N_int)
-    get_dij_index = get_dij_index * rho_mrcc(i,s) * phase
+    get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint) * phase
+    get_dij_index = get_dij_index * rho_mrcc(i,s) 
   else
     call i_h_j(psi_ref(1,1,II), psi_non_ref(1,1,i), Nint, HIi)
     get_dij_index = HIi * lambda_mrcc(s, i)
@@ -1059,18 +1085,20 @@ subroutine apply_hole_local(det, exc, res, ok, Nint)
   res = det
   
   if(h1 /= 0) then
-  ii = (h1-1)/bit_kind_size + 1 
-  pos = mod(h1-1, 64)!iand(h1-1,bit_kind_size-1) ! mod 64
-  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
-  res(ii, s1) = ibclr(res(ii, s1), pos)
+    ii = (h1-1)/bit_kind_size + 1 
+    pos = iand(h1-1,bit_kind_size-1) ! mod 64
+    if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) then
+      return
+    endif
+    res(ii, s1) = ibclr(res(ii, s1), pos)
   end if
   
-    ii = (h2-1)/bit_kind_size + 1 
-    pos = mod(h2-1, 64)!iand(h2-1,bit_kind_size-1)
-    if(iand(det(ii, s2), ishft(1_bit_kind, pos)) == 0_8) return
-    res(ii, s2) = ibclr(res(ii, s2), pos)
-
-  
+  ii = (h2-1)/bit_kind_size + 1 
+  pos = iand(h2-1,bit_kind_size-1) ! mod 64
+  if(iand(det(ii, s2), ishft(1_bit_kind, pos)) == 0_8) then
+    return
+  endif
+  res(ii, s2) = ibclr(res(ii, s2), pos)
   ok = .true.
 end subroutine
 
@@ -1094,16 +1122,20 @@ subroutine apply_particle_local(det, exc, res, ok, Nint)
   res = det 
   
   if(p1 /= 0) then
-  ii = (p1-1)/bit_kind_size + 1 
-  pos = mod(p1-1, 64)!iand(p1-1,bit_kind_size-1)
-  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) return
-  res(ii, s1) = ibset(res(ii, s1), pos)
+    ii = (p1-1)/bit_kind_size + 1 
+    pos = iand(p1-1,bit_kind_size-1)
+    if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) then
+      return
+    endif
+    res(ii, s1) = ibset(res(ii, s1), pos)
   end if
 
-    ii = (p2-1)/bit_kind_size + 1 
-    pos = mod(p2-1, 64)!iand(p2-1,bit_kind_size-1)
-    if(iand(det(ii, s2), ishft(1_bit_kind, pos)) /= 0_8) return
-    res(ii, s2) = ibset(res(ii, s2), pos)
+  ii = (p2-1)/bit_kind_size + 1 
+  pos = iand(p2-1,bit_kind_size-1)
+  if(iand(det(ii, s2), ishft(1_bit_kind, pos)) /= 0_8) then
+    return
+  endif
+  res(ii, s2) = ibset(res(ii, s2), pos)
 
   
   ok = .true.

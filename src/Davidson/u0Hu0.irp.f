@@ -24,6 +24,7 @@ subroutine u_0_H_u_0(e_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
   do i=1,N_st
     e_0(i) = u_dot_v(v_0(1,i),u_0(1,i),n)/u_dot_u(u_0(1,i),n)
   enddo
+  deallocate (H_jj, v_0)
 end
 
 
@@ -56,10 +57,9 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   integer                        :: N_st_8
   
   integer, external              :: align_double
-  !!!DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut
 
-  if(N_st /= N_states_diag) stop "H_u_0_nstates N_st /= N_states_diag"
-  N_st_8 = N_states_diag ! align_double(N_st)
+  N_st_8 = align_double(N_st)
 
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
@@ -165,7 +165,7 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
       v_0(i,istate) += H_jj(i) * u_0(i,istate)
     enddo
   enddo
-  !deallocate (shortcut, sort_idx, sorted, version, ut)
+  deallocate (shortcut, sort_idx, sorted, version, ut)
 end
 
 BEGIN_PROVIDER [ double precision, psi_energy, (N_states) ]
@@ -200,76 +200,82 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0
   
-  integer, allocatable           :: shortcut(:,:), sort_idx(:,:)
-  integer(bit_kind), allocatable :: sorted(:,:,:), version(:,:,:)
+  integer, allocatable           :: shortcut(:,:), sort_idx(:)
+  integer(bit_kind), allocatable :: sorted(:,:), version(:,:)
   integer(bit_kind)              :: sorted_i(Nint)
   
   integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, istate
   integer                        :: N_st_8
   
   integer, external              :: align_double
-  integer :: workload, blockb, blocke
+  integer :: blockb, blockb2, istep
+  double precision :: ave_workload, workload
   
   integer(ZMQ_PTR) :: handler
   
   if(N_st /= N_states_diag .or. sze_8 < N_det) stop "assert fail in H_S2_u_0_nstates"
-  N_st_8 = N_st !! align_double(N_st)
+  N_st_8 = N_st ! align_double(N_st)
 
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
   ASSERT (n>0)
   PROVIDE ref_bitmask_energy 
 
-  allocate (shortcut(0:n+1,2), sort_idx(n,2), sorted(Nint,n,2), version(Nint,n,2))
+  allocate (shortcut(0:n+1,2), sort_idx(n), sorted(Nint,n), version(Nint,n))
   allocate(ut(N_st_8,n))
 
   v_0 = 0.d0
   s_0 = 0.d0
-  
-  if(n /= N_det) stop "n /= N_det"
   
   do i=1,n
     do istate=1,N_st
       ut(istate,i) =  u_0(i,istate)
     enddo
   enddo
-   call sort_dets_ab_v(keys_tmp, sorted(1,1,1), sort_idx(1,1), shortcut(0,1), version(1,1,1), n, Nint)
-   call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
+   call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut(0,1), version, n, Nint)
+   call sort_dets_ba_v(keys_tmp, sorted, sort_idx, shortcut(0,2), version, n, Nint)
     
-  dav_size = n
-  touch dav_size
-  dav_det = psi_det
-  dav_ut = ut
-  
-  workload = 0
   blockb = shortcut(0,1)
-  blocke = blockb
-  call davidson_init(handler)
+  call davidson_init(handler,n,N_st_8,ut)
+
+
+  ave_workload = 0.d0
+  do sh=1,shortcut(0,1)
+    ave_workload += shortcut(0,1)
+    ave_workload += (shortcut(sh+1,1) - shortcut(sh,1))**2
+    do i=sh, shortcut(0,2), shortcut(0,1)
+      do j=i, min(i, shortcut(0,2))
+        ave_workload += (shortcut(j+1,2) - shortcut(j, 2))**2
+      end do
+    end do
+  enddo
+  ave_workload = ave_workload/dble(shortcut(0,1))
+
+
   do sh=shortcut(0,1),1,-1
-    workload += (shortcut(sh+1,1) - shortcut(sh,1))**2
-    if(workload > max_workload) then
-      blocke = sh
-      call davidson_add_task(handler, blocke, blockb)
-      blockb = sh-1
-      workload = 0
-    end if
+    workload = shortcut(0,1)+dble(shortcut(sh+1,1) - shortcut(sh,1))**2
+    do i=sh, shortcut(0,2), shortcut(0,1)
+      do j=i, min(i, shortcut(0,2))
+        workload += (shortcut(j+1,2) - shortcut(j, 2))**2
+      end do
+    end do
+    istep = 1+ int(0.5d0*workload/ave_workload)
+    do blockb2=0, istep-1
+      call davidson_add_task(handler, sh, blockb2, istep)
+    enddo
   enddo
   
-  if(blockb > 0) call davidson_add_task(handler, 1, blockb)
-  call davidson_run(handler, v_0, s_0)
+  call davidson_run(handler, v_0, s_0, size(v_0,1))
 
-  
   do istate=1,N_st
     do i=1,n
       v_0(i,istate) = v_0(i,istate) + H_jj(i) * u_0(i,istate)
       s_0(i,istate) = s_0(i,istate) + s2_jj(i)* u_0(i,istate)
     enddo
   enddo
+  deallocate(shortcut, sort_idx, sorted, version)
+  deallocate(ut)
 end
 
-
-BEGIN_PROVIDER [ integer, max_workload ]
-  max_workload = 1000
-END_PROVIDER
 
 
