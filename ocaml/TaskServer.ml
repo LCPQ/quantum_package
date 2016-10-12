@@ -48,20 +48,21 @@ let zmq_context =
   ZMQ.Context.create ()
 
 
-let bind_socket ~socket_type ~socket ~address =
+let bind_socket ~socket_type ~socket ~port =
   let rec loop = function
   | 0 -> failwith @@ Printf.sprintf
-        "Unable to bind the %s socket : %s "
-        socket_type address
+        "Unable to bind the %s socket to port : %d "
+        socket_type port
   | -1 -> ()
   | i -> 
       try
-        ZMQ.Socket.bind socket address;
+        ZMQ.Socket.bind socket @@ Printf.sprintf "tcp://*:%d" port;
         loop (-1)
       with
       | Unix.Unix_error _ -> (Time.pause @@ Time.Span.of_float 1. ; loop (i-1) )
       | other_exception -> raise other_exception
-  in loop 60
+  in loop 60;
+  ZMQ.Socket.bind socket @@ Printf.sprintf "ipc:///tmp/qp_run:%d" port
 
 
 let hostname = lazy (
@@ -115,7 +116,7 @@ let stop ~port =
     let req_socket =
       ZMQ.Socket.create zmq_context ZMQ.Socket.req
     and address =
-      Printf.sprintf "tcp://%s:%d" (Lazy.force ip_address) port
+      Printf.sprintf "ipc:///tmp/qp_run:%d" port
     in
     ZMQ.Socket.set_linger_period req_socket 1_000_000;
     ZMQ.Socket.connect req_socket address;
@@ -567,10 +568,8 @@ let start_pub_thread ~port =
 
       let pub_socket =
         ZMQ.Socket.create zmq_context ZMQ.Socket.pub
-      and address =
-        Printf.sprintf "tcp://*:%d" port
       in
-      bind_socket ~socket_type:"PUB" ~socket:pub_socket ~address;
+      bind_socket ~socket_type:"PUB" ~socket:pub_socket ~port;
 
       let pollitem =
         ZMQ.Poll.mask_of 
@@ -608,7 +607,7 @@ let run ~port =
     and address = 
       "inproc://pair" 
     in
-    bind_socket "PAIR" pair_socket address;
+    ZMQ.Socket.bind pair_socket address;
 
     let pub_thread = 
       start_pub_thread ~port:(port+1) ()
@@ -617,11 +616,9 @@ let run ~port =
     (** Bind REP socket *)
     let rep_socket =
       ZMQ.Socket.create zmq_context ZMQ.Socket.rep
-    and address =
-      Printf.sprintf "tcp://*:%d" port
     in
     ZMQ.Socket.set_linger_period rep_socket 1_000_000;
-    bind_socket "REP" rep_socket address;
+    bind_socket "REP" rep_socket port;
 
     let initial_program_state =
     {   queue = Queuing_system.create () ;
@@ -721,6 +718,7 @@ let run ~port =
 
     ZMQ.Socket.send pair_socket @@ string_of_pub_state Stopped;
     Thread.join pub_thread;
+    ZMQ.Socket.close rep_socket
 
 
 

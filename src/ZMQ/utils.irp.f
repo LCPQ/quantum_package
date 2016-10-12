@@ -670,12 +670,16 @@ subroutine disconnect_from_taskserver(zmq_to_qp_run_socket, &
   message = trim(message(1:rc))
   
   read(message,*) reply, state
-  if ( (trim(reply) /= 'disconnect_reply').or.                       &
-        (trim(state) /= zmq_state) ) then
-    print *,  'Unable to disconnect : ', zmq_state
-    print *,  trim(message)
-    stop -1
+  if ((trim(reply) == 'disconnect_reply').and.(trim(state) == trim(zmq_state))) then
+    return
   endif
+  if (trim(message) == 'error No job is running') then
+    return
+  endif
+
+  print *,  'Unable to disconnect : ', trim(zmq_state)
+  print *,  trim(message)
+  stop -1
 
 end
 
