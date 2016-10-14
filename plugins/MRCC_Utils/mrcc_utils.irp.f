@@ -644,7 +644,7 @@ END_PROVIDER
      AtA_ind = 0
      AtA_val = 0d0
      x = 0d0
-     A_val_mwen = 0d0
+     !A_val_mwen = 0d0
      N_col = 0
      col_shortcut = 0
      
@@ -699,7 +699,8 @@ END_PROVIDER
          !$OMP private(at_row, a_col, t, i, r1, r2, wk, A_ind_mwen, A_val_mwen)&
          !$OMP shared(col_shortcut, N_col, AtB, AtA_size, AtA_val, AtA_ind, s)
      allocate(A_val_mwen(nex), A_ind_mwen(nex))
-     A_ind_mwen = 0
+     !A_ind_mwen = 0
+     !A_val_mwen = 0d0
      !$OMP DO schedule(dynamic, 100)
      do at_row = 1, nex
        wk = 0
