@@ -3,7 +3,8 @@ module TasksMap   : Map.S with type key = Id.Task.t
 module ClientsSet : Set.S with type elt = Id.Client.t
 
 type t = {
-  queued            : Id.Task.t list           ;
+  queued_front      : Id.Task.t list           ;
+  queued_back       : Id.Task.t list           ;
   running           : Id.Client.t RunningMap.t ;
   tasks             : string TasksMap.t        ;          
   clients           : ClientsSet.t             ;          
@@ -58,6 +59,5 @@ val to_string : t -> string
 
 (** Test function for debug *)
 val test : unit -> unit
-
 
 

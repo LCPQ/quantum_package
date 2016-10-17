@@ -3,7 +3,8 @@ module TasksMap   = Map.Make (Id.Task)
 module ClientsSet = Set.Make (Id.Client)
 
 type t =
-{ queued         : Id.Task.t list ;
+{ queued_front   : Id.Task.t list ;
+  queued_back    : Id.Task.t list ;
   running        : Id.Client.t RunningMap.t;
   tasks          : string TasksMap.t;
   clients        : ClientsSet.t;
@@ -18,7 +19,8 @@ type t =
 
 
 let create () =
-  { queued         = [] ; 
+  { queued_front   = [] ; 
+    queued_back    = [] ; 
     running        = RunningMap.empty ;
     tasks          = TasksMap.empty;
     clients        = ClientsSet.empty;
@@ -38,7 +40,7 @@ let add_task ~task q =
     q.next_task_id 
   in
   { q with
-    queued = task_id :: q.queued ;
+    queued_front = task_id :: q.queued_front ;
     tasks  = TasksMap.add task_id task q.tasks;
     next_task_id = Id.Task.increment task_id ;
     number_of_queued = q.number_of_queued + 1;
@@ -60,15 +62,21 @@ let add_client q =
 
 
 let pop_task ~client_id q = 
-  let { queued ; running ; _ } =
+  let { queued_front ; queued_back ; running ; _ } =
     q
   in
   assert (ClientsSet.mem client_id q.clients);
-  match queued with
+  let queued_front', queued_back' =
+    match queued_front, queued_back with
+    | (l, []) -> ( [], List.rev l)
+    | t -> t
+  in
+  match queued_back' with
   | task_id :: new_queue ->
     let new_q =
       { q with
-        queued = new_queue ;
+        queued_front= queued_front' ;
+        queued_back = new_queue ;
         running = RunningMap.add task_id client_id running;
         number_of_queued  = q.number_of_queued  - 1;
         number_of_running = q.number_of_running + 1;
@@ -139,9 +147,10 @@ let number_of_clients q =
 
 
 let to_string qs =
-  let { queued ; running ; tasks ; _ } = qs in
+  let { queued_back ; queued_front ; running ; tasks ; _ } = qs in
   let q =
-    List.map Id.Task.to_string  queued 
+     (List.map Id.Task.to_string queued_front) @
+     (List.map Id.Task.to_string @@ List.rev queued_back)
     |> String.concat " ; "
   and r =
     RunningMap.bindings running
@@ -181,6 +190,7 @@ let test () =
     | _ -> assert false
   in
   Printf.printf "Task_id : %d \t\t Task : %s\n" task_id task_content;
+  to_string q |> print_endline  ;
   let q, task_id, task_content =
     match pop_task ~client_id q with
     | q, Some x, Some y -> q, Id.Task.to_int x, y
