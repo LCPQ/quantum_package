@@ -28,7 +28,7 @@ subroutine run(N_st,energy)
     enddo
     SOFT_TOUCH psi_coef ci_energy_dressed
     call write_double(6,ci_energy_dressed(1),"Final MRCC energy")
-    call ezfio_set_mrcc_cassd_energy(ci_energy_dressed(1))
+    call ezfio_set_mrcepa0_energy(ci_energy_dressed(1))
     call save_wavefunction
     energy(:) = ci_energy_dressed(:)
   else
