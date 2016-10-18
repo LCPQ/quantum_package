@@ -98,7 +98,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   integer                        :: k_pairs, kl
   
   integer                        :: iter2
-  double precision, allocatable  :: W(:,:),  U(:,:), R(:,:), S(:,:)
+  double precision, allocatable  :: W(:,:),  U(:,:), S(:,:)
   double precision, allocatable  :: y(:,:), h(:,:), lambda(:), s2(:)
   double precision, allocatable  :: c(:), s_(:,:), s_tmp(:,:)
   double precision               :: diag_h_mat_elem
@@ -109,7 +109,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   integer                        :: shift, shift2, itermax
   include 'constants.include.F'
   
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: U, W, R, S, y, h, lambda
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: U, W, S, y, h, lambda
   if (N_st_diag*3 > sze) then
      print *,  'error in Davidson :'
      print *,  'Increase n_det_max_jacobi to ', N_st_diag*3
@@ -152,7 +152,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   allocate(                                                          &
       W(sze_8,N_st_diag*itermax),                           &
       U(sze_8,N_st_diag*itermax),                           &
-      R(sze_8,N_st_diag),                                            &
       S(sze_8,N_st_diag*itermax),                           &
       h(N_st_diag*itermax,N_st_diag*itermax),      &
       y(N_st_diag*itermax,N_st_diag*itermax),      &
@@ -169,7 +168,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   U = 0.d0
   W = 0.d0
   S = 0.d0
-  R = 0.d0
   y = 0.d0
 
 
@@ -184,12 +182,24 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   
   converged = .False.
   
-  do k=N_st+1,N_st_diag
+  double precision               :: r1, r2
+  do k=N_st+1,N_st_diag-2,2
       do i=1,sze
-        double precision               :: r1, r2
         call random_number(r1)
         call random_number(r2)
-        u_in(i,k) = dsqrt(-2.d0*dlog(r1))*dcos(dtwo_pi*r2)
+        r1 = dsqrt(-2.d0*dlog(r1))
+        r2 = dtwo_pi*r2
+        u_in(i,k) = r1*dcos(r2)
+        u_in(i,k+1) = r1*dsin(r2)
+      enddo
+  enddo
+  do k=N_st_diag-1,N_st_diag
+      do i=1,sze
+        call random_number(r1)
+        call random_number(r2)
+        r1 = dsqrt(-2.d0*dlog(r1))
+        r2 = dtwo_pi*r2
+        u_in(i,k) = r1*dcos(r2)
       enddo
   enddo
 
@@ -278,16 +288,17 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       call dgemm('N','N', sze, N_st_diag, shift2,                    &
           1.d0, S, size(S,1), y, size(y,1), 0.d0, S(1,shift2+1), size(S,1))
 
-      ! Compute residual vector
-      ! -----------------------
+      ! Compute residual vector and davidson step
+      ! -----------------------------------------
       
       do k=1,N_st_diag
         do i=1,sze
-          R(i,k) = (lambda(k) * U(i,shift2+k) - W(i,shift2+k) )      &
-              * (1.d0 + s2(k) * U(i,shift2+k) - S(i,shift2+k) - S_z2_Sz)
+          U(i,shift2+k) = (lambda(k) * U(i,shift2+k) - W(i,shift2+k) )      &
+              * (1.d0 + s2(k) * U(i,shift2+k) - S(i,shift2+k) - S_z2_Sz) &
+              /max(H_jj(i) - lambda (k),1.d-2)
         enddo
         if (k <= N_st) then
-          residual_norm(k) = u_dot_u(R(1,k),sze)
+          residual_norm(k) = u_dot_u(U(1,shift2+k),sze)
           to_print(1,k) = lambda(k) + nuclear_repulsion
           to_print(2,k) = s2(k)
           to_print(3,k) = residual_norm(k)
@@ -305,15 +316,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       if (converged) then
         exit
       endif
-      
-      ! Davidson step
-      ! -------------
-      
-      do k=1,N_st_diag
-        do i=1,sze
-          U(i,shift2+k) =  - R(i,k)/max(H_jj(i) - lambda(k),1.d-2) 
-        enddo
-      enddo
       
     enddo
 
@@ -347,7 +349,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   deallocate (                                                       &
       W, residual_norm,                                              &
       U,                                                             &
-      R, c, S,                                                       &
+      c, S,                                                          &
       h,                                                             &
       y, s_, s_tmp,                                                  &
       lambda                                                         &
