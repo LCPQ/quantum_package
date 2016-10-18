@@ -299,7 +299,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,i_generator,n_selected,det_buffe
           delta_ii_(i_state,i_I)  = 0.d0
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
-            delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
+            delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + 0.5d0*dIa_hla(i_state,k_sd)
           enddo
         endif
       enddo
@@ -554,7 +554,7 @@ END_PROVIDER
         do k=1,N_det_non_ref
 
           call i_h_j(psi_ref(1,1,j), psi_non_ref(1,1,k),N_int,Hjk)
-          call i_h_j(psi_non_ref(1,1,k),psi_ref(1,1,i), N_int,Hki)
+!          call i_h_j(psi_non_ref(1,1,k),psi_ref(1,1,i), N_int,Hki)
           
           delta_cas(i,j,i_state) += Hjk * dij(i, k, i_state) ! * Hki * lambda_mrcc(i_state, k)
           !print *, Hjk * get_dij(psi_ref(1,1,i), psi_non_ref(1,1,k), N_int), Hki * get_dij(psi_ref(1,1,j), psi_non_ref(1,1,k), N_int)
@@ -647,7 +647,7 @@ end function
   integer                         :: p1,p2,h1,h2,s1,s2, p1_,p2_,h1_,h2_,s1_,s2_, sortRefIdx(N_det_ref)
   logical                         :: ok
   double precision                :: phase_iI, phase_Ik, phase_Jl, phase_IJ, phase_al, diI, hIi, hJi, delta_JI, dkI(1), HkI, ci_inv(1), dia_hla(1)
-  double precision                :: contrib, HIIi, HJk, wall
+  double precision                :: contrib, contrib2,  HIIi, HJk, wall
   integer, dimension(0:2,2,2)     :: exc_iI, exc_Ik, exc_IJ
   integer(bit_kind)               :: det_tmp(N_int, 2), made_hole(N_int,2), made_particle(N_int,2), myActive(N_int,2)
   integer(bit_kind),allocatable   :: sortRef(:,:,:)
@@ -677,7 +677,7 @@ end function
     delta_mrcepa0_ij(:,:,:) = 0d0
 
     !$OMP PARALLEL DO default(none) schedule(dynamic) shared(delta_mrcepa0_ij, delta_mrcepa0_ii)       &
-    !$OMP private(m,i,II,J,k,degree,myActive,made_hole,made_particle,hjk,contrib)       &
+    !$OMP private(m,i,II,J,k,degree,myActive,made_hole,made_particle,hjk,contrib,contrib2)       &
     !$OMP shared(active_sorb, psi_non_ref, psi_non_ref_coef, psi_ref, psi_ref_coef, cepa0_shortcut, det_cepa0_active)     &
     !$OMP shared(N_det_ref, N_det_non_ref,N_int,det_cepa0_idx,lambda_mrcc,det_ref_active, delta_cas) &
     !$OMP shared(notf,i_state, sortRef, sortRefIdx, dij)
@@ -720,16 +720,18 @@ end function
           !$OMP ATOMIC
           notf = notf+1
 
-          call i_h_j(psi_non_ref(1,1,det_cepa0_idx(k)),psi_ref(1,1,J),N_int,HJk)
-          !contrib = delta_cas(II, J, i_state) * HJk * lambda_mrcc(i_state, det_cepa0_idx(k))
+!          call i_h_j(psi_non_ref(1,1,det_cepa0_idx(k)),psi_ref(1,1,J),N_int,HJk)
           contrib = delta_cas(II, J, i_state) * dij(J, det_cepa0_idx(k), i_state)
-          !$OMP ATOMIC
-          delta_mrcepa0_ij(J, det_cepa0_idx(i), i_state) += contrib
           
           if(dabs(psi_ref_coef(J,i_state)).ge.5.d-5) then
+            contrib2 = contrib / psi_ref_coef(J, i_state) * psi_non_ref_coef(det_cepa0_idx(i),i_state)
             !$OMP ATOMIC
-            delta_mrcepa0_ii(J,i_state) -= contrib / psi_ref_coef(J, i_state) * psi_non_ref_coef(det_cepa0_idx(i),i_state)
+            delta_mrcepa0_ii(J,i_state) -= contrib2 
+          else
+            contrib = contrib * 0.5d0
           end if
+          !$OMP ATOMIC
+          delta_mrcepa0_ij(J, det_cepa0_idx(i), i_state) += contrib
 
         end do kloop
       end do
@@ -753,7 +755,7 @@ END_PROVIDER
   integer                         :: p1,p2,h1,h2,s1,s2, p1_,p2_,h1_,h2_,s1_,s2_
   logical                         :: ok
   double precision                :: phase_Ji, phase_Ik, phase_Ii
-  double precision                :: contrib, delta_IJk, HJk, HIk, HIl
+  double precision                :: contrib, contrib2, delta_IJk, HJk, HIk, HIl
   integer, dimension(0:2,2,2)     :: exc_Ik, exc_Ji, exc_Ii
   integer(bit_kind)               :: det_tmp(N_int, 2), det_tmp2(N_int, 2)
   integer, allocatable            :: idx_sorted_bit(:)
@@ -778,7 +780,7 @@ END_PROVIDER
     !$OMP PARALLEL DO default(none) schedule(dynamic,10) shared(delta_sub_ij, delta_sub_ii)       &
     !$OMP private(i, J, k, degree, degree2, l, deg, ni)       &
     !$OMP private(p1,p2,h1,h2,s1,s2, p1_,p2_,h1_,h2_,s1_,s2_)     &
-    !$OMP private(ok, phase_Ji, phase_Ik, phase_Ii, contrib, delta_IJk, HJk, HIk, HIl, exc_Ik, exc_Ji, exc_Ii) &
+    !$OMP private(ok, phase_Ji, phase_Ik, phase_Ii, contrib2, contrib, delta_IJk, HJk, HIk, HIl, exc_Ik, exc_Ji, exc_Ii) &
     !$OMP private(det_tmp, det_tmp2, II, blok)    &
     !$OMP shared(idx_sorted_bit, N_det_non_ref, N_det_ref, N_int, psi_non_ref, psi_non_ref_coef, psi_ref, psi_ref_coef)   &
     !$OMP shared(i_state,lambda_mrcc, hf_bitmask, active_sorb)
@@ -827,13 +829,16 @@ END_PROVIDER
             delta_IJk = HJk * HIk * lambda_mrcc(i_state, k)
             call apply_excitation(psi_non_ref(1,1,i),exc_Ik,det_tmp,ok,N_int)
             if(ok) cycle
-              contrib = delta_IJk * HIl * lambda_mrcc(i_state,l)   
+            contrib = delta_IJk * HIl * lambda_mrcc(i_state,l)   
+            if(dabs(psi_ref_coef(II,i_state)).ge.5.d-5) then
+              contrib2 = contrib / psi_ref_coef(II, i_state) * psi_non_ref_coef(l,i_state)
+              !$OMP ATOMIC
+              delta_sub_ii(II,i_state) -= contrib2
+            else
+              contrib = contrib * 0.5d0
+            endif
             !$OMP ATOMIC
             delta_sub_ij(II, i, i_state) += contrib
-            if(dabs(psi_ref_coef(II,i_state)).ge.5.d-5) then
-              !$OMP ATOMIC
-              delta_sub_ii(II,i_state) -= contrib / psi_ref_coef(II, i_state) * psi_non_ref_coef(l,i_state)
-            endif
           end do
         end do
       end do
