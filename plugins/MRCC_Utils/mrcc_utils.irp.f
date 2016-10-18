@@ -1043,23 +1043,23 @@ END_PROVIDER
        if (rho_mrcc(i,s) == 0.d0) then
          rho_mrcc(i,s) = 1.d-32
        endif
-       
+
        ! f is such that f.\tilde{c_i} = c_i
        f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
-       
+
        ! Avoid numerical instabilities
        f = min(f,2.d0)
        f = max(f,-2.d0)
-       
+
        norm = norm + f*f *rho_mrcc(i,s)*rho_mrcc(i,s)
        rho_mrcc(i,s) = f
      enddo
      ! norm now contains the norm of |T.Psi_0>
      ! rho_mrcc now contains the f factors
-     
+
      f = 1.d0/norm
      ! f now contains 1/ <T.Psi_0|T.Psi_0>
-     
+
      norm = 1.d0
      do i=1,N_det_ref
        norm = norm - psi_ref_coef(i,s)*psi_ref_coef(i,s)
@@ -1067,14 +1067,14 @@ END_PROVIDER
      ! norm now contains <Psi_SD|Psi_SD>
      f = dsqrt(f*norm)
      ! f normalises T.Psi_0 such that (1+T)|Psi> is normalized
-     
+
      norm = norm*f
      print *,  'norm of |T Psi_0> = ', dsqrt(norm)
-     
+
      do i=1,N_det_ref
        norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
      enddo
-     
+
      do i=1,N_det_non_ref
        rho_mrcc(i,s) = rho_mrcc(i,s) * f
      enddo

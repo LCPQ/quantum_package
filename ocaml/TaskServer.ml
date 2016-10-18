@@ -678,9 +678,9 @@ let run ~port =
 
               (** Debug input *)
               Printf.sprintf "q:%d  r:%d  n:%d  : %s\n%!"
-              (Queuing_system.number_of_queued  program_state.queue)
+              (Queuing_system.number_of_queued program_state.queue)
               (Queuing_system.number_of_running program_state.queue)
-              (Queuing_system.number_of_tasks   program_state.queue)
+              (Queuing_system.number_of_tasks program_state.queue)
               (Message.to_string message)
               |> debug;
 

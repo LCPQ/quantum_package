@@ -554,7 +554,6 @@ END_PROVIDER
         do k=1,N_det_non_ref
 
           call i_h_j(psi_ref(1,1,j), psi_non_ref(1,1,k),N_int,Hjk)
-!          call i_h_j(psi_non_ref(1,1,k),psi_ref(1,1,i), N_int,Hki)
           
           delta_cas(i,j,i_state) += Hjk * dij(i, k, i_state) ! * Hki * lambda_mrcc(i_state, k)
           !print *, Hjk * get_dij(psi_ref(1,1,i), psi_non_ref(1,1,k), N_int), Hki * get_dij(psi_ref(1,1,j), psi_non_ref(1,1,k), N_int)
