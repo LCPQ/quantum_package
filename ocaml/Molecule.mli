@@ -29,6 +29,18 @@ val of_xyz_file :
   ?multiplicity:Multiplicity.t ->
   ?units:Units.units -> string -> t
 
+(** Creates a molecule from a zmt file *)
+val of_zmt_file :
+  ?charge:Charge.t -> 
+  ?multiplicity:Multiplicity.t ->
+  ?units:Units.units -> string -> t
+
+(** Creates a molecule from a file (xyz or zmt) *)
+val of_file :
+  ?charge:Charge.t -> 
+  ?multiplicity:Multiplicity.t ->
+  ?units:Units.units -> string -> t
+
 (** Creates a molecule from an xyz file in a string *)
 val of_xyz_string :
   ?charge:Charge.t ->

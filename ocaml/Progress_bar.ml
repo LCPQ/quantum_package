@@ -14,13 +14,13 @@ type t =
 
 let init ?(bar_length=20) ?(start_value=0.) ?(end_value=1.) ~title =
   { title ; start_value ; end_value ; bar_length ; cur_value=start_value ;
-    init_time= Time.now () ; dirty = true ; next = Time.now () } 
+    init_time= Time.now () ; dirty = false ; next = Time.now () } 
 
 let update ~cur_value bar =
   { bar with cur_value ; dirty=true }
 
 let increment_end bar =
-  { bar with end_value=(bar.end_value +. 1.) ; dirty=true }
+  { bar with end_value=(bar.end_value +. 1.) ; dirty=false }
 
 let increment_cur bar =
   { bar with cur_value=(bar.cur_value +. 1.) ; dirty=true }

@@ -142,7 +142,7 @@ ezfio = Info(
     default_path=join(QP_ROOT_INSTALL, "EZFIO"))
 
 zeromq = Info(
-    url='https://github.com/zeromq/zeromq4-1/releases/download/v4.1.4/zeromq-4.1.4.tar.gz',
+    url='https://github.com/zeromq/zeromq4-1/releases/download/v4.1.5/zeromq-4.1.5.tar.gz',
     description=' ZeroMQ',
     default_path=join(QP_ROOT_LIB, "libzmq.a"))
 
@@ -166,7 +166,7 @@ d_info = dict()
 
 for m in ["ocaml", "m4", "curl", "zlib", "patch", "irpf90", "docopt",
           "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz",
-          "zeromq", "f77zmq","bats"]:
+          "zeromq", "f77zmq","bats" ]:
     exec ("d_info['{0}']={0}".format(m))
 
 
@@ -543,7 +543,6 @@ def recommendation():
     print ""
     print "Finally :"
     print "   ninja"
-    print "   make -C ocaml"
     print ""
     print "You can install more plugin with the qp_module.py install command" 
     print "PS : For more info on compiling the code, read the README.md"

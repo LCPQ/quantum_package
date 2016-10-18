@@ -10,7 +10,7 @@ integer*8 function spin_det_search_key(det,Nint)
   use bitmasks
   implicit none
   BEGIN_DOC
-! Return an integer*8 corresponding to a determinant index for searching
+! Return an integer(8) corresponding to a determinant index for searching
   END_DOC
   integer, intent(in) :: Nint
   integer(bit_kind), intent(in) :: det(Nint)
@@ -64,9 +64,9 @@ BEGIN_TEMPLATE
 
  integer                        :: i,j,k
  integer, allocatable           :: iorder(:)
- integer*8, allocatable         :: bit_tmp(:)
- integer*8                      :: last_key
- integer*8, external            :: spin_det_search_key
+ integer(8), allocatable         :: bit_tmp(:)
+ integer(8)                      :: last_key
+ integer(8), external            :: spin_det_search_key
  logical,allocatable            :: duplicate(:)
 
  allocate ( iorder(N_det), bit_tmp(N_det), duplicate(N_det) )
@@ -149,8 +149,8 @@ integer function get_index_in_psi_det_alpha_unique(key,Nint)
   integer(bit_kind), intent(in)  :: key(Nint)
 
   integer                        :: i, ibegin, iend, istep, l
-  integer*8                      :: det_ref, det_search
-  integer*8, external            :: spin_det_search_key
+  integer(8)                      :: det_ref, det_search
+  integer(8), external            :: spin_det_search_key
   logical                        :: in_wavefunction
 
   in_wavefunction = .False.
@@ -231,8 +231,8 @@ integer function get_index_in_psi_det_beta_unique(key,Nint)
   integer(bit_kind), intent(in)  :: key(Nint)
 
   integer                        :: i, ibegin, iend, istep, l
-  integer*8                      :: det_ref, det_search
-  integer*8, external            :: spin_det_search_key
+  integer(8)                      :: det_ref, det_search
+  integer(8), external            :: spin_det_search_key
   logical                        :: in_wavefunction
 
   in_wavefunction = .False.
@@ -305,10 +305,10 @@ end
 subroutine write_spindeterminants
   use bitmasks
   implicit none
-  integer*8, allocatable         :: tmpdet(:,:)
+  integer(8), allocatable         :: tmpdet(:,:)
   integer                        :: N_int2
   integer                        :: i,j,k
-  integer*8                      :: det_8(100)
+  integer(8)                      :: det_8(100)
   integer(bit_kind)              :: det_bk((100*8)/bit_kind)
   equivalence (det_8, det_bk)
 

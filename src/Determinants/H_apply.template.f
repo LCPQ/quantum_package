@@ -11,9 +11,16 @@ subroutine $subroutine_diexc(key_in, key_prev, hole_1,particl_1, hole_2, particl
   integer(bit_kind), intent(in)         :: key_prev(N_int, 2, *)
   PROVIDE N_int
   PROVIDE N_det
- 
+  
   $declarations
   
+!   print *, "bbbbbbbbbbbbbbb"
+!   call debug_det(key_in, N_int)
+!   call debug_det(hole_1, N_int)
+!   call debug_det(hole_2, N_int)
+!   call debug_det(particl_1, N_int)
+!   call debug_det(particl_2, N_int)
+!   print *, "eeeeeeeeeeeeeeee"
   
   highest = 0
   do k=1,N_int*bit_kind_size
@@ -180,7 +187,7 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
 
 
   $initialization
-  
+   
   $omp_parallel
 !$ iproc = omp_get_thread_num()
   allocate (keys_out(N_int,2,size_max), hole_save(N_int,2),          &

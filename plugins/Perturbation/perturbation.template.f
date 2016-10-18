@@ -131,7 +131,6 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
 ! TODO OLD
 !        if(is_connected_to(buffer(1,1,i), microlist_gen(:,:,1:ptr_microlist_gen(1)-1), Nint, N_microlist_gen(0))) then
 ! TODO OLD
-        ASSERT ( N_microlist_gen(0) <= buffer_size)
         if(is_connected_to(buffer(1,1,i), microlist_gen(1,1,1), Nint, N_microlist_gen(0))) then
           cycle
         end if

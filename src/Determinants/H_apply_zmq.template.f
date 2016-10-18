@@ -28,13 +28,14 @@ subroutine $subroutine($params_main)
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
   double precision, allocatable :: pt2_generators(:,:), norm_pert_generators(:,:)
   double precision, allocatable :: H_pert_diag_generators(:,:)
+  double precision              :: energy(N_st)
 
   call new_parallel_job(zmq_to_qp_run_socket,'$subroutine')
   zmq_socket_pair = new_zmq_pair_socket(.True.)
 
-  call zmq_put_psi(zmq_to_qp_run_socket,1)
+  call zmq_put_psi(zmq_to_qp_run_socket,1,energy,size(energy))
 
-  do i_generator=N_det_generators,1,-1
+  do i_generator=1,N_det_generators
     $skip
     write(task,*) i_generator
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
@@ -135,7 +136,7 @@ subroutine $subroutine_slave(thread, iproc)
 
     pt2 = 0.d0
     norm_pert = 0.d0
-    H_pert_diag = 0.d0
+    H_pert_diag = 0.d0 
 
     ! Create bit masks for holes and particles
     do ispin=1,2

@@ -57,7 +57,7 @@ program dressed_dmc
   enddo
 
 
-  call davidson_diag_hjj(psi_det,psi_coef,H_jj,energies,size(psi_coef,1),N_det,N_states,N_int,6)
+  call davidson_diag_hjj(psi_det,psi_coef,H_jj,energies,size(psi_coef,1),N_det,N_states,N_states_diag,N_int,6)
 
   call save_wavefunction
   call write_spindeterminants

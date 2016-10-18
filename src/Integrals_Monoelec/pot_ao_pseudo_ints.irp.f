@@ -1,17 +1,32 @@
 BEGIN_PROVIDER [ double precision, ao_pseudo_integral, (ao_num_align,ao_num)]
   implicit none
   BEGIN_DOC
-! Pseudo-potential
+  ! Pseudo-potential integrals
   END_DOC
-  ao_pseudo_integral = 0.d0
-  if (do_pseudo) then
-    if (pseudo_klocmax > 0) then
-      ao_pseudo_integral += ao_pseudo_integral_local
-    endif
-    if (pseudo_kmax > 0) then
-      ao_pseudo_integral += ao_pseudo_integral_non_local 
+  
+  if (read_ao_one_integrals) then
+    call read_one_e_integrals('ao_pseudo_integral', ao_pseudo_integral,&
+        size(ao_pseudo_integral,1), size(ao_pseudo_integral,2))
+    print *,  'AO pseudopotential integrals read from disk'
+  else
+    
+    ao_pseudo_integral = 0.d0
+    if (do_pseudo) then
+      if (pseudo_klocmax > 0) then
+        ao_pseudo_integral += ao_pseudo_integral_local
+      endif
+      if (pseudo_kmax > 0) then
+        ao_pseudo_integral += ao_pseudo_integral_non_local
+      endif
     endif
   endif
+  
+  if (write_ao_one_integrals) then
+    call write_one_e_integrals('ao_pseudo_integral', ao_pseudo_integral,&
+        size(ao_pseudo_integral,1), size(ao_pseudo_integral,2))
+    print *,  'AO pseudopotential integrals written to disk'
+  endif
+  
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_num)]
@@ -38,6 +53,13 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
   call wall_time(wall_1)
   call cpu_time(cpu_1)
   
+!write(33,*) 'xxxLOCxxx'
+!write(33,*)   'pseudo_klocmax', pseudo_klocmax
+!write(33,*)  'pseudo_v_k_transp ', pseudo_v_k_transp 
+!write(33,*)  'pseudo_n_k_transp ', pseudo_n_k_transp 
+!write(33,*)  'pseudo_dz_k_transp', pseudo_dz_k_transp
+!write(33,*) 'xxxLOCxxx'
+
   thread_num = 0
   !$OMP PARALLEL                                                     &
       !$OMP DEFAULT (NONE)                                           &
@@ -87,7 +109,15 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
                 pseudo_n_k_transp (1,k), & 
                 pseudo_dz_k_transp(1,k), & 
                 A_center,power_A,alpha,B_center,power_B,beta,C_center)
-            
+!  write(33,*) i,j,k
+!  write(33,*) A_center,power_A,alpha,B_center,power_B,beta,C_center, &
+!      Vloc(pseudo_klocmax, &
+!        pseudo_v_k_transp (1,k), &
+!        pseudo_n_k_transp (1,k), &
+!        pseudo_dz_k_transp(1,k), &
+!        A_center,power_A,alpha,B_center,power_B,beta,C_center)
+!  write(33,*)
+                    
           enddo
           ao_pseudo_integral_local(i,j) = ao_pseudo_integral_local(i,j) +&
               ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i)*c
@@ -107,7 +137,6 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
 
  !$OMP END DO
  !$OMP END PARALLEL
-
 
  END_PROVIDER
 
@@ -136,6 +165,13 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
   call wall_time(wall_1)
   call cpu_time(cpu_1)
   thread_num = 0
+!write(34,*) 'xxxNONLOCxxx'
+!write(34,*)  ' pseudo_lmax,pseudo_kmax', pseudo_lmax,pseudo_kmax
+!write(34,*)  ' pseudo_v_kl_transp(1,0,k)', pseudo_v_kl_transp
+!write(34,*)  ' pseudo_n_kl_transp(1,0,k)', pseudo_n_kl_transp
+!write(34,*)  ' pseudo_dz_kl_transp(1,0,k)', pseudo_dz_kl_transp
+!write(34,*) 'xxxNONLOCxxx'
+
   !$OMP PARALLEL                                                     &
       !$OMP DEFAULT (NONE)                                           &
       !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B,&
@@ -186,6 +222,15 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
                     pseudo_n_kl_transp(1,0,k),  &
                     pseudo_dz_kl_transp(1,0,k), &
                     A_center,power_A,alpha,B_center,power_B,beta,C_center)
+!  write(34,*) i,j,k
+!  write(34,*)  &
+!          A_center,power_A,alpha,B_center,power_B,beta,C_center, &
+!       Vpseudo(pseudo_lmax,pseudo_kmax, &
+!          pseudo_v_kl_transp(1,0,k),  &
+!          pseudo_n_kl_transp(1,0,k),  &
+!          pseudo_dz_kl_transp(1,0,k), &
+!          A_center,power_A,alpha,B_center,power_B,beta,C_center)
+!  write(34,*) ''
           enddo
           ao_pseudo_integral_non_local(i,j) = ao_pseudo_integral_non_local(i,j) +&
               ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i)*c
@@ -206,7 +251,6 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
   !$OMP END DO
   
   !$OMP END PARALLEL
-  
   
   
 END_PROVIDER

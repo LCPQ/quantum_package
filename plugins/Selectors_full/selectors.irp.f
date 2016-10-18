@@ -6,25 +6,27 @@ BEGIN_PROVIDER [ integer, psi_selectors_size ]
 END_PROVIDER
 
 BEGIN_PROVIDER [ integer, N_det_selectors]
- implicit none
- BEGIN_DOC
- ! For Single reference wave functions, the number of selectors is 1 : the
- ! Hartree-Fock determinant
- END_DOC
- integer :: i
- double precision :: norm
- call write_time(output_determinants)
- norm = 0.d0
- N_det_selectors = N_det
- do i=1,N_det
-   norm = norm + psi_average_norm_contrib_sorted(i)
-   if (norm > threshold_selectors) then
-     N_det_selectors = i-1
-     exit
-   endif
- enddo
- N_det_selectors = max(N_det_selectors,1)
- call write_int(output_determinants,N_det_selectors,'Number of selectors')
+  implicit none
+  BEGIN_DOC
+  ! For Single reference wave functions, the number of selectors is 1 : the
+  ! Hartree-Fock determinant
+  END_DOC
+  integer                        :: i
+  double precision               :: norm, norm_max
+  call write_time(output_determinants)
+  N_det_selectors = N_det_generators
+  if (threshold_generators < 1.d0) then
+    norm = 0.d0
+    do i=1,N_det
+      norm = norm + psi_average_norm_contrib_sorted(i)
+      if (norm > threshold_selectors) then
+        N_det_selectors = i-1
+        exit
+      endif
+    enddo
+    N_det_selectors = max(N_det_selectors,N_det_generators)
+  endif
+  call write_int(output_determinants,N_det_selectors,'Number of selectors')
 END_PROVIDER
 
  BEGIN_PROVIDER [ integer(bit_kind), psi_selectors, (N_int,2,psi_selectors_size) ]
@@ -48,7 +50,21 @@ END_PROVIDER
   enddo
 END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, psi_selectors_diag_h_mat, (psi_selectors_size) ]
+BEGIN_PROVIDER [ double precision, psi_selectors_coef_transp, (N_states,psi_selectors_size) ]
+  implicit none
+  BEGIN_DOC
+  ! Transposed psi_selectors
+  END_DOC
+  integer                        :: i,k
+
+  do i=1,N_det_selectors
+    do k=1,N_states
+      psi_selectors_coef_transp(k,i) = psi_selectors_coef(i,k) 
+    enddo
+  enddo
+END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, psi_selectors_diag_h_mat, (psi_selectors_size) ]
   implicit none
   BEGIN_DOC
   ! Diagonal elements of the H matrix for each selectors 
@@ -58,6 +74,6 @@ END_PROVIDER
   do i = 1, N_det_selectors
    psi_selectors_diag_h_mat(i) = diag_H_mat_elem(psi_selectors(1,1,i),N_int)
   enddo
- END_PROVIDER
+END_PROVIDER
 
 

@@ -368,10 +368,12 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
 
   call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
 
-  do l=1,ao_num
+  do l=ao_num,1,-1
     write(task,*) "triangle ", l
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   enddo
+  
+  call zmq_set_running(zmq_to_qp_run_socket)
 
   PROVIDE nproc
   !$OMP PARALLEL DEFAULT(private) num_threads(nproc+1)
@@ -1209,7 +1211,7 @@ subroutine compute_ao_integrals_jl(j,l,n_integrals,buffer_i,buffer_value)
         cycle
       endif
       !DIR$ FORCEINLINE
-      integral = ao_bielec_integral(i,k,j,l)
+      integral = ao_bielec_integral(i,k,j,l)  ! i,k : r1    j,l : r2
       if (abs(integral) < thr) then
         cycle
       endif

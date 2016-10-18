@@ -17,4 +17,6 @@ ZMQ
 ezfio_interface.irp.f
 irpf90.make
 irpf90_entities
+qp_ao_ints
 tags
+test_integrals

@@ -15,7 +15,7 @@ let print_list () =
 let () = 
   Random.self_init ()
 
-let run ~master exe ezfio_file =
+let run slave exe ezfio_file =
 
 
   (** Check availability of the ports *)
@@ -28,7 +28,7 @@ let run ~master exe ezfio_file =
     in
     let rec try_new_port port_number =
       try 
-        List.iter [ 0;1;2;3;4 ] ~f:(fun i ->
+        List.iter [ 0;1;2;3;4;5;6;7;8;9 ] ~f:(fun i ->
             let address = 
               Printf.sprintf "tcp://%s:%d" (Lazy.force TaskServer.ip_address) (port_number+i)
             in
@@ -43,6 +43,7 @@ let run ~master exe ezfio_file =
       try_new_port 41279
     in
     ZMQ.Socket.close dummy_socket;
+    ZMQ.Context.terminate zmq_context;
     result
   in
   let time_start = 
@@ -74,16 +75,23 @@ let run ~master exe ezfio_file =
     | 0 -> ()
     | i -> failwith "Error: Input inconsistent\n"
   end;
-  begin
-    match master with
-    | Some address -> Unix.putenv ~key:"QP_RUN_ADDRESS_MASTER" ~data:address
-    | None -> ()
-  end;
 
-  (** Start task server *)
-  let address =
-    Printf.sprintf "tcp://%s:%d" (Lazy.force TaskServer.ip_address) port_number
+  let qp_run_address_filename = 
+   Filename.concat (Qpackage.ezfio_work ezfio_file) "qp_run_address"
   in
+
+  let () = 
+    if slave then
+      try
+        let address = 
+          In_channel.read_all qp_run_address_filename
+          |> String.strip
+        in
+        Unix.putenv ~key:"QP_RUN_ADDRESS_MASTER" ~data:address
+      with Sys_error _ -> failwith "No master is not running"
+  in
+       
+  (** Start task server *)
   let task_thread =
      let thread = 
       Thread.create ( fun () -> 
@@ -91,7 +99,16 @@ let run ~master exe ezfio_file =
      in
      thread ();
   in
+  let address =
+    Printf.sprintf "tcp://%s:%d" (Lazy.force TaskServer.ip_address) port_number
+  in
   Unix.putenv ~key:"QP_RUN_ADDRESS" ~data:address;
+  let () = 
+    if (not slave) then
+      Out_channel.with_file qp_run_address_filename  ~f:(
+        fun oc -> Out_channel.output_lines oc [address]) 
+  in
+
 
   (** Run executable *)
   let prefix = 
@@ -110,6 +127,8 @@ let run ~master exe ezfio_file =
 
   TaskServer.stop ~port:port_number;
   Thread.join task_thread;
+  if (not slave) then
+    Sys.remove qp_run_address_filename;
 
   let duration = Time.diff (Time.now()) time_start 
   |> Core.Span.to_string in
@@ -118,8 +137,8 @@ let run ~master exe ezfio_file =
 let spec = 
   let open Command.Spec in
   empty
-  +> flag "master" (optional string)
-     ~doc:("address Address of the master process")
+  +> flag "slave" no_arg
+     ~doc:(" Needed for slave tasks")
   +> anon ("executable" %: string)
   +> anon ("ezfio_file" %: string)
 ;;
@@ -137,8 +156,8 @@ Executes a Quantum Package binary file among these:\n\n"
     )
   )
   spec
-  (fun master exe ezfio_file () ->
-    run ~master exe ezfio_file
+  (fun slave exe ezfio_file () ->
+    run slave exe ezfio_file
   )
   |> Command.run   ~version: Git.sha1   ~build_info: Git.message
 

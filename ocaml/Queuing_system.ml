@@ -1,25 +1,35 @@
-open Core.Std
-open Qptypes
-
+module RunningMap = Map.Make (Id.Task)
+module TasksMap   = Map.Make (Id.Task)
+module ClientsSet = Set.Make (Id.Client)
 
 type t =
-{ queued         : Id.Task.t list ;
-  running        : (Id.Task.t, Id.Client.t) Map.Poly.t ;
-  tasks          : (Id.Task.t, string)      Map.Poly.t;
-  clients        : Id.Client.t Set.Poly.t;
+{ queued_front   : Id.Task.t list ;
+  queued_back    : Id.Task.t list ;
+  running        : Id.Client.t RunningMap.t;
+  tasks          : string TasksMap.t;
+  clients        : ClientsSet.t;
   next_client_id : Id.Client.t;
   next_task_id   : Id.Task.t;
+  number_of_queued  : int;
+  number_of_running : int;
+  number_of_tasks   : int;
+  number_of_clients : int;
 }
 
 
 
 let create () =
-  { queued         = [] ; 
-    running        = Map.Poly.empty ;
-    tasks          = Map.Poly.empty;
-    clients        = Set.Poly.empty;
+  { queued_front   = [] ; 
+    queued_back    = [] ; 
+    running        = RunningMap.empty ;
+    tasks          = TasksMap.empty;
+    clients        = ClientsSet.empty;
     next_client_id = Id.Client.of_int 1;
     next_task_id   = Id.Task.of_int 1;
+    number_of_queued  = 0;
+    number_of_running = 0;
+    number_of_tasks   = 0;
+    number_of_clients = 0;
   }
 
 
@@ -30,9 +40,11 @@ let add_task ~task q =
     q.next_task_id 
   in
   { q with
-    queued = task_id :: q.queued ;
-    tasks  = Map.add q.tasks ~key:task_id ~data:task ;
+    queued_front = task_id :: q.queued_front ;
+    tasks  = TasksMap.add task_id task q.tasks;
     next_task_id = Id.Task.increment task_id ;
+    number_of_queued = q.number_of_queued + 1;
+    number_of_tasks  = q.number_of_tasks  + 1;
   }
 
 
@@ -43,55 +55,73 @@ let add_client q =
     q.next_client_id 
   in
   { q with
-    clients = Set.add q.clients client_id;
+    clients = ClientsSet.add client_id q.clients;
     next_client_id = Id.Client.increment client_id;
+    number_of_clients = q.number_of_clients + 1;
   }, client_id
 
 
 let pop_task ~client_id q = 
-  let { queued ; running ; _ } =
+  let { queued_front ; queued_back ; running ; _ } =
     q
   in
-  assert (Set.mem q.clients client_id);
-  match queued with
+  assert (ClientsSet.mem client_id q.clients);
+  let queued_front', queued_back' =
+    match queued_front, queued_back with
+    | (l, []) -> ( [], List.rev l)
+    | t -> t
+  in
+  match queued_back' with
   | task_id :: new_queue ->
     let new_q =
       { q with
-        queued = new_queue ;
-        running = Map.add running ~key:task_id ~data:client_id ;
+        queued_front= queued_front' ;
+        queued_back = new_queue ;
+        running = RunningMap.add task_id client_id running;
+        number_of_queued  = q.number_of_queued  - 1;
+        number_of_running = q.number_of_running + 1;
       }
-    in new_q, Some task_id, (Map.find q.tasks task_id)
+    and found =
+      try Some (TasksMap.find task_id q.tasks)
+      with Not_found -> None
+    in new_q, Some task_id, found 
   | [] -> q, None, None
     
 
 let del_client ~client_id q =
-  assert (Set.mem q.clients client_id);
+  assert (ClientsSet.mem client_id q.clients);
   { q with 
-    clients = Set.remove q.clients client_id }
+    clients = ClientsSet.remove client_id q.clients;
+    number_of_clients = q.number_of_clients - 1
+  }
 
 
 let end_task ~task_id ~client_id q = 
   let { running ; tasks ; _ } =
     q
   in
-  assert (Set.mem q.clients client_id);
-  let () = 
-    match Map.Poly.find running task_id with
-    | None -> failwith "Task already finished"
-    | Some client_id_check -> assert (client_id_check = client_id)
+  assert (ClientsSet.mem client_id q.clients);
+  let () =
+    let client_id_check = 
+      try RunningMap.find task_id running with
+      Not_found -> failwith "Task already finished"
+    in
+    assert (client_id_check = client_id)
   in
   { q with
-    running  = Map.remove running task_id ;
+    running = RunningMap.remove task_id running ;
+    number_of_running = q.number_of_running - 1
   }
-    
+
 let del_task ~task_id q = 
   let { tasks ; _ } =
     q
   in
   
-  if (Map.mem tasks task_id) then
+  if (TasksMap.mem task_id tasks) then
       { q with
-        tasks    = Map.remove tasks task_id ;
+        tasks = TasksMap.remove task_id tasks;
+        number_of_tasks = q.number_of_tasks - 1;
       }
   else
       Printf.sprintf "Task %d is already deleted" (Id.Task.to_int task_id)
@@ -99,33 +129,81 @@ let del_task ~task_id q =
 
     
 
+let number_of_tasks q =
+  assert (q.number_of_tasks >= 0);
+  q.number_of_tasks
+
 let number_of_queued q =
-  Map.length q.tasks
+  assert (q.number_of_queued >= 0);
+  q.number_of_queued
 
 let number_of_running q =
-  Map.length q.running
+  assert (q.number_of_running >= 0);
+  q.number_of_running
+
+let number_of_clients q =
+  assert (q.number_of_clients >= 0);
+  q.number_of_clients
 
 
-let to_string { queued ; running ; tasks ; _ } =
+let to_string qs =
+  let { queued_back ; queued_front ; running ; tasks ; _ } = qs in
   let q =
-    List.map ~f:Id.Task.to_string queued
-    |> String.concat ~sep:" ; "
+     (List.map Id.Task.to_string queued_front) @
+     (List.map Id.Task.to_string @@ List.rev queued_back)
+    |> String.concat " ; "
   and r =
-    Map.Poly.to_alist running
-    |> List.map ~f:(fun (t,c) -> "("^(Id.Task.to_string t)^", "
+    RunningMap.bindings running
+    |> List.map (fun (t,c) -> "("^(Id.Task.to_string t)^", "
        ^(Id.Client.to_string c)^")") 
-    |> String.concat ~sep:" ; "
+    |> String.concat " ; "
   and t = 
-    Map.Poly.to_alist tasks
-    |> List.map ~f:(fun (t,c) -> "("^(Id.Task.to_string t)^", \""
+    TasksMap.bindings tasks
+    |> List.map (fun (t,c) -> "("^(Id.Task.to_string t)^", \""
        ^c^"\")") 
-    |> String.concat ~sep:" ; "
+    |> String.concat " ; "
   in
   Printf.sprintf "{
+Tasks : %d   Queued : %d   Running : %d   Clients : %d
 queued   : { %s }
 running  : { %s }
 tasks    : [ %s
            ]
-}" q r t
+}"
+(number_of_tasks qs) (number_of_queued qs) (number_of_running qs) (number_of_clients qs)
+q r t
 
   
+
+let test () =
+  let q = 
+    create ()
+    |> add_task ~task:"First Task"
+    |> add_task ~task:"Second Task"
+  in
+  let q, client_id = 
+    add_client q
+  in
+  let q, task_id, task_content =
+    match pop_task ~client_id q with
+    | q, Some x, Some y -> q, Id.Task.to_int x, y
+    | _ -> assert false
+  in
+  Printf.printf "Task_id : %d \t\t Task : %s\n" task_id task_content;
+  to_string q |> print_endline  ;
+  let q, task_id, task_content =
+    match pop_task ~client_id q with
+    | q, Some x, Some y -> q, Id.Task.to_int x, y
+    | _ -> assert false
+  in
+  Printf.printf "Task_id : %d \t\t Task : %s\n" task_id task_content;
+  let q, task_id, task_content =
+    match pop_task ~client_id q with
+    | q, None, None -> q, 0, "None"
+    | _ -> assert false
+  in
+  Printf.printf "Task_id : %d \t\t Task : %s\n"  task_id task_content;
+  q
+  |> to_string
+  |> print_endline 
+

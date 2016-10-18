@@ -1,4 +1,5 @@
 quantum_package.rc
+config/ifort.cfg
 quantum_package_static.tar.gz
 build.ninja
 .ninja_log

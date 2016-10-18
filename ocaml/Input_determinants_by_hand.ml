@@ -93,23 +93,6 @@ end = struct
   ;;
 
 
-  let read_n_states_diag () =
-    if not (Ezfio.has_determinants_n_states_diag ()) then
-      read_n_states ()
-      |> States_number.to_int
-      |> Ezfio.set_determinants_n_states_diag 
-    ;
-    Ezfio.get_determinants_n_states_diag ()
-    |> States_number.of_int
-  ;;
-
-  let write_n_states_diag ~n_states n =
-    let n_states = States_number.to_int n_states
-    and n = States_number.to_int n
-    in
-    Ezfio.set_determinants_n_states_diag (max n_states n)
-  ;;
-
   let read_expected_s2 () =
     if not (Ezfio.has_determinants_expected_s2 ()) then
       begin

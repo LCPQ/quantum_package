@@ -14,14 +14,6 @@ Documentation
   Undocumented
 
 
-`abort_all <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/abort.irp.f#L1>`_
-  If True, all the calculation is aborted
-
-
-`abort_here <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/abort.irp.f#L11>`_
-  If True, all the calculation is aborted
-
-
 `add_poly <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L306>`_
   Add two polynomials
   D(t) =! D(t) +( B(t)+C(t))
@@ -36,11 +28,11 @@ Documentation
   Compute 1st dimension such that it is aligned for vectorization.
 
 
-`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L196>`_
+`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L283>`_
   Apply the rotation found by find_rotation
 
 
-`approx_dble <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L380>`_
+`approx_dble <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L382>`_
   Undocumented
 
 
@@ -61,10 +53,6 @@ Documentation
 
 `binom_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L32>`_
   Binomial coefficients
-
-
-`catch_signal <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/abort.irp.f#L30>`_
-  What to do on Ctrl-C. If two Ctrl-C are pressed within 1 sec, the calculation if aborted.
 
 
 `dble_fact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L138>`_
@@ -122,7 +110,7 @@ Documentation
   1/n!
 
 
-`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L177>`_
+`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L264>`_
   Find A.C = B
 
 
@@ -148,7 +136,7 @@ Documentation
   Undocumented
 
 
-`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L123>`_
+`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L210>`_
   Find C = A^-1
 
 
@@ -257,7 +245,7 @@ Documentation
   Hermite polynomial
 
 
-`i2radix_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_450#L323>`_
+`i2radix_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_452#L327>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
@@ -282,14 +270,14 @@ Documentation
   contains the new order of the elements.
 
 
-`i8radix_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_450#L163>`_
+`i8radix_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_452#L165>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
   iradix should be -1 in input.
 
 
-`i8radix_sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_450#L643>`_
+`i8radix_sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_452#L651>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
@@ -388,14 +376,14 @@ Documentation
   1/i
 
 
-`iradix_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_450#L3>`_
+`iradix_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_452#L3>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
   iradix should be -1 in input.
 
 
-`iradix_sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_450#L483>`_
+`iradix_sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_452#L489>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
@@ -420,7 +408,7 @@ Documentation
   contains the new order of the elements.
 
 
-`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L275>`_
+`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L362>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -431,7 +419,7 @@ Documentation
   .br
 
 
-`lapack_diag_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L338>`_
+`lapack_diag_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L425>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -442,7 +430,7 @@ Documentation
   .br
 
 
-`lapack_diagd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L208>`_
+`lapack_diagd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L295>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -453,7 +441,7 @@ Documentation
   .br
 
 
-`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L404>`_
+`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L491>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -468,12 +456,16 @@ Documentation
   n!
 
 
+`lowercase <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L406>`_
+  Transform to lower case
+
+
 `multiply_poly <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L264>`_
   Multiply two polynomials
   D(t) =! D(t) +( B(t)*C(t))
 
 
-`normalize <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L356>`_
+`normalize <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L358>`_
   Normalizes vector u
   u is expected to be aligned in memory.
 
@@ -482,8 +474,26 @@ Documentation
   Number of current OpenMP threads
 
 
-`ortho_lowdin <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L46>`_
-  Compute C_new=C_old.S^-1/2 canonical orthogonalization.
+`ortho_canonical <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L45>`_
+  Compute C_new=C_old.U.s^-1/2 canonical orthogonalization.
+  .br
+  overlap : overlap matrix
+  .br
+  LDA : leftmost dimension of overlap array
+  .br
+  N : Overlap matrix is NxN (array is (LDA,N) )
+  .br
+  C : Coefficients of the vectors to orthogonalize. On exit,
+  orthogonal vectors
+  .br
+  LDC : leftmost dimension of C
+  .br
+  m : Coefficients matrix is MxN, ( array is (LDC,N) )
+  .br
+
+
+`ortho_lowdin <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L128>`_
+  Compute C_new=C_old.S^-1/2 orthogonalization.
   .br
   overlap : overlap matrix
   .br
@@ -597,7 +607,7 @@ Documentation
   to be in integer*8 format
 
 
-`set_zero_extra_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L461>`_
+`set_zero_extra_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L548>`_
   Undocumented
 
 
@@ -624,11 +634,7 @@ Documentation
   .br
 
 
-`trap_signals <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/abort.irp.f#L19>`_
-  What to do when a signal is caught. Here, trap Ctrl-C and call the control_C subroutine.
-
-
-`u_dot_u <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L325>`_
+`u_dot_u <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L326>`_
   Compute <u|u>
 
 
