@@ -306,7 +306,7 @@ let del_task msg program_state rep_socket =
             }
         in
         let more = 
-            (Queuing_system.number new_program_state.queue > 0)
+            (Queuing_system.number_of_tasks new_program_state.queue > 0)
         in
         Message.DelTaskReply (Message.DelTaskReply_msg.create ~task_id ~more)
         |> Message.to_string
@@ -678,9 +678,9 @@ let run ~port =
 
               (** Debug input *)
               Printf.sprintf "q:%d  r:%d  n:%d  : %s\n%!"
-              (Queuing_system.number_of_queued program_state.queue)
+              (Queuing_system.number_of_queued  program_state.queue)
               (Queuing_system.number_of_running program_state.queue)
-              (Queuing_system.number program_state.queue)
+              (Queuing_system.number_of_tasks   program_state.queue)
               (Message.to_string message)
               |> debug;
 

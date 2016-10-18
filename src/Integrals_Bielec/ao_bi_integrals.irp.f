@@ -368,7 +368,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
 
   call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
 
-  do l=1,ao_num
+  do l=ao_num,1,-1
     write(task,*) "triangle ", l
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   enddo

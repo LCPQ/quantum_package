@@ -252,7 +252,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   ave_workload = ave_workload/dble(shortcut(0,1))
 
 
-  do sh=shortcut(0,1),1,-1
+  do sh=1,shortcut(0,1),1
     workload = shortcut(0,1)+dble(shortcut(sh+1,1) - shortcut(sh,1))**2
     do i=sh, shortcut(0,2), shortcut(0,1)
       do j=i, min(i, shortcut(0,2))
