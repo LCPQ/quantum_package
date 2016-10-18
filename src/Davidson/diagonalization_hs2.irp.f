@@ -95,7 +95,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   
   double precision               :: u_dot_v, u_dot_u
   
-  integer, allocatable           :: kl_pairs(:,:)
   integer                        :: k_pairs, kl
   
   integer                        :: iter2
@@ -107,12 +106,14 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   character*(16384)              :: write_buffer
   double precision               :: to_print(3,N_st)
   double precision               :: cpu, wall
-  integer                        :: shift, shift2
+  integer                        :: shift, shift2, itermax
   include 'constants.include.F'
   
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: U, W, R, S, y, h, lambda
-  if (N_st_diag > sze) then
-     stop 'error in Davidson : N_st_diag > sze'
+  if (N_st_diag*3 > sze) then
+     print *,  'error in Davidson :'
+     print *,  'Increase n_det_max_jacobi to ', N_st_diag*3
+     stop -1
   endif
 
   PROVIDE nuclear_repulsion
@@ -147,26 +148,26 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   integer, external :: align_double
   sze_8 = align_double(sze)
 
+  itermax = min(davidson_sze_max, sze/N_st_diag)
   allocate(                                                          &
-      kl_pairs(2,N_st_diag*(N_st_diag+1)/2),                         &
-      W(sze_8,N_st_diag*davidson_sze_max),                           &
-      U(sze_8,N_st_diag*davidson_sze_max),                           &
+      W(sze_8,N_st_diag*itermax),                           &
+      U(sze_8,N_st_diag*itermax),                           &
       R(sze_8,N_st_diag),                                            &
-      S(sze_8,N_st_diag*davidson_sze_max),                           &
-      h(N_st_diag*davidson_sze_max,N_st_diag*davidson_sze_max),      &
-      y(N_st_diag*davidson_sze_max,N_st_diag*davidson_sze_max),      &
-      s_(N_st_diag*davidson_sze_max,N_st_diag*davidson_sze_max),     &
-      s_tmp(N_st_diag*davidson_sze_max,N_st_diag*davidson_sze_max),  &
+      S(sze_8,N_st_diag*itermax),                           &
+      h(N_st_diag*itermax,N_st_diag*itermax),      &
+      y(N_st_diag*itermax,N_st_diag*itermax),      &
+      s_(N_st_diag*itermax,N_st_diag*itermax),     &
+      s_tmp(N_st_diag*itermax,N_st_diag*itermax),  &
       residual_norm(N_st_diag),                                      &
-      c(N_st_diag*davidson_sze_max),                                 &
-      s2(N_st_diag*davidson_sze_max),                                &
-      lambda(N_st_diag*davidson_sze_max))
+      c(N_st_diag*itermax),                                 &
+      s2(N_st_diag*itermax),                                &
+      lambda(N_st_diag*itermax))
   
   h  = 0.d0
   s_ = 0.d0
   s_tmp = 0.d0
-  c = 0.d0
   U = 0.d0
+  W = 0.d0
   S = 0.d0
   R = 0.d0
   y = 0.d0
@@ -183,10 +184,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   
   converged = .False.
   
-  do k=1,N_st
-    call normalize(u_in(1,k),sze)
-  enddo
-
   do k=N_st+1,N_st_diag
       do i=1,sze
         double precision               :: r1, r2
@@ -194,14 +191,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
         call random_number(r2)
         u_in(i,k) = dsqrt(-2.d0*dlog(r1))*dcos(dtwo_pi*r2)
       enddo
-    
-    ! Gram-Schmidt
-    ! ------------
-    call dgemv('T',sze,k-1,1.d0,u_in,size(u_in,1),                   &
-        u_in(1,k),1,0.d0,c,1)
-    call dgemv('N',sze,k-1,-1.d0,u_in,size(u_in,1),                  &
-        c,1,1.d0,u_in(1,k),1)
-    call normalize(u_in(1,k),sze)
   enddo
 
 
@@ -213,11 +202,12 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       enddo
     enddo
 
-    do iter=1,davidson_sze_max-1
+    do iter=1,itermax-1
       
       shift  = N_st_diag*(iter-1)
       shift2 = N_st_diag*iter
 
+      call ortho_qr(U,size(U,1),sze,shift2)
 
       ! Compute |W_k> = \sum_i |i><i|H|u_k>
       ! -----------------------------------------
@@ -228,20 +218,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
       ! -------------------------------------------
-
-
-!      do l=1,N_st_diag
-!        do k=1,N_st_diag
-!          do iter2=1,iter-1
-!            h(k,iter2,l,iter) = u_dot_v(U(1,k,iter2),W(1,l,iter),sze)
-!            h(k,iter,l,iter2) = h(k,iter2,l,iter)
-!          enddo
-!        enddo
-!        do k=1,l
-!          h(k,iter,l,iter) = u_dot_v(U(1,k,iter),W(1,l,iter),sze)
-!          h(l,iter,k,iter) = h(k,iter,l,iter)
-!        enddo
-!      enddo
 
       call dgemm('T','N', shift2, N_st_diag, sze,                    &
           1.d0, U, size(U,1), W(1,shift+1), size(W,1),               &
@@ -295,22 +271,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       ! Express eigenvectors of h in the determinant basis
       ! --------------------------------------------------
       
-!      do k=1,N_st_diag
-!        do i=1,sze
-!          U(i,shift2+k) = 0.d0
-!          W(i,shift2+k) = 0.d0
-!          S(i,shift2+k) = 0.d0
-!        enddo
-!        do l=1,N_st_diag*iter
-!          do i=1,sze
-!            U(i,shift2+k) = U(i,shift2+k) + U(i,l)*y(l,k)
-!            W(i,shift2+k) = W(i,shift2+k) + W(i,l)*y(l,k)
-!            S(i,shift2+k) = S(i,shift2+k) + S(i,l)*y(l,k)
-!          enddo
-!        enddo
-!      enddo
-!
-!
       call dgemm('N','N', sze, N_st_diag, shift2,                    &
           1.d0, U, size(U,1), y, size(y,1), 0.d0, U(1,shift2+1), size(U,1))
       call dgemm('N','N', sze, N_st_diag, shift2,                    &
@@ -321,13 +281,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       ! Compute residual vector
       ! -----------------------
       
-!      do k=1,N_st_diag
-!        print *,  s2(k)
-!        s2(k) = u_dot_v(U(1,shift2+k),  S(1,shift2+k), sze) + S_z2_Sz
-!        print *,  s2(k)
-!        print *,  ''
-!        pause
-!      enddo
       do k=1,N_st_diag
         do i=1,sze
           R(i,k) = (lambda(k) * U(i,shift2+k) - W(i,shift2+k) )      &
@@ -338,14 +291,17 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
           to_print(1,k) = lambda(k) + nuclear_repulsion
           to_print(2,k) = s2(k)
           to_print(3,k) = residual_norm(k)
-          if (residual_norm(k) > 1.e9) then
-            stop 'Davidson failed'
-          endif
         endif
       enddo
       
-      write(iunit,'(X,I3,X,100(X,F16.10,X,F11.6,X,E11.3))')  iter, to_print(:,1:N_st)
+      write(iunit,'(X,I3,X,100(X,F16.10,X,F11.6,X,E11.3,A20))')  iter, to_print(:,1:N_st), ''
       call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
+      do k=1,N_st
+        if (residual_norm(k) > 1.e9) then
+        print *,  ''
+          stop 'Davidson failed'
+        endif
+      enddo
       if (converged) then
         exit
       endif
@@ -359,42 +315,10 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
         enddo
       enddo
       
-      ! Gram-Schmidt
-      ! ------------
-      
-      do k=1,N_st_diag
-
-!        do l=1,N_st_diag*iter
-!            c(1) = u_dot_v(U(1,shift2+k),U(1,l),sze)
-!            do i=1,sze
-!              U(i,k,iter+1) = U(i,shift2+k) - c(1) * U(i,l)
-!            enddo
-!        enddo
-!
-        call dgemv('T',sze,N_st_diag*iter,1.d0,U,size(U,1),          &
-            U(1,shift2+k),1,0.d0,c,1)
-        call dgemv('N',sze,N_st_diag*iter,-1.d0,U,size(U,1),         &
-            c,1,1.d0,U(1,shift2+k),1)
-!
-!        do l=1,k-1
-!          c(1) = u_dot_v(U(1,shift2+k),U(1,shift2+l),sze)
-!          do i=1,sze
-!            U(i,k,iter+1) = U(i,shift2+k) - c(1) * U(i,shift2+l)
-!          enddo
-!        enddo
-!
-        call dgemv('T',sze,k-1,1.d0,U(1,shift2+1),size(U,1),         &
-            U(1,shift2+k),1,0.d0,c,1)
-        call dgemv('N',sze,k-1,-1.d0,U(1,shift2+1),size(U,1),        &
-            c,1,1.d0,U(1,shift2+k),1)
-
-        call normalize( U(1,shift2+k), sze )
-      enddo
-
     enddo
 
     if (.not.converged) then
-      iter = davidson_sze_max-1
+      iter = itermax-1
     endif
     
     ! Re-contract to u_in
@@ -404,20 +328,14 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       energies(k) = lambda(k)
     enddo
 
-!    do k=1,N_st_diag
-!      do i=1,sze
-!        do l=1,iter*N_st_diag
-!            u_in(i,k) += U(i,l)*y(l,k)
-!          enddo
-!        enddo
-!      enddo
-!    enddo
-
     call dgemm('N','N', sze, N_st_diag, N_st_diag*iter, 1.d0,      &
         U, size(U,1), y, size(y,1), 0.d0, u_in, size(u_in,1))
 
   enddo
 
+  do k=1,N_st_diag
+    S2_jj(k) = s2(k)
+  enddo
   write_buffer = '===== '
   do i=1,N_st
     write_buffer = trim(write_buffer)//' ================ =========== ==========='
@@ -427,7 +345,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   call write_time(iunit)
 
   deallocate (                                                       &
-      kl_pairs,                                                      &
       W, residual_norm,                                              &
       U,                                                             &
       R, c, S,                                                       &

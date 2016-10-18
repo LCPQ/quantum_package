@@ -11,9 +11,9 @@ subroutine svd(A,LDA,U,LDU,D,Vt,LDVt,m,n)
   
   integer, intent(in)             :: LDA, LDU, LDVt, m, n
   double precision, intent(in)    :: A(LDA,n)
-  double precision, intent(out)   :: U(LDU,n)
+  double precision, intent(out)   :: U(LDU,m)
   double precision,intent(out)    :: Vt(LDVt,n)
-  double precision,intent(out)    :: D(n)
+  double precision,intent(out)    :: D(min(m,n))
   double precision,allocatable    :: work(:)
   integer                         :: info, lwork, i, j, k
   
@@ -24,13 +24,13 @@ subroutine svd(A,LDA,U,LDU,D,Vt,LDVt,m,n)
   ! Find optimal size for temp arrays
   allocate(work(1))
   lwork = -1
-  call dgesvd('A','A', n, n, A_tmp, LDA,                             &
+  call dgesvd('A','A', m, n, A_tmp, LDA,                             &
       D, U, LDU, Vt, LDVt, work, lwork, info)
   lwork = work(1)
   deallocate(work)
 
   allocate(work(lwork))
-  call dgesvd('A','A', n, n, A_tmp, LDA,                             &
+  call dgesvd('A','A', m, n, A_tmp, LDA,                             &
       D, U, LDU, Vt, LDVt, work, lwork, info)
   deallocate(work,A_tmp)
 
@@ -125,6 +125,40 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
 end
 
 
+subroutine ortho_qr(A,LDA,m,n)
+  implicit none
+  BEGIN_DOC
+  ! Orthogonalization using Q.R factorization
+  !
+  ! A : matrix to orthogonalize
+  !
+  ! LDA : leftmost dimension of A
+  !
+  ! n : Number of rows of A
+  !
+  ! m : Number of columns of A
+  !
+  END_DOC
+  integer, intent(in)            :: m,n, LDA
+  double precision, intent(inout) :: A(LDA,n)
+
+  integer                        :: lwork, info
+  integer, allocatable           :: jpvt(:)
+  double precision, allocatable  :: tau(:), work(:)
+
+  allocate (jpvt(n), tau(n), work(1))
+  LWORK=-1
+!  call dgeqp3(m, n, A, LDA, jpvt, tau, WORK, LWORK, INFO)
+  call  dgeqrf( m, n, A, LDA, TAU, WORK, LWORK, INFO )
+  LWORK=WORK(1)
+  deallocate(WORK)
+  allocate(WORK(LWORK))
+!  call dgeqp3(m, n, A, LDA, jpvt, tau, WORK, LWORK, INFO)
+  call  dgeqrf( m, n, A, LDA, TAU, WORK, LWORK, INFO )
+  call dorgqr(m, n, n, A, LDA, tau, WORK, LWORK, INFO)
+  deallocate(WORK,jpvt,tau)
+end
+
 subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   implicit none
   BEGIN_DOC
@@ -161,7 +195,7 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
 
   allocate(U(ldc,n),Vt(lda,n),S_half(lda,n),D(n))
 
-  call svd(overlap,lda,U,ldc,D,Vt,lda,m,n)
+  call svd(overlap,lda,U,ldc,D,Vt,lda,n,n)
 
   !$OMP PARALLEL DEFAULT(NONE) &
   !$OMP SHARED(S_half,U,D,Vt,n,C,m) &
