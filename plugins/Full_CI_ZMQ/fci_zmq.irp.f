@@ -134,7 +134,7 @@ subroutine ZMQ_selection(N_in, pt2)
 
   step = int(5000000.d0 / dble(N_int * N_states * elec_num * elec_num * mo_tot_num * mo_tot_num ))
   step = max(1,step)
-  do i= N_det_generators, 1, -step
+  do i= 1,N_det_generators, step
     i_generator_start = max(i-step+1,1)
     i_generator_max = i
     write(task,*) i_generator_start, i_generator_max, 1, N
