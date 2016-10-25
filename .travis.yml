@@ -9,6 +9,7 @@ sudo: false
 addons:
   apt:
     packages:
+    - libgmp3-dev
     - gfortran
     - gcc
     - liblapack-dev
