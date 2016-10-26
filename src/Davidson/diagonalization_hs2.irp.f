@@ -22,7 +22,7 @@ subroutine davidson_diag_hs2(dets_in,u_in,s2_out,dim_in,energies,sze,N_st,N_st_d
   integer, intent(in)            :: dim_in, sze, N_st, N_st_diag, Nint, iunit
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision, intent(inout) :: u_in(dim_in,N_st_diag)
-  double precision, intent(out)  :: energies(N_st), s2_out(N_st)
+  double precision, intent(out)  :: energies(N_st), s2_out(N_st_diag)
   double precision, allocatable  :: H_jj(:), S2_jj(:)
   
   double precision               :: diag_h_mat_elem
