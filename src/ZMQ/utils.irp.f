@@ -265,12 +265,14 @@ function new_zmq_pull_socket()
     if (rc /= 0) then
       icount = icount-1
       call sleep(3)
+    else
+      exit
     endif
   enddo
 
   if (icount == 0) then
     print *,  'Unable to bind new_zmq_pull_socket (inproc)', zmq_socket_pull_inproc_address
-    stop 
+    stop -1
   endif
 
 
@@ -280,13 +282,14 @@ function new_zmq_pull_socket()
     if (rc /= 0) then
       icount = icount-1
       call sleep(3)
+    else
+      exit
     endif
-    
   enddo
 
   if (icount == 0) then
     print *,  'Unable to bind new_zmq_pull_socket (tcp)', zmq_socket_pull_tcp_address
-    stop 
+    stop -1
   endif
   
 end
