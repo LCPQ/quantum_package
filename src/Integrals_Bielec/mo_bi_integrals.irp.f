@@ -469,6 +469,31 @@ END_PROVIDER
   
 END_PROVIDER
 
+ BEGIN_PROVIDER [ double precision, mo_bielec_integral_mipi, (mo_tot_num_align,mo_tot_num,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, mo_bielec_integral_mipi_anti, (mo_tot_num_align,mo_tot_num,mo_tot_num) ]
+  implicit none
+  BEGIN_DOC
+  ! <mi|pi> and <mi|pi> - <mi|ip>. Indices are (i,m,p)
+  END_DOC
+  
+  integer                        :: m,i,p
+  double precision               :: get_mo_bielec_integral
+  
+  PROVIDE mo_bielec_integrals_in_map
+
+  mo_bielec_integral_mipi = 0.d0
+  mo_bielec_integral_mipi_anti = 0.d0
+  do p=1,mo_tot_num
+   do m=1,mo_tot_num
+    do i=1,mo_tot_num
+      mo_bielec_integral_mipi(i,m,p) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+      mo_bielec_integral_mipi_anti(i,m,p) = mo_bielec_integral_mipi(i,m,p) - get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+    enddo
+   enddo
+ enddo
+  
+END_PROVIDER
+
 BEGIN_PROVIDER [ double precision, mo_bielec_integral_schwartz,(mo_tot_num,mo_tot_num)  ]
   implicit none
   BEGIN_DOC

@@ -515,8 +515,6 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
   integer                        :: occ(Nint*bit_kind_size,2)
   double precision               :: diag_H_mat_elem, phase,phase_2
   integer                        :: n_occ_ab(2)
-  logical                        :: has_mipi(Nint*bit_kind_size)
-  double precision               :: mipi(Nint*bit_kind_size), miip(Nint*bit_kind_size)
   PROVIDE mo_bielec_integrals_in_map mo_integrals_map
   
   ASSERT (Nint > 0)
@@ -568,59 +566,27 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
       call get_mono_excitation(key_i,key_j,exc,phase,Nint)
       !DIR$ FORCEINLINE
       call bitstring_to_list_ab(key_i, occ, n_occ_ab, Nint)
-      has_mipi = .False.
       if (exc(0,1,1) == 1) then
         ! Mono alpha
         m = exc(1,1,1)
         p = exc(1,2,1)
         do k = 1, elec_alpha_num
-          i = occ(k,1)
-          if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
-            has_mipi(i) = .True.
-          endif
+          hij = hij + mo_bielec_integral_mipi_anti(occ(k,1),m,p)
         enddo
         do k = 1, elec_beta_num
-          i = occ(k,2)
-          if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            has_mipi(i) = .True.
-          endif
-        enddo
-        
-        do k = 1, elec_alpha_num
-          hij = hij + mipi(occ(k,1)) - miip(occ(k,1))
-        enddo
-        do k = 1, elec_beta_num
-          hij = hij + mipi(occ(k,2))
+          hij = hij + mo_bielec_integral_mipi(occ(k,2),m,p)
         enddo
         
       else
         ! Mono beta
         m = exc(1,1,2)
         p = exc(1,2,2)
-        do k = 1, elec_beta_num
-          i = occ(k,2)
-          if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
-            has_mipi(i) = .True.
-          endif
-        enddo
+
         do k = 1, elec_alpha_num
-          i = occ(k,1)
-          if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            has_mipi(i) = .True.
-          endif
-        enddo
-        
-        do k = 1, elec_alpha_num
-          hij = hij + mipi(occ(k,1))
+          hij = hij + mo_bielec_integral_mipi(occ(k,1),m,p) 
         enddo
         do k = 1, elec_beta_num
-          hij = hij + mipi(occ(k,2)) - miip(occ(k,2))
+          hij = hij + mo_bielec_integral_mipi_anti(occ(k,2),m,p)
         enddo
         
       endif
@@ -651,8 +617,6 @@ subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
   integer                        :: occ(Nint*bit_kind_size,2)
   double precision               :: diag_H_mat_elem
   integer                        :: n_occ_ab(2)
-  logical                        :: has_mipi(Nint*bit_kind_size)
-  double precision               :: mipi(Nint*bit_kind_size), miip(Nint*bit_kind_size)
   PROVIDE mo_bielec_integrals_in_map mo_integrals_map
 
   ASSERT (Nint > 0)
@@ -704,59 +668,27 @@ subroutine i_H_j_phase_out(key_i,key_j,Nint,hij,phase,exc,degree)
       call get_mono_excitation(key_i,key_j,exc,phase,Nint)
       !DIR$ FORCEINLINE
       call bitstring_to_list_ab(key_i, occ, n_occ_ab, Nint)
-      has_mipi = .False.
       if (exc(0,1,1) == 1) then
         ! Mono alpha
         m = exc(1,1,1)
         p = exc(1,2,1)
         do k = 1, elec_alpha_num
-          i = occ(k,1)
-          if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
-            has_mipi(i) = .True.
-          endif
+          hij = hij + mo_bielec_integral_mipi_anti(occ(k,1),m,p)
         enddo
         do k = 1, elec_beta_num
-          i = occ(k,2)
-          if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            has_mipi(i) = .True.
-          endif
+          hij = hij + mo_bielec_integral_mipi(occ(k,2),m,p)
         enddo
-
-        do k = 1, elec_alpha_num
-          hij = hij + mipi(occ(k,1)) - miip(occ(k,1))
-        enddo
-        do k = 1, elec_beta_num
-          hij = hij + mipi(occ(k,2))
-        enddo
-
+        
       else
         ! Mono beta
         m = exc(1,1,2)
         p = exc(1,2,2)
-        do k = 1, elec_beta_num
-          i = occ(k,2)
-          if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
-            has_mipi(i) = .True.
-          endif
-        enddo
-        do k = 1, elec_alpha_num
-          i = occ(k,1)
-          if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            has_mipi(i) = .True.
-          endif
-        enddo
 
         do k = 1, elec_alpha_num
-          hij = hij + mipi(occ(k,1))
+          hij = hij + mo_bielec_integral_mipi(occ(k,1),m,p) 
         enddo
         do k = 1, elec_beta_num
-          hij = hij + mipi(occ(k,2)) - miip(occ(k,2))
+          hij = hij + mo_bielec_integral_mipi_anti(occ(k,2),m,p)
         enddo
 
       endif
@@ -787,8 +719,6 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
   integer                        :: occ(Nint*bit_kind_size,2)
   double precision               :: diag_H_mat_elem, phase,phase_2
   integer                        :: n_occ_ab(2)
-  logical                        :: has_mipi(Nint*bit_kind_size)
-  double precision               :: mipi(Nint*bit_kind_size), miip(Nint*bit_kind_size)
   PROVIDE mo_bielec_integrals_in_map mo_integrals_map
   
   ASSERT (Nint > 0)
@@ -842,59 +772,26 @@ subroutine i_H_j_verbose(key_i,key_j,Nint,hij,hmono,hdouble)
       call get_mono_excitation(key_i,key_j,exc,phase,Nint)
       !DIR$ FORCEINLINE
       call bitstring_to_list_ab(key_i, occ, n_occ_ab, Nint)
-      has_mipi = .False.
       if (exc(0,1,1) == 1) then
         ! Mono alpha
         m = exc(1,1,1)
         p = exc(1,2,1)
         do k = 1, elec_alpha_num
-          i = occ(k,1)
-          if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
-            has_mipi(i) = .True.
-          endif
+          hdouble = hdouble +  mo_bielec_integral_mipi_anti(occ(k,1),m,p)
         enddo
         do k = 1, elec_beta_num
-          i = occ(k,2)
-          if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            has_mipi(i) = .True.
-          endif
-        enddo
-        
-        do k = 1, elec_alpha_num
-          hdouble = hdouble + mipi(occ(k,1)) - miip(occ(k,1))
-        enddo
-        do k = 1, elec_beta_num
-          hdouble = hdouble + mipi(occ(k,2))
+          hdouble = hdouble + mo_bielec_integral_mipi(occ(k,2),m,p)
         enddo
         
       else
         ! Mono beta
         m = exc(1,1,2)
         p = exc(1,2,2)
-        do k = 1, elec_beta_num
-          i = occ(k,2)
-          if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            miip(i) = get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
-            has_mipi(i) = .True.
-          endif
-        enddo
         do k = 1, elec_alpha_num
-          i = occ(k,1)
-          if (.not.has_mipi(i)) then
-            mipi(i) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
-            has_mipi(i) = .True.
-          endif
-        enddo
-        
-        do k = 1, elec_alpha_num
-          hdouble = hdouble + mipi(occ(k,1))
+          hdouble = hdouble + mo_bielec_integral_mipi(occ(k,1),m,p) 
         enddo
         do k = 1, elec_beta_num
-          hdouble = hdouble + mipi(occ(k,2)) - miip(occ(k,2))
+          hdouble = hdouble + mo_bielec_integral_mipi_anti(occ(k,2),m,p)
         enddo
         
       endif
