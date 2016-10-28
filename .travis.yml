@@ -9,6 +9,8 @@ sudo: false
 addons:
   apt:
     packages:
+    - zlib1g-dev
+    - libgmp3-dev
     - gfortran
     - gcc
     - liblapack-dev
