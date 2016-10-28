@@ -42,7 +42,7 @@ end = struct
     assert (String.is_prefix ~prefix:"inproc://" x);
     x
   let create name =
-    Printf.sprintf "ipc://%s" name
+    Printf.sprintf "inproc://%s" name
   let to_string x = x
 end
 

@@ -17,8 +17,6 @@ END_PROVIDER
 
 
  BEGIN_PROVIDER [ character*(128), qp_run_address ]
-&BEGIN_PROVIDER [ character*(128), qp_run_address_ipc ]
-&BEGIN_PROVIDER [ character*(128), qp_run_address_tcp ]
 &BEGIN_PROVIDER [ integer, zmq_port_start ]
   use f77_zmq
   implicit none
@@ -36,22 +34,19 @@ END_PROVIDER
   integer                        :: i
   do i=len(buffer),1,-1
     if ( buffer(i:i) == ':') then
-      qp_run_address_tcp = trim(buffer(1:i-1))
+      qp_run_address = trim(buffer(1:i-1))
       read(buffer(i+1:), *) zmq_port_start
       exit
     endif
   enddo
-  qp_run_address_ipc = 'ipc:///tmp/qp_run'
-  qp_run_address = qp_run_address_ipc
 END_PROVIDER
 
-
  BEGIN_PROVIDER [ character*(128), zmq_socket_pull_tcp_address    ]
-&BEGIN_PROVIDER [ character*(128), zmq_socket_pull_inproc_address ]
 &BEGIN_PROVIDER [ character*(128), zmq_socket_pair_inproc_address ]
 &BEGIN_PROVIDER [ character*(128), zmq_socket_push_tcp_address    ]
+&BEGIN_PROVIDER [ character*(128), zmq_socket_pull_inproc_address ]
 &BEGIN_PROVIDER [ character*(128), zmq_socket_push_inproc_address ]
-&BEGIN_PROVIDER [ character*(128), zmq_socket_sub_address     ]
+&BEGIN_PROVIDER [ character*(128), zmq_socket_sub_tcp_address ]
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -59,12 +54,12 @@ END_PROVIDER
   END_DOC
   character*(8), external        :: zmq_port
 
+  zmq_socket_sub_tcp_address     = trim(qp_run_address)//':'//zmq_port(1)//' '
   zmq_socket_pull_tcp_address    = 'tcp://*:'//zmq_port(2)//' '
+  zmq_socket_push_tcp_address    = trim(qp_run_address)//':'//zmq_port(2)//' '
   zmq_socket_pull_inproc_address = 'inproc://'//zmq_port(2)//' '
-  zmq_socket_pair_inproc_address = 'inproc://'//zmq_port(3)//' '
-  zmq_socket_push_tcp_address    = trim(qp_run_address_tcp)//':'//zmq_port(2)//' '
   zmq_socket_push_inproc_address = zmq_socket_pull_inproc_address
-  zmq_socket_sub_address         = trim(qp_run_address)//':'//zmq_port(1)//' '
+  zmq_socket_pair_inproc_address = 'inproc://'//zmq_port(3)//' '
 
   ! /!\ Don't forget to change subroutine reset_zmq_addresses
 END_PROVIDER
@@ -77,13 +72,12 @@ subroutine reset_zmq_addresses
   END_DOC
   character*(8), external        :: zmq_port
 
+  zmq_socket_sub_tcp_address     = trim(qp_run_address)//':'//zmq_port(1)//' '
   zmq_socket_pull_tcp_address    = 'tcp://*:'//zmq_port(2)//' '
+  zmq_socket_push_tcp_address    = trim(qp_run_address)//':'//zmq_port(2)//' '
   zmq_socket_pull_inproc_address = 'inproc://'//zmq_port(2)//' '
-  zmq_socket_pair_inproc_address = 'inproc://'//zmq_port(3)//' '
-  zmq_socket_push_tcp_address    = trim(qp_run_address_tcp)//':'//zmq_port(2)//' '
   zmq_socket_push_inproc_address = zmq_socket_pull_inproc_address
-  zmq_socket_sub_address         = trim(qp_run_address)//':'//zmq_port(1)//' '
-
+  zmq_socket_pair_inproc_address = 'inproc://'//zmq_port(3)//' '
 end
 
 
@@ -111,7 +105,6 @@ subroutine switch_qp_run_to_master
       exit
     endif
   enddo
-  qp_run_address_tcp = qp_run_address
   call reset_zmq_addresses
 
 end
@@ -264,15 +257,39 @@ function new_zmq_pull_socket()
     stop 'Unable to set ZMQ_RCVHWM on pull socket'
   endif
   
-  rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_tcp_address)
-  if (rc /= 0) then
-    print *,  'Unable to bind new_zmq_pull_socket (tcp)', zmq_socket_pull_tcp_address
-    stop 
+  integer :: icount
+
+  icount = 10
+  do while (icount > 0)
+    rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_inproc_address)
+    if (rc /= 0) then
+      icount = icount-1
+      call sleep(3)
+    else
+      exit
+    endif
+  enddo
+
+  if (icount == 0) then
+    print *,  'Unable to bind new_zmq_pull_socket (inproc)', zmq_socket_pull_inproc_address
+    stop -1
   endif
-  
-  rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_inproc_address)
-  if (rc /= 0) then
-    stop 'Unable to bind new_zmq_pull_socket (inproc)'
+
+
+  icount = 10
+  do while (icount > 0)
+    rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_tcp_address)
+    if (rc /= 0) then
+      icount = icount-1
+      call sleep(3)
+    else
+      exit
+    endif
+  enddo
+
+  if (icount == 0) then
+    print *,  'Unable to bind new_zmq_pull_socket (tcp)', zmq_socket_pull_tcp_address
+    stop -1
   endif
   
 end
@@ -374,7 +391,7 @@ function new_zmq_sub_socket()
     stop 'Unable to subscribe new_zmq_sub_socket'
   endif
 
-  rc = f77_zmq_connect(new_zmq_sub_socket, zmq_socket_sub_address)
+  rc = f77_zmq_connect(new_zmq_sub_socket, zmq_socket_sub_tcp_address)
   if (rc /= 0) then
     stop 'Unable to connect new_zmq_sub_socket'
   endif

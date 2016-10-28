@@ -501,7 +501,7 @@ subroutine davidson_miniserver_end()
   integer                 rc
   character*(64)          buf
   
-  address = trim(qp_run_address_tcp)//':11223'
+  address = trim(qp_run_address)//':11223'
   requester = f77_zmq_socket(zmq_context, ZMQ_REQ)
   rc        = f77_zmq_connect(requester,address)
 
@@ -520,7 +520,7 @@ subroutine davidson_miniserver_get()
   character*(20)          buffer
   integer                 rc
   
-  address = trim(qp_run_address_tcp)//':11223'
+  address = trim(qp_run_address)//':11223'
   
   requester = f77_zmq_socket(zmq_context, ZMQ_REQ)
   rc        = f77_zmq_connect(requester,address)
