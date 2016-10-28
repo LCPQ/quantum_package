@@ -257,15 +257,36 @@ function new_zmq_pull_socket()
     stop 'Unable to set ZMQ_RCVHWM on pull socket'
   endif
   
-  rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_tcp_address)
-  if (rc /= 0) then
-    print *,  'Unable to bind new_zmq_pull_socket (tcp)', zmq_socket_pull_tcp_address
+  integer :: icount
+
+  icount = 10
+  do while (icount > 0)
+    rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_inproc_address)
+    if (rc /= 0) then
+      icount = icount-1
+      call sleep(3)
+    endif
+  enddo
+
+  if (icount == 0) then
+    print *,  'Unable to bind new_zmq_pull_socket (inproc)', zmq_socket_pull_inproc_address
     stop 
   endif
-  
-  rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_inproc_address)
-  if (rc /= 0) then
-    stop 'Unable to bind new_zmq_pull_socket (inproc)'
+
+
+  icount = 10
+  do while (icount > 0)
+    rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_tcp_address)
+    if (rc /= 0) then
+      icount = icount-1
+      call sleep(3)
+    endif
+    
+  enddo
+
+  if (icount == 0) then
+    print *,  'Unable to bind new_zmq_pull_socket (tcp)', zmq_socket_pull_tcp_address
+    stop 
   endif
   
 end
