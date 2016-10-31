@@ -30,6 +30,7 @@ then
     ./bats_to_sh.py $BATS_FILE | bash
    done
 else
-   bats bats
+   cd bats
+   bats
 fi
 
