@@ -3,12 +3,12 @@
 LIST="
 convert.bats
 hf.bats
-foboci.bats
 pseudo.bats
 fci.bats
 cassd.bats
 mrcepa0.bats
 "
+#foboci.bats
 
 
 export QP_PREFIX="timeout -s 9 300"
