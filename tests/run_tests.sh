@@ -31,6 +31,6 @@ then
    done
 else
    cd bats
-   bats
+   bats .
 fi
 
