@@ -223,6 +223,7 @@ END_PROVIDER
    ao_bi_elec_integral_beta_tmp  = 0.d0
 
    !$OMP DO SCHEDULE(dynamic)
+   !DIR$ NOVECTOR
    do i8=0_8,ao_integrals_map%map_size
      n_elements = n_elements_max
      call get_cache_map(ao_integrals_map,i8,keys,values,n_elements)

@@ -19,7 +19,7 @@ let spec =
      ~doc:"string Name of the pseudopotential"
   +> flag "cart" no_arg
      ~doc:" Compute AOs in the Cartesian basis set (6d, 10f, ...)"
-  +> anon ("xyz_file" %: file )
+  +> anon ("(xyz_file|zmt_file)" %: file )
 
 
 (** Handle dummy atoms placed on bonds *)
@@ -93,7 +93,7 @@ let run ?o b c d m p cart xyz_file =
 
   (* Read molecule *)
   let molecule =
-    (Molecule.of_xyz_file xyz_file ~charge:(Charge.of_int c)
+    (Molecule.of_file xyz_file ~charge:(Charge.of_int c)
       ~multiplicity:(Multiplicity.of_int m) )
   in
   let dummy =
@@ -309,7 +309,8 @@ let run ?o b c d m p cart xyz_file =
     | None ->
       begin
         match String.rsplit2 ~on:'.' xyz_file with
-        | Some (x,"xyz") -> x^".ezfio"
+        | Some (x,"xyz") 
+        | Some (x,"zmt") -> x^".ezfio"
         | _ -> xyz_file^".ezfio"
       end
   in
@@ -640,9 +641,10 @@ let command =
 
 ============================
 
-Creates an EZFIO directory from a standard xyz file.  The basis set is defined
-as a single string if all the atoms are taken from the same basis set,
-otherwise specific elements can be defined as follows:
+Creates an EZFIO directory from a standard xyz file or from a z-matrix file
+in Gaussian format. The basis set is defined as a single string if all the
+atoms are taken from the same basis set, otherwise specific elements can be
+defined as follows:
 
  -b \"cc-pcvdz | H:cc-pvdz | C:6-31g\"
 

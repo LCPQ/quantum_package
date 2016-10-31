@@ -47,12 +47,8 @@ let input_data = "
 
 * States_number : int 
   assert (x > 0) ; 
-  if (x > 100) then
-    warning \"More than 100 states\";
-  if (Ezfio.has_determinants_n_states_diag ()) then
-    assert (x <= (Ezfio.get_determinants_n_states_diag ()))
-  else if (Ezfio.has_determinants_n_states ()) then
-    assert (x <= (Ezfio.get_determinants_n_states ()));
+  if (x > 1000) then
+    warning \"More than 1000 states\";
 
 * Bit_kind_size : int  
   begin match x with

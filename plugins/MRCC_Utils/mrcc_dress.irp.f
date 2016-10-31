@@ -51,8 +51,7 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
   integer(bit_kind), allocatable :: microlist(:,:,:), microlist_zero(:,:,:)
   integer, allocatable           :: idx_microlist(:), N_microlist(:), ptr_microlist(:), idx_microlist_zero(:)
   integer :: mobiles(2), smallerlist
-  
-  
+  logical, external :: is_generable
   
   leng = max(N_det_generators, N_det_non_ref)
   allocate(miniList(Nint, 2, leng), idx_minilist(leng), hij_cache(N_det_non_ref))
@@ -69,7 +68,7 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
   allocate(   microlist(Nint,2,N_minilist*4),               &
     idx_microlist(N_minilist*4))
   
-  if(key_mask(1,1) /= 0) then
+  if(key_mask(1,1) /= 0_8) then
     call create_microlist(miniList, N_minilist, key_mask, microlist, idx_microlist, N_microlist, ptr_microlist, Nint)
     call find_triples_and_quadruples_micro(i_generator,n_selected,det_buffer,Nint,tq,N_tq,microlist,ptr_microlist,N_microlist,key_mask)
   else
@@ -87,6 +86,7 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
   ! |alpha>
   
   if(N_tq > 0) then
+
     call create_minilist(key_mask, psi_non_ref, miniList, idx_minilist, N_det_non_ref, N_minilist, Nint)
     if(N_minilist == 0) return
     
@@ -117,8 +117,18 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
   
   
       
- 
   do i_alpha=1,N_tq
+!     ok = .false.
+!     do i=N_det_generators, 1, -1
+!       if(is_generable(psi_det_generators(1,1,i), tq(1,1,i_alpha), Nint)) then
+!         ok = .true.
+!         exit
+!       end if
+!     end do
+!     if(.not. ok) then
+!         cycle
+!     end if
+
     if(key_mask(1,1) /= 0) then
       call getMobiles(tq(1,1,i_alpha), key_mask, mobiles, Nint) 
       
@@ -138,37 +148,6 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
       do j=1,idx_alpha(0)
         idx_alpha(j) = idx_microlist_zero(idx_alpha(j))
       end do
-      
-      
-!       i = 1
-!       j = 2
-!       do j = 2, idx_alpha_tmp(0)
-!         if(idx_alpha_tmp(j) < idx_alpha_tmp(j-1)) exit
-!       end do
-!       
-!       m = j
-!       
-!       idx_alpha(0) = idx_alpha_tmp(0)
-!           
-!       do l = 1, idx_alpha(0)      
-!         if(j > idx_alpha_tmp(0)) then
-!           k = i
-!           i += 1
-!         else if(i >= m) then
-!           k = j
-!           j += 1
-!         else if(idx_alpha_tmp(i) < idx_alpha_tmp(j)) then
-!           k = i
-!           i += 1
-!         else
-!           k = j
-!           j += 1
-!         end if
-! !  k=l       
-!         idx_alpha(l) = idx_alpha_tmp(k)
-!         degree_alpha(l) = degree_alpha_tmp(k)
-!       end do
-!       
     else
       call get_excitation_degree_vector(miniList,tq(1,1,i_alpha),degree_alpha,Nint,N_minilist,idx_alpha)
       do j=1,idx_alpha(0)
@@ -176,12 +155,6 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
       end do
     end if
     
-    
-!     call get_excitation_degree_vector(miniList,tq(1,1,i_alpha),degree_alpha,Nint,N_minilist,idx_alpha)
-!     do j=1,idx_alpha(0)
-!       idx_alpha(j) = idx_miniList(idx_alpha(j))
-!     end do
-    !print *, idx_alpha(:idx_alpha(0))
     
     do l_sd=1,idx_alpha(0)
       k_sd = idx_alpha(l_sd)
@@ -285,31 +258,29 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
         enddo
       enddo
       call omp_set_lock( psi_ref_lock(i_I) )
+
+      
       do i_state=1,Nstates
         if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5)then
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
-              delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
-              delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
+            delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
+            delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
           enddo
         else
-          delta_ii_(i_state,i_I)  = 0.d0
+          !delta_ii_(i_state,i_I)  = 0.d0
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
-              delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
+            delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + 0.5d0 * dIa_hla(i_state,k_sd)
           enddo
         endif
       enddo
       call omp_unset_lock( psi_ref_lock(i_I) )
     enddo
   enddo
-  !deallocate (dIa_hla,hij_cache)
-  !deallocate(miniList, idx_miniList)
+  deallocate (dIa_hla,hij_cache)
+  deallocate(miniList, idx_miniList)
 end
-
-
-
-
 
 
 subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_miniList)
@@ -360,7 +331,7 @@ subroutine find_triples_and_quadruples(i_generator,n_selected,det_buffer,Nint,tq
       endif
     enddo
     if (good) then
-      if (.not. is_in_wavefunction(det_buffer(1,1,i),Nint,N_det)) then
+      if (.not. is_in_wavefunction(det_buffer(1,1,i),Nint)) then
         N_tq += 1
         do k=1,N_int
           tq(k,1,N_tq) = det_buffer(k,1,i)
@@ -437,7 +408,7 @@ subroutine find_triples_and_quadruples_micro(i_generator,n_selected,det_buffer,N
       endif
     enddo
     if (good) then
-      if (.not. is_in_wavefunction(det_buffer(1,1,i),Nint,N_det)) then
+      if (.not. is_in_wavefunction(det_buffer(1,1,i),Nint)) then
         N_tq += 1
         do k=1,N_int
           tq(k,1,N_tq) = det_buffer(k,1,i)

@@ -351,13 +351,11 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   
   real                           :: map_mb
   if (read_ao_integrals) then
-    integer                        :: load_ao_integrals
     print*,'Reading the AO integrals'
-    if (load_ao_integrals(trim(ezfio_filename)//'/work/ao_integrals.bin') == 0) then
+      call map_load_from_disk(trim(ezfio_filename)//'/work/ao_ints',ao_integrals_map)
       print*, 'AO integrals provided'
       ao_bielec_integrals_in_map = .True.
       return
-    endif
   endif
   
   print*, 'Providing the AO integrals'
@@ -370,10 +368,12 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
 
   call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
 
-  do l=1,ao_num
-    write(task,*) l
+  do l=ao_num,1,-1
+    write(task,*) "triangle ", l
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   enddo
+  
+  call zmq_set_running(zmq_to_qp_run_socket)
 
   PROVIDE nproc
   !$OMP PARALLEL DEFAULT(private) num_threads(nproc+1)
@@ -402,8 +402,10 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   print*, ' wall time :',wall_2 - wall_1, 's  ( x ', (cpu_2-cpu_1)/(wall_2-wall_1+tiny(1.d0)), ' )'
   
   ao_bielec_integrals_in_map = .True.
+
   if (write_ao_integrals) then
-    call dump_ao_integrals(trim(ezfio_filename)//'/work/ao_integrals.bin')
+    call ezfio_set_work_empty(.False.)
+    call map_save_to_disk(trim(ezfio_filename)//'/work/ao_ints',ao_integrals_map)
     call ezfio_set_integrals_bielec_disk_access_ao_integrals("Read")
   endif
   
@@ -1209,7 +1211,7 @@ subroutine compute_ao_integrals_jl(j,l,n_integrals,buffer_i,buffer_value)
         cycle
       endif
       !DIR$ FORCEINLINE
-      integral = ao_bielec_integral(i,k,j,l)
+      integral = ao_bielec_integral(i,k,j,l)  ! i,k : r1    j,l : r2
       if (abs(integral) < thr) then
         cycle
       endif

@@ -207,6 +207,7 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
       do j=1,n_element(1)
         nt = list(j,1)
         idx_microlist(cur_microlist(nt)) = i
+        ! TODO : Page faults
         do k=1,Nint
           microlist(k,1,cur_microlist(nt)) = minilist(k,1,i)
           microlist(k,2,cur_microlist(nt)) = minilist(k,2,i)
@@ -299,7 +300,6 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
   else
     
 
-    integer, save :: icount(4) = (/0,0,0,0/)
     !DIR$ LOOP COUNT (1000)
     outer: do i=1,sze
       degree_x2 = 0
@@ -317,7 +317,6 @@ subroutine filter_connected_i_H_psi0(key1,key2,Nint,sze,idx)
       enddo
       idx(l) = i
       l = l+1
-      icount(3) = icount(3) + 1_8
     enddo outer
     
   endif

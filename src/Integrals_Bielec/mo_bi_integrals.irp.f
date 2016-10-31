@@ -28,12 +28,10 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
 
   mo_bielec_integrals_in_map = .True.
   if (read_mo_integrals) then
-    integer                        :: load_mo_integrals
     print*,'Reading the MO integrals'
-    if (load_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin') == 0) then
-      print*, 'MO integrals provided'
-      return
-    endif
+    call map_load_from_disk(trim(ezfio_filename)//'/work/mo_ints',mo_integrals_map)
+    print*, 'MO integrals provided'
+    return
   endif
   
   call add_integrals_to_map(full_ijkl_bitmask_4)
@@ -299,7 +297,8 @@ subroutine add_integrals_to_map(mask_ijkl)
   print*,' wall time :',wall_2 - wall_1, 's  ( x ', (cpu_2-cpu_1)/(wall_2-wall_1), ')'
   
   if (write_mo_integrals) then
-    call dump_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin')
+    call ezfio_set_work_empty(.False.)
+    call map_save_to_disk(trim(ezfio_filename)//'/work/mo_ints',mo_integrals_map)
     call ezfio_set_integrals_bielec_disk_access_mo_integrals("Read")
   endif
   
@@ -465,6 +464,31 @@ END_PROVIDER
      mo_bielec_integral_jj(i,j) = get_mo_bielec_integral(i,j,i,j,mo_integrals_map)
      mo_bielec_integral_jj_exchange(i,j) = get_mo_bielec_integral(i,j,j,i,mo_integrals_map)
      mo_bielec_integral_jj_anti(i,j) = mo_bielec_integral_jj(i,j) - mo_bielec_integral_jj_exchange(i,j) 
+   enddo
+ enddo
+  
+END_PROVIDER
+
+ BEGIN_PROVIDER [ double precision, mo_bielec_integral_mipi, (mo_tot_num_align,mo_tot_num,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, mo_bielec_integral_mipi_anti, (mo_tot_num_align,mo_tot_num,mo_tot_num) ]
+  implicit none
+  BEGIN_DOC
+  ! <mi|pi> and <mi|pi> - <mi|ip>. Indices are (i,m,p)
+  END_DOC
+  
+  integer                        :: m,i,p
+  double precision               :: get_mo_bielec_integral
+  
+  PROVIDE mo_bielec_integrals_in_map
+
+  mo_bielec_integral_mipi = 0.d0
+  mo_bielec_integral_mipi_anti = 0.d0
+  do p=1,mo_tot_num
+   do m=1,mo_tot_num
+    do i=1,mo_tot_num
+      mo_bielec_integral_mipi(i,m,p) = get_mo_bielec_integral(m,i,p,i,mo_integrals_map)
+      mo_bielec_integral_mipi_anti(i,m,p) = mo_bielec_integral_mipi(i,m,p) - get_mo_bielec_integral(m,i,i,p,mo_integrals_map)
+    enddo
    enddo
  enddo
   

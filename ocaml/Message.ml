@@ -248,16 +248,20 @@ end
 (** GetTaskReply : Reply to the GetTask message *)
 module GetTaskReply_msg : sig
   type t  
-  val create : task_id:Id.Task.t -> task:string -> t
+  val create : task_id:Id.Task.t option -> task:string option -> t
   val to_string : t -> string
 end = struct
   type t =
-  { task_id: Id.Task.t ;
-    task   : string ;
+  { task_id: Id.Task.t option ;
+    task   : string option ;
   }
   let create ~task_id ~task = { task_id ; task }
   let to_string x =
-    Printf.sprintf "get_task_reply %d %s" (Id.Task.to_int x.task_id) x.task
+    match x.task_id, x.task with
+    | Some task_id, Some task -> 
+      Printf.sprintf "get_task_reply %d %s" (Id.Task.to_int task_id) task
+    | _ ->
+      Printf.sprintf "get_task_reply 0"
 end
 
 (** GetPsi : get the current variational wave function *)
@@ -288,13 +292,14 @@ module Psi : sig
       n_det_selectors : Strictly_positive_int.t option;
       psi_det   :  string                    ;
       psi_coef  :  string                    ;
+      energy    :  string;
   }
   val create : n_state:Strictly_positive_int.t
      -> n_det:Strictly_positive_int.t 
      -> psi_det_size:Strictly_positive_int.t 
      -> n_det_generators:Strictly_positive_int.t option
      -> n_det_selectors:Strictly_positive_int.t option
-     -> psi_det:string -> psi_coef:string -> t
+     -> psi_det:string -> psi_coef:string -> energy:string -> t
 end = struct
   type t = 
   {
@@ -305,14 +310,16 @@ end = struct
       n_det_selectors : Strictly_positive_int.t option;
       psi_det   :  string                    ;
       psi_coef  :  string                    ;
+      energy    :  string                    ;
   }
   let create ~n_state ~n_det ~psi_det_size
-    ~n_det_generators ~n_det_selectors ~psi_det ~psi_coef =
+    ~n_det_generators ~n_det_selectors ~psi_det ~psi_coef 
+    ~energy =
     assert (Strictly_positive_int.to_int n_det <=
             Strictly_positive_int.to_int psi_det_size );
     {  n_state; n_det ; psi_det_size ;
        n_det_generators ; n_det_selectors ;
-       psi_det ; psi_coef }
+       psi_det ; psi_coef ; energy }
 end
 
 (** GetPsiReply_msg : Reply to the GetPsi message *)
@@ -329,19 +336,6 @@ end = struct
     psi       :  Psi.t }
   let create ~client_id ~psi =
     {  client_id ; psi }
-  let to_string_list x =
-    let g, s = 
-      match x.psi.Psi.n_det_generators, x.psi.Psi.n_det_selectors with
-      | Some g, Some s -> Strictly_positive_int.to_int g, Strictly_positive_int.to_int s
-      | _ -> -1, -1
-    in
-    [ Printf.sprintf "get_psi_reply %d %d %d %d %d %d"
-      (Id.Client.to_int x.client_id)
-      (Strictly_positive_int.to_int x.psi.Psi.n_state)
-      (Strictly_positive_int.to_int x.psi.Psi.n_det) 
-      (Strictly_positive_int.to_int x.psi.Psi.psi_det_size)
-      g s ;
-      x.psi.Psi.psi_det ; x.psi.Psi.psi_coef ]
   let to_string x =
     let g, s = 
       match x.psi.Psi.n_det_generators, x.psi.Psi.n_det_selectors with
@@ -354,6 +348,9 @@ end = struct
       (Strictly_positive_int.to_int x.psi.Psi.n_det) 
       (Strictly_positive_int.to_int x.psi.Psi.psi_det_size) 
       g s
+  let to_string_list x =
+    [ to_string x ;
+      x.psi.Psi.psi_det ; x.psi.Psi.psi_coef ; x.psi.Psi.energy ]
 end
 
 
@@ -375,7 +372,8 @@ module PutPsi_msg : sig
      psi_det:string option ->
      psi_coef:string option ->
      n_det_generators: string option -> 
-     n_det_selectors:string option ->  t
+     n_det_selectors:string option ->
+     energy:string option -> t
   val to_string_list : t -> string list
   val to_string : t -> string 
 end = struct
@@ -388,7 +386,7 @@ end = struct
     n_det_selectors  : Strictly_positive_int.t option;
     psi       :  Psi.t option }
   let create ~client_id ~n_state ~n_det ~psi_det_size ~psi_det ~psi_coef 
-    ~n_det_generators ~n_det_selectors  =
+    ~n_det_generators ~n_det_selectors ~energy =
     let n_state, n_det, psi_det_size = 
        Int.of_string n_state 
        |> Strictly_positive_int.of_int ,
@@ -407,45 +405,19 @@ end = struct
       | _ -> None, None
     in
     let psi =
-      match (psi_det, psi_coef) with
-      | (Some psi_det, Some psi_coef) ->
+      match (psi_det, psi_coef, energy) with
+      | (Some psi_det, Some psi_coef, Some energy) ->
         Some (Psi.create ~n_state ~n_det ~psi_det_size ~psi_det
-          ~psi_coef ~n_det_generators ~n_det_selectors)
+          ~psi_coef ~n_det_generators ~n_det_selectors ~energy)
       | _ -> None
     in
     { client_id = Id.Client.of_string client_id ;
       n_state ; n_det ; psi_det_size ; n_det_generators ;
       n_det_selectors ; psi }
-  let to_string_list x =
-    match x.n_det_generators, x.n_det_selectors, x.psi with
-    | Some g, Some s, Some psi ->
-      [ Printf.sprintf "put_psi %d %d %d %d %d %d"
-        (Id.Client.to_int x.client_id)
-        (Strictly_positive_int.to_int x.n_state)
-        (Strictly_positive_int.to_int x.n_det) 
-        (Strictly_positive_int.to_int x.psi_det_size)  
-        (Strictly_positive_int.to_int g)  
-        (Strictly_positive_int.to_int s) ; 
-          psi.Psi.psi_det ; psi.Psi.psi_coef ]
-    | Some g, Some s, None ->
-      [ Printf.sprintf "put_psi %d %d %d %d %d %d"
-        (Id.Client.to_int x.client_id)
-        (Strictly_positive_int.to_int x.n_state)
-        (Strictly_positive_int.to_int x.n_det) 
-        (Strictly_positive_int.to_int x.psi_det_size)  
-        (Strictly_positive_int.to_int g)  
-        (Strictly_positive_int.to_int s) ; 
-          "None" ; "None" ]
-    | _ ->
-      [ Printf.sprintf "put_psi %d %d %d %d -1 -1"
-        (Id.Client.to_int x.client_id)
-        (Strictly_positive_int.to_int x.n_state)
-        (Strictly_positive_int.to_int x.n_det) 
-        (Strictly_positive_int.to_int x.psi_det_size) ;
-          "None" ; "None" ]
+
   let to_string x =
-    match x.n_det_generators, x.n_det_selectors, x.psi with
-    | Some g, Some s, Some psi ->
+    match x.n_det_generators, x.n_det_selectors with
+    | Some g, Some s ->
       Printf.sprintf "put_psi %d %d %d %d %d %d"
         (Id.Client.to_int x.client_id)
         (Strictly_positive_int.to_int x.n_state)
@@ -453,21 +425,20 @@ end = struct
         (Strictly_positive_int.to_int x.psi_det_size)  
         (Strictly_positive_int.to_int g)  
         (Strictly_positive_int.to_int s) 
-    | Some g, Some s, None ->
-      Printf.sprintf "put_psi %d %d %d %d %d %d"
-        (Id.Client.to_int x.client_id)
-        (Strictly_positive_int.to_int x.n_state)
-        (Strictly_positive_int.to_int x.n_det) 
-        (Strictly_positive_int.to_int x.psi_det_size)  
-        (Strictly_positive_int.to_int g)  
-        (Strictly_positive_int.to_int s) 
-    | _, _, _ ->
+    | _, _ ->
       Printf.sprintf "put_psi %d %d %d %d %d %d"
         (Id.Client.to_int x.client_id)
         (Strictly_positive_int.to_int x.n_state)
         (Strictly_positive_int.to_int x.n_det) 
         (Strictly_positive_int.to_int x.psi_det_size)  
         (-1) (-1)
+
+  let to_string_list x =
+    match x.psi with
+    | Some psi ->
+      [ to_string x ; psi.Psi.psi_det ; psi.Psi.psi_coef ; psi.Psi.energy ]
+    | None ->
+      [ to_string x ; "None" ; "None" ; "None" ]
 end
 
 (** PutPsiReply_msg : Reply to the PutPsi message *)
@@ -574,6 +545,9 @@ type t =
 | Terminate           of  Terminate_msg.t
 | Ok                  of  Ok_msg.t
 | Error               of  Error_msg.t
+| SetStopped 
+| SetWaiting 
+| SetRunning 
 
 
 let of_string s = 
@@ -606,14 +580,15 @@ let of_string s =
   | "put_psi"    :: client_id :: n_state :: n_det :: psi_det_size :: n_det_generators :: n_det_selectors :: [] ->
        PutPsi   (PutPsi_msg.create ~client_id ~n_state ~n_det ~psi_det_size
                  ~n_det_generators:(Some n_det_generators) ~n_det_selectors:(Some n_det_selectors)
-                 ~psi_det:None ~psi_coef:None )
+                 ~psi_det:None ~psi_coef:None ~energy:None )
   | "put_psi"    :: client_id :: n_state :: n_det :: psi_det_size :: [] ->
        PutPsi   (PutPsi_msg.create ~client_id ~n_state ~n_det ~psi_det_size ~n_det_generators:None
-                ~n_det_selectors:None ~psi_det:None ~psi_coef:None )
-  | "ok"         :: [] ->
-       Ok (Ok_msg.create ())
-  | "error"      :: rest ->
-       Error (Error_msg.create (String.concat ~sep:" " rest))
+                ~n_det_selectors:None ~psi_det:None ~psi_coef:None ~energy:None)
+  | "ok"         :: [] -> Ok (Ok_msg.create ())
+  | "error"      :: rest -> Error (Error_msg.create (String.concat ~sep:" " rest))
+  | "set_stopped"       :: [] -> SetStopped
+  | "set_running"       :: [] -> SetRunning 
+  | "set_waiting"       :: [] -> SetWaiting
   | _ -> failwith "Message not understood"
     
 
@@ -638,6 +613,9 @@ let to_string = function
 | Error               x -> Error_msg.to_string              x
 | PutPsi              x -> PutPsi_msg.to_string             x
 | GetPsiReply         x -> GetPsiReply_msg.to_string        x
+| SetStopped            -> "set_stopped"
+| SetRunning            -> "set_running"
+| SetWaiting            -> "set_waiting"
 
 
 let to_string_list = function

@@ -23,34 +23,17 @@ s.unset_skip()
 #s.unset_openmp()
 print s
 
+s = H_apply("FCI_no_selection")
+s.set_selection_pt2("dummy")
+s.unset_skip()
+print s
+
 s = H_apply("FCI_mono")
 s.set_selection_pt2("epstein_nesbet_2x2")
 s.unset_double_excitations()
 s.unset_openmp()
 print s
 
-
-s = H_apply("select_mono_delta_rho")
-s.unset_double_excitations()
-s.set_selection_pt2("delta_rho_one_point")
-s.unset_openmp()
-print s
-
-s = H_apply("pt2_mono_delta_rho")
-s.unset_double_excitations()
-s.set_perturbation("delta_rho_one_point")
-s.unset_openmp()
-print s
-
-s = H_apply("select_mono_di_delta_rho")
-s.set_selection_pt2("delta_rho_one_point")
-s.unset_openmp()
-print s
-
-s = H_apply("pt2_mono_di_delta_rho")
-s.set_perturbation("delta_rho_one_point")
-s.unset_openmp()
-print s
 
 
 END_SHELL
