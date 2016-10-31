@@ -426,7 +426,6 @@ subroutine end_zmq_pair_socket(zmq_socket_pair)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
-  rc = f77_zmq_unbind(zmq_socket_pair,zmq_socket_pair_inproc_address)
   rc = f77_zmq_close(zmq_socket_pair)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_pair)'
@@ -445,8 +444,6 @@ subroutine end_zmq_pull_socket(zmq_socket_pull)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
-  rc = f77_zmq_unbind(zmq_socket_pull,zmq_socket_pull_inproc_address)
-  rc = f77_zmq_unbind(zmq_socket_pull,zmq_socket_pull_tcp_address)
   rc = f77_zmq_close(zmq_socket_pull)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_pull)'
