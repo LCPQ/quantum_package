@@ -33,7 +33,7 @@ Documentation
 .. by the `update_README.py` script.
 
 
-`degree_max_generators <http://github.com/LCPQ/quantum_package/tree/master/plugins/Generators_full/generators.irp.f#L43>`_
+`degree_max_generators <http://github.com/LCPQ/quantum_package/tree/master/plugins/Generators_full/generators.irp.f#L45>`_
   Max degree of excitation (respect to HF) of the generators
 
 
@@ -52,10 +52,10 @@ Documentation
   Hartree-Fock determinant
 
 
-`select_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Generators_full/generators.irp.f#L66>`_
+`select_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Generators_full/generators.irp.f#L68>`_
   Memo to skip useless selectors
 
 
-`size_select_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Generators_full/generators.irp.f#L58>`_
+`size_select_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Generators_full/generators.irp.f#L60>`_
   Size of the select_max array
 

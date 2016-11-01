@@ -7,7 +7,7 @@ Davidson
 Determinants
 Electrons
 Ezfio_files
-Generators_CAS
+Generators_restart
 Hartree_Fock
 IRPF90_man
 IRPF90_temp
@@ -21,13 +21,11 @@ Nuclei
 Perturbation
 Properties
 Pseudo
-Selectors_full
+Selectors_no_sorted
 Utils
 ZMQ
-cas_s
-cas_s_selected
-cas_sd
-cas_sd_selected
+all_1h_1p
+all_singles
 ezfio_interface.irp.f
 irpf90.make
 irpf90_entities

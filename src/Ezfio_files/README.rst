@@ -219,6 +219,10 @@ output_cas_sd
   Initial CPU and wall times when printing in the output files
 
 
+output_davidson
+  Output file for Davidson
+
+
 output_determinants
   Output file for Determinants
 
@@ -233,6 +237,10 @@ output_ezfio_files
 
 output_full_ci
   Output file for Full_CI
+
+
+output_full_ci_zmq
+  Output file for Full_CI_ZMQ
 
 
 output_generators_cas
@@ -267,12 +275,12 @@ output_moguess
   Output file for MOGuess
 
 
-output_mrcc_cassd
-  Output file for MRCC_CASSD
-
-
 output_mrcc_utils
   Output file for MRCC_Utils
+
+
+output_mrcepa0
+  Output file for mrcepa0
 
 
 output_nuclei
