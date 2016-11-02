@@ -64,7 +64,7 @@ subroutine apply_exc_to_psi(orb,hole_particle,spin_exc, &
        accu_elec += popcnt(det_tmp_bis(j))
       enddo
       if(accu_elec == 1)then
-       phase = phase * -1.d0
+       phase = -phase
       endif
      enddo
      do j = 1, N_states_in
@@ -102,7 +102,7 @@ subroutine apply_exc_to_psi(orb,hole_particle,spin_exc, &
        accu_elec += popcnt(det_tmp_bis(j)) 
       enddo
       if(accu_elec == 1)then
-       phase = phase * -1.d0
+       phase = -phase 
       endif
      enddo
      do j = 1, N_states_in
