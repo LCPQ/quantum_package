@@ -64,6 +64,7 @@ subroutine pt2_decontracted ($arguments)
   ASSERT (Nint > 0)
   !call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
   call i_H_psi_pert_new_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array,coef_pert)
+  H_pert_diag = 0.d0
   
   
   c_pert(1) = coef_pert
