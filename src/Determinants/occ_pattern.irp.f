@@ -256,27 +256,6 @@ subroutine make_s2_eigenfunction
   integer                        :: N_det_new
   integer, parameter             :: bufsze = 1000
   logical, external              :: is_in_wavefunction
-! return
-
-!  !TODO DEBUG
-!  do i=1,N_det
-!   do j=i+1,N_det
-!    s = 0
-!    do k=1,N_int
-!      if((psi_det(k,1,j) /= psi_det(k,1,i)).or. &
-!         (psi_det(k,2,j) /= psi_det(k,2,i))) then
-!         s=1
-!         exit
-!      endif
-!    enddo
-!    if ( s == 0 ) then
-!      print *,  'Error0: det ', j, 'already in wf'
-!      call debug_det(psi_det(1,1,j),N_int)
-!      stop
-!    endif
-!   enddo
-!  enddo
-!  !TODO DEBUG
 
   allocate (d(N_int,2,1), det_buffer(N_int,2,bufsze) )
   smax = 1
@@ -308,33 +287,15 @@ subroutine make_s2_eigenfunction
 
   if (N_det_new > 0) then
     call fill_H_apply_buffer_no_selection(N_det_new,det_buffer,N_int,0)
+!   call fill_H_apply_buffer_no_selection_first_order_coef(N_det_new,det_buffer,N_int,0)
     call copy_H_apply_buffer_to_wf
     SOFT_TOUCH N_det psi_coef psi_det
   endif
 
   deallocate(d,det_buffer)
 
-
-!  !TODO DEBUG
-!  do i=1,N_det
-!   do j=i+1,N_det
-!    s = 0
-!    do k=1,N_int
-!      if((psi_det(k,1,j) /= psi_det(k,1,i)).or. &
-!         (psi_det(k,2,j) /= psi_det(k,2,i))) then
-!         s=1
-!         exit
-!      endif
-!    enddo
-!    if ( s == 0 ) then
-!      print *,  'Error : det ', j, 'already in wf at ', i
-!      call debug_det(psi_det(1,1,j),N_int)
-!      stop
-!    endif
-!   enddo
-!  enddo
-!  !TODO DEBUG
    call write_int(output_determinants,N_det_new, 'Added deteminants for S^2')
 
 end
+
 

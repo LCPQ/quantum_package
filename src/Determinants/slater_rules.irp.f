@@ -431,7 +431,7 @@ end
 
 
 
-subroutine i_H_j(key_i,key_j,Nint,hij)
+subroutine i_H_j_new(key_i,key_j,Nint,hij)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -463,6 +463,7 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
   hij = 0.d0
   !DIR$ FORCEINLINE
   call get_excitation_degree(key_i,key_j,degree,Nint)
+  integer :: spin
   select case (degree)
     case (2)
       call get_double_excitation(key_i,key_j,exc,phase,Nint)
@@ -507,6 +508,7 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
         ! Mono alpha
         m = exc(1,1,1)
         p = exc(1,2,1)
+        spin = 1
         do k = 1, elec_alpha_num
           i = occ(k,1)
           if (.not.has_mipi(i)) then
@@ -534,6 +536,8 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
         ! Mono beta
         m = exc(1,1,2)
         p = exc(1,2,2)
+        spin = 2
+
         do k = 1, elec_beta_num
           i = occ(k,2)
           if (.not.has_mipi(i)) then
@@ -559,6 +563,154 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
         
       endif
       hij = phase*(hij + mo_mono_elec_integral(m,p))
+
+      
+    case (0)
+      hij = diag_H_mat_elem(key_i,Nint)
+  end select
+end
+
+
+subroutine i_H_j(key_i,key_j,Nint,hij)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Returns <i|H|j> where i and j are determinants
+  END_DOC
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: key_i(Nint,2), key_j(Nint,2)
+  double precision, intent(out)  :: hij
+  
+  integer                        :: exc(0:2,2,2)
+  integer                        :: degree
+  double precision               :: get_mo_bielec_integral_schwartz
+  integer                        :: m,n,p,q
+  integer                        :: i,j,k
+  integer                        :: occ(Nint*bit_kind_size,2)
+  double precision               :: diag_H_mat_elem, phase,phase_2
+  integer                        :: n_occ_ab(2)
+  logical                        :: has_mipi(Nint*bit_kind_size)
+  double precision               :: mipi(Nint*bit_kind_size), miip(Nint*bit_kind_size)
+  PROVIDE mo_bielec_integrals_in_map mo_integrals_map
+  
+  ASSERT (Nint > 0)
+  ASSERT (Nint == N_int)
+  ASSERT (sum(popcnt(key_i(:,1))) == elec_alpha_num)
+  ASSERT (sum(popcnt(key_i(:,2))) == elec_beta_num)
+  ASSERT (sum(popcnt(key_j(:,1))) == elec_alpha_num)
+  ASSERT (sum(popcnt(key_j(:,2))) == elec_beta_num)
+  
+  hij = 0.d0
+  !DIR$ FORCEINLINE
+  call get_excitation_degree(key_i,key_j,degree,Nint)
+  integer :: spin
+  select case (degree)
+    case (2)
+      call get_double_excitation(key_i,key_j,exc,phase,Nint)
+      if (exc(0,1,1) == 1) then
+        ! Mono alpha, mono beta
+        if(exc(1,1,1) == exc(1,2,2) )then
+         hij = phase * big_array_exchange_integrals(exc(1,1,1),exc(1,1,2),exc(1,2,1))
+        else if (exc(1,2,1) ==exc(1,1,2))then
+         hij = phase * big_array_exchange_integrals(exc(1,2,1),exc(1,1,1),exc(1,2,2))
+        else
+         hij = phase*get_mo_bielec_integral_schwartz(                          &
+             exc(1,1,1),                                              &
+             exc(1,1,2),                                              &
+             exc(1,2,1),                                              &
+             exc(1,2,2) ,mo_integrals_map)
+        endif
+      else if (exc(0,1,1) == 2) then
+        ! Double alpha
+        hij = phase*(get_mo_bielec_integral_schwartz(                         &
+            exc(1,1,1),                                              &
+            exc(2,1,1),                                              &
+            exc(1,2,1),                                              &
+            exc(2,2,1) ,mo_integrals_map) -                          &
+            get_mo_bielec_integral_schwartz(                                  &
+            exc(1,1,1),                                              &
+            exc(2,1,1),                                              &
+            exc(2,2,1),                                              &
+            exc(1,2,1) ,mo_integrals_map) )
+      else if (exc(0,1,2) == 2) then
+        ! Double beta
+        hij = phase*(get_mo_bielec_integral_schwartz(                         &
+            exc(1,1,2),                                              &
+            exc(2,1,2),                                              &
+            exc(1,2,2),                                              &
+            exc(2,2,2) ,mo_integrals_map) -                          &
+            get_mo_bielec_integral_schwartz(                                  &
+            exc(1,1,2),                                              &
+            exc(2,1,2),                                              &
+            exc(2,2,2),                                              &
+            exc(1,2,2) ,mo_integrals_map) )
+      endif
+    case (1)
+      call get_mono_excitation(key_i,key_j,exc,phase,Nint)
+      !DIR$ FORCEINLINE
+      call bitstring_to_list_ab(key_i, occ, n_occ_ab, Nint)
+      has_mipi = .False.
+      if (exc(0,1,1) == 1) then
+        ! Mono alpha
+        m = exc(1,1,1)
+        p = exc(1,2,1)
+        spin = 1
+!       do k = 1, elec_alpha_num
+!         i = occ(k,1)
+!         if (.not.has_mipi(i)) then
+!           mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+!           miip(i) = get_mo_bielec_integral_schwartz(m,i,i,p,mo_integrals_map)
+!           has_mipi(i) = .True.
+!         endif
+!       enddo
+!       do k = 1, elec_beta_num
+!         i = occ(k,2)
+!         if (.not.has_mipi(i)) then
+!           mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+!           has_mipi(i) = .True.
+!         endif
+!       enddo
+!       
+!       do k = 1, elec_alpha_num
+!         hij = hij + mipi(occ(k,1)) - miip(occ(k,1))
+!       enddo
+!       do k = 1, elec_beta_num
+!         hij = hij + mipi(occ(k,2))
+!       enddo
+        
+      else
+        ! Mono beta
+        m = exc(1,1,2)
+        p = exc(1,2,2)
+        spin = 2
+
+!       do k = 1, elec_beta_num
+!         i = occ(k,2)
+!         if (.not.has_mipi(i)) then
+!           mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+!           miip(i) = get_mo_bielec_integral_schwartz(m,i,i,p,mo_integrals_map)
+!           has_mipi(i) = .True.
+!         endif
+!       enddo
+!       do k = 1, elec_alpha_num
+!         i = occ(k,1)
+!         if (.not.has_mipi(i)) then
+!           mipi(i) = get_mo_bielec_integral_schwartz(m,i,p,i,mo_integrals_map)
+!           has_mipi(i) = .True.
+!         endif
+!       enddo
+!       
+!       do k = 1, elec_alpha_num
+!         hij = hij + mipi(occ(k,1))
+!       enddo
+!       do k = 1, elec_beta_num
+!         hij = hij + mipi(occ(k,2)) - miip(occ(k,2))
+!       enddo
+        
+      endif
+!     hij = phase*(hij + mo_mono_elec_integral(m,p))
+
+      call get_mono_excitation_from_fock(key_i,key_j,p,m,spin,phase,hij)
       
     case (0)
       hij = diag_H_mat_elem(key_i,Nint)
@@ -2182,3 +2334,43 @@ subroutine H_u_0(v_0,u_0,H_jj,n,keys_tmp,Nint)
   deallocate (shortcut, sort_idx, sorted, version)
 end
 
+subroutine H_u_0_stored(v_0,u_0,hmatrix,sze)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes v_0 = H|u_0>
+  !
+  ! n : number of determinants
+  !
+  ! uses the big_matrix_stored array
+  END_DOC
+  integer, intent(in)            :: sze
+  double precision, intent(in)   :: hmatrix(sze,sze)
+  double precision, intent(out)  :: v_0(sze)
+  double precision, intent(in)   :: u_0(sze)
+  v_0 = 0.d0
+  call matrix_vector_product(u_0,v_0,hmatrix,sze,sze)
+
+end
+
+subroutine u_0_H_u_0_stored(e_0,u_0,hmatrix,sze)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes e_0 = <u_0|H|u_0>
+  !
+  ! n : number of determinants
+  !
+  ! uses the big_matrix_stored array
+  END_DOC
+  integer, intent(in)            :: sze
+  double precision, intent(in)   :: hmatrix(sze,sze)
+  double precision, intent(out)  :: e_0
+  double precision, intent(in)   :: u_0(sze)
+  double precision               :: v_0(sze)
+  double precision               :: u_dot_v
+  e_0 = 0.d0
+  v_0 = 0.d0
+  call matrix_vector_product(u_0,v_0,hmatrix,sze,sze)
+  e_0 =  u_dot_v(v_0,u_0,sze)
+end

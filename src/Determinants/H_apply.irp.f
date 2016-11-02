@@ -306,7 +306,6 @@ subroutine fill_H_apply_buffer_no_selection(n_selected,det_buffer,Nint,iproc)
   call omp_unset_lock(H_apply_buffer_lock(1,iproc))
 end
 
-
 subroutine push_pt2(zmq_socket_push,pt2,norm_pert,H_pert_diag,N_st,task_id)
   use f77_zmq
   implicit none

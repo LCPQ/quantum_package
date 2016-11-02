@@ -73,21 +73,21 @@
  print*, '1h1p = ',accu
 
  ! 1h1p third order
- delta_ij_tmp = 0.d0
- call give_1h1p_sec_order_singles_contrib(delta_ij_tmp)
-!call give_singles_and_partial_doubles_1h1p_contrib(delta_ij_tmp,e_corr_from_1h1p_singles)
-!call give_1h1p_only_doubles_spin_cross(delta_ij_tmp)
- accu = 0.d0
- do i_state = 1, N_states
- do i = 1, N_det
-  do j = 1, N_det
-   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+ if(do_third_order_1h1p)then
+  delta_ij_tmp = 0.d0
+  call give_1h1p_sec_order_singles_contrib(delta_ij_tmp)
+  accu = 0.d0
+  do i_state = 1, N_states
+  do i = 1, N_det
+   do j = 1, N_det
+    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+    delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+   enddo
   enddo
- enddo
- second_order_pt_new_1h1p(i_state) = accu(i_state) 
- enddo
- print*, '1h1p(3)',accu
+  second_order_pt_new_1h1p(i_state) = accu(i_state) 
+  enddo
+  print*, '1h1p(3)',accu
+ endif
 
  ! 2h   
  delta_ij_tmp = 0.d0

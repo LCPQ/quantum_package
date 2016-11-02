@@ -1,13 +1,25 @@
-subroutine all_single
+subroutine all_single(e_pt2)
   implicit none
+  double precision, intent(in)   :: e_pt2
   integer                        :: i,k
   double precision, allocatable  :: pt2(:), norm_pert(:), H_pert_diag(:)
   integer                        :: N_st, degree
   double precision,allocatable :: E_before(:)
   N_st = N_states
   allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st),E_before(N_st))
-  selection_criterion = 0.d0
-  soft_touch selection_criterion
+  if(.not.selected_fobo_ci)then
+   selection_criterion = 0.d0
+   soft_touch selection_criterion
+  else 
+   selection_criterion =  0.1d0 
+   selection_criterion_factor = 0.01d0
+   selection_criterion_min = selection_criterion
+   soft_touch selection_criterion
+  endif
+  print*, 'e_pt2 = ',e_pt2
+  pt2_max = 0.15d0 * e_pt2
+  soft_touch pt2_max
+  print*, 'pt2_max = ',pt2_max
   threshold_davidson = 1.d-9
   soft_touch threshold_davidson davidson_criterion
   i = 0
@@ -17,6 +29,8 @@ subroutine all_single
   print*,'pt2_max = ',pt2_max
   print*,'N_det_generators = ',N_det_generators
   pt2=-1.d0
+  print*, 'ref_bitmask_energy   =',ref_bitmask_energy
+  print*, 'CI_expectation_value =',CI_expectation_value(1)
   E_before = ref_bitmask_energy
  
   print*,'Initial Step '
@@ -29,7 +43,7 @@ subroutine all_single
    print*,'S^2      = ',CI_eigenvectors_s2(i)
   enddo
   n_det_max = 100000
-  do while (N_det < n_det_max.and.maxval(abs(pt2(1:N_st))) > pt2_max)
+  do while (N_det < n_det_max.and.maxval(abs(pt2(1:N_st))) > dabs(pt2_max))
     i += 1
     print*,'-----------------------'
     print*,'i = ',i
@@ -39,6 +53,8 @@ subroutine all_single
     print*,'E        = ',CI_energy(1)
     print*,'pt2      = ',pt2(1)
     print*,'E+PT2    = ',E_before + pt2(1)
+    print*,'pt2_max  = ',pt2_max
+    print*, maxval(abs(pt2(1:N_st))) > dabs(pt2_max)
     if(N_states_diag.gt.1)then
      print*,'Variational Energy difference'
      do i = 2, N_st
@@ -53,7 +69,6 @@ subroutine all_single
     endif
     E_before = CI_energy
     !!!!!!!!!!!!!!!!!!!!!!!!!!! DOING ONLY ONE ITERATION OF SELECTION AS THE SELECTION CRITERION IS SET TO ZERO
-    exit
   enddo
 ! threshold_davidson = 1.d-8
 ! soft_touch threshold_davidson davidson_criterion

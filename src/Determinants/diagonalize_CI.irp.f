@@ -33,6 +33,14 @@ BEGIN_PROVIDER [ double precision, CI_energy, (N_states_diag) ]
 
 END_PROVIDER
 
+ BEGIN_PROVIDER [ double precision, CI_expectation_value, (N_states_diag) ]
+ implicit none
+ integer :: i
+ do i = 1, N_states
+  call u0_H_u_0(CI_expectation_value(i),psi_coef(1,i),n_det,psi_det,N_int)
+ enddo
+ END_PROVIDER 
+
  BEGIN_PROVIDER [ double precision, CI_electronic_energy, (N_states_diag) ]
 &BEGIN_PROVIDER [ double precision, CI_eigenvectors, (N_det,N_states_diag) ]
 &BEGIN_PROVIDER [ double precision, CI_eigenvectors_s2, (N_states_diag) ]
@@ -69,10 +77,14 @@ END_PROVIDER
   
   if (diag_algorithm == "Davidson") then
     
+    print*, '------------- In Davidson '
     call davidson_diag(psi_det,CI_eigenvectors,CI_electronic_energy, &
         size(CI_eigenvectors,1),N_det,N_states_diag,N_int,output_determinants)
+    print*, '------------- Out Davidson '
     do j=1,N_states_diag
+    print*, '------------- In S^2'
       call get_s2_u0(psi_det,CI_eigenvectors(1,j),N_det,size(CI_eigenvectors,1),CI_eigenvectors_s2(j))
+    print*, '------------- Out S^2'
     enddo
 
     
@@ -233,16 +245,20 @@ END_PROVIDER
 
    else
  
-    ! Sorting the N_states_diag by energy, whatever the S^2 value is
+   !! Sorting the N_states_diag by energy, whatever the S^2 value is
 
     allocate(e_array(n_states_diag),iorder(n_states_diag))
-    do j = 1, N_states_diag
-     call u0_H_u_0(e_0,CI_eigenvectors(1,j),n_det,psi_det,N_int)
+    do j = 2, N_states_diag
+     if(store_full_H_mat.and.n_det.le.n_det_max_stored)then
+      call u_0_H_u_0_stored(e_0,CI_eigenvectors(1,j),H_matrix_all_dets,n_det)
+     else 
+      call u0_H_u_0(e_0,CI_eigenvectors(1,j),n_det,psi_det,N_int)
+     endif
      e_array(j) = e_0
      iorder(j) = j
     enddo
     call dsort(e_array,iorder,n_states_diag) 
-    do j = 1, N_states_diag
+    do j = 2, N_states_diag
      CI_electronic_energy(j) = e_array(j)
      do i = 1, N_det
       CI_eigenvectors(i,j) = psi_coef(i,iorder(j))
@@ -253,6 +269,7 @@ END_PROVIDER
    endif
    deallocate(s2_eigvalues)
   endif
+ print*, 'out provider'
   
  
 END_PROVIDER

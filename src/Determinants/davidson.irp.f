@@ -334,6 +334,9 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
   double precision               :: to_print(2,N_st)
   double precision               :: cpu, wall
   
+  if(store_full_H_mat.and.sze.le.n_det_max_stored)then
+   provide H_matrix_all_dets
+  endif
 
 
   call write_time(iunit)
@@ -439,7 +442,11 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,Nint,iun
       ! ----------------------
       
       do k=1,N_st
-          call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint)
+          if(store_full_H_mat.and.sze.le.n_det_max_stored)then
+           call H_u_0_stored(W(1,k,iter),U(1,k,iter),H_matrix_all_dets,sze)
+          else
+           call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint)
+          endif
       enddo
       
       

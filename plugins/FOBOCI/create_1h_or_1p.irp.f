@@ -68,7 +68,9 @@ subroutine create_restart_and_1h(i_hole)
 
   SOFT_TOUCH N_det psi_det psi_coef
   logical :: found_duplicates
+  if(n_act_orb.gt.1)then
   call remove_duplicates_in_psi_det(found_duplicates)
+  endif
 end
 
 subroutine create_restart_and_1p(i_particle)
@@ -213,6 +215,8 @@ subroutine create_restart_1h_1p(i_hole,i_part)
 
   SOFT_TOUCH N_det psi_det psi_coef
   logical :: found_duplicates
+  if(n_act_orb.gt.1)then
   call remove_duplicates_in_psi_det(found_duplicates)
+  endif
 
 end

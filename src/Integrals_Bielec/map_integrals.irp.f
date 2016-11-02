@@ -414,6 +414,73 @@ subroutine get_mo_bielec_integrals_ij(k,l,sze,out_array,map)
   deallocate(pairs,hash,iorder,tmp_val)
 end
 
+subroutine get_mo_bielec_integrals_coulomb_ii(k,l,sze,out_val,map)
+  use map_module
+  implicit none
+  BEGIN_DOC
+  ! Returns multiple integrals <ki|li> 
+  ! k(1)i(2) 1/r12 l(1)i(2) :: out_val(i1)
+  ! for k,l fixed.
+  END_DOC
+  integer, intent(in)            :: k,l, sze
+  double precision, intent(out)  :: out_val(sze)
+  type(map_type), intent(inout)  :: map
+  integer                        :: i
+  integer(key_kind)              :: hash(sze)
+  real(integral_kind)            :: tmp_val(sze)
+  PROVIDE mo_bielec_integrals_in_map
+  
+  integer :: kk
+  do i=1,sze
+    !DIR$ FORCEINLINE
+    call bielec_integrals_index(k,i,l,i,hash(i))
+  enddo
+  
+  if (key_kind == 8) then
+    call map_get_many(map, hash, out_val, sze)
+  else
+    call map_get_many(map, hash, tmp_val, sze)
+    ! Conversion to double precision 
+    do i=1,sze
+      out_val(i) = dble(tmp_val(i))
+    enddo
+  endif
+end
+
+subroutine get_mo_bielec_integrals_exch_ii(k,l,sze,out_val,map)
+  use map_module
+  implicit none
+  BEGIN_DOC
+  ! Returns multiple integrals <ki|il> 
+  ! k(1)i(2) 1/r12 i(1)l(2) :: out_val(i1)
+  ! for k,l fixed.
+  END_DOC
+  integer, intent(in)            :: k,l, sze
+  double precision, intent(out)  :: out_val(sze)
+  type(map_type), intent(inout)  :: map
+  integer                        :: i
+  integer(key_kind)              :: hash(sze)
+  real(integral_kind)            :: tmp_val(sze)
+  PROVIDE mo_bielec_integrals_in_map
+  
+  integer :: kk
+  do i=1,sze
+    !DIR$ FORCEINLINE
+    call bielec_integrals_index(k,i,i,l,hash(i))
+  enddo
+  
+  if (key_kind == 8) then
+    call map_get_many(map, hash, out_val, sze)
+  else
+    call map_get_many(map, hash, tmp_val, sze)
+    ! Conversion to double precision 
+    do i=1,sze
+      out_val(i) = dble(tmp_val(i))
+    enddo
+  endif
+end
+
+
 integer*8 function get_mo_map_size()
   implicit none
   BEGIN_DOC

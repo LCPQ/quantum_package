@@ -158,6 +158,7 @@ subroutine dressing_1h1p(dets_in,u_in,diag_H_elements,dim_in,sze,N_st,Nint,conve
   ! 1/2 \sum_{ir,js} c_{ir}^{sigma} c_{js}^{sigma}
   
 ! diag_H_elements(index_hf) += total_corr_e_2h2p
+  return
   c_ref = c_ref * c_ref
   print*,'diag_H_elements(index_hf) = ',diag_H_elements(index_hf)
   do i = 1, n_singles
@@ -185,6 +186,186 @@ subroutine dressing_1h1p(dets_in,u_in,diag_H_elements,dim_in,sze,N_st,Nint,conve
   print*,'diag_H_elements(index_hf) = ',diag_H_elements(index_hf)
 
 end
+
+
+subroutine dressing_1h1p_by_2h2p(dets_in,u_in,diag_H_elements,dim_in,sze,N_st,Nint,convergence)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! CISD+SC2 method              :: take off all the disconnected terms of a ROHF+1h1p (selected or not)
+  !
+  ! dets_in : bitmasks corresponding to determinants
+  !
+  ! u_in : guess coefficients on the various states. Overwritten
+  !   on exit
+  !
+  ! dim_in : leftmost dimension of u_in
+  !
+  ! sze : Number of determinants
+  !
+  ! N_st : Number of eigenstates
+  !
+  ! Initial guess vectors are not necessarily orthonormal
+  END_DOC
+  integer, intent(in)            :: dim_in, sze, N_st, Nint
+  integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
+  double precision, intent(inout) :: u_in(dim_in,N_st)
+  double precision, intent(out)  :: diag_H_elements(dim_in)
+  double precision, intent(in)   :: convergence
+  
+  integer :: i,j,k,l
+  integer :: r,s,i0,j0,r0,s0
+  integer :: n_singles
+  integer :: index_singles(sze),hole_particles_singles(sze,3)
+  integer :: n_doubles
+  integer :: index_doubles(sze),hole_particles_doubles(sze,2)
+  integer :: index_hf
+  double precision :: e_corr_singles(mo_tot_num,2)
+  double precision :: e_corr_doubles(mo_tot_num)
+  double precision :: e_corr_singles_total(2)
+  double precision :: e_corr_doubles_1h1p
+
+  integer :: exc(0:2,2,2),degree
+  integer :: h1,h2,p1,p2,s1,s2
+  integer :: other_spin(2)
+  double precision :: phase
+  integer(bit_kind) :: key_tmp(N_int,2)
+  integer :: i_ok
+  double precision :: phase_single_double,phase_double_hf,get_mo_bielec_integral_schwartz
+  double precision :: hij,c_ref,contrib
+  integer :: iorb
+
+  other_spin(1) = 2
+  other_spin(2) = 1
+
+  n_singles = 0
+  n_doubles = 0
+  do i = 1,sze
+   call get_excitation(ref_bitmask,dets_in(1,1,i),exc,degree,phase,N_int)
+   call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+   call i_H_j(dets_in(1,1,i),dets_in(1,1,i),N_int,hij)
+   diag_H_elements(i) = hij
+   if(degree == 0)then
+    index_hf = i
+   else if (degree == 1)then
+    n_singles +=1
+    index_singles(n_singles) = i
+    ! h1 = inactive orbital of the hole
+    hole_particles_singles(n_singles,1) = h1
+    ! p1 = virtual orbital of the particle
+    hole_particles_singles(n_singles,2) = p1
+    ! s1 = spin of the electron excited
+    hole_particles_singles(n_singles,3) = s1
+   else if (degree == 2)then
+    n_doubles +=1
+    index_doubles(n_doubles) = i
+    ! h1 = inactive orbital of the hole (beta of course)
+    hole_particles_doubles(n_doubles,1) = h1
+    ! p1 = virtual orbital of the particle (alpha of course)
+    hole_particles_doubles(n_doubles,2) = p2
+   else 
+    print*,'PB !! found out other thing than a single or double'
+    print*,'stopping ..'
+    stop
+   endif
+  enddo
+  double precision :: delta_e
+  double precision :: coef_ijrs
+  diag_H_elements = 0.d0
+  do i0 = 1, n_core_inact_orb
+   i= list_core_inact(i0)
+   do j0 = i0+1, n_core_inact_orb
+    j = list_core_inact(j0)
+    print*, i,j
+    do r0 = 1, n_virt_orb
+     r = list_virt(r0)
+     do s0 = r0+1, n_virt_orb
+      s = list_virt(s0)
+     !!! alpha (i-->r) / beta (j-->s)
+      s1 = 1
+      s2 = 2
+      key_tmp = ref_bitmask
+      call do_mono_excitation(key_tmp,i,r,s1,i_ok)
+      if(i_ok .ne.1)then
+       print*, 'pb !!'
+       stop
+      endif
+      call do_mono_excitation(key_tmp,j,s,s2,i_ok)
+      if(i_ok .ne.1)then
+       print*, 'pb !!'
+       stop
+      endif
+      call i_H_j(ref_bitmask, key_tmp, N_int,hij)
+      delta_e = Fock_matrix_diag_mo(i) + Fock_matrix_diag_mo(j) - Fock_matrix_diag_mo(r) - Fock_matrix_diag_mo(s)
+      coef_ijrs = hij/delta_e
+      do k = 1, n_singles
+       l = index_singles(k) 
+       call i_H_j(dets_in(1,1,l), key_tmp, N_int,hij)
+       diag_H_elements(l) += coef_ijrs * hij
+      enddo
+     !if(i>j.and.r>s)then
+       !! alpha (i-->r) / alpha (j-->s)
+       s1 = 1
+       s2 = 1
+       key_tmp = ref_bitmask
+       call do_mono_excitation(key_tmp,i,r,s1,i_ok)
+       if(i_ok .ne.1)then
+        print*, 'pb !!'
+        stop
+       endif
+       call do_mono_excitation(key_tmp,j,s,s2,i_ok)
+       if(i_ok .ne.1)then
+        print*, 'pb !!'
+        stop
+       endif
+       call i_H_j(ref_bitmask, key_tmp, N_int,hij)
+       delta_e = Fock_matrix_diag_mo(i) + Fock_matrix_diag_mo(j) - Fock_matrix_diag_mo(r) - Fock_matrix_diag_mo(s)
+       coef_ijrs = hij/delta_e
+       do k = 1, n_singles
+        l = index_singles(k) 
+        call i_H_j(dets_in(1,1,l), key_tmp, N_int,hij)
+        diag_H_elements(l) += coef_ijrs * hij
+       enddo
+       !! beta (i-->r) / beta (j-->s)
+       s1 = 2
+       s2 = 2
+       key_tmp = ref_bitmask
+       call do_mono_excitation(key_tmp,i,r,s1,i_ok)
+       if(i_ok .ne.1)then
+        print*, 'pb !!'
+        stop
+       endif
+       call do_mono_excitation(key_tmp,j,s,s2,i_ok)
+       if(i_ok .ne.1)then
+        print*, 'pb !!'
+        stop
+       endif
+       call i_H_j(ref_bitmask, key_tmp, N_int,hij)
+       delta_e = Fock_matrix_diag_mo(i) + Fock_matrix_diag_mo(j) - Fock_matrix_diag_mo(r) - Fock_matrix_diag_mo(s)
+       coef_ijrs = hij/delta_e
+       do k = 1, n_singles
+        l = index_singles(k) 
+        call i_H_j(dets_in(1,1,l), key_tmp, N_int,hij)
+        diag_H_elements(l) += coef_ijrs * hij
+       enddo
+     !endif
+     enddo
+    enddo
+   enddo
+  enddo
+  c_ref = 1.d0/u_in(index_hf,1)
+  do k = 1, n_singles
+   l = index_singles(k)
+   diag_H_elements(0) -= diag_H_elements(l)
+  enddo
+! do k = 1, n_doubles
+!  l = index_doubles(k)
+!  diag_H_elements(0) += diag_H_elements(l)
+! enddo
+
+
+end
+  
 
 subroutine dressing_1h1p_full(dets_in,u_in,H_matrix,dim_in,sze,N_st,Nint,convergence)
   use bitmasks
@@ -478,11 +659,13 @@ subroutine SC2_1h1p(dets_in,u_in,energies,diag_H_elements,dim_in,sze,N_st,Nint,c
   double precision, intent(inout) :: u_in(dim_in,N_st)
   double precision, intent(out)  :: energies(N_st)
   double precision, intent(out)  :: diag_H_elements(dim_in)
+  double precision               :: extra_diag_H_elements(dim_in)
   double precision, intent(in)   :: convergence
   integer :: i,j,iter
   do iter = 1, 1
-   call dressing_1h1p(dets_in,u_in,diag_H_elements,dim_in,sze,N_st,Nint,convergence)
-    if(sze<=N_det_max_jacobi)then
+!  call dressing_1h1p(dets_in,u_in,diag_H_elements,dim_in,sze,N_st,Nint,convergence)
+   call dressing_1h1p_by_2h2p(dets_in,u_in,extra_diag_H_elements,dim_in,sze,N_st,Nint,convergence)
+!   if(sze<=N_det_max_jacobi)then
       double precision, allocatable  :: eigenvectors(:,:), eigenvalues(:),H_matrix_tmp(:,:)
       allocate (H_matrix_tmp(size(H_matrix_all_dets,1),sze),eigenvalues(sze),eigenvectors(size(H_matrix_all_dets,1),sze))
       do j=1,sze
@@ -490,9 +673,14 @@ subroutine SC2_1h1p(dets_in,u_in,energies,diag_H_elements,dim_in,sze,N_st,Nint,c
           H_matrix_tmp(i,j) = H_matrix_all_dets(i,j)
         enddo
       enddo
-      do i = 1,sze
-        H_matrix_tmp(i,i) = diag_H_elements(i)
+      H_matrix_tmp(1,1) += extra_diag_H_elements(1)
+      do i = 2,sze
+        H_matrix_tmp(1,i) += extra_diag_H_elements(i)
+        H_matrix_tmp(i,1) += extra_diag_H_elements(i)
       enddo
+     !do i = 1,sze
+     !  H_matrix_tmp(i,i) = diag_H_elements(i)
+     !enddo
       call lapack_diag(eigenvalues,eigenvectors,                     &
           H_matrix_tmp,size(H_matrix_all_dets,1),sze)
       do j=1,min(N_states_diag,sze)
@@ -502,9 +690,9 @@ subroutine SC2_1h1p(dets_in,u_in,energies,diag_H_elements,dim_in,sze,N_st,Nint,c
         energies(j) = eigenvalues(j)
       enddo
       deallocate (H_matrix_tmp, eigenvalues, eigenvectors)
-    else
-      call davidson_diag_hjj(dets_in,u_in,diag_H_elements,energies,dim_in,sze,N_st,Nint,output_determinants)
-    endif
+!   else
+!     call davidson_diag_hjj(dets_in,u_in,diag_H_elements,energies,dim_in,sze,N_st,Nint,output_determinants)
+!   endif
     print*,'E = ',energies(1) + nuclear_repulsion
 
   enddo

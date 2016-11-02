@@ -20,6 +20,7 @@ end
 
 
 BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
+use map_module
   implicit none
   integer(bit_kind) :: mask_ijkl(N_int,4)
   integer(bit_kind) :: mask_ijk(N_int,3)
@@ -40,7 +41,7 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
   
   if(no_vvvv_integrals)then
    integer :: i,j,k,l
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I I I I !!!!!!!!!!!!!!!!!!!!
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I I I I !!!!!!!!!!!!!!!!!!!!
    ! (core+inact+act) ^ 4
    ! <ii|ii>
    print*, ''
@@ -52,7 +53,7 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
     mask_ijkl(i,4) =  core_inact_act_bitmask_4(i,1)
    enddo
    call add_integrals_to_map(mask_ijkl)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I I V V !!!!!!!!!!!!!!!!!!!!
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I I V V !!!!!!!!!!!!!!!!!!!!
    ! (core+inact+act) ^ 2  (virt) ^2
    ! <iv|iv>  = J_iv
    print*, ''
@@ -76,17 +77,19 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
     mask_ijkl(i,4) = virt_bitmask(i,1)
    enddo
    call add_integrals_to_map(mask_ijkl)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! V V V !!!!!!!!!!!!!!!!!!!!!!!
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! V V V !!!!!!!!!!!!!!!!!!!!!!!
+   if(.not.no_vvv_integrals)then
    print*, ''
-   print*, '<vr|vs>'
+   print*, '<rv|sv> and <rv|vs>'
    do i = 1,N_int
-    mask_ijk(i,1)  =  virt_bitmask(i,1)
-    mask_ijk(i,2)  =  virt_bitmask(i,1)
-    mask_ijk(i,3)  =  virt_bitmask(i,1)
+    mask_ijk(i,1) =  virt_bitmask(i,1)
+    mask_ijk(i,2) =  virt_bitmask(i,1)
+    mask_ijk(i,3) =  virt_bitmask(i,1)
    enddo
    call add_integrals_to_map_three_indices(mask_ijk)
+   endif
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I I I V !!!!!!!!!!!!!!!!!!!!
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I I I V !!!!!!!!!!!!!!!!!!!!
    ! (core+inact+act) ^ 3  (virt) ^1
    ! <iv|ii>
    print*, ''
@@ -101,9 +104,9 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I V V V !!!!!!!!!!!!!!!!!!!!
    ! (core+inact+act) ^ 1  (virt) ^3
    ! <iv|vv> 
-   print*, ''
-   print*, '<iv|vv>'
    if(.not.no_ivvv_integrals)then
+    print*, ''
+    print*, '<iv|vv>'
     do i = 1,N_int
      mask_ijkl(i,1) =  core_inact_act_bitmask_4(i,1)
      mask_ijkl(i,2) =  virt_bitmask(i,1)
@@ -115,6 +118,21 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
 
   else
    call add_integrals_to_map(full_ijkl_bitmask_4)
+  endif
+  
+  if(write_ao_map_after_transfo)then
+    call dump_ao_integrals(trim(ezfio_filename)//'/work/ao_integrals.bin')
+    disk_access_ao_integrals = "Read"
+    touch disk_access_ao_integrals 
+    call ezfio_set_integrals_bielec_disk_access_ao_integrals("Read")
+  endif
+  if(clear_ao_map_after_mo_transfo)then
+   call clear_ao_map
+   integer (map_size_kind) :: get_ao_map_size
+   print*, '^^^^^^^^^^^^^^^^^^^^^'
+   print *, 'get_ao_map_size',get_ao_map_size
+   print*, '^^^^^^^^^^^^^^^^^^^^^'
+   FREE ao_bielec_integrals_in_map
   endif
 END_PROVIDER
 
@@ -391,64 +409,41 @@ subroutine add_integrals_to_map(mask_ijkl)
       endif
       j1 = ishft((l*l-l),-1)
       do j0 = 1, n_j
-!       print*, 'l :: j0',l
         j = list_ijkl(j0,2)
-!       print*, 'j :: 2',j
         if (j > l)  then
-!         print*, 'j>l'
-!         print*, j,l
           exit
         endif
         j1 += 1
         do k0 = 1, n_k
           k = list_ijkl(k0,3)
-!         print*, 'l :: k0',l
-!         print*, 'k :: 3',j
           i1 = ishft((k*k-k),-1)
           if (i1<=j1) then
             continue
           else
-!           print*, 'k>l'
-!           print*, k,l
             exit
           endif
           bielec_tmp_1 = 0.d0
           do i0 = 1, n_i
             i = list_ijkl(i0,1)
-!           print*, 'l :: i0',l
-!           print*, 'i :: 1',i
             if (i>k) then
-!             print*, 'i>k'
-!             print*, i,k
               exit
             endif
             bielec_tmp_1(i) = c*bielec_tmp_3(i,j0,k0)
 !           i1+=1
           enddo
           
-!         do i = 1, min(k,j1-i1+list_ijkl(1,1))
-!         do i = 1, min(k,j1-i1+list_ijkl(1,1)-1)
           do i0 = 1, n_i
             i = list_ijkl(i0,1) 
             if(i> min(k,j1-i1+list_ijkl(1,1)-1))then
-!           if (i>k) then !min(k,j1-i1)
              exit
             endif
-!           print*, i,j,k,l
-!           print*, k,j1,i1,j1-i1
             if (abs(bielec_tmp_1(i)) < mo_integrals_threshold) then
               cycle
             endif
-!           print*, i,j,k,l
             n_integrals += 1
             buffer_value(n_integrals) = bielec_tmp_1(i)
             !DEC$ FORCEINLINE
             call mo_bielec_integrals_index(i,j,k,l,buffer_i(n_integrals))
-!           if(i==12.and.k==12 .and.j==12.and.l==12)then
-!            print*, i,j,k,l,buffer_i(n_integrals)
-!            accu_bis += buffer_value(n_integrals)
-!            print*, buffer_value(n_integrals),accu_bis
-!           endif
             if (n_integrals == size_buffer) then
               call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
                   real(mo_integrals_threshold,integral_kind))
@@ -631,7 +626,6 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
       bielec_tmp_2 = 0.d0
       do j1 = 1,ao_num
         call get_ao_bielec_integrals(j1,k1,l1,ao_num,bielec_tmp_0(1,j1))
-        ! call compute_ao_bielec_integrals(j1,k1,l1,ao_num,bielec_tmp_0(1,j1))
       enddo
       do j1 = 1,ao_num
         kmax = 0
@@ -732,9 +726,6 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
             j = list_ijkl(j0,2)
            do i0 = 1, n_i
              i = list_ijkl(i0,1)
-!            if(m==2)then
-!             if(i==j .and. j == k)cycle
-!            endif
              if (i>k) then
                exit
              endif

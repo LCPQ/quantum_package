@@ -121,6 +121,11 @@ END_PROVIDER
  conversion_factor_mhz_hcc(8) = -606.1958551736545d0
  conversion_factor_gauss_hcc(8) = -216.30574771560407d0
  conversion_factor_cm_1_hcc(8) = -202.20517197179822d0
+
+ ! Phosphore
+ conversion_factor_mhz_hcc(15) = 1811.0967763744873d0
+ conversion_factor_gauss_hcc(15) = 646.2445276897648d0
+ conversion_factor_cm_1_hcc(15) = 604.1170297381395d0
  
 END_PROVIDER 
 

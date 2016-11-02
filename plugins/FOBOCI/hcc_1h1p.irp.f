@@ -15,12 +15,12 @@ subroutine routine
   call diagonalize_CI
   call test_hcc
   call test_mulliken
-! call SC2_1h1p(psi_det,psi_coef,energies, &
-!       diag_H_elements,size(psi_coef,1),N_det,N_states_diag,N_int,threshold_convergence_SC2)
-  allocate(H_matrix(N_det,N_det))
-  call SC2_1h1p_full(psi_det,psi_coef,energies, &
-        H_matrix,size(psi_coef,1),N_det,N_states_diag,N_int,threshold_convergence_SC2)
-  deallocate(H_matrix)
+  call SC2_1h1p(psi_det,psi_coef,energies, &
+        diag_H_elements,size(psi_coef,1),N_det,N_states_diag,N_int,threshold_convergence_SC2)
+! allocate(H_matrix(N_det,N_det))
+! call SC2_1h1p_full(psi_det,psi_coef,energies, &
+!       H_matrix,size(psi_coef,1),N_det,N_states_diag,N_int,threshold_convergence_SC2)
+! deallocate(H_matrix)
   integer :: i,j
   double precision :: accu,coef_hf
 ! coef_hf = 1.d0/psi_coef(1,1)
@@ -34,12 +34,12 @@ end
 subroutine pouet
   implicit none
   double precision :: accu,coef_hf
-! provide one_body_dm_mo_alpha one_body_dm_mo_beta
+  provide one_body_dm_mo_alpha one_body_dm_mo_beta
 ! call density_matrix_1h1p(psi_det,psi_coef,one_body_dm_mo_alpha,one_body_dm_mo_beta,accu,size(psi_coef,1),N_det,N_states_diag,N_int)
 ! touch one_body_dm_mo_alpha one_body_dm_mo_beta 
   call test_hcc
   call test_mulliken
-! call save_wavefunction
+  call save_wavefunction
 
 end
 

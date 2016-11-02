@@ -72,20 +72,21 @@ subroutine standard_dress(delta_ij_generators_,size_buffer,Ndet_generators,i_gen
 end
 
 
-subroutine is_a_good_candidate(threshold,is_ok,verbose,exit_loop)
+subroutine is_a_good_candidate(threshold,is_ok,e_pt2,verbose,exit_loop,is_ok_perturbative)
  use bitmasks
  implicit none
  double precision, intent(in) :: threshold
- logical, intent(out) :: is_ok,exit_loop
+ double precision, intent(out):: e_pt2
+ logical, intent(out) :: is_ok,exit_loop,is_ok_perturbative
  logical, intent(in) :: verbose
  
  integer :: l,k,m
  double precision,allocatable :: dressed_H_matrix(:,:)
- double precision,allocatable :: psi_coef_diagonalized_tmp(:,:)
+ double precision, allocatable :: psi_coef_diagonalized_tmp(:,:)
  integer(bit_kind), allocatable :: psi_det_generators_input(:,:,:)
+ double precision :: hij
 
- allocate(psi_det_generators_input(N_int,2,N_det_generators),dressed_H_matrix(N_det_generators,N_det_generators))
- allocate(psi_coef_diagonalized_tmp(N_det_generators,N_states))
+ allocate(psi_det_generators_input(N_int,2,N_det_generators),dressed_H_matrix(N_det_generators,N_det_generators),psi_coef_diagonalized_tmp(N_det_generators,N_states))
  dressed_H_matrix = 0.d0
  do k = 1, N_det_generators
   do l = 1, N_int
@@ -94,9 +95,20 @@ subroutine is_a_good_candidate(threshold,is_ok,verbose,exit_loop)
   enddo
  enddo
 !call H_apply_dressed_pert(dressed_H_matrix,N_det_generators,psi_det_generators_input)
- call dress_H_matrix_from_psi_det_input(psi_det_generators_input,N_det_generators,is_ok,psi_coef_diagonalized_tmp, dressed_H_matrix,threshold,verbose,exit_loop)
- if(do_it_perturbative)then
-  if(is_ok)then
+ call dress_H_matrix_from_psi_det_input(psi_det_generators_input,N_det_generators,is_ok,psi_coef_diagonalized_tmp, dressed_H_matrix,threshold,verbose,exit_loop,is_ok_perturbative)
+!do m = 1, N_states
+! do k = 1, N_det_generators
+!  do l = 1, N_int
+!    psi_selectors(l,1,k) = psi_det_generators_input(l,1,k) 
+!    psi_selectors(l,2,k) = psi_det_generators_input(l,2,k) 
+!  enddo
+!  psi_selectors_coef(k,m) = psi_coef_diagonalized_tmp(k,m)
+! enddo
+!enddo
+!soft_touch psi_selectors psi_selectors_coef 
+!if(do_it_perturbative)then
+   print*, 'is_ok_perturbative',is_ok_perturbative
+  if(is_ok.or.is_ok_perturbative)then
    N_det = N_det_generators
    do m = 1, N_states
     do k = 1, N_det_generators
@@ -105,11 +117,19 @@ subroutine is_a_good_candidate(threshold,is_ok,verbose,exit_loop)
        psi_det(l,2,k) = psi_det_generators_input(l,2,k) 
      enddo
      psi_coef(k,m) = psi_coef_diagonalized_tmp(k,m)
+     print*, 'psi_coef(k,m)',psi_coef(k,m)
     enddo
    enddo
-   touch psi_coef psi_det N_det
+   soft_touch psi_det psi_coef  N_det
+   e_pt2 = 0.d0
+   do m =1, N_det_generators
+    do l = 1, N_det_generators
+     call i_h_j(psi_det_generators_input(1,1,m),psi_det_generators_input(1,1,l),N_int,hij)  ! Fill the zeroth order H matrix
+     e_pt2 += (dressed_H_matrix(m,l) - hij)* psi_coef_diagonalized_tmp(m,1)* psi_coef_diagonalized_tmp(l,1)
+    enddo
+   enddo
   endif
- endif
+!endif
  
  deallocate(psi_det_generators_input,dressed_H_matrix,psi_coef_diagonalized_tmp)
 
@@ -118,14 +138,14 @@ subroutine is_a_good_candidate(threshold,is_ok,verbose,exit_loop)
 
 end
 
-subroutine dress_H_matrix_from_psi_det_input(psi_det_generators_input,Ndet_generators,is_ok,psi_coef_diagonalized_tmp, dressed_H_matrix,threshold,verbose,exit_loop)
+subroutine dress_H_matrix_from_psi_det_input(psi_det_generators_input,Ndet_generators,is_ok,psi_coef_diagonalized_tmp, dressed_H_matrix,threshold,verbose,exit_loop,is_ok_perturbative)
  use bitmasks
  implicit none
  integer(bit_kind), intent(in) :: psi_det_generators_input(N_int,2,Ndet_generators)
  integer, intent(in) :: Ndet_generators
  double precision, intent(in) :: threshold
  logical, intent(in) :: verbose
- logical, intent(out) :: is_ok,exit_loop
+ logical, intent(out) :: is_ok,exit_loop,is_ok_perturbative
  double precision, intent(out) :: psi_coef_diagonalized_tmp(Ndet_generators,N_states)
  double precision, intent(inout) :: dressed_H_matrix(Ndet_generators, Ndet_generators)
 
@@ -309,10 +329,124 @@ subroutine dress_H_matrix_from_psi_det_input(psi_det_generators_input,Ndet_gener
    exit
   endif
  enddo
+ if(.not.is_ok)then
+  is_ok_perturbative = .True.
+  do i = 1, Ndet_generators
+   if(is_a_ref_det(i))cycle
+   do k = 1, N_states
+    print*, psi_coef_diagonalized_tmp(i,k),threshold_perturbative
+    if(dabs(psi_coef_diagonalized_tmp(i,k)) .gt.threshold_perturbative)then
+     is_ok_perturbative = .False.
+     exit
+    endif
+   enddo
+   if(.not.is_ok_perturbative)then
+    exit
+   endif
+  enddo
+ endif
  if(verbose)then
-  print*,'is_ok = ',is_ok
+  print*,'is_ok              = ',is_ok
+  print*,'is_ok_perturbative = ',is_ok_perturbative
  endif
  
+
+end
+
+subroutine fill_H_apply_buffer_no_selection_first_order_coef(n_selected,det_buffer,Nint,iproc)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  !  Fill the H_apply buffer with determiants for CISD
+  END_DOC
+  
+  integer, intent(in)            :: n_selected, Nint, iproc
+  integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
+  integer                        :: i,j,k
+  integer                        :: new_size
+  PROVIDE H_apply_buffer_allocated
+  call omp_set_lock(H_apply_buffer_lock(1,iproc))
+  new_size = H_apply_buffer(iproc)%N_det + n_selected
+  if (new_size > H_apply_buffer(iproc)%sze) then
+    call resize_h_apply_buffer(max(2*H_apply_buffer(iproc)%sze,new_size),iproc)
+  endif
+  do i=1,H_apply_buffer(iproc)%N_det
+    ASSERT (sum(popcnt(H_apply_buffer(iproc)%det(:,1,i)) )== elec_alpha_num)
+    ASSERT (sum(popcnt(H_apply_buffer(iproc)%det(:,2,i))) == elec_beta_num)
+  enddo
+  do i=1,n_selected
+    do j=1,N_int
+      H_apply_buffer(iproc)%det(j,1,i+H_apply_buffer(iproc)%N_det) = det_buffer(j,1,i)
+      H_apply_buffer(iproc)%det(j,2,i+H_apply_buffer(iproc)%N_det) = det_buffer(j,2,i)
+    enddo
+    ASSERT (sum(popcnt(H_apply_buffer(iproc)%det(:,1,i+H_apply_buffer(iproc)%N_det)) )== elec_alpha_num)
+    ASSERT (sum(popcnt(H_apply_buffer(iproc)%det(:,2,i+H_apply_buffer(iproc)%N_det))) == elec_beta_num)
+  enddo
+  double precision               :: i_H_psi_array(N_states),h,diag_H_mat_elem_fock,delta_e
+  do i=1,N_selected
+   call i_H_psi(det_buffer(1,1,i),psi_selectors,psi_selectors_coef,N_int,N_det_selectors,psi_selectors_size,N_states,i_H_psi_array)
+   call i_H_j(det_buffer(1,1,i),det_buffer(1,1,i),N_int,h)
+   do j=1,N_states
+      delta_e = -1.d0 /(h - CI_expectation_value(j))
+      H_apply_buffer(iproc)%coef(i+H_apply_buffer(iproc)%N_det,j) = i_H_psi_array(j) * delta_e
+    enddo
+  enddo
+  H_apply_buffer(iproc)%N_det = new_size
+  do i=1,H_apply_buffer(iproc)%N_det
+    ASSERT (sum(popcnt(H_apply_buffer(iproc)%det(:,1,i)) )== elec_alpha_num)
+    ASSERT (sum(popcnt(H_apply_buffer(iproc)%det(:,2,i))) == elec_beta_num)
+  enddo
+  call omp_unset_lock(H_apply_buffer_lock(1,iproc))
+end
+
+
+
+subroutine make_s2_eigenfunction_first_order
+  implicit none
+  integer                        :: i,j,k
+  integer                        :: smax, s
+  integer(bit_kind), allocatable :: d(:,:,:), det_buffer(:,:,:)
+  integer                        :: N_det_new
+  integer, parameter             :: bufsze = 1000
+  logical, external              :: is_in_wavefunction
+
+  allocate (d(N_int,2,1), det_buffer(N_int,2,bufsze) )
+  smax = 1
+  N_det_new = 0
+
+  do i=1,N_occ_pattern
+    call occ_pattern_to_dets_size(psi_occ_pattern(1,1,i),s,elec_alpha_num,N_int)
+    s += 1
+    if (s > smax) then
+      deallocate(d)
+      allocate ( d(N_int,2,s) )
+      smax = s
+    endif
+    call occ_pattern_to_dets(psi_occ_pattern(1,1,i),d,s,elec_alpha_num,N_int)
+    do j=1,s
+      if (.not. is_in_wavefunction(d(1,1,j), N_int) ) then
+        N_det_new += 1
+        do k=1,N_int
+          det_buffer(k,1,N_det_new) = d(k,1,j)
+          det_buffer(k,2,N_det_new) = d(k,2,j)
+        enddo
+        if (N_det_new == bufsze) then
+          call fill_H_apply_buffer_no_selection(bufsze,det_buffer,N_int,0)
+          N_det_new = 0
+        endif
+      endif
+    enddo
+  enddo
+
+  if (N_det_new > 0) then
+    call fill_H_apply_buffer_no_selection_first_order_coef(N_det_new,det_buffer,N_int,0)
+    call copy_H_apply_buffer_to_wf
+    SOFT_TOUCH N_det psi_coef psi_det
+  endif
+
+  deallocate(d,det_buffer)
+
+   call write_int(output_determinants,N_det_new, 'Added deteminants for S^2')
 
 end
 
