@@ -821,9 +821,10 @@ END_PROVIDER
     
     rho_mrcc_init = 0d0
     
-    allocate(lref(N_det_ref))
-    !$OMP PARALLEL DO default(shared) schedule(static, 1)            &
+    !$OMP PARALLEL default(shared) &
         !$OMP private(lref, hh, pp, II, myMask, myDet, ok, ind, phase)
+    allocate(lref(N_det_ref))
+    !$OMP DO schedule(static, 1)
     do hh = 1, hh_shortcut(0)
       do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
         if(active(pp)) cycle
@@ -852,7 +853,9 @@ END_PROVIDER
         end do
       end do
     end do
-    !$OMP END PARALLEL DO
+    !$OMP END DO
+    deallocate(lref)
+    !$OMP END PARALLEL
     
     x_new = x
     
