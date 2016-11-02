@@ -17,7 +17,7 @@ subroutine give_2p_new(matrix_2p)
  integer(bit_kind) :: det_tmp_j(N_int,2)
  integer :: exc(0:2,2,2)
  integer :: accu_elec
- double precision :: get_mo_bielec_integral_schwartz
+ double precision :: get_mo_bielec_integral
  double precision :: active_int(n_act_orb,n_act_orb,2)
  double precision :: hij,phase
  double precision :: accu_contrib(N_states)
@@ -62,8 +62,8 @@ subroutine give_2p_new(matrix_2p)
       aorb = list_act(a)
       do b = 1, n_act_orb
        borb = list_act(b)
-       active_int(a,b,1) = get_mo_bielec_integral_schwartz(aorb,borb,rorb,vorb,mo_integrals_map) ! direct   ( a--> r | b--> v )
-       active_int(a,b,2) = get_mo_bielec_integral_schwartz(aorb,borb,vorb,rorb,mo_integrals_map) ! exchange ( b--> r | a--> v )
+       active_int(a,b,1) = get_mo_bielec_integral(aorb,borb,rorb,vorb,mo_integrals_map) ! direct   ( a--> r | b--> v )
+       active_int(a,b,2) = get_mo_bielec_integral(aorb,borb,vorb,rorb,mo_integrals_map) ! exchange ( b--> r | a--> v )
        perturb_dets_phase(a,b,1,1) = -1000.d0
        perturb_dets_phase(a,b,1,2) = -1000.d0
        perturb_dets_phase(a,b,2,2) = -1000.d0

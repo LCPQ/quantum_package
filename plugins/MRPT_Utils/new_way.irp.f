@@ -15,7 +15,7 @@ subroutine give_2h1p_contrib(matrix_2h1p)
  integer(bit_kind) :: det_tmp(N_int,2)
  integer :: exc(0:2,2,2)
  integer :: accu_elec
- double precision :: get_mo_bielec_integral_schwartz
+ double precision :: get_mo_bielec_integral
  double precision :: active_int(n_act_orb,2)
  double precision :: hij,phase
 !matrix_2h1p = 0.d0
@@ -34,8 +34,8 @@ subroutine give_2h1p_contrib(matrix_2h1p)
      ! take all the integral you will need for i,j,r fixed
      do a = 1, n_act_orb
       aorb = list_act(a)
-      active_int(a,1) = get_mo_bielec_integral_schwartz(iorb,jorb,rorb,aorb,mo_integrals_map) ! direct
-      active_int(a,2) = get_mo_bielec_integral_schwartz(iorb,jorb,aorb,rorb,mo_integrals_map) ! exchange
+      active_int(a,1) = get_mo_bielec_integral(iorb,jorb,rorb,aorb,mo_integrals_map) ! direct
+      active_int(a,2) = get_mo_bielec_integral(iorb,jorb,aorb,rorb,mo_integrals_map) ! exchange
      enddo
      
   integer           :: degree(N_det)
@@ -209,7 +209,7 @@ subroutine give_1h2p_contrib(matrix_1h2p)
  integer(bit_kind) :: det_tmp(N_int,2)
  integer :: exc(0:2,2,2)
  integer :: accu_elec
- double precision :: get_mo_bielec_integral_schwartz
+ double precision :: get_mo_bielec_integral
  double precision :: active_int(n_act_orb,2)
  double precision :: hij,phase
 !matrix_1h2p = 0.d0
@@ -228,8 +228,8 @@ subroutine give_1h2p_contrib(matrix_1h2p)
      ! take all the integral you will need for i,j,r fixed
      do a = 1, n_act_orb
       aorb = list_act(a)
-      active_int(a,1) = get_mo_bielec_integral_schwartz(iorb,aorb,rorb,vorb,mo_integrals_map) ! direct
-      active_int(a,2) = get_mo_bielec_integral_schwartz(iorb,aorb,vorb,rorb,mo_integrals_map) ! exchange
+      active_int(a,1) = get_mo_bielec_integral(iorb,aorb,rorb,vorb,mo_integrals_map) ! direct
+      active_int(a,2) = get_mo_bielec_integral(iorb,aorb,vorb,rorb,mo_integrals_map) ! exchange
      enddo
      
   integer           :: degree(N_det)
@@ -406,7 +406,7 @@ subroutine give_1h1p_contrib(matrix_1h1p)
  integer(bit_kind) :: det_tmp(N_int,2)
  integer :: exc(0:2,2,2)
  integer :: accu_elec
- double precision :: get_mo_bielec_integral_schwartz
+ double precision :: get_mo_bielec_integral
  double precision :: active_int(n_act_orb,2)
  double precision :: hij,phase
  integer           :: degree(N_det)
@@ -474,10 +474,10 @@ subroutine give_1h1p_contrib(matrix_1h1p)
                 endif
                 call get_double_excitation(psi_det(1,1,idx(jdet)),det_tmp,exc,phase,N_int)
                 if(ispin == jspin )then 
-                 hij = -get_mo_bielec_integral_schwartz(iorb,aorb,rorb,borb,mo_integrals_map) & 
-                     +  get_mo_bielec_integral_schwartz(iorb,aorb,borb,rorb,mo_integrals_map)
+                 hij = -get_mo_bielec_integral(iorb,aorb,rorb,borb,mo_integrals_map) & 
+                     +  get_mo_bielec_integral(iorb,aorb,borb,rorb,mo_integrals_map)
                 else
-                 hij =  get_mo_bielec_integral_schwartz(iorb,borb,rorb,aorb,mo_integrals_map)   
+                 hij =  get_mo_bielec_integral(iorb,borb,rorb,aorb,mo_integrals_map)   
                 endif
                 hij = hij * phase
                 double precision :: hij_test
@@ -530,7 +530,7 @@ subroutine give_1h1p_sec_order_singles_contrib(matrix_1h1p)
  double precision :: hij_det_pert(n_inact_orb,n_virt_orb,2,N_states)
  integer :: exc(0:2,2,2)
  integer :: accu_elec
- double precision :: get_mo_bielec_integral_schwartz
+ double precision :: get_mo_bielec_integral
  double precision :: active_int(n_act_orb,2)
  double precision :: hij,phase
  integer           :: degree(N_det)
@@ -690,7 +690,7 @@ subroutine give_1p_sec_order_singles_contrib(matrix_1p)
  double precision :: hij_det_pert(n_act_orb,n_virt_orb,2)
  integer :: exc(0:2,2,2)
  integer :: accu_elec
- double precision :: get_mo_bielec_integral_schwartz
+ double precision :: get_mo_bielec_integral
  double precision :: hij,phase
  integer           :: degree(N_det)
  integer           :: idx(0:N_det)
@@ -832,7 +832,7 @@ subroutine give_1h1p_only_doubles_spin_cross(matrix_1h1p)
  integer(bit_kind) :: det_tmp(N_int,2)
  integer :: exc(0:2,2,2)
  integer :: accu_elec
- double precision :: get_mo_bielec_integral_schwartz
+ double precision :: get_mo_bielec_integral
  double precision :: active_int(n_act_orb,2)
  double precision :: hij,phase
  integer           :: degree(N_det)

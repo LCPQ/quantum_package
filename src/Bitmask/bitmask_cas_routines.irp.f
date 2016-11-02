@@ -1,7 +1,8 @@
 use bitmasks
 integer function number_of_holes(key_in)
-use bitmasks
- ! function that returns the number of holes in the inact space 
+ BEGIN_DOC
+ ! Function that returns the number of holes in the inact space 
+ END_DOC
  implicit none
  integer(bit_kind), intent(in) :: key_in(N_int,2)
  integer :: i
@@ -104,8 +105,9 @@ end
 
 
 integer function number_of_particles(key_in)
-use bitmasks
+ BEGIN_DOC
  ! function that returns the number of particles in the virtual space 
+ END_DOC
  implicit none
  integer(bit_kind), intent(in) :: key_in(N_int,2)
  integer :: i
@@ -208,12 +210,13 @@ use bitmasks
 end
 
 logical function is_a_two_holes_two_particles(key_in)
-use bitmasks
+ BEGIN_DOC
  ! logical function that returns True if the determinant 'key_in' 
  ! belongs to the 2h-2p excitation class of the DDCI space 
  ! this is calculated using the CAS_bitmask that defines the active 
  ! orbital space, the inact_bitmasl that defines the inactive oribital space  
  ! and the virt_bitmask that defines the virtual orbital space 
+ END_DOC
  implicit none
  integer(bit_kind), intent(in) :: key_in(N_int,2)
  integer :: i,i_diff
@@ -403,8 +406,9 @@ use bitmasks
 
 
 integer function number_of_holes_verbose(key_in)
-use bitmasks
+ BEGIN_DOC
  ! function that returns the number of holes in the inact space 
+ END_DOC
  implicit none
  integer(bit_kind), intent(in) :: key_in(N_int,2)
  integer :: i
@@ -432,7 +436,9 @@ end
 
 
 integer function number_of_particles_verbose(key_in)
+ BEGIN_DOC
  ! function that returns the number of particles in the inact space 
+ END_DOC
  implicit none
  integer(bit_kind), intent(in) :: key_in(N_int,2)
  integer :: i
@@ -458,7 +464,6 @@ integer function number_of_particles_verbose(key_in)
 end
 
 logical function is_a_1h1p(key_in)
-use bitmasks
  implicit none
  integer(bit_kind), intent(in) :: key_in(N_int,2)
  integer :: number_of_particles, number_of_holes
@@ -470,7 +475,6 @@ use bitmasks
 end
 
 logical function is_a_1h2p(key_in)
-use bitmasks
  implicit none
  integer(bit_kind), intent(in) :: key_in(N_int,2)
  integer :: number_of_particles, number_of_holes
@@ -482,7 +486,6 @@ use bitmasks
 end
 
 logical function is_a_2h1p(key_in)
-use bitmasks
  implicit none
  integer(bit_kind), intent(in) :: key_in(N_int,2)
  integer :: number_of_particles, number_of_holes
@@ -494,7 +497,6 @@ use bitmasks
 end
 
 logical function is_a_1h(key_in)
-use bitmasks
  implicit none
  integer(bit_kind), intent(in) :: key_in(N_int,2)
  integer :: number_of_particles, number_of_holes
@@ -506,7 +508,6 @@ use bitmasks
 end
 
 logical function is_a_1p(key_in)
-use bitmasks
  implicit none
  integer(bit_kind), intent(in) :: key_in(N_int,2)
  integer :: number_of_particles, number_of_holes
@@ -518,7 +519,6 @@ use bitmasks
 end
 
 logical function is_a_2p(key_in)
-use bitmasks
  implicit none
  integer(bit_kind), intent(in) :: key_in(N_int,2)
  integer :: number_of_particles, number_of_holes
@@ -530,7 +530,6 @@ use bitmasks
 end
 
 logical function is_a_2h(key_in)
-use bitmasks
  implicit none
  integer(bit_kind), intent(in) :: key_in(N_int,2)
  integer :: number_of_particles, number_of_holes
@@ -542,7 +541,6 @@ use bitmasks
 end
 
 logical function is_i_in_virtual(i)
-use bitmasks
  implicit none
  integer,intent(in) :: i
  integer(bit_kind) :: key(N_int)

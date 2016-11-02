@@ -51,7 +51,7 @@
  double precision :: accu_coulomb,accu_exchange(2)
  double precision :: na,nb,ntot
  double precision :: coulomb, exchange
- double precision :: get_mo_bielec_integral_schwartz
+ double precision :: get_mo_bielec_integral
  integer :: j_act_orb,k_act_orb,i_inact_core_orb
  integer :: i_state
 
@@ -75,8 +75,8 @@
      na = one_body_dm_mo_alpha(j_act_orb,k_act_orb,i_state)
      nb = one_body_dm_mo_beta(j_act_orb,k_act_orb,i_state)
      ntot = na + nb
-     coulomb = get_mo_bielec_integral_schwartz(j_act_orb,i_inact_core_orb,k_act_orb,i_inact_core_orb,mo_integrals_map) 
-     exchange = get_mo_bielec_integral_schwartz(j_act_orb,k_act_orb,i_inact_core_orb,i_inact_core_orb,mo_integrals_map)
+     coulomb = get_mo_bielec_integral(j_act_orb,i_inact_core_orb,k_act_orb,i_inact_core_orb,mo_integrals_map) 
+     exchange = get_mo_bielec_integral(j_act_orb,k_act_orb,i_inact_core_orb,i_inact_core_orb,mo_integrals_map)
      accu_coulomb += 2.d0 * ntot * coulomb
      accu_exchange(1) += 2.d0 * na * exchange
      accu_exchange(2) += 2.d0 * nb * exchange
@@ -97,7 +97,7 @@
  double precision :: accu_coulomb,accu_exchange(2)
  double precision :: na,nb,ntot
  double precision :: coulomb, exchange
- double precision :: get_mo_bielec_integral_schwartz
+ double precision :: get_mo_bielec_integral
  integer :: j_act_orb,i_virt_orb,k_act_orb
  integer :: i_state
  ! TODO : inverse loop of i_state 
@@ -122,8 +122,8 @@
      na = one_body_dm_mo_alpha(j_act_orb,k_act_orb,i_state)
      nb = one_body_dm_mo_beta(j_act_orb,k_act_orb,i_state)
      ntot = na + nb
-     coulomb = get_mo_bielec_integral_schwartz(j_act_orb,i_virt_orb,k_act_orb,i_virt_orb,mo_integrals_map) 
-     exchange = get_mo_bielec_integral_schwartz(j_act_orb,k_act_orb,i_virt_orb,i_virt_orb,mo_integrals_map)
+     coulomb = get_mo_bielec_integral(j_act_orb,i_virt_orb,k_act_orb,i_virt_orb,mo_integrals_map) 
+     exchange = get_mo_bielec_integral(j_act_orb,k_act_orb,i_virt_orb,i_virt_orb,mo_integrals_map)
      accu_coulomb += 2.d0 * ntot * coulomb
      accu_exchange(1) += 2.d0 * na * exchange
      accu_exchange(2) += 2.d0 * nb * exchange

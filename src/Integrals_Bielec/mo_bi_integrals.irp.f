@@ -1447,22 +1447,6 @@ END_PROVIDER
   
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, mo_bielec_integral_schwartz,(mo_tot_num,mo_tot_num)  ]
-  implicit none
-  BEGIN_DOC
-  !  Needed to compute Schwartz inequalities
-  END_DOC
-  
-  integer                        :: i,k
-  
-  do i=1,mo_tot_num
-    do k=1,mo_tot_num
-      mo_bielec_integral_schwartz(k,i) = 1.d10
-    enddo
-  enddo
-  
-END_PROVIDER
-
 
 subroutine clear_mo_map
   implicit none
@@ -1470,7 +1454,7 @@ subroutine clear_mo_map
   ! Frees the memory of the MO map
   END_DOC
   call map_deinit(mo_integrals_map)
-  FREE mo_integrals_map mo_bielec_integral_schwartz mo_bielec_integral_jj mo_bielec_integral_jj_anti
+  FREE mo_integrals_map mo_bielec_integral_jj mo_bielec_integral_jj_anti
   FREE mo_bielec_integral_jj_exchange mo_bielec_integrals_in_map
 
 
@@ -1478,7 +1462,7 @@ end
 
 subroutine provide_all_mo_integrals
  implicit none
- provide mo_integrals_map mo_bielec_integral_schwartz mo_bielec_integral_jj mo_bielec_integral_jj_anti
+ provide mo_integrals_map mo_bielec_integral_jj mo_bielec_integral_jj_anti
  provide mo_bielec_integral_jj_exchange mo_bielec_integrals_in_map
 
 end

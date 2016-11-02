@@ -77,14 +77,10 @@ END_PROVIDER
   
   if (diag_algorithm == "Davidson") then
     
-    print*, '------------- In Davidson '
     call davidson_diag(psi_det,CI_eigenvectors,CI_electronic_energy, &
         size(CI_eigenvectors,1),N_det,N_states_diag,N_int,output_determinants)
-    print*, '------------- Out Davidson '
     do j=1,N_states_diag
-    print*, '------------- In S^2'
       call get_s2_u0(psi_det,CI_eigenvectors(1,j),N_det,size(CI_eigenvectors,1),CI_eigenvectors_s2(j))
-    print*, '------------- Out S^2'
     enddo
 
     
@@ -103,7 +99,6 @@ END_PROVIDER
       do j=1,N_det
         call get_s2_u0(psi_det,eigenvectors(1,j),N_det,size(eigenvectors,1),s2)
         s2_eigvalues(j) = s2
-        print*, 's2 in lapack',s2
         print*, eigenvalues(j) + nuclear_repulsion
         ! Select at least n_states states with S^2 values closed to "expected_s2"
         if(dabs(s2-expected_s2).le.0.3d0)then
@@ -219,12 +214,6 @@ END_PROVIDER
      do i = 1, N_det
        CI_eigenvectors(i,j) = psi_coef(i,index_good_state_array(iorder(j)))
      enddo
-!    call u0_H_u_0(e_0,CI_eigenvectors(1,j),n_det,psi_det,N_int)
-!    print*,'e    = ',CI_electronic_energy(j)
-!    print*,'<e>  = ',e_0
-!    call get_s2_u0(psi_det,CI_eigenvectors(1,j),N_det,size(CI_eigenvectors,1),s2)
-!    print*,'s^2  = ',CI_eigenvectors_s2(j)
-!    print*,'<s^2>= ',s2
     enddo
     deallocate(e_array,iorder)
 
@@ -269,7 +258,6 @@ END_PROVIDER
    endif
    deallocate(s2_eigvalues)
   endif
- print*, 'out provider'
   
  
 END_PROVIDER

@@ -16,7 +16,7 @@ subroutine give_2h1p_contrib_sec_order(matrix_2h1p)
  integer(bit_kind) :: det_tmp_j(N_int,2)
  integer :: exc(0:2,2,2)
  integer :: accu_elec
- double precision :: get_mo_bielec_integral_schwartz
+ double precision :: get_mo_bielec_integral
  double precision :: active_int(n_act_orb,2)
  double precision :: hij,phase
  integer :: index_orb_act_mono(N_det,6)
@@ -36,8 +36,8 @@ subroutine give_2h1p_contrib_sec_order(matrix_2h1p)
      ! take all the integral you will need for i,j,r fixed
      do a = 1, n_act_orb
       aorb = list_act(a)
-      active_int(a,1) = get_mo_bielec_integral_schwartz(iorb,jorb,rorb,aorb,mo_integrals_map) ! direct
-      active_int(a,2) = get_mo_bielec_integral_schwartz(iorb,jorb,aorb,rorb,mo_integrals_map) ! exchange
+      active_int(a,1) = get_mo_bielec_integral(iorb,jorb,rorb,aorb,mo_integrals_map) ! direct
+      active_int(a,2) = get_mo_bielec_integral(iorb,jorb,aorb,rorb,mo_integrals_map) ! exchange
       perturb_dets_phase(a,1,1) = -1000.d0
       perturb_dets_phase(a,1,2) = -1000.d0
       perturb_dets_phase(a,2,2) = -1000.d0
@@ -375,7 +375,7 @@ subroutine give_1h2p_contrib_sec_order(matrix_1h2p)
  integer(bit_kind) :: det_tmp_j(N_int,2)
  integer :: exc(0:2,2,2)
  integer :: accu_elec
- double precision :: get_mo_bielec_integral_schwartz
+ double precision :: get_mo_bielec_integral
  double precision :: active_int(n_act_orb,2)
  double precision :: hij,phase
  double precision :: accu_contrib
@@ -410,8 +410,8 @@ subroutine give_1h2p_contrib_sec_order(matrix_1h2p)
      ! take all the integral you will need for i,j,r fixed
      do a = 1, n_act_orb
       aorb = list_act(a)
-      active_int(a,1) = get_mo_bielec_integral_schwartz(iorb,aorb,rorb,vorb,mo_integrals_map) ! direct
-      active_int(a,2) = get_mo_bielec_integral_schwartz(iorb,aorb,vorb,rorb,mo_integrals_map) ! exchange
+      active_int(a,1) = get_mo_bielec_integral(iorb,aorb,rorb,vorb,mo_integrals_map) ! direct
+      active_int(a,2) = get_mo_bielec_integral(iorb,aorb,vorb,rorb,mo_integrals_map) ! exchange
       perturb_dets_phase(a,1,1) = -1000.d0
       perturb_dets_phase(a,1,2) = -1000.d0
       perturb_dets_phase(a,2,2) = -1000.d0
