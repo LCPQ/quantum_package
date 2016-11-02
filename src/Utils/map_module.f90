@@ -489,6 +489,7 @@ subroutine map_get(map, key, value)
   integer(map_size_kind)         :: idx_cache
   integer(cache_map_size_kind)   :: idx
   
+  ! index in tha pointers array
   idx_cache = ishft(key,map_shift)
   !DIR$ FORCEINLINE
   call cache_map_get_interval(map%map(idx_cache), key, value, 1, map%map(idx_cache)%n_elements,idx)

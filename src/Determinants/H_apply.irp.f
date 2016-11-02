@@ -214,13 +214,8 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
     duplicate(i) = .False.
   enddo
 
-  found_duplicates = .False.
-  i=0
-  j=0
-  do while (i<N_det-1)
-    i = max(i+1,j)
+  do i=1,N_det-1
     if (duplicate(i)) then
-      found_duplicates = .True.
       cycle
     endif
     j = i+1
@@ -242,6 +237,14 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
         exit
       endif
     enddo
+  enddo
+
+  found_duplicates = .False.
+  do i=1,N_det
+    if (duplicate(i)) then
+      found_duplicates = .True.
+      exit
+    endif
   enddo
 
   if (found_duplicates) then
@@ -302,7 +305,6 @@ subroutine fill_H_apply_buffer_no_selection(n_selected,det_buffer,Nint,iproc)
   enddo
   call omp_unset_lock(H_apply_buffer_lock(1,iproc))
 end
-
 
 subroutine push_pt2(zmq_socket_push,pt2,norm_pert,H_pert_diag,i_generator,N_st,task_id)
   use f77_zmq

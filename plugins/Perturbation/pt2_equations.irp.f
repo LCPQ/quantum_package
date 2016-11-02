@@ -45,6 +45,37 @@ subroutine pt2_epstein_nesbet ($arguments)
   
 end
 
+
+subroutine pt2_decontracted ($arguments)
+  use bitmasks
+  implicit none
+  $declarations
+  
+  BEGIN_DOC
+  END_DOC
+  
+  integer                        :: i,j
+  double precision               :: diag_H_mat_elem_fock, h
+  double precision               :: i_H_psi_array(N_st)
+  double precision               :: coef_pert
+  PROVIDE  selection_criterion
+
+  ASSERT (Nint == N_int)
+  ASSERT (Nint > 0)
+  !call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
+  call i_H_psi_pert_new_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array,coef_pert)
+  H_pert_diag = 0.d0
+  
+  
+  c_pert(1) = coef_pert
+  e_2_pert(1) = coef_pert * i_H_psi_array(1)
+! print*,coef_pert,i_H_psi_array(1)
+  
+end
+
+
+
+
 subroutine pt2_epstein_nesbet_2x2 ($arguments)
   use bitmasks
   implicit none
@@ -67,13 +98,82 @@ subroutine pt2_epstein_nesbet_2x2 ($arguments)
   ASSERT (Nint == N_int)
   ASSERT (Nint > 0)
 
-  !call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
-  call i_H_psi_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
+   call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
+  !call i_H_psi_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
   
   h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
   do i =1,N_st
     if (i_H_psi_array(i) /= 0.d0) then
       delta_e = h - electronic_energy(i)
+      if (delta_e > 0.d0) then
+        e_2_pert(i) = 0.5d0 * (delta_e - dsqrt(delta_e * delta_e + 4.d0 * i_H_psi_array(i) * i_H_psi_array(i)))
+      else
+        e_2_pert(i) = 0.5d0 * (delta_e + dsqrt(delta_e * delta_e + 4.d0 * i_H_psi_array(i) * i_H_psi_array(i)))
+      endif
+      if (dabs(i_H_psi_array(i)) > 1.d-6) then
+        c_pert(i) = e_2_pert(i)/i_H_psi_array(i)
+      else
+        c_pert(i) = 0.d0
+      endif
+      H_pert_diag(i) = h*c_pert(i)*c_pert(i)
+!     print*, 'N_det,N_det_selectors = ',N_det,N_det_selectors
+!     print*, 'threshold_selectors',threshold_selectors
+!     print*, delta_e,i_H_psi_array(1)
+!     double precision :: hij,accu
+!     accu = 0.d0
+!     do j = 1, N_det
+!       call i_H_j(det_pert,psi_selectors(1,1,j),N_int,hij)
+!       print*, 'psi_selectors_coef(j,1 = ',psi_selectors_coef(j,1),psi_coef(j,1)
+!       call debug_det(psi_det(1,1,i),N_int)
+!       call debug_det(psi_selectors(1,1,i),N_int)
+!       accu += psi_selectors_coef(j,1) * hij
+!     enddo
+!     print*, 'accu,ihpsi0',accu,i_H_psi_array(1)
+!     stop
+    else
+      e_2_pert(i) = 0.d0
+      c_pert(i) = 0.d0
+      H_pert_diag(i) = 0.d0
+    endif
+  enddo
+! if( e_2_pert(1) .ne. 0.d0)then
+! print*,' e_2_pert(1) ', e_2_pert(1)
+! endif
+
+end
+
+
+
+subroutine pt2_epstein_nesbet_2x2_no_ci_diag($arguments)
+  use bitmasks
+  implicit none
+  $declarations
+  
+  BEGIN_DOC
+  ! compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
+  !
+  ! for the various N_st states.
+  !
+  ! e_2_pert(i) = 0.5 * (( <det_pert|H|det_pert> -  E(i) )  - sqrt( ( <det_pert|H|det_pert> -  E(i)) ^2 + 4 <psi(i)|H|det_pert>^2  )
+  !
+  ! c_pert(i) = e_2_pert(i)/ <psi(i)|H|det_pert>
+  !
+  END_DOC
+  
+  integer                        :: i,j
+  double precision               :: diag_H_mat_elem_fock,delta_e, h
+  double precision               :: i_H_psi_array(N_st)
+  ASSERT (Nint == N_int)
+  ASSERT (Nint > 0)
+  PROVIDE psi_energy
+
+   call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
+  !call i_H_psi_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
+  
+  h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
+  do i =1,N_st
+    if (i_H_psi_array(i) /= 0.d0) then
+      delta_e = h - psi_energy(i)
       if (delta_e > 0.d0) then
         e_2_pert(i) = 0.5d0 * (delta_e - dsqrt(delta_e * delta_e + 4.d0 * i_H_psi_array(i) * i_H_psi_array(i)))
       else
@@ -93,6 +193,8 @@ subroutine pt2_epstein_nesbet_2x2 ($arguments)
   enddo
 
 end
+
+
 
 subroutine pt2_moller_plesset ($arguments)
   use bitmasks
@@ -144,6 +246,11 @@ subroutine pt2_moller_plesset ($arguments)
   endif
   do i =1,N_st
     H_pert_diag(i) = h
+!   if(dabs(i_H_psi_array(i)).gt.1.d-8)then
+!   print*, i_H_psi_array(i)
+!    call debug_det(det_pert,N_int)
+!    print*, h1,p1,h2,p2,s1,s2
+!   endif
     c_pert(i) = i_H_psi_array(i) *delta_e
     e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
   enddo

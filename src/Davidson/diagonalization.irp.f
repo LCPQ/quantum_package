@@ -324,7 +324,16 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
   double precision               :: cpu, wall
   include 'constants.include.F'
   
+
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: U, W, R, y, h, lambda
+
+  if(store_full_H_mat) then
+   stop  'TODO : put S^2 in stor_full_H_mat'
+  endif
+
+  if(store_full_H_mat.and.sze.le.n_det_max_stored)then
+   provide H_matrix_all_dets
+  endif
 
   PROVIDE nuclear_repulsion
 
@@ -418,6 +427,13 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
       ! -----------------------------------------
       
       call H_u_0_nstates(W(1,1,iter),U(1,1,iter),H_jj,sze,dets_in,Nint,N_st_diag,sze_8)
+!      do k=1,N_st
+!          if(store_full_H_mat.and.sze.le.n_det_max_stored)then
+!           call H_u_0_stored(W(1,k,iter),U(1,k,iter),H_matrix_all_dets,sze)
+!          else
+!           call H_u_0(W(1,k,iter),U(1,k,iter),H_jj,sze,dets_in,Nint)
+!          endif
+!      enddo
       
       
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>

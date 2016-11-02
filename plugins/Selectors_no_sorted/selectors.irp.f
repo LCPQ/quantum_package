@@ -40,6 +40,7 @@ END_PROVIDER
   do k=1,N_states
     do i=1,N_det_selectors
       psi_selectors_coef(i,k) = psi_coef(i,k)
+!     print*, 'psi_selectors_coef(i,k) == ',psi_selectors_coef(i,k)
     enddo
   enddo
 END_PROVIDER
