@@ -20,7 +20,7 @@ BEGIN_PROVIDER [ integer, N_det_selectors]
     do i=1,N_det
       norm = norm + psi_average_norm_contrib_sorted(i)
       if (norm > threshold_selectors) then
-        N_det_selectors = i-1
+        N_det_selectors = i
         exit
       endif
     enddo

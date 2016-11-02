@@ -12,6 +12,6 @@ source $QP_ROOT/tests/bats/common.bats.sh
   qp_set_mo_class $INPUT -core "[1]" -inact "[2,5]" -act "[3,4,6,7]" -virt "[8-24]" 
   qp_run cas_sd_selected $INPUT  
   energy="$(ezfio get cas_sd energy)"
-  eq $energy -76.22213389282479 1.E-5
+  eq $energy -76.2221842108163 1.E-5
 }
 

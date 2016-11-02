@@ -102,6 +102,11 @@ END_PROVIDER
  conversion_factor_gauss_hcc(3) = 619.9027742370165d0
  conversion_factor_cm_1_hcc(3) = 579.4924475562677d0
 
+ ! boron 
+ conversion_factor_mhz_hcc(5) = 1434.3655101868d0
+ conversion_factor_gauss_hcc(5) = 511.817264334d0   
+ conversion_factor_cm_1_hcc(5) = 478.4528336953d0     
+
  ! carbon
  conversion_factor_mhz_hcc(6) = 1124.18303629792945d0
  conversion_factor_gauss_hcc(6) = 401.136570647523058d0
@@ -116,6 +121,11 @@ END_PROVIDER
  conversion_factor_mhz_hcc(8) = -606.1958551736545d0
  conversion_factor_gauss_hcc(8) = -216.30574771560407d0
  conversion_factor_cm_1_hcc(8) = -202.20517197179822d0
+
+ ! Phosphore
+ conversion_factor_mhz_hcc(15) = 1811.0967763744873d0
+ conversion_factor_gauss_hcc(15) = 646.2445276897648d0
+ conversion_factor_cm_1_hcc(15) = 604.1170297381395d0
  
 END_PROVIDER 
 
@@ -141,7 +151,7 @@ subroutine print_hcc
  integer :: i,j
  print*,'Z               AU           GAUSS              MHZ             cm^-1'
  do i = 1, nucl_num
-  write(*,'(I2,X,F3.1,X,4(F16.6,X))')i,nucl_charge(i),spin_density_at_nucleous(i),iso_hcc_gauss(i),iso_hcc_mhz(i),iso_hcc_cm_1(i)
+  write(*,'(I2,X,F4.1,X,4(F16.6,X))')i,nucl_charge(i),spin_density_at_nucleous(i),iso_hcc_gauss(i),iso_hcc_mhz(i),iso_hcc_cm_1(i)
  enddo
 
 end

@@ -1,8 +1,13 @@
 program foboscf
  implicit none
- call run_prepare
+!if(disk_access_ao_integrals == "None" .or. disk_access_ao_integrals == "Read" )then
+! disk_access_ao_integrals = "Write"
+! touch disk_access_ao_integrals
+!endif
+!print*, 'disk_access_ao_integrals',disk_access_ao_integrals
  no_oa_or_av_opt = .True.
  touch no_oa_or_av_opt
+ call run_prepare
  call routine_fobo_scf
  call save_mos
 
@@ -10,8 +15,8 @@ end
 
 subroutine run_prepare
  implicit none
-  no_oa_or_av_opt = .False.
-  touch no_oa_or_av_opt
+! no_oa_or_av_opt = .False.
+! touch no_oa_or_av_opt
   call damping_SCF
   call diag_inactive_virt_and_update_mos
 end
@@ -27,6 +32,7 @@ subroutine routine_fobo_scf
   print*,'*******************************************************************************'
   print*,'*******************************************************************************'
   print*,'FOBO-SCF Iteration ',i
+  print*, 'ao_bielec_integrals_in_map = ',ao_bielec_integrals_in_map
   print*,'*******************************************************************************'
   print*,'*******************************************************************************'
   if(speed_up_convergence_foboscf)then
@@ -46,7 +52,7 @@ subroutine routine_fobo_scf
     soft_touch threshold_lmct threshold_mlct
    endif
   endif
-  call FOBOCI_lmct_mlct_old_thr
+  call FOBOCI_lmct_mlct_old_thr(i)
   call save_osoci_natural_mos
   call damping_SCF
   call diag_inactive_virt_and_update_mos
