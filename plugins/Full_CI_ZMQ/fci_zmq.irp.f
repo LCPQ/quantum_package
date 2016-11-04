@@ -84,8 +84,8 @@ program fci_zmq
 
   if(do_pt2_end)then
     print*,'Last iteration only to compute the PT2'
-    threshold_selectors = 1.d0
-    threshold_generators = 0.9999d0
+    threshold_selectors = threshold_selectors_pt2
+    threshold_generators = threshold_generators_pt2
     TOUCH threshold_selectors threshold_generators
     E_CI_before(1:N_states) = CI_energy(1:N_states)
     call ZMQ_selection(0, pt2)

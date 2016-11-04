@@ -76,27 +76,6 @@ subroutine occ_pattern_to_dets(o,d,sze,n_alpha,Nint)
     enddo
   enddo
 
-!  !TODO DEBUG
-!  integer :: j,s
-!  do i=1,nd
-!    do j=1,i-1
-!      na=0
-!      do k=1,Nint
-!        if((d(k,1,j) /= d(k,1,i)).or. &
-!           (d(k,2,j) /= d(k,2,i))) then
-!          s=1
-!          exit
-!        endif
-!      enddo
-!      if ( j== 0 ) then
-!        print *,  'det ',i,' and ',j,' equal:'
-!        call debug_det(d(1,1,j),Nint)
-!        call debug_det(d(1,1,i),Nint)
-!        stop
-!      endif
-!    enddo
-!  enddo
-!  !TODO DEBUG
 end
 
 recursive subroutine  rec_occ_pattern_to_dets(list_todo,nt,list_a,na,d,nd,sze,amax,Nint)
