@@ -415,7 +415,7 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
    i_hole =  list_inact_reverse(h1)
    i_part =  list_virt_reverse(p1)
    do i_state = 1, N_states
-!    delta_e_act(i_state) += one_anhil_one_creat_inact_virt(i_hole,i_part,i_state) 
+     delta_e_act(i_state) += one_anhil_one_creat_inact_virt(i_hole,i_part,i_state) 
    enddo
   endif
  else if (n_holes_act .ge. 2 .and. n_particles_act .ge.2) then

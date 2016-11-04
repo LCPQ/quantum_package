@@ -207,19 +207,6 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_s
       ! -------------------------------------------
 
 
-!      do l=1,N_st_diag
-!        do k=1,N_st_diag
-!          do iter2=1,iter-1
-!            h(k,iter2,l,iter) = u_dot_v(U(1,k,iter2),W(1,l,iter),sze)
-!            h(k,iter,l,iter2) = h(k,iter2,l,iter)
-!          enddo
-!        enddo
-!        do k=1,l
-!          h(k,iter,l,iter) = u_dot_v(U(1,k,iter),W(1,l,iter),sze)
-!          h(l,iter,k,iter) = h(k,iter,l,iter)
-!        enddo
-!      enddo
-
       call dgemm('T','N', N_st_diag*iter, N_st_diag, sze,            &
           1.d0, U, size(U,1), W(1,1,iter), size(W,1),                &
           0.d0, h(1,1,1,iter), size(h,1)*size(h,2))
@@ -788,13 +775,13 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
       ! -------------------------------------------
 
 
-      call dgemm('T','N', shift2, N_st_diag, sze,            &
-          1.d0, U, size(U,1), W(1,shift+1), size(W,1),                &
-          0.d0, h(1,shift+1), size(h,1))
+      call dgemm('T','N', shift2, shift2, sze,            &
+          1.d0, U, size(U,1), W, size(W,1),                &
+          0.d0, h, size(h,1))
 
-      call dgemm('T','N', shift2, N_st_diag, sze,            &
-          1.d0, U, size(U,1), S(1,shift+1), size(S,1),                &
-          0.d0, s_(1,shift+1), size(s_,1))
+      call dgemm('T','N', shift2, shift2, sze,            &
+          1.d0, U, size(U,1), S, size(S,1),                &
+          0.d0, s_, size(s_,1))
 
       ! Diagonalize h
       ! -------------
