@@ -422,7 +422,7 @@ class H_apply(object):
       if (s2_eig) then
         call make_s2_eigenfunction
       endif
-!      SOFT_TOUCH psi_det psi_coef N_det
+      SOFT_TOUCH psi_det psi_coef N_det
       selection_criterion_min = min(selection_criterion_min, maxval(select_max))*0.1d0
       selection_criterion = selection_criterion_min
       call write_double(output_determinants,selection_criterion,'Selection criterion')

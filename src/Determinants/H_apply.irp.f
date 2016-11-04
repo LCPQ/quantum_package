@@ -248,7 +248,6 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
   enddo
 
   if (found_duplicates) then
-    call write_bool(output_determinants,found_duplicates,'Found duplicate determinants')
     k=0
     do i=1,N_det
       if (.not.duplicate(i)) then
@@ -258,7 +257,8 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
       endif
     enddo
     N_det = k
-    TOUCH N_det psi_det psi_coef
+    call write_bool(output_determinants,found_duplicates,'Found duplicate determinants')
+    SOFT_TOUCH N_det psi_det psi_coef
   endif
   deallocate (duplicate,bit_tmp)
 end

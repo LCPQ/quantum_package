@@ -213,9 +213,12 @@ subroutine make_s2_eigenfunction
   integer                        :: i,j,k
   integer                        :: smax, s
   integer(bit_kind), allocatable :: d(:,:,:), det_buffer(:,:,:)
-  integer                        :: N_det_new, iproc
+  integer                        :: N_det_new
   integer, parameter             :: bufsze = 1000
   logical, external              :: is_in_wavefunction
+
+  return
+  stop 'make_s2_eigenfunction has a bug. It should not be used!!!'
 
   allocate (d(N_int,2,1), det_buffer(N_int,2,bufsze) )
   smax = 1
@@ -248,13 +251,13 @@ subroutine make_s2_eigenfunction
   if (N_det_new > 0) then
     call fill_H_apply_buffer_no_selection(N_det_new,det_buffer,N_int,0)
 !   call fill_H_apply_buffer_no_selection_first_order_coef(N_det_new,det_buffer,N_int,0)
-    call copy_H_apply_buffer_to_wf
-    SOFT_TOUCH N_det psi_coef psi_det
   endif
 
   deallocate(d,det_buffer)
 
-   call write_int(output_determinants,N_det_new, 'Added determinants for S^2')
+  call copy_H_apply_buffer_to_wf
+  SOFT_TOUCH N_det psi_coef psi_det
+  print *,  'Added determinants for S^2'
 
 end
 
