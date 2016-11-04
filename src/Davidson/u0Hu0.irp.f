@@ -209,7 +209,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   
   integer, external              :: align_double
   integer :: blockb, blockb2, istep
-  double precision :: ave_workload, workload
+  double precision :: ave_workload, workload, target_workload_inv
   
   integer(ZMQ_PTR) :: handler
   
@@ -250,6 +250,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
     end do
   enddo
   ave_workload = ave_workload/dble(shortcut(0,1))
+  target_workload_inv = 0.001d0/ave_workload
 
 
   do sh=1,shortcut(0,1),1
@@ -259,7 +260,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
         workload += (shortcut(j+1,2) - shortcut(j, 2))**2
       end do
     end do
-    istep = 1+ int(0.5d0*workload/ave_workload)
+    istep = 1+ int(workload*target_workload_inv)
     do blockb2=0, istep-1
       call davidson_add_task(handler, sh, blockb2, istep)
     enddo
