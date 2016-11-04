@@ -320,10 +320,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       
     enddo
 
-    if (.not.converged) then
-      iter = itermax-1
-    endif
-    
     ! Re-contract to u_in
     ! -----------
     
@@ -331,7 +327,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       energies(k) = lambda(k)
     enddo
 
-    call dgemm('N','N', sze, N_st_diag, N_st_diag*iter, 1.d0,      &
+    call dgemm('N','N', sze, N_st_diag, shift2, 1.d0,      &
         U, size(U,1), y, size(y,1), 0.d0, u_in, size(u_in,1))
 
   enddo
