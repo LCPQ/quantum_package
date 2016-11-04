@@ -35,7 +35,7 @@ subroutine occ_pattern_to_dets_size(o,sze,n_alpha,Nint)
     bmax += popcnt( o(k,1) )
     amax -= popcnt( o(k,2) )
   enddo
-  sze = int( min(binom_func(bmax, amax), 1.d8) )
+  sze = 2*int( min(binom_func(bmax, amax), 1.d8) )
 
 end
 
@@ -205,26 +205,7 @@ end
  enddo
 
  deallocate(iorder,duplicate,bit_tmp,tmp_array)
-! !TODO DEBUG
-! integer :: s
-! do i=1,N_occ_pattern
-!   do j=i+1,N_occ_pattern
-!    s = 0
-!    do k=1,N_int
-!      if((psi_occ_pattern(k,1,j) /= psi_occ_pattern(k,1,i)).or. &
-!         (psi_occ_pattern(k,2,j) /= psi_occ_pattern(k,2,i))) then
-!         s=1
-!         exit
-!      endif
-!    enddo
-!    if ( s == 0 ) then
-!      print *,  'Error : occ ', j, 'already in wf'
-!      call debug_det(psi_occ_pattern(1,1,j),N_int)
-!      stop
-!    endif
-!   enddo
-! enddo
-! !TODO DEBUG
+
 END_PROVIDER 
 
 subroutine make_s2_eigenfunction
@@ -232,7 +213,7 @@ subroutine make_s2_eigenfunction
   integer                        :: i,j,k
   integer                        :: smax, s
   integer(bit_kind), allocatable :: d(:,:,:), det_buffer(:,:,:)
-  integer                        :: N_det_new
+  integer                        :: N_det_new, iproc
   integer, parameter             :: bufsze = 1000
   logical, external              :: is_in_wavefunction
 

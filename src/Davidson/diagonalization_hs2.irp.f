@@ -229,13 +229,14 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
       ! -------------------------------------------
 
-      call dgemm('T','N', shift2, N_st_diag, sze,                    &
-          1.d0, U, size(U,1), W(1,shift+1), size(W,1),               &
-          0.d0, h(1,shift+1), size(h,1))
+      call dgemm('T','N', shift2, shift2, sze,                       &
+          1.d0, U(1,1), size(U,1), W(1,1), size(W,1),                &
+          0.d0, h(1,1), size(h,1))
+      
+      call dgemm('T','N', shift2, shift2, sze,                       &
+          1.d0, U(1,1), size(U,1), S(1,1), size(S,1),                &
+          0.d0, s_(1,1), size(s_,1))
 
-      call dgemm('T','N', shift2, N_st_diag, sze,                    &
-          1.d0, U, size(U,1), S(1,shift+1), size(S,1),               &
-          0.d0, s_(1,shift+1), size(s_,1))
 
       ! Diagonalize h
       ! -------------
