@@ -6,8 +6,20 @@ double precision function integral8(i,j,k,l)
   
   integer, intent(in) :: i,j,k,l
   double precision, external :: get_mo_bielec_integral
-  
-  integral8 = get_mo_bielec_integral(i,j,k,l,mo_integrals_map)
+  integer :: ii
+  ii = l-mo_integrals_cache_min
+  ii = ior(ii, k-mo_integrals_cache_min)
+  ii = ior(ii, j-mo_integrals_cache_min)
+  ii = ior(ii, i-mo_integrals_cache_min)
+  if (iand(ii, -64) /= 0) then
+    integral8 = get_mo_bielec_integral(i,j,k,l,mo_integrals_map)
+  else
+    ii = l-mo_integrals_cache_min
+    ii = ior( ishft(ii,6), k-mo_integrals_cache_min)
+    ii = ior( ishft(ii,6), j-mo_integrals_cache_min)
+    ii = ior( ishft(ii,6), i-mo_integrals_cache_min)
+    integral8 = mo_integrals_cache(ii)
+  endif
 end function
 
 
@@ -179,7 +191,7 @@ subroutine fill_buffer_single(i_generator, sp, h1, bannedOrb, fock_diag_tmp, E0,
   logical :: ok
   integer :: s1, s2, p1, p2, ib, istate
   integer(bit_kind) :: mask(N_int, 2), det(N_int, 2)
-  double precision :: e_pert, delta_E, val, Hii, max_e_pert
+  double precision :: e_pert, delta_E, val, Hii, max_e_pert, tmp
   double precision, external :: diag_H_mat_elem_fock
   
   
@@ -195,13 +207,13 @@ subroutine fill_buffer_single(i_generator, sp, h1, bannedOrb, fock_diag_tmp, E0,
     max_e_pert = 0d0
     
     do istate=1,N_states
-      val = vect(istate, p1)
+      val = vect(istate, p1) + vect(istate, p1)
       delta_E = E0(istate) - Hii
+      tmp = dsqrt(delta_E * delta_E + val * val)
       if (delta_E < 0.d0) then
-        e_pert = 0.5d0 * (-dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
-      else
-        e_pert = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
+        tmp = -tmp
       endif
+      e_pert = 0.5d0 * ( tmp - delta_E)
       pt2(istate) += e_pert
       if(dabs(e_pert) > dabs(max_e_pert)) max_e_pert = e_pert
     end do
@@ -632,7 +644,7 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
   logical :: ok
   integer :: s1, s2, p1, p2, ib, j, istate
   integer(bit_kind) :: mask(N_int, 2), det(N_int, 2)
-  double precision :: e_pert, delta_E, val, Hii, max_e_pert
+  double precision :: e_pert, delta_E, val, Hii, max_e_pert,tmp
   double precision, external :: diag_H_mat_elem_fock
   
   logical, external :: detEq
@@ -664,14 +676,14 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
       
       do istate=1,N_states
         delta_E = E0(istate) - Hii
-        val = mat(istate, p1, p2)
+        val = mat(istate, p1, p2) + mat(istate, p1, p2) 
+        tmp = dsqrt(delta_E * delta_E + val * val)
         if (delta_E < 0.d0) then
-          e_pert = 0.5d0 * (-dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
-        else
-          e_pert = 0.5d0 * ( dsqrt(delta_E * delta_E + 4.d0 * val * val) - delta_E)
+          tmp = -tmp
         endif
-        pt2(istate) += e_pert
-        if(dabs(e_pert) > dabs(max_e_pert)) max_e_pert = e_pert
+        e_pert = 0.5d0 * ( tmp - delta_E)
+        pt2(istate) = pt2(istate) + e_pert
+        max_e_pert = min(e_pert,max_e_pert)
       end do
       
       if(dabs(max_e_pert) > buf%mini) then
