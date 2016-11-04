@@ -643,13 +643,12 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
   integer                        :: i,j,k,l,m
   logical                        :: converged
   
-  double precision, allocatable  :: overlap(:,:)
   double precision               :: u_dot_v, u_dot_u
   
   integer                        :: k_pairs, kl
   
   integer                        :: iter2
-  double precision, allocatable  :: W(:,:),  U(:,:), R(:,:), S(:,:)
+  double precision, allocatable  :: W(:,:),  U(:,:), S(:,:)
   double precision, allocatable  :: y(:,:), h(:,:), lambda(:), s2(:)
   double precision, allocatable  :: c(:), s_(:,:), s_tmp(:,:)
   double precision               :: diag_h_mat_elem
@@ -660,7 +659,7 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
   integer                        :: shift, shift2, itermax
   include 'constants.include.F'
   
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: U, W, R, S, y, h, lambda
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: U, W, S, y, h, lambda
   if (N_st_diag > sze) then
      stop 'error in Davidson : N_st_diag > sze'
   endif
@@ -905,8 +904,8 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
 
   deallocate (                                                       &
       W, residual_norm,                                              &
-      U, overlap,                                                    &
-      R, c, S,                                                       &
+      U,                                                             &
+      c, S,                                                       &
       h,                                                             &
       y, s_, s_tmp,                                                  &
       lambda                                                         &

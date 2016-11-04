@@ -152,7 +152,7 @@ BEGIN_PROVIDER [ double precision, ao_integrals_cache, (0:64*64*64*64) ]
 END_PROVIDER
 
 
-double precision function get_ao_bielec_integral(i,j,k,l,map)
+double precision function get_ao_bielec_integral(i,j,k,l,map) result(result)
   use map_module
   implicit none
   BEGIN_DOC
@@ -179,15 +179,16 @@ double precision function get_ao_bielec_integral(i,j,k,l,map)
       call bielec_integrals_index(i,j,k,l,idx)
       !DIR$ FORCEINLINE
       call map_get(map,idx,tmp)
-      get_ao_bielec_integral = dble(tmp)
+      tmp = tmp
     else
       ii = l-ao_integrals_cache_min
       ii = ior( ishft(ii,6), k-ao_integrals_cache_min)
       ii = ior( ishft(ii,6), j-ao_integrals_cache_min)
       ii = ior( ishft(ii,6), i-ao_integrals_cache_min)
-      get_ao_bielec_integral = ao_integrals_cache(ii)
+      tmp = ao_integrals_cache(ii)
     endif
   endif
+  result = tmp
 end
 
 
@@ -676,6 +677,7 @@ integer function load_$ao_integrals(filename)
   real(integral_kind), pointer   :: val(:)
   integer                        :: iknd, kknd
   integer*8                      :: n, j
+  double precision               :: get_$ao_bielec_integral
   load_$ao_integrals = 1
   open(unit=66,file=filename,FORM='unformatted',STATUS='UNKNOWN')
   read(66,err=98,end=98) iknd, kknd

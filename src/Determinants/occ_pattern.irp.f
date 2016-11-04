@@ -35,7 +35,7 @@ subroutine occ_pattern_to_dets_size(o,sze,n_alpha,Nint)
     bmax += popcnt( o(k,1) )
     amax -= popcnt( o(k,2) )
   enddo
-  sze = int( min(binom_func(bmax, amax), 1.d8) )
+  sze = 2*int( min(binom_func(bmax, amax), 1.d8) )
 
 end
 
@@ -76,27 +76,6 @@ subroutine occ_pattern_to_dets(o,d,sze,n_alpha,Nint)
     enddo
   enddo
 
-!  !TODO DEBUG
-!  integer :: j,s
-!  do i=1,nd
-!    do j=1,i-1
-!      na=0
-!      do k=1,Nint
-!        if((d(k,1,j) /= d(k,1,i)).or. &
-!           (d(k,2,j) /= d(k,2,i))) then
-!          s=1
-!          exit
-!        endif
-!      enddo
-!      if ( j== 0 ) then
-!        print *,  'det ',i,' and ',j,' equal:'
-!        call debug_det(d(1,1,j),Nint)
-!        call debug_det(d(1,1,i),Nint)
-!        stop
-!      endif
-!    enddo
-!  enddo
-!  !TODO DEBUG
 end
 
 recursive subroutine  rec_occ_pattern_to_dets(list_todo,nt,list_a,na,d,nd,sze,amax,Nint)
@@ -226,26 +205,7 @@ end
  enddo
 
  deallocate(iorder,duplicate,bit_tmp,tmp_array)
-! !TODO DEBUG
-! integer :: s
-! do i=1,N_occ_pattern
-!   do j=i+1,N_occ_pattern
-!    s = 0
-!    do k=1,N_int
-!      if((psi_occ_pattern(k,1,j) /= psi_occ_pattern(k,1,i)).or. &
-!         (psi_occ_pattern(k,2,j) /= psi_occ_pattern(k,2,i))) then
-!         s=1
-!         exit
-!      endif
-!    enddo
-!    if ( s == 0 ) then
-!      print *,  'Error : occ ', j, 'already in wf'
-!      call debug_det(psi_occ_pattern(1,1,j),N_int)
-!      stop
-!    endif
-!   enddo
-! enddo
-! !TODO DEBUG
+
 END_PROVIDER 
 
 subroutine make_s2_eigenfunction
@@ -253,7 +213,7 @@ subroutine make_s2_eigenfunction
   integer                        :: i,j,k
   integer                        :: smax, s
   integer(bit_kind), allocatable :: d(:,:,:), det_buffer(:,:,:)
-  integer                        :: N_det_new
+  integer                        :: N_det_new, iproc
   integer, parameter             :: bufsze = 1000
   logical, external              :: is_in_wavefunction
 
