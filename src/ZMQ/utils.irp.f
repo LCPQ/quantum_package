@@ -46,31 +46,39 @@ END_PROVIDER
 &BEGIN_PROVIDER [ character*(128), zmq_socket_push_tcp_address    ]
 &BEGIN_PROVIDER [ character*(128), zmq_socket_pull_inproc_address ]
 &BEGIN_PROVIDER [ character*(128), zmq_socket_push_inproc_address ]
+&BEGIN_PROVIDER [ character*(128), zmq_socket_sub_tcp_address ]
   use f77_zmq
   implicit none
   BEGIN_DOC
   ! Socket which pulls the results (2)
   END_DOC
-
   character*(8), external        :: zmq_port
-  zmq_socket_pull_tcp_address    = 'tcp://*:'//zmq_port(1)//' '
-  zmq_socket_push_tcp_address    = trim(qp_run_address)//':'//zmq_port(1)//' '
-  zmq_socket_pull_inproc_address = 'inproc://'//zmq_port(1)//' '
+
+  zmq_socket_sub_tcp_address     = trim(qp_run_address)//':'//zmq_port(1)//' '
+  zmq_socket_pull_tcp_address    = 'tcp://*:'//zmq_port(2)//' '
+  zmq_socket_push_tcp_address    = trim(qp_run_address)//':'//zmq_port(2)//' '
+  zmq_socket_pull_inproc_address = 'inproc://'//zmq_port(2)//' '
   zmq_socket_push_inproc_address = zmq_socket_pull_inproc_address
-  zmq_socket_pair_inproc_address = 'inproc://'//zmq_port(2)//' '
+  zmq_socket_pair_inproc_address = 'inproc://'//zmq_port(3)//' '
+
+  ! /!\ Don't forget to change subroutine reset_zmq_addresses
 END_PROVIDER
 
 subroutine reset_zmq_addresses
   use f77_zmq
   implicit none
+  BEGIN_DOC
+  ! Socket which pulls the results (2)
+  END_DOC
   character*(8), external        :: zmq_port
-  
-  zmq_socket_pull_tcp_address    = 'tcp://*:'//zmq_port(1)//' '
-  zmq_socket_push_tcp_address    = trim(qp_run_address)//':'//zmq_port(1)//' '
-  zmq_socket_pull_inproc_address = 'inproc://'//zmq_port(1)//' '
+
+  zmq_socket_sub_tcp_address     = trim(qp_run_address)//':'//zmq_port(1)//' '
+  zmq_socket_pull_tcp_address    = 'tcp://*:'//zmq_port(2)//' '
+  zmq_socket_push_tcp_address    = trim(qp_run_address)//':'//zmq_port(2)//' '
+  zmq_socket_pull_inproc_address = 'inproc://'//zmq_port(2)//' '
   zmq_socket_push_inproc_address = zmq_socket_pull_inproc_address
-  zmq_socket_pair_inproc_address = 'inproc://'//zmq_port(2)//' '
-end  
+  zmq_socket_pair_inproc_address = 'inproc://'//zmq_port(3)//' '
+end
 
 
 subroutine switch_qp_run_to_master
@@ -87,6 +95,7 @@ subroutine switch_qp_run_to_master
     stop -1
   endif
   qp_run_address = trim(buffer)
+  print *,  'Switched to qp_run master : ', trim(qp_run_address)
   
   integer                        :: i
   do i=len(buffer),1,-1
@@ -96,7 +105,6 @@ subroutine switch_qp_run_to_master
       exit
     endif
   enddo
-
   call reset_zmq_addresses
 
 end
@@ -126,25 +134,28 @@ function new_zmq_to_qp_run_socket()
   integer(ZMQ_PTR)               :: new_zmq_to_qp_run_socket
   
   call omp_set_lock(zmq_lock)
+  if (zmq_context == 0_ZMQ_PTR) then
+     stop 'zmq_context is uninitialized'
+  endif
   new_zmq_to_qp_run_socket = f77_zmq_socket(zmq_context, ZMQ_REQ)
   call omp_unset_lock(zmq_lock)
   if (new_zmq_to_qp_run_socket == 0_ZMQ_PTR) then
      stop 'Unable to create zmq req socket'
   endif
 
-  rc = f77_zmq_connect(new_zmq_to_qp_run_socket, trim(qp_run_address)//':'//trim(zmq_port(0)))
-  if (rc /= 0) then
-    stop 'Unable to connect new_zmq_to_qp_run_socket'
-  endif
-
   rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_SNDTIMEO, 120000, 4)
   if (rc /= 0) then
-    stop 'Unable to set send timout in new_zmq_to_qp_run_socket'
+    stop 'Unable to set send timeout in new_zmq_to_qp_run_socket'
   endif
 
   rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_RCVTIMEO, 120000, 4)
   if (rc /= 0) then
-    stop 'Unable to set recv timout in new_zmq_to_qp_run_socket'
+    stop 'Unable to set recv timeout in new_zmq_to_qp_run_socket'
+  endif
+
+  rc = f77_zmq_connect(new_zmq_to_qp_run_socket, trim(qp_run_address)//':'//trim(zmq_port(0)))
+  if (rc /= 0) then
+    stop 'Unable to connect new_zmq_to_qp_run_socket'
   endif
 
 end
@@ -162,10 +173,34 @@ function new_zmq_pair_socket(bind)
   integer(ZMQ_PTR)               :: new_zmq_pair_socket
   
   call omp_set_lock(zmq_lock)
+  if (zmq_context == 0_ZMQ_PTR) then
+     stop 'zmq_context is uninitialized'
+  endif
   new_zmq_pair_socket = f77_zmq_socket(zmq_context, ZMQ_PAIR)
   call omp_unset_lock(zmq_lock)
   if (new_zmq_pair_socket == 0_ZMQ_PTR) then
      stop 'Unable to create zmq pair socket'
+  endif
+
+
+  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 1, 4)
+  if (rc /= 0) then
+    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 1, 4)'
+  endif
+
+  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 1, 4)
+  if (rc /= 0) then
+    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 1, 4)'
+  endif
+
+  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_IMMEDIATE, 1, 4)
+  if (rc /= 0) then
+    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_IMMEDIATE, 1, 4)'
+  endif
+
+  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_LINGER, 600000, 4)
+  if (rc /= 0) then
+    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_LINGER, 60000, 4)'
   endif
 
   if (bind) then
@@ -179,26 +214,6 @@ function new_zmq_pair_socket(bind)
     if (rc /= 0) then
       stop 'Unable to connect new_zmq_pair_socket'
     endif
-  endif
-
-  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 0, 4)
-  if (rc /= 0) then
-    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 0, 4)'
-  endif
-
-  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 0, 4)
-  if (rc /= 0) then
-    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 0, 4)'
-  endif
-
-  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_IMMEDIATE, 1, 4)
-  if (rc /= 0) then
-    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_IMMEDIATE, 1, 4)'
-  endif
-
-  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_LINGER, 600000, 4)
-  if (rc /= 0) then
-    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_LINGER, 60000, 4)'
   endif
 
 end
@@ -217,6 +232,9 @@ function new_zmq_pull_socket()
   integer(ZMQ_PTR)               :: new_zmq_pull_socket
   
   call omp_set_lock(zmq_lock)
+  if (zmq_context == 0_ZMQ_PTR) then
+     stop 'zmq_context is uninitialized'
+  endif
   new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_PULL)
 !  new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_REP)
   call omp_unset_lock(zmq_lock)
@@ -229,25 +247,49 @@ function new_zmq_pull_socket()
     stop 'Unable to set ZMQ_LINGER on pull socket'
   endif
   
-  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVHWM,100000,4)
+  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVBUF,100000000,4)
+  if (rc /= 0) then
+    stop 'Unable to set ZMQ_RCVBUF on pull socket'
+  endif
+  
+  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVHWM,1,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_RCVHWM on pull socket'
   endif
   
-  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_IMMEDIATE,1,4)
-  if (rc /= 0) then
-    stop 'Unable to set ZMQ_IMMEDIATE on pull socket'
+  integer :: icount
+
+  icount = 10
+  do while (icount > 0)
+    rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_inproc_address)
+    if (rc /= 0) then
+      icount = icount-1
+      call sleep(3)
+    else
+      exit
+    endif
+  enddo
+
+  if (icount == 0) then
+    print *,  'Unable to bind new_zmq_pull_socket (inproc)', zmq_socket_pull_inproc_address
+    stop -1
   endif
-  
-  rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_tcp_address)
-  if (rc /= 0) then
+
+
+  icount = 10
+  do while (icount > 0)
+    rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_tcp_address)
+    if (rc /= 0) then
+      icount = icount-1
+      call sleep(3)
+    else
+      exit
+    endif
+  enddo
+
+  if (icount == 0) then
     print *,  'Unable to bind new_zmq_pull_socket (tcp)', zmq_socket_pull_tcp_address
-    stop 
-  endif
-  
-  rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_inproc_address)
-  if (rc /= 0) then
-    stop 'Unable to bind new_zmq_pull_socket (inproc)'
+    stop -1
   endif
   
 end
@@ -267,6 +309,9 @@ function new_zmq_push_socket(thread)
   integer(ZMQ_PTR)               :: new_zmq_push_socket
   
   call omp_set_lock(zmq_lock)
+  if (zmq_context == 0_ZMQ_PTR) then
+     stop 'zmq_context is uninitialized'
+  endif
   new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_PUSH)
 !  new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_REQ)
   call omp_unset_lock(zmq_lock)
@@ -279,9 +324,14 @@ function new_zmq_push_socket(thread)
     stop 'Unable to set ZMQ_LINGER on push socket'
   endif
   
-  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDHWM,100,4)
+  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDHWM,1,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_SNDHWM on push socket'
+  endif
+  
+  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDBUF,100000000,4)
+  if (rc /= 0) then
+    stop 'Unable to set ZMQ_RCVBUF on push socket'
   endif
   
   rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_IMMEDIATE,1,4)
@@ -307,6 +357,65 @@ end
 
 
 
+function new_zmq_sub_socket()
+  use f77_zmq
+  implicit none
+  BEGIN_DOC
+  ! Socket to read the state published by the Task server
+  END_DOC
+  integer                        :: rc
+  integer(ZMQ_PTR)               :: new_zmq_sub_socket
+  
+  call omp_set_lock(zmq_lock)
+  if (zmq_context == 0_ZMQ_PTR) then
+     stop 'zmq_context is uninitialized'
+  endif
+  new_zmq_sub_socket = f77_zmq_socket(zmq_context, ZMQ_SUB)
+  call omp_unset_lock(zmq_lock)
+  if (new_zmq_sub_socket == 0_ZMQ_PTR) then
+     stop 'Unable to create zmq sub socket'
+  endif
+  
+  rc = f77_zmq_setsockopt(new_zmq_sub_socket,ZMQ_RCVTIMEO,10000,4)
+  if (rc /= 0) then
+    stop 'Unable to set timeout in new_zmq_sub_socket'
+  endif
+
+  rc = f77_zmq_setsockopt(new_zmq_sub_socket,ZMQ_CONFLATE,1,4)
+  if (rc /= 0) then
+    stop 'Unable to set conflate in new_zmq_sub_socket'
+  endif
+
+  rc = f77_zmq_setsockopt(new_zmq_sub_socket,ZMQ_SUBSCRIBE,"",0)
+  if (rc /= 0) then
+    stop 'Unable to subscribe new_zmq_sub_socket'
+  endif
+
+  rc = f77_zmq_connect(new_zmq_sub_socket, zmq_socket_sub_tcp_address)
+  if (rc /= 0) then
+    stop 'Unable to connect new_zmq_sub_socket'
+  endif
+end
+
+
+subroutine end_zmq_sub_socket(zmq_socket_sub)
+  use f77_zmq
+  implicit none
+  BEGIN_DOC
+  ! Terminate socket on which the results are sent.
+  END_DOC
+  integer(ZMQ_PTR), intent(in)   :: zmq_socket_sub
+  integer                        :: rc
+  
+  rc = f77_zmq_close(zmq_socket_sub)
+  if (rc /= 0) then
+    print *,  'f77_zmq_close(zmq_socket_sub)'
+    stop 'error'
+  endif
+  
+end
+
+
 subroutine end_zmq_pair_socket(zmq_socket_pair)
   use f77_zmq
   implicit none
@@ -317,18 +426,6 @@ subroutine end_zmq_pair_socket(zmq_socket_pair)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
-  rc = f77_zmq_unbind(zmq_socket_pair,zmq_socket_pair_inproc_address)
-!  if (rc /= 0) then
-!    print *,  rc
-!    print *,  irp_here, 'f77_zmq_unbind(zmq_socket_pair,zmq_socket_pair_inproc_address)'
-!    stop 'error'
-!  endif
-  
-  rc = f77_zmq_setsockopt(zmq_socket_pair,ZMQ_LINGER,0,4)
-  if (rc /= 0) then
-    stop 'Unable to set ZMQ_LINGER on zmq_socket_pair'
-  endif
-
   rc = f77_zmq_close(zmq_socket_pair)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_pair)'
@@ -347,25 +444,6 @@ subroutine end_zmq_pull_socket(zmq_socket_pull)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
-  rc = f77_zmq_unbind(zmq_socket_pull,zmq_socket_pull_inproc_address)
-!  if (rc /= 0) then
-!    print *,  rc
-!    print *,  irp_here, 'f77_zmq_unbind(zmq_socket_pull,zmq_socket_pull_inproc_address)'
-!    stop 'error'
-!  endif
-
-  rc = f77_zmq_unbind(zmq_socket_pull,zmq_socket_pull_tcp_address)
-  if (rc /= 0) then
-    print *,  rc
-    print *,  irp_here, 'f77_zmq_unbind(zmq_socket_pull,zmq_socket_pull_tcp_address)'
-    stop 'error'
-  endif
-  
-  rc = f77_zmq_setsockopt(zmq_socket_pull,ZMQ_LINGER,0,4)
-  if (rc /= 0) then
-    stop 'Unable to set ZMQ_LINGER on zmq_socket_pull'
-  endif
-
   rc = f77_zmq_close(zmq_socket_pull)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_pull)'
@@ -386,22 +464,7 @@ subroutine end_zmq_push_socket(zmq_socket_push,thread)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
-  if (thread == 1) then
-    rc = f77_zmq_disconnect(zmq_socket_push,zmq_socket_push_inproc_address)
-!    if (rc /= 0) then
-!      print *,  'f77_zmq_disconnect(zmq_socket_push,zmq_socket_push_inproc_address)'
-!      stop 'error'
-!    endif
-  else
-    rc = f77_zmq_disconnect(zmq_socket_push,zmq_socket_push_tcp_address)
-    if (rc /= 0) then
-      print *,  'f77_zmq_disconnect(zmq_socket_push,zmq_socket_push_tcp_address)'
-      stop 'error'
-    endif
-  endif
-
-  
-  rc = f77_zmq_setsockopt(zmq_socket_push,ZMQ_LINGER,0,4)
+  rc = f77_zmq_setsockopt(zmq_socket_push,ZMQ_LINGER,300000,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_LINGER on push socket'
   endif
@@ -464,6 +527,34 @@ subroutine new_parallel_job(zmq_to_qp_run_socket,name_in)
   
 end
 
+subroutine zmq_set_running(zmq_to_qp_run_socket)
+  use f77_zmq
+  implicit none
+  BEGIN_DOC
+  ! Set the job to Running in QP-run
+  END_DOC
+  
+  integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
+  character*(512)                :: message
+  integer                        :: rc, sze
+
+  message = 'set_running'
+  sze = len(trim(message))
+  rc = f77_zmq_send(zmq_to_qp_run_socket,message,sze,0)
+  if (rc /= sze) then
+    print *,  irp_here, ':f77_zmq_send(zmq_to_qp_run_socket,message,sze,0)'
+    stop 'error'
+  endif
+  rc = f77_zmq_recv(zmq_to_qp_run_socket,message,510,0)
+  message = trim(message(1:rc))
+  if (message(1:2) /= 'ok') then
+    print *,  'Unable to set qp_run to Running'
+    stop 1
+  endif
+  
+  
+end
+
 
 subroutine end_parallel_job(zmq_to_qp_run_socket,name_in)
   use f77_zmq
@@ -513,7 +604,6 @@ subroutine connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   character*(512)                :: message
   character*(128)                :: reply, state, address
   integer                        :: rc
-  
   if (thread == 1) then
     rc = f77_zmq_send(zmq_to_qp_run_socket, "connect inproc", 14, 0)
     if (rc /= 14) then
@@ -530,6 +620,10 @@ subroutine connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
   message = trim(message(1:rc))
+  if(message(1:5) == "error") then
+    worker_id = -1
+    return
+  end if
   read(message,*) reply, state, worker_id, address
   if ( (trim(reply) /= 'connect_reply') .and.                        &
         (trim(state) /= trim(zmq_state)) ) then
@@ -538,7 +632,6 @@ subroutine connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
     print *,  'Address: ', trim(address)
     stop -1
   endif
-  
 end
 
 subroutine disconnect_from_taskserver(zmq_to_qp_run_socket, &
@@ -568,12 +661,16 @@ subroutine disconnect_from_taskserver(zmq_to_qp_run_socket, &
   message = trim(message(1:rc))
   
   read(message,*) reply, state
-  if ( (trim(reply) /= 'disconnect_reply').or.                       &
-        (trim(state) /= zmq_state) ) then
-    print *,  'Unable to disconnect : ', zmq_state
-    print *,  trim(message)
-    stop -1
+  if ((trim(reply) == 'disconnect_reply').and.(trim(state) == trim(zmq_state))) then
+    return
   endif
+  if (trim(message) == 'error No job is running') then
+    return
+  endif
+
+  print *,  'Unable to disconnect : ', trim(zmq_state)
+  print *,  trim(message)
+  stop -1
 
 end
 
@@ -608,7 +705,7 @@ subroutine add_task_to_taskserver(zmq_to_qp_run_socket,task)
   
 end
 
-subroutine task_done_to_taskserver(zmq_to_qp_run_socket,worker_id, task_id)
+subroutine task_done_to_taskserver(zmq_to_qp_run_socket, worker_id, task_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -678,6 +775,9 @@ subroutine get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
   else if (trim(reply) == 'terminate') then
     task_id = 0
     task = 'terminate'
+  else if (trim(message) == 'error No job is running') then
+    task_id = 0
+    task = 'terminate'
   else
     print *,  'Unable to get the next task'
     print *,  trim(message)
@@ -697,13 +797,7 @@ subroutine end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   character*(8), external        :: zmq_port
   integer                        :: rc
 
-  rc = f77_zmq_disconnect(zmq_to_qp_run_socket, trim(qp_run_address)//':'//trim(zmq_port(0)))
-!  if (rc /= 0) then
-!    print *,  'f77_zmq_disconnect(zmq_to_qp_run_socket, trim(qp_run_address)//'':''//trim(zmq_port(0)))'
-!    stop 'error'
-!  endif
-
-  rc = f77_zmq_setsockopt(zmq_to_qp_run_socket,ZMQ_LINGER,0,4)
+  rc = f77_zmq_setsockopt(zmq_to_qp_run_socket,ZMQ_LINGER,1000,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_LINGER on zmq_to_qp_run_socket'
   endif
@@ -756,4 +850,91 @@ subroutine zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
     stop 'error'
   endif
 end
+
+
+subroutine wait_for_next_state(state)
+  use f77_zmq
+  implicit none
+
+  character*(64), intent(out)    :: state
+  integer(ZMQ_PTR)               :: zmq_socket_sub
+  integer(ZMQ_PTR), external     :: new_zmq_sub_socket
+  integer                        :: rc
+
+  zmq_socket_sub       = new_zmq_sub_socket()
+  state = 'Waiting'
+  do while(state == "Waiting")
+    rc = f77_zmq_recv( zmq_socket_sub, state, 64, 0)
+    if (rc > 0) then
+      state = trim(state(1:rc))
+    else
+      print *,  'Timeout reached. Stopping'
+      state = "Stopped"
+    end if 
+  end do
+  call end_zmq_sub_socket(zmq_socket_sub)
+end subroutine
+
+
+subroutine wait_for_state(state_wait,state)
+  use f77_zmq
+  implicit none
+  BEGIN_DOC
+! Wait for the ZMQ state to be ready
+  END_DOC
+  character*(64), intent(in)     :: state_wait
+  character*(64), intent(out)    :: state
+  integer(ZMQ_PTR)               :: zmq_socket_sub
+  integer(ZMQ_PTR), external     :: new_zmq_sub_socket
+  integer                        :: rc
+
+  zmq_socket_sub       = new_zmq_sub_socket()
+  state = 'Waiting'
+  do while (trim(state) /= trim(state_wait) .and. trim(state) /= 'Stopped')
+    rc = f77_zmq_recv( zmq_socket_sub, state, 64, 0)
+    if (rc > 0) then
+      state = trim(state(1:rc))
+    else
+      print *,  'Timeout reached. Stopping'
+      state = "Stopped"
+    endif
+  end do
+  call end_zmq_sub_socket(zmq_socket_sub)
+end
+
+
+
+subroutine wait_for_states(state_wait,state,n)
+  use f77_zmq
+  implicit none
+  BEGIN_DOC
+! Wait for the ZMQ state to be ready
+  END_DOC
+  integer, intent(in)            :: n
+  character*(64), intent(in)     :: state_wait(n)
+  character*(64), intent(out)    :: state
+  integer(ZMQ_PTR)               :: zmq_socket_sub
+  integer(ZMQ_PTR), external     :: new_zmq_sub_socket
+  integer                        :: rc, i
+  logical                        :: condition
+
+  zmq_socket_sub       = new_zmq_sub_socket()
+  state = 'Waiting'
+  condition = .True.
+  do while (condition)
+    rc = f77_zmq_recv( zmq_socket_sub, state, 64, 0)
+    if (rc > 0) then
+      state = trim(state(1:rc))
+    else
+      print *,  'Timeout reached. Stopping'
+      state = "Stopped"
+    endif
+    condition = trim(state) /= 'Stopped'
+    do i=1,n
+      condition = condition .and. (trim(state) /= trim(state_wait(i)))
+    enddo
+  end do
+  call end_zmq_sub_socket(zmq_socket_sub)
+end
+
 

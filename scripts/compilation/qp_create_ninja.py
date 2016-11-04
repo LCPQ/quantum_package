@@ -37,7 +37,7 @@ from qp_path import QP_ROOT, QP_SRC, QP_EZFIO
 
 LIB = "" # join(QP_ROOT, "lib", "rdtsc.o") 
 EZFIO_LIB = join(QP_ROOT, "lib", "libezfio_irp.a") 
-ZMQ_LIB   = join(QP_ROOT, "lib", "libf77zmq.a") + " "  + join(QP_ROOT, "lib", "libzmq.a") + " -lstdc++ -lrt"
+ZMQ_LIB = join(QP_ROOT, "lib", "libf77zmq.a") + " "  + join(QP_ROOT, "lib", "libzmq.a") + " -lstdc++ -lrt"
 ROOT_BUILD_NINJA = join(QP_ROOT, "config", "build.ninja")
 
 header = r"""#
@@ -96,7 +96,8 @@ def ninja_create_env_variable(pwd_config_file):
         l_string.append(str_)
 
     lib_lapack = get_compilation_option(pwd_config_file, "LAPACK_LIB")
-    l_string.append("LIB = {0} {1} {2} {3}".format(LIB, lib_lapack, EZFIO_LIB, ZMQ_LIB))
+    str_lib = " ".join([LIB, lib_lapack, EZFIO_LIB, ZMQ_LIB])
+    l_string.append("LIB = {0} ".format(str_lib))
 
     l_string.append("")
 
@@ -184,7 +185,7 @@ def ninja_ezfio_config_rule():
 
 def get_children_of_ezfio_cfg(l_module_with_ezfio_cfg):
     """
-    From a module list of ezfio_cfg return all the stuff create by him
+    From a module list of ezfio_cfg return all the stuff created by it
     """
     config_folder = join(QP_EZFIO, "config")
 
@@ -387,6 +388,8 @@ def get_l_file_for_module(path_module):
             l_src.append(f)
             obj = '{0}.o'.format(os.path.splitext(f)[0])
             l_obj.append(obj)
+        elif f.lower().endswith(".o"):
+             l_obj.append(join(path_module.abs, f))
         elif f == "EZFIO.cfg":
             l_depend.append(join(path_module.abs, "ezfio_interface.irp.f"))
 
@@ -785,10 +788,18 @@ def create_build_ninja_global():
                  "  command = module_handler.py clean --all",
                  "  description = Cleaning all modules", ""]
 
+    l_string += ["rule make_ocaml",
+                 "  command = make -C {0}/ocaml".format(QP_ROOT),
+                 "  pool = console",
+                 "  description = Compiling OCaml tools",
+                 ""]
+
+
     l_string += ["build dummy_target: update_build_ninja_root",
+                 "build ocaml_target: make_ocaml all",
                  "",
                  "build all: make_all dummy_target",
-                 "default all",
+                 "default ocaml_target",
                  "",
                  "build clean: make_clean dummy_target",
                  "", ]

@@ -9,6 +9,8 @@ sudo: false
 addons:
   apt:
     packages:
+    - zlib1g-dev
+    - libgmp3-dev
     - gfortran
     - gcc
     - liblapack-dev
@@ -24,7 +26,7 @@ python:
 
 script: 
   - ./configure  --production ./config/gfortran.cfg
-  - source ./quantum_package.rc ; qp_module.py install Full_CI Hartree_Fock CAS_SD MRCC_CASSD All_singles
+  - source ./quantum_package.rc ; qp_module.py install Full_CI Full_CI_ZMQ Hartree_Fock CAS_SD mrcepa0 All_singles
   - source ./quantum_package.rc ; ninja
   - source ./quantum_package.rc ; cd ocaml ; make ; cd -
   - source ./quantum_package.rc ; cd tests ; ./run_tests.sh #-v

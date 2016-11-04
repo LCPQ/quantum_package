@@ -11,7 +11,6 @@ subroutine $subroutine($params_main)
   
   integer                        :: i_generator, nmax
   double precision               :: wall_0, wall_1
-  integer(omp_lock_kind)         :: lck
   integer(bit_kind), allocatable :: mask(:,:,:)
   integer                        :: ispin, k
   integer                        :: iproc
@@ -22,8 +21,6 @@ subroutine $subroutine($params_main)
 
   
   nmax = mod( N_det_generators,nproc )
-
-  !$ call omp_init_lock(lck)
 
   call wall_time(wall_0)
 
@@ -129,19 +126,18 @@ subroutine $subroutine($params_main)
         mask(1,1,s_hole ), mask(1,1,s_part ),                        &
         fock_diag_tmp, i_generator, iproc $params_post)
     endif
-    !$ call omp_set_lock(lck)
+    !$OMP CRITICAL
     call wall_time(wall_1)
     $printout_always
     if (wall_1 - wall_0 > 2.d0) then
         $printout_now
         wall_0 = wall_1
     endif
-    !$ call omp_unset_lock(lck)
+    !$OMP END CRITICAL
   enddo
   !$OMP END DO 
   deallocate( mask, fock_diag_tmp )
   !$OMP END PARALLEL
-  !$ call omp_destroy_lock(lck)
 
   $copy_buffer
   $generate_psi_guess

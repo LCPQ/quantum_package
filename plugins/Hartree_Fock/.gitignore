@@ -5,6 +5,7 @@ AO_Basis
 Bitmask
 Electrons
 Ezfio_files
+Huckel_guess
 IRPF90_man
 IRPF90_temp
 Integrals_Bielec
@@ -15,6 +16,7 @@ Makefile
 Makefile.depend
 Nuclei
 Pseudo
+SCF
 Utils
 ZMQ
 ezfio_interface.irp.f

@@ -20,164 +20,153 @@ end
 
 
 BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
-use map_module
+  use map_module
   implicit none
-  integer(bit_kind) :: mask_ijkl(N_int,4)
-  integer(bit_kind) :: mask_ijk(N_int,3)
+  integer(bit_kind)              :: mask_ijkl(N_int,4)
+  integer(bit_kind)              :: mask_ijk(N_int,3)
   
   BEGIN_DOC
   ! If True, the map of MO bielectronic integrals is provided
   END_DOC
-
+  
   mo_bielec_integrals_in_map = .True.
   if (read_mo_integrals) then
-    integer                        :: load_mo_integrals
     print*,'Reading the MO integrals'
-    if (load_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin') == 0) then
-      print*, 'MO integrals provided'
-      return
-    endif
+    call map_load_from_disk(trim(ezfio_filename)//'/work/mo_ints',mo_integrals_map)
+    print*, 'MO integrals provided'
+    return
   endif
   
   if(no_vvvv_integrals)then
-   integer :: i,j,k,l
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I I I I !!!!!!!!!!!!!!!!!!!!
-   ! (core+inact+act) ^ 4
-   ! <ii|ii>
-   print*, ''
-   print*, '<ii|ii>'
-   do i = 1,N_int
-    mask_ijkl(i,1) =  core_inact_act_bitmask_4(i,1)
-    mask_ijkl(i,2) =  core_inact_act_bitmask_4(i,1)
-    mask_ijkl(i,3) =  core_inact_act_bitmask_4(i,1)
-    mask_ijkl(i,4) =  core_inact_act_bitmask_4(i,1)
-   enddo
-   call add_integrals_to_map(mask_ijkl)
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I I V V !!!!!!!!!!!!!!!!!!!!
-   ! (core+inact+act) ^ 2  (virt) ^2
-   ! <iv|iv>  = J_iv
-   print*, ''
-   print*, '<iv|iv>'
-   do i = 1,N_int
-    mask_ijkl(i,1) =  core_inact_act_bitmask_4(i,1)
-    mask_ijkl(i,2) =  virt_bitmask(i,1)
-    mask_ijkl(i,3) =  core_inact_act_bitmask_4(i,1) 
-    mask_ijkl(i,4) =  virt_bitmask(i,1) 
-   enddo
-   call add_integrals_to_map(mask_ijkl)
-
-   ! (core+inact+act) ^ 2  (virt) ^2
-   ! <ii|vv> = (iv|iv)
-   print*, ''
-   print*, '<ii|vv>'
-   do i = 1,N_int
-    mask_ijkl(i,1) = core_inact_act_bitmask_4(i,1) 
-    mask_ijkl(i,2) = core_inact_act_bitmask_4(i,1)  
-    mask_ijkl(i,3) = virt_bitmask(i,1)
-    mask_ijkl(i,4) = virt_bitmask(i,1)
-   enddo
-   call add_integrals_to_map(mask_ijkl)
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! V V V !!!!!!!!!!!!!!!!!!!!!!!
-   if(.not.no_vvv_integrals)then
-   print*, ''
-   print*, '<rv|sv> and <rv|vs>'
-   do i = 1,N_int
-    mask_ijk(i,1) =  virt_bitmask(i,1)
-    mask_ijk(i,2) =  virt_bitmask(i,1)
-    mask_ijk(i,3) =  virt_bitmask(i,1)
-   enddo
-   call add_integrals_to_map_three_indices(mask_ijk)
-   endif
-
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I I I V !!!!!!!!!!!!!!!!!!!!
-   ! (core+inact+act) ^ 3  (virt) ^1
-   ! <iv|ii>
-   print*, ''
-   print*, '<iv|ii>'
-   do i = 1,N_int
-    mask_ijkl(i,1) =  core_inact_act_bitmask_4(i,1)
-    mask_ijkl(i,2) =  core_inact_act_bitmask_4(i,1) 
-    mask_ijkl(i,3) =  core_inact_act_bitmask_4(i,1)
-    mask_ijkl(i,4) =  virt_bitmask(i,1)
-   enddo
-   call add_integrals_to_map(mask_ijkl)
- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I V V V !!!!!!!!!!!!!!!!!!!!
-   ! (core+inact+act) ^ 1  (virt) ^3
-   ! <iv|vv> 
-   if(.not.no_ivvv_integrals)then
+    integer                        :: i,j,k,l
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I I I I !!!!!!!!!!!!!!!!!!!!
+    ! (core+inact+act) ^ 4
+    ! <ii|ii>
     print*, ''
-    print*, '<iv|vv>'
+    print*, '<ii|ii>'
     do i = 1,N_int
-     mask_ijkl(i,1) =  core_inact_act_bitmask_4(i,1)
-     mask_ijkl(i,2) =  virt_bitmask(i,1)
-     mask_ijkl(i,3) =  virt_bitmask(i,1)
-     mask_ijkl(i,4) =  virt_bitmask(i,1)
+      mask_ijkl(i,1) =  core_inact_act_bitmask_4(i,1)
+      mask_ijkl(i,2) =  core_inact_act_bitmask_4(i,1)
+      mask_ijkl(i,3) =  core_inact_act_bitmask_4(i,1)
+      mask_ijkl(i,4) =  core_inact_act_bitmask_4(i,1)
     enddo
-    call add_integrals_to_map_no_exit_34(mask_ijkl)
-   endif
-
+    call add_integrals_to_map(mask_ijkl)
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I I V V !!!!!!!!!!!!!!!!!!!!
+    ! (core+inact+act) ^ 2  (virt) ^2
+    ! <iv|iv>  = J_iv
+    print*, ''
+    print*, '<iv|iv>'
+    do i = 1,N_int
+      mask_ijkl(i,1) =  core_inact_act_bitmask_4(i,1)
+      mask_ijkl(i,2) =  virt_bitmask(i,1)
+      mask_ijkl(i,3) =  core_inact_act_bitmask_4(i,1)
+      mask_ijkl(i,4) =  virt_bitmask(i,1)
+    enddo
+    call add_integrals_to_map(mask_ijkl)
+    
+    ! (core+inact+act) ^ 2  (virt) ^2
+    ! <ii|vv> = (iv|iv)
+    print*, ''
+    print*, '<ii|vv>'
+    do i = 1,N_int
+      mask_ijkl(i,1) = core_inact_act_bitmask_4(i,1)
+      mask_ijkl(i,2) = core_inact_act_bitmask_4(i,1)
+      mask_ijkl(i,3) = virt_bitmask(i,1)
+      mask_ijkl(i,4) = virt_bitmask(i,1)
+    enddo
+    call add_integrals_to_map(mask_ijkl)
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! V V V !!!!!!!!!!!!!!!!!!!!!!!
+    if(.not.no_vvv_integrals)then
+      print*, ''
+      print*, '<rv|sv> and <rv|vs>'
+      do i = 1,N_int
+        mask_ijk(i,1) =  virt_bitmask(i,1)
+        mask_ijk(i,2) =  virt_bitmask(i,1)
+        mask_ijk(i,3) =  virt_bitmask(i,1)
+      enddo
+      call add_integrals_to_map_three_indices(mask_ijk)
+    endif
+    
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I I I V !!!!!!!!!!!!!!!!!!!!
+    ! (core+inact+act) ^ 3  (virt) ^1
+    ! <iv|ii>
+    print*, ''
+    print*, '<iv|ii>'
+    do i = 1,N_int
+      mask_ijkl(i,1) =  core_inact_act_bitmask_4(i,1)
+      mask_ijkl(i,2) =  core_inact_act_bitmask_4(i,1)
+      mask_ijkl(i,3) =  core_inact_act_bitmask_4(i,1)
+      mask_ijkl(i,4) =  virt_bitmask(i,1)
+    enddo
+    call add_integrals_to_map(mask_ijkl)
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  I V V V !!!!!!!!!!!!!!!!!!!!
+    ! (core+inact+act) ^ 1  (virt) ^3
+    ! <iv|vv>
+    if(.not.no_ivvv_integrals)then
+      print*, ''
+      print*, '<iv|vv>'
+      do i = 1,N_int
+        mask_ijkl(i,1) =  core_inact_act_bitmask_4(i,1)
+        mask_ijkl(i,2) =  virt_bitmask(i,1)
+        mask_ijkl(i,3) =  virt_bitmask(i,1)
+        mask_ijkl(i,4) =  virt_bitmask(i,1)
+      enddo
+      call add_integrals_to_map_no_exit_34(mask_ijkl)
+    endif
+    
   else
-   call add_integrals_to_map(full_ijkl_bitmask_4)
+    call add_integrals_to_map(full_ijkl_bitmask_4)
+  endif
+  if (write_mo_integrals) then
+    call ezfio_set_work_empty(.False.)
+    call map_save_to_disk(trim(ezfio_filename)//'/work/mo_ints',mo_integrals_map)
+    call ezfio_set_integrals_bielec_disk_access_mo_integrals("Read")
   endif
   
-  if(write_ao_map_after_transfo)then
-    call dump_ao_integrals(trim(ezfio_filename)//'/work/ao_integrals.bin')
-    disk_access_ao_integrals = "Read"
-    touch disk_access_ao_integrals 
-    call ezfio_set_integrals_bielec_disk_access_ao_integrals("Read")
-  endif
-  if(clear_ao_map_after_mo_transfo)then
-   call clear_ao_map
-   integer (map_size_kind) :: get_ao_map_size
-   print*, '^^^^^^^^^^^^^^^^^^^^^'
-   print *, 'get_ao_map_size',get_ao_map_size
-   print*, '^^^^^^^^^^^^^^^^^^^^^'
-   FREE ao_bielec_integrals_in_map
-  endif
 END_PROVIDER
 
 subroutine set_integrals_jj_into_map
   use bitmasks
- implicit none
- integer :: i,j,n_integrals,i0,j0
- double precision :: buffer_value(mo_tot_num * mo_tot_num)
- integer(key_kind)  :: buffer_i(mo_tot_num*mo_tot_num)
- n_integrals = 0
- do j0 = 1, n_virt_orb
-  j = list_virt(j0)
-  do i0 = j0, n_virt_orb
-   i = list_virt(i0)
-   n_integrals += 1
-!    mo_bielec_integral_jj_exchange(i,j) = mo_bielec_integral_vv_exchange_from_ao(i,j)
-   call mo_bielec_integrals_index(i,j,i,j,buffer_i(n_integrals))
-   buffer_value(n_integrals) = mo_bielec_integral_vv_from_ao(i,j)
+  implicit none
+  integer                        :: i,j,n_integrals,i0,j0
+  double precision               :: buffer_value(mo_tot_num * mo_tot_num)
+  integer(key_kind)              :: buffer_i(mo_tot_num*mo_tot_num)
+  n_integrals = 0
+  do j0 = 1, n_virt_orb
+    j = list_virt(j0)
+    do i0 = j0, n_virt_orb
+      i = list_virt(i0)
+      n_integrals += 1
+      !    mo_bielec_integral_jj_exchange(i,j) = mo_bielec_integral_vv_exchange_from_ao(i,j)
+      call mo_bielec_integrals_index(i,j,i,j,buffer_i(n_integrals))
+      buffer_value(n_integrals) = mo_bielec_integral_vv_from_ao(i,j)
+    enddo
   enddo
- enddo
- call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
-                  real(mo_integrals_threshold,integral_kind))
- call map_unique(mo_integrals_map)
+  call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
+      real(mo_integrals_threshold,integral_kind))
+  call map_unique(mo_integrals_map)
 end
 
 subroutine set_integrals_exchange_jj_into_map
   use bitmasks
- implicit none
- integer :: i,j,n_integrals,i0,j0
- double precision :: buffer_value(mo_tot_num * mo_tot_num)
- integer(key_kind)  :: buffer_i(mo_tot_num*mo_tot_num)
- n_integrals = 0
- do j0 = 1, n_virt_orb
-  j = list_virt(j0)
-  do i0 = j0+1, n_virt_orb
-   i = list_virt(i0)
-   n_integrals += 1
-   call mo_bielec_integrals_index(i,j,j,i,buffer_i(n_integrals))
-   buffer_value(n_integrals) = mo_bielec_integral_vv_exchange_from_ao(i,j)
+  implicit none
+  integer                        :: i,j,n_integrals,i0,j0
+  double precision               :: buffer_value(mo_tot_num * mo_tot_num)
+  integer(key_kind)              :: buffer_i(mo_tot_num*mo_tot_num)
+  n_integrals = 0
+  do j0 = 1, n_virt_orb
+    j = list_virt(j0)
+    do i0 = j0+1, n_virt_orb
+      i = list_virt(i0)
+      n_integrals += 1
+      call mo_bielec_integrals_index(i,j,j,i,buffer_i(n_integrals))
+      buffer_value(n_integrals) = mo_bielec_integral_vv_exchange_from_ao(i,j)
+    enddo
   enddo
- enddo
- call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
-                  real(mo_integrals_threshold,integral_kind))
- call map_unique(mo_integrals_map)
-
+  call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
+      real(mo_integrals_threshold,integral_kind))
+  call map_unique(mo_integrals_map)
+  
 end
 
 subroutine add_integrals_to_map(mask_ijkl)
@@ -223,49 +212,49 @@ subroutine add_integrals_to_map(mask_ijkl)
   call bitstring_to_list( mask_ijkl(1,2), list_ijkl(1,2), n_j, N_int )
   call bitstring_to_list( mask_ijkl(1,3), list_ijkl(1,3), n_k, N_int )
   call bitstring_to_list( mask_ijkl(1,4), list_ijkl(1,4), n_l, N_int )
-  character*(2048)                :: output(1)
+  character*(2048)               :: output(1)
   print*, 'i'
   call bitstring_to_str( output(1), mask_ijkl(1,1), N_int )
   print *,  trim(output(1))
   j = 0
   do i = 1, N_int
-   j += popcnt(mask_ijkl(i,1))
+    j += popcnt(mask_ijkl(i,1))
   enddo
   if(j==0)then
-   return
+    return
   endif
-
+  
   print*, 'j'
   call bitstring_to_str( output(1), mask_ijkl(1,2), N_int )
   print *,  trim(output(1))
   j = 0
   do i = 1, N_int
-   j += popcnt(mask_ijkl(i,2))
+    j += popcnt(mask_ijkl(i,2))
   enddo
   if(j==0)then
-   return
+    return
   endif
-
+  
   print*, 'k'
   call bitstring_to_str( output(1), mask_ijkl(1,3), N_int )
   print *,  trim(output(1))
   j = 0
   do i = 1, N_int
-   j += popcnt(mask_ijkl(i,3))
+    j += popcnt(mask_ijkl(i,3))
   enddo
   if(j==0)then
-   return
+    return
   endif
-
+  
   print*, 'l'
   call bitstring_to_str( output(1), mask_ijkl(1,4), N_int )
   print *,  trim(output(1))
   j = 0
   do i = 1, N_int
-   j += popcnt(mask_ijkl(i,4))
+    j += popcnt(mask_ijkl(i,4))
   enddo
   if(j==0)then
-   return
+    return
   endif
   
   size_buffer = min(ao_num*ao_num*ao_num,16000000)
@@ -275,13 +264,13 @@ subroutine add_integrals_to_map(mask_ijkl)
   
   call wall_time(wall_1)
   call cpu_time(cpu_1)
-  double precision :: accu_bis
+  double precision               :: accu_bis
   accu_bis = 0.d0
   
   !$OMP PARALLEL PRIVATE(l1,k1,j1,i1,i2,i3,i4,i,j,k,l,c, ii1,kmax,   &
       !$OMP  bielec_tmp_0_idx, bielec_tmp_0, bielec_tmp_1,bielec_tmp_2,bielec_tmp_3,&
       !$OMP  buffer_i,buffer_value,n_integrals,wall_2,i0,j0,k0,l0,   &
-      !$OMP  wall_0,thread_num,accu_bis)   &
+      !$OMP  wall_0,thread_num,accu_bis)                             &
       !$OMP  DEFAULT(NONE)                                           &
       !$OMP  SHARED(size_buffer,ao_num,mo_tot_num,n_i,n_j,n_k,n_l,mo_tot_num_align,&
       !$OMP  mo_coef_transp,                                         &
@@ -299,14 +288,9 @@ subroutine add_integrals_to_map(mask_ijkl)
       buffer_value(size_buffer) )
   
   thread_num = 0
-!$  thread_num = omp_get_thread_num()
+  !$  thread_num = omp_get_thread_num()
   !$OMP DO SCHEDULE(guided)
   do l1 = 1,ao_num
-!IRP_IF COARRAY
-!    if (mod(l1-this_image(),num_images()) /= 0 ) then
-!      cycle
-!    endif
-!IRP_ENDIF
     !DEC$ VECTOR ALIGNED
     bielec_tmp_3 = 0.d0
     do k1 = 1,ao_num
@@ -429,13 +413,13 @@ subroutine add_integrals_to_map(mask_ijkl)
               exit
             endif
             bielec_tmp_1(i) = c*bielec_tmp_3(i,j0,k0)
-!           i1+=1
+            !           i1+=1
           enddo
           
           do i0 = 1, n_i
-            i = list_ijkl(i0,1) 
+            i = list_ijkl(i0,1)
             if(i> min(k,j1-i1+list_ijkl(1,1)-1))then
-             exit
+              exit
             endif
             if (abs(bielec_tmp_1(i)) < mo_integrals_threshold) then
               cycle
@@ -458,7 +442,7 @@ subroutine add_integrals_to_map(mask_ijkl)
     if (thread_num == 0) then
       if (wall_2 - wall_0 > 1.d0) then
         wall_0 = wall_2
-        print*, 100.*float(l1)/float(ao_num), '% in ',  &
+        print*, 100.*float(l1)/float(ao_num), '% in ',               &
             wall_2-wall_1, 's', map_mb(mo_integrals_map) ,'MB'
       endif
     endif
@@ -466,16 +450,12 @@ subroutine add_integrals_to_map(mask_ijkl)
   !$OMP END DO NOWAIT
   deallocate (bielec_tmp_1,bielec_tmp_2,bielec_tmp_3)
   
-  integer :: index_needed
-    
+  integer                        :: index_needed
+  
   call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
       real(mo_integrals_threshold,integral_kind))
   deallocate(buffer_i, buffer_value)
   !$OMP END PARALLEL
-!IRP_IF COARRAY
-!  print*, 'Communicating the map'
-!  call communicate_mo_integrals()
-!IRP_ENDIF
   call map_unique(mo_integrals_map)
   
   call wall_time(wall_2)
@@ -491,15 +471,6 @@ subroutine add_integrals_to_map(mask_ijkl)
   print*,' Number of MO integrals: ',  mo_map_size
   print*,' cpu  time :',cpu_2 - cpu_1, 's'
   print*,' wall time :',wall_2 - wall_1, 's  ( x ', (cpu_2-cpu_1)/(wall_2-wall_1), ')'
-  
-  integer(map_size_kind) :: map_idx
-  map_idx = ishft(106,map_shift)
-! call get_cache_map_verbose(mo_integrals_map,map_idx)
-
-  if (write_mo_integrals) then
-    call dump_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin')
-    call ezfio_set_integrals_bielec_disk_access_mo_integrals("Read")
-  endif
   
 end
 
@@ -547,40 +518,40 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
   call bitstring_to_list( mask_ijk(1,1), list_ijkl(1,1), n_i, N_int )
   call bitstring_to_list( mask_ijk(1,2), list_ijkl(1,2), n_j, N_int )
   call bitstring_to_list( mask_ijk(1,3), list_ijkl(1,3), n_k, N_int )
-  character*(2048)                :: output(1)
+  character*(2048)               :: output(1)
   print*, 'i'
   call bitstring_to_str( output(1), mask_ijk(1,1), N_int )
   print *,  trim(output(1))
   j = 0
   do i = 1, N_int
-   j += popcnt(mask_ijk(i,1))
+    j += popcnt(mask_ijk(i,1))
   enddo
   if(j==0)then
-   return
+    return
   endif
-
+  
   print*, 'j'
   call bitstring_to_str( output(1), mask_ijk(1,2), N_int )
   print *,  trim(output(1))
   j = 0
   do i = 1, N_int
-   j += popcnt(mask_ijk(i,2))
+    j += popcnt(mask_ijk(i,2))
   enddo
   if(j==0)then
-   return
+    return
   endif
-
+  
   print*, 'k'
   call bitstring_to_str( output(1), mask_ijk(1,3), N_int )
   print *,  trim(output(1))
   j = 0
   do i = 1, N_int
-   j += popcnt(mask_ijk(i,3))
+    j += popcnt(mask_ijk(i,3))
   enddo
   if(j==0)then
-   return
+    return
   endif
-
+  
   size_buffer = min(ao_num*ao_num*ao_num,16000000)
   print*, 'Providing the molecular integrals '
   print*, 'Buffers : ', 8.*(mo_tot_num_align*(n_j)*(n_k+1) + mo_tot_num_align +&
@@ -588,12 +559,12 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
   
   call wall_time(wall_1)
   call cpu_time(cpu_1)
-  double precision :: accu_bis
+  double precision               :: accu_bis
   accu_bis = 0.d0
-  !$OMP PARALLEL PRIVATE(m,l1,k1,j1,i1,i2,i3,i4,i,j,k,l,c, ii1,kmax,   &
+  !$OMP PARALLEL PRIVATE(m,l1,k1,j1,i1,i2,i3,i4,i,j,k,l,c, ii1,kmax, &
       !$OMP  bielec_tmp_0_idx, bielec_tmp_0, bielec_tmp_1,bielec_tmp_2,bielec_tmp_3,&
       !$OMP  buffer_i,buffer_value,n_integrals,wall_2,i0,j0,k0,l0,   &
-      !$OMP  wall_0,thread_num,accu_bis)   &
+      !$OMP  wall_0,thread_num,accu_bis)                             &
       !$OMP  DEFAULT(NONE)                                           &
       !$OMP  SHARED(size_buffer,ao_num,mo_tot_num,n_i,n_j,n_k,mo_tot_num_align,&
       !$OMP  mo_coef_transp,                                         &
@@ -611,14 +582,9 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
       buffer_value(size_buffer) )
   
   thread_num = 0
-!$  thread_num = omp_get_thread_num()
+  !$  thread_num = omp_get_thread_num()
   !$OMP DO SCHEDULE(guided)
   do l1 = 1,ao_num
-!IRP_IF COARRAY
-!    if (mod(l1-this_image(),num_images()) /= 0 ) then
-!      cycle
-!    endif
-!IRP_ENDIF
     !DEC$ VECTOR ALIGNED
     bielec_tmp_3 = 0.d0
     do k1 = 1,ao_num
@@ -718,42 +684,42 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
       if (abs(c) < thr_coef) then
         cycle
       endif
-        do k0 = 1, n_k
-          k = list_ijkl(k0,3)
-          i1 = ishft((k*k-k),-1)
-          bielec_tmp_1 = 0.d0
-            j0 = l0
-            j = list_ijkl(j0,2)
-           do i0 = 1, n_i
-             i = list_ijkl(i0,1)
-             if (i>k) then
-               exit
-             endif
-             bielec_tmp_1(i) = c*bielec_tmp_3(i,j0,k0)
-           enddo
-           
-           do i0 = 1, n_i
-             i = list_ijkl(i0,1) 
-             if (i>k) then !min(k,j1-i1)
-              exit
-             endif
-             if (abs(bielec_tmp_1(i)) < mo_integrals_threshold) then
-               cycle
-             endif
-             n_integrals += 1
-             buffer_value(n_integrals) = bielec_tmp_1(i)
-             if(i==k .and. j==l .and. i.ne.j)then
-              buffer_value(n_integrals) = buffer_value(n_integrals) *0.5d0
-             endif
-             !DEC$ FORCEINLINE
-             call mo_bielec_integrals_index(i,j,k,l,buffer_i(n_integrals))
-             if (n_integrals == size_buffer) then
-               call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
-                   real(mo_integrals_threshold,integral_kind))
-               n_integrals = 0
-             endif
-           enddo
+      do k0 = 1, n_k
+        k = list_ijkl(k0,3)
+        i1 = ishft((k*k-k),-1)
+        bielec_tmp_1 = 0.d0
+        j0 = l0
+        j = list_ijkl(j0,2)
+        do i0 = 1, n_i
+          i = list_ijkl(i0,1)
+          if (i>k) then
+            exit
+          endif
+          bielec_tmp_1(i) = c*bielec_tmp_3(i,j0,k0)
         enddo
+        
+        do i0 = 1, n_i
+          i = list_ijkl(i0,1)
+          if (i>k) then !min(k,j1-i1)
+            exit
+          endif
+          if (abs(bielec_tmp_1(i)) < mo_integrals_threshold) then
+            cycle
+          endif
+          n_integrals += 1
+          buffer_value(n_integrals) = bielec_tmp_1(i)
+          if(i==k .and. j==l .and. i.ne.j)then
+            buffer_value(n_integrals) = buffer_value(n_integrals) *0.5d0
+          endif
+          !DEC$ FORCEINLINE
+          call mo_bielec_integrals_index(i,j,k,l,buffer_i(n_integrals))
+          if (n_integrals == size_buffer) then
+            call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
+                real(mo_integrals_threshold,integral_kind))
+            n_integrals = 0
+          endif
+        enddo
+      enddo
     enddo
     
     do l0 = 1,n_j
@@ -762,36 +728,36 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
       if (abs(c) < thr_coef) then
         cycle
       endif
-        do k0 = 1, n_k
-          k = list_ijkl(k0,3)
-          i1 = ishft((k*k-k),-1)
-          bielec_tmp_1 = 0.d0
-            j0 = k0
-            j = list_ijkl(k0,2)
-            i0 = l0
-            i = list_ijkl(i0,2)
-            if (k==l) then
-              cycle
-            endif
-            bielec_tmp_1(i) = c*bielec_tmp_3(i,j0,k0)
-           
-            n_integrals += 1
-            buffer_value(n_integrals) = bielec_tmp_1(i)
-            !DEC$ FORCEINLINE
-            call mo_bielec_integrals_index(i,j,k,l,buffer_i(n_integrals))
-            if (n_integrals == size_buffer) then
-              call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
-                  real(mo_integrals_threshold,integral_kind))
-              n_integrals = 0
-            endif
-        enddo
+      do k0 = 1, n_k
+        k = list_ijkl(k0,3)
+        i1 = ishft((k*k-k),-1)
+        bielec_tmp_1 = 0.d0
+        j0 = k0
+        j = list_ijkl(k0,2)
+        i0 = l0
+        i = list_ijkl(i0,2)
+        if (k==l) then
+          cycle
+        endif
+        bielec_tmp_1(i) = c*bielec_tmp_3(i,j0,k0)
+        
+        n_integrals += 1
+        buffer_value(n_integrals) = bielec_tmp_1(i)
+        !DEC$ FORCEINLINE
+        call mo_bielec_integrals_index(i,j,k,l,buffer_i(n_integrals))
+        if (n_integrals == size_buffer) then
+          call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
+              real(mo_integrals_threshold,integral_kind))
+          n_integrals = 0
+        endif
+      enddo
     enddo
     
     call wall_time(wall_2)
     if (thread_num == 0) then
       if (wall_2 - wall_0 > 1.d0) then
         wall_0 = wall_2
-        print*, 100.*float(l1)/float(ao_num), '% in ',  &
+        print*, 100.*float(l1)/float(ao_num), '% in ',               &
             wall_2-wall_1, 's', map_mb(mo_integrals_map) ,'MB'
       endif
     endif
@@ -799,16 +765,12 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
   !$OMP END DO NOWAIT
   deallocate (bielec_tmp_1,bielec_tmp_2,bielec_tmp_3)
   
-  integer :: index_needed
-    
+  integer                        :: index_needed
+  
   call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
       real(mo_integrals_threshold,integral_kind))
   deallocate(buffer_i, buffer_value)
   !$OMP END PARALLEL
-!IRP_IF COARRAY
-!  print*, 'Communicating the map'
-!  call communicate_mo_integrals()
-!IRP_ENDIF
   call map_unique(mo_integrals_map)
   
   call wall_time(wall_2)
@@ -824,15 +786,6 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
   print*,' Number of MO integrals: ',  mo_map_size
   print*,' cpu  time :',cpu_2 - cpu_1, 's'
   print*,' wall time :',wall_2 - wall_1, 's  ( x ', (cpu_2-cpu_1)/(wall_2-wall_1), ')'
-  
-  integer(map_size_kind) :: map_idx
-  map_idx = ishft(106,map_shift)
-! call get_cache_map_verbose(mo_integrals_map,map_idx)
-
-  if (write_mo_integrals) then
-    call dump_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin')
-    call ezfio_set_integrals_bielec_disk_access_mo_integrals("Read")
-  endif
   
 end
 
@@ -892,7 +845,7 @@ subroutine add_integrals_to_map_no_exit_34(mask_ijkl)
   !$OMP PARALLEL PRIVATE(l1,k1,j1,i1,i2,i3,i4,i,j,k,l,c, ii1,kmax,   &
       !$OMP  bielec_tmp_0_idx, bielec_tmp_0, bielec_tmp_1,bielec_tmp_2,bielec_tmp_3,&
       !$OMP  buffer_i,buffer_value,n_integrals,wall_2,i0,j0,k0,l0,   &
-      !$OMP  wall_0,thread_num)   &
+      !$OMP  wall_0,thread_num)                                      &
       !$OMP  DEFAULT(NONE)                                           &
       !$OMP  SHARED(size_buffer,ao_num,mo_tot_num,n_i,n_j,n_k,n_l,mo_tot_num_align,&
       !$OMP  mo_coef_transp,                                         &
@@ -910,14 +863,14 @@ subroutine add_integrals_to_map_no_exit_34(mask_ijkl)
       buffer_value(size_buffer) )
   
   thread_num = 0
-!$  thread_num = omp_get_thread_num()
+  !$  thread_num = omp_get_thread_num()
   !$OMP DO SCHEDULE(guided)
   do l1 = 1,ao_num
-!IRP_IF COARRAY
-!    if (mod(l1-this_image(),num_images()) /= 0 ) then
-!      cycle
-!    endif
-!IRP_ENDIF
+    !IRP_IF COARRAY
+    !    if (mod(l1-this_image(),num_images()) /= 0 ) then
+    !      cycle
+    !    endif
+    !IRP_ENDIF
     !DEC$ VECTOR ALIGNED
     bielec_tmp_3 = 0.d0
     do k1 = 1,ao_num
@@ -1038,11 +991,11 @@ subroutine add_integrals_to_map_no_exit_34(mask_ijkl)
           enddo
           
           do i0 = 1, n_i
-            i = list_ijkl(i0,1) 
+            i = list_ijkl(i0,1)
             if(i> k)then
-             exit
+              exit
             endif
-
+            
             if (abs(bielec_tmp_1(i)) < mo_integrals_threshold) then
               cycle
             endif
@@ -1064,7 +1017,7 @@ subroutine add_integrals_to_map_no_exit_34(mask_ijkl)
     if (thread_num == 0) then
       if (wall_2 - wall_0 > 1.d0) then
         wall_0 = wall_2
-        print*, 100.*float(l1)/float(ao_num), '% in ',  &
+        print*, 100.*float(l1)/float(ao_num), '% in ',               &
             wall_2-wall_1, 's', map_mb(mo_integrals_map) ,'MB'
       endif
     endif
@@ -1076,10 +1029,10 @@ subroutine add_integrals_to_map_no_exit_34(mask_ijkl)
       real(mo_integrals_threshold,integral_kind))
   deallocate(buffer_i, buffer_value)
   !$OMP END PARALLEL
-!IRP_IF COARRAY
-!  print*, 'Communicating the map'
-!  call communicate_mo_integrals()
-!IRP_ENDIF
+  !IRP_IF COARRAY
+  !  print*, 'Communicating the map'
+  !  call communicate_mo_integrals()
+  !IRP_ENDIF
   call map_unique(mo_integrals_map)
   
   call wall_time(wall_2)
@@ -1096,10 +1049,6 @@ subroutine add_integrals_to_map_no_exit_34(mask_ijkl)
   print*,' cpu  time :',cpu_2 - cpu_1, 's'
   print*,' wall time :',wall_2 - wall_1, 's  ( x ', (cpu_2-cpu_1)/(wall_2-wall_1), ')'
   
-  if (write_mo_integrals) then
-    call dump_mo_integrals(trim(ezfio_filename)//'/work/mo_integrals.bin')
-    call ezfio_set_integrals_bielec_disk_access_mo_integrals("Read")
-  endif
   
 end
 
@@ -1138,7 +1087,7 @@ end
       !$OMP PRIVATE (i,j,p,q,r,s,integral,c,n,pp,int_value,int_idx,  &
       !$OMP  iqrs, iqsr,iqri,iqis)                                   &
       !$OMP SHARED(mo_tot_num,mo_coef_transp,mo_tot_num_align,ao_num,&
-      !$OMP  ao_integrals_threshold,do_direct_integrals)  &
+      !$OMP  ao_integrals_threshold,do_direct_integrals)             &
       !$OMP REDUCTION(+:mo_bielec_integral_jj_from_ao,mo_bielec_integral_jj_exchange_from_ao)
   
   allocate( int_value(ao_num), int_idx(ao_num),                      &
@@ -1181,9 +1130,9 @@ end
             endif
           enddo
         enddo
-
+        
       else
-
+        
         do r=1,ao_num
           call get_ao_bielec_integrals_non_zero(q,r,s,ao_num,int_value,int_idx,n)
           do pp=1,n
@@ -1270,10 +1219,10 @@ END_PROVIDER
   
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE (i0,j0,i,j,p,q,r,s,integral,c,n,pp,int_value,int_idx,  &
+      !$OMP PRIVATE (i0,j0,i,j,p,q,r,s,integral,c,n,pp,int_value,int_idx,&
       !$OMP  iqrs, iqsr,iqri,iqis)                                   &
       !$OMP SHARED(n_virt_orb,mo_tot_num,list_virt,mo_coef_transp,mo_tot_num_align,ao_num,&
-      !$OMP  ao_integrals_threshold,do_direct_integrals)  &
+      !$OMP  ao_integrals_threshold,do_direct_integrals)             &
       !$OMP REDUCTION(+:mo_bielec_integral_vv_from_ao,mo_bielec_integral_vv_exchange_from_ao)
   
   allocate( int_value(ao_num), int_idx(ao_num),                      &
@@ -1319,9 +1268,9 @@ END_PROVIDER
             endif
           enddo
         enddo
-
+        
       else
-
+        
         do r=1,ao_num
           call get_ao_bielec_integrals_non_zero(q,r,s,ao_num,int_value,int_idx,n)
           do pp=1,n
@@ -1377,12 +1326,12 @@ END_PROVIDER
   !$OMP END PARALLEL
   
   mo_bielec_integral_vv_anti_from_ao = mo_bielec_integral_vv_from_ao - mo_bielec_integral_vv_exchange_from_ao
-! print*, '**********'
-! do i0 =1, n_virt_orb
-!  i = list_virt(i0)
-!  print*, mo_bielec_integral_vv_from_ao(i,i)
-! enddo
-! print*, '**********'
+  ! print*, '**********'
+  ! do i0 =1, n_virt_orb
+  !  i = list_virt(i0)
+  !  print*, mo_bielec_integral_vv_from_ao(i,i)
+  ! enddo
+  ! print*, '**********'
   
   
 END_PROVIDER
@@ -1404,46 +1353,14 @@ END_PROVIDER
   PROVIDE mo_bielec_integrals_in_map
   mo_bielec_integral_jj = 0.d0
   mo_bielec_integral_jj_exchange = 0.d0
-
-! if(.not.no_vvvv_integrals)then
-   do j=1,mo_tot_num
+  
+  do j=1,mo_tot_num
     do i=1,mo_tot_num
       mo_bielec_integral_jj(i,j) = get_mo_bielec_integral(i,j,i,j,mo_integrals_map)
       mo_bielec_integral_jj_exchange(i,j) = get_mo_bielec_integral(i,j,j,i,mo_integrals_map)
-      mo_bielec_integral_jj_anti(i,j) = mo_bielec_integral_jj(i,j) - mo_bielec_integral_jj_exchange(i,j) 
+      mo_bielec_integral_jj_anti(i,j) = mo_bielec_integral_jj(i,j) - mo_bielec_integral_jj_exchange(i,j)
     enddo
   enddo
-!else
-!  integer :: j0,i0
-!  do j0=1,n_core_inact_act_orb
-!   j = list_core_inact_act(j0)
-!  do i0=1,n_core_inact_act_orb
-!     i = list_core_inact_act(i0)
-!     mo_bielec_integral_jj(i,j) = get_mo_bielec_integral(i,j,i,j,mo_integrals_map)
-!     mo_bielec_integral_jj_exchange(i,j) = get_mo_bielec_integral(i,j,j,i,mo_integrals_map)
-!     mo_bielec_integral_jj_anti(i,j) = mo_bielec_integral_jj(i,j) - mo_bielec_integral_jj_exchange(i,j) 
-!  enddo
-! enddo
-! do j0 = 1, n_virt_orb
-!  j = list_virt(j0)
-!  do i0 = 1, n_virt_orb
-!   i = list_virt(i0)
-!     mo_bielec_integral_jj(i,j) = mo_bielec_integral_vv_from_ao(i,j)
-!     mo_bielec_integral_jj_exchange(i,j) = mo_bielec_integral_vv_exchange_from_ao(i,j)
-!     mo_bielec_integral_jj_anti(i,j) = mo_bielec_integral_jj(i,j) - mo_bielec_integral_jj_exchange(i,j) 
-!  enddo
-!   do i0=1,n_core_inact_act_orb
-!     i = list_core_inact_act(i0)
-!     mo_bielec_integral_jj(i,j) = get_mo_bielec_integral(i,j,i,j,mo_integrals_map)
-!     mo_bielec_integral_jj_exchange(i,j) = get_mo_bielec_integral(i,j,j,i,mo_integrals_map)
-!     mo_bielec_integral_jj_anti(i,j) = mo_bielec_integral_jj(i,j) - mo_bielec_integral_jj_exchange(i,j) 
-!     mo_bielec_integral_jj(j,i) = mo_bielec_integral_jj(i,j)
-!     mo_bielec_integral_jj_exchange(j,i) = mo_bielec_integral_jj_exchange(i,j)
-!     mo_bielec_integral_jj_anti(j,i) = mo_bielec_integral_jj_anti(i,j)
-!   enddo
-! enddo
-! 
-!endif
   
 END_PROVIDER
 
@@ -1456,13 +1373,13 @@ subroutine clear_mo_map
   call map_deinit(mo_integrals_map)
   FREE mo_integrals_map mo_bielec_integral_jj mo_bielec_integral_jj_anti
   FREE mo_bielec_integral_jj_exchange mo_bielec_integrals_in_map
-
-
+  
+  
 end
 
 subroutine provide_all_mo_integrals
- implicit none
- provide mo_integrals_map mo_bielec_integral_jj mo_bielec_integral_jj_anti
- provide mo_bielec_integral_jj_exchange mo_bielec_integrals_in_map
-
+  implicit none
+  provide mo_integrals_map mo_bielec_integral_jj mo_bielec_integral_jj_anti
+  provide mo_bielec_integral_jj_exchange mo_bielec_integrals_in_map
+  
 end

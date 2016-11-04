@@ -40,7 +40,7 @@ subroutine dressing_1h1p(dets_in,u_in,diag_H_elements,dim_in,sze,N_st,Nint,conve
   double precision :: phase
   integer(bit_kind) :: key_tmp(N_int,2)
   integer :: i_ok
-  double precision :: phase_single_double,phase_double_hf,get_mo_bielec_integral_schwartz
+  double precision :: phase_single_double,phase_double_hf,get_mo_bielec_integral
   double precision :: hij,c_ref,contrib
   integer :: iorb
 
@@ -231,7 +231,7 @@ subroutine dressing_1h1p_by_2h2p(dets_in,u_in,diag_H_elements,dim_in,sze,N_st,Ni
   double precision :: phase
   integer(bit_kind) :: key_tmp(N_int,2)
   integer :: i_ok
-  double precision :: phase_single_double,phase_double_hf,get_mo_bielec_integral_schwartz
+  double precision :: phase_single_double,phase_double_hf,get_mo_bielec_integral
   double precision :: hij,c_ref,contrib
   integer :: iorb
 
@@ -409,7 +409,7 @@ subroutine dressing_1h1p_full(dets_in,u_in,H_matrix,dim_in,sze,N_st,Nint,converg
   double precision :: phase
   integer(bit_kind) :: key_tmp(N_int,2)
   integer :: i_ok
-  double precision :: phase_single_double,phase_double_hf,get_mo_bielec_integral_schwartz
+  double precision :: phase_single_double,phase_double_hf,get_mo_bielec_integral
   double precision :: hij,c_ref,contrib
   integer :: iorb
 
@@ -603,6 +603,7 @@ subroutine SC2_1h1p_full(dets_in,u_in,energies,H_matrix,dim_in,sze,N_st,Nint,con
   double precision, intent(in)   :: convergence
   integer :: i,j,iter
   print*,'sze = ',sze
+  H_matrix = 0.d0
   do iter = 1, 1
 !   if(sze<=N_det_max_jacobi)then
       double precision, allocatable  :: eigenvectors(:,:), eigenvalues(:),H_matrix_tmp(:,:)
@@ -662,6 +663,7 @@ subroutine SC2_1h1p(dets_in,u_in,energies,diag_H_elements,dim_in,sze,N_st,Nint,c
   double precision               :: extra_diag_H_elements(dim_in)
   double precision, intent(in)   :: convergence
   integer :: i,j,iter
+  DIAG_H_ELEMENTS = 0.d0
   do iter = 1, 1
 !  call dressing_1h1p(dets_in,u_in,diag_H_elements,dim_in,sze,N_st,Nint,convergence)
    call dressing_1h1p_by_2h2p(dets_in,u_in,extra_diag_H_elements,dim_in,sze,N_st,Nint,convergence)
@@ -740,7 +742,7 @@ subroutine density_matrix_1h1p(dets_in,u_in,density_matrix_alpha,density_matrix_
   double precision :: phase
   integer(bit_kind) :: key_tmp(N_int,2)
   integer :: i_ok
-  double precision :: phase_single_double,phase_double_hf,get_mo_bielec_integral_schwartz
+  double precision :: phase_single_double,phase_double_hf,get_mo_bielec_integral
   double precision :: hij,c_ref,contrib
   integer :: iorb
 

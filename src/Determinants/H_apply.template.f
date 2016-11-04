@@ -11,9 +11,16 @@ subroutine $subroutine_diexc(key_in, key_prev, hole_1,particl_1, hole_2, particl
   integer(bit_kind), intent(in)         :: key_prev(N_int, 2, *)
   PROVIDE N_int
   PROVIDE N_det
- 
+  
   $declarations
   
+!   print *, "bbbbbbbbbbbbbbb"
+!   call debug_det(key_in, N_int)
+!   call debug_det(hole_1, N_int)
+!   call debug_det(hole_2, N_int)
+!   call debug_det(particl_1, N_int)
+!   call debug_det(particl_2, N_int)
+!   print *, "eeeeeeeeeeeeeeee"
   
   highest = 0
   do k=1,N_int*bit_kind_size
@@ -167,11 +174,6 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
   double precision               :: diag_H_mat_elem
   integer                        :: iproc
   integer                        :: jtest_vvvv
-  integer(omp_lock_kind), save   :: lck, ifirst=0
-  if (ifirst == 0) then
-!$    call omp_init_lock(lck)
-    ifirst=1
-  endif
   
   logical :: check_double_excitation 
   logical :: is_a_1h1p
@@ -187,7 +189,7 @@ subroutine $subroutine_diexcOrg(key_in,key_mask,hole_1,particl_1,hole_2, particl
 
 
   $initialization
-  
+   
   $omp_parallel
 !$ iproc = omp_get_thread_num()
   allocate (keys_out(N_int,2,size_max), hole_save(N_int,2),          &
@@ -432,7 +434,6 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,fock_diag_tmp,i_generato
   integer, allocatable           :: ia_ja_pairs(:,:,:)
   logical, allocatable           :: array_pairs(:,:)
   double precision               :: diag_H_mat_elem
-  integer(omp_lock_kind), save   :: lck, ifirst=0
   integer                        :: iproc
   
   integer(bit_kind)              :: key_mask(N_int, 2)
@@ -457,11 +458,6 @@ subroutine $subroutine_monoexc(key_in, hole_1,particl_1,fock_diag_tmp,i_generato
   $check_double_excitation
   
 
-  if (ifirst == 0) then
-    ifirst=1
-!$    call omp_init_lock(lck)
-  endif
-  
   $initialization
   
   $omp_parallel

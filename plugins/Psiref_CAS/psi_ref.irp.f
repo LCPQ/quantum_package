@@ -26,6 +26,21 @@ use bitmasks
 
 END_PROVIDER
 
+BEGIN_PROVIDER [ double precision, psi_ref_coef_inv, (psi_det_size,n_states) ]
+ implicit none
+ BEGIN_DOC
+ ! 1/psi_ref_coef
+ END_DOC
+ integer :: i, i_state
+ do i_state=1,N_states
+  do i=1,N_det_ref
+    psi_ref_coef_inv(i,i_state) = 1.d0/psi_ref_coef(i,i_state)
+  enddo
+ enddo
+
+END_PROVIDER
+
+
  BEGIN_PROVIDER [ integer(bit_kind), psi_ref_restart, (N_int,2,psi_det_size) ]
 &BEGIN_PROVIDER [ double precision, psi_ref_coef_restart,  (psi_det_size,n_states) ]
   implicit none

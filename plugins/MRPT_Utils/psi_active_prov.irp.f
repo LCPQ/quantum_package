@@ -182,7 +182,11 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
  double precision :: delta_e_inactive(N_states)
  integer :: i_hole_inact
 
-
+ call get_excitation_degree(det_1,det_2,degree,N_int)
+ if(degree>2)then
+  delta_e_final = -1.d+10
+  return
+ endif
 
  call give_holes_in_inactive_space(det_2,n_holes_spin,n_holes,holes_list)
  delta_e_inactive = 0.d0
@@ -307,32 +311,11 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
  else if (n_holes_act == 1 .and. n_particles_act == 0) then
   ispin = hole_list_practical(1,1)
   i_hole_act =  hole_list_practical(2,1)
-! call get_excitation_degree(det_1,det_2,degree,N_int)
-! if(degree == 1)then
-!  call get_excitation(det_1,det_2,exc,degree,phase,N_int)
-!  call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
-!  i_hole =  list_act_reverse(h1)
-!  i_part =  list_virt_reverse(p1)
-!  do i_state = 1, N_states
-!   if(isnan(one_creat_virt(i_hole,i_part,i_state)))then
-!    print*, i_hole,i_part,i_state
-!    call debug_det(det_1,N_int)
-!    call debug_det(det_2,N_int)
-!    stop 
-!   endif
-!   delta_e_act(i_state) += one_creat_virt(i_hole,i_part,i_state)
-!  enddo
-! else if (degree == 2)then
    do i_state = 1, N_states
     delta_e_act(i_state) += one_anhil(i_hole_act , ispin,i_state)
    enddo
-! endif
 
  else if (n_holes_act == 1 .and. n_particles_act == 1) then
-! i_hole_act =  holes_active_list_spin_traced(1)
-! i_particle_act =  particles_active_list_spin_traced(1)
-! delta_e_act += one_anhil_one_creat_spin_trace(i_hole_act,i_particle_act)
-
   ! first hole
   ispin = hole_list_practical(1,1)
   i_hole_act =  hole_list_practical(2,1)
@@ -344,9 +327,6 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
   enddo
 
  else if (n_holes_act == 2 .and. n_particles_act == 0) then
-! i_hole_act =  holes_active_list_spin_traced(1)
-! j_hole_act =  holes_active_list_spin_traced(1)
-! delta_e_act += two_anhil_spin_trace(i_hole_act,j_hole_act)
   ispin = hole_list_practical(1,1)
   i_hole_act =  hole_list_practical(2,1)
   jspin = hole_list_practical(1,2)
@@ -356,9 +336,6 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
   enddo
 
  else if (n_holes_act == 0 .and. n_particles_act == 2) then
-! i_particle_act =  particles_active_list_spin_traced(1)
-! j_particle_act =  particles_active_list_spin_traced(2)
-! delta_e_act += two_creat_spin_trace(i_particle_act,j_particle_act)
   ispin = particle_list_practical(1,1)
   i_particle_act =  particle_list_practical(2,1)
   jspin = particle_list_practical(1,2)
@@ -368,14 +345,6 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
   enddo
 
  else if (n_holes_act == 2 .and. n_particles_act == 1) then
-! i_hole_act =  holes_active_list_spin_traced(1)
-! j_hole_act =  holes_active_list_spin_traced(2)
-! i_particle_act =  particles_active_list_spin_traced(1)
-! print*, 'i_hole_act,j_hole_act,i_particle_act'
-! print*, i_hole_act,j_hole_act,i_particle_act
-! print*, two_anhil_one_creat_spin_trace(i_hole_act,j_hole_act,i_particle_act)
-! delta_e_act += two_anhil_one_creat_spin_trace(i_hole_act,j_hole_act,i_particle_act)
-
   ! first hole
   ispin = hole_list_practical(1,1)
   i_hole_act =  hole_list_practical(2,1)
@@ -390,11 +359,6 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
   enddo
 
  else if (n_holes_act == 1 .and. n_particles_act == 2) then
-! i_hole_act =  holes_active_list_spin_traced(1)
-! i_particle_act =  particles_active_list_spin_traced(1)
-! j_particle_act =  particles_active_list_spin_traced(2)
-! delta_e_act += two_creat_one_anhil_spin_trace(i_hole_act,i_particle_act,j_particle_act)
-
   ! first hole
   ispin = hole_list_practical(1,1)
   i_hole_act =  hole_list_practical(2,1)
@@ -410,11 +374,6 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
   enddo
 
  else if (n_holes_act == 3 .and. n_particles_act == 0) then
-! i_hole_act =  holes_active_list_spin_traced(1)
-! j_hole_act =  holes_active_list_spin_traced(2)
-! k_hole_act =  holes_active_list_spin_traced(3)
-! delta_e_act += three_anhil_spin_trace(i_hole_act,j_hole_act,k_hole_act)
-
   ! first hole
   ispin = hole_list_practical(1,1)
   i_hole_act =  hole_list_practical(2,1)
@@ -429,10 +388,6 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
   enddo
 
  else if (n_holes_act == 0 .and. n_particles_act == 3) then
-! i_particle_act =  particles_active_list_spin_traced(1)
-! j_particle_act =  particles_active_list_spin_traced(2)
-! k_particle_act =  particles_active_list_spin_traced(3)
-! delta_e_act += three_creat_spin_trace(i_particle_act,j_particle_act,k_particle_act)
   ! first particle
   ispin = particle_list_practical(1,1)
   i_particle_act =  particle_list_practical(2,1)
@@ -442,7 +397,6 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
   ! second particle
   kspin = particle_list_practical(1,3)
   k_particle_act =  particle_list_practical(2,3)
- 
   do i_state = 1, N_states
    delta_e_act(i_state) += three_creat(i_particle_act,j_particle_act,k_particle_act,ispin,jspin,kspin,i_state)
   enddo
@@ -464,12 +418,8 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
 !    delta_e_act(i_state) += one_anhil_one_creat_inact_virt(i_hole,i_part,i_state) 
    enddo
   endif
-
-
  else if (n_holes_act .ge. 2 .and. n_particles_act .ge.2) then
-
   delta_e_act = -10000000.d0
-
  endif
 
 !print*, 'one_anhil_spin_trace'
@@ -479,6 +429,7 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
  do i_state = 1, n_states
   delta_e_final(i_state) = delta_e_act(i_state)  + delta_e_inactive(i_state) - delta_e_virt(i_state)
  enddo
+!write(*,'(100(f16.10,X))'), delta_e_final(1) , delta_e_act(1)  , delta_e_inactive(1) , delta_e_virt(1)
 
 end
 

@@ -2,6 +2,23 @@ open Core.Std
 open Qptypes
 
 
+type pub_state =
+| Waiting
+| Running of string
+| Stopped
+
+let pub_state_of_string = function
+| "Waiting"  -> Waiting
+| "Stopped"  -> Stopped
+| s -> Running s
+
+let string_of_pub_state = function
+| Waiting  -> "Waiting"
+| Stopped  -> "Stopped"
+| Running s -> s
+
+
+
 type t =
 {
     queue           : Queuing_system.t ;
@@ -31,20 +48,21 @@ let zmq_context =
   ZMQ.Context.create ()
 
 
-let bind_socket ~socket_type ~socket ~address =
+let bind_socket ~socket_type ~socket ~port =
   let rec loop = function
   | 0 -> failwith @@ Printf.sprintf
-        "Unable to bind the %s socket : %s "
-        socket_type address
+        "Unable to bind the %s socket to port : %d "
+        socket_type port
   | -1 -> ()
   | i -> 
       try
-        ZMQ.Socket.bind socket address;
+        ZMQ.Socket.bind socket @@ Printf.sprintf "tcp://*:%d" port;
         loop (-1)
       with
       | Unix.Unix_error _ -> (Time.pause @@ Time.Span.of_float 1. ; loop (i-1) )
       | other_exception -> raise other_exception
-  in loop 10
+  in loop 60;
+  ZMQ.Socket.bind socket @@ Printf.sprintf "ipc:///tmp/qp_run:%d" port
 
 
 let hostname = lazy (
@@ -98,7 +116,7 @@ let stop ~port =
     let req_socket =
       ZMQ.Socket.create zmq_context ZMQ.Socket.req
     and address =
-      Printf.sprintf "tcp://%s:%d" (Lazy.force ip_address) port
+      Printf.sprintf "ipc:///tmp/qp_run:%d" port
     in
     ZMQ.Socket.set_linger_period req_socket 1_000_000;
     ZMQ.Socket.connect req_socket address;
@@ -120,7 +138,7 @@ let stop ~port =
     ZMQ.Socket.close req_socket
 
 
-let new_job msg program_state rep_socket =
+let new_job msg program_state rep_socket pair_socket =
 
     let state = 
         msg.Message.Newjob_msg.state
@@ -143,10 +161,32 @@ let new_job msg program_state rep_socket =
       }
     in
     reply_ok rep_socket;
+    string_of_pub_state Waiting
+    |> ZMQ.Socket.send pair_socket ;
     result
 
+let change_pub_state msg program_state rep_socket pair_socket =
+  let msg = 
+    match msg with
+    | `Waiting -> Waiting 
+    | `Stopped -> Stopped
+    | `Running ->
+      begin
+	let state =
+	   match program_state.state with
+	   | Some x -> x
+	   | None  -> failwith "Trying to change pub state while no job is ready"
+        in
+        Running (Message.State.to_string state)
+      end
+  in
+  reply_ok rep_socket;
+  string_of_pub_state msg
+  |> ZMQ.Socket.send pair_socket ;
 
-let end_job msg program_state rep_socket =
+  program_state
+
+let end_job msg program_state rep_socket pair_socket =
 
     let failure () =
         reply_wrong_state rep_socket;
@@ -165,7 +205,11 @@ let end_job msg program_state rep_socket =
     | Some state -> 
       begin
         if (msg.Message.Endjob_msg.state = state) then
-          success state
+          begin
+            string_of_pub_state Waiting
+            |> ZMQ.Socket.send pair_socket ;
+            success state
+          end
         else
           failure ()
       end
@@ -262,8 +306,7 @@ let del_task msg program_state rep_socket =
             }
         in
         let more = 
-            (Queuing_system.number_of_queued new_program_state.queue +
-             Queuing_system.number_of_running new_program_state.queue) > 0
+            (Queuing_system.number_of_tasks new_program_state.queue > 0)
         in
         Message.DelTaskReply (Message.DelTaskReply_msg.create ~task_id ~more)
         |> Message.to_string
@@ -355,7 +398,7 @@ let add_task msg program_state rep_socket =
 
 
 
-let get_task msg program_state rep_socket =
+let get_task msg program_state rep_socket pair_socket =
 
     let state, client_id =
       msg.Message.GetTask_msg.state, 
@@ -371,6 +414,12 @@ let get_task msg program_state rep_socket =
         let new_queue, task_id, task =
             Queuing_system.pop_task ~client_id program_state.queue
         in
+        if (Queuing_system.number_of_queued new_queue = 0) then
+          string_of_pub_state Waiting 
+          |> ZMQ.Socket.send pair_socket
+        else
+          string_of_pub_state (Running (Message.State.to_string state))
+          |> ZMQ.Socket.send pair_socket;
 
         let new_program_state = 
             { program_state with
@@ -378,21 +427,10 @@ let get_task msg program_state rep_socket =
             }
         in
 
-        match (task, task_id) with
-          | Some task, Some task_id -> 
-              begin
-                Message.GetTaskReply (Message.GetTaskReply_msg.create ~task ~task_id)
-                |> Message.to_string
-                |> ZMQ.Socket.send rep_socket ;
-                new_program_state
-              end
-          | _ -> 
-              begin
-                Message.Terminate (Message.Terminate_msg.create ())
-                |> Message.to_string
-                |> ZMQ.Socket.send rep_socket ;
-                program_state
-              end
+        Message.GetTaskReply (Message.GetTaskReply_msg.create ~task ~task_id)
+        |> Message.to_string
+        |> ZMQ.Socket.send rep_socket ;
+        new_program_state
 
     in
 
@@ -454,9 +492,9 @@ let put_psi msg rest_of_msg program_state rep_socket =
         | Some x -> x
         | None ->
           begin
-            let psi_det, psi_coef =
+            let psi_det, psi_coef, energy =
               match rest_of_msg with
-              | [ x ; y ] -> x, y
+              | [ x ; y ; e ] -> x, y, e
               | _ -> failwith "Badly formed put_psi message"
             in
             Message.Psi.create
@@ -467,6 +505,7 @@ let put_psi msg rest_of_msg program_state rep_socket =
               ~n_det_selectors:msg.Message.PutPsi_msg.n_det_selectors
               ~psi_det
               ~psi_coef
+              ~energy
           end
     in
     let new_program_state =
@@ -501,29 +540,85 @@ let get_psi msg program_state rep_socket =
 let terminate program_state rep_socket =
     reply_ok rep_socket;
     { program_state with
+      psi = None;
+      address_tcp = None;
+      address_inproc = None;
       running = false
     }
 
   
 let error msg program_state rep_socket =
-    Printf.printf "%s\n%!" msg;
     Message.Error (Message.Error_msg.create msg)
     |> Message.to_string
     |> ZMQ.Socket.send rep_socket ;
     program_state
 
+let start_pub_thread ~port = 
+    Thread.create (fun () ->
+      let timeout =
+        1000
+      in
 
+      let pair_socket =
+        ZMQ.Socket.create zmq_context ZMQ.Socket.pair
+      and address = 
+        "inproc://pair" 
+      in
+      ZMQ.Socket.connect pair_socket address;
+
+      let pub_socket =
+        ZMQ.Socket.create zmq_context ZMQ.Socket.pub
+      in
+      bind_socket ~socket_type:"PUB" ~socket:pub_socket ~port;
+
+      let pollitem =
+        ZMQ.Poll.mask_of 
+          [| (pair_socket, ZMQ.Poll.In) |]
+      in
+
+      let rec run state = 
+        let new_state =
+          let polling = 
+            ZMQ.Poll.poll ~timeout pollitem
+          in
+          if (polling.(0) = Some ZMQ.Poll.In) then
+            ZMQ.Socket.recv ~block:false pair_socket
+            |> pub_state_of_string
+          else
+            state
+        in
+        ZMQ.Socket.send pub_socket @@ string_of_pub_state new_state;
+        match state with
+        | Stopped -> ()
+        | _ -> run new_state
+      in
+      run Waiting;
+      ZMQ.Socket.set_linger_period pair_socket 1000 ;
+      ZMQ.Socket.close pair_socket;
+      ZMQ.Socket.set_linger_period pub_socket 1000 ;
+      ZMQ.Socket.close pub_socket;
+    )
 
 let run ~port =
+
+    (** Bind inproc socket for changing state of pub *)
+    let pair_socket =
+      ZMQ.Socket.create zmq_context ZMQ.Socket.pair
+    and address = 
+      "inproc://pair" 
+    in
+    ZMQ.Socket.bind pair_socket address;
+
+    let pub_thread = 
+      start_pub_thread ~port:(port+1) ()
+    in
 
     (** Bind REP socket *)
     let rep_socket =
       ZMQ.Socket.create zmq_context ZMQ.Socket.rep
-    and address =
-      Printf.sprintf "tcp://%s:%d" (Lazy.force ip_address) port
     in
-    bind_socket "REP" rep_socket address;
     ZMQ.Socket.set_linger_period rep_socket 1_000_000;
+    bind_socket "REP" rep_socket port;
 
     let initial_program_state =
     {   queue = Queuing_system.create () ;
@@ -542,6 +637,9 @@ let run ~port =
         [| (rep_socket, ZMQ.Poll.In) |]
     in
 
+    let address =
+      Printf.sprintf "tcp://%s:%d" (Lazy.force ip_address) port
+    in
     Printf.printf "Task server running : %s\n%!" address;
 
 
@@ -579,9 +677,10 @@ let run ~port =
               in
 
               (** Debug input *)
-              Printf.sprintf "%d %d : %s\n%!"
+              Printf.sprintf "q:%d  r:%d  n:%d  : %s\n%!"
               (Queuing_system.number_of_queued program_state.queue)
               (Queuing_system.number_of_running program_state.queue)
+              (Queuing_system.number_of_tasks program_state.queue)
               (Message.to_string message)
               |> debug;
 
@@ -591,15 +690,18 @@ let run ~port =
                   | _     , Message.Terminate   _ -> terminate program_state rep_socket
                   | _     , Message.PutPsi      x -> put_psi x rest program_state rep_socket
                   | _     , Message.GetPsi      x -> get_psi x program_state rep_socket
-                  | None  , Message.Newjob      x -> new_job x program_state rep_socket
+                  | None  , Message.Newjob      x -> new_job x program_state rep_socket pair_socket
                   | _     , Message.Newjob      _ -> error "A job is already running" program_state rep_socket
-                  | Some _, Message.Endjob      x -> end_job x program_state rep_socket
+                  | Some _, Message.Endjob      x -> end_job x program_state rep_socket pair_socket
+                  | Some _, Message.SetRunning    -> change_pub_state `Running program_state rep_socket pair_socket
+                  | _, Message.SetWaiting    -> change_pub_state `Waiting program_state rep_socket pair_socket
+                  | _, Message.SetStopped    -> change_pub_state `Stopped program_state rep_socket pair_socket
                   | None  ,                     _ -> error "No job is running" program_state rep_socket
                   | Some _, Message.Connect     x -> connect x program_state rep_socket
                   | Some _, Message.Disconnect  x -> disconnect x program_state rep_socket
                   | Some _, Message.AddTask     x -> add_task x program_state rep_socket
                   | Some _, Message.DelTask     x -> del_task x program_state rep_socket
-                  | Some _, Message.GetTask     x -> get_task x program_state rep_socket
+                  | Some _, Message.GetTask     x -> get_task x program_state rep_socket pair_socket
                   | Some _, Message.TaskDone    x -> task_done x program_state rep_socket
                   | _     , _                     ->
                     error ("Invalid message : "^(Message.to_string message))  program_state rep_socket
@@ -613,6 +715,11 @@ let run ~port =
               main_loop new_program_state new_program_state.running
           end
     in main_loop initial_program_state true;
+
+    ZMQ.Socket.send pair_socket @@ string_of_pub_state Stopped;
+    Thread.join pub_thread;
+    ZMQ.Socket.close rep_socket
+
 
 
 

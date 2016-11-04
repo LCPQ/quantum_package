@@ -8,7 +8,7 @@ subroutine routine
  implicit none
  integer :: i,j,k,l
  integer :: h1,p1,h2,p2,s1,s2
- double precision :: accu,get_two_body_dm_ab_map_element,get_mo_bielec_integral_schwartz
+ double precision :: accu,get_two_body_dm_ab_map_element,get_mo_bielec_integral
  accu = 0.d0
 
  ! Diag part of the core two body dm 
@@ -50,7 +50,7 @@ subroutine routine
     p1 = list_act(j)
     do i = 1,n_act_orb   ! h1 
      h1 = list_act(i)
-     accu_extra_diag += two_body_dm_ab_big_array_act(i,j,k,l) * get_mo_bielec_integral_schwartz(h1,h2,p1,p2,mo_integrals_map)
+     accu_extra_diag += two_body_dm_ab_big_array_act(i,j,k,l) * get_mo_bielec_integral(h1,h2,p1,p2,mo_integrals_map)
     enddo
    enddo
   enddo
@@ -63,7 +63,7 @@ subroutine routine
    h1 = list_act(k)
     do i = 1,n_core_orb ! h2 
      h2 = list_core(i)
-     accu_extra_diag += two_body_dm_ab_big_array_core_act(i,k,l) * get_mo_bielec_integral_schwartz(h1,h2,p1,h2,mo_integrals_map)
+     accu_extra_diag += two_body_dm_ab_big_array_core_act(i,k,l) * get_mo_bielec_integral(h1,h2,p1,h2,mo_integrals_map)
     enddo
   enddo
  enddo
@@ -76,7 +76,7 @@ subroutine routine
  print*,'Total elec      =  ',accu+average_mono + accu_extra_diag
  print*,'Total           =  ',accu+average_mono+nuclear_repulsion +accu_extra_diag
  double precision :: e_0,hij
- call u0_H_u_0(e_0,psi_coef,n_det,psi_det,N_int)
+ call u_0_H_u_0(e_0,psi_coef,n_det,psi_det,N_int)
  print*,'<Psi| H |Psi>   =  ',e_0 + nuclear_repulsion
  integer :: degree
  integer                        :: exc(0:2,2,2)

@@ -79,7 +79,7 @@ git:
 ${QP_ROOT}/install/EZFIO/Ocaml/ezfio.ml: 
 	$(NINJA) -C ${QP_ROOT}/install/EZFIO
 
-Input_auto_generated.ml qp_edit.ml:
+Input_auto_generated.ml qp_edit.ml: $(filter-out Input_auto_generated.ml, $(wildcard Input_*.ml))
 	ei_handler.py ocaml_global
 
 clean: 

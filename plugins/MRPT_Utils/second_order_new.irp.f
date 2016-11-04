@@ -198,8 +198,8 @@ subroutine give_1h2p_new(matrix_1h2p)
             if(ispin == kspin .and. vorb.le.rorb)then
              cycle_same_spin_first_order = .True. 
             endif
-!           if(ispin .ne. kspin .and. cycle_same_spin_first_order == .False. )then ! condition not to double count 
-            if(cycle_same_spin_first_order == .False. )then ! condition not to double count 
+!           if(ispin .ne. kspin .and. cycle_same_spin_first_order .eqv. .False. )then ! condition not to double count 
+            if(cycle_same_spin_first_order .eqv. .False. )then ! condition not to double count 
 
             ! FIRST ORDER CONTRIBUTION 
  
@@ -235,7 +235,7 @@ subroutine give_1h2p_new(matrix_1h2p)
              if(ispin == jspin .and. vorb.le.rorb)then
               cycle_same_spin_second_order = .True. 
              endif
-             if(cycle_same_spin_second_order == .False.)then
+             if(cycle_same_spin_second_order .eqv. .False.)then
               do corb = 1, n_act_orb
                if(perturb_dets_phase(corb,jspin,ispin) .le. -10.d0)cycle
                do inint = 1, N_int
@@ -292,7 +292,7 @@ subroutine give_1h2p_new(matrix_1h2p)
             if(ispin == 2 .and. vorb.le.rorb)then
              cycle_same_spin_second_order = .True. 
             endif
-            if(cycle_same_spin_second_order == .False.)then ! condition not to double count 
+            if(cycle_same_spin_second_order .eqv. .False.)then ! condition not to double count 
              if(perturb_dets_phase(borb,2,ispin) .le. -10.d0)cycle
              do inint = 1, N_int
               det_tmp(inint,1)  = perturb_dets(inint,1,borb,2,ispin) 
@@ -326,7 +326,7 @@ subroutine give_1h2p_new(matrix_1h2p)
             if(ispin == 1 .and. vorb.le.rorb)then
              cycle_same_spin_second_order = .True. 
             endif
-            if(cycle_same_spin_second_order == .False.)then ! condition not to double count 
+            if(cycle_same_spin_second_order .eqv. .False.)then ! condition not to double count 
              if(perturb_dets_phase(aorb,1,ispin) .le. -10.d0)cycle
              do inint = 1, N_int
               det_tmp(inint,1)  = perturb_dets(inint,1,aorb,1,ispin) 
@@ -365,7 +365,7 @@ subroutine give_1h2p_new(matrix_1h2p)
             if(ispin == 2 .and. vorb.le.rorb)then
              cycle_same_spin_second_order = .True. 
             endif
-            if(cycle_same_spin_second_order == .False.)then ! condition not to double count 
+            if(cycle_same_spin_second_order .eqv. .False.)then ! condition not to double count 
              if(perturb_dets_phase(aorb,2,ispin) .le. -10.d0)cycle
              do inint = 1, N_int
               det_tmp(inint,1)  = perturb_dets(inint,1,aorb,2,ispin) 
@@ -400,7 +400,7 @@ subroutine give_1h2p_new(matrix_1h2p)
             if(ispin == 1 .and. vorb.le.rorb)then
              cycle_same_spin_second_order = .True. 
             endif
-            if(cycle_same_spin_second_order == .False.)then ! condition not to double count 
+            if(cycle_same_spin_second_order .eqv. .False.)then ! condition not to double count 
              if(perturb_dets_phase(aorb,1,ispin) .le. -10.d0)cycle
              do inint = 1, N_int
               det_tmp(inint,1)  = perturb_dets(inint,1,aorb,1,ispin) 
@@ -648,7 +648,7 @@ subroutine give_2h1p_new(matrix_2h1p)
           if(ispin == kspin .and. iorb.le.jorb)then
            cycle_same_spin_first_order = .True.
           endif
-          if(ispin .ne. kspin .or. cycle_same_spin_first_order == .False. )then! condition not to double count 
+          if(ispin .ne. kspin .or. cycle_same_spin_first_order .eqv. .False. )then! condition not to double count 
 
            ! | det_tmp > = a^{\dagger}_{rorb,ispin} a^{\dagger}_{aorb,kspin} a_{jorb,kspin} a_{iorb,ispin} | Idet > 
            do inint = 1, N_int
@@ -680,7 +680,7 @@ subroutine give_2h1p_new(matrix_2h1p)
              if(ispin == jspin .and. iorb.le.jorb)then
               cycle_same_spin_second_order = .True.
              endif
-             if(ispin .ne. jspin .or. cycle_same_spin_second_order == .False. )then! condition not to double count 
+             if(ispin .ne. jspin .or. cycle_same_spin_second_order .eqv. .False. )then! condition not to double count 
               do corb = 1, n_act_orb
                if(perturb_dets_phase(corb,jspin,ispin) .le. -10.d0)cycle
                do inint = 1, N_int

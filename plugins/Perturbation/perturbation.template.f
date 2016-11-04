@@ -3,7 +3,7 @@ import perturbation
 END_SHELL
 
 
-subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert,sum_norm_pert,sum_H_pert_diag,N_st,Nint,key_mask,fock_diag_tmp)
+subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert,sum_norm_pert,sum_H_pert_diag,N_st,Nint,key_mask,fock_diag_tmp,electronic_energy)
   implicit none
   BEGIN_DOC
   !  Applly pertubration ``$PERT`` to the buffer of determinants generated in the H_apply
@@ -14,6 +14,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
   integer(bit_kind), intent(in)  :: buffer(Nint,2,buffer_size)
   integer(bit_kind),intent(in)    :: key_mask(Nint,2)
   double precision, intent(in)    :: fock_diag_tmp(2,0:mo_tot_num)
+  double precision, intent(in)    :: electronic_energy(N_st)
   double precision, intent(inout) :: sum_norm_pert(N_st),sum_e_2_pert(N_st)
   double precision, intent(inout) :: coef_pert_buffer(N_st,buffer_size),e_2_pert_buffer(N_st,buffer_size),sum_H_pert_diag(N_st)
   double precision               :: c_pert(N_st), e_2_pert(N_st),  H_pert_diag(N_st)
@@ -130,7 +131,6 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
 ! TODO OLD
 !        if(is_connected_to(buffer(1,1,i), microlist_gen(:,:,1:ptr_microlist_gen(1)-1), Nint, N_microlist_gen(0))) then
 ! TODO OLD
-        ASSERT ( N_microlist_gen(0) <= buffer_size)
         if(is_connected_to(buffer(1,1,i), microlist_gen(1,1,1), Nint, N_microlist_gen(0))) then
           cycle
         end if
@@ -151,7 +151,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
           idx_microlist_zero(ptr_microlist(1)+l) = idx_microlist(ptr_microlist(smallerlist)+l)
         enddo
       end if
-      call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,     &
+      call pt2_$PERT(electronic_energy,psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,     &
           c_pert,e_2_pert,H_pert_diag,Nint,N_microlist(smallerlist)+N_microlist(0),        &
           n_st,microlist_zero,idx_microlist_zero,N_microlist(smallerlist)+N_microlist(0))
     else
@@ -160,11 +160,11 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
         cycle
       end if
     
-      call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
+      call pt2_$PERT(electronic_energy,psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
         c_pert,e_2_pert,H_pert_diag,Nint,N_minilist,n_st,minilist,idx_minilist,N_minilist) 
     end if
     
-!     call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
+!     call pt2_$PERT(electronic_energy,psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
 !          c_pert,e_2_pert,H_pert_diag,Nint,N_minilist,n_st,minilist,idx_minilist,N_minilist) 
 
     do k = 1,N_st
@@ -182,7 +182,7 @@ subroutine perturb_buffer_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,c
 end
 
 
-subroutine perturb_buffer_by_mono_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert,sum_norm_pert,sum_H_pert_diag,N_st,Nint,key_mask,fock_diag_tmp)
+subroutine perturb_buffer_by_mono_$PERT(i_generator,buffer,buffer_size,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert,sum_norm_pert,sum_H_pert_diag,N_st,Nint,key_mask,fock_diag_tmp,electronic_energy)
   implicit none
   BEGIN_DOC
   !  Applly pertubration ``$PERT`` to the buffer of determinants generated in the H_apply
@@ -193,6 +193,7 @@ subroutine perturb_buffer_by_mono_$PERT(i_generator,buffer,buffer_size,e_2_pert_
   integer(bit_kind), intent(in)  :: buffer(Nint,2,buffer_size)
   integer(bit_kind),intent(in)    :: key_mask(Nint,2)
   double precision, intent(in)    :: fock_diag_tmp(2,0:mo_tot_num)
+  double precision, intent(in)    :: electronic_energy(N_st)
   double precision, intent(inout) :: sum_norm_pert(N_st),sum_e_2_pert(N_st)
   double precision, intent(inout) :: coef_pert_buffer(N_st,buffer_size),e_2_pert_buffer(N_st,buffer_size),sum_H_pert_diag(N_st)
   double precision               :: c_pert(N_st), e_2_pert(N_st),  H_pert_diag(N_st)
@@ -241,7 +242,7 @@ subroutine perturb_buffer_by_mono_$PERT(i_generator,buffer,buffer_size,e_2_pert_
       cycle
     endif
     
-    call pt2_$PERT(psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
+    call pt2_$PERT(electronic_energy,psi_det_generators(1,1,i_generator),buffer(1,1,i), fock_diag_tmp,        &
          c_pert,e_2_pert,H_pert_diag,Nint,N_minilist,n_st,minilist,idx_minilist,N_minilist) 
 
     do k = 1,N_st

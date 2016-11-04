@@ -11,7 +11,7 @@ program full_ci
   
   pt2 = 1.d0
   diag_algorithm = "Lapack"
-  
+
   if (N_det > N_det_max) then
     call diagonalize_CI
     call save_wavefunction
@@ -40,7 +40,7 @@ program full_ci
 
   integer :: n_det_before
   print*,'Beginning the selection ...'
-  E_CI_before = CI_energy
+  E_CI_before(1:N_states) = CI_energy(1:N_states)
   do while (N_det < N_det_max.and.maxval(abs(pt2(1:N_st))) > pt2_max)
     n_det_before = N_det
     call H_apply_FCI(pt2, norm_pert, H_pert_diag,  N_st)
@@ -49,13 +49,16 @@ program full_ci
     PROVIDE  psi_det
     PROVIDE  psi_det_sorted
 
-    if (N_det > N_det_max) then
-       psi_det = psi_det_sorted
-       psi_coef = psi_coef_sorted
-       N_det = N_det_max
-       soft_touch N_det psi_det psi_coef
-    endif
     call diagonalize_CI
+
+    if (N_det > N_det_max) then
+      N_det = N_det_max
+      psi_det = psi_det_sorted
+      psi_coef = psi_coef_sorted
+      touch N_det psi_det psi_coef psi_det_sorted psi_coef_sorted psi_average_norm_contrib_sorted
+    endif
+
+
     call save_wavefunction
     if(n_det_before == N_det)then
      selection_criterion = selection_criterion * 0.5d0
@@ -69,7 +72,6 @@ program full_ci
     print *,  'E(before)+PT2  = ', E_CI_before(k)+pt2(k)
     enddo
     print *,  '-----'
-    E_CI_before = CI_energy
     if(N_states.gt.1)then
      print*,'Variational Energy difference'
      do i = 2, N_states
@@ -82,8 +84,8 @@ program full_ci
       print*,'Delta E = ',E_CI_before(i)+ pt2(i) - (E_CI_before(1) + pt2(1))
      enddo
     endif
-    E_CI_before = CI_energy
-    call ezfio_set_full_ci_energy(CI_energy)
+    E_CI_before(1:N_states) = CI_energy(1:N_states)
+    call ezfio_set_full_ci_energy(CI_energy(1))
   enddo
    N_det = min(N_det_max,N_det)
    touch N_det psi_det psi_coef
@@ -99,10 +101,10 @@ program full_ci
     print *,  'N_det    = ', N_det
     print *,  'N_states = ', N_states
     print *,  'PT2      = ', pt2
-    print *,  'E        = ', CI_energy
-    print *,  'E+PT2    = ', CI_energy+pt2
+    print *,  'E        = ', CI_energy(1:N_states)
+    print *,  'E+PT2    = ', CI_energy(1:N_states)+pt2(1:N_states)
     print *,  '-----'
-    call ezfio_set_full_ci_energy_pt2(CI_energy+pt2)
+    call ezfio_set_full_ci_energy_pt2(CI_energy(1)+pt2(1))
    endif
    call save_wavefunction
   deallocate(pt2,norm_pert)

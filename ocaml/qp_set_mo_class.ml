@@ -49,20 +49,20 @@ let t_to_string = function
   | None -> assert false
 ;;
 
-let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_filename =
+let set ~core ~inact ~act ~virt ~del =
 
-  Ezfio.set_file ezfio_filename ;
-  if not (Ezfio.has_mo_basis_mo_tot_num ()) then
-    failwith "mo_basis/mo_tot_num not found" ;
-
-  let mo_tot_num = Ezfio.get_mo_basis_mo_tot_num () in
+  let mo_tot_num =
+     Ezfio.get_mo_basis_mo_tot_num ()
+  in
   let n_int =
      try  N_int_number.of_int (Ezfio.get_determinants_n_int ())
      with _ -> Bitlist.n_int_of_mo_tot_num mo_tot_num 
   in
 
 
-  let mo_class = Array.init mo_tot_num ~f:(fun i -> None) in
+  let mo_class =
+     Array.init mo_tot_num ~f:(fun i -> None)
+  in
 
   (* Check input data *)
   let apply_class l = 
@@ -196,6 +196,49 @@ let run ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_fi
   |> Ezfio.set_bitmasks_cas; 
 ;;
 
+let get () =
+
+  let mo_tot_num =
+     Ezfio.get_mo_basis_mo_tot_num ()
+  in
+  let n_int =
+     try  N_int_number.of_int (Ezfio.get_determinants_n_int ())
+     with _ -> Bitlist.n_int_of_mo_tot_num mo_tot_num 
+  in
+
+  let bitmasks = 
+    match Input.Bitmasks.read () with
+    | Some x -> x
+    | None -> failwith "No data to print"
+  in
+  assert (bitmasks.Input.Bitmasks.n_mask_gen |> Bitmask_number.to_int = 1);
+  assert (bitmasks.Input.Bitmasks.n_mask_cas |> Bitmask_number.to_int = 1);
+
+  let (generators,cas) =
+    Bitlist.of_int64_array bitmasks.Input.Bitmasks.generators,
+    Bitlist.of_int64_array bitmasks.Input.Bitmasks.cas
+  in
+
+  Printf.printf "MO  : %d\n" mo_tot_num;
+  Printf.printf "n_int: %d\n" (N_int_number.to_int n_int);
+  Printf.printf "Gen : %s\nCAS : %s\n"
+    (Bitlist.to_string generators)
+    (Bitlist.to_string cas)
+  
+;;
+
+let run ~print ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_filename =
+
+  Ezfio.set_file ezfio_filename ;
+  if not (Ezfio.has_mo_basis_mo_tot_num ()) then
+    failwith "mo_basis/mo_tot_num not found" ;
+
+  if print then
+     get ()
+  else
+     set ~core ~inact ~act ~virt ~del
+;;
+
 let ezfio_file =
   let failure filename = 
         eprintf "'%s' is not an EZFIO file.\n%!" filename;
@@ -240,6 +283,7 @@ let spec =
   +> flag "act"    (optional string) ~doc:"range Range of active orbitals"
   +> flag "virt"   (optional string) ~doc:"range Range of virtual orbitals"
   +> flag "del"    (optional string) ~doc:"range Range of deleted orbitals"
+  +> flag "print"  no_arg ~doc:" Print the current masks"
   +> anon ("ezfio_filename" %: ezfio_file)
 ;;
 
@@ -251,7 +295,7 @@ let command =
       The range of MOs has the form : \"[36-53,72-107,126-131]\"
         ")
     spec
-    (fun core inact act virt del ezfio_filename () -> run ?core ?inact ?act ?virt ?del ezfio_filename )
+    (fun core inact act virt del print ezfio_filename () -> run ~print ?core ?inact ?act ?virt ?del ezfio_filename )
 ;;
 
 let () =

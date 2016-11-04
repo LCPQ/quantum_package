@@ -263,7 +263,7 @@
 
       enddo !big loop over symmetry
 
-      10 format (4E18.12)
+      10 format (4E19.12)
 
 
 !  Now we copyt the newcmo into the mo_coef

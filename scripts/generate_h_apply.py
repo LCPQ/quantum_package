@@ -80,6 +80,7 @@ class H_apply(object):
     s["params_post"] = ""
 
     self.selection_pt2 = None
+    self.energy = "CI_electronic_energy"
     self.perturbation = None
     self.do_double_exc = do_double_exc
    #s["omp_parallel"]     = """!$OMP PARALLEL DEFAULT(NONE)          &
@@ -331,13 +332,13 @@ class H_apply(object):
       """ 
 
       self.data["deinit_thread"] = """
-      !$ call omp_set_lock(lck)
+      ! OMP CRITICAL
       do k=1,N_st
         sum_e_2_pert_in(k) = sum_e_2_pert_in(k) + sum_e_2_pert(k)
         sum_norm_pert_in(k) = sum_norm_pert_in(k) + sum_norm_pert(k)
         sum_H_pert_diag_in(k) = sum_H_pert_diag_in(k) + sum_H_pert_diag(k)
       enddo
-      !$ call omp_unset_lock(lck)
+      ! OMP END CRITICAL
       deallocate (e_2_pert_buffer, coef_pert_buffer)
       """
       self.data["size_max"] = "8192" 
@@ -348,13 +349,13 @@ class H_apply(object):
           self.data["keys_work"] = """
 !          if(check_double_excitation)then
             call perturb_buffer_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-             sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
-          """%(pert)
+             sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp,%s)
+          """%(pert,self.energy)
       else: 
           self.data["keys_work"] = """
             call perturb_buffer_by_mono_%s(i_generator,keys_out,key_idx,e_2_pert_buffer,coef_pert_buffer,sum_e_2_pert, &
-             sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp)
-          """%(pert)
+             sum_norm_pert,sum_H_pert_diag,N_st,N_int,key_mask,fock_diag_tmp,%s)
+          """%(pert,self.energy)
 
 
       self.data["finalization"] = """
@@ -439,12 +440,12 @@ class H_apply(object):
       self.data["skip"] = """
       if (i_generator < size_select_max) then
         if (select_max(i_generator) < selection_criterion_min*selection_criterion_factor) then
-          !$ call omp_set_lock(lck)
+          ! OMP CRITICAL
           do k=1,N_st
             norm_psi(k) = norm_psi(k) + psi_coef_generators(i_generator,k)*psi_coef_generators(i_generator,k)
             pt2_old(k) = 0.d0
           enddo
-          !$ call omp_unset_lock(lck)
+          ! OMP END CRITICAL
           cycle
         endif
         select_max(i_generator) = 0.d0
@@ -483,8 +484,18 @@ class H_apply_zmq(H_apply):
     norm_pert(k) = 0.d0
     H_pert_diag(k) = 0.d0
     norm_psi(k) = 0.d0
+    energy(k) = %s(k)
   enddo
-      """ 
+     """ % (self.energy)
+     self.data["copy_buffer"] = """
+    do i=1,N_det_generators
+      do k=1,N_st
+        pt2(k) = pt2(k) + pt2_generators(k,i)
+        norm_pert(k) = norm_pert(k) + norm_pert_generators(k,i)
+        H_pert_diag(k) = H_pert_diag(k) + H_pert_diag_generators(k,i)
+      enddo
+    enddo
+     """
 
   def set_selection_pt2(self,pert):
      H_apply.set_selection_pt2(self,pert)
@@ -499,3 +510,4 @@ class H_apply_zmq(H_apply):
         select_max(i_generator) = 0.d0
       endif
       """
+

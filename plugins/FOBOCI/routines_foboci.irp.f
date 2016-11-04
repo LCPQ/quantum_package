@@ -841,7 +841,7 @@ end
   call dress_diag_elem_2h2p(dressing_H_mat_elem,N_det)
   call dress_diag_elem_2h1p(dressing_H_mat_elem,N_det,lmct,i_hole)
   call dress_diag_elem_1h2p(dressing_H_mat_elem,N_det,lmct,i_hole)
-  call davidson_diag_hjj(psi_det,psi_coef,dressing_H_mat_elem,energies,size(psi_coef,1),N_det,N_states_diag,N_int,output_determinants)
+  call davidson_diag_hjj(psi_det,psi_coef,dressing_H_mat_elem,energies,size(psi_coef,1),N_det,N_states,N_states_diag,N_int,output_determinants)
   do i = 1, 2
    print*,'psi_coef = ',psi_coef(i,1)
   enddo

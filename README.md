@@ -1,21 +1,20 @@
-Quantum package
-===============
-
+![QP](https://raw.githubusercontent.com/LCPQ/quantum_package/master/data/qp.png)     
 [![Build Status](https://travis-ci.org/LCPQ/quantum_package.svg?branch=master)](https://travis-ci.org/LCPQ/quantum_package)
-
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/LCPQ/quantum_package?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 
 Set of quantum chemistry programs and libraries. 
 (under GNU GENERAL PUBLIC LICENSE v2)
 
 For more information, you can visit the [wiki of the project](http://github.com/LCPQ/quantum_package/wiki>), or below for the installation instructions.
 
+
+
 Demo
 ====
 
 [![Full-CI energy of C2 in 2 minutes](https://i.vimeocdn.com/video/555047954_295x166.jpg)](https://vimeo.com/scemama/quantum_package_demo "Quantum Package Demo")
 
+[![Frozen-core Full-CI energy of Ti](https://raw.githubusercontent.com/LCPQ/quantum_package/master/data/Titanium.png)](https://raw.githubusercontent.com/LCPQ/quantum_package/master/data/Titanium.png "Convergence of Ti in cc-pv{DTQ}Z")
 
 # Installation
 
@@ -159,7 +158,7 @@ Program exited with code 139.
 
 #### Why ?
 
-It's caused when we call the DGEM routine of LAPACK. 
+It's caused when we call the DGEMM routine of LAPACK. 
 
 ##### Fix
 

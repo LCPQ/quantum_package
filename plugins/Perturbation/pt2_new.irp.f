@@ -32,6 +32,7 @@ subroutine i_H_psi_pert_new_minilist(key,keys,idx_key,N_minilist,coef,Nint,Ndet,
   coef_pert = 0.d0
   
   call filter_connected_i_H_psi0(keys,key,Nint,N_minilist,idx)
+  double precision :: coef_array(Nstate)
   if (Nstate == 1) then
 
     do ii=1,idx(0)
@@ -40,8 +41,11 @@ subroutine i_H_psi_pert_new_minilist(key,keys,idx_key,N_minilist,coef,Nint,Ndet,
       !DIR$ FORCEINLINE
       call i_H_j(keys(1,1,i_in_key),key,Nint,hij)
       i_H_psi_array(1) = i_H_psi_array(1) + coef(i_in_coef,1)*hij
-      call get_delta_e_dyall(keys(1,1,i_in_key),key,delta_e_final)
-
+      do i = 1, Nstate
+       coef_array(i) = coef(i_in_coef,i)
+      enddo
+      call get_delta_e_dyall(keys(1,1,i_in_key),key,coef_array,hij,delta_e_final)
+       
       coef_pert +=  coef(i_in_coef,1)*hij / delta_e_final
     enddo
     if     (coef_pert * i_H_psi_array(1) > 0.d0)then

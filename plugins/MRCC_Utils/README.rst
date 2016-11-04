@@ -10,6 +10,7 @@ Needed Modules
 * `Selectors_full <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full>`_
 * `Generators_full <http://github.com/LCPQ/quantum_package/tree/master/plugins/Generators_full>`_
 * `Psiref_Utils <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils>`_
+* `Psiref_CAS <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS>`_
 
 Documentation
 =============
@@ -19,14 +20,6 @@ Documentation
 
 `a_coef <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/need.irp.f#L252>`_
   Undocumented
-
-
-`abort_all <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/abort.irp.f#L1>`_
-  If True, all the calculation is aborted
-
-
-`abort_here <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/abort.irp.f#L11>`_
-  If True, all the calculation is aborted
 
 
 `add_poly <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/integration.irp.f#L306>`_
@@ -43,11 +36,11 @@ Documentation
   Compute 1st dimension such that it is aligned for vectorization.
 
 
-`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L168>`_
+`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L283>`_
   Apply the rotation found by find_rotation
 
 
-`approx_dble <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/util.irp.f#L380>`_
+`approx_dble <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/util.irp.f#L382>`_
   Undocumented
 
 
@@ -70,23 +63,19 @@ Documentation
   Binomial coefficients
 
 
-`catch_signal <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/abort.irp.f#L30>`_
-  What to do on Ctrl-C. If two Ctrl-C are pressed within 1 sec, the calculation if aborted.
-
-
-`ci_eigenvectors_dressed <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L166>`_
+`ci_eigenvectors_dressed <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L105>`_
   Eigenvectors/values of the CI matrix
 
 
-`ci_eigenvectors_s2_dressed <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L167>`_
+`ci_eigenvectors_s2_dressed <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L106>`_
   Eigenvectors/values of the CI matrix
 
 
-`ci_electronic_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L165>`_
+`ci_electronic_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L104>`_
   Eigenvectors/values of the CI matrix
 
 
-`ci_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L232>`_
+`ci_energy_dressed <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L171>`_
   N_states lowest eigenvalues of the dressed CI matrix
 
 
@@ -150,15 +139,15 @@ Documentation
   Undocumented
 
 
-`delta_ii <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L104>`_
+`delta_ii <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L68>`_
   Dressing matrix in N_det basis
 
 
-`delta_ij <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L103>`_
+`delta_ij <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L67>`_
   Dressing matrix in N_det basis
 
 
-`diagonalize_ci_dressed <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L247>`_
+`diagonalize_ci_dressed <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L186>`_
   Replace the coefficients of the CI states by the coefficients of the
   eigenstates of the CI matrix
 
@@ -198,11 +187,15 @@ Documentation
   1/n!
 
 
-`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L149>`_
+`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L264>`_
   Find A.C = B
 
 
-`find_triples_and_quadruples <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L245>`_
+`find_triples_and_quadruples <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L315>`_
+  Undocumented
+
+
+`find_triples_and_quadruples_micro <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L375>`_
   Undocumented
 
 
@@ -228,23 +221,7 @@ Documentation
   Undocumented
 
 
-`gen_det_idx <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L237>`_
-  Undocumented
-
-
-`gen_det_shortcut <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L235>`_
-  Undocumented
-
-
-`gen_det_sorted <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L234>`_
-  Undocumented
-
-
-`gen_det_version <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L236>`_
-  Undocumented
-
-
-`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L95>`_
+`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L210>`_
   Find C = A^-1
 
 
@@ -304,7 +281,32 @@ h_apply_mrcc_monoexc
   Assume N_int is already provided.
 
 
-`h_matrix_dressed <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L140>`_
+h_apply_mrcc_pt2
+  Calls H_apply on the HF determinant and selects all connected single and double
+  excitations (of the same symmetry). Auto-generated by the ``generate_h_apply`` script.
+
+
+h_apply_mrcc_pt2_diexc
+  Undocumented
+
+
+h_apply_mrcc_pt2_diexcorg
+  Generate all double excitations of key_in using the bit masks of holes and
+  particles.
+  Assume N_int is already provided.
+
+
+h_apply_mrcc_pt2_diexcp
+  Undocumented
+
+
+h_apply_mrcc_pt2_monoexc
+  Generate all single excitations of key_in using the bit masks of holes and
+  particles.
+  Assume N_int is already provided.
+
+
+`h_matrix_dressed <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L79>`_
   Dressed H with Delta_ij
 
 
@@ -390,7 +392,11 @@ h_apply_mrcc_monoexc
   Hermite polynomial
 
 
-`i2radix_sort <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/sort.irp.f_template_450#L323>`_
+`hij_mrcc <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L53>`_
+  < ref | H | Non-ref > matrix
+
+
+`i2radix_sort <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/sort.irp.f_template_452#L327>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
@@ -415,14 +421,14 @@ h_apply_mrcc_monoexc
   contains the new order of the elements.
 
 
-`i8radix_sort <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/sort.irp.f_template_450#L163>`_
+`i8radix_sort <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/sort.irp.f_template_452#L165>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
   iradix should be -1 in input.
 
 
-`i8radix_sort_big <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/sort.irp.f_template_450#L643>`_
+`i8radix_sort_big <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/sort.irp.f_template_452#L651>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
@@ -521,14 +527,14 @@ h_apply_mrcc_monoexc
   1/i
 
 
-`iradix_sort <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/sort.irp.f_template_450#L3>`_
+`iradix_sort <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/sort.irp.f_template_452#L3>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
   iradix should be -1 in input.
 
 
-`iradix_sort_big <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/sort.irp.f_template_450#L483>`_
+`iradix_sort_big <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/sort.irp.f_template_452#L489>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
@@ -553,19 +559,15 @@ h_apply_mrcc_monoexc
   contains the new order of the elements.
 
 
-`lambda_mrcc <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L5>`_
+`lambda_mrcc <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L1>`_
   cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
 
 
-`lambda_mrcc_tmp <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L81>`_
-  Undocumented
-
-
-`lambda_pert <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L6>`_
+`lambda_mrcc_pt2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L2>`_
   cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
 
 
-`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L247>`_
+`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L362>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -576,7 +578,7 @@ h_apply_mrcc_monoexc
   .br
 
 
-`lapack_diag_s2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L310>`_
+`lapack_diag_s2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L425>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -587,7 +589,7 @@ h_apply_mrcc_monoexc
   .br
 
 
-`lapack_diagd <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L180>`_
+`lapack_diagd <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L295>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -598,7 +600,7 @@ h_apply_mrcc_monoexc
   .br
 
 
-`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L376>`_
+`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L491>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -613,7 +615,11 @@ h_apply_mrcc_monoexc
   n!
 
 
-`mrcc_dress <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L65>`_
+`lowercase <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/util.irp.f#L406>`_
+  Transform to lower case
+
+
+`mrcc_dress <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dress.irp.f#L17>`_
   Undocumented
 
 
@@ -626,7 +632,7 @@ h_apply_mrcc_monoexc
   D(t) =! D(t) +( B(t)*C(t))
 
 
-`normalize <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/util.irp.f#L356>`_
+`normalize <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/util.irp.f#L358>`_
   Normalizes vector u
   u is expected to be aligned in memory.
 
@@ -635,8 +641,8 @@ h_apply_mrcc_monoexc
   Number of current OpenMP threads
 
 
-`ortho_lowdin <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L1>`_
-  Compute C_new=C_old.S^-1/2 canonical orthogonalization.
+`ortho_canonical <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L45>`_
+  Compute C_new=C_old.U.s^-1/2 canonical orthogonalization.
   .br
   overlap : overlap matrix
   .br
@@ -653,8 +659,22 @@ h_apply_mrcc_monoexc
   .br
 
 
-`oscillations <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L86>`_
-  Undocumented
+`ortho_lowdin <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L128>`_
+  Compute C_new=C_old.S^-1/2 orthogonalization.
+  .br
+  overlap : overlap matrix
+  .br
+  LDA : leftmost dimension of overlap array
+  .br
+  N : Overlap matrix is NxN (array is (LDA,N) )
+  .br
+  C : Coefficients of the vectors to orthogonalize. On exit,
+  orthogonal vectors
+  .br
+  LDC : leftmost dimension of C
+  .br
+  m : Coefficients matrix is MxN, ( array is (LDC,N) )
+  .br
 
 
 `overlap_a_b_c <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/one_e_integration.irp.f#L35>`_
@@ -683,7 +703,7 @@ h_apply_mrcc_monoexc
   .br
 
 
-`pert_determinants <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_utils.irp.f#L1>`_
+`pouet <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_dummy.irp.f#L1>`_
   Undocumented
 
 
@@ -754,7 +774,7 @@ h_apply_mrcc_monoexc
   Undocumented
 
 
-`set_generators_bitmasks_as_holes_and_particles <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_general.irp.f#L69>`_
+`set_generators_bitmasks_as_holes_and_particles <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/mrcc_general.irp.f#L59>`_
   Undocumented
 
 
@@ -770,7 +790,7 @@ h_apply_mrcc_monoexc
   to be in integer*8 format
 
 
-`set_zero_extra_diag <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L433>`_
+`set_zero_extra_diag <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L548>`_
   Undocumented
 
 
@@ -788,11 +808,16 @@ h_apply_mrcc_monoexc
   Stop the progress bar
 
 
-`trap_signals <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/abort.irp.f#L19>`_
-  What to do when a signal is caught. Here, trap Ctrl-C and call the control_C subroutine.
+`svd <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/LinearAlgebra.irp.f#L1>`_
+  Compute A = U.D.Vt
+  .br
+  LDx : leftmost dimension of x
+  .br
+  Dimsneion of A is m x n
+  .br
 
 
-`u_dot_u <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/util.irp.f#L325>`_
+`u_dot_u <http://github.com/LCPQ/quantum_package/tree/master/plugins/MRCC_Utils/util.irp.f#L326>`_
   Compute <u|u>
 
 

@@ -31,3 +31,12 @@ BEGIN_PROVIDER [ character*(128), ezfio_filename ]
 
 END_PROVIDER
 
+BEGIN_PROVIDER [ character*(128), ezfio_work_dir ]
+ implicit none
+ BEGIN_DOC
+ ! EZFIO/work/
+ END_DOC
+ call ezfio_set_work_empty(.False.)
+ ezfio_work_dir = trim(ezfio_filename)//'/work/'
+END_PROVIDER
+

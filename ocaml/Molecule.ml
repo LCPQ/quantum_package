@@ -85,7 +85,7 @@ let name m =
   String.concat (result)
 
 
-let to_string m =
+let to_string_general ~f m = 
   let { nuclei  ; elec_alpha ; elec_beta } = m
   in
   let n =
@@ -94,9 +94,14 @@ let to_string m =
   let title =
      name m
   in
-  [ Int.to_string n ; title ] @ 
-   (List.map ~f:(fun x -> Atom.to_string Units.Angstrom x) nuclei)
+  [ Int.to_string n ; title ] @  (List.map ~f nuclei)
   |> String.concat ~sep:"\n"
+
+let to_string =
+  to_string_general ~f:(fun x -> Atom.to_string Units.Angstrom x)
+
+let to_xyz = 
+  to_string_general ~f:Atom.to_xyz 
 
 
 let of_xyz_string
@@ -142,9 +147,27 @@ let of_xyz_file
   let (_,buffer) = In_channel.read_all filename 
   |> String.lsplit2_exn ~on:'\n' in
   let (_,buffer) = String.lsplit2_exn buffer ~on:'\n' in
-  of_xyz_string ~charge:charge ~multiplicity:multiplicity 
-    ~units:units buffer
+  of_xyz_string ~charge ~multiplicity ~units buffer
 
+
+let of_zmt_file  
+    ?(charge=(Charge.of_int 0)) ?(multiplicity=(Multiplicity.of_int 1))
+    ?(units=Units.Angstrom)
+    filename = 
+  In_channel.read_all filename
+  |> Zmatrix.of_string
+  |> Zmatrix.to_xyz_string
+  |> of_xyz_string ~charge ~multiplicity ~units
+
+
+let of_file 
+    ?(charge=(Charge.of_int 0)) ?(multiplicity=(Multiplicity.of_int 1))
+    ?(units=Units.Angstrom)
+    filename = 
+  try
+    of_xyz_file ~charge ~multiplicity ~units filename
+  with _ ->
+    of_zmt_file ~charge ~multiplicity ~units filename
 
 
 let distance_matrix molecule =

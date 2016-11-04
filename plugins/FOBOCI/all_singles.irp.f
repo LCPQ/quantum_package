@@ -30,7 +30,7 @@ subroutine all_single(e_pt2)
   print*,'N_det_generators = ',N_det_generators
   pt2=-1.d0
   print*, 'ref_bitmask_energy   =',ref_bitmask_energy
-  print*, 'CI_expectation_value =',CI_expectation_value(1)
+  print*, 'CI_expectation_value =',psi_energy(1)
   E_before = ref_bitmask_energy
  
   print*,'Initial Step '

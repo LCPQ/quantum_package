@@ -96,7 +96,7 @@ subroutine damping_SCF
 
     a = (E_new + E - 2.d0*E_half)*2.d0
     b = -E_new - 3.d0*E + 4.d0*E_half
-    lambda = -lambda*b/a
+    lambda = -lambda*b/(a+1.d-16)
     D_alpha = (1.d0-lambda) * D_alpha + lambda * D_new_alpha
     D_beta  = (1.d0-lambda) * D_beta  + lambda * D_new_beta 
     delta_E = HF_energy - E
