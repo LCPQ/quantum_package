@@ -222,7 +222,11 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
     do while (bit_tmp(j)==bit_tmp(i))
       if (duplicate(j)) then
         j += 1
-        cycle
+        if (j > N_det) then
+          exit
+        else
+          cycle
+        endif
       endif
       duplicate(j) = .True.
       do k=1,N_int
