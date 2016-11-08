@@ -69,13 +69,24 @@ subroutine occ_pattern_to_dets(o,d,sze,n_alpha,Nint)
 
   sze = nd
   
+  integer :: ne(2), l
+  l=0
   do i=1,nd
+    ne(1) = 0
+    ne(2) = 0
+    l=l+1
     ! Doubly occupied orbitals
     do k=1,Nint
-      d(k,1,i) = ior(d(k,1,i),o(k,2))
-      d(k,2,i) = ior(d(k,2,i),o(k,2))
+      d(k,1,l) = ior(d(k,1,i),o(k,2))
+      d(k,2,l) = ior(d(k,2,i),o(k,2))
+      ne(1) += popcnt(d(k,1,l))
+      ne(2) += popcnt(d(k,2,l))
     enddo
+    if ( (ne(1) /= elec_alpha_num).or.(ne(2) /= elec_beta_num) ) then
+      l = l-1
+    endif
   enddo
+  sze = l
 
 end
 
@@ -169,11 +180,11 @@ end
   endif
   j = i+1
   do while (bit_tmp(j)==bit_tmp(i))
-    if (j>N_det) then
-      exit
-    endif
     if (duplicate(j)) then
       j+=1
+      if (j>N_det) then
+        exit
+      endif
       cycle
     endif
     duplicate(j) = .True.
@@ -185,6 +196,9 @@ end
       endif
     enddo
     j+=1
+    if (j>N_det) then
+      exit
+    endif
   enddo
  enddo
 
@@ -256,6 +270,20 @@ subroutine make_s2_eigenfunction
           det_buffer(k,1,N_det_new) = d(k,1,j)
           det_buffer(k,2,N_det_new) = d(k,2,j)
         enddo
+!  integer :: ne(2)
+!  ne(:) = 0
+!  do k=1,N_int
+!    ne(1) += popcnt(d(k,1,j))
+!    ne(2) += popcnt(d(k,2,j))
+!  enddo
+!  if (ne(1) /= elec_alpha_num) then
+!    call debug_det(d(1,1,j),N_int)
+!    stop "ALPHA"
+!  endif
+!  if (ne(2) /= elec_beta_num) then
+!    call debug_det(d(1,1,j),N_int)
+!    stop "BETA"
+!  endif
         if (N_det_new == bufsze) then
           call fill_H_apply_buffer_no_selection(bufsze,det_buffer,N_int,0)
           N_det_new = 0
