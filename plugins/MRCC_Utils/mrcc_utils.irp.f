@@ -884,28 +884,26 @@ END_PROVIDER
       
       !$OMP END PARALLEL
       
+      
+      
       res = 0.d0
-      
-      
-      if (res < resold) then
-        do a_coll=1,nactive ! nex
-          a_col = active_pp_idx(a_coll)
-          do j=1,N_det_non_ref
-            i = A_ind(j,a_coll)
-            if (i==0) exit
-            rho_mrcc(i,s) = rho_mrcc(i,s) + A_val(j,a_coll) * X_new(a_col)
-          enddo
-          res = res + (X_new(a_col) - X(a_col))*(X_new(a_col) - X(a_col))
-          X(a_col) = X_new(a_col)
-        end do
-        factor = 1.d0
-      else
+      do a_coll=1,nactive ! nex
+        a_col = active_pp_idx(a_coll)
+        do j=1,N_det_non_ref
+          i = A_ind(j,a_coll)
+          if (i==0) exit
+          rho_mrcc(i,s) = rho_mrcc(i,s) + A_val(j,a_coll) * X_new(a_col)
+        enddo
+        res = res + (X_new(a_col) - X(a_col))*(X_new(a_col) - X(a_col))
+        X(a_col) = X_new(a_col)
+      end do
+      if (res > resold) then
         factor = -factor * 0.5d0
       endif
       resold = res
       
       if(mod(k, 100) == 0) then
-        print *, "res ", k, res
+        print *, "res ", k, res, factor
       end if
       
       if(res < 1d-9) exit
