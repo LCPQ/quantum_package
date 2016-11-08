@@ -3,7 +3,11 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral, (ao_num_align,ao_num)]
   BEGIN_DOC
   ! Pseudo-potential integrals
   END_DOC
-  
+ 
+
+  print*, 'Hi from ao_pseudo_integral'
+  print*, read_ao_one_integrals
+ 
   if (read_ao_one_integrals) then
     call read_one_e_integrals('ao_pseudo_integral', ao_pseudo_integral,&
         size(ao_pseudo_integral,1), size(ao_pseudo_integral,2))
@@ -53,13 +57,6 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
   call wall_time(wall_1)
   call cpu_time(cpu_1)
   
-!write(33,*) 'xxxLOCxxx'
-!write(33,*)   'pseudo_klocmax', pseudo_klocmax
-!write(33,*)  'pseudo_v_k_transp ', pseudo_v_k_transp 
-!write(33,*)  'pseudo_n_k_transp ', pseudo_n_k_transp 
-!write(33,*)  'pseudo_dz_k_transp', pseudo_dz_k_transp
-!write(33,*) 'xxxLOCxxx'
-
   thread_num = 0
   !$OMP PARALLEL                                                     &
       !$OMP DEFAULT (NONE)                                           &
@@ -109,14 +106,6 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
                 pseudo_n_k_transp (1,k), & 
                 pseudo_dz_k_transp(1,k), & 
                 A_center,power_A,alpha,B_center,power_B,beta,C_center)
-!  write(33,*) i,j,k
-!  write(33,*) A_center,power_A,alpha,B_center,power_B,beta,C_center, &
-!      Vloc(pseudo_klocmax, &
-!        pseudo_v_k_transp (1,k), &
-!        pseudo_n_k_transp (1,k), &
-!        pseudo_dz_k_transp(1,k), &
-!        A_center,power_A,alpha,B_center,power_B,beta,C_center)
-!  write(33,*)
                     
           enddo
           ao_pseudo_integral_local(i,j) = ao_pseudo_integral_local(i,j) +&
