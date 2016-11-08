@@ -122,13 +122,15 @@ subroutine ZMQ_selection(N_in, pt2)
   double precision, intent(out)  :: pt2(N_states)
   
   
-  N = max(N_in,1)
-  provide nproc
-  provide ci_electronic_energy
-  call new_parallel_job(zmq_to_qp_run_socket,"selection")
-  call zmq_put_psi(zmq_to_qp_run_socket,1,ci_electronic_energy,size(ci_electronic_energy))
-  call zmq_set_running(zmq_to_qp_run_socket)
-  call create_selection_buffer(N, N*2, b)
+  if (.True.) then
+    N = max(N_in,1)
+    provide nproc
+    provide ci_electronic_energy
+    call new_parallel_job(zmq_to_qp_run_socket,"selection")
+    call zmq_put_psi(zmq_to_qp_run_socket,1,ci_electronic_energy,size(ci_electronic_energy))
+    call zmq_set_running(zmq_to_qp_run_socket)
+    call create_selection_buffer(N, N*2, b)
+  endif
 
   integer :: i_generator, i_generator_start, i_generator_max, step
 !  step = int(max(1.,10*elec_num/mo_tot_num)
@@ -154,6 +156,7 @@ subroutine ZMQ_selection(N_in, pt2)
   if (N_in > 0) then
     call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) !!! PAS DE ROBIN
     call copy_H_apply_buffer_to_wf()
+    call make_s2_eigenfunction
   endif
 end subroutine
 

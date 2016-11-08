@@ -35,7 +35,8 @@ subroutine occ_pattern_to_dets_size(o,sze,n_alpha,Nint)
     bmax += popcnt( o(k,1) )
     amax -= popcnt( o(k,2) )
   enddo
-  sze = 2*int( min(binom_func(bmax, amax), 1.d8) )
+  sze = int( min(binom_func(bmax, amax), 1.d8) )
+  sze = sze*sze
 
 end
 
@@ -123,8 +124,8 @@ end
  implicit none
  BEGIN_DOC
   ! array of the occ_pattern present in the wf
-  ! psi_occ_pattern(:,1,j) = jth occ_pattern of the wave function : represent all the single occupation
-  ! psi_occ_pattern(:,2,j) = jth occ_pattern of the wave function : represent all the double occupation
+  ! psi_occ_pattern(:,1,j) = jth occ_pattern of the wave function : represent all the single occupations
+  ! psi_occ_pattern(:,2,j) = jth occ_pattern of the wave function : represent all the double occupations
  END_DOC
  integer :: i,j,k
 
@@ -144,7 +145,7 @@ end
  logical,allocatable            :: duplicate(:)
 
 
- allocate ( iorder(N_det), duplicate(N_det), bit_tmp(N_det), tmp_array(N_int,2,psi_det_size) )
+ allocate ( iorder(N_det), duplicate(N_det), bit_tmp(N_det), tmp_array(N_int,2,N_det) )
 
  do i=1,N_det
    iorder(i) = i
@@ -161,18 +162,16 @@ end
   duplicate(i) = .False.
  enddo
 
- i=1
- integer (bit_kind) :: occ_pattern_tmp
- do i=1,N_det
-  duplicate(i) = .False.
- enddo
-
+ ! Find duplicates
  do i=1,N_det-1
   if (duplicate(i)) then
     cycle
   endif
   j = i+1
   do while (bit_tmp(j)==bit_tmp(i))
+    if (j>N_det) then
+      exit
+    endif
     if (duplicate(j)) then
       j+=1
       cycle
@@ -186,12 +185,10 @@ end
       endif
     enddo
     j+=1
-    if (j>=N_det) then
-      exit
-    endif
   enddo
  enddo
 
+ ! Copy filtered result
  N_occ_pattern=0
  do i=1,N_det
   if (duplicate(i)) then
@@ -204,6 +201,28 @@ end
   enddo
  enddo
 
+!- Check
+!  do i=1,N_occ_pattern
+!   do j=i+1,N_occ_pattern
+!     duplicate(1) = .True.
+!     do k=1,N_int
+!       if (psi_occ_pattern(k,1,i) /= psi_occ_pattern(k,1,j)) then
+!         duplicate(1) = .False.
+!         exit
+!       endif
+!       if (psi_occ_pattern(k,2,i) /= psi_occ_pattern(k,2,j)) then
+!         duplicate(1) = .False.
+!         exit
+!       endif
+!     enddo
+!     if (duplicate(1)) then
+!       call debug_det(psi_occ_pattern(1,1,i),N_int)
+!       call debug_det(psi_occ_pattern(1,1,j),N_int)
+!       stop 'DUPLICATE'
+!     endif
+!   enddo
+!  enddo
+!-
  deallocate(iorder,duplicate,bit_tmp,tmp_array)
 
 END_PROVIDER 
@@ -216,9 +235,6 @@ subroutine make_s2_eigenfunction
   integer                        :: N_det_new
   integer, parameter             :: bufsze = 1000
   logical, external              :: is_in_wavefunction
-
-  return
-  stop 'make_s2_eigenfunction has a bug. It should not be used!!!'
 
   allocate (d(N_int,2,1), det_buffer(N_int,2,bufsze) )
   smax = 1
@@ -258,6 +274,7 @@ subroutine make_s2_eigenfunction
   call copy_H_apply_buffer_to_wf
   SOFT_TOUCH N_det psi_coef psi_det
   print *,  'Added determinants for S^2'
+!  call remove_duplicates_in_psi_det
 
 end
 
