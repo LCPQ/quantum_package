@@ -626,8 +626,6 @@ END_PROVIDER
   double precision               :: norm, cx, res
   integer, allocatable           :: lref(:), A_ind_mwen(:)
   double precision               :: phase
-!  double precision , allocatable :: mrcc_AtA_val(:,:)
-!  integer, allocatable           :: mrcc_AtA_ind(:), col_shortcut(:), , mrcc_N_col(:)
   
   
   double precision, allocatable :: rho_mrcc_init(:,:)
@@ -635,13 +633,10 @@ END_PROVIDER
   
   print *, "TI", hh_nex, N_det_non_ref
 
-  
-  
   allocate(rho_mrcc_init(N_det_non_ref, N_states))
-  
+  allocate(x_new(hh_nex))
   allocate(x(hh_nex), AtB(hh_nex))
   x = 0d0
-  allocate(x_new(hh_nex))
         
 
   do s=1,N_states
@@ -712,28 +707,37 @@ END_PROVIDER
     
     x_new = x
     
+    double precision               :: s2(N_states), s2_local, dx
     double precision               :: factor, resold
     factor = 1.d0
     resold = huge(1.d0)
     do k=0,100000
-      !$OMP PARALLEL default(shared) private(cx, i, j, a_col, a_coll)
+      !$OMP PARALLEL default(shared) private(cx, dx, i, j, a_col, a_coll, s2_local)
       
       !$OMP DO
       do i=1,N_det_non_ref
-        rho_mrcc(i,s) = rho_mrcc_init(i,s) ! 0d0
+        rho_mrcc(i,s) = rho_mrcc_init(i,s) 
       enddo
       !$OMP END DO
       
+      s2(s) = 0.d0
       !$OMP DO
-      do a_coll = 1, n_exc_active !: hh_nex
+      do a_coll = 1, n_exc_active
         a_col = active_pp_idx(a_coll)
-        cx = 0d0
+        cx = 0.d0
+        dx = 0.d0
         do i=mrcc_col_shortcut(a_coll), mrcc_col_shortcut(a_coll) + mrcc_N_col(a_coll) - 1
           cx = cx + x(mrcc_AtA_ind(i)) * mrcc_AtA_val(s,i)
+          dx = dx + x(mrcc_AtA_ind(i)) * mrcc_AtS2A_val(s,i)
+          s2_local = s2_local + X(a_col)*X(mrcc_AtA_ind(i))*mrcc_AtS2A_val(s,i)
         end do
-        x_new(a_col) = AtB(a_col) + cx * factor
+        x_new(a_col) = AtB(a_col) + (cx+dx) * factor
       end do
       !$OMP END DO
+
+      !$OMP CRITICAL
+      s2(s) = s2(s) + s2_local
+      !$OMP END CRITICAL
       
       !$OMP END PARALLEL
       
@@ -756,12 +760,11 @@ END_PROVIDER
       resold = res
       
       if(mod(k, 100) == 0) then
-        print *, "res ", k, res, factor
+        print *, "res ", k, res, s2(s)
       end if
       
       if(res < 1d-9) exit
     end do
-    
     
     
     norm = 0.d0
