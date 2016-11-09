@@ -513,7 +513,7 @@ subroutine i_H_j(key_i,key_j,Nint,hij)
   integer                        :: occ(Nint*bit_kind_size,2)
   double precision               :: diag_H_mat_elem, phase,phase_2
   integer                        :: n_occ_ab(2)
-  PROVIDE mo_bielec_integrals_in_map mo_integrals_map
+  PROVIDE mo_bielec_integrals_in_map mo_integrals_map big_array_exchange_integrals
   
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
