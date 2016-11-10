@@ -707,23 +707,11 @@ END_PROVIDER
     
     x_new = x
     
-    double precision               :: s2(N_states), s2_local, dx, s2_init(N_states)
     double precision               :: factor, resold
     factor = 1.d0
     resold = huge(1.d0)
 
-    s2_init(s) = S_z2_Sz
-    do hh = 1, hh_shortcut(0)
-      do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
-        if(is_active_exc(pp)) cycle
-        do i=mrcc_col_shortcut(a_coll), mrcc_col_shortcut(a_coll) + mrcc_N_col(a_coll) - 1
-          s2_init(s) = s2_init(s) + X(pp)*X(mrcc_AtA_ind(i))*mrcc_AtS2A_val(s,i)
-        end do
-      enddo
-    end do
-
     do k=0,100000
-      s2_local = s2_init(s)
       !$OMP PARALLEL default(shared) private(cx, dx, i, j, a_col, a_coll)
       
       !$OMP DO
@@ -732,31 +720,18 @@ END_PROVIDER
       enddo
       !$OMP END DO
       
-      !$OMP DO REDUCTION(+:s2_local)
-      do a_coll = 1, n_exc_active
-        a_col = active_pp_idx(a_coll)
-        do i=mrcc_col_shortcut(a_coll), mrcc_col_shortcut(a_coll) + mrcc_N_col(a_coll) - 1
-          s2_local = s2_local + X(a_col)*X(mrcc_AtA_ind(i))*mrcc_AtS2A_val(s,i)
-        end do
-      end do
-      !$OMP END DO
-
       !$OMP DO
       do a_coll = 1, n_exc_active
         a_col = active_pp_idx(a_coll)
         cx = 0.d0
-        dx = 0.d0
         do i=mrcc_col_shortcut(a_coll), mrcc_col_shortcut(a_coll) + mrcc_N_col(a_coll) - 1
           cx = cx + x(mrcc_AtA_ind(i)) * mrcc_AtA_val(s,i)
-          dx = dx + (s2_local-expected_s2)*x(mrcc_AtA_ind(i)) * mrcc_AtS2A_val(s,i)
         end do
-        x_new(a_col) = AtB(a_col) + (cx+dx) * factor
+        x_new(a_col) = AtB(a_col) + cx * factor
       end do
       !$OMP END DO
 
       !$OMP END PARALLEL
-      s2(s) = s2_local
-      
       
       
       res = 0.d0
@@ -776,12 +751,11 @@ END_PROVIDER
       resold = res
       
       if(mod(k, 100) == 0) then
-        print *, "res ", k, res, s2(s)
+        print *, "res ", k, res
       end if
       
       if(res < 1d-9) exit
     end do
-    s2(s) = s2_local
     
     norm = 0.d0
     do i=1,N_det_non_ref
@@ -923,7 +897,6 @@ END_PROVIDER
        ! Avoid numerical instabilities
        f = min(f,2.d0)
        f = max(f,-2.d0)
-       f = 1.d0
 
        norm = norm + f*f *rho_mrcc(i,s)*rho_mrcc(i,s)
        rho_mrcc(i,s) = f
@@ -944,7 +917,6 @@ END_PROVIDER
 
      norm = norm*f
      print *,  'norm of |T Psi_0> = ', dsqrt(norm)
-     print *,  'S^2 |T Psi_0> = ', s2(s)
 
      do i=1,N_det_ref
        norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
@@ -953,7 +925,6 @@ END_PROVIDER
      do i=1,N_det_non_ref
        rho_mrcc(i,s) = rho_mrcc(i,s) * f
      enddo
-rho_mrcc = 1.d0
      ! rho_mrcc now contains the product of the scaling factors and the
      ! normalization constant
     

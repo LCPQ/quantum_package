@@ -135,58 +135,9 @@ END_PROVIDER
 
 END_PROVIDER
 
- BEGIN_PROVIDER [ integer, mrcc_S2A_ind, (0:N_det_ref*mo_tot_num, n_exc_active) ]
-&BEGIN_PROVIDER [ double precision, mrcc_S2A_val, (N_states, N_det_ref*mo_tot_num, n_exc_active) ]
- implicit none
- BEGIN_DOC
- ! A is active_excitation_to_determinants in S^2.
- END_DOC
- integer :: a_coll, a_col
- integer :: i,j,idx,s
- double precision :: sij
- double precision, allocatable :: tmp(:,:)
- logical, allocatable :: ok(:)
- mrcc_S2A_val = 0.d0
- print *,  'Computing S2A'
- !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(a_coll,idx,i,sij,s,tmp,ok,j)
- allocate(tmp(N_states,N_det_non_ref), ok(N_det_non_ref))
- !$OMP DO 
- do a_coll=1, n_exc_active
-   tmp = 0.d0
-   ok = .False.
-   do idx=1, active_excitation_to_determinants_idx(0,a_coll)
-     i = active_excitation_to_determinants_idx(idx,a_coll)
-     do j=1,N_det_non_ref
-       call get_s2(psi_non_ref(1,1,i), psi_non_ref(1,1,j), N_int, sij)
-       if (sij /= 0.d0) then
-        do s=1,N_states
-          tmp(s,j) = tmp(s,j) + sij*active_excitation_to_determinants_val(s,idx,a_coll)
-        enddo
-        ok(j) = .True.
-       endif
-     enddo
-   enddo
-   idx = 0
-   do j=1,N_det_non_ref
-     if (ok(j)) then
-       idx = idx+1
-       mrcc_S2A_ind(idx,a_coll) = j
-       do s=1,N_states
-        mrcc_S2A_val(s,idx,a_coll) = tmp(s,j)
-       enddo
-     endif
-   enddo
-   mrcc_S2A_ind(0,a_coll) = idx
- enddo
- !$OMP END DO
- deallocate(tmp,ok)
- !$OMP END PARALLEL
-   
-END_PROVIDER
 
  BEGIN_PROVIDER [ integer, mrcc_AtA_ind, (N_det_ref * n_exc_active) ]
 &BEGIN_PROVIDER [ double precision, mrcc_AtA_val, (N_states, N_det_ref * n_exc_active) ]
-&BEGIN_PROVIDER [ double precision, mrcc_AtS2A_val, (N_states, N_det_ref * n_exc_active) ]
 &BEGIN_PROVIDER [ integer, mrcc_col_shortcut, (n_exc_active) ]
 &BEGIN_PROVIDER [ integer, mrcc_N_col, (n_exc_active) ]
  implicit none
@@ -195,14 +146,13 @@ END_PROVIDER
  END_DOC
  integer                        :: AtA_size, i,k
  integer                        :: at_roww, at_row, wk, a_coll, a_col, r1, r2, s
- double precision, allocatable  :: t(:), ts(:), A_val_mwen(:,:), As2_val_mwen(:,:)
+ double precision, allocatable  :: t(:), A_val_mwen(:,:), As2_val_mwen(:,:)
  integer, allocatable           :: A_ind_mwen(:)
  double precision               :: sij
- PROVIDE psi_non_ref mrcc_S2A_val
+ PROVIDE psi_non_ref 
 
  mrcc_AtA_ind(:) = 0
  mrcc_AtA_val(:,:) = 0.d0
- mrcc_AtS2A_val(:,:) = 0.d0
  mrcc_col_shortcut(:) = 0
  mrcc_N_col(:) = 0
  AtA_size = 0
@@ -210,11 +160,11 @@ END_PROVIDER
 
   !$OMP PARALLEL default(none) shared(k, active_excitation_to_determinants_idx,&
       !$OMP   active_excitation_to_determinants_val, hh_nex)         &
-      !$OMP private(at_row, a_col, t, ts, i, r1, r2, wk, A_ind_mwen, A_val_mwen,&
+      !$OMP private(at_row, a_col, t, i, r1, r2, wk, A_ind_mwen, A_val_mwen,&
       !$OMP   As2_val_mwen, a_coll, at_roww,sij) &
-      !$OMP shared(N_states,mrcc_col_shortcut, mrcc_S2A_val, mrcc_S2A_ind, mrcc_N_col, AtA_size, mrcc_AtA_val, mrcc_AtA_ind, &
-      !$OMP n_exc_active, active_pp_idx,psi_non_ref,mrcc_AtS2A_val)
-  allocate(A_val_mwen(N_states,hh_nex), As2_val_mwen(N_states,hh_nex), A_ind_mwen(hh_nex), t(N_states), ts(N_states))
+      !$OMP shared(N_states,mrcc_col_shortcut, mrcc_N_col, AtA_size, mrcc_AtA_val, mrcc_AtA_ind, &
+      !$OMP n_exc_active, active_pp_idx,psi_non_ref)
+  allocate(A_val_mwen(N_states,hh_nex), As2_val_mwen(N_states,hh_nex), A_ind_mwen(hh_nex), t(N_states) )
 
   !$OMP DO schedule(dynamic, 100)
   do at_roww = 1, n_exc_active ! hh_nex
@@ -241,36 +191,6 @@ END_PROVIDER
         end if
       end do
 
-      ts(:) = 0d0
-      r1 = 1
-      r2 = 1
-      do while ((active_excitation_to_determinants_idx(r1, at_roww) /= 0).and.(mrcc_S2A_ind(r2, a_coll) /= 0))
-        if(active_excitation_to_determinants_idx(r1, at_roww) > mrcc_S2A_ind(r2, a_coll)) then
-          r2 = r2+1
-        else if(active_excitation_to_determinants_idx(r1, at_roww) < mrcc_S2A_ind(r2, a_coll)) then
-          r1 = r1+1
-        else
-          do s=1,N_states
-            ts(s) = ts(s) + active_excitation_to_determinants_val(s,r1, at_roww) * mrcc_S2A_val(s,r2, a_coll)
-          enddo
-          r1 = r1+1
-          r2 = r2+1
-        end if
-      end do
-
-      if(a_col == at_row) then
-        do s=1,N_states
-          t(s) = t(s) + 1.d0
-        enddo
-      end if
-      if(sum(abs(t)+abs(ts)) /= 0.d0) then
-        wk += 1
-        A_ind_mwen(wk) = a_col
-        do s=1,N_states
-          A_val_mwen(s,wk) = t(s)
-          As2_val_mwen(s,wk) = ts(s)
-        enddo
-      end if
     end do
 
     if(wk /= 0) then
@@ -285,7 +205,6 @@ END_PROVIDER
         mrcc_AtA_ind(AtA_size+i) = A_ind_mwen(i)
         do s=1,N_states
           mrcc_AtA_val(s,AtA_size+i) = A_val_mwen(s,i)
-          mrcc_AtS2A_val(s,AtA_size+i) = As2_val_mwen(s,i)
         enddo
       enddo
       AtA_size += wk
@@ -293,7 +212,7 @@ END_PROVIDER
     end if
   end do
   !$OMP END DO NOWAIT
-  deallocate (A_ind_mwen, A_val_mwen, As2_val_mwen, t, ts)
+  deallocate (A_ind_mwen, A_val_mwen, As2_val_mwen, t)
   !$OMP END PARALLEL
 
   print *, "ATA SIZE", ata_size
