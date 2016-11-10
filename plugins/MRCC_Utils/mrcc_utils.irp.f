@@ -907,7 +907,7 @@ END_PROVIDER
        ! Avoid numerical instabilities
        f = min(f,2.d0)
        f = max(f,-2.d0)
-       f = 1.d0
+!       f = 1.d0
 
        norm = norm + f*f *rho_mrcc(i,s)*rho_mrcc(i,s)
        rho_mrcc(i,s) = f
