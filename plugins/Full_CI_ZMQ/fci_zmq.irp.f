@@ -48,14 +48,14 @@ program fci_zmq
     call diagonalize_CI
     call save_wavefunction
     
-    if (N_det > N_det_max) then
-      psi_det = psi_det_sorted
-      psi_coef = psi_coef_sorted
-      N_det = N_det_max
-      soft_touch N_det psi_det psi_coef
-      call diagonalize_CI
-      call save_wavefunction
-    endif
+!    if (N_det > N_det_max) then
+!        psi_det = psi_det_sorted
+!        psi_coef = psi_coef_sorted
+!        N_det = N_det_max
+!        soft_touch N_det psi_det psi_coef
+!        call diagonalize_CI
+!        call save_wavefunction
+!    endif
     
     print *,  'N_det          = ', N_det
     print *,  'N_states       = ', N_states
@@ -84,8 +84,8 @@ program fci_zmq
 
   if(do_pt2_end)then
     print*,'Last iteration only to compute the PT2'
-    threshold_selectors = threshold_selectors_pt2
-    threshold_generators = threshold_generators_pt2
+    threshold_selectors = max(threshold_selectors,threshold_selectors_pt2)
+    threshold_generators = max(threshold_generators,threshold_generators_pt2)
     TOUCH threshold_selectors threshold_generators
     E_CI_before(1:N_states) = CI_energy(1:N_states)
     call ZMQ_selection(0, pt2)

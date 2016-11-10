@@ -10,11 +10,12 @@ subroutine run(N_st,energy)
 
   double precision :: E_new, E_old, delta_e
   integer :: iteration
-  double precision :: E_past(4), lambda
+  double precision :: E_past(4)
   
   integer :: n_it_mrcc_max
   double precision :: thresh_mrcc
-  
+  double precision, allocatable :: lambda(:)
+  allocate (lambda(N_states))
 
   
   thresh_mrcc = thresh_dressed_ci
@@ -139,8 +140,8 @@ subroutine run_pt2_old(N_st,energy)
   
   print * ,'Computing the remaining contribution'
 
-  threshold_selectors = 1.d0 
-  threshold_generators = 0.999d0 
+  threshold_selectors = max(threshold_selectors,threshold_selectors_pt2)
+  threshold_generators = max(threshold_generators,threshold_generators_pt2)
 
   N_det_generators = N_det_non_ref + N_det_ref
   N_det_selectors = N_det_non_ref + N_det_ref
