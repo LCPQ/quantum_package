@@ -712,7 +712,7 @@ END_PROVIDER
     resold = huge(1.d0)
 
     do k=0,100000
-      !$OMP PARALLEL default(shared) private(cx, dx, i, j, a_col, a_coll)
+      !$OMP PARALLEL default(shared) private(cx, i, j, a_col, a_coll)
       
       !$OMP DO
       do i=1,N_det_non_ref
@@ -966,9 +966,16 @@ double precision function get_dij_index(II, i, s, Nint)
     call get_phase(psi_ref(1,1,II), psi_non_ref(1,1,i), phase, N_int)
     get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint) * phase
     get_dij_index = get_dij_index * rho_mrcc(i,s) 
-  else
+  else if(lambda_type == 1) then
+    call get_phase(psi_ref(1,1,II), psi_non_ref(1,1,i), phase, N_int)
+    get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint) * phase
+    get_dij_index = get_dij_index * rho_mrcc(i,s) 
     call i_h_j(psi_ref(1,1,II), psi_non_ref(1,1,i), Nint, HIi)
     get_dij_index = HIi * lambda_mrcc(s, i)
+  else if(lambda_type == 2) then
+    call get_phase(psi_ref(1,1,II), psi_non_ref(1,1,i), phase, N_int)
+    get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint) * phase
+    get_dij_index = get_dij_index 
   end if
 end function
 
