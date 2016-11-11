@@ -123,11 +123,11 @@ subroutine ZMQ_selection(N_in, pt2)
   
   
   if (.True.) then
+    PROVIDE pt2_e0_denominator
     N = max(N_in,1)
     provide nproc
-    provide ci_electronic_energy
     call new_parallel_job(zmq_to_qp_run_socket,"selection")
-    call zmq_put_psi(zmq_to_qp_run_socket,1,ci_electronic_energy,size(ci_electronic_energy))
+    call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
     call zmq_set_running(zmq_to_qp_run_socket)
     call create_selection_buffer(N, N*2, b)
   endif
@@ -144,19 +144,21 @@ subroutine ZMQ_selection(N_in, pt2)
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   end do
 
-    !$OMP PARALLEL DEFAULT(none)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1) shared(ci_electronic_energy_is_built, n_det_generators_is_built, n_states_is_built, n_int_is_built, nproc_is_built)
-      i = omp_get_thread_num()
-      if (i==0) then
-        call selection_collector(b, pt2)
-      else
-        call selection_slave_inproc(i)
-      endif
+  !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
+  i = omp_get_thread_num()
+  if (i==0) then
+    call selection_collector(b, pt2)
+  else
+    call selection_slave_inproc(i)
+  endif
   !$OMP END PARALLEL
-  call end_parallel_job(zmq_to_qp_run_socket, 'selection') 
+  call end_parallel_job(zmq_to_qp_run_socket, 'selection')
   if (N_in > 0) then
     call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) !!! PAS DE ROBIN
     call copy_H_apply_buffer_to_wf()
-    call make_s2_eigenfunction
+    if (s2_eig) then
+      call make_s2_eigenfunction
+    endif
   endif
 end subroutine
 
@@ -165,7 +167,7 @@ subroutine selection_slave_inproc(i)
   implicit none
   integer, intent(in)            :: i
 
-  call run_selection_slave(1,i,ci_electronic_energy)
+  call run_selection_slave(1,i,pt2_e0_denominator)
 end
 
 subroutine selection_collector(b, pt2)

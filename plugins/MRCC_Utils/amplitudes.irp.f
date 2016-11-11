@@ -62,7 +62,7 @@
 
  deallocate(pathTo)
 
- print *, n_exc_active, "inactive excitations /", hh_nex
+ print *, n_exc_active, "active excitations /", hh_nex
 
 END_PROVIDER
 

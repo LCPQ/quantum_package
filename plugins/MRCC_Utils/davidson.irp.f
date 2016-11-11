@@ -315,20 +315,10 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_s
     ! -----------
     
     do k=1,N_st_diag
-      energies(k) = lambda(k)
       do i=1,sze
         u_in(i,k) = 0.d0
       enddo
     enddo
-!    do k=1,N_st_diag
-!      do i=1,sze
-!        do iter2=1,iter
-!          do l=1,N_st_diag
-!            u_in(i,k) += U(i,l,iter2)*y(l,iter2,k,1)
-!          enddo
-!        enddo
-!      enddo
-!    enddo
 
     call dgemm('N','N', sze, N_st_diag, N_st_diag*iter, 1.d0,      &
         U, size(U,1), y, N_st_diag*davidson_sze_max, &
@@ -336,6 +326,9 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_s
 
   enddo
 
+  do k=1,N_st_diag
+    energies(k) = lambda(k)
+  enddo
   write_buffer = '===== '
   do i=1,N_st
     write_buffer = trim(write_buffer)//' ================ ================'
@@ -557,7 +550,7 @@ subroutine davidson_diag_mrcc_hs2(dets_in,u_in,dim_in,energies,sze,N_st,N_st_dia
   integer, intent(in)            :: dim_in, sze, N_st, N_st_diag, Nint, iunit, istate
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision, intent(inout) :: u_in(dim_in,N_st_diag)
-  double precision, intent(out)  :: energies(N_st)
+  double precision, intent(out)  :: energies(N_st_diag)
   double precision, allocatable  :: H_jj(:), S2_jj(:)
   
   double precision               :: diag_h_mat_elem
@@ -962,7 +955,7 @@ subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_i
   Vt = 0.d0
   St = 0.d0
 
-  !$OMP DO SCHEDULE(dynamic)
+  !$OMP DO SCHEDULE(guided)
   do sh=1,shortcut(0,1)
     do sh2=sh,shortcut(0,1)
       exa = 0
@@ -1004,8 +997,8 @@ subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_i
       enddo
     enddo
   enddo
-  !$OMP END DO NOWAIT
-  !$OMP DO SCHEDULE(dynamic)
+  !$OMP END DO
+  !$OMP DO SCHEDULE(guided)
   do sh=1,shortcut(0,2)
     do i=shortcut(sh,2),shortcut(sh+1,2)-1
       org_i = sort_idx(i,2)
@@ -1028,7 +1021,7 @@ subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_i
       end do
     end do
   enddo
-  !$OMP END DO NOWAIT
+  !$OMP END DO
 
 ! --------------------------
 ! Begin Specific to dressing

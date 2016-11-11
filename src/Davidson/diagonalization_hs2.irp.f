@@ -22,7 +22,7 @@ subroutine davidson_diag_hs2(dets_in,u_in,s2_out,dim_in,energies,sze,N_st,N_st_d
   integer, intent(in)            :: dim_in, sze, N_st, N_st_diag, Nint, iunit
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision, intent(inout) :: u_in(dim_in,N_st_diag)
-  double precision, intent(out)  :: energies(N_st), s2_out(N_st_diag)
+  double precision, intent(out)  :: energies(N_st_diag), s2_out(N_st_diag)
   double precision, allocatable  :: H_jj(:), S2_jj(:)
   
   double precision               :: diag_h_mat_elem
@@ -116,7 +116,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
      stop -1
   endif
 
-  PROVIDE nuclear_repulsion
+  PROVIDE nuclear_repulsion expected_s2
 
   call write_time(iunit)
   call wall_time(wall)
@@ -253,6 +253,8 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       call dgemm('T','N',shift2,shift2,shift2,                       &
           1.d0, y, size(y,1), s_tmp, size(s_tmp,1),                  &
           0.d0, s_, size(s_,1))
+
+
       
       do k=1,shift2
         s2(k) = s_(k,k) + S_z2_Sz
@@ -324,16 +326,13 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
     ! Re-contract to u_in
     ! -----------
     
-    do k=1,N_st_diag
-      energies(k) = lambda(k)
-    enddo
-
     call dgemm('N','N', sze, N_st_diag, shift2, 1.d0,      &
         U, size(U,1), y, size(y,1), 0.d0, u_in, size(u_in,1))
 
   enddo
 
   do k=1,N_st_diag
+    energies(k) = lambda(k)
     S2_jj(k) = s2(k)
   enddo
   write_buffer = '===== '

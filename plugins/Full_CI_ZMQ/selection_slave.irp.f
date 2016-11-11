@@ -13,7 +13,7 @@ end
 
 subroutine provide_everything
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators psi_det_sorted_bit psi_selectors n_det_generators n_states generators_bitmask zmq_context
-!   PROVIDE ci_electronic_energy mo_tot_num N_int
+   PROVIDE pt2_e0_denominator mo_tot_num N_int
 end
 
 subroutine run_wf
