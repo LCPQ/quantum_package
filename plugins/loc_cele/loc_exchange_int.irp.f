@@ -14,7 +14,7 @@ program loc_int
   exchange_int = 0.d0
   iorder = 0
   print*,''
-  if(list_core_inact_check(iorb) == .False.)cycle
+  if(list_core_inact_check(iorb) .eqv. .False.)cycle
   do j = i+1, n_core_inact_orb
    jorb = list_core_inact(j)
    iorder(jorb) = jorb
@@ -46,7 +46,7 @@ program loc_int
   exchange_int = 0.d0
   iorder = 0
   print*,''
-  if(list_core_inact_check(iorb) == .False.)cycle
+  if(list_core_inact_check(iorb) .eqv. .False.)cycle
   do j = i+1, n_act_orb
    jorb = list_act(j)
    iorder(jorb) = jorb
@@ -78,7 +78,7 @@ program loc_int
   exchange_int = 0.d0
   iorder = 0
   print*,''
-  if(list_core_inact_check(iorb) == .False.)cycle
+  if(list_core_inact_check(iorb) .eqv. .False.)cycle
   do j = i+1, n_virt_orb
    jorb = list_virt(j)
    iorder(jorb) = jorb
