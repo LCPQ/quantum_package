@@ -202,6 +202,10 @@ subroutine fill_buffer_single(i_generator, sp, h1, bannedOrb, fock_diag_tmp, E0,
     if(vect(1, p1) == 0d0) cycle
     call apply_particle(mask, sp, p1, det, ok, N_int)
     
+logical, external :: is_in_wavefunction
+if (is_in_wavefunction(det,N_int)) then
+  cycle
+endif
     
     Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),det,fock_diag_tmp,N_int)
     max_e_pert = 0d0
@@ -218,7 +222,9 @@ subroutine fill_buffer_single(i_generator, sp, h1, bannedOrb, fock_diag_tmp, E0,
       if(dabs(e_pert) > dabs(max_e_pert)) max_e_pert = e_pert
     end do
     
-    if(dabs(max_e_pert) > buf%mini) call add_to_selection_buffer(buf, det, max_e_pert)
+    if(dabs(max_e_pert) > buf%mini) then
+       call add_to_selection_buffer(buf, det, max_e_pert)
+     endif
   end do
 end subroutine
 
@@ -669,6 +675,10 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
       if(banned(p1,p2)) cycle
       if(mat(1, p1, p2) == 0d0) cycle
       call apply_particles(mask, s1, p1, s2, p2, det, ok, N_int)
+logical, external :: is_in_wavefunction
+if (is_in_wavefunction(det,N_int)) then
+  cycle
+endif
       
       
       Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),det,fock_diag_tmp,N_int)

@@ -258,12 +258,14 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
         k += 1
         psi_det(:,:,k) = psi_det_sorted_bit (:,:,i)
         psi_coef(k,:)  = psi_coef_sorted_bit(i,:)
+      else
+        call debug_det(psi_det_sorted_bit(1,1,i),N_int)
+        stop 'duplicates in psi_det'
       endif
     enddo
     N_det = k
     call write_bool(output_determinants,found_duplicates,'Found duplicate determinants')
     SOFT_TOUCH N_det psi_det psi_coef
-    stop 'duplicates in psi_det'
   endif
   deallocate (duplicate,bit_tmp)
 end
