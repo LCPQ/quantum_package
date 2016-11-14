@@ -65,6 +65,6 @@ source $QP_ROOT/tests/bats/common.bats.sh
   ezfio set mrcepa0 n_it_max_dressed_ci 3
   qp_run $EXE $INPUT  
   energy="$(ezfio get mrcepa0 energy)"
-  eq $energy -76.23199784430074 1.e-4
+  eq $energy -76.2318658231035 1.e-4
 }
 
