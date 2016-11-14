@@ -191,6 +191,15 @@ END_PROVIDER
         end if
       end do
 
+      if (a_col == at_row) then
+        t(:) = t(:) + 1.d0
+      endif
+      if (sum(dabs(t(:))) > 0.d0) then
+        wk = wk+1
+        A_ind_mwen(wk) = a_col
+        A_val_mwen(:,wk) = t(:)
+      endif
+
     end do
 
     if(wk /= 0) then

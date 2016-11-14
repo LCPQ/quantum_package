@@ -77,18 +77,18 @@ BEGIN_PROVIDER [ double precision, hij_mrcc, (N_det_non_ref,N_det_ref) ]
 
 END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, delta_ij, (N_states,N_det_non_ref,N_det_ref) ]
-&BEGIN_PROVIDER [ double precision, delta_ii, (N_states,N_det_ref) ]
- implicit none
- BEGIN_DOC
- ! Dressing matrix in N_det basis
- END_DOC
- integer :: i,j,m
- delta_ij = 0.d0
- delta_ii = 0.d0
- call H_apply_mrcc(delta_ij,delta_ii,N_states,N_det_non_ref,N_det_ref)
-
-END_PROVIDER
+! BEGIN_PROVIDER [ double precision, delta_ij, (N_states,N_det_non_ref,N_det_ref) ]
+!&BEGIN_PROVIDER [ double precision, delta_ii, (N_states,N_det_ref) ]
+! implicit none
+! BEGIN_DOC
+! ! Dressing matrix in N_det basis
+! END_DOC
+! integer :: i,j,m
+! delta_ij = 0.d0
+! delta_ii = 0.d0
+! call H_apply_mrcc(delta_ij,delta_ii,N_states,N_det_non_ref,N_det_ref)
+!
+!END_PROVIDER
              
 
 BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]
@@ -139,7 +139,6 @@ END_PROVIDER
 
    integer :: mrcc_state 
    
-   mrcc_state = N_states
    do j=1,min(N_states,N_det)
      do i=1,N_det
        CI_eigenvectors_dressed(i,j) = psi_coef(i,j)
@@ -148,16 +147,28 @@ END_PROVIDER
    
    if (diag_algorithm == "Davidson") then
      
-!     call davidson_diag_mrcc(psi_det,CI_eigenvectors_dressed,CI_electronic_energy_dressed,&
-!          size(CI_eigenvectors_dressed,1),N_det,N_states,N_states_diag,N_int,output_determinants,mrcc_state)
-
-     call davidson_diag_mrcc_HS2(psi_det,CI_eigenvectors_dressed,&
-          size(CI_eigenvectors_dressed,1), &
-          CI_electronic_energy_dressed,N_det,N_states,N_states_diag,N_int, &
-          output_determinants,mrcc_state)
-
+     allocate (eigenvectors(size(CI_eigenvectors_dressed,1),size(CI_eigenvectors_dressed,2)), &
+     eigenvalues(size(CI_electronic_energy_dressed,1)))
+     do mrcc_state=N_states,1,-1
+      do j=1,min(N_states,N_det)
+        do i=1,N_det
+          eigenvectors(i,j) = psi_coef(i,j)
+        enddo
+      enddo
+      call davidson_diag_mrcc_HS2(psi_det,eigenvectors,&
+            size(eigenvectors,1), &
+            eigenvalues,N_det,N_states,N_states_diag,N_int, &
+            output_determinants,mrcc_state)
+      CI_eigenvectors_dressed(1:N_det,mrcc_state) = eigenvectors(1:N_det,mrcc_state)
+      CI_electronic_energy_dressed(mrcc_state) = eigenvalues(mrcc_state)
+     enddo
+     do mrcc_state=N_states+1,N_states_diag
+      CI_eigenvectors_dressed(1:N_det,mrcc_state) = eigenvectors(1:N_det,mrcc_state)
+      CI_electronic_energy_dressed(mrcc_state) = eigenvalues(mrcc_state)
+     enddo
      call u_0_S2_u_0(CI_eigenvectors_s2_dressed,CI_eigenvectors_dressed,N_det,psi_det,N_int,&
-         N_states_diag,size(CI_eigenvectors_dressed,1))
+          N_states_diag,size(CI_eigenvectors_dressed,1))
+     deallocate (eigenvectors,eigenvalues)
 
      
    else if (diag_algorithm == "Lapack") then
@@ -628,12 +639,12 @@ END_PROVIDER
   double precision               :: phase
   
   
-  double precision, allocatable :: rho_mrcc_init(:,:)
+  double precision, allocatable :: rho_mrcc_init(:)
   integer                        :: a_coll, at_roww
   
   print *, "TI", hh_nex, N_det_non_ref
 
-  allocate(rho_mrcc_init(N_det_non_ref, N_states))
+  allocate(rho_mrcc_init(N_det_non_ref))
   allocate(x_new(hh_nex))
   allocate(x(hh_nex), AtB(hh_nex))
   x = 0d0
@@ -644,9 +655,8 @@ END_PROVIDER
     AtB(:) = 0.d0
     !$OMP PARALLEL default(none) shared(k, psi_non_ref_coef, active_excitation_to_determinants_idx,&
         !$OMP   active_excitation_to_determinants_val, x, N_det_ref, hh_nex, N_det_non_ref)          &
-        !$OMP private(at_row, a_col, t, i, j, r1, r2, wk, A_ind_mwen, A_val_mwen, a_coll, at_roww)&
+        !$OMP private(at_row, a_col, i, j, r1, r2, wk, A_ind_mwen, A_val_mwen, a_coll, at_roww)&
         !$OMP shared(N_states,mrcc_col_shortcut, mrcc_N_col, AtB, mrcc_AtA_val, mrcc_AtA_ind, s, n_exc_active, active_pp_idx)
-    allocate(A_val_mwen(N_states,hh_nex), A_ind_mwen(hh_nex), t(N_states))
     
     !$OMP DO schedule(dynamic, 100)
     do at_roww = 1, n_exc_active ! hh_nex
@@ -655,11 +665,11 @@ END_PROVIDER
           AtB(at_row) = AtB(at_row) + psi_non_ref_coef(active_excitation_to_determinants_idx(i, at_roww), s) * active_excitation_to_determinants_val(s,i, at_roww)
       end do
     end do
-    !$OMP END DO NOWAIT
-    deallocate (A_ind_mwen, A_val_mwen)
+    !$OMP END DO
+   
     !$OMP END PARALLEL
 
-    x = 0d0
+    X(:) = 0d0
     
     
     do a_coll = 1, n_exc_active
@@ -669,10 +679,7 @@ END_PROVIDER
     
     rho_mrcc_init = 0d0
     
-    !$OMP PARALLEL default(shared) &
-        !$OMP private(lref, hh, pp, II, myMask, myDet, ok, ind, phase)
     allocate(lref(N_det_ref))
-    !$OMP DO schedule(static, 1)
     do hh = 1, hh_shortcut(0)
       do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
         if(is_active_exc(pp)) cycle
@@ -694,16 +701,14 @@ END_PROVIDER
         X(pp) =  AtB(pp) / X(pp)
         do II=1,N_det_ref
           if(lref(II) > 0) then
-            rho_mrcc_init(lref(II),s) = psi_ref_coef(II,s) * X(pp)
+            rho_mrcc_init(lref(II)) = psi_ref_coef(II,s) * X(pp)
           else if(lref(II) < 0) then
-            rho_mrcc_init(-lref(II),s) = -psi_ref_coef(II,s) * X(pp)
+            rho_mrcc_init(-lref(II)) = -psi_ref_coef(II,s) * X(pp)
           end if
         end do
       end do
     end do
-    !$OMP END DO
     deallocate(lref)
-    !$OMP END PARALLEL
     
     x_new = x
     
@@ -716,9 +721,9 @@ END_PROVIDER
       
       !$OMP DO
       do i=1,N_det_non_ref
-        rho_mrcc(i,s) = rho_mrcc_init(i,s) 
+        rho_mrcc(i,s) = rho_mrcc_init(i) 
       enddo
-      !$OMP END DO
+      !$OMP END DO NOWAIT
       
       !$OMP DO
       do a_coll = 1, n_exc_active
@@ -928,7 +933,7 @@ END_PROVIDER
      ! rho_mrcc now contains the product of the scaling factors and the
      ! normalization constant
     
-    dIj_unique(:size(X), s) = X(:)
+    dIj_unique(1:size(X), s) = X(1:size(X))
   end do
 
 END_PROVIDER

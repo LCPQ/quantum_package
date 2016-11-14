@@ -99,9 +99,9 @@ program fci_zmq
     print *,  'N_states = ', N_states
     do k=1,N_states
       print *, 'State', k
-      print *,  'PT2      = ', pt2
-      print *,  'E        = ', E_CI_before
-      print *,  'E+PT2    = ', E_CI_before+pt2
+      print *,  'PT2      = ', pt2(k)
+      print *,  'E        = ', E_CI_before(k)
+      print *,  'E+PT2    = ', E_CI_before(k)+pt2(k)
       print *,  '-----'
     enddo
     call ezfio_set_cas_sd_zmq_energy_pt2(E_CI_before+pt2)

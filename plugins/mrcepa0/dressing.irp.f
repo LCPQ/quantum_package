@@ -317,43 +317,53 @@ end
 &BEGIN_PROVIDER [ double precision, delta_ii, (N_states, N_det_ref) ]
   use bitmasks
   implicit none
-  integer :: i, j, i_state
+  integer                        :: i, j, i_state
   
   !mrmode : 1=mrcepa0, 2=mrsc2 add, 3=mrcc
   
-  do i_state = 1, N_states
-    if(mrmode == 3) then
+  if(mrmode == 3) then
     do i = 1, N_det_ref
-      delta_ii(i_state,i)= delta_ii_mrcc(i_state,i)
+      do i_state = 1, N_states
+        delta_ii(i_state,i)= delta_ii_mrcc(i_state,i)
+      enddo
       do j = 1, N_det_non_ref
-        delta_ij(i_state,j,i) = delta_ij_mrcc(i_state,j,i)
+        do i_state = 1, N_states
+          delta_ij(i_state,j,i) = delta_ij_mrcc(i_state,j,i)
+        enddo
       end do
     end do
-!       
-!       do i = 1, N_det_ref
-!         delta_ii(i_state,i)= delta_mrcepa0_ii(i,i_state) - delta_sub_ii(i,i_state)
-!         do j = 1, N_det_non_ref
-!           delta_ij(i_state,j,i) = delta_mrcepa0_ij(i,j,i_state) - delta_sub_ij(i,j,i_state)
-!         end do
-!       end do
-    else if(mrmode == 2) then
-      do i = 1, N_det_ref
+    !
+    !       do i = 1, N_det_ref
+    !         delta_ii(i_state,i)= delta_mrcepa0_ii(i,i_state) - delta_sub_ii(i,i_state)
+    !         do j = 1, N_det_non_ref
+    !           delta_ij(i_state,j,i) = delta_mrcepa0_ij(i,j,i_state) - delta_sub_ij(i,j,i_state)
+    !         end do
+    !       end do
+  else if(mrmode == 2) then
+    do i = 1, N_det_ref
+      do i_state = 1, N_states
         delta_ii(i_state,i)= delta_ii_old(i_state,i)
-        do j = 1, N_det_non_ref
+      enddo
+      do j = 1, N_det_non_ref
+        do i_state = 1, N_states
           delta_ij(i_state,j,i) = delta_ij_old(i_state,j,i)
-        end do
+        enddo
       end do
-    else if(mrmode == 1) then
-      do i = 1, N_det_ref
+    end do
+  else if(mrmode == 1) then
+    do i = 1, N_det_ref
+      do i_state = 1, N_states
         delta_ii(i_state,i)= delta_mrcepa0_ii(i,i_state)
-        do j = 1, N_det_non_ref
+      enddo
+      do j = 1, N_det_non_ref
+        do i_state = 1, N_states
           delta_ij(i_state,j,i) = delta_mrcepa0_ij(i,j,i_state)
-        end do
+        enddo
       end do
-    else
-      stop "invalid mrmode"
-    end if
-  end do
+    end do
+  else
+    stop "invalid mrmode"
+  end if
 END_PROVIDER
 
 
