@@ -23,13 +23,13 @@ function run_HF() {
 
 
 #=== DHNO
-@test "init DHNO chipman-dzp" {
-  run_init dhno.xyz "-b chipman-dzp -m 2" dhno.ezfio
-}
-
-@test "SCF DHNO chipman-dzp" {
-  run_HF  dhno.ezfio  -130.4278777822   
-}
+#@test "init DHNO chipman-dzp" {
+#  run_init dhno.xyz "-b chipman-dzp -m 2" dhno.ezfio
+#}
+#
+#@test "SCF DHNO chipman-dzp" {
+#  run_HF  dhno.ezfio  -130.4278777822   
+#}
 
 #=== HBO
 @test "init HBO STO-3G" {

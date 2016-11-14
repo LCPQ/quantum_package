@@ -31,7 +31,6 @@ subroutine run(N_st,energy)
     call write_double(6,ci_energy_dressed(1),"Final MRCC energy")
     call ezfio_set_mrcepa0_energy(ci_energy_dressed(1))
     call save_wavefunction
-    energy(:) = ci_energy_dressed(:)
   else
     E_new = 0.d0
     delta_E = 1.d0
@@ -55,8 +54,8 @@ subroutine run(N_st,energy)
       endif
     enddo
     call write_double(6,ci_energy_dressed(1),"Final MRCEPA0 energy")
-    energy(:) = ci_energy_dressed(:)
   endif
+  energy(1:N_st) = ci_energy_dressed(1:N_st)
 end
 
 
