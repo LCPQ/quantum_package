@@ -19,9 +19,9 @@ function run_all_1h_1p() {
 
 #=== DHNO
 
-#@test "all_1h_1p DHNO chipman-dzp" {
-#  qp_set_mo_class -inact "[1-8]" -act "[9]" -virt "[10-64]" dhno.ezfio 
-#  run_all_1h_1p dhno.ezfio 10000 0.0000000001  -130.4466283766202
-#}
+@test "all_1h_1p DHNO chipman-dzp" {
+  qp_set_mo_class -inact "[1-8]" -act "[9]" -virt "[10-64]" dhno.ezfio 
+  run_all_1h_1p dhno.ezfio 10000 0.0000000001  -130.4466283766202
+}
 
 
