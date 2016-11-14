@@ -15,8 +15,8 @@ source $QP_ROOT/tests/bats/common.bats.sh
   ezfio set mrcepa0 lambda_type 1
   ezfio set mrcepa0 n_it_max_dressed_ci 3
   qp_run $EXE $INPUT  
-  energy="$(ezfio get mrcepa0 energy)"
-  eq $energy -76.22880979516251 1.e-4
+  energy="$(ezfio get mrcepa0 energy_pt2)"
+  eq $energy -76.238562120457431 1.e-4
 }
 
 @test "MRCC H2O cc-pVDZ" {
@@ -32,8 +32,8 @@ source $QP_ROOT/tests/bats/common.bats.sh
   ezfio set mrcepa0 lambda_type 0
   ezfio set mrcepa0 n_it_max_dressed_ci 3
   qp_run $EXE $INPUT  
-  energy="$(ezfio get mrcepa0 energy)"
-  eq $energy -76.22879934337525 1.e-4
+  energy="$(ezfio get mrcepa0 energy_pt2)"
+  eq $energy -76.238527498388962 1.e-4
 }
 
 @test "MRSC2 H2O cc-pVDZ" {
@@ -48,8 +48,8 @@ source $QP_ROOT/tests/bats/common.bats.sh
   ezfio set mrcepa0 lambda_type 0
   ezfio set mrcepa0 n_it_max_dressed_ci 3
   qp_run $EXE $INPUT  
-  energy="$(ezfio get mrcepa0 energy)"
-  eq $energy -76.2262119300426  1.e-4
+  energy="$(ezfio get mrcepa0 energy_pt2)"
+  eq $energy -76.235833732594187 1.e-4
 }
 
 @test "MRCEPA0 H2O cc-pVDZ" {
@@ -64,7 +64,7 @@ source $QP_ROOT/tests/bats/common.bats.sh
   ezfio set mrcepa0 lambda_type 0
   ezfio set mrcepa0 n_it_max_dressed_ci 3
   qp_run $EXE $INPUT  
-  energy="$(ezfio get mrcepa0 energy)"
-  eq $energy -76.2315759851904 1.e-4
+  energy="$(ezfio get mrcepa0 energy_pt2)"
+  eq $energy -76.2418799284763 1.e-4
 }
 
