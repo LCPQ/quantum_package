@@ -17,7 +17,6 @@ subroutine run(N_st,energy)
   double precision, allocatable :: lambda(:)
   allocate (lambda(N_states))
 
-  
   thresh_mrcc = thresh_dressed_ci
   n_it_mrcc_max = n_it_max_dressed_ci
 

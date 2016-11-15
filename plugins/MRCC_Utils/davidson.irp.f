@@ -678,14 +678,6 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
   integer, external :: align_double
   sze_8 = align_double(sze)
 
-  double precision :: delta
-
-  if (s2_eig) then
-    delta = 1.d0
-  else
-    delta = 0.d0
-  endif
-  
   itermax = min(davidson_sze_max, sze/N_st_diag)
   allocate(                                                          &
       W(sze_8,N_st_diag*itermax),                                    &
@@ -722,24 +714,17 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
   converged = .False.
   
   double precision               :: r1, r2
-  do k=N_st+1,N_st_diag-2,2
+  do k=N_st+1,N_st_diag
       do i=1,sze
         call random_number(r1)
         call random_number(r2)
         r1 = dsqrt(-2.d0*dlog(r1))
         r2 = dtwo_pi*r2
         u_in(i,k) = r1*dcos(r2)
-        u_in(i,k+1) = r1*dsin(r2)
       enddo
   enddo
-  do k=N_st_diag-1,N_st_diag
-      do i=1,sze
-        call random_number(r1)
-        call random_number(r2)
-        r1 = dsqrt(-2.d0*dlog(r1))
-        r2 = dtwo_pi*r2
-        u_in(i,k) = r1*dcos(r2)
-      enddo
+  do k=1,N_st_diag
+      call normalize(u_in(1,k),sze)
   enddo
 
   
@@ -796,14 +781,36 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
         s2(k) = s_(k,k) + S_z2_Sz
       enddo
 
+    if (s2_eig) then
+        logical :: state_ok(N_st_diag*davidson_sze_max)
+        do k=1,shift2
+          state_ok(k) = (dabs(s2(k)-expected_s2) < 0.6d0)
+        enddo
+        do k=1,shift2
+          if (.not. state_ok(k)) then
+            do l=k+1,shift2
+              if (state_ok(l)) then
+                call dswap(shift2, y(1,k), 1, y(1,l), 1)
+                call dswap(1, s2(k), 1, s2(l), 1)
+                call dswap(1, lambda(k), 1, lambda(l), 1)
+                state_ok(k) = .True.
+                state_ok(l) = .False.
+                exit
+              endif
+            enddo
+          endif
+        enddo
+      endif
+
+
       ! Compute overlap with U_in
       ! -------------------------
       
-      integer :: coord(2), order(N_st)
+      integer :: coord(2), order(N_st_diag)
       overlap = -1.d0
-      do k=1,N_st
+      do k=1,shift2 
         do i=1,shift2
-          overlap(i,k) = dabs(y(i,k))
+          overlap(k,i) = dabs(y(k,i))
         enddo
       enddo
       do k=1,N_st

@@ -924,6 +924,9 @@ END_PROVIDER
 
      norm = norm*f
      print *,  'norm of |T Psi_0> = ', dsqrt(norm)
+     if (dsqrt(norm) > 1.d0) then
+       stop 'Error : Norm of the SD larger than the norm of the reference.'
+     endif
 
      do i=1,N_det_ref
        norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
