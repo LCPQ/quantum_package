@@ -684,6 +684,8 @@ END_PROVIDER
       do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
         if(is_active_exc(pp)) cycle
         lref = 0
+        AtB(pp) = 0.d0
+        X(pp) = 0.d0
         do II=1,N_det_ref
           call apply_hole_local(psi_ref(1,1,II), hh_exists(1, hh), myMask, ok, N_int)
           if(.not. ok) cycle
@@ -693,12 +695,12 @@ END_PROVIDER
           if(ind == -1) cycle
           ind = psi_non_ref_sorted_idx(ind)
           call get_phase(myDet(1,1), psi_ref(1,1,II), phase, N_int)
-          X(pp) += psi_ref_coef(II,s)**2
+          X(pp) = X(pp) + psi_ref_coef(II,s)*psi_ref_coef(II,s)
           AtB(pp) += psi_non_ref_coef(ind, s) * psi_ref_coef(II, s) * phase
           lref(II) = ind
-          if(phase < 0d0) lref(II) = -ind
+          if(phase < 0.d0) lref(II) = -ind
         end do
-        X(pp) =  AtB(pp) / X(pp)
+        X(pp) =  AtB(pp) 
         do II=1,N_det_ref
           if(lref(II) > 0) then
             rho_mrcc_init(lref(II)) = psi_ref_coef(II,s) * X(pp)
@@ -709,7 +711,7 @@ END_PROVIDER
       end do
     end do
     deallocate(lref)
-    
+
     x_new = x
     
     double precision               :: factor, resold
