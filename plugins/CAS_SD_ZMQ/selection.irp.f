@@ -202,11 +202,6 @@ subroutine fill_buffer_single(i_generator, sp, h1, bannedOrb, fock_diag_tmp, E0,
     if(vect(1, p1) == 0d0) cycle
     call apply_particle(mask, sp, p1, det, ok, N_int)
     
-logical, external :: is_in_wavefunction
-if (is_in_wavefunction(det,N_int)) then
-  cycle
-endif
-    
     Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),det,fock_diag_tmp,N_int)
     max_e_pert = 0d0
     
