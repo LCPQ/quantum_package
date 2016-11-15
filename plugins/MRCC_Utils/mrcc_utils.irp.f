@@ -162,9 +162,9 @@ END_PROVIDER
       CI_eigenvectors_dressed(1:N_det,mrcc_state) = eigenvectors(1:N_det,mrcc_state)
       CI_electronic_energy_dressed(mrcc_state) = eigenvalues(mrcc_state)
       if (mrcc_state == 1) then
-        do mrcc_state=N_states+1,N_states_diag
-          CI_eigenvectors_dressed(1:N_det,mrcc_state) = eigenvectors(1:N_det,mrcc_state)
-          CI_electronic_energy_dressed(mrcc_state) = eigenvalues(mrcc_state)
+        do k=N_states+1,N_states_diag
+          CI_eigenvectors_dressed(1:N_det,k) = eigenvectors(1:N_det,k)
+          CI_electronic_energy_dressed(k) = eigenvalues(k)
         enddo
       endif
      enddo
