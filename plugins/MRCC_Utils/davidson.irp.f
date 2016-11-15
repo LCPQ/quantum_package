@@ -628,7 +628,7 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
   integer                        :: k_pairs, kl
   
   integer                        :: iter2
-  double precision, allocatable  :: W(:,:),  U(:,:), S(:,:)
+  double precision, allocatable  :: W(:,:),  U(:,:), S(:,:), overlap(:,:)
   double precision, allocatable  :: y(:,:), h(:,:), lambda(:), s2(:)
   double precision, allocatable  :: c(:), s_(:,:), s_tmp(:,:)
   double precision               :: diag_h_mat_elem
@@ -688,16 +688,17 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
   
   itermax = min(davidson_sze_max, sze/N_st_diag)
   allocate(                                                          &
-      W(sze_8,N_st_diag*itermax),                           &
-      U(sze_8,N_st_diag*itermax),                           &
-      S(sze_8,N_st_diag*itermax),                           &
-      h(N_st_diag*itermax,N_st_diag*itermax),      &
-      y(N_st_diag*itermax,N_st_diag*itermax),      &
-      s_(N_st_diag*itermax,N_st_diag*itermax),     &
-      s_tmp(N_st_diag*itermax,N_st_diag*itermax),  &
+      W(sze_8,N_st_diag*itermax),                                    &
+      U(sze_8,N_st_diag*itermax),                                    &
+      S(sze_8,N_st_diag*itermax),                                    &
+      h(N_st_diag*itermax,N_st_diag*itermax),                        &
+      y(N_st_diag*itermax,N_st_diag*itermax),                        &
+      s_(N_st_diag*itermax,N_st_diag*itermax),                       &
+      s_tmp(N_st_diag*itermax,N_st_diag*itermax),                    &
       residual_norm(N_st_diag),                                      &
-      c(N_st_diag*itermax),                                 &
-      s2(N_st_diag*itermax),                                &
+      c(N_st_diag*itermax),                                          &
+      s2(N_st_diag*itermax),                                         &
+      overlap(N_st_diag*itermax,N_st_diag*itermax),                  &
       lambda(N_st_diag*itermax))
 
   h  = 0.d0
@@ -795,26 +796,39 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
         s2(k) = s_(k,k) + S_z2_Sz
       enddo
 
-      if (s2_eig) then
-        logical :: state_ok(N_st_diag*davidson_sze_max)
-        do k=1,shift2
-          state_ok(k) = (dabs(s2(k)-expected_s2) < 0.6d0)
+      ! Compute overlap with U_in
+      ! -------------------------
+      
+      integer :: coord(2), order(N_st)
+      overlap = -1.d0
+      do k=1,N_st
+        do i=1,shift2
+          overlap(i,k) = dabs(y(i,k))
         enddo
-        do k=1,shift2
-          if (.not. state_ok(k)) then
-            do l=k+1,shift2
-              if (state_ok(l)) then
-                call dswap(shift2, y(1,k), 1, y(1,l), 1)
-                call dswap(1, s2(k), 1, s2(l), 1)
-                call dswap(1, lambda(k), 1, lambda(l), 1)
-                state_ok(k) = .True.
-                state_ok(l) = .False.
-                exit
-              endif
-            enddo
-          endif
-        enddo
-      endif
+      enddo
+      do k=1,N_st
+        coord = maxloc(overlap)
+        order( coord(2) )  = coord(1)
+        overlap(coord(1),coord(2)) = -1.d0
+      enddo
+      overlap = y
+      do k=1,N_st
+       l = order(k)
+       if (k /= l) then
+         y(1:shift2,k) = overlap(1:shift2,l)
+       endif
+      enddo
+      do k=1,N_st
+        overlap(k,1) = lambda(k)
+        overlap(k,2) = s2(k)
+      enddo
+      do k=1,N_st
+       l = order(k)
+       if (k /= l) then
+         lambda(k) = overlap(l,1)
+         s2(k) = overlap(l,2)
+       endif
+      enddo
 
 
       ! Express eigenvectors of h in the determinant basis

@@ -149,7 +149,7 @@ END_PROVIDER
      
      allocate (eigenvectors(size(CI_eigenvectors_dressed,1),size(CI_eigenvectors_dressed,2)), &
      eigenvalues(size(CI_electronic_energy_dressed,1)))
-     do mrcc_state=N_states,1,-1
+     do mrcc_state=1,N_states
       do j=1,min(N_states,N_det)
         do i=1,N_det
           eigenvectors(i,j) = psi_coef(i,j)
@@ -161,10 +161,12 @@ END_PROVIDER
             output_determinants,mrcc_state)
       CI_eigenvectors_dressed(1:N_det,mrcc_state) = eigenvectors(1:N_det,mrcc_state)
       CI_electronic_energy_dressed(mrcc_state) = eigenvalues(mrcc_state)
-     enddo
-     do mrcc_state=N_states+1,N_states_diag
-      CI_eigenvectors_dressed(1:N_det,mrcc_state) = eigenvectors(1:N_det,mrcc_state)
-      CI_electronic_energy_dressed(mrcc_state) = eigenvalues(mrcc_state)
+      if (mrcc_state == 1) then
+        do mrcc_state=N_states+1,N_states_diag
+          CI_eigenvectors_dressed(1:N_det,mrcc_state) = eigenvectors(1:N_det,mrcc_state)
+          CI_electronic_energy_dressed(mrcc_state) = eigenvalues(mrcc_state)
+        enddo
+      endif
      enddo
      call u_0_S2_u_0(CI_eigenvectors_s2_dressed,CI_eigenvectors_dressed,N_det,psi_det,N_int,&
           N_states_diag,size(CI_eigenvectors_dressed,1))
@@ -685,7 +687,6 @@ END_PROVIDER
         if(is_active_exc(pp)) cycle
         lref = 0
         AtB(pp) = 0.d0
-        X(pp) = 0.d0
         do II=1,N_det_ref
           call apply_hole_local(psi_ref(1,1,II), hh_exists(1, hh), myMask, ok, N_int)
           if(.not. ok) cycle
@@ -695,7 +696,6 @@ END_PROVIDER
           if(ind == -1) cycle
           ind = psi_non_ref_sorted_idx(ind)
           call get_phase(myDet(1,1), psi_ref(1,1,II), phase, N_int)
-          X(pp) = X(pp) + psi_ref_coef(II,s)*psi_ref_coef(II,s)
           AtB(pp) += psi_non_ref_coef(ind, s) * psi_ref_coef(II, s) * phase
           lref(II) = ind
           if(phase < 0.d0) lref(II) = -ind
