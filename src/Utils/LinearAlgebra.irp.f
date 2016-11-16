@@ -150,12 +150,39 @@ subroutine ortho_qr(A,LDA,m,n)
   LWORK=-1
 !  call dgeqp3(m, n, A, LDA, jpvt, tau, WORK, LWORK, INFO)
   call  dgeqrf( m, n, A, LDA, TAU, WORK, LWORK, INFO )
-  LWORK=WORK(1)
+  LWORK=2*WORK(1)
   deallocate(WORK)
   allocate(WORK(LWORK))
 !  call dgeqp3(m, n, A, LDA, jpvt, tau, WORK, LWORK, INFO)
   call  dgeqrf( m, n, A, LDA, TAU, WORK, LWORK, INFO )
   call dorgqr(m, n, n, A, LDA, tau, WORK, LWORK, INFO)
+  deallocate(WORK,jpvt,tau)
+end
+
+subroutine ortho_qr_unblocked(A,LDA,m,n)
+  implicit none
+  BEGIN_DOC
+  ! Orthogonalization using Q.R factorization
+  !
+  ! A : matrix to orthogonalize
+  !
+  ! LDA : leftmost dimension of A
+  !
+  ! n : Number of rows of A
+  !
+  ! m : Number of columns of A
+  !
+  END_DOC
+  integer, intent(in)            :: m,n, LDA
+  double precision, intent(inout) :: A(LDA,n)
+
+  integer                        :: info
+  integer, allocatable           :: jpvt(:)
+  double precision, allocatable  :: tau(:), work(:)
+
+  allocate (jpvt(n), tau(n), work(n))
+  call  dgeqr2( m, n, A, LDA, TAU, WORK, INFO )
+  call dorg2r(m, n, n, A, LDA, tau, WORK, INFO)
   deallocate(WORK,jpvt,tau)
 end
 

@@ -422,7 +422,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
 
   !$OMP CRITICAL (u0Hu0)
   do istate=1,N_st
-    do i=n,1,-1
+    do i=1,n
       v_0(i,istate) = v_0(i,istate) + vt(istate,i)
       s_0(i,istate) = s_0(i,istate) + st(istate,i)
     enddo
