@@ -22,7 +22,7 @@ subroutine run_wf
 
   integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
-  double precision :: energy(N_states_diag)
+  double precision :: energy(N_states)
   character*(64) :: states(2)
   integer :: rc, i
   
@@ -48,7 +48,7 @@ subroutine run_wf
       ! ---------
 
       print *,  'Selection'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states_diag)
+      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
   
       !$OMP PARALLEL PRIVATE(i)
       i = omp_get_thread_num()
@@ -76,7 +76,7 @@ end
 
 subroutine update_energy(energy)
   implicit none
-  double precision, intent(in) :: energy(N_states_diag)
+  double precision, intent(in) :: energy(N_states)
   BEGIN_DOC
 ! Update energy when it is received from ZMQ
   END_DOC
@@ -99,7 +99,7 @@ end
 
 subroutine selection_slave_tcp(i,energy)
   implicit none
-  double precision, intent(in) :: energy(N_states_diag)
+  double precision, intent(in) :: energy(N_states)
   integer, intent(in)            :: i
 
   call run_selection_slave(0,i,energy)
