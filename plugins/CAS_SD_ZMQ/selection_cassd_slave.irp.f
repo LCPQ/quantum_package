@@ -74,7 +74,7 @@ subroutine update_energy(energy)
   enddo
   call u_0_S2_u_0(CI_eigenvectors_s2,CI_eigenvectors,N_det,psi_det,N_int)
   if (.True.) then
-    do k=1,size(ci_electronic_energy)
+    do k=1,N_states
       ci_electronic_energy(k) = energy(k)
     enddo
     TOUCH ci_electronic_energy CI_eigenvectors_s2 CI_eigenvectors
