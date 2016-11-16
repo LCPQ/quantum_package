@@ -469,7 +469,12 @@ subroutine lapack_diag(eigvalues,eigvectors,H,nmax,n)
     print *, irp_here, ': DSYEV: the ',-info,'-th argument had an illegal value'
     stop 2
   else if( info > 0  ) then
-     write(*,*)'DSYEV Failed'
+     write(*,*)'DSYEV Failed : ', info
+     do i=1,n
+      do j=1,n
+        print *,  H(i,j)
+      enddo
+     enddo
      stop 1
   end if
 
