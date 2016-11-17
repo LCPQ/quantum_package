@@ -18,6 +18,14 @@ filter1h
 filter1p
 only_2p_single
 only_2p_double
+only_2h_single
+only_2h_double
+only_1h_single
+only_1h_double
+only_1p_single
+only_1p_double
+only_2h1p_single
+only_2h1p_double
 filter_only_1h1p_single
 filter_only_1h1p_double
 filter_only_1h2p_single
@@ -198,14 +206,55 @@ class H_apply(object):
      if (is_a_1p(hole)) cycle
     """
 
+  def filter_only_2h(self):
+    self["only_2h_single"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_2h(hole).eqv. .False.) cycle
+    """
+    self["only_2h_double"] = """
+!    ! DIR$ FORCEINLINE
+     if ( is_a_2h(key).eqv. .False. )cycle
+    """
+
+  def filter_only_1h(self):
+    self["only_1h_single"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_1h(hole) .eqv. .False.) cycle
+    """
+    self["only_1h_double"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_1h(key) .eqv. .False.) cycle
+    """
+
+  def filter_only_1p(self):
+    self["only_1p_single"] = """
+!    ! DIR$ FORCEINLINE
+     if ( is_a_1p(hole) .eqv. .False.) cycle
+    """
+    self["only_1p_double"] = """
+!    ! DIR$ FORCEINLINE
+     if ( is_a_1p(key) .eqv. .False.) cycle
+    """
+
+  def filter_only_2h1p(self):
+    self["only_2h1p_single"] = """
+!    ! DIR$ FORCEINLINE
+     if ( is_a_2h1p(hole) .eqv. .False.) cycle
+    """
+    self["only_2h1p_double"] = """
+!    ! DIR$ FORCEINLINE
+     if (is_a_2h1p(key) .eqv. .False.) cycle
+    """
+
+
   def filter_only_2p(self):
     self["only_2p_single"] = """
 !    ! DIR$ FORCEINLINE
-     if (.not. is_a_2p(hole)) cycle
+     if (is_a_2p(hole).eqv. .False.) cycle
     """
     self["only_2p_double"] = """
 !    ! DIR$ FORCEINLINE
-     if (.not. is_a_2p(key)) cycle
+     if (is_a_2p(key).eqv. .False.) cycle
     """
 
 
@@ -224,7 +273,7 @@ class H_apply(object):
 !    ! DIR$ FORCEINLINE
      if (is_a_two_holes_two_particles(hole).eqv..False.) cycle
     """
-    self["filter_only_1h1p_double"] = """
+    self["filter_only_2h2p_double"] = """
 !    ! DIR$ FORCEINLINE
      if (is_a_two_holes_two_particles(key).eqv..False.) cycle
     """
@@ -373,7 +422,7 @@ class H_apply(object):
       if (s2_eig) then
         call make_s2_eigenfunction
       endif
-!      SOFT_TOUCH psi_det psi_coef N_det
+      SOFT_TOUCH psi_det psi_coef N_det
       selection_criterion_min = min(selection_criterion_min, maxval(select_max))*0.1d0
       selection_criterion = selection_criterion_min
       call write_double(output_determinants,selection_criterion,'Selection criterion')

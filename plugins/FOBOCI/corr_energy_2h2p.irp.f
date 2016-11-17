@@ -15,7 +15,7 @@
  integer(bit_kind) :: key_tmp(N_int,2)
  integer :: i,j,k,l
  integer :: i_hole,j_hole,k_part,l_part
- double precision :: get_mo_bielec_integral_schwartz,hij,delta_e,exc,contrib
+ double precision :: get_mo_bielec_integral,hij,delta_e,exc,contrib
  double precision :: diag_H_mat_elem
  integer :: i_ok,ispin
  ! Alpha - Beta correlation energy
@@ -46,7 +46,7 @@
      if(i_ok .ne.1)cycle
      delta_e  = (ref_bitmask_energy - diag_H_mat_elem(key_tmp,N_int))
 
-     hij = get_mo_bielec_integral_schwartz(i_hole,j_hole,k_part,l_part,mo_integrals_map)
+     hij = get_mo_bielec_integral(i_hole,j_hole,k_part,l_part,mo_integrals_map)
      contrib = hij*hij/delta_e
      total_corr_e_2h2p += contrib
      ! Single orbital contribution
@@ -81,8 +81,8 @@
     k_part = list_virt(k)
     do l = k+1,n_virt_orb
      l_part = list_virt(l)
-     hij = get_mo_bielec_integral_schwartz(i_hole,j_hole,k_part,l_part,mo_integrals_map)
-     exc = get_mo_bielec_integral_schwartz(i_hole,j_hole,l_part,k_part,mo_integrals_map)
+     hij = get_mo_bielec_integral(i_hole,j_hole,k_part,l_part,mo_integrals_map)
+     exc = get_mo_bielec_integral(i_hole,j_hole,l_part,k_part,mo_integrals_map)
      key_tmp = ref_bitmask
      ispin = 1
      call do_mono_excitation(key_tmp,i_hole,k_part,ispin,i_ok)
@@ -114,8 +114,8 @@
     k_part = list_virt(k)
     do l = k+1,n_virt_orb
      l_part = list_virt(l)
-     hij = get_mo_bielec_integral_schwartz(i_hole,j_hole,k_part,l_part,mo_integrals_map)
-     exc = get_mo_bielec_integral_schwartz(i_hole,j_hole,l_part,k_part,mo_integrals_map)
+     hij = get_mo_bielec_integral(i_hole,j_hole,k_part,l_part,mo_integrals_map)
+     exc = get_mo_bielec_integral(i_hole,j_hole,l_part,k_part,mo_integrals_map)
      key_tmp = ref_bitmask
      ispin = 2
      call do_mono_excitation(key_tmp,i_hole,k_part,ispin,i_ok)
@@ -161,7 +161,7 @@ END_PROVIDER
  integer(bit_kind) :: key_tmp(N_int,2)
  integer :: i,j,k,l
  integer :: i_hole,j_hole,k_part,l_part
- double precision :: get_mo_bielec_integral_schwartz,hij,delta_e,exc,contrib
+ double precision :: get_mo_bielec_integral,hij,delta_e,exc,contrib
  double precision :: diag_H_mat_elem
  integer :: i_ok,ispin
  ! Alpha - Beta correlation energy
@@ -191,7 +191,7 @@ END_PROVIDER
      if(i_ok .ne.1)cycle
      delta_e  = -(ref_bitmask_energy - diag_H_mat_elem(key_tmp,N_int))
 
-     hij = get_mo_bielec_integral_schwartz(i_hole,j_hole,k_part,l_part,mo_integrals_map)
+     hij = get_mo_bielec_integral(i_hole,j_hole,k_part,l_part,mo_integrals_map)
      contrib = 0.5d0 * (delta_e - dsqrt(delta_e * delta_e + 4.d0 * hij*hij))
      total_corr_e_2h1p += contrib
      corr_energy_2h1p_ab_bb_per_2_orb(i_hole,j_hole) += contrib
@@ -211,8 +211,8 @@ END_PROVIDER
     k_part = list_act(k)
     do l = 1,n_virt_orb
      l_part = list_virt(l)
-     hij = get_mo_bielec_integral_schwartz(i_hole,j_hole,k_part,l_part,mo_integrals_map)
-     exc = get_mo_bielec_integral_schwartz(i_hole,j_hole,l_part,k_part,mo_integrals_map)
+     hij = get_mo_bielec_integral(i_hole,j_hole,k_part,l_part,mo_integrals_map)
+     exc = get_mo_bielec_integral(i_hole,j_hole,l_part,k_part,mo_integrals_map)
      key_tmp = ref_bitmask
      ispin = 1
      call do_mono_excitation(key_tmp,i_hole,k_part,ispin,i_ok)
@@ -241,8 +241,8 @@ END_PROVIDER
     k_part = list_act(k)
     do l = 1,n_virt_orb
      l_part = list_virt(l)
-     hij = get_mo_bielec_integral_schwartz(i_hole,j_hole,k_part,l_part,mo_integrals_map)
-     exc = get_mo_bielec_integral_schwartz(i_hole,j_hole,l_part,k_part,mo_integrals_map)
+     hij = get_mo_bielec_integral(i_hole,j_hole,k_part,l_part,mo_integrals_map)
+     exc = get_mo_bielec_integral(i_hole,j_hole,l_part,k_part,mo_integrals_map)
      key_tmp = ref_bitmask
      ispin = 2
      call do_mono_excitation(key_tmp,i_hole,k_part,ispin,i_ok)
@@ -276,7 +276,7 @@ END_PROVIDER
  integer(bit_kind) :: key_tmp(N_int,2)
  integer :: i,j,k,l
  integer :: i_hole,j_hole,k_part,l_part
- double precision :: get_mo_bielec_integral_schwartz,hij,delta_e,exc,contrib
+ double precision :: get_mo_bielec_integral,hij,delta_e,exc,contrib
  double precision :: diag_H_mat_elem
  integer :: i_ok,ispin
  ! Alpha - Beta correlation energy
@@ -302,7 +302,7 @@ END_PROVIDER
      if(i_ok .ne.1)cycle
      delta_e  = -(ref_bitmask_energy - diag_H_mat_elem(key_tmp,N_int))
 
-     hij = get_mo_bielec_integral_schwartz(i_hole,j_hole,k_part,l_part,mo_integrals_map)
+     hij = get_mo_bielec_integral(i_hole,j_hole,k_part,l_part,mo_integrals_map)
      contrib = 0.5d0 * (delta_e - dsqrt(delta_e * delta_e + 4.d0 * hij*hij))
 
      total_corr_e_1h2p += contrib
@@ -324,8 +324,8 @@ END_PROVIDER
     k_part = list_act(k)
     do l = i+1,n_virt_orb
      l_part = list_virt(l)
-     hij = get_mo_bielec_integral_schwartz(i_hole,j_hole,k_part,l_part,mo_integrals_map)
-     exc = get_mo_bielec_integral_schwartz(i_hole,j_hole,l_part,k_part,mo_integrals_map)
+     hij = get_mo_bielec_integral(i_hole,j_hole,k_part,l_part,mo_integrals_map)
+     exc = get_mo_bielec_integral(i_hole,j_hole,l_part,k_part,mo_integrals_map)
 
      key_tmp = ref_bitmask
      ispin = 1
@@ -356,8 +356,8 @@ END_PROVIDER
     k_part = list_act(k)
     do l = i+1,n_virt_orb
      l_part = list_virt(l)
-     hij = get_mo_bielec_integral_schwartz(i_hole,j_hole,k_part,l_part,mo_integrals_map)
-     exc = get_mo_bielec_integral_schwartz(i_hole,j_hole,l_part,k_part,mo_integrals_map)
+     hij = get_mo_bielec_integral(i_hole,j_hole,k_part,l_part,mo_integrals_map)
+     exc = get_mo_bielec_integral(i_hole,j_hole,l_part,k_part,mo_integrals_map)
 
      key_tmp = ref_bitmask
      ispin = 2
@@ -388,7 +388,7 @@ END_PROVIDER
  integer(bit_kind) :: key_tmp(N_int,2)
  integer :: i,j,k,l
  integer :: i_hole,j_hole,k_part,l_part
- double precision :: get_mo_bielec_integral_schwartz,hij,delta_e,exc,contrib
+ double precision :: get_mo_bielec_integral,hij,delta_e,exc,contrib
  double precision :: diag_H_mat_elem
  integer :: i_ok,ispin
  ! Alpha - Beta correlation energy
@@ -412,7 +412,7 @@ END_PROVIDER
      if(i_ok .ne.1)cycle
      delta_e  = -(ref_bitmask_energy - diag_H_mat_elem(key_tmp,N_int))
 
-     hij = get_mo_bielec_integral_schwartz(i_hole,j_hole,k_part,l_part,mo_integrals_map)
+     hij = get_mo_bielec_integral(i_hole,j_hole,k_part,l_part,mo_integrals_map)
      contrib = 0.5d0 * (delta_e - dsqrt(delta_e * delta_e + 4.d0 * hij*hij))
 
      total_corr_e_1h1p_spin_flip += contrib

@@ -17,7 +17,7 @@ END_PROVIDER
  call ezfio_get_ao_basis_ao_prim_num_max(ao_prim_num_max)
  integer :: align_double
  ao_prim_num_max_align = align_double(ao_prim_num_max)
- END_PROVIDER
+END_PROVIDER
 
  BEGIN_PROVIDER [ double precision, ao_coef_normalized, (ao_num_align,ao_prim_num_max) ]
 &BEGIN_PROVIDER [ double precision, ao_coef_normalization_factor, (ao_num) ]
@@ -145,6 +145,7 @@ END_PROVIDER
 
  BEGIN_PROVIDER [ integer, ao_l, (ao_num) ]
 &BEGIN_PROVIDER [ integer, ao_l_max  ]
+&BEGIN_PROVIDER [ character*(128), ao_l_char, (ao_num) ]
  implicit none
  BEGIN_DOC
 ! ao_l = l value of the AO: a+b+c in x^a y^b z^c
@@ -152,6 +153,7 @@ END_PROVIDER
  integer :: i
  do i=1,ao_num
    ao_l(i) = ao_power(i,1) + ao_power(i,2) + ao_power(i,3) 
+   ao_l_char(i) = l_to_charater(ao_l(i))
  enddo
  ao_l_max = maxval(ao_l)
 END_PROVIDER
@@ -179,20 +181,6 @@ integer function ao_power_index(nx,ny,nz)
   ao_power_index = ((l-nx)*(l-nx+1))/2 + nz + 1
 end
 
- BEGIN_PROVIDER [ integer, ao_l, (ao_num) ]
-&BEGIN_PROVIDER [ integer, ao_l_max ]
-&BEGIN_PROVIDER [ character*(128), ao_l_char, (ao_num) ]
- implicit none
- BEGIN_DOC
-! ao_l = l value of the AO: a+b+c in x^a y^b z^c
- END_DOC
- integer :: i
- do i=1,ao_num
-   ao_l(i) = ao_power(i,1) + ao_power(i,2) + ao_power(i,3)
-   ao_l_char(i) = l_to_charater(ao_l(i))
- enddo
- ao_l_max = maxval(ao_l)
-END_PROVIDER
 
 BEGIN_PROVIDER [ character*(128), l_to_charater, (0:4)]
  BEGIN_DOC

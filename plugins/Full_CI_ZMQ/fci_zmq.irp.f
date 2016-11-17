@@ -48,14 +48,14 @@ program fci_zmq
     call diagonalize_CI
     call save_wavefunction
     
-    if (N_det > N_det_max) then
-      psi_det = psi_det_sorted
-      psi_coef = psi_coef_sorted
-      N_det = N_det_max
-      soft_touch N_det psi_det psi_coef
-      call diagonalize_CI
-      call save_wavefunction
-    endif
+!    if (N_det > N_det_max) then
+!        psi_det = psi_det_sorted
+!        psi_coef = psi_coef_sorted
+!        N_det = N_det_max
+!        soft_touch N_det psi_det psi_coef
+!        call diagonalize_CI
+!        call save_wavefunction
+!    endif
     
     print *,  'N_det          = ', N_det
     print *,  'N_states       = ', N_states
@@ -79,13 +79,14 @@ program fci_zmq
       enddo
     endif
     E_CI_before(1:N_states) = CI_energy(1:N_states)
-    call ezfio_set_full_ci_energy(CI_energy)
+    call ezfio_set_full_ci_zmq_energy(CI_energy)
   enddo
 
   if(do_pt2_end)then
     print*,'Last iteration only to compute the PT2'
-    threshold_selectors = 1.d0
-    threshold_generators = 0.9999d0
+    threshold_selectors = max(threshold_selectors,threshold_selectors_pt2)
+    threshold_generators = max(threshold_generators,threshold_generators_pt2)
+    TOUCH threshold_selectors threshold_generators
     E_CI_before(1:N_states) = CI_energy(1:N_states)
     call ZMQ_selection(0, pt2)
     print *,  'Final step'
@@ -98,7 +99,7 @@ program fci_zmq
       print *,  'E+PT2    = ', E_CI_before+pt2
       print *,  '-----'
     enddo
-    call ezfio_set_full_ci_energy_pt2(E_CI_before+pt2)
+    call ezfio_set_full_ci_zmq_energy_pt2(E_CI_before+pt2)
   endif
   call save_wavefunction
 end
@@ -121,38 +122,43 @@ subroutine ZMQ_selection(N_in, pt2)
   double precision, intent(out)  :: pt2(N_states)
   
   
-  N = max(N_in,1)
-  provide nproc
-  provide ci_electronic_energy
-  call new_parallel_job(zmq_to_qp_run_socket,"selection")
-  call zmq_put_psi(zmq_to_qp_run_socket,1,ci_electronic_energy,size(ci_electronic_energy))
-  call zmq_set_running(zmq_to_qp_run_socket)
-  call create_selection_buffer(N, N*2, b)
+  if (.True.) then
+    PROVIDE pt2_e0_denominator
+    N = max(N_in,1)
+    provide nproc
+    call new_parallel_job(zmq_to_qp_run_socket,"selection")
+    call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
+    call zmq_set_running(zmq_to_qp_run_socket)
+    call create_selection_buffer(N, N*2, b)
+  endif
 
   integer :: i_generator, i_generator_start, i_generator_max, step
 !  step = int(max(1.,10*elec_num/mo_tot_num)
 
   step = int(5000000.d0 / dble(N_int * N_states * elec_num * elec_num * mo_tot_num * mo_tot_num ))
   step = max(1,step)
-  do i= N_det_generators, 1, -step
-    i_generator_start = max(i-step+1,1)
-    i_generator_max = i
+  do i= 1, N_det_generators,step
+    i_generator_start = i
+    i_generator_max = min(i+step-1,N_det_generators)
     write(task,*) i_generator_start, i_generator_max, 1, N
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   end do
 
-    !$OMP PARALLEL DEFAULT(none)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1) shared(ci_electronic_energy_is_built, n_det_generators_is_built, n_states_is_built, n_int_is_built, nproc_is_built)
-      i = omp_get_thread_num()
-      if (i==0) then
-        call selection_collector(b, pt2)
-      else
-        call selection_slave_inproc(i)
-      endif
+  !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
+  i = omp_get_thread_num()
+  if (i==0) then
+    call selection_collector(b, pt2)
+  else
+    call selection_slave_inproc(i)
+  endif
   !$OMP END PARALLEL
-  call end_parallel_job(zmq_to_qp_run_socket, 'selection') 
+  call end_parallel_job(zmq_to_qp_run_socket, 'selection')
   if (N_in > 0) then
     call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) !!! PAS DE ROBIN
     call copy_H_apply_buffer_to_wf()
+    if (s2_eig) then
+      call make_s2_eigenfunction
+    endif
   endif
 end subroutine
 
@@ -161,7 +167,7 @@ subroutine selection_slave_inproc(i)
   implicit none
   integer, intent(in)            :: i
 
-  call run_selection_slave(1,i,ci_electronic_energy)
+  call run_selection_slave(1,i,pt2_e0_denominator)
 end
 
 subroutine selection_collector(b, pt2)

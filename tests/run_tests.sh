@@ -12,7 +12,7 @@ mrcepa0.bats
 
 
 export QP_PREFIX="timeout -s 9 300"
-export QP_TASK_DEBUG=1
+#export QP_TASK_DEBUG=1
 
 rm -rf work output
 

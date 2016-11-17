@@ -148,14 +148,39 @@ subroutine ortho_qr(A,LDA,m,n)
 
   allocate (jpvt(n), tau(n), work(1))
   LWORK=-1
-!  call dgeqp3(m, n, A, LDA, jpvt, tau, WORK, LWORK, INFO)
   call  dgeqrf( m, n, A, LDA, TAU, WORK, LWORK, INFO )
-  LWORK=WORK(1)
+  LWORK=2*WORK(1)
   deallocate(WORK)
   allocate(WORK(LWORK))
-!  call dgeqp3(m, n, A, LDA, jpvt, tau, WORK, LWORK, INFO)
   call  dgeqrf( m, n, A, LDA, TAU, WORK, LWORK, INFO )
   call dorgqr(m, n, n, A, LDA, tau, WORK, LWORK, INFO)
+  deallocate(WORK,jpvt,tau)
+end
+
+subroutine ortho_qr_unblocked(A,LDA,m,n)
+  implicit none
+  BEGIN_DOC
+  ! Orthogonalization using Q.R factorization
+  !
+  ! A : matrix to orthogonalize
+  !
+  ! LDA : leftmost dimension of A
+  !
+  ! n : Number of rows of A
+  !
+  ! m : Number of columns of A
+  !
+  END_DOC
+  integer, intent(in)            :: m,n, LDA
+  double precision, intent(inout) :: A(LDA,n)
+
+  integer                        :: info
+  integer, allocatable           :: jpvt(:)
+  double precision, allocatable  :: tau(:), work(:)
+
+  allocate (jpvt(n), tau(n), work(n))
+  call  dgeqr2( m, n, A, LDA, TAU, WORK, INFO )
+  call dorg2r(m, n, n, A, LDA, tau, WORK, INFO)
   deallocate(WORK,jpvt,tau)
 end
 
@@ -444,7 +469,12 @@ subroutine lapack_diag(eigvalues,eigvectors,H,nmax,n)
     print *, irp_here, ': DSYEV: the ',-info,'-th argument had an illegal value'
     stop 2
   else if( info > 0  ) then
-     write(*,*)'DSYEV Failed'
+     write(*,*)'DSYEV Failed : ', info
+     do i=1,n
+      do j=1,n
+        print *,  H(i,j)
+      enddo
+     enddo
      stop 1
   end if
 
@@ -606,3 +636,18 @@ end
 
 
 
+subroutine matrix_vector_product(u0,u1,matrix,sze,lda)
+ implicit none
+ BEGIN_DOC
+! performs u1 += u0 * matrix 
+ END_DOC
+ integer, intent(in)             :: sze,lda
+ double precision, intent(in)    :: u0(sze)
+ double precision, intent(inout) :: u1(sze)
+ double precision, intent(in)    :: matrix(lda,sze)
+ integer :: i,j
+ integer                        :: incx,incy
+ incx = 1
+ incy = 1
+ call dsymv('U', sze, 1.d0, matrix, lda, u0, incx, 1.d0, u1, incy)
+end
