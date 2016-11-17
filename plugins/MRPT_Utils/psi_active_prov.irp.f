@@ -293,27 +293,38 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
  if      (n_holes_act == 0 .and. n_particles_act == 1) then
   ispin = particle_list_practical(1,1)
   i_particle_act =  particle_list_practical(2,1)
-! call get_excitation_degree(det_1,det_2,degree,N_int)
-! if(degree == 1)then
-!  call get_excitation(det_1,det_2,exc,degree,phase,N_int)
-!  call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
-!  i_hole =  list_inact_reverse(h1)
-!  i_part =  list_act_reverse(p1)
-!  do i_state = 1, N_states
-!   delta_e_act(i_state) += one_anhil_inact(i_hole,i_part,i_state)
-!  enddo
-! else if (degree == 2)then
+  call get_excitation_degree(det_1,det_2,degree,N_int)
+  if(degree == 1)then
+   call get_excitation(det_1,det_2,exc,degree,phase,N_int)
+   call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+   i_hole =  list_inact_reverse(h1)
+   i_part =  list_act_reverse(p1)
+   do i_state = 1, N_states
+    delta_e_act(i_state) += one_anhil_inact(i_hole,i_part,i_state)
+   enddo
+  else if (degree == 2)then
    do i_state = 1, N_states
     delta_e_act(i_state) += one_creat(i_particle_act,ispin,i_state)
    enddo
-! endif
+  endif
 
  else if (n_holes_act == 1 .and. n_particles_act == 0) then
   ispin = hole_list_practical(1,1)
   i_hole_act =  hole_list_practical(2,1)
+  call get_excitation_degree(det_1,det_2,degree,N_int)
+  if(degree == 1)then
+   call get_excitation(det_1,det_2,exc,degree,phase,N_int)
+   call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+   i_hole =  list_act_reverse(h1)
+   i_part =  list_virt_reverse(p1)
+   do i_state = 1, N_states
+    delta_e_act(i_state) += one_creat_virt(i_hole,i_part,i_state)
+   enddo
+  else if (degree == 2)then
    do i_state = 1, N_states
     delta_e_act(i_state) += one_anhil(i_hole_act , ispin,i_state)
    enddo
+  endif 
 
  else if (n_holes_act == 1 .and. n_particles_act == 1) then
   ! first hole
@@ -415,7 +426,7 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
    i_hole =  list_inact_reverse(h1)
    i_part =  list_virt_reverse(p1)
    do i_state = 1, N_states
-!    delta_e_act(i_state) += one_anhil_one_creat_inact_virt(i_hole,i_part,i_state) 
+     delta_e_act(i_state) += one_anhil_one_creat_inact_virt(i_hole,i_part,i_state) 
    enddo
   endif
  else if (n_holes_act .ge. 2 .and. n_particles_act .ge.2) then

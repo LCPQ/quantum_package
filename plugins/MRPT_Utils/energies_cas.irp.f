@@ -520,7 +520,7 @@ END_PROVIDER
  integer :: iorb,jorb,i_ok
  integer :: state_target
  double precision :: energies(n_states)
- double precision :: hij
+ double precision :: hij,hij_test
  double precision :: norm(N_states,2),norm_no_inv(N_states,2),norm_bis(N_states,2)
  double precision :: energies_alpha_beta(N_states,2)
 
@@ -552,11 +552,18 @@ END_PROVIDER
        call debug_det(psi_in_out,N_int)
        print*, 'pb, i_ok ne 0 !!!'
       endif
+!     call i_H_j_no_k_operators_from_act(psi_in_out(1,1,i),psi_det(1,1,i),N_int,hij_test)
       call i_H_j(psi_in_out(1,1,i),psi_det(1,1,i),N_int,hij)
+!     if(i==1.and.dabs(hij)>1.d-8)then
+!     if(dabs(hij)>1.d-8)then
+!      print*, ispin,vorb,iorb
+!      print*, i,hij,hij_test
+!      pause
+!     endif
       do j = 1, n_states
         double precision ::  coef,contrib
         coef = psi_coef(i,j) !* psi_coef(i,j)
-        psi_in_out_coef(i,j) = sign(coef,psi_coef(i,j)) * hij 
+        psi_in_out_coef(i,j) = coef * hij 
         norm(j,ispin) += psi_in_out_coef(i,j) * psi_in_out_coef(i,j) 
       enddo
      enddo
@@ -582,22 +589,18 @@ END_PROVIDER
        enddo
      enddo
      do state_target = 1, N_states
-      energies_alpha_beta(state_target, ispin) = - mo_bielec_integral_jj_exchange(orb_i,orb_v)
-!     energies_alpha_beta(state_target, ispin) = 0.d0
+      energies_alpha_beta(state_target, ispin) = 0.d0
       if(norm(state_target,ispin) .ne. 0.d0 .and. dabs(norm_no_inv(state_target,ispin)) .gt. thresh_norm)then
-       call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
+!      call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
+       call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
        energies_alpha_beta(state_target, ispin) +=  energies(state_target) 
       endif
      enddo
     enddo ! ispin 
    do state_target = 1, N_states
     if((norm_no_inv(state_target,1) + norm_no_inv(state_target,2)) .ne. 0.d0)then
-!    one_anhil_one_creat_inact_virt(iorb,vorb,state_target) = 0.5d0 * & 
-!   ( energy_cas_dyall(state_target)  -  energies_alpha_beta(state_target,1) + & 
-!     energy_cas_dyall(state_target)  -  energies_alpha_beta(state_target,2) )
-!    print*, energies_alpha_beta(state_target,1) , energies_alpha_beta(state_target,2) 
-!    print*,  norm_bis(state_target,1) ,  norm_bis(state_target,2)
-     one_anhil_one_creat_inact_virt(iorb,vorb,state_target) =  energy_cas_dyall(state_target) - &
+!    one_anhil_one_creat_inact_virt(iorb,vorb,state_target) =  energy_cas_dyall(state_target) - &
+     one_anhil_one_creat_inact_virt(iorb,vorb,state_target) =  energy_cas_dyall_no_exchange(state_target) - &
       ( energies_alpha_beta(state_target,1) + energies_alpha_beta(state_target,2) ) & 
      /( norm_bis(state_target,1) +  norm_bis(state_target,2) )
     else  
@@ -688,24 +691,20 @@ BEGIN_PROVIDER [ double precision, one_anhil_inact, (n_inact_orb,n_act_orb,N_Sta
      do state_target = 1, N_states
       energies_alpha_beta(state_target, ispin) = 0.d0
       if(norm(state_target,ispin) .ne. 0.d0 .and. dabs(norm_no_inv(state_target,ispin)) .gt. thresh_norm)then
-       call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
+       call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
        energies_alpha_beta(state_target, ispin) +=  energies(state_target) 
       endif
      enddo
     enddo ! ispin 
    do state_target = 1, N_states
     if((norm_no_inv(state_target,1) + norm_no_inv(state_target,2)) .ne. 0.d0)then
-     one_anhil_inact(iorb,aorb,state_target) =  energy_cas_dyall(state_target) - &
+!    one_anhil_inact(iorb,aorb,state_target) =  energy_cas_dyall(state_target) - &
+     one_anhil_inact(iorb,aorb,state_target) =  energy_cas_dyall_no_exchange(state_target) - &
       ( energies_alpha_beta(state_target,1) + energies_alpha_beta(state_target,2) ) & 
      /( norm_bis(state_target,1) +  norm_bis(state_target,2) )
     else  
      one_anhil_inact(iorb,aorb,state_target) = 0.d0
     endif
-!   print*, '********'
-!   print*, energies_alpha_beta(state_target,1) , energies_alpha_beta(state_target,2)
-!   print*, norm_bis(state_target,1) ,  norm_bis(state_target,2)
-!   print*, one_anhil_inact(iorb,aorb,state_target)
-!   print*, one_creat(aorb,1,state_target)
    enddo
   enddo
  enddo
@@ -735,7 +734,7 @@ BEGIN_PROVIDER [ double precision, one_creat_virt, (n_act_orb,n_virt_orb,N_State
 
  double precision :: thresh_norm
   
- thresh_norm = 1.d-10
+ thresh_norm = 1.d-20
 
  do aorb = 1,n_act_orb
   orb_a = list_act(aorb)
@@ -791,15 +790,16 @@ BEGIN_PROVIDER [ double precision, one_creat_virt, (n_act_orb,n_virt_orb,N_State
      do state_target = 1, N_states
       energies_alpha_beta(state_target, ispin) = 0.d0
       if(norm(state_target,ispin) .ne. 0.d0 .and. dabs(norm_no_inv(state_target,ispin)) .gt. thresh_norm)then
-       call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
-!      print*,  energies(state_target)
+!      call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
+       call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
        energies_alpha_beta(state_target, ispin) +=  energies(state_target) 
       endif
      enddo
     enddo ! ispin 
    do state_target = 1, N_states
     if((norm_no_inv(state_target,1) + norm_no_inv(state_target,2)) .ne. 0.d0)then
-     one_creat_virt(aorb,vorb,state_target) =  energy_cas_dyall(state_target) - &
+!    one_creat_virt(aorb,vorb,state_target) =  energy_cas_dyall(state_target) - &
+     one_creat_virt(aorb,vorb,state_target) =  energy_cas_dyall_no_exchange(state_target) - &
       ( energies_alpha_beta(state_target,1) + energies_alpha_beta(state_target,2) ) & 
      /( norm_bis(state_target,1) +  norm_bis(state_target,2) )
     else  
@@ -814,154 +814,6 @@ BEGIN_PROVIDER [ double precision, one_creat_virt, (n_act_orb,n_virt_orb,N_State
   enddo
  enddo
  deallocate(psi_in_out,psi_in_out_coef)
-
-END_PROVIDER
-
-
- BEGIN_PROVIDER [ double precision, one_anhil_one_creat_inact_virt_bis, (n_inact_orb,n_virt_orb,N_det,N_States)]
-&BEGIN_PROVIDER [ double precision, corr_e_from_1h1p, (N_States)]
- implicit none
- integer :: i,vorb,j
- integer :: ispin,jspin
- integer :: orb_i, hole_particle_i
- integer :: orb_v
- double precision  :: norm_out(N_states),diag_elem(N_det),interact_psi0(N_det)
- double precision  :: delta_e_inact_virt(N_states)
- integer(bit_kind), allocatable :: psi_in_out(:,:,:)
- double precision, allocatable :: psi_in_out_coef(:,:)
- double precision, allocatable :: H_matrix(:,:),eigenvectors(:,:),eigenvalues(:)
- use bitmasks
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states),H_matrix(N_det+1,N_det+1))
- allocate (eigenvectors(size(H_matrix,1),N_det+1))
- allocate (eigenvalues(N_det+1))
-
- integer :: iorb,jorb,i_ok
- integer :: state_target
- double precision :: energies(n_states)
- double precision :: hij
- double precision :: energies_alpha_beta(N_states,2)
-
-
- double precision :: accu(N_states),norm
- double precision :: amplitudes_alpha_beta(N_det,2)
- double precision :: delta_e_alpha_beta(N_det,2)
-  
- corr_e_from_1h1p = 0.d0
- do vorb = 1,n_virt_orb
-  orb_v = list_virt(vorb)
-  do iorb = 1, n_inact_orb
-   orb_i = list_inact(iorb)
-!   print*, '---------------------------------------------------------------------------'
-    do j = 1, N_states
-     delta_e_inact_virt(j) = fock_core_inactive_total_spin_trace(orb_i,j) & 
-                           - fock_virt_total_spin_trace(orb_v,j) 
-    enddo
-    do ispin = 1,2
-     do i = 1, n_det
-      do j = 1, N_int
-       psi_in_out(j,1,i) =  psi_det(j,1,i) 
-       psi_in_out(j,2,i) =  psi_det(j,2,i) 
-      enddo
-      call do_mono_excitation(psi_in_out(1,1,i),orb_i,orb_v,ispin,i_ok)
-      if(i_ok.ne.1)then
-       print*, orb_i,orb_v
-       call debug_det(psi_in_out,N_int)
-       print*, 'pb, i_ok ne 0 !!!'
-      endif
-      interact_psi0(i) = 0.d0
-      do j = 1 , N_det
-       call i_H_j(psi_in_out(1,1,i),psi_det(1,1,j),N_int,hij)
-       interact_psi0(i) += hij * psi_coef(j,1)
-      enddo
-      do j = 1, N_int
-       psi_in_out(j,1,i) =  psi_active(j,1,i) 
-       psi_in_out(j,2,i) =  psi_active(j,2,i) 
-      enddo
-      call i_H_j_dyall(psi_active(1,1,i),psi_active(1,1,i),N_int,hij)
-      diag_elem(i) = hij
-     enddo
-     do state_target = 1, N_states
-      ! Building the Hamiltonian matrix
-      H_matrix(1,1) = energy_cas_dyall(state_target)
-      do i = 1, N_det
-       ! interaction with psi0
-       H_matrix(1,i+1)   = interact_psi0(i)!* psi_coef(i,state_target) 
-       H_matrix(i+1,1)   = interact_psi0(i)!* psi_coef(i,state_target) 
-       ! diagonal elements 
-       H_matrix(i+1,i+1) = diag_elem(i) - delta_e_inact_virt(state_target)
-!      print*, 'H_matrix(i+1,i+1)',H_matrix(i+1,i+1)
-       do j = i+1, N_det
-        call i_H_j_dyall(psi_in_out(1,1,i),psi_in_out(1,1,j),N_int,hij)
-        H_matrix(i+1,j+1) = hij  !0.d0 !
-        H_matrix(j+1,i+1) = hij  !0.d0 !
-       enddo
-      enddo
-      print*, '***'
-      do i = 1, N_det+1
-       write(*,'(100(F16.10,X))')H_matrix(i,:)
-      enddo
-      call lapack_diag(eigenvalues,eigenvectors,H_matrix,size(H_matrix,1),N_det+1)
-      corr_e_from_1h1p(state_target) += eigenvalues(1) - energy_cas_dyall(state_target)   
-      norm = 0.d0
-      do i = 1, N_det
-       psi_in_out_coef(i,state_target) = eigenvectors(i+1,1)/eigenvectors(1,1)
-!!     if(dabs(psi_coef(i,state_target)*) .gt. 1.d-8)then
-       if(dabs(psi_in_out_coef(i,state_target)) .gt. 1.d-8)then
-!      if(dabs(interact_psi0(i)) .gt. 1.d-8)then
-        delta_e_alpha_beta(i,ispin) = H_matrix(1,i+1) / psi_in_out_coef(i,state_target)   
-!       delta_e_alpha_beta(i,ispin) = interact_psi0(i) / psi_in_out_coef(i,state_target)   
-        amplitudes_alpha_beta(i,ispin) = psi_in_out_coef(i,state_target) / psi_coef(i,state_target)
-       else 
-        amplitudes_alpha_beta(i,ispin) = 0.d0
-        delta_e_alpha_beta(i,ispin) = delta_e_inact_virt(state_target)
-       endif
-!!     one_anhil_one_creat_inact_virt_bis(iorb,vorb,i,ispin,state_target) = amplitudes_alpha_beta(i,ispin) 
-       norm += psi_in_out_coef(i,state_target) * psi_in_out_coef(i,state_target)
-      enddo
-      print*, 'Coef '
-      write(*,'(100(X,F16.10))')psi_coef(1:N_det,state_target)
-      write(*,'(100(X,F16.10))')psi_in_out_coef(:,state_target)
-      double precision :: coef_tmp(N_det)
-      do i = 1, N_det
-       coef_tmp(i) = psi_coef(i,1) * interact_psi0(i) / delta_e_alpha_beta(i,ispin)
-      enddo
-      write(*,'(100(X,F16.10))')coef_tmp(:)
-      print*, 'naked interactions'
-      write(*,'(100(X,F16.10))')interact_psi0(:)
-      print*, ''
-      
-      print*, 'norm ',norm
-      norm = 1.d0/(norm)
-      accu(state_target) = 0.d0
-      do i = 1, N_det
-       accu(state_target) += psi_in_out_coef(i,state_target) * psi_in_out_coef(i,state_target) * H_matrix(i+1,i+1)
-       do j = i+1, N_det
-        accu(state_target) += 2.d0 * psi_in_out_coef(i,state_target) * psi_in_out_coef(j,state_target) *  H_matrix(i+1,j+1) 
-       enddo
-      enddo
-      accu(state_target) = accu(state_target) * norm
-      print*, delta_e_inact_virt(state_target)
-      print*, eigenvalues(1),accu(state_target),eigenvectors(1,1)
-      print*, energy_cas_dyall(state_target) - accu(state_target), one_anhil_one_creat_inact_virt(iorb,vorb,state_target) + delta_e_inact_virt(state_target)
-
-     enddo
-    enddo ! ispin 
-    do state_target = 1, N_states
-      do i = 1, N_det
-      one_anhil_one_creat_inact_virt_bis(iorb,vorb,i,state_target) =  0.5d0 * &
-      ( delta_e_alpha_beta(i,1) + delta_e_alpha_beta(i,1))
-      enddo
-    enddo
-      print*, '***'
-      write(*,'(100(X,F16.10))')
-      write(*,'(100(X,F16.10))')delta_e_alpha_beta(:,2)
- !    write(*,'(100(X,F16.10))')one_anhil_one_creat_inact_virt_bis(iorb,vorb,:,1,:)
- !    write(*,'(100(X,F16.10))')one_anhil_one_creat_inact_virt_bis(iorb,vorb,:,2,:)
-    print*, '---------------------------------------------------------------------------'
-   enddo
-  enddo
- deallocate(psi_in_out,psi_in_out_coef,H_matrix,eigenvectors,eigenvalues)
- print*, 'corr_e_from_1h1p,',corr_e_from_1h1p(:)
 
 END_PROVIDER
 

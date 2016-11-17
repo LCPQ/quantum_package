@@ -2,7 +2,17 @@ program print_1h2p
  implicit none
  read_wf = .True.
  touch read_wf
- call routine
+ call routine_2
+end
+
+subroutine routine_2
+ implicit none
+ integer :: i,j
+ do i =1, n_inact_orb
+  write(*,'(100(F16.10,X))')one_anhil_one_creat_inact_virt(i,:,1)
+ enddo
+
+
 end
 
 subroutine routine
