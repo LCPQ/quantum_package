@@ -12,11 +12,9 @@ Option:
 
 """
 
-
 import sys
 import os
 from functools import reduce
-
 
 # ~#~#~#~#~#~#~#~ #
 # Add to the path #
@@ -29,16 +27,15 @@ except:
     print "Error: QP_ROOT environment variable not found."
     sys.exit(1)
 else:
-    sys.path = [QP_ROOT + "/install/EZFIO/Python",
-                QP_ROOT + "/resultsFile",
-                QP_ROOT + "/scripts"] + sys.path
+    sys.path = [ QP_ROOT + "/install/EZFIO/Python", 
+                 QP_ROOT + "/resultsFile", 
+                 QP_ROOT + "/scripts"] + sys.path
 
 # ~#~#~#~#~#~ #
 # I m p o r t #
 # ~#~#~#~#~#~ #
 
 from ezfio import ezfio
-
 
 try:
     from resultsFile import *
@@ -254,7 +251,7 @@ def write_ezfio(res, filename):
         for coef in m.vector:
             MoMatrix.append(coef)
 
-    while len(MoMatrix) < len(MOs[0].vector) ** 2:
+    while len(MoMatrix) < len(MOs[0].vector)**2:
         MoMatrix.append(0.)
 
     # ~#~#~#~#~ #
@@ -273,7 +270,130 @@ def write_ezfio(res, filename):
     # \_|  |___/\___|\__,_|\__,_|\___/
     #
 
-    ezfio.set_pseudo_do_pseudo(False)
+    # INPUT
+    # {% for lanel,zcore, l_block in l_atom  $}
+    #       #local l_block l=0}
+    #       {label} GEN {zcore} {len(l_block)-1 #lmax_block}
+    #       {% for l_param in l_block%}
+    #                {len(l_param) # list of parameter aka n_max_bock_max(n)}
+    #                {% for coef,n,zeta for l_param}
+    #                    {coef,n, zeta}
+
+    # OUTPUT
+
+    # Local are 1 array padded by max(n_max_block) when l == 0  (output:k_loc_max)
+    # v_k[n-2][atom] = value
+
+    #No Local are 2 array padded with max of lmax_block when l!=0 (output:lmax+1)  and max(n_max_block)whem l !=0 (kmax)
+    # v_kl[l][n-2][atom] = value
+
+    def pad(array, size, value=0):
+        new_array = array
+        for add in xrange(len(array), size):
+            new_array.append(value)
+
+        return new_array
+
+    def parse_str(pseudo_str):
+        '''Return 4d array  atom,l,n, attribute (attribute is coef, n, zeta)'''
+        matrix = []
+        array_l_max_block = []
+        array_z_remove = []
+
+        for block in [b for b in pseudo_str.split('\n\n') if b]:
+            #First element is header, the rest are l_param 
+            array_party = [i for i in re.split(r"\n\d+\n", block) if i]
+
+            z_remove, l_max_block = map(int, array_party[0].split()[-2:])
+            array_l_max_block.append(l_max_block)
+            array_z_remove.append(z_remove)
+
+            matrix.append([[coef_n_zeta.split()[1:] for coef_n_zeta in l.split('\n')] for l in array_party[1:]])
+
+        return (matrix, array_l_max_block, array_z_remove)
+
+    def get_local_stuff(matrix):
+
+        matrix_local_unpad = [atom[0] for atom in matrix]
+        k_loc_max = max(len(i) for i in matrix_local_unpad)
+
+        matrix_local = [ pad(ll, k_loc_max, [0., 2, 0.]) for ll in matrix_local_unpad]
+
+        m_coef = [[float(i[0]) for i in atom] for atom in matrix_local]
+        m_n = [[int(i[1]) - 2 for i in atom] for atom in matrix_local]
+        m_zeta = [[float(i[2]) for i in atom] for atom in matrix_local]
+        return (k_loc_max, m_coef, m_n, m_zeta)
+
+    def get_non_local_stuff(matrix):
+
+        matrix_unlocal_unpad = [atom[1:] for atom in matrix]
+        l_max_block = max(len(i) for i in matrix_unlocal_unpad)
+        k_max = max([len(item) for row in matrix_unlocal_unpad for item in row])
+
+        matrix_unlocal_semipaded = [[pad(item, k_max, [0., 2, 0.]) for item in row] for row in matrix_unlocal_unpad]
+
+        empty_row = [[0., 2, 0.] for k in range(l_max_block)]
+        matrix_unlocal = [  pad(ll, l_max_block, empty_row) for ll in matrix_unlocal_semipaded ]
+
+        m_coef_noloc = [[[float(k[0]) for k in j] for j in i] for i in matrix_unlocal]
+        m_n_noloc =    [[[int(k[1]) - 2 for k in j] for j in i]  for i in matrix_unlocal]
+        m_zeta_noloc = [[[float(k[2]) for k in j] for j in i] for i in matrix_unlocal]
+
+        return (l_max_block, k_max, m_coef_noloc, m_n_noloc, m_zeta_noloc)
+
+    try:
+        pseudo_str = res_file.get_pseudo()
+    except:
+        ezfio.set_pseudo_do_pseudo(False)
+    else:
+        ezfio.set_pseudo_do_pseudo(True)
+        matrix, array_l_max_block, array_z_remove = parse_str(pseudo_str)
+
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+        # Z _ e f f , a l p h a / b e t a _ e l e c #
+        # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
+
+        ezfio.pseudo_charge_remove = array_z_remove
+        ezfio.nuclei_nucl_charge = [
+            i - j for i, j in zip(ezfio.nuclei_nucl_charge, array_z_remove)
+        ]
+
+        import math
+        num_elec = sum(ezfio.nuclei_nucl_charge)
+
+        ezfio.electrons_elec_alpha_num = int(math.ceil(num_elec / 2.))
+        ezfio.electrons_elec_beta_num = int(math.floor(num_elec / 2.))
+
+        # Change all the array 'cause EZFIO
+        #   v_kl (v, l) => v_kl(l,v)
+        #    v_kl => zip(*_v_kl)
+        # [[7.0, 79.74474797, -49.45159098], [1.0, 5.41040609, -4.60151975]]
+        # [(7.0, 1.0), (79.74474797, 5.41040609), (-49.45159098, -4.60151975)]
+
+        # ~#~#~#~#~ #
+        # L o c a l #
+        # ~#~#~#~#~ #
+
+        klocmax, m_coef, m_n, m_zeta = get_local_stuff(matrix)
+        ezfio.pseudo_pseudo_klocmax = klocmax
+
+        ezfio.pseudo_pseudo_v_k = zip(*m_coef)
+        ezfio.pseudo_pseudo_n_k = zip(*m_n)
+        ezfio.pseudo_pseudo_dz_k = zip(*m_zeta)
+
+        # ~#~#~#~#~#~#~#~#~ #
+        # N o n _ L o c a l #
+        # ~#~#~#~#~#~#~#~#~ #
+
+        l_max_block, k_max, m_coef_noloc, m_n_noloc, m_zeta_noloc = get_non_local_stuff(
+            matrix)
+
+        ezfio.pseudo_pseudo_lmax = l_max_block - 1
+        ezfio.pseudo_pseudo_kmax = k_max
+
+        ezfio.pseudo_pseudo_v_kl = zip(*m_coef_noloc)
+        ezfio.pseudo_pseudo_n_kl = zip(*m_n_noloc)
+        ezfio.pseudo_pseudo_dz_kl = zip(*m_zeta_noloc)
 
 
 def get_full_path(file_path):
@@ -281,6 +401,7 @@ def get_full_path(file_path):
     file_path = os.path.expandvars(file_path)
     file_path = os.path.abspath(file_path)
     return file_path
+
 
 if __name__ == '__main__':
     arguments = docopt(__doc__)
