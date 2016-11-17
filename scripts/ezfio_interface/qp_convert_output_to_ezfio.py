@@ -343,12 +343,12 @@ def write_ezfio(res, filename):
 
     try:
         pseudo_str = res_file.get_pseudo()
+        matrix, array_l_max_block, array_z_remove = parse_str(pseudo_str)
     except:
         ezfio.set_pseudo_do_pseudo(False)
     else:
         ezfio.set_pseudo_do_pseudo(True)
-        matrix, array_l_max_block, array_z_remove = parse_str(pseudo_str)
-
+        
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
         # Z _ e f f , a l p h a / b e t a _ e l e c #
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
