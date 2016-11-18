@@ -862,7 +862,9 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
         do k=1,N_st
           coord = maxloc(overlap)
           order( coord(2) )  = coord(1)
-          overlap(:,coord(2)) = -1.d0
+          do i=1,shift2
+            overlap(coord(1),i) = -1.d0
+          enddo
         enddo
         overlap = y
         do k=1,N_st
