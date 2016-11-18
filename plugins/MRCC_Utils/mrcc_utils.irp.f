@@ -761,7 +761,7 @@ END_PROVIDER
         print *, "res ", k, res
       end if
       
-      if(res < 1d-6) exit
+      if(res < 1d-9) exit
     end do
     
     norm = 0.d0

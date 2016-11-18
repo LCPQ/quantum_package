@@ -16,7 +16,7 @@ program mrsc2sub
         psi_coef(i,j) = CI_eigenvectors(i,j)
       enddo
     enddo
-    TOUCH psi_coef 
+    SOFT_TOUCH psi_coef 
   endif
   call run(N_states,energy)
   if(do_pt2_end)then
