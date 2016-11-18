@@ -666,7 +666,7 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
   write(iunit,'(A)') trim(write_buffer)
   write_buffer = ' Iter'
   do i=1,N_st
-    write_buffer = trim(write_buffer)//'      Energy          S^2      Residual'
+    write_buffer = trim(write_buffer)//'      Energy          S^2       Residual '
   enddo
   write(iunit,'(A)') trim(write_buffer)
   write_buffer = '===== '
@@ -847,36 +847,36 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
       ! Compute overlap with U_in
       ! -------------------------
       
-!      integer :: coord(2), order(N_st_diag)
-!      overlap = -1.d0
-!      do k=1,shift2 
-!        do i=1,shift2
-!          overlap(k,i) = dabs(y(k,i))
-!        enddo
-!      enddo
-!      do k=1,N_st
-!        coord = maxloc(overlap)
-!        order( coord(2) )  = coord(1)
-!        overlap(coord(1),coord(2)) = -1.d0
-!      enddo
-!      overlap = y
-!      do k=1,N_st
-!       l = order(k)
-!       if (k /= l) then
-!         y(1:shift2,k) = overlap(1:shift2,l)
-!       endif
-!      enddo
-!      do k=1,N_st
-!        overlap(k,1) = lambda(k)
-!        overlap(k,2) = s2(k)
-!      enddo
-!      do k=1,N_st
-!       l = order(k)
-!       if (k /= l) then
-!         lambda(k) = overlap(l,1)
-!         s2(k) = overlap(l,2)
-!       endif
-!      enddo
+      integer :: coord(2), order(N_st_diag)
+      overlap = -1.d0
+      do k=1,shift2 
+        do i=1,shift2
+          overlap(k,i) = dabs(y(k,i))
+        enddo
+      enddo
+      do k=1,N_st
+        coord = maxloc(overlap)
+        order( coord(2) )  = coord(1)
+        overlap(:,coord(2)) = -1.d0
+      enddo
+      overlap = y
+      do k=1,N_st
+       l = order(k)
+       if (k /= l) then
+         y(1:shift2,k) = overlap(1:shift2,l)
+       endif
+      enddo
+      do k=1,N_st
+        overlap(k,1) = lambda(k)
+        overlap(k,2) = s2(k)
+      enddo
+      do k=1,N_st
+       l = order(k)
+       if (k /= l) then
+         lambda(k) = overlap(l,1)
+         s2(k) = overlap(l,2)
+       endif
+      enddo
 
 
       ! Express eigenvectors of h in the determinant basis
