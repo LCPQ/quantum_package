@@ -640,8 +640,10 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
   include 'constants.include.F'
   
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: U, W, S, y, h, lambda
-  if (N_st_diag > sze) then
-     stop 'error in Davidson : N_st_diag > sze'
+  if (N_st_diag*3 > sze) then
+     print *,  'error in Davidson :'
+     print *,  'Increase n_det_max_jacobi to ', N_st_diag*3
+     stop -1
   endif
 
   PROVIDE nuclear_repulsion
@@ -763,10 +765,11 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
           1.d0, U, size(U,1), S, size(S,1),                &
           0.d0, s_, size(s_,1))
 
-      ! Diagonalize S^2
-      ! ---------------
-      call lapack_diag(s2,y,s_,size(s_,1),shift2)
-
+!      ! Diagonalize S^2
+!      ! ---------------
+!
+!      call lapack_diag(s2,y,s_,size(s_,1),shift2)
+!
 !      ! Rotate H in the basis of eigenfunctions of s2
 !      ! ---------------------------------------------
 !
@@ -823,7 +826,7 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
       if (s2_eig) then
           logical :: state_ok(N_st_diag*davidson_sze_max)
           do k=1,shift2
-            state_ok(k) = (dabs(s2(k)-expected_s2) < 0.3d0)
+            state_ok(k) = (dabs(s2(k)-expected_s2) < 0.6d0)
           enddo
       else
         state_ok(k) = .True.
@@ -844,39 +847,43 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
         endif
       enddo
 
-      ! Compute overlap with U_in
-      ! -------------------------
-      
-      integer :: coord(2), order(N_st_diag)
-      overlap = -1.d0
-      do k=1,shift2 
-        do i=1,shift2
-          overlap(k,i) = dabs(y(k,i))
+      if (state_following) then
+
+        ! Compute overlap with U_in
+        ! -------------------------
+        
+        integer                        :: coord(2), order(N_st_diag)
+        overlap = -1.d0
+        do k=1,shift2
+          do i=1,shift2
+            overlap(k,i) = dabs(y(k,i))
+          enddo
         enddo
-      enddo
-      do k=1,N_st
-        coord = maxloc(overlap)
-        order( coord(2) )  = coord(1)
-        overlap(:,coord(2)) = -1.d0
-      enddo
-      overlap = y
-      do k=1,N_st
-       l = order(k)
-       if (k /= l) then
-         y(1:shift2,k) = overlap(1:shift2,l)
-       endif
-      enddo
-      do k=1,N_st
-        overlap(k,1) = lambda(k)
-        overlap(k,2) = s2(k)
-      enddo
-      do k=1,N_st
-       l = order(k)
-       if (k /= l) then
-         lambda(k) = overlap(l,1)
-         s2(k) = overlap(l,2)
-       endif
-      enddo
+        do k=1,N_st
+          coord = maxloc(overlap)
+          order( coord(2) )  = coord(1)
+          overlap(:,coord(2)) = -1.d0
+        enddo
+        overlap = y
+        do k=1,N_st
+          l = order(k)
+          if (k /= l) then
+            y(1:shift2,k) = overlap(1:shift2,l)
+          endif
+        enddo
+        do k=1,N_st
+          overlap(k,1) = lambda(k)
+          overlap(k,2) = s2(k)
+        enddo
+        do k=1,N_st
+          l = order(k)
+          if (k /= l) then
+            lambda(k) = overlap(l,1)
+            s2(k) = overlap(l,2)
+          endif
+        enddo
+        
+      endif
 
 
       ! Express eigenvectors of h in the determinant basis
@@ -940,20 +947,16 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
 
     enddo
 
-    if (.not.converged) then
-      iter = itermax-1
-    endif
-
     ! Re-contract to u_in
     ! -----------
     
-    do k=1,N_st_diag
-      energies(k) = lambda(k)
-    enddo
-
     call dgemm('N','N', sze, N_st_diag, shift2,                    &
         1.d0, U, size(U,1), y, size(y,1), 0.d0, u_in, size(u_in,1))
 
+  enddo
+
+  do k=1,N_st_diag
+    energies(k) = lambda(k)
   enddo
 
   write_buffer = '===== '
@@ -966,7 +969,7 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
 
   deallocate (                                                       &
       W, residual_norm,                                              &
-      U,                                                             &
+      U, overlap,                                                    &
       c, S,                                                       &
       h,                                                             &
       y, s_, s_tmp,                                                  &
