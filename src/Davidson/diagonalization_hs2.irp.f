@@ -587,6 +587,17 @@ subroutine davidson_diag_hjj_sjj_mmap(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
             enddo
           endif
         enddo
+        ! Randomize components with bad <S2>
+        if (.not. state_ok(k)) then
+            do i=1,shift2
+              call random_number(r1)
+              call random_number(r2)
+              r1 = dsqrt(-2.d0*dlog(r1))
+              r2 = dtwo_pi*r2
+              y(i,k) = r1*dcos(r2)
+              lambda(k) = 1.d0
+            enddo
+        endif
       endif
 
 

@@ -781,27 +781,40 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
         s2(k) = s_(k,k) + S_z2_Sz
       enddo
 
-    if (s2_eig) then
-        logical :: state_ok(N_st_diag*davidson_sze_max)
-        do k=1,shift2
-          state_ok(k) = (dabs(s2(k)-expected_s2) < 1.d0)
-        enddo
-        do k=1,shift2
-          if (.not. state_ok(k)) then
-            do l=k+1,shift2
-              if (state_ok(l)) then
-                call dswap(shift2, y(1,k), 1, y(1,l), 1)
-                call dswap(1, s2(k), 1, s2(l), 1)
-                call dswap(1, lambda(k), 1, lambda(l), 1)
-                state_ok(k) = .True.
-                state_ok(l) = .False.
-                exit
-              endif
-            enddo
-          endif
-        enddo
+      if (s2_eig) then
+          logical :: state_ok(N_st_diag*davidson_sze_max)
+          do k=1,shift2
+            state_ok(k) = (dabs(s2(k)-expected_s2) < 0.5d0)
+          enddo
+      else
+        state_ok(k) = .True.
       endif
 
+      do k=1,shift2
+        if (.not. state_ok(k)) then
+          do l=k+1,shift2
+            if (state_ok(l)) then
+              call dswap(shift2, y(1,k), 1, y(1,l), 1)
+              call dswap(1, s2(k), 1, s2(l), 1)
+              call dswap(1, lambda(k), 1, lambda(l), 1)
+              state_ok(k) = .True.
+              state_ok(l) = .False.
+              exit
+            endif
+          enddo
+        endif
+        ! Randomize components with bad <S2>
+        if (.not. state_ok(k)) then
+            do i=1,shift2
+              call random_number(r1)
+              call random_number(r2)
+              r1 = dsqrt(-2.d0*dlog(r1))
+              r2 = dtwo_pi*r2
+              y(i,k) = r1*dcos(r2)
+              lambda(k) = 1.d0
+            enddo
+        endif
+      enddo
 
 !      ! Compute overlap with U_in
 !      ! -------------------------
@@ -852,11 +865,22 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
       ! -----------------------
 
       do k=1,N_st_diag
-        do i=1,sze
-          U(i,shift2+k) = (lambda(k) * U(i,shift2+k) - W(i,shift2+k) )      &
-              * (1.d0 + s2(k) * U(i,shift2+k) - S(i,shift2+k) - S_z2_Sz &
-             )/max(H_jj(i) - lambda (k),1.d-2)
-        enddo
+          do i=1,sze
+            U(i,shift2+k) = (lambda(k) * U(i,shift2+k) - W(i,shift2+k) )      &
+                * (1.d0 + s2(k) * U(i,shift2+k) - S(i,shift2+k) - S_z2_Sz &
+              )/max(H_jj(i) - lambda (k),1.d-2)
+          enddo
+!        else
+!          ! Randomize components with bad <S2>
+!            do i=1,sze
+!              call random_number(r1)
+!              call random_number(r2)
+!              r1 = dsqrt(-2.d0*dlog(r1))
+!              r2 = dtwo_pi*r2
+!              U(i,shift2+k) = r1*dcos(r2)
+!            enddo
+!        endif
+
         if (k <= N_st) then
           residual_norm(k) = u_dot_u(U(1,shift2+k),sze)
           to_print(1,k) = lambda(k) + nuclear_repulsion
