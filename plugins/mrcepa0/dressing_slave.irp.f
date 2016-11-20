@@ -455,6 +455,7 @@ subroutine mrsc2_dressing_collector(delta_ii_,delta_ij_,delta_ii_s2_,delta_ij_s2
       
       do l=1, n(2)
         do i_state=1,N_states
+          delta_ij_(i_state,idx(l,2),J) += delta(i_state,l,2)
           delta_ij_s2_(i_state,idx(l,2),J) += delta_s2(i_state,l,2)
         end do
       end do
