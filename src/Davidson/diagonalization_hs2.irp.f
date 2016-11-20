@@ -749,7 +749,11 @@ subroutine davidson_diag_hjj_sjj_mmap(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
 
       if (state_following) then
 
-        integer                        :: coord(2), order(N_st_diag)
+        ! Compute overlap with U_in
+        ! -------------------------
+        
+        integer                        :: order(N_st_diag)
+        double precision               :: cmax
         overlap = -1.d0
         do k=1,shift2
           do i=1,shift2
@@ -757,10 +761,15 @@ subroutine davidson_diag_hjj_sjj_mmap(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
           enddo
         enddo
         do k=1,N_st
-          coord = maxloc(overlap)
-          order( coord(2) )  = coord(1)
+          cmax = -1.d0
           do i=1,shift2
-            overlap(coord(1),i) = -1.d0
+            if (overlap(i,k) > cmax) then
+              cmax = overlap(i,k) 
+              order(k) = i
+            endif
+          enddo
+          do i=1,shift2
+            overlap(order(k),i) = -1.d0
           enddo
         enddo
         overlap = y
