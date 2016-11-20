@@ -718,7 +718,7 @@ END_PROVIDER
     factor = 1.d0
     resold = huge(1.d0)
 
-    do k=0,100000
+    do k=0,hh_nex
       !$OMP PARALLEL default(shared) private(cx, i, a_col, a_coll)
       
       !$OMP DO

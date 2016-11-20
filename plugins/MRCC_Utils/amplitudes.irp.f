@@ -89,7 +89,7 @@ END_PROVIDER
      !$OMP shared(is_active_exc, active_hh_idx, active_pp_idx, n_exc_active)&
      !$OMP private(lref, pp, II, ok, myMask, myDet, ind, phase, wk, ppp, hh, s)
  allocate(lref(N_det_non_ref))
- !$OMP DO dynamic
+ !$OMP DO schedule(dynamic)
  do ppp=1,n_exc_active
    active_excitation_to_determinants_val(:,:,ppp) = 0d0
    active_excitation_to_determinants_idx(:,ppp)   = 0
