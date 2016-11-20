@@ -41,11 +41,15 @@ subroutine run(N_st,energy)
       print *,  'MRCEPA0 Iteration', iteration
       print *,  '===========================' 
       print *,  ''
-      E_old = sum(ci_energy_dressed)
-      call write_double(6,ci_energy_dressed(1),"MRCEPA0 energy")
+      E_old = sum(ci_energy_dressed(1:N_states))
+      do i=1,N_st
+        call write_double(6,ci_energy_dressed(i),"MRCEPA0 energy")
+      enddo
       call diagonalize_ci_dressed(lambda)
-      E_new = sum(ci_energy_dressed)
-      delta_E = dabs(E_new - E_old)
+      E_new = sum(ci_energy_dressed(1:N_states))
+      delta_E = (E_new - E_old)/dble(N_states)
+      call write_double(6,delta_E,"delta_E")
+      delta_E = dabs(delta_E)
       call save_wavefunction
       call ezfio_set_mrcepa0_energy(ci_energy_dressed(1))
       if (iteration >= n_it_mrcc_max) then

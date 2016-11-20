@@ -150,17 +150,15 @@ END_PROVIDER
      allocate (eigenvectors(size(CI_eigenvectors_dressed,1),size(CI_eigenvectors_dressed,2)), &
      eigenvalues(size(CI_electronic_energy_dressed,1)))
      do mrcc_state=1,N_states
-      do j=1,min(N_states,N_det)
-        do i=1,N_det
-          eigenvectors(i,j) = psi_coef(i,j)
-        enddo
+      do i=1,N_det
+        eigenvectors(i,1) = psi_coef(i,mrcc_state)
       enddo
       call davidson_diag_mrcc_HS2(psi_det,eigenvectors,&
             size(eigenvectors,1), &
-            eigenvalues,N_det,N_states,N_states_diag,N_int, &
+            eigenvalues,N_det,1,N_states_diag,N_int, &
             output_determinants,mrcc_state)
-      CI_eigenvectors_dressed(1:N_det,mrcc_state) = eigenvectors(1:N_det,mrcc_state)
-      CI_electronic_energy_dressed(mrcc_state) = eigenvalues(mrcc_state)
+      CI_eigenvectors_dressed(1:N_det,mrcc_state) = eigenvectors(1:N_det,1)
+      CI_electronic_energy_dressed(mrcc_state) = eigenvalues(1)
       if (mrcc_state == 1) then
         do k=N_states+1,N_states_diag
           CI_eigenvectors_dressed(1:N_det,k) = eigenvectors(1:N_det,k)
