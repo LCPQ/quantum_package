@@ -337,7 +337,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
         enddo
         do k=1,N_st
           cmax = -1.d0
-          do i=1,N_st_diag
+          do i=1,N_st
             if (overlap(i,k) > cmax) then
               cmax = overlap(i,k) 
               order(k) = i
