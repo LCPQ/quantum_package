@@ -326,32 +326,32 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
 
       if (state_following) then
 
-        integer                        :: coord(2), order(N_st_diag)
+        integer                        :: order(N_st_diag)
+        double precision               :: cmax
+
         overlap = -1.d0
-        do i=1,shift2
-          do k=1,shift2
+        do k=1,shift2
+          do i=1,shift2
             overlap(k,i) = dabs(y(k,i))
           enddo
         enddo
         do k=1,N_st
-          coord = maxloc(overlap)
-          order( coord(2) )  = coord(1)
-          do i=1,shift2
-            overlap(coord(1),i) = -1.d0
+          cmax = -1.d0
+          do i=1,N_st_diag
+            if (overlap(i,k) > cmax) then
+              cmax = overlap(i,k) 
+              order(k) = i
+            endif
+          enddo
+          do i=1,N_st_diag
+            overlap(order(k),i) = -1.d0
           enddo
         enddo
-        print *,  order(1:N_st)
-        do i=1,shift2
-         do k=1,shift2
-           overlap(k,i) = y(k,i)
-         enddo
-        enddo
+        overlap = y
         do k=1,N_st
           l = order(k)
           if (k /= l) then
-            do i=1,shift2
-              y(i,k) = overlap(i,l)
-            enddo
+            y(1:shift2,k) = overlap(1:shift2,l)
           endif
         enddo
         do k=1,N_st
