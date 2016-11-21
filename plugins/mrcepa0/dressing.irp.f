@@ -18,7 +18,8 @@ use bitmasks
   delta_ii_mrcc = 0d0
   delta_ij_s2_mrcc = 0d0
   delta_ii_s2_mrcc = 0d0
-  print *, "Dij", dij(1,1,1)
+  PROVIDE dij
+  print *, "Dij", dij(1,1,1:N_states)
   provide hh_shortcut psi_det_size! lambda_mrcc
   !$OMP PARALLEL DO default(none)  schedule(dynamic) &
   !$OMP shared(psi_det_generators, N_det_generators, hh_exists, pp_exists, N_int, hh_shortcut) &
@@ -300,22 +301,22 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
       enddo
       call omp_set_lock( psi_ref_lock(i_I) )
       do i_state=1,N_states
-        if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5)then
-          do l_sd=1,idx_alpha(0)
-            k_sd = idx_alpha(l_sd)
-            delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
-            delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
-            delta_ij_s2_(i_state,k_sd,i_I) = delta_ij_s2_(i_state,k_sd,i_I) + dIa_sla(i_state,k_sd)
-            delta_ii_s2_(i_state,i_I) = delta_ii_s2_(i_state,i_I) - dIa_sla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
-          enddo
-        else
+!        if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5)then
+!          do l_sd=1,idx_alpha(0)
+!            k_sd = idx_alpha(l_sd)
+!            delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
+!            delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
+!            delta_ij_s2_(i_state,k_sd,i_I) = delta_ij_s2_(i_state,k_sd,i_I) + dIa_sla(i_state,k_sd)
+!            delta_ii_s2_(i_state,i_I) = delta_ii_s2_(i_state,i_I) - dIa_sla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
+!          enddo
+!        else
           delta_ii_(i_state,i_I)  = 0.d0
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
             delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + 0.5d0*dIa_hla(i_state,k_sd)
             delta_ij_s2_(i_state,k_sd,i_I) = delta_ij_s2_(i_state,k_sd,i_I) + 0.5d0*dIa_sla(i_state,k_sd)
           enddo
-        endif
+!        endif
       enddo
       call omp_unset_lock( psi_ref_lock(i_I) )
     enddo
@@ -350,6 +351,27 @@ end
         enddo
       end do
     end do
+
+    ! =-=-= BEGIN STATE AVERAGE
+!    do i = 1, N_det_ref
+!      delta_ii(:,i)= delta_ii_mrcc(1,i)
+!      delta_ii_s2(:,i)= delta_ii_s2_mrcc(1,i)
+!      do i_state = 2, N_states
+!        delta_ii(:,i) += delta_ii_mrcc(i_state,i)
+!        delta_ii_s2(:,i) += delta_ii_s2_mrcc(i_state,i)
+!      enddo
+!      do j = 1, N_det_non_ref
+!        delta_ij(:,j,i) = delta_ij_mrcc(1,j,i)
+!        delta_ij_s2(:,j,i) = delta_ij_s2_mrcc(1,j,i)
+!        do i_state = 2, N_states
+!          delta_ij(:,j,i) += delta_ij_mrcc(i_state,j,i)
+!          delta_ij_s2(:,j,i) += delta_ij_s2_mrcc(i_state,j,i)
+!        enddo
+!      end do
+!    end do
+!    delta_ij = delta_ij * (1.d0/dble(N_states))
+!    delta_ii = delta_ii * (1.d0/dble(N_states))
+    ! =-=-= END STATE AVERAGE
     !
     !       do i = 1, N_det_ref
     !         delta_ii(i_state,i)= delta_mrcepa0_ii(i,i_state) - delta_sub_ii(i,i_state)

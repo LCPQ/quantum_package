@@ -953,17 +953,14 @@ BEGIN_PROVIDER [ double precision, dij, (N_det_ref, N_det_non_ref, N_states) ]
   integer :: s,i,j
   double precision, external :: get_dij_index
   print *, "computing amplitudes..."
-  !$OMP PARALLEL DEFAULT(shared) PRIVATE(s,i,j)
   do s=1, N_states
-    !$OMP DO
     do i=1, N_det_non_ref
       do j=1, N_det_ref
+        !DIR$ FORCEINLINE
         dij(j, i, s) = get_dij_index(j, i, s, N_int)
       end do
     end do
-    !$OMP END DO 
   end do
-  !$OMP END PARALLEL
   print *, "done computing amplitudes"
 END_PROVIDER
 
