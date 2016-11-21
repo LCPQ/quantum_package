@@ -19,7 +19,6 @@ use bitmasks
   delta_ij_s2_mrcc = 0d0
   delta_ii_s2_mrcc = 0d0
   PROVIDE dij
-  print *, "Dij", dij(1,1,1:N_states)
   provide hh_shortcut psi_det_size! lambda_mrcc
   !$OMP PARALLEL DO default(none)  schedule(dynamic) &
   !$OMP shared(psi_det_generators, N_det_generators, hh_exists, pp_exists, N_int, hh_shortcut) &

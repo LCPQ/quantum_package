@@ -21,7 +21,7 @@ subroutine run(N_st,energy)
   n_it_mrcc_max = n_it_max_dressed_ci
 
   if(n_it_mrcc_max == 1) then
-    do j=1,N_states_diag
+    do j=1,N_states
       do i=1,N_det
         psi_coef(i,j) = CI_eigenvectors_dressed(i,j)
       enddo
