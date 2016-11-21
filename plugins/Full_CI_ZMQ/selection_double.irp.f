@@ -20,6 +20,11 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   integer,allocatable               :: preinteresting(:), prefullinteresting(:), interesting(:), fullinteresting(:)
   integer(bit_kind), allocatable :: minilist(:, :, :), fullminilist(:, :, :)
   
+  logical :: monoAdo, monoBdo;
+  
+  monoAdo = .true.
+  monoBdo = .true.
+  
   allocate(minilist(N_int, 2, N_det_selectors), fullminilist(N_int, 2, N_det))
   allocate(preinteresting(0:N_det_selectors), prefullinteresting(0:N_det), interesting(0:N_det_selectors), fullinteresting(0:N_det))
   
@@ -116,12 +121,16 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
         end if
       end do
       
+      
+      
       do s2=s1,2
         sp = s1
+        
         if(s1 /= s2) sp = 3
         
         ib = 1
         if(s1 == s2) ib = i1+1
+        monoAdo = .true.
         do i2=N_holes(s2),ib,-1   ! Generate low excitations first
           
           h2 = hole_list(i2,s2)
@@ -142,11 +151,24 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
               bannedOrb(particle_list(i,s3), s3) = .false.
             enddo
           enddo
-             
+          
+          if(s1 /= s2) then
+            if(monoBdo) then
+              bannedOrb(h1,s1) = .false.
+            end if
+            if(monoAdo) then
+              bannedOrb(h2,s2) = .false.
+              monoAdo = .false.
+            end if
+          end if
+          
+          
           mat = 0d0
           call splash_pq(mask, sp, minilist, i_generator, interesting(0), bannedOrb, banned, mat, interesting)
           call fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_diag_tmp, E0, pt2, mat, buf)
+          
         enddo
+        if(s1 /= s2) monoBdo = .false.
       enddo
     enddo
   enddo

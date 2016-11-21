@@ -79,7 +79,6 @@ subroutine select_connected(i_generator,E0,pt2,b)
 
     enddo
     call select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
-    call select_singles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
   enddo
 end subroutine
 
