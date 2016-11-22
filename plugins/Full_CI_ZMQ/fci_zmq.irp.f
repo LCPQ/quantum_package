@@ -5,6 +5,7 @@ program fci_zmq
   
   double precision, allocatable  :: pt2(:)
   integer                        :: degree
+  integer                        :: n_det_before, to_select
   
   allocate (pt2(N_states))
   
@@ -33,13 +34,15 @@ program fci_zmq
   double precision               :: E_CI_before(N_states)
   
   
-  integer                        :: n_det_before
   print*,'Beginning the selection ...'
   E_CI_before(1:N_states) = CI_energy(1:N_states)
+  n_det_before = 0
   
   do while ( (N_det < N_det_max) .and. (maxval(abs(pt2(1:N_states))) > pt2_max) )
     n_det_before = N_det
-    call ZMQ_selection(max(1024-N_det, N_det), pt2)
+    to_select = max(1024-N_det, N_det)
+    to_select = min(to_select, N_det_max-n_det_before)
+    call ZMQ_selection(to_select, pt2)
     
     PROVIDE  psi_coef
     PROVIDE  psi_det
