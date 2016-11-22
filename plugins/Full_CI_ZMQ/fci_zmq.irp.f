@@ -6,11 +6,15 @@ program fci_zmq
   double precision, allocatable  :: pt2(:)
   integer                        :: degree
   integer                        :: n_det_before, to_select
+  double precision               :: threshold_davidson_in
   
   allocate (pt2(N_states))
   
   pt2 = 1.d0
   diag_algorithm = "Lapack"
+  threshold_davidson_in = threshold_davidson
+  SOFT_TOUCH threshold_davidson
+  threshold_davidson = 1.d-4
   
   if (N_det > N_det_max) then
     call diagonalize_CI
@@ -40,7 +44,8 @@ program fci_zmq
   
   do while ( (N_det < N_det_max) .and. (maxval(abs(pt2(1:N_states))) > pt2_max) )
     n_det_before = N_det
-    to_select = max(1024-N_det, N_det)
+    to_select = 3*N_det
+    to_select = max(1024-to_select, to_select)
     to_select = min(to_select, N_det_max-n_det_before)
     call ZMQ_selection(to_select, pt2)
     
@@ -48,6 +53,10 @@ program fci_zmq
     PROVIDE  psi_det
     PROVIDE  psi_det_sorted
 
+    if (N_det == N_det_max) then
+      threshold_davidson = threshold_davidson_in
+      SOFT_TOUCH threshold_davidson
+    endif
     call diagonalize_CI
     call save_wavefunction
     
