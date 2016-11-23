@@ -154,7 +154,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   integer, external              :: align_double
   sze_8 = align_double(sze)
   
-  itermax = min(davidson_sze_max, sze/N_st_diag)
+  itermax = max(3,min(davidson_sze_max, sze/N_st_diag))
   allocate(                                                          &
       W(sze_8,N_st_diag*itermax),                                    &
       U(sze_8,N_st_diag*itermax),                                    &
