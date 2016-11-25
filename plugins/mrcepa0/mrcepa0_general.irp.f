@@ -10,18 +10,18 @@ subroutine run(N_st,energy)
 
   double precision :: E_new, E_old, delta_e
   integer :: iteration
-  double precision :: E_past(4), lambda
+  double precision :: E_past(4)
   
   integer :: n_it_mrcc_max
   double precision :: thresh_mrcc
-  
+  double precision, allocatable :: lambda(:)
+  allocate (lambda(N_states))
 
-  
   thresh_mrcc = thresh_dressed_ci
   n_it_mrcc_max = n_it_max_dressed_ci
 
   if(n_it_mrcc_max == 1) then
-    do j=1,N_states_diag
+    do j=1,N_states
       do i=1,N_det
         psi_coef(i,j) = CI_eigenvectors_dressed(i,j)
       enddo
@@ -30,7 +30,6 @@ subroutine run(N_st,energy)
     call write_double(6,ci_energy_dressed(1),"Final MRCC energy")
     call ezfio_set_mrcepa0_energy(ci_energy_dressed(1))
     call save_wavefunction
-    energy(:) = ci_energy_dressed(:)
   else
     E_new = 0.d0
     delta_E = 1.d0
@@ -38,15 +37,21 @@ subroutine run(N_st,energy)
     lambda = 1.d0
     do while (delta_E > thresh_mrcc)
       iteration += 1
-      print *,  '===========================' 
-      print *,  'MRCEPA0 Iteration', iteration
-      print *,  '===========================' 
+      print *,  '===============================================' 
+      print *,  'MRCEPA0 Iteration', iteration, '/', n_it_mrcc_max
+      print *,  '===============================================' 
       print *,  ''
-      E_old = sum(ci_energy_dressed)
-      call write_double(6,ci_energy_dressed(1),"MRCEPA0 energy")
+      E_old = sum(ci_energy_dressed(1:N_states))
+      do i=1,N_st
+        call write_double(6,ci_energy_dressed(i),"MRCEPA0 energy")
+      enddo
       call diagonalize_ci_dressed(lambda)
-      E_new = sum(ci_energy_dressed)
-      delta_E = dabs(E_new - E_old)
+      E_new = sum(ci_energy_dressed(1:N_states))
+      delta_E = (E_new - E_old)/dble(N_states)
+      print *,  ''
+      call write_double(6,thresh_mrcc,"thresh_mrcc")
+      call write_double(6,delta_E,"delta_E")
+      delta_E = dabs(delta_E)
       call save_wavefunction
       call ezfio_set_mrcepa0_energy(ci_energy_dressed(1))
       if (iteration >= n_it_mrcc_max) then
@@ -54,8 +59,8 @@ subroutine run(N_st,energy)
       endif
     enddo
     call write_double(6,ci_energy_dressed(1),"Final MRCEPA0 energy")
-    energy(:) = ci_energy_dressed(:)
   endif
+  energy(1:N_st) = ci_energy_dressed(1:N_st)
 end
 
 
@@ -66,7 +71,7 @@ subroutine print_cas_coefs
   print *,  'CAS'
   print *,  '==='
   do i=1,N_det_cas
-    print *,  psi_cas_coef(i,:)
+    print *,  (psi_cas_coef(i,j), j=1,N_states)
     call debug_det(psi_cas(1,1,i),N_int)
   enddo
   call write_double(6,ci_energy(1),"Initial CI energy")
@@ -139,8 +144,8 @@ subroutine run_pt2_old(N_st,energy)
   
   print * ,'Computing the remaining contribution'
 
-  threshold_selectors = 1.d0 
-  threshold_generators = 0.999d0 
+  threshold_selectors = max(threshold_selectors,threshold_selectors_pt2)
+  threshold_generators = max(threshold_generators,threshold_generators_pt2)
 
   N_det_generators = N_det_non_ref + N_det_ref
   N_det_selectors = N_det_non_ref + N_det_ref

@@ -222,7 +222,11 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
     do while (bit_tmp(j)==bit_tmp(i))
       if (duplicate(j)) then
         j += 1
-        cycle
+        if (j > N_det) then
+          exit
+        else
+          cycle
+        endif
       endif
       duplicate(j) = .True.
       do k=1,N_int
@@ -248,17 +252,20 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
   enddo
 
   if (found_duplicates) then
-    call write_bool(output_determinants,found_duplicates,'Found duplicate determinants')
     k=0
     do i=1,N_det
       if (.not.duplicate(i)) then
         k += 1
         psi_det(:,:,k) = psi_det_sorted_bit (:,:,i)
         psi_coef(k,:)  = psi_coef_sorted_bit(i,:)
+      else
+        call debug_det(psi_det_sorted_bit(1,1,i),N_int)
+        stop 'duplicates in psi_det'
       endif
     enddo
     N_det = k
-    TOUCH N_det psi_det psi_coef
+    call write_bool(output_determinants,found_duplicates,'Found duplicate determinants')
+    SOFT_TOUCH N_det psi_det psi_coef
   endif
   deallocate (duplicate,bit_tmp)
 end

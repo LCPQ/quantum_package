@@ -210,7 +210,7 @@ subroutine dressing_1h1p_by_2h2p(dets_in,u_in,diag_H_elements,dim_in,sze,N_st,Ni
   integer, intent(in)            :: dim_in, sze, N_st, Nint
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision, intent(inout) :: u_in(dim_in,N_st)
-  double precision, intent(out)  :: diag_H_elements(dim_in)
+  double precision, intent(out)  :: diag_H_elements(0:dim_in)
   double precision, intent(in)   :: convergence
   
   integer :: i,j,k,l
