@@ -241,13 +241,13 @@ BEGIN_PROVIDER [ double precision, one_anhil_one_creat, (n_act_orb,n_act_orb,2,2
                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
        call apply_exc_to_psi(orb_i,hole_particle_i,spin_exc_i, & 
                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
-       if(orb_i == orb_j .and. ispin .ne. jspin)then  
+      !if(orb_i == orb_j .and. ispin .ne. jspin)then  
         call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
         one_anhil_one_creat(iorb,jorb,ispin,jspin,state_target) = energy_cas_dyall_no_exchange(state_target)  -   energies(state_target)
-       else
-        call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
-        one_anhil_one_creat(iorb,jorb,ispin,jspin,state_target) = energy_cas_dyall(state_target)  -   energies(state_target)
-       endif
+      !else
+      ! call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
+      ! one_anhil_one_creat(iorb,jorb,ispin,jspin,state_target) = energy_cas_dyall(state_target)  -   energies(state_target)
+      !endif
       enddo
     enddo
    enddo
@@ -527,7 +527,7 @@ END_PROVIDER
 
  double precision :: thresh_norm
   
- thresh_norm = 1.d-10
+ thresh_norm = 1.d-20
 
 
 
@@ -552,14 +552,7 @@ END_PROVIDER
        call debug_det(psi_in_out,N_int)
        print*, 'pb, i_ok ne 0 !!!'
       endif
-!     call i_H_j_no_k_operators_from_act(psi_in_out(1,1,i),psi_det(1,1,i),N_int,hij_test)
       call i_H_j(psi_in_out(1,1,i),psi_det(1,1,i),N_int,hij)
-!     if(i==1.and.dabs(hij)>1.d-8)then
-!     if(dabs(hij)>1.d-8)then
-!      print*, ispin,vorb,iorb
-!      print*, i,hij,hij_test
-!      pause
-!     endif
       do j = 1, n_states
         double precision ::  coef,contrib
         coef = psi_coef(i,j) !* psi_coef(i,j)
@@ -635,7 +628,7 @@ BEGIN_PROVIDER [ double precision, one_anhil_inact, (n_inact_orb,n_act_orb,N_Sta
 
  double precision :: thresh_norm
   
- thresh_norm = 1.d-10
+ thresh_norm = 1.d-20
 
  do aorb = 1,n_act_orb
   orb_a = list_act(aorb)

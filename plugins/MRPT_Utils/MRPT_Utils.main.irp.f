@@ -10,16 +10,20 @@ end
 
 subroutine routine_3
  implicit none
+ integer :: i
 !provide fock_virt_total_spin_trace
  provide delta_ij 
  
  print *,  'N_det    = ', N_det
  print *,  'N_states = ', N_states
- print *,  'PT2      = ', second_order_pt_new(1)
- print *,  'E        = ', CI_energy(1)
- print *,  'E+PT2    = ', CI_energy(1)+second_order_pt_new(1)
- print *,'****** DIAGONALIZATION OF DRESSED MATRIX ******'
- print *,  'E dressed= ', CI_dressed_pt2_new_energy(1)
+ do i = 1, N_States
+  print*,'State',i
+  write(*,'(A12,X,I3,A3,XX,F16.10)')    '  PT2       ', i,' = ', second_order_pt_new(i)
+  write(*,'(A12,X,I3,A3,XX,F16.09)')    '  E         ', i,' = ', CI_energy(i)
+  write(*,'(A12,X,I3,A3,XX,F16.09)')    '  E+PT2     ', i,' = ', CI_energy(i)+second_order_pt_new(i)
+  write(*,'(A12,X,I3,A3,XX,F16.09)')    '  E dressed ', i,' = ', CI_dressed_pt2_new_energy(i)
+  write(*,'(A12,X,I3,A3,XX,F16.09)')    '  S^2       ', i,' = ', CI_dressed_pt2_new_eigenvectors_s2(i)
+ enddo 
 
 end
 

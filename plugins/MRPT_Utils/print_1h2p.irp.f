@@ -8,8 +8,10 @@ end
 subroutine routine_2
  implicit none
  integer :: i,j
- do i =1, n_inact_orb
-  write(*,'(100(F16.10,X))')one_anhil_one_creat_inact_virt(i,:,1)
+ do i =1, n_act_orb
+!do i =1, 2
+  write(*,'(I3,x,100(F16.10,X))')i,one_anhil_one_creat(i,:,:,:,1)
+! write(*,'(I3,x,100(F16.10,X))')i,one_anhil_one_creat(1,4,1,2,1)
  enddo
 
 
