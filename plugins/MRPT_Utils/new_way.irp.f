@@ -38,8 +38,8 @@ subroutine give_2h1p_contrib(matrix_2h1p)
       active_int(a,2) = get_mo_bielec_integral(iorb,jorb,aorb,rorb,mo_integrals_map) ! exchange
      enddo
      
-  integer           :: degree(N_det)
-  integer           :: idx(0:N_det)
+  integer           :: degree(N_det_Ref)
+  integer           :: idx(0:N_det_Ref)
   double precision :: delta_e(n_act_orb,2,N_states)
   integer :: istate
   integer :: index_orb_act_mono(N_det,3)
@@ -232,8 +232,8 @@ subroutine give_1h2p_contrib(matrix_1h2p)
       active_int(a,2) = get_mo_bielec_integral(iorb,aorb,vorb,rorb,mo_integrals_map) ! exchange
      enddo
      
-  integer           :: degree(N_det)
-  integer           :: idx(0:N_det)
+  integer           :: degree(N_det_Ref)
+  integer           :: idx(0:N_det_Ref)
   double precision :: delta_e(n_act_orb,2,N_states)
   integer :: istate
   integer :: index_orb_act_mono(N_det,3)
@@ -413,8 +413,8 @@ subroutine give_1h1p_sec_order_singles_contrib(matrix_1h1p)
  double precision :: get_mo_bielec_integral
  double precision :: active_int(n_act_orb,2)
  double precision :: hij,phase
- integer           :: degree(N_det)
- integer           :: idx(0:N_det)
+ integer           :: degree(N_det_Ref)
+ integer           :: idx(0:N_det_Ref)
  integer :: istate
  double precision :: hja,delta_e_inact_virt(N_states)
  integer :: kspin,degree_scalar
@@ -572,8 +572,8 @@ subroutine give_1p_sec_order_singles_contrib(matrix_1p)
  integer :: accu_elec
  double precision :: get_mo_bielec_integral
  double precision :: hij,phase
- integer           :: degree(N_det)
- integer           :: idx(0:N_det)
+ integer           :: degree(N_det_Ref)
+ integer           :: idx(0:N_det_Ref)
  integer :: istate
  double precision :: hja,delta_e_act_virt(N_states)
  integer :: kspin,degree_scalar
@@ -715,8 +715,8 @@ subroutine give_1h1p_only_doubles_spin_cross(matrix_1h1p)
  double precision :: get_mo_bielec_integral
  double precision :: active_int(n_act_orb,2)
  double precision :: hij,phase
- integer           :: degree(N_det)
- integer           :: idx(0:N_det)
+ integer           :: degree(N_det_Ref)
+ integer           :: idx(0:N_det_Ref)
  integer :: istate
  double precision :: hja,delta_e_inact_virt(N_states)
  integer(bit_kind) :: pert_det(N_int,2,n_act_orb,n_act_orb,2)
