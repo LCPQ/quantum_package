@@ -23,7 +23,7 @@ function run_HF() {
 
 function run_FCI_ZMQ() {
   thresh=5.e-5
-  test_exe full_ci || skip
+  test_exe fci_zmq|| skip
   qp_edit -c $1
   ezfio set_file $1
   ezfio set perturbation do_pt2_end True
@@ -31,9 +31,9 @@ function run_FCI_ZMQ() {
   ezfio set davidson threshold_davidson 1.e-10
 
   qp_run fci_zmq $1
-  energy="$(ezfio get full_ci energy)"
+  energy="$(ezfio get full_ci_zmq energy)"
   eq $energy $3 $thresh
-  energy_pt2="$(ezfio get full_ci energy_pt2)"
+  energy_pt2="$(ezfio get full_ci_zmq energy_pt2)"
   eq $energy_pt2 $4 $thresh
 }
 

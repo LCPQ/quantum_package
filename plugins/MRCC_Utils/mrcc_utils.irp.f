@@ -77,18 +77,18 @@ BEGIN_PROVIDER [ double precision, hij_mrcc, (N_det_non_ref,N_det_ref) ]
 
 END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, delta_ij, (N_states,N_det_non_ref,N_det_ref) ]
-&BEGIN_PROVIDER [ double precision, delta_ii, (N_states,N_det_ref) ]
- implicit none
- BEGIN_DOC
- ! Dressing matrix in N_det basis
- END_DOC
- integer :: i,j,m
- delta_ij = 0.d0
- delta_ii = 0.d0
- call H_apply_mrcc(delta_ij,delta_ii,N_states,N_det_non_ref,N_det_ref)
-
-END_PROVIDER
+! BEGIN_PROVIDER [ double precision, delta_ij, (N_states,N_det_non_ref,N_det_ref) ]
+!&BEGIN_PROVIDER [ double precision, delta_ii, (N_states,N_det_ref) ]
+! implicit none
+! BEGIN_DOC
+! ! Dressing matrix in N_det basis
+! END_DOC
+! integer :: i,j,m
+! delta_ij = 0.d0
+! delta_ii = 0.d0
+! call H_apply_mrcc(delta_ij,delta_ii,N_states,N_det_non_ref,N_det_ref)
+!
+!END_PROVIDER
              
 
 BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]
@@ -139,7 +139,6 @@ END_PROVIDER
 
    integer :: mrcc_state 
    
-   mrcc_state = N_states
    do j=1,min(N_states,N_det)
      do i=1,N_det
        CI_eigenvectors_dressed(i,j) = psi_coef(i,j)
@@ -148,16 +147,33 @@ END_PROVIDER
    
    if (diag_algorithm == "Davidson") then
      
-!     call davidson_diag_mrcc(psi_det,CI_eigenvectors_dressed,CI_electronic_energy_dressed,&
-!          size(CI_eigenvectors_dressed,1),N_det,N_states,N_states_diag,N_int,output_determinants,mrcc_state)
-
-     call davidson_diag_mrcc_HS2(psi_det,CI_eigenvectors_dressed,&
-          size(CI_eigenvectors_dressed,1), &
-          CI_electronic_energy_dressed,N_det,N_states,N_states_diag,N_int, &
-          output_determinants,mrcc_state)
-
-     call u_0_S2_u_0(CI_eigenvectors_s2_dressed,CI_eigenvectors_dressed,N_det,psi_det,N_int,&
-         N_states_diag,size(CI_eigenvectors_dressed,1))
+     allocate (eigenvectors(size(CI_eigenvectors_dressed,1),size(CI_eigenvectors_dressed,2)), &
+     eigenvalues(size(CI_electronic_energy_dressed,1)))
+     do j=1,min(N_states,N_det)
+       do i=1,N_det
+         eigenvectors(i,j) = psi_coef(i,j)
+       enddo
+     enddo
+     do mrcc_state=1,N_states
+      do j=mrcc_state,min(N_states,N_det)
+        do i=1,N_det
+          eigenvectors(i,j) = psi_coef(i,j)
+        enddo
+      enddo
+      call davidson_diag_mrcc_HS2(psi_det,eigenvectors,&
+            size(eigenvectors,1), &
+            eigenvalues,N_det,N_states,N_states_diag,N_int, &
+            output_determinants,mrcc_state)
+      CI_eigenvectors_dressed(1:N_det,mrcc_state) = eigenvectors(1:N_det,mrcc_state)
+      CI_electronic_energy_dressed(mrcc_state) = eigenvalues(mrcc_state)
+   enddo
+   do k=N_states+1,N_states_diag
+     CI_eigenvectors_dressed(1:N_det,k) = eigenvectors(1:N_det,k)
+     CI_electronic_energy_dressed(k) = eigenvalues(k)
+   enddo
+   call u_0_S2_u_0(CI_eigenvectors_s2_dressed,CI_eigenvectors_dressed,N_det,psi_det,N_int,&
+          N_states_diag,size(CI_eigenvectors_dressed,1))
+   deallocate (eigenvectors,eigenvalues)
 
      
    else if (diag_algorithm == "Lapack") then
@@ -614,221 +630,66 @@ END_PROVIDER
 END_PROVIDER
 
 
- BEGIN_PROVIDER [ double precision, dIj_unique, (hh_shortcut(hh_shortcut(0)+1)-1, N_states) ]
+ BEGIN_PROVIDER [ double precision, dIj_unique, (hh_nex, N_states) ]
 &BEGIN_PROVIDER [ double precision, rho_mrcc, (N_det_non_ref, N_states) ]
   implicit none
   logical                        :: ok
-  integer                        :: i, j, k, s, II, pp, ppp, hh, ind, wk, nex, a_col, at_row
+  integer                        :: i, j, k, s, II, pp, ppp, hh, ind, wk, a_col, at_row
   integer, external              :: searchDet, unsortedSearchDet
   integer(bit_kind)              :: myDet(N_int, 2), myMask(N_int, 2)
-  integer                        :: N, INFO, AtA_size, r1, r2
-  double precision , allocatable :: AtB(:), AtA_val(:), A_val(:,:), x(:), x_new(:), A_val_mwen(:)
-  double precision               :: t, norm, cx, res
-  integer, allocatable           :: A_ind(:,:), lref(:), AtA_ind(:), A_ind_mwen(:), col_shortcut(:), N_col(:)
+  integer                        :: N, INFO, r1, r2
+  double precision , allocatable :: AtB(:), x(:), x_new(:), A_val_mwen(:,:), t(:)
+  double precision               :: norm, cx, res
+  integer, allocatable           :: lref(:), A_ind_mwen(:)
   double precision               :: phase
   
   
-  integer, allocatable :: pathTo(:), active_hh_idx(:), active_pp_idx(:)
-  logical, allocatable :: active(:)
-  double precision, allocatable :: rho_mrcc_init(:,:)
-  integer :: nactive
+  double precision, allocatable :: rho_mrcc_init(:)
+  integer                        :: a_coll, at_roww
   
-  nex = hh_shortcut(hh_shortcut(0)+1)-1
-  print *, "TI", nex, N_det_non_ref
-  
-  allocate(pathTo(N_det_non_ref), active(nex))
-  allocate(active_pp_idx(nex), active_hh_idx(nex))
-  allocate(rho_mrcc_init(N_det_non_ref, N_states))
-  
-  pathTo = 0
-  active = .false.
-  nactive = 0
-  
-  
-  do hh = 1, hh_shortcut(0)
-    do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
-      do II = 1, N_det_ref
-        call apply_hole_local(psi_ref(1,1,II), hh_exists(1, hh), myMask, ok, N_int)
-        if(.not. ok) cycle
-        call apply_particle_local(myMask, pp_exists(1, pp), myDet, ok, N_int)
-        if(.not. ok) cycle
-        ind = searchDet(psi_non_ref_sorted(1,1,1), myDet(1,1), N_det_non_ref, N_int)
-        if(ind == -1) cycle
-        ind = psi_non_ref_sorted_idx(ind)
-        if(pathTo(ind) == 0) then
-          pathTo(ind) = pp
-        else
-          active(pp) = .true.
-          active(pathTo(ind)) = .true.
-        end if
-      end do
-    end do
-  end do
-  
-   do hh = 1, hh_shortcut(0)
-    do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
-      if(active(pp)) then
-        nactive = nactive + 1
-        active_hh_idx(nactive) = hh
-        active_pp_idx(nactive) = pp
-      end if
-    end do
-   end do
-  
-  print *, nactive, "inact/", size(active)
-  
-  allocate(A_ind(0:N_det_ref+1, nactive), A_val(N_det_ref+1, nactive))
-  allocate(AtA_ind(N_det_ref * nactive), AtA_val(N_det_ref * nactive)) 
-  allocate(x(nex), AtB(nex))
-  allocate(N_col(nactive), col_shortcut(nactive))
-  allocate(x_new(nex))
+  print *, "TI", hh_nex, N_det_non_ref
+
+  allocate(rho_mrcc_init(N_det_non_ref))
+  allocate(x_new(hh_nex))
+  allocate(x(hh_nex), AtB(hh_nex))
+  x = 0d0
         
 
-  
-  do s=1, N_states
-    
-    A_val = 0d0
-    A_ind = 0
-    AtA_ind = 0
-    AtB = 0d0
-    AtA_val = 0d0
-    x = 0d0
-    N_col = 0
-    col_shortcut = 0
-    
-    !$OMP PARALLEL default(none) shared(psi_non_ref, hh_exists, pp_exists, N_int, A_val, A_ind)&
-        !$OMP shared(s, hh_shortcut, psi_ref_coef, N_det_non_ref, psi_non_ref_sorted, psi_non_ref_sorted_idx, psi_ref, N_det_ref)&
-        !$OMP shared(active, active_hh_idx, active_pp_idx, nactive)  &
-        !$OMP private(lref, pp, II, ok, myMask, myDet, ind, phase, wk, ppp, hh)
-    allocate(lref(N_det_non_ref))
-    !$OMP DO schedule(static,10)
-    do ppp=1,nactive
-      pp = active_pp_idx(ppp)
-      hh = active_hh_idx(ppp)
-      lref = 0
-      do II = 1, N_det_ref
-        call apply_hole_local(psi_ref(1,1,II), hh_exists(1, hh), myMask, ok, N_int)
-        if(.not. ok) cycle
-        call apply_particle_local(myMask, pp_exists(1, pp), myDet, ok, N_int)
-        if(.not. ok) cycle
-        ind = searchDet(psi_non_ref_sorted(1,1,1), myDet(1,1), N_det_non_ref, N_int)
-        if(ind /= -1) then
-          call get_phase(myDet(1,1), psi_ref(1,1,II), phase, N_int)
-          if (phase  > 0.d0) then
-            lref(psi_non_ref_sorted_idx(ind)) =  II
-          else
-            lref(psi_non_ref_sorted_idx(ind)) = -II
-          endif
-        end if
-      end do
-      wk = 0
-      do i=1, N_det_non_ref
-        if(lref(i) > 0) then
-          wk += 1
-          A_val(wk, ppp) = psi_ref_coef(lref(i), s)
-          A_ind(wk, ppp) = i
-        else if(lref(i) < 0) then
-          wk += 1
-          A_val(wk, ppp) = -psi_ref_coef(-lref(i), s)
-          A_ind(wk, ppp) = i
-        end if
-      end do
-      A_ind(0,ppp) = wk
-    end do
-    !$OMP END DO
-    deallocate(lref)
-    !$OMP END PARALLEL
-    
-    
-    print *,  'Done building A_val, A_ind'
-    
-    AtA_size = 0
-    col_shortcut = 0
-    N_col = 0
-    integer                        :: a_coll, at_roww
-    
-    
-    !$OMP PARALLEL default(none) shared(k, psi_non_ref_coef, A_ind, A_val, x, N_det_ref, nex, N_det_non_ref)&
-        !$OMP private(at_row, a_col, t, i, j, r1, r2, wk, A_ind_mwen, A_val_mwen, a_coll, at_roww)&
-        !$OMP shared(col_shortcut, N_col, AtB, AtA_size, AtA_val, AtA_ind, s, nactive, active_pp_idx)
-    allocate(A_val_mwen(nex), A_ind_mwen(nex))
+  do s=1,N_states
+
+    AtB(:) = 0.d0
+    !$OMP PARALLEL default(none) shared(k, psi_non_ref_coef, active_excitation_to_determinants_idx,&
+        !$OMP   active_excitation_to_determinants_val, x, N_det_ref, hh_nex, N_det_non_ref)          &
+        !$OMP private(at_row, a_col, i, j, r1, r2, wk, A_ind_mwen, A_val_mwen, a_coll, at_roww)&
+        !$OMP shared(N_states,mrcc_col_shortcut, mrcc_N_col, AtB, mrcc_AtA_val, mrcc_AtA_ind, s, n_exc_active, active_pp_idx)
     
     !$OMP DO schedule(dynamic, 100)
-    do at_roww = 1, nactive ! nex
+    do at_roww = 1, n_exc_active ! hh_nex
       at_row = active_pp_idx(at_roww)
-      wk = 0
-      if(mod(at_roww, 100) == 0) print *, "AtA", at_row, "/", nex
-      do i=1,A_ind(0,at_roww)
-        j = active_pp_idx(i)
-        AtB(at_row) = AtB(at_row) + psi_non_ref_coef(A_ind(i, at_roww), s) * A_val(i, at_roww)
+      do i=1,active_excitation_to_determinants_idx(0,at_roww)
+          AtB(at_row) = AtB(at_row) + psi_non_ref_coef(active_excitation_to_determinants_idx(i, at_roww), s) * active_excitation_to_determinants_val(s,i, at_roww)
       end do
-      
-      do a_coll = 1, nactive
-        a_col = active_pp_idx(a_coll)
-        t = 0d0
-        r1 = 1
-        r2 = 1
-        do while ((A_ind(r1, at_roww) /= 0).and.(A_ind(r2, a_coll) /= 0))
-          if(A_ind(r1, at_roww) > A_ind(r2, a_coll)) then
-            r2 = r2+1
-          else if(A_ind(r1, at_roww) < A_ind(r2, a_coll)) then
-            r1 = r1+1
-          else
-            t = t - A_val(r1, at_roww) * A_val(r2, a_coll)
-            r1 = r1+1
-            r2 = r2+1
-          end if
-        end do
-        
-        if(a_col == at_row) then
-          t = t + 1.d0
-        end if
-        if(t /= 0.d0) then
-          wk += 1
-          A_ind_mwen(wk) = a_col
-          A_val_mwen(wk) = t
-        end if
-      end do
-      
-      if(wk /= 0) then
-        !$OMP CRITICAL
-        col_shortcut(at_roww) = AtA_size+1
-        N_col(at_roww) = wk
-        if (AtA_size+wk > size(AtA_ind,1)) then
-          print *, AtA_size+wk , size(AtA_ind,1)
-          stop 'too small'
-        endif
-        do i=1,wk
-          AtA_ind(AtA_size+i) = A_ind_mwen(i)
-          AtA_val(AtA_size+i) = A_val_mwen(i)
-        enddo
-        AtA_size += wk
-        !$OMP END CRITICAL
-      end if
     end do
-    !$OMP END DO NOWAIT
-    deallocate (A_ind_mwen, A_val_mwen)
+    !$OMP END DO
+   
     !$OMP END PARALLEL
+
+    X(:) = 0d0
     
-    print *, "ATA SIZE", ata_size
-    x = 0d0
     
-    
-    do a_coll = 1, nactive
+    do a_coll = 1, n_exc_active
       a_col = active_pp_idx(a_coll)
       X(a_col) = AtB(a_col)
     end do
     
     rho_mrcc_init = 0d0
     
-    !$OMP PARALLEL default(shared) &
-        !$OMP private(lref, hh, pp, II, myMask, myDet, ok, ind, phase)
     allocate(lref(N_det_ref))
-    !$OMP DO schedule(static, 1)
     do hh = 1, hh_shortcut(0)
       do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
-        if(active(pp)) cycle
+        if(is_active_exc(pp)) cycle
         lref = 0
+        AtB(pp) = 0.d0
         do II=1,N_det_ref
           call apply_hole_local(psi_ref(1,1,II), hh_exists(1, hh), myMask, ok, N_int)
           if(.not. ok) cycle
@@ -838,80 +699,73 @@ END_PROVIDER
           if(ind == -1) cycle
           ind = psi_non_ref_sorted_idx(ind)
           call get_phase(myDet(1,1), psi_ref(1,1,II), phase, N_int)
-          X(pp) += psi_ref_coef(II,s)**2
           AtB(pp) += psi_non_ref_coef(ind, s) * psi_ref_coef(II, s) * phase
           lref(II) = ind
-          if(phase < 0d0) lref(II) = -ind
+          if(phase < 0.d0) lref(II) = -ind
         end do
-        X(pp) =  AtB(pp) / X(pp)
+        X(pp) =  AtB(pp) 
         do II=1,N_det_ref
           if(lref(II) > 0) then
-            rho_mrcc_init(lref(II),s) = psi_ref_coef(II,s) * X(pp)
+            rho_mrcc_init(lref(II)) = psi_ref_coef(II,s) * X(pp)
           else if(lref(II) < 0) then
-            rho_mrcc_init(-lref(II),s) = -psi_ref_coef(II,s) * X(pp)
+            rho_mrcc_init(-lref(II)) = -psi_ref_coef(II,s) * X(pp)
           end if
         end do
       end do
     end do
-    !$OMP END DO
     deallocate(lref)
-    !$OMP END PARALLEL
-    
+
     x_new = x
     
     double precision               :: factor, resold
     factor = 1.d0
     resold = huge(1.d0)
-    do k=0,100000
-      !$OMP PARALLEL default(shared) private(cx, i, j, a_col, a_coll)
+
+    do k=0,hh_nex*hh_nex
+      !$OMP PARALLEL default(shared) private(cx, i, a_col, a_coll)
       
       !$OMP DO
       do i=1,N_det_non_ref
-        rho_mrcc(i,s) = rho_mrcc_init(i,s) ! 0d0
+        rho_mrcc(i,s) = rho_mrcc_init(i) 
       enddo
-      !$OMP END DO
+      !$OMP END DO NOWAIT
       
       !$OMP DO
-      do a_coll = 1, nactive !: nex
+      do a_coll = 1, n_exc_active
         a_col = active_pp_idx(a_coll)
-        cx = 0d0
-        do i=col_shortcut(a_coll), col_shortcut(a_coll) + N_col(a_coll) - 1
-          cx = cx + x(AtA_ind(i)) * AtA_val(i)
+        cx = 0.d0
+        do i=mrcc_col_shortcut(a_coll), mrcc_col_shortcut(a_coll) + mrcc_N_col(a_coll) - 1
+          cx = cx + x(mrcc_AtA_ind(i)) * mrcc_AtA_val(s,i)
         end do
         x_new(a_col) = AtB(a_col) + cx * factor
       end do
       !$OMP END DO
-      
+
       !$OMP END PARALLEL
       
+      
       res = 0.d0
-      
-      
-      if (res < resold) then
-        do a_coll=1,nactive ! nex
-          a_col = active_pp_idx(a_coll)
-          do j=1,N_det_non_ref
-            i = A_ind(j,a_coll)
-            if (i==0) exit
-            rho_mrcc(i,s) = rho_mrcc(i,s) + A_val(j,a_coll) * X_new(a_col)
-          enddo
-          res = res + (X_new(a_col) - X(a_col))*(X_new(a_col) - X(a_col))
-          X(a_col) = X_new(a_col)
-        end do
-        factor = 1.d0
-      else
-        factor = -factor * 0.5d0
+      do a_coll=1,n_exc_active
+        a_col = active_pp_idx(a_coll)
+        do j=1,N_det_non_ref
+          i = active_excitation_to_determinants_idx(j,a_coll)
+          if (i==0) exit
+          rho_mrcc(i,s) = rho_mrcc(i,s) + active_excitation_to_determinants_val(s,j,a_coll) * X_new(a_col)
+        enddo
+        res = res + (X_new(a_col) - X(a_col))*(X_new(a_col) - X(a_col))
+        X(a_col) = X_new(a_col)
+      end do
+      if (res > resold) then
+        factor = factor * 0.5d0
       endif
       resold = res
       
-      if(mod(k, 100) == 0) then
+      if(iand(k, 4095) == 0) then
         print *, "res ", k, res
       end if
       
-      if(res < 1d-9) exit
+      if(res < 1d-12) exit
     end do
-    
-    
     
     norm = 0.d0
     do i=1,N_det_non_ref
@@ -1073,6 +927,9 @@ END_PROVIDER
 
      norm = norm*f
      print *,  'norm of |T Psi_0> = ', dsqrt(norm)
+     if (dsqrt(norm) > 1.d0) then
+       stop 'Error : Norm of the SD larger than the norm of the reference.'
+     endif
 
      do i=1,N_det_ref
        norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
@@ -1084,7 +941,7 @@ END_PROVIDER
      ! rho_mrcc now contains the product of the scaling factors and the
      ! normalization constant
     
-    dIj_unique(:size(X), s) = X(:)
+    dIj_unique(1:size(X), s) = X(1:size(X))
   end do
 
 END_PROVIDER
@@ -1096,17 +953,14 @@ BEGIN_PROVIDER [ double precision, dij, (N_det_ref, N_det_non_ref, N_states) ]
   integer :: s,i,j
   double precision, external :: get_dij_index
   print *, "computing amplitudes..."
-  !$OMP PARALLEL DEFAULT(shared) PRIVATE(s,i,j)
   do s=1, N_states
-    !$OMP DO
     do i=1, N_det_non_ref
       do j=1, N_det_ref
+        !DIR$ FORCEINLINE
         dij(j, i, s) = get_dij_index(j, i, s, N_int)
       end do
     end do
-    !$OMP END DO 
   end do
-  !$OMP END PARALLEL
   print *, "done computing amplitudes"
 END_PROVIDER
 
@@ -1122,9 +976,13 @@ double precision function get_dij_index(II, i, s, Nint)
     call get_phase(psi_ref(1,1,II), psi_non_ref(1,1,i), phase, N_int)
     get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint) * phase
     get_dij_index = get_dij_index * rho_mrcc(i,s) 
-  else
+  else if(lambda_type == 1) then
     call i_h_j(psi_ref(1,1,II), psi_non_ref(1,1,i), Nint, HIi)
     get_dij_index = HIi * lambda_mrcc(s, i)
+  else if(lambda_type == 2) then
+    call get_phase(psi_ref(1,1,II), psi_non_ref(1,1,i), phase, N_int)
+    get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint) * phase
+    get_dij_index = get_dij_index 
   end if
 end function
 
@@ -1182,9 +1040,21 @@ end function
 
 
  BEGIN_PROVIDER [ integer*2, hh_exists, (4, N_hh_exists) ]
-&BEGIN_PROVIDER [ integer, hh_shortcut, (0:N_hh_exists + 1) ]
 &BEGIN_PROVIDER [ integer*2, pp_exists, (4, N_pp_exists) ]
+&BEGIN_PROVIDER [ integer, hh_shortcut, (0:N_hh_exists + 1) ]
+&BEGIN_PROVIDER [ integer, hh_nex ]
   implicit none
+  BEGIN_DOC
+  !
+  ! hh_exists : 
+  !
+  ! pp_exists : 
+  !
+  ! hh_shortcut : 
+  !
+  ! hh_nex : Total number of excitation operators
+  !
+  END_DOC
   integer*2,allocatable :: num(:,:)
   integer :: exc(0:2, 2, 2), degree, n, on, s, l, i
   integer*2 :: h1, h2, p1, p2
@@ -1250,6 +1120,7 @@ end function
       end if
     end do
   end do
+  hh_nex = hh_shortcut(hh_shortcut(0)+1)-1
 END_PROVIDER
 
 

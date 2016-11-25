@@ -93,8 +93,8 @@ program full_ci
    call diagonalize_CI
    if(do_pt2_end)then
     print*,'Last iteration only to compute the PT2'
-    threshold_selectors = 1.d0
-    threshold_generators = 0.999d0
+    threshold_selectors = max(threshold_selectors,threshold_selectors_pt2)
+    threshold_generators = max(threshold_generators,threshold_generators_pt2)
     call H_apply_CAS_SD_PT2(pt2, norm_pert, H_pert_diag,  N_st)
 
     print *,  'Final step'
