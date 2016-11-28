@@ -635,34 +635,37 @@ END_PROVIDER
   double precision :: coef_mrpt(N_States),coef_array(N_states),hij,delta_e(N_states)
   double precision :: hij_array(N_det_Ref),delta_e_array(N_det_ref,N_states)
   do i = 1, N_det_non_ref
+   print*,'i',i
    do j = 1, N_det_ref
     do k = 1, N_States 
-     coef_array(j) = psi_ref_coef(j,k)
+     coef_array(k) = psi_ref_coef(j,k)
     enddo
     call i_h_j(psi_ref(1,1,j), psi_non_ref(1,1,i), N_int, Hij_array(j))
     call get_delta_e_dyall(psi_ref(1,1,j),psi_non_ref(1,1,i),coef_array,hij_array(j),delta_e)
-    print*,delta_e(:)
+!   write(*,'(A7,x,100(F16.10,x))')'delta_e',delta_e(:)
     do k = 1, N_states
      delta_e_Array(j,k) = delta_e(k)
     enddo
    enddo
+   coef_mrpt = 0.d0
    do k = 1, N_states
     do j = 1, N_det_Ref
      coef_mrpt(k) += psi_ref_coef(j,k) * hij_array(j) / delta_e_array(j,k) 
     enddo
    enddo
+   write(*,'(A7,X,100(F16.10,x))')'coef   ',psi_non_ref_coef(i,1) , coef_mrpt(1),psi_non_ref_coef(i,2) , coef_mrpt(2)
    do k = 1, N_States
     if(dabs(coef_mrpt(k)) .le.1.d-10)then
      rho_mrpt(i,k) = 0.d0
      exit
     endif
-    print*,k,psi_non_ref_coef(i,k) , coef_mrpt(k)
     if(psi_non_ref_coef(i,k) / coef_mrpt(k) .lt.0d0)then
      rho_mrpt(i,k) = 1.d0
     else 
      rho_mrpt(i,k) = psi_non_ref_coef(i,k) / coef_mrpt(k)
     endif
    enddo
+    print*,'rho',rho_mrpt(i,:)
   enddo
 
  END_PROVIDER 

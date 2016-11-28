@@ -180,7 +180,7 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
 
 
  double precision :: delta_e_inactive(N_states)
- integer :: i_hole_inact
+ integer :: i_hole_inact, list_holes_inact(n_inact_orb,2)
 
  call get_excitation_degree(det_1,det_2,degree,N_int)
  if(degree>2)then
@@ -190,8 +190,13 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
 
  call give_holes_in_inactive_space(det_2,n_holes_spin,n_holes,holes_list)
  delta_e_inactive = 0.d0
+ integer  :: n_holes_total
+ n_holes_total = 0
  do i = 1, n_holes_spin(1)
   i_hole_inact = holes_list(i,1)
+  n_holes_total +=1 
+  list_holes_inact(n_holes_total,1) = i_hole_inact 
+  list_holes_inact(n_holes_total,2) = 1
   do i_state = 1, N_states
    delta_e_inactive += fock_core_inactive_total_spin_trace(i_hole_inact,i_state)
   enddo
@@ -199,6 +204,9 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
 
  do i = 1, n_holes_spin(2)
   i_hole_inact = holes_list(i,2)
+  n_holes_total +=1 
+  list_holes_inact(n_holes_total,1) = i_hole_inact 
+  list_holes_inact(n_holes_total,2) = 2
   do i_state = 1, N_states
    delta_e_inactive(i_state) += fock_core_inactive_total_spin_trace(i_hole_inact,i_state)
   enddo
@@ -370,15 +378,41 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
   enddo
 
  else if (n_holes_act == 1 .and. n_particles_act == 2) then
+  ! First find the particle that has been added from the inactive
+  !
+  integer :: spin_hole_inact, spin_hole_part_act
+  spin_hole_inact = list_holes_inact(1,2)
+! spin_hole_part_act = 
+  if(jspin == spin_hole_inact )then
+   kspin = spin_hole_part_act
+   ispin = spin_hole_part_act
+  else 
+   jspin = spin_hole_part_act
+   ispin = spin_hole_part_act
+  endif
+  ! by convention, you first make a movement in the cas 
   ! first hole
-  ispin = hole_list_practical(1,1)
-  i_hole_act =  hole_list_practical(2,1)
+  i_hole_act = hole_list_practical(2,1)
+  jspin = spin_hole_inact
   ! first particle
-  jspin = particle_list_practical(1,1)
   i_particle_act =  particle_list_practical(2,1)
   ! second particle
-  kspin = particle_list_practical(1,2)
   j_particle_act =  particle_list_practical(2,2)
+  call get_excitation_degree(det_1,det_2,degree,N_int)
+  if(degree == 2)then
+   print*, ''
+   call debug_det(det_1,N_int)
+   call debug_det(det_2,N_int)
+   call get_excitation(det_1,det_2,exc,degree,phase,N_int)
+   call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+   print*, s1,h1,p1
+   print*, s2,h2,p2
+   print*, '---'
+   print*, ispin, i_hole_act
+   print*, jspin, i_particle_act
+   print*, kspin, j_particle_act
+   pause
+  endif
 
   do i_state = 1, N_states
    delta_e_act(i_state) += two_creat_one_anhil(i_particle_act,j_particle_act,i_hole_act,jspin,kspin,ispin,i_state)
