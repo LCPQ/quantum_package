@@ -438,8 +438,12 @@ end
  do i=1,N_states
    psi_coef_min(i) = minval(psi_coef(:,i))
    psi_coef_max(i) = maxval(psi_coef(:,i))
-   abs_psi_coef_min(i) = dabs(psi_coef_min(i))
-   abs_psi_coef_max(i) = dabs(psi_coef_max(i))
+   abs_psi_coef_min(i) = minval( dabs(psi_coef(:,i)) )
+   abs_psi_coef_max(i) = maxval( dabs(psi_coef(:,i)) )
+   call write_double(6,psi_coef_max(i), 'Max coef')
+   call write_double(6,psi_coef_min(i), 'Min coef')
+   call write_double(6,abs_psi_coef_max(i), 'Max abs coef')
+   call write_double(6,abs_psi_coef_min(i), 'Min abs coef')
  enddo
 
 END_PROVIDER
