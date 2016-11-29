@@ -23,6 +23,7 @@ print s
 
 s = H_apply("mrpt_1h")
 s.filter_only_1h()
+s.unset_skip()
 s.data["parameters"] = ", delta_ij_, Ndet"
 s.data["declarations"] += """
     integer, intent(in) :: Ndet
@@ -63,6 +64,7 @@ print s
 
 s = H_apply("mrpt_1h1p")
 s.filter_only_1h1p()
+s.unset_skip()
 s.data["parameters"] = ", delta_ij_, Ndet"
 s.data["declarations"] += """
     integer, intent(in) :: Ndet

@@ -188,12 +188,14 @@ BEGIN_PROVIDER [ double precision, two_anhil, (n_act_orb,n_act_orb,2,2,N_states)
        psi_in_out(j,2,i) =  psi_active(j,2,i) 
       enddo
      enddo
-     call apply_exc_to_psi(orb_i,hole_particle_i,spin_exc_i, & 
-             norm_out,psi_in_out,psi_in_out_coef, n_det_ref,n_det_ref,n_det_ref,N_states)
-     call apply_exc_to_psi(orb_j,hole_particle_j,spin_exc_j, & 
-             norm_out,psi_in_out,psi_in_out_coef, n_det_ref,n_det_ref,n_det_ref,N_states)
-     call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det_ref,n_det_ref,n_det_ref,N_states,state_target)
-     two_anhil(iorb,jorb,ispin,jspin,state_target) = energy_cas_dyall_no_exchange(state_target)  -   energies(state_target)
+     do state_target = 1 , N_states
+      call apply_exc_to_psi(orb_i,hole_particle_i,spin_exc_i, & 
+              norm_out,psi_in_out,psi_in_out_coef, n_det_ref,n_det_ref,n_det_ref,N_states)
+      call apply_exc_to_psi(orb_j,hole_particle_j,spin_exc_j, & 
+              norm_out,psi_in_out,psi_in_out_coef, n_det_ref,n_det_ref,n_det_ref,N_states)
+      call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det_ref,n_det_ref,n_det_ref,N_states,state_target)
+      two_anhil(iorb,jorb,ispin,jspin,state_target) = energy_cas_dyall_no_exchange(state_target)  -   energies(state_target)
+     enddo
     enddo
    enddo
   enddo
@@ -319,7 +321,7 @@ BEGIN_PROVIDER [ double precision, two_anhil_one_creat, (n_act_orb,n_act_orb,n_a
 
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, two_creat_one_anhil, (n_act_orb,n_act_orb,n_act_orb,2,2,2,N_states)]
+BEGIN_PROVIDER [ double precision, two_creat_one_anhil, (n_act_orb,n_act_orb,n_act_orb,N_states)]
  implicit none
  integer :: i,j
  integer :: ispin,jspin,kspin
@@ -336,45 +338,69 @@ BEGIN_PROVIDER [ double precision, two_creat_one_anhil, (n_act_orb,n_act_orb,n_a
  integer :: korb
  integer :: state_target
  double precision :: energies(n_states)
+ double precision :: norm_spins(2,2,N_states), energies_spins(2,2,N_states)
+ double precision ::  thresh_norm
+ thresh_norm = 1.d-10
  do iorb = 1,n_act_orb
-  do ispin = 1,2
    orb_i = list_act(iorb)
    hole_particle_i =  1
-   spin_exc_i = ispin 
    do jorb = 1, n_act_orb
-    do jspin = 1,2
      orb_j = list_act(jorb)
      hole_particle_j =  1
-     spin_exc_j = jspin 
      do korb = 1, n_act_orb
-      do kspin = 1,2
        orb_k = list_act(korb)
        hole_particle_k = -1
-       spin_exc_k = kspin 
-       do i = 1, n_det_ref
-        do j = 1, n_states
-          psi_in_out_coef(i,j) = psi_ref_coef(i,j)
-        enddo
-        do j = 1, N_int
-         psi_in_out(j,1,i) =  psi_active(j,1,i) 
-         psi_in_out(j,2,i) =  psi_active(j,2,i) 
+
+       ! loop on the spins 
+       ! By definition, orb_i is the particle of spin ispin
+       ! a^+_{ispin , orb_i} 
+       do ispin = 1, 2  
+        do jspin = 1, 2 
+         ! By definition, orb_j and orb_k are the couple of particle/hole of spin jspin
+         ! a^+_{jspin , orb_j} a_{jspin , orb_k}
+         ! norm_spins(ispin,jspin)     :: norm         of the wave function a^+_{ispin , orb_i} a^+_{jspin , orb_j} a_{jspin , orb_k} | Psi >
+         ! energies_spins(ispin,jspin) :: Dyall energu of the wave function a^+_{ispin , orb_i} a^+_{jspin , orb_j} a_{jspin , orb_k} | Psi >
+          do i = 1, n_det_ref
+           do j = 1, n_states
+             psi_in_out_coef(i,j) = psi_ref_coef(i,j)
+           enddo
+           do j = 1, N_int
+            psi_in_out(j,1,i) =  psi_active(j,1,i) 
+            psi_in_out(j,2,i) =  psi_active(j,2,i) 
+           enddo
+          enddo
+          do state_target = 1, N_states
+           ! hole :: hole_particle_k, jspin
+           call apply_exc_to_psi(orb_k,hole_particle_k,jspin, & 
+                   norm_out,psi_in_out,psi_in_out_coef, n_det_ref,n_det_ref,n_det_ref,N_states)
+           call apply_exc_to_psi(orb_j,hole_particle_j,jspin, & 
+                   norm_out,psi_in_out,psi_in_out_coef, n_det_ref,n_det_ref,n_det_ref,N_states)
+           call apply_exc_to_psi(orb_i,hole_particle_i,ispin, & 
+                   norm_out,psi_in_out,psi_in_out_coef, n_det_ref,n_det_ref,n_det_ref,N_states)
+           if(dabs(norm_out(state_target)).lt.thresh_norm)then
+            norm_spins(ispin,jspin,state_target) = 0.d0
+           else 
+            norm_spins(ispin,jspin,state_target) = 1.d0
+           endif
+           call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det_ref,n_det_ref,n_det_ref,N_states,state_target)
+           energies_spins(ispin,jspin,state_target) = energy_cas_dyall_no_exchange(state_target)  -  energies(state_target)
+          enddo
         enddo
        enddo
+       integer :: icount
+       ! averaging over all possible spin permutations with Heaviside norm
        do state_target = 1, N_states
-        call apply_exc_to_psi(orb_k,hole_particle_k,spin_exc_k, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det_ref,n_det_ref,n_det_ref,N_states)
-        call apply_exc_to_psi(orb_i,hole_particle_i,spin_exc_i, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det_ref,n_det_ref,n_det_ref,N_states)
-        call apply_exc_to_psi(orb_j,hole_particle_j,spin_exc_j, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det_ref,n_det_ref,n_det_ref,N_states)
-        call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det_ref,n_det_ref,n_det_ref,N_states,state_target)
-        two_creat_one_anhil(iorb,jorb,korb,ispin,jspin,kspin,state_target) = energy_cas_dyall_no_exchange(state_target)  -  energies(state_target)
+        icount = 0
+        do jspin = 1, 2
+         do ispin = 1, 2
+          icount += 1
+          two_creat_one_anhil(iorb,jorb,korb,state_target) = energies_spins(ispin,jspin,state_target) * norm_spins(ispin,jspin,state_target)
+         enddo
+        enddo
+        two_creat_one_anhil(iorb,jorb,korb,state_target) = two_creat_one_anhil(iorb,jorb,korb,state_target) / dble(icount)
        enddo
-      enddo
      enddo
-    enddo
    enddo
-  enddo
  enddo
  deallocate(psi_in_out,psi_in_out_coef)
 

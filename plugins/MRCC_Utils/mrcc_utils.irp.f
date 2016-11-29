@@ -634,8 +634,11 @@ END_PROVIDER
   integer :: i, j, k
   double precision :: coef_mrpt(N_States),coef_array(N_states),hij,delta_e(N_states)
   double precision :: hij_array(N_det_Ref),delta_e_array(N_det_ref,N_states)
+  integer :: number_of_holes, number_of_particles,nh,np
   do i = 1, N_det_non_ref
    print*,'i',i
+   nh =  number_of_holes(psi_non_ref(1,1,i))
+   np =  number_of_particles(psi_non_ref(1,1,i))
    do j = 1, N_det_ref
     do k = 1, N_States 
      coef_array(k) = psi_ref_coef(j,k)
@@ -653,7 +656,9 @@ END_PROVIDER
      coef_mrpt(k) += psi_ref_coef(j,k) * hij_array(j) / delta_e_array(j,k) 
     enddo
    enddo
+
    write(*,'(A7,X,100(F16.10,x))')'coef   ',psi_non_ref_coef(i,1) , coef_mrpt(1),psi_non_ref_coef(i,2) , coef_mrpt(2)
+   print*, nh,np
    do k = 1, N_States
     if(dabs(coef_mrpt(k)) .le.1.d-10)then
      rho_mrpt(i,k) = 0.d0
@@ -666,6 +671,7 @@ END_PROVIDER
     endif
    enddo
     print*,'rho',rho_mrpt(i,:)
+    write(33,*)i,rho_mrpt(i,:)
   enddo
 
  END_PROVIDER 
@@ -1011,7 +1017,7 @@ END_PROVIDER
 double precision function get_dij_index(II, i, s, Nint)
   integer, intent(in) :: II, i, s, Nint
   double precision, external :: get_dij
-  double precision :: HIi, phase
+  double precision :: HIi, phase,delta_e_final(N_states) 
 
   if(lambda_type == 0) then
     call get_phase(psi_ref(1,1,II), psi_non_ref(1,1,i), phase, N_int)
@@ -1026,7 +1032,8 @@ double precision function get_dij_index(II, i, s, Nint)
     get_dij_index = get_dij_index 
   else if(lambda_type == 3) then
     call i_h_j(psi_ref(1,1,II), psi_non_ref(1,1,i), Nint, HIi)
-    get_dij_index = HIi * rho_mrpt(i, s)
+    call get_delta_e_dyall_fast(psi_ref(1,1,II),psi_non_ref(1,1,i),delta_e_final)
+    get_dij_index = HIi * rho_mrpt(i, s) / delta_e_final(s)
   end if
 end function
 

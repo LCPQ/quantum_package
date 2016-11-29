@@ -48,18 +48,18 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
   integer                        :: exc(0:2,2,2),degree
   
   
-  leng = max(N_det_ref, N_det_ref)
+  leng = max(N_det_generators, N_det_generators)
   allocate(miniList(Nint, 2, leng), idx_miniList(leng))
   
   !create_minilist_find_previous(key_mask, fullList, miniList, N_fullList, N_miniList, fullMatch, Nint)
-  call create_minilist_find_previous(key_mask, psi_ref, miniList, i_generator-1, N_miniList, fullMatch, Nint)
+  call create_minilist_find_previous(key_mask, psi_det_generators, miniList, i_generator-1, N_miniList, fullMatch, Nint)
   
   if(fullMatch) then
     return
   end if
   
   
-  call find_connections_previous(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_minilist)
+  call find_connections_previous(n_selected,det_buffer,Nint,tq,N_tq,miniList,N_minilist)
 
   if(N_tq > 0) then
     call create_minilist(key_mask, psi_ref, miniList, idx_miniList, N_det_ref, N_minilist, Nint)
@@ -88,17 +88,28 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
 
       call get_excitation_degree(tq(1,1,i_alpha),psi_ref(1,1,index_i),degree_scalar,N_int)
       if(dabs(hialpha).le.1.d-20)then
-       delta_e = 1.d+20
-      else
-       call get_delta_e_dyall(psi_ref(1,1,index_i),tq(1,1,i_alpha),coef_array,hialpha,delta_e)
-      endif
-      if(degree .ne. 2)then
        do i_state = 1, N_states
         delta_e(i_state) = 1.d+20
        enddo
+      else
+       call get_delta_e_dyall(psi_ref(1,1,index_i),tq(1,1,i_alpha),coef_array,hialpha,delta_e)
+       do i_state = 1, N_states
+        if(isnan(delta_e(i_state)))then
+         print*, 'i_state',i_state  
+         call debug_det(psi_ref(1,1,index_i),N_int)
+         call debug_det(tq(1,1,i_alpha),N_int)
+         print*, delta_e(:)
+         stop
+        endif
+       enddo
       endif
+!     if(degree_scalar .ne. 1)then
+!      do i_state = 1, N_states
+!       delta_e(i_state) = 1.d+20
+!      enddo
+!     endif
       hij_array(index_i) = hialpha
-      call get_excitation(psi_ref(1,1,index_i),tq(1,1,i_alpha),exc,degree,phase,N_int)
+!     call get_excitation(psi_ref(1,1,index_i),tq(1,1,i_alpha),exc,degree,phase,N_int)
       do i_state = 1,N_states
        delta_e_inv_array(index_i,i_state) = 1.d0/delta_e(i_state)
       enddo
@@ -134,12 +145,12 @@ end
 END_PROVIDER
 
 
-subroutine find_connections_previous(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_miniList)
+subroutine find_connections_previous(n_selected,det_buffer,Nint,tq,N_tq,miniList,N_miniList)
 
  use bitmasks
  implicit none
 
-  integer, intent(in)            :: i_generator,n_selected, Nint
+  integer, intent(in)            :: n_selected, Nint
 
   integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
   integer                        :: i,j,k,m
@@ -178,10 +189,5 @@ subroutine find_connections_previous(i_generator,n_selected,det_buffer,Nint,tq,N
     endif
   enddo i_loop
 end
-
-
-
-
-
 
 
