@@ -1,4 +1,10 @@
 program mp2_wf
+  no_vvvv_integrals = .True.
+  SOFT_TOUCH no_vvvv_integrals
+  call run
+end
+
+subroutine run
   implicit none
   BEGIN_DOC
 ! Save the MP2 wave function

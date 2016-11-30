@@ -5,11 +5,16 @@ program fci_zmq
   
   double precision, allocatable  :: pt2(:)
   integer                        :: degree
+  integer                        :: n_det_before, to_select
+  double precision               :: threshold_davidson_in
   
   allocate (pt2(N_states))
   
   pt2 = 1.d0
   diag_algorithm = "Lapack"
+  threshold_davidson_in = threshold_davidson
+  SOFT_TOUCH threshold_davidson
+  threshold_davidson = 1.d-4
   
   if (N_det > N_det_max) then
     call diagonalize_CI
@@ -33,18 +38,25 @@ program fci_zmq
   double precision               :: E_CI_before(N_states)
   
   
-  integer                        :: n_det_before
   print*,'Beginning the selection ...'
   E_CI_before(1:N_states) = CI_energy(1:N_states)
+  n_det_before = 0
   
   do while ( (N_det < N_det_max) .and. (maxval(abs(pt2(1:N_states))) > pt2_max) )
     n_det_before = N_det
-    call ZMQ_selection(max(1024-N_det, N_det), pt2)
+    to_select = 3*N_det
+    to_select = max(1024-to_select, to_select)
+    to_select = min(to_select, N_det_max-n_det_before)
+    call ZMQ_selection(to_select, pt2)
     
     PROVIDE  psi_coef
     PROVIDE  psi_det
     PROVIDE  psi_det_sorted
 
+    if (N_det == N_det_max) then
+      threshold_davidson = threshold_davidson_in
+      SOFT_TOUCH threshold_davidson
+    endif
     call diagonalize_CI
     call save_wavefunction
     
@@ -137,9 +149,9 @@ subroutine ZMQ_selection(N_in, pt2)
 
   step = int(5000000.d0 / dble(N_int * N_states * elec_num * elec_num * mo_tot_num * mo_tot_num ))
   step = max(1,step)
-  do i= N_det_generators, 1, -step
-    i_generator_start = max(i-step+1,1)
-    i_generator_max = i
+  do i= 1, N_det_generators,step
+    i_generator_start = i
+    i_generator_max = min(i+step-1,N_det_generators)
     write(task,*) i_generator_start, i_generator_max, 1, N
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   end do

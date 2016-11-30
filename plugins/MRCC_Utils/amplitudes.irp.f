@@ -89,7 +89,7 @@ END_PROVIDER
      !$OMP shared(is_active_exc, active_hh_idx, active_pp_idx, n_exc_active)&
      !$OMP private(lref, pp, II, ok, myMask, myDet, ind, phase, wk, ppp, hh, s)
  allocate(lref(N_det_non_ref))
- !$OMP DO schedule(static,10)
+ !$OMP DO schedule(dynamic)
  do ppp=1,n_exc_active
    active_excitation_to_determinants_val(:,:,ppp) = 0d0
    active_excitation_to_determinants_idx(:,ppp)   = 0
@@ -190,6 +190,15 @@ END_PROVIDER
           r2 = r2+1
         end if
       end do
+
+      if (a_col == at_row) then
+        t(:) = t(:) + 1.d0
+      endif
+      if (sum(dabs(t(:))) > 0.d0) then
+        wk = wk+1
+        A_ind_mwen(wk) = a_col
+        A_val_mwen(:,wk) = t(:)
+      endif
 
     end do
 

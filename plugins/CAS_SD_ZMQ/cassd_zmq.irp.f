@@ -99,9 +99,9 @@ program fci_zmq
     print *,  'N_states = ', N_states
     do k=1,N_states
       print *, 'State', k
-      print *,  'PT2      = ', pt2
-      print *,  'E        = ', E_CI_before
-      print *,  'E+PT2    = ', E_CI_before+pt2
+      print *,  'PT2      = ', pt2(k)
+      print *,  'E        = ', E_CI_before(k)
+      print *,  'E+PT2    = ', E_CI_before(k)+pt2(k)
       print *,  '-----'
     enddo
     call ezfio_set_cas_sd_zmq_energy_pt2(E_CI_before+pt2)
@@ -145,9 +145,9 @@ subroutine ZMQ_selection(N_in, pt2)
 
   step = int(5000000.d0 / dble(N_int * N_states * elec_num * elec_num * mo_tot_num * mo_tot_num ))
   step = max(1,step)
-  do i= N_det_generators, 1, -step
-    i_generator_start = max(i-step+1,1)
-    i_generator_max = i
+  do i= 1, N_det_generators,step
+    i_generator_start = i
+    i_generator_max = min(i+step-1,N_det_generators)
     write(task,*) i_generator_start, i_generator_max, 1, N
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   end do
@@ -164,7 +164,6 @@ subroutine ZMQ_selection(N_in, pt2)
   if (N_in > 0) then
     call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) !!! PAS DE ROBIN
     call copy_H_apply_buffer_to_wf()
-call remove_duplicates_in_psi_det
     if (s2_eig) then
       call make_s2_eigenfunction
     endif

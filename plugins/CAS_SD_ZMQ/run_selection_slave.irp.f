@@ -4,7 +4,7 @@ subroutine run_selection_slave(thread,iproc,energy)
   use selection_types
   implicit none
 
-  double precision, intent(in)    :: energy(N_states_diag)
+  double precision, intent(in)    :: energy(N_states)
   integer,  intent(in)            :: thread, iproc
   integer                        :: rc, i
 
