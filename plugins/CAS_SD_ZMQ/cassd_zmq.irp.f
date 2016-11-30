@@ -5,11 +5,15 @@ program fci_zmq
   
   double precision, allocatable  :: pt2(:)
   integer                        :: degree
+  double precision               :: threshold_davidson_in
   
   allocate (pt2(N_states))
   
   pt2 = 1.d0
-  diag_algorithm = "Lapack"
+  threshold_davidson_in = threshold_davidson
+  threshold_davidson = 1.d-5
+  SOFT_TOUCH threshold_davidson
+
   
   if (N_det > N_det_max) then
     call diagonalize_CI
@@ -33,20 +37,11 @@ program fci_zmq
   double precision               :: E_CI_before(N_states)
   
   
-  integer                        :: n_det_before
+  integer                        :: n_det_before, to_select
   print*,'Beginning the selection ...'
   E_CI_before(1:N_states) = CI_energy(1:N_states)
   
   do while ( (N_det < N_det_max) .and. (maxval(abs(pt2(1:N_states))) > pt2_max) )
-    n_det_before = N_det
-    call ZMQ_selection(max(256-N_det, N_det), pt2)
-    
-    PROVIDE  psi_coef
-    PROVIDE  psi_det
-    PROVIDE  psi_det_sorted
-
-    call diagonalize_CI
-    call save_wavefunction
     
     print *,  'N_det          = ', N_det
     print *,  'N_states       = ', N_states
@@ -71,12 +66,38 @@ program fci_zmq
     endif
     E_CI_before(1:N_states) = CI_energy(1:N_states)
     call ezfio_set_cas_sd_zmq_energy(CI_energy(1))
+    
+    n_det_before = N_det
+    to_select = 3*N_det
+    to_select = max(256-to_select, to_select)
+    to_select = min(to_select,N_det_max-n_det_before)
+    call ZMQ_selection(to_select, pt2)
+    
+    PROVIDE  psi_coef
+    PROVIDE  psi_det
+    PROVIDE  psi_det_sorted
+    
+    if (N_det == N_det_max) then
+      threshold_davidson = threshold_davidson_in
+      TOUCH threshold_davidson
+    endif
+    call diagonalize_CI
+    call save_wavefunction
+    call ezfio_set_cas_sd_zmq_energy(CI_energy(1))
   enddo
+  
+  if (N_det < N_det_max) then
+    threshold_davidson = threshold_davidson_in
+    TOUCH threshold_davidson
+    call diagonalize_CI
+    call save_wavefunction
+    call ezfio_set_cas_sd_zmq_energy(CI_energy(1))
+  endif
 
   integer :: exc_max, degree_min
   exc_max = 0
   print *,  'CAS determinants : ', N_det_cas
-  do i=1,min(N_det_cas,10)
+  do i=1,min(N_det_cas,20)
     do k=i,N_det_cas
       call get_excitation_degree(psi_cas(1,1,k),psi_cas(1,1,i),degree,N_int)
       exc_max = max(exc_max,degree)
@@ -108,7 +129,7 @@ program fci_zmq
   endif
   call save_wavefunction
   call ezfio_set_cas_sd_zmq_energy(CI_energy(1))
-  call ezfio_set_cas_sd_zmq_energy_pt2(E_CI_before+pt2)
+  call ezfio_set_cas_sd_zmq_energy_pt2(E_CI_before(1)+pt2(1))
 
 end
 
