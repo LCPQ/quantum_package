@@ -652,14 +652,12 @@ END_PROVIDER
   allocate(rho_mrcc_init(N_det_non_ref))
   allocate(x_new(hh_nex))
   allocate(x(hh_nex), AtB(hh_nex))
-  x = 0d0
-        
 
   do s=1,N_states
 
     AtB(:) = 0.d0
     !$OMP PARALLEL default(none) shared(k, psi_non_ref_coef, active_excitation_to_determinants_idx,&
-        !$OMP   active_excitation_to_determinants_val, x, N_det_ref, hh_nex, N_det_non_ref)          &
+        !$OMP   active_excitation_to_determinants_val, N_det_ref, hh_nex, N_det_non_ref)          &
         !$OMP private(at_row, a_col, i, j, r1, r2, wk, A_ind_mwen, A_val_mwen, a_coll, at_roww)&
         !$OMP shared(N_states,mrcc_col_shortcut, mrcc_N_col, AtB, mrcc_AtA_val, mrcc_AtA_ind, s, n_exc_active, active_pp_idx)
     
@@ -721,14 +719,14 @@ END_PROVIDER
     factor = 1.d0
     resold = huge(1.d0)
 
-    do k=0,hh_nex*hh_nex
+    do k=0,10*hh_nex
       !$OMP PARALLEL default(shared) private(cx, i, a_col, a_coll)
       
       !$OMP DO
       do i=1,N_det_non_ref
         rho_mrcc(i,s) = rho_mrcc_init(i) 
       enddo
-      !$OMP END DO NOWAIT
+      !$OMP END DO
       
       !$OMP DO
       do a_coll = 1, n_exc_active
