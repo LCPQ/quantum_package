@@ -74,8 +74,6 @@ subroutine mrsc2_dressing_slave(thread,iproc)
       ci_inv(i_state) = 1.d0 / psi_ref_coef(i_I,i_state)
       cj_inv(i_state) = 1.d0 / psi_ref_coef(J,i_state)
     end do
-    !delta = 0.d0
-    !delta_s2 = 0.d0
     n = 0
     delta(:,0,:) = 0d0
     delta(:,:nlink(J),1) = 0d0
@@ -129,24 +127,9 @@ subroutine mrsc2_dressing_slave(thread,iproc)
           if(h_cache(J,i) == 0.d0) cycle
           if(h_cache(i_I,i) == 0.d0) cycle
           
-          !ok = .false.
-          !do i_state=1, N_states
-          !  if(lambda_mrcc(i_state, i) /= 0d0) then
-          !    ok = .true.
-          !    exit
-          !  end if
-          !end do
-          !if(.not. ok) cycle
-!         
-          
           komon(0) += 1
           kn = komon(0)
           komon(kn) = i
-          
-          
-!           call get_excitation(psi_ref(1,1,J),psi_non_ref(1,1,i),exc_IJ,degree2,phase_Ji,N_int)
-!           if(I_i /= J) call get_excitation(psi_ref(1,1,I_i),psi_non_ref(1,1,i),exc_IJ,degree2,phase_Ii,N_int)
-!           if(I_i == J) phase_Ii = phase_Ji
           
           do i_state = 1,N_states
             dkI = h_cache(J,i) * dij(i_I, i, i_state)
@@ -163,25 +146,21 @@ subroutine mrsc2_dressing_slave(thread,iproc)
         komoned = .true.
       end if
       
-      
+      integer :: hpmin(2)
+      hpmin(1) = 2 - HP(1,k)
+      hpmin(2) = 2 - HP(2,k)
+
       do m = 1, komon(0)
         
         i = komon(m)
-        
-        call apply_excitation(psi_non_ref(1,1,i),exc_Ik,det_tmp,ok,N_int)
-        if(.not. ok) cycle
-        if(HP(1,i) + HP(1,k) <= 2 .and. HP(2,i) + HP(2,k) <= 2) then
-!           if(is_in_wavefunction(det_tmp, N_int)) cycle
+        if(HP(1,i) <= hpmin(1) .and. HP(2,i) <= hpmin(2) ) then
           cycle
         end if
         
-        !if(isInCassd(det_tmp, N_int)) cycle
+        call apply_excitation(psi_non_ref(1,1,i),exc_Ik,det_tmp,ok,N_int)
+        if(.not. ok) cycle
           
         do i_state = 1, N_states 
-          !if(lambda_mrcc(i_state, i) == 0d0) cycle
-          
-
-          !contrib = h_cache(i_I,k) * lambda_mrcc(i_state, k) * dleat(i_state, m, 2)! * phase_al
           contrib =  dij(i_I, k, i_state) * dleat(i_state, m, 2)
           contrib_s2 =  dij(i_I, k, i_state) * dleat_s2(i_state, m, 2)
           delta(i_state,ll,1) += contrib
@@ -192,7 +171,6 @@ subroutine mrsc2_dressing_slave(thread,iproc)
           endif
           
           if(I_i == J) cycle
-          !contrib = h_cache(J,l) * lambda_mrcc(i_state, l) * dleat(i_state, m, 1)! * phase_al
           contrib =  dij(J, l, i_state) * dleat(i_state, m, 1)
           contrib_s2 =  dij(J, l, i_state) * dleat_s2(i_state, m, 1)
           delta(i_state,kk,2) += contrib

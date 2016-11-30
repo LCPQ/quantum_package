@@ -861,14 +861,14 @@ subroutine apply_particles(det, s1, p1, s2, p2, res, ok, Nint)
   res = det 
   
   if(p1 /= 0) then
-  ii = (p1-1)/bit_kind_size + 1 
-  pos = mod(p1-1, bit_kind_size)!iand(p1-1,bit_kind_size-1)
+  ii = ishft(p1-1,-bit_kind_shift) + 1 
+  pos = p1-1-ishft(ii-1,bit_kind_shift)
   if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) return
   res(ii, s1) = ibset(res(ii, s1), pos)
   end if
 
-  ii = (p2-1)/bit_kind_size + 1 
-  pos = mod(p2-1, bit_kind_size)!iand(p2-1,bit_kind_size-1)
+  ii = ishft(p2-1,-bit_kind_shift) + 1 
+  pos = p2-1-ishft(ii-1,bit_kind_shift)
   if(iand(det(ii, s2), ishft(1_bit_kind, pos)) /= 0_8) return
   res(ii, s2) = ibset(res(ii, s2), pos)
 
@@ -890,14 +890,14 @@ subroutine apply_holes(det, s1, h1, s2, h2, res, ok, Nint)
   res = det 
   
   if(h1 /= 0) then
-  ii = (h1-1)/bit_kind_size + 1 
-  pos = mod(h1-1, bit_kind_size)!iand(h1-1,bit_kind_size-1)
+  ii = ishft(h1-1,-bit_kind_shift) + 1 
+  pos = h1-1-ishft(ii-1,bit_kind_shift)
   if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
   res(ii, s1) = ibclr(res(ii, s1), pos)
   end if
 
-  ii = (h2-1)/bit_kind_size + 1 
-  pos = mod(h2-1, bit_kind_size)!iand(h2-1,bit_kind_size-1)
+  ii = ishft(h2-1,-bit_kind_shift) + 1 
+  pos = h2-1-ishft(ii-1,bit_kind_shift)
   if(iand(det(ii, s2), ishft(1_bit_kind, pos)) == 0_8) return
   res(ii, s2) = ibclr(res(ii, s2), pos)
 
@@ -917,8 +917,8 @@ subroutine apply_particle(det, s1, p1, res, ok, Nint)
   ok = .false.
   res = det 
   
-  ii = (p1-1)/bit_kind_size + 1 
-  pos = mod(p1-1, bit_kind_size)!iand(p1-1,bit_kind_size-1)
+  ii = ishft(p1-1,-bit_kind_shift) + 1 
+  pos = p1-1-ishft(ii-1,bit_kind_shift)
   if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) return
   res(ii, s1) = ibset(res(ii, s1), pos)
 
@@ -939,8 +939,8 @@ subroutine apply_hole(det, s1, h1, res, ok, Nint)
   ok = .false.
   res = det 
   
-  ii = (h1-1)/bit_kind_size + 1 
-  pos = mod(h1-1, bit_kind_size)!iand(h1-1,bit_kind_size-1)
+  ii = ishft(h1-1,-bit_kind_shift) + 1 
+  pos = h1-1-ishft(ii-1,bit_kind_shift)
   if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
   res(ii, s1) = ibclr(res(ii, s1), pos)
 
