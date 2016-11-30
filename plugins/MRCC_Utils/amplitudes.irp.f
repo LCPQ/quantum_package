@@ -170,7 +170,6 @@ END_PROVIDER
   do at_roww = 1, n_exc_active ! hh_nex
     at_row = active_pp_idx(at_roww)
     wk = 0
-    if(mod(at_roww, 100) == 0) print *, "AtA", at_row, "/", hh_nex
 
     do a_coll = 1, n_exc_active
       a_col = active_pp_idx(a_coll)
@@ -224,7 +223,7 @@ END_PROVIDER
   deallocate (A_ind_mwen, A_val_mwen, As2_val_mwen, t)
   !$OMP END PARALLEL
 
-  print *, "ATA SIZE", ata_size
+  print *, "At.A SIZE", ata_size
 
 END_PROVIDER
 
