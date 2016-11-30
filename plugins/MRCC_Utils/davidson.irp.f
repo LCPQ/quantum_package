@@ -910,30 +910,30 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
       ! -----------------------
 
       do k=1,N_st_diag
-        if (state_ok(k)) then
+!        if (state_ok(k)) then
           do i=1,sze
             U(i,shift2+k) = (lambda(k) * U(i,shift2+k) - W(i,shift2+k) )      &
                 * (1.d0 + s2(k) * U(i,shift2+k) - S(i,shift2+k) - S_z2_Sz &
               )/max(H_jj(i) - lambda (k),1.d-2)
           enddo
-        else
-          ! Randomize components with bad <S2>
-            do i=1,sze-2,2
-              call random_number(r1)
-              call random_number(r2)
-              r1 = dsqrt(-2.d0*dlog(r1))
-              r2 = dtwo_pi*r2
-              U(i,shift2+k) = r1*dcos(r2)
-              U(i+1,shift2+k) = r1*dsin(r2)
-            enddo
-            do i=sze-2+1,sze
-              call random_number(r1)
-              call random_number(r2)
-              r1 = dsqrt(-2.d0*dlog(r1))
-              r2 = dtwo_pi*r2
-              U(i,shift2+k) = r1*dcos(r2)
-            enddo
-        endif
+!        else
+!          ! Randomize components with bad <S2>
+!            do i=1,sze-2,2
+!              call random_number(r1)
+!              call random_number(r2)
+!              r1 = dsqrt(-2.d0*dlog(r1))
+!              r2 = dtwo_pi*r2
+!              U(i,shift2+k) = r1*dcos(r2)
+!              U(i+1,shift2+k) = r1*dsin(r2)
+!            enddo
+!            do i=sze-2+1,sze
+!              call random_number(r1)
+!              call random_number(r2)
+!              r1 = dsqrt(-2.d0*dlog(r1))
+!              r2 = dtwo_pi*r2
+!              U(i,shift2+k) = r1*dcos(r2)
+!            enddo
+!        endif
 
         if (k <= N_st) then
           residual_norm(k) = u_dot_u(U(1,shift2+k),sze)
