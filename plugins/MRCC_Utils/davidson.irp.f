@@ -829,7 +829,9 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
             state_ok(k) = (dabs(s2(k)-expected_s2) < 0.6d0)
           enddo
       else
-        state_ok(k) = .True.
+        do k=1,size(state_ok)
+          state_ok(k) = .True.
+        enddo
       endif
 
       do k=1,shift2

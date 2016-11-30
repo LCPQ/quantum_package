@@ -66,9 +66,18 @@
 
 END_PROVIDER
 
+BEGIN_PROVIDER [ integer, n_exc_active_sze ]
+ implicit none
+ BEGIN_DOC
+ ! Dimension of arrays to avoid zero-sized arrays
+ END_DOC
+ n_exc_active_sze = max(n_exc_active,1)
+END_PROVIDER
 
- BEGIN_PROVIDER [ integer, active_excitation_to_determinants_idx, (0:N_det_ref+1, n_exc_active) ]
-&BEGIN_PROVIDER [ double precision, active_excitation_to_determinants_val, (N_states,N_det_ref+1, n_exc_active) ]
+
+
+ BEGIN_PROVIDER [ integer, active_excitation_to_determinants_idx, (0:N_det_ref+1, n_exc_active_sze) ]
+&BEGIN_PROVIDER [ double precision, active_excitation_to_determinants_val, (N_states,N_det_ref+1, n_exc_active_sze) ]
  implicit none
  BEGIN_DOC
  ! Sparse matrix A containing the matrix to transform the active excitations to
@@ -136,10 +145,10 @@ END_PROVIDER
 END_PROVIDER
 
 
- BEGIN_PROVIDER [ integer, mrcc_AtA_ind, (N_det_ref * n_exc_active) ]
-&BEGIN_PROVIDER [ double precision, mrcc_AtA_val, (N_states, N_det_ref * n_exc_active) ]
-&BEGIN_PROVIDER [ integer, mrcc_col_shortcut, (n_exc_active) ]
-&BEGIN_PROVIDER [ integer, mrcc_N_col, (n_exc_active) ]
+ BEGIN_PROVIDER [ integer, mrcc_AtA_ind, (N_det_ref * n_exc_active_sze) ]
+&BEGIN_PROVIDER [ double precision, mrcc_AtA_val, (N_states, N_det_ref * n_exc_active_sze) ]
+&BEGIN_PROVIDER [ integer, mrcc_col_shortcut, (n_exc_active_sze) ]
+&BEGIN_PROVIDER [ integer, mrcc_N_col, (n_exc_active_sze) ]
  implicit none
  BEGIN_DOC
  ! A is active_excitation_to_determinants in At.A

@@ -306,7 +306,9 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
             state_ok(k) = (dabs(s2(k)-expected_s2) < 0.6d0)
           enddo
       else
-        state_ok(k) = .True.
+        do k=1,size(state_ok)
+          state_ok(k) = .True.
+        enddo
       endif
 
       do k=1,shift2
@@ -385,7 +387,8 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       do k=1,N_st_diag
         if (state_ok(k)) then
           do i=1,sze
-            U(i,shift2+k) = (lambda(k) * U(i,shift2+k) - W(i,shift2+k) )      &
+            U(i,shift2+k) =  &
+              (lambda(k) * U(i,shift2+k) - W(i,shift2+k) )      &
                 * (1.d0 + s2(k) * U(i,shift2+k) - S(i,shift2+k) - S_z2_Sz &
               )/max(H_jj(i) - lambda (k),1.d-2)
           enddo
