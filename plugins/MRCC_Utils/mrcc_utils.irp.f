@@ -764,7 +764,7 @@ END_PROVIDER
         print *, "res ", k, res
       end if
       
-      if(res < 1d-12) exit
+      if(res < 1d-10) exit
     end do
     
     norm = 0.d0
@@ -982,7 +982,6 @@ double precision function get_dij_index(II, i, s, Nint)
   else if(lambda_type == 2) then
     call get_phase(psi_ref(1,1,II), psi_non_ref(1,1,i), phase, N_int)
     get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint) * phase
-    get_dij_index = get_dij_index 
   end if
 end function
 

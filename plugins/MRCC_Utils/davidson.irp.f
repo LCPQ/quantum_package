@@ -807,7 +807,7 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
       ! Diagonalize h
       ! -------------
       call lapack_diag(lambda,y,h,size(h,1),shift2)
-      
+
       ! Compute S2 for each eigenvector
       ! -------------------------------
 
