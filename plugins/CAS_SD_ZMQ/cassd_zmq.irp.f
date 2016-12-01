@@ -79,7 +79,7 @@ program fci_zmq
     
     if (N_det == N_det_max) then
       threshold_davidson = threshold_davidson_in
-      TOUCH threshold_davidson
+      SOFT_TOUCH threshold_davidson
     endif
     call diagonalize_CI
     call save_wavefunction
@@ -88,7 +88,7 @@ program fci_zmq
   
   if (N_det < N_det_max) then
     threshold_davidson = threshold_davidson_in
-    TOUCH threshold_davidson
+    SOFT_TOUCH threshold_davidson
     call diagonalize_CI
     call save_wavefunction
     call ezfio_set_cas_sd_zmq_energy(CI_energy(1))
