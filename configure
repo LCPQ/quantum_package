@@ -70,9 +70,10 @@ d_dependency = {
     "resultsFile": ["python"],
     "emsl": ["python"],
     "gcc": [],
+    "gmp": [ "gcc", "make" ],
     "g++": [],
-    "zeromq" : [ "g++" ],
-    "f77zmq" : [ "zeromq", "python" ],
+    "zeromq" : [ "g++", "make" ],
+    "f77zmq" : [ "zeromq", "python", "make" ],
     "python": [],
     "ninja": ["g++", "python"],
     "make": [],
@@ -131,6 +132,11 @@ ninja = Info(
     description=' ninja',
     default_path=join(QP_ROOT_BIN, "ninja"))
 
+gmp = Info(
+    url='https://gmplib.org/download/gmp/gmp-6.1.1.tar.bz2',
+    description=' GMP library',
+    default_path=join(QP_ROOT_LIB, "libgmp.so"))
+
 emsl = Info(
     url='{head}/LCPQ/EMSL_Basis_Set_Exchange_Local/{tail}'.format(**path_github),
     description=' EMSL basis set library',
@@ -166,7 +172,7 @@ d_info = dict()
 
 for m in ["ocaml", "m4", "curl", "zlib", "patch", "irpf90", "docopt",
           "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz",
-          "zeromq", "f77zmq","bats" ]:
+          "zeromq", "f77zmq","bats", "gmp" ]:
     exec ("d_info['{0}']={0}".format(m))
 
 
@@ -495,6 +501,7 @@ def create_ninja_and_rc(l_installed):
         'export PATH="${QP_PYTHON}":"${QP_ROOT}"/bin:"${QP_ROOT}"/ocaml:"${PATH}"',
         'export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${LD_LIBRARY_PATH}"',
         'export LIBRARY_PATH="${QP_ROOT}"/lib:"${LIBRARY_PATH}"', "",
+        'export C_INCLUDE_PATH="${C_INCLUDE_PATH}":"${QP_ROOT}"/include',
         'source ${QP_ROOT}/install/EZFIO/Bash/ezfio.sh', "",
         'source ${HOME}/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true',
         '',

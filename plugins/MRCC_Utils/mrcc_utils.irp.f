@@ -174,42 +174,44 @@ END_PROVIDER
    call u_0_S2_u_0(CI_eigenvectors_s2_dressed,CI_eigenvectors_dressed,N_det,psi_det,N_int,&
           N_states_diag,size(CI_eigenvectors_dressed,1))
 
-   double precision :: u_dot_u
-   double precision, allocatable :: h(:,:), s(:,:)
-   allocate (h(N_states,N_states), s(N_states,N_states))
-   do i=1,N_states
-    do j=1,N_states
-     s(i,j) = u_dot_v(CI_eigenvectors_dressed(1,i),CI_eigenvectors_dressed(1,j),N_det)
-     print *,  'S(',i,',',j,')', s(i,j)
-    enddo
-   enddo
+!   double precision :: u_dot_u
+!   double precision, allocatable :: h(:,:,:), s(:,:)
+!   allocate (h(N_states,N_states,N_states), s(N_states,N_states))
+!   do i=1,N_states
+!    do j=1,N_states
+!     s(i,j) = u_dot_v(CI_eigenvectors_dressed(1,i),CI_eigenvectors_dressed(1,j),N_det)
+!     print *,  'S(',i,',',j,')', s(i,j)
+!    enddo
+!   enddo
+!
+!   do i=1,N_states
+!    h(i,i) = CI_electronic_energy_dressed(i)
+!    do j=i+1,N_states
+!      h(j,i) = (CI_electronic_energy_dressed(j)-CI_electronic_energy_dressed(i)) * s(i,j)
+!      h(i,j) = -h(j,i)
+!      print *,  'h(',i,',',i,')', h(i,j)
+!    enddo
+!    print *,  'h(',i,',',i,')', h(i,i)
+!   enddo
+!   call lapack_diag(eigenvalues,eigenvectors, h,size(h,1),N_states)
+!   do i=1,N_states
+!     CI_electronic_energy_dressed(i) = eigenvalues(i)
+!     do j=1,N_states
+!      h(i,j) = eigenvectors(i,j)
+!     enddo
+!   enddo
+!   do k=1,N_states
+!     eigenvectors(1:N_det,k) = 0.d0
+!     do i=1,N_states
+!      eigenvectors(1:N_det,k) += CI_eigenvectors_dressed(1:N_det,k) * h(k,i)
+!    enddo
+!   enddo
+!   deallocate(h,s)
+!
 
-   do i=1,N_states
-    h(i,i) = CI_electronic_energy_dressed(i)
-    do j=i+1,N_states
-      h(j,i) = (CI_electronic_energy_dressed(j)-CI_electronic_energy_dressed(i)) * s(i,j)
-      h(i,j) = -h(j,i)
-      print *,  'h(',i,',',i,')', h(i,j)
-    enddo
-    print *,  'h(',i,',',i,')', h(i,i)
-   enddo
-   call lapack_diag(eigenvalues,eigenvectors, h,size(h,1),N_states)
-   do i=1,N_states
-     CI_electronic_energy_dressed(i) = eigenvalues(i)
-     do j=1,N_states
-      h(i,j) = eigenvectors(i,j)
-     enddo
-   enddo
-   do k=1,N_states
-     eigenvectors(1:N_det,k) = 0.d0
-     do i=1,N_states
-      eigenvectors(1:N_det,k) += CI_eigenvectors_dressed(1:N_det,k) * h(k,i)
-    enddo
-   enddo
-   deallocate(h,s)
+   call multi_state(CI_electronic_energy_dressed,CI_eigenvectors_dressed,size(CI_eigenvectors_dressed,1))
 
    deallocate (eigenvectors,eigenvalues)
-
      
    else if (diag_algorithm == "Lapack") then
      
