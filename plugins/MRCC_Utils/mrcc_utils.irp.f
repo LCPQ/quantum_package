@@ -209,7 +209,7 @@ END_PROVIDER
 !   deallocate(h,s)
 !
 
-   call multi_state(CI_electronic_energy_dressed,CI_eigenvectors_dressed,size(CI_eigenvectors_dressed,1))
+!   call multi_state(CI_electronic_energy_dressed,CI_eigenvectors_dressed,size(CI_eigenvectors_dressed,1))
 
    deallocate (eigenvectors,eigenvalues)
      
