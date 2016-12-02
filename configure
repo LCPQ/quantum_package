@@ -70,7 +70,6 @@ d_dependency = {
     "resultsFile": ["python"],
     "emsl": ["python"],
     "gcc": [],
-    "gmp": [ "gcc", "make" ],
     "g++": [],
     "zeromq" : [ "g++", "make" ],
     "f77zmq" : [ "zeromq", "python", "make" ],
@@ -132,11 +131,6 @@ ninja = Info(
     description=' ninja',
     default_path=join(QP_ROOT_BIN, "ninja"))
 
-gmp = Info(
-    url='https://gmplib.org/download/gmp/gmp-6.1.1.tar.bz2',
-    description=' GMP library',
-    default_path=join(QP_ROOT_LIB, "libgmp.so"))
-
 emsl = Info(
     url='{head}/LCPQ/EMSL_Basis_Set_Exchange_Local/{tail}'.format(**path_github),
     description=' EMSL basis set library',
@@ -156,7 +150,6 @@ f77zmq = Info(
     url='{head}/zeromq/f77_zmq/{tail}'.format(**path_github),
     description=' F77-ZeroMQ',
     default_path=join(QP_ROOT_LIB, "libf77zmq.a") )
-#                join(QP_ROOT, "src", "ZMQ", "f77zmq.h") )
 
 p_graphviz = Info(
     url='https://github.com/xflr6/graphviz/archive/master.tar.gz',
@@ -172,7 +165,7 @@ d_info = dict()
 
 for m in ["ocaml", "m4", "curl", "zlib", "patch", "irpf90", "docopt",
           "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz",
-          "zeromq", "f77zmq","bats", "gmp" ]:
+          "zeromq", "f77zmq","bats"]: 
     exec ("d_info['{0}']={0}".format(m))
 
 
