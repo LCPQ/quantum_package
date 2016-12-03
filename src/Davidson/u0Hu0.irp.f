@@ -313,7 +313,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   integer :: blockb, blockb2, istep
   double precision :: ave_workload, workload, target_workload_inv
   
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut, st
 
   N_st_8 = align_double(N_st)
 
@@ -353,6 +353,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
         ext = 0
         do ni=1,Nint
           ext = ext + popcnt(xor(sorted(ni,i,2), sorted(ni,j,2)))
+          if (ext > 4) exit
         end do
         if(ext == 4) then
             call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
@@ -394,6 +395,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
           ext = exa
           do ni=1,Nint
             ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
+            if (ext > 4) exit
           end do
           if(ext <= 4) then
             org_j = sort_idx(j,1)
