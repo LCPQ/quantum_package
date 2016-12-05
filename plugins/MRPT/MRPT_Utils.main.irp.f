@@ -10,7 +10,7 @@ end
 
 subroutine routine_3
  implicit none
- integer :: i
+ integer :: i,j
 !provide fock_virt_total_spin_trace
  provide delta_ij 
  
@@ -23,6 +23,10 @@ subroutine routine_3
   write(*,'(A12,X,I3,A3,XX,F16.09)')    '  E+PT2     ', i,' = ', CI_energy(i)+second_order_pt_new(i)
   write(*,'(A12,X,I3,A3,XX,F16.09)')    '  E dressed ', i,' = ', CI_dressed_pt2_new_energy(i)
   write(*,'(A12,X,I3,A3,XX,F16.09)')    '  S^2       ', i,' = ', CI_dressed_pt2_new_eigenvectors_s2(i)
+  print*,'coef before and after'
+  do j = 1, N_det_ref
+   print*,psi_ref_coef(j,i),CI_dressed_pt2_new_eigenvectors(j,i)
+  enddo
  enddo 
 
 end

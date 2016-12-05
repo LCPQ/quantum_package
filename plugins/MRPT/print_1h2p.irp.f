@@ -2,16 +2,18 @@ program print_1h2p
  implicit none
  read_wf = .True.
  touch read_wf
- call routine
+ call routine_2
 end
 
 subroutine routine_2
  implicit none
- integer :: i,j
+ integer :: i,j,degree
+ double precision :: hij
+!provide   one_creat_virt
  do i =1, n_act_orb
-!do i =1, 2
-  write(*,'(I3,x,100(F16.10,X))')i,one_anhil_one_creat(i,:,:,:,1)
+  write(*,'(I3,x,100(F16.10,X))')i,one_creat(i,:,1)
 ! write(*,'(I3,x,100(F16.10,X))')i,one_anhil_one_creat(1,4,1,2,1)
+! 
  enddo
 
 

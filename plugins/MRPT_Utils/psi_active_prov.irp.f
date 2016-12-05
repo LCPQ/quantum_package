@@ -380,32 +380,46 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
   enddo
 
  else if (n_holes_act == 1 .and. n_particles_act == 2) then
-  ! First find the particle that has been added from the inactive
-  !
-  integer :: spin_hole_inact, spin_hole_part_act
-  spin_hole_inact = list_holes_inact(1,2)
-  
+  ! first hole
+  ispin = hole_list_practical(1,1)
+  i_hole_act =  hole_list_practical(2,1)
+  ! first particle 
+  kspin = particle_list_practical(1,1)
+  i_particle_act =  particle_list_practical(2,1)
+  ! first particle 
+  jspin = particle_list_practical(1,2)
+  j_particle_act =  particle_list_practical(2,2)
+  do i_state = 1, N_states
+   delta_e_act(i_state) += two_creat_one_anhil(i_particle_act,j_particle_act,i_hole_act,kspin,jspin,ispin,i_state)
+  enddo
+
+
+! ! First find the particle that has been added from the inactive
+! !
+! integer :: spin_hole_inact, spin_hole_part_act
+! spin_hole_inact = list_holes_inact(1,2)
+! 
 ! ! by convention, you first make a movement in the cas 
 ! ! first hole
-  i_hole_act = hole_list_practical(2,1)
-  if(particle_list_practical(1,1) == spin_hole_inact)then
+! i_hole_act = hole_list_practical(2,1)
+! if(particle_list_practical(1,1) == spin_hole_inact)then
 !  ! first particle
-   i_particle_act = particle_list_practical(2,2)
+!  i_particle_act = particle_list_practical(1,2)
 !  ! second particle
-   j_particle_act =  particle_list_practical(1,2)
-  else if (particle_list_practical(1,2) == spin_hole_inact)then
+!  j_particle_act =  particle_list_practical(2,2)
+! else if (particle_list_practical(1,2) == spin_hole_inact)then
 !  ! first particle
-   i_particle_act = particle_list_practical(1,2)
+!  i_particle_act = particle_list_practical(2,2)
 !  ! second particle
-   j_particle_act =  particle_list_practical(2,2)
-  else 
-   print*, 'pb in n_holes_act == 1 .and. n_particles_act == 2 !!'
-   stop
-  endif
+!  j_particle_act =  particle_list_practical(1,2)
+! else 
+!  print*, 'pb in n_holes_act == 1 .and. n_particles_act == 2 !!'
+!  stop
+! endif
 
-  do i_state = 1, N_states
-   delta_e_act(i_state) += two_creat_one_anhil(i_particle_act,j_particle_act,i_hole_act,i_state)
-  enddo
+! do i_state = 1, N_states
+!  delta_e_act(i_state) += two_creat_one_anhil(i_particle_act,j_particle_act,i_hole_act,i_state)
+! enddo
 
  else if (n_holes_act == 3 .and. n_particles_act == 0) then
   ! first hole
@@ -466,6 +480,7 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
   delta_e_final(i_state) = delta_e_act(i_state)  + delta_e_inactive(i_state) - delta_e_virt(i_state)
  enddo
 !write(*,'(100(f16.10,X))'), delta_e_final(1) , delta_e_act(1)  , delta_e_inactive(1) , delta_e_virt(1)
+!write(*,'(100(f16.10,X))'), delta_e_final(2) , delta_e_act(2)  , delta_e_inactive(2) , delta_e_virt(2)
 
 end
 
@@ -697,31 +712,18 @@ subroutine get_delta_e_dyall_fast(det_1,det_2,delta_e_final)
   enddo
 
  else if (n_holes_act == 1 .and. n_particles_act == 2) then
-  ! First find the particle that has been added from the inactive
-  !
-  integer :: spin_hole_inact, spin_hole_part_act
-  spin_hole_inact = list_holes_inact(1,2)
-  
-! ! by convention, you first make a movement in the cas 
-! ! first hole
-  i_hole_act = hole_list_practical(2,1)
-  if(particle_list_practical(1,1) == spin_hole_inact)then
-!  ! first particle
-   i_particle_act = particle_list_practical(2,2)
-!  ! second particle
-   j_particle_act =  particle_list_practical(1,2)
-  else if (particle_list_practical(1,2) == spin_hole_inact)then
-!  ! first particle
-   i_particle_act = particle_list_practical(1,2)
-!  ! second particle
-   j_particle_act =  particle_list_practical(2,2)
-  else 
-   print*, 'pb in n_holes_act == 1 .and. n_particles_act == 2 !!'
-   stop
-  endif
 
+  ! first hole
+  ispin = hole_list_practical(1,1)
+  i_hole_act =  hole_list_practical(2,1)
+  ! first particle 
+  kspin = particle_list_practical(1,1)
+  i_particle_act =  particle_list_practical(2,1)
+  ! first particle 
+  jspin = particle_list_practical(1,2)
+  j_particle_act =  particle_list_practical(2,2)
   do i_state = 1, N_states
-   delta_e_act(i_state) += two_creat_one_anhil(i_particle_act,j_particle_act,i_hole_act,i_state)
+   delta_e_act(i_state) += two_creat_one_anhil(i_particle_act,j_particle_act,i_hole_act,kspin,jspin,ispin,i_state)
   enddo
 
  else if (n_holes_act == 3 .and. n_particles_act == 0) then
@@ -782,7 +784,7 @@ subroutine get_delta_e_dyall_fast(det_1,det_2,delta_e_final)
  do i_state = 1, n_states
   delta_e_final(i_state) = delta_e_act(i_state)  + delta_e_inactive(i_state) - delta_e_virt(i_state)
  enddo
-!write(*,'(100(f16.10,X))'), delta_e_final(1) , delta_e_act(1)  , delta_e_inactive(1) , delta_e_virt(1)
+!write(*,'(100(f16.10,X))'), delta_e_final(2) , delta_e_act(2)  , delta_e_inactive(2) , delta_e_virt(2)
 
 end
 

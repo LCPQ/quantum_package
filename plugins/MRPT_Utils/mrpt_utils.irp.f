@@ -30,6 +30,7 @@
  accu = 0.d0
  do i_state = 1, N_states
  do i = 1, N_det_ref
+   write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
   do j = 1, N_det_ref
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
    delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
@@ -39,141 +40,174 @@
  enddo
  print*, '1h   = ',accu
  
- ! 1p 
- delta_ij_tmp = 0.d0
- call H_apply_mrpt_1p(delta_ij_tmp,N_det_ref)
- accu = 0.d0
- do i_state = 1, N_states
- do i = 1, N_det_ref
-  do j = 1, N_det_ref
-   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-  enddo
- enddo
- second_order_pt_new_1p(i_state) = accu(i_state) 
- enddo
- print*, '1p   = ',accu
-
- ! 1h1p 
- delta_ij_tmp = 0.d0
- call H_apply_mrpt_1h1p(delta_ij_tmp,N_det_ref)
- accu = 0.d0
- do i_state = 1, N_states
- do i = 1, N_det_ref
-  do j = 1, N_det_ref
-   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
-    delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-  enddo
- enddo
- second_order_pt_new_1h1p(i_state) = accu(i_state) 
- enddo
- print*, '1h1p = ',accu
-
- ! 1h1p third order
- if(do_third_order_1h1p)then
-  delta_ij_tmp = 0.d0
-  call give_1h1p_sec_order_singles_contrib(delta_ij_tmp)
-  accu = 0.d0
-  do i_state = 1, N_states
-  do i = 1, N_det_ref
-   do j = 1, N_det_ref
-    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
-    delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+   ! 1p 
+   delta_ij_tmp = 0.d0
+   call H_apply_mrpt_1p(delta_ij_tmp,N_det_ref)
+   accu = 0.d0
+   do i_state = 1, N_states
+   do i = 1, N_det_ref
+     write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
+    do j = 1, N_det_ref
+     accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
+     delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+    enddo
    enddo
-  enddo
-  second_order_pt_new_1h1p(i_state) = accu(i_state) 
-  enddo
-  print*, '1h1p(3)',accu
- endif
-
- ! 2h   
- delta_ij_tmp = 0.d0
- call H_apply_mrpt_2h(delta_ij_tmp,N_det_ref)
- accu = 0.d0
- do i_state = 1, N_states
- do i = 1, N_det_ref
-  do j = 1, N_det_ref
-   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-  enddo
- enddo
- second_order_pt_new_2h(i_state) = accu(i_state) 
- enddo
- print*, '2h   = ',accu
-
- ! 2p   
- delta_ij_tmp = 0.d0
- call H_apply_mrpt_2p(delta_ij_tmp,N_det_ref)
- accu = 0.d0
- do i_state = 1, N_states
- do i = 1, N_det_ref
-  do j = 1, N_det_ref
-   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-  enddo
- enddo
- second_order_pt_new_2p(i_state) = accu(i_state) 
- enddo
- print*, '2p   = ',accu
-
- ! 1h2p   
- delta_ij_tmp = 0.d0
- call give_1h2p_contrib(delta_ij_tmp)
- !!!call H_apply_mrpt_1h2p(delta_ij_tmp,N_det_ref)
- accu = 0.d0
- do i_state = 1, N_states
- do i = 1, N_det_ref
-  do j = 1, N_det_ref
-   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-  enddo
- enddo
- second_order_pt_new_1h2p(i_state) = accu(i_state) 
- enddo
- print*, '1h2p = ',accu
-
- ! 2h1p   
- delta_ij_tmp = 0.d0
- call give_2h1p_contrib(delta_ij_tmp)
- !!!!call H_apply_mrpt_2h1p(delta_ij_tmp,N_det_ref)
- accu = 0.d0
- do i_state = 1, N_states
- do i = 1, N_det_ref
-  do j = 1, N_det_ref
-   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-  enddo
- enddo
- second_order_pt_new_2h1p(i_state) = accu(i_state) 
- enddo
- print*, '2h1p = ',accu
-
- ! 2h2p   
-
- double precision :: contrib_2h2p(N_states)
- call give_2h2p(contrib_2h2p)
- do i_state = 1, N_states
-  do i = 1, N_det_ref
-    delta_ij(i,i,i_state) += contrib_2h2p(i_state)
-  enddo
- second_order_pt_new_2h2p(i_state) = contrib_2h2p(i_state) 
- enddo
- print*, '2h2p = ',contrib_2h2p(:) 
- 
+   second_order_pt_new_1p(i_state) = accu(i_state) 
+   enddo
+   print*, '1p   = ',accu
+  
+   ! 1h1p 
+   delta_ij_tmp = 0.d0
+   call H_apply_mrpt_1h1p(delta_ij_tmp,N_det_ref)
+   accu = 0.d0
+   do i_state = 1, N_states
+   do i = 1, N_det_ref
+     write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
+    do j = 1, N_det_ref
+     accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
+      delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+    enddo
+   enddo
+   second_order_pt_new_1h1p(i_state) = accu(i_state) 
+   enddo
+   print*, '1h1p = ',accu
+  
+   ! 1h1p third order
+   if(do_third_order_1h1p)then
+    delta_ij_tmp = 0.d0
+    call give_1h1p_sec_order_singles_contrib(delta_ij_tmp)
+    accu = 0.d0
+    do i_state = 1, N_states
+    do i = 1, N_det_ref
+     write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
+     do j = 1, N_det_ref
+      accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
+      delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+     enddo
+    enddo
+    second_order_pt_new_1h1p(i_state) = accu(i_state) 
+    enddo
+    print*, '1h1p(3)',accu
+   endif
+  
+   ! 2h   
+   delta_ij_tmp = 0.d0
+   call H_apply_mrpt_2h(delta_ij_tmp,N_det_ref)
+   accu = 0.d0
+   do i_state = 1, N_states
+   do i = 1, N_det_ref
+     write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
+    do j = 1, N_det_ref
+     accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
+     delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+    enddo
+   enddo
+   second_order_pt_new_2h(i_state) = accu(i_state) 
+   enddo
+   print*, '2h   = ',accu
+  
+   ! 2p   
+   delta_ij_tmp = 0.d0
+   call H_apply_mrpt_2p(delta_ij_tmp,N_det_ref)
+   accu = 0.d0
+   do i_state = 1, N_states
+   do i = 1, N_det_ref
+     write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
+    do j = 1, N_det_ref
+     accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
+     delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+    enddo
+   enddo
+   second_order_pt_new_2p(i_state) = accu(i_state) 
+   enddo
+   print*, '2p   = ',accu
+  
+   ! 1h2p   
+   delta_ij_tmp = 0.d0
+   call give_1h2p_contrib(delta_ij_tmp)
+   !!!call H_apply_mrpt_1h2p(delta_ij_tmp,N_det_ref)
+   accu = 0.d0
+   do i_state = 1, N_states
+   do i = 1, N_det_ref
+     write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
+    do j = 1, N_det_ref
+     accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
+     delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+    enddo
+   enddo
+   second_order_pt_new_1h2p(i_state) = accu(i_state) 
+   enddo
+   print*, '1h2p = ',accu
+  
+   ! 2h1p   
+   delta_ij_tmp = 0.d0
+   call give_2h1p_contrib(delta_ij_tmp)
+   !!!!call H_apply_mrpt_2h1p(delta_ij_tmp,N_det_ref)
+   accu = 0.d0
+   do i_state = 1, N_states
+   do i = 1, N_det_ref
+     write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
+    do j = 1, N_det_ref
+     accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
+     delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+    enddo
+   enddo
+   second_order_pt_new_2h1p(i_state) = accu(i_state) 
+   enddo
+   print*, '2h1p = ',accu
+  
+   ! 2h2p   
+  
+   double precision :: contrib_2h2p(N_states)
+   call give_2h2p(contrib_2h2p)
+   do i_state = 1, N_states
+    do i = 1, N_det_ref
+      delta_ij(i,i,i_state) += contrib_2h2p(i_state)
+    enddo
+   second_order_pt_new_2h2p(i_state) = contrib_2h2p(i_state) 
+   enddo
+   print*, '2h2p = ',contrib_2h2p(:) 
+   
 
  ! total  
-  accu = 0.d0
+ accu = 0.d0
+ print*, 'naked matrix'
+ double precision, allocatable :: hmatrix(:,:)
+ double precision:: hij,h00
+ allocate(hmatrix(N_det_ref, N_det_ref))
+ call i_h_j(psi_ref(1,1,1),psi_ref(1,1,1),N_int,h00)
+ do i = 1, N_det_ref
+  do j = 1, N_det_Ref
+   call i_h_j(psi_ref(1,1,i),psi_ref(1,1,j),N_int,hij)
+   hmatrix(i,j) = hij 
+  enddo
+  print*, hmatrix(i,i), h00
+  hmatrix(i,i) += - h00
+ enddo
+ do i = 1, N_det_ref
+  write(*,'(1000(F16.10,x))')hmatrix(i,:)
+ enddo
+ print*, ''
+ print*, ''
+ print*, ''
  do i_state = 1, N_states
   print*,'state  ',i_state
   do i = 1, N_det_ref
    write(*,'(1000(F16.10,x))')delta_ij(i,:,i_state)
-   do j = i , N_det_ref
+   do j = 1 , N_det_ref
     accu(i_state) += delta_ij(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
+    hmatrix(i,j)  += delta_ij(j,i,i_state)
    enddo
   enddo
   second_order_pt_new(i_state) = accu(i_state) 
   print*, 'total= ',accu(i_state)
+
+  do i = 1, N_det_ref
+   write(*,'(1000(F16.10,x))')hmatrix(i,:)
+  enddo
+  
  enddo
+ deallocate(hmatrix)
 
 
 
@@ -206,7 +240,7 @@ END_PROVIDER
     call i_h_j(psi_ref(1,1,j),psi_ref(1,1,i),N_int,hij) 
     Hmatrix_dressed_pt2_new_symmetrized(j,i,i_state) =  hij & 
                                             + 0.5d0 * ( delta_ij(j,i,i_state) + delta_ij(i,j,i_state) )
-    Hmatrix_dressed_pt2_new_symmetrized(i,j,i_state) =  Hmatrix_dressed_pt2_new_symmetrized(j,i,i_state) 
+!   Hmatrix_dressed_pt2_new_symmetrized(i,j,i_state) =  Hmatrix_dressed_pt2_new_symmetrized(j,i,i_state) 
    enddo
   enddo
  enddo
@@ -260,8 +294,8 @@ END_PROVIDER
       allocate (hmatrix_tmp(N_det_ref,N_det_ref))
       allocate (iorder(N_det_ref))
       allocate (psi_tmp(N_det_ref))
-       print*,''
-       print*,'***************************'
+      print*,''
+      print*,'***************************'
       do i_state = 1, N_states !! Big loop over states
        print*,''
        print*,'Diagonalizing with the dressing for state',i_state
@@ -305,7 +339,26 @@ END_PROVIDER
        call u_0_S2_u_0(CI_dressed_pt2_new_eigenvectors_s2(i_state),psi_tmp,N_det_ref,psi_det,N_int,1,N_det_ref)
        print*,'S^2      = ', CI_dressed_pt2_new_eigenvectors_s2(i_state)
       enddo
+    !else if(state_average)then
+    !  print*,''
+    !  print*,'***************************'
+    !  print*,''
+    !  print*,'Doing state average dressings'
+    ! allocate (hmatrix_tmp(N_det_ref,N_det_ref))
+    ! hmatrix_tmp = 0.d0
+    ! do i_state = 1, N_states !! Big loop over states
+    !  do i = 1, N_det_ref
+    !   do j = 1, N_det_ref
+    !    hmatrix_tmp(j,i) += Hmatrix_dressed_pt2_new_symmetrized(j,i,i_state)
+    !   enddo
+    !  enddo
+    ! enddo
+
+
+    ! deallocate(hmatrix_tmp)
+
      else 
+
       call lapack_diag(eigenvalues,eigenvectors,                      &
           Hmatrix_dressed_pt2_new_symmetrized(1,1,1),N_det_ref,N_det_ref)
       CI_electronic_dressed_pt2_new_energy(:) = 0.d0

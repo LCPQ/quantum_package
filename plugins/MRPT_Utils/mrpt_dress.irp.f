@@ -66,21 +66,47 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
   end if
   
   
+ double  precision :: coef_array(N_states)
   do i_alpha=1,N_tq
+!  do i = 1, N_det_ref
+!   do i_state = 1, N_states
+!    coef_array(i_state) = psi_ref_coef(i,i_state)
+!   enddo
+!   call i_H_j(psi_ref(1,1,i),tq(1,1,i_alpha),n_int,hialpha)
+!     if(dabs(hialpha).le.1.d-20)then
+!      do i_state = 1, N_states
+!       delta_e(i_state) = 1.d+20
+!      enddo
+!     else
+!      call get_delta_e_dyall(psi_ref(1,1,i),tq(1,1,i_alpha),coef_array,hialpha,delta_e)
+!     endif
+!     hij_array(i) = hialpha
+!     do i_state = 1,N_states
+!      delta_e_inv_array(i,i_state) = 1.d0/delta_e(i_state)
+!     enddo
+!  enddo
+!  do i = 1, N_det_ref
+!   do j = 1, N_det_ref
+!    do i_state = 1, N_states
+!     delta_ij_(i,j,i_state) += hij_array(i) * hij_array(j)* delta_e_inv_array(j,i_state)
+!    enddo
+!   enddo
+!  enddo
+!  cycle
+
+
+
+ !  call get_excitation_degree_vector(psi_ref,tq(1,1,i_alpha),degree_alpha,Nint,N_det_ref,idx_alpha)
     call get_excitation_degree_vector(miniList,tq(1,1,i_alpha),degree_alpha,Nint,N_minilist,idx_alpha)
     
     do j=1,idx_alpha(0)
       idx_alpha(j) = idx_miniList(idx_alpha(j))
     enddo
      
-!   double precision :: ihpsi0,coef_pert
-!   ihpsi0 = 0.d0
-!   coef_pert = 0.d0
     phase_array  =0.d0
     do i = 1,idx_alpha(0)
       index_i = idx_alpha(i)
       call i_h_j(tq(1,1,i_alpha),psi_ref(1,1,index_i),Nint,hialpha)
-      double  precision :: coef_array(N_states)
       do i_state = 1, N_states
        coef_array(i_state) = psi_ref_coef(index_i,i_state)
       enddo
@@ -91,25 +117,21 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
        do i_state = 1, N_states
         delta_e(i_state) = 1.d+20
        enddo
-      else
+     !else if(degree_scalar== 1)then
+      else 
        call get_delta_e_dyall(psi_ref(1,1,index_i),tq(1,1,i_alpha),coef_array,hialpha,delta_e)
-       do i_state = 1, N_states
-        if(isnan(delta_e(i_state)))then
-         print*, 'i_state',i_state  
-         call debug_det(psi_ref(1,1,index_i),N_int)
-         call debug_det(tq(1,1,i_alpha),N_int)
-         print*, delta_e(:)
-         stop
-        endif
-       enddo
+      !if(dabs(delta_e(2)) .le. dabs(0.01d0))then
+      !print*, delta_e(2)
+      !call debug_det(psi_ref(1,1,index_i),N_int)
+      !call debug_det(tq(1,1,i_alpha),N_int)
+      !endif
+   
+      !else 
+      !do i_state = 1, N_states
+      ! delta_e(i_state) = 1.d+20
+      !enddo
       endif
-!     if(degree_scalar .ne. 1)then
-!      do i_state = 1, N_states
-!       delta_e(i_state) = 1.d+20
-!      enddo
-!     endif
       hij_array(index_i) = hialpha
-!     call get_excitation(psi_ref(1,1,index_i),tq(1,1,i_alpha),exc,degree,phase,N_int)
       do i_state = 1,N_states
        delta_e_inv_array(index_i,i_state) = 1.d0/delta_e(i_state)
       enddo
@@ -122,7 +144,7 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
       do j = 1, idx_alpha(0)
        index_j = idx_alpha(j)
        do i_state=1,N_states
-! standard dressing first order
+        ! standard dressing first order
          delta_ij_(index_i,index_j,i_state) += hij_array(index_j) * hij_tmp * delta_e_inv_array(index_j,i_state)
        enddo
       enddo
