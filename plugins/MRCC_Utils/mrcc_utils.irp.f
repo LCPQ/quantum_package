@@ -750,6 +750,10 @@ END_PROVIDER
     end do
     deallocate(lref)
 
+    do i=1,N_det_non_ref
+      rho_mrcc(i,s) = rho_mrcc_init(i) 
+    enddo
+
     x_new = x
     
     double precision               :: factor, resold
@@ -757,14 +761,8 @@ END_PROVIDER
     resold = huge(1.d0)
 
     do k=0,10*hh_nex
-      !$OMP PARALLEL default(shared) private(cx, i, a_col, a_coll)
-      
-      !$OMP DO
-      do i=1,N_det_non_ref
-        rho_mrcc(i,s) = rho_mrcc_init(i) 
-      enddo
-      !$OMP END DO
-      
+      res = 0.d0
+      !$OMP PARALLEL default(shared) private(cx, i, a_col, a_coll) reduction(+:res)
       !$OMP DO
       do a_coll = 1, n_exc_active
         a_col = active_pp_idx(a_coll)
@@ -773,23 +771,12 @@ END_PROVIDER
           cx = cx + x(mrcc_AtA_ind(i)) * mrcc_AtA_val(s,i)
         end do
         x_new(a_col) = AtB(a_col) + cx * factor
-      end do
-      !$OMP END DO
-
-      !$OMP END PARALLEL
-      
-      
-      res = 0.d0
-      do a_coll=1,n_exc_active
-        a_col = active_pp_idx(a_coll)
-        do j=1,N_det_non_ref
-          i = active_excitation_to_determinants_idx(j,a_coll)
-          if (i==0) exit
-          rho_mrcc(i,s) = rho_mrcc(i,s) + active_excitation_to_determinants_val(s,j,a_coll) * X_new(a_col)
-        enddo
         res = res + (X_new(a_col) - X(a_col))*(X_new(a_col) - X(a_col))
         X(a_col) = X_new(a_col)
       end do
+      !$OMP END DO
+      !$OMP END PARALLEL
+      
       if (res > resold) then
         factor = factor * 0.5d0
       endif
@@ -801,7 +788,43 @@ END_PROVIDER
       
       if(res < 1d-10) exit
     end do
+    dIj_unique(1:size(X), s) = X(1:size(X))
+
+!    double precision, external :: ddot
+!    if (ddot (size(X), dIj_unique, 1, X, 1) < 0.d0) then
+!      dIj_unique(1:size(X),s) = -X(1:size(X))
+!    endif
     
+  enddo
+
+  ! Adjust phase of dIj_unique
+
+!  double precision :: snorm
+!  X = 0.d0
+!  snorm = 0.d0
+!  do s=1,N_states
+!    norm = 0.d0
+!    do i=1,N_det_non_ref
+!      norm = norm + psi_non_ref_coef(i,s)*psi_non_ref_coef(i,s)
+!    enddo
+!    norm = dsqrt(norm)
+!    X(1:size(X)) = X(1:size(X)) + dIj_unique(1:size(X),s) * norm
+!    snorm += norm
+!  enddo
+!  X = X/snorm
+
+  do s=1,N_states
+
+    do a_coll=1,n_exc_active
+      a_col = active_pp_idx(a_coll)
+      do j=1,N_det_non_ref
+        i = active_excitation_to_determinants_idx(j,a_coll)
+        if (i==0) exit
+        rho_mrcc(i,s) = rho_mrcc(i,s) + active_excitation_to_determinants_val(s,j,a_coll) * dIj_unique(a_col,s)
+!        rho_mrcc(i,s) = rho_mrcc(i,s) + active_excitation_to_determinants_val(s,j,a_coll) * X(a_col)
+      enddo
+    end do
+
     norm = 0.d0
     do i=1,N_det_non_ref
       norm = norm + rho_mrcc(i,s)*rho_mrcc(i,s)
@@ -813,122 +836,11 @@ END_PROVIDER
     enddo
     ! Norm now contains the norm of Psi + A.X
     
-    print *, k, "res : ", res, "norm : ", sqrt(norm)
-        
-!---------------
-! double precision               :: e_0, overlap
-! double precision, allocatable  :: u_0(:)
-! integer(bit_kind), allocatable :: keys_tmp(:,:,:)
-! allocate (u_0(N_det), keys_tmp(N_int,2,N_det) )
-! k=0
-! overlap = 0.d0
-! do i=1,N_det_ref
-!   k = k+1
-!   u_0(k) = psi_ref_coef(i,1)
-!   keys_tmp(:,:,k) = psi_ref(:,:,i)
-!   overlap += u_0(k)*psi_ref_coef(i,1)
-! enddo
-! norm = 0.d0
-! do i=1,N_det_non_ref
-!   k = k+1
-!   u_0(k) = psi_non_ref_coef(i,1)
-!   keys_tmp(:,:,k) = psi_non_ref(:,:,i)
-!   overlap += u_0(k)*psi_non_ref_coef(i,1)
-! enddo
-! 
-! call u_0_H_u_0(e_0,u_0,N_det,keys_tmp,N_int,1,N_det)
-! print *,  'Energy of |Psi_CASSD> : ', e_0 + nuclear_repulsion, overlap
-!
-! k=0
-! overlap = 0.d0
-! do i=1,N_det_ref
-!   k = k+1
-!   u_0(k) = psi_ref_coef(i,1)
-!   keys_tmp(:,:,k) = psi_ref(:,:,i)
-!   overlap += u_0(k)*psi_ref_coef(i,1)
-! enddo
-! norm = 0.d0
-! do i=1,N_det_non_ref
-!   k = k+1
-!   ! f is such that f.\tilde{c_i} = c_i
-!   f = psi_non_ref_coef(i,1) / rho_mrcc(i,1)
-!   
-!   ! Avoid numerical instabilities
-!   f = min(f,2.d0)
-!   f = max(f,-2.d0)
-!
-!   f = 1.d0
-!
-!   u_0(k) = rho_mrcc(i,1)*f
-!   keys_tmp(:,:,k) = psi_non_ref(:,:,i)
-!   norm += u_0(k)**2
-!   overlap += u_0(k)*psi_non_ref_coef(i,1)
-! enddo
-! 
-! call u_0_H_u_0(e_0,u_0,N_det,keys_tmp,N_int,1,N_det)
-! print *,  'Energy of |(1+T)Psi_0> : ', e_0 + nuclear_repulsion, overlap
-!
-! f = 1.d0/norm
-! norm = 1.d0
-! do i=1,N_det_ref
-!  norm = norm - psi_ref_coef(i,s)*psi_ref_coef(i,s)
-! enddo
-! f = dsqrt(f*norm)
-! overlap = norm
-! do i=1,N_det_non_ref
-!   u_0(k) = rho_mrcc(i,1)*f
-!   overlap += u_0(k)*psi_non_ref_coef(i,1)
-! enddo
-!
-! call u_0_H_u_0(e_0,u_0,N_det,keys_tmp,N_int,1,N_det)
-! print *,  'Energy of |(1+T)Psi_0> (normalized) : ', e_0 + nuclear_repulsion,  overlap
-!
-! k=0
-! overlap = 0.d0
-! do i=1,N_det_ref
-!   k = k+1
-!   u_0(k) = psi_ref_coef(i,1)
-!   keys_tmp(:,:,k) = psi_ref(:,:,i)
-!   overlap += u_0(k)*psi_ref_coef(i,1)
-! enddo
-! norm = 0.d0
-! do i=1,N_det_non_ref
-!   k = k+1
-!   ! f is such that f.\tilde{c_i} = c_i
-!   f = psi_non_ref_coef(i,1) / rho_mrcc(i,1)
-!   
-!   ! Avoid numerical instabilities
-!   f = min(f,2.d0)
-!   f = max(f,-2.d0)
-!
-!   u_0(k) = rho_mrcc(i,1)*f
-!   keys_tmp(:,:,k) = psi_non_ref(:,:,i)
-!   norm += u_0(k)**2
-!   overlap += u_0(k)*psi_non_ref_coef(i,1)
-! enddo
-! 
-! call u_0_H_u_0(e_0,u_0,N_det,keys_tmp,N_int,1,N_det)
-! print *,  'Energy of |(1+T)Psi_0> (mu_i): ', e_0 + nuclear_repulsion, overlap
-!
-! f = 1.d0/norm
-! norm = 1.d0
-! do i=1,N_det_ref
-!  norm = norm - psi_ref_coef(i,s)*psi_ref_coef(i,s)
-! enddo
-! overlap = norm
-! f = dsqrt(f*norm)
-! do i=1,N_det_non_ref
-!   u_0(k) = rho_mrcc(i,1)*f
-!   overlap += u_0(k)*psi_non_ref_coef(i,1)
-! enddo
-!
-! call u_0_H_u_0(e_0,u_0,N_det,keys_tmp,N_int,1,N_det)
-! print *,  'Energy of |(1+T)Psi_0> (normalized mu_i) : ', e_0 + nuclear_repulsion, overlap
-!
-! deallocate(u_0, keys_tmp)
-!
-!---------------
+    print *, "norm : ", sqrt(norm)
+   enddo
      
+        
+   do s=1,N_states
      norm = 0.d0
      double precision               :: f
      do i=1,N_det_non_ref
@@ -976,7 +888,6 @@ END_PROVIDER
      ! rho_mrcc now contains the product of the scaling factors and the
      ! normalization constant
     
-    dIj_unique(1:size(X), s) = X(1:size(X))
   end do
 
 END_PROVIDER
