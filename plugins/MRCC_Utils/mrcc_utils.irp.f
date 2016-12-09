@@ -33,6 +33,7 @@ END_PROVIDER
       if (ihpsi_current(k) == 0.d0) then
         ihpsi_current(k) = 1.d-32
       endif
+!      lambda_mrcc(k,i) = psi_non_ref_coef(i,k)/ihpsi_current(k) 
       lambda_mrcc(k,i) = min(-1.d-32,psi_non_ref_coef(i,k)/ihpsi_current(k) )
       lambda_pert = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
       if (lambda_pert / lambda_mrcc(k,i)  < 0.5d0) then
