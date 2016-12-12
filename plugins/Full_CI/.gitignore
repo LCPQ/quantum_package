@@ -3,6 +3,7 @@
 .ninja_log
 AO_Basis
 Bitmask
+Davidson
 Determinants
 Electrons
 Ezfio_files
@@ -28,7 +29,6 @@ full_ci
 full_ci_no_skip
 irpf90.make
 irpf90_entities
-micro_pt2
 tags
 target_pt2
 var_pt2_ratio
