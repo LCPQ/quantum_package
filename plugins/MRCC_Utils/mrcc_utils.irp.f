@@ -848,12 +848,16 @@ END_PROVIDER
          rho_mrcc(i,s) = 1.d-32
        endif
 
-       ! f is such that f.\tilde{c_i} = c_i
-       f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
+       if (lambda_type == 2) then
+         f = 1.d0
+       else
+        ! f is such that f.\tilde{c_i} = c_i
+        f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
 
-       ! Avoid numerical instabilities
-       f = min(f,2.d0)
-       f = max(f,-2.d0)
+        ! Avoid numerical instabilities
+        f = min(f,2.d0)
+        f = max(f,-2.d0)
+      endif
 
        norm = norm + f*f *rho_mrcc(i,s)*rho_mrcc(i,s)
        rho_mrcc(i,s) = f
@@ -928,6 +932,7 @@ double precision function get_dij_index(II, i, s, Nint)
   else if(lambda_type == 2) then
     call get_phase(psi_ref(1,1,II), psi_non_ref(1,1,i), phase, N_int)
     get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint) * phase
+    get_dij_index = get_dij_index * rho_mrcc(i,s) 
   end if
 end function
 
