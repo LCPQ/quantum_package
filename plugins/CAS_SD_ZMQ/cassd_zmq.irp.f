@@ -68,8 +68,8 @@ program fci_zmq
     call ezfio_set_cas_sd_zmq_energy(CI_energy(1))
     
     n_det_before = N_det
-    to_select = 3*N_det
-    to_select = max(256-to_select, to_select)
+    to_select = 2*N_det
+    to_select = max(64-to_select, to_select)
     to_select = min(to_select,N_det_max-n_det_before)
     call ZMQ_selection(to_select, pt2)
     
