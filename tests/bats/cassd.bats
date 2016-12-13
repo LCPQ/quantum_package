@@ -21,6 +21,6 @@ source $QP_ROOT/tests/bats/common.bats.sh
   qp_run cassd_zmq $INPUT  
   ezfio set determinants read_wf False
   energy="$(ezfio get cas_sd_zmq energy)"
-  eq $energy -76.2300888408526   2.E-5
+  eq $energy -76.2300887947446   2.E-5
 }
 
