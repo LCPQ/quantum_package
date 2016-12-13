@@ -33,6 +33,7 @@ END_PROVIDER
       if (ihpsi_current(k) == 0.d0) then
         ihpsi_current(k) = 1.d-32
       endif
+!      lambda_mrcc(k,i) = psi_non_ref_coef(i,k)/ihpsi_current(k) 
       lambda_mrcc(k,i) = min(-1.d-32,psi_non_ref_coef(i,k)/ihpsi_current(k) )
       lambda_pert = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
       if (lambda_pert / lambda_mrcc(k,i)  < 0.5d0) then
@@ -77,19 +78,6 @@ BEGIN_PROVIDER [ double precision, hij_mrcc, (N_det_non_ref,N_det_ref) ]
 
 END_PROVIDER
 
-! BEGIN_PROVIDER [ double precision, delta_ij, (N_states,N_det_non_ref,N_det_ref) ]
-!&BEGIN_PROVIDER [ double precision, delta_ii, (N_states,N_det_ref) ]
-! implicit none
-! BEGIN_DOC
-! ! Dressing matrix in N_det basis
-! END_DOC
-! integer :: i,j,m
-! delta_ij = 0.d0
-! delta_ii = 0.d0
-! call H_apply_mrcc(delta_ij,delta_ii,N_states,N_det_non_ref,N_det_ref)
-!
-!END_PROVIDER
-             
 
 BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]
  implicit none
@@ -149,8 +137,13 @@ END_PROVIDER
      
      allocate (eigenvectors(size(CI_eigenvectors_dressed,1),size(CI_eigenvectors_dressed,2)), &
      eigenvalues(size(CI_electronic_energy_dressed,1)))
+     do j=1,min(N_states,N_det)
+       do i=1,N_det
+         eigenvectors(i,j) = psi_coef(i,j)
+       enddo
+     enddo
      do mrcc_state=1,N_states
-      do j=1,min(N_states,N_det)
+      do j=mrcc_state,min(N_states,N_det)
         do i=1,N_det
           eigenvectors(i,j) = psi_coef(i,j)
         enddo
@@ -161,17 +154,15 @@ END_PROVIDER
             output_determinants,mrcc_state)
       CI_eigenvectors_dressed(1:N_det,mrcc_state) = eigenvectors(1:N_det,mrcc_state)
       CI_electronic_energy_dressed(mrcc_state) = eigenvalues(mrcc_state)
-      if (mrcc_state == 1) then
-        do k=N_states+1,N_states_diag
-          CI_eigenvectors_dressed(1:N_det,k) = eigenvectors(1:N_det,k)
-          CI_electronic_energy_dressed(k) = eigenvalues(k)
-        enddo
-      endif
-     enddo
-     call u_0_S2_u_0(CI_eigenvectors_s2_dressed,CI_eigenvectors_dressed,N_det,psi_det,N_int,&
+   enddo
+   do k=N_states+1,N_states_diag
+     CI_eigenvectors_dressed(1:N_det,k) = eigenvectors(1:N_det,k)
+     CI_electronic_energy_dressed(k) = eigenvalues(k)
+   enddo
+   call u_0_S2_u_0(CI_eigenvectors_s2_dressed,CI_eigenvectors_dressed,N_det,psi_det,N_int,&
           N_states_diag,size(CI_eigenvectors_dressed,1))
-     deallocate (eigenvectors,eigenvalues)
 
+   deallocate (eigenvectors,eigenvalues)
      
    else if (diag_algorithm == "Lapack") then
      
@@ -649,14 +640,12 @@ END_PROVIDER
   allocate(rho_mrcc_init(N_det_non_ref))
   allocate(x_new(hh_nex))
   allocate(x(hh_nex), AtB(hh_nex))
-  x = 0d0
-        
 
   do s=1,N_states
 
     AtB(:) = 0.d0
     !$OMP PARALLEL default(none) shared(k, psi_non_ref_coef, active_excitation_to_determinants_idx,&
-        !$OMP   active_excitation_to_determinants_val, x, N_det_ref, hh_nex, N_det_non_ref)          &
+        !$OMP   active_excitation_to_determinants_val, N_det_ref, hh_nex, N_det_non_ref)          &
         !$OMP private(at_row, a_col, i, j, r1, r2, wk, A_ind_mwen, A_val_mwen, a_coll, at_roww)&
         !$OMP shared(N_states,mrcc_col_shortcut, mrcc_N_col, AtB, mrcc_AtA_val, mrcc_AtA_ind, s, n_exc_active, active_pp_idx)
     
@@ -712,21 +701,19 @@ END_PROVIDER
     end do
     deallocate(lref)
 
+    do i=1,N_det_non_ref
+      rho_mrcc(i,s) = rho_mrcc_init(i) 
+    enddo
+
     x_new = x
     
     double precision               :: factor, resold
     factor = 1.d0
     resold = huge(1.d0)
 
-    do k=0,100000
-      !$OMP PARALLEL default(shared) private(cx, i, a_col, a_coll)
-      
-      !$OMP DO
-      do i=1,N_det_non_ref
-        rho_mrcc(i,s) = rho_mrcc_init(i) 
-      enddo
-      !$OMP END DO NOWAIT
-      
+    do k=0,10*hh_nex
+      res = 0.d0
+      !$OMP PARALLEL default(shared) private(cx, i, a_col, a_coll) reduction(+:res)
       !$OMP DO
       do a_coll = 1, n_exc_active
         a_col = active_pp_idx(a_coll)
@@ -735,35 +722,38 @@ END_PROVIDER
           cx = cx + x(mrcc_AtA_ind(i)) * mrcc_AtA_val(s,i)
         end do
         x_new(a_col) = AtB(a_col) + cx * factor
-      end do
-      !$OMP END DO
-
-      !$OMP END PARALLEL
-      
-      
-      res = 0.d0
-      do a_coll=1,n_exc_active
-        a_col = active_pp_idx(a_coll)
-        do j=1,N_det_non_ref
-          i = active_excitation_to_determinants_idx(j,a_coll)
-          if (i==0) exit
-          rho_mrcc(i,s) = rho_mrcc(i,s) + active_excitation_to_determinants_val(s,j,a_coll) * X_new(a_col)
-        enddo
         res = res + (X_new(a_col) - X(a_col))*(X_new(a_col) - X(a_col))
         X(a_col) = X_new(a_col)
       end do
+      !$OMP END DO
+      !$OMP END PARALLEL
+      
       if (res > resold) then
-        factor = -factor * 0.5d0
+        factor = factor * 0.5d0
       endif
       resold = res
       
-      if(mod(k, 100) == 0) then
+      if(iand(k, 4095) == 0) then
         print *, "res ", k, res
       end if
       
-      if(res < 1d-9) exit
+      if(res < 1d-10) exit
     end do
-    
+    dIj_unique(1:size(X), s) = X(1:size(X))
+
+  enddo
+
+  do s=1,N_states
+
+    do a_coll=1,n_exc_active
+      a_col = active_pp_idx(a_coll)
+      do j=1,N_det_non_ref
+        i = active_excitation_to_determinants_idx(j,a_coll)
+        if (i==0) exit
+        rho_mrcc(i,s) = rho_mrcc(i,s) + active_excitation_to_determinants_val(s,j,a_coll) * dIj_unique(a_col,s)
+      enddo
+    end do
+
     norm = 0.d0
     do i=1,N_det_non_ref
       norm = norm + rho_mrcc(i,s)*rho_mrcc(i,s)
@@ -775,122 +765,11 @@ END_PROVIDER
     enddo
     ! Norm now contains the norm of Psi + A.X
     
-    print *, k, "res : ", res, "norm : ", sqrt(norm)
-        
-!---------------
-! double precision               :: e_0, overlap
-! double precision, allocatable  :: u_0(:)
-! integer(bit_kind), allocatable :: keys_tmp(:,:,:)
-! allocate (u_0(N_det), keys_tmp(N_int,2,N_det) )
-! k=0
-! overlap = 0.d0
-! do i=1,N_det_ref
-!   k = k+1
-!   u_0(k) = psi_ref_coef(i,1)
-!   keys_tmp(:,:,k) = psi_ref(:,:,i)
-!   overlap += u_0(k)*psi_ref_coef(i,1)
-! enddo
-! norm = 0.d0
-! do i=1,N_det_non_ref
-!   k = k+1
-!   u_0(k) = psi_non_ref_coef(i,1)
-!   keys_tmp(:,:,k) = psi_non_ref(:,:,i)
-!   overlap += u_0(k)*psi_non_ref_coef(i,1)
-! enddo
-! 
-! call u_0_H_u_0(e_0,u_0,N_det,keys_tmp,N_int,1,N_det)
-! print *,  'Energy of |Psi_CASSD> : ', e_0 + nuclear_repulsion, overlap
-!
-! k=0
-! overlap = 0.d0
-! do i=1,N_det_ref
-!   k = k+1
-!   u_0(k) = psi_ref_coef(i,1)
-!   keys_tmp(:,:,k) = psi_ref(:,:,i)
-!   overlap += u_0(k)*psi_ref_coef(i,1)
-! enddo
-! norm = 0.d0
-! do i=1,N_det_non_ref
-!   k = k+1
-!   ! f is such that f.\tilde{c_i} = c_i
-!   f = psi_non_ref_coef(i,1) / rho_mrcc(i,1)
-!   
-!   ! Avoid numerical instabilities
-!   f = min(f,2.d0)
-!   f = max(f,-2.d0)
-!
-!   f = 1.d0
-!
-!   u_0(k) = rho_mrcc(i,1)*f
-!   keys_tmp(:,:,k) = psi_non_ref(:,:,i)
-!   norm += u_0(k)**2
-!   overlap += u_0(k)*psi_non_ref_coef(i,1)
-! enddo
-! 
-! call u_0_H_u_0(e_0,u_0,N_det,keys_tmp,N_int,1,N_det)
-! print *,  'Energy of |(1+T)Psi_0> : ', e_0 + nuclear_repulsion, overlap
-!
-! f = 1.d0/norm
-! norm = 1.d0
-! do i=1,N_det_ref
-!  norm = norm - psi_ref_coef(i,s)*psi_ref_coef(i,s)
-! enddo
-! f = dsqrt(f*norm)
-! overlap = norm
-! do i=1,N_det_non_ref
-!   u_0(k) = rho_mrcc(i,1)*f
-!   overlap += u_0(k)*psi_non_ref_coef(i,1)
-! enddo
-!
-! call u_0_H_u_0(e_0,u_0,N_det,keys_tmp,N_int,1,N_det)
-! print *,  'Energy of |(1+T)Psi_0> (normalized) : ', e_0 + nuclear_repulsion,  overlap
-!
-! k=0
-! overlap = 0.d0
-! do i=1,N_det_ref
-!   k = k+1
-!   u_0(k) = psi_ref_coef(i,1)
-!   keys_tmp(:,:,k) = psi_ref(:,:,i)
-!   overlap += u_0(k)*psi_ref_coef(i,1)
-! enddo
-! norm = 0.d0
-! do i=1,N_det_non_ref
-!   k = k+1
-!   ! f is such that f.\tilde{c_i} = c_i
-!   f = psi_non_ref_coef(i,1) / rho_mrcc(i,1)
-!   
-!   ! Avoid numerical instabilities
-!   f = min(f,2.d0)
-!   f = max(f,-2.d0)
-!
-!   u_0(k) = rho_mrcc(i,1)*f
-!   keys_tmp(:,:,k) = psi_non_ref(:,:,i)
-!   norm += u_0(k)**2
-!   overlap += u_0(k)*psi_non_ref_coef(i,1)
-! enddo
-! 
-! call u_0_H_u_0(e_0,u_0,N_det,keys_tmp,N_int,1,N_det)
-! print *,  'Energy of |(1+T)Psi_0> (mu_i): ', e_0 + nuclear_repulsion, overlap
-!
-! f = 1.d0/norm
-! norm = 1.d0
-! do i=1,N_det_ref
-!  norm = norm - psi_ref_coef(i,s)*psi_ref_coef(i,s)
-! enddo
-! overlap = norm
-! f = dsqrt(f*norm)
-! do i=1,N_det_non_ref
-!   u_0(k) = rho_mrcc(i,1)*f
-!   overlap += u_0(k)*psi_non_ref_coef(i,1)
-! enddo
-!
-! call u_0_H_u_0(e_0,u_0,N_det,keys_tmp,N_int,1,N_det)
-! print *,  'Energy of |(1+T)Psi_0> (normalized mu_i) : ', e_0 + nuclear_repulsion, overlap
-!
-! deallocate(u_0, keys_tmp)
-!
-!---------------
+    print *, "norm : ", sqrt(norm)
+   enddo
      
+        
+   do s=1,N_states
      norm = 0.d0
      double precision               :: f
      do i=1,N_det_non_ref
@@ -898,12 +777,16 @@ END_PROVIDER
          rho_mrcc(i,s) = 1.d-32
        endif
 
-       ! f is such that f.\tilde{c_i} = c_i
-       f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
+       if (lambda_type == 2) then
+         f = 1.d0
+       else
+        ! f is such that f.\tilde{c_i} = c_i
+        f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
 
-       ! Avoid numerical instabilities
-       f = min(f,2.d0)
-       f = max(f,-2.d0)
+        ! Avoid numerical instabilities
+        f = min(f,2.d0)
+        f = max(f,-2.d0)
+      endif
 
        norm = norm + f*f *rho_mrcc(i,s)*rho_mrcc(i,s)
        rho_mrcc(i,s) = f
@@ -938,7 +821,6 @@ END_PROVIDER
      ! rho_mrcc now contains the product of the scaling factors and the
      ! normalization constant
     
-    dIj_unique(1:size(X), s) = X(1:size(X))
   end do
 
 END_PROVIDER
@@ -950,17 +832,14 @@ BEGIN_PROVIDER [ double precision, dij, (N_det_ref, N_det_non_ref, N_states) ]
   integer :: s,i,j
   double precision, external :: get_dij_index
   print *, "computing amplitudes..."
-  !$OMP PARALLEL DEFAULT(shared) PRIVATE(s,i,j)
   do s=1, N_states
-    !$OMP DO
     do i=1, N_det_non_ref
       do j=1, N_det_ref
+        !DIR$ FORCEINLINE
         dij(j, i, s) = get_dij_index(j, i, s, N_int)
       end do
     end do
-    !$OMP END DO 
   end do
-  !$OMP END PARALLEL
   print *, "done computing amplitudes"
 END_PROVIDER
 
@@ -982,7 +861,7 @@ double precision function get_dij_index(II, i, s, Nint)
   else if(lambda_type == 2) then
     call get_phase(psi_ref(1,1,II), psi_non_ref(1,1,i), phase, N_int)
     get_dij_index = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint) * phase
-    get_dij_index = get_dij_index 
+    get_dij_index = get_dij_index * rho_mrcc(i,s) 
   end if
 end function
 

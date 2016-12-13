@@ -66,9 +66,18 @@
 
 END_PROVIDER
 
+BEGIN_PROVIDER [ integer, n_exc_active_sze ]
+ implicit none
+ BEGIN_DOC
+ ! Dimension of arrays to avoid zero-sized arrays
+ END_DOC
+ n_exc_active_sze = max(n_exc_active,1)
+END_PROVIDER
 
- BEGIN_PROVIDER [ integer, active_excitation_to_determinants_idx, (0:N_det_ref+1, n_exc_active) ]
-&BEGIN_PROVIDER [ double precision, active_excitation_to_determinants_val, (N_states,N_det_ref+1, n_exc_active) ]
+
+
+ BEGIN_PROVIDER [ integer, active_excitation_to_determinants_idx, (0:N_det_ref+1, n_exc_active_sze) ]
+&BEGIN_PROVIDER [ double precision, active_excitation_to_determinants_val, (N_states,N_det_ref+1, n_exc_active_sze) ]
  implicit none
  BEGIN_DOC
  ! Sparse matrix A containing the matrix to transform the active excitations to
@@ -89,7 +98,7 @@ END_PROVIDER
      !$OMP shared(is_active_exc, active_hh_idx, active_pp_idx, n_exc_active)&
      !$OMP private(lref, pp, II, ok, myMask, myDet, ind, phase, wk, ppp, hh, s)
  allocate(lref(N_det_non_ref))
- !$OMP DO schedule(static,10)
+ !$OMP DO schedule(dynamic)
  do ppp=1,n_exc_active
    active_excitation_to_determinants_val(:,:,ppp) = 0d0
    active_excitation_to_determinants_idx(:,ppp)   = 0
@@ -136,10 +145,10 @@ END_PROVIDER
 END_PROVIDER
 
 
- BEGIN_PROVIDER [ integer, mrcc_AtA_ind, (N_det_ref * n_exc_active) ]
-&BEGIN_PROVIDER [ double precision, mrcc_AtA_val, (N_states, N_det_ref * n_exc_active) ]
-&BEGIN_PROVIDER [ integer, mrcc_col_shortcut, (n_exc_active) ]
-&BEGIN_PROVIDER [ integer, mrcc_N_col, (n_exc_active) ]
+ BEGIN_PROVIDER [ integer, mrcc_AtA_ind, (N_det_ref * n_exc_active_sze) ]
+&BEGIN_PROVIDER [ double precision, mrcc_AtA_val, (N_states, N_det_ref * n_exc_active_sze) ]
+&BEGIN_PROVIDER [ integer, mrcc_col_shortcut, (n_exc_active_sze) ]
+&BEGIN_PROVIDER [ integer, mrcc_N_col, (n_exc_active_sze) ]
  implicit none
  BEGIN_DOC
  ! A is active_excitation_to_determinants in At.A
@@ -170,7 +179,6 @@ END_PROVIDER
   do at_roww = 1, n_exc_active ! hh_nex
     at_row = active_pp_idx(at_roww)
     wk = 0
-    if(mod(at_roww, 100) == 0) print *, "AtA", at_row, "/", hh_nex
 
     do a_coll = 1, n_exc_active
       a_col = active_pp_idx(a_coll)
@@ -224,7 +232,7 @@ END_PROVIDER
   deallocate (A_ind_mwen, A_val_mwen, As2_val_mwen, t)
   !$OMP END PARALLEL
 
-  print *, "ATA SIZE", ata_size
+  print *, "At.A SIZE", ata_size
 
 END_PROVIDER
 

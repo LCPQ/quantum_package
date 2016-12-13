@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-TARGET=zlib
+TARGET=gmp
 
 function _install()
 {
@@ -10,8 +10,7 @@ function _install()
   QP_ROOT=$PWD
   cd -
   cd ${BUILD}
-  ./configure && make || exit 1
-  ./configure --prefix=$QP_ROOT && make || exit 1 
+  ./configure --prefix=$QP_ROOT && make -j 8 || exit 1
   make install || exit 1
 }
 

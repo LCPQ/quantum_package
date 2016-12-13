@@ -13,7 +13,7 @@ source $QP_ROOT/tests/bats/common.bats.sh
   qp_set_mo_class $INPUT -core "[1]" -inact "[2,5]" -act "[3,4,6,7]" -virt "[8-24]" 
   qp_run cassd_zmq $INPUT  
   energy="$(ezfio get cas_sd_zmq energy_pt2)"
-  eq $energy -76.2311177912495   2.E-5
+  eq $energy -76.231084536315 5.E-5
 
   ezfio set determinants n_det_max 2048 
   ezfio set determinants read_wf True
@@ -21,6 +21,6 @@ source $QP_ROOT/tests/bats/common.bats.sh
   qp_run cassd_zmq $INPUT  
   ezfio set determinants read_wf False
   energy="$(ezfio get cas_sd_zmq energy)"
-  eq $energy -76.2300888408526   2.E-5
+  eq $energy -76.2300887947446   2.E-5
 }
 
