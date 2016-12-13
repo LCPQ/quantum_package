@@ -383,6 +383,8 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   !$OMP DO SCHEDULE(dynamic)
   do sh=1,shortcut(0,1)
     do sh2=1,shortcut(0,1)
+      if (sh==sh2) cycle
+
       exa = 0
       do ni=1,Nint
         exa = exa + popcnt(xor(version(ni,sh,1), version(ni,sh2,1)))
@@ -398,7 +400,6 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
         enddo
 
         do j=shortcut(sh2,1),shortcut(sh2+1,1)-1
-          if (i==j) cycle
           ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
           if (ext > 4) cycle
           do ni=2,Nint
@@ -423,6 +424,69 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
             endif
           endif
         enddo
+        
+      enddo
+    enddo
+
+    exa = 0
+
+    do i=shortcut(sh,1),shortcut(sh+1,1)-1
+      org_i = sort_idx(i,1)
+      do ni=1,Nint
+        sorted_i(ni) = sorted(ni,i,1)
+      enddo
+
+      do j=shortcut(sh,1),i-1
+        ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
+        if (ext > 4) cycle
+        do ni=2,Nint
+          ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
+          if (ext > 4) exit
+        end do
+        if(ext <= 4) then
+          org_j = sort_idx(j,1)
+          call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
+          if (hij /= 0.d0) then
+            do istate=1,n_st
+              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,j)
+            enddo
+          endif
+          if (ext /= 2) then
+            call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2)
+            if (s2 /= 0.d0) then
+              do istate=1,n_st
+                st (istate,org_i) = st (istate,org_i) + s2*ut(istate,j)
+              enddo
+            endif
+          endif
+        endif
+      enddo
+      
+      do j=i+1,shortcut(sh+1,1)-1
+        if (i==j) cycle
+        ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
+        if (ext > 4) cycle
+        do ni=2,Nint
+          ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
+          if (ext > 4) exit
+        end do
+        if(ext <= 4) then
+          org_j = sort_idx(j,1)
+          call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
+          if (hij /= 0.d0) then
+            do istate=1,n_st
+              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,j)
+            enddo
+          endif
+          if (ext /= 2) then
+            call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2)
+            if (s2 /= 0.d0) then
+              do istate=1,n_st
+                st (istate,org_i) = st (istate,org_i) + s2*ut(istate,j)
+              enddo
+            endif
+          endif
+        endif
       enddo
     enddo
   enddo
