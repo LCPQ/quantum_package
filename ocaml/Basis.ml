@@ -36,9 +36,11 @@ let read_element in_channel at_number element =
 
 
 
-let to_string_general ~fmt ~atom_sep b =
+let to_string_general ~fmt ~atom_sep ?ele_array b =
   let new_nucleus n = 
-    Printf.sprintf "Atom %d" n
+    match ele_array with
+    | None -> Printf.sprintf "Atom %d" n
+    | Some x -> Printf.sprintf "%s" (Element.to_string x.(n-1))
   in
   let rec do_work accu current_nucleus = function
   | [] -> List.rev accu
@@ -56,12 +58,12 @@ let to_string_general ~fmt ~atom_sep b =
   do_work [new_nucleus 1] 1 b
   |> String.concat ~sep:"\n"
 
-let to_string_gamess =
-    to_string_general ~fmt:Gto.Gamess ~atom_sep:""
+let to_string_gamess ?ele_array =
+    to_string_general ?ele_array ~fmt:Gto.Gamess ~atom_sep:""
 
-let to_string_gaussian b =
+let to_string_gaussian ?ele_array b =
   String.concat ~sep:"\n"
-  [ to_string_general ~fmt:Gto.Gaussian ~atom_sep:"****" b ; "****" ]
+  [ to_string_general ?ele_array ~fmt:Gto.Gaussian ~atom_sep:"****" b ; "****" ]
 
 let to_string ?(fmt=Gto.Gamess) =
   match fmt with
