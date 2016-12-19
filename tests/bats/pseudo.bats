@@ -48,6 +48,6 @@ function run_FCI_ZMQ() {
 
 @test "FCI H2O VDZ pseudo" {
   qp_set_mo_class h2o_pseudo.ezfio -core "[1]" -act "[2-12]" -del "[13-23]"
-  run_FCI_ZMQ h2o_pseudo.ezfio 2000    -17.035547572687399 -17.035583407558221
+  run_FCI_ZMQ h2o_pseudo.ezfio 2000    -17.0399584106077 -17.0400170044515
 }
 

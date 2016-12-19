@@ -380,7 +380,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   enddo
   !$OMP END DO
 
-  !$OMP DO SCHEDULE(static,1) COLLAPSE(2)
+  !$OMP DO SCHEDULE(dynamic)
   do sh=1,shortcut(0,1)
     do sh2=1,shortcut(0,1)
       if (sh==sh2) cycle
