@@ -7,6 +7,10 @@ program fci_zmq
   integer                        :: Nmin, Nmax
   integer                        :: n_det_before, to_select
   double precision               :: threshold_davidson_in, ratio, E_ref
+
+  double precision, allocatable  :: psi_coef_ref(:,:)
+  integer(bit_kind), allocatable :: psi_det_ref(:,:,:)
+
   
   allocate (pt2(N_states))
   
@@ -56,34 +60,39 @@ program fci_zmq
   print *,  'Est FCI   = ', E_ref
 
   Nmax = N_det
-  Nmin = N_det/8
+  Nmin = 2
+  allocate (psi_coef_ref(size(psi_coef_sorted,1),size(psi_coef_sorted,2)))
+  allocate (psi_det_ref(N_int,2,size(psi_det_sorted,3)))
+  psi_coef_ref = psi_coef_sorted
+  psi_det_ref = psi_det_sorted
+  psi_det = psi_det_sorted
+  psi_coef = psi_coef_sorted
+  TOUCH psi_coef psi_det
   do while (Nmax-Nmin > 1)
+    psi_coef = psi_coef_ref
+    psi_det  = psi_det_ref
+    TOUCH psi_det psi_coef
     call diagonalize_CI
     ratio = (CI_energy(1) - HF_energy) / (E_ref - HF_energy)
-    psi_det = psi_det_sorted
-    psi_coef = psi_coef_sorted
-    TOUCH psi_coef psi_det
     if (ratio < var_pt2_ratio) then
         Nmin = N_det
-        to_select = (Nmax-Nmin)/2
-        call ZMQ_selection(to_select, pt2)
     else
         Nmax = N_det
-        N_det = Nmin + (Nmax-Nmin)/2
     endif
+    N_det = Nmin + (Nmax-Nmin)/2
     print *,  '-----'
     print *,  'Det min, Det max: ', Nmin, Nmax
     print *,  'Ratio           : ', ratio, '  ~  ', var_pt2_ratio
-    print *,  'HF_energy = ', HF_energy
-    print *,  'Est FCI   = ', E_ref
     print *,  'N_det     = ', N_det
     print *,  'E         = ', CI_energy(1)
-    print *,  'PT2       = ', pt2(1)
   enddo
   call ZMQ_selection(0, pt2)
   print *,  '------'
+  print *,  'HF_energy = ', HF_energy
+  print *,  'Est FCI   = ', E_ref
   print *,  'E         = ', CI_energy(1)
   print *,  'PT2       = ', pt2(1)
+  print *,  'E+PT2     = ', CI_energy(1)+pt2(1)
 
   E_CI_before(1:N_states) = CI_energy(1:N_states)
   call save_wavefunction
