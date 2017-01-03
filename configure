@@ -102,7 +102,7 @@ curl = Info(
     default_path=join(QP_ROOT_BIN, "curl"))
 
 zlib = Info(
-    url='http://zlib.net/zlib-1.2.8.tar.gz',
+    url='http://www.zlib.net/zlib-1.2.10.tar.gz',
     description=' zlib',
     default_path=join(QP_ROOT_LIB, "libz.a"))
 
