@@ -506,7 +506,7 @@ def create_ninja_and_rc(l_installed):
 
     qp_opam_root = os.getenv('OPAMROOT')
     if not qp_opam_root:
-        qp_opam_root = '${HOME}'
+        qp_opam_root = '${HOME}/.opam'
     l_rc.append('export QP_OPAM={0}'.format(qp_opam_root))
     l_rc.append('source ${QP_OPAM}/opam-init/init.sh > /dev/null 2> /dev/null || true')
     l_rc.append('')
