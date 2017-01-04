@@ -504,12 +504,11 @@ def create_ninja_and_rc(l_installed):
         ''
     ]
 
-    if os.getenv('OPAMROOT'):
-        opam_root = os.getenv('OPAMROOT')
-        l_rc.append('export OPAMROOT={0}'.format(opam_root))
-        l_rc.append('source ${OPAMROOT}/opam-init/init.sh > /dev/null 2> /dev/null || true')
-    else:
-        l_rc.append('source ${HOME}/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true')
+    qp_opam_root = os.getenv('OPAMROOT')
+    if not qp_opam_root:
+        qp_opam_root = '${HOME}'
+    l_rc.append('export QP_OPAM={0}'.format(qp_opam_root))
+    l_rc.append('source ${QP_OPAM}/opam-init/init.sh > /dev/null 2> /dev/null || true')
     l_rc.append('')
 
     path = join(QP_ROOT, "quantum_package.rc")
