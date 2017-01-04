@@ -260,22 +260,27 @@ subroutine ZMQ_pt2(pt2)
   integer :: tooth
   !-8.091550677158776E-003
   call get_first_tooth(computed, tooth)
-  print *, "TOOTH ", tooth 
+  !print *, "TOOTH ", tooth 
   
   !!! ASSERT
-  do i=1,first_det_of_teeth(tooth)-1
-    if(not(computed(i))) stop "deter non calc"
-  end do
-  logical :: ok
-  ok = .false.
-  do i=first_det_of_teeth(tooth), first_det_of_teeth(tooth+1)-1
-    if(not(computed(i))) ok = .true.
-  end do
-  if(not(ok)) stop "not OK..."
+  !do i=1,first_det_of_teeth(tooth)
+  !  if(not(computed(i))) stop "deter non calc"
+  !end do
+  !logical :: ok
+  !ok = .false.
+  !do i=first_det_of_teeth(tooth), first_det_of_teeth(tooth+1)
+  !  if(not(computed(i))) ok = .true.
+  !end do
+  !if(not(ok)) stop "not OK..."
   !!!!!
-
+  double precision :: prop
   if(Nabove(tooth) >= 30) then
     E0 = sum(pt2_detail(1,:first_det_of_teeth(tooth)-1))
+    prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - cweight(first_det_of_teeth(tooth)-1))
+    !print *, "preprop ", prop, weight(first_det_of_teeth(tooth))
+    prop = prop / weight(first_det_of_teeth(tooth))
+    !print *, "prop", prop
+    E0 += pt2_detail(1,first_det_of_teeth(tooth)) * prop
     avg = E0 + (sumabove(tooth) / Nabove(tooth))
     eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
     time = omp_get_wtime()
@@ -535,7 +540,7 @@ subroutine get_first_tooth(computed, first_teeth)
   end do
   
   do i=comb_teeth, 1, -1
-    if(first_det_of_teeth(i) <= first_teeth) then
+    if(first_det_of_teeth(i) < first_teeth) then
       first_teeth = i
       exit
     end if
@@ -630,7 +635,7 @@ end subroutine
   
   comb_step = 1d0/dfloat(comb_teeth)
   do i=1,N_det_generators
-    if(weight(i)/norm_left < comb_step/1d1) then
+    if(weight(i)/norm_left < comb_step/2d0) then
       first_det_of_comb = i
       exit
     end if
@@ -639,12 +644,13 @@ end subroutine
   
   comb_step = 1d0 / dfloat(comb_teeth) * (1d0 - cweight(first_det_of_comb-1))
   
-  stato = 1d0 - comb_step + 1d-5
+  stato = 1d0 - comb_step! + 1d-5
   do i=comb_teeth, 1, -1
     first_det_of_teeth(i) = pt2_find(stato, cweight)
     stato -= comb_step
   end do
   first_det_of_teeth(comb_teeth+1) = N_det_generators + 1
+  first_det_of_teeth(1) = first_det_of_comb
   if(first_det_of_teeth(1) /= first_det_of_comb) stop "comb provider"
   
 END_PROVIDER
