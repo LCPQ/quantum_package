@@ -102,7 +102,7 @@ curl = Info(
     default_path=join(QP_ROOT_BIN, "curl"))
 
 zlib = Info(
-    url='http://zlib.net/zlib-1.2.8.tar.gz',
+    url='http://www.zlib.net/zlib-1.2.10.tar.gz',
     description=' zlib',
     default_path=join(QP_ROOT_LIB, "libz.a"))
 
@@ -496,14 +496,20 @@ def create_ninja_and_rc(l_installed):
         'export LIBRARY_PATH="${QP_ROOT}"/lib:"${LIBRARY_PATH}"',
         'export C_INCLUDE_PATH="${C_INCLUDE_PATH}":"${QP_ROOT}"/include',
         '',
-        'source ${QP_ROOT}/install/EZFIO/Bash/ezfio.sh', "",
-        'source ${HOME}/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true',
+        'source ${QP_ROOT}/install/EZFIO/Bash/ezfio.sh',
         '',
         '# Choose the correct network interface',
         '# export QP_NIC=ib0',
         '# export QP_NIC=eth0',
-        ""
+        ''
     ]
+
+    qp_opam_root = os.getenv('OPAMROOT')
+    if not qp_opam_root:
+        qp_opam_root = '${HOME}/.opam'
+    l_rc.append('export QP_OPAM={0}'.format(qp_opam_root))
+    l_rc.append('source ${QP_OPAM}/opam-init/init.sh > /dev/null 2> /dev/null || true')
+    l_rc.append('')
 
     path = join(QP_ROOT, "quantum_package.rc")
     with open(path, "w+") as f:
