@@ -104,87 +104,6 @@ program fci_zmq
   call save_wavefunction
 end
 
-! subroutine ZMQ_pt2(pt2)
-!   use f77_zmq
-!   use selection_types
-!   
-!   implicit none
-!   
-!   character*(1000000)                :: task 
-!   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
-!   type(selection_buffer)         :: b
-!   integer                        :: i, N
-!   integer, external              :: omp_get_thread_num
-!   double precision, intent(out)  :: pt2(N_states)
-!   
-!   integer*8, allocatable :: bulk(:), tirage(:)
-!   integer, allocatable :: todo(:)
-!   double precision, allocatable :: pt2_detail(:,:), val(:,:), weight(:)
-!   double precision :: sume, sume2
-!   double precision :: tot_n
-!   
-!   allocate(bulk(N_det), tirage(N_det), todo(0:N_det), pt2_detail(N_states, N_det), val(N_states, N_det))
-!   
-!   sume = 0d0
-!   sume2 = 0d0
-!   tot_n = 0d0
-!   bulk = 0
-!   tirage = 0
-!   todo = 0
-!   
-!   
-!   N = 1
-!   provide nproc
-!   provide ci_electronic_energy
-!   call new_parallel_job(zmq_to_qp_run_socket,"pt2")
-!   call zmq_put_psi(zmq_to_qp_run_socket,1,ci_electronic_energy,size(ci_electronic_energy))
-!   call zmq_set_running(zmq_to_qp_run_socket)
-!   call create_selection_buffer(N, N*2, b)
-! 
-!   integer :: i_generator, i_generator_end, generator_per_task, step
-!   
-!   integer :: mergeN
-!   mergeN = 100
-!   call get_carlo_workbatch(tirage, weight, todo, bulk, 1d-2, mergeN)
-!   print *, "CARLO", todo(0), mergeN 
-!   
-!   generator_per_task = todo(0)/1000 + 1
-!   do i=1,todo(0),generator_per_task
-!     i_generator_end = min(i+generator_per_task-1, todo(0))
-!     print *, "TASK", (i_generator_end-i+1), todo(i:i_generator_end)
-!     write(task,*) (i_generator_end-i+1), todo(i:i_generator_end)
-!     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
-!   end do
-!   print *, "tasked"
-!   pt2_detail = 0d0
-!   !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
-!     i = omp_get_thread_num()
-!     if (i==0) then
-!       call pt2_collector(b, pt2_detail)
-!     else
-!       call pt2_slave_inproc(i)
-!     endif
-!   !$OMP END PARALLEL
-!   call end_parallel_job(zmq_to_qp_run_socket, 'pt2') 
-!   print *, "daune"
-!   val += pt2_detail
-!   call perform_carlo(tirage, weight, bulk, val, sume, sume2, mergeN)
-!   tot_n = 0
-!   double precision :: sweight
-!   sweight = 0d0
-!   do i=1,N_det
-!     if(weight(i) /= 0) tot_n = tot_n + dfloat(bulk(i))
-!     sweight += weight(i)
-!   end do
-!   print *, "PT2_DETAIL", tot_n, sume/tot_n, sume, sume2
-!   pt2 = 0d0
-!   do i=1,N_det
-!     if(weight(i) /= 0d0) exit
-!     pt2(:) += pt2_detail(:,i)
-!   end do
-!   print *, "N_determinist = ", i-1
-! end subroutine
-
 
 subroutine ZMQ_pt2(pt2)
   use f77_zmq
@@ -192,16 +111,16 @@ subroutine ZMQ_pt2(pt2)
   
   implicit none
   
-  character*(1000000)            :: task 
+  character*(512)            :: task 
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
   type(selection_buffer)         :: b
   integer, external              :: omp_get_thread_num
   double precision, intent(out)  :: pt2(N_states)
 
   
-  double precision :: pt2_detail(N_states, N_det_generators), comb(100000)
-  logical :: computed(N_det_generators)
-  integer :: tbc(0:N_det_generators)
+  double precision, allocatable :: pt2_detail(:,:), comb(:)
+  logical, allocatable :: computed(:)
+  integer, allocatable :: tbc(:)
   integer :: i, Ncomb, generator_per_task, i_generator_end
   integer, external :: pt2_find
   
@@ -209,7 +128,7 @@ subroutine ZMQ_pt2(pt2)
   double precision, external :: omp_get_wtime 
   double precision :: time0, time
 
-  
+  allocate(pt2_detail(N_states, N_det_generators), comb(100000), computed(N_det_generators), tbc(0:N_det_generators))
   provide nproc
 
   call random_seed()
@@ -220,6 +139,7 @@ subroutine ZMQ_pt2(pt2)
     tbc(i) = i
     computed(i) = .true.
   end do
+  
   pt2_detail = 0d0
 
   time0 = omp_get_wtime()
@@ -237,14 +157,16 @@ subroutine ZMQ_pt2(pt2)
 
 
   call get_carlo_workbatch(1d-3, computed, comb, Ncomb, tbc)
-  generator_per_task = tbc(0)/1000 + 1
-  do i=1,tbc(0),generator_per_task
+  generator_per_task = 1 ! tbc(0)/300 + 1
+  print *, 'TASKS REVERSED'
+  !do i=1,tbc(0),generator_per_task
+  do i=tbc(0),1,-1 ! generator_per_task
     i_generator_end = min(i+generator_per_task-1, tbc(0))
     !print *, "TASK", (i_generator_end-i+1), tbc(i:i_generator_end)
     write(task,*) (i_generator_end-i+1), tbc(i:i_generator_end)
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   end do
-  
+  print *, "tasked" 
   !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
     i = omp_get_thread_num()
     if (i==0) then
@@ -324,7 +246,7 @@ subroutine ZMQ_selection(N_in, pt2)
   
   implicit none
   
-  character*(1000000)                :: task 
+  character*(512)                :: task 
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
   integer, intent(in)            :: N_in
   type(selection_buffer)         :: b
@@ -520,7 +442,7 @@ end function
 
 BEGIN_PROVIDER [ integer, comb_teeth ]
   implicit none
-  comb_teeth = 20
+  comb_teeth = 100
 END_PROVIDER
 
 
@@ -565,7 +487,30 @@ subroutine get_carlo_workbatch(maxWorkload, computed, comb, Ncomb, tbc)
     comb(i) = comb(i) * comb_step
     call add_comb(comb(i), computed, tbc, myWorkload)
     Ncomb = i
-    if(myWorkload > maxWorkload) exit
+    if(myWorkload > maxWorkload .and. i >= 30) exit
+  end do
+  call reorder_tbc(tbc)
+end subroutine
+
+
+subroutine reorder_tbc(tbc)
+  implicit none
+  integer, intent(inout) :: tbc(0:N_det_generators)
+  logical, allocatable :: ltbc(:)
+  integer :: i, ci
+
+  allocate(ltbc(N_det_generators))
+  ltbc = .false.
+  do i=1,tbc(0)
+    ltbc(tbc(i)) = .true.
+  end do
+
+  ci = 0
+  do i=1,N_det_generators
+    if(ltbc(i)) then
+      ci += 1
+      tbc(ci) = i
+    end if
   end do
 end subroutine
 
