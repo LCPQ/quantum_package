@@ -1,21 +1,3 @@
-BEGIN_PROVIDER [ integer, davidson_iter_max ]
-  implicit none
-  BEGIN_DOC
-  ! Max number of Davidson iterations
-  END_DOC
-  davidson_iter_max = 100
-END_PROVIDER
-
-BEGIN_PROVIDER [ integer, davidson_sze_max ]
-  implicit none
-  BEGIN_DOC
-  ! Max number of Davidson sizes
-  END_DOC
-  ASSERT (davidson_sze_max <= davidson_iter_max)
-  davidson_sze_max = N_states+7
-END_PROVIDER
-
-
 BEGIN_PROVIDER [ character(64), davidson_criterion ]
  implicit none
  BEGIN_DOC

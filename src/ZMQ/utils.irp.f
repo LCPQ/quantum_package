@@ -257,15 +257,39 @@ function new_zmq_pull_socket()
     stop 'Unable to set ZMQ_RCVHWM on pull socket'
   endif
   
-  rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_tcp_address)
-  if (rc /= 0) then
-    print *,  'Unable to bind new_zmq_pull_socket (tcp)', zmq_socket_pull_tcp_address
-    stop 
+  integer :: icount
+
+  icount = 10
+  do while (icount > 0)
+    rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_inproc_address)
+    if (rc /= 0) then
+      icount = icount-1
+      call sleep(3)
+    else
+      exit
+    endif
+  enddo
+
+  if (icount == 0) then
+    print *,  'Unable to bind new_zmq_pull_socket (inproc)', zmq_socket_pull_inproc_address
+    stop -1
   endif
-  
-  rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_inproc_address)
-  if (rc /= 0) then
-    stop 'Unable to bind new_zmq_pull_socket (inproc)'
+
+
+  icount = 10
+  do while (icount > 0)
+    rc = f77_zmq_bind(new_zmq_pull_socket, zmq_socket_pull_tcp_address)
+    if (rc /= 0) then
+      icount = icount-1
+      call sleep(3)
+    else
+      exit
+    endif
+  enddo
+
+  if (icount == 0) then
+    print *,  'Unable to bind new_zmq_pull_socket (tcp)', zmq_socket_pull_tcp_address
+    stop -1
   endif
   
 end
@@ -402,18 +426,6 @@ subroutine end_zmq_pair_socket(zmq_socket_pair)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
-  rc = f77_zmq_unbind(zmq_socket_pair,zmq_socket_pair_inproc_address)
-!  if (rc /= 0) then
-!    print *,  rc
-!    print *,  irp_here, 'f77_zmq_unbind(zmq_socket_pair,zmq_socket_pair_inproc_address)'
-!    stop 'error'
-!  endif
-  
-!  rc = f77_zmq_setsockopt(zmq_socket_pair,0ZMQ_LINGER,1000,4)
-!  if (rc /= 0) then
-!    stop 'Unable to set ZMQ_LINGER on zmq_socket_pair'
-!  endif
-
   rc = f77_zmq_close(zmq_socket_pair)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_pair)'
@@ -432,27 +444,6 @@ subroutine end_zmq_pull_socket(zmq_socket_pull)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
-  rc = f77_zmq_unbind(zmq_socket_pull,zmq_socket_pull_inproc_address)
-!  if (rc /= 0) then
-!    print *,  rc
-!    print *,  irp_here, 'f77_zmq_unbind(zmq_socket_pull,zmq_socket_pull_inproc_address)'
-!    stop 'error'
-!  endif
-
-  rc = f77_zmq_unbind(zmq_socket_pull,zmq_socket_pull_tcp_address)
-!  if (rc /= 0) then
-!    print *,  rc
-!    print *,  irp_here, 'f77_zmq_unbind(zmq_socket_pull,zmq_socket_pull_tcp_address)'
-!    stop 'error'
-!  endif
-  
-!  call sleep(1) ! see https://github.com/zeromq/libzmq/issues/1922
-
-!  rc = f77_zmq_setsockopt(zmq_socket_pull,ZMQ_LINGER,10000,4)
-!  if (rc /= 0) then
-!    stop 'Unable to set ZMQ_LINGER on zmq_socket_pull'
-!  endif
-
   rc = f77_zmq_close(zmq_socket_pull)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_pull)'
@@ -670,12 +661,16 @@ subroutine disconnect_from_taskserver(zmq_to_qp_run_socket, &
   message = trim(message(1:rc))
   
   read(message,*) reply, state
-  if ( (trim(reply) /= 'disconnect_reply').or.                       &
-        (trim(state) /= zmq_state) ) then
-    print *,  'Unable to disconnect : ', zmq_state
-    print *,  trim(message)
-    stop -1
+  if ((trim(reply) == 'disconnect_reply').and.(trim(state) == trim(zmq_state))) then
+    return
   endif
+  if (trim(message) == 'error No job is running') then
+    return
+  endif
+
+  print *,  'Unable to disconnect : ', trim(zmq_state)
+  print *,  trim(message)
+  stop -1
 
 end
 
@@ -778,6 +773,9 @@ subroutine get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
     rc += 1
     task = message(rc:)
   else if (trim(reply) == 'terminate') then
+    task_id = 0
+    task = 'terminate'
+  else if (trim(message) == 'error No job is running') then
     task_id = 0
     task = 'terminate'
   else

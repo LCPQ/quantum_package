@@ -124,23 +124,27 @@ let to_string t =
 let find in_channel element =
   In_channel.seek in_channel 0L;
   
-  let element_read, old_pos =
-     ref Element.X, 
+  let loop, element_read, old_pos =
+     ref true,
+     ref None, 
      ref (In_channel.pos in_channel)
   in
-  while !element_read <> element
+
+  while !loop
   do
-    let buffer = 
-      old_pos := In_channel.pos in_channel;
-      match In_channel.input_line in_channel with
-      | Some line -> String.split ~on:' ' line
-         |> List.hd_exn
-      | None -> ""
-    in
     try
-      element_read := Element.of_string buffer
+      let buffer = 
+        old_pos := In_channel.pos in_channel;
+        match In_channel.input_line in_channel with
+        | Some line -> String.split ~on:' ' line
+          |> List.hd_exn
+        | None -> raise End_of_file
+      in
+      element_read := Some (Element.of_string buffer);
+      loop := !element_read <> (Some element) 
     with
     | Element.ElementError _ -> ()
+    | End_of_file -> loop := false
   done ;
   In_channel.seek in_channel !old_pos;
   !element_read
@@ -148,124 +152,126 @@ let find in_channel element =
 
 (** Read the Pseudopotential in GAMESS format *)
 let read_element in_channel element =
-  ignore (find in_channel element);
-
-  let rec read result =
-    match In_channel.input_line in_channel with
-    | None -> result
-    | Some line ->
-      if (String.strip line = "") then
-        result
-      else
-        read (line::result)
-  in
-
-  let data = 
-    read []
-    |> List.rev
-  in
-
-  let debug_data = 
-    String.concat ~sep:"\n" data
-  in
-
-  let decode_first_line = function
-  | first_line :: rest ->
+  match find in_channel element with
+  | Some e when e = element -> 
     begin
-      let first_line_split = 
-        String.split first_line ~on:' '
-        |> List.filter ~f:(fun x -> (String.strip x) <> "")
+      let rec read result =
+        match In_channel.input_line in_channel with
+        | None -> result
+        | Some line ->
+          if (String.strip line = "") then
+            result
+          else
+            read (line::result)
       in
-      match first_line_split with
-      | e :: "GEN" :: n :: p ->
-        {  element = Element.of_string e ;
-           n_elec  = Int.of_string n |> Positive_int.of_int ;
-           local = [] ;
-           non_local = []
-        }, rest
-      | _ -> failwith (
-        Printf.sprintf "Unable to read Pseudopotential : \n%s\n"
-        debug_data )
-    end
-  | _ -> failwith ("Error reading pseudopotential\n"^debug_data)
-  in  
 
-  let rec loop create_primitive accu = function
-  | (0,rest) -> List.rev accu, rest
-  | (n,line::rest) -> 
-    begin
-      match
-        String.split line ~on:' '
-        |> List.filter ~f:(fun x -> String.strip x <> "")
-      with
-      | c :: i :: e :: [] ->
-        let i =
-          Int.of_string i
-        in
-        let elem =
-          ( create_primitive 
-            (Float.of_string e |> AO_expo.of_float)
-            (i-2 |> R_power.of_int),
-            Float.of_string c |> AO_coef.of_float 
-          )
-        in
-        loop create_primitive (elem::accu) (n-1, rest)
+      let data = 
+        read []
+        |> List.rev
+      in
+
+      let debug_data = 
+        String.concat ~sep:"\n" data
+      in
+
+      let decode_first_line = function
+      | first_line :: rest ->
+        begin
+          let first_line_split = 
+            String.split first_line ~on:' '
+            |> List.filter ~f:(fun x -> (String.strip x) <> "")
+          in
+          match first_line_split with
+          | e :: "GEN" :: n :: p ->
+            {  element = Element.of_string e ;
+              n_elec  = Int.of_string n |> Positive_int.of_int ;
+              local = [] ;
+              non_local = []
+            }, rest
+          | _ -> failwith (
+            Printf.sprintf "Unable to read Pseudopotential : \n%s\n"
+            debug_data )
+        end
       | _ -> failwith ("Error reading pseudopotential\n"^debug_data)
-    end
-  | _ -> failwith ("Error reading pseudopotential\n"^debug_data)
-  in
+      in  
 
-  let decode_local (pseudo,data) = 
-    let decode_local_n n rest =
-      let result, rest =
-        loop Primitive_local.of_expo_r_power [] (Positive_int.to_int n,rest)
+      let rec loop create_primitive accu = function
+      | (0,rest) -> List.rev accu, rest
+      | (n,line::rest) -> 
+        begin
+          match
+            String.split line ~on:' '
+            |> List.filter ~f:(fun x -> String.strip x <> "")
+          with
+          | c :: i :: e :: [] ->
+            let i =
+              Int.of_string i
+            in
+            let elem =
+              ( create_primitive 
+                (Float.of_string e |> AO_expo.of_float)
+                (i-2 |> R_power.of_int),
+                Float.of_string c |> AO_coef.of_float 
+              )
+            in
+            loop create_primitive (elem::accu) (n-1, rest)
+          | _ -> failwith ("Error reading pseudopotential\n"^debug_data)
+        end
+      | _ -> failwith ("Error reading pseudopotential\n"^debug_data)
       in
-      { pseudo with local = result }, rest
-    in
-    match data with
-    | n :: rest ->
-        let n =
-          String.strip n
-          |> Int.of_string
-          |> Positive_int.of_int
+
+      let decode_local (pseudo,data) = 
+        let decode_local_n n rest =
+          let result, rest =
+            loop Primitive_local.of_expo_r_power [] (Positive_int.to_int n,rest)
+          in
+          { pseudo with local = result }, rest
         in
-        decode_local_n n rest
-    | _ -> failwith ("Unable to read (non-)local pseudopotential\n"^debug_data)
-  in
-
-  let decode_non_local (pseudo,data) = 
-    let decode_non_local_n proj n (pseudo,data) =
-      let result, rest = 
-        loop (Primitive_non_local.of_proj_expo_r_power proj)
-          [] (Positive_int.to_int n, data)
+        match data with
+        | n :: rest ->
+            let n =
+              String.strip n
+              |> Int.of_string
+              |> Positive_int.of_int
+            in
+            decode_local_n n rest
+        | _ -> failwith ("Unable to read (non-)local pseudopotential\n"^debug_data)
       in
-      { pseudo with non_local = pseudo.non_local @ result }, rest
-    in
-    let rec new_proj (pseudo,data) proj = 
-      match data with
-      | n :: rest ->
-          let n =
-            String.strip n
-            |> Int.of_string
-            |> Positive_int.of_int
-          in
-          let result = 
-            decode_non_local_n proj n (pseudo,rest)
-          and proj_next =
-            (Positive_int.to_int proj)+1
-            |> Positive_int.of_int
-          in
-          new_proj result proj_next
-      | _ -> pseudo
-    in
-    new_proj (pseudo,data) (Positive_int.of_int 0)
-  in
 
-  decode_first_line data
-  |> decode_local
-  |> decode_non_local 
+      let decode_non_local (pseudo,data) = 
+        let decode_non_local_n proj n (pseudo,data) =
+          let result, rest = 
+            loop (Primitive_non_local.of_proj_expo_r_power proj)
+              [] (Positive_int.to_int n, data)
+          in
+          { pseudo with non_local = pseudo.non_local @ result }, rest
+        in
+        let rec new_proj (pseudo,data) proj = 
+          match data with
+          | n :: rest ->
+              let n =
+                String.strip n
+                |> Int.of_string
+                |> Positive_int.of_int
+              in
+              let result = 
+                decode_non_local_n proj n (pseudo,rest)
+              and proj_next =
+                (Positive_int.to_int proj)+1
+                |> Positive_int.of_int
+              in
+              new_proj result proj_next
+          | _ -> pseudo
+        in
+        new_proj (pseudo,data) (Positive_int.of_int 0)
+      in
 
-     
+      decode_first_line data
+      |> decode_local
+      |> decode_non_local 
+    end
+  | _ -> empty element
+
  
 
 include To_md5

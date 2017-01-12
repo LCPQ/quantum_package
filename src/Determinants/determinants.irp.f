@@ -438,8 +438,12 @@ end
  do i=1,N_states
    psi_coef_min(i) = minval(psi_coef(:,i))
    psi_coef_max(i) = maxval(psi_coef(:,i))
-   abs_psi_coef_min(i) = dabs(psi_coef_min(i))
-   abs_psi_coef_max(i) = dabs(psi_coef_max(i))
+   abs_psi_coef_min(i) = minval( dabs(psi_coef(:,i)) )
+   abs_psi_coef_max(i) = maxval( dabs(psi_coef(:,i)) )
+   call write_double(6,psi_coef_max(i), 'Max coef')
+   call write_double(6,psi_coef_min(i), 'Min coef')
+   call write_double(6,abs_psi_coef_max(i), 'Max abs coef')
+   call write_double(6,abs_psi_coef_min(i), 'Min abs coef')
  enddo
 
 END_PROVIDER
@@ -760,37 +764,85 @@ subroutine apply_excitation(det, exc, res, ok, Nint)
   ok = .false.
   degree = exc(0,1,1) + exc(0,1,2)
   
-  if(.not. (degree > 0 .and. degree <= 2)) then
-    print *, degree
-    print *, "apply ex"
-    STOP
-  endif
-  
-  call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+!  call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+! INLINE
+  select case(degree)
+    case(2)
+      if (exc(0,1,1) == 2) then
+        h1 = exc(1,1,1)
+        h2 = exc(2,1,1)
+        p1 = exc(1,2,1)
+        p2 = exc(2,2,1)
+        s1 = 1
+        s2 = 1
+      else if (exc(0,1,2) == 2) then
+        h1 = exc(1,1,2)
+        h2 = exc(2,1,2)
+        p1 = exc(1,2,2)
+        p2 = exc(2,2,2)
+        s1 = 2
+        s2 = 2
+      else
+        h1 = exc(1,1,1)
+        h2 = exc(1,1,2)
+        p1 = exc(1,2,1)
+        p2 = exc(1,2,2)
+        s1 = 1
+        s2 = 2
+      endif
+    case(1)
+      if (exc(0,1,1) == 1) then
+        h1 = exc(1,1,1)
+        h2 = 0
+        p1 = exc(1,2,1)
+        p2 = 0
+        s1 = 1
+        s2 = 0
+      else
+        h1 = exc(1,1,2)
+        h2 = 0
+        p1 = exc(1,2,2)
+        p2 = 0
+        s1 = 2
+        s2 = 0
+      endif
+    case(0)
+      h1 = 0
+      p1 = 0
+      h2 = 0
+      p2 = 0
+      s1 = 0
+      s2 = 0
+    case default
+      print *, degree
+      print *, "apply ex"
+      STOP
+  end select
+! END INLINE
+
   res = det 
   
-  ii = (h1-1)/bit_kind_size + 1 
-  pos = mod(h1-1, 64)!iand(h1-1,bit_kind_size-1) ! mod 64
-  if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
+  ii = ishft(h1-1,-bit_kind_shift) + 1 
+  pos = h1-1-ishft(ii-1,bit_kind_shift)
+  if(iand(det(ii, s1), ibset(0_bit_kind, pos)) == 0_8) return
   res(ii, s1) = ibclr(res(ii, s1), pos)
   
-  ii = (p1-1)/bit_kind_size + 1 
-  pos = mod(p1-1, 64)!iand(p1-1,bit_kind_size-1)
+  ii = ishft(p1-1,-bit_kind_shift) + 1 
+  pos = p1-1-ishft(ii-1,bit_kind_shift)
   if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) return
   res(ii, s1) = ibset(res(ii, s1), pos)
   
   if(degree == 2) then
-    ii = (h2-1)/bit_kind_size + 1 
-    pos = mod(h2-1, 64)!iand(h2-1,bit_kind_size-1)
+    ii = ishft(h2-1,-bit_kind_shift) + 1 
+    pos = h2-1-ishft(ii-1,bit_kind_shift)
     if(iand(det(ii, s2), ishft(1_bit_kind, pos)) == 0_8) return
     res(ii, s2) = ibclr(res(ii, s2), pos)
     
-    ii = (p2-1)/bit_kind_size + 1 
-    pos = mod(p2-1, 64)!iand(p2-1,bit_kind_size-1)
+    ii = ishft(p2-1,-bit_kind_shift) + 1 
+    pos = p2-1-ishft(ii-1,bit_kind_shift)
     if(iand(det(ii, s2), ishft(1_bit_kind, pos)) /= 0_8) return
     res(ii, s2) = ibset(res(ii, s2), pos)
   endif
-
   ok = .true.
 end subroutine
 
@@ -809,14 +861,14 @@ subroutine apply_particles(det, s1, p1, s2, p2, res, ok, Nint)
   res = det 
   
   if(p1 /= 0) then
-  ii = (p1-1)/bit_kind_size + 1 
-  pos = mod(p1-1, 64)!iand(p1-1,bit_kind_size-1)
+  ii = ishft(p1-1,-bit_kind_shift) + 1 
+  pos = p1-1-ishft(ii-1,bit_kind_shift)
   if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) return
   res(ii, s1) = ibset(res(ii, s1), pos)
   end if
 
-  ii = (p2-1)/bit_kind_size + 1 
-  pos = mod(p2-1, 64)!iand(p2-1,bit_kind_size-1)
+  ii = ishft(p2-1,-bit_kind_shift) + 1 
+  pos = p2-1-ishft(ii-1,bit_kind_shift)
   if(iand(det(ii, s2), ishft(1_bit_kind, pos)) /= 0_8) return
   res(ii, s2) = ibset(res(ii, s2), pos)
 
@@ -838,14 +890,14 @@ subroutine apply_holes(det, s1, h1, s2, h2, res, ok, Nint)
   res = det 
   
   if(h1 /= 0) then
-  ii = (h1-1)/bit_kind_size + 1 
-  pos = mod(h1-1, 64)!iand(h1-1,bit_kind_size-1)
+  ii = ishft(h1-1,-bit_kind_shift) + 1 
+  pos = h1-1-ishft(ii-1,bit_kind_shift)
   if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
   res(ii, s1) = ibclr(res(ii, s1), pos)
   end if
 
-  ii = (h2-1)/bit_kind_size + 1 
-  pos = mod(h2-1, 64)!iand(h2-1,bit_kind_size-1)
+  ii = ishft(h2-1,-bit_kind_shift) + 1 
+  pos = h2-1-ishft(ii-1,bit_kind_shift)
   if(iand(det(ii, s2), ishft(1_bit_kind, pos)) == 0_8) return
   res(ii, s2) = ibclr(res(ii, s2), pos)
 
@@ -865,8 +917,8 @@ subroutine apply_particle(det, s1, p1, res, ok, Nint)
   ok = .false.
   res = det 
   
-  ii = (p1-1)/bit_kind_size + 1 
-  pos = mod(p1-1, 64)!iand(p1-1,bit_kind_size-1)
+  ii = ishft(p1-1,-bit_kind_shift) + 1 
+  pos = p1-1-ishft(ii-1,bit_kind_shift)
   if(iand(det(ii, s1), ishft(1_bit_kind, pos)) /= 0_8) return
   res(ii, s1) = ibset(res(ii, s1), pos)
 
@@ -887,8 +939,8 @@ subroutine apply_hole(det, s1, h1, res, ok, Nint)
   ok = .false.
   res = det 
   
-  ii = (h1-1)/bit_kind_size + 1 
-  pos = mod(h1-1, 64)!iand(h1-1,bit_kind_size-1)
+  ii = ishft(h1-1,-bit_kind_shift) + 1 
+  pos = h1-1-ishft(ii-1,bit_kind_shift)
   if(iand(det(ii, s1), ishft(1_bit_kind, pos)) == 0_8) return
   res(ii, s1) = ibclr(res(ii, s1), pos)
 

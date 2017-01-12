@@ -14,13 +14,16 @@ BEGIN_PROVIDER [double precision, spin_population, (ao_num_align,ao_num)]
  enddo
 END_PROVIDER
 
-BEGIN_PROVIDER [double precision, spin_population_angular_momentum, (0:ao_l_max)]
+ BEGIN_PROVIDER [double precision, spin_population_angular_momentum, (0:ao_l_max)]
+&BEGIN_PROVIDER [double precision, spin_population_angular_momentum_per_atom, (0:ao_l_max,nucl_num)]
  implicit none
  integer :: i
  double precision :: accu
  spin_population_angular_momentum = 0.d0
+ spin_population_angular_momentum_per_atom = 0.d0
  do i = 1,  ao_num
   spin_population_angular_momentum(ao_l(i)) += spin_gross_orbital_product(i)
+  spin_population_angular_momentum_per_atom(ao_l(i),ao_nucl(i)) += spin_gross_orbital_product(i)
  enddo
 
 END_PROVIDER 
@@ -132,6 +135,16 @@ subroutine print_mulliken_sd
   accu += spin_population_angular_momentum(i)
   print*,' ',trim(l_to_charater(i)),spin_population_angular_momentum(i)
  print*,'sum = ',accu
+ enddo
+ print*,'Angular momentum analysis per atom'
+ print*,'Angular momentum analysis'
+ do j = 1,nucl_num
+  accu = 0.d0
+  do i = 0,  ao_l_max
+   accu += spin_population_angular_momentum_per_atom(i,j)
+   write(*,'(XX,I3,XX,A4,X,A4,X,F10.7)')j,trim(element_name(int(nucl_charge(j)))),trim(l_to_charater(i)),spin_population_angular_momentum_per_atom(i,j)
+   print*,'sum = ',accu
+  enddo
  enddo
 
 end

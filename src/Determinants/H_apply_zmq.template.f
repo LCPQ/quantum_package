@@ -35,7 +35,7 @@ subroutine $subroutine($params_main)
 
   call zmq_put_psi(zmq_to_qp_run_socket,1,energy,size(energy))
 
-  do i_generator=N_det_generators,1,-1
+  do i_generator=1,N_det_generators
     $skip
     write(task,*) i_generator
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)

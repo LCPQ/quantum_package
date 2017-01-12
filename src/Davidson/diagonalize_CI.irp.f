@@ -40,6 +40,7 @@ END_PROVIDER
    double precision, allocatable  :: e_array(:)
    integer, allocatable           :: iorder(:)
    
+   PROVIDE threshold_davidson
    ! Guess values for the "N_states" states of the CI_eigenvectors
    do j=1,min(N_states,N_det)
      do i=1,N_det

@@ -23,9 +23,9 @@ val debug : string -> unit
 (** ZeroMQ context *)
 val zmq_context : ZMQ.Context.t
 
-(** Bind a ZMQ socket *)
+(** Bind a ZMQ socket to a TCP port and to an IPC file /tmp/qp_run.<port> *)
 val bind_socket :
-  socket_type:string -> socket:'a ZMQ.Socket.t -> address:string -> unit
+  socket_type:string -> socket:'a ZMQ.Socket.t -> port:int -> unit
 
 (** Name of the host on which the server runs *)
 val hostname : string lazy_t
