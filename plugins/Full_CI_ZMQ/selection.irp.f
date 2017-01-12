@@ -55,11 +55,11 @@ subroutine get_mask_phase(det, phasemask)
 end subroutine
 
 
-subroutine select_connected(i_generator,E0,pt2,b)
+subroutine select_connected(i_generator,E0,pt2,b,subset)
   use bitmasks
   use selection_types
   implicit none
-  integer, intent(in)            :: i_generator
+  integer, intent(in)            :: i_generator, subset
   type(selection_buffer), intent(inout) :: b
   double precision, intent(inout)  :: pt2(N_states)
   integer :: k,l
@@ -78,7 +78,7 @@ subroutine select_connected(i_generator,E0,pt2,b)
       particle_mask(k,2) = iand(generators_bitmask(k,2,s_part,l), not(psi_det_generators(k,2,i_generator)) )
 
     enddo
-    call select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
+    call select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b,subset)
   enddo
 end subroutine
 

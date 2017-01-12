@@ -87,7 +87,7 @@ program fci_zmq
     threshold_selectors = 1.d0
     threshold_generators = 1d0 ! 0.9999d0
     E_CI_before(1:N_states) = CI_energy(1:N_states)
-    !call ZMQ_selection(0, pt2) pour non-stochastic
+    !call ZMQ_selection(0, pt2)! pour non-stochastic
     call ZMQ_pt2(pt2)
     print *,  'Final step'
     print *,  'N_det    = ', N_det
@@ -121,7 +121,7 @@ subroutine ZMQ_pt2(pt2)
   double precision, allocatable :: pt2_detail(:,:), comb(:)
   logical, allocatable :: computed(:)
   integer, allocatable :: tbc(:)
-  integer :: i, Ncomb, generator_per_task, i_generator_end
+  integer :: i, j, Ncomb, generator_per_task, i_generator_end
   integer, external :: pt2_find
   
   double precision :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
@@ -131,7 +131,7 @@ subroutine ZMQ_pt2(pt2)
   allocate(pt2_detail(N_states, N_det_generators), comb(100000), computed(N_det_generators), tbc(0:N_det_generators))
   provide nproc
 
-  call random_seed()
+  !call random_seed()
   
   computed = .false.
   tbc(0) = first_det_of_comb - 1
@@ -163,9 +163,19 @@ subroutine ZMQ_pt2(pt2)
   do i=tbc(0),1,-1 ! generator_per_task
     i_generator_end = min(i+generator_per_task-1, tbc(0))
     !print *, "TASK", (i_generator_end-i+1), tbc(i:i_generator_end)
-    write(task,*) (i_generator_end-i+1), tbc(i:i_generator_end)
-    call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+    if(i > 10) then
+      integer :: zero
+      zero = 0
+      write(task,*) (i_generator_end-i+1), zero, tbc(i:i_generator_end)
+      call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+    else
+      do j=1,8
+        write(task,*) (i_generator_end-i+1), j, tbc(i:i_generator_end)
+        call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+      end do
+    end if
   end do
+
   print *, "tasked" 
   !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
     i = omp_get_thread_num()
@@ -180,7 +190,6 @@ subroutine ZMQ_pt2(pt2)
   call do_carlo(tbc, Ncomb, comb, pt2_detail, sumabove, sum2above, Nabove)
   !END LOOP?
   integer :: tooth
-  !-8.091550677158776E-003
   call get_first_tooth(computed, tooth)
   !print *, "TOOTH ", tooth 
   
@@ -199,9 +208,7 @@ subroutine ZMQ_pt2(pt2)
   if(Nabove(tooth) >= 30) then
     E0 = sum(pt2_detail(1,:first_det_of_teeth(tooth)-1))
     prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - cweight(first_det_of_teeth(tooth)-1))
-    !print *, "preprop ", prop, weight(first_det_of_teeth(tooth))
     prop = prop / weight(first_det_of_teeth(tooth))
-    !print *, "prop", prop
     E0 += pt2_detail(1,first_det_of_teeth(tooth)) * prop
     avg = E0 + (sumabove(tooth) / Nabove(tooth))
     eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
@@ -230,7 +237,6 @@ subroutine do_carlo(tbc, Ncomb, comb, pt2_detail, sumabove, sum2above, Nabove)
     myVal = 0d0
     myVal2 = 0d0
     do j=comb_teeth,1,-1
-      !if(pt2_detail(1, dets(j)) == -1d0) print *, "uncalculatedidified", dets(j), pt2_detail(1, dets(j)-1:dets(j)+1)
       myVal += pt2_detail(1, dets(j)) / weight(dets(j)) * comb_step
       sumabove(j) += myVal
       sum2above(j) += myVal**2
@@ -487,7 +493,7 @@ subroutine get_carlo_workbatch(maxWorkload, computed, comb, Ncomb, tbc)
     comb(i) = comb(i) * comb_step
     call add_comb(comb(i), computed, tbc, myWorkload)
     Ncomb = i
-    if(myWorkload > maxWorkload .and. i >= 30) exit
+    if(myWorkload > maxWorkload .and. i >= 50) exit
   end do
   call reorder_tbc(tbc)
 end subroutine
