@@ -15,8 +15,8 @@ source $QP_ROOT/tests/bats/common.bats.sh
   ezfio set mrcepa0 lambda_type 1
   ezfio set mrcepa0 n_it_max_dressed_ci 3
   qp_run $EXE $INPUT  
-  energy="$(ezfio get mrcepa0 energy)"
-  eq $energy -76.22903276183061 1.e-4
+  energy="$(ezfio get mrcepa0 energy_pt2)"
+  eq $energy -76.2385617521816 1.e-4
 }
 
 @test "MRCC H2O cc-pVDZ" {
@@ -28,12 +28,11 @@ source $QP_ROOT/tests/bats/common.bats.sh
   ezfio set determinants threshold_generators 1.
   ezfio set determinants threshold_selectors  1.
   ezfio set determinants read_wf True
-  ezfio set determinants read_wf True
   ezfio set mrcepa0 lambda_type 0
   ezfio set mrcepa0 n_it_max_dressed_ci 3
   qp_run $EXE $INPUT  
-  energy="$(ezfio get mrcepa0 energy)"
-  eq $energy -76.22899302846875 1.e-4
+  energy="$(ezfio get mrcepa0 energy_pt2)"
+  eq $energy -76.2385052514433 2.e-4
 }
 
 @test "MRSC2 H2O cc-pVDZ" {
@@ -45,11 +44,11 @@ source $QP_ROOT/tests/bats/common.bats.sh
   ezfio set determinants threshold_generators 1.
   ezfio set determinants threshold_selectors  1.
   ezfio set determinants read_wf True
-  ezfio set mrcepa0 lambda_type 0
+  ezfio set mrcepa0 lambda_type 1
   ezfio set mrcepa0 n_it_max_dressed_ci 3
   qp_run $EXE $INPUT  
-  energy="$(ezfio get mrcepa0 energy)"
-  eq $energy -76.22647345292708 1.e-4
+  energy="$(ezfio get mrcepa0 energy_pt2)"
+  eq $energy -76.235786994991  2.e-4
 }
 
 @test "MRCEPA0 H2O cc-pVDZ" {
@@ -61,10 +60,10 @@ source $QP_ROOT/tests/bats/common.bats.sh
   ezfio set determinants threshold_generators 1.
   ezfio set determinants threshold_selectors  1.
   ezfio set determinants read_wf True
-  ezfio set mrcepa0 lambda_type 0
+  ezfio set mrcepa0 lambda_type 1
   ezfio set mrcepa0 n_it_max_dressed_ci 3
   qp_run $EXE $INPUT  
-  energy="$(ezfio get mrcepa0 energy)"
-  eq $energy -76.23199784430074 1.e-4
+  energy="$(ezfio get mrcepa0 energy_pt2)"
+  eq $energy -76.2417725924747 2.e-4
 }
 

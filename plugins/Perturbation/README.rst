@@ -88,6 +88,7 @@ Needed Modules
 
 * `Properties <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties>`_
 * `Hartree_Fock <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock>`_
+* `Davidson <http://github.com/LCPQ/quantum_package/tree/master/src/Davidson>`_
 
 Documentation
 =============
@@ -107,13 +108,13 @@ Documentation
   Undocumented
 
 
-perturb_buffer_by_mono_delta_rho_one_point
-  Applly pertubration ``delta_rho_one_point`` to the buffer of determinants generated in the H_apply
+perturb_buffer_by_mono_dipole_moment_z
+  Applly pertubration ``dipole_moment_z`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-perturb_buffer_by_mono_dipole_moment_z
-  Applly pertubration ``dipole_moment_z`` to the buffer of determinants generated in the H_apply
+perturb_buffer_by_mono_dummy
+  Applly pertubration ``dummy`` to the buffer of determinants generated in the H_apply
   routine.
 
 
@@ -152,13 +153,13 @@ perturb_buffer_by_mono_moller_plesset
   routine.
 
 
-perturb_buffer_delta_rho_one_point
-  Applly pertubration ``delta_rho_one_point`` to the buffer of determinants generated in the H_apply
+perturb_buffer_dipole_moment_z
+  Applly pertubration ``dipole_moment_z`` to the buffer of determinants generated in the H_apply
   routine.
 
 
-perturb_buffer_dipole_moment_z
-  Applly pertubration ``dipole_moment_z`` to the buffer of determinants generated in the H_apply
+perturb_buffer_dummy
+  Applly pertubration ``dummy`` to the buffer of determinants generated in the H_apply
   routine.
 
 
@@ -197,27 +198,6 @@ perturb_buffer_moller_plesset
   routine.
 
 
-`pt2_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/delta_rho_perturbation.irp.f#L1>`_
-  compute the perturbatibe contribution to the Integrated Spin density at z = z_one point of one determinant
-  .br
-  for the various n_st states, at various level of theory.
-  .br
-  c_pert(i) = <psi(i)|H|det_pert>/(<psi(i)|H|psi(i)> - <det_pert|H|det_pert>)
-  .br
-  e_2_pert(i) = c_pert(i) * <det_pert|O|psi(i)>
-  .br
-  H_pert_diag(i) = c_pert(i)^2 * <det_pert|O|det_pert>
-  .br
-  To get the contribution of the first order :
-  .br
-  <O_1> = sum(over i)  e_2_pert(i)
-  .br
-  To get the contribution of the diagonal elements of the second order :
-  .br
-  [ <O_0> + <O_1> + sum(over i)  H_pert_diag(i) ] / [1. + sum(over i) c_pert(i) **2]
-  .br
-
-
 `pt2_dipole_moment_z <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/dipole_moment.irp.f#L1>`_
   compute the perturbatibe contribution to the dipole moment of one determinant
   .br
@@ -239,7 +219,11 @@ perturb_buffer_moller_plesset
   .br
 
 
-`pt2_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_370#L3>`_
+`pt2_dummy <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_401#L420>`_
+  Dummy perturbation to add all connected determinants.
+
+
+`pt2_epstein_nesbet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_401#L3>`_
   compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states.
@@ -250,7 +234,7 @@ perturb_buffer_moller_plesset
   .br
 
 
-`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_370#L60>`_
+`pt2_epstein_nesbet_2x2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_401#L60>`_
   compute the Epstein-Nesbet 2x2 diagonalization coefficient and energetic contribution
   .br
   for the various N_st states.
@@ -261,7 +245,7 @@ perturb_buffer_moller_plesset
   .br
 
 
-`pt2_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_370#L364>`_
+`pt2_epstein_nesbet_sc2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_401#L364>`_
   compute the standard Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states, but with the CISD_SC2 energies and coefficients
@@ -272,7 +256,7 @@ perturb_buffer_moller_plesset
   .br
 
 
-`pt2_epstein_nesbet_sc2_no_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_370#L285>`_
+`pt2_epstein_nesbet_sc2_no_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_401#L285>`_
   compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states,
@@ -296,7 +280,7 @@ perturb_buffer_moller_plesset
   H_pert_diag = <HF|H|det_pert> c_pert
 
 
-`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_370#L190>`_
+`pt2_epstein_nesbet_sc2_projected <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_401#L190>`_
   compute the Epstein-Nesbet perturbative first order coefficient and second order energetic contribution
   .br
   for the various N_st states,
@@ -331,12 +315,12 @@ perturb_buffer_moller_plesset
   .br
 
 
-`pt2_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/ezfio_interface.irp.f#L28>`_
+`pt2_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/ezfio_interface.irp.f#L25>`_
   The selection process stops when the largest PT2 (for all the state) is lower
   than pt2_max in absolute value
 
 
-`pt2_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_370#L121>`_
+`pt2_moller_plesset <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/pt2_equations.irp.f_template_401#L121>`_
   compute the standard Moller-Plesset perturbative first order coefficient and second order energetic contribution
   .br
   for the various n_st states.
@@ -368,7 +352,7 @@ perturb_buffer_moller_plesset
   Threshold to select determinants. Set by selection routines.
 
 
-`var_pt2_ratio <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/ezfio_interface.irp.f#L51>`_
+`var_pt2_ratio <http://github.com/LCPQ/quantum_package/tree/master/plugins/Perturbation/ezfio_interface.irp.f#L45>`_
   The selection process stops when the energy ratio variational/(variational+PT2)
   is equal to var_pt2_ratio
 

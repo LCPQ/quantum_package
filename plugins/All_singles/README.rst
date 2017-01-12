@@ -15,6 +15,7 @@ Needed Modules
 * `Properties <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties>`_
 * `Selectors_no_sorted <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_no_sorted>`_
 * `Utils <http://github.com/LCPQ/quantum_package/tree/master/src/Utils>`_
+* `Davidson <http://github.com/LCPQ/quantum_package/tree/master/src/Davidson>`_
 
 Documentation
 =============

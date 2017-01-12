@@ -1,20 +1,18 @@
-#!/bin/bash
+#!/bin/bash -e
 
 LIST="
-
 convert.bats
 hf.bats
-foboci.bats
 pseudo.bats
 fci.bats
 cassd.bats
 mrcepa0.bats
-
 "
+#foboci.bats
 
 
-export QP_PREFIX="timeout -s 9 300"
-export QP_TASK_DEBUG=1
+export QP_PREFIX="timeout -s 9 600"
+#export QP_TASK_DEBUG=1
 
 rm -rf work output
 
@@ -30,10 +28,9 @@ do
   if [[ "$1" == "-v" ]]
   then
     echo "Verbose mode"
-    ./bats_to_sh.py $BATS_FILE | bash
+    ./bats_to_sh.py $BATS_FILE | bash 
   else
     bats $BATS_FILE
   fi
 done
-
 

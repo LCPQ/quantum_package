@@ -109,8 +109,6 @@ integer function get_index_in_psi_det_sorted_bit(key,Nint)
       continue
     else
       in_wavefunction = .True.
-      !DIR$ IVDEP
-      !DIR$ LOOP COUNT MIN(3)
       do l=2,Nint
         if ( (key(l,1) /= psi_det_sorted_bit(l,1,i)).or.                           &
               (key(l,2) /= psi_det_sorted_bit(l,2,i)) ) then
@@ -175,7 +173,6 @@ logical function is_connected_to(key,keys,Nint,Ndet)
   do i=1,Ndet
     degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
         popcnt(xor( key(1,2), keys(1,2,i)))
-    !DEC$ LOOP COUNT MIN(3)
     do l=2,Nint
       degree_x2 = degree_x2 + popcnt(xor( key(l,1), keys(l,1,i))) +&
           popcnt(xor( key(l,2), keys(l,2,i)))
@@ -231,7 +228,6 @@ logical function is_connected_to_by_mono(key,keys,Nint,Ndet)
   do i=1,Ndet
     degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
         popcnt(xor( key(1,2), keys(1,2,i)))
-    !DEC$ LOOP COUNT MIN(3)
     do l=2,Nint
       degree_x2 = degree_x2 + popcnt(xor( key(l,1), keys(l,1,i))) +&
           popcnt(xor( key(l,2), keys(l,2,i)))
@@ -325,10 +321,12 @@ integer function connected_to_ref(key,keys,Nint,N_past_in,Ndet)
     do i=N_past-1,1,-1
       degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
           popcnt(xor( key(1,2), keys(1,2,i)))
-      !DEC$ LOOP COUNT MIN(3)
       do l=2,Nint
         degree_x2 = degree_x2 + popcnt(xor( key(l,1), keys(l,1,i))) +&
             popcnt(xor( key(l,2), keys(l,2,i)))
+        if (degree_x2 > 4) then
+          exit
+        endif
       enddo
       if (degree_x2 > 4) then
         cycle
@@ -429,7 +427,6 @@ integer function connected_to_ref_by_mono(key,keys,Nint,N_past_in,Ndet)
     do i=N_past-1,1,-1
       degree_x2 = popcnt(xor( key(1,1), keys(1,1,i))) +              &
           popcnt(xor( key(1,2), keys(1,2,i)))
-      !DEC$ LOOP COUNT MIN(3)
       do l=2,Nint
         degree_x2 = degree_x2 + popcnt(xor( key(l,1), keys(l,1,i))) +&
             popcnt(xor( key(l,2), keys(l,2,i)))

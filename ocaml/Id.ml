@@ -1,26 +1,22 @@
-open Core.Std
-
-module Id : sig
-  type t
-  val of_int : int -> t
-  val to_int : t -> int
-  val of_string : string -> t
-  val to_string : t -> string
-  val increment : t -> t
-  val decrement : t -> t
-end
-= struct
+module Id = struct
   type t = int
+
   let of_int x = 
     assert (x>0); x
+
   let to_int x = x
+
   let of_string x = 
-    Int.of_string x
+    int_of_string x
     |> of_int
+
   let to_string x =
-    Int.to_string x
+    string_of_int x
+
   let increment x = x + 1
   let decrement x = x - 1
+
+  let compare = compare
 end
 
 module Task = struct

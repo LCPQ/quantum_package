@@ -11,9 +11,9 @@ subroutine svd(A,LDA,U,LDU,D,Vt,LDVt,m,n)
   
   integer, intent(in)             :: LDA, LDU, LDVt, m, n
   double precision, intent(in)    :: A(LDA,n)
-  double precision, intent(out)   :: U(LDU,n)
+  double precision, intent(out)   :: U(LDU,m)
   double precision,intent(out)    :: Vt(LDVt,n)
-  double precision,intent(out)    :: D(n)
+  double precision,intent(out)    :: D(min(m,n))
   double precision,allocatable    :: work(:)
   integer                         :: info, lwork, i, j, k
   
@@ -24,13 +24,13 @@ subroutine svd(A,LDA,U,LDU,D,Vt,LDVt,m,n)
   ! Find optimal size for temp arrays
   allocate(work(1))
   lwork = -1
-  call dgesvd('A','A', n, n, A_tmp, LDA,                             &
+  call dgesvd('A','A', m, n, A_tmp, LDA,                             &
       D, U, LDU, Vt, LDVt, work, lwork, info)
   lwork = work(1)
   deallocate(work)
 
   allocate(work(lwork))
-  call dgesvd('A','A', n, n, A_tmp, LDA,                             &
+  call dgesvd('A','A', m, n, A_tmp, LDA,                             &
       D, U, LDU, Vt, LDVt, work, lwork, info)
   deallocate(work,A_tmp)
 
@@ -125,6 +125,65 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
 end
 
 
+subroutine ortho_qr(A,LDA,m,n)
+  implicit none
+  BEGIN_DOC
+  ! Orthogonalization using Q.R factorization
+  !
+  ! A : matrix to orthogonalize
+  !
+  ! LDA : leftmost dimension of A
+  !
+  ! n : Number of rows of A
+  !
+  ! m : Number of columns of A
+  !
+  END_DOC
+  integer, intent(in)            :: m,n, LDA
+  double precision, intent(inout) :: A(LDA,n)
+
+  integer                        :: lwork, info
+  integer, allocatable           :: jpvt(:)
+  double precision, allocatable  :: tau(:), work(:)
+
+  allocate (jpvt(n), tau(n), work(1))
+  LWORK=-1
+  call  dgeqrf( m, n, A, LDA, TAU, WORK, LWORK, INFO )
+  LWORK=2*WORK(1)
+  deallocate(WORK)
+  allocate(WORK(LWORK))
+  call  dgeqrf( m, n, A, LDA, TAU, WORK, LWORK, INFO )
+  call dorgqr(m, n, n, A, LDA, tau, WORK, LWORK, INFO)
+  deallocate(WORK,jpvt,tau)
+end
+
+subroutine ortho_qr_unblocked(A,LDA,m,n)
+  implicit none
+  BEGIN_DOC
+  ! Orthogonalization using Q.R factorization
+  !
+  ! A : matrix to orthogonalize
+  !
+  ! LDA : leftmost dimension of A
+  !
+  ! n : Number of rows of A
+  !
+  ! m : Number of columns of A
+  !
+  END_DOC
+  integer, intent(in)            :: m,n, LDA
+  double precision, intent(inout) :: A(LDA,n)
+
+  integer                        :: info
+  integer, allocatable           :: jpvt(:)
+  double precision, allocatable  :: tau(:), work(:)
+
+  allocate (jpvt(n), tau(n), work(n))
+  call  dgeqr2( m, n, A, LDA, TAU, WORK, INFO )
+  call dorg2r(m, n, n, A, LDA, tau, WORK, INFO)
+  deallocate(WORK,jpvt,tau)
+end
+
 subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   implicit none
   BEGIN_DOC
@@ -161,7 +220,7 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
 
   allocate(U(ldc,n),Vt(lda,n),S_half(lda,n),D(n))
 
-  call svd(overlap,lda,U,ldc,D,Vt,lda,m,n)
+  call svd(overlap,lda,U,ldc,D,Vt,lda,n,n)
 
   !$OMP PARALLEL DEFAULT(NONE) &
   !$OMP SHARED(S_half,U,D,Vt,n,C,m) &
@@ -410,7 +469,12 @@ subroutine lapack_diag(eigvalues,eigvectors,H,nmax,n)
     print *, irp_here, ': DSYEV: the ',-info,'-th argument had an illegal value'
     stop 2
   else if( info > 0  ) then
-     write(*,*)'DSYEV Failed'
+     write(*,*)'DSYEV Failed : ', info
+     do i=1,n
+      do j=1,n
+        print *,  H(i,j)
+      enddo
+     enddo
      stop 1
   end if
 
@@ -572,3 +636,18 @@ end
 
 
 
+subroutine matrix_vector_product(u0,u1,matrix,sze,lda)
+ implicit none
+ BEGIN_DOC
+! performs u1 += u0 * matrix 
+ END_DOC
+ integer, intent(in)             :: sze,lda
+ double precision, intent(in)    :: u0(sze)
+ double precision, intent(inout) :: u1(sze)
+ double precision, intent(in)    :: matrix(lda,sze)
+ integer :: i,j
+ integer                        :: incx,incy
+ incx = 1
+ incy = 1
+ call dsymv('U', sze, 1.d0, matrix, lda, u0, incx, 1.d0, u1, incy)
+end

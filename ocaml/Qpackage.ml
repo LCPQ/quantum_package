@@ -127,3 +127,14 @@ let get_ezfio_default directory data =
   |> aux 
 ;;
 
+let ezfio_work ezfio_file = 
+  let result = 
+    Filename.concat ezfio_file  "work"
+  in
+  begin
+    match Sys.is_directory result with
+    | `Yes -> ()
+    | _ -> Unix.mkdir result
+  end;
+  result
+;;

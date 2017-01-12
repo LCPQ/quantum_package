@@ -212,9 +212,47 @@ subroutine update_density_matrix_osoci
  integer :: iorb,jorb
  do i = 1, mo_tot_num
   do j = 1, mo_tot_num
-   one_body_dm_mo_alpha_osoci(i,j) = one_body_dm_mo_alpha_osoci(i,j) + (one_body_dm_mo_alpha(i,j) - one_body_dm_mo_alpha_generators_restart(i,j))
-   one_body_dm_mo_beta_osoci(i,j) = one_body_dm_mo_beta_osoci(i,j) + (one_body_dm_mo_beta(i,j) - one_body_dm_mo_beta_generators_restart(i,j))
+   one_body_dm_mo_alpha_osoci(i,j) = one_body_dm_mo_alpha_osoci(i,j) + (one_body_dm_mo_alpha_average(i,j) - one_body_dm_mo_alpha_generators_restart(i,j))
+   one_body_dm_mo_beta_osoci(i,j) = one_body_dm_mo_beta_osoci(i,j) + (one_body_dm_mo_beta_average(i,j) - one_body_dm_mo_beta_generators_restart(i,j))
   enddo
+ enddo
+
+
+end
+
+subroutine update_density_matrix_beta_osoci_read(array)
+ implicit none
+ BEGIN_DOC
+ ! one_body_dm_mo_alpha_osoci += Delta rho alpha
+ ! one_body_dm_mo_beta_osoci  += Delta rho beta
+ END_DOC
+ integer :: i,j
+ integer :: iorb,jorb
+ double precision :: array(mo_tot_num)
+ do i = 1, mo_tot_num
+   j = list_act(1)
+   one_body_dm_mo_beta_osoci(i,j) += array(i)
+   one_body_dm_mo_beta_osoci(j,i) += array(i)
+   one_body_dm_mo_beta_osoci(i,i) += array(i) * array(i)
+ enddo
+
+
+end
+
+subroutine update_density_matrix_alpha_osoci_read(array)
+ implicit none
+ BEGIN_DOC
+ ! one_body_dm_mo_alpha_osoci += Delta rho alpha
+ ! one_body_dm_mo_beta_osoci  += Delta rho beta
+ END_DOC
+ integer :: i,j
+ integer :: iorb,jorb
+ double precision :: array(mo_tot_num)
+ do i = 1, mo_tot_num
+   j = list_act(1)
+   one_body_dm_mo_alpha_osoci(i,j) += array(i)
+   one_body_dm_mo_alpha_osoci(j,i) += array(i)
+   one_body_dm_mo_alpha_osoci(i,i) += array(i) * array(i)
  enddo
 
 
@@ -387,14 +425,14 @@ subroutine save_osoci_natural_mos
   print*,'ACTIVE ORBITAL  ',iorb
   do j = 1, n_inact_orb
    jorb = list_inact(j)
-   if(dabs(tmp(iorb,jorb)).gt.threshold_lmct)then
+   if(dabs(tmp(iorb,jorb)).gt.0.0001d0)then
     print*,'INACTIVE  '
     print*,'DM ',iorb,jorb,(tmp(iorb,jorb))
    endif
   enddo
   do j = 1, n_virt_orb
    jorb = list_virt(j)
-   if(dabs(tmp(iorb,jorb)).gt.threshold_mlct)then
+   if(dabs(tmp(iorb,jorb)).gt.0.0001d0)then
     print*,'VIRT      '
     print*,'DM ',iorb,jorb,(tmp(iorb,jorb))
    endif
@@ -412,6 +450,10 @@ subroutine save_osoci_natural_mos
  label = "Natural"
  
  call mo_as_eigvectors_of_mo_matrix(tmp,size(tmp,1),size(tmp,2),label,1)
+!if(disk_access_ao_integrals == "None" .or. disk_access_ao_integrals == "Write" )then
+! disk_access_ao_integrals = "Read"
+! touch disk_access_ao_integrals
+!endif
 !soft_touch mo_coef
  deallocate(tmp,occ)
 
@@ -588,14 +630,14 @@ end
    integer :: i
    double precision :: accu_tot,accu_sd
    print*,'touched the one_body_dm_mo_beta'
-   one_body_dm_mo_alpha = one_body_dm_mo_alpha_osoci
-   one_body_dm_mo_beta = one_body_dm_mo_beta_osoci
+   one_body_dm_mo_alpha_average = one_body_dm_mo_alpha_osoci
+   one_body_dm_mo_beta_average = one_body_dm_mo_beta_osoci
    touch one_body_dm_mo_alpha  one_body_dm_mo_beta 
    accu_tot = 0.d0
    accu_sd  = 0.d0
    do i = 1, mo_tot_num
-    accu_tot += one_body_dm_mo_alpha(i,i) + one_body_dm_mo_beta(i,i)
-    accu_sd  += one_body_dm_mo_alpha(i,i) - one_body_dm_mo_beta(i,i)
+    accu_tot += one_body_dm_mo_alpha_average(i,i) + one_body_dm_mo_beta_average(i,i)
+    accu_sd  += one_body_dm_mo_alpha_average(i,i) - one_body_dm_mo_beta_average(i,i)
    enddo
    print*,'accu_tot = ',accu_tot
    print*,'accu_sdt = ',accu_sd 

@@ -24,7 +24,7 @@ Demo
 * Python >= 2.6
 * GNU make
 * Bash
-* Blast/Lapack
+* Blas/Lapack
 * unzip
 * g++ (For ninja)
 
@@ -136,6 +136,10 @@ interface: ezfio
 ```
 
 #FAQ
+
+### Opam error: cryptokit
+
+You need to install `gmp-dev`.
 
 ### Error: ezfio_* is already defined.
 
