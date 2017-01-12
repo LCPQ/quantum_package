@@ -177,7 +177,7 @@ subroutine ZMQ_pt2(pt2)
   generator_per_task = 1 ! tbc(0)/300 + 1
   print *, 'TASKS REVERSED'
   !do i=1,tbc(0),generator_per_task
-  do i=tbc(0),1,-1 ! generator_per_task
+  do i=1,tbc(0) ! generator_per_task
     i_generator_end = min(i+generator_per_task-1, tbc(0))
     !print *, "TASK", (i_generator_end-i+1), tbc(i:i_generator_end)
     if(i > 10) then
