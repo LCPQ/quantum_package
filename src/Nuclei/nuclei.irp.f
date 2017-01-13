@@ -169,7 +169,7 @@ END_PROVIDER
        'Nuclear repulsion energy')
 END_PROVIDER
  
-BEGIN_PROVIDER [ character*(128), element_name, (36)] 
+BEGIN_PROVIDER [ character*(128), element_name, (54)] 
  BEGIN_DOC
  ! Array of the name of element, sorted by nuclear charge (integer)
  END_DOC
@@ -209,4 +209,22 @@ BEGIN_PROVIDER [ character*(128), element_name, (36)]
  element_name(34) = 'Se'
  element_name(35) = 'Br'
  element_name(36) = 'Kr'
+ element_name(37) = 'Rb'
+ element_name(38) = 'Sr'
+ element_name(39) = 'Y'
+ element_name(40) = 'Zr'
+ element_name(41) = 'Nb'
+ element_name(42) = 'Mo'
+ element_name(43) = 'Tc'
+ element_name(44) = 'Ru'
+ element_name(45) = 'Rh'
+ element_name(46) = 'Pd'
+ element_name(47) = 'Ag'
+ element_name(48) = 'Cd'
+ element_name(49) = 'In'
+ element_name(50) = 'Sn'
+ element_name(51) = 'Sb'
+ element_name(52) = 'Te'
+ element_name(53) = 'I'
+ element_name(54) = 'Xe'
 END_PROVIDER
