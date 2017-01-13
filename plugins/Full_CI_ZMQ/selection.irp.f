@@ -261,16 +261,12 @@ subroutine get_m0(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   end do
 end subroutine
 
-
-! Selection double
-! ----------------
- 
-subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf)
+subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf,subset)
   use bitmasks
   use selection_types
   implicit none
   
-  integer, intent(in)            :: i_generator
+  integer, intent(in)            :: i_generator, subset
   integer(bit_kind), intent(in)  :: hole_mask(N_int,2), particle_mask(N_int,2)
   double precision, intent(in)   :: fock_diag_tmp(mo_tot_num)
   double precision, intent(in)   :: E0(N_states)
@@ -287,7 +283,9 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   integer(bit_kind), allocatable :: minilist(:, :, :), fullminilist(:, :, :)
   
   logical :: monoAdo, monoBdo;
-  
+  integer :: maskInd
+  maskInd = -1
+
   monoAdo = .true.
   monoBdo = .true.
   
@@ -339,6 +337,19 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
         
   do s1=1,2
     do i1=N_holes(s1),1,-1   ! Generate low excitations first
+      !if(subset /= 0 .and. mod(maskInd, 10) /= (subset-1)) then
+      !  maskInd += 1
+      !  cycle
+      !end if
+      maskInd += 1
+
+
+
+
+      if(subset == 0 .or. mod(maskInd, 8) == (subset-1)) then
+      
+      
+      
       h1 = hole_list(i1,s1)
       call apply_hole(psi_det_generators(1,1,i_generator), s1,h1, pmask, ok, N_int)
       
@@ -387,54 +398,63 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
         end if
       end do
       
+
+
+
+
+      end if
+
+
+
       do s2=s1,2
         sp = s1
+        
         if(s1 /= s2) sp = 3
         
         ib = 1
         if(s1 == s2) ib = i1+1
         monoAdo = .true.
         do i2=N_holes(s2),ib,-1   ! Generate low excitations first
-          
-          h2 = hole_list(i2,s2)
-          call apply_hole(pmask, s2,h2, mask, ok, N_int)
-          
           logical                        :: banned(mo_tot_num, mo_tot_num,2)
           logical                        :: bannedOrb(mo_tot_num, 2)
           
-          banned = .false.
-          
-          call spot_isinwf(mask, fullminilist, i_generator, fullinteresting(0), banned, fullMatch, fullinteresting)
-          
-          if(fullMatch) cycle
-          
-          bannedOrb(1:mo_tot_num, 1:2) = .true.
-          do s3=1,2
-            do i=1,N_particles(s3)
-              bannedOrb(particle_list(i,s3), s3) = .false.
+          if(subset == 0 .or. mod(maskInd, 8) == (subset-1)) then
+            h2 = hole_list(i2,s2)
+            call apply_hole(pmask, s2,h2, mask, ok, N_int)
+            banned = .false.
+            bannedOrb(1:mo_tot_num, 1:2) = .true.
+            do s3=1,2
+              do i=1,N_particles(s3)
+                bannedOrb(particle_list(i,s3), s3) = .false.
+              enddo
             enddo
-          enddo
           
-          if(s1 /= s2) then
-            if(monoBdo) then
-              bannedOrb(h1,s1) = .false.
+            if(s1 /= s2) then
+              if(monoBdo) then
+                bannedOrb(h1,s1) = .false.
+              end if
+              if(monoAdo) then
+                bannedOrb(h2,s2) = .false.
+                monoAdo = .false.
+              end if
             end if
-            if(monoAdo) then
-              bannedOrb(h2,s2) = .false.
-              monoAdo = .false.
-            end if
+         
+          
+            call spot_isinwf(mask, fullminilist, i_generator, fullinteresting(0), banned, fullMatch, fullinteresting)
+            if(fullMatch) cycle
+          
+            mat = 0d0
+            call splash_pq(mask, sp, minilist, i_generator, interesting(0), bannedOrb, banned, mat, interesting)
+
+            call fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_diag_tmp, E0, pt2, mat, buf)
           end if
-          
-          
-          mat = 0d0
-          call splash_pq(mask, sp, minilist, i_generator, interesting(0), bannedOrb, banned, mat, interesting)
-          call fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_diag_tmp, E0, pt2, mat, buf)
         enddo
         if(s1 /= s2) monoBdo = .false.
       enddo
     enddo
   enddo
 end subroutine
+
 
 
 subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_diag_tmp, E0, pt2, mat, buf)
