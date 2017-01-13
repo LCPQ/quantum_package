@@ -32,20 +32,20 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   use bitmasks
   implicit none
   BEGIN_DOC
-  ! Computes v_0 = H|u_0>
+  ! Computes v_0 = H|u_0> 
   !
   ! n : number of determinants
   !
   ! H_jj : array of <j|H|j>
+  !
   END_DOC
   integer, intent(in)            :: N_st,n,Nint, sze_8
   double precision, intent(out)  :: v_0(sze_8,N_st)
   double precision, intent(in)   :: u_0(sze_8,N_st)
   double precision, intent(in)   :: H_jj(n)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
-  double precision               :: hij
-  double precision, allocatable  :: vt(:,:)
-  double precision, allocatable  :: ut(:,:)
+  double precision               :: hij,s2 
+  double precision, allocatable  :: vt(:,:), ut(:,:), st(:,:)
   integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0
   
@@ -57,38 +57,79 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   integer                        :: N_st_8
   
   integer, external              :: align_double
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut
+  integer :: blockb, blockb2, istep
+  double precision :: ave_workload, workload, target_workload_inv
+  
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut, st
 
   N_st_8 = align_double(N_st)
 
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
   ASSERT (n>0)
-  PROVIDE ref_bitmask_energy 
+  PROVIDE ref_bitmask_energy
 
   allocate (shortcut(0:n+1,2), sort_idx(n,2), sorted(Nint,n,2), version(Nint,n,2))
-  allocate(ut(N_st_8,n))
+  allocate( ut(N_st_8,n))
 
   v_0 = 0.d0
 
-  do i=1,n
-    do istate=1,N_st
-      ut(istate,i) = u_0(i,istate)
-    enddo
-  enddo
-
   call sort_dets_ab_v(keys_tmp, sorted(1,1,1), sort_idx(1,1), shortcut(0,1), version(1,1,1), n, Nint)
   call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
-  
+
   !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i,istate)&
-      !$OMP SHARED(n,H_jj,keys_tmp,ut,Nint,v_0,sorted,shortcut,sort_idx,version,N_st,N_st_8)
-  allocate(vt(N_st_8,n))
+      !$OMP PRIVATE(i,hij,s2,j,k,jj,vt,st,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i,istate)&
+      !$OMP SHARED(n,keys_tmp,ut,Nint,u_0,v_0,sorted,shortcut,sort_idx,version,N_st,N_st_8) 
+  allocate(vt(N_st_8,n),st(N_st_8,n))
   Vt = 0.d0
-  
+  St = 0.d0
+
+  !$OMP DO
+  do i=1,n
+    do istate=1,N_st
+      ut(istate,i) = u_0(sort_idx(i,2),istate)
+    enddo
+  enddo
+  !$OMP END DO
+
+  !$OMP DO SCHEDULE(dynamic)
+  do sh=1,shortcut(0,2)
+    do i=shortcut(sh,2),shortcut(sh+1,2)-1
+      org_i = sort_idx(i,2)
+      do j=shortcut(sh,2),shortcut(sh+1,2)-1
+        org_j = sort_idx(j,2)
+        ext = popcnt(xor(sorted(1,i,2), sorted(1,j,2)))
+        if (ext > 4) cycle
+        do ni=2,Nint
+          ext = ext + popcnt(xor(sorted(ni,i,2), sorted(ni,j,2)))
+          if (ext > 4) exit
+        end do
+        if(ext == 4) then
+            call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
+            call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2)
+            do istate=1,n_st
+              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,j)
+              st (istate,org_i) = st (istate,org_i) + s2*ut(istate,j)
+            enddo
+        end if
+      end do
+    end do
+  enddo
+  !$OMP END DO
+
+  !$OMP DO
+  do i=1,n
+    do istate=1,N_st
+      ut(istate,i) = u_0(sort_idx(i,1),istate)
+    enddo
+  enddo
+  !$OMP END DO
+
   !$OMP DO SCHEDULE(dynamic)
   do sh=1,shortcut(0,1)
-    do sh2=sh,shortcut(0,1)
+    do sh2=1,shortcut(0,1)
+      if (sh==sh2) cycle
+
       exa = 0
       do ni=1,Nint
         exa = exa + popcnt(xor(version(ni,sh,1), version(ni,sh2,1)))
@@ -96,77 +137,125 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
       if(exa > 2) then
         cycle
       end if
-      
+
       do i=shortcut(sh,1),shortcut(sh+1,1)-1
         org_i = sort_idx(i,1)
-        if(sh==sh2) then
-          endi = i-1
-        else
-          endi = shortcut(sh2+1,1)-1
-        end if
         do ni=1,Nint
           sorted_i(ni) = sorted(ni,i,1)
         enddo
-        
-        do j=shortcut(sh2,1),endi
-          org_j = sort_idx(j,1)
-          ext = exa
-          do ni=1,Nint
+
+        do j=shortcut(sh2,1),shortcut(sh2+1,1)-1
+          ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
+          if (ext > 4) cycle
+          do ni=2,Nint
             ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
+            if (ext > 4) exit
           end do
           if(ext <= 4) then
-            call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
-            do istate=1,N_st
-              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,org_j)
-              vt (istate,org_j) = vt (istate,org_j) + hij*ut(istate,org_i)
-            enddo
+            org_j = sort_idx(j,1)
+            call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
+            if (hij /= 0.d0) then
+              do istate=1,n_st
+                vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,j)
+              enddo
+            endif
+            if (ext /= 2) then
+              call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2)
+              if (s2 /= 0.d0) then
+                do istate=1,n_st
+                  st (istate,org_i) = st (istate,org_i) + s2*ut(istate,j)
+                enddo
+              endif
+            endif
           endif
         enddo
+        
+      enddo
+    enddo
+
+    exa = 0
+
+    do i=shortcut(sh,1),shortcut(sh+1,1)-1
+      org_i = sort_idx(i,1)
+      do ni=1,Nint
+        sorted_i(ni) = sorted(ni,i,1)
+      enddo
+
+      do j=shortcut(sh,1),i-1
+        ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
+        if (ext > 4) cycle
+        do ni=2,Nint
+          ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
+          if (ext > 4) exit
+        end do
+        if(ext <= 4) then
+          org_j = sort_idx(j,1)
+          call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
+          if (hij /= 0.d0) then
+            do istate=1,n_st
+              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,j)
+            enddo
+          endif
+          if (ext /= 2) then
+            call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2)
+            if (s2 /= 0.d0) then
+              do istate=1,n_st
+                st (istate,org_i) = st (istate,org_i) + s2*ut(istate,j)
+              enddo
+            endif
+          endif
+        endif
+      enddo
+      
+      do j=i+1,shortcut(sh+1,1)-1
+        if (i==j) cycle
+        ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
+        if (ext > 4) cycle
+        do ni=2,Nint
+          ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
+          if (ext > 4) exit
+        end do
+        if(ext <= 4) then
+          org_j = sort_idx(j,1)
+          call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
+          if (hij /= 0.d0) then
+            do istate=1,n_st
+              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,j)
+            enddo
+          endif
+          if (ext /= 2) then
+            call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2)
+            if (s2 /= 0.d0) then
+              do istate=1,n_st
+                st (istate,org_i) = st (istate,org_i) + s2*ut(istate,j)
+              enddo
+            endif
+          endif
+        endif
       enddo
     enddo
   enddo
-  !$OMP END DO NOWAIT
-  
-  !$OMP DO SCHEDULE(dynamic)
-  do sh=1,shortcut(0,2)
-    do i=shortcut(sh,2),shortcut(sh+1,2)-1
-      org_i = sort_idx(i,2)
-      do j=shortcut(sh,2),i-1
-        org_j = sort_idx(j,2)
-        ext = 0
-        do ni=1,Nint
-          ext = ext + popcnt(xor(sorted(ni,i,2), sorted(ni,j,2)))
-        end do
-        if(ext == 4) then
-          call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
-          do istate=1,N_st
-            vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,org_j)
-            vt (istate,org_j) = vt (istate,org_j) + hij*ut(istate,org_i)
-          enddo
-        end if
-      end do
-    end do
-  enddo
-  !$OMP END DO NOWAIT
-  
-  !$OMP CRITICAL
+  !$OMP END DO 
+
+  !$OMP CRITICAL (u0Hu0)
   do istate=1,N_st
-    do i=n,1,-1
+    do i=1,n
       v_0(i,istate) = v_0(i,istate) + vt(istate,i)
     enddo
   enddo
-  !$OMP END CRITICAL
+  !$OMP END CRITICAL (u0Hu0)
 
-  deallocate(vt)
+  deallocate(vt,st)
   !$OMP END PARALLEL
-  
+
   do istate=1,N_st
     do i=1,n
-      v_0(i,istate) += H_jj(i) * u_0(i,istate)
+      v_0(i,istate) = v_0(i,istate) + H_jj(i) * u_0(i,istate)
     enddo
   enddo
   deallocate (shortcut, sort_idx, sorted, version, ut)
 end
+
 
 BEGIN_PROVIDER [ double precision, psi_energy, (N_states) ]
   implicit none
@@ -323,35 +412,38 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   PROVIDE ref_bitmask_energy
 
   allocate (shortcut(0:n+1,2), sort_idx(n,2), sorted(Nint,n,2), version(Nint,n,2))
-  allocate(ut(N_st_8,n))
+  allocate( ut(N_st_8,n))
 
   v_0 = 0.d0
   s_0 = 0.d0
-
-  do i=1,n
-    do istate=1,N_st
-      ut(istate,i) = u_0(i,istate)
-    enddo
-  enddo
 
   call sort_dets_ab_v(keys_tmp, sorted(1,1,1), sort_idx(1,1), shortcut(0,1), version(1,1,1), n, Nint)
   call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
 
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,s2,j,k,jj,vt,st,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i,istate)&
-      !$OMP SHARED(n,keys_tmp,ut,Nint,v_0,s_0,sorted,shortcut,sort_idx,version,N_st,N_st_8) 
+      !$OMP SHARED(n,keys_tmp,ut,Nint,u_0,v_0,s_0,sorted,shortcut,sort_idx,version,N_st,N_st_8) 
   allocate(vt(N_st_8,n),st(N_st_8,n))
   Vt = 0.d0
   St = 0.d0
+
+  !$OMP DO
+  do i=1,n
+    do istate=1,N_st
+      ut(istate,i) = u_0(sort_idx(i,2),istate)
+    enddo
+  enddo
+  !$OMP END DO
 
   !$OMP DO SCHEDULE(dynamic)
   do sh=1,shortcut(0,2)
     do i=shortcut(sh,2),shortcut(sh+1,2)-1
       org_i = sort_idx(i,2)
-      do j=shortcut(sh,2),i-1
+      do j=shortcut(sh,2),shortcut(sh+1,2)-1
         org_j = sort_idx(j,2)
-        ext = 0
-        do ni=1,Nint
+        ext = popcnt(xor(sorted(1,i,2), sorted(1,j,2)))
+        if (ext > 4) cycle
+        do ni=2,Nint
           ext = ext + popcnt(xor(sorted(ni,i,2), sorted(ni,j,2)))
           if (ext > 4) exit
         end do
@@ -359,19 +451,28 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
             call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
             call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2)
             do istate=1,n_st
-              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,org_j)
-              vt (istate,org_j) = vt (istate,org_j) + hij*ut(istate,org_i)
-              st (istate,org_i) = st (istate,org_i) + s2*ut(istate,org_j)
-              st (istate,org_j) = st (istate,org_j) + s2*ut(istate,org_i)
+              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,j)
+              st (istate,org_i) = st (istate,org_i) + s2*ut(istate,j)
             enddo
         end if
       end do
     end do
   enddo
-  !$OMP END DO NOWAIT
+  !$OMP END DO
+
+  !$OMP DO
+  do i=1,n
+    do istate=1,N_st
+      ut(istate,i) = u_0(sort_idx(i,1),istate)
+    enddo
+  enddo
+  !$OMP END DO
+
+  !$OMP DO SCHEDULE(dynamic)
   do sh=1,shortcut(0,1)
-    !$OMP DO SCHEDULE(dynamic)
-    do sh2=sh,shortcut(0,1)
+    do sh2=1,shortcut(0,1)
+      if (sh==sh2) cycle
+
       exa = 0
       do ni=1,Nint
         exa = exa + popcnt(xor(version(ni,sh,1), version(ni,sh2,1)))
@@ -382,18 +483,14 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
 
       do i=shortcut(sh,1),shortcut(sh+1,1)-1
         org_i = sort_idx(i,1)
-        if(sh==sh2) then
-          endi = i-1
-        else
-          endi = shortcut(sh2+1,1)-1
-        end if
         do ni=1,Nint
           sorted_i(ni) = sorted(ni,i,1)
         enddo
 
-        do j=shortcut(sh2,1),endi
-          ext = exa
-          do ni=1,Nint
+        do j=shortcut(sh2,1),shortcut(sh2+1,1)-1
+          ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
+          if (ext > 4) cycle
+          do ni=2,Nint
             ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
             if (ext > 4) exit
           end do
@@ -402,25 +499,86 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
             call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
             if (hij /= 0.d0) then
               do istate=1,n_st
-                vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,org_j)
-                vt (istate,org_j) = vt (istate,org_j) + hij*ut(istate,org_i)
+                vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,j)
               enddo
             endif
             if (ext /= 2) then
               call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2)
               if (s2 /= 0.d0) then
                 do istate=1,n_st
-                  st (istate,org_i) = st (istate,org_i) + s2*ut(istate,org_j)
-                  st (istate,org_j) = st (istate,org_j) + s2*ut(istate,org_i)
+                  st (istate,org_i) = st (istate,org_i) + s2*ut(istate,j)
                 enddo
               endif
             endif
           endif
         enddo
+        
       enddo
     enddo
-    !$OMP END DO NOWAIT
+
+    exa = 0
+
+    do i=shortcut(sh,1),shortcut(sh+1,1)-1
+      org_i = sort_idx(i,1)
+      do ni=1,Nint
+        sorted_i(ni) = sorted(ni,i,1)
+      enddo
+
+      do j=shortcut(sh,1),i-1
+        ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
+        if (ext > 4) cycle
+        do ni=2,Nint
+          ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
+          if (ext > 4) exit
+        end do
+        if(ext <= 4) then
+          org_j = sort_idx(j,1)
+          call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
+          if (hij /= 0.d0) then
+            do istate=1,n_st
+              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,j)
+            enddo
+          endif
+          if (ext /= 2) then
+            call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2)
+            if (s2 /= 0.d0) then
+              do istate=1,n_st
+                st (istate,org_i) = st (istate,org_i) + s2*ut(istate,j)
+              enddo
+            endif
+          endif
+        endif
+      enddo
+      
+      do j=i+1,shortcut(sh+1,1)-1
+        if (i==j) cycle
+        ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
+        if (ext > 4) cycle
+        do ni=2,Nint
+          ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
+          if (ext > 4) exit
+        end do
+        if(ext <= 4) then
+          org_j = sort_idx(j,1)
+          call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
+          if (hij /= 0.d0) then
+            do istate=1,n_st
+              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,j)
+            enddo
+          endif
+          if (ext /= 2) then
+            call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2)
+            if (s2 /= 0.d0) then
+              do istate=1,n_st
+                st (istate,org_i) = st (istate,org_i) + s2*ut(istate,j)
+              enddo
+            endif
+          endif
+        endif
+      enddo
+    enddo
   enddo
+  !$OMP END DO 
 
   !$OMP CRITICAL (u0Hu0)
   do istate=1,N_st

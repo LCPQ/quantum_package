@@ -5,6 +5,8 @@ program e_curve
   double precision :: norm, E, hij, num, ci, cj
   integer, allocatable :: iorder(:)
   double precision , allocatable :: norm_sort(:)
+  PROVIDE mo_bielec_integrals_in_map
+
   nab = n_det_alpha_unique+n_det_beta_unique
   allocate ( norm_sort(0:nab), iorder(0:nab) )
 

@@ -67,11 +67,11 @@ subroutine get_mask_phase(det, phasemask)
 end subroutine
 
 
-subroutine select_connected(i_generator,E0,pt2,b)
+subroutine select_connected(i_generator,E0,pt2,b,subset)
   use bitmasks
   use selection_types
   implicit none
-  integer, intent(in)            :: i_generator
+  integer, intent(in)            :: i_generator, subset
   type(selection_buffer), intent(inout) :: b
   double precision, intent(inout)  :: pt2(N_states)
   integer :: k,l
@@ -90,8 +90,7 @@ subroutine select_connected(i_generator,E0,pt2,b)
       particle_mask(k,2) = iand(generators_bitmask(k,2,s_part,l), not(psi_det_generators(k,2,i_generator)) )
 
     enddo
-    call select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
-    call select_singles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b)
+    call select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b,subset)
   enddo
 end subroutine
 
@@ -114,164 +113,6 @@ double precision function get_phase_bi(phasemask, s1, s2, h1, p1, h2, p2)
   get_phase_bi = res(iand(np,1_1))
 end subroutine
 
-
-
-! Selection single
-! ----------------
-
-subroutine select_singles(i_gen,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf)
-  use bitmasks
-  use selection_types
-  implicit none
-  BEGIN_DOC
-! Select determinants connected to i_det by H
-  END_DOC
-  integer, intent(in)             :: i_gen
-  integer(bit_kind), intent(in)   :: hole_mask(N_int,2), particle_mask(N_int,2)
-  double precision, intent(in)    :: fock_diag_tmp(mo_tot_num)
-  double precision, intent(in)    :: E0(N_states)
-  double precision, intent(inout) :: pt2(N_states)
-  type(selection_buffer), intent(inout) :: buf
-  
-  double precision                :: vect(N_states, mo_tot_num)
-  logical                         :: bannedOrb(mo_tot_num)
-  integer                         :: i, j, k
-  integer                         :: h1,h2,s1,s2,i1,i2,ib,sp
-  integer(bit_kind)               :: hole(N_int,2), particle(N_int,2), mask(N_int, 2)
-  logical                         :: fullMatch, ok
-  
-  
-  do k=1,N_int
-    hole    (k,1) = iand(psi_det_generators(k,1,i_gen), hole_mask(k,1))
-    hole    (k,2) = iand(psi_det_generators(k,2,i_gen), hole_mask(k,2))
-    particle(k,1) = iand(not(psi_det_generators(k,1,i_gen)), particle_mask(k,1))
-    particle(k,2) = iand(not(psi_det_generators(k,2,i_gen)), particle_mask(k,2))
-  enddo
-
-  ! Create lists of holes and particles
-  ! -----------------------------------
-
-  integer                        :: N_holes(2), N_particles(2)
-  integer                        :: hole_list(N_int*bit_kind_size,2)
-  integer                        :: particle_list(N_int*bit_kind_size,2)
-
-  call bitstring_to_list_ab(hole    , hole_list    , N_holes    , N_int)
-  call bitstring_to_list_ab(particle, particle_list, N_particles, N_int)
-
-  do sp=1,2
-    do i=1, N_holes(sp)
-      h1 = hole_list(i,sp)
-      call apply_hole(psi_det_generators(1,1,i_gen), sp, h1, mask, ok, N_int)
-      bannedOrb = .true.
-      do j=1,N_particles(sp)
-        bannedOrb(particle_list(j, sp)) = .false.
-      end do
-      call spot_hasBeen(mask, sp, psi_det_sorted, i_gen, N_det, bannedOrb, fullMatch)
-      if(fullMatch) cycle
-      vect = 0d0
-      call splash_p(mask, sp, psi_selectors(1,1,i_gen), psi_phasemask(1,1,i_gen), psi_selectors_coef_transp(1,i_gen), N_det_selectors - i_gen + 1, bannedOrb, vect)
-      call fill_buffer_single(i_gen, sp, h1, bannedOrb, fock_diag_tmp, E0, pt2, vect, buf)
-    end do
-  enddo
-end subroutine
-
-
-subroutine fill_buffer_single(i_generator, sp, h1, bannedOrb, fock_diag_tmp, E0, pt2, vect, buf)
-  use bitmasks
-  use selection_types
-  implicit none
-  
-  integer, intent(in) :: i_generator, sp, h1
-  double precision, intent(in) :: vect(N_states, mo_tot_num)
-  logical, intent(in) :: bannedOrb(mo_tot_num)
-  double precision, intent(in)           :: fock_diag_tmp(mo_tot_num)
-  double precision, intent(in)    :: E0(N_states)
-  double precision, intent(inout) :: pt2(N_states)
-  type(selection_buffer), intent(inout) :: buf
-  logical :: ok
-  integer :: s1, s2, p1, p2, ib, istate
-  integer(bit_kind) :: mask(N_int, 2), det(N_int, 2)
-  double precision :: e_pert, delta_E, val, Hii, max_e_pert, tmp
-  double precision, external :: diag_H_mat_elem_fock
-  
-  
-  call apply_hole(psi_det_generators(1,1,i_generator), sp, h1, mask, ok, N_int)
-  
-  do p1=1,mo_tot_num
-    if(bannedOrb(p1)) cycle
-    if(vect(1, p1) == 0d0) cycle
-    call apply_particle(mask, sp, p1, det, ok, N_int)
-    
-    
-    Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),det,fock_diag_tmp,N_int)
-    max_e_pert = 0d0
-    
-    do istate=1,N_states
-      val = vect(istate, p1) + vect(istate, p1)
-      delta_E = E0(istate) - Hii
-      tmp = dsqrt(delta_E * delta_E + val * val)
-      if (delta_E < 0.d0) then
-        tmp = -tmp
-      endif
-      e_pert = 0.5d0 * ( tmp - delta_E)
-      pt2(istate) += e_pert
-      if(dabs(e_pert) > dabs(max_e_pert)) max_e_pert = e_pert
-    end do
-    
-    if(dabs(max_e_pert) > buf%mini) call add_to_selection_buffer(buf, det, max_e_pert)
-  end do
-end subroutine
-
-
-subroutine splash_p(mask, sp, det, phasemask, coefs, N_sel, bannedOrb, vect)
-  use bitmasks
-  implicit none
-
-  integer(bit_kind),intent(in) :: mask(N_int, 2), det(N_int,2,N_sel)
-  integer(1), intent(in) :: phasemask(N_int*bit_kind_size, 2, N_sel)
-  double precision, intent(in) :: coefs(N_states, N_sel)
-  integer, intent(in) :: sp, N_sel
-  logical, intent(inout) :: bannedOrb(mo_tot_num)
-  double precision, intent(inout)     :: vect(N_states, mo_tot_num)
-
-  integer :: i, j, h(0:2,2), p(0:3,2), nt
-  integer(bit_kind) :: perMask(N_int, 2), mobMask(N_int, 2), negMask(N_int, 2)
-  
-  do i=1,N_int
-    negMask(i,1) = not(mask(i,1))
-    negMask(i,2) = not(mask(i,2))
-  end do
-
-  do i=1, N_sel
-    nt = 0
-    do j=1,N_int
-      mobMask(j,1) = iand(negMask(j,1), det(j,1,i))
-      mobMask(j,2) = iand(negMask(j,2), det(j,2,i))
-      nt += popcnt(mobMask(j, 1)) + popcnt(mobMask(j, 2))
-    end do
-
-    if(nt > 3) cycle
-      
-    do j=1,N_int
-      perMask(j,1) = iand(mask(j,1), not(det(j,1,i)))
-      perMask(j,2) = iand(mask(j,2), not(det(j,2,i)))
-    end do
-
-    call bitstring_to_list(perMask(1,1), h(1,1), h(0,1), N_int)
-    call bitstring_to_list(perMask(1,2), h(1,2), h(0,2), N_int)
-
-    call bitstring_to_list(mobMask(1,1), p(1,1), p(0,1), N_int)
-    call bitstring_to_list(mobMask(1,2), p(1,2), p(0,2), N_int)
-    
-    if(nt == 3) then
-      call get_m2(det(1,1,i), phasemask(1,1,i), bannedOrb, vect, mask, h, p, sp, coefs(1, i))
-    else if(nt == 2) then
-      call get_m1(det(1,1,i), phasemask(1,1,i), bannedOrb, vect, mask, h, p, sp, coefs(1, i))
-    else
-      call get_m0(det(1,1,i), phasemask(1,1,i), bannedOrb, vect, mask, h, p, sp, coefs(1, i))
-    end if
-  end do
-end subroutine
 
 
 subroutine get_m2(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
@@ -420,67 +261,12 @@ subroutine get_m0(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   end do
 end subroutine
 
-
-subroutine spot_hasBeen(mask, sp, det, i_gen, N, banned, fullMatch)
-  use bitmasks
-  implicit none
-  
-  integer(bit_kind),intent(in) :: mask(N_int, 2), det(N_int, 2, N)
-  integer, intent(in) :: i_gen, N, sp
-  logical, intent(inout) :: banned(mo_tot_num)
-  logical, intent(out) :: fullMatch
-
-
-  integer :: i, j, na, nb, list(3), nt
-  integer(bit_kind) :: myMask(N_int, 2), negMask(N_int, 2)
-
-  fullMatch = .false.
-
-  do i=1,N_int
-    negMask(i,1) = not(mask(i,1))
-    negMask(i,2) = not(mask(i,2))
-  end do
-
-  genl : do i=1, N
-    nt = 0
-    
-    do j=1, N_int
-      myMask(j, 1) = iand(det(j, 1, i), negMask(j, 1))
-      myMask(j, 2) = iand(det(j, 2, i), negMask(j, 2))
-      nt += popcnt(myMask(j, 1)) + popcnt(myMask(j, 2))
-    end do
-    
-    if(nt > 3) cycle
-    
-    if(nt <= 2 .and. i < i_gen) then
-      fullMatch = .true.
-      return
-    end if
-    
-    call bitstring_to_list(myMask(1,sp), list(1), na, N_int)
-    
-    if(nt == 3 .and. i < i_gen) then
-      do j=1,na
-        banned(list(j)) = .true.
-      end do
-    else if(nt == 1 .and. na == 1) then
-      banned(list(1)) = .true.
-    end if
-  end do genl
-end subroutine
-
-
-
-
-! Selection double
-! ----------------
- 
-subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf)
+subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf,subset)
   use bitmasks
   use selection_types
   implicit none
   
-  integer, intent(in)            :: i_generator
+  integer, intent(in)            :: i_generator, subset
   integer(bit_kind), intent(in)  :: hole_mask(N_int,2), particle_mask(N_int,2)
   double precision, intent(in)   :: fock_diag_tmp(mo_tot_num)
   double precision, intent(in)   :: E0(N_states)
@@ -495,6 +281,13 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   integer(bit_kind) :: mobMask(N_int, 2), negMask(N_int, 2)
   integer,allocatable               :: preinteresting(:), prefullinteresting(:), interesting(:), fullinteresting(:)
   integer(bit_kind), allocatable :: minilist(:, :, :), fullminilist(:, :, :)
+  
+  logical :: monoAdo, monoBdo;
+  integer :: maskInd
+  maskInd = -1
+
+  monoAdo = .true.
+  monoBdo = .true.
   
   allocate(minilist(N_int, 2, N_det_selectors), fullminilist(N_int, 2, N_det))
   allocate(preinteresting(0:N_det_selectors), prefullinteresting(0:N_det), interesting(0:N_det_selectors), fullinteresting(0:N_det))
@@ -544,6 +337,19 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
         
   do s1=1,2
     do i1=N_holes(s1),1,-1   ! Generate low excitations first
+      !if(subset /= 0 .and. mod(maskInd, 10) /= (subset-1)) then
+      !  maskInd += 1
+      !  cycle
+      !end if
+      maskInd += 1
+
+
+
+
+      if(subset == 0 .or. mod(maskInd, 8) == (subset-1)) then
+      
+      
+      
       h1 = hole_list(i1,s1)
       call apply_hole(psi_det_generators(1,1,i_generator), s1,h1, pmask, ok, N_int)
       
@@ -592,41 +398,63 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
         end if
       end do
       
+
+
+
+
+      end if
+
+
+
       do s2=s1,2
         sp = s1
+        
         if(s1 /= s2) sp = 3
         
         ib = 1
         if(s1 == s2) ib = i1+1
+        monoAdo = .true.
         do i2=N_holes(s2),ib,-1   ! Generate low excitations first
-          
-          h2 = hole_list(i2,s2)
-          call apply_hole(pmask, s2,h2, mask, ok, N_int)
-          
           logical                        :: banned(mo_tot_num, mo_tot_num,2)
           logical                        :: bannedOrb(mo_tot_num, 2)
           
-          banned = .false.
-          
-          call spot_isinwf(mask, fullminilist, i_generator, fullinteresting(0), banned, fullMatch, fullinteresting)
-          
-          if(fullMatch) cycle
-          
-          bannedOrb(1:mo_tot_num, 1:2) = .true.
-          do s3=1,2
-            do i=1,N_particles(s3)
-              bannedOrb(particle_list(i,s3), s3) = .false.
+          if(subset == 0 .or. mod(maskInd, 8) == (subset-1)) then
+            h2 = hole_list(i2,s2)
+            call apply_hole(pmask, s2,h2, mask, ok, N_int)
+            banned = .false.
+            bannedOrb(1:mo_tot_num, 1:2) = .true.
+            do s3=1,2
+              do i=1,N_particles(s3)
+                bannedOrb(particle_list(i,s3), s3) = .false.
+              enddo
             enddo
-          enddo
-             
-          mat = 0d0
-          call splash_pq(mask, sp, minilist, i_generator, interesting(0), bannedOrb, banned, mat, interesting)
-          call fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_diag_tmp, E0, pt2, mat, buf)
+          
+            if(s1 /= s2) then
+              if(monoBdo) then
+                bannedOrb(h1,s1) = .false.
+              end if
+              if(monoAdo) then
+                bannedOrb(h2,s2) = .false.
+                monoAdo = .false.
+              end if
+            end if
+         
+          
+            call spot_isinwf(mask, fullminilist, i_generator, fullinteresting(0), banned, fullMatch, fullinteresting)
+            if(fullMatch) cycle
+          
+            mat = 0d0
+            call splash_pq(mask, sp, minilist, i_generator, interesting(0), bannedOrb, banned, mat, interesting)
+
+            call fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_diag_tmp, E0, pt2, mat, buf)
+          end if
         enddo
+        if(s1 /= s2) monoBdo = .false.
       enddo
     enddo
   enddo
 end subroutine
+
 
 
 subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_diag_tmp, E0, pt2, mat, buf)

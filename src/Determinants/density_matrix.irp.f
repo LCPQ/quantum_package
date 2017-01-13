@@ -194,7 +194,6 @@ subroutine set_natural_mos
  double precision, allocatable :: tmp(:,:)
 
  label = "Natural"
-! call mo_as_eigvectors_of_mo_matrix(one_body_dm_mo,size(one_body_dm_mo,1),mo_tot_num,label,-1)
  call mo_as_svd_vectors_of_mo_matrix(one_body_dm_mo,size(one_body_dm_mo,1),mo_tot_num,mo_tot_num,label)
 
 end

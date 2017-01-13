@@ -137,6 +137,10 @@ interface: ezfio
 
 #FAQ
 
+### Opam error: cryptokit
+
+You need to install `gmp-dev`.
+
 ### Error: ezfio_* is already defined.
 
 #### Why ?

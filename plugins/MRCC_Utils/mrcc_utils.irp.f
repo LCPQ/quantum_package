@@ -33,6 +33,7 @@ END_PROVIDER
       if (ihpsi_current(k) == 0.d0) then
         ihpsi_current(k) = 1.d-32
       endif
+!      lambda_mrcc(k,i) = psi_non_ref_coef(i,k)/ihpsi_current(k) 
       lambda_mrcc(k,i) = min(-1.d-32,psi_non_ref_coef(i,k)/ihpsi_current(k) )
       lambda_pert = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
       if (lambda_pert / lambda_mrcc(k,i)  < 0.5d0) then
@@ -77,19 +78,6 @@ BEGIN_PROVIDER [ double precision, hij_mrcc, (N_det_non_ref,N_det_ref) ]
 
 END_PROVIDER
 
-! BEGIN_PROVIDER [ double precision, delta_ij, (N_states,N_det_non_ref,N_det_ref) ]
-!&BEGIN_PROVIDER [ double precision, delta_ii, (N_states,N_det_ref) ]
-! implicit none
-! BEGIN_DOC
-! ! Dressing matrix in N_det basis
-! END_DOC
-! integer :: i,j,m
-! delta_ij = 0.d0
-! delta_ii = 0.d0
-! call H_apply_mrcc(delta_ij,delta_ii,N_states,N_det_non_ref,N_det_ref)
-!
-!END_PROVIDER
-             
 
 BEGIN_PROVIDER [ double precision, h_matrix_dressed, (N_det,N_det,N_states) ]
  implicit none
@@ -173,43 +161,6 @@ END_PROVIDER
    enddo
    call u_0_S2_u_0(CI_eigenvectors_s2_dressed,CI_eigenvectors_dressed,N_det,psi_det,N_int,&
           N_states_diag,size(CI_eigenvectors_dressed,1))
-
-!   double precision :: u_dot_u
-!   double precision, allocatable :: h(:,:,:), s(:,:)
-!   allocate (h(N_states,N_states,N_states), s(N_states,N_states))
-!   do i=1,N_states
-!    do j=1,N_states
-!     s(i,j) = u_dot_v(CI_eigenvectors_dressed(1,i),CI_eigenvectors_dressed(1,j),N_det)
-!     print *,  'S(',i,',',j,')', s(i,j)
-!    enddo
-!   enddo
-!
-!   do i=1,N_states
-!    h(i,i) = CI_electronic_energy_dressed(i)
-!    do j=i+1,N_states
-!      h(j,i) = (CI_electronic_energy_dressed(j)-CI_electronic_energy_dressed(i)) * s(i,j)
-!      h(i,j) = -h(j,i)
-!      print *,  'h(',i,',',i,')', h(i,j)
-!    enddo
-!    print *,  'h(',i,',',i,')', h(i,i)
-!   enddo
-!   call lapack_diag(eigenvalues,eigenvectors, h,size(h,1),N_states)
-!   do i=1,N_states
-!     CI_electronic_energy_dressed(i) = eigenvalues(i)
-!     do j=1,N_states
-!      h(i,j) = eigenvectors(i,j)
-!     enddo
-!   enddo
-!   do k=1,N_states
-!     eigenvectors(1:N_det,k) = 0.d0
-!     do i=1,N_states
-!      eigenvectors(1:N_det,k) += CI_eigenvectors_dressed(1:N_det,k) * h(k,i)
-!    enddo
-!   enddo
-!   deallocate(h,s)
-!
-
-!   call multi_state(CI_electronic_energy_dressed,CI_eigenvectors_dressed,size(CI_eigenvectors_dressed,1))
 
    deallocate (eigenvectors,eigenvalues)
      
@@ -790,28 +741,7 @@ END_PROVIDER
     end do
     dIj_unique(1:size(X), s) = X(1:size(X))
 
-!    double precision, external :: ddot
-!    if (ddot (size(X), dIj_unique, 1, X, 1) < 0.d0) then
-!      dIj_unique(1:size(X),s) = -X(1:size(X))
-!    endif
-    
   enddo
-
-  ! Adjust phase of dIj_unique
-
-!  double precision :: snorm
-!  X = 0.d0
-!  snorm = 0.d0
-!  do s=1,N_states
-!    norm = 0.d0
-!    do i=1,N_det_non_ref
-!      norm = norm + psi_non_ref_coef(i,s)*psi_non_ref_coef(i,s)
-!    enddo
-!    norm = dsqrt(norm)
-!    X(1:size(X)) = X(1:size(X)) + dIj_unique(1:size(X),s) * norm
-!    snorm += norm
-!  enddo
-!  X = X/snorm
 
   do s=1,N_states
 
@@ -821,7 +751,6 @@ END_PROVIDER
         i = active_excitation_to_determinants_idx(j,a_coll)
         if (i==0) exit
         rho_mrcc(i,s) = rho_mrcc(i,s) + active_excitation_to_determinants_val(s,j,a_coll) * dIj_unique(a_col,s)
-!        rho_mrcc(i,s) = rho_mrcc(i,s) + active_excitation_to_determinants_val(s,j,a_coll) * X(a_col)
       enddo
     end do
 
