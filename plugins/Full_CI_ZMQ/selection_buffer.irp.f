@@ -57,13 +57,15 @@ subroutine sort_selection_buffer(b)
   call dsort(absval, iorder, b%cur)
 
   do i=1, nmwen
-    detmp(:,:,i) = b%det(:,:,iorder(i))
+    detmp(1:N_int,1,i) = b%det(1:N_int,1,iorder(i))
+    detmp(1:N_int,2,i) = b%det(1:N_int,2,iorder(i))
     vals(i) = b%val(iorder(i))
   end do
-  b%det(:,:,:nmwen) = detmp(:,:,:)
-  b%det(:,:,nmwen+1:) = 0_bit_kind
-  b%val(:nmwen) = vals(:)
-  b%val(nmwen+1:) = 0d0
+  b%det = 0_bit_kind
+  b%val = 0d0
+  b%det(1:N_int,1,1:nmwen) = detmp(1:N_int,1,1:nmwen)
+  b%det(1:N_int,2,1:nmwen) = detmp(1:N_int,2,1:nmwen)
+  b%val(1:nmwen) = vals(1:nmwen)
   b%mini = max(b%mini,dabs(b%val(b%N)))
   b%cur = nmwen
 end subroutine

@@ -68,7 +68,7 @@ program fci_zmq
     call ezfio_set_full_ci_zmq_energy(CI_energy(1))
 
     n_det_before = N_det
-    to_select = 2*N_det
+    to_select = N_det
     to_select = max(64-to_select, to_select)
     to_select = min(to_select, N_det_max-n_det_before)
     call ZMQ_selection(to_select, pt2)
@@ -175,7 +175,6 @@ subroutine ZMQ_pt2(pt2)
 
   call get_carlo_workbatch(1d-3, computed, comb, Ncomb, tbc)
   generator_per_task = 1 ! tbc(0)/300 + 1
-  print *, 'TASKS REVERSED'
   !do i=1,tbc(0),generator_per_task
   do i=1,tbc(0) ! generator_per_task
     i_generator_end = min(i+generator_per_task-1, tbc(0))
@@ -193,7 +192,6 @@ subroutine ZMQ_pt2(pt2)
     end if
   end do
 
-  print *, "tasked" 
   !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
     i = omp_get_thread_num()
     if (i==0) then
@@ -230,7 +228,7 @@ subroutine ZMQ_pt2(pt2)
     avg = E0 + (sumabove(tooth) / Nabove(tooth))
     eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
     time = omp_get_wtime()
-    print "(A, 5(E15.7))", "PT2stoch ", time - time0, avg, eqt, Nabove(tooth)
+    print *, 'PT2stoch ', real (time - time0), real(avg), real(eqt), real(Nabove(tooth))
   else
     print *, Nabove(tooth), "< 30 combs"
   end if
@@ -284,7 +282,7 @@ subroutine ZMQ_selection(N_in, pt2)
   call new_parallel_job(zmq_to_qp_run_socket,"selection")
   call zmq_put_psi(zmq_to_qp_run_socket,1,ci_electronic_energy,size(ci_electronic_energy))
   call zmq_set_running(zmq_to_qp_run_socket)
-  call create_selection_buffer(N, N*2, b)
+  call create_selection_buffer(N, N*8, b)
 
   integer :: i_generator, i_generator_start, i_generator_max, step
 !  step = int(max(1.,10*elec_num/mo_tot_num)
