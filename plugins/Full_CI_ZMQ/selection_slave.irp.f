@@ -60,28 +60,6 @@ subroutine run_wf
   end do
 end
 
-subroutine update_energy(energy)
-  implicit none
-  double precision, intent(in) :: energy(N_states)
-  BEGIN_DOC
-! Update energy when it is received from ZMQ
-  END_DOC
-  integer :: j,k
-  do j=1,N_states
-    do k=1,N_det
-      CI_eigenvectors(k,j) = psi_coef(k,j)
-    enddo
-  enddo
-  call u_0_S2_u_0(CI_eigenvectors_s2,CI_eigenvectors,N_det,psi_det,N_int)
-  if (.True.) then
-    do k=1,N_states
-      ci_electronic_energy(k) = energy(k)
-    enddo
-    TOUCH ci_electronic_energy CI_eigenvectors_s2 CI_eigenvectors
-  endif
-
-  call write_double(6,ci_energy,'Energy')
-end
 
 subroutine selection_slave_tcp(i,energy)
   implicit none
