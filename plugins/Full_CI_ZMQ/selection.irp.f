@@ -346,7 +346,7 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
 
 
 
-      if(subset == 0 .or. mod(maskInd, 8) == (subset-1)) then
+      if(subset == 0 .or. mod(maskInd, fragment_count) == (subset-1)) then
       
       
       

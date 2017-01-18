@@ -56,12 +56,6 @@ subroutine selection_slave_inproc(i)
   call run_selection_slave(1,i,ci_electronic_energy)
 end
 
-subroutine pt2_slave_inproc(i)
-  implicit none
-  integer, intent(in)            :: i
-
-  call run_pt2_slave(1,i,ci_electronic_energy)
-end
 
 subroutine selection_collector(b, pt2)
   use f77_zmq
