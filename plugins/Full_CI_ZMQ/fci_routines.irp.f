@@ -42,9 +42,13 @@ subroutine ZMQ_selection(N_in, pt2)
       endif
   !$OMP END PARALLEL
   call end_parallel_job(zmq_to_qp_run_socket, 'selection') 
+  do i=1,N_states
+      print *, 'E+PT2(', i, ') = ', ci_electronic_energy(i) + pt2(i)
+  enddo
   if (N_in > 0) then
     call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) !!! PAS DE ROBIN
     call copy_H_apply_buffer_to_wf()
+    call save_wavefunction
   endif
 end subroutine
 
