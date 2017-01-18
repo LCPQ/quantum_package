@@ -190,7 +190,6 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
     do i=1,Nindex
       pt2_detail(:, index(i)) += pt2_mwen(:,i)
       parts_to_get(index(i)) -= 1
-      !print *, index(1)
       if(parts_to_get(index(i)) < 0) then 
         stop "PARTS ??"
       end if
@@ -280,22 +279,24 @@ subroutine get_first_tooth(computed, first_teeth)
   implicit none
   logical, intent(in) :: computed(N_det_generators)
   integer, intent(out) :: first_teeth
-  integer :: i
+  integer :: i, first_det
 
+  first_det = 1
   first_teeth = 1
   do i=first_det_of_comb, N_det_generators
     if(not(computed(i))) then
-      first_teeth = i
+      first_det = i
       exit
     end if
   end do
   
   do i=comb_teeth, 1, -1
-    if(first_det_of_teeth(i) < first_teeth) then
+    if(first_det_of_teeth(i) < first_det) then
       first_teeth = i
       exit
     end if
   end do
+
 end subroutine
 
 
