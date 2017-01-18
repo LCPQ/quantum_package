@@ -78,6 +78,9 @@ program fci_zmq
         Nmin = N_det
     else
         Nmax = N_det
+        psi_coef_ref = psi_coef
+        psi_det_ref  = psi_det
+        TOUCH psi_det psi_coef
     endif
     N_det = Nmin + (Nmax-Nmin)/2
     print *,  '-----'
@@ -85,6 +88,7 @@ program fci_zmq
     print *,  'Ratio           : ', ratio, '  ~  ', var_pt2_ratio
     print *,  'N_det     = ', N_det
     print *,  'E         = ', CI_energy(1)
+    call save_wavefunction
   enddo
   call ZMQ_selection(0, pt2)
   print *,  '------'

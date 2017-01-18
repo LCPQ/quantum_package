@@ -158,7 +158,8 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   integer, allocatable :: task_id(:)
   integer :: done, Nindex
   integer, allocatable :: index(:)
-  double precision :: time, time0, timeLast
+  double precision, save :: time0 = -1.d0
+  double precision :: time, timeLast
   double precision, external :: omp_get_wtime
   integer :: tooth, firstTBDcomb, orgTBDcomb
   integer, allocatable :: parts_to_get(:)
@@ -181,7 +182,9 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   zmq_socket_pull = new_zmq_pull_socket()
   allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det), index(N_det))
   more = 1
-  time0 = omp_get_wtime()
+  if (time0 < 0.d0) then
+      time0 = omp_get_wtime()
+  endif
   timeLast = time0
   
   print *, 'N_deterministic = ', first_det_of_teeth(1)-1
