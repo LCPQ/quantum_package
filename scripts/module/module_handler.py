@@ -298,7 +298,7 @@ if __name__ == '__main__':
                 # Don't update if we are not in the main repository
                 from is_master_repository import is_master_repository
                 if not is_master_repository:
-                    print 'Not in the master repo'
+                    print >>  sys.stderr, 'Not in the master repo'
                     sys.exit()
 
                 path = os.path.join(module_abs, ".gitignore")
