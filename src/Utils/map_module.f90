@@ -17,6 +17,7 @@ module map_module
 ! should be called before getting data from the map.
 
  use omp_lib
+ use iso_fortran_env
  
  integer, parameter             :: integral_kind = 8
  
@@ -27,7 +28,11 @@ module map_module
  integer, parameter             :: map_size_kind = 8
  
  integer,   parameter           :: map_shift = -15
- integer*8, parameter           :: map_mask  = ibset(0_8,15)-1_8
+integer*8, parameter           :: map_mask  = ibset(0_8,15)-1_8
+
+  integer(kind=int16), parameter :: z_kind = 0
+  integer(kind=int16), parameter :: o_kind = 1
+  integer(kind=int16), parameter           :: map_mask  = ibset(z_kind,15)-o_kind
 
  type cache_map_type
   real(integral_kind), pointer   :: value(:)
@@ -45,8 +50,13 @@ module map_module
   integer*8, pointer             :: consolidated_idx(:)
   logical                        :: sorted
   logical                        :: consolidated
-  integer(map_size_kind)         :: map_size
-  integer(map_size_kind)         :: n_elements
+  integer(kind=map_size_kind)         :: map_size
+  integer(kind=map_size_kind)         :: n_elements
+
+  integer(kind=int16)         :: map_size
+  integer(kind=int16)         :: n_elements
+
+
   integer(omp_lock_kind)         :: lock
  end type map_type
 
