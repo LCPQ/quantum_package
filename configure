@@ -122,7 +122,7 @@ docopt = Info(
     default_path=join(QP_ROOT_INSTALL, "docopt"))
 
 resultsFile = Info(
-    url='{head}/TApplencourt/resultsFile/{tail}'.format(**path_github),
+    url='{head}/LCPQ/resultsFile/{tail}'.format(**path_github),
     description=' resultsFile',
     default_path=join(QP_ROOT_INSTALL, "resultsFile"))
 
