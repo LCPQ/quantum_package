@@ -4,10 +4,6 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral, (ao_num_align,ao_num)]
   ! Pseudo-potential integrals
   END_DOC
  
-
-  print*, 'Hi from ao_pseudo_integral'
-  print*, read_ao_one_integrals
- 
   if (read_ao_one_integrals) then
     call read_one_e_integrals('ao_pseudo_integral', ao_pseudo_integral,&
         size(ao_pseudo_integral,1), size(ao_pseudo_integral,2))
