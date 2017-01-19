@@ -1,12 +1,10 @@
 program e_curve
   use bitmasks
   implicit none
-  integer :: i,j,k, kk, nab, m, l
+  integer :: i,j,k, nab, m, l
   double precision :: norm, E, hij, num, ci, cj
   integer, allocatable :: iorder(:)
   double precision , allocatable :: norm_sort(:)
-  PROVIDE mo_bielec_integrals_in_map
-
   nab = n_det_alpha_unique+n_det_beta_unique
   allocate ( norm_sort(0:nab), iorder(0:nab) )
 
@@ -62,7 +60,7 @@ program e_curve
     num = 0.d0
     norm = 0.d0
     m = 0
-    !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(k,kk,l,det_i,det_j,ci,cj,hij) REDUCTION(+:norm,m,num)
+    !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(k,l,det_i,det_j,ci,cj,hij) REDUCTION(+:norm,m,num)
     allocate( det_i(N_int,2), det_j(N_int,2))
     !$OMP DO SCHEDULE(guided)
     do k=1,n_det
@@ -70,19 +68,15 @@ program e_curve
         cycle
       endif
       ci = psi_bilinear_matrix_values(k,1)
-      do kk=1,N_int
-        det_i(kk,1) = psi_det_alpha_unique(kk,psi_bilinear_matrix_rows(k))
-        det_i(kk,2) = psi_det_beta_unique(kk,psi_bilinear_matrix_columns(k))
-      enddo
+      det_i(:,1) = psi_det_alpha_unique(:,psi_bilinear_matrix_rows(k))
+      det_i(:,2) = psi_det_beta_unique(:,psi_bilinear_matrix_columns(k))
       do l=1,n_det
         if (psi_bilinear_matrix_values(l,1) == 0.d0) then
           cycle
         endif
         cj = psi_bilinear_matrix_values(l,1)
-        do kk=1,N_int
-          det_j(kk,1) = psi_det_alpha_unique(kk,psi_bilinear_matrix_rows(l))
-          det_j(kk,2) = psi_det_beta_unique(kk,psi_bilinear_matrix_columns(l))
-        enddo
+        det_j(:,1) = psi_det_alpha_unique(:,psi_bilinear_matrix_rows(l))
+        det_j(:,2) = psi_det_beta_unique(:,psi_bilinear_matrix_columns(l))
         call i_h_j(det_i, det_j, N_int, hij)
         num = num + ci*cj*hij
       enddo

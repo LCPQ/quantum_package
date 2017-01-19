@@ -161,19 +161,15 @@ Documentation
   n_double_selectors = number of double excitations in the selectors determinants
 
 
-`psi_selectors <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/selectors.irp.f#L32>`_
+`psi_selectors <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/selectors.irp.f#L30>`_
   Determinants on which we apply <i|H|psi> for perturbation.
 
 
-`psi_selectors_coef <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/selectors.irp.f#L33>`_
+`psi_selectors_coef <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/selectors.irp.f#L31>`_
   Determinants on which we apply <i|H|psi> for perturbation.
 
 
-`psi_selectors_coef_transp <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/selectors.irp.f#L53>`_
-  Transposed psi_selectors
-
-
-`psi_selectors_diag_h_mat <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/selectors.irp.f#L67>`_
+`psi_selectors_diag_h_mat <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/selectors.irp.f#L51>`_
   Diagonal elements of the H matrix for each selectors
 
 
@@ -181,7 +177,7 @@ Documentation
   Undocumented
 
 
-`zmq_get_psi <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/zmq.irp.f#L51>`_
+`zmq_get_psi <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full/zmq.irp.f#L43>`_
   Get the wave function from the qp_run scheduler
 
 

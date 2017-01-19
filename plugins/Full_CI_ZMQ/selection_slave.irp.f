@@ -13,7 +13,7 @@ end
 
 subroutine provide_everything
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators psi_det_sorted_bit psi_selectors n_det_generators n_states generators_bitmask zmq_context
-   PROVIDE pt2_e0_denominator mo_tot_num N_int
+!   PROVIDE ci_electronic_energy mo_tot_num N_int
 end
 
 subroutine run_wf
@@ -22,7 +22,7 @@ subroutine run_wf
 
   integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
-  double precision :: energy(N_states)
+  double precision :: energy(N_states_diag)
   character*(64) :: states(1)
   integer :: rc, i
   
@@ -47,7 +47,7 @@ subroutine run_wf
       ! ---------
 
       print *,  'Selection'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states_diag)
   
       !$OMP PARALLEL PRIVATE(i)
       i = omp_get_thread_num()
@@ -62,7 +62,7 @@ end
 
 subroutine update_energy(energy)
   implicit none
-  double precision, intent(in) :: energy(N_states)
+  double precision, intent(in) :: energy(N_states_diag)
   BEGIN_DOC
 ! Update energy when it is received from ZMQ
   END_DOC
@@ -74,7 +74,7 @@ subroutine update_energy(energy)
   enddo
   call u_0_S2_u_0(CI_eigenvectors_s2,CI_eigenvectors,N_det,psi_det,N_int)
   if (.True.) then
-    do k=1,N_states
+    do k=1,size(ci_electronic_energy)
       ci_electronic_energy(k) = energy(k)
     enddo
     TOUCH ci_electronic_energy CI_eigenvectors_s2 CI_eigenvectors
@@ -85,7 +85,7 @@ end
 
 subroutine selection_slave_tcp(i,energy)
   implicit none
-  double precision, intent(in) :: energy(N_states)
+  double precision, intent(in) :: energy(N_states_diag)
   integer, intent(in)            :: i
 
   call run_selection_slave(0,i,energy)

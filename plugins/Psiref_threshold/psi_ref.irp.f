@@ -6,22 +6,19 @@ use bitmasks
 &BEGIN_PROVIDER [ integer, N_det_ref ]
   implicit none
   BEGIN_DOC
-  ! Reference wave function, defined as determinants with amplitudes > 0.05
+  ! Reference wave function, defined as determinants with coefficients > 0.05
   ! idx_ref gives the indice of the ref determinant in psi_det.
   END_DOC
   integer                        :: i, k, l
   logical                        :: good
-  double precision, parameter    :: threshold=0.05d0
-  double precision               :: t(N_states)
+  double precision, parameter :: threshold=0.05d0
   N_det_ref = 0
-  do l = 1, N_states
-    t(l) = threshold * abs_psi_coef_max(l)
-  enddo
+  t = threshold * abs_psi_coef_max
   do i=1,N_det
     good = .False.
-    do l=1, N_states
+    do l = 1, N_states
      psi_ref_coef(i,l) = 0.d0
-     good = good.or.(dabs(psi_coef(i,l)) > t(l))
+     good = good.or.(dabs(psi_coef(i,l)) > t)
     enddo
     if (good) then
       N_det_ref = N_det_ref+1

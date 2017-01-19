@@ -9,7 +9,6 @@ BEGIN_PROVIDER [ integer, N_det_generators_restart ]
  integer :: i
  integer, save :: ifirst = 0
  double precision :: norm
- print*, ' Providing N_det_generators_restart'
  if(ifirst == 0)then
   call ezfio_get_determinants_n_det(N_det_generators_restart)
   ifirst = 1
@@ -31,7 +30,6 @@ END_PROVIDER
  integer                        :: i, k
  integer, save :: ifirst = 0
  double precision, allocatable  :: psi_coef_read(:,:)
- print*, ' Providing psi_det_generators_restart'
  if(ifirst == 0)then
   call read_dets(psi_det_generators_restart,N_int,N_det_generators_restart)
    do k = 1, N_int

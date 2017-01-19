@@ -24,7 +24,7 @@ Demo
 * Python >= 2.6
 * GNU make
 * Bash
-* Blas/Lapack
+* Blast/Lapack
 * unzip
 * g++ (For ninja)
 
