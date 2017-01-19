@@ -154,11 +154,11 @@ Documentation
   Compute 1st dimension such that it is aligned for vectorization.
 
 
-`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L320>`_
+`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L283>`_
   Apply the rotation found by find_rotation
 
 
-`approx_dble <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L371>`_
+`approx_dble <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L382>`_
   Undocumented
 
 
@@ -181,19 +181,19 @@ Documentation
   Binomial coefficients
 
 
-`dble_fact <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L136>`_
+`dble_fact <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L138>`_
   Undocumented
 
 
-`dble_fact_even <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L153>`_
+`dble_fact_even <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L155>`_
   n!!
 
 
-`dble_fact_odd <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L197>`_
+`dble_fact_odd <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L176>`_
   n!!
 
 
-`dble_logfact <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L231>`_
+`dble_logfact <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L210>`_
   n!!
 
 
@@ -219,10 +219,6 @@ Documentation
   contains the new order of the elements.
 
 
-`dtranspose <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/transpose.irp.f#L41>`_
-  Transpose input matrix A into output matrix B
-
-
 `erf0 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/need.irp.f#L105>`_
   Undocumented
 
@@ -240,11 +236,11 @@ Documentation
   n!
 
 
-`fact_inv <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L123>`_
+`fact_inv <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L125>`_
   1/n!
 
 
-`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L301>`_
+`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L264>`_
   Find A.C = B
 
 
@@ -274,7 +270,7 @@ Documentation
   Returns the index of the determinant in the ``psi_ref_sorted_bit`` array
 
 
-`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L247>`_
+`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L210>`_
   Find C = A^-1
 
 
@@ -535,7 +531,7 @@ Documentation
   to be in integer*8 format
 
 
-`inv_int <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L278>`_
+`inv_int <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L257>`_
   1/i
 
 
@@ -575,7 +571,7 @@ Documentation
   contains the new order of the elements.
 
 
-`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L399>`_
+`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L362>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -586,7 +582,7 @@ Documentation
   .br
 
 
-`lapack_diag_s2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L462>`_
+`lapack_diag_s2 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L425>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -597,7 +593,7 @@ Documentation
   .br
 
 
-`lapack_diagd <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L332>`_
+`lapack_diagd <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L295>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -608,7 +604,7 @@ Documentation
   .br
 
 
-`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L528>`_
+`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L491>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -619,20 +615,12 @@ Documentation
   .br
 
 
-`logfact <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L91>`_
+`logfact <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L93>`_
   n!
 
 
-`lowercase <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L395>`_
+`lowercase <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L406>`_
   Transform to lower case
-
-
-`map_load_from_disk <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/map_functions.irp.f#L70>`_
-  Undocumented
-
-
-`map_save_to_disk <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/map_functions.irp.f#L1>`_
-  Undocumented
 
 
 `multiply_poly <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/integration.irp.f#L264>`_
@@ -647,12 +635,12 @@ Documentation
   idx_non_ref_rev gives the reverse.
 
 
-`normalize <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L348>`_
+`normalize <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L358>`_
   Normalizes vector u
   u is expected to be aligned in memory.
 
 
-`nproc <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L304>`_
+`nproc <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L283>`_
   Number of current OpenMP threads
 
 
@@ -674,7 +662,7 @@ Documentation
   .br
 
 
-`ortho_lowdin <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L162>`_
+`ortho_lowdin <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L128>`_
   Compute C_new=C_old.S^-1/2 orthogonalization.
   .br
   overlap : overlap matrix
@@ -689,19 +677,6 @@ Documentation
   LDC : leftmost dimension of C
   .br
   m : Coefficients matrix is MxN, ( array is (LDC,N) )
-  .br
-
-
-`ortho_qr <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L128>`_
-  Orthogonalization using Q.R factorization
-  .br
-  A : matrix to orthogonalize
-  .br
-  LDA : leftmost dimension of A
-  .br
-  n : Number of rows of A
-  .br
-  m : Number of columns of A
   .br
 
 
@@ -885,7 +860,7 @@ Documentation
   to be in integer*8 format
 
 
-`set_zero_extra_diag <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L585>`_
+`set_zero_extra_diag <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/LinearAlgebra.irp.f#L548>`_
   Undocumented
 
 
@@ -912,22 +887,18 @@ Documentation
   .br
 
 
-`transpose <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/transpose.irp.f#L2>`_
-  Transpose input matrix A into output matrix B
-
-
-`u_dot_u <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L334>`_
+`u_dot_u <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L326>`_
   Compute <u|u>
 
 
-`u_dot_v <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L320>`_
+`u_dot_v <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L299>`_
   Compute <u|v>
 
 
-`wall_time <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L289>`_
+`wall_time <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L268>`_
   The equivalent of cpu_time, but for the wall time.
 
 
-`write_git_log <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L264>`_
+`write_git_log <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils/util.irp.f#L243>`_
   Write the last git commit in file iunit.
 

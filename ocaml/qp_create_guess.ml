@@ -88,9 +88,8 @@ let run ~multiplicity ezfio_file =
       ~alpha:(Elec_alpha_number.of_int alpha_new)
       ~beta:(Elec_beta_number.of_int beta_new) pair )
   in
-
   let c = 
-    Array.init (List.length determinants) (fun _ -> Det_coef.of_float ((Random.float 2.)-.1.))
+    Array.create ~len:(List.length determinants) (Det_coef.of_float 1.)
   in
  
   determinants 

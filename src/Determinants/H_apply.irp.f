@@ -214,19 +214,20 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
     duplicate(i) = .False.
   enddo
 
-  do i=1,N_det-1
+  found_duplicates = .False.
+  i=0
+  j=0
+  do while (i<N_det-1)
+    i = max(i+1,j)
     if (duplicate(i)) then
+      found_duplicates = .True.
       cycle
     endif
     j = i+1
     do while (bit_tmp(j)==bit_tmp(i))
       if (duplicate(j)) then
         j += 1
-        if (j > N_det) then
-          exit
-        else
-          cycle
-        endif
+        cycle
       endif
       duplicate(j) = .True.
       do k=1,N_int
@@ -243,29 +244,18 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
     enddo
   enddo
 
-  found_duplicates = .False.
-  do i=1,N_det
-    if (duplicate(i)) then
-      found_duplicates = .True.
-      exit
-    endif
-  enddo
-
   if (found_duplicates) then
+    call write_bool(output_determinants,found_duplicates,'Found duplicate determinants')
     k=0
     do i=1,N_det
       if (.not.duplicate(i)) then
         k += 1
         psi_det(:,:,k) = psi_det_sorted_bit (:,:,i)
         psi_coef(k,:)  = psi_coef_sorted_bit(i,:)
-      else
-        call debug_det(psi_det_sorted_bit(1,1,i),N_int)
-        stop 'duplicates in psi_det'
       endif
     enddo
     N_det = k
-    call write_bool(output_determinants,found_duplicates,'Found duplicate determinants')
-    SOFT_TOUCH N_det psi_det psi_coef
+    TOUCH N_det psi_det psi_coef
   endif
   deallocate (duplicate,bit_tmp)
 end
@@ -312,6 +302,7 @@ subroutine fill_H_apply_buffer_no_selection(n_selected,det_buffer,Nint,iproc)
   enddo
   call omp_unset_lock(H_apply_buffer_lock(1,iproc))
 end
+
 
 subroutine push_pt2(zmq_socket_push,pt2,norm_pert,H_pert_diag,i_generator,N_st,task_id)
   use f77_zmq
