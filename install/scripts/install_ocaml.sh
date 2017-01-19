@@ -5,11 +5,11 @@ QP_ROOT=$PWD
 cd -
 
 # Normal installation
-PACKAGES="core cryptokit zarith ocamlfind sexplib ZMQ"
+PACKAGES="core cryptokit.1.10 ocamlfind sexplib ZMQ"
 #ppx_sexp_conv
 
 # Needed for ZeroMQ
-export C_INCLUDE_PATH="${QP_ROOT}"/lib:"${C_INCLUDE_PATH}"
+export C_INCLUDE_PATH="${QP_ROOT}"/include:"${C_INCLUDE_PATH}"
 export LIBRARY_PATH="${QP_ROOT}"/lib:"${LIBRARY_PATH}"
 export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${LD_LIBRARY_PATH}"
 

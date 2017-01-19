@@ -49,7 +49,7 @@ subroutine routine
     endif
     call save_wavefunction
     if(n_det_before == N_det)then
-     selection_criterion = selection_criterion * 0.5d0
+     selection_criterion_factor = selection_criterion_factor * 0.5d0
     endif
     
   enddo

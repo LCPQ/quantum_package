@@ -133,7 +133,7 @@ Documentation
   :math:`\int \chi_i(r) \chi_j(r) dr)`
 
 
-`ao_overlap_abs <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/ao_overlap.irp.f#L66>`_
+`ao_overlap_abs <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/ao_overlap.irp.f#L75>`_
   Overlap between absolute value of atomic basis functions:
   :math:`\int |\chi_i(r)| |\chi_j(r)| dr)`
 

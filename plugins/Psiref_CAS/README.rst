@@ -58,6 +58,7 @@ Needed Modules
 .. image:: tree_dependency.png
 
 * `Psiref_Utils <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_Utils>`_
+* `Davidson <http://github.com/LCPQ/quantum_package/tree/master/src/Davidson>`_
 
 Documentation
 =============

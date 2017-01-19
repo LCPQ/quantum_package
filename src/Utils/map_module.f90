@@ -499,6 +499,7 @@ subroutine map_get(map, key, value)
   integer(map_size_kind)         :: idx_cache
   integer(cache_map_size_kind)   :: idx
   
+  ! index in tha pointers array
   idx_cache = ishft(key,map_shift)
   !DIR$ FORCEINLINE
   call cache_map_get_interval(map%map(idx_cache), key, value, 1, map%map(idx_cache)%n_elements,idx)
@@ -631,7 +632,7 @@ subroutine search_key_big_interval(key,X,sze,idx,ibegin_in,iend_in)
     
     istep = ishft(iend-ibegin,-1)
     idx = ibegin + istep
-    do while (istep > 16)
+    do while (istep > 64)
       idx = ibegin + istep
       ! TODO : Cache misses 
       if (cache_key < X(idx)) then
@@ -669,8 +670,8 @@ subroutine search_key_big_interval(key,X,sze,idx,ibegin_in,iend_in)
       endif
     enddo
     idx = ibegin
-    if (min(iend_in,sze) > ibegin+16) then
-      iend = ibegin+16
+    if (min(iend_in,sze) > ibegin+64) then
+      iend = ibegin+64
       do while (cache_key > X(idx))
         idx = idx+1
       end do
@@ -739,7 +740,7 @@ subroutine search_key_value_big_interval(key,value,X,Y,sze,idx,ibegin_in,iend_in
     
     istep = ishft(iend-ibegin,-1)
     idx = ibegin + istep
-    do while (istep > 16)
+    do while (istep > 64)
       idx = ibegin + istep
       if (cache_key < X(idx)) then
         iend = idx
@@ -780,8 +781,8 @@ subroutine search_key_value_big_interval(key,value,X,Y,sze,idx,ibegin_in,iend_in
     enddo
     idx = ibegin
     value = Y(idx)
-    if (min(iend_in,sze) > ibegin+16) then
-      iend = ibegin+16
+    if (min(iend_in,sze) > ibegin+64) then
+      iend = ibegin+64
       do while (cache_key > X(idx))
         idx = idx+1
         value = Y(idx)

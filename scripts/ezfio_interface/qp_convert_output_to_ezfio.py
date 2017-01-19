@@ -26,10 +26,11 @@ except:
     print "Error: QP_ROOT environment variable not found."
     sys.exit(1)
 else:
-    sys.path = [
-        QP_ROOT + "/install/EZFIO/Python", QP_ROOT + "/resultsFile", QP_ROOT +
-        "/scripts"
-    ] + sys.path
+
+    sys.path = [ QP_ROOT + "/install/EZFIO/Python", 
+                 QP_ROOT + "/resultsFile", 
+                 QP_ROOT + "/scripts"] + sys.path
+
 
 # ~#~#~#~#~#~ #
 # I m p o r t #
@@ -343,20 +344,19 @@ def write_ezfio(res, filename):
 
     try:
         pseudo_str = res_file.get_pseudo()
+        matrix, array_l_max_block, array_z_remove = parse_str(pseudo_str)
+
     except:
         ezfio.set_pseudo_do_pseudo(False)
     else:
         ezfio.set_pseudo_do_pseudo(True)
-        matrix, array_l_max_block, array_z_remove = parse_str(pseudo_str)
 
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
         # Z _ e f f , a l p h a / b e t a _ e l e c #
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
         ezfio.pseudo_charge_remove = array_z_remove
-        ezfio.nuclei_nucl_charge = [
-            i - j for i, j in zip(ezfio.nuclei_nucl_charge, array_z_remove)
-        ]
+        ezfio.nuclei_nucl_charge = [i - j for i, j in zip(ezfio.nuclei_nucl_charge, array_z_remove)]
 
         import math
         num_elec = sum(ezfio.nuclei_nucl_charge)
