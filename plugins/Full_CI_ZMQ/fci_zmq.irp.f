@@ -69,7 +69,7 @@ program fci_zmq
 
     n_det_before = N_det
     to_select = N_det
-    to_select = max(64-to_select, to_select)
+    to_select = max(64-N_det, to_select)
     to_select = min(to_select, N_det_max-n_det_before)
     call ZMQ_selection(to_select, pt2)
     

@@ -337,18 +337,6 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
         
   do s1=1,2
     do i1=N_holes(s1),1,-1   ! Generate low excitations first
-      !if(subset /= 0 .and. mod(maskInd, 10) /= (subset-1)) then
-      !  maskInd += 1
-      !  cycle
-      !end if
-      maskInd += 1
-
-
-
-
-      if(subset == 0 .or. mod(maskInd, fragment_count) == (subset-1)) then
-      
-      
       
       h1 = hole_list(i1,s1)
       call apply_hole(psi_det_generators(1,1,i_generator), s1,h1, pmask, ok, N_int)
@@ -400,12 +388,6 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
       
 
 
-
-
-      end if
-
-
-
       do s2=s1,2
         sp = s1
         
@@ -418,7 +400,8 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
           logical                        :: banned(mo_tot_num, mo_tot_num,2)
           logical                        :: bannedOrb(mo_tot_num, 2)
           
-          if(subset == 0 .or. mod(maskInd, 8) == (subset-1)) then
+          maskInd += 1
+          if(subset == 0 .or. mod(maskInd, fragment_count) == (subset-1)) then
             h2 = hole_list(i2,s2)
             call apply_hole(pmask, s2,h2, mask, ok, N_int)
             banned = .false.

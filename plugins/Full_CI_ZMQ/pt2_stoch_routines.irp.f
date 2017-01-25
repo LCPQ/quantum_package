@@ -1,8 +1,8 @@
 
  BEGIN_PROVIDER [ integer, fragment_count ]
 &BEGIN_PROVIDER [ integer, fragment_first ]
-  fragment_count = 8
-  fragment_first = 4
+  fragment_count = 400
+  fragment_first = 1000
 END_PROVIDER
 
 subroutine ZMQ_pt2(pt2,relative_error)
@@ -36,7 +36,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
 
   provide nproc
 
-  !call random_seed()
+  call random_seed()
   
   computed = .false.
   tbc(0) = first_det_of_comb - 1
@@ -311,7 +311,7 @@ subroutine get_last_full_tooth(computed, last_tooth)
   
   last_tooth = 0
    combLoop : do i=comb_teeth-1, 1, -1
-     missing = 1
+     missing = 1+ (first_det_of_teeth(i+1)-first_det_of_teeth(i))/100
      do j=first_det_of_teeth(i), first_det_of_teeth(i+1)-1
        if(not(computed(j))) then
          missing -= 1
