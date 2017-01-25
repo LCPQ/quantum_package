@@ -1,8 +1,8 @@
 
  BEGIN_PROVIDER [ integer, fragment_count ]
 &BEGIN_PROVIDER [ integer, fragment_first ]
-  fragment_count = 400
-  fragment_first = 1000
+  fragment_count = (elec_alpha_num-n_core_orb)**2
+  fragment_first = first_det_of_teeth(1)
 END_PROVIDER
 
 subroutine ZMQ_pt2(pt2,relative_error)
@@ -467,10 +467,6 @@ end subroutine
   if(first_det_of_teeth(1) /= first_det_of_comb) stop "comb provider"
   
 END_PROVIDER
-
-
-
-
 
 
 

@@ -284,7 +284,6 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   
   logical :: monoAdo, monoBdo;
   integer :: maskInd
-  maskInd = -1
 
   monoAdo = .true.
   monoBdo = .true.
@@ -306,7 +305,36 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   call bitstring_to_list_ab(hole    , hole_list    , N_holes    , N_int)
   call bitstring_to_list_ab(particle, particle_list, N_particles, N_int)
 
+  ! ======
+  ! If the subset doesn't exist, return
+  logical :: will_compute
+  will_compute = subset == 0
+  maskInd = -1
+
+  if (.not.will_compute) then
+    outerloop: do s1=1,2
+      do i1=N_holes(s1),1,-1   ! Generate low excitations first
+        do s2=s1,2
+          do i2=N_holes(s2),ib,-1   ! Generate low excitations first
+            maskInd += 1
+            if(mod(maskInd, fragment_count) == (subset-1)) then
+              will_compute = .True.
+              exit outerloop
+            end if
+          enddo
+        enddo
+      enddo
+    enddo outerloop
+    if (.not.will_compute) then
+      return
+    endif
+  endif
+  ! ======
+
   
+  integer(bit_kind), allocatable:: preinteresting_det(:,:,:)
+  allocate (preinteresting_det(N_int,2,N_det))
+
   preinteresting(0) = 0
   prefullinteresting(0) = 0
   
@@ -320,13 +348,14 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
     do j=1,N_int
       mobMask(j,1) = iand(negMask(j,1), psi_det_sorted(j,1,i))
       mobMask(j,2) = iand(negMask(j,2), psi_det_sorted(j,2,i))
-      nt += popcnt(mobMask(j, 1)) + popcnt(mobMask(j, 2))
+      nt = nt + popcnt(mobMask(j, 1)) + popcnt(mobMask(j, 2)) 
     end do
 
     if(nt <= 4) then
       if(i <= N_det_selectors) then
         preinteresting(0) += 1
         preinteresting(preinteresting(0)) = i
+        preinteresting_det(:,:,preinteresting(0)) = psi_det_sorted(:,:,i)
       else if(nt <= 2) then
         prefullinteresting(0) += 1
         prefullinteresting(prefullinteresting(0)) = i
@@ -334,28 +363,28 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
     end if
   end do
   
-        
+
+  maskInd = -1
   do s1=1,2
     do i1=N_holes(s1),1,-1   ! Generate low excitations first
       
       h1 = hole_list(i1,s1)
       call apply_hole(psi_det_generators(1,1,i_generator), s1,h1, pmask, ok, N_int)
       
-      do i=1,N_int
-        negMask(i,1) = not(pmask(i,1))
-        negMask(i,2) = not(pmask(i,2))
-      end do
+      negMask = not(pmask)
       
       interesting(0) = 0
       fullinteresting(0) = 0
       
       do ii=1,preinteresting(0)
         i = preinteresting(ii)
-        nt = 0
-        do j=1,N_int
-          mobMask(j,1) = iand(negMask(j,1), psi_det_sorted(j,1,i))
-          mobMask(j,2) = iand(negMask(j,2), psi_det_sorted(j,2,i))
-          nt += popcnt(mobMask(j, 1)) + popcnt(mobMask(j, 2))
+        mobMask(1,1) = iand(negMask(1,1), preinteresting_det(1,1,ii))
+        mobMask(1,2) = iand(negMask(1,2), preinteresting_det(1,2,ii))
+        nt = popcnt(mobMask(1, 1)) + popcnt(mobMask(1, 2))
+        do j=2,N_int
+          mobMask(j,1) = iand(negMask(j,1), preinteresting_det(j,1,ii))
+          mobMask(j,2) = iand(negMask(j,2), preinteresting_det(j,2,ii))
+          nt = nt+ popcnt(mobMask(j, 1)) + popcnt(mobMask(j, 2))
         end do
         
         if(nt <= 4) then
@@ -373,10 +402,13 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
       do ii=1,prefullinteresting(0)
         i = prefullinteresting(ii)
         nt = 0
-        do j=1,N_int
+        mobMask(1,1) = iand(negMask(1,1), psi_det_sorted(1,1,i))
+        mobMask(1,2) = iand(negMask(1,2), psi_det_sorted(1,2,i))
+        nt = popcnt(mobMask(1, 1)) + popcnt(mobMask(1, 2))
+        do j=2,N_int
           mobMask(j,1) = iand(negMask(j,1), psi_det_sorted(j,1,i))
           mobMask(j,2) = iand(negMask(j,2), psi_det_sorted(j,2,i))
-          nt += popcnt(mobMask(j, 1)) + popcnt(mobMask(j, 2))
+          nt = nt+ popcnt(mobMask(j, 1)) + popcnt(mobMask(j, 2))
         end do
 
         if(nt <= 2) then
@@ -521,6 +553,7 @@ subroutine splash_pq(mask, sp, det, i_gen, N_sel, bannedOrb, banned, mat, intere
 !   logical :: bandon
 !   
 !   bandon = .false.
+  PROVIDE psi_phasemask psi_selectors_coef_transp
   mat = 0d0
   
   do i=1,N_int
@@ -535,7 +568,7 @@ subroutine splash_pq(mask, sp, det, i_gen, N_sel, bannedOrb, banned, mat, intere
     do j=1,N_int
       mobMask(j,1) = iand(negMask(j,1), det(j,1,i))
       mobMask(j,2) = iand(negMask(j,2), det(j,2,i))
-      nt += popcnt(mobMask(j, 1)) + popcnt(mobMask(j, 2))
+      nt = nt + popcnt(mobMask(j, 1)) + popcnt(mobMask(j, 2))
     end do
 
     if(nt > 4) cycle
