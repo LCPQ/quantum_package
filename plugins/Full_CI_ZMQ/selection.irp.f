@@ -309,22 +309,10 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   ! If the subset doesn't exist, return
   logical :: will_compute
   will_compute = subset == 0
-  maskInd = -1
 
   if (.not.will_compute) then
-    outerloop: do s1=1,2
-      do i1=N_holes(s1),1,-1   ! Generate low excitations first
-        do s2=s1,2
-          do i2=N_holes(s2),ib,-1   ! Generate low excitations first
-            maskInd += 1
-            if(mod(maskInd, fragment_count) == (subset-1)) then
-              will_compute = .True.
-              exit outerloop
-            end if
-          enddo
-        enddo
-      enddo
-    enddo outerloop
+    maskInd = N_holes(1)*N_holes(2) + N_holes(2)*((N_holes(2)-1)/2) + N_holes(1)*((N_holes(1)-1)/2)
+    will_compute = (maskInd >= subset)
     if (.not.will_compute) then
       return
     endif
@@ -365,8 +353,23 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   
 
   maskInd = -1
+  integer :: nb_count
   do s1=1,2
     do i1=N_holes(s1),1,-1   ! Generate low excitations first
+!      will_compute = (subset == 0)
+!      nb_count = 0
+!      if (s1==1) then
+!        nb_count = N_holes(1)-i1 + N_holes(2) 
+!      else
+!        nb_count = N_holes(2)-i1
+!      endif
+!      maskInd = 12345
+!      fragment_count = 400
+!      subset = 3
+!      nb_count = 100
+!      if( nb_count >= (fragment_count - mod(maskInd+1, fragment_count) + subset-1) ) then
+!        will_compute = .true.
+!      end if
       
       h1 = hole_list(i1,s1)
       call apply_hole(psi_det_generators(1,1,i_generator), s1,h1, pmask, ok, N_int)
