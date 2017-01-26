@@ -156,7 +156,7 @@ BEGIN_TEMPLATE
     iorder(i) = i0
   enddo
   
- end subroutine heap_$Xsort$big
+ end subroutine heap_$Xsort_big
 
  subroutine $Xsort(x,iorder,isize)
   implicit none
