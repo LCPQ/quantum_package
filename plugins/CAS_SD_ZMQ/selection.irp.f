@@ -112,7 +112,7 @@ double precision function get_phase_bi(phasemask, s1, s2, h1, p1, h2, p2)
   
   if(s1 == s2 .and. max(h1, p1) > min(h2, p2)) np = np + 1_1
   get_phase_bi = res(iand(np,1_1))
-end subroutine
+end function
 
 
 
