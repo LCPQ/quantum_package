@@ -691,7 +691,7 @@ subroutine getHP(a,h,p,Nint)
   end do lh
   h = deg
   !isInCassd = .true.
-end function
+end subroutine
 
 
  BEGIN_PROVIDER [ double precision, delta_mrcepa0_ij, (N_det_ref,N_det_non_ref,N_states) ]
