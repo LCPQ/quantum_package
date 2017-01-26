@@ -248,7 +248,7 @@ BEGIN_TEMPLATE
     iorder(j+1_8) = i0
   enddo
   
- end subroutine insertion_$Xsort
+ end subroutine insertion_$Xsort_big
 
  subroutine $Xset_order_big(x,iorder,isize)
   implicit none
