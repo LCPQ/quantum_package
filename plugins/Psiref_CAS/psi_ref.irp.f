@@ -77,6 +77,7 @@ END_PROVIDER
     norm_psi_ref(j) += psi_ref_coef(i,j) * psi_ref_coef(i,j)
    enddo
    inv_norm_psi_ref(j) = 1.d0/(dsqrt(norm_psi_Ref(j)))
+   print *,  inv_norm_psi_ref(j)
   enddo
 
  END_PROVIDER

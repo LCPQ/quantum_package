@@ -1,7 +1,5 @@
-
- BEGIN_PROVIDER [ integer, fragment_count ]
-&BEGIN_PROVIDER [ integer, fragment_first ]
-  fragment_count = (elec_alpha_num-n_core_orb)**2
+BEGIN_PROVIDER [ integer, fragment_first ]
+  implicit none
   fragment_first = first_det_of_teeth(1)
 END_PROVIDER
 
@@ -111,7 +109,7 @@ subroutine do_carlo(tbc, Ncomb, comb, pt2_detail, computed, sumabove, sum2above,
     myVal = 0d0
     myVal2 = 0d0
     do j=comb_teeth,1,-1
-      myVal += pt2_detail(1, dets(j)) / weight(dets(j)) * comb_step
+      myVal += pt2_detail(1, dets(j)) / pt2_weight(dets(j)) * comb_step
       sumabove(j) += myVal
       sum2above(j) += myVal**2
       Nabove(j) += 1
@@ -229,8 +227,8 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       end do
 
       E0 = sum(pt2_detail(1,:first_det_of_teeth(tooth)-1))
-      prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - cweight(first_det_of_teeth(tooth)-1))
-      prop = prop / weight(first_det_of_teeth(tooth))
+      prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - pt2_cweight(first_det_of_teeth(tooth)-1))
+      prop = prop / pt2_weight(first_det_of_teeth(tooth))
       E0 += pt2_detail(1,first_det_of_teeth(tooth)) * prop
       avg = E0 + (sumabove(tooth) / Nabove(tooth))
       eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
@@ -393,7 +391,7 @@ subroutine get_comb(stato, dets)
 
   curs = 1d0 - stato
   do j = comb_teeth, 1, -1
-    dets(j) = pt2_find(curs, cweight)
+    dets(j) = pt2_find(curs, pt2_cweight)
     curs -= comb_step
   end do
 end subroutine
@@ -421,8 +419,8 @@ end subroutine
 
 
 
- BEGIN_PROVIDER [ double precision, weight, (N_det_generators) ]
-&BEGIN_PROVIDER [ double precision, cweight, (N_det_generators) ]
+ BEGIN_PROVIDER [ double precision, pt2_weight, (N_det_generators) ]
+&BEGIN_PROVIDER [ double precision, pt2_cweight, (N_det_generators) ]
 &BEGIN_PROVIDER [ double precision, comb_workload, (N_det_generators) ]
 &BEGIN_PROVIDER [ double precision, comb_step ]
 &BEGIN_PROVIDER [ integer, first_det_of_teeth, (comb_teeth+1) ]
@@ -432,34 +430,34 @@ end subroutine
   double precision :: norm_left, stato
   integer, external :: pt2_find  
 
-  weight(1) = psi_coef_generators(1,1)**2
-  cweight(1) = psi_coef_generators(1,1)**2
+  pt2_weight(1) = psi_coef_generators(1,1)**2
+  pt2_cweight(1) = psi_coef_generators(1,1)**2
   
   do i=2,N_det_generators
-    weight(i) = psi_coef_generators(i,1)**2
-    cweight(i) = cweight(i-1) + psi_coef_generators(i,1)**2
+    pt2_weight(i) = psi_coef_generators(i,1)**2
+    pt2_cweight(i) = pt2_cweight(i-1) + psi_coef_generators(i,1)**2
   end do
   
-  weight = weight / cweight(N_det_generators)
-  cweight = cweight / cweight(N_det_generators)
+  pt2_weight = pt2_weight / pt2_cweight(N_det_generators)
+  pt2_cweight = pt2_cweight / pt2_cweight(N_det_generators)
   comb_workload = 1d0 / dfloat(N_det_generators)
   
   norm_left = 1d0
   
   comb_step = 1d0/dfloat(comb_teeth)
   do i=1,N_det_generators
-    if(weight(i)/norm_left < comb_step/2d0) then
+    if(pt2_weight(i)/norm_left < comb_step/2d0) then
       first_det_of_comb = i
       exit
     end if
-    norm_left -= weight(i)
+    norm_left -= pt2_weight(i)
   end do
   
-  comb_step = 1d0 / dfloat(comb_teeth) * (1d0 - cweight(first_det_of_comb-1))
+  comb_step = 1d0 / dfloat(comb_teeth) * (1d0 - pt2_cweight(first_det_of_comb-1))
   
   stato = 1d0 - comb_step! + 1d-5
   do i=comb_teeth, 1, -1
-    first_det_of_teeth(i) = pt2_find(stato, cweight)
+    first_det_of_teeth(i) = pt2_find(stato, pt2_cweight)
     stato -= comb_step
   end do
   first_det_of_teeth(comb_teeth+1) = N_det_generators + 1
