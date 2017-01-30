@@ -192,6 +192,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       pt2_detail(:, index(i)) += pt2_mwen(:,i)
       parts_to_get(index(i)) -= 1
       if(parts_to_get(index(i)) < 0) then 
+        print *, "PARTS ??"
         stop "PARTS ??"
       end if
       if(parts_to_get(index(i)) == 0) actually_computed(index(i)) = .true.
@@ -206,7 +207,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
 
     time = omp_get_wtime()
   
-    if(time - timeLast > 30.0 .or. more /= 1) then
+    if(time - timeLast > 10.0 .or. more /= 1) then
       timeLast = time
       do i=1, first_det_of_teeth(1)-1
         if(not(actually_computed(i))) then
@@ -258,7 +259,7 @@ integer function pt2_find(v, w)
   h = N_det-1
 
   do while(h >= l)
-    i = (h+l)/2
+    i = ishft(h+l,-1)
     if(w(i+1) > v) then
       h = i-1
     else
@@ -374,7 +375,7 @@ subroutine reorder_tbc(tbc)
   ci = 0
   do i=1,N_det_generators
     if(ltbc(i)) then
-      ci += 1
+      ci = ci+1
       tbc(ci) = i
     end if
   end do
@@ -446,7 +447,7 @@ end subroutine
   
   comb_step = 1d0/dfloat(comb_teeth)
   do i=1,N_det_generators
-    if(pt2_weight(i)/norm_left < comb_step/2d0) then
+    if(pt2_weight(i)/norm_left < comb_step*.5d0) then
       first_det_of_comb = i
       exit
     end if
@@ -462,7 +463,10 @@ end subroutine
   end do
   first_det_of_teeth(comb_teeth+1) = N_det_generators + 1
   first_det_of_teeth(1) = first_det_of_comb
-  if(first_det_of_teeth(1) /= first_det_of_comb) stop "comb provider"
+  if(first_det_of_teeth(1) /= first_det_of_comb) then
+     print *, 'Error in ', irp_here
+     stop "comb provider"
+  endif
   
 END_PROVIDER
 
