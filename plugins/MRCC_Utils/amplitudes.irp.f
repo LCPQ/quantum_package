@@ -126,6 +126,7 @@ END_PROVIDER
        wk += 1
        do s=1,N_states
         active_excitation_to_determinants_val(s,wk, ppp) = psi_ref_coef(lref(i), s)
+
        enddo
        active_excitation_to_determinants_idx(wk, ppp) = i
      else if(lref(i) < 0) then
@@ -158,14 +159,13 @@ END_PROVIDER
  double precision, allocatable  :: t(:), A_val_mwen(:,:), As2_val_mwen(:,:)
  integer, allocatable           :: A_ind_mwen(:)
  double precision               :: sij
- PROVIDE psi_non_ref 
+ PROVIDE psi_non_ref active_excitation_to_determinants_val
 
  mrcc_AtA_ind(:) = 0
  mrcc_AtA_val(:,:) = 0.d0
  mrcc_col_shortcut(:) = 0
  mrcc_N_col(:) = 0
  AtA_size = 0
-
 
   !$OMP PARALLEL default(none) shared(k, active_excitation_to_determinants_idx,&
       !$OMP   active_excitation_to_determinants_val, hh_nex)         &
