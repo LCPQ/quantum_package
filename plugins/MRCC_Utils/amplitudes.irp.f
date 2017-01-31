@@ -90,7 +90,7 @@ END_PROVIDER
  logical                        :: ok
  integer, external              :: searchDet
 
- PROVIDE psi_non_ref_sorted_idx 
+ PROVIDE psi_non_ref_sorted_idx psi_ref_coef 
 
  !$OMP PARALLEL default(none) shared(psi_non_ref, hh_exists, pp_exists, N_int,&
      !$OMP   active_excitation_to_determinants_val, active_excitation_to_determinants_idx)&
