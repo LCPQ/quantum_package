@@ -42,7 +42,7 @@ subroutine assert(cond, msg)
     print *, "assert fail: "//msg
     stop
   end if
-end subroutine
+end 
 
 
 subroutine get_mask_phase(det, phasemask)
@@ -64,7 +64,7 @@ subroutine get_mask_phase(det, phasemask)
       end do
     end do
   end do
-end subroutine
+end 
 
 
 subroutine select_connected(i_generator,E0,pt2,b,subset)
@@ -92,7 +92,7 @@ subroutine select_connected(i_generator,E0,pt2,b,subset)
     enddo
     call select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b,subset)
   enddo
-end subroutine
+end 
 
 
 double precision function get_phase_bi(phasemask, s1, s2, h1, p1, h2, p2)
@@ -111,7 +111,7 @@ double precision function get_phase_bi(phasemask, s1, s2, h1, p1, h2, p2)
   
   if(s1 == s2 .and. max(h1, p1) > min(h2, p2)) np = np + 1_1
   get_phase_bi = res(iand(np,1_1))
-end subroutine
+end 
 
 
 
@@ -170,7 +170,7 @@ subroutine get_m2(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
       vect(:, puti) += hij * coefs
     end if
   end if
-end subroutine
+end 
 
 
 
@@ -233,7 +233,7 @@ subroutine get_m1(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   call apply_particle(mask, sp, p1, det, ok,  N_int)
   call i_h_j(gen, det, N_int, hij)
   vect(:, p1) += hij * coefs
-end subroutine
+end 
 
 
 subroutine get_m0(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
@@ -259,7 +259,7 @@ subroutine get_m0(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
     call i_h_j(gen, det, N_int, hij)
     vect(:, i) += hij * coefs
   end do
-end subroutine
+end 
 
 subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf,subset)
   use bitmasks
@@ -471,7 +471,7 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
       enddo
     enddo
   enddo
-end subroutine
+end 
 
 
 
@@ -537,7 +537,7 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
       end if
     end do
   end do
-end subroutine
+end 
 
 
 subroutine splash_pq(mask, sp, det, i_gen, N_sel, bannedOrb, banned, mat, interesting)
@@ -612,7 +612,7 @@ subroutine splash_pq(mask, sp, det, i_gen, N_sel, bannedOrb, banned, mat, intere
       end if
     end if
   end do
-end subroutine
+end 
 
 
 subroutine get_d2(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
@@ -730,7 +730,7 @@ subroutine get_d2(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
       end if
     end if
   end if
-end subroutine
+end 
 
 
 subroutine get_d1(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
@@ -897,7 +897,7 @@ subroutine get_d1(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
         mat(:, p1, p2) += coefs * hij
       end do
     end do
-end subroutine
+end 
 
 
 
@@ -959,7 +959,7 @@ subroutine get_d0(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
       end do
     end do
   end if
-end subroutine
+end 
  
 
 subroutine past_d1(bannedOrb, p)
@@ -975,7 +975,7 @@ subroutine past_d1(bannedOrb, p)
       bannedOrb(p(i, s), s) = .true.
     end do
   end do
-end subroutine
+end 
 
 
 subroutine past_d2(banned, p, sp)
@@ -1000,7 +1000,7 @@ subroutine past_d2(banned, p, sp)
       end do
     end do
   end if
-end subroutine
+end 
 
 
 
@@ -1045,5 +1045,5 @@ subroutine spot_isinwf(mask, det, i_gen, N, banned, fullMatch, interesting)
     call bitstring_to_list(myMask(1,2), list(na+1), nb, N_int)
     banned(list(1), list(2)) = .true.
   end do genl
-end subroutine
+end 
 
