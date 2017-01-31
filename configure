@@ -112,7 +112,7 @@ patch = Info(
     default_path=join(QP_ROOT_BIN, "patch"))
 
 irpf90 = Info(
-    url='{head}/TApplencourt/irpf90/{tail}'.format(**path_github),
+    url='{head}/LCPQ/irpf90/{tail}'.format(**path_github),
     description=' IRPF90',
     default_path=join(QP_ROOT_BIN, "irpf90"))
 
