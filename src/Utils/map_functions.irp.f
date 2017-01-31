@@ -73,10 +73,11 @@ subroutine map_load_from_disk(filename,map)
   implicit none
   character*(*), intent(in)      :: filename
   type(map_type), intent(inout)  :: map
+  double precision               :: x
   type(c_ptr)                    :: c_pointer(3)
   integer                        :: fd(3)
-  integer*8                      :: i,k
-  integer                        :: n_elements
+  integer*8                      :: i,k, l
+  integer                        :: n_elements, j
 
 
 
@@ -95,7 +96,9 @@ subroutine map_load_from_disk(filename,map)
   call mmap(trim(filename)//'_consolidated_value', (/ map % n_elements /), integral_kind, fd(3), .True., c_pointer(3))
   call c_f_pointer(c_pointer(3),map % consolidated_value, (/ map % n_elements /))
 
+  l = 0_8
   k = 1_8
+  x = 0.d0
   do i=0_8, map % map_size
     deallocate(map % map(i) % value)
     deallocate(map % map(i) % key)
@@ -106,9 +109,15 @@ subroutine map_load_from_disk(filename,map)
     k = map % consolidated_idx (i+2)
     map % map(i) % map_size = n_elements
     map % map(i) % n_elements = n_elements
+    ! Load memory from disk
+    do j=1,n_elements
+      x = x + map % map(i) % value(j)
+      l = iand(l,map % map(i) % key(j))
+    enddo
   enddo
+  map % sorted = x>0 .or. l == 0_8
   map % n_elements = k-1
-  map % sorted = .True. 
+  map % sorted = map % sorted .or. .True. 
   map % consolidated = .True.
 
 end

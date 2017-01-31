@@ -102,10 +102,10 @@ program fci_zmq
     threshold_selectors = 1.d0
     threshold_generators = 1d0 
     E_CI_before(1:N_states) = CI_energy(1:N_states)
-    !call ZMQ_selection(0, pt2)! pour non-stochastic
     double precision :: relative_error
     relative_error=1.d-3
-    call ZMQ_pt2(pt2,relative_error)
+    !call ZMQ_pt2(pt2,relative_error)
+    call ZMQ_selection(0, pt2)! pour non-stochastic
     print *,  'Final step'
     print *,  'N_det    = ', N_det
     print *,  'N_states = ', N_states

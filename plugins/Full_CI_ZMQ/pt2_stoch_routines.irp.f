@@ -27,16 +27,17 @@ subroutine ZMQ_pt2(pt2,relative_error)
   double precision, external :: omp_get_wtime 
   double precision :: time0, time
 
-  allocate(pt2_detail(N_states, N_det_generators), comb(100000), computed(N_det_generators), tbc(0:N_det_generators))
+  allocate(pt2_detail(N_states, N_det_generators), comb(10**5), computed(N_det_generators), tbc(0:size_tbc))
   sumabove = 0d0
   sum2above = 0d0
   Nabove = 0d0
 
   provide nproc
 
-  call random_seed()
+  !call random_seed()
   
   computed = .false.
+
   tbc(0) = first_det_of_comb - 1
   do i=1, tbc(0)
     tbc(i) = i
@@ -44,19 +45,21 @@ subroutine ZMQ_pt2(pt2,relative_error)
   end do
   
   pt2_detail = 0d0
-
   time0 = omp_get_wtime()
   print *, "grep - time - avg - err - n_combs"
   do while(.true.)
     
+    call write_time(6)
     call new_parallel_job(zmq_to_qp_run_socket,"pt2")
     call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
     call zmq_set_running(zmq_to_qp_run_socket)
     call create_selection_buffer(1, 1*2, b)
     
     ! TODO PARAMETER : 1.d-2
-    call get_carlo_workbatch(1d-2, computed, comb, Ncomb, tbc)
+    Ncomb=size(comb)
+    call get_carlo_workbatch(1d0, computed, comb, Ncomb, tbc)
     generator_per_task = 1
+    print *, 'Adding tasks...'
     do i=1,tbc(0)
       i_generator_end = min(i+generator_per_task-1, tbc(0))
       if(tbc(i) > fragment_first) then
@@ -71,6 +74,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
         end do
       end if
     end do
+    call write_time(6)
 
     !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2, relative_error)  PRIVATE(i) NUM_THREADS(nproc+1)
       i = omp_get_thread_num()
@@ -91,7 +95,7 @@ end subroutine
 
 
 subroutine do_carlo(tbc, Ncomb, comb, pt2_detail, computed, sumabove, sum2above, Nabove)
-  integer, intent(in) :: tbc(0:N_det_generators), Ncomb
+  integer, intent(in) :: tbc(0:size_tbc), Ncomb
   logical, intent(in) :: computed(N_det_generators)
   double precision, intent(in) :: comb(Ncomb), pt2_detail(N_states, N_det_generators)
   double precision, intent(inout) :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
@@ -101,7 +105,7 @@ subroutine do_carlo(tbc, Ncomb, comb, pt2_detail, computed, sumabove, sum2above,
   mainLoop : do i=1,Ncomb
     call get_comb(comb(i), dets)
     do j=1,comb_teeth
-      if(not(computed(dets(j)))) then
+      if(.not.(computed(dets(j)))) then
         exit mainLoop
       end if
     end do
@@ -109,7 +113,7 @@ subroutine do_carlo(tbc, Ncomb, comb, pt2_detail, computed, sumabove, sum2above,
     myVal = 0d0
     myVal2 = 0d0
     do j=comb_teeth,1,-1
-      myVal += pt2_detail(1, dets(j)) / pt2_weight(dets(j)) * comb_step
+      myVal += pt2_detail(1, dets(j)) * pt2_weight_inv(dets(j)) * comb_step
       sumabove(j) += myVal
       sum2above(j) += myVal**2
       Nabove(j) += 1
@@ -136,7 +140,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   double precision, intent(inout) :: pt2_detail(N_states, N_det_generators)
   double precision, intent(in) :: comb(Ncomb)
   logical, intent(inout) :: computed(N_det_generators)
-  integer, intent(in) :: tbc(0:N_det_generators)
+  integer, intent(in) :: tbc(0:size_tbc)
   double precision, intent(inout) :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth), relative_error
   double precision, intent(out)  :: pt2(N_states)
 
@@ -164,7 +168,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   logical, allocatable :: actually_computed(:)
   
   allocate(actually_computed(N_det_generators), parts_to_get(N_det_generators))
-  actually_computed = computed
+  actually_computed(:) = computed(:)
   
   parts_to_get(:) = 1
   if(fragment_first > 0) parts_to_get(1:fragment_first) = fragment_count
@@ -192,7 +196,9 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       pt2_detail(:, index(i)) += pt2_mwen(:,i)
       parts_to_get(index(i)) -= 1
       if(parts_to_get(index(i)) < 0) then 
+        print *, i, index(i), parts_to_get(index(i)), Nindex
         print *, "PARTS ??"
+        print *, parts_to_get
         stop "PARTS ??"
       end if
       if(parts_to_get(index(i)) == 0) actually_computed(index(i)) = .true.
@@ -207,10 +213,10 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
 
     time = omp_get_wtime()
   
-    if(time - timeLast > 10.0 .or. more /= 1) then
+    if(time - timeLast > 1d1 .or. more /= 1) then
       timeLast = time
       do i=1, first_det_of_teeth(1)-1
-        if(not(actually_computed(i))) then
+        if(.not.(actually_computed(i))) then
           print *, "PT2 : deterministic part not finished"
           cycle pullLoop
         end if
@@ -219,7 +225,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       double precision :: E0, avg, eqt, prop
       call do_carlo(tbc, Ncomb+1-firstTBDcomb, comb(firstTBDcomb), pt2_detail, actually_computed, sumabove, sum2above, Nabove)
       firstTBDcomb = Nabove(1) - orgTBDcomb + 1
-      if(Nabove(1) < 2.0) cycle
+      if(Nabove(1) < 2d0) cycle
       call get_first_tooth(actually_computed, tooth)
      
       done = 0
@@ -229,7 +235,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
 
       E0 = sum(pt2_detail(1,:first_det_of_teeth(tooth)-1))
       prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - pt2_cweight(first_det_of_teeth(tooth)-1))
-      prop = prop / pt2_weight(first_det_of_teeth(tooth))
+      prop = prop * pt2_weight_inv(first_det_of_teeth(tooth))
       E0 += pt2_detail(1,first_det_of_teeth(tooth)) * prop
       avg = E0 + (sumabove(tooth) / Nabove(tooth))
       eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
@@ -250,9 +256,10 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
 end subroutine
 
 
-integer function pt2_find(v, w)
+integer function pt2_find(v, w, sze)
   implicit none
-  double precision :: v, w(N_det)
+  integer, intent(in) :: sze
+  double precision, intent(in) :: v, w(sze)
   integer :: i,l,h
 
   l = 0
@@ -286,7 +293,7 @@ subroutine get_first_tooth(computed, first_teeth)
   first_det = 1
   first_teeth = 1
   do i=first_det_of_comb, N_det_generators
-    if(not(computed(i))) then
+    if(.not.(computed(i))) then
       first_det = i
       exit
     end if
@@ -309,10 +316,10 @@ subroutine get_last_full_tooth(computed, last_tooth)
   integer :: i, j, missing
   
   last_tooth = 0
-   combLoop : do i=comb_teeth-1, 1, -1
-     missing = 1+ (first_det_of_teeth(i+1)-first_det_of_teeth(i))/100
+   combLoop : do i=comb_teeth, 1, -1
+     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-7) ! /128
      do j=first_det_of_teeth(i), first_det_of_teeth(i+1)-1
-       if(not(computed(j))) then
+       if(.not.computed(j)) then
          missing -= 1
          if(missing < 0) cycle combLoop
        end if
@@ -323,29 +330,34 @@ subroutine get_last_full_tooth(computed, last_tooth)
 end subroutine
 
 
+BEGIN_PROVIDER [ integer, size_tbc ]
+  size_tbc = N_det_generators + fragment_count*fragment_first
+END_PROVIDER
+
 
 subroutine get_carlo_workbatch(maxWorkload, computed, comb, Ncomb, tbc)
   implicit none
   double precision, intent(in) :: maxWorkload
-  double precision, intent(out) :: comb(N_det_generators)
-  integer, intent(inout) :: tbc(0:N_det_generators)
-  integer, intent(out) :: Ncomb
+  double precision, intent(out) :: comb(Ncomb)
+  integer, intent(inout) :: tbc(0:size_tbc)
+  integer, intent(inout) :: Ncomb
   logical, intent(inout) :: computed(N_det_generators)
   integer :: i, j, last_full, dets(comb_teeth)
   double precision :: myWorkload
  
   myWorkload = 0d0
   
+  call RANDOM_NUMBER(comb)
   do i=1,size(comb)
-    call RANDOM_NUMBER(comb(i))
     comb(i) = comb(i) * comb_step
+    !DIR$ FORCEINLINE
     call add_comb(comb(i), computed, tbc, myWorkload)
     Ncomb = i
     
     call get_last_full_tooth(computed, last_full)
     if(Ncomb >= 30 .and. last_full /= 0) then
       do j=1,first_det_of_teeth(last_full+1)-1
-        if(not(computed(j))) then
+        if(.not.(computed(j))) then
           tbc(0) += 1
           tbc(tbc(0)) = j
           computed(j) = .true.
@@ -355,25 +367,25 @@ subroutine get_carlo_workbatch(maxWorkload, computed, comb, Ncomb, tbc)
       end do
     end if
 
-    if(myWorkload > maxWorkload .and. i >= 100) exit
+    if(myWorkload > maxWorkload) exit
   end do
 end subroutine
 
 
 subroutine reorder_tbc(tbc)
   implicit none
-  integer, intent(inout) :: tbc(0:N_det_generators)
+  integer, intent(inout) :: tbc(0:size_tbc)
   logical, allocatable :: ltbc(:)
   integer :: i, ci
 
-  allocate(ltbc(N_det_generators))
-  ltbc = .false.
+  allocate(ltbc(size_tbc))
+  ltbc(:) = .false.
   do i=1,tbc(0)
     ltbc(tbc(i)) = .true.
   end do
 
   ci = 0
-  do i=1,N_det_generators
+  do i=1,size_tbc
     if(ltbc(i)) then
       ci = ci+1
       tbc(ci) = i
@@ -392,7 +404,8 @@ subroutine get_comb(stato, dets)
 
   curs = 1d0 - stato
   do j = comb_teeth, 1, -1
-    dets(j) = pt2_find(curs, pt2_cweight)
+    !DIR$ FORCEINLINE
+    dets(j) = pt2_find(curs, pt2_cweight,N_det_generators)
     curs -= comb_step
   end do
 end subroutine
@@ -403,13 +416,14 @@ subroutine add_comb(comb, computed, tbc, workload)
   double precision, intent(in) :: comb
   logical, intent(inout) :: computed(N_det_generators)
   double precision, intent(inout) :: workload
-  integer, intent(inout) :: tbc(0:N_det_generators)
+  integer, intent(inout) :: tbc(0:size_tbc)
   integer :: i, dets(comb_teeth)
   
+  !DIR$ FORCEINLINE
   call get_comb(comb, dets)
   
   do i = 1, comb_teeth
-    if(not(computed(dets(i)))) then
+    if(.not.(computed(dets(i)))) then
       tbc(0) += 1
       tbc(tbc(0)) = dets(i)
       workload += comb_workload(dets(i))
@@ -454,11 +468,11 @@ end subroutine
     norm_left -= pt2_weight(i)
   end do
   
-  comb_step = 1d0 / dfloat(comb_teeth) * (1d0 - pt2_cweight(first_det_of_comb-1))
+  comb_step =  (1d0 - pt2_cweight(first_det_of_comb-1)) * comb_step
   
   stato = 1d0 - comb_step! + 1d-5
   do i=comb_teeth, 1, -1
-    first_det_of_teeth(i) = pt2_find(stato, pt2_cweight)
+    first_det_of_teeth(i) = pt2_find(stato, pt2_cweight, N_det_generators)
     stato -= comb_step
   end do
   first_det_of_teeth(comb_teeth+1) = N_det_generators + 1
@@ -468,6 +482,18 @@ end subroutine
      stop "comb provider"
   endif
   
+END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, pt2_weight_inv, (N_det_generators) ]
+  implicit none
+  BEGIN_DOC
+!  Inverse of pt2_weight array
+  END_DOC
+  integer :: i
+  do i=1,N_det_generators
+    pt2_weight_inv(i) = 1.d0/pt2_weight(i)
+  enddo
+
 END_PROVIDER
 
 
