@@ -716,6 +716,9 @@ end subroutine
   integer :: II, blok
   integer*8, save :: notf = 0
 
+
+  PROVIDE psi_ref_coef psi_non_ref_coef
+ 
   call wall_time(wall)
   allocate(idx_sorted_bit(N_det), sortRef(N_int,2,N_det_ref))
   
@@ -839,8 +842,7 @@ END_PROVIDER
     delta_sub_ij(:,:,:) = 0d0
     delta_sub_ii(:,:) = 0d0
     
-    provide mo_bielec_integrals_in_map
-    
+    provide mo_bielec_integrals_in_map N_det_non_ref psi_ref_coef psi_non_ref_coef 
     
     !$OMP PARALLEL DO default(none) schedule(dynamic,10) shared(delta_sub_ij, delta_sub_ii)       &
     !$OMP private(i, J, k, degree, degree2, l, deg, ni)       &
