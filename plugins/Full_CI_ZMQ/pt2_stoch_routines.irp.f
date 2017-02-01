@@ -124,7 +124,7 @@ subroutine do_carlo(tbc, Ncomb, comb, pt2_detail, computed, sumabove, sum2above,
   double precision :: myVal, myVal2
 
   mainLoop : do i=1,Ncomb
-    call get_comb(comb(i), dets)
+    call get_comb(comb(i), dets, comb_teeth)
     do j=1,comb_teeth
       if(.not.(computed(dets(j)))) then
         exit mainLoop
