@@ -1,5 +1,10 @@
 use bitmasks
 
+BEGIN_PROVIDER [ integer, fragment_count ]
+  implicit none
+  fragment_count = (elec_alpha_num-n_core_orb)**2
+END_PROVIDER
+
 
 double precision function integral8(i,j,k,l)
   implicit none
@@ -356,20 +361,6 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   integer :: nb_count
   do s1=1,2
     do i1=N_holes(s1),1,-1   ! Generate low excitations first
-!      will_compute = (subset == 0)
-!      nb_count = 0
-!      if (s1==1) then
-!        nb_count = N_holes(1)-i1 + N_holes(2) 
-!      else
-!        nb_count = N_holes(2)-i1
-!      endif
-!      maskInd = 12345
-!      fragment_count = 400
-!      subset = 3
-!      nb_count = 100
-!      if( nb_count >= (fragment_count - mod(maskInd+1, fragment_count) + subset-1) ) then
-!        will_compute = .true.
-!      end if
       
       h1 = hole_list(i1,s1)
       call apply_hole(psi_det_generators(1,1,i_generator), s1,h1, pmask, ok, N_int)
