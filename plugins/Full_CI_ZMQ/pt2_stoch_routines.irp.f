@@ -367,10 +367,12 @@ subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
   integer, intent(inout) :: Ncomb
   logical, intent(inout) :: computed(N_det_generators)
   integer :: i, j, last_full, dets(comb_teeth), tbc_save
+  integer :: n
+  n = int(sqrt(dble(size(comb))))
  
   call RANDOM_NUMBER(comb)
-  do j=1,size(comb),100
-      do i=j,min(size(comb),j+99)
+  do j=1,size(comb),n
+      do i=j,min(size(comb),j+n-1)
         comb(i) = comb(i) * comb_step
         tbc_save = tbc(0)
         !DIR$ FORCEINLINE
