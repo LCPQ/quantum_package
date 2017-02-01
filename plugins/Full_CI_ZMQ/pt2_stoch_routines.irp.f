@@ -295,8 +295,8 @@ integer function pt2_find(v, w, sze, imin, imax)
     end if
   end do
   !DIR$ LOOP COUNT (64)
-  do pt2_find=l,min(l+block,h)
-    if(w(pt2_find+1) > v) then
+  do pt2_find=l,h
+    if(w(pt2_find) >= v) then
       exit
     end if
   end do
