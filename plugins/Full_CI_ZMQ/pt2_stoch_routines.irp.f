@@ -276,17 +276,17 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   call sort_selection_buffer(b)
 end subroutine
 
-
 integer function pt2_find(v, w, sze, imin, imax)
   implicit none
   integer, intent(in) :: sze, imin, imax
   double precision, intent(in) :: v, w(sze)
   integer :: i,l,h
+  integer, parameter :: block=64
 
   l = imin
-  h = imax
+  h = imax-1
 
-  do while(h-l > 4)
+  do while(h-l >= block)
     i = ishft(h+l,-1)
     if(w(i+1) > v) then
       h = i-1
@@ -294,14 +294,12 @@ integer function pt2_find(v, w, sze, imin, imax)
       l = i+1
     end if
   end do
-  do i=l,h
-    if ( w(i) <= v) then
-      cycle
-    else
-      pt2_find = i-1
-      return
-    endif
-  enddo
+  !DIR$ LOOP COUNT (64)
+  do pt2_find=l,min(l+block,h)
+    if(w(pt2_find+1) > v) then
+      exit
+    end if
+  end do
 end function
 
 
