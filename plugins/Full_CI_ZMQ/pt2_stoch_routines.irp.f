@@ -159,10 +159,10 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   
   integer, intent(in) :: Ncomb
   double precision, intent(inout) :: pt2_detail(N_states, N_det_generators)
-  double precision, intent(in) :: comb(Ncomb)
+  double precision, intent(in) :: comb(Ncomb), relative_error
   logical, intent(inout) :: computed(N_det_generators)
   integer, intent(in) :: tbc(0:size_tbc)
-  double precision, intent(inout) :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth), relative_error
+  double precision, intent(inout) :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
   double precision, intent(out)  :: pt2(N_states)
 
 
