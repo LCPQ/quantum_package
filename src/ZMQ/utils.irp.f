@@ -235,8 +235,8 @@ function new_zmq_pull_socket()
   if (zmq_context == 0_ZMQ_PTR) then
      stop 'zmq_context is uninitialized'
   endif
-  new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_PULL)
-!  new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_REP)
+! new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_PULL)
+  new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_REP)
   call omp_unset_lock(zmq_lock)
   if (new_zmq_pull_socket == 0_ZMQ_PTR) then
      stop 'Unable to create zmq pull socket'
@@ -312,8 +312,8 @@ function new_zmq_push_socket(thread)
   if (zmq_context == 0_ZMQ_PTR) then
      stop 'zmq_context is uninitialized'
   endif
-  new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_PUSH)
-!  new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_REQ)
+!  new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_PUSH)
+  new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_REQ)
   call omp_unset_lock(zmq_lock)
   if (new_zmq_push_socket == 0_ZMQ_PTR) then
      stop 'Unable to create zmq push socket'

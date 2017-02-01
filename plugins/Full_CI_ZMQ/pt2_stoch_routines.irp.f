@@ -10,7 +10,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
   implicit none
   
   character*(512)            :: task 
-  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
+  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_to_qp_run_socket2
   type(selection_buffer)         :: b
   integer, external              :: omp_get_thread_num
   double precision, intent(in)   :: relative_error
@@ -27,12 +27,12 @@ subroutine ZMQ_pt2(pt2,relative_error)
   double precision, external :: omp_get_wtime 
   double precision :: time0, time
 
-  allocate(pt2_detail(N_states, N_det_generators), comb(10**5), computed(N_det_generators), tbc(0:size_tbc))
+  allocate(pt2_detail(N_states, N_det_generators), comb(N_det_generators), computed(N_det_generators), tbc(0:size_tbc))
   sumabove = 0d0
   sum2above = 0d0
   Nabove = 0d0
 
-  provide nproc
+  provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral
 
   !call random_seed()
   
@@ -47,42 +47,63 @@ subroutine ZMQ_pt2(pt2,relative_error)
   pt2_detail = 0d0
   time0 = omp_get_wtime()
   print *, "grep - time - avg - err - n_combs"
+  generator_per_task = 1
   do while(.true.)
     
     call write_time(6)
     call new_parallel_job(zmq_to_qp_run_socket,"pt2")
     call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
-    call zmq_set_running(zmq_to_qp_run_socket)
     call create_selection_buffer(1, 1*2, b)
     
-    ! TODO PARAMETER : 1.d-2
     Ncomb=size(comb)
-    call get_carlo_workbatch(1d0, computed, comb, Ncomb, tbc)
-    generator_per_task = 1
-    print *, 'Adding tasks...'
-    do i=1,tbc(0)
-      i_generator_end = min(i+generator_per_task-1, tbc(0))
-      if(tbc(i) > fragment_first) then
-        integer :: zero
-        zero = 0
-        write(task,*) (i_generator_end-i+1), zero, tbc(i:i_generator_end)
-        call add_task_to_taskserver(zmq_to_qp_run_socket,task)
-      else
-        do j=1,fragment_count
-          write(task,*) (i_generator_end-i+1), j, tbc(i:i_generator_end)
-          call add_task_to_taskserver(zmq_to_qp_run_socket,task)
-        end do
-      end if
-    end do
+    call get_carlo_workbatch(computed, comb, Ncomb, tbc)
+
     call write_time(6)
 
-    !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2, relative_error)  PRIVATE(i) NUM_THREADS(nproc+1)
+
+    integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
+
+    !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2, relative_error) NUM_THREADS(nproc+1) &
+    !$OMP  PRIVATE(i,zmq_to_qp_run_socket2,i_generator_end,task,j) 
+      zmq_to_qp_run_socket2 = new_zmq_to_qp_run_socket()
+
+      !$OMP DO SCHEDULE(static,1)
+      do i=1,min(2000,tbc(0))
+        i_generator_end = min(i+generator_per_task-1, tbc(0))
+        if(tbc(i) > fragment_first) then
+          write(task,*) (i_generator_end-i+1), 0, tbc(i:i_generator_end)
+          call add_task_to_taskserver(zmq_to_qp_run_socket2,task)
+        else
+          do j=1,fragment_count
+            write(task,*) (i_generator_end-i+1), j, tbc(i:i_generator_end)
+            call add_task_to_taskserver(zmq_to_qp_run_socket2,task)
+          end do
+        end if
+      end do
+      !$OMP END DO NOWAIT
+
       i = omp_get_thread_num()
       if (i==0) then
+        call zmq_set_running(zmq_to_qp_run_socket)
         call pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
+      else if (i==1) then
+          do i=2001,tbc(0)
+            i_generator_end = min(i+generator_per_task-1, tbc(0))
+            if(tbc(i) > fragment_first) then
+              write(task,*) (i_generator_end-i+1), 0, tbc(i:i_generator_end)
+              call add_task_to_taskserver(zmq_to_qp_run_socket2,task)
+            else
+              do j=1,fragment_count
+                write(task,*) (i_generator_end-i+1), j, tbc(i:i_generator_end)
+                call add_task_to_taskserver(zmq_to_qp_run_socket2,task)
+              end do
+            end if
+          end do
+          call pt2_slave_inproc(1)
       else
         call pt2_slave_inproc(i)
       endif
+      call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket2)
     !$OMP END PARALLEL
     call end_parallel_job(zmq_to_qp_run_socket, 'pt2')
     tbc(0) = 0
@@ -317,7 +338,7 @@ subroutine get_last_full_tooth(computed, last_tooth)
   
   last_tooth = 0
    combLoop : do i=comb_teeth, 1, -1
-     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-7) ! /128
+     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-6) ! /64 
      do j=first_det_of_teeth(i), first_det_of_teeth(i+1)-1
        if(.not.computed(j)) then
          missing -= 1
@@ -334,41 +355,57 @@ BEGIN_PROVIDER [ integer, size_tbc ]
   size_tbc = N_det_generators + fragment_count*fragment_first
 END_PROVIDER
 
-
-subroutine get_carlo_workbatch(maxWorkload, computed, comb, Ncomb, tbc)
+subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
   implicit none
-  double precision, intent(in) :: maxWorkload
   double precision, intent(out) :: comb(Ncomb)
   integer, intent(inout) :: tbc(0:size_tbc)
   integer, intent(inout) :: Ncomb
   logical, intent(inout) :: computed(N_det_generators)
-  integer :: i, j, last_full, dets(comb_teeth)
-  double precision :: myWorkload
+  integer :: i, j, last_full, dets(comb_teeth), tbc_save
  
-  myWorkload = 0d0
-  
   call RANDOM_NUMBER(comb)
-  do i=1,size(comb)
-    comb(i) = comb(i) * comb_step
-    !DIR$ FORCEINLINE
-    call add_comb(comb(i), computed, tbc, myWorkload)
-    Ncomb = i
-    
-    call get_last_full_tooth(computed, last_full)
-    if(Ncomb >= 30 .and. last_full /= 0) then
-      do j=1,first_det_of_teeth(last_full+1)-1
-        if(.not.(computed(j))) then
-          tbc(0) += 1
-          tbc(tbc(0)) = j
-          computed(j) = .true.
-          myWorkload += comb_workload(j)
-          print *, "filled ", j, "to reach tooth", last_full, "ending at", first_det_of_teeth(last_full+1)
-        end if
+  do j=1,size(comb),100
+      do i=j,min(size(comb),j+99)
+        comb(i) = comb(i) * comb_step
+        tbc_save = tbc(0)
+        !DIR$ FORCEINLINE
+        call add_comb(comb(i), computed, tbc, size_tbc, comb_teeth)
+        if (tbc(0) < size(tbc)) then
+           Ncomb = i
+        else
+           tbc(0) = tbc_save
+           return
+        endif
       end do
-    end if
+      call get_filling_teeth(computed, tbc)
+  enddo
 
-    if(myWorkload > maxWorkload) exit
-  end do
+end subroutine
+
+
+subroutine get_filling_teeth(computed, tbc)
+  implicit none
+  integer, intent(inout) :: tbc(0:size_tbc)
+  logical, intent(inout) :: computed(N_det_generators)
+  integer :: i, j, k, last_full, dets(comb_teeth)
+ 
+  call get_last_full_tooth(computed, last_full)
+  if(last_full /= 0) then
+    if (tbc(0) > size(tbc) - first_det_of_teeth(last_full+1) -2) then
+      return
+    endif
+    k = tbc(0)+1
+    do j=1,first_det_of_teeth(last_full+1)-1
+      if(.not.(computed(j))) then
+        tbc(k) = j
+        k=k+1
+        computed(j) = .true.
+!        print *, "filled ", j, "to reach tooth", last_full, "ending at", first_det_of_teeth(last_full+1)
+      end if
+    end do
+    tbc(0) = k-1
+  end if
+
 end subroutine
 
 
@@ -394,10 +431,11 @@ subroutine reorder_tbc(tbc)
 end subroutine
 
 
-subroutine get_comb(stato, dets)
+subroutine get_comb(stato, dets, ct)
   implicit none
+  integer, intent(in) :: ct
   double precision, intent(in) :: stato
-  integer, intent(out) :: dets(comb_teeth)
+  integer, intent(out) :: dets(ct)
   double precision :: curs
   integer :: j
   integer, external :: pt2_find
@@ -405,38 +443,39 @@ subroutine get_comb(stato, dets)
   curs = 1d0 - stato
   do j = comb_teeth, 1, -1
     !DIR$ FORCEINLINE
-    dets(j) = pt2_find(curs, pt2_cweight,N_det_generators)
+    dets(j) = pt2_find(curs, pt2_cweight,size(pt2_cweight))
     curs -= comb_step
   end do
 end subroutine
 
 
-subroutine add_comb(comb, computed, tbc, workload)
+subroutine add_comb(comb, computed, tbc, stbc, ct)
   implicit none
+  integer, intent(in) :: stbc, ct
   double precision, intent(in) :: comb
   logical, intent(inout) :: computed(N_det_generators)
-  double precision, intent(inout) :: workload
-  integer, intent(inout) :: tbc(0:size_tbc)
-  integer :: i, dets(comb_teeth)
+  integer, intent(inout) :: tbc(0:stbc)
+  integer :: i, k, l, dets(ct)
   
   !DIR$ FORCEINLINE
-  call get_comb(comb, dets)
+  call get_comb(comb, dets, ct)
   
-  do i = 1, comb_teeth
-    if(.not.(computed(dets(i)))) then
-      tbc(0) += 1
-      tbc(tbc(0)) = dets(i)
-      workload += comb_workload(dets(i))
-      computed(dets(i)) = .true.
+  k=tbc(0)+1
+  do i = 1, ct
+    l = dets(i)
+    if(.not.(computed(l))) then
+      tbc(k) = l
+      k = k+1
+      computed(l) = .true.
     end if
   end do
+  tbc(0) = k-1
 end subroutine
 
 
 
  BEGIN_PROVIDER [ double precision, pt2_weight, (N_det_generators) ]
 &BEGIN_PROVIDER [ double precision, pt2_cweight, (N_det_generators) ]
-&BEGIN_PROVIDER [ double precision, comb_workload, (N_det_generators) ]
 &BEGIN_PROVIDER [ double precision, comb_step ]
 &BEGIN_PROVIDER [ integer, first_det_of_teeth, (comb_teeth+1) ]
 &BEGIN_PROVIDER [ integer, first_det_of_comb ]
@@ -455,7 +494,6 @@ end subroutine
   
   pt2_weight = pt2_weight / pt2_cweight(N_det_generators)
   pt2_cweight = pt2_cweight / pt2_cweight(N_det_generators)
-  comb_workload = 1d0 / dfloat(N_det_generators)
   
   norm_left = 1d0
   
