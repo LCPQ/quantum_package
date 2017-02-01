@@ -554,16 +554,15 @@ END_PROVIDER
 &BEGIN_PROVIDER [ integer, n_core_orb]
  implicit none
  BEGIN_DOC
- ! Core orbitals bitmask
+ ! Core + deleted orbitals bitmask 
  END_DOC
  integer :: i,j
  n_core_orb = 0
  do i = 1, N_int
-  core_bitmask(i,1) = xor(full_ijkl_bitmask(i),ior(reunion_of_cas_inact_bitmask(i,1),virt_bitmask(i,1)))
-  core_bitmask(i,2) = xor(full_ijkl_bitmask(i),ior(reunion_of_cas_inact_bitmask(i,2),virt_bitmask(i,1)))
+  core_bitmask(i,1) = xor(HF_bitmask(i,1),ior(reunion_of_cas_inact_bitmask(i,1),virt_bitmask(i,1)))
+  core_bitmask(i,2) = xor(HF_bitmask(i,2),ior(reunion_of_cas_inact_bitmask(i,2),virt_bitmask(i,1)))
   n_core_orb += popcnt(core_bitmask(i,1))
  enddo
- print*,'n_core_orb = ',n_core_orb
  END_PROVIDER
 
 

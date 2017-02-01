@@ -136,7 +136,7 @@ subroutine do_carlo(tbc, Ncomb, comb, pt2_detail, computed, sumabove, sum2above,
     do j=comb_teeth,1,-1
       myVal += pt2_detail(1, dets(j)) * pt2_weight_inv(dets(j)) * comb_step
       sumabove(j) += myVal
-      sum2above(j) += myVal**2
+      sum2above(j) += myVal*myVal
       Nabove(j) += 1
     end do
   end do mainLoop
