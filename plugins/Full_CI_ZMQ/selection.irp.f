@@ -348,7 +348,10 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
       if(i <= N_det_selectors) then
         preinteresting(0) += 1
         preinteresting(preinteresting(0)) = i
-        preinteresting_det(:,:,preinteresting(0)) = psi_det_sorted(:,:,i)
+        do j=1,N_int
+          preinteresting_det(j,1,preinteresting(0)) = psi_det_sorted(j,1,i)
+          preinteresting_det(j,2,preinteresting(0)) = psi_det_sorted(j,2,i)
+        enddo
       else if(nt <= 2) then
         prefullinteresting(0) += 1
         prefullinteresting(prefullinteresting(0)) = i
@@ -384,11 +387,21 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
         if(nt <= 4) then
           interesting(0) += 1
           interesting(interesting(0)) = i
-          minilist(:,:,interesting(0)) = psi_det_sorted(:,:,i)
+          minilist(1,1,interesting(0)) = preinteresting_det(1,1,ii)
+          minilist(1,2,interesting(0)) = preinteresting_det(1,2,ii)
+          do j=2,N_int
+            minilist(j,1,interesting(0)) = preinteresting_det(j,1,ii)
+            minilist(j,2,interesting(0)) = preinteresting_det(j,2,ii)
+          enddo
           if(nt <= 2) then
             fullinteresting(0) += 1
             fullinteresting(fullinteresting(0)) = i
-            fullminilist(:,:,fullinteresting(0)) = psi_det_sorted(:,:,i)
+            fullminilist(1,1,fullinteresting(0)) = preinteresting_det(1,1,ii)
+            fullminilist(1,2,fullinteresting(0)) = preinteresting_det(1,2,ii)
+            do j=2,N_int
+              fullminilist(j,1,fullinteresting(0)) = preinteresting_det(j,1,ii)
+              fullminilist(j,2,fullinteresting(0)) = preinteresting_det(j,2,ii)
+            enddo
           end if
         end if
       end do
@@ -408,7 +421,12 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
         if(nt <= 2) then
           fullinteresting(0) += 1
           fullinteresting(fullinteresting(0)) = i
-          fullminilist(:,:,fullinteresting(0)) = psi_det_sorted(:,:,i)
+          fullminilist(1,1,fullinteresting(0)) = psi_det_sorted(1,1,i)
+          fullminilist(1,2,fullinteresting(0)) = psi_det_sorted(1,2,i)
+          do j=2,N_int
+            fullminilist(j,1,fullinteresting(0)) = psi_det_sorted(j,1,i)
+            fullminilist(j,2,fullinteresting(0)) = psi_det_sorted(j,2,i)
+          enddo
         end if
       end do
       
@@ -431,7 +449,10 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
             h2 = hole_list(i2,s2)
             call apply_hole(pmask, s2,h2, mask, ok, N_int)
             banned = .false.
-            bannedOrb(1:mo_tot_num, 1:2) = .true.
+            do j=1,mo_tot_num
+              bannedOrb(j, 1) = .true.
+              bannedOrb(j, 2) = .true.
+            enddo
             do s3=1,2
               do i=1,N_particles(s3)
                 bannedOrb(particle_list(i,s3), s3) = .false.
@@ -582,10 +603,16 @@ subroutine splash_pq(mask, sp, det, i_gen, N_sel, bannedOrb, banned, mat, intere
       if(nt == 4) call past_d2(banned, p, sp)
       if(nt == 3) call past_d1(bannedOrb, p)
     else
-      if(interesting(i) == i_gen) then
-!         bandon = .true.
+      if(interesting(i) /= i_gen) then
+        continue
+      else
+!       bandon = .true.
         if(sp == 3) then
-          banned(:,:,2) = transpose(banned(:,:,1))
+          do j=1,mo_tot_num
+            do k=1,mo_tot_num
+              banned(j,k,2) = banned(k,j,1)
+            enddo
+          enddo
         else
           do k=1,mo_tot_num
           do l=k+1,mo_tot_num
