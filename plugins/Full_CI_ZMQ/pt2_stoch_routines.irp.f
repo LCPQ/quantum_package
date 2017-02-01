@@ -366,24 +366,27 @@ subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
   integer, intent(inout) :: Ncomb
   logical, intent(inout) :: computed(N_det_generators)
   integer :: i, j, last_full, dets(comb_teeth), tbc_save
-  integer :: n
-  n = int(sqrt(dble(size(comb))))
- 
+  integer :: icount, n
+  n = tbc(0)
+  icount = 0 
   call RANDOM_NUMBER(comb)
-  do j=1,size(comb),n
-      do i=j,min(size(comb),j+n-1)
-        comb(i) = comb(i) * comb_step
-        tbc_save = tbc(0)
-        !DIR$ FORCEINLINE
-        call add_comb(comb(i), computed, tbc, size_tbc, comb_teeth)
-        if (tbc(0) < size(tbc)) then
-           Ncomb = i
-        else
-           tbc(0) = tbc_save
-           return
-        endif
-      end do
-      call get_filling_teeth(computed, tbc)
+  do i=1,size(comb)
+      comb(i) = comb(i) * comb_step
+      tbc_save = tbc(0)
+      !DIR$ FORCEINLINE
+      call add_comb(comb(i), computed, tbc, size_tbc, comb_teeth)
+      if (tbc(0) < size(tbc)) then
+         Ncomb = i
+      else
+         tbc(0) = tbc_save
+         return
+      endif
+      icount = icount + tbc(0) - tbc_save
+      if (icount > n) then
+        call get_filling_teeth(computed, tbc)
+        icount = 0
+        n = ishft(tbc_save,-1)
+      endif
   enddo
 
 end subroutine
@@ -397,13 +400,16 @@ subroutine get_filling_teeth(computed, tbc)
  
   call get_last_full_tooth(computed, last_full)
   if(last_full /= 0) then
+    if (tbc(0) > size(tbc) - first_det_of_teeth(last_full+1) -2) then
+      return
+    endif
     k = tbc(0)+1
     do j=1,first_det_of_teeth(last_full+1)-1
       if(.not.(computed(j))) then
         tbc(k) = j
         k=k+1
         computed(j) = .true.
-        if (k>size_tbc) exit
+!        print  *, "filled ", j, "to reach tooth", last_full, "ending at", first_det_of_teeth(last_full+1)
       end if
     end do
     tbc(0) = k-1
