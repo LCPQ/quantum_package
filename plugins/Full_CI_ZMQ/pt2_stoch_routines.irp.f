@@ -263,9 +263,8 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       time = omp_get_wtime()
       print "(A, 4(E15.7), 4(I9))", "PT2stoch ", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
       if (dabs(eqt/avg) < relative_error) then
-        relative_error = 0.d0
         pt2(1) = avg
-        exit
+        exit pullLoop
       endif
     end if
   end do pullLoop
@@ -398,16 +397,13 @@ subroutine get_filling_teeth(computed, tbc)
  
   call get_last_full_tooth(computed, last_full)
   if(last_full /= 0) then
-    if (tbc(0) > size(tbc) - first_det_of_teeth(last_full+1) -2) then
-      return
-    endif
     k = tbc(0)+1
     do j=1,first_det_of_teeth(last_full+1)-1
       if(.not.(computed(j))) then
         tbc(k) = j
         k=k+1
         computed(j) = .true.
-!        print *, "filled ", j, "to reach tooth", last_full, "ending at", first_det_of_teeth(last_full+1)
+        if (k>size_tbc) exit
       end if
     end do
     tbc(0) = k-1
