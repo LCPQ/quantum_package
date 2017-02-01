@@ -167,7 +167,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
 
 
   type(selection_buffer), intent(inout) :: b
-  double precision                   :: pt2_mwen(N_states, N_det)
+  double precision                   :: pt2_mwen(N_states, N_det_generators)
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
 
@@ -203,7 +203,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_pull = new_zmq_pull_socket()
-  allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det), index(N_det))
+  allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det_generators), index(N_det_generators))
   more = 1
   if (time0 < 0.d0) then
       time0 = omp_get_wtime()
@@ -277,14 +277,14 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
 end subroutine
 
 
-integer function pt2_find(v, w, sze)
+integer function pt2_find(v, w, sze, imin, imax)
   implicit none
-  integer, intent(in) :: sze
+  integer, intent(in) :: sze, imin, imax
   double precision, intent(in) :: v, w(sze)
   integer :: i,l,h
 
-  l = 0
-  h = N_det-1
+  l = imin
+  h = imax-1
 
   do while(h >= l)
     i = ishft(h+l,-1)
@@ -443,7 +443,7 @@ subroutine get_comb(stato, dets, ct)
   curs = 1d0 - stato
   do j = comb_teeth, 1, -1
     !DIR$ FORCEINLINE
-    dets(j) = pt2_find(curs, pt2_cweight,size(pt2_cweight))
+    dets(j) = pt2_find(curs, pt2_cweight,size(pt2_cweight), first_det_of_teeth(j), first_det_of_teeth(j+1))
     curs -= comb_step
   end do
 end subroutine
@@ -476,6 +476,7 @@ end subroutine
 
  BEGIN_PROVIDER [ double precision, pt2_weight, (N_det_generators) ]
 &BEGIN_PROVIDER [ double precision, pt2_cweight, (N_det_generators) ]
+&BEGIN_PROVIDER [ double precision, pt2_cweight_cache, (N_det_generators) ]
 &BEGIN_PROVIDER [ double precision, comb_step ]
 &BEGIN_PROVIDER [ integer, first_det_of_teeth, (comb_teeth+1) ]
 &BEGIN_PROVIDER [ integer, first_det_of_comb ]
@@ -508,9 +509,12 @@ end subroutine
   
   comb_step =  (1d0 - pt2_cweight(first_det_of_comb-1)) * comb_step
   
-  stato = 1d0 - comb_step! + 1d-5
+  stato = 1d0 - comb_step
+  iloc = N_det_generators
   do i=comb_teeth, 1, -1
-    first_det_of_teeth(i) = pt2_find(stato, pt2_cweight, N_det_generators)
+    integer :: iloc
+    iloc = pt2_find(stato, pt2_cweight, N_det_generators, 0, iloc)
+    first_det_of_teeth(i) = iloc
     stato -= comb_step
   end do
   first_det_of_teeth(comb_teeth+1) = N_det_generators + 1
