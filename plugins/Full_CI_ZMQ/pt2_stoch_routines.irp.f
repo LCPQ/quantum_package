@@ -284,9 +284,9 @@ integer function pt2_find(v, w, sze, imin, imax)
   integer :: i,l,h
 
   l = imin
-  h = imax-1
+  h = imax
 
-  do while(h >= l)
+  do while(h-l > 4)
     i = ishft(h+l,-1)
     if(w(i+1) > v) then
       h = i-1
@@ -294,7 +294,14 @@ integer function pt2_find(v, w, sze, imin, imax)
       l = i+1
     end if
   end do
-  pt2_find = l+1
+  do i=l,h
+    if ( w(i) <= v) then
+      cycle
+    else
+      pt2_find = i-1
+      return
+    endif
+  enddo
 end function
 
 
