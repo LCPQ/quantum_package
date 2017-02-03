@@ -9,11 +9,19 @@ subroutine routine_2
  implicit none
  integer :: i,j,degree
  double precision :: hij
-!provide   one_creat_virt
- do i =1, n_act_orb
-  write(*,'(I3,x,100(F16.10,X))')i,one_creat(i,:,1)
-! write(*,'(I3,x,100(F16.10,X))')i,one_anhil_one_creat(1,4,1,2,1)
-! 
+ do i =1, n_core_inact_orb 
+  write(*,'(I3,x,100(F16.10,X))')list_core_inact(i),fock_core_inactive_total_spin_trace(list_core_inact(i),1)
+ enddo
+ print*,''
+ do i =1, n_virt_orb
+  write(*,'(I3,x,100(F16.10,X))')list_virt(i),fock_virt_total_spin_trace(list_virt(i),1)
+ enddo
+ stop
+ do i = 1, n_virt_orb
+  do j = 1, n_inact_orb 
+  if(dabs(one_anhil_one_creat_inact_virt(j,i,1)) .lt. 1.d-10)cycle
+  write(*,'(I3,x,I3,X,100(F16.10,X))')list_virt(i),list_inact(j),one_anhil_one_creat_inact_virt(j,i,1)
+  enddo
  enddo
 
 

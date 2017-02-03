@@ -499,9 +499,9 @@ subroutine give_1h1p_sec_order_singles_contrib(matrix_1h1p)
       do r = 1, n_virt_orb    ! First virtual
        rorb = list_virt(r) 
        do ispin = 1, 2  ! spin of the couple a-a^dagger (i,r)
-         do state_target = 1, N_states
-          coef_det_pert(i,r,ispin,state_target,1)  += coef_det_pert(i,r,ispin,state_target,2)
-         enddo
+        !do state_target = 1, N_states
+        ! coef_det_pert(i,r,ispin,state_target,1)  += coef_det_pert(i,r,ispin,state_target,2)
+        !enddo
         
         do inint = 1, N_int
          det_tmp(inint,1) = det_pert(inint,1,i,r,ispin)
@@ -509,34 +509,34 @@ subroutine give_1h1p_sec_order_singles_contrib(matrix_1h1p)
         enddo
         do jdet = 1, idx(0)
 !      
-         if(idx(jdet).ne.idet)then
-          call get_mono_excitation(psi_ref(1,1,idet),psi_ref(1,1,idx(jdet)),exc,phase,N_int)
-          if (exc(0,1,1) == 1) then
-            ! Mono alpha
-            aorb  = (exc(1,2,1))   !!! a^{\dagger}_a 
-            borb  = (exc(1,1,1))   !!! a_{b}
-            jspin = 1
-          else
-            aorb  = (exc(1,2,2))   !!!  a^{\dagger}_a
-            borb  = (exc(1,1,2))   !!!  a_{b}
-            jspin = 2
-          endif
-          
-          call get_excitation_degree(psi_ref(1,1,idx(jdet)),det_tmp,degree_scalar,N_int)
-          if(degree_scalar .ne. 2)then
-           print*, 'pb !!!'
-           print*, degree_scalar
-           call debug_det(psi_ref(1,1,idx(jdet)),N_int)
-           call debug_det(det_tmp,N_int)
-           stop
-          endif
-          call get_double_excitation(psi_ref(1,1,idx(jdet)),det_tmp,exc,phase,N_int)
           double precision :: hij_test
-          hij_test = 0.d0
-          call  i_H_j(psi_ref(1,1,idx(jdet)),det_tmp,N_int,hij_test)
-          do state_target = 1, N_states
-           matrix_1h1p(idx(jdet),idet,state_target) += hij_test* coef_det_pert(i,r,ispin,state_target,2)
-          enddo
+         if(idx(jdet).ne.idet)then
+        ! call get_mono_excitation(psi_ref(1,1,idet),psi_ref(1,1,idx(jdet)),exc,phase,N_int)
+        ! if (exc(0,1,1) == 1) then
+        !   ! Mono alpha
+        !   aorb  = (exc(1,2,1))   !!! a^{\dagger}_a 
+        !   borb  = (exc(1,1,1))   !!! a_{b}
+        !   jspin = 1
+        ! else
+        !   aorb  = (exc(1,2,2))   !!!  a^{\dagger}_a
+        !   borb  = (exc(1,1,2))   !!!  a_{b}
+        !   jspin = 2
+        ! endif
+        ! 
+        ! call get_excitation_degree(psi_ref(1,1,idx(jdet)),det_tmp,degree_scalar,N_int)
+        ! if(degree_scalar .ne. 2)then
+        !  print*, 'pb !!!'
+        !  print*, degree_scalar
+        !  call debug_det(psi_ref(1,1,idx(jdet)),N_int)
+        !  call debug_det(det_tmp,N_int)
+        !  stop
+        ! endif
+        ! call get_double_excitation(psi_ref(1,1,idx(jdet)),det_tmp,exc,phase,N_int)
+        ! hij_test = 0.d0
+        ! call  i_H_j(psi_ref(1,1,idx(jdet)),det_tmp,N_int,hij_test)
+        ! do state_target = 1, N_states
+        !  matrix_1h1p(idx(jdet),idet,state_target) += hij_test* coef_det_pert(i,r,ispin,state_target,2)
+        ! enddo
          else
           hij_test = 0.d0
           call  i_H_j(psi_ref(1,1,idet),det_tmp,N_int,hij_test)

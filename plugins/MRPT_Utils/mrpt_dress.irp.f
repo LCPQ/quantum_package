@@ -117,19 +117,15 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
        do i_state = 1, N_states
         delta_e(i_state) = 1.d+20
        enddo
-     !else if(degree_scalar== 1)then
       else 
        call get_delta_e_dyall(psi_ref(1,1,index_i),tq(1,1,i_alpha),coef_array,hialpha,delta_e)
-      !if(dabs(delta_e(2)) .le. dabs(0.01d0))then
-      !print*, delta_e(2)
-      !call debug_det(psi_ref(1,1,index_i),N_int)
-      !call debug_det(tq(1,1,i_alpha),N_int)
-      !endif
-   
-      !else 
-      !do i_state = 1, N_states
-      ! delta_e(i_state) = 1.d+20
-      !enddo
+      
+     ! !!!!!!!!!!!!! SHIFTED BK 
+     ! double precision :: hjj
+     ! call i_h_j(tq(1,1,i_alpha),tq(1,1,i_alpha),Nint,hjj)
+     ! delta_e(1) = CI_electronic_energy(1) - hjj
+     ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       endif
       hij_array(index_i) = hialpha
       do i_state = 1,N_states

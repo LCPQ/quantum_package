@@ -22,6 +22,44 @@ BEGIN_PROVIDER [ logical, do_third_order_1h1p  ]
 
 END_PROVIDER
 
+BEGIN_PROVIDER [ logical, save_heff_eigenvectors  ]
+  implicit none
+  BEGIN_DOC
+! If true, you save the eigenvectors of the effective hamiltonian
+  END_DOC
+
+  logical                        :: has
+  PROVIDE ezfio_filename
+  
+  call ezfio_has_mrpt_utils_save_heff_eigenvectors(has)
+  if (has) then
+    call ezfio_get_mrpt_utils_save_heff_eigenvectors(save_heff_eigenvectors)
+  else
+    print *, 'mrpt_utils/save_heff_eigenvectors not found in EZFIO file'
+    stop 1
+  endif
+
+END_PROVIDER
+
+BEGIN_PROVIDER [ integer, n_states_diag_heff  ]
+  implicit none
+  BEGIN_DOC
+! Number of eigenvectors obtained with the effective hamiltonian
+  END_DOC
+
+  logical                        :: has
+  PROVIDE ezfio_filename
+  
+  call ezfio_has_mrpt_utils_n_states_diag_heff(has)
+  if (has) then
+    call ezfio_get_mrpt_utils_n_states_diag_heff(n_states_diag_heff)
+  else
+    print *, 'mrpt_utils/n_states_diag_heff not found in EZFIO file'
+    stop 1
+  endif
+
+END_PROVIDER
+
 BEGIN_PROVIDER [ logical, pure_state_specific_mrpt2  ]
   implicit none
   BEGIN_DOC

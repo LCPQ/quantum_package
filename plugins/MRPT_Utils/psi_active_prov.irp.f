@@ -468,7 +468,7 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
   endif
  else if (n_holes_act .ge. 2 .and. n_particles_act .ge.2) then
   do i = 1, N_states
-   delta_e_act(i_state) = -10000000.d0
+   delta_e_act(i_state) = -1.d12
   enddo
  endif
 

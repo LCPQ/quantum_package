@@ -617,6 +617,9 @@ END_PROVIDER
   
  thresh_norm = 1.d-20
 
+!do i = 1, N_det_ref
+! print*, psi_ref_coef(i,1)
+!enddo
 
 
  do vorb = 1,n_virt_orb
@@ -645,6 +648,10 @@ END_PROVIDER
         double precision ::  coef,contrib
         coef = psi_ref_coef(i,j) !* psi_ref_coef(i,j)
         psi_in_out_coef(i,j) = coef * hij 
+!       if(vorb == 1.and. iorb == 1)then
+!       if(vorb == 1.and. iorb == 3)then
+!       print*, i,hij,coef
+!       endif
         norm(j,ispin) += psi_in_out_coef(i,j) * psi_in_out_coef(i,j) 
       enddo
      enddo

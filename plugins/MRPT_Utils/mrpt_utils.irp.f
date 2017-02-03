@@ -48,6 +48,8 @@
    do i = 1, N_det_ref
      write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
     do j = 1, N_det_ref
+!    print*, accu
+!    print*,delta_ij_tmp(j,i,i_state) , psi_ref_coef(i,i_state) , psi_ref_coef(j,i_state)
      accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
      delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
     enddo
@@ -65,11 +67,41 @@
      write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
     do j = 1, N_det_ref
      accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
-      delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+     delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
     enddo
+   enddo
+   double precision :: accu_diag,accu_non_diag
+   accu_diag = 0.d0 
+   accu_non_diag = 0.d0
+   do i = 1, N_det_ref
+    accu_diag += delta_ij_tmp(i,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(i,i_state)
+    do j = 1, N_det_ref
+     if(i == j)cycle
+     accu_non_diag += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
+    enddo 
    enddo
    second_order_pt_new_1h1p(i_state) = accu(i_state) 
    enddo
+  !double precision :: neutral, ionic
+  !neutral = 0.d0
+  !do i = 1, 2 
+  ! do j = 1, N_det_ref
+  !  neutral += psi_ref_coef(j,1) * delta_ij_tmp(j,i,1) * psi_ref_coef(i,1)
+  ! enddo
+  !enddo
+  !do i = 3, 4 
+  ! do j = 1, N_det_ref
+  !  ionic += psi_ref_coef(j,1) * delta_ij_tmp(j,i,1) * psi_ref_coef(i,1)
+  ! enddo
+  !enddo
+  !neutral = delta_ij_tmp(1,1,1) * psi_ref_coef(1,1)**2 + delta_ij_tmp(2,2,1) * psi_ref_coef(2,1)**2 & 
+  !        + delta_ij_tmp(1,2,1) * psi_ref_coef(1,1)* psi_ref_coef(2,1) + delta_ij_tmp(2,1,1) * psi_ref_coef(1,1)* psi_ref_coef(2,1)
+  !ionic   = delta_ij_tmp(3,3,1) * psi_ref_coef(3,1)**2 + delta_ij_tmp(4,4,1) * psi_ref_coef(4,1)**2 & 
+  !        + delta_ij_tmp(3,4,1) * psi_ref_coef(3,1)* psi_ref_coef(4,1) + delta_ij_tmp(4,3,1) * psi_ref_coef(3,1)* psi_ref_coef(4,1)
+  !neutral = delta_ij_tmp(1,1,1) 
+  !ionic   = delta_ij_tmp(3,3,1) 
+  !print*, 'neutral = ',neutral
+  !print*, 'ionic   = ',ionic
    print*, '1h1p = ',accu
   
    ! 1h1p third order
@@ -167,6 +199,22 @@
    second_order_pt_new_2h2p(i_state) = contrib_2h2p(i_state) 
    enddo
    print*, '2h2p = ',contrib_2h2p(:) 
+
+  !! 2h2p   old fashion
+  !delta_ij_tmp = 0.d0
+  !call H_apply_mrpt_2h2p(delta_ij_tmp,N_det_ref)
+  !accu = 0.d0
+  !do i_state = 1, N_states
+  !do i = 1, N_det_ref
+  !  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
+  ! do j = 1, N_det_ref
+  !  accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
+  !  delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+  ! enddo
+  !enddo
+  !second_order_pt_new_2h2p(i_state) = accu(i_state) 
+  !enddo
+  !print*, '2h2p   = ',accu
    
 
  ! total  
@@ -234,6 +282,8 @@ END_PROVIDER
  implicit none
  integer :: i,j,i_state
  double precision :: hij
+ double precision :: accu(N_states)
+ accu = 0.d0
  do i_state = 1, N_states
   do i = 1,N_det_ref
    do j = 1,N_det_ref
@@ -241,14 +291,16 @@ END_PROVIDER
     Hmatrix_dressed_pt2_new_symmetrized(j,i,i_state) =  hij & 
                                             + 0.5d0 * ( delta_ij(j,i,i_state) + delta_ij(i,j,i_state) )
 !   Hmatrix_dressed_pt2_new_symmetrized(i,j,i_state) =  Hmatrix_dressed_pt2_new_symmetrized(j,i,i_state) 
+    accu(i_State) += psi_ref_coef(i,i_State) * Hmatrix_dressed_pt2_new_symmetrized(j,i,i_state) * psi_ref_coef(j,i_State) 
    enddo
   enddo
  enddo
+ print*, 'accu = ',accu + nuclear_repulsion
  END_PROVIDER 
 
-  BEGIN_PROVIDER [ double precision, CI_electronic_dressed_pt2_new_energy, (N_states_diag) ]
- &BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_eigenvectors, (N_det_ref,N_states_diag) ]
- &BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_eigenvectors_s2, (N_states_diag) ]
+  BEGIN_PROVIDER [ double precision, CI_electronic_dressed_pt2_new_energy, (N_states_diag_heff) ]
+ &BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_eigenvectors, (N_det_ref,N_states_diag_heff) ]
+ &BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_eigenvectors_s2, (N_states_diag_heff) ]
   BEGIN_DOC
   ! Eigenvectors/values of the CI matrix
   END_DOC
@@ -269,14 +321,14 @@ END_PROVIDER
   double precision :: overlap(N_det_ref)
   double precision, allocatable :: psi_tmp(:)
   
-  ! Guess values for the "N_states_diag" states of the CI_dressed_pt2_new_eigenvectors 
+  ! Guess values for the "N_states_diag_heff" states of the CI_dressed_pt2_new_eigenvectors 
   do j=1,min(N_states,N_det_ref)
     do i=1,N_det_ref
       CI_dressed_pt2_new_eigenvectors(i,j) = psi_ref_coef(i,j)
     enddo
   enddo
 
-  do j=min(N_states,N_det_ref)+1,N_states_diag
+  do j=min(N_states,N_det_ref)+1,N_states_diag_heff
     do i=1,N_det_ref
       CI_dressed_pt2_new_eigenvectors(i,j) = 0.d0
     enddo
@@ -408,13 +460,13 @@ END_PROVIDER
           print*,''
           print*,'!!!!!!!!   WARNING  !!!!!!!!!'
           print*,'  Within the ',N_det_ref,'determinants selected'
-          print*,'  and the ',N_states_diag,'states requested'
+          print*,'  and the ',N_states_diag_heff,'states requested'
           print*,'  We did not find any state with S^2 values close to ',expected_s2
           print*,'  We will then set the first N_states eigenvectors of the H matrix'
           print*,'  as the CI_dressed_pt2_new_eigenvectors'
           print*,'  You should consider more states and maybe ask for s2_eig to be .True. or just enlarge the CI space'
           print*,''
-          do j=1,min(N_states_diag,N_det_ref)
+          do j=1,min(N_states_diag_heff,N_det_ref)
             do i=1,N_det_ref
               CI_dressed_pt2_new_eigenvectors(i,j) = eigenvectors(i,j)
             enddo
@@ -426,8 +478,8 @@ END_PROVIDER
         deallocate(s2_eigvalues)
       else
         call u_0_S2_u_0(CI_dressed_pt2_new_eigenvectors_s2,eigenvectors,N_det_ref,psi_det,N_int,&
-           min(N_det_ref,N_states_diag),size(eigenvectors,1))
-        ! Select the "N_states_diag" states of lowest energy
+           min(N_det_ref,N_states_diag_heff),size(eigenvectors,1))
+        ! Select the "N_states_diag_heff" states of lowest energy
         do j=1,min(N_det_ref,N_states)
           do i=1,N_det_ref
             CI_dressed_pt2_new_eigenvectors(i,j) = eigenvectors(i,j)
@@ -444,7 +496,7 @@ END_PROVIDER
 END_PROVIDER
  
 
-BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_energy, (N_states_diag) ]
+BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_energy, (N_states_diag_heff) ]
   implicit none
   BEGIN_DOC
   ! N_states lowest eigenvalues of the CI matrix
@@ -453,7 +505,7 @@ BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_energy, (N_states_diag) ]
   integer                        :: j
   character*(8)                  :: st
   call write_time(output_determinants)
-  do j=1,N_states_diag
+  do j=1,N_states_diag_heff
     CI_dressed_pt2_new_energy(j) = CI_electronic_dressed_pt2_new_energy(j) + nuclear_repulsion
     write(st,'(I4)') j
     call write_double(output_determinants,CI_dressed_pt2_new_energy(j),'Energy of state '//trim(st))
