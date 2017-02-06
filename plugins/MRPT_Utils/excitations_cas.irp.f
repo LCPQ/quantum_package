@@ -774,6 +774,7 @@ subroutine i_H_j_dyall_no_exchange(key_i,key_j,Nint,hij)
       
     case (0)
       hij = diag_H_mat_elem_no_elec_check_no_exchange(key_i,Nint)
+!     hij = 0.d0
   end select
 end
 
@@ -798,7 +799,7 @@ double precision function diag_H_mat_elem_no_elec_check_no_exchange(det_in,Nint)
   ! alpha - alpha 
   do i = 1, elec_num_tab_local(1)
    iorb =  occ(i,1)
-   diag_H_mat_elem_no_elec_check_no_exchange += mo_mono_elec_integral(iorb,iorb)
+   diag_H_mat_elem_no_elec_check_no_exchange += mo_mono_elec_integral(iorb,iorb) !+ fock_operator_active_from_core_inact(iorb,iorb)
    do j = i+1, elec_num_tab_local(1)
     jorb = occ(j,1)
     diag_H_mat_elem_no_elec_check_no_exchange +=  mo_bielec_integral_jj(jorb,iorb)
@@ -808,7 +809,7 @@ double precision function diag_H_mat_elem_no_elec_check_no_exchange(det_in,Nint)
   ! beta - beta   
   do i = 1, elec_num_tab_local(2)
    iorb =  occ(i,2)
-   diag_H_mat_elem_no_elec_check_no_exchange += mo_mono_elec_integral(iorb,iorb)
+   diag_H_mat_elem_no_elec_check_no_exchange += mo_mono_elec_integral(iorb,iorb) !+ fock_operator_active_from_core_inact(iorb,iorb)
    do j = i+1, elec_num_tab_local(2)
     jorb = occ(j,2)
     diag_H_mat_elem_no_elec_check_no_exchange +=  mo_bielec_integral_jj(jorb,iorb)
@@ -826,6 +827,8 @@ double precision function diag_H_mat_elem_no_elec_check_no_exchange(det_in,Nint)
   enddo 
   
 
+! return
+
   ! alpha - core-act
   do i = 1, elec_num_tab_local(1)
    iorb =  occ(i,1)
@@ -833,6 +836,7 @@ double precision function diag_H_mat_elem_no_elec_check_no_exchange(det_in,Nint)
     jorb = list_core_inact(j)
     diag_H_mat_elem_no_elec_check_no_exchange +=  2.d0 * mo_bielec_integral_jj(jorb,iorb) 
     core_act_exchange(1) += - mo_bielec_integral_jj_exchange(jorb,iorb)
+!   diag_H_mat_elem_no_elec_check_no_exchange += core_act_exchange(1) 
    enddo
   enddo 
 
@@ -843,6 +847,7 @@ double precision function diag_H_mat_elem_no_elec_check_no_exchange(det_in,Nint)
     jorb = list_core_inact(j)
     diag_H_mat_elem_no_elec_check_no_exchange +=  2.d0 * mo_bielec_integral_jj(jorb,iorb) 
     core_act_exchange(2) += - mo_bielec_integral_jj_exchange(jorb,iorb)
+!   diag_H_mat_elem_no_elec_check_no_exchange += core_act_exchange(2) 
    enddo
   enddo 
   

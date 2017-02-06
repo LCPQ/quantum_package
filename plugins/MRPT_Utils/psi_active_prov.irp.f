@@ -14,6 +14,7 @@ BEGIN_PROVIDER [integer(bit_kind), psi_active, (N_int,2,psi_det_size)]
    psi_active(j,1,i) = iand(psi_ref(j,1,i),cas_bitmask(j,1,1))
    psi_active(j,2,i) = iand(psi_ref(j,2,i),cas_bitmask(j,1,1))
   enddo
+  call debug_det(psi_active(1,1,i),N_int)
  enddo
 END_PROVIDER
 

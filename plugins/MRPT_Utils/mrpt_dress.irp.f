@@ -113,19 +113,20 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
       integer :: degree_scalar
 
       call get_excitation_degree(tq(1,1,i_alpha),psi_ref(1,1,index_i),degree_scalar,N_int)
+!     if(degree_scalar == 2)then
+!      hialpha = 0.d0
+!     endif
       if(dabs(hialpha).le.1.d-20)then
        do i_state = 1, N_states
         delta_e(i_state) = 1.d+20
        enddo
       else 
        call get_delta_e_dyall(psi_ref(1,1,index_i),tq(1,1,i_alpha),coef_array,hialpha,delta_e)
-      
-     ! !!!!!!!!!!!!! SHIFTED BK 
-     ! double precision :: hjj
-     ! call i_h_j(tq(1,1,i_alpha),tq(1,1,i_alpha),Nint,hjj)
-     ! delta_e(1) = CI_electronic_energy(1) - hjj
-     ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+!      !!!!!!!!!!!!! SHIFTED BK 
+!      double precision :: hjj
+!      call i_h_j(tq(1,1,i_alpha),tq(1,1,i_alpha),Nint,hjj)
+!      delta_e(1) = CI_electronic_energy(1) - hjj
+!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       endif
       hij_array(index_i) = hialpha
       do i_state = 1,N_states
@@ -139,6 +140,8 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
       call omp_set_lock( psi_ref_bis_lock(index_i) )
       do j = 1, idx_alpha(0)
        index_j = idx_alpha(j)
+       !!!!!!!!!!!!!!!!!! WARNING TEST
+       if(index_j .ne. index_i)cycle
        do i_state=1,N_states
         ! standard dressing first order
          delta_ij_(index_i,index_j,i_state) += hij_array(index_j) * hij_tmp * delta_e_inv_array(index_j,i_state)

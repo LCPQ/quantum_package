@@ -129,6 +129,7 @@ subroutine give_2h1p_contrib(matrix_2h1p)
        integer :: kspin
        do jdet = 1, idx(0)
         if(idx(jdet).ne.idet)then
+!         cycle
         ! two determinants | Idet > and | Jdet > which are connected throw a mono excitation operator 
         ! are connected by the presence of the perturbers determinants |det_tmp>
          aorb  = index_orb_act_mono(idx(jdet),1)   !  a^{\dagger}_{aorb}
@@ -213,16 +214,18 @@ subroutine give_1h2p_contrib(matrix_1h2p)
  double precision :: active_int(n_act_orb,2)
  double precision :: hij,phase
 !matrix_1h2p = 0.d0
- 
  elec_num_tab_local = 0
  do inint = 1, N_int
   elec_num_tab_local(1) += popcnt(psi_ref(inint,1,1))
   elec_num_tab_local(2) += popcnt(psi_ref(inint,2,1))
  enddo
+!do i = 1, 1            ! First inactive 
  do i = 1, n_inact_orb  ! First inactive 
   iorb = list_inact(i)
+!  do v = 1, 1
    do v = 1, n_virt_orb  ! First virtual 
     vorb = list_virt(v)
+!   do r = 1, 1
     do r = 1, n_virt_orb    ! Second virtual
      rorb = list_virt(r) 
      ! take all the integral you will need for i,j,r fixed

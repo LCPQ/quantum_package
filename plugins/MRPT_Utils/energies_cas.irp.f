@@ -648,10 +648,11 @@ END_PROVIDER
         double precision ::  coef,contrib
         coef = psi_ref_coef(i,j) !* psi_ref_coef(i,j)
         psi_in_out_coef(i,j) = coef * hij 
-!       if(vorb == 1.and. iorb == 1)then
-!       if(vorb == 1.and. iorb == 3)then
-!       print*, i,hij,coef
-!       endif
+        if(orb_i == 5 .and. orb_v == 20)then
+!       if(orb_i == 2 .and. orb_v == 6 )then
+         print*, i, ispin
+         print*, coef * hij,coef,hij
+        endif
         norm(j,ispin) += psi_in_out_coef(i,j) * psi_in_out_coef(i,j) 
       enddo
      enddo
@@ -664,6 +665,10 @@ END_PROVIDER
        norm_no_inv(j,ispin) = norm(j,ispin)
        one_anhil_one_creat_inact_virt_norm(iorb,vorb,j,ispin) = 1.d0 / norm(j,ispin)
        norm(j,ispin) = 1.d0/dsqrt(norm(j,ispin))
+       if(orb_i == 5 .and. orb_v == 20)then
+!      if(orb_i == 2 .and. orb_v == 6 )then
+        print*,ispin ,norm(j,ispin)
+       endif
       endif
      enddo
      do i = 1, N_det_ref
@@ -679,20 +684,31 @@ END_PROVIDER
      do state_target = 1, N_states
       energies_alpha_beta(state_target, ispin) = 0.d0
       if(norm(state_target,ispin) .ne. 0.d0 .and. dabs(norm_no_inv(state_target,ispin)) .gt. thresh_norm)then
-!      call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det_ref,n_det_ref,n_det_ref,N_states,state_target)
        call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det_ref,n_det_ref,n_det_ref,N_states,state_target)
        energies_alpha_beta(state_target, ispin) +=  energies(state_target) 
+       if(orb_i == 5 .and. orb_v == 20)then
+!      if(orb_i == 2 .and. orb_v == 6 )then
+        print*, ispin, energy_cas_dyall_no_exchange(1) , energies_alpha_beta(state_target, ispin)
+        print*, ispin, energy_cas_dyall_no_exchange(1) - energies_alpha_beta(state_target, ispin)
+       endif
       endif
      enddo
     enddo ! ispin 
    do state_target = 1, N_states
     if((norm_no_inv(state_target,1) + norm_no_inv(state_target,2)) .ne. 0.d0)then
-!    one_anhil_one_creat_inact_virt(iorb,vorb,state_target) =  energy_cas_dyall(state_target) - &
      one_anhil_one_creat_inact_virt(iorb,vorb,state_target) =  energy_cas_dyall_no_exchange(state_target) - &
       ( energies_alpha_beta(state_target,1) + energies_alpha_beta(state_target,2) ) & 
      /( norm_bis(state_target,1) +  norm_bis(state_target,2) )
     else  
      one_anhil_one_creat_inact_virt(iorb,vorb,state_target) = 0.d0
+    endif
+    if(dabs(dabs(one_anhil_one_creat_inact_virt(iorb,vorb,state_target)) - 1.30584271462d0) < 1.d-11)then
+     print*, orb_i,orb_v
+     print*, energy_cas_dyall_no_exchange(1) - energies_alpha_beta(state_target,1) / norm_bis(state_target,1)
+     print*, energy_cas_dyall_no_exchange(1) - energies_alpha_beta(state_target,2) / norm_bis(state_target,2)
+     print*, fock_core_inactive_total_spin_trace(orb_i,1)
+     print*, fock_virt_total_spin_trace(orb_v,1)
+     print*, one_anhil_one_creat_inact_virt(iorb,vorb,state_target)
     endif
    enddo
   enddo

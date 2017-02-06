@@ -104,23 +104,23 @@
   !print*, 'ionic   = ',ionic
    print*, '1h1p = ',accu
   
-   ! 1h1p third order
-   if(do_third_order_1h1p)then
-    delta_ij_tmp = 0.d0
-    call give_1h1p_sec_order_singles_contrib(delta_ij_tmp)
-    accu = 0.d0
-    do i_state = 1, N_states
-    do i = 1, N_det_ref
-     write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
-     do j = 1, N_det_ref
-      accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
-      delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-     enddo
-    enddo
-    second_order_pt_new_1h1p(i_state) = accu(i_state) 
-    enddo
-    print*, '1h1p(3)',accu
-   endif
+  !! 1h1p third order
+  !if(do_third_order_1h1p)then
+  ! delta_ij_tmp = 0.d0
+  ! call give_1h1p_sec_order_singles_contrib(delta_ij_tmp)
+  ! accu = 0.d0
+  ! do i_state = 1, N_states
+  ! do i = 1, N_det_ref
+  !  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
+  !  do j = 1, N_det_ref
+  !   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
+  !   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+  !  enddo
+  ! enddo
+  ! second_order_pt_new_1h1p(i_state) = accu(i_state) 
+  ! enddo
+  ! print*, '1h1p(3)',accu
+  !endif
   
    ! 2h   
    delta_ij_tmp = 0.d0
@@ -200,21 +200,21 @@
    enddo
    print*, '2h2p = ',contrib_2h2p(:) 
 
-  !! 2h2p   old fashion
-  !delta_ij_tmp = 0.d0
-  !call H_apply_mrpt_2h2p(delta_ij_tmp,N_det_ref)
-  !accu = 0.d0
-  !do i_state = 1, N_states
-  !do i = 1, N_det_ref
-  !  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
-  ! do j = 1, N_det_ref
-  !  accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
-  !  delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-  ! enddo
-  !enddo
-  !second_order_pt_new_2h2p(i_state) = accu(i_state) 
-  !enddo
-  !print*, '2h2p   = ',accu
+!  ! 2h2p   old fashion
+!  delta_ij_tmp = 0.d0
+!  call H_apply_mrpt_2h2p(delta_ij_tmp,N_det_ref)
+!  accu = 0.d0
+!  do i_state = 1, N_states
+!  do i = 1, N_det_ref
+!    write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,i_state)
+!   do j = 1, N_det_ref
+!    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_ref_coef(i,i_state) * psi_ref_coef(j,i_state)
+!    delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+!   enddo
+!  enddo
+!  second_order_pt_new_2h2p(i_state) = accu(i_state) 
+!  enddo
+!  print*, '2h2p   = ',accu
    
 
  ! total  

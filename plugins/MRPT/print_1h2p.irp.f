@@ -2,7 +2,7 @@ program print_1h2p
  implicit none
  read_wf = .True.
  touch read_wf
- call routine_2
+ call routine
 end
 
 subroutine routine_2
@@ -35,7 +35,8 @@ subroutine routine
  integer :: i,j,istate
  accu = 0.d0
  matrix_1h2p = 0.d0
- call H_apply_mrpt_2p(matrix_1h2p,N_det_ref)
+!call H_apply_mrpt_1h2p(matrix_1h2p,N_det_ref)
+ call give_1h2p_contrib(matrix_1h2p)
  do istate = 1, N_states
   do i = 1, N_det
    do j = 1, N_det 
@@ -44,6 +45,8 @@ subroutine routine
   enddo
   print*,accu(istate)
  enddo
+ call contrib_1h2p_dm_based(accu)
+ print*,accu(:)
 
  deallocate (matrix_1h2p)
 end
