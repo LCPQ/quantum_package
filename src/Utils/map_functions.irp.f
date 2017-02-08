@@ -113,6 +113,12 @@ subroutine map_load_from_disk(filename,map)
     do j=1,n_elements
       x = x + map % map(i) % value(j)
       l = iand(l,map % map(i) % key(j))
+      if (map % map(i) % value(j) > 1.e30) then
+        stop 'Error in integrals file'
+      endif
+      if (map % map(i) % key(j) < 0) then
+        stop 'Error in integrals file'
+      endif
     enddo
   enddo
   map % sorted = x>0 .or. l == 0_8
