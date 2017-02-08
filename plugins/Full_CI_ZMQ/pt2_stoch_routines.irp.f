@@ -342,7 +342,7 @@ subroutine get_last_full_tooth(computed, last_tooth)
   
   last_tooth = 0
    combLoop : do i=comb_teeth, 1, -1
-     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-6) ! /64 
+     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-5) ! /32
      do j=first_det_of_teeth(i), first_det_of_teeth(i+1)-1
        if(.not.computed(j)) then
          missing -= 1
@@ -385,7 +385,7 @@ subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
       if (icount > n) then
         call get_filling_teeth(computed, tbc)
         icount = 0
-        n = ishft(tbc_save,-1)
+        n = ishft(tbc_save,-4)
       endif
   enddo
 

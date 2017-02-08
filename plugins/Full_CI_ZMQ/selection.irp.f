@@ -546,6 +546,7 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
         e_pert = 0.5d0 * ( tmp - delta_E)
         pt2(istate) = pt2(istate) + e_pert
         max_e_pert = min(e_pert,max_e_pert)
+!        ci(istate) = e_pert / mat(istate, p1, p2)
       end do
       
       if(dabs(max_e_pert) > buf%mini) then

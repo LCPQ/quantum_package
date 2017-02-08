@@ -267,6 +267,7 @@ END_PROVIDER
 
 
 subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
+  use omp_lib
   use bitmasks
   use f77_zmq
   implicit none
@@ -287,7 +288,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_
   double precision               :: hij,s2 
   double precision, allocatable  :: ut(:,:)
   integer                        :: i,j,k,l, jj,ii
-  integer                        :: i0, j0
+  integer                        :: i0, j0, ithread
   
   integer, allocatable           :: shortcut(:,:), sort_idx(:)
   integer(bit_kind), allocatable :: sorted(:,:), version(:,:)
@@ -321,41 +322,55 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_
       ut(istate,i) =  u_0(i,istate)
     enddo
   enddo
-   call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut(0,1), version, n, Nint)
-   call sort_dets_ba_v(keys_tmp, sorted, sort_idx, shortcut(0,2), version, n, Nint)
+  call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut(0,1), version, n, Nint)
+  call sort_dets_ba_v(keys_tmp, sorted, sort_idx, shortcut(0,2), version, n, Nint)
     
   blockb = shortcut(0,1)
   call davidson_init(handler,n,N_st_8,ut)
 
-
-  ave_workload = 0.d0
-  do sh=1,shortcut(0,1)
-    ave_workload += shortcut(0,1)
-    ave_workload += (shortcut(sh+1,1) - shortcut(sh,1))**2
-    do i=sh, shortcut(0,2), shortcut(0,1)
-      do j=i, min(i, shortcut(0,2))
-        ave_workload += (shortcut(j+1,2) - shortcut(j, 2))**2
-      end do
-    end do
-  enddo
-  ave_workload = ave_workload/dble(shortcut(0,1))
-  target_workload_inv = 0.001d0/ave_workload
-
-
-  do sh=1,shortcut(0,1),1
-    workload = shortcut(0,1)+dble(shortcut(sh+1,1) - shortcut(sh,1))**2
-    do i=sh, shortcut(0,2), shortcut(0,1)
-      do j=i, min(i, shortcut(0,2))
-        workload += (shortcut(j+1,2) - shortcut(j, 2))**2
-      end do
-    end do
-    istep = 1+ int(workload*target_workload_inv)
-    do blockb2=0, istep-1
-      call davidson_add_task(handler, sh, blockb2, istep)
-    enddo
-  enddo
   
-  call davidson_run(handler, v_0, s_0, size(v_0,1))
+  PROVIDE nproc
+  
+  !$OMP PARALLEL NUM_THREADS(nproc+2) PRIVATE(ithread)
+  ithread = omp_get_thread_num()
+  if (ithread == 0 ) then
+
+    call zmq_set_running(handler)
+    ave_workload = 0.d0
+    do sh=1,shortcut(0,1)
+      ave_workload += shortcut(0,1)
+      ave_workload += (shortcut(sh+1,1) - shortcut(sh,1))**2
+      do i=sh, shortcut(0,2), shortcut(0,1)
+        do j=i, min(i, shortcut(0,2))
+          ave_workload += (shortcut(j+1,2) - shortcut(j, 2))**2
+        end do
+      end do
+    enddo
+    ave_workload = ave_workload/dble(shortcut(0,1))
+    target_workload_inv = 0.01d0/ave_workload
+
+
+    do sh=1,shortcut(0,1),1
+      workload = shortcut(0,1)+dble(shortcut(sh+1,1) - shortcut(sh,1))**2
+      do i=sh, shortcut(0,2), shortcut(0,1)
+        do j=i, min(i, shortcut(0,2))
+          workload += (shortcut(j+1,2) - shortcut(j, 2))**2
+        end do
+      end do
+      istep = 1+ int(workload*target_workload_inv)
+      do blockb2=0, istep-1
+        call davidson_add_task(handler, sh, blockb2, istep)
+      enddo
+    enddo
+    call davidson_run(handler, v_0, s_0, size(v_0,1))
+  else if (ithread == 1 ) then
+    call davidson_miniserver_run ()
+  else
+    call davidson_slave_inproc(ithread)
+  endif
+  !$OMP END PARALLEL
+
+  call end_parallel_job(handler, 'davidson')
 
   do istate=1,N_st
     do i=1,n
@@ -551,7 +566,6 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
       enddo
       
       do j=i+1,shortcut(sh+1,1)-1
-        if (i==j) cycle
         ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
         if (ext > 4) cycle
         do ni=2,Nint

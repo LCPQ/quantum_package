@@ -20,9 +20,10 @@ subroutine davidson_process(blockb, blockb2, N, idx, vt, st, bs, istep)
   double precision :: s2, hij
   logical, allocatable :: wrotten(:)
   
+  PROVIDE dav_det ref_bitmask_energy
+
   allocate(wrotten(bs))
   wrotten = .false.
-  PROVIDE dav_det
 
   ii=0
   sh = blockb
@@ -43,14 +44,15 @@ subroutine davidson_process(blockb, blockb2, N, idx, vt, st, bs, istep)
       
       do j=shortcut_(sh2,1), shortcut_(sh2+1,1)-1
         if(i == j) cycle
-        org_j = sort_idx_(j,1)
         ext = exa
         do ni=1,N_int
           ext = ext + popcnt(xor(sorted_i(ni), sorted_(ni,j,1)))
+          if(ext > 4) exit
         end do
         if(ext <= 4) then
-          call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2) 
+          org_j = sort_idx_(j,1)
           call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij)
+          call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2) 
           if(.not. wrotten(ii)) then
             wrotten(ii) = .true.
             idx(ii) = org_i
@@ -58,8 +60,8 @@ subroutine davidson_process(blockb, blockb2, N, idx, vt, st, bs, istep)
             st (:,ii) = 0d0
           end if
           do istate=1,N_states_diag
-            vt (istate,ii) += hij*dav_ut(istate,org_j)
-            st (istate,ii) += s2*dav_ut(istate,org_j)
+            vt (istate,ii) = vt (istate,ii) +hij*dav_ut(istate,org_j)
+            st (istate,ii) = st (istate,ii) +s2*dav_ut(istate,org_j)
           enddo
         endif
       enddo
@@ -76,23 +78,25 @@ subroutine davidson_process(blockb, blockb2, N, idx, vt, st, bs, istep)
         do j=shortcut_(sh2,2),shortcut_(sh2+1,2)-1
           if(i == j) cycle
           org_j = sort_idx_(j,2)
-          ext = 0
-          do ni=1,N_int
+          ext = popcnt(xor(sorted_(1,i,2), sorted_(1,j,2)))
+          if (ext > 4) cycle
+          do ni=2,N_int
             ext = ext + popcnt(xor(sorted_(ni,i,2), sorted_(ni,j,2)))
+            if (ext > 4) exit
           end do
           if(ext == 4) then
-          call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij)
-          call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2)
-          if(.not. wrotten(ii)) then
-            wrotten(ii) = .true.
-            idx(ii) = org_i
-            vt (:,ii) = 0d0
-            st (:,ii) = 0d0
-          end if
-          do istate=1,N_states_diag
-            vt (istate,ii) += hij*dav_ut(istate,org_j)
-            st (istate,ii) += s2*dav_ut(istate,org_j)
-          enddo
+            call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij)
+            call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2)
+            if(.not. wrotten(ii)) then
+              wrotten(ii) = .true.
+              idx(ii) = org_i
+              vt (:,ii) = 0d0
+              st (:,ii) = 0d0
+            end if
+            do istate=1,N_states_diag
+              vt (istate,ii) = vt (istate,ii) +hij*dav_ut(istate,org_j)
+              st (istate,ii) = st (istate,ii) +s2*dav_ut(istate,org_j)
+            enddo
           end if
         end do
       end do
@@ -320,6 +324,15 @@ subroutine davidson_push_results(zmq_socket_push, blockb, blocke, N, idx, vt, st
 
   rc = f77_zmq_send( zmq_socket_push, task_id, 4, 0)
   if(rc /= 4) stop "davidson_push_results failed to push task_id"
+
+! Activate is zmq_socket_push is a REQ
+  integer :: idummy
+  rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0)
+  if (rc /= 4) then
+    print *, irp_here, ': f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
+    stop 'error'
+  endif
+
 end subroutine
 
 
@@ -358,6 +371,14 @@ subroutine davidson_pull_results(zmq_socket_pull, blockb, blocke, N, idx, vt, st
 
   rc = f77_zmq_recv( zmq_socket_pull, task_id, 4, 0)
   if(rc /= 4) stop "davidson_pull_results failed to pull task_id"
+
+! Activate if zmq_socket_pull is a REP
+  rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)
+  if (rc /= 4) then
+    print *,  irp_here, ' : f77_zmq_send (zmq_socket_pull,...'
+    stop 'error'
+  endif
+
 end subroutine
 
 
@@ -434,18 +455,14 @@ subroutine davidson_run(zmq_to_qp_run_socket , v0, s0, LDA)
   double precision    , intent(inout)     :: v0(LDA, N_states_diag)
   double precision    , intent(inout)     :: s0(LDA, N_states_diag)
   
-  call zmq_set_running(zmq_to_qp_run_socket)
-  
-  zmq_collector = new_zmq_to_qp_run_socket()
-  zmq_socket_pull = new_zmq_pull_socket()
-  i = omp_get_thread_num()
-  
   
   PROVIDE nproc
   
   !$OMP PARALLEL NUM_THREADS(nproc+2) PRIVATE(i)
   i = omp_get_thread_num()
   if (i == 0 ) then
+    zmq_collector = new_zmq_to_qp_run_socket()
+    zmq_socket_pull = new_zmq_pull_socket()
     call davidson_collector(zmq_collector, zmq_socket_pull , v0, s0, LDA)
     call end_zmq_to_qp_run_socket(zmq_collector)
     call end_zmq_pull_socket(zmq_socket_pull)
@@ -457,7 +474,6 @@ subroutine davidson_run(zmq_to_qp_run_socket , v0, s0, LDA)
   endif
   !$OMP END PARALLEL
 
-  call end_parallel_job(zmq_to_qp_run_socket, 'davidson')
 end subroutine
 
 
