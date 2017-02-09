@@ -192,7 +192,9 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   actually_computed(:) = computed(:)
   
   parts_to_get(:) = 1
-  if(fragment_first > 0) parts_to_get(1:fragment_first) = fragment_count
+  if(fragment_first > 0) then
+    parts_to_get(1:fragment_first) = fragment_count
+  endif
 
   do i=1,tbc(0)
     actually_computed(tbc(i)) = .false.
@@ -356,6 +358,10 @@ end subroutine
 
 
 BEGIN_PROVIDER [ integer, size_tbc ]
+  implicit none
+  BEGIN_DOC
+! Size of the tbc array
+  END_DOC
   size_tbc = N_det_generators + fragment_count*fragment_first
 END_PROVIDER
 
@@ -522,7 +528,7 @@ end subroutine
   iloc = N_det_generators
   do i=comb_teeth, 1, -1
     integer :: iloc
-    iloc = pt2_find(stato, pt2_cweight, N_det_generators, 0, iloc)
+    iloc = pt2_find(stato, pt2_cweight, N_det_generators, 1, iloc)
     first_det_of_teeth(i) = iloc
     stato -= comb_step
   end do

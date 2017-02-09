@@ -405,6 +405,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   double precision, allocatable  :: vt(:,:), ut(:,:), st(:,:)
   integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0
+  logical, allocatable           :: utloop(:)
   
   integer, allocatable           :: shortcut(:,:), sort_idx(:,:)
   integer(bit_kind), allocatable :: sorted(:,:,:), version(:,:,:)
@@ -427,7 +428,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   PROVIDE ref_bitmask_energy
 
   allocate (shortcut(0:n+1,2), sort_idx(n,2), sorted(Nint,n,2), version(Nint,n,2))
-  allocate( ut(N_st_8,n))
+  allocate( ut(N_st_8,n), utloop(n) )
 
   v_0 = 0.d0
   s_0 = 0.d0
@@ -437,16 +438,19 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
 
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,s2,j,k,jj,vt,st,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i,istate)&
-      !$OMP SHARED(n,keys_tmp,ut,Nint,u_0,v_0,s_0,sorted,shortcut,sort_idx,version,N_st,N_st_8) 
+      !$OMP SHARED(n,keys_tmp,ut,Nint,u_0,v_0,s_0,sorted,shortcut,sort_idx,version,N_st,N_st_8,utloop) 
   allocate(vt(N_st_8,n),st(N_st_8,n))
   Vt = 0.d0
   St = 0.d0
 
   !$OMP DO
   do i=1,n
+    utloop(i) = .False.
     do istate=1,N_st
       ut(istate,i) = u_0(sort_idx(i,2),istate)
+      utloop(i) = utloop(i) .or. (dabs(u_0(sort_idx(i,2),istate)) > 1.d-20)
     enddo
+    utloop(i) = .not.utloop(i)
   enddo
   !$OMP END DO
 
@@ -455,6 +459,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
     do i=shortcut(sh,2),shortcut(sh+1,2)-1
       org_i = sort_idx(i,2)
       do j=shortcut(sh,2),shortcut(sh+1,2)-1
+        if (utloop(j)) cycle
         org_j = sort_idx(j,2)
         ext = popcnt(xor(sorted(1,i,2), sorted(1,j,2)))
         if (ext > 4) cycle
@@ -477,9 +482,12 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
 
   !$OMP DO
   do i=1,n
+    utloop(i) = .False.
     do istate=1,N_st
       ut(istate,i) = u_0(sort_idx(i,1),istate)
+      utloop(i) = utloop(i) .or. (dabs(u_0(sort_idx(i,2),istate)) > 1.d-20)
     enddo
+    utloop(i) = .not.utloop(i)
   enddo
   !$OMP END DO
 
@@ -503,6 +511,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
         enddo
 
         do j=shortcut(sh2,1),shortcut(sh2+1,1)-1
+          if (utloop(j)) cycle
           ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
           if (ext > 4) cycle
           do ni=2,Nint
@@ -540,6 +549,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
       enddo
 
       do j=shortcut(sh,1),i-1
+        if (utloop(j)) cycle
         ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
         if (ext > 4) cycle
         do ni=2,Nint
@@ -566,6 +576,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
       enddo
       
       do j=i+1,shortcut(sh+1,1)-1
+        if (utloop(j)) cycle
         ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
         if (ext > 4) cycle
         do ni=2,Nint

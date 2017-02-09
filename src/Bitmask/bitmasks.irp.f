@@ -6,6 +6,7 @@ BEGIN_PROVIDER [ integer, N_int ]
   ! Number of 64-bit integers needed to represent determinants as binary strings
   END_DOC
   N_int = (mo_tot_num-1)/bit_kind_size + 1
+ call write_int(6,N_int, 'N_int')
 END_PROVIDER
 
 
@@ -386,6 +387,8 @@ END_PROVIDER
      n_virt_orb  += popcnt(virt_bitmask(i,1))
    enddo
  endif
+ call write_int(6,n_inact_orb, 'Number of inactive MOs')
+ call write_int(6,n_virt_orb, 'Number of virtual MOs')
 
 END_PROVIDER
 
@@ -559,10 +562,11 @@ END_PROVIDER
  integer :: i,j
  n_core_orb = 0
  do i = 1, N_int
-  core_bitmask(i,1) = xor(HF_bitmask(i,1),ior(reunion_of_cas_inact_bitmask(i,1),virt_bitmask(i,1)))
-  core_bitmask(i,2) = xor(HF_bitmask(i,2),ior(reunion_of_cas_inact_bitmask(i,2),virt_bitmask(i,1)))
+  core_bitmask(i,1) = xor(full_ijkl_bitmask(i),ior(reunion_of_cas_inact_bitmask(i,1),virt_bitmask(i,1)))
+  core_bitmask(i,2) = xor(full_ijkl_bitmask(i),ior(reunion_of_cas_inact_bitmask(i,2),virt_bitmask(i,1)))
   n_core_orb += popcnt(core_bitmask(i,1))
  enddo
+ call write_int(6,n_core_orb,'Number of core MOs')
  END_PROVIDER
 
 
@@ -597,7 +601,7 @@ BEGIN_PROVIDER [ integer, n_act_orb]
  do i = 1, N_int
   n_act_orb += popcnt(cas_bitmask(i,1,1))
  enddo
- print*,'n_act_orb = ',n_act_orb
+ call write_int(6,n_act_orb, 'Number of active MOs')
 END_PROVIDER
 
  BEGIN_PROVIDER [integer, list_act, (n_act_orb)]

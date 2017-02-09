@@ -2,7 +2,8 @@ use bitmasks
 
 BEGIN_PROVIDER [ integer, fragment_count ]
   implicit none
-  fragment_count = (elec_alpha_num-n_core_orb)**2
+!  fragment_count = (elec_alpha_num-n_core_orb)**2
+  fragment_count = 1
 END_PROVIDER
 
 
@@ -44,7 +45,7 @@ subroutine assert(cond, msg)
   logical, intent(in) :: cond
   
   if(.not. cond) then
-    print *, "assert fail: "//msg
+    print *, "assert failed: "//msg
     stop
   end if
 end 
@@ -286,7 +287,7 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   logical                         :: fullMatch, ok
   
   integer(bit_kind) :: mobMask(N_int, 2), negMask(N_int, 2)
-  integer,allocatable               :: preinteresting(:), prefullinteresting(:), interesting(:), fullinteresting(:)
+  integer,allocatable               :: preinteresting(:), prefullinteresting(:), prefullinteresting_det(:,:,:), interesting(:), fullinteresting(:)
   integer(bit_kind), allocatable :: minilist(:, :, :), fullminilist(:, :, :)
   
   logical :: monoAdo, monoBdo;
@@ -296,7 +297,7 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   monoBdo = .true.
   
   allocate(minilist(N_int, 2, N_det_selectors), fullminilist(N_int, 2, N_det))
-  allocate(preinteresting(0:N_det_selectors), prefullinteresting(0:N_det), interesting(0:N_det_selectors), fullinteresting(0:N_det))
+  allocate(preinteresting(0:N_det_selectors), prefullinteresting(0:N_det), interesting(0:N_det_selectors), fullinteresting(0:N_det), prefullinteresting_det(N_int,2,N_det))
   
   do k=1,N_int
     hole    (k,1) = iand(psi_det_generators(k,1,i_generator), hole_mask(k,1))
@@ -312,19 +313,19 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   call bitstring_to_list_ab(hole    , hole_list    , N_holes    , N_int)
   call bitstring_to_list_ab(particle, particle_list, N_particles, N_int)
 
-  ! ======
-  ! If the subset doesn't exist, return
-  logical :: will_compute
-  will_compute = subset == 0
-
-  if (.not.will_compute) then
-    maskInd = N_holes(1)*N_holes(2) + N_holes(2)*((N_holes(2)-1)/2) + N_holes(1)*((N_holes(1)-1)/2)
-    will_compute = (maskInd >= subset)
-    if (.not.will_compute) then
-      return
-    endif
-  endif
-  ! ======
+!  ! ======
+!  ! If the subset doesn't exist, return
+!  logical :: will_compute
+!  will_compute = subset == 0
+!
+!  if (.not.will_compute) then
+!    maskInd = N_holes(1)*N_holes(2) + N_holes(2)*((N_holes(2)-1)/2) + N_holes(1)*((N_holes(1)-1)/2)
+!    will_compute = (maskInd >= subset)
+!    if (.not.will_compute) then
+!      return
+!    endif
+!  endif
+!  ! ======
 
   
   integer(bit_kind), allocatable:: preinteresting_det(:,:,:)
@@ -359,6 +360,10 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
       else if(nt <= 2) then
         prefullinteresting(0) += 1
         prefullinteresting(prefullinteresting(0)) = i
+        do j=1,N_int
+          prefullinteresting_det(j,1,prefullinteresting(0)) = psi_det_sorted(j,1,i)
+          prefullinteresting_det(j,2,prefullinteresting(0)) = psi_det_sorted(j,2,i)
+        enddo
       end if
     end if
   end do
@@ -413,23 +418,23 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
       do ii=1,prefullinteresting(0)
         i = prefullinteresting(ii)
         nt = 0
-        mobMask(1,1) = iand(negMask(1,1), psi_det_sorted(1,1,i))
-        mobMask(1,2) = iand(negMask(1,2), psi_det_sorted(1,2,i))
+        mobMask(1,1) = iand(negMask(1,1), prefullinteresting_det(1,1,ii))
+        mobMask(1,2) = iand(negMask(1,2), prefullinteresting_det(1,1,ii))
         nt = popcnt(mobMask(1, 1)) + popcnt(mobMask(1, 2))
         do j=2,N_int
-          mobMask(j,1) = iand(negMask(j,1), psi_det_sorted(j,1,i))
-          mobMask(j,2) = iand(negMask(j,2), psi_det_sorted(j,2,i))
+          mobMask(j,1) = iand(negMask(j,1), prefullinteresting_det(j,1,ii))
+          mobMask(j,2) = iand(negMask(j,2), prefullinteresting_det(j,2,ii))
           nt = nt+ popcnt(mobMask(j, 1)) + popcnt(mobMask(j, 2))
         end do
 
         if(nt <= 2) then
           fullinteresting(0) += 1
           fullinteresting(fullinteresting(0)) = i
-          fullminilist(1,1,fullinteresting(0)) = psi_det_sorted(1,1,i)
-          fullminilist(1,2,fullinteresting(0)) = psi_det_sorted(1,2,i)
+          fullminilist(1,1,fullinteresting(0)) = prefullinteresting_det(1,1,ii)
+          fullminilist(1,2,fullinteresting(0)) = prefullinteresting_det(1,2,ii)
           do j=2,N_int
-            fullminilist(j,1,fullinteresting(0)) = psi_det_sorted(j,1,i)
-            fullminilist(j,2,fullinteresting(0)) = psi_det_sorted(j,2,i)
+            fullminilist(j,1,fullinteresting(0)) = prefullinteresting_det(j,1,ii)
+            fullminilist(j,2,fullinteresting(0)) = prefullinteresting_det(j,2,ii)
           enddo
         end if
       end do
