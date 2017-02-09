@@ -36,7 +36,7 @@ subroutine occ_pattern_to_dets_size(o,sze,n_alpha,Nint)
     amax -= popcnt( o(k,2) )
   enddo
   sze = int( min(binom_func(bmax, amax), 1.d8) )
-  sze = sze*sze
+  sze = sze*sze + 10
 
 end
 
@@ -246,14 +246,21 @@ subroutine make_s2_eigenfunction
   integer                        :: i,j,k
   integer                        :: smax, s
   integer(bit_kind), allocatable :: d(:,:,:), det_buffer(:,:,:)
-  integer                        :: N_det_new
+  integer                        :: N_det_new, ithread, omp_get_thread_num
   integer, parameter             :: bufsze = 1000
   logical, external              :: is_in_wavefunction
 
-  allocate (d(N_int,2,1), det_buffer(N_int,2,bufsze) )
-  smax = 1
-  N_det_new = 0
+  print *, 'Finding determinants for S^2...'
 
+  !$OMP PARALLEL DEFAULT(NONE) &
+  !$OMP  SHARED(N_occ_pattern, psi_occ_pattern, elec_alpha_num,N_int) &
+  !$OMP  PRIVATE(s,ithread, d, det_buffer, smax, N_det_new,i,j,k)
+  N_det_new = 0
+  call occ_pattern_to_dets_size(psi_occ_pattern(1,1,1),s,elec_alpha_num,N_int)
+  allocate (d(N_int,2,s), det_buffer(N_int,2,bufsze) )
+  smax = s
+  ithread = omp_get_thread_num()
+  !$OMP DO 
   do i=1,N_occ_pattern
     call occ_pattern_to_dets_size(psi_occ_pattern(1,1,i),s,elec_alpha_num,N_int)
     s += 1
@@ -270,40 +277,24 @@ subroutine make_s2_eigenfunction
           det_buffer(k,1,N_det_new) = d(k,1,j)
           det_buffer(k,2,N_det_new) = d(k,2,j)
         enddo
-!  integer :: ne(2)
-!  ne(:) = 0
-!  do k=1,N_int
-!    ne(1) += popcnt(d(k,1,j))
-!    ne(2) += popcnt(d(k,2,j))
-!  enddo
-!  if (ne(1) /= elec_alpha_num) then
-!    call debug_det(d(1,1,j),N_int)
-!    stop "ALPHA"
-!  endif
-!  if (ne(2) /= elec_beta_num) then
-!    call debug_det(d(1,1,j),N_int)
-!    stop "BETA"
-!  endif
         if (N_det_new == bufsze) then
-          call fill_H_apply_buffer_no_selection(bufsze,det_buffer,N_int,0)
+          call fill_H_apply_buffer_no_selection(bufsze,det_buffer,N_int,ithread)
           N_det_new = 0
         endif
       endif
     enddo
   enddo
+  !$OMP END DO NOWAIT
 
   if (N_det_new > 0) then
-    call fill_H_apply_buffer_no_selection(N_det_new,det_buffer,N_int,0)
-!   call fill_H_apply_buffer_no_selection_first_order_coef(N_det_new,det_buffer,N_int,0)
+    call fill_H_apply_buffer_no_selection(N_det_new,det_buffer,N_int,ithread)
   endif
-
   deallocate(d,det_buffer)
+  !$OMP END PARALLEL
 
   call copy_H_apply_buffer_to_wf
   SOFT_TOUCH N_det psi_coef psi_det
   print *,  'Added determinants for S^2'
-!  logical :: found
-!  call remove_duplicates_in_psi_det(found)
 
 end
 
