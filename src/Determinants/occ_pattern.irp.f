@@ -259,7 +259,8 @@ subroutine make_s2_eigenfunction
   call occ_pattern_to_dets_size(psi_occ_pattern(1,1,1),s,elec_alpha_num,N_int)
   allocate (d(N_int,2,s), det_buffer(N_int,2,bufsze) )
   smax = s
-  ithread = omp_get_thread_num()
+  ithread=0
+  !$ ithread = omp_get_thread_num()
   !$OMP DO 
   do i=1,N_occ_pattern
     call occ_pattern_to_dets_size(psi_occ_pattern(1,1,i),s,elec_alpha_num,N_int)
