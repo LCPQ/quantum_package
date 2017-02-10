@@ -370,7 +370,10 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   
 
   maskInd = -1
-  integer :: nb_count
+  logical, allocatable           :: banned(:,:,:)
+  logical, allocatable           :: bannedOrb(:,:)
+  allocate(bannedOrb(mo_tot_num,2), banned(mo_tot_num,mo_tot_num,2))
+          
   do s1=1,2
     do i1=N_holes(s1),1,-1   ! Generate low excitations first
       
@@ -419,7 +422,7 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
         i = prefullinteresting(ii)
         nt = 0
         mobMask(1,1) = iand(negMask(1,1), prefullinteresting_det(1,1,ii))
-        mobMask(1,2) = iand(negMask(1,2), prefullinteresting_det(1,1,ii))
+        mobMask(1,2) = iand(negMask(1,2), prefullinteresting_det(1,2,ii))
         nt = popcnt(mobMask(1, 1)) + popcnt(mobMask(1, 2))
         do j=2,N_int
           mobMask(j,1) = iand(negMask(j,1), prefullinteresting_det(j,1,ii))
@@ -450,9 +453,6 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
         if(s1 == s2) ib = i1+1
         monoAdo = .true.
         do i2=N_holes(s2),ib,-1   ! Generate low excitations first
-          logical                        :: banned(mo_tot_num, mo_tot_num,2)
-          logical                        :: bannedOrb(mo_tot_num, 2)
-          
           maskInd += 1
           if(subset == 0 .or. mod(maskInd, fragment_count) == (subset-1)) then
             h2 = hole_list(i2,s2)
@@ -492,6 +492,9 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
       enddo
     enddo
   enddo
+  deallocate(bannedOrb, banned, prefullinteresting_det, preinteresting_det)
+  deallocate(minilist, fullminilist)
+  deallocate(preinteresting, prefullinteresting, interesting, fullinteresting)
 end 
 
 
