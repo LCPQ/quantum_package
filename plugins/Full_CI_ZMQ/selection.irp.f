@@ -449,32 +449,31 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
           logical                        :: banned(mo_tot_num, mo_tot_num,2)
           logical                        :: bannedOrb(mo_tot_num, 2)
           
-          maskInd += 1
-          if(subset == 0 .or. mod(maskInd, fragment_count) == (subset-1)) then
-            h2 = hole_list(i2,s2)
-            call apply_hole(pmask, s2,h2, mask, ok, N_int)
-            banned = .false.
-            do j=1,mo_tot_num
-              bannedOrb(j, 1) = .true.
-              bannedOrb(j, 2) = .true.
+          h2 = hole_list(i2,s2)
+          call apply_hole(pmask, s2,h2, mask, ok, N_int)
+          banned = .false.
+          do j=1,mo_tot_num
+            bannedOrb(j, 1) = .true.
+            bannedOrb(j, 2) = .true.
+          enddo
+          do s3=1,2
+            do i=1,N_particles(s3)
+              bannedOrb(particle_list(i,s3), s3) = .false.
             enddo
-            do s3=1,2
-              do i=1,N_particles(s3)
-                bannedOrb(particle_list(i,s3), s3) = .false.
-              enddo
-            enddo
-          
-            if(s1 /= s2) then
-              if(monoBdo) then
-                bannedOrb(h1,s1) = .false.
-              end if
-              if(monoAdo) then
-                bannedOrb(h2,s2) = .false.
-                monoAdo = .false.
-              end if
+          enddo
+          if(s1 /= s2) then
+            if(monoBdo) then
+              bannedOrb(h1,s1) = .false.
             end if
-         
-          
+            if(monoAdo) then
+              bannedOrb(h2,s2) = .false.
+              monoAdo = .false.
+            end if
+          end if
+
+          maskInd += 1
+          if(subset == 0 .or. mod(maskInd, fragment_count) == (subset-1)) then  
+            
             call spot_isinwf(mask, fullminilist, i_generator, fullinteresting(0), banned, fullMatch, fullinteresting)
             if(fullMatch) cycle
           
