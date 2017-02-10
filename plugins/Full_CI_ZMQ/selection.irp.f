@@ -2,8 +2,8 @@ use bitmasks
 
 BEGIN_PROVIDER [ integer, fragment_count ]
   implicit none
-!  fragment_count = (elec_alpha_num-n_core_orb)**2
-  fragment_count = 1
+  fragment_count = (elec_alpha_num-n_core_orb)**2
+!  fragment_count = 1
 END_PROVIDER
 
 
