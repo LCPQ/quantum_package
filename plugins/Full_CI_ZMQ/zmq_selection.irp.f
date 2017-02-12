@@ -13,6 +13,8 @@ subroutine ZMQ_selection(N_in, pt2)
   double precision, intent(out)  :: pt2(N_states)
   
   
+  PROVIDE fragment_count
+
   if (.True.) then
     PROVIDE pt2_e0_denominator
     N = max(N_in,1)

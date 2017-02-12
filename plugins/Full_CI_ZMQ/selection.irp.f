@@ -293,6 +293,8 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   logical :: monoAdo, monoBdo;
   integer :: maskInd
 
+  PROVIDE fragment_count
+
   monoAdo = .true.
   monoBdo = .true.
   
