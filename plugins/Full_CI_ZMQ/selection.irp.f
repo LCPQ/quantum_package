@@ -2,8 +2,10 @@ use bitmasks
 
 BEGIN_PROVIDER [ integer, fragment_count ]
   implicit none
+  BEGIN_DOC
+  ! Number of fragments for the deterministic part
+  END_DOC
   fragment_count = (elec_alpha_num-n_core_orb)**2
-!  fragment_count = 1
 END_PROVIDER
 
 

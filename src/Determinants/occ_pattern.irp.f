@@ -36,7 +36,7 @@ subroutine occ_pattern_to_dets_size(o,sze,n_alpha,Nint)
     amax -= popcnt( o(k,2) )
   enddo
   sze = int( min(binom_func(bmax, amax), 1.d8) )
-  sze = sze*sze + 10
+  sze = 2*sze*sze + 16
 
 end
 
@@ -290,6 +290,7 @@ subroutine make_s2_eigenfunction
   if (N_det_new > 0) then
     call fill_H_apply_buffer_no_selection(N_det_new,det_buffer,N_int,ithread)
   endif
+  !$OMP BARRIER
   deallocate(d,det_buffer)
   !$OMP END PARALLEL
 

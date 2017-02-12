@@ -263,7 +263,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       avg = E0 + (sumabove(tooth) / Nabove(tooth))
       eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
       time = omp_get_wtime()
-      print "(A, 4(E15.7), 4(I9))", "PT2stoch ", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
+      print "(A, 4(E20.13), 4(I9))", "PT2stoch ", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
       if (dabs(eqt/avg) < relative_error) then
         pt2(1) = avg
         exit pullLoop
