@@ -250,7 +250,7 @@ subroutine make_s2_eigenfunction
   integer, parameter             :: bufsze = 1000
   logical, external              :: is_in_wavefunction
 
-  print *, 'Finding determinants for S^2...'
+  call write_int(6,N_occ_pattern,'Number of occupation patterns')
 
   !$OMP PARALLEL DEFAULT(NONE) &
   !$OMP  SHARED(N_occ_pattern, psi_occ_pattern, elec_alpha_num,N_int) &
@@ -297,6 +297,7 @@ subroutine make_s2_eigenfunction
   call copy_H_apply_buffer_to_wf
   SOFT_TOUCH N_det psi_coef psi_det
   print *,  'Added determinants for S^2'
+  call write_time(6)
 
 end
 
