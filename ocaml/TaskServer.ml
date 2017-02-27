@@ -99,7 +99,7 @@ let ip_address = lazy (
 
 
 let reply_ok rep_socket =
-    Message.Ok_msg.create ()
+    Message.Ok_msg.create 
     |> Message.Ok_msg.to_string
     |> ZMQ.Socket.send rep_socket 
 
@@ -121,7 +121,7 @@ let stop ~port =
     ZMQ.Socket.set_linger_period req_socket 1_000_000;
     ZMQ.Socket.connect req_socket address;
 
-    Message.Terminate (Message.Terminate_msg.create ())
+    Message.Terminate (Message.Terminate_msg.create)
     |> Message.to_string
     |> ZMQ.Socket.send req_socket ;
 
