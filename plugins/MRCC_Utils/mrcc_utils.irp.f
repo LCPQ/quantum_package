@@ -899,9 +899,9 @@ BEGIN_PROVIDER [ double precision, dij, (N_det_ref, N_det_non_ref, N_states) ]
         dij(j, i, s) = get_dij_index(j, i, s, N_int)
       end do
     end do
-!  end do
-!  print *, "done computing amplitudes"
-!END_PROVIDER
+  end do
+  print *, "done computing amplitudes"
+END_PROVIDER
 
 
 
