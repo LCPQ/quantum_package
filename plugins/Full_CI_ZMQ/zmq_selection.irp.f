@@ -52,6 +52,7 @@ subroutine ZMQ_selection(N_in, pt2)
     if (s2_eig) then
       call make_s2_eigenfunction
     endif
+    call save_wavefunction
   endif
 end subroutine
 
