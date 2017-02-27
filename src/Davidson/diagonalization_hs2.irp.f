@@ -122,6 +122,10 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
     stop -1
   endif
   
+  integer, external              :: align_double
+  sze_8 = align_double(sze)
+  itermax = max(3,min(davidson_sze_max, sze/N_st_diag))
+  
   PROVIDE nuclear_repulsion expected_s2
   
   call write_time(iunit)
@@ -134,6 +138,9 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   call write_int(iunit,N_st,'Number of states')
   call write_int(iunit,N_st_diag,'Number of states in diagonalization')
   call write_int(iunit,sze,'Number of determinants')
+  r1 = 8.d0*(3.d0*dble(sze_8*N_st_diag*itermax+5.d0*(N_st_diag*itermax)**2 & 
+    + 4.d0*(N_st_diag*itermax))/(1024.d0**3))
+  call write_double(iunit, r1, 'Memory(Gb)')
   write(iunit,'(A)') ''
   write_buffer = '===== '
   do i=1,N_st
@@ -151,14 +158,14 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   enddo
   write(iunit,'(A)') trim(write_buffer)
   
-  integer, external              :: align_double
-  sze_8 = align_double(sze)
-  
-  itermax = max(3,min(davidson_sze_max, sze/N_st_diag))
+
   allocate(                                                          &
+      ! Large
       W(sze_8,N_st_diag*itermax),                                    &
       U(sze_8,N_st_diag*itermax),                                    &
       S(sze_8,N_st_diag*itermax),                                    &
+
+      ! Small
       h(N_st_diag*itermax,N_st_diag*itermax),                        &
       y(N_st_diag*itermax,N_st_diag*itermax),                        &
       s_(N_st_diag*itermax,N_st_diag*itermax),                       &

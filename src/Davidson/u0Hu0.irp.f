@@ -57,8 +57,6 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   integer                        :: N_st_8
   
   integer, external              :: align_double
-  integer :: blockb, blockb2, istep
-  double precision :: ave_workload, workload, target_workload_inv
   
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut, st
 
@@ -286,19 +284,16 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_
   double precision, intent(in)   :: H_jj(n), S2_jj(n)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   double precision               :: hij,s2 
-  double precision, allocatable  :: ut(:,:)
   integer                        :: i,j,k,l, jj,ii
   integer                        :: i0, j0, ithread
   
-  integer, allocatable           :: shortcut(:,:), sort_idx(:)
-  integer(bit_kind), allocatable :: sorted(:,:), version(:,:)
   integer(bit_kind)              :: sorted_i(Nint)
   
   integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, istate
   integer                        :: N_st_8
   
   integer, external              :: align_double
-  integer :: blockb, blockb2, istep
+  integer :: blockb2, istep
   double precision :: ave_workload, workload, target_workload_inv
   
   integer(ZMQ_PTR) :: handler
@@ -311,61 +306,52 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_
   ASSERT (n>0)
   PROVIDE ref_bitmask_energy 
 
-  allocate (shortcut(0:n+1,2), sort_idx(n), sorted(Nint,n), version(Nint,n))
-  allocate(ut(N_st_8,n))
-
   v_0 = 0.d0
   s_0 = 0.d0
   
-  do i=1,n
-    do istate=1,N_st
-      ut(istate,i) =  u_0(i,istate)
-    enddo
-  enddo
-  call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut(0,1), version, n, Nint)
-  call sort_dets_ba_v(keys_tmp, sorted, sort_idx, shortcut(0,2), version, n, Nint)
-    
-  blockb = shortcut(0,1)
-  call davidson_init(handler,n,N_st_8,ut)
+  call davidson_init(handler,u_0,size(u_0,1),n,N_st)
 
-  
+  ave_workload = 0.d0
+  do sh=1,shortcut_(0,1)
+    ave_workload += shortcut_(0,1)
+    ave_workload += (shortcut_(sh+1,1) - shortcut_(sh,1))**2
+    do i=sh, shortcut_(0,2), shortcut_(0,1)
+      do j=i, min(i, shortcut_(0,2))
+        ave_workload += (shortcut_(j+1,2) - shortcut_(j, 2))**2
+      end do
+    end do
+  enddo
+  ave_workload = ave_workload/dble(shortcut_(0,1))
+  target_workload_inv = 0.01d0/ave_workload
+
   PROVIDE nproc
-  
-  !$OMP PARALLEL NUM_THREADS(nproc+2) PRIVATE(ithread)
+
+  !$OMP PARALLEL NUM_THREADS(nproc+2) PRIVATE(ithread,sh,i,j, &
+  !$OMP  workload,istep,blockb2)
   ithread = omp_get_thread_num()
   if (ithread == 0 ) then
-
-    call zmq_set_running(handler)
-    ave_workload = 0.d0
-    do sh=1,shortcut(0,1)
-      ave_workload += shortcut(0,1)
-      ave_workload += (shortcut(sh+1,1) - shortcut(sh,1))**2
-      do i=sh, shortcut(0,2), shortcut(0,1)
-        do j=i, min(i, shortcut(0,2))
-          ave_workload += (shortcut(j+1,2) - shortcut(j, 2))**2
-        end do
-      end do
-    enddo
-    ave_workload = ave_workload/dble(shortcut(0,1))
-    target_workload_inv = 0.01d0/ave_workload
-
-
-    do sh=1,shortcut(0,1),1
-      workload = shortcut(0,1)+dble(shortcut(sh+1,1) - shortcut(sh,1))**2
-      do i=sh, shortcut(0,2), shortcut(0,1)
-        do j=i, min(i, shortcut(0,2))
-          workload += (shortcut(j+1,2) - shortcut(j, 2))**2
+    do sh=1,shortcut_(0,1),1
+      workload = shortcut_(0,1)+dble(shortcut_(sh+1,1) - shortcut_(sh,1))**2
+      do i=sh, shortcut_(0,2), shortcut_(0,1)
+        do j=i, min(i, shortcut_(0,2))
+          workload += (shortcut_(j+1,2) - shortcut_(j, 2))**2
         end do
       end do
       istep = 1+ int(workload*target_workload_inv)
       do blockb2=0, istep-1
         call davidson_add_task(handler, sh, blockb2, istep)
       enddo
+      if (sh == shortcut_(0,1)/10 + 1) then
+        !$OMP BARRIER
+      endif
     enddo
+    call zmq_set_running(handler)
     call davidson_run(handler, v_0, s_0, size(v_0,1))
   else if (ithread == 1 ) then
+    !$OMP BARRIER
     call davidson_miniserver_run ()
   else
+    !$OMP BARRIER
     call davidson_slave_inproc(ithread)
   endif
   !$OMP END PARALLEL
@@ -378,8 +364,6 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_
       s_0(i,istate) = s_0(i,istate) + s2_jj(i)* u_0(i,istate)
     enddo
   enddo
-  deallocate(shortcut, sort_idx, sorted, version)
-  deallocate(ut)
 end
 
 
@@ -414,8 +398,6 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   integer                        :: N_st_8
   
   integer, external              :: align_double
-  integer :: blockb, blockb2, istep
-  double precision :: ave_workload, workload, target_workload_inv
   
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut, st
 

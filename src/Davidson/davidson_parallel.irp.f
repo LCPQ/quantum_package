@@ -144,13 +144,13 @@ subroutine davidson_collect(N, idx, vt, st , v0t, s0t)
 end subroutine
 
 
-subroutine davidson_init(zmq_to_qp_run_socket,n,n_st_8,ut)
+subroutine davidson_init(zmq_to_qp_run_socket,u,n0,n,n_st)
   use f77_zmq
   implicit none
   
   integer(ZMQ_PTR), intent(out)  :: zmq_to_qp_run_socket
-  integer, intent(in) :: n, n_st_8
-  double precision, intent(in) :: ut(n_st_8,n)
+  integer, intent(in) :: n0,n, n_st
+  double precision, intent(in) :: u(n0,n_st)
   integer :: i,k
 
   
@@ -164,8 +164,8 @@ subroutine davidson_init(zmq_to_qp_run_socket,n,n_st_8,ut)
     enddo
   enddo
   do i=1,n
-    do k=1,N_states_diag
-      dav_ut(k,i) = ut(k,i)
+    do k=1,n_st
+      dav_ut(k,i) = u(i,k)
     enddo
   enddo
 
@@ -285,6 +285,7 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, worker_id)
     call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id)
     call davidson_push_results(zmq_socket_push, blockb, blockb2, N, idx, vt, st, task_id)
   end do
+  deallocate(idx, vt, st)
 
 end subroutine
 
@@ -411,8 +412,8 @@ subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull , v0, s0, LD
   allocate(v0t(N_states_diag, dav_size)) 
   allocate(s0t(N_states_diag, dav_size)) 
   
-  v0t = 00.d0
-  s0t = 00.d0
+  v0t = 0.d0
+  s0t = 0.d0
 
   more = 1
   
@@ -456,23 +457,12 @@ subroutine davidson_run(zmq_to_qp_run_socket , v0, s0, LDA)
   double precision    , intent(inout)     :: s0(LDA, N_states_diag)
   
   
-  PROVIDE nproc
-  
-  !$OMP PARALLEL NUM_THREADS(nproc+2) PRIVATE(i)
-  i = omp_get_thread_num()
-  if (i == 0 ) then
-    zmq_collector = new_zmq_to_qp_run_socket()
-    zmq_socket_pull = new_zmq_pull_socket()
-    call davidson_collector(zmq_collector, zmq_socket_pull , v0, s0, LDA)
-    call end_zmq_to_qp_run_socket(zmq_collector)
-    call end_zmq_pull_socket(zmq_socket_pull)
-    call davidson_miniserver_end()
-  else if (i == 1 ) then
-    call davidson_miniserver_run ()
-  else
-    call davidson_slave_inproc(i)
-  endif
-  !$OMP END PARALLEL
+  zmq_collector = new_zmq_to_qp_run_socket()
+  zmq_socket_pull = new_zmq_pull_socket()
+  call davidson_collector(zmq_collector, zmq_socket_pull , v0, s0, LDA)
+  call end_zmq_to_qp_run_socket(zmq_collector)
+  call end_zmq_pull_socket(zmq_socket_pull)
+  call davidson_miniserver_end()
 
 end subroutine
 

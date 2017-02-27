@@ -8,6 +8,7 @@ END_PROVIDER
  BEGIN_PROVIDER [ double precision, lambda_mrcc, (N_states, N_det_non_ref) ]
 &BEGIN_PROVIDER [ integer, lambda_mrcc_pt2, (0:psi_det_size) ]
 &BEGIN_PROVIDER [ integer, lambda_mrcc_kept, (0:psi_det_size) ]
+&BEGIN_PROVIDER [ double precision, lambda_pert, (N_states, N_det_non_ref) ] 
   implicit none
   BEGIN_DOC
   ! cm/<Psi_0|H|D_m> or perturbative 1/Delta_E(m)
@@ -15,7 +16,7 @@ END_PROVIDER
   integer :: i,k
   double precision               :: ihpsi_current(N_states)
   integer                        :: i_pert_count
-  double precision               :: hii, lambda_pert
+  double precision               :: hii, E2(N_states), E2var(N_states)
   integer                        :: N_lambda_mrcc_pt2, N_lambda_mrcc_pt3
   
   i_pert_count = 0
@@ -25,6 +26,8 @@ END_PROVIDER
   lambda_mrcc_pt2(0) = 0
   lambda_mrcc_kept(0) = 0
 
+  E2 = 0.d0
+  E2var = 0.d0
   do i=1,N_det_non_ref
     call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,&
         size(psi_ref_coef,1), N_states,ihpsi_current)
@@ -33,24 +36,51 @@ END_PROVIDER
       if (ihpsi_current(k) == 0.d0) then
         ihpsi_current(k) = 1.d-32
       endif
-!      lambda_mrcc(k,i) = psi_non_ref_coef(i,k)/ihpsi_current(k) 
-      lambda_mrcc(k,i) = min(-1.d-32,psi_non_ref_coef(i,k)/ihpsi_current(k) )
-      lambda_pert = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
-      if (lambda_pert / lambda_mrcc(k,i)  < 0.5d0) then
-        ! Ignore lamdba
-        i_pert_count += 1
-        lambda_mrcc(k,i) = 0.d0
-        if (lambda_mrcc_pt2(N_lambda_mrcc_pt2) /= i) then
-          N_lambda_mrcc_pt2 += 1
-          lambda_mrcc_pt2(N_lambda_mrcc_pt2) = i
-        endif
-      else
-        ! Keep lamdba
-        if (lambda_mrcc_kept(N_lambda_mrcc_pt3) /= i) then
-          N_lambda_mrcc_pt3 += 1
-          lambda_mrcc_kept(N_lambda_mrcc_pt3) = i
-        endif
+      lambda_mrcc(k,i) = psi_non_ref_coef(i,k)/ihpsi_current(k) 
+      lambda_pert(k,i) = 1.d0 / (psi_ref_energy_diagonalized(k)-hii)
+      E2(k) += ihpsi_current(k)*ihpsi_current(k) / (psi_ref_energy_diagonalized(k)-hii)
+      E2var(k) += ihpsi_current(k) * psi_non_ref_coef(i,k)
+    enddo
+  enddo
+
+  do i=1,N_det_non_ref
+    call i_h_psi(psi_non_ref(1,1,i), psi_ref, psi_ref_coef, N_int, N_det_ref,&
+        size(psi_ref_coef,1), N_states,ihpsi_current)
+    call i_H_j(psi_non_ref(1,1,i),psi_non_ref(1,1,i),N_int,hii)
+    do k=1,N_states
+      if (ihpsi_current(k) == 0.d0) then
+        ihpsi_current(k) = 1.d-32
       endif
+      lambda_mrcc(k,i) = psi_non_ref_coef(i,k)/ihpsi_current(k) 
+      lambda_pert(k,i) = 1.d0 / (psi_ref_energy_diagonalized(k)-hii) * E2var(k)/E2(k)
+!      lambda_mrcc(k,i) = min(-1.d-32,psi_non_ref_coef(i,k)/ihpsi_current(k) )
+!      if ( lambda_pert / lambda_mrcc(k,i)  < 0.5d0) then
+!      print *,  ' xxx ', dabs(lambda_pert - lambda_mrcc(k,i)) * ihpsi_current(k)  
+!      if ( dabs( (lambda_pert - lambda_mrcc(k,i)) * ihpsi_current(k) ) > 1.d-3) then
+! print *,  'lambda mrcc', lambda_mrcc(k,i)
+! print *,  'lambda pert', lambda_pert
+! print *,  'coef: ', psi_non_ref_coef(i,k)
+!        call debug_det(psi_non_ref(1,1,i), N_int)
+!        call i_H_j(psi_ref(1,1,1),psi_non_ref(1,1,i),N_int,hii)
+! print *,  hii
+!        call i_H_j(psi_ref(1,1,2),psi_non_ref(1,1,i),N_int,hii)
+! print *,  hii
+! print *,  '---'
+        ! Ignore lamdba
+!        i_pert_count += 1
+!        lambda_mrcc(k,i) = 0.d0
+!        lambda_mrcc(k,i) = lambda_pert * E2var(k)/E2(k)
+!        if (lambda_mrcc_pt2(N_lambda_mrcc_pt2) /= i) then
+!          N_lambda_mrcc_pt2 += 1
+!          lambda_mrcc_pt2(N_lambda_mrcc_pt2) = i
+!        endif
+!      else
+!        ! Keep lamdba
+!        if (lambda_mrcc_kept(N_lambda_mrcc_pt3) /= i) then
+!          N_lambda_mrcc_pt3 += 1
+!          lambda_mrcc_kept(N_lambda_mrcc_pt3) = i
+!        endif
+!      endif
     enddo
   enddo
   lambda_mrcc_pt2(0) = N_lambda_mrcc_pt2
@@ -784,8 +814,8 @@ END_PROVIDER
         f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
 
         ! Avoid numerical instabilities
-        f = min(f,2.d0)
-        f = max(f,-2.d0)
+!        f = min(f,2.d0)
+!        f = max(f,-2.d0)
       endif
 
        norm = norm + f*f *rho_mrcc(i,s)*rho_mrcc(i,s)
@@ -845,11 +875,39 @@ END_PROVIDER
 
 
 
+double precision function f_fit(x)
+  implicit none
+  double precision :: x
+  f_fit = 0.d0
+  return
+  if (x < 0.d0) then
+    f_fit = 0.d0
+  else if (x < 1.d0) then
+    f_fit = 1.d0/0.367879441171442 * ( x**2 * exp(-x**2))
+  else
+    f_fit = 1.d0
+  endif
+end
 
 double precision function get_dij_index(II, i, s, Nint)
   integer, intent(in) :: II, i, s, Nint
   double precision, external :: get_dij
-  double precision :: HIi, phase
+  double precision :: HIi, phase, c, a, b, d
+
+  call i_h_j(psi_ref(1,1,II), psi_non_ref(1,1,i), Nint, HIi)
+  call get_phase(psi_ref(1,1,II), psi_non_ref(1,1,i), phase, N_int)
+
+  a = lambda_pert(s,i)
+!  b = lambda_mrcc(s,i)
+!  c = f_fit(a/b)
+
+  d = get_dij(psi_ref(1,1,II), psi_non_ref(1,1,i), s, Nint) * phase* rho_mrcc(i,s)
+
+  c = f_fit(a*HIi/d)
+
+!  get_dij_index = HIi * a * c + (1.d0 - c) * d
+  get_dij_index = d
+  return
 
   if(lambda_type == 0) then
     call get_phase(psi_ref(1,1,II), psi_non_ref(1,1,i), phase, N_int)
