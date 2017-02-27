@@ -118,9 +118,9 @@ END_PROVIDER
 !  print*,'N_det_non_ref = ',N_det_non_ref
 !  print*,'psi_coef_ref_ratio = ',psi_ref_coef(2,1)/psi_ref_coef(1,1)
 !  print*,'lambda max = ',maxval(dabs(lambda_mrcc))
-  print*,'Number of ignored determinants = ',i_pert_count  
-
-END_PROVIDER
+!  print*,'Number of ignored determinants = ',i_pert_count  
+!
+!END_PROVIDER
 
 
 
