@@ -341,10 +341,15 @@ let add_task msg program_state rep_socket =
     in
 
     let result = 
+        let new_queue, new_bar = 
+          List.fold ~f:(fun (queue, bar) task ->
+              Queuing_system.add_task ~task queue,
+              increment_progress_bar bar)
+            ~init:(program_state.queue, program_state.progress_bar) tasks 
+        in
         { program_state with
-          queue = List.fold ~f:(fun queue task -> Queuing_system.add_task ~task queue)
-                    ~init:program_state.queue tasks ;
-          progress_bar = increment_progress_bar program_state.progress_bar ;
+          queue = new_queue;
+          progress_bar = new_bar
         }
     in
     reply_ok rep_socket;
@@ -418,11 +423,16 @@ let task_done msg program_state rep_socket =
         program_state
     
     and success () = 
+        let new_queue, new_bar = 
+          List.fold ~f:(fun (queue, bar) task_id -> 
+              Queuing_system.end_task ~task_id ~client_id queue,
+              increment_progress_bar bar)
+            ~init:(program_state.queue, program_state.progress_bar) task_ids 
+        in
         let result = 
           { program_state with
-            queue = List.fold ~f:(fun queue task_id -> Queuing_system.end_task ~task_id 
-                      ~client_id queue) ~init:program_state.queue task_ids ;
-            progress_bar = increment_progress_bar program_state.progress_bar ;
+            queue = new_queue;
+            progress_bar = new_bar
           }
         in
         reply_ok rep_socket;

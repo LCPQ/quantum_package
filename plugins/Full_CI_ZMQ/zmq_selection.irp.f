@@ -4,7 +4,6 @@ subroutine ZMQ_selection(N_in, pt2)
   
   implicit none
   
-  character*(512)                :: task 
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
   integer, intent(in)            :: N_in
   type(selection_buffer)         :: b
@@ -28,14 +27,17 @@ subroutine ZMQ_selection(N_in, pt2)
   integer :: i_generator, i_generator_start, i_generator_max, step
 !  step = int(max(1.,10*elec_num/mo_tot_num)
 
+  character(len=:), allocatable  :: task 
+  allocate(character(len=32*N_det_generators) :: task)
   step = int(5000000.d0 / dble(N_int * N_states * elec_num * elec_num * mo_tot_num * mo_tot_num ))
   step = max(1,step)
   do i= 1, N_det_generators,step
     i_generator_start = i
     i_generator_max = min(i+step-1,N_det_generators)
-    write(task,*) i_generator_start, i_generator_max, 1, N
-    call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+    write(task(32*(i-1)+1:32*i),'(I9,X,I9,X,''1'',X,I9,''|'')') i_generator_start, i_generator_max, N
   end do
+  call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+  deallocate(task)
 
   !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
   i = omp_get_thread_num()

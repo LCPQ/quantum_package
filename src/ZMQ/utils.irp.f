@@ -684,10 +684,12 @@ subroutine add_task_to_taskserver(zmq_to_qp_run_socket,task)
   character*(*), intent(in)      :: task
   
   integer                        :: rc, sze
-  character*(512)                :: message
+  character(len=:), allocatable  :: message
+
+  sze = len(trim(task))+12+len(trim(zmq_state))
+  allocate(character(len=sze) :: message)
   write(message,*) 'add_task '//trim(zmq_state)//' '//trim(task)
   
-  sze = len(trim(message))
   rc = f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)
   if (rc /= sze) then
     print *,  rc, sze
@@ -701,6 +703,7 @@ subroutine add_task_to_taskserver(zmq_to_qp_run_socket,task)
     print *,  'Unable to add the next task'
     stop -1
   endif
+  deallocate(message)
   
 end
 
@@ -714,16 +717,19 @@ subroutine add_task_to_taskserver_send(zmq_to_qp_run_socket,task)
   character*(*), intent(in)      :: task
   
   integer                        :: rc, sze
-  character*(512)                :: message
+  character(len=:), allocatable  :: message
+
+  sze = len(trim(task))+12+len(trim(zmq_state))
+  allocate(character(len=sze) :: message)
   write(message,*) 'add_task '//trim(zmq_state)//' '//trim(task)
   
-  sze = len(trim(message))
   rc = f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)
   if (rc /= sze) then
     print *,  rc, sze
     print *,  irp_here,': f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
     stop 'error'
   endif
+  deallocate(message)
   
 end
 
