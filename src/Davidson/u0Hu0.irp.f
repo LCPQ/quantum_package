@@ -326,10 +326,20 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_
 
   PROVIDE nproc
 
+
   !$OMP PARALLEL NUM_THREADS(nproc+2) PRIVATE(ithread,sh,i,j, &
-  !$OMP  workload,istep,blockb2)
+  !$OMP  workload,istep,blockb2,task,ipos,iposmax,send)
   ithread = omp_get_thread_num()
   if (ithread == 0 ) then
+    character(len=:), allocatable :: task
+    character(32) :: tmp_task
+    integer :: ipos, iposmax
+    logical :: send
+    iposmax = shortcut_(0,1)+32
+    send = .False.
+    allocate(character(len=iposmax) :: task)
+    task = ''
+    ipos = 1
     do sh=1,shortcut_(0,1),1
       workload = shortcut_(0,1)+dble(shortcut_(sh+1,1) - shortcut_(sh,1))**2
       do i=sh, shortcut_(0,2), shortcut_(0,1)
@@ -339,13 +349,23 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_
       end do
       istep = 1+ int(workload*target_workload_inv)
       do blockb2=0, istep-1
-        call davidson_add_task(handler, sh, blockb2, istep)
+        write(tmp_task,'(3(I9,X),''|'',X)') sh, blockb2, istep
+        task = task//tmp_task
+        ipos += 32
+        if (ipos+32 < iposmax) then
+          send = .True.
+        else
+          call add_task_to_taskserver(handler, trim(task))
+          ipos=1
+          task = ''
+          send = .False.
+        endif
       enddo
-      if (sh == shortcut_(0,1)/10 + 1) then
-        !$OMP BARRIER
-      endif
     enddo
+    if (send) call add_task_to_taskserver(handler, trim(task))
+    deallocate(task)
     call zmq_set_running(handler)
+        !$OMP BARRIER
     call davidson_run(handler, v_0, s_0, size(v_0,1))
   else if (ithread == 1 ) then
     !$OMP BARRIER

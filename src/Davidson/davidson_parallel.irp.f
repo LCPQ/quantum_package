@@ -28,8 +28,8 @@ subroutine davidson_process(blockb, blockb2, N, idx, vt, st, bs, istep)
   ii=0
   sh = blockb
   do sh2=1,shortcut_(0,1)
-    exa = 0
-    do ni=1,N_int
+    exa = popcnt(xor(version_(1,sh,1), version_(1,sh2,1)))
+    do ni=2,N_int
       exa = exa + popcnt(xor(version_(ni,sh,1), version_(ni,sh2,1)))
     end do
     if(exa > 2) cycle
@@ -44,8 +44,9 @@ subroutine davidson_process(blockb, blockb2, N, idx, vt, st, bs, istep)
       
       do j=shortcut_(sh2,1), shortcut_(sh2+1,1)-1
         if(i == j) cycle
-        ext = exa
-        do ni=1,N_int
+        ext = exa + popcnt(xor(sorted_i(1), sorted_(1,j,1)))
+        if(ext > 4) cycle
+        do ni=2,N_int
           ext = ext + popcnt(xor(sorted_i(ni), sorted_(ni,j,1)))
           if(ext > 4) exit
         end do
@@ -172,20 +173,6 @@ subroutine davidson_init(zmq_to_qp_run_socket,u,n0,n,n_st)
   touch dav_det dav_ut
 
   call new_parallel_job(zmq_to_qp_run_socket,"davidson")
-end subroutine
-
-
-
-subroutine davidson_add_task(zmq_to_qp_run_socket, blockb, blockb2, istep)
-  use f77_zmq
-  implicit none
-  
-  integer(ZMQ_PTR)    ,intent(in)    :: zmq_to_qp_run_socket
-  integer             ,intent(in)    :: blockb, blockb2, istep
-  character*(512)                    :: task 
-  
-  write(task,'(3(I9,X))') blockb, blockb2, istep
-  call add_task_to_taskserver(zmq_to_qp_run_socket, task)
 end subroutine
 
 
