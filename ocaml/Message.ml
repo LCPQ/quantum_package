@@ -150,18 +150,18 @@ end
 module AddTask_msg : sig
   type t = 
   { state: State.t;
-    task:  string;
+    tasks:  string list;
   }
-  val create : state:string -> task:string -> t
+  val create : state:string -> tasks:string list -> t
   val to_string : t -> string
 end = struct
   type t = 
   { state: State.t;
-    task:  string;
+    tasks:  string list;
   }
-  let create ~state ~task = { state = State.of_string state ; task }
+  let create ~state ~tasks = { state = State.of_string state ; tasks }
   let to_string x =
-    Printf.sprintf "add_task %s %s" (State.to_string x.state) x.task 
+    Printf.sprintf "add_task %s %s" (State.to_string x.state) (String.concat ~sep:"|" x.tasks)
 end
 
 
@@ -182,44 +182,44 @@ end
 module DelTask_msg : sig
   type t = 
   { state:  State.t;
-    task_id:  Id.Task.t
+    task_ids:  Id.Task.t list
   }
-  val create : state:string -> task_id:int -> t
+  val create : state:string -> task_ids:int list -> t
   val to_string : t -> string
 end = struct
   type t = 
   { state:  State.t;
-    task_id:  Id.Task.t
+    task_ids:  Id.Task.t list
   }
-  let create ~state ~task_id =
+  let create ~state ~task_ids =
     { state = State.of_string state ; 
-      task_id = Id.Task.of_int task_id
+      task_ids = List.map ~f:Id.Task.of_int task_ids
     }
   let to_string x =
-    Printf.sprintf "del_task %s %d" 
+    Printf.sprintf "del_task %s %s" 
       (State.to_string x.state)
-      (Id.Task.to_int x.task_id)
+      (String.concat ~sep:"|" @@ List.map ~f:Id.Task.to_string x.task_ids)
 end
 
 
 (** DelTaskReply : Reply to the DelTask message *)
 module DelTaskReply_msg : sig
   type t  
-  val create : task_id:Id.Task.t -> more:bool -> t
+  val create : task_ids:Id.Task.t list -> more:bool -> t
   val to_string : t -> string
 end = struct
   type t = {
-    task_id : Id.Task.t ;
+    task_ids : Id.Task.t list;
     more    : bool;
   }
-  let create ~task_id ~more = { task_id ; more }
+  let create ~task_ids ~more = { task_ids ; more }
   let to_string x =
     let more = 
       if x.more then "more"
       else "done"
     in
-    Printf.sprintf "del_task_reply %s %d" 
-     more (Id.Task.to_int x.task_id) 
+    Printf.sprintf "del_task_reply %s %s" 
+     more (String.concat ~sep:"|" @@ List.map ~f:Id.Task.to_string x.task_ids) 
 end
 
 
@@ -460,27 +460,27 @@ module TaskDone_msg : sig
   type t =
     { client_id: Id.Client.t ;
       state:     State.t ;
-      task_id:   Id.Task.t ;
+      task_ids:  Id.Task.t list ;
     }
-  val create : state:string -> client_id:int -> task_id:int -> t
+  val create : state:string -> client_id:int -> task_ids:int list -> t
   val to_string : t -> string
 end = struct
   type t =
   { client_id: Id.Client.t ;
     state: State.t ;
-    task_id:  Id.Task.t;
+    task_ids:  Id.Task.t list;
   }
-  let create ~state ~client_id ~task_id = 
+  let create ~state ~client_id ~task_ids = 
     { client_id = Id.Client.of_int client_id ; 
       state = State.of_string state ;
-      task_id  = Id.Task.of_int task_id;
+      task_ids  = List.map ~f:Id.Task.of_int task_ids;
     }
 
   let to_string x =
-    Printf.sprintf "task_done %s %d %d"
+    Printf.sprintf "task_done %s %d %s"
       (State.to_string x.state)
       (Id.Client.to_int x.client_id)
-      (Id.Task.to_int x.task_id)
+      (String.concat ~sep:"|" @@ List.map ~f:Id.Task.to_string x.task_ids)
 end
 
 (** Terminate *)
@@ -550,14 +550,14 @@ type t =
 let of_string s = 
   let open Message_lexer in
     match parse s with
-    | AddTask_  { state ; task } -> 
-        AddTask (AddTask_msg.create ~state ~task)
-    | DelTask_  { state ; task_id } ->
-        DelTask (DelTask_msg.create ~state ~task_id)
+    | AddTask_  { state ; tasks } -> 
+        AddTask (AddTask_msg.create ~state ~tasks)
+    | DelTask_  { state ; task_ids } ->
+        DelTask (DelTask_msg.create ~state ~task_ids)
     | GetTask_  { state ; client_id } ->
         GetTask (GetTask_msg.create ~state ~client_id)
-    | TaskDone_ { state ; task_id ; client_id } ->
-        TaskDone (TaskDone_msg.create ~state ~client_id ~task_id)
+    | TaskDone_ { state ; task_ids ; client_id } ->
+        TaskDone (TaskDone_msg.create ~state ~client_id ~task_ids)
     | Disconnect_ { state ; client_id } ->
         Disconnect (Disconnect_msg.create ~state ~client_id)
     | Connect_ socket ->
