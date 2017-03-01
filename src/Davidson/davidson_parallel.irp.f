@@ -145,32 +145,35 @@ subroutine davidson_collect(N, idx, vt, st , v0t, s0t)
 end subroutine
 
 
-subroutine davidson_init(zmq_to_qp_run_socket,u,n0,n,n_st)
+subroutine davidson_init(zmq_to_qp_run_socket,u,n0,n,n_st,update_dets)
   use f77_zmq
   implicit none
   
   integer(ZMQ_PTR), intent(out)  :: zmq_to_qp_run_socket
-  integer, intent(in) :: n0,n, n_st
+  integer, intent(in) :: n0,n, n_st, update_dets
   double precision, intent(in) :: u(n0,n_st)
   integer :: i,k
 
   
-  dav_size = n
-  touch dav_size
-
-  do i=1,n
-    do k=1,N_int
-      dav_det(k,1,i) = psi_det(k,1,i)
-      dav_det(k,2,i) = psi_det(k,2,i)
+  if (update_dets == 1) then
+    dav_size = n
+    touch dav_size
+    do i=1,dav_size
+      do k=1,N_int
+        dav_det(k,1,i) = psi_det(k,1,i)
+        dav_det(k,2,i) = psi_det(k,2,i)
+      enddo
     enddo
-  enddo
+    touch dav_det
+  endif
+
   do i=1,n
     do k=1,n_st
       dav_ut(k,i) = u(i,k)
     enddo
   enddo
 
-  touch dav_det dav_ut
+  soft_touch dav_ut
 
   call new_parallel_job(zmq_to_qp_run_socket,"davidson")
 end subroutine
@@ -454,9 +457,10 @@ end subroutine
 
 
 
-subroutine davidson_miniserver_run()
+subroutine davidson_miniserver_run(update_dets)
   use f77_zmq
   implicit none
+  integer                 update_dets
   integer(ZMQ_PTR)        responder
   character*(64)          address
   character(len=:), allocatable :: buffer
@@ -465,18 +469,23 @@ subroutine davidson_miniserver_run()
   allocate (character(len=20) :: buffer)
   address = 'tcp://*:11223'
   
+  PROVIDE dav_det dav_ut dav_size
+
   responder = f77_zmq_socket(zmq_context, ZMQ_REP)
   rc        = f77_zmq_bind(responder,address)
   
   do
     rc = f77_zmq_recv(responder, buffer, 5, 0)
-    if (buffer(1:rc) /= 'end') then
-      rc = f77_zmq_send (responder, dav_size, 4, ZMQ_SNDMORE)
-      rc = f77_zmq_send (responder, dav_det, 16*N_int*dav_size, ZMQ_SNDMORE)
-      rc = f77_zmq_send (responder, dav_ut, 8*dav_size*N_states_diag, 0)
-    else
+    if (buffer(1:rc) == 'end') then
       rc = f77_zmq_send (responder, "end", 3, 0)
       exit
+    else if (buffer(1:rc) == 'det') then
+      rc = f77_zmq_send (responder, dav_size, 4, ZMQ_SNDMORE)
+      rc = f77_zmq_send (responder, dav_det, 16*N_int*dav_size, 0)
+    else if (buffer(1:rc) == 'ut') then
+      rc = f77_zmq_send (responder, update_dets, 4, ZMQ_SNDMORE)
+      rc = f77_zmq_send (responder, dav_size, 4, ZMQ_SNDMORE)
+      rc = f77_zmq_send (responder, dav_ut, 8*dav_size*N_states_diag, 0)
     endif
   enddo
 
@@ -503,34 +512,41 @@ subroutine davidson_miniserver_end()
 end subroutine
 
   
-subroutine davidson_miniserver_get()
+subroutine davidson_miniserver_get(force_update)
   implicit none
   use f77_zmq
-  
+  logical, intent(in) ::  force_update 
   integer(ZMQ_PTR)        requester
   character*(64)          address
   character*(20)          buffer
-  integer                 rc
+  integer                 rc, update_dets
   
   address = trim(qp_run_address)//':11223'
   
   requester = f77_zmq_socket(zmq_context, ZMQ_REQ)
   rc        = f77_zmq_connect(requester,address)
 
-  rc = f77_zmq_send(requester, "Hello", 5, 0)
+  rc = f77_zmq_send(requester, 'ut', 2, 0)
+  rc = f77_zmq_recv(requester, update_dets, 4, 0)
   rc = f77_zmq_recv(requester, dav_size, 4, 0)
-  TOUCH dav_size
-  rc = f77_zmq_recv(requester, dav_det, 16*N_int*dav_size, 0)
-  rc = f77_zmq_recv(requester, dav_ut, 8*dav_size*N_states_diag, 0)
-  TOUCH dav_det dav_ut
-
   
+  if (update_dets == 1 .or. force_update) then
+    TOUCH dav_size
+  endif
+  rc = f77_zmq_recv(requester, dav_ut, 8*dav_size*N_states_diag, 0)
+  SOFT_TOUCH dav_ut 
+  if (update_dets == 1 .or. force_update) then
+    rc = f77_zmq_send(requester, 'det', 3, 0)
+    rc = f77_zmq_recv(requester, dav_size, 4, 0)
+    rc = f77_zmq_recv(requester, dav_det, 16*N_int*dav_size, 0)
+    SOFT_TOUCH dav_det 
+  endif
+
 end subroutine
 
 
 
  BEGIN_PROVIDER [ integer(bit_kind), dav_det, (N_int, 2, dav_size) ]
-&BEGIN_PROVIDER [ double precision, dav_ut, (N_states_diag, dav_size) ]
  use bitmasks
  implicit none
  BEGIN_DOC
@@ -538,7 +554,19 @@ end subroutine
 !
 ! Touched in davidson_miniserver_get
  END_DOC
+ integer :: i,k
+
  dav_det = 0_bit_kind
+END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, dav_ut, (N_states_diag, dav_size) ]
+ use bitmasks
+ implicit none
+ BEGIN_DOC
+! Temporary arrays for parallel davidson
+!
+! Touched in davidson_miniserver_get
+ END_DOC
  dav_ut = -huge(1.d0)
 END_PROVIDER
 

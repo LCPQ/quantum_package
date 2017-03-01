@@ -264,7 +264,7 @@ BEGIN_PROVIDER [ double precision, psi_energy, (N_states) ]
 END_PROVIDER
 
 
-subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
+subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8,update_dets)
   use omp_lib
   use bitmasks
   use f77_zmq
@@ -278,7 +278,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_
   !
   ! S2_jj : array of <j|S^2|j>
   END_DOC
-  integer, intent(in)            :: N_st,n,Nint, sze_8
+  integer, intent(in)            :: N_st,n,Nint, sze_8, update_dets
   double precision, intent(out)  :: v_0(sze_8,N_st), s_0(sze_8,N_st)
   double precision, intent(in)   :: u_0(sze_8,N_st)
   double precision, intent(in)   :: H_jj(n), S2_jj(n)
@@ -309,7 +309,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_
   v_0 = 0.d0
   s_0 = 0.d0
   
-  call davidson_init(handler,u_0,size(u_0,1),n,N_st)
+  call davidson_init(handler,u_0,size(u_0,1),n,N_st,update_dets)
 
   ave_workload = 0.d0
   do sh=1,shortcut_(0,1)
@@ -369,7 +369,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_
     call davidson_run(handler, v_0, s_0, size(v_0,1))
   else if (ithread == 1 ) then
     !$OMP BARRIER
-    call davidson_miniserver_run ()
+    call davidson_miniserver_run (update_dets)
   else
     !$OMP BARRIER
     call davidson_slave_inproc(ithread)

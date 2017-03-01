@@ -110,7 +110,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   character*(16384)              :: write_buffer
   double precision               :: to_print(3,N_st)
   double precision               :: cpu, wall
-  integer                        :: shift, shift2, itermax
+  integer                        :: shift, shift2, itermax, update_dets
   double precision               :: r1, r2
   logical                        :: state_ok(N_st_diag*davidson_sze_max)
   include 'constants.include.F'
@@ -191,6 +191,8 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
   
+  update_dets = 1
+
   ! Davidson iterations
   ! ===================
   
@@ -231,10 +233,11 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       
        
       if (distributed_davidson) then
-          call H_S2_u_0_nstates_zmq(W(1,shift+1),S(1,shift+1),U(1,shift+1),H_jj,S2_jj,sze,dets_in,Nint,N_st_diag,sze_8)
+          call H_S2_u_0_nstates_zmq(W(1,shift+1),S(1,shift+1),U(1,shift+1),H_jj,S2_jj,sze,dets_in,Nint,N_st_diag,sze_8,update_dets)
       else
           call H_S2_u_0_nstates(W(1,shift+1),S(1,shift+1),U(1,shift+1),H_jj,S2_jj,sze,dets_in,Nint,N_st_diag,sze_8)
       endif
+      update_dets = 0
       
       
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
