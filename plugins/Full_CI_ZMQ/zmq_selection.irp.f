@@ -25,12 +25,11 @@ subroutine ZMQ_selection(N_in, pt2)
   endif
 
   character(len=:), allocatable  :: task 
-  allocate(character(len=20*N_det_generators) :: task)
+  task = repeat(' ',20*N_det_generators)
   do i= 1, N_det_generators
     write(task(20*(i-1)+1:20*i),'(I9,X,I9,''|'')') i, N
   end do
   call add_task_to_taskserver(zmq_to_qp_run_socket,task)
-  deallocate(task)
 
   !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
   i = omp_get_thread_num()

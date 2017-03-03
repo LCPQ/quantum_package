@@ -94,7 +94,7 @@ subroutine switch_qp_run_to_master
     print *,  'This run should be started with the qp_run command'
     stop -1
   endif
-  qp_run_address = trim(buffer)
+  qp_run_address = adjustl(buffer)
   print *,  'Switched to qp_run master : ', trim(qp_run_address)
   
   integer                        :: i
@@ -684,26 +684,24 @@ subroutine add_task_to_taskserver(zmq_to_qp_run_socket,task)
   character*(*), intent(in)      :: task
   
   integer                        :: rc, sze
-  character(len=:), allocatable  :: message
+  character(len=:), allocatable :: message
 
-  sze = len(trim(task))+12+len(trim(zmq_state))
-  allocate(character(len=sze) :: message)
-  write(message,*) 'add_task '//trim(zmq_state)//' '//trim(task)
-  
-  rc = f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)
+  message='add_task '//trim(zmq_state)//' '//trim(task)
+  sze = len(message)
+  rc = f77_zmq_send(zmq_to_qp_run_socket, message, sze, 0)
+
   if (rc /= sze) then
     print *,  rc, sze
     print *,  irp_here,': f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
     stop 'error'
   endif
   
-  rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
+  rc = f77_zmq_recv(zmq_to_qp_run_socket, message, sze-1, 0)
   if (message(1:rc) /= 'ok') then
     print *,  trim(task)
     print *,  'Unable to add the next task'
     stop -1
   endif
-  deallocate(message)
   
 end
 
@@ -720,7 +718,7 @@ subroutine add_task_to_taskserver_send(zmq_to_qp_run_socket,task)
   character(len=:), allocatable  :: message
 
   sze = len(trim(task))+12+len(trim(zmq_state))
-  allocate(character(len=sze) :: message)
+  message = repeat(' ',sze)
   write(message,*) 'add_task '//trim(zmq_state)//' '//trim(task)
   
   rc = f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)
@@ -729,7 +727,6 @@ subroutine add_task_to_taskserver_send(zmq_to_qp_run_socket,task)
     print *,  irp_here,': f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
     stop 'error'
   endif
-  deallocate(message)
   
 end
 
@@ -797,17 +794,17 @@ subroutine get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
   write(message,*) 'get_task '//trim(zmq_state), worker_id
   
   sze = len(trim(message))
-  rc = f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)
+  rc = f77_zmq_send(zmq_to_qp_run_socket, message, sze, 0)
   if (rc /= sze) then
     print *,  irp_here, ':f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
     stop 'error'
   endif
   
+  message = repeat(' ',512)
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
-  message = trim(message(1:rc))
-  read(message,*) reply
+  read(message(1:rc),*) reply
   if (trim(reply) == 'get_task_reply') then
-    read(message,*) reply, task_id
+    read(message(1:rc),*) reply, task_id
     rc = 15
     do while (message(rc:rc) == ' ')
       rc += 1

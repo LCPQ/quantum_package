@@ -9,7 +9,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
   
   implicit none
   
-  character*(512)            :: task 
+  character(len=64000)           :: task 
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_to_qp_run_socket2
   type(selection_buffer)         :: b
   integer, external              :: omp_get_thread_num
@@ -62,49 +62,42 @@ subroutine ZMQ_pt2(pt2,relative_error)
 
 
     integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
+    integer :: ipos
+    ipos=1
+    do i=1,tbc(0)
+      if(tbc(i) > fragment_first) then
+        write(task(ipos:ipos+20),'(I9,X,I9,''|'')') 0, i
+        ipos += 20
+        if (ipos > 64000) then
+          call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
+          ipos=1
+        endif
+      else
+        do j=1,fragment_count
+          write(task(ipos:ipos+20),'(I9,X,I9,''|'')') j, i
+          ipos += 20
+          if (ipos > 64000) then
+            call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
+            ipos=1
+          endif
+        end do
+      end if
+    end do
+    if (ipos > 1) then
+      call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
+    endif
+    call zmq_set_running(zmq_to_qp_run_socket)
 
-    !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2, relative_error) NUM_THREADS(nproc+1) &
-    !$OMP  PRIVATE(i,zmq_to_qp_run_socket2,i_generator_end,task,j) 
-      zmq_to_qp_run_socket2 = new_zmq_to_qp_run_socket()
-
-      !$OMP DO SCHEDULE(static,1)
-      do i=1,min(2000,tbc(0))
-        i_generator_end = min(i+generator_per_task-1, tbc(0))
-        if(tbc(i) > fragment_first) then
-          write(task,*) (i_generator_end-i+1), 0, tbc(i:i_generator_end)
-          call add_task_to_taskserver(zmq_to_qp_run_socket2,task)
-        else
-          do j=1,fragment_count
-            write(task,*) (i_generator_end-i+1), j, tbc(i:i_generator_end)
-            call add_task_to_taskserver(zmq_to_qp_run_socket2,task)
-          end do
-        end if
-      end do
-      !$OMP END DO NOWAIT
-
+    !$OMP PARALLEL DEFAULT(shared) NUM_THREADS(nproc+1) &
+    !$OMP  PRIVATE(i)
       i = omp_get_thread_num()
       if (i==0) then
-        call zmq_set_running(zmq_to_qp_run_socket)
         call pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
-      else if (i==1) then
-          do i=2001,tbc(0)
-            i_generator_end = min(i+generator_per_task-1, tbc(0))
-            if(tbc(i) > fragment_first) then
-              write(task,*) (i_generator_end-i+1), 0, tbc(i:i_generator_end)
-              call add_task_to_taskserver(zmq_to_qp_run_socket2,task)
-            else
-              do j=1,fragment_count
-                write(task,*) (i_generator_end-i+1), j, tbc(i:i_generator_end)
-                call add_task_to_taskserver(zmq_to_qp_run_socket2,task)
-              end do
-            end if
-          end do
-          call pt2_slave_inproc(1)
       else
         call pt2_slave_inproc(i)
       endif
-      call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket2)
     !$OMP END PARALLEL
+
     call end_parallel_job(zmq_to_qp_run_socket, 'pt2')
     tbc(0) = 0
     if (pt2(1) /= 0.d0) then
