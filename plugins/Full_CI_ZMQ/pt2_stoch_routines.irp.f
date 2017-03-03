@@ -63,40 +63,52 @@ subroutine ZMQ_pt2(pt2,relative_error)
 
     integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
     integer :: ipos
+    logical :: tasks
+    tasks = .False.
     ipos=1
+
     do i=1,tbc(0)
       if(tbc(i) > fragment_first) then
-        write(task(ipos:ipos+20),'(I9,X,I9,''|'')') 0, i
+        write(task(ipos:ipos+20),'(I9,X,I9,''|'')') 0, tbc(i)
         ipos += 20
         if (ipos > 64000) then
           call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
           ipos=1
+          tasks = .True.
         endif
       else
         do j=1,fragment_count
-          write(task(ipos:ipos+20),'(I9,X,I9,''|'')') j, i
+          write(task(ipos:ipos+20),'(I9,X,I9,''|'')') j, tbc(i)
           ipos += 20
           if (ipos > 64000) then
             call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
             ipos=1
+            tasks = .True.
           endif
         end do
       end if
     end do
     if (ipos > 1) then
       call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
+      tasks = .True.
     endif
-    call zmq_set_running(zmq_to_qp_run_socket)
 
-    !$OMP PARALLEL DEFAULT(shared) NUM_THREADS(nproc+1) &
-    !$OMP  PRIVATE(i)
-      i = omp_get_thread_num()
-      if (i==0) then
-        call pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
-      else
-        call pt2_slave_inproc(i)
-      endif
-    !$OMP END PARALLEL
+    if (tasks) then
+      call zmq_set_running(zmq_to_qp_run_socket)
+
+      !$OMP PARALLEL DEFAULT(shared) NUM_THREADS(nproc+1) &
+      !$OMP  PRIVATE(i)
+        i = omp_get_thread_num()
+        if (i==0) then
+          call pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
+        else
+          call pt2_slave_inproc(i)
+        endif
+      !$OMP END PARALLEL
+
+    else
+       pt2(1) = sum(pt2_detail(1,:))
+    endif
 
     call end_parallel_job(zmq_to_qp_run_socket, 'pt2')
     tbc(0) = 0
@@ -104,6 +116,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
       exit
     endif
   end do
+
 
 end subroutine
 
@@ -160,7 +173,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
 
 
   type(selection_buffer), intent(inout) :: b
-  double precision                   :: pt2_mwen(N_states, N_det_generators)
+  double precision, allocatable      :: pt2_mwen(:,:)
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
 
@@ -181,7 +194,8 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   integer, allocatable :: parts_to_get(:)
   logical, allocatable :: actually_computed(:)
   
-  allocate(actually_computed(N_det_generators), parts_to_get(N_det_generators))
+  allocate(actually_computed(N_det_generators), parts_to_get(N_det_generators), &
+    pt2_mwen(N_states, N_det_generators) )
   actually_computed(:) = computed(:)
   
   parts_to_get(:) = 1
@@ -198,7 +212,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_pull = new_zmq_pull_socket()
-  allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det_generators), index(N_det_generators))
+  allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det_generators), index(1))
   more = 1
   if (time0 < 0.d0) then
       time0 = omp_get_wtime()

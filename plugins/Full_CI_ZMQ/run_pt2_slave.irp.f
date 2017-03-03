@@ -22,10 +22,10 @@ subroutine run_pt2_slave(thread,iproc,energy)
 
   double precision :: pt2(N_states)
   double precision,allocatable :: pt2_detail(:,:)
-  integer,allocatable :: index(:)
+  integer :: index
   integer :: Nindex
 
-  allocate(pt2_detail(N_states, N_det), index(N_det))
+  allocate(pt2_detail(N_states, N_det))
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_push      = new_zmq_push_socket(thread)
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
@@ -37,9 +37,9 @@ subroutine run_pt2_slave(thread,iproc,energy)
   end if
   buf%N = 0
   ctask = 1
+  Nindex=1
   pt2 = 0d0
   pt2_detail = 0d0
-  Nindex=1
   do
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(ctask), task)
 
@@ -48,8 +48,7 @@ subroutine run_pt2_slave(thread,iproc,energy)
       ctask = ctask - 1
     else
       integer :: i_generator, i_i_generator, N, subset
-      read (task,*) Nindex
-      read (task,*) Nindex, subset, index(:Nindex)
+      read (task,*) subset, index
       
       !!!!!
       N=1
@@ -62,7 +61,7 @@ subroutine run_pt2_slave(thread,iproc,energy)
         if(N /= buf%N) stop "N changed... wtf man??"
       end if
       do i_i_generator=1, Nindex
-        i_generator = index(i_i_generator)
+        i_generator = index
         call select_connected(i_generator,energy,pt2_detail(1, i_i_generator),buf,subset)
         pt2(:) += pt2_detail(:, i_generator)
       enddo
@@ -75,7 +74,6 @@ subroutine run_pt2_slave(thread,iproc,energy)
       end do
       if(ctask > 0) then
         call push_pt2_results(zmq_socket_push, Nindex, index, pt2_detail, task_id(1), ctask)
-        !print *, "pushed ", index(:Nindex)
         do i=1,buf%cur
           call add_to_selection_buffer(buf2, buf%det(1,1,i), buf%val(i))
         enddo
@@ -104,14 +102,14 @@ subroutine push_pt2_results(zmq_socket_push, N, index, pt2_detail, task_id, ntas
 
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_push
   double precision, intent(in)   :: pt2_detail(N_states, N_det)
-  integer, intent(in) :: ntask, N, index(N), task_id(*)
+  integer, intent(in) :: ntask, N, index, task_id(*)
   integer :: rc
 
 
   rc = f77_zmq_send( zmq_socket_push, N, 4, ZMQ_SNDMORE)
   if(rc /= 4) stop "push"
 
-  rc = f77_zmq_send( zmq_socket_push, index, 4*N, ZMQ_SNDMORE)
+  rc = f77_zmq_send( zmq_socket_push, index, 4, ZMQ_SNDMORE)
   if(rc /= 4*N) stop "push"
 
 
@@ -121,7 +119,7 @@ subroutine push_pt2_results(zmq_socket_push, N, index, pt2_detail, task_id, ntas
   rc = f77_zmq_send( zmq_socket_push, ntask, 4, ZMQ_SNDMORE)
   if(rc /= 4) stop "push"
 
-  rc = f77_zmq_send( zmq_socket_push, task_id(1), ntask*4, 0)
+  rc = f77_zmq_send( zmq_socket_push, task_id, ntask*4, 0)
   if(rc /= 4*ntask) stop "push"
 
 ! Activate is zmq_socket_push is a REQ
@@ -136,14 +134,14 @@ subroutine pull_pt2_results(zmq_socket_pull, N, index, pt2_detail, task_id, ntas
   implicit none
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
   double precision, intent(inout) :: pt2_detail(N_states, N_det)
-  integer, intent(out) :: index(N_det)
+  integer, intent(out) :: index
   integer, intent(out) :: N, ntask, task_id(*)
   integer :: rc, rn, i
 
   rc = f77_zmq_recv( zmq_socket_pull, N, 4, 0)
   if(rc /= 4) stop "pull"
 
-  rc = f77_zmq_recv( zmq_socket_pull, index, 4*N, 0)
+  rc = f77_zmq_recv( zmq_socket_pull, index, 4, 0)
   if(rc /= 4*N) stop "pull"
 
   rc = f77_zmq_recv( zmq_socket_pull, pt2_detail, N_states*8*N, 0)
