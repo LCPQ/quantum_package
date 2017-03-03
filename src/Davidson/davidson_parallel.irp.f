@@ -256,7 +256,7 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, worker_id)
   do
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task)
     if(task_id == 0) exit
-    read (task,'(3(I9,X))') blockb, blockb2, istep
+    read (task,*) blockb, blockb2, istep
     bs = shortcut_(blockb+1,1) - shortcut_(blockb, 1)
     do i=blockb, shortcut_(0,2), shortcut_(0,1)
     do j=i, min(i, shortcut_(0,2))
