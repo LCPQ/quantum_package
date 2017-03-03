@@ -9,7 +9,7 @@ subroutine run_pt2_slave(thread,iproc,energy)
   integer                        :: rc, i
 
   integer                        :: worker_id, task_id(1), ctask, ltask
-  character*(1000000)                :: task
+  character(len=:), allocatable  :: task
 
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
@@ -26,6 +26,7 @@ subroutine run_pt2_slave(thread,iproc,energy)
   integer :: Nindex
 
   allocate(pt2_detail(N_states, N_det), index(N_det))
+  allocate(character(len=10000) :: task)
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_push      = new_zmq_push_socket(thread)
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)

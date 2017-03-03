@@ -41,8 +41,8 @@ subroutine run_selection_slave(thread,iproc,energy)
     if (done) then
       ctask = ctask - 1
     else
-      integer :: i_generator, i_generator_start, i_generator_max, step, N
-      read (task,*) i_generator_start, i_generator_max, step, N
+      integer :: i_generator, N
+      read(task,*) i_generator, N
       if(buf%N == 0) then
         ! Only first time 
         call create_selection_buffer(N, N*2, buf)
@@ -50,11 +50,7 @@ subroutine run_selection_slave(thread,iproc,energy)
       else
         if(N /= buf%N) stop "N changed... wtf man??"
       end if
-      !print *, "psi_selectors_coef ", psi_selectors_coef(N_det_selectors-5:N_det_selectors, 1)
-      !call debug_det(psi_selectors(1,1,N_det_selectors), N_int)
-      do i_generator=i_generator_start,i_generator_max,step
-        call select_connected(i_generator,energy,pt2,buf,0)
-      enddo
+      call select_connected(i_generator,energy,pt2,buf,0)
     endif
 
     if(done .or. ctask == size(task_id)) then

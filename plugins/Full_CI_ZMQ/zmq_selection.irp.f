@@ -24,17 +24,10 @@ subroutine ZMQ_selection(N_in, pt2)
     call create_selection_buffer(N, N*2, b)
   endif
 
-  integer :: i_generator, i_generator_start, i_generator_max, step
-!  step = int(max(1.,10*elec_num/mo_tot_num)
-
   character(len=:), allocatable  :: task 
-  allocate(character(len=32*N_det_generators) :: task)
-  step = int(5000000.d0 / dble(N_int * N_states * elec_num * elec_num * mo_tot_num * mo_tot_num ))
-  step = max(1,step)
-  do i= 1, N_det_generators,step
-    i_generator_start = i
-    i_generator_max = min(i+step-1,N_det_generators)
-    write(task(32*(i-1)+1:32*i),'(I9,X,I9,X,''1'',X,I9,''|'')') i_generator_start, i_generator_max, N
+  allocate(character(len=20*N_det_generators) :: task)
+  do i= 1, N_det_generators
+    write(task(20*(i-1)+1:20*i),'(I9,X,I9,''|'')') i, N
   end do
   call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   deallocate(task)
@@ -49,7 +42,7 @@ subroutine ZMQ_selection(N_in, pt2)
   !$OMP END PARALLEL
   call end_parallel_job(zmq_to_qp_run_socket, 'selection')
   if (N_in > 0) then
-    call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) !!! PAS DE ROBIN
+    call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) 
     call copy_H_apply_buffer_to_wf()
     if (s2_eig) then
       call make_s2_eigenfunction

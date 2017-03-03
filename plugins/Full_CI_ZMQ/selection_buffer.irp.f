@@ -27,7 +27,7 @@ subroutine add_to_selection_buffer(b, det, val)
 
   if(dabs(val) >= b%mini) then
     b%cur += 1
-    b%det(:,:,b%cur) = det(:,:)
+    b%det(1:N_int,1:2,b%cur) = det(1:N_int,1:2)
     b%val(b%cur) = val
     if(b%cur == size(b%val)) then
       call sort_selection_buffer(b)
