@@ -23,7 +23,7 @@ use bitmasks
   !$OMP PARALLEL DO default(none)  schedule(dynamic) &
   !$OMP shared(psi_det_generators, N_det_generators, hh_exists, pp_exists, N_int, hh_shortcut) &
   !$OMP shared(N_det_non_ref, N_det_ref, delta_ii_mrcc, delta_ij_mrcc, delta_ii_s2_mrcc, delta_ij_s2_mrcc) &
-  !$OMP private(h, n, mask, omask, buf, ok, iproc)
+  !$OMP private(h, n, mask, omask, buf, ok, iproc) 
   do gen= 1, N_det_generators
     allocate(buf(N_int, 2, N_det_non_ref))
     iproc = omp_get_thread_num() + 1
@@ -232,12 +232,6 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
         !hIk = hij_mrcc(idx_alpha(k_sd),i_I)
         !         call i_h_j(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(k_sd)),Nint,hIk)
         
-        do i_state=1,N_states
-          dIK(i_state) = dij(i_I, idx_alpha(k_sd), i_state)
-          !dIk(i_state) = get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,idx_alpha(k_sd)), N_int) !!hIk * lambda_mrcc(i_state,idx_alpha(k_sd))
-          !dIk(i_state) = psi_non_ref_coef(idx_alpha(k_sd), i_state) / psi_ref_coef(i_I, i_state)
-        enddo
-        
         
         ! |l> = Exc(k -> alpha) |I>
         call get_excitation(psi_non_ref(1,1,idx_alpha(k_sd)),tq(1,1,i_alpha),exc,degree,phase,Nint)
@@ -249,6 +243,10 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
         logical :: ok
         call apply_excitation(psi_ref(1,1,i_I), exc, tmp_det, ok, Nint)
         if(.not. ok) cycle
+        
+        do i_state=1,N_states
+          dIK(i_state) = dij(i_I, idx_alpha(k_sd), i_state)
+        enddo
         
         ! <I| \l/ |alpha>
         do i_state=1,N_states
@@ -268,12 +266,8 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
             loop = .false.
             if (.not.loop) then
               call get_excitation(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(l_sd)),exc,degree,phase2,Nint)
-              hIl = hij_mrcc(idx_alpha(l_sd),i_I)
-!                             call i_h_j(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,hIl)
               do i_state=1,N_states
                 dka(i_state) = dij(i_I, idx_alpha(l_sd), i_state) * phase * phase2
-                !dka(i_state) = get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,idx_alpha(l_sd)), N_int) * phase * phase2 !hIl * lambda_mrcc(i_state,idx_alpha(l_sd)) * phase * phase2
-                !dka(i_state) = psi_non_ref_coef(idx_alpha(l_sd), i_state) / psi_ref_coef(i_I, i_state) * phase * phase2 
               enddo
             endif
 
@@ -292,7 +286,6 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
         k_sd = idx_alpha(l_sd)
         hla = hij_cache(k_sd)
         sla = sij_cache(k_sd)
-!        call i_h_j(tq(1,1,i_alpha),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,hla)
         do i_state=1,N_states
           dIa_hla(i_state,k_sd) = dIa(i_state) * hla
           dIa_sla(i_state,k_sd) = dIa(i_state) * sla
@@ -336,6 +329,7 @@ end
   integer                        :: i, j, i_state
   
   !mrmode : 1=mrcepa0, 2=mrsc2 add, 3=mrcc
+  PROVIDE psi_ref_lock
   
   if(mrmode == 3) then
     do i = 1, N_det_ref

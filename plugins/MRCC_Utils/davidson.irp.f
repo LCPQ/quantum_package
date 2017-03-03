@@ -35,21 +35,20 @@ subroutine davidson_diag_mrcc(dets_in,u_in,energies,dim_in,sze,N_st,N_st_diag,Ni
   PROVIDE mo_bielec_integrals_in_map
   allocate(H_jj(sze))
   
+  H_jj(1) = diag_h_mat_elem(dets_in(1,1,1),Nint) 
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP  SHARED(sze,H_jj,N_det_ref,dets_in,Nint,istate,delta_ii,idx_ref)           &
       !$OMP  PRIVATE(i)
-  !$OMP DO SCHEDULE(guided)
-  do i=1,sze
+  !$OMP DO 
+  do i=2,sze
     H_jj(i) = diag_h_mat_elem(dets_in(1,1,i),Nint) 
-  enddo
-  !$OMP END DO 
-  !$OMP DO SCHEDULE(guided)
-  do i=1,N_det_ref
-    H_jj(idx_ref(i)) +=  delta_ii(istate,i)
   enddo
   !$OMP END DO 
   !$OMP END PARALLEL
 
+  do i=1,N_det_ref
+    H_jj(idx_ref(i)) +=  delta_ii(istate,i)
+  enddo
   call davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_diag,Nint,iunit,istate)
   deallocate (H_jj)
 end
@@ -224,17 +223,6 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_s
           W(i,k,iter+1) = 0.d0
         enddo
       enddo
-!      do k=1,N_st_diag
-!         do iter2=1,iter
-!          do l=1,N_st_diag
-!            do i=1,sze
-!              U(i,k,iter+1) = U(i,k,iter+1) + U(i,l,iter2)*y(l,iter2,k,1)
-!              W(i,k,iter+1) = W(i,k,iter+1) + W(i,l,iter2)*y(l,iter2,k,1)
-!            enddo
-!          enddo
-!        enddo
-!      enddo
-!
 !
       call dgemm('N','N', sze, N_st_diag, N_st_diag*iter,            &
           1.d0, U, size(U,1), y, size(y,1)*size(y,2), 0.d0, U(1,1,iter+1), size(U,1))
@@ -276,27 +264,11 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_s
       
       do k=1,N_st_diag
 
-!        do iter2=1,iter
-!          do l=1,N_st_diag
-!            c(1) = u_dot_v(U(1,k,iter+1),U(1,l,iter2),sze)
-!            do i=1,sze
-!              U(i,k,iter+1) = U(i,k,iter+1) - c(1) * U(i,l,iter2)
-!            enddo
-!          enddo
-!        enddo
-!
         call dgemv('T',sze,N_st_diag*iter,1.d0,U,size(U,1),  &
               U(1,k,iter+1),1,0.d0,c,1)
         call dgemv('N',sze,N_st_diag*iter,-1.d0,U,size(U,1), &
               c,1,1.d0,U(1,k,iter+1),1)
-!
-!        do l=1,k-1
-!          c(1) = u_dot_v(U(1,k,iter+1),U(1,l,iter+1),sze)
-!          do i=1,sze
-!            U(i,k,iter+1) = U(i,k,iter+1) - c(1) * U(i,l,iter+1)
-!          enddo
-!        enddo
-!
+
         call dgemv('T',sze,k-1,1.d0,U(1,1,iter+1),size(U,1),   &
             U(1,k,iter+1),1,0.d0,c,1)
         call dgemv('N',sze,k-1,-1.d0,U(1,1,iter+1),size(U,1),        &
@@ -429,7 +401,7 @@ subroutine H_u_0_mrcc_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,istate_in,N_st,sze_8)
   allocate(vt(sze_8,N_st))
   Vt = 0.d0
   
-  !$OMP DO SCHEDULE(dynamic)
+  !$OMP DO SCHEDULE(static,1)
   do sh=1,shortcut(0,1)
     do sh2=sh,shortcut(0,1)
       exa = 0
@@ -468,9 +440,9 @@ subroutine H_u_0_mrcc_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,istate_in,N_st,sze_8)
       enddo
     enddo
   enddo
-  !$OMP END DO NOWAIT
+  !$OMP END DO 
   
-  !$OMP DO SCHEDULE(dynamic)
+  !$OMP DO SCHEDULE(static,1)
   do sh=1,shortcut(0,2)
     do i=shortcut(sh,2),shortcut(sh+1,2)-1
       org_i = sort_idx(i,2)
@@ -490,7 +462,7 @@ subroutine H_u_0_mrcc_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,istate_in,N_st,sze_8)
       end do
     end do
   enddo
-  !$OMP END DO NOWAIT
+  !$OMP END DO
   
   !$OMP DO 
   do ii=1,n_det_ref
@@ -559,25 +531,26 @@ subroutine davidson_diag_mrcc_hs2(dets_in,u_in,dim_in,energies,sze,N_st,N_st_dia
   ASSERT (sze > 0)
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
-  PROVIDE mo_bielec_integrals_in_map
+  PROVIDE mo_bielec_integrals_in_map 
   allocate(H_jj(sze), S2_jj(sze))
   
+  H_jj(1) = diag_h_mat_elem(dets_in(1,1,1),Nint)
+  call get_s2(dets_in(1,1,1),dets_in(1,1,1),Nint,S2_jj(1))
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP  SHARED(sze,H_jj,S2_jj, dets_in,Nint,N_det_ref,delta_ii, &
       !$OMP  idx_ref, istate)  &
       !$OMP  PRIVATE(i)
-  !$OMP DO SCHEDULE(guided)
-  do i=1,sze
+  !$OMP DO 
+  do i=2,sze
     H_jj(i) = diag_h_mat_elem(dets_in(1,1,i),Nint)
     call get_s2(dets_in(1,1,i),dets_in(1,1,i),Nint,S2_jj(i))
   enddo
   !$OMP END DO 
-  !$OMP DO SCHEDULE(guided)
+  !$OMP END PARALLEL
+
   do i=1,N_det_ref
     H_jj(idx_ref(i)) +=  delta_ii(istate,i)
   enddo
-  !$OMP END DO 
-  !$OMP END PARALLEL
 
   call davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_st,N_st_diag,Nint,iunit,istate)
   deallocate (H_jj,S2_jj)
@@ -1051,7 +1024,7 @@ subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_i
   Vt = 0.d0
   St = 0.d0
 
-  !$OMP DO SCHEDULE(guided)
+  !$OMP DO SCHEDULE(static,1)
   do sh=1,shortcut(0,1)
     do sh2=sh,shortcut(0,1)
       exa = 0
@@ -1094,7 +1067,7 @@ subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_i
     enddo
   enddo
   !$OMP END DO
-  !$OMP DO SCHEDULE(guided)
+  !$OMP DO SCHEDULE(static,1)
   do sh=1,shortcut(0,2)
     do i=shortcut(sh,2),shortcut(sh+1,2)-1
       org_i = sort_idx(i,2)

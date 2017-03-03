@@ -771,10 +771,8 @@ END_PROVIDER
     factor = 1.d0
     resold = huge(1.d0)
 
-    do k=0,10*hh_nex
+    do k=0,hh_nex/4
       res = 0.d0
-      !$OMP PARALLEL default(shared) private(cx, i, a_col, a_coll) reduction(+:res)
-      !$OMP DO
       do a_coll = 1, n_exc_active
         a_col = active_pp_idx(a_coll)
         cx = 0.d0
@@ -785,21 +783,20 @@ END_PROVIDER
         res = res + (X_new(a_col) - X(a_col))*(X_new(a_col) - X(a_col))
         X(a_col) = X_new(a_col)
       end do
-      !$OMP END DO
-      !$OMP END PARALLEL
       
       if (res > resold) then
         factor = factor * 0.5d0
       endif
       resold = res
       
-      if(iand(k, 4095) == 0) then
+      if(iand(k, 127) == 0) then
         print *, "res ", k, res
       end if
       
       if(res < 1d-10) exit
     end do
     dIj_unique(1:size(X), s) = X(1:size(X))
+    print *, "res ", k, res
 
   enddo
 
@@ -831,21 +828,23 @@ END_PROVIDER
         
    do s=1,N_states
      norm = 0.d0
-     double precision               :: f
+     double precision               :: f, g, gmax
+     gmax = 1.d0*maxval(dabs(psi_non_ref_coef(:,s)))
      do i=1,N_det_non_ref
-       if (rho_mrcc(i,s) == 0.d0) then
-         rho_mrcc(i,s) = 1.d-32
-       endif
-
        if (lambda_type == 2) then
          f = 1.d0
        else
+        if (rho_mrcc(i,s) == 0.d0) then
+          cycle
+        endif
         ! f is such that f.\tilde{c_i} = c_i
         f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
 
         ! Avoid numerical instabilities
-        f = min(f,2.d0)
-        f = max(f,-2.d0)
+!        g = 1.d0+dabs(gmax / psi_non_ref_coef(i,s) )
+        g = 2.d0+100.d0*exp(-20.d0*dabs(psi_non_ref_coef(i,s)/gmax))
+        f = min(f, g)
+        f = max(f,-g)
       endif
 
        norm = norm + f*f *rho_mrcc(i,s)*rho_mrcc(i,s)
@@ -1087,6 +1086,22 @@ end function
   end do
   hh_shortcut(hh_shortcut(0)+1) = s+1
   
+  if (hh_shortcut(0) > N_hh_exists) then
+    print *,  'Error in ', irp_here
+    print *,  'hh_shortcut(0) :', hh_shortcut(0)
+    print *,  'N_hh_exists : ', N_hh_exists
+    print *,  'Is your active space defined?'
+    stop
+  endif
+
+  if (hh_shortcut(hh_shortcut(0)+1)-1 > N_pp_exists) then
+    print *,  'Error 1 in ', irp_here
+    print *,  'hh_shortcut(hh_shortcut(0)+1)-1 :', hh_shortcut(hh_shortcut(0)+1)-1 
+    print *,  'N_pp_exists : ', N_pp_exists
+    print *,  'Is your active space defined?'
+    stop
+  endif
+
   do s=2,4,2
     do i=1,hh_shortcut(0)
       if(hh_exists(s, i) == 0) then
@@ -1097,6 +1112,7 @@ end function
       end if
     end do
     
+
     do i=1,hh_shortcut(hh_shortcut(0)+1)-1
       if(pp_exists(s, i) == 0) then
         pp_exists(s-1, i) = 0
