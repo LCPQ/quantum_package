@@ -13,6 +13,7 @@ use bitmasks
   integer(bit_kind),allocatable :: buf(:,:,:)
   logical :: ok
   logical, external :: detEq
+  integer, external :: omp_get_thread_num
   
   delta_ij_mrcc = 0d0
   delta_ii_mrcc = 0d0
@@ -291,26 +292,30 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
           dIa_sla(i_state,k_sd) = dIa(i_state) * sla
         enddo
       enddo
-      call omp_set_lock( psi_ref_lock(i_I) )
       do i_state=1,N_states
         if(dabs(psi_ref_coef(i_I,i_state)).ge.1.d-3)then
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
+            !$OMP ATOMIC
             delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
+            !$OMP ATOMIC
             delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
+            !$OMP ATOMIC
             delta_ij_s2_(i_state,k_sd,i_I) = delta_ij_s2_(i_state,k_sd,i_I) + dIa_sla(i_state,k_sd)
+            !$OMP ATOMIC
             delta_ii_s2_(i_state,i_I) = delta_ii_s2_(i_state,i_I) - dIa_sla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
           enddo
         else
           delta_ii_(i_state,i_I)  = 0.d0
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
+            !$OMP ATOMIC
             delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + 0.5d0*dIa_hla(i_state,k_sd)
+            !$OMP ATOMIC
             delta_ij_s2_(i_state,k_sd,i_I) = delta_ij_s2_(i_state,k_sd,i_I) + 0.5d0*dIa_sla(i_state,k_sd)
           enddo
         endif
       enddo
-      call omp_unset_lock( psi_ref_lock(i_I) )
     enddo
   enddo
   deallocate (dIa_hla,dIa_sla,hij_cache,sij_cache)
@@ -329,7 +334,6 @@ end
   integer                        :: i, j, i_state
   
   !mrmode : 1=mrcepa0, 2=mrsc2 add, 3=mrcc
-  PROVIDE psi_ref_lock
   
   if(mrmode == 3) then
     do i = 1, N_det_ref

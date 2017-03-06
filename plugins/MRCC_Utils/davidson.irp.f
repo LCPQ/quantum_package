@@ -477,13 +477,12 @@ subroutine H_u_0_mrcc_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,istate_in,N_st,sze_8)
   enddo
   !$OMP END DO
 
-  !$OMP CRITICAL
   do istate=1,N_st
     do i=n,1,-1
+      !$OMP ATOMIC
       v_0(i,istate) = v_0(i,istate) + vt(i,istate)
     enddo
   enddo
-  !$OMP END CRITICAL
 
   deallocate(vt)
   !$OMP END PARALLEL
@@ -1115,14 +1114,14 @@ subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_i
 ! End Specific to dressing
 ! ------------------------
 
-  !$OMP CRITICAL
   do istate=1,N_st
     do i=n,1,-1
+      !$OMP ATOMIC
       v_0(i,istate) = v_0(i,istate) + vt(istate,i)
+      !$OMP ATOMIC
       s_0(i,istate) = s_0(i,istate) + st(istate,i)
     enddo
   enddo
-  !$OMP END CRITICAL
 
   deallocate(vt,st)
   !$OMP END PARALLEL
