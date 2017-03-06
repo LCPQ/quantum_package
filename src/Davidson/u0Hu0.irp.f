@@ -90,7 +90,7 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   enddo
   !$OMP END DO
 
-  !$OMP DO SCHEDULE(dynamic)
+  !$OMP DO SCHEDULE(guided)
   do sh=1,shortcut(0,2)
     do i=shortcut(sh,2),shortcut(sh+1,2)-1
       org_i = sort_idx(i,2)
@@ -123,7 +123,7 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   enddo
   !$OMP END DO
 
-  !$OMP DO SCHEDULE(dynamic)
+  !$OMP DO SCHEDULE(guided)
   do sh=1,shortcut(0,1)
     do sh2=1,shortcut(0,1)
       if (sh==sh2) cycle
@@ -235,13 +235,12 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   enddo
   !$OMP END DO 
 
-  !$OMP CRITICAL (u0Hu0)
   do istate=1,N_st
     do i=1,n
+      !$OMP ATOMIC
       v_0(i,istate) = v_0(i,istate) + vt(istate,i)
     enddo
   enddo
-  !$OMP END CRITICAL (u0Hu0)
 
   deallocate(vt,st)
   !$OMP END PARALLEL
@@ -444,7 +443,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   enddo
   !$OMP END DO
 
-  !$OMP DO SCHEDULE(dynamic)
+  !$OMP DO SCHEDULE(guided)
   do sh=1,shortcut(0,2)
     do i=shortcut(sh,2),shortcut(sh+1,2)-1
       org_i = sort_idx(i,2)
@@ -477,7 +476,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   enddo
   !$OMP END DO
 
-  !$OMP DO SCHEDULE(dynamic)
+  !$OMP DO SCHEDULE(guided)
   do sh=1,shortcut(0,1)
     do sh2=1,shortcut(0,1)
       if (sh==sh2) cycle
@@ -588,14 +587,14 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   enddo
   !$OMP END DO 
 
-  !$OMP CRITICAL (u0Hu0)
   do istate=1,N_st
     do i=1,n
+      !$OMP ATOMIC
       v_0(i,istate) = v_0(i,istate) + vt(istate,i)
+      !$OMP ATOMIC
       s_0(i,istate) = s_0(i,istate) + st(istate,i)
     enddo
   enddo
-  !$OMP END CRITICAL (u0Hu0)
 
   deallocate(vt,st)
   !$OMP END PARALLEL
