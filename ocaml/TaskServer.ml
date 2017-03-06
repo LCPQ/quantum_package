@@ -62,7 +62,15 @@ let bind_socket ~socket_type ~socket ~port =
       | Unix.Unix_error _ -> (Time.pause @@ Time.Span.of_float 1. ; loop (i-1) )
       | other_exception -> raise other_exception
   in loop 60;
-  ZMQ.Socket.bind socket @@ Printf.sprintf "ipc:///tmp/qp_run:%d" port
+  let filename =
+    Printf.sprintf "/tmp/qp_run:%d" port
+  in
+  begin
+    match Sys.file_exists filename with
+    | `Yes -> Sys.remove filename
+    | _ -> ()
+  end;
+  ZMQ.Socket.bind socket ("ipc://"^filename)
 
 
 let hostname = lazy (
