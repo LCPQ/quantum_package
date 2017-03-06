@@ -856,23 +856,19 @@ END_PROVIDER
      f = 1.d0/norm
      ! f now contains 1/ <T.Psi_0|T.Psi_0>
 
-     norm = 1.d0
-     do i=1,N_det_ref
-       norm = norm - psi_ref_coef(i,s)*psi_ref_coef(i,s)
+     norm = 0.d0
+     do i=1,N_det_non_ref
+       norm = norm + psi_non_ref_coef(i,s)*psi_non_ref_coef(i,s)
      enddo
      ! norm now contains <Psi_SD|Psi_SD>
      f = dsqrt(f*norm)
      ! f normalises T.Psi_0 such that (1+T)|Psi> is normalized
 
-     norm = norm*f
      print *,  'norm of |T Psi_0> = ', dsqrt(norm)
+     norm = norm*f
      if (dsqrt(norm) > 1.d0) then
        stop 'Error : Norm of the SD larger than the norm of the reference.'
      endif
-
-     do i=1,N_det_ref
-       norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
-     enddo
 
      do i=1,N_det_non_ref
        rho_mrcc(i,s) = rho_mrcc(i,s) * f
