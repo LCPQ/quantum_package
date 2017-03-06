@@ -790,13 +790,16 @@ END_PROVIDER
       resold = res
       
       if(iand(k, 127) == 0) then
-        print *, "res ", k, res
-      end if
+        print *, k, res, 1.d0 - res/resold
+      endif
       
-      if(res < 1d-10) exit
+      if ( (res < 1d-10).or.(res/resold > 0.99d0) ) then
+        exit
+      endif
+
     end do
     dIj_unique(1:size(X), s) = X(1:size(X))
-    print *, "res ", k, res
+    print *, k, res, 1.d0 - res/resold
 
   enddo
 
