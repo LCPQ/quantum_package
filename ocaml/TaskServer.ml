@@ -65,7 +65,11 @@ let bind_socket ~socket_type ~socket ~port =
   let filename =
     Printf.sprintf "/tmp/qp_run:%d" port
   in
-  Sys.remove filename;
+  begin
+    match Sys.file_exists filename with
+    | `Yes -> Sys.remove filename
+    | _ -> ()
+  end;
   ZMQ.Socket.bind socket ("ipc://"^filename)
 
 
