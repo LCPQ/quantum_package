@@ -787,7 +787,6 @@ END_PROVIDER
       if (res > resold) then
         factor = factor * 0.5d0
       endif
-      resold = res
       
       if(iand(k, 127) == 0) then
         print *, k, res, 1.d0 - res/resold
@@ -796,6 +795,7 @@ END_PROVIDER
       if ( (res < 1d-10).or.(res/resold > 0.99d0) ) then
         exit
       endif
+      resold = res
 
     end do
     dIj_unique(1:size(X), s) = X(1:size(X))
