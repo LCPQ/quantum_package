@@ -50,8 +50,6 @@ subroutine run_selection_slave(thread,iproc,energy)
       else
         if(N /= buf%N) stop "N changed... wtf man??"
       end if
-      !print *, "psi_selectors_coef ", psi_selectors_coef(N_det_selectors-5:N_det_selectors, 1)
-      !call debug_det(psi_selectors(1,1,N_det_selectors), N_int)
       do i_generator=i_generator_start,i_generator_max,step
         call select_connected(i_generator,energy,pt2,buf)
       enddo

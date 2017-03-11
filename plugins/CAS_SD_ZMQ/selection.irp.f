@@ -635,20 +635,20 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
   use selection_types
   implicit none
   
-  integer, intent(in) :: i_generator, sp, h1, h2
-  double precision, intent(in) :: mat(N_states, mo_tot_num, mo_tot_num)
-  logical, intent(in) :: bannedOrb(mo_tot_num, 2), banned(mo_tot_num, mo_tot_num)
-  double precision, intent(in)           :: fock_diag_tmp(mo_tot_num)
-  double precision, intent(in)    :: E0(N_states)
-  double precision, intent(inout) :: pt2(N_states) 
+  integer, intent(in)            :: i_generator, sp, h1, h2
+  double precision, intent(in)   :: mat(N_states, mo_tot_num, mo_tot_num)
+  logical, intent(in)            :: bannedOrb(mo_tot_num, 2), banned(mo_tot_num, mo_tot_num)
+  double precision, intent(in)   :: fock_diag_tmp(mo_tot_num)
+  double precision, intent(in)   :: E0(N_states)
+  double precision, intent(inout) :: pt2(N_states)
   type(selection_buffer), intent(inout) :: buf
-  logical :: ok
-  integer :: s1, s2, p1, p2, ib, j, istate
-  integer(bit_kind) :: mask(N_int, 2), det(N_int, 2)
-  double precision :: e_pert, delta_E, val, Hii, max_e_pert,tmp
-  double precision, external :: diag_H_mat_elem_fock
+  logical                        :: ok
+  integer                        :: s1, s2, p1, p2, ib, j, istate
+  integer(bit_kind)              :: mask(N_int, 2), det(N_int, 2)
+  double precision               :: e_pert, delta_E, val, Hii, max_e_pert,tmp
+  double precision, external     :: diag_H_mat_elem_fock
   
-  logical, external :: detEq
+  logical, external              :: detEq
   
   
   if(sp == 3) then
@@ -670,18 +670,25 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
       if(banned(p1,p2)) cycle
       if(mat(1, p1, p2) == 0d0) cycle
       call apply_particles(mask, s1, p1, s2, p2, det, ok, N_int)
-logical, external :: is_in_wavefunction
-if (is_in_wavefunction(det,N_int)) then
-  cycle
-endif
+      logical, external              :: is_in_wavefunction
+      if (is_in_wavefunction(det,N_int)) then
+        stop 'is_in_wf'
+        cycle
+      endif
       
+      if (do_ddci) then
+        integer, external              :: is_a_two_holes_two_particles
+        if (is_a_two_holes_two_particles(det)) then
+          cycle
+        endif
+      endif
       
       Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),det,fock_diag_tmp,N_int)
       max_e_pert = 0d0
       
       do istate=1,N_states
         delta_E = E0(istate) - Hii
-        val = mat(istate, p1, p2) + mat(istate, p1, p2) 
+        val = mat(istate, p1, p2) + mat(istate, p1, p2)
         tmp = dsqrt(delta_E * delta_E + val * val)
         if (delta_E < 0.d0) then
           tmp = -tmp
@@ -1232,7 +1239,6 @@ subroutine ZMQ_selection(N_in, pt2)
   endif
 
   integer :: i_generator, i_generator_start, i_generator_max, step
-!  step = int(max(1.,10*elec_num/mo_tot_num)
 
   step = int(5000000.d0 / dble(N_int * N_states * elec_num * elec_num * mo_tot_num * mo_tot_num ))
   step = max(1,step)
