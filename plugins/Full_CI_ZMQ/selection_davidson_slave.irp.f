@@ -75,15 +75,17 @@ subroutine run_wf
 
     else if (trim(zmq_state) == 'pt2') then
 
-      ! Selection
-      ! ---------
+      ! PT2
+      ! ---
 
       print *,  'PT2'
       call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
   
+      logical :: lstop
+      lstop = .False.
       !$OMP PARALLEL PRIVATE(i)
       i = omp_get_thread_num()
-      call run_pt2_slave(0,i,energy)
+      call run_pt2_slave(0,i,energy,lstop)
       !$OMP END PARALLEL
       print *,  'PT2 done'
 

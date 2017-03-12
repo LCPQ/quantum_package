@@ -27,7 +27,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
   double precision, external :: omp_get_wtime 
   double precision :: time0, time
 
-  allocate(pt2_detail(N_states, N_det_generators), comb(N_det_generators), computed(N_det_generators), tbc(0:size_tbc))
+  allocate(pt2_detail(N_states, N_det_generators), comb(N_det_generators/2), computed(N_det_generators), tbc(0:size_tbc))
   sumabove = 0d0
   sum2above = 0d0
   Nabove = 0d0
@@ -105,12 +105,12 @@ subroutine ZMQ_pt2(pt2,relative_error)
           call pt2_slave_inproc(i)
         endif
       !$OMP END PARALLEL
+      call end_parallel_job(zmq_to_qp_run_socket, 'pt2')
 
     else
        pt2(1) = sum(pt2_detail(1,:))
     endif
 
-    call end_parallel_job(zmq_to_qp_run_socket, 'pt2')
     tbc(0) = 0
     if (pt2(1) /= 0.d0) then
       exit
@@ -270,14 +270,14 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       avg = E0 + (sumabove(tooth) / Nabove(tooth))
       eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
       time = omp_get_wtime()
-      print "(3(E22.13), 4(I9))", "PT2stoch ", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
       if (dabs(eqt/avg) < relative_error) then
         pt2(1) = avg
-        exit pullLoop
+!        exit pullLoop
       endif
+      print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
     end if
   end do pullLoop
-  print "(3(E22.13), 4(I9))", "PT2stoch ", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
+  print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
 
 
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
