@@ -32,6 +32,7 @@ subroutine run_wf
   zmq_context = f77_zmq_ctx_new ()
   states(1) = 'selection'
   states(2) = 'davidson'
+  states(3) = 'pt2'
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   force_update = .True.
@@ -54,7 +55,7 @@ subroutine run_wf
   
       !$OMP PARALLEL PRIVATE(i)
       i = omp_get_thread_num()
-      call selection_slave_tcp(i, energy)
+      call run_selection_slave(0,i,energy)
       !$OMP END PARALLEL
       print *,  'Selection done'
 
@@ -72,17 +73,24 @@ subroutine run_wf
       !$OMP END PARALLEL
       print *,  'Davidson done'
 
+    else if (trim(zmq_state) == 'pt2') then
+
+      ! Selection
+      ! ---------
+
+      print *,  'PT2'
+      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+  
+      !$OMP PARALLEL PRIVATE(i)
+      i = omp_get_thread_num()
+      call run_pt2_slave(0,i,energy)
+      !$OMP END PARALLEL
+      print *,  'PT2 done'
+
     endif
 
   end do
 end
 
 
-subroutine selection_slave_tcp(i,energy)
-  implicit none
-  double precision, intent(in) :: energy(N_states)
-  integer, intent(in)            :: i
-
-  call run_selection_slave(0,i,energy)
-end
 

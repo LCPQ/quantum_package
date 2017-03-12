@@ -46,7 +46,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
   
   pt2_detail = 0d0
   time0 = omp_get_wtime()
-  print *, "grep - time - avg - err - n_combs"
+  print *, "time - avg - err - n_combs"
   generator_per_task = 1
   do while(.true.)
     
@@ -270,13 +270,14 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       avg = E0 + (sumabove(tooth) / Nabove(tooth))
       eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
       time = omp_get_wtime()
-      print "(A, 4(E20.13), 4(I9))", "PT2stoch ", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
+      print "(3(E22.13), 4(I9))", "PT2stoch ", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
       if (dabs(eqt/avg) < relative_error) then
         pt2(1) = avg
         exit pullLoop
       endif
     end if
   end do pullLoop
+  print "(3(E22.13), 4(I9))", "PT2stoch ", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
 
 
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
@@ -422,7 +423,6 @@ subroutine get_filling_teeth(computed, tbc)
         tbc(k) = j
         k=k+1
         computed(j) = .true.
-!        print  *, "filled ", j, "to reach tooth", last_full, "ending at", first_det_of_teeth(last_full+1)
       end if
     end do
     tbc(0) = k-1

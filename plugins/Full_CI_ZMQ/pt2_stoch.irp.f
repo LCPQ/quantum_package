@@ -25,6 +25,7 @@ subroutine run
     SOFT_TOUCH pt2_e0_denominator read_wf
   endif
   allocate (pt2(N_states))
+  pt2 = 0.d0
   
   threshold_selectors = 1.d0
   threshold_generators = 1d0 
