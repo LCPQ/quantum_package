@@ -393,6 +393,8 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
   BEGIN_DOC
 ! Sparse coefficient matrix if the wave function is expressed in a bilinear form :
 !  D_a^t C D_b
+!
+! Rows are alpha determinants and columns are beta.
   END_DOC
   integer                        :: i,j,k, l
   integer(bit_kind)               :: tmp_det(N_int,2)
@@ -421,9 +423,53 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
   call isort(to_sort, iorder, N_det)
   call iset_order(psi_bilinear_matrix_rows,iorder,N_det)
   call iset_order(psi_bilinear_matrix_columns,iorder,N_det)
-  call dset_order(psi_bilinear_matrix_values,iorder,N_det)
+  do l=1,N_states
+    call dset_order(psi_bilinear_matrix_values(1,l),iorder,N_det)
+  enddo
   deallocate(iorder,to_sort)
 END_PROVIDER
+
+
+BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_states) ]
+&BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_rows, (N_det) ]
+&BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_columns, (N_det) ]
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Sparse coefficient matrix if the wave function is expressed in a bilinear form :
+!  D_a^t C D_b
+!
+! Rows are Beta determinants and columns are alpha
+  END_DOC
+  integer                        :: i,j,k,l
+
+
+  PROVIDE psi_coef_sorted_bit
+
+  integer, allocatable :: iorder(:), to_sort(:)
+  allocate(iorder(N_det), to_sort(N_det))
+  do l=1,N_states
+    do k=1,N_det
+      psi_bilinear_matrix_transp_values (k,l) = psi_bilinear_matrix_values (k,l)
+    enddo
+  enddo
+  do k=1,N_det
+    psi_bilinear_matrix_transp_columns(k) = psi_bilinear_matrix_columns(k)
+    psi_bilinear_matrix_transp_rows   (k) = psi_bilinear_matrix_rows   (k)
+    i = psi_bilinear_matrix_transp_columns(k) 
+    j = psi_bilinear_matrix_transp_rows   (k)
+    to_sort(k) = N_det_beta_unique * (j-1) + i
+    iorder(k) = k
+  enddo
+  call isort(to_sort, iorder, N_det)
+  call iset_order(psi_bilinear_matrix_transp_rows,iorder,N_det)
+  call iset_order(psi_bilinear_matrix_transp_columns,iorder,N_det)
+  do l=1,N_states
+    call dset_order(psi_bilinear_matrix_values(1,l),iorder,N_det)
+  enddo
+  deallocate(iorder,to_sort)
+END_PROVIDER
+
 
 BEGIN_PROVIDER [ double precision, psi_bilinear_matrix, (N_det_alpha_unique,N_det_beta_unique,N_states) ]
   implicit none
