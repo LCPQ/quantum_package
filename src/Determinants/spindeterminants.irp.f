@@ -465,7 +465,7 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_
   call iset_order(psi_bilinear_matrix_transp_rows,iorder,N_det)
   call iset_order(psi_bilinear_matrix_transp_columns,iorder,N_det)
   do l=1,N_states
-    call dset_order(psi_bilinear_matrix_values(1,l),iorder,N_det)
+    call dset_order(psi_bilinear_matrix_transp_values(1,l),iorder,N_det)
   enddo
   deallocate(iorder,to_sort)
 END_PROVIDER
