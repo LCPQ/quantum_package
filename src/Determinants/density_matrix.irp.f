@@ -134,7 +134,6 @@ END_PROVIDER
      !$OMP END CRITICAL
      deallocate(tmp_a,tmp_b)
      !$OMP END PARALLEL
-
 END_PROVIDER
 
  BEGIN_PROVIDER [ double precision, one_body_single_double_dm_mo_alpha, (mo_tot_num_align,mo_tot_num) ]

@@ -122,7 +122,7 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
        enddo
       else 
        call get_delta_e_dyall(psi_ref(1,1,index_i),tq(1,1,i_alpha),coef_array,hialpha,delta_e)
-!      !!!!!!!!!!!!! SHIFTED BK 
+       !!!!!!!!!!!!! SHIFTED BK 
 !      double precision :: hjj
 !      call i_h_j(tq(1,1,i_alpha),tq(1,1,i_alpha),Nint,hjj)
 !      delta_e(1) = CI_electronic_energy(1) - hjj
@@ -141,7 +141,11 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
       do j = 1, idx_alpha(0)
        index_j = idx_alpha(j)
        !!!!!!!!!!!!!!!!!! WARNING TEST
-       if(index_j .ne. index_i)cycle
+       !!!!!!!!!!!!!!!!!! WARNING TEST
+!      if(index_j .ne. index_i)cycle
+       !!!!!!!!!!!!!!!!!! WARNING TEST
+       !!!!!!!!!!!!!!!!!! WARNING TEST
+       !!!!!!!!!!!!!!!!!! WARNING TEST
        do i_state=1,N_states
         ! standard dressing first order
          delta_ij_(index_i,index_j,i_state) += hij_array(index_j) * hij_tmp * delta_e_inv_array(index_j,i_state)

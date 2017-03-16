@@ -14,7 +14,7 @@ BEGIN_PROVIDER [integer(bit_kind), psi_active, (N_int,2,psi_det_size)]
    psi_active(j,1,i) = iand(psi_ref(j,1,i),cas_bitmask(j,1,1))
    psi_active(j,2,i) = iand(psi_ref(j,2,i),cas_bitmask(j,1,1))
   enddo
-  call debug_det(psi_active(1,1,i),N_int)
+! call debug_det(psi_active(1,1,i),N_int)
  enddo
 END_PROVIDER
 
@@ -330,6 +330,7 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
    i_part =  list_virt_reverse(p1)
    do i_state = 1, N_states
     delta_e_act(i_state) += one_creat_virt(i_hole,i_part,i_state)
+!   delta_e_act += 1.d12
    enddo
   else if (degree == 2)then
    do i_state = 1, N_states

@@ -101,10 +101,12 @@
        cmoref = 0.d0
        irot = 0
 
-       irot(1,1) = 5 
-       irot(2,1) = 6 
-       cmoref(6,1,1)   = 1d0 
-       cmoref(26,2,1)   = 1d0 
+       irot(1,1) = 14 
+       irot(2,1) = 15
+!      cmoref(6,1,1)   = 1.d0 
+!      cmoref(26,2,1)   = 1.d0 
+       cmoref(36,1,1)   = 1.d0 
+       cmoref(56,2,1)   = 1.d0 
 
 !       !!! H2O
 !      irot(1,1) = 4 

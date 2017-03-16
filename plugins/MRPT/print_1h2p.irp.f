@@ -5,6 +5,12 @@ program print_1h2p
  call routine
 end
 
+subroutine routine
+ implicit none
+ provide one_anhil_one_creat_inact_virt
+
+end
+
 subroutine routine_2
  implicit none
  integer :: i,j,degree
@@ -27,7 +33,7 @@ subroutine routine_2
 
 end
 
-subroutine routine
+subroutine routine_3
  implicit none
  double precision,allocatable :: matrix_1h2p(:,:,:) 
  double precision :: accu(2)

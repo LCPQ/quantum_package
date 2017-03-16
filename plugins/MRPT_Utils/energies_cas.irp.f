@@ -22,6 +22,40 @@ BEGIN_PROVIDER [ double precision, energy_cas_dyall_no_exchange, (N_states)]
 END_PROVIDER 
 
 
+BEGIN_PROVIDER [ double precision, energy_cas_dyall_no_exchange_bis, (N_states)]
+ implicit none
+ integer :: i,j
+ double precision :: energies(N_states)
+ integer(bit_kind), allocatable :: psi_in_ref(:,:,:)
+ allocate (psi_in_ref(N_int,2,n_det_ref))
+ integer(bit_kind), allocatable :: psi_in_active(:,:,:)
+ allocate (psi_in_active(N_int,2,n_det_ref))
+ double precision, allocatable :: psi_ref_coef_in(:, :)
+ allocate(psi_ref_coef_in(N_det_ref, N_states))
+
+ do i = 1, N_det_ref
+  do j = 1, N_int
+   psi_in_ref(j,1,i) =  psi_ref(j,1,i) 
+   psi_in_ref(j,2,i) =  psi_ref(j,2,i) 
+
+   psi_in_active(j,1,i) =  psi_active(j,1,i) 
+   psi_in_active(j,2,i) =  psi_active(j,2,i) 
+  enddo
+  do j = 1, N_states
+   psi_ref_coef_in(i,j) = psi_ref_coef(i,j)
+  enddo
+ enddo 
+ do i = 1, N_states
+  call u0_H_dyall_u0_no_exchange_bis(energies,psi_in_ref,psi_ref_coef_in,n_det_ref,n_det_ref,n_det_ref,N_states,i)
+  energy_cas_dyall_no_exchange_bis(i) = energies(i)
+  print*,  'energy_cas_dyall(i)_no_exchange_bis',  energy_cas_dyall_no_exchange_bis(i)
+ enddo
+ deallocate (psi_in_ref)
+ deallocate (psi_in_active)
+ deallocate(psi_ref_coef_in)
+END_PROVIDER 
+
+
 
 BEGIN_PROVIDER [ double precision, one_creat, (n_act_orb,2,N_states)]
  implicit none
@@ -604,6 +638,8 @@ END_PROVIDER
  double precision, allocatable :: psi_in_out_coef(:,:)
  use bitmasks
  allocate (psi_in_out(N_int,2,n_det_ref),psi_in_out_coef(n_det_ref,N_states))
+ integer(bit_kind), allocatable :: psi_in_active(:,:,:)
+ allocate (psi_in_active(N_int,2,n_det_ref))
 
  integer :: iorb,jorb,i_ok
  integer :: state_target
@@ -614,6 +650,9 @@ END_PROVIDER
 
 
  double precision :: thresh_norm
+ integer :: other_spin(2)
+ other_spin(1) = 2
+ other_spin(2) = 1
   
  thresh_norm = 1.d-20
 
@@ -644,14 +683,14 @@ END_PROVIDER
        print*, 'pb, i_ok ne 0 !!!'
       endif
       call i_H_j(psi_in_out(1,1,i),psi_ref(1,1,i),N_int,hij)
+      integer                        :: exc(0:2,2,2)
+      double precision :: phase
+      call get_mono_excitation(psi_in_out(1,1,i),psi_ref(1,1,i),exc,phase,N_int)
       do j = 1, n_states
-        double precision ::  coef,contrib
-        coef = psi_ref_coef(i,j) !* psi_ref_coef(i,j)
-        psi_in_out_coef(i,j) = coef * hij 
-        if(orb_i == 5 .and. orb_v == 20)then
-!       if(orb_i == 2 .and. orb_v == 6 )then
+        psi_in_out_coef(i,j) = psi_ref_coef(i,j)* hij * phase
+!       if(orb_i == 5 .and. orb_v == 20)then
+        if(orb_i == 2 .and. orb_v == 6 )then
          print*, i, ispin
-         print*, coef * hij,coef,hij
         endif
         norm(j,ispin) += psi_in_out_coef(i,j) * psi_in_out_coef(i,j) 
       enddo
@@ -663,22 +702,31 @@ END_PROVIDER
        one_anhil_one_creat_inact_virt_norm(iorb,vorb,j,ispin) = 0.d0
       else
        norm_no_inv(j,ispin) = norm(j,ispin)
-       one_anhil_one_creat_inact_virt_norm(iorb,vorb,j,ispin) = 1.d0 / norm(j,ispin)
+!      one_anhil_one_creat_inact_virt_norm(iorb,vorb,j,ispin) = 1.d0 / norm(j,ispin)
        norm(j,ispin) = 1.d0/dsqrt(norm(j,ispin))
-       if(orb_i == 5 .and. orb_v == 20)then
-!      if(orb_i == 2 .and. orb_v == 6 )then
+!      if(orb_i == 5 .and. orb_v == 20)then
+       if(orb_i == 2 .and. orb_v == 6 )then
         print*,ispin ,norm(j,ispin)
        endif
       endif
      enddo
+     integer :: iorb_annil,hole_particle,spin_exc,orb
+     double precision :: norm_out_bis(N_states)
      do i = 1, N_det_ref
        do j = 1, N_states
         psi_in_out_coef(i,j) = psi_in_out_coef(i,j) * norm(j,ispin)
         norm_bis(j,ispin) += psi_in_out_coef(i,j) *  psi_in_out_coef(i,j)
        enddo
+     enddo
+     
+     do i = 1, N_det_ref
        do j = 1, N_int
+ !      psi_in_out(j,1,i) = iand(psi_in_out(j,1,i),cas_bitmask(j,1,1))
+ !      psi_in_out(j,2,i) = iand(psi_in_out(j,2,i),cas_bitmask(j,1,1))
         psi_in_out(j,1,i) = psi_active(j,1,i)
         psi_in_out(j,2,i) = psi_active(j,2,i)
+ !      psi_in_out(j,1,i) = psi_ref(j,1,i)
+ !      psi_in_out(j,2,i) = psi_ref(j,2,i)
        enddo
      enddo
      do state_target = 1, N_states
@@ -686,29 +734,35 @@ END_PROVIDER
       if(norm(state_target,ispin) .ne. 0.d0 .and. dabs(norm_no_inv(state_target,ispin)) .gt. thresh_norm)then
        call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det_ref,n_det_ref,n_det_ref,N_states,state_target)
        energies_alpha_beta(state_target, ispin) +=  energies(state_target) 
-       if(orb_i == 5 .and. orb_v == 20)then
-!      if(orb_i == 2 .and. orb_v == 6 )then
-        print*, ispin, energy_cas_dyall_no_exchange(1) , energies_alpha_beta(state_target, ispin)
-        print*, ispin, energy_cas_dyall_no_exchange(1) - energies_alpha_beta(state_target, ispin)
-       endif
       endif
      enddo
     enddo ! ispin 
    do state_target = 1, N_states
     if((norm_no_inv(state_target,1) + norm_no_inv(state_target,2)) .ne. 0.d0)then
      one_anhil_one_creat_inact_virt(iorb,vorb,state_target) =  energy_cas_dyall_no_exchange(state_target) - &
-      ( energies_alpha_beta(state_target,1) + energies_alpha_beta(state_target,2) ) & 
+!       0.5d0 * (energies_alpha_beta(state_target,1) + energies_alpha_beta(state_target,2))
+      ( energies_alpha_beta(state_target,1) + energies_alpha_beta(state_target,2) )  & 
      /( norm_bis(state_target,1) +  norm_bis(state_target,2) )
     else  
      one_anhil_one_creat_inact_virt(iorb,vorb,state_target) = 0.d0
     endif
     if(dabs(dabs(one_anhil_one_creat_inact_virt(iorb,vorb,state_target)) - 1.30584271462d0) < 1.d-11)then
+!   if(dabs(dabs(one_anhil_one_creat_inact_virt(iorb,vorb,state_target)) - 1.29269686324d0) < 1.d-11)then
+     print*, ''
      print*, orb_i,orb_v
-     print*, energy_cas_dyall_no_exchange(1) - energies_alpha_beta(state_target,1) / norm_bis(state_target,1)
-     print*, energy_cas_dyall_no_exchange(1) - energies_alpha_beta(state_target,2) / norm_bis(state_target,2)
+     print*, energy_cas_dyall_no_exchange(1) - energies_alpha_beta(state_target,1)  !/ norm_bis(state_target,1)
+     print*, energy_cas_dyall_no_exchange(1) - energies_alpha_beta(state_target,2)  !/ norm_bis(state_target,2)
      print*, fock_core_inactive_total_spin_trace(orb_i,1)
      print*, fock_virt_total_spin_trace(orb_v,1)
      print*, one_anhil_one_creat_inact_virt(iorb,vorb,state_target)
+     print*, ''
+    endif
+    if(dabs(one_anhil_one_creat_inact_virt(iorb,vorb,state_target)) .gt. 1.d-10)then
+     write(*,'(F11.8)'), one_anhil_one_creat_inact_virt(iorb,vorb,state_target)
+!    if(dabs(one_anhil_one_creat_inact_virt(iorb,vorb,state_target)) .lt. 1.d-2)then
+!     one_anhil_one_creat_inact_virt(iorb,vorb,state_target) = 0.d0
+!     print*, orb_i,orb_v
+!    endif
     endif
    enddo
   enddo
@@ -852,9 +906,6 @@ BEGIN_PROVIDER [ double precision, one_creat_virt, (n_act_orb,n_virt_orb,N_State
     norm_bis = 0.d0
     do ispin = 1,2
      do i = 1, n_det_ref
-!     if(orb_a == 6 .and. orb_v == 12)then
-!       print*, 'i ref = ',i
-!     endif
       do j = 1, N_int
        psi_in_out(j,1,i) =  psi_ref(j,1,i) 
        psi_in_out(j,2,i) =  psi_ref(j,2,i) 
@@ -866,11 +917,6 @@ BEGIN_PROVIDER [ double precision, one_creat_virt, (n_act_orb,n_virt_orb,N_State
        enddo
       else
        call i_H_j(psi_in_out(1,1,i),psi_ref(1,1,i),N_int,hij)
-       if(orb_a == 6 .and. orb_v == 12)then
-         call debug_det(psi_ref(1,1,i),N_int)
-         call debug_det(psi_in_out(1,1,i),N_int)
-         print*, hij
-       endif
        do j = 1, n_states
          double precision ::  contrib
          psi_in_out_coef(i,j) = psi_ref_coef(i,j) * hij 
@@ -907,7 +953,6 @@ BEGIN_PROVIDER [ double precision, one_creat_virt, (n_act_orb,n_virt_orb,N_State
      do state_target = 1, N_states
       energies_alpha_beta(state_target, ispin) = 0.d0
       if(norm(state_target,ispin) .ne. 0.d0 .and. dabs(norm_no_inv(state_target,ispin)) .gt. thresh_norm)then
-!      call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det_ref,n_det_ref,n_det_ref,N_states,state_target)
        call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det_ref,n_det_ref,n_det_ref,N_states,state_target)
        energies_alpha_beta(state_target, ispin) +=  energies(state_target) 
       endif
@@ -915,7 +960,6 @@ BEGIN_PROVIDER [ double precision, one_creat_virt, (n_act_orb,n_virt_orb,N_State
     enddo ! ispin 
    do state_target = 1, N_states
     if((norm_no_inv(state_target,1) + norm_no_inv(state_target,2)) .ne. 0.d0)then
-!    one_creat_virt(aorb,vorb,state_target) =  energy_cas_dyall(state_target) - &
      one_creat_virt(aorb,vorb,state_target) =  energy_cas_dyall_no_exchange(state_target) - &
       ( energies_alpha_beta(state_target,1) + energies_alpha_beta(state_target,2) ) & 
      /( norm_bis(state_target,1) +  norm_bis(state_target,2) )

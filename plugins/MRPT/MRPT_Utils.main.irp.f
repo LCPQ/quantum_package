@@ -18,11 +18,11 @@ subroutine routine_3
  print *,  'N_states = ', N_states
  do i = 1, N_States
   print*,'State',i
-  write(*,'(A12,X,I3,A3,XX,F16.10)')    '  PT2       ', i,' = ', second_order_pt_new(i)
-  write(*,'(A12,X,I3,A3,XX,F16.09)')    '  E         ', i,' = ', psi_ref_average_value(i)
-  write(*,'(A12,X,I3,A3,XX,F16.09)')    '  E+PT2     ', i,' = ', psi_ref_average_value(i)+second_order_pt_new(i)
-  write(*,'(A12,X,I3,A3,XX,F16.09)')    '  E dressed ', i,' = ', CI_dressed_pt2_new_energy(i)
-  write(*,'(A12,X,I3,A3,XX,F16.09)')    '  S^2       ', i,' = ', CI_dressed_pt2_new_eigenvectors_s2(i)
+  write(*,'(A12,X,I3,A3,XX,F20.16)')    '  PT2       ', i,' = ', second_order_pt_new(i)
+  write(*,'(A12,X,I3,A3,XX,F22.16)')    '  E         ', i,' = ', psi_ref_average_value(i)
+  write(*,'(A12,X,I3,A3,XX,F22.16)')    '  E+PT2     ', i,' = ', psi_ref_average_value(i)+second_order_pt_new(i)
+  write(*,'(A12,X,I3,A3,XX,F22.16)')    '  E dressed ', i,' = ', CI_dressed_pt2_new_energy(i)
+  write(*,'(A12,X,I3,A3,XX,F20.16)')    '  S^2       ', i,' = ', CI_dressed_pt2_new_eigenvectors_s2(i)
   print*,'coef before and after'
   do j = 1, N_det_ref
    print*,psi_ref_coef(j,i),CI_dressed_pt2_new_eigenvectors(j,i)

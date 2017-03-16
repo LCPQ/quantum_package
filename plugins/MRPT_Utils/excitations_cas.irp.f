@@ -25,6 +25,7 @@ subroutine apply_exc_to_psi(orb,hole_particle,spin_exc, &
   integer :: det_tmp(N_int), det_tmp_bis(N_int)
   double precision :: phase
   double precision :: norm_factor
+! print*, orb,hole_particle,spin_exc
 
   elec_num_tab_local = 0
   do i = 1, ndet
@@ -36,6 +37,7 @@ subroutine apply_exc_to_psi(orb,hole_particle,spin_exc, &
     exit
    endif
   enddo
+! print*, elec_num_tab_local(1),elec_num_tab_local(2)
   if(hole_particle == 1)then
    do i = 1, ndet
      call set_bit_to_integer(orb,psi_in_out(1,spin_exc,i),N_int) 
@@ -675,6 +677,7 @@ subroutine i_H_j_dyall_no_exchange(key_i,key_j,Nint,hij)
   integer                        :: n_occ_ab(2)
   logical                        :: has_mipi(Nint*bit_kind_size)
   double precision               :: mipi(Nint*bit_kind_size)
+  double precision               :: diag_H_mat_elem
   PROVIDE mo_bielec_integrals_in_map mo_integrals_map
   
   ASSERT (Nint > 0)
@@ -771,9 +774,11 @@ subroutine i_H_j_dyall_no_exchange(key_i,key_j,Nint,hij)
         
       endif
       hij = phase*(hij + mo_mono_elec_integral(m,p)  + fock_operator_active_from_core_inact(m,p) )
+!     hij = phase*(hij + mo_mono_elec_integral(m,p) ) 
       
     case (0)
       hij = diag_H_mat_elem_no_elec_check_no_exchange(key_i,Nint)
+!     hij = diag_H_mat_elem(key_i,Nint)
 !     hij = 0.d0
   end select
 end
@@ -799,7 +804,7 @@ double precision function diag_H_mat_elem_no_elec_check_no_exchange(det_in,Nint)
   ! alpha - alpha 
   do i = 1, elec_num_tab_local(1)
    iorb =  occ(i,1)
-   diag_H_mat_elem_no_elec_check_no_exchange += mo_mono_elec_integral(iorb,iorb) !+ fock_operator_active_from_core_inact(iorb,iorb)
+   diag_H_mat_elem_no_elec_check_no_exchange += mo_mono_elec_integral(iorb,iorb)   !+ fock_operator_active_from_core_inact(iorb,iorb)
    do j = i+1, elec_num_tab_local(1)
     jorb = occ(j,1)
     diag_H_mat_elem_no_elec_check_no_exchange +=  mo_bielec_integral_jj(jorb,iorb)
@@ -809,7 +814,7 @@ double precision function diag_H_mat_elem_no_elec_check_no_exchange(det_in,Nint)
   ! beta - beta   
   do i = 1, elec_num_tab_local(2)
    iorb =  occ(i,2)
-   diag_H_mat_elem_no_elec_check_no_exchange += mo_mono_elec_integral(iorb,iorb) !+ fock_operator_active_from_core_inact(iorb,iorb)
+   diag_H_mat_elem_no_elec_check_no_exchange += mo_mono_elec_integral(iorb,iorb)   !+ fock_operator_active_from_core_inact(iorb,iorb)
    do j = i+1, elec_num_tab_local(2)
     jorb = occ(j,2)
     diag_H_mat_elem_no_elec_check_no_exchange +=  mo_bielec_integral_jj(jorb,iorb)
@@ -835,7 +840,7 @@ double precision function diag_H_mat_elem_no_elec_check_no_exchange(det_in,Nint)
    do j = 1, n_core_inact_orb
     jorb = list_core_inact(j)
     diag_H_mat_elem_no_elec_check_no_exchange +=  2.d0 * mo_bielec_integral_jj(jorb,iorb) 
-    core_act_exchange(1) += - mo_bielec_integral_jj_exchange(jorb,iorb)
+!   core_act_exchange(1) += - mo_bielec_integral_jj_exchange(jorb,iorb)
 !   diag_H_mat_elem_no_elec_check_no_exchange += core_act_exchange(1) 
    enddo
   enddo 
@@ -846,7 +851,7 @@ double precision function diag_H_mat_elem_no_elec_check_no_exchange(det_in,Nint)
    do j = 1, n_core_inact_orb
     jorb = list_core_inact(j)
     diag_H_mat_elem_no_elec_check_no_exchange +=  2.d0 * mo_bielec_integral_jj(jorb,iorb) 
-    core_act_exchange(2) += - mo_bielec_integral_jj_exchange(jorb,iorb)
+!   core_act_exchange(2) += - mo_bielec_integral_jj_exchange(jorb,iorb)
 !   diag_H_mat_elem_no_elec_check_no_exchange += core_act_exchange(2) 
    enddo
   enddo 
@@ -884,3 +889,45 @@ subroutine u0_H_dyall_u0_no_exchange(energies,psi_in,psi_in_coef,ndet,dim_psi_in
  energies(state_target) = accu
  deallocate(psi_coef_tmp)
 end
+
+
+
+!subroutine u0_H_dyall_u0_no_exchange_bis(energies,psi_in,psi_in_active,psi_in_coef,ndet,dim_psi_in,dim_psi_coef,N_states_in,state_target)
+subroutine u0_H_dyall_u0_no_exchange_bis(energies,psi_in,psi_in_coef,ndet,dim_psi_in,dim_psi_coef,N_states_in,state_target)
+  use bitmasks
+ implicit none
+ integer, intent(in) :: N_states_in,ndet,dim_psi_in,dim_psi_coef,state_target
+!integer(bit_kind), intent(in) :: psi_in(N_int,2,dim_psi_in),psi_in_active(N_int,2,dim_psi_in)
+ integer(bit_kind), intent(in) :: psi_in(N_int,2,dim_psi_in)
+ double precision,  intent(in) :: psi_in_coef(dim_psi_coef,N_states_in)
+ double precision,  intent(out) :: energies(N_states_in)
+ 
+ integer :: i,j 
+ double precision :: hij,accu
+ energies = 0.d0
+ accu = 0.d0
+ double precision, allocatable :: psi_coef_tmp(:)
+ allocate(psi_coef_tmp(ndet))
+ 
+ do i = 1, ndet
+  psi_coef_tmp(i) = psi_in_coef(i,state_target)
+ enddo
+
+ double precision :: hij_bis,diag_H_mat_elem
+ do i = 1, ndet
+  if(psi_coef_tmp(i)==0.d0)cycle
+  do j = i+1, ndet
+   if(psi_coef_tmp(j)==0.d0)cycle
+!  call i_H_j_dyall_no_exchange(psi_in_active(1,1,i),psi_in_active(1,1,j),N_int,hij)
+   call i_H_j(psi_in(1,1,i),psi_in(1,1,j),N_int,hij)
+   accu += 2.d0 * psi_coef_tmp(i) * psi_coef_tmp(j) * hij
+  enddo
+ enddo
+ do i = 1, N_det
+  if(psi_coef_tmp(i)==0.d0)cycle
+  accu += psi_coef_tmp(i) * psi_coef_tmp(i) * diag_H_mat_elem(psi_in(1,1,i),N_int)
+ enddo
+ energies(state_target) = accu
+ deallocate(psi_coef_tmp)
+end
+

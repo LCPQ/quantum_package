@@ -15,8 +15,6 @@ end
 
 subroutine run_prepare
  implicit none
-! no_oa_or_av_opt = .False.
-! touch no_oa_or_av_opt
   call damping_SCF
   call diag_inactive_virt_and_update_mos
 end
@@ -28,7 +26,7 @@ subroutine routine_fobo_scf
  print*,''
  character*(64) :: label
  label = "Natural"
- do i = 1, 5
+ do i = 1, 1
   print*,'*******************************************************************************'
   print*,'*******************************************************************************'
   print*,'FOBO-SCF Iteration ',i
@@ -54,7 +52,7 @@ subroutine routine_fobo_scf
   endif
   call FOBOCI_lmct_mlct_old_thr(i)
   call save_osoci_natural_mos
-  call damping_SCF
+! call damping_SCF
   call diag_inactive_virt_and_update_mos
   call clear_mo_map
   call provide_properties
