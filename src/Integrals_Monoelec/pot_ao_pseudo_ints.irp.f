@@ -53,26 +53,20 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
   call wall_time(wall_1)
   call cpu_time(cpu_1)
   
-!write(33,*) 'xxxLOCxxx'
-!write(33,*)   'pseudo_klocmax', pseudo_klocmax
-!write(33,*)  'pseudo_v_k_transp ', pseudo_v_k_transp 
-!write(33,*)  'pseudo_n_k_transp ', pseudo_n_k_transp 
-!write(33,*)  'pseudo_dz_k_transp', pseudo_dz_k_transp
-!write(33,*) 'xxxLOCxxx'
 
   thread_num = 0
-  !$OMP PARALLEL                                                     &
-      !$OMP DEFAULT (NONE)                                           &
-      !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B,&
-      !$OMP          num_A,num_B,Z,c,n_pt_in,                        &
-      !$OMP          wall_0,wall_2,thread_num)                       &
-      !$OMP SHARED (ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp,&
-      !$OMP         ao_pseudo_integral_local,nucl_num,nucl_charge,   &
-      !$OMP         pseudo_klocmax,pseudo_lmax,pseudo_kmax,pseudo_v_k_transp,pseudo_n_k_transp, pseudo_dz_k_transp,&
-      !$OMP         wall_1)
-  
-  !$ thread_num = omp_get_thread_num()
-  !$OMP DO SCHEDULE (guided)
+!  !$OMP PARALLEL                                                     &
+!      !$OMP DEFAULT (NONE)                                           &
+!      !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B,&
+!      !$OMP          num_A,num_B,Z,c,n_pt_in,                        &
+!      !$OMP          wall_0,wall_2,thread_num)                       &
+!      !$OMP SHARED (ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp,&
+!      !$OMP         ao_pseudo_integral_local,nucl_num,nucl_charge,   &
+!      !$OMP         pseudo_klocmax,pseudo_lmax,pseudo_kmax,pseudo_v_k_transp,pseudo_n_k_transp, pseudo_dz_k_transp,&
+!      !$OMP         wall_1)
+!  
+!  !$ thread_num = omp_get_thread_num()
+!  !$OMP DO SCHEDULE (guided)
   
   do j = 1, ao_num
     
@@ -109,15 +103,6 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
                 pseudo_n_k_transp (1,k), & 
                 pseudo_dz_k_transp(1,k), & 
                 A_center,power_A,alpha,B_center,power_B,beta,C_center)
-!  write(33,*) i,j,k
-!  write(33,*) A_center,power_A,alpha,B_center,power_B,beta,C_center, &
-!      Vloc(pseudo_klocmax, &
-!        pseudo_v_k_transp (1,k), &
-!        pseudo_n_k_transp (1,k), &
-!        pseudo_dz_k_transp(1,k), &
-!        A_center,power_A,alpha,B_center,power_B,beta,C_center)
-!  write(33,*)
-                    
           enddo
           ao_pseudo_integral_local(i,j) = ao_pseudo_integral_local(i,j) +&
               ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i)*c
@@ -135,8 +120,8 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
     endif
   enddo
 
- !$OMP END DO
- !$OMP END PARALLEL
+! !$OMP END DO
+! !$OMP END PARALLEL
 
  END_PROVIDER
 
@@ -165,26 +150,20 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
   call wall_time(wall_1)
   call cpu_time(cpu_1)
   thread_num = 0
-!write(34,*) 'xxxNONLOCxxx'
-!write(34,*)  ' pseudo_lmax,pseudo_kmax', pseudo_lmax,pseudo_kmax
-!write(34,*)  ' pseudo_v_kl_transp(1,0,k)', pseudo_v_kl_transp
-!write(34,*)  ' pseudo_n_kl_transp(1,0,k)', pseudo_n_kl_transp
-!write(34,*)  ' pseudo_dz_kl_transp(1,0,k)', pseudo_dz_kl_transp
-!write(34,*) 'xxxNONLOCxxx'
 
-  !$OMP PARALLEL                                                     &
-      !$OMP DEFAULT (NONE)                                           &
-      !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B,&
-      !$OMP          num_A,num_B,Z,c,n_pt_in,                        &
-      !$OMP          wall_0,wall_2,thread_num)                       &
-      !$OMP SHARED (ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp,&
-      !$OMP         ao_pseudo_integral_non_local,nucl_num,nucl_charge,&
-      !$OMP         pseudo_klocmax,pseudo_lmax,pseudo_kmax,pseudo_n_kl_transp, pseudo_v_kl_transp, pseudo_dz_kl_transp,&
-      !$OMP         wall_1)
-  
-  !$ thread_num = omp_get_thread_num()
-  
-  !$OMP DO SCHEDULE (guided)
+!  !$OMP PARALLEL                                                     &
+!      !$OMP DEFAULT (NONE)                                           &
+!      !$OMP PRIVATE (i,j,k,l,m,alpha,beta,A_center,B_center,C_center,power_A,power_B,&
+!      !$OMP          num_A,num_B,Z,c,n_pt_in,                        &
+!      !$OMP          wall_0,wall_2,thread_num)                       &
+!      !$OMP SHARED (ao_num,ao_prim_num,ao_expo_ordered_transp,ao_power,ao_nucl,nucl_coord,ao_coef_normalized_ordered_transp,&
+!      !$OMP         ao_pseudo_integral_non_local,nucl_num,nucl_charge,&
+!      !$OMP         pseudo_klocmax,pseudo_lmax,pseudo_kmax,pseudo_n_kl_transp, pseudo_v_kl_transp, pseudo_dz_kl_transp,&
+!      !$OMP         wall_1)
+!  
+!  !$ thread_num = omp_get_thread_num()
+!  
+!  !$OMP DO SCHEDULE (guided)
   
   do j = 1, ao_num
     
@@ -222,15 +201,6 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
                     pseudo_n_kl_transp(1,0,k),  &
                     pseudo_dz_kl_transp(1,0,k), &
                     A_center,power_A,alpha,B_center,power_B,beta,C_center)
-!  write(34,*) i,j,k
-!  write(34,*)  &
-!          A_center,power_A,alpha,B_center,power_B,beta,C_center, &
-!       Vpseudo(pseudo_lmax,pseudo_kmax, &
-!          pseudo_v_kl_transp(1,0,k),  &
-!          pseudo_n_kl_transp(1,0,k),  &
-!          pseudo_dz_kl_transp(1,0,k), &
-!          A_center,power_A,alpha,B_center,power_B,beta,C_center)
-!  write(34,*) ''
           enddo
           ao_pseudo_integral_non_local(i,j) = ao_pseudo_integral_non_local(i,j) +&
               ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i)*c
@@ -247,10 +217,10 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
       endif
     endif
   enddo
-  
-  !$OMP END DO
-  
-  !$OMP END PARALLEL
+!  
+!  !$OMP END DO
+!  
+!  !$OMP END PARALLEL
   
   
 END_PROVIDER
