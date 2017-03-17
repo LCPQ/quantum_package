@@ -75,9 +75,9 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
   logical                        :: good, fullMatch
 
   integer(bit_kind),allocatable  :: tq(:,:,:)
-  integer                        :: N_tq, c_ref ,degree
+  integer                        :: N_tq, c_ref ,degree1, degree2, degree
 
-  double precision               :: hIk, hla, hIl, sla, dIk(N_states), dka(N_states), dIa(N_states)
+  double precision               :: hIk, hla, hIl, sla, dIk(N_states), dka(N_states), dIa(N_states), hka
   double precision, allocatable  :: dIa_hla(:,:), dIa_sla(:,:)
   double precision               :: haj, phase, phase2
   double precision               :: f(N_states), ci_inv(N_states)
@@ -99,6 +99,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
   logical, external :: detEq, is_generable
   !double precision, external :: get_dij, get_dij_index
   
+
 
   leng = max(N_det_generators, N_det_non_ref)
   allocate(miniList(Nint, 2, leng), tq(Nint,2,n_selected), idx_minilist(leng), hij_cache(N_det_non_ref), sij_cache(N_det_non_ref))
@@ -199,8 +200,8 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
     ! |I>
     do i_I=1,N_det_ref
       ! Find triples and quadruple grand parents
-      call get_excitation_degree(tq(1,1,i_alpha),psi_ref(1,1,i_I),degree,Nint)
-      if (degree > 4) then
+      call get_excitation_degree(tq(1,1,i_alpha),psi_ref(1,1,i_I),degree1,Nint)
+      if (degree1 > 4) then
         cycle
       endif
       
@@ -212,22 +213,14 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
       do k_sd=1,idx_alpha(0)
         ! Loop if lambda == 0
         logical                        :: loop
-!         loop = .True.
-!         do i_state=1,N_states
-!           if (lambda_mrcc(i_state,idx_alpha(k_sd)) /= 0.d0) then
-!             loop = .False.
-!             exit
-!           endif
-!         enddo
-!         if (loop) then
-!           cycle
-!         endif
+        
+        hka = hij_cache(k_sd) 
         
         call get_excitation_degree(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(k_sd)),degree,Nint)
         if (degree > 2) then
           cycle
         endif
-        
+
         ! <I| /k\ |alpha>
         ! <I|H|k>
         !hIk = hij_mrcc(idx_alpha(k_sd),i_I)
@@ -235,15 +228,15 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
         
         
         ! |l> = Exc(k -> alpha) |I>
-        call get_excitation(psi_non_ref(1,1,idx_alpha(k_sd)),tq(1,1,i_alpha),exc,degree,phase,Nint)
-        call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+        call get_excitation(psi_non_ref(1,1,idx_alpha(k_sd)),tq(1,1,i_alpha),exc,degree2,phase,Nint)
+        call decode_exc(exc,degree2,h1,p1,h2,p2,s1,s2)
         do k=1,N_int
           tmp_det(k,1) = psi_ref(k,1,i_I)
           tmp_det(k,2) = psi_ref(k,2,i_I)
         enddo
         logical :: ok
         call apply_excitation(psi_ref(1,1,i_I), exc, tmp_det, ok, Nint)
-        if(.not. ok) cycle
+!        ok = ok .and. ( (degree2 /= 1).and.(degree /=1) )
         
         do i_state=1,N_states
           dIK(i_state) = dij(i_I, idx_alpha(k_sd), i_state)
@@ -253,28 +246,33 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
         do i_state=1,N_states
           dka(i_state) = 0.d0
         enddo
-        do l_sd=k_sd+1,idx_alpha(0)
-          call get_excitation_degree(tmp_det,psi_non_ref(1,1,idx_alpha(l_sd)),degree,Nint)
-          if (degree == 0) then
-            
-!             loop = .True.
-!             do i_state=1,N_states
-!               if (lambda_mrcc(i_state,idx_alpha(l_sd)) /= 0.d0) then
-!                 loop = .False.
-!                 exit
-!               endif
-!             enddo
-            loop = .false.
-            if (.not.loop) then
+
+        if (ok) then
+          do l_sd=k_sd+1,idx_alpha(0)
+            call get_excitation_degree(tmp_det,psi_non_ref(1,1,idx_alpha(l_sd)),degree,Nint)
+            if (degree == 0) then
               call get_excitation(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(l_sd)),exc,degree,phase2,Nint)
               do i_state=1,N_states
                 dka(i_state) = dij(i_I, idx_alpha(l_sd), i_state) * phase * phase2
               enddo
+              exit
             endif
+          enddo
 
-            exit
-          endif
-        enddo
+
+        else
+
+          ! Perturbative triples
+          double precision :: Delta_E
+          double precision, external :: diag_H_mat_elem
+          do i_state=1,N_states
+            Delta_E = psi_ref_energy_diagonalized(i_state) - diag_H_mat_elem(tq(1,1,i_alpha),N_int) 
+            dka(i_state) = -dabs(hka / Delta_E )
+dka(i_state) = 0.d0
+          enddo
+
+        endif
+
         do i_state=1,N_states
           dIa(i_state) = dIa(i_state) + dIk(i_state) * dka(i_state)
         enddo
