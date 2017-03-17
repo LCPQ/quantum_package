@@ -198,7 +198,7 @@
     enddo
    second_order_pt_new_2h2p(i_state) = contrib_2h2p(i_state) 
    enddo
-   print*, '2h2p = ',contrib_2h2p(:) 
+   print*, '2h2p = ',contrib_2h2p
 
 !  ! 2h2p   old fashion
 !  delta_ij_tmp = 0.d0
@@ -229,7 +229,6 @@
    call i_h_j(psi_ref(1,1,i),psi_ref(1,1,j),N_int,hij)
    hmatrix(i,j) = hij 
   enddo
-  print*, hmatrix(i,i), h00
   hmatrix(i,i) += - h00
  enddo
  do i = 1, N_det_ref
@@ -240,6 +239,13 @@
  print*, ''
  do i_state = 1, N_states
   print*,'state  ',i_state
+  do i = 1, N_det_ref
+   do j = 1, N_det_Ref
+    call i_h_j(psi_ref(1,1,i),psi_ref(1,1,j),N_int,hij)
+    hmatrix(i,j) = hij 
+   enddo
+   hmatrix(i,i) += - h00
+  enddo
   do i = 1, N_det_ref
    write(*,'(1000(F16.10,x))')delta_ij(i,:,i_state)
    do j = 1 , N_det_ref

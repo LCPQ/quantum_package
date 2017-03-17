@@ -1,6 +1,6 @@
 ! DO NOT MODIFY BY HAND
 ! Created by $QP_ROOT/scripts/ezfio_interface/ei_handler.py
-! from file /home/giner/qp_bis/quantum_package/src/MRPT_Utils/EZFIO.cfg
+! from file /home/giner/qp_fork/quantum_package/src/MRPT_Utils/EZFIO.cfg
 
 
 BEGIN_PROVIDER [ logical, do_third_order_1h1p  ]
