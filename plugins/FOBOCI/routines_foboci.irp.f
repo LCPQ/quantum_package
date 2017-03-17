@@ -13,6 +13,8 @@ subroutine set_intermediate_normalization_lmct_old(norm,i_hole)
  integer :: n_good_hole
  logical,allocatable :: is_a_ref_det(:)
  allocate(index_one_hole(n_det),index_one_hole_one_p(n_det),index_two_hole_one_p(N_det),index_two_hole(N_det),index_one_p(N_det),is_a_ref_det(N_det))
+ double precision, allocatable :: local_norm(:)
+ allocate(local_norm(N_states))
  
  n_one_hole = 0
  n_one_hole_one_p = 0
@@ -30,7 +32,6 @@ subroutine set_intermediate_normalization_lmct_old(norm,i_hole)
    do k = 1, N_states
     inv_coef_ref_generators_restart(k) = 1.d0/psi_coef(i,k)
    enddo
-!  cycle
   endif
   
   ! Find all the determinants present in the reference wave function
@@ -59,10 +60,8 @@ subroutine set_intermediate_normalization_lmct_old(norm,i_hole)
    enddo
   endif
  enddo
-!do k = 1, N_det
-! call debug_det(psi_det(1,1,k),N_int)
-! print*,'k,coef = ',k,psi_coef(k,1)/psi_coef(index_ref_generators_restart,1)
-!enddo
+
+
  print*,''
  print*,'n_good_hole = ',n_good_hole
  do k = 1,N_states
@@ -72,27 +71,37 @@ subroutine set_intermediate_normalization_lmct_old(norm,i_hole)
   enddo
   print*,''
  enddo
- norm = 0.d0
 
- ! Set the wave function to the intermediate normalization
+ ! Set the wave function to the intermediate normalization 
  do k = 1, N_states
   do i = 1, N_det
    psi_coef(i,k) = psi_coef(i,k) * inv_coef_ref_generators_restart(k)
   enddo
  enddo
+
+
+ norm = 0.d0
  do k = 1,N_states
   print*,'state ',k
   do i = 1, N_det
-!!  print*,'psi_coef(i_ref) = ',psi_coef(i,1)
    if (is_a_ref_det(i))then
     print*,'i,psi_coef_ref = ',psi_coef(i,k)
-    cycle
    endif
    norm(k) += psi_coef(i,k) * psi_coef(i,k)
   enddo
   print*,'norm = ',norm(k)
  enddo
+ do k =1, N_states
+  local_norm(k) = 1.d0 / dsqrt(norm(k))
+ enddo
+ do k = 1,N_states
+  do i = 1, N_det
+   psi_coef(i,k) = psi_coef(i,k) * local_norm(k)
+  enddo
+ enddo
+ 
  deallocate(index_one_hole,index_one_hole_one_p,index_two_hole_one_p,index_two_hole,index_one_p,is_a_ref_det)
+ deallocate(local_norm)
  soft_touch psi_coef
 end
 
@@ -117,6 +126,8 @@ subroutine set_intermediate_normalization_mlct_old(norm,i_particl)
  integer :: i_count
  allocate(index_one_hole(n_det),index_one_hole_one_p(n_det),index_two_hole_one_p(N_det),index_two_hole(N_det),index_one_p(N_det),is_a_ref_det(N_det))
  allocate(index_one_hole_two_p(n_det))
+ double precision, allocatable :: local_norm(:)
+ allocate(local_norm(N_states))
  
  n_one_hole = 0
  n_one_hole_one_p = 0
@@ -185,20 +196,29 @@ subroutine set_intermediate_normalization_mlct_old(norm,i_particl)
    psi_coef(i,k) = psi_coef(i,k) * inv_coef_ref_generators_restart(k)
   enddo
  enddo
- do k = 1, N_states
+
+ norm = 0.d0
+ do k = 1,N_states
   print*,'state ',k
   do i = 1, N_det
-!! print*,'i = ',i, psi_coef(i,1)
    if (is_a_ref_det(i))then
     print*,'i,psi_coef_ref = ',psi_coef(i,k)
-    cycle
    endif
    norm(k) += psi_coef(i,k) * psi_coef(i,k)
   enddo
-  print*,'norm = ',norm
+  print*,'norm = ',norm(k)
+ enddo
+ do k =1, N_states
+  local_norm(k) = 1.d0 / dsqrt(norm(k))
+ enddo
+ do k = 1,N_states
+  do i = 1, N_det
+   psi_coef(i,k) = psi_coef(i,k) * local_norm(k)
+  enddo
  enddo
  soft_touch psi_coef
  deallocate(index_one_hole,index_one_hole_one_p,index_two_hole_one_p,index_two_hole,index_one_p,is_a_ref_det)
+ deallocate(local_norm)
 end
 
 
@@ -210,12 +230,60 @@ subroutine update_density_matrix_osoci
  END_DOC
  integer :: i,j
  integer :: iorb,jorb
+ ! active <--> inactive block
  do i = 1, mo_tot_num
   do j = 1, mo_tot_num
-   one_body_dm_mo_alpha_osoci(i,j) = one_body_dm_mo_alpha_osoci(i,j) + (one_body_dm_mo_alpha_average(i,j) - one_body_dm_mo_alpha_generators_restart(i,j))
-   one_body_dm_mo_beta_osoci(i,j) = one_body_dm_mo_beta_osoci(i,j) + (one_body_dm_mo_beta_average(i,j) - one_body_dm_mo_beta_generators_restart(i,j))
+   one_body_dm_mo_alpha_osoci(i,j) += one_body_dm_mo_alpha_average(i,j) - one_body_dm_mo_alpha_generators_restart(i,j)
+   one_body_dm_mo_beta_osoci(i,j) += one_body_dm_mo_beta_average(i,j) - one_body_dm_mo_beta_generators_restart(i,j)
   enddo
  enddo
+!do i = 1, n_act_orb
+! iorb = list_act(i)
+! do j = 1, n_inact_orb
+!  jorb = list_inact(j)
+!  one_body_dm_mo_alpha_osoci(iorb,jorb)+= one_body_dm_mo_alpha_average(iorb,jorb)
+!  one_body_dm_mo_alpha_osoci(jorb,iorb)+= one_body_dm_mo_alpha_average(jorb,iorb)
+!  one_body_dm_mo_beta_osoci(iorb,jorb) += one_body_dm_mo_beta_average(iorb,jorb) 
+!  one_body_dm_mo_beta_osoci(jorb,iorb) += one_body_dm_mo_beta_average(jorb,iorb) 
+! enddo
+!enddo
+
+!! active <--> virt block
+!do i = 1, n_act_orb
+! iorb = list_act(i)
+! do j = 1, n_virt_orb
+!  jorb = list_virt(j)
+!  one_body_dm_mo_alpha_osoci(iorb,jorb)+= one_body_dm_mo_alpha_average(iorb,jorb)
+!  one_body_dm_mo_alpha_osoci(jorb,iorb)+= one_body_dm_mo_alpha_average(jorb,iorb)
+!  one_body_dm_mo_beta_osoci(iorb,jorb) += one_body_dm_mo_beta_average(iorb,jorb) 
+!  one_body_dm_mo_beta_osoci(jorb,iorb) += one_body_dm_mo_beta_average(jorb,iorb) 
+! enddo
+!enddo
+
+!! virt <--> virt block
+!do j = 1, n_virt_orb
+!  jorb = list_virt(j)
+!  one_body_dm_mo_alpha_osoci(jorb,jorb)+= one_body_dm_mo_alpha_average(jorb,jorb)
+!  one_body_dm_mo_beta_osoci(jorb,jorb) += one_body_dm_mo_beta_average(jorb,jorb) 
+!enddo
+
+!! inact <--> inact block
+!do j = 1, n_inact_orb
+!  jorb = list_inact(j)
+!  one_body_dm_mo_alpha_osoci(jorb,jorb) -= one_body_dm_mo_alpha_average(jorb,jorb)
+!  one_body_dm_mo_beta_osoci(jorb,jorb)  -= one_body_dm_mo_beta_average(jorb,jorb) 
+!enddo
+ double precision :: accu_alpha, accu_beta
+ accu_alpha = 0.d0
+ accu_beta = 0.d0
+ do i = 1, mo_tot_num
+  accu_alpha += one_body_dm_mo_alpha_osoci(i,i) 
+  accu_beta += one_body_dm_mo_beta_osoci(i,i) 
+! write(*,'(I3,X,100(F16.10,X))') i,one_body_dm_mo_alpha_osoci(i,i),one_body_dm_mo_beta_osoci(i,i),one_body_dm_mo_alpha_osoci(i,i)+one_body_dm_mo_beta_osoci(i,i)
+ enddo 
+ print*, 'accu_alpha/beta',accu_alpha,accu_beta
+ 
+ 
 
 
 end
@@ -261,8 +329,18 @@ end
 
 subroutine initialize_density_matrix_osoci
  implicit none
+ call set_generators_to_generators_restart
+ call set_psi_det_to_generators
+ call diagonalize_CI
+ 
  one_body_dm_mo_alpha_osoci = one_body_dm_mo_alpha_generators_restart
  one_body_dm_mo_beta_osoci  = one_body_dm_mo_beta_generators_restart
+ integer :: i
+ print*, '8*********************'
+  print*, 'initialize_density_matrix_osoci'
+ do i = 1, mo_tot_num
+  print*,one_body_dm_mo_alpha_osoci(i,i),one_body_dm_mo_alpha_generators_restart(i,i)
+ enddo
 end
 
 subroutine rescale_density_matrix_osoci(norm)
@@ -438,6 +516,10 @@ subroutine save_osoci_natural_mos
    endif
   enddo
  enddo
+ print*, 'test'
+ print*, 'test'
+ print*, 'test'
+ print*, 'test'
  do i = 1, mo_tot_num
   do j = i+1, mo_tot_num
    if(dabs(tmp(i,j)).le.threshold_fobo_dm)then
@@ -445,7 +527,9 @@ subroutine save_osoci_natural_mos
       tmp(j,i) = 0.d0
    endif
   enddo
+  print*, tmp(i,i)
  enddo
+ 
 
  label = "Natural"
  

@@ -15,6 +15,57 @@
    enddo
 END_PROVIDER
 
+ BEGIN_PROVIDER [ double precision, one_body_dm_mo_spin_index, (mo_tot_num_align,mo_tot_num,N_states,2) ]
+ implicit none 
+ integer :: i,j,ispin,istate
+ ispin = 1
+  do istate = 1, N_states
+   do j = 1, mo_tot_num
+    do i = 1, mo_tot_num
+     one_body_dm_mo_spin_index(i,j,istate,ispin) = one_body_dm_mo_alpha(i,j,istate)
+    enddo
+   enddo
+  enddo
+
+ ispin = 2
+  do istate = 1, N_states
+   do j = 1, mo_tot_num
+    do i = 1, mo_tot_num
+     one_body_dm_mo_spin_index(i,j,istate,ispin) = one_body_dm_mo_beta(i,j,istate)
+    enddo
+   enddo
+  enddo
+
+ END_PROVIDER
+
+
+ BEGIN_PROVIDER [ double precision, one_body_dm_dagger_mo_spin_index, (mo_tot_num_align,mo_tot_num,N_states,2) ]
+ implicit none 
+ integer :: i,j,ispin,istate
+ ispin = 1
+  do istate = 1, N_states
+   do j = 1, mo_tot_num
+    one_body_dm_dagger_mo_spin_index(j,j,istate,ispin) = 1 - one_body_dm_mo_alpha(j,j,istate)
+    do i = j+1, mo_tot_num
+     one_body_dm_dagger_mo_spin_index(i,j,istate,ispin) = -one_body_dm_mo_alpha(i,j,istate)
+     one_body_dm_dagger_mo_spin_index(j,i,istate,ispin) = -one_body_dm_mo_alpha(i,j,istate)
+    enddo
+   enddo
+  enddo
+
+ ispin = 2
+  do istate = 1, N_states
+   do j = 1, mo_tot_num
+    one_body_dm_dagger_mo_spin_index(j,j,istate,ispin) = 1 - one_body_dm_mo_beta(j,j,istate)
+    do i = j+1, mo_tot_num
+     one_body_dm_dagger_mo_spin_index(i,j,istate,ispin) = -one_body_dm_mo_beta(i,j,istate)
+     one_body_dm_dagger_mo_spin_index(j,i,istate,ispin) = -one_body_dm_mo_beta(i,j,istate)
+    enddo
+   enddo
+  enddo
+
+ END_PROVIDER
+
  BEGIN_PROVIDER [ double precision, one_body_dm_mo_alpha, (mo_tot_num_align,mo_tot_num,N_states) ]
 &BEGIN_PROVIDER [ double precision, one_body_dm_mo_beta, (mo_tot_num_align,mo_tot_num,N_states) ]
    implicit none
@@ -83,7 +134,6 @@ END_PROVIDER
      !$OMP END CRITICAL
      deallocate(tmp_a,tmp_b)
      !$OMP END PARALLEL
-
 END_PROVIDER
 
  BEGIN_PROVIDER [ double precision, one_body_single_double_dm_mo_alpha, (mo_tot_num_align,mo_tot_num) ]

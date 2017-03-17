@@ -17,6 +17,7 @@
    integer :: degree_respect_to_HF_l,index_ref_generators_restart
    double precision :: inv_coef_ref_generators_restart
    integer :: i
+   print*, 'providing the one_body_dm_mo_alpha_generators_restart'
 
    do i = 1, N_det_generators_restart
     ! Find the reference determinant for intermediate normalization
@@ -31,6 +32,11 @@
    do i = 1, N_det_generators_restart
     psi_coef_generators_restart(i,1) = psi_coef_generators_restart(i,1) * inv_coef_ref_generators_restart
     norm_generators_restart += psi_coef_generators_restart(i,1)**2
+   enddo
+   double precision :: inv_norm
+   inv_norm = 1.d0/dsqrt(norm_generators_restart)
+   do i = 1, N_det_generators_restart
+    psi_coef_generators_restart(i,1) = psi_coef_generators_restart(i,1)  * inv_norm
    enddo
 
 

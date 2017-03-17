@@ -14,7 +14,7 @@ BEGIN_PROVIDER [ integer, N_det_selectors]
   integer                        :: i
   double precision               :: norm, norm_max
   call write_time(output_determinants)
-  N_det_selectors = N_det_generators
+  N_det_selectors = N_det
   if (threshold_generators < 1.d0) then
     norm = 0.d0
     do i=1,N_det

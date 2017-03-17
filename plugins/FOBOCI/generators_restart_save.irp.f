@@ -74,3 +74,18 @@ END_PROVIDER
 &BEGIN_PROVIDER [ double precision, psi_coef_generators, (10000,N_states) ]
 
 END_PROVIDER
+
+subroutine update_generators_restart_coef
+ implicit none 
+ call set_generators_to_generators_restart
+ call set_psi_det_to_generators
+ call diagonalize_CI
+ integer :: i,j,k,l
+ do i = 1, N_det_generators_restart
+   do j = 1, N_states
+    psi_coef_generators_restart(i,j) = psi_coef(i,j)
+   enddo
+ enddo
+ soft_touch psi_coef_generators_restart
+ provide one_body_dm_mo_alpha_generators_restart
+end

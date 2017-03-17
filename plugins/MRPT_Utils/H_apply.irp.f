@@ -23,6 +23,7 @@ print s
 
 s = H_apply("mrpt_1h")
 s.filter_only_1h()
+s.unset_skip()
 s.data["parameters"] = ", delta_ij_, Ndet"
 s.data["declarations"] += """
     integer, intent(in) :: Ndet
@@ -43,6 +44,7 @@ print s
 
 s = H_apply("mrpt_1p")
 s.filter_only_1p()
+s.unset_skip()
 s.data["parameters"] = ", delta_ij_, Ndet"
 s.data["declarations"] += """
     integer, intent(in) :: Ndet
@@ -63,6 +65,7 @@ print s
 
 s = H_apply("mrpt_1h1p")
 s.filter_only_1h1p()
+s.unset_skip()
 s.data["parameters"] = ", delta_ij_, Ndet"
 s.data["declarations"] += """
     integer, intent(in) :: Ndet
@@ -83,6 +86,7 @@ print s
 
 s = H_apply("mrpt_2p")
 s.filter_only_2p()
+s.unset_skip()
 s.data["parameters"] = ", delta_ij_, Ndet"
 s.data["declarations"] += """
     integer, intent(in) :: Ndet
@@ -103,6 +107,7 @@ print s
 
 s = H_apply("mrpt_2h")
 s.filter_only_2h()
+s.unset_skip()
 s.data["parameters"] = ", delta_ij_, Ndet"
 s.data["declarations"] += """
     integer, intent(in) :: Ndet
@@ -124,6 +129,7 @@ print s
 
 s = H_apply("mrpt_1h2p")
 s.filter_only_1h2p()
+s.unset_skip()
 s.data["parameters"] = ", delta_ij_, Ndet"
 s.data["declarations"] += """
     integer, intent(in) :: Ndet
@@ -144,6 +150,7 @@ print s
 
 s = H_apply("mrpt_2h1p")
 s.filter_only_2h1p()
+s.unset_skip()
 s.data["parameters"] = ", delta_ij_, Ndet"
 s.data["declarations"] += """
     integer, intent(in) :: Ndet
@@ -164,6 +171,7 @@ print s
 
 s = H_apply("mrpt_2h2p")
 s.filter_only_2h2p()
+s.unset_skip()
 s.data["parameters"] = ", delta_ij_, Ndet"
 s.data["declarations"] += """
     integer, intent(in) :: Ndet

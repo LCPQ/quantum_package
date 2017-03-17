@@ -677,7 +677,6 @@ integer function load_$ao_integrals(filename)
   real(integral_kind), pointer   :: val(:)
   integer                        :: iknd, kknd
   integer*8                      :: n, j
-  double precision               :: get_$ao_bielec_integral
   load_$ao_integrals = 1
   open(unit=66,file=filename,FORM='unformatted',STATUS='UNKNOWN')
   read(66,err=98,end=98) iknd, kknd
@@ -712,7 +711,7 @@ integer function load_$ao_integrals(filename)
   
 end
 
-SUBST [ ao_integrals_map, ao_integrals, ao_num , get_ao_bielec_integral ]
-ao_integrals_map ; ao_integrals ; ao_num ; get_ao_bielec_integral ;;
-mo_integrals_map ; mo_integrals ; mo_tot_num ; get_mo_bielec_integral ;;
+SUBST [ ao_integrals_map, ao_integrals, ao_num ]
+ao_integrals_map ; ao_integrals ; ao_num ;;
+mo_integrals_map ; mo_integrals ; mo_tot_num ;;
 END_TEMPLATE

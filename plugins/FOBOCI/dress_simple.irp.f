@@ -175,6 +175,10 @@ subroutine dress_H_matrix_from_psi_det_input(psi_det_generators_input,Ndet_gener
   endif
   do j = 1, Ndet_generators
    call i_h_j(psi_det_generators_input(1,1,j),psi_det_generators_input(1,1,i),N_int,hij)  ! Fill the zeroth order H matrix
+   if(i==j)then
+    call debug_det(psi_det_generators_input(1,1,i),N_int)
+    print*, hij
+   endif
    dressed_H_matrix(i,j) = hij
   enddo
  enddo
@@ -234,6 +238,7 @@ subroutine dress_H_matrix_from_psi_det_input(psi_det_generators_input,Ndet_gener
   do i = 1, N_states
    i_state(i) = i
    E_ref(i) = eigvalues(i)
+   print*, 'E_ref(i)',E_ref(i)
   enddo
  endif
  do i = 1,N_states
@@ -287,7 +292,7 @@ subroutine dress_H_matrix_from_psi_det_input(psi_det_generators_input,Ndet_gener
       accu += eigvectors(j,i) * psi_coef_ref(j,k)
      enddo
      print*,'accu = ',accu
-     if(dabs(accu).ge.0.72d0)then
+     if(dabs(accu).ge.0.60d0)then
       i_good_state(0) +=1
       i_good_state(i_good_state(0)) = i
      endif
