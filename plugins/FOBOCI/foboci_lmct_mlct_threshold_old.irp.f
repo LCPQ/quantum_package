@@ -40,6 +40,7 @@ subroutine FOBOCI_lmct_mlct_old_thr(iter)
  logical :: lmct
  double precision, allocatable :: psi_singles_coef(:,:)
  logical :: exit_loop
+ call update_generators_restart_coef
  allocate( zero_bitmask(N_int,2) )
   do i = 1, n_inact_orb
    lmct = .True.

@@ -329,6 +329,10 @@ end
 
 subroutine initialize_density_matrix_osoci
  implicit none
+ call set_generators_to_generators_restart
+ call set_psi_det_to_generators
+ call diagonalize_CI
+ 
  one_body_dm_mo_alpha_osoci = one_body_dm_mo_alpha_generators_restart
  one_body_dm_mo_beta_osoci  = one_body_dm_mo_beta_generators_restart
  integer :: i
