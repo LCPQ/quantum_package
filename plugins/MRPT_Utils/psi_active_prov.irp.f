@@ -152,7 +152,7 @@ subroutine give_particles_in_virt_space(det_1,n_particles_spin,n_particles,parti
 
 end
 
-subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
+subroutine get_delta_e_dyall(det_1,det_2,delta_e_final)
  BEGIN_DOC
  ! routine that returns the delta_e with the Moller Plesset and Dyall operators
  !
@@ -170,7 +170,6 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
   use bitmasks
  double precision, intent(out) :: delta_e_final(N_states)
  integer(bit_kind), intent(in) :: det_1(N_int,2),det_2(N_int,2)
- double precision, intent(in) :: coef_array(N_states),hij
  integer :: i,j,k,l
  integer :: i_state
  
@@ -432,4 +431,5 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
 !write(*,'(100(f16.10,X))'), delta_e_final(1) , delta_e_act(1)  , delta_e_inactive(1) , delta_e_virt(1)
 
 end
+
 

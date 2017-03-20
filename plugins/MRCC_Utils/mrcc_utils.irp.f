@@ -911,7 +911,7 @@ double precision function get_dij_index(II, i, s, Nint)
     get_dij_index = get_dij_index 
   else if(lambda_type == 3) then
     call i_h_j(psi_ref(1,1,II), psi_non_ref(1,1,i), Nint, HIi)
-    call get_delta_e_dyall_fast(psi_ref(1,1,II),psi_non_ref(1,1,i),delta_e_final)
+    call get_delta_e_dyall(psi_ref(1,1,II),psi_non_ref(1,1,i),delta_e_final)
     get_dij_index = HIi * rho_mrpt(i, s) / delta_e_final(s)
   end if
 end function
