@@ -305,8 +305,8 @@ END_PROVIDER
  END_PROVIDER 
 
   BEGIN_PROVIDER [ double precision, CI_electronic_dressed_pt2_new_energy, (N_states_diag_heff) ]
- &BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_eigenvectors, (N_det_ref,N_states_diag_heff) ]
- &BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_eigenvectors_s2, (N_states_diag_heff) ]
+ &BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_eigenvectors, (N_det_ref,N_states) ]
+ &BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_eigenvectors_s2, (N_states) ]
   BEGIN_DOC
   ! Eigenvectors/values of the CI matrix
   END_DOC
@@ -394,6 +394,7 @@ END_PROVIDER
          psi_tmp(i) = eigenvectors(i,iorder(1))
        enddo
        CI_electronic_dressed_pt2_new_energy(i_state) = eigenvalues(iorder(1))
+       print*, 'CI_electronic_dressed_pt2_new_energy',CI_electronic_dressed_pt2_new_energy(i_state)
        call u_0_S2_u_0(CI_dressed_pt2_new_eigenvectors_s2(i_state),psi_tmp,N_det_ref,psi_det,N_int,1,N_det_ref)
        print*,'S^2      = ', CI_dressed_pt2_new_eigenvectors_s2(i_state)
       enddo
@@ -502,7 +503,7 @@ END_PROVIDER
 END_PROVIDER
  
 
-BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_energy, (N_states_diag_heff) ]
+BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_energy, (N_states) ]
   implicit none
   BEGIN_DOC
   ! N_states lowest eigenvalues of the CI matrix
@@ -511,7 +512,7 @@ BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_energy, (N_states_diag_hef
   integer                        :: j
   character*(8)                  :: st
   call write_time(output_determinants)
-  do j=1,N_states_diag_heff
+  do j=1,N_states
     CI_dressed_pt2_new_energy(j) = CI_electronic_dressed_pt2_new_energy(j) + nuclear_repulsion
     write(st,'(I4)') j
     call write_double(output_determinants,CI_dressed_pt2_new_energy(j),'Energy of state '//trim(st))

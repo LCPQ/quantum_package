@@ -32,13 +32,13 @@ subroutine routine_3
   call save_wavefunction_general(N_det_ref,N_states_diag_heff,psi_ref,N_det_ref,CI_dressed_pt2_new_eigenvectors)
  endif
  if(N_states.gt.1)then
-  print*, 'Energy differences : E(0) - E(i)'
+  print*, 'Energy differences : E(i) - E(0)'
   do i = 2, N_States
    print*,'State',i
    write(*,'(A12,X,I3,A3,XX,F20.16)')    '  S^2       ', i,' = ', CI_dressed_pt2_new_eigenvectors_s2(i)
-   write(*,'(A12,X,I3,A3,XX,F20.16)')    'Variational ', i,' = ', psi_ref_average_value(1) - psi_ref_average_value(i)
-   write(*,'(A12,X,I3,A3,XX,F20.16)')    'Perturbative', i,' = ', psi_ref_average_value(1)+second_order_pt_new(1) - (psi_ref_average_value(i)+second_order_pt_new(i))
-   write(*,'(A12,X,I3,A3,XX,F20.16)')    'Dressed     ', i,' = ', CI_dressed_pt2_new_energy(1) - CI_dressed_pt2_new_energy(i) 
+   write(*,'(A12,X,I3,A3,XX,F20.16)')    'Variational ', i,' = ', -(psi_ref_average_value(1) - psi_ref_average_value(i))
+   write(*,'(A12,X,I3,A3,XX,F20.16)')    'Perturbative', i,' = ', -(psi_ref_average_value(1)+second_order_pt_new(1) - (psi_ref_average_value(i)+second_order_pt_new(i)))
+   write(*,'(A12,X,I3,A3,XX,F20.16)')    'Dressed     ', i,' = ', -( CI_dressed_pt2_new_energy(1) - CI_dressed_pt2_new_energy(i) )
   enddo
  endif
 

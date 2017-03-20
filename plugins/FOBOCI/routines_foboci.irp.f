@@ -2,7 +2,7 @@ subroutine set_intermediate_normalization_lmct_old(norm,i_hole)
  implicit none
  integer, intent(in) :: i_hole
  double precision, intent(out) :: norm(N_states)
- integer :: i,j,degree,index_ref_generators_restart,k
+ integer :: i,j,degree,index_ref_generators_restart(N_states),k
  integer::  number_of_holes,n_h, number_of_particles,n_p
  integer, allocatable :: index_one_hole(:),index_one_hole_one_p(:),index_two_hole_one_p(:),index_two_hole(:)
  integer, allocatable :: index_one_p(:)
@@ -24,16 +24,18 @@ subroutine set_intermediate_normalization_lmct_old(norm,i_hole)
  n_good_hole = 0
  ! Find the one holes and one hole one particle
  is_a_ref_det = .False.
+ integer :: istate
+ do istate = 1, N_States
+  do i = 1, N_det
+   ! Find the reference determinant for intermediate normalization
+   call get_excitation_degree(ref_generators_restart(1,1,istate),psi_det(1,1,i),degree,N_int)   
+   if(degree == 0)then
+    index_ref_generators_restart(istate) = i
+    inv_coef_ref_generators_restart(istate) = 1.d0/psi_coef(i,istate)
+   endif
+  enddo
+ enddo
  do i = 1, N_det
-  ! Find the reference determinant for intermediate normalization
-  call get_excitation_degree(ref_generators_restart,psi_det(1,1,i),degree,N_int)   
-  if(degree == 0)then
-   index_ref_generators_restart = i
-   do k = 1, N_states
-    inv_coef_ref_generators_restart(k) = 1.d0/psi_coef(i,k)
-   enddo
-  endif
-  
   ! Find all the determinants present in the reference wave function
   do j = 1, N_det_generators_restart
    call get_excitation_degree(psi_det(1,1,i),psi_det_generators_restart(1,1,j),degree,N_int)  
@@ -67,7 +69,7 @@ subroutine set_intermediate_normalization_lmct_old(norm,i_hole)
  do k = 1,N_states
   print*,'state ',k
   do i = 1, n_good_hole
-   print*,'psi_coef(index_good_hole) = ',psi_coef(index_good_hole(i),k)/psi_coef(index_ref_generators_restart,k)
+   print*,'psi_coef(index_good_hole) = ',psi_coef(index_good_hole(i),k)/psi_coef(index_ref_generators_restart(k),k)
   enddo
   print*,''
  enddo
@@ -110,7 +112,7 @@ subroutine set_intermediate_normalization_mlct_old(norm,i_particl)
  implicit none
  integer, intent(in) :: i_particl
  double precision, intent(out) :: norm(N_states)
- integer :: i,j,degree,index_ref_generators_restart,k
+ integer :: i,j,degree,index_ref_generators_restart(N_states),k
  integer::  number_of_holes,n_h, number_of_particles,n_p
  integer, allocatable :: index_one_hole(:),index_one_hole_one_p(:),index_two_hole_one_p(:),index_two_hole(:)
  integer, allocatable :: index_one_p(:),index_one_hole_two_p(:)
@@ -139,16 +141,18 @@ subroutine set_intermediate_normalization_mlct_old(norm,i_particl)
  ! Find the one holes and one hole one particle
  i_count = 0
  is_a_ref_det = .False.
- do i = 1, N_det
-  call get_excitation_degree(ref_generators_restart,psi_det(1,1,i),degree,N_int)
-  if(degree == 0)then
-   index_ref_generators_restart = i
-   do k = 1, N_states
-    inv_coef_ref_generators_restart(k) = 1.d0/psi_coef(i,k)
-   enddo
-!  cycle
-  endif
+ integer :: istate
+ do istate = 1, N_states
+  do i = 1, N_det
+   call get_excitation_degree(ref_generators_restart(1,1,istate),psi_det(1,1,i),degree,N_int)
+   if(degree == 0)then
+    index_ref_generators_restart(istate) = i
+    inv_coef_ref_generators_restart(istate) = 1.d0/psi_coef(i,istate)
+   endif
+  enddo
+ enddo
 
+ do i = 1, N_det
   ! Find all the determinants present in the reference wave function
   do j = 1, N_det_generators_restart
    call get_excitation_degree(psi_det(1,1,i),psi_det_generators_restart(1,1,j),degree,N_int)  
@@ -184,7 +188,7 @@ subroutine set_intermediate_normalization_mlct_old(norm,i_particl)
  do k = 1, N_states
    print*,'state ',k
    do i = 1, n_good_particl
-    print*,'psi_coef(index_good_particl,1) = ',psi_coef(index_good_particl(i),k)/psi_coef(index_ref_generators_restart,k)
+    print*,'psi_coef(index_good_particl,1) = ',psi_coef(index_good_particl(i),k)/psi_coef(index_ref_generators_restart(k),k)
    enddo
    print*,''
  enddo
