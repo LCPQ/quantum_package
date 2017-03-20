@@ -38,7 +38,7 @@ Documentation
   Array of the name of element, sorted by nuclear charge (integer)
 
 
-`nucl_charge <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L24>`_
+`nucl_charge <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L26>`_
   Nuclear charges
 
 

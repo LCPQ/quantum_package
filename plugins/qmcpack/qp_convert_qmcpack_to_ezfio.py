@@ -364,10 +364,6 @@ for line_raw in det_without_header.split("\n"):
         try:
             float(line)
         except ValueError:
-
-            print line_raw.strip(), len(line_raw.strip())
-            print l_order_mo, len(l_order_mo)
-
             line_order = [line_raw[i] for i in l_order_mo]
             line= "".join([d_rep[x] if x in d_rep else x for x in line_raw])
 

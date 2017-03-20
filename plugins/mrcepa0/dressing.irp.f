@@ -300,22 +300,22 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
       enddo
       call omp_set_lock( psi_ref_lock(i_I) )
       do i_state=1,N_states
-!        if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5)then
-!          do l_sd=1,idx_alpha(0)
-!            k_sd = idx_alpha(l_sd)
-!            delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
-!            delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
-!            delta_ij_s2_(i_state,k_sd,i_I) = delta_ij_s2_(i_state,k_sd,i_I) + dIa_sla(i_state,k_sd)
-!            delta_ii_s2_(i_state,i_I) = delta_ii_s2_(i_state,i_I) - dIa_sla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
-!          enddo
-!        else
+        if(dabs(psi_ref_coef(i_I,i_state)).ge.1.d-3)then
+          do l_sd=1,idx_alpha(0)
+            k_sd = idx_alpha(l_sd)
+            delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
+            delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
+            delta_ij_s2_(i_state,k_sd,i_I) = delta_ij_s2_(i_state,k_sd,i_I) + dIa_sla(i_state,k_sd)
+            delta_ii_s2_(i_state,i_I) = delta_ii_s2_(i_state,i_I) - dIa_sla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
+          enddo
+        else
           delta_ii_(i_state,i_I)  = 0.d0
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
             delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + 0.5d0*dIa_hla(i_state,k_sd)
             delta_ij_s2_(i_state,k_sd,i_I) = delta_ij_s2_(i_state,k_sd,i_I) + 0.5d0*dIa_sla(i_state,k_sd)
           enddo
-!        endif
+        endif
       enddo
       call omp_unset_lock( psi_ref_lock(i_I) )
     enddo
@@ -691,7 +691,7 @@ subroutine getHP(a,h,p,Nint)
   end do lh
   h = deg
   !isInCassd = .true.
-end function
+end subroutine
 
 
  BEGIN_PROVIDER [ double precision, delta_mrcepa0_ij, (N_det_ref,N_det_non_ref,N_states) ]
@@ -716,6 +716,9 @@ end function
   integer :: II, blok
   integer*8, save :: notf = 0
 
+
+  PROVIDE psi_ref_coef psi_non_ref_coef
+ 
   call wall_time(wall)
   allocate(idx_sorted_bit(N_det), sortRef(N_int,2,N_det_ref))
   
@@ -784,7 +787,7 @@ end function
           contrib = delta_cas(II, J, i_state) * dij(J, det_cepa0_idx(k), i_state)
           contrib_s2 = delta_cas_s2(II, J, i_state) * dij(J, det_cepa0_idx(k), i_state)
           
-          if(dabs(psi_ref_coef(J,i_state)).ge.5.d-5) then
+          if(dabs(psi_ref_coef(J,i_state)).ge.1.d-3) then
             contrib2 = contrib / psi_ref_coef(J, i_state) * psi_non_ref_coef(det_cepa0_idx(i),i_state)
             contrib2_s2 = contrib_s2 / psi_ref_coef(J, i_state) * psi_non_ref_coef(det_cepa0_idx(i),i_state)
             !$OMP ATOMIC
@@ -839,8 +842,7 @@ END_PROVIDER
     delta_sub_ij(:,:,:) = 0d0
     delta_sub_ii(:,:) = 0d0
     
-    provide mo_bielec_integrals_in_map
-    
+    provide mo_bielec_integrals_in_map N_det_non_ref psi_ref_coef psi_non_ref_coef 
     
     !$OMP PARALLEL DO default(none) schedule(dynamic,10) shared(delta_sub_ij, delta_sub_ii)       &
     !$OMP private(i, J, k, degree, degree2, l, deg, ni)       &
@@ -895,7 +897,7 @@ END_PROVIDER
             call apply_excitation(psi_non_ref(1,1,i),exc_Ik,det_tmp,ok,N_int)
             if(ok) cycle
             contrib = delta_IJk * HIl * lambda_mrcc(i_state,l)   
-            if(dabs(psi_ref_coef(II,i_state)).ge.5.d-5) then
+            if(dabs(psi_ref_coef(II,i_state)).ge.1.d-3) then
               contrib2 = contrib / psi_ref_coef(II, i_state) * psi_non_ref_coef(l,i_state)
               !$OMP ATOMIC
               delta_sub_ii(II,i_state) -= contrib2

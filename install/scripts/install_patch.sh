@@ -9,7 +9,7 @@ function _install()
   QP_ROOT=$PWD
   cd -
   cd ${BUILD}
-  ./configure --prefix=${QP_ROOT}/install/${TARGET} && make || exit 1
+  ./configure --prefix=${QP_ROOT} && make || exit 1
   make install || exit 1
   cd -
   cp ${TARGET}/bin/${TARGET} ${QP_ROOT}/bin || exit 1
