@@ -807,7 +807,7 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
       ! Diagonalize h
       ! -------------
       call lapack_diag(lambda,y,h,size(h,1),shift2)
-      
+
       ! Compute S2 for each eigenvector
       ! -------------------------------
 
@@ -829,7 +829,9 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
             state_ok(k) = (dabs(s2(k)-expected_s2) < 0.6d0)
           enddo
       else
-        state_ok(k) = .True.
+        do k=1,size(state_ok)
+          state_ok(k) = .True.
+        enddo
       endif
 
       do k=1,shift2
@@ -908,30 +910,30 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
       ! -----------------------
 
       do k=1,N_st_diag
-        if (state_ok(k)) then
+!        if (state_ok(k)) then
           do i=1,sze
             U(i,shift2+k) = (lambda(k) * U(i,shift2+k) - W(i,shift2+k) )      &
                 * (1.d0 + s2(k) * U(i,shift2+k) - S(i,shift2+k) - S_z2_Sz &
               )/max(H_jj(i) - lambda (k),1.d-2)
           enddo
-        else
-          ! Randomize components with bad <S2>
-            do i=1,sze-2,2
-              call random_number(r1)
-              call random_number(r2)
-              r1 = dsqrt(-2.d0*dlog(r1))
-              r2 = dtwo_pi*r2
-              U(i,shift2+k) = r1*dcos(r2)
-              U(i+1,shift2+k) = r1*dsin(r2)
-            enddo
-            do i=sze-2+1,sze
-              call random_number(r1)
-              call random_number(r2)
-              r1 = dsqrt(-2.d0*dlog(r1))
-              r2 = dtwo_pi*r2
-              U(i,shift2+k) = r1*dcos(r2)
-            enddo
-        endif
+!        else
+!          ! Randomize components with bad <S2>
+!            do i=1,sze-2,2
+!              call random_number(r1)
+!              call random_number(r2)
+!              r1 = dsqrt(-2.d0*dlog(r1))
+!              r2 = dtwo_pi*r2
+!              U(i,shift2+k) = r1*dcos(r2)
+!              U(i+1,shift2+k) = r1*dsin(r2)
+!            enddo
+!            do i=sze-2+1,sze
+!              call random_number(r1)
+!              call random_number(r2)
+!              r1 = dsqrt(-2.d0*dlog(r1))
+!              r2 = dtwo_pi*r2
+!              U(i,shift2+k) = r1*dcos(r2)
+!            enddo
+!        endif
 
         if (k <= N_st) then
           residual_norm(k) = u_dot_u(U(1,shift2+k),sze)
@@ -1040,6 +1042,7 @@ subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_i
   call sort_dets_ab_v(keys_tmp, sorted(1,1,1), sort_idx(1,1), shortcut(0,1), version(1,1,1), n, Nint)
   call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
 
+  PROVIDE delta_ij_s2 
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,s2,j,k,jj,vt,st,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i,istate)&
       !$OMP SHARED(n,keys_tmp,ut,Nint,v_0,s_0,sorted,shortcut,sort_idx,version,N_st,N_st_8, &

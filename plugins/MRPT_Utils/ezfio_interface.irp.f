@@ -1,6 +1,10 @@
 ! DO NOT MODIFY BY HAND
 ! Created by $QP_ROOT/scripts/ezfio_interface/ei_handler.py
+<<<<<<< HEAD
 ! from file /home/giner/qp_fork/quantum_package/src/MRPT_Utils/EZFIO.cfg
+=======
+! from file /home/scemama/quantum_package/src/MRPT_Utils/EZFIO.cfg
+>>>>>>> 4a552cc8fe36ae7c8c86eb714c2f032b44330ea0
 
 
 BEGIN_PROVIDER [ logical, do_third_order_1h1p  ]
@@ -21,6 +25,7 @@ BEGIN_PROVIDER [ logical, do_third_order_1h1p  ]
   endif
 
 END_PROVIDER
+<<<<<<< HEAD
 
 BEGIN_PROVIDER [ logical, save_heff_eigenvectors  ]
   implicit none
@@ -78,3 +83,5 @@ BEGIN_PROVIDER [ logical, pure_state_specific_mrpt2  ]
   endif
 
 END_PROVIDER
+=======
+>>>>>>> 4a552cc8fe36ae7c8c86eb714c2f032b44330ea0
