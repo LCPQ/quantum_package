@@ -191,12 +191,20 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
       end do
     end if
     
+    if (perturbative_triples) then
+      double precision :: Delta_E_inv(N_states)
+      double precision, external :: diag_H_mat_elem
+      do i_state=1,N_states
+        Delta_E_inv(i_state) = 1.d0 / (psi_ref_energy_diagonalized(i_state) - diag_H_mat_elem(tq(1,1,i_alpha),N_int) )
+      enddo
+    endif
     
     do l_sd=1,idx_alpha(0)
       k_sd = idx_alpha(l_sd)
       call i_h_j(tq(1,1,i_alpha),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,hij_cache(k_sd))
       call get_s2(tq(1,1,i_alpha),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,sij_cache(k_sd))
     enddo
+
     ! |I>
     do i_I=1,N_det_ref
       ! Find triples and quadruple grand parents
@@ -211,21 +219,13 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
       
       ! <I|  <>  |alpha>
       do k_sd=1,idx_alpha(0)
-        ! Loop if lambda == 0
-        logical                        :: loop
-        
-        hka = hij_cache(k_sd) 
-        
+
         call get_excitation_degree(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(k_sd)),degree,Nint)
         if (degree > 2) then
           cycle
         endif
 
         ! <I| /k\ |alpha>
-        ! <I|H|k>
-        !hIk = hij_mrcc(idx_alpha(k_sd),i_I)
-        !         call i_h_j(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(k_sd)),Nint,hIk)
-        
         
         ! |l> = Exc(k -> alpha) |I>
         call get_excitation(psi_non_ref(1,1,idx_alpha(k_sd)),tq(1,1,i_alpha),exc,degree2,phase,Nint)
@@ -236,7 +236,9 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
         enddo
         logical :: ok
         call apply_excitation(psi_ref(1,1,i_I), exc, tmp_det, ok, Nint)
-!        ok = ok .and. ( (degree2 /= 1).and.(degree /=1) )
+        if (perturbative_triples) then
+          ok = ok .and. ( (degree2 /= 1).and.(degree /=1) )
+        endif
         
         do i_state=1,N_states
           dIK(i_state) = dij(i_I, idx_alpha(k_sd), i_state)
@@ -259,16 +261,11 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
             endif
           enddo
 
+        else if (perturbative_triples) then
 
-        else
-
-          ! Perturbative triples
-          double precision :: Delta_E
-          double precision, external :: diag_H_mat_elem
+          hka = hij_cache(idx_alpha(k_sd))
           do i_state=1,N_states
-            Delta_E = psi_ref_energy_diagonalized(i_state) - diag_H_mat_elem(tq(1,1,i_alpha),N_int) 
-            dka(i_state) = -dabs(hka / Delta_E )
-dka(i_state) = 0.d0
+            dka(i_state) = hka * Delta_E_inv(i_state)
           enddo
 
         endif
