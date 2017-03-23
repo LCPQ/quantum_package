@@ -925,22 +925,29 @@ subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullLis
   
   N_miniList = 0
   
+  integer :: e_ab
+  e_ab = n_a+n_b
   do i=1,N_fullList
-    e_a = n_a - popcnt(iand(fullList(1, 1, i), key_mask(1, 1)))
-    e_b = n_b - popcnt(iand(fullList(1, 2, i), key_mask(1, 2)))
+    e_a = e_ab - popcnt(iand(fullList(1, 1, i), key_mask(1, 1))) &
+               - popcnt(iand(fullList(1, 2, i), key_mask(1, 2)))
     do ni=2,nint
-      e_a -= popcnt(iand(fullList(ni, 1, i), key_mask(ni, 1)))
-      e_b -= popcnt(iand(fullList(ni, 2, i), key_mask(ni, 2)))
+      e_a = e_a - popcnt(iand(fullList(ni, 1, i), key_mask(ni, 1))) &
+                - popcnt(iand(fullList(ni, 2, i), key_mask(ni, 2)))
     end do
     
-    if(e_a + e_b <= 2) then
-      N_miniList = N_miniList + 1
-      do ni=1,Nint
-        miniList(ni,1,N_miniList) = fullList(ni,1,i)
-        miniList(ni,2,N_miniList) = fullList(ni,2,i)
-      enddo
-      idx_miniList(N_miniList) = i
-    end if
+    if(e_a > 2) then
+      cycle
+    endif
+
+    N_miniList = N_miniList + 1
+    miniList(1,1,N_miniList) = fullList(1,1,i)
+    miniList(1,2,N_miniList) = fullList(1,2,i)
+    do ni=2,Nint
+      miniList(ni,1,N_miniList) = fullList(ni,1,i)
+      miniList(ni,2,N_miniList) = fullList(ni,2,i)
+    enddo
+    idx_miniList(N_miniList) = i
+
   end do
 end subroutine
 

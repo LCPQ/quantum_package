@@ -285,7 +285,9 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
   
   
   do i=1, N_minilist
-    do j=1,Nint
+    mobileMask(1,1) = iand(key_mask_neg(1,1), minilist(1,1,i))
+    mobileMask(1,2) = iand(key_mask_neg(1,2), minilist(1,2,i))
+    do j=2,Nint
       mobileMask(j,1) = iand(key_mask_neg(j,1), minilist(j,1,i))
       mobileMask(j,2) = iand(key_mask_neg(j,2), minilist(j,2,i))
     end do
@@ -296,7 +298,9 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
     
     if(n_element(1) + n_element(2) /= 4) then
       idx_microlist(cur_microlist(0)) = i
-      do k=1,Nint
+      microlist(1,1,cur_microlist(0)) = minilist(1,1,i)
+      microlist(1,2,cur_microlist(0)) = minilist(1,2,i)
+      do k=2,Nint
         microlist(k,1,cur_microlist(0)) = minilist(k,1,i)
         microlist(k,2,cur_microlist(0)) = minilist(k,2,i)
       enddo
@@ -305,8 +309,10 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
       do j=1,n_element(1)
         nt = list(j,1)
         idx_microlist(cur_microlist(nt)) = i
+        microlist(1,1,cur_microlist(nt)) = minilist(1,1,i)
+        microlist(1,2,cur_microlist(nt)) = minilist(1,2,i)
         ! TODO : Page faults
-        do k=1,Nint
+        do k=2,Nint
           microlist(k,1,cur_microlist(nt)) = minilist(k,1,i)
           microlist(k,2,cur_microlist(nt)) = minilist(k,2,i)
         enddo
@@ -316,7 +322,9 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
       do j=1,n_element(2)
         nt = list(j,2) + mo_tot_num
         idx_microlist(cur_microlist(nt)) = i
-        do k=1,Nint
+        microlist(1,1,cur_microlist(nt)) = minilist(1,1,i)
+        microlist(1,2,cur_microlist(nt)) = minilist(1,2,i)
+        do k=2,Nint
           microlist(k,1,cur_microlist(nt)) = minilist(k,1,i)
           microlist(k,2,cur_microlist(nt)) = minilist(k,2,i)
         enddo
