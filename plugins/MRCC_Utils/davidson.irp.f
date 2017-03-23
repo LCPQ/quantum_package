@@ -1023,7 +1023,7 @@ subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_i
   Vt = 0.d0
   St = 0.d0
 
-  !$OMP DO SCHEDULE(static,1)
+  !$OMP DO SCHEDULE(guided)
   do sh=1,shortcut(0,1)
     do sh2=sh,shortcut(0,1)
       exa = 0
@@ -1066,7 +1066,8 @@ subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_i
     enddo
   enddo
   !$OMP END DO
-  !$OMP DO SCHEDULE(static,1)
+
+  !$OMP DO SCHEDULE(guided)
   do sh=1,shortcut(0,2)
     do i=shortcut(sh,2),shortcut(sh+1,2)-1
       org_i = sort_idx(i,2)
