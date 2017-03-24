@@ -1,10 +1,6 @@
 ! DO NOT MODIFY BY HAND
 ! Created by $QP_ROOT/scripts/ezfio_interface/ei_handler.py
-<<<<<<< HEAD
 ! from file /home/giner/qp_fork/quantum_package/src/MRPT_Utils/EZFIO.cfg
-=======
-! from file /home/scemama/quantum_package/src/MRPT_Utils/EZFIO.cfg
->>>>>>> 4a552cc8fe36ae7c8c86eb714c2f032b44330ea0
 
 
 BEGIN_PROVIDER [ logical, do_third_order_1h1p  ]
@@ -25,12 +21,11 @@ BEGIN_PROVIDER [ logical, do_third_order_1h1p  ]
   endif
 
 END_PROVIDER
-<<<<<<< HEAD
 
 BEGIN_PROVIDER [ logical, save_heff_eigenvectors  ]
   implicit none
   BEGIN_DOC
-! If true, you save the eigenvectors of the effective hamiltonian
+! If true, save the eigenvectors of the dressed matrix
   END_DOC
 
   logical                        :: has
@@ -45,43 +40,3 @@ BEGIN_PROVIDER [ logical, save_heff_eigenvectors  ]
   endif
 
 END_PROVIDER
-
-BEGIN_PROVIDER [ integer, n_states_diag_heff  ]
-  implicit none
-  BEGIN_DOC
-! Number of eigenvectors obtained with the effective hamiltonian
-  END_DOC
-
-  logical                        :: has
-  PROVIDE ezfio_filename
-  
-  call ezfio_has_mrpt_utils_n_states_diag_heff(has)
-  if (has) then
-    call ezfio_get_mrpt_utils_n_states_diag_heff(n_states_diag_heff)
-  else
-    print *, 'mrpt_utils/n_states_diag_heff not found in EZFIO file'
-    stop 1
-  endif
-
-END_PROVIDER
-
-BEGIN_PROVIDER [ logical, pure_state_specific_mrpt2  ]
-  implicit none
-  BEGIN_DOC
-! If true, diagonalize the dressed matrix for each state and do a state following of the initial states
-  END_DOC
-
-  logical                        :: has
-  PROVIDE ezfio_filename
-  
-  call ezfio_has_mrpt_utils_pure_state_specific_mrpt2(has)
-  if (has) then
-    call ezfio_get_mrpt_utils_pure_state_specific_mrpt2(pure_state_specific_mrpt2)
-  else
-    print *, 'mrpt_utils/pure_state_specific_mrpt2 not found in EZFIO file'
-    stop 1
-  endif
-
-END_PROVIDER
-=======
->>>>>>> 4a552cc8fe36ae7c8c86eb714c2f032b44330ea0

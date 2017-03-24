@@ -181,7 +181,7 @@
  accu = 0.d0
  do i_state = 1, N_states
  do i = 1, N_det
-! write(*,'(1000(F16.10,x))')delta_ij(i,:,:)
+  write(*,'(1000(F16.10,x))')delta_ij(i,:,:)
   do j = i_state, N_det
    accu(i_state) += delta_ij(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
   enddo
@@ -245,11 +245,11 @@ END_PROVIDER
   integer, allocatable :: iorder(:)
   
   ! Guess values for the "N_states_diag" states of the CI_dressed_pt2_new_eigenvectors 
-  do j=1,min(N_states_diag,N_det)
-    do i=1,N_det
-      CI_dressed_pt2_new_eigenvectors(i,j) = psi_coef(i,j)
-    enddo
-  enddo
+! do j=1,min(N_states_diag,N_det)
+!   do i=1,N_det
+!     CI_dressed_pt2_new_eigenvectors(i,j) = psi_coef(i,j)
+!   enddo
+! enddo
 
   do j=N_det+1,N_states_diag
     do i=1,N_det
