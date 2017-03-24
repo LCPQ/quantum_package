@@ -29,7 +29,7 @@ subroutine routine_3
   enddo
  enddo 
  if(save_heff_eigenvectors)then
-  call save_wavefunction_general(N_det_ref,N_states_diag,psi_ref,N_det_ref,CI_dressed_pt2_new_eigenvectors)
+  call save_wavefunction_general(N_det_ref,N_states,psi_ref,N_det_ref,CI_dressed_pt2_new_eigenvectors)
  endif
  if(N_states.gt.1)then
   print*, 'Energy differences : E(i) - E(0)'
