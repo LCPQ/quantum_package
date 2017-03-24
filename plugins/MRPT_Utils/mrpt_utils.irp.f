@@ -34,11 +34,13 @@
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
    delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
+  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
  enddo
    second_order_pt_new_1h(i_state) = accu(i_state) 
  enddo
  print*, '1h   = ',accu
  
+ stop
  ! 1p 
  delta_ij_tmp = 0.d0
  call H_apply_mrpt_1p(delta_ij_tmp,N_det)
@@ -49,6 +51,7 @@
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
    delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
+  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
  enddo
  second_order_pt_new_1p(i_state) = accu(i_state) 
  enddo
@@ -67,6 +70,7 @@
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
    delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
+  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
  enddo
  second_order_pt_new_1h1p(i_state) = accu(i_state) 
  enddo
@@ -83,6 +87,7 @@
     accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
     delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
    enddo
+  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
   enddo
   second_order_pt_new_1h1p(i_state) = accu(i_state) 
   enddo
@@ -99,6 +104,7 @@
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
    delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
+  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
  enddo
  second_order_pt_new_2h(i_state) = accu(i_state) 
  enddo
@@ -114,6 +120,7 @@
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
    delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
+  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
  enddo
  second_order_pt_new_2p(i_state) = accu(i_state) 
  enddo
@@ -130,6 +137,7 @@
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
    delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
+  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
  enddo
  second_order_pt_new_1h2p(i_state) = accu(i_state) 
  enddo
@@ -146,6 +154,7 @@
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
    delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
+  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
  enddo
  second_order_pt_new_2h1p(i_state) = accu(i_state) 
  enddo
@@ -178,6 +187,9 @@
  
 
  ! total  
+ print*, ''
+ print*, 'total dressing'
+ print*, ''
  accu = 0.d0
  do i_state = 1, N_states
  do i = 1, N_det
@@ -245,11 +257,11 @@ END_PROVIDER
   integer, allocatable :: iorder(:)
   
   ! Guess values for the "N_states_diag" states of the CI_dressed_pt2_new_eigenvectors 
-! do j=1,min(N_states_diag,N_det)
-!   do i=1,N_det
-!     CI_dressed_pt2_new_eigenvectors(i,j) = psi_coef(i,j)
-!   enddo
-! enddo
+  do j=1,min(N_states,N_det)
+    do i=1,N_det
+      CI_dressed_pt2_new_eigenvectors(i,j) = psi_coef(i,j)
+    enddo
+  enddo
 
   do j=N_det+1,N_states_diag
     do i=1,N_det
