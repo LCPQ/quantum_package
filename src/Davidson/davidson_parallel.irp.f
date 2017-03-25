@@ -54,6 +54,8 @@ subroutine davidson_process(blockb, blockb2, N, idx, vt, st, bs, istep)
           org_j = sort_idx_(j,1)
           call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij)
           call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2) 
+!          call i_h_j (sorted_(1,j,1),sorted_(1,i,1),n_int,hij)
+!          call get_s2(sorted_(1,j,1),sorted_(1,i,1),n_int,s2) 
           if(.not. wrotten(ii)) then
             wrotten(ii) = .true.
             idx(ii) = org_i
@@ -70,11 +72,15 @@ subroutine davidson_process(blockb, blockb2, N, idx, vt, st, bs, istep)
   enddo
   
 
-  if (blockb <= shortcut_(0,2)) then
+  if ( blockb <= shortcut_(0,2) ) then
     sh=blockb
     do sh2=sh, shortcut_(0,2), shortcut_(0,1)
       do i=blockb2+shortcut_(sh2,2),shortcut_(sh2+1,2)-1, istep
         ii += 1
+        if (ii>bs) then
+          print *,  irp_here
+          stop 'ii>bs'
+        endif
         org_i = sort_idx_(i,2)
         do j=shortcut_(sh2,2),shortcut_(sh2+1,2)-1
           if(i == j) cycle
@@ -88,6 +94,8 @@ subroutine davidson_process(blockb, blockb2, N, idx, vt, st, bs, istep)
           if(ext == 4) then
             call i_h_j (dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,hij)
             call get_s2(dav_det(1,1,org_j),dav_det(1,1,org_i),n_int,s2)
+!            call i_h_j (sorted_(1,j,2),sorted_(1,i,2),n_int,hij)
+!            call get_s2(sorted_(1,j,2),sorted_(1,i,2),n_int,s2) 
             if(.not. wrotten(ii)) then
               wrotten(ii) = .true.
               idx(ii) = org_i
@@ -133,10 +141,8 @@ subroutine davidson_collect(N, idx, vt, st , v0t, s0t)
 
   integer :: i, j, k
 
-  !DIR$ IVDEP
   do i=1,N
     k = idx(i)
-    !DIR$ IVDEP
     do j=1,N_states_diag
       v0t(j,k) = v0t(j,k) + vt(j,i)
       s0t(j,k) = s0t(j,k) + st(j,i)
@@ -415,9 +421,7 @@ subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull , v0, s0, LD
   deallocate(idx,vt,st)
 
   integer :: i,j
-  !DIR$ IVDEP
   do j=1,N_states_diag
-   !DIR$ IVDEP
    do i=1,dav_size
      v0(i,j) = v0t(j,i)
      s0(i,j) = s0t(j,i)

@@ -191,8 +191,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
   
-  update_dets = 1
-
   ! Davidson iterations
   ! ===================
   
@@ -213,6 +211,8 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   enddo
   
   
+  update_dets = 1
+
   do while (.not.converged)
     
     do k=1,N_st_diag

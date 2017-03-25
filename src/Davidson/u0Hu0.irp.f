@@ -339,7 +339,8 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_
         workload += (shortcut_(j+1,2) - shortcut_(j, 2))**2
       end do
     end do
-    istep = 1+ int(workload*target_workload_inv)
+!    istep = 1+ int(workload*target_workload_inv)
+    istep = 1
     do blockb2=0, istep-1
       write(tmp_task,'(3(I9,X),''|'',X)') sh, blockb2, istep
       task = task//tmp_task
