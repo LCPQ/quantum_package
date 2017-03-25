@@ -145,13 +145,14 @@ subroutine davidson_collect(N, idx, vt, st , v0t, s0t)
 end subroutine
 
 
-subroutine davidson_init(zmq_to_qp_run_socket,u,n0,n,n_st,update_dets)
+subroutine davidson_init(zmq_to_qp_run_socket,dets_in,u,n0,n,n_st,update_dets)
   use f77_zmq
   implicit none
   
   integer(ZMQ_PTR), intent(out)  :: zmq_to_qp_run_socket
   integer, intent(in) :: n0,n, n_st, update_dets
   double precision, intent(in) :: u(n0,n_st)
+  integer(bit_kind), intent(in) :: dets_in(N_int,2,n)
   integer :: i,k
 
   
@@ -160,8 +161,8 @@ subroutine davidson_init(zmq_to_qp_run_socket,u,n0,n,n_st,update_dets)
     touch dav_size
     do i=1,dav_size
       do k=1,N_int
-        dav_det(k,1,i) = psi_det(k,1,i)
-        dav_det(k,2,i) = psi_det(k,2,i)
+        dav_det(k,1,i) = dets_in(k,1,i)
+        dav_det(k,2,i) = dets_in(k,2,i)
       enddo
     enddo
     touch dav_det
@@ -527,18 +528,40 @@ subroutine davidson_miniserver_get(force_update)
   rc        = f77_zmq_connect(requester,address)
 
   rc = f77_zmq_send(requester, 'ut', 2, 0)
+
   rc = f77_zmq_recv(requester, update_dets, 4, 0)
+  if (rc /= 4) then
+    print *, irp_here, ': f77_zmq_recv(requester, update_dets, 4, 0)'
+    print *, irp_here, ': rc = ', rc
+  endif
+
   rc = f77_zmq_recv(requester, dav_size, 4, 0)
+  if (rc /= 4) then
+    print *, irp_here, ': f77_zmq_recv(requester, dav_size, 4, 0)'
+    print *, irp_here, ': rc = ', rc
+  endif
   
   if (update_dets == 1 .or. force_update) then
     TOUCH dav_size
   endif
   rc = f77_zmq_recv(requester, dav_ut, 8*dav_size*N_states_diag, 0)
+  if (rc /= 8*dav_size*N_states_diag) then
+    print *, irp_here, ': f77_zmq_recv(requester, dav_ut, 8*dav_size*N_states_diag, 0)'
+    print *, irp_here, ': rc = ', rc
+  endif
   SOFT_TOUCH dav_ut 
   if (update_dets == 1 .or. force_update) then
     rc = f77_zmq_send(requester, 'det', 3, 0)
     rc = f77_zmq_recv(requester, dav_size, 4, 0)
+    if (rc /= 4) then
+      print *, irp_here, ': f77_zmq_recv(requester, dav_size, 4, 0)'
+      print *, irp_here, ': rc = ', rc
+    endif
     rc = f77_zmq_recv(requester, dav_det, 16*N_int*dav_size, 0)
+    if (rc /= 16*N_int*dav_size) then
+      print *, irp_here, ': f77_zmq_recv(requester, dav_det, 16*N_int*dav_size, 0)'
+      print *, irp_here, ': rc = ', rc
+    endif
     SOFT_TOUCH dav_det 
   endif
 

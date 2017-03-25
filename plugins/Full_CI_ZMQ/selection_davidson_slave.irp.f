@@ -23,7 +23,7 @@ subroutine run_wf
   integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
   double precision :: energy(N_states)
-  character*(64) :: states(2)
+  character*(64) :: states(4)
   integer :: rc, i
   logical :: force_update
   

@@ -308,7 +308,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_
   v_0 = 0.d0
   s_0 = 0.d0
   
-  call davidson_init(handler,u_0,size(u_0,1),n,N_st,update_dets)
+  call davidson_init(handler,keys_tmp,u_0,size(u_0,1),n,N_st,update_dets)
 
   ave_workload = 0.d0
   do sh=1,shortcut_(0,1)
