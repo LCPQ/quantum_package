@@ -46,19 +46,6 @@ end
 
 subroutine routine_2
  implicit none
- integer :: i
- do i = 1, n_core_inact_orb
-  print*,fock_core_inactive_total(i,1,1),fock_core_inactive(i)
- enddo
- double precision :: accu
- accu = 0.d0
- do i = 1, n_act_orb
-  integer :: j_act_orb
-  j_act_orb = list_act(i)
-  accu += one_body_dm_mo_alpha(j_act_orb,j_act_orb,1)
-  print*,one_body_dm_mo_alpha(j_act_orb,j_act_orb,1),one_body_dm_mo_beta(j_act_orb,j_act_orb,1) 
- enddo
- print*,'accu = ',accu
-
+ provide electronic_psi_ref_average_value
 end
 
