@@ -925,22 +925,29 @@ subroutine create_minilist(key_mask, fullList, miniList, idx_miniList, N_fullLis
   
   N_miniList = 0
   
+  integer :: e_ab
+  e_ab = n_a+n_b
   do i=1,N_fullList
-    e_a = n_a - popcnt(iand(fullList(1, 1, i), key_mask(1, 1)))
-    e_b = n_b - popcnt(iand(fullList(1, 2, i), key_mask(1, 2)))
+    e_a = e_ab - popcnt(iand(fullList(1, 1, i), key_mask(1, 1))) &
+               - popcnt(iand(fullList(1, 2, i), key_mask(1, 2)))
     do ni=2,nint
-      e_a -= popcnt(iand(fullList(ni, 1, i), key_mask(ni, 1)))
-      e_b -= popcnt(iand(fullList(ni, 2, i), key_mask(ni, 2)))
+      e_a = e_a - popcnt(iand(fullList(ni, 1, i), key_mask(ni, 1))) &
+                - popcnt(iand(fullList(ni, 2, i), key_mask(ni, 2)))
     end do
     
-    if(e_a + e_b <= 2) then
-      N_miniList = N_miniList + 1
-      do ni=1,Nint
-        miniList(ni,1,N_miniList) = fullList(ni,1,i)
-        miniList(ni,2,N_miniList) = fullList(ni,2,i)
-      enddo
-      idx_miniList(N_miniList) = i
-    end if
+    if(e_a > 2) then
+      cycle
+    endif
+
+    N_miniList = N_miniList + 1
+    miniList(1,1,N_miniList) = fullList(1,1,i)
+    miniList(1,2,N_miniList) = fullList(1,2,i)
+    do ni=2,Nint
+      miniList(ni,1,N_miniList) = fullList(ni,1,i)
+      miniList(ni,2,N_miniList) = fullList(ni,2,i)
+    enddo
+    idx_miniList(N_miniList) = i
+
   end do
 end subroutine
 
@@ -1041,13 +1048,15 @@ subroutine i_H_psi(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   double precision               :: phase
   integer                        :: exc(0:2,2,2)
   double precision               :: hij
-  integer                        :: idx(0:Ndet)
+  integer, allocatable           :: idx(:)
   
   ASSERT (Nint > 0)
   ASSERT (N_int == Nint)
   ASSERT (Nstate > 0)
   ASSERT (Ndet > 0)
   ASSERT (Ndet_max >= Ndet)
+  allocate(idx(0:Ndet))
+  
   i_H_psi_array = 0.d0
   
   call filter_connected_i_H_psi0(keys,key,Nint,Ndet,idx)
@@ -1089,7 +1098,7 @@ subroutine i_H_psi_minilist(key,keys,idx_key,N_minilist,coef,Nint,Ndet,Ndet_max,
   double precision               :: phase
   integer                        :: exc(0:2,2,2)
   double precision               :: hij
-  integer                        :: idx(0:Ndet)
+  integer, allocatable           :: idx(:)
   BEGIN_DOC
 ! Computes <i|H|Psi> = \sum_J c_J <i|H|J>.
 !
@@ -1102,6 +1111,7 @@ subroutine i_H_psi_minilist(key,keys,idx_key,N_minilist,coef,Nint,Ndet,Ndet_max,
   ASSERT (Nstate > 0)
   ASSERT (Ndet > 0)
   ASSERT (Ndet_max >= Ndet)
+  allocate(idx(0:Ndet))
   i_H_psi_array = 0.d0
   
   call filter_connected_i_H_psi0(keys,key,Nint,N_minilist,idx)
@@ -1148,7 +1158,8 @@ subroutine i_H_psi_sec_ord(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array
   double precision               :: phase
   integer                        :: exc(0:2,2,2)
   double precision               :: hij
-  integer                        :: idx(0:Ndet),n_interact
+  integer,allocatable            :: idx(:)
+  integer                        :: n_interact
   BEGIN_DOC
   ! <key|H|psi> for the various Nstates
   END_DOC
@@ -1158,6 +1169,7 @@ subroutine i_H_psi_sec_ord(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array
   ASSERT (Nstate > 0)
   ASSERT (Ndet > 0)
   ASSERT (Ndet_max >= Ndet)
+  allocate(idx(0:Ndet))
   i_H_psi_array = 0.d0
   call filter_connected_i_H_psi0(keys,key,Nint,Ndet,idx)
   n_interact = 0
@@ -1207,7 +1219,7 @@ subroutine i_H_psi_SC2(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array,idx
   double precision               :: phase
   integer                        :: exc(0:2,2,2)
   double precision               :: hij
-  integer                        :: idx(0:Ndet)
+  integer,allocatable            :: idx(:)
   
   ASSERT (Nint > 0)
   ASSERT (N_int == Nint)
@@ -1215,6 +1227,7 @@ subroutine i_H_psi_SC2(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array,idx
   ASSERT (Ndet > 0)
   ASSERT (Ndet_max >= Ndet)
   i_H_psi_array = 0.d0
+  allocate(idx(0:Ndet))
   call filter_connected_i_H_psi0_SC2(keys,key,Nint,Ndet,idx,idx_repeat)
   do ii=1,idx(0)
     i = idx(ii)
@@ -1254,7 +1267,7 @@ subroutine i_H_psi_SC2_verbose(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_a
   double precision               :: phase
   integer                        :: exc(0:2,2,2)
   double precision               :: hij
-  integer                        :: idx(0:Ndet)
+  integer,allocatable            :: idx(:)
   
   ASSERT (Nint > 0)
   ASSERT (N_int == Nint)
@@ -1262,6 +1275,7 @@ subroutine i_H_psi_SC2_verbose(key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_a
   ASSERT (Ndet > 0)
   ASSERT (Ndet_max >= Ndet)
   i_H_psi_array = 0.d0
+  allocate(idx(0:Ndet))
   call filter_connected_i_H_psi0_SC2(keys,key,Nint,Ndet,idx,idx_repeat)
   print*,'--------'
   do ii=1,idx(0)

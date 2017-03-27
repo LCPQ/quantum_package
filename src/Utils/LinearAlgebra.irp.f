@@ -152,8 +152,8 @@ subroutine ortho_qr(A,LDA,m,n)
   LWORK=2*WORK(1)
   deallocate(WORK)
   allocate(WORK(LWORK))
-  call  dgeqrf( m, n, A, LDA, TAU, WORK, LWORK, INFO )
-  call dorgqr(m, n, n, A, LDA, tau, WORK, LWORK, INFO)
+  call  dgeqrf(m, n, A, LDA, TAU, WORK, LWORK, INFO )
+  call  dorgqr(m, n, n, A, LDA, tau, WORK, LWORK, INFO)
   deallocate(WORK,jpvt,tau)
 end
 
