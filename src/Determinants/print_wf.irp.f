@@ -28,7 +28,7 @@ subroutine routine
   if(degree == 0)then
    print*,'Reference determinant '
   else 
-   call i_H_j(psi_det(1,1,i),psi_det(1,1,1),N_int,hij)
+   call i_H_j(psi_det(1,1,i),psi_det(1,1,i),N_int,hij)
    call get_excitation(psi_det(1,1,1),psi_det(1,1,i),exc,degree,phase,N_int)
    call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
    print*,'phase = ',phase
@@ -54,7 +54,6 @@ subroutine routine
     print*,'h2,p2 = ',h2,p2
 !  print*,'< h | Ka| p > = ',get_mo_bielec_integral(h1,h2,p1,p2,mo_integrals_map)
    endif
-   
    print*,'<Ref| H |D_I> = ',hij
   endif
   print*,'amplitude = ',psi_coef(i,1)/psi_coef(1,1)

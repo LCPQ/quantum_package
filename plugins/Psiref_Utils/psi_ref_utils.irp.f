@@ -98,8 +98,7 @@ END_PROVIDER
  enddo
  N_det_non_ref = i_non_ref
  if (N_det_non_ref < 1) then
-   print *,  'Error : All determinants are in the reference'
-   stop -1
+   print *,  'Warning : All determinants are in the reference'
  endif
 END_PROVIDER
 

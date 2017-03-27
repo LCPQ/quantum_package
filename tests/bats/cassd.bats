@@ -15,12 +15,12 @@ source $QP_ROOT/tests/bats/common.bats.sh
   energy="$(ezfio get cas_sd_zmq energy_pt2)"
   eq $energy -76.231084536315 5.E-5
 
-  ezfio set determinants n_det_max 2048 
+  ezfio set determinants n_det_max 1024 
   ezfio set determinants read_wf True
   ezfio set perturbation do_pt2_end True 
   qp_run cassd_zmq $INPUT  
   ezfio set determinants read_wf False
   energy="$(ezfio get cas_sd_zmq energy)"
-  eq $energy -76.2300887947446   2.E-5
+  eq $energy -76.2225863580749   2.E-5
 }
 

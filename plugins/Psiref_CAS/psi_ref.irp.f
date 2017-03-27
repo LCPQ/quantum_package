@@ -88,3 +88,37 @@ END_PROVIDER
  psi_ref_average_value(1) = electronic_psi_ref_average_value(1) + nuclear_repulsion
 
 END_PROVIDER
+ BEGIN_PROVIDER [double precision, norm_psi_ref, (N_states)]
+&BEGIN_PROVIDER [double precision, inv_norm_psi_ref, (N_states)]
+  implicit none
+  integer :: i,j
+  norm_psi_ref = 0.d0
+  do j = 1, N_states
+   do i = 1, N_det_ref
+    norm_psi_ref(j) += psi_ref_coef(i,j) * psi_ref_coef(i,j)
+   enddo
+   inv_norm_psi_ref(j) = 1.d0/(dsqrt(norm_psi_Ref(j)))
+   print *,  inv_norm_psi_ref(j)
+  enddo
+
+ END_PROVIDER
+
+ BEGIN_PROVIDER [double precision, psi_ref_coef_interm_norm, (N_det_ref,N_states)]
+  implicit none
+  integer :: i,j
+  do j = 1, N_states
+   do i = 1, N_det_ref
+    psi_ref_coef_interm_norm(i,j) = inv_norm_psi_ref(j) * psi_ref_coef(i,j)
+   enddo
+  enddo
+ END_PROVIDER
+
+ BEGIN_PROVIDER [double precision, psi_non_ref_coef_interm_norm, (N_det_non_ref,N_states)]
+  implicit none
+  integer :: i,j
+  do j = 1, N_states
+   do i = 1, N_det_non_ref
+    psi_non_ref_coef_interm_norm(i,j) = psi_non_ref_coef(i,j) * inv_norm_psi_ref(j)
+   enddo
+  enddo
+ END_PROVIDER 
