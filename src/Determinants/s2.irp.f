@@ -223,13 +223,12 @@ subroutine S2_u_0_nstates(v_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
   enddo
   !$OMP END DO NOWAIT
   
-  !$OMP CRITICAL
   do istate=1,N_st
     do i=n,1,-1
+      !$OMP ATOMIC
       v_0(i,istate) = v_0(i,istate) + vt(i,istate)
     enddo
   enddo
-  !$OMP END CRITICAL
 
   deallocate(vt)
   !$OMP END PARALLEL

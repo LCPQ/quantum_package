@@ -1,8 +1,20 @@
 subroutine cholesky_mo(n,m,P,LDP,C,LDC,tol_in,rank)
  implicit none
  BEGIN_DOC
-! Cholesky decomposition of AO Density matrix to
-! generate MOs
+! Cholesky decomposition of AO Density matrix
+!
+! n : Number of AOs
+
+! m : Number of MOs
+!
+! P(LDP,n) : Density matrix in AO basis
+!
+! C(LDC,m) : MOs
+!
+! tol_in : tolerance
+!
+! rank : Nomber of local MOs (output)
+!
  END_DOC
  integer, intent(in) :: n,m, LDC, LDP
  double precision, intent(in) :: P(LDP,n)
@@ -15,9 +27,6 @@ subroutine cholesky_mo(n,m,P,LDP,C,LDC,tol_in,rank)
  integer :: ipiv(n)
  double precision:: tol
  double precision, allocatable :: W(:,:), work(:)
- !DEC$ ATTRIBUTES ALIGN: 32 :: W
- !DEC$ ATTRIBUTES ALIGN: 32 :: work
- !DEC$ ATTRIBUTES ALIGN: 32 :: ipiv
 
  allocate(W(LDC,n),work(2*n))
  tol=tol_in
@@ -41,40 +50,37 @@ subroutine cholesky_mo(n,m,P,LDP,C,LDC,tol_in,rank)
  deallocate(W,work)
 end
 
-BEGIN_PROVIDER [ double precision, mo_density_matrix, (mo_tot_num_align, mo_tot_num) ]
+subroutine svd_mo(n,m,P,LDP,C,LDC)
  implicit none
  BEGIN_DOC
- ! Density matrix in MO basis
- END_DOC
- integer :: i,j,k
- mo_density_matrix = 0.d0
- do k=1,mo_tot_num
-   if (mo_occ(k) == 0.d0) then
-     cycle
-   endif
-   do j=1,ao_num
-     do i=1,ao_num
-       mo_density_matrix(i,j) = mo_density_matrix(i,j) + &
-         mo_occ(k) * mo_coef(i,k) * mo_coef(j,k)
-     enddo
-   enddo
- enddo
-END_PROVIDER
+! Singular value decomposition of the AO Density matrix
+!
+! n : Number of AOs
 
-BEGIN_PROVIDER [ double precision, mo_density_matrix_virtual, (mo_tot_num_align, mo_tot_num) ]
- implicit none
- BEGIN_DOC
- ! Density matrix in MO basis (virtual MOs)
+! m : Number of MOs
+!
+! P(LDP,n) : Density matrix in AO basis
+!
+! C(LDC,m) : MOs
+!
+! tol_in : tolerance
+!
+! rank : Nomber of local MOs (output)
+!
  END_DOC
- integer :: i,j,k
- mo_density_matrix_virtual = 0.d0
- do k=1,mo_tot_num
-   do j=1,ao_num
-     do i=1,ao_num
-       mo_density_matrix_virtual(i,j) = mo_density_matrix_virtual(i,j) + &
-         (2.d0-mo_occ(k)) * mo_coef(i,k) * mo_coef(j,k)
-     enddo
-   enddo
- enddo
-END_PROVIDER
+ integer, intent(in) :: n,m, LDC, LDP
+ double precision, intent(in) :: P(LDP,n)
+ double precision, intent(out) :: C(LDC,m)
+
+ integer :: info
+ integer :: i,k
+ integer :: ipiv(n)
+ double precision:: tol
+ double precision, allocatable :: W(:,:), work(:)
+
+ allocate(W(LDC,n),work(2*n))
+ call svd(P,LDP,C,LDC,W,size(W,1),m,n)
+
+ deallocate(W,work)
+end
 
