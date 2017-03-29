@@ -13,7 +13,7 @@ end
 subroutine create_guess
   implicit none
   BEGIN_DOC
-! Create an MO guess if no MOs are present in the EZFIO directory
+!   Create a MO guess if no MOs are present in the EZFIO directory
   END_DOC
   logical                        :: exists
   PROVIDE ezfio_filename
@@ -34,21 +34,34 @@ subroutine create_guess
   endif
 end
 
+ao_to_mo
 
 subroutine run
 
+  BEGIN_DOC
+!   Run SCF calculation
+  END_DOC
+
   use bitmasks
   implicit none
-  BEGIN_DOC
-! Run SCF calculation
-  END_DOC
+
   double precision               :: SCF_energy_before,SCF_energy_after,diag_H_mat_elem
-  double precision               :: E0
+  double precision               :: EHF
   integer                        :: i_it, i, j, k
    
-  E0 = HF_energy 
+  EHF = HF_energy 
 
   mo_label = "Canonical"
-  call damping_SCF
+
+! Choose SCF algorithm
+
+  if(scf_algorithm == 'damp') then
+    call damping_SCF
+  else if(scf_algorithm == 'DIIS') then
+    call Roothaan_Hall_SCF
+  else
+    write(*,*) 'Unrecognized SCF algorithm: '//scf_algorithm
+    stop 1
+  endif
   
 end
