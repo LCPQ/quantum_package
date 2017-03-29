@@ -671,10 +671,10 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
       if(mat(1, p1, p2) == 0d0) cycle
       call apply_particles(mask, s1, p1, s2, p2, det, ok, N_int)
       logical, external              :: is_in_wavefunction
-      if (is_in_wavefunction(det,N_int)) then
-        stop 'is_in_wf'
-        cycle
-      endif
+!      if (is_in_wavefunction(det,N_int)) then
+!        stop 'is_in_wf'
+!        cycle
+!      endif
       
       if (do_ddci) then
         integer, external              :: is_a_two_holes_two_particles

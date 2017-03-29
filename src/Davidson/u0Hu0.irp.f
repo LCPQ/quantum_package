@@ -444,7 +444,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   enddo
   !$OMP END DO
 
-  !$OMP DO SCHEDULE(guided)
+  !$OMP DO SCHEDULE(static,4)
   do sh=1,shortcut(0,2)
     do i=shortcut(sh,2),shortcut(sh+1,2)-1
       org_i = sort_idx(i,2)
@@ -477,7 +477,7 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   enddo
   !$OMP END DO
 
-  !$OMP DO SCHEDULE(guided)
+  !$OMP DO SCHEDULE(static,4)
   do sh=1,shortcut(0,1)
     do sh2=1,shortcut(0,1)
       if (sh==sh2) cycle
