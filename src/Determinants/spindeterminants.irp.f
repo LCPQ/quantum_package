@@ -593,3 +593,786 @@ subroutine generate_all_alpha_beta_det_products
 end
 
 
+
+
+subroutine get_all_spin_singles_and_doubles(buffer, spindet, Nint, size_buffer, singles, doubles, n_singles, n_doubles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the single and double excitations in the list of
+! unique alpha determinants.
+!
+! /!\ : The buffer is transposed !
+!
+  END_DOC
+  integer, intent(in)            :: Nint, size_buffer
+  integer(bit_kind), intent(in)  :: buffer(Nint,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet(Nint)
+  integer, intent(out)           :: singles(size_buffer)
+  integer, intent(out)           :: doubles(size_buffer)
+  integer, intent(out)           :: n_singles
+  integer, intent(out)           :: n_doubles
+
+  integer                        :: i,k
+  integer(bit_kind), allocatable :: xorvec(:,:)
+  integer,           allocatable :: degree(:)
+  integer                        :: size_buffer_align
+
+  integer, external              :: align_double
+
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
+
+  select case (Nint)
+    case (1)
+      call get_all_spin_singles_and_doubles_1(buffer, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+      return
+    case (2)
+      call get_all_spin_singles_and_doubles_2(buffer, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+      return
+    case (3)
+      call get_all_spin_singles_and_doubles_3(buffer, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+      return
+  end select
+
+
+  size_buffer_align = align_double(size_buffer)
+  allocate( xorvec(size_buffer_align, Nint), degree(size_buffer) )
+
+  do k=1,Nint
+    do i=1,size_buffer
+      xorvec(i, k) = xor( spindet(k), buffer(k,i) )
+    enddo
+  enddo
+  
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if (xorvec(i,1) /= 0_8) then
+      degree(i) = popcnt(xorvec(i,1))
+    else
+      degree(i) = 0
+    endif
+  enddo
+
+  do k=2,Nint
+    !DIR$ VECTOR ALIGNED
+    do i=1,size_buffer
+      if ( (degree(i) <= 4).and.(xorvec(i,k) /= 0_8) ) then
+        degree(i) = degree(i) + popcnt(xorvec(i,k))
+      endif
+    enddo
+  enddo
+
+  n_singles = 1
+  n_doubles = 1
+  do i=1,size_buffer
+    if ( degree(i) == 4 ) then
+      doubles(n_doubles) = i
+      n_doubles = n_doubles+1
+    endif
+    if ( degree(i) == 2 ) then
+      singles(n_singles) = i 
+      n_singles = n_singles+1
+    endif
+  enddo
+  n_singles = n_singles-1
+  n_doubles = n_doubles-1
+  deallocate(xorvec)
+  
+end
+
+
+subroutine get_all_spin_singles(buffer, spindet, Nint, size_buffer, singles, n_singles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the single excitations in the list of
+! unique alpha determinants.
+!
+  END_DOC
+  integer, intent(in)            :: Nint, size_buffer
+  integer(bit_kind), intent(in)  :: buffer(Nint,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet(Nint)
+  integer, intent(out)           :: singles(size_buffer)
+  integer, intent(out)           :: n_singles
+
+  integer                        :: i,k
+  integer(bit_kind), allocatable :: xorvec(:,:)
+  integer,           allocatable :: degree(:)
+  integer                        :: size_buffer_align
+
+  integer, external              :: align_double
+
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
+
+  select case (Nint)
+    case (1)
+      call get_all_spin_singles_1(buffer, spindet, size_buffer, singles, n_singles)
+      return
+    case (2)
+      call get_all_spin_singles_2(buffer, spindet, size_buffer, singles, n_singles)
+      return
+    case (3)
+      call get_all_spin_singles_3(buffer, spindet, size_buffer, singles, n_singles)
+      return
+  end select
+
+  size_buffer_align = align_double(size_buffer)
+  allocate( xorvec(size_buffer_align, Nint), degree(size_buffer) )
+
+  do k=1,Nint
+    do i=1,size_buffer
+      xorvec(i, k) = xor( spindet(k), buffer(k,i) )
+    enddo
+  enddo
+  
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if (xorvec(i,1) /= 0_8) then
+      degree(i) = popcnt(xorvec(i,1))
+    else
+      degree(i) = 0
+    endif
+  enddo
+
+  do k=2,Nint
+    !DIR$ VECTOR ALIGNED
+    do i=1,size_buffer
+      if ( (degree(i) <= 2).and.(xorvec(i,k) /= 0_8) ) then
+        degree(i) = degree(i) + popcnt(xorvec(i,k))
+      endif
+    enddo
+  enddo
+
+  n_singles = 1
+  do i=1,size_buffer
+    if ( degree(i) == 2 ) then
+      singles(n_singles) = i 
+      n_singles = n_singles+1
+    endif
+  enddo
+  n_singles = n_singles-1
+  deallocate(xorvec)
+  
+end
+
+
+subroutine get_all_spin_doubles(buffer, spindet, Nint, size_buffer, doubles, n_doubles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the double excitations in the list of
+! unique alpha determinants.
+!
+  END_DOC
+  integer, intent(in)            :: Nint, size_buffer
+  integer(bit_kind), intent(in)  :: buffer(Nint,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet(Nint)
+  integer, intent(out)           :: doubles(size_buffer)
+  integer, intent(out)           :: n_doubles
+
+  integer                        :: i,k
+  integer(bit_kind), allocatable :: xorvec(:,:)
+  integer,           allocatable :: degree(:)
+  integer                        :: size_buffer_align
+
+  integer, external              :: align_double
+
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
+
+  select case (Nint)
+    case (1)
+      call get_all_spin_doubles_1(buffer, spindet, size_buffer, doubles, n_doubles)
+      return
+    case (2)
+      call get_all_spin_doubles_2(buffer, spindet, size_buffer, doubles, n_doubles)
+      return
+    case (3)
+      call get_all_spin_doubles_3(buffer, spindet, size_buffer, doubles, n_doubles)
+      return
+  end select
+
+  size_buffer_align = align_double(size_buffer)
+  allocate( xorvec(size_buffer_align, Nint), degree(size_buffer) )
+
+  do k=1,Nint
+    do i=1,size_buffer
+      xorvec(i, k) = xor( spindet(k), buffer(k,i) )
+    enddo
+  enddo
+  
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if (xorvec(i,1) /= 0_8) then
+      degree(i) = popcnt(xorvec(i,1))
+    else
+      degree(i) = 0
+    endif
+  enddo
+
+  do k=2,Nint
+    !DIR$ VECTOR ALIGNED
+    do i=1,size_buffer
+      if ( (degree(i) <= 4).and.(xorvec(i,k) /= 0_8) ) then
+        degree(i) = degree(i) + popcnt(xorvec(i,k))
+      endif
+    enddo
+  enddo
+
+  n_doubles = 1
+  do i=1,size_buffer
+    if ( degree(i) == 4 ) then
+      doubles(n_doubles) = i
+      n_doubles = n_doubles+1
+    endif
+  enddo
+  n_doubles = n_doubles-1
+  deallocate(xorvec)
+  
+end
+
+subroutine get_all_spin_singles_and_doubles_1(buffer, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the single and double excitations in the list of
+! unique alpha determinants.
+!
+! /!\ : The buffer is transposed !
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer
+  integer(bit_kind), intent(in)  :: buffer(size_buffer)
+  integer(bit_kind), intent(in)  :: spindet
+  integer, intent(out)           :: singles(size_buffer)
+  integer, intent(out)           :: doubles(size_buffer)
+  integer, intent(out)           :: n_singles
+  integer, intent(out)           :: n_doubles
+
+  integer                        :: i,k
+  integer(bit_kind), allocatable :: xorvec(:)
+  integer                        :: degree
+  integer                        :: size_buffer_align
+
+  integer, external              :: align_double
+
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
+
+  size_buffer_align = align_double(size_buffer)
+  allocate( xorvec(size_buffer_align) )
+
+  do i=1,size_buffer
+    xorvec(i) = xor( spindet, buffer(i) )
+  enddo
+  
+  n_singles = 1
+  n_doubles = 1
+
+  do i=1,size_buffer
+    if (xorvec(i) /= 0_8) then
+      degree = popcnt(xorvec(i))
+    else
+      degree = 0
+    endif
+
+    if ( degree == 4 ) then
+      doubles(n_doubles) = i
+      n_doubles = n_doubles+1
+    endif
+    if ( degree == 2 ) then
+      singles(n_singles) = i 
+      n_singles = n_singles+1
+    endif
+  enddo
+  n_singles = n_singles-1
+  n_doubles = n_doubles-1
+  deallocate(xorvec)
+  
+end
+
+
+subroutine get_all_spin_singles_1(buffer, spindet, size_buffer, singles, n_singles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the single excitations in the list of
+! unique alpha determinants.
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer
+  integer(bit_kind), intent(in)  :: buffer(size_buffer)
+  integer(bit_kind), intent(in)  :: spindet
+  integer, intent(out)           :: singles(size_buffer)
+  integer, intent(out)           :: n_singles
+
+  integer                        :: i,k
+  integer(bit_kind), allocatable :: xorvec(:)
+
+  allocate( xorvec(size_buffer) )
+
+  do i=1,size_buffer
+    xorvec(i) = xor( spindet, buffer(i) )
+  enddo
+  
+  n_singles = 1
+  do i=1,size_buffer
+    if ( popcnt(xorvec(i)) == 2 ) then
+      singles(n_singles) = i 
+      n_singles = n_singles+1
+    endif
+  enddo
+  n_singles = n_singles-1
+  deallocate(xorvec)
+  
+end
+
+
+subroutine get_all_spin_doubles_1(buffer, spindet, size_buffer, doubles, n_doubles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the double excitations in the list of
+! unique alpha determinants.
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer
+  integer(bit_kind), intent(in)  :: buffer(size_buffer)
+  integer(bit_kind), intent(in)  :: spindet
+  integer, intent(out)           :: doubles(size_buffer)
+  integer, intent(out)           :: n_doubles
+
+  integer                        :: i,k
+  integer(bit_kind), allocatable :: xorvec(:)
+
+  integer, external              :: align_double
+
+  allocate( xorvec(size_buffer) )
+
+  do i=1,size_buffer
+    xorvec(i) = xor( spindet, buffer(i) )
+  enddo
+  
+  n_doubles = 1
+
+  do i=1,size_buffer
+    if ( popcnt(xorvec(i)) == 4 ) then
+      doubles(n_doubles) = i
+      n_doubles = n_doubles+1
+    endif
+  enddo
+  n_doubles = n_doubles-1
+  deallocate(xorvec)
+  
+end
+
+
+subroutine get_all_spin_singles_and_doubles_2(buffer, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the single and double excitations in the list of
+! unique alpha determinants.
+!
+! /!\ : The buffer is transposed !
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer
+  integer(bit_kind), intent(in)  :: buffer(2,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet(2)
+  integer, intent(out)           :: singles(size_buffer)
+  integer, intent(out)           :: doubles(size_buffer)
+  integer, intent(out)           :: n_singles
+  integer, intent(out)           :: n_doubles
+
+  integer                        :: i
+  integer(bit_kind), allocatable :: xorvec(:,:)
+  integer,           allocatable :: degree(:)
+  integer                        :: size_buffer_align
+
+  integer, external              :: align_double
+
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
+
+  size_buffer_align = align_double(size_buffer)
+  allocate( xorvec(size_buffer_align, 2), degree(size_buffer) )
+
+  do i=1,size_buffer
+    xorvec(i, 1) = xor( spindet(1), buffer(1,i) )
+    xorvec(i, 2) = xor( spindet(2), buffer(2,i) )
+  enddo
+  
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if (xorvec(i,1) /= 0_8) then
+      degree(i) = popcnt(xorvec(i,1))
+    else
+      degree(i) = 0
+    endif
+  enddo
+
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if ( (degree(i) <= 4).and.(xorvec(i,2) /= 0_8) ) then
+      degree(i) = degree(i) + popcnt(xorvec(i,2))
+    endif
+  enddo
+
+  n_singles = 1
+  n_doubles = 1
+  do i=1,size_buffer
+    if ( degree(i) == 4 ) then
+      doubles(n_doubles) = i
+      n_doubles = n_doubles+1
+    endif
+    if ( degree(i) == 2 ) then
+      singles(n_singles) = i 
+      n_singles = n_singles+1
+    endif
+  enddo
+  n_singles = n_singles-1
+  n_doubles = n_doubles-1
+  deallocate(xorvec)
+  
+end
+
+
+subroutine get_all_spin_singles_2(buffer, spindet, size_buffer, singles, n_singles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the single excitations in the list of
+! unique alpha determinants.
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer
+  integer(bit_kind), intent(in)  :: buffer(2,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet(2)
+  integer, intent(out)           :: singles(size_buffer)
+  integer, intent(out)           :: n_singles
+
+  integer                        :: i,k
+  integer(bit_kind), allocatable :: xorvec(:,:)
+  integer,           allocatable :: degree(:)
+  integer                        :: size_buffer_align
+
+  integer, external              :: align_double
+
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
+
+  size_buffer_align = align_double(size_buffer)
+  allocate( xorvec(size_buffer_align, 2), degree(size_buffer) )
+
+  do i=1,size_buffer
+    xorvec(i, 1) = xor( spindet(1), buffer(1,i) )
+    xorvec(i, 2) = xor( spindet(2), buffer(2,i) )
+  enddo
+  
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if (xorvec(i,1) /= 0_8) then
+      degree(i) = popcnt(xorvec(i,1))
+    else
+      degree(i) = 0
+    endif
+  enddo
+
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if ( (degree(i) <= 2).and.(xorvec(i,2) /= 0_8) ) then
+      degree(i) = degree(i) + popcnt(xorvec(i,2))
+    endif
+  enddo
+
+  n_singles = 1
+  do i=1,size_buffer
+    if ( degree(i) == 2 ) then
+      singles(n_singles) = i 
+      n_singles = n_singles+1
+    endif
+  enddo
+  n_singles = n_singles-1
+  deallocate(xorvec)
+  
+end
+
+
+subroutine get_all_spin_doubles_2(buffer, spindet, size_buffer, doubles, n_doubles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the double excitations in the list of
+! unique alpha determinants.
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer
+  integer(bit_kind), intent(in)  :: buffer(2,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet(2)
+  integer, intent(out)           :: doubles(size_buffer)
+  integer, intent(out)           :: n_doubles
+
+  integer                        :: i,k
+  integer(bit_kind), allocatable :: xorvec(:,:)
+  integer,           allocatable :: degree(:)
+  integer                        :: size_buffer_align
+
+  integer, external              :: align_double
+
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
+
+  size_buffer_align = align_double(size_buffer)
+  allocate( xorvec(size_buffer_align, 2), degree(size_buffer) )
+
+  do i=1,size_buffer
+    xorvec(i, 1) = xor( spindet(1), buffer(1,i) )
+    xorvec(i, 2) = xor( spindet(2), buffer(2,i) )
+  enddo
+  
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if (xorvec(i,1) /= 0_8) then
+      degree(i) = popcnt(xorvec(i,1))
+    else
+      degree(i) = 0
+    endif
+  enddo
+
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if ( (degree(i) <= 4).and.(xorvec(i,2) /= 0_8) ) then
+      degree(i) = degree(i) + popcnt(xorvec(i,2))
+    endif
+  enddo
+
+  n_doubles = 1
+  do i=1,size_buffer
+    if ( degree(i) == 4 ) then
+      doubles(n_doubles) = i
+      n_doubles = n_doubles+1
+    endif
+  enddo
+  n_doubles = n_doubles-1
+  deallocate(xorvec)
+  
+end
+
+subroutine get_all_spin_singles_and_doubles_3(buffer, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the single and double excitations in the list of
+! unique alpha determinants.
+!
+! /!\ : The buffer is transposed !
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer
+  integer(bit_kind), intent(in)  :: buffer(3,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet(3)
+  integer, intent(out)           :: singles(size_buffer)
+  integer, intent(out)           :: doubles(size_buffer)
+  integer, intent(out)           :: n_singles
+  integer, intent(out)           :: n_doubles
+
+  integer                        :: i
+  integer(bit_kind), allocatable :: xorvec(:,:)
+  integer,           allocatable :: degree(:)
+  integer                        :: size_buffer_align
+
+  integer, external              :: align_double
+
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
+
+  size_buffer_align = align_double(size_buffer)
+  allocate( xorvec(size_buffer_align, 3), degree(size_buffer) )
+
+  do i=1,size_buffer
+    xorvec(i, 1) = xor( spindet(1), buffer(1,i) )
+    xorvec(i, 2) = xor( spindet(2), buffer(2,i) )
+    xorvec(i, 3) = xor( spindet(3), buffer(3,i) )
+  enddo
+  
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if (xorvec(i,1) /= 0_8) then
+      degree(i) = popcnt(xorvec(i,1))
+    else
+      degree(i) = 0
+    endif
+  enddo
+
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if ( (degree(i) <= 4).and.(xorvec(i,2) /= 0_8) ) then
+      degree(i) = degree(i) + popcnt(xorvec(i,2))
+    endif
+  enddo
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if ( (degree(i) <= 4).and.(xorvec(i,3) /= 0_8) ) then
+      degree(i) = degree(i) + popcnt(xorvec(i,3))
+    endif
+  enddo
+
+  n_singles = 1
+  n_doubles = 1
+  do i=1,size_buffer
+    if ( degree(i) == 4 ) then
+      doubles(n_doubles) = i
+      n_doubles = n_doubles+1
+    endif
+    if ( degree(i) == 2 ) then
+      singles(n_singles) = i 
+      n_singles = n_singles+1
+    endif
+  enddo
+  n_singles = n_singles-1
+  n_doubles = n_doubles-1
+  deallocate(xorvec)
+  
+end
+
+
+subroutine get_all_spin_singles_3(buffer, spindet, size_buffer, singles, n_singles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the single excitations in the list of
+! unique alpha determinants.
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer
+  integer(bit_kind), intent(in)  :: buffer(3,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet(3)
+  integer, intent(out)           :: singles(size_buffer)
+  integer, intent(out)           :: n_singles
+
+  integer                        :: i,k
+  integer(bit_kind), allocatable :: xorvec(:,:)
+  integer,           allocatable :: degree(:)
+  integer                        :: size_buffer_align
+
+  integer, external              :: align_double
+
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
+
+  size_buffer_align = align_double(size_buffer)
+  allocate( xorvec(size_buffer_align, 3), degree(size_buffer) )
+
+  do i=1,size_buffer
+    xorvec(i, 1) = xor( spindet(1), buffer(1,i) )
+    xorvec(i, 2) = xor( spindet(2), buffer(2,i) )
+    xorvec(i, 3) = xor( spindet(3), buffer(3,i) )
+  enddo
+  
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if (xorvec(i,1) /= 0_8) then
+      degree(i) = popcnt(xorvec(i,1))
+    else
+      degree(i) = 0
+    endif
+  enddo
+
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if ( (degree(i) <= 2).and.(xorvec(i,2) /= 0_8) ) then
+      degree(i) = degree(i) + popcnt(xorvec(i,2))
+    endif
+  enddo
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if ( (degree(i) <= 2).and.(xorvec(i,3) /= 0_8) ) then
+      degree(i) = degree(i) + popcnt(xorvec(i,3))
+    endif
+  enddo
+
+  n_singles = 1
+  do i=1,size_buffer
+    if ( degree(i) == 2 ) then
+      singles(n_singles) = i 
+      n_singles = n_singles+1
+    endif
+  enddo
+  n_singles = n_singles-1
+  deallocate(xorvec)
+  
+end
+
+
+subroutine get_all_spin_doubles_3(buffer, spindet, size_buffer, doubles, n_doubles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the double excitations in the list of
+! unique alpha determinants.
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer
+  integer(bit_kind), intent(in)  :: buffer(3,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet(3)
+  integer, intent(out)           :: doubles(size_buffer)
+  integer, intent(out)           :: n_doubles
+
+  integer                        :: i,k
+  integer(bit_kind), allocatable :: xorvec(:,:)
+  integer,           allocatable :: degree(:)
+  integer                        :: size_buffer_align
+
+  integer, external              :: align_double
+
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
+
+  size_buffer_align = align_double(size_buffer)
+  allocate( xorvec(size_buffer_align, 3), degree(size_buffer) )
+
+  do i=1,size_buffer
+    xorvec(i, 1) = xor( spindet(1), buffer(1,i) )
+    xorvec(i, 2) = xor( spindet(2), buffer(2,i) )
+    xorvec(i, 3) = xor( spindet(3), buffer(3,i) )
+  enddo
+  
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if (xorvec(i,1) /= 0_8) then
+      degree(i) = popcnt(xorvec(i,1))
+    else
+      degree(i) = 0
+    endif
+  enddo
+
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if ( (degree(i) <= 4).and.(xorvec(i,2) /= 0_8) ) then
+      degree(i) = degree(i) + popcnt(xorvec(i,2))
+    endif
+  enddo
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    if ( (degree(i) <= 4).and.(xorvec(i,3) /= 0_8) ) then
+      degree(i) = degree(i) + popcnt(xorvec(i,3))
+    endif
+  enddo
+
+  n_doubles = 1
+  do i=1,size_buffer
+    if ( degree(i) == 4 ) then
+      doubles(n_doubles) = i
+      n_doubles = n_doubles+1
+    endif
+  enddo
+  n_doubles = n_doubles-1
+  deallocate(xorvec)
+  
+end
+
