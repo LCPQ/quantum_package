@@ -401,7 +401,6 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
   END_DOC
   integer                        :: i,j,k, l
   integer(bit_kind)               :: tmp_det(N_int,2)
-  integer                        :: idx
   integer, external              :: get_index_in_psi_det_sorted_bit
 
 
@@ -437,6 +436,7 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_rows   , (N_det) ]
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_columns, (N_det) ]
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_order  , (N_det) ]
+&BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_reverse , (N_det) ]
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -473,6 +473,9 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_
   call iset_order(psi_bilinear_matrix_transp_columns,psi_bilinear_matrix_transp_order,N_det)
   do l=1,N_states
     call dset_order(psi_bilinear_matrix_transp_values(1,l),psi_bilinear_matrix_transp_order,N_det)
+  enddo
+  do k=1,N_det
+    psi_bilinear_matrix_order_reverse(psi_bilinear_matrix_transp_order(k)) = k
   enddo
   deallocate(to_sort)
 END_PROVIDER
@@ -559,7 +562,7 @@ subroutine generate_all_alpha_beta_det_products
 !  Create a wave function from all possible alpha x beta determinants
   END_DOC
   integer                        :: i,j,k,l
-  integer                        :: idx, iproc
+  integer                        :: iproc
   integer, external              :: get_index_in_psi_det_sorted_bit
   integer(bit_kind), allocatable :: tmp_det(:,:,:)
   logical, external              :: is_in_wavefunction
@@ -568,7 +571,7 @@ subroutine generate_all_alpha_beta_det_products
   !$OMP PARALLEL DEFAULT(NONE) SHARED(psi_coef_sorted_bit,N_det_beta_unique,&
       !$OMP N_det_alpha_unique, N_int, psi_det_alpha_unique, psi_det_beta_unique,&
       !$OMP N_det)                                                &
-      !$OMP PRIVATE(i,j,k,l,tmp_det,idx,iproc)
+      !$OMP PRIVATE(i,j,k,l,tmp_det,iproc)
   !$ iproc = omp_get_thread_num()
   allocate (tmp_det(N_int,2,N_det_alpha_unique))
   !$OMP DO
@@ -595,7 +598,7 @@ end
 
 
 
-subroutine get_all_spin_singles_and_doubles(buffer, spindet, Nint, size_buffer, singles, doubles, n_singles, n_doubles)
+subroutine get_all_spin_singles_and_doubles(buffer, idx, spindet, Nint, size_buffer, singles, doubles, n_singles, n_doubles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -606,7 +609,7 @@ subroutine get_all_spin_singles_and_doubles(buffer, spindet, Nint, size_buffer, 
 ! /!\ : The buffer is transposed !
 !
   END_DOC
-  integer, intent(in)            :: Nint, size_buffer
+  integer, intent(in)            :: Nint, size_buffer, idx(size_buffer)
   integer(bit_kind), intent(in)  :: buffer(Nint,size_buffer)
   integer(bit_kind), intent(in)  :: spindet(Nint)
   integer, intent(out)           :: singles(size_buffer)
@@ -625,13 +628,13 @@ subroutine get_all_spin_singles_and_doubles(buffer, spindet, Nint, size_buffer, 
 
   select case (Nint)
     case (1)
-      call get_all_spin_singles_and_doubles_1(buffer, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+      call get_all_spin_singles_and_doubles_1(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
       return
     case (2)
-      call get_all_spin_singles_and_doubles_2(buffer, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+      call get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
       return
     case (3)
-      call get_all_spin_singles_and_doubles_3(buffer, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+      call get_all_spin_singles_and_doubles_3(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
       return
   end select
 
@@ -667,11 +670,11 @@ subroutine get_all_spin_singles_and_doubles(buffer, spindet, Nint, size_buffer, 
   n_doubles = 1
   do i=1,size_buffer
     if ( degree(i) == 4 ) then
-      doubles(n_doubles) = i
+      doubles(n_doubles) = idx(i)
       n_doubles = n_doubles+1
     endif
     if ( degree(i) == 2 ) then
-      singles(n_singles) = i 
+      singles(n_singles) = idx(i)
       n_singles = n_singles+1
     endif
   enddo
@@ -682,7 +685,7 @@ subroutine get_all_spin_singles_and_doubles(buffer, spindet, Nint, size_buffer, 
 end
 
 
-subroutine get_all_spin_singles(buffer, spindet, Nint, size_buffer, singles, n_singles)
+subroutine get_all_spin_singles(buffer, idx, spindet, Nint, size_buffer, singles, n_singles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -691,7 +694,7 @@ subroutine get_all_spin_singles(buffer, spindet, Nint, size_buffer, singles, n_s
 ! unique alpha determinants.
 !
   END_DOC
-  integer, intent(in)            :: Nint, size_buffer
+  integer, intent(in)            :: Nint, size_buffer, idx(size_buffer)
   integer(bit_kind), intent(in)  :: buffer(Nint,size_buffer)
   integer(bit_kind), intent(in)  :: spindet(Nint)
   integer, intent(out)           :: singles(size_buffer)
@@ -708,13 +711,13 @@ subroutine get_all_spin_singles(buffer, spindet, Nint, size_buffer, singles, n_s
 
   select case (Nint)
     case (1)
-      call get_all_spin_singles_1(buffer, spindet, size_buffer, singles, n_singles)
+      call get_all_spin_singles_1(buffer, idx, spindet, size_buffer, singles, n_singles)
       return
     case (2)
-      call get_all_spin_singles_2(buffer, spindet, size_buffer, singles, n_singles)
+      call get_all_spin_singles_2(buffer, idx, spindet, size_buffer, singles, n_singles)
       return
     case (3)
-      call get_all_spin_singles_3(buffer, spindet, size_buffer, singles, n_singles)
+      call get_all_spin_singles_3(buffer, idx, spindet, size_buffer, singles, n_singles)
       return
   end select
 
@@ -748,7 +751,7 @@ subroutine get_all_spin_singles(buffer, spindet, Nint, size_buffer, singles, n_s
   n_singles = 1
   do i=1,size_buffer
     if ( degree(i) == 2 ) then
-      singles(n_singles) = i 
+      singles(n_singles) = idx(i)
       n_singles = n_singles+1
     endif
   enddo
@@ -758,7 +761,7 @@ subroutine get_all_spin_singles(buffer, spindet, Nint, size_buffer, singles, n_s
 end
 
 
-subroutine get_all_spin_doubles(buffer, spindet, Nint, size_buffer, doubles, n_doubles)
+subroutine get_all_spin_doubles(buffer, idx, spindet, Nint, size_buffer, doubles, n_doubles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -767,7 +770,7 @@ subroutine get_all_spin_doubles(buffer, spindet, Nint, size_buffer, doubles, n_d
 ! unique alpha determinants.
 !
   END_DOC
-  integer, intent(in)            :: Nint, size_buffer
+  integer, intent(in)            :: Nint, size_buffer, idx(size_buffer)
   integer(bit_kind), intent(in)  :: buffer(Nint,size_buffer)
   integer(bit_kind), intent(in)  :: spindet(Nint)
   integer, intent(out)           :: doubles(size_buffer)
@@ -784,13 +787,13 @@ subroutine get_all_spin_doubles(buffer, spindet, Nint, size_buffer, doubles, n_d
 
   select case (Nint)
     case (1)
-      call get_all_spin_doubles_1(buffer, spindet, size_buffer, doubles, n_doubles)
+      call get_all_spin_doubles_1(buffer, idx, spindet, size_buffer, doubles, n_doubles)
       return
     case (2)
-      call get_all_spin_doubles_2(buffer, spindet, size_buffer, doubles, n_doubles)
+      call get_all_spin_doubles_2(buffer, idx, spindet, size_buffer, doubles, n_doubles)
       return
     case (3)
-      call get_all_spin_doubles_3(buffer, spindet, size_buffer, doubles, n_doubles)
+      call get_all_spin_doubles_3(buffer, idx, spindet, size_buffer, doubles, n_doubles)
       return
   end select
 
@@ -824,7 +827,7 @@ subroutine get_all_spin_doubles(buffer, spindet, Nint, size_buffer, doubles, n_d
   n_doubles = 1
   do i=1,size_buffer
     if ( degree(i) == 4 ) then
-      doubles(n_doubles) = i
+      doubles(n_doubles) = idx(i)
       n_doubles = n_doubles+1
     endif
   enddo
@@ -833,7 +836,7 @@ subroutine get_all_spin_doubles(buffer, spindet, Nint, size_buffer, doubles, n_d
   
 end
 
-subroutine get_all_spin_singles_and_doubles_1(buffer, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+subroutine get_all_spin_singles_and_doubles_1(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -845,6 +848,7 @@ subroutine get_all_spin_singles_and_doubles_1(buffer, spindet, size_buffer, sing
 !
   END_DOC
   integer, intent(in)            :: size_buffer
+  integer, intent(in)            :: idx(size_buffer)
   integer(bit_kind), intent(in)  :: buffer(size_buffer)
   integer(bit_kind), intent(in)  :: spindet
   integer, intent(out)           :: singles(size_buffer)
@@ -872,29 +876,24 @@ subroutine get_all_spin_singles_and_doubles_1(buffer, spindet, size_buffer, sing
   n_doubles = 1
 
   do i=1,size_buffer
-    if (xorvec(i) /= 0_8) then
-      degree = popcnt(xorvec(i))
-    else
-      degree = 0
-    endif
-
+    degree = popcnt(xorvec(i))
     if ( degree == 4 ) then
-      doubles(n_doubles) = i
+      doubles(n_doubles) = idx(i)
       n_doubles = n_doubles+1
     endif
     if ( degree == 2 ) then
-      singles(n_singles) = i 
+      singles(n_singles) = idx(i)
       n_singles = n_singles+1
     endif
   enddo
   n_singles = n_singles-1
   n_doubles = n_doubles-1
+
   deallocate(xorvec)
-  
 end
 
 
-subroutine get_all_spin_singles_1(buffer, spindet, size_buffer, singles, n_singles)
+subroutine get_all_spin_singles_1(buffer, idx, spindet, size_buffer, singles, n_singles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -903,7 +902,7 @@ subroutine get_all_spin_singles_1(buffer, spindet, size_buffer, singles, n_singl
 ! unique alpha determinants.
 !
   END_DOC
-  integer, intent(in)            :: size_buffer
+  integer, intent(in)            :: size_buffer, idx(size_buffer)
   integer(bit_kind), intent(in)  :: buffer(size_buffer)
   integer(bit_kind), intent(in)  :: spindet
   integer, intent(out)           :: singles(size_buffer)
@@ -921,7 +920,7 @@ subroutine get_all_spin_singles_1(buffer, spindet, size_buffer, singles, n_singl
   n_singles = 1
   do i=1,size_buffer
     if ( popcnt(xorvec(i)) == 2 ) then
-      singles(n_singles) = i 
+      singles(n_singles) = idx(i)
       n_singles = n_singles+1
     endif
   enddo
@@ -931,7 +930,7 @@ subroutine get_all_spin_singles_1(buffer, spindet, size_buffer, singles, n_singl
 end
 
 
-subroutine get_all_spin_doubles_1(buffer, spindet, size_buffer, doubles, n_doubles)
+subroutine get_all_spin_doubles_1(buffer, idx, spindet, size_buffer, doubles, n_doubles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -940,7 +939,7 @@ subroutine get_all_spin_doubles_1(buffer, spindet, size_buffer, doubles, n_doubl
 ! unique alpha determinants.
 !
   END_DOC
-  integer, intent(in)            :: size_buffer
+  integer, intent(in)            :: size_buffer, idx(size_buffer)
   integer(bit_kind), intent(in)  :: buffer(size_buffer)
   integer(bit_kind), intent(in)  :: spindet
   integer, intent(out)           :: doubles(size_buffer)
@@ -961,7 +960,7 @@ subroutine get_all_spin_doubles_1(buffer, spindet, size_buffer, doubles, n_doubl
 
   do i=1,size_buffer
     if ( popcnt(xorvec(i)) == 4 ) then
-      doubles(n_doubles) = i
+      doubles(n_doubles) = idx(i)
       n_doubles = n_doubles+1
     endif
   enddo
@@ -971,7 +970,7 @@ subroutine get_all_spin_doubles_1(buffer, spindet, size_buffer, doubles, n_doubl
 end
 
 
-subroutine get_all_spin_singles_and_doubles_2(buffer, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+subroutine get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -982,7 +981,7 @@ subroutine get_all_spin_singles_and_doubles_2(buffer, spindet, size_buffer, sing
 ! /!\ : The buffer is transposed !
 !
   END_DOC
-  integer, intent(in)            :: size_buffer
+  integer, intent(in)            :: size_buffer, idx(size_buffer)
   integer(bit_kind), intent(in)  :: buffer(2,size_buffer)
   integer(bit_kind), intent(in)  :: spindet(2)
   integer, intent(out)           :: singles(size_buffer)
@@ -1027,11 +1026,11 @@ subroutine get_all_spin_singles_and_doubles_2(buffer, spindet, size_buffer, sing
   n_doubles = 1
   do i=1,size_buffer
     if ( degree(i) == 4 ) then
-      doubles(n_doubles) = i
+      doubles(n_doubles) = idx(i)
       n_doubles = n_doubles+1
     endif
     if ( degree(i) == 2 ) then
-      singles(n_singles) = i 
+      singles(n_singles) = idx(i)
       n_singles = n_singles+1
     endif
   enddo
@@ -1042,7 +1041,7 @@ subroutine get_all_spin_singles_and_doubles_2(buffer, spindet, size_buffer, sing
 end
 
 
-subroutine get_all_spin_singles_2(buffer, spindet, size_buffer, singles, n_singles)
+subroutine get_all_spin_singles_2(buffer, idx, spindet, size_buffer, singles, n_singles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -1051,7 +1050,7 @@ subroutine get_all_spin_singles_2(buffer, spindet, size_buffer, singles, n_singl
 ! unique alpha determinants.
 !
   END_DOC
-  integer, intent(in)            :: size_buffer
+  integer, intent(in)            :: size_buffer, idx(size_buffer)
   integer(bit_kind), intent(in)  :: buffer(2,size_buffer)
   integer(bit_kind), intent(in)  :: spindet(2)
   integer, intent(out)           :: singles(size_buffer)
@@ -1093,7 +1092,7 @@ subroutine get_all_spin_singles_2(buffer, spindet, size_buffer, singles, n_singl
   n_singles = 1
   do i=1,size_buffer
     if ( degree(i) == 2 ) then
-      singles(n_singles) = i 
+      singles(n_singles) = idx(i)
       n_singles = n_singles+1
     endif
   enddo
@@ -1103,7 +1102,7 @@ subroutine get_all_spin_singles_2(buffer, spindet, size_buffer, singles, n_singl
 end
 
 
-subroutine get_all_spin_doubles_2(buffer, spindet, size_buffer, doubles, n_doubles)
+subroutine get_all_spin_doubles_2(buffer, idx, spindet, size_buffer, doubles, n_doubles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -1113,7 +1112,7 @@ subroutine get_all_spin_doubles_2(buffer, spindet, size_buffer, doubles, n_doubl
 !
   END_DOC
   integer, intent(in)            :: size_buffer
-  integer(bit_kind), intent(in)  :: buffer(2,size_buffer)
+  integer(bit_kind), intent(in)  :: buffer(2,size_buffer), idx(size_buffer)
   integer(bit_kind), intent(in)  :: spindet(2)
   integer, intent(out)           :: doubles(size_buffer)
   integer, intent(out)           :: n_doubles
@@ -1154,7 +1153,7 @@ subroutine get_all_spin_doubles_2(buffer, spindet, size_buffer, doubles, n_doubl
   n_doubles = 1
   do i=1,size_buffer
     if ( degree(i) == 4 ) then
-      doubles(n_doubles) = i
+      doubles(n_doubles) = idx(i)
       n_doubles = n_doubles+1
     endif
   enddo
@@ -1163,7 +1162,7 @@ subroutine get_all_spin_doubles_2(buffer, spindet, size_buffer, doubles, n_doubl
   
 end
 
-subroutine get_all_spin_singles_and_doubles_3(buffer, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+subroutine get_all_spin_singles_and_doubles_3(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -1174,7 +1173,7 @@ subroutine get_all_spin_singles_and_doubles_3(buffer, spindet, size_buffer, sing
 ! /!\ : The buffer is transposed !
 !
   END_DOC
-  integer, intent(in)            :: size_buffer
+  integer, intent(in)            :: size_buffer, idx(size_buffer)
   integer(bit_kind), intent(in)  :: buffer(3,size_buffer)
   integer(bit_kind), intent(in)  :: spindet(3)
   integer, intent(out)           :: singles(size_buffer)
@@ -1226,11 +1225,11 @@ subroutine get_all_spin_singles_and_doubles_3(buffer, spindet, size_buffer, sing
   n_doubles = 1
   do i=1,size_buffer
     if ( degree(i) == 4 ) then
-      doubles(n_doubles) = i
+      doubles(n_doubles) = idx(i)
       n_doubles = n_doubles+1
     endif
     if ( degree(i) == 2 ) then
-      singles(n_singles) = i 
+      singles(n_singles) = idx(i) 
       n_singles = n_singles+1
     endif
   enddo
@@ -1241,7 +1240,7 @@ subroutine get_all_spin_singles_and_doubles_3(buffer, spindet, size_buffer, sing
 end
 
 
-subroutine get_all_spin_singles_3(buffer, spindet, size_buffer, singles, n_singles)
+subroutine get_all_spin_singles_3(buffer, idx, spindet, size_buffer, singles, n_singles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -1250,7 +1249,7 @@ subroutine get_all_spin_singles_3(buffer, spindet, size_buffer, singles, n_singl
 ! unique alpha determinants.
 !
   END_DOC
-  integer, intent(in)            :: size_buffer
+  integer, intent(in)            :: size_buffer, idx(size_buffer)
   integer(bit_kind), intent(in)  :: buffer(3,size_buffer)
   integer(bit_kind), intent(in)  :: spindet(3)
   integer, intent(out)           :: singles(size_buffer)
@@ -1299,7 +1298,7 @@ subroutine get_all_spin_singles_3(buffer, spindet, size_buffer, singles, n_singl
   n_singles = 1
   do i=1,size_buffer
     if ( degree(i) == 2 ) then
-      singles(n_singles) = i 
+      singles(n_singles) = idx(i)
       n_singles = n_singles+1
     endif
   enddo
@@ -1309,7 +1308,7 @@ subroutine get_all_spin_singles_3(buffer, spindet, size_buffer, singles, n_singl
 end
 
 
-subroutine get_all_spin_doubles_3(buffer, spindet, size_buffer, doubles, n_doubles)
+subroutine get_all_spin_doubles_3(buffer, idx, spindet, size_buffer, doubles, n_doubles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -1318,7 +1317,7 @@ subroutine get_all_spin_doubles_3(buffer, spindet, size_buffer, doubles, n_doubl
 ! unique alpha determinants.
 !
   END_DOC
-  integer, intent(in)            :: size_buffer
+  integer, intent(in)            :: size_buffer, idx(size_buffer)
   integer(bit_kind), intent(in)  :: buffer(3,size_buffer)
   integer(bit_kind), intent(in)  :: spindet(3)
   integer, intent(out)           :: doubles(size_buffer)
@@ -1367,7 +1366,7 @@ subroutine get_all_spin_doubles_3(buffer, spindet, size_buffer, doubles, n_doubl
   n_doubles = 1
   do i=1,size_buffer
     if ( degree(i) == 4 ) then
-      doubles(n_doubles) = i
+      doubles(n_doubles) = idx(i)
       n_doubles = n_doubles+1
     endif
   enddo

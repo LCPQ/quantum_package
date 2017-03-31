@@ -2556,3 +2556,89 @@ subroutine get_mono_excitation_spin(det1,det2,exc,phase,Nint)
   enddo
 end
 
+subroutine i_H_j_mono_spin(key_i,key_j,Nint,spin,hij)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Returns <i|H|j> where i and j are determinants differing by a single excitation
+  END_DOC
+  integer, intent(in)            :: Nint, spin
+  integer(bit_kind), intent(in)  :: key_i(Nint), key_j(Nint)
+  double precision, intent(out)  :: hij
+  
+  integer                        :: exc(0:2,2)
+  double precision               :: phase
+
+  PROVIDE big_array_exchange_integrals mo_bielec_integrals_in_map
+
+  call get_mono_excitation_spin(key_i,key_j,exc,phase,Nint)
+if (exc(1,1) == 0) then
+  call debug_spindet(key_i, N_int)
+  call debug_spindet(key_j, N_int)
+  print *,  exc(0:2,1:2)
+  stop
+endif
+  call get_mono_excitation_from_fock(key_i,key_j,exc(1,2),exc(1,1),spin,phase,hij)
+end
+
+subroutine i_H_j_double_spin(key_i,key_j,Nint,hij)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Returns <i|H|j> where i and j are determinants differing by a same-spin double excitation
+  END_DOC
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: key_i(Nint), key_j(Nint)
+  double precision, intent(out)  :: hij
+  
+  integer                        :: exc(0:2,2)
+  double precision               :: phase
+  double precision, external     :: get_mo_bielec_integral
+
+  PROVIDE big_array_exchange_integrals mo_bielec_integrals_in_map
+
+  call get_double_excitation_spin(key_i,key_j,exc,phase,Nint)
+  hij = phase*(get_mo_bielec_integral(                               &
+      exc(1,1),                                                      &
+      exc(2,1),                                                      &
+      exc(1,2),                                                      &
+      exc(2,2), mo_integrals_map) -                                  &
+      get_mo_bielec_integral(                                        &
+      exc(1,1),                                                      &
+      exc(2,1),                                                      &
+      exc(2,2),                                                      &
+      exc(1,2), mo_integrals_map) )
+end
+
+subroutine i_H_j_double_alpha_beta(key_i,key_j,Nint,hij)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Returns <i|H|j> where i and j are determinants differing by an opposite-spin double excitation
+  END_DOC
+  integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: key_i(Nint,2), key_j(Nint,2)
+  double precision, intent(out)  :: hij
+  
+  integer                        :: exc(0:2,2,2)
+  double precision               :: phase
+  double precision, external     :: get_mo_bielec_integral
+
+  PROVIDE big_array_exchange_integrals mo_bielec_integrals_in_map
+
+  call get_mono_excitation_spin(key_i(1,1),key_j(1,1),exc(0,1,1),phase,Nint)
+  call get_mono_excitation_spin(key_i(1,2),key_j(1,2),exc(0,1,2),phase,Nint)
+  if (exc(1,1,1) == exc(1,2,2)) then
+    hij = phase * big_array_exchange_integrals(exc(1,1,1),exc(1,1,2),exc(1,2,1))
+  else if (exc(1,2,1) == exc(1,1,2)) then
+    hij = phase * big_array_exchange_integrals(exc(1,2,1),exc(1,1,1),exc(1,2,2))
+  else
+    hij = phase*get_mo_bielec_integral(                              &
+        exc(1,1,1),                                                  &
+        exc(1,1,2),                                                  &
+        exc(1,2,1),                                                  &
+        exc(1,2,2) ,mo_integrals_map)
+  endif
+end
+
+
