@@ -2563,7 +2563,7 @@ subroutine i_H_j_mono_spin(key_i,key_j,Nint,spin,hij)
   ! Returns <i|H|j> where i and j are determinants differing by a single excitation
   END_DOC
   integer, intent(in)            :: Nint, spin
-  integer(bit_kind), intent(in)  :: key_i(Nint), key_j(Nint)
+  integer(bit_kind), intent(in)  :: key_i(Nint,2), key_j(Nint,2)
   double precision, intent(out)  :: hij
   
   integer                        :: exc(0:2,2)
@@ -2571,13 +2571,7 @@ subroutine i_H_j_mono_spin(key_i,key_j,Nint,spin,hij)
 
   PROVIDE big_array_exchange_integrals mo_bielec_integrals_in_map
 
-  call get_mono_excitation_spin(key_i,key_j,exc,phase,Nint)
-if (exc(1,1) == 0) then
-  call debug_spindet(key_i, N_int)
-  call debug_spindet(key_j, N_int)
-  print *,  exc(0:2,1:2)
-  stop
-endif
+  call get_mono_excitation_spin(key_i(1,spin),key_j(1,spin),exc,phase,Nint)
   call get_mono_excitation_from_fock(key_i,key_j,exc(1,2),exc(1,1),spin,phase,hij)
 end
 

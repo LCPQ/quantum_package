@@ -613,7 +613,7 @@ end
 
 
 
-subroutine H_S2_u_0_nstates_new(v_0,s_0,H_jj,S2_jj,N_st,sze_8)
+subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -627,7 +627,6 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,H_jj,S2_jj,N_st,sze_8)
   END_DOC
   integer, intent(in)            :: N_st,sze_8
   double precision, intent(out)  :: v_0(sze_8,N_st), s_0(sze_8,N_st)
-  double precision, intent(in)   :: H_jj(*), S2_jj(*)
 
   
   PROVIDE ref_bitmask_energy
@@ -655,6 +654,8 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,H_jj,S2_jj,N_st,sze_8)
       is_single_a(N_det_alpha_unique),                               &
       idx(N_det_alpha_unique), idx0(N_det_alpha_unique) )
   
+  v_0 = 0.d0
+
   do k_a=1,N_det-1
     
     ! Initial determinant is at k_a in alpha-major representation
@@ -670,23 +671,32 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,H_jj,S2_jj,N_st,sze_8)
     ! ----------------------------------------------------------------------
     
     k_b = psi_bilinear_matrix_order_reverse(k_a)
+
+    ! Diagonal contribution
+    ! ---------------------
+
+    double precision, external :: diag_H_mat_elem
+  
+    v_0(k_a,1:N_st) = v_0(k_a,1:N_st) + diag_H_mat_elem(tmp_det,N_int) * &
+        psi_bilinear_matrix_values(k_a,1:N_st)
+
     
     ! Get all single and double alpha excitations
     ! ===========================================
     
-    l_a = k_a+1
     spindet(1:N_int) = tmp_det(1:N_int,1)
     
     ! Loop inside the beta column to gather all the connected alphas
     i=1
-    lcol = kcol
+    l_a = k_a+1
+    lcol = psi_bilinear_matrix_columns(l_a)
     do while ( (lcol == kcol).and.(l_a <= N_det) )
       lrow = psi_bilinear_matrix_rows(l_a)
-      lcol = psi_bilinear_matrix_columns(l_a)
       buffer(1:N_int,i) = psi_det_alpha_unique(1:N_int, lrow)
       idx(i) = lrow
       i=i+1
       l_a = l_a + 1
+      lcol = psi_bilinear_matrix_columns(l_a)
     enddo
     i = i-1
     
@@ -697,30 +707,31 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,H_jj,S2_jj,N_st,sze_8)
     ! Compute Hij for all alpha singles
     ! ----------------------------------
 
-    l_a = k_a+1
+    l_a = k_a
     lrow = psi_bilinear_matrix_rows(l_a)
+    tmp_det2(1:N_int,2) = psi_det_beta_unique (1:N_int, kcol)
     do i=1,n_singles
-      call i_H_j_mono_spin( tmp_det(1,1), psi_det_alpha_unique(1, singles(i)), N_int, 1, hij)
       do while ( lrow < singles(i) )
         l_a = l_a+1
         lrow = psi_bilinear_matrix_rows(l_a)
       enddo
+      tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
+      call i_H_j_mono_spin( tmp_det, tmp_det2, N_int, 1, hij)
       v_0(l_a, 1:N_st) += hij * psi_bilinear_matrix_values(k_a,1:N_st)
       v_0(k_a, 1:N_st) += hij * psi_bilinear_matrix_values(l_a,1:N_st)
-    
     enddo
     
     ! Compute Hij for all alpha doubles
     ! ----------------------------------
     
-    l_a = k_a+1
+    l_a = k_a
     lrow = psi_bilinear_matrix_rows(l_a)
     do i=1,n_doubles
-      call i_H_j_double_spin( tmp_det(1,1), psi_det_alpha_unique(1, doubles(i)), N_int, hij)
       do while (lrow < doubles(i))
         l_a = l_a+1
         lrow = psi_bilinear_matrix_rows(l_a)
       enddo
+      call i_H_j_double_spin( tmp_det(1,1), psi_det_alpha_unique(1, doubles(i)), N_int, hij)
       v_0(l_a, 1:N_st) += hij * psi_bilinear_matrix_values(k_a,1:N_st)
       v_0(k_a, 1:N_st) += hij * psi_bilinear_matrix_values(l_a,1:N_st)
     enddo
@@ -730,19 +741,19 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,H_jj,S2_jj,N_st,sze_8)
     ! Get all single and double beta excitations
     ! ===========================================
     
-    l_b = k_b+1
     spindet(1:N_int) = tmp_det(1:N_int,2)
     
     ! Loop inside the alpha row to gather all the connected betas
     i=1
-    lrow=krow
+    l_b = k_b+1
+    lrow = psi_bilinear_matrix_transp_rows(l_b)
     do while ( (lrow == krow).and.(l_b <= N_det) )
-      lrow = psi_bilinear_matrix_transp_rows(l_b)
       lcol = psi_bilinear_matrix_transp_columns(l_b)
       buffer(1:N_int,i) = psi_det_beta_unique(1:N_int, lcol)
       idx(i) = lcol
       i=i+1
       l_b = l_b + 1
+      lrow = psi_bilinear_matrix_transp_rows(l_b)
     enddo
     i = i-1
     
@@ -755,13 +766,15 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,H_jj,S2_jj,N_st,sze_8)
     
     l_b = k_b
     lcol = psi_bilinear_matrix_transp_columns(l_b)
+    tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, krow)
     do i=1,n_singles
-      call i_H_j_mono_spin( tmp_det(1,2), psi_det_beta_unique(1, singles(i)), N_int, 2, hij)
       do while ( lcol < singles(i) )
         l_b = l_b+1
         lcol = psi_bilinear_matrix_transp_columns(l_b)
       enddo
-      l_a = psi_bilinear_matrix_order_reverse(l_b)
+      tmp_det2(1:N_int,2) = psi_det_beta_unique (1:N_int, lcol)
+      l_a = psi_bilinear_matrix_transp_order(l_b)
+      call i_H_j_mono_spin( tmp_det, tmp_det2, N_int, 2, hij)
       v_0(l_a, 1:N_st) += hij * psi_bilinear_matrix_values(k_a,1:N_st)
       v_0(k_a, 1:N_st) += hij * psi_bilinear_matrix_values(l_a,1:N_st)
     enddo
@@ -772,18 +785,19 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,H_jj,S2_jj,N_st,sze_8)
     l_b = k_b
     lcol = psi_bilinear_matrix_transp_columns(l_b)
     do i=1,n_doubles
-      call i_H_j_double_spin( tmp_det(1,2), psi_det_beta_unique(1, doubles(i)), N_int, hij)
       do while (lcol < doubles(i))
         l_b = l_b+1
         lcol = psi_bilinear_matrix_transp_columns(l_b)
       enddo
-      l_a = psi_bilinear_matrix_order_reverse(l_b)
+      l_a = psi_bilinear_matrix_transp_order(l_b)
+      call i_H_j_double_spin( tmp_det(1,2), psi_det_beta_unique(1, doubles(i)), N_int, hij)
       v_0(l_a, 1:N_st) += hij * psi_bilinear_matrix_values(k_a,1:N_st)
       v_0(k_a, 1:N_st) += hij * psi_bilinear_matrix_values(l_a,1:N_st)
     enddo
     
   end do
-    
+
+
   ! Alpha/Beta double excitations
   ! =============================
     
@@ -875,8 +889,8 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,H_jj,S2_jj,N_st,sze_8)
                mcol = psi_bilinear_matrix_transp_columns(m_b)
              enddo
              m_a = psi_bilinear_matrix_order_reverse(m_b)
-             v_0(m_a, 1:N_st) += hij * psi_bilinear_matrix_values(k_a,1:N_st)
-             v_0(k_a, 1:N_st) += hij * psi_bilinear_matrix_values(m_a,1:N_st)
+!             v_0(m_a, 1:N_st) += hij * psi_bilinear_matrix_values(k_a,1:N_st)
+!             v_0(k_a, 1:N_st) += hij * psi_bilinear_matrix_values(m_a,1:N_st)
            enddo
 
         endif
@@ -923,11 +937,17 @@ subroutine H_S2_u_0_nstates_test(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze
 
   allocate(idx(0:n), vt(N_st,n))
   Vt = 0.d0
-  do i=1,n
+  do i=2,n
     idx(0) = i
     call filter_connected(keys_tmp,keys_tmp(1,1,i),Nint,i-1,idx)
     do jj=1,idx(0)
       j = idx(jj)
+      double precision :: phase
+      integer :: degree
+      integer :: exc(0:2,2,2)
+      call get_excitation(keys_tmp(1,1,j),keys_tmp(1,1,i),exc,degree,phase,Nint)
+      if ((degree == 2).and.(exc(0,1,1)==1)) cycle
+!      if (exc(0,1,2) /= 0) cycle
       call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
       vt (:,i) = vt (:,i) + hij*u_0(j,:)
       vt (:,j) = vt (:,j) + hij*u_0(i,:)

@@ -630,9 +630,9 @@ subroutine get_all_spin_singles_and_doubles(buffer, idx, spindet, Nint, size_buf
     case (1)
       call get_all_spin_singles_and_doubles_1(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
       return
-    case (2)
-      call get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
-      return
+!    case (2)
+!      call get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+!      return
     case (3)
       call get_all_spin_singles_and_doubles_3(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
       return
