@@ -253,6 +253,9 @@ if __name__ == '__main__':
             m.create_png(l_module)
         except RuntimeError:
             pass
+        except SyntaxError:
+            print "Warning: The graphviz API drop support of python 2.6."
+            pass
 
     if arguments["clean"] or arguments["create_git_ignore"]:
 
