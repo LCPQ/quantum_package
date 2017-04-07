@@ -251,7 +251,8 @@ subroutine give_2h1p_contrib_sec_order(matrix_2h1p)
                  call get_mono_excitation(det_tmp,det_tmp_bis,exc,phase,N_int)
 !                ! < det_tmp | H | det_tmp_bis >  = F_{aorb,borb}
                  hab = fock_operator_local(aorb,borb,kspin) * phase  
-            if(isnan(hab))then
+!            if(isnan(hab))then
+            if(hab /= hab)then
              print*, '2'
              stop
             endif
