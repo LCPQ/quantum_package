@@ -504,6 +504,11 @@ subroutine new_parallel_job(zmq_to_qp_run_socket,name_in)
   if (zmq_context == 0_ZMQ_PTR) then
      stop 'ZMQ_PTR is null'
   endif
+  rc = f77_zmq_ctx_set(zmq_context, ZMQ_IO_THREADS, nproc)
+  if (rc /= 0) then
+    print *,  'Unable to set the number of ZMQ IO threads to', nproc
+  endif
+
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   name = name_in
   sze = len(trim(name))
@@ -584,7 +589,10 @@ subroutine end_parallel_job(zmq_to_qp_run_socket,name_in)
   zmq_state = 'No_state'
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
 
+  call omp_set_lock(zmq_lock)
   rc = f77_zmq_ctx_term(zmq_context)
+  zmq_context = 0_ZMQ_PTR
+  call omp_unset_lock(zmq_lock)
   if (rc /= 0) then
     print *,  'Unable to terminate ZMQ context'
     stop 'error'
