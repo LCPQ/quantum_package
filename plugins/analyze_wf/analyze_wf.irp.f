@@ -18,7 +18,7 @@ subroutine run
   write(*,'(A)')  '============='
   write(*,'(A)')  ''
   do istate=1,N_states
-    call get_occupation_from_dets(occupation,1)
+    call get_occupation_from_dets(occupation,istate)
     write(*,'(A)')  ''
     write(*,'(A,I3)'),  'State ', istate
     write(*,'(A)')  '---------------'

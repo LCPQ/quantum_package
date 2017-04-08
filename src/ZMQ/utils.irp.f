@@ -504,10 +504,10 @@ subroutine new_parallel_job(zmq_to_qp_run_socket,name_in)
   if (zmq_context == 0_ZMQ_PTR) then
      stop 'ZMQ_PTR is null'
   endif
-  rc = f77_zmq_ctx_set(zmq_context, ZMQ_IO_THREADS, nproc)
-  if (rc /= 0) then
-    print *,  'Unable to set the number of ZMQ IO threads to', nproc
-  endif
+!  rc = f77_zmq_ctx_set(zmq_context, ZMQ_IO_THREADS, nproc)
+!  if (rc /= 0) then
+!    print *,  'Unable to set the number of ZMQ IO threads to', nproc
+!  endif
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   name = name_in
