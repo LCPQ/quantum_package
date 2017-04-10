@@ -1,11 +1,8 @@
 use f77_zmq
 use omp_lib
 
-integer, pointer :: thread_id 
-integer(omp_lock_kind) :: zmq_lock
-
-
-BEGIN_PROVIDER [ integer(ZMQ_PTR), zmq_context ]
+ BEGIN_PROVIDER [ integer(ZMQ_PTR), zmq_context ]
+&BEGIN_PROVIDER [ integer(omp_lock_kind), zmq_lock ]
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -407,7 +404,6 @@ subroutine end_zmq_sub_socket(zmq_socket_sub)
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_sub
   integer                        :: rc
   
-  PROVIDE zmq_context
   call omp_set_lock(zmq_lock)
   rc = f77_zmq_close(zmq_socket_sub)
   call omp_unset_lock(zmq_lock)
@@ -429,7 +425,6 @@ subroutine end_zmq_pair_socket(zmq_socket_pair)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
-  PROVIDE zmq_context
   call omp_set_lock(zmq_lock)
   rc = f77_zmq_close(zmq_socket_pair)
   call omp_unset_lock(zmq_lock)
@@ -450,7 +445,6 @@ subroutine end_zmq_pull_socket(zmq_socket_pull)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
-  PROVIDE zmq_context
   call omp_set_lock(zmq_lock)
   rc = f77_zmq_close(zmq_socket_pull)
   call omp_unset_lock(zmq_lock)
@@ -478,7 +472,6 @@ subroutine end_zmq_push_socket(zmq_socket_push,thread)
     stop 'Unable to set ZMQ_LINGER on push socket'
   endif
 
-  PROVIDE zmq_context
   call omp_set_lock(zmq_lock)
   rc = f77_zmq_close(zmq_socket_push)
   call omp_unset_lock(zmq_lock)
@@ -514,10 +507,10 @@ subroutine new_parallel_job(zmq_to_qp_run_socket,name_in)
 
   call omp_set_lock(zmq_lock)
   zmq_context = f77_zmq_ctx_new ()
+  call omp_unset_lock(zmq_lock)
   if (zmq_context == 0_ZMQ_PTR) then
      stop 'ZMQ_PTR is null'
   endif
-  call omp_unset_lock(zmq_lock)
 !  rc = f77_zmq_ctx_set(zmq_context, ZMQ_IO_THREADS, nproc)
 !  if (rc /= 0) then
 !    print *,  'Unable to set the number of ZMQ IO threads to', nproc
