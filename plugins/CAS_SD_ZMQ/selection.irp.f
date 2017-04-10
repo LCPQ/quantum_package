@@ -1254,6 +1254,7 @@ subroutine ZMQ_selection(N_in, pt2)
   if (i==0) then
     call selection_collector(b, pt2)
   else
+    call sleep(.1)
     call selection_slave_inproc(i)
   endif
   !$OMP END PARALLEL
