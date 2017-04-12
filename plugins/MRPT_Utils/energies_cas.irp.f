@@ -898,7 +898,7 @@ END_PROVIDER
       enddo
       print*, '***'
       do i = 1, N_det+1
-       write(*,'(100(F16.10,X))')H_matrix(i,:)
+       write(*,'(100(F16.10,1X))')H_matrix(i,:)
       enddo
       call lapack_diag(eigenvalues,eigenvectors,H_matrix,size(H_matrix,1),N_det+1)
       corr_e_from_1h1p(state_target) += eigenvalues(1) - energy_cas_dyall(state_target)   
@@ -919,15 +919,15 @@ END_PROVIDER
        norm += psi_in_out_coef(i,state_target) * psi_in_out_coef(i,state_target)
       enddo
       print*, 'Coef '
-      write(*,'(100(X,F16.10))')psi_coef(1:N_det,state_target)
-      write(*,'(100(X,F16.10))')psi_in_out_coef(:,state_target)
+      write(*,'(100(1X,F16.10))')psi_coef(1:N_det,state_target)
+      write(*,'(100(1X,F16.10))')psi_in_out_coef(:,state_target)
       double precision :: coef_tmp(N_det)
       do i = 1, N_det
        coef_tmp(i) = psi_coef(i,1) * interact_psi0(i) / delta_e_alpha_beta(i,ispin)
       enddo
-      write(*,'(100(X,F16.10))')coef_tmp(:)
+      write(*,'(100(1X,F16.10))')coef_tmp(:)
       print*, 'naked interactions'
-      write(*,'(100(X,F16.10))')interact_psi0(:)
+      write(*,'(100(1X,F16.10))')interact_psi0(:)
       print*, ''
       
       print*, 'norm ',norm
@@ -953,10 +953,10 @@ END_PROVIDER
       enddo
     enddo
       print*, '***'
-      write(*,'(100(X,F16.10))')
-      write(*,'(100(X,F16.10))')delta_e_alpha_beta(:,2)
- !    write(*,'(100(X,F16.10))')one_anhil_one_creat_inact_virt_bis(iorb,vorb,:,1,:)
- !    write(*,'(100(X,F16.10))')one_anhil_one_creat_inact_virt_bis(iorb,vorb,:,2,:)
+      write(*,'(100(1X,F16.10))')
+      write(*,'(100(1X,F16.10))')delta_e_alpha_beta(:,2)
+ !    write(*,'(100(1X,F16.10))')one_anhil_one_creat_inact_virt_bis(iorb,vorb,:,1,:)
+ !    write(*,'(100(1X,F16.10))')one_anhil_one_creat_inact_virt_bis(iorb,vorb,:,2,:)
     print*, '---------------------------------------------------------------------------'
    enddo
   enddo
@@ -1089,11 +1089,11 @@ subroutine give_singles_and_partial_doubles_1h1p_contrib(matrix_1h1p,e_corr_from
        print*, 'e corr perturb EN',accu(state_target)
        print*, ''
        print*, 'coef diagonalized'
-       write(*,'(100(F16.10,X))')psi_in_out_coef(:,state_target)
+       write(*,'(100(F16.10,1X))')psi_in_out_coef(:,state_target)
        print*, 'coef_perturb'
-       write(*,'(100(F16.10,X))')coef_perturb(:)
+       write(*,'(100(F16.10,1X))')coef_perturb(:)
        print*, 'coef_perturb EN'
-       write(*,'(100(F16.10,X))')coef_perturb_bis(:)
+       write(*,'(100(F16.10,1X))')coef_perturb_bis(:)
       endif
       integer :: k
       do k = 1, N_det

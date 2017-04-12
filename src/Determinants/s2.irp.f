@@ -252,8 +252,8 @@ end
 subroutine get_uJ_s2_uI(psi_keys_tmp,psi_coefs_tmp,n,nmax_coefs,nmax_keys,s2,nstates)
   implicit none
   use bitmasks
-  integer(bit_kind), intent(in)  :: psi_keys_tmp(N_int,2,nmax_keys)
   integer, intent(in)            :: n,nmax_coefs,nmax_keys,nstates
+  integer(bit_kind), intent(in)  :: psi_keys_tmp(N_int,2,nmax_keys)
   double precision, intent(in)   :: psi_coefs_tmp(nmax_coefs,nstates)
   double precision, intent(out)  :: s2(nstates,nstates)
   double precision               :: s2_tmp,accu
@@ -344,7 +344,7 @@ subroutine diagonalize_s2_betweenstates(keys_tmp,u_0,n,nmax_keys,nmax_coefs,nsta
   
   print*,'S^2 matrix in the basis of the states considered'
   do i = 1, nstates
-    write(*,'(100(F5.2,X))')s2(i,:)
+    write(*,'(100(F5.2,1X))')s2(i,:)
   enddo
   
   double precision               :: accu_precision_diag,accu_precision_of_diag
@@ -370,7 +370,7 @@ subroutine diagonalize_s2_betweenstates(keys_tmp,u_0,n,nmax_keys,nmax_coefs,nsta
   
   print*,'Modified S^2 matrix that will be diagonalized'
   do i = 1, nstates
-    write(*,'(10(F5.2,X))')s2(i,:)
+    write(*,'(10(F5.2,1X))')s2(i,:)
     s2(i,i) = s2(i,i)
   enddo
   

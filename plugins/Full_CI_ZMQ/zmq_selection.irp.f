@@ -32,7 +32,7 @@ subroutine ZMQ_selection(N_in, pt2)
   k=0
   do i= 1, N_det_generators
     k = k+1
-    write(task(20*(k-1)+1:20*k),'(I9,X,I9,''|'')') i, N
+    write(task(20*(k-1)+1:20*k),'(I9,1X,I9,''|'')') i, N
     k = k+20
     if (k>20*maxtasks) then
        k=0

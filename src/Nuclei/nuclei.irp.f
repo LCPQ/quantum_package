@@ -37,8 +37,8 @@ BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num_aligned,3) ]
    enddo
    deallocate(buffer)
    
-   character*(64), parameter      :: f = '(A16, 4(X,F12.6))'
-   character*(64), parameter      :: ft= '(A16, 4(X,A12  ))'
+   character*(64), parameter      :: f = '(A16, 4(1X,F12.6))'
+   character*(64), parameter      :: ft= '(A16, 4(1X,A12  ))'
    double precision, parameter    :: a0= 0.529177249d0
    call write_time(output_Nuclei)
    write(output_Nuclei,'(A)') ''

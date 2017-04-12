@@ -342,7 +342,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_
 !    istep = 1+ int(workload*target_workload_inv)
     istep = 1
     do blockb2=0, istep-1
-      write(tmp_task,'(3(I9,X),''|'',X)') sh, blockb2, istep
+      write(tmp_task,'(3(I9,1X),''|'',1X)') sh, blockb2, istep
       task = task//tmp_task
       ipos += 32
       if (ipos+32 > iposmax) then
@@ -918,8 +918,8 @@ end
 subroutine H_S2_u_0_nstates_test(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   use bitmasks
   implicit none
-  integer(bit_kind), intent(in)  :: keys_tmp(Nint,2,n)
   integer, intent(in)            :: N_st,n,Nint, sze_8
+  integer(bit_kind), intent(in)  :: keys_tmp(Nint,2,n)
   double precision, intent(out)  :: v_0(sze_8,N_st), s_0(sze_8,N_st)
   double precision, intent(in)   :: u_0(sze_8,N_st)
   double precision, intent(in)   :: H_jj(n), S2_jj(n)

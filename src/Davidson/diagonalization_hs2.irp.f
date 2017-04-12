@@ -413,7 +413,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
         endif
       enddo
       
-      write(iunit,'(X,I3,X,100(X,F16.10,X,F11.6,X,E11.3))')  iter, to_print(1:3,1:N_st)
+      write(iunit,'(1X,I3,1X,100(1X,F16.10,1X,F11.6,1X,E11.3))')  iter, to_print(1:3,1:N_st)
       call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
       do k=1,N_st
         if (residual_norm(k) > 1.e8) then
@@ -838,7 +838,7 @@ subroutine davidson_diag_hjj_sjj_mmap(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
         endif
       enddo
       
-      write(iunit,'(X,I3,X,100(X,F16.10,X,F11.6,X,E11.3))')  iter, to_print(1:3,1:N_st)
+      write(iunit,'(1X,I3,1X,100(1X,F16.10,1X,F11.6,1X,E11.3))')  iter, to_print(1:3,1:N_st)
       call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
       do k=1,N_st
         if (residual_norm(k) > 1.e8) then

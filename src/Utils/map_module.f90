@@ -407,7 +407,7 @@ subroutine map_update(map, key, value, sze, thr)
               call cache_map_shrink(local_map,thr)
             endif
             cache_key = iand(key(i),map_mask)
-            local_map%n_elements = local_map%n_elements + 1_8
+            local_map%n_elements = local_map%n_elements + 1
             local_map%value(local_map%n_elements) = value(i)
             local_map%key(local_map%n_elements) = cache_key
             local_map%sorted = .False.

@@ -20,7 +20,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
   double precision, allocatable :: pt2_detail(:,:), comb(:)
   logical, allocatable :: computed(:)
   integer, allocatable :: tbc(:)
-  integer :: i, j, Ncomb, generator_per_task, i_generator_end
+  integer :: i, j, k, Ncomb, generator_per_task, i_generator_end
   integer, external :: pt2_find
   
   double precision :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
@@ -69,18 +69,18 @@ subroutine ZMQ_pt2(pt2,relative_error)
 
     do i=1,tbc(0)
       if(tbc(i) > fragment_first) then
-        write(task(ipos:ipos+20),'(I9,X,I9,''|'')') 0, tbc(i)
+        write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') 0, tbc(i)
         ipos += 20
-        if (ipos > 64000) then
+        if (ipos > 63980) then
           call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
           ipos=1
           tasks = .True.
         endif
       else
         do j=1,fragment_count
-          write(task(ipos:ipos+20),'(I9,X,I9,''|'')') j, tbc(i)
+          write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') j, tbc(i)
           ipos += 20
-          if (ipos > 64000) then
+          if (ipos > 63980) then
             call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
             ipos=1
             tasks = .True.
@@ -108,7 +108,12 @@ subroutine ZMQ_pt2(pt2,relative_error)
       call end_parallel_job(zmq_to_qp_run_socket, 'pt2')
 
     else
-       pt2(1) = sum(pt2_detail(1,:))
+       pt2 = 0.d0
+       do i=1,N_det_generators
+         do k=1,N_states
+            pt2(k) = pt2(k) + pt2_detail(k,i)
+         enddo
+       enddo
     endif
 
     tbc(0) = 0
@@ -117,7 +122,6 @@ subroutine ZMQ_pt2(pt2,relative_error)
     endif
   end do
 
-  print *,  'OK'
   deallocate(pt2_detail, comb, computed, tbc)
 
 end subroutine
@@ -380,9 +384,9 @@ END_PROVIDER
 
 subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
   implicit none
+  integer, intent(inout) :: Ncomb
   double precision, intent(out) :: comb(Ncomb)
   integer, intent(inout) :: tbc(0:size_tbc)
-  integer, intent(inout) :: Ncomb
   logical, intent(inout) :: computed(N_det_generators)
   integer :: i, j, last_full, dets(comb_teeth), tbc_save
   integer :: icount, n

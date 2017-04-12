@@ -184,50 +184,50 @@ subroutine decode_exc_int2(exc,degree,h1,p1,h2,p2,s1,s2)
   select case(degree)
     case(2)
       if (exc(0,1,1) == 2) then
-        h1 = exc(1,1,1)
-        h2 = exc(2,1,1)
-        p1 = exc(1,2,1)
-        p2 = exc(2,2,1)
-        s1 = 1
-        s2 = 1
+        h1 = int(exc(1,1,1),2)
+        h2 = int(exc(2,1,1),2)
+        p1 = int(exc(1,2,1),2)
+        p2 = int(exc(2,2,1),2)
+        s1 = 1_2
+        s2 = 1_2
       else if (exc(0,1,2) == 2) then
-        h1 = exc(1,1,2)
-        h2 = exc(2,1,2)
-        p1 = exc(1,2,2)
-        p2 = exc(2,2,2)
-        s1 = 2
-        s2 = 2
+        h1 = int(exc(1,1,2),2)
+        h2 = int(exc(2,1,2),2)
+        p1 = int(exc(1,2,2),2)
+        p2 = int(exc(2,2,2),2)
+        s1 = 2_2
+        s2 = 2_2
       else
-        h1 = exc(1,1,1)
-        h2 = exc(1,1,2)
-        p1 = exc(1,2,1)
-        p2 = exc(1,2,2)
-        s1 = 1
-        s2 = 2
+        h1 = int(exc(1,1,1),2)
+        h2 = int(exc(1,1,2),2)
+        p1 = int(exc(1,2,1),2)
+        p2 = int(exc(1,2,2),2)
+        s1 = 1_2
+        s2 = 2_2
       endif
     case(1)
       if (exc(0,1,1) == 1) then
-        h1 = exc(1,1,1)
-        h2 = 0
-        p1 = exc(1,2,1)
-        p2 = 0
-        s1 = 1
-        s2 = 0
+        h1 = int(exc(1,1,1),2)
+        h2 = 0_2
+        p1 = int(exc(1,2,1),2)
+        p2 = 0_2
+        s1 = 1_2
+        s2 = 0_2
       else
-        h1 = exc(1,1,2)
-        h2 = 0
-        p1 = exc(1,2,2)
-        p2 = 0
-        s1 = 2
-        s2 = 0
+        h1 = int(exc(1,1,2),2)
+        h2 = 0_2
+        p1 = int(exc(1,2,2),2)
+        p2 = 0_2
+        s1 = 2_2
+        s2 = 0_2
       endif
     case(0)
-      h1 = 0
-      p1 = 0
-      h2 = 0
-      p2 = 0
-      s1 = 0
-      s2 = 0
+      h1 = 0_2
+      p1 = 0_2
+      h2 = 0_2
+      p2 = 0_2
+      s1 = 0_2
+      s2 = 0_2
   end select
 end
 
@@ -2181,8 +2181,8 @@ end
 subroutine get_phase(key1,key2,phase,Nint)
   use bitmasks
   implicit none
-  integer(bit_kind), intent(in)  :: key1(Nint,2), key2(Nint,2)
   integer, intent(in)            :: Nint
+  integer(bit_kind), intent(in)  :: key1(Nint,2), key2(Nint,2)
   double precision, intent(out)  :: phase
   BEGIN_DOC
 ! Returns the phase between key1 and key2

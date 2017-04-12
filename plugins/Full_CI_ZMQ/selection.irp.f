@@ -564,11 +564,10 @@ subroutine splash_pq(mask, sp, det, i_gen, N_sel, bannedOrb, banned, mat, intere
   use bitmasks
   implicit none
   
-  integer, intent(in) :: interesting(0:N_sel)
-  
-  integer(bit_kind),intent(in) :: mask(N_int, 2), det(N_int, 2, N_sel)
-  integer, intent(in) :: sp, i_gen, N_sel
-  logical, intent(inout) :: bannedOrb(mo_tot_num, 2), banned(mo_tot_num, mo_tot_num, 2)
+  integer, intent(in)            :: sp, i_gen, N_sel
+  integer, intent(in)            :: interesting(0:N_sel)
+  integer(bit_kind),intent(in)   :: mask(N_int, 2), det(N_int, 2, N_sel)
+  logical, intent(inout)         :: bannedOrb(mo_tot_num, 2), banned(mo_tot_num, mo_tot_num, 2)
   double precision, intent(inout) :: mat(N_states, mo_tot_num, mo_tot_num)
 
   integer :: i, ii, j, k, l, h(0:2,2), p(0:4,2), nt
@@ -1043,9 +1042,9 @@ subroutine spot_isinwf(mask, det, i_gen, N, banned, fullMatch, interesting)
   use bitmasks
   implicit none
   
+  integer, intent(in) :: i_gen, N
   integer, intent(in) :: interesting(0:N)
   integer(bit_kind),intent(in) :: mask(N_int, 2), det(N_int, 2, N)
-  integer, intent(in) :: i_gen, N
   logical, intent(inout) :: banned(mo_tot_num, mo_tot_num)
   logical, intent(out) :: fullMatch
 

@@ -126,7 +126,7 @@ subroutine print_mulliken_sd
  accu = 0.d0
  do i = 1, ao_num
   accu += spin_gross_orbital_product(i)
-  write(*,'(X,I3,X,A4,X,I2,X,A4,X,F10.7)')i,trim(element_name(int(nucl_charge(ao_nucl(i))))),ao_nucl(i),trim(l_to_charater(ao_l(i))),spin_gross_orbital_product(i)
+  write(*,'(1X,I3,1X,A4,1X,I2,1X,A4,1X,F10.7)')i,trim(element_name(int(nucl_charge(ao_nucl(i))))),ao_nucl(i),trim(l_to_charater(ao_l(i))),spin_gross_orbital_product(i)
  enddo
  print*,'sum = ',accu
  accu = 0.d0
@@ -142,7 +142,7 @@ subroutine print_mulliken_sd
   accu = 0.d0
   do i = 0,  ao_l_max
    accu += spin_population_angular_momentum_per_atom(i,j)
-   write(*,'(XX,I3,XX,A4,X,A4,X,F10.7)')j,trim(element_name(int(nucl_charge(j)))),trim(l_to_charater(i)),spin_population_angular_momentum_per_atom(i,j)
+   write(*,'(1X,I3,1X,A4,1X,A4,1X,F10.7)')j,trim(element_name(int(nucl_charge(j)))),trim(l_to_charater(i)),spin_population_angular_momentum_per_atom(i,j)
    print*,'sum = ',accu
   enddo
  enddo
