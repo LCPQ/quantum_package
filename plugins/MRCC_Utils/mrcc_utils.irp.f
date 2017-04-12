@@ -693,12 +693,12 @@ END_PROVIDER
   double precision               :: phase
   
   
-  double precision, allocatable :: rho_mrcc_init(:)
+  double precision, allocatable :: rho_mrcc_inact(:)
   integer                        :: a_coll, at_roww
   
   print *, "TI", hh_nex, N_det_non_ref
 
-  allocate(rho_mrcc_init(N_det_non_ref))
+  allocate(rho_mrcc_inact(N_det_non_ref))
   allocate(x_new(hh_nex))
   allocate(x(hh_nex), AtB(hh_nex))
 
@@ -710,7 +710,7 @@ END_PROVIDER
         !$OMP private(at_row, a_col, i, j, r1, r2, wk, A_ind_mwen, A_val_mwen, a_coll, at_roww)&
         !$OMP shared(N_states,mrcc_col_shortcut, mrcc_N_col, AtB, mrcc_AtA_val, mrcc_AtA_ind, s, n_exc_active, active_pp_idx)
     
-    !$OMP DO schedule(dynamic, 100)
+    !$OMP DO schedule(static, 100)
     do at_roww = 1, n_exc_active ! hh_nex
       at_row = active_pp_idx(at_roww)
       do i=1,active_excitation_to_determinants_idx(0,at_roww)
@@ -729,7 +729,7 @@ END_PROVIDER
       X(a_col) = AtB(a_col)
     end do
     
-    rho_mrcc_init = 0d0
+    rho_mrcc_inact(:) = 0d0
     
     allocate(lref(N_det_ref))
     do hh = 1, hh_shortcut(0)
@@ -753,18 +753,14 @@ END_PROVIDER
         X(pp) =  AtB(pp) 
         do II=1,N_det_ref
           if(lref(II) > 0) then
-            rho_mrcc_init(lref(II)) = psi_ref_coef(II,s) * X(pp)
+            rho_mrcc_inact(lref(II)) = psi_ref_coef(II,s) * X(pp)
           else if(lref(II) < 0) then
-            rho_mrcc_init(-lref(II)) = -psi_ref_coef(II,s) * X(pp)
+            rho_mrcc_inact(-lref(II)) = -psi_ref_coef(II,s) * X(pp)
           end if
         end do
       end do
     end do
     deallocate(lref)
-
-    do i=1,N_det_non_ref
-      rho_mrcc(i,s) = rho_mrcc_init(i) 
-    enddo
 
     x_new = x
     
@@ -793,7 +789,10 @@ END_PROVIDER
         print *, k, res, 1.d0 - res/resold
       endif
       
-      if ( (res < 1d-10).or.(res/resold > 0.99d0) ) then
+      if ( res < 1d-10 ) then
+        exit
+      endif
+      if ( (res/resold > 0.99d0) ) then
         exit
       endif
       resold = res
@@ -802,38 +801,60 @@ END_PROVIDER
     dIj_unique(1:size(X), s) = X(1:size(X))
     print *, k, res, 1.d0 - res/resold
 
-  enddo
 
-  do s=1,N_states
+    do i=1,N_det_non_ref
+      rho_mrcc(i,s) = 0.d0
+    enddo
 
     do a_coll=1,n_exc_active
       a_col = active_pp_idx(a_coll)
       do j=1,N_det_non_ref
         i = active_excitation_to_determinants_idx(j,a_coll)
         if (i==0) exit
+        if (rho_mrcc_inact(i) /= 0.d0) then
+          call debug_det(psi_non_ref(1,1,i),N_int)
+          stop
+        endif
         rho_mrcc(i,s) = rho_mrcc(i,s) + active_excitation_to_determinants_val(s,j,a_coll) * dIj_unique(a_col,s)
       enddo
     end do
 
-    norm = 0.d0
-    do i=1,N_det_non_ref
-      norm = norm + rho_mrcc(i,s)*rho_mrcc(i,s)
-    enddo
-    ! Norm now contains the norm of A.X
-    
+    double precision :: norm2_ref, norm2_inact, a, b, c, Delta
+    ! Psi = Psi_ref + Psi_inactive + f*Psi_active
+    ! Find f to normalize Psi
+
+    norm2_ref = 0.d0
     do i=1,N_det_ref
-      norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
+      norm2_ref = norm2_ref + psi_ref_coef(i,s)*psi_ref_coef(i,s)
     enddo
-    ! Norm now contains the norm of Psi + A.X
-    
+
+    a = 0.d0
+    do i=1,N_det_non_ref
+      a = a + rho_mrcc(i,s)*rho_mrcc(i,s)
+    enddo
+
+    norm = a + norm2_ref
     print *, "norm : ", sqrt(norm)
-   enddo
+
+    norm = sqrt((1.d0-norm2_ref)/a)
+
+    ! Renormalize Psi+A.X
+    do i=1,N_det_non_ref
+      rho_mrcc(i,s) = rho_mrcc(i,s) * norm 
+    enddo
+
+!norm = norm2_ref
+!do i=1,N_det_non_ref
+!  norm = norm + rho_mrcc(i,s)**2
+!enddo
+!print *,  'check', norm
+!stop
+
      
         
-   do s=1,N_states
      norm = 0.d0
      double precision               :: f, g, gmax
-     gmax = 1.d0*maxval(dabs(psi_non_ref_coef(:,s)))
+     gmax = maxval(dabs(psi_non_ref_coef(:,s)))
      do i=1,N_det_non_ref
        if (lambda_type == 2) then
          f = 1.d0
@@ -845,41 +866,22 @@ END_PROVIDER
         f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
 
         ! Avoid numerical instabilities
-!        g = 1.d0+dabs(gmax / psi_non_ref_coef(i,s) )
         g = 2.d0+100.d0*exp(-20.d0*dabs(psi_non_ref_coef(i,s)/gmax))
         f = min(f, g)
         f = max(f,-g)
+
       endif
 
-       norm = norm + f*f *rho_mrcc(i,s)*rho_mrcc(i,s)
+       norm = norm + (rho_mrcc(i,s)*f)**2
        rho_mrcc(i,s) = f
      enddo
-     ! norm now contains the norm of |T.Psi_0>
-     ! rho_mrcc now contains the f factors
-
-     f = 1.d0/norm
-     ! f now contains 1/ <T.Psi_0|T.Psi_0>
-
-     norm = 0.d0
-     do i=1,N_det_non_ref
-       norm = norm + psi_non_ref_coef(i,s)*psi_non_ref_coef(i,s)
-     enddo
-     ! norm now contains <Psi_SD|Psi_SD>
-     f = dsqrt(f*norm)
-     ! f normalises T.Psi_0 such that (1+T)|Psi> is normalized
+     ! rho_mrcc now contains the mu_i factors
 
      print *,  'norm of |T Psi_0> = ', dsqrt(norm)
-     norm = norm*f
-     if (dsqrt(norm) > 1.d0) then
+     if (norm > 1.d0) then
        stop 'Error : Norm of the SD larger than the norm of the reference.'
      endif
 
-     do i=1,N_det_non_ref
-       rho_mrcc(i,s) = rho_mrcc(i,s) * f
-     enddo
-     ! rho_mrcc now contains the product of the scaling factors and the
-     ! normalization constant
-    
   end do
 
 END_PROVIDER

@@ -23,33 +23,39 @@
  allocate(pathTo(N_det_non_ref))
 
  pathTo(:) = 0
- is_active_exc(:) = .false.
+ is_active_exc(:) = .True. 
  n_exc_active = 0
 
- do hh = 1, hh_shortcut(0)
-   do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
-     do II = 1, N_det_ref
+! do hh = 1, hh_shortcut(0)
+!   do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
+!     do II = 1, N_det_ref
+!
+!       call apply_hole_local(psi_ref(1,1,II), hh_exists(1, hh), myMask, ok, N_int)
+!       if(.not. ok) cycle
+!
+!       call apply_particle_local(myMask, pp_exists(1, pp), myDet, ok, N_int)
+!       if(.not. ok) cycle
+!
+!       ind = searchDet(psi_non_ref_sorted(1,1,1), myDet(1,1), N_det_non_ref, N_int)
+!       if(ind == -1) cycle
+!
+!       logical, external :: is_a_two_holes_two_particles
+!       if (is_a_two_holes_two_particles(myDet)) then
+!         is_active_exc(pp) = .False.
+!       endif
 
-       call apply_hole_local(psi_ref(1,1,II), hh_exists(1, hh), myMask, ok, N_int)
-       if(.not. ok) cycle
+!       ind = psi_non_ref_sorted_idx(ind)
+!       if(pathTo(ind) == 0) then
+!         pathTo(ind) = pp
+!       else
+!         is_active_exc(pp) = .true.
+!         is_active_exc(pathTo(ind)) = .true.
+!       end if
 
-       call apply_particle_local(myMask, pp_exists(1, pp), myDet, ok, N_int)
-       if(.not. ok) cycle
+!     end do
+!   end do
+! end do
 
-       ind = searchDet(psi_non_ref_sorted(1,1,1), myDet(1,1), N_det_non_ref, N_int)
-       if(ind == -1) cycle
-
-       ind = psi_non_ref_sorted_idx(ind)
-       if(pathTo(ind) == 0) then
-         pathTo(ind) = pp
-       else
-         is_active_exc(pp) = .true.
-         is_active_exc(pathTo(ind)) = .true.
-       end if
-     end do
-   end do
- end do
-!is_active_exc=.true.
  do hh = 1, hh_shortcut(0)
   do pp = hh_shortcut(hh), hh_shortcut(hh+1)-1
     if(is_active_exc(pp)) then
@@ -65,6 +71,32 @@
  print *, n_exc_active, "active excitations /", hh_nex
 
 END_PROVIDER
+
+BEGIN_PROVIDER [ logical, has_a_unique_parent, (N_det_non_ref) ]
+ implicit none
+ BEGIN_DOC
+ ! True if the determinant in the non-reference has a unique parent
+ END_DOC
+ integer :: i,j,n
+ integer :: degree
+ do j=1,N_det_non_ref
+  has_a_unique_parent(j) = .True. 
+  n=0
+  do i=1,N_det_ref
+   call get_excitation_degree(psi_ref(1,1,i), psi_non_ref(1,1,j), degree, N_int)
+   if (degree < 2) then
+     n = n+1
+     if (n > 1) then
+       has_a_unique_parent(j) = .False.
+       exit
+     endif
+   endif
+  enddo
+ enddo
+
+END_PROVIDER
+
+
 
 BEGIN_PROVIDER [ integer, n_exc_active_sze ]
  implicit none
@@ -95,7 +127,7 @@ END_PROVIDER
      !$OMP   active_excitation_to_determinants_val, active_excitation_to_determinants_idx)&
      !$OMP shared(hh_shortcut, psi_ref_coef, N_det_non_ref, psi_non_ref_sorted, &
      !$OMP   psi_non_ref_sorted_idx, psi_ref, N_det_ref, N_states)&
-     !$OMP shared(is_active_exc, active_hh_idx, active_pp_idx, n_exc_active)&
+     !$OMP shared(active_hh_idx, active_pp_idx, n_exc_active)&
      !$OMP private(lref, pp, II, ok, myMask, myDet, ind, phase, wk, ppp, hh, s)
  allocate(lref(N_det_non_ref))
  !$OMP DO schedule(dynamic)

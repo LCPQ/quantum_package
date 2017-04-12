@@ -30,13 +30,13 @@ subroutine run
       if (occupation(i) > 1.999d0) then
         class(0,1) += 1
         class( class(0,1), 1) = i
-      else if (occupation(i) > 1.95d0) then
+      else if (occupation(i) > 1.97d0) then
         class(0,2) += 1
         class( class(0,2), 2) = i
       else if (occupation(i) < 0.001d0) then
         class(0,5) += 1
         class( class(0,5), 5) = i
-      else if (occupation(i) < 0.01d0) then
+      else if (occupation(i) < 0.03d0) then
         class(0,4) += 1
         class( class(0,4), 4) = i
       else 

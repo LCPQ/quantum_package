@@ -38,7 +38,7 @@ use bitmasks
       do p=hh_shortcut(h), hh_shortcut(h+1)-1
         call apply_particle_local(mask, pp_exists(1, p), buf(1,1,n), ok, N_int)
         if(ok) n = n + 1
-        if(n > N_det_non_ref) stop "MRCC..."
+        if(n > N_det_non_ref) stop "Buffer too small in MRCC..."
       end do
       n = n - 1
 
