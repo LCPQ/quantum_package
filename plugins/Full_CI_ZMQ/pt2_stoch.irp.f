@@ -1,8 +1,7 @@
 program pt2_stoch
   implicit none
-  initialize_pt2_E0_denominator = .False.
   read_wf = .True.
-  SOFT_TOUCH initialize_pt2_E0_denominator read_wf
+  SOFT_TOUCH read_wf
   PROVIDE mo_bielec_integrals_in_map
   call run
 end
@@ -19,17 +18,12 @@ subroutine run
 
   double precision               :: E_CI_before(N_states), relative_error
 
-  if (.true.) then
-    call ezfio_get_full_ci_zmq_energy(E_CI_before(1))
-    pt2_e0_denominator(:) = E_CI_before(1) - nuclear_repulsion
-    SOFT_TOUCH pt2_e0_denominator read_wf
-  endif
   allocate (pt2(N_states))
   pt2 = 0.d0
   
   threshold_selectors = 1.d0
   threshold_generators = 1d0 
-  relative_error = 1.d-6
+  relative_error = 1.d-4
   call ZMQ_pt2(pt2, relative_error)
   print *,  'Final step'
   print *,  'N_det    = ', N_det

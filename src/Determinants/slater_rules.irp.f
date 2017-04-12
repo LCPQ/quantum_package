@@ -18,24 +18,33 @@ subroutine get_excitation_degree(key1,key2,degree,Nint)
   select case (Nint)
 
     case (1)
-      xorvec(1:2) = xor( key1(1:2), key2(1:2))
+      xorvec(1) = xor( key1(1), key2(1))
+      xorvec(2) = xor( key1(2), key2(2))
       degree = sum(popcnt(xorvec(1:2)))
 
     case (2)
-      xorvec(1:4) = xor( key1(1:4), key2(1:4))
+      xorvec(1) = xor( key1(1), key2(1))
+      xorvec(2) = xor( key1(2), key2(2))
+      xorvec(3) = xor( key1(3), key2(3))
+      xorvec(4) = xor( key1(4), key2(4))
       degree = sum(popcnt(xorvec(1:4)))
 
     case (3)
-      xorvec(1:6) = xor( key1(1:6), key2(1:6))
+      do l=1,6
+        xorvec(l) = xor( key1(l), key2(l))
+      enddo
       degree = sum(popcnt(xorvec(1:6)))
 
     case (4)
-      xorvec(1:8) = xor( key1(1:8), key2(1:8))
+      do l=1,8
+        xorvec(l) = xor( key1(l), key2(l))
+      enddo
       degree = sum(popcnt(xorvec(1:8)))
 
     case default
-      l = ishft(Nint,1)
-      xorvec(1:l) = xor( key1(1:l), key2(1:l))
+      do l=1,ishft(Nint,1)
+        xorvec(l) = xor( key1(l), key2(l))
+      enddo
       degree = sum(popcnt(xorvec(1:l)))
   
   end select
@@ -2254,19 +2263,27 @@ subroutine get_excitation_degree_spin(key1,key2,degree,Nint)
       degree = popcnt(xorvec(1))
 
     case (2)
-      xorvec(1:2) = xor( key1(1:2), key2(1:2))
-      degree = sum(popcnt(xorvec(1:2)))
+      xorvec(1) = xor( key1(1), key2(1))
+      xorvec(2) = xor( key1(2), key2(2))
+      degree = popcnt(xorvec(1))+popcnt(xorvec(2))
 
     case (3)
-      xorvec(1:3) = xor( key1(1:3), key2(1:3))
+      xorvec(1) = xor( key1(1), key2(1))
+      xorvec(2) = xor( key1(2), key2(2))
+      xorvec(3) = xor( key1(3), key2(3))
       degree = sum(popcnt(xorvec(1:3)))
 
     case (4)
-      xorvec(1:4) = xor( key1(1:4), key2(1:4))
+      xorvec(1) = xor( key1(1), key2(1))
+      xorvec(2) = xor( key1(2), key2(2))
+      xorvec(3) = xor( key1(3), key2(3))
+      xorvec(4) = xor( key1(4), key2(4))
       degree = sum(popcnt(xorvec(1:4)))
 
     case default
-      xorvec(1:Nint) = xor( key1(1:Nint), key2(1:Nint))
+      do l=1,N_int
+        xorvec(l) = xor( key1(l), key2(l))
+      enddo
       degree = sum(popcnt(xorvec(1:Nint)))
   
   end select
