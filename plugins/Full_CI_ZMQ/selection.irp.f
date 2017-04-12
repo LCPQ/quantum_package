@@ -543,7 +543,9 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
         delta_E = E0(istate) - Hii
         val = mat(istate, p1, p2) + mat(istate, p1, p2) 
         tmp = dsqrt(delta_E * delta_E + val * val)
-        delta_E = dabs(delta_E)
+        if (delta_E < 0.d0) then
+            tmp = -tmp
+        endif
         e_pert = 0.5d0 * ( tmp - delta_E)
         pt2(istate) = pt2(istate) + e_pert
         max_e_pert = min(e_pert,max_e_pert)

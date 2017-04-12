@@ -671,10 +671,6 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
       if(mat(1, p1, p2) == 0d0) cycle
       call apply_particles(mask, s1, p1, s2, p2, det, ok, N_int)
       logical, external              :: is_in_wavefunction
-!      if (is_in_wavefunction(det,N_int)) then
-!        stop 'is_in_wf'
-!        cycle
-!      endif
       
       if (do_ddci) then
         logical, external              :: is_a_two_holes_two_particles
@@ -1234,7 +1230,6 @@ subroutine ZMQ_selection(N_in, pt2)
     provide nproc
     call new_parallel_job(zmq_to_qp_run_socket,"selection")
     call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
-    call zmq_set_running(zmq_to_qp_run_socket)
     call create_selection_buffer(N, N*2, b)
   endif
 
@@ -1248,6 +1243,7 @@ subroutine ZMQ_selection(N_in, pt2)
     write(task,*) i_generator_start, i_generator_max, 1, N
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   end do
+  call zmq_set_running(zmq_to_qp_run_socket)
 
   !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
   i = omp_get_thread_num()

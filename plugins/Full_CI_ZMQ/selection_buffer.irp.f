@@ -62,6 +62,9 @@ subroutine sort_selection_buffer(b)
     detmp(1:N_int,2,i) = b%det(1:N_int,2,iorder(i))
     vals(i) = b%val(iorder(i))
   end do
+  do i=nmwen+1, size(vals)
+    vals(i) = 0.d0
+  enddo
   deallocate(b%det, b%val)
   b%det => detmp
   b%val => vals

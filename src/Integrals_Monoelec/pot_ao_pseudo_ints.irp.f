@@ -51,7 +51,6 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
   print*, 'Providing the nuclear electron pseudo integrals (local)'
   
   call wall_time(wall_1)
-  wall_0 = wall_1
   call cpu_time(cpu_1)
   
 
@@ -67,6 +66,8 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
       !$OMP         wall_1)
   
   !$ thread_num = omp_get_thread_num()
+
+  wall_0 = wall_1
   !$OMP DO SCHEDULE (guided)
   
   do j = 1, ao_num
@@ -149,7 +150,6 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
   print*, 'Providing the nuclear electron pseudo integrals (non-local)'
   
   call wall_time(wall_1)
-  wall_0 = wall_1
   call cpu_time(cpu_1)
   thread_num = 0
 
@@ -165,6 +165,7 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
   
   !$ thread_num = omp_get_thread_num()
   
+  wall_0 = wall_1
   !$OMP DO SCHEDULE (guided)
 !  
   do j = 1, ao_num

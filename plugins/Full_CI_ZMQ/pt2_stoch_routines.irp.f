@@ -117,6 +117,8 @@ subroutine ZMQ_pt2(pt2,relative_error)
     endif
   end do
 
+  print *,  'OK'
+  deallocate(pt2_detail, comb, computed, tbc)
 
 end subroutine
 
@@ -196,11 +198,15 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   
   allocate(actually_computed(N_det_generators), parts_to_get(N_det_generators), &
     pt2_mwen(N_states, N_det_generators) )
-  actually_computed(:) = computed(:)
+  do i=1,N_det_generators
+    actually_computed(i) = computed(i)
+  enddo
   
   parts_to_get(:) = 1
   if(fragment_first > 0) then
-    parts_to_get(1:fragment_first) = fragment_count
+    do i=1,fragment_first
+      parts_to_get(i) = fragment_count
+    enddo
   endif
 
   do i=1,tbc(0)
@@ -223,7 +229,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   pullLoop : do while (more == 1)
     call pull_pt2_results(zmq_socket_pull, Nindex, index, pt2_mwen, task_id, ntask)
     do i=1,Nindex
-      pt2_detail(:, index(i)) += pt2_mwen(:,i)
+      pt2_detail(1:N_states, index(i)) += pt2_mwen(1:N_states,i)
       parts_to_get(index(i)) -= 1
       if(parts_to_get(index(i)) < 0) then 
         print *, i, index(i), parts_to_get(index(i)), Nindex
@@ -273,12 +279,11 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       if (dabs(eqt/avg) < relative_error) then
         pt2(1) = avg
 !        exit pullLoop
+      else
+        print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
       endif
-      print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
     end if
   end do pullLoop
-  print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
-
 
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_pull_socket(zmq_socket_pull)
