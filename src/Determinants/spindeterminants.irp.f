@@ -628,7 +628,7 @@ subroutine get_all_spin_singles_and_doubles(buffer, idx, spindet, Nint, size_buf
 
   select case (Nint)
     case (1)
-      call get_all_spin_singles_and_doubles_1(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+      call get_all_spin_singles_and_doubles_1(buffer, idx, spindet(1), size_buffer, singles, doubles, n_singles, n_doubles)
       return
 !    case (2)
 !      call get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
@@ -711,7 +711,7 @@ subroutine get_all_spin_singles(buffer, idx, spindet, Nint, size_buffer, singles
 
   select case (Nint)
     case (1)
-      call get_all_spin_singles_1(buffer, idx, spindet, size_buffer, singles, n_singles)
+      call get_all_spin_singles_1(buffer, idx, spindet(1), size_buffer, singles, n_singles)
       return
     case (2)
       call get_all_spin_singles_2(buffer, idx, spindet, size_buffer, singles, n_singles)
@@ -787,7 +787,7 @@ subroutine get_all_spin_doubles(buffer, idx, spindet, Nint, size_buffer, doubles
 
   select case (Nint)
     case (1)
-      call get_all_spin_doubles_1(buffer, idx, spindet, size_buffer, doubles, n_doubles)
+      call get_all_spin_doubles_1(buffer, idx, spindet(1), size_buffer, doubles, n_doubles)
       return
     case (2)
       call get_all_spin_doubles_2(buffer, idx, spindet, size_buffer, doubles, n_doubles)
@@ -1111,8 +1111,8 @@ subroutine get_all_spin_doubles_2(buffer, idx, spindet, size_buffer, doubles, n_
 ! unique alpha determinants.
 !
   END_DOC
-  integer, intent(in)            :: size_buffer
-  integer(bit_kind), intent(in)  :: buffer(2,size_buffer), idx(size_buffer)
+  integer, intent(in)            :: size_buffer, idx(size_buffer)
+  integer(bit_kind), intent(in)  :: buffer(2,size_buffer)
   integer(bit_kind), intent(in)  :: spindet(2)
   integer, intent(out)           :: doubles(size_buffer)
   integer, intent(out)           :: n_doubles

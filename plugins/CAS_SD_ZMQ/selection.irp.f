@@ -677,7 +677,7 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
 !      endif
       
       if (do_ddci) then
-        integer, external              :: is_a_two_holes_two_particles
+        logical, external              :: is_a_two_holes_two_particles
         if (is_a_two_holes_two_particles(det)) then
           cycle
         endif
