@@ -32,7 +32,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
   sum2above = 0d0
   Nabove = 0d0
 
-  provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral
+  provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral pt2_weight
 
   !call random_seed()
   
@@ -515,8 +515,10 @@ end subroutine
     pt2_cweight(i) = pt2_cweight(i-1) + psi_coef_generators(i,1)**2
   end do
   
-  pt2_weight = pt2_weight / pt2_cweight(N_det_generators)
-  pt2_cweight = pt2_cweight / pt2_cweight(N_det_generators)
+  do i=1,N_det_generators
+    pt2_weight(i)  = pt2_weight(i) / pt2_cweight(N_det_generators)
+    pt2_cweight(i) = pt2_cweight(i) / pt2_cweight(N_det_generators)
+  enddo
   
   norm_left = 1d0
   

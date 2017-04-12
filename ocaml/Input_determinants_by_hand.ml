@@ -20,6 +20,7 @@ module Determinants_by_hand : sig
   val of_rst : Rst_string.t -> t option
   val read_n_int : unit -> N_int_number.t
   val update_ndet : Det_number.t -> unit
+  val extract_state : States_number.t -> unit
 end = struct
   type t = 
     { n_int                  : N_int_number.t;
@@ -132,12 +133,12 @@ end = struct
     |> Array.map ~f:Det_coef.of_float
   ;;
 
-  let write_psi_coef ~n_det c =
+  let write_psi_coef ~n_det ~n_states c =
     let n_det = Det_number.to_int n_det
     and c = Array.to_list c
             |> List.map ~f:Det_coef.to_float
     and n_states = 
-      read_n_states () |> States_number.to_int
+      States_number.to_int n_states
     in
     Ezfio.ezfio_array_of_list ~rank:2 ~dim:[| n_det ; n_states |] ~data:c
     |> Ezfio.set_determinants_psi_coef 
@@ -233,7 +234,7 @@ end = struct
      write_n_det n_det;
      write_n_states n_states;
      write_expected_s2 expected_s2;
-     write_psi_coef ~n_det:n_det psi_coef ;
+     write_psi_coef ~n_det:n_det ~n_states:n_states psi_coef ;
      write_psi_det ~n_int:n_int ~n_det:n_det psi_det;
   ;;
 
@@ -455,6 +456,7 @@ psi_det                = %s
   ;;
 
   let update_ndet n_det_new =
+    Printf.printf "Reducing n_det to %d\n" (Det_number.to_int n_det_new);
     let n_det_new =
       Det_number.to_int n_det_new
     in
@@ -483,6 +485,36 @@ psi_det                = %s
     ;
     let new_det =
       { det with n_det = (Det_number.of_int n_det_new) }
+    in
+    write new_det
+  ;;
+
+  let extract_state istate =
+    Printf.printf "Extracting state %d\n" (States_number.to_int istate);
+    let det =
+      read ()
+    in
+    let n_det, n_states =
+      Det_number.to_int det.n_det,
+      States_number.to_int det.n_states
+    in
+    if (States_number.to_int istate) > n_states then
+      failwith "State to extract should not be greater than n_states"
+    ;
+    let j =
+      (States_number.to_int istate) - 1
+    in
+    begin
+      if (j>0) then
+        let ishift =
+          j*n_det
+        in
+        for i=0 to (n_det-1) do
+          det.psi_coef.(i) <- det.psi_coef.(i+ishift)
+        done
+    end;
+    let new_det =
+      { det with n_states = (States_number.of_int 1) }
     in
     write new_det
   ;;

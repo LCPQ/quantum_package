@@ -144,13 +144,13 @@ let create_temp_file ezfio_filename fields =
                                                  
 
 
-let run check_only ?ndet ezfio_filename =
+let run check_only ?ndet ?state ezfio_filename =
 
   (* Set check_only if the arguments are not empty *)
   let check_only =
-    match ndet with
-    | None -> check_only
-    | Some _ -> true
+    match ndet, state with
+    | None, None -> check_only
+    | _ -> true
   in
 
   (* Open EZFIO *)
@@ -163,6 +163,12 @@ let run check_only ?ndet ezfio_filename =
     match ndet with
     | None -> ()
     | Some n -> Input.Determinants_by_hand.update_ndet (Det_number.of_int n)
+  end;
+
+  begin
+    match state with
+    | None -> ()
+    | Some n -> Input.Determinants_by_hand.extract_state (States_number.of_int n)
   end;
 
 
@@ -244,6 +250,8 @@ let spec =
      ~doc:"Checks the input data"
   +> flag "ndet" (optional int)
      ~doc:"int Truncate the wavefunction to the target number of determinants"
+  +> flag "state" (optional int)
+     ~doc:"int Pick the state as a new wavefunction."
   +> anon ("ezfio_file" %: string)
 
 
@@ -262,9 +270,9 @@ Edit input data
        with
        | _ msg -> print_string ("\n\nError\n\n"^msg^"\n\n")
     *)
-    (fun c ndet ezfio_file () ->
+    (fun c ndet state ezfio_file () ->
        try
-          run c ?ndet ezfio_file ;
+          run c ?ndet ?state ezfio_file ;
           (* create_backup ezfio_file; *)
        with
        | Failure exc 
