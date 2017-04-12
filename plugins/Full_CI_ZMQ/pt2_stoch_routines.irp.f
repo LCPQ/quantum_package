@@ -523,6 +523,7 @@ end subroutine
   norm_left = 1d0
   
   comb_step = 1d0/dfloat(comb_teeth)
+  first_det_of_comb = 1
   do i=1,N_det_generators
     if(pt2_weight(i)/norm_left < comb_step*.5d0) then
       first_det_of_comb = i
