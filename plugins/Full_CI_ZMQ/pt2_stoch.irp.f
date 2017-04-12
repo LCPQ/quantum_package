@@ -21,7 +21,7 @@ subroutine run
   allocate (pt2(N_states))
   pt2 = 0.d0
   
-  E_CI_before = pt2_E0_denominator(1)
+  E_CI_before = pt2_E0_denominator(1) + nuclear_repulsion
   threshold_selectors = 1.d0
   threshold_generators = 1d0 
   relative_error = 1.d-3
