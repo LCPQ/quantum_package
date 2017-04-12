@@ -7,6 +7,7 @@ module Determinants_by_hand : sig
     { n_int                  : N_int_number.t;
       bit_kind               : Bit_kind.t;
       n_det                  : Det_number.t;
+      n_states               : States_number.t;
       expected_s2            : Positive_float.t;
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
@@ -18,11 +19,13 @@ module Determinants_by_hand : sig
   val to_rst : t -> Rst_string.t
   val of_rst : Rst_string.t -> t option
   val read_n_int : unit -> N_int_number.t
+  val update_ndet : Det_number.t -> unit
 end = struct
   type t = 
     { n_int                  : N_int_number.t;
       bit_kind               : Bit_kind.t;
       n_det                  : Det_number.t;
+      n_states               : States_number.t;
       expected_s2            : Positive_float.t;
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
@@ -200,6 +203,7 @@ end = struct
           expected_s2            = read_expected_s2 ()          ;
           psi_coef               = read_psi_coef ()             ;
           psi_det                = read_psi_det ()              ;
+          n_states               = read_n_states ()             ;
         }
     else
       failwith "No molecular orbitals, so no determinants"
@@ -222,10 +226,12 @@ end = struct
               expected_s2          ;
               psi_coef             ;
               psi_det              ;
+              n_states             ;
             } =
      write_n_int n_int ;
      write_bit_kind bit_kind;
      write_n_det n_det;
+     write_n_states n_states;
      write_expected_s2 expected_s2;
      write_psi_coef ~n_det:n_det psi_coef ;
      write_psi_det ~n_int:n_int ~n_det:n_det psi_det;
@@ -298,6 +304,7 @@ Determinants ::
 n_int                  = %s
 bit_kind               = %s
 n_det                  = %s
+n_states               = %s
 expected_s2            = %s
 psi_coef               = %s
 psi_det                = %s
@@ -305,6 +312,7 @@ psi_det                = %s
      (b.n_int         |> N_int_number.to_string)
      (b.bit_kind      |> Bit_kind.to_string)
      (b.n_det         |> Det_number.to_string)
+     (b.n_states      |> States_number.to_string)
      (b.expected_s2   |> Positive_float.to_string)
      (b.psi_coef  |> Array.to_list |> List.map ~f:Det_coef.to_string
       |> String.concat ~sep:", ")
@@ -433,12 +441,50 @@ psi_det                = %s
       |> Bit_kind.to_int)
     and n_int =
       Printf.sprintf "(n_int %d)" (N_int_number.get_max ())
+    and n_states =
+      Printf.sprintf "(n_states %d)" (States_number.to_int @@ read_n_states ())
     in
     let s = 
-       String.concat [ header ; bitkind ; n_int ; psi_coef ; psi_det]
+       String.concat [ header ; bitkind ; n_int ; n_states ; psi_coef ; psi_det]
     in
 
+
+
+
     Generic_input_of_rst.evaluate_sexp t_of_sexp s
+  ;;
+
+  let update_ndet n_det_new =
+    let n_det_new =
+      Det_number.to_int n_det_new
+    in
+    let det =
+      read ()
+    in
+    let n_det_old, n_states =
+      Det_number.to_int det.n_det,
+      States_number.to_int det.n_states
+    in
+    if n_det_new = n_det_old then
+      ()
+    ;
+    if n_det_new > n_det_new then
+      failwith @@ Printf.sprintf "Requested n_det should be less than %d" n_det_old
+    ;
+    for j=0 to (n_states-1) do
+      let ishift_old, ishift_new =
+        j*n_det_old,
+        j*n_det_new
+      in
+      for i=0 to (n_det_new-1) do
+        det.psi_coef.(i+ishift_new) <- det.psi_coef.(i+ishift_old)
+      done
+    done
+    ;
+    let new_det =
+      { det with n_det = (Det_number.of_int n_det_new) }
+    in
+    write new_det
   ;;
 
 end
