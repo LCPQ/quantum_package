@@ -105,7 +105,7 @@ subroutine map_load_from_disk(filename,map)
     map % map(i) % value => map % consolidated_value ( map % consolidated_idx (i+1) :)
     map % map(i) % key   => map % consolidated_key   ( map % consolidated_idx (i+1) :)
     map % map(i) % sorted = .True.
-    n_elements = map % consolidated_idx (i+2) - k
+    n_elements = int( map % consolidated_idx (i+2) - k, 4)
     k = map % consolidated_idx (i+2)
     map % map(i) % map_size = n_elements
     map % map(i) % n_elements = n_elements

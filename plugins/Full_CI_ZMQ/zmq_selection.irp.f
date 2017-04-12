@@ -24,7 +24,6 @@ subroutine ZMQ_selection(N_in, pt2)
     call create_selection_buffer(N, N*2, b)
   endif
 
-  ! Ugly, but variable-length strings don't work as expected with gfortran < 4.8 :-(
   character*(20*maxtasks) :: task
   task = ' ' 
 

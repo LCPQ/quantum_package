@@ -53,17 +53,17 @@ module map_module
 end module map_module
 
 
-real function map_mb(map)
+double precision function map_mb(map)
   use map_module
   use omp_lib
   implicit none
   type (map_type), intent(in)    :: map
   integer(map_size_kind)         :: i
   
-  map_mb = 8+map_size_kind+map_size_kind+omp_lock_kind+4
+  map_mb = dble(8+map_size_kind+map_size_kind+omp_lock_kind+4)
   do i=0,map%map_size
-    map_mb = map_mb + map%map(i)%map_size*(cache_key_kind+integral_kind) +&
-        8+8+4+cache_map_size_kind+cache_map_size_kind+omp_lock_kind
+    map_mb = map_mb + dble(map%map(i)%map_size*(cache_key_kind+integral_kind) +&
+        8+8+4+cache_map_size_kind+cache_map_size_kind+omp_lock_kind)
   enddo
   map_mb = map_mb / (1024.d0*1024.d0)
 end
@@ -406,7 +406,7 @@ subroutine map_update(map, key, value, sze, thr)
               call cache_map_reallocate(local_map, local_map%n_elements + local_map%n_elements)
               call cache_map_shrink(local_map,thr)
             endif
-            cache_key = iand(key(i),map_mask)
+            cache_key = int(iand(key(i),map_mask),2)
             local_map%n_elements = local_map%n_elements + 1
             local_map%value(local_map%n_elements) = value(i)
             local_map%key(local_map%n_elements) = cache_key
@@ -464,7 +464,7 @@ subroutine map_append(map, key, value, sze)
     if (n_elements == map%map(idx_cache)%map_size) then
       call cache_map_reallocate(map%map(idx_cache), n_elements+ ishft(n_elements,-1))
     endif
-    cache_key = iand(key(i),map_mask)
+    cache_key = int(iand(key(i),map_mask),2)
     map%map(idx_cache)%value(n_elements) = value(i)
     map%map(idx_cache)%key(n_elements) = cache_key
     map%map(idx_cache)%n_elements = n_elements
@@ -615,7 +615,7 @@ subroutine search_key_big_interval(key,X,sze,idx,ibegin_in,iend_in)
     idx = -1
     return
   endif
-  cache_key = iand(key,map_mask)
+  cache_key = int(iand(key,map_mask),2)
   ibegin = min(ibegin_in,sze)
   iend   = min(iend_in,sze)
   if ((cache_key > X(ibegin)) .and. (cache_key < X(iend))) then
@@ -723,7 +723,7 @@ subroutine search_key_value_big_interval(key,value,X,Y,sze,idx,ibegin_in,iend_in
     value = 0.d0
     return
   endif
-  cache_key = iand(key,map_mask)
+  cache_key = int(iand(key,map_mask),2)
   ibegin = min(ibegin_in,sze)
   iend   = min(iend_in,sze)
   if ((cache_key > X(ibegin)) .and. (cache_key < X(iend))) then
