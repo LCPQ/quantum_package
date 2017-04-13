@@ -405,12 +405,13 @@ subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
          return
       endif
       icount = icount + tbc(0) - tbc_save
-      if (icount > n) then
+      if ((i>1000).and.(icount > n)) then
         call get_filling_teeth(computed, tbc)
         icount = 0
         n = ishft(tbc_save,-4)
       endif
   enddo
+  call get_filling_teeth(computed, tbc)
 
 end subroutine
 

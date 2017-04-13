@@ -656,7 +656,7 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
   
   v_0 = 0.d0
 
-  do k_a=1,N_det-1
+  do k_a=1,N_det
     
     ! Initial determinant is at k_a in alpha-major representation
     ! -----------------------------------------------------------------------
@@ -947,6 +947,7 @@ subroutine H_S2_u_0_nstates_test(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze
       integer :: exc(0:2,2,2)
       call get_excitation(keys_tmp(1,1,j),keys_tmp(1,1,i),exc,degree,phase,Nint)
       if ((degree == 2).and.(exc(0,1,1)==1)) cycle
+!      if ((degree > 1)) cycle
 !      if (exc(0,1,2) /= 0) cycle
       call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
       vt (:,i) = vt (:,i) + hij*u_0(j,:)
