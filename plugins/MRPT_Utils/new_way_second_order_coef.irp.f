@@ -210,10 +210,6 @@ subroutine give_2h1p_contrib_sec_order(matrix_2h1p)
 
                  ! < det_tmp     | H | det_tmp_bis >  = F_{aorb,borb}
                  hab = (fock_operator_local(aorb,borb,kspin) ) * phase  
-            if(isnan(hab))then
-             print*, '1'
-             stop
-            endif
                  ! < jdet | H | det_tmp_bis > = phase * (ir|cv)
                  call get_double_excitation(det_tmp_bis,psi_det(1,1,idx(jdet)),exc,phase,N_int)
                  if(ispin == jspin)then
@@ -255,7 +251,8 @@ subroutine give_2h1p_contrib_sec_order(matrix_2h1p)
                  call get_mono_excitation(det_tmp,det_tmp_bis,exc,phase,N_int)
 !                ! < det_tmp | H | det_tmp_bis >  = F_{aorb,borb}
                  hab = fock_operator_local(aorb,borb,kspin) * phase  
-            if(isnan(hab))then
+!            if(isnan(hab))then
+            if(hab /= hab)then
              print*, '2'
              stop
             endif

@@ -4,7 +4,7 @@
  double precision :: accu
  integer :: i,j,k,l
  double precision :: x
- double precision :: integrand(n_points_angular_grid), weights(n_points_angular_grid)
+ double precision :: integrand(n_points_integration_angular_lebedev), weights(n_points_integration_angular_lebedev)
  double precision :: f_average_angular_alpha,f_average_angular_beta
  double precision :: derivative_knowles_function,knowles_function
 
@@ -12,7 +12,7 @@
  ! according ot equation (6) of the paper of Becke (JCP, (88), 1988)
  ! Here the m index is referred to the w_m(r) weight functions of equation (22)
    ! Run over all points of integrations : there are  
-   ! n_points_radial_grid (i) * n_points_angular_grid (k) 
+   ! n_points_radial_grid (i) * n_points_integration_angular_lebedev (k) 
    do j = 1, nucl_num 
     integral_density_alpha_knowles_becke_per_atom(j) = 0.d0
     integral_density_beta_knowles_becke_per_atom(j) = 0.d0
@@ -20,7 +20,7 @@
      ! Angular integration over the solid angle Omega for a FIXED angular coordinate "r"
      f_average_angular_alpha = 0.d0
      f_average_angular_beta = 0.d0
-     do k = 1, n_points_angular_grid
+     do k = 1, n_points_integration_angular_lebedev
       f_average_angular_alpha += weights_angular_points(k) * one_body_dm_mo_alpha_at_grid_points(k,i,j) * weight_functions_at_grid_points(k,i,j)
       f_average_angular_beta  += weights_angular_points(k) * one_body_dm_mo_beta_at_grid_points(k,i,j)  * weight_functions_at_grid_points(k,i,j)
      enddo

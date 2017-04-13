@@ -23,7 +23,7 @@ BEGIN_PROVIDER [ integer, N_det ]
  ! Number of determinants in the wave function
  END_DOC
  logical                        :: exists
- character*64                   :: label
+ character*(64)                   :: label
  PROVIDE ezfio_filename
  PROVIDE nproc
  if (read_wf) then
@@ -88,7 +88,7 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
  END_DOC
   integer                        :: i
   logical                        :: exists
-  character*64                   :: label
+  character*(64)                   :: label
   
   psi_det = 0_bit_kind
   if (read_wf) then

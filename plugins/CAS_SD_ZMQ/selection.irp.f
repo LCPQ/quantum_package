@@ -671,13 +671,9 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
       if(mat(1, p1, p2) == 0d0) cycle
       call apply_particles(mask, s1, p1, s2, p2, det, ok, N_int)
       logical, external              :: is_in_wavefunction
-      if (is_in_wavefunction(det,N_int)) then
-        stop 'is_in_wf'
-        cycle
-      endif
       
       if (do_ddci) then
-        integer, external              :: is_a_two_holes_two_particles
+        logical, external              :: is_a_two_holes_two_particles
         if (is_a_two_holes_two_particles(det)) then
           cycle
         endif
@@ -1219,35 +1215,42 @@ subroutine ZMQ_selection(N_in, pt2)
   
   implicit none
   
-  character*(512)                :: task 
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
   integer, intent(in)            :: N_in
   type(selection_buffer)         :: b
   integer                        :: i, N
   integer, external              :: omp_get_thread_num
   double precision, intent(out)  :: pt2(N_states)
+  integer, parameter             :: maxtasks=10000
   
   
+  N = max(N_in,1)
   if (.True.) then
     PROVIDE pt2_e0_denominator
-    N = max(N_in,1)
     provide nproc
     call new_parallel_job(zmq_to_qp_run_socket,"selection")
     call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
-    call zmq_set_running(zmq_to_qp_run_socket)
     call create_selection_buffer(N, N*2, b)
   endif
 
-  integer :: i_generator, i_generator_start, i_generator_max, step
+  character*(20*maxtasks) :: task
+  task = ' '
 
-  step = int(5000000.d0 / dble(N_int * N_states * elec_num * elec_num * mo_tot_num * mo_tot_num ))
-  step = max(1,step)
-  do i= 1, N_det_generators,step
-    i_generator_start = i
-    i_generator_max = min(i+step-1,N_det_generators)
-    write(task,*) i_generator_start, i_generator_max, 1, N
+  integer :: k
+  k=0
+  do i= 1, N_det_generators
+    k = k+1
+    write(task(20*(k-1)+1:20*k),'(I9,1X,I9,''|'')') i, N
+    k = k+20
+    if (k>20*maxtasks) then
+       k=0
+       call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+    endif
+  enddo
+  if (k > 0) then
     call add_task_to_taskserver(zmq_to_qp_run_socket,task)
-  end do
+  endif
+  call zmq_set_running(zmq_to_qp_run_socket)
 
   !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
   i = omp_get_thread_num()
@@ -1264,6 +1267,7 @@ subroutine ZMQ_selection(N_in, pt2)
     if (s2_eig) then
       call make_s2_eigenfunction
     endif
+    call save_wavefunction
   endif
 end subroutine
 

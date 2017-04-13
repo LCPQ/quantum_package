@@ -76,8 +76,8 @@ subroutine map_load_from_disk(filename,map)
   double precision               :: x
   type(c_ptr)                    :: c_pointer(3)
   integer                        :: fd(3)
-  integer*8                      :: i,k, l
-  integer                        :: n_elements, j
+  integer*8                      :: i,k,l
+  integer*4                      :: j,n_elements
 
 
 
@@ -105,14 +105,14 @@ subroutine map_load_from_disk(filename,map)
     map % map(i) % value => map % consolidated_value ( map % consolidated_idx (i+1) :)
     map % map(i) % key   => map % consolidated_key   ( map % consolidated_idx (i+1) :)
     map % map(i) % sorted = .True.
-    n_elements = map % consolidated_idx (i+2) - k
+    n_elements = int( map % consolidated_idx (i+2) - k, 4)
     k = map % consolidated_idx (i+2)
     map % map(i) % map_size = n_elements
     map % map(i) % n_elements = n_elements
     ! Load memory from disk
     do j=1,n_elements
       x = x + map % map(i) % value(j)
-      l = iand(l,map % map(i) % key(j))
+      l = iand(l,int(map % map(i) % key(j),8))
       if (map % map(i) % value(j) > 1.e30) then
         stop 'Error in integrals file'
       endif
