@@ -1167,11 +1167,11 @@ subroutine give_singles_and_partial_doubles_1h1p_contrib(matrix_1h1p,e_corr_from
        print*, 'e corr perturb EN',accu(state_target)
        print*, ''
        print*, 'coef diagonalized'
-       write(*,'(100(F16.10,X))')psi_in_out_coef(:,state_target)
+       write(*,'(100(F16.10,1X))')psi_in_out_coef(:,state_target)
        print*, 'coef_perturb'
-       write(*,'(100(F16.10,X))')coef_perturb(:)
+       write(*,'(100(F16.10,1X))')coef_perturb(:)
        print*, 'coef_perturb EN'
-       write(*,'(100(F16.10,X))')coef_perturb_bis(:)
+       write(*,'(100(F16.10,1X))')coef_perturb_bis(:)
       endif
       integer :: k
       do k = 1, N_det_ref

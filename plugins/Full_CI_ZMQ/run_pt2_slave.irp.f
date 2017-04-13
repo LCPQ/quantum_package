@@ -25,7 +25,7 @@ subroutine run_pt2_slave(thread,iproc,energy)
   integer :: index
   integer :: Nindex
 
-  allocate(pt2_detail(N_states, N_det))
+  allocate(pt2_detail(N_states, N_det_generators))
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_push      = new_zmq_push_socket(thread)
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
@@ -101,7 +101,7 @@ subroutine push_pt2_results(zmq_socket_push, N, index, pt2_detail, task_id, ntas
   implicit none
 
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_push
-  double precision, intent(in)   :: pt2_detail(N_states, N_det)
+  double precision, intent(in)   :: pt2_detail(N_states, N_det_generators)
   integer, intent(in) :: ntask, N, index, task_id(*)
   integer :: rc
 
@@ -133,7 +133,7 @@ subroutine pull_pt2_results(zmq_socket_pull, N, index, pt2_detail, task_id, ntas
   use selection_types
   implicit none
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
-  double precision, intent(inout) :: pt2_detail(N_states, N_det)
+  double precision, intent(inout) :: pt2_detail(N_states, N_det_generators)
   integer, intent(out) :: index
   integer, intent(out) :: N, ntask, task_id(*)
   integer :: rc, rn, i
@@ -150,18 +150,22 @@ subroutine pull_pt2_results(zmq_socket_pull, N, index, pt2_detail, task_id, ntas
   rc = f77_zmq_recv( zmq_socket_pull, ntask, 4, 0)
   if(rc /= 4) stop "pull"
 
-  rc = f77_zmq_recv( zmq_socket_pull, task_id(1), ntask*4, 0)
+  rc = f77_zmq_recv( zmq_socket_pull, task_id, ntask*4, 0)
   if(rc /= 4*ntask) stop "pull"
 
 ! Activate is zmq_socket_pull is a REP
   rc = f77_zmq_send( zmq_socket_pull, 'ok', 2, 0)
+
+  do i=N+1,N_det_generators
+    pt2_detail(1:N_states,i) = 0.d0
+  enddo
 end subroutine
  
  
-BEGIN_PROVIDER [ double precision, pt2_workload, (N_det) ]
+BEGIN_PROVIDER [ double precision, pt2_workload, (N_det_generators) ]
   integer :: i
-  do i=1,N_det
-    pt2_workload(:) = dfloat(N_det - i + 1)**2
+  do i=1,N_det_generators
+    pt2_workload(i) = dfloat(N_det_generators - i + 1)**2
   end do
   pt2_workload = pt2_workload / sum(pt2_workload)
 END_PROVIDER

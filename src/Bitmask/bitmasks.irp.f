@@ -2,11 +2,16 @@ use bitmasks
 
 BEGIN_PROVIDER [ integer, N_int ]
   implicit none
+  include 'Utils/constants.include.F'
   BEGIN_DOC
   ! Number of 64-bit integers needed to represent determinants as binary strings
   END_DOC
   N_int = (mo_tot_num-1)/bit_kind_size + 1
- call write_int(6,N_int, 'N_int')
+  call write_int(6,N_int, 'N_int')
+  if (N_int > N_int_max) then
+    stop 'N_int > N_int_max'
+  endif
+
 END_PROVIDER
 
 

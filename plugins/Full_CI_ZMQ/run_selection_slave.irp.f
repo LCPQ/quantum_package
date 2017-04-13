@@ -26,7 +26,6 @@ subroutine run_selection_slave(thread,iproc,energy)
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   if(worker_id == -1) then
     print *, "WORKER -1"
-    !call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
     call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
     call end_zmq_push_socket(zmq_socket_push,thread)
     return

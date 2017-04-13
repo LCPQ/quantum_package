@@ -351,11 +351,11 @@ logical function is_generable(det1, det2, Nint)
   integer, intent(in) :: Nint
   integer(bit_kind) :: det1(Nint, 2), det2(Nint, 2)
   integer :: degree, f, exc(0:2, 2, 2), t
-  integer*2 :: h1, h2, p1, p2, s1, s2
+  integer :: h1, h2, p1, p2, s1, s2
   integer, external :: searchExc
   logical, external :: excEq
   double precision :: phase
-  integer*2 :: tmp_array(4)
+  integer :: tmp_array(4)
   
   is_generable = .false.
   call get_excitation(det1, det2, exc, degree, phase, Nint)
@@ -366,7 +366,7 @@ logical function is_generable(det1, det2, Nint)
   end if
   if(degree > 2) stop "?22??"
   
-  call decode_exc_int2(exc,degree,h1,p1,h2,p2,s1,s2)
+  call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
   
   if(degree == 1) then
     h2 = h1
@@ -454,7 +454,7 @@ integer function searchExc(excs, exc, n)
   use bitmasks
   
   integer, intent(in) :: n
-  integer*2,intent(in) :: excs(4,n), exc(4)
+  integer,intent(in) :: excs(4,n), exc(4)
   integer :: l, h, c
   integer, external :: excCmp
   logical, external :: excEq
@@ -519,8 +519,8 @@ subroutine sort_exc(key, N_key)
   
 
   integer, intent(in)                   :: N_key
-  integer*2,intent(inout)       :: key(4,N_key)
-  integer*2                     :: tmp(4)
+  integer,intent(inout)       :: key(4,N_key)
+  integer                     :: tmp(4)
   integer                               :: i,ni
   
   
@@ -542,7 +542,7 @@ end subroutine
 
 logical function exc_inf(exc1, exc2)
   implicit none
-  integer*2,intent(in) :: exc1(4), exc2(4)
+  integer,intent(in) :: exc1(4), exc2(4)
   integer :: i
   exc_inf = .false.
   do i=1,4
@@ -564,9 +564,9 @@ subroutine tamise_exc(key, no, n, N_key)
 ! Uncodumented : TODO
   END_DOC
   integer,intent(in)            :: no, n, N_key
-  integer*2,intent(inout)       :: key(4, N_key)
+  integer,intent(inout)       :: key(4, N_key)
   integer                       :: k,j
-  integer*2                     :: tmp(4)
+  integer                     :: tmp(4)
   logical                       :: exc_inf
   integer                       :: ni
   
@@ -595,8 +595,9 @@ end subroutine
 
 subroutine dec_exc(exc, h1, h2, p1, p2)
   implicit none
-  integer :: exc(0:2,2,2), s1, s2, degree
-  integer*2, intent(out) :: h1, h2, p1, p2
+  integer, intent(in)            :: exc(0:2,2,2)
+  integer, intent(out)           :: h1, h2, p1, p2
+  integer                        :: degree, s1, s2
   
   degree = exc(0,1,1) + exc(0,1,2)
   
@@ -607,7 +608,7 @@ subroutine dec_exc(exc, h1, h2, p1, p2)
     
   if(degree == 0) return
   
-  call decode_exc_int2(exc, degree, h1, p1, h2, p2, s1, s2)
+  call decode_exc(exc, degree, h1, p1, h2, p2, s1, s2)
   
   h1 += mo_tot_num * (s1-1)
   p1 += mo_tot_num * (s1-1)
@@ -639,7 +640,7 @@ end subroutine
 &BEGIN_PROVIDER [ integer, N_ex_exists ]
   implicit none
   integer :: exc(0:2, 2, 2), degree, n, on, s, l, i
-  integer*2 :: h1, h2, p1, p2
+  integer :: h1, h2, p1, p2
   double precision :: phase
   logical,allocatable :: hh(:,:) , pp(:,:)
   
@@ -739,12 +740,12 @@ END_PROVIDER
   double precision               :: phase
   
   
-  double precision, allocatable :: rho_mrcc_init(:)
+  double precision, allocatable :: rho_mrcc_inact(:)
   integer                        :: a_coll, at_roww
   
   print *, "TI", hh_nex, N_det_non_ref
 
-  allocate(rho_mrcc_init(N_det_non_ref))
+  allocate(rho_mrcc_inact(N_det_non_ref))
   allocate(x_new(hh_nex))
   allocate(x(hh_nex), AtB(hh_nex))
 
@@ -756,7 +757,7 @@ END_PROVIDER
         !$OMP private(at_row, a_col, i, j, r1, r2, wk, A_ind_mwen, A_val_mwen, a_coll, at_roww)&
         !$OMP shared(N_states,mrcc_col_shortcut, mrcc_N_col, AtB, mrcc_AtA_val, mrcc_AtA_ind, s, n_exc_active, active_pp_idx)
     
-    !$OMP DO schedule(dynamic, 100)
+    !$OMP DO schedule(static, 100)
     do at_roww = 1, n_exc_active ! hh_nex
       at_row = active_pp_idx(at_roww)
       do i=1,active_excitation_to_determinants_idx(0,at_roww)
@@ -775,7 +776,7 @@ END_PROVIDER
       X(a_col) = AtB(a_col)
     end do
     
-    rho_mrcc_init = 0d0
+    rho_mrcc_inact(:) = 0d0
     
     allocate(lref(N_det_ref))
     do hh = 1, hh_shortcut(0)
@@ -799,18 +800,14 @@ END_PROVIDER
         X(pp) =  AtB(pp) 
         do II=1,N_det_ref
           if(lref(II) > 0) then
-            rho_mrcc_init(lref(II)) = psi_ref_coef(II,s) * X(pp)
+            rho_mrcc_inact(lref(II)) = psi_ref_coef(II,s) * X(pp)
           else if(lref(II) < 0) then
-            rho_mrcc_init(-lref(II)) = -psi_ref_coef(II,s) * X(pp)
+            rho_mrcc_inact(-lref(II)) = -psi_ref_coef(II,s) * X(pp)
           end if
         end do
       end do
     end do
     deallocate(lref)
-
-    do i=1,N_det_non_ref
-      rho_mrcc(i,s) = rho_mrcc_init(i) 
-    enddo
 
     x_new = x
     
@@ -839,7 +836,10 @@ END_PROVIDER
         print *, k, res, 1.d0 - res/resold
       endif
       
-      if ( (res < 1d-10).or.(res/resold > 0.99d0) ) then
+      if ( res < 1d-10 ) then
+        exit
+      endif
+      if ( (res/resold > 0.99d0) ) then
         exit
       endif
       resold = res
@@ -848,38 +848,60 @@ END_PROVIDER
     dIj_unique(1:size(X), s) = X(1:size(X))
     print *, k, res, 1.d0 - res/resold
 
-  enddo
 
-  do s=1,N_states
+    do i=1,N_det_non_ref
+      rho_mrcc(i,s) = 0.d0
+    enddo
 
     do a_coll=1,n_exc_active
       a_col = active_pp_idx(a_coll)
       do j=1,N_det_non_ref
         i = active_excitation_to_determinants_idx(j,a_coll)
         if (i==0) exit
+        if (rho_mrcc_inact(i) /= 0.d0) then
+          call debug_det(psi_non_ref(1,1,i),N_int)
+          stop
+        endif
         rho_mrcc(i,s) = rho_mrcc(i,s) + active_excitation_to_determinants_val(s,j,a_coll) * dIj_unique(a_col,s)
       enddo
     end do
 
-    norm = 0.d0
-    do i=1,N_det_non_ref
-      norm = norm + rho_mrcc(i,s)*rho_mrcc(i,s)
-    enddo
-    ! Norm now contains the norm of A.X
-    
+    double precision :: norm2_ref, norm2_inact, a, b, c, Delta
+    ! Psi = Psi_ref + Psi_inactive + f*Psi_active
+    ! Find f to normalize Psi
+
+    norm2_ref = 0.d0
     do i=1,N_det_ref
-      norm = norm + psi_ref_coef(i,s)*psi_ref_coef(i,s)
+      norm2_ref = norm2_ref + psi_ref_coef(i,s)*psi_ref_coef(i,s)
     enddo
-    ! Norm now contains the norm of Psi + A.X
-    
+
+    a = 0.d0
+    do i=1,N_det_non_ref
+      a = a + rho_mrcc(i,s)*rho_mrcc(i,s)
+    enddo
+
+    norm = a + norm2_ref
     print *, "norm : ", sqrt(norm)
-   enddo
+
+    norm = sqrt((1.d0-norm2_ref)/a)
+
+    ! Renormalize Psi+A.X
+    do i=1,N_det_non_ref
+      rho_mrcc(i,s) = rho_mrcc(i,s) * norm 
+    enddo
+
+!norm = norm2_ref
+!do i=1,N_det_non_ref
+!  norm = norm + rho_mrcc(i,s)**2
+!enddo
+!print *,  'check', norm
+!stop
+
      
         
-   do s=1,N_states
      norm = 0.d0
      double precision               :: f, g, gmax
-     gmax = 1.d0*maxval(dabs(psi_non_ref_coef(:,s)))
+     gmax = maxval(dabs(psi_non_ref_coef(:,s)))
      do i=1,N_det_non_ref
        if (lambda_type == 2) then
          f = 1.d0
@@ -891,41 +913,22 @@ END_PROVIDER
         f = psi_non_ref_coef(i,s) / rho_mrcc(i,s)
 
         ! Avoid numerical instabilities
-!        g = 1.d0+dabs(gmax / psi_non_ref_coef(i,s) )
         g = 2.d0+100.d0*exp(-20.d0*dabs(psi_non_ref_coef(i,s)/gmax))
         f = min(f, g)
         f = max(f,-g)
+
       endif
 
-       norm = norm + f*f *rho_mrcc(i,s)*rho_mrcc(i,s)
+       norm = norm + (rho_mrcc(i,s)*f)**2
        rho_mrcc(i,s) = f
      enddo
-     ! norm now contains the norm of |T.Psi_0>
-     ! rho_mrcc now contains the f factors
-
-     f = 1.d0/norm
-     ! f now contains 1/ <T.Psi_0|T.Psi_0>
-
-     norm = 0.d0
-     do i=1,N_det_non_ref
-       norm = norm + psi_non_ref_coef(i,s)*psi_non_ref_coef(i,s)
-     enddo
-     ! norm now contains <Psi_SD|Psi_SD>
-     f = dsqrt(f*norm)
-     ! f normalises T.Psi_0 such that (1+T)|Psi> is normalized
+     ! rho_mrcc now contains the mu_i factors
 
      print *,  'norm of |T Psi_0> = ', dsqrt(norm)
-     norm = norm*f
-     if (dsqrt(norm) > 1.d0) then
+     if (norm > 1.d0) then
        stop 'Error : Norm of the SD larger than the norm of the reference.'
      endif
 
-     do i=1,N_det_non_ref
-       rho_mrcc(i,s) = rho_mrcc(i,s) * f
-     enddo
-     ! rho_mrcc now contains the product of the scaling factors and the
-     ! normalization constant
-    
   end do
 
 END_PROVIDER
@@ -1028,11 +1031,11 @@ double precision function get_dij(det1, det2, s, Nint)
   integer, intent(in) :: s, Nint
   integer(bit_kind) :: det1(Nint, 2), det2(Nint, 2)
   integer :: degree, f, exc(0:2, 2, 2), t
-  integer*2 :: h1, h2, p1, p2, s1, s2
+  integer :: h1, h2, p1, p2, s1, s2
   integer, external :: searchExc
   logical, external :: excEq
   double precision :: phase
-  integer*2 :: tmp_array(4)
+  integer :: tmp_array(4)
   
   get_dij = 0d0
   call get_excitation(det1, det2, exc, degree, phase, Nint)
@@ -1041,7 +1044,7 @@ double precision function get_dij(det1, det2, s, Nint)
     stop "get_dij"
   end if
   
-  call decode_exc_int2(exc,degree,h1,p1,h2,p2,s1,s2)
+  call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
   
   if(degree == 1) then
     h2 = h1
@@ -1074,8 +1077,8 @@ double precision function get_dij(det1, det2, s, Nint)
 end function
 
 
- BEGIN_PROVIDER [ integer*2, hh_exists, (4, N_hh_exists) ]
-&BEGIN_PROVIDER [ integer*2, pp_exists, (4, N_pp_exists) ]
+ BEGIN_PROVIDER [ integer, hh_exists, (4, N_hh_exists) ]
+&BEGIN_PROVIDER [ integer, pp_exists, (4, N_pp_exists) ]
 &BEGIN_PROVIDER [ integer, hh_shortcut, (0:N_hh_exists + 1) ]
 &BEGIN_PROVIDER [ integer, hh_nex ]
   implicit none
@@ -1090,9 +1093,9 @@ end function
   ! hh_nex : Total number of excitation operators
   !
   END_DOC
-  integer*2,allocatable :: num(:,:)
+  integer,allocatable :: num(:,:)
   integer :: exc(0:2, 2, 2), degree, n, on, s, l, i
-  integer*2 :: h1, h2, p1, p2
+  integer :: h1, h2, p1, p2
   double precision :: phase
   logical, external :: excEq
   
@@ -1118,19 +1121,19 @@ end function
   
   hh_shortcut(0) = 1
   hh_shortcut(1) = 1
-  hh_exists(:,1) = (/1_2, num(1,1), 1_2, num(2,1)/)
-  pp_exists(:,1) = (/1_2, num(3,1), 1_2, num(4,1)/)
+  hh_exists(:,1) = (/1, num(1,1), 1, num(2,1)/)
+  pp_exists(:,1) = (/1, num(3,1), 1, num(4,1)/)
   s = 1
   do i=2,n
     if(.not. excEq(num(1,i), num(1,s))) then
       s += 1
       num(:, s) = num(:, i)
-      pp_exists(:,s) = (/1_2, num(3,s), 1_2, num(4,s)/)
+      pp_exists(:,s) = (/1, num(3,s), 1, num(4,s)/)
       if(hh_exists(2, hh_shortcut(0)) /= num(1,s) .or. &
             hh_exists(4, hh_shortcut(0)) /= num(2,s)) then
         hh_shortcut(0) += 1
         hh_shortcut(hh_shortcut(0)) = s
-        hh_exists(:,hh_shortcut(0)) = (/1_2, num(1,s), 1_2, num(2,s)/)
+        hh_exists(:,hh_shortcut(0)) = (/1, num(1,s), 1, num(2,s)/)
       end if
     end if
   end do
@@ -1178,7 +1181,7 @@ END_PROVIDER
 
 logical function excEq(exc1, exc2)
   implicit none
-  integer*2, intent(in) :: exc1(4), exc2(4)
+  integer, intent(in) :: exc1(4), exc2(4)
   integer :: i
   excEq = .false.
   do i=1, 4
@@ -1190,7 +1193,7 @@ end function
 
 integer function excCmp(exc1, exc2)
   implicit none
-  integer*2, intent(in) :: exc1(4), exc2(4)
+  integer, intent(in) :: exc1(4), exc2(4)
   integer :: i
   excCmp = 0
   do i=1, 4
@@ -1209,8 +1212,8 @@ subroutine apply_hole_local(det, exc, res, ok, Nint)
   use bitmasks
   implicit none
   integer, intent(in) :: Nint
-  integer*2, intent(in) :: exc(4)
-  integer*2 :: s1, s2, h1, h2
+  integer, intent(in) :: exc(4)
+  integer :: s1, s2, h1, h2
   integer(bit_kind),intent(in) :: det(Nint, 2)
   integer(bit_kind),intent(out) :: res(Nint, 2)
   logical, intent(out) :: ok
@@ -1246,8 +1249,8 @@ subroutine apply_particle_local(det, exc, res, ok, Nint)
   use bitmasks
   implicit none
   integer, intent(in) :: Nint
-  integer*2, intent(in) :: exc(4)
-  integer*2 :: s1, s2, p1, p2
+  integer, intent(in) :: exc(4)
+  integer :: s1, s2, p1, p2
   integer(bit_kind),intent(in) :: det(Nint, 2)
   integer(bit_kind),intent(out) :: res(Nint, 2)
   logical, intent(out) :: ok

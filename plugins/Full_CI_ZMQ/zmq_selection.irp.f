@@ -10,26 +10,38 @@ subroutine ZMQ_selection(N_in, pt2)
   integer                        :: i, N
   integer, external              :: omp_get_thread_num
   double precision, intent(out)  :: pt2(N_states)
+  integer, parameter             :: maxtasks=10000
   
   
   PROVIDE fragment_count
 
+  N = max(N_in,1)
   if (.True.) then
     PROVIDE pt2_e0_denominator
-    N = max(N_in,1)
     provide nproc
     call new_parallel_job(zmq_to_qp_run_socket,"selection")
     call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
-    call zmq_set_running(zmq_to_qp_run_socket)
     call create_selection_buffer(N, N*2, b)
   endif
 
-  character(len=:), allocatable  :: task 
-  task = repeat(' ',20*N_det_generators)
+  character*(20*maxtasks) :: task
+  task = ' ' 
+
+  integer :: k
+  k=0
   do i= 1, N_det_generators
-    write(task(20*(i-1)+1:20*i),'(I9,X,I9,''|'')') i, N
+    k = k+1
+    write(task(20*(k-1)+1:20*k),'(I9,1X,I9,''|'')') i, N
+    k = k+20
+    if (k>20*maxtasks) then
+       k=0
+       call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+    endif
   end do
-  call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+  if (k > 0) then
+    call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+  endif
+  call zmq_set_running(zmq_to_qp_run_socket)
 
   !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
   i = omp_get_thread_num()
@@ -48,6 +60,7 @@ subroutine ZMQ_selection(N_in, pt2)
     endif
     call save_wavefunction
   endif
+
 end subroutine
 
 
@@ -83,7 +96,7 @@ subroutine selection_collector(b, pt2)
   real :: time, time0
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_pull = new_zmq_pull_socket()
-  allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det))
+  allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det_generators))
   done = 0
   more = 1
   pt2(:) = 0d0

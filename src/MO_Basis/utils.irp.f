@@ -88,7 +88,7 @@ subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label,sign)
     enddo
   endif
   do i=1,m
-    write (output_mo_basis,'(I8,X,F16.10)')  i,eigvalues(i)
+    write (output_mo_basis,'(I8,1X,F16.10)')  i,eigvalues(i)
   enddo
   write (output_mo_basis,'(A)') '======== ================'
   write (output_mo_basis,'(A)')  ''
@@ -135,7 +135,7 @@ subroutine mo_as_svd_vectors_of_mo_matrix(matrix,lda,m,n,label)
   write (output_mo_basis,'(A)')  '======== ================'
 
   do i=1,m
-    write (output_mo_basis,'(I8,X,F16.10)')  i,D(i)
+    write (output_mo_basis,'(I8,1X,F16.10)')  i,D(i)
   enddo
   write (output_mo_basis,'(A)')  '======== ================'
   write (output_mo_basis,'(A)')  ''
@@ -215,7 +215,7 @@ subroutine mo_as_eigvectors_of_mo_matrix_sort_by_observable(matrix,observable,n,
   write (output_mo_basis,'(A)')  ''
   write (output_mo_basis,'(A)')  '======== ================'
   do i = 1, m
-   write (output_mo_basis,'(I8,X,F16.10)')  i,eigvalues(i)
+   write (output_mo_basis,'(I8,1X,F16.10)')  i,eigvalues(i)
   enddo
   write (output_mo_basis,'(A)')  '======== ================'
   write (output_mo_basis,'(A)')  ''
