@@ -19,6 +19,18 @@ subroutine routine
  print*,'Nalpha  = ',elec_alpha_num
  print*,'accu(2) = ',accu(2)
  print*,'Nalpha  = ',elec_beta_num
+ 
+ accu = 0.d0
+ do i = 1, mo_tot_num
+  accu(1) += one_body_dm_mo_alpha_average(i,i)
+  accu(2) += one_body_dm_mo_beta_average(i,i)
+ enddo
+
+ 
+ print*,'          '
+ print*,'          '
+ print*,'accu(1) = ',accu(1)
+ print*,'accu(2) = ',accu(2)
 
 
 end

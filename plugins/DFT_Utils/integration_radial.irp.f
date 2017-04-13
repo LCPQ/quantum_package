@@ -27,7 +27,6 @@
      ! 
      x = grid_points_radial(i) ! x value for the mapping of the [0, +\infty] to [0,1]
      double precision ::  contrib_integration
-!    print*,m_knowles
      contrib_integration = derivative_knowles_function(alpha_knowles(int(nucl_charge(j))),m_knowles,x) & 
                           *knowles_function(alpha_knowles(int(nucl_charge(j))),m_knowles,x)**2          
      integral_density_alpha_knowles_becke_per_atom(j) += contrib_integration *f_average_angular_alpha

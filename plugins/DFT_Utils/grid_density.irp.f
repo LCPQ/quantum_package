@@ -5,7 +5,7 @@
 
 BEGIN_PROVIDER [integer, n_points_radial_grid]
  implicit none
- n_points_radial_grid = 10
+ n_points_radial_grid = 100000
 END_PROVIDER 
 
 
@@ -26,7 +26,7 @@ END_PROVIDER
  accu = 0.d0
  do i = 1, n_points_integration_angular_lebedev
   accu += weights_angular_integration_lebedev(i)
-  weights_angular_points(i) = weights_angular_integration_lebedev(i) * 2.d0 * pi
+  weights_angular_points(i) = weights_angular_integration_lebedev(i) * 4.d0 * pi
   angular_quadrature_points(i,1) = dcos ( degre_rad *  theta_angular_integration_lebedev(i)) & 
                                  * dsin ( degre_rad *  phi_angular_integration_lebedev(i))
   angular_quadrature_points(i,2) = dsin ( degre_rad *  theta_angular_integration_lebedev(i)) & 
@@ -115,7 +115,6 @@ BEGIN_PROVIDER [double precision, weight_functions_at_grid_points, (n_points_int
      enddo
      accu = 1.d0/accu
      weight_functions_at_grid_points(l,k,j) = tmp_array(j) * accu 
-!    print*,weight_functions_at_grid_points(l,k,j)
     enddo
    enddo
   enddo
@@ -131,7 +130,7 @@ END_PROVIDER
  double precision :: r(3)
  double precision :: aos_array(ao_num),mos_array(mo_tot_num)
   do j = 1, nucl_num
-   do k = 1, n_points_radial_grid -1
+   do k = 1, n_points_radial_grid 
     do l = 1, n_points_integration_angular_lebedev
      one_body_dm_mo_alpha_at_grid_points(l,k,j) = 0.d0
      one_body_dm_mo_beta_at_grid_points(l,k,j) = 0.d0
@@ -139,18 +138,9 @@ END_PROVIDER
      r(2) = grid_points_per_atom(2,l,k,j)
      r(3) = grid_points_per_atom(3,l,k,j)
 
-!    call give_all_aos_at_r(r,aos_array)
-!    do i = 1, ao_num
-!      do m = 1, ao_num
-!       contrib = aos_array(i) * aos_array(m)
-!       one_body_dm_mo_alpha_at_grid_points(l,k,j) +=  one_body_dm_ao_alpha(i,m) * contrib
-!       one_body_dm_mo_beta_at_grid_points(l,k,j) +=  one_body_dm_ao_beta(i,m)  * contrib
-!      enddo
-!    enddo
-
      call give_all_mos_at_r(r,mos_array)
-     do i = 1, mo_tot_num
-      do m = 1, mo_tot_num
+     do m = 1, mo_tot_num
+      do i = 1, mo_tot_num
        contrib = mos_array(i) * mos_array(m)
        one_body_dm_mo_alpha_at_grid_points(l,k,j) += one_body_dm_mo_alpha_average(i,m) * contrib
        one_body_dm_mo_beta_at_grid_points(l,k,j) += one_body_dm_mo_beta_average(i,m) * contrib
