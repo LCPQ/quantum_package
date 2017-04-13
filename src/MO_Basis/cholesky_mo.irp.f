@@ -50,9 +50,9 @@ subroutine cholesky_mo(n,m,P,LDP,C,LDC,tol_in,rank)
  deallocate(W,work)
 end
 
-subroutine svd_mo(n,m,P,LDP,C,LDC)
- implicit none
- BEGIN_DOC
+!subroutine svd_mo(n,m,P,LDP,C,LDC)
+!implicit none
+!BEGIN_DOC
 ! Singular value decomposition of the AO Density matrix
 !
 ! n : Number of AOs
@@ -67,22 +67,22 @@ subroutine svd_mo(n,m,P,LDP,C,LDC)
 !
 ! rank : Nomber of local MOs (output)
 !
- END_DOC
- integer, intent(in) :: n,m, LDC, LDP
- double precision, intent(in) :: P(LDP,n)
- double precision, intent(out) :: C(LDC,m)
+!END_DOC
+!integer, intent(in) :: n,m, LDC, LDP
+!double precision, intent(in) :: P(LDP,n)
+!double precision, intent(out) :: C(LDC,m)
 
- integer :: info
- integer :: i,k
- integer :: ipiv(n)
- double precision:: tol
- double precision, allocatable :: W(:,:), work(:)
+!integer :: info
+!integer :: i,k
+!integer :: ipiv(n)
+!double precision:: tol
+!double precision, allocatable :: W(:,:), work(:)
 
- allocate(W(LDC,n),work(2*n))
- call svd(P,LDP,C,LDC,W,size(W,1),m,n)
+!allocate(W(LDC,n),work(2*n))
+!call svd(P,LDP,C,LDC,W,size(W,1),m,n)
 
- deallocate(W,work)
-end
+!deallocate(W,work)
+!end
 
 subroutine svd_mo(n,m,P,LDP,C,LDC)
  implicit none

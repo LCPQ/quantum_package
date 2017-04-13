@@ -5,7 +5,7 @@ END_PROVIDER
 
 BEGIN_PROVIDER [integer, n_points_radial_grid]
  implicit none
- n_points_radial_grid = 10000
+ n_points_radial_grid = 10
 END_PROVIDER 
 
 
@@ -22,21 +22,21 @@ END_PROVIDER
  integer :: i
  double precision :: accu
  double precision :: degre_rad
-!degre_rad = 180.d0/pi
-!accu = 0.d0
-!do i = 1, n_points_integration_angular_lebedev
-! accu += weights_angular_integration_lebedev(i)
-! weights_angular_points(i) = weights_angular_integration_lebedev(i) * 2.d0 * pi
-! angular_quadrature_points(i,1) = dcos ( degre_rad *  theta_angular_integration_lebedev(i)) & 
-!                                * dsin ( degre_rad *  phi_angular_integration_lebedev(i))
-! angular_quadrature_points(i,2) = dsin ( degre_rad *  theta_angular_integration_lebedev(i)) & 
-!                                * dsin ( degre_rad *  phi_angular_integration_lebedev(i))
-! angular_quadrature_points(i,3) = dcos ( degre_rad *  phi_angular_integration_lebedev(i))   
-!enddo
-!print*,'ANGULAR'
-!print*,''
-!print*,'accu = ',accu
-!ASSERT( dabs(accu - 1.D0) < 1.d-10)
+ degre_rad = 180.d0/pi
+ accu = 0.d0
+ do i = 1, n_points_integration_angular_lebedev
+  accu += weights_angular_integration_lebedev(i)
+  weights_angular_points(i) = weights_angular_integration_lebedev(i) * 2.d0 * pi
+  angular_quadrature_points(i,1) = dcos ( degre_rad *  theta_angular_integration_lebedev(i)) & 
+                                 * dsin ( degre_rad *  phi_angular_integration_lebedev(i))
+  angular_quadrature_points(i,2) = dsin ( degre_rad *  theta_angular_integration_lebedev(i)) & 
+                                 * dsin ( degre_rad *  phi_angular_integration_lebedev(i))
+  angular_quadrature_points(i,3) = dcos ( degre_rad *  phi_angular_integration_lebedev(i))   
+ enddo
+ print*,'ANGULAR'
+ print*,''
+ print*,'accu = ',accu
+ ASSERT( dabs(accu - 1.D0) < 1.d-10)
 
 END_PROVIDER 
 
@@ -152,8 +152,8 @@ END_PROVIDER
      do i = 1, mo_tot_num
       do m = 1, mo_tot_num
        contrib = mos_array(i) * mos_array(m)
-       one_body_dm_mo_alpha_at_grid_points(l,k,j) += one_body_dm_mo_alpha(i,m) * contrib
-       one_body_dm_mo_beta_at_grid_points(l,k,j) += one_body_dm_mo_beta(i,m) * contrib
+       one_body_dm_mo_alpha_at_grid_points(l,k,j) += one_body_dm_mo_alpha_average(i,m) * contrib
+       one_body_dm_mo_beta_at_grid_points(l,k,j) += one_body_dm_mo_beta_average(i,m) * contrib
       enddo
      enddo
 

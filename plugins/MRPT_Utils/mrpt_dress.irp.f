@@ -122,11 +122,14 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
        enddo
       else 
        call get_delta_e_dyall(psi_ref(1,1,index_i),tq(1,1,i_alpha),delta_e)
+       if(degree_scalar.eq.1)then
+        delta_e = 1.d+20
+       endif
 !      print*, 'delta_e',delta_e
        !!!!!!!!!!!!! SHIFTED BK 
 !      double precision :: hjj
 !      call i_h_j(tq(1,1,i_alpha),tq(1,1,i_alpha),Nint,hjj)
-!      delta_e(1) = CI_electronic_energy(1) - hjj
+!      delta_e(1) = electronic_psi_ref_average_value(1) - hjj
 !      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       endif
       hij_array(index_i) = hialpha

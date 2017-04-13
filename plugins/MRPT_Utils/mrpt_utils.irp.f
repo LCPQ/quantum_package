@@ -40,40 +40,38 @@
  enddo
  print*, '1h   = ',accu
  
- ! 1p 
- delta_ij_tmp = 0.d0
- call H_apply_mrpt_1p(delta_ij_tmp,N_det)
- accu = 0.d0
- do i_state = 1, N_states
- do i = 1, N_det
-  do j = 1, N_det
-   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-  enddo
-  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
- enddo
- second_order_pt_new_1p(i_state) = accu(i_state) 
- enddo
- print*, '1p   = ',accu
+!! 1p 
+!delta_ij_tmp = 0.d0
+!call H_apply_mrpt_1p(delta_ij_tmp,N_det)
+!accu = 0.d0
+!do i_state = 1, N_states
+!do i = 1, N_det
+! do j = 1, N_det
+!  accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+!  delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+! enddo
+! write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
+!enddo
+!second_order_pt_new_1p(i_state) = accu(i_state) 
+!enddo
+!print*, '1p   = ',accu
 
  ! 1h1p 
- delta_ij_tmp = 0.d0
- call H_apply_mrpt_1h1p(delta_ij_tmp,N_det)
- double precision :: e_corr_from_1h1p_singles(N_states)
-!call give_singles_and_partial_doubles_1h1p_contrib(delta_ij_tmp,e_corr_from_1h1p_singles)
-!call give_1h1p_only_doubles_spin_cross(delta_ij_tmp)
- accu = 0.d0
- do i_state = 1, N_states
- do i = 1, N_det
-  do j = 1, N_det
-   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-  enddo
-  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
- enddo
- second_order_pt_new_1h1p(i_state) = accu(i_state) 
- enddo
- print*, '1h1p = ',accu
+!delta_ij_tmp = 0.d0
+!call H_apply_mrpt_1h1p(delta_ij_tmp,N_det)
+!double precision :: e_corr_from_1h1p_singles(N_states)
+!accu = 0.d0
+!do i_state = 1, N_states
+!do i = 1, N_det
+! do j = 1, N_det
+!  accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+!  delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+! enddo
+! write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
+!enddo
+!second_order_pt_new_1h1p(i_state) = accu(i_state) 
+!enddo
+!print*, '1h1p = ',accu
 
  ! 1h1p third order
  if(do_third_order_1h1p)then
@@ -93,73 +91,73 @@
   print*, '1h1p(3)',accu
  endif
 
- ! 2h   
- delta_ij_tmp = 0.d0
- call H_apply_mrpt_2h(delta_ij_tmp,N_det)
- accu = 0.d0
- do i_state = 1, N_states
- do i = 1, N_det
-  do j = 1, N_det
-   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-  enddo
-  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
- enddo
- second_order_pt_new_2h(i_state) = accu(i_state) 
- enddo
- print*, '2h   = ',accu
+!! 2h   
+!delta_ij_tmp = 0.d0
+!call H_apply_mrpt_2h(delta_ij_tmp,N_det)
+!accu = 0.d0
+!do i_state = 1, N_states
+!do i = 1, N_det
+! do j = 1, N_det
+!  accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+!  delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+! enddo
+! write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
+!enddo
+!second_order_pt_new_2h(i_state) = accu(i_state) 
+!enddo
+!print*, '2h   = ',accu
 
- ! 2p   
- delta_ij_tmp = 0.d0
- call H_apply_mrpt_2p(delta_ij_tmp,N_det)
- accu = 0.d0
- do i_state = 1, N_states
- do i = 1, N_det
-  do j = 1, N_det
-   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-  enddo
-  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
- enddo
- second_order_pt_new_2p(i_state) = accu(i_state) 
- enddo
- print*, '2p   = ',accu
+!! 2p   
+!delta_ij_tmp = 0.d0
+!call H_apply_mrpt_2p(delta_ij_tmp,N_det)
+!accu = 0.d0
+!do i_state = 1, N_states
+!do i = 1, N_det
+! do j = 1, N_det
+!  accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+!  delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+! enddo
+! write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
+!enddo
+!second_order_pt_new_2p(i_state) = accu(i_state) 
+!enddo
+!print*, '2p   = ',accu
 
  ! 1h2p   
  delta_ij_tmp = 0.d0
 !call give_1h2p_contrib(delta_ij_tmp)
- call H_apply_mrpt_1h2p(delta_ij_tmp,N_det)
- accu = 0.d0
- do i_state = 1, N_states
- do i = 1, N_det
-  do j = 1, N_det
-   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-  enddo
-  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
- enddo
- second_order_pt_new_1h2p(i_state) = accu(i_state) 
- enddo
- print*, '1h2p = ',accu
+!call H_apply_mrpt_1h2p(delta_ij_tmp,N_det)
+!accu = 0.d0
+!do i_state = 1, N_states
+!do i = 1, N_det
+! do j = 1, N_det
+!  accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+!  delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+! enddo
+! write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
+!enddo
+!second_order_pt_new_1h2p(i_state) = accu(i_state) 
+!enddo
+!print*, '1h2p = ',accu
 
- ! 2h1p   
- delta_ij_tmp = 0.d0
+!! 2h1p   
+!delta_ij_tmp = 0.d0
 !call give_2h1p_contrib(delta_ij_tmp)
- call H_apply_mrpt_2h1p(delta_ij_tmp,N_det)
- accu = 0.d0
- do i_state = 1, N_states
- do i = 1, N_det
-  do j = 1, N_det
-   accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
-  enddo
-  write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
- enddo
- second_order_pt_new_2h1p(i_state) = accu(i_state) 
- enddo
- print*, '2h1p = ',accu
+!call H_apply_mrpt_2h1p(delta_ij_tmp,N_det)
+!accu = 0.d0
+!do i_state = 1, N_states
+!do i = 1, N_det
+! do j = 1, N_det
+!  accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+!  delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+! enddo
+! write(*,'(1000(F16.10,x))')delta_ij_tmp(i,:,:)
+!enddo
+!second_order_pt_new_2h1p(i_state) = accu(i_state) 
+!enddo
+!print*, '2h1p = ',accu
 
- ! 2h2p   
+!! 2h2p   
 !delta_ij_tmp = 0.d0
 !call H_apply_mrpt_2h2p(delta_ij_tmp,N_det)
 !accu = 0.d0
@@ -287,7 +285,6 @@ END_PROVIDER
        good_state_array = .False.
        call u_0_S2_u_0(s2_eigvalues,eigenvectors,N_det,psi_det,N_int,&
          N_det,size(eigenvectors,1))
-!      print*, s2_eigvalues(:)
        print*,'N_det',N_det
        do j=1,N_det
          ! Select at least n_states states with S^2 values closed to "expected_s2"
