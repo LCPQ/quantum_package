@@ -11,6 +11,9 @@ subroutine routine
  integer :: i
  double precision :: accu(2)
  accu = 0.d0
+ do i = 1, N_det
+  call debug_det(psi_det(1,1,i),N_int)
+ enddo
  do i = 1, nucl_num
   accu(1) += integral_density_alpha_knowles_becke_per_atom(i)
   accu(2) += integral_density_beta_knowles_becke_per_atom(i)

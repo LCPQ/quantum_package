@@ -5,7 +5,7 @@
 
 BEGIN_PROVIDER [integer, n_points_radial_grid]
  implicit none
- n_points_radial_grid = 100000
+ n_points_radial_grid = 10000
 END_PROVIDER 
 
 
@@ -24,15 +24,22 @@ END_PROVIDER
  double precision :: degre_rad
  degre_rad = 180.d0/pi
  accu = 0.d0
- do i = 1, n_points_integration_angular_lebedev
-  accu += weights_angular_integration_lebedev(i)
-  weights_angular_points(i) = weights_angular_integration_lebedev(i) * 4.d0 * pi
-  angular_quadrature_points(i,1) = dcos ( degre_rad *  theta_angular_integration_lebedev(i)) & 
-                                 * dsin ( degre_rad *  phi_angular_integration_lebedev(i))
-  angular_quadrature_points(i,2) = dsin ( degre_rad *  theta_angular_integration_lebedev(i)) & 
-                                 * dsin ( degre_rad *  phi_angular_integration_lebedev(i))
-  angular_quadrature_points(i,3) = dcos ( degre_rad *  phi_angular_integration_lebedev(i))   
- enddo
+!do i = 1, n_points_integration_angular_lebedev
+! accu += weights_angular_integration_lebedev(i)
+! weights_angular_points(i) = weights_angular_integration_lebedev(i) * 4.d0 * pi
+! angular_quadrature_points(i,1) = dcos ( degre_rad *  theta_angular_integration_lebedev(i)) & 
+!                                * dsin ( degre_rad *  phi_angular_integration_lebedev(i))
+! angular_quadrature_points(i,2) = dsin ( degre_rad *  theta_angular_integration_lebedev(i)) & 
+!                                * dsin ( degre_rad *  phi_angular_integration_lebedev(i))
+! angular_quadrature_points(i,3) = dcos ( degre_rad *  phi_angular_integration_lebedev(i))   
+
+!!weights_angular_points(i) = weights_angular_integration_lebedev(i)
+!!angular_quadrature_points(i,1) = dcos ( degre_rad *  phi_angular_integration_lebedev(i)) & 
+!!                               * dsin ( degre_rad *  theta_angular_integration_lebedev(i))
+!!angular_quadrature_points(i,2) = dsin ( degre_rad *  phi_angular_integration_lebedev(i)) & 
+!!                               * dsin ( degre_rad *  theta_angular_integration_lebedev(i))
+!!angular_quadrature_points(i,3) = dcos ( degre_rad *  theta_angular_integration_lebedev(i))   
+!enddo
  print*,'ANGULAR'
  print*,''
  print*,'accu = ',accu

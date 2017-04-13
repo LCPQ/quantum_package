@@ -4,7 +4,7 @@ BEGIN_PROVIDER [integer, degree_max_integration_lebedev]
  ! needed for the angular integration according to LEBEDEV formulae
  END_DOC
  implicit none
- degree_max_integration_lebedev= 3
+ degree_max_integration_lebedev= 7
 
 END_PROVIDER
 
