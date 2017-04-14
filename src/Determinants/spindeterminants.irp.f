@@ -771,7 +771,7 @@ subroutine get_all_spin_singles(buffer, idx, spindet, Nint, size_buffer, singles
     endif
   enddo
   n_singles = n_singles-1
-  deallocate(xorvec)
+  deallocate(xorvec, degree)
   
 end
 

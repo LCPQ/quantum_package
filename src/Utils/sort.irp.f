@@ -164,7 +164,7 @@ BEGIN_TEMPLATE
 ! Returns the number of sorted elements
   END_DOC
   integer, intent(in)            :: isize
-  $type, intent(inout)           :: x(isize)
+  $type, intent(in)           :: x(isize)
   integer, intent(out)           :: n
   integer :: i
   if (isize < 2) then
@@ -172,14 +172,14 @@ BEGIN_TEMPLATE
     return
   endif
 
-  if (x(1) > x(2)) then
+  if (x(1) >= x(2)) then
     n=1
   else
     n=0
   endif
 
   do i=2,isize
-    if (x(i-1) > x(i)) then
+    if (x(i-1) >= x(i)) then
       n=n+1
     endif
   enddo
@@ -197,15 +197,12 @@ BEGIN_TEMPLATE
   $type,intent(inout)            :: x(isize)
   integer,intent(inout)          :: iorder(isize)
   integer                        :: n
-  if (isize < 32) then
+  call sorted_$Xnumber(x,isize,n)
+  print *,  isize, n, isize-n
+  if ( isize-n < 1000) then
     call insertion_$Xsort(x,iorder,isize)
   else
-!    call sorted_$Xnumber(x,isize,n)
-!    if ( (16*n) / isize > 0) then
-!      call insertion_$Xsort(x,iorder,isize)
-!    else
-      call heap_$Xsort(x,iorder,isize)
-!    endif
+    call heap_$Xsort(x,iorder,isize)
   endif
  end subroutine $Xsort
 
