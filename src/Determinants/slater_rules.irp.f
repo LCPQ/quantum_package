@@ -2566,13 +2566,14 @@ subroutine i_H_j_double_alpha_beta(key_i,key_j,Nint,hij)
   double precision, intent(out)  :: hij
   
   integer                        :: exc(0:2,2,2)
-  double precision               :: phase
+  double precision               :: phase, phase2
   double precision, external     :: get_mo_bielec_integral
 
   PROVIDE big_array_exchange_integrals mo_bielec_integrals_in_map
 
   call get_mono_excitation_spin(key_i(1,1),key_j(1,1),exc(0,1,1),phase,Nint)
-  call get_mono_excitation_spin(key_i(1,2),key_j(1,2),exc(0,1,2),phase,Nint)
+  call get_mono_excitation_spin(key_i(1,2),key_j(1,2),exc(0,1,2),phase2,Nint)
+  phase = phase*phase2
   if (exc(1,1,1) == exc(1,2,2)) then
     hij = phase * big_array_exchange_integrals(exc(1,1,1),exc(1,1,2),exc(1,2,1))
   else if (exc(1,2,1) == exc(1,1,2)) then

@@ -389,6 +389,7 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_rows   , (N_det) ]
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_columns, (N_det) ]
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order  , (N_det) ]
+&BEGIN_PROVIDER [ integer, psi_bilinear_matrix_columns_loc, (N_det_beta_unique+1) ]
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -428,6 +429,17 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
   do l=1,N_states
     call dset_order(psi_bilinear_matrix_values(1,l),psi_bilinear_matrix_order,N_det)
   enddo
+  psi_bilinear_matrix_columns_loc(1:N_det_beta_unique) = -1
+  psi_bilinear_matrix_columns_loc(1) = 1
+  do k=2,N_det
+    if (psi_bilinear_matrix_columns(k) == psi_bilinear_matrix_columns(k-1)) then
+      cycle
+    else
+      l = psi_bilinear_matrix_columns(k)
+      psi_bilinear_matrix_columns_loc(l) = k
+    endif
+  enddo
+  psi_bilinear_matrix_columns_loc(N_det_beta_unique+1) = N_det+1
   deallocate(to_sort)
 END_PROVIDER
 
