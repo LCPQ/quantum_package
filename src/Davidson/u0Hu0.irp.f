@@ -659,6 +659,30 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
       is_single_b(N_det_beta_unique),                                &
       idx(maxab), idx0(maxab))
   
+  do i=1,maxab
+    idx0(i) = i
+  enddo
+
+  ! Prepare the array of all alpha single excitations
+  ! -------------------------------------------------
+
+  n_singles_max = 0
+  do i=1,N_det_alpha_unique
+    spindet(1:N_int) = psi_det_alpha_unique(1:N_int, i)
+    call get_all_spin_singles(                                       &
+        psi_det_alpha_unique, idx0, spindet, N_int, N_det_alpha_unique,&
+        singles, n_singles)
+    n_singles_max = max(n_singles_max, n_singles)
+  enddo
+
+  allocate (singles_a(0:n_singles_max, N_det_alpha_unique))
+  do i=1,N_det_alpha_unique
+    spindet(1:N_int) = psi_det_alpha_unique(1:N_int, i)
+    call get_all_spin_singles(                                       &
+        psi_det_alpha_unique, idx0, spindet, N_int, N_det_alpha_unique,&
+        singles_a(1,i), singles_a(0,i))
+  enddo
+
   v_0 = 0.d0
   do k_a=1,N_det
     
@@ -807,35 +831,8 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
   ! Alpha/Beta double excitations
   ! =============================
     
-  do i=1,maxab
-    idx0(i) = i
-  enddo
-
-  ! Prepare the array of all alpha single excitations
-  ! -------------------------------------------------
-
-  n_singles_max = 0
-  do i=1,N_det_alpha_unique
-    spindet(1:N_int) = psi_det_alpha_unique(1:N_int, i)
-    call get_all_spin_singles(                                       &
-        psi_det_alpha_unique, idx0, spindet, N_int, N_det_alpha_unique,&
-        singles, n_singles)
-    n_singles_max = max(n_singles_max, n_singles)
-  enddo
-
-  allocate (singles_a(0:n_singles_max, N_det_alpha_unique))
-  do i=1,N_det_alpha_unique
-    spindet(1:N_int) = psi_det_alpha_unique(1:N_int, i)
-    call get_all_spin_singles(                                       &
-        psi_det_alpha_unique, idx0, spindet, N_int, N_det_alpha_unique,&
-        singles_a(1,i), singles_a(0,i))
-  enddo
-
   do k_a=1,N_det
 
-    ! Initial determinant is at k_a in alpha-major representation
-    ! -----------------------------------------------------------------------
-    
     krow = psi_bilinear_matrix_rows(k_a)
     kcol = psi_bilinear_matrix_columns(k_a)
     
@@ -864,11 +861,14 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
 
     do i=1,n_singles
       lcol = singles(i)
-      ! TODO cycle if lcol <= kcol
+      if (lcol <= kcol) cycle
+
       tmp_det2(1:N_int,2) = psi_det_beta_unique(1:N_int, lcol)
 
       l_a = psi_bilinear_matrix_columns_loc(lcol)
-      ! TODO loop
+      do while (l_a <= k_a)
+        l_a += 1
+      enddo
 
       do while ( l_a < psi_bilinear_matrix_columns_loc(lcol+1) )
         lrow = psi_bilinear_matrix_rows(l_a)
@@ -877,6 +877,7 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
 
           call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij)
           v_0(k_a, 1:N_st) += hij * psi_bilinear_matrix_values(l_a,1:N_st)
+          v_0(l_a, 1:N_st) += hij * psi_bilinear_matrix_values(k_a,1:N_st)
         endif
         l_a += 1
 
@@ -885,114 +886,6 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
 
   enddo
 
-  !----
-
-!  k_a=1
-!  do i=1,N_det_beta_unique
-!
-!    ! Select a beta determinant
-!    ! -------------------------
-!
-!    spindet(1:N_int) = psi_det_beta_unique(1:N_int, i)
-!    tmp_det(1:N_int,2) = spindet(1:N_int)
-!
-!    call get_all_spin_singles(                                       &
-!        psi_det_beta_unique, idx0, spindet, N_int, N_det_beta_unique, &
-!        singles, n_singles )
-!
-!    do j=1,n_singles
-!      is_single_a( singles(j) ) = .True.
-!    enddo
-!
-!    ! For all alpha.beta pairs with the selected beta
-!    ! -----------------------------------------------
-!
-!    kcol = psi_bilinear_matrix_columns(k_a)
-!    do while (kcol < i)
-!      k_a = k_a+1
-!      if (k_a > N_det) exit
-!      kcol = psi_bilinear_matrix_columns(k_a)
-!    enddo
-!
-!    do while (kcol == i)
-!
-!      krow = psi_bilinear_matrix_rows(k_a)
-!      tmp_det(1:N_int,1) = psi_det_alpha_unique(1:N_int,krow)
-!
-!      ! Loop over all alpha.beta pairs with a single exc alpha
-!      ! ------------------------------------------------------
-!
-!      l_a = k_a+1
-!      if (l_a > N_det) exit
-!      lrow = psi_bilinear_matrix_rows(l_a)
-!      lcol = psi_bilinear_matrix_columns(l_a)
-!
-!      do while (lrow == krow)
-!
-!        ! Loop over all alpha.beta pairs with a single exc alpha
-!        ! ------------------------------------------------------
-!        if (is_single_a(lrow)) then
-!
-!           tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int,lrow)
-!          
-!           ! Build list of singly excited beta
-!           ! ---------------------------------
-!
-!           m_b = psi_bilinear_matrix_order_reverse(l_a)
-!           m_b = m_b+1
-!           j=1
-!           do while ( (mrow == lrow) )
-!             mcol = psi_bilinear_matrix_transp_columns(m_b)
-!             buffer(1:N_int,j) = psi_det_beta_unique(1:N_int,mcol)
-!             idx(j) = mcol
-!             j = j+1
-!             m_b = m_b+1
-!             if (m_b <= N_det) exit
-!             mrow = psi_bilinear_matrix_transp_rows(m_b)
-!           enddo
-!           j=j-1
-!
-!           call get_all_spin_singles(                                &
-!               buffer, idx, tmp_det(1,2), N_int, j,                  &
-!               doubles, n_doubles)
-!
-!           ! Compute Hij for all doubles 
-!           ! ---------------------------
-!
-!           m_b = psi_bilinear_matrix_order(l_a)+1
-!           mcol = psi_bilinear_matrix_transp_columns(m_b)
-!           do j=1,n_doubles
-!             tmp_det2(1:N_int,2) = psi_det_beta_unique(1:N_int, doubles(j) )
-!             call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij)
-!             do while (mcol /= doubles(j))
-!               m_b = m_b+1
-!               if (m_b > N_det) exit
-!               mcol = psi_bilinear_matrix_transp_columns(m_b)
-!             enddo
-!             m_a = psi_bilinear_matrix_order_reverse(m_b)
-!             v_0(m_a, 1:N_st) += hij * psi_bilinear_matrix_values(k_a,1:N_st)
-!             v_0(k_a, 1:N_st) += hij * psi_bilinear_matrix_values(m_a,1:N_st)
-!           enddo
-!
-!        endif
-!        l_a = l_a+1
-!        if (l_a > N_det) exit
-!        lrow = psi_bilinear_matrix_rows(l_a)
-!        lcol = psi_bilinear_matrix_columns(l_a)
-!      enddo
-!
-!      k_b = k_b+1
-!      if (k_b > N_det) exit
-!      kcol = psi_bilinear_matrix_transp_columns(k_b)
-!    enddo
-!    
-!    do j=1,n_singles
-!      is_single_a( singles(j) ) = .False.
-!    enddo
-!
-!  enddo  
-
-    
 end
 
 
