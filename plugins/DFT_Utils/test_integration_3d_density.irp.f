@@ -4,8 +4,47 @@ program pouet
  touch read_wf
  print*,'m_knowles = ',m_knowles
  call routine
+ call routine3
 
 end
+
+
+
+subroutine routine3
+ implicit none
+ integer :: i,j,k,l
+ double precision :: accu
+ accu = 0.d0
+  do j = 1, nucl_num  ! that are referred to each atom 
+   do i = 1, n_points_radial_grid -1  !for each radial grid attached to the "jth" atom
+    do k = 1, n_points_integration_angular ! for each angular point attached to the "jth" atom
+     accu += final_weight_functions_at_grid_points(k,i,j) * one_body_dm_mo_alpha_at_grid_points(k,i,j,1)
+    enddo
+   enddo
+  enddo
+  print*, accu
+ print*, 'lda_exchange',lda_exchange
+
+end
+subroutine routine2
+ implicit none
+ integer :: i,j,k,l
+ double precision :: x,y,z
+ double precision :: r
+ double precision :: accu 
+ accu = 0.d0
+ r = 1.d0
+ do k = 1, n_points_integration_angular 
+  x  =  angular_quadrature_points(k,1) * r
+  y  =  angular_quadrature_points(k,2) * r
+  z  =  angular_quadrature_points(k,3) * r
+  accu += weights_angular_points(k) * (x**2 + y**2 + z**2)
+ enddo
+ print*, accu
+
+end
+
+
 subroutine routine
  implicit none
  integer :: i

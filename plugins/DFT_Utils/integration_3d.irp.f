@@ -5,11 +5,10 @@ double precision function step_function_becke(x)
  integer :: i,n_max_becke
 
   step_function_becke = f_function_becke(x)
-  do i = 1, 3
+  do i = 1,5
    step_function_becke = f_function_becke(step_function_becke)
   enddo
   step_function_becke = 0.5d0*(1.d0 - step_function_becke)
-! step_function_becke = (1.d0 - step_function_becke)
 end
 
 double precision function f_function_becke(x)
