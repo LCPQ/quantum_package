@@ -1241,8 +1241,7 @@ subroutine ZMQ_selection(N_in, pt2)
   do i= 1, N_det_generators
     k = k+1
     write(task(20*(k-1)+1:20*k),'(I9,1X,I9,''|'')') i, N
-    k = k+20
-    if (k>20*maxtasks) then
+    if (k>=maxtasks) then
        k=0
        call add_task_to_taskserver(zmq_to_qp_run_socket,task)
     endif

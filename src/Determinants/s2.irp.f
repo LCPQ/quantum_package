@@ -1,3 +1,35 @@
+double precision function diag_S_mat_elem(key_i,Nint)
+  implicit none
+  use bitmasks
+  include 'Utils/constants.include.F'
+
+  integer                        :: Nint
+  integer(bit_kind), intent(in)  :: key_i(Nint,2)
+  BEGIN_DOC
+! Returns <i|S^2|i>
+  END_DOC
+  integer                        :: nup, i
+  integer(bit_kind)              :: xorvec(N_int_max)
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
+
+  do i=1,Nint
+    xorvec(i) = xor(key_i(i,1),key_i(i,2))
+  enddo
+
+  do i=1,Nint
+    xorvec(i) = iand(xorvec(i),key_i(i,1))
+  enddo
+
+  nup = 0
+  do i=1,Nint
+    if (xorvec(i) /= 0_bit_kind) then
+      nup += popcnt(xorvec(i))
+    endif
+  enddo
+  diag_S_mat_elem = dble(nup)
+
+end
+
 subroutine get_s2(key_i,key_j,Nint,s2)
   implicit none
   use bitmasks
@@ -25,11 +57,9 @@ subroutine get_s2(key_i,key_j,Nint,s2)
         endif
       endif
     case(0)
-      nup = 0
-      do i=1,Nint
-        nup += popcnt(iand(xor(key_i(i,1),key_i(i,2)),key_i(i,1)))
-      enddo
-      s2 = dble(nup)
+      double precision, external :: diag_S_mat_elem
+      !DIR$ FORCEINLINE
+      s2 = diag_S_mat_elem(key_i,Nint)
   end select
 end
 

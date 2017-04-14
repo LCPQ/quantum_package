@@ -631,8 +631,8 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
   
   PROVIDE ref_bitmask_energy
 
-  double precision               :: hij, s2 
-  integer                        :: i,j,k
+  double precision               :: hij, sij
+  integer                        :: i,j,k,l
   integer                        :: k_a, k_b, l_a, l_b, m_a, m_b
   integer                        :: istate
   integer                        :: krow, kcol, krow_b, kcol_b
@@ -684,6 +684,7 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
   enddo
 
   v_0 = 0.d0
+  s_0 = 0.d0
   do k_a=1,N_det
     
     ! Initial determinant is at k_a in alpha-major representation
@@ -703,10 +704,14 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
     ! Diagonal contribution
     ! ---------------------
 
-    double precision, external :: diag_H_mat_elem
+    double precision, external :: diag_H_mat_elem, diag_S_mat_elem
   
-    v_0(k_a,1:N_st) = v_0(k_a,1:N_st) + diag_H_mat_elem(tmp_det,N_int) * &
-        psi_bilinear_matrix_values(k_a,1:N_st)
+    hij = diag_H_mat_elem(tmp_det,N_int) 
+    sij = diag_S_mat_elem(tmp_det,N_int)
+    do l=1,N_st
+      v_0(k_a,l) = v_0(k_a,l) + hij * psi_bilinear_matrix_values(k_a,l)
+      s_0(k_a,l) = s_0(k_a,l) + sij * psi_bilinear_matrix_values(k_a,l)
+    enddo
 
     
     ! Get all single and double alpha excitations
@@ -746,8 +751,11 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
       enddo
       tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
       call i_H_j_mono_spin( tmp_det, tmp_det2, N_int, 1, hij)
-      v_0(l_a, 1:N_st) += hij * psi_bilinear_matrix_values(k_a,1:N_st)
-      v_0(k_a, 1:N_st) += hij * psi_bilinear_matrix_values(l_a,1:N_st)
+      do l=1,N_st
+        v_0(l_a, l) += hij * psi_bilinear_matrix_values(k_a,l)
+        v_0(k_a, l) += hij * psi_bilinear_matrix_values(l_a,l)
+        ! single => sij = 0 
+      enddo
     enddo
     
     ! Compute Hij for all alpha doubles
@@ -761,8 +769,11 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
         lrow = psi_bilinear_matrix_rows(l_a)
       enddo
       call i_H_j_double_spin( tmp_det(1,1), psi_det_alpha_unique(1, doubles(i)), N_int, hij)
-      v_0(l_a, 1:N_st) += hij * psi_bilinear_matrix_values(k_a,1:N_st)
-      v_0(k_a, 1:N_st) += hij * psi_bilinear_matrix_values(l_a,1:N_st)
+      do l=1,N_st
+        v_0(l_a, l) += hij * psi_bilinear_matrix_values(k_a,l)
+        v_0(k_a, l) += hij * psi_bilinear_matrix_values(l_a,l)
+        ! same spin => sij = 0 
+      enddo
     enddo
     
     
@@ -805,8 +816,11 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
       tmp_det2(1:N_int,2) = psi_det_beta_unique (1:N_int, lcol)
       l_a = psi_bilinear_matrix_transp_order(l_b)
       call i_H_j_mono_spin( tmp_det, tmp_det2, N_int, 2, hij)
-      v_0(l_a, 1:N_st) += hij * psi_bilinear_matrix_values(k_a,1:N_st)
-      v_0(k_a, 1:N_st) += hij * psi_bilinear_matrix_values(l_a,1:N_st)
+      do l=1,N_st
+        v_0(l_a, l) += hij * psi_bilinear_matrix_values(k_a,l)
+        v_0(k_a, l) += hij * psi_bilinear_matrix_values(l_a,l)
+        ! single => sij = 0 
+      enddo
     enddo
     
     ! Compute Hij for all beta doubles
@@ -821,8 +835,11 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
       enddo
       l_a = psi_bilinear_matrix_transp_order(l_b)
       call i_H_j_double_spin( tmp_det(1,2), psi_det_beta_unique(1, doubles(i)), N_int, hij)
-      v_0(l_a, 1:N_st) += hij * psi_bilinear_matrix_values(k_a,1:N_st)
-      v_0(k_a, 1:N_st) += hij * psi_bilinear_matrix_values(l_a,1:N_st)
+      do l=1,N_st
+        v_0(l_a, l) += hij * psi_bilinear_matrix_values(k_a,l)
+        v_0(k_a, l) += hij * psi_bilinear_matrix_values(l_a,l)
+        ! same spin => sij = 0 
+      enddo
     enddo
     
   end do
@@ -875,9 +892,13 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
         if (is_single_a(lrow)) then
           tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
 
-          call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij)
-          v_0(k_a, 1:N_st) += hij * psi_bilinear_matrix_values(l_a,1:N_st)
-          v_0(l_a, 1:N_st) += hij * psi_bilinear_matrix_values(k_a,1:N_st)
+          call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij,sij)
+          do l=1,N_st
+            v_0(k_a, l) += hij * psi_bilinear_matrix_values(l_a,l)
+            v_0(l_a, l) += hij * psi_bilinear_matrix_values(k_a,l)
+            s_0(k_a, l) -= sij * psi_bilinear_matrix_values(l_a,l)
+            s_0(l_a, l) -= sij * psi_bilinear_matrix_values(k_a,l)
+          enddo
         endif
         l_a += 1
 

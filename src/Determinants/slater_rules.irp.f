@@ -11,6 +11,7 @@ subroutine get_excitation_degree(key1,key2,degree,Nint)
   integer, intent(out)           :: degree
   
   integer(bit_kind)              :: xorvec(2*N_int_max)
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
   integer                        :: l
   
   ASSERT (Nint > 0)
@@ -2555,7 +2556,7 @@ subroutine i_H_j_double_spin(key_i,key_j,Nint,hij)
       exc(1,2), mo_integrals_map) )
 end
 
-subroutine i_H_j_double_alpha_beta(key_i,key_j,Nint,hij)
+subroutine i_H_j_double_alpha_beta(key_i,key_j,Nint,hij,phase)
   use bitmasks
   implicit none
   BEGIN_DOC
