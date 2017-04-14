@@ -808,19 +808,6 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
               enddo
             enddo
       endif
-!      do k=1,n_doubles
-!        lrow = doubles(k)
-!        l_a  = idx(k)
-!        tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
-!        call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij)
-!        call get_s2(tmp_det,tmp_det2,N_int,sij)
-!        do l=1,N_st
-!          v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
-!          s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,l_a)
-!          v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
-!          s_t(l,l_a) = s_t(l,l_a) + sij * u_t(l,k_a)
-!        enddo
-!      enddo
 
     enddo
 
@@ -997,6 +984,7 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
   enddo
   !$OMP END CRITICAL
 
+  !$OMP BARRIER
   !$OMP END PARALLEL
 
 end

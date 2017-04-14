@@ -198,7 +198,6 @@ BEGIN_TEMPLATE
   integer,intent(inout)          :: iorder(isize)
   integer                        :: n
   call sorted_$Xnumber(x,isize,n)
-  print *,  isize, n, isize-n
   if ( isize-n < 1000) then
     call insertion_$Xsort(x,iorder,isize)
   else
