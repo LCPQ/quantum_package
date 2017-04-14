@@ -158,7 +158,7 @@ double precision function ao_bielec_integral_schwartz_accel(i,j,k,l)
         q_inv = 1.d0/qq
         schwartz_kl(s,r) = general_primitive_integral(dim1,          &
             Q_new,Q_center,fact_q,qq,q_inv,iorder_q,                 &
-            Q_new,Q_center,fact_q,qq,q_inv,iorder_q)                 &
+            Q_new,Q_center,fact_q,qq,q_inv,iorder_q)      &
             * coef2 
         schwartz_kl(0,r) = max(schwartz_kl(0,r),schwartz_kl(s,r))
       enddo
@@ -471,9 +471,15 @@ double precision function general_primitive_integral(dim,            &
   
   ! Gaussian Product
   ! ----------------
-  
+  double precision :: p_plus_q
+  if(long_range)then
+   p_plus_q = (p+q) * ((p*q)/(p+q) + mu_erf*mu_erf)/(mu_erf*mu_erf)
+  else 
+   p_plus_q = (p+q)
+  endif
   pq = p_inv*0.5d0*q_inv
-  pq_inv = 0.5d0/(p+q)
+  
+  pq_inv = 0.5d0/p_plus_q
   p10_1 = q*pq  ! 1/(2p)
   p01_1 = p*pq  ! 1/(2q)
   pq_inv_2 = pq_inv+pq_inv
@@ -548,7 +554,7 @@ double precision function general_primitive_integral(dim,            &
     return
   endif
   
-  rho = p*q *pq_inv_2
+  rho = p*q *pq_inv_2  ! le rho qui va bien
   dist =  (P_center(1) - Q_center(1))*(P_center(1) - Q_center(1)) +  &
       (P_center(2) - Q_center(2))*(P_center(2) - Q_center(2)) +      &
       (P_center(3) - Q_center(3))*(P_center(3) - Q_center(3))
@@ -574,7 +580,8 @@ double precision function general_primitive_integral(dim,            &
   double precision               :: rint_sum
   accu = accu + rint_sum(n_pt_out,const,d1)
   
-  general_primitive_integral = fact_p * fact_q * accu *pi_5_2*p_inv*q_inv/dsqrt(p+q)
+  ! change p+q in dsqrt
+  general_primitive_integral = fact_p * fact_q * accu *pi_5_2*p_inv*q_inv/dsqrt(p_plus_q)
 end
 
 
@@ -620,10 +627,16 @@ double precision function ERI(alpha,beta,delta,gama,a_x,b_x,c_x,d_x,a_y,b_y,c_y,
   ASSERT (gama >= 0.d0)
   p = alpha + beta
   q = delta + gama
+  double precision :: p_plus_q
+  if(long_range)then
+   p_plus_q = (p+q) * ((p*q)/(p+q) + mu_erf*mu_erf)/(mu_erf*mu_erf)
+  else 
+   p_plus_q = (p+q)
+  endif
   ASSERT (p+q >= 0.d0)
   n_pt =  ishft( nx+ny+nz,1 )
   
-  coeff = pi_5_2 / (p * q * dsqrt(p+q))
+  coeff = pi_5_2 / (p * q * dsqrt(p_plus_q))
   if (n_pt == 0) then
     ERI = coeff
     return
@@ -650,15 +663,21 @@ subroutine integrale_new(I_f,a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z,p,q
   integer                        :: i, n_iter, n_pt, j
   double precision               :: I_f, pq_inv, p10_1, p10_2, p01_1, p01_2,rho,pq_inv_2
   integer :: ix,iy,iz, jx,jy,jz, sx,sy,sz
+  double precision :: p_plus_q
   
   j = ishft(n_pt,-1)
   ASSERT (n_pt > 1)
-  pq_inv = 0.5d0/(p+q)
+  if(long_range)then
+   p_plus_q = (p+q) * ((p*q)/(p+q) + mu_erf*mu_erf)/(mu_erf*mu_erf)
+  else 
+   p_plus_q = (p+q)
+  endif
+  pq_inv = 0.5d0/(p_plus_q)
   pq_inv_2 = pq_inv + pq_inv
   p10_1 = 0.5d0/p
   p01_1 = 0.5d0/q
-  p10_2 = 0.5d0 *  q /(p * q + p * p)
-  p01_2 = 0.5d0 *  p /(q * q + q * p)
+  p10_2 = 0.5d0 *  q /(p * p_plus_q)
+  p01_2 = 0.5d0 *  p /(q * p_plus_q)
   double precision               :: B00(n_pt_max_integrals)
   double precision               :: B10(n_pt_max_integrals), B01(n_pt_max_integrals)
   double precision               :: t1(n_pt_max_integrals), t2(n_pt_max_integrals)
