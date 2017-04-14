@@ -641,17 +641,17 @@ subroutine get_all_spin_singles_and_doubles(buffer, idx, spindet, Nint, size_buf
 
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
 
-  select case (Nint)
-    case (1)
-      call get_all_spin_singles_and_doubles_1(buffer, idx, spindet(1), size_buffer, singles, doubles, n_singles, n_doubles)
-      return
+!  select case (Nint)
+!    case (1)
+!      call get_all_spin_singles_and_doubles_1(buffer, idx, spindet(1), size_buffer, singles, doubles, n_singles, n_doubles)
+!      return
 !    case (2)
 !      call get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
 !      return
-    case (3)
-      call get_all_spin_singles_and_doubles_3(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
-      return
-  end select
+!    case (3)
+!      call get_all_spin_singles_and_doubles_3(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+!      return
+!  end select
 
 
   size_buffer_align = align_double(size_buffer)

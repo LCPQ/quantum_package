@@ -2524,7 +2524,7 @@ subroutine i_H_j_mono_spin(key_i,key_j,Nint,spin,hij)
   PROVIDE big_array_exchange_integrals mo_bielec_integrals_in_map
 
   call get_mono_excitation_spin(key_i(1,spin),key_j(1,spin),exc,phase,Nint)
-  call get_mono_excitation_from_fock(key_i,key_j,exc(1,2),exc(1,1),spin,phase,hij)
+  call get_mono_excitation_from_fock(key_i,key_j,exc(1,1),exc(1,2),spin,phase,hij)
 end
 
 subroutine i_H_j_double_spin(key_i,key_j,Nint,hij)
