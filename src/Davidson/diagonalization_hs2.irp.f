@@ -25,7 +25,7 @@ subroutine davidson_diag_hs2(dets_in,u_in,s2_out,dim_in,energies,sze,N_st,N_st_d
   double precision, intent(out)  :: energies(N_st_diag), s2_out(N_st_diag)
   double precision, allocatable  :: H_jj(:), S2_jj(:)
   
-  double precision               :: diag_h_mat_elem
+  double precision               :: diag_H_mat_elem, diag_S_mat_elem
   integer                        :: i
   ASSERT (N_st > 0)
   ASSERT (sze > 0)
@@ -37,10 +37,10 @@ subroutine davidson_diag_hs2(dets_in,u_in,s2_out,dim_in,energies,sze,N_st,N_st_d
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP  SHARED(sze,H_jj,S2_jj, dets_in,Nint)                    &
       !$OMP  PRIVATE(i)
-  !$OMP DO SCHEDULE(guided)
+  !$OMP DO SCHEDULE(static)
   do i=1,sze
-    H_jj(i) = diag_h_mat_elem(dets_in(1,1,i),Nint)
-    call get_s2(dets_in(1,1,i),dets_in(1,1,i),Nint,S2_jj(i))
+    H_jj(i)  = diag_H_mat_elem(dets_in(1,1,i),Nint)
+    S2_jj(i) = diag_S_mat_elem(dets_in(1,1,i),Nint)
   enddo
   !$OMP END DO 
   !$OMP END PARALLEL
@@ -209,7 +209,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   do k=1,N_st_diag
     call normalize(u_in(1,k),sze)
   enddo
-  
+
   
   update_dets = 1
 
@@ -235,7 +235,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       if (distributed_davidson) then
           call H_S2_u_0_nstates_zmq(W(1,shift+1),S(1,shift+1),U(1,shift+1),H_jj,S2_jj,sze,dets_in,Nint,N_st_diag,sze_8,update_dets)
       else
-          call H_S2_u_0_nstates(W(1,shift+1),S(1,shift+1),U(1,shift+1),H_jj,S2_jj,sze,dets_in,Nint,N_st_diag,sze_8)
+          call H_S2_u_0_nstates_openmp(W(1,shift+1),S(1,shift+1),U(1,shift+1),N_st_diag,sze_8)
       endif
       update_dets = 0
       

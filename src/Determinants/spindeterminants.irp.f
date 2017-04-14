@@ -389,6 +389,7 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_rows   , (N_det) ]
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_columns, (N_det) ]
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order  , (N_det) ]
+&BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_reverse , (N_det) ]
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_columns_loc, (N_det_beta_unique+1) ]
   use bitmasks
   implicit none
@@ -429,7 +430,6 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
   do l=1,N_states
     call dset_order(psi_bilinear_matrix_values(1,l),psi_bilinear_matrix_order,N_det)
   enddo
-  psi_bilinear_matrix_columns_loc(1:N_det_beta_unique) = -1
   psi_bilinear_matrix_columns_loc(1) = 1
   do k=2,N_det
     if (psi_bilinear_matrix_columns(k) == psi_bilinear_matrix_columns(k-1)) then
@@ -440,6 +440,9 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
     endif
   enddo
   psi_bilinear_matrix_columns_loc(N_det_beta_unique+1) = N_det+1
+  do k=1,N_det
+    psi_bilinear_matrix_order_reverse(psi_bilinear_matrix_order(k)) = k
+  enddo
   deallocate(to_sort)
 END_PROVIDER
 
@@ -448,7 +451,7 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_rows   , (N_det) ]
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_columns, (N_det) ]
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_order  , (N_det) ]
-&BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_reverse , (N_det) ]
+&BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_transp_reverse , (N_det) ]
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -487,7 +490,7 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_
     call dset_order(psi_bilinear_matrix_transp_values(1,l),psi_bilinear_matrix_transp_order,N_det)
   enddo
   do k=1,N_det
-    psi_bilinear_matrix_order_reverse(psi_bilinear_matrix_transp_order(k)) = k
+    psi_bilinear_matrix_order_transp_reverse(psi_bilinear_matrix_transp_order(k)) = k
   enddo
   deallocate(to_sort)
 END_PROVIDER
@@ -1387,3 +1390,18 @@ subroutine get_all_spin_doubles_3(buffer, idx, spindet, size_buffer, doubles, n_
   
 end
 
+subroutine copy_psi_bilinear_to_psi(psi, isize)
+  implicit none
+  BEGIN_DOC
+! Overwrites psi_det and psi_coef with the wf in bilinear order
+  END_DOC
+  integer, intent(in)            :: isize
+  integer(bit_kind), intent(out) :: psi(N_int,2,isize)
+  integer                        :: i,j,k,l
+  do k=1,isize
+    i = psi_bilinear_matrix_rows(k)
+    j = psi_bilinear_matrix_columns(k)
+    psi(1:N_int,1,k) = psi_det_alpha_unique(1:N_int,i)
+    psi(1:N_int,2,k) = psi_det_beta_unique(1:N_int,j)
+  enddo
+end

@@ -613,20 +613,37 @@ end
 
 
 
-subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
+subroutine H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze_8)
   use bitmasks
   implicit none
   BEGIN_DOC
   ! Computes v_0 = H|u_0> and s_0 = S^2 |u_0>
   !
-  ! n : number of determinants
-  !
-  ! H_jj : array of <j|H|j>
-  !
-  ! S2_jj : array of <j|S^2|j>
+  ! Assumes that the determinants are in psi_det
   END_DOC
   integer, intent(in)            :: N_st,sze_8
-  double precision, intent(out)  :: v_0(sze_8,N_st), s_0(sze_8,N_st)
+  double precision, intent(inout)  :: v_0(sze_8,N_st), s_0(sze_8,N_st), u_0(sze_8,N_st)
+  integer :: k
+  do k=1,N_st
+    call dset_order(u_0(1,k),psi_bilinear_matrix_order,N_det)
+  enddo
+  call H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
+  do k=1,N_st
+    call dset_order(v_0(1,k),psi_bilinear_matrix_order_reverse,N_det)
+    call dset_order(s_0(1,k),psi_bilinear_matrix_order_reverse,N_det)
+    call dset_order(u_0(1,k),psi_bilinear_matrix_order_reverse,N_det)
+  enddo
+
+end
+
+subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes v_0 = H|u_0> and s_0 = S^2 |u_0>
+  END_DOC
+  integer, intent(in)            :: N_st,sze_8
+  double precision, intent(out)  :: v_0(sze_8,N_st), s_0(sze_8,N_st), u_0(sze_8,N_st)
 
   
   PROVIDE ref_bitmask_energy
@@ -643,7 +660,6 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
   integer(bit_kind)              :: tmp_det2(N_int,2)
   integer(bit_kind)              :: tmp_det3(N_int,2)
   integer(bit_kind), allocatable :: buffer(:,:)
-  double precision               :: ck(N_st), cl(N_st), cm(N_st)
   integer                        :: n_singles, n_doubles
   integer, allocatable           :: singles(:), doubles(:)
   integer, allocatable           :: singles_a(:,:), singles_b(:,:)
@@ -651,16 +667,31 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
   logical, allocatable           :: is_single_a(:)
   logical, allocatable           :: is_single_b(:)
   integer                        :: maxab, n_singles_max
+  double precision, allocatable  :: u_t(:,:), v_t(:,:), s_t(:,:)
 
   maxab = max(N_det_alpha_unique, N_det_beta_unique)
   allocate( buffer(N_int,maxab),                                     &
       singles(maxab), doubles(maxab),                                &
       is_single_a(N_det_alpha_unique),                               &
       is_single_b(N_det_beta_unique),                                &
-      idx(maxab), idx0(maxab))
+      idx(maxab), idx0(maxab),                                       &
+      u_t(N_st,N_det), v_t(N_st,N_det), s_t(N_st,N_det) )
   
   do i=1,maxab
     idx0(i) = i
+  enddo
+
+!  call dtranspose(                                                   &
+!      u_0,                                                           &
+!      size(u_0, 1),                                                  &
+!      u_t,                                                           &
+!      size(u_t, 1),                                                  &
+!      N_det, N_st)
+!
+  do k=1,N_det
+    do l=1,N_st
+     u_t(l,k) = u_0(k,l)
+    enddo
   enddo
 
   ! Prepare the array of all alpha single excitations
@@ -683,8 +714,8 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
         singles_a(1,i), singles_a(0,i))
   enddo
 
-  v_0 = 0.d0
-  s_0 = 0.d0
+  v_t = 0.d0
+  s_t = 0.d0
   do k_a=1,N_det
     
     ! Initial determinant is at k_a in alpha-major representation
@@ -699,21 +730,8 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
     ! Initial determinant is at k_b in beta-major representation
     ! ----------------------------------------------------------------------
     
-    k_b = psi_bilinear_matrix_order_reverse(k_a)
+    k_b = psi_bilinear_matrix_order_transp_reverse(k_a)
 
-    ! Diagonal contribution
-    ! ---------------------
-
-    double precision, external :: diag_H_mat_elem, diag_S_mat_elem
-  
-    hij = diag_H_mat_elem(tmp_det,N_int) 
-    sij = diag_S_mat_elem(tmp_det,N_int)
-    do l=1,N_st
-      v_0(k_a,l) = v_0(k_a,l) + hij * psi_bilinear_matrix_values(k_a,l)
-      s_0(k_a,l) = s_0(k_a,l) + sij * psi_bilinear_matrix_values(k_a,l)
-    enddo
-
-    
     ! Get all single and double alpha excitations
     ! ===========================================
     
@@ -721,7 +739,7 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
     
     ! Loop inside the beta column to gather all the connected alphas
     i=1
-    l_a = k_a+1
+    l_a = k_a
     lcol = psi_bilinear_matrix_columns(l_a)
     do while (lcol == kcol)
       lrow = psi_bilinear_matrix_rows(l_a)
@@ -752,8 +770,8 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
       tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
       call i_H_j_mono_spin( tmp_det, tmp_det2, N_int, 1, hij)
       do l=1,N_st
-        v_0(l_a, l) += hij * psi_bilinear_matrix_values(k_a,l)
-        v_0(k_a, l) += hij * psi_bilinear_matrix_values(l_a,l)
+        v_t(l,l_a) += hij * u_t(l,k_a)
+        v_t(l,k_a) += hij * u_t(l,l_a)
         ! single => sij = 0 
       enddo
     enddo
@@ -770,8 +788,8 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
       enddo
       call i_H_j_double_spin( tmp_det(1,1), psi_det_alpha_unique(1, doubles(i)), N_int, hij)
       do l=1,N_st
-        v_0(l_a, l) += hij * psi_bilinear_matrix_values(k_a,l)
-        v_0(k_a, l) += hij * psi_bilinear_matrix_values(l_a,l)
+        v_t(l,l_a) += hij * u_t(l,k_a)
+        v_t(l,k_a) += hij * u_t(l,l_a)
         ! same spin => sij = 0 
       enddo
     enddo
@@ -785,7 +803,8 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
     
     ! Loop inside the alpha row to gather all the connected betas
     i=1
-    l_b = k_b+1
+    l_b = k_b
+
     lrow = psi_bilinear_matrix_transp_rows(l_b)
     do while (lrow == krow)
       lcol = psi_bilinear_matrix_transp_columns(l_b)
@@ -817,8 +836,8 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
       l_a = psi_bilinear_matrix_transp_order(l_b)
       call i_H_j_mono_spin( tmp_det, tmp_det2, N_int, 2, hij)
       do l=1,N_st
-        v_0(l_a, l) += hij * psi_bilinear_matrix_values(k_a,l)
-        v_0(k_a, l) += hij * psi_bilinear_matrix_values(l_a,l)
+        v_t(l,l_a) += hij * u_t(l,k_a)
+        v_t(l,k_a) += hij * u_t(l,l_a)
         ! single => sij = 0 
       enddo
     enddo
@@ -836,8 +855,8 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
       l_a = psi_bilinear_matrix_transp_order(l_b)
       call i_H_j_double_spin( tmp_det(1,2), psi_det_beta_unique(1, doubles(i)), N_int, hij)
       do l=1,N_st
-        v_0(l_a, l) += hij * psi_bilinear_matrix_values(k_a,l)
-        v_0(k_a, l) += hij * psi_bilinear_matrix_values(l_a,l)
+        v_t(l,l_a) += hij * u_t(l,k_a)
+        v_t(l,k_a) += hij * u_t(l,l_a)
         ! same spin => sij = 0 
       enddo
     enddo
@@ -892,12 +911,13 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
         if (is_single_a(lrow)) then
           tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
 
-          call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij,sij)
+          call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij)
+          call get_s2(tmp_det,tmp_det2,N_int,sij)
           do l=1,N_st
-            v_0(k_a, l) += hij * psi_bilinear_matrix_values(l_a,l)
-            v_0(l_a, l) += hij * psi_bilinear_matrix_values(k_a,l)
-            s_0(k_a, l) -= sij * psi_bilinear_matrix_values(l_a,l)
-            s_0(l_a, l) -= sij * psi_bilinear_matrix_values(k_a,l)
+            v_t(l,k_a) += hij * u_t(l,l_a)
+            v_t(l,l_a) += hij * u_t(l,k_a)
+            s_t(l,k_a) += sij * u_t(l,l_a)
+            s_t(l,l_a) += sij * u_t(l,k_a)
           enddo
         endif
         l_a += 1
@@ -905,6 +925,38 @@ subroutine H_S2_u_0_nstates_new(v_0,s_0,N_st,sze_8)
       enddo
     enddo
 
+    ! Diagonal contribution
+    ! ---------------------
+
+    double precision, external :: diag_H_mat_elem, diag_S_mat_elem
+  
+    hij = diag_H_mat_elem(tmp_det,N_int) 
+    sij = diag_S_mat_elem(tmp_det,N_int)
+    do l=1,N_st
+      v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,k_a)
+      s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,k_a)
+    enddo
+
+  enddo
+
+!  call dtranspose(                                                   &
+!      v_t,                                                           &
+!      size(v_t, 1),                                                  &
+!      v_0,                                                           &
+!      size(v_0, 1),                                                  &
+!      N_st, N_det)
+!
+!  call dtranspose(                                                   &
+!      s_t,                                                           &
+!      size(s_t, 1),                                                  &
+!      s_0,                                                           &
+!      size(s_0, 1),                                                  &
+!      N_st, N_det)
+  do k=1,N_det
+    do l=1,N_st
+     v_0(k,l) = v_t(l,k) 
+     s_0(k,l) = s_t(l,k) 
+    enddo
   enddo
 
 end

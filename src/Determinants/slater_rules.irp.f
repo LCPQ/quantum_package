@@ -2556,7 +2556,7 @@ subroutine i_H_j_double_spin(key_i,key_j,Nint,hij)
       exc(1,2), mo_integrals_map) )
 end
 
-subroutine i_H_j_double_alpha_beta(key_i,key_j,Nint,hij,phase)
+subroutine i_H_j_double_alpha_beta(key_i,key_j,Nint,hij)
   use bitmasks
   implicit none
   BEGIN_DOC
