@@ -668,6 +668,7 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
   logical, allocatable           :: is_single_b(:)
   integer                        :: maxab, n_singles_max
   double precision, allocatable  :: u_t(:,:), v_t(:,:), s_t(:,:)
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: v_t, s_t, u_t
 
   maxab = max(N_det_alpha_unique, N_det_beta_unique)
   allocate( buffer(N_int,maxab),                                     &
@@ -681,18 +682,12 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
     idx0(i) = i
   enddo
 
-!  call dtranspose(                                                   &
-!      u_0,                                                           &
-!      size(u_0, 1),                                                  &
-!      u_t,                                                           &
-!      size(u_t, 1),                                                  &
-!      N_det, N_st)
-!
-  do k=1,N_det
-    do l=1,N_st
-     u_t(l,k) = u_0(k,l)
-    enddo
-  enddo
+  call dtranspose(                                                   &
+      u_0,                                                           &
+      size(u_0, 1),                                                  &
+      u_t,                                                           &
+      size(u_t, 1),                                                  &
+      N_det, N_st)
 
   ! Prepare the array of all alpha single excitations
   ! -------------------------------------------------
@@ -770,8 +765,8 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
       tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
       call i_H_j_mono_spin( tmp_det, tmp_det2, N_int, 1, hij)
       do l=1,N_st
-        v_t(l,l_a) += hij * u_t(l,k_a)
-        v_t(l,k_a) += hij * u_t(l,l_a)
+        v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+        v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! single => sij = 0 
       enddo
     enddo
@@ -788,8 +783,8 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
       enddo
       call i_H_j_double_spin( tmp_det(1,1), psi_det_alpha_unique(1, doubles(i)), N_int, hij)
       do l=1,N_st
-        v_t(l,l_a) += hij * u_t(l,k_a)
-        v_t(l,k_a) += hij * u_t(l,l_a)
+        v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+        v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! same spin => sij = 0 
       enddo
     enddo
@@ -836,8 +831,8 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
       l_a = psi_bilinear_matrix_transp_order(l_b)
       call i_H_j_mono_spin( tmp_det, tmp_det2, N_int, 2, hij)
       do l=1,N_st
-        v_t(l,l_a) += hij * u_t(l,k_a)
-        v_t(l,k_a) += hij * u_t(l,l_a)
+        v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+        v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! single => sij = 0 
       enddo
     enddo
@@ -855,8 +850,8 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
       l_a = psi_bilinear_matrix_transp_order(l_b)
       call i_H_j_double_spin( tmp_det(1,2), psi_det_beta_unique(1, doubles(i)), N_int, hij)
       do l=1,N_st
-        v_t(l,l_a) += hij * u_t(l,k_a)
-        v_t(l,k_a) += hij * u_t(l,l_a)
+        v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+        v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! same spin => sij = 0 
       enddo
     enddo
@@ -867,7 +862,13 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
   ! Alpha/Beta double excitations
   ! =============================
     
+  is_single_a = .False.
+  krow = 1
   do k_a=1,N_det
+
+    do k=1,singles_a(0,krow)
+      is_single_a( singles_a(k,krow) ) = .False.
+    enddo
 
     krow = psi_bilinear_matrix_rows(k_a)
     kcol = psi_bilinear_matrix_columns(k_a)
@@ -875,7 +876,6 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
     tmp_det(1:N_int,1) = psi_det_alpha_unique(1:N_int, krow)
     tmp_det(1:N_int,2) = psi_det_beta_unique (1:N_int, kcol)
     
-    is_single_a = .False.
     do k=1,singles_a(0,krow)
       is_single_a( singles_a(k,krow) ) = .True.
     enddo
@@ -906,23 +906,33 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
         l_a += 1
       enddo
 
+      n_doubles=0
       do while ( l_a < psi_bilinear_matrix_columns_loc(lcol+1) )
         lrow = psi_bilinear_matrix_rows(l_a)
-        if (is_single_a(lrow)) then
-          tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
-
-          call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij)
-          call get_s2(tmp_det,tmp_det2,N_int,sij)
-          do l=1,N_st
-            v_t(l,k_a) += hij * u_t(l,l_a)
-            v_t(l,l_a) += hij * u_t(l,k_a)
-            s_t(l,k_a) += sij * u_t(l,l_a)
-            s_t(l,l_a) += sij * u_t(l,k_a)
-          enddo
+        if (.not.is_single_a(lrow)) then
+          continue
+        else
+          n_doubles = n_doubles+1
+          doubles(n_doubles) = lrow
+          idx(n_doubles) = l_a
         endif
-        l_a += 1
-
+        l_a = l_a+1
       enddo
+
+      do k=1,n_doubles
+        lrow = doubles(k)
+        l_a  = idx(k)
+        tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
+        call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij)
+        call get_s2(tmp_det,tmp_det2,N_int,sij)
+        do l=1,N_st
+          v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
+          v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+          s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,l_a)
+          s_t(l,l_a) = s_t(l,l_a) + sij * u_t(l,k_a)
+        enddo
+      enddo
+
     enddo
 
     ! Diagonal contribution
@@ -939,25 +949,19 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
 
   enddo
 
-!  call dtranspose(                                                   &
-!      v_t,                                                           &
-!      size(v_t, 1),                                                  &
-!      v_0,                                                           &
-!      size(v_0, 1),                                                  &
-!      N_st, N_det)
-!
-!  call dtranspose(                                                   &
-!      s_t,                                                           &
-!      size(s_t, 1),                                                  &
-!      s_0,                                                           &
-!      size(s_0, 1),                                                  &
-!      N_st, N_det)
-  do k=1,N_det
-    do l=1,N_st
-     v_0(k,l) = v_t(l,k) 
-     s_0(k,l) = s_t(l,k) 
-    enddo
-  enddo
+  call dtranspose(                                                   &
+      v_t,                                                           &
+      size(v_t, 1),                                                  &
+      v_0,                                                           &
+      size(v_0, 1),                                                  &
+      N_st, N_det)
+
+  call dtranspose(                                                   &
+      s_t,                                                           &
+      size(s_t, 1),                                                  &
+      s_0,                                                           &
+      size(s_0, 1),                                                  &
+      N_st, N_det)
 
 end
 
