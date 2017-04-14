@@ -662,20 +662,15 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
   integer(bit_kind), allocatable :: buffer(:,:)
   integer                        :: n_singles, n_doubles
   integer, allocatable           :: singles(:), doubles(:)
-  integer, allocatable           :: singles_a(:,:), singles_b(:,:)
+  integer, allocatable           :: singles_b(:,:)
   integer, allocatable           :: idx(:), idx0(:)
   logical, allocatable           :: is_single_a(:)
-  logical, allocatable           :: is_single_b(:)
-  integer                        :: maxab, n_singles_max
+  integer                        :: maxab, n_singles_max, kcol_prev
   double precision, allocatable  :: u_t(:,:), v_t(:,:), s_t(:,:)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: v_t, s_t, u_t
 
   maxab = max(N_det_alpha_unique, N_det_beta_unique)
-  allocate( buffer(N_int,maxab),                                     &
-      singles(maxab), doubles(maxab),                                &
-      is_single_a(N_det_alpha_unique),                               &
-      is_single_b(N_det_beta_unique),                                &
-      idx(maxab), idx0(maxab),                                       &
+  allocate(idx0(maxab), &
       u_t(N_st,N_det), v_t(N_st,N_det), s_t(N_st,N_det) )
   
   do i=1,maxab
@@ -692,25 +687,127 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
   ! Prepare the array of all alpha single excitations
   ! -------------------------------------------------
 
-  n_singles_max = 0
-  do i=1,N_det_alpha_unique
-    spindet(1:N_int) = psi_det_alpha_unique(1:N_int, i)
-    call get_all_spin_singles(                                       &
-        psi_det_alpha_unique, idx0, spindet, N_int, N_det_alpha_unique,&
-        singles, n_singles)
-    n_singles_max = max(n_singles_max, n_singles)
-  enddo
-
-  allocate (singles_a(0:n_singles_max, N_det_alpha_unique))
-  do i=1,N_det_alpha_unique
-    spindet(1:N_int) = psi_det_alpha_unique(1:N_int, i)
-    call get_all_spin_singles(                                       &
-        psi_det_alpha_unique, idx0, spindet, N_int, N_det_alpha_unique,&
-        singles_a(1,i), singles_a(0,i))
-  enddo
-
   v_t = 0.d0
   s_t = 0.d0
+
+  !$OMP PARALLEL DEFAULT(NONE)                                       &
+      !$OMP   SHARED(psi_bilinear_matrix_rows, N_det,                &
+      !$OMP          psi_bilinear_matrix_columns,                    &
+      !$OMP          psi_det_alpha_unique, psi_det_beta_unique,      &
+      !$OMP          n_det_alpha_unique, n_det_beta_unique, N_int,   &
+      !$OMP          psi_bilinear_matrix_transp_rows,                &
+      !$OMP          psi_bilinear_matrix_transp_columns,             &
+      !$OMP          psi_bilinear_matrix_transp_order, N_st,         &
+      !$OMP          psi_bilinear_matrix_order_transp_reverse,       &
+      !$OMP          singles_alpha, psi_bilinear_matrix_columns_loc, &
+      !$OMP          idx0, u_t, v_t, s_t, maxab)                     &
+      !$OMP   PRIVATE(krow, kcol, tmp_det, spindet, k_a, k_b, i,     &
+      !$OMP          lcol, lrow, is_single_a,l_a, l_b,               &
+      !$OMP          buffer, singles, doubles, n_singles, n_doubles, &
+      !$OMP          tmp_det2, hij, sij, idx, l, kcol_prev)
+  
+  ! Alpha/Beta double excitations
+  ! =============================
+    
+  allocate( buffer(N_int,maxab),                                     &
+      singles(maxab), doubles(maxab),                                &
+      idx(maxab), &
+!     v_t(N_st,N_det), s_t(N_st,N_det),             &
+      is_single_a(N_det_alpha_unique))
+  is_single_a = .False.
+  kcol_prev=-1
+  krow=1
+
+  !$OMP DO SCHEDULE(static,1)
+  do k_a=1,N_det
+
+    do k=1,singles_alpha(0,krow)
+      is_single_a( singles_alpha(k,krow) ) = .False.
+    enddo
+
+    krow = psi_bilinear_matrix_rows(k_a)
+    kcol = psi_bilinear_matrix_columns(k_a)
+    
+    tmp_det(1:N_int,1) = psi_det_alpha_unique(1:N_int, krow)
+    tmp_det(1:N_int,2) = psi_det_beta_unique (1:N_int, kcol)
+    
+    do k=1,singles_alpha(0,krow)
+      is_single_a( singles_alpha(k,krow) ) = .True.
+    enddo
+
+    if (kcol /= kcol_prev) then
+      call get_all_spin_singles(                                   &
+          psi_det_beta_unique, idx0, tmp_det(1,2), N_int, N_det_beta_unique,&
+          singles, n_singles)
+    endif
+    kcol_prev = kcol
+
+    ! Loop over singly excited beta columns
+    ! -------------------------------------
+
+    do i=1,n_singles
+      lcol = singles(i)
+      if (lcol <= kcol) cycle
+
+      tmp_det2(1:N_int,2) = psi_det_beta_unique(1:N_int, lcol)
+
+      l_a = psi_bilinear_matrix_columns_loc(lcol)
+      do while (l_a <= k_a)
+        l_a += 1
+      enddo
+
+      n_doubles=1
+      do while ( l_a < psi_bilinear_matrix_columns_loc(lcol+1) )
+        lrow = psi_bilinear_matrix_rows(l_a)
+        if (.not.is_single_a(lrow)) then
+          continue
+        else
+          doubles(n_doubles) = lrow
+          idx(n_doubles) = l_a
+          n_doubles = n_doubles+1
+        endif
+        l_a = l_a+1
+      enddo
+      n_doubles = n_doubles-1
+
+      do k=1,n_doubles
+        lrow = doubles(k)
+        l_a  = idx(k)
+        tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
+        call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij)
+        call get_s2(tmp_det,tmp_det2,N_int,sij)
+        do l=1,N_st
+          !$OMP ATOMIC
+          v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
+          !$OMP ATOMIC
+          s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,l_a)
+          !$OMP ATOMIC
+          v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+          !$OMP ATOMIC
+          s_t(l,l_a) = s_t(l,l_a) + sij * u_t(l,k_a)
+        enddo
+      enddo
+
+    enddo
+
+    ! Diagonal contribution
+    ! ---------------------
+
+    double precision, external :: diag_H_mat_elem, diag_S_mat_elem
+  
+    hij = diag_H_mat_elem(tmp_det,N_int) 
+    sij = diag_S_mat_elem(tmp_det,N_int)
+    do l=1,N_st
+      !$OMP ATOMIC
+      v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,k_a)
+      !$OMP ATOMIC
+      s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,k_a)
+    enddo
+
+  enddo
+  !$OMP END DO NOWAIT
+
+  !$OMP DO SCHEDULE(static,1)
   do k_a=1,N_det
     
     ! Initial determinant is at k_a in alpha-major representation
@@ -765,7 +862,9 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
       tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
       call i_H_j_mono_spin( tmp_det, tmp_det2, N_int, 1, hij)
       do l=1,N_st
+        !$OMP ATOMIC
         v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+        !$OMP ATOMIC
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! single => sij = 0 
       enddo
@@ -783,7 +882,9 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
       enddo
       call i_H_j_double_spin( tmp_det(1,1), psi_det_alpha_unique(1, doubles(i)), N_int, hij)
       do l=1,N_st
+        !$OMP ATOMIC
         v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+        !$OMP ATOMIC
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! same spin => sij = 0 
       enddo
@@ -831,7 +932,9 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
       l_a = psi_bilinear_matrix_transp_order(l_b)
       call i_H_j_mono_spin( tmp_det, tmp_det2, N_int, 2, hij)
       do l=1,N_st
+        !$OMP ATOMIC
         v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+        !$OMP ATOMIC
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! single => sij = 0 
       enddo
@@ -850,104 +953,18 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
       l_a = psi_bilinear_matrix_transp_order(l_b)
       call i_H_j_double_spin( tmp_det(1,2), psi_det_beta_unique(1, doubles(i)), N_int, hij)
       do l=1,N_st
+        !$OMP ATOMIC
         v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+        !$OMP ATOMIC
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! same spin => sij = 0 
       enddo
     enddo
     
   end do
+  !$OMP END DO
 
-
-  ! Alpha/Beta double excitations
-  ! =============================
-    
-  is_single_a = .False.
-  krow = 1
-  do k_a=1,N_det
-
-    do k=1,singles_a(0,krow)
-      is_single_a( singles_a(k,krow) ) = .False.
-    enddo
-
-    krow = psi_bilinear_matrix_rows(k_a)
-    kcol = psi_bilinear_matrix_columns(k_a)
-    
-    tmp_det(1:N_int,1) = psi_det_alpha_unique(1:N_int, krow)
-    tmp_det(1:N_int,2) = psi_det_beta_unique (1:N_int, kcol)
-    
-    do k=1,singles_a(0,krow)
-      is_single_a( singles_a(k,krow) ) = .True.
-    enddo
-
-    if (k_a > 1) then
-      if (kcol /= psi_bilinear_matrix_columns(k_a-1)) then
-        call get_all_spin_singles(                                   &
-            psi_det_beta_unique, idx0, tmp_det(1,2), N_int, N_det_beta_unique,&
-            singles, n_singles)
-      endif
-    else
-      call get_all_spin_singles(                                     &
-          psi_det_beta_unique, idx0, tmp_det(1,2), N_int, N_det_beta_unique,&
-          singles, n_singles)
-    endif
-
-    ! Loop over singly excited beta columns
-    ! -------------------------------------
-
-    do i=1,n_singles
-      lcol = singles(i)
-      if (lcol <= kcol) cycle
-
-      tmp_det2(1:N_int,2) = psi_det_beta_unique(1:N_int, lcol)
-
-      l_a = psi_bilinear_matrix_columns_loc(lcol)
-      do while (l_a <= k_a)
-        l_a += 1
-      enddo
-
-      n_doubles=0
-      do while ( l_a < psi_bilinear_matrix_columns_loc(lcol+1) )
-        lrow = psi_bilinear_matrix_rows(l_a)
-        if (.not.is_single_a(lrow)) then
-          continue
-        else
-          n_doubles = n_doubles+1
-          doubles(n_doubles) = lrow
-          idx(n_doubles) = l_a
-        endif
-        l_a = l_a+1
-      enddo
-
-      do k=1,n_doubles
-        lrow = doubles(k)
-        l_a  = idx(k)
-        tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
-        call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij)
-        call get_s2(tmp_det,tmp_det2,N_int,sij)
-        do l=1,N_st
-          v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
-          v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
-          s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,l_a)
-          s_t(l,l_a) = s_t(l,l_a) + sij * u_t(l,k_a)
-        enddo
-      enddo
-
-    enddo
-
-    ! Diagonal contribution
-    ! ---------------------
-
-    double precision, external :: diag_H_mat_elem, diag_S_mat_elem
-  
-    hij = diag_H_mat_elem(tmp_det,N_int) 
-    sij = diag_S_mat_elem(tmp_det,N_int)
-    do l=1,N_st
-      v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,k_a)
-      s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,k_a)
-    enddo
-
-  enddo
+  !$OMP END PARALLEL
 
   call dtranspose(                                                   &
       v_t,                                                           &

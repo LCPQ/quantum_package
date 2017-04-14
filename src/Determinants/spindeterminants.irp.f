@@ -1405,3 +1405,38 @@ subroutine copy_psi_bilinear_to_psi(psi, isize)
     psi(1:N_int,2,k) = psi_det_beta_unique(1:N_int,j)
   enddo
 end
+
+BEGIN_PROVIDER [ integer, singles_alpha_size ]
+ implicit none
+ BEGIN_DOC
+ ! Dimension of the singles_alpha array
+ END_DOC
+ singles_alpha_size = elec_alpha_num * (mo_tot_num - elec_alpha_num)
+END_PROVIDER
+
+BEGIN_PROVIDER [ integer, singles_alpha, (0:singles_alpha_size, N_det_alpha_unique) ]
+ implicit none
+ BEGIN_DOC
+ ! Dimension of the singles_alpha array
+ END_DOC
+ integer                        :: i
+ integer, allocatable           :: idx0(:)
+ allocate (idx0(N_det_alpha_unique))
+ do i=1, N_det_alpha_unique
+   idx0(i) = i
+ enddo
+
+ !$OMP PARALLEL DO DEFAULT(NONE) &
+ !$OMP   SHARED(singles_alpha, N_det_alpha_unique, psi_det_alpha_unique, &
+ !$OMP          idx0, N_int) &
+ !$OMP   PRIVATE(i)
+ do i=1, N_det_alpha_unique
+   call get_all_spin_singles(                                        &
+       psi_det_alpha_unique, idx0, psi_det_alpha_unique(1,i), N_int, &
+       N_det_alpha_unique, singles_alpha(1,i), singles_alpha(0,i))
+ enddo
+ !$OMP END PARALLEL DO
+
+ deallocate(idx0)
+END_PROVIDER
+
