@@ -1,9 +1,8 @@
-program rotate_mos
+program rotate
  implicit none
- integer :: i,j
- write(*,*)'Which couple of MOs would you like to mix ?'
- read(5,*)i,j
- call mix_mo_jk(i,j)
+ integer :: iorb,jorb 
+ print*, 'which mos would you like to rotate'
+ read(5,*)iorb,jorb
+ call mix_mo_jk(iorb,jorb)
  call save_mos
-
 end
