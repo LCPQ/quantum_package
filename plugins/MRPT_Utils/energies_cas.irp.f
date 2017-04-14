@@ -293,7 +293,8 @@ BEGIN_PROVIDER [ double precision, one_anhil_one_creat, (n_act_orb,n_act_orb,2,2
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ double precision, two_anhil_one_creat, (n_act_orb,n_act_orb,n_act_orb,2,2,2,N_states)]
+ BEGIN_PROVIDER [ double precision, two_anhil_one_creat, (n_act_orb,n_act_orb,n_act_orb,2,2,2,N_states)]
+&BEGIN_PROVIDER [ double precision, two_anhil_one_creat_norm, (n_act_orb,n_act_orb,n_act_orb,2,2,2,N_states)]
  implicit none
  integer :: i,j
  integer :: ispin,jspin,kspin
@@ -344,6 +345,7 @@ BEGIN_PROVIDER [ double precision, two_anhil_one_creat, (n_act_orb,n_act_orb,n_a
                 norm_out,psi_in_out,psi_in_out_coef, n_det_ref,n_det_ref,n_det_ref,N_states)
         call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det_ref,n_det_ref,n_det_ref,N_states,state_target)
         two_anhil_one_creat(iorb,jorb,korb,ispin,jspin,kspin,state_target) = energy_cas_dyall_no_exchange(state_target)  -  energies(state_target)
+        two_anhil_one_creat_norm(iorb,jorb,korb,ispin,jspin,kspin,state_target) = norm_out(state_target)
        enddo
       enddo
      enddo
@@ -355,7 +357,54 @@ BEGIN_PROVIDER [ double precision, two_anhil_one_creat, (n_act_orb,n_act_orb,n_a
 
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, two_creat_one_anhil, (n_act_orb,n_act_orb,n_act_orb,2,2,2,N_states)]
+
+ BEGIN_PROVIDER [ double precision, two_anhil_one_creat_spin_average, (n_act_orb,n_act_orb,n_act_orb,N_states)]
+ implicit none
+ integer :: i,j
+ integer :: ispin,jspin,kspin
+ integer :: orb_i, hole_particle_i,spin_exc_i
+ integer :: orb_j, hole_particle_j,spin_exc_j
+ integer :: orb_k, hole_particle_k,spin_exc_k
+ double precision  :: norm_out(N_states)
+ integer(bit_kind), allocatable :: psi_in_out(:,:,:)
+ double precision, allocatable :: psi_in_out_coef(:,:)
+ use bitmasks
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det_ref,N_states))
+
+ integer :: iorb,jorb
+ integer :: korb
+ integer :: state_target
+ double precision :: energies(n_states)
+ double precision :: accu
+ do iorb = 1,n_act_orb
+   orb_i = list_act(iorb)
+   do jorb = 1, n_act_orb
+     orb_j = list_act(jorb)
+     do korb = 1, n_act_orb
+      orb_k = list_act(korb)
+      do state_target = 1, N_states 
+        accu = 0.d0
+        do ispin = 1,2
+         do jspin = 1,2
+          do kspin = 1,2
+           two_anhil_one_creat_spin_average(iorb,jorb,korb,state_target) += two_anhil_one_creat(iorb,jorb,korb,ispin,jspin,kspin,state_target)* &
+           two_anhil_one_creat_norm(iorb,jorb,korb,ispin,jspin,kspin,state_target)
+           accu += two_anhil_one_creat_norm(iorb,jorb,korb,ispin,jspin,kspin,state_target)
+          enddo
+         enddo
+        enddo
+        two_anhil_one_creat_spin_average(iorb,jorb,korb,state_target) = two_anhil_one_creat_spin_average(iorb,jorb,korb,state_target) /accu
+      enddo
+     enddo
+    enddo
+ enddo
+ deallocate(psi_in_out,psi_in_out_coef)
+
+END_PROVIDER
+
+
+ BEGIN_PROVIDER [ double precision, two_creat_one_anhil, (n_act_orb,n_act_orb,n_act_orb,2,2,2,N_states)]
+&BEGIN_PROVIDER [ double precision, two_creat_one_anhil_norm, (n_act_orb,n_act_orb,n_act_orb,2,2,2,N_states)]
 implicit none
  integer :: i,j
  integer :: ispin,jspin,kspin
@@ -406,12 +455,59 @@ implicit none
                 norm_out,psi_in_out,psi_in_out_coef, n_det_ref,n_det_ref,n_det_ref,N_states)
         call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det_ref,n_det_ref,n_det_ref,N_states,state_target)
         two_creat_one_anhil(iorb,jorb,korb,ispin,jspin,kspin,state_target) = energy_cas_dyall_no_exchange(state_target)  -  energies(state_target)
+        two_creat_one_anhil_norm(iorb,jorb,korb,ispin,jspin,kspin,state_target) = norm_out(state_target)
+!       print*, norm_out(state_target)
        enddo
       enddo
      enddo
     enddo
    enddo
   enddo
+ enddo
+ deallocate(psi_in_out,psi_in_out_coef)
+
+END_PROVIDER
+
+
+ BEGIN_PROVIDER [ double precision, two_creat_one_anhil_spin_average, (n_act_orb,n_act_orb,n_act_orb,N_states)]
+implicit none
+ integer :: i,j
+ integer :: ispin,jspin,kspin
+ integer :: orb_i, hole_particle_i,spin_exc_i
+ integer :: orb_j, hole_particle_j,spin_exc_j
+ integer :: orb_k, hole_particle_k,spin_exc_k
+ double precision  :: norm_out(N_states)
+ integer(bit_kind), allocatable :: psi_in_out(:,:,:)
+ double precision, allocatable :: psi_in_out_coef(:,:)
+ use bitmasks
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det_ref,N_states))
+
+ integer :: iorb,jorb
+ integer :: korb
+ integer :: state_target
+ double precision :: energies(n_states),accu
+ do iorb = 1,n_act_orb
+   orb_i = list_act(iorb)
+   do jorb = 1, n_act_orb
+     orb_j = list_act(jorb)
+     do korb = 1, n_act_orb
+       orb_k = list_act(korb)
+       do state_target = 1, N_states 
+        accu = 0.d0
+        do ispin = 1,2
+         do jspin = 1,2
+          do kspin = 1,2
+            two_creat_one_anhil_spin_average(iorb,jorb,korb,state_target) += two_creat_one_anhil(iorb,jorb,korb,ispin,jspin,kspin,state_target) * & 
+                                                                             two_creat_one_anhil_norm(iorb,jorb,korb,ispin,jspin,kspin,state_target)
+            accu += two_creat_one_anhil_norm(iorb,jorb,korb,ispin,jspin,kspin,state_target)
+            print*, accu
+          enddo
+         enddo
+        enddo
+        two_creat_one_anhil_spin_average(iorb,jorb,korb,state_target) = two_creat_one_anhil_spin_average(iorb,jorb,korb,state_target) / accu
+       enddo
+     enddo
+   enddo
  enddo
  deallocate(psi_in_out,psi_in_out_coef)
 
@@ -1071,11 +1167,11 @@ subroutine give_singles_and_partial_doubles_1h1p_contrib(matrix_1h1p,e_corr_from
        print*, 'e corr perturb EN',accu(state_target)
        print*, ''
        print*, 'coef diagonalized'
-       write(*,'(100(F16.10,X))')psi_in_out_coef(:,state_target)
+       write(*,'(100(F16.10,1X))')psi_in_out_coef(:,state_target)
        print*, 'coef_perturb'
-       write(*,'(100(F16.10,X))')coef_perturb(:)
+       write(*,'(100(F16.10,1X))')coef_perturb(:)
        print*, 'coef_perturb EN'
-       write(*,'(100(F16.10,X))')coef_perturb_bis(:)
+       write(*,'(100(F16.10,1X))')coef_perturb_bis(:)
       endif
       integer :: k
       do k = 1, N_det_ref

@@ -32,7 +32,7 @@ source $QP_ROOT/tests/bats/common.bats.sh
   ezfio set mrcepa0 n_it_max_dressed_ci 3
   qp_run $EXE $INPUT  
   energy="$(ezfio get mrcepa0 energy_pt2)"
-  eq $energy -76.2381673136696 2.e-4
+  eq $energy -76.2381754078899   1.e-4
 }
 
 @test "MRSC2 H2O cc-pVDZ" {

@@ -20,7 +20,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
   double precision, allocatable :: pt2_detail(:,:), comb(:)
   logical, allocatable :: computed(:)
   integer, allocatable :: tbc(:)
-  integer :: i, j, Ncomb, generator_per_task, i_generator_end
+  integer :: i, j, k, Ncomb, generator_per_task, i_generator_end
   integer, external :: pt2_find
   
   double precision :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
@@ -32,7 +32,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
   sum2above = 0d0
   Nabove = 0d0
 
-  provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral
+  provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral pt2_weight
 
   !call random_seed()
   
@@ -69,18 +69,18 @@ subroutine ZMQ_pt2(pt2,relative_error)
 
     do i=1,tbc(0)
       if(tbc(i) > fragment_first) then
-        write(task(ipos:ipos+20),'(I9,X,I9,''|'')') 0, tbc(i)
+        write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') 0, tbc(i)
         ipos += 20
-        if (ipos > 64000) then
+        if (ipos > 63980) then
           call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
           ipos=1
           tasks = .True.
         endif
       else
         do j=1,fragment_count
-          write(task(ipos:ipos+20),'(I9,X,I9,''|'')') j, tbc(i)
+          write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') j, tbc(i)
           ipos += 20
-          if (ipos > 64000) then
+          if (ipos > 63980) then
             call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
             ipos=1
             tasks = .True.
@@ -108,7 +108,12 @@ subroutine ZMQ_pt2(pt2,relative_error)
       call end_parallel_job(zmq_to_qp_run_socket, 'pt2')
 
     else
-       pt2(1) = sum(pt2_detail(1,:))
+       pt2 = 0.d0
+       do i=1,N_det_generators
+         do k=1,N_states
+            pt2(k) = pt2(k) + pt2_detail(k,i)
+         enddo
+       enddo
     endif
 
     tbc(0) = 0
@@ -117,6 +122,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
     endif
   end do
 
+  deallocate(pt2_detail, comb, computed, tbc)
 
 end subroutine
 
@@ -196,11 +202,15 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   
   allocate(actually_computed(N_det_generators), parts_to_get(N_det_generators), &
     pt2_mwen(N_states, N_det_generators) )
-  actually_computed(:) = computed(:)
+  do i=1,N_det_generators
+    actually_computed(i) = computed(i)
+  enddo
   
   parts_to_get(:) = 1
   if(fragment_first > 0) then
-    parts_to_get(1:fragment_first) = fragment_count
+    do i=1,fragment_first
+      parts_to_get(i) = fragment_count
+    enddo
   endif
 
   do i=1,tbc(0)
@@ -223,7 +233,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   pullLoop : do while (more == 1)
     call pull_pt2_results(zmq_socket_pull, Nindex, index, pt2_mwen, task_id, ntask)
     do i=1,Nindex
-      pt2_detail(:, index(i)) += pt2_mwen(:,i)
+      pt2_detail(1:N_states, index(i)) += pt2_mwen(1:N_states,i)
       parts_to_get(index(i)) -= 1
       if(parts_to_get(index(i)) < 0) then 
         print *, i, index(i), parts_to_get(index(i)), Nindex
@@ -273,12 +283,11 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       if (dabs(eqt/avg) < relative_error) then
         pt2(1) = avg
 !        exit pullLoop
+      else
+        print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
       endif
-      print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
     end if
   end do pullLoop
-  print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
-
 
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_pull_socket(zmq_socket_pull)
@@ -375,9 +384,9 @@ END_PROVIDER
 
 subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
   implicit none
+  integer, intent(inout) :: Ncomb
   double precision, intent(out) :: comb(Ncomb)
   integer, intent(inout) :: tbc(0:size_tbc)
-  integer, intent(inout) :: Ncomb
   logical, intent(inout) :: computed(N_det_generators)
   integer :: i, j, last_full, dets(comb_teeth), tbc_save
   integer :: icount, n
@@ -515,12 +524,15 @@ end subroutine
     pt2_cweight(i) = pt2_cweight(i-1) + psi_coef_generators(i,1)**2
   end do
   
-  pt2_weight = pt2_weight / pt2_cweight(N_det_generators)
-  pt2_cweight = pt2_cweight / pt2_cweight(N_det_generators)
+  do i=1,N_det_generators
+    pt2_weight(i)  = pt2_weight(i) / pt2_cweight(N_det_generators)
+    pt2_cweight(i) = pt2_cweight(i) / pt2_cweight(N_det_generators)
+  enddo
   
   norm_left = 1d0
   
   comb_step = 1d0/dfloat(comb_teeth)
+  first_det_of_comb = 1
   do i=1,N_det_generators
     if(pt2_weight(i)/norm_left < comb_step*.5d0) then
       first_det_of_comb = i

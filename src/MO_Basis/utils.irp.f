@@ -88,7 +88,7 @@ subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label,sign)
     enddo
   endif
   do i=1,m
-    write (output_mo_basis,'(I8,X,F16.10)')  i,eigvalues(i)
+    write (output_mo_basis,'(I8,1X,F16.10)')  i,eigvalues(i)
   enddo
   write (output_mo_basis,'(A)') '======== ================'
   write (output_mo_basis,'(A)')  ''
@@ -135,7 +135,7 @@ subroutine mo_as_svd_vectors_of_mo_matrix(matrix,lda,m,n,label)
   write (output_mo_basis,'(A)')  '======== ================'
 
   do i=1,m
-    write (output_mo_basis,'(I8,X,F16.10)')  i,D(i)
+    write (output_mo_basis,'(I8,1X,F16.10)')  i,D(i)
   enddo
   write (output_mo_basis,'(A)')  '======== ================'
   write (output_mo_basis,'(A)')  ''
@@ -215,7 +215,7 @@ subroutine mo_as_eigvectors_of_mo_matrix_sort_by_observable(matrix,observable,n,
   write (output_mo_basis,'(A)')  ''
   write (output_mo_basis,'(A)')  '======== ================'
   do i = 1, m
-   write (output_mo_basis,'(I8,X,F16.10)')  i,eigvalues(i)
+   write (output_mo_basis,'(I8,1X,F16.10)')  i,eigvalues(i)
   enddo
   write (output_mo_basis,'(A)')  '======== ================'
   write (output_mo_basis,'(A)')  ''
@@ -272,21 +272,13 @@ subroutine give_all_mos_at_r(r,mos_array)
  implicit none
  double precision, intent(in) :: r(3)
  double precision, intent(out) :: mos_array(mo_tot_num)
- call give_specific_mos_at_r(r,mos_array, mo_coef)
-end
-
-subroutine give_specific_mos_at_r(r,mos_array, mo_coef_specific)
- implicit none
- double precision, intent(in) :: r(3)
- double precision, intent(in)  :: mo_coef_specific(ao_num_align, mo_tot_num)
- double precision, intent(out) :: mos_array(mo_tot_num)
  double precision :: aos_array(ao_num),accu
  integer :: i,j
  call give_all_aos_at_r(r,aos_array)
  do i = 1, mo_tot_num
   accu = 0.d0
   do j = 1, ao_num
-   accu += mo_coef_specific(j,i) * aos_array(j) 
+   accu += mo_coef(j,i) * aos_array(j) 
   enddo
   mos_array(i) = accu
  enddo
