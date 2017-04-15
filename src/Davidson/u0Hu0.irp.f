@@ -665,7 +665,7 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
   integer, allocatable           :: singles_b(:,:)
   integer, allocatable           :: idx(:), idx0(:)
   logical, allocatable           :: is_single_a(:)
-  integer                        :: maxab, n_singles_max, kcol_prev
+  integer                        :: maxab, n_singles_max, kcol_prev, nmax
   double precision, allocatable  :: u_t(:,:), v_t(:,:), s_t(:,:)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: v_t, s_t, u_t
 
@@ -702,7 +702,7 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
       !$OMP          singles_alpha_size, sze_8,                      &
       !$OMP          idx0, u_t, maxab, v_0, s_0)                     &
       !$OMP   PRIVATE(krow, kcol, tmp_det, spindet, k_a, k_b, i,     &
-      !$OMP          lcol, lrow, is_single_a,l_a, l_b,               &
+      !$OMP          lcol, lrow, is_single_a,l_a, l_b, nmax,         &
       !$OMP          buffer, singles, doubles, n_singles, n_doubles, &
       !$OMP          tmp_det2, hij, sij, idx, l, kcol_prev, v_t, s_t)
   
@@ -756,11 +756,12 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
       tmp_det2(1:N_int,2) = psi_det_beta_unique(1:N_int, lcol)
 
       l_a = psi_bilinear_matrix_columns_loc(lcol)
-      do while (l_a <= k_a)
-        l_a += 1
-      enddo
 
       n_doubles=1
+
+      ! Loop over alpha singles
+      ! -----------------------
+
       do while ( l_a < psi_bilinear_matrix_columns_loc(lcol+1) )
         lrow = psi_bilinear_matrix_rows(l_a)
         if (.not.is_single_a(lrow)) then
@@ -778,8 +779,8 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
               call get_s2(tmp_det,tmp_det2,N_int,sij)
               do l=1,N_st
                 v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
-                s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,l_a)
                 v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+                s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,l_a)
                 s_t(l,l_a) = s_t(l,l_a) + sij * u_t(l,k_a)
               enddo
             enddo
@@ -811,6 +812,10 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
   enddo
   !$OMP END DO NOWAIT
 
+
+  ! Single and double alpha excitations
+  ! ===================================
+    
   !$OMP DO SCHEDULE(static,1)
   do k_a=1,N_det
     
@@ -828,30 +833,24 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
     
     k_b = psi_bilinear_matrix_order_transp_reverse(k_a)
 
-    ! Get all single and double alpha excitations
-    ! ===========================================
-    
     spindet(1:N_int) = tmp_det(1:N_int,1)
     
     ! Loop inside the beta column to gather all the connected alphas
-    i=1
-    l_a = k_a
-    lcol = psi_bilinear_matrix_columns(l_a)
-    do while (lcol == kcol)
+    l_a = k_a+1
+    nmax = min(N_det_alpha_unique, N_det - l_a)
+    do i=1,nmax
+      lcol = psi_bilinear_matrix_columns(l_a)
+      if (lcol /= kcol) exit
       lrow = psi_bilinear_matrix_rows(l_a)
       buffer(1:N_int,i) = psi_det_alpha_unique(1:N_int, lrow)
       idx(i) = l_a
-      i   = i  +1
       l_a = l_a+1
-      if (l_a > N_det) exit
-      lcol = psi_bilinear_matrix_columns(l_a)
     enddo
     i = i-1
     
     call get_all_spin_singles_and_doubles(                           &
         buffer, idx, spindet, N_int, i,                              &
         singles, doubles, n_singles, n_doubles )
-
 
     ! Compute Hij for all alpha singles
     ! ----------------------------------
@@ -884,26 +883,38 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
       enddo
     enddo
     
+  end do
+  !$OMP END DO NOWAIT
+
+
+  ! Single and double beta excitations
+  ! ==================================
+
+  !$OMP DO SCHEDULE(static,1)
+  do k_b=1,N_det
+
+    ! Initial determinant is at k_b in beta-major representation
+    ! -----------------------------------------------------------------------
     
+    krow = psi_bilinear_matrix_transp_rows(k_b)
+    kcol = psi_bilinear_matrix_transp_columns(k_b)
     
-    ! Get all single and double beta excitations
-    ! ===========================================
+    tmp_det(1:N_int,1) = psi_det_alpha_unique(1:N_int, krow)
+    tmp_det(1:N_int,2) = psi_det_beta_unique (1:N_int, kcol)
     
     spindet(1:N_int) = tmp_det(1:N_int,2)
+    k_a = psi_bilinear_matrix_transp_order(k_b)
     
     ! Loop inside the alpha row to gather all the connected betas
-    i=1
-    l_b = k_b
-
-    lrow = psi_bilinear_matrix_transp_rows(l_b)
-    do while (lrow == krow)
+    l_b = k_b+1
+    nmax = min(N_det_beta_unique, N_det - l_b)
+    do i=1,nmax
+      lrow = psi_bilinear_matrix_transp_rows(l_b)
+      if (lrow /= krow) exit
       lcol = psi_bilinear_matrix_transp_columns(l_b)
       buffer(1:N_int,i) = psi_det_beta_unique(1:N_int, lcol)
       idx(i) = l_b
-      i   = i  +1
       l_b = l_b+1
-      if (l_b > N_det) exit
-      lrow = psi_bilinear_matrix_transp_rows(l_b)
     enddo
     i = i-1
   
@@ -943,9 +954,25 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
       enddo
     enddo
 
-    ! Diagonal contribution
-    ! ---------------------
+  end do
+  !$OMP END DO NOWAIT
 
+
+  ! Diagonal contribution
+  ! =====================
+
+  !$OMP DO SCHEDULE(static,1)
+  do k_a=1,N_det
+    
+    ! Initial determinant is at k_a in alpha-major representation
+    ! -----------------------------------------------------------------------
+    
+    krow = psi_bilinear_matrix_rows(k_a)
+    kcol = psi_bilinear_matrix_columns(k_a)
+    
+    tmp_det(1:N_int,1) = psi_det_alpha_unique(1:N_int, krow)
+    tmp_det(1:N_int,2) = psi_det_beta_unique (1:N_int, kcol)
+    
     double precision, external :: diag_H_mat_elem, diag_S_mat_elem
   
     hij = diag_H_mat_elem(tmp_det,N_int) 
@@ -956,7 +983,7 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
     enddo
 
   end do
-  !$OMP END DO
+  !$OMP END DO NOWAIT
 
   !$OMP CRITICAL
   do l=1,N_st
@@ -986,7 +1013,7 @@ subroutine H_S2_u_0_nstates_test(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze
 
   double precision, allocatable :: vt(:,:)
   integer, allocatable :: idx(:)
-  integer                        :: i,j, jj
+  integer                        :: i,j, jj, l
   double precision               :: hij
 
   do i=1,n
@@ -995,6 +1022,7 @@ subroutine H_S2_u_0_nstates_test(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze
 
   allocate(idx(0:n), vt(N_st,n))
   Vt = 0.d0
+  !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,idx,jj,j,degree,exc,phase,hij,l) SCHEDULE(static,1)
   do i=2,n
     idx(0) = i
     call filter_connected(keys_tmp,keys_tmp(1,1,i),Nint,i-1,idx)
@@ -1012,11 +1040,19 @@ subroutine H_S2_u_0_nstates_test(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze
 !       if ((degree == 2).and.(exc(0,1,1)==1)) cycle
 !      if ((degree > 1)) cycle
 !      if (exc(0,1,2) /= 0) cycle
+!      if (exc(0,1,1) == 2) cycle
+!      if (exc(0,1,2) == 2) cycle
+!      if ((degree==1).and.(exc(0,1,2) == 1)) cycle
       call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
-      vt (:,i) = vt (:,i) + hij*u_0(j,:)
-      vt (:,j) = vt (:,j) + hij*u_0(i,:)
+      do l=1,N_st
+        !$OMP ATOMIC
+        vt (l,i) = vt (l,i) + hij*u_0(j,l)
+        !$OMP ATOMIC
+        vt (l,j) = vt (l,j) + hij*u_0(i,l)
+      enddo
     enddo
   enddo
+  !$OMP END PARALLEL DO
   do i=1,n
     v_0(i,:) = v_0(i,:) + vt(:,i)
   enddo

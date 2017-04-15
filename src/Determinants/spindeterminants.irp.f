@@ -389,8 +389,6 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_rows   , (N_det) ]
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_columns, (N_det) ]
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order  , (N_det) ]
-&BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_reverse , (N_det) ]
-&BEGIN_PROVIDER [ integer, psi_bilinear_matrix_columns_loc, (N_det_beta_unique+1) ]
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -408,7 +406,7 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
 
   PROVIDE psi_coef_sorted_bit
 
-  integer, allocatable :: to_sort(:)
+  integer*8, allocatable :: to_sort(:)
   integer, external :: get_index_in_psi_det_alpha_unique
   integer, external :: get_index_in_psi_det_beta_unique
   allocate(to_sort(N_det))
@@ -421,16 +419,47 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
     enddo
     psi_bilinear_matrix_rows(k) = i
     psi_bilinear_matrix_columns(k) = j
-    to_sort(k) = N_det_alpha_unique * (j-1) + i
+    to_sort(k) = int(N_det_alpha_unique,8) * int(j-1,8) + int(i,8)
     psi_bilinear_matrix_order(k) = k
   enddo
-  call isort(to_sort, psi_bilinear_matrix_order, N_det)
+  call i8sort(to_sort, psi_bilinear_matrix_order, N_det)
   call iset_order(psi_bilinear_matrix_rows,psi_bilinear_matrix_order,N_det)
   call iset_order(psi_bilinear_matrix_columns,psi_bilinear_matrix_order,N_det)
   do l=1,N_states
     call dset_order(psi_bilinear_matrix_values(1,l),psi_bilinear_matrix_order,N_det)
   enddo
-  psi_bilinear_matrix_columns_loc(1) = 1
+  deallocate(to_sort)
+END_PROVIDER
+
+
+BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_reverse , (N_det) ]
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Order which allors to go from psi_bilinear_matrix to psi_det
+  END_DOC
+  integer                        :: k
+  do k=1,N_det
+    psi_bilinear_matrix_order_reverse(psi_bilinear_matrix_order(k)) = k
+  enddo
+END_PROVIDER
+
+
+BEGIN_PROVIDER [ integer, psi_bilinear_matrix_columns_loc, (N_det_beta_unique+1) ]
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Sparse coefficient matrix if the wave function is expressed in a bilinear form :
+!  D_a^t C D_b
+!
+! Rows are alpha determinants and columns are beta.
+!
+! Order refers to psi_det
+  END_DOC
+  integer                        :: i,j,k, l
+
+  l = psi_bilinear_matrix_columns(1)
+  psi_bilinear_matrix_columns_loc(l) = 1
   do k=2,N_det
     if (psi_bilinear_matrix_columns(k) == psi_bilinear_matrix_columns(k-1)) then
       cycle
@@ -440,35 +469,27 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
     endif
   enddo
   psi_bilinear_matrix_columns_loc(N_det_beta_unique+1) = N_det+1
-  do k=1,N_det
-    psi_bilinear_matrix_order_reverse(psi_bilinear_matrix_order(k)) = k
-  enddo
-  deallocate(to_sort)
 END_PROVIDER
-
 
 BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_states) ]
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_rows   , (N_det) ]
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_columns, (N_det) ]
 &BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_order  , (N_det) ]
-&BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_transp_reverse , (N_det) ]
   use bitmasks
   implicit none
   BEGIN_DOC
-! Sparse coefficient matrix if the wave function is expressed in a bilinear form :
-!  D_a^t C D_b
+! Transpose of psi_bilinear_matrix
+!  D_b^t C^t D_a
 !
 ! Rows are Alpha determinants and columns are beta, but the matrix is stored in row major
 ! format
-!
-! Order refers to psi_bilinear_matrix
   END_DOC
   integer                        :: i,j,k,l
 
 
   PROVIDE psi_coef_sorted_bit
 
-  integer, allocatable :: to_sort(:)
+  integer*8, allocatable :: to_sort(:)
   allocate(to_sort(N_det))
   do l=1,N_states
     do k=1,N_det
@@ -480,19 +501,50 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_
     psi_bilinear_matrix_transp_rows   (k) = psi_bilinear_matrix_rows   (k)
     i = psi_bilinear_matrix_transp_columns(k) 
     j = psi_bilinear_matrix_transp_rows   (k)
-    to_sort(k) = N_det_beta_unique * (j-1) + i
+    to_sort(k) = int(N_det_beta_unique,8) * int(j-1,8) + int(i,8)
     psi_bilinear_matrix_transp_order(k) = k
   enddo
-  call isort(to_sort, psi_bilinear_matrix_transp_order, N_det)
+  call i8sort(to_sort, psi_bilinear_matrix_transp_order, N_det)
   call iset_order(psi_bilinear_matrix_transp_rows,psi_bilinear_matrix_transp_order,N_det)
   call iset_order(psi_bilinear_matrix_transp_columns,psi_bilinear_matrix_transp_order,N_det)
   do l=1,N_states
     call dset_order(psi_bilinear_matrix_transp_values(1,l),psi_bilinear_matrix_transp_order,N_det)
   enddo
+  deallocate(to_sort)
+END_PROVIDER
+
+BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_rows_loc, (N_det_alpha_unique+1) ]
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Location of the columns in the psi_bilinear_matrix
+  END_DOC
+  integer                        :: i,j,k, l
+
+  l = psi_bilinear_matrix_transp_rows(1)
+  psi_bilinear_matrix_transp_rows_loc(l) = 1
+  do k=2,N_det
+    if (psi_bilinear_matrix_transp_rows(k) == psi_bilinear_matrix_transp_rows(k-1)) then
+      cycle
+    else
+      l = psi_bilinear_matrix_transp_rows(k)
+      psi_bilinear_matrix_transp_rows_loc(l) = k
+    endif
+  enddo
+  psi_bilinear_matrix_transp_rows_loc(N_det_beta_unique+1) = N_det+1
+END_PROVIDER
+
+BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_transp_reverse , (N_det) ]
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Order which allows to go from psi_bilinear_matrix_order_transp to psi_bilinear_matrix
+  END_DOC
+  integer                        :: k
+
   do k=1,N_det
     psi_bilinear_matrix_order_transp_reverse(psi_bilinear_matrix_transp_order(k)) = k
   enddo
-  deallocate(to_sort)
 END_PROVIDER
 
 
@@ -641,17 +693,17 @@ subroutine get_all_spin_singles_and_doubles(buffer, idx, spindet, Nint, size_buf
 
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
 
-!  select case (Nint)
-!    case (1)
-!      call get_all_spin_singles_and_doubles_1(buffer, idx, spindet(1), size_buffer, singles, doubles, n_singles, n_doubles)
-!      return
-!    case (2)
-!      call get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
-!      return
-!    case (3)
-!      call get_all_spin_singles_and_doubles_3(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
-!      return
-!  end select
+  select case (Nint)
+    case (1)
+      call get_all_spin_singles_and_doubles_1(buffer, idx, spindet(1), size_buffer, singles, doubles, n_singles, n_doubles)
+      return
+    case (2)
+      call get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+      return
+    case (3)
+      call get_all_spin_singles_and_doubles_3(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+      return
+  end select
 
 
   size_buffer_align = align_double(size_buffer)
