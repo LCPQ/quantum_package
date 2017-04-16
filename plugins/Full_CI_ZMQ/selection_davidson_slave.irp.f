@@ -25,7 +25,6 @@ subroutine run_wf
   double precision :: energy(N_states)
   character*(64) :: states(4)
   integer :: rc, i
-  logical :: force_update
   
   call provide_everything
   
@@ -35,7 +34,6 @@ subroutine run_wf
   states(3) = 'pt2'
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  force_update = .True.
 
   do
 
@@ -65,12 +63,7 @@ subroutine run_wf
       ! --------
 
       print *,  'Davidson'
-      call davidson_miniserver_get(force_update)
-      force_update = .False.
-      !$OMP PARALLEL PRIVATE(i)
-      i = omp_get_thread_num()
       call davidson_slave_tcp(i)
-      !$OMP END PARALLEL
       print *,  'Davidson done'
 
     else if (trim(zmq_state) == 'pt2') then
