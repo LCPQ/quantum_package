@@ -757,56 +757,27 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
 
       l_a = psi_bilinear_matrix_columns_loc(lcol)
 
-      n_doubles=1
-
       ! Loop over alpha singles
       ! -----------------------
 
       do while ( l_a < psi_bilinear_matrix_columns_loc(lcol+1) )
-        lrow = psi_bilinear_matrix_rows(l_a)
-        if (.not.is_single_a(lrow)) then
-          continue
-        else
-          doubles(n_doubles) = lrow
-          idx(n_doubles) = l_a
-          if (n_doubles == maxab) then
-
-            do k=1,n_doubles
-              lrow = doubles(k)
-              l_a  = idx(k)
-              tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
-              call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij)
-              call get_s2(tmp_det,tmp_det2,N_int,sij)
-              do l=1,N_st
-                v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
-                v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
-                s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,l_a)
-                s_t(l,l_a) = s_t(l,l_a) + sij * u_t(l,k_a)
-              enddo
-            enddo
-
-            n_doubles=0
-          endif
-          n_doubles = n_doubles+1
-        endif
-        l_a = l_a+1
-      enddo
-      n_doubles = n_doubles-1
-
-      do k=1,n_doubles
-        lrow = doubles(k)
-        l_a  = idx(k)
+        do l=l_a,psi_bilinear_matrix_columns_loc(lcol+1)
+          lrow = psi_bilinear_matrix_rows(l)
+          if (is_single_a(lrow)) exit
+        enddo
+        if (l >= psi_bilinear_matrix_columns_loc(lcol+1)) exit
+        l_a = l
         tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
         call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij)
         call get_s2(tmp_det,tmp_det2,N_int,sij)
         do l=1,N_st
           v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
-          s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,l_a)
           v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+          s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,l_a)
           s_t(l,l_a) = s_t(l,l_a) + sij * u_t(l,k_a)
         enddo
+        l_a = l_a+1
       enddo
-
     enddo
 
   enddo
