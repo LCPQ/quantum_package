@@ -122,7 +122,7 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
   if (write_mo_integrals) then
     call ezfio_set_work_empty(.False.)
     call map_save_to_disk(trim(ezfio_filename)//'/work/mo_ints',mo_integrals_map)
-    call ezfio_set_integrals_bielec_disk_access_mo_integrals("Read")
+    call ezfio_set_integrals_erf_disk_access_mo_integrals("Read")
   endif
   
 END_PROVIDER
@@ -1065,8 +1065,6 @@ end
   ! mo_bielec_integral_jj_anti_from_ao(i,j) = J_ij - K_ij
   END_DOC
   implicit none
-  long_range = .false.
-  touch long_range
 ! call routine_mo_bielec_integral_jj_from_ao
 
 ! END_PROVIDER 
@@ -1199,8 +1197,6 @@ END_PROVIDER
 &BEGIN_PROVIDER [ double precision, mo_bielec_integral_vv_exchange_from_ao, (mo_tot_num_align,mo_tot_num) ]
 &BEGIN_PROVIDER [ double precision, mo_bielec_integral_vv_anti_from_ao, (mo_tot_num_align,mo_tot_num) ]
   implicit none
-  long_range = .false.
-  touch long_range
   BEGIN_DOC
   ! mo_bielec_integral_vv_from_ao(i,j) = J_ij
   ! mo_bielec_integral_vv_exchange_from_ao(i,j) = J_ij

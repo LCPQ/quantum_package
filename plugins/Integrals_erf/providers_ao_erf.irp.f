@@ -25,22 +25,22 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_erf_in_map ]
   integral = ao_bielec_integral_erf(1,1,1,1)
   
   real                           :: map_mb
-! PROVIDE read_ao_integrals disk_access_ao_integrals
-! if (read_ao_integrals) then
-!   print*,'Reading the AO integrals'
-!     call map_load_from_disk(trim(ezfio_filename)//'/work/ao_ints',ao_integrals_map)
-!     print*, 'AO integrals provided'
-!     ao_bielec_integrals_in_map = .True.
-!     return
-! endif
+  PROVIDE read_ao_integrals_erf disk_access_ao_integrals_erf
+  if (read_ao_integrals_erf) then
+    print*,'Reading the AO integrals_erf'
+      call map_load_from_disk(trim(ezfio_filename)//'/work/ao_ints_erf',ao_integrals_erf_map)
+      print*, 'AO integrals_erf provided'
+      ao_bielec_integrals_erf_in_map = .True.
+      return
+  endif
   
-  print*, 'Providing the AO integrals'
+  print*, 'Providing the AO integrals_erf'
   call wall_time(wall_0)
   call wall_time(wall_1)
   call cpu_time(cpu_1)
 
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
-  call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
+  call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals_erf')
 
   character(len=:), allocatable :: task
   allocate(character(len=ao_num*12) :: task)
@@ -63,7 +63,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_erf_in_map ]
       endif
   !$OMP END PARALLEL
 
-  call end_parallel_job(zmq_to_qp_run_socket, 'ao_integrals')
+  call end_parallel_job(zmq_to_qp_run_socket, 'ao_integrals_erf')
 
 
   print*, 'Sorting the map'
@@ -81,11 +81,11 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_erf_in_map ]
   
   ao_bielec_integrals_erf_in_map = .True.
 
-! if (write_ao_integrals) then
-!   call ezfio_set_work_empty(.False.)
-!   call map_save_to_disk(trim(ezfio_filename)//'/work/ao_ints',ao_integrals_erf_map)
-!   call ezfio_set_integrals_bielec_disk_access_ao_integrals("Read")
-! endif
+  if (write_ao_integrals_erf) then
+    call ezfio_set_work_empty(.False.)
+    call map_save_to_disk(trim(ezfio_filename)//'/work/ao_ints_erf',ao_integrals_erf_map)
+    call ezfio_set_integrals_erf_disk_access_ao_integrals_erf("Read")
+  endif
   
 END_PROVIDER
  

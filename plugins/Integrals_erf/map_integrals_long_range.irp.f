@@ -28,6 +28,7 @@ END_PROVIDER
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, ao_integrals_erf_cache, (0:64*64*64*64) ]
+  use map_module
  implicit none
  BEGIN_DOC
  ! Cache of AO integrals for fast access
@@ -42,7 +43,7 @@ BEGIN_PROVIDER [ double precision, ao_integrals_erf_cache, (0:64*64*64*64) ]
      do j=ao_integrals_erf_cache_min,ao_integrals_erf_cache_max
        do i=ao_integrals_erf_cache_min,ao_integrals_erf_cache_max
          !DIR$ FORCEINLINE
-         call bielec_integrals_erf_index(i,j,k,l,idx)
+         call bielec_integrals_index(i,j,k,l,idx)
          !DIR$ FORCEINLINE
          call map_get(ao_integrals_erf_map,idx,integral)
          ii = l-ao_integrals_erf_cache_min
@@ -343,7 +344,21 @@ BEGIN_PROVIDER [ type(map_type), mo_integrals_erf_map ]
   print*, 'MO map initialized'
 END_PROVIDER
 
-subroutine insert_into_mo_integrals_map(n_integrals,                 &
+subroutine insert_into_ao_integrals_erf_map(n_integrals,buffer_i, buffer_values)
+  use map_module
+  implicit none
+  BEGIN_DOC
+  ! Create new entry into AO map
+  END_DOC
+  
+  integer, intent(in)                :: n_integrals
+  integer(key_kind), intent(inout)   :: buffer_i(n_integrals)
+  real(integral_kind), intent(inout) :: buffer_values(n_integrals)
+  
+  call map_append(ao_integrals_erf_map, buffer_i, buffer_values, n_integrals)
+end
+
+subroutine insert_into_mo_integrals_erf_map(n_integrals,                 &
       buffer_i, buffer_values, thr)
   use map_module
   implicit none

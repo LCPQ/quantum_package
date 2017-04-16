@@ -30,14 +30,14 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_erf_in_map ]
   END_DOC
   
   mo_bielec_integrals_erf_in_map = .True.
-! if (read_mo_integrals) then
-!   print*,'Reading the MO integrals'
-!   call map_load_from_disk(trim(ezfio_filename)//'/work/mo_ints',mo_integrals_map)
-!   print*, 'MO integrals provided'
-!   return
-! else
-    PROVIDE ao_bielec_integrals_in_map
-! endif
+  if (read_mo_integrals_erf) then
+    print*,'Reading the MO integrals_erf'
+    call map_load_from_disk(trim(ezfio_filename)//'/work/mo_ints_erf',mo_integrals_erf_map)
+    print*, 'MO integrals_erf provided'
+    return
+  else
+    PROVIDE ao_bielec_integrals_erf_in_map
+  endif
   
  !if(no_vvvv_integrals)then
  !  integer                        :: i,j,k,l
@@ -117,13 +117,13 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_erf_in_map ]
  !  endif
  !  
  !else
-    call add_integrals_to_map(full_ijkl_bitmask_4)
+    call add_integrals_erf_to_map(full_ijkl_bitmask_4)
  !endif
- !if (write_mo_integrals) then
- !  call ezfio_set_work_empty(.False.)
- !  call map_save_to_disk(trim(ezfio_filename)//'/work/mo_ints',mo_integrals_map)
- !  call ezfio_set_integrals_bielec_disk_access_mo_integrals("Read")
- !endif
+  if (write_mo_integrals_erf) then
+    call ezfio_set_work_empty(.False.)
+    call map_save_to_disk(trim(ezfio_filename)//'/work/mo_ints_erf',mo_integrals_erf_map)
+    call ezfio_set_integrals_erf_disk_access_mo_integrals_erf("Read")
+  endif
   
 END_PROVIDER
 
@@ -160,7 +160,7 @@ subroutine add_integrals_erf_to_map(mask_ijkl)
   integer                        :: i2,i3,i4
   double precision,parameter     :: thr_coef = 1.d-10
   
-  PROVIDE ao_bielec_integrals_in_map  mo_coef
+  PROVIDE ao_bielec_integrals_erf_in_map  mo_coef
   
   !Get list of MOs for i,j,k and l
   !-------------------------------

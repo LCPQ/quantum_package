@@ -15,6 +15,21 @@
    enddo
 END_PROVIDER
 
+
+subroutine save_density_matrix_mo
+ implicit none
+ double precision, allocatable :: dm(:,:)
+ allocate(dm(mo_tot_num,mo_tot_num))
+ integer :: i,j
+ do i = 1, mo_tot_num
+  do j = 1, mo_tot_num
+   dm(i,j) = one_body_dm_mo_alpha_average(i,j)
+  enddo
+ enddo
+ call ezfio_set_determinants_density_matrix_mo_disk(dm)
+
+end
+
  BEGIN_PROVIDER [ double precision, one_body_dm_mo_spin_index, (mo_tot_num_align,mo_tot_num,N_states,2) ]
  implicit none 
  integer :: i,j,ispin,istate
