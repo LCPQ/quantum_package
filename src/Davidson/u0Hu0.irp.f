@@ -761,7 +761,7 @@ subroutine H_S2_u_0_nstates_bilinear_order(v_0,s_0,u_0,N_st,sze_8)
       ! -----------------------
 
       do while ( l_a < psi_bilinear_matrix_columns_loc(lcol+1) )
-        do l=l_a,psi_bilinear_matrix_columns_loc(lcol+1)
+        do l=l_a,psi_bilinear_matrix_columns_loc(lcol+1)-1
           lrow = psi_bilinear_matrix_rows(l)
           if (is_single_a(lrow)) exit
         enddo
