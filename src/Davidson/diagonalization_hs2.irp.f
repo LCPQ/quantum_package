@@ -126,7 +126,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   sze_8 = align_double(sze)
   itermax = max(3,min(davidson_sze_max, sze/N_st_diag))
   
-  PROVIDE nuclear_repulsion expected_s2
+  PROVIDE nuclear_repulsion expected_s2 singles_alpha_csc
   
   call write_time(iunit)
   call wall_time(wall)
@@ -138,8 +138,8 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   call write_int(iunit,N_st,'Number of states')
   call write_int(iunit,N_st_diag,'Number of states in diagonalization')
   call write_int(iunit,sze,'Number of determinants')
-  r1 = 8.d0*(3.d0*dble(sze_8*N_st_diag*itermax+5.d0*(N_st_diag*itermax)**2 & 
-    + 4.d0*(N_st_diag*itermax))/(1024.d0**3))
+  r1 = 8.d0*(size(singles_alpha_csc)+3.d0*dble(sze_8*N_st_diag*itermax+5.d0*(N_st_diag*itermax)**2 & 
+    + 4.d0*(N_st_diag*itermax)+nproc*(4.d0*N_det_alpha_unique+2.d0*N_st_diag*sze_8)))/(1024.d0**3)
   call write_double(iunit, r1, 'Memory(Gb)')
   write(iunit,'(A)') ''
   write_buffer = '===== '
@@ -452,6 +452,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       y, s_, s_tmp,                                                  &
       lambda                                                         &
       )
+  FREE singles_alpha_csc
 end
 
 subroutine davidson_diag_hjj_sjj_mmap(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_st,N_st_diag,Nint,iunit)
@@ -519,7 +520,7 @@ subroutine davidson_diag_hjj_sjj_mmap(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
     stop -1
   endif
   
-  PROVIDE nuclear_repulsion expected_s2
+  PROVIDE nuclear_repulsion expected_s2 singles_alpha_csc
   
   call write_time(iunit)
   call wall_time(wall)
@@ -891,5 +892,6 @@ subroutine davidson_diag_hjj_sjj_mmap(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
       y, s_, s_tmp,                                                  &
       lambda                                                         &
       )
+  FREE singles_alpha_csc
 end
 
