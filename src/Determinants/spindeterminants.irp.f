@@ -941,7 +941,6 @@ END_PROVIDER
        psi_det_alpha_unique, idx0, psi_det_alpha_unique(1,i), N_int, &
        N_det_alpha_unique, s, j)
    singles_alpha_csc_idx(i+1) = int(j,8)
- enddo
  !$OMP END DO
  deallocate(s)
  !$OMP END PARALLEL 
