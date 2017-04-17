@@ -410,6 +410,7 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
   integer, external :: get_index_in_psi_det_alpha_unique
   integer, external :: get_index_in_psi_det_beta_unique
   allocate(to_sort(N_det))
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,j,k,l)
   do k=1,N_det
     i = get_index_in_psi_det_alpha_unique(psi_det(1,1,k),N_int)
     j = get_index_in_psi_det_beta_unique (psi_det(1,2,k),N_int)
@@ -422,6 +423,7 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
     to_sort(k) = int(N_det_alpha_unique,8) * int(j-1,8) + int(i,8)
     psi_bilinear_matrix_order(k) = k
   enddo
+  !$OMP END PARALLEL DO
   call i8sort(to_sort, psi_bilinear_matrix_order, N_det)
   call iset_order(psi_bilinear_matrix_rows,psi_bilinear_matrix_order,N_det)
   call iset_order(psi_bilinear_matrix_columns,psi_bilinear_matrix_order,N_det)
@@ -439,9 +441,11 @@ BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_reverse , (N_det) ]
 ! Order which allors to go from psi_bilinear_matrix to psi_det
   END_DOC
   integer                        :: k
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(k)
   do k=1,N_det
     psi_bilinear_matrix_order_reverse(psi_bilinear_matrix_order(k)) = k
   enddo
+  !$OMP END PARALLEL DO
 END_PROVIDER
 
 
@@ -491,11 +495,15 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_
 
   integer*8, allocatable :: to_sort(:)
   allocate(to_sort(N_det))
+  !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,j,k,l)
+  !$OMP DO COLLAPSE(2)
   do l=1,N_states
     do k=1,N_det
       psi_bilinear_matrix_transp_values (k,l) = psi_bilinear_matrix_values (k,l)
     enddo
   enddo
+  !$OMP ENDDO 
+  !$OMP DO 
   do k=1,N_det
     psi_bilinear_matrix_transp_columns(k) = psi_bilinear_matrix_columns(k)
     psi_bilinear_matrix_transp_rows   (k) = psi_bilinear_matrix_rows   (k)
@@ -504,6 +512,8 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_
     to_sort(k) = int(N_det_beta_unique,8) * int(j-1,8) + int(i,8)
     psi_bilinear_matrix_transp_order(k) = k
   enddo
+  !$OMP ENDDO
+  !$OMP END PARALLEL
   call i8sort(to_sort, psi_bilinear_matrix_transp_order, N_det)
   call iset_order(psi_bilinear_matrix_transp_rows,psi_bilinear_matrix_transp_order,N_det)
   call iset_order(psi_bilinear_matrix_transp_columns,psi_bilinear_matrix_transp_order,N_det)
@@ -542,9 +552,11 @@ BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_transp_reverse , (N_det) ]
   END_DOC
   integer                        :: k
 
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(k)
   do k=1,N_det
     psi_bilinear_matrix_order_transp_reverse(psi_bilinear_matrix_transp_order(k)) = k
   enddo
+  !$OMP END PARALLEL DO
 END_PROVIDER
 
 
@@ -684,11 +696,10 @@ subroutine get_all_spin_singles_and_doubles(buffer, idx, spindet, Nint, size_buf
   integer, intent(out)           :: n_singles
   integer, intent(out)           :: n_doubles
 
-  integer                        :: i,k,ii, imax
-  integer, parameter             :: block_size=64
+  integer                        :: i,k
   include 'Utils/constants.include.F'
-  integer(bit_kind)              :: xorvec(block_size,N_int_max)
-  integer                        :: degree(block_size)
+  integer(bit_kind)              :: xorvec(N_int_max)
+  integer                        :: degree
 
   integer, external              :: align_double
 
@@ -711,76 +722,34 @@ subroutine get_all_spin_singles_and_doubles(buffer, idx, spindet, Nint, size_buf
   n_singles = 1
   n_doubles = 1
   !DIR$ VECTOR ALIGNED
-  do i=0,size_buffer-block_size, block_size
+  do i=1,size_buffer
 
     do k=1,Nint
-      do ii=1,block_size
-        xorvec(ii, k) = xor( spindet(k), buffer(k,ii+i) )
-      enddo
+        xorvec(k) = xor( spindet(k), buffer(k,i) )
     enddo
     
-    do ii=1,block_size
-      if (xorvec(ii,1) /= 0_8) then
-        degree(ii) = popcnt(xorvec(ii,1))
-      else
-        degree(ii) = 0
-      endif
-    
-      do k=2,Nint
-        !DIR$ VECTOR ALIGNED
-        if ( (degree(ii) <= 4).and.(xorvec(ii,k) /= 0_8) ) then
-          degree(ii) = degree(ii) + popcnt(xorvec(ii,k))
-        endif
-      enddo
-    enddo
-
-    do ii=1,block_size
-      if ( degree(ii) == 4 ) then
-        doubles(n_doubles) = idx(i+ii)
-        n_doubles = n_doubles+1
-      endif
-      if ( degree(ii) == 2 ) then
-        singles(n_singles) = idx(i+ii)
-        n_singles = n_singles+1
-      endif
-    enddo
-
-  enddo
-
-  imax = size_buffer-i
-
-  do k=1,Nint
-    do ii=1,imax
-      xorvec(ii, k) = xor( spindet(k), buffer(k,ii+i) )
-    enddo
-  enddo
-  
-  do ii=1,imax
-    if (xorvec(ii,1) /= 0_8) then
-      degree(ii) = popcnt(xorvec(ii,1))
+    if (xorvec(1) /= 0_8) then
+      degree = popcnt(xorvec(1))
     else
-      degree(ii) = 0
+      degree = 0
     endif
   
     do k=2,Nint
       !DIR$ VECTOR ALIGNED
-      if ( (degree(ii) <= 4).and.(xorvec(ii,k) /= 0_8) ) then
-        degree(ii) = degree(ii) + popcnt(xorvec(ii,k))
+      if ( (degree <= 4).and.(xorvec(k) /= 0_8) ) then
+        degree = degree + popcnt(xorvec(k))
       endif
     enddo
-  enddo
 
-  do ii=1,imax
-    if ( degree(ii) == 4 ) then
-      doubles(n_doubles) = idx(i+ii)
+    if ( degree == 4 ) then
+      doubles(n_doubles) = idx(i)
       n_doubles = n_doubles+1
-    endif
-    if ( degree(ii) == 2 ) then
-      singles(n_singles) = idx(i+ii)
+    else if ( degree == 2 ) then
+      singles(n_singles) = idx(i)
       n_singles = n_singles+1
     endif
-  enddo
 
+  enddo
   n_singles = n_singles-1
   n_doubles = n_doubles-1
   
@@ -802,15 +771,14 @@ subroutine get_all_spin_singles(buffer, idx, spindet, Nint, size_buffer, singles
   integer, intent(out)           :: singles(size_buffer)
   integer, intent(out)           :: n_singles
 
-  integer                        :: i,k,ii, imax
-  integer, parameter             :: block_size=64
+  integer                        :: i,k
   include 'Utils/constants.include.F'
-  integer(bit_kind)              :: xorvec(block_size,N_int_max)
-  integer                        :: degree(block_size)
+  integer(bit_kind)              :: xorvec(N_int_max)
+  integer                        :: degree
 
   integer, external              :: align_double
 
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
 
 !  select case (Nint)
 !    case (1)
@@ -826,64 +794,29 @@ subroutine get_all_spin_singles(buffer, idx, spindet, Nint, size_buffer, singles
 
   n_singles = 1
   !DIR$ VECTOR ALIGNED
-  do i=0,size_buffer-block_size, block_size
+  do i=1,size_buffer
 
     do k=1,Nint
-      do ii=1,block_size
-        xorvec(ii, k) = xor( spindet(k), buffer(k,ii+i) )
-      enddo
+       xorvec(k) = xor( spindet(k), buffer(k,i) )
     enddo
     
-    do ii=1,block_size
-      if (xorvec(ii,1) /= 0_8) then
-        degree(ii) = popcnt(xorvec(ii,1))
-      else
-        degree(ii) = 0
-      endif
-
-      do k=2,Nint
-        if ( (degree(ii) <= 2).and.(xorvec(ii,k) /= 0_8) ) then
-          degree(ii) = degree(ii) + popcnt(xorvec(ii,k))
-        endif
-      enddo
-    enddo
-
-    do ii=1,block_size
-      if ( degree(ii) == 2 ) then
-        singles(n_singles) = idx(i+ii)
-        n_singles = n_singles+1
-      endif
-    enddo
-
-  enddo
-
-  imax = size_buffer-i
-
-  do k=1,Nint
-    do ii=1,imax
-      xorvec(ii, k) = xor( spindet(k), buffer(k,ii+i) )
-    enddo
-  enddo
-  
-  do ii=1,imax
-    if (xorvec(ii,1) /= 0_8) then
-      degree(ii) = popcnt(xorvec(ii,1))
+    if (xorvec(1) /= 0_8) then
+      degree = popcnt(xorvec(1))
     else
-      degree(ii) = 0
+      degree = 0
     endif
 
     do k=2,Nint
-      if ( (degree(ii) <= 2).and.(xorvec(ii,k) /= 0_8) ) then
-        degree(ii) = degree(ii) + popcnt(xorvec(ii,k))
+      if ( (degree <= 4).and.(xorvec(k) /= 0_8) ) then
+        degree = degree + popcnt(xorvec(k))
       endif
     enddo
-  enddo
 
-  do ii=1,imax
-    if ( degree(ii) == 2 ) then
-      singles(n_singles) = idx(i+ii)
-      n_singles = n_singles+1
+    if ( degree == 2 ) then
+        singles(n_singles) = idx(i)
+        n_singles = n_singles+1
     endif
+
   enddo
   n_singles = n_singles-1
   
@@ -905,13 +838,11 @@ subroutine get_all_spin_doubles(buffer, idx, spindet, Nint, size_buffer, doubles
   integer, intent(out)           :: doubles(size_buffer)
   integer, intent(out)           :: n_doubles
 
-  integer                        :: i,k,ii, imax
-  integer, parameter             :: block_size=64
+  integer                        :: i,k, degree
   include 'Utils/constants.include.F'
-  integer(bit_kind)              :: xorvec(block_size,N_int_max)
-  integer                        :: degree(block_size)
+  integer(bit_kind)              :: xorvec(N_int_max)
 
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
 
 !  select case (Nint)
 !    case (1)
@@ -927,70 +858,33 @@ subroutine get_all_spin_doubles(buffer, idx, spindet, Nint, size_buffer, doubles
 
   n_doubles = 1
   !DIR$ VECTOR ALIGNED
-  do i=0,size_buffer-block_size, block_size
+  do i=1,size_buffer
 
     do k=1,Nint
-      do ii=1,block_size
-        xorvec(ii, k) = xor( spindet(k), buffer(k,ii+i) )
-      enddo
+      xorvec(k) = xor( spindet(k), buffer(k,i) )
     enddo
     
-    do ii=1,block_size
-      if (xorvec(ii,1) /= 0_8) then
-        degree(ii) = popcnt(xorvec(ii,1))
-      else
-        degree(ii) = 0
-      endif
-    
-      do k=2,Nint
-        !DIR$ VECTOR ALIGNED
-        if ( (degree(ii) <= 4).and.(xorvec(ii,k) /= 0_8) ) then
-          degree(ii) = degree(ii) + popcnt(xorvec(ii,k))
-        endif
-      enddo
-    enddo
-
-    do ii=1,block_size
-      if ( degree(ii) == 4 ) then
-        doubles(n_doubles) = idx(i+ii)
-        n_doubles = n_doubles+1
-      endif
-    enddo
-
-  enddo
-
-  imax = size_buffer-i
-
-  do k=1,Nint
-    do ii=1,imax
-      xorvec(ii, k) = xor( spindet(k), buffer(k,ii+i) )
-    enddo
-  enddo
-  
-  do ii=1,imax
-    if (xorvec(ii,1) /= 0_8) then
-      degree(ii) = popcnt(xorvec(ii,1))
+    if (xorvec(1) /= 0_8) then
+      degree = popcnt(xorvec(1))
     else
-      degree(ii) = 0
+      degree = 0
     endif
   
     do k=2,Nint
       !DIR$ VECTOR ALIGNED
-      if ( (degree(ii) <= 4).and.(xorvec(ii,k) /= 0_8) ) then
-        degree(ii) = degree(ii) + popcnt(xorvec(ii,k))
+      if ( (degree <= 4).and.(xorvec(k) /= 0_8) ) then
+        degree = degree + popcnt(xorvec(k))
       endif
     enddo
-  enddo
 
-  do ii=1,imax
-    if ( degree(ii) == 4 ) then
-      doubles(n_doubles) = idx(i+ii)
+    if ( degree == 4 ) then
+      doubles(n_doubles) = idx(i)
       n_doubles = n_doubles+1
     endif
+
   enddo
 
   n_doubles = n_doubles-1
-  
   
 end
 
@@ -1037,7 +931,7 @@ BEGIN_PROVIDER [ integer, singles_alpha, (0:singles_alpha_size, N_det_alpha_uniq
  !$OMP PARALLEL DO DEFAULT(NONE) &
  !$OMP   SHARED(singles_alpha, N_det_alpha_unique, psi_det_alpha_unique, &
  !$OMP          idx0, N_int) &
- !$OMP   PRIVATE(i)
+ !$OMP   PRIVATE(i) SCHEDULE(static,1)
  do i=1, N_det_alpha_unique
    call get_all_spin_singles(                                        &
        psi_det_alpha_unique, idx0, psi_det_alpha_unique(1,i), N_int, &
