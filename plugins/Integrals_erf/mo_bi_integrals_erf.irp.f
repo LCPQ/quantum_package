@@ -587,8 +587,8 @@ END_PROVIDER
   
   do j=1,mo_tot_num
     do i=1,mo_tot_num
-      mo_bielec_integral_erf_jj(i,j) = get_mo_bielec_integral_erf(i,j,i,j,mo_integrals_map)
-      mo_bielec_integral_erf_jj_exchange(i,j) = get_mo_bielec_integral_erf(i,j,j,i,mo_integrals_map)
+      mo_bielec_integral_erf_jj(i,j) = get_mo_bielec_integral_erf(i,j,i,j,mo_integrals_erf_map)
+      mo_bielec_integral_erf_jj_exchange(i,j) = get_mo_bielec_integral_erf(i,j,j,i,mo_integrals_erf_map)
       mo_bielec_integral_erf_jj_anti(i,j) = mo_bielec_integral_erf_jj(i,j) - mo_bielec_integral_erf_jj_exchange(i,j)
     enddo
   enddo

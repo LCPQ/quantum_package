@@ -156,7 +156,7 @@ subroutine get_ao_bielec_integrals_erf_non_zero(j,k,l,sze,out_val,out_val_index,
     integer, external :: ao_l4
     double precision, external :: ao_bielec_integral_erf
     !DIR$ FORCEINLINE
-    if (ao_bielec_integral_schwartz(i,k)*ao_bielec_integral_schwartz(j,l) < thresh) then
+    if (ao_bielec_integral_erf_schwartz(i,k)*ao_bielec_integral_erf_schwartz(j,l) < thresh) then
       cycle
     endif
     call bielec_integrals_index(i,j,k,l,hash)
@@ -395,7 +395,7 @@ BEGIN_PROVIDER [ double precision, mo_integrals_erf_cache, (0:64*64*64*64) ]
  integer                        :: ii
  integer(key_kind)              :: idx
  real(integral_kind)            :: integral
- FREE ao_integrals_cache
+ FREE ao_integrals_erf_cache
  !$OMP PARALLEL DO PRIVATE (i,j,k,l,idx,ii,integral)
  do l=mo_integrals_erf_cache_min,mo_integrals_erf_cache_max
    do k=mo_integrals_erf_cache_min,mo_integrals_erf_cache_max
@@ -478,7 +478,7 @@ subroutine get_mo_bielec_integrals_erf(j,k,l,sze,out_val,map)
   integer                        :: i
   integer(key_kind)              :: hash(sze)
   real(integral_kind)            :: tmp_val(sze)
-  PROVIDE mo_bielec_integrals_in_map
+  PROVIDE mo_bielec_integrals_erf_in_map
   
   do i=1,sze
     !DIR$ FORCEINLINE
@@ -564,7 +564,7 @@ subroutine get_mo_bielec_integrals_erf_coulomb_ii(k,l,sze,out_val,map)
   integer                        :: i
   integer(key_kind)              :: hash(sze)
   real(integral_kind)            :: tmp_val(sze)
-  PROVIDE mo_bielec_integrals_in_map
+  PROVIDE mo_bielec_integrals_erf_in_map
   
   integer :: kk
   do i=1,sze

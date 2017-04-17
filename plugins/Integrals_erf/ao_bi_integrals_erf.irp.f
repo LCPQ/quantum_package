@@ -294,7 +294,7 @@ subroutine compute_ao_bielec_integrals_erf(j,k,l,sze,buffer_value)
     buffer_value = 0._integral_kind
     return
   endif
-  if (ao_bielec_integral_schwartz(j,l) < thresh ) then
+  if (ao_bielec_integral_erf_schwartz(j,l) < thresh ) then
     buffer_value = 0._integral_kind
     return
   endif

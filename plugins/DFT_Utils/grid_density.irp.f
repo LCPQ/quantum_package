@@ -5,7 +5,7 @@
 
 BEGIN_PROVIDER [integer, n_points_radial_grid]
  implicit none
- n_points_radial_grid = 10000
+ n_points_radial_grid = 100
 END_PROVIDER 
 
 
@@ -188,6 +188,7 @@ END_PROVIDER
      call give_all_mos_at_r(r,mos_array)
      do m = 1, mo_tot_num
       do i = 1, mo_tot_num
+       if(dabs(one_body_dm_mo_alpha(i,m,i_state)).lt.1.d-10)cycle
        contrib = mos_array(i) * mos_array(m)
        one_body_dm_mo_alpha_at_grid_points(l,k,j,i_state) += one_body_dm_mo_alpha(i,m,i_state) * contrib
        one_body_dm_mo_beta_at_grid_points(l,k,j,i_state) += one_body_dm_mo_beta(i,m,i_state) * contrib
