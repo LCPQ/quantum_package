@@ -107,6 +107,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
   integer, allocatable           :: idx(:), idx0(:)
   logical, allocatable           :: is_single_a(:)
   integer                        :: maxab, n_singles_a, kcol_prev, nmax
+  integer*8                      :: k8
   double precision, allocatable  :: v_t(:,:), s_t(:,:)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: v_t, s_t
 
@@ -129,14 +130,15 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
       !$OMP          psi_bilinear_matrix_transp_columns,             &
       !$OMP          psi_bilinear_matrix_transp_order, N_st,         &
       !$OMP          psi_bilinear_matrix_order_transp_reverse,       &
-      !$OMP          singles_alpha, psi_bilinear_matrix_columns_loc, &
+      !$OMP          singles_alpha_csc, singles_alpha_csc_idx,       &
+      !$OMP          psi_bilinear_matrix_columns_loc,                &
       !$OMP          singles_alpha_size, sze_8, istart, iend, istep, &
       !$OMP          ishift, idx0, u_t, maxab, v_0, s_0)             &
       !$OMP   PRIVATE(krow, kcol, tmp_det, spindet, k_a, k_b, i,     &
       !$OMP          lcol, lrow, is_single_a,l_a, l_b, nmax,         &
       !$OMP          buffer, singles, doubles, n_singles, n_doubles, &
       !$OMP          tmp_det2, hij, sij, idx, l, kcol_prev, v_t,     &
-      !$OMP          singles_a, n_singles_a, s_t)
+      !$OMP          singles_a, n_singles_a, s_t, k8)
   
   ! Alpha/Beta double excitations
   ! =============================
@@ -164,8 +166,8 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
     tmp_det(1:N_int,1) = psi_det_alpha_unique(1:N_int, krow)
     tmp_det(1:N_int,2) = psi_det_beta_unique (1:N_int, kcol)
     
-    do k=1,singles_alpha(0,krow)
-      is_single_a( singles_alpha(k,krow) ) = .True.
+    do k8=singles_alpha_csc_idx(krow), singles_alpha_csc_idx(krow+1)-1
+      is_single_a( singles_alpha_csc(k8) ) = .True.
     enddo
 
     if (kcol /= kcol_prev) then
@@ -208,8 +210,8 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
         l_a = l_a+1
       enddo
     enddo
-    do k=1,singles_alpha(0,krow)
-      is_single_a( singles_alpha(k,krow) ) = .False.
+    do k8=singles_alpha_csc_idx(krow), singles_alpha_csc_idx(krow+1)-1
+      is_single_a( singles_alpha_csc(k8) ) = .False.
     enddo
 
   enddo
