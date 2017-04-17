@@ -706,17 +706,17 @@ subroutine get_all_spin_singles_and_doubles(buffer, idx, spindet, Nint, size_buf
 
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
 
-!  select case (Nint)
-!    case (1)
-!      call get_all_spin_singles_and_doubles_1(buffer, idx, spindet(1), size_buffer, singles, doubles, n_singles, n_doubles)
-!      return
+  select case (Nint)
+    case (1)
+      call get_all_spin_singles_and_doubles_1(buffer, idx, spindet(1), size_buffer, singles, doubles, n_singles, n_doubles)
+      return
 !    case (2)
 !      call get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
 !      return
 !    case (3)
 !      call get_all_spin_singles_and_doubles_3(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
 !      return
-!  end select
+  end select
 
 
   n_singles = 1
@@ -780,17 +780,17 @@ subroutine get_all_spin_singles(buffer, idx, spindet, Nint, size_buffer, singles
 
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
 
-!  select case (Nint)
-!    case (1)
-!      call get_all_spin_singles_1(buffer, idx, spindet(1), size_buffer, singles, n_singles)
-!      return
+  select case (Nint)
+    case (1)
+      call get_all_spin_singles_1(buffer, idx, spindet(1), size_buffer, singles, n_singles)
+      return
 !    case (2)
 !      call get_all_spin_singles_2(buffer, idx, spindet, size_buffer, singles, n_singles)
 !      return
 !    case (3)
 !      call get_all_spin_singles_3(buffer, idx, spindet, size_buffer, singles, n_singles)
 !      return
-!  end select
+  end select
 
   n_singles = 1
   !DIR$ VECTOR ALIGNED
@@ -807,7 +807,7 @@ subroutine get_all_spin_singles(buffer, idx, spindet, Nint, size_buffer, singles
     endif
 
     do k=2,Nint
-      if ( (degree <= 4).and.(xorvec(k) /= 0_8) ) then
+      if ( (degree <= 2).and.(xorvec(k) /= 0_8) ) then
         degree = degree + popcnt(xorvec(k))
       endif
     enddo
@@ -844,17 +844,17 @@ subroutine get_all_spin_doubles(buffer, idx, spindet, Nint, size_buffer, doubles
 
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
 
-!  select case (Nint)
-!    case (1)
-!      call get_all_spin_doubles_1(buffer, idx, spindet(1), size_buffer, doubles, n_doubles)
-!      return
-!    case (2)
-!      call get_all_spin_doubles_2(buffer, idx, spindet, size_buffer, doubles, n_doubles)
-!      return
+  select case (Nint)
+    case (1)
+      call get_all_spin_doubles_1(buffer, idx, spindet(1), size_buffer, doubles, n_doubles)
+      return
+    case (2)
+      call get_all_spin_doubles_2(buffer, idx, spindet, size_buffer, doubles, n_doubles)
+      return
 !    case (3)
 !      call get_all_spin_doubles_3(buffer, idx, spindet, size_buffer, doubles, n_doubles)
 !      return
-!  end select
+  end select
 
   n_doubles = 1
   !DIR$ VECTOR ALIGNED
@@ -916,12 +916,49 @@ BEGIN_PROVIDER [ integer, singles_alpha_size ]
  singles_alpha_size = elec_alpha_num * (mo_tot_num - elec_alpha_num)
 END_PROVIDER
 
-BEGIN_PROVIDER [ integer, singles_alpha, (0:singles_alpha_size, N_det_alpha_unique) ]
+ BEGIN_PROVIDER [ integer, singles_alpha_csc_idx, (N_det_alpha_unique+1) ]
+&BEGIN_PROVIDER [ integer, singles_alpha_csc_size ]
  implicit none
  BEGIN_DOC
  ! Dimension of the singles_alpha array
  END_DOC
  integer                        :: i
+ integer, allocatable           :: idx0(:), s(:)
+ allocate (idx0(N_det_alpha_unique))
+ do i=1, N_det_alpha_unique
+   idx0(i) = i
+ enddo
+
+ !$OMP PARALLEL DEFAULT(NONE)                                        &
+     !$OMP   SHARED(N_det_alpha_unique, psi_det_alpha_unique,        &
+     !$OMP          idx0, N_int, singles_alpha_csc,                  &
+     !$OMP          singles_alpha_size, singles_alpha_csc_idx)       &
+     !$OMP   PRIVATE(i,s)
+ allocate (s(singles_alpha_size))
+ !$OMP DO SCHEDULE(static,1)
+ do i=1, N_det_alpha_unique
+   call get_all_spin_singles(                                        &
+       psi_det_alpha_unique, idx0, psi_det_alpha_unique(1,i), N_int, &
+       N_det_alpha_unique, s, singles_alpha_csc_idx(i+1))
+ enddo
+ !$OMP END DO
+ deallocate(s)
+ !$OMP END PARALLEL 
+ deallocate(idx0)
+
+ do i=2, N_det_alpha_unique+1
+   singles_alpha_csc_idx(i) = singles_alpha_csc_idx(i) + singles_alpha_csc_idx(i-1)
+ enddo
+ singles_alpha_csc_size = singles_alpha_csc_idx(N_det_alpha_unique+1)
+END_PROVIDER
+
+
+BEGIN_PROVIDER [ integer, singles_alpha_csc, (singles_alpha_csc_size) ]
+ implicit none
+ BEGIN_DOC
+ ! Dimension of the singles_alpha array
+ END_DOC
+ integer                        :: i, k
  integer, allocatable           :: idx0(:)
  allocate (idx0(N_det_alpha_unique))
  do i=1, N_det_alpha_unique
@@ -929,16 +966,295 @@ BEGIN_PROVIDER [ integer, singles_alpha, (0:singles_alpha_size, N_det_alpha_uniq
  enddo
 
  !$OMP PARALLEL DO DEFAULT(NONE) &
- !$OMP   SHARED(singles_alpha, N_det_alpha_unique, psi_det_alpha_unique, &
- !$OMP          idx0, N_int) &
- !$OMP   PRIVATE(i) SCHEDULE(static,1)
+ !$OMP   SHARED(N_det_alpha_unique, psi_det_alpha_unique, &
+ !$OMP          idx0, N_int, singles_alpha_csc, singles_alpha_csc_idx) &
+ !$OMP   PRIVATE(i,k) SCHEDULE(static,1)
  do i=1, N_det_alpha_unique
    call get_all_spin_singles(                                        &
        psi_det_alpha_unique, idx0, psi_det_alpha_unique(1,i), N_int, &
-       N_det_alpha_unique, singles_alpha(1,i), singles_alpha(0,i))
+       N_det_alpha_unique, singles_alpha_csc(singles_alpha_csc_idx(i)), &
+       k)
  enddo
  !$OMP END PARALLEL DO
-
  deallocate(idx0)
+
 END_PROVIDER
+
+
+
+
+subroutine get_all_spin_singles_and_doubles_1(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the single and double excitations in the list of
+! unique alpha determinants.
+!
+! /!\ : The buffer is transposed !
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer, idx(size_buffer)
+  integer(bit_kind), intent(in)  :: buffer(size_buffer)
+  integer(bit_kind), intent(in)  :: spindet
+  integer, intent(out)           :: singles(size_buffer)
+  integer, intent(out)           :: doubles(size_buffer)
+  integer, intent(out)           :: n_singles
+  integer, intent(out)           :: n_doubles
+
+  integer                        :: i
+  include 'Utils/constants.include.F'
+  integer                        :: degree
+
+
+  n_singles = 1
+  n_doubles = 1
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    degree =  popcnt(  xor( spindet, buffer(i) ) )
+    if ( degree == 4 ) then
+      doubles(n_doubles) = idx(i)
+      n_doubles = n_doubles+1
+    else if ( degree == 2 ) then
+      singles(n_singles) = idx(i)
+      n_singles = n_singles+1
+    endif
+  enddo
+  n_singles = n_singles-1
+  n_doubles = n_doubles-1
+  
+end
+
+
+
+subroutine get_all_spin_singles_1(buffer, idx, spindet, size_buffer, singles, n_singles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the single excitations in the list of
+! unique alpha determinants.
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer, idx(size_buffer)
+  integer(bit_kind), intent(in)  :: buffer(size_buffer)
+  integer(bit_kind), intent(in)  :: spindet
+  integer, intent(out)           :: singles(size_buffer)
+  integer, intent(out)           :: n_singles
+  integer                        :: i
+  include 'Utils/constants.include.F'
+  integer                        :: degree
+
+  n_singles = 1
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    degree = popcnt(xor( spindet, buffer(i) ))
+    if ( degree == 2 ) then
+      singles(n_singles) = idx(i)
+      n_singles = n_singles+1
+    endif
+  enddo
+  n_singles = n_singles-1
+  
+end
+
+
+subroutine get_all_spin_doubles_1(buffer, idx, spindet, size_buffer, doubles, n_doubles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the double excitations in the list of
+! unique alpha determinants.
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer, idx(size_buffer)
+  integer(bit_kind), intent(in)  :: buffer(size_buffer)
+  integer(bit_kind), intent(in)  :: spindet
+  integer, intent(out)           :: doubles(size_buffer)
+  integer, intent(out)           :: n_doubles
+  integer                        :: i
+  include 'Utils/constants.include.F'
+  integer                        :: degree
+
+  n_doubles = 1
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+    degree = popcnt(xor( spindet, buffer(i) ))
+    if ( degree == 4 ) then
+      doubles(n_doubles) = idx(i)
+      n_doubles = n_doubles+1
+    endif
+  enddo
+  n_doubles = n_doubles-1
+  
+end
+
+
+
+
+subroutine get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the single and double excitations in the list of
+! unique alpha determinants.
+!
+! /!\ : The buffer is transposed !
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer, idx(size_buffer)
+  integer(bit_kind), intent(in)  :: buffer(2,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet(2)
+  integer, intent(out)           :: singles(size_buffer)
+  integer, intent(out)           :: doubles(size_buffer)
+  integer, intent(out)           :: n_singles
+  integer, intent(out)           :: n_doubles
+
+  integer                        :: i
+  include 'Utils/constants.include.F'
+  integer(bit_kind)              :: xorvec(2)
+  integer                        :: degree
+
+  integer, external              :: align_double
+
+
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
+
+  n_singles = 1
+  n_doubles = 1
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+
+    xorvec(1) = xor( spindet(1), buffer(1,i) )
+    xorvec(2) = xor( spindet(2), buffer(2,i) )
+    
+    if (xorvec(1) /= 0_8) then
+      degree = popcnt(xorvec(1))
+    else
+      degree = 0
+    endif
+  
+    !DIR$ VECTOR ALIGNED
+    if ( (degree <= 4).and.(xorvec(2) /= 0_8) ) then
+      degree = degree + popcnt(xorvec(2))
+    endif
+
+    if ( degree == 4 ) then
+      doubles(n_doubles) = idx(i)
+      n_doubles = n_doubles+1
+    else if ( degree == 2 ) then
+      singles(n_singles) = idx(i)
+      n_singles = n_singles+1
+    endif
+
+  enddo
+  n_singles = n_singles-1
+  n_doubles = n_doubles-1
+  
+end
+
+
+subroutine get_all_spin_singles_2(buffer, idx, spindet, size_buffer, singles, n_singles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the single excitations in the list of
+! unique alpha determinants.
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer, idx(size_buffer)
+  integer(bit_kind), intent(in)  :: buffer(2,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet(2)
+  integer, intent(out)           :: singles(size_buffer)
+  integer, intent(out)           :: n_singles
+
+  integer                        :: i
+  include 'Utils/constants.include.F'
+  integer(bit_kind)              :: xorvec(2)
+  integer                        :: degree
+
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
+
+  n_singles = 1
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+
+    xorvec(1) = xor( spindet(1), buffer(1,i) )
+    xorvec(2) = xor( spindet(2), buffer(2,i) )
+    
+    if (xorvec(1) /= 0_8) then
+      degree = popcnt(xorvec(1))
+    else
+      degree = 0
+    endif
+
+    if (degree > 2) cycle
+
+    if ( xorvec(2) /= 0_8 ) then
+      degree = degree + popcnt(xorvec(2))
+    endif
+
+    if ( degree == 2 ) then
+        singles(n_singles) = idx(i)
+        n_singles = n_singles+1
+    endif
+
+  enddo
+  n_singles = n_singles-1
+  
+end
+
+
+subroutine get_all_spin_doubles_2(buffer, idx, spindet, size_buffer, doubles, n_doubles)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+!
+! Returns the indices of all the double excitations in the list of
+! unique alpha determinants.
+!
+  END_DOC
+  integer, intent(in)            :: size_buffer, idx(size_buffer)
+  integer(bit_kind), intent(in)  :: buffer(2,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet(2)
+  integer, intent(out)           :: doubles(size_buffer)
+  integer, intent(out)           :: n_doubles
+
+  integer                        :: i, degree
+  include 'Utils/constants.include.F'
+  integer(bit_kind)              :: xorvec(2)
+
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
+
+  n_doubles = 1
+  !DIR$ VECTOR ALIGNED
+  do i=1,size_buffer
+
+    xorvec(1) = xor( spindet(1), buffer(1,i) )
+    xorvec(2) = xor( spindet(2), buffer(2,i) )
+
+    if (xorvec(1) /= 0_8) then
+      degree = popcnt(xorvec(1))
+    else
+      degree = 0
+    endif
+  
+    !DIR$ VECTOR ALIGNED
+    if ( (degree <= 4).and.(xorvec(2) /= 0_8) ) then
+      degree = degree + popcnt(xorvec(2))
+    endif
+
+    if ( degree == 4 ) then
+      doubles(n_doubles) = idx(i)
+      n_doubles = n_doubles+1
+    endif
+
+  enddo
+
+  n_doubles = n_doubles-1
+  
+end
 
