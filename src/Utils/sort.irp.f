@@ -186,6 +186,15 @@ BEGIN_TEMPLATE
 
  end
 
+SUBST [ X, type ]
+   ; real ;;
+ d ; double precision ;;
+ i ; integer ;;
+ i8 ; integer*8 ;;
+ i2 ; integer*2 ;;
+END_TEMPLATE
+
+BEGIN_TEMPLATE
  subroutine $Xsort(x,iorder,isize)
   implicit none
   BEGIN_DOC
@@ -208,6 +217,24 @@ BEGIN_TEMPLATE
 SUBST [ X, type ]
    ; real ;;
  d ; double precision ;;
+END_TEMPLATE
+
+BEGIN_TEMPLATE
+ subroutine $Xsort(x,iorder,isize)
+  implicit none
+  BEGIN_DOC
+  ! Sort array x(isize).
+  ! iorder in input should be (1,2,3,...,isize), and in output
+  ! contains the new order of the elements.
+  END_DOC
+  integer,intent(in)             :: isize
+  $type,intent(inout)            :: x(isize)
+  integer,intent(inout)          :: iorder(isize)
+  integer                        :: n
+  call $Xradix_sort(x,iorder,isize,-1)
+ end subroutine $Xsort
+
+SUBST [ X, type ]
  i ; integer ;;
  i8 ; integer*8 ;;
  i2 ; integer*2 ;;
@@ -328,33 +355,78 @@ BEGIN_TEMPLATE
   integer, intent(in)            :: iradix
   integer                        :: iradix_new
   integer*$type, allocatable     :: x2(:), x1(:)
-  integer*$type                  :: i4
+  integer*$type                  :: i4               ! data type
   integer*$int_type, allocatable :: iorder1(:),iorder2(:)
-  integer*$int_type              :: i0, i1, i2, i3, i
-  integer, parameter             :: integer_size=$octets
+  integer*$int_type              :: i0, i1, i2, i3, i ! index type
   integer*$type                  :: mask
-  integer                        :: nthreads, omp_get_num_threads
+  integer                        :: err
   !DIR$ ATTRIBUTES ALIGN : 128   :: iorder1,iorder2, x2, x1
   
-  if (iradix == -1) then
+  if (iradix == -1) then ! Sort Positive and negative
+
+    allocate(x1(isize),iorder1(isize), x2(isize),iorder2(isize),stat=err)
+    if (err /= 0) then
+      print *,  irp_here, ': Unable to allocate arrays'
+      stop
+    endif
+    
+    i1=1_$int_type
+    i2=1_$int_type
+    do i=1_$int_type,isize
+      if (x(i) < 0_$type) then
+        iorder1(i1) = iorder(i)
+        x1(i1) = -x(i)
+        i1 = i1+1_$int_type
+      else
+        iorder2(i2) = iorder(i)
+        x2(i2) = x(i)
+        i2 = i2+1_$int_type
+      endif
+    enddo
+    i1=i1-1_$int_type
+    i2=i2-1_$int_type
+
+    do i=1_$int_type,i2
+      iorder(i1+i) = iorder2(i)
+      x(i1+i) = x2(i)
+    enddo
+    deallocate(x2,iorder2,stat=err)
+    if (err /= 0) then
+      print *,  irp_here, ': Unable to deallocate arrays x2, iorder2'
+      stop
+    endif
+    
+
+    if (i1 > 1_$int_type) then
+      call $Xradix_sort$big(x1,iorder1,i1,-2)
+      do i=1_$int_type,i1
+        x(i) = -x1(1_$int_type+i1-i)
+        iorder(i) = iorder1(1_$int_type+i1-i)
+      enddo
+    endif
+    deallocate(x1,iorder1,stat=err)
+    if (err /= 0) then
+      print *,  irp_here, ': Unable to deallocate arrays x1, iorder1'
+      stop
+    endif
+    
+    if (i2>1_$int_type) then
+      call $Xradix_sort$big(x(i1+1_$int_type),iorder(i1+1_$int_type),i2,-2)
+    endif
+    
+    return
+
+  else if (iradix == -2) then ! Positive
     
     ! Find most significant bit
     
     i0 = 0_$int_type
-    i4 = -1_$type
+    i4 = maxval(x)
     
-    do i=1,isize
-      i4 = max(i4,x(i))
-    enddo
-    i3 = int(i4,$int_type)
-    
-    iradix_new = integer_size-1-leadz(i3)
+    iradix_new = $integer_size-1-leadz(i4)
     mask = ibset(0_$type,iradix_new)
-    nthreads = 1
-    !   nthreads = 1+ishft(omp_get_num_threads(),-1)
     
-    integer                        :: err
-    allocate(x1(isize/nthreads+1),iorder1(isize/nthreads+1),x2(isize/nthreads+1),iorder2(isize/nthreads+1),stat=err)
+    allocate(x1(isize),iorder1(isize), x2(isize),iorder2(isize),stat=err)
     if (err /= 0) then
       print *,  irp_here, ': Unable to allocate arrays'
       stop
@@ -363,7 +435,7 @@ BEGIN_TEMPLATE
     i1=1_$int_type
     i2=1_$int_type
     
-    do i=1,isize
+    do i=1_$int_type,isize
       if (iand(mask,x(i)) == 0_$type) then
         iorder1(i1) = iorder(i)
         x1(i1) = x(i)
@@ -377,7 +449,7 @@ BEGIN_TEMPLATE
     i1=i1-1_$int_type
     i2=i2-1_$int_type
     
-    do i=1,i1
+    do i=1_$int_type,i1
       iorder(i0+i) = iorder1(i)
       x(i0+i) = x1(i)
     enddo
@@ -390,7 +462,7 @@ BEGIN_TEMPLATE
     endif
     
     
-    do i=1,i2
+    do i=1_$int_type,i2
       iorder(i0+i) = iorder2(i)
       x(i0+i) = x2(i)
     enddo
@@ -402,12 +474,12 @@ BEGIN_TEMPLATE
     endif
     
     
-    if (i3>1) then
+    if (i3>1_$int_type) then
       call $Xradix_sort$big(x,iorder,i3,iradix_new-1)
     endif
     
-    if (isize-i3>1) then
-      call $Xradix_sort$big(x(i3+1),iorder(i3+1),isize-i3,iradix_new-1)
+    if (isize-i3>1_$int_type) then
+      call $Xradix_sort$big(x(i3+1_$int_type),iorder(i3+1_$int_type),isize-i3,iradix_new-1)
     endif
     
     return
@@ -429,24 +501,24 @@ BEGIN_TEMPLATE
   
   
   mask = ibset(0_$type,iradix)
-  i0=1
-  i1=1
+  i0=1_$int_type
+  i1=1_$int_type
   
-  do i=1,isize
+  do i=1_$int_type,isize
     if (iand(mask,x(i)) == 0_$type) then
       iorder(i0) = iorder(i)
       x(i0) = x(i)
-      i0 = i0+1
+      i0 = i0+1_$int_type
     else
       iorder2(i1) = iorder(i)
       x2(i1) = x(i)
-      i1 = i1+1
+      i1 = i1+1_$int_type
     endif
   enddo
-  i0=i0-1
-  i1=i1-1
+  i0=i0-1_$int_type
+  i1=i1-1_$int_type
   
-  do i=1,i1
+  do i=1_$int_type,i1
     iorder(i0+i) = iorder2(i)
     x(i0+i) = x2(i)
   enddo
@@ -463,8 +535,8 @@ BEGIN_TEMPLATE
   endif
   
   
-  if (i1>1) then
-    call $Xradix_sort$big(x(i0+1),iorder(i0+1),i1,iradix-1)
+  if (i1>1_$int_type) then
+    call $Xradix_sort$big(x(i0+1_$int_type),iorder(i0+1_$int_type),i1,iradix-1)
   endif
   if (i0>1) then
     call $Xradix_sort$big(x,iorder,i0,iradix-1)
@@ -472,11 +544,11 @@ BEGIN_TEMPLATE
   
  end
 
-SUBST [ X, type, octets, is_big, big, int_type ]
+SUBST [ X, type, integer_size, is_big, big, int_type ]
  i  ; 4 ; 32 ; .False. ;      ; 4 ;;
- i8 ; 8 ; 32 ; .False. ;      ; 4 ;;
- i2 ; 2 ; 32 ; .False. ;      ; 4 ;;
- i  ; 4 ; 64 ; .True.  ; _big ; 8 ;;
+ i8 ; 8 ; 64 ; .False. ;      ; 4 ;;
+ i2 ; 2 ; 16 ; .False. ;      ; 4 ;;
+ i  ; 4 ; 32 ; .True.  ; _big ; 8 ;;
  i8 ; 8 ; 64 ; .True.  ; _big ; 8 ;;
 END_TEMPLATE
 

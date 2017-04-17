@@ -64,9 +64,9 @@ BEGIN_TEMPLATE
 
  integer                        :: i,j,k
  integer, allocatable           :: iorder(:)
- integer(8), allocatable         :: bit_tmp(:)
- integer(8)                      :: last_key
- integer(8), external            :: spin_det_search_key
+ integer*8, allocatable         :: bit_tmp(:)
+ integer*8                      :: last_key
+ integer*8, external            :: spin_det_search_key
  logical,allocatable            :: duplicate(:)
 
  allocate ( iorder(N_det), bit_tmp(N_det), duplicate(N_det) )
@@ -514,7 +514,7 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_
   enddo
   !$OMP ENDDO
   !$OMP END PARALLEL
-  call i8sort(to_sort, psi_bilinear_matrix_transp_order, N_det)
+  call i8radix_sort(to_sort, psi_bilinear_matrix_transp_order, N_det,-1)
   call iset_order(psi_bilinear_matrix_transp_rows,psi_bilinear_matrix_transp_order,N_det)
   call iset_order(psi_bilinear_matrix_transp_columns,psi_bilinear_matrix_transp_order,N_det)
   do l=1,N_states
