@@ -5,7 +5,7 @@ program mrsc2sub
   
   !mrmode : 1=mrcepa0, 2=mrsc2 add, 3=mrcc
   mrmode = 3
-  
+
   read_wf = .True.
   SOFT_TOUCH read_wf
   call set_generators_bitmasks_as_holes_and_particles

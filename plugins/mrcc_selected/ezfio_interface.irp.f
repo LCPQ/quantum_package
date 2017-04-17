@@ -1,6 +1,6 @@
 ! DO NOT MODIFY BY HAND
 ! Created by $QP_ROOT/scripts/ezfio_interface/ei_handler.py
-! from file /home/scemama/quantum_package/src/mrcc_selected/EZFIO.cfg
+! from file /panfs/panasas/cnt0024/cpq1738/scemama/workdir/quantum_package/src/mrcc_selected/EZFIO.cfg
 
 
 BEGIN_PROVIDER [ double precision, thresh_dressed_ci  ]

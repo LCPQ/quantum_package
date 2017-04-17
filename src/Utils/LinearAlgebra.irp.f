@@ -19,6 +19,10 @@ subroutine svd(A,LDA,U,LDU,D,Vt,LDVt,m,n)
   
   double precision,allocatable    :: A_tmp(:,:)
   allocate (A_tmp(LDA,n))
+  print*, ''
+  do i = 1, n
+   print*, A(i,i)
+  enddo
   A_tmp = A
   
   ! Find optimal size for temp arrays
@@ -26,7 +30,7 @@ subroutine svd(A,LDA,U,LDU,D,Vt,LDVt,m,n)
   lwork = -1
   call dgesvd('A','A', m, n, A_tmp, LDA,                             &
       D, U, LDU, Vt, LDVt, work, lwork, info)
-  lwork = work(1)
+  lwork = int(work(1))
   deallocate(work)
 
   allocate(work(lwork))
@@ -149,11 +153,11 @@ subroutine ortho_qr(A,LDA,m,n)
   allocate (jpvt(n), tau(n), work(1))
   LWORK=-1
   call  dgeqrf( m, n, A, LDA, TAU, WORK, LWORK, INFO )
-  LWORK=2*WORK(1)
+  LWORK=2*int(WORK(1))
   deallocate(WORK)
   allocate(WORK(LWORK))
-  call  dgeqrf( m, n, A, LDA, TAU, WORK, LWORK, INFO )
-  call dorgqr(m, n, n, A, LDA, tau, WORK, LWORK, INFO)
+  call  dgeqrf(m, n, A, LDA, TAU, WORK, LWORK, INFO )
+  call  dorgqr(m, n, n, A, LDA, tau, WORK, LWORK, INFO)
   deallocate(WORK,jpvt,tau)
 end
 
@@ -293,7 +297,7 @@ subroutine get_pseudo_inverse(A,m,n,C,LDA)
     print *,  info, ': SVD failed'
     stop
   endif
-  lwork = work(1)
+  lwork = int(work(1))
   deallocate(work)
   allocate(work(lwork))
   call dgesvd('S','A', m, n, A_tmp, m,D,U,m,Vt,n,work,lwork,info)

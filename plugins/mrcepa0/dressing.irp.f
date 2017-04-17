@@ -13,6 +13,7 @@ use bitmasks
   integer(bit_kind),allocatable :: buf(:,:,:)
   logical :: ok
   logical, external :: detEq
+  integer, external :: omp_get_thread_num
   
   delta_ij_mrcc = 0d0
   delta_ii_mrcc = 0d0
@@ -23,7 +24,7 @@ use bitmasks
   !$OMP PARALLEL DO default(none)  schedule(dynamic) &
   !$OMP shared(psi_det_generators, N_det_generators, hh_exists, pp_exists, N_int, hh_shortcut) &
   !$OMP shared(N_det_non_ref, N_det_ref, delta_ii_mrcc, delta_ij_mrcc, delta_ii_s2_mrcc, delta_ij_s2_mrcc) &
-  !$OMP private(h, n, mask, omask, buf, ok, iproc)
+  !$OMP private(h, n, mask, omask, buf, ok, iproc) 
   do gen= 1, N_det_generators
     allocate(buf(N_int, 2, N_det_non_ref))
     iproc = omp_get_thread_num() + 1
@@ -37,7 +38,7 @@ use bitmasks
       do p=hh_shortcut(h), hh_shortcut(h+1)-1
         call apply_particle_local(mask, pp_exists(1, p), buf(1,1,n), ok, N_int)
         if(ok) n = n + 1
-        if(n > N_det_non_ref) stop "MRCC..."
+        if(n > N_det_non_ref) stop "Buffer too small in MRCC..."
       end do
       n = n - 1
 
@@ -74,9 +75,9 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
   logical                        :: good, fullMatch
 
   integer(bit_kind),allocatable  :: tq(:,:,:)
-  integer                        :: N_tq, c_ref ,degree
+  integer                        :: N_tq, c_ref ,degree1, degree2, degree
 
-  double precision               :: hIk, hla, hIl, sla, dIk(N_states), dka(N_states), dIa(N_states)
+  double precision               :: hIk, hla, hIl, sla, dIk(N_states), dka(N_states), dIa(N_states), hka
   double precision, allocatable  :: dIa_hla(:,:), dIa_sla(:,:)
   double precision               :: haj, phase, phase2
   double precision               :: f(N_states), ci_inv(N_states)
@@ -98,6 +99,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
   logical, external :: detEq, is_generable
   !double precision, external :: get_dij, get_dij_index
   
+
 
   leng = max(N_det_generators, N_det_non_ref)
   allocate(miniList(Nint, 2, leng), tq(Nint,2,n_selected), idx_minilist(leng), hij_cache(N_det_non_ref), sij_cache(N_det_non_ref))
@@ -189,17 +191,25 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
       end do
     end if
     
+    if (perturbative_triples) then
+      double precision :: Delta_E_inv(N_states)
+      double precision, external :: diag_H_mat_elem
+      do i_state=1,N_states
+        Delta_E_inv(i_state) = 1.d0 / (psi_ref_energy_diagonalized(i_state) - diag_H_mat_elem(tq(1,1,i_alpha),N_int) )
+      enddo
+    endif
     
     do l_sd=1,idx_alpha(0)
       k_sd = idx_alpha(l_sd)
       call i_h_j(tq(1,1,i_alpha),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,hij_cache(k_sd))
       call get_s2(tq(1,1,i_alpha),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,sij_cache(k_sd))
     enddo
+
     ! |I>
     do i_I=1,N_det_ref
       ! Find triples and quadruple grand parents
-      call get_excitation_degree(tq(1,1,i_alpha),psi_ref(1,1,i_I),degree,Nint)
-      if (degree > 4) then
+      call get_excitation_degree(tq(1,1,i_alpha),psi_ref(1,1,i_I),degree1,Nint)
+      if (degree1 > 4) then
         cycle
       endif
       
@@ -209,77 +219,57 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
       
       ! <I|  <>  |alpha>
       do k_sd=1,idx_alpha(0)
-        ! Loop if lambda == 0
-        logical                        :: loop
-!         loop = .True.
-!         do i_state=1,N_states
-!           if (lambda_mrcc(i_state,idx_alpha(k_sd)) /= 0.d0) then
-!             loop = .False.
-!             exit
-!           endif
-!         enddo
-!         if (loop) then
-!           cycle
-!         endif
-        
+
         call get_excitation_degree(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(k_sd)),degree,Nint)
         if (degree > 2) then
           cycle
         endif
-        
+
         ! <I| /k\ |alpha>
-        ! <I|H|k>
-        !hIk = hij_mrcc(idx_alpha(k_sd),i_I)
-        !         call i_h_j(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(k_sd)),Nint,hIk)
-        
-        do i_state=1,N_states
-          dIK(i_state) = dij(i_I, idx_alpha(k_sd), i_state)
-          !dIk(i_state) = get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,idx_alpha(k_sd)), N_int) !!hIk * lambda_mrcc(i_state,idx_alpha(k_sd))
-          !dIk(i_state) = psi_non_ref_coef(idx_alpha(k_sd), i_state) / psi_ref_coef(i_I, i_state)
-        enddo
-        
         
         ! |l> = Exc(k -> alpha) |I>
-        call get_excitation(psi_non_ref(1,1,idx_alpha(k_sd)),tq(1,1,i_alpha),exc,degree,phase,Nint)
-        call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
+        call get_excitation(psi_non_ref(1,1,idx_alpha(k_sd)),tq(1,1,i_alpha),exc,degree2,phase,Nint)
+        call decode_exc(exc,degree2,h1,p1,h2,p2,s1,s2)
         do k=1,N_int
           tmp_det(k,1) = psi_ref(k,1,i_I)
           tmp_det(k,2) = psi_ref(k,2,i_I)
         enddo
         logical :: ok
         call apply_excitation(psi_ref(1,1,i_I), exc, tmp_det, ok, Nint)
-        if(.not. ok) cycle
+        if (perturbative_triples) then
+          ok = ok .and. ( (degree2 /= 1).and.(degree /=1) )
+        endif
+        
+        do i_state=1,N_states
+          dIK(i_state) = dij(i_I, idx_alpha(k_sd), i_state)
+        enddo
         
         ! <I| \l/ |alpha>
         do i_state=1,N_states
           dka(i_state) = 0.d0
         enddo
-        do l_sd=k_sd+1,idx_alpha(0)
-          call get_excitation_degree(tmp_det,psi_non_ref(1,1,idx_alpha(l_sd)),degree,Nint)
-          if (degree == 0) then
-            
-!             loop = .True.
-!             do i_state=1,N_states
-!               if (lambda_mrcc(i_state,idx_alpha(l_sd)) /= 0.d0) then
-!                 loop = .False.
-!                 exit
-!               endif
-!             enddo
-            loop = .false.
-            if (.not.loop) then
+
+        if (ok) then
+          do l_sd=k_sd+1,idx_alpha(0)
+            call get_excitation_degree(tmp_det,psi_non_ref(1,1,idx_alpha(l_sd)),degree,Nint)
+            if (degree == 0) then
               call get_excitation(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(l_sd)),exc,degree,phase2,Nint)
-              hIl = hij_mrcc(idx_alpha(l_sd),i_I)
-!                             call i_h_j(psi_ref(1,1,i_I),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,hIl)
               do i_state=1,N_states
                 dka(i_state) = dij(i_I, idx_alpha(l_sd), i_state) * phase * phase2
-                !dka(i_state) = get_dij(psi_ref(1,1,i_I), psi_non_ref(1,1,idx_alpha(l_sd)), N_int) * phase * phase2 !hIl * lambda_mrcc(i_state,idx_alpha(l_sd)) * phase * phase2
-                !dka(i_state) = psi_non_ref_coef(idx_alpha(l_sd), i_state) / psi_ref_coef(i_I, i_state) * phase * phase2 
               enddo
+              exit
             endif
+          enddo
 
-            exit
-          endif
-        enddo
+        else if (perturbative_triples) then
+
+          hka = hij_cache(idx_alpha(k_sd))
+          do i_state=1,N_states
+            dka(i_state) = hka * Delta_E_inv(i_state)
+          enddo
+
+        endif
+
         do i_state=1,N_states
           dIa(i_state) = dIa(i_state) + dIk(i_state) * dka(i_state)
         enddo
@@ -292,32 +282,35 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
         k_sd = idx_alpha(l_sd)
         hla = hij_cache(k_sd)
         sla = sij_cache(k_sd)
-!        call i_h_j(tq(1,1,i_alpha),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,hla)
         do i_state=1,N_states
           dIa_hla(i_state,k_sd) = dIa(i_state) * hla
           dIa_sla(i_state,k_sd) = dIa(i_state) * sla
         enddo
       enddo
-      call omp_set_lock( psi_ref_lock(i_I) )
       do i_state=1,N_states
         if(dabs(psi_ref_coef(i_I,i_state)).ge.1.d-3)then
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
+            !$OMP ATOMIC
             delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
+            !$OMP ATOMIC
             delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
+            !$OMP ATOMIC
             delta_ij_s2_(i_state,k_sd,i_I) = delta_ij_s2_(i_state,k_sd,i_I) + dIa_sla(i_state,k_sd)
+            !$OMP ATOMIC
             delta_ii_s2_(i_state,i_I) = delta_ii_s2_(i_state,i_I) - dIa_sla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
           enddo
         else
           delta_ii_(i_state,i_I)  = 0.d0
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
+            !$OMP ATOMIC
             delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + 0.5d0*dIa_hla(i_state,k_sd)
+            !$OMP ATOMIC
             delta_ij_s2_(i_state,k_sd,i_I) = delta_ij_s2_(i_state,k_sd,i_I) + 0.5d0*dIa_sla(i_state,k_sd)
           enddo
         endif
       enddo
-      call omp_unset_lock( psi_ref_lock(i_I) )
     enddo
   enddo
   deallocate (dIa_hla,dIa_sla,hij_cache,sij_cache)

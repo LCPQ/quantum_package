@@ -26,7 +26,6 @@ subroutine run_selection_slave(thread,iproc,energy)
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   if(worker_id == -1) then
     print *, "WORKER -1"
-    !call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
     call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
     call end_zmq_push_socket(zmq_socket_push,thread)
     return
@@ -41,8 +40,8 @@ subroutine run_selection_slave(thread,iproc,energy)
     if (done) then
       ctask = ctask - 1
     else
-      integer :: i_generator, i_generator_start, i_generator_max, step, N
-      read (task,*) i_generator_start, i_generator_max, step, N
+      integer :: i_generator, N
+      read(task,*) i_generator, N
       if(buf%N == 0) then
         ! Only first time 
         call create_selection_buffer(N, N*2, buf)
@@ -50,11 +49,7 @@ subroutine run_selection_slave(thread,iproc,energy)
       else
         if(N /= buf%N) stop "N changed... wtf man??"
       end if
-      !print *, "psi_selectors_coef ", psi_selectors_coef(N_det_selectors-5:N_det_selectors, 1)
-      !call debug_det(psi_selectors(1,1,N_det_selectors), N_int)
-      do i_generator=i_generator_start,i_generator_max,step
-        call select_connected(i_generator,energy,pt2,buf)
-      enddo
+      call select_connected(i_generator,energy,pt2,buf,0)
     endif
 
     if(done .or. ctask == size(task_id)) then
@@ -115,7 +110,7 @@ subroutine push_selection_results(zmq_socket_push, pt2, b, task_id, ntask)
   if(rc /= 4*ntask) stop "push"
 
 ! Activate is zmq_socket_push is a REQ
-!  rc = f77_zmq_recv( zmq_socket_push, task_id(1), ntask*4, 0)
+  rc = f77_zmq_recv( zmq_socket_push, task_id(1), ntask*4, 0)
 end subroutine
 
 
@@ -149,7 +144,7 @@ subroutine pull_selection_results(zmq_socket_pull, pt2, val, det, N, task_id, nt
   if(rc /= 4*ntask) stop "pull"
 
 ! Activate is zmq_socket_pull is a REP
-!  rc = f77_zmq_send( zmq_socket_pull, task_id(1), ntask*4, 0)
+  rc = f77_zmq_send( zmq_socket_pull, task_id(1), ntask*4, 0)
 end subroutine
  
  

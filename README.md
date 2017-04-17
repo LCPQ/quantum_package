@@ -82,11 +82,11 @@ If you have set the `--developement` flag you can go in any module directory and
 
 ### 4) Compiling the OCaml
 
-    make -C ocaml
+    make -C $QP_ROOT/ocaml
 
 ### 5) Testing if all is ok
 
-    cd tests ; bats bats/qp.bats 
+    cd tests ; ./run_tests.sh
 
 
 
@@ -137,10 +137,6 @@ interface: ezfio
 
 #FAQ
 
-### Opam error: cryptokit
-
-You need to install `gmp-dev`.
-
 ### Error: ezfio_* is already defined.
 
 #### Why ?
@@ -166,5 +162,5 @@ It's caused when we call the DGEMM routine of LAPACK.
 
 ##### Fix
 
-Set `ulimit -s unlimited`, before runing `qp_run`. It seem to fix the problem.
+Set `ulimit -s unlimited`, before runing `qp_run`. It seems to fix the problem.
 

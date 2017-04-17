@@ -47,6 +47,14 @@ let debug str =
 let zmq_context =
   ZMQ.Context.create ()
 
+let () =
+  let nproc =
+    match Sys.getenv "OMP_NUM_THREADS" with
+    | Some m -> int_of_string m
+    | None -> 2
+  in
+  ZMQ.Context.set_io_threads zmq_context nproc
+
 
 let bind_socket ~socket_type ~socket ~port =
   let rec loop = function
@@ -62,7 +70,15 @@ let bind_socket ~socket_type ~socket ~port =
       | Unix.Unix_error _ -> (Time.pause @@ Time.Span.of_float 1. ; loop (i-1) )
       | other_exception -> raise other_exception
   in loop 60;
-  ZMQ.Socket.bind socket @@ Printf.sprintf "ipc:///tmp/qp_run:%d" port
+  let filename =
+    Printf.sprintf "/tmp/qp_run:%d" port
+  in
+  begin
+    match Sys.file_exists filename with
+    | `Yes -> Sys.remove filename
+    | _ -> ()
+  end;
+  ZMQ.Socket.bind socket ("ipc://"^filename)
 
 
 let hostname = lazy (
@@ -99,7 +115,7 @@ let ip_address = lazy (
 
 
 let reply_ok rep_socket =
-    Message.Ok_msg.create ()
+    Message.Ok_msg.create 
     |> Message.Ok_msg.to_string
     |> ZMQ.Socket.send rep_socket 
 
@@ -121,7 +137,7 @@ let stop ~port =
     ZMQ.Socket.set_linger_period req_socket 1_000_000;
     ZMQ.Socket.connect req_socket address;
 
-    Message.Terminate (Message.Terminate_msg.create ())
+    Message.Terminate (Message.Terminate_msg.create)
     |> Message.to_string
     |> ZMQ.Socket.send req_socket ;
 
@@ -289,9 +305,9 @@ let disconnect msg program_state rep_socket =
     
 let del_task msg program_state rep_socket =
 
-    let state, task_id =
+    let state, task_ids =
       msg.Message.DelTask_msg.state, 
-      msg.Message.DelTask_msg.task_id
+      msg.Message.DelTask_msg.task_ids
     in
 
     let failure () =
@@ -302,13 +318,14 @@ let del_task msg program_state rep_socket =
 
         let new_program_state = 
             { program_state with
-              queue = Queuing_system.del_task ~task_id program_state.queue
+              queue = List.fold ~f:(fun queue task_id -> Queuing_system.del_task ~task_id queue)
+                      ~init:program_state.queue task_ids
             }
         in
         let more = 
             (Queuing_system.number_of_tasks new_program_state.queue > 0)
         in
-        Message.DelTaskReply (Message.DelTaskReply_msg.create ~task_id ~more)
+        Message.DelTaskReply (Message.DelTaskReply_msg.create ~task_ids ~more)
         |> Message.to_string
         |> ZMQ.Socket.send ~block:true rep_socket ; (** /!\ Has to be blocking *)
         new_program_state
@@ -329,9 +346,9 @@ let del_task msg program_state rep_socket =
 
 let add_task msg program_state rep_socket =
 
-    let state, task =
+    let state, tasks =
         msg.Message.AddTask_msg.state,
-        msg.Message.AddTask_msg.task
+        msg.Message.AddTask_msg.tasks
     in
 
     let increment_progress_bar = function
@@ -339,59 +356,17 @@ let add_task msg program_state rep_socket =
       | None -> None
     in
 
-    let rec add_task_triangle program_state imax = function
-      | 0 -> program_state
-      | i -> 
-          let task = 
-             Printf.sprintf "%d %d" i imax
-          in
-          let new_program_state =
-             { program_state with
-               queue = Queuing_system.add_task ~task program_state.queue ;
-               progress_bar = increment_progress_bar program_state.progress_bar ;
-             }
-          in
-          add_task_triangle new_program_state imax (i-1)
-    in
-    
-    let rec add_task_range program_state i = function
-      | j when (j < i) -> program_state
-      | j -> 
-          let task = 
-             Printf.sprintf "%d" j
-          in
-          let new_program_state =
-             { program_state with
-               queue = Queuing_system.add_task ~task program_state.queue ;
-               progress_bar = increment_progress_bar program_state.progress_bar ;
-             }
-          in
-          add_task_range new_program_state i (j-1)
-    in
-    
-    let new_program_state = function
-      | "triangle" :: i_str :: [] ->
-          let imax = 
-              Int.of_string i_str
-          in
-          add_task_triangle program_state imax imax
-      | "range" :: i_str :: j_str :: [] ->
-          let i, j = 
-              Int.of_string i_str,
-              Int.of_string j_str
-          in
-          add_task_range program_state i j
-      | _ -> 
-          { program_state with
-            queue = Queuing_system.add_task ~task program_state.queue ;
-            progress_bar = increment_progress_bar program_state.progress_bar ;
-          }
-    in 
-
     let result = 
-        String.split ~on:' ' task
-        |> List.filter ~f:(fun x -> x <> "")
-        |> new_program_state 
+        let new_queue, new_bar = 
+          List.fold ~f:(fun (queue, bar) task ->
+              Queuing_system.add_task ~task queue,
+              increment_progress_bar bar)
+            ~init:(program_state.queue, program_state.progress_bar) tasks 
+        in
+        { program_state with
+          queue = new_queue;
+          progress_bar = new_bar
+        }
     in
     reply_ok rep_socket;
     result
@@ -448,10 +423,10 @@ let get_task msg program_state rep_socket pair_socket =
 
 let task_done msg program_state rep_socket =
 
-    let state, client_id, task_id =
+    let state, client_id, task_ids =
         msg.Message.TaskDone_msg.state,
         msg.Message.TaskDone_msg.client_id,
-        msg.Message.TaskDone_msg.task_id
+        msg.Message.TaskDone_msg.task_ids
     in
 
     let increment_progress_bar = function
@@ -464,10 +439,16 @@ let task_done msg program_state rep_socket =
         program_state
     
     and success () = 
+        let new_queue, new_bar = 
+          List.fold ~f:(fun (queue, bar) task_id -> 
+              Queuing_system.end_task ~task_id ~client_id queue,
+              increment_progress_bar bar)
+            ~init:(program_state.queue, program_state.progress_bar) task_ids 
+        in
         let result = 
           { program_state with
-            queue = Queuing_system.end_task ~task_id ~client_id program_state.queue ;
-            progress_bar = increment_progress_bar program_state.progress_bar ;
+            queue = new_queue;
+            progress_bar = new_bar
           }
         in
         reply_ok rep_socket;

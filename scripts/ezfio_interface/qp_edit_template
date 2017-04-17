@@ -1,6 +1,10 @@
-open Qputils;;
-open Qptypes;;
-open Core.Std;;
+(*
+  vim::syntax=ocaml
+ *)
+
+open Qputils
+open Qptypes
+open Core.Std
 
 (** Interactive editing of the input.
 
@@ -18,7 +22,7 @@ type keyword =
 | Mo_basis
 | Nuclei
 {keywords}
-;;
+
 
 
 let keyword_to_string = function
@@ -28,7 +32,7 @@ let keyword_to_string = function
 | Mo_basis              -> "MO basis"
 | Nuclei                -> "Molecule"
 {keywords_to_string}
-;;
+
 
 
 
@@ -42,7 +46,7 @@ let file_header filename =
 Editing file `%s`
 
 " filename
-;;
+
   
 
 (** Creates the header of a section *)
@@ -50,7 +54,7 @@ let make_header kw =
   let s = keyword_to_string kw in
   let l = String.length s in
   "\n\n"^s^"\n"^(String.init l ~f:(fun _ -> '='))^"\n\n"
-;;
+
 
 
 (** Returns the rst string of section [s] *)
@@ -82,7 +86,7 @@ let get s =
     | Sys_error msg -> (Printf.eprintf "Info: %s\n%!" msg ; "")
   in 
   rst
-;;
+
 
 
 (** Applies the changes from the string [str] corresponding to section [s] *)
@@ -121,7 +125,7 @@ let set str s =
         | Ao_basis         -> () (* TODO *)
         | Mo_basis         -> () (* TODO *)
     end
-;;
+
 
 
 (** Creates the temporary file for interactive editing *)
@@ -135,17 +139,38 @@ let create_temp_file ezfio_filename fields =
       )
   end
   ; temp_filename
-;;
 
 
+                                                 
 
-let run check_only ezfio_filename =
+
+let run check_only ?ndet ?state ezfio_filename =
+
+  (* Set check_only if the arguments are not empty *)
+  let check_only =
+    match ndet, state with
+    | None, None -> check_only
+    | _ -> true
+  in
 
   (* Open EZFIO *)
   if (not (Sys.file_exists_exn ezfio_filename)) then
     failwith (ezfio_filename^" does not exists");
 
   Ezfio.set_file ezfio_filename;
+
+  begin
+    match ndet with
+    | None -> ()
+    | Some n -> Input.Determinants_by_hand.update_ndet (Det_number.of_int n)
+  end;
+
+  begin
+    match state with
+    | None -> ()
+    | Some n -> Input.Determinants_by_hand.extract_state (States_number.of_int n)
+  end;
+
 
   (*
   let output = (file_header ezfio_filename) :: (
@@ -196,7 +221,7 @@ let run check_only ezfio_filename =
 
   (* Remove temp_file *)
   Sys.remove temp_filename
-;;
+
 
 
 (** Create a backup file in case of an exception *)
@@ -207,7 +232,7 @@ let create_backup ezfio_filename =
   "
     ezfio_filename ezfio_filename ezfio_filename
   |> Sys.command_exn
-;;
+
 
 
 (** Restore the backup file when an exception occuprs *)
@@ -215,7 +240,7 @@ let restore_backup ezfio_filename =
   Printf.sprintf "tar -zxf %s/backup.tgz"
     ezfio_filename 
   |> Sys.command_exn
-;;
+
 
 
 let spec =
@@ -223,12 +248,12 @@ let spec =
   empty 
   +> flag "-c" no_arg
      ~doc:"Checks the input data"
-(*
-  +> flag "o" (optional string)
-     ~doc:"Prints output data"
-*)
+  +> flag "ndet" (optional int)
+     ~doc:"int Truncate the wavefunction to the target number of determinants"
+  +> flag "state" (optional int)
+     ~doc:"int Pick the state as a new wavefunction."
   +> anon ("ezfio_file" %: string)
-;;
+
 
 let command = 
     Command.basic 
@@ -245,9 +270,9 @@ Edit input data
        with
        | _ msg -> print_string ("\n\nError\n\n"^msg^"\n\n")
     *)
-    (fun c ezfio_file () ->
+    (fun c ndet state ezfio_file () ->
        try
-          run c ezfio_file ;
+          run c ?ndet ?state ezfio_file ;
           (* create_backup ezfio_file; *)
        with
        | Failure exc 
@@ -268,12 +293,12 @@ Edit input data
            raise e
          end
     )
-;;
+
 
 let () =
   Command.run command;
   exit 0
-;;
+
 
 
 

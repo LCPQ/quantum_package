@@ -110,7 +110,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   character*(16384)              :: write_buffer
   double precision               :: to_print(3,N_st)
   double precision               :: cpu, wall
-  integer                        :: shift, shift2, itermax
+  integer                        :: shift, shift2, itermax, update_dets
   double precision               :: r1, r2
   logical                        :: state_ok(N_st_diag*davidson_sze_max)
   include 'constants.include.F'
@@ -121,6 +121,10 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
     print *,  'Increase n_det_max_jacobi to ', N_st_diag*3
     stop -1
   endif
+  
+  integer, external              :: align_double
+  sze_8 = align_double(sze)
+  itermax = max(3,min(davidson_sze_max, sze/N_st_diag))
   
   PROVIDE nuclear_repulsion expected_s2
   
@@ -134,6 +138,9 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   call write_int(iunit,N_st,'Number of states')
   call write_int(iunit,N_st_diag,'Number of states in diagonalization')
   call write_int(iunit,sze,'Number of determinants')
+  r1 = 8.d0*(3.d0*dble(sze_8*N_st_diag*itermax+5.d0*(N_st_diag*itermax)**2 & 
+    + 4.d0*(N_st_diag*itermax))/(1024.d0**3))
+  call write_double(iunit, r1, 'Memory(Gb)')
   write(iunit,'(A)') ''
   write_buffer = '===== '
   do i=1,N_st
@@ -151,14 +158,14 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   enddo
   write(iunit,'(A)') trim(write_buffer)
   
-  integer, external              :: align_double
-  sze_8 = align_double(sze)
-  
-  itermax = max(3,min(davidson_sze_max, sze/N_st_diag))
+
   allocate(                                                          &
+      ! Large
       W(sze_8,N_st_diag*itermax),                                    &
       U(sze_8,N_st_diag*itermax),                                    &
       S(sze_8,N_st_diag*itermax),                                    &
+
+      ! Small
       h(N_st_diag*itermax,N_st_diag*itermax),                        &
       y(N_st_diag*itermax,N_st_diag*itermax),                        &
       s_(N_st_diag*itermax,N_st_diag*itermax),                       &
@@ -204,6 +211,8 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
   enddo
   
   
+  update_dets = 1
+
   do while (.not.converged)
     
     do k=1,N_st_diag
@@ -223,8 +232,12 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
       ! -----------------------------------------
       
        
-!      call H_S2_u_0_nstates_zmq(W(1,shift+1),S(1,shift+1),U(1,shift+1),H_jj,S2_jj,sze,dets_in,Nint,N_st_diag,sze_8)
-      call H_S2_u_0_nstates(W(1,shift+1),S(1,shift+1),U(1,shift+1),H_jj,S2_jj,sze,dets_in,Nint,N_st_diag,sze_8)
+      if (distributed_davidson) then
+          call H_S2_u_0_nstates_zmq(W(1,shift+1),S(1,shift+1),U(1,shift+1),H_jj,S2_jj,sze,dets_in,Nint,N_st_diag,sze_8,update_dets)
+      else
+          call H_S2_u_0_nstates(W(1,shift+1),S(1,shift+1),U(1,shift+1),H_jj,S2_jj,sze,dets_in,Nint,N_st_diag,sze_8)
+      endif
+      update_dets = 0
       
       
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
@@ -400,7 +413,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sze,N_s
         endif
       enddo
       
-      write(iunit,'(X,I3,X,100(X,F16.10,X,F11.6,X,E11.3))')  iter, to_print(1:3,1:N_st)
+      write(iunit,'(1X,I3,1X,100(1X,F16.10,1X,F11.6,1X,E11.3))')  iter, to_print(1:3,1:N_st)
       call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
       do k=1,N_st
         if (residual_norm(k) > 1.e8) then
@@ -825,7 +838,7 @@ subroutine davidson_diag_hjj_sjj_mmap(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
         endif
       enddo
       
-      write(iunit,'(X,I3,X,100(X,F16.10,X,F11.6,X,E11.3))')  iter, to_print(1:3,1:N_st)
+      write(iunit,'(1X,I3,1X,100(1X,F16.10,1X,F11.6,1X,E11.3))')  iter, to_print(1:3,1:N_st)
       call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
       do k=1,N_st
         if (residual_norm(k) > 1.e8) then

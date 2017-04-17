@@ -44,8 +44,8 @@ subroutine give_2h1p_contrib_sec_order(matrix_2h1p)
       perturb_dets_phase(a,2,1) = -1000.d0
      enddo
      
-  integer           :: degree(N_det)
-  integer           :: idx(0:N_det)
+  integer           :: degree(N_det_Ref)
+  integer           :: idx(0:N_det_Ref)
   double precision :: delta_e(n_act_orb,2,N_states)
   integer :: istate
 
@@ -210,10 +210,6 @@ subroutine give_2h1p_contrib_sec_order(matrix_2h1p)
 
                  ! < det_tmp     | H | det_tmp_bis >  = F_{aorb,borb}
                  hab = (fock_operator_local(aorb,borb,kspin) ) * phase  
-            if(isnan(hab))then
-             print*, '1'
-             stop
-            endif
                  ! < jdet | H | det_tmp_bis > = phase * (ir|cv)
                  call get_double_excitation(det_tmp_bis,psi_det(1,1,idx(jdet)),exc,phase,N_int)
                  if(ispin == jspin)then
@@ -255,7 +251,8 @@ subroutine give_2h1p_contrib_sec_order(matrix_2h1p)
                  call get_mono_excitation(det_tmp,det_tmp_bis,exc,phase,N_int)
 !                ! < det_tmp | H | det_tmp_bis >  = F_{aorb,borb}
                  hab = fock_operator_local(aorb,borb,kspin) * phase  
-            if(isnan(hab))then
+!            if(isnan(hab))then
+            if(hab /= hab)then
              print*, '2'
              stop
             endif
@@ -379,8 +376,8 @@ subroutine give_1h2p_contrib_sec_order(matrix_1h2p)
  double precision :: active_int(n_act_orb,2)
  double precision :: hij,phase
  double precision :: accu_contrib
- integer           :: degree(N_det)
- integer           :: idx(0:N_det)
+ integer           :: degree(N_det_Ref)
+ integer           :: idx(0:N_det_Ref)
  double precision :: delta_e(n_act_orb,2,N_states)
  integer :: istate
  integer :: index_orb_act_mono(N_det,6)
