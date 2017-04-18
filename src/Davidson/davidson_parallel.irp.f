@@ -208,13 +208,12 @@ end subroutine
 
 
 
-subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull , v0, s0, LDA)
+subroutine davidson_collector(zmq_to_qp_run_socket, v0, s0, LDA)
   use f77_zmq
   implicit none
 
   integer                        :: LDA
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
-  integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
   
   double precision    ,intent(inout) :: v0(LDA, N_states_diag)
   double precision    ,intent(inout) :: s0(LDA, N_states_diag)
@@ -223,11 +222,14 @@ subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull , v0, s0, LD
   
   double precision, allocatable :: v_0(:,:), s_0(:,:)
   integer :: i,j
+  integer(ZMQ_PTR), external     :: new_zmq_pull_socket
+  integer(ZMQ_PTR)               :: zmq_socket_pull
 
   allocate(v_0(N_det,N_states_diag), s_0(N_det,N_states_diag))
   v0 = 0.d0 
   s0 = 0.d0 
   more = 1
+  zmq_socket_pull = new_zmq_pull_socket()
   do while (more == 1)
     call davidson_pull_results(zmq_socket_pull, v_0, s_0, task_id)
     do j=1,N_states_diag
@@ -239,35 +241,10 @@ subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull , v0, s0, LD
     call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
   end do
   deallocate(v_0,s_0)
-
-end subroutine
-
-
-subroutine davidson_run(zmq_to_qp_run_socket , v0, s0, LDA)
-  use f77_zmq
-  implicit none
-  
-  integer                        :: LDA
-  integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
-  integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
-  integer(ZMQ_PTR)               :: zmq_collector
-  integer(ZMQ_PTR), external     :: new_zmq_pull_socket
-  integer(ZMQ_PTR)               :: zmq_socket_pull
-  
-  integer :: i
-  integer, external              :: omp_get_thread_num
-
-  double precision    , intent(inout)     :: v0(LDA, N_states_diag)
-  double precision    , intent(inout)     :: s0(LDA, N_states_diag)
-  
-  
-  zmq_collector = new_zmq_to_qp_run_socket()
-  zmq_socket_pull = new_zmq_pull_socket()
-  call davidson_collector(zmq_collector, zmq_socket_pull , v0, s0, LDA)
-  call end_zmq_to_qp_run_socket(zmq_collector)
   call end_zmq_pull_socket(zmq_socket_pull)
 
 end subroutine
+
 
 
 
@@ -361,7 +338,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze_8)
 
 
   integer :: istep, imin, imax, ishift
-  istep=1
+  istep=2
   do imin=1,N_det, 524288
     do ishift=0,istep-1
       imax = min(N_det, imin+524288-1)
@@ -378,7 +355,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze_8)
   ithread = omp_get_thread_num()
   if (ithread == 0 ) then
     call zmq_set_running(zmq_to_qp_run_socket)
-    call davidson_run(zmq_to_qp_run_socket, v_0, s_0, size(v_0,1))
+    call davidson_collector(zmq_to_qp_run_socket, v_0, s_0, size(v_0,1))
   else 
     call davidson_slave_inproc(1)
   endif

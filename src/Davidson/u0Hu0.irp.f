@@ -157,7 +157,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
   s_t = 0.d0
 
 
-  !$OMP DO SCHEDULE(static,1)
+  !$OMP DO SCHEDULE(static,1024)
   do k_a=istart+ishift,iend,istep
 
     krow = psi_bilinear_matrix_rows(k_a)
@@ -217,7 +217,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
 
   enddo
 
-  !$OMP DO SCHEDULE(static,1)
+  !$OMP DO SCHEDULE(static,1024)
   do k_a=istart+ishift,iend,istep
 
 

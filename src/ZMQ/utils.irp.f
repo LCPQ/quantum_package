@@ -445,6 +445,11 @@ subroutine end_zmq_pull_socket(zmq_socket_pull)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
+  rc = f77_zmq_setsockopt(zmq_socket_pull,ZMQ_LINGER,0,4)
+  if (rc /= 0) then
+    stop 'Unable to set ZMQ_LINGER on pull socket'
+  endif
+
   call omp_set_lock(zmq_lock)
   rc = f77_zmq_close(zmq_socket_pull)
   call omp_unset_lock(zmq_lock)
