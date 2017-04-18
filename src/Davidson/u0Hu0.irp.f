@@ -106,7 +106,6 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
   integer, allocatable           :: singles_a(:)
   integer, allocatable           :: singles_b(:)
   integer, allocatable           :: idx(:), idx0(:)
-  logical, allocatable           :: is_single_a(:)
   integer                        :: maxab, n_singles_a, n_singles_b, kcol_prev, nmax
   integer*8                      :: k8
   double precision, allocatable  :: v_t(:,:), s_t(:,:)
@@ -136,7 +135,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
       !$OMP          singles_alpha_size, sze_8, istart, iend, istep, &
       !$OMP          ishift, idx0, u_t, maxab, v_0, s_0)             &
       !$OMP   PRIVATE(krow, kcol, tmp_det, spindet, k_a, k_b, i,     &
-      !$OMP          lcol, lrow, is_single_a,l_a, l_b, nmax,         &
+      !$OMP          lcol, lrow, l_a, l_b, nmax,         &
       !$OMP          buffer, singles, doubles, n_singles, n_doubles, &
       !$OMP          tmp_det2, hij, sij, idx, l, kcol_prev, v_t,     &
       !$OMP          singles_a, n_singles_a, singles_b,              &
@@ -151,9 +150,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
       singles_b(maxab),                                              &
       doubles(maxab),                                                &
       idx(maxab),                                                    &
-      v_t(N_st,N_det), s_t(N_st,N_det),                              &
-      is_single_a(N_det_alpha_unique))
-  is_single_a = .False.
+      v_t(N_st,N_det), s_t(N_st,N_det))
   kcol_prev=-1
 
   v_t = 0.d0
@@ -171,7 +168,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
     
     if (kcol /= kcol_prev) then
       call get_all_spin_singles(                                   &
-          psi_det_beta_unique(1,kcol+1), idx0(kcol+1), tmp_det(1,2), N_int, N_det_beta_unique-kcol+2,&
+          psi_det_beta_unique(1,kcol+1), idx0(kcol+1), tmp_det(1,2), N_int, N_det_beta_unique-kcol,&
           singles_b, n_singles_b)
     endif
     kcol_prev = kcol
