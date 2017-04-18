@@ -106,7 +106,8 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze_
   endif
 
   if (N_det_read /= N_det) then
-    stop 'error : N_det'
+    N_det = N_det_read
+    TOUCH N_det
   endif
 
   rc = f77_zmq_recv(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,0)
@@ -339,9 +340,9 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze_8)
 
   integer :: istep, imin, imax, ishift
   istep=2
-  do imin=1,N_det, 262144
+  do imin=1,N_det, 1048576
     do ishift=0,istep-1
-      imax = min(N_det, imin+262144-1)
+      imax = min(N_det, imin+1048576-1)
       write(task,'(4(I9,1X),1A)') imin, imax, ishift, istep, '|'
       call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task))
     enddo
