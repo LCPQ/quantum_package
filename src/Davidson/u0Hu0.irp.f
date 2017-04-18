@@ -104,9 +104,10 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
   integer                        :: n_singles, n_doubles
   integer, allocatable           :: singles(:), doubles(:)
   integer, allocatable           :: singles_a(:)
+  integer, allocatable           :: singles_b(:)
   integer, allocatable           :: idx(:), idx0(:)
   logical, allocatable           :: is_single_a(:)
-  integer                        :: maxab, n_singles_a, kcol_prev, nmax
+  integer                        :: maxab, n_singles_a, n_singles_b, kcol_prev, nmax
   integer*8                      :: k8
   double precision, allocatable  :: v_t(:,:), s_t(:,:)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: v_t, s_t
@@ -138,7 +139,8 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
       !$OMP          lcol, lrow, is_single_a,l_a, l_b, nmax,         &
       !$OMP          buffer, singles, doubles, n_singles, n_doubles, &
       !$OMP          tmp_det2, hij, sij, idx, l, kcol_prev, v_t,     &
-      !$OMP          singles_a, n_singles_a, s_t, k8)
+      !$OMP          singles_a, n_singles_a, singles_b,              &
+      !$OMP          n_singles_b, s_t, k8)
   
   ! Alpha/Beta double excitations
   ! =============================
@@ -146,6 +148,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
   allocate( buffer(N_int,maxab),                                     &
       singles(maxab),                                                &
       singles_a(maxab),                                              &
+      singles_b(maxab),                                              &
       doubles(maxab),                                                &
       idx(maxab),                                                    &
       v_t(N_st,N_det), s_t(N_st,N_det),                              &
@@ -166,38 +169,42 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
     tmp_det(1:N_int,1) = psi_det_alpha_unique(1:N_int, krow)
     tmp_det(1:N_int,2) = psi_det_beta_unique (1:N_int, kcol)
     
-    do k8=singles_alpha_csc_idx(krow), singles_alpha_csc_idx(krow+1)-1
-      is_single_a( singles_alpha_csc(k8) ) = .True.
-    enddo
-
     if (kcol /= kcol_prev) then
       call get_all_spin_singles(                                   &
-          psi_det_beta_unique, idx0, tmp_det(1,2), N_int, N_det_beta_unique,&
-          singles_a, n_singles_a)
+          psi_det_beta_unique(1,kcol+1), idx0(kcol+1), tmp_det(1,2), N_int, N_det_beta_unique-kcol+2,&
+          singles_b, n_singles_b)
     endif
     kcol_prev = kcol
 
-    ! Loop over singly excited beta columns
-    ! -------------------------------------
+    ! Loop over singly excited beta columns > current column
+    ! ------------------------------------------------------
 
-    do i=1,n_singles_a
-      lcol = singles_a(i)
-      if (lcol <= kcol) cycle
+    do i=1,n_singles_b
+      lcol = singles_b(i)
 
       tmp_det2(1:N_int,2) = psi_det_beta_unique(1:N_int, lcol)
 
       l_a = psi_bilinear_matrix_columns_loc(lcol)
 
+      nmax = psi_bilinear_matrix_columns_loc(lcol+1) - l_a
+      do j=1,nmax
+        lrow = psi_bilinear_matrix_rows(l_a)
+        buffer(1:N_int,j) = psi_det_alpha_unique(1:N_int, lrow)
+        idx(j) = l_a
+        l_a = l_a+1
+      enddo
+      j = j-1
+      
+      call get_all_spin_singles(                                     &
+          buffer, idx, tmp_det(1,1), N_int, j,                       &
+          singles_a, n_singles_a )
+
       ! Loop over alpha singles
       ! -----------------------
 
-      do while ( l_a < psi_bilinear_matrix_columns_loc(lcol+1) )
-        do l=l_a,psi_bilinear_matrix_columns_loc(lcol+1)-1
-          lrow = psi_bilinear_matrix_rows(l)
-          if (is_single_a(lrow)) exit
-        enddo
-        if (l >= psi_bilinear_matrix_columns_loc(lcol+1)) exit
-        l_a = l
+      do k = 1,n_singles_a
+        l_a = singles_a(k)
+        lrow = psi_bilinear_matrix_rows(l_a)
         tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
         call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij)
         call get_s2(tmp_det,tmp_det2,N_int,sij)
@@ -207,11 +214,8 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
           s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,l_a)
           s_t(l,l_a) = s_t(l,l_a) + sij * u_t(l,k_a)
         enddo
-        l_a = l_a+1
       enddo
-    enddo
-    do k8=singles_alpha_csc_idx(krow), singles_alpha_csc_idx(krow+1)-1
-      is_single_a( singles_alpha_csc(k8) ) = .False.
+
     enddo
 
   enddo
