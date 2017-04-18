@@ -338,15 +338,22 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze_8)
 
 
   integer :: istep, imin, imax, ishift
-  istep=2
-  do imin=1,N_det, 524288
-    do ishift=0,istep-1
-      imax = min(N_det, imin+524288-1)
-      write(task,'(4(I9,1X),1A)') imin, imax, ishift, istep, '|'
-      call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task))
-    enddo
-  enddo
+!  istep=1
+!  do imin=1,N_det, 524288
+!    do ishift=0,istep-1
+!      imax = min(N_det, imin+524288-1)
+!      write(task,'(4(I9,1X),1A)') imin, imax, ishift, istep, '|'
+!      call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task))
+!    enddo
+!  enddo
 
+  istep=N_det/131072+1
+  imin=1
+  imax=N_det
+  do ishift=0,istep-1
+    write(task,'(4(I9,1X),1A)') imin, imax, ishift, istep, '|'
+    call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task))
+  enddo
   v_0 = 0.d0
   s_0 = 0.d0
 
