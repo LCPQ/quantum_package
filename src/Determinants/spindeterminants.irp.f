@@ -1043,17 +1043,15 @@ subroutine get_all_spin_singles_1(buffer, idx, spindet, size_buffer, singles, n_
   integer(bit_kind), intent(in)  :: spindet
   integer, intent(out)           :: singles(size_buffer)
   integer, intent(out)           :: n_singles
-  integer                        :: i 
-  integer(bit_kind)              :: xorvec
+  integer                        :: i
   integer                        :: degree
-  !DIR$ ATTRIBUTES ALIGN : 64 :: xorvec
   include 'Utils/constants.include.F'
 
   n_singles = 1
   do i=1,size_buffer
-    degree = popcnt(xor( spindet, buffer(i) ))
-    if ( degree == 2 ) then
-      singles(n_singles) = idx(i)
+    degree = popcnt(xor( spindet, buffer(i) )) 
+    singles(n_singles) = idx(i)
+    if (degree == 2) then
       n_singles = n_singles+1
     endif
   enddo
