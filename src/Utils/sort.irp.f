@@ -318,13 +318,11 @@ BEGIN_TEMPLATE
     xtmp = x(i)
     i0 = iorder(i)
     j = i-1_8
-    do j=i-1_8,1_8,-1_8
-      if ( x(j) > xtmp ) then
-        x(j+1_8) = x(j)
-        iorder(j+1_8) = iorder(j)
-      else
-        exit
-      endif
+    do while (x(j)<xtmp) 
+      x(j+1_8) = x(j)
+      iorder(j+1_8) = iorder(j)
+      j = j-1_8
+      if (j<1_8) exit
     enddo
     x(j+1_8) = xtmp
     iorder(j+1_8) = i0
