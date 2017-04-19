@@ -61,6 +61,9 @@ subroutine run_selection_slave(thread,iproc,energy)
         call push_selection_results(zmq_socket_push, pt2, buf, task_id(1), ctask)
         do i=1,buf%cur
           call add_to_selection_buffer(buf2, buf%det(1,1,i), buf%val(i))
+          if (buf2%cur == buf2%N) then
+            call sort_selection_buffer(buf2)
+          endif
         enddo
         buf%mini = buf2%mini
         pt2 = 0d0

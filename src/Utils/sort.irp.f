@@ -15,16 +15,17 @@ BEGIN_TEMPLATE
   do i=2,isize
     xtmp = x(i)
     i0 = iorder(i)
-    do j = i-1,1,-1
+    j=i-1
+    do while (j>0)
       if ((x(j) <= xtmp)) exit
       x(j+1) = x(j)
       iorder(j+1) = iorder(j)
+      j=j-1
     enddo
     x(j+1) = xtmp
     iorder(j+1) = i0
   enddo
  end subroutine insertion_$Xsort
-
 
  subroutine heap_$Xsort(x,iorder,isize)
   implicit none
@@ -314,15 +315,15 @@ BEGIN_TEMPLATE
   $type                          :: xtmp
   integer*8                      :: i, i0, j, jmax
   
-  do i=1_8,isize
+  do i=2_8,isize
     xtmp = x(i)
     i0 = iorder(i)
     j = i-1_8
-    do while (x(j)<xtmp) 
+    do while (j>0_8) 
+      if (x(j)<=xtmp) exit
       x(j+1_8) = x(j)
       iorder(j+1_8) = iorder(j)
       j = j-1_8
-      if (j<1_8) exit
     enddo
     x(j+1_8) = xtmp
     iorder(j+1_8) = i0
