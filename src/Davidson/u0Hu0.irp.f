@@ -73,7 +73,6 @@ subroutine H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze)
 end
 
 
-
 subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
   use bitmasks
   implicit none
@@ -89,6 +88,33 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
   
   PROVIDE ref_bitmask_energy
 
+  select case (N_int)
+    case (1)
+      call H_S2_u_0_nstates_openmp_work_1(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+    case (2)
+      call H_S2_u_0_nstates_openmp_work_2(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+    case (3)
+      call H_S2_u_0_nstates_openmp_work_3(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+    case (4)
+      call H_S2_u_0_nstates_openmp_work_4(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+    case default
+      call H_S2_u_0_nstates_openmp_work_N_int(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+  end select
+end
+BEGIN_TEMPLATE
+
+subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes v_0 = H|u_0> and s_0 = S^2 |u_0>
+  !
+  ! Default should be 1,N_det,0,1
+  END_DOC
+  integer, intent(in)            :: N_st,sze,istart,iend,ishift,istep
+  double precision, intent(in)   :: u_t(N_st,N_det)
+  double precision, intent(out)  :: v_0(sze,N_st), s_0(sze,N_st) 
+
   double precision               :: hij, sij
   integer                        :: i,j,k,l
   integer                        :: k_a, k_b, l_a, l_b, m_a, m_b
@@ -96,10 +122,10 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
   integer                        :: krow, kcol, krow_b, kcol_b
   integer                        :: lrow, lcol
   integer                        :: mrow, mcol
-  integer(bit_kind)              :: spindet(N_int)
-  integer(bit_kind)              :: tmp_det(N_int,2)
-  integer(bit_kind)              :: tmp_det2(N_int,2)
-  integer(bit_kind)              :: tmp_det3(N_int,2)
+  integer(bit_kind)              :: spindet($N_int)
+  integer(bit_kind)              :: tmp_det($N_int,2)
+  integer(bit_kind)              :: tmp_det2($N_int,2)
+  integer(bit_kind)              :: tmp_det3($N_int,2)
   integer(bit_kind), allocatable :: buffer(:,:)
   integer                        :: n_doubles
   integer, allocatable           :: doubles(:)
@@ -110,6 +136,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
   integer*8                      :: k8
   double precision, allocatable  :: v_t(:,:), s_t(:,:)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: v_t, s_t
+  PROVIDE N_int
 
   maxab = max(N_det_alpha_unique, N_det_beta_unique)+1
   allocate(idx0(maxab))
@@ -144,7 +171,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
   ! Alpha/Beta double excitations
   ! =============================
     
-  allocate( buffer(N_int,maxab),                                     &
+  allocate( buffer($N_int,maxab),                                     &
       singles_a(maxab),                                              &
       singles_b(maxab),                                              &
       doubles(maxab),                                                &
@@ -156,18 +183,19 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
   s_t = 0.d0
 
 
-  !$OMP DO SCHEDULE(static,64)
+  !$OMP DO SCHEDULE(dynamic,64)
   do k_a=istart+ishift,iend,istep
 
     krow = psi_bilinear_matrix_rows(k_a)
     kcol = psi_bilinear_matrix_columns(k_a)
     
-    tmp_det(1:N_int,1) = psi_det_alpha_unique(1:N_int, krow)
-    tmp_det(1:N_int,2) = psi_det_beta_unique (1:N_int, kcol)
+    tmp_det(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, krow)
+    tmp_det(1:$N_int,2) = psi_det_beta_unique (1:$N_int, kcol)
     
     if (kcol /= kcol_prev) then
-      call get_all_spin_singles(                                   &
-          psi_det_beta_unique(1,kcol+1), idx0(kcol+1), tmp_det(1,2), N_int, N_det_beta_unique-kcol,&
+      call get_all_spin_singles_$N_int(                              &
+          psi_det_beta_unique(1,kcol+1), idx0(kcol+1),               &
+          tmp_det(1,2), N_det_beta_unique-kcol,                      &
           singles_b, n_singles_b)
     endif
     kcol_prev = kcol
@@ -178,21 +206,21 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
     do i=1,n_singles_b
       lcol = singles_b(i)
 
-      tmp_det2(1:N_int,2) = psi_det_beta_unique(1:N_int, lcol)
+      tmp_det2(1:$N_int,2) = psi_det_beta_unique(1:$N_int, lcol)
 
       l_a = psi_bilinear_matrix_columns_loc(lcol)
 
       nmax = psi_bilinear_matrix_columns_loc(lcol+1) - l_a
       do j=1,nmax
         lrow = psi_bilinear_matrix_rows(l_a)
-        buffer(1:N_int,j) = psi_det_alpha_unique(1:N_int, lrow)
+        buffer(1:$N_int,j) = psi_det_alpha_unique(1:$N_int, lrow)
         idx(j) = l_a
         l_a = l_a+1
       enddo
       j = j-1
       
-      call get_all_spin_singles(                                     &
-          buffer, idx, tmp_det(1,1), N_int, j,                       &
+      call get_all_spin_singles_$N_int(                              &
+          buffer, idx, tmp_det(1,1), j,                              &
           singles_a, n_singles_a )
 
       ! Loop over alpha singles
@@ -201,15 +229,13 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
       do k = 1,n_singles_a
         l_a = singles_a(k)
         lrow = psi_bilinear_matrix_rows(l_a)
-        tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
-        call i_H_j_double_alpha_beta(tmp_det,tmp_det2,N_int,hij)
-        call get_s2(tmp_det,tmp_det2,N_int,sij)
+        tmp_det2(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, lrow)
+        call i_H_j_double_alpha_beta(tmp_det,tmp_det2,$N_int,hij)
+        call get_s2(tmp_det,tmp_det2,$N_int,sij)
         do l=1,N_st
           v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
           s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,l_a)
-          !$OMP ATOMIC
           v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
-          !$OMP ATOMIC
           s_t(l,l_a) = s_t(l,l_a) + sij * u_t(l,k_a)
         enddo
       enddo
@@ -219,7 +245,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
   enddo
   !$OMP END DO 
 
-  !$OMP DO SCHEDULE(static,64)
+  !$OMP DO SCHEDULE(dynamic,64)
   do k_a=istart+ishift,iend,istep
 
 
@@ -233,15 +259,15 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
     krow = psi_bilinear_matrix_rows(k_a)
     kcol = psi_bilinear_matrix_columns(k_a)
     
-    tmp_det(1:N_int,1) = psi_det_alpha_unique(1:N_int, krow)
-    tmp_det(1:N_int,2) = psi_det_beta_unique (1:N_int, kcol)
+    tmp_det(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, krow)
+    tmp_det(1:$N_int,2) = psi_det_beta_unique (1:$N_int, kcol)
     
     ! Initial determinant is at k_b in beta-major representation
     ! ----------------------------------------------------------------------
     
     k_b = psi_bilinear_matrix_order_transp_reverse(k_a)
 
-    spindet(1:N_int) = tmp_det(1:N_int,1)
+    spindet(1:$N_int) = tmp_det(1:$N_int,1)
     
     ! Loop inside the beta column to gather all the connected alphas
     l_a = k_a+1
@@ -250,25 +276,25 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
       lcol = psi_bilinear_matrix_columns(l_a)
       if (lcol /= kcol) exit
       lrow = psi_bilinear_matrix_rows(l_a)
-      buffer(1:N_int,i) = psi_det_alpha_unique(1:N_int, lrow)
+      buffer(1:$N_int,i) = psi_det_alpha_unique(1:$N_int, lrow)
       idx(i) = l_a
       l_a = l_a+1
     enddo
     i = i-1
     
-    call get_all_spin_singles_and_doubles(                           &
-        buffer, idx, spindet, N_int, i,                              &
+    call get_all_spin_singles_and_doubles_$N_int(                    &
+        buffer, idx, spindet, i,                                     &
         singles_a, doubles, n_singles_a, n_doubles )
 
     ! Compute Hij for all alpha singles
     ! ----------------------------------
 
-    tmp_det2(1:N_int,2) = psi_det_beta_unique (1:N_int, kcol)
+    tmp_det2(1:$N_int,2) = psi_det_beta_unique (1:$N_int, kcol)
     do i=1,n_singles_a
       l_a = singles_a(i)
       lrow = psi_bilinear_matrix_rows(l_a)
-      tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, lrow)
-      call i_H_j_mono_spin( tmp_det, tmp_det2, N_int, 1, hij)
+      tmp_det2(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, lrow)
+      call i_H_j_mono_spin( tmp_det, tmp_det2, $N_int, 1, hij)
       do l=1,N_st
         v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
@@ -283,9 +309,8 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
     do i=1,n_doubles
       l_a = doubles(i)
       lrow = psi_bilinear_matrix_rows(l_a)
-      call i_H_j_double_spin( tmp_det(1,1), psi_det_alpha_unique(1, lrow), N_int, hij)
+      call i_H_j_double_spin( tmp_det(1,1), psi_det_alpha_unique(1, lrow), $N_int, hij)
       do l=1,N_st
-          !$OMP ATOMIC
         v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! same spin => sij = 0
@@ -304,10 +329,10 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
     krow = psi_bilinear_matrix_rows(k_a)
     kcol = psi_bilinear_matrix_columns(k_a)
     
-    tmp_det(1:N_int,1) = psi_det_alpha_unique(1:N_int, krow)
-    tmp_det(1:N_int,2) = psi_det_beta_unique (1:N_int, kcol)
+    tmp_det(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, krow)
+    tmp_det(1:$N_int,2) = psi_det_beta_unique (1:$N_int, kcol)
     
-    spindet(1:N_int) = tmp_det(1:N_int,2)
+    spindet(1:$N_int) = tmp_det(1:$N_int,2)
     
     ! Initial determinant is at k_b in beta-major representation
     ! -----------------------------------------------------------------------
@@ -321,28 +346,27 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
       lrow = psi_bilinear_matrix_transp_rows(l_b)
       if (lrow /= krow) exit
       lcol = psi_bilinear_matrix_transp_columns(l_b)
-      buffer(1:N_int,i) = psi_det_beta_unique(1:N_int, lcol)
+      buffer(1:$N_int,i) = psi_det_beta_unique(1:$N_int, lcol)
       idx(i) = l_b
       l_b = l_b+1
     enddo
     i = i-1
   
-    call get_all_spin_singles_and_doubles(                           &
-        buffer, idx, spindet, N_int, i,                              &
+    call get_all_spin_singles_and_doubles_$N_int(                    &
+        buffer, idx, spindet, i,                                     &
         singles_b, doubles, n_singles_b, n_doubles )
     
     ! Compute Hij for all beta singles
     ! ----------------------------------
     
-    tmp_det2(1:N_int,1) = psi_det_alpha_unique(1:N_int, krow)
+    tmp_det2(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, krow)
     do i=1,n_singles_b
       l_b = singles_b(i)
       lcol = psi_bilinear_matrix_transp_columns(l_b)
-      tmp_det2(1:N_int,2) = psi_det_beta_unique (1:N_int, lcol)
-      call i_H_j_mono_spin( tmp_det, tmp_det2, N_int, 2, hij)
+      tmp_det2(1:$N_int,2) = psi_det_beta_unique (1:$N_int, lcol)
+      call i_H_j_mono_spin( tmp_det, tmp_det2, $N_int, 2, hij)
       l_a = psi_bilinear_matrix_transp_order(l_b)
       do l=1,N_st
-          !$OMP ATOMIC
         v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! single => sij = 0 
@@ -355,10 +379,9 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
     do i=1,n_doubles
       l_b = doubles(i)
       lcol = psi_bilinear_matrix_transp_columns(l_b)
-      call i_H_j_double_spin( tmp_det(1,2), psi_det_beta_unique(1, lcol), N_int, hij)
+      call i_H_j_double_spin( tmp_det(1,2), psi_det_beta_unique(1, lcol), $N_int, hij)
       l_a = psi_bilinear_matrix_transp_order(l_b)
       do l=1,N_st
-          !$OMP ATOMIC
         v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! same spin => sij = 0 
@@ -376,15 +399,14 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
     krow = psi_bilinear_matrix_rows(k_a)
     kcol = psi_bilinear_matrix_columns(k_a)
     
-    tmp_det(1:N_int,1) = psi_det_alpha_unique(1:N_int, krow)
-    tmp_det(1:N_int,2) = psi_det_beta_unique (1:N_int, kcol)
+    tmp_det(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, krow)
+    tmp_det(1:$N_int,2) = psi_det_beta_unique (1:$N_int, kcol)
     
     double precision, external :: diag_H_mat_elem, diag_S_mat_elem
   
-    hij = diag_H_mat_elem(tmp_det,N_int) 
-    sij = diag_S_mat_elem(tmp_det,N_int)
+    hij = diag_H_mat_elem(tmp_det,$N_int) 
+    sij = diag_S_mat_elem(tmp_det,$N_int)
     do l=1,N_st
-          !$OMP ATOMIC
       v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,k_a)
       s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,k_a)
     enddo
@@ -408,6 +430,14 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
 
 end
 
+SUBST [ N_int ]
 
+1;;
+2;;
+3;;
+4;;
+N_int;;
+
+END_TEMPLATE
 
 

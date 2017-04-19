@@ -696,63 +696,19 @@ subroutine get_all_spin_singles_and_doubles(buffer, idx, spindet, Nint, size_buf
   integer, intent(out)           :: n_singles
   integer, intent(out)           :: n_doubles
 
-  integer                        :: i,k
-  include 'Utils/constants.include.F'
-  integer(bit_kind)              :: xorvec(N_int_max)
-  integer                        :: degree
-
-  integer, external              :: align_double
-
-
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
-
   select case (Nint)
     case (1)
       call get_all_spin_singles_and_doubles_1(buffer, idx, spindet(1), size_buffer, singles, doubles, n_singles, n_doubles)
-      return
-!    case (2)
-!      call get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
-!      return
-!    case (3)
-!      call get_all_spin_singles_and_doubles_3(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
-!      return
+    case (2)
+      call get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+    case (3)
+      call get_all_spin_singles_and_doubles_3(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+    case (4)
+      call get_all_spin_singles_and_doubles_4(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+    case default
+      call get_all_spin_singles_and_doubles_N_int(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
   end select
 
-
-  n_singles = 1
-  n_doubles = 1
-  !DIR$ VECTOR ALIGNED
-  do i=1,size_buffer
-
-    do k=1,Nint
-        xorvec(k) = xor( spindet(k), buffer(k,i) )
-    enddo
-    
-    if (xorvec(1) /= 0_8) then
-      degree = popcnt(xorvec(1))
-    else
-      degree = 0
-    endif
-  
-    do k=2,Nint
-      !DIR$ VECTOR ALIGNED
-      if ( (degree <= 4).and.(xorvec(k) /= 0_8) ) then
-        degree = degree + popcnt(xorvec(k))
-      endif
-    enddo
-
-    if ( degree == 4 ) then
-      doubles(n_doubles) = idx(i)
-      n_doubles = n_doubles+1
-    else if ( degree == 2 ) then
-      singles(n_singles) = idx(i)
-      n_singles = n_singles+1
-    endif
-
-  enddo
-  n_singles = n_singles-1
-  n_doubles = n_doubles-1
-  
 end
 
 
@@ -771,54 +727,19 @@ subroutine get_all_spin_singles(buffer, idx, spindet, Nint, size_buffer, singles
   integer, intent(out)           :: singles(size_buffer)
   integer, intent(out)           :: n_singles
 
-  integer                        :: i,k
-  include 'Utils/constants.include.F'
-  integer(bit_kind)              :: xorvec(N_int_max)
-  integer                        :: degree
-
-  integer, external              :: align_double
-
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
-
-  select case (Nint)
+  select case (N_int)
     case (1)
       call get_all_spin_singles_1(buffer, idx, spindet(1), size_buffer, singles, n_singles)
       return
-!    case (2)
-!      call get_all_spin_singles_2(buffer, idx, spindet, size_buffer, singles, n_singles)
-!      return
-!    case (3)
-!      call get_all_spin_singles_3(buffer, idx, spindet, size_buffer, singles, n_singles)
-!      return
+    case (2)
+      call get_all_spin_singles_2(buffer, idx, spindet, size_buffer, singles, n_singles)
+    case (3)
+      call get_all_spin_singles_3(buffer, idx, spindet, size_buffer, singles, n_singles)
+    case (4)
+      call get_all_spin_singles_4(buffer, idx, spindet, size_buffer, singles, n_singles)
+    case default
+      call get_all_spin_singles_N_int(buffer, idx, spindet, size_buffer, singles, n_singles)
   end select
-
-  n_singles = 1
-  !DIR$ VECTOR ALIGNED
-  do i=1,size_buffer
-
-    do k=1,Nint
-       xorvec(k) = xor( spindet(k), buffer(k,i) )
-    enddo
-    
-    if (xorvec(1) /= 0_8) then
-      degree = popcnt(xorvec(1))
-    else
-      degree = 0
-    endif
-
-    do k=2,Nint
-      if ( (degree <= 2).and.(xorvec(k) /= 0_8) ) then
-        degree = degree + popcnt(xorvec(k))
-      endif
-    enddo
-
-    if ( degree == 2 ) then
-        singles(n_singles) = idx(i)
-        n_singles = n_singles+1
-    endif
-
-  enddo
-  n_singles = n_singles-1
   
 end
 
@@ -838,54 +759,19 @@ subroutine get_all_spin_doubles(buffer, idx, spindet, Nint, size_buffer, doubles
   integer, intent(out)           :: doubles(size_buffer)
   integer, intent(out)           :: n_doubles
 
-  integer                        :: i,k, degree
-  include 'Utils/constants.include.F'
-  integer(bit_kind)              :: xorvec(N_int_max)
-
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
-
-  select case (Nint)
+  select case (N_int)
     case (1)
       call get_all_spin_doubles_1(buffer, idx, spindet(1), size_buffer, doubles, n_doubles)
-      return
     case (2)
       call get_all_spin_doubles_2(buffer, idx, spindet, size_buffer, doubles, n_doubles)
-      return
-!    case (3)
-!      call get_all_spin_doubles_3(buffer, idx, spindet, size_buffer, doubles, n_doubles)
-!      return
+    case (3)
+      call get_all_spin_doubles_3(buffer, idx, spindet, size_buffer, doubles, n_doubles)
+    case (4)
+      call get_all_spin_doubles_4(buffer, idx, spindet, size_buffer, doubles, n_doubles)
+    case default
+      call get_all_spin_doubles_N_int(buffer, idx, spindet, size_buffer, doubles, n_doubles)
   end select
 
-  n_doubles = 1
-  !DIR$ VECTOR ALIGNED
-  do i=1,size_buffer
-
-    do k=1,Nint
-      xorvec(k) = xor( spindet(k), buffer(k,i) )
-    enddo
-    
-    if (xorvec(1) /= 0_8) then
-      degree = popcnt(xorvec(1))
-    else
-      degree = 0
-    endif
-  
-    do k=2,Nint
-      !DIR$ VECTOR ALIGNED
-      if ( (degree <= 4).and.(xorvec(k) /= 0_8) ) then
-        degree = degree + popcnt(xorvec(k))
-      endif
-    enddo
-
-    if ( degree == 4 ) then
-      doubles(n_doubles) = idx(i)
-      n_doubles = n_doubles+1
-    endif
-
-  enddo
-
-  n_doubles = n_doubles-1
-  
 end
 
 
@@ -1093,8 +979,9 @@ end
 
 
 
+BEGIN_TEMPLATE
 
-subroutine get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
+subroutine get_all_spin_singles_and_doubles_$N_int(buffer, idx, spindet, size_buffer, singles, doubles, n_singles, n_doubles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -1106,30 +993,28 @@ subroutine get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer,
 !
   END_DOC
   integer, intent(in)            :: size_buffer, idx(size_buffer)
-  integer(bit_kind), intent(in)  :: buffer(2,size_buffer)
-  integer(bit_kind), intent(in)  :: spindet(2)
+  integer(bit_kind), intent(in)  :: buffer($N_int,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet($N_int)
   integer, intent(out)           :: singles(size_buffer)
   integer, intent(out)           :: doubles(size_buffer)
   integer, intent(out)           :: n_singles
   integer, intent(out)           :: n_doubles
 
-  integer                        :: i
-  include 'Utils/constants.include.F'
-  integer(bit_kind)              :: xorvec(2)
+  integer                        :: i,k
+  integer(bit_kind)              :: xorvec($N_int)
   integer                        :: degree
 
   integer, external              :: align_double
 
-
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
-
   n_singles = 1
   n_doubles = 1
   !DIR$ VECTOR ALIGNED
   do i=1,size_buffer
 
-    xorvec(1) = xor( spindet(1), buffer(1,i) )
-    xorvec(2) = xor( spindet(2), buffer(2,i) )
+    do k=1,$N_int
+        xorvec(k) = xor( spindet(k), buffer(k,i) )
+    enddo
     
     if (xorvec(1) /= 0_8) then
       degree = popcnt(xorvec(1))
@@ -1137,10 +1022,12 @@ subroutine get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer,
       degree = 0
     endif
   
-    !DIR$ VECTOR ALIGNED
-    if ( (degree <= 4).and.(xorvec(2) /= 0_8) ) then
-      degree = degree + popcnt(xorvec(2))
-    endif
+    do k=2,$N_int
+      !DIR$ VECTOR ALIGNED
+      if ( (degree <= 4).and.(xorvec(k) /= 0_8) ) then
+        degree = degree + popcnt(xorvec(k))
+      endif
+    enddo
 
     if ( degree == 4 ) then
       doubles(n_doubles) = idx(i)
@@ -1157,7 +1044,7 @@ subroutine get_all_spin_singles_and_doubles_2(buffer, idx, spindet, size_buffer,
 end
 
 
-subroutine get_all_spin_singles_2(buffer, idx, spindet, size_buffer, singles, n_singles)
+subroutine get_all_spin_singles_$N_int(buffer, idx, spindet, size_buffer, singles, n_singles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -1167,15 +1054,17 @@ subroutine get_all_spin_singles_2(buffer, idx, spindet, size_buffer, singles, n_
 !
   END_DOC
   integer, intent(in)            :: size_buffer, idx(size_buffer)
-  integer(bit_kind), intent(in)  :: buffer(2,size_buffer)
-  integer(bit_kind), intent(in)  :: spindet(2)
+  integer(bit_kind), intent(in)  :: buffer($N_int,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet($N_int)
   integer, intent(out)           :: singles(size_buffer)
   integer, intent(out)           :: n_singles
 
-  integer                        :: i
+  integer                        :: i,k
   include 'Utils/constants.include.F'
-  integer(bit_kind)              :: xorvec(2)
+  integer(bit_kind)              :: xorvec($N_int)
   integer                        :: degree
+
+  integer, external              :: align_double
 
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
 
@@ -1183,8 +1072,9 @@ subroutine get_all_spin_singles_2(buffer, idx, spindet, size_buffer, singles, n_
   !DIR$ VECTOR ALIGNED
   do i=1,size_buffer
 
-    xorvec(1) = xor( spindet(1), buffer(1,i) )
-    xorvec(2) = xor( spindet(2), buffer(2,i) )
+    do k=1,$N_int
+       xorvec(k) = xor( spindet(k), buffer(k,i) )
+    enddo
     
     if (xorvec(1) /= 0_8) then
       degree = popcnt(xorvec(1))
@@ -1192,11 +1082,11 @@ subroutine get_all_spin_singles_2(buffer, idx, spindet, size_buffer, singles, n_
       degree = 0
     endif
 
-    if (degree > 2) cycle
-
-    if ( xorvec(2) /= 0_8 ) then
-      degree = degree + popcnt(xorvec(2))
-    endif
+    do k=2,$N_int
+      if ( (degree <= 2).and.(xorvec(k) /= 0_8) ) then
+        degree = degree + popcnt(xorvec(k))
+      endif
+    enddo
 
     if ( degree == 2 ) then
         singles(n_singles) = idx(i)
@@ -1209,7 +1099,7 @@ subroutine get_all_spin_singles_2(buffer, idx, spindet, size_buffer, singles, n_
 end
 
 
-subroutine get_all_spin_doubles_2(buffer, idx, spindet, size_buffer, doubles, n_doubles)
+subroutine get_all_spin_doubles_$N_int(buffer, idx, spindet, size_buffer, doubles, n_doubles)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -1219,34 +1109,35 @@ subroutine get_all_spin_doubles_2(buffer, idx, spindet, size_buffer, doubles, n_
 !
   END_DOC
   integer, intent(in)            :: size_buffer, idx(size_buffer)
-  integer(bit_kind), intent(in)  :: buffer(2,size_buffer)
-  integer(bit_kind), intent(in)  :: spindet(2)
+  integer(bit_kind), intent(in)  :: buffer($N_int,size_buffer)
+  integer(bit_kind), intent(in)  :: spindet($N_int)
   integer, intent(out)           :: doubles(size_buffer)
   integer, intent(out)           :: n_doubles
 
-  integer                        :: i, degree
+  integer                        :: i,k, degree
   include 'Utils/constants.include.F'
-  integer(bit_kind)              :: xorvec(2)
-
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
+  integer(bit_kind)              :: xorvec($N_int)
 
   n_doubles = 1
   !DIR$ VECTOR ALIGNED
   do i=1,size_buffer
 
-    xorvec(1) = xor( spindet(1), buffer(1,i) )
-    xorvec(2) = xor( spindet(2), buffer(2,i) )
-
+    do k=1,$N_int
+      xorvec(k) = xor( spindet(k), buffer(k,i) )
+    enddo
+    
     if (xorvec(1) /= 0_8) then
       degree = popcnt(xorvec(1))
     else
       degree = 0
     endif
   
-    !DIR$ VECTOR ALIGNED
-    if ( (degree <= 4).and.(xorvec(2) /= 0_8) ) then
-      degree = degree + popcnt(xorvec(2))
-    endif
+    do k=2,$N_int
+      !DIR$ VECTOR ALIGNED
+      if ( (degree <= 4).and.(xorvec(k) /= 0_8) ) then
+        degree = degree + popcnt(xorvec(k))
+      endif
+    enddo
 
     if ( degree == 4 ) then
       doubles(n_doubles) = idx(i)
@@ -1258,4 +1149,13 @@ subroutine get_all_spin_doubles_2(buffer, idx, spindet, size_buffer, doubles, n_
   n_doubles = n_doubles-1
   
 end
+
+SUBST [ N_int ]
+2;;
+3;;
+4;;
+N_int;;
+
+END_TEMPLATE
+
 

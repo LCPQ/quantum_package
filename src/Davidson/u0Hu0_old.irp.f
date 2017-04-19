@@ -462,7 +462,7 @@ subroutine H_S2_u_0_nstates_test(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze
   implicit none
   integer, intent(in)            :: N_st,n,Nint, sze
   integer(bit_kind), intent(in)  :: keys_tmp(Nint,2,n)
-  double precision, intent(out)  :: v_0(sze,N_st), s_0(sze,N_st)
+  double precision, intent(inout)   :: v_0(sze,N_st), s_0(sze,N_st)
   double precision, intent(in)   :: u_0(sze,N_st)
   double precision, intent(in)   :: H_jj(n), S2_jj(n)
   
