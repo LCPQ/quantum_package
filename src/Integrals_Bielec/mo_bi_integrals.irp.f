@@ -198,7 +198,7 @@ subroutine add_integrals_to_map(mask_ijkl)
   integer                        :: size_buffer
   integer(key_kind),allocatable  :: buffer_i(:)
   real(integral_kind),allocatable :: buffer_value(:)
-  real                           :: map_mb
+  double precision               :: map_mb
   
   integer                        :: i1,j1,k1,l1, ii1, kmax, thread_num
   integer                        :: i2,i3,i4
@@ -505,7 +505,7 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
   integer                        :: size_buffer
   integer(key_kind),allocatable  :: buffer_i(:)
   real(integral_kind),allocatable :: buffer_value(:)
-  real                           :: map_mb
+  double precision               :: map_mb
   
   integer                        :: i1,j1,k1,l1, ii1, kmax, thread_num
   integer                        :: i2,i3,i4
@@ -819,7 +819,7 @@ subroutine add_integrals_to_map_no_exit_34(mask_ijkl)
   integer                        :: size_buffer
   integer(key_kind),allocatable  :: buffer_i(:)
   real(integral_kind),allocatable :: buffer_value(:)
-  real                           :: map_mb
+  double precision               :: map_mb
   
   integer                        :: i1,j1,k1,l1, ii1, kmax, thread_num
   integer                        :: i2,i3,i4

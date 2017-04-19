@@ -350,7 +350,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   
   integral = ao_bielec_integral(1,1,1,1)
   
-  real                           :: map_mb
+  double precision               :: map_mb
   PROVIDE read_ao_integrals disk_access_ao_integrals
   if (read_ao_integrals) then
     print*,'Reading the AO integrals'

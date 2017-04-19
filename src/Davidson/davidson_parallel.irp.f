@@ -344,7 +344,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
 
   integer :: istep, imin, imax, ishift
   double precision :: w, max_workload, N_det_inv, di
-  max_workload = N_det_beta_unique+N_det_alpha_unique
+  max_workload = 200000.d0
   w = 0.d0
   istep=4
   ishift=0
