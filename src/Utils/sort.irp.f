@@ -206,7 +206,7 @@ BEGIN_TEMPLATE
   if (isize == n) then
     return
   endif
-  if ( isize < 64+n) then
+  if ( isize < 32+n) then
     call insertion_$Xsort(x,iorder,isize)
   else
     call heap_$Xsort(x,iorder,isize)
