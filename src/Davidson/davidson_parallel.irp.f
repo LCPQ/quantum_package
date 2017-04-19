@@ -88,9 +88,6 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
   integer                        :: N_det_selectors_read, N_det_generators_read
   double precision               :: energy(N_st)
 
-
-  allocate(v_0(sze,N_st), s_0(sze,N_st),u_t(N_st,N_det))
-
   read(msg(14:rc),*) rc, N_states_read, N_det_read, psi_det_size_read,        &
       N_det_generators_read, N_det_selectors_read
 
@@ -106,9 +103,11 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
 
   if (N_det_read /= N_det) then
     N_det = N_det_read
-    stop 'N_det_read /= N_det'
     TOUCH N_det
   endif
+
+
+  allocate(v_0(sze,N_st), s_0(sze,N_st),u_t(N_st,N_det))
 
   rc = f77_zmq_recv(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,0)
   if (rc /= N_int*2*N_det*bit_kind) then
