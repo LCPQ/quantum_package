@@ -156,7 +156,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
   s_t = 0.d0
 
 
-  !$OMP DO SCHEDULE(dynamic,64)
+  !$OMP DO SCHEDULE(static,64)
   do k_a=istart+ishift,iend,istep
 
     krow = psi_bilinear_matrix_rows(k_a)
@@ -206,8 +206,10 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
         call get_s2(tmp_det,tmp_det2,N_int,sij)
         do l=1,N_st
           v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
-          v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
           s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,l_a)
+          !$OMP ATOMIC
+          v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+          !$OMP ATOMIC
           s_t(l,l_a) = s_t(l,l_a) + sij * u_t(l,k_a)
         enddo
       enddo
@@ -215,9 +217,9 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
     enddo
 
   enddo
-  !$OMP END DO NOWAIT
+  !$OMP END DO 
 
-  !$OMP DO SCHEDULE(dynamic,64)
+  !$OMP DO SCHEDULE(static,64)
   do k_a=istart+ishift,iend,istep
 
 
@@ -283,6 +285,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
       lrow = psi_bilinear_matrix_rows(l_a)
       call i_H_j_double_spin( tmp_det(1,1), psi_det_alpha_unique(1, lrow), N_int, hij)
       do l=1,N_st
+          !$OMP ATOMIC
         v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! same spin => sij = 0
@@ -339,6 +342,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
       call i_H_j_mono_spin( tmp_det, tmp_det2, N_int, 2, hij)
       l_a = psi_bilinear_matrix_transp_order(l_b)
       do l=1,N_st
+          !$OMP ATOMIC
         v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! single => sij = 0 
@@ -354,6 +358,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
       call i_H_j_double_spin( tmp_det(1,2), psi_det_beta_unique(1, lcol), N_int, hij)
       l_a = psi_bilinear_matrix_transp_order(l_b)
       do l=1,N_st
+          !$OMP ATOMIC
         v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! same spin => sij = 0 
@@ -379,6 +384,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
     hij = diag_H_mat_elem(tmp_det,N_int) 
     sij = diag_S_mat_elem(tmp_det,N_int)
     do l=1,N_st
+          !$OMP ATOMIC
       v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,k_a)
       s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,k_a)
     enddo

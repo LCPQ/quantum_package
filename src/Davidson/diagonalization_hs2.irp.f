@@ -118,7 +118,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
   sze_8 = align_double(sze)
   itermax = max(3,min(davidson_sze_max, sze/N_st_diag))
   
-  PROVIDE nuclear_repulsion expected_s2 
+  PROVIDE nuclear_repulsion expected_s2 psi_bilinear_matrix_order psi_bilinear_matrix_order_reverse
   
   call write_time(iunit)
   call wall_time(wall)
@@ -223,7 +223,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
       
        
       if (distributed_davidson) then
-          call H_S2_u_0_nstates_zmq(W(1,shift+1),S(1,shift+1),U(1,shift+1),N_st_diag,sze_8)
+          call H_S2_u_0_nstates_zmq   (W(1,shift+1),S(1,shift+1),U(1,shift+1),N_st_diag,sze_8)
       else
           call H_S2_u_0_nstates_openmp(W(1,shift+1),S(1,shift+1),U(1,shift+1),N_st_diag,sze_8)
       endif
