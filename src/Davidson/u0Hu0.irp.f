@@ -86,7 +86,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,
   double precision, intent(out)  :: v_0(sze,N_st), s_0(sze,N_st) 
 
   
-  PROVIDE ref_bitmask_energy
+  PROVIDE ref_bitmask_energy N_int
 
   select case (N_int)
     case (1)
@@ -136,7 +136,6 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
   integer*8                      :: k8
   double precision, allocatable  :: v_t(:,:), s_t(:,:)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: v_t, s_t
-  PROVIDE N_int
 
   maxab = max(N_det_alpha_unique, N_det_beta_unique)+1
   allocate(idx0(maxab))
@@ -148,6 +147,7 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
   ! Prepare the array of all alpha single excitations
   ! -------------------------------------------------
 
+  PROVIDE N_int
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP   SHARED(psi_bilinear_matrix_rows, N_det,                &
       !$OMP          psi_bilinear_matrix_columns,                    &
@@ -157,9 +157,8 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
       !$OMP          psi_bilinear_matrix_transp_columns,             &
       !$OMP          psi_bilinear_matrix_transp_order, N_st,         &
       !$OMP          psi_bilinear_matrix_order_transp_reverse,       &
-      !$OMP          singles_alpha_csc, singles_alpha_csc_idx,       &
       !$OMP          psi_bilinear_matrix_columns_loc,                &
-      !$OMP          singles_alpha_size, istart, iend, istep,        &
+      !$OMP          istart, iend, istep,        &
       !$OMP          ishift, idx0, u_t, maxab, v_0, s_0)             &
       !$OMP   PRIVATE(krow, kcol, tmp_det, spindet, k_a, k_b, i,     &
       !$OMP          lcol, lrow, l_a, l_b, nmax,         &

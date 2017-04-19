@@ -541,7 +541,7 @@ BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_rows_loc, (N_det_alpha_uniq
       psi_bilinear_matrix_transp_rows_loc(l) = k
     endif
   enddo
-  psi_bilinear_matrix_transp_rows_loc(N_det_beta_unique+1) = N_det+1
+  psi_bilinear_matrix_transp_rows_loc(N_det_alpha_unique+1) = N_det+1
 END_PROVIDER
 
 BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_transp_reverse , (N_det) ]

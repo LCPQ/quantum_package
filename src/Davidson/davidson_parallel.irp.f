@@ -271,6 +271,11 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   double precision, allocatable  :: u_t(:,:)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: u_t
   
+  PROVIDE psi_det_beta_unique psi_bilinear_matrix_order_transp_reverse psi_det_alpha_unique 
+  PROVIDE psi_bilinear_matrix_transp_values psi_bilinear_matrix_values psi_bilinear_matrix_columns_loc
+  PROVIDE ref_bitmask_energy nproc
+
+
   allocate(u_t(N_st,N_det))
   do k=1,N_st
     call dset_order(u_0(1,k),psi_bilinear_matrix_order,N_det)
@@ -290,7 +295,6 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
   ASSERT (n>0)
-  PROVIDE ref_bitmask_energy nproc
 
   call new_parallel_job(zmq_to_qp_run_socket,'davidson')
   
@@ -335,15 +339,39 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   deallocate(u_t)
 
 
+  ! Create tasks
+  ! ============
+
   integer :: istep, imin, imax, ishift
-  istep=2
-  do imin=1,N_det, 1048576
+  double precision :: w, max_workload, N_det_inv, di
+  max_workload = N_det_beta_unique+N_det_alpha_unique
+  w = 0.d0
+  istep=4
+  ishift=0
+  imin=1
+  N_det_inv = 1.d0/dble(N_det)
+  di = dble(N_det)
+  do imax=1,N_det
+    di = di-1.d0
+    w = w + (di*N_det_inv)**2
+    if (w > max_workload) then
+      do ishift=0,istep-1
+        write(task,'(4(I9,1X),1A)') imin, imax, ishift, istep, '|'
+        call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task))
+      enddo
+      istep = max(istep-1,1)
+      imin = imax+1
+      w = 0.d0
+    endif
+  enddo
+  if (w > 0.d0) then
+    imax = N_det
     do ishift=0,istep-1
-      imax = min(N_det, imin+1048576-1)
       write(task,'(4(I9,1X),1A)') imin, imax, ishift, istep, '|'
       call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task))
     enddo
-  enddo
+  endif
+    
 
   v_0 = 0.d0
   s_0 = 0.d0
