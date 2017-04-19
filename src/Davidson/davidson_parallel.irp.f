@@ -353,7 +353,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   di = dble(N_det)
   do imax=1,N_det
     di = di-1.d0
-    w = w + (di*N_det_inv)**2
+    w = w + di*N_det_inv
     if (w > max_workload) then
       do ishift=0,istep-1
         write(task,'(4(I9,1X),1A)') imin, imax, ishift, istep, '|'
