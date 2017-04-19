@@ -344,9 +344,9 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
 
   integer :: istep, imin, imax, ishift
   double precision :: w, max_workload, N_det_inv, di
-  max_workload = 200000.d0
+  max_workload = 1000000.d0
   w = 0.d0
-  istep=4
+  istep=8
   ishift=0
   imin=1
   N_det_inv = 1.d0/dble(N_det)
@@ -359,7 +359,6 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
         write(task,'(4(I9,1X),1A)') imin, imax, ishift, istep, '|'
         call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task))
       enddo
-      istep = max(istep-1,1)
       imin = imax+1
       w = 0.d0
     endif
