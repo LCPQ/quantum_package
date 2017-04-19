@@ -15,16 +15,17 @@ BEGIN_TEMPLATE
   do i=2,isize
     xtmp = x(i)
     i0 = iorder(i)
-    do j = i-1,1,-1
+    j=i-1
+    do while (j>0)
       if ((x(j) <= xtmp)) exit
       x(j+1) = x(j)
       iorder(j+1) = iorder(j)
+      j=j-1
     enddo
     x(j+1) = xtmp
     iorder(j+1) = i0
   enddo
  end subroutine insertion_$Xsort
-
 
  subroutine heap_$Xsort(x,iorder,isize)
   implicit none
@@ -164,15 +165,10 @@ BEGIN_TEMPLATE
   $type, intent(in)           :: x(isize)
   integer, intent(out)           :: n
   integer :: i
-  if (isize < 2) then
-    n = 1
-    return
-  endif
+  n=1
 
-  if (x(1) >= x(2)) then
-    n=1
-  else
-    n=0
+  if (isize < 2) then
+    return
   endif
 
   do i=2,isize
@@ -191,31 +187,6 @@ SUBST [ X, type ]
  i2 ; integer*2 ;;
 END_TEMPLATE
 
-!BEGIN_TEMPLATE
-! subroutine $Xsort(x,iorder,isize)
-!  implicit none
-!  BEGIN_DOC
-!  ! Sort array x(isize).
-!  ! iorder in input should be (1,2,3,...,isize), and in output
-!  ! contains the new order of the elements.
-!  END_DOC
-!  integer,intent(in)             :: isize
-!  $type,intent(inout)            :: x(isize)
-!  integer,intent(inout)          :: iorder(isize)
-!  integer                        :: n
-!  call sorted_$Xnumber(x,isize,n)
-!  if ( isize-n < 1000) then
-!    call insertion_$Xsort(x,iorder,isize)
-!  else
-!    call heap_$Xsort(x,iorder,isize)
-!  endif
-! end subroutine $Xsort
-!
-!SUBST [ X, type ]
-!   ; real ;;
-! d ; double precision ;;
-!END_TEMPLATE
-
 BEGIN_TEMPLATE
  subroutine $Xsort(x,iorder,isize)
   implicit none
@@ -228,14 +199,17 @@ BEGIN_TEMPLATE
   $type,intent(inout)            :: x(isize)
   integer,intent(inout)          :: iorder(isize)
   integer                        :: n
+  if (isize < 2) then
+    return
+  endif
   call sorted_$Xnumber(x,isize,n)
   if (isize == n) then
     return
   endif
-  if ( isize < 512+n) then
+  if ( isize < 64+n) then
     call insertion_$Xsort(x,iorder,isize)
   else
-    call $Yradix_sort(x,iorder,isize,-1)
+    call heap_$Xsort(x,iorder,isize)
   endif
  end subroutine $Xsort
 
@@ -314,15 +288,15 @@ BEGIN_TEMPLATE
   $type                          :: xtmp
   integer*8                      :: i, i0, j, jmax
   
-  do i=1_8,isize
+  do i=2_8,isize
     xtmp = x(i)
     i0 = iorder(i)
     j = i-1_8
-    do while (x(j)<xtmp) 
+    do while (j>0_8) 
+      if (x(j)<=xtmp) exit
       x(j+1_8) = x(j)
       iorder(j+1_8) = iorder(j)
       j = j-1_8
-      if (j<1_8) exit
     enddo
     x(j+1_8) = xtmp
     iorder(j+1_8) = i0
@@ -445,11 +419,8 @@ BEGIN_TEMPLATE
     
     i0 = 0_$int_type
     i4 = maxval(x)
-    if (i4 == 0_$type) then
-      return
-    endif
     
-    iradix_new = $integer_size-1-leadz(i4)
+    iradix_new = max($integer_size-1-leadz(i4),1)
     mask = ibset(0_$type,iradix_new)
     
     allocate(x1(isize),iorder1(isize), x2(isize),iorder2(isize),stat=err)
