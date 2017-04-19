@@ -45,7 +45,7 @@ subroutine run_selection_slave(thread,iproc,energy)
       if(buf%N == 0) then
         ! Only first time 
         call create_selection_buffer(N, N*2, buf)
-        call create_selection_buffer(N, N*3, buf2)
+        call create_selection_buffer(N, N*2, buf2)
       else
         if(N /= buf%N) stop "N changed... wtf man??"
       end if
@@ -62,7 +62,6 @@ subroutine run_selection_slave(thread,iproc,energy)
         do i=1,buf%cur
           call add_to_selection_buffer(buf2, buf%det(1,1,i), buf%val(i))
         enddo
-        call sort_selection_buffer(buf2)
         buf%mini = buf2%mini
         pt2 = 0d0
         buf%cur = 0
