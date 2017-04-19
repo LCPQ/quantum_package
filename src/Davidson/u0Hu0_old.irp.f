@@ -1,5 +1,5 @@
 
-subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
+subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -10,9 +10,9 @@ subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
   ! H_jj : array of <j|H|j>
   !
   END_DOC
-  integer, intent(in)            :: N_st,n,Nint, sze_8
-  double precision, intent(out)  :: v_0(sze_8,N_st)
-  double precision, intent(in)   :: u_0(sze_8,N_st)
+  integer, intent(in)            :: N_st,n,Nint, sze
+  double precision, intent(out)  :: v_0(sze,N_st)
+  double precision, intent(in)   :: u_0(sze,N_st)
   double precision, intent(in)   :: H_jj(n)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   double precision               :: hij,s2 
@@ -228,7 +228,7 @@ end
 
 
 
-subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
+subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -240,9 +240,9 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   !
   ! S2_jj : array of <j|S^2|j>
   END_DOC
-  integer, intent(in)            :: N_st,n,Nint, sze_8
-  double precision, intent(out)  :: v_0(sze_8,N_st), s_0(sze_8,N_st)
-  double precision, intent(in)   :: u_0(sze_8,N_st)
+  integer, intent(in)            :: N_st,n,Nint, sze
+  double precision, intent(out)  :: v_0(sze,N_st), s_0(sze,N_st)
+  double precision, intent(in)   :: u_0(sze,N_st)
   double precision, intent(in)   :: H_jj(n), S2_jj(n)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   double precision               :: hij,s2 
@@ -457,13 +457,13 @@ subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
   deallocate (shortcut, sort_idx, sorted, version, ut)
 end
 
-subroutine H_S2_u_0_nstates_test(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
+subroutine H_S2_u_0_nstates_test(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze)
   use bitmasks
   implicit none
-  integer, intent(in)            :: N_st,n,Nint, sze_8
+  integer, intent(in)            :: N_st,n,Nint, sze
   integer(bit_kind), intent(in)  :: keys_tmp(Nint,2,n)
-  double precision, intent(out)  :: v_0(sze_8,N_st), s_0(sze_8,N_st)
-  double precision, intent(in)   :: u_0(sze_8,N_st)
+  double precision, intent(out)  :: v_0(sze,N_st), s_0(sze,N_st)
+  double precision, intent(in)   :: u_0(sze,N_st)
   double precision, intent(in)   :: H_jj(n), S2_jj(n)
   
   PROVIDE ref_bitmask_energy

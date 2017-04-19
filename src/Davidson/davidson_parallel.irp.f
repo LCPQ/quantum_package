@@ -44,11 +44,7 @@ subroutine davidson_run_slave(thread,iproc)
     return
   end if
   
-  integer :: sze_8
-  integer, external :: align_double
-  sze_8 = align_double(N_det)
-
-  call davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_states_diag, sze_8, worker_id)
+  call davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_states_diag, N_det, worker_id)
   call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
@@ -56,13 +52,13 @@ end subroutine
 
 
 
-subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze_8, worker_id)
+subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze, worker_id)
   use f77_zmq
   implicit none
   
   integer(ZMQ_PTR),intent(in)   :: zmq_to_qp_run_socket
   integer(ZMQ_PTR),intent(in)   :: zmq_socket_push
-  integer,intent(in)             :: worker_id, N_st, sze_8
+  integer,intent(in)             :: worker_id, N_st, sze
   integer                        :: task_id
   character*(512)                :: msg
   integer                        :: imin, imax, ishift, istep
@@ -93,7 +89,7 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze_
   double precision               :: energy(N_st)
 
 
-  allocate(v_0(sze_8,N_st), s_0(sze_8,N_st),u_t(N_st,N_det))
+  allocate(v_0(sze,N_st), s_0(sze,N_st),u_t(N_st,N_det))
 
   read(msg(14:rc),*) rc, N_states_read, N_det_read, psi_det_size_read,        &
       N_det_generators_read, N_det_selectors_read
@@ -142,7 +138,7 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze_
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, msg)
     if(task_id == 0) exit
     read (msg,*) imin, imax, ishift, istep
-    call H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,imin,imax,ishift,istep)
+    call H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,N_det,imin,imax,ishift,istep)
     call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id)
     call davidson_push_results(zmq_socket_push, v_0, s_0, task_id)
   end do
@@ -214,15 +210,15 @@ end subroutine
 
 
 
-subroutine davidson_collector(zmq_to_qp_run_socket, v0, s0, sze_8, N_st)
+subroutine davidson_collector(zmq_to_qp_run_socket, v0, s0, sze, N_st)
   use f77_zmq
   implicit none
 
-  integer, intent(in)            :: sze_8, N_st
+  integer, intent(in)            :: sze, N_st
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   
-  double precision    ,intent(inout) :: v0(sze_8, N_st)
-  double precision    ,intent(inout) :: s0(sze_8, N_st)
+  double precision    ,intent(inout) :: v0(sze, N_st)
+  double precision    ,intent(inout) :: s0(sze, N_st)
   
   integer                          :: more, task_id
   
@@ -254,7 +250,7 @@ end subroutine
 
 
 
-subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze_8)
+subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   use omp_lib
   use bitmasks
   use f77_zmq
@@ -268,9 +264,9 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze_8)
   !
   ! S2_jj : array of <j|S^2|j>
   END_DOC
-  integer, intent(in)            :: N_st, sze_8
-  double precision, intent(out)  :: v_0(sze_8,N_st), s_0(sze_8,N_st)
-  double precision, intent(inout):: u_0(sze_8,N_st)
+  integer, intent(in)            :: N_st, sze
+  double precision, intent(out)  :: v_0(sze,N_st), s_0(sze,N_st)
+  double precision, intent(inout):: u_0(sze,N_st)
   integer                        :: i,j,k
   integer                        :: ithread
   double precision, allocatable  :: u_t(:,:)
@@ -290,7 +286,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze_8)
 
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
   
-  if(N_st /= N_states_diag .or. sze_8 < N_det) stop "assert fail in H_S2_u_0_nstates"
+  if(N_st /= N_states_diag .or. sze < N_det) stop "assert fail in H_S2_u_0_nstates"
 
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
@@ -358,7 +354,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze_8)
   !$OMP PARALLEL NUM_THREADS(2) PRIVATE(ithread)
   ithread = omp_get_thread_num()
   if (ithread == 0 ) then
-    call davidson_collector(zmq_to_qp_run_socket, v_0, s_0, sze_8, N_st)
+    call davidson_collector(zmq_to_qp_run_socket, v_0, s_0, N_det, N_st)
   else 
     call davidson_slave_inproc(1)
   endif

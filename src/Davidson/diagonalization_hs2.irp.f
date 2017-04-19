@@ -84,7 +84,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
   double precision, intent(inout) :: u_in(dim_in,N_st_diag)
   double precision, intent(out)  :: energies(N_st_diag)
   
-  integer                        :: sze_8
   integer                        :: iter
   integer                        :: i,j,k,l,m
   logical                        :: converged
@@ -115,7 +114,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
   endif
   
   integer, external              :: align_double
-  sze_8 = align_double(sze)
   itermax = max(3,min(davidson_sze_max, sze/N_st_diag))
   
   PROVIDE nuclear_repulsion expected_s2 psi_bilinear_matrix_order psi_bilinear_matrix_order_reverse
@@ -130,8 +128,8 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
   call write_int(iunit,N_st,'Number of states')
   call write_int(iunit,N_st_diag,'Number of states in diagonalization')
   call write_int(iunit,sze,'Number of determinants')
-  r1 = 8.d0*(3.d0*dble(sze_8*N_st_diag*itermax+5.d0*(N_st_diag*itermax)**2 & 
-    + 4.d0*(N_st_diag*itermax)+nproc*(4.d0*N_det_alpha_unique+2.d0*N_st_diag*sze_8)))/(1024.d0**3)
+  r1 = 8.d0*(3.d0*dble(sze*N_st_diag*itermax+5.d0*(N_st_diag*itermax)**2 & 
+    + 4.d0*(N_st_diag*itermax)+nproc*(4.d0*N_det_alpha_unique+2.d0*N_st_diag*sze)))/(1024.d0**3)
   call write_double(iunit, r1, 'Memory(Gb)')
   write(iunit,'(A)') ''
   write_buffer = '===== '
@@ -153,9 +151,9 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
 
   allocate(                                                          &
       ! Large
-      W(sze_8,N_st_diag*itermax),                                    &
-      U(sze_8,N_st_diag*itermax),                                    &
-      S(sze_8,N_st_diag*itermax),                                    &
+      W(sze,N_st_diag*itermax),                                    &
+      U(sze,N_st_diag*itermax),                                    &
+      S(sze,N_st_diag*itermax),                                    &
 
       ! Small
       h(N_st_diag*itermax,N_st_diag*itermax),                        &
@@ -223,9 +221,9 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
       
        
       if (distributed_davidson) then
-          call H_S2_u_0_nstates_zmq   (W(1,shift+1),S(1,shift+1),U(1,shift+1),N_st_diag,sze_8)
+          call H_S2_u_0_nstates_zmq   (W(1,shift+1),S(1,shift+1),U(1,shift+1),N_st_diag,sze)
       else
-          call H_S2_u_0_nstates_openmp(W(1,shift+1),S(1,shift+1),U(1,shift+1),N_st_diag,sze_8)
+          call H_S2_u_0_nstates_openmp(W(1,shift+1),S(1,shift+1),U(1,shift+1),N_st_diag,sze)
       endif
       
       

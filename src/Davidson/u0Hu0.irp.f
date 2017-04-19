@@ -1,4 +1,4 @@
-subroutine u_0_H_u_0(e_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
+subroutine u_0_H_u_0(e_0,u_0,n,keys_tmp,Nint,N_st,sze)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -7,16 +7,16 @@ subroutine u_0_H_u_0(e_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
   ! n : number of determinants
   !
   END_DOC
-  integer, intent(in)            :: n,Nint, N_st, sze_8
+  integer, intent(in)            :: n,Nint, N_st, sze
   double precision, intent(out)  :: e_0(N_st)
-  double precision, intent(inout):: u_0(sze_8,N_st)
+  double precision, intent(inout):: u_0(sze,N_st)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   
   double precision, allocatable  :: v_0(:,:), s_0(:,:)
   double precision               :: u_dot_u,u_dot_v,diag_H_mat_elem
   integer :: i,j
-  allocate (v_0(sze_8,N_st),s_0(sze_8,N_st))
-  call H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze_8)
+  allocate (v_0(sze,N_st),s_0(sze,N_st))
+  call H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze)
   do i=1,N_st
     e_0(i) = u_dot_v(v_0(1,i),u_0(1,i),n)/u_dot_u(u_0(1,i),n)
   enddo
@@ -33,7 +33,7 @@ END_PROVIDER
 
 
 
-subroutine H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze_8)
+subroutine H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -43,8 +43,8 @@ subroutine H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze_8)
   !
   ! istart, iend, ishift, istep are used in ZMQ parallelization.
   END_DOC
-  integer, intent(in)            :: N_st,sze_8
-  double precision, intent(inout)  :: v_0(sze_8,N_st), s_0(sze_8,N_st), u_0(sze_8,N_st)
+  integer, intent(in)            :: N_st,sze
+  double precision, intent(inout)  :: v_0(sze,N_st), s_0(sze,N_st), u_0(sze,N_st)
   integer :: k
   double precision, allocatable  :: u_t(:,:)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: u_t
@@ -61,7 +61,7 @@ subroutine H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze_8)
       size(u_t, 1),                                                  &
       N_det, N_st)
 
-  call H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,1,N_det,0,1)
+  call H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,1,N_det,0,1)
   deallocate(u_t)
 
   do k=1,N_st
@@ -74,7 +74,7 @@ end
 
 
 
-subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishift,istep)
+subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -82,9 +82,9 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
   !
   ! Default should be 1,N_det,0,1
   END_DOC
-  integer, intent(in)            :: N_st,sze_8,istart,iend,ishift,istep
+  integer, intent(in)            :: N_st,sze,istart,iend,ishift,istep
   double precision, intent(in)   :: u_t(N_st,N_det)
-  double precision, intent(out)  :: v_0(sze_8,N_st), s_0(sze_8,N_st) 
+  double precision, intent(out)  :: v_0(sze,N_st), s_0(sze,N_st) 
 
   
   PROVIDE ref_bitmask_energy
@@ -132,7 +132,7 @@ subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze_8,istart,iend,ishif
       !$OMP          psi_bilinear_matrix_order_transp_reverse,       &
       !$OMP          singles_alpha_csc, singles_alpha_csc_idx,       &
       !$OMP          psi_bilinear_matrix_columns_loc,                &
-      !$OMP          singles_alpha_size, sze_8, istart, iend, istep, &
+      !$OMP          singles_alpha_size, istart, iend, istep,        &
       !$OMP          ishift, idx0, u_t, maxab, v_0, s_0)             &
       !$OMP   PRIVATE(krow, kcol, tmp_det, spindet, k_a, k_b, i,     &
       !$OMP          lcol, lrow, l_a, l_b, nmax,         &
