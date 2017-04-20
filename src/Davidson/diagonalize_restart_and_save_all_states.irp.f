@@ -9,7 +9,7 @@ subroutine routine
  implicit none
  call diagonalize_CI
  print*,'N_det = ',N_det
- call save_wavefunction_general(N_det,N_states,psi_det_sorted,size(psi_coef_sorted,1),psi_coef_sorted)
+ call save_wavefunction_general(N_det,N_states_diag,psi_det_sorted,size(psi_coef_sorted,1),psi_coef_sorted)
 
 
 

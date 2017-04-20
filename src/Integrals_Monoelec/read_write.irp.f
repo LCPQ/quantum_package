@@ -1,6 +1,5 @@
  BEGIN_PROVIDER [ logical, read_ao_one_integrals ]
 &BEGIN_PROVIDER [ logical, read_mo_one_integrals ]
-&BEGIN_PROVIDER [ logical, read_only_mo_one_integrals ]
 &BEGIN_PROVIDER [ logical, write_ao_one_integrals ]
 &BEGIN_PROVIDER [ logical, write_mo_one_integrals ]
    
@@ -22,13 +21,9 @@
      write_ao_one_integrals = .False.
      
    else
-     print *, 'monoelec_integrals/disk_access_ao_integrals has a wrong type'
+     print *, 'bielec_integrals/disk_access_ao_integrals has a wrong type'
      stop 1
      
-   endif
- 
-   if (disk_access_only_mo_one_integrals.EQ.'Read')then
-     read_only_mo_one_integrals = .True.
    endif
    
    if (disk_access_mo_one_integrals.EQ.'Read') then
@@ -44,7 +39,7 @@
      write_mo_one_integrals = .False.
      
    else
-     print *, 'monoelec_integrals/disk_access_mo_integrals has a wrong type'
+     print *, 'bielec_integrals/disk_access_mo_integrals has a wrong type'
      stop 1
      
    endif

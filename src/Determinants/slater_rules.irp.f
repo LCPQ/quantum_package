@@ -2144,26 +2144,8 @@ subroutine H_u_0_stored(v_0,u_0,hmatrix,sze)
   double precision, intent(in)   :: u_0(sze)
   v_0 = 0.d0
   call matrix_vector_product(u_0,v_0,hmatrix,sze,sze)
-end
 
-subroutine H_s2_u_0_stored(v_0,u_0,hmatrix,s2matrix,sze)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Computes v_0 = H|u_0>
-  !
-  ! n : number of determinants
-  !
-  ! uses the big_matrix_stored array
-  END_DOC
-  integer, intent(in)            :: sze
-  double precision, intent(in)   :: hmatrix(sze,sze),s2matrix(sze,sze)
-  double precision, intent(out)  :: v_0(sze)
-  double precision, intent(in)   :: u_0(sze)
-  v_0 = 0.d0
-  call matrix_vector_product(u_0,v_0,hmatrix,sze,sze)
 end
-
 
 subroutine u_0_H_u_0_stored(e_0,u_0,hmatrix,sze)
   use bitmasks

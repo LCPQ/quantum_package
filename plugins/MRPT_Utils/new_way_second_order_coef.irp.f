@@ -44,8 +44,8 @@ subroutine give_2h1p_contrib_sec_order(matrix_2h1p)
       perturb_dets_phase(a,2,1) = -1000.d0
      enddo
      
-  integer           :: degree(N_det_Ref)
-  integer           :: idx(0:N_det_Ref)
+  integer           :: degree(N_det)
+  integer           :: idx(0:N_det)
   double precision :: delta_e(n_act_orb,2,N_states)
   integer :: istate
 
@@ -376,8 +376,8 @@ subroutine give_1h2p_contrib_sec_order(matrix_1h2p)
  double precision :: active_int(n_act_orb,2)
  double precision :: hij,phase
  double precision :: accu_contrib
- integer           :: degree(N_det_Ref)
- integer           :: idx(0:N_det_Ref)
+ integer           :: degree(N_det)
+ integer           :: idx(0:N_det)
  double precision :: delta_e(n_act_orb,2,N_states)
  integer :: istate
  integer :: index_orb_act_mono(N_det,6)

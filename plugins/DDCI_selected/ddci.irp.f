@@ -5,7 +5,7 @@ program ddci
   
   double precision, allocatable  :: pt2(:), norm_pert(:), H_pert_diag(:),E_before(:)
   integer                        :: N_st, degree
-  N_st = N_states
+  N_st = N_states_diag
   allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st),E_before(N_st))
   character*(64)                 :: perturbation
   

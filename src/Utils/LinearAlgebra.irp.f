@@ -19,10 +19,6 @@ subroutine svd(A,LDA,U,LDU,D,Vt,LDVt,m,n)
   
   double precision,allocatable    :: A_tmp(:,:)
   allocate (A_tmp(LDA,n))
-  print*, ''
-  do i = 1, n
-   print*, A(i,i)
-  enddo
   A_tmp = A
   
   ! Find optimal size for temp arrays

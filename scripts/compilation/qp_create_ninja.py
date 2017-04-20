@@ -476,7 +476,7 @@ def ninja_irpf90_make_build(path_module, l_needed_molule, d_irp):
     # ~#~#~#~#~#~ #
 
     l_creation = [join(path_module.abs, i)
-                  for i in ["irpf90_entities", "tags",
+                  for i in ["irpf90.make", "irpf90_entities", "tags",
                             "IRPF90_temp/build.ninja"]]
     str_creation = " ".join(l_creation)
 

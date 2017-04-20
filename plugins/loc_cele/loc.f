@@ -18,7 +18,7 @@ C
 
       zprt=.true.
       niter=1000000
-      conv=1.d-10
+      conv=1.d-8
 
 C      niter=1000000
 C      conv=1.d-6

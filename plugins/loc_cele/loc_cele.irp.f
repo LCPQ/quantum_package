@@ -101,29 +101,10 @@
        cmoref = 0.d0
        irot = 0
 
-       irot(1,1) = 14 
-       irot(2,1) = 15
-!      cmoref(6,1,1)   = 1.d0 
-!      cmoref(26,2,1)   = 1.d0 
-       cmoref(36,1,1)   = 1.d0 
-       cmoref(56,2,1)   = 1.d0 
-
-!       !!! H2O
-!      irot(1,1) = 4 
-!      irot(2,1) = 5 
-!      irot(3,1) = 6 
-!      irot(4,1) = 7 
-!      ! O pz 
-!      cmoref(5,1,1)   = 1.55362d0 
-!      cmoref(6,1,1)   = 1.07578d0 
-
-!      cmoref(5,2,1)   =  1.55362d0 
-!      cmoref(6,2,1)   = -1.07578d0 
-!      ! O px - pz 
-!      ! H1 
-!      cmoref(16,3,1)   = 1.d0
-!      ! H1 
-!      cmoref(21,4,1)   = 1.d0
+       irot(1,1) = 11
+       irot(2,1) = 12
+       cmoref(15,1,1)   = 1.d0   ! 
+       cmoref(14,2,1)   = 1.d0   ! 
 
 ! ESATRIENE with 3 bonding and anti bonding orbitals 
 ! First bonding orbital for esa
@@ -169,19 +150,19 @@
 ! ESATRIENE with 1 central bonding and anti bonding orbitals 
 ! AND 4 radical orbitals
 ! First radical orbital 
-!      cmoref(7,1,1)   = 1.d0   ! 
+       cmoref(7,1,1)   = 1.d0   ! 
 ! Second radical orbital 
-!      cmoref(26,2,1)  = 1.d0   ! 
+       cmoref(26,2,1)  = 1.d0   ! 
 ! First bonding orbital 
-!      cmoref(45,3,1)  = 1.d0   ! 
-!      cmoref(64,3,1)  = 1.d0   ! 
+       cmoref(45,3,1)  = 1.d0   ! 
+       cmoref(64,3,1)  = 1.d0   ! 
 ! Third radical orbital for esa
-!      cmoref(83,4,1)  = 1.d0   ! 
+       cmoref(83,4,1)  = 1.d0   ! 
 ! Fourth radical orbital for esa
-!      cmoref(102,5,1) = 1.d0   ! 
+       cmoref(102,5,1) = 1.d0   ! 
 ! First anti bonding orbital 
-!      cmoref(45,6,1)  = 1.d0   ! 
-!      cmoref(64,6,1)  =-1.d0   ! 
+       cmoref(45,6,1)  = 1.d0   ! 
+       cmoref(64,6,1)  =-1.d0   ! 
 
 
        do i = 1, nrot(1)

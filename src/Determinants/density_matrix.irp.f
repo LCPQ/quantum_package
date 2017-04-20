@@ -15,72 +15,6 @@
    enddo
 END_PROVIDER
 
-
-subroutine save_density_matrix_mo
- implicit none
- double precision, allocatable :: dm(:,:)
- allocate(dm(mo_tot_num,mo_tot_num))
- integer :: i,j
- do i = 1, mo_tot_num
-  do j = 1, mo_tot_num
-   dm(i,j) = one_body_dm_mo_alpha_average(i,j)
-  enddo
- enddo
- call ezfio_set_determinants_density_matrix_mo_disk(dm)
-
-end
-
- BEGIN_PROVIDER [ double precision, one_body_dm_mo_spin_index, (mo_tot_num_align,mo_tot_num,N_states,2) ]
- implicit none 
- integer :: i,j,ispin,istate
- ispin = 1
-  do istate = 1, N_states
-   do j = 1, mo_tot_num
-    do i = 1, mo_tot_num
-     one_body_dm_mo_spin_index(i,j,istate,ispin) = one_body_dm_mo_alpha(i,j,istate)
-    enddo
-   enddo
-  enddo
-
- ispin = 2
-  do istate = 1, N_states
-   do j = 1, mo_tot_num
-    do i = 1, mo_tot_num
-     one_body_dm_mo_spin_index(i,j,istate,ispin) = one_body_dm_mo_beta(i,j,istate)
-    enddo
-   enddo
-  enddo
-
- END_PROVIDER
-
-
- BEGIN_PROVIDER [ double precision, one_body_dm_dagger_mo_spin_index, (mo_tot_num_align,mo_tot_num,N_states,2) ]
- implicit none 
- integer :: i,j,ispin,istate
- ispin = 1
-  do istate = 1, N_states
-   do j = 1, mo_tot_num
-    one_body_dm_dagger_mo_spin_index(j,j,istate,ispin) = 1 - one_body_dm_mo_alpha(j,j,istate)
-    do i = j+1, mo_tot_num
-     one_body_dm_dagger_mo_spin_index(i,j,istate,ispin) = -one_body_dm_mo_alpha(i,j,istate)
-     one_body_dm_dagger_mo_spin_index(j,i,istate,ispin) = -one_body_dm_mo_alpha(i,j,istate)
-    enddo
-   enddo
-  enddo
-
- ispin = 2
-  do istate = 1, N_states
-   do j = 1, mo_tot_num
-    one_body_dm_dagger_mo_spin_index(j,j,istate,ispin) = 1 - one_body_dm_mo_beta(j,j,istate)
-    do i = j+1, mo_tot_num
-     one_body_dm_dagger_mo_spin_index(i,j,istate,ispin) = -one_body_dm_mo_beta(i,j,istate)
-     one_body_dm_dagger_mo_spin_index(j,i,istate,ispin) = -one_body_dm_mo_beta(i,j,istate)
-    enddo
-   enddo
-  enddo
-
- END_PROVIDER
-
  BEGIN_PROVIDER [ double precision, one_body_dm_mo_alpha, (mo_tot_num_align,mo_tot_num,N_states) ]
 &BEGIN_PROVIDER [ double precision, one_body_dm_mo_beta, (mo_tot_num_align,mo_tot_num,N_states) ]
    implicit none
@@ -156,16 +90,39 @@ end
       lcol = psi_bilinear_matrix_columns(l) 
     enddo
 
-     enddo
-     !$OMP END DO NOWAIT
-     !$OMP CRITICAL
-     one_body_dm_mo_alpha(:,:,:) = one_body_dm_mo_alpha(:,:,:) + tmp_a(:,:,:)
-     !$OMP END CRITICAL
-     !$OMP CRITICAL
-     one_body_dm_mo_beta(:,:,:)  = one_body_dm_mo_beta(:,:,:)  + tmp_b(:,:,:)
-     !$OMP END CRITICAL
-     deallocate(tmp_a,tmp_b)
-     !$OMP END PARALLEL
+    l = psi_bilinear_matrix_order_reverse(k)+1
+    ! Fix alpha determinant, loop over betas
+    lrow = psi_bilinear_matrix_transp_rows(l) 
+    lcol = psi_bilinear_matrix_transp_columns(l) 
+    do while ( lrow == krow )
+      tmp_det2(:) = psi_det_beta_unique (:, lcol)
+      call get_excitation_degree_spin(tmp_det(1,2),tmp_det2,degree,N_int)
+      if (degree == 1) then
+        call get_mono_excitation_spin(tmp_det(1,2),tmp_det2,exc,phase,N_int)
+        call decode_exc_spin(exc,h1,p1,h2,p2)
+        do m=1,N_states
+          ckl = psi_bilinear_matrix_values(k,m)*psi_bilinear_matrix_transp_values(l,m) * phase
+          tmp_b(h1,p1,m) += ckl
+          tmp_b(p1,h1,m) += ckl
+        enddo
+      endif
+      l = l+1
+      if (l>N_det) exit
+      lrow = psi_bilinear_matrix_transp_rows(l) 
+      lcol = psi_bilinear_matrix_transp_columns(l) 
+    enddo
+
+  enddo
+  !$OMP END DO NOWAIT
+  !$OMP CRITICAL
+  one_body_dm_mo_alpha(:,:,:) = one_body_dm_mo_alpha(:,:,:) + tmp_a(:,:,:)
+  !$OMP END CRITICAL
+  !$OMP CRITICAL
+  one_body_dm_mo_beta(:,:,:)  = one_body_dm_mo_beta(:,:,:)  + tmp_b(:,:,:)
+  !$OMP END CRITICAL
+  deallocate(tmp_a,tmp_b)
+  !$OMP END PARALLEL
+
 END_PROVIDER
 
  BEGIN_PROVIDER [ double precision, one_body_single_double_dm_mo_alpha, (mo_tot_num_align,mo_tot_num) ]

@@ -67,27 +67,6 @@ END_PROVIDER
 
 END_PROVIDER
 
-
- BEGIN_PROVIDER [double precision, electronic_psi_ref_average_value, (N_states)]
-&BEGIN_PROVIDER  [double precision, psi_ref_average_value, (N_states)]
- implicit none
- integer :: i,j
- electronic_psi_ref_average_value = psi_energy
- do i = 1, N_states
-  psi_ref_average_value(i) = psi_energy(i) + nuclear_repulsion
- enddo
- double precision :: accu,hij
- accu = 0.d0
- do i = 1, N_det_ref
-  do j = 1, N_det_ref
-   call i_H_j(psi_ref(1,1,i),psi_ref(1,1,j),N_int,hij)
-   accu += psi_ref_coef(i,1) * psi_ref_coef(j,1) * hij
-  enddo
- enddo
- electronic_psi_ref_average_value(1) = accu
- psi_ref_average_value(1) = electronic_psi_ref_average_value(1) + nuclear_repulsion
-
-END_PROVIDER
  BEGIN_PROVIDER [double precision, norm_psi_ref, (N_states)]
 &BEGIN_PROVIDER [double precision, inv_norm_psi_ref, (N_states)]
   implicit none

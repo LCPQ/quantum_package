@@ -20,17 +20,16 @@ from functools import reduce
 # Add to the path #
 # ~#~#~#~#~#~#~#~ #
 
+
 try:
     QP_ROOT = os.environ["QP_ROOT"]
 except:
     print "Error: QP_ROOT environment variable not found."
     sys.exit(1)
 else:
-
     sys.path = [ QP_ROOT + "/install/EZFIO/Python", 
                  QP_ROOT + "/resultsFile", 
                  QP_ROOT + "/scripts"] + sys.path
-
 
 # ~#~#~#~#~#~ #
 # I m p o r t #
@@ -365,17 +364,20 @@ def write_ezfio(res, filename):
         pseudo_str = "\n".join(pseudo_str)
              
         matrix, array_l_max_block, array_z_remove = parse_str(pseudo_str)
+        array_z_remove = map(float,array_z_remove)
     except:
         ezfio.set_pseudo_do_pseudo(False)
     else:
         ezfio.set_pseudo_do_pseudo(True)
-
+        
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
         # Z _ e f f , a l p h a / b e t a _ e l e c #
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
-        ezfio.pseudo_charge_remove = array_z_remove
-        ezfio.nuclei_nucl_charge = [i - j for i, j in zip(ezfio.nuclei_nucl_charge, array_z_remove)]
+        ezfio.set_pseudo_nucl_charge_remove(array_z_remove)
+        charge = ezfio.get_nuclei_nucl_charge()
+        charge = [ i - j for i, j in zip(charge, array_z_remove) ] 
+        ezfio.set_nuclei_nucl_charge (charge)
 
         import math
         num_elec_diff = sum(array_z_remove)/2

@@ -253,9 +253,6 @@ if __name__ == '__main__':
             m.create_png(l_module)
         except RuntimeError:
             pass
-        except SyntaxError:
-            print "Warning: The graphviz API drop support of python 2.6."
-            pass
 
     if arguments["clean"] or arguments["create_git_ignore"]:
 
@@ -301,7 +298,6 @@ if __name__ == '__main__':
                 # Don't update if we are not in the main repository
                 from is_master_repository import is_master_repository
                 if not is_master_repository:
-                    print >>  sys.stderr, 'Not in the master repo'
                     sys.exit()
 
                 path = os.path.join(module_abs, ".gitignore")

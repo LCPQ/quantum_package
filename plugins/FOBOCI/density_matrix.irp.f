@@ -1,12 +1,12 @@
  BEGIN_PROVIDER [ double precision, one_body_dm_mo_alpha_generators_restart, (mo_tot_num_align,mo_tot_num) ]
 &BEGIN_PROVIDER [ double precision, one_body_dm_mo_beta_generators_restart, (mo_tot_num_align,mo_tot_num) ]
-&BEGIN_PROVIDER [ double precision, norm_generators_restart, (N_states)]
+&BEGIN_PROVIDER [ double precision, norm_generators_restart]
    implicit none
    BEGIN_DOC
    ! Alpha and beta one-body density matrix for the generators restart
    END_DOC
 
-   integer                        :: j,k,l,m,istate
+   integer                        :: j,k,l,m
    integer                        :: occ(N_int*bit_kind_size,2)
    double precision               :: ck, cl, ckl
    double precision               :: phase
@@ -14,37 +14,23 @@
    integer                        :: exc(0:2,2,2),n_occ_alpha
    double precision, allocatable  :: tmp_a(:,:), tmp_b(:,:)
    integer :: degree_respect_to_HF_k
-   integer :: degree_respect_to_HF_l,index_ref_generators_restart(N_states)
-   double precision :: inv_coef_ref_generators_restart(N_states)
+   integer :: degree_respect_to_HF_l,index_ref_generators_restart
+   double precision :: inv_coef_ref_generators_restart
    integer :: i
-   print*, 'providing the one_body_dm_mo_alpha_generators_restart'
 
-   do istate = 1, N_states
-    do i = 1, N_det_generators_restart
-     ! Find the reference determinant for intermediate normalization
-     call get_excitation_degree(ref_generators_restart(1,1,istate),psi_det_generators_restart(1,1,i),degree,N_int)   
-     if(degree == 0)then
-      index_ref_generators_restart(istate) = i
-      inv_coef_ref_generators_restart(istate) = 1.d0/psi_coef_generators_restart(i,istate)
-      exit
-     endif
-    enddo
+   do i = 1, N_det_generators_restart
+    ! Find the reference determinant for intermediate normalization
+    call get_excitation_degree(ref_generators_restart,psi_det_generators_restart(1,1,i),degree,N_int)   
+    if(degree == 0)then
+     index_ref_generators_restart = i
+     inv_coef_ref_generators_restart = 1.d0/psi_coef_generators_restart(i,1)
+     exit
+    endif
    enddo
    norm_generators_restart = 0.d0
-   do istate = 1, N_states
-    do i = 1, N_det_generators_restart
-     psi_coef_generators_restart(i,istate) = psi_coef_generators_restart(i,istate) * inv_coef_ref_generators_restart(istate)
-     norm_generators_restart(istate) += psi_coef_generators_restart(i,istate)**2
-    enddo
-   enddo
-   double precision :: inv_norm(N_States)
-   do istate = 1, N_states
-    inv_norm(istate) = 1.d0/dsqrt(norm_generators_restart(istate))
-   enddo
-   do istate = 1, N_states
-    do i = 1, N_det_generators_restart
-     psi_coef_generators_restart(i,istate) = psi_coef_generators_restart(i,istate)  * inv_norm(istate)
-    enddo
+   do i = 1, N_det_generators_restart
+    psi_coef_generators_restart(i,1) = psi_coef_generators_restart(i,1) * inv_coef_ref_generators_restart
+    norm_generators_restart += psi_coef_generators_restart(i,1)**2
    enddo
 
 

@@ -343,7 +343,7 @@ class H_apply(object):
       """
       self.data["size_max"] = "8192" 
       self.data["initialization"] = """
-!     PROVIDE psi_selectors_coef psi_selectors E_corr_per_selectors psi_det_sorted_bit
+      PROVIDE psi_selectors_coef psi_selectors E_corr_per_selectors psi_det_sorted_bit
       """
       if self.do_double_exc == True:
           self.data["keys_work"] = """
@@ -370,7 +370,7 @@ class H_apply(object):
   double precision, intent(inout):: norm_pert(N_st) 
   double precision, intent(inout):: H_pert_diag(N_st)
   double precision               :: delta_pt2(N_st), norm_psi(N_st), pt2_old(N_st)
-! PROVIDE N_det_generators 
+  PROVIDE N_det_generators 
   do k=1,N_st
     pt2(k) = 0.d0
     norm_pert(k) = 0.d0
@@ -478,7 +478,7 @@ class H_apply_zmq(H_apply):
   double precision, intent(inout):: norm_pert(N_st) 
   double precision, intent(inout):: H_pert_diag(N_st)
   double precision               :: delta_pt2(N_st), norm_psi(N_st), pt2_old(N_st)
-! PROVIDE N_det_generators 
+  PROVIDE N_det_generators 
   do k=1,N_st
     pt2(k) = 0.d0
     norm_pert(k) = 0.d0

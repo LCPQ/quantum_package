@@ -20,7 +20,7 @@ subroutine $subroutine($params_main)
   double precision, allocatable  :: fock_diag_tmp(:,:)
 
   $initialization
-! PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators
+  PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators
 
   integer(ZMQ_PTR), external     :: new_zmq_pair_socket
   integer(ZMQ_PTR)               :: zmq_socket_pair

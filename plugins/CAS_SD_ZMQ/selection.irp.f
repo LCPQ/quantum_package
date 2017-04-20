@@ -1332,4 +1332,3 @@ subroutine selection_collector(b, pt2)
   call sort_selection_buffer(b)
 end subroutine
 
-

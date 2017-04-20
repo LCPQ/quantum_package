@@ -195,7 +195,6 @@ subroutine copy_H_apply_buffer_to_wf
   !call remove_duplicates_in_psi_det(found_duplicates)
 end
 
-
 subroutine remove_duplicates_in_psi_det(found_duplicates)
   implicit none
   logical, intent(out) :: found_duplicates
@@ -262,81 +261,6 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
       else
         call debug_det(psi_det_sorted_bit(1,1,i),N_int)
         stop 'duplicates in psi_det'
-      endif
-    enddo
-    N_det = k
-    call write_bool(output_determinants,found_duplicates,'Found duplicate determinants')
-    SOFT_TOUCH N_det psi_det psi_coef
-  endif
-  deallocate (duplicate,bit_tmp)
-end
-
-subroutine remove_duplicates_in_psi_det_new(found_duplicates)
-  implicit none
-  logical, intent(out) :: found_duplicates
-  BEGIN_DOC
-! Removes duplicate determinants in the wave function.
-  END_DOC
-  integer                        :: i,j,k
-  integer(bit_kind), allocatable :: bit_tmp(:)
-  logical,allocatable            :: duplicate(:)
-
-  allocate (duplicate(N_det), bit_tmp(N_det))
-
-  do i=1,N_det
-    integer, external            :: det_search_key
-    !$DIR FORCEINLINE
-    bit_tmp(i) = det_search_key(psi_det_sorted_bit(1,1,i),N_int)
-    duplicate(i) = .False.
-  enddo
-
-  do i=1,N_det-1
-    if (duplicate(i)) then
-      cycle
-    endif
-    j = i+1
-    do while (bit_tmp(j)==bit_tmp(i))
-      if (duplicate(j)) then
-        j += 1
-        if (j > N_det) then
-          exit
-        else
-          cycle
-        endif
-      endif
-      duplicate(j) = .True.
-      do k=1,N_int
-        if ( (psi_det_sorted_bit(k,1,i) /= psi_det_sorted_bit(k,1,j) ) &
-        .or. (psi_det_sorted_bit(k,2,i) /= psi_det_sorted_bit(k,2,j) ) ) then
-          duplicate(j) = .False.
-          exit
-        endif
-      enddo
-      j += 1
-      if (j > N_det) then
-        exit
-      endif
-    enddo
-  enddo
-
-  found_duplicates = .False.
-  do i=1,N_det
-    if (duplicate(i)) then
-      found_duplicates = .True.
-      exit
-    endif
-  enddo
-
-  if (found_duplicates) then
-    k=0
-    do i=1,N_det
-      if (.not.duplicate(i)) then
-        k += 1
-        psi_det(:,:,k) = psi_det_sorted_bit (:,:,i)
-        psi_coef(k,:)  = psi_coef_sorted_bit(i,:)
-      else
-       psi_det(:,:,k) = 0_bit_kind
-       psi_coef(k,:) = 0.d0
       endif
     enddo
     N_det = k

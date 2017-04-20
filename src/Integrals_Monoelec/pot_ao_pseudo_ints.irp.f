@@ -3,7 +3,7 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral, (ao_num_align,ao_num)]
   BEGIN_DOC
   ! Pseudo-potential integrals
   END_DOC
- 
+  
   if (read_ao_one_integrals) then
     call read_one_e_integrals('ao_pseudo_integral', ao_pseudo_integral,&
         size(ao_pseudo_integral,1), size(ao_pseudo_integral,2))
@@ -53,6 +53,7 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_nu
   call wall_time(wall_1)
   call cpu_time(cpu_1)
   
+
   thread_num = 0
   !$OMP PARALLEL                                                     &
       !$OMP DEFAULT (NONE)                                           &

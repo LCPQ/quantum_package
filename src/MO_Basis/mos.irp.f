@@ -181,145 +181,23 @@ subroutine mo_to_ao(A_mo,LDA_mo,A_ao,LDA_ao)
   allocate ( T(mo_tot_num_align,ao_num) )
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
   
-! SC
   call dgemm('N','N', ao_num, mo_tot_num, ao_num,                    &
       1.d0, ao_overlap,size(ao_overlap,1),                           &
       mo_coef, size(mo_coef,1),                                      &
       0.d0, SC, ao_num_align)
   
-! A.CS
   call dgemm('N','T', mo_tot_num, ao_num, mo_tot_num,                &
       1.d0, A_mo,LDA_mo,                                             &
       SC, size(SC,1),                                      &
       0.d0, T, mo_tot_num_align)
   
-! SC.A.CS
   call dgemm('N','N', ao_num, ao_num, mo_tot_num,                    &
       1.d0, SC,size(SC,1),                                 &
       T, mo_tot_num_align,                                           &
       0.d0, A_ao, LDA_ao)
   
-! C(S.A.S)C
-! SC.A.CS
   deallocate(T,SC)
 end
-
-
-subroutine mo_to_ao_s_inv_1_2(A_mo,LDA_mo,A_ao,LDA_ao)
-  implicit none
-  BEGIN_DOC
-  ! Transform A from the MO basis to the AO basis using the S^{-1} matrix
-  ! S^{-1} C A C^{+} S^{-1}
-  END_DOC
-  integer, intent(in)            :: LDA_ao,LDA_mo
-  double precision, intent(in)   :: A_mo(LDA_mo)
-  double precision, intent(out)  :: A_ao(LDA_ao)
-  double precision, allocatable  :: T(:,:), SC_inv_1_2(:,:)
-  
-  allocate ( SC_inv_1_2(ao_num_align,mo_tot_num) )
-  allocate ( T(mo_tot_num_align,ao_num) )
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
-  
-! SC_inv_1_2 = S^{-1}C
-  call dgemm('N','N', ao_num, mo_tot_num, ao_num,                    &
-      1.d0, ao_overlap_inv_1_2,size(ao_overlap_inv_1_2,1),                           &
-      mo_coef, size(mo_coef,1),                                      &
-      0.d0, SC_inv_1_2, ao_num_align)
-  
-! T = A.(SC_inv_1_2)^{+}
-  call dgemm('N','T', mo_tot_num, ao_num, mo_tot_num,                &
-      1.d0, A_mo,LDA_mo,                                             &
-      SC_inv_1_2, size(SC_inv_1_2,1),                                      &
-      0.d0, T, mo_tot_num_align)
-  
-! SC_inv_1_2.A.CS
-  call dgemm('N','N', ao_num, ao_num, mo_tot_num,                    &
-      1.d0, SC_inv_1_2,size(SC_inv_1_2,1),                                 &
-      T, mo_tot_num_align,                                           &
-      0.d0, A_ao, LDA_ao)
-  
-! C(S.A.S)C
-! SC_inv_1_2.A.CS
-  deallocate(T,SC_inv_1_2)
-end
-
-subroutine mo_to_ao_s_1_2(A_mo,LDA_mo,A_ao,LDA_ao)
-  implicit none
-  BEGIN_DOC
-  ! Transform A from the MO basis to the AO basis using the S^{-1} matrix
-  ! S^{-1} C A C^{+} S^{-1}
-  END_DOC
-  integer, intent(in)            :: LDA_ao,LDA_mo
-  double precision, intent(in)   :: A_mo(LDA_mo)
-  double precision, intent(out)  :: A_ao(LDA_ao)
-  double precision, allocatable  :: T(:,:), SC_1_2(:,:)
-  
-  allocate ( SC_1_2(ao_num_align,mo_tot_num) )
-  allocate ( T(mo_tot_num_align,ao_num) )
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
-  
-! SC_1_2 = S^{-1}C
-  call dgemm('N','N', ao_num, mo_tot_num, ao_num,                    &
-      1.d0, ao_overlap_1_2,size(ao_overlap_1_2,1),                           &
-      mo_coef, size(mo_coef,1),                                      &
-      0.d0, SC_1_2, ao_num_align)
-  
-! T = A.(SC_1_2)^{+}
-  call dgemm('N','T', mo_tot_num, ao_num, mo_tot_num,                &
-      1.d0, A_mo,LDA_mo,                                             &
-      SC_1_2, size(SC_1_2,1),                                      &
-      0.d0, T, mo_tot_num_align)
-  
-! SC_1_2.A.CS
-  call dgemm('N','N', ao_num, ao_num, mo_tot_num,                    &
-      1.d0, SC_1_2,size(SC_1_2,1),                                 &
-      T, mo_tot_num_align,                                           &
-      0.d0, A_ao, LDA_ao)
-  
-! C(S.A.S)C
-! SC_1_2.A.CS
-  deallocate(T,SC_1_2)
-end
-
-
-subroutine mo_to_ao_s_inv(A_mo,LDA_mo,A_ao,LDA_ao)
-  implicit none
-  BEGIN_DOC
-  ! Transform A from the MO basis to the AO basis using the S^{-1} matrix
-  ! S^{-1} C A C^{+} S^{-1}
-  END_DOC
-  integer, intent(in)            :: LDA_ao,LDA_mo
-  double precision, intent(in)   :: A_mo(LDA_mo)
-  double precision, intent(out)  :: A_ao(LDA_ao)
-  double precision, allocatable  :: T(:,:), SC_inv(:,:)
-  
-  allocate ( SC_inv(ao_num_align,mo_tot_num) )
-  allocate ( T(mo_tot_num_align,ao_num) )
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
-  
-! SC_inv = S^{-1}C
-  call dgemm('N','N', ao_num, mo_tot_num, ao_num,                    &
-      1.d0, ao_overlap_inv,size(ao_overlap_inv,1),                           &
-      mo_coef, size(mo_coef,1),                                      &
-      0.d0, SC_inv, ao_num_align)
-  
-! T = A.(SC_inv)^{+}
-  call dgemm('N','T', mo_tot_num, ao_num, mo_tot_num,                &
-      1.d0, A_mo,LDA_mo,                                             &
-      SC_inv, size(SC_inv,1),                                      &
-      0.d0, T, mo_tot_num_align)
-  
-! SC_inv.A.CS
-  call dgemm('N','N', ao_num, ao_num, mo_tot_num,                    &
-      1.d0, SC_inv,size(SC_inv,1),                                 &
-      T, mo_tot_num_align,                                           &
-      0.d0, A_ao, LDA_ao)
-  
-! C(S.A.S)C
-! SC_inv.A.CS
-  deallocate(T,SC_inv)
-end
-
 
 subroutine mo_to_ao_no_overlap(A_mo,LDA_mo,A_ao,LDA_ao)
   implicit none

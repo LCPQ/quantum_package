@@ -185,7 +185,7 @@ include 'Utils/constants.include.F'
   enddo
   const_factor = dist*rho
   const = p * dist_integral
-  if(const_factor > 1000.d0)then
+  if(const_factor > 80.d0)then
    NAI_pol_mult = 0.d0
    return
   endif

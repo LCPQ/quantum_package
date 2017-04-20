@@ -48,7 +48,6 @@ subroutine all_single(e_pt2)
     print*,'-----------------------'
     print*,'i = ',i
     call H_apply_just_mono(pt2, norm_pert, H_pert_diag,  N_st)
-    call make_s2_eigenfunction_first_order
     call diagonalize_CI
     print*,'N_det = ',N_det
     print*,'E        = ',CI_energy(1)
