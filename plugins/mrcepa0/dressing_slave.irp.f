@@ -315,13 +315,13 @@ subroutine push_mrsc2_results(zmq_socket_push, I_i, J, delta, delta_s2, task_id)
     stop 'error' 
   endif 
  
- ! Activate is zmq_socket_push is a REQ 
-   integer :: idummy 
-   rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0) 
-   if (rc /= 4) then 
-     print *, irp_here, 'f77_zmq_send( zmq_socket_push, idummy, 4, 0)' 
-     stop 'error' 
-   endif 
+! ! Activate is zmq_socket_push is a REQ 
+!   integer :: idummy 
+!   rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0) 
+!   if (rc /= 4) then 
+!     print *, irp_here, 'f77_zmq_send( zmq_socket_push, idummy, 4, 0)' 
+!     stop 'error' 
+!   endif 
 end
 
 
@@ -389,13 +389,13 @@ subroutine pull_mrsc2_results(zmq_socket_pull, I_i, J, n, idx, delta, delta_s2, 
   endif 
 
  
- ! Activate is zmq_socket_pull is a REP 
-   integer :: idummy 
-   rc = f77_zmq_send( zmq_socket_pull, idummy, 4, 0) 
-   if (rc /= 4) then 
-     print *, irp_here, 'f77_zmq_send( zmq_socket_pull, idummy, 4, 0)' 
-     stop 'error' 
-   endif 
+! ! Activate is zmq_socket_pull is a REP 
+!   integer :: idummy 
+!   rc = f77_zmq_send( zmq_socket_pull, idummy, 4, 0) 
+!   if (rc /= 4) then 
+!     print *, irp_here, 'f77_zmq_send( zmq_socket_pull, idummy, 4, 0)' 
+!     stop 'error' 
+!   endif 
 end
 
 

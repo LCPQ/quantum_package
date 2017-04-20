@@ -37,8 +37,8 @@ BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num_aligned,3) ]
    enddo
    deallocate(buffer)
    
-   character*(64), parameter      :: f = '(A16, 4(1X,F12.6))'
-   character*(64), parameter      :: ft= '(A16, 4(1X,A12  ))'
+   character*(64), parameter      :: f = '(A16, 4(X,F12.6))'
+   character*(64), parameter      :: ft= '(A16, 4(X,A12  ))'
    double precision, parameter    :: a0= 0.529177249d0
    call write_time(output_Nuclei)
    write(output_Nuclei,'(A)') ''
@@ -169,7 +169,7 @@ END_PROVIDER
        'Nuclear repulsion energy')
 END_PROVIDER
  
-BEGIN_PROVIDER [ character*(128), element_name, (78)] 
+BEGIN_PROVIDER [ character*(128), element_name, (36)] 
  BEGIN_DOC
  ! Array of the name of element, sorted by nuclear charge (integer)
  END_DOC
@@ -209,47 +209,4 @@ BEGIN_PROVIDER [ character*(128), element_name, (78)]
  element_name(34) = 'Se'
  element_name(35) = 'Br'
  element_name(36) = 'Kr'
- element_name(37) = 'Rb'
- element_name(38) = 'Sr'
- element_name(39) = 'Y'
- element_name(40) = 'Zr'
- element_name(41) = 'Nb'
- element_name(42) = 'Mo'
- element_name(43) = 'Tc'
- element_name(44) = 'Ru'
- element_name(45) = 'Rh'
- element_name(46) = 'Pd'
- element_name(47) = 'Ag'
- element_name(48) = 'Cd'
- element_name(49) = 'In'
- element_name(50) = 'Sn'
- element_name(51) = 'Sb'
- element_name(52) = 'Te'
- element_name(53) = 'I'
- element_name(54) = 'Xe'
- element_name(55) = 'Cs'
- element_name(56) = 'Ba'
- element_name(57) = 'La'
- element_name(58) = 'Ce'
- element_name(59) = 'Pr'
- element_name(60) = 'Nd'
- element_name(61) = 'Pm'
- element_name(62) = 'Sm'
- element_name(63) = 'Eu'
- element_name(64) = 'Gd'
- element_name(65) = 'Tb'
- element_name(66) = 'Dy'
- element_name(67) = 'Ho'
- element_name(68) = 'Er'
- element_name(69) = 'Tm'
- element_name(70) = 'Yb'
- element_name(71) = 'Lu'
- element_name(72) = 'Hf'
- element_name(73) = 'Ta'
- element_name(74) = 'W'
- element_name(75) = 'Re'
- element_name(76) = 'Os'
- element_name(77) = 'Ir'
- element_name(78) = 'Pt'
-
 END_PROVIDER

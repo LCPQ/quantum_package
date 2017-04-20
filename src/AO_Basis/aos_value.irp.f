@@ -26,7 +26,6 @@ double precision function ao_value(i,r)
  do m=1,ao_prim_num(i)
    beta = ao_expo_ordered_transp(m,i)
    accu += ao_coef_normalized_ordered_transp(m,i) * dexp(-beta*r2) 
-!  accu += ao_coef_transp(m,i) * dexp(-beta*r2) 
  enddo
  ao_value = accu * dx * dy * dz
 

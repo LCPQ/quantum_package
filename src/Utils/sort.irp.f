@@ -292,17 +292,18 @@ BEGIN_TEMPLATE
   ! contains the new order of the elements.
   ! iradix should be -1 in input.
   END_DOC
-  integer*$int_type, intent(in)  :: isize
-  integer*$int_type, intent(inout) :: iorder(isize)
-  integer*$type, intent(inout)   :: x(isize)
+  $int_type, intent(in)          :: isize
+  $int_type, intent(inout)       :: iorder(isize)
+  $type, intent(inout)           :: x(isize)
   integer, intent(in)            :: iradix
   integer                        :: iradix_new
-  integer*$type, allocatable     :: x2(:), x1(:)
-  integer*$type                  :: i4
-  integer*$int_type, allocatable :: iorder1(:),iorder2(:)
-  integer*$int_type              :: i0, i1, i2, i3, i
+  $type, allocatable             :: x2(:), x1(:)
+  $type                          :: i4
+  $int_type, allocatable         :: iorder1(:),iorder2(:)
+  $int_type                      :: i0, i1, i2, i3, i
   integer, parameter             :: integer_size=$octets
-  integer*$type                  :: mask
+  $type, parameter               :: zero=$zero
+  $type                          :: mask
   integer                        :: nthreads, omp_get_num_threads
   !DIR$ ATTRIBUTES ALIGN : 128   :: iorder1,iorder2, x2, x1
   
@@ -310,16 +311,16 @@ BEGIN_TEMPLATE
     
     ! Find most significant bit
     
-    i0 = 0_$int_type
-    i4 = -1_$type
+    i0 = 0_8
+    i4 = -1_8
     
     do i=1,isize
       i4 = max(i4,x(i))
     enddo
-    i3 = int(i4,$int_type)
+    i3 = i4  ! Type conversion
     
     iradix_new = integer_size-1-leadz(i3)
-    mask = ibset(0_$type,iradix_new)
+    mask = ibset(zero,iradix_new)
     nthreads = 1
     !   nthreads = 1+ishft(omp_get_num_threads(),-1)
     
@@ -330,22 +331,22 @@ BEGIN_TEMPLATE
       stop
     endif
     
-    i1=1_$int_type
-    i2=1_$int_type
+    i1=1_8
+    i2=1_8
     
     do i=1,isize
-      if (iand(mask,x(i)) == 0_$type) then
+      if (iand(mask,x(i)) == zero) then
         iorder1(i1) = iorder(i)
         x1(i1) = x(i)
-        i1 = i1+1_$int_type
+        i1 = i1+1_8
       else
         iorder2(i2) = iorder(i)
         x2(i2) = x(i)
-        i2 = i2+1_$int_type
+        i2 = i2+1_8
       endif
     enddo
-    i1=i1-1_$int_type
-    i2=i2-1_$int_type
+    i1=i1-1_8
+    i2=i2-1_8
     
     do i=1,i1
       iorder(i0+i) = iorder1(i)
@@ -398,12 +399,12 @@ BEGIN_TEMPLATE
   endif
   
   
-  mask = ibset(0_$type,iradix)
+  mask = ibset(zero,iradix)
   i0=1
   i1=1
   
   do i=1,isize
-    if (iand(mask,x(i)) == 0_$type) then
+    if (iand(mask,x(i)) == zero) then
       iorder(i0) = iorder(i)
       x(i0) = x(i)
       i0 = i0+1
@@ -442,12 +443,12 @@ BEGIN_TEMPLATE
   
  end
 
-SUBST [ X, type, octets, is_big, big, int_type ]
- i  ; 4 ; 32 ; .False. ;      ; 4 ;;
- i8 ; 8 ; 32 ; .False. ;      ; 4 ;;
- i2 ; 2 ; 32 ; .False. ;      ; 4 ;;
- i  ; 4 ; 64 ; .True.  ; _big ; 8 ;;
- i8 ; 8 ; 64 ; .True.  ; _big ; 8 ;;
+SUBST [ X, type, octets, is_big, big, int_type, zero ]
+ i  ; integer   ; 32 ; .False. ; ; integer ; 0;;
+ i8 ; integer*8 ; 32 ; .False. ; ; integer ; 0_8;;
+ i2 ; integer*2 ; 32 ; .False. ; ; integer ; 0;;
+ i  ; integer   ; 64 ; .True. ; _big ; integer*8 ; 0 ;;
+ i8 ; integer*8 ; 64 ; .True. ; _big ; integer*8 ; 0_8 ;;
 END_TEMPLATE
 
 

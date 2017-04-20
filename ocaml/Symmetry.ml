@@ -85,7 +85,7 @@ module Xyz = struct
   let of_string s =
     let flush state accu number =
       let n = 
-        if (number = "") then 1
+        if (number = "") then 0
         else (Int.of_string number) 
       in
       match state with

@@ -13,7 +13,7 @@ end
 
 subroutine provide_everything
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators psi_det_sorted_bit psi_selectors n_det_generators n_states generators_bitmask zmq_context
-   PROVIDE pt2_e0_denominator mo_tot_num N_int fragment_count
+   PROVIDE pt2_e0_denominator mo_tot_num N_int
 end
 
 subroutine run_wf
@@ -60,6 +60,28 @@ subroutine run_wf
   end do
 end
 
+subroutine update_energy(energy)
+  implicit none
+  double precision, intent(in) :: energy(N_states)
+  BEGIN_DOC
+! Update energy when it is received from ZMQ
+  END_DOC
+  integer :: j,k
+  do j=1,N_states
+    do k=1,N_det
+      CI_eigenvectors(k,j) = psi_coef(k,j)
+    enddo
+  enddo
+  call u_0_S2_u_0(CI_eigenvectors_s2,CI_eigenvectors,N_det,psi_det,N_int)
+  if (.True.) then
+    do k=1,N_states
+      ci_electronic_energy(k) = energy(k)
+    enddo
+    TOUCH ci_electronic_energy CI_eigenvectors_s2 CI_eigenvectors
+  endif
+
+  call write_double(6,ci_energy,'Energy')
+end
 
 subroutine selection_slave_tcp(i,energy)
   implicit none

@@ -4,7 +4,7 @@ BEGIN_PROVIDER [integer, degree_max_integration_lebedev]
  ! needed for the angular integration according to LEBEDEV formulae
  END_DOC
  implicit none
- degree_max_integration_lebedev= 13
+ degree_max_integration_lebedev= 15
 
 END_PROVIDER
 
@@ -644,14 +644,14 @@ END_PROVIDER
  weights_angular_integration_lebedev(16) = 0.016604069565742d0
  weights_angular_integration_lebedev(17) = 0.016604069565742d0
  weights_angular_integration_lebedev(18) = 0.016604069565742d0
- weights_angular_integration_lebedev(19) = 0.029586038961039d0
- weights_angular_integration_lebedev(20) = 0.029586038961039d0
- weights_angular_integration_lebedev(21) = 0.029586038961039d0
- weights_angular_integration_lebedev(22) = 0.029586038961039d0
- weights_angular_integration_lebedev(23) = 0.029586038961039d0
- weights_angular_integration_lebedev(24) = 0.029586038961039d0
- weights_angular_integration_lebedev(25) = 0.029586038961039d0
- weights_angular_integration_lebedev(26) = 0.029586038961039d0
+ weights_angular_integration_lebedev(19) = -0.029586038961039d0
+ weights_angular_integration_lebedev(20) = -0.029586038961039d0
+ weights_angular_integration_lebedev(21) = -0.029586038961039d0
+ weights_angular_integration_lebedev(22) = -0.029586038961039d0
+ weights_angular_integration_lebedev(23) = -0.029586038961039d0
+ weights_angular_integration_lebedev(24) = -0.029586038961039d0
+ weights_angular_integration_lebedev(25) = -0.029586038961039d0
+ weights_angular_integration_lebedev(26) = -0.029586038961039d0
  weights_angular_integration_lebedev(27) = 0.026576207082159d0
  weights_angular_integration_lebedev(28) = 0.026576207082159d0
  weights_angular_integration_lebedev(29) = 0.026576207082159d0

@@ -356,7 +356,7 @@ subroutine dressing_1h1p_by_2h2p(dets_in,u_in,diag_H_elements,dim_in,sze,N_st,Ni
   c_ref = 1.d0/u_in(index_hf,1)
   do k = 1, n_singles
    l = index_singles(k)
-   diag_H_elements(1) -= diag_H_elements(l)
+   diag_H_elements(0) -= diag_H_elements(l)
   enddo
 ! do k = 1, n_doubles
 !  l = index_doubles(k)

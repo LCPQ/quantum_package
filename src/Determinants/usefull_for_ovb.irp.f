@@ -2,8 +2,7 @@
 integer function n_open_shell(det_in,nint)
  implicit none
  use bitmasks
- integer, intent(in) :: nint
- integer(bit_kind), intent(in) :: det_in(nint,2)
+ integer(bit_kind), intent(in) :: det_in(nint,2),nint
  integer :: i
  n_open_shell = 0
  do i=1,Nint
@@ -14,8 +13,7 @@ end
 integer function n_closed_shell(det_in,nint)
  implicit none
  use bitmasks
- integer, intent(in) :: nint
- integer(bit_kind), intent(in) :: det_in(nint,2)
+ integer(bit_kind), intent(in) :: det_in(nint,2),nint
  integer :: i
  n_closed_shell = 0
  do i=1,Nint
@@ -26,8 +24,7 @@ end
 integer function n_closed_shell_cas(det_in,nint)
  implicit none
  use bitmasks
- integer, intent(in) :: nint
- integer(bit_kind), intent(in) :: det_in(nint,2)
+ integer(bit_kind), intent(in) :: det_in(nint,2),nint
  integer(bit_kind) :: det_tmp(nint,2)
  integer :: i
  n_closed_shell_cas = 0

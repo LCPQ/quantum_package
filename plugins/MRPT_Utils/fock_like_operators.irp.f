@@ -197,7 +197,7 @@
     k_inact_core_orb = list_core_inact(k)
     coulomb  = get_mo_bielec_integral(k_inact_core_orb,iorb,k_inact_core_orb,jorb,mo_integrals_map)
     exchange = get_mo_bielec_integral(k_inact_core_orb,jorb,iorb,k_inact_core_orb,mo_integrals_map)
-    accu += 2.d0 * coulomb  - exchange
+    accu += 2.d0 * coulomb - exchange
    enddo
    fock_operator_active_from_core_inact(iorb,jorb) = accu
   enddo

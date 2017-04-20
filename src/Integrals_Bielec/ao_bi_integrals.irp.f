@@ -346,7 +346,6 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   
   integer                        :: n_integrals, rc
   integer                        :: kk, m, j1, i1, lmax
-  character*(64)                 :: fmt
   
   integral = ao_bielec_integral(1,1,1,1)
   
@@ -366,16 +365,14 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   call cpu_time(cpu_1)
 
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
+  character*(32) :: task
+
   call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
 
-  character(len=:), allocatable :: task
-  allocate(character(len=ao_num*12) :: task)
-  write(fmt,*) '(', ao_num, '(I5,X,I5,''|''))'
-  do l=1,ao_num
-    write(task,fmt) (i,l, i=1,l)
-    call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task))
+  do l=ao_num,1,-1
+    write(task,*) "triangle ", l
+    call add_task_to_taskserver(zmq_to_qp_run_socket,task)
   enddo
-  deallocate(task)
   
   call zmq_set_running(zmq_to_qp_run_socket)
 

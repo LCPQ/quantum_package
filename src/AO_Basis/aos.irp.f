@@ -182,7 +182,7 @@ integer function ao_power_index(nx,ny,nz)
 end
 
 
-BEGIN_PROVIDER [ character*(128), l_to_charater, (0:7)]
+BEGIN_PROVIDER [ character*(128), l_to_charater, (0:4)]
  BEGIN_DOC
  ! character corresponding to the "L" value of an AO orbital
  END_DOC
@@ -192,9 +192,6 @@ BEGIN_PROVIDER [ character*(128), l_to_charater, (0:7)]
  l_to_charater(2)='D'
  l_to_charater(3)='F'
  l_to_charater(4)='G'
- l_to_charater(5)='H'
- l_to_charater(6)='I'
- l_to_charater(7)='J'
 END_PROVIDER
 
 

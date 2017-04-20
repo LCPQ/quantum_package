@@ -60,17 +60,16 @@ subroutine run(N_st,energy)
 end
 
 
-subroutine print_ref_coefs
+subroutine print_cas_coefs
   implicit none
 
   integer :: i,j
-  print *,  'Reference'
-  print *,  '========='
-  do i=1,N_det_ref
-    print *,  (psi_ref_coef(i,j), j=1,N_states)
-    call debug_det(psi_ref(1,1,i),N_int)
+  print *,  'CAS'
+  print *,  '==='
+  do i=1,N_det_cas
+    print *,  (psi_cas_coef(i,j), j=1,N_states)
+    call debug_det(psi_cas(1,1,i),N_int)
   enddo
-  print *,  ''
   call write_double(6,ci_energy(1),"Initial CI energy")
 
 end
@@ -203,7 +202,7 @@ subroutine run_pt2(N_st,energy)
   
   print*,'Last iteration only to compute the PT2' 
   
-  N_det_generators = N_det_ref
+  N_det_generators = N_det_cas
   N_det_selectors = N_det_non_ref
 
   do i=1,N_det_generators

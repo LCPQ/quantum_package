@@ -42,7 +42,7 @@
         9;;
       END_TEMPLATE
       case default
-        stop 'Error in ao_cart_to_sphe : angular momentum too high'
+        stop 'Error in ao_cart_to_sphe'
     end select
   enddo
 

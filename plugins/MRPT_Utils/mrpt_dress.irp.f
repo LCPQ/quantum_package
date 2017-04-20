@@ -44,11 +44,11 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
   integer                        :: N_miniList, leng
   double precision               :: delta_e(N_states),hij_tmp
   integer                        :: index_i,index_j
-  double precision :: phase_array(N_det_ref),phase
+  double precision :: phase_array(N_det),phase
   integer                        :: exc(0:2,2,2),degree
   
   
-  leng = max(N_det_generators, N_det_generators)
+  leng = max(N_det_generators, N_det)
   allocate(miniList(Nint, 2, leng), idx_miniList(leng))
   
   !create_minilist_find_previous(key_mask, fullList, miniList, N_fullList, N_miniList, fullMatch, Nint)
@@ -59,81 +59,35 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
   end if
   
   
-  call find_connections_previous(n_selected,det_buffer,Nint,tq,N_tq,miniList,N_minilist)
+  call find_connections_previous(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_minilist)
 
   if(N_tq > 0) then
-    call create_minilist(key_mask, psi_ref, miniList, idx_miniList, N_det_ref, N_minilist, Nint)
+    call create_minilist(key_mask, psi_det, miniList, idx_miniList, N_det, N_minilist, Nint)
   end if
   
   
- double  precision :: coef_array(N_states)
   do i_alpha=1,N_tq
-!  do i = 1, N_det_ref
-!   do i_state = 1, N_states
-!    coef_array(i_state) = psi_ref_coef(i,i_state)
-!   enddo
-!   call i_H_j(psi_ref(1,1,i),tq(1,1,i_alpha),n_int,hialpha)
-!     if(dabs(hialpha).le.1.d-20)then
-!      do i_state = 1, N_states
-!       delta_e(i_state) = 1.d+20
-!      enddo
-!     else
-!      call get_delta_e_dyall(psi_ref(1,1,i),tq(1,1,i_alpha),coef_array,hialpha,delta_e)
-!     endif
-!     hij_array(i) = hialpha
-!     do i_state = 1,N_states
-!      delta_e_inv_array(i,i_state) = 1.d0/delta_e(i_state)
-!     enddo
-!  enddo
-!  do i = 1, N_det_ref
-!   do j = 1, N_det_ref
-!    do i_state = 1, N_states
-!     delta_ij_(i,j,i_state) += hij_array(i) * hij_array(j)* delta_e_inv_array(j,i_state)
-!    enddo
-!   enddo
-!  enddo
-!  cycle
-
-
-
- !  call get_excitation_degree_vector(psi_ref,tq(1,1,i_alpha),degree_alpha,Nint,N_det_ref,idx_alpha)
     call get_excitation_degree_vector(miniList,tq(1,1,i_alpha),degree_alpha,Nint,N_minilist,idx_alpha)
     
     do j=1,idx_alpha(0)
       idx_alpha(j) = idx_miniList(idx_alpha(j))
     enddo
      
+!   double precision :: ihpsi0,coef_pert
+!   ihpsi0 = 0.d0
+!   coef_pert = 0.d0
     phase_array  =0.d0
     do i = 1,idx_alpha(0)
       index_i = idx_alpha(i)
-      call i_h_j(tq(1,1,i_alpha),psi_ref(1,1,index_i),Nint,hialpha)
+      call i_h_j(tq(1,1,i_alpha),psi_det(1,1,index_i),Nint,hialpha)
+      double  precision :: coef_array(N_states)
       do i_state = 1, N_states
-       coef_array(i_state) = psi_ref_coef(index_i,i_state)
+       coef_array(i_state) = psi_coef(index_i,i_state)
       enddo
-      integer :: degree_scalar
-
-      call get_excitation_degree(tq(1,1,i_alpha),psi_ref(1,1,index_i),degree_scalar,N_int)
-!     if(degree_scalar == 2)then
-!      hialpha = 0.d0
-!     endif
-      if(dabs(hialpha).le.1.d-20)then
-       do i_state = 1, N_states
-        delta_e(i_state) = 1.d+20
-       enddo
-      else 
-       call get_delta_e_dyall(psi_ref(1,1,index_i),tq(1,1,i_alpha),delta_e)
-       if(degree_scalar.eq.1)then
-        delta_e = 1.d+20
-       endif
-!      print*, 'delta_e',delta_e
-       !!!!!!!!!!!!! SHIFTED BK 
-!      double precision :: hjj
-!      call i_h_j(tq(1,1,i_alpha),tq(1,1,i_alpha),Nint,hjj)
-!      delta_e(1) = electronic_psi_ref_average_value(1) - hjj
-!      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      endif
+      call get_delta_e_dyall(psi_det(1,1,index_i),tq(1,1,i_alpha),coef_array,hialpha,delta_e)
       hij_array(index_i) = hialpha
-!     print*, 'hialpha ',hialpha
+      call get_excitation(psi_det(1,1,index_i),tq(1,1,i_alpha),exc,degree,phase,N_int)
+!     phase_array(index_i) = phase
       do i_state = 1,N_states
        delta_e_inv_array(index_i,i_state) = 1.d0/delta_e(i_state)
       enddo
@@ -145,14 +99,18 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
       call omp_set_lock( psi_ref_bis_lock(index_i) )
       do j = 1, idx_alpha(0)
        index_j = idx_alpha(j)
-       !!!!!!!!!!!!!!!!!! WARNING TEST
-       !!!!!!!!!!!!!!!!!! WARNING TEST
-!      if(index_j .ne. index_i)cycle
-       !!!!!!!!!!!!!!!!!! WARNING TEST
-       !!!!!!!!!!!!!!!!!! WARNING TEST
-       !!!!!!!!!!!!!!!!!! WARNING TEST
+!      call get_excitation(psi_det(1,1,index_i),psi_det(1,1,index_i),exc,degree,phase,N_int)
+!      if(index_j.ne.index_i)then
+!       if(phase_array(index_j) * phase_array(index_i) .ne. phase)then
+!        print*, phase_array(index_j) , phase_array(index_i) ,phase
+!        call debug_det(psi_det(1,1,index_i),N_int)
+!        call debug_det(psi_det(1,1,index_j),N_int)
+!        call debug_det(tq(1,1,i_alpha),N_int)
+!        stop
+!       endif
+!      endif
        do i_state=1,N_states
-        ! standard dressing first order
+! standard dressing first order
          delta_ij_(index_i,index_j,i_state) += hij_array(index_j) * hij_tmp * delta_e_inv_array(index_j,i_state)
        enddo
       enddo
@@ -164,23 +122,23 @@ end
 
 
 
- BEGIN_PROVIDER [ integer(bit_kind), gen_det_sorted,  (N_int,2,N_det_ref,2) ]
-&BEGIN_PROVIDER [ integer, gen_det_shortcut, (0:N_det_ref,2) ]
-&BEGIN_PROVIDER [ integer, gen_det_version, (N_int, N_det_ref,2) ]
-&BEGIN_PROVIDER [ integer, gen_det_idx, (N_det_ref,2) ]
-  gen_det_sorted(:,:,:,1) = psi_ref(:,:,:N_det_ref)
-  gen_det_sorted(:,:,:,2) = psi_ref(:,:,:N_det_ref)
-  call sort_dets_ab_v(gen_det_sorted(:,:,:,1), gen_det_idx(:,1), gen_det_shortcut(0:,1), gen_det_version(:,:,1), N_det_ref, N_int)
-  call sort_dets_ba_v(gen_det_sorted(:,:,:,2), gen_det_idx(:,2), gen_det_shortcut(0:,2), gen_det_version(:,:,2), N_det_ref, N_int)
+ BEGIN_PROVIDER [ integer(bit_kind), gen_det_sorted,  (N_int,2,N_det_generators,2) ]
+&BEGIN_PROVIDER [ integer, gen_det_shortcut, (0:N_det_generators,2) ]
+&BEGIN_PROVIDER [ integer, gen_det_version, (N_int, N_det_generators,2) ]
+&BEGIN_PROVIDER [ integer, gen_det_idx, (N_det_generators,2) ]
+  gen_det_sorted(:,:,:,1) = psi_det_generators(:,:,:N_det_generators)
+  gen_det_sorted(:,:,:,2) = psi_det_generators(:,:,:N_det_generators)
+  call sort_dets_ab_v(gen_det_sorted(:,:,:,1), gen_det_idx(:,1), gen_det_shortcut(0:,1), gen_det_version(:,:,1), N_det_generators, N_int)
+  call sort_dets_ba_v(gen_det_sorted(:,:,:,2), gen_det_idx(:,2), gen_det_shortcut(0:,2), gen_det_version(:,:,2), N_det_generators, N_int)
 END_PROVIDER
 
 
-subroutine find_connections_previous(n_selected,det_buffer,Nint,tq,N_tq,miniList,N_miniList)
+subroutine find_connections_previous(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_miniList)
 
  use bitmasks
  implicit none
 
-  integer, intent(in)            :: n_selected, Nint
+  integer, intent(in)            :: i_generator,n_selected, Nint
 
   integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
   integer                        :: i,j,k,m
@@ -197,7 +155,7 @@ subroutine find_connections_previous(n_selected,det_buffer,Nint,tq,N_tq,miniList
   logical, external              :: is_connected_to
   
   
-  integer(bit_kind),intent(in)  :: miniList(Nint,2,N_det_ref)
+  integer(bit_kind),intent(in)  :: miniList(Nint,2,N_det_generators)
   integer,intent(in)            :: N_miniList
 
   
@@ -210,7 +168,7 @@ subroutine find_connections_previous(n_selected,det_buffer,Nint,tq,N_tq,miniList
       cycle
     end if
 
-    if (.not. is_in_wavefunction(det_buffer(1,1,i),Nint,N_det_ref)) then
+    if (.not. is_in_wavefunction(det_buffer(1,1,i),Nint,N_det)) then
       N_tq += 1
       do k=1,N_int
         tq(k,1,N_tq) = det_buffer(k,1,i)
@@ -219,5 +177,10 @@ subroutine find_connections_previous(n_selected,det_buffer,Nint,tq,N_tq,miniList
     endif
   enddo i_loop
 end
+
+
+
+
+
 
 

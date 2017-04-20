@@ -9,14 +9,14 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
   logical                        :: good
   call write_time(output_determinants)
   N_det_generators = 0
-  do i=1,N_det_ref
+  do i=1,N_det
     do l=1,n_cas_bitmask
       good = .True.
       do k=1,N_int
         good = good .and. (                                          &
-            iand(not(cas_bitmask(k,1,l)), psi_ref(k,1,i)) ==         &
+            iand(not(cas_bitmask(k,1,l)), psi_det(k,1,i)) ==         &
             iand(not(cas_bitmask(k,1,l)), HF_bitmask(k,1)) ) .and. ( &
-            iand(not(cas_bitmask(k,2,l)), psi_ref(k,2,i)) ==         &
+            iand(not(cas_bitmask(k,2,l)), psi_det(k,2,i)) ==         &
             iand(not(cas_bitmask(k,2,l)), HF_bitmask(k,2)) )
       enddo
       if (good) then
@@ -41,14 +41,14 @@ END_PROVIDER
   integer                        :: i, k, l, m
   logical                        :: good
   m=0
-  do i=1,N_det_ref
+  do i=1,N_det
     do l=1,n_cas_bitmask
       good = .True.
       do k=1,N_int
         good = good .and. (                                         &
-            iand(not(cas_bitmask(k,1,l)), psi_ref(k,1,i)) ==         &
+            iand(not(cas_bitmask(k,1,l)), psi_det(k,1,i)) ==         &
             iand(not(cas_bitmask(k,1,l)), HF_bitmask(k,1)) .and. (   &
-            iand(not(cas_bitmask(k,2,l)), psi_ref(k,2,i)) ==         &
+            iand(not(cas_bitmask(k,2,l)), psi_det(k,2,i)) ==         &
             iand(not(cas_bitmask(k,2,l)), HF_bitmask(k,2) )) )
       enddo
       if (good) then
@@ -58,8 +58,8 @@ END_PROVIDER
     if (good) then
       m = m+1
       do k=1,N_int
-        psi_det_generators(k,1,m) = psi_ref(k,1,i)
-        psi_det_generators(k,2,m) = psi_ref(k,2,i)
+        psi_det_generators(k,1,m) = psi_det(k,1,i)
+        psi_det_generators(k,2,m) = psi_det(k,2,i)
       enddo
       psi_coef_generators(m,:) = psi_coef(m,:)
     endif

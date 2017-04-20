@@ -19,15 +19,6 @@ subroutine build_fock_tmp(fock_diag_tmp,det_ref,Nint)
   fock_diag_tmp = 0.d0
   E0 = 0.d0
 
-  if (Ne(1) /= elec_alpha_num) then
-    print *,  'Error in build_fock_tmp (alpha)', Ne(1), Ne(2)
-    stop -1
-  endif
-  if (Ne(2) /= elec_beta_num) then
-    print *, 'Error in build_fock_tmp (beta)', Ne(1), Ne(2)
-    stop -1
-  endif
-
   ! Occupied MOs
   do ii=1,elec_alpha_num
     i = occ(ii,1)

@@ -40,13 +40,11 @@ subroutine FOBOCI_lmct_mlct_old_thr(iter)
  logical :: lmct
  double precision, allocatable :: psi_singles_coef(:,:)
  logical :: exit_loop
- call update_generators_restart_coef
  allocate( zero_bitmask(N_int,2) )
   do i = 1, n_inact_orb
    lmct = .True.
    integer :: i_hole_osoci
    i_hole_osoci = list_inact(i)
-!  if(i_hole_osoci.ne.26)cycle
    print*,'--------------------------'
    ! First set the current generators to the one of restart
    call check_symetry(i_hole_osoci,thr,test_sym)
@@ -56,6 +54,7 @@ subroutine FOBOCI_lmct_mlct_old_thr(iter)
    print*,'i_hole_osoci = ',i_hole_osoci
    call create_restart_and_1h(i_hole_osoci)
    call set_generators_to_psi_det
+   print*,'Passed set generators'
    call set_bitmask_particl_as_input(reunion_of_bitmask)
    call set_bitmask_hole_as_input(reunion_of_bitmask)
    double precision :: e_pt2
@@ -83,10 +82,10 @@ subroutine FOBOCI_lmct_mlct_old_thr(iter)
      call set_bitmask_particl_as_input(reunion_of_bitmask)
      call set_bitmask_hole_as_input(reunion_of_bitmask)
      call all_single(e_pt2)
-!    call make_s2_eigenfunction_first_order
-!    threshold_davidson = 1.d-6
-!    soft_touch threshold_davidson davidson_criterion
-!    call diagonalize_ci
+     call make_s2_eigenfunction_first_order
+     threshold_davidson = 1.d-6
+     soft_touch threshold_davidson davidson_criterion
+     call diagonalize_ci
     double precision :: hkl
     call provide_matrix_dressing(dressing_matrix,n_det_generators,psi_det_generators)
     hkl = dressing_matrix(1,1)
@@ -119,7 +118,6 @@ subroutine FOBOCI_lmct_mlct_old_thr(iter)
    do i = 1, n_virt_orb
     integer :: i_particl_osoci
     i_particl_osoci = list_virt(i)
-!   cycle
 
     print*,'--------------------------'
     ! First set the current generators to the one of restart
@@ -154,11 +152,11 @@ subroutine FOBOCI_lmct_mlct_old_thr(iter)
        enddo
       enddo
       call all_single(e_pt2)
-!     call make_s2_eigenfunction_first_order
-!     threshold_davidson = 1.d-6
-!     soft_touch threshold_davidson davidson_criterion
-!    
-!     call diagonalize_ci
+      call make_s2_eigenfunction_first_order
+      threshold_davidson = 1.d-6
+      soft_touch threshold_davidson davidson_criterion
+     
+      call diagonalize_ci
       deallocate(dressing_matrix)
     else
      if(exit_loop)then
@@ -543,6 +541,7 @@ subroutine FOBOCI_lmct_mlct_old_thr_restart(iter)
      call print_generators_bitmasks_holes
      ! Impose that only the active part can be reached 
      call set_bitmask_hole_as_input(unpaired_bitmask)
+!!!  call all_single_h_core
      call create_restart_and_1p(i_particl_osoci)
 !!!  ! Update the generators 
      call set_generators_to_psi_det
