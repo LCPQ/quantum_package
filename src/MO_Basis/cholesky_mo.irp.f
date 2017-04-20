@@ -50,7 +50,83 @@ subroutine cholesky_mo(n,m,P,LDP,C,LDC,tol_in,rank)
  deallocate(W,work)
 end
 
+!subroutine svd_mo(n,m,P,LDP,C,LDC)
+!implicit none
+!BEGIN_DOC
+! Singular value decomposition of the AO Density matrix
+!
+! n : Number of AOs
+
+! m : Number of MOs
+!
+! P(LDP,n) : Density matrix in AO basis
+!
+! C(LDC,m) : MOs
+!
+! tol_in : tolerance
+!
+! rank : Nomber of local MOs (output)
+!
+!END_DOC
+!integer, intent(in) :: n,m, LDC, LDP
+!double precision, intent(in) :: P(LDP,n)
+!double precision, intent(out) :: C(LDC,m)
+
+!integer :: info
+!integer :: i,k
+!integer :: ipiv(n)
+!double precision:: tol
+!double precision, allocatable :: W(:,:), work(:)
+
+!allocate(W(LDC,n),work(2*n))
+!call svd(P,LDP,C,LDC,W,size(W,1),m,n)
+
+!deallocate(W,work)
+!end
+
 subroutine svd_mo(n,m,P,LDP,C,LDC)
+ implicit none
+ BEGIN_DOC
+! Singular value decomposition of the AO Density matrix
+!
+! n : Number of AOs
+!
+! m : Number of MOs
+!
+! P(LDP,n) : Density matrix in AO basis
+!
+! C(LDC,m) : MOs
+!
+ END_DOC
+ integer, intent(in) :: n,m, LDC, LDP
+ double precision, intent(in) :: P(LDP,n)
+ double precision, intent(out) :: C(LDC,m)
+
+ integer :: info
+ integer :: i,k
+ integer :: ipiv(n)
+ double precision:: tol
+ double precision, allocatable :: W(:,:), work(:), D(:)
+
+ allocate(W(LDC,n),work(2*n),D(n))
+ print*, ''
+ do i = 1, n
+  print*, P(i,i)
+ enddo
+ call svd(P,LDP,C,LDC,D,W,size(W,1),m,n)
+ double precision :: accu
+ accu = 0.d0
+ print*, 'm',m
+ do i = 1, m
+   print*, D(i)
+   accu += D(i)
+ enddo
+ print*,'Sum of D',accu 
+
+ deallocate(W,work)
+end
+
+subroutine svd_mo_new(n,m,m_physical,P,LDP,C,LDC)
  implicit none
  BEGIN_DOC
 ! Singular value decomposition of the AO Density matrix
@@ -68,7 +144,7 @@ subroutine svd_mo(n,m,P,LDP,C,LDC)
 ! rank : Nomber of local MOs (output)
 !
  END_DOC
- integer, intent(in) :: n,m, LDC, LDP
+ integer, intent(in) :: n,m,m_physical, LDC, LDP
  double precision, intent(in) :: P(LDP,n)
  double precision, intent(out) :: C(LDC,m)
 
@@ -76,10 +152,18 @@ subroutine svd_mo(n,m,P,LDP,C,LDC)
  integer :: i,k
  integer :: ipiv(n)
  double precision:: tol
- double precision, allocatable :: W(:,:), work(:)
+ double precision, allocatable :: W(:,:), work(:), D(:)
 
- allocate(W(LDC,n),work(2*n))
- call svd(P,LDP,C,LDC,W,size(W,1),m,n)
+ allocate(W(LDC,n),work(2*n),D(n))
+ call svd(P,LDP,C,LDC,D,W,size(W,1),m_physical,n)
+ double precision :: accu
+ accu = 0.d0
+ print*, 'm',m_physical
+ do i = 1, m_physical
+   print*, D(i)
+   accu += D(i)
+ enddo
+ print*,'Sum of D',accu 
 
  deallocate(W,work)
 end

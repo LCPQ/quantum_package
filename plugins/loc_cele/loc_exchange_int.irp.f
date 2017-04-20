@@ -18,16 +18,17 @@ program loc_int
   do j = i+1, n_core_inact_orb
    jorb = list_core_inact(j)
    iorder(jorb) = jorb
-   exchange_int(jorb) = -mo_bielec_integral_jj_exchange(iorb,jorb)
+   if(list_core_inact_check(jorb) == .False.)then
+    exchange_int(jorb) = 0.d0
+   else 
+    exchange_int(jorb) = -mo_bielec_integral_jj_exchange(iorb,jorb)
+   endif
   enddo
   n_rot += 1
   call dsort(exchange_int,iorder,mo_tot_num)
   indices(n_rot,1) = iorb
   indices(n_rot,2) = iorder(1)
   list_core_inact_check(iorder(1)) = .False.
-  print*,indices(n_rot,1),indices(n_rot,2)
-  print*,''
-  print*,''
  enddo
   print*,'****************************'
   print*,'-+++++++++++++++++++++++++'
@@ -50,16 +51,17 @@ program loc_int
   do j = i+1, n_act_orb
    jorb = list_act(j)
    iorder(jorb) = jorb
-   exchange_int(jorb) = -mo_bielec_integral_jj_exchange(iorb,jorb)
+   if(list_core_inact_check(jorb) == .False.)then
+    exchange_int(jorb) = 0.d0
+   else 
+    exchange_int(jorb) = -mo_bielec_integral_jj_exchange(iorb,jorb)
+   endif
   enddo
   n_rot += 1
   call dsort(exchange_int,iorder,mo_tot_num)
   indices(n_rot,1) = iorb
   indices(n_rot,2) = iorder(1)
   list_core_inact_check(iorder(1)) = .False.
-  print*,indices(n_rot,1),indices(n_rot,2)
-  print*,''
-  print*,''
  enddo
   print*,'****************************'
   print*,'-+++++++++++++++++++++++++'
@@ -82,16 +84,17 @@ program loc_int
   do j = i+1, n_virt_orb
    jorb = list_virt(j)
    iorder(jorb) = jorb
-   exchange_int(jorb) = -mo_bielec_integral_jj_exchange(iorb,jorb)
+   if(list_core_inact_check(jorb) == .False.)then
+    exchange_int(jorb) = 0.d0
+   else 
+    exchange_int(jorb) = -mo_bielec_integral_jj_exchange(iorb,jorb)
+   endif
   enddo
   n_rot += 1
   call dsort(exchange_int,iorder,mo_tot_num)
   indices(n_rot,1) = iorb
   indices(n_rot,2) = iorder(1)
   list_core_inact_check(iorder(1)) = .False.
-  print*,indices(n_rot,1),indices(n_rot,2)
-  print*,''
-  print*,''
  enddo
   print*,'****************************'
   print*,'-+++++++++++++++++++++++++'
