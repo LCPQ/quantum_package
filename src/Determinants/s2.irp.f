@@ -1,3 +1,35 @@
+double precision function diag_S_mat_elem(key_i,Nint)
+  implicit none
+  use bitmasks
+  include 'Utils/constants.include.F'
+
+  integer                        :: Nint
+  integer(bit_kind), intent(in)  :: key_i(Nint,2)
+  BEGIN_DOC
+! Returns <i|S^2|i>
+  END_DOC
+  integer                        :: nup, i
+  integer(bit_kind)              :: xorvec(N_int_max)
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
+
+  do i=1,Nint
+    xorvec(i) = xor(key_i(i,1),key_i(i,2))
+  enddo
+
+  do i=1,Nint
+    xorvec(i) = iand(xorvec(i),key_i(i,1))
+  enddo
+
+  nup = 0
+  do i=1,Nint
+    if (xorvec(i) /= 0_bit_kind) then
+      nup += popcnt(xorvec(i))
+    endif
+  enddo
+  diag_S_mat_elem = dble(nup)
+
+end
+
 subroutine get_s2(key_i,key_j,Nint,s2)
   implicit none
   use bitmasks
@@ -25,11 +57,9 @@ subroutine get_s2(key_i,key_j,Nint,s2)
         endif
       endif
     case(0)
-      nup = 0
-      do i=1,Nint
-        nup += popcnt(iand(xor(key_i(i,1),key_i(i,2)),key_i(i,1)))
-      enddo
-      s2 = dble(nup)
+      double precision, external :: diag_S_mat_elem
+      !DIR$ FORCEINLINE
+      s2 = diag_S_mat_elem(key_i,Nint)
   end select
 end
 
@@ -223,13 +253,12 @@ subroutine S2_u_0_nstates(v_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
   enddo
   !$OMP END DO NOWAIT
   
-  !$OMP CRITICAL
   do istate=1,N_st
     do i=n,1,-1
+      !$OMP ATOMIC
       v_0(i,istate) = v_0(i,istate) + vt(i,istate)
     enddo
   enddo
-  !$OMP END CRITICAL
 
   deallocate(vt)
   !$OMP END PARALLEL
@@ -253,8 +282,8 @@ end
 subroutine get_uJ_s2_uI(psi_keys_tmp,psi_coefs_tmp,n,nmax_coefs,nmax_keys,s2,nstates)
   implicit none
   use bitmasks
-  integer(bit_kind), intent(in)  :: psi_keys_tmp(N_int,2,nmax_keys)
   integer, intent(in)            :: n,nmax_coefs,nmax_keys,nstates
+  integer(bit_kind), intent(in)  :: psi_keys_tmp(N_int,2,nmax_keys)
   double precision, intent(in)   :: psi_coefs_tmp(nmax_coefs,nstates)
   double precision, intent(out)  :: s2(nstates,nstates)
   double precision               :: s2_tmp,accu
@@ -345,7 +374,7 @@ subroutine diagonalize_s2_betweenstates(keys_tmp,u_0,n,nmax_keys,nmax_coefs,nsta
   
   print*,'S^2 matrix in the basis of the states considered'
   do i = 1, nstates
-    write(*,'(100(F5.2,X))')s2(i,:)
+    write(*,'(100(F5.2,1X))')s2(i,:)
   enddo
   
   double precision               :: accu_precision_diag,accu_precision_of_diag
@@ -371,7 +400,7 @@ subroutine diagonalize_s2_betweenstates(keys_tmp,u_0,n,nmax_keys,nmax_coefs,nsta
   
   print*,'Modified S^2 matrix that will be diagonalized'
   do i = 1, nstates
-    write(*,'(10(F5.2,X))')s2(i,:)
+    write(*,'(10(F5.2,1X))')s2(i,:)
     s2(i,i) = s2(i,i)
   enddo
   

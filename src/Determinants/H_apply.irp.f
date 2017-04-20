@@ -362,12 +362,12 @@ subroutine push_pt2(zmq_socket_push,pt2,norm_pert,H_pert_diag,i_generator,N_st,t
   endif
 
 ! Activate if zmq_socket_push is a REQ
-!  integer :: idummy
-!  rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0)
-!  if (rc /= 4) then
-!    print *, irp_here, 'f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
-!    stop 'error'
-!  endif
+  integer :: idummy
+  rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0)
+  if (rc /= 4) then
+    print *, irp_here, 'f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
+    stop 'error'
+  endif
 end
 
 subroutine pull_pt2(zmq_socket_pull,pt2,norm_pert,H_pert_diag,i_generator,N_st,n,task_id)
@@ -433,11 +433,11 @@ subroutine pull_pt2(zmq_socket_pull,pt2,norm_pert,H_pert_diag,i_generator,N_st,n
   endif
 
 ! Activate if zmq_socket_pull is a REP
-!  rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)
-!  if (rc /= 4) then
-!    print *, irp_here,  'f77_zmq_send( zmq_socket_pull, 0, 4, 0)'
-!    stop 'error'
-!  endif
+  rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)
+  if (rc /= 4) then
+    print *, irp_here,  'f77_zmq_send( zmq_socket_pull, 0, 4, 0)'
+    stop 'error'
+  endif
 
 end
 

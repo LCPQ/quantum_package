@@ -11,10 +11,10 @@ end
 subroutine do_print
  implicit none
  integer :: i,j
- real :: off_diag, diag
+ double precision :: off_diag, diag
 
- off_diag = 0.
- diag = 0.
+ off_diag = 0.d0
+ diag = 0.d0
  do j=1,mo_tot_num
    do i=1,mo_tot_num
      off_diag += abs(mo_overlap(i,j))

@@ -302,7 +302,6 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
   double precision, intent(inout) :: u_in(dim_in,N_st_diag)
   double precision, intent(out)  :: energies(N_st_diag)
   
-  integer                        :: sze_8
   integer                        :: iter
   integer                        :: i,j,k,l,m
   logical                        :: converged
@@ -355,7 +354,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
   write(iunit,'(A)') trim(write_buffer)
   write_buffer = ' Iter'
   do i=1,N_st
-    write_buffer = trim(write_buffer)//'           Energy         Residual'
+    write_buffer = trim(write_buffer)//'            Energy           Residual'
   enddo
   write(iunit,'(A)') trim(write_buffer)
   write_buffer = '===== '
@@ -365,13 +364,12 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
   write(iunit,'(A)') trim(write_buffer)
 
   integer, external :: align_double
-  sze_8 = align_double(sze)
 
   allocate(                                                          &
       kl_pairs(2,N_st_diag*(N_st_diag+1)/2),                         &
-      W(sze_8,N_st_diag,davidson_sze_max),                           &
-      U(sze_8,N_st_diag,davidson_sze_max),                           &
-      R(sze_8,N_st_diag),                                            &
+      W(sze,N_st_diag,davidson_sze_max),                           &
+      U(sze,N_st_diag,davidson_sze_max),                           &
+      R(sze,N_st_diag),                                            &
       h(N_st_diag,davidson_sze_max,N_st_diag,davidson_sze_max),      &
       y(N_st_diag,davidson_sze_max,N_st_diag,davidson_sze_max),      &
       residual_norm(N_st_diag),                                      &
@@ -426,7 +424,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
       ! Compute |W_k> = \sum_i |i><i|H|u_k>
       ! -----------------------------------------
       
-      call H_u_0_nstates(W(1,1,iter),U(1,1,iter),H_jj,sze,dets_in,Nint,N_st_diag,sze_8)
+      call H_u_0_nstates(W(1,1,iter),U(1,1,iter),H_jj,sze,dets_in,Nint,N_st_diag,sze)
 !      do k=1,N_st
 !          if(store_full_H_mat.and.sze.le.n_det_max_stored)then
 !           call H_u_0_stored(W(1,k,iter),U(1,k,iter),H_matrix_all_dets,sze)
@@ -502,7 +500,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
         endif
       enddo
       
-      write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))')  iter, to_print(:,1:N_st)
+      write(iunit,'(1X,I3,1X,100(1X,F16.10,1X,E16.6))')  iter, to_print(:,1:N_st)
       call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
       if (converged) then
         exit
