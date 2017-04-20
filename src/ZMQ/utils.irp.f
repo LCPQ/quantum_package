@@ -1,8 +1,11 @@
 use f77_zmq
 use omp_lib
 
- BEGIN_PROVIDER [ integer(ZMQ_PTR), zmq_context ]
-&BEGIN_PROVIDER [ integer(omp_lock_kind), zmq_lock ]
+integer, pointer :: thread_id 
+integer(omp_lock_kind) :: zmq_lock
+
+
+BEGIN_PROVIDER [ integer(ZMQ_PTR), zmq_context ]
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -91,7 +94,7 @@ subroutine switch_qp_run_to_master
     print *,  'This run should be started with the qp_run command'
     stop -1
   endif
-  qp_run_address = adjustl(buffer)
+  qp_run_address = trim(buffer)
   print *,  'Switched to qp_run master : ', trim(qp_run_address)
   
   integer                        :: i
@@ -232,8 +235,8 @@ function new_zmq_pull_socket()
   if (zmq_context == 0_ZMQ_PTR) then
      stop 'zmq_context is uninitialized'
   endif
-! new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_PULL)
-  new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_REP)
+  new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_PULL)
+!  new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_REP)
   call omp_unset_lock(zmq_lock)
   if (new_zmq_pull_socket == 0_ZMQ_PTR) then
      stop 'Unable to create zmq pull socket'
@@ -309,8 +312,8 @@ function new_zmq_push_socket(thread)
   if (zmq_context == 0_ZMQ_PTR) then
      stop 'zmq_context is uninitialized'
   endif
-!  new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_PUSH)
-  new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_REQ)
+  new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_PUSH)
+!  new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_REQ)
   call omp_unset_lock(zmq_lock)
   if (new_zmq_push_socket == 0_ZMQ_PTR) then
      stop 'Unable to create zmq push socket'
@@ -404,9 +407,7 @@ subroutine end_zmq_sub_socket(zmq_socket_sub)
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_sub
   integer                        :: rc
   
-  call omp_set_lock(zmq_lock)
   rc = f77_zmq_close(zmq_socket_sub)
-  call omp_unset_lock(zmq_lock)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_sub)'
     stop 'error'
@@ -425,9 +426,7 @@ subroutine end_zmq_pair_socket(zmq_socket_pair)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
-  call omp_set_lock(zmq_lock)
   rc = f77_zmq_close(zmq_socket_pair)
-  call omp_unset_lock(zmq_lock)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_pair)'
     stop 'error'
@@ -445,9 +444,7 @@ subroutine end_zmq_pull_socket(zmq_socket_pull)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
-  call omp_set_lock(zmq_lock)
   rc = f77_zmq_close(zmq_socket_pull)
-  call omp_unset_lock(zmq_lock)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_pull)'
     stop 'error'
@@ -472,9 +469,7 @@ subroutine end_zmq_push_socket(zmq_socket_push,thread)
     stop 'Unable to set ZMQ_LINGER on push socket'
   endif
 
-  call omp_set_lock(zmq_lock)
   rc = f77_zmq_close(zmq_socket_push)
-  call omp_unset_lock(zmq_lock)
   if (rc /= 0) then
     print *,  'f77_zmq_close(zmq_socket_push)'
     stop 'error'
@@ -505,17 +500,10 @@ subroutine new_parallel_job(zmq_to_qp_run_socket,name_in)
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR), intent(out)  :: zmq_to_qp_run_socket
 
-  call omp_set_lock(zmq_lock)
   zmq_context = f77_zmq_ctx_new ()
-  call omp_unset_lock(zmq_lock)
   if (zmq_context == 0_ZMQ_PTR) then
      stop 'ZMQ_PTR is null'
   endif
-!  rc = f77_zmq_ctx_set(zmq_context, ZMQ_IO_THREADS, nproc)
-!  if (rc /= 0) then
-!    print *,  'Unable to set the number of ZMQ IO threads to', nproc
-!  endif
-
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   name = name_in
   sze = len(trim(name))
@@ -596,10 +584,7 @@ subroutine end_parallel_job(zmq_to_qp_run_socket,name_in)
   zmq_state = 'No_state'
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
 
-  call omp_set_lock(zmq_lock)
   rc = f77_zmq_ctx_term(zmq_context)
-  zmq_context = 0_ZMQ_PTR
-  call omp_unset_lock(zmq_lock)
   if (rc /= 0) then
     print *,  'Unable to terminate ZMQ context'
     stop 'error'
@@ -699,43 +684,10 @@ subroutine add_task_to_taskserver(zmq_to_qp_run_socket,task)
   character*(*), intent(in)      :: task
   
   integer                        :: rc, sze
-  character(len=:), allocatable :: message
-
-  message='add_task '//trim(zmq_state)//' '//trim(task)
-  sze = len(message)
-  rc = f77_zmq_send(zmq_to_qp_run_socket, message, sze, 0)
-
-  if (rc /= sze) then
-    print *,  rc, sze
-    print *,  irp_here,': f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
-    stop 'error'
-  endif
-  
-  rc = f77_zmq_recv(zmq_to_qp_run_socket, message, sze-1, 0)
-  if (message(1:rc) /= 'ok') then
-    print *,  trim(task)
-    print *,  'Unable to add the next task'
-    stop -1
-  endif
-  
-end
-
-subroutine add_task_to_taskserver_send(zmq_to_qp_run_socket,task)
-  use f77_zmq
-  implicit none
-  BEGIN_DOC
-  ! Get a task from the task server
-  END_DOC
-  integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
-  character*(*), intent(in)      :: task
-  
-  integer                        :: rc, sze
-  character(len=:), allocatable  :: message
-
-  sze = len(trim(task))+12+len(trim(zmq_state))
-  message = repeat(' ',sze)
+  character*(512)                :: message
   write(message,*) 'add_task '//trim(zmq_state)//' '//trim(task)
   
+  sze = len(trim(message))
   rc = f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)
   if (rc /= sze) then
     print *,  rc, sze
@@ -743,20 +695,10 @@ subroutine add_task_to_taskserver_send(zmq_to_qp_run_socket,task)
     stop 'error'
   endif
   
-end
-
-subroutine add_task_to_taskserver_recv(zmq_to_qp_run_socket)
-  use f77_zmq
-  implicit none
-  BEGIN_DOC
-  ! Get a task from the task server
-  END_DOC
-  integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
-  
-  integer                        :: rc, sze
-  character*(512)                :: message
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
-  if (message(1:rc) /= 'ok') then
+  message = trim(message(1:rc))
+  if (trim(message) /= 'ok') then
+    print *,  trim(task)
     print *,  'Unable to add the next task'
     stop -1
   endif
@@ -784,7 +726,8 @@ subroutine task_done_to_taskserver(zmq_to_qp_run_socket, worker_id, task_id)
   endif
   
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
-  if (trim(message(1:rc)) /= 'ok') then
+  message = trim(message(1:rc))
+  if (trim(message) /= 'ok') then
     print *,  'Unable to send task_done message'
     stop -1
   endif
@@ -809,17 +752,17 @@ subroutine get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
   write(message,*) 'get_task '//trim(zmq_state), worker_id
   
   sze = len(trim(message))
-  rc = f77_zmq_send(zmq_to_qp_run_socket, message, sze, 0)
+  rc = f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)
   if (rc /= sze) then
     print *,  irp_here, ':f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
     stop 'error'
   endif
   
-  message = repeat(' ',512)
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
-  read(message(1:rc),*) reply
+  message = trim(message(1:rc))
+  read(message,*) reply
   if (trim(reply) == 'get_task_reply') then
-    read(message(1:rc),*) reply, task_id
+    read(message,*) reply, task_id
     rc = 15
     do while (message(rc:rc) == ' ')
       rc += 1

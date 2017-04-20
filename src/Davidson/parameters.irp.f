@@ -18,11 +18,6 @@ subroutine davidson_converged(energy,residual,wall,iterations,cpu,N_st,converged
   double precision :: E(N_st), time
   double precision, allocatable, save :: energy_old(:)
 
-  if (iterations < 2) then
-    converged = .False.
-    return
-  endif
-
   if (.not.allocated(energy_old)) then
     allocate(energy_old(N_st))
     energy_old = 0.d0

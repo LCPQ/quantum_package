@@ -194,8 +194,6 @@ subroutine add_values_to_two_body_dm_map(mask_ijkl)
 end
 
  BEGIN_PROVIDER [double precision, two_body_dm_ab_diag_act, (n_act_orb, n_act_orb)]
-&BEGIN_PROVIDER [double precision, two_body_dm_aa_diag_act, (n_act_orb, n_act_orb)]
-&BEGIN_PROVIDER [double precision, two_body_dm_bb_diag_act, (n_act_orb, n_act_orb)]
 &BEGIN_PROVIDER [double precision, two_body_dm_ab_diag_inact, (n_inact_orb_allocate, n_inact_orb_allocate)]
 &BEGIN_PROVIDER [double precision, two_body_dm_ab_diag_core, (n_core_orb_allocate, n_core_orb_allocate)]
 &BEGIN_PROVIDER [double precision, two_body_dm_ab_diag_all, (mo_tot_num, mo_tot_num)]
@@ -236,8 +234,6 @@ end
 
  two_body_dm_ab_diag_all = 0.d0
  two_body_dm_ab_diag_act = 0.d0
- two_body_dm_aa_diag_act = 0.d0
- two_body_dm_bb_diag_act = 0.d0
  two_body_dm_ab_diag_core = 0.d0
  two_body_dm_ab_diag_inact = 0.d0
  two_body_dm_diag_core_a_act_b = 0.d0
@@ -273,20 +269,8 @@ end
      two_body_dm_ab_diag_act(k,m) += 0.5d0 * contrib
      two_body_dm_ab_diag_act(m,k) += 0.5d0 * contrib
     enddo
-    do l = 1, n_occ_ab_act(2)
-     m = list_act_reverse(occ_act(l,2))
-     two_body_dm_bb_diag_act(k,m) += 0.5d0 * contrib
-     two_body_dm_bb_diag_act(m,k) += 0.5d0 * contrib
-    enddo
    enddo
-   do j = 1,n_occ_ab_act(1)
-    k = list_act_reverse(occ_act(j,1))
-    do l = 1, n_occ_ab_act(1)
-     m = list_act_reverse(occ_act(l,1))
-     two_body_dm_aa_diag_act(k,m) += 0.5d0 * contrib
-     two_body_dm_aa_diag_act(m,k) += 0.5d0 * contrib
-    enddo
-   enddo
+
    ! CORE PART of the diagonal part of the two body dm
    do j = 1, N_int
     key_tmp_core(j,1) = psi_det(j,1,i)
@@ -341,8 +325,6 @@ end
 END_PROVIDER 
 
  BEGIN_PROVIDER [double precision, two_body_dm_ab_big_array_act, (n_act_orb,n_act_orb,n_act_orb,n_act_orb)]
-&BEGIN_PROVIDER [double precision, two_body_dm_aa_big_array_act, (n_act_orb,n_act_orb,n_act_orb,n_act_orb)]
-&BEGIN_PROVIDER [double precision, two_body_dm_bb_big_array_act, (n_act_orb,n_act_orb,n_act_orb,n_act_orb)]
 &BEGIN_PROVIDER [double precision, two_body_dm_ab_big_array_core_act, (n_core_orb_allocate,n_act_orb,n_act_orb)]
  implicit none
  use bitmasks
@@ -412,22 +394,14 @@ END_PROVIDER
    call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
    contrib = 0.5d0 * psi_coef(i,1) * psi_coef(j,1) * phase
    if(degree==2)then  ! case of the DOUBLE EXCITATIONS  ************************************
+    if(s1==s2)cycle  ! Only the alpha/beta two body density matrix
     ! <J| a^{\dagger}_{p1 s1} a^{\dagger}_{p2 s2} a_{h2 s2} a_{h1 s1} |I> * c_I * c_J
     h1 = list_act_reverse(h1)
     h2 = list_act_reverse(h2)
     p1 = list_act_reverse(p1)
     p2 = list_act_reverse(p2)
-    if(s1==s2)then 
-     if(s1==1)then
-      call insert_into_two_body_dm_big_array( two_body_dm_aa_big_array_act,n_act_orb,n_act_orb,n_act_orb,n_act_orb,contrib,h1,p1,h2,p2)
-!     call insert_into_two_body_dm_big_array( two_body_dm_aa_big_array_act,n_act_orb,n_act_orb,n_act_orb,n_act_orb,-contrib,h1,p2,h2,p1)
-     else
-      call insert_into_two_body_dm_big_array( two_body_dm_bb_big_array_act,n_act_orb,n_act_orb,n_act_orb,n_act_orb,contrib,h1,p1,h2,p2)
-!     call insert_into_two_body_dm_big_array( two_body_dm_bb_big_array_act,n_act_orb,n_act_orb,n_act_orb,n_act_orb,-contrib,h1,p2,h2,p1)
-     endif
-    else ! alpha/beta two body density matrix
-     call insert_into_two_body_dm_big_array( two_body_dm_ab_big_array_act,n_act_orb,n_act_orb,n_act_orb,n_act_orb,contrib,h1,p1,h2,p2)
-    endif
+    call insert_into_two_body_dm_big_array( two_body_dm_ab_big_array_act,n_act_orb,n_act_orb,n_act_orb,n_act_orb,contrib,h1,p1,h2,p2)
+
    else if(degree==1)then! case of the SINGLE EXCITATIONS  ***************************************************
     print*,'h1 = ',h1
     h1 = list_act_reverse(h1)
@@ -443,12 +417,6 @@ END_PROVIDER
       ! <J| a^{\dagger}_{p1 \alpha} \hat{n}_{m \beta} a_{h1 \alpha} |I> * c_I * c_J
       call insert_into_two_body_dm_big_array( two_body_dm_ab_big_array_act,n_act_orb,n_act_orb,n_act_orb,n_act_orb,contrib,h1,p1,m,m)
      enddo
-     do k = 1, n_occ_ab(1)
-      m = list_act_reverse(occ(k,1))
-      ! <J| a^{\dagger}_{p1 \alpha} \hat{n}_{m \beta} a_{h1 \alpha} |I> * c_I * c_J
-      call insert_into_two_body_dm_big_array( two_body_dm_aa_big_array_act,n_act_orb,n_act_orb,n_act_orb,n_act_orb,contrib,h1,p1,m,m)
-!     call insert_into_two_body_dm_big_array( two_body_dm_aa_big_array_act,n_act_orb,n_act_orb,n_act_orb,n_act_orb,-contrib,h1,m,p1,m)
-     enddo
      
      ! core <-> active part of the extra diagonal two body dm 
      do k = 1, n_occ_ab_core(2)
@@ -463,12 +431,6 @@ END_PROVIDER
       m = list_act_reverse(occ(k,1))
       ! <J| a^{\dagger}_{p1 \beta} \hat{n}_{m \alpha} a_{h1 \beta} |I> * c_I * c_J
       call insert_into_two_body_dm_big_array(two_body_dm_ab_big_array_act,n_act_orb,n_act_orb,n_act_orb,n_act_orb,contrib,h1,p1,m,m)
-     enddo
-     do k = 1, n_occ_ab(2)
-      m = list_act_reverse(occ(k,2))
-      ! <J| a^{\dagger}_{p1 \beta} \hat{n}_{m \alpha} a_{h1 \beta} |I> * c_I * c_J
-      call insert_into_two_body_dm_big_array(two_body_dm_bb_big_array_act,n_act_orb,n_act_orb,n_act_orb,n_act_orb,contrib,h1,p1,m,m)
-!     call insert_into_two_body_dm_big_array(two_body_dm_bb_big_array_act,n_act_orb,n_act_orb,n_act_orb,n_act_orb,-contrib,h1,m,p1,m)
      enddo
      
      ! core <-> active part of the extra diagonal two body dm 
@@ -501,4 +463,157 @@ subroutine insert_into_two_body_dm_big_array(big_array,dim1,dim2,dim3,dim4,contr
  big_array(p2,h2,p1,h1) +=  contrib  
 
  
+end
+
+double precision function compute_extra_diag_two_body_dm_ab(r1,r2) 
+ implicit none
+ BEGIN_DOC
+! compute the extra diagonal contribution to the alpha/bet two body density at r1, r2
+ END_DOC 
+ double precision :: r1(3), r2(3)
+ double precision :: compute_extra_diag_two_body_dm_ab_act,compute_extra_diag_two_body_dm_ab_core_act
+ compute_extra_diag_two_body_dm_ab = compute_extra_diag_two_body_dm_ab_act(r1,r2)+compute_extra_diag_two_body_dm_ab_core_act(r1,r2)
+end
+
+double precision function compute_extra_diag_two_body_dm_ab_act(r1,r2)
+ implicit none
+ BEGIN_DOC
+! compute the extra diagonal contribution to the two body density at r1, r2
+! involving ONLY THE ACTIVE PART, which means that the four index of the excitations 
+! involved in the two body density matrix are ACTIVE 
+ END_DOC 
+ PROVIDE n_act_orb
+ double precision, intent(in) :: r1(3),r2(3)
+ integer :: i,j,k,l
+ double precision :: mos_array_r1(n_act_orb),mos_array_r2(n_act_orb)
+ double precision :: contrib
+ double precision :: contrib_tmp
+!print*,'n_act_orb = ',n_act_orb
+ compute_extra_diag_two_body_dm_ab_act = 0.d0
+ call give_all_act_mos_at_r(r1,mos_array_r1)
+ call give_all_act_mos_at_r(r2,mos_array_r2)
+ do l = 1, n_act_orb  ! p2 
+  do k = 1, n_act_orb  ! h2 
+   do j = 1, n_act_orb  ! p1 
+    do i = 1,n_act_orb   ! h1 
+     contrib_tmp = mos_array_r1(i) * mos_array_r1(j) * mos_array_r2(k) * mos_array_r2(l)
+     compute_extra_diag_two_body_dm_ab_act += two_body_dm_ab_big_array_act(i,j,k,l) * contrib_tmp
+    enddo
+   enddo
+  enddo
+ enddo
+
+end
+
+double precision function compute_extra_diag_two_body_dm_ab_core_act(r1,r2)
+ implicit none
+ BEGIN_DOC
+! compute the extra diagonal contribution to the two body density at r1, r2
+! involving ONLY THE ACTIVE PART, which means that the four index of the excitations 
+! involved in the two body density matrix are ACTIVE 
+ END_DOC 
+ double precision, intent(in) :: r1(3),r2(3)
+ integer :: i,j,k,l
+ double precision :: mos_array_act_r1(n_act_orb),mos_array_act_r2(n_act_orb)
+ double precision :: mos_array_core_r1(n_core_orb),mos_array_core_r2(n_core_orb)
+ double precision :: contrib_core_1,contrib_core_2
+ double precision :: contrib_act_1,contrib_act_2
+ double precision :: contrib_tmp
+ compute_extra_diag_two_body_dm_ab_core_act = 0.d0
+ call give_all_act_mos_at_r(r1,mos_array_act_r1)
+ call give_all_act_mos_at_r(r2,mos_array_act_r2)
+ call give_all_core_mos_at_r(r1,mos_array_core_r1)
+ call give_all_core_mos_at_r(r2,mos_array_core_r2)
+  do i = 1, n_act_orb  ! h1 
+   do j = 1, n_act_orb  ! p1 
+    contrib_act_1 = mos_array_act_r1(i) * mos_array_act_r1(j) 
+    contrib_act_2 = mos_array_act_r2(i) * mos_array_act_r2(j) 
+    do k = 1,n_core_orb  ! h2 
+     contrib_core_1 = mos_array_core_r1(k)  * mos_array_core_r1(k)
+     contrib_core_2 = mos_array_core_r2(k)  * mos_array_core_r2(k)
+     contrib_tmp = 0.5d0 * (contrib_act_1 * contrib_core_2 + contrib_act_2 * contrib_core_1)
+     compute_extra_diag_two_body_dm_ab_core_act += two_body_dm_ab_big_array_core_act(k,i,j) * contrib_tmp
+    enddo
+   enddo
+  enddo
+
+end
+
+double precision function compute_diag_two_body_dm_ab_core(r1,r2)
+ implicit none
+ double precision :: r1(3),r2(3)
+ integer :: i,j,k,l
+ double precision :: mos_array_r1(n_core_orb_allocate),mos_array_r2(n_core_orb_allocate)
+ double precision :: contrib,contrib_tmp
+ compute_diag_two_body_dm_ab_core = 0.d0
+ call give_all_core_mos_at_r(r1,mos_array_r1)
+ call give_all_core_mos_at_r(r2,mos_array_r2)
+ do l = 1, n_core_orb  ! 
+  contrib = mos_array_r2(l)*mos_array_r2(l)
+! if(dabs(contrib).lt.threshld_two_bod_dm)cycle
+  do k = 1, n_core_orb  ! 
+    contrib_tmp = contrib * mos_array_r1(k)*mos_array_r1(k)
+!  if(dabs(contrib).lt.threshld_two_bod_dm)cycle
+     compute_diag_two_body_dm_ab_core += two_body_dm_ab_diag_core(k,l) * contrib_tmp
+  enddo
+ enddo
+
+end
+
+
+double precision function compute_diag_two_body_dm_ab_act(r1,r2)
+ implicit none
+ double precision :: r1(3),r2(3)
+ integer :: i,j,k,l
+ double precision :: mos_array_r1(n_act_orb),mos_array_r2(n_act_orb)
+ double precision :: contrib,contrib_tmp
+ compute_diag_two_body_dm_ab_act = 0.d0
+ call give_all_act_mos_at_r(r1,mos_array_r1)
+ call give_all_act_mos_at_r(r2,mos_array_r2)
+ do l = 1, n_act_orb  ! 
+  contrib = mos_array_r2(l)*mos_array_r2(l)
+! if(dabs(contrib).lt.threshld_two_bod_dm)cycle
+  do k = 1, n_act_orb  ! 
+    contrib_tmp = contrib * mos_array_r1(k)*mos_array_r1(k)
+!  if(dabs(contrib).lt.threshld_two_bod_dm)cycle
+     compute_diag_two_body_dm_ab_act += two_body_dm_ab_diag_act(k,l) * contrib_tmp
+  enddo
+ enddo
+end
+
+double precision function compute_diag_two_body_dm_ab_core_act(r1,r2)
+ implicit none
+ double precision :: r1(3),r2(3)
+ integer :: i,j,k,l
+ double precision :: mos_array_core_r1(n_core_orb_allocate),mos_array_core_r2(n_core_orb_allocate)
+ double precision :: mos_array_act_r1(n_act_orb),mos_array_act_r2(n_act_orb)
+ double precision :: contrib_core_1,contrib_core_2
+ double precision :: contrib_act_1,contrib_act_2
+ double precision :: contrib_tmp
+ compute_diag_two_body_dm_ab_core_act = 0.d0
+ call give_all_act_mos_at_r(r1,mos_array_act_r1)
+ call give_all_act_mos_at_r(r2,mos_array_act_r2)
+ call give_all_core_mos_at_r(r1,mos_array_core_r1)
+ call give_all_core_mos_at_r(r2,mos_array_core_r2)
+! if(dabs(contrib).lt.threshld_two_bod_dm)cycle
+ do k = 1, n_act_orb  ! 
+    contrib_act_1 = mos_array_act_r1(k) * mos_array_act_r1(k)
+    contrib_act_2 = mos_array_act_r2(k) * mos_array_act_r2(k)
+    contrib_tmp = 0.5d0 * (contrib_act_1 * contrib_act_2 + contrib_act_2 * contrib_act_1)
+!  if(dabs(contrib).lt.threshld_two_bod_dm)cycle
+    do l = 1, n_core_orb  ! 
+     contrib_core_1 = mos_array_core_r1(l) * mos_array_core_r1(l)
+     contrib_core_2 = mos_array_core_r2(l) * mos_array_core_r2(l)
+     compute_diag_two_body_dm_ab_core_act += two_body_dm_diag_core_act(l,k) * contrib_tmp
+    enddo
+ enddo
+end
+
+double precision function compute_diag_two_body_dm_ab(r1,r2)
+ implicit none
+ double precision,intent(in) :: r1(3),r2(3)
+ double precision :: compute_diag_two_body_dm_ab_act,compute_diag_two_body_dm_ab_core
+ double precision :: compute_diag_two_body_dm_ab_core_act
+ compute_diag_two_body_dm_ab  =   compute_diag_two_body_dm_ab_act(r1,r2)+compute_diag_two_body_dm_ab_core(r1,r2) & 
+                                + compute_diag_two_body_dm_ab_core_act(r1,r2)
 end

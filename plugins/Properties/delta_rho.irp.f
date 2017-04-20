@@ -6,7 +6,7 @@
  z_min = 0.d0
  z_max = 10.d0
  delta_z = 0.005d0
- N_z_pts = int( (z_max - z_min)/delta_z )
+ N_z_pts = (z_max - z_min)/delta_z
  print*,'N_z_pts = ',N_z_pts
 
 END_PROVIDER

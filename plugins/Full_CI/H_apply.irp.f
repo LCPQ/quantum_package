@@ -12,6 +12,11 @@ s.set_perturbation("epstein_nesbet_2x2")
 s.unset_openmp()
 print s
 
+s = H_apply("FCI_PT2_new")
+s.set_perturbation("decontracted")
+s.unset_openmp()
+print s
+
 
 s = H_apply("FCI_no_skip")
 s.set_selection_pt2("epstein_nesbet_2x2")

@@ -21,9 +21,6 @@ let spec =
      ~doc:" Compute AOs in the Cartesian basis set (6d, 10f, ...)"
   +> anon ("(xyz_file|zmt_file)" %: file )
 
-type element =
-| Element of Element.t
-| Int_elem of (Nucl_number.t * Element.t)
 
 (** Handle dummy atoms placed on bonds *)
 let dummy_centers ~threshold ~molecule ~nuclei =
@@ -118,14 +115,17 @@ let run ?o b c d m p cart xyz_file =
   (* Open basis set channels *)
   let basis_channel element =
     let key =
-      match element with
-      | Element e -> Element.to_string e
-      | Int_elem (i,e) -> Printf.sprintf "%d,%s" (Nucl_number.to_int i)  (Element.to_string e)
+      Element.to_string element
     in
     match Hashtbl.find basis_table key with
     | Some in_channel -> 
         in_channel
-    | None -> raise Not_found
+    | None -> 
+         let msg = 
+           Printf.sprintf "%s is not defined in basis %s.%!"
+           (Element.to_long_string element) b ;
+         in
+         failwith msg
   in
   
   let temp_filename =
@@ -189,21 +189,12 @@ let run ?o b c d m p cart xyz_file =
       | Some (key, basis) -> (*Aux basis *)
         begin
           let elem  = 
-            try
-              Element (Element.of_string key)
-            with Element.ElementError _ ->
-              let result = 
-                match (String.split ~on:',' key) with
-                | i :: k :: [] -> (Nucl_number.of_int @@ int_of_string i, Element.of_string k)
-                | _ -> failwith "Expected format is int,Element:basis"
-              in Int_elem result
+            Element.of_string key
           and basis =
             String.lowercase basis
           in
           let key = 
-             match elem with
-             | Element e -> Element.to_string e
-             | Int_elem (i,e) -> Printf.sprintf "%d,%s" (Nucl_number.to_int i) (Element.to_string e)
+             Element.to_string elem
           in
           let new_channel =
             fetch_channel basis
@@ -211,13 +202,7 @@ let run ?o b c d m p cart xyz_file =
           begin
             match Hashtbl.add basis_table ~key:key ~data:new_channel with
             | `Ok -> ()
-            | `Duplicate ->
-              let e = 
-                match elem with
-                | Element e -> e
-                | Int_elem (_,e) -> e
-              in
-              failwith ("Duplicate definition of basis for "^(Element.to_long_string e))
+            | `Duplicate -> failwith ("Duplicate definition of basis for "^(Element.to_long_string elem))
           end
        end
     end;
@@ -552,20 +537,7 @@ let run ?o b c d m p cart xyz_file =
               | Element.X -> Element.H
               | e -> e
             in
-            let key =
-              Int_elem (i,x.Atom.element)
-            in
-            try
-              Basis.read_element (basis_channel key) i e
-            with Not_found ->
-              let key =
-                Element x.Atom.element
-              in
-              try
-                Basis.read_element (basis_channel key) i e
-              with Not_found ->
-                failwith (Printf.sprintf "Basis not found for atom %d (%s)" (Nucl_number.to_int i)
-                 (Element.to_string x.Atom.element) )
+            Basis.read_element (basis_channel x.Atom.element) i e
           with
           | End_of_file -> failwith
                 ("Element "^(Element.to_string x.Atom.element)^" not found in basis set.")
@@ -675,7 +647,6 @@ atoms are taken from the same basis set, otherwise specific elements can be
 defined as follows:
 
  -b \"cc-pcvdz | H:cc-pvdz | C:6-31g\"
- -b \"cc-pvtz | 1,H:sto-3g | 3,H:6-31g\"
 
 If a file with the same name as the basis set exists, this file will be read.
 Otherwise, the basis set is obtained from the database.

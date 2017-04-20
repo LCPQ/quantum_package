@@ -21,37 +21,29 @@ END_PROVIDER
 
 
  BEGIN_PROVIDER [ integer(bit_kind), psi_det_generators_restart, (N_int,2,N_det_generators_restart) ]
-&BEGIN_PROVIDER [ integer(bit_kind), ref_generators_restart, (N_int,2,N_states) ]
+&BEGIN_PROVIDER [ integer(bit_kind), ref_generators_restart, (N_int,2) ]
 &BEGIN_PROVIDER [ double precision, psi_coef_generators_restart, (N_det_generators_restart,N_states) ]
  implicit none
  BEGIN_DOC
  ! read wf
  ! 
  END_DOC
- integer                        :: i, k,j
+ integer                        :: i, k
  integer, save :: ifirst = 0
  double precision, allocatable  :: psi_coef_read(:,:)
  print*, ' Providing psi_det_generators_restart'
  if(ifirst == 0)then
   call read_dets(psi_det_generators_restart,N_int,N_det_generators_restart)
+   do k = 1, N_int
+    ref_generators_restart(k,1) = psi_det_generators_restart(k,1,1)
+    ref_generators_restart(k,2) = psi_det_generators_restart(k,2,1)
+   enddo
    allocate (psi_coef_read(N_det_generators_restart,N_states))
    call ezfio_get_determinants_psi_coef(psi_coef_read)
    do k = 1, N_states
     do i = 1, N_det_generators_restart
      psi_coef_generators_restart(i,k) = psi_coef_read(i,k)
     enddo
-   enddo
-   do k = 1, N_states
-    do i = 1, N_det_generators_restart
-     if(dabs(psi_coef_generators_restart(i,k)).gt.0.5d0)then
-      do j = 1, N_int
-       ref_generators_restart(j,1,k) = psi_det_generators_restart(j,1,i)
-       ref_generators_restart(j,2,k) = psi_det_generators_restart(j,2,i)
-      enddo
-      exit
-     endif
-    enddo
-    call debug_det(ref_generators_restart(1,1,k),N_int)
    enddo
   ifirst = 1
   deallocate(psi_coef_read)
@@ -82,18 +74,3 @@ END_PROVIDER
 &BEGIN_PROVIDER [ double precision, psi_coef_generators, (10000,N_states) ]
 
 END_PROVIDER
-
-subroutine update_generators_restart_coef
- implicit none 
- call set_generators_to_generators_restart
- call set_psi_det_to_generators
- call diagonalize_CI
- integer :: i,j,k,l
- do i = 1, N_det_generators_restart
-   do j = 1, N_states
-    psi_coef_generators_restart(i,j) = psi_coef(i,j)
-   enddo
- enddo
- soft_touch psi_coef_generators_restart
- provide one_body_dm_mo_alpha_generators_restart
-end

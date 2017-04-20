@@ -46,6 +46,36 @@ subroutine pt2_epstein_nesbet ($arguments)
 end
 
 
+subroutine pt2_decontracted ($arguments)
+  use bitmasks
+  implicit none
+  $declarations
+  
+  BEGIN_DOC
+  END_DOC
+  
+  integer                        :: i,j
+  double precision               :: diag_H_mat_elem_fock, h
+  double precision               :: i_H_psi_array(N_st)
+  double precision               :: coef_pert
+  PROVIDE  selection_criterion
+
+  ASSERT (Nint == N_int)
+  ASSERT (Nint > 0)
+  !call i_H_psi(det_pert,psi_selectors,psi_selectors_coef,Nint,N_det_selectors,psi_selectors_size,N_st,i_H_psi_array)
+  call i_H_psi_pert_new_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array,coef_pert)
+  H_pert_diag = 0.d0
+  
+  
+  c_pert(1) = coef_pert
+  e_2_pert(1) = coef_pert * i_H_psi_array(1)
+! print*,coef_pert,i_H_psi_array(1)
+  
+end
+
+
+
+
 subroutine pt2_epstein_nesbet_2x2 ($arguments)
   use bitmasks
   implicit none

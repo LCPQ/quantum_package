@@ -2,16 +2,10 @@ use bitmasks
 
 BEGIN_PROVIDER [ integer, N_int ]
   implicit none
-  include 'Utils/constants.include.F'
   BEGIN_DOC
   ! Number of 64-bit integers needed to represent determinants as binary strings
   END_DOC
   N_int = (mo_tot_num-1)/bit_kind_size + 1
-  call write_int(6,N_int, 'N_int')
-  if (N_int > N_int_max) then
-    stop 'N_int > N_int_max'
-  endif
-
 END_PROVIDER
 
 
@@ -392,8 +386,6 @@ END_PROVIDER
      n_virt_orb  += popcnt(virt_bitmask(i,1))
    enddo
  endif
- call write_int(6,n_inact_orb, 'Number of inactive MOs')
- call write_int(6,n_virt_orb, 'Number of virtual MOs')
 
 END_PROVIDER
 
@@ -562,7 +554,7 @@ END_PROVIDER
 &BEGIN_PROVIDER [ integer, n_core_orb]
  implicit none
  BEGIN_DOC
- ! Core + deleted orbitals bitmask 
+ ! Core orbitals bitmask
  END_DOC
  integer :: i,j
  n_core_orb = 0
@@ -571,7 +563,7 @@ END_PROVIDER
   core_bitmask(i,2) = xor(full_ijkl_bitmask(i),ior(reunion_of_cas_inact_bitmask(i,2),virt_bitmask(i,1)))
   n_core_orb += popcnt(core_bitmask(i,1))
  enddo
- call write_int(6,n_core_orb,'Number of core MOs')
+ print*,'n_core_orb = ',n_core_orb
  END_PROVIDER
 
 
@@ -606,7 +598,7 @@ BEGIN_PROVIDER [ integer, n_act_orb]
  do i = 1, N_int
   n_act_orb += popcnt(cas_bitmask(i,1,1))
  enddo
- call write_int(6,n_act_orb, 'Number of active MOs')
+ print*,'n_act_orb = ',n_act_orb
 END_PROVIDER
 
  BEGIN_PROVIDER [integer, list_act, (n_act_orb)]

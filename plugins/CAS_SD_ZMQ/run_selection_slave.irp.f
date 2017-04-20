@@ -41,8 +41,8 @@ subroutine run_selection_slave(thread,iproc,energy)
     if (done) then
       ctask = ctask - 1
     else
-      integer :: i_generator, N
-      read (task,*) i_generator, N
+      integer :: i_generator, i_generator_start, i_generator_max, step, N
+      read (task,*) i_generator_start, i_generator_max, step, N
       if(buf%N == 0) then
         ! Only first time 
         call create_selection_buffer(N, N*2, buf)
@@ -50,7 +50,11 @@ subroutine run_selection_slave(thread,iproc,energy)
       else
         if(N /= buf%N) stop "N changed... wtf man??"
       end if
-      call select_connected(i_generator,energy,pt2,buf)
+      !print *, "psi_selectors_coef ", psi_selectors_coef(N_det_selectors-5:N_det_selectors, 1)
+      !call debug_det(psi_selectors(1,1,N_det_selectors), N_int)
+      do i_generator=i_generator_start,i_generator_max,step
+        call select_connected(i_generator,energy,pt2,buf)
+      enddo
     endif
 
     if(done .or. ctask == size(task_id)) then
@@ -111,7 +115,7 @@ subroutine push_selection_results(zmq_socket_push, pt2, b, task_id, ntask)
   if(rc /= 4*ntask) stop "push"
 
 ! Activate is zmq_socket_push is a REQ
-  rc = f77_zmq_recv( zmq_socket_push, task_id(1), ntask*4, 0)
+!  rc = f77_zmq_recv( zmq_socket_push, task_id(1), ntask*4, 0)
 end subroutine
 
 
@@ -145,7 +149,7 @@ subroutine pull_selection_results(zmq_socket_pull, pt2, val, det, N, task_id, nt
   if(rc /= 4*ntask) stop "pull"
 
 ! Activate is zmq_socket_pull is a REP
-  rc = f77_zmq_send( zmq_socket_pull, task_id(1), ntask*4, 0)
+!  rc = f77_zmq_send( zmq_socket_pull, task_id(1), ntask*4, 0)
 end subroutine
  
  
