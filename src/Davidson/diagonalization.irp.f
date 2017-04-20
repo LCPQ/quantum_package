@@ -354,7 +354,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
   write(iunit,'(A)') trim(write_buffer)
   write_buffer = ' Iter'
   do i=1,N_st
-    write_buffer = trim(write_buffer)//'           Energy         Residual'
+    write_buffer = trim(write_buffer)//'            Energy           Residual'
   enddo
   write(iunit,'(A)') trim(write_buffer)
   write_buffer = '===== '
@@ -500,7 +500,7 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
         endif
       enddo
       
-      write(iunit,'(X,I3,X,100(X,F16.10,X,E16.6))')  iter, to_print(:,1:N_st)
+      write(iunit,'(1X,I3,1X,100(1X,F16.10,1X,E16.6))')  iter, to_print(:,1:N_st)
       call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
       if (converged) then
         exit

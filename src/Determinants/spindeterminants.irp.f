@@ -650,7 +650,7 @@ subroutine generate_all_alpha_beta_det_products
   !$OMP PARALLEL DEFAULT(NONE) SHARED(psi_coef_sorted_bit,N_det_beta_unique,&
       !$OMP N_det_alpha_unique, N_int, psi_det_alpha_unique, psi_det_beta_unique,&
       !$OMP N_det)                                                &
-      !$OMP PRIVATE(i,j,k,l,tmp_det,idx,iproc)
+      !$OMP PRIVATE(i,j,k,l,tmp_det,iproc)
   !$ iproc = omp_get_thread_num()
   allocate (tmp_det(N_int,2,N_det_alpha_unique))
   !$OMP DO
@@ -675,8 +675,6 @@ subroutine generate_all_alpha_beta_det_products
 end
 
 
-<<<<<<< HEAD
-=======
 
 
 subroutine get_all_spin_singles_and_doubles(buffer, idx, spindet, Nint, size_buffer, singles, doubles, n_singles, n_doubles)

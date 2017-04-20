@@ -217,7 +217,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
     actually_computed(tbc(i)) = .false.
   end do
   
-  orgTBDcomb = Nabove(1)
+  orgTBDcomb = int(Nabove(1))
   firstTBDcomb = 1
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
@@ -264,7 +264,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       
       double precision :: E0, avg, eqt, prop
       call do_carlo(tbc, Ncomb+1-firstTBDcomb, comb(firstTBDcomb), pt2_detail, actually_computed, sumabove, sum2above, Nabove)
-      firstTBDcomb = Nabove(1) - orgTBDcomb + 1
+      firstTBDcomb = int(Nabove(1)) - orgTBDcomb + 1
       if(Nabove(1) < 2d0) cycle
       call get_first_tooth(actually_computed, tooth)
      

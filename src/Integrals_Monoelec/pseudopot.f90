@@ -15,14 +15,10 @@ double precision function Vps &
 implicit none
 integer n_a(3),n_b(3)
 double precision g_a,g_b,a(3),b(3),c(3)
-integer kmax_max,lmax_max
-parameter (kmax_max=2,lmax_max=2)
-integer lmax,kmax,n_kl(kmax_max,0:lmax_max)
-double precision v_kl(kmax_max,0:lmax_max),dz_kl(kmax_max,0:lmax_max)
-integer klocmax_max
-parameter (klocmax_max=10)
-integer klocmax,n_k(klocmax_max)
-double precision v_k(klocmax_max),dz_k(klocmax_max)
+integer lmax,kmax,n_kl(kmax,0:lmax)
+double precision v_kl(kmax,0:lmax),dz_kl(kmax,0:lmax)
+integer klocmax,n_k(klocmax)
+double precision v_k(klocmax),dz_k(klocmax)
 double precision Vloc,Vpseudo
 
 Vps=Vloc(klocmax,v_k,n_k,dz_k,a,n_a,g_a,b,n_b,g_b,c) &
@@ -36,13 +32,10 @@ double precision function Vps_num &
 implicit none
 integer n_a(3),n_b(3)
 double precision g_a,g_b,a(3),b(3),c(3),rmax
-integer kmax_max,lmax_max
-parameter (kmax_max=2,lmax_max=2)
-integer lmax,kmax,n_kl(kmax_max,0:lmax_max)
-double precision v_kl(kmax_max,0:lmax_max),dz_kl(kmax_max,0:lmax_max)
-integer klocmax_max;parameter (klocmax_max=10)
-integer klocmax,n_k(klocmax_max)
-double precision v_k(klocmax_max),dz_k(klocmax_max)
+integer lmax,kmax,n_kl(kmax,0:lmax)
+double precision v_kl(kmax,0:lmax),dz_kl(kmax,0:lmax)
+integer klocmax,n_k(klocmax)
+double precision v_k(klocmax),dz_k(klocmax)
 double precision Vloc_num,Vpseudo_num,v1,v2
 integer npts,nptsgrid
 nptsgrid=50
@@ -54,11 +47,9 @@ end
 
 double precision function Vloc_num(npts_over,xmax,klocmax,v_k,n_k,dz_k,a,n_a,g_a,b,n_b,g_b,c)
 implicit none
-integer klocmax_max
-parameter (klocmax_max=10)
 integer klocmax
-double precision v_k(klocmax_max),dz_k(klocmax_max)
-integer n_k(klocmax_max)
+double precision v_k(klocmax),dz_k(klocmax)
+integer n_k(klocmax)
 integer npts_over,ix,iy,iz
 double precision xmax,dx,x,y,z
 double precision a(3),b(3),c(3),term,r,orb_phi,g_a,g_b,ac(3),bc(3)
@@ -705,12 +696,9 @@ end
 
 double precision function Vloc(klocmax,v_k,n_k,dz_k,a,n_a,g_a,b,n_b,g_b,c)
 implicit none
-integer klocmax_max,lmax_max,ntot_max
-parameter (klocmax_max=10,lmax_max=2)
-parameter (ntot_max=10)
 integer klocmax
-double precision v_k(klocmax_max),dz_k(klocmax_max),crochet,bigA
-integer n_k(klocmax_max)
+double precision v_k(klocmax),dz_k(klocmax),crochet,bigA
+integer n_k(klocmax)
 double precision a(3),g_a,b(3),g_b,c(3),d(3)
 integer n_a(3),n_b(3),ntotA,ntotB,ntot,m
 integer i,l,k,ktot,k1,k2,k3,k1p,k2p,k3p
@@ -718,6 +706,7 @@ double precision f,fourpi,ac,bc,freal,d2,dreal,theta_DC0,phi_DC0,coef
 double precision,allocatable :: array_R_loc(:,:,:)
 double precision,allocatable :: array_coefs(:,:,:,:,:,:)
 double precision int_prod_bessel_loc,binom_func,accu,prod,ylm,bigI,arg
+
 
  fourpi=4.d0*dacos(-1.d0)
  f=fourpi**1.5d0
@@ -755,8 +744,8 @@ double precision int_prod_bessel_loc,binom_func,accu,prod,ylm,bigI,arg
  dreal=2.d0*d2
  
  
- allocate (array_R_loc(-2:ntot_max+klocmax_max,klocmax_max,0:ntot_max))
- allocate (array_coefs(0:ntot_max,0:ntot_max,0:ntot_max,0:ntot_max,0:ntot_max,0:ntot_max))
+ allocate (array_R_loc(-2:ntot+klocmax,klocmax,0:ntot))
+ allocate (array_coefs(0:ntot,0:ntot,0:ntot,0:ntot,0:ntot,0:ntot))
  
  do ktot=-2,ntotA+ntotB+klocmax
    do l=0,ntot
@@ -2111,9 +2100,7 @@ end
 ! r      : Distance between the Atomic Orbital center and the considered point
 double precision function ylm_orb(l,m,c,a,n_a,g_a,r)
 implicit none
-integer lmax_max,ntot_max
-parameter (lmax_max=2)
-parameter (ntot_max=14)
+integer lmax_max
 integer l,m
 double precision a(3),g_a,c(3)
 double precision prod,binom_func,accu,bigI,ylm,bessel_mod
@@ -2131,7 +2118,6 @@ factor=fourpi*dexp(-arg)
 areal=2.d0*g_a*ac
 ntotA=n_a(1)+n_a(2)+n_a(3)
 
-if(ntotA.gt.ntot_max)stop 'increase ntot_max'
 
 if(ac.eq.0.d0)then
  ylm_orb=dsqrt(fourpi)*r**ntotA*dexp(-g_a*r**2)*bigI(0,0,l,m,n_a(1),n_a(2),n_a(3))

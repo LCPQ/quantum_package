@@ -22,7 +22,7 @@ subroutine apply_exc_to_psi(orb,hole_particle,spin_exc, &
 
   integer :: elec_num_tab_local(2)
   integer :: i,j,accu_elec,k
-  integer :: det_tmp(N_int), det_tmp_bis(N_int)
+  integer(bit_kind) :: det_tmp(N_int), det_tmp_bis(N_int)
   double precision :: phase
   double precision :: norm_factor
 

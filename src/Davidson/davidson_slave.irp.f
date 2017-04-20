@@ -29,4 +29,3 @@ subroutine provide_everything
   PROVIDE mo_bielec_integrals_in_map psi_det_sorted_bit N_states_diag zmq_context ref_bitmask_energy
 end subroutine
 
-

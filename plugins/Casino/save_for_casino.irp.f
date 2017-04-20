@@ -5,7 +5,7 @@ subroutine save_casino
  integer                        :: getUnitAndOpen, iunit
  integer, allocatable           :: itmp(:)
  integer                        :: n_ao_new
- real, allocatable              :: rtmp(:)
+ double precision, allocatable              :: rtmp(:)
  PROVIDE ezfio_filename
 
  iunit = getUnitAndOpen('gwfn.data','w')

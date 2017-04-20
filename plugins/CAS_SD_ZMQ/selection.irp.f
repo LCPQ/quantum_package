@@ -112,7 +112,7 @@ double precision function get_phase_bi(phasemask, s1, s2, h1, p1, h2, p2)
   
   if(s1 == s2 .and. max(h1, p1) > min(h2, p2)) np = np + 1_1
   get_phase_bi = res(iand(np,1_1))
-end function
+end subroutine
 
 
 
@@ -670,6 +670,7 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
       if(banned(p1,p2)) cycle
       if(mat(1, p1, p2) == 0d0) cycle
       call apply_particles(mask, s1, p1, s2, p2, det, ok, N_int)
+      logical, external              :: is_in_wavefunction
       
       if (do_ddci) then
         logical, external              :: is_a_two_holes_two_particles
