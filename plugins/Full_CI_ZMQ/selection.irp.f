@@ -50,7 +50,7 @@ subroutine assert(cond, msg)
     print *, "assert failed: "//msg
     stop
   end if
-end 
+end subroutine
 
 
 subroutine get_mask_phase(det, phasemask)
@@ -72,7 +72,7 @@ subroutine get_mask_phase(det, phasemask)
       end do
     end do
   end do
-end 
+end subroutine
 
 
 subroutine select_connected(i_generator,E0,pt2,b,subset)
@@ -98,9 +98,9 @@ subroutine select_connected(i_generator,E0,pt2,b,subset)
       particle_mask(k,2) = iand(generators_bitmask(k,2,s_part,l), not(psi_det_generators(k,2,i_generator)) )
 
     enddo
-    call select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b,subset)
+    call select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b,subset)
   enddo
-end 
+end subroutine
 
 
 double precision function get_phase_bi(phasemask, s1, s2, h1, p1, h2, p2)
@@ -271,7 +271,7 @@ subroutine get_m0(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   end do
 end 
 
-subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf,subset)
+subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf,subset)
   use bitmasks
   use selection_types
   implicit none
@@ -373,7 +373,6 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
   integer :: nb_count
   do s1=1,2
     do i1=N_holes(s1),1,-1   ! Generate low excitations first
-      
       h1 = hole_list(i1,s1)
       call apply_hole(psi_det_generators(1,1,i_generator), s1,h1, pmask, ok, N_int)
       
@@ -491,7 +490,7 @@ subroutine select_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,p
       enddo
     enddo
   enddo
-end 
+end subroutine
 
 
 
