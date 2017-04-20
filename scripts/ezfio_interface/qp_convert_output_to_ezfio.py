@@ -3,7 +3,7 @@
 convert output of gamess/GAU$$IAN to ezfio
 
 Usage:
-    qp_convert_output_to_ezfio.py <file.out> [-o <ezfio_directory>]
+    qp_convert_output_to_ezfio.py <file.out> [--ezfio=<folder.ezfio>]
 
 Option:
     file.out is the file to check (like gamess.out)
@@ -20,16 +20,17 @@ from functools import reduce
 # Add to the path #
 # ~#~#~#~#~#~#~#~ #
 
-
 try:
     QP_ROOT = os.environ["QP_ROOT"]
 except:
     print "Error: QP_ROOT environment variable not found."
     sys.exit(1)
 else:
+
     sys.path = [ QP_ROOT + "/install/EZFIO/Python", 
                  QP_ROOT + "/resultsFile", 
                  QP_ROOT + "/scripts"] + sys.path
+
 
 # ~#~#~#~#~#~ #
 # I m p o r t #
@@ -271,14 +272,13 @@ def write_ezfio(res, filename):
     #
 
     # INPUT
-    # {% for label,zcore, l_block in l_atom  $}
+    # {% for lanel,zcore, l_block in l_atom  $}
     #       #local l_block l=0}
     #       {label} GEN {zcore} {len(l_block)-1 #lmax_block}
     #       {% for l_param in l_block%}
     #                {len(l_param) # list of parameter aka n_max_bock_max(n)}
     #                {% for coef,n,zeta for l_param}
     #                    {coef,n, zeta}
-
 
     # OUTPUT
 
@@ -309,16 +309,8 @@ def write_ezfio(res, filename):
             array_l_max_block.append(l_max_block)
             array_z_remove.append(z_remove)
 
-            x = [[coef_n_zeta.split() for coef_n_zeta in l.split('\n')] \
-               for l in array_party[1:] ]
-            x = []
-            for l in array_party[1:]:
-              y = []
-              for coef_n_zeta in l.split('\n'):
-                z = coef_n_zeta.split()
-                if z : y.append(z)
-              x.append(y)
-            matrix.append(x)
+            matrix.append([[coef_n_zeta.split()[1:] for coef_n_zeta in l.split('\n')] for l in array_party[1:]])
+
         return (matrix, array_l_max_block, array_z_remove)
 
     def get_local_stuff(matrix):
@@ -327,6 +319,7 @@ def write_ezfio(res, filename):
         k_loc_max = max(len(i) for i in matrix_local_unpad)
 
         matrix_local = [ pad(ll, k_loc_max, [0., 2, 0.]) for ll in matrix_local_unpad]
+
         m_coef = [[float(i[0]) for i in atom] for atom in matrix_local]
         m_n = [[int(i[1]) - 2 for i in atom] for atom in matrix_local]
         m_zeta = [[float(i[2]) for i in atom] for atom in matrix_local]
@@ -350,42 +343,26 @@ def write_ezfio(res, filename):
         return (l_max_block, k_max, m_coef_noloc, m_n_noloc, m_zeta_noloc)
 
     try:
-        pseudo_str = []
-        label = ezfio.get_nuclei_nucl_label()
-        for ecp in res.pseudo:
-          pseudo_str += [ "%(label)s GEN %(zcore)d %(lmax)d" % { "label": label[ ecp["atom"]-1 ],
-                "zcore": ecp["zcore"], "lmax": ecp["lmax"] } ]
-          lmax = ecp["lmax"]
-          for l in [lmax] + list(range(0,lmax)):
-            pseudo_str += [ "%d"%len(ecp[str(l)]) ]
-            for t in ecp[str(l)]:
-              pseudo_str += [ "%f  %d  %f"%t ]
-          pseudo_str += [""]
-        pseudo_str = "\n".join(pseudo_str)
-             
+        pseudo_str = res_file.get_pseudo()
         matrix, array_l_max_block, array_z_remove = parse_str(pseudo_str)
-        array_z_remove = map(float,array_z_remove)
+
     except:
         ezfio.set_pseudo_do_pseudo(False)
     else:
         ezfio.set_pseudo_do_pseudo(True)
-        
+
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
         # Z _ e f f , a l p h a / b e t a _ e l e c #
         # ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~ #
 
-        ezfio.set_pseudo_nucl_charge_remove(array_z_remove)
-        charge = ezfio.get_nuclei_nucl_charge()
-        charge = [ i - j for i, j in zip(charge, array_z_remove) ] 
-        ezfio.set_nuclei_nucl_charge (charge)
+        ezfio.pseudo_charge_remove = array_z_remove
+        ezfio.nuclei_nucl_charge = [i - j for i, j in zip(ezfio.nuclei_nucl_charge, array_z_remove)]
 
         import math
-        num_elec_diff = sum(array_z_remove)/2
-        nalpha = ezfio.get_electrons_elec_alpha_num() - num_elec_diff
-        nbeta  = ezfio.get_electrons_elec_beta_num() - num_elec_diff
+        num_elec = sum(ezfio.nuclei_nucl_charge)
 
-        ezfio.set_electrons_elec_alpha_num(nalpha)
-        ezfio.set_electrons_elec_beta_num( nbeta )
+        ezfio.electrons_elec_alpha_num = int(math.ceil(num_elec / 2.))
+        ezfio.electrons_elec_beta_num = int(math.floor(num_elec / 2.))
 
         # Change all the array 'cause EZFIO
         #   v_kl (v, l) => v_kl(l,v)
@@ -431,8 +408,8 @@ if __name__ == '__main__':
 
     file_ = get_full_path(arguments['<file.out>'])
 
-    if arguments["-o"]:
-        ezfio_file = get_full_path(arguments["<ezfio_directory>"])
+    if arguments["--ezfio"]:
+        ezfio_file = get_full_path(arguments["--ezfio"])
     else:
         ezfio_file = "{0}.ezfio".format(file_)
 
@@ -444,4 +421,3 @@ if __name__ == '__main__':
         print file_, 'recognized as', str(res_file).split('.')[-1].split()[0]
 
     write_ezfio(res_file, ezfio_file)
-    os.system("qp_run save_ortho_mos "+ezfio_file)
