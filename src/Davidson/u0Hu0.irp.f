@@ -1,4 +1,4 @@
-subroutine u_0_H_u_0(e_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
+subroutine u_0_H_u_0(e_0,u_0,n,keys_tmp,Nint,N_st,sze)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -7,166 +7,20 @@ subroutine u_0_H_u_0(e_0,u_0,n,keys_tmp,Nint,N_st,sze_8)
   ! n : number of determinants
   !
   END_DOC
-  integer, intent(in)            :: n,Nint, N_st, sze_8
+  integer, intent(in)            :: n,Nint, N_st, sze
   double precision, intent(out)  :: e_0(N_st)
-  double precision, intent(in)   :: u_0(sze_8,N_st)
+  double precision, intent(inout):: u_0(sze,N_st)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   
-  double precision, allocatable  :: H_jj(:), v_0(:,:)
+  double precision, allocatable  :: v_0(:,:), s_0(:,:)
   double precision               :: u_dot_u,u_dot_v,diag_H_mat_elem
   integer :: i,j
-  allocate (H_jj(n), v_0(sze_8,N_st))
-  do i = 1, n
-   H_jj(i) = diag_H_mat_elem(keys_tmp(1,1,i),Nint)
-  enddo
-  
-  call H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
+  allocate (v_0(sze,N_st),s_0(sze,N_st))
+  call H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze)
   do i=1,N_st
     e_0(i) = u_dot_v(v_0(1,i),u_0(1,i),n)/u_dot_u(u_0(1,i),n)
   enddo
-  deallocate (H_jj, v_0)
-end
-
-
-subroutine H_u_0_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,N_st,sze_8)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Computes v_0 = H|u_0>
-  !
-  ! n : number of determinants
-  !
-  ! H_jj : array of <j|H|j>
-  END_DOC
-  integer, intent(in)            :: N_st,n,Nint, sze_8
-  double precision, intent(out)  :: v_0(sze_8,N_st)
-  double precision, intent(in)   :: u_0(sze_8,N_st)
-  double precision, intent(in)   :: H_jj(n)
-  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
-  double precision               :: hij
-  double precision, allocatable  :: vt(:,:)
-  double precision, allocatable  :: ut(:,:)
-  integer                        :: i,j,k,l, jj,ii
-  integer                        :: i0, j0
-  
-  integer, allocatable           :: shortcut(:,:), sort_idx(:,:)
-  integer(bit_kind), allocatable :: sorted(:,:,:), version(:,:,:)
-  integer(bit_kind)              :: sorted_i(Nint)
-  
-  integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, istate
-  integer                        :: N_st_8
-  
-  integer, external              :: align_double
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut
-
-  N_st_8 = align_double(N_st)
-
-  ASSERT (Nint > 0)
-  ASSERT (Nint == N_int)
-  ASSERT (n>0)
-  PROVIDE ref_bitmask_energy 
-
-  allocate (shortcut(0:n+1,2), sort_idx(n,2), sorted(Nint,n,2), version(Nint,n,2))
-  allocate(ut(N_st_8,n))
-
-  v_0 = 0.d0
-
-  do i=1,n
-    do istate=1,N_st
-      ut(istate,i) = u_0(i,istate)
-    enddo
-  enddo
-
-  call sort_dets_ab_v(keys_tmp, sorted(1,1,1), sort_idx(1,1), shortcut(0,1), version(1,1,1), n, Nint)
-  call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
-  
-  !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i,istate)&
-      !$OMP SHARED(n,H_jj,keys_tmp,ut,Nint,v_0,sorted,shortcut,sort_idx,version,N_st,N_st_8)
-  allocate(vt(N_st_8,n))
-  Vt = 0.d0
-  
-  !$OMP DO SCHEDULE(dynamic)
-  do sh=1,shortcut(0,1)
-    do sh2=1,shortcut(0,1)
-      exa = popcnt(xor(version(1,sh,1), version(1,sh2,1)))
-      if(exa > 2) then
-        cycle
-      end if
-      do ni=2,Nint
-        exa = exa + popcnt(xor(version(ni,sh,1), version(ni,sh2,1)))
-      end do
-      if(exa > 2) then
-        cycle
-      end if
-      
-      do i=shortcut(sh,1),shortcut(sh+1,1)-1
-        org_i = sort_idx(i,1)
-        do ni=1,Nint
-          sorted_i(ni) = sorted(ni,i,1)
-        enddo
-        
- jloop: do j=shortcut(sh2,1),shortcut(sh2+1,1)-1
-          org_j = sort_idx(j,1)
-          ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
-          if(ext > 4) then
-            cycle jloop
-          endif
-          do ni=2,Nint
-            ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
-            if(ext > 4) then
-              cycle jloop
-            endif
-          end do
-          call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
-          do istate=1,N_st
-            vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,org_j)
-          enddo
-        enddo jloop
-      enddo
-    enddo
-  enddo
-  !$OMP END DO NOWAIT
-  
-  !$OMP DO SCHEDULE(dynamic)
-  do sh=1,shortcut(0,2)
-    do i=shortcut(sh,2),shortcut(sh+1,2)-1
-      org_i = sort_idx(i,2)
-      do j=shortcut(sh,2),shortcut(sh+1,2)-1
-        org_j = sort_idx(j,2)
-        ext = popcnt(xor(sorted(1,i,2), sorted(1,j,2)))
-        do ni=2,Nint
-          ext = ext + popcnt(xor(sorted(ni,i,2), sorted(ni,j,2)))
-        end do
-        if(ext /= 4) then
-          cycle
-        endif
-        call i_H_j(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),Nint,hij)
-        do istate=1,N_st
-          vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,org_j)
-        enddo
-      end do
-    end do
-  enddo
-  !$OMP END DO NOWAIT
-  
-  !$OMP CRITICAL
-  do istate=1,N_st
-    do i=n,1,-1
-      v_0(i,istate) = v_0(i,istate) + vt(istate,i)
-    enddo
-  enddo
-  !$OMP END CRITICAL
-
-  deallocate(vt)
-  !$OMP END PARALLEL
-  
-  do istate=1,N_st
-    do i=1,n
-      v_0(i,istate) += H_jj(i) * u_0(i,istate)
-    enddo
-  enddo
-  deallocate (shortcut, sort_idx, sorted, version, ut)
+  deallocate (s_0, v_0)
 end
 
 BEGIN_PROVIDER [ double precision, psi_energy, (N_states) ]
@@ -178,338 +32,411 @@ BEGIN_PROVIDER [ double precision, psi_energy, (N_states) ]
 END_PROVIDER
 
 
-subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
+
+subroutine H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze)
   use bitmasks
-  use f77_zmq
   implicit none
   BEGIN_DOC
   ! Computes v_0 = H|u_0> and s_0 = S^2 |u_0>
   !
-  ! n : number of determinants
+  ! Assumes that the determinants are in psi_det
   !
-  ! H_jj : array of <j|H|j>
-  !
-  ! S2_jj : array of <j|S^2|j>
+  ! istart, iend, ishift, istep are used in ZMQ parallelization.
   END_DOC
-  integer, intent(in)            :: N_st,n,Nint, sze_8
-  double precision, intent(out)  :: v_0(sze_8,N_st), s_0(sze_8,N_st)
-  double precision, intent(in)   :: u_0(sze_8,N_st)
-  double precision, intent(in)   :: H_jj(n), S2_jj(n)
-  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
-  double precision               :: hij,s2 
-  double precision, allocatable  :: ut(:,:)
-  integer                        :: i,j,k,l, jj,ii
-  integer                        :: i0, j0
-  
-  integer, allocatable           :: shortcut(:,:), sort_idx(:)
-  integer(bit_kind), allocatable :: sorted(:,:), version(:,:)
-  integer(bit_kind)              :: sorted_i(Nint)
-  
-  integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, istate
-  integer                        :: N_st_8
-  
-  integer, external              :: align_double
-  integer :: blockb, blockb2, istep
-  double precision :: ave_workload, workload, target_workload_inv
-  
-  integer(ZMQ_PTR) :: handler
-  
-  if(N_st /= N_states_diag .or. sze_8 < N_det) stop "assert fail in H_S2_u_0_nstates"
-  N_st_8 = N_st ! align_double(N_st)
-
-  ASSERT (Nint > 0)
-  ASSERT (Nint == N_int)
-  ASSERT (n>0)
-  PROVIDE ref_bitmask_energy 
-
-  allocate (shortcut(0:n+1,2), sort_idx(n), sorted(Nint,n), version(Nint,n))
-  allocate(ut(N_st_8,n))
-
+  integer, intent(in)            :: N_st,sze
+  double precision, intent(inout)  :: v_0(sze,N_st), s_0(sze,N_st), u_0(sze,N_st)
+  integer :: k
+  double precision, allocatable  :: u_t(:,:)
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: u_t
+  allocate(u_t(N_st,N_det))
+  do k=1,N_st
+    call dset_order(u_0(1,k),psi_bilinear_matrix_order,N_det)
+  enddo
   v_0 = 0.d0
   s_0 = 0.d0
-  
-  do i=1,n
-    do istate=1,N_st
-      ut(istate,i) =  u_0(i,istate)
-    enddo
+  call dtranspose(                                                   &
+      u_0,                                                           &
+      size(u_0, 1),                                                  &
+      u_t,                                                           &
+      size(u_t, 1),                                                  &
+      N_det, N_st)
+
+  call H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,1,N_det,0,1)
+  deallocate(u_t)
+
+  do k=1,N_st
+    call dset_order(v_0(1,k),psi_bilinear_matrix_order_reverse,N_det)
+    call dset_order(s_0(1,k),psi_bilinear_matrix_order_reverse,N_det)
+    call dset_order(u_0(1,k),psi_bilinear_matrix_order_reverse,N_det)
   enddo
-   call sort_dets_ab_v(keys_tmp, sorted, sort_idx, shortcut(0,1), version, n, Nint)
-   call sort_dets_ba_v(keys_tmp, sorted, sort_idx, shortcut(0,2), version, n, Nint)
-    
-  blockb = shortcut(0,1)
-  call davidson_init(handler,n,N_st_8,ut)
 
-
-  ave_workload = 0.d0
-  do sh=1,shortcut(0,1)
-    ave_workload += shortcut(0,1)
-    ave_workload += (shortcut(sh+1,1) - shortcut(sh,1))**2
-    do i=sh, shortcut(0,2), shortcut(0,1)
-      do j=i, min(i, shortcut(0,2))
-        ave_workload += (shortcut(j+1,2) - shortcut(j, 2))**2
-      end do
-    end do
-  enddo
-  ave_workload = ave_workload/dble(shortcut(0,1))
-  target_workload_inv = 0.001d0/ave_workload
-
-
-  do sh=1,shortcut(0,1),1
-    workload = shortcut(0,1)+dble(shortcut(sh+1,1) - shortcut(sh,1))**2
-    do i=sh, shortcut(0,2), shortcut(0,1)
-      do j=i, min(i, shortcut(0,2))
-        workload += (shortcut(j+1,2) - shortcut(j, 2))**2
-      end do
-    end do
-    istep = 1+ int(workload*target_workload_inv)
-    do blockb2=0, istep-1
-      call davidson_add_task(handler, sh, blockb2, istep)
-    enddo
-  enddo
-  
-  call davidson_run(handler, v_0, s_0, size(v_0,1))
-
-  do istate=1,N_st
-    do i=1,n
-      v_0(i,istate) = v_0(i,istate) + H_jj(i) * u_0(i,istate)
-      s_0(i,istate) = s_0(i,istate) + s2_jj(i)* u_0(i,istate)
-    enddo
-  enddo
-  deallocate(shortcut, sort_idx, sorted, version)
-  deallocate(ut)
 end
 
 
-
-subroutine H_S2_u_0_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze_8)
+subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
   use bitmasks
   implicit none
   BEGIN_DOC
   ! Computes v_0 = H|u_0> and s_0 = S^2 |u_0>
   !
-  ! n : number of determinants
-  !
-  ! H_jj : array of <j|H|j>
-  !
-  ! S2_jj : array of <j|S^2|j>
+  ! Default should be 1,N_det,0,1
   END_DOC
-  integer, intent(in)            :: N_st,n,Nint, sze_8
-  double precision, intent(out)  :: v_0(sze_8,N_st), s_0(sze_8,N_st)
-  double precision, intent(in)   :: u_0(sze_8,N_st)
-  double precision, intent(in)   :: H_jj(n), S2_jj(n)
-  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
-  double precision               :: hij,s2 
-  double precision, allocatable  :: vt(:,:), ut(:,:), st(:,:)
-  integer                        :: i,j,k,l, jj,ii
-  integer                        :: i0, j0
+  integer, intent(in)            :: N_st,sze,istart,iend,ishift,istep
+  double precision, intent(in)   :: u_t(N_st,N_det)
+  double precision, intent(out)  :: v_0(sze,N_st), s_0(sze,N_st) 
+
   
-  integer, allocatable           :: shortcut(:,:), sort_idx(:,:)
-  integer(bit_kind), allocatable :: sorted(:,:,:), version(:,:,:)
-  integer(bit_kind)              :: sorted_i(Nint)
+  PROVIDE ref_bitmask_energy N_int
+
+  select case (N_int)
+    case (1)
+      call H_S2_u_0_nstates_openmp_work_1(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+    case (2)
+      call H_S2_u_0_nstates_openmp_work_2(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+    case (3)
+      call H_S2_u_0_nstates_openmp_work_3(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+    case (4)
+      call H_S2_u_0_nstates_openmp_work_4(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+    case default
+      call H_S2_u_0_nstates_openmp_work_N_int(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+  end select
+end
+BEGIN_TEMPLATE
+
+subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes v_0 = H|u_0> and s_0 = S^2 |u_0>
+  !
+  ! Default should be 1,N_det,0,1
+  END_DOC
+  integer, intent(in)            :: N_st,sze,istart,iend,ishift,istep
+  double precision, intent(in)   :: u_t(N_st,N_det)
+  double precision, intent(out)  :: v_0(sze,N_st), s_0(sze,N_st) 
+
+  double precision               :: hij, sij
+  integer                        :: i,j,k,l
+  integer                        :: k_a, k_b, l_a, l_b, m_a, m_b
+  integer                        :: istate
+  integer                        :: krow, kcol, krow_b, kcol_b
+  integer                        :: lrow, lcol
+  integer                        :: mrow, mcol
+  integer(bit_kind)              :: spindet($N_int)
+  integer(bit_kind)              :: tmp_det($N_int,2)
+  integer(bit_kind)              :: tmp_det2($N_int,2)
+  integer(bit_kind)              :: tmp_det3($N_int,2)
+  integer(bit_kind), allocatable :: buffer(:,:)
+  integer                        :: n_doubles
+  integer, allocatable           :: doubles(:)
+  integer, allocatable           :: singles_a(:)
+  integer, allocatable           :: singles_b(:)
+  integer, allocatable           :: idx(:), idx0(:)
+  integer                        :: maxab, n_singles_a, n_singles_b, kcol_prev, nmax
+  integer*8                      :: k8
+  double precision, allocatable  :: v_t(:,:), s_t(:,:)
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: v_t, s_t
+
+  maxab = max(N_det_alpha_unique, N_det_beta_unique)+1
+  allocate(idx0(maxab))
   
-  integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, istate
-  integer                        :: N_st_8
-  
-  integer, external              :: align_double
-  integer :: blockb, blockb2, istep
-  double precision :: ave_workload, workload, target_workload_inv
-  
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut, st
+  do i=1,maxab
+    idx0(i) = i
+  enddo
 
-  N_st_8 = align_double(N_st)
+  ! Prepare the array of all alpha single excitations
+  ! -------------------------------------------------
 
-  ASSERT (Nint > 0)
-  ASSERT (Nint == N_int)
-  ASSERT (n>0)
-  PROVIDE ref_bitmask_energy
-
-  allocate (shortcut(0:n+1,2), sort_idx(n,2), sorted(Nint,n,2), version(Nint,n,2))
-  allocate(ut(N_st_8,n))
-
-  v_0 = 0.d0
-  s_0 = 0.d0
-
-  call sort_dets_ab_v(keys_tmp, sorted(1,1,1), sort_idx(1,1), shortcut(0,1), version(1,1,1), n, Nint)
-  call sort_dets_ba_v(keys_tmp, sorted(1,1,2), sort_idx(1,2), shortcut(0,2), version(1,1,2), n, Nint)
-
+  PROVIDE N_int
   !$OMP PARALLEL DEFAULT(NONE)                                       &
-      !$OMP PRIVATE(i,hij,s2,j,k,jj,vt,st,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i,istate)&
-      !$OMP SHARED(n,keys_tmp,ut,Nint,u_0,v_0,s_0,sorted,shortcut,sort_idx,version,N_st,N_st_8) 
-  allocate(vt(N_st_8,n),st(N_st_8,n))
-  Vt = 0.d0
-  St = 0.d0
+      !$OMP   SHARED(psi_bilinear_matrix_rows, N_det,                &
+      !$OMP          psi_bilinear_matrix_columns,                    &
+      !$OMP          psi_det_alpha_unique, psi_det_beta_unique,      &
+      !$OMP          n_det_alpha_unique, n_det_beta_unique, N_int,   &
+      !$OMP          psi_bilinear_matrix_transp_rows,                &
+      !$OMP          psi_bilinear_matrix_transp_columns,             &
+      !$OMP          psi_bilinear_matrix_transp_order, N_st,         &
+      !$OMP          psi_bilinear_matrix_order_transp_reverse,       &
+      !$OMP          psi_bilinear_matrix_columns_loc,                &
+      !$OMP          istart, iend, istep,        &
+      !$OMP          ishift, idx0, u_t, maxab, v_0, s_0)             &
+      !$OMP   PRIVATE(krow, kcol, tmp_det, spindet, k_a, k_b, i,     &
+      !$OMP          lcol, lrow, l_a, l_b, nmax,         &
+      !$OMP          buffer, doubles, n_doubles, &
+      !$OMP          tmp_det2, hij, sij, idx, l, kcol_prev, v_t,     &
+      !$OMP          singles_a, n_singles_a, singles_b,              &
+      !$OMP          n_singles_b, s_t, k8)
+  
+  ! Alpha/Beta double excitations
+  ! =============================
+    
+  allocate( buffer($N_int,maxab),                                     &
+      singles_a(maxab),                                              &
+      singles_b(maxab),                                              &
+      doubles(maxab),                                                &
+      idx(maxab),                                                    &
+      v_t(N_st,N_det), s_t(N_st,N_det))
+  kcol_prev=-1
 
-  !$OMP DO
-  do i=1,n
-    do istate=1,N_st
-      ut(istate,i) = u_0(sort_idx(i,2),istate)
-    enddo
-  enddo
-  !$OMP END DO
+  v_t = 0.d0
+  s_t = 0.d0
 
-  !$OMP DO SCHEDULE(dynamic) 
-  do sh=1,shortcut(0,2)
-    do i=shortcut(sh,2),shortcut(sh+1,2)-1
-      org_i = sort_idx(i,2)
-      do j=shortcut(sh,2),shortcut(sh+1,2)-1
-        org_j = sort_idx(j,2)
-        ext = popcnt(xor(sorted(1,i,2), sorted(1,j,2)))
-        if (ext > 4) cycle
-        do ni=2,Nint
-          ext = ext + popcnt(xor(sorted(ni,i,2), sorted(ni,j,2)))
-          if (ext > 4) exit
-        end do
-        if(ext == 4) then
-            call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
-            call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2)
-            do istate=1,n_st
-              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,j)
-              st (istate,org_i) = st (istate,org_i) + s2*ut(istate,j)
-            enddo
-        end if
-      end do
-    end do
-  enddo
-  !$OMP END DO
 
-  !$OMP DO
-  do i=1,n
-    do istate=1,N_st
-      ut(istate,i) = u_0(sort_idx(i,1),istate)
-    enddo
-  enddo
-  !$OMP END DO
+  !$OMP DO SCHEDULE(dynamic,64)
+  do k_a=istart+ishift,iend,istep
 
-  !$OMP DO SCHEDULE(dynamic)
-  do sh=1,shortcut(0,1)
-    do sh2=1,shortcut(0,1)
-      if (sh==sh2) cycle
+    krow = psi_bilinear_matrix_rows(k_a)
+    kcol = psi_bilinear_matrix_columns(k_a)
+    
+    tmp_det(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, krow)
+    tmp_det(1:$N_int,2) = psi_det_beta_unique (1:$N_int, kcol)
+    
+    if (kcol /= kcol_prev) then
+      call get_all_spin_singles_$N_int(                              &
+          psi_det_beta_unique(1,kcol+1), idx0(kcol+1),               &
+          tmp_det(1,2), N_det_beta_unique-kcol,                      &
+          singles_b, n_singles_b)
+    endif
+    kcol_prev = kcol
 
-      exa = 0
-      do ni=1,Nint
-        exa = exa + popcnt(xor(version(ni,sh,1), version(ni,sh2,1)))
-      end do
-      if(exa > 2) then
-        cycle
-      end if
+    ! Loop over singly excited beta columns > current column
+    ! ------------------------------------------------------
 
-      do i=shortcut(sh,1),shortcut(sh+1,1)-1
-        org_i = sort_idx(i,1)
-        do ni=1,Nint
-          sorted_i(ni) = sorted(ni,i,1)
-        enddo
+    do i=1,n_singles_b
+      lcol = singles_b(i)
 
-        do j=shortcut(sh2,1),shortcut(sh2+1,1)-1
-          ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
-          if (ext > 4) cycle
-          do ni=2,Nint
-            ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
-            if (ext > 4) exit
-          end do
-          if(ext <= 4) then
-            org_j = sort_idx(j,1)
-            call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
-            if (hij /= 0.d0) then
-              do istate=1,n_st
-                vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,j)
-              enddo
-            endif
-            if (ext /= 2) then
-              call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2)
-              if (s2 /= 0.d0) then
-                do istate=1,n_st
-                  st (istate,org_i) = st (istate,org_i) + s2*ut(istate,j)
-                enddo
-              endif
-            endif
-          endif
-        enddo
-        
+      tmp_det2(1:$N_int,2) = psi_det_beta_unique(1:$N_int, lcol)
+
+      l_a = psi_bilinear_matrix_columns_loc(lcol)
+
+      nmax = psi_bilinear_matrix_columns_loc(lcol+1) - l_a
+      do j=1,nmax
+        lrow = psi_bilinear_matrix_rows(l_a)
+        buffer(1:$N_int,j) = psi_det_alpha_unique(1:$N_int, lrow)
+        idx(j) = l_a
+        l_a = l_a+1
       enddo
-    enddo
-
-    exa = 0
-
-    do i=shortcut(sh,1),shortcut(sh+1,1)-1
-      org_i = sort_idx(i,1)
-      do ni=1,Nint
-        sorted_i(ni) = sorted(ni,i,1)
-      enddo
-
-      do j=shortcut(sh,1),i-1
-        ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
-        if (ext > 4) cycle
-        do ni=2,Nint
-          ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
-          if (ext > 4) exit
-        end do
-        if(ext <= 4) then
-          org_j = sort_idx(j,1)
-          call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
-          if (hij /= 0.d0) then
-            do istate=1,n_st
-              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,j)
-            enddo
-          endif
-          if (ext /= 2) then
-            call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2)
-            if (s2 /= 0.d0) then
-              do istate=1,n_st
-                st (istate,org_i) = st (istate,org_i) + s2*ut(istate,j)
-              enddo
-            endif
-          endif
-        endif
-      enddo
+      j = j-1
       
-      do j=i+1,shortcut(sh+1,1)-1
-        if (i==j) cycle
-        ext = exa + popcnt(xor(sorted_i(1), sorted(1,j,1)))
-        if (ext > 4) cycle
-        do ni=2,Nint
-          ext = ext + popcnt(xor(sorted_i(ni), sorted(ni,j,1)))
-          if (ext > 4) exit
-        end do
-        if(ext <= 4) then
-          org_j = sort_idx(j,1)
-          call i_h_j (keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,hij)
-          if (hij /= 0.d0) then
-            do istate=1,n_st
-              vt (istate,org_i) = vt (istate,org_i) + hij*ut(istate,j)
-            enddo
-          endif
-          if (ext /= 2) then
-            call get_s2(keys_tmp(1,1,org_j),keys_tmp(1,1,org_i),nint,s2)
-            if (s2 /= 0.d0) then
-              do istate=1,n_st
-                st (istate,org_i) = st (istate,org_i) + s2*ut(istate,j)
-              enddo
-            endif
-          endif
-        endif
+      call get_all_spin_singles_$N_int(                              &
+          buffer, idx, tmp_det(1,1), j,                              &
+          singles_a, n_singles_a )
+
+      ! Loop over alpha singles
+      ! -----------------------
+
+      do k = 1,n_singles_a
+        l_a = singles_a(k)
+        lrow = psi_bilinear_matrix_rows(l_a)
+        tmp_det2(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, lrow)
+        call i_H_j_double_alpha_beta(tmp_det,tmp_det2,$N_int,hij)
+        call get_s2(tmp_det,tmp_det2,$N_int,sij)
+        do l=1,N_st
+          v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
+          s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,l_a)
+          v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+          s_t(l,l_a) = s_t(l,l_a) + sij * u_t(l,k_a)
+        enddo
       enddo
+
     enddo
+
   enddo
   !$OMP END DO 
 
-  !$OMP CRITICAL (u0Hu0)
-  do istate=1,N_st
-    do i=1,n
-      v_0(i,istate) = v_0(i,istate) + vt(istate,i)
-      s_0(i,istate) = s_0(i,istate) + st(istate,i)
+  !$OMP DO SCHEDULE(dynamic,64)
+  do k_a=istart+ishift,iend,istep
+
+
+    ! Single and double alpha excitations
+    ! ===================================
+    
+    
+    ! Initial determinant is at k_a in alpha-major representation
+    ! -----------------------------------------------------------------------
+    
+    krow = psi_bilinear_matrix_rows(k_a)
+    kcol = psi_bilinear_matrix_columns(k_a)
+    
+    tmp_det(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, krow)
+    tmp_det(1:$N_int,2) = psi_det_beta_unique (1:$N_int, kcol)
+    
+    ! Initial determinant is at k_b in beta-major representation
+    ! ----------------------------------------------------------------------
+    
+    k_b = psi_bilinear_matrix_order_transp_reverse(k_a)
+
+    spindet(1:$N_int) = tmp_det(1:$N_int,1)
+    
+    ! Loop inside the beta column to gather all the connected alphas
+    l_a = k_a+1
+    nmax = min(N_det_alpha_unique, N_det - l_a)
+    do i=1,nmax
+      lcol = psi_bilinear_matrix_columns(l_a)
+      if (lcol /= kcol) exit
+      lrow = psi_bilinear_matrix_rows(l_a)
+      buffer(1:$N_int,i) = psi_det_alpha_unique(1:$N_int, lrow)
+      idx(i) = l_a
+      l_a = l_a+1
+    enddo
+    i = i-1
+    
+    call get_all_spin_singles_and_doubles_$N_int(                    &
+        buffer, idx, spindet, i,                                     &
+        singles_a, doubles, n_singles_a, n_doubles )
+
+    ! Compute Hij for all alpha singles
+    ! ----------------------------------
+
+    tmp_det2(1:$N_int,2) = psi_det_beta_unique (1:$N_int, kcol)
+    do i=1,n_singles_a
+      l_a = singles_a(i)
+      lrow = psi_bilinear_matrix_rows(l_a)
+      tmp_det2(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, lrow)
+      call i_H_j_mono_spin( tmp_det, tmp_det2, $N_int, 1, hij)
+      do l=1,N_st
+        v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+        v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
+        ! single => sij = 0 
+      enddo
+    enddo
+
+    
+    ! Compute Hij for all alpha doubles
+    ! ----------------------------------
+    
+    do i=1,n_doubles
+      l_a = doubles(i)
+      lrow = psi_bilinear_matrix_rows(l_a)
+      call i_H_j_double_spin( tmp_det(1,1), psi_det_alpha_unique(1, lrow), $N_int, hij)
+      do l=1,N_st
+        v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+        v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
+        ! same spin => sij = 0
+      enddo
+    enddo
+    
+
+
+    ! Single and double beta excitations
+    ! ==================================
+
+    
+    ! Initial determinant is at k_a in alpha-major representation
+    ! -----------------------------------------------------------------------
+    
+    krow = psi_bilinear_matrix_rows(k_a)
+    kcol = psi_bilinear_matrix_columns(k_a)
+    
+    tmp_det(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, krow)
+    tmp_det(1:$N_int,2) = psi_det_beta_unique (1:$N_int, kcol)
+    
+    spindet(1:$N_int) = tmp_det(1:$N_int,2)
+    
+    ! Initial determinant is at k_b in beta-major representation
+    ! -----------------------------------------------------------------------
+
+    k_b = psi_bilinear_matrix_order_transp_reverse(k_a) 
+    
+    ! Loop inside the alpha row to gather all the connected betas
+    l_b = k_b+1
+    nmax = min(N_det_beta_unique, N_det - l_b)
+    do i=1,nmax
+      lrow = psi_bilinear_matrix_transp_rows(l_b)
+      if (lrow /= krow) exit
+      lcol = psi_bilinear_matrix_transp_columns(l_b)
+      buffer(1:$N_int,i) = psi_det_beta_unique(1:$N_int, lcol)
+      idx(i) = l_b
+      l_b = l_b+1
+    enddo
+    i = i-1
+  
+    call get_all_spin_singles_and_doubles_$N_int(                    &
+        buffer, idx, spindet, i,                                     &
+        singles_b, doubles, n_singles_b, n_doubles )
+    
+    ! Compute Hij for all beta singles
+    ! ----------------------------------
+    
+    tmp_det2(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, krow)
+    do i=1,n_singles_b
+      l_b = singles_b(i)
+      lcol = psi_bilinear_matrix_transp_columns(l_b)
+      tmp_det2(1:$N_int,2) = psi_det_beta_unique (1:$N_int, lcol)
+      call i_H_j_mono_spin( tmp_det, tmp_det2, $N_int, 2, hij)
+      l_a = psi_bilinear_matrix_transp_order(l_b)
+      do l=1,N_st
+        v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+        v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
+        ! single => sij = 0 
+      enddo
+    enddo
+    
+    ! Compute Hij for all beta doubles
+    ! ----------------------------------
+    
+    do i=1,n_doubles
+      l_b = doubles(i)
+      lcol = psi_bilinear_matrix_transp_columns(l_b)
+      call i_H_j_double_spin( tmp_det(1,2), psi_det_beta_unique(1, lcol), $N_int, hij)
+      l_a = psi_bilinear_matrix_transp_order(l_b)
+      do l=1,N_st
+        v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
+        v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
+        ! same spin => sij = 0 
+      enddo
+    enddo
+
+
+    ! Diagonal contribution
+    ! =====================
+
+    
+    ! Initial determinant is at k_a in alpha-major representation
+    ! -----------------------------------------------------------------------
+    
+    krow = psi_bilinear_matrix_rows(k_a)
+    kcol = psi_bilinear_matrix_columns(k_a)
+    
+    tmp_det(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, krow)
+    tmp_det(1:$N_int,2) = psi_det_beta_unique (1:$N_int, kcol)
+    
+    double precision, external :: diag_H_mat_elem, diag_S_mat_elem
+  
+    hij = diag_H_mat_elem(tmp_det,$N_int) 
+    sij = diag_S_mat_elem(tmp_det,$N_int)
+    do l=1,N_st
+      v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,k_a)
+      s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,k_a)
+    enddo
+
+  end do
+  !$OMP END DO NOWAIT
+  deallocate(buffer, singles_a, singles_b, doubles, idx)
+
+  !$OMP CRITICAL
+  do l=1,N_st
+    do i=1, N_det
+      v_0(i,l) = v_0(i,l) + v_t(l,i)
+      s_0(i,l) = s_0(i,l) + s_t(l,i)
     enddo
   enddo
-  !$OMP END CRITICAL (u0Hu0)
+  !$OMP END CRITICAL
+  deallocate(v_t, s_t)
 
-  deallocate(vt,st)
+  !$OMP BARRIER
   !$OMP END PARALLEL
 
-  do istate=1,N_st
-    do i=1,n
-      v_0(i,istate) = v_0(i,istate) + H_jj(i) * u_0(i,istate)
-      s_0(i,istate) = s_0(i,istate) + s2_jj(i)* u_0(i,istate)
-    enddo
-  enddo
-  deallocate (shortcut, sort_idx, sorted, version, ut)
 end
+
+SUBST [ N_int ]
+
+1;;
+2;;
+3;;
+4;;
+N_int;;
+
+END_TEMPLATE
+
 

@@ -16,24 +16,17 @@ program davidson_slave
   state = 'Waiting'
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-
   do
     call wait_for_state(zmq_state,state)
     if(trim(state) /= "davidson") exit
-    call davidson_miniserver_get()
-    
     integer :: rc, i
- 
     print *,  'Davidson slave running'
- 
-    !$OMP PARALLEL PRIVATE(i)
-    i = omp_get_thread_num()
     call davidson_slave_tcp(i)
-    !$OMP END PARALLEL
   end do
 end
 
 subroutine provide_everything
-  PROVIDE mo_bielec_integrals_in_map psi_det_sorted_bit N_states_diag zmq_context
+  PROVIDE mo_bielec_integrals_in_map psi_det_sorted_bit N_states_diag zmq_context ref_bitmask_energy
 end subroutine
+
 

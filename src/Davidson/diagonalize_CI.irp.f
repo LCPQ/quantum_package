@@ -66,7 +66,6 @@ END_PROVIDER
      call davidson_diag_HS2(psi_det,CI_eigenvectors, CI_eigenvectors_s2, &
          size(CI_eigenvectors,1),CI_electronic_energy,               &
          N_det,min(N_det,N_states),min(N_det,N_states_diag),N_int,output_determinants)
-
      
    else if (diag_algorithm == "Lapack") then
      
