@@ -3,6 +3,11 @@ program full_ci
   integer                        :: i,k
 
   
+  print *,  '===================================================================='
+  print *,  'This program is slow. Consider using the Full_CI_ZMQ module instead.'
+  print *,  '===================================================================='
+  call sleep(2)
+
   double precision, allocatable  :: pt2(:), norm_pert(:), H_pert_diag(:)
   integer                        :: N_st, degree
   N_st = N_states
