@@ -234,30 +234,14 @@ double precision function dble_logfact(n) result(logfact2)
   ! n!!
   END_DOC
   integer                        :: n
-  double precision, save         :: memo(1:100)
-  integer, save                  :: memomax = 1
-  
-  ASSERT (iand(n,1) /= 0)
-  if (n<=memomax) then
-    if (n<3) then
-      logfact2 = 0.d0
-    else
-      logfact2 = memo(n)
-    endif
-    return
-  endif
-  
-  integer                        :: i
-  memo(1) = 0.d0
-  do i=memomax+2,min(n,99),2
-    memo(i) = memo(i-2)+ dlog(dble(i))
+  integer :: k
+  double precision :: prod
+  prod=0.d0
+  do k=2,n,2
+   prod=prod+dlog(dfloat(k))
   enddo
-  memomax = min(n,99)
-  logfact2 = memo(memomax)
-  
-  do i=101,n,2
-    logfact2 += dlog(dble(i))
-  enddo
+  logfact2=prod
+  return
   
 end function
 

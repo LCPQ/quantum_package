@@ -10,11 +10,14 @@ program fci_zmq
   
   allocate (pt2(N_states))
 
-  IF (correlation_energy_ratio_max .NE. 1.d0) THEN
- 
-    DOUBLE PRECISION :: hf_energy_ref
-    CALL ezfio_get_hartree_fock_energy(hf_energy_ref)
-  END IF
+  double precision               :: hf_energy_ref
+  logical                        :: has
+  call ezfio_has_hartree_fock_energy(has)
+  if (has) then
+    call ezfio_get_hartree_fock_energy(hf_energy_ref)
+  else
+    hf_energy_ref = ref_bitmask_energy
+  endif
 
   pt2 = 1.d0
   threshold_davidson_in = threshold_davidson
@@ -47,28 +50,22 @@ program fci_zmq
   E_CI_before(1:N_states) = CI_energy(1:N_states)
   n_det_before = 0
   
+  double precision :: correlation_energy_ratio
+  correlation_energy_ratio = E_CI_before(1) - hf_energy_ref
+  correlation_energy_ratio = correlation_energy_ratio / (correlation_energy_ratio + pt2(1))
 
-  do while ( (N_det < N_det_max) .and. (maxval(abs(pt2(1:N_states))) > pt2_max) )
+  do while (                                                         &
+        (N_det < N_det_max) .and.                                    &
+        (maxval(abs(pt2(1:N_states))) > pt2_max) .and.               &
+        (correlation_energy_ratio < correlation_energy_ratio_max)    &
+        )
 
-
-    IF (correlation_energy_ratio_max .NE. 1.d0) THEN
-      DOUBLE PRECISION :: correlation_energy_var, correlation_energy_var_ratio
-
-      correlation_energy_var = MAXVAL(E_CI_before) - hf_energy_ref
-      correlation_energy_var_ratio = correlation_energy_var / (correlation_energy_var + MAXVAL(pt2(:)))
-
-      IF (correlation_energy_ratio_max < correlation_energy_var_ratio) THEN
-        EXIT
-      ENDIF
-    
-    ENDIF
- 
+    correlation_energy_ratio = E_CI_before(1) - hf_energy_ref
+    correlation_energy_ratio = correlation_energy_ratio / (correlation_energy_ratio + pt2(1))
  
     print *,  'N_det             = ', N_det
     print *,  'N_states          = ', N_states
-    IF (correlation_energy_ratio_max .NE. 1.d0) THEN
-    print*,   'correlation_ratio = ', correlation_energy_var 
-    ENDIF
+    print*,   'correlation_ratio = ', correlation_energy_ratio
 
     do k=1, N_states
       print*,'State ',k
@@ -76,6 +73,7 @@ program fci_zmq
       print *,  'E               = ', CI_energy(k)
       print *,  'E(before)+PT2   = ', E_CI_before(k)+pt2(k)
     enddo
+
     print *,  '-----'
     if(N_states.gt.1)then
       print*,'Variational Energy difference'
@@ -130,8 +128,8 @@ program fci_zmq
     double precision :: relative_error
     relative_error=1.d-3
     pt2 = 0.d0
-    call ZMQ_pt2(pt2,relative_error)
-    !call ZMQ_selection(0, pt2)! pour non-stochastic
+    call ZMQ_pt2(pt2,relative_error) ! Stochastic PT2
+    !call ZMQ_selection(0, pt2)      ! Deterministic PT2
     print *,  'Final step'
     print *,  'N_det    = ', N_det
     print *,  'N_states = ', N_states
