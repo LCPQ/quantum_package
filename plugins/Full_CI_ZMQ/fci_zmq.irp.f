@@ -9,7 +9,13 @@ program fci_zmq
   double precision               :: threshold_davidson_in
   
   allocate (pt2(N_states))
-  
+
+  IF (correlation_energy_ratio_max .NE. 1.d0) THEN
+ 
+    DOUBLE PRECISION :: hf_energy_ref
+    CALL ezfio_get_hartree_fock_energy(hf_energy_ref)
+  END IF
+
   pt2 = 1.d0
   threshold_davidson_in = threshold_davidson
   threshold_davidson = threshold_davidson_in * 100.d0
@@ -41,8 +47,23 @@ program fci_zmq
   E_CI_before(1:N_states) = CI_energy(1:N_states)
   n_det_before = 0
   
+
   do while ( (N_det < N_det_max) .and. (maxval(abs(pt2(1:N_states))) > pt2_max) )
+
+
+    IF (correlation_energy_ratio_max .NE. 1.d0) THEN
+      DOUBLE PRECISION :: correlation_energy_var, correlation_energy_var_ratio
+
+      correlation_energy_var = MAXVAL(E_CI_before) - hf_energy_ref
+      correlation_energy_var_ratio = correlation_energy_var / (correlation_energy_var + MAXVAL(pt2(:)))
+
+      IF (correlation_energy_ratio_max < correlation_energy_var_ratio) THEN
+        EXIT
+      ENDIF
     
+    ENDIF
+ 
+ 
     print *,  'N_det          = ', N_det
     print *,  'N_states       = ', N_states
     do k=1, N_states
