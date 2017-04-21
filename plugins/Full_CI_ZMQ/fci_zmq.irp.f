@@ -64,13 +64,17 @@ program fci_zmq
     ENDIF
  
  
-    print *,  'N_det          = ', N_det
-    print *,  'N_states       = ', N_states
+    print *,  'N_det             = ', N_det
+    print *,  'N_states          = ', N_states
+    IF (correlation_energy_ratio_max .NE. 1.d0) THEN
+    print*,   'correlation_ratio = ', correlation_energy_var 
+    ENDDO
+
     do k=1, N_states
       print*,'State ',k
-      print *,  'PT2            = ', pt2(k)
-      print *,  'E              = ', CI_energy(k)
-      print *,  'E(before)+PT2  = ', E_CI_before(k)+pt2(k)
+      print *,  'PT2             = ', pt2(k)
+      print *,  'E               = ', CI_energy(k)
+      print *,  'E(before)+PT2   = ', E_CI_before(k)+pt2(k)
     enddo
     print *,  '-----'
     if(N_states.gt.1)then
