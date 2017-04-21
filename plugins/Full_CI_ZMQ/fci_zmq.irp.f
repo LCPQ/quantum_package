@@ -68,7 +68,7 @@ program fci_zmq
     print *,  'N_states          = ', N_states
     IF (correlation_energy_ratio_max .NE. 1.d0) THEN
     print*,   'correlation_ratio = ', correlation_energy_var 
-    ENDDO
+    ENDIF
 
     do k=1, N_states
       print*,'State ',k
