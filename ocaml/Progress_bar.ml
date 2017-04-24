@@ -56,7 +56,7 @@ let display_tty bar =
       else
         Time.Span.of_float 0.
     in
-    Printf.printf "%s : [%s] %4.1f%%  | %10s, ~%10s left\r%!"
+    Printf.eprintf "%s : [%s] %4.1f%%  | %10s, ~%10s left\r%!"
       bar.title
       hashes
       percent
@@ -83,7 +83,7 @@ let display_file bar =
       else
         Time.Span.of_float 0.
     in
-    Printf.printf "%5.2f %%  in  %20s, ~%20s left\n%!"
+    Printf.eprintf "%5.2f %%  in  %20s, ~%20s left\n%!"
       percent
       (Time.Span.to_string running_time)
       (Time.Span.to_string stop_time);

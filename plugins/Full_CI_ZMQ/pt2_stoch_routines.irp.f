@@ -3,7 +3,7 @@ BEGIN_PROVIDER [ integer, fragment_first ]
   fragment_first = first_det_of_teeth(1)
 END_PROVIDER
 
-subroutine ZMQ_pt2(pt2,relative_error)
+subroutine ZMQ_pt2(E, pt2,relative_error)
   use f77_zmq
   use selection_types
   
@@ -13,7 +13,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_to_qp_run_socket2
   type(selection_buffer)         :: b
   integer, external              :: omp_get_thread_num
-  double precision, intent(in)   :: relative_error
+  double precision, intent(in)   :: relative_error, E
   double precision, intent(out)  :: pt2(N_states)
 
   
@@ -46,8 +46,10 @@ subroutine ZMQ_pt2(pt2,relative_error)
   
   pt2_detail = 0d0
   time0 = omp_get_wtime()
-  print *, "time - avg - err - n_combs"
   generator_per_task = 1
+  print *, '========== ================ ================'
+  print *, ' Samples        Energy        Stat. Error'
+  print *, '========== ================ ================'
   do while(.true.)
     
     call write_time(6)
@@ -55,7 +57,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
     call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
     call create_selection_buffer(1, 1*2, b)
     
-    Ncomb=size(comb)
+    Ncomb=size(comb)/100
     call get_carlo_workbatch(computed, comb, Ncomb, tbc)
 
     call write_time(6)
@@ -100,7 +102,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
       !$OMP  PRIVATE(i)
         i = omp_get_thread_num()
         if (i==0) then
-          call pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
+          call pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
         else
           call pt2_slave_inproc(i)
         endif
@@ -162,7 +164,7 @@ subroutine pt2_slave_inproc(i)
   call run_pt2_slave(1,i,pt2_e0_denominator)
 end
 
-subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
+subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
   use f77_zmq
   use selection_types
   use bitmasks
@@ -171,7 +173,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   
   integer, intent(in) :: Ncomb
   double precision, intent(inout) :: pt2_detail(N_states, N_det_generators)
-  double precision, intent(in) :: comb(Ncomb), relative_error
+  double precision, intent(in) :: comb(Ncomb), relative_error, E
   logical, intent(inout) :: computed(N_det_generators)
   integer, intent(in) :: tbc(0:size_tbc)
   double precision, intent(inout) :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
@@ -194,11 +196,12 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   integer :: done, Nindex
   integer, allocatable :: index(:)
   double precision, save :: time0 = -1.d0
-  double precision :: time, timeLast
+  double precision :: time, timeLast, Nabove_old
   double precision, external :: omp_get_wtime
   integer :: tooth, firstTBDcomb, orgTBDcomb
   integer, allocatable :: parts_to_get(:)
   logical, allocatable :: actually_computed(:)
+  Nabove_old = -1.d0
   
   allocate(actually_computed(N_det_generators), parts_to_get(N_det_generators), &
     pt2_mwen(N_states, N_det_generators) )
@@ -229,7 +232,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   endif
   timeLast = time0
   
-  print *, 'N_deterministic = ', first_det_of_teeth(1)-1
+!  print *, 'N_deterministic = ', first_det_of_teeth(1)-1
   pullLoop : do while (more == 1)
     call pull_pt2_results(zmq_socket_pull, Nindex, index, pt2_mwen, task_id, ntask)
     do i=1,Nindex
@@ -257,7 +260,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       timeLast = time
       do i=1, first_det_of_teeth(1)-1
         if(.not.(actually_computed(i))) then
-          print *, "PT2 : deterministic part not finished"
+!          print *, "PT2 : deterministic part not finished"
           cycle pullLoop
         end if
       end do
@@ -265,7 +268,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       double precision :: E0, avg, eqt, prop
       call do_carlo(tbc, Ncomb+1-firstTBDcomb, comb(firstTBDcomb), pt2_detail, actually_computed, sumabove, sum2above, Nabove)
       firstTBDcomb = int(Nabove(1)) - orgTBDcomb + 1
-      if(Nabove(1) < 2d0) cycle
+      if(Nabove(1) < 5d0) cycle
       call get_first_tooth(actually_computed, tooth)
      
       done = 0
@@ -273,7 +276,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
         if(actually_computed(i)) done = done + 1
       end do
 
-      E0 = sum(pt2_detail(1,:first_det_of_teeth(tooth)-1))
+      E0 = sum(pt2_detail(1,:first_det_of_teeth(tooth)-1)) 
       prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - pt2_cweight(first_det_of_teeth(tooth)-1))
       prop = prop * pt2_weight_inv(first_det_of_teeth(tooth))
       E0 += pt2_detail(1,first_det_of_teeth(tooth)) * prop
@@ -282,12 +285,16 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       time = omp_get_wtime()
       if (dabs(eqt/avg) < relative_error) then
         pt2(1) = avg
-!        exit pullLoop
       else
-        print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
+!        print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
+        if (Nabove(tooth) > Nabove_old) then
+          print '(E10.1, X, F16.10, E16.3,A30)', Nabove(tooth), avg+E, eqt, ''
+          Nabove_old = Nabove(tooth)
+        endif
       endif
     end if
   end do pullLoop
+  print *, '========== ================ ================'
 
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_pull_socket(zmq_socket_pull)
@@ -323,7 +330,7 @@ end function
 
 BEGIN_PROVIDER [ integer, comb_teeth ]
   implicit none
-  comb_teeth = 100
+  comb_teeth = 50
 END_PROVIDER
 
 

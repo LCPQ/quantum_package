@@ -128,8 +128,13 @@ program fci_zmq
     double precision :: relative_error
     relative_error=1.d-3
     pt2 = 0.d0
-    call ZMQ_pt2(pt2,relative_error) ! Stochastic PT2
-    !call ZMQ_selection(0, pt2)      ! Deterministic PT2
+    if (N_states > 1) then
+      print *,  'Stochastic PT2'
+      call ZMQ_pt2(E_CI_before(1), pt2,relative_error) ! Stochastic PT2
+    else
+      print *,  'Deterministic PT2'
+      call ZMQ_selection(0, pt2)      ! Deterministic PT2
+    endif
     print *,  'Final step'
     print *,  'N_det    = ', N_det
     print *,  'N_states = ', N_states
