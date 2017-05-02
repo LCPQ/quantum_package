@@ -102,8 +102,7 @@ program fci_zmq
 
     if (N_det == N_det_max) then
       threshold_davidson = threshold_davidson_in
-      SOFT_TOUCH threshold_davidson
-    endif
+    end if
     call diagonalize_CI
     call save_wavefunction
     call ezfio_set_full_ci_zmq_energy(CI_energy(1))
@@ -111,7 +110,6 @@ program fci_zmq
 
   if (N_det < N_det_max) then
       threshold_davidson = threshold_davidson_in
-      SOFT_TOUCH threshold_davidson
       call diagonalize_CI
       call save_wavefunction
       call ezfio_set_full_ci_zmq_energy(CI_energy(1))
@@ -119,19 +117,20 @@ program fci_zmq
 
   if(do_pt2_end)then
     print*,'Last iteration only to compute the PT2'
-    !threshold_selectors = max(threshold_selectors,threshold_selectors_pt2)
-    !threshold_generators = max(threshold_generators,threshold_generators_pt2)
-    !TOUCH threshold_selectors threshold_generators
-    threshold_selectors = 1.d0
-    threshold_generators = 1d0 
     E_CI_before(1:N_states) = CI_energy(1:N_states)
     double precision :: relative_error
     relative_error=1.d-3
     pt2 = 0.d0
     if (N_states == 1) then
+      threshold_selectors = 1.d0
+      threshold_generators = 1d0 
+      SOFT_TOUCH threshold_selectors threshold_generators
       print *,  'Stochastic PT2'
       call ZMQ_pt2(E_CI_before(1), pt2,relative_error) ! Stochastic PT2
     else
+      threshold_selectors = max(threshold_selectors,threshold_selectors_pt2)
+      threshold_generators = max(threshold_generators,threshold_generators_pt2)
+      SOFT_TOUCH threshold_selectors threshold_generators
       print *,  'Deterministic PT2'
       call ZMQ_selection(0, pt2)      ! Deterministic PT2
     endif
