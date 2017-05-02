@@ -32,7 +32,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
   sum2above = 0d0
   Nabove = 0d0
 
-  provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral pt2_weight
+  provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral pt2_weight psi_selectors
 
   !call random_seed()
   
@@ -52,15 +52,13 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
   print *, '========== ================ ================'
   do while(.true.)
     
-    call write_time(6)
-    call new_parallel_job(zmq_to_qp_run_socket,"pt2")
+    call new_parallel_job(zmq_to_qp_run_socket,'pt2')
     call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
     call create_selection_buffer(1, 1*2, b)
     
     Ncomb=size(comb)/100
     call get_carlo_workbatch(computed, comb, Ncomb, tbc)
 
-    call write_time(6)
 
 
     integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
@@ -123,6 +121,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
       exit
     endif
   end do
+  print *, '========== ================ ================'
 
   deallocate(pt2_detail, comb, computed, tbc)
 
@@ -231,6 +230,9 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
       time0 = omp_get_wtime()
   endif
   timeLast = time0
+
+  call get_first_tooth(actually_computed, tooth)
+  Nabove_old = Nabove(tooth)
   
 !  print *, 'N_deterministic = ', first_det_of_teeth(1)-1
   pullLoop : do while (more == 1)
@@ -288,13 +290,12 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
       else
 !        print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
         if (Nabove(tooth) > Nabove_old) then
-          print '(E10.1, X, F16.10, E16.3,A30)', Nabove(tooth), avg+E, eqt, ''
+          print '(G10.3, X, F16.10, G16.3,A30)', Nabove(tooth), avg+E, eqt, ''
           Nabove_old = Nabove(tooth)
         endif
       endif
     end if
   end do pullLoop
-  print *, '========== ================ ================'
 
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_pull_socket(zmq_socket_pull)

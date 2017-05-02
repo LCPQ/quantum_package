@@ -128,7 +128,7 @@ program fci_zmq
     double precision :: relative_error
     relative_error=1.d-3
     pt2 = 0.d0
-    if (N_states > 1) then
+    if (N_states == 1) then
       print *,  'Stochastic PT2'
       call ZMQ_pt2(E_CI_before(1), pt2,relative_error) ! Stochastic PT2
     else

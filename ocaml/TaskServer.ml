@@ -212,7 +212,7 @@ let end_job msg program_state rep_socket pair_socket =
         reply_ok rep_socket;
         { program_state with
           state        = None ;
-          progress_bar = None ;
+          progress_bar = Progress_bar.clear ();
         }
 
     in

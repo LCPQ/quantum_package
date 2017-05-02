@@ -22,6 +22,11 @@ let update ~cur_value bar =
 let increment_end bar =
   { bar with end_value=(bar.end_value +. 1.) ; dirty=false }
 
+let clear bar = 
+    Printf.eprintf "                                                                           \r%!";
+    None
+
+
 let increment_cur bar =
   { bar with cur_value=(bar.cur_value +. 1.) ; dirty=true }
 

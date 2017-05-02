@@ -359,6 +359,10 @@ BEGIN_TEMPLATE
   integer                        :: err
   !DIR$ ATTRIBUTES ALIGN : 128   :: iorder1,iorder2, x2, x1
   
+  if (isize < 2) then
+    return
+  endif 
+
   if (iradix == -1) then ! Sort Positive and negative
 
     allocate(x1(isize),iorder1(isize), x2(isize),iorder2(isize),stat=err)
