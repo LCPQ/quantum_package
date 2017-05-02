@@ -51,17 +51,18 @@ program fci_zmq
   E_CI_before(1:N_states) = CI_energy(1:N_states)
   
   double precision :: correlation_energy_ratio
-  correlation_energy_ratio = E_CI_before(1) - hf_energy_ref
-  correlation_energy_ratio = correlation_energy_ratio / (correlation_energy_ratio + pt2(1))
+  correlation_energy_ratio = 0.d0
 
   do while (                                                         &
         (N_det < N_det_max) .and.                                    &
         (maxval(abs(pt2(1:N_states))) > pt2_max) .and.               &
-        (correlation_energy_ratio < correlation_energy_ratio_max)    &
+        (correlation_energy_ratio <= correlation_energy_ratio_max)    &
         )
 
-    correlation_energy_ratio = E_CI_before(1) - hf_energy_ref
-    correlation_energy_ratio = correlation_energy_ratio / (correlation_energy_ratio + pt2(1))
+    correlation_energy_ratio = (CI_energy(1) - hf_energy_ref)  /     &
+                    (E_CI_before(1) + pt2(1) - hf_energy_ref)
+    correlation_energy_ratio = min(1.d0,correlation_energy_ratio)
+
  
     print *,  'N_det             = ', N_det
     print *,  'N_states          = ', N_states
