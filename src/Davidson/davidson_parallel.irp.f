@@ -70,6 +70,11 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
   ! -----------------------
 
   integer :: rc
+  integer                        :: N_states_read, N_det_read, psi_det_size_read
+  integer                        :: N_det_selectors_read, N_det_generators_read
+  double precision               :: energy(N_st)
+
+
   write(msg, *) 'get_psi ', worker_id
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
   if (rc /= len(trim(msg))) then
@@ -83,10 +88,6 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
     print *,  'Error in get_psi_reply'
     stop 'error'
   endif
-
-  integer                        :: N_states_read, N_det_read, psi_det_size_read
-  integer                        :: N_det_selectors_read, N_det_generators_read
-  double precision               :: energy(N_st)
 
   read(msg(14:rc),*) rc, N_states_read, N_det_read, psi_det_size_read,        &
       N_det_generators_read, N_det_selectors_read

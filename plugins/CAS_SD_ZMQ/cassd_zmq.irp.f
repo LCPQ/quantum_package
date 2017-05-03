@@ -91,7 +91,7 @@ program cassd_zmq
         enddo
       endif
       E_CI_before(1:N_states) = CI_energy(1:N_states)
-      call ezfio_set_full_ci_zmq_energy(CI_energy(1))
+      call ezfio_set_cas_sd_zmq_energy(CI_energy(1))
 
       n_det_before = N_det
       to_select = N_det
@@ -116,7 +116,7 @@ program cassd_zmq
       threshold_davidson = threshold_davidson_in
       call diagonalize_CI
       call save_wavefunction
-      call ezfio_set_full_ci_zmq_energy(CI_energy(1))
+      call ezfio_set_cas_sd_zmq_energy(CI_energy(1))
   endif
 
   integer :: exc_max, degree_min

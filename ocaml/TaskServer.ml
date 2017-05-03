@@ -26,6 +26,7 @@ type t =
     address_tcp     : Address.Tcp.t option ; 
     address_inproc  : Address.Inproc.t option ;
     psi             : Message.Psi.t option;
+    vector             : Message.Vector.t option;
     progress_bar    : Progress_bar.t option ;
     running         : bool;
 }
@@ -523,10 +524,57 @@ let get_psi msg program_state rep_socket =
 
 
 
+let put_vector msg rest_of_msg program_state rep_socket =
+
+    let vector_local =
+        match msg.Message.PutVector_msg.vector with
+        | Some x -> x
+        | None ->
+          begin
+            let data =
+              match rest_of_msg with
+              | [ x ] -> x
+              | _ -> failwith "Badly formed put_vector message"
+            in
+            Message.Vector.create
+              ~size:msg.Message.PutVector_msg.size
+              ~data
+          end
+    in
+    let new_program_state =
+        { program_state with
+          vector = Some vector_local
+        }
+    and client_id =
+      msg.Message.PutVector_msg.client_id
+    in
+    Message.PutVectorReply (Message.PutVectorReply_msg.create ~client_id)
+    |> Message.to_string
+    |> ZMQ.Socket.send rep_socket;
+
+    new_program_state
+
+
+let get_vector msg program_state rep_socket =
+
+      let client_id =
+          msg.Message.GetVector_msg.client_id
+      in
+      match program_state.vector with
+      | None -> failwith "No wave function saved in TaskServer"
+      | Some vector -> 
+          Message.GetVectorReply (Message.GetVectorReply_msg.create ~client_id ~vector)
+          |> Message.to_string_list 
+          |> ZMQ.Socket.send_all rep_socket;
+      program_state
+
+
+
 let terminate program_state rep_socket =
     reply_ok rep_socket;
     { program_state with
       psi = None;
+      vector = None;
       address_tcp = None;
       address_inproc = None;
       running = false
@@ -610,6 +658,7 @@ let run ~port =
     {   queue = Queuing_system.create () ;
         running = true ;
         psi = None;
+        vector = None;
         state = None;
         address_tcp = None;
         address_inproc = None;
@@ -679,6 +728,8 @@ let run ~port =
                 try
                   match program_state.state, message with
                   | _     , Message.Terminate   _ -> terminate program_state rep_socket
+                  | _     , Message.PutVector      x -> put_vector x rest program_state rep_socket
+                  | _     , Message.GetVector      x -> get_vector x program_state rep_socket
                   | _     , Message.PutPsi      x -> put_psi x rest program_state rep_socket
                   | _     , Message.GetPsi      x -> get_psi x program_state rep_socket
                   | None  , Message.Newjob      x -> new_job x program_state rep_socket pair_socket

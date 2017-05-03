@@ -455,6 +455,122 @@ end = struct
 end
 
 
+(** GetVector : get the current vector (Davidson) *)
+module GetVector_msg : sig
+  type t = 
+  { client_id: Id.Client.t ;
+  }
+  val create : client_id:int -> t
+  val to_string : t -> string
+end = struct
+  type t = 
+  { client_id: Id.Client.t ;
+  }
+  let create ~client_id = 
+    { client_id = Id.Client.of_int client_id }
+  let to_string x =
+    Printf.sprintf "get_vector %d"
+      (Id.Client.to_int x.client_id)
+end
+
+module Vector : sig
+  type t = 
+  {
+      size   :  Strictly_positive_int.t;
+      data   :  string;
+  }
+  val create : size:Strictly_positive_int.t -> data:string -> t
+end = struct
+  type t = 
+  {
+      size   :  Strictly_positive_int.t;
+      data   :  string;
+  }
+  let create ~size ~data =
+    {  size ; data }
+end
+
+(** GetVectorReply_msg : Reply to the GetVector message *)
+module GetVectorReply_msg : sig
+  type t =
+  { client_id :  Id.Client.t ;
+    vector    :  Vector.t }
+  val create : client_id:Id.Client.t -> vector:Vector.t -> t
+  val to_string : t -> string
+  val to_string_list : t -> string list
+end = struct
+  type t = 
+  { client_id :  Id.Client.t ;
+    vector    :  Vector.t }
+  let create ~client_id ~vector =
+    {  client_id ; vector }
+  let to_string x =
+    Printf.sprintf "get_vector_reply %d %d"
+      (Id.Client.to_int x.client_id)
+      (Strictly_positive_int.to_int x.vector.Vector.size)
+  let to_string_list x =
+    [ to_string x ; x.vector.Vector.data ]
+end
+
+(** PutVector : put the current variational wave function *)
+module PutVector_msg : sig
+  type t = 
+  { client_id :  Id.Client.t ;
+    size      :  Strictly_positive_int.t ;
+    vector    :  Vector.t option;
+  }
+  val create : 
+     client_id:int -> size:int -> data:string option -> t
+  val to_string_list : t -> string list
+  val to_string : t -> string 
+end = struct
+  type t = 
+  { client_id :  Id.Client.t ;
+    size      :  Strictly_positive_int.t ;
+    vector    :  Vector.t option;
+  }
+  let create ~client_id ~size ~data =
+    let size =
+       Strictly_positive_int.of_int size
+    in
+    let vector =
+      match data with
+      | None -> None
+      | Some s -> Some (Vector.create ~size ~data:s)
+    in
+    { client_id = Id.Client.of_int client_id ;
+      vector ; size
+    }
+
+  let to_string x =
+      Printf.sprintf "put_vector %d %d"
+        (Id.Client.to_int x.client_id)
+        (Strictly_positive_int.to_int x.size)
+
+  let to_string_list x =
+    match x.vector with
+    | Some v -> [ to_string x ; v.Vector.data ]
+    | None -> failwith "Empty vector"
+end
+
+(** PutVectorReply_msg : Reply to the PutVector message *)
+module PutVectorReply_msg : sig
+  type t
+  val create : client_id:Id.Client.t -> t
+  val to_string : t -> string
+end = struct
+  type t = 
+  { client_id :  Id.Client.t ;
+  }
+  let create ~client_id =
+    { client_id; }
+  let to_string x =
+    Printf.sprintf "put_vector_reply %d"
+      (Id.Client.to_int x.client_id)
+end
+
+
+
 (** TaskDone : Inform the server that a task is finished *)
 module TaskDone_msg : sig
   type t =
@@ -526,6 +642,10 @@ type t =
 | PutPsi              of  PutPsi_msg.t
 | GetPsiReply         of  GetPsiReply_msg.t
 | PutPsiReply         of  PutPsiReply_msg.t
+| GetVector           of  GetVector_msg.t
+| PutVector           of  PutVector_msg.t
+| GetVectorReply      of  GetVectorReply_msg.t
+| PutVectorReply      of  PutVectorReply_msg.t
 | Newjob              of  Newjob_msg.t
 | Endjob              of  Endjob_msg.t
 | Connect             of  Connect_msg.t
@@ -580,6 +700,10 @@ let of_string s =
                   ~n_det_generators:None ~n_det_selectors:None
                   ~psi_det:None ~psi_coef:None ~energy:None )
       end
+    | GetVector_ client_id ->
+        GetVector (GetVector_msg.create ~client_id)
+    | PutVector_ { client_id ; size } ->
+        PutVector (PutVector_msg.create ~client_id ~size ~data:None )
     | Terminate_  -> Terminate (Terminate_msg.create )
     | SetWaiting_ -> SetWaiting
     | SetStopped_ -> SetStopped
@@ -592,6 +716,8 @@ let of_string s =
 let to_string = function
 | GetPsi              x -> GetPsi_msg.to_string             x
 | PutPsiReply         x -> PutPsiReply_msg.to_string        x
+| GetVector           x -> GetVector_msg.to_string          x
+| PutVectorReply      x -> PutVectorReply_msg.to_string     x
 | Newjob              x -> Newjob_msg.to_string             x
 | Endjob              x -> Endjob_msg.to_string             x
 | Connect             x -> Connect_msg.to_string            x
@@ -600,8 +726,8 @@ let to_string = function
 | DisconnectReply     x -> DisconnectReply_msg.to_string    x
 | GetTask             x -> GetTask_msg.to_string            x
 | GetTaskReply        x -> GetTaskReply_msg.to_string       x
-| DelTask             x -> DelTask_msg.to_string           x
-| DelTaskReply        x -> DelTaskReply_msg.to_string      x
+| DelTask             x -> DelTask_msg.to_string            x
+| DelTaskReply        x -> DelTaskReply_msg.to_string       x
 | AddTask             x -> AddTask_msg.to_string            x
 | AddTaskReply        x -> AddTaskReply_msg.to_string       x
 | TaskDone            x -> TaskDone_msg.to_string           x
@@ -610,12 +736,17 @@ let to_string = function
 | Error               x -> Error_msg.to_string              x
 | PutPsi              x -> PutPsi_msg.to_string             x
 | GetPsiReply         x -> GetPsiReply_msg.to_string        x
+| PutVector           x -> PutVector_msg.to_string          x
+| GetVectorReply      x -> GetVectorReply_msg.to_string     x
 | SetStopped            -> "set_stopped"
 | SetRunning            -> "set_running"
 | SetWaiting            -> "set_waiting"
 
 
 let to_string_list = function
-| PutPsi           x -> PutPsi_msg.to_string_list     x
-| GetPsiReply      x -> GetPsiReply_msg.to_string_list x
+| PutPsi           x -> PutPsi_msg.to_string_list         x
+| GetPsiReply      x -> GetPsiReply_msg.to_string_list    x
+| PutVector        x -> PutVector_msg.to_string_list      x
+| GetVectorReply   x -> GetVectorReply_msg.to_string_list x
 | _                  -> assert false
+

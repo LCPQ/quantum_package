@@ -5,6 +5,7 @@ type t =
     address_tcp     : Address.Tcp.t option ;
     address_inproc  : Address.Inproc.t option ;
     psi             : Message.Psi.t option;
+    vector          : Message.Vector.t option ;
     progress_bar    : Progress_bar.t option ;
     running         : bool;
 }
