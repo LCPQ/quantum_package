@@ -91,7 +91,6 @@ program cassd_zmq
         enddo
       endif
       E_CI_before(1:N_states) = CI_energy(1:N_states)
-      call ezfio_set_cas_sd_zmq_energy(CI_energy(1))
 
       n_det_before = N_det
       to_select = N_det
@@ -103,7 +102,7 @@ program cassd_zmq
       PROVIDE  psi_det
       PROVIDE  psi_det_sorted
 
-      if (N_det == N_det_max) then
+      if (N_det >= N_det_max) then
         threshold_davidson = threshold_davidson_in
       end if
       call diagonalize_CI
@@ -150,8 +149,8 @@ program cassd_zmq
       print *,  'E+PT2    = ', E_CI_before(k)+pt2(k)
       print *,  '-----'
     enddo
+    call ezfio_set_cas_sd_zmq_energy(CI_energy(1))
     call ezfio_set_cas_sd_zmq_energy_pt2(E_CI_before(1)+pt2(1))
   endif
-  call ezfio_set_cas_sd_zmq_energy_pt2(E_CI_before(1)+pt2(1))
 
 end
