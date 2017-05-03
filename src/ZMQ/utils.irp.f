@@ -535,7 +535,7 @@ subroutine new_parallel_job(zmq_to_qp_run_socket,name_in)
   rc = f77_zmq_recv(zmq_to_qp_run_socket,message,510,0)
   message = trim(message(1:rc))
   if (message(1:2) /= 'ok') then
-    print *,  message
+    print *,  trim(message(1:rc))
     print *,  'Unable to start parallel job : '//name
     stop 1
   endif
@@ -565,6 +565,7 @@ subroutine zmq_set_running(zmq_to_qp_run_socket)
   rc = f77_zmq_recv(zmq_to_qp_run_socket,message,510,0)
   message = trim(message(1:rc))
   if (message(1:2) /= 'ok') then
+    print *,  trim(message(1:rc))
     print *,  'Unable to set qp_run to Running'
     stop 1
   endif
@@ -718,6 +719,7 @@ subroutine add_task_to_taskserver(zmq_to_qp_run_socket,task)
   
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, sze-1, 0)
   if (message(1:rc) /= 'ok') then
+    print *,  trim(message(1:rc))
     print *,  trim(task)
     print *,  'Unable to add the next task'
     stop -1
@@ -762,6 +764,7 @@ subroutine add_task_to_taskserver_recv(zmq_to_qp_run_socket)
   character*(512)                :: message
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
   if (message(1:rc) /= 'ok') then
+    print *,  trim(message(1:rc))
     print *,  'Unable to add the next task'
     stop -1
   endif
@@ -790,6 +793,7 @@ subroutine task_done_to_taskserver(zmq_to_qp_run_socket, worker_id, task_id)
   
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
   if (trim(message(1:rc)) /= 'ok') then
+    print *,  trim(message(1:rc))
     print *,  'Unable to send task_done message'
     stop -1
   endif

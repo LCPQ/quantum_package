@@ -389,7 +389,12 @@ let get_task msg program_state rep_socket pair_socket =
         let new_queue, task_id, task =
             Queuing_system.pop_task ~client_id program_state.queue
         in
-        if (Queuing_system.number_of_queued new_queue = 0) then
+
+        let no_task =
+          Queuing_system.number_of_queued new_queue = 0
+        in
+
+        if no_task then
           string_of_pub_state Waiting 
           |> ZMQ.Socket.send pair_socket
         else
@@ -658,12 +663,17 @@ let run ~port =
               in
 
               (** Debug input *)
-              Printf.sprintf "q:%d  r:%d  n:%d  : %s\n%!"
-              (Queuing_system.number_of_queued program_state.queue)
-              (Queuing_system.number_of_running program_state.queue)
-              (Queuing_system.number_of_tasks program_state.queue)
-              (Message.to_string message)
-              |> debug;
+              let () = 
+                if debug_env then
+                  begin
+                    Printf.sprintf "q:%d  r:%d  n:%d  : %s\n%!"
+                    (Queuing_system.number_of_queued program_state.queue)
+                    (Queuing_system.number_of_running program_state.queue)
+                    (Queuing_system.number_of_tasks program_state.queue)
+                    (Message.to_string message)
+                    |> debug
+                  end
+              in
 
               let new_program_state = 
                 try
