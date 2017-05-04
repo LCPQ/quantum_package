@@ -51,7 +51,7 @@ subroutine sort_selection_buffer(b)
 
 
   allocate(iorder(b%cur), detmp(N_int, 2, size(b%det,3)), absval(b%cur), vals(size(b%val)))
-  absval = -dabs(b%val(:b%cur))
+  absval = b%val(:b%cur)
   do i=1,b%cur
     iorder(i) = i
   end do

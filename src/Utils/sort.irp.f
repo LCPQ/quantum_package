@@ -202,11 +202,11 @@ BEGIN_TEMPLATE
   if (isize < 2) then
     return
   endif
-  call sorted_$Xnumber(x,isize,n)
-  if (isize == n) then
-    return
-  endif
-  if ( isize < 32+n) then
+!  call sorted_$Xnumber(x,isize,n)
+!  if (isize == n) then
+!    return
+!  endif
+  if ( isize < 16) then
     call insertion_$Xsort(x,iorder,isize)
   else
     call heap_$Xsort(x,iorder,isize)

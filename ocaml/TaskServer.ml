@@ -70,16 +70,7 @@ let bind_socket ~socket_type ~socket ~port =
       with
       | Unix.Unix_error _ -> (Time.pause @@ Time.Span.of_float 1. ; loop (i-1) )
       | other_exception -> raise other_exception
-  in loop 60;
-  let filename =
-    Printf.sprintf "/tmp/qp_run:%d" port
-  in
-  begin
-    match Sys.file_exists filename with
-    | `Yes -> Sys.remove filename
-    | _ -> ()
-  end;
-  ZMQ.Socket.bind socket ("ipc://"^filename)
+  in loop 60
 
 
 let hostname = lazy (
@@ -133,7 +124,7 @@ let stop ~port =
     let req_socket =
       ZMQ.Socket.create zmq_context ZMQ.Socket.req
     and address =
-      Printf.sprintf "ipc:///tmp/qp_run:%d" port
+      Printf.sprintf "tcp://localhost:%d" port
     in
     ZMQ.Socket.set_linger_period req_socket 1_000_000;
     ZMQ.Socket.connect req_socket address;

@@ -147,7 +147,7 @@ program fci_zmq
       print *,  'E+PT2    = ', E_CI_before(k)+pt2(k)
       print *,  '-----'
     enddo
-    call ezfio_set_full_ci_zmq_energy(CI_energy(1))
+    call ezfio_set_full_ci_zmq_energy(E_CI_before(1))
     call ezfio_set_full_ci_zmq_energy_pt2(E_CI_before(1)+pt2(1))
   endif
 
