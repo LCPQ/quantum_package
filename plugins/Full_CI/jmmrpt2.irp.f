@@ -14,7 +14,6 @@ program pouet
   threshold_generators = threshold_generators_pt2
   threshold_selectors = threshold_selectors_pt2
   SOFT_TOUCH threshold_generators threshold_selectors
-  call diagonalize_CI
   call H_apply_FCI_PT2_new(pt2, norm_pert, H_pert_diag,  N_st)
 
   print *,  'Final step'
@@ -25,7 +24,6 @@ program pouet
   print *,  'E+PT2    = ', CI_energy(1:N_states)+pt2(1:N_states)
   print *,  '-----'
   call ezfio_set_full_ci_energy_pt2(CI_energy(1)+pt2(1))
-  call save_wavefunction
   deallocate(pt2,norm_pert)
 end
 
