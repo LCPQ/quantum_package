@@ -25,7 +25,7 @@ subroutine add_to_selection_buffer(b, det, val)
   double precision, intent(in) :: val
   integer :: i
 
-  if(dabs(val) >= b%mini) then
+  if(val <= b%mini) then
     b%cur += 1
     b%det(1:N_int,1:2,b%cur) = det(1:N_int,1:2)
     b%val(b%cur) = val
@@ -41,33 +41,25 @@ subroutine sort_selection_buffer(b)
   implicit none
 
   type(selection_buffer), intent(inout) :: b
-  double precision, allocatable::  absval(:)
   integer, allocatable :: iorder(:)
-  double precision, pointer :: vals(:)
   integer(bit_kind), pointer :: detmp(:,:,:)
   integer :: i, nmwen
   logical, external :: detEq
   nmwen = min(b%N, b%cur)
 
-
-  allocate(iorder(b%cur), detmp(N_int, 2, size(b%det,3)), absval(b%cur), vals(size(b%val)))
-  absval = b%val(:b%cur)
+  allocate(iorder(b%cur), detmp(N_int, 2, size(b%det,3)))
   do i=1,b%cur
     iorder(i) = i
   end do
-  call dsort(absval, iorder, b%cur)
+  call dsort(b%val, iorder, b%cur)
   do i=1, nmwen
     detmp(1:N_int,1,i) = b%det(1:N_int,1,iorder(i))
     detmp(1:N_int,2,i) = b%det(1:N_int,2,iorder(i))
-    vals(i) = b%val(iorder(i))
   end do
-  do i=nmwen+1, size(vals)
-    vals(i) = 0.d0
-  enddo
-  deallocate(b%det, b%val)
+  deallocate(b%det)
   b%det => detmp
-  b%val => vals
-  b%mini = max(b%mini,dabs(b%val(b%N)))
+  b%mini = min(b%mini,b%val(b%N))
   b%cur = nmwen
+  deallocate(iorder)
 end subroutine
 

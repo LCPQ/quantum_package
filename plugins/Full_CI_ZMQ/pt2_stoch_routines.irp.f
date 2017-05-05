@@ -258,7 +258,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
 
     time = omp_get_wtime()
   
-    if(time - timeLast > 1d1 .or. more /= 1) then
+    if(time - timeLast > 3d0 .or. more /= 1) then
       timeLast = time
       do i=1, first_det_of_teeth(1)-1
         if(.not.(actually_computed(i))) then
@@ -331,7 +331,7 @@ end function
 
 BEGIN_PROVIDER [ integer, comb_teeth ]
   implicit none
-  comb_teeth = 50
+  comb_teeth = 100
 END_PROVIDER
 
 
@@ -369,7 +369,7 @@ subroutine get_last_full_tooth(computed, last_tooth)
   
   last_tooth = 0
    combLoop : do i=comb_teeth, 1, -1
-     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-12) ! /4096
+     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-14) ! /16384
      do j=first_det_of_teeth(i), first_det_of_teeth(i+1)-1
        if(.not.computed(j)) then
          missing -= 1
@@ -543,7 +543,7 @@ end subroutine
   comb_step = 1d0/dfloat(comb_teeth)
   first_det_of_comb = 1
   do i=1,N_det_generators
-    if(pt2_weight(i)/norm_left < comb_step*.5d0) then
+    if(pt2_weight(i)/norm_left < comb_step*.25d0) then
       first_det_of_comb = i
       exit
     end if
