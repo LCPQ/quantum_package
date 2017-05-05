@@ -258,7 +258,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
 
     time = omp_get_wtime()
   
-    if(time - timeLast > 3d0 .or. more /= 1) then
+    if(time - timeLast > 10d0 .or. more /= 1) then
       timeLast = time
       do i=1, first_det_of_teeth(1)-1
         if(.not.(actually_computed(i))) then
@@ -331,7 +331,7 @@ end function
 
 BEGIN_PROVIDER [ integer, comb_teeth ]
   implicit none
-  comb_teeth = 100
+  comb_teeth = 200
 END_PROVIDER
 
 
