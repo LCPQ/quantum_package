@@ -315,10 +315,7 @@ BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
 
  call ezfio_has_bitmasks_cas(exists)
  if (exists) then
-   print*,'---------------------'
-   print*,'CAS BITMASK RESTART'
    call ezfio_get_bitmasks_cas(cas_bitmask)
-   print*,'---------------------'
  else
   if(N_generators_bitmask == 1)then
    do j=1, N_cas_bitmask
