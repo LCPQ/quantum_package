@@ -509,7 +509,7 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
   logical :: ok
   integer :: s1, s2, p1, p2, ib, j, istate
   integer(bit_kind) :: mask(N_int, 2), det(N_int, 2)
-  double precision :: e_pert, delta_E, val, Hii, max_e_pert,tmp
+  double precision :: e_pert, delta_E, val, Hii, min_e_pert,tmp
   double precision, external :: diag_H_mat_elem_fock
   
   logical, external :: detEq
@@ -536,7 +536,7 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
       call apply_particles(mask, s1, p1, s2, p2, det, ok, N_int)
       
       Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),det,fock_diag_tmp,N_int)
-      max_e_pert = 0d0
+      min_e_pert = 0d0
       
       do istate=1,N_states
         delta_E = E0(istate) - Hii
@@ -545,14 +545,14 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
         if (delta_E < 0.d0) then
             tmp = -tmp
         endif
-        e_pert = 0.5d0 * ( tmp - delta_E)
+        e_pert = 0.5d0 * (tmp - delta_E)
         pt2(istate) = pt2(istate) + e_pert
-        max_e_pert = min(e_pert,max_e_pert)
+        min_e_pert = min(e_pert,min_e_pert)
 !        ci(istate) = e_pert / mat(istate, p1, p2)
       end do
       
-      if(dabs(max_e_pert) > buf%mini) then
-        call add_to_selection_buffer(buf, det, max_e_pert)
+      if(min_e_pert <= buf%mini) then
+        call add_to_selection_buffer(buf, det, min_e_pert)
       end if
     end do
   end do

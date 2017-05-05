@@ -27,6 +27,56 @@ BEGIN_TEMPLATE
   enddo
  end subroutine insertion_$Xsort
 
+ subroutine quick_$Xsort(x, iorder, isize)
+  implicit none
+  BEGIN_DOC
+  ! Sort array x(isize) using the quicksort algorithm.
+  ! iorder in input should be (1,2,3,...,isize), and in output
+  ! contains the new order of the elements.
+  END_DOC
+  integer,intent(in)             :: isize
+  $type,intent(inout)            :: x(isize)
+  integer,intent(inout)          :: iorder(isize)
+  call rec_$X_quicksort(x,iorder,isize,1,isize)
+ end
+
+ recursive subroutine rec_$X_quicksort(x, iorder, isize, first, last)
+  implicit none
+  integer, intent(in)            :: isize, first, last
+  integer,intent(inout)          :: iorder(isize)
+  $type, intent(inout)           :: x(isize)
+  $type                          :: c, tmp
+  integer                        :: itmp
+  integer                        :: i, j
+   
+  c = x( ishft(first+last,-1) )
+  i = first
+  j = last
+  do
+    do while (x(i) < c)
+      i=i+1
+    end do
+    do while (c < x(j))
+      j=j-1
+    end do
+    if (i >= j) exit
+    tmp  = x(i)
+    x(i) = x(j)
+    x(j) = tmp
+    itmp      = iorder(i)
+    iorder(i) = iorder(j)
+    iorder(j) = itmp
+    i=i+1
+    j=j-1
+  enddo
+  if (first < i-1) then
+    call rec_$X_quicksort(x, iorder, isize, first, i-1)
+  endif
+  if (j+1 < last) then
+    call rec_$X_quicksort(x, iorder, isize, j+1, last)
+  endif
+ end
+
  subroutine heap_$Xsort(x,iorder,isize)
   implicit none
   BEGIN_DOC
@@ -206,10 +256,11 @@ BEGIN_TEMPLATE
 !  if (isize == n) then
 !    return
 !  endif
-  if ( isize < 16) then
+  if ( isize < 32) then
     call insertion_$Xsort(x,iorder,isize)
   else
-    call heap_$Xsort(x,iorder,isize)
+!    call heap_$Xsort(x,iorder,isize)
+    call quick_$Xsort(x,iorder,isize)
   endif
  end subroutine $Xsort
 

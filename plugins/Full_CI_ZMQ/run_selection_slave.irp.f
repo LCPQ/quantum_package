@@ -58,13 +58,9 @@ subroutine run_selection_slave(thread,iproc,energy)
          call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i))
       end do
       if(ctask > 0) then
+        call sort_selection_buffer(buf)
         call push_selection_results(zmq_socket_push, pt2, buf, task_id(1), ctask)
-        do i=1,buf%cur
-          call add_to_selection_buffer(buf2, buf%det(1,1,i), buf%val(i))
-          if (buf2%cur == buf2%N) then
-            call sort_selection_buffer(buf2)
-          endif
-        enddo
+        call merge_selection_buffers(buf,buf2)
         buf%mini = buf2%mini
         pt2 = 0d0
         buf%cur = 0
@@ -91,8 +87,6 @@ subroutine push_selection_results(zmq_socket_push, pt2, b, task_id, ntask)
   type(selection_buffer), intent(inout) :: b
   integer, intent(in) :: ntask, task_id(*)
   integer :: rc
-
-  call sort_selection_buffer(b)
 
   rc = f77_zmq_send( zmq_socket_push, b%cur, 4, ZMQ_SNDMORE)
   if(rc /= 4) stop "push"
