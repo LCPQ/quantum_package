@@ -331,7 +331,7 @@ end function
 
 BEGIN_PROVIDER [ integer, comb_teeth ]
   implicit none
-  comb_teeth = 200
+  comb_teeth = 50
 END_PROVIDER
 
 
@@ -543,7 +543,7 @@ end subroutine
   comb_step = 1d0/dfloat(comb_teeth)
   first_det_of_comb = 1
   do i=1,N_det_generators
-    if(pt2_weight(i)/norm_left < comb_step) then
+    if(pt2_weight(i)/norm_left < 2.*comb_step) then
       first_det_of_comb = i
       exit
     end if
