@@ -93,7 +93,6 @@ subroutine selection_collector(b, N, pt2)
   double precision, pointer :: val(:)
   integer(bit_kind), pointer :: det(:,:,:)
   integer, allocatable :: task_id(:)
-  integer :: done
   real :: time, time0
   type(selection_buffer) :: b2
 
@@ -101,7 +100,6 @@ subroutine selection_collector(b, N, pt2)
   zmq_socket_pull = new_zmq_pull_socket()
   call create_selection_buffer(N, N*2, b2)
   allocate(task_id(N_det_generators))
-  done = 0
   more = 1
   pt2(:) = 0d0
   call CPU_TIME(time0)
@@ -110,19 +108,13 @@ subroutine selection_collector(b, N, pt2)
 
     pt2 += pt2_mwen
     call merge_selection_buffers(b2,b)
-!    do i=1, N
-!      call add_to_selection_buffer(b, det(1,1,i), val(i))
-!    end do
-
     do i=1, ntask
       if(task_id(i) == 0) then
           print *,  "Error in collector"
       endif
       call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more)
     end do
-    done += ntask
     call CPU_TIME(time)
-!    print *, "DONE" , done, time - time0
   end do
 
 

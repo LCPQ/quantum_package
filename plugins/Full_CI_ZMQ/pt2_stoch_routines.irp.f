@@ -34,8 +34,6 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
 
   provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral pt2_weight psi_selectors
 
-  !call random_seed()
-  
   computed = .false.
 
   tbc(0) = first_det_of_comb - 1
@@ -72,7 +70,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
         write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') 0, tbc(i)
         ipos += 20
         if (ipos > 63980) then
-          call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
+          call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
           ipos=1
           tasks = .True.
         endif
@@ -81,7 +79,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
           write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') j, tbc(i)
           ipos += 20
           if (ipos > 63980) then
-            call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
+            call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
             ipos=1
             tasks = .True.
           endif
@@ -89,7 +87,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
       end if
     end do
     if (ipos > 1) then
-      call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
+      call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
       tasks = .True.
     endif
 
@@ -237,6 +235,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   
 !  print *, 'N_deterministic = ', first_det_of_teeth(1)-1
   pullLoop : do while (more == 1)
+
     call pull_pt2_results(zmq_socket_pull, Nindex, index, pt2_mwen, task_id, ntask)
     do i=1,Nindex
       pt2_detail(1:N_states, index(i)) += pt2_mwen(1:N_states,i)
@@ -289,12 +288,12 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
       if (dabs(eqt/avg) < relative_error) then
         pt2(1) = avg
       else
-!        print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
         if (Nabove(tooth) > Nabove_old) then
           print '(G10.3, X, F16.10, G16.3,A30)', Nabove(tooth), avg+E, eqt, ''
           Nabove_old = Nabove(tooth)
         endif
       endif
+!print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
     end if
   end do pullLoop
 
