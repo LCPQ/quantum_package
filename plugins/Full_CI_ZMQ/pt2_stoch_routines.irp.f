@@ -543,12 +543,13 @@ end subroutine
   comb_step = 1d0/dfloat(comb_teeth)
   first_det_of_comb = 1
   do i=1,N_det_generators
-    if(pt2_weight(i)/norm_left < comb_step*.25d0) then
+    if(pt2_weight(i)/norm_left < comb_step) then
       first_det_of_comb = i
       exit
     end if
     norm_left -= pt2_weight(i)
   end do
+  call write_int(6, first_det_of_comb-1, 'Size of deterministic set')
   
   comb_step =  (1d0 - pt2_cweight(first_det_of_comb-1)) * comb_step
   
