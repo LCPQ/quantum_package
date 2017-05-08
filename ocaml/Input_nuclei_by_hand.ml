@@ -2,7 +2,7 @@ open Qptypes;;
 open Qputils;;
 open Core.Std;;
 
-module Nuclei : sig
+module Nuclei_by_hand : sig
   type t = 
     { nucl_num        : Nucl_number.t ;
       nucl_label      : Element.t array;
