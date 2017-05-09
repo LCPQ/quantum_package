@@ -141,34 +141,53 @@ BEGIN_PROVIDER [ double precision, positive_charge_barycentre,(3)]
   enddo
 END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
+BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
    implicit none
    BEGIN_DOC
    ! Nuclear repulsion energy
    END_DOC
-   integer                        :: k,l
-   double precision               :: Z12, r2, x(3)
-   nuclear_repulsion = 0.d0
-   do l = 1, nucl_num
-     do  k = 1, nucl_num
-       if(k == l) then
-         cycle
-       endif
-       Z12 = nucl_charge(k)*nucl_charge(l)
-       x(1) = nucl_coord(k,1) - nucl_coord(l,1)
-       x(2) = nucl_coord(k,2) - nucl_coord(l,2)
-       x(3) = nucl_coord(k,3) - nucl_coord(l,3)
-       r2 = x(1)*x(1) + x(2)*x(2) + x(3)*x(3)
-       nuclear_repulsion += Z12/dsqrt(r2)
-     enddo
-   enddo
-   nuclear_repulsion *= 0.5d0
-   
+
+   IF (disk_access_nuclear_repulsion.EQ.'Read') THEN
+          print*, 'nuclear_repulsion read from disk'
+          LOGICAL :: has
+          call ezfio_has_nuclei_nuclear_repulsion(has)
+          if (has) then
+                 call ezfio_get_nuclei_nuclear_repulsion(nuclear_repulsion)
+          else
+                 print *, 'nuclei/nuclear_repulsion not found in EZFIO file'
+                 stop 1
+          endif
+
+   ELSE
+
+      integer                        :: k,l
+      double precision               :: Z12, r2, x(3)
+      nuclear_repulsion = 0.d0
+      do l = 1, nucl_num
+         do  k = 1, nucl_num
+           if(k == l) then
+             cycle
+           endif
+           Z12 = nucl_charge(k)*nucl_charge(l)
+           x(1) = nucl_coord(k,1) - nucl_coord(l,1)
+           x(2) = nucl_coord(k,2) - nucl_coord(l,2)
+           x(3) = nucl_coord(k,3) - nucl_coord(l,3)
+           r2 = x(1)*x(1) + x(2)*x(2) + x(3)*x(3)
+           nuclear_repulsion += Z12/dsqrt(r2)
+         enddo
+      enddo
+      nuclear_repulsion *= 0.5d0
+   END IF
+
    call write_time(output_Nuclei)
    call write_double(output_Nuclei,nuclear_repulsion,                &
        'Nuclear repulsion energy')
+
+   IF (disk_access_nuclear_repulsion.EQ.'Write') THEN
+        call ezfio_set_nuclei_nuclear_repulsion(nuclear_repulsion)
+   END IF
 END_PROVIDER
- 
+
 BEGIN_PROVIDER [ character*(128), element_name, (78)] 
  BEGIN_DOC
  ! Array of the name of element, sorted by nuclear charge (integer)
