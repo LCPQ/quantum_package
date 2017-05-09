@@ -47,88 +47,55 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
   print *, '========== ================= ================= ================='
   print *, ' Samples        Energy         Stat. Error         Seconds      '
   print *, '========== ================= ================= ================='
-  do while(.true.)
     
-    call new_parallel_job(zmq_to_qp_run_socket,'pt2')
-    call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
-    call create_selection_buffer(1, 1*2, b)
-    
-    Ncomb=size(comb)
-!    i=N_det_generators
-!    do while (tbc(0) < i)
-      call get_carlo_workbatch(computed, comb, Ncomb, tbc)
-!      i=0
-!      do j=1,N_det_generators
-!        if (.not.computed(j)) then 
-!          i = i+1
-!        endif
-!      enddo
-!      i = i/2
-!    enddo
+  call new_parallel_job(zmq_to_qp_run_socket,'pt2')
+  call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
+  call create_selection_buffer(1, 1*2, b)
+  
+  Ncomb=size(comb)
+  call get_carlo_workbatch(computed, comb, Ncomb, tbc)
 
+  integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
+  integer :: ipos
+  ipos=1
 
-
-    integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
-    integer :: ipos
-    logical :: tasks
-    tasks = .False.
-    ipos=1
-
-    do i=1,tbc(0)
-      if(tbc(i) > fragment_first) then
-        write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') 0, tbc(i)
+  do i=1,tbc(0)
+    if(tbc(i) > fragment_first) then
+      write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') 0, tbc(i)
+      ipos += 20
+      if (ipos > 63980) then
+        call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
+        ipos=1
+      endif
+    else
+      do j=1,fragment_count
+        write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') j, tbc(i)
         ipos += 20
         if (ipos > 63980) then
           call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
           ipos=1
-          tasks = .True.
         endif
-      else
-        do j=1,fragment_count
-          write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') j, tbc(i)
-          ipos += 20
-          if (ipos > 63980) then
-            call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
-            ipos=1
-            tasks = .True.
-          endif
-        end do
-      end if
-    end do
-    if (ipos > 1) then
-      call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
-      tasks = .True.
-    endif
-
-    if (tasks) then
-      call zmq_set_running(zmq_to_qp_run_socket)
-
-      !$OMP PARALLEL DEFAULT(shared) NUM_THREADS(nproc+1) &
-      !$OMP  PRIVATE(i)
-        i = omp_get_thread_num()
-        if (i==0) then
-          call pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
-        else
-          call pt2_slave_inproc(i)
-        endif
-      !$OMP END PARALLEL
-      call delete_selection_buffer(b)
-      call end_parallel_job(zmq_to_qp_run_socket, 'pt2')
-
-    else
-       pt2 = 0.d0
-       do i=1,N_det_generators
-         do k=1,N_states
-            pt2(k) = pt2(k) + pt2_detail(k,i)
-         enddo
-       enddo
-    endif
-
-    tbc(0) = 0
-    if (pt2(1) /= 0.d0) then
-      exit
-    endif
+      end do
+    end if
   end do
+  if (ipos > 1) then
+    call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
+  endif
+
+  call zmq_set_running(zmq_to_qp_run_socket)
+
+  !$OMP PARALLEL DEFAULT(shared) NUM_THREADS(nproc+1) &
+  !$OMP  PRIVATE(i)
+    i = omp_get_thread_num()
+    if (i==0) then
+      call pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
+    else
+      call pt2_slave_inproc(i)
+    endif
+  !$OMP END PARALLEL
+  call delete_selection_buffer(b)
+  call end_parallel_job(zmq_to_qp_run_socket, 'pt2')
+
   print *, '========== ================= ================= ================='
 
   deallocate(pt2_detail, comb, computed, tbc)
@@ -208,6 +175,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   integer :: tooth, firstTBDcomb, orgTBDcomb
   integer, allocatable :: parts_to_get(:)
   logical, allocatable :: actually_computed(:)
+  character*(512) :: task
   Nabove_old = -1.d0
   
   allocate(actually_computed(N_det_generators), parts_to_get(N_det_generators), &
@@ -295,7 +263,19 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
       eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
       call wall_time(time)
       if (dabs(eqt/avg) < relative_error) then
+        ! Termination
         pt2(1) = avg
+        print '(G10.3, 2X, F16.10, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
+        integer :: worker_id
+        call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,0)
+        if(worker_id /= -1) then
+          do
+            call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(1), task)
+            if (task_id(1) == 0) exit
+            call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(1))
+            call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(1),more)
+           enddo
+        end if
       else
         if (Nabove(tooth) > Nabove_old) then
           print '(G10.3, 2X, F16.10, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
@@ -397,7 +377,7 @@ BEGIN_PROVIDER [ integer, size_tbc ]
   BEGIN_DOC
 ! Size of the tbc array
   END_DOC
-  size_tbc = N_det_generators + fragment_count*fragment_first
+  size_tbc = 2*N_det_generators + fragment_count*fragment_first
 END_PROVIDER
 
 subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
@@ -406,30 +386,24 @@ subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
   double precision, intent(out)  :: comb(Ncomb)
   integer, intent(inout)         :: tbc(0:size_tbc)
   logical, intent(inout)         :: computed(N_det_generators)
-  integer                        :: i, j, last_full, dets(comb_teeth), tbc_save
+  integer                        :: i, j, last_full, dets(comb_teeth)
   integer                        :: icount, n
   integer                        :: k, l
   l=1
   call RANDOM_NUMBER(comb)
   do i=1,size(comb)
     comb(i) = comb(i) * comb_step
-    tbc_save = tbc(0)
     !DIR$ FORCEINLINE
     call add_comb(comb(i), computed, tbc, size_tbc, comb_teeth)
-    if ( (tbc(0) < size(tbc)-1).and.(l < first_det_of_teeth(comb_teeth)) ) then
-      Ncomb = i
-      do while (computed(l))
-        l=l+1
-        if (l == size(computed)) exit
-      enddo
-      k=tbc(0)+1
-      tbc(k) = l
-      computed(l) = .True.
-      tbc(0) = k
-    else
-      tbc(0) = tbc_save
-      return
-    endif
+    Ncomb = i
+    do while (computed(l))
+      l=l+1
+      if (l == N_det_generators+1) return
+    enddo
+    k=tbc(0)+1
+    tbc(k) = l
+    computed(l) = .True.
+    tbc(0) = k
   enddo
   
 end subroutine
