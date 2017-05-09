@@ -53,7 +53,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
     call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
     call create_selection_buffer(1, 1*2, b)
     
-    Ncomb=size(comb)/100
+    Ncomb=size(comb)
     call get_carlo_workbatch(computed, comb, Ncomb, tbc)
 
 
@@ -289,6 +289,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
       else
         if (Nabove(tooth) > Nabove_old) then
           print '(G10.3, 2X, F16.10, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
+!print "(4(G23.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
           Nabove_old = Nabove(tooth)
         endif
       endif
@@ -368,7 +369,7 @@ subroutine get_last_full_tooth(computed, last_tooth)
   
   last_tooth = 0
    combLoop : do i=comb_teeth, 1, -1
-     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-6) ! /64
+     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-4) ! /16
 !     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-14) ! /16384
      do j=first_det_of_teeth(i), first_det_of_teeth(i+1)-1
        if(.not.computed(j)) then

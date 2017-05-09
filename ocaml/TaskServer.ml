@@ -49,12 +49,7 @@ let zmq_context =
   ZMQ.Context.create ()
 
 let () =
-  let nproc =
-    match Sys.getenv "OMP_NUM_THREADS" with
-    | Some m -> int_of_string m
-    | None -> 2
-  in
-  ZMQ.Context.set_io_threads zmq_context nproc
+  ZMQ.Context.set_io_threads zmq_context 2
 
 
 let bind_socket ~socket_type ~socket ~port =
