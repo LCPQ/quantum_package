@@ -27,7 +27,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
   double precision, external :: omp_get_wtime 
   double precision :: time
 
-  allocate(pt2_detail(N_states, N_det_generators), comb(N_det_generators/2), computed(N_det_generators), tbc(0:size_tbc))
+  allocate(pt2_detail(N_states, N_det_generators), comb(N_det_generators), computed(N_det_generators), tbc(0:size_tbc))
   sumabove = 0d0
   sum2above = 0d0
   Nabove = 0d0
@@ -54,7 +54,17 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
     call create_selection_buffer(1, 1*2, b)
     
     Ncomb=size(comb)
-    call get_carlo_workbatch(computed, comb, Ncomb, tbc)
+!    i=N_det_generators
+!    do while (tbc(0) < i)
+      call get_carlo_workbatch(computed, comb, Ncomb, tbc)
+!      i=0
+!      do j=1,N_det_generators
+!        if (.not.computed(j)) then 
+!          i = i+1
+!        endif
+!      enddo
+!      i = i/2
+!    enddo
 
 
 
@@ -370,7 +380,6 @@ subroutine get_last_full_tooth(computed, last_tooth)
   last_tooth = 0
    combLoop : do i=comb_teeth, 1, -1
      missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-4) ! /16
-!     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-14) ! /16384
      do j=first_det_of_teeth(i), first_det_of_teeth(i+1)-1
        if(.not.computed(j)) then
          missing -= 1
@@ -393,54 +402,36 @@ END_PROVIDER
 
 subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
   implicit none
-  integer, intent(inout) :: Ncomb
-  double precision, intent(out) :: comb(Ncomb)
-  integer, intent(inout) :: tbc(0:size_tbc)
-  logical, intent(inout) :: computed(N_det_generators)
-  integer :: i, j, last_full, dets(comb_teeth), tbc_save
-  integer :: icount, n
-!  n = tbc(0)
-!  icount = 1 
-!  call RANDOM_NUMBER(comb)
-!  do i=1,size(comb)
-!      comb(i) = comb(i) * comb_step
-!      tbc_save = tbc(0)
-!      !DIR$ FORCEINLINE
-!      call add_comb(comb(i), computed, tbc, size_tbc, comb_teeth)
-!      if (tbc(0) < size(tbc)) then
-!         Ncomb = i
-!      else
-!         tbc(0) = tbc_save
-!         return
-!      endif
-!      icount = icount + tbc(0) - tbc_save
-!      if ((i>1000).and.(icount > n)) then
-!        call get_filling_teeth(computed, tbc)
-!        icount = 0
-!        n = ishft(tbc_save,-4)
-!      endif
-!  enddo
-!  call get_filling_teeth(computed, tbc)
-
-  n = int(sqrt(dble(size(comb))))
- 
+  integer, intent(inout)         :: Ncomb
+  double precision, intent(out)  :: comb(Ncomb)
+  integer, intent(inout)         :: tbc(0:size_tbc)
+  logical, intent(inout)         :: computed(N_det_generators)
+  integer                        :: i, j, last_full, dets(comb_teeth), tbc_save
+  integer                        :: icount, n
+  integer                        :: k, l
+  l=1
   call RANDOM_NUMBER(comb)
-  do j=1,size(comb),n
-      do i=j,min(size(comb),j+n-1)
-        comb(i) = comb(i) * comb_step
-        tbc_save = tbc(0)
-        !DIR$ FORCEINLINE
-        call add_comb(comb(i), computed, tbc, size_tbc, comb_teeth)
-        if (tbc(0) < size(tbc)) then
-           Ncomb = i
-        else
-           tbc(0) = tbc_save
-           return
-        endif
-      end do
-      call get_filling_teeth(computed, tbc)
+  do i=1,size(comb)
+    comb(i) = comb(i) * comb_step
+    tbc_save = tbc(0)
+    !DIR$ FORCEINLINE
+    call add_comb(comb(i), computed, tbc, size_tbc, comb_teeth)
+    if ( (tbc(0) < size(tbc)-1).and.(l < first_det_of_teeth(comb_teeth)) ) then
+      Ncomb = i
+      do while (computed(l))
+        l=l+1
+        if (l == size(computed)) exit
+      enddo
+      k=tbc(0)+1
+      tbc(k) = l
+      computed(l) = .True.
+      tbc(0) = k
+    else
+      tbc(0) = tbc_save
+      return
+    endif
   enddo
-
+  
 end subroutine
 
 
@@ -563,7 +554,7 @@ end subroutine
   comb_step = 1d0/dfloat(comb_teeth)
   first_det_of_comb = 1
   do i=1,N_det_generators
-    if(pt2_weight(i)/norm_left < 0.5d0*comb_step) then
+    if(pt2_weight(i)/norm_left < .5d0*comb_step) then
       first_det_of_comb = i
       exit
     end if
