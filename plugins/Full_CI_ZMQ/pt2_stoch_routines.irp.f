@@ -25,7 +25,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
   
   double precision :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
   double precision, external :: omp_get_wtime 
-  double precision :: time0, time
+  double precision :: time
 
   allocate(pt2_detail(N_states, N_det_generators), comb(N_det_generators/2), computed(N_det_generators), tbc(0:size_tbc))
   sumabove = 0d0
@@ -43,11 +43,10 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
   end do
   
   pt2_detail = 0d0
-  time0 = omp_get_wtime()
   generator_per_task = 1
-  print *, '========== ================ ================'
-  print *, ' Samples        Energy        Stat. Error'
-  print *, '========== ================ ================'
+  print *, '========== ================= ================= ================='
+  print *, ' Samples        Energy         Stat. Error         Seconds      '
+  print *, '========== ================= ================= ================='
   do while(.true.)
     
     call new_parallel_job(zmq_to_qp_run_socket,'pt2')
@@ -120,7 +119,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
       exit
     endif
   end do
-  print *, '========== ================ ================'
+  print *, '========== ================= ================= ================='
 
   deallocate(pt2_detail, comb, computed, tbc)
 
@@ -226,7 +225,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det_generators), index(1))
   more = 1
   if (time0 < 0.d0) then
-      time0 = omp_get_wtime()
+      call wall_time(time0)
   endif
   timeLast = time0
 
@@ -278,18 +277,18 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
         if(actually_computed(i)) done = done + 1
       end do
 
-      E0 = sum(pt2_detail(1,:first_det_of_teeth(tooth)-1)) 
+      E0 = sum(pt2_detail(1,:first_det_of_teeth(tooth)-1))
       prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - pt2_cweight(first_det_of_teeth(tooth)-1))
       prop = prop * pt2_weight_inv(first_det_of_teeth(tooth))
       E0 += pt2_detail(1,first_det_of_teeth(tooth)) * prop
       avg = E0 + (sumabove(tooth) / Nabove(tooth))
       eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
-      time = omp_get_wtime()
+      call wall_time(time)
       if (dabs(eqt/avg) < relative_error) then
         pt2(1) = avg
       else
         if (Nabove(tooth) > Nabove_old) then
-          print '(G10.3, X, F16.10, G16.3,A30)', Nabove(tooth), avg+E, eqt, ''
+          print '(G10.3, 2X, F16.10, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
           Nabove_old = Nabove(tooth)
         endif
       endif
@@ -331,7 +330,7 @@ end function
 
 BEGIN_PROVIDER [ integer, comb_teeth ]
   implicit none
-  comb_teeth = 50
+  comb_teeth = 100
 END_PROVIDER
 
 
@@ -369,7 +368,8 @@ subroutine get_last_full_tooth(computed, last_tooth)
   
   last_tooth = 0
    combLoop : do i=comb_teeth, 1, -1
-     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-14) ! /16384
+     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-6) ! /64
+!     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-14) ! /16384
      do j=first_det_of_teeth(i), first_det_of_teeth(i+1)-1
        if(.not.computed(j)) then
          missing -= 1
@@ -398,28 +398,47 @@ subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
   logical, intent(inout) :: computed(N_det_generators)
   integer :: i, j, last_full, dets(comb_teeth), tbc_save
   integer :: icount, n
-  n = tbc(0)
-  icount = 0 
+!  n = tbc(0)
+!  icount = 1 
+!  call RANDOM_NUMBER(comb)
+!  do i=1,size(comb)
+!      comb(i) = comb(i) * comb_step
+!      tbc_save = tbc(0)
+!      !DIR$ FORCEINLINE
+!      call add_comb(comb(i), computed, tbc, size_tbc, comb_teeth)
+!      if (tbc(0) < size(tbc)) then
+!         Ncomb = i
+!      else
+!         tbc(0) = tbc_save
+!         return
+!      endif
+!      icount = icount + tbc(0) - tbc_save
+!      if ((i>1000).and.(icount > n)) then
+!        call get_filling_teeth(computed, tbc)
+!        icount = 0
+!        n = ishft(tbc_save,-4)
+!      endif
+!  enddo
+!  call get_filling_teeth(computed, tbc)
+
+  n = int(sqrt(dble(size(comb))))
+ 
   call RANDOM_NUMBER(comb)
-  do i=1,size(comb)
-      comb(i) = comb(i) * comb_step
-      tbc_save = tbc(0)
-      !DIR$ FORCEINLINE
-      call add_comb(comb(i), computed, tbc, size_tbc, comb_teeth)
-      if (tbc(0) < size(tbc)) then
-         Ncomb = i
-      else
-         tbc(0) = tbc_save
-         return
-      endif
-      icount = icount + tbc(0) - tbc_save
-      if ((i>1000).and.(icount > n)) then
-        call get_filling_teeth(computed, tbc)
-        icount = 0
-        n = ishft(tbc_save,-4)
-      endif
+  do j=1,size(comb),n
+      do i=j,min(size(comb),j+n-1)
+        comb(i) = comb(i) * comb_step
+        tbc_save = tbc(0)
+        !DIR$ FORCEINLINE
+        call add_comb(comb(i), computed, tbc, size_tbc, comb_teeth)
+        if (tbc(0) < size(tbc)) then
+           Ncomb = i
+        else
+           tbc(0) = tbc_save
+           return
+        endif
+      end do
+      call get_filling_teeth(computed, tbc)
   enddo
-  call get_filling_teeth(computed, tbc)
 
 end subroutine
 
@@ -543,7 +562,7 @@ end subroutine
   comb_step = 1d0/dfloat(comb_teeth)
   first_det_of_comb = 1
   do i=1,N_det_generators
-    if(pt2_weight(i)/norm_left < 2.*comb_step) then
+    if(pt2_weight(i)/norm_left < 0.5d0*comb_step) then
       first_det_of_comb = i
       exit
     end if
