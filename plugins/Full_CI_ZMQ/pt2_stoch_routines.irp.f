@@ -266,16 +266,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
         ! Termination
         pt2(1) = avg
         print '(G10.3, 2X, F16.10, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
-        integer :: worker_id
-        call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,0)
-        if(worker_id /= -1) then
-          do
-            call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(1), task)
-            if (task_id(1) == 0) exit
-            call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(1))
-            call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(1),more)
-           enddo
-        end if
+        call zmq_abort(zmq_to_qp_run_socket)
       else
         if (Nabove(tooth) > Nabove_old) then
           print '(G10.3, 2X, F16.10, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''

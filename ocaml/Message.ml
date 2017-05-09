@@ -610,6 +610,17 @@ end = struct
   let to_string x = "terminate"
 end
 
+(** Abort *)
+module Abort_msg : sig
+  type t 
+  val create : t
+  val to_string : t -> string
+end = struct
+  type t = Abort
+  let create = Abort
+  let to_string x = "abort"
+end
+
 (** OK *)
 module Ok_msg : sig
   type t 
@@ -660,6 +671,7 @@ type t =
 | AddTaskReply        of  AddTaskReply_msg.t
 | TaskDone            of  TaskDone_msg.t
 | Terminate           of  Terminate_msg.t
+| Abort               of  Abort_msg.t
 | Ok                  of  Ok_msg.t
 | Error               of  Error_msg.t
 | SetStopped 
@@ -705,6 +717,7 @@ let of_string s =
     | PutVector_ { client_id ; size } ->
         PutVector (PutVector_msg.create ~client_id ~size ~data:None )
     | Terminate_  -> Terminate (Terminate_msg.create )
+    | Abort_      -> Abort (Abort_msg.create )
     | SetWaiting_ -> SetWaiting
     | SetStopped_ -> SetStopped
     | SetRunning_ -> SetRunning
@@ -732,6 +745,7 @@ let to_string = function
 | AddTaskReply        x -> AddTaskReply_msg.to_string       x
 | TaskDone            x -> TaskDone_msg.to_string           x
 | Terminate           x -> Terminate_msg.to_string          x
+| Abort               x -> Abort_msg.to_string             x
 | Ok                  x -> Ok_msg.to_string                 x
 | Error               x -> Error_msg.to_string              x
 | PutPsi              x -> PutPsi_msg.to_string             x

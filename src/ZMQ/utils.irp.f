@@ -771,6 +771,33 @@ subroutine add_task_to_taskserver_recv(zmq_to_qp_run_socket)
   
 end
 
+subroutine zmq_abort(zmq_to_qp_run_socket)
+  use f77_zmq
+  implicit none
+  BEGIN_DOC
+  ! Aborts a running parallel computation
+  END_DOC
+  integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
+  integer                        :: rc, sze
+  character*(512)                :: message
+  write(message,*) 'abort '
+  
+  sze = len(trim(message))
+  rc = f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)
+  if (rc /= sze) then
+    print *,  irp_here, 'f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
+    stop 'error'
+  endif
+  
+  rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
+  if (trim(message(1:rc)) /= 'ok') then
+    print *,  trim(message(1:rc))
+    print *,  'Unable to send abort message'
+    stop -1
+  endif
+  
+end
+
 subroutine task_done_to_taskserver(zmq_to_qp_run_socket, worker_id, task_id)
   use f77_zmq
   implicit none

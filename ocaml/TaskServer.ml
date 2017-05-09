@@ -567,6 +567,43 @@ let terminate program_state rep_socket =
     }
 
   
+let abort program_state rep_socket =
+    let queue, client_id =
+        Queuing_system.add_client program_state.queue
+    in
+    let rec aux accu queue = function
+    | 0 -> (queue, accu)
+    | rest ->
+      let new_queue, task_id, _ =
+        Queuing_system.pop_task ~client_id queue
+      in
+      let new_accu = 
+        match task_id with
+        | Some task_id -> task_id::accu
+        | None -> accu
+      in
+      Queuing_system.number_of_queued new_queue
+      |> aux new_accu new_queue
+    in
+    let queue, tasks =
+      aux [] queue 1
+    in
+    let queue = 
+      List.fold ~f:(fun queue task_id -> 
+                  Queuing_system.end_task ~task_id ~client_id queue)
+                  ~init:queue tasks
+    in
+    let queue = 
+      List.fold ~f:(fun queue task_id -> Queuing_system.del_task ~task_id queue)
+                          ~init:queue tasks
+    in
+    reply_ok rep_socket;
+
+    { program_state with
+      queue 
+    }
+
+  
 let error msg program_state rep_socket =
     Message.Error (Message.Error_msg.create msg)
     |> Message.to_string
@@ -714,6 +751,7 @@ let run ~port =
                 try
                   match program_state.state, message with
                   | _     , Message.Terminate   _ -> terminate program_state rep_socket
+                  | _     , Message.Abort       _ -> abort program_state rep_socket
                   | _     , Message.PutVector      x -> put_vector x rest program_state rep_socket
                   | _     , Message.GetVector      x -> get_vector x program_state rep_socket
                   | _     , Message.PutPsi      x -> put_psi x rest program_state rep_socket

@@ -15,6 +15,7 @@ type kw_type =
     | NEW_JOB
     | END_JOB
     | TERMINATE
+    | ABORT
     | GET_PSI
     | PUT_PSI
     | GET_VECTOR
@@ -44,6 +45,7 @@ type msg =
     | NewJob_     of state_tcp_inproc
     | EndJob_     of string
     | Terminate_
+    | Abort_
     | GetPsi_     of int
     | PutPsi_     of psi
     | GetVector_  of int
@@ -88,6 +90,7 @@ and kw = parse
   | "new_job"      { NEW_JOB }
   | "end_job"      { END_JOB }
   | "terminate"    { TERMINATE }
+  | "abort"        { ABORT }
   | "get_psi"      { GET_PSI }
   | "put_psi"      { PUT_PSI }
   | "get_vector"   { GET_PSI }
@@ -218,6 +221,7 @@ and kw = parse
     | SET_RUNNING -> SetRunning_
     | SET_STOPPED -> SetStopped_
     | TERMINATE   -> Terminate_
+    | ABORT       -> Abort_
     | NONE        -> parse_rec lexbuf
     | _ -> failwith "Error in MessageLexer"
 
@@ -242,6 +246,7 @@ and kw = parse
       "new_job state_pouet tcp://test.com:12345 ipc:///dev/shm/x.socket";
       "end_job state_pouet";
       "terminate" ;
+      "abort" ;
       "set_running" ;
       "set_stopped" ;
       "set_waiting" ;
@@ -273,6 +278,7 @@ and kw = parse
       | PutVector_ { client_id ; size } ->
           Printf.sprintf "PUT_VECTOR client_id:%d size:%d" client_id size 
       | Terminate_ ->  "TERMINATE"
+      | Abort_ ->  "ABORT"
       | SetWaiting_ ->  "SET_WAITING"
       | SetStopped_ ->  "SET_STOPPED"
       | SetRunning_ ->  "SET_RUNNING"
