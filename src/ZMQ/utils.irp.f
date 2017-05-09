@@ -180,14 +180,14 @@ function new_zmq_pair_socket(bind)
   endif
 
 
-  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 1, 4)
+  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 4, 4)
   if (rc /= 0) then
-    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 1, 4)'
+    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 4, 4)'
   endif
 
-  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 1, 4)
+  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 4, 4)
   if (rc /= 0) then
-    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 1, 4)'
+    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 4, 4)'
   endif
 
   rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_IMMEDIATE, 1, 4)
@@ -232,8 +232,8 @@ function new_zmq_pull_socket()
   if (zmq_context == 0_ZMQ_PTR) then
      stop 'zmq_context is uninitialized'
   endif
-! new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_PULL)
-  new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_REP)
+ new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_PULL)
+!  new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_REP)
   call omp_unset_lock(zmq_lock)
   if (new_zmq_pull_socket == 0_ZMQ_PTR) then
      stop 'Unable to create zmq pull socket'
@@ -249,7 +249,7 @@ function new_zmq_pull_socket()
     stop 'Unable to set ZMQ_RCVBUF on pull socket'
   endif
   
-  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVHWM,1,4)
+  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVHWM,4,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_RCVHWM on pull socket'
   endif
@@ -309,8 +309,8 @@ function new_zmq_push_socket(thread)
   if (zmq_context == 0_ZMQ_PTR) then
      stop 'zmq_context is uninitialized'
   endif
-!  new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_PUSH)
-  new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_REQ)
+  new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_PUSH)
+!  new_zmq_push_socket = f77_zmq_socket(zmq_context, ZMQ_REQ)
   call omp_unset_lock(zmq_lock)
   if (new_zmq_push_socket == 0_ZMQ_PTR) then
      stop 'Unable to create zmq push socket'
@@ -321,7 +321,7 @@ function new_zmq_push_socket(thread)
 !    stop 'Unable to set ZMQ_LINGER on push socket'
 !  endif
   
-  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDHWM,1,4)
+  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDHWM,4,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_SNDHWM on push socket'
   endif

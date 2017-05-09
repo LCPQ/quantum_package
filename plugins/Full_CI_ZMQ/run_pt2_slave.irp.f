@@ -113,8 +113,8 @@ subroutine push_pt2_results(zmq_socket_push, N, index, pt2_detail, task_id, ntas
   if(rc /= 4*ntask) stop "push"
 
 ! Activate is zmq_socket_push is a REQ
-  character*(2) :: ok
-  rc = f77_zmq_recv( zmq_socket_push, ok, 2, 0)
+!  character*(2) :: ok
+!  rc = f77_zmq_recv( zmq_socket_push, ok, 2, 0)
 end subroutine
 
 
@@ -144,7 +144,7 @@ subroutine pull_pt2_results(zmq_socket_pull, N, index, pt2_detail, task_id, ntas
   if(rc /= 4*ntask) stop "pull"
 
 ! Activate is zmq_socket_pull is a REP
-  rc = f77_zmq_send( zmq_socket_pull, 'ok', 2, 0)
+!  rc = f77_zmq_send( zmq_socket_pull, 'ok', 2, 0)
 end subroutine
  
  

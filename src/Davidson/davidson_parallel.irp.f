@@ -168,12 +168,12 @@ subroutine davidson_push_results(zmq_socket_push, v_0, s_0, task_id)
   if(rc /= 4) stop "davidson_push_results failed to push task_id"
 
 ! Activate is zmq_socket_push is a REQ
-  integer :: idummy
-  rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0)
-  if (rc /= 4) then
-    print *, irp_here, ': f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
-    stop 'error'
-  endif
+!  integer :: idummy
+!  rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0)
+!  if (rc /= 4) then
+!    print *, irp_here, ': f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
+!    stop 'error'
+!  endif
 
 end subroutine
 
@@ -200,11 +200,11 @@ subroutine davidson_pull_results(zmq_socket_pull, v_0, s_0, task_id)
   if(rc /= 4) stop "davidson_pull_results failed to pull task_id"
 
 ! Activate if zmq_socket_pull is a REP
-  rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)
-  if (rc /= 4) then
-    print *,  irp_here, ' : f77_zmq_send (zmq_socket_pull,...'
-    stop 'error'
-  endif
+!  rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)
+!  if (rc /= 4) then
+!    print *,  irp_here, ' : f77_zmq_send (zmq_socket_pull,...'
+!    stop 'error'
+!  endif
 
 end subroutine
 
