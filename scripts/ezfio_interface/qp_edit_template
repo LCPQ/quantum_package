@@ -20,7 +20,7 @@ type keyword =
 | Determinants_by_hand
 | Electrons
 | Mo_basis
-| Nuclei
+| Nuclei_by_hand
 {keywords}
 
 
@@ -30,7 +30,7 @@ let keyword_to_string = function
 | Determinants_by_hand  -> "Determinants_by_hand"
 | Electrons             -> "Electrons"
 | Mo_basis              -> "MO basis"
-| Nuclei                -> "Molecule"
+| Nuclei_by_hand                -> "Molecule"
 {keywords_to_string}
 
 
@@ -74,8 +74,8 @@ let get s =
            f Mo_basis.(read, to_rst)
          | Electrons ->
            f Electrons.(read, to_rst)
-         | Nuclei ->
-           f Nuclei.(read, to_rst)
+         | Nuclei_by_hand ->
+           f Nuclei_by_hand.(read, to_rst)
          | Ao_basis ->
            f Ao_basis.(read, to_rst)
          | Determinants_by_hand ->
@@ -121,7 +121,7 @@ let set str s =
 {write}
         | Electrons        -> write Electrons.(of_rst, write) s
         | Determinants_by_hand     -> write Determinants_by_hand.(of_rst, write) s
-        | Nuclei           -> write Nuclei.(of_rst, write) s
+        | Nuclei_by_hand           -> write Nuclei_by_hand.(of_rst, write) s
         | Ao_basis         -> () (* TODO *)
         | Mo_basis         -> () (* TODO *)
     end
@@ -184,7 +184,7 @@ let run check_only ?ndet ?state ezfio_filename =
   *)
   
   let tasks = [
-      Nuclei ;
+      Nuclei_by_hand ;
       Ao_basis;
       Electrons ;
 {tasks}
