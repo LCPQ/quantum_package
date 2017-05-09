@@ -43,7 +43,7 @@ subroutine run_pt2_slave(thread,iproc,energy)
   do
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(ctask), task)
 
-    done = task_id(ctask) == 0 
+    done = task_id(ctask) == 0
     if (done) then
       ctask = ctask - 1
     else
@@ -145,10 +145,6 @@ subroutine pull_pt2_results(zmq_socket_pull, N, index, pt2_detail, task_id, ntas
 
 ! Activate is zmq_socket_pull is a REP
   rc = f77_zmq_send( zmq_socket_pull, 'ok', 2, 0)
-
-  do i=N+1,N_det_generators
-    pt2_detail(1:N_states,i) = 0.d0
-  enddo
 end subroutine
  
  

@@ -212,6 +212,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   
   allocate(actually_computed(N_det_generators), parts_to_get(N_det_generators), &
     pt2_mwen(N_states, N_det_generators) )
+  pt2_mwen(1:N_states, 1:N_det_generators) =0.d0
   do i=1,N_det_generators
     actually_computed(i) = computed(i)
   enddo
@@ -271,7 +272,6 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
       timeLast = time
       do i=1, first_det_of_teeth(1)-1
         if(.not.(actually_computed(i))) then
-!          print *, "PT2 : deterministic part not finished"
           cycle pullLoop
         end if
       end do
