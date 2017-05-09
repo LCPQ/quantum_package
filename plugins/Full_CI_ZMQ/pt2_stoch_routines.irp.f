@@ -278,6 +278,13 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
     end if
   end do pullLoop
 
+  E0 = sum(pt2_detail(1,:first_det_of_teeth(tooth)-1))
+  prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - pt2_cweight(first_det_of_teeth(tooth)-1))
+  prop = prop * pt2_weight_inv(first_det_of_teeth(tooth))
+  E0 += pt2_detail(1,first_det_of_teeth(tooth)) * prop
+  pt2(1) = E0 + (sumabove(tooth) / Nabove(tooth))
+  eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
+
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_pull_socket(zmq_socket_pull)
   call sort_selection_buffer(b)
