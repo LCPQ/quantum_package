@@ -348,9 +348,11 @@ END_PROVIDER
     psi_coef_sorted(i,k) = psi_coef(iorder(i),k)
   enddo
   psi_average_norm_contrib_sorted(i) = -psi_average_norm_contrib_sorted(i)
-  psi_det_sorted_order(i) = i
  enddo
- call iset_order(psi_det_sorted_order,iorder,N_det)
+ do i=1,N_det
+   psi_det_sorted_order(iorder(i)) = i
+ enddo
+
 
  deallocate(iorder)
 

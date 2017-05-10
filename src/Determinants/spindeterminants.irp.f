@@ -438,7 +438,7 @@ BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_reverse , (N_det) ]
   use bitmasks
   implicit none
   BEGIN_DOC
-! Order which allors to go from psi_bilinear_matrix to psi_det
+! Order which allows to go from psi_bilinear_matrix to psi_det
   END_DOC
   integer                        :: k
   !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(k)

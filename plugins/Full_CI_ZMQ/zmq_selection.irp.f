@@ -98,7 +98,7 @@ subroutine selection_collector(b, N, pt2)
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_pull = new_zmq_pull_socket()
-  call create_selection_buffer(N, N*2, b2)
+  call create_selection_buffer(N, N*8, b2)
   allocate(task_id(N_det_generators))
   more = 1
   pt2(:) = 0d0
@@ -107,7 +107,11 @@ subroutine selection_collector(b, N, pt2)
     call pull_selection_results(zmq_socket_pull, pt2_mwen, b2%val(1), b2%det(1,1,1), b2%cur, task_id, ntask)
 
     pt2 += pt2_mwen
-    call merge_selection_buffers(b2,b)
+    do i=1, b2%cur
+      call add_to_selection_buffer(b, b2%det(1,1,i), b2%val(i))
+      if (b2%val(i) > b%mini) exit
+    end do
+
     do i=1, ntask
       if(task_id(i) == 0) then
           print *,  "Error in collector"

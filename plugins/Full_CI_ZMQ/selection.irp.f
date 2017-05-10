@@ -320,40 +320,46 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
   call bitstring_to_list_ab(hole    , hole_list    , N_holes    , N_int)
   call bitstring_to_list_ab(particle, particle_list, N_particles, N_int)
 
-!  ! ======
-!  ! If the subset doesn't exist, return
-!  logical :: will_compute
-!  will_compute = subset == 0
-!
-!  if (.not.will_compute) then
-!    maskInd = N_holes(1)*N_holes(2) + N_holes(2)*((N_holes(2)-1)/2) + N_holes(1)*((N_holes(1)-1)/2)
-!    will_compute = (maskInd >= subset)
-!    if (.not.will_compute) then
-!      return
-!    endif
-!  endif
-!  ! ======
-
-  
   integer, allocatable :: indices(:), exc_degree(:), iorder(:)
   integer(bit_kind), allocatable:: preinteresting_det(:,:,:)
   integer :: l_a, nmax
   allocate (preinteresting_det(N_int,2,N_det), indices(N_det),  &
-            exc_degree(N_det_alpha_unique))
+            exc_degree(max(N_det_alpha_unique,N_det_beta_unique)))
+  k=1
   do i=1,N_det_alpha_unique
     call get_excitation_degree_spin(psi_det_alpha_unique(1,i), &
       psi_det_generators(1,1,i_generator), exc_degree(i), N_int)
   enddo
 
-  k=1
   do j=1,N_det_beta_unique
     call get_excitation_degree_spin(psi_det_beta_unique(1,j), &
       psi_det_generators(1,2,i_generator), nt, N_int)
-    if (nt > 4) cycle
+    if (nt > 2) cycle
     do l_a=psi_bilinear_matrix_columns_loc(j), psi_bilinear_matrix_columns_loc(j+1)-1
       i = psi_bilinear_matrix_rows(l_a)
       if (nt + exc_degree(i) <= 4) then
         indices(k) = psi_det_sorted_order(psi_bilinear_matrix_order(l_a))
+        k=k+1
+      endif
+    enddo
+  enddo
+  
+  do i=1,N_det_beta_unique
+    call get_excitation_degree_spin(psi_det_beta_unique(1,i), &
+      psi_det_generators(1,2,i_generator), exc_degree(i), N_int)
+  enddo
+
+  do j=1,N_det_alpha_unique
+    call get_excitation_degree_spin(psi_det_alpha_unique(1,j), &
+      psi_det_generators(1,1,i_generator), nt, N_int)
+    if (nt > 1) cycle
+    do l_a=psi_bilinear_matrix_transp_rows_loc(j), psi_bilinear_matrix_transp_rows_loc(j+1)-1
+      i = psi_bilinear_matrix_transp_columns(l_a)
+      if (exc_degree(i) < 3) cycle
+      if (nt + exc_degree(i) <= 4) then
+        indices(k) = psi_det_sorted_order(                   &
+                        psi_bilinear_matrix_order(           &
+                          psi_bilinear_matrix_transp_order(l_a)))
         k=k+1
       endif
     enddo
@@ -364,6 +370,7 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
     iorder(i) = i
   enddo
   call isort(indices,iorder,nmax)
+
 
   preinteresting(0) = 0
   prefullinteresting(0) = 0

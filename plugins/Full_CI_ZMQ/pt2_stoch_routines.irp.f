@@ -27,7 +27,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
   double precision, external :: omp_get_wtime 
   double precision :: time
 
-  allocate(pt2_detail(N_states, N_det_generators), comb(N_det_generators), computed(N_det_generators), tbc(0:size_tbc))
+  allocate(pt2_detail(N_states, N_det_generators+1), comb(N_det_generators), computed(N_det_generators), tbc(0:size_tbc))
   sumabove = 0d0
   sum2above = 0d0
   Nabove = 0d0
@@ -256,11 +256,15 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
       end do
 
       E0 = sum(pt2_detail(1,:first_det_of_teeth(tooth)-1))
-      prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - pt2_cweight(first_det_of_teeth(tooth)-1))
-      prop = prop * pt2_weight_inv(first_det_of_teeth(tooth))
-      E0 += pt2_detail(1,first_det_of_teeth(tooth)) * prop
-      avg = E0 + (sumabove(tooth) / Nabove(tooth))
-      eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
+      if (tooth <= comb_teeth) then
+        prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - pt2_cweight(first_det_of_teeth(tooth)-1))
+        prop = prop * pt2_weight_inv(first_det_of_teeth(tooth))
+        E0 += pt2_detail(1,first_det_of_teeth(tooth)) * prop
+        avg = E0 + (sumabove(tooth) / Nabove(tooth))
+        eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
+      else
+        eqt = 0.d0
+      endif
       call wall_time(time)
       if (dabs(eqt/avg) < relative_error) then
         ! Termination
@@ -387,16 +391,16 @@ subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
   integer                        :: i, j, last_full, dets(comb_teeth)
   integer                        :: icount, n
   integer                        :: k, l
-  l=1
+  l=first_det_of_comb
   call RANDOM_NUMBER(comb)
   do i=1,size(comb)
     comb(i) = comb(i) * comb_step
     !DIR$ FORCEINLINE
     call add_comb(comb(i), computed, tbc, size_tbc, comb_teeth)
     Ncomb = i
+    if (tbc(0) == N_det_generators) return
     do while (computed(l))
       l=l+1
-      if (l == N_det_generators+1) return
     enddo
     k=tbc(0)+1
     tbc(k) = l
@@ -511,15 +515,25 @@ end subroutine
   pt2_weight(1) = psi_coef_generators(1,1)**2
   pt2_cweight(1) = psi_coef_generators(1,1)**2
   
-  do i=2,N_det_generators
+  do i=1,N_det_generators
     pt2_weight(i) = psi_coef_generators(i,1)**2
-    pt2_cweight(i) = pt2_cweight(i-1) + psi_coef_generators(i,1)**2
+  enddo
+
+  ! Important to loop backwards for numerical precision
+  pt2_cweight(N_det_generators) = pt2_weight(N_det_generators)
+  do i=N_det_generators-1,1,-1
+    pt2_cweight(i) = pt2_weight(i) + pt2_cweight(i+1) 
   end do
   
   do i=1,N_det_generators
-    pt2_weight(i)  = pt2_weight(i) / pt2_cweight(N_det_generators)
-    pt2_cweight(i) = pt2_cweight(i) / pt2_cweight(N_det_generators)
+    pt2_weight(i)  = pt2_weight(i) / pt2_cweight(1)
+    pt2_cweight(i) = pt2_cweight(i) / pt2_cweight(1)
   enddo
+
+  do i=1,N_det_generators-1
+    pt2_cweight(i) = 1.d0 - pt2_cweight(i+1) 
+  end do
+  pt2_cweight(N_det_generators) = 1.d0
   
   norm_left = 1d0
   
