@@ -5,7 +5,7 @@
 Set of quantum chemistry programs and libraries. 
 (under GNU GENERAL PUBLIC LICENSE v2)
 
-For more information, you can visit the [wiki of the project](http://github.com/LCPQ/quantum_package/wiki>), or below for the installation instructions.
+For more information, you can visit the [wiki of the project](http://github.com/LCPQ/quantum_package/wiki), or below for the installation instructions.
 
 
 
