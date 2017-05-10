@@ -275,6 +275,9 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
   use bitmasks
   use selection_types
   implicit none
+  BEGIN_DOC
+!            WARNING /!\ : It is assumed that the generators and selectors are psi_det_sorted
+  END_DOC
   
   integer, intent(in)            :: i_generator, subset
   integer(bit_kind), intent(in)  :: hole_mask(N_int,2), particle_mask(N_int,2)
@@ -332,8 +335,35 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
 !  ! ======
 
   
+  integer, allocatable :: indices(:), exc_degree(:), iorder(:)
   integer(bit_kind), allocatable:: preinteresting_det(:,:,:)
-  allocate (preinteresting_det(N_int,2,N_det))
+  integer :: l_a, nmax
+  allocate (preinteresting_det(N_int,2,N_det), indices(N_det),  &
+            exc_degree(N_det_alpha_unique))
+  do i=1,N_det_alpha_unique
+    call get_excitation_degree_spin(psi_det_alpha_unique(1,i), &
+      psi_det_generators(1,1,i_generator), exc_degree(i), N_int)
+  enddo
+
+  k=1
+  do j=1,N_det_beta_unique
+    call get_excitation_degree_spin(psi_det_beta_unique(1,j), &
+      psi_det_generators(1,2,i_generator), nt, N_int)
+    if (nt > 4) cycle
+    do l_a=psi_bilinear_matrix_columns_loc(j), psi_bilinear_matrix_columns_loc(j+1)-1
+      i = psi_bilinear_matrix_rows(l_a)
+      if (nt + exc_degree(i) <= 4) then
+        indices(k) = psi_det_sorted_order(psi_bilinear_matrix_order(l_a))
+        k=k+1
+      endif
+    enddo
+  enddo
+  nmax=k-1
+  allocate(iorder(nmax))
+  do i=1,nmax
+    iorder(i) = i
+  enddo
+  call isort(indices,iorder,nmax)
 
   preinteresting(0) = 0
   prefullinteresting(0) = 0
@@ -343,7 +373,8 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
     negMask(i,2) = not(psi_det_generators(i,2,i_generator))
   end do
   
-  do i=1,N_det
+  do k=1,nmax
+    i = indices(k)
     mobMask(1,1) = iand(negMask(1,1), psi_det_sorted(1,1,i))
     mobMask(1,2) = iand(negMask(1,2), psi_det_sorted(1,2,i))
     nt = popcnt(mobMask(1, 1)) + popcnt(mobMask(1, 2)) 

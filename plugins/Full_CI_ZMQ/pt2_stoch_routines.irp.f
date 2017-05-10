@@ -375,7 +375,7 @@ BEGIN_PROVIDER [ integer, size_tbc ]
   BEGIN_DOC
 ! Size of the tbc array
   END_DOC
-  size_tbc = 2*N_det_generators + fragment_count*fragment_first
+  size_tbc = (comb_teeth+1)*N_det_generators + fragment_count*fragment_first
 END_PROVIDER
 
 subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)

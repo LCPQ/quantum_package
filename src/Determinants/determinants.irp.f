@@ -324,9 +324,12 @@ END_PROVIDER
  BEGIN_PROVIDER [ integer(bit_kind), psi_det_sorted, (N_int,2,psi_det_size) ]
 &BEGIN_PROVIDER [ double precision, psi_coef_sorted, (psi_det_size,N_states) ]
 &BEGIN_PROVIDER [ double precision, psi_average_norm_contrib_sorted, (psi_det_size) ]
+&BEGIN_PROVIDER [ integer, psi_det_sorted_order, (psi_det_size) ]
  implicit none
  BEGIN_DOC
  ! Wave function sorted by determinants contribution to the norm (state-averaged)
+ !
+ ! psi_det_sorted_order(i) -> k : index in psi_det
  END_DOC
  integer :: i,j,k
  integer, allocatable ::  iorder(:)
@@ -345,7 +348,9 @@ END_PROVIDER
     psi_coef_sorted(i,k) = psi_coef(iorder(i),k)
   enddo
   psi_average_norm_contrib_sorted(i) = -psi_average_norm_contrib_sorted(i)
+  psi_det_sorted_order(i) = i
  enddo
+ call iset_order(psi_det_sorted_order,iorder,N_det)
 
  deallocate(iorder)
 
