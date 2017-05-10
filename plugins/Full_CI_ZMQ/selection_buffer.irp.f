@@ -58,10 +58,6 @@ subroutine merge_selection_buffers(b1, b2)
   integer(bit_kind), pointer     :: detmp(:,:,:)
   double precision, pointer      :: val(:)
   integer                        :: i, i1, i2, k, nmwen
-  nmwen = min(b1%N, b1%cur+b2%cur)
-  allocate( val(size(b1%val)), detmp(N_int, 2, size(b1%det,3)) )
-  i1=1
-  i2=1
   do while (b1%val(b1%cur) > b2%mini)
     b1%cur = b1%cur-1
     if (b1%cur == 0) then
@@ -69,6 +65,10 @@ subroutine merge_selection_buffers(b1, b2)
       return
     endif
   enddo
+  nmwen = min(b1%N, b1%cur+b2%cur)
+  allocate( val(size(b1%val)), detmp(N_int, 2, size(b1%det,3)) )
+  i1=1
+  i2=1
   do i=1,nmwen
     if ( (i1 > b1%cur).and.(i2 > b2%cur) ) then
       exit 

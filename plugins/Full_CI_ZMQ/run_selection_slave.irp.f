@@ -93,21 +93,21 @@ subroutine push_selection_results(zmq_socket_push, pt2, b, task_id, ntask)
   integer :: rc
 
   rc = f77_zmq_send( zmq_socket_push, b%cur, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "push"
+  if(rc /= 4) stop "push1"
   rc = f77_zmq_send( zmq_socket_push, pt2, 8*N_states, ZMQ_SNDMORE)
-  if(rc /= 8*N_states) stop "push"
+  if(rc /= 8*N_states) stop "push2"
 
   rc = f77_zmq_send( zmq_socket_push, b%val(1), 8*b%cur, ZMQ_SNDMORE)
-  if(rc /= 8*b%cur) stop "push"
+  if(rc /= 8*b%cur) stop "push3"
 
   rc = f77_zmq_send( zmq_socket_push, b%det(1,1,1), bit_kind*N_int*2*b%cur, ZMQ_SNDMORE)
-  if(rc /= bit_kind*N_int*2*b%cur) stop "push"
+  if(rc /= bit_kind*N_int*2*b%cur) stop "push4"
 
   rc = f77_zmq_send( zmq_socket_push, ntask, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "push"
+  if(rc /= 4) stop "push5"
 
   rc = f77_zmq_send( zmq_socket_push, task_id(1), ntask*4, 0)
-  if(rc /= 4*ntask) stop "push"
+  if(rc /= 4*ntask) stop "push6"
 
 ! Activate is zmq_socket_push is a REQ
 !  rc = f77_zmq_recv( zmq_socket_push, task_id(1), ntask*4, 0)
@@ -126,22 +126,22 @@ subroutine pull_selection_results(zmq_socket_pull, pt2, val, det, N, task_id, nt
   integer :: rc, rn, i
 
   rc = f77_zmq_recv( zmq_socket_pull, N, 4, 0)
-  if(rc /= 4) stop "pull"
+  if(rc /= 4) stop "pull1"
 
   rc = f77_zmq_recv( zmq_socket_pull, pt2, N_states*8, 0)
-  if(rc /= 8*N_states) stop "pull"
+  if(rc /= 8*N_states) stop "pull2"
 
   rc = f77_zmq_recv( zmq_socket_pull, val(1), 8*N, 0)
-  if(rc /= 8*N) stop "pull"
+  if(rc /= 8*N) stop "pull3"
 
   rc = f77_zmq_recv( zmq_socket_pull, det(1,1,1), bit_kind*N_int*2*N, 0)
-  if(rc /= bit_kind*N_int*2*N) stop "pull"
+  if(rc /= bit_kind*N_int*2*N) stop "pull4"
 
   rc = f77_zmq_recv( zmq_socket_pull, ntask, 4, 0)
-  if(rc /= 4) stop "pull"
+  if(rc /= 4) stop "pull5"
 
   rc = f77_zmq_recv( zmq_socket_pull, task_id(1), ntask*4, 0)
-  if(rc /= 4*ntask) stop "pull"
+  if(rc /= 4*ntask) stop "pull6"
 
 ! Activate is zmq_socket_pull is a REP
 !  rc = f77_zmq_send( zmq_socket_pull, task_id(1), ntask*4, 0)
