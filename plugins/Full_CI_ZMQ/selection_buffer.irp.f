@@ -64,6 +64,10 @@ subroutine merge_selection_buffers(b1, b2)
   i2=1
   do while (b1%val(b1%cur) > b2%mini)
     b1%cur = b1%cur-1
+    if (b1%cur == 0) then
+      b1%cur = 1
+      return
+    endif
   enddo
   do i=1,nmwen
     if ( (i1 > b1%cur).and.(i2 > b2%cur) ) then
