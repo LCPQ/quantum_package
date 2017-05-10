@@ -211,7 +211,6 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   call get_first_tooth(actually_computed, tooth)
   Nabove_old = Nabove(tooth)
   
-!  print *, 'N_deterministic = ', first_det_of_teeth(1)-1
   pullLoop : do while (more == 1)
 
     call pull_pt2_results(zmq_socket_pull, Nindex, index, pt2_mwen, task_id, ntask)
