@@ -58,10 +58,10 @@ subroutine merge_selection_buffers(b1, b2)
   integer(bit_kind), pointer     :: detmp(:,:,:)
   double precision, pointer      :: val(:)
   integer                        :: i, i1, i2, k, nmwen
+  if (b1%cur == 0) return
   do while (b1%val(b1%cur) > b2%mini)
     b1%cur = b1%cur-1
     if (b1%cur == 0) then
-      b1%cur = 1
       return
     endif
   enddo
@@ -113,6 +113,7 @@ subroutine sort_selection_buffer(b)
   integer(bit_kind), pointer :: detmp(:,:,:)
   integer :: i, nmwen
   logical, external :: detEq
+  if (b%cur == 0) return
   nmwen = min(b%N, b%cur)
 
   allocate(iorder(b%cur), detmp(N_int, 2, size(b%det,3)))
