@@ -15,8 +15,11 @@ type kw_type =
     | NEW_JOB
     | END_JOB
     | TERMINATE
+    | ABORT
     | GET_PSI
     | PUT_PSI
+    | GET_VECTOR
+    | PUT_VECTOR
     | OK
     | ERROR
     | SET_STOPPED
@@ -29,7 +32,8 @@ type state_taskids_clientid = { state : string ; task_ids         : int list   ;
 type state_clientid         = { state : string ; client_id        : int    ; }
 type state_tcp_inproc       = { state : string ; push_address_tcp : string ; push_address_inproc : string ; }
 type psi = { client_id: int ; n_state: int ; n_det: int ; psi_det_size: int ; 
-  n_det_generators: int option ; n_det_selectors: int option }
+  n_det_generators: int option ; n_det_selectors: int option ; }
+type vector = { client_id: int ; size: int }
 
 type msg =
     | AddTask_    of state_tasks
@@ -41,8 +45,11 @@ type msg =
     | NewJob_     of state_tcp_inproc
     | EndJob_     of string
     | Terminate_
+    | Abort_
     | GetPsi_     of int
     | PutPsi_     of psi
+    | GetVector_  of int
+    | PutVector_  of vector
     | Ok_
     | Error_      of string 
     | SetStopped_
@@ -83,8 +90,11 @@ and kw = parse
   | "new_job"      { NEW_JOB }
   | "end_job"      { END_JOB }
   | "terminate"    { TERMINATE }
+  | "abort"        { ABORT }
   | "get_psi"      { GET_PSI }
   | "put_psi"      { PUT_PSI }
+  | "get_vector"   { GET_PSI }
+  | "put_vector"   { PUT_PSI }
   | "ok"           { OK }
   | "error"        { ERROR }
   | "set_stopped"  { SET_STOPPED }
@@ -179,6 +189,15 @@ and kw = parse
         in
         PutPsi_ { client_id ; n_state ; n_det ; psi_det_size ; n_det_generators ; n_det_selectors }
  
+    | GET_VECTOR ->
+        let client_id = read_int lexbuf in
+        GetVector_ client_id
+ 
+    | PUT_VECTOR ->
+        let client_id    = read_int lexbuf in
+        let size         = read_int lexbuf in
+        PutVector_ { client_id ; size }
+ 
     | CONNECT ->
         let socket    = read_word lexbuf in  
         Connect_ socket
@@ -202,6 +221,7 @@ and kw = parse
     | SET_RUNNING -> SetRunning_
     | SET_STOPPED -> SetStopped_
     | TERMINATE   -> Terminate_
+    | ABORT       -> Abort_
     | NONE        -> parse_rec lexbuf
     | _ -> failwith "Error in MessageLexer"
 
@@ -226,6 +246,7 @@ and kw = parse
       "new_job state_pouet tcp://test.com:12345 ipc:///dev/shm/x.socket";
       "end_job state_pouet";
       "terminate" ;
+      "abort" ;
       "set_running" ;
       "set_stopped" ;
       "set_waiting" ;
@@ -253,7 +274,11 @@ and kw = parse
           | Some s, Some g ->  Printf.sprintf "PUT_PSI client_id:%d n_state:%d n_det:%d psi_det_size:%d n_det_generators:%d n_det_selectors:%d" client_id n_state n_det psi_det_size g s
           | _ -> Printf.sprintf "PUT_PSI client_id:%d n_state:%d n_det:%d psi_det_size:%d" client_id n_state n_det psi_det_size 
         end
+      | GetVector_ client_id -> Printf.sprintf "GET_VECTOR client_id:%d" client_id
+      | PutVector_ { client_id ; size } ->
+          Printf.sprintf "PUT_VECTOR client_id:%d size:%d" client_id size 
       | Terminate_ ->  "TERMINATE"
+      | Abort_ ->  "ABORT"
       | SetWaiting_ ->  "SET_WAITING"
       | SetStopped_ ->  "SET_STOPPED"
       | SetRunning_ ->  "SET_RUNNING"

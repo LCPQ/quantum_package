@@ -17,7 +17,7 @@ subroutine run_pt2_slave(thread,iproc,energy)
   integer(ZMQ_PTR), external     :: new_zmq_push_socket
   integer(ZMQ_PTR)               :: zmq_socket_push
 
-  type(selection_buffer) :: buf, buf2
+  type(selection_buffer) :: buf
   logical :: done
 
   double precision :: pt2(N_states)
@@ -43,22 +43,16 @@ subroutine run_pt2_slave(thread,iproc,energy)
   do
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(ctask), task)
 
-    done = task_id(ctask) == 0 
+    done = task_id(ctask) == 0
     if (done) then
       ctask = ctask - 1
     else
-      integer :: i_generator, i_i_generator, N, subset
+      integer :: i_generator, i_i_generator, subset
       read (task,*) subset, index
       
-      !!!!!
-      N=1
-      !!!!!
       if(buf%N == 0) then
         ! Only first time 
-        call create_selection_buffer(N, N*2, buf)
-        call create_selection_buffer(N, N*3, buf2)
-      else
-        if(N /= buf%N) stop "N changed... wtf man??"
+        call create_selection_buffer(1, 2, buf)
       end if
       do i_i_generator=1, Nindex
         i_generator = index
@@ -67,18 +61,13 @@ subroutine run_pt2_slave(thread,iproc,energy)
       enddo
     endif
 
-    if(done .or. ctask == size(task_id)) then
+    if(done .or. (ctask == size(task_id)) ) then
       if(buf%N == 0 .and. ctask > 0) stop "uninitialized selection_buffer"
       do i=1, ctask
          call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i))
       end do
       if(ctask > 0) then
         call push_pt2_results(zmq_socket_push, Nindex, index, pt2_detail, task_id(1), ctask)
-        do i=1,buf%cur
-          call add_to_selection_buffer(buf2, buf%det(1,1,i), buf%val(i))
-        enddo
-        call sort_selection_buffer(buf2)
-        buf%mini = buf2%mini
         pt2 = 0d0
         pt2_detail(:,:Nindex) = 0d0
         buf%cur = 0
@@ -92,6 +81,7 @@ subroutine run_pt2_slave(thread,iproc,energy)
   call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
+  call delete_selection_buffer(buf)
 end subroutine
 
 
@@ -123,8 +113,8 @@ subroutine push_pt2_results(zmq_socket_push, N, index, pt2_detail, task_id, ntas
   if(rc /= 4*ntask) stop "push"
 
 ! Activate is zmq_socket_push is a REQ
-  character*(2) :: ok
-  rc = f77_zmq_recv( zmq_socket_push, ok, 2, 0)
+!  character*(2) :: ok
+!  rc = f77_zmq_recv( zmq_socket_push, ok, 2, 0)
 end subroutine
 
 
@@ -154,11 +144,7 @@ subroutine pull_pt2_results(zmq_socket_pull, N, index, pt2_detail, task_id, ntas
   if(rc /= 4*ntask) stop "pull"
 
 ! Activate is zmq_socket_pull is a REP
-  rc = f77_zmq_send( zmq_socket_pull, 'ok', 2, 0)
-
-  do i=N+1,N_det_generators
-    pt2_detail(1:N_states,i) = 0.d0
-  enddo
+!  rc = f77_zmq_send( zmq_socket_pull, 'ok', 2, 0)
 end subroutine
  
  

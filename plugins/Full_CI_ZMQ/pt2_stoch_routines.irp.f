@@ -3,7 +3,7 @@ BEGIN_PROVIDER [ integer, fragment_first ]
   fragment_first = first_det_of_teeth(1)
 END_PROVIDER
 
-subroutine ZMQ_pt2(pt2,relative_error)
+subroutine ZMQ_pt2(E, pt2,relative_error)
   use f77_zmq
   use selection_types
   
@@ -13,7 +13,7 @@ subroutine ZMQ_pt2(pt2,relative_error)
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_to_qp_run_socket2
   type(selection_buffer)         :: b
   integer, external              :: omp_get_thread_num
-  double precision, intent(in)   :: relative_error
+  double precision, intent(in)   :: relative_error, E
   double precision, intent(out)  :: pt2(N_states)
 
   
@@ -25,17 +25,15 @@ subroutine ZMQ_pt2(pt2,relative_error)
   
   double precision :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
   double precision, external :: omp_get_wtime 
-  double precision :: time0, time
+  double precision :: time
 
-  allocate(pt2_detail(N_states, N_det_generators), comb(N_det_generators/2), computed(N_det_generators), tbc(0:size_tbc))
+  allocate(pt2_detail(N_states, N_det_generators), comb(N_det_generators), computed(N_det_generators), tbc(0:size_tbc))
   sumabove = 0d0
   sum2above = 0d0
   Nabove = 0d0
 
-  provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral pt2_weight
+  provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral pt2_weight psi_selectors
 
-  !call random_seed()
-  
   computed = .false.
 
   tbc(0) = first_det_of_comb - 1
@@ -45,82 +43,60 @@ subroutine ZMQ_pt2(pt2,relative_error)
   end do
   
   pt2_detail = 0d0
-  time0 = omp_get_wtime()
-  print *, "time - avg - err - n_combs"
   generator_per_task = 1
-  do while(.true.)
+  print *, '========== ================= ================= ================='
+  print *, ' Samples        Energy         Stat. Error         Seconds      '
+  print *, '========== ================= ================= ================='
     
-    call write_time(6)
-    call new_parallel_job(zmq_to_qp_run_socket,"pt2")
-    call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
-    call create_selection_buffer(1, 1*2, b)
-    
-    Ncomb=size(comb)
-    call get_carlo_workbatch(computed, comb, Ncomb, tbc)
+  call new_parallel_job(zmq_to_qp_run_socket,'pt2')
+  call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
+  call create_selection_buffer(1, 1*2, b)
+  
+  Ncomb=size(comb)
+  call get_carlo_workbatch(computed, comb, Ncomb, tbc)
 
-    call write_time(6)
+  integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
+  integer :: ipos
+  ipos=1
 
-
-    integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
-    integer :: ipos
-    logical :: tasks
-    tasks = .False.
-    ipos=1
-
-    do i=1,tbc(0)
-      if(tbc(i) > fragment_first) then
-        write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') 0, tbc(i)
+  do i=1,tbc(0)
+    if(tbc(i) > fragment_first) then
+      write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') 0, tbc(i)
+      ipos += 20
+      if (ipos > 63980) then
+        call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
+        ipos=1
+      endif
+    else
+      do j=1,fragment_count
+        write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') j, tbc(i)
         ipos += 20
         if (ipos > 63980) then
-          call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
+          call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
           ipos=1
-          tasks = .True.
         endif
-      else
-        do j=1,fragment_count
-          write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') j, tbc(i)
-          ipos += 20
-          if (ipos > 63980) then
-            call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
-            ipos=1
-            tasks = .True.
-          endif
-        end do
-      end if
-    end do
-    if (ipos > 1) then
-      call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos-20)))
-      tasks = .True.
-    endif
-
-    if (tasks) then
-      call zmq_set_running(zmq_to_qp_run_socket)
-
-      !$OMP PARALLEL DEFAULT(shared) NUM_THREADS(nproc+1) &
-      !$OMP  PRIVATE(i)
-        i = omp_get_thread_num()
-        if (i==0) then
-          call pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
-        else
-          call pt2_slave_inproc(i)
-        endif
-      !$OMP END PARALLEL
-      call end_parallel_job(zmq_to_qp_run_socket, 'pt2')
-
-    else
-       pt2 = 0.d0
-       do i=1,N_det_generators
-         do k=1,N_states
-            pt2(k) = pt2(k) + pt2_detail(k,i)
-         enddo
-       enddo
-    endif
-
-    tbc(0) = 0
-    if (pt2(1) /= 0.d0) then
-      exit
-    endif
+      end do
+    end if
   end do
+  if (ipos > 1) then
+    call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
+  endif
+
+  call zmq_set_running(zmq_to_qp_run_socket)
+
+  !$OMP PARALLEL DEFAULT(shared) NUM_THREADS(nproc+1) &
+  !$OMP  PRIVATE(i)
+    i = omp_get_thread_num()
+    if (i==0) then
+      call pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
+    else
+      call pt2_slave_inproc(i)
+    endif
+  !$OMP END PARALLEL
+  call delete_selection_buffer(b)
+  call end_parallel_job(zmq_to_qp_run_socket, 'pt2')
+
+  print *, '========== ================= ================= ================='
 
   deallocate(pt2_detail, comb, computed, tbc)
 
@@ -162,7 +138,7 @@ subroutine pt2_slave_inproc(i)
   call run_pt2_slave(1,i,pt2_e0_denominator)
 end
 
-subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
+subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
   use f77_zmq
   use selection_types
   use bitmasks
@@ -171,7 +147,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   
   integer, intent(in) :: Ncomb
   double precision, intent(inout) :: pt2_detail(N_states, N_det_generators)
-  double precision, intent(in) :: comb(Ncomb), relative_error
+  double precision, intent(in) :: comb(Ncomb), relative_error, E
   logical, intent(inout) :: computed(N_det_generators)
   integer, intent(in) :: tbc(0:size_tbc)
   double precision, intent(inout) :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
@@ -194,14 +170,17 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   integer :: done, Nindex
   integer, allocatable :: index(:)
   double precision, save :: time0 = -1.d0
-  double precision :: time, timeLast
+  double precision :: time, timeLast, Nabove_old
   double precision, external :: omp_get_wtime
   integer :: tooth, firstTBDcomb, orgTBDcomb
   integer, allocatable :: parts_to_get(:)
   logical, allocatable :: actually_computed(:)
+  character*(512) :: task
+  Nabove_old = -1.d0
   
   allocate(actually_computed(N_det_generators), parts_to_get(N_det_generators), &
     pt2_mwen(N_states, N_det_generators) )
+  pt2_mwen(1:N_states, 1:N_det_generators) =0.d0
   do i=1,N_det_generators
     actually_computed(i) = computed(i)
   enddo
@@ -225,12 +204,16 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
   allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det_generators), index(1))
   more = 1
   if (time0 < 0.d0) then
-      time0 = omp_get_wtime()
+      call wall_time(time0)
   endif
   timeLast = time0
+
+  call get_first_tooth(actually_computed, tooth)
+  Nabove_old = Nabove(tooth)
   
-  print *, 'N_deterministic = ', first_det_of_teeth(1)-1
+!  print *, 'N_deterministic = ', first_det_of_teeth(1)-1
   pullLoop : do while (more == 1)
+
     call pull_pt2_results(zmq_socket_pull, Nindex, index, pt2_mwen, task_id, ntask)
     do i=1,Nindex
       pt2_detail(1:N_states, index(i)) += pt2_mwen(1:N_states,i)
@@ -253,11 +236,10 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
 
     time = omp_get_wtime()
   
-    if(time - timeLast > 1d1 .or. more /= 1) then
+    if(time - timeLast > 10d0 .or. more /= 1) then
       timeLast = time
       do i=1, first_det_of_teeth(1)-1
         if(.not.(actually_computed(i))) then
-          print *, "PT2 : deterministic part not finished"
           cycle pullLoop
         end if
       end do
@@ -265,7 +247,7 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       double precision :: E0, avg, eqt, prop
       call do_carlo(tbc, Ncomb+1-firstTBDcomb, comb(firstTBDcomb), pt2_detail, actually_computed, sumabove, sum2above, Nabove)
       firstTBDcomb = int(Nabove(1)) - orgTBDcomb + 1
-      if(Nabove(1) < 2d0) cycle
+      if(Nabove(1) < 5d0) cycle
       call get_first_tooth(actually_computed, tooth)
      
       done = 0
@@ -279,15 +261,29 @@ subroutine pt2_collector(b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, su
       E0 += pt2_detail(1,first_det_of_teeth(tooth)) * prop
       avg = E0 + (sumabove(tooth) / Nabove(tooth))
       eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
-      time = omp_get_wtime()
+      call wall_time(time)
       if (dabs(eqt/avg) < relative_error) then
+        ! Termination
         pt2(1) = avg
-!        exit pullLoop
+        print '(G10.3, 2X, F16.10, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
+        call zmq_abort(zmq_to_qp_run_socket)
       else
-        print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
+        if (Nabove(tooth) > Nabove_old) then
+          print '(G10.3, 2X, F16.10, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
+!print "(4(G23.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
+          Nabove_old = Nabove(tooth)
+        endif
       endif
+!print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
     end if
   end do pullLoop
+
+  E0 = sum(pt2_detail(1,:first_det_of_teeth(tooth)-1))
+  prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - pt2_cweight(first_det_of_teeth(tooth)-1))
+  prop = prop * pt2_weight_inv(first_det_of_teeth(tooth))
+  E0 += pt2_detail(1,first_det_of_teeth(tooth)) * prop
+  pt2(1) = E0 + (sumabove(tooth) / Nabove(tooth))
+  eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
 
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_pull_socket(zmq_socket_pull)
@@ -361,7 +357,7 @@ subroutine get_last_full_tooth(computed, last_tooth)
   
   last_tooth = 0
    combLoop : do i=comb_teeth, 1, -1
-     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-12) ! /4096
+     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-4) ! /16
      do j=first_det_of_teeth(i), first_det_of_teeth(i+1)-1
        if(.not.computed(j)) then
          missing -= 1
@@ -379,40 +375,35 @@ BEGIN_PROVIDER [ integer, size_tbc ]
   BEGIN_DOC
 ! Size of the tbc array
   END_DOC
-  size_tbc = N_det_generators + fragment_count*fragment_first
+  size_tbc = 2*N_det_generators + fragment_count*fragment_first
 END_PROVIDER
 
 subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
   implicit none
-  integer, intent(inout) :: Ncomb
-  double precision, intent(out) :: comb(Ncomb)
-  integer, intent(inout) :: tbc(0:size_tbc)
-  logical, intent(inout) :: computed(N_det_generators)
-  integer :: i, j, last_full, dets(comb_teeth), tbc_save
-  integer :: icount, n
-  n = tbc(0)
-  icount = 0 
+  integer, intent(inout)         :: Ncomb
+  double precision, intent(out)  :: comb(Ncomb)
+  integer, intent(inout)         :: tbc(0:size_tbc)
+  logical, intent(inout)         :: computed(N_det_generators)
+  integer                        :: i, j, last_full, dets(comb_teeth)
+  integer                        :: icount, n
+  integer                        :: k, l
+  l=1
   call RANDOM_NUMBER(comb)
   do i=1,size(comb)
-      comb(i) = comb(i) * comb_step
-      tbc_save = tbc(0)
-      !DIR$ FORCEINLINE
-      call add_comb(comb(i), computed, tbc, size_tbc, comb_teeth)
-      if (tbc(0) < size(tbc)) then
-         Ncomb = i
-      else
-         tbc(0) = tbc_save
-         return
-      endif
-      icount = icount + tbc(0) - tbc_save
-      if ((i>1000).and.(icount > n)) then
-        call get_filling_teeth(computed, tbc)
-        icount = 0
-        n = ishft(tbc_save,-4)
-      endif
+    comb(i) = comb(i) * comb_step
+    !DIR$ FORCEINLINE
+    call add_comb(comb(i), computed, tbc, size_tbc, comb_teeth)
+    Ncomb = i
+    do while (computed(l))
+      l=l+1
+      if (l == N_det_generators+1) return
+    enddo
+    k=tbc(0)+1
+    tbc(k) = l
+    computed(l) = .True.
+    tbc(0) = k
   enddo
-  call get_filling_teeth(computed, tbc)
-
+  
 end subroutine
 
 
@@ -535,12 +526,13 @@ end subroutine
   comb_step = 1d0/dfloat(comb_teeth)
   first_det_of_comb = 1
   do i=1,N_det_generators
-    if(pt2_weight(i)/norm_left < comb_step*.5d0) then
+    if(pt2_weight(i)/norm_left < .5d0*comb_step) then
       first_det_of_comb = i
       exit
     end if
     norm_left -= pt2_weight(i)
   end do
+  call write_int(6, first_det_of_comb-1, 'Size of deterministic set')
   
   comb_step =  (1d0 - pt2_cweight(first_det_of_comb-1)) * comb_step
   

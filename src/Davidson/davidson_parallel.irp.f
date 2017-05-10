@@ -70,6 +70,11 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
   ! -----------------------
 
   integer :: rc
+  integer                        :: N_states_read, N_det_read, psi_det_size_read
+  integer                        :: N_det_selectors_read, N_det_generators_read
+  double precision               :: energy(N_st)
+
+
   write(msg, *) 'get_psi ', worker_id
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
   if (rc /= len(trim(msg))) then
@@ -83,10 +88,6 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
     print *,  'Error in get_psi_reply'
     stop 'error'
   endif
-
-  integer                        :: N_states_read, N_det_read, psi_det_size_read
-  integer                        :: N_det_selectors_read, N_det_generators_read
-  double precision               :: energy(N_st)
 
   read(msg(14:rc),*) rc, N_states_read, N_det_read, psi_det_size_read,        &
       N_det_generators_read, N_det_selectors_read
@@ -167,12 +168,12 @@ subroutine davidson_push_results(zmq_socket_push, v_0, s_0, task_id)
   if(rc /= 4) stop "davidson_push_results failed to push task_id"
 
 ! Activate is zmq_socket_push is a REQ
-  integer :: idummy
-  rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0)
-  if (rc /= 4) then
-    print *, irp_here, ': f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
-    stop 'error'
-  endif
+!  integer :: idummy
+!  rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0)
+!  if (rc /= 4) then
+!    print *, irp_here, ': f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
+!    stop 'error'
+!  endif
 
 end subroutine
 
@@ -199,11 +200,11 @@ subroutine davidson_pull_results(zmq_socket_pull, v_0, s_0, task_id)
   if(rc /= 4) stop "davidson_pull_results failed to pull task_id"
 
 ! Activate if zmq_socket_pull is a REP
-  rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)
-  if (rc /= 4) then
-    print *,  irp_here, ' : f77_zmq_send (zmq_socket_pull,...'
-    stop 'error'
-  endif
+!  rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)
+!  if (rc /= 4) then
+!    print *,  irp_here, ' : f77_zmq_send (zmq_socket_pull,...'
+!    stop 'error'
+!  endif
 
 end subroutine
 

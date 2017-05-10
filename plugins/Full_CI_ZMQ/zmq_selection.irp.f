@@ -45,7 +45,7 @@ subroutine ZMQ_selection(N_in, pt2)
   !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
   i = omp_get_thread_num()
   if (i==0) then
-    call selection_collector(b, pt2)
+    call selection_collector(b, N, pt2)
   else
     call selection_slave_inproc(i)
   endif
@@ -59,6 +59,7 @@ subroutine ZMQ_selection(N_in, pt2)
     endif
     call save_wavefunction
   endif
+  call delete_selection_buffer(b)
 
 end subroutine
 
@@ -70,7 +71,7 @@ subroutine selection_slave_inproc(i)
   call run_selection_slave(1,i,pt2_e0_denominator)
 end
 
-subroutine selection_collector(b, pt2)
+subroutine selection_collector(b, N, pt2)
   use f77_zmq
   use selection_types
   use bitmasks
@@ -78,6 +79,7 @@ subroutine selection_collector(b, pt2)
 
 
   type(selection_buffer), intent(inout) :: b
+  integer, intent(in) :: N
   double precision, intent(out)       :: pt2(N_states)
   double precision                   :: pt2_mwen(N_states)
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
@@ -87,40 +89,38 @@ subroutine selection_collector(b, pt2)
   integer(ZMQ_PTR)               :: zmq_socket_pull
 
   integer :: msg_size, rc, more
-  integer :: acc, i, j, robin, N, ntask
-  double precision, allocatable :: val(:)
-  integer(bit_kind), allocatable :: det(:,:,:)
+  integer :: acc, i, j, robin, ntask
+  double precision, pointer :: val(:)
+  integer(bit_kind), pointer :: det(:,:,:)
   integer, allocatable :: task_id(:)
-  integer :: done
   real :: time, time0
+  type(selection_buffer) :: b2
+
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_pull = new_zmq_pull_socket()
-  allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det_generators))
-  done = 0
+  call create_selection_buffer(N, N*2, b2)
+  allocate(task_id(N_det_generators))
   more = 1
   pt2(:) = 0d0
   call CPU_TIME(time0)
   do while (more == 1)
-    call pull_selection_results(zmq_socket_pull, pt2_mwen, val(1), det(1,1,1), N, task_id, ntask)
-    pt2 += pt2_mwen
-    do i=1, N
-      call add_to_selection_buffer(b, det(1,1,i), val(i))
-    end do
+    call pull_selection_results(zmq_socket_pull, pt2_mwen, b2%val(1), b2%det(1,1,1), b2%cur, task_id, ntask)
 
+    pt2 += pt2_mwen
+    call merge_selection_buffers(b2,b)
     do i=1, ntask
       if(task_id(i) == 0) then
           print *,  "Error in collector"
       endif
       call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more)
     end do
-    done += ntask
     call CPU_TIME(time)
-!    print *, "DONE" , done, time - time0
   end do
 
 
+  call delete_selection_buffer(b2)
+  call sort_selection_buffer(b)
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_pull_socket(zmq_socket_pull)
-  call sort_selection_buffer(b)
 end subroutine
 

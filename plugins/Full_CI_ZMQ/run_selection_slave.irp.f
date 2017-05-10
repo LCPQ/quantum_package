@@ -58,13 +58,9 @@ subroutine run_selection_slave(thread,iproc,energy)
          call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i))
       end do
       if(ctask > 0) then
+        call sort_selection_buffer(buf)
         call push_selection_results(zmq_socket_push, pt2, buf, task_id(1), ctask)
-        do i=1,buf%cur
-          call add_to_selection_buffer(buf2, buf%det(1,1,i), buf%val(i))
-          if (buf2%cur == buf2%N) then
-            call sort_selection_buffer(buf2)
-          endif
-        enddo
+        call merge_selection_buffers(buf,buf2)
         buf%mini = buf2%mini
         pt2 = 0d0
         buf%cur = 0
@@ -78,6 +74,10 @@ subroutine run_selection_slave(thread,iproc,energy)
   call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
+  if (buf%N > 0) then
+    call delete_selection_buffer(buf)
+    call delete_selection_buffer(buf2)
+  endif
 end subroutine
 
 
@@ -91,8 +91,6 @@ subroutine push_selection_results(zmq_socket_push, pt2, b, task_id, ntask)
   type(selection_buffer), intent(inout) :: b
   integer, intent(in) :: ntask, task_id(*)
   integer :: rc
-
-  call sort_selection_buffer(b)
 
   rc = f77_zmq_send( zmq_socket_push, b%cur, 4, ZMQ_SNDMORE)
   if(rc /= 4) stop "push"
@@ -112,7 +110,7 @@ subroutine push_selection_results(zmq_socket_push, pt2, b, task_id, ntask)
   if(rc /= 4*ntask) stop "push"
 
 ! Activate is zmq_socket_push is a REQ
-  rc = f77_zmq_recv( zmq_socket_push, task_id(1), ntask*4, 0)
+!  rc = f77_zmq_recv( zmq_socket_push, task_id(1), ntask*4, 0)
 end subroutine
 
 
@@ -146,7 +144,7 @@ subroutine pull_selection_results(zmq_socket_pull, pt2, val, det, N, task_id, nt
   if(rc /= 4*ntask) stop "pull"
 
 ! Activate is zmq_socket_pull is a REP
-  rc = f77_zmq_send( zmq_socket_pull, task_id(1), ntask*4, 0)
+!  rc = f77_zmq_send( zmq_socket_pull, task_id(1), ntask*4, 0)
 end subroutine
  
  
