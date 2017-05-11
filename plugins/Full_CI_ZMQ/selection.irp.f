@@ -316,14 +316,15 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
   integer                        :: N_holes(2), N_particles(2)
   integer                        :: hole_list(N_int*bit_kind_size,2)
   integer                        :: particle_list(N_int*bit_kind_size,2)
+  integer(bit_kind), allocatable:: preinteresting_det(:,:,:)
+  allocate (preinteresting_det(N_int,2,N_det))
 
   call bitstring_to_list_ab(hole    , hole_list    , N_holes    , N_int)
   call bitstring_to_list_ab(particle, particle_list, N_particles, N_int)
 
-  integer, allocatable :: indices(:), exc_degree(:), iorder(:)
-  integer(bit_kind), allocatable:: preinteresting_det(:,:,:)
   integer :: l_a, nmax
-  allocate (preinteresting_det(N_int,2,N_det), indices(N_det),  &
+  integer, allocatable :: indices(:), exc_degree(:), iorder(:)
+  allocate (indices(N_det),  &
             exc_degree(max(N_det_alpha_unique,N_det_beta_unique)))
   k=1
   do i=1,N_det_alpha_unique

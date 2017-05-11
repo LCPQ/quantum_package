@@ -91,42 +91,38 @@ subroutine push_selection_results(zmq_socket_push, pt2, b, task_id, ntask)
   type(selection_buffer), intent(inout) :: b
   integer, intent(in) :: ntask, task_id(*)
   integer :: rc
-  integer :: bcur
-  bcur = max(b%cur,1)
 
-  rc = f77_zmq_send( zmq_socket_push, bcur, 4, ZMQ_SNDMORE)
+  rc = f77_zmq_send( zmq_socket_push, b%cur, 4, ZMQ_SNDMORE)
   if(rc /= 4) then
-    print *,  b%cur, bcur
-    print *,  'f77_zmq_send( zmq_socket_push, bcur, 4, ZMQ_SNDMORE)'
+    print *,  'f77_zmq_send( zmq_socket_push, b%cur, 4, ZMQ_SNDMORE)'
   endif
 
-  rc = f77_zmq_send( zmq_socket_push, pt2, 8*N_states, ZMQ_SNDMORE)
-  if(rc /= 8*N_states) then
-    print *,  b%cur, bcur
-    print *,  'f77_zmq_send( zmq_socket_push, pt2, 8*N_states, ZMQ_SNDMORE)'
-  endif
+  if (b%cur > 0) then
 
-  rc = f77_zmq_send( zmq_socket_push, b%val(1), 8*bcur, ZMQ_SNDMORE)
-  if(rc /= 8*bcur) then
-    print *,  b%cur, bcur
-    print *,  'f77_zmq_send( zmq_socket_push, b%val(1), 8*bcur, ZMQ_SNDMORE)'
-  endif
+      rc = f77_zmq_send( zmq_socket_push, pt2, 8*N_states, ZMQ_SNDMORE)
+      if(rc /= 8*N_states) then
+        print *,  'f77_zmq_send( zmq_socket_push, pt2, 8*N_states, ZMQ_SNDMORE)'
+      endif
 
-  rc = f77_zmq_send( zmq_socket_push, b%det(1,1,1), bit_kind*N_int*2*bcur, ZMQ_SNDMORE)
-  if(rc /= bit_kind*N_int*2*bcur) then
-    print *,  b%cur, bcur
-    print *,  'f77_zmq_send( zmq_socket_push, b%det(1,1,1), bit_kind*N_int*2*bcur, ZMQ_SNDMORE)'
+      rc = f77_zmq_send( zmq_socket_push, b%val(1), 8*b%cur, ZMQ_SNDMORE)
+      if(rc /= 8*b%cur) then
+        print *,  'f77_zmq_send( zmq_socket_push, b%val(1), 8*b%cur, ZMQ_SNDMORE)'
+      endif
+
+      rc = f77_zmq_send( zmq_socket_push, b%det(1,1,1), bit_kind*N_int*2*b%cur, ZMQ_SNDMORE)
+      if(rc /= bit_kind*N_int*2*b%cur) then
+        print *,  'f77_zmq_send( zmq_socket_push, b%det(1,1,1), bit_kind*N_int*2*b%cur, ZMQ_SNDMORE)'
+      endif
+
   endif
 
   rc = f77_zmq_send( zmq_socket_push, ntask, 4, ZMQ_SNDMORE)
   if(rc /= 4) then
-    print *,  b%cur, bcur
     print *,  'f77_zmq_send( zmq_socket_push, ntask, 4, ZMQ_SNDMORE)'
   endif
 
   rc = f77_zmq_send( zmq_socket_push, task_id(1), ntask*4, 0)
   if(rc /= 4*ntask) then
-    print *,  b%cur, bcur
     print *,  'f77_zmq_send( zmq_socket_push, task_id(1), ntask*4, 0)'
   endif
 
@@ -151,19 +147,23 @@ subroutine pull_selection_results(zmq_socket_pull, pt2, val, det, N, task_id, nt
     print *,  'f77_zmq_recv( zmq_socket_pull, N, 4, 0)'
   endif
 
-  rc = f77_zmq_recv( zmq_socket_pull, pt2, N_states*8, 0)
-  if(rc /= 8*N_states) then
-    print *,  'f77_zmq_recv( zmq_socket_pull, pt2, N_states*8, 0)'
-  endif
+  if (N>0) then
+      rc = f77_zmq_recv( zmq_socket_pull, pt2, N_states*8, 0)
+      if(rc /= 8*N_states) then
+        print *,  'f77_zmq_recv( zmq_socket_pull, pt2, N_states*8, 0)'
+      endif
 
-  rc = f77_zmq_recv( zmq_socket_pull, val(1), 8*N, 0)
-  if(rc /= 8*N) then
-    print *,  'f77_zmq_recv( zmq_socket_pull, val(1), 8*N, 0)'
-  endif
+      rc = f77_zmq_recv( zmq_socket_pull, val(1), 8*N, 0)
+      if(rc /= 8*N) then
+        print *,  'f77_zmq_recv( zmq_socket_pull, val(1), 8*N, 0)'
+      endif
 
-  rc = f77_zmq_recv( zmq_socket_pull, det(1,1,1), bit_kind*N_int*2*N, 0)
-  if(rc /= bit_kind*N_int*2*N) then
-    print *,  'f77_zmq_recv( zmq_socket_pull, det(1,1,1), bit_kind*N_int*2*N, 0)'
+      rc = f77_zmq_recv( zmq_socket_pull, det(1,1,1), bit_kind*N_int*2*N, 0)
+      if(rc /= bit_kind*N_int*2*N) then
+        print *,  'f77_zmq_recv( zmq_socket_pull, det(1,1,1), bit_kind*N_int*2*N, 0)'
+      endif
+  else
+      pt2(:) = 0.d0
   endif
 
   rc = f77_zmq_recv( zmq_socket_pull, ntask, 4, 0)
