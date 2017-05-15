@@ -270,7 +270,7 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
     
     ! Loop inside the beta column to gather all the connected alphas
     l_a = k_a+1
-    nmax = min(N_det_alpha_unique, N_det - l_a)
+    nmax = min(N_det_alpha_unique, N_det - l_a+1)
     do i=1,nmax
       lcol = psi_bilinear_matrix_columns(l_a)
       if (lcol /= kcol) exit
@@ -288,6 +288,7 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
     ! Compute Hij for all alpha singles
     ! ----------------------------------
 
+if (.False.) then
     tmp_det2(1:$N_int,2) = psi_det_beta_unique (1:$N_int, kcol)
     do i=1,n_singles_a
       l_a = singles_a(i)
@@ -300,6 +301,7 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
         ! single => sij = 0 
       enddo
     enddo
+endif
 
     
     ! Compute Hij for all alpha doubles
@@ -316,7 +318,6 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
       enddo
     enddo
     
-
 
     ! Single and double beta excitations
     ! ==================================
@@ -340,7 +341,7 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
     
     ! Loop inside the alpha row to gather all the connected betas
     l_b = k_b+1
-    nmax = min(N_det_beta_unique, N_det - l_b)
+    nmax = min(N_det_beta_unique, N_det - l_b+1)
     do i=1,nmax
       lrow = psi_bilinear_matrix_transp_rows(l_b)
       if (lrow /= krow) exit
@@ -358,6 +359,7 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
     ! Compute Hij for all beta singles
     ! ----------------------------------
     
+!if(.False.)then
     tmp_det2(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, krow)
     do i=1,n_singles_b
       l_b = singles_b(i)
@@ -371,6 +373,7 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
         ! single => sij = 0 
       enddo
     enddo
+!endif
     
     ! Compute Hij for all beta doubles
     ! ----------------------------------

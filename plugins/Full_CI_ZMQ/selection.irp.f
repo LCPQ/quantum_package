@@ -322,56 +322,60 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
   call bitstring_to_list_ab(hole    , hole_list    , N_holes    , N_int)
   call bitstring_to_list_ab(particle, particle_list, N_particles, N_int)
 
-!  integer :: l_a, nmax
-!  integer, allocatable :: indices(:), exc_degree(:), iorder(:)
-!  allocate (indices(N_det),  &
-!            exc_degree(max(N_det_alpha_unique,N_det_beta_unique)))
-!  k=1
-!  do i=1,N_det_alpha_unique
-!    call get_excitation_degree_spin(psi_det_alpha_unique(1,i), &
-!      psi_det_generators(1,1,i_generator), exc_degree(i), N_int)
-!  enddo
-!
-!  do j=1,N_det_beta_unique
-!    call get_excitation_degree_spin(psi_det_beta_unique(1,j), &
-!      psi_det_generators(1,2,i_generator), nt, N_int)
-!    if (nt > 2) cycle
-!    do l_a=psi_bilinear_matrix_columns_loc(j), psi_bilinear_matrix_columns_loc(j+1)-1
-!      i = psi_bilinear_matrix_rows(l_a)
-!      if (nt + exc_degree(i) <= 4) then
-!        indices(k) = psi_det_sorted_order(psi_bilinear_matrix_order(l_a))
-!        k=k+1
-!      endif
-!    enddo
-!  enddo
-!  
-!  do i=1,N_det_beta_unique
-!    call get_excitation_degree_spin(psi_det_beta_unique(1,i), &
-!      psi_det_generators(1,2,i_generator), exc_degree(i), N_int)
-!  enddo
-!
-!  do j=1,N_det_alpha_unique
-!    call get_excitation_degree_spin(psi_det_alpha_unique(1,j), &
-!      psi_det_generators(1,1,i_generator), nt, N_int)
-!    if (nt > 1) cycle
-!    do l_a=psi_bilinear_matrix_transp_rows_loc(j), psi_bilinear_matrix_transp_rows_loc(j+1)-1
-!      i = psi_bilinear_matrix_transp_columns(l_a)
-!      if (exc_degree(i) < 3) cycle
-!      if (nt + exc_degree(i) <= 4) then
-!        indices(k) = psi_det_sorted_order(                   &
-!                        psi_bilinear_matrix_order(           &
-!                          psi_bilinear_matrix_transp_order(l_a)))
-!        k=k+1
-!      endif
-!    enddo
-!  enddo
-!  nmax=k-1
-!  allocate(iorder(nmax))
-!  do i=1,nmax
-!    iorder(i) = i
-!  enddo
-!  call isort(indices,iorder,nmax)
+  integer :: l_a, nmax
+  integer, allocatable :: indices(:), exc_degree(:), iorder(:)
+  allocate (indices(N_det),  &
+            exc_degree(max(N_det_alpha_unique,N_det_beta_unique)))
+  k=1
+  do i=1,N_det_alpha_unique
+    call get_excitation_degree_spin(psi_det_alpha_unique(1,i), &
+      psi_det_generators(1,1,i_generator), exc_degree(i), N_int)
+  enddo
 
+  PROVIDE psi_bilinear_matrix_columns_loc psi_det_alpha_unique psi_det_beta_unique
+  PROVIDE psi_bilinear_matrix_rows psi_det_sorted_order psi_bilinear_matrix_order
+  PROVIDE psi_bilinear_matrix_transp_rows_loc psi_bilinear_matrix_transp_columns
+  PROVIDE psi_bilinear_matrix_transp_order
+
+  do j=1,N_det_beta_unique
+    call get_excitation_degree_spin(psi_det_beta_unique(1,j), &
+      psi_det_generators(1,2,i_generator), nt, N_int)
+    if (nt > 2) cycle
+    do l_a=psi_bilinear_matrix_columns_loc(j), psi_bilinear_matrix_columns_loc(j+1)-1
+      i = psi_bilinear_matrix_rows(l_a)
+      if (nt + exc_degree(i) <= 4) then
+        indices(k) = psi_det_sorted_order(psi_bilinear_matrix_order(l_a))
+        k=k+1
+      endif
+    enddo
+  enddo
+  
+  do i=1,N_det_beta_unique
+    call get_excitation_degree_spin(psi_det_beta_unique(1,i), &
+      psi_det_generators(1,2,i_generator), exc_degree(i), N_int)
+  enddo
+
+  do j=1,N_det_alpha_unique
+    call get_excitation_degree_spin(psi_det_alpha_unique(1,j), &
+      psi_det_generators(1,1,i_generator), nt, N_int)
+    if (nt > 1) cycle
+    do l_a=psi_bilinear_matrix_transp_rows_loc(j), psi_bilinear_matrix_transp_rows_loc(j+1)-1
+      i = psi_bilinear_matrix_transp_columns(l_a)
+      if (exc_degree(i) < 3) cycle
+      if (nt + exc_degree(i) <= 4) then
+        indices(k) = psi_det_sorted_order(                   &
+                        psi_bilinear_matrix_order(           &
+                          psi_bilinear_matrix_transp_order(l_a)))
+        k=k+1
+      endif
+    enddo
+  enddo
+  nmax=k-1
+  allocate(iorder(nmax))
+  do i=1,nmax
+    iorder(i) = i
+  enddo
+  call isort(indices,iorder,nmax)
 
   preinteresting(0) = 0
   prefullinteresting(0) = 0
@@ -381,9 +385,9 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
     negMask(i,2) = not(psi_det_generators(i,2,i_generator))
   end do
   
-!  do k=1,nmax
-!    i = indices(k)
-   do i=1,N_det
+  do k=1,nmax
+    i = indices(k)
+!   do i=1,N_det
     mobMask(1,1) = iand(negMask(1,1), psi_det_sorted(1,1,i))
     mobMask(1,2) = iand(negMask(1,2), psi_det_sorted(1,2,i))
     nt = popcnt(mobMask(1, 1)) + popcnt(mobMask(1, 2)) 

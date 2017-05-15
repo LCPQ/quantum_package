@@ -21,6 +21,11 @@ subroutine run_selection_slave(thread,iproc,energy)
   logical :: done
   double precision :: pt2(N_states)
 
+  PROVIDE psi_bilinear_matrix_columns_loc psi_det_alpha_unique psi_det_beta_unique
+  PROVIDE psi_bilinear_matrix_rows psi_det_sorted_order psi_bilinear_matrix_order
+  PROVIDE psi_bilinear_matrix_transp_rows_loc psi_bilinear_matrix_transp_columns
+  PROVIDE psi_bilinear_matrix_transp_order
+
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_push      = new_zmq_push_socket(thread)
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)

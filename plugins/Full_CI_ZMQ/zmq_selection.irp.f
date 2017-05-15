@@ -17,8 +17,12 @@ subroutine ZMQ_selection(N_in, pt2)
 
   N = max(N_in,1)
   if (.True.) then
-    PROVIDE pt2_e0_denominator
-    provide nproc
+    PROVIDE pt2_e0_denominator nproc
+    PROVIDE psi_bilinear_matrix_columns_loc psi_det_alpha_unique psi_det_beta_unique
+    PROVIDE psi_bilinear_matrix_rows psi_det_sorted_order psi_bilinear_matrix_order
+    PROVIDE psi_bilinear_matrix_transp_rows_loc psi_bilinear_matrix_transp_columns
+    PROVIDE psi_bilinear_matrix_transp_order
+
     call new_parallel_job(zmq_to_qp_run_socket,"selection")
     call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
     call create_selection_buffer(N, N*2, b)
