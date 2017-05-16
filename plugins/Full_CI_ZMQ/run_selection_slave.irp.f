@@ -132,7 +132,11 @@ subroutine push_selection_results(zmq_socket_push, pt2, b, task_id, ntask)
   endif
 
 ! Activate is zmq_socket_push is a REQ
-!  rc = f77_zmq_recv( zmq_socket_push, task_id(1), ntask*4, 0)
+IRP_IF ZMQ_PUSH
+IRP_ELSE
+  rc = f77_zmq_recv( zmq_socket_push, task_id(1), ntask*4, 0)
+IRP_ENDIF
+
 end subroutine
 
 
@@ -182,7 +186,11 @@ subroutine pull_selection_results(zmq_socket_pull, pt2, val, det, N, task_id, nt
   endif
 
 ! Activate is zmq_socket_pull is a REP
-!  rc = f77_zmq_send( zmq_socket_pull, task_id(1), ntask*4, 0)
+IRP_IF ZMQ_PUSH
+IRP_ELSE
+  rc = f77_zmq_send( zmq_socket_pull, task_id(1), ntask*4, 0)
+IRP_ENDIF
+
 end subroutine
  
  
