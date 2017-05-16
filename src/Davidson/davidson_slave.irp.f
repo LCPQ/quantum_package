@@ -10,6 +10,7 @@ program davidson_slave
   
   call provide_everything
   call switch_qp_run_to_master
+  call omp_set_nested(.True.)
   
   zmq_context = f77_zmq_ctx_new ()
   zmq_state = 'davidson'

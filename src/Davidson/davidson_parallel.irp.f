@@ -63,13 +63,14 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
   character*(512)                :: msg
   integer                        :: imin, imax, ishift, istep
   
+  integer, allocatable           :: psi_det_read(:,:,:)
   double precision, allocatable  :: v_0(:,:), s_0(:,:), u_t(:,:)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: u_t, v_0, s_0
 
   ! Get wave function (u_t)
   ! -----------------------
 
-  integer :: rc
+  integer                        :: rc
   integer                        :: N_states_read, N_det_read, psi_det_size_read
   integer                        :: N_det_selectors_read, N_det_generators_read
   double precision               :: energy(N_st)
@@ -107,12 +108,11 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
     TOUCH N_det
   endif
 
+  allocate(v_0(sze,N_st), s_0(sze,N_st),u_t(N_st,N_det_read))
 
-  allocate(v_0(sze,N_st), s_0(sze,N_st),u_t(N_st,N_det))
-
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,0)
-  if (rc /= N_int*2*N_det*bit_kind) then
-    print *, 'f77_zmq_recv(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,0)'
+  rc = f77_zmq_recv(zmq_to_qp_run_socket,psi_det,N_int*2*N_det_read*bit_kind,0)
+  if (rc /= N_int*2*N_det_read*bit_kind) then
+    print *, 'f77_zmq_recv(zmq_to_qp_run_socket,psi_det,N_int*2*N_det_read*bit_kind,0)'
     stop 'error'
   endif
 
@@ -131,6 +131,7 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
 
   ! Run tasks
   ! ---------
+
 
   do
     v_0 = 0.d0
@@ -168,12 +169,15 @@ subroutine davidson_push_results(zmq_socket_push, v_0, s_0, task_id)
   if(rc /= 4) stop "davidson_push_results failed to push task_id"
 
 ! Activate is zmq_socket_push is a REQ
-!  integer :: idummy
-!  rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0)
-!  if (rc /= 4) then
-!    print *, irp_here, ': f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
-!    stop 'error'
-!  endif
+IRP_IF ZMQ_PUSH
+IRP_ELSE
+  integer :: idummy
+  rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0)
+  if (rc /= 4) then
+    print *, irp_here, ': f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
+    stop 'error'
+  endif
+IRP_ENDIF
 
 end subroutine
 
@@ -200,11 +204,14 @@ subroutine davidson_pull_results(zmq_socket_pull, v_0, s_0, task_id)
   if(rc /= 4) stop "davidson_pull_results failed to pull task_id"
 
 ! Activate if zmq_socket_pull is a REP
-!  rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)
-!  if (rc /= 4) then
-!    print *,  irp_here, ' : f77_zmq_send (zmq_socket_pull,...'
-!    stop 'error'
-!  endif
+IRP_IF ZMQ_PUSH
+IRP_ELSE
+  rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)
+  if (rc /= 4) then
+    print *,  irp_here, ' : f77_zmq_send (zmq_socket_pull,...'
+    stop 'error'
+  endif
+IRP_ENDIF
 
 end subroutine
 
@@ -292,10 +299,6 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
   
   if(N_st /= N_states_diag .or. sze < N_det) stop "assert fail in H_S2_u_0_nstates"
-
-  ASSERT (Nint > 0)
-  ASSERT (Nint == N_int)
-  ASSERT (n>0)
 
   call new_parallel_job(zmq_to_qp_run_socket,'davidson')
   

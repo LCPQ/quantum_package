@@ -20,7 +20,7 @@ integer*8 function spin_det_search_key(det,Nint)
   do i=2,Nint
     spin_det_search_key = ieor(spin_det_search_key,det(i))
   enddo
-  spin_det_search_key = spin_det_search_key+1_bit_kind-unsigned_shift
+  spin_det_search_key = spin_det_search_key+unsigned_shift
 end
 
 
@@ -189,9 +189,7 @@ integer function get_index_in_psi_det_alpha_unique(key,Nint)
   enddo
   i += 1
 
-  if (i > N_det_alpha_unique) then
-    return
-  endif
+  ASSERT (i <= N_det_alpha_unique)
 
   !DIR$ FORCEINLINE
   do while (spin_det_search_key(psi_det_alpha_unique(1,i),Nint) == det_ref)
@@ -213,6 +211,7 @@ integer function get_index_in_psi_det_alpha_unique(key,Nint)
     endif
     i += 1
     if (i > N_det_alpha_unique) then
+      ASSERT (get_index_in_psi_det_alpha_unique > 0)
       return
     endif
 
@@ -270,9 +269,7 @@ integer function get_index_in_psi_det_beta_unique(key,Nint)
   enddo
   i += 1
 
-  if (i > N_det_beta_unique) then
-    return
-  endif
+  ASSERT (i <= N_det_beta_unique)
 
   !DIR$ FORCEINLINE
   do while (spin_det_search_key(psi_det_beta_unique(1,i),Nint) == det_ref)
@@ -294,6 +291,7 @@ integer function get_index_in_psi_det_beta_unique(key,Nint)
     endif
     i += 1
     if (i > N_det_beta_unique) then
+      ASSERT (get_index_in_psi_det_beta_unique > 0)
       return
     endif
 
@@ -413,7 +411,12 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
   !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,j,k,l)
   do k=1,N_det
     i = get_index_in_psi_det_alpha_unique(psi_det(1,1,k),N_int)
+    ASSERT (i>0)
+    ASSERT (i<=N_det_alpha_unique)
+
     j = get_index_in_psi_det_beta_unique (psi_det(1,2,k),N_int)
+    ASSERT (j>0)
+    ASSERT (j<=N_det_alpha_unique)
 
     do l=1,N_states
       psi_bilinear_matrix_values(k,l) = psi_coef(k,l)
@@ -421,6 +424,7 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
     psi_bilinear_matrix_rows(k) = i
     psi_bilinear_matrix_columns(k) = j
     to_sort(k) = int(N_det_alpha_unique,8) * int(j-1,8) + int(i,8)
+    ASSERT (to_sort(k) > 0_8)
     psi_bilinear_matrix_order(k) = k
   enddo
   !$OMP END PARALLEL DO
@@ -431,6 +435,12 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
     call dset_order(psi_bilinear_matrix_values(1,l),psi_bilinear_matrix_order,N_det)
   enddo
   deallocate(to_sort)
+  ASSERT (minval(psi_bilinear_matrix_rows) == 1)
+  ASSERT (minval(psi_bilinear_matrix_columns) == 1)
+  ASSERT (minval(psi_bilinear_matrix_order) == 1)
+  ASSERT (maxval(psi_bilinear_matrix_rows) == N_det_alpha_unique)
+  ASSERT (maxval(psi_bilinear_matrix_columns) == N_det_beta_unique)
+  ASSERT (maxval(psi_bilinear_matrix_order) == N_det)
 END_PROVIDER
 
 
@@ -438,7 +448,7 @@ BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_reverse , (N_det) ]
   use bitmasks
   implicit none
   BEGIN_DOC
-! Order which allors to go from psi_bilinear_matrix to psi_det
+! Order which allows to go from psi_bilinear_matrix to psi_det
   END_DOC
   integer                        :: k
   !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(k)
@@ -446,6 +456,8 @@ BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_reverse , (N_det) ]
     psi_bilinear_matrix_order_reverse(psi_bilinear_matrix_order(k)) = k
   enddo
   !$OMP END PARALLEL DO
+  ASSERT (minval(psi_bilinear_matrix_order) == 1)
+  ASSERT (maxval(psi_bilinear_matrix_order) == N_det)
 END_PROVIDER
 
 
@@ -471,8 +483,13 @@ BEGIN_PROVIDER [ integer, psi_bilinear_matrix_columns_loc, (N_det_beta_unique+1)
       l = psi_bilinear_matrix_columns(k)
       psi_bilinear_matrix_columns_loc(l) = k
     endif
+    if (psi_bilinear_matrix_columns(k) < 1) then
+     stop '(psi_bilinear_matrix_columns(k) < 1)'
+    endif
   enddo
   psi_bilinear_matrix_columns_loc(N_det_beta_unique+1) = N_det+1
+  ASSERT (minval(psi_bilinear_matrix_columns_loc) == 1)
+  ASSERT (maxval(psi_bilinear_matrix_columns_loc) == N_det+1)
 END_PROVIDER
 
 BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_states) ]
@@ -496,20 +513,27 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_
   integer*8, allocatable :: to_sort(:)
   allocate(to_sort(N_det))
   !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,j,k,l)
-  !$OMP DO COLLAPSE(2)
   do l=1,N_states
+    !$OMP DO
     do k=1,N_det
       psi_bilinear_matrix_transp_values (k,l) = psi_bilinear_matrix_values (k,l)
     enddo
+    !$OMP ENDDO
   enddo
-  !$OMP ENDDO 
   !$OMP DO 
   do k=1,N_det
     psi_bilinear_matrix_transp_columns(k) = psi_bilinear_matrix_columns(k)
+    ASSERT (psi_bilinear_matrix_transp_columns(k) > 0)
+    ASSERT (psi_bilinear_matrix_transp_columns(k) <= N_det)
+
     psi_bilinear_matrix_transp_rows   (k) = psi_bilinear_matrix_rows   (k)
+    ASSERT (psi_bilinear_matrix_transp_rows(k) > 0)
+    ASSERT (psi_bilinear_matrix_transp_rows(k) <= N_det)
+
     i = psi_bilinear_matrix_transp_columns(k) 
     j = psi_bilinear_matrix_transp_rows   (k)
     to_sort(k) = int(N_det_beta_unique,8) * int(j-1,8) + int(i,8)
+    ASSERT (to_sort(k) > 0)
     psi_bilinear_matrix_transp_order(k) = k
   enddo
   !$OMP ENDDO
@@ -521,6 +545,12 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_
     call dset_order(psi_bilinear_matrix_transp_values(1,l),psi_bilinear_matrix_transp_order,N_det)
   enddo
   deallocate(to_sort)
+  ASSERT (minval(psi_bilinear_matrix_transp_columns) == 1)
+  ASSERT (minval(psi_bilinear_matrix_transp_rows) == 1)
+  ASSERT (minval(psi_bilinear_matrix_transp_order) == 1)
+  ASSERT (maxval(psi_bilinear_matrix_transp_columns) == N_det_beta_unique)
+  ASSERT (maxval(psi_bilinear_matrix_transp_rows) == N_det_alpha_unique)
+  ASSERT (maxval(psi_bilinear_matrix_transp_order) == N_det)
 END_PROVIDER
 
 BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_rows_loc, (N_det_alpha_unique+1) ]
@@ -542,6 +572,8 @@ BEGIN_PROVIDER [ integer, psi_bilinear_matrix_transp_rows_loc, (N_det_alpha_uniq
     endif
   enddo
   psi_bilinear_matrix_transp_rows_loc(N_det_alpha_unique+1) = N_det+1
+  ASSERT (minval(psi_bilinear_matrix_transp_rows_loc) == 1)
+  ASSERT (maxval(psi_bilinear_matrix_transp_rows_loc) == N_det+1)
 END_PROVIDER
 
 BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_transp_reverse , (N_det) ]
@@ -552,11 +584,14 @@ BEGIN_PROVIDER [ integer, psi_bilinear_matrix_order_transp_reverse , (N_det) ]
   END_DOC
   integer                        :: k
 
+  psi_bilinear_matrix_order_transp_reverse = -1
   !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(k)
   do k=1,N_det
     psi_bilinear_matrix_order_transp_reverse(psi_bilinear_matrix_transp_order(k)) = k
   enddo
   !$OMP END PARALLEL DO
+  ASSERT (minval(psi_bilinear_matrix_order_transp_reverse) == 1)
+  ASSERT (maxval(psi_bilinear_matrix_order_transp_reverse) == N_det)
 END_PROVIDER
 
 

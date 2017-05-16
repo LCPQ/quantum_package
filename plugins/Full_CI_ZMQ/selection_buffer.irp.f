@@ -53,11 +53,18 @@ subroutine merge_selection_buffers(b1, b2)
   BEGIN_DOC
 ! Merges the selection buffers b1 and b2 into b2
   END_DOC
-  type(selection_buffer), intent(in) :: b1
+  type(selection_buffer), intent(inout) :: b1
   type(selection_buffer), intent(inout) :: b2
   integer(bit_kind), pointer     :: detmp(:,:,:)
   double precision, pointer      :: val(:)
   integer                        :: i, i1, i2, k, nmwen
+  if (b1%cur == 0) return
+  do while (b1%val(b1%cur) > b2%mini)
+    b1%cur = b1%cur-1
+    if (b1%cur == 0) then
+      return
+    endif
+  enddo
   nmwen = min(b1%N, b1%cur+b2%cur)
   allocate( val(size(b1%val)), detmp(N_int, 2, size(b1%det,3)) )
   i1=1
@@ -106,6 +113,7 @@ subroutine sort_selection_buffer(b)
   integer(bit_kind), pointer :: detmp(:,:,:)
   integer :: i, nmwen
   logical, external :: detEq
+  if (b%cur == 0) return
   nmwen = min(b%N, b%cur)
 
   allocate(iorder(b%cur), detmp(N_int, 2, size(b%det,3)))
