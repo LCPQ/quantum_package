@@ -63,7 +63,9 @@ subroutine run_wf
       ! --------
 
       print *,  'Davidson'
-      call davidson_slave_tcp(i)
+      call omp_set_nested(.True.)
+      call davidson_slave_tcp(0)
+      call omp_set_nested(.False.)
       print *,  'Davidson done'
 
     else if (trim(zmq_state) == 'pt2') then

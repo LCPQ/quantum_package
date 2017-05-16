@@ -129,6 +129,8 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
     stop 'error'
   endif
 
+  PROVIDE psi_bilinear_matrix_columns psi_bilinear_matrix_transp_rows_loc
+
   ! Run tasks
   ! ---------
 

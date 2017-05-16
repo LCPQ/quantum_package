@@ -20,7 +20,7 @@ integer*8 function spin_det_search_key(det,Nint)
   do i=2,Nint
     spin_det_search_key = ieor(spin_det_search_key,det(i))
   enddo
-  spin_det_search_key = spin_det_search_key+1_bit_kind-unsigned_shift
+  spin_det_search_key = spin_det_search_key+unsigned_shift
 end
 
 
@@ -414,7 +414,8 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
   do k=1,N_det
     i = get_index_in_psi_det_alpha_unique(psi_det(1,1,k),N_int)
     j = get_index_in_psi_det_beta_unique (psi_det(1,2,k),N_int)
-
+    if (i < 1) stop 'i<1'
+    if (j < 1) stop 'j<1'
     do l=1,N_states
       psi_bilinear_matrix_values(k,l) = psi_coef(k,l)
     enddo
@@ -471,6 +472,9 @@ BEGIN_PROVIDER [ integer, psi_bilinear_matrix_columns_loc, (N_det_beta_unique+1)
       l = psi_bilinear_matrix_columns(k)
       psi_bilinear_matrix_columns_loc(l) = k
     endif
+    if (psi_bilinear_matrix_columns(k) < 1) then
+     stop '(psi_bilinear_matrix_columns(k) < 1)'
+    endif
   enddo
   psi_bilinear_matrix_columns_loc(N_det_beta_unique+1) = N_det+1
 END_PROVIDER
@@ -496,17 +500,23 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_transp_values, (N_det,N_
   integer*8, allocatable :: to_sort(:)
   allocate(to_sort(N_det))
   !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,j,k,l)
-  !$OMP DO COLLAPSE(2)
   do l=1,N_states
+    !$OMP DO
     do k=1,N_det
       psi_bilinear_matrix_transp_values (k,l) = psi_bilinear_matrix_values (k,l)
     enddo
+    !$OMP ENDDO
   enddo
-  !$OMP ENDDO 
   !$OMP DO 
   do k=1,N_det
     psi_bilinear_matrix_transp_columns(k) = psi_bilinear_matrix_columns(k)
+    if (psi_bilinear_matrix_transp_columns(k) < 1) then
+     stop '(psi_bilinear_matrix_transp_columns(k) < 1)'
+    endif
     psi_bilinear_matrix_transp_rows   (k) = psi_bilinear_matrix_rows   (k)
+    if (psi_bilinear_matrix_transp_rows(k) < 1) then
+     stop '(psi_bilinear_matrix_transp_rows(k) < 1)'
+    endif
     i = psi_bilinear_matrix_transp_columns(k) 
     j = psi_bilinear_matrix_transp_rows   (k)
     to_sort(k) = int(N_det_beta_unique,8) * int(j-1,8) + int(i,8)
