@@ -132,7 +132,7 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
   integer, allocatable           :: singles_a(:)
   integer, allocatable           :: singles_b(:)
   integer, allocatable           :: idx(:), idx0(:)
-  integer                        :: maxab, n_singles_a, n_singles_b, kcol_prev, nmax
+  integer                        :: maxab, n_singles_a, n_singles_b, kcol_prev
   integer*8                      :: k8
   double precision, allocatable  :: v_t(:,:), s_t(:,:)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: v_t, s_t
@@ -161,7 +161,7 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
       !$OMP          istart, iend, istep,        &
       !$OMP          ishift, idx0, u_t, maxab, v_0, s_0)             &
       !$OMP   PRIVATE(krow, kcol, tmp_det, spindet, k_a, k_b, i,     &
-      !$OMP          lcol, lrow, l_a, l_b, nmax,         &
+      !$OMP          lcol, lrow, l_a, l_b,                           &
       !$OMP          buffer, doubles, n_doubles, &
       !$OMP          tmp_det2, hij, sij, idx, l, kcol_prev, v_t,     &
       !$OMP          singles_a, n_singles_a, singles_b,              &
@@ -209,8 +209,7 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
 
       l_a = psi_bilinear_matrix_columns_loc(lcol)
 
-      nmax = psi_bilinear_matrix_columns_loc(lcol+1) - l_a
-      do j=1,nmax
+      do j=1,psi_bilinear_matrix_columns_loc(lcol+1) - l_a
         lrow = psi_bilinear_matrix_rows(l_a)
         buffer(1:$N_int,j) = psi_det_alpha_unique(1:$N_int, lrow)
         idx(j) = l_a
@@ -270,14 +269,14 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
     
     ! Loop inside the beta column to gather all the connected alphas
     l_a = k_a+1
-    nmax = min(N_det_alpha_unique, N_det - l_a+1)
-    do i=1,nmax
+    do i=1,N_det_alpha_unique
       lcol = psi_bilinear_matrix_columns(l_a)
       if (lcol /= kcol) exit
       lrow = psi_bilinear_matrix_rows(l_a)
       buffer(1:$N_int,i) = psi_det_alpha_unique(1:$N_int, lrow)
       idx(i) = l_a
       l_a = l_a+1
+      if (l_a > N_det) exit
     enddo
     i = i-1
     
@@ -288,7 +287,6 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
     ! Compute Hij for all alpha singles
     ! ----------------------------------
 
-if (.False.) then
     tmp_det2(1:$N_int,2) = psi_det_beta_unique (1:$N_int, kcol)
     do i=1,n_singles_a
       l_a = singles_a(i)
@@ -301,7 +299,6 @@ if (.False.) then
         ! single => sij = 0 
       enddo
     enddo
-endif
 
     
     ! Compute Hij for all alpha doubles
@@ -341,14 +338,14 @@ endif
     
     ! Loop inside the alpha row to gather all the connected betas
     l_b = k_b+1
-    nmax = min(N_det_beta_unique, N_det - l_b+1)
-    do i=1,nmax
+    do i=1,N_det_beta_unique
       lrow = psi_bilinear_matrix_transp_rows(l_b)
       if (lrow /= krow) exit
       lcol = psi_bilinear_matrix_transp_columns(l_b)
       buffer(1:$N_int,i) = psi_det_beta_unique(1:$N_int, lcol)
       idx(i) = l_b
       l_b = l_b+1
+      if (l_b > N_det) exit
     enddo
     i = i-1
   
@@ -359,7 +356,6 @@ endif
     ! Compute Hij for all beta singles
     ! ----------------------------------
     
-!if(.False.)then
     tmp_det2(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, krow)
     do i=1,n_singles_b
       l_b = singles_b(i)
@@ -373,7 +369,6 @@ endif
         ! single => sij = 0 
       enddo
     enddo
-!endif
     
     ! Compute Hij for all beta doubles
     ! ----------------------------------
