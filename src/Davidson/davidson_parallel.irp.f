@@ -119,7 +119,7 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
   rc = f77_zmq_recv(zmq_to_qp_run_socket,u_t,size(u_t)*8,0)
   if (rc /= size(u_t)*8) then
     print *,  rc, size(u_t)*8
-    print *, 'f77_zmq_recv(zmq_to_qp_run_socket,u_t,size(u_t)×8,0)'
+    print *, 'f77_zmq_recv(zmq_to_qp_run_socket,u_t,size(u_t)*8,0)'
     stop 'error'
   endif
 

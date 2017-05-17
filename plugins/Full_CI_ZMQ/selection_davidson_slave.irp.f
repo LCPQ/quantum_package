@@ -63,6 +63,7 @@ subroutine run_wf
       ! --------
 
       print *,  'Davidson'
+      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
       call omp_set_nested(.True.)
       call davidson_slave_tcp(0)
       call omp_set_nested(.False.)
