@@ -67,6 +67,7 @@ END_PROVIDER
       enddo
     enddo
 
+    if (k == N_det) cycle
     l = k+1
     lrow = psi_bilinear_matrix_rows(l) 
     lcol = psi_bilinear_matrix_columns(l) 
@@ -90,7 +91,9 @@ END_PROVIDER
       lcol = psi_bilinear_matrix_columns(l) 
     enddo
 
-    l = psi_bilinear_matrix_order_reverse(k)+1
+    l = psi_bilinear_matrix_order_reverse(k)
+    if (l == N_det) cycle
+    l = l+1
     ! Fix alpha determinant, loop over betas
     lrow = psi_bilinear_matrix_transp_rows(l) 
     lcol = psi_bilinear_matrix_transp_columns(l) 
