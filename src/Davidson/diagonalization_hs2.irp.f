@@ -220,7 +220,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
       ! -----------------------------------------
       
        
-      if (distributed_davidson) then
+      if ((sze > 100000).and.distributed_davidson) then
           call H_S2_u_0_nstates_zmq   (W(1,shift+1),S(1,shift+1),U(1,shift+1),N_st_diag,sze)
       else
           call H_S2_u_0_nstates_openmp(W(1,shift+1),S(1,shift+1),U(1,shift+1),N_st_diag,sze)
@@ -462,7 +462,7 @@ subroutine u_0_H_u_0(e_0,u_0,n,keys_tmp,Nint,N_st,sze)
   double precision               :: u_dot_u,u_dot_v,diag_H_mat_elem
   integer                        :: i,j
 
-  if (distributed_davidson) then
+  if ((sze > 100000).and.distributed_davidson) then
     allocate (v_0(sze,N_states_diag),s_0(sze,N_states_diag), u_1(sze,N_states_diag))
     u_1(1:sze,1:N_states) = u_0(1:sze,1:N_states) 
     u_1(1:sze,N_states+1:N_states_diag) = 0.d0
