@@ -294,8 +294,9 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
   integer(bit_kind) :: mobMask(N_int, 2), negMask(N_int, 2)
   integer,allocatable               :: preinteresting(:), prefullinteresting(:), interesting(:), fullinteresting(:)
   integer(bit_kind), allocatable :: minilist(:, :, :), fullminilist(:, :, :)
+  logical, allocatable           :: banned(:,:,:), bannedOrb(:,:)
   
-  logical :: monoAdo, monoBdo;
+  logical :: monoAdo, monoBdo
   integer :: maskInd
 
   PROVIDE fragment_count
@@ -303,8 +304,6 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
   monoAdo = .true.
   monoBdo = .true.
   
-  allocate(minilist(N_int, 2, N_det_selectors), fullminilist(N_int, 2, N_det))
-  allocate(preinteresting(0:N_det_selectors), prefullinteresting(0:N_det), interesting(0:N_det_selectors), fullinteresting(0:N_det))
   
   do k=1,N_int
     hole    (k,1) = iand(psi_det_generators(k,1,i_generator), hole_mask(k,1))
@@ -370,13 +369,18 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
       endif
     enddo
   enddo
+  deallocate(exc_degree)
   nmax=k-1
+
   allocate(iorder(nmax))
   do i=1,nmax
     iorder(i) = i
   enddo
   call isort(indices,iorder,nmax)
+  deallocate(iorder)
 
+  allocate(preinteresting(0:N_det_selectors), prefullinteresting(0:N_det), &
+            interesting(0:N_det_selectors), fullinteresting(0:N_det))
   preinteresting(0) = 0
   prefullinteresting(0) = 0
   
@@ -387,7 +391,6 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
   
   do k=1,nmax
     i = indices(k)
-!   do i=1,N_det
     mobMask(1,1) = iand(negMask(1,1), psi_det_sorted(1,1,i))
     mobMask(1,2) = iand(negMask(1,2), psi_det_sorted(1,2,i))
     nt = popcnt(mobMask(1, 1)) + popcnt(mobMask(1, 2)) 
@@ -411,8 +414,11 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
       end if
     end if
   end do
+  deallocate(indices)
   
 
+  allocate(minilist(N_int, 2, N_det_selectors), fullminilist(N_int, 2, N_det))
+  allocate(banned(mo_tot_num, mo_tot_num,2), bannedOrb(mo_tot_num, 2))
   maskInd = -1
   integer :: nb_count
   do s1=1,2
@@ -493,8 +499,6 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
         if(s1 == s2) ib = i1+1
         monoAdo = .true.
         do i2=N_holes(s2),ib,-1   ! Generate low excitations first
-          logical                        :: banned(mo_tot_num, mo_tot_num,2)
-          logical                        :: bannedOrb(mo_tot_num, 2)
           
           h2 = hole_list(i2,s2)
           call apply_hole(pmask, s2,h2, mask, ok, N_int)
@@ -534,6 +538,8 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
       enddo
     enddo
   enddo
+  deallocate(preinteresting, prefullinteresting, interesting, fullinteresting)
+  deallocate(minilist, fullminilist, banned, bannedOrb)
 end subroutine
 
 

@@ -5,7 +5,8 @@ program pt2_slave
   END_DOC
 
   read_wf = .False.
-  SOFT_TOUCH read_wf
+  distributed_davidson = .False.
+  SOFT_TOUCH read_wf distributed_davidson
   call provide_everything
   call switch_qp_run_to_master
   call run_wf
