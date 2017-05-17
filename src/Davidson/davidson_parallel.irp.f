@@ -298,7 +298,8 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
 
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
   
-  if(N_st /= N_states_diag .or. sze < N_det) stop "assert fail in H_S2_u_0_nstates"
+  ASSERT (N_st == N_states_diag)
+  ASSERT (sze >= N_det) 
 
   call new_parallel_job(zmq_to_qp_run_socket,'davidson')
   
