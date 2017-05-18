@@ -30,7 +30,6 @@ subroutine run_selection_slave(thread,iproc,energy)
   zmq_socket_push      = new_zmq_push_socket(thread)
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   if(worker_id == -1) then
-    print *, "WORKER -1"
     call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
     call end_zmq_push_socket(zmq_socket_push,thread)
     return
@@ -52,13 +51,13 @@ subroutine run_selection_slave(thread,iproc,energy)
         call create_selection_buffer(N, N*2, buf)
         call create_selection_buffer(N, N*2, buf2)
       else
-        if(N /= buf%N) stop "N changed... wtf man??"
+        ASSERT (N == buf%N)
       end if
       call select_connected(i_generator,energy,pt2,buf,0)
     endif
 
     if(done .or. ctask == size(task_id)) then
-      if(buf%N == 0 .and. ctask > 0) stop "uninitialized selection_buffer"
+      ASSERT (.not.(buf%N == 0 .and. ctask > 0))
       do i=1, ctask
          call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i))
       end do
