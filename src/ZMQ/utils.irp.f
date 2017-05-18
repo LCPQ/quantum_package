@@ -180,14 +180,14 @@ function new_zmq_pair_socket(bind)
   endif
 
 
-  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 4, 4)
+  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 1, 4)
   if (rc /= 0) then
-    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 4, 4)'
+    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 1, 4)'
   endif
 
-  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 4, 4)
+  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 1, 4)
   if (rc /= 0) then
-    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 4, 4)'
+    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 1, 4)'
   endif
 
   rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_IMMEDIATE, 1, 4)
@@ -252,7 +252,7 @@ IRP_ENDIF
     stop 'Unable to set ZMQ_RCVBUF on pull socket'
   endif
   
-  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVHWM,4,4)
+  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVHWM,1,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_RCVHWM on pull socket'
   endif
@@ -327,7 +327,7 @@ IRP_ENDIF
 !    stop 'Unable to set ZMQ_LINGER on push socket'
 !  endif
   
-  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDHWM,4,4)
+  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDHWM,1,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_SNDHWM on push socket'
   endif

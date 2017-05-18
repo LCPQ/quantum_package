@@ -416,7 +416,7 @@ BEGIN_PROVIDER  [ double precision, psi_bilinear_matrix_values, (N_det,N_states)
 
     j = get_index_in_psi_det_beta_unique (psi_det(1,2,k),N_int)
     ASSERT (j>0)
-    ASSERT (j<=N_det_alpha_unique)
+    ASSERT (j<=N_det_beta_unique)
 
     do l=1,N_states
       psi_bilinear_matrix_values(k,l) = psi_coef(k,l)

@@ -1,29 +1,3 @@
-subroutine u_0_H_u_0(e_0,u_0,n,keys_tmp,Nint,N_st,sze)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Computes e_0 = <u_0|H|u_0>/<u_0|u_0>
-  !
-  ! n : number of determinants
-  !
-  END_DOC
-  integer, intent(in)            :: n,Nint, N_st, sze
-  double precision, intent(out)  :: e_0(N_st)
-  double precision, intent(inout) :: u_0(sze,N_st)
-  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
-  
-  double precision, allocatable  :: v_0(:,:), s_0(:,:)
-  double precision               :: u_dot_u,u_dot_v,diag_H_mat_elem
-  integer                        :: i,j
-
-  allocate (v_0(sze,N_st),s_0(sze,N_st))
-  call H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze)
-  do i=1,N_st
-    e_0(i) = u_dot_v(v_0(1,i),u_0(1,i),n)/u_dot_u(u_0(1,i),n)
-  enddo
-  deallocate (s_0, v_0)
-end
-
 BEGIN_PROVIDER [ double precision, psi_energy, (N_states) ]
   implicit none
   BEGIN_DOC
@@ -47,14 +21,14 @@ subroutine H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze)
   integer, intent(in)            :: N_st,sze
   double precision, intent(inout)  :: v_0(sze,N_st), s_0(sze,N_st), u_0(sze,N_st)
   integer :: k
-  double precision, allocatable  :: u_t(:,:)
+  double precision, allocatable  :: u_t(:,:), v_t(:,:), s_t(:,:)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: u_t
-  allocate(u_t(N_st,N_det))
+  allocate(u_t(N_st,N_det),v_t(N_st,N_det),s_t(N_st,N_det))
   do k=1,N_st
     call dset_order(u_0(1,k),psi_bilinear_matrix_order,N_det)
   enddo
-  v_0 = 0.d0
-  s_0 = 0.d0
+  v_t = 0.d0
+  s_t = 0.d0
   call dtranspose(                                                   &
       u_0,                                                           &
       size(u_0, 1),                                                  &
@@ -62,8 +36,22 @@ subroutine H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze)
       size(u_t, 1),                                                  &
       N_det, N_st)
 
-  call H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,1,N_det,0,1)
+  call H_S2_u_0_nstates_openmp_work(v_t,s_t,u_t,N_st,sze,1,N_det,0,1)
   deallocate(u_t)
+
+  call dtranspose(                                                   &
+      v_t,                                                           &
+      size(v_t, 1),                                                  &
+      v_0,                                                           &
+      size(v_0, 1),                                                  &
+      N_st, N_det)
+  call dtranspose(                                                   &
+      s_t,                                                           &
+      size(s_t, 1),                                                  &
+      s_0,                                                           &
+      size(s_0, 1),                                                  &
+      N_st, N_det)
+  deallocate(v_t,s_t)
 
   do k=1,N_st
     call dset_order(v_0(1,k),psi_bilinear_matrix_order_reverse,N_det)
@@ -74,47 +62,47 @@ subroutine H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze)
 end
 
 
-subroutine H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+subroutine H_S2_u_0_nstates_openmp_work(v_t,s_t,u_t,N_st,sze,istart,iend,ishift,istep)
   use bitmasks
   implicit none
   BEGIN_DOC
-  ! Computes v_0 = H|u_0> and s_0 = S^2 |u_0>
+  ! Computes v_t = H|u_t> and s_t = S^2 |u_t>
   !
   ! Default should be 1,N_det,0,1
   END_DOC
   integer, intent(in)            :: N_st,sze,istart,iend,ishift,istep
   double precision, intent(in)   :: u_t(N_st,N_det)
-  double precision, intent(out)  :: v_0(sze,N_st), s_0(sze,N_st) 
+  double precision, intent(out)  :: v_t(N_st,sze), s_t(N_st,sze) 
 
   
   PROVIDE ref_bitmask_energy N_int
 
   select case (N_int)
     case (1)
-      call H_S2_u_0_nstates_openmp_work_1(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+      call H_S2_u_0_nstates_openmp_work_1(v_t,s_t,u_t,N_st,sze,istart,iend,ishift,istep)
     case (2)
-      call H_S2_u_0_nstates_openmp_work_2(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+      call H_S2_u_0_nstates_openmp_work_2(v_t,s_t,u_t,N_st,sze,istart,iend,ishift,istep)
     case (3)
-      call H_S2_u_0_nstates_openmp_work_3(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+      call H_S2_u_0_nstates_openmp_work_3(v_t,s_t,u_t,N_st,sze,istart,iend,ishift,istep)
     case (4)
-      call H_S2_u_0_nstates_openmp_work_4(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+      call H_S2_u_0_nstates_openmp_work_4(v_t,s_t,u_t,N_st,sze,istart,iend,ishift,istep)
     case default
-      call H_S2_u_0_nstates_openmp_work_N_int(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+      call H_S2_u_0_nstates_openmp_work_N_int(v_t,s_t,u_t,N_st,sze,istart,iend,ishift,istep)
   end select
 end
 BEGIN_TEMPLATE
 
-subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,ishift,istep)
+subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_t,s_t,u_t,N_st,sze,istart,iend,ishift,istep)
   use bitmasks
   implicit none
   BEGIN_DOC
-  ! Computes v_0 = H|u_0> and s_0 = S^2 |u_0>
+  ! Computes v_t = H|u_t> and s_t = S^2 |u_t>
   !
   ! Default should be 1,N_det,0,1
   END_DOC
   integer, intent(in)            :: N_st,sze,istart,iend,ishift,istep
   double precision, intent(in)   :: u_t(N_st,N_det)
-  double precision, intent(out)  :: v_0(sze,N_st), s_0(sze,N_st) 
+  double precision, intent(out)  :: v_t(N_st,sze), s_t(N_st,sze) 
 
   double precision               :: hij, sij
   integer                        :: i,j,k,l
@@ -135,8 +123,6 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
   integer, allocatable           :: idx(:), idx0(:)
   integer                        :: maxab, n_singles_a, n_singles_b, kcol_prev
   integer*8                      :: k8
-  double precision, allocatable  :: v_t(:,:), s_t(:,:)
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: v_t, s_t
 
   maxab = max(N_det_alpha_unique, N_det_beta_unique)+1
   allocate(idx0(maxab))
@@ -159,14 +145,15 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
       !$OMP          psi_bilinear_matrix_transp_order, N_st,         &
       !$OMP          psi_bilinear_matrix_order_transp_reverse,       &
       !$OMP          psi_bilinear_matrix_columns_loc,                &
-      !$OMP          istart, iend, istep, irp_here,                  &
-      !$OMP          ishift, idx0, u_t, maxab, v_0, s_0)             &
+      !$OMP          psi_bilinear_matrix_transp_rows_loc,            &
+      !$OMP          istart, iend, istep, irp_here, v_t, s_t,        &
+      !$OMP          ishift, idx0, u_t, maxab)                       &
       !$OMP   PRIVATE(krow, kcol, tmp_det, spindet, k_a, k_b, i,     &
       !$OMP          lcol, lrow, l_a, l_b,                           &
       !$OMP          buffer, doubles, n_doubles,                     &
-      !$OMP          tmp_det2, hij, sij, idx, l, kcol_prev, v_t,     &
+      !$OMP          tmp_det2, hij, sij, idx, l, kcol_prev,          &
       !$OMP          singles_a, n_singles_a, singles_b,              &
-      !$OMP          n_singles_b, s_t, k8)
+      !$OMP          n_singles_b, k8)
   
   ! Alpha/Beta double excitations
   ! =============================
@@ -175,12 +162,9 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
       singles_a(maxab),                                              &
       singles_b(maxab),                                              &
       doubles(maxab),                                                &
-      idx(maxab),                                                    &
-      v_t(N_st,N_det), s_t(N_st,N_det))
-  kcol_prev=-1
+      idx(maxab))
 
-  v_t = 0.d0
-  s_t = 0.d0
+  kcol_prev=-1
 
   ASSERT (iend <= N_det)
   ASSERT (istart > 0)
@@ -194,20 +178,20 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
 
     kcol = psi_bilinear_matrix_columns(k_a)
     ASSERT (kcol <= N_det_beta_unique)
-    
+
     tmp_det(1:$N_int,1) = psi_det_alpha_unique(1:$N_int, krow)
     tmp_det(1:$N_int,2) = psi_det_beta_unique (1:$N_int, kcol)
-    
+
     if (kcol /= kcol_prev) then
       call get_all_spin_singles_$N_int(                              &
-          psi_det_beta_unique(1,kcol+1), idx0(kcol+1),               &
-          tmp_det(1,2), N_det_beta_unique-kcol,                      &
+          psi_det_beta_unique, idx0,                                 &
+          tmp_det(1,2), N_det_beta_unique,                           &
           singles_b, n_singles_b)
     endif
     kcol_prev = kcol
 
-    ! Loop over singly excited beta columns > current column
-    ! ------------------------------------------------------
+    ! Loop over singly excited beta columns
+    ! -------------------------------------
 
     do i=1,n_singles_b
       lcol = singles_b(i)
@@ -228,7 +212,7 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
         l_a = l_a+1
       enddo
       j = j-1
-      
+
       call get_all_spin_singles_$N_int(                              &
           buffer, idx, tmp_det(1,1), j,                              &
           singles_a, n_singles_a )
@@ -249,8 +233,6 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
         do l=1,N_st
           v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
           s_t(l,k_a) = s_t(l,k_a) + sij * u_t(l,l_a)
-          v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
-          s_t(l,l_a) = s_t(l,l_a) + sij * u_t(l,k_a)
         enddo
       enddo
 
@@ -288,7 +270,8 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
     spindet(1:$N_int) = tmp_det(1:$N_int,1)
     
     ! Loop inside the beta column to gather all the connected alphas
-    l_a = k_a+1
+    lcol = psi_bilinear_matrix_columns(k_a)
+    l_a = psi_bilinear_matrix_columns_loc(lcol)
     do i=1,N_det_alpha_unique
       if (l_a > N_det) exit
       lcol = psi_bilinear_matrix_columns(l_a)
@@ -321,7 +304,6 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
       call i_H_j_mono_spin( tmp_det, tmp_det2, $N_int, 1, hij)
 
       do l=1,N_st
-        v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! single => sij = 0 
       enddo
@@ -340,7 +322,6 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
 
       call i_H_j_double_spin( tmp_det(1,1), psi_det_alpha_unique(1, lrow), $N_int, hij)
       do l=1,N_st
-        v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! same spin => sij = 0
       enddo
@@ -369,7 +350,8 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
     ASSERT (k_b <= N_det)
     
     ! Loop inside the alpha row to gather all the connected betas
-    l_b = k_b+1
+    lrow = psi_bilinear_matrix_transp_rows(k_b)
+    l_b = psi_bilinear_matrix_transp_rows_loc(lrow)
     do i=1,N_det_beta_unique
       if (l_b > N_det) exit
       lrow = psi_bilinear_matrix_transp_rows(l_b)
@@ -403,7 +385,6 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
       l_a = psi_bilinear_matrix_transp_order(l_b)
       ASSERT (l_a <= N_det)
       do l=1,N_st
-        v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! single => sij = 0 
       enddo
@@ -424,7 +405,6 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
       ASSERT (l_a <= N_det)
 
       do l=1,N_st
-        v_t(l,l_a) = v_t(l,l_a) + hij * u_t(l,k_a)
         v_t(l,k_a) = v_t(l,k_a) + hij * u_t(l,l_a)
         ! same spin => sij = 0 
       enddo
@@ -457,20 +437,8 @@ subroutine H_S2_u_0_nstates_openmp_work_$N_int(v_0,s_0,u_t,N_st,sze,istart,iend,
     enddo
 
   end do
-  !$OMP END DO NOWAIT
+  !$OMP END DO 
   deallocate(buffer, singles_a, singles_b, doubles, idx)
-
-  !$OMP CRITICAL
-  do l=1,N_st
-    do i=1, N_det
-      v_0(i,l) = v_0(i,l) + v_t(l,i)
-      s_0(i,l) = s_0(i,l) + s_t(l,i)
-    enddo
-  enddo
-  !$OMP END CRITICAL
-  deallocate(v_t, s_t)
-
-  !$OMP BARRIER
   !$OMP END PARALLEL
 
 end
