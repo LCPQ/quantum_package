@@ -31,16 +31,6 @@ double precision function integral8(i,j,k,l)
 end function
 
 
-BEGIN_PROVIDER [ integer(1), psi_phasemask, (N_int*bit_kind_size, 2, N_det)]
-  use bitmasks
-  implicit none
-  
-  integer :: i
-  do i=1, N_det
-    call get_mask_phase(psi_det_sorted(1,1,i), psi_phasemask(1,1,i))
-  end do
-END_PROVIDER
-
 
 subroutine assert(cond, msg)
   character(*), intent(in) :: msg
@@ -56,19 +46,23 @@ end subroutine
 subroutine get_mask_phase(det, phasemask)
   use bitmasks
   implicit none
-
-  integer(bit_kind), intent(in) :: det(N_int, 2)
-  integer(1), intent(out) :: phasemask(2,N_int*bit_kind_size)
-  integer :: s, ni, i
-  logical :: change
-
+  
+  integer(bit_kind), intent(in)  :: det(N_int, 2)
+  integer(1), intent(out)        :: phasemask(2,N_int*bit_kind_size)
+  integer                        :: s, ni, i
+  logical                        :: change
+  
   phasemask = 0_1
   do s=1,2
     change = .false.
     do ni=1,N_int
       do i=0,bit_kind_size-1
-        if(BTEST(det(ni, s), i)) change = .not. change
-          if(change) phasemask(s, (ni-1)*bit_kind_size + i + 1) = 1_1
+        if(BTEST(det(ni, s), i)) then
+          change = .not. change
+        endif
+        if(change) then
+          phasemask(s, ishft(ni-1,bit_kind_shift) + i + 1) = 1_1
+        endif
       end do
     end do
   end do
@@ -626,13 +620,14 @@ subroutine splash_pq(mask, sp, det, i_gen, N_sel, bannedOrb, banned, mat, intere
   integer(bit_kind),intent(in)   :: mask(N_int, 2), det(N_int, 2, N_sel)
   logical, intent(inout)         :: bannedOrb(mo_tot_num, 2), banned(mo_tot_num, mo_tot_num, 2)
   double precision, intent(inout) :: mat(N_states, mo_tot_num, mo_tot_num)
-
-  integer :: i, ii, j, k, l, h(0:2,2), p(0:4,2), nt
-  integer(bit_kind) :: perMask(N_int, 2), mobMask(N_int, 2), negMask(N_int, 2)
+  
+  integer                        :: i, ii, j, k, l, h(0:2,2), p(0:4,2), nt
+  integer(bit_kind)              :: perMask(N_int, 2), mobMask(N_int, 2), negMask(N_int, 2)
+  integer(1)                     :: phasemask(2,N_int*bit_kind_size)
 !   logical :: bandon
 !   
 !   bandon = .false.
-  PROVIDE psi_phasemask psi_selectors_coef_transp
+  PROVIDE psi_selectors_coef_transp
   mat = 0d0
   
   do i=1,N_int
@@ -691,12 +686,13 @@ subroutine splash_pq(mask, sp, det, i_gen, N_sel, bannedOrb, banned, mat, intere
     call bitstring_to_list_in_selection(perMask(1,2), h(1,2), h(0,2), N_int)
 
     if (interesting(i) >= i_gen) then
+        call get_mask_phase(psi_det_sorted(1,1,interesting(i)), phasemask)
         if(nt == 4) then
-          call get_d2(det(1,1,i), psi_phasemask(1,1,interesting(i)), bannedOrb, banned, mat, mask, h, p, sp, psi_selectors_coef_transp(1, interesting(i)))
+          call get_d2(det(1,1,i), phasemask, bannedOrb, banned, mat, mask, h, p, sp, psi_selectors_coef_transp(1, interesting(i)))
         else if(nt == 3) then
-          call get_d1(det(1,1,i), psi_phasemask(1,1,interesting(i)), bannedOrb, banned, mat, mask, h, p, sp, psi_selectors_coef_transp(1, interesting(i)))
+          call get_d1(det(1,1,i), phasemask, bannedOrb, banned, mat, mask, h, p, sp, psi_selectors_coef_transp(1, interesting(i)))
         else
-          call get_d0(det(1,1,i), psi_phasemask(1,1,interesting(i)), bannedOrb, banned, mat, mask, h, p, sp, psi_selectors_coef_transp(1, interesting(i)))
+          call get_d0(det(1,1,i), phasemask, bannedOrb, banned, mat, mask, h, p, sp, psi_selectors_coef_transp(1, interesting(i)))
         end if
     else 
         if(nt == 4) call past_d2(banned, p, sp)
