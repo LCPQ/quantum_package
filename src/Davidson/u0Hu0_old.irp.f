@@ -500,7 +500,7 @@ subroutine H_S2_u_0_nstates_test(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,N_st,sze
 !      if (exc(0,1,2) /= 0) cycle
 !      if (exc(0,1,1) == 2) cycle
 !      if (exc(0,1,2) == 2) cycle
-      if ((degree==1).and.(exc(0,1,1) == 1)) cycle
+!      if ((degree==1).and.(exc(0,1,1) == 1)) cycle
       call i_H_j(keys_tmp(1,1,j),keys_tmp(1,1,i),Nint,hij)
       do l=1,N_st
         !$OMP ATOMIC

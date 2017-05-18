@@ -64,8 +64,8 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
   integer                        :: imin, imax, ishift, istep
   
   integer, allocatable           :: psi_det_read(:,:,:)
-  double precision, allocatable  :: v_0(:,:), s_0(:,:), u_t(:,:)
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: u_t, v_0, s_0
+  double precision, allocatable  :: v_t(:,:), s_t(:,:), u_t(:,:)
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: u_t, v_t, s_t
 
   ! Get wave function (u_t)
   ! -----------------------
@@ -108,7 +108,7 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
     TOUCH N_det
   endif
 
-  allocate(v_0(sze,N_st), s_0(sze,N_st),u_t(N_st,N_det_read))
+  allocate(u_t(N_st,N_det_read))
 
   rc = f77_zmq_recv(zmq_to_qp_run_socket,psi_det,N_int*2*N_det_read*bit_kind,0)
   if (rc /= N_int*2*N_det_read*bit_kind) then
@@ -133,40 +133,49 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
   ! ---------
 
 
+  allocate(v_t(N_st,N_det), s_t(N_st,N_det))
   do
-    v_0 = 0.d0
-    s_0 = 0.d0
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, msg)
     if(task_id == 0) exit
     read (msg,*) imin, imax, ishift, istep
-    call H_S2_u_0_nstates_openmp_work(v_0,s_0,u_t,N_st,N_det,imin,imax,ishift,istep)
+    v_t = 0.d0
+    s_t = 0.d0
+    call H_S2_u_0_nstates_openmp_work(v_t,s_t,u_t,N_st,N_det,imin,imax,ishift,istep)
     call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id)
-    call davidson_push_results(zmq_socket_push, v_0, s_0, task_id)
+    call davidson_push_results(zmq_socket_push, v_t, s_t, imin, imax, task_id)
   end do
-  deallocate(v_0, s_0, u_t)
+  deallocate(u_t,v_t, s_t)
 
 end subroutine
 
 
 
-subroutine davidson_push_results(zmq_socket_push, v_0, s_0, task_id)
+subroutine davidson_push_results(zmq_socket_push, v_t, s_t, imin, imax, task_id)
   use f77_zmq
   implicit none
   
   integer(ZMQ_PTR)    ,intent(in)    :: zmq_socket_push
-  integer             ,intent(in)    :: task_id
-  double precision    ,intent(in)    :: v_0(N_det,N_states_diag)
-  double precision    ,intent(in)    :: s_0(N_det,N_states_diag)
-  integer                            :: rc
+  integer             ,intent(in)    :: task_id, imin, imax
+  double precision    ,intent(in)    :: v_t(N_states_diag,N_det)
+  double precision    ,intent(in)    :: s_t(N_states_diag,N_det)
+  integer                            :: rc, sz
 
-  rc = f77_zmq_send( zmq_socket_push, v_0, 8*N_states_diag*N_det, ZMQ_SNDMORE)
-  if(rc /= 8*N_states_diag* N_det) stop "davidson_push_results failed to push vt"
+  sz = (imax-imin+1)*N_states_diag
 
-  rc = f77_zmq_send( zmq_socket_push, s_0, 8*N_states_diag*N_det, ZMQ_SNDMORE)
-  if(rc /= 8*N_states_diag* N_det) stop "davidson_push_results failed to push st"
-
-  rc = f77_zmq_send( zmq_socket_push, task_id, 4, 0)
+  rc = f77_zmq_send( zmq_socket_push, task_id, 4, ZMQ_SNDMORE)
   if(rc /= 4) stop "davidson_push_results failed to push task_id"
+
+  rc = f77_zmq_send( zmq_socket_push, imin, 4, ZMQ_SNDMORE)
+  if(rc /= 4) stop "davidson_push_results failed to push imin"
+
+  rc = f77_zmq_send( zmq_socket_push, imax, 4, ZMQ_SNDMORE)
+  if(rc /= 4) stop "davidson_push_results failed to push imax"
+
+  rc = f77_zmq_send( zmq_socket_push, v_t(1,imin), 8*sz, ZMQ_SNDMORE)
+  if(rc /= 8*sz) stop "davidson_push_results failed to push vt"
+
+  rc = f77_zmq_send( zmq_socket_push, s_t(1,imin), 8*sz, 0)
+  if(rc /= 8*sz) stop "davidson_push_results failed to push st"
 
 ! Activate is zmq_socket_push is a REQ
 IRP_IF ZMQ_PUSH
@@ -183,25 +192,33 @@ end subroutine
 
 
 
-subroutine davidson_pull_results(zmq_socket_pull, v_0, s_0, task_id)
+subroutine davidson_pull_results(zmq_socket_pull, v_t, s_t, imin, imax, task_id)
   use f77_zmq
   implicit none
   
   integer(ZMQ_PTR)    ,intent(in)     :: zmq_socket_pull
-  integer             ,intent(out)    :: task_id
-  double precision    ,intent(out)    :: v_0(N_det,N_states_diag)
-  double precision    ,intent(out)    :: s_0(N_det,N_states_diag)
+  integer             ,intent(out)    :: task_id, imin, imax
+  double precision    ,intent(out)    :: v_t(N_states_diag,N_det)
+  double precision    ,intent(out)    :: s_t(N_states_diag,N_det)
 
-  integer                            :: rc
-
-  rc = f77_zmq_recv( zmq_socket_pull, v_0, 8*N_det*N_states_diag, 0)
-  if(rc /= 8*N_det*N_states_diag) stop "davidson_push_results failed to pull v_0"
-
-  rc = f77_zmq_recv( zmq_socket_pull, s_0, 8*N_det*N_states_diag, 0)
-  if(rc /= 8*N_det*N_states_diag) stop "davidson_push_results failed to pull s_0"
+  integer                            :: rc, sz
 
   rc = f77_zmq_recv( zmq_socket_pull, task_id, 4, 0)
   if(rc /= 4) stop "davidson_pull_results failed to pull task_id"
+
+  rc = f77_zmq_recv( zmq_socket_pull, imin, 4, 0)
+  if(rc /= 4) stop "davidson_pull_results failed to pull task_id"
+
+  rc = f77_zmq_recv( zmq_socket_pull, imax, 4, 0)
+  if(rc /= 4) stop "davidson_pull_results failed to pull task_id"
+
+  sz = (imax-imin+1)*N_states_diag
+
+  rc = f77_zmq_recv( zmq_socket_pull, v_t(1,imin), 8*sz, 0)
+  if(rc /= 8*sz) stop "davidson_pull_results failed to pull v_t"
+
+  rc = f77_zmq_recv( zmq_socket_pull, s_t(1,imin), 8*sz, 0)
+  if(rc /= 8*sz) stop "davidson_pull_results failed to pull s_t"
 
 ! Activate if zmq_socket_pull is a REP
 IRP_IF ZMQ_PUSH
@@ -227,29 +244,29 @@ subroutine davidson_collector(zmq_to_qp_run_socket, v0, s0, sze, N_st)
   double precision    ,intent(inout) :: v0(sze, N_st)
   double precision    ,intent(inout) :: s0(sze, N_st)
   
-  integer                          :: more, task_id
+  integer                          :: more, task_id, imin, imax
   
-  double precision, allocatable :: v_0(:,:), s_0(:,:)
+  double precision, allocatable :: v_t(:,:), s_t(:,:)
   integer :: i,j
   integer(ZMQ_PTR), external     :: new_zmq_pull_socket
   integer(ZMQ_PTR)               :: zmq_socket_pull
 
-  allocate(v_0(N_det,N_st), s_0(N_det,N_st))
+  allocate(v_t(N_st,N_det), s_t(N_st,N_det))
   v0 = 0.d0 
   s0 = 0.d0 
   more = 1
   zmq_socket_pull = new_zmq_pull_socket()
   do while (more == 1)
-    call davidson_pull_results(zmq_socket_pull, v_0, s_0, task_id)
+    call davidson_pull_results(zmq_socket_pull, v_t, s_t, imin, imax, task_id)
     do j=1,N_st
-      do i=1,N_det
-        v0(i,j) = v0(i,j) + v_0(i,j)
-        s0(i,j) = s0(i,j) + s_0(i,j)
+      do i=imin,imax
+        v0(i,j) = v0(i,j) + v_t(j,i)
+        s0(i,j) = s0(i,j) + s_t(j,i)
       enddo
     enddo
     call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
   end do
-  deallocate(v_0,s_0)
+  deallocate(v_t,s_t)
   call end_zmq_pull_socket(zmq_socket_pull)
 
 end subroutine
@@ -349,16 +366,15 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
 
   integer :: istep, imin, imax, ishift
   double precision :: w, max_workload, N_det_inv, di
-  max_workload = 1000000.d0
   w = 0.d0
-  istep=8
+  istep=1
   ishift=0
   imin=1
   N_det_inv = 1.d0/dble(N_det)
   di = dble(N_det)
+  max_workload = 50000.d0
   do imax=1,N_det
-    di = di-1.d0
-    w = w + di*N_det_inv
+    w = w + 1.d0
     if (w > max_workload) then
       do ishift=0,istep-1
         write(task,'(4(I9,1X),1A)') imin, imax, ishift, istep, '|'
