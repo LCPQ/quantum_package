@@ -90,14 +90,9 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
     stop 'error'
   endif
 
-  read(msg(14:rc),*) rc, N_states_read, N_det_read, psi_det_size_read,        &
+  read(msg(14:rc),*) N_states_read, N_det_read, psi_det_size_read,        &
       N_det_generators_read, N_det_selectors_read
 
-  if (rc /= worker_id) then
-    print *,  'Wrong worker ID'
-    stop 'error'
-  endif
-  
   if (N_states_read /= N_st) then
     print *, N_st
     stop 'error : N_st'
