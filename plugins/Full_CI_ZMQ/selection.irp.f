@@ -306,6 +306,9 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
   logical :: monoAdo, monoBdo
   integer :: maskInd
 
+  integer(bit_kind), allocatable:: preinteresting_det(:,:,:)
+  allocate (preinteresting_det(N_int,2,N_det))
+
   PROVIDE fragment_count
 
   monoAdo = .true.
@@ -410,6 +413,10 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
       if(i <= N_det_selectors) then
         preinteresting(0) += 1
         preinteresting(preinteresting(0)) = i
+        do j=1,N_int
+          preinteresting_det(j,1,preinteresting(0)) = psi_det_sorted(j,1,i)
+          preinteresting_det(j,2,preinteresting(0)) = psi_det_sorted(j,2,i)
+        enddo
       else if(nt <= 2) then
         prefullinteresting(0) += 1
         prefullinteresting(prefullinteresting(0)) = i
@@ -436,35 +443,36 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
       
       do ii=1,preinteresting(0)
         i = preinteresting(ii)
-        mobMask(1,1) = iand(negMask(1,1), psi_det_sorted(1,1,preinteresting(ii)))
-        mobMask(1,2) = iand(negMask(1,2), psi_det_sorted(1,2,preinteresting(ii)))
+        mobMask(1,1) = iand(negMask(1,1), preinteresting_det(1,1,ii))
+        mobMask(1,2) = iand(negMask(1,2), preinteresting_det(1,2,ii))
         nt = popcnt(mobMask(1, 1)) + popcnt(mobMask(1, 2))
         do j=2,N_int
-          mobMask(j,1) = iand(negMask(j,1), psi_det_sorted(1,1,preinteresting(ii)))
-          mobMask(j,2) = iand(negMask(j,2), psi_det_sorted(1,2,preinteresting(ii)))
+          mobMask(j,1) = iand(negMask(j,1), preinteresting_det(j,1,ii))
+          mobMask(j,2) = iand(negMask(j,2), preinteresting_det(j,2,ii))
           nt = nt+ popcnt(mobMask(j, 1)) + popcnt(mobMask(j, 2))
         end do
         
-        if(nt <= 4) then
-          interesting(0) += 1
-          interesting(interesting(0)) = i
-          minilist(1,1,interesting(0)) = psi_det_sorted(1,1,preinteresting(ii))
-          minilist(1,2,interesting(0)) = psi_det_sorted(1,2,preinteresting(ii))
-          do j=2,N_int
-            minilist(j,1,interesting(0)) = psi_det_sorted(1,1,preinteresting(ii))
-            minilist(j,2,interesting(0)) = psi_det_sorted(1,2,preinteresting(ii))
-          enddo
-          if(nt <= 2) then
-            fullinteresting(0) += 1
-            fullinteresting(fullinteresting(0)) = i
-            fullminilist(1,1,fullinteresting(0)) = psi_det_sorted(1,1,preinteresting(ii))
-            fullminilist(1,2,fullinteresting(0)) = psi_det_sorted(1,2,preinteresting(ii))
-            do j=2,N_int
-              fullminilist(j,1,fullinteresting(0)) = psi_det_sorted(1,1,preinteresting(ii))
-              fullminilist(j,2,fullinteresting(0)) = psi_det_sorted(1,2,preinteresting(ii))
-            enddo
-          end if
-        end if
+         if(nt <= 4) then
+           interesting(0) += 1
+           interesting(interesting(0)) = i
+          minilist(1,1,interesting(0)) = preinteresting_det(1,1,ii)
+          minilist(1,2,interesting(0)) = preinteresting_det(1,2,ii)
+           do j=2,N_int
+            minilist(j,1,interesting(0)) = preinteresting_det(j,1,ii)
+            minilist(j,2,interesting(0)) = preinteresting_det(j,2,ii)
+           enddo
+           if(nt <= 2) then
+             fullinteresting(0) += 1
+             fullinteresting(fullinteresting(0)) = i
+            fullminilist(1,1,fullinteresting(0)) = preinteresting_det(1,1,ii)
+            fullminilist(1,2,fullinteresting(0)) = preinteresting_det(1,2,ii)
+             do j=2,N_int
+              fullminilist(j,1,fullinteresting(0)) = preinteresting_det(j,1,ii)
+              fullminilist(j,2,fullinteresting(0)) = preinteresting_det(j,2,ii)
+             enddo
+           end if
+         end if
+
       end do
       
       do ii=1,prefullinteresting(0)
