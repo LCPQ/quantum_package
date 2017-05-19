@@ -48,7 +48,7 @@ subroutine get_mask_phase(det, phasemask)
   implicit none
   
   integer(bit_kind), intent(in)  :: det(N_int, 2)
-  integer(1), intent(out)        :: phasemask(2,N_int*bit_kind_size)
+  integer, intent(out)        :: phasemask(2,N_int*bit_kind_size)
   integer                        :: s, ni, i
   logical                        :: change
   
@@ -105,10 +105,10 @@ double precision function get_phase_bi(phasemask, s1, s2, h1, p1, h2, p2)
   use bitmasks
   implicit none
 
-  integer(1), intent(in) :: phasemask(2,*)
+  integer, intent(in) :: phasemask(2,*)
   integer, intent(in) :: s1, s2, h1, h2, p1, p2
   logical :: change
-  integer(1) :: np1
+  integer :: np1
   integer :: np
   double precision, save :: res(0:1) = (/1d0, -1d0/)
 
@@ -128,7 +128,7 @@ subroutine get_m2(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   implicit none
   
   integer(bit_kind), intent(in) :: gen(N_int, 2), mask(N_int, 2)
-  integer(1), intent(in) :: phasemask(2,N_int*bit_kind_size)
+  integer, intent(in) :: phasemask(2,N_int*bit_kind_size)
   logical, intent(in) :: bannedOrb(mo_tot_num)
   double precision, intent(in) :: coefs(N_states)
   double precision, intent(inout) :: vect(N_states, mo_tot_num)
@@ -187,7 +187,7 @@ subroutine get_m1(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   implicit none
   
   integer(bit_kind), intent(in)  :: gen(N_int, 2), mask(N_int, 2)
-  integer(1), intent(in)         :: phasemask(2,N_int*bit_kind_size)
+  integer, intent(in)         :: phasemask(2,N_int*bit_kind_size)
   logical, intent(in)            :: bannedOrb(mo_tot_num)
   double precision, intent(in)   :: coefs(N_states)
   double precision, intent(inout) :: vect(N_states, mo_tot_num)
@@ -219,32 +219,32 @@ subroutine get_m1(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
       if(lbanned(i)) cycle
       hij = (integral8(p1, p2, i, hole) - integral8(p2, p1, i, hole))
       hij *= get_phase_bi(phasemask, sp, sp, i, p1, hole, p2)
-      vect(:,i) += hij * coefs
+      vect(1:N_states,i) += hij * coefs(1:N_states)
     end do
     do i=hole+1,mo_tot_num
       if(lbanned(i)) cycle
       hij = (integral8(p1, p2, hole, i) - integral8(p2, p1, hole, i))
       hij *= get_phase_bi(phasemask, sp, sp, hole, p1, i, p2)
-      vect(:,i) += hij * coefs
+      vect(1:N_states,i) += hij * coefs(1:N_states)
     end do
 
     call apply_particle(mask, sp, p2, det, ok,  N_int)
     call i_h_j(gen, det, N_int, hij)
-    vect(:, p2) += hij * coefs
+    vect(1:N_states, p2) += hij * coefs(1:N_states)
   else
     p2 = p(1, sh)
     do i=1,mo_tot_num
       if(lbanned(i)) cycle
       hij = integral8(p1, p2, i, hole)
       hij *= get_phase_bi(phasemask, sp, sh, i, p1, hole, p2)
-      vect(:,i) += hij * coefs
+      vect(1:N_states,i) += hij * coefs(1:N_states)
     end do
   end if
   deallocate(lbanned)
 
   call apply_particle(mask, sp, p1, det, ok,  N_int)
   call i_h_j(gen, det, N_int, hij)
-  vect(:, p1) += hij * coefs
+  vect(1:N_states, p1) += hij * coefs(1:N_states)
 end 
 
 
@@ -253,7 +253,7 @@ subroutine get_m0(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   implicit none
   
   integer(bit_kind), intent(in)  :: gen(N_int, 2), mask(N_int, 2)
-  integer(1), intent(in)         :: phasemask(2,N_int*bit_kind_size)
+  integer, intent(in)         :: phasemask(2,N_int*bit_kind_size)
   logical, intent(in)            :: bannedOrb(mo_tot_num)
   double precision, intent(in)   :: coefs(N_states)
   double precision, intent(inout) :: vect(N_states, mo_tot_num)
@@ -272,7 +272,7 @@ subroutine get_m0(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
     if(lbanned(i)) cycle
     call apply_particle(mask, sp, i, det, ok, N_int)
     call i_h_j(gen, det, N_int, hij)
-    vect(:, i) += hij * coefs
+    vect(1:N_states, i) += hij * coefs(1:N_states)
   end do
   deallocate(lbanned)
 end 
@@ -330,16 +330,17 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
   integer, allocatable :: indices(:), exc_degree(:), iorder(:)
   allocate (indices(N_det),  &
             exc_degree(max(N_det_alpha_unique,N_det_beta_unique)))
-  k=1
-  do i=1,N_det_alpha_unique
-    call get_excitation_degree_spin(psi_det_alpha_unique(1,i), &
-      psi_det_generators(1,1,i_generator), exc_degree(i), N_int)
-  enddo
 
   PROVIDE psi_bilinear_matrix_columns_loc psi_det_alpha_unique psi_det_beta_unique
   PROVIDE psi_bilinear_matrix_rows psi_det_sorted_order psi_bilinear_matrix_order
   PROVIDE psi_bilinear_matrix_transp_rows_loc psi_bilinear_matrix_transp_columns
   PROVIDE psi_bilinear_matrix_transp_order
+
+  k=1
+  do i=1,N_det_alpha_unique
+    call get_excitation_degree_spin(psi_det_alpha_unique(1,i), &
+      psi_det_generators(1,1,i_generator), exc_degree(i), N_int)
+  enddo
 
   do j=1,N_det_beta_unique
     call get_excitation_degree_spin(psi_det_beta_unique(1,j), &
@@ -623,7 +624,7 @@ subroutine splash_pq(mask, sp, det, i_gen, N_sel, bannedOrb, banned, mat, intere
   
   integer                        :: i, ii, j, k, l, h(0:2,2), p(0:4,2), nt
   integer(bit_kind)              :: perMask(N_int, 2), mobMask(N_int, 2), negMask(N_int, 2)
-  integer(1)                     :: phasemask(2,N_int*bit_kind_size)
+  integer                     :: phasemask(2,N_int*bit_kind_size)
 !   logical :: bandon
 !   
 !   bandon = .false.
@@ -707,7 +708,7 @@ subroutine get_d2(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
   implicit none
 
   integer(bit_kind), intent(in) :: mask(N_int, 2), gen(N_int, 2)
-  integer(1), intent(in) :: phasemask(2,N_int*bit_kind_size)
+  integer, intent(in) :: phasemask(2,N_int*bit_kind_size)
   logical, intent(in) :: bannedOrb(mo_tot_num, 2), banned(mo_tot_num, mo_tot_num,2)
   double precision, intent(in) :: coefs(N_states)
   double precision, intent(inout) :: mat(N_states, mo_tot_num, mo_tot_num)
@@ -825,7 +826,7 @@ subroutine get_d1(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
   implicit none
 
   integer(bit_kind), intent(in)  :: mask(N_int, 2), gen(N_int, 2)
-  integer(1),intent(in)          :: phasemask(2,N_int*bit_kind_size)
+  integer,intent(in)          :: phasemask(2,N_int*bit_kind_size)
   logical, intent(in)            :: bannedOrb(mo_tot_num, 2), banned(mo_tot_num, mo_tot_num,2)
   integer(bit_kind)              :: det(N_int, 2)
   double precision, intent(in)   :: coefs(N_states)
@@ -997,7 +998,7 @@ subroutine get_d0(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
   implicit none
 
   integer(bit_kind), intent(in) :: gen(N_int, 2), mask(N_int, 2)
-  integer(1), intent(in) :: phasemask(2,N_int*bit_kind_size)
+  integer, intent(in) :: phasemask(2,N_int*bit_kind_size)
   logical, intent(in) :: bannedOrb(mo_tot_num, 2), banned(mo_tot_num, mo_tot_num,2)
   integer(bit_kind) :: det(N_int, 2)
   double precision, intent(in) :: coefs(N_states)

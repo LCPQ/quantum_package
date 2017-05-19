@@ -102,7 +102,7 @@ subroutine selection_collector(b, N, pt2)
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_pull = new_zmq_pull_socket()
-  call create_selection_buffer(N, N*8, b2)
+  call create_selection_buffer(N, N*2, b2)
   allocate(task_id(N_det_generators))
   more = 1
   pt2(:) = 0d0
