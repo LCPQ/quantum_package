@@ -14,9 +14,9 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
       good = .True.
       do k=1,N_int
         good = good .and. (                                          &
-            iand(not(cas_bitmask(k,1,l)), psi_det(k,1,i)) ==         &
+            iand(not(cas_bitmask(k,1,l)), psi_det_sorted(k,1,i)) ==         &
             iand(not(cas_bitmask(k,1,l)), HF_bitmask(k,1)) ) .and. ( &
-            iand(not(cas_bitmask(k,2,l)), psi_det(k,2,i)) ==         &
+            iand(not(cas_bitmask(k,2,l)), psi_det_sorted(k,2,i)) ==         &
             iand(not(cas_bitmask(k,2,l)), HF_bitmask(k,2)) )
       enddo
       if (good) then
@@ -46,9 +46,9 @@ END_PROVIDER
       good = .True.
       do k=1,N_int
         good = good .and. (                                         &
-            iand(not(cas_bitmask(k,1,l)), psi_det(k,1,i)) ==         &
+            iand(not(cas_bitmask(k,1,l)), psi_det_sorted(k,1,i)) ==         &
             iand(not(cas_bitmask(k,1,l)), HF_bitmask(k,1)) .and. (   &
-            iand(not(cas_bitmask(k,2,l)), psi_det(k,2,i)) ==         &
+            iand(not(cas_bitmask(k,2,l)), psi_det_sorted(k,2,i)) ==         &
             iand(not(cas_bitmask(k,2,l)), HF_bitmask(k,2) )) )
       enddo
       if (good) then
@@ -58,8 +58,8 @@ END_PROVIDER
     if (good) then
       m = m+1
       do k=1,N_int
-        psi_det_generators(k,1,m) = psi_det(k,1,i)
-        psi_det_generators(k,2,m) = psi_det(k,2,i)
+        psi_det_generators(k,1,m) = psi_det_sorted(k,1,i)
+        psi_det_generators(k,2,m) = psi_det_sorted(k,2,i)
       enddo
       psi_coef_generators(m,:) = psi_coef(m,:)
     endif

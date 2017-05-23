@@ -84,23 +84,24 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id, energy, size_energy)
   N_states = N_states_read
   N_det    = N_det_read
   psi_det_size = psi_det_size_read
+  TOUCH psi_det_size N_det N_states
 
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,ZMQ_SNDMORE)
+  rc = f77_zmq_recv(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,0)
   if (rc /= N_int*2*N_det*bit_kind) then
     print *, 'f77_zmq_recv(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,ZMQ_SNDMORE)'
     stop 'error'
   endif
 
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,ZMQ_SNDMORE)
+  rc = f77_zmq_recv(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,0)
   if (rc /= psi_det_size*N_states*8) then
     print *, '77_zmq_recv(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,ZMQ_SNDMORE)'
     stop 'error'
   endif
-  TOUCH psi_det_size N_det N_states psi_det psi_coef
+  TOUCH psi_det psi_coef
 
   rc = f77_zmq_recv(zmq_to_qp_run_socket,energy,size_energy*8,0)
   if (rc /= size_energy*8) then
-    print *, 'f77_zmq_recv(zmq_to_qp_run_socket,energy,size_energy*8,0)'
+    print *, '77_zmq_recv(zmq_to_qp_run_socket,energy,size_energy*8,0)'
     stop 'error'
   endif
 
