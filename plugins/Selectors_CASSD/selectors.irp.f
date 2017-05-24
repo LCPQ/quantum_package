@@ -35,38 +35,6 @@ END_PROVIDER
     enddo
   enddo
 
-  m=N_det_generators
-
-  do i=1,N_det
-    do l=1,n_cas_bitmask
-      good = .True.
-      do k=1,N_int
-        good = good .and. (                                         &
-            iand(not(cas_bitmask(k,1,l)), psi_det_sorted(k,1,i)) ==         &
-            iand(not(cas_bitmask(k,1,l)), HF_bitmask(k,1)) .and. (   &
-            iand(not(cas_bitmask(k,2,l)), psi_det_sorted(k,2,i)) ==         &
-            iand(not(cas_bitmask(k,2,l)), HF_bitmask(k,2) )) )
-      enddo
-      if (good) then
-        exit
-      endif
-    enddo
-    if (.not.good) then
-      m = m+1
-      do k=1,N_int
-        psi_selectors(k,1,m) = psi_det_sorted(k,1,i)
-        psi_selectors(k,2,m) = psi_det_sorted(k,2,i)
-      enddo
-      psi_selectors_coef(m,:) = psi_coef_sorted(i,:)
-    endif
-  enddo
-  if (N_det /= m) then
-    print *,  'N_det = ', N_det
-    print *,  'm     = ', m
-    print *,  'N_det_generators = ', N_det_generators
-    print *,  'psi_det_size = ', psi_det_size
-    stop 'N_det /= m'
-  endif
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, psi_selectors_coef_transp, (N_states,psi_selectors_size) ]
