@@ -61,7 +61,10 @@ END_PROVIDER
     endif
   enddo
   if (N_det /= m) then
-    print *,  N_det, m
+    print *,  'N_det = ', N_det
+    print *,  'm     = ', m
+    print *,  'N_det_generators = ', N_det_generators
+    print *,  'psi_det_size = ', psi_det_size
     stop 'N_det /= m'
   endif
 END_PROVIDER

@@ -317,32 +317,33 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   
   character*(512) :: task
   integer :: rc
+  integer*8 :: rc8
   double precision :: energy(N_st)
   energy = 0.d0
 
   task = ' '
   write(task,*) 'put_psi ', 1, N_st, N_det, N_det
-  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(task),len(trim(task)),ZMQ_SNDMORE)
+  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,trim(task),int(len(trim(task)),8),ZMQ_SNDMORE)
   if (rc /= len(trim(task))) then
-    print *, 'f77_zmq_send(zmq_to_qp_run_socket,trim(task),len(trim(task)),ZMQ_SNDMORE)'
+    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,trim(task),int(len(trim(task)),8),ZMQ_SNDMORE)'
     stop 'error'
   endif
 
-  rc = f77_zmq_send(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,ZMQ_SNDMORE)
+  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_det,int(N_int*2*N_det*bit_kind,8),ZMQ_SNDMORE)
   if (rc /= N_int*2*N_det*bit_kind) then
-    print *, 'f77_zmq_send(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,ZMQ_SNDMORE)'
+    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,psi_det,int(N_int*2*N_det*bit_kind,8),ZMQ_SNDMORE)'
     stop 'error'
   endif
 
-  rc = f77_zmq_send(zmq_to_qp_run_socket,u_t,size(u_t)*8,ZMQ_SNDMORE)
+  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,u_t,int(size(u_t)*8,8),ZMQ_SNDMORE)
   if (rc /= size(u_t)*8) then
-    print *,  'f77_zmq_send(zmq_to_qp_run_socket,u_t,size(u_t)*8,ZMQ_SNDMORE)'
+    print *,  'f77_zmq_send8(zmq_to_qp_run_socket,u_t,int(size(u_t)*8,8),ZMQ_SNDMORE)'
     stop 'error'
   endif
 
-  rc = f77_zmq_send(zmq_to_qp_run_socket,energy,N_st*8,0)
+  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,energy,int(N_st*8,8),0)
   if (rc /= N_st*8) then
-    print *, 'f77_zmq_send(zmq_to_qp_run_socket,energy,size_energy*8,0)'
+    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,energy,int(size_energy*8,8),0)'
     stop 'error'
   endif
 
@@ -409,4 +410,19 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
     call dset_order(u_0(1,k),psi_bilinear_matrix_order_reverse,N_det)
   enddo
 end
+
+
+BEGIN_PROVIDER [ integer, nthreads_davidson ]
+ implicit none
+ BEGIN_DOC
+ ! Number of threads for Davdison
+ END_DOC
+ nthreads_davidson = nproc
+ character*(32) :: env
+ call getenv('NTHREADS_DAVIDSON',env)
+ if (trim(env) /= '') then
+   read(env,*) nthreads_davidson
+ endif
+ call write_int(6,nthreads_davidson,'Number of threads for Diagonalization')
+END_PROVIDER
 
