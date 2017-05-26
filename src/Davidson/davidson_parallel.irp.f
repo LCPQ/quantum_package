@@ -323,26 +323,26 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
 
   task = ' '
   write(task,*) 'put_psi ', 1, N_st, N_det, N_det
-  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,trim(task),int(len(trim(task)),8),ZMQ_SNDMORE)
-  if (rc8 /= len(trim(task))) then
+  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(task),len(trim(task)),ZMQ_SNDMORE)
+  if (rc /= len(trim(task))) then
     print *, 'f77_zmq_send8(zmq_to_qp_run_socket,trim(task),int(len(trim(task)),8),ZMQ_SNDMORE)'
     stop 'error'
   endif
 
-  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_det,int(N_int*2*N_det*bit_kind,8),ZMQ_SNDMORE)
-  if (rc8 /= N_int*2*N_det*bit_kind) then
+  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_det,int(N_int*2_8*N_det*bit_kind,8),ZMQ_SNDMORE)
+  if (rc8 /= N_int*2_8*N_det*bit_kind) then
     print *, 'f77_zmq_send8(zmq_to_qp_run_socket,psi_det,int(N_int*2*N_det*bit_kind,8),ZMQ_SNDMORE)'
     stop 'error'
   endif
 
-  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,u_t,int(size(u_t)*8,8),ZMQ_SNDMORE)
-  if (rc8 /= size(u_t)*8) then
+  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,u_t,size(u_t)*8_8,ZMQ_SNDMORE)
+  if (rc8 /= size(u_t)*8_8) then
     print *,  'f77_zmq_send8(zmq_to_qp_run_socket,u_t,int(size(u_t)*8,8),ZMQ_SNDMORE)'
     stop 'error'
   endif
 
-  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,energy,int(N_st*8,8),0)
-  if (rc8 /= N_st*8) then
+  rc = f77_zmq_send(zmq_to_qp_run_socket,energy,N_st*8,0)
+  if (rc /= N_st*8) then
     print *, 'f77_zmq_send8(zmq_to_qp_run_socket,energy,int(size_energy*8,8),0)'
     stop 'error'
   endif
