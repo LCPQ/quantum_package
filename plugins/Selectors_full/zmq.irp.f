@@ -14,21 +14,21 @@ subroutine zmq_put_psi(zmq_to_qp_run_socket,worker_id, energy, size_energy)
 
   write(msg,*) 'put_psi ', worker_id, N_states, N_det, psi_det_size, n_det_generators, n_det_selectors
 
-  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,trim(msg),int(len(trim(msg)),8),ZMQ_SNDMORE)
-  if (rc8 /= len(trim(msg))) then
-    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),ZMQ_SNDMORE)'
+  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),ZMQ_SNDMORE)
+  if (rc /= len(trim(msg))) then
+    print *, 'f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),ZMQ_SNDMORE)'
     stop 'error'
   endif
 
-  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_det,int(N_int*2_8*N_det*bit_kind,8),ZMQ_SNDMORE)
+  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det*bit_kind,ZMQ_SNDMORE)
   if (rc8 /= N_int*2_8*N_det*bit_kind) then
-    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,ZMQ_SNDMORE)'
+    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det*bit_kind,ZMQ_SNDMORE)'
     stop 'error'
   endif
 
-  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_coef,int(psi_det_size*N_states*8,8),ZMQ_SNDMORE)
+  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8_8,ZMQ_SNDMORE)
   if (rc8 /= psi_det_size*N_states*8_8) then
-    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,ZMQ_SNDMORE)'
+    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8_8,ZMQ_SNDMORE)'
     stop 'error'
   endif
 
