@@ -23,15 +23,15 @@ END_PROVIDER
   integer                        :: i, k, l, m
   logical                        :: good
 
-  do i=1,N_det_generators
+  do i=1,N_det
     do k=1,N_int
-      psi_selectors(k,1,i) = psi_det_generators(k,1,i)
-      psi_selectors(k,2,i) = psi_det_generators(k,2,i)
+      psi_selectors(k,1,i) = psi_det_sorted(k,1,i)
+      psi_selectors(k,2,i) = psi_det_sorted(k,2,i)
     enddo
   enddo
   do k=1,N_states
-    do i=1,N_det_selectors
-      psi_selectors_coef(i,k) = psi_coef_generators(i,k)
+    do i=1,N_det
+      psi_selectors_coef(i,k) = psi_coef_sorted(i,k)
     enddo
   enddo
 
