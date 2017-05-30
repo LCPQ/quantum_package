@@ -167,7 +167,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   double precision, allocatable :: val(:)
   integer(bit_kind), allocatable :: det(:,:,:)
   integer, allocatable :: task_id(:)
-  integer :: done, Nindex
+  integer :: Nindex
   integer, allocatable :: index(:)
   double precision, save :: time0 = -1.d0
   double precision :: time, timeLast, Nabove_old
@@ -249,11 +249,6 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
       if(Nabove(1) < 5d0) cycle
       call get_first_tooth(actually_computed, tooth)
      
-      done = 0
-      do i=first_det_of_teeth(tooth), first_det_of_teeth(tooth+1)-1
-        if(actually_computed(i)) done = done + 1
-      end do
-
       E0 = sum(pt2_detail(1,:first_det_of_teeth(tooth)-1))
       if (tooth <= comb_teeth) then
         prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - pt2_cweight(first_det_of_teeth(tooth)-1))
@@ -273,11 +268,9 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
       else
         if (Nabove(tooth) > Nabove_old) then
           print '(G10.3, 2X, F16.10, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
-!print "(4(G23.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
           Nabove_old = Nabove(tooth)
         endif
       endif
-!print "(4(G22.13), 4(I9))", time - time0, avg, eqt, Nabove(tooth), tooth, first_det_of_teeth(tooth)-1, done, first_det_of_teeth(tooth+1)-first_det_of_teeth(tooth)
     end if
   end do pullLoop
 
@@ -352,27 +345,6 @@ subroutine get_first_tooth(computed, first_teeth)
 end subroutine
 
 
-subroutine get_last_full_tooth(computed, last_tooth)
-  implicit none
-  logical, intent(in) :: computed(N_det_generators)
-  integer, intent(out) :: last_tooth
-  integer :: i, j, missing
-  
-  last_tooth = 0
-   combLoop : do i=comb_teeth, 1, -1
-     missing = 1+ ishft(first_det_of_teeth(i+1)-first_det_of_teeth(i),-4) ! /16
-     do j=first_det_of_teeth(i), first_det_of_teeth(i+1)-1
-       if(.not.computed(j)) then
-         missing -= 1
-         if(missing < 0) cycle combLoop
-       end if
-     end do
-     last_tooth = i
-     exit
-   end do combLoop
-end subroutine
-
-
 BEGIN_PROVIDER [ integer, size_tbc ]
   implicit none
   BEGIN_DOC
@@ -409,52 +381,6 @@ subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
   
 end subroutine
 
-
-subroutine get_filling_teeth(computed, tbc)
-  implicit none
-  integer, intent(inout) :: tbc(0:size_tbc)
-  logical, intent(inout) :: computed(N_det_generators)
-  integer :: i, j, k, last_full, dets(comb_teeth)
- 
-  call get_last_full_tooth(computed, last_full)
-  if(last_full /= 0) then
-    if (tbc(0) > size(tbc) - first_det_of_teeth(last_full+1) -2) then
-      return
-    endif
-    k = tbc(0)+1
-    do j=1,first_det_of_teeth(last_full+1)-1
-      if(.not.(computed(j))) then
-        tbc(k) = j
-        k=k+1
-        computed(j) = .true.
-      end if
-    end do
-    tbc(0) = k-1
-  end if
-
-end subroutine
-
-
-subroutine reorder_tbc(tbc)
-  implicit none
-  integer, intent(inout) :: tbc(0:size_tbc)
-  logical, allocatable :: ltbc(:)
-  integer :: i, ci
-
-  allocate(ltbc(size_tbc))
-  ltbc(:) = .false.
-  do i=1,tbc(0)
-    ltbc(tbc(i)) = .true.
-  end do
-
-  ci = 0
-  do i=1,size_tbc
-    if(ltbc(i)) then
-      ci = ci+1
-      tbc(ci) = i
-    end if
-  end do
-end subroutine
 
 
 subroutine get_comb(stato, dets, ct)
