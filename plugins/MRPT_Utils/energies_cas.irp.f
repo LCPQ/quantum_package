@@ -1,9 +1,9 @@
 BEGIN_PROVIDER [ double precision, energy_cas_dyall, (N_states)]
  implicit none
  integer :: i 
- double precision :: energies(N_states_diag)
+ double precision :: energies(N_states)
  do i = 1, N_states
-  call u0_H_dyall_u0(energies,psi_active,psi_coef,n_det,psi_det_size,psi_det_size,N_states_diag,i)
+  call u0_H_dyall_u0(energies,psi_active,psi_coef,n_det,psi_det_size,psi_det_size,N_states,i)
   energy_cas_dyall(i) = energies(i)
   print*,  'energy_cas_dyall(i)',  energy_cas_dyall(i)
  enddo
@@ -13,9 +13,9 @@ END_PROVIDER
 BEGIN_PROVIDER [ double precision, energy_cas_dyall_no_exchange, (N_states)]
  implicit none
  integer :: i 
- double precision :: energies(N_states_diag)
+ double precision :: energies(N_states)
  do i = 1, N_states
-  call u0_H_dyall_u0_no_exchange(energies,psi_active,psi_coef,n_det,psi_det_size,psi_det_size,N_states_diag,i)
+  call u0_H_dyall_u0_no_exchange(energies,psi_active,psi_coef,n_det,psi_det_size,psi_det_size,N_states,i)
   energy_cas_dyall_no_exchange(i) = energies(i)
   print*,  'energy_cas_dyall(i)_no_exchange',  energy_cas_dyall_no_exchange(i)
  enddo
@@ -28,22 +28,22 @@ BEGIN_PROVIDER [ double precision, one_creat, (n_act_orb,2,N_states)]
  integer :: i,j
  integer :: ispin
  integer :: orb, hole_particle,spin_exc
- double precision  :: norm_out(N_states_diag)
+ double precision  :: norm_out(N_states)
  integer(bit_kind), allocatable :: psi_in_out(:,:,:)
  double precision, allocatable :: psi_in_out_coef(:,:)
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states_diag))
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states))
  use bitmasks
 
  integer :: iorb
  integer :: state_target
- double precision :: energies(n_states_diag)
+ double precision :: energies(n_states)
  do iorb = 1,n_act_orb
   do ispin = 1,2
    orb = list_act(iorb)
    hole_particle = 1
    spin_exc = ispin 
    do i = 1, n_det
-    do j = 1, n_states_diag
+    do j = 1, n_states
       psi_in_out_coef(i,j) = psi_coef(i,j)
     enddo
     do j = 1, N_int
@@ -53,8 +53,8 @@ BEGIN_PROVIDER [ double precision, one_creat, (n_act_orb,2,N_states)]
    enddo
     do  state_target = 1,N_states
      call apply_exc_to_psi(orb,hole_particle,spin_exc, & 
-             norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
-     call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states_diag,state_target)
+             norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
+     call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
      one_creat(iorb,ispin,state_target) = energy_cas_dyall(state_target)  - energies(state_target)
     enddo
   enddo
@@ -68,22 +68,22 @@ BEGIN_PROVIDER [ double precision, one_anhil, (n_act_orb,2,N_states)]
  integer :: i,j
  integer :: ispin
  integer :: orb, hole_particle,spin_exc
- double precision  :: norm_out(N_states_diag)
+ double precision  :: norm_out(N_states)
  integer(bit_kind), allocatable :: psi_in_out(:,:,:)
  double precision, allocatable :: psi_in_out_coef(:,:)
  use bitmasks
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states_diag))
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states))
 
  integer :: iorb
  integer :: state_target
- double precision :: energies(n_states_diag)
+ double precision :: energies(n_states)
  do iorb = 1,n_act_orb
   do ispin = 1,2
    orb = list_act(iorb)
    hole_particle = -1
    spin_exc = ispin 
    do i = 1, n_det
-    do j = 1, n_states_diag
+    do j = 1, n_states
       psi_in_out_coef(i,j) = psi_coef(i,j)
     enddo
     do j = 1, N_int
@@ -93,8 +93,8 @@ BEGIN_PROVIDER [ double precision, one_anhil, (n_act_orb,2,N_states)]
    enddo
    do state_target = 1, N_states
     call apply_exc_to_psi(orb,hole_particle,spin_exc, & 
-            norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
-    call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states_diag,state_target)
+            norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
+    call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
     one_anhil(iorb,ispin,state_target) = energy_cas_dyall(state_target)  -  energies(state_target)
    enddo
   enddo
@@ -109,15 +109,15 @@ BEGIN_PROVIDER [ double precision, two_creat, (n_act_orb,n_act_orb,2,2,N_states)
  integer :: ispin,jspin
  integer :: orb_i, hole_particle_i,spin_exc_i
  integer :: orb_j, hole_particle_j,spin_exc_j
- double precision  :: norm_out(N_states_diag)
+ double precision  :: norm_out(N_states)
  integer(bit_kind), allocatable :: psi_in_out(:,:,:)
  double precision, allocatable :: psi_in_out_coef(:,:)
  use bitmasks
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states_diag))
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states))
 
  integer :: iorb,jorb
  integer :: state_target
- double precision :: energies(n_states_diag)
+ double precision :: energies(n_states)
  do iorb = 1,n_act_orb
   do ispin = 1,2
    orb_i = list_act(iorb)
@@ -129,7 +129,7 @@ BEGIN_PROVIDER [ double precision, two_creat, (n_act_orb,n_act_orb,2,2,N_states)
      hole_particle_j = 1
      spin_exc_j = jspin 
      do i = 1, n_det
-      do j = 1, n_states_diag
+      do j = 1, n_states
         psi_in_out_coef(i,j) = psi_coef(i,j)
       enddo
       do j = 1, N_int
@@ -139,10 +139,10 @@ BEGIN_PROVIDER [ double precision, two_creat, (n_act_orb,n_act_orb,2,2,N_states)
      enddo
      do state_target = 1 , N_states
       call apply_exc_to_psi(orb_i,hole_particle_i,spin_exc_i, & 
-              norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
+              norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
       call apply_exc_to_psi(orb_j,hole_particle_j,spin_exc_j, & 
-              norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
-      call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states_diag,state_target)
+              norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
+      call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
       two_creat(iorb,jorb,ispin,jspin,state_target) = energy_cas_dyall(state_target)  -   energies(state_target)
      enddo
     enddo
@@ -159,16 +159,16 @@ BEGIN_PROVIDER [ double precision, two_anhil, (n_act_orb,n_act_orb,2,2,N_states)
  integer :: ispin,jspin
  integer :: orb_i, hole_particle_i,spin_exc_i
  integer :: orb_j, hole_particle_j,spin_exc_j
- double precision  :: norm_out(N_states_diag)
+ double precision  :: norm_out(N_states)
  integer(bit_kind), allocatable :: psi_in_out(:,:,:)
  double precision, allocatable :: psi_in_out_coef(:,:)
  use bitmasks
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states_diag))
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states))
 
  integer :: iorb,jorb
  integer :: state_target
  state_target = 1
- double precision :: energies(n_states_diag)
+ double precision :: energies(n_states)
  do iorb = 1,n_act_orb
   do ispin = 1,2
    orb_i = list_act(iorb)
@@ -180,7 +180,7 @@ BEGIN_PROVIDER [ double precision, two_anhil, (n_act_orb,n_act_orb,2,2,N_states)
      hole_particle_j = -1
      spin_exc_j = jspin 
      do i = 1, n_det
-      do j = 1, n_states_diag
+      do j = 1, n_states
         psi_in_out_coef(i,j) = psi_coef(i,j)
       enddo
       do j = 1, N_int
@@ -189,10 +189,10 @@ BEGIN_PROVIDER [ double precision, two_anhil, (n_act_orb,n_act_orb,2,2,N_states)
       enddo
      enddo
      call apply_exc_to_psi(orb_i,hole_particle_i,spin_exc_i, & 
-             norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
+             norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
      call apply_exc_to_psi(orb_j,hole_particle_j,spin_exc_j, & 
-             norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
-     call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states_diag,state_target)
+             norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
+     call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
      two_anhil(iorb,jorb,ispin,jspin,state_target) = energy_cas_dyall(state_target)  -   energies(state_target)
     enddo
    enddo
@@ -208,15 +208,15 @@ BEGIN_PROVIDER [ double precision, one_anhil_one_creat, (n_act_orb,n_act_orb,2,2
  integer :: ispin,jspin
  integer :: orb_i, hole_particle_i,spin_exc_i
  integer :: orb_j, hole_particle_j,spin_exc_j
- double precision  :: norm_out(N_states_diag)
+ double precision  :: norm_out(N_states)
  integer(bit_kind), allocatable :: psi_in_out(:,:,:)
  double precision, allocatable :: psi_in_out_coef(:,:)
  use bitmasks
 
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states_diag))
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states))
  integer :: iorb,jorb
  integer :: state_target
- double precision :: energies(n_states_diag)
+ double precision :: energies(n_states)
  do iorb = 1,n_act_orb
   do ispin = 1,2
    orb_i = list_act(iorb)
@@ -228,7 +228,7 @@ BEGIN_PROVIDER [ double precision, one_anhil_one_creat, (n_act_orb,n_act_orb,2,2
      hole_particle_j = -1
      spin_exc_j = jspin 
       do i = 1, n_det
-       do j = 1, n_states_diag
+       do j = 1, n_states
          psi_in_out_coef(i,j) = psi_coef(i,j)
        enddo
        do j = 1, N_int
@@ -238,14 +238,14 @@ BEGIN_PROVIDER [ double precision, one_anhil_one_creat, (n_act_orb,n_act_orb,2,2
       enddo
       do state_target = 1, N_states
        call apply_exc_to_psi(orb_j,hole_particle_j,spin_exc_j, & 
-               norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
+               norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
        call apply_exc_to_psi(orb_i,hole_particle_i,spin_exc_i, & 
-               norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
+               norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
        if(orb_i == orb_j .and. ispin .ne. jspin)then  
-        call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states_diag,state_target)
+        call u0_H_dyall_u0_no_exchange(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
         one_anhil_one_creat(iorb,jorb,ispin,jspin,state_target) = energy_cas_dyall_no_exchange(state_target)  -   energies(state_target)
        else
-        call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states_diag,state_target)
+        call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
         one_anhil_one_creat(iorb,jorb,ispin,jspin,state_target) = energy_cas_dyall(state_target)  -   energies(state_target)
        endif
       enddo
@@ -264,16 +264,16 @@ BEGIN_PROVIDER [ double precision, two_anhil_one_creat, (n_act_orb,n_act_orb,n_a
  integer :: orb_i, hole_particle_i,spin_exc_i
  integer :: orb_j, hole_particle_j,spin_exc_j
  integer :: orb_k, hole_particle_k,spin_exc_k
- double precision  :: norm_out(N_states_diag)
+ double precision  :: norm_out(N_states)
  integer(bit_kind), allocatable :: psi_in_out(:,:,:)
  double precision, allocatable :: psi_in_out_coef(:,:)
  use bitmasks
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states_diag))
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states))
 
  integer :: iorb,jorb
  integer :: korb
  integer :: state_target
- double precision :: energies(n_states_diag)
+ double precision :: energies(n_states)
  do iorb = 1,n_act_orb
   do ispin = 1,2
    orb_i = list_act(iorb)
@@ -290,7 +290,7 @@ BEGIN_PROVIDER [ double precision, two_anhil_one_creat, (n_act_orb,n_act_orb,n_a
        hole_particle_k = -1
        spin_exc_k = kspin 
        do i = 1, n_det
-        do j = 1, n_states_diag
+        do j = 1, n_states
           psi_in_out_coef(i,j) = psi_coef(i,j)
         enddo
         do j = 1, N_int
@@ -301,12 +301,12 @@ BEGIN_PROVIDER [ double precision, two_anhil_one_creat, (n_act_orb,n_act_orb,n_a
 
        do state_target = 1, N_states 
         call apply_exc_to_psi(orb_j,hole_particle_j,spin_exc_j, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
+                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
         call apply_exc_to_psi(orb_k,hole_particle_k,spin_exc_k, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
+                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
         call apply_exc_to_psi(orb_i,hole_particle_i,spin_exc_i, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
-        call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states_diag,state_target)
+                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
+        call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
         two_anhil_one_creat(iorb,jorb,korb,ispin,jspin,kspin,state_target) = energy_cas_dyall(state_target)  -  energies(state_target)
        enddo
       enddo
@@ -326,16 +326,16 @@ BEGIN_PROVIDER [ double precision, two_creat_one_anhil, (n_act_orb,n_act_orb,n_a
  integer :: orb_i, hole_particle_i,spin_exc_i
  integer :: orb_j, hole_particle_j,spin_exc_j
  integer :: orb_k, hole_particle_k,spin_exc_k
- double precision  :: norm_out(N_states_diag)
+ double precision  :: norm_out(N_states)
  integer(bit_kind), allocatable :: psi_in_out(:,:,:)
  double precision, allocatable :: psi_in_out_coef(:,:)
  use bitmasks
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states_diag))
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states))
 
  integer :: iorb,jorb
  integer :: korb
  integer :: state_target
- double precision :: energies(n_states_diag)
+ double precision :: energies(n_states)
  do iorb = 1,n_act_orb
   do ispin = 1,2
    orb_i = list_act(iorb)
@@ -352,7 +352,7 @@ BEGIN_PROVIDER [ double precision, two_creat_one_anhil, (n_act_orb,n_act_orb,n_a
        hole_particle_k = -1
        spin_exc_k = kspin 
        do i = 1, n_det
-        do j = 1, n_states_diag
+        do j = 1, n_states
           psi_in_out_coef(i,j) = psi_coef(i,j)
         enddo
         do j = 1, N_int
@@ -362,12 +362,12 @@ BEGIN_PROVIDER [ double precision, two_creat_one_anhil, (n_act_orb,n_act_orb,n_a
        enddo
        do state_target = 1, N_states
         call apply_exc_to_psi(orb_k,hole_particle_k,spin_exc_k, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
+                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
         call apply_exc_to_psi(orb_i,hole_particle_i,spin_exc_i, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
+                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
         call apply_exc_to_psi(orb_j,hole_particle_j,spin_exc_j, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
-        call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states_diag,state_target)
+                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
+        call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
         two_creat_one_anhil(iorb,jorb,korb,ispin,jspin,kspin,state_target) = energy_cas_dyall(state_target)  -  energies(state_target)
        enddo
       enddo
@@ -387,16 +387,16 @@ BEGIN_PROVIDER [ double precision, three_creat, (n_act_orb,n_act_orb,n_act_orb,2
  integer :: orb_i, hole_particle_i,spin_exc_i
  integer :: orb_j, hole_particle_j,spin_exc_j
  integer :: orb_k, hole_particle_k,spin_exc_k
- double precision  :: norm_out(N_states_diag)
+ double precision  :: norm_out(N_states)
  integer(bit_kind), allocatable :: psi_in_out(:,:,:)
  double precision, allocatable :: psi_in_out_coef(:,:)
  use bitmasks
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states_diag))
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states))
 
  integer :: iorb,jorb
  integer :: korb
  integer :: state_target
- double precision :: energies(n_states_diag)
+ double precision :: energies(n_states)
  do iorb = 1,n_act_orb
   do ispin = 1,2
    orb_i = list_act(iorb)
@@ -413,7 +413,7 @@ BEGIN_PROVIDER [ double precision, three_creat, (n_act_orb,n_act_orb,n_act_orb,2
        hole_particle_k =  1
        spin_exc_k = kspin 
        do i = 1, n_det
-        do j = 1, n_states_diag
+        do j = 1, n_states
           psi_in_out_coef(i,j) = psi_coef(i,j)
         enddo
         do j = 1, N_int
@@ -423,12 +423,12 @@ BEGIN_PROVIDER [ double precision, three_creat, (n_act_orb,n_act_orb,n_act_orb,2
        enddo
        do state_target = 1, N_states
         call apply_exc_to_psi(orb_i,hole_particle_i,spin_exc_i, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
+                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
         call apply_exc_to_psi(orb_j,hole_particle_j,spin_exc_j, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
+                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
         call apply_exc_to_psi(orb_k,hole_particle_k,spin_exc_k, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
-        call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states_diag,state_target)
+                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
+        call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
         three_creat(iorb,jorb,korb,ispin,jspin,kspin,state_target) = energy_cas_dyall(state_target)  -  energies(state_target)
        enddo
       enddo
@@ -448,16 +448,16 @@ BEGIN_PROVIDER [ double precision, three_anhil, (n_act_orb,n_act_orb,n_act_orb,2
  integer :: orb_i, hole_particle_i,spin_exc_i
  integer :: orb_j, hole_particle_j,spin_exc_j
  integer :: orb_k, hole_particle_k,spin_exc_k
- double precision  :: norm_out(N_states_diag)
+ double precision  :: norm_out(N_states)
  integer(bit_kind), allocatable :: psi_in_out(:,:,:)
  double precision, allocatable :: psi_in_out_coef(:,:)
  use bitmasks
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states_diag))
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states))
 
  integer :: iorb,jorb
  integer :: korb
  integer :: state_target
- double precision :: energies(n_states_diag)
+ double precision :: energies(n_states)
  do iorb = 1,n_act_orb
   do ispin = 1,2
    orb_i = list_act(iorb)
@@ -474,7 +474,7 @@ BEGIN_PROVIDER [ double precision, three_anhil, (n_act_orb,n_act_orb,n_act_orb,2
        hole_particle_k = -1
        spin_exc_k = kspin 
        do i = 1, n_det
-        do j = 1, n_states_diag
+        do j = 1, n_states
           psi_in_out_coef(i,j) = psi_coef(i,j)
         enddo
         do j = 1, N_int
@@ -484,12 +484,12 @@ BEGIN_PROVIDER [ double precision, three_anhil, (n_act_orb,n_act_orb,n_act_orb,2
        enddo
        do state_target = 1, N_states
         call apply_exc_to_psi(orb_i,hole_particle_i,spin_exc_i, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
+                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
         call apply_exc_to_psi(orb_j,hole_particle_j,spin_exc_j, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
+                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
         call apply_exc_to_psi(orb_k,hole_particle_k,spin_exc_k, & 
-                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states_diag)
-        call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states_diag,state_target)
+                norm_out,psi_in_out,psi_in_out_coef, n_det,n_det,n_det,N_states)
+        call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
         three_anhil(iorb,jorb,korb,ispin,jspin,kspin,state_target) = energy_cas_dyall(state_target)  -  energies(state_target)
        enddo
       enddo
@@ -511,15 +511,15 @@ END_PROVIDER
  integer :: ispin,jspin
  integer :: orb_i, hole_particle_i
  integer :: orb_v
- double precision  :: norm_out(N_states_diag)
+ double precision  :: norm_out(N_states)
  integer(bit_kind), allocatable :: psi_in_out(:,:,:)
  double precision, allocatable :: psi_in_out_coef(:,:)
  use bitmasks
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states_diag))
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states))
 
  integer :: iorb,jorb,i_ok
  integer :: state_target
- double precision :: energies(n_states_diag)
+ double precision :: energies(n_states)
  double precision :: hij
  double precision :: norm(N_states,2),norm_no_inv(N_states,2),norm_bis(N_states,2)
  double precision :: energies_alpha_beta(N_states,2)
@@ -585,7 +585,7 @@ END_PROVIDER
       energies_alpha_beta(state_target, ispin) = - mo_bielec_integral_jj_exchange(orb_i,orb_v)
 !     energies_alpha_beta(state_target, ispin) = 0.d0
       if(norm(state_target,ispin) .ne. 0.d0 .and. dabs(norm_no_inv(state_target,ispin)) .gt. thresh_norm)then
-       call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states_diag,state_target)
+       call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
        energies_alpha_beta(state_target, ispin) +=  energies(state_target) 
       endif
      enddo
@@ -616,15 +616,15 @@ BEGIN_PROVIDER [ double precision, one_anhil_inact, (n_inact_orb,n_act_orb,N_Sta
  integer :: i,iorb,j
  integer :: ispin,jspin
  integer :: orb_i, hole_particle_i
- double precision  :: norm_out(N_states_diag)
+ double precision  :: norm_out(N_states)
  integer(bit_kind), allocatable :: psi_in_out(:,:,:)
  double precision, allocatable :: psi_in_out_coef(:,:)
  use bitmasks
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states_diag))
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states))
 
  integer :: jorb,i_ok,aorb,orb_a
  integer :: state_target
- double precision :: energies(n_states_diag)
+ double precision :: energies(n_states)
  double precision :: hij
  double precision :: norm(N_states,2),norm_no_inv(N_states,2)
  double precision :: energies_alpha_beta(N_states,2)
@@ -688,7 +688,7 @@ BEGIN_PROVIDER [ double precision, one_anhil_inact, (n_inact_orb,n_act_orb,N_Sta
      do state_target = 1, N_states
       energies_alpha_beta(state_target, ispin) = 0.d0
       if(norm(state_target,ispin) .ne. 0.d0 .and. dabs(norm_no_inv(state_target,ispin)) .gt. thresh_norm)then
-       call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states_diag,state_target)
+       call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
        energies_alpha_beta(state_target, ispin) +=  energies(state_target) 
       endif
      enddo
@@ -701,11 +701,6 @@ BEGIN_PROVIDER [ double precision, one_anhil_inact, (n_inact_orb,n_act_orb,N_Sta
     else  
      one_anhil_inact(iorb,aorb,state_target) = 0.d0
     endif
-!   print*, '********'
-!   print*, energies_alpha_beta(state_target,1) , energies_alpha_beta(state_target,2)
-!   print*, norm_bis(state_target,1) ,  norm_bis(state_target,2)
-!   print*, one_anhil_inact(iorb,aorb,state_target)
-!   print*, one_creat(aorb,1,state_target)
    enddo
   enddo
  enddo
@@ -719,15 +714,15 @@ BEGIN_PROVIDER [ double precision, one_creat_virt, (n_act_orb,n_virt_orb,N_State
  integer :: ispin,jspin
  integer :: orb_i, hole_particle_i
  integer :: orb_v
- double precision  :: norm_out(N_states_diag)
+ double precision  :: norm_out(N_states)
  integer(bit_kind), allocatable :: psi_in_out(:,:,:)
  double precision, allocatable :: psi_in_out_coef(:,:)
  use bitmasks
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states_diag))
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states))
 
  integer :: iorb,jorb,i_ok,aorb,orb_a
  integer :: state_target
- double precision :: energies(n_states_diag)
+ double precision :: energies(n_states)
  double precision :: hij
  double precision :: norm(N_states,2),norm_no_inv(N_states,2)
  double precision :: energies_alpha_beta(N_states,2)
@@ -791,7 +786,7 @@ BEGIN_PROVIDER [ double precision, one_creat_virt, (n_act_orb,n_virt_orb,N_State
      do state_target = 1, N_states
       energies_alpha_beta(state_target, ispin) = 0.d0
       if(norm(state_target,ispin) .ne. 0.d0 .and. dabs(norm_no_inv(state_target,ispin)) .gt. thresh_norm)then
-       call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states_diag,state_target)
+       call u0_H_dyall_u0(energies,psi_in_out,psi_in_out_coef,n_det,n_det,n_det,N_states,state_target)
 !      print*,  energies(state_target)
        energies_alpha_beta(state_target, ispin) +=  energies(state_target) 
       endif
@@ -825,19 +820,19 @@ END_PROVIDER
  integer :: ispin,jspin
  integer :: orb_i, hole_particle_i
  integer :: orb_v
- double precision  :: norm_out(N_states_diag),diag_elem(N_det),interact_psi0(N_det)
+ double precision  :: norm_out(N_states),diag_elem(N_det),interact_psi0(N_det)
  double precision  :: delta_e_inact_virt(N_states)
  integer(bit_kind), allocatable :: psi_in_out(:,:,:)
  double precision, allocatable :: psi_in_out_coef(:,:)
  double precision, allocatable :: H_matrix(:,:),eigenvectors(:,:),eigenvalues(:)
  use bitmasks
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states_diag),H_matrix(N_det+1,N_det+1))
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states),H_matrix(N_det+1,N_det+1))
  allocate (eigenvectors(size(H_matrix,1),N_det+1))
  allocate (eigenvalues(N_det+1))
 
  integer :: iorb,jorb,i_ok
  integer :: state_target
- double precision :: energies(n_states_diag)
+ double precision :: energies(n_states)
  double precision :: hij
  double precision :: energies_alpha_beta(N_states,2)
 
@@ -973,21 +968,21 @@ subroutine give_singles_and_partial_doubles_1h1p_contrib(matrix_1h1p,e_corr_from
  integer :: ispin,jspin
  integer :: orb_i, hole_particle_i
  integer :: orb_v
- double precision  :: norm_out(N_states_diag),diag_elem(N_det),interact_psi0(N_det)
+ double precision  :: norm_out(N_states),diag_elem(N_det),interact_psi0(N_det)
  double precision  :: delta_e_inact_virt(N_states)
  integer(bit_kind), allocatable :: psi_in_out(:,:,:)
  double precision, allocatable :: psi_in_out_coef(:,:)
  double precision, allocatable :: H_matrix(:,:),eigenvectors(:,:),eigenvalues(:),interact_cas(:,:)
  double precision, allocatable :: delta_e_det(:,:)
  use bitmasks
- allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states_diag),H_matrix(N_det+1,N_det+1))
+ allocate (psi_in_out(N_int,2,n_det),psi_in_out_coef(n_det,N_states),H_matrix(N_det+1,N_det+1))
  allocate (eigenvectors(size(H_matrix,1),N_det+1))
  allocate (eigenvalues(N_det+1),interact_cas(N_det,N_det))
  allocate (delta_e_det(N_det,N_det))
 
  integer :: iorb,jorb,i_ok
  integer :: state_target
- double precision :: energies(n_states_diag)
+ double precision :: energies(n_states)
  double precision :: hij
  double precision :: energies_alpha_beta(N_states,2)
  double precision :: lamda_pt2(N_det)
@@ -1023,7 +1018,7 @@ subroutine give_singles_and_partial_doubles_1h1p_contrib(matrix_1h1p,e_corr_from
       interact_psi0(i) = 0.d0
       do j = 1 , N_det
        call i_H_j(psi_in_out(1,1,i),psi_det(1,1,j),N_int,hij)
-       call get_delta_e_dyall(psi_det(1,1,j),psi_in_out(1,1,i),coef_array,hij,delta_e_det(i,j))
+       call get_delta_e_dyall(psi_det(1,1,j),psi_in_out(1,1,i),delta_e_det(i,j))
        interact_cas(i,j) = hij
        interact_psi0(i) += hij * psi_coef(j,1)
       enddo

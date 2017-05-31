@@ -15,6 +15,57 @@
    enddo
 END_PROVIDER
 
+ BEGIN_PROVIDER [ double precision, one_body_dm_mo_spin_index, (mo_tot_num_align,mo_tot_num,N_states,2) ]
+ implicit none 
+ integer :: i,j,ispin,istate
+ ispin = 1
+  do istate = 1, N_states
+   do j = 1, mo_tot_num
+    do i = 1, mo_tot_num
+     one_body_dm_mo_spin_index(i,j,istate,ispin) = one_body_dm_mo_alpha(i,j,istate)
+    enddo
+   enddo
+  enddo
+
+ ispin = 2
+  do istate = 1, N_states
+   do j = 1, mo_tot_num
+    do i = 1, mo_tot_num
+     one_body_dm_mo_spin_index(i,j,istate,ispin) = one_body_dm_mo_beta(i,j,istate)
+    enddo
+   enddo
+  enddo
+
+ END_PROVIDER
+
+
+ BEGIN_PROVIDER [ double precision, one_body_dm_dagger_mo_spin_index, (mo_tot_num_align,mo_tot_num,N_states,2) ]
+ implicit none 
+ integer :: i,j,ispin,istate
+ ispin = 1
+  do istate = 1, N_states
+   do j = 1, mo_tot_num
+    one_body_dm_dagger_mo_spin_index(j,j,istate,ispin) = 1 - one_body_dm_mo_alpha(j,j,istate)
+    do i = j+1, mo_tot_num
+     one_body_dm_dagger_mo_spin_index(i,j,istate,ispin) = -one_body_dm_mo_alpha(i,j,istate)
+     one_body_dm_dagger_mo_spin_index(j,i,istate,ispin) = -one_body_dm_mo_alpha(i,j,istate)
+    enddo
+   enddo
+  enddo
+
+ ispin = 2
+  do istate = 1, N_states
+   do j = 1, mo_tot_num
+    one_body_dm_dagger_mo_spin_index(j,j,istate,ispin) = 1 - one_body_dm_mo_beta(j,j,istate)
+    do i = j+1, mo_tot_num
+     one_body_dm_dagger_mo_spin_index(i,j,istate,ispin) = -one_body_dm_mo_beta(i,j,istate)
+     one_body_dm_dagger_mo_spin_index(j,i,istate,ispin) = -one_body_dm_mo_beta(i,j,istate)
+    enddo
+   enddo
+  enddo
+
+ END_PROVIDER
+
  BEGIN_PROVIDER [ double precision, one_body_dm_mo_alpha, (mo_tot_num_align,mo_tot_num,N_states) ]
 &BEGIN_PROVIDER [ double precision, one_body_dm_mo_beta, (mo_tot_num_align,mo_tot_num,N_states) ]
    implicit none
@@ -285,6 +336,8 @@ END_PROVIDER
 
  BEGIN_PROVIDER [ double precision, one_body_dm_ao_alpha, (ao_num_align,ao_num) ]
 &BEGIN_PROVIDER [ double precision, one_body_dm_ao_beta, (ao_num_align,ao_num) ]
+&BEGIN_PROVIDER [ double precision, one_body_dm_ao_alpha_no_align, (ao_num,ao_num) ]
+&BEGIN_PROVIDER [ double precision, one_body_dm_ao_beta_no_align, (ao_num,ao_num) ]
  BEGIN_DOC
 ! one body density matrix on the AO basis : rho_AO(alpha) , rho_AO(beta)
  END_DOC
@@ -303,9 +356,14 @@ END_PROVIDER
 !    if(dabs(dm_mo).le.1.d-10)cycle
      one_body_dm_ao_alpha(l,k) += mo_coef(k,i) * mo_coef(l,j) *  mo_alpha
      one_body_dm_ao_beta(l,k) += mo_coef(k,i) * mo_coef(l,j)  *  mo_beta        
-
     enddo
    enddo
+  enddo
+ enddo
+ do i = 1, ao_num
+  do j = 1, ao_num
+   one_body_dm_ao_alpha_no_align(j,i) = one_body_dm_ao_alpha(j,i)
+   one_body_dm_ao_beta_no_align(j,i) = one_body_dm_ao_beta(j,i)
   enddo
  enddo
 

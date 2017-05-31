@@ -84,7 +84,8 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
       do i_state = 1, N_states
        coef_array(i_state) = psi_coef(index_i,i_state)
       enddo
-      call get_delta_e_dyall(psi_det(1,1,index_i),tq(1,1,i_alpha),coef_array,hialpha,delta_e)
+      call get_delta_e_dyall(psi_det(1,1,index_i),tq(1,1,i_alpha),delta_e)
+!     call get_delta_e_dyall_general_mp(psi_det(1,1,index_i),tq(1,1,i_alpha),delta_e)
       hij_array(index_i) = hialpha
       call get_excitation(psi_det(1,1,index_i),tq(1,1,i_alpha),exc,degree,phase,N_int)
 !     phase_array(index_i) = phase

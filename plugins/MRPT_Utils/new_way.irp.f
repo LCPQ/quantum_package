@@ -804,7 +804,7 @@ subroutine give_1p_sec_order_singles_contrib(matrix_1p)
         do jdet = 1,N_det
          double precision :: coef_array(N_states),hij_test
          call  i_H_j(det_tmp,psi_det(1,1,jdet),N_int,himono)
-         call get_delta_e_dyall(psi_det(1,1,jdet),det_tmp,coef_array,hij_test,delta_e)
+         call get_delta_e_dyall(psi_det(1,1,jdet),det_tmp,delta_e)
          do state_target = 1, N_states
 !         matrix_1p(idet,jdet,state_target) += himono * coef_det_pert(i,r,ispin,state_target,1)
           matrix_1p(idet,jdet,state_target) += himono * hij_det_pert(i,r,ispin) / delta_e(state_target)
