@@ -26,7 +26,7 @@ subroutine run
   psi_coef = psi_coef_sorted
   touch N_det psi_det psi_coef
   do i=N_det,1,-1
-    if (dabs(psi_coef(i,1)) <= 1.d-15) then
+    if (dabs(psi_coef(i,1)) <= 1.d-8) then
       N_det -= 1
     endif
   enddo
@@ -36,6 +36,7 @@ subroutine run
   print *,  'E                            = ', HF_energy
   print *,  'E_before     +PT2            = ', HF_energy+pt2(1)
   N_det = min(N_det,N_det_max)
+  touch N_det psi_det psi_coef
   call save_wavefunction
   call ezfio_set_mp2_energy(HF_energy+pt2(1))
   deallocate(pt2,norm_pert,H_pert_diag)
