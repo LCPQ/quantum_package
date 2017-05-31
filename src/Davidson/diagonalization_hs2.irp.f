@@ -139,7 +139,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
   write(iunit,'(A)') trim(write_buffer)
   write_buffer = ' Iter'
   do i=1,N_st
-    write_buffer = trim(write_buffer)//'      Energy          S^2      Residual  '
+    write_buffer = trim(write_buffer)//'      Energy          S^2      Residual    '
   enddo
   write(iunit,'(A)') trim(write_buffer)
   write_buffer = '===== '
