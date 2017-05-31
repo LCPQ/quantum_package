@@ -1,5 +1,5 @@
-open Qptypes;;
-open Core.Std;;
+open Qptypes
+open Core.Std
 
 type t =
 { sym  : Symmetry.t ;
@@ -11,8 +11,7 @@ let to_string p =
   Printf.sprintf "(%s, %f)" 
    (Symmetry.to_string s)
    (AO_expo.to_float e)
-;;
+
   
 let of_sym_expo s e = 
   { sym=s ; expo=e}
-;;

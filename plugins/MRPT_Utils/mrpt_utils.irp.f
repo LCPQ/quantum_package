@@ -272,7 +272,7 @@ END_PROVIDER
        allocate (s2_eigvalues(N_det))
        allocate(index_good_state_array(N_det),good_state_array(N_det))
        good_state_array = .False.
-       call u_0_S2_u_0(s2_eigvalues,eigenvectors,N_det,psi_det,N_int,&
+       call u_0_S2_u_0(s2_eigvalues,eigenvectors,N_det,psi_ref,N_int,&
          N_det,size(eigenvectors,1))
        do j=1,N_det
          ! Select at least n_states states with S^2 values closed to "expected_s2"
@@ -329,7 +329,7 @@ END_PROVIDER
        deallocate(index_good_state_array,good_state_array)
        deallocate(s2_eigvalues)
      else
-       call u_0_S2_u_0(CI_dressed_pt2_new_eigenvectors_s2,eigenvectors,N_det,psi_det,N_int,&
+       call u_0_S2_u_0(CI_dressed_pt2_new_eigenvectors_s2,eigenvectors,N_det,psi_ref,N_int,&
           min(N_det,N_states),size(eigenvectors,1))
        ! Select the "N_states" states of lowest energy
        do j=1,min(N_det,N_states)

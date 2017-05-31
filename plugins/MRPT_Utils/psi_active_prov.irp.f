@@ -11,8 +11,8 @@ BEGIN_PROVIDER [integer(bit_kind), psi_active, (N_int,2,psi_det_size)]
 !print*, 'psi_active '
  do i = 1, N_det
   do j = 1, N_int
-   psi_active(j,1,i) = iand(psi_det(j,1,i),cas_bitmask(j,1,1))
-   psi_active(j,2,i) = iand(psi_det(j,2,i),cas_bitmask(j,1,1))
+   psi_active(j,1,i) = iand(psi_ref(j,1,i),cas_bitmask(j,1,1))
+   psi_active(j,2,i) = iand(psi_ref(j,2,i),cas_bitmask(j,1,1))
   enddo
  enddo
 END_PROVIDER
