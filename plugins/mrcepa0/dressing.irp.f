@@ -98,6 +98,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
   integer :: mobiles(2), smallerlist
   logical, external :: detEq, is_generable
   !double precision, external :: get_dij, get_dij_index
+  double precision :: Delta_E_inv(N_states)
   
   if (perturbative_triples) then
     PROVIDE one_anhil fock_virt_total fock_core_inactive_total one_creat
@@ -107,7 +108,6 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
   leng = max(N_det_generators, N_det_non_ref)
   allocate(miniList(Nint, 2, leng), tq(Nint,2,n_selected), idx_minilist(leng), hij_cache(N_det_non_ref), sij_cache(N_det_non_ref))
   allocate(idx_alpha(0:psi_det_size), degree_alpha(psi_det_size))
-  !create_minilist_find_previous(key_mask, fullList, miniList, N_fullList, N_miniList, fullMatch, Nint)
   call create_minilist_find_previous(key_mask, psi_det_generators, miniList, i_generator-1, N_miniList, fullMatch, Nint)
   
 !   if(fullMatch) then
@@ -231,9 +231,6 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
         enddo
         logical :: ok
         call apply_excitation(psi_ref(1,1,i_I), exc, tmp_det, ok, Nint)
-        if (perturbative_triples) then
-          ok = ok .and. ( (degree2 /= 1).and.(degree /=1) )
-        endif
         
         do i_state=1,N_states
           dIK(i_state) = dij(i_I, idx_alpha(k_sd), i_state)
@@ -257,14 +254,27 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
           enddo
 
         else if (perturbative_triples) then
+           ! Linked
 
-         call get_delta_e_dyall_general_mp(psi_ref(1,1,i_I),tq(1,1,i_alpha),Delta_E_inv)
+            call get_delta_e_dyall_general_mp(psi_ref(1,1,i_I),tq(1,1,i_alpha),Delta_E_inv)
 
-          hka = hij_cache(idx_alpha(k_sd))
-          do i_state=1,N_states
-            ASSERT (Delta_E_inv(i_state) < 0.d0)
-            dka(i_state) = hka / Delta_E_inv(i_state)
-          enddo
+            hka = hij_cache(idx_alpha(k_sd))
+            do i_state=1,N_states
+              ASSERT (Delta_E_inv(i_state) < 0.d0)
+              dka(i_state) = hka / Delta_E_inv(i_state)
+            enddo
+
+        endif
+
+        if (perturbative_triples.and. (degree2 == 1) ) then
+            call get_delta_e_dyall_general_mp(psi_ref(1,1,i_I),tq(1,1,i_alpha),Delta_E_inv)
+            call i_h_j(psi_ref(1,1,i_I),tmp_det,Nint,hka)
+            hka = hij_cache(idx_alpha(k_sd)) - hka
+
+            do i_state=1,N_states
+              ASSERT (Delta_E_inv(i_state) < 0.d0)
+              dka(i_state) = hka / Delta_E_inv(i_state)
+            enddo
 
         endif
 
