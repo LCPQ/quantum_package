@@ -40,7 +40,7 @@ END_DOC
 !
 ! Start of main SCF loop
 !
-  do while((max_error_DIIS > threshold_DIIS_nonzero) .and. (iteration_SCF < n_it_SCF_max) .and. dabs(Delta_energy_SCF) > thresh_SCF)
+  do while(( (max_error_DIIS > threshold_DIIS_nonzero).or.(dabs(Delta_energy_SCF) > thresh_SCF) ) .and. (iteration_SCF < n_it_SCF_max))
 
 ! Increment cycle number
 
@@ -70,14 +70,14 @@ END_DOC
           )
 
       Fock_matrix_AO_alpha = Fock_matrix_AO*0.5d0
-      Fock_matrix_AO_Beta = Fock_matrix_AO*0.5d0
-      touch Fock_matrix_AO_alpha Fock_matrix_AO_beta
+      Fock_matrix_AO_beta  = Fock_matrix_AO*0.5d0
+      TOUCH Fock_matrix_AO_alpha Fock_matrix_AO_beta
 
     endif
 
     MO_coef = eigenvectors_Fock_matrix_MO
 
-    touch MO_coef
+    TOUCH MO_coef
 
 !   Calculate error vectors
 
@@ -87,6 +87,25 @@ END_DOC
 
     energy_SCF = HF_energy
     Delta_Energy_SCF = energy_SCF - energy_SCF_previous
+    if ( (SCF_algorithm == 'DIIS').and.(Delta_Energy_SCF > 0.d0) ) then
+      Fock_matrix_AO(1:ao_num,1:ao_num) = Fock_matrix_DIIS (1:ao_num,1:ao_num,index_dim_DIIS)
+      Fock_matrix_AO_alpha = Fock_matrix_AO*0.5d0
+      Fock_matrix_AO_beta  = Fock_matrix_AO*0.5d0
+      TOUCH Fock_matrix_AO_alpha Fock_matrix_AO_beta
+      dim_DIIS = 0
+    endif
+
+    double precision :: level_shift_save
+    level_shift_save = level_shift
+    do while (Delta_Energy_SCF > 0.d0)
+      level_shift = level_shift + 0.05d0
+      MO_coef = eigenvectors_Fock_matrix_MO
+      TOUCH MO_coef level_shift
+      Delta_Energy_SCF = HF_energy - energy_SCF_previous
+      if (level_shift > 1.d0) exit
+    enddo
+    level_shift = level_shift_save
+    SOFT_TOUCH level_shift
     energy_SCF_previous = energy_SCF
 
 !   Print results at the end of each iteration
