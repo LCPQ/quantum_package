@@ -200,7 +200,7 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   !
   ! LDC : leftmost dimension of C
   !
-  ! m : Coefficients matrix is MxN, ( array is (LDC,N) )
+  ! M : Coefficients matrix is MxN, ( array is (LDC,N) )
   !
   END_DOC
   
@@ -211,7 +211,6 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   double precision, allocatable  :: Vt(:,:)
   double precision, allocatable  :: D(:)
   double precision, allocatable  :: S_half(:,:)
-  !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
   integer                        :: info, i, j, k
   
   if (n < 2) then

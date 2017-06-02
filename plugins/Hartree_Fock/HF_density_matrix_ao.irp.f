@@ -1,4 +1,4 @@
-BEGIN_PROVIDER [ double precision, HF_density_matrix_ao_alpha, (ao_num_align,ao_num) ]
+BEGIN_PROVIDER [double precision, HF_density_matrix_ao_alpha, (ao_num_align,ao_num) ]
    implicit none
    BEGIN_DOC
    ! S^-1 x Alpha density matrix in the AO basis x S^-1
