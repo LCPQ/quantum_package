@@ -14,7 +14,7 @@ end
 
 subroutine provide_everything
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators psi_det_sorted_bit psi_selectors n_det_generators n_states generators_bitmask zmq_context
-  PROVIDE pt2_e0_denominator mo_tot_num N_int fragment_count 
+  PROVIDE pt2_e0_denominator mo_tot_num N_int fragment_count MPI_Initialized
 end
 
 subroutine run_wf
@@ -51,7 +51,12 @@ subroutine run_wf
       ! ---------
 
       print *,  'Selection'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      if (is_mpi_master) then
+          call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      endif
+      IRP_IF MIP
+        call MPI_BCAST(n,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr) 
+      IRP_ENDIF
   
       !$OMP PARALLEL PRIVATE(i)
       i = omp_get_thread_num()
