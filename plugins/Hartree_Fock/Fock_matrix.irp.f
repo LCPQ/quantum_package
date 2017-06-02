@@ -18,57 +18,57 @@
    END_DOC
    integer                        :: i,j,n
    if (elec_alpha_num == elec_beta_num) then
-     Fock_matrix_mo = Fock_matrix_alpha_mo
+     Fock_matrix_mo = Fock_matrix_mo_alpha
    else
      
      do j=1,elec_beta_num
        ! F-K
        do i=1,elec_beta_num
-         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_alpha_mo(i,j)+Fock_matrix_beta_mo(i,j))&
-             - (Fock_matrix_beta_mo(i,j) - Fock_matrix_alpha_mo(i,j))
+         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_mo_alpha(i,j)+Fock_matrix_mo_beta(i,j))&
+             - (Fock_matrix_mo_beta(i,j) - Fock_matrix_mo_alpha(i,j))
        enddo
        ! F+K/2
        do i=elec_beta_num+1,elec_alpha_num
-         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_alpha_mo(i,j)+Fock_matrix_beta_mo(i,j))&
-             + 0.5d0*(Fock_matrix_beta_mo(i,j) - Fock_matrix_alpha_mo(i,j))
+         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_mo_alpha(i,j)+Fock_matrix_mo_beta(i,j))&
+             + 0.5d0*(Fock_matrix_mo_beta(i,j) - Fock_matrix_mo_alpha(i,j))
        enddo
        ! F
        do i=elec_alpha_num+1, mo_tot_num
-         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_alpha_mo(i,j)+Fock_matrix_beta_mo(i,j))
+         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_mo_alpha(i,j)+Fock_matrix_mo_beta(i,j))
        enddo
      enddo
 
      do j=elec_beta_num+1,elec_alpha_num
        ! F+K/2
        do i=1,elec_beta_num
-         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_alpha_mo(i,j)+Fock_matrix_beta_mo(i,j))&
-             + 0.5d0*(Fock_matrix_beta_mo(i,j) - Fock_matrix_alpha_mo(i,j))
+         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_mo_alpha(i,j)+Fock_matrix_mo_beta(i,j))&
+             + 0.5d0*(Fock_matrix_mo_beta(i,j) - Fock_matrix_mo_alpha(i,j))
        enddo
        ! F
        do i=elec_beta_num+1,elec_alpha_num
-         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_alpha_mo(i,j)+Fock_matrix_beta_mo(i,j))
+         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_mo_alpha(i,j)+Fock_matrix_mo_beta(i,j))
        enddo
        ! F-K/2
        do i=elec_alpha_num+1, mo_tot_num
-         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_alpha_mo(i,j)+Fock_matrix_beta_mo(i,j))&
-             - 0.5d0*(Fock_matrix_beta_mo(i,j) - Fock_matrix_alpha_mo(i,j))
+         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_mo_alpha(i,j)+Fock_matrix_mo_beta(i,j))&
+             - 0.5d0*(Fock_matrix_mo_beta(i,j) - Fock_matrix_mo_alpha(i,j))
        enddo
      enddo
 
      do j=elec_alpha_num+1, mo_tot_num
        ! F
        do i=1,elec_beta_num
-         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_alpha_mo(i,j)+Fock_matrix_beta_mo(i,j))
+         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_mo_alpha(i,j)+Fock_matrix_mo_beta(i,j))
        enddo
        ! F-K/2
        do i=elec_beta_num+1,elec_alpha_num
-         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_alpha_mo(i,j)+Fock_matrix_beta_mo(i,j))&
-             - 0.5d0*(Fock_matrix_beta_mo(i,j) - Fock_matrix_alpha_mo(i,j))
+         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_mo_alpha(i,j)+Fock_matrix_mo_beta(i,j))&
+             - 0.5d0*(Fock_matrix_mo_beta(i,j) - Fock_matrix_mo_alpha(i,j))
        enddo
        ! F+K
        do i=elec_alpha_num+1,mo_tot_num
-         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_alpha_mo(i,j)+Fock_matrix_beta_mo(i,j)) &
-             + (Fock_matrix_beta_mo(i,j) - Fock_matrix_alpha_mo(i,j))
+         Fock_matrix_mo(i,j) = 0.5d0*(Fock_matrix_mo_alpha(i,j)+Fock_matrix_mo_beta(i,j)) &
+             + (Fock_matrix_mo_beta(i,j) - Fock_matrix_mo_alpha(i,j))
        enddo
      enddo
      
@@ -81,8 +81,8 @@ END_PROVIDER
  
  
  
- BEGIN_PROVIDER [ double precision, Fock_matrix_alpha_ao, (ao_num_align, ao_num) ]
-&BEGIN_PROVIDER [ double precision, Fock_matrix_beta_ao,  (ao_num_align, ao_num) ]
+ BEGIN_PROVIDER [ double precision, Fock_matrix_ao_alpha, (ao_num_align, ao_num) ]
+&BEGIN_PROVIDER [ double precision, Fock_matrix_ao_beta,  (ao_num_align, ao_num) ]
  implicit none
  BEGIN_DOC
  ! Alpha Fock matrix in AO basis set
@@ -92,8 +92,8 @@ END_PROVIDER
  do j=1,ao_num
    !DIR$ VECTOR ALIGNED
    do i=1,ao_num
-     Fock_matrix_alpha_ao(i,j) = ao_mono_elec_integral(i,j) + ao_bi_elec_integral_alpha(i,j)
-     Fock_matrix_beta_ao (i,j) = ao_mono_elec_integral(i,j) + ao_bi_elec_integral_beta (i,j)
+     Fock_matrix_ao_alpha(i,j) = ao_mono_elec_integral(i,j) + ao_bi_elec_integral_alpha(i,j)
+     Fock_matrix_ao_beta (i,j) = ao_mono_elec_integral(i,j) + ao_bi_elec_integral_beta (i,j)
    enddo
  enddo
 
@@ -261,12 +261,7 @@ END_PROVIDER
 
 END_PROVIDER
 
-
-
-
-
-
-BEGIN_PROVIDER [ double precision, Fock_matrix_alpha_mo, (mo_tot_num_align,mo_tot_num) ]
+BEGIN_PROVIDER [ double precision, Fock_matrix_mo_alpha, (mo_tot_num_align,mo_tot_num) ]
    implicit none
    BEGIN_DOC
    ! Fock matrix on the MO basis
@@ -275,18 +270,18 @@ BEGIN_PROVIDER [ double precision, Fock_matrix_alpha_mo, (mo_tot_num_align,mo_to
    allocate ( T(ao_num_align,mo_tot_num) )
    !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
    call dgemm('N','N', ao_num, mo_tot_num, ao_num,                   &
-       1.d0, Fock_matrix_alpha_ao,size(Fock_matrix_alpha_ao,1),      &
+       1.d0, Fock_matrix_ao_alpha,size(Fock_matrix_ao_alpha,1),      &
        mo_coef, size(mo_coef,1),                                     &
        0.d0, T, ao_num_align)
    call dgemm('T','N', mo_tot_num, mo_tot_num, ao_num,               &
        1.d0, mo_coef,size(mo_coef,1),                                &
        T, size(T,1),                                                 &
-       0.d0, Fock_matrix_alpha_mo, mo_tot_num_align)
+       0.d0, Fock_matrix_mo_alpha, mo_tot_num_align)
    deallocate(T)
 END_PROVIDER
  
  
-BEGIN_PROVIDER [ double precision, Fock_matrix_beta_mo, (mo_tot_num_align,mo_tot_num) ]
+BEGIN_PROVIDER [ double precision, Fock_matrix_mo_beta, (mo_tot_num_align,mo_tot_num) ]
    implicit none
    BEGIN_DOC
    ! Fock matrix on the MO basis
@@ -295,13 +290,13 @@ BEGIN_PROVIDER [ double precision, Fock_matrix_beta_mo, (mo_tot_num_align,mo_tot
    allocate ( T(ao_num_align,mo_tot_num) )
    !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
    call dgemm('N','N', ao_num, mo_tot_num, ao_num,                   &
-       1.d0, Fock_matrix_beta_ao,size(Fock_matrix_beta_ao,1),        &
+       1.d0, Fock_matrix_ao_beta,size(Fock_matrix_ao_beta,1),        &
        mo_coef, size(mo_coef,1),                                     &
        0.d0, T, ao_num_align)
    call dgemm('T','N', mo_tot_num, mo_tot_num, ao_num,               &
        1.d0, mo_coef,size(mo_coef,1),                                &
        T, size(T,1),                                                 &
-       0.d0, Fock_matrix_beta_mo, mo_tot_num_align)
+       0.d0, Fock_matrix_mo_beta, mo_tot_num_align)
    deallocate(T)
 END_PROVIDER
  
@@ -316,8 +311,8 @@ BEGIN_PROVIDER [ double precision, HF_energy ]
  do j=1,ao_num
    do i=1,ao_num
      HF_energy += 0.5d0 * (                                          &
-         (ao_mono_elec_integral(i,j) + Fock_matrix_alpha_ao(i,j) ) *  HF_density_matrix_ao_alpha(i,j) +&
-         (ao_mono_elec_integral(i,j) + Fock_matrix_beta_ao (i,j) ) *  HF_density_matrix_ao_beta (i,j) )
+         (ao_mono_elec_integral(i,j) + Fock_matrix_ao_alpha(i,j) ) *  HF_density_matrix_ao_alpha(i,j) +&
+         (ao_mono_elec_integral(i,j) + Fock_matrix_ao_beta (i,j) ) *  HF_density_matrix_ao_beta (i,j) )
    enddo
  enddo
   
@@ -337,7 +332,7 @@ BEGIN_PROVIDER [ double precision, Fock_matrix_ao, (ao_num_align, ao_num) ]
    do j=1,ao_num
      !DIR$ VECTOR ALIGNED
      do i=1,ao_num_align
-       Fock_matrix_ao(i,j) = Fock_matrix_alpha_ao(i,j)
+       Fock_matrix_ao(i,j) = Fock_matrix_ao_alpha(i,j)
      enddo
    enddo
  else

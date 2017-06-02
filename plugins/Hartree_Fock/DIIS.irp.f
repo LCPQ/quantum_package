@@ -1,4 +1,6 @@
-begin_provider [double precision, FPS_SPF_Matrix_AO, (AO_num_align, AO_num)]
+begin_template
+
+begin_provider [double precision, FPS_SPF_Matrix_AO_$alpha, (AO_num, AO_num)]
   implicit none
   begin_doc 
 !   Commutator FPS - SPF
@@ -12,8 +14,8 @@ begin_provider [double precision, FPS_SPF_Matrix_AO, (AO_num_align, AO_num)]
 
   call dgemm('N','N',AO_num,AO_num,AO_num,                &
        1.d0,                                              &
-       Fock_Matrix_AO,Size(Fock_Matrix_AO,1),             &
-       HF_Density_Matrix_AO,Size(HF_Density_Matrix_AO,1), &
+       Fock_Matrix_AO_$alpha,Size(Fock_Matrix_AO_$alpha,1),             &
+       HF_Density_Matrix_AO_$alpha,Size(HF_Density_Matrix_AO_$alpha,1), &
        0.d0,                                              & 
        scratch,Size(scratch,1))
 
@@ -24,14 +26,14 @@ begin_provider [double precision, FPS_SPF_Matrix_AO, (AO_num_align, AO_num)]
        scratch,Size(scratch,1),            & 
        AO_Overlap,Size(AO_Overlap,1),      &
        0.d0,                               &
-       FPS_SPF_Matrix_AO,Size(FPS_SPF_Matrix_AO,1))
+       FPS_SPF_Matrix_AO_$alpha,Size(FPS_SPF_Matrix_AO_$alpha,1))
 
 ! Compute SP
 
   call dgemm('N','N',AO_num,AO_num,AO_num,                &
        1.d0,                                              &
        AO_Overlap,Size(AO_Overlap,1),                     & 
-       HF_Density_Matrix_AO,Size(HF_Density_Matrix_AO,1), &
+       HF_Density_Matrix_AO_$alpha,Size(HF_Density_Matrix_AO_$alpha,1), &
        0.d0,                                              & 
        scratch,Size(scratch,1))
 
@@ -40,12 +42,27 @@ begin_provider [double precision, FPS_SPF_Matrix_AO, (AO_num_align, AO_num)]
   call dgemm('N','N',AO_num,AO_num,AO_num,     &
        -1.d0,                                  & 
        scratch,Size(scratch,1),                &
-       Fock_Matrix_AO,Size(Fock_Matrix_AO,1),  &
+       Fock_Matrix_AO_$alpha,Size(Fock_Matrix_AO_$alpha,1),  &
        1.d0,                                   & 
-       FPS_SPF_Matrix_AO,Size(FPS_SPF_Matrix_AO,1))
+       FPS_SPF_Matrix_AO_$alpha,Size(FPS_SPF_Matrix_AO_$alpha,1))
 
 end_provider
 
+begin_provider [double precision, FPS_SPF_Matrix_MO_$alpha, (AO_num, mo_tot_num)]
+  implicit none
+  begin_doc 
+!   Commutator FPS - SPF in MO basis
+  end_doc
+  call ao_to_mo(FPS_SPF_Matrix_AO_$alpha, size(FPS_SPF_Matrix_AO_$alpha,1), &
+     FPS_SPF_Matrix_MO_$alpha, size(FPS_SPF_Matrix_MO_$alpha,1))
+end_provider
+
+subst [alpha]
+
+alpha ;;
+beta ;;
+
+end_template
 
  BEGIN_PROVIDER [ double precision, eigenvalues_Fock_matrix_AO, (AO_num) ]
 &BEGIN_PROVIDER [ double precision, eigenvectors_Fock_matrix_AO, (AO_num_align,AO_num) ]
@@ -122,12 +139,13 @@ BEGIN_PROVIDER [ double precision, X_matrix_AO, (AO_num_align,AO_num) ]
 
   implicit none
   
+  integer                         :: num_linear_dependencies
   integer                         :: LDA, LDC
   double precision, allocatable   :: U(:,:),Vt(:,:), D(:)
   integer                         :: info, i, j, k
  
   LDA = size(AO_overlap,1)
-  LDC = size(AO_overlap,1)
+  LDC = size(X_matrix_AO,1)
  
   allocate(         &
     U(LDC,AO_num),  &
@@ -141,9 +159,12 @@ BEGIN_PROVIDER [ double precision, X_matrix_AO, (AO_num_align,AO_num) ]
        Vt,LDA,         &
        AO_num,AO_num)
 
+  num_linear_dependencies = 0
   do i=1,AO_num
+    print*,D(i)
     if(abs(D(i)) < threshold_overlap_AO_eigenvalues) then
       D(i) = 0.d0
+      num_linear_dependencies += 1
     else
       D(i) = 1.d0/sqrt(D(i))
     endif
@@ -151,11 +172,13 @@ BEGIN_PROVIDER [ double precision, X_matrix_AO, (AO_num_align,AO_num) ]
       X_matrix_AO(j,i) = 0.d0
     enddo
   enddo
+  write(*,*) 'linear dependencies',num_linear_dependencies
+!  stop
 
   do k=1,AO_num
     if(D(k) /= 0.d0) then
       do j=1,AO_num
-        do i=1,MO_tot_num
+        do i=1,AO_num
           X_matrix_AO(i,j) = X_matrix_AO(i,j) + U(i,k)*D(k)*Vt(k,j)
         enddo
       enddo

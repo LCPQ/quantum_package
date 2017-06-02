@@ -22,7 +22,7 @@ subroutine huckel_guess
       Fock_matrix_ao(i,j) = c*ao_overlap(i,j)*(ao_mono_elec_integral_diag(i) + &
                                                  ao_mono_elec_integral_diag(j))
     enddo
-    Fock_matrix_ao(j,j) = Fock_matrix_alpha_ao(j,j)
+    Fock_matrix_ao(j,j) = Fock_matrix_ao_alpha(j,j)
   enddo
   TOUCH Fock_matrix_ao
   mo_coef = eigenvectors_fock_matrix_mo

@@ -139,8 +139,6 @@ BEGIN_PROVIDER [ double precision, mo_occ, (mo_tot_num) ]
   endif
 END_PROVIDER
 
-
-
 subroutine ao_to_mo(A_ao,LDA_ao,A_mo,LDA_mo)
   implicit none
   BEGIN_DOC
