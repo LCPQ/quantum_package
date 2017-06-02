@@ -8,20 +8,16 @@ END_DOC
 
   double precision               :: energy_SCF,energy_SCF_previous,Delta_energy_SCF
   double precision               :: max_error_DIIS,max_error_DIIS_alpha,max_error_DIIS_beta
-  double precision, allocatable  :: Fock_matrix_DIIS_alpha(:,:,:),error_matrix_DIIS_alpha(:,:,:)
-  double precision, allocatable  :: Fock_matrix_DIIS_beta (:,:,:),error_matrix_DIIS_beta (:,:,:)
+  double precision, allocatable  :: Fock_matrix_DIIS(:,:,:),error_matrix_DIIS(:,:,:)
 
   integer                        :: iteration_SCF,dim_DIIS,index_dim_DIIS
-  integer                        :: dim_DIIS_alpha, dim_DIIS_beta
  
   integer                        :: i,j
  
-  allocate(                                              &
-    Fock_matrix_DIIS_alpha(ao_num,ao_num,max_dim_DIIS),  &
-    Fock_matrix_DIIS_beta (ao_num,ao_num,max_dim_DIIS),  &
-    error_matrix_DIIS_alpha(ao_num,ao_num,max_dim_DIIS), &
-    error_matrix_DIIS_beta (ao_num,ao_num,max_dim_DIIS)  &
-  )
+  allocate(                                                          &
+      Fock_matrix_DIIS (ao_num,ao_num,max_dim_DIIS),                 &
+      error_matrix_DIIS(ao_num,ao_num,max_dim_DIIS)                  &
+      )
 
   call write_time(output_hartree_fock)
 
@@ -35,17 +31,16 @@ END_DOC
 ! Initialize energies and density matrices
 
   energy_SCF_previous = HF_energy
-  Delta_energy_SCF = 0.d0
-  iteration_SCF = 0
-  dim_DIIS_alpha = 0
-  dim_DIIS_beta  = 0
-  dim_DIIS       = 0
-  max_error_DIIS = 1.d0
+  Delta_energy_SCF    = 1.d0
+  iteration_SCF       = 0
+  dim_DIIS            = 0
+  max_error_DIIS      = 1.d0
+
 
 !
 ! Start of main SCF loop
 !
-  do while((max_error_DIIS > threshold_DIIS) .and. (iteration_SCF < n_it_SCF_max))
+  do while((max_error_DIIS > threshold_DIIS_nonzero) .and. (iteration_SCF < n_it_SCF_max) .and. dabs(Delta_energy_SCF) > thresh_SCF)
 
 ! Increment cycle number
 
@@ -55,46 +50,38 @@ END_DOC
 
     dim_DIIS = min(dim_DIIS+1,max_dim_DIIS)
  
-! Store Fock and error matrices at each iteration
-    
-    do j=1,ao_num
-      do i=1,ao_num
-        index_dim_DIIS = mod(dim_DIIS-1,max_dim_DIIS)+1
-        Fock_matrix_DIIS_alpha (i,j,index_dim_DIIS) = Fock_matrix_AO_alpha(i,j)
-        Fock_matrix_DIIS_beta  (i,j,index_dim_DIIS) = Fock_matrix_AO_beta (i,j)
-        error_matrix_DIIS_alpha(i,j,index_dim_DIIS) = FPS_SPF_matrix_AO_alpha(i,j)
-        error_matrix_DIIS_beta (i,j,index_dim_DIIS) = FPS_SPF_matrix_AO_beta (i,j)
+    if (scf_algorithm == 'DIIS') then
+      
+      ! Store Fock and error matrices at each iteration
+      do j=1,ao_num
+        do i=1,ao_num
+          index_dim_DIIS = mod(dim_DIIS-1,max_dim_DIIS)+1
+          Fock_matrix_DIIS (i,j,index_dim_DIIS) = Fock_matrix_AO(i,j)
+          error_matrix_DIIS(i,j,index_dim_DIIS) = FPS_SPF_matrix_AO(i,j)
+        enddo
       enddo
-    enddo
-    
-! Compute the extrapolated Fock matrix
+      
+      ! Compute the extrapolated Fock matrix
 
-    dim_DIIS_alpha = dim_DIIS
-    call extrapolate_Fock_matrix(            &
-      error_matrix_DIIS_alpha,Fock_matrix_DIIS_alpha,    &
-      Fock_matrix_AO_alpha,size(Fock_matrix_AO_alpha,1), &
-      iteration_SCF,dim_DIIS_alpha                &
-    ) 
+      call extrapolate_Fock_matrix(                                    &
+          error_matrix_DIIS,Fock_matrix_DIIS,                          &
+          Fock_matrix_AO,size(Fock_matrix_AO,1),                       &
+          iteration_SCF,dim_DIIS                                       &
+          )
 
-    dim_DIIS_beta = dim_DIIS
-    call extrapolate_Fock_matrix(            &
-      error_matrix_DIIS_beta,Fock_matrix_DIIS_beta,    &
-      Fock_matrix_AO_beta,size(Fock_matrix_AO_beta,1), &
-      iteration_SCF,dim_DIIS_beta                 &
-    ) 
+      Fock_matrix_AO_alpha = Fock_matrix_AO*0.5d0
+      Fock_matrix_AO_Beta = Fock_matrix_AO*0.5d0
+      touch Fock_matrix_AO_alpha Fock_matrix_AO_beta
 
-    dim_DIIS = min(dim_DIIS_alpha,dim_DIIS_beta)
-    touch Fock_matrix_AO_alpha Fock_matrix_AO_beta
+    endif
 
     MO_coef = eigenvectors_Fock_matrix_MO
 
     touch MO_coef
 
-! Calculate error vectors
+!   Calculate error vectors
 
-    max_error_DIIS_alpha = maxval(Abs(FPS_SPF_Matrix_MO_alpha))
-    max_error_DIIS_beta  = maxval(Abs(FPS_SPF_Matrix_MO_beta ))
-    max_error_DIIS       = max(max_error_DIIS_alpha,max_error_DIIS_beta)
+    max_error_DIIS = maxval(Abs(FPS_SPF_Matrix_MO))
 
 !   SCF energy
 
@@ -102,10 +89,14 @@ END_DOC
     Delta_Energy_SCF = energy_SCF - energy_SCF_previous
     energy_SCF_previous = energy_SCF
 
-! Print results at the end of each iteration
+!   Print results at the end of each iteration
 
     write(output_hartree_fock,'(I4, 1X, F16.10, 1X, F16.10, 1X, F16.10, 1X, I3)')  &
       iteration_SCF, energy_SCF, Delta_energy_SCF, max_error_DIIS, dim_DIIS
+
+    if (Delta_energy_SCF < 0.d0) then
+      call save_mos
+    endif
 
   enddo
 
@@ -178,7 +169,7 @@ END_DOC
 
       B_matrix_DIIS(i,j) = 0.d0
       do k=1,ao_num
-        B_matrix_DIIS(i,j) += scratch(k,k)
+        B_matrix_DIIS(i,j) = B_matrix_DIIS(i,j) + scratch(k,k)
       enddo
     enddo
   enddo
@@ -225,29 +216,27 @@ END_DOC
    stop 'bug in DIIS'
  endif
 
- if (rcond > 1.d-8) then
+ if (rcond > 1.d-14) then
    
-! Compute extrapolated Fock matrix
+  ! Compute extrapolated Fock matrix
 
-    Fock_matrix_AO_(:,:) = 0.d0
 
-    do k=1,dim_DIIS
+      !$OMP PARALLEL DO PRIVATE(i,j,k) DEFAULT(SHARED)
       do j=1,ao_num
         do i=1,ao_num
-          Fock_matrix_AO_(i,j) += X_vector_DIIS(k)*Fock_matrix_DIIS(i,j,dim_DIIS-k+1)
+          Fock_matrix_AO_(i,j) = 0.d0
+        enddo
+        do k=1,dim_DIIS
+          do i=1,ao_num
+            Fock_matrix_AO_(i,j) = Fock_matrix_AO_(i,j) +            &
+                X_vector_DIIS(k)*Fock_matrix_DIIS(i,j,dim_DIIS-k+1)
+          enddo
         enddo
       enddo
-    enddo
+      !$OMP END PARALLEL DO
 
   else
-    write(*,*) 'Re-initialize DIIS!!'
     dim_DIIS = 0
   endif
-
-! do i=1,ao_num
-!   do j=1,ao_num
-!     write(*,*) Fock_matrix_AO_(i,j)
-!   enddo
-! enddo
 
 end

@@ -56,24 +56,9 @@ subroutine run
 
 ! Choose SCF algorithm
 
-  if(scf_algorithm == 'Damp') then
-    call damping_SCF
-  else if(scf_algorithm == 'DIIS') then
-    call Roothaan_Hall_SCF
-  else
-    write(*,*) 'Unrecognized SCF algorithm: '//scf_algorithm
-    stop 1
-  endif
+!    call damping_SCF
+  call Roothaan_Hall_SCF
   
 end
 
 
-subroutine debug
-  implicit none
-  integer :: i,j
-  do i=1,mo_tot_num
-    do j=1,mo_tot_num
-      print *,  i, j, fps_spf_matrix_mo_alpha(i,j)
-    enddo
-  enddo
-end
