@@ -5,6 +5,7 @@ program scf
 ! output: hartree_fock.energy
 ! optional: mo_basis.mo_coef
   END_DOC
+!  call debug
   call create_guess
   call orthonormalize_mos
   call run
@@ -55,7 +56,7 @@ subroutine run
 
 ! Choose SCF algorithm
 
-  if(scf_algorithm == 'damp') then
+  if(scf_algorithm == 'Damp') then
     call damping_SCF
   else if(scf_algorithm == 'DIIS') then
     call Roothaan_Hall_SCF
@@ -64,4 +65,15 @@ subroutine run
     stop 1
   endif
   
+end
+
+
+subroutine debug
+  implicit none
+  integer :: i,j
+  do i=1,mo_tot_num
+    do j=1,mo_tot_num
+      print *,  i, j, fps_spf_matrix_mo_alpha(i,j)
+    enddo
+  enddo
 end

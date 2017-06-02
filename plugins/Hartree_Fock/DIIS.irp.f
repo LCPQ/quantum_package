@@ -48,7 +48,7 @@ begin_provider [double precision, FPS_SPF_Matrix_AO_$alpha, (AO_num, AO_num)]
 
 end_provider
 
-begin_provider [double precision, FPS_SPF_Matrix_MO_$alpha, (AO_num, mo_tot_num)]
+begin_provider [double precision, FPS_SPF_Matrix_MO_$alpha, (mo_tot_num, mo_tot_num)]
   implicit none
   begin_doc 
 !   Commutator FPS - SPF in MO basis
