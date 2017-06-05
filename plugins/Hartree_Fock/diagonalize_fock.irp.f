@@ -55,49 +55,42 @@
        lwork = 1+6*n + 2*n*n
        liwork = 3 + 5*n
        
-       allocate(work(lwork))
+!       allocate(work(lwork))
 !       allocate(iwork(liwork) )
-       
-       lwork = -1
-       liwork = -1
-       
+!       
+!       lwork = -1
+!       liwork = -1
+!       
 !       call dsyevd( 'V', 'U', mo_tot_num, F,                         &
 !           size(F,1), diagonal_Fock_matrix_mo,                       &
 !           work, lwork, iwork, liwork, info)
-       
-       call dsyev( 'V', 'U', mo_tot_num, F,                         &
-           size(F,1), diagonal_Fock_matrix_mo,                       &
-           work, lwork, info)
-       
-       if (info /= 0) then
-         print *,  irp_here//' failed : ', info
-         stop 1
-       endif
-       lwork = int(work(1))
+!       
+!       if (info /= 0) then
+!         print *,  irp_here//' failed : ', info
+!         stop 1
+!       endif
+!       lwork = int(work(1))
 !       liwork = iwork(1)
 !       deallocate(iwork)
-       deallocate(work)
+!       deallocate(work)
 
        allocate(work(lwork))
-!       allocate(iwork(liwork) )
-!       call dsyevd( 'V', 'U', mo_tot_num, F,                         &
-!           size(F,1), diagonal_Fock_matrix_mo,                       &
-!           work, lwork, iwork, liwork, info)
-!       deallocate(iwork)
-
-       call dsyev( 'V', 'U', mo_tot_num, F,                         &
+       allocate(iwork(liwork) )
+       call dsyevd( 'V', 'U', mo_tot_num, F,                         &
            size(F,1), diagonal_Fock_matrix_mo,                       &
-           work, lwork, info)
+           work, lwork, iwork, liwork, info)
+       deallocate(iwork)
+
 
        if (info /= 0) then
-!         call dsyev( 'V', 'U', mo_tot_num, F,                        &
-!             size(F,1), diagonal_Fock_matrix_mo,                     &
-!             work, lwork, info)
-!         
-!         if (info /= 0) then
-           print *,  irp_here//' failed : ', info
+         call dsyev( 'V', 'U', mo_tot_num, F,                        &
+             size(F,1), diagonal_Fock_matrix_mo,                     &
+             work, lwork, info)
+
+         if (info /= 0) then
+           print *,  irp_here//' DSYEV failed : ', info
            stop 1
-!         endif
+         endif
        endif
 
        call dgemm('N','N',ao_num,mo_tot_num,mo_tot_num, 1.d0, &
