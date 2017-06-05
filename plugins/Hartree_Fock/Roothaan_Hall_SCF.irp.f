@@ -102,7 +102,7 @@ END_DOC
       MO_coef = eigenvectors_Fock_matrix_MO
       TOUCH MO_coef level_shift
       Delta_Energy_SCF = HF_energy - energy_SCF_previous
-      if (level_shift > 0.6d0) exit
+      if (level_shift-level_shift_save > 0.5d0) exit
     enddo
     level_shift = level_shift_save
     SOFT_TOUCH level_shift
@@ -235,7 +235,7 @@ END_DOC
    stop 'bug in DIIS'
  endif
 
- if (rcond > 1.d-14) then
+ if (rcond > 1.d-10) then
    
   ! Compute extrapolated Fock matrix
 
