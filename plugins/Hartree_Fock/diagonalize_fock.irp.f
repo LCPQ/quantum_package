@@ -55,24 +55,24 @@
        lwork = 1+6*n + 2*n*n
        liwork = 3 + 5*n
        
-!       allocate(work(lwork))
-!       allocate(iwork(liwork) )
-!       
-!       lwork = -1
-!       liwork = -1
-!       
-!       call dsyevd( 'V', 'U', mo_tot_num, F,                         &
-!           size(F,1), diagonal_Fock_matrix_mo,                       &
-!           work, lwork, iwork, liwork, info)
-!       
-!       if (info /= 0) then
-!         print *,  irp_here//' failed : ', info
-!         stop 1
-!       endif
-!       lwork = int(work(1))
-!       liwork = iwork(1)
-!       deallocate(iwork)
-!       deallocate(work)
+       allocate(work(lwork))
+       allocate(iwork(liwork) )
+       
+       lwork = -1
+       liwork = -1
+       
+       call dsyevd( 'V', 'U', mo_tot_num, F,                         &
+           size(F,1), diagonal_Fock_matrix_mo,                       &
+           work, lwork, iwork, liwork, info)
+       
+       if (info /= 0) then
+         print *,  irp_here//' failed : ', info
+         stop 1
+       endif
+       lwork = int(work(1))
+       liwork = iwork(1)
+       deallocate(iwork)
+       deallocate(work)
 
        allocate(work(lwork))
        allocate(iwork(liwork) )
@@ -87,9 +87,11 @@
              size(F,1), diagonal_Fock_matrix_mo,                     &
              work, lwork, info)
 
-         if (info /= 0) then
+         if (info < 0) then
            print *,  irp_here//' DSYEV failed : ', info
            stop 1
+         else if (info > 0) then
+           print *,  'Warning: '//irp_here//' DSYEV info : ', info
          endif
        endif
 
