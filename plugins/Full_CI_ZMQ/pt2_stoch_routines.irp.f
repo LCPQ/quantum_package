@@ -471,6 +471,7 @@ end subroutine
     end if
     norm_left -= pt2_weight(i)
   end do
+  first_det_of_comb = max(1,first_det_of_comb)
   call write_int(6, first_det_of_comb-1, 'Size of deterministic set')
   
   comb_step =  (1d0 - pt2_cweight(first_det_of_comb-1)) * comb_step

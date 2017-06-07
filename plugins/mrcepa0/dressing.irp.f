@@ -110,10 +110,6 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
   allocate(idx_alpha(0:psi_det_size), degree_alpha(psi_det_size))
   call create_minilist_find_previous(key_mask, psi_det_generators, miniList, i_generator-1, N_miniList, fullMatch, Nint)
   
-!   if(fullMatch) then
-!     return
-!   end if
-  
   allocate(ptr_microlist(0:mo_tot_num*2+1),  &
       N_microlist(0:mo_tot_num*2) )
   allocate(   microlist(Nint,2,N_minilist*4),               &
@@ -141,7 +137,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
     if(N_minilist == 0) return
     
     
-    if(key_mask(1,1) /= 0) then !!!!!!!!!!! PAS GENERAL !!!!!!!!!
+    if(sum(abs(key_mask(1:N_int,1))) /= 0) 
       allocate(microlist_zero(Nint,2,N_minilist), idx_microlist_zero(N_minilist))
       
       allocate(   microlist(Nint,2,N_minilist*4),               &
