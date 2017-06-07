@@ -98,10 +98,11 @@ END_DOC
     double precision :: level_shift_save
     level_shift_save = level_shift
     do while (Delta_Energy_SCF > 0.d0)
-      level_shift = level_shift + 0.05d0
+      level_shift = level_shift + 0.1d0
       MO_coef = eigenvectors_Fock_matrix_MO
       TOUCH MO_coef level_shift
       Delta_Energy_SCF = HF_energy - energy_SCF_previous
+      energy_SCF = HF_energy
       if (level_shift-level_shift_save > 0.5d0) exit
     enddo
     level_shift = level_shift_save
@@ -235,7 +236,7 @@ END_DOC
    stop 'bug in DIIS'
  endif
 
- if (rcond > 1.d-10) then
+ if (rcond > 1.d-12) then
    
   ! Compute extrapolated Fock matrix
 

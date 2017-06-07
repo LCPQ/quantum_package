@@ -37,93 +37,100 @@
          F(jorb,iorb) = 0.d0
        enddo
      enddo
-   endif
-   
-   
-   
-   
-   ! Insert level shift here
-   do i = elec_beta_num+1, elec_alpha_num
-     F(i,i) += 0.5d0*level_shift
-   enddo
-   
-   do i = elec_alpha_num+1, mo_tot_num
-     F(i,i) += level_shift
-   enddo
-   
-   n = mo_tot_num
-   lwork = 1+6*n + 2*n*n
-   liwork = 3 + 5*n
-   
-   allocate(work(lwork))
-   allocate(iwork(liwork) )
-   
-   lwork = -1
-   liwork = -1
-   
-   call dsyevd( 'V', 'U', mo_tot_num, F,                             &
-       size(F,1), diagonal_Fock_matrix_mo,                           &
-       work, lwork, iwork, liwork, info)
-   
-   if (info /= 0) then
-     print *,  irp_here//' DSYEVD failed : ', info
-     stop 1
-   endif
-   lwork = int(work(1))
-   liwork = iwork(1)
-   deallocate(iwork)
-   deallocate(work)
-   
-   allocate(work(lwork))
-   allocate(iwork(liwork) )
-   call dsyevd( 'V', 'U', mo_tot_num, F,                             &
-       size(F,1), diagonal_Fock_matrix_mo,                           &
-       work, lwork, iwork, liwork, info)
-   deallocate(iwork)
-   
-   
-   if (info /= 0) then
-     call dsyev( 'V', 'L', mo_tot_num, F,                            &
-         size(F,1), diagonal_Fock_matrix_mo,                         &
-         work, lwork, info)
-     
-     if (info /= 0) then
-       print *,  irp_here//' DSYEV failed : ', info
-       stop 1
-     endif
-   endif
-   
-   call dgemm('N','N',ao_num,mo_tot_num,mo_tot_num, 1.d0,            &
-       mo_coef, size(mo_coef,1), F, size(F,1),                       &
-       0.d0, eigenvectors_Fock_matrix_mo, size(eigenvectors_Fock_matrix_mo,1))
-   deallocate(work, F)
-   
-
-
-END_PROVIDER
+  endif
+  
+  
+  
+  
+  ! Insert level shift here
+  do i = elec_beta_num+1, elec_alpha_num
+    F(i,i) += 0.5d0*level_shift
+  enddo
+  
+  do i = elec_alpha_num+1, mo_tot_num
+    F(i,i) += level_shift
+  enddo
+  
+  n = mo_tot_num
+  lwork = 1+6*n + 2*n*n
+  liwork = 3 + 5*n
+  
+  allocate(work(lwork))
+  allocate(iwork(liwork) )
+  
+  lwork = -1
+  liwork = -1
+  
+  
+  integer                        :: m, ISUPPZ(mo_tot_num)
+  call dsyevr('V', 'A', 'U', mo_tot_num, F, size(F,1),                &
+      -100.d0, 100.d0, 1, mo_tot_num, 0.d0,                           &
+      m, diagonal_Fock_matrix_mo,                                     &
+      eigenvectors_Fock_matrix_mo,                                    &
+      size(eigenvectors_Fock_matrix_mo,1),                            &
+      isuppz, work, lwork, iwork, liwork, info)
+  
+  
+  
+  if (info /= 0) then
+    print *,  irp_here//' DSYEVD failed : ', info
+    stop 1
+  endif
+  lwork = int(work(1))
+  liwork = iwork(1)
+  deallocate(iwork)
+  deallocate(work)
+  
+  allocate(work(lwork))
+  allocate(iwork(liwork) )
+  
+  call dsyevr('V', 'A', 'U', mo_tot_num, F, size(F,1),                &
+      -100.d0, 100.d0, 1, mo_tot_num, 0.d0,                           &
+      m, diagonal_Fock_matrix_mo,                                     &
+      eigenvectors_Fock_matrix_mo,                                    &
+      size(eigenvectors_Fock_matrix_mo,1),                            &
+      isuppz, work, lwork, iwork, liwork, info)
+  
+  deallocate(iwork)
+  
+  if (info /= 0) then
+    print *,  irp_here//' DSYEV failed : ', info
+    stop 1
+  endif
+  
+  F(1:mo_tot_num,1:mo_tot_num) = eigenvectors_Fock_matrix_mo(1:mo_tot_num,1:mo_tot_num)
+  
+  call dgemm('N','N',ao_num,mo_tot_num,mo_tot_num, 1.d0,              &
+      mo_coef, size(mo_coef,1), F, size(F,1),                         &
+      0.d0, eigenvectors_Fock_matrix_mo, size(eigenvectors_Fock_matrix_mo,1))
+  deallocate(work, F)
  
+ 
+ 
+END_PROVIDER
+   
 BEGIN_PROVIDER [double precision, diagonal_Fock_matrix_mo_sum, (mo_tot_num)]
- implicit none
- BEGIN_DOC
- ! diagonal element of the fock matrix calculated as the sum over all the interactions 
- ! with all the electrons in the RHF determinant
- ! diagonal_Fock_matrix_mo_sum(i) = sum_{j=1, N_elec} 2 J_ij -K_ij 
- END_DOC
- integer :: i,j
- double precision :: accu
- do j = 1,elec_alpha_num
-  accu = 0.d0
-  do i = 1, elec_alpha_num
-   accu += 2.d0 * mo_bielec_integral_jj_from_ao(i,j) - mo_bielec_integral_jj_exchange_from_ao(i,j)
-  enddo
-  diagonal_Fock_matrix_mo_sum(j) = accu + mo_mono_elec_integral(j,j)
- enddo
- do j = elec_alpha_num+1,mo_tot_num
-  accu = 0.d0
-  do i = 1, elec_alpha_num
-   accu += 2.d0 * mo_bielec_integral_jj_from_ao(i,j) - mo_bielec_integral_jj_exchange_from_ao(i,j)
-  enddo
-  diagonal_Fock_matrix_mo_sum(j) = accu + mo_mono_elec_integral(j,j)
- enddo
-
+     implicit none
+     BEGIN_DOC
+     ! diagonal element of the fock matrix calculated as the sum over all the interactions
+     ! with all the electrons in the RHF determinant
+     ! diagonal_Fock_matrix_mo_sum(i) = sum_{j=1, N_elec} 2 J_ij -K_ij
+     END_DOC
+     integer                        :: i,j
+     double precision               :: accu
+     do j = 1,elec_alpha_num
+       accu = 0.d0
+       do i = 1, elec_alpha_num
+         accu += 2.d0 * mo_bielec_integral_jj_from_ao(i,j) - mo_bielec_integral_jj_exchange_from_ao(i,j)
+       enddo
+       diagonal_Fock_matrix_mo_sum(j) = accu + mo_mono_elec_integral(j,j)
+     enddo
+     do j = elec_alpha_num+1,mo_tot_num
+       accu = 0.d0
+       do i = 1, elec_alpha_num
+         accu += 2.d0 * mo_bielec_integral_jj_from_ao(i,j) - mo_bielec_integral_jj_exchange_from_ao(i,j)
+       enddo
+       diagonal_Fock_matrix_mo_sum(j) = accu + mo_mono_elec_integral(j,j)
+     enddo
+     
 END_PROVIDER
