@@ -137,7 +137,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
     if(N_minilist == 0) return
     
     
-    if(sum(abs(key_mask(1:N_int,1))) /= 0) 
+    if(sum(abs(key_mask(1:N_int,1))) /= 0) then
       allocate(microlist_zero(Nint,2,N_minilist), idx_microlist_zero(N_minilist))
       
       allocate(   microlist(Nint,2,N_minilist*4),               &
