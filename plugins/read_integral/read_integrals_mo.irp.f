@@ -1,4 +1,4 @@
-program print_integrals
+program read_integrals
   PROVIDE ezfio_filename
   call ezfio_set_integrals_monoelec_disk_access_mo_one_integrals("None")
   call run
