@@ -235,7 +235,9 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
   integer(bit_kind), intent(out) :: microlist(Nint,2,N_minilist*4)
   
   integer :: i,j,k,nt,n_element(2)
-  integer :: list(Nint*bit_kind_size,2), cur_microlist(0:mo_tot_num*2+1)
+  integer :: list(Nint*bit_kind_size,2)
+  integer, allocatable :: cur_microlist(:)
+  allocate (cur_microlist(0:mo_tot_num*2+1))
   integer(bit_kind) :: key_mask_neg(Nint,2), mobileMask(Nint,2)
   integer :: mo_tot_num_2
   mo_tot_num_2 = mo_tot_num+mo_tot_num
@@ -324,6 +326,7 @@ subroutine create_microlist(minilist, N_minilist, key_mask, microlist, idx_micro
       end do
     end if
   end do
+  deallocate(cur_microlist)
 end subroutine
   
   

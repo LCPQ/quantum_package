@@ -8,7 +8,9 @@ module Tcp : sig
 end = struct
   type t = string
   let of_string x =
-    assert (String.is_prefix ~prefix:"tcp://" x);
+    if not (String.is_prefix ~prefix:"tcp://" x) then
+      invalid_arg "Address Invalid"
+    ;
     x
   let create ~host ~port =
     assert (port > 0);

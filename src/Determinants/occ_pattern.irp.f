@@ -109,7 +109,8 @@ recursive subroutine  rec_occ_pattern_to_dets(list_todo,nt,list_a,na,d,nd,sze,am
     endif
   else
     integer :: i, j, k
-    integer :: list_todo_tmp(nt)
+    integer, allocatable :: list_todo_tmp(:)
+    allocate (list_todo_tmp(nt))
     do i=1,nt
       if (na > 0) then
         if (list_todo(i) < list_a(na)) then
@@ -126,6 +127,7 @@ recursive subroutine  rec_occ_pattern_to_dets(list_todo,nt,list_a,na,d,nd,sze,am
       enddo
       call rec_occ_pattern_to_dets(list_todo_tmp,nt-1,list_a,na+1,d,nd,sze,amax,Nint)
     enddo
+    deallocate(list_todo_tmp)
   endif
 
 end

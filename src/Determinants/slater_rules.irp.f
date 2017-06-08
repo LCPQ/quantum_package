@@ -1929,7 +1929,7 @@ subroutine a_operator(iorb,ispin,key,hjj,Nint,na,nb)
   ASSERT (Nint > 0)
   
   k = ishft(iorb-1,-bit_kind_shift)+1
-  ASSERT (k > 0)
+  ASSERT (k>0)
   l = iorb - ishft(k-1,bit_kind_shift)-1
   key(k,ispin) = ibclr(key(k,ispin),l)
   other_spin = iand(ispin,1)+1
@@ -1977,11 +1977,12 @@ subroutine ac_operator(iorb,ispin,key,hjj,Nint,na,nb)
   !DIR$ FORCEINLINE
   call bitstring_to_list_ab(key, occ, tmp, Nint)
   ASSERT (tmp(1) == elec_alpha_num)
-  ASSERT (tmp(2) == elec_beta_num)
+  ASSERT (tmp(2) == elec_alpha_num)
   
   k = ishft(iorb-1,-bit_kind_shift)+1
-  ASSERT (k > 0)
+  ASSERT (k >0)
   l = iorb - ishft(k-1,bit_kind_shift)-1
+  ASSERT (l >= 0)
   key(k,ispin) = ibset(key(k,ispin),l)
   other_spin = iand(ispin,1)+1
   

@@ -21,11 +21,15 @@ subroutine run_selection_slave(thread,iproc,energy)
   logical :: done
   double precision :: pt2(N_states)
 
+  PROVIDE psi_bilinear_matrix_columns_loc psi_det_alpha_unique psi_det_beta_unique
+  PROVIDE psi_bilinear_matrix_rows psi_det_sorted_order psi_bilinear_matrix_order
+  PROVIDE psi_bilinear_matrix_transp_rows_loc psi_bilinear_matrix_transp_columns
+  PROVIDE psi_bilinear_matrix_transp_order
+
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_push      = new_zmq_push_socket(thread)
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   if(worker_id == -1) then
-    print *, "WORKER -1"
     call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
     call end_zmq_push_socket(zmq_socket_push,thread)
     return
@@ -47,24 +51,20 @@ subroutine run_selection_slave(thread,iproc,energy)
         call create_selection_buffer(N, N*2, buf)
         call create_selection_buffer(N, N*2, buf2)
       else
-        if(N /= buf%N) stop "N changed... wtf man??"
+        ASSERT (N == buf%N)
       end if
       call select_connected(i_generator,energy,pt2,buf,0)
     endif
 
     if(done .or. ctask == size(task_id)) then
-      if(buf%N == 0 .and. ctask > 0) stop "uninitialized selection_buffer"
+      ASSERT (.not.(buf%N == 0 .and. ctask > 0))
       do i=1, ctask
          call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i))
       end do
       if(ctask > 0) then
+        call sort_selection_buffer(buf)
+        call merge_selection_buffers(buf,buf2)
         call push_selection_results(zmq_socket_push, pt2, buf, task_id(1), ctask)
-        do i=1,buf%cur
-          call add_to_selection_buffer(buf2, buf%det(1,1,i), buf%val(i))
-          if (buf2%cur == buf2%N) then
-            call sort_selection_buffer(buf2)
-          endif
-        enddo
         buf%mini = buf2%mini
         pt2 = 0d0
         buf%cur = 0
@@ -78,6 +78,10 @@ subroutine run_selection_slave(thread,iproc,energy)
   call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
+  if (buf%N > 0) then
+    call delete_selection_buffer(buf)
+    call delete_selection_buffer(buf2)
+  endif
 end subroutine
 
 
@@ -92,27 +96,46 @@ subroutine push_selection_results(zmq_socket_push, pt2, b, task_id, ntask)
   integer, intent(in) :: ntask, task_id(*)
   integer :: rc
 
-  call sort_selection_buffer(b)
-
   rc = f77_zmq_send( zmq_socket_push, b%cur, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "push"
-  rc = f77_zmq_send( zmq_socket_push, pt2, 8*N_states, ZMQ_SNDMORE)
-  if(rc /= 8*N_states) stop "push"
+  if(rc /= 4) then
+    print *,  'f77_zmq_send( zmq_socket_push, b%cur, 4, ZMQ_SNDMORE)'
+  endif
 
-  rc = f77_zmq_send( zmq_socket_push, b%val(1), 8*b%cur, ZMQ_SNDMORE)
-  if(rc /= 8*b%cur) stop "push"
+  if (b%cur > 0) then
 
-  rc = f77_zmq_send( zmq_socket_push, b%det(1,1,1), bit_kind*N_int*2*b%cur, ZMQ_SNDMORE)
-  if(rc /= bit_kind*N_int*2*b%cur) stop "push"
+      rc = f77_zmq_send( zmq_socket_push, pt2, 8*N_states, ZMQ_SNDMORE)
+      if(rc /= 8*N_states) then
+        print *,  'f77_zmq_send( zmq_socket_push, pt2, 8*N_states, ZMQ_SNDMORE)'
+      endif
+
+      rc = f77_zmq_send( zmq_socket_push, b%val(1), 8*b%cur, ZMQ_SNDMORE)
+      if(rc /= 8*b%cur) then
+        print *,  'f77_zmq_send( zmq_socket_push, b%val(1), 8*b%cur, ZMQ_SNDMORE)'
+      endif
+
+      rc = f77_zmq_send( zmq_socket_push, b%det(1,1,1), bit_kind*N_int*2*b%cur, ZMQ_SNDMORE)
+      if(rc /= bit_kind*N_int*2*b%cur) then
+        print *,  'f77_zmq_send( zmq_socket_push, b%det(1,1,1), bit_kind*N_int*2*b%cur, ZMQ_SNDMORE)'
+      endif
+
+  endif
 
   rc = f77_zmq_send( zmq_socket_push, ntask, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "push"
+  if(rc /= 4) then
+    print *,  'f77_zmq_send( zmq_socket_push, ntask, 4, ZMQ_SNDMORE)'
+  endif
 
   rc = f77_zmq_send( zmq_socket_push, task_id(1), ntask*4, 0)
-  if(rc /= 4*ntask) stop "push"
+  if(rc /= 4*ntask) then
+    print *,  'f77_zmq_send( zmq_socket_push, task_id(1), ntask*4, 0)'
+  endif
 
 ! Activate is zmq_socket_push is a REQ
+IRP_IF ZMQ_PUSH
+IRP_ELSE
   rc = f77_zmq_recv( zmq_socket_push, task_id(1), ntask*4, 0)
+IRP_ENDIF
+
 end subroutine
 
 
@@ -128,25 +151,45 @@ subroutine pull_selection_results(zmq_socket_pull, pt2, val, det, N, task_id, nt
   integer :: rc, rn, i
 
   rc = f77_zmq_recv( zmq_socket_pull, N, 4, 0)
-  if(rc /= 4) stop "pull"
+  if(rc /= 4) then
+    print *,  'f77_zmq_recv( zmq_socket_pull, N, 4, 0)'
+  endif
 
-  rc = f77_zmq_recv( zmq_socket_pull, pt2, N_states*8, 0)
-  if(rc /= 8*N_states) stop "pull"
+  if (N>0) then
+      rc = f77_zmq_recv( zmq_socket_pull, pt2, N_states*8, 0)
+      if(rc /= 8*N_states) then
+        print *,  'f77_zmq_recv( zmq_socket_pull, pt2, N_states*8, 0)'
+      endif
 
-  rc = f77_zmq_recv( zmq_socket_pull, val(1), 8*N, 0)
-  if(rc /= 8*N) stop "pull"
+      rc = f77_zmq_recv( zmq_socket_pull, val(1), 8*N, 0)
+      if(rc /= 8*N) then
+        print *,  'f77_zmq_recv( zmq_socket_pull, val(1), 8*N, 0)'
+      endif
 
-  rc = f77_zmq_recv( zmq_socket_pull, det(1,1,1), bit_kind*N_int*2*N, 0)
-  if(rc /= bit_kind*N_int*2*N) stop "pull"
+      rc = f77_zmq_recv( zmq_socket_pull, det(1,1,1), bit_kind*N_int*2*N, 0)
+      if(rc /= bit_kind*N_int*2*N) then
+        print *,  'f77_zmq_recv( zmq_socket_pull, det(1,1,1), bit_kind*N_int*2*N, 0)'
+      endif
+  else
+      pt2(:) = 0.d0
+  endif
 
   rc = f77_zmq_recv( zmq_socket_pull, ntask, 4, 0)
-  if(rc /= 4) stop "pull"
+  if(rc /= 4) then
+    print *,  'f77_zmq_recv( zmq_socket_pull, ntask, 4, 0)'
+  endif
 
   rc = f77_zmq_recv( zmq_socket_pull, task_id(1), ntask*4, 0)
-  if(rc /= 4*ntask) stop "pull"
+  if(rc /= 4*ntask) then
+    print *,  'f77_zmq_recv( zmq_socket_pull, task_id(1), ntask*4, 0)'
+  endif
 
 ! Activate is zmq_socket_pull is a REP
+IRP_IF ZMQ_PUSH
+IRP_ELSE
   rc = f77_zmq_send( zmq_socket_pull, task_id(1), ntask*4, 0)
+IRP_ENDIF
+
 end subroutine
  
  
