@@ -252,25 +252,28 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
         else if (perturbative_triples) then
            ! Linked
 
-            call get_delta_e_dyall_general_mp(psi_ref(1,1,i_I),tq(1,1,i_alpha),Delta_E_inv)
-
             hka = hij_cache(idx_alpha(k_sd))
-            do i_state=1,N_states
-              ASSERT (Delta_E_inv(i_state) < 0.d0)
-              dka(i_state) = hka / Delta_E_inv(i_state)
-            enddo
+            if (dabs(hka) > 1.d-12) then
+              call get_delta_e_dyall_general_mp(psi_ref(1,1,i_I),tq(1,1,i_alpha),Delta_E_inv)
+
+              do i_state=1,N_states
+                ASSERT (Delta_E_inv(i_state) < 0.d0)
+                dka(i_state) = hka / Delta_E_inv(i_state)
+              enddo
+            endif
 
         endif
 
         if (perturbative_triples.and. (degree2 == 1) ) then
-            call get_delta_e_dyall_general_mp(psi_ref(1,1,i_I),tq(1,1,i_alpha),Delta_E_inv)
             call i_h_j(psi_ref(1,1,i_I),tmp_det,Nint,hka)
             hka = hij_cache(idx_alpha(k_sd)) - hka
-
-            do i_state=1,N_states
-              ASSERT (Delta_E_inv(i_state) < 0.d0)
-              dka(i_state) = hka / Delta_E_inv(i_state)
-            enddo
+            if (dabs(hka) > 1.d-12) then
+              call get_delta_e_dyall_general_mp(psi_ref(1,1,i_I),tq(1,1,i_alpha),Delta_E_inv)
+              do i_state=1,N_states
+                ASSERT (Delta_E_inv(i_state) < 0.d0)
+                dka(i_state) = hka / Delta_E_inv(i_state)
+              enddo
+            endif
 
         endif
 

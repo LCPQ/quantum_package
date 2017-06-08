@@ -58,7 +58,7 @@ BEGIN_PROVIDER [ double precision , slater_value_at_nucl, (nucl_num,nucl_num) ]
       expo = slater_expo(i)*slater_expo(i)*((x*x) + (y*y) + (z*z))
       if (expo > 160.d0) cycle
       expo = dsqrt(expo)
-      slater_value_at_nucl(i,k) = dexp(-expo)
+      slater_value_at_nucl(i,k) = dexp(-expo) * slater_normalization(i)
     enddo
   enddo
 END_PROVIDER

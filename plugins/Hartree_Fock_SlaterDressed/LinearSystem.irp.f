@@ -6,21 +6,19 @@ BEGIN_PROVIDER [ double precision, cusp_A, (nucl_num, nucl_num) ]
    
    integer                        :: mu, A, B
 
-   do B=1,nucl_num
-     do A=1,nucl_num
-        cusp_A(A,B) = 0.d0
-        if (A/=B) then
-          cusp_A(A,B) -= slater_value_at_nucl(A,B)
-        endif
-        do mu=1,ao_num
-          cusp_A(A,B) += slater_overlap(mu,B) * ao_value_at_nucl(mu,A)
-        enddo
-     enddo
+   cusp_A = 0.d0
+   do A=1,nucl_num
+    cusp_A(A,A) = slater_expo(A)/nucl_charge(A) * slater_value_at_nucl(A,A) 
+    do B=1,nucl_num
+      cusp_A(A,B) -= slater_value_at_nucl(B,A)
+      do mu=1,ao_num
+        cusp_A(A,B) += GauSlaOverlap_matrix(mu,B) * ao_value_at_nucl(mu,A)
+      enddo
+    enddo
    enddo
-
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, cusp_C, (nucl_num, mo_tot_num) ]
+BEGIN_PROVIDER [ double precision, cusp_B, (nucl_num, mo_tot_num) ]
    implicit none
    BEGIN_DOC
    ! Equations to solve : A.C = B
@@ -30,20 +28,25 @@ BEGIN_PROVIDER [ double precision, cusp_C, (nucl_num, mo_tot_num) ]
    
    do i=1,mo_tot_num
      do A=1,nucl_num
-       cusp_C(A,i) = mo_value_at_nucl(i,A)
+       cusp_B(A,i) = mo_value_at_nucl(i,A)
      enddo
    enddo
+END_PROVIDER
+
    
-   integer, allocatable           :: ipiv(:)
-   allocate ( ipiv(nucl_num) )
-   call dgegv(nucl_num, mo_tot_num, cusp_A, size(cusp_A,1),          &
-       ipiv, cusp_C, size(cusp_C,1), info)
-   deallocate (ipiv)
+BEGIN_PROVIDER [ double precision, cusp_C, (nucl_num, mo_tot_num) ]
+   implicit none
+   BEGIN_DOC
+   ! Equations to solve : A.C = B
+   END_DOC
    
-   if (info /= 0) then
-     print *, 'Cusp : linear solve failed'
-     stop -1
-   endif
-     
+   double precision, allocatable           :: AF(:,:)
+   integer :: info
+   allocate ( AF(nucl_num,nucl_num) )
+   
+   call get_pseudo_inverse(cusp_A,nucl_num,nucl_num,AF,size(AF,1))
+   call dgemm('N','N',nucl_num,mo_tot_num,nucl_num,1.d0, &
+     AF,size(AF,1), cusp_B, size(cusp_B,1), 0.d0, cusp_C, size(cusp_C,1))
+
 END_PROVIDER
 

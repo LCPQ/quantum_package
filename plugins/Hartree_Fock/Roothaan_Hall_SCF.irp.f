@@ -216,8 +216,25 @@ END_DOC
   double precision, allocatable :: AF(:,:) 
   allocate (AF(dim_DIIS+1,dim_DIIS+1))
   double precision :: rcond, ferr, berr
-  integer :: iwork(dim_DIIS+1)
+  integer :: iwork(dim_DIIS+1), lwork
   
+  call dsysvx('N','U',dim_DIIS+1,1,      &
+    B_matrix_DIIS,size(B_matrix_DIIS,1), &
+    AF, size(AF,1),                      &
+    ipiv,                                &
+    C_vector_DIIS,size(C_vector_DIIS,1), &
+    X_vector_DIIS,size(X_vector_DIIS,1), &
+    rcond,                               &
+    ferr,                                &
+    berr,                                &
+    scratch,-1,                          &
+    iwork,                               &
+    info                                 &
+  )
+  lwork = int(scratch(1,1))
+  deallocate(scratch)
+  allocate(scratch(lwork,1))
+
   call dsysvx('N','U',dim_DIIS+1,1,      &
     B_matrix_DIIS,size(B_matrix_DIIS,1), &
     AF, size(AF,1),                      &

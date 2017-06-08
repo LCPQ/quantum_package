@@ -1,15 +1,17 @@
 !*****************************************************************************
-subroutine GauSlaOverlap(expGau,cGau,aGau,expSla,cSla)
-
-! Compute the overlap integral between a Gaussian function
-! with arbitrary angular momemtum and a s-type Slater function
-
+subroutine GauSlaOverlap(expGau,cGau,aGau,expSla,cSla,result)
   implicit none
+
+  BEGIN_DOC
+  ! Compute the overlap integral between a Gaussian function
+  ! with arbitrary angular momemtum and a s-type Slater function
+  END_DOC
 
 ! Input variables 
   double precision,intent(in)   :: expGau,expSla
   double precision,intent(in)   :: cGau(3),cSla(3)
   integer,intent(in)            :: aGau(3)
+  double precision,intent(out)  :: result
 
 ! Final value of the integrals
   double precision              :: ss,ps,ds
@@ -82,13 +84,38 @@ subroutine GauSlaOverlap(expGau,cGau,aGau,expSla,cSla)
   dxzs = AxBx*AzBz*ds
   dyzs = AyBy*AzBz*ds
 
-! Print result
-  write(*,'(A10,F16.10)') & 
-    '(s|s) = ',ss
-  write(*,'(A10,F16.10,3X,A10,F16.10,3X,A10,F16.10)') & 
-    '(px|s) = ',pxs,'(py|s) = ',pys,'(pz|s) = ',pzs
-  write(*,'(A10,F16.10,3X,A10,F16.10,3X,A10,F16.10,3X,A10,F16.10,3X,A10,F16.10,3X,A10,F16.10)') & 
-    '(dx2|s) = ',dxxs,'(dy2|s) = ',dyys,'(dz2|s) = ',dzzs,'(dxy|s) = ',dxys,'(dxz|s) = ',dxzs,'(dyz|s) = ',dyzs
+  select case (sum(aGau))
+    case (0)
+      result = ss
+
+    case (1)
+      if (aGau(1) == 1) then
+        result = pxs
+      else if (aGau(2) == 1) then
+        result = pys
+      else if (aGau(3) == 1) then
+        result = pzs
+      endif
+
+    case (2)
+      if (aGau(1) == 2) then
+        result = dxxs
+      else if (aGau(2) == 2) then
+        result = dyys
+      else if (aGau(3) == 2) then
+        result = dzzs
+      else if (aGau(1)+aGau(2) == 2) then
+        result = dxys
+      else if (aGau(1)+aGau(3) == 2) then
+        result = dxzs
+      else if (aGau(2)+aGau(3) == 2) then
+        result = dyzs
+      endif
+
+    case default
+      stop 'GauSlaOverlap not implemented'
+
+  end select
 
 end
 !*****************************************************************************
@@ -97,10 +124,12 @@ end
 !*****************************************************************************
 subroutine GauSlaKinetic(expGau,cGau,aGau,expSla,cSla)
 
-! Compute the kinetic energy integral between a Gaussian function
-! with arbitrary angular momemtum and a s-type Slater function
-
   implicit none
+
+  BEGIN_DOC
+  ! Compute the kinetic energy integral between a Gaussian function
+  ! with arbitrary angular momemtum and a s-type Slater function
+  END_DOC
 
 ! Input variables 
   double precision,intent(in)   :: expGau,expSla
@@ -195,10 +224,12 @@ end
 !*****************************************************************************
 subroutine GauSlaNuclear(expGau,cGau,aGau,expSla,cSla,ZNuc,cNuc)
 
-! Compute the nuclear attraction integral between a Gaussian function
-! with arbitrary angular momemtum and a s-type Slater function
-
   implicit none
+
+  BEGIN_DOC
+  ! Compute the nuclear attraction integral between a Gaussian function
+  ! with arbitrary angular momemtum and a s-type Slater function
+  END_DOC
 
 ! Input variables 
   double precision,intent(in)   :: expGau,expSla
@@ -242,7 +273,8 @@ subroutine GauSlaNuclear(expGau,cGau,aGau,expSla,cSla,ZNuc,cNuc)
 end
 !*****************************************************************************
 double precision function BoysF0(t)
-  
+  implicit none
+  double precision, intent(in)  :: t
   double precision              :: pi
 
   pi = 4d0*atan(1d0)
@@ -257,4 +289,35 @@ end
 !*****************************************************************************
 
 
+BEGIN_PROVIDER [ double precision, GauSlaOverlap_matrix, (ao_num, nucl_num) ]
+  implicit none
+  BEGIN_DOC
+  ! <Gaussian | Slater> overlap matrix
+  END_DOC
+  integer                        :: i,j,k
+  double precision               :: cGau(3)
+  double precision               :: cSla(3)
+  double precision               :: expSla, res, expGau
+  integer                        :: aGau(3)
+
+  do k=1,nucl_num
+    cSla(1:3) = nucl_coord_transp(1:3,k)
+    expSla    = slater_expo(k)
+
+    do i=1,ao_num
+      cGau(1:3) = nucl_coord_transp(1:3, ao_nucl(i))
+      aGau(1:3) = ao_power(i,1:3)
+      GauSlaOverlap_matrix(i,k) = 0.d0
+
+      do j=1,ao_prim_num(i)
+        expGau = ao_expo_ordered_transp(j,i)
+        call GauSlaOverlap(expGau,cGau,aGau,expSla,cSla,res)
+        GauSlaOverlap_matrix(i,k) += ao_coef_normalized_ordered_transp(j,i) * res
+      enddo
+
+    enddo
+
+  enddo
+  
+END_PROVIDER
 
