@@ -1,4 +1,4 @@
-program print_integrals
+program read_integrals
   call run
 end
 
@@ -56,7 +56,7 @@ subroutine run
   13 continue
   close(iunit)
   
-  call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_values)
+  call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_values, 0.d0)
 
   call map_sort(mo_integrals_map)
 
