@@ -11,8 +11,8 @@ BEGIN_PROVIDER [ double precision, cusp_A, (nucl_num, nucl_num) ]
     cusp_A(A,A) = slater_expo(A)/nucl_charge(A) * slater_value_at_nucl(A,A) 
     do B=1,nucl_num
       cusp_A(A,B) -= slater_value_at_nucl(B,A)
-      do mu=1,ao_num
-        cusp_A(A,B) += GauSlaOverlap_matrix(mu,B) * ao_value_at_nucl(mu,A)
+      do mu=1,mo_tot_num
+        cusp_A(A,B) += MOSlaOverlap_matrix(mu,B) * mo_value_at_nucl(mu,A)
       enddo
     enddo
    enddo

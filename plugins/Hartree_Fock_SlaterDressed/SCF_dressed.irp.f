@@ -26,7 +26,7 @@ end
 
 subroutine debug
   implicit none
-  integer                        :: i
+  integer                        :: i,j,k
   print *,  'A'
   do i=1,nucl_num
     print *,  i, cusp_A(1:nucl_num, i)
@@ -35,10 +35,32 @@ subroutine debug
   do i=1,mo_tot_num
     print *,  i, cusp_B(1:nucl_num, i)
   enddo
-  print *,  'C'
+  print *,  'X'
   do i=1,mo_tot_num
     print *,  i, cusp_C(1:nucl_num, i)
   enddo
+  print *,  '-----'
+  return
+  do k=-100,100
+    double precision :: x, y, z
+    x = 0.01d0 * k
+    y = 0.d0
+    do i=1,ao_num
+      z = 0.d0
+      do j=1,ao_prim_num(i)
+        z += ao_coef_normalized_ordered_transp(j,i) * dexp(-ao_expo_ordered_transp(j,i) * x**2)
+      enddo
+      y += mo_coef(i,1) * z
+      y += exp(-slater_expo(1)*dabs(x)) * slater_coef(1,1)
+      z = 0.d0
+      do j=1,ao_prim_num(i)
+        z += ao_coef_normalized_ordered_transp(j,i) * dexp(-ao_expo_ordered_transp(j,i) * x**2) 
+      enddo
+      y -= z * GauSlaOverlap_matrix(i,1)* slater_coef(1,1)
+    enddo
+    print *,  x, y
+  enddo
+  print *,  '-----'
 end
 
 subroutine run
@@ -58,7 +80,7 @@ subroutine run
 
   mo_label = "CuspDressed"
 
-  call ezfio_set_Hartree_Fock_SlaterDressed_slater_coef_ezfio(cusp_B)
+  call ezfio_set_Hartree_Fock_SlaterDressed_slater_coef_ezfio(cusp_C)
 ! Choose SCF algorithm
 
 

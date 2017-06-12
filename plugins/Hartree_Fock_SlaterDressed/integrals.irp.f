@@ -321,3 +321,14 @@ BEGIN_PROVIDER [ double precision, GauSlaOverlap_matrix, (ao_num, nucl_num) ]
   
 END_PROVIDER
 
+BEGIN_PROVIDER [ double precision, MOSlaOverlap_matrix, (mo_tot_num, nucl_num) ]
+  implicit none
+  BEGIN_DOC
+! <MO | Slater>
+  END_DOC
+  call dgemm('N','N',mo_tot_num,nucl_num,ao_num,1.d0,                &
+      mo_coef_transp, size(mo_coef_transp,1),                        &
+      GauSlaOverlap_matrix, size(GauSlaOverlap_matrix,1),                    &
+      0.d0, MOSlaOverlap_matrix, size(MOSlaOverlap_matrix,1))
+END_PROVIDER
+

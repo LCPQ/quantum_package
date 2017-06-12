@@ -51,13 +51,14 @@ BEGIN_PROVIDER [ double precision , slater_value_at_nucl, (nucl_num,nucl_num) ]
 
   do k=1,nucl_num
     do i=1,nucl_num
-      x = nucl_coord(ao_nucl(i),1) - nucl_coord(k,1)
-      y = nucl_coord(ao_nucl(i),2) - nucl_coord(k,2)
-      z = nucl_coord(ao_nucl(i),3) - nucl_coord(k,3)
+      x = nucl_coord(i,1) - nucl_coord(k,1)
+      y = nucl_coord(i,2) - nucl_coord(k,2)
+      z = nucl_coord(i,3) - nucl_coord(k,3)
 
-      expo = slater_expo(i)*slater_expo(i)*((x*x) + (y*y) + (z*z))
-      if (expo > 160.d0) cycle
-      expo = dsqrt(expo)
+!      expo = slater_expo(i)*slater_expo(i)*((x*x) + (y*y) + (z*z))
+!      if (expo > 160.d0) cycle
+!      expo = dsqrt(expo)
+      expo = slater_expo(i) * dsqrt((x*x) + (y*y) + (z*z))
       slater_value_at_nucl(i,k) = dexp(-expo) * slater_normalization(i)
     enddo
   enddo
