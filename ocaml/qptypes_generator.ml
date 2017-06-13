@@ -2,42 +2,52 @@ open Core.Std;;
 
 let input_data = "
 * Positive_float : float  
-  assert (x >= 0.) ; 
+  if not (x >= 0.) then
+    raise (Invalid_argument (Printf.sprintf \"Positive_float : (x >= 0.) : x=%f\"  x)); 
 
 * Strictly_positive_float : float  
-  assert (x > 0.) ; 
+  if not (x > 0.) then
+    raise (Invalid_argument (Printf.sprintf \"Strictly_positive_float : (x > 0.) : x=%f\" x));
 
 * Negative_float : float  
-  assert (x <= 0.) ; 
+  if not (x <= 0.) then
+    raise (Invalid_argument (Printf.sprintf \"Negative_float : (x <= 0.) : x=%f\" x));
 
 * Strictly_negative_float : float  
-  assert (x < 0.) ; 
+  if not (x < 0.) then
+    raise (Invalid_argument (Printf.sprintf \"Strictly_negative_float : (x < 0.) : x=%f\" x)); 
 
 * Positive_int64 : int64
-  assert (x >= 0L) ; 
+  if not (x >= 0L) then
+    raise (Invalid_argument (Printf.sprintf \"Positive_int64 : (x >= 0L) : x=%s\" (Int64.to_string x))); 
 
 * Positive_int : int  
-  assert (x >= 0) ; 
+  if not (x >= 0) then
+    raise (Invalid_argument (Printf.sprintf \"Positive_int : (x >= 0) : x=%d\" x)); 
 
 * Strictly_positive_int : int  
-  assert (x > 0) ; 
+  if not (x > 0) then
+    raise (Invalid_argument (Printf.sprintf \"Strictly_positive_int : (x > 0) : x=%d\" x)); 
 
 * Negative_int : int  
-  assert (x <= 0) ; 
+  if not (x <= 0) then
+    raise (Invalid_argument (Printf.sprintf \"Negative_int : (x <= 0) : x=%d\" x)); 
 
 * Det_coef : float
-  assert (x >= -1.) ; 
-  assert (x <=  1.) ; 
+  if (x < -1.) || (x > 1.) then
+    raise (Invalid_argument (Printf.sprintf \"Det_coef : (-1. <= x <= 1.) : x=%f\" x)); 
 
 * Normalized_float : float
-  assert (x <= 1.) ; 
-  assert (x >= 0.) ; 
+  if (x < 0.) || (x > 1.) then
+    raise (Invalid_argument (Printf.sprintf \"Normalized_float : (0. <= x <= 1.) : x=%f\" x)); 
 
 * Strictly_negative_int : int  
-  assert (x < 0) ; 
+  if not (x < 0) then
+    raise (Invalid_argument (Printf.sprintf \"Strictly_negative_int : (x < 0) : x=%d\" x)); 
 
 * Non_empty_string : string
-  assert (x <> \"\") ;
+  if (x = \"\") then
+    raise (Invalid_argument \"Non_empty_string\");
 
 
 * Det_number_max : int 
@@ -53,13 +63,13 @@ let input_data = "
 * Bit_kind_size : int  
   begin match x with
   | 8 | 16 | 32 | 64 -> ()
-  | _ -> raise (Failure \"Bit_kind_size should be (8|16|32|64).\")
+  | _ -> raise (Invalid_argument \"Bit_kind_size should be (8|16|32|64).\")
   end;
 
 * Bit_kind : int  
   begin match x with
   | 1 | 2 | 4 | 8 -> ()
-  | _ -> raise (Failure \"Bit_kind should be (1|2|4|8).\")
+  | _ -> raise (Invalid_argument \"Bit_kind should be (1|2|4|8).\")
   end;
 
 * Bitmask_number : int
@@ -68,12 +78,14 @@ let input_data = "
 * MO_coef : float
 
 * MO_occ : float
-  assert (x >= 0.); 
+  if (x < 0.) || (x > 2.) then
+    raise (Invalid_argument (Printf.sprintf \"MO_occ : (0. <= x <= 2.) : x=%f\" x)); 
 
 * AO_coef : float
 
 * AO_expo : float  
-  assert (x >= 0.) ; 
+  if (x < 0.) then
+    raise (Invalid_argument (Printf.sprintf \"AO_expo : (x >= 0.) : x=%f\" x)); 
 
 * AO_prim_number : int
   assert (x > 0) ;
@@ -165,7 +177,7 @@ end = struct
     match (String.lowercase s) with
     | \"huckel\" -> Huckel
     | \"hcore\"  -> HCore
-    | _ -> failwith (\"Wrong Guess type : \"^s)
+    | _ -> raise (Invalid_argument (\"Wrong Guess type : \"^s))
 
 end
 
@@ -189,7 +201,7 @@ end = struct
     | \"read\"  -> Read
     | \"write\" -> Write
     | \"none\"  -> None
-    | _ -> failwith (\"Wrong IO type : \"^s)
+    | _ -> raise (Invalid_argument (\"Wrong IO type : \"^s))
 
 end
 "
@@ -267,7 +279,9 @@ end = struct
       begin
         match max with
         | %s -> ()
-        | i  -> assert ( x <= i )
+        | i  ->
+          if ( x > i ) then
+            raise (Invalid_argument (Printf.sprintf \"%s: %%s\" (%s.to_string x) ))
       end ;
       x
     end
@@ -296,7 +310,7 @@ let parse_input_ezfio input=
         in
         Printf.sprintf ezfio_template 
           name typ typ typ typ typ typ typ typ (String.capitalize typ)
-          ezfio_func ezfio_func max min typ typ max msg min
+          ezfio_func ezfio_func max min typ typ max msg min name (String.capitalize typ)
       end
     | _ -> failwith "Error in input_ezfio"
   in
