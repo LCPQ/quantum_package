@@ -1,6 +1,6 @@
-open Qputils;;
-open Qptypes;;
-open Core.Std;;
+open Qputils
+open Qptypes
+open Core.Std
 
 (*
  * Command-line arguments
@@ -28,7 +28,7 @@ let build_mask from upto n_int =
   in
   build_mask starting_bit (n_int*64)
   |> List.rev
-;;
+
 
 
 type t = 
@@ -38,7 +38,7 @@ type t =
   | Virtual
   | Deleted
   | None
-;;
+
 
 let t_to_string = function
   | Core -> "core"
@@ -47,7 +47,7 @@ let t_to_string = function
   | Virtual -> "virtual"
   | Deleted -> "deleted"
   | None -> assert false
-;;
+
 
 let set ~core ~inact ~act ~virt ~del =
 
@@ -193,51 +193,66 @@ let set ~core ~inact ~act ~virt ~del =
   in
   Ezfio.set_bitmasks_n_mask_cas 1;
   Ezfio.ezfio_array_of_list ~rank:3 ~dim:([| (N_int_number.to_int n_int) ; 2; 1|]) ~data:result
-  |> Ezfio.set_bitmasks_cas; 
-;;
+  |> Ezfio.set_bitmasks_cas
+
 
 let get () =
+  let data =
+    match Input.Mo_basis.read () with
+    | None -> failwith "Unable to read MOs"
+    | Some x -> x
+  in
 
   let mo_tot_num =
-     Ezfio.get_mo_basis_mo_tot_num ()
+    MO_number.to_int data.Input_mo_basis.mo_tot_num
   in
+
   let n_int =
-     try  N_int_number.of_int (Ezfio.get_determinants_n_int ())
-     with _ -> Bitlist.n_int_of_mo_tot_num mo_tot_num 
-  in
-
-  let bitmasks = 
-    match Input.Bitmasks.read () with
-    | Some x -> x
-    | None -> failwith "No data to print"
-  in
-  assert (bitmasks.Input.Bitmasks.n_mask_gen |> Bitmask_number.to_int = 1);
-  assert (bitmasks.Input.Bitmasks.n_mask_cas |> Bitmask_number.to_int = 1);
-
-  let (generators,cas) =
-    Bitlist.of_int64_array bitmasks.Input.Bitmasks.generators,
-    Bitlist.of_int64_array bitmasks.Input.Bitmasks.cas
+    try  N_int_number.of_int (Ezfio.get_determinants_n_int ())
+    with _ -> Bitlist.n_int_of_mo_tot_num mo_tot_num 
   in
 
   Printf.printf "MO  : %d\n" mo_tot_num;
   Printf.printf "n_int: %d\n" (N_int_number.to_int n_int);
-  Printf.printf "Gen : %s\nCAS : %s\n"
-    (Bitlist.to_string generators)
-    (Bitlist.to_string cas)
-  
-;;
 
-let run ~print ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_filename =
+
+  let rec work ?(core="[") ?(inact="[") ?(act="[") ?(virt="[") ?(del="[") i l =
+    match l with
+    | [] -> 
+      let (core, inact, act, virt, del) =
+       (core  ^"]",
+        inact ^"]",
+        act   ^"]",
+        virt  ^"]",
+        del   ^"]")
+      in
+      set ~core ~inact ~act ~virt ~del 
+    | (MO_class.Core     _) :: rest ->
+        work ~core:(Printf.sprintf "%s,%d" core  i) ~inact ~act  ~virt ~del  (i-1) rest
+    | (MO_class.Inactive _) :: rest ->
+        work ~inact:(Printf.sprintf "%s,%d" inact i) ~core  ~act  ~virt ~del  (i-1) rest
+    | (MO_class.Active   _) :: rest ->
+        work ~act:(Printf.sprintf "%s,%d" act   i) ~inact ~core ~virt ~del  (i-1) rest
+    | (MO_class.Virtual  _) :: rest ->
+        work ~virt:(Printf.sprintf "%s,%d" virt  i) ~inact ~act  ~core ~del  (i-1) rest
+    | (MO_class.Deleted  _) :: rest ->
+        work ~del:(Printf.sprintf "%s,%d" del   i) ~inact ~act  ~virt ~core (i-1) rest
+  in
+  work (Array.length data.Input_mo_basis.mo_class) (Array.to_list data.Input_mo_basis.mo_class)
+
+
+
+let run ~q ?(core="[]") ?(inact="[]") ?(act="[]") ?(virt="[]") ?(del="[]") ezfio_filename =
 
   Ezfio.set_file ezfio_filename ;
   if not (Ezfio.has_mo_basis_mo_tot_num ()) then
     failwith "mo_basis/mo_tot_num not found" ;
 
-  if print then
+  if q then
      get ()
   else
      set ~core ~inact ~act ~virt ~del
-;;
+
 
 let ezfio_file =
   let failure filename = 
@@ -255,7 +270,7 @@ let ezfio_file =
         end
     | _ -> failure filename
   )
-;;
+
 
 let default range =
   let failure filename = 
@@ -273,7 +288,7 @@ let default range =
         end
     | _ -> failure filename
   )
-;;
+
 
 let spec =
   let open Command.Spec in
@@ -283,9 +298,9 @@ let spec =
   +> flag "act"    (optional string) ~doc:"range Range of active orbitals"
   +> flag "virt"   (optional string) ~doc:"range Range of virtual orbitals"
   +> flag "del"    (optional string) ~doc:"range Range of deleted orbitals"
-  +> flag "print"  no_arg ~doc:" Print the current masks"
+  +> flag "q"       no_arg ~doc:" Query: print the current masks"
   +> anon ("ezfio_filename" %: ezfio_file)
-;;
+
 
 let command = 
     Command.basic 
@@ -295,8 +310,8 @@ let command =
       The range of MOs has the form : \"[36-53,72-107,126-131]\"
         ")
     spec
-    (fun core inact act virt del print ezfio_filename () -> run ~print ?core ?inact ?act ?virt ?del ezfio_filename )
-;;
+    (fun core inact act virt del q ezfio_filename () -> run ~q ?core ?inact ?act ?virt ?del ezfio_filename )
+
 
 let () =
     Command.run command

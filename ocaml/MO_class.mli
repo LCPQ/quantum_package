@@ -19,3 +19,6 @@ val to_bitlist      : Qptypes.N_int_number.t -> t -> Bitlist.t
 
 (** Convert to string for printing *)
 val to_string : t -> string
+
+val of_string : string -> t
+
