@@ -13,8 +13,9 @@ END_DOC
   integer                        :: iteration_SCF,dim_DIIS,index_dim_DIIS
  
   integer                        :: i,j
+  double precision, allocatable :: mo_coef_save(:,:)
  
-  allocate(                                                          &
+  allocate(mo_coef_save(ao_num,mo_tot_num),                          &
       Fock_matrix_DIIS (ao_num,ao_num,max_dim_DIIS),                 &
       error_matrix_DIIS(ao_num,ao_num,max_dim_DIIS)                  &
       )
@@ -72,9 +73,7 @@ END_DOC
       Fock_matrix_AO_alpha = Fock_matrix_AO*0.5d0
       Fock_matrix_AO_beta  = Fock_matrix_AO*0.5d0
       level_shift_save = level_shift
-      if (max_error_DIIS > 0.1d0) then
-        level_shift += 0.5d0
-      endif
+      level_shift += max_error_DIIS
       TOUCH Fock_matrix_AO_alpha Fock_matrix_AO_beta
       level_shift = level_shift_save
 
@@ -97,21 +96,21 @@ END_DOC
       Fock_matrix_AO_alpha = Fock_matrix_AO*0.5d0
       Fock_matrix_AO_beta  = Fock_matrix_AO*0.5d0
       TOUCH Fock_matrix_AO_alpha Fock_matrix_AO_beta
-      dim_DIIS = 0
     endif
 
     double precision :: level_shift_save
     level_shift_save = level_shift
-    if (max_error_DIIS > 0.5d0) then
-      level_shift += 0.5d0
-    endif
+    mo_coef_save(1:ao_num,1:mo_tot_num) = mo_coef(1:ao_num,1:mo_tot_num)
     do while (Delta_Energy_SCF > 0.d0)
+      mo_coef(1:ao_num,1:mo_tot_num) = mo_coef_save
+      TOUCH mo_coef
       level_shift = level_shift + 0.1d0
-      MO_coef = eigenvectors_Fock_matrix_MO
-      TOUCH MO_coef level_shift
+      mo_coef(1:ao_num,1:mo_tot_num) = eigenvectors_Fock_matrix_MO(1:ao_num,1:mo_tot_num)
+      TOUCH mo_coef level_shift
       Delta_Energy_SCF = HF_energy - energy_SCF_previous
       energy_SCF = HF_energy
-      if (level_shift-level_shift_save > 0.5d0) exit
+      if (level_shift-level_shift_save > 1.d0) exit
+      dim_DIIS=0
     enddo
     level_shift = level_shift_save
     SOFT_TOUCH level_shift
