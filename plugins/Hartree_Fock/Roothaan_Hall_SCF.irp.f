@@ -72,10 +72,7 @@ END_DOC
 
       Fock_matrix_AO_alpha = Fock_matrix_AO*0.5d0
       Fock_matrix_AO_beta  = Fock_matrix_AO*0.5d0
-      level_shift_save = level_shift
-      level_shift += max_error_DIIS
       TOUCH Fock_matrix_AO_alpha Fock_matrix_AO_beta
-      level_shift = level_shift_save
 
     endif
 
