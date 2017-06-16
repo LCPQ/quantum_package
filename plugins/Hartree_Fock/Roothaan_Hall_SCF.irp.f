@@ -71,7 +71,12 @@ END_DOC
 
       Fock_matrix_AO_alpha = Fock_matrix_AO*0.5d0
       Fock_matrix_AO_beta  = Fock_matrix_AO*0.5d0
+      level_shift_save = level_shift
+      if (max_error_DIIS > 0.1d0) then
+        level_shift += 0.5d0
+      endif
       TOUCH Fock_matrix_AO_alpha Fock_matrix_AO_beta
+      level_shift = level_shift_save
 
     endif
 
@@ -97,6 +102,9 @@ END_DOC
 
     double precision :: level_shift_save
     level_shift_save = level_shift
+    if (max_error_DIIS > 0.5d0) then
+      level_shift += 0.5d0
+    endif
     do while (Delta_Energy_SCF > 0.d0)
       level_shift = level_shift + 0.1d0
       MO_coef = eigenvectors_Fock_matrix_MO

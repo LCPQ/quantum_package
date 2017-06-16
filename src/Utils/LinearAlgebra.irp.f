@@ -72,6 +72,8 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
   double precision, allocatable  :: S_half(:,:)
   !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
   integer                        :: info, i, j
+call ortho_lowdin(overlap,LDA,N,C,LDC,m)
+return
   
   if (n < 2) then
     return
@@ -297,12 +299,12 @@ subroutine get_pseudo_inverse(A,m,n,C,LDA)
   allocate(work(lwork))
   call dgesvd('S','A', m, n, A_tmp, m,D,U,m,Vt,n,work,lwork,info)
   if (info /= 0) then
-    print *,  info, ': SVD failed'
+    print *,  info, ':: SVD failed'
     stop 1
   endif
   
   do i=1,n
-    if (abs(D(i)) > 1.d-6) then
+    if (dabs(D(i)) > 1.d-6) then
       D(i) = 1.d0/D(i)
     else
       D(i) = 0.d0
