@@ -4,6 +4,8 @@
 #  - sudo apt-get install gfortran liblapack-dev gcc
 #  - sudo apt-get install graphviz
 
+dist: trusty
+
 sudo: false
 
 addons:
