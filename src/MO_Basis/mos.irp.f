@@ -72,6 +72,8 @@ BEGIN_PROVIDER [ double precision, mo_coef_in_ao_ortho_basis, (ao_num_align, mo_
  implicit none
  BEGIN_DOC
  ! MO coefficients in orthogonalized AO basis
+ !
+ ! C^(-1).C_mo
  END_DOC
  call dgemm('T','N',ao_num,mo_tot_num,ao_num,1.d0,                   &
      ao_ortho_canonical_coef_inv, size(ao_ortho_canonical_coef_inv,1),&
@@ -155,6 +157,8 @@ subroutine ao_to_mo(A_ao,LDA_ao,A_mo,LDA_mo)
   implicit none
   BEGIN_DOC
   ! Transform A from the AO basis to the MO basis
+  !
+  ! C.A_ao.Ct
   END_DOC
   integer, intent(in)            :: LDA_ao,LDA_mo
   double precision, intent(in)   :: A_ao(LDA_ao)
@@ -181,6 +185,8 @@ subroutine mo_to_ao(A_mo,LDA_mo,A_ao,LDA_ao)
   implicit none
   BEGIN_DOC
   ! Transform A from the MO basis to the AO basis
+  !
+  ! (S.C).A_mo.(S.C)t
   END_DOC
   integer, intent(in)            :: LDA_ao,LDA_mo
   double precision, intent(in)   :: A_mo(LDA_mo)
@@ -273,6 +279,8 @@ subroutine ao_ortho_cano_to_ao(A_ao,LDA_ao,A,LDA)
   implicit none
   BEGIN_DOC
   ! Transform A from the AO basis to the orthogonal AO basis
+  !
+  ! C^(-1).A_ao.Ct^(-1)
   END_DOC
   integer, intent(in)            :: LDA_ao,LDA
   double precision, intent(in)   :: A_ao(LDA_ao,*)
@@ -282,49 +290,17 @@ subroutine ao_ortho_cano_to_ao(A_ao,LDA_ao,A,LDA)
   allocate ( T(ao_num_align,ao_num) )
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
   
-  call dgemm('T','N', ao_num, ao_num, ao_num,                    &
+  call dgemm('N','N', ao_num, ao_num, ao_num,                    &
       1.d0,                                                          &
       ao_ortho_canonical_coef_inv, size(ao_ortho_canonical_coef_inv,1),  &
       A_ao,LDA_ao,                                                   &
       0.d0, T, ao_num_align)
   
-  call dgemm('N','N', ao_num, ao_num, ao_num, 1.d0,          &
+  call dgemm('N','T', ao_num, ao_num, ao_num, 1.d0,          &
       T, size(T,1),                                               &
       ao_ortho_canonical_coef_inv,size(ao_ortho_canonical_coef_inv,1),&
       0.d0, A, LDA)
   
   deallocate(T)
-end
-
-subroutine mo_to_ao_ortho_cano(A_mo,LDA_mo,A_ao,LDA_ao)
-  implicit none
-  BEGIN_DOC
-  ! Transform A from the AO orthogonal basis to the AO basis
-  END_DOC
-  integer, intent(in)            :: LDA_ao,LDA_mo
-  double precision, intent(in)   :: A_mo(LDA_mo)
-  double precision, intent(out)  :: A_ao(LDA_ao)
-  double precision, allocatable  :: T(:,:), SC(:,:)
-  
-  allocate ( SC(ao_num_align,mo_tot_num) )
-  allocate ( T(mo_tot_num_align,ao_num) )
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
-  
-  call dgemm('N','N', ao_num, mo_tot_num, ao_num,                    &
-      1.d0, ao_overlap,size(ao_overlap,1),                           &
-      ao_ortho_canonical_coef, size(ao_ortho_canonical_coef,1),                                      &
-      0.d0, SC, ao_num_align)
-  
-  call dgemm('N','T', mo_tot_num, ao_num, mo_tot_num,                &
-      1.d0, A_mo,LDA_mo,                                             &
-      SC, size(SC,1),                                      &
-      0.d0, T, mo_tot_num_align)
-  
-  call dgemm('N','N', ao_num, ao_num, mo_tot_num,                    &
-      1.d0, SC,size(SC,1),                                 &
-      T, mo_tot_num_align,                                           &
-      0.d0, A_ao, LDA_ao)
-  
-  deallocate(T,SC)
 end
 

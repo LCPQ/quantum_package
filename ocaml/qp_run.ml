@@ -134,7 +134,8 @@ let run slave exe ezfio_file =
   let duration = Time.diff (Time.now()) time_start 
   |> Core.Span.to_string in
   Printf.printf "Wall time : %s\n\n" duration;
-  exit exit_code
+  if (exit_code <> 0) then
+    exit exit_code
 
 let spec = 
   let open Command.Spec in

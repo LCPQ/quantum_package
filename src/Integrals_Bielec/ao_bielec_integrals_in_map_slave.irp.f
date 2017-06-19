@@ -56,7 +56,6 @@ subroutine push_integrals(zmq_socket_push, n_integrals, buffer_i, buffer_value, 
     stop 'error'
   endif
 
-! Activate is zmq_socket_push is a REQ
 IRP_IF ZMQ_PUSH
 IRP_ELSE
   integer :: idummy
@@ -189,7 +188,6 @@ subroutine ao_bielec_integrals_in_map_collector
 
       rc = f77_zmq_recv( zmq_socket_pull, task_id, 4, 0)
 
-! Activate if zmq_socket_pull is a REP
 IRP_IF ZMQ_PUSH
 IRP_ELSE
       rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)

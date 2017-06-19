@@ -76,19 +76,20 @@ BEGIN_PROVIDER [ double precision, ao_cart_to_sphe_inv, (ao_cart_to_sphe_num,ao_
  ! AO_cart_to_sphe_coef^(-1)
  END_DOC
 
- call get_pseudo_inverse(ao_cart_to_sphe_coef,ao_num,ao_cart_to_sphe_num, &
-   ao_cart_to_sphe_inv, size(ao_cart_to_sphe_coef,1))
+ call get_pseudo_inverse(ao_cart_to_sphe_coef,size(ao_cart_to_sphe_coef,1),&
+   ao_num,ao_cart_to_sphe_num, &
+   ao_cart_to_sphe_inv, size(ao_cart_to_sphe_inv,1))
 END_PROVIDER
 
 
 
-BEGIN_PROVIDER [ double precision, ao_ortho_canonical_coef_inv, (ao_num,ao_num)]
+BEGIN_PROVIDER [ double precision, ao_ortho_canonical_coef_inv, (ao_num_align,ao_num)]
  implicit none
  BEGIN_DOC
 ! ao_ortho_canonical_coef^(-1)
  END_DOC
- call get_pseudo_inverse(ao_ortho_canonical_coef,ao_num,ao_num, &
-   ao_ortho_canonical_coef_inv, size(ao_ortho_canonical_coef,1))
+ call get_inverse(ao_ortho_canonical_coef,size(ao_ortho_canonical_coef,1),&
+     ao_num, ao_ortho_canonical_coef_inv, size(ao_ortho_canonical_coef_inv,1))
 END_PROVIDER
 
  BEGIN_PROVIDER [ double precision, ao_ortho_canonical_coef, (ao_num_align,ao_num)]
@@ -100,10 +101,14 @@ END_PROVIDER
 ! ao_ortho_canonical_coef(i,j) = coefficient of the ith ao on the jth ao_ortho_canonical orbital
   END_DOC
   integer :: i
-  ao_ortho_canonical_coef(:,:) = 0.d0
+  ao_ortho_canonical_coef = 0.d0
   do i=1,ao_num
     ao_ortho_canonical_coef(i,i) = 1.d0
   enddo
+
+!call ortho_lowdin(ao_overlap,size(ao_overlap,1),ao_num,ao_ortho_canonical_coef,size(ao_ortho_canonical_coef,1),ao_num)
+!ao_ortho_canonical_num=ao_num
+!return
 
   if (ao_cartesian) then
 

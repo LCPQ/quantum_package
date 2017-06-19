@@ -228,12 +228,14 @@ function new_zmq_pull_socket()
   character*(8), external        :: zmq_port
   integer(ZMQ_PTR)               :: new_zmq_pull_socket
   
+  print *,  'coucou'
   call omp_set_lock(zmq_lock)
+  print *,  'pouet'
   if (zmq_context == 0_ZMQ_PTR) then
      stop 'zmq_context is uninitialized'
   endif
 IRP_IF ZMQ_PUSH
- new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_PULL)
+  new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_PULL)
 IRP_ELSE
   new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_REP)
 IRP_ENDIF

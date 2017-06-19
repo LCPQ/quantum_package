@@ -28,14 +28,26 @@ BEGIN_PROVIDER [ double precision , ao_value_at_nucl, (ao_num,nucl_num) ]
   enddo
 END_PROVIDER
 
+BEGIN_PROVIDER [ double precision, ao_ortho_value_at_nucl, (ao_num,nucl_num) ]
+  implicit none
+  BEGIN_DOC
+! Values of the molecular orbitals at the nucleus 
+  END_DOC
+
+  call dgemm('T','N',ao_num,nucl_num,ao_num,1.d0,                    &
+      ao_ortho_canonical_coef, size(ao_ortho_canonical_coef,1),      &
+      ao_value_at_nucl, size(ao_value_at_nucl,1),                    &
+      0.d0, ao_ortho_value_at_nucl,size(ao_ortho_value_at_nucl,1))
+END_PROVIDER
+
 BEGIN_PROVIDER [ double precision, mo_value_at_nucl, (mo_tot_num,nucl_num) ]
   implicit none
   BEGIN_DOC
 ! Values of the molecular orbitals at the nucleus 
   END_DOC
 
-  call dgemm('N','N',mo_tot_num,nucl_num,ao_num,1.d0,                &
-      mo_coef_transp, size(mo_coef_transp,1),                        &
+  call dgemm('T','N',mo_tot_num,nucl_num,ao_num,1.d0,                &
+      mo_coef, size(mo_coef,1),                        &
       ao_value_at_nucl, size(ao_value_at_nucl,1),                    &
       0.d0, mo_value_at_nucl, size(mo_value_at_nucl,1))
 END_PROVIDER
@@ -54,10 +66,6 @@ BEGIN_PROVIDER [ double precision , slater_value_at_nucl, (nucl_num,nucl_num) ]
       x = nucl_coord(i,1) - nucl_coord(k,1)
       y = nucl_coord(i,2) - nucl_coord(k,2)
       z = nucl_coord(i,3) - nucl_coord(k,3)
-
-!      expo = slater_expo(i)*slater_expo(i)*((x*x) + (y*y) + (z*z))
-!      if (expo > 160.d0) cycle
-!      expo = dsqrt(expo)
       expo = slater_expo(i) * dsqrt((x*x) + (y*y) + (z*z))
       slater_value_at_nucl(i,k) = dexp(-expo) * slater_normalization(i)
     enddo

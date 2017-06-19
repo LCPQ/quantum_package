@@ -502,8 +502,8 @@ BEGIN_PROVIDER [ double precision, MOSla$X_matrix, (mo_tot_num, nucl_num) ]
   BEGIN_DOC
 ! <MO | Slater>
   END_DOC
-  call dgemm('N','N',mo_tot_num,nucl_num,ao_num,1.d0,                &
-      mo_coef_transp, size(mo_coef_transp,1),                        &
+  call dgemm('T','N',mo_tot_num,nucl_num,ao_num,1.d0,                &
+      mo_coef, size(mo_coef,1),                        &
       GauSla$X_matrix, size(GauSla$X_matrix,1),                    &
       0.d0, MOSla$X_matrix, size(MOSla$X_matrix,1))
 END_PROVIDER

@@ -72,8 +72,6 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
   double precision, allocatable  :: S_half(:,:)
   !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
   integer                        :: info, i, j
-!call ortho_lowdin(overlap,LDA,N,C,LDC,m)
-!return
   
   if (n < 2) then
     return
@@ -270,14 +268,42 @@ end
 
 
 
-subroutine get_pseudo_inverse(A,m,n,C,LDA)
+subroutine get_inverse(A,LDA,m,C,LDC)
+  implicit none
+  BEGIN_DOC
+  ! Returns the inverse of the square matrix A
+  END_DOC
+  integer, intent(in)            :: m, LDA, LDC
+  double precision, intent(in)   :: A(LDA,m)
+  double precision, intent(out)  :: C(LDC,m)
+
+  integer                        :: info,lwork
+  integer, allocatable           :: ipiv(:)
+  double precision,allocatable   :: work(:)
+  allocate (ipiv(ao_num), work(ao_num*ao_num))
+  lwork = size(work)
+  C(1:m,1:m) = A(1:m,1:m)
+  call dgetrf(m,m,C,size(C,1),ipiv,info)
+  if (info /= 0) then
+    print *,  info
+    stop 'error in inverse (dgetrf)'
+  endif
+  call dgetri(m,C,size(C,1),ipiv,work,lwork,info)
+  if (info /= 0) then
+    print *,  info
+    stop 'error in inverse (dgetri)'
+  endif
+  deallocate(ipiv,work)
+end
+
+subroutine get_pseudo_inverse(A,LDA,m,n,C,LDC)
   implicit none
   BEGIN_DOC
   ! Find C = A^-1
   END_DOC
-  integer, intent(in)            :: m,n, LDA
+  integer, intent(in)            :: m,n, LDA, LDC
   double precision, intent(in)   :: A(LDA,n)
-  double precision, intent(out)  :: C(n,m)
+  double precision, intent(out)  :: C(LDC,m)
   
   double precision, allocatable  :: U(:,:), D(:), Vt(:,:), work(:), A_tmp(:,:)
   integer                        :: info, lwork
@@ -304,7 +330,7 @@ subroutine get_pseudo_inverse(A,m,n,C,LDA)
   endif
   
   do i=1,n
-    if (dabs(D(i)) > 1.d-6) then
+    if (D(i)/D(1) > 1.d-10) then
       D(i) = 1.d0/D(i)
     else
       D(i) = 0.d0
@@ -315,7 +341,7 @@ subroutine get_pseudo_inverse(A,m,n,C,LDA)
   do i=1,m
     do j=1,n
       do k=1,n
-        C(j,i) += U(i,k) * D(k) * Vt(k,j)
+        C(j,i) = C(j,i) + U(i,k) * D(k) * Vt(k,j)
       enddo
     enddo
   enddo
