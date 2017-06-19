@@ -289,7 +289,7 @@ subroutine ao_ortho_cano_to_ao(A_ao,LDA_ao,A,LDA)
       0.d0, T, ao_num_align)
   
   call dgemm('N','N', ao_num, ao_num, ao_num, 1.d0,          &
-      T, ao_num_align,                                               &
+      T, size(T,1),                                               &
       ao_ortho_canonical_coef_inv,size(ao_ortho_canonical_coef_inv,1),&
       0.d0, A, LDA)
   

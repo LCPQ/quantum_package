@@ -72,8 +72,8 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
   double precision, allocatable  :: S_half(:,:)
   !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
   integer                        :: info, i, j
-call ortho_lowdin(overlap,LDA,N,C,LDC,m)
-return
+!call ortho_lowdin(overlap,LDA,N,C,LDC,m)
+!return
   
   if (n < 2) then
     return
