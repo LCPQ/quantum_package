@@ -309,16 +309,16 @@ def write_ezfio(res, filename):
             array_l_max_block.append(l_max_block)
             array_z_remove.append(z_remove)
 
-            x = [[coef_n_zeta.split() for coef_n_zeta in l.split('\n')] \
+            x = [[ filter(None,coef_n_zeta.split()) for coef_n_zeta in l.split('\n')] \
                for l in array_party[1:] ]
-            x = []
-            for l in array_party[1:]:
-              y = []
-              for coef_n_zeta in l.split('\n'):
-                z = coef_n_zeta.split()
-                if z : y.append(z)
-              x.append(y)
-            matrix.append(x)
+#            x = []
+#            for l in array_party[1:]:
+#              y = []
+#              for coef_n_zeta in l.split('\n'):
+#                z = coef_n_zeta.split()
+#                if z : y.append(z)
+#              x.append(y)
+#            matrix.append(x)
         return (matrix, array_l_max_block, array_z_remove)
 
     def get_local_stuff(matrix):
@@ -444,4 +444,12 @@ if __name__ == '__main__':
         print file_, 'recognized as', str(res_file).split('.')[-1].split()[0]
 
     write_ezfio(res_file, ezfio_file)
-    os.system("qp_run save_ortho_mos "+ezfio_file)
+    if os.system("qp_run save_ortho_mos "+ezfio_file) != 0:
+      print """Warning: You need to run 
+
+         qp_run save_ortho_mos """+ezfio_file+"""
+
+to be sure your MOs will be orthogonal, which is not the case when
+the MOs are read from output files (not enough precision in output)."""
+
+

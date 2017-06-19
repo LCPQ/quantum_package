@@ -5,7 +5,6 @@ program scf
 ! output: hartree_fock.energy
 ! optional: mo_basis.mo_coef
   END_DOC
-!  call debug
   call create_guess
   call orthonormalize_mos
   call run
@@ -56,7 +55,7 @@ subroutine run
 
 ! Choose SCF algorithm
 
-!    call damping_SCF
+!    call damping_SCF   ! Deprecated routine
   call Roothaan_Hall_SCF
   
 end

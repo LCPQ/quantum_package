@@ -120,10 +120,11 @@ let run slave exe ezfio_file =
     | Some (_,x) -> x^" "
     | None -> assert false
   in
-  match (Sys.command (prefix^exe^ezfio_file)) with
-  | 0 -> ()
-  | i -> Printf.printf "Program exited with code %d.\n%!" i;
-  ;
+  let exit_code = 
+    match (Sys.command (prefix^exe^ezfio_file)) with
+    | 0 -> 0
+    | i -> (Printf.printf "Program exited with code %d.\n%!" i; i)
+  in
 
   TaskServer.stop ~port:port_number;
   Thread.join task_thread;
@@ -132,7 +133,8 @@ let run slave exe ezfio_file =
 
   let duration = Time.diff (Time.now()) time_start 
   |> Core.Span.to_string in
-  Printf.printf "Wall time : %s\n\n" duration
+  Printf.printf "Wall time : %s\n\n" duration;
+  exit exit_code
 
 let spec = 
   let open Command.Spec in
