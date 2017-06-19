@@ -19,13 +19,14 @@ end
 
 subroutine run_wf
   use f77_zmq
+
   implicit none
 
   integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
   double precision :: energy(N_states)
   character*(64) :: states(4)
-  integer :: rc, i
+  integer :: rc, i, ierr
   
   call provide_everything
   

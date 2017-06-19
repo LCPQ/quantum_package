@@ -2,6 +2,7 @@ open Core.Std ;;
 open Qptypes ;;
 
 exception MultiplicityError of string;;
+exception XYZError ;;
 
 type t = {
   nuclei     : Atom.t list ;
@@ -144,8 +145,16 @@ let of_xyz_file
     ?(charge=(Charge.of_int 0)) ?(multiplicity=(Multiplicity.of_int 1))
     ?(units=Units.Angstrom)
     filename =
-  let (_,buffer) = In_channel.read_all filename 
-  |> String.lsplit2_exn ~on:'\n' in
+  let (x,buffer) = In_channel.read_all filename 
+  |> String.lsplit2_exn ~on:'\n'
+  in
+  let result =
+    try
+      int_of_string x > 0
+    with
+    | Failure "int_of_string"  -> false
+  in
+  if not result then raise XYZError;
   let (_,buffer) = String.lsplit2_exn buffer ~on:'\n' in
   of_xyz_string ~charge ~multiplicity ~units buffer
 
@@ -166,7 +175,7 @@ let of_file
     filename = 
   try
     of_xyz_file ~charge ~multiplicity ~units filename
-  with _ ->
+  with XYZError ->
     of_zmt_file ~charge ~multiplicity ~units filename
 
 

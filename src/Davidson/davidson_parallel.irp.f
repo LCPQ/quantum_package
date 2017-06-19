@@ -71,6 +71,7 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
   ! -----------------------
 
   integer                        :: rc
+  integer*8                      :: rc8
   integer                        :: N_states_read, N_det_read, psi_det_size_read
   integer                        :: N_det_selectors_read, N_det_generators_read
   double precision               :: energy(N_st)
@@ -90,14 +91,9 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
     stop 'error'
   endif
 
-  read(msg(14:rc),*) rc, N_states_read, N_det_read, psi_det_size_read,        &
+  read(msg(14:rc),*) N_states_read, N_det_read, psi_det_size_read,        &
       N_det_generators_read, N_det_selectors_read
 
-  if (rc /= worker_id) then
-    print *,  'Wrong worker ID'
-    stop 'error'
-  endif
-  
   if (N_states_read /= N_st) then
     print *, N_st
     stop 'error : N_st'
@@ -110,16 +106,16 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
 
   allocate(u_t(N_st,N_det_read))
 
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,psi_det,N_int*2*N_det_read*bit_kind,0)
-  if (rc /= N_int*2*N_det_read*bit_kind) then
-    print *, 'f77_zmq_recv(zmq_to_qp_run_socket,psi_det,N_int*2*N_det_read*bit_kind,0)'
+  rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det_read*bit_kind,0)
+  if (rc8 /= N_int*2_8*N_det_read*bit_kind) then
+    print *, 'f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det_read*bit_kind,0)'
     stop 'error'
   endif
 
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,u_t,size(u_t)*8,0)
-  if (rc /= size(u_t)*8) then
+  rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,u_t,size(u_t)*8_8,0)
+  if (rc8 /= size(u_t)*8_8) then
     print *,  rc, size(u_t)*8
-    print *, 'f77_zmq_recv(zmq_to_qp_run_socket,u_t,size(u_t)*8,0)'
+    print *, 'f77_zmq_recv8(zmq_to_qp_run_socket,u_t,size(u_t)*8_8,0)'
     stop 'error'
   endif
 
@@ -159,6 +155,7 @@ subroutine davidson_push_results(zmq_socket_push, v_t, s_t, imin, imax, task_id)
   double precision    ,intent(in)    :: v_t(N_states_diag,N_det)
   double precision    ,intent(in)    :: s_t(N_states_diag,N_det)
   integer                            :: rc, sz
+  integer*8                          :: rc8
 
   sz = (imax-imin+1)*N_states_diag
 
@@ -171,11 +168,11 @@ subroutine davidson_push_results(zmq_socket_push, v_t, s_t, imin, imax, task_id)
   rc = f77_zmq_send( zmq_socket_push, imax, 4, ZMQ_SNDMORE)
   if(rc /= 4) stop "davidson_push_results failed to push imax"
 
-  rc = f77_zmq_send( zmq_socket_push, v_t(1,imin), 8*sz, ZMQ_SNDMORE)
-  if(rc /= 8*sz) stop "davidson_push_results failed to push vt"
+  rc8 = f77_zmq_send8( zmq_socket_push, v_t(1,imin), 8_8*sz, ZMQ_SNDMORE)
+  if(rc8 /= 8_8*sz) stop "davidson_push_results failed to push vt"
 
-  rc = f77_zmq_send( zmq_socket_push, s_t(1,imin), 8*sz, 0)
-  if(rc /= 8*sz) stop "davidson_push_results failed to push st"
+  rc8 = f77_zmq_send8( zmq_socket_push, s_t(1,imin), 8_8*sz, 0)
+  if(rc8 /= 8_8*sz) stop "davidson_push_results failed to push st"
 
 ! Activate is zmq_socket_push is a REQ
 IRP_IF ZMQ_PUSH
@@ -202,6 +199,7 @@ subroutine davidson_pull_results(zmq_socket_pull, v_t, s_t, imin, imax, task_id)
   double precision    ,intent(out)    :: s_t(N_states_diag,N_det)
 
   integer                            :: rc, sz
+  integer*8                          :: rc8
 
   rc = f77_zmq_recv( zmq_socket_pull, task_id, 4, 0)
   if(rc /= 4) stop "davidson_pull_results failed to pull task_id"
@@ -214,11 +212,11 @@ subroutine davidson_pull_results(zmq_socket_pull, v_t, s_t, imin, imax, task_id)
 
   sz = (imax-imin+1)*N_states_diag
 
-  rc = f77_zmq_recv( zmq_socket_pull, v_t(1,imin), 8*sz, 0)
-  if(rc /= 8*sz) stop "davidson_pull_results failed to pull v_t"
+  rc8 = f77_zmq_recv8( zmq_socket_pull, v_t(1,imin), 8_8*sz, 0)
+  if(rc8 /= 8*sz) stop "davidson_pull_results failed to pull v_t"
 
-  rc = f77_zmq_recv( zmq_socket_pull, s_t(1,imin), 8*sz, 0)
-  if(rc /= 8*sz) stop "davidson_pull_results failed to pull s_t"
+  rc8 = f77_zmq_recv8( zmq_socket_pull, s_t(1,imin), 8_8*sz, 0)
+  if(rc8 /= 8*sz) stop "davidson_pull_results failed to pull s_t"
 
 ! Activate if zmq_socket_pull is a REP
 IRP_IF ZMQ_PUSH
@@ -322,6 +320,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   
   character*(512) :: task
   integer :: rc
+  integer*8 :: rc8
   double precision :: energy(N_st)
   energy = 0.d0
 
@@ -329,25 +328,25 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   write(task,*) 'put_psi ', 1, N_st, N_det, N_det
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(task),len(trim(task)),ZMQ_SNDMORE)
   if (rc /= len(trim(task))) then
-    print *, 'f77_zmq_send(zmq_to_qp_run_socket,trim(task),len(trim(task)),ZMQ_SNDMORE)'
+    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,trim(task),len(trim(task)),ZMQ_SNDMORE)'
     stop 'error'
   endif
 
-  rc = f77_zmq_send(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,ZMQ_SNDMORE)
-  if (rc /= N_int*2*N_det*bit_kind) then
-    print *, 'f77_zmq_send(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,ZMQ_SNDMORE)'
+  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det*bit_kind,ZMQ_SNDMORE)
+  if (rc8 /= N_int*2_8*N_det*bit_kind) then
+    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,ZMQ_SNDMORE)'
     stop 'error'
   endif
 
-  rc = f77_zmq_send(zmq_to_qp_run_socket,u_t,size(u_t)*8,ZMQ_SNDMORE)
-  if (rc /= size(u_t)*8) then
-    print *,  'f77_zmq_send(zmq_to_qp_run_socket,u_t,size(u_t)*8,ZMQ_SNDMORE)'
+  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,u_t,size(u_t)*8_8,ZMQ_SNDMORE)
+  if (rc8 /= size(u_t)*8_8) then
+    print *,  'f77_zmq_send8(zmq_to_qp_run_socket,u_t,int(size(u_t)*8,8),ZMQ_SNDMORE)'
     stop 'error'
   endif
 
   rc = f77_zmq_send(zmq_to_qp_run_socket,energy,N_st*8,0)
   if (rc /= N_st*8) then
-    print *, 'f77_zmq_send(zmq_to_qp_run_socket,energy,size_energy*8,0)'
+    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,energy,int(size_energy*8,8),0)'
     stop 'error'
   endif
 
@@ -414,4 +413,19 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
     call dset_order(u_0(1,k),psi_bilinear_matrix_order_reverse,N_det)
   enddo
 end
+
+
+BEGIN_PROVIDER [ integer, nthreads_davidson ]
+ implicit none
+ BEGIN_DOC
+ ! Number of threads for Davdison
+ END_DOC
+ nthreads_davidson = nproc
+ character*(32) :: env
+ call getenv('NTHREADS_DAVIDSON',env)
+ if (trim(env) /= '') then
+   read(env,*) nthreads_davidson
+ endif
+ call write_int(6,nthreads_davidson,'Number of threads for Diagonalization')
+END_PROVIDER
 

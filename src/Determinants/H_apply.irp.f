@@ -76,7 +76,8 @@ subroutine resize_H_apply_buffer(new_size,iproc)
   allocate ( buffer_det(N_int,2,new_size),                           &
       buffer_coef(new_size,N_states),                                &
       buffer_e2(new_size,N_states) )
-  
+  buffer_coef = 0.d0 
+  buffer_e2 = 0.d0 
   do i=1,min(new_size,H_apply_buffer(iproc)%N_det)
     do k=1,N_int
       buffer_det(k,1,i) = H_apply_buffer(iproc)%det(k,1,i)

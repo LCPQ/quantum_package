@@ -112,8 +112,8 @@ end = struct
         let s = Symmetry.Xyz.to_symmetry b.ao_power.(i) in
         let ao_prim_num = AO_prim_number.to_int b.ao_prim_num.(i) in
         let prims = List.init ao_prim_num ~f:(fun j ->
-          let prim = { Primitive.sym  = s ;
-                       Primitive.expo = b.ao_expo.(ao_num*j+i)
+          let prim = { GaussianPrimitive.sym  = s ;
+                       GaussianPrimitive.expo = b.ao_expo.(ao_num*j+i)
                      }
           in
           let coef = b.ao_coef.(ao_num*j+i) in

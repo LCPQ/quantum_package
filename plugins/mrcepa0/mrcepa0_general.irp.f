@@ -47,6 +47,9 @@ subroutine run(N_st,energy)
       enddo
       call diagonalize_ci_dressed(lambda)
       E_new = sum(ci_energy_dressed(1:N_states))
+!  if (.true.) then
+!    provide delta_ij_mrcc_pouet
+!  endif
       delta_E = (E_new - E_old)/dble(N_states)
       print *,  ''
       call write_double(6,thresh_mrcc,"thresh_mrcc")

@@ -30,7 +30,7 @@ END_PROVIDER
     enddo
   enddo
   do k=1,N_states
-    do i=1,N_det_selectors
+    do i=1,N_det_generators
       psi_selectors_coef(i,k) = psi_coef_generators(i,k)
     enddo
   enddo

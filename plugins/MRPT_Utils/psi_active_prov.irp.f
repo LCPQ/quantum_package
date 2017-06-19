@@ -11,8 +11,8 @@ BEGIN_PROVIDER [integer(bit_kind), psi_active, (N_int,2,psi_det_size)]
 !print*, 'psi_active '
  do i = 1, N_det
   do j = 1, N_int
-   psi_active(j,1,i) = iand(psi_det(j,1,i),cas_bitmask(j,1,1))
-   psi_active(j,2,i) = iand(psi_det(j,2,i),cas_bitmask(j,1,1))
+   psi_active(j,1,i) = iand(psi_ref(j,1,i),cas_bitmask(j,1,1))
+   psi_active(j,2,i) = iand(psi_ref(j,2,i),cas_bitmask(j,1,1))
   enddo
  enddo
 END_PROVIDER
@@ -152,7 +152,7 @@ subroutine give_particles_in_virt_space(det_1,n_particles_spin,n_particles,parti
 
 end
 
-subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
+subroutine get_delta_e_dyall(det_1,det_2,delta_e_final)
  BEGIN_DOC
  ! routine that returns the delta_e with the Moller Plesset and Dyall operators
  !
@@ -170,7 +170,6 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
   use bitmasks
  double precision, intent(out) :: delta_e_final(N_states)
  integer(bit_kind), intent(in) :: det_1(N_int,2),det_2(N_int,2)
- double precision, intent(in) :: coef_array(N_states),hij
  integer :: i,j,k,l
  integer :: i_state
  
@@ -293,20 +292,9 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
  if      (n_holes_act == 0 .and. n_particles_act == 1) then
   ispin = particle_list_practical(1,1)
   i_particle_act =  particle_list_practical(2,1)
-! call get_excitation_degree(det_1,det_2,degree,N_int)
-! if(degree == 1)then
-!  call get_excitation(det_1,det_2,exc,degree,phase,N_int)
-!  call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
-!  i_hole =  list_inact_reverse(h1)
-!  i_part =  list_act_reverse(p1)
-!  do i_state = 1, N_states
-!   delta_e_act(i_state) += one_anhil_inact(i_hole,i_part,i_state)
-!  enddo
-! else if (degree == 2)then
    do i_state = 1, N_states
     delta_e_act(i_state) += one_creat(i_particle_act,ispin,i_state)
    enddo
-! endif
 
  else if (n_holes_act == 1 .and. n_particles_act == 0) then
   ispin = hole_list_practical(1,1)
@@ -430,6 +418,162 @@ subroutine get_delta_e_dyall(det_1,det_2,coef_array,hij,delta_e_final)
   delta_e_final(i_state) = delta_e_act(i_state)  + delta_e_inactive(i_state) - delta_e_virt(i_state)
  enddo
 !write(*,'(100(f16.10,X))'), delta_e_final(1) , delta_e_act(1)  , delta_e_inactive(1) , delta_e_virt(1)
+
+end
+
+
+
+subroutine get_delta_e_dyall_general_mp(det_1,det_2,delta_e_final)
+ BEGIN_DOC
+ ! routine that returns the delta_e with the Moller Plesset and Dyall operators
+ !
+ ! with det_1 being a determinant from the cas, and det_2 being a perturber
+ !
+ ! Delta_e(det_1,det_2) = sum (hole) epsilon(hole) + sum(part) espilon(part) + delta_e(act)
+ !
+ ! where hole is necessary in the inactive, part necessary in the virtuals
+ ! 
+ ! and delta_e(act) is obtained as the sum of energies of excitations a la MP
+ !
+ END_DOC
+ implicit none
+  use bitmasks
+ double precision, intent(out) :: delta_e_final(N_states)
+ integer(bit_kind), intent(in) :: det_1(N_int,2),det_2(N_int,2)
+ integer :: i,j,k,l
+ integer :: i_state
+ 
+ integer :: n_holes_spin(2)
+ integer :: n_holes
+ integer :: holes_list(N_int*bit_kind_size,2)
+
+
+ double precision :: delta_e_inactive(N_states)
+ integer :: i_hole_inact
+
+
+ call give_holes_in_inactive_space(det_2,n_holes_spin,n_holes,holes_list)
+ delta_e_inactive = 0.d0
+ do i = 1, n_holes_spin(1)
+  i_hole_inact = holes_list(i,1)
+  do i_state = 1, N_states
+   delta_e_inactive += fock_core_inactive_total_spin_trace(i_hole_inact,i_state)
+  enddo
+ enddo
+
+ do i = 1, n_holes_spin(2)
+  i_hole_inact = holes_list(i,2)
+  do i_state = 1, N_states
+   delta_e_inactive(i_state) += fock_core_inactive_total_spin_trace(i_hole_inact,i_state)
+  enddo
+ enddo
+
+ double precision :: delta_e_virt(N_states)
+ integer :: i_part_virt
+ integer :: n_particles_spin(2)
+ integer :: n_particles
+ integer :: particles_list(N_int*bit_kind_size,2)
+ 
+ call give_particles_in_virt_space(det_2,n_particles_spin,n_particles,particles_list)
+ delta_e_virt = 0.d0
+ do i = 1, n_particles_spin(1)
+  i_part_virt = particles_list(i,1)
+  do i_state = 1, N_states
+   delta_e_virt += fock_virt_total_spin_trace(i_part_virt,i_state)
+  enddo
+ enddo
+
+ do i = 1, n_particles_spin(2)
+  i_part_virt = particles_list(i,2)
+  do i_state = 1, N_states
+   delta_e_virt += fock_virt_total_spin_trace(i_part_virt,i_state)
+  enddo
+ enddo
+
+
+ integer :: n_holes_spin_act(2),n_particles_spin_act(2)
+ integer :: n_holes_act,n_particles_act
+ integer :: holes_active_list(2*n_act_orb,2)
+ integer :: holes_active_list_spin_traced(4*n_act_orb)
+ integer :: particles_active_list(2*n_act_orb,2)
+ integer :: particles_active_list_spin_traced(4*n_act_orb)
+ double precision :: delta_e_act(N_states)
+ delta_e_act = 0.d0
+ call give_holes_and_particles_in_active_space(det_1,det_2,n_holes_spin_act,n_particles_spin_act, &
+                                               n_holes_act,n_particles_act,holes_active_list,particles_active_list)
+ integer :: icount,icountbis
+ integer :: hole_list_practical(2,elec_num_tab(1)+elec_num_tab(2)), particle_list_practical(2,elec_num_tab(1)+elec_num_tab(2))
+ icount = 0
+ icountbis = 0
+ do i = 1, n_holes_spin_act(1)
+  icount += 1
+  icountbis += 1
+  hole_list_practical(1,icountbis) = 1  ! spin 
+  hole_list_practical(2,icountbis) =  holes_active_list(i,1) ! index of active orb
+  holes_active_list_spin_traced(icount) = holes_active_list(i,1)
+ enddo
+ do i = 1, n_holes_spin_act(2)
+  icount += 1
+  icountbis += 1
+  hole_list_practical(1,icountbis) = 2
+  hole_list_practical(2,icountbis) =  holes_active_list(i,2)
+  holes_active_list_spin_traced(icount) = holes_active_list(i,2)
+ enddo
+ if(icount .ne. n_holes_act) then
+  print*,''
+  print*, icount, n_holes_act
+  print * , 'pb in holes_active_list_spin_traced !!' 
+  stop
+ endif
+
+ icount = 0
+ icountbis = 0
+ do i = 1, n_particles_spin_act(1)
+  icount += 1
+  icountbis += 1
+  particle_list_practical(1,icountbis) = 1
+  particle_list_practical(2,icountbis) =  particles_active_list(i,1)
+  particles_active_list_spin_traced(icount) = particles_active_list(i,1)
+ enddo
+ do i = 1, n_particles_spin_act(2)
+  icount += 1
+  icountbis += 1
+  particle_list_practical(1,icountbis) = 2
+  particle_list_practical(2,icountbis) =  particles_active_list(i,2)
+  particles_active_list_spin_traced(icount) = particles_active_list(i,2)
+ enddo
+ if(icount .ne. n_particles_act) then
+  print*, icount, n_particles_act
+  print * , 'pb in particles_active_list_spin_traced !!' 
+  stop
+ endif
+
+
+ integer :: i_hole_act, j_hole_act, k_hole_act
+ integer :: i_particle_act, j_particle_act, k_particle_act
+ 
+
+ integer :: ispin,jspin,kspin
+
+ do i = 1, n_holes_act 
+  ispin = hole_list_practical(1,i)
+  i_hole_act =  hole_list_practical(2,i)
+  do i_state = 1, N_states
+   delta_e_act(i_state) += one_anhil(i_hole_act , ispin,i_state)
+  enddo
+ enddo
+
+ do i = 1, n_particles_act
+  ispin = particle_list_practical(1,i)
+  i_particle_act =  particle_list_practical(2,i)
+  do i_state = 1, N_states
+   delta_e_act(i_state) += one_creat(i_particle_act, ispin,i_state)
+  enddo
+ enddo
+
+ do i_state = 1, n_states
+  delta_e_final(i_state) = delta_e_act(i_state)  + delta_e_inactive(i_state) - delta_e_virt(i_state)
+ enddo
 
 end
 

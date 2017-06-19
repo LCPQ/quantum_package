@@ -183,6 +183,8 @@ def get_type_dict():
                                           str_ocaml_type,
                                           str_fortran_type)
 
+    fancy_type["MO_class"] = Type("MO_class", "MO_class", "character*(32)")
+
     # ~#~#~#~#~#~#~#~ #
     # F i n a l i z e #
     # ~#~#~#~#~#~#~#~ #

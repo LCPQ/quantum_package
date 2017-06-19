@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """configure
 
-Usage: configure <config_file> (--production | --development)
+Usage: configure <config_file> 
 
 
 Options:
@@ -10,18 +10,10 @@ Options:
     config_file   A config file with all the information for compiling.
                   Example config_files are given in config/
 
-   --production   You can only compile **all** the modules with this flag,
-                  but it will compile lighting fast.
-
-   --development  this will create a build.ninja for each directory which 
-                  contains a binary. In a second step you may compile them
-                  individually if you like.
-
-
 Examples:
 
-    ./configure config/gfortran.cfg --production
-    ./configure config/ifort.cfg    --development
+    ./configure config/gfortran.cfg 
+    ./configure config/ifort.cfg    
 
 
 """
@@ -34,10 +26,7 @@ import sys
 
 from os.path import join
 
-if not any(i in ["--production", "--development"] for i in sys.argv):
-    sys.argv += ["--development"]
-
-if len(sys.argv) != 3:
+if len(sys.argv) != 2:
     print __doc__
     sys.exit()
 
@@ -528,7 +517,7 @@ def create_ninja_and_rc(l_installed):
     qp_create_ninja = os.path.join(QP_ROOT, "scripts", "compilation",
                                    "qp_create_ninja.py")
 
-    l = [qp_create_ninja, "create"] + sys.argv[1:]
+    l = [qp_create_ninja, "create", "--development"] + sys.argv[1:]
 
     try:
         with open('/dev/null', 'w') as dnull:

@@ -9,6 +9,7 @@ subroutine zmq_put_psi(zmq_to_qp_run_socket,worker_id, energy, size_energy)
   integer, intent(in)            :: size_energy
   double precision, intent(out)  :: energy(size_energy)
   integer                        :: rc
+  integer*8                      :: rc8
   character*(256)                :: msg
 
   write(msg,*) 'put_psi ', worker_id, N_states, N_det, psi_det_size, n_det_generators, n_det_selectors
@@ -19,15 +20,15 @@ subroutine zmq_put_psi(zmq_to_qp_run_socket,worker_id, energy, size_energy)
     stop 'error'
   endif
 
-  rc = f77_zmq_send(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,ZMQ_SNDMORE)
-  if (rc /= N_int*2*N_det*bit_kind) then
-    print *, 'f77_zmq_send(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,ZMQ_SNDMORE)'
+  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det*bit_kind,ZMQ_SNDMORE)
+  if (rc8 /= N_int*2_8*N_det*bit_kind) then
+    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det*bit_kind,ZMQ_SNDMORE)'
     stop 'error'
   endif
 
-  rc = f77_zmq_send(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,ZMQ_SNDMORE)
-  if (rc /= psi_det_size*N_states*8) then
-    print *, 'f77_zmq_send(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,ZMQ_SNDMORE)'
+  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8_8,ZMQ_SNDMORE)
+  if (rc8 /= psi_det_size*N_states*8_8) then
+    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8_8,ZMQ_SNDMORE)'
     stop 'error'
   endif
 
@@ -59,6 +60,7 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id, energy, size_energy)
   integer, intent(in)            :: size_energy
   double precision, intent(out)  :: energy(size_energy)
   integer                        :: rc
+  integer*8                      :: rc8
   character*(64)                 :: msg
 
   write(msg,*) 'get_psi ', worker_id
@@ -78,33 +80,30 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id, energy, size_energy)
   
   integer :: N_states_read, N_det_read, psi_det_size_read
   integer :: N_det_selectors_read, N_det_generators_read
-  read(msg(14:rc),*) rc, N_states_read, N_det_read, psi_det_size_read, &
+  read(msg(14:rc),*) N_states_read, N_det_read, psi_det_size_read, &
     N_det_generators_read, N_det_selectors_read
-  if (rc /= worker_id) then
-    print *,  'Wrong worker ID'
-    stop 'error'
-  endif
 
   N_states = N_states_read
   N_det    = N_det_read
   psi_det_size = psi_det_size_read
+  TOUCH psi_det_size N_det N_states
 
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,ZMQ_SNDMORE)
-  if (rc /= N_int*2*N_det*bit_kind) then
+  rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det*bit_kind,0)
+  if (rc8 /= N_int*2_8*N_det*bit_kind) then
     print *, 'f77_zmq_recv(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,ZMQ_SNDMORE)'
     stop 'error'
   endif
 
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,ZMQ_SNDMORE)
-  if (rc /= psi_det_size*N_states*8) then
-    print *, '77_zmq_recv(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8,ZMQ_SNDMORE)'
+  rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8_8,0)
+  if (rc8 /= psi_det_size*N_states*8_8) then
+    print *, '77_zmq_recv8(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8_8,ZMQ_SNDMORE)'
     stop 'error'
   endif
-  TOUCH psi_det_size N_det N_states psi_det psi_coef
+  TOUCH psi_det psi_coef
 
   rc = f77_zmq_recv(zmq_to_qp_run_socket,energy,size_energy*8,0)
   if (rc /= size_energy*8) then
-    print *, 'f77_zmq_recv(zmq_to_qp_run_socket,energy,size_energy*8,0)'
+    print *, '77_zmq_recv(zmq_to_qp_run_socket,energy,size_energy*8,0)'
     stop 'error'
   endif
 

@@ -324,33 +324,28 @@ end
 
 (** GetPsiReply_msg : Reply to the GetPsi message *)
 module GetPsiReply_msg : sig
-  type t =
-  { client_id :  Id.Client.t ;
-    psi       :  Psi.t }
-  val create : client_id:Id.Client.t -> psi:Psi.t -> t
-  val to_string_list : t -> string list
+  type t = string list
+  val create : psi:Psi.t -> t
   val to_string : t -> string
 end = struct
-  type t = 
-  { client_id :  Id.Client.t ;
-    psi       :  Psi.t }
-  let create ~client_id ~psi =
-    {  client_id ; psi }
-  let to_string x =
+  type t = string list
+  let create ~psi =
     let g, s = 
-      match x.psi.Psi.n_det_generators, x.psi.Psi.n_det_selectors with
+      match psi.Psi.n_det_generators, psi.Psi.n_det_selectors with
       | Some g, Some s -> Strictly_positive_int.to_int g, Strictly_positive_int.to_int s
       | _ -> -1, -1
     in
-    Printf.sprintf "get_psi_reply %d %d %d %d %d %d"
-      (Id.Client.to_int x.client_id)
-      (Strictly_positive_int.to_int x.psi.Psi.n_state)
-      (Strictly_positive_int.to_int x.psi.Psi.n_det) 
-      (Strictly_positive_int.to_int x.psi.Psi.psi_det_size) 
-      g s
-  let to_string_list x =
-    [ to_string x ;
-      x.psi.Psi.psi_det ; x.psi.Psi.psi_coef ; x.psi.Psi.energy ]
+    let head = 
+      Printf.sprintf "get_psi_reply %d %d %d %d %d"
+        (Strictly_positive_int.to_int psi.Psi.n_state)
+        (Strictly_positive_int.to_int psi.Psi.n_det) 
+        (Strictly_positive_int.to_int psi.Psi.psi_det_size) 
+        g s
+    in
+    [ head ; psi.Psi.psi_det ; psi.Psi.psi_coef ; psi.Psi.energy ]
+  let to_string = function
+    | head :: _ :: _ :: _ :: [] -> head
+    | _ -> raise (Invalid_argument "Bad wave function message")
 end
 
 
@@ -759,7 +754,6 @@ let to_string = function
 
 let to_string_list = function
 | PutPsi           x -> PutPsi_msg.to_string_list         x
-| GetPsiReply      x -> GetPsiReply_msg.to_string_list    x
 | PutVector        x -> PutVector_msg.to_string_list      x
 | GetVectorReply   x -> GetVectorReply_msg.to_string_list x
 | _                  -> assert false

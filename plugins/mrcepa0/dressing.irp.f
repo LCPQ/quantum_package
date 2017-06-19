@@ -98,18 +98,17 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
   integer :: mobiles(2), smallerlist
   logical, external :: detEq, is_generable
   !double precision, external :: get_dij, get_dij_index
+  double precision :: Delta_E_inv(N_states)
   
+  if (perturbative_triples) then
+    PROVIDE one_anhil fock_virt_total fock_core_inactive_total one_creat
+  endif
 
 
   leng = max(N_det_generators, N_det_non_ref)
   allocate(miniList(Nint, 2, leng), tq(Nint,2,n_selected), idx_minilist(leng), hij_cache(N_det_non_ref), sij_cache(N_det_non_ref))
   allocate(idx_alpha(0:psi_det_size), degree_alpha(psi_det_size))
-  !create_minilist_find_previous(key_mask, fullList, miniList, N_fullList, N_miniList, fullMatch, Nint)
   call create_minilist_find_previous(key_mask, psi_det_generators, miniList, i_generator-1, N_miniList, fullMatch, Nint)
-  
-!   if(fullMatch) then
-!     return
-!   end if
   
   allocate(ptr_microlist(0:mo_tot_num*2+1),  &
       N_microlist(0:mo_tot_num*2) )
@@ -138,7 +137,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
     if(N_minilist == 0) return
     
     
-    if(key_mask(1,1) /= 0) then !!!!!!!!!!! PAS GENERAL !!!!!!!!!
+    if(sum(abs(key_mask(1:N_int,1))) /= 0) then
       allocate(microlist_zero(Nint,2,N_minilist), idx_microlist_zero(N_minilist))
       
       allocate(   microlist(Nint,2,N_minilist*4),               &
@@ -191,14 +190,6 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
       end do
     end if
     
-    if (perturbative_triples) then
-      double precision :: Delta_E_inv(N_states)
-      double precision, external :: diag_H_mat_elem
-      do i_state=1,N_states
-        Delta_E_inv(i_state) = 1.d0 / (psi_ref_energy_diagonalized(i_state) - diag_H_mat_elem(tq(1,1,i_alpha),N_int) )
-      enddo
-    endif
-    
     do l_sd=1,idx_alpha(0)
       k_sd = idx_alpha(l_sd)
       call i_h_j(tq(1,1,i_alpha),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,hij_cache(k_sd))
@@ -236,9 +227,6 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
         enddo
         logical :: ok
         call apply_excitation(psi_ref(1,1,i_I), exc, tmp_det, ok, Nint)
-        if (perturbative_triples) then
-          ok = ok .and. ( (degree2 /= 1).and.(degree /=1) )
-        endif
         
         do i_state=1,N_states
           dIK(i_state) = dij(i_I, idx_alpha(k_sd), i_state)
@@ -262,11 +250,30 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
           enddo
 
         else if (perturbative_triples) then
+           ! Linked
 
-          hka = hij_cache(idx_alpha(k_sd))
-          do i_state=1,N_states
-            dka(i_state) = hka * Delta_E_inv(i_state)
-          enddo
+            hka = hij_cache(idx_alpha(k_sd))
+            if (dabs(hka) > 1.d-12) then
+              call get_delta_e_dyall_general_mp(psi_ref(1,1,i_I),tq(1,1,i_alpha),Delta_E_inv)
+
+              do i_state=1,N_states
+                ASSERT (Delta_E_inv(i_state) < 0.d0)
+                dka(i_state) = hka / Delta_E_inv(i_state)
+              enddo
+            endif
+
+        endif
+
+        if (perturbative_triples.and. (degree2 == 1) ) then
+            call i_h_j(psi_ref(1,1,i_I),tmp_det,Nint,hka)
+            hka = hij_cache(idx_alpha(k_sd)) - hka
+            if (dabs(hka) > 1.d-12) then
+              call get_delta_e_dyall_general_mp(psi_ref(1,1,i_I),tq(1,1,i_alpha),Delta_E_inv)
+              do i_state=1,N_states
+                ASSERT (Delta_E_inv(i_state) < 0.d0)
+                dka(i_state) = hka / Delta_E_inv(i_state)
+              enddo
+            endif
 
         endif
 

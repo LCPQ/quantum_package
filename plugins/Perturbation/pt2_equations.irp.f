@@ -226,18 +226,15 @@ subroutine pt2_moller_plesset ($arguments)
     call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
     delta_e = (Fock_matrix_diag_mo(h1) - Fock_matrix_diag_mo(p1)) + &
               (Fock_matrix_diag_mo(h2) - Fock_matrix_diag_mo(p2))
-    delta_e = 1.d0/delta_e
-!   print*,'h1,p1',h1,p1
-!   print*,'h2,p2',h2,p2
   else if (degree == 1) then
     call decode_exc(exc,degree,h1,p1,h2,p2,s1,s2)
     delta_e = Fock_matrix_diag_mo(h1) - Fock_matrix_diag_mo(p1) 
-    delta_e = 1.d0/delta_e
   else
     delta_e = 0.d0
   endif
 
-  if (delta_e /= 0.d0) then
+  if (dabs(delta_e) > 1.d-10) then
+        delta_e = 1.d0/delta_e
     call i_H_psi_minilist(det_pert,minilist,idx_minilist,N_minilist,psi_selectors_coef,Nint,N_minilist,psi_selectors_size,N_st,i_H_psi_array)
     h = diag_H_mat_elem_fock(det_ref,det_pert,fock_diag_tmp,Nint)
   else
@@ -246,11 +243,6 @@ subroutine pt2_moller_plesset ($arguments)
   endif
   do i =1,N_st
     H_pert_diag(i) = h
-!   if(dabs(i_H_psi_array(i)).gt.1.d-8)then
-!   print*, i_H_psi_array(i)
-!    call debug_det(det_pert,N_int)
-!    print*, h1,p1,h2,p2,s1,s2
-!   endif
     c_pert(i) = i_H_psi_array(i) *delta_e
     e_2_pert(i) = c_pert(i) * i_H_psi_array(i)
   enddo

@@ -1,4 +1,7 @@
 program read_integrals
+
+  PROVIDE ezfio_filename
+  call ezfio_set_integrals_monoelec_disk_access_mo_one_integrals("None")
   call run
 end
 
@@ -18,9 +21,10 @@ subroutine run
   real(integral_kind), allocatable :: buffer_values(:)
   integer(key_kind)  :: key
    
-  call ezfio_set_mo_basis_mo_tot_num(mo_tot_num)
+  call ezfio_get_mo_basis_mo_tot_num(mo_tot_num)
 
   allocate (A(mo_tot_num_align,mo_tot_num))
+  A = 0.d0
   
   iunit = getunitandopen('kinetic_mo','r')
   do 
@@ -41,6 +45,10 @@ subroutine run
   close(iunit)
   call write_one_e_integrals('mo_ne_integral', A, size(A,1), size(A,2))
 
+  call write_one_e_integrals('mo_pseudo_integral', mo_pseudo_integral,&
+        size(mo_pseudo_integral,1), size(mo_pseudo_integral,2))
+
+
   call ezfio_set_integrals_monoelec_disk_access_mo_one_integrals("Read")
 
   allocate(buffer_i(mo_tot_num**4), buffer_values(mo_tot_num**4))
@@ -56,7 +64,7 @@ subroutine run
   13 continue
   close(iunit)
   
-  call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_values, 0.d0)
+  call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_values,0.d0)
 
   call map_sort(mo_integrals_map)
 

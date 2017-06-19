@@ -82,6 +82,15 @@ END_PROVIDER
 
 
 
+BEGIN_PROVIDER [ double precision, ao_ortho_canonical_coef_inv, (ao_num,ao_num)]
+ implicit none
+ BEGIN_DOC
+! ao_ortho_canonical_coef^(-1)
+ END_DOC
+ call get_pseudo_inverse(ao_ortho_canonical_coef,ao_num,ao_num, &
+   ao_ortho_canonical_coef_inv, size(ao_ortho_canonical_coef,1))
+END_PROVIDER
+
  BEGIN_PROVIDER [ double precision, ao_ortho_canonical_coef, (ao_num_align,ao_num)]
 &BEGIN_PROVIDER [ integer, ao_ortho_canonical_num ]
   implicit none

@@ -62,7 +62,7 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
   call find_connections_previous(i_generator,n_selected,det_buffer,Nint,tq,N_tq,miniList,N_minilist)
 
   if(N_tq > 0) then
-    call create_minilist(key_mask, psi_det, miniList, idx_miniList, N_det, N_minilist, Nint)
+    call create_minilist(key_mask, psi_ref, miniList, idx_miniList, N_det, N_minilist, Nint)
   end if
   
   
@@ -79,14 +79,15 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
     phase_array  =0.d0
     do i = 1,idx_alpha(0)
       index_i = idx_alpha(i)
-      call i_h_j(tq(1,1,i_alpha),psi_det(1,1,index_i),Nint,hialpha)
+      call i_h_j(tq(1,1,i_alpha),psi_ref(1,1,index_i),Nint,hialpha)
       double  precision :: coef_array(N_states)
       do i_state = 1, N_states
        coef_array(i_state) = psi_coef(index_i,i_state)
       enddo
-      call get_delta_e_dyall(psi_det(1,1,index_i),tq(1,1,i_alpha),coef_array,hialpha,delta_e)
+      call get_delta_e_dyall(psi_ref(1,1,index_i),tq(1,1,i_alpha),delta_e)
+!     call get_delta_e_dyall_general_mp(psi_ref(1,1,index_i),tq(1,1,i_alpha),delta_e)
       hij_array(index_i) = hialpha
-      call get_excitation(psi_det(1,1,index_i),tq(1,1,i_alpha),exc,degree,phase,N_int)
+      call get_excitation(psi_ref(1,1,index_i),tq(1,1,i_alpha),exc,degree,phase,N_int)
 !     phase_array(index_i) = phase
       do i_state = 1,N_states
        delta_e_inv_array(index_i,i_state) = 1.d0/delta_e(i_state)
@@ -99,12 +100,12 @@ subroutine mrpt_dress(delta_ij_,  Ndet,i_generator,n_selected,det_buffer,Nint,ip
       call omp_set_lock( psi_ref_bis_lock(index_i) )
       do j = 1, idx_alpha(0)
        index_j = idx_alpha(j)
-!      call get_excitation(psi_det(1,1,index_i),psi_det(1,1,index_i),exc,degree,phase,N_int)
+!      call get_excitation(psi_ref(1,1,index_i),psi_ref(1,1,index_i),exc,degree,phase,N_int)
 !      if(index_j.ne.index_i)then
 !       if(phase_array(index_j) * phase_array(index_i) .ne. phase)then
 !        print*, phase_array(index_j) , phase_array(index_i) ,phase
-!        call debug_det(psi_det(1,1,index_i),N_int)
-!        call debug_det(psi_det(1,1,index_j),N_int)
+!        call debug_det(psi_ref(1,1,index_i),N_int)
+!        call debug_det(psi_ref(1,1,index_j),N_int)
 !        call debug_det(tq(1,1,i_alpha),N_int)
 !        stop
 !       endif
@@ -122,14 +123,14 @@ end
 
 
 
- BEGIN_PROVIDER [ integer(bit_kind), gen_det_sorted,  (N_int,2,N_det_generators,2) ]
-&BEGIN_PROVIDER [ integer, gen_det_shortcut, (0:N_det_generators,2) ]
-&BEGIN_PROVIDER [ integer, gen_det_version, (N_int, N_det_generators,2) ]
-&BEGIN_PROVIDER [ integer, gen_det_idx, (N_det_generators,2) ]
-  gen_det_sorted(:,:,:,1) = psi_det_generators(:,:,:N_det_generators)
-  gen_det_sorted(:,:,:,2) = psi_det_generators(:,:,:N_det_generators)
-  call sort_dets_ab_v(gen_det_sorted(:,:,:,1), gen_det_idx(:,1), gen_det_shortcut(0:,1), gen_det_version(:,:,1), N_det_generators, N_int)
-  call sort_dets_ba_v(gen_det_sorted(:,:,:,2), gen_det_idx(:,2), gen_det_shortcut(0:,2), gen_det_version(:,:,2), N_det_generators, N_int)
+ BEGIN_PROVIDER [ integer(bit_kind), gen_det_ref_sorted,  (N_int,2,N_det_generators,2) ]
+&BEGIN_PROVIDER [ integer, gen_det_ref_shortcut, (0:N_det_generators,2) ]
+&BEGIN_PROVIDER [ integer, gen_det_ref_version, (N_int, N_det_generators,2) ]
+&BEGIN_PROVIDER [ integer, gen_det_ref_idx, (N_det_generators,2) ]
+  gen_det_ref_sorted(:,:,:,1) = psi_det_generators(:,:,:N_det_generators)
+  gen_det_ref_sorted(:,:,:,2) = psi_det_generators(:,:,:N_det_generators)
+  call sort_dets_ab_v(gen_det_ref_sorted(:,:,:,1), gen_det_ref_idx(:,1), gen_det_ref_shortcut(0:,1), gen_det_ref_version(:,:,1), N_det_generators, N_int)
+  call sort_dets_ba_v(gen_det_ref_sorted(:,:,:,2), gen_det_ref_idx(:,2), gen_det_ref_shortcut(0:,2), gen_det_ref_version(:,:,2), N_det_generators, N_int)
 END_PROVIDER
 
 

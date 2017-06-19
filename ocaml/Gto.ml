@@ -10,17 +10,17 @@ type fmt =
 
 type t =
 { sym  : Symmetry.t ;
-  lc   : ((Primitive.t * AO_coef.t) list)
+  lc   : ((GaussianPrimitive.t * AO_coef.t) list)
 } with sexp
 
 
 let of_prim_coef_list pc =
   let (p,c) = List.hd_exn pc in
-  let sym = p.Primitive.sym in
+  let sym = p.GaussianPrimitive.sym in
   let rec check = function
   | [] -> `OK
   | (p,c)::tl -> 
-      if p.Primitive.sym <> sym then
+      if p.GaussianPrimitive.sym <> sym then
         `Failed
       else
         check tl
@@ -59,7 +59,7 @@ let read_one in_channel =
           let coef = String.tr ~target:'D' ~replacement:'e' coef
           in
           let p =
-            Primitive.of_sym_expo sym 
+            GaussianPrimitive.of_sym_expo sym 
               (AO_expo.of_float (Float.of_string expo) )
           and c = AO_coef.of_float (Float.of_string coef) in
           read_lines ( (p,c)::result) (i-1)
@@ -80,7 +80,7 @@ let to_string_gamess { sym = sym ; lc = lc } =
   let rec do_work accu i = function
   | [] -> List.rev accu
   | (p,c)::tail -> 
-    let p = AO_expo.to_float p.Primitive.expo
+    let p = AO_expo.to_float p.GaussianPrimitive.expo
     and c = AO_coef.to_float c
     in
     let result = 
@@ -100,7 +100,7 @@ let to_string_gaussian { sym = sym ; lc = lc } =
   let rec do_work accu i = function
   | [] -> List.rev accu
   | (p,c)::tail -> 
-    let p = AO_expo.to_float p.Primitive.expo
+    let p = AO_expo.to_float p.GaussianPrimitive.expo
     and c = AO_coef.to_float c
     in
     let result = 

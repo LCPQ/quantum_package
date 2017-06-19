@@ -22,8 +22,8 @@ subroutine give_2h1p_contrib(matrix_2h1p)
  
  elec_num_tab_local = 0
  do inint = 1, N_int
-  elec_num_tab_local(1) += popcnt(psi_det(inint,1,1))
-  elec_num_tab_local(2) += popcnt(psi_det(inint,2,1))
+  elec_num_tab_local(1) += popcnt(psi_ref(inint,1,1))
+  elec_num_tab_local(2) += popcnt(psi_ref(inint,2,1))
  enddo
  do i = 1, n_inact_orb  ! First inactive 
   iorb = list_inact(i)
@@ -45,7 +45,7 @@ subroutine give_2h1p_contrib(matrix_2h1p)
   integer :: index_orb_act_mono(N_det,3)
 
       do idet = 1, N_det
-        call get_excitation_degree_vector_mono(psi_det,psi_det(1,1,idet),degree,N_int,N_det,idx)
+        call get_excitation_degree_vector_mono(psi_ref,psi_ref(1,1,idet),degree,N_int,N_det,idx)
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Precomputation of matrix elements 
         do ispin = 1, 2  ! spin of the couple a-a^dagger (i,r)
          do jspin = 1, 2   ! spin of the couple z-a^dagger (j,a)
@@ -53,8 +53,8 @@ subroutine give_2h1p_contrib(matrix_2h1p)
            do a = 1, n_act_orb      ! First active 
             aorb = list_act(a)
             do inint = 1, N_int
-             det_tmp(inint,1) = psi_det(inint,1,idet)
-             det_tmp(inint,2) = psi_det(inint,2,idet)
+             det_tmp(inint,1) = psi_ref(inint,1,idet)
+             det_tmp(inint,2) = psi_ref(inint,2,idet)
             enddo
            ! Do the excitation  inactive -- > virtual
            call clear_bit_to_integer(iorb,det_tmp(1,ispin),N_int)  ! hole in "iorb" of spin Ispin
@@ -64,7 +64,7 @@ subroutine give_2h1p_contrib(matrix_2h1p)
            call clear_bit_to_integer(jorb,det_tmp(1,jspin),N_int)  ! hole in "jorb" of spin Jspin
            call set_bit_to_integer(aorb,det_tmp(1,jspin),N_int) ! particle in "aorb" of spin Jspin
 
-           ! Check if the excitation is possible or not on psi_det(idet)
+           ! Check if the excitation is possible or not on psi_ref(idet)
            accu_elec= 0
            do inint = 1, N_int
             accu_elec+= popcnt(det_tmp(inint,jspin))
@@ -81,7 +81,7 @@ subroutine give_2h1p_contrib(matrix_2h1p)
             perturb_dets(inint,1,a,jspin,ispin) = det_tmp(inint,1) 
             perturb_dets(inint,2,a,jspin,ispin) = det_tmp(inint,2) 
            enddo
-           call get_double_excitation(psi_det(1,1,idet),det_tmp,exc,phase,N_int)
+           call get_double_excitation(psi_ref(1,1,idet),det_tmp,exc,phase,N_int)
            perturb_dets_phase(a,jspin,ispin) = phase
            do istate = 1, N_states
             delta_e(a,jspin,istate) = one_creat(a,jspin,istate)                                                          &
@@ -109,7 +109,7 @@ subroutine give_2h1p_contrib(matrix_2h1p)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!! <Jdet | a_{b} a^{\dagger}_a | Idet> 
        do jdet = 1, idx(0)
          if(idx(jdet).ne.idet)then
-          call get_mono_excitation(psi_det(1,1,idet),psi_det(1,1,idx(jdet)),exc,phase,N_int)
+          call get_mono_excitation(psi_ref(1,1,idet),psi_ref(1,1,idx(jdet)),exc,phase,N_int)
           if (exc(0,1,1) == 1) then
             ! Mono alpha
             index_orb_act_mono(idx(jdet),1) = list_act_reverse(exc(1,2,1))   !!! a^{\dagger}_a 
@@ -150,7 +150,7 @@ subroutine give_2h1p_contrib(matrix_2h1p)
           ! you determine the interaction between the excited determinant and the other parent | Jdet >
           ! | det_tmp > = a^{\dagger}_{rorb,ispin} a^{\dagger}_{borb,kspin} a_{jorb,kspin} a_{iorb,ispin} | Jdet >
           ! hja = < det_tmp | H | Jdet >
-          call get_double_excitation(psi_det(1,1,idx(jdet)),det_tmp,exc,phase,N_int)
+          call get_double_excitation(psi_ref(1,1,idx(jdet)),det_tmp,exc,phase,N_int)
           if(kspin == ispin)then
            hja = phase * (active_int(borb,2) - active_int(borb,1) )
           else
@@ -216,8 +216,8 @@ subroutine give_1h2p_contrib(matrix_1h2p)
  
  elec_num_tab_local = 0
  do inint = 1, N_int
-  elec_num_tab_local(1) += popcnt(psi_det(inint,1,1))
-  elec_num_tab_local(2) += popcnt(psi_det(inint,2,1))
+  elec_num_tab_local(1) += popcnt(psi_ref(inint,1,1))
+  elec_num_tab_local(2) += popcnt(psi_ref(inint,2,1))
  enddo
  do i = 1, n_inact_orb  ! First inactive 
   iorb = list_inact(i)
@@ -239,7 +239,7 @@ subroutine give_1h2p_contrib(matrix_1h2p)
   integer :: index_orb_act_mono(N_det,3)
 
       do idet = 1, N_det
-        call get_excitation_degree_vector_mono(psi_det,psi_det(1,1,idet),degree,N_int,N_det,idx)
+        call get_excitation_degree_vector_mono(psi_ref,psi_ref(1,1,idet),degree,N_int,N_det,idx)
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Precomputation of matrix elements 
         do ispin = 1, 2  ! spin of the couple a-a^dagger (iorb,rorb)
          do jspin = 1, 2   ! spin of the couple a-a^dagger (aorb,vorb)
@@ -247,8 +247,8 @@ subroutine give_1h2p_contrib(matrix_1h2p)
             aorb = list_act(a)
             if(ispin == jspin .and. vorb.le.rorb)cycle ! condition not to double count 
             do inint = 1, N_int
-             det_tmp(inint,1) = psi_det(inint,1,idet)
-             det_tmp(inint,2) = psi_det(inint,2,idet)
+             det_tmp(inint,1) = psi_ref(inint,1,idet)
+             det_tmp(inint,2) = psi_ref(inint,2,idet)
             enddo
            ! Do the excitation  inactive -- > virtual
            call clear_bit_to_integer(iorb,det_tmp(1,ispin),N_int)  ! hole in "iorb" of spin Ispin
@@ -258,7 +258,7 @@ subroutine give_1h2p_contrib(matrix_1h2p)
            call clear_bit_to_integer(aorb,det_tmp(1,jspin),N_int)  ! hole in "aorb" of spin Jspin
            call set_bit_to_integer(vorb,det_tmp(1,jspin),N_int)    ! particle in "vorb" of spin Jspin
 
-           ! Check if the excitation is possible or not on psi_det(idet)
+           ! Check if the excitation is possible or not on psi_ref(idet)
            accu_elec= 0
            do inint = 1, N_int
             accu_elec+= popcnt(det_tmp(inint,jspin))
@@ -280,7 +280,7 @@ subroutine give_1h2p_contrib(matrix_1h2p)
             det_tmp(inint,2) = perturb_dets(inint,2,a,jspin,ispin) 
            enddo
             
-           call get_double_excitation(psi_det(1,1,idet),det_tmp,exc,phase,N_int)
+           call get_double_excitation(psi_ref(1,1,idet),det_tmp,exc,phase,N_int)
            perturb_dets_phase(a,jspin,ispin) = phase
            do istate = 1, N_states
             delta_e(a,jspin,istate) = one_anhil(a,jspin,istate)                                                          &
@@ -308,7 +308,7 @@ subroutine give_1h2p_contrib(matrix_1h2p)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!! <Jdet | a^{\dagger}_b a_{a}  | Idet> 
        do jdet = 1, idx(0)
          if(idx(jdet).ne.idet)then
-          call get_mono_excitation(psi_det(1,1,idet),psi_det(1,1,idx(jdet)),exc,phase,N_int)
+          call get_mono_excitation(psi_ref(1,1,idet),psi_ref(1,1,idx(jdet)),exc,phase,N_int)
           if (exc(0,1,1) == 1) then
             ! Mono alpha
             index_orb_act_mono(idx(jdet),1) = list_act_reverse(exc(1,1,1))   !!!  a_a
@@ -350,7 +350,7 @@ subroutine give_1h2p_contrib(matrix_1h2p)
           ! | det_tmp > = a^{\dagger}_{rorb,ispin} a^{\dagger}_{vorb,kspin} a_{borb,kspin} a_{iorb,ispin} | Jdet >
           ! hja = < det_tmp | H | Jdet >
 
-          call get_double_excitation(psi_det(1,1,idx(jdet)),det_tmp,exc,phase,N_int)
+          call get_double_excitation(psi_ref(1,1,idx(jdet)),det_tmp,exc,phase,N_int)
           if(kspin == ispin)then
            hja = phase * (active_int(borb,1) - active_int(borb,2) )
           else
@@ -418,8 +418,8 @@ subroutine give_1h1p_contrib(matrix_1h1p)
  
  elec_num_tab_local = 0
  do inint = 1, N_int
-  elec_num_tab_local(1) += popcnt(psi_det(inint,1,1))
-  elec_num_tab_local(2) += popcnt(psi_det(inint,2,1))
+  elec_num_tab_local(1) += popcnt(psi_ref(inint,1,1))
+  elec_num_tab_local(2) += popcnt(psi_ref(inint,2,1))
  enddo
  do i = 1, n_inact_orb  ! First inactive 
   iorb = list_inact(i)
@@ -430,20 +430,20 @@ subroutine give_1h1p_contrib(matrix_1h1p)
                             - fock_virt_total_spin_trace(rorb,j) 
      enddo
       do idet = 1, N_det
-        call get_excitation_degree_vector_mono(psi_det,psi_det(1,1,idet),degree,N_int,N_det,idx)
+        call get_excitation_degree_vector_mono(psi_ref,psi_ref(1,1,idet),degree,N_int,N_det,idx)
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Precomputation of matrix elements 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Case of the mono excitations
            do jdet = 1, idx(0)
             do ispin = 1, 2  ! spin of the couple a-a^dagger (i,r)
                do inint = 1, N_int
-                det_tmp(inint,1) = psi_det(inint,1,idet)
-                det_tmp(inint,2) = psi_det(inint,2,idet)
+                det_tmp(inint,1) = psi_ref(inint,1,idet)
+                det_tmp(inint,2) = psi_ref(inint,2,idet)
                enddo
                ! Do the excitation  inactive -- > virtual
                double precision :: himono,delta_e(N_states),coef_mono(N_states)
                call clear_bit_to_integer(iorb,det_tmp(1,ispin),N_int)  ! hole in "iorb" of spin Ispin
                call set_bit_to_integer(rorb,det_tmp(1,ispin),N_int)    ! particle in "rorb" of spin Ispin
-               call  i_H_j(psi_det(1,1,idet),det_tmp,N_int,himono)
+               call  i_H_j(psi_ref(1,1,idet),det_tmp,N_int,himono)
                
                do state_target = 1, N_states
 !               delta_e(state_target) = one_anhil_one_creat_inact_virt(i,r,state_target) + delta_e_inact_virt(state_target)
@@ -451,7 +451,7 @@ subroutine give_1h1p_contrib(matrix_1h1p)
                 coef_mono(state_target) = himono / delta_e(state_target)
                enddo
                if(idx(jdet).ne.idet)then
-                call get_mono_excitation(psi_det(1,1,idet),psi_det(1,1,idx(jdet)),exc,phase,N_int)
+                call get_mono_excitation(psi_ref(1,1,idet),psi_ref(1,1,idx(jdet)),exc,phase,N_int)
                 if (exc(0,1,1) == 1) then
                   ! Mono alpha
                   aorb  = (exc(1,2,1))   !!! a^{\dagger}_a 
@@ -464,15 +464,15 @@ subroutine give_1h1p_contrib(matrix_1h1p)
                   jspin = 2
                 endif
                 
-                call get_excitation_degree(psi_det(1,1,idx(jdet)),det_tmp,degree_scalar,N_int)
+                call get_excitation_degree(psi_ref(1,1,idx(jdet)),det_tmp,degree_scalar,N_int)
                 if(degree_scalar .ne. 2)then
                  print*, 'pb !!!'
                  print*, degree_scalar
-                 call debug_det(psi_det(1,1,idx(jdet)),N_int)
+                 call debug_det(psi_ref(1,1,idx(jdet)),N_int)
                  call debug_det(det_tmp,N_int)
                  stop
                 endif
-                call get_double_excitation(psi_det(1,1,idx(jdet)),det_tmp,exc,phase,N_int)
+                call get_double_excitation(psi_ref(1,1,idx(jdet)),det_tmp,exc,phase,N_int)
                 if(ispin == jspin )then 
                  hij = -get_mo_bielec_integral(iorb,aorb,rorb,borb,mo_integrals_map) & 
                      +  get_mo_bielec_integral(iorb,aorb,borb,rorb,mo_integrals_map)
@@ -482,17 +482,17 @@ subroutine give_1h1p_contrib(matrix_1h1p)
                 hij = hij * phase
                 double precision :: hij_test
                 integer  :: state_target
-                call  i_H_j(psi_det(1,1,idx(jdet)),det_tmp,N_int,hij_test)
+                call  i_H_j(psi_ref(1,1,idx(jdet)),det_tmp,N_int,hij_test)
                 if(dabs(hij - hij_test).gt.1.d-10)then
                  print*, 'ahah pb !!'
                  print*, 'hij .ne. hij_test'
                  print*, hij,hij_test
-                 call debug_det(psi_det(1,1,idx(jdet)),N_int)
+                 call debug_det(psi_ref(1,1,idx(jdet)),N_int)
                  call debug_det(det_tmp,N_int)
                  print*, ispin, jspin
                  print*,iorb,borb,rorb,aorb 
                 print*, phase
-                call  i_H_j_verbose(psi_det(1,1,idx(jdet)),det_tmp,N_int,hij_test)
+                call  i_H_j_verbose(psi_ref(1,1,idx(jdet)),det_tmp,N_int,hij_test)
                  stop
                 endif
                 do state_target = 1, N_states
@@ -542,13 +542,13 @@ subroutine give_1h1p_sec_order_singles_contrib(matrix_1h1p)
  
  elec_num_tab_local = 0
  do inint = 1, N_int
-  elec_num_tab_local(1) += popcnt(psi_det(inint,1,1))
-  elec_num_tab_local(2) += popcnt(psi_det(inint,2,1))
+  elec_num_tab_local(1) += popcnt(psi_ref(inint,1,1))
+  elec_num_tab_local(2) += popcnt(psi_ref(inint,2,1))
  enddo
  double precision :: himono,delta_e(N_states),coef_mono(N_states)
  integer  :: state_target
  do idet = 1, N_det
-    call get_excitation_degree_vector_mono(psi_det,psi_det(1,1,idet),degree,N_int,N_det,idx)
+    call get_excitation_degree_vector_mono(psi_ref,psi_ref(1,1,idet),degree,N_int,N_det,idx)
     do i = 1, n_inact_orb  ! First inactive 
      iorb = list_inact(i)
       do r = 1, n_virt_orb    ! First virtual
@@ -563,13 +563,13 @@ subroutine give_1h1p_sec_order_singles_contrib(matrix_1h1p)
                                - fock_virt_total_spin_trace(rorb,j) 
         enddo
         do inint = 1, N_int
-         det_tmp(inint,1) = psi_det(inint,1,idet)
-         det_tmp(inint,2) = psi_det(inint,2,idet)
+         det_tmp(inint,1) = psi_ref(inint,1,idet)
+         det_tmp(inint,2) = psi_ref(inint,2,idet)
         enddo
         ! Do the excitation  inactive -- > virtual
         call clear_bit_to_integer(iorb,det_tmp(1,ispin),N_int)  ! hole in "iorb" of spin Ispin
         call set_bit_to_integer(rorb,det_tmp(1,ispin),N_int)    ! particle in "rorb" of spin Ispin
-        call  i_H_j(psi_det(1,1,idet),det_tmp,N_int,himono)
+        call  i_H_j(psi_ref(1,1,idet),det_tmp,N_int,himono)
         do inint = 1, N_int
          det_pert(inint,1,i,r,ispin) = det_tmp(inint,1)
          det_pert(inint,2,i,r,ispin) = det_tmp(inint,2)
@@ -630,7 +630,7 @@ subroutine give_1h1p_sec_order_singles_contrib(matrix_1h1p)
         do jdet = 1, idx(0)
 !      
          if(idx(jdet).ne.idet)then
-          call get_mono_excitation(psi_det(1,1,idet),psi_det(1,1,idx(jdet)),exc,phase,N_int)
+          call get_mono_excitation(psi_ref(1,1,idet),psi_ref(1,1,idx(jdet)),exc,phase,N_int)
           if (exc(0,1,1) == 1) then
             ! Mono alpha
             aorb  = (exc(1,2,1))   !!! a^{\dagger}_a 
@@ -642,24 +642,24 @@ subroutine give_1h1p_sec_order_singles_contrib(matrix_1h1p)
             jspin = 2
           endif
           
-          call get_excitation_degree(psi_det(1,1,idx(jdet)),det_tmp,degree_scalar,N_int)
+          call get_excitation_degree(psi_ref(1,1,idx(jdet)),det_tmp,degree_scalar,N_int)
           if(degree_scalar .ne. 2)then
            print*, 'pb !!!'
            print*, degree_scalar
-           call debug_det(psi_det(1,1,idx(jdet)),N_int)
+           call debug_det(psi_ref(1,1,idx(jdet)),N_int)
            call debug_det(det_tmp,N_int)
            stop
           endif
-          call get_double_excitation(psi_det(1,1,idx(jdet)),det_tmp,exc,phase,N_int)
+          call get_double_excitation(psi_ref(1,1,idx(jdet)),det_tmp,exc,phase,N_int)
           double precision :: hij_test
           hij_test = 0.d0
-          call  i_H_j(psi_det(1,1,idx(jdet)),det_tmp,N_int,hij_test)
+          call  i_H_j(psi_ref(1,1,idx(jdet)),det_tmp,N_int,hij_test)
           do state_target = 1, N_states
            matrix_1h1p(idx(jdet),idet,state_target) += hij_test* coef_det_pert(i,r,ispin,state_target,2)
           enddo
          else
           hij_test = 0.d0
-          call  i_H_j(psi_det(1,1,idet),det_tmp,N_int,hij_test)
+          call  i_H_j(psi_ref(1,1,idet),det_tmp,N_int,hij_test)
           do state_target = 1, N_states
            matrix_1h1p(idet,idet,state_target) += hij_test* coef_det_pert(i,r,ispin,state_target,2)
           enddo
@@ -701,13 +701,13 @@ subroutine give_1p_sec_order_singles_contrib(matrix_1p)
  
  elec_num_tab_local = 0
  do inint = 1, N_int
-  elec_num_tab_local(1) += popcnt(psi_det(inint,1,1))
-  elec_num_tab_local(2) += popcnt(psi_det(inint,2,1))
+  elec_num_tab_local(1) += popcnt(psi_ref(inint,1,1))
+  elec_num_tab_local(2) += popcnt(psi_ref(inint,2,1))
  enddo
  double precision :: himono,delta_e(N_states),coef_mono(N_states)
  integer  :: state_target
  do idet = 1, N_det
-    call get_excitation_degree_vector_mono(psi_det,psi_det(1,1,idet),degree,N_int,N_det,idx)
+    call get_excitation_degree_vector_mono(psi_ref,psi_ref(1,1,idet),degree,N_int,N_det,idx)
     do i = 1, n_act_orb  ! First active 
      iorb = list_act(i)
       do r = 1, n_virt_orb    ! First virtual
@@ -721,8 +721,8 @@ subroutine give_1p_sec_order_singles_contrib(matrix_1p)
          delta_e_act_virt(j) = - fock_virt_total_spin_trace(rorb,j) 
         enddo
         do inint = 1, N_int
-         det_tmp(inint,1) = psi_det(inint,1,idet)
-         det_tmp(inint,2) = psi_det(inint,2,idet)
+         det_tmp(inint,1) = psi_ref(inint,1,idet)
+         det_tmp(inint,2) = psi_ref(inint,2,idet)
         enddo
         ! Do the excitation  active -- > virtual
         call do_mono_excitation(det_tmp,iorb,rorb,ispin,i_ok)
@@ -739,7 +739,7 @@ subroutine give_1p_sec_order_singles_contrib(matrix_1p)
          enddo
          cycle
         endif
-        call  i_H_j(psi_det(1,1,idet),det_tmp,N_int,himono)
+        call  i_H_j(psi_ref(1,1,idet),det_tmp,N_int,himono)
         do inint = 1, N_int
          det_pert(inint,1,i,r,ispin) = det_tmp(inint,1)
          det_pert(inint,2,i,r,ispin) = det_tmp(inint,2)
@@ -803,8 +803,8 @@ subroutine give_1p_sec_order_singles_contrib(matrix_1p)
         enddo
         do jdet = 1,N_det
          double precision :: coef_array(N_states),hij_test
-         call  i_H_j(det_tmp,psi_det(1,1,jdet),N_int,himono)
-         call get_delta_e_dyall(psi_det(1,1,jdet),det_tmp,coef_array,hij_test,delta_e)
+         call  i_H_j(det_tmp,psi_ref(1,1,jdet),N_int,himono)
+         call get_delta_e_dyall(psi_ref(1,1,jdet),det_tmp,delta_e)
          do state_target = 1, N_states
 !         matrix_1p(idet,jdet,state_target) += himono * coef_det_pert(i,r,ispin,state_target,1)
           matrix_1p(idet,jdet,state_target) += himono * hij_det_pert(i,r,ispin) / delta_e(state_target)
@@ -850,8 +850,8 @@ subroutine give_1h1p_only_doubles_spin_cross(matrix_1h1p)
  
  elec_num_tab_local = 0
  do inint = 1, N_int
-  elec_num_tab_local(1) += popcnt(psi_det(inint,1,1))
-  elec_num_tab_local(2) += popcnt(psi_det(inint,2,1))
+  elec_num_tab_local(1) += popcnt(psi_ref(inint,1,1))
+  elec_num_tab_local(2) += popcnt(psi_ref(inint,2,1))
  enddo
  do i = 1, n_inact_orb  ! First inactive 
   iorb = list_inact(i)
@@ -862,7 +862,7 @@ subroutine give_1h1p_only_doubles_spin_cross(matrix_1h1p)
                             - fock_virt_total_spin_trace(rorb,j) 
      enddo
       do idet = 1, N_det
-        call get_excitation_degree_vector_double_alpha_beta(psi_det,psi_det(1,1,idet),degree,N_int,N_det,idx)
+        call get_excitation_degree_vector_double_alpha_beta(psi_ref,psi_ref(1,1,idet),degree,N_int,N_det,idx)
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Precomputation of matrix elements 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Case of the mono excitations
            do ispin = 1, 2 
@@ -872,8 +872,8 @@ subroutine give_1h1p_only_doubles_spin_cross(matrix_1h1p)
              do b = 1, n_act_orb
               borb = list_act(b)
                do inint = 1, N_int
-                det_tmp(inint,1) = psi_det(inint,1,idet)
-                det_tmp(inint,2) = psi_det(inint,2,idet)
+                det_tmp(inint,1) = psi_ref(inint,1,idet)
+                det_tmp(inint,2) = psi_ref(inint,2,idet)
                enddo
                ! Do the excitation  (i-->a)(ispin)  + (b-->r)(other_spin(ispin))
                integer :: i_ok,corb,dorb
@@ -904,7 +904,7 @@ subroutine give_1h1p_only_doubles_spin_cross(matrix_1h1p)
                 pert_det(inint,2,a,b,ispin) = det_tmp(inint,2)
                enddo
 
-               call  i_H_j(psi_det(1,1,idet),det_tmp,N_int,hidouble)
+               call  i_H_j(psi_ref(1,1,idet),det_tmp,N_int,hidouble)
                do state_target = 1, N_states
                 delta_e(state_target) = one_anhil_one_creat(a,b,ispin,jspin,state_target) +  delta_e_inact_virt(state_target)
                 pert_det_coef(a,b,ispin,state_target) = hidouble / delta_e(state_target) 
@@ -915,7 +915,7 @@ subroutine give_1h1p_only_doubles_spin_cross(matrix_1h1p)
            enddo
            do jdet = 1, idx(0)
                if(idx(jdet).ne.idet)then
-                call get_double_excitation(psi_det(1,1,idet),psi_det(1,1,idx(jdet)),exc,phase,N_int)
+                call get_double_excitation(psi_ref(1,1,idet),psi_ref(1,1,idx(jdet)),exc,phase,N_int)
                 integer :: c,d,state_target
                 integer(bit_kind) :: det_tmp_bis(N_int,2)
                 ! excitation from I --> J 
@@ -935,8 +935,8 @@ subroutine give_1h1p_only_doubles_spin_cross(matrix_1h1p)
                  det_tmp_bis(inint,2) = pert_det(inint,2,c,d,2)
                 enddo
                 double precision :: hjdouble_1,hjdouble_2
-                call  i_H_j(psi_det(1,1,idx(jdet)),det_tmp,N_int,hjdouble_1)
-                call  i_H_j(psi_det(1,1,idx(jdet)),det_tmp_bis,N_int,hjdouble_2)
+                call  i_H_j(psi_ref(1,1,idx(jdet)),det_tmp,N_int,hjdouble_1)
+                call  i_H_j(psi_ref(1,1,idx(jdet)),det_tmp_bis,N_int,hjdouble_2)
                 do state_target = 1, N_states
                  matrix_1h1p(idx(jdet),idet,state_target) += (pert_det_coef(c,d,1,state_target) * hjdouble_1 + pert_det_coef(c,d,2,state_target) * hjdouble_2 ) 
                 enddo

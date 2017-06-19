@@ -6,7 +6,9 @@ BEGIN_PROVIDER [double precision, ao_ortho_lowdin_coef, (ao_num_align,ao_num)]
 ! ao_ortho_lowdin_coef(i,j) = coefficient of the ith ao on the jth ao_ortho_lowdin orbital
   END_DOC
   integer                        :: i,j,k,l
-  double precision               :: tmp_matrix(ao_num_align,ao_num),accu
+  double precision               :: accu
+  double precision, allocatable  :: tmp_matrix(:,:)
+  allocate (tmp_matrix(ao_num_align,ao_num))
   tmp_matrix(:,:) = 0.d0
   do j=1, ao_num
     tmp_matrix(j,j) = 1.d0
@@ -17,6 +19,7 @@ BEGIN_PROVIDER [double precision, ao_ortho_lowdin_coef, (ao_num_align,ao_num)]
       ao_ortho_lowdin_coef(j,i) = tmp_matrix(i,j)
     enddo
   enddo
+  deallocate(tmp_matrix)
 END_PROVIDER
 
 BEGIN_PROVIDER [double precision, ao_ortho_lowdin_overlap, (ao_num_align,ao_num)]

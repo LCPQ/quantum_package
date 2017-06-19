@@ -25,7 +25,7 @@ type t =
     state           : Message.State.t option ;
     address_tcp     : Address.Tcp.t option ; 
     address_inproc  : Address.Inproc.t option ;
-    psi             : Message.Psi.t option;
+    psi             : Message.GetPsiReply_msg.t option;
     vector             : Message.Vector.t option;
     progress_bar    : Progress_bar.t option ;
     running         : bool;
@@ -483,7 +483,7 @@ let put_psi msg rest_of_msg program_state rep_socket =
     in
     let new_program_state =
         { program_state with
-          psi = Some psi_local
+          psi = Some (Message.GetPsiReply_msg.create ~psi:psi_local)
         }
     and client_id =
       msg.Message.PutPsi_msg.client_id
@@ -496,17 +496,12 @@ let put_psi msg rest_of_msg program_state rep_socket =
 
 
 let get_psi msg program_state rep_socket =
-
-      let client_id =
-          msg.Message.GetPsi_msg.client_id
-      in
-      match program_state.psi with
-      | None -> failwith "No wave function saved in TaskServer"
-      | Some psi -> 
-          Message.GetPsiReply (Message.GetPsiReply_msg.create ~client_id ~psi)
-          |> Message.to_string_list 
-          |> ZMQ.Socket.send_all rep_socket;
-      program_state
+  begin
+    match program_state.psi with
+    | None -> failwith "No wave function saved in TaskServer"
+    | Some psi_message -> ZMQ.Socket.send_all rep_socket psi_message
+  end;
+  program_state
 
 
 

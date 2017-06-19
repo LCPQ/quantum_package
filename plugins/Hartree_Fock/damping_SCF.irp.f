@@ -114,7 +114,6 @@ subroutine damping_SCF
     mo_coef = eigenvectors_fock_matrix_mo
     TOUCH mo_coef
 
-
   enddo
   write(output_hartree_fock,'(A4,1X,A16, 1X, A16, 1X, A16, 1X, A4 )')  '====','================','================','================', '===='
   write(output_hartree_fock,*)

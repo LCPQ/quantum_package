@@ -15,11 +15,17 @@ subroutine routine_3
  
  print *,  'N_det    = ', N_det
  print *,  'N_states = ', N_states
- print *,  'PT2      = ', second_order_pt_new(1)
- print *,  'E        = ', CI_energy(1)
- print *,  'E+PT2    = ', CI_energy(1)+second_order_pt_new(1)
+
+ integer :: i
+ do i=1,N_states
+  print *,  'State    = ', i
+  print *,  'PT2      = ', second_order_pt_new(i)
+  print *,  'E        = ', CI_energy(i)
+  print *,  'E+PT2    = ', CI_energy(i)+second_order_pt_new(i)
+  print *,  '-----------------------------'
+ enddo
  print *,'****** DIAGONALIZATION OF DRESSED MATRIX ******'
- print *,  'E dressed= ', CI_dressed_pt2_new_energy(1)
+ print *,  'E dressed= ', CI_dressed_pt2_new_energy(i)
 
 end
 
