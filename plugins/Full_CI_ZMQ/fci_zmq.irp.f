@@ -25,6 +25,8 @@ program fci_zmq
     hf_energy_ref = ref_bitmask_energy
   endif
 
+  !!!!! THIS CALL IS NOT AUTOMATIC
+  call fci_iterations(N_det,CI_energy(1),pt2(1))
   if (N_det > N_det_max) then
     psi_det = psi_det_sorted
     psi_coef = psi_coef_sorted
@@ -41,6 +43,8 @@ program fci_zmq
       print *,  'E+PT2    = ', CI_energy(k) + pt2(k)
       print *,  '-----'
     enddo
+    !!!!! THIS CALL IS NOT AUTOMATIC
+    call fci_iterations(N_det,CI_energy(1),pt2(1))
   endif
   double precision               :: E_CI_before(N_states)
   
@@ -108,6 +112,8 @@ program fci_zmq
       call diagonalize_CI
       call save_wavefunction
       call ezfio_set_full_ci_zmq_energy(CI_energy(1))
+      !!!!! THIS CALL IS NOT AUTOMATIC
+      call fci_iterations(N_det,CI_energy(1),pt2(1))
     enddo
   endif
 
@@ -116,6 +122,8 @@ program fci_zmq
       call diagonalize_CI
       call save_wavefunction
       call ezfio_set_full_ci_zmq_energy(CI_energy(1))
+      !!!!! THIS CALL IS NOT AUTOMATIC
+      call fci_iterations(N_det,CI_energy(1),pt2(1))
   endif
 
   if(do_pt2_end)then
@@ -149,6 +157,8 @@ program fci_zmq
     enddo
     call ezfio_set_full_ci_zmq_energy(E_CI_before(1))
     call ezfio_set_full_ci_zmq_energy_pt2(E_CI_before(1)+pt2(1))
+    !!!!! THIS CALL IS NOT AUTOMATIC
+    call fci_iterations(N_det,CI_energy(1),pt2(1))
   endif
 
 end
