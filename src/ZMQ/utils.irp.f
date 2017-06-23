@@ -228,9 +228,7 @@ function new_zmq_pull_socket()
   character*(8), external        :: zmq_port
   integer(ZMQ_PTR)               :: new_zmq_pull_socket
   
-  print *,  'coucou'
   call omp_set_lock(zmq_lock)
-  print *,  'pouet'
   if (zmq_context == 0_ZMQ_PTR) then
      stop 'zmq_context is uninitialized'
   endif
