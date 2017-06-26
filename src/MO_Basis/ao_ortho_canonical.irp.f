@@ -106,9 +106,9 @@ END_PROVIDER
     ao_ortho_canonical_coef(i,i) = 1.d0
   enddo
 
-call ortho_lowdin(ao_overlap,size(ao_overlap,1),ao_num,ao_ortho_canonical_coef,size(ao_ortho_canonical_coef,1),ao_num)
-ao_ortho_canonical_num=ao_num
-return
+!call ortho_lowdin(ao_overlap,size(ao_overlap,1),ao_num,ao_ortho_canonical_coef,size(ao_ortho_canonical_coef,1),ao_num)
+!ao_ortho_canonical_num=ao_num
+!return
 
   if (ao_cartesian) then
 

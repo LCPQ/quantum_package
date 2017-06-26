@@ -844,7 +844,7 @@ subroutine get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
   integer, intent(out)           :: task_id
   character*(512), intent(out)   :: task
   
-  character*(512)                :: message
+  character*(1024)                :: message
   character*(64)                 :: reply
   integer                        :: rc, sze
   
@@ -858,7 +858,8 @@ subroutine get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
   endif
   
   message = repeat(' ',512)
-  rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
+  rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 1024, 0)
+  rc = min(1024,rc)
   read(message(1:rc),*) reply
   if (trim(reply) == 'get_task_reply') then
     read(message(1:rc),*) reply, task_id
