@@ -75,7 +75,7 @@ BEGIN_PROVIDER [ double precision, mo_coef_in_ao_ortho_basis, (ao_num_align, mo_
  !
  ! C^(-1).C_mo
  END_DOC
- call dgemm('T','N',ao_num,mo_tot_num,ao_num,1.d0,                   &
+ call dgemm('N','N',ao_num,mo_tot_num,ao_num,1.d0,                   &
      ao_ortho_canonical_coef_inv, size(ao_ortho_canonical_coef_inv,1),&
      mo_coef, size(mo_coef,1), 0.d0,                                 &
      mo_coef_in_ao_ortho_basis, size(mo_coef_in_ao_ortho_basis,1))
@@ -290,13 +290,13 @@ subroutine ao_ortho_cano_to_ao(A_ao,LDA_ao,A,LDA)
   allocate ( T(ao_num_align,ao_num) )
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
   
-  call dgemm('N','N', ao_num, ao_num, ao_num,                    &
+  call dgemm('T','N', ao_num, ao_num, ao_num,                    &
       1.d0,                                                          &
       ao_ortho_canonical_coef_inv, size(ao_ortho_canonical_coef_inv,1),  &
       A_ao,LDA_ao,                                                   &
       0.d0, T, ao_num_align)
   
-  call dgemm('N','T', ao_num, ao_num, ao_num, 1.d0,          &
+  call dgemm('N','N', ao_num, ao_num, ao_num, 1.d0,          &
       T, size(T,1),                                               &
       ao_ortho_canonical_coef_inv,size(ao_ortho_canonical_coef_inv,1),&
       0.d0, A, LDA)

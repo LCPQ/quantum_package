@@ -14,7 +14,6 @@ BEGIN_PROVIDER [ double precision, cusp_A, (nucl_num, nucl_num) ]
       ! Projector
       do mu=1,mo_tot_num
         cusp_A(A,B) += AO_orthoSlaOverlap_matrix(mu,B) * ao_ortho_value_at_nucl(mu,A)
-!        cusp_A(A,B) += MOSlaOverlap_matrix(mu,B) * mo_value_at_nucl(mu,A)
       enddo
     enddo
    enddo
@@ -59,7 +58,6 @@ BEGIN_PROVIDER [ double precision, cusp_C, (nucl_num, mo_tot_num) ]
     print *,  info
     stop 'dgetrs failed'
   endif
-
 
 END_PROVIDER
 

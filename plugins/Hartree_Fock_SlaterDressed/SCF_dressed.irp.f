@@ -86,8 +86,10 @@ subroutine run
   enddo
   mo_coef(1:ao_num,1:mo_tot_num) = cusp_corrected_mos(1:ao_num,1:mo_tot_num)
   SOFT_TOUCH mo_coef slater_coef
-!  call ezfio_set_Hartree_Fock_SlaterDressed_slater_coef_ezfio(slater_coef)
-!  call save_mos
+  call ezfio_set_Hartree_Fock_SlaterDressed_slater_coef_ezfio(slater_coef)
+  call ezfio_set_Hartree_Fock_SlaterDressed_projector(ao_ortho_canonical_coef(1:ao_num,1:ao_num))
+  call ezfio_set_Hartree_Fock_SlaterDressed_ao_orthoSlaOverlap(AO_orthoSlaOverlap_matrix)
+  call save_mos
   print *,  'ci'
   print *, mo_coef(1:ao_num,1)
   print *,  'cAi'

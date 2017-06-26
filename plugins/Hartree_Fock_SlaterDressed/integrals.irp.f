@@ -344,7 +344,7 @@ subroutine GauSlaNuclear(expGau,cGau,aGau,expSla,cSla,ZNuc,cNuc,result)
   ss = k*ss
 
 ! Print result
-  write(*,*) ss
+!  write(*,*) ss
   result = 0.d0
 
 end
@@ -520,6 +520,7 @@ BEGIN_PROVIDER [ double precision, AO_orthoSla$X_matrix, (ao_num, nucl_num) ]
  
 END_PROVIDER
 
+
 SUBST [ X ]
 
 Overlap ;;
@@ -616,9 +617,9 @@ BEGIN_PROVIDER [ double precision, AO_orthoSlaH_matrix, (ao_num, nucl_num) ]
   BEGIN_DOC
 ! <AO ortho | Slater>
   END_DOC
-  call dgemm('T','N',ao_num,nucl_num,ao_num,1.d0,                &
-      ao_ortho_canonical_coef, size(ao_ortho_canonical_coef,1),                        &
-      GauSlaH_matrix, size(GauSlaH_matrix,1),                        &
-      0.d0, AO_orthoSlaH_matrix, size(AO_orthoSlaH_matrix,1))
+  call dgemm('T','N',ao_num,nucl_num,ao_num,1.d0,                   &
+           ao_ortho_canonical_coef, size(ao_ortho_canonical_coef,1), &
+           GauSlaH_matrix, size(GauSlaH_matrix,1),                   &
+           0.d0, AO_orthoSlaH_matrix, size(AO_orthoSlaH_matrix,1))
 END_PROVIDER
 
