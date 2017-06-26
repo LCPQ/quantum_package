@@ -7,7 +7,7 @@ function run_FCI() {
   test_exe full_ci || skip
   qp_edit -c $1
   ezfio set_file $1
-  ezfio set perturbation do_pt2_end True
+  ezfio set perturbation do_pt2 True
   ezfio set determinants n_det_max $2
   ezfio set davidson threshold_davidson 1.e-10
 
@@ -23,7 +23,7 @@ function run_FCI_ZMQ() {
   test_exe fci_zmq || skip
   qp_edit -c $1
   ezfio set_file $1
-  ezfio set perturbation do_pt2_end True
+  ezfio set perturbation do_pt2 True
   ezfio set determinants n_det_max $2
   ezfio set davidson threshold_davidson 1.e-10
 

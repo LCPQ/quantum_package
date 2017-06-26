@@ -39,6 +39,7 @@ subroutine mrsc2_dressing_slave(thread,iproc)
 
   double precision, allocatable  :: delta(:,:,:), delta_s2(:,:,:)
   
+  integer, allocatable           :: hp(:,:)
 
 
   integer                         :: i_state, i, i_I, J, k, k2, k1, kk, ll, degree, degree2, m, l, deg, ni, m2
@@ -65,6 +66,12 @@ subroutine mrsc2_dressing_slave(thread,iproc)
   allocate (dleat(N_states, N_det_non_ref, 2), delta(N_states,0:N_det_non_ref, 2))
   allocate (dleat_s2(N_states, N_det_non_ref, 2), delta_s2(N_states,0:N_det_non_ref, 2))
   allocate(komon(0:N_det_non_ref))
+
+  allocate(hp(2,N_det_non_ref))
+  do i=1,N_det_non_ref
+    call getHP(psi_non_ref(1,1,i), HP(1,i), HP(2,i), N_int)
+  end do 
+
 
   do 
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task)
@@ -171,7 +178,6 @@ subroutine mrsc2_dressing_slave(thread,iproc)
         call apply_excitation(psi_non_ref(1,1,i),exc_Ik,det_tmp,ok,N_int)
         if(.not. ok) cycle
         if(HP(1,i) + HP(1,k) <= 2 .and. HP(2,i) + HP(2,k) <= 2) then
-!           if(is_in_wavefunction(det_tmp, N_int)) cycle
           cycle
         end if
         

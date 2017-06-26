@@ -361,7 +361,7 @@ subroutine find_rotation(A,LDA,B,m,C,n)
   
   double precision, allocatable  :: A_inv(:,:)
   allocate(A_inv(LDA,n))
-  call get_pseudo_inverse(A,m,n,A_inv,LDA)
+  call get_pseudo_inverse(A,LDA,m,n,A_inv,LDA)
   
   integer                        :: i,j,k
   call dgemm('N','N',n,n,m,1.d0,A_inv,n,B,LDA,0.d0,C,n)

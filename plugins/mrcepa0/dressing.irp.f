@@ -410,13 +410,6 @@ end
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ integer, HP, (2,N_det_non_ref) ]
-  integer :: i
-  do i=1,N_det_non_ref
-    call getHP(psi_non_ref(1,1,i), HP(1,i), HP(2,i), N_int)
-  end do 
-END_PROVIDER
-
  BEGIN_PROVIDER [ integer, cepa0_shortcut, (0:N_det_non_ref+1) ]
 &BEGIN_PROVIDER [ integer, det_cepa0_idx, (N_det_non_ref) ]
 &BEGIN_PROVIDER [ integer(bit_kind), det_cepa0_active, (N_int,2,N_det_non_ref) ]

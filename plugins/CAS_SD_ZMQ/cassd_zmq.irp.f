@@ -132,7 +132,7 @@ program cassd_zmq
   enddo
   print *,  'Max excitation degree in the CAS :', exc_max
 
-  if(do_pt2_end)then
+  if(do_pt2)then
     print*,'Last iteration only to compute the PT2'
     threshold_selectors = max(threshold_selectors,threshold_selectors_pt2)
     threshold_generators = max(threshold_generators,threshold_generators_pt2)
