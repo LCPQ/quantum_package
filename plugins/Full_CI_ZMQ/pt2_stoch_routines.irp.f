@@ -9,96 +9,102 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
   
   implicit none
   
-  character(len=64000)           :: task 
+  character(len=64000)           :: task
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_to_qp_run_socket2
   type(selection_buffer)         :: b
   integer, external              :: omp_get_thread_num
   double precision, intent(in)   :: relative_error, E
   double precision, intent(out)  :: pt2(N_states)
-
   
-  double precision, allocatable :: pt2_detail(:,:), comb(:)
-  logical, allocatable :: computed(:)
-  integer, allocatable :: tbc(:)
-  integer :: i, j, k, Ncomb, generator_per_task, i_generator_end
-  integer, external :: pt2_find
   
-  double precision :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
-  double precision, external :: omp_get_wtime 
-  double precision :: time
-
-  allocate(pt2_detail(N_states, N_det_generators+1), comb(N_det_generators), computed(N_det_generators), tbc(0:size_tbc))
-  sumabove = 0d0
-  sum2above = 0d0
-  Nabove = 0d0
-
-  provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral pt2_weight psi_selectors
-
-  computed = .false.
-
-  tbc(0) = first_det_of_comb - 1
-  do i=1, tbc(0)
-    tbc(i) = i
-    computed(i) = .true.
-  end do
+  double precision, allocatable  :: pt2_detail(:,:), comb(:)
+  logical, allocatable           :: computed(:)
+  integer, allocatable           :: tbc(:)
+  integer                        :: i, j, k, Ncomb, generator_per_task, i_generator_end
+  integer, external              :: pt2_find
   
-  pt2_detail = 0d0
-  generator_per_task = 1
-  print *, '========== ================= ================= ================='
-  print *, ' Samples        Energy         Stat. Error         Seconds      '
-  print *, '========== ================= ================= ================='
+  double precision               :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
+  double precision, external     :: omp_get_wtime
+  double precision               :: time
+  
+  if (N_det < 10) then
+    call ZMQ_selection(0, pt2)
+    return
+  else
     
-  call new_parallel_job(zmq_to_qp_run_socket,'pt2')
-  call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
-  call create_selection_buffer(1, 1*2, b)
-  
-  Ncomb=size(comb)
-  call get_carlo_workbatch(computed, comb, Ncomb, tbc)
-
-  integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
-  integer :: ipos
-  ipos=1
-
-  do i=1,tbc(0)
-    if(tbc(i) > fragment_first) then
-      write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') 0, tbc(i)
-      ipos += 20
-      if (ipos > 63980) then
-        call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
-        ipos=1
-      endif
-    else
-      do j=1,fragment_count
-        write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') j, tbc(i)
+    allocate(pt2_detail(N_states, N_det_generators+1), comb(N_det_generators), computed(N_det_generators), tbc(0:size_tbc))
+    sumabove = 0d0
+    sum2above = 0d0
+    Nabove = 0d0
+    
+    provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral pt2_weight psi_selectors
+    
+    computed = .false.
+    
+    tbc(0) = first_det_of_comb - 1
+    do i=1, tbc(0)
+      tbc(i) = i
+      computed(i) = .true.
+    end do
+    
+    pt2_detail = 0d0
+    generator_per_task = 1
+    print *, '========== ================= ================= ================='
+    print *, ' Samples        Energy         Stat. Error         Seconds      '
+    print *, '========== ================= ================= ================='
+    
+    call new_parallel_job(zmq_to_qp_run_socket,'pt2')
+    call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
+    call create_selection_buffer(1, 1*2, b)
+    
+    Ncomb=size(comb)
+    call get_carlo_workbatch(computed, comb, Ncomb, tbc)
+    
+    integer(ZMQ_PTR), external     :: new_zmq_to_qp_run_socket
+    integer                        :: ipos
+    ipos=1
+    
+    do i=1,tbc(0)
+      if(tbc(i) > fragment_first) then
+        write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') 0, tbc(i)
         ipos += 20
         if (ipos > 63980) then
           call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
           ipos=1
         endif
-      end do
-    end if
-  end do
-  if (ipos > 1) then
-    call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
-  endif
-
-  call zmq_set_running(zmq_to_qp_run_socket)
-
-  !$OMP PARALLEL DEFAULT(shared) NUM_THREADS(nproc+1) &
-  !$OMP  PRIVATE(i)
+      else
+        do j=1,fragment_count
+          write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') j, tbc(i)
+          ipos += 20
+          if (ipos > 63980) then
+            call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
+            ipos=1
+          endif
+        end do
+      end if
+    end do
+    if (ipos > 1) then
+      call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
+    endif
+    
+    call zmq_set_running(zmq_to_qp_run_socket)
+    
+    !$OMP PARALLEL DEFAULT(shared) NUM_THREADS(nproc+1)              &
+        !$OMP  PRIVATE(i)
     i = omp_get_thread_num()
     if (i==0) then
       call pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
     else
       call pt2_slave_inproc(i)
     endif
-  !$OMP END PARALLEL
-  call delete_selection_buffer(b)
-  call end_parallel_job(zmq_to_qp_run_socket, 'pt2')
-
-  print *, '========== ================= ================= ================='
-
-  deallocate(pt2_detail, comb, computed, tbc)
+    !$OMP END PARALLEL
+    call delete_selection_buffer(b)
+    call end_parallel_job(zmq_to_qp_run_socket, 'pt2')
+    
+    print *, '========== ================= ================= ================='
+    
+    deallocate(pt2_detail, comb, computed, tbc)
+  endif
 
 end subroutine
 
@@ -279,7 +285,6 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   prop = prop * pt2_weight_inv(first_det_of_teeth(tooth))
   E0 += pt2_detail(1,first_det_of_teeth(tooth)) * prop
   pt2(1) = E0 + (sumabove(tooth) / Nabove(tooth))
-  eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
 
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_pull_socket(zmq_socket_pull)
@@ -471,7 +476,7 @@ end subroutine
     end if
     norm_left -= pt2_weight(i)
   end do
-  first_det_of_comb = max(1,first_det_of_comb)
+  first_det_of_comb = max(2,first_det_of_comb)
   call write_int(6, first_det_of_comb-1, 'Size of deterministic set')
   
   comb_step =  (1d0 - pt2_cweight(first_det_of_comb-1)) * comb_step

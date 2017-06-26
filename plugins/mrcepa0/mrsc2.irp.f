@@ -18,7 +18,7 @@ program mrsc2
     TOUCH psi_coef 
   endif
   call run(N_states,energy)
-  if(do_pt2_end)then
+  if(do_pt2)then
     call run_pt2(N_states,energy)
   endif
   deallocate(energy)
