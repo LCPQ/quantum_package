@@ -76,21 +76,28 @@ subroutine run
   double precision               :: EHF
   integer                        :: i_it, i, j, k
    
-  mo_label = "CuspDressed"
+  mo_label = 'None'
 
 
-  print *,  HF_energy
-
-  call ezfio_set_Hartree_Fock_SlaterDressed_slater_coef_ezfio(cusp_C)
+!  print *,  HF_energy
 
   do i=1,ao_num
     print *,  mo_coef(i,1), cusp_corrected_mos(i,1)
   enddo
   mo_coef(1:ao_num,1:mo_tot_num) = cusp_corrected_mos(1:ao_num,1:mo_tot_num)
-  TOUCH mo_coef
+  SOFT_TOUCH mo_coef slater_coef
+  call ezfio_set_Hartree_Fock_SlaterDressed_slater_coef_ezfio(slater_coef)
+  call ezfio_set_Hartree_Fock_SlaterDressed_projector(ao_ortho_canonical_coef(1:ao_num,1:ao_num))
+  call ezfio_set_Hartree_Fock_SlaterDressed_ao_orthoSlaOverlap(AO_orthoSlaOverlap_matrix)
+  call save_mos
+  print *,  'ci'
+  print *, mo_coef(1:ao_num,1)
+  print *,  'cAi'
+  print *, slater_coef
 
-  EHF = HF_energy 
-  print *,  HF_energy
+
+!  EHF = HF_energy 
+!  print *,  HF_energy
 !  call Roothaan_Hall_SCF
   
 end

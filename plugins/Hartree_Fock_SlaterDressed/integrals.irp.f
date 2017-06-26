@@ -344,7 +344,7 @@ subroutine GauSlaNuclear(expGau,cGau,aGau,expSla,cSla,ZNuc,cNuc,result)
   ss = k*ss
 
 ! Print result
-  write(*,*) ss
+!  write(*,*) ss
   result = 0.d0
 
 end
@@ -502,8 +502,8 @@ BEGIN_PROVIDER [ double precision, MOSla$X_matrix, (mo_tot_num, nucl_num) ]
   BEGIN_DOC
 ! <MO | Slater>
   END_DOC
-  call dgemm('N','N',mo_tot_num,nucl_num,ao_num,1.d0,                &
-      mo_coef_transp, size(mo_coef_transp,1),                        &
+  call dgemm('T','N',mo_tot_num,nucl_num,ao_num,1.d0,                &
+      mo_coef, size(mo_coef,1),                        &
       GauSla$X_matrix, size(GauSla$X_matrix,1),                    &
       0.d0, MOSla$X_matrix, size(MOSla$X_matrix,1))
 END_PROVIDER
@@ -519,6 +519,7 @@ BEGIN_PROVIDER [ double precision, AO_orthoSla$X_matrix, (ao_num, nucl_num) ]
       0.d0, AO_orthoSla$X_matrix, size(AO_orthoSla$X_matrix,1))
  
 END_PROVIDER
+
 
 SUBST [ X ]
 
@@ -616,9 +617,9 @@ BEGIN_PROVIDER [ double precision, AO_orthoSlaH_matrix, (ao_num, nucl_num) ]
   BEGIN_DOC
 ! <AO ortho | Slater>
   END_DOC
-  call dgemm('T','N',ao_num,nucl_num,ao_num,1.d0,                &
-      ao_ortho_canonical_coef, size(ao_ortho_canonical_coef,1),                        &
-      GauSlaH_matrix, size(GauSlaH_matrix,1),                        &
-      0.d0, AO_orthoSlaH_matrix, size(AO_orthoSlaH_matrix,1))
+  call dgemm('T','N',ao_num,nucl_num,ao_num,1.d0,                   &
+           ao_ortho_canonical_coef, size(ao_ortho_canonical_coef,1), &
+           GauSlaH_matrix, size(GauSlaH_matrix,1),                   &
+           0.d0, AO_orthoSlaH_matrix, size(AO_orthoSlaH_matrix,1))
 END_PROVIDER
 

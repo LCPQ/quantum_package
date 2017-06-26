@@ -8,7 +8,10 @@ BEGIN_PROVIDER [ double precision, slater_expo, (nucl_num) ]
  if (exists) then
    slater_expo(1:nucl_num) = slater_expo_ezfio(1:nucl_num)
  else
-   slater_expo(1:nucl_num) = nucl_charge(1:nucl_num)
+   integer :: i
+   do i=1,nucl_num
+    slater_expo(i) = nucl_charge(i) 
+   enddo
    call ezfio_set_Hartree_Fock_SlaterDressed_slater_expo_ezfio(slater_expo)
  endif
 END_PROVIDER

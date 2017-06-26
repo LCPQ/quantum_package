@@ -233,7 +233,7 @@ function new_zmq_pull_socket()
      stop 'zmq_context is uninitialized'
   endif
 IRP_IF ZMQ_PUSH
- new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_PULL)
+  new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_PULL)
 IRP_ELSE
   new_zmq_pull_socket = f77_zmq_socket(zmq_context, ZMQ_REP)
 IRP_ENDIF
