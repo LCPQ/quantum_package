@@ -19,7 +19,7 @@ BEGIN_PROVIDER [double precision, FPS_SPF_Matrix_AO, (AO_num, AO_num)]
   END_DOC
   double precision, allocatable  :: scratch(:,:)
   allocate(                                                          &
-      scratch(AO_num_align, AO_num)                                  &
+      scratch(AO_num, AO_num)                                  &
       )
   
   ! Compute FP
@@ -71,7 +71,7 @@ END_PROVIDER
 
 
  BEGIN_PROVIDER [ double precision, eigenvalues_Fock_matrix_AO, (AO_num) ]
-&BEGIN_PROVIDER [ double precision, eigenvectors_Fock_matrix_AO, (AO_num_align,AO_num) ]
+&BEGIN_PROVIDER [ double precision, eigenvectors_Fock_matrix_AO, (AO_num,AO_num) ]
 
    BEGIN_DOC
    ! Eigenvalues and eigenvectors of the Fock matrix over the AO basis
@@ -85,7 +85,7 @@ END_PROVIDER
    
    lwork = 3*AO_num - 1
    allocate(                                                         &
-       scratch(AO_num_align,AO_num),                                 &
+       scratch(AO_num,AO_num),                                 &
        work(lwork),                                                  &
        Xt(AO_num,AO_num)                                             &
        )
@@ -137,7 +137,7 @@ END_PROVIDER
    
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, X_matrix_AO, (AO_num_align,AO_num) ]
+BEGIN_PROVIDER [ double precision, X_matrix_AO, (AO_num,AO_num) ]
 
   BEGIN_DOC
 !   Matrix X = S^{-1/2} obtained by SVD
