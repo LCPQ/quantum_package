@@ -44,6 +44,7 @@ program fci_zmq
       print *,  'E+PT2    = ', CI_energy(k) + pt2(k)
       print *,  '-----'
     enddo
+    call dump_fci_iterations_value(N_det,CI_energy(1),pt2(1)) ! This call automatically appends data
   endif
   
   
@@ -135,7 +136,7 @@ program fci_zmq
       call save_wavefunction
       call ezfio_set_full_ci_zmq_energy(CI_energy(1))
       call ezfio_set_full_ci_zmq_energy_pt2(CI_energy(1)+pt2(1))
-
+      call dump_fci_iterations_value(N_det,CI_energy(1),pt2(1)) ! This call automatically appends data
     enddo
   endif
 
@@ -144,6 +145,7 @@ program fci_zmq
       call diagonalize_CI
       call save_wavefunction
       call ezfio_set_full_ci_zmq_energy(CI_energy(1))
+      call dump_fci_iterations_value(N_det,CI_energy(1),pt2(1)) ! This call automatically appends data
   endif
 
   if (do_pt2) then
@@ -163,6 +165,7 @@ program fci_zmq
       call ZMQ_selection(0, pt2)      ! Deterministic PT2
     endif
     call ezfio_set_full_ci_zmq_energy_pt2(CI_energy(1)+pt2(1))
+    call dump_fci_iterations_value(N_det,CI_energy(1),pt2(1)) ! This call automatically appends data
   endif
 
 
