@@ -5,10 +5,17 @@ program e_curve
   double precision :: norm, E, hij, num, ci, cj
   integer, allocatable :: iorder(:)
   double precision , allocatable :: norm_sort(:)
+  double precision :: e_0(N_states)
   PROVIDE mo_bielec_integrals_in_map
 
   nab = n_det_alpha_unique+n_det_beta_unique
   allocate ( norm_sort(0:nab), iorder(0:nab) )
+
+  double precision, allocatable  :: u_t(:,:), v_t(:,:), s_t(:,:)
+  double precision, allocatable  :: u_0(:,:), v_0(:,:)
+  allocate(u_t(N_states,N_det),v_t(N_states,N_det),s_t(N_states,N_det))
+  allocate(u_0(N_states,N_det),v_0(N_states,N_det))
+
 
 
   norm_sort(0) = 0.d0
@@ -59,47 +66,45 @@ program e_curve
     if (thresh > norm_sort(j)) then
       cycle
     endif
-    num = 0.d0
-    norm = 0.d0
-    m = 0
-    !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(k,kk,l,det_i,det_j,ci,cj,hij) REDUCTION(+:norm,m,num)
-    allocate( det_i(N_int,2), det_j(N_int,2))
-    !$OMP DO SCHEDULE(guided)
-    do k=1,n_det
-      if (psi_bilinear_matrix_values(k,1) == 0.d0) then
-        cycle
-      endif
-      ci = psi_bilinear_matrix_values(k,1)
-      do kk=1,N_int
-        det_i(kk,1) = psi_det_alpha_unique(kk,psi_bilinear_matrix_rows(k))
-        det_i(kk,2) = psi_det_beta_unique(kk,psi_bilinear_matrix_columns(k))
-      enddo
-      do l=1,n_det
-        if (psi_bilinear_matrix_values(l,1) == 0.d0) then
-          cycle
-        endif
-        cj = psi_bilinear_matrix_values(l,1)
-        do kk=1,N_int
-          det_j(kk,1) = psi_det_alpha_unique(kk,psi_bilinear_matrix_rows(l))
-          det_j(kk,2) = psi_det_beta_unique(kk,psi_bilinear_matrix_columns(l))
-        enddo
-        call i_h_j(det_i, det_j, N_int, hij)
-        num = num + ci*cj*hij
-      enddo
-     norm = norm + ci*ci
-     m = m+1
+
+    u_0 = psi_bilinear_matrix_values(1:N_det,1:N_states)
+    v_t = 0.d0
+    s_t = 0.d0
+    call dtranspose(                                                   &
+        u_0,                                                           &
+        size(u_0, 1),                                                  &
+        u_t,                                                           &
+        size(u_t, 1),                                                  &
+        N_det, N_states)
+    call H_S2_u_0_nstates_openmp_work(v_t,s_t,u_t,N_states,N_det,1,N_det,0,1)
+    call dtranspose(                                                   &
+        v_t,                                                           &
+        size(v_t, 1),                                                  &
+        v_0,                                                           &
+        size(v_0, 1),                                                  &
+        N_states, N_det)
+    
+    double precision, external :: u_dot_u, u_dot_v
+    do i=1,N_states
+      e_0(i) = u_dot_v(v_t(1,i),u_0(1,i),N_det)/u_dot_u(u_0(1,i),N_det)
     enddo
-    !$OMP END DO
-    deallocate (det_i,det_j)
-    !$OMP END PARALLEL
+
+    m = 0
+    do k=1,n_det
+     if (psi_bilinear_matrix_values(k,1) /= 0.d0) then
+      m = m+1
+     endif
+    enddo
+
     if (m == 0) then
        exit
     endif
-    E = num / norm + nuclear_repulsion
+    E = E_0(1) + nuclear_repulsion
+    norm = u_dot_u(u_0(1,1),N_det)
     print '(E9.1,2X,I8,2X,F10.2,2X,F10.8,2X,F12.6)',  thresh, m, &
       dble( elec_alpha_num**3 + elec_alpha_num**2 * (nab-1) ) / &
       dble( elec_alpha_num**3 + elec_alpha_num**2 * (j-1)), norm, E
-    thresh = thresh * 2.d0
+    thresh = thresh * dsqrt(10.d0)
   enddo
   print *,  '=========================================================='
 
