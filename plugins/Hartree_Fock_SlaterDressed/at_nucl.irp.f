@@ -8,6 +8,7 @@ BEGIN_PROVIDER [ double precision , ao_value_at_nucl, (ao_num,nucl_num) ]
 
   do k=1,nucl_num
     do i=1,ao_num
+      ao_value_at_nucl(i,k) = 0.d0
       x = nucl_coord(ao_nucl(i),1) - nucl_coord(k,1)
       y = nucl_coord(ao_nucl(i),2) - nucl_coord(k,2)
       z = nucl_coord(ao_nucl(i),3) - nucl_coord(k,3)
@@ -15,7 +16,6 @@ BEGIN_PROVIDER [ double precision , ao_value_at_nucl, (ao_num,nucl_num) ]
       if (poly == 0.d0) cycle
 
       r2 = (x*x) + (y*y) + (z*z)
-      ao_value_at_nucl(i,k) = 0.d0
       do j=1,ao_prim_num(i)
         expo = ao_expo_ordered_transp(j,i)*r2
         if (expo > 40.d0) cycle
