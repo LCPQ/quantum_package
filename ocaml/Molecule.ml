@@ -150,7 +150,7 @@ let of_xyz_file
   in
   let result =
     try
-      int_of_string x > 0
+      (int_of_string @@ String.strip x) > 0
     with
     | Failure "int_of_string"  -> false
   in
