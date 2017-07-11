@@ -1,5 +1,5 @@
 ===============
-Ocaml scripts
+OCaml scripts
 ===============
 
 This directory contains all the scripts that control the input/output
