@@ -34,8 +34,6 @@ subroutine create_guess
   endif
 end
 
-ao_to_mo
-
 subroutine run
 
   BEGIN_DOC
