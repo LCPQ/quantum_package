@@ -1204,3 +1204,36 @@ N_int;;
 END_TEMPLATE
 
 
+subroutine wf_of_psi_bilinear_matrix(truncate)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+! Generate a wave function containing all possible products 
+! of alpha and beta determinants
+  END_DOC
+  logical, intent(in)            :: truncate
+  integer                        :: i,j,k
+  integer(bit_kind)              :: tmp_det(N_int,2)
+  integer                        :: idx
+  integer, external              :: get_index_in_psi_det_sorted_bit
+  double precision               :: norm(N_states)
+  PROVIDE psi_bilinear_matrix
+
+  do k=1,N_det
+   i = psi_bilinear_matrix_rows(k)
+   j = psi_bilinear_matrix_columns(k)
+   psi_det(1:N_int,1,k) = psi_det_alpha_unique(1:N_int,i)
+   psi_det(1:N_int,2,k) = psi_det_beta_unique (1:N_int,j)
+  enddo
+  psi_coef(1:N_det,1:N_states) = psi_bilinear_matrix_values(1:N_det,1:N_states)
+  TOUCH psi_det psi_coef 
+
+  psi_det   = psi_det_sorted
+  psi_coef  = psi_coef_sorted
+  do while (sum( dabs(psi_coef(N_det,1:N_states)) ) == 0.d0)
+    N_det -= 1
+  enddo
+  SOFT_TOUCH psi_det psi_coef N_det
+
+end
+
