@@ -15,7 +15,14 @@ module mmap_module
       integer(c_int), intent(in), value    :: read_only
     end function
 
-    subroutine c_munmap(length, fd, map) bind(c,name='munmap_fortran')
+    subroutine c_munmap_fortran(length, fd, map) bind(c,name='munmap_fortran')
+      use iso_c_binding
+      integer(c_size_t), intent(in), value :: length
+      integer(c_int), intent(in), value :: fd
+      type(c_ptr), intent(in), value    :: map
+    end subroutine
+
+    subroutine c_msync_fortran(length, fd, map) bind(c,name='msync_fortran')
       use iso_c_binding
       integer(c_size_t), intent(in), value :: length
       integer(c_int), intent(in), value :: fd
@@ -61,7 +68,23 @@ module mmap_module
 
       length = PRODUCT( shape(:) ) * bytes
       fd_ = fd
-      call c_munmap( length, fd_, map)
+      call c_munmap_fortran( length, fd_, map)
+  end subroutine
+
+  subroutine msync(shape, bytes, fd, map)
+      use iso_c_binding
+      implicit none
+      integer*8, intent(in)          :: shape(:)  ! Shape of the array to map
+      integer, intent(in)            :: bytes     ! Number of bytes per element
+      integer, intent(in)            :: fd        ! File descriptor
+      type(c_ptr), intent(in)        :: map       ! C pointer
+
+      integer(c_size_t)              :: length
+      integer(c_int)                 :: fd_
+
+      length = PRODUCT( shape(:) ) * bytes
+      fd_ = fd
+      call c_msync_fortran( length, fd_, map)
   end subroutine
 
 end module mmap_module
