@@ -53,17 +53,17 @@ subroutine map_save_to_disk(filename,map)
   map % consolidated = .True.
 
 
-!  call munmap( (/ map % map_size + 2_8 /), 8, fd(1), c_pointer(1))
-!  call mmap(trim(filename)//'_consolidated_idx', (/ map % map_size + 2_8 /), 8, fd(1), .True., c_pointer(1))
-!  call c_f_pointer(c_pointer(1),map % consolidated_idx, (/ map % map_size +2_8/))
-!
-!  call munmap( (/ map % n_elements /), cache_key_kind, fd(2), c_pointer(2))
-!  call mmap(trim(filename)//'_consolidated_key', (/ map % n_elements /), cache_key_kind, fd(2), .True., c_pointer(2))
-!  call c_f_pointer(c_pointer(2),map % consolidated_key, (/ map % n_elements /))
-!
-!  call munmap( (/ map % n_elements /), integral_kind, fd(3), c_pointer(3))
-!  call mmap(trim(filename)//'_consolidated_value', (/ map % n_elements /), integral_kind, fd(3), .True., c_pointer(3))
-!  call c_f_pointer(c_pointer(3),map % consolidated_value, (/ map % n_elements /))
+  call munmap( (/ map % map_size + 2_8 /), 8, fd(1), c_pointer(1))
+  call mmap(trim(filename)//'_consolidated_idx', (/ map % map_size + 2_8 /), 8, fd(1), .True., c_pointer(1))
+  call c_f_pointer(c_pointer(1),map % consolidated_idx, (/ map % map_size +2_8/))
+
+  call munmap( (/ map % n_elements /), cache_key_kind, fd(2), c_pointer(2))
+  call mmap(trim(filename)//'_consolidated_key', (/ map % n_elements /), cache_key_kind, fd(2), .True., c_pointer(2))
+  call c_f_pointer(c_pointer(2),map % consolidated_key, (/ map % n_elements /))
+
+  call munmap( (/ map % n_elements /), integral_kind, fd(3), c_pointer(3))
+  call mmap(trim(filename)//'_consolidated_value', (/ map % n_elements /), integral_kind, fd(3), .True., c_pointer(3))
+  call c_f_pointer(c_pointer(3),map % consolidated_value, (/ map % n_elements /))
 
 end
 
