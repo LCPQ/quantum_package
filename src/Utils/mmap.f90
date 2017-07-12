@@ -36,7 +36,7 @@ module mmap_module
       integer, intent(out)           :: fd         ! File descriptor
       type(c_ptr), intent(out)       :: map        ! C Pointer
      
-      integer(c_long)                :: length
+      integer(c_size_t)              :: length
       integer(c_int)                 :: fd_
 
       length = PRODUCT( shape(:) ) * bytes
@@ -56,7 +56,7 @@ module mmap_module
       integer, intent(in)            :: fd        ! File descriptor
       type(c_ptr), intent(in)        :: map       ! C pointer
 
-      integer(c_long)                :: length
+      integer(c_size_t)              :: length
       integer(c_int)                 :: fd_
 
       length = PRODUCT( shape(:) ) * bytes

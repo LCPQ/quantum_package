@@ -625,9 +625,16 @@ subroutine create_wf_of_psi_bilinear_matrix(truncate)
   integer                        :: idx
   integer, external              :: get_index_in_psi_det_sorted_bit
   double precision               :: norm(N_states)
+  PROVIDE psi_bilinear_matrix
 
   call generate_all_alpha_beta_det_products
   norm = 0.d0
+  !$OMP PARALLEL DO DEFAULT(NONE)                                    &
+      !$OMP PRIVATE(i,j,k,idx,tmp_det)                               &
+      !$OMP SHARED(N_det_alpha_unique, N_det_beta_unique, N_det,     &
+      !$OMP N_int, N_states, norm, psi_det_beta_unique,              &
+      !$OMP psi_det_alpha_unique, psi_bilinear_matrix,               &
+      !$OMP psi_coef_sorted_bit)
   do j=1,N_det_beta_unique
     do k=1,N_int
       tmp_det(k,2) = psi_det_beta_unique(k,j)
@@ -640,11 +647,14 @@ subroutine create_wf_of_psi_bilinear_matrix(truncate)
       if (idx > 0) then
         do k=1,N_states
           psi_coef_sorted_bit(idx,k) = psi_bilinear_matrix(i,j,k) 
+          !$OMP ATOMIC
           norm(k) += psi_bilinear_matrix(i,j,k)
         enddo
       endif
     enddo
   enddo
+  !$OMP END PARALLEL DO
+
   do k=1,N_states
     norm(k) = 1.d0/dsqrt(norm(k))
     do i=1,N_det
@@ -688,7 +698,7 @@ subroutine generate_all_alpha_beta_det_products
       !$OMP PRIVATE(i,j,k,l,tmp_det,iproc)
   !$ iproc = omp_get_thread_num()
   allocate (tmp_det(N_int,2,N_det_alpha_unique))
-  !$OMP DO
+  !$OMP DO SCHEDULE(static,1)
   do j=1,N_det_beta_unique
     l = 1
     do i=1,N_det_alpha_unique

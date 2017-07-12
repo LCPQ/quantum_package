@@ -12,13 +12,13 @@ subroutine damping_SCF
   character                      :: save_char
 
   allocate(                                                          &
-      D_alpha( ao_num_align, ao_num ),                               &
-      D_beta( ao_num_align, ao_num ),                                &
-      F_new( ao_num_align, ao_num ),                                 &
-      D_new_alpha( ao_num_align, ao_num ),                           &
-      D_new_beta( ao_num_align, ao_num ),                            &
-      delta_alpha( ao_num_align, ao_num ),                           &
-      delta_beta( ao_num_align, ao_num ))
+      D_alpha( ao_num, ao_num ),                               &
+      D_beta( ao_num, ao_num ),                                &
+      F_new( ao_num, ao_num ),                                 &
+      D_new_alpha( ao_num, ao_num ),                           &
+      D_new_beta( ao_num, ao_num ),                            &
+      delta_alpha( ao_num, ao_num ),                           &
+      delta_beta( ao_num, ao_num ))
   
   do j=1,ao_num
     do i=1,ao_num

@@ -1,5 +1,5 @@
  BEGIN_PROVIDER [ double precision, diagonal_Fock_matrix_mo, (ao_num) ]
-&BEGIN_PROVIDER [ double precision, eigenvectors_Fock_matrix_mo, (ao_num_align,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, eigenvectors_Fock_matrix_mo, (ao_num,mo_tot_num) ]
    implicit none
    BEGIN_DOC
    ! Diagonal Fock matrix in the MO basis

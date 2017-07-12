@@ -17,7 +17,6 @@ subroutine huckel_guess
   c = 0.5d0 * 1.75d0
 
   do j=1,ao_num
-    !DIR$ VECTOR ALIGNED
     do i=1,ao_num
       Fock_matrix_ao(i,j) = c*ao_overlap(i,j)*(ao_mono_elec_integral_diag(i) + &
                                                  ao_mono_elec_integral_diag(j))

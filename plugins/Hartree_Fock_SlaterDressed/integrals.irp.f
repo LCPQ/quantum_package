@@ -452,19 +452,19 @@ BEGIN_PROVIDER [ double precision, GauSla$X_matrix, (ao_num, nucl_num) ]
   integer                        :: aGau(3)
 
 !TODO
-  logical :: read
-  integer :: iunit
-  integer :: getunitandopen
-
-  inquire(FILE=trim(ezfio_filename)//'/work/GauSla$X.dat',EXIST=read)
-  if (read) then
-    print *,  'READ $X'
-    iunit = getunitandopen(trim(ezfio_filename)//'/work/GauSla$X.dat','r')
-  else
-    print *,  'WRITE $X'
-    iunit = getunitandopen(trim(ezfio_filename)//'/work/GauSla$X.inp','w')
-    write(iunit,*) '{'
-  endif
+!  logical :: read
+!  integer :: iunit
+!  integer :: getunitandopen
+!
+!  inquire(FILE=trim(ezfio_filename)//'/work/GauSla$X.dat',EXIST=read)
+!  if (read) then
+!    print *,  'READ $X'
+!    iunit = getunitandopen(trim(ezfio_filename)//'/work/GauSla$X.dat','r')
+!  else
+!    print *,  'WRITE $X'
+!    iunit = getunitandopen(trim(ezfio_filename)//'/work/GauSla$X.inp','w')
+!    write(iunit,*) '{'
+!  endif
 !TODO
 
   do k=1,nucl_num
@@ -478,22 +478,22 @@ BEGIN_PROVIDER [ double precision, GauSla$X_matrix, (ao_num, nucl_num) ]
 
       do j=1,ao_prim_num(i)
         expGau = ao_expo_ordered_transp(j,i)
-!        call GauSla$X(expGau,cGau,aGau,expSla,cSla,res)
-        if (read) then
-          call GauSla$X_read(expGau,cGau,aGau,expSla,cSla,res,iunit)
-        else
-          call GauSla$X_write(expGau,cGau,aGau,expSla,cSla,res,iunit)
-        endif
+        call GauSla$X(expGau,cGau,aGau,expSla,cSla,res)
+!        if (read) then
+!          call GauSla$X_read(expGau,cGau,aGau,expSla,cSla,res,iunit)
+!        else
+!          call GauSla$X_write(expGau,cGau,aGau,expSla,cSla,res,iunit)
+!        endif
         GauSla$X_matrix(i,k) += ao_coef_normalized_ordered_transp(j,i) * res
       enddo
 
     enddo
 
   enddo
-  if (.not.read) then
-    write(iunit,*) '0.}'
-  endif
-  close(iunit)
+!  if (.not.read) then
+!    write(iunit,*) '0.}'
+!  endif
+!  close(iunit)
   
 END_PROVIDER
 

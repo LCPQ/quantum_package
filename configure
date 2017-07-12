@@ -77,7 +77,7 @@ path_github = {"head": "http://github.com", "tail": "archive/master.tar.gz"}
 
 ocaml = Info(
     url='http://raw.github.com/ocaml/opam/master/shell/opam_installer.sh',
-    description=' Ocaml, Opam and the Core library (it will take some time roughly 20min)',
+    description=' OCaml, Opam and the Core library (it will take some time roughly 20min)',
     default_path=join(QP_ROOT_BIN, "opam"))
 
 m4 = Info(
