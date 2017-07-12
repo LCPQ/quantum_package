@@ -70,3 +70,12 @@ void munmap_fortran(size_t bytes, int fd, void* map)
     }
     close(fd);
 }
+
+
+void msync_fortran(size_t bytes, int fd, void* map)
+{
+    if (msync(map, bytes, MS_SYNC) == -1) {
+        perror("Error syncing the mmap file");
+    }
+}
+

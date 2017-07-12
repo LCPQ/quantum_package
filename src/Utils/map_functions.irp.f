@@ -52,18 +52,14 @@ subroutine map_save_to_disk(filename,map)
   map % consolidated_idx (map % map_size + 2_8) = k
   map % consolidated = .True.
 
+  integer*8 :: n_elements
+  n_elements = int(map % n_elements,8)
 
-  call munmap( (/ map % map_size + 2_8 /), 8, fd(1), c_pointer(1))
-  call mmap(trim(filename)//'_consolidated_idx', (/ map % map_size + 2_8 /), 8, fd(1), .True., c_pointer(1))
-  call c_f_pointer(c_pointer(1),map % consolidated_idx, (/ map % map_size +2_8/))
-
-  call munmap( (/ map % n_elements /), cache_key_kind, fd(2), c_pointer(2))
-  call mmap(trim(filename)//'_consolidated_key', (/ map % n_elements /), cache_key_kind, fd(2), .True., c_pointer(2))
-  call c_f_pointer(c_pointer(2),map % consolidated_key, (/ map % n_elements /))
-
-  call munmap( (/ map % n_elements /), integral_kind, fd(3), c_pointer(3))
-  call mmap(trim(filename)//'_consolidated_value', (/ map % n_elements /), integral_kind, fd(3), .True., c_pointer(3))
-  call c_f_pointer(c_pointer(3),map % consolidated_value, (/ map % n_elements /))
+  print *,  'Writing data to disk...'
+  call msync ( (/ map % map_size + 2_8 /),    8, fd(1), c_pointer(1))
+  call msync ( (/ n_elements /), cache_key_kind, fd(2), c_pointer(2))
+  call msync ( (/ n_elements /), integral_kind , fd(3), c_pointer(3))
+  print *,  'Done'
 
 end
 
@@ -78,8 +74,6 @@ subroutine map_load_from_disk(filename,map)
   integer                        :: fd(3)
   integer*8                      :: i,k,l
   integer*4                      :: j,n_elements
-
-
 
   if (map % consolidated) then
     stop 'map already consolidated'
