@@ -20,7 +20,7 @@ program e_curve
   double precision, allocatable  :: u_t(:,:), v_t(:,:), s_t(:,:)
   double precision, allocatable  :: u_0(:,:), v_0(:,:)
   allocate(u_t(N_states,N_det),v_t(N_states,N_det),s_t(N_states,N_det))
-  allocate(u_0(N_states,N_det),v_0(N_states,N_det))
+  allocate(u_0(N_det,N_states),v_0(N_det,N_states))
 
   print *,  'Threshold?'
   read(*,*) thresh

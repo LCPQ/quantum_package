@@ -245,12 +245,16 @@ subroutine get_double_excitation(det1,det2,exc,phase,Nint)
         if (j==k) then
           nperm = nperm + popcnt(iand(det1(j,ispin),                 &
               iand( ibset(0_bit_kind,m-1)-1_bit_kind,                &
-              ibclr(-1_bit_kind,n)+1_bit_kind ) ))
+                    ibclr(-1_bit_kind,n)+1_bit_kind ) ))
+! TODO        iand( not(ishft(1_bit_kind,n+1))+1_bit_kind, &
+!                   ishft(1_bit_kind,m)-1_bit_kind)))
         else
           nperm = nperm + popcnt(iand(det1(k,ispin),                 &
               ibset(0_bit_kind,m-1)-1_bit_kind)) 
+! TODO        ishft(1_bit_kind,m)-1_bit_kind)) 
           if (n < bit_kind_size) then
               nperm = nperm + popcnt(iand(det1(j,ispin), ibclr(-1_bit_kind,n) +1_bit_kind))
+! TODO        ishft(1_bit_kind,m)-1_bit_kind)) 
           endif
           do i=j+1,k-1
             nperm = nperm + popcnt(det1(i,ispin))
@@ -365,8 +369,12 @@ subroutine get_mono_excitation(det1,det2,exc,phase,Nint)
       if (j==k) then
         nperm = popcnt(iand(det1(j,ispin),                           &
             iand(ibset(0_bit_kind,m-1)-1_bit_kind,ibclr(-1_bit_kind,n)+1_bit_kind)))
+!TODO       iand( not(ishft(1_bit_kind,n+1))+1_bit_kind, &
+!                 ishft(1_bit_kind,m)-1_bit_kind)))
       else
         nperm = nperm + popcnt(iand(det1(k,ispin),ibset(0_bit_kind,m-1)-1_bit_kind))
+!TODO    nperm = popcnt(iand(det1(k,ispin), ishft(1_bit_kind,m)-1_bit_kind)) + &
+!                popcnt(iand(det1(j,ispin), not(ishft(1_bit_kind,n+1))+1_bit_kind))
         if (n < bit_kind_size) then
             nperm = nperm + popcnt(iand(det1(j,ispin),ibclr(-1_bit_kind,n)+1_bit_kind))
         endif
