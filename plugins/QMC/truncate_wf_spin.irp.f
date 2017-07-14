@@ -1,4 +1,10 @@
-program e_curve
+program truncate
+  read_wf = .True.
+  SOFT_TOUCH read_wf
+  call run
+end
+
+subroutine run
   use bitmasks
   implicit none
   integer :: i,j,k, kk, nab, m, l
@@ -6,9 +12,6 @@ program e_curve
   integer, allocatable :: iorder(:)
   double precision , allocatable :: norm_sort(:)
   double precision :: e_0(N_states)
-  if (.not.read_wf) then
-    stop 'Please set read_wf to true'
-  endif
 
   PROVIDE mo_bielec_integrals_in_map H_apply_buffer_allocated
 
@@ -20,8 +23,6 @@ program e_curve
   double precision, allocatable  :: u_0(:,:), v_0(:,:)
   allocate(u_t(N_states,N_det),v_t(N_states,N_det),s_t(N_states,N_det))
   allocate(u_0(N_det,N_states),v_0(N_det,N_states))
-
-  read(*,*) ci_threshold
 
   norm_sort(0) = 0.d0
   iorder(0) = 0
@@ -100,7 +101,7 @@ program e_curve
     print *,  'Energy', E
     exit
   enddo
-  call wf_of_psi_bilinear_matrix()
+  call wf_of_psi_bilinear_matrix(.True.)
   call save_wavefunction
 
   deallocate (iorder, norm_sort)

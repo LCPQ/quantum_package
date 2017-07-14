@@ -1217,7 +1217,6 @@ subroutine wf_of_psi_bilinear_matrix(truncate)
   integer                        :: idx
   integer, external              :: get_index_in_psi_det_sorted_bit
   double precision               :: norm(N_states)
-  PROVIDE psi_bilinear_matrix
 
   do k=1,N_det
    i = psi_bilinear_matrix_rows(k)

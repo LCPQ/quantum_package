@@ -21,6 +21,6 @@ program qmcpack
   enddo
   call save_mos
   call system('rm '//trim(ezfio_filename)//'/mo_basis/ao_md5')
-  call system('$QP_ROOT/src/qmcpack/qp_convert_qmcpack_to_ezfio.py '//trim(ezfio_filename))
+  call system('$QP_ROOT/src/QMC/qp_convert_qmcpack_to_ezfio.py '//trim(ezfio_filename))
 
 end
