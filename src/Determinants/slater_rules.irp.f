@@ -1503,14 +1503,16 @@ subroutine get_excitation_degree_vector_double_alpha_beta(key1,key2,degree,Nint,
     !DIR$ LOOP COUNT (1000)
     do i=1,sze
       d = 0
+      degree_alpha = 0
+      degree_beta  = 0
       !DIR$ LOOP COUNT MIN(4)
       do m=1,Nint
         d = d + popcnt(xor( key1(m,1,i), key2(m,1)))                 &
               + popcnt(xor( key1(m,2,i), key2(m,2)))
         key_tmp(m,1) = xor(key1(m,1,i),key2(m,1))
         key_tmp(m,2) = xor(key1(m,2,i),key2(m,2))
-        degree_alpha = popcnt(key_tmp(m,1)) 
-        degree_beta  = popcnt(key_tmp(m,2)) 
+        degree_alpha += popcnt(key_tmp(m,1)) 
+        degree_beta  += popcnt(key_tmp(m,2)) 
       enddo
       if(degree_alpha .gt.3 .or. degree_beta .gt.3 )cycle !! no double excitations of same spin
         degree(l) = ishft(d,-1)
@@ -1661,12 +1663,13 @@ subroutine get_excitation_degree_vector_mono_or_exchange_verbose(key1,key2,degre
     do i=1,sze
       d = 0
       exchange_1 = 0
+      exchange_2 = 0
       !DIR$ LOOP COUNT MIN(4)
       do m=1,Nint
         d = d + popcnt(xor( key1(m,1,i), key2(m,1)))                 &
               + popcnt(xor( key1(m,2,i), key2(m,2)))
-        exchange_1 = popcnt(xor(iand(key1(m,1,i),key1(m,2,i)),iand(key2(m,1),key2(m,2))))  
-        exchange_2 = popcnt(iand(xor(key1(m,1,i),key2(m,1)),xor(key1(m,2,i),key2(m,2))))   
+        exchange_1 += popcnt(xor(iand(key1(m,1,i),key1(m,2,i)),iand(key2(m,1),key2(m,2))))  
+        exchange_2 += popcnt(iand(xor(key1(m,1,i),key2(m,1)),xor(key1(m,2,i),key2(m,2))))   
       enddo
       if (d > 4)cycle
       if (d ==4)then  
@@ -2225,7 +2228,7 @@ subroutine get_excitation_degree_spin(key1,key2,degree,Nint)
       degree = sum(popcnt(xorvec(1:4)))
 
     case default
-      do l=1,N_int
+      do l=1,Nint
         xorvec(l) = xor( key1(l), key2(l))
       enddo
       degree = sum(popcnt(xorvec(1:Nint)))
