@@ -101,7 +101,7 @@ subroutine run
     print *,  'Energy', E
     exit
   enddo
-  call wf_of_psi_bilinear_matrix()
+  call wf_of_psi_bilinear_matrix(.True.)
   call save_wavefunction
 
   deallocate (iorder, norm_sort)
