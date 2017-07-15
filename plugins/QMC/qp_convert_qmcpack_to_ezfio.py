@@ -350,7 +350,7 @@ psi_coef = psi_coef[state]
 
 encode = 8*bit_kind
 
-decode = lambda det: ''.join("{0:b}".format(i)[::-1].ljust(encode,'0') for i in det)
+decode = lambda det: ''.join("{0:b}".format(i)[::-1].ljust(encode,'0') for i in det)[:mo_num]
 for coef, (det_a, det_b) in zip(psi_coef, psi_det):
 
         print coef
