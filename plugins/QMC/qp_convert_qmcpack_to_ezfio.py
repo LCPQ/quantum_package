@@ -91,7 +91,7 @@ process = subprocess.Popen(
     stdout=subprocess.PIPE)
 out, err = process.communicate()
 
-basis_raw, sym_raw, _ , det_raw, _ = out.split("\n\n\n")
+basis_raw, sym_raw, _ = out.split("\n\n\n")
 
 #  _                 __        
 # |_)  _.  _ o  _   (_   _ _|_ 
@@ -129,27 +129,24 @@ print "END_BASIS_SET"
 #
 # Function
 #
-def same_character(item1):
-    return item1 == item1[0] * len(item1)
-
+d_gms_order ={ 0:["s"],
+     1:[ "x", "y", "z" ],
+     2:[ "xx", "yy", "zz", "xy", "xz", "yz" ],
+     3:[ "xxx", "yyy", "zzz", "xxy", "xxz", "yyx", "yyz", "zzx", "zzy", "xyz"],
+     4: ["xxxx", "yyyy", "zzzz", "xxxy", "xxxz", "yyyx", "yyyz", "zzzx", "zzzy", "xxyy", "xxzz", "yyzz", "xxyz", "yyxz", "zzxy", "xxxx", "yyyy", "zzzz", "xxxy", "xxxz", "yyyx", "yyyz", "zzzx", "zzzy", "xxyy", "xxzz", "yyzz", "xxyz", "yyxz","zzxy"] }
 
 def compare_gamess_style(item1, item2):
-    if len(item1) < len(item2):
-        return -1
-    elif len(item1) > len(item2):
-        return 1
-    elif same_character(item1) and same_character(item2):
-        if item1 < item2:
-            return -1
-        else:
-            return 1
-    elif same_character(item1) and not same_character(item2):
-        return -1
-    elif not same_character(item1) and same_character(item2):
-        return 1
+    n1,n2 = map(len,(item1,item2))
+    assert (n1 == n2)
+    try:
+        l = d_gms_order[n1]
+    except KeyError:
+        return 0
+#       raise (KeyError, "We dont handle L than 4")
     else:
-        return compare_gamess_style(item1[:-1], item2[:-1])
-
+        a = l.index(item1)
+        b = l.index(item2)
+        return cmp( a, b )
 
 def expend_sym_str(str_):
     #Expend x2 -> xx
@@ -173,18 +170,22 @@ def expend_sym_l(l_l_sym):
     return l_l_sym
 
 
-def get_nb_permutation(str_):
-
-    l = len(str_) - 1
-    if l == 0:
+def n_orbital(n):
+    if n==0:
         return 1
+    elif n==1:
+        return 3
     else:
-        return 2 * (2 * l + 1)
+        return 2*n_orbital(n-1)-n_orbital(n-2)+1
 
+def get_nb_permutation(str_):
+    if (str_) == 's': return 1
+    else: return n_orbital(len(str_))
 
 def order_l_l_sym(l_l_sym):
     n = 1
-    for i in range(len(l_l_sym)):
+    iter_ = range(len(l_l_sym))
+    for i in iter_:
         if n != 1:
             n += -1
             continue 
@@ -195,6 +196,7 @@ def order_l_l_sym(l_l_sym):
         l_l_sym[i:i + n] = sorted(l_l_sym[i:i + n],
                                   key=lambda x: x[2],
                                   cmp=compare_gamess_style)
+
 
     return l_l_sym
 
@@ -330,6 +332,12 @@ if do_pseudo:
 # | \  _ _|_ 
 # |_/ (/_ |_ 
 #
+
+psi_coef = ezfio.get_determinants_psi_coef()
+psi_det = ezfio.get_determinants_psi_det()
+bit_kind = ezfio.get_determinants_bit_kind()
+
+
 print ""
 print "BEGIN_DET"
 print ""
@@ -337,26 +345,22 @@ print "mo_num", mo_num
 print "det_num", n_det
 print ""
 
+state = 0
+psi_coef = psi_coef[state]
 
+encode = 8*bit_kind
 
-token = "Determinants ::"
-pos = det_raw.rfind(token) + len(token)
+def bindigits(n, bits):
+    s = bin(n & int("1"*bits, 2))[2:]
+    return ("{0:0>%s}" % (bits)).format(s)
 
-det_without_header = det_raw[pos+2::]
+decode = lambda det: ''.join(bindigits(i,encode)[::-1] for i in det)[:mo_num]
 
-d_rep={"+":"1","-":"0"}
+for coef, (det_a, det_b) in zip(psi_coef, psi_det):
 
-det_without_header = det_raw[pos+2::]
-
-for line_raw in det_without_header.split("\n"):
-    line = line_raw
-
-    if line_raw:
-        try:
-            float(line)
-        except ValueError:
-            line= "".join([d_rep[x] if x in d_rep else x for x in line_raw])
-
-    print line.strip()
+        print coef
+        print decode(det_a)
+        print decode(det_b)
+        print ''
 
 print "END_DET"
