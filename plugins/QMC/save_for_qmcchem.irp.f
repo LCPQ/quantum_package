@@ -24,13 +24,13 @@ program save_for_qmc
   )
   iunit = 13
   open(unit=iunit,file=trim(ezfio_filename)//'/simulation/e_ref',action='write')
-  call ezfio_has_full_ci_energy_pt2(exists)
+  call ezfio_has_full_ci_zmq_energy_pt2(exists)
   if (exists) then
-    call ezfio_get_full_ci_energy_pt2(e_ref)
+    call ezfio_get_full_ci_zmq_energy_pt2(e_ref)
   else
-    call ezfio_has_full_ci_energy(exists)
+    call ezfio_has_full_ci_zmq_energy(exists)
     if (exists) then
-      call ezfio_get_full_ci_energy(e_ref)
+      call ezfio_get_full_ci_zmq_energy(e_ref)
     else
       call ezfio_has_hartree_fock_energy(exists)
       if (exists) then

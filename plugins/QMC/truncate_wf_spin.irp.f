@@ -1,4 +1,10 @@
-program e_curve
+program truncate
+  read_wf = .True.
+  SOFT_TOUCH read_wf
+  call run
+end
+
+subroutine run
   use bitmasks
   implicit none
   integer :: i,j,k, kk, nab, m, l
@@ -6,24 +12,17 @@ program e_curve
   integer, allocatable :: iorder(:)
   double precision , allocatable :: norm_sort(:)
   double precision :: e_0(N_states)
-  if (.not.read_wf) then
-    stop 'Please set read_wf to true'
-  endif
 
   PROVIDE mo_bielec_integrals_in_map H_apply_buffer_allocated
 
   nab = n_det_alpha_unique+n_det_beta_unique
   allocate ( norm_sort(0:nab), iorder(0:nab) )
 
-  double precision :: thresh
   integer(bit_kind), allocatable :: det_i(:,:), det_j(:,:)
   double precision, allocatable  :: u_t(:,:), v_t(:,:), s_t(:,:)
   double precision, allocatable  :: u_0(:,:), v_0(:,:)
   allocate(u_t(N_states,N_det),v_t(N_states,N_det),s_t(N_states,N_det))
-  allocate(u_0(N_states,N_det),v_0(N_states,N_det))
-
-  print *,  'Threshold?'
-  read(*,*) thresh
+  allocate(u_0(N_det,N_states),v_0(N_det,N_states))
 
   norm_sort(0) = 0.d0
   iorder(0) = 0
@@ -45,19 +44,23 @@ program e_curve
   do j=0,nab
     i = iorder(j)
     if (i<0) then
+      !$OMP PARALLEL DO PRIVATE(k)
       do k=1,n_det
         if (psi_bilinear_matrix_columns(k) == -i) then
           psi_bilinear_matrix_values(k,1) = 0.d0
         endif
       enddo
+      !$OMP END PARALLEL DO
     else
+      !$OMP PARALLEL DO PRIVATE(k)
       do k=1,n_det
         if (psi_bilinear_matrix_rows(k) ==  i) then
           psi_bilinear_matrix_values(k,1) = 0.d0
         endif
       enddo
+      !$OMP END PARALLEL DO
     endif
-    if (thresh > norm_sort(j)) then
+    if (ci_threshold > norm_sort(j)) then
       cycle
     endif
 
@@ -70,7 +73,9 @@ program e_curve
         u_t,                                                           &
         size(u_t, 1),                                                  &
         N_det, N_states)
+    print *, 'Computing H|Psi> ...'
     call H_S2_u_0_nstates_openmp_work(v_t,s_t,u_t,N_states,N_det,1,N_det,0,1)
+    print *, 'Done'
     call dtranspose(                                                   &
         v_t,                                                           &
         size(v_t, 1),                                                  &
@@ -96,7 +101,7 @@ program e_curve
     print *,  'Energy', E
     exit
   enddo
-  call wf_of_psi_bilinear_matrix()
+  call wf_of_psi_bilinear_matrix(.True.)
   call save_wavefunction
 
   deallocate (iorder, norm_sort)
