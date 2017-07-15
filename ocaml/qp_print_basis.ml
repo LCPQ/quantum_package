@@ -53,6 +53,6 @@ let psi_det () =
 
 let () = 
   basis ();
-  mo ();
-  psi_det ()
+  mo ()
+  (* psi_det () *)
 
