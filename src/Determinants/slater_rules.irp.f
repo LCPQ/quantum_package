@@ -43,10 +43,12 @@ subroutine get_excitation_degree(key1,key2,degree,Nint)
       degree = sum(popcnt(xorvec(1:8)))
 
     case default
-      do l=1,ishft(Nint,1)
+      integer :: lmax
+      lmax = ishft(Nint,1)
+      do l=1,lmax
         xorvec(l) = xor( key1(l), key2(l))
       enddo
-      degree = sum(popcnt(xorvec(1:l)))
+      degree = sum(popcnt(xorvec(1:lmax)))
   
   end select
 
