@@ -129,7 +129,6 @@ print "END_BASIS_SET"
 #
 # Function
 #
-# 
 d_gms_order ={ 0:["s"],
      1:[ "x", "y", "z" ],
      2:[ "xx", "yy", "zz", "xy", "xz", "yz" ],
@@ -144,7 +143,9 @@ def compare_gamess_style(item1, item2):
 	except KeyError:
 		raise (KeyError, "We dont handle L than 4")
 	else:
-		return l.index(item1) > l.index(item2)
+		a = l.index(item1)
+		b = l.index(item2)
+		return cmp( a, b )
 
 def expend_sym_str(str_):
     #Expend x2 -> xx
@@ -202,6 +203,7 @@ def order_l_l_sym(l_l_sym):
 #==========================
 # We will order the symetry
 #==========================
+
 l_sym_without_header = sym_raw.split("\n")[3:-2]
 l_l_sym_raw = [i.split() for i in l_sym_without_header]
 l_l_sym_expend_sym = expend_sym_l(l_l_sym_raw)
@@ -343,7 +345,8 @@ pos = det_raw.rfind(token) + len(token)
 
 det_without_header = det_raw[pos+2::]
 
-d_rep={"+":"1","-":"0"}
+from string import maketrans
+trantab = maketrans("+-", "10")
 
 det_without_header = det_raw[pos+2::]
 
@@ -354,7 +357,7 @@ for line_raw in det_without_header.split("\n"):
         try:
             float(line)
         except ValueError:
-            line= "".join(d_rep[x] if x in d_rep else x for x in line_raw)
+           line = line_raw.translate(trantab)
 
     print line.strip()
 
