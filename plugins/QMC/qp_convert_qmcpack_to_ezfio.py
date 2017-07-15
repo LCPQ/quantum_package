@@ -129,27 +129,22 @@ print "END_BASIS_SET"
 #
 # Function
 #
-def same_character(item1):
-    return item1 == item1[0] * len(item1)
-
+# 
+d_gms_order ={ 0:["s"],
+     1:[ "x", "y", "z" ],
+     2:[ "xx", "yy", "zz", "xy", "xz", "yz" ],
+     3:[ "xxx", "yyy", "zzz", "xxy", "xxz", "yyx", "yyz", "zzx", "zzy", "xyz"],
+     4: ["xxxx", "yyyy", "zzzz", "xxxy", "xxxz", "yyyx", "yyyz", "zzzx", "zzzy", "xxyy", "xxzz", "yyzz", "xxyz", "yyxz", "zzxy", "xxxx", "yyyy", "zzzz", "xxxy", "xxxz", "yyyx", "yyyz", "zzzx", "zzzy", "xxyy", "xxzz", "yyzz", "xxyz", "yyxz","zzxy"] }
 
 def compare_gamess_style(item1, item2):
-    if len(item1) < len(item2):
-        return -1
-    elif len(item1) > len(item2):
-        return 1
-    elif same_character(item1) and same_character(item2):
-        if item1 < item2:
-            return -1
-        else:
-            return 1
-    elif same_character(item1) and not same_character(item2):
-        return -1
-    elif not same_character(item1) and same_character(item2):
-        return 1
-    else:
-        return compare_gamess_style(item1[:-1], item2[:-1])
-
+	n1,n2 = map(len,(item1,item2))
+	assert (n1 == n2)
+	try:
+		l = d_gms_order[n1]
+	except KeyError:
+		raise (KeyError, "We dont handle L than 4")
+	else:
+		return l.index(item1) > l.index(item2)
 
 def expend_sym_str(str_):
     #Expend x2 -> xx
@@ -173,18 +168,22 @@ def expend_sym_l(l_l_sym):
     return l_l_sym
 
 
+def n_orbital(n):
+	if n==0:
+		return 1
+	elif n==1:
+		return 3
+	else:
+		return 2*n_orbital(n-1)-n_orbital(n-2)+1
+
 def get_nb_permutation(str_):
-
-    l = len(str_) - 1
-    if l == 0:
-        return 1
-    else:
-        return 2 * (2 * l + 1)
-
+    if (str_) == 's': return 1
+    else: return n_orbital(len(str_))
 
 def order_l_l_sym(l_l_sym):
     n = 1
-    for i in range(len(l_l_sym)):
+    iter_ = range(len(l_l_sym))
+    for i in iter_:
         if n != 1:
             n += -1
             continue 
@@ -196,13 +195,13 @@ def order_l_l_sym(l_l_sym):
                                   key=lambda x: x[2],
                                   cmp=compare_gamess_style)
 
+
     return l_l_sym
 
 
 #==========================
 # We will order the symetry
 #==========================
-
 l_sym_without_header = sym_raw.split("\n")[3:-2]
 l_l_sym_raw = [i.split() for i in l_sym_without_header]
 l_l_sym_expend_sym = expend_sym_l(l_l_sym_raw)
@@ -355,7 +354,7 @@ for line_raw in det_without_header.split("\n"):
         try:
             float(line)
         except ValueError:
-            line= "".join([d_rep[x] if x in d_rep else x for x in line_raw])
+            line= "".join(d_rep[x] if x in d_rep else x for x in line_raw)
 
     print line.strip()
 
