@@ -113,6 +113,8 @@ for i, (a,b) in enumerate(zip(l_label,l_basis_raw)):
     if a not in a_already_print:
         l_basis_clean.append(b.replace('Atom {0}'.format(i + 1), a))
         a_already_print.append(a)
+    else:
+        continue
 
 print "BEGIN_BASIS_SET\n"
 print "\n\n".join(l_basis_clean)
@@ -127,35 +129,26 @@ print "END_BASIS_SET"
 #
 # Function
 #
-def compute_L(str_):
-        return 0 if str_ == 's' else len(str_)
-
-#Total angular momentum -> Angulaar momentun
-d_order_gms ={ 0:["s"],
+d_gms_order ={ 0:["s"],
      1:[ "x", "y", "z" ],
      2:[ "xx", "yy", "zz", "xy", "xz", "yz" ],
      3:[ "xxx", "yyy", "zzz", "xxy", "xxz", "yyx", "yyz", "zzx", "zzy", "xyz"],
-     4:["xxxx", "yyyy", "zzzz", "xxxy", "xxxz", "yyyx", "yyyz", "zzzx", "zzzy", "xxyy", "xxzz", "yyzz", "xxyz", "yyxz", "zzxy", "xxxx", "yyyy", "zzzz", "xxxy", "xxxz", "yyyx", "yyyz", "zzzx", "zzzy", "xxyy", "xxzz", "yyzz", "xxyz", "yyxz","zzxy"] }
-
+     4: ["xxxx", "yyyy", "zzzz", "xxxy", "xxxz", "yyyx", "yyyz", "zzzx", "zzzy", "xxyy", "xxzz", "yyzz", "xxyz", "yyxz", "zzxy", "xxxx", "yyyy", "zzzz", "xxxy", "xxxz", "yyyx", "yyyz", "zzzx", "zzzy", "xxyy", "xxzz", "yyzz", "xxyz", "yyxz","zzxy"] }
 
 def compare_gamess_style(item1, item2):
-	''' Order by total angular momentum first
-	    theb by the special gms order'''
+    n1,n2 = map(len,(item1,item2))
+    assert (n1 == n2)
+    try:
+        l = d_gms_order[n1]
+    except KeyError:
+        return 0
+#       raise (KeyError, "We dont handle L than 4")
+    else:
+        a = l.index(item1)
+        b = l.index(item2)
+        return cmp( a, b )
 
-	n1,n2 = map(compute_L,(item1,item2))
-	if n1 != n2:
-		 return cmp(n1,n2)
-
-	try:
-		l = d_order_gms[n1]
-	except KeyError:
-		return 0
-#		raise (KeyError, "We dont handle L than 4")
-	else:
-		a,b = map(l.index, (item1,item2))
-		return cmp( a, b )
-	
-def expend_angular_momentum(str_):
+def expend_sym_str(str_):
     #Expend x2 -> xx
     # yx2 -> xxy
     for i, c in enumerate(str_):
@@ -167,7 +160,45 @@ def expend_angular_momentum(str_):
             str_ = str_[:i - 1] + str_[i - 1] * n + str_[i + 1:]
 
     #Order by frequency
-    return ''.join(sorted(str_, key=str_.count, reverse=True))
+    return "".join(sorted(str_, key=str_.count, reverse=True))
+
+
+def expend_sym_l(l_l_sym):
+    for l in l_l_sym:
+        l[2] = expend_sym_str(l[2])
+
+    return l_l_sym
+
+
+def n_orbital(n):
+    if n==0:
+        return 1
+    elif n==1:
+        return 3
+    else:
+        return 2*n_orbital(n-1)-n_orbital(n-2)+1
+
+def get_nb_permutation(str_):
+    if (str_) == 's': return 1
+    else: return n_orbital(len(str_))
+
+def order_l_l_sym(l_l_sym):
+    n = 1
+    iter_ = range(len(l_l_sym))
+    for i in iter_:
+        if n != 1:
+            n += -1
+            continue 
+
+        l = l_l_sym[i]
+        n = get_nb_permutation(l[2])
+
+        l_l_sym[i:i + n] = sorted(l_l_sym[i:i + n],
+                                  key=lambda x: x[2],
+                                  cmp=compare_gamess_style)
+
+
+    return l_l_sym
 
 
 #==========================
@@ -176,9 +207,8 @@ def expend_angular_momentum(str_):
 
 l_sym_without_header = sym_raw.split("\n")[3:-2]
 l_l_sym_raw = [i.split() for i in l_sym_without_header]
-l_l_sym_expend_sym =  [ [i,n, expend_angular_momentum(l)] for i,n,l in l_l_sym_raw]
-l_l_sym_ordered = sorted(l_l_sym_expend_sym, key=lambda x: x[2], cmp=compare_gamess_style)
-
+l_l_sym_expend_sym = expend_sym_l(l_l_sym_raw)
+l_l_sym_ordered = order_l_l_sym(l_l_sym_expend_sym)
 
 #========
 #MO COEF
