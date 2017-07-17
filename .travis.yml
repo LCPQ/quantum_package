@@ -13,7 +13,8 @@ addons:
     packages:
     - gfortran
     - gcc
-    - liblapack-dev
+#    - liblapack-dev
+    - libatlas-dev
     - graphviz
 #    - zlib1g-dev
 #    - libgmp3-dev

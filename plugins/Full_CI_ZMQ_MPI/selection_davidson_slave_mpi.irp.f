@@ -54,9 +54,7 @@ subroutine run_wf
       if (is_mpi_master) then
           call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
       endif
-      IRP_IF MIP
-        call MPI_BCAST(n,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr) 
-      IRP_ENDIF
+      call mpi_bcast_psi()
   
       !$OMP PARALLEL PRIVATE(i)
       i = omp_get_thread_num()
@@ -70,7 +68,10 @@ subroutine run_wf
       ! --------
 
       print *,  'Davidson'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      if (is_mpi_master) then
+        call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      endif
+      call mpi_bcast_psi()
       call omp_set_nested(.True.)
       call davidson_slave_tcp(0)
       call omp_set_nested(.False.)
@@ -82,7 +83,10 @@ subroutine run_wf
       ! ---
 
       print *,  'PT2'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      if (is_mpi_master) then
+        call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      endif
+      call mpi_bcast_psi()
   
       logical :: lstop
       lstop = .False.
