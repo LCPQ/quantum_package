@@ -78,7 +78,7 @@ Just type `ninja` if you are in `$QP_ROOT`. The compilation will take approximat
 
 # Note on EZFIO.cfg
 
-##Format specification :
+## Format specification:
 
 ```
 Required:
@@ -105,7 +105,7 @@ Optional:
                               (by default is <module_lower>)
 ```
 
-##Example of EZFIO.cfg:
+## Example of EZFIO.cfg:
 
 ```
 [thresh_SCF]
@@ -150,7 +150,7 @@ Program exited with code 139.
 
 It's caused when we call the DGEMM routine of LAPACK. 
 
-##### Fix
+#### Fix
 
 Set `ulimit -s unlimited`, before runing `qp_run`. It seems to fix the problem.
 
