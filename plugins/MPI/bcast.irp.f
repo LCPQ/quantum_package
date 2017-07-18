@@ -4,10 +4,7 @@ subroutine mpi_bcast_psi()
   BEGIN_DOC
 ! Broadcast the wave function coming from the qp_run scheduler
   END_DOC
-  integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
-  integer, intent(in)            :: worker_id
   integer                        :: ierr
-  character*(256)                :: msg
 
   IRP_IF MPI
     call MPI_BCast(N_states,     1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
