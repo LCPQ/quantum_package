@@ -37,7 +37,8 @@ def get_compilation_option(pwd_cfg, flag_name):
 if __name__ == '__main__':
 
     qpackage_root = os.environ['QP_ROOT']
-    pwd_cfg = os.path.join(qpackage_root, "config/gfortran_example.cfg")
+    pwd_cfg = os.path.join(qpackage_root, "config/ifort_gpi2.cfg")
 
     print get_compilation_option(pwd_cfg, "FC")
     print get_compilation_option(pwd_cfg, "FCFLAGS")
+    print get_compilation_option(pwd_cfg, "GPI2_LIB")
