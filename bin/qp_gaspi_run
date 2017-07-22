@@ -1,0 +1,6 @@
+#!/bin/bash
+
+QP_ROOT=$( cd $(dirname "${BASH_SOURCE}")/..  ; pwd -P )
+source $HOME/.bashrc
+source $QP_ROOT/quantum_package.rc
+exec $QP_ROOT/ocaml/qp_run $@
