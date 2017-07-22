@@ -10,6 +10,7 @@ type t =
 |Na|Mg                              |Al|Si|P |S |Cl|Ar
 |K |Ca|Sc|Ti|V |Cr|Mn|Fe|Co|Ni|Cu|Zn|Ga|Ge|As|Se|Br|Kr
 |Rb|Sr|Y |Zr|Nb|Mo|Tc|Ru|Rh|Pd|Ag|Cd|In|Sn|Sb|Te|I |Xe
+                           |Pt          
 with sexp
 
 let of_string x = 
@@ -69,6 +70,7 @@ let of_string x =
 |  "Te"  |  "Tellurium"   ->  Te
 |  "I"   |  "Iodine"      ->  I
 |  "Xe"  |  "Xenon"       ->  Xe
+|  "Pt"  |  "Platinum"    ->  Pt
 | x -> raise (ElementError ("Element "^x^" unknown"))
 
 
@@ -128,6 +130,7 @@ let to_string = function
 | Te  -> "Te"
 | I   -> "I"
 | Xe  -> "Xe"
+| Pt  -> "Pt"
 
 
 let to_long_string = function
@@ -186,6 +189,7 @@ let to_long_string = function
 | Te  ->  "Tellurium"
 | I   ->  "Iodine"
 | Xe  ->  "Xenon"
+| Pt  ->  "Platinum"
 
 
 let to_charge c = 
@@ -245,6 +249,7 @@ let to_charge c =
   | Te  -> 52
   | I   -> 53
   | Xe  -> 54
+  | Pt  -> 78
   in Charge.of_int result
 
 
@@ -304,6 +309,7 @@ let of_charge c = match (Charge.to_int c) with
 |  52  -> Te
 |  53  -> I
 |  54  -> Xe
+|  78  -> Pt
 | x -> raise (ElementError ("Element of charge "^(string_of_int x)^" unknown"))
 
 
@@ -364,6 +370,7 @@ let covalent_radius x =
   | Te  -> 1.38
   | I   -> 1.39
   | Xe  -> 1.40
+  | Pt  -> 1.30
   in
   Units.angstrom_to_bohr *. (result x)
   |> Positive_float.of_float
@@ -425,6 +432,7 @@ let vdw_radius x =
   | Te  -> 2.06
   | I   -> 1.98
   | Xe  -> 2.16
+  | Pt  -> 1.75
   in
   Units.angstrom_to_bohr *. (result x)
   |> Positive_float.of_float
@@ -486,6 +494,7 @@ let mass x =
   | Te  -> 127.60
   | I   -> 126.90447
   | Xe  -> 131.293
+  | Pt  -> 195.084
   in
   result x
   |> Positive_float.of_float
