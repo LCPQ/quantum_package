@@ -15,7 +15,7 @@ let print_list () =
 let () = 
   Random.self_init ()
 
-let run slave exe ezfio_file =
+let run slave mpi_command exe ezfio_file =
 
 
   (** Check availability of the ports *)
@@ -115,13 +115,17 @@ let run slave exe ezfio_file =
     match Sys.getenv "QP_PREFIX" with
     | Some x -> x^" "
     | None -> ""
+  and mpi_command =
+    match mpi_command with
+    | Some mpirun -> mpirun^" "
+    | None -> ""
   and exe =
     match (List.find ~f:(fun (x,_) -> x = exe) executables) with
     | Some (_,x) -> x^" "
     | None -> assert false
   in
   let exit_code = 
-    match (Sys.command (prefix^exe^ezfio_file)) with
+    match (Sys.command (prefix^mpi_command^exe^ezfio_file)) with
     | 0 -> 0
     | i -> (Printf.printf "Program exited with code %d.\n%!" i; i)
   in
@@ -142,6 +146,8 @@ let spec =
   empty
   +> flag "slave" no_arg
      ~doc:(" Needed for slave tasks")
+  +> flag "mpirun" (optional string)
+     ~doc:(" mpi launcher with its options")
   +> anon ("executable" %: string)
   +> anon ("ezfio_file" %: string)
 ;;
@@ -159,8 +165,8 @@ Executes a Quantum Package binary file among these:\n\n"
     )
   )
   spec
-  (fun slave exe ezfio_file () ->
-    run slave exe ezfio_file
+  (fun slave mpi_command exe ezfio_file () ->
+    run slave mpi_command exe ezfio_file
   )
   |> Command.run   ~version: Git.sha1   ~build_info: Git.message
 

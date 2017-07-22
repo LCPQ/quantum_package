@@ -7,6 +7,7 @@ subroutine mpi_bcast_psi()
   integer                        :: ierr
 
   IRP_IF MPI
+    include 'mpif.h'
     call MPI_BCast(N_states,     1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     call MPI_BCast(N_det,        1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     call MPI_BCast(psi_det_size, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
