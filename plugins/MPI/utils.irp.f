@@ -29,6 +29,7 @@ END_PROVIDER
  PROVIDE MPI_Initialized
 
  IRP_IF MPI
+   include 'mpif.h'
    integer :: ierr
    call mpi_comm_size(MPI_COMM_WORLD, MPI_size, ierr)
    if (ierr /= 0) then
@@ -56,6 +57,7 @@ subroutine qp_mpi_finalize()
   implicit none
   PROVIDE MPI_Initialized
   IRP_IF MPI
+      include 'mpif.h'
       integer :: ierr
       call MPI_Finalize(ierr)
       if (ierr /= 0) then
