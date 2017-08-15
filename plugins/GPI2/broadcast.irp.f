@@ -41,7 +41,7 @@ end
 subroutine broadcast_wf_put(energy)
   implicit none
   BEGIN_DOC
-  ! Segment corresponding to the wave function. This is segment 0.
+  ! Initiates the broadcast of the wave function
   END_DOC
   use bitmasks
   use GASPI
@@ -67,13 +67,13 @@ subroutine broadcast_wf_put(energy)
   res = gaspi_segment_create(seg_id, seg_size(seg_id), GASPI_GROUP_ALL, &
       GASPI_BLOCK, seg_alloc_policy)
   if(res .ne. GASPI_SUCCESS) then
-    write(*,*) "gaspi_create_segment failed"
+    write(*,*) "gaspi_create_segment failed", gaspi_rank, seg_id
     stop -1
   end if
 
   res = gaspi_segment_ptr(seg_id, seg_ptr(seg_id))
   if(res .ne. GASPI_SUCCESS) then
-    write(*,*) "gaspi_segment_ptr failed"
+    write(*,*) "gaspi_segment_ptr failed", gaspi_rank
     stop -1
   end if
 
@@ -84,7 +84,7 @@ subroutine broadcast_wf_put(energy)
 
   res = gaspi_barrier(GASPI_GROUP_ALL, GASPI_BLOCK)
   if(res .ne. GASPI_SUCCESS) then
-     write(*,*) "gaspi_barrier failed"
+     write(*,*) "gaspi_barrier failed", gaspi_rank
      stop -1
   end if
 
@@ -96,13 +96,13 @@ subroutine broadcast_wf_put(energy)
     res = gaspi_segment_create(seg_id, seg_size(seg_id), GASPI_GROUP_ALL, &
         GASPI_BLOCK, seg_alloc_policy)
     if(res .ne. GASPI_SUCCESS) then
-      write(*,*) "gaspi_create_segment failed"
+      write(*,*) "gaspi_create_segment failed", gaspi_rank, seg_id
       stop -1
     end if
 
     res = gaspi_segment_ptr(seg_id, seg_ptr(seg_id))
     if(res .ne. GASPI_SUCCESS) then
-      write(*,*) "gaspi_segment_ptr failed"
+      write(*,*) "gaspi_segment_ptr failed", gaspi_rank
       stop -1
     end if
   end do
@@ -117,7 +117,7 @@ subroutine broadcast_wf_put(energy)
 
   res = gaspi_barrier(GASPI_GROUP_ALL, GASPI_BLOCK)
   if(res .ne. GASPI_SUCCESS) then
-     write(*,*) "gaspi_barrier failed"
+     write(*,*) "gaspi_barrier failed", gaspi_rank
      stop -1
   end if
 
@@ -132,7 +132,7 @@ end
 subroutine broadcast_wf_get(energy)
   implicit none
   BEGIN_DOC
-  ! Segment corresponding to the wave function. This is segment 0.
+  ! Gets the broadcasted wave function
   END_DOC
   use bitmasks
   use GASPI
