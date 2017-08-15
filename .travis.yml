@@ -13,11 +13,9 @@ addons:
     packages:
     - gfortran
     - gcc
-#    - liblapack-dev
-    - libatlas-dev
+    - liblapack-dev
+    - libblas-dev
     - graphviz
-#    - zlib1g-dev
-#    - libgmp3-dev
 
 cache:
   directories:
