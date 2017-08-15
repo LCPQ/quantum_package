@@ -10,13 +10,10 @@ BEGIN_PROVIDER [ integer, ao_num_align ]
 END_PROVIDER 
 
  BEGIN_PROVIDER [ integer, ao_prim_num_max ]
-&BEGIN_PROVIDER [ integer, ao_prim_num_max_align ]
  implicit none
  ao_prim_num_max = 0
  PROVIDE ezfio_filename
  call ezfio_get_ao_basis_ao_prim_num_max(ao_prim_num_max)
- integer :: align_double
- ao_prim_num_max_align = align_double(ao_prim_num_max)
 END_PROVIDER
 
  BEGIN_PROVIDER [ double precision, ao_coef_normalized, (ao_num_align,ao_prim_num_max) ]
