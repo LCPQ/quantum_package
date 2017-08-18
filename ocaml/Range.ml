@@ -1,4 +1,4 @@
-open Core.Std;;
+open Core;;
 
 (* A range is a string of the type:
  * 
@@ -12,7 +12,7 @@ open Core.Std;;
 *)
 
 
-type t = int list with sexp
+type t = int list [@@deriving sexp]
 
 let expand_range r =
   match String.lsplit2 ~on:'-' r with
@@ -71,8 +71,8 @@ let to_string l =
 let test_module () =
   let s = "[72-107,36-53,126-131]" in
   let l = of_string s in
-  print_string s ; print_newline () ;
-  List.iter ~f:(fun x -> Printf.printf "%d, " x) l ; print_newline () ;
-  to_string l |> print_string ;  print_newline () ;
+  print_string s ; Out_channel.newline stdout ;
+  List.iter ~f:(fun x -> Printf.printf "%d, " x) l ; Out_channel.newline stdout ;
+  to_string l |> print_string ;  Out_channel.newline stdout
 ;;
 

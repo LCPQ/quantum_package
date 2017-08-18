@@ -5,7 +5,7 @@
   * where each int64 is a list of 64 MOs. When the bit is set
   * to 1, the MO is occupied.
   *)
-type t = int64 array with sexp
+type t = int64 array [@@deriving sexp]
 
 (** Transform to an int64 array *)
 val to_int64_array : t -> int64 array

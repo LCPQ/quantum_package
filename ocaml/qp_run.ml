@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Qputils
 
 (* Environment variables :
@@ -132,7 +132,7 @@ let run slave exe ezfio_file =
     Sys.remove qp_run_address_filename;
 
   let duration = Time.diff (Time.now()) time_start 
-  |> Core.Span.to_string in
+  |> Time.Span.to_string in
   Printf.printf "Wall time : %s\n\n" duration;
   if (exit_code <> 0) then
     exit exit_code

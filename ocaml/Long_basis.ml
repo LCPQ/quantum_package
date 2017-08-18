@@ -1,7 +1,7 @@
-open Core.Std;;
+open Core;;
 open Qptypes;;
 
-type t = (Symmetry.Xyz.t * Gto.t * Nucl_number.t ) list with sexp
+type t = (Symmetry.Xyz.t * Gto.t * Nucl_number.t ) list [@@deriving sexp]
 
 let of_basis b =
   let rec do_work accu = function

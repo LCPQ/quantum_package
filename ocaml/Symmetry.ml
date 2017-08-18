@@ -1,7 +1,7 @@
 open Qptypes
-open Core.Std
+open Core
 
-type t = S|P|D|F|G|H|I|J|K|L with sexp
+type t = S|P|D|F|G|H|I|J|K|L [@@deriving sexp]
 
 let to_string = function
   | S -> "S"
@@ -77,7 +77,7 @@ type st = t
 module Xyz = struct
   type t = { x: Positive_int.t ;
              y: Positive_int.t ;
-             z: Positive_int.t } with sexp
+             z: Positive_int.t } [@@deriving sexp]
   type state_type = Null | X | Y | Z
 
   (** Builds an XYZ triplet from a string.

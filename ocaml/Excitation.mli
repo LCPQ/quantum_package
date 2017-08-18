@@ -18,7 +18,7 @@ module Particle :
 type t =
   | Single of Hole.t * Particle.t
   | Double of Hole.t * Particle.t * Hole.t * Particle.t
-with sexp
+[@@deriving sexp]
 
 val create_single : hole:MO_class.t -> particle:MO_class.t -> t
 

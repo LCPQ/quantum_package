@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 
 exception AtomError of string
 
@@ -6,7 +6,7 @@ type t =
 { element : Element.t ;
   charge  : Charge.t ;
   coord   : Point3d.t ;
-} with sexp
+} [@@deriving sexp]
 
 (** Read xyz coordinates of the atom *)
 let of_string ~units s =

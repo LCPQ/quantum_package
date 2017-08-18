@@ -1,7 +1,7 @@
-open Core.Std;;
+open Core;;
 open Qptypes;;
 
-type t = int64 array with sexp
+type t = int64 array [@@deriving sexp]
 
 let to_int64_array (x:t) = (x:int64 array)
 

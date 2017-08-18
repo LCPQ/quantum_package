@@ -4,7 +4,7 @@ type t =
   | Active   of Qptypes.MO_number.t list
   | Virtual  of Qptypes.MO_number.t list
   | Deleted  of Qptypes.MO_number.t list
-with sexp
+[@@deriving sexp]
 
 
 (** Create different excitation classes *)

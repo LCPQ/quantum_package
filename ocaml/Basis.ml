@@ -1,7 +1,7 @@
-open Core.Std
+open Core
 open Qptypes
 
-type t = (Gto.t * Nucl_number.t) list with sexp
+type t = (Gto.t * Nucl_number.t) list [@@deriving sexp]
 
 (** Read all the basis functions of an element *)
 let read in_channel at_number =

@@ -1,4 +1,4 @@
-open Core.Std;;
+open Core;;
 open Qptypes;;
 
 let to_md5 sexp_of_t t =

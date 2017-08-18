@@ -1,4 +1,4 @@
-open Core.Std;;
+open Core;;
 
 type t =
 | Guess
@@ -7,7 +7,7 @@ type t =
 | Localized
 | Orthonormalized
 | None
-with sexp
+[@@deriving sexp]
 ;;
 
 let to_string = function

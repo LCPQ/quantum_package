@@ -2,7 +2,7 @@ type t =
 { x : float;
   y : float;
   z : float;
-} with sexp
+} [@@deriving sexp]
 
 (** Create from a tuple of floats *)
 val of_tuple  : units:Units.units -> float*float*float -> t

@@ -4,7 +4,7 @@ type t = {
   nuclei     : Atom.t list;
   elec_alpha : Qptypes.Elec_alpha_number.t;
   elec_beta  : Qptypes.Elec_beta_number.t;
-} with sexp
+} [@@deriving sexp]
 
 (** Returns the charge of the molecule *)
 val get_charge       : t -> Charge.t

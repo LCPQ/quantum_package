@@ -5,7 +5,7 @@ type t =
   | Localized
   | Orthonormalized
   | None
-with sexp
+[@@deriving sexp]
 
 (** String representation *)
 val to_string : t -> string

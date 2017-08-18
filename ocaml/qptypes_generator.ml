@@ -1,4 +1,4 @@
-open Core.Std;;
+open Core;;
 
 let input_data = "
 * Positive_float : float  
@@ -160,14 +160,14 @@ let input_ezfio = "
 
 let untouched = "
 module MO_guess : sig
-  type t with sexp
+  type t [@@deriving sexp]
   val to_string : t -> string
   val of_string : string -> t
 end = struct
   type t = 
   | Huckel
   | HCore
-  with sexp
+  [@@deriving sexp]
 
   let to_string = function
   | Huckel -> \"Huckel\"
@@ -182,7 +182,7 @@ end = struct
 end
 
 module Disk_access : sig
-  type t with sexp
+  type t [@@deriving sexp]
   val to_string : t -> string
   val of_string : string -> t
 end = struct
@@ -190,7 +190,7 @@ end = struct
   | Read
   | Write
   | None
-  with sexp
+  [@@deriving sexp]
 
   let to_string = function
   | Read   -> \"Read\"
@@ -210,12 +210,12 @@ end
 
 let template = format_of_string "
 module %s : sig
-  type t with sexp
+  type t [@@deriving sexp]
   val to_%s : t -> %s
   val of_%s : %s %s -> t
   val to_string : t -> string
 end = struct
-  type t = %s with sexp
+  type t = %s [@@deriving sexp]
   let to_%s x = x
   let of_%s %s x = ( %s x )
   let to_string x = %s.to_string x
@@ -225,7 +225,7 @@ end
 ;;
 
 let parse_input input=
-  print_string "open Core.Std;;\nlet warning = print_string;;\n" ;
+  print_string "open Core;;\nlet warning = print_string;;\n" ;
   let rec parse result = function
     | [] -> result
     | ( "" , ""   )::tail -> parse result tail
@@ -255,13 +255,13 @@ let parse_input input=
 
 let ezfio_template = format_of_string "
 module %s : sig
-  type t with sexp
+  type t [@@deriving sexp]
   val to_%s : t -> %s
   val get_max : unit -> %s
   val of_%s : ?min:%s -> ?max:%s -> %s -> t
   val to_string : t -> string
 end = struct
-  type t = %s with sexp
+  type t = %s [@@deriving sexp]
   let to_string x = %s.to_string x
   let get_max () =
     if (Ezfio.has_%s ()) then

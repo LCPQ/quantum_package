@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Qptypes
 
 exception GTO_Read_Failure of string
@@ -11,7 +11,7 @@ type fmt =
 type t =
 { sym  : Symmetry.t ;
   lc   : ((GaussianPrimitive.t * AO_coef.t) list)
-} with sexp
+} [@@deriving sexp]
 
 
 let of_prim_coef_list pc =
