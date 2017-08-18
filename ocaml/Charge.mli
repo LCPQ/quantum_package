@@ -1,4 +1,4 @@
-type t = float with sexp
+type t = float [@@deriving sexp]
 
 (** Float conversion functions *)
 val to_float : t -> float

@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Qptypes
 
 
@@ -7,7 +7,7 @@ module GaussianPrimitive_local : sig
   type t = { 
     expo    : AO_expo.t ;
     r_power : R_power.t ;
-  } with sexp
+  } [@@deriving sexp]
 
   val of_expo_r_power : AO_expo.t -> R_power.t -> t
   val to_string : t -> string
@@ -17,7 +17,7 @@ end = struct
   type t = { 
     expo    : AO_expo.t ;
     r_power : R_power.t ;
-  } with sexp
+  } [@@deriving sexp]
 
   let of_expo_r_power dz n = 
      { expo = dz ; r_power = n }
@@ -35,7 +35,7 @@ module GaussianPrimitive_non_local : sig
     expo    : AO_expo.t ;
     r_power : R_power.t ;
     proj    : Positive_int.t
-  } with sexp
+  } [@@deriving sexp]
 
   val of_proj_expo_r_power : Positive_int.t -> AO_expo.t -> R_power.t -> t
   val to_string : t -> string
@@ -46,7 +46,7 @@ end = struct
     expo    : AO_expo.t ;
     r_power : R_power.t ;
     proj    : Positive_int.t
-  } with sexp
+  } [@@deriving sexp]
 
   let of_proj_expo_r_power p dz n = 
      { expo = dz ; r_power = n ; proj = p }
@@ -66,7 +66,7 @@ type t = {
   n_elec    : Positive_int.t ;
   local     : (GaussianPrimitive_local.t * AO_coef.t ) list ;
   non_local : (GaussianPrimitive_non_local.t * AO_coef.t ) list 
-} with sexp
+} [@@deriving sexp]
 
 let empty e =
   { element   = e;

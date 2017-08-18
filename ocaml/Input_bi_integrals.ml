@@ -1,6 +1,6 @@
 open Qptypes;;
 open Qputils;;
-open Core.Std;;
+open Core;;
 
 module Bielec_integrals : sig
   type t = 
@@ -11,7 +11,7 @@ module Bielec_integrals : sig
       threshold_ao       : Threshold.t;
       threshold_mo       : Threshold.t;
       direct             : bool;
-    } with sexp
+    } [@@deriving sexp]
   ;;
   val read  : unit -> t option
   val write : t -> unit
@@ -27,7 +27,7 @@ end = struct
       threshold_ao       : Threshold.t;
       threshold_mo       : Threshold.t;
       direct             : bool;
-    } with sexp
+    } [@@deriving sexp]
   ;;
 
   let get_default = Qpackage.get_ezfio_default "bielec_integrals";;

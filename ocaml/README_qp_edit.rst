@@ -19,7 +19,7 @@ of the block.
          r_y    : Y_type.t
         ...
          last_r : bool
-      } with sexp
+      } [@@deriving sexp]
     ;;
     val read  : unit -> t
     val write : t -> unit
@@ -31,7 +31,7 @@ of the block.
          r_y    : Y_type.t
         ...
          last_r : bool
-      } with sexp
+      } [@@deriving sexp]
     ;;
 
     let get_default = Qpackage.get_ezfio_default "new_keyword";;

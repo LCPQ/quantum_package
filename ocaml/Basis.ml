@@ -1,7 +1,7 @@
-open Core.Std
+open Sexplib.Std
 open Qptypes
 
-type t = (Gto.t * Nucl_number.t) list with sexp
+type t = (Gto.t * Nucl_number.t) list [@@deriving sexp]
 
 (** Read all the basis functions of an element *)
 let read in_channel at_number =
@@ -16,7 +16,7 @@ let read in_channel at_number =
 
 (** Find an element in the basis set file *)
 let find in_channel element =
-  In_channel.seek in_channel 0L;
+  seek_in in_channel 0;
   let element_read = ref Element.X in
   while !element_read <> element
   do
@@ -56,13 +56,13 @@ let to_string_general ~fmt ~atom_sep ?ele_array b =
     do_work ((Gto.to_string ~fmt g)::accu) n tail
   in
   do_work [new_nucleus 1] 1 b
-  |> String.concat ~sep:"\n"
+  |> String.concat "\n"
 
 let to_string_gamess ?ele_array =
     to_string_general ?ele_array ~fmt:Gto.Gamess ~atom_sep:""
 
 let to_string_gaussian ?ele_array b =
-  String.concat ~sep:"\n"
+  String.concat "\n"
   [ to_string_general ?ele_array ~fmt:Gto.Gaussian ~atom_sep:"****" b ; "****" ]
 
 let to_string ?(fmt=Gto.Gamess) =

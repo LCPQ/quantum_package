@@ -1,6 +1,6 @@
 open Qptypes
 open Qputils
-open Core.Std
+open Core
 
 type t_mo = 
     { mo_tot_num      : MO_number.t ;
@@ -9,7 +9,7 @@ type t_mo =
       mo_occ          : MO_occ.t array;
       mo_coef         : (MO_coef.t array) array;
       ao_md5          : MD5.t;
-    } with sexp
+    } [@@deriving sexp]
 
 module Mo_basis : sig
   type t = t_mo
