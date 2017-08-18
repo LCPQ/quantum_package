@@ -75,7 +75,8 @@ source ${HOME}/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true
 
 
 NCPUs=$(cat /proc/cpuinfo  | grep -i  MHz | wc -l)
-${QP_ROOT}/bin/opam install -j ${NCPUs} stdint.0.4.2 ZMQ -y -q || exit 1
+${QP_ROOT}/bin/opam install -j ${NCPUs} stdint.0.4.2 -y -q || exit 1
+${QP_ROOT}/bin/opam install -j ${NCPUs} ZMQ -y -q || exit 1
 ${QP_ROOT}/bin/opam install -j ${NCPUs} ${PACKAGES} -y -q || exit 1
 
 rm -f ../_build/ocaml.log
