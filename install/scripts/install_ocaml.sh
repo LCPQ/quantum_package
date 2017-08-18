@@ -64,9 +64,8 @@ fi
 cd Downloads || exit 1
 chmod +x  ocaml.sh || exit 1
 
-echo N | ./ocaml.sh ${QP_ROOT}/bin/ || exit 1
+echo N | ./ocaml.sh ${QP_ROOT}/bin/ 4.02.3 || exit 1
 
-${QP_ROOT}/bin/opam switch 4.02.1 || exit 1
 ${QP_ROOT}/bin/opam config setup -a -q || exit 1
 
 export LD_LIBRARY_PATH=${QP_ROOT}/lib:${LD_LIBRARY_PATH}
