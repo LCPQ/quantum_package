@@ -1,5 +1,5 @@
 open Qptypes
-open Core
+open Sexplib.Std
 
 type t = S|P|D|F|G|H|I|J|K|L [@@deriving sexp]
 
@@ -86,7 +86,7 @@ module Xyz = struct
     let flush state accu number =
       let n = 
         if (number = "") then 1
-        else (Int.of_string number) 
+        else (int_of_string number) 
       in
       match state with
       | X -> { x= Positive_int.(of_int ( (to_int accu.x) +n));
@@ -111,10 +111,9 @@ module Xyz = struct
     | 'Z'::rest | 'z'::rest -> 
         let new_accu = flush state accu number in 
         do_work Z new_accu "" rest
-    | c::rest -> do_work state accu (number^(String.of_char c)) rest
+    | c::rest -> do_work state accu (number^(String_ext.of_char c)) rest
     in
-    String.to_list_rev s 
-    |> List.rev 
+    String_ext.to_list s 
     |> do_work Null 
      { x=Positive_int.of_int 0 ; 
        y=Positive_int.of_int 0 ;

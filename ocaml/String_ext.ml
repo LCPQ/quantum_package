@@ -2,6 +2,8 @@ include String
 
 (** Split a string on a given character *)
 let split ?(on=' ') str = 
+  split_on_char on str
+(*
     let rec do_work ?(accu=[]) ?(left="") = function
     | "" -> List.rev (left::accu)
     | s  ->
@@ -21,6 +23,7 @@ let split ?(on=' ') str =
             do_work ~accu ~left:new_left new_s
     in
     do_work str
+*)
   
 
 (** Strip blanks on the left of a string *)
@@ -101,12 +104,39 @@ let rsplit2_exn ?(on=' ') s =
     do_work length
 
 
+let lsplit2 ?(on=' ') s =
+  try
+    Some (lsplit2_exn ~on s) 
+  with
+  | Not_found -> None
+
+
+let rsplit2 ?(on=' ') s =
+  try
+    Some (rsplit2_exn ~on s) 
+  with
+  | Not_found -> None
+
+
 let to_list s =
   Array.init (String.length s) (fun i -> s.[i])
   |> Array.to_list
 
+
 let fold ~init ~f s =
     to_list s
     |> List.fold_left f init 
-  
 
+  
+let is_prefix ~prefix s =
+  let len =
+    String.length prefix
+  in
+  if len > String.length s then
+    false
+  else
+    prefix = String.sub s 0 len 
+
+
+let of_char c =
+  String.make 1 c

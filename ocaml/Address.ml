@@ -1,4 +1,3 @@
-open Core
 
 module Tcp : sig
   type t 
@@ -8,7 +7,7 @@ module Tcp : sig
 end = struct
   type t = string
   let of_string x =
-    if not (String.is_prefix ~prefix:"tcp://" x) then
+    if not (String_ext.is_prefix ~prefix:"tcp://" x) then
       invalid_arg "Address Invalid"
     ;
     x
@@ -26,7 +25,7 @@ module Ipc : sig
 end = struct
   type t = string
   let of_string x =
-    assert (String.is_prefix ~prefix:"ipc://" x);
+    assert (String_ext.is_prefix ~prefix:"ipc://" x);
     x
   let create name =
     Printf.sprintf "ipc://%s" name
@@ -41,7 +40,7 @@ module Inproc : sig
 end = struct
   type t = string
   let of_string x =
-    assert (String.is_prefix ~prefix:"inproc://" x);
+    assert (String_ext.is_prefix ~prefix:"inproc://" x);
     x
   let create name =
     Printf.sprintf "inproc://%s" name

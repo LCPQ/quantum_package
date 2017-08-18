@@ -1,4 +1,10 @@
-open Core;;
+let global_replace x = 
+  x
+  |> Str.global_replace (Str.regexp "Float.to_string") "string_of_float"
+  |> Str.global_replace (Str.regexp "Float.of_string") "float_of_string"
+  |> Str.global_replace (Str.regexp "Int.to_string") "string_of_int"
+  |> Str.global_replace (Str.regexp "Int.of_string") "int_of_string"
+  |> Str.global_replace (Str.regexp "String.\(to\|of\)_string") ""
 
 let input_data = "
 * Positive_float : float  
@@ -118,8 +124,12 @@ let input_data = "
 
 * MD5 : string
   assert ((String.length x) = 32);
-  assert (String.fold x ~init:true ~f:(fun accu x ->
-     accu && (x < 'g')));
+  assert (
+    let a =
+      Array.init (String.length x) (fun i -> x.[i])
+    in
+    Array.fold_left (fun accu x -> accu && (x < 'g')) true a
+    );
 
 * Rst_string : string
 
@@ -127,7 +137,7 @@ let input_data = "
   assert (x <> \"\") ;
 
 "
-;;
+
 
 let input_ezfio = "
 * MO_number : int
@@ -156,7 +166,7 @@ let input_ezfio = "
   More than 10 billion of determinants
 
 "
-;;
+
 
 let untouched = "
 module MO_guess : sig
@@ -206,7 +216,7 @@ end = struct
 end
 "
 
-;;
+
 
 let template = format_of_string "
 module %s : sig
@@ -222,35 +232,36 @@ end = struct
 end
 
 "
-;;
+
 
 let parse_input input=
-  print_string "open Core;;\nlet warning = print_string;;\n" ;
+  print_string "open Sexplib.Std\nlet warning = print_string\n" ;
   let rec parse result = function
     | [] -> result
     | ( "" , ""   )::tail -> parse result tail
     | ( t  , text )::tail -> 
         let name,typ,params,params_val = 
-          match String.split ~on:':' t with
+          match String_ext.split ~on:':' t with
           | [name;typ] -> (name,typ,"","")
           | name::typ::params::params_val -> (name,typ,params,
-            (String.concat params_val ~sep:":") )
+            (String.concat ":" params_val) )
           | _ -> assert false
         in
-        let typ  = String.strip typ
-        and name = String.strip name in
+        let typ  = String_ext.strip typ
+        and name = String_ext.strip name in
         let typ_cap = String.capitalize typ in
         let newstring = Printf.sprintf template name typ typ typ params_val typ typ 
-          typ typ params ( String.strip text ) typ_cap
+          typ typ params ( String_ext.strip text ) typ_cap
         in
         List.rev (parse (newstring::result) tail )
   in
-     String.split ~on:'*' input
-  |> List.map ~f:(String.lsplit2_exn ~on:'\n') 
+     String_ext.split ~on:'*' input
+  |> List.map (String_ext.lsplit2_exn ~on:'\n') 
   |> parse []
-  |> String.concat 
+  |> String.concat  ""
+  |> global_replace
   |> print_string
-;;
+
 
 
 let ezfio_template = format_of_string "
@@ -287,24 +298,24 @@ end = struct
     end
 end
 "
-;;
+
 
 let parse_input_ezfio input=
   let parse s = 
     match (
-      String.split s ~on:'\n'
-      |> List.filter ~f:(fun x -> (String.strip x) <> "")
+      String_ext.split s ~on:'\n'
+      |> List.filter (fun x -> (String_ext.strip x) <> "")
     ) with
     | [] -> ""
     | a :: b :: c :: d :: [] ->
       begin
-        let (name,typ) = String.lsplit2_exn ~on:':' a
+        let (name,typ) = String_ext.lsplit2_exn ~on:':' a
         and ezfio_func = b
-        and (min, max) = String.lsplit2_exn ~on:':' c
+        and (min, max) = String_ext.lsplit2_exn ~on:':' c
         and msg = d
         in 
         let (name, typ, ezfio_func, min, max, msg) = 
-        match (List.map [ name ; typ ; ezfio_func ; min ; max ; msg ] ~f:String.strip) with
+        match List.map String_ext.strip [ name ; typ ; ezfio_func ; min ; max ; msg ] with
         | [ name ; typ ; ezfio_func ; min ; max ; msg ] -> (name, typ, ezfio_func, min, max, msg)
         | _ -> assert false
         in
@@ -314,16 +325,17 @@ let parse_input_ezfio input=
       end
     | _ -> failwith "Error in input_ezfio"
   in
-     String.split ~on:'*' input
-  |> List.map ~f:parse
-  |> String.concat 
+     String_ext.split ~on:'*' input
+  |> List.map parse
+  |> String.concat ""
+  |> global_replace
   |> print_string
-;;
+
 
 let () = 
   parse_input input_data ;
   parse_input_ezfio input_ezfio;
-  print_endline untouched;
+  print_endline untouched
 
 
 
