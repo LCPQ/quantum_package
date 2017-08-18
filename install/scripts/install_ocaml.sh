@@ -70,7 +70,7 @@ ${QP_ROOT}/bin/opam config setup -a -q || exit 1
 
 export LD_LIBRARY_PATH=${QP_ROOT}/lib:${LD_LIBRARY_PATH}
 export LIBRARY_PATH=${QP_ROOT}/lib:${LIBRARY_PATH}
-export C_INCLUDE_PATH=${QP_ROOT}/lib:${C_INCLUDE_PATH}
+export C_INCLUDE_PATH=${QP_ROOT}/lib:${QP_ROOT}/include:$(ocamlopt -where)/../../include/ocaml_stdint:${C_INCLUDE_PATH}
 source ${HOME}/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true
 
 
