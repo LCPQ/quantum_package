@@ -543,7 +543,7 @@ def create_ocaml_input(dict_ezfio_cfg, module_lower):
 
     template += ["open Qptypes;;",
                  "open Qputils;;",
-                 "open Core.Std;;",
+                 "open Core;;",
                  "",
                  "module {0} : sig".format(module_lower.capitalize())]
 
