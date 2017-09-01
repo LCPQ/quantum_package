@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Welcom the ei_handler.
+Welcome to the ei_handler.
 We will create all the ezfio related stuff from a EZFIO.cfg file.
 
 Usage:

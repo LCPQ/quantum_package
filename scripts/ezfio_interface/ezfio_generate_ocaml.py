@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """
-This programme generate all the
-ocaml template needed by qp_edit
+This program generates all the
+OCaml templates needed by qp_edit
 
 You can see `ezfio_generate_provider.py`
-for an example of utilisation
+for an example.
 """
 
 import sys
