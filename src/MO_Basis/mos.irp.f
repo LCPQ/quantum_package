@@ -153,32 +153,39 @@ BEGIN_PROVIDER [ double precision, mo_occ, (mo_tot_num) ]
   endif
 END_PROVIDER
 
+
 subroutine ao_to_mo(A_ao,LDA_ao,A_mo,LDA_mo)
   implicit none
   BEGIN_DOC
   ! Transform A from the AO basis to the MO basis
   !
-  ! C.A_ao.Ct
+  ! (S.C)t.A_ao.S.C
   END_DOC
   integer, intent(in)            :: LDA_ao,LDA_mo
   double precision, intent(in)   :: A_ao(LDA_ao)
   double precision, intent(out)  :: A_mo(LDA_mo)
-  double precision, allocatable  :: T(:,:)
+  double precision, allocatable  :: T(:,:), SC(:,:)
   
+  allocate ( SC(ao_num_align,mo_tot_num) )
   allocate ( T(ao_num_align,mo_tot_num) )
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
   
-  call dgemm('N','N', ao_num, mo_tot_num, ao_num,                    &
-      1.d0, A_ao,LDA_ao,                                             &
+  call dgemm('N','N', ao_num, ao_num, mo_tot_num,                    &
+      1.d0, ao_overlap,size(ao_overlap,1),                           &
       mo_coef, size(mo_coef,1),                                      &
-      0.d0, T, ao_num_align)
+      0.d0, SC, ao_num_align)
   
-  call dgemm('T','N', mo_tot_num, mo_tot_num, ao_num,                &
-      1.d0, mo_coef,size(mo_coef,1),                                 &
-      T, ao_num_align,                                               &
-      0.d0, A_mo, LDA_mo)
+  call dgemm('T','N', ao_num, mo_tot_num, ao_num,                    &
+      1.d0, SC, size(SC,1),                                          &
+      A_ao, size(A_ao,1),                                            &
+      0.d0, T, size(T,1))
   
-  deallocate(T)
+  call dgemm('N','N', ao_num, mo_tot_num, ao_num,                    &
+      1.d0, T,size(T,1),                                             &
+      SC, size(SC,1),                                                &
+      0.d0, A_mo, size(A_mo,1))
+  
+  deallocate(T,SC)
 end
 
 subroutine mo_to_ao(A_mo,LDA_mo,A_ao,LDA_ao)
@@ -186,39 +193,7 @@ subroutine mo_to_ao(A_mo,LDA_mo,A_ao,LDA_ao)
   BEGIN_DOC
   ! Transform A from the MO basis to the AO basis
   !
-  ! (S.C).A_mo.(S.C)t
-  END_DOC
-  integer, intent(in)            :: LDA_ao,LDA_mo
-  double precision, intent(in)   :: A_mo(LDA_mo)
-  double precision, intent(out)  :: A_ao(LDA_ao)
-  double precision, allocatable  :: T(:,:), SC(:,:)
-  
-  allocate ( SC(ao_num_align,mo_tot_num) )
-  allocate ( T(mo_tot_num_align,ao_num) )
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
-  
-  call dgemm('N','N', ao_num, mo_tot_num, ao_num,                    &
-      1.d0, ao_overlap,size(ao_overlap,1),                           &
-      mo_coef, size(mo_coef,1),                                      &
-      0.d0, SC, ao_num_align)
-  
-  call dgemm('N','T', mo_tot_num, ao_num, mo_tot_num,                &
-      1.d0, A_mo,LDA_mo,                                             &
-      SC, size(SC,1),                                      &
-      0.d0, T, mo_tot_num_align)
-  
-  call dgemm('N','N', ao_num, ao_num, mo_tot_num,                    &
-      1.d0, SC,size(SC,1),                                 &
-      T, mo_tot_num_align,                                           &
-      0.d0, A_ao, LDA_ao)
-  
-  deallocate(T,SC)
-end
-
-subroutine mo_to_ao_no_overlap(A_mo,LDA_mo,A_ao,LDA_ao)
-  implicit none
-  BEGIN_DOC
-  ! Transform A from the MO basis to the S^-1 AO basis
+  ! C.A_mo.Ct
   END_DOC
   integer, intent(in)            :: LDA_ao,LDA_mo
   double precision, intent(in)   :: A_mo(LDA_mo)
@@ -231,15 +206,16 @@ subroutine mo_to_ao_no_overlap(A_mo,LDA_mo,A_ao,LDA_ao)
   call dgemm('N','T', mo_tot_num, ao_num, mo_tot_num,                &
       1.d0, A_mo,LDA_mo,                                             &
       mo_coef, size(mo_coef,1),                                      &
-      0.d0, T, mo_tot_num_align)
+      0.d0, T, size(T,1))
   
   call dgemm('N','N', ao_num, ao_num, mo_tot_num,                    &
       1.d0, mo_coef,size(mo_coef,1),                                 &
-      T, mo_tot_num_align,                                           &
-      0.d0, A_ao, LDA_ao)
+      T, size(T,1),                                                  &
+      0.d0, A_ao, size(A_ao,1))
   
   deallocate(T)
 end
+
 
 subroutine mix_mo_jk(j,k)
  implicit none

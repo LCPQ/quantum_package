@@ -157,7 +157,7 @@ let of_xyz_file
           | _ -> raise XYZError
         end;
         String.concat "\n" rest
-    | _ -> failwith ("Problem in xyz file "^filename)
+    | _ -> raise XYZError
   in
   of_xyz_string ~charge:charge ~multiplicity:multiplicity 
     ~units:units lines
