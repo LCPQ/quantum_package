@@ -1,4 +1,4 @@
-BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral, (ao_num_align,ao_num)]
+BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral, (ao_num,ao_num)]
    BEGIN_DOC
    ! interaction nuclear electron
    END_DOC
@@ -80,7 +80,7 @@ BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral, (ao_num_align,ao_num)]
    
 END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral_per_atom, (ao_num_align,ao_num,nucl_num)]
+ BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral_per_atom, (ao_num,ao_num,nucl_num)]
  BEGIN_DOC
 ! ao_nucl_elec_integral_per_atom(i,j,k) = -<AO(i)|1/|r-Rk|AO(j)> 
 ! where Rk is the geometry of the kth atom

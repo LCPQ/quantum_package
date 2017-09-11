@@ -83,6 +83,7 @@ END_DOC
 !   Calculate error vectors
 
     max_error_DIIS = maxval(Abs(FPS_SPF_Matrix_MO))
+!    max_error_DIIS = maxval(Abs(FPS_SPF_Matrix_AO))
 
 !   SCF energy
 

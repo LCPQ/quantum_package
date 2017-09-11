@@ -26,7 +26,7 @@ BEGIN_PROVIDER [ integer, mo_tot_num_align ]
 END_PROVIDER
 
 
- BEGIN_PROVIDER [ double precision, mo_coef, (ao_num_align,mo_tot_num) ]
+BEGIN_PROVIDER [ double precision, mo_coef, (ao_num_align,mo_tot_num) ]
   implicit none
   BEGIN_DOC
   ! Molecular orbital coefficients on AO basis set
@@ -125,7 +125,7 @@ BEGIN_PROVIDER [ double precision, S_mo_coef, (ao_num_align, mo_tot_num) ]
  END_DOC
 
  call dgemm('N','N', ao_num, mo_tot_num, ao_num,                   &
-     1.d0, ao_overlap,size(ao_overlap,1),      &
+     1.d0, ao_overlap,size(ao_overlap,1),                          &
      mo_coef, size(mo_coef,1),                                     &
      0.d0, S_mo_coef, size(S_mo_coef,1))
 
@@ -162,30 +162,23 @@ subroutine ao_to_mo(A_ao,LDA_ao,A_mo,LDA_mo)
   ! (S.C)t.A_ao.S.C
   END_DOC
   integer, intent(in)            :: LDA_ao,LDA_mo
-  double precision, intent(in)   :: A_ao(LDA_ao)
-  double precision, intent(out)  :: A_mo(LDA_mo)
-  double precision, allocatable  :: T(:,:), SC(:,:)
+  double precision, intent(in)   :: A_ao(LDA_ao,ao_num)
+  double precision, intent(out)  :: A_mo(LDA_mo,mo_tot_num)
+  double precision, allocatable  :: T(:,:)
   
-  allocate ( SC(ao_num_align,mo_tot_num) )
-  allocate ( T(ao_num_align,mo_tot_num) )
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
+  allocate ( T(mo_tot_num,ao_num) )
   
-  call dgemm('N','N', ao_num, ao_num, mo_tot_num,                    &
-      1.d0, ao_overlap,size(ao_overlap,1),                           &
-      mo_coef, size(mo_coef,1),                                      &
-      0.d0, SC, ao_num_align)
-  
-  call dgemm('T','N', ao_num, mo_tot_num, ao_num,                    &
-      1.d0, SC, size(SC,1),                                          &
+  call dgemm('T','N', mo_tot_num, ao_num, ao_num,                    &
+      1.d0, S_mo_coef, size(S_mo_coef,1),                            &
       A_ao, size(A_ao,1),                                            &
       0.d0, T, size(T,1))
   
-  call dgemm('N','N', ao_num, mo_tot_num, ao_num,                    &
+  call dgemm('N','N', mo_tot_num, mo_tot_num, ao_num,                &
       1.d0, T,size(T,1),                                             &
-      SC, size(SC,1),                                                &
+      S_mo_coef, size(S_mo_coef,1),                                  &
       0.d0, A_mo, size(A_mo,1))
   
-  deallocate(T,SC)
+  deallocate(T)
 end
 
 subroutine mo_to_ao(A_mo,LDA_mo,A_ao,LDA_ao)
@@ -196,8 +189,8 @@ subroutine mo_to_ao(A_mo,LDA_mo,A_ao,LDA_ao)
   ! C.A_mo.Ct
   END_DOC
   integer, intent(in)            :: LDA_ao,LDA_mo
-  double precision, intent(in)   :: A_mo(LDA_mo)
-  double precision, intent(out)  :: A_ao(LDA_ao)
+  double precision, intent(in)   :: A_mo(LDA_mo,mo_tot_num)
+  double precision, intent(out)  :: A_ao(LDA_ao,ao_num)
   double precision, allocatable  :: T(:,:)
   
   allocate ( T(mo_tot_num_align,ao_num) )
