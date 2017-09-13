@@ -129,3 +129,41 @@ BEGIN_PROVIDER [ double precision, ao_overlap_abs,(ao_num_align,ao_num) ]
   !$OMP END PARALLEL DO
 END_PROVIDER
 
+
+
+
+BEGIN_PROVIDER [ double precision, S_half, (ao_num,ao_num)  ]
+ implicit none
+ BEGIN_DOC
+ ! S^{1/2}
+ END_DOC
+
+  integer :: i,j,k
+  double precision, allocatable  :: U(:,:)
+  double precision, allocatable  :: Vt(:,:)
+  double precision, allocatable  :: D(:)
+  
+  allocate(U(ao_num,ao_num),Vt(ao_num,ao_num),D(ao_num))
+
+  call svd(ao_overlap,size(ao_overlap,1),U,size(U,1),D,Vt,size(Vt,1),ao_num,ao_num)
+
+  do i=1,ao_num
+    D(i) = dsqrt(D(i))
+    do j=1,ao_num
+      S_half(j,i) = 0.d0
+    enddo
+  enddo
+
+  do k=1,ao_num
+      do j=1,ao_num
+        do i=1,ao_num
+          S_half(i,j) = S_half(i,j) + U(i,k)*D(k)*Vt(k,j)
+        enddo
+      enddo
+  enddo
+  
+  deallocate(U,Vt,D)
+
+END_PROVIDER
+
+

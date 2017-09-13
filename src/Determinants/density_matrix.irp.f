@@ -15,6 +15,32 @@
    enddo
 END_PROVIDER
 
+BEGIN_PROVIDER [ double precision, one_body_dm_mo_diff, (mo_tot_num,mo_tot_num,2:N_states) ]
+ implicit none
+ BEGIN_DOC
+ ! Difference of the one-body density matrix with respect to the ground state
+ END_DOC
+ integer :: i,j, istate
+
+ do istate=2,N_states
+  do j=1,mo_tot_num
+    do i=1,mo_tot_num
+      one_body_dm_mo_diff(i,j,istate) = &
+        one_body_dm_mo_alpha(i,j,istate) - one_body_dm_mo_alpha(i,j,1) + &
+        one_body_dm_mo_beta (i,j,istate) - one_body_dm_mo_beta (i,j,1) 
+    enddo
+  enddo
+  double precision :: trace
+  trace = 0.d0
+  do i=1,mo_tot_num
+    trace += one_body_dm_mo_diff(i,i,istate)
+  enddo
+  print *, irp_here, trace
+ enddo
+ 
+END_PROVIDER
+
+
  BEGIN_PROVIDER [ double precision, one_body_dm_mo_spin_index, (mo_tot_num_align,mo_tot_num,N_states,2) ]
  implicit none 
  integer :: i,j,ispin,istate
