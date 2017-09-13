@@ -5,11 +5,5 @@ program H_CORE_guess
   END_DOC
   implicit none
   character*(64)                 :: label
-  label = "Guess"
-  call mo_as_eigvectors_of_mo_matrix(mo_mono_elec_integral,          &
-                                     size(mo_mono_elec_integral,1),  &
-                                     size(mo_mono_elec_integral,2),label,1)
-  print *,  'save mos'
-  call save_mos
-  
+  call h_core_guess 
 end

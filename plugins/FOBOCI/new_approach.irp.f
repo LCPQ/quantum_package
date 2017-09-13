@@ -655,7 +655,7 @@ subroutine new_approach
  integer :: sign
  sign = -1
  
- call mo_as_eigvectors_of_mo_matrix(one_body_dm_mo,size(one_body_dm_mo,1),size(one_body_dm_mo,2),label,sign)
+ call mo_as_eigvectors_of_mo_matrix(one_body_dm_mo,size(one_body_dm_mo,1),size(one_body_dm_mo,2),label,sign,.true.)
  soft_touch mo_coef
  call save_mos
  

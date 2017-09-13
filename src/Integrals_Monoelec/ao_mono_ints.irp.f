@@ -1,4 +1,4 @@
- BEGIN_PROVIDER [ double precision, ao_mono_elec_integral,(ao_num,ao_num)]
+ BEGIN_PROVIDER [ double precision, ao_mono_elec_integral,(ao_num_align,ao_num)]
 &BEGIN_PROVIDER [ double precision, ao_mono_elec_integral_diag,(ao_num)]
   implicit none
   integer :: i,j,n,l

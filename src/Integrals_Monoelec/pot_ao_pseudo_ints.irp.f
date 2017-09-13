@@ -1,4 +1,4 @@
-BEGIN_PROVIDER [ double precision, ao_pseudo_integral, (ao_num,ao_num)]
+BEGIN_PROVIDER [ double precision, ao_pseudo_integral, (ao_num_align,ao_num)]
   implicit none
   BEGIN_DOC
   ! Pseudo-potential integrals
@@ -29,7 +29,7 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral, (ao_num,ao_num)]
   
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num,ao_num)]
+BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num_align,ao_num)]
   implicit none
   BEGIN_DOC
   ! Local pseudo-potential
@@ -128,7 +128,7 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num,ao_num)]
  END_PROVIDER
 
 
- BEGIN_PROVIDER [ double precision, ao_pseudo_integral_non_local, (ao_num,ao_num)]
+ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_non_local, (ao_num_align,ao_num)]
   implicit none
   BEGIN_DOC
   ! Local pseudo-potential

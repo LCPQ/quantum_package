@@ -1,6 +1,6 @@
- BEGIN_PROVIDER [ double precision, ao_deriv2_x,(ao_num,ao_num) ]
-&BEGIN_PROVIDER [ double precision, ao_deriv2_y,(ao_num,ao_num) ]
-&BEGIN_PROVIDER [ double precision, ao_deriv2_z,(ao_num,ao_num) ]
+ BEGIN_PROVIDER [ double precision, ao_deriv2_x,(ao_num_align,ao_num) ]
+&BEGIN_PROVIDER [ double precision, ao_deriv2_y,(ao_num_align,ao_num) ]
+&BEGIN_PROVIDER [ double precision, ao_deriv2_z,(ao_num_align,ao_num) ]
   implicit none
   integer :: i,j,n,l
   double precision :: f
@@ -119,7 +119,7 @@
 
 END_PROVIDER
 
-BEGIN_PROVIDER [double precision, ao_kinetic_integral, (ao_num,ao_num)]
+BEGIN_PROVIDER [double precision, ao_kinetic_integral, (ao_num_align,ao_num)]
   implicit none
   BEGIN_DOC
   ! array of the priminitve basis kinetic integrals
@@ -134,10 +134,13 @@ BEGIN_PROVIDER [double precision, ao_kinetic_integral, (ao_num,ao_num)]
   else
     !$OMP PARALLEL DO DEFAULT(NONE) &
     !$OMP  PRIVATE(i,j) &
-    !$OMP  SHARED(ao_num, ao_kinetic_integral,ao_deriv2_x,ao_deriv2_y,ao_deriv2_z)
+    !$OMP  SHARED(ao_num, ao_num_align, ao_kinetic_integral,ao_deriv2_x,ao_deriv2_y,ao_deriv2_z)
     do j = 1, ao_num
       do i = 1, ao_num
       ao_kinetic_integral(i,j) = -0.5d0 * (ao_deriv2_x(i,j) + ao_deriv2_y(i,j) + ao_deriv2_z(i,j) )
+      enddo
+      do i = ao_num +1,ao_num_align
+        ao_kinetic_integral(i,j) = 0.d0
       enddo
     enddo
     !$OMP END PARALLEL DO

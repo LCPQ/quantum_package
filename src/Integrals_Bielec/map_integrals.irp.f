@@ -337,8 +337,8 @@ end
  END_DOC
  mo_integrals_cache_min_8 = max(1_8,elec_alpha_num - 63_8)
  mo_integrals_cache_max_8 = min(int(mo_tot_num,8),mo_integrals_cache_min+127_8)
- mo_integrals_cache_min = mo_integrals_cache_min_8
- mo_integrals_cache_max = mo_integrals_cache_max_8
+ mo_integrals_cache_min   = max(1,elec_alpha_num - 63)
+ mo_integrals_cache_max   = min(mo_tot_num,mo_integrals_cache_min+127)
 
 END_PROVIDER
 
@@ -349,17 +349,22 @@ BEGIN_PROVIDER [ double precision, mo_integrals_cache, (0_8:128_8*128_8*128_8*12
  END_DOC
  PROVIDE mo_bielec_integrals_in_map
  integer*8                      :: i,j,k,l
+ integer*8                      :: i4,j4,k4,l4
  integer*8                      :: ii
  integer(key_kind)              :: idx
  real(integral_kind)            :: integral
  FREE ao_integrals_cache
- !$OMP PARALLEL DO PRIVATE (i,j,k,l,idx,ii,integral)
+ !$OMP PARALLEL DO PRIVATE (i,j,k,l,i4,j4,k4,l4,idx,ii,integral)
  do l=mo_integrals_cache_min_8,mo_integrals_cache_max_8
    do k=mo_integrals_cache_min_8,mo_integrals_cache_max_8
      do j=mo_integrals_cache_min_8,mo_integrals_cache_max_8
        do i=mo_integrals_cache_min_8,mo_integrals_cache_max_8
+         i4 = int(i,4)
+         j4 = int(j,4)
+         k4 = int(k,4)
+         l4 = int(l,4)
          !DIR$ FORCEINLINE
-         call bielec_integrals_index(i,j,k,l,idx)
+         call bielec_integrals_index(i4,j4,k4,l4,idx)
          !DIR$ FORCEINLINE
          call map_get(mo_integrals_map,idx,integral)
          ii = l-mo_integrals_cache_min_8
