@@ -143,6 +143,7 @@ BEGIN_PROVIDER [ double precision, S_half_inv, (AO_num,AO_num) ]
   integer                         :: LDA, LDC
   double precision, allocatable   :: U(:,:),Vt(:,:), D(:)
   integer                         :: info, i, j, k
+  double precision, parameter     :: threshold_overlap_AO_eigenvalues = 1.d-6
  
   LDA = size(AO_overlap,1)
   LDC = size(S_half_inv,1)
@@ -174,7 +175,6 @@ BEGIN_PROVIDER [ double precision, S_half_inv, (AO_num,AO_num) ]
     enddo
   enddo
   write(*,*) 'linear dependencies',num_linear_dependencies
-!  stop
 
   do k=1,AO_num
     if(D(k) /= 0.d0) then
