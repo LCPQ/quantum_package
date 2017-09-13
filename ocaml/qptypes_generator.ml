@@ -4,7 +4,7 @@ let global_replace x =
   |> Str.global_replace (Str.regexp "Float.of_string") "float_of_string"
   |> Str.global_replace (Str.regexp "Int.to_string") "string_of_int"
   |> Str.global_replace (Str.regexp "Int.of_string") "int_of_string"
-  |> Str.global_replace (Str.regexp "String.\(to\|of\)_string") ""
+  |> Str.global_replace (Str.regexp "String.\\(to\\|of\\)_string") ""
 
 let input_data = "
 * Positive_float : float  
@@ -184,7 +184,7 @@ end = struct
   | HCore  -> \"HCore\"
 
   let of_string  s = 
-    match (String.lowercase s) with
+    match (String.lowercase_ascii s) with
     | \"huckel\" -> Huckel
     | \"hcore\"  -> HCore
     | _ -> raise (Invalid_argument (\"Wrong Guess type : \"^s))
@@ -207,7 +207,7 @@ end = struct
   | Write  -> \"Write\"
   | None   -> \"None\"
   let of_string  s = 
-    match (String.lowercase s) with
+    match (String.lowercase_ascii s) with
     | \"read\"  -> Read
     | \"write\" -> Write
     | \"none\"  -> None
