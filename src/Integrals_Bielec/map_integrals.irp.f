@@ -349,7 +349,7 @@ BEGIN_PROVIDER [ double precision, mo_integrals_cache, (0_8:128_8*128_8*128_8*12
  END_DOC
  PROVIDE mo_bielec_integrals_in_map
  integer*8                      :: i,j,k,l
- integer*8                      :: i4,j4,k4,l4
+ integer*4                      :: i4,j4,k4,l4
  integer*8                      :: ii
  integer(key_kind)              :: idx
  real(integral_kind)            :: integral
