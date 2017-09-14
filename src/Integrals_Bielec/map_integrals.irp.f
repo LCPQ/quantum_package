@@ -356,13 +356,13 @@ BEGIN_PROVIDER [ double precision, mo_integrals_cache, (0_8:128_8*128_8*128_8*12
  FREE ao_integrals_cache
  !$OMP PARALLEL DO PRIVATE (i,j,k,l,i4,j4,k4,l4,idx,ii,integral)
  do l=mo_integrals_cache_min_8,mo_integrals_cache_max_8
+   l4 = int(l,4)
    do k=mo_integrals_cache_min_8,mo_integrals_cache_max_8
+     k4 = int(k,4)
      do j=mo_integrals_cache_min_8,mo_integrals_cache_max_8
+       j4 = int(j,4)
        do i=mo_integrals_cache_min_8,mo_integrals_cache_max_8
          i4 = int(i,4)
-         j4 = int(j,4)
-         k4 = int(k,4)
-         l4 = int(l,4)
          !DIR$ FORCEINLINE
          call bielec_integrals_index(i4,j4,k4,l4,idx)
          !DIR$ FORCEINLINE
@@ -399,17 +399,16 @@ double precision function get_mo_bielec_integral(i,j,k,l,map)
   ii = ior(ii, j-mo_integrals_cache_min)
   ii = ior(ii, i-mo_integrals_cache_min)
   if (iand(ii, -128) /= 0) then
-!  if (.True.)  then
     !DIR$ FORCEINLINE
     call bielec_integrals_index(i,j,k,l,idx)
     !DIR$ FORCEINLINE
     call map_get(map,idx,tmp)
     get_mo_bielec_integral = dble(tmp)
   else
-    ii_8 = l-mo_integrals_cache_min_8
-    ii_8 = ior( ishft(ii_8,7), k-mo_integrals_cache_min_8)
-    ii_8 = ior( ishft(ii_8,7), j-mo_integrals_cache_min_8)
-    ii_8 = ior( ishft(ii_8,7), i-mo_integrals_cache_min_8)
+    ii_8 = int(l,8)-mo_integrals_cache_min_8
+    ii_8 = ior( ishft(ii_8,7), int(k,8)-mo_integrals_cache_min_8)
+    ii_8 = ior( ishft(ii_8,7), int(j,8)-mo_integrals_cache_min_8)
+    ii_8 = ior( ishft(ii_8,7), int(i,8)-mo_integrals_cache_min_8)
     get_mo_bielec_integral = mo_integrals_cache(ii_8)
   endif
 end
