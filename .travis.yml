@@ -4,17 +4,22 @@
 #  - sudo apt-get install gfortran liblapack-dev gcc
 #  - sudo apt-get install graphviz
 
+os: linux
+
 dist: trusty
 
 sudo: false
 
+compiler: gfortran
+
 addons:
   apt:
     packages:
-    - gfortran-4.9
-    - gcc-4.9
-    - liblapack-dev
-    - libblas-dev
+    - gfortran
+    - gcc
+    - libopenblas-dev
+#    - liblapack-dev
+#    - libblas-dev
     - graphviz
 
 cache:
