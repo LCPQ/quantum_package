@@ -34,6 +34,8 @@
     power_A(1)  = ao_power( j, 1 )
     power_A(2)  = ao_power( j, 2 )
     power_A(3)  = ao_power( j, 3 )
+    !DEC$ VECTOR ALIGNED
+    !DEC$ VECTOR ALWAYS
     do i= 1,ao_num
       ao_overlap(i,j)= 0.d0
       ao_overlap_x(i,j)= 0.d0
@@ -47,6 +49,7 @@
       power_B(3)  = ao_power( i, 3 )
       do n = 1,ao_prim_num(j)
       alpha = ao_expo_ordered_transp(n,j)
+      !DEC$ VECTOR ALIGNED
       do l = 1, ao_prim_num(i)
         beta = ao_expo_ordered_transp(l,i)
         call overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,power_B,overlap_x,overlap_y,overlap_z,overlap,dim1)
@@ -100,6 +103,8 @@ BEGIN_PROVIDER [ double precision, ao_overlap_abs,(ao_num_align,ao_num) ]
    power_A(1)  = ao_power( j, 1 )
    power_A(2)  = ao_power( j, 2 )
    power_A(3)  = ao_power( j, 3 )
+   !DEC$ VECTOR ALIGNED
+   !DEC$ VECTOR ALWAYS
    do i= 1,ao_num
     ao_overlap_abs(i,j)= 0.d0
     B_center(1) = nucl_coord( ao_nucl(i), 1 )
@@ -110,6 +115,7 @@ BEGIN_PROVIDER [ double precision, ao_overlap_abs,(ao_num_align,ao_num) ]
     power_B(3)  = ao_power( i, 3 )
     do n = 1,ao_prim_num(j)
      alpha = ao_expo_ordered_transp(n,j)
+     !DEC$ VECTOR ALIGNED
      do l = 1, ao_prim_num(i)
       beta = ao_expo_ordered_transp(l,i)
       call overlap_x_abs(A_center(1),B_center(1),alpha,beta,power_A(1),power_B(1),overlap_x,lower_exp_val,dx,dim1)

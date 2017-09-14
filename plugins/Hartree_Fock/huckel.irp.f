@@ -7,11 +7,11 @@ subroutine huckel_guess
   double precision               :: accu
   double precision               :: c
   character*(64)                 :: label
-  double precision, allocatable  :: A(:,:), T(:,:)
+  double precision, allocatable  :: A(:,:)
   label = "Guess"
-  c = 0.25d0 * 1.75d0
+  c = 0.5d0 * 1.75d0
 
-  allocate (A(ao_num, ao_num),T(ao_num, ao_num))
+  allocate (A(ao_num, ao_num))
   A = 0.d0
   do j=1,ao_num
     do i=1,ao_num
@@ -29,7 +29,6 @@ subroutine huckel_guess
   mo_coef = eigenvectors_fock_matrix_mo
   SOFT_TOUCH mo_coef
   call save_mos
-  print *,  'E=', HF_energy
-  deallocate(A,T)
+  deallocate(A)
 
 end

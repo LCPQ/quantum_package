@@ -49,6 +49,9 @@ END_PROVIDER
       do j=1,ao_num
         mo_coef(j,i) = buffer(j,i)
       enddo
+      do j=ao_num+1,ao_num_align
+        mo_coef(j,i) = 0.d0
+      enddo
     enddo
     deallocate(buffer)
   else
@@ -56,6 +59,9 @@ END_PROVIDER
     do i=1,mo_tot_num
       do j=1,ao_num
         mo_coef(j,i) = ao_ortho_canonical_coef(j,i)
+      enddo
+      do j=ao_num+1,ao_num_align
+        mo_coef(j,i) = 0.d0
       enddo
     enddo
   endif
@@ -202,6 +208,32 @@ subroutine mo_to_ao(A_mo,LDA_mo,A_ao,LDA_ao)
   deallocate(T)
 end
 
+subroutine mo_to_ao_no_overlap(A_mo,LDA_mo,A_ao,LDA_ao)
+  implicit none
+  BEGIN_DOC
+  ! Transform A from the MO basis to the S^-1 AO basis
+  ! Useful for density matrix
+  END_DOC
+  integer, intent(in)            :: LDA_ao,LDA_mo
+  double precision, intent(in)   :: A_mo(LDA_mo,mo_tot_num)
+  double precision, intent(out)  :: A_ao(LDA_ao,ao_num)
+  double precision, allocatable  :: T(:,:)
+  
+  allocate ( T(mo_tot_num_align,ao_num) )
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
+  
+  call dgemm('N','T', mo_tot_num, ao_num, mo_tot_num,                &
+      1.d0, A_mo,size(A_mo,1),                                       &
+      mo_coef, size(mo_coef,1),                                      &
+      0.d0, T, size(T,1))
+  
+  call dgemm('N','N', ao_num, ao_num, mo_tot_num,                    &
+      1.d0, mo_coef,size(mo_coef,1),                                 &
+      T, size(T,1),                                                  &
+      0.d0, A_ao, size(A_ao,1))
+  
+  deallocate(T)
+end
 
 subroutine mix_mo_jk(j,k)
  implicit none

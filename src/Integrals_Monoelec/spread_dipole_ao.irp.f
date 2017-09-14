@@ -35,6 +35,8 @@
    power_A(1)  = ao_power( j, 1 )
    power_A(2)  = ao_power( j, 2 )
    power_A(3)  = ao_power( j, 3 )
+   !DEC$ VECTOR ALIGNED
+   !DEC$ VECTOR ALWAYS
    do i= 1,ao_num
     B_center(1) = nucl_coord( ao_nucl(i), 1 )
     B_center(2) = nucl_coord( ao_nucl(i), 2 )
@@ -47,6 +49,7 @@
     accu_z = 0.d0
     do n = 1,ao_prim_num(j)
      alpha = ao_expo_ordered_transp(n,j)
+     !DEC$ VECTOR ALIGNED
      do l = 1, ao_prim_num(i)
       c = ao_coef_normalized_ordered_transp(n,j)*ao_coef_normalized_ordered_transp(l,i)
       beta = ao_expo_ordered_transp(l,i)
@@ -106,6 +109,8 @@
    power_A(1)  = ao_power( j, 1 )
    power_A(2)  = ao_power( j, 2 )
    power_A(3)  = ao_power( j, 3 )
+   !DEC$ VECTOR ALIGNED
+   !DEC$ VECTOR ALWAYS
    do i= 1,ao_num
     B_center(1) = nucl_coord( ao_nucl(i), 1 )
     B_center(2) = nucl_coord( ao_nucl(i), 2 )
@@ -118,6 +123,7 @@
     accu_z = 0.d0
     do n = 1,ao_prim_num(j)
      alpha = ao_expo_ordered_transp(n,j)
+     !DEC$ VECTOR ALIGNED
      do l = 1, ao_prim_num(i)
       beta = ao_expo_ordered_transp(l,i)
       c = ao_coef_normalized_ordered_transp(l,i)*ao_coef_normalized_ordered_transp(n,j)
@@ -177,6 +183,8 @@
    power_A(1)  = ao_power( j, 1 )
    power_A(2)  = ao_power( j, 2 )
    power_A(3)  = ao_power( j, 3 )
+   !DEC$ VECTOR ALIGNED
+   !DEC$ VECTOR ALWAYS
    do i= 1,ao_num
     B_center(1) = nucl_coord( ao_nucl(i), 1 )
     B_center(2) = nucl_coord( ao_nucl(i), 2 )
@@ -189,6 +197,7 @@
     accu_z = 0.d0
     do n = 1,ao_prim_num(j)
      alpha = ao_expo_ordered_transp(n,j)
+     !DEC$ VECTOR ALIGNED
      do l = 1, ao_prim_num(i)
       beta = ao_expo_ordered_transp(l,i)
       call overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,power_B,overlap_x,overlap_y,overlap_z,overlap,dim1)
