@@ -17,7 +17,6 @@ addons:
     packages:
     - gfortran
     - gcc
-    - libopenblas-dev
 #    - liblapack-dev
 #    - libblas-dev
     - graphviz
@@ -33,6 +32,7 @@ python:
 script: 
   - ./configure  ./config/travis.cfg
   - source ./quantum_package.rc ; qp_module.py install Full_CI Full_CI_ZMQ Hartree_Fock CAS_SD_ZMQ mrcepa0 All_singles
+  - source ./quantum_package.rc ; cd ~ ; install_lapack.sh ; cd $QP_ROOT
   - source ./quantum_package.rc ; ninja
   - source ./quantum_package.rc ; cd ocaml ; make ; cd -
   - source ./quantum_package.rc ; cd tests ; ./run_tests.sh -v
