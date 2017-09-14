@@ -1,5 +1,11 @@
+(** 
+ * Computes the overlap <Psi_0 | Psi_1> where both Psi_0 and Psi_1 are truncated in the set
+ * of common determinants and normalized
+ *)
+
 open Input_determinants_by_hand
 open Qptypes
+
 
 let () =
   let ezfio, ezfio' =
@@ -40,27 +46,17 @@ let () =
   in
 
   let overlap wf wf' =
-    let norm = 
-      Hashtbl.fold (fun k c norm ->
-        norm +. c *. c  ) wf 0.
-    and norm' = 
-      Hashtbl.fold (fun k c norm ->
-        norm +. c *. c  ) wf' 0.
-    in
-    let get_result wf wf' = 
-      Hashtbl.fold (fun k c accu ->
-        let c' =
-          try  Hashtbl.find wf' k 
-          with Not_found -> 0.
+    let result, norm, norm' = 
+      Hashtbl.fold (fun k c (accu,norm,norm') ->
+        let (c',c) =
+          try  (Hashtbl.find wf' k, c)
+          with Not_found -> (0.,0.)
         in
-        accu +. c *. c' ) wf 0.
+        (accu +. c *. c' , 
+        norm +. c *. c  , 
+        norm'+. c'*. c' ) 
+      ) wf (0.,0.,0.)
     in 
-    let result = 
-      if Hashtbl.length wf < Hashtbl.length wf' then
-        get_result wf wf'
-      else
-        get_result wf' wf
-    in
     result /. (sqrt (norm *. norm'))
   in
 
@@ -72,6 +68,6 @@ let () =
   let o = 
     overlap wf wf'
   in
-  print_float (abs_float o);
+  print_float (abs_float o) ;
   print_newline ()
   
