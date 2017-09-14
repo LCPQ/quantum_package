@@ -40,18 +40,28 @@ let () =
   in
 
   let overlap wf wf' =
-    let result, norm, norm' = 
-      Hashtbl.fold (fun k c (accu,norm,norm') ->
+    let norm = 
+      Hashtbl.fold (fun k c norm ->
+        norm +. c *. c  ) wf 0.
+    and norm' = 
+      Hashtbl.fold (fun k c norm ->
+        norm +. c *. c  ) wf' 0.
+    in
+    let get_result wf wf' = 
+      Hashtbl.fold (fun k c accu ->
         let c' =
           try  Hashtbl.find wf' k 
           with Not_found -> 0.
         in
-        (accu +. c *. c' , 
-        norm +. c *. c  , 
-        norm'+. c'*. c' ) 
-      ) wf (0.,0.,0.)
+        accu +. c *. c' ) wf 0.
     in 
-    result /. (norm *. norm')
+    let result = 
+      if Hashtbl.length wf < Hashtbl.length wf' then
+        get_result wf wf'
+      else
+        get_result wf' wf
+    in
+    result /. (sqrt (norm *. norm'))
   in
 
   let wf, wf' = 
@@ -62,5 +72,6 @@ let () =
   let o = 
     overlap wf wf'
   in
-  print_float (abs_float o)
+  print_float (abs_float o);
+  print_newline ()
   
