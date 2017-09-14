@@ -11,8 +11,8 @@ sudo: false
 addons:
   apt:
     packages:
-    - gfortran
-    - gcc
+    - gfortran-4.9
+    - gcc-4.9
     - liblapack-dev
     - libblas-dev
     - graphviz
