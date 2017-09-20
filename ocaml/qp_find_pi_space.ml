@@ -49,7 +49,7 @@ let run ?(sym="None") ezfio_filename =
   in
   let result = 
     Array.init ~f:(fun mo_i -> 
-      (mo_i,
+      (mo_i+1,
       compute_weight mo_i x_indices,
       compute_weight mo_i y_indices,
       compute_weight mo_i z_indices) ) m
