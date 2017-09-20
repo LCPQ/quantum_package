@@ -1,6 +1,6 @@
 open Qptypes;;
 open Qputils;;
-open Core.Std;;
+open Core;;
 
 module Bitmasks : sig
   type t = 
@@ -10,7 +10,7 @@ module Bitmasks : sig
       generators         : int64 array;
       n_mask_cas         : Bitmask_number.t;
       cas                : int64 array;
-    } with sexp
+    } [@@deriving sexp]
   ;;
   val read : unit -> t option 
   val to_string : t -> string
@@ -22,7 +22,7 @@ end = struct
       generators         : int64 array;
       n_mask_cas         : Bitmask_number.t;
       cas                : int64 array;
-    } with sexp
+    } [@@deriving sexp]
   ;;
 
   let get_default = Qpackage.get_ezfio_default "bitmasks";;

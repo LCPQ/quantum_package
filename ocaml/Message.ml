@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Qptypes
 
 (** New job : Request to create a new multi-tasked job *)

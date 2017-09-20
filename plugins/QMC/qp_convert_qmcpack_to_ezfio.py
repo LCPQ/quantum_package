@@ -258,7 +258,7 @@ def print_mo_coef(mo_coef_block, l_l_sym):
             i_a = int(l[1]) - 1
             sym = l[2]
 
-            print l_label[i_a], sym, " ".join('{0: 3.8f}'.format(i)
+            print l_label[i_a], sym, " ".join('%20.15e'%i
                                               for i in a[i])
 
         if i_block != nb_block - 1:

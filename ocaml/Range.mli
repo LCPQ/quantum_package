@@ -1,4 +1,4 @@
-type t = int list with sexp
+type t = int list [@@deriving sexp] 
 
 (** A range is a sorted list of ints in an interval.
     It is created using a string :

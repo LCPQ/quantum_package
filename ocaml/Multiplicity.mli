@@ -1,4 +1,4 @@
-type t = Qptypes.Strictly_positive_int.t with sexp
+type t = Qptypes.Strictly_positive_int.t [@@deriving sexp]
 
 (** Conversion from int *)
 val of_int : int -> t

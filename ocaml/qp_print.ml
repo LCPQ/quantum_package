@@ -1,6 +1,6 @@
 open Qputils;;
 open Qptypes;;
-open Core.Std;;
+open Core;;
 
 type input_action =
   | Basis

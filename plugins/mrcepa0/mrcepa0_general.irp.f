@@ -38,12 +38,12 @@ subroutine run(N_st,energy)
     do while (delta_E > thresh_mrcc)
       iteration += 1
       print *,  '===============================================' 
-      print *,  'MRCEPA0 Iteration', iteration, '/', n_it_mrcc_max
+      print *,  'Iteration', iteration, '/', n_it_mrcc_max
       print *,  '===============================================' 
       print *,  ''
       E_old = sum(ci_energy_dressed(1:N_states))
       do i=1,N_st
-        call write_double(6,ci_energy_dressed(i),"MRCEPA0 energy")
+        call write_double(6,ci_energy_dressed(i),"Energy")
       enddo
       call diagonalize_ci_dressed(lambda)
       E_new = sum(ci_energy_dressed(1:N_states))
@@ -61,7 +61,7 @@ subroutine run(N_st,energy)
         exit
       endif
     enddo
-    call write_double(6,ci_energy_dressed(1),"Final MRCEPA0 energy")
+    call write_double(6,ci_energy_dressed(1),"Final energy")
   endif
   energy(1:N_st) = ci_energy_dressed(1:N_st)
 end

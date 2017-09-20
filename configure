@@ -43,6 +43,7 @@ except KeyError:
 
 QP_ROOT_BIN = join(QP_ROOT, "bin")
 QP_ROOT_LIB = join(QP_ROOT, "lib")
+QP_ROOT_LIB64 = join(QP_ROOT, "lib64")
 QP_ROOT_INSTALL = join(QP_ROOT, "install")
 
 os.environ["PATH"] = os.environ["PATH"] + ":" + QP_ROOT_BIN
@@ -65,6 +66,7 @@ d_dependency = {
     "python": [],
     "ninja": ["g++", "python"],
     "make": [],
+    "gpi2": ["g++", "make"],
     "p_graphviz": ["python"],
     "bats": []
 }
@@ -140,6 +142,11 @@ f77zmq = Info(
     description=' F77-ZeroMQ',
     default_path=join(QP_ROOT_LIB, "libf77zmq.a") )
 
+gpi2 = Info( 
+    url='https://github.com/cc-hpc-itwm/GPI-2/archive/v1.3.0.tar.gz',
+    description=' GPI-2',
+    default_path=join(QP_ROOT_LIB64, "libGPI2.a") )
+
 p_graphviz = Info(
     url='https://github.com/xflr6/graphviz/archive/master.tar.gz',
     description=' Python library for graphviz',
@@ -154,7 +161,7 @@ d_info = dict()
 
 for m in ["ocaml", "m4", "curl", "zlib", "patch", "irpf90", "docopt",
           "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz",
-          "zeromq", "f77zmq","bats"]: 
+          "zeromq", "f77zmq", "bats", "gpi2"]: 
     exec ("d_info['{0}']={0}".format(m))
 
 
@@ -481,8 +488,8 @@ def create_ninja_and_rc(l_installed):
         'export NINJA={0}'.format(path_ninja.replace(QP_ROOT,"${QP_ROOT}")),
         'export PYTHONPATH="${QP_EZFIO}/Python":"${QP_PYTHON}":"${PYTHONPATH}"',
         'export PATH="${QP_PYTHON}":"${QP_ROOT}"/bin:"${QP_ROOT}"/ocaml:"${PATH}"',
-        'export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${LD_LIBRARY_PATH}"',
-        'export LIBRARY_PATH="${QP_ROOT}"/lib:"${LIBRARY_PATH}"',
+        'export LD_LIBRARY_PATH="${QP_ROOT}"/lib:"${QP_ROOT}"/lib64:"${LD_LIBRARY_PATH}"',
+        'export LIBRARY_PATH="${QP_ROOT}"/lib:"${QP_ROOT}"/lib64:"${LIBRARY_PATH}"',
         'export C_INCLUDE_PATH="${C_INCLUDE_PATH}":"${QP_ROOT}"/include',
         '',
         'source ${QP_ROOT}/install/EZFIO/Bash/ezfio.sh',

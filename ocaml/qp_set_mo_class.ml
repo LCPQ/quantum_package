@@ -1,6 +1,6 @@
 open Qputils
 open Qptypes
-open Core.Std
+open Core
 
 (*
  * Command-line arguments
@@ -210,7 +210,7 @@ let get () =
   in
 
   let mo_tot_num =
-    MO_number.to_int data.Input_mo_basis.mo_tot_num
+    MO_number.to_int data.Input.Mo_basis.mo_tot_num
   in
 
   let n_int =
@@ -244,7 +244,7 @@ let get () =
     | (MO_class.Deleted  _) :: rest ->
         work ~del:(Printf.sprintf "%s,%d" del   i) ~inact ~act  ~virt ~core (i+1) rest
   in
-  work 1 (Array.to_list data.Input_mo_basis.mo_class)
+  work 1 (Array.to_list data.Input.Mo_basis.mo_class)
 
 
 

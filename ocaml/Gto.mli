@@ -7,7 +7,7 @@ type fmt =
 type t =
   { sym : Symmetry.t ;
     lc  : (GaussianPrimitive.t * Qptypes.AO_coef.t) list;
-  } with sexp
+  } [@@deriving sexp]
 
 (** Create from a list of GaussianPrimitive.t * Qptypes.AO_coef.t *)
 val of_prim_coef_list :

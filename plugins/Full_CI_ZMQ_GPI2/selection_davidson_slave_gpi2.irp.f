@@ -14,7 +14,7 @@ end
 
 subroutine provide_everything
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators psi_det_sorted_bit psi_selectors n_det_generators n_states generators_bitmask zmq_context
-  PROVIDE pt2_e0_denominator mo_tot_num N_int fragment_count MPI_Initialized
+  PROVIDE pt2_e0_denominator mo_tot_num N_int fragment_count GASPI_is_Initialized
 end
 
 subroutine run_wf
@@ -51,12 +51,10 @@ subroutine run_wf
       ! ---------
 
       print *,  'Selection'
-      if (is_mpi_master) then
+      if (is_gaspi_master) then
           call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
       endif
-      IRP_IF MIP
-        call MPI_BCAST(n,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr) 
-      IRP_ENDIF
+      call broadcast_wf(energy)
   
       !$OMP PARALLEL PRIVATE(i)
       i = omp_get_thread_num()
@@ -70,7 +68,10 @@ subroutine run_wf
       ! --------
 
       print *,  'Davidson'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      if (is_gaspi_master) then
+        call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      endif
+      call broadcast_wf(energy)
       call omp_set_nested(.True.)
       call davidson_slave_tcp(0)
       call omp_set_nested(.False.)
@@ -82,7 +83,10 @@ subroutine run_wf
       ! ---
 
       print *,  'PT2'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      if (is_gaspi_master) then
+        call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      endif
+      call broadcast_wf(energy)
   
       logical :: lstop
       lstop = .False.

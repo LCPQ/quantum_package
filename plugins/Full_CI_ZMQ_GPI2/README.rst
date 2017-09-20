@@ -1,8 +1,9 @@
-===
-MPI
-===
+================
+Full_CI_ZMQ_GPI2
+================
 
-Providers for MPI programs.
+GPI2 Slave for Full_CI with ZMQ. There should be one instance of the slave
+per compute node.
 
 Needed Modules
 ==============

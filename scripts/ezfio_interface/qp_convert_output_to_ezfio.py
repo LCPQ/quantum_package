@@ -3,7 +3,7 @@
 convert output of gamess/GAU$$IAN to ezfio
 
 Usage:
-    qp_convert_output_to_ezfio.py <file.out> [--ezfio=<ezfio_directory>]
+    qp_convert_output_to_ezfio.py <file.out> [-o <ezfio_directory>]
 
 Option:
     file.out is the file to check (like gamess.out)
@@ -309,16 +309,14 @@ def write_ezfio(res, filename):
             array_l_max_block.append(l_max_block)
             array_z_remove.append(z_remove)
 
-            x = [[ filter(None,coef_n_zeta.split()) for coef_n_zeta in l.split('\n')] \
-               for l in array_party[1:] ]
-#            x = []
-#            for l in array_party[1:]:
-#              y = []
-#              for coef_n_zeta in l.split('\n'):
-#                z = coef_n_zeta.split()
-#                if z : y.append(z)
-#              x.append(y)
-#            matrix.append(x)
+            x = []
+            for l in array_party[1:]:
+              y = []
+              for coef_n_zeta in l.split('\n'):
+                z = coef_n_zeta.split()
+                if z : y.append(z)
+              x.append(y)
+            matrix.append(x)
         return (matrix, array_l_max_block, array_z_remove)
 
     def get_local_stuff(matrix):
@@ -400,8 +398,8 @@ def write_ezfio(res, filename):
         klocmax, m_coef, m_n, m_zeta = get_local_stuff(matrix)
         ezfio.pseudo_pseudo_klocmax = klocmax
 
-        ezfio.pseudo_pseudo_v_k = zip(*m_coef)
-        ezfio.pseudo_pseudo_n_k = zip(*m_n)
+        ezfio.pseudo_pseudo_v_k  = zip(*m_coef)
+        ezfio.pseudo_pseudo_n_k  = zip(*m_n)
         ezfio.pseudo_pseudo_dz_k = zip(*m_zeta)
 
         # ~#~#~#~#~#~#~#~#~ #
@@ -431,8 +429,8 @@ if __name__ == '__main__':
 
     file_ = get_full_path(arguments['<file.out>'])
 
-    if arguments["--ezfio"]:
-        ezfio_file = get_full_path(arguments["--ezfio"])
+    if arguments["-o"]:
+        ezfio_file = get_full_path(arguments["<ezfio_directory>"])
     else:
         ezfio_file = "{0}.ezfio".format(file_)
 
