@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 
 let () =
   Message.of_string "new_job ao_integrals tcp://127.0.0.1 inproc://ao_ints:12345"

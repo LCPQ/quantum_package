@@ -1,10 +1,10 @@
 open Qptypes
-open Core.Std
+open Core
 
 type t =
 { sym  : Symmetry.t ;
   expo : AO_expo.t ;
-} with sexp
+} [@@deriving sexp]
 
 let to_string p = 
   let { sym = s ; expo = e } = p in

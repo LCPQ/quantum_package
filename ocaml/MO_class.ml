@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Qptypes 
 
 type t = 
@@ -7,7 +7,7 @@ type t =
   | Active   of MO_number.t list
   | Virtual  of MO_number.t list
   | Deleted  of MO_number.t list
-with sexp
+[@@deriving sexp]
 
 
 let to_string  x = 

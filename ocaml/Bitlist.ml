@@ -1,5 +1,5 @@
 open Qptypes
-open Core.Std
+open Core
 
 (*
 Type for bits strings

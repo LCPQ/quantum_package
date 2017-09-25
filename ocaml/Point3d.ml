@@ -1,11 +1,11 @@
-open Core.Std;;
+open Core;;
 open Qptypes;;
 
 type t = {
   x : float ;
   y : float ;
   z : float ;
-} with sexp
+} [@@deriving sexp]
 
 let of_tuple ~units (x,y,z) =
   let f = match units with 

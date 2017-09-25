@@ -1,23 +1,29 @@
 open Qptypes
 open Qputils
-open Core.Std
+open Core
 
-type t_mo = 
-    { mo_tot_num      : MO_number.t ;
-      mo_label        : MO_label.t;
-      mo_class        : MO_class.t array;
-      mo_occ          : MO_occ.t array;
-      mo_coef         : (MO_coef.t array) array;
-      ao_md5          : MD5.t;
-    } with sexp
 
 module Mo_basis : sig
-  type t = t_mo
+  type t = 
+      { mo_tot_num      : MO_number.t ;
+        mo_label        : MO_label.t;
+        mo_class        : MO_class.t array;
+        mo_occ          : MO_occ.t array;
+        mo_coef         : (MO_coef.t array) array;
+        ao_md5          : MD5.t;
+      } [@@deriving sexp]
   val read : unit -> t option
   val to_string : t -> string
   val to_rst : t -> Rst_string.t
 end = struct
-  type t = t_mo
+  type t = 
+      { mo_tot_num      : MO_number.t ;
+        mo_label        : MO_label.t;
+        mo_class        : MO_class.t array;
+        mo_occ          : MO_occ.t array;
+        mo_coef         : (MO_coef.t array) array;
+        ao_md5          : MD5.t;
+      } [@@deriving sexp]
   let get_default = Qpackage.get_ezfio_default "mo_basis"
 
   let read_mo_label () = 

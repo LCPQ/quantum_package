@@ -1,14 +1,14 @@
-open Core.Std ;;
-open Qptypes ;;
+open Qptypes 
+open Sexplib.Std
 
-exception MultiplicityError of string;;
-exception XYZError ;;
+exception MultiplicityError of string
+exception XYZError 
 
 type t = {
   nuclei     : Atom.t list ;
   elec_alpha : Elec_alpha_number.t ;
   elec_beta  : Elec_beta_number.t ;
-} with sexp
+} [@@deriving sexp]
 
 let get_charge { nuclei  ; elec_alpha ; elec_beta } =
   let result =
@@ -19,7 +19,7 @@ let get_charge { nuclei  ; elec_alpha ; elec_beta } =
   | a::rest -> (Charge.to_float a.Atom.charge) +. nucl_charge rest
   | [] -> 0.
   in
-  Charge.of_float (nucl_charge nuclei  -. (Float.of_int result))
+  Charge.of_float (nucl_charge nuclei  -. (float_of_int result))
 
 
 let get_multiplicity m = 
@@ -59,9 +59,10 @@ let name m =
   | a::rest ->
       begin
         let e = a.Atom.element in
-        match (List.Assoc.find accu e) with
-        | None   -> build_list (List.Assoc.add accu e 1) rest
-        | Some i -> build_list (List.Assoc.add accu e (i+1)) rest
+        try
+          let i = List.assoc e accu in
+          build_list ( (e,i+1)::(List.remove_assoc e accu) ) rest
+        with Not_found -> build_list ( (e,1)::accu ) rest
       end
   | [] -> accu
   in
@@ -83,7 +84,7 @@ let name m =
   let result =
      build_list [] nuclei |> build_name [c ; ", " ; mult]
   in
-  String.concat (result)
+  String.concat "" result
 
 
 let to_string_general ~f m = 
@@ -95,8 +96,8 @@ let to_string_general ~f m =
   let title =
      name m
   in
-  [ Int.to_string n ; title ] @  (List.map ~f nuclei)
-  |> String.concat ~sep:"\n"
+  [ string_of_int n ; title ] @  (List.map f nuclei)
+  |> String.concat "\n"
 
 let to_string =
   to_string_general ~f:(fun x -> Atom.to_string Units.Angstrom x)
@@ -109,9 +110,9 @@ let of_xyz_string
     ?(charge=(Charge.of_int 0)) ?(multiplicity=(Multiplicity.of_int 1))
     ?(units=Units.Angstrom)
     s =
-  let l = String.split s ~on:'\n'
-       |> List.filter ~f:(fun x -> x <> "")
-       |> List.map ~f:(fun x -> Atom.of_string units x)
+  let l = String_ext.split s ~on:'\n'
+       |> List.filter (fun x -> x <> "")
+       |> List.map (fun x -> Atom.of_string units x)
   in
   let ne = ( get_charge { 
         nuclei=l ;
@@ -145,25 +146,28 @@ let of_xyz_file
     ?(charge=(Charge.of_int 0)) ?(multiplicity=(Multiplicity.of_int 1))
     ?(units=Units.Angstrom)
     filename =
-  let (x,buffer) = In_channel.read_all filename 
-  |> String.lsplit2_exn ~on:'\n'
+  let lines = 
+    match Io_ext.input_lines filename with
+    | natoms :: title :: rest -> 
+        begin
+          try
+            if (int_of_string @@ String_ext.strip natoms) <= 0 then
+              raise XYZError
+          with
+          | _ -> raise XYZError
+        end;
+        String.concat "\n" rest
+    | _ -> raise XYZError
   in
-  let result =
-    try
-      (int_of_string @@ String.strip x) > 0
-    with
-    | Failure "int_of_string"  -> false
-  in
-  if not result then raise XYZError;
-  let (_,buffer) = String.lsplit2_exn buffer ~on:'\n' in
-  of_xyz_string ~charge ~multiplicity ~units buffer
+  of_xyz_string ~charge:charge ~multiplicity:multiplicity 
+    ~units:units lines
 
 
 let of_zmt_file  
     ?(charge=(Charge.of_int 0)) ?(multiplicity=(Multiplicity.of_int 1))
     ?(units=Units.Angstrom)
     filename = 
-  In_channel.read_all filename
+  Io_ext.read_all filename
   |> Zmatrix.of_string
   |> Zmatrix.to_xyz_string
   |> of_xyz_string ~charge ~multiplicity ~units
@@ -182,14 +186,14 @@ let of_file
 let distance_matrix molecule =
   let coord =
     molecule.nuclei
-    |> List.map ~f:(fun x -> x.Atom.coord)
+    |> List.map (fun x -> x.Atom.coord)
     |> Array.of_list
   in
   let n = 
     Array.length coord
   in
   let result =
-    Array.make_matrix ~dimx:n  ~dimy:n 0.
+    Array.make_matrix n n 0.
   in
   for i = 0 to (n-1)
   do
@@ -203,6 +207,7 @@ let distance_matrix molecule =
   
   
 
+open Core ;;
 include To_md5
 let to_md5 = to_md5 sexp_of_t
 

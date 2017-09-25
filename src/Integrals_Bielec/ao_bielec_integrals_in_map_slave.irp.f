@@ -142,8 +142,8 @@ subroutine ao_bielec_integrals_in_map_collector
   integer(ZMQ_PTR), external     :: new_zmq_pull_socket
   integer(ZMQ_PTR)               :: zmq_socket_pull
   
-  integer*8                      :: control, accu
-  integer                        :: task_id, more, sze
+  integer*8                      :: control, accu, sze
+  integer                        :: task_id, more
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_pull = new_zmq_pull_socket()

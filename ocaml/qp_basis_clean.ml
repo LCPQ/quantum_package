@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 
 let filenames =
   let dir_name = Qpackage.root^"/data/basis/"

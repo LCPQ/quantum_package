@@ -11,8 +11,8 @@ endif
 
 LIBS=
 PKGS=
-OCAMLCFLAGS="-g -warn-error A"
-OCAMLBUILD=ocamlbuild -j 0 -syntax camlp4o -cflags $(OCAMLCFLAGS) -lflags $(OCAMLCFLAGS) 
+OCAMLCFLAGS="-g"
+OCAMLBUILD=ocamlbuild -j 0 -cflags $(OCAMLCFLAGS) -lflags $(OCAMLCFLAGS) 
 MLLFILES=$(wildcard *.mll) 
 MLFILES=$(wildcard *.ml) ezfio.ml Qptypes.ml Input_auto_generated.ml qp_edit.ml 
 MLIFILES=$(wildcard *.mli) git

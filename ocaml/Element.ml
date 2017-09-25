@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Qptypes
 
 exception ElementError of string
@@ -11,7 +11,7 @@ type t =
 |K |Ca|Sc|Ti|V |Cr|Mn|Fe|Co|Ni|Cu|Zn|Ga|Ge|As|Se|Br|Kr
 |Rb|Sr|Y |Zr|Nb|Mo|Tc|Ru|Rh|Pd|Ag|Cd|In|Sn|Sb|Te|I |Xe
                            |Pt          
-with sexp
+[@@deriving sexp]
 
 let of_string x = 
   match (String.capitalize (String.lowercase x)) with

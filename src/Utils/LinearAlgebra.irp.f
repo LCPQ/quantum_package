@@ -69,7 +69,7 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
   double precision, allocatable  :: U(:,:)
   double precision, allocatable  :: Vt(:,:)
   double precision, allocatable  :: D(:)
-  double precision, allocatable  :: S_half(:,:)
+  double precision, allocatable  :: S(:,:)
   !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
   integer                        :: info, i, j
   
@@ -77,7 +77,7 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
     return
   endif
 
-  allocate (U(ldc,n), Vt(lda,n), D(n), S_half(lda,n))
+  allocate (U(ldc,n), Vt(lda,n), D(n), S(lda,n))
 
   call svd(overlap,lda,U,ldc,D,Vt,lda,n,n)
 
@@ -103,13 +103,13 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
 
 
   !$OMP PARALLEL DEFAULT(NONE) &
-  !$OMP SHARED(S_half,U,D,Vt,n,C,m) &
+  !$OMP SHARED(S,U,D,Vt,n,C,m) &
   !$OMP PRIVATE(i,j)
 
   !$OMP DO
   do j=1,n
     do i=1,n
-      S_half(i,j) = U(i,j)*D(j)
+      S(i,j) = U(i,j)*D(j)
     enddo
     do i=1,n
       U(i,j) = C(i,j)
@@ -119,8 +119,8 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
   
   !$OMP END PARALLEL
 
-  call dgemm('N','N',n,m,n,1.d0,U,size(U,1),S_half,size(S_half,1),0.d0,C,size(C,1))
-  deallocate (U, Vt, D, S_half)
+  call dgemm('N','N',n,m,n,1.d0,U,size(U,1),S,size(S,1),0.d0,C,size(C,1))
+  deallocate (U, Vt, D, S)
   
 end
 
@@ -210,19 +210,19 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   double precision, allocatable  :: U(:,:)
   double precision, allocatable  :: Vt(:,:)
   double precision, allocatable  :: D(:)
-  double precision, allocatable  :: S_half(:,:)
+  double precision, allocatable  :: S(:,:)
   integer                        :: info, i, j, k
   
   if (n < 2) then
     return
   endif
 
-  allocate(U(ldc,n),Vt(lda,n),S_half(lda,n),D(n))
+  allocate(U(ldc,n),Vt(lda,n),S(lda,n),D(n))
 
   call svd(overlap,lda,U,ldc,D,Vt,lda,n,n)
 
   !$OMP PARALLEL DEFAULT(NONE) &
-  !$OMP SHARED(S_half,U,D,Vt,n,C,m) &
+  !$OMP SHARED(S,U,D,Vt,n,C,m) &
   !$OMP PRIVATE(i,j,k)
 
   !$OMP DO
@@ -233,7 +233,7 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
       D(i) = 1.d0/dsqrt(D(i))
     endif
     do j=1,n
-      S_half(j,i) = 0.d0
+      S(j,i) = 0.d0
     enddo
   enddo
   !$OMP END DO
@@ -243,7 +243,7 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
       !$OMP DO
       do j=1,n
         do i=1,n
-          S_half(i,j) = S_half(i,j) + U(i,k)*D(k)*Vt(k,j)
+          S(i,j) = S(i,j) + U(i,k)*D(k)*Vt(k,j)
         enddo
       enddo
       !$OMP END DO NOWAIT
@@ -261,9 +261,9 @@ subroutine ortho_lowdin(overlap,LDA,N,C,LDC,m)
   
   !$OMP END PARALLEL
 
-  call dgemm('N','N',m,n,n,1.d0,U,size(U,1),S_half,size(S_half,1),0.d0,C,size(C,1))
+  call dgemm('N','N',m,n,n,1.d0,U,size(U,1),S,size(S,1),0.d0,C,size(C,1))
   
-  deallocate(U,Vt,S_half,D)
+  deallocate(U,Vt,S,D)
 end
 
 

@@ -1,3 +1,10 @@
+## IMPORTANT
+
+If you have problems upgrading to the current version, consider re-installing everything from scratch including the OCaml compiler.
+To do this, you will have to remove the `quantum_package` directory **and** the `$HOME/.opam` directory as well.
+
+
+
 ![QP](https://raw.githubusercontent.com/LCPQ/quantum_package/master/data/qp.png)     
 [![Build Status](https://travis-ci.org/LCPQ/quantum_package.svg?branch=master)](https://travis-ci.org/LCPQ/quantum_package)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/LCPQ/quantum_package?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
