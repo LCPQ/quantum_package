@@ -50,11 +50,8 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
   ASSERT (LDB >= k_max)
   ASSERT (LDB >= l_max)
 
-  allocate( T(i_min:i_max,j_min:j_max,k_min:k_max),                  &
-      U(i_min:i_max,j_min:j_max,k_min:k_max),                        &
-      V(i_min:i_max,j_min:j_max,k_min:k_max),                        &
-      key(i_max*j_max*k_max),                                        &
-      value(i_max*j_max*k_max) )
+  allocate( key(i_max*j_max*k_max), value(i_max*j_max*k_max) )
+  allocate( U(a_start:a_end, b_start:b_end, c_start:c_end) )
 
   do d=d_start,d_end
     U = 0.d0
@@ -63,62 +60,109 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
       if (dabs(matrix_B(l,d)) < 1.d-10) then
         cycle
       endif
+
+      allocate( T(i_start:i_end, k_start:k_end, j_start:j_end) )
+
       do k=k_start,k_end
         do j=j_start,j_end
           do i=i_start,i_end
             call bielec_integrals_index(i,j,k,l,idx)
             call map_get(map_a,idx,tmp)
-            T(i,j,k) = tmp
+            T(i, k,j) = tmp
           enddo
         enddo
       enddo
 
-      V = 0.d0
-      do a=a_start,a_end
-        do k=k_start,k_end
-          do j=j_start,j_end
-            do i=i_start,i_end
-              V(j,k,a) = V(j,k,a) + T(i,j,k)*matrix_B(i,a)
-            enddo
-          enddo
-        enddo
-      enddo
-!        call DGEMM('T','N', (j_end-j_start+1),(k_end-k_start+1),     &
-!            (i_end-i_start+1), 1.d0,                                 &
-!          T, size(T,1)*
+      allocate( V(a_start:a_end, k_start:k_end, j_start:j_end) )
 
-      T = 0.d0
+!      V = 0.d0
+!      do a=a_start,a_end
+!        do k=k_start,k_end
+!          do j=j_start,j_end
+!            do i=i_start,i_end
+!              V(a, k,j) = V(a, k,j) + T(i, k,j)*matrix_B(i, a)
+!            enddo
+!          enddo
+!        enddo
+!      enddo
+      call DGEMM('T','N', (a_end-a_start+1), (k_end-k_start+1)*(j_end-j_start+1),&
+          (i_end-i_start+1), 1.d0,                                   &
+          matrix_B(i_start,a_start), size(matrix_B,1),               &
+          T(i_start,k_start,j_start), size(T,1),  0.d0,              &
+          V(a_start,k_start,j_start), size(V, 1) )
+
+      deallocate(T)
+      allocate( T(a_start:a_end, k_start:k_end, b_start:b_end) )
+
+!      V = 0.d0
+!      do a=a_start,a_end
+!        do k=k_start,k_end
+!          do b=b_start,b_end
+!            do j=j_start,j_end
+!              V(a,k, b) = V(a,k, b) + T(a,k, j)*matrix_B(j, b)
+!            enddo
+!          enddo
+!        enddo
+!      enddo
+      call DGEMM('N','N', (a_end-a_start+1)*(k_end-k_start+1),(b_end-b_start+1),&
+          (j_end-j_start+1), 1.d0,                                   &
+          V(a_start,k_start,j_start), size(V,1)*size(V,2),           &
+          matrix_B(j_start,b_start), size(matrix_B,1),0.d0,          &
+          T(a_start,k_start,b_start), size(T,1)*size(T,2) )
+
+      deallocate(V)
+      allocate( V(a_start:a_end, k_start:k_end, b_start:b_end) )
+      V = T
+      deallocate(T)
+      allocate( T(a_start:a_end, k_start:k_end, b_start:b_end) )
+
       do b=b_start,b_end
         do a=a_start,a_end
           do k=k_start,k_end
-            do j=j_start,j_end
-              T(k,a,b) = T(k,a,b) + V(j,k,a)*matrix_B(j,b)
-            enddo
+              T(a, k,b) = V(a, k,b) 
           enddo
         enddo
       enddo
+
+      deallocate(V)
+      allocate( V(a_start:a_end, b_start:b_end, c_start:c_end) )
+
+!      V = 0.d0
+!      do b=b_start,b_end
+!        do c=c_start,c_end
+!          do a=a_start,a_end
+!            do k=k_start,k_end
+!              V(a,b,c) = V(a,b,c) + T(a,k ,b)*matrix_B(k, c)
+!            enddo
+!          enddo
+!        enddo
+!      enddo
 
       V = 0.d0
-      do c=c_start,c_end
-        do b=b_start,b_end
-          do a=a_start,a_end
-            do k=k_start,k_end
-              V(a,b,c) = V(a,b,c) + T(k,a,b)*matrix_B(k,c)
-            enddo
-          enddo
-        enddo
+      do b=b_start,b_end
+        call DGEMM('N','N', (a_end-a_start+1), (c_end-c_start+1),    &
+            (k_end-k_start+1), 1.d0,                                 &
+            T(a_start,k_start,b), size(T,1),                         &
+            matrix_B(k_start,k_start), size(matrix_B,1), 1.d0,       &
+            V(a_start,c_start,b), size(V,1) )
       enddo
 
-      do c=c_start,c_end
-        do b=b_start,b_end
-          do a=a_start,a_end
+
+      deallocate(T)
+      U = U + V*matrix_B(l, d)
+
+!      do a=a_start,a_end
+!        do b=b_start,b_end
+!          do c=c_start,c_end
 !    do c=c_start,c_end
 !      do b=b_start,d
 !        do a=a_start,min(b,c)
-            U(a,b,c) = U(a,b,c) + V(a,b,c) * matrix_B(l,d)
-          enddo
-        enddo
-      enddo
+!            U(a,b,c) = U(a,b,c) + V(a,b,c) * matrix_B(l, d)
+!          enddo
+!        enddo
+!      enddo
+
+      deallocate(V)
 
     enddo
 
@@ -129,12 +173,12 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
 !    do c=c_start,c_end
 !      do b=b_start,d
 !        do a=a_start,min(b,c)
-          if (dabs(U(a,b,c)) < 1.d-15) then
+          if (dabs(U(a,c,b)) < 1.d-15) then
             cycle
           endif
           idx = idx+1_8
           call bielec_integrals_index(a,b,c,d,key(idx))
-          value(idx) = U(a,b,c)
+          value(idx) = U(a,c,b)
         enddo
       enddo
     enddo
@@ -143,5 +187,6 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
     call map_unique(map_c)
 
   enddo
+  deallocate(key,value)
 
 end
