@@ -59,16 +59,16 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
       !$OMP  i_min,i_max,j_min,j_max,k_min,k_max,l_min,l_max,        &
       !$OMP  map_a,map_c,matrix_B)
   allocate( key(i_max*j_max*k_max), value(i_max*j_max*k_max) )
-  allocate( U(a_start:a_end, b_start:b_end, c_start:c_end) )
+  allocate( U(a_start:a_end, c_start:c_end, b_start:b_end) )
 
-  !$OMP DO
+  !$OMP DO SCHEDULE(static,1)
   do d=d_start,d_end
     U = 0.d0
-    print *,  d
     do l=1,l_end
       if (dabs(matrix_B(l,d)) < 1.d-10) then
         cycle
       endif
+      print *,  d, l
 
       allocate( T(i_start:i_end, k_start:k_end, j_start:j_end), &
                 V(a_start:a_end, k_start:k_end, j_start:j_end) )
@@ -79,11 +79,16 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
             call bielec_integrals_index(i,j,k,l,idx)
             call map_get(map_a,idx,tmp)
             T(i, k,j) = tmp
-            T(k, i,j) = tmp
           enddo
         enddo
       enddo
-
+      do j=j_start,j_end
+        do k=k_start,k_end
+          do i=k+1,i_end
+            T(i, k,j) = T(k, i,j) 
+          enddo
+        enddo
+      enddo
 
       call DGEMM('T','N', (a_end-a_start+1),                         &
           (k_end-k_start+1)*(j_end-j_start+1),                       &
@@ -93,10 +98,10 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
           V(a_start,k_start,j_start), size(V, 1) )
 
       deallocate(T)
-      allocate( T(a_start:a_end, k_start:k_end, b_start:b_end) )
+      allocate( T(a_start:a_end, k_start:k_end, b_start:d) )
 
       call DGEMM('N','N', (a_end-a_start+1)*(k_end-k_start+1),       &
-              (b_end-b_start+1),                                     &
+              (d-b_start+1),                                     &
               (j_end-j_start+1), 1.d0,                               &
               V(a_start,k_start,j_start), size(V,1)*size(V,2),       &
               matrix_B(j_start,b_start), size(matrix_B,1),0.d0,      &
@@ -104,28 +109,22 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
 
       deallocate(V)
 
-      allocate( V(a_start:a_end, b_start:b_end, c_start:c_end) )
-      V = 0.d0
-      do b=b_start,b_end
-        call DGEMM('N','N', (a_end-a_start+1), (c_end-c_start+1),    &
-            (k_end-k_start+1), 1.d0,                                 &
-            T(a_start,k_start,b), size(T,1),                         &
-            matrix_B(k_start,k_start), size(matrix_B,1), 1.d0,       &
-            V(a_start,c_start,b), size(V,1) )
+      do b=b_start,d
+        call DGEMM('N','N', (b-a_start+1), (c_end-c_start+1),    &
+            (k_end-k_start+1), matrix_B(l, d),                   &
+            T(a_start,k_start,b), size(T,1),                     &
+            matrix_B(k_start,k_start), size(matrix_B,1), 1.d0,   &
+            U(a_start,c_start,b), size(U,1) )
       enddo
 
-      U = U + V*matrix_B(l, d)
-      deallocate(T,V)
+      deallocate(T)
 
     enddo
 
     idx = 0_8
-    do c=c_start,c_end
-      do b=b_start,b_end
-        do a=a_start,a_end
-!    do c=c_start,c_end
-!      do b=b_start,d
-!        do a=a_start,min(b,c)
+    do b=b_start,d
+      do c=c_start,c_end
+        do a=a_start,min(b,c)
           if (dabs(U(a,c,b)) < 1.d-15) then
             cycle
           endif
