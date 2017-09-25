@@ -434,11 +434,11 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
             mobMask(1:3,2) = iand(negMask(1:3,2), preinteresting_det(1:3,2,ii))
             nt = 0
             do j=3,1,-1
-              if (mobMask(j,1) /= 0_bitkind) then
+              if (mobMask(j,1) /= 0_bit_kind) then
                 nt = nt+ popcnt(mobMask(j, 1))
                 if (nt > 4) exit
               endif
-              if (mobMask(j,2) /= 0_bitkind) then
+              if (mobMask(j,2) /= 0_bit_kind) then
                 nt = nt+ popcnt(mobMask(j, 2))
                 if (nt > 4) exit
               endif
@@ -448,25 +448,25 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
             mobMask(1:4,2) = iand(negMask(1:4,2), preinteresting_det(1:4,2,ii))
             nt = 0
             do j=4,1,-1
-              if (mobMask(j,1) /= 0_bitkind) then
+              if (mobMask(j,1) /= 0_bit_kind) then
                 nt = nt+ popcnt(mobMask(j, 1))
                 if (nt > 4) exit
               endif
-              if (mobMask(j,2) /= 0_bitkind) then
+              if (mobMask(j,2) /= 0_bit_kind) then
                 nt = nt+ popcnt(mobMask(j, 2))
                 if (nt > 4) exit
               endif
             end do
-          case (default)
+          case default
             mobMask(1:N_int,1) = iand(negMask(1:N_int,1), preinteresting_det(1:N_int,1,ii))
             mobMask(1:N_int,2) = iand(negMask(1:N_int,2), preinteresting_det(1:N_int,2,ii))
             nt = 0 
             do j=N_int,1,-1
-              if (mobMask(j,1) /= 0_bitkind) then
+              if (mobMask(j,1) /= 0_bit_kind) then
                 nt = nt+ popcnt(mobMask(j, 1))
                 if (nt > 4) exit
               endif
-              if (mobMask(j,2) /= 0_bitkind) then
+              if (mobMask(j,2) /= 0_bit_kind) then
                 nt = nt+ popcnt(mobMask(j, 2))
                 if (nt > 4) exit
               endif
