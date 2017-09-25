@@ -13,7 +13,7 @@ module map_module
 ! cache_map using a binary search
 !
 ! When using the map_update subroutine to build the map,
-! the map_unique subroutine
+! the map_merge subroutine
 ! should be called before getting data from the map.
 
  use omp_lib
@@ -274,7 +274,7 @@ subroutine map_sort(map)
   
 end
 
-subroutine cache_map_unique(map)
+subroutine cache_map_merge(map)
   use map_module
   implicit none
   type (cache_map_type), intent(inout) :: map
@@ -292,6 +292,28 @@ subroutine cache_map_unique(map)
       prev_key = map%key(i)
     else
       map%value(j) = map%value(j)+map%value(i)
+    endif
+  enddo
+  map%n_elements = j
+  
+end
+
+subroutine cache_map_unique(map)
+  use map_module
+  implicit none
+  type (cache_map_type), intent(inout) :: map
+  integer(cache_key_kind)        :: prev_key
+  integer(cache_map_size_kind)   :: i, j
+  
+  call cache_map_sort(map)
+  prev_key = -1_8
+  j=0
+  do i=1,map%n_elements
+    if (map%key(i) /= prev_key) then
+      j = j+1
+      map%value(j) = map%value(i)
+      map%key(j) = map%key(i)
+      prev_key = map%key(i)
     endif
   enddo
   map%n_elements = j
@@ -330,6 +352,27 @@ subroutine map_unique(map)
   do i=0_8,map%map_size
     call omp_set_lock(map%map(i)%lock)
     call cache_map_unique(map%map(i))
+    call omp_unset_lock(map%map(i)%lock)
+    icount = icount + map%map(i)%n_elements
+  enddo
+  !$OMP END PARALLEL DO
+  map%n_elements = icount
+  
+end
+
+subroutine map_merge(map)
+  use map_module
+  implicit none
+  type (map_type), intent(inout) :: map
+  integer(map_size_kind)         :: i
+  integer(map_size_kind)         :: icount
+  
+  icount = 0_8
+  !$OMP PARALLEL DO SCHEDULE(dynamic,1000) DEFAULT(SHARED) PRIVATE(i)&
+      !$OMP REDUCTION(+:icount)
+  do i=0_8,map%map_size
+    call omp_set_lock(map%map(i)%lock)
+    call cache_map_merge(map%map(i))
     call omp_unset_lock(map%map(i)%lock)
     icount = icount + map%map(i)%n_elements
   enddo
@@ -402,7 +445,7 @@ subroutine map_update(map, key, value, sze, thr)
           else
             ! Assert that the map has a proper size
             if (local_map%n_elements == local_map%map_size) then
-              call cache_map_unique(local_map)
+              call cache_map_merge(local_map)
               call cache_map_reallocate(local_map, local_map%n_elements + local_map%n_elements)
               call cache_map_shrink(local_map,thr)
             endif
