@@ -68,6 +68,7 @@ subroutine run
   call insert_into_ao_integrals_map(n_integrals,buffer_i,buffer_values)
 
   call map_sort(ao_integrals_map)
+  call map_unique(ao_integrals_map)
 
   call map_save_to_disk(trim(ezfio_filename)//'/work/ao_ints',ao_integrals_map)
   call ezfio_set_integrals_bielec_disk_access_ao_integrals('Read')
