@@ -146,7 +146,7 @@ subroutine set_integrals_jj_into_map
   enddo
   call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
       real(mo_integrals_threshold,integral_kind))
-  call map_unique(mo_integrals_map)
+  call map_merge(mo_integrals_map)
 end
 
 subroutine set_integrals_exchange_jj_into_map
@@ -167,7 +167,7 @@ subroutine set_integrals_exchange_jj_into_map
   enddo
   call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
       real(mo_integrals_threshold,integral_kind))
-  call map_unique(mo_integrals_map)
+  call map_merge(mo_integrals_map)
   
 end
 
@@ -458,7 +458,7 @@ subroutine add_integrals_to_map(mask_ijkl)
       real(mo_integrals_threshold,integral_kind))
   deallocate(buffer_i, buffer_value)
   !$OMP END PARALLEL
-  call map_unique(mo_integrals_map)
+  call map_merge(mo_integrals_map)
   
   call wall_time(wall_2)
   call cpu_time(cpu_2)
@@ -773,7 +773,7 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
       real(mo_integrals_threshold,integral_kind))
   deallocate(buffer_i, buffer_value)
   !$OMP END PARALLEL
-  call map_unique(mo_integrals_map)
+  call map_merge(mo_integrals_map)
   
   call wall_time(wall_2)
   call cpu_time(cpu_2)
@@ -1035,7 +1035,7 @@ subroutine add_integrals_to_map_no_exit_34(mask_ijkl)
   !  print*, 'Communicating the map'
   !  call communicate_mo_integrals()
   !IRP_ENDIF
-  call map_unique(mo_integrals_map)
+  call map_merge(mo_integrals_map)
   
   call wall_time(wall_2)
   call cpu_time(cpu_2)
