@@ -1,4 +1,4 @@
-type t = One | Zero with sexp
+type t = One | Zero [@@deriving sexp]
 
 (** String conversions for printing *)
 val to_string : t -> string

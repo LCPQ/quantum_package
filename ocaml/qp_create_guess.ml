@@ -1,6 +1,6 @@
 open Qputils
 open Qptypes
-open Core.Std
+open Core
 
 let run ~multiplicity ezfio_file =
   if (not (Sys.file_exists_exn ezfio_file)) then

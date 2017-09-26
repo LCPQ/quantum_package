@@ -1,4 +1,4 @@
-open Core.Std;;
+open Core;;
 
 (*
 Type for bits 
@@ -11,7 +11,7 @@ Zero | One
 type t      = 
 | One 
 | Zero 
-with sexp
+[@@deriving sexp]
 
 let to_string = function
   | Zero -> "0"

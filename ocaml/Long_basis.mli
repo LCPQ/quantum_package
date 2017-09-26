@@ -5,7 +5,7 @@ open Qptypes;;
   * all the D orbitals are converted to xx, xy, xz, yy, yx
   * etc
 *)
-type t = (Symmetry.Xyz.t * Gto.t * Nucl_number.t) list with sexp
+type t = (Symmetry.Xyz.t * Gto.t * Nucl_number.t) list [@@deriving sexp]
 
 (** Transform a basis to a long basis *)
 val of_basis :

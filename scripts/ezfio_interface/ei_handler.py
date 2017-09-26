@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Welcom the ei_handler.
+Welcome to the ei_handler.
 We will create all the ezfio related stuff from a EZFIO.cfg file.
 
 Usage:
@@ -543,7 +543,7 @@ def create_ocaml_input(dict_ezfio_cfg, module_lower):
 
     template += ["open Qptypes;;",
                  "open Qputils;;",
-                 "open Core.Std;;",
+                 "open Core;;",
                  "",
                  "module {0} : sig".format(module_lower.capitalize())]
 

@@ -1,7 +1,7 @@
-open Core.Std;;
-open Qptypes;;
+open Qptypes
+open Sexplib.Std
 
-type t = int64 array with sexp
+type t = int64 array [@@deriving sexp]
 
 let to_int64_array (x:t) = (x:int64 array)
 
@@ -9,8 +9,8 @@ let to_int64_array (x:t) = (x:int64 array)
 let to_alpha_beta x = 
   let x = to_int64_array x in
   let n_int = (Array.length x)/2 in
-  ( Array.init n_int ~f:(fun i -> x.(i)) ,
-    Array.init n_int ~f:(fun i -> x.(i+n_int)) )
+  ( Array.init n_int (fun i -> x.(i)) ,
+    Array.init n_int (fun i -> x.(i+n_int)) )
 
 
 let to_bitlist_couple x =
@@ -28,12 +28,14 @@ let bitlist_to_string ~mo_tot_num x =
   let len = 
     MO_number.to_int mo_tot_num
   in
-  List.map x ~f:(function
-      | Bit.Zero -> "-"
-      | Bit.One  -> "+" 
-  )
-  |> String.concat
-  |> String.sub ~pos:0 ~len 
+  let s = 
+    List.map (function
+        | Bit.Zero -> "-"
+        | Bit.One  -> "+" 
+    ) x
+    |> String.concat ""
+  in
+  String.sub s 0 len 
 
 
 
@@ -77,6 +79,6 @@ let to_string ~mo_tot_num x =
   let (xa,xb) = to_bitlist_couple x in
   [ "  " ; bitlist_to_string ~mo_tot_num xa ; "\n" ;
     "  " ; bitlist_to_string ~mo_tot_num xb ]
-  |> String.concat 
+  |> String.concat ""
 
 

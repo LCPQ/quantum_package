@@ -11,7 +11,7 @@ end
 subroutine routine_3
  implicit none
 !provide fock_virt_total_spin_trace
- provide delta_ij 
+ provide delta_ij_mrpt 
  
  print *,  'N_det    = ', N_det
  print *,  'N_states = ', N_states

@@ -7,25 +7,28 @@ subroutine huckel_guess
   double precision               :: accu
   double precision               :: c
   character*(64)                 :: label
-
+  double precision, allocatable  :: A(:,:)
   label = "Guess"
-  call mo_as_eigvectors_of_mo_matrix(mo_mono_elec_integral,          &
-                                     size(mo_mono_elec_integral,1),  &
-                                     size(mo_mono_elec_integral,2),label,1)
-  TOUCH mo_coef
-
   c = 0.5d0 * 1.75d0
 
+  allocate (A(ao_num, ao_num))
+  A = 0.d0
   do j=1,ao_num
     do i=1,ao_num
-      Fock_matrix_ao(i,j) = c*ao_overlap(i,j)*(ao_mono_elec_integral_diag(i) + &
-                                                 ao_mono_elec_integral_diag(j))
+      A(i,j) = c * ao_overlap(i,j) * (ao_mono_elec_integral_diag(i) + ao_mono_elec_integral_diag(j))
     enddo
-    Fock_matrix_ao(j,j) = Fock_matrix_ao_alpha(j,j)
+    A(j,j) = ao_mono_elec_integral_diag(j) + ao_bi_elec_integral_alpha(j,j)
   enddo
-  TOUCH Fock_matrix_ao
+
+  Fock_matrix_ao_alpha(1:ao_num,1:ao_num) = A(1:ao_num,1:ao_num)
+  Fock_matrix_ao_beta (1:ao_num,1:ao_num) = A(1:ao_num,1:ao_num)
+
+!  TOUCH mo_coef
+
+  TOUCH Fock_matrix_ao_alpha Fock_matrix_ao_beta
   mo_coef = eigenvectors_fock_matrix_mo
   SOFT_TOUCH mo_coef
   call save_mos
+  deallocate(A)
 
 end

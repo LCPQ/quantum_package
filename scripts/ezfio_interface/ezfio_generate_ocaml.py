@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """
-This programme generate all the
-ocaml template needed by qp_edit
+This program generates all the
+OCaml templates needed by qp_edit
 
 You can see `ezfio_generate_provider.py`
-for an example of utilisation
+for an example.
 """
 
 import sys
@@ -170,7 +170,7 @@ class EZFIO_ocaml(object):
             else:
                 l_template += ["    {0:<30} : {1};".format(p, t.ocaml)]
 
-        l_template += ["  } with sexp",
+        l_template += ["  } [@@deriving sexp]",
                        ";;"]
 
         # ~#~#~#~#~#~ #
@@ -352,7 +352,7 @@ class EZFIO_ocaml(object):
 
         l_template = ['open Qputils;;',
                       'open Qptypes;;',
-                      'open Core.Std;;',
+                      'open Core;;',
                       '']
 
         for m in self.l_module_lower:

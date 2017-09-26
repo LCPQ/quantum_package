@@ -1,6 +1,6 @@
 open Qptypes;;
 open Qputils;;
-open Core.Std;;
+open Core;;
 
 module Nuclei_by_hand : sig
   type t = 
@@ -8,7 +8,7 @@ module Nuclei_by_hand : sig
       nucl_label      : Element.t array;
       nucl_charge     : Charge.t array;
       nucl_coord      : Point3d.t array;
-    } with sexp
+    } [@@deriving sexp]
   ;;
   val read  : unit -> t option
   val write : t -> unit 
@@ -22,7 +22,7 @@ end = struct
       nucl_label      : Element.t array;
       nucl_charge     : Charge.t array;
       nucl_coord      : Point3d.t array;
-    } with sexp
+    } [@@deriving sexp]
   ;;
 
   let get_default = Qpackage.get_ezfio_default "nuclei";;

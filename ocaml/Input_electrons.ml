@@ -1,12 +1,12 @@
 open Qptypes;;
 open Qputils;;
-open Core.Std;;
+open Core;;
 
 module Electrons : sig
   type t = 
     { elec_alpha_num     : Elec_alpha_number.t;
       elec_beta_num      : Elec_beta_number.t;
-    } with sexp
+    } [@@deriving sexp]
   ;;
   val read  : unit -> t option
   val write : t -> unit
@@ -18,7 +18,7 @@ end = struct
   type t = 
     { elec_alpha_num     : Elec_alpha_number.t;
       elec_beta_num      : Elec_beta_number.t;
-    } with sexp
+    } [@@deriving sexp]
   ;;
 
   let get_default = Qpackage.get_ezfio_default "electrons";;

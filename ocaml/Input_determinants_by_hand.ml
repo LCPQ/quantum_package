@@ -1,6 +1,6 @@
 open Qptypes;;
 open Qputils;;
-open Core.Std;;
+open Core;;
 
 module Determinants_by_hand : sig
   type t = 
@@ -11,7 +11,7 @@ module Determinants_by_hand : sig
       expected_s2            : Positive_float.t;
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
-    } with sexp
+    } [@@deriving sexp]
   val read  : unit -> t
   val read_maybe  : unit -> t option
   val write : t -> unit
@@ -30,7 +30,7 @@ end = struct
       expected_s2            : Positive_float.t;
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
-    } with sexp
+    } [@@deriving sexp]
   ;;
 
   let get_default = Qpackage.get_ezfio_default "determinants";;
