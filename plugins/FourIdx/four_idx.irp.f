@@ -18,6 +18,11 @@ program FourIdx
       1, 1, 1, 1, ao_num, ao_num, ao_num, ao_num,                    &
       1, 1, 1, 1, mo_tot_num, mo_tot_num, mo_tot_num, mo_tot_num)
 
+!  call four_index_transform(ao_integrals_map,test_map,               &
+!      mo_coef, size(mo_coef,1),                                      &
+!      1, 1, 1, 1, ao_num, ao_num, ao_num, ao_num,                    &
+!      1, 1, 1, 1, mo_tot_num, mo_tot_num, mo_tot_num, mo_tot_num)
+
   integer :: i,j,k,l
   real(integral_kind) :: integral1, integral2
 

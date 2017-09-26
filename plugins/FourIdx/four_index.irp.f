@@ -100,6 +100,7 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
       deallocate(T)
       allocate( T(a_start:a_end, k_start:k_end, b_start:d) )
 
+      ! a=a_start,b
       call DGEMM('N','N', (a_end-a_start+1)*(k_end-k_start+1),       &
               (d-b_start+1),                                     &
               (j_end-j_start+1), 1.d0,                               &
@@ -122,9 +123,12 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
     enddo
 
     idx = 0_8
-    do b=b_start,d
+    do b=b_start,b_end
       do c=c_start,c_end
-        do a=a_start,min(b,c)
+        do a=a_start,a_end
+!          if (a>b) cycle
+!          if (a>c) cycle
+!          if (b>d) cycle
           if (dabs(U(a,c,b)) < 1.d-15) then
             cycle
           endif
@@ -137,7 +141,8 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
     !$OMP CRITICAL
     call map_append(map_c, key, value, idx) 
     call map_sort(map_c)
-    call map_unique(map_c)
+!    call map_update(map_c, key, value, idx) 
+!    call map_merge(map_c)
     !$OMP END CRITICAL
 
   enddo
