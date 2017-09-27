@@ -1,4 +1,4 @@
-subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
+subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
       i_start, j_start, k_start, l_start,                            &
       i_end  , j_end  , k_end  , l_end  ,                            &
       a_start, b_start, c_start, d_start,                            &
@@ -59,8 +59,8 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
   type(c_ptr)                    :: c_pointer
   integer*8, pointer             :: a_array(:,:,:)
   call mmap(trim(ezfio_filename)//'/work/four_idx',                  &
-      (/ 4_8,int(i_end-i_start+1,8),int(j_end-j_start+1,8),int(k_end-k_start+1,8), int(l_end-l_start+1,8) /), 8, fd, .False., c_pointer)
-  call c_f_pointer(c_pointer, a_array, (/ 4, (i_end-i_start+1)*(j_end-j_start+1)*(k_end-k_start+1), l_end-l_start+1 /))
+      (/ 2_8,int(i_end-i_start+1,8),int(j_end-j_start+1,8),int(k_end-k_start+1,8), int(l_end-l_start+1,8) /), 8, fd, .False., c_pointer)
+  call c_f_pointer(c_pointer, a_array, (/ 4, (i_end-i_start+1)*(j_end-j_start+1)*(k_end-k_start+1)/2, l_end-l_start+1 /))
 
 
   !$OMP PARALLEL DEFAULT(NONE) SHARED(a_array,c_pointer,fd,          &
@@ -79,7 +79,7 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
     a = 1
     do j=j_start,j_end
       do k=k_start,k_end
-        do i=i_start,i_end
+        do i=i_start,k
           call bielec_integrals_index(i,j,k,l,idx)
           call map_get(map_a,idx,tmp)
           if (tmp /= 0.d0) then
@@ -115,8 +115,19 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
         j = a_array(2,a,l-l_start+1)
         k = a_array(3,a,l-l_start+1)
         T(i, k,j) = transfer(a_array(4,a,l-l_start+1), 1.d0)
+        T(k, i,j) = transfer(a_array(4,a,l-l_start+1), 1.d0)
       enddo
 
+!      V = 0.d0
+!      do a=a_start,a_end
+!       do k=k_start,k_end
+!        do j=j_start,j_end
+!         do i=i_start,i_end
+!           V(a,k,j) = V(a,k,j) + T(i,k,j)*matrix_B(i,a)
+!         enddo
+!        enddo
+!       enddo
+!      enddo
       call DGEMM('T','N', (a_end-a_start+1),                         &
           (k_end-k_start+1)*(j_end-j_start+1),                       &
           (i_end-i_start+1), 1.d0,                                   &
@@ -125,10 +136,10 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
           V(a_start,k_start,j_start), size(V, 1) )
 
       deallocate(T)
-      allocate( T(a_start:a_end, k_start:k_end, b_start:d) )
+      allocate( T(a_start:a_end, k_start:k_end, b_start:b_end) )
 
       call DGEMM('N','N', (a_end-a_start+1)*(k_end-k_start+1),       &
-              (b_end-b_start+1),                                     &
+              (d-b_start+1),                                     &
               (j_end-j_start+1), 1.d0,                               &
               V(a_start,k_start,j_start), size(V,1)*size(V,2),       &
               matrix_B(j_start,b_start), size(matrix_B,1),0.d0,      &
@@ -149,9 +160,9 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
     enddo
 
     idx = 0_8
-    do b=b_start,b_end
+    do b=b_start,d
       do c=c_start,c_end
-        do a=a_start,a_end
+        do a=a_start,min(b,c)
           if (dabs(U(a,c,b)) < 1.d-15) then
             cycle
           endif
@@ -175,6 +186,6 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
   !$OMP END PARALLEL
 
   call munmap( &
-      (/ 4_8,int(i_end-i_start+1,8),int(j_end-j_start+1,8),int(k_end-k_start+1,8), int(l_end-l_start+1,8) /), 8, fd, c_pointer)
+      (/ 2_8,int(i_end-i_start+1,8),int(j_end-j_start+1,8),int(k_end-k_start+1,8), int(l_end-l_start+1,8) /), 8, fd, c_pointer)
 
 end
