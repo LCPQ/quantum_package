@@ -18,10 +18,14 @@ program FourIdx
 !      1, 1, 1, 1, ao_num, ao_num, ao_num, ao_num,                    &
 !      1, 1, 1, 1, mo_tot_num, mo_tot_num, mo_tot_num, mo_tot_num)
 
+  double precision :: t0,t1
+  call wall_time(t0)
   call four_index_transform_sym(ao_integrals_map,test_map,               &
       mo_coef, size(mo_coef,1),                                      &
       1, 1, 1, 1, ao_num, ao_num, ao_num, ao_num,                    &
       1, 1, 1, 1, mo_tot_num, mo_tot_num, mo_tot_num, mo_tot_num)
+  call wall_time(t1)
+  print *,  'Time: ', t1-t0, 's'
 
   integer :: i,j,k,l
   real(integral_kind) :: integral1, integral2

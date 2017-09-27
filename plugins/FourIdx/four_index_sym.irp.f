@@ -20,10 +20,11 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
   integer, intent(in)            :: a_start, b_start, c_start, d_start
   integer, intent(in)            :: a_end  , b_end  , c_end  , d_end
 
-  double precision, allocatable  :: T(:,:,:), U(:,:,:), V(:,:,:)
+  double precision, allocatable  :: T(:,:), U(:,:,:), V(:,:)
+  double precision, allocatable  :: T2d(:,:), V2d(:,:)
   integer                        :: i_max, j_max, k_max, l_max
   integer                        :: i_min, j_min, k_min, l_min
-  integer                        :: i, j, k, l
+  integer                        :: i, j, k, l, ik
   integer                        :: a, b, c, d
   double precision, external     :: get_ao_bielec_integral
   integer(key_kind)              :: idx
@@ -68,8 +69,8 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
       !$OMP  i_start,i_end,j_start,j_end,k_start,k_end,l_start,l_end,&
       !$OMP  i_min,i_max,j_min,j_max,k_min,k_max,l_min,l_max,        &
       !$OMP  map_a,map_c,matrix_B)                                   &
-      !$OMP  PRIVATE(key,value,T,U,V,i,j,k,l,idx,   &
-      !$OMP  a,b,c,d,tmp)
+      !$OMP  PRIVATE(key,value,T,U,V,i,j,k,l,idx,ik,   &
+      !$OMP  a,b,c,d,tmp,T2d,V2d)
   allocate( key(i_max*j_max*k_max), value(i_max*j_max*k_max) )
   allocate( U(a_start:a_end, c_start:c_end, b_start:b_end) )
 
@@ -97,6 +98,12 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
   enddo
   !$OMP END DO
 
+  allocate( T2d((i_end-i_start+1)*(k_end-k_start+2)/2, j_start:j_end), &
+            V2d((i_end-i_start+1)*(k_end-k_start+2)/2, b_start:b_end), &
+            V(i_start:i_end, k_start:k_end), &
+            T(k_start:k_end, a_start:a_end) )
+
+
   !$OMP DO SCHEDULE(dynamic)
   do d=d_start,d_end
     U = 0.d0
@@ -105,57 +112,86 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
         cycle
       endif
       print *,  d, l
-
-      allocate( T(i_start:i_end, k_start:k_end, j_start:j_end), &
-                V(a_start:a_end, k_start:k_end, j_start:j_end) )
-
-      T = 0.d0
+      
+      T2d = 0.d0
       do a=2,a_array(1,1,l-l_start+1)
         i = a_array(1,a,l-l_start+1)
         j = a_array(2,a,l-l_start+1)
         k = a_array(3,a,l-l_start+1)
-        T(i, k,j) = transfer(a_array(4,a,l-l_start+1), 1.d0)
-        T(k, i,j) = transfer(a_array(4,a,l-l_start+1), 1.d0)
+        ik = (i-i_start+1) + ishft( (k-k_start+1)*(k-k_start), -1)
+        T2d(ik,j) = transfer(a_array(4,a,l-l_start+1), 1.d0)
       enddo
 
-!      V = 0.d0
-!      do a=a_start,a_end
-!       do k=k_start,k_end
+!      V2d = 0.d0
+!      do b=b_start,d
 !        do j=j_start,j_end
-!         do i=i_start,i_end
-!           V(a,k,j) = V(a,k,j) + T(i,k,j)*matrix_B(i,a)
+!         do ik=1, ishft( (i_end-i_start+1)*(i_end-i_start+2), -1)
+!           V2d(ik,b) = V2d(ik,b) + T2d(ik,j)*matrix_B(j,b)
 !         enddo
 !        enddo
-!       enddo
 !      enddo
-      call DGEMM('T','N', (a_end-a_start+1),                         &
-          (k_end-k_start+1)*(j_end-j_start+1),                       &
-          (i_end-i_start+1), 1.d0,                                   &
-          matrix_B(i_start,a_start), size(matrix_B,1),               &
-          T(i_start,k_start,j_start), size(T,1),  0.d0,              &
-          V(a_start,k_start,j_start), size(V, 1) )
+      call DGEMM('N','N', ishft( (i_end-i_start+1)*(i_end-i_start+2), -1),&
+          (d-b_start+1),                                             &
+          (j_end-j_start+1), 1.d0,                                   &
+          T2d(1,j_start), size(T2d,1),                               &
+          matrix_B(j_start,b_start), size(matrix_B,1),0.d0,          &
+          V2d(1,b_start), size(V2d,1) )
+     
 
-      deallocate(T)
-      allocate( T(a_start:a_end, k_start:k_end, b_start:b_end) )
+      do b=b_start,d
+        V(:,:) = 0.d0
+        ik = 0
+        do k=k_start,k_end
+          do i=i_start,k
+            ik = ik+1
+            V(i,k) = V2d(ik,b)
+          enddo
+        enddo
 
-      call DGEMM('N','N', (a_end-a_start+1)*(k_end-k_start+1),       &
-              (d-b_start+1),                                     &
-              (j_end-j_start+1), 1.d0,                               &
-              V(a_start,k_start,j_start), size(V,1)*size(V,2),       &
-              matrix_B(j_start,b_start), size(matrix_B,1),0.d0,      &
-              T(a_start,k_start,b_start), size(T,1)*size(T,2) )
+!        T = 0.d0
+!        do a=a_start,b
+!          do k=k_start,k_end
+!            do i=i_start,k
+!              T(k,a) = T(k,a) + V(i,k)*matrix_B(i,a)
+!            enddo
+!            do i=k+1,i_end
+!              T(k,a) = T(k,a) + V(k,i)*matrix_B(i,a)
+!            enddo
+!          enddo
+!        enddo
+        call DSYMM('L','U', (k_end-k_start+1), (b-a_start+1),        &
+            1.d0,                                                    &
+            V(i_start,k_start), size(V,1),                           &
+            matrix_B(i_start,a_start), size(matrix_B,1),0.d0,        &
+            T(k_start,a_start), size(T,1) )
 
-      deallocate(V)
-
-      do b=b_start,b_end
-        call DGEMM('N','N', (a_end-a_start+1), (c_end-c_start+1),    &
-            (k_end-k_start+1), matrix_B(l, d),                   &
-            T(a_start,k_start,b), size(T,1),                     &
-            matrix_B(k_start,k_start), size(matrix_B,1), 1.d0,   &
+!        do c=c_start,b
+!          do a=a_start,c
+!            do k=k_start,k_end
+!              U(a,c,b) = U(a,c,b) + T(k,a)*matrix_B(k,c)*matrix_B(l,d)
+!            enddo
+!          enddo
+!        enddo
+        call DGEMM('T','N', (b-a_start+1), (b-c_start+1),            &
+            (k_end-k_start+1), matrix_B(l, d),                       &
+            T(k_start,a_start), size(T,1),                           &
+            matrix_B(k_start,c_start), size(matrix_B,1), 1.d0,       &
             U(a_start,c_start,b), size(U,1) )
+!        do c=b+1,c_end
+!          do a=a_start,b
+!            do k=k_start,k_end
+!              U(a,c,b) = U(a,c,b) + T(k,a)*matrix_B(k,c)*matrix_B(l,d)
+!            enddo
+!          enddo
+!        enddo
+        if (b < b_end) then
+          call DGEMM('T','N', (b-a_start+1), (c_end-b),              &
+              (k_end-k_start+1), matrix_B(l, d),                     &
+              T(k_start,a_start), size(T,1),                         &
+              matrix_B(k_start,b+1), size(matrix_B,1), 1.d0,         &
+              U(a_start,b+1,b), size(U,1) )
+        endif
       enddo
-
-      deallocate(T)
 
     enddo
 
@@ -182,7 +218,7 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
   enddo
   !$OMP END DO
 
-  deallocate(key,value)
+  deallocate(key,value,V,T)
   !$OMP END PARALLEL
 
   call munmap( &

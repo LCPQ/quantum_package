@@ -140,7 +140,7 @@ subroutine four_index_transform(map_a,map_c,matrix_B,LDB,            &
         call DGEMM('N','N', (a_end-a_start+1), (c_end-c_start+1),    &
             (k_end-k_start+1), matrix_B(l, d),                   &
             T(a_start,k_start,b), size(T,1),                     &
-            matrix_B(k_start,k_start), size(matrix_B,1), 1.d0,   &
+            matrix_B(k_start,c_start), size(matrix_B,1), 1.d0,   &
             U(a_start,c_start,b), size(U,1) )
       enddo
 
