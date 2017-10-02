@@ -67,7 +67,7 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
 
   allocate(l_pointer(l_start:l_end+1), value((i_max*k_max)) )
   ii = 1_8
-  !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,j,k,l,ik,idx,ii) 
+  !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,j,k,l,ik,idx) 
   do l=l_start,l_end
     !$OMP SINGLE
     l_pointer(l) = ii
@@ -102,8 +102,10 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
       !$OMP END SINGLE
     enddo
   enddo
-  !$OMP END PARALLEL  
+  !$OMP SINGLE
   l_pointer(l_end+1) = ii
+  !$OMP END SINGLE
+  !$OMP END PARALLEL  
   deallocate(value)
 
 !INPUT DATA

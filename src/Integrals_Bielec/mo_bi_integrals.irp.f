@@ -117,7 +117,16 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
     endif
     
   else
-    call add_integrals_to_map(full_ijkl_bitmask_4)
+!    call add_integrals_to_map(full_ijkl_bitmask_4)
+    call four_index_transform_sym(ao_integrals_map,mo_integrals_map,   &
+        mo_coef, size(mo_coef,1),                                      &
+        1, 1, 1, 1, ao_num, ao_num, ao_num, ao_num,                    &
+        1, 1, 1, 1, mo_tot_num, mo_tot_num, mo_tot_num, mo_tot_num)
+  
+    integer*8                      :: get_mo_map_size, mo_map_size
+    mo_map_size = get_mo_map_size()
+    
+    print*,'Molecular integrals provided'
   endif
   if (write_mo_integrals) then
     call ezfio_set_work_empty(.False.)
