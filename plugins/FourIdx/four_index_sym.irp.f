@@ -27,6 +27,7 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
   integer                        :: i, j, k, l, ik, ll
   integer                        :: a, b, c, d
   double precision, external     :: get_ao_bielec_integral
+  integer*8                      :: ii
   integer(key_kind)              :: idx
   real(integral_kind)            :: tmp
   integer(key_kind), allocatable :: key(:)
@@ -64,20 +65,12 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
       (/ 12_8 * map_a % n_elements /), 8, fd, .False., c_pointer)
   call c_f_pointer(c_pointer, a_array, (/ 12_8 * map_a % n_elements /))
 
-  allocate(l_pointer(l_start:l_end+1))
-
-!  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i) SCHEDULE(static,137)
-!  do i=1,size(a_array)
-!    a_array(i) = 0.d0
-!  enddo
-!  !$OMP END PARALLEL  DO
-
-  allocate( value((i_max*k_max)) )
-  a = 1
-  !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,j,k,l,ik,idx) 
+  allocate(l_pointer(l_start:l_end+1), value((i_max*k_max)) )
+  ii = 1_8
+  !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,j,k,l,ik,idx,ii) 
   do l=l_start,l_end
     !$OMP SINGLE
-    l_pointer(l) = a
+    l_pointer(l) = ii
     !$OMP END SINGLE
     do j=j_start,j_end
       !$OMP DO SCHEDULE(static,1)
@@ -97,12 +90,12 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
           ik = ik+1
           tmp=value(ik)
           if (tmp /= 0.d0) then
-            a_array(a) = ik
-            a = a+1
-            a_array(a) = j
-            a = a+1
-            a_array(a) = transfer(dble(tmp), 1_8)
-            a = a+1
+            a_array(ii) = ik
+            ii = ii+1_8
+            a_array(ii) = j
+            ii = ii+1_8
+            a_array(ii) = transfer(dble(tmp), 1_8)
+            ii = ii+1_8
           endif
         enddo
       enddo
@@ -110,16 +103,31 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
     enddo
   enddo
   !$OMP END PARALLEL  
-  l_pointer(l_end+1) = a
+  l_pointer(l_end+1) = ii
   deallocate(value)
+
+!INPUT DATA
+!open(unit=10,file='INPUT',form='UNFORMATTED')
+!write(10) i_start, j_start, i_end, j_end
+!write(10) a_start, b_start, a_end, b_end
+!write(10) LDB, mo_tot_num
+!write(10) matrix_B(1:LDB,1:mo_tot_num)
+!idx=size(a_array)
+!write(10) idx
+!write(10) a_array
+!write(10) l_pointer
+!close(10)
+!open(unit=10,file='OUTPUT',form='FORMATTED')
+! END INPUT DATA
+
 
   !$OMP PARALLEL DEFAULT(NONE) SHARED(a_array,c_pointer,fd,          &
       !$OMP  a_start,a_end,b_start,b_end,c_start,c_end,d_start,d_end,&
       !$OMP  i_start,i_end,j_start,j_end,k_start,k_end,l_start,l_end,&
       !$OMP  i_min,i_max,j_min,j_max,k_min,k_max,l_min,l_max,        &
-      !$OMP  map_a,map_c,matrix_B,l_pointer)                         &
+      !$OMP  map_c,matrix_B,l_pointer)                         &
       !$OMP  PRIVATE(key,value,T,U,V,i,j,k,l,idx,ik,ll,   &
-      !$OMP  a,b,c,d,tmp,T2d,V2d)
+      !$OMP  a,b,c,d,tmp,T2d,V2d,ii)
   allocate( key(i_max*j_max*k_max), value(i_max*j_max*k_max) )
   allocate( U(a_start:a_end, c_start:c_end, b_start:b_end) )
 
@@ -139,18 +147,18 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
         cycle
       endif
       
-      a=l_pointer(l)
+      ii=l_pointer(l)
       do j=j_start,j_end
         ik=0
         do k=k_start,k_end
           do i=i_start,k
             ik = ik+1
-            if ( (ik /= a_array(a)).or.(j /= a_array(a+1))  &
-                 .or.(a >= l_pointer(l+1)) ) then
+            if ( (ik /= a_array(ii)).or.(j /= a_array(ii+1_8))  &
+                 .or.(ii >= l_pointer(l+1)) ) then
               T2d(ik,j) = 0.d0
             else
-              T2d(ik,j) = transfer(a_array(a+2), 1.d0)
-              a=a+3
+              T2d(ik,j) = transfer(a_array(ii+2_8), 1.d0)
+              ii=ii+3_8
             endif
           enddo
         enddo
@@ -235,6 +243,22 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
     !$OMP CRITICAL
     call map_append(map_c, key, value, idx) 
     !$OMP END CRITICAL
+
+!!$OMP CRITICAL
+!WRITE OUTPUT
+!print *,  d
+!do b=b_start,d
+!  do c=c_start,c_end
+!    do a=a_start,min(b,c)
+!      if (dabs(U(a,c,b)) < 1.d-15) then
+!        cycle
+!      endif
+!      write(10,*) d,c,b,a,U(a,c,b)
+!    enddo
+!  enddo
+!enddo
+!END WRITE OUTPUT
+!!$OMP END CRITICAL
 
 
   enddo
