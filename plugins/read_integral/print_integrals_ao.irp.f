@@ -70,23 +70,37 @@ subroutine run
   call get_cache_map_n_elements_max(ao_integrals_map,n_elements_max)
   allocate(keys(n_elements_max), values(n_elements_max))
 
-  do i8=0_8,ao_integrals_map%map_size
-     n_elements = n_elements_max
-     call get_cache_map(ao_integrals_map,i8,keys,values,n_elements)
-     do k1=1,n_elements
-      call bielec_integrals_index_reverse(kk,ii,ll,jj,keys(k1))
-      if ( (kk(1)>ao_num).or.                                        &
-            (ii(1)>ao_num).or.                                       &
-            (jj(1)>ao_num).or.                                       &
-            (ll(1)>ao_num) ) then
-            cycle
-      endif
-      k = kk(1)
-      i = ii(1)
-      l = ll(1)
-      j = jj(1)
-      integral = values(k1)
-      write (iunit,'(4(I5,X),D22.15)') k,i,l,j, integral 
+!  do i8=0_8,ao_integrals_map%map_size
+!     n_elements = n_elements_max
+!     call get_cache_map(ao_integrals_map,i8,keys,values,n_elements)
+!     do k1=1,n_elements
+!      call bielec_integrals_index_reverse(kk,ii,ll,jj,keys(k1))
+!      if ( (kk(1)>ao_num).or.                                        &
+!            (ii(1)>ao_num).or.                                       &
+!            (jj(1)>ao_num).or.                                       &
+!            (ll(1)>ao_num) ) then
+!            cycle
+!      endif
+!      k = kk(1)
+!      i = ii(1)
+!      l = ll(1)
+!      j = jj(1)
+!      integral = values(k1)
+!      write (iunit,'(4(I6,X),F20.15)') k,i,l,j, integral 
+!    enddo
+!  enddo
+
+  do i=1,ao_num
+    do k=1,ao_num
+      do j=1,ao_num
+        do l=1,ao_num
+          double precision, external :: get_ao_bielec_integral
+          integral = get_ao_bielec_integral(i,j,k,l,ao_integrals_map)
+          if (dabs(integral)>=1.e-15) then
+            write (iunit,'(4(I6),F20.15)') i,j,k,l, integral 
+          endif
+        enddo
+      enddo
     enddo
   enddo
 

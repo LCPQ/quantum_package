@@ -187,7 +187,7 @@ subroutine add_values_to_two_body_dm_map(mask_ijkl)
   print*,'n_elements = ',n_elements
   call insert_into_two_body_dm_ab_map(n_elements,buffer_i,buffer_value,&
       real(mo_integrals_threshold,integral_kind))
-  call map_unique(two_body_dm_ab_map)
+  call map_merge(two_body_dm_ab_map)
 
   deallocate(buffer_i,buffer_value)
 
