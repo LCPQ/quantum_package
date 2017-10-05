@@ -246,8 +246,8 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
     call map_append(map_c, key, value, idx) 
     !$OMP END CRITICAL
 
-!!$OMP CRITICAL
 !WRITE OUTPUT
+! OMP CRITICAL
 !print *,  d
 !do b=b_start,d
 !  do c=c_start,c_end
@@ -259,8 +259,8 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
 !    enddo
 !  enddo
 !enddo
+! OMP END CRITICAL
 !END WRITE OUTPUT
-!!$OMP END CRITICAL
 
 
   enddo

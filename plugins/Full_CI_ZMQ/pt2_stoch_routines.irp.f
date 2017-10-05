@@ -408,7 +408,8 @@ end subroutine
 
 subroutine add_comb(comb, computed, tbc, stbc, ct)
   implicit none
-  integer, intent(in) :: stbc, ct
+  integer*8, intent(in) :: stbc
+  integer, intent(in) :: ct
   double precision, intent(in) :: comb
   logical, intent(inout) :: computed(N_det_generators)
   integer, intent(inout) :: tbc(0:stbc)
