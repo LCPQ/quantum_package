@@ -47,7 +47,7 @@ subroutine run
       !$OMP PARALLEL DO PRIVATE(k)
       do k=1,n_det
         if (psi_bilinear_matrix_columns(k) == -i) then
-          psi_bilinear_matrix_values(k,1) = 0.d0
+          psi_bilinear_matrix_values(k,1:N_states) = 0.d0
         endif
       enddo
       !$OMP END PARALLEL DO
@@ -55,7 +55,7 @@ subroutine run
       !$OMP PARALLEL DO PRIVATE(k)
       do k=1,n_det
         if (psi_bilinear_matrix_rows(k) ==  i) then
-          psi_bilinear_matrix_values(k,1) = 0.d0
+          psi_bilinear_matrix_values(k,1:N_states) = 0.d0
         endif
       enddo
       !$OMP END PARALLEL DO
@@ -85,20 +85,21 @@ subroutine run
     
     double precision, external :: u_dot_u, u_dot_v
     do i=1,N_states
-      e_0(i) = u_dot_v(v_t(1,i),u_0(1,i),N_det)/u_dot_u(u_0(1,i),N_det)
+      e_0(i) = u_dot_v(v_0(1,i),u_0(1,i),N_det)/u_dot_u(u_0(1,i),N_det)
+      print *,  'E = ', e_0(i)
     enddo
 
     m = 0
     do k=1,n_det
-     if (psi_bilinear_matrix_values(k,1) /= 0.d0) then
+     if (sum(psi_bilinear_matrix_values(k,1:N_states)) /= 0.d0) then
       m = m+1
      endif
     enddo
 
-    E = E_0(1) + nuclear_repulsion
-    norm = u_dot_u(u_0(1,1),N_det)
+    do k=1,N_states
+      E = E_0(k) + nuclear_repulsion
+    enddo
     print *,  'Number of determinants:', m
-    print *,  'Energy', E
     exit
   enddo
   call wf_of_psi_bilinear_matrix(.True.)

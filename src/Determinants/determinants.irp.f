@@ -447,27 +447,11 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
 
   integer :: i,k
 
-  PROVIDE progress_bar
-  call start_progress(7,'Saving wfunction',0.d0)
-
-  progress_bar(1) = 1
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_N_int(N_int)
-  progress_bar(1) = 2
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_bit_kind(bit_kind)
-  progress_bar(1) = 3
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_N_det(ndet)
-  progress_bar(1) = 4
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_n_states(nstates)
-  progress_bar(1) = 5
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_mo_label(mo_label)
-
-  progress_bar(1) = 6
-  progress_value = dble(progress_bar(1))
 
   N_int2 = (N_int*bit_kind)/8
   allocate (psi_det_save(N_int2,2,ndet))
@@ -484,13 +468,10 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
     do k=1,N_int2
       psi_det_save(k,2,i) = det_8(k)
     enddo
-!   print*,psi_det_save
   enddo
   call ezfio_set_determinants_psi_det(psi_det_save)
   deallocate (psi_det_save)
 
-  progress_bar(1) = 7
-  progress_value = dble(progress_bar(1))
   allocate (psi_coef_save(ndet,nstates))
   double precision :: accu_norm(nstates)
   accu_norm = 0.d0
@@ -537,27 +518,11 @@ subroutine save_wavefunction_specified(ndet,nstates,psidet,psicoef,ndetsave,inde
 
   integer :: i,k
 
-  PROVIDE progress_bar
-  call start_progress(7,'Saving wfunction',0.d0)
-
-  progress_bar(1) = 1
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_N_int(N_int)
-  progress_bar(1) = 2
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_bit_kind(bit_kind)
-  progress_bar(1) = 3
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_N_det(ndetsave)
-  progress_bar(1) = 4
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_n_states(nstates)
-  progress_bar(1) = 5
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_mo_label(mo_label)
-
-  progress_bar(1) = 6
-  progress_value = dble(progress_bar(1))
 
   N_int2 = (N_int*bit_kind)/8
   allocate (psi_det_save(N_int2,2,ndetsave))

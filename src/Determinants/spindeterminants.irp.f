@@ -365,8 +365,9 @@ end
  do k=1,N_det
    i = psi_bilinear_matrix_rows(k)
    j = psi_bilinear_matrix_columns(k)
+   f = 0.d0
    do l=1,N_states
-    f = psi_bilinear_matrix_values(k,l)*psi_bilinear_matrix_values(k,l)
+    f += psi_bilinear_matrix_values(k,l)*psi_bilinear_matrix_values(k,l)
    enddo
    det_alpha_norm(i) += f
    det_beta_norm(j)  += f
