@@ -435,17 +435,14 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
 !  Save the wave function into the EZFIO file
   END_DOC
   use bitmasks
+  include 'constants.include.F'
   integer, intent(in) :: ndet,nstates,dim_psicoef
   integer(bit_kind), intent(in) :: psidet(N_int,2,ndet)
   double precision, intent(in)  :: psicoef(dim_psicoef,nstates)
   integer*8, allocatable         :: psi_det_save(:,:,:)
   double precision, allocatable  :: psi_coef_save(:,:)
-  integer*8                      :: det_8(100)
-  integer(bit_kind)              :: det_bk((100*8)/bit_kind)
-  integer                        :: N_int2
-  equivalence (det_8, det_bk)
 
-  integer :: i,k
+  integer :: i,j,k
 
   call ezfio_set_determinants_N_int(N_int)
   call ezfio_set_determinants_bit_kind(bit_kind)
@@ -453,21 +450,13 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
   call ezfio_set_determinants_n_states(nstates)
   call ezfio_set_determinants_mo_label(mo_label)
 
-  N_int2 = (N_int*bit_kind)/8
-  allocate (psi_det_save(N_int2,2,ndet))
+  allocate (psi_det_save(N_int,2,ndet))
   do i=1,ndet
+   do j=1,2
     do k=1,N_int
-      det_bk(k) = psidet(k,1,i)
+      psi_det_save(k,j,i) = transfer(psidet(k,j,i),1_8)
     enddo
-    do k=1,N_int2
-      psi_det_save(k,1,i) = det_8(k)
-    enddo
-    do k=1,N_int
-      det_bk(k) = psidet(k,2,i)
-    enddo
-    do k=1,N_int2
-      psi_det_save(k,2,i) = det_8(k)
-    enddo
+   enddo
   enddo
   call ezfio_set_determinants_psi_det(psi_det_save)
   deallocate (psi_det_save)
@@ -492,7 +481,6 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
 
   call ezfio_set_determinants_psi_coef(psi_coef_save)
   call write_int(output_determinants,ndet,'Saved determinants')
-  call stop_progress
   deallocate (psi_coef_save)
 end
 
@@ -565,7 +553,6 @@ subroutine save_wavefunction_specified(ndet,nstates,psidet,psicoef,ndetsave,inde
 
   call ezfio_set_determinants_psi_coef(psi_coef_save)
   call write_int(output_determinants,ndet,'Saved determinants')
-  call stop_progress
   deallocate (psi_coef_save)
 end
 
