@@ -57,7 +57,6 @@ subroutine run_selection_slave(thread,iproc,energy)
     endif
 
     if(done .or. ctask == size(task_id)) then
-      ASSERT (buf%N /= 0)
       do i=1, ctask
          call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i))
       end do
