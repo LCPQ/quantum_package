@@ -192,8 +192,8 @@ subroutine copy_H_apply_buffer_to_wf
   call normalize(psi_coef,N_det)
   SOFT_TOUCH N_det psi_det psi_coef
   
-  logical :: found_duplicates
-  call remove_duplicates_in_psi_det(found_duplicates)
+!  logical :: found_duplicates
+!  call remove_duplicates_in_psi_det(found_duplicates)
 end
 
 subroutine remove_duplicates_in_psi_det(found_duplicates)
