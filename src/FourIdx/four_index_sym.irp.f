@@ -58,13 +58,25 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
   ASSERT (LDB >= l_max)
 
   ! Create a temporary memory-mapped file
-  integer                        :: fd
-  type(c_ptr)                    :: c_pointer
-  integer*8, pointer             :: a_array(:)
-  call mmap(trim(ezfio_filename)//'/work/four_idx',                  &
-      (/ 12_8 * map_a % n_elements /), 8, fd, .False., c_pointer)
-  call c_f_pointer(c_pointer, a_array, (/ 12_8 * map_a % n_elements /))
+  integer                        :: fd(3)
+  type(c_ptr)                    :: c_pointer(3)
+  integer*4, pointer             :: a_array_ik(:)
+  integer*2, pointer             :: a_array_j(:)
+  double precision, pointer      :: a_array_value(:)
 
+  integer*8 :: new_size
+  new_size = max(1024_8, 5_8 * map_a % n_elements )
+
+  call mmap(trim(ezfio_filename)//'/work/four_idx_ik', (/ new_size /), 4, fd(1), .False., c_pointer(1))
+  call c_f_pointer(c_pointer(1), a_array_ik, (/ new_size /))
+
+  call mmap(trim(ezfio_filename)//'/work/four_idx_j', (/ new_size /), 2, fd(2), .False., c_pointer(2))
+  call c_f_pointer(c_pointer(2), a_array_j, (/ new_size /))
+
+  call mmap(trim(ezfio_filename)//'/work/four_idx_value', (/ new_size /), 8, fd(3), .False., c_pointer(3))
+  call c_f_pointer(c_pointer(3), a_array_value, (/ new_size /))
+
+  print *,  'Transforming MO integrals'
   allocate(l_pointer(l_start:l_end+1), value((i_max*k_max)) )
   ii = 1_8
   !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,j,k,l,ik,idx) 
@@ -90,12 +102,10 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
           ik = ik+1
           tmp=value(ik)
           if (tmp /= 0.d0) then
-            a_array(ii) = ik
-            ii = ii+1_8
-            a_array(ii) = j
-            ii = ii+1_8
-            a_array(ii) = transfer(dble(tmp), 1_8)
-            ii = ii+1_8
+            a_array_ik(ii) = ik
+            a_array_j(ii)  = j
+            a_array_value(ii) = tmp
+            ii=ii+1_8
           endif
         enddo
       enddo
@@ -103,6 +113,9 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
     enddo
   enddo
   !$OMP SINGLE
+  a_array_ik(ii) = 0
+  a_array_j(ii)  = 0
+  a_array_value(ii) = 0.d0
   l_pointer(l_end+1) = ii
   !$OMP END SINGLE
   !$OMP END PARALLEL  
@@ -123,7 +136,7 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
 ! END INPUT DATA
 
 
-  !$OMP PARALLEL DEFAULT(NONE) SHARED(a_array,c_pointer,fd,          &
+  !$OMP PARALLEL DEFAULT(NONE) SHARED(a_array_ik,a_array_j,a_array_value,c_pointer,fd, &
       !$OMP  a_start,a_end,b_start,b_end,c_start,c_end,d_start,d_end,&
       !$OMP  i_start,i_end,j_start,j_end,k_start,k_end,l_start,l_end,&
       !$OMP  i_min,i_max,j_min,j_max,k_min,k_max,l_min,l_max,        &
@@ -143,6 +156,7 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
 
   !$OMP DO SCHEDULE(dynamic)
   do d=d_start,d_end
+    print *,  d, '/', d_end
     U = 0.d0
     do l=l_start,l_end
       if (dabs(matrix_B(l,d)) < 1.d-10) then
@@ -151,18 +165,12 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
       
       ii=l_pointer(l)
       do j=j_start,j_end
-        ik=0
-        do k=k_start,k_end
-          do i=i_start,k
-            ik = ik+1
-            if ( (ik /= a_array(ii)).or.(j /= a_array(ii+1_8))  &
-                 .or.(ii >= l_pointer(l+1)) ) then
-              T2d(ik,j) = 0.d0
-            else
-              T2d(ik,j) = transfer(a_array(ii+2_8), 1.d0)
-              ii=ii+3_8
-            endif
-          enddo
+        !DIR$ VECTOR NONTEMPORAL
+        T2d(:,j) = 0.d0
+        !DIR$ IVDEP
+        do while (j == a_array_j(ii))
+          T2d(a_array_ik(ii),j) = transfer(a_array_value(ii), 1.d0)
+          ii = ii + 1_8
         enddo
       enddo
       call DGEMM('N','N', ishft( (i_end-i_start+1)*(i_end-i_start+2), -1),&
@@ -270,8 +278,15 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
   !$OMP END PARALLEL
   call map_sort(map_c)
 
-  call munmap( &
-      (/ 12_8 * map_a % n_elements /), 8, fd, c_pointer)
+  call munmap( (/ new_size /), 4, fd(1), c_pointer(1))
+  open(unit=10,file=trim(ezfio_filename)//'/work/four_idx_ik')
+  close(10,status='DELETE')
+  call munmap( (/ new_size /), 2, fd(2), c_pointer(2))
+  open(unit=10,file=trim(ezfio_filename)//'/work/four_idx_j')
+  close(10,status='DELETE')
+  call munmap( (/ new_size /), 8, fd(3), c_pointer(3))
+  open(unit=10,file=trim(ezfio_filename)//'/work/four_idx_value')
+  close(10,status='DELETE')
   deallocate(l_pointer)
 
 end
