@@ -205,10 +205,10 @@ subroutine davidson_pull_results(zmq_socket_pull, v_t, s_t, imin, imax, task_id)
   if(rc /= 4) stop "davidson_pull_results failed to pull task_id"
 
   rc = f77_zmq_recv( zmq_socket_pull, imin, 4, 0)
-  if(rc /= 4) stop "davidson_pull_results failed to pull task_id"
+  if(rc /= 4) stop "davidson_pull_results failed to pull imin"
 
   rc = f77_zmq_recv( zmq_socket_pull, imax, 4, 0)
-  if(rc /= 4) stop "davidson_pull_results failed to pull task_id"
+  if(rc /= 4) stop "davidson_pull_results failed to pull imax"
 
   sz = (imax-imin+1)*N_states_diag
 

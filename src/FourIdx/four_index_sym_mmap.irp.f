@@ -1,4 +1,4 @@
-subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
+subroutine four_index_transform_sym_mmap(map_a,map_c,matrix_B,LDB,            &
       i_start, j_start, k_start, l_start,                            &
       i_end  , j_end  , k_end  , l_end  ,                            &
       a_start, b_start, c_start, d_start,                            &
@@ -173,7 +173,6 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
           ii = ii + 1_8
         enddo
       enddo
-
       call DGEMM('N','N', ishft( (i_end-i_start+1)*(i_end-i_start+2), -1),&
           (d-b_start+1),                                             &
           (j_end-j_start+1), 1.d0,                                   &
@@ -252,7 +251,7 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
     enddo
 
     !$OMP CRITICAL
-    call map_update(map_c, key, value, idx,1.d-15) 
+    call map_append(map_c, key, value, idx) 
     !$OMP END CRITICAL
 
 !WRITE OUTPUT
@@ -277,7 +276,7 @@ subroutine four_index_transform_sym(map_a,map_c,matrix_B,LDB,            &
 
   deallocate(key,value,V,T)
   !$OMP END PARALLEL
-  call map_merge(map_c)
+  call map_sort(map_c)
 
   call munmap( (/ new_size /), 4, fd(1), c_pointer(1))
   open(unit=10,file=trim(ezfio_filename)//'/work/four_idx_ik')
