@@ -72,8 +72,7 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
 
   tempspace = (new_size * 16_8) / (1024_8 * 1024_8)
   npass = min(l_end-l_start,1 + tempspace / 2048)   ! 2 GiB of scratch space
-  npass = 1
-  l_block = (l_end-l_start)/npass
+  l_block = (l_end-l_start+1)/npass
 
   ipass = 0
   do l_start_block = l_start, l_end, l_block
@@ -244,6 +243,7 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
       do b=b_start,d
         do c=c_start,c_end
           do a=a_start,min(b,c)
+            if (a==b) cycle
             if (dabs(U(a,c,b)) < 1.d-15) then
               cycle
             endif
@@ -254,8 +254,21 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
         enddo
       enddo
 
+      do b=b_start,d
+        a=b
+        do c=c_start,d
+            if (dabs(U(a,c,b)) < 1.d-15) then
+              cycle
+            endif
+            idx = idx+1_8
+            call bielec_integrals_index(a,b,c,d,key(idx))
+            value(idx) = U(a,c,b)
+        enddo
+      enddo
+
       !$OMP CRITICAL
       call map_update(map_c, key, value, idx,1.d-15) 
+!      call map_append(map_c, key, value, idx)
       !$OMP END CRITICAL
 
   !WRITE OUTPUT
@@ -281,6 +294,7 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
     deallocate(key,value,V,T)
     !$OMP END PARALLEL
     call map_merge(map_c)
+!    call map_sort(map_c)
 
     deallocate(l_pointer)
   enddo
