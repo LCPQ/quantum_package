@@ -14,6 +14,17 @@ subroutine run
   integer                        :: class(0:mo_tot_num,5)
   double precision               :: occupation(mo_tot_num)
 
+  write(*,'(A)')  'Energy of 1st determinant'
+  write(*,'(A)')  '========================='
+  write(*,'(A)')  ''
+  write(*,*) 'Total', ref_bitmask_energy + nuclear_repulsion
+  write(*,*) 'Mono-electronic', mono_elec_ref_bitmask_energy
+  write(*,*) 'Kinetic', kinetic_ref_bitmask_energy
+  write(*,*) 'Electron-nucleus', nucl_elec_ref_bitmask_energy
+  write(*,*) 'Two-electron', bi_elec_ref_bitmask_energy
+  write(*,'(A)')  ''
+  write(*,'(A)')  ''
+
   write(*,'(A)')  'MO Occupation'
   write(*,'(A)')  '============='
   write(*,'(A)')  ''

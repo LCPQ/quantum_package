@@ -3,10 +3,10 @@
 LIST="
 convert.bats
 hf.bats
-pseudo.bats
 fci.bats
 cassd.bats
 mrcepa0.bats
+pseudo.bats
 "
 #foboci.bats
 

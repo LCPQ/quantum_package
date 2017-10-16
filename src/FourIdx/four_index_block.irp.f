@@ -59,7 +59,7 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
   ASSERT (LDB >= l_max)
 
   integer*4, allocatable         :: a_array_ik(:)
-  integer*2, allocatable         :: a_array_j(:)
+  integer*4, allocatable         :: a_array_j(:)
   double precision, allocatable  :: a_array_value(:)
 
   integer*8 :: new_size
@@ -70,8 +70,9 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
   integer :: ipass, npass
   integer*8 :: tempspace
 
-  tempspace = (new_size * 14_8) / (1024_8 * 1024_8)
+  tempspace = (new_size * 16_8) / (1024_8 * 1024_8)
   npass = min(l_end-l_start,1 + tempspace / 2048)   ! 2 GiB of scratch space
+  npass = 1
   l_block = (l_end-l_start)/npass
 
   ipass = 0
@@ -88,7 +89,7 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
       l_pointer(l) = ii
       !$OMP END SINGLE
       do j=j_start,j_end
-        !$OMP DO SCHEDULE(static,1)
+        !$OMP DO SCHEDULE(static,16)
         do k=k_start,k_end
           do i=i_start,k
             ik = (i-i_start+1) + ishft( (k-k_start)*(k-k_start+1), -1 )
@@ -139,12 +140,12 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
   ! END INPUT DATA
 
 
-    !$OMP PARALLEL DEFAULT(NONE) SHARED(a_array_ik,a_array_j,a_array_value, &
+    !$OMP PARALLEL DEFAULT(NONE) SHARED(a_array_ik,a_array_j,a_array_value,&
         !$OMP  a_start,a_end,b_start,b_end,c_start,c_end,d_start,d_end,&
         !$OMP  i_start,i_end,j_start,j_end,k_start,k_end,l_start_block,l_end_block,&
-        !$OMP  i_min,i_max,j_min,j_max,k_min,k_max,l_min,l_max,        &
-        !$OMP  map_c,matrix_B,l_pointer)                         &
-        !$OMP  PRIVATE(key,value,T,U,V,i,j,k,l,idx,ik,ll,   &
+        !$OMP  i_min,i_max,j_min,j_max,k_min,k_max,l_min,l_max,      &
+        !$OMP  map_c,matrix_B,l_pointer)                             &
+        !$OMP  PRIVATE(key,value,T,U,V,i,j,k,l,idx,ik,ll,            &
         !$OMP  a,b,c,d,tmp,T2d,V2d,ii)
     allocate( key(i_max*j_max*k_max), value(i_max*j_max*k_max) )
     allocate( U(a_start:a_end, c_start:c_end, b_start:b_end) )
@@ -171,7 +172,7 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
           T2d(:,j) = 0.d0
           !DIR$ IVDEP
           do while (j == a_array_j(ii))
-            T2d(a_array_ik(ii),j) = transfer(a_array_value(ii), 1.d0)
+            T2d(a_array_ik(ii),j) = a_array_value(ii)
             ii = ii + 1_8
           enddo
         enddo
