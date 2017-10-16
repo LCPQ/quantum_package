@@ -145,7 +145,7 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
         !$OMP  i_min,i_max,j_min,j_max,k_min,k_max,l_min,l_max,      &
         !$OMP  map_c,matrix_B,l_pointer)                             &
         !$OMP  PRIVATE(key,value,T,U,V,i,j,k,l,idx,ik,ll,            &
-        !$OMP  a,b,c,d,tmp,T2d,V2d,ii)
+        !$OMP  a,b,c,d,tmp,T2d,V2d,ii,p,q)
     allocate( key(i_max*j_max*k_max), value(i_max*j_max*k_max) )
     allocate( U(a_start:a_end, c_start:c_end, b_start:b_end) )
 
@@ -240,31 +240,30 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
       enddo
 
       idx = 0_8
+
+      integer :: p, q
       do b=b_start,d
+        q = b+ishft(d*d-d,-1)
         do c=c_start,c_end
+          p = a_start+ishft(c*c-c,-1)
           do a=a_start,min(b,c)
-            if (a==b) cycle
             if (dabs(U(a,c,b)) < 1.d-15) then
               cycle
             endif
+            if ((a==b).and.(p>q)) cycle
+            p = p+1
             idx = idx+1_8
             call bielec_integrals_index(a,b,c,d,key(idx))
+!print *,  int(key(idx),4), int(a,2),int(b,2),int(c,2),int(d,2), p, q
             value(idx) = U(a,c,b)
           enddo
         enddo
       enddo
 
-      do b=b_start,d
-        a=b
-        do c=c_start,d
-            if (dabs(U(a,c,b)) < 1.d-15) then
-              cycle
-            endif
-            idx = idx+1_8
-            call bielec_integrals_index(a,b,c,d,key(idx))
-            value(idx) = U(a,c,b)
-        enddo
-      enddo
+
+
+
+
 
       !$OMP CRITICAL
       call map_update(map_c, key, value, idx,1.d-15) 
