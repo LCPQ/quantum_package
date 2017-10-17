@@ -2,6 +2,73 @@ use bitmasks
 
 
 
+ BEGIN_PROVIDER [ double precision, delta_ij_cancel, (N_states,N_det_non_ref,N_det_ref) ]
+&BEGIN_PROVIDER [ double precision, delta_ii_cancel, (N_states, N_det_ref) ]
+&BEGIN_PROVIDER [ double precision, delta_ij_s2_cancel, (N_states,N_det_non_ref,N_det_ref) ]
+&BEGIN_PROVIDER [ double precision, delta_ii_s2_cancel, (N_states, N_det_ref) ]
+  use bitmasks
+  implicit none
+
+
+  integer                         :: i_state, i, i_I, J, k, k2, k1, kk, ll, m,l, deg, ni, m2
+  integer                         :: n(2)
+  integer                         :: p1,p2,h1,h2,s1,s2, blok, I_s, J_s, kn
+  logical                         :: ok
+  double precision                :: phase_ia, phase_Ik, phase_Jl, phase_Ji,phase_la, phase_ka, phase_tmp
+  double precision                :: Hka, Hla, Ska, Sla, tmp
+  double precision                :: diI, hIi, hJi, delta_JI, dkI, HkI,ci_inv(N_states), cj_inv(N_states)
+  double precision                :: contrib, contrib_s2, wall, iwall
+  integer, dimension(0:2,2,2)     :: exc_iI, exc_Ik, exc_IJ, exc
+  integer(bit_kind)               :: det_tmp(N_int, 2), det_tmp2(N_int, 2),inac, virt
+  integer, external               :: get_index_in_psi_det_sorted_bit, searchDet,detCmp
+  logical, external               :: is_in_wavefunction
+     
+
+  do i=1,N_det_ref
+    !$OMP PARALLEL DO default(shared) private(kk, k, blok, exc_Ik,det_tmp2,ok,deg,phase_Ik, l,ll) &
+    !$OMP private(contrib, contrib_s2, i_state)
+    do kk = 1, nlink(i)
+      k = det_cepa0_idx(linked(kk, i))
+      blok = blokMwen(kk, i)
+      call get_excitation(psi_ref(1,1,i),psi_non_ref(1,1,k),exc_Ik,deg,phase_Ik,N_int)
+      
+      do j=1,N_det_ref
+        if(j == i) cycle
+        call apply_excitation(psi_ref(1,1,J),exc_Ik,det_tmp2,ok,N_int)
+        if(.not. ok) cycle
+          
+        l = searchDet(det_cepa0(1,1,cepa0_shortcut(blok)), det_tmp2,cepa0_shortcut(blok+1)-cepa0_shortcut(blok), N_int)
+        if(l == -1) cycle
+        ll = cepa0_shortcut(blok)-1+l
+        l = det_cepa0_idx(ll)
+        ll = child_num(ll, J)
+     
+        do i_state = 1, N_states 
+          contrib =  (dij(j, l, i_state) - dij(i, k, i_state)) * delta_cas(i,j,i_state)! * Hla *phase_ia * phase_ik
+          contrib_s2 =  dij(j, l, i_state) - dij(i, k, i_state)! * Sla*phase_ia * phase_ik
+          if(dabs(psi_ref_coef(i,i_state)).ge.1.d-3) then
+            !$OMP ATOMIC
+            delta_ij_cancel(i_state,l,i) += contrib
+            !$OMP ATOMIC
+            delta_ij_s2_cancel(i_state,l,i) += contrib_s2
+            !$OMP ATOMIC
+            delta_ii_cancel(i_state,i) -= contrib / psi_ref_coef(i, i_state) * psi_non_ref_coef(l,i_state)
+            !$OMP ATOMIC
+            delta_ii_s2_cancel(i_state,i) -= contrib_s2 / psi_ref_coef(i, i_state) * psi_non_ref_coef(l,i_state)
+          else
+           !$OMP ATOMIC
+           delta_ij_cancel(i_state,l,i) += contrib * 0.5d0
+           !$OMP ATOMIC
+           delta_ij_s2_cancel(i_state,l,i) += contrib_s2 * 0.5d0
+         endif
+        end do
+      end do
+    end do
+  enddo
+
+END_PROVIDER
+
+
  BEGIN_PROVIDER [ double precision, delta_ij_mrcc, (N_states,N_det_non_ref,N_det_ref) ]
 &BEGIN_PROVIDER [ double precision, delta_ii_mrcc, (N_states, N_det_ref) ]
 &BEGIN_PROVIDER [ double precision, delta_ij_s2_mrcc, (N_states,N_det_non_ref,N_det_ref) ]
@@ -406,6 +473,19 @@ end
     end do
   else
     stop "invalid mrmode"
+  end if
+
+  if(mrmode == 2 .or. mrmode == 3) then
+     do i = 1, N_det_ref
+      do i_state = 1, N_states
+        delta_ii(i_state,i) += delta_ii_cancel(i_state,i)
+      enddo
+      do j = 1, N_det_non_ref
+        do i_state = 1, N_states
+          delta_ij(i_state,j,i) += delta_ij_cancel(i_state,j,i)
+        enddo
+      end do
+    end do
   end if
 END_PROVIDER
 
