@@ -23,6 +23,10 @@ use bitmasks
   integer, external               :: get_index_in_psi_det_sorted_bit, searchDet,detCmp
   logical, external               :: is_in_wavefunction
      
+  provide dij
+  
+  delta_ij_cancel = 0d0
+  delta_ii_cancel = 0d0
 
   do i=1,N_det_ref
     !$OMP PARALLEL DO default(shared) private(kk, k, blok, exc_Ik,det_tmp2,ok,deg,phase_Ik, l,ll) &
@@ -64,6 +68,7 @@ use bitmasks
         end do
       end do
     end do
+    !$OMP END PARALLEL DO
   enddo
 
 END_PROVIDER
@@ -82,12 +87,14 @@ END_PROVIDER
   logical, external :: detEq
   integer, external :: omp_get_thread_num
   
+  provide dij hh_shortcut psi_det_size  
+  
   delta_ij_mrcc = 0d0
   delta_ii_mrcc = 0d0
   delta_ij_s2_mrcc = 0d0
   delta_ii_s2_mrcc = 0d0
-  PROVIDE dij
-  provide hh_shortcut psi_det_size! lambda_mrcc
+
+
   !$OMP PARALLEL DO default(none)  schedule(dynamic) &
   !$OMP shared(psi_det_generators, N_det_generators, hh_exists, pp_exists, N_int, hh_shortcut) &
   !$OMP shared(N_det_non_ref, N_det_ref, delta_ii_mrcc, delta_ij_mrcc, delta_ii_s2_mrcc, delta_ij_s2_mrcc) &
@@ -854,8 +861,8 @@ end subroutine
           notf = notf+1
 
 !          call i_h_j(psi_non_ref(1,1,det_cepa0_idx(k)),psi_ref(1,1,J),N_int,HJk)
-          contrib = delta_cas(II, J, i_state) * dij(J, det_cepa0_idx(k), i_state)
-          contrib_s2 = delta_cas_s2(II, J, i_state) * dij(J, det_cepa0_idx(k), i_state)
+          contrib = delta_cas(II, J, i_state)* dij(J, det_cepa0_idx(k), i_state)
+          contrib_s2 = delta_cas_s2(II, J, i_state)  * dij(J, det_cepa0_idx(k), i_state)
           
           if(dabs(psi_ref_coef(J,i_state)).ge.1.d-3) then
             contrib2 = contrib / psi_ref_coef(J, i_state) * psi_non_ref_coef(det_cepa0_idx(i),i_state)
