@@ -350,12 +350,12 @@ subroutine get_first_tooth(computed, first_teeth)
 end subroutine
 
 
-BEGIN_PROVIDER [ integer, size_tbc ]
+BEGIN_PROVIDER [ integer*8, size_tbc ]
   implicit none
   BEGIN_DOC
 ! Size of the tbc array
   END_DOC
-  size_tbc = (comb_teeth+1)*N_det_generators + fragment_count*fragment_first
+  size_tbc = int((comb_teeth+1),8)*int(N_det_generators,8) + fragment_count*fragment_first
 END_PROVIDER
 
 subroutine get_carlo_workbatch(computed, comb, Ncomb, tbc)
@@ -408,7 +408,8 @@ end subroutine
 
 subroutine add_comb(comb, computed, tbc, stbc, ct)
   implicit none
-  integer, intent(in) :: stbc, ct
+  integer*8, intent(in) :: stbc
+  integer, intent(in) :: ct
   double precision, intent(in) :: comb
   logical, intent(inout) :: computed(N_det_generators)
   integer, intent(inout) :: tbc(0:stbc)

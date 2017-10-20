@@ -47,6 +47,14 @@ recursive subroutine dtranspose(A,LDA,B,LDB,d1,d2)
  double precision, intent(in) :: A(LDA,d2)
  double precision, intent(out) :: B(LDB,d1)
 
+
+! do j=1,d1
+!   do i=1,d2
+!    B(i,j  ) = A(j  ,i)
+!   enddo
+! enddo
+! return
+
  integer :: i,j,k, mod_align
  if ( d2 < 32 ) then
    do j=1,d1

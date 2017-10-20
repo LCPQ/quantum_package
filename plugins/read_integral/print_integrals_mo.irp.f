@@ -49,7 +49,7 @@ program print_integrals
           double precision :: get_mo_bielec_integral
           integral = get_mo_bielec_integral(i,j,k,l,mo_integrals_map)
           if (dabs(integral) > mo_integrals_threshold) then
-            write (iunit,'(4(I5,X),D22.15)') i,j,k,l, integral 
+            write (iunit,'(4(I6,X),F20.15)') i,j,k,l, integral 
           endif
        !end if
      enddo

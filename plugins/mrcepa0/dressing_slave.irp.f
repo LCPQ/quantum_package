@@ -42,18 +42,18 @@ subroutine mrsc2_dressing_slave(thread,iproc)
   integer, allocatable           :: hp(:,:)
 
 
-  integer                         :: i_state, i, i_I, J, k, k2, k1, kk, ll, degree, degree2, m, l, deg, ni, m2
+  integer                         :: i_state, i, i_I, J, k, k2, k1, kk, ll, m, l, deg, ni, m2
   integer                         :: n(2)
   integer                         :: p1,p2,h1,h2,s1,s2, blok, I_s, J_s, kn
   logical                         :: ok
-  double precision                :: phase_iI, phase_Ik, phase_Jl, phase_Ji, phase_al
+  double precision                :: phase_ia, phase_Ik, phase_Jl, phase_Ji, phase_la, phase_ka, phase_tmp
+  double precision                :: Hka, Hla, Ska, Sla, tmp
   double precision                :: diI, hIi, hJi, delta_JI, dkI, HkI, ci_inv(N_states), cj_inv(N_states)
   double precision                :: contrib, contrib_s2, wall, iwall
-  double precision, allocatable   :: dleat(:,:,:), dleat_s2(:,:,:)
-  integer, dimension(0:2,2,2)     :: exc_iI, exc_Ik, exc_IJ
+  integer, dimension(0:2,2,2)     :: exc_iI, exc_Ik, exc_IJ, exc
   integer(bit_kind)               :: det_tmp(N_int, 2), det_tmp2(N_int, 2), inac, virt
   integer, external               :: get_index_in_psi_det_sorted_bit, searchDet, detCmp
-  logical, external               :: is_in_wavefunction, isInCassd, detEq
+  logical, external               :: is_in_wavefunction
   integer,allocatable :: komon(:)
   logical :: komoned
   !double precision, external :: get_dij
@@ -63,8 +63,8 @@ subroutine mrsc2_dressing_slave(thread,iproc)
 
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
 
-  allocate (dleat(N_states, N_det_non_ref, 2), delta(N_states,0:N_det_non_ref, 2))
-  allocate (dleat_s2(N_states, N_det_non_ref, 2), delta_s2(N_states,0:N_det_non_ref, 2))
+  allocate (delta(N_states,0:N_det_non_ref, 2))
+  allocate (delta_s2(N_states,0:N_det_non_ref, 2))
   allocate(komon(0:N_det_non_ref))
 
   allocate(hp(2,N_det_non_ref))
@@ -100,7 +100,7 @@ subroutine mrsc2_dressing_slave(thread,iproc)
       k = det_cepa0_idx(linked(kk, i_I))
       blok = blokMwen(kk, i_I)
       
-      call get_excitation(psi_ref(1,1,i_I),psi_non_ref(1,1,k),exc_Ik,degree,phase_Ik,N_int)
+      call get_excitation(psi_ref(1,1,i_I),psi_non_ref(1,1,k),exc_Ik,deg,phase_Ik,N_int)
     
       if(J /= i_I) then
         call apply_excitation(psi_ref(1,1,J),exc_Ik,det_tmp2,ok,N_int)
@@ -135,36 +135,10 @@ subroutine mrsc2_dressing_slave(thread,iproc)
           
           if(h_cache(J,i) == 0.d0) cycle
           if(h_cache(i_I,i) == 0.d0) cycle
-          
-          !ok = .false.
-          !do i_state=1, N_states
-          !  if(lambda_mrcc(i_state, i) /= 0d0) then
-          !    ok = .true.
-          !    exit
-          !  end if
-          !end do
-          !if(.not. ok) cycle
-!         
-          
+         
           komon(0) += 1
           kn = komon(0)
           komon(kn) = i
-          
-          
-!           call get_excitation(psi_ref(1,1,J),psi_non_ref(1,1,i),exc_IJ,degree2,phase_Ji,N_int)
-!           if(I_i /= J) call get_excitation(psi_ref(1,1,I_i),psi_non_ref(1,1,i),exc_IJ,degree2,phase_Ii,N_int)
-!           if(I_i == J) phase_Ii = phase_Ji
-          
-          do i_state = 1,N_states
-            dkI = h_cache(J,i) * dij(i_I, i, i_state)
-            dleat(i_state, kn, 1) = dkI
-            dleat(i_state, kn, 2) = dkI
-
-            dkI = s2_cache(J,i) * dij(i_I, i, i_state)
-            dleat_s2(i_state, kn, 1) = dkI
-            dleat_s2(i_state, kn, 2) = dkI
-          end do
-
         end do
           
         komoned = .true.
@@ -178,18 +152,20 @@ subroutine mrsc2_dressing_slave(thread,iproc)
         call apply_excitation(psi_non_ref(1,1,i),exc_Ik,det_tmp,ok,N_int)
         if(.not. ok) cycle
         if(HP(1,i) + HP(1,k) <= 2 .and. HP(2,i) + HP(2,k) <= 2) then
-          cycle
+          if(is_in_wavefunction(det_tmp, N_int)) cycle
         end if
         
-        !if(isInCassd(det_tmp, N_int)) cycle
-          
+        
+        call i_h_j_phase_out(psi_non_ref(1,1,i), det_tmp, N_int, tmp, phase_ia,exc, deg)
+        call i_h_j_phase_out(psi_ref(1,1,i_I), psi_non_ref(1,1,k), N_int, tmp, phase_ik,exc, deg)
+        
+        call i_h_j_phase_out(psi_non_ref(1,1,l), det_tmp, N_int, Hla, phase_la,exc,deg)
+        call get_s2(psi_non_ref(1,1,l), det_tmp, N_int, Sla)
+        
+        
         do i_state = 1, N_states 
-          !if(lambda_mrcc(i_state, i) == 0d0) cycle
-          
-
-          !contrib = h_cache(i_I,k) * lambda_mrcc(i_state, k) * dleat(i_state, m, 2)! * phase_al
-          contrib =  dij(i_I, k, i_state) * dleat(i_state, m, 2)
-          contrib_s2 =  dij(i_I, k, i_state) * dleat_s2(i_state, m, 2)
+          contrib =  dij(i_I, k, i_state) * dij(i_I, i, i_state) * Hla * phase_ia * phase_ik
+          contrib_s2 =  dij(i_I, k, i_state) * dij(i_I, i, i_state) * Sla *phase_ia * phase_ik
           delta(i_state,ll,1) += contrib
           delta_s2(i_state,ll,1) += contrib_s2
           if(dabs(psi_ref_coef(i_I,i_state)).ge.5.d-5) then
@@ -198,9 +174,12 @@ subroutine mrsc2_dressing_slave(thread,iproc)
           endif
           
           if(I_i == J) cycle
-          !contrib = h_cache(J,l) * lambda_mrcc(i_state, l) * dleat(i_state, m, 1)! * phase_al
-          contrib =  dij(J, l, i_state) * dleat(i_state, m, 1)
-          contrib_s2 =  dij(J, l, i_state) * dleat_s2(i_state, m, 1)
+          call i_h_j_phase_out(psi_non_ref(1,1,k), det_tmp, N_int, Hka, phase_ka,exc,deg)
+          call get_s2(psi_non_ref(1,1,k), det_tmp, N_int, Ska) 
+          call i_h_j_phase_out(psi_ref(1,1,J), psi_non_ref(1,1,l), N_int, tmp, phase_jl,exc, deg)
+          
+          contrib =  dij(J, l, i_state) * dij(J, i, i_state) * Hka* phase_ia * phase_jl
+          contrib_s2 =  dij(J, l, i_state) * dij(J, i, i_state) * Ska*phase_ia*phase_jl
           delta(i_state,kk,2) += contrib
           delta_s2(i_state,kk,2) += contrib_s2
           if(dabs(psi_ref_coef(J,i_state)).ge.5.d-5) then
@@ -211,12 +190,8 @@ subroutine mrsc2_dressing_slave(thread,iproc)
       end do ! while
     end do ! kk
 
-      
-      call push_mrsc2_results(zmq_socket_push, I_i, J, delta, delta_s2, task_id) 
-      call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id)
- 
-!     end if
-    
+    call push_mrsc2_results(zmq_socket_push, I_i, J, delta, delta_s2, task_id) 
+    call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id)
   enddo
 
   deallocate(delta)

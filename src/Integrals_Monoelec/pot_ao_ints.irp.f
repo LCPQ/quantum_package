@@ -1,4 +1,4 @@
-BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral, (ao_num_align,ao_num)]
+BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral, (ao_num,ao_num)]
    BEGIN_DOC
    ! interaction nuclear electron
    END_DOC
@@ -11,7 +11,8 @@ BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral, (ao_num_align,ao_num)]
    double precision               :: overlap_x,overlap_y,overlap_z,overlap,dx,NAI_pol_mult
    
    if (read_ao_one_integrals) then
-     call ezfio_get_ao_basis_integral_nuclear(ao_nucl_elec_integral(1:ao_num, 1:ao_num))
+    call read_one_e_integrals('ao_ne_integral', ao_nucl_elec_integral,      &
+            size(ao_nucl_elec_integral,1), size(ao_nucl_elec_integral,2))
      print *,  'AO N-e integrals read from disk'
    else
      
@@ -73,14 +74,15 @@ BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral, (ao_num_align,ao_num)]
      !$OMP END PARALLEL
    endif
    if (write_ao_one_integrals) then
-     call ezfio_set_ao_basis_integral_nuclear(ao_nucl_elec_integral(1:ao_num, 1:ao_num))
+    call write_one_e_integrals('ao_ne_integral', ao_nucl_elec_integral, &
+            size(ao_nucl_elec_integral,1), size(ao_nucl_elec_integral,2))
      print *,  'AO N-e integrals written to disk'
    endif
    
    
 END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral_per_atom, (ao_num_align,ao_num,nucl_num)]
+ BEGIN_PROVIDER [ double precision, ao_nucl_elec_integral_per_atom, (ao_num,ao_num,nucl_num)]
  BEGIN_DOC
 ! ao_nucl_elec_integral_per_atom(i,j,k) = -<AO(i)|1/|r-Rk|AO(j)> 
 ! where Rk is the geometry of the kth atom
