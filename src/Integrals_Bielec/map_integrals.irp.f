@@ -179,7 +179,6 @@ double precision function get_ao_bielec_integral(i,j,k,l,map) result(result)
       call bielec_integrals_index(i,j,k,l,idx)
       !DIR$ FORCEINLINE
       call map_get(map,idx,tmp)
-      tmp = tmp
     else
       ii = l-ao_integrals_cache_min
       ii = ior( ishft(ii,6), k-ao_integrals_cache_min)
@@ -336,7 +335,7 @@ end
  ! Min and max values of the MOs for which the integrals are in the cache
  END_DOC
  mo_integrals_cache_min_8 = max(1_8,elec_alpha_num - 63_8)
- mo_integrals_cache_max_8 = min(int(mo_tot_num,8),mo_integrals_cache_min+127_8)
+ mo_integrals_cache_max_8 = min(int(mo_tot_num,8),mo_integrals_cache_min_8+127_8)
  mo_integrals_cache_min   = max(1,elec_alpha_num - 63)
  mo_integrals_cache_max   = min(mo_tot_num,mo_integrals_cache_min+127)
 
