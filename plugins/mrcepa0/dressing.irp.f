@@ -88,8 +88,9 @@ END_PROVIDER
   integer, external :: omp_get_thread_num
   double precision :: coefs(N_det_non_ref), myCoef
   integer :: n_in_teeth
-  double precision :: curn, in_teeth_step, curlim, curnorm
-
+  double precision :: contrib(N_states), curn, in_teeth_step, curlim, curnorm
+  
+  contrib = 0d0
   read(*,*) n_in_teeth
   !n_in_teeth = 2
   in_teeth_step = 1d0 / dfloat(n_in_teeth)
@@ -151,7 +152,7 @@ END_PROVIDER
   !$OMP PARALLEL DO default(none)  schedule(dynamic) &
   !$OMP shared(psi_ref, psi_non_ref, hh_exists, pp_exists, N_int, hh_shortcut) &
   !$OMP shared(N_det_generators, coefs,N_det_non_ref, N_det_ref, delta_ii_mrcc_sto, delta_ij_mrcc_sto) &
-  !$OMP shared(psi_det_generators, delta_ii_s2_mrcc_sto, delta_ij_s2_mrcc_sto) &
+  !$OMP shared(contrib,psi_det_generators, delta_ii_s2_mrcc_sto, delta_ij_s2_mrcc_sto) &
   !$OMP private(i,j,curnorm,myCoef, h, n, mask, omask, buf, ok, iproc) 
   do gen= 1,N_det_generators
     if(coefs(gen) == 0d0) cycle
@@ -174,7 +175,7 @@ END_PROVIDER
       n = n - 1
       if(n /= 0) then
         call mrcc_part_dress(delta_ij_mrcc_sto, delta_ii_mrcc_sto, delta_ij_s2_mrcc_sto, &
-            delta_ii_s2_mrcc_sto, gen,n,buf,N_int,omask,myCoef)
+            delta_ii_s2_mrcc_sto, gen,n,buf,N_int,omask,myCoef,contrib)
       endif
     end do
     deallocate(buf)
@@ -207,7 +208,9 @@ END_PROVIDER
   logical :: ok
   logical, external :: detEq
   integer, external :: omp_get_thread_num
-
+  double precision :: contrib(N_states)
+  
+  contrib = 0d0
   delta_ij_mrcc = 0d0
   delta_ii_mrcc = 0d0
   delta_ij_s2_mrcc = 0d0
@@ -215,7 +218,7 @@ END_PROVIDER
   PROVIDE dij
   provide hh_shortcut psi_det_size! lambda_mrcc
   !$OMP PARALLEL DO default(none)  schedule(dynamic) &
-  !$OMP shared(psi_det_generators, N_det_generators, hh_exists, pp_exists, N_int, hh_shortcut) &
+  !$OMP shared(contrib,psi_det_generators, N_det_generators, hh_exists, pp_exists, N_int, hh_shortcut) &
   !$OMP shared(N_det_non_ref, N_det_ref, delta_ii_mrcc, delta_ij_mrcc, delta_ii_s2_mrcc, delta_ij_s2_mrcc) &
   !$OMP private(h, n, mask, omask, buf, ok, iproc) 
   do gen= 1, N_det_generators
@@ -236,7 +239,7 @@ END_PROVIDER
       n = n - 1
 
       if(n /= 0) then
-        call mrcc_part_dress(delta_ij_mrcc, delta_ii_mrcc, delta_ij_s2_mrcc, delta_ii_s2_mrcc, gen,n,buf,N_int,omask,1d0)
+        call mrcc_part_dress(delta_ij_mrcc, delta_ii_mrcc, delta_ij_s2_mrcc, delta_ii_s2_mrcc, gen,n,buf,N_int,omask,1d0,contrib)
       endif
 
     end do
@@ -252,7 +255,7 @@ END_PROVIDER
 ! end subroutine
 
 
-subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_generator,n_selected,det_buffer,Nint,key_mask,coef)
+subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_generator,n_selected,det_buffer,Nint,key_mask,coef,contrib)
  use bitmasks
  implicit none
 
@@ -293,6 +296,8 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
   !double precision, external :: get_dij, get_dij_index
   double precision :: Delta_E_inv(N_states)
   double precision, intent(in) :: coef
+  double precision, intent(inout) :: contrib(N_states)
+  double precision :: sdress, hdress
 
   if (perturbative_triples) then
     PROVIDE one_anhil fock_virt_total fock_core_inactive_total one_creat
@@ -489,26 +494,37 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
         enddo
       enddo
       do i_state=1,N_states
-        if(dabs(psi_ref_coef(i_I,i_state)).ge.1.d-3)then
+        if(dabs(psi_ref_coef(1,i_state)).ge.1.d-3)then
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
+            p1 = 1
+            hdress = dIa_hla(i_state,k_sd) * psi_ref_coef(i_I,i_state) / psi_ref_coef(p1,i_state)
+            sdress = dIa_sla(i_state,k_sd) * psi_ref_coef(i_I,i_state) / psi_ref_coef(p1,i_state)
             !$OMP ATOMIC
-            delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
+            contrib(i_state) += hdress * psi_ref_coef(p1, i_state) * psi_non_ref_coef(k_sd, i_state)
             !$OMP ATOMIC
-            delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
+            delta_ij_(i_state,k_sd,p1) += hdress
             !$OMP ATOMIC
-            delta_ij_s2_(i_state,k_sd,i_I) = delta_ij_s2_(i_state,k_sd,i_I) + dIa_sla(i_state,k_sd)
+            !delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
+            delta_ii_(i_state,p1) -= hdress / psi_ref_coef(p1,i_state) * psi_non_ref_coef_transp(i_state,k_sd)
             !$OMP ATOMIC
-            delta_ii_s2_(i_state,i_I) = delta_ii_s2_(i_state,i_I) - dIa_sla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
+            delta_ij_s2_(i_state,k_sd,p1) += sdress
+            !$OMP ATOMIC
+            !delta_ii_s2_(i_state,i_I) = delta_ii_s2_(i_state,i_I) - dIa_sla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
+            delta_ii_s2_(i_state,p1) -= sdress / psi_ref_coef(p1,i_state) * psi_non_ref_coef_transp(i_state,k_sd)
           enddo
         else
-          delta_ii_(i_state,i_I)  = 0.d0
+          !stop "dress with coef < 1d-3"
+          delta_ii_(i_state,1)  = 0.d0
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
+            p1 = 1
+            hdress = dIa_hla(i_state,k_sd) * psi_ref_coef(i_I,i_state) / psi_ref_coef(p1,i_state)
+            sdress = dIa_sla(i_state,k_sd) * psi_ref_coef(i_I,i_state) / psi_ref_coef(p1,i_state)
             !$OMP ATOMIC
-            delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + 0.5d0*dIa_hla(i_state,k_sd)
+            delta_ij_(i_state,k_sd,p1) = delta_ij_(i_state,k_sd,p1) + 0.5d0*hdress
             !$OMP ATOMIC
-            delta_ij_s2_(i_state,k_sd,i_I) = delta_ij_s2_(i_state,k_sd,i_I) + 0.5d0*dIa_sla(i_state,k_sd)
+            delta_ij_s2_(i_state,k_sd,p1) = delta_ij_s2_(i_state,k_sd,p1) + 0.5d0*sdress
           enddo
         endif
       enddo
