@@ -3,18 +3,20 @@ BEGIN_PROVIDER [ integer, fragment_first ]
   fragment_first = first_det_of_teeth(1)
 END_PROVIDER
 
-subroutine ZMQ_mrcc(E, mrcc,relative_error)
+subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
+  use dress_types
   use f77_zmq
-  use selection_types
   
   implicit none
   
   character(len=64000)           :: task
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_to_qp_run_socket2
-  type(selection_buffer)         :: b
   integer, external              :: omp_get_thread_num
   double precision, intent(in)   :: relative_error, E
   double precision, intent(out)  :: mrcc(N_states)
+  double precision, intent(out)  :: delta(N_states, N_det_non_ref)
+  double precision, intent(out)  :: delta_s2(N_states, N_det_non_ref)
+  type(dress_buffer)             :: db(2)
   
   
   double precision, allocatable  :: mrcc_detail(:,:), comb(:)
@@ -31,7 +33,11 @@ subroutine ZMQ_mrcc(E, mrcc,relative_error)
   !  !call ZMQ_selection(0, mrcc)
   !  return
   !else
-    
+
+
+    call init_dress_buffer(db(1))
+    call init_dress_buffer(db(2))
+
     allocate(mrcc_detail(N_states, N_det_generators+1), comb(N_det_generators), computed(N_det_generators), tbc(0:size_tbc))
     sumabove = 0d0
     sum2above = 0d0
@@ -55,7 +61,6 @@ subroutine ZMQ_mrcc(E, mrcc,relative_error)
     
     call new_parallel_job(zmq_to_qp_run_socket,'mrcc')
     call zmq_put_psi(zmq_to_qp_run_socket,1,mrcc_e0_denominator,size(mrcc_e0_denominator))
-    call create_selection_buffer(1, 1*2, b)
     
     Ncomb=size(comb)
     call get_carlo_workbatch(computed, comb, Ncomb, tbc)
@@ -68,7 +73,6 @@ subroutine ZMQ_mrcc(E, mrcc,relative_error)
     integer(ZMQ_PTR), external     :: new_zmq_to_qp_run_socket
     integer                        :: ipos
     ipos=1
-    
     do i=1,tbc(0)
       if(tbc(i) > fragment_first) then
         write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') 0, tbc(i)
@@ -98,28 +102,36 @@ subroutine ZMQ_mrcc(E, mrcc,relative_error)
         !$OMP  PRIVATE(i)
     i = omp_get_thread_num()
     if (i==0) then
-      call mrcc_collector(E, b, tbc, comb, Ncomb, computed, mrcc_detail, sumabove, sum2above, Nabove, relative_error, mrcc)
+      call mrcc_collector(E, db, tbc, comb, Ncomb, computed, mrcc_detail, sumabove, sum2above, Nabove, relative_error, mrcc)
     else
       call mrcc_slave_inproc(i)
     endif
     !$OMP END PARALLEL
-    call delete_selection_buffer(b)
     call end_parallel_job(zmq_to_qp_run_socket, 'mrcc')
     
     print *, '========== ================= ================= ================='
     
   !endif
+  call flush_dress_buffer(db(1), delta)
+  call flush_dress_buffer(db(2), delta_s2)
+  deallocate(db(1)%buf)
+  deallocate(db(2)%buf)
 
 end subroutine
 
 
-subroutine do_carlo(tbc, Ncomb, comb, mrcc_detail, computed, sumabove, sum2above, Nabove)
+subroutine do_carlo(tbc, Ncomb, comb, mrcc_detail, db, computed, sumabove, sum2above, sumin, isincomb, Nabove)
+  use dress_types
+  implicit none
+
   integer, intent(in) :: tbc(0:size_tbc), Ncomb
   logical, intent(in) :: computed(N_det_generators)
   double precision, intent(in) :: comb(Ncomb), mrcc_detail(N_states, N_det_generators)
-  double precision, intent(inout) :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
-  integer :: i, dets(comb_teeth)
-  double precision :: myVal, myVal2
+  double precision, intent(inout) :: sumabove(comb_teeth), sum2above(comb_teeth), sumin(comb_teeth), Nabove(comb_teeth)
+  double precision, intent(inout) :: isincomb(N_det_generators)
+  type(dress_buffer), intent(inout) :: db(2)
+  integer :: i, j, dets(comb_teeth)
+  double precision :: myVal, myVal2, myValcur
 
   mainLoop : do i=1,Ncomb
     call get_comb(comb(i), dets, comb_teeth)
@@ -132,11 +144,18 @@ subroutine do_carlo(tbc, Ncomb, comb, mrcc_detail, computed, sumabove, sum2above
     myVal = 0d0
     myVal2 = 0d0
     do j=comb_teeth,1,-1
-      myVal += mrcc_detail(1, dets(j)) * mrcc_weight_inv(dets(j)) * comb_step
+      isincomb(dets(j)) = 1d0
+      myValcur = mrcc_detail(1, dets(j)) * mrcc_weight_inv(dets(j)) * comb_step
+      sumin(j) += myValcur**2
+      myVal += myValcur
       sumabove(j) += myVal
+      call dress_buffer_drew(db(1), dets(j), mrcc_weight_inv(dets(j)) * comb_step)
+      call dress_buffer_drew(db(2), dets(j), mrcc_weight_inv(dets(j)) * comb_step)
       sum2above(j) += myVal*myVal
       Nabove(j) += 1
     end do
+    db(1)%N += 1d0
+    db(2)%N += 1d0
   end do mainLoop
 end subroutine
 
@@ -148,23 +167,24 @@ subroutine mrcc_slave_inproc(i)
   call run_mrcc_slave(1,i,mrcc_e0_denominator)
 end
 
-subroutine mrcc_collector(E, b, tbc, comb, Ncomb, computed, mrcc_detail, sumabove, sum2above, Nabove, relative_error, mrcc)
+
+subroutine mrcc_collector(E, db, tbc, comb, Ncomb, computed, mrcc_detail, sumabove, sum2above, Nabove, relative_error, mrcc)
+  use dress_types
   use f77_zmq
-  use selection_types
   use bitmasks
   implicit none
 
   
   integer, intent(in) :: Ncomb
   double precision, intent(inout) :: mrcc_detail(N_states, N_det_generators)
+  type(dress_buffer), intent(inout) :: db(2)
   double precision, intent(in) :: comb(Ncomb), relative_error, E
   logical, intent(inout) :: computed(N_det_generators)
   integer, intent(in) :: tbc(0:size_tbc)
   double precision, intent(inout) :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
   double precision, intent(out)  :: mrcc(N_states)
+  
 
-
-  type(selection_buffer), intent(inout) :: b
   double precision, allocatable      :: mrcc_mwen(:,:)
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
@@ -174,27 +194,37 @@ subroutine mrcc_collector(E, b, tbc, comb, Ncomb, computed, mrcc_detail, sumabov
 
   integer :: msg_size, rc, more
   integer :: acc, i, j, robin, N, ntask
-  double precision, allocatable :: val(:)
   integer(bit_kind), allocatable :: det(:,:,:)
   integer, allocatable :: task_id(:)
   integer :: Nindex
-  integer, allocatable :: index(:)
+  integer, allocatable :: ind(:)
   double precision, save :: time0 = -1.d0
   double precision :: time, timeLast, Nabove_old
   double precision, external :: omp_get_wtime
   integer :: tooth, firstTBDcomb, orgTBDcomb
   integer, allocatable :: parts_to_get(:)
   logical, allocatable :: actually_computed(:)
-  integer :: ncomputed
-
-  ncomputed = 0
+  double precision :: ncomputed
+  integer :: total_computed
   
+  double precision :: sumin(comb_teeth)
+  double precision :: isincomb(N_det_generators)
+
+  print *, "collecture"
+
+  ncomputed = 0d0
+  total_computed = 0
+  sumin = 0d0
+  isincomb = 0d0
+
   character*(512) :: task
   Nabove_old = -1.d0
   
   allocate(actually_computed(N_det_generators), parts_to_get(N_det_generators), &
     mrcc_mwen(N_states, N_det_generators) )
   mrcc_mwen(1:N_states, 1:N_det_generators) =0.d0
+
+  
   do i=1,N_det_generators
     actually_computed(i) = computed(i)
   enddo
@@ -215,7 +245,7 @@ subroutine mrcc_collector(E, b, tbc, comb, Ncomb, computed, mrcc_detail, sumabov
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_pull = new_zmq_pull_socket()
-  allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det_generators), index(1))
+  allocate(task_id(N_det_generators), ind(db(1)%N_slot))
   more = 1
   if (time0 < 0.d0) then
       call wall_time(time0)
@@ -224,22 +254,26 @@ subroutine mrcc_collector(E, b, tbc, comb, Ncomb, computed, mrcc_detail, sumabov
 
   call get_first_tooth(actually_computed, tooth)
   Nabove_old = Nabove(tooth)
+  db(1)%free_under = first_det_of_teeth(1)-1 
+  db(2)%free_under = first_det_of_teeth(1)-1 
   
   pullLoop : do while (more == 1)
 
-    call pull_mrcc_results(zmq_socket_pull, Nindex, index, mrcc_mwen, task_id, ntask)
+    call pull_mrcc_results(zmq_socket_pull, Nindex, ind, mrcc_mwen, db, task_id, ntask)
     do i=1,Nindex
-      mrcc_detail(1:N_states, index(i)) += mrcc_mwen(1:N_states,i)
-      parts_to_get(index(i)) -= 1
-      if(parts_to_get(index(i)) < 0) then 
-        print *, i, index(i), parts_to_get(index(i)), Nindex
+      mrcc_detail(1:N_states, ind(i)) += mrcc_mwen(1:N_states,i)
+
+      parts_to_get(ind(i)) -= 1
+      if(parts_to_get(ind(i)) < 0) then 
+        print *, i, ind(i), parts_to_get(ind(i)), Nindex
         print *, "PARTS ??"
         print *, parts_to_get
         stop "PARTS ??"
       end if
-      if(parts_to_get(index(i)) == 0) then
-        actually_computed(index(i)) = .true.
-        ncomputed += 1
+      if(parts_to_get(ind(i)) == 0) then
+        !print *, "COMPUTED", ind(i)
+        actually_computed(ind(i)) = .true.
+        total_computed += 1
       end if
     end do
 
@@ -249,9 +283,13 @@ subroutine mrcc_collector(E, b, tbc, comb, Ncomb, computed, mrcc_detail, sumabov
       endif
       call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more)
     end do
-
+    
+    call get_first_tooth(actually_computed, tooth)
+    db(1)%free_under = first_det_of_teeth(tooth)-1
+    db(2)%free_under = first_det_of_teeth(tooth)-1
+     
     time = omp_get_wtime()
-  
+
     if(time - timeLast > 1d0 .or. more /= 1) then
       timeLast = time
       do i=1, first_det_of_teeth(1)-1
@@ -260,13 +298,13 @@ subroutine mrcc_collector(E, b, tbc, comb, Ncomb, computed, mrcc_detail, sumabov
         end if
       end do
       
-      double precision :: E0, avg, eqt, prop
-      call do_carlo(tbc, Ncomb+1-firstTBDcomb, comb(firstTBDcomb), mrcc_detail, actually_computed, sumabove, sum2above, Nabove)
-      firstTBDcomb = int(Nabove(1)) - orgTBDcomb + 1
+      double precision :: E0, fco, ffco, avg, tavg, mavg, var, su, su2, meqt, eqt, prop
+      if(firstTBDcomb <= size(comb)) then
+        call do_carlo(tbc, Ncomb+1-firstTBDcomb, comb(firstTBDcomb), mrcc_detail, db, actually_computed, sumabove, sum2above, sumin, isincomb, Nabove)
+        firstTBDcomb = int(Nabove(1)) - orgTBDcomb + 1
+      end if
       if(Nabove(1) < 5d0) cycle
-      call get_first_tooth(actually_computed, tooth)
-     
-      E0 = sum(mrcc_detail(1,:first_det_of_teeth(tooth)-1))
+            E0 = sum(mrcc_detail(1,:first_det_of_teeth(tooth)-1))
       if (tooth <= comb_teeth) then
         prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - mrcc_cweight(first_det_of_teeth(tooth)-1))
         prop = prop * mrcc_weight_inv(first_det_of_teeth(tooth))
@@ -277,17 +315,82 @@ subroutine mrcc_collector(E, b, tbc, comb, Ncomb, computed, mrcc_detail, sumabov
         eqt = 0.d0
       endif
       call wall_time(time)
-      if (dabs(eqt/avg) < relative_error) then
+      !if (dabs(eqt/avg) < relative_error) then
+      if (dabs(eqt) < relative_error .or. total_computed == N_det_generators) then
         ! Termination
-        mrcc(1) = avg
-        print '(G10.3, 2X, F16.7, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
-        print *, avg
+        print *, "converged", Nabove(1), first_det_of_teeth(tooth)
+        !mrcc(1) = avg+E
+        print '(A7, G10.3, 2X, F16.7, 2X, G16.3, 2X, F16.4, A20)', "GREPME", Nabove(tooth), E+avg, eqt, time-time0, ''
         call zmq_abort(zmq_to_qp_run_socket)
       else
         if (Nabove(tooth) > Nabove_old) then
-          print '(G10.3, 2X, F16.7, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
-          print *, avg
+          meqt = 0d0
+          ncomputed = 0
+          mavg = 0d0
+          do i=tooth, comb_teeth
+            !do j=first_det_of_teeth(i), first_det_of_teeth(i+1)-1
+            !  if(actually_computed(j)) ncomputed(i) = ncomputed(i) + 1
+            !end do
+            fco = 0d0
+            ffco = 0d0
+            do j=first_det_of_teeth(i), first_det_of_teeth(i+1)-1
+              fco += isincomb(j) * mrcc_weight(j)
+              ffco += mrcc_weight(j)
+            end do
+            ncomputed = sum(isincomb(first_det_of_teeth(i):first_det_of_teeth(i+1)-1))
+
+            !if(i /= comb_teeth) then
+            !  var = abs((sumin(i))/Nabove(i) - ((sumabove(i)-sumabove(i+1))/Nabove(i))**2) / (Nabove(i)-1)
+            !else
+            !  var = abs((sumin(i))/Nabove(i) - ((sumabove(i))/Nabove(i))**2) / (Nabove(i)-1)
+            !end if
+            n = first_det_of_teeth(i+1) - first_det_of_teeth(i)
+
+
+            !var = var * ((ffco-fco) /ffco) !((dfloat(n)-ncomputed) / dfloat(n))**2
+            !eqt += var / (Nabove(i)-1)
+
+            tavg = 0d0
+            ncomputed = 0d0
+            su = 0d0
+            su2 = 0d0
+            do j=first_det_of_teeth(i), first_det_of_teeth(i+1)-1
+              if(actually_computed(j)) then
+                tavg += (mrcc_detail(1, j))! * isincomb(j)
+                ncomputed += 1d0 !isincomb(j)
+                su2 += (mrcc_detail(1, j))**2
+              end if
+            end do
+            if(ncomputed /= 0) then
+              tavg = tavg / ncomputed * dfloat(n)
+              su2 = su2 / ncomputed * dfloat(n)
+              var = (su2 - (tavg**2)) / ncomputed
+            else
+              print *, "ZERO NCOMPUTED"
+              tavg = 0d0
+              su2 = 0d0
+              var = 0d0
+            end if
+            
+            !fco = ffco
+            !if(i /= comb_teeth) then
+            !  mavg += (tavg) + (((sumabove(i)-sumabove(i+1))/Nabove(i)) * (ffco-fco))  &
+            !        / ffco
+            !else
+            !  mavg += (tavg) + (((sumabove(i))/Nabove(i)) * (ffco-fco))  &
+            !        / ffco
+            !end if
+
+
+            var = var * ((dfloat(n)-ncomputed) / dfloat(n))
+            meqt += var
+            mavg += tavg
+          end do
+          meqt = sqrt(abs(meqt))
           Nabove_old = Nabove(tooth)
+          
+          print '(G10.3, 2X, F16.7, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
+          !print *, "GREPME", avg, eqt, mavg+E0, meqt
         endif
       endif
     end if
@@ -297,11 +400,10 @@ subroutine mrcc_collector(E, b, tbc, comb, Ncomb, computed, mrcc_detail, sumabov
   prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - mrcc_cweight(first_det_of_teeth(tooth)-1))
   prop = prop * mrcc_weight_inv(first_det_of_teeth(tooth))
   E0 += mrcc_detail(1,first_det_of_teeth(tooth)) * prop
-  mrcc(1) = E0 + (sumabove(tooth) / Nabove(tooth))
-
+  mrcc(1) = E + E0 + (sumabove(tooth) / Nabove(tooth))
+  
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_pull_socket(zmq_socket_pull)
-  call sort_selection_buffer(b)
 end subroutine
 
 integer function mrcc_find(v, w, sze, imin, imax)
@@ -333,7 +435,7 @@ end function
 
 BEGIN_PROVIDER [ integer, comb_teeth ]
   implicit none
-  comb_teeth = 100
+  comb_teeth = 10
 END_PROVIDER
 
 
@@ -483,7 +585,7 @@ end subroutine
   comb_step = 1d0/dfloat(comb_teeth)
   first_det_of_comb = 1
   do i=1,N_det_generators
-    if(mrcc_weight(i)/norm_left < .5d0*comb_step) then
+    if(mrcc_weight(i)/norm_left < .25d0*comb_step) then
       first_det_of_comb = i
       exit
     end if
@@ -492,6 +594,7 @@ end subroutine
   first_det_of_comb = max(2,first_det_of_comb)
   call write_int(6, first_det_of_comb-1, 'Size of deterministic set')
   
+
   comb_step =  (1d0 - mrcc_cweight(first_det_of_comb-1)) * comb_step
   
   stato = 1d0 - comb_step
@@ -504,6 +607,30 @@ end subroutine
   end do
   first_det_of_teeth(comb_teeth+1) = N_det_generators + 1
   first_det_of_teeth(1) = first_det_of_comb
+  
+  !do i=1,comb_teeth
+  !  mrcc_weight(first_det_of_teeth(i):first_det_of_teeth(i+1)-1) = &
+  !      (mrcc_cweight(first_det_of_teeth(i+1)-1)-mrcc_cweight(first_det_of_teeth(i)-1)) / &
+  !      dfloat(first_det_of_teeth(i+1)-first_det_of_teeth(i))
+  !end do
+
+  !mrcc_cweight = 0d0 
+  !mrcc_cweight(N_det_generators) = mrcc_weight(N_det_generators)
+  !do i=N_det_generators-1,1,-1
+  !  mrcc_cweight(i) = mrcc_weight(i) + mrcc_cweight(i+1) 
+  !end do
+  
+  !do i=1,N_det_generators
+  !  mrcc_weight(i)  = mrcc_weight(i) / mrcc_cweight(1)
+  !  mrcc_cweight(i) = mrcc_cweight(i) / mrcc_cweight(1)
+ ! enddo
+
+  !do i=1,N_det_generators-1
+  !  mrcc_cweight(i) = 1.d0 - mrcc_cweight(i+1) 
+  !end do
+  !mrcc_cweight(N_det_generators) = 1.d0
+  
+
   if(first_det_of_teeth(1) /= first_det_of_comb) then
      print *, 'Error in ', irp_here
      stop "comb provider"

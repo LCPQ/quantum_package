@@ -393,6 +393,7 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
       k_sd = idx_alpha(l_sd)
       call i_h_j(tq(1,1,i_alpha),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,hij_cache(k_sd))
       call get_s2(tq(1,1,i_alpha),psi_non_ref(1,1,idx_alpha(l_sd)),Nint,sij_cache(k_sd))
+      !if(sij_cache(k_sd) /= 0D0) PRINT *, "SIJ ", sij_cache(k_sd) 
     enddo
 
     ! |I>
@@ -535,6 +536,56 @@ subroutine mrcc_part_dress(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_gen
 end
 
 
+ BEGIN_PROVIDER [ double precision, mrcc_previous_E, (N_states) ]
+  implicit none
+  BEGIN_DOC
+    !energy difference between last two mrcc iterations
+  END_DOC
+  mrcc_previous_E(:) = ref_bitmask_energy
+ END_PROVIDER
+
+
+ BEGIN_PROVIDER [ double precision, delta_ij_mrcc_zmq, (N_states,N_det_non_ref,N_det_ref) ]
+&BEGIN_PROVIDER [ double precision, delta_ii_mrcc_zmq, (N_states, N_det_ref) ]
+&BEGIN_PROVIDER [ double precision, delta_ij_s2_mrcc_zmq, (N_states,N_det_non_ref,N_det_ref) ]
+&BEGIN_PROVIDER [ double precision, delta_ii_s2_mrcc_zmq, (N_states, N_det_ref) ]  
+  use bitmasks
+  implicit none
+
+  integer                        :: i,j,k
+  
+  double precision, allocatable  :: mrcc(:)
+  double precision               :: E_CI_before, relative_error
+  double precision, save :: errr = 0d0
+
+  allocate(mrcc(N_states))
+
+
+  delta_ij_mrcc_zmq = 0d0
+  delta_ii_mrcc_zmq = 0d0
+  delta_ij_s2_mrcc_zmq = 0d0
+  delta_ii_s2_mrcc_zmq = 0d0
+
+  !call random_seed()
+  E_CI_before = mrcc_E0_denominator(1) + nuclear_repulsion
+  threshold_selectors = 1.d0
+  threshold_generators = 1d0 
+  !errr = errr / 2d0
+  if(errr /= 0d0) then
+    errr = errr / 4d0 ! (-mrcc_E0_denominator(1) + mrcc_previous_E(1)) / 1d1
+  else
+    errr = 4d-4
+  end if
+  relative_error = errr
+  print *, "RELATIVE ERROR", relative_error
+  call ZMQ_mrcc(E_CI_before, mrcc, delta_ij_mrcc_zmq, delta_ij_s2_mrcc_zmq, abs(relative_error))
+  !errr = 
+  mrcc_previous_E(:) = mrcc_E0_denominator(:)
+  do i=N_det_non_ref,1,-1
+    delta_ii_mrcc_zmq(:,1) -= delta_ij_mrcc_zmq(:, i, 1) / psi_ref_coef(1,1) * psi_non_ref_coef(i, 1)
+    delta_ii_s2_mrcc_zmq(:,1) -= delta_ij_s2_mrcc_zmq(:, i, 1) / psi_ref_coef(1,1) * psi_non_ref_coef(i, 1)
+  end do
+END_PROVIDER
 
 
  BEGIN_PROVIDER [ double precision, delta_ij, (N_states,N_det_non_ref,N_det_ref) ]
@@ -559,6 +610,21 @@ end
         enddo
       end do
     end do
+  else if(mrmode == 5) then
+    do i = 1, N_det_ref
+      do i_state = 1, N_states
+        delta_ii(i_state,i)= delta_ii_mrcc_zmq(i_state,i)
+        delta_ii_s2(i_state,i)= delta_ii_s2_mrcc_zmq(i_state,i)
+      enddo
+      do j = 1, N_det_non_ref
+        do i_state = 1, N_states
+          delta_ij(i_state,j,i) = delta_ij_mrcc_zmq(i_state,j,i)
+          delta_ij_s2(i_state,j,i) = delta_ij_s2_mrcc_zmq(i_state,j,i)
+        enddo
+      end do
+    end do
+    print *, "De", delta_ij(1,:5,1)
+    print *, "Ds", delta_ij_s2(1,1000:1005,1)
   else  if(mrmode == 3) then
     do i = 1, N_det_ref
       do i_state = 1, N_states

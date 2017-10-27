@@ -20,11 +20,11 @@ subroutine run
 
   allocate (mrcc(N_states))
   mrcc = 0.d0
-  
+  !call random_seed()
   E_CI_before = mrcc_E0_denominator(1) + nuclear_repulsion
   threshold_selectors = 1.d0
   threshold_generators = 1d0 
-  relative_error = 1.d-3
+  relative_error = 5.d-2
   call ZMQ_mrcc(E_CI_before, mrcc, relative_error)
   !print *,  'Final step'
   !print *,  'N_det    = ', N_det

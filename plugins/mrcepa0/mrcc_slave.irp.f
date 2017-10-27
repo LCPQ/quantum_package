@@ -3,7 +3,7 @@ program mrcc_slave
   BEGIN_DOC
 ! Helper program to compute the mrcc in distributed mode.
   END_DOC
-
+  print  *, "SLAVE"
   read_wf = .False.
   distributed_davidson = .False.
   SOFT_TOUCH read_wf distributed_davidson
