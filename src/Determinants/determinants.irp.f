@@ -133,115 +133,6 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
 END_PROVIDER
 
 
- BEGIN_PROVIDER [ integer(bit_kind), psi_occ_pattern, (N_int,2,psi_det_size) ]
-&BEGIN_PROVIDER [ integer, N_occ_pattern ]
- implicit none
- BEGIN_DOC
-  ! array of the occ_pattern present in the wf
-  ! psi_occ_pattern(:,1,j) = jth occ_pattern of the wave function : represent all the single occupation
-  ! psi_occ_pattern(:,2,j) = jth occ_pattern of the wave function : represent all the double occupation
- END_DOC
- integer :: i,j,k
-
- ! create
- do i = 1, N_det
-  do k = 1, N_int
-   psi_occ_pattern(k,1,i) = ieor(psi_det(k,1,i),psi_det(k,2,i))
-   psi_occ_pattern(k,2,i) = iand(psi_det(k,1,i),psi_det(k,2,i))
-  enddo
- enddo
-
- ! Sort
- integer, allocatable           :: iorder(:)
- integer*8, allocatable         :: bit_tmp(:)
- integer*8, external            :: occ_pattern_search_key
- integer(bit_kind), allocatable :: tmp_array(:,:,:)
- logical,allocatable            :: duplicate(:)
-
-
- allocate ( iorder(N_det), duplicate(N_det), bit_tmp(N_det), tmp_array(N_int,2,psi_det_size) )
-
- do i=1,N_det
-   iorder(i) = i
-   !$DIR FORCEINLINE
-   bit_tmp(i) = occ_pattern_search_key(psi_occ_pattern(1,1,i),N_int)
- enddo
- call i8sort(bit_tmp,iorder,N_det)
- !DIR$ IVDEP
- do i=1,N_det
-  do k=1,N_int
-    tmp_array(k,1,i) = psi_occ_pattern(k,1,iorder(i))
-    tmp_array(k,2,i) = psi_occ_pattern(k,2,iorder(i))
-  enddo
-  duplicate(i) = .False.
- enddo
-
- i=1
- integer (bit_kind) :: occ_pattern_tmp
- do i=1,N_det
-  duplicate(i) = .False.
- enddo
-
- do i=1,N_det-1
-  if (duplicate(i)) then
-    cycle
-  endif
-  j = i+1
-  do while (bit_tmp(j)==bit_tmp(i))
-    if (duplicate(j)) then
-      j+=1
-      cycle
-    endif
-    duplicate(j) = .True.
-    do k=1,N_int
-      if ( (tmp_array(k,1,i) /= tmp_array(k,1,j)) &
-      .or. (tmp_array(k,2,i) /= tmp_array(k,2,j)) ) then
-         duplicate(j) = .False.
-         exit
-      endif
-    enddo
-    j+=1
-    if (j>N_det) then
-      exit
-    endif
-  enddo
- enddo
-
- N_occ_pattern=0
- do i=1,N_det
-  if (duplicate(i)) then
-    cycle
-  endif
-  N_occ_pattern += 1
-  do k=1,N_int
-    psi_occ_pattern(k,1,N_occ_pattern) = tmp_array(k,1,i)
-    psi_occ_pattern(k,2,N_occ_pattern) = tmp_array(k,2,i)
-  enddo
- enddo
-
- deallocate(iorder,duplicate,bit_tmp,tmp_array)
-! !TODO DEBUG
-! integer :: s
-! do i=1,N_occ_pattern
-!   do j=i+1,N_occ_pattern
-!    s = 0
-!    do k=1,N_int
-!      if((psi_occ_pattern(k,1,j) /= psi_occ_pattern(k,1,i)).or. &
-!         (psi_occ_pattern(k,2,j) /= psi_occ_pattern(k,2,i))) then
-!         s=1
-!         exit
-!      endif
-!    enddo
-!    if ( s == 0 ) then
-!      print *,  'Error : occ ', j, 'already in wf'
-!      call debug_det(psi_occ_pattern(1,1,j),N_int)
-!      stop
-!    endif
-!   enddo
-! enddo
-! !TODO DEBUG
-END_PROVIDER 
-
 
 BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
   implicit none
@@ -544,62 +435,32 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
 !  Save the wave function into the EZFIO file
   END_DOC
   use bitmasks
+  include 'constants.include.F'
   integer, intent(in) :: ndet,nstates,dim_psicoef
   integer(bit_kind), intent(in) :: psidet(N_int,2,ndet)
   double precision, intent(in)  :: psicoef(dim_psicoef,nstates)
   integer*8, allocatable         :: psi_det_save(:,:,:)
   double precision, allocatable  :: psi_coef_save(:,:)
-  integer*8                      :: det_8(100)
-  integer(bit_kind)              :: det_bk((100*8)/bit_kind)
-  integer                        :: N_int2
-  equivalence (det_8, det_bk)
 
-  integer :: i,k
+  integer :: i,j,k
 
-  PROVIDE progress_bar
-  call start_progress(7,'Saving wfunction',0.d0)
-
-  progress_bar(1) = 1
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_N_int(N_int)
-  progress_bar(1) = 2
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_bit_kind(bit_kind)
-  progress_bar(1) = 3
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_N_det(ndet)
-  progress_bar(1) = 4
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_n_states(nstates)
-  progress_bar(1) = 5
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_mo_label(mo_label)
 
-  progress_bar(1) = 6
-  progress_value = dble(progress_bar(1))
-
-  N_int2 = (N_int*bit_kind)/8
-  allocate (psi_det_save(N_int2,2,ndet))
+  allocate (psi_det_save(N_int,2,ndet))
   do i=1,ndet
+   do j=1,2
     do k=1,N_int
-      det_bk(k) = psidet(k,1,i)
+      psi_det_save(k,j,i) = transfer(psidet(k,j,i),1_8)
     enddo
-    do k=1,N_int2
-      psi_det_save(k,1,i) = det_8(k)
-    enddo
-    do k=1,N_int
-      det_bk(k) = psidet(k,2,i)
-    enddo
-    do k=1,N_int2
-      psi_det_save(k,2,i) = det_8(k)
-    enddo
-!   print*,psi_det_save
+   enddo
   enddo
   call ezfio_set_determinants_psi_det(psi_det_save)
   deallocate (psi_det_save)
 
-  progress_bar(1) = 7
-  progress_value = dble(progress_bar(1))
   allocate (psi_coef_save(ndet,nstates))
   double precision :: accu_norm(nstates)
   accu_norm = 0.d0
@@ -620,7 +481,6 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
 
   call ezfio_set_determinants_psi_coef(psi_coef_save)
   call write_int(output_determinants,ndet,'Saved determinants')
-  call stop_progress
   deallocate (psi_coef_save)
 end
 
@@ -646,27 +506,11 @@ subroutine save_wavefunction_specified(ndet,nstates,psidet,psicoef,ndetsave,inde
 
   integer :: i,k
 
-  PROVIDE progress_bar
-  call start_progress(7,'Saving wfunction',0.d0)
-
-  progress_bar(1) = 1
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_N_int(N_int)
-  progress_bar(1) = 2
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_bit_kind(bit_kind)
-  progress_bar(1) = 3
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_N_det(ndetsave)
-  progress_bar(1) = 4
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_n_states(nstates)
-  progress_bar(1) = 5
-  progress_value = dble(progress_bar(1))
   call ezfio_set_determinants_mo_label(mo_label)
-
-  progress_bar(1) = 6
-  progress_value = dble(progress_bar(1))
 
   N_int2 = (N_int*bit_kind)/8
   allocate (psi_det_save(N_int2,2,ndetsave))
@@ -709,7 +553,6 @@ subroutine save_wavefunction_specified(ndet,nstates,psidet,psicoef,ndetsave,inde
 
   call ezfio_set_determinants_psi_coef(psi_coef_save)
   call write_int(output_determinants,ndet,'Saved determinants')
-  call stop_progress
   deallocate (psi_coef_save)
 end
 

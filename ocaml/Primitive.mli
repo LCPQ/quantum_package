@@ -1,7 +1,7 @@
 type t =
 { sym : Symmetry.t;
   expo : Qptypes.AO_expo.t;
-} with sexp
+} [@@deriving sexp]
 
 (** Conversion to string for printing *)
 val to_string : t -> string

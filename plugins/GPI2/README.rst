@@ -1,8 +1,8 @@
-===============
-Full_CI_ZMQ_MPI
-===============
+=====
+GASPI
+=====
 
-MPI Slave for Full_CI with ZMQ
+Providers for GASPI programs (with the GPI2 library).
 
 Needed Modules
 ==============

@@ -1,5 +1,5 @@
 
- BEGIN_PROVIDER [ double precision, delta_ij, (N_det,N_det,N_states) ]
+ BEGIN_PROVIDER [ double precision, delta_ij_mrpt, (N_det,N_det,N_states) ]
 &BEGIN_PROVIDER [ double precision, second_order_pt_new, (N_states) ]
 &BEGIN_PROVIDER [ double precision, second_order_pt_new_1h, (N_states) ]
 &BEGIN_PROVIDER [ double precision, second_order_pt_new_1p, (N_states) ]
@@ -19,7 +19,7 @@
  double precision, allocatable :: delta_ij_tmp(:,:,:)
 
 
- delta_ij = 0.d0
+ delta_ij_mrpt = 0.d0
 
  allocate (delta_ij_tmp(N_det,N_det,N_states))
 
@@ -32,7 +32,7 @@
  do i = 1, N_det
   do j = 1, N_det
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+   delta_ij_mrpt(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
    second_order_pt_new_1h(i_state) = accu(i_state) 
@@ -47,7 +47,7 @@
  do i = 1, N_det
   do j = 1, N_det
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+   delta_ij_mrpt(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
  second_order_pt_new_1p(i_state) = accu(i_state) 
@@ -63,7 +63,7 @@
  do i = 1, N_det
   do j = 1, N_det
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+   delta_ij_mrpt(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
  second_order_pt_new_1h1p(i_state) = accu(i_state) 
@@ -79,7 +79,7 @@
   do i = 1, N_det
    do j = 1, N_det
     accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-    delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+    delta_ij_mrpt(j,i,i_state) += delta_ij_tmp(j,i,i_state)
    enddo
   enddo
   second_order_pt_new_1h1p(i_state) = accu(i_state) 
@@ -95,7 +95,7 @@
  do i = 1, N_det
   do j = 1, N_det
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+   delta_ij_mrpt(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
  second_order_pt_new_2h(i_state) = accu(i_state) 
@@ -110,7 +110,7 @@
  do i = 1, N_det
   do j = 1, N_det
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+   delta_ij_mrpt(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
  second_order_pt_new_2p(i_state) = accu(i_state) 
@@ -126,7 +126,7 @@
  do i = 1, N_det
   do j = 1, N_det
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+   delta_ij_mrpt(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
  second_order_pt_new_1h2p(i_state) = accu(i_state) 
@@ -142,7 +142,7 @@
  do i = 1, N_det
   do j = 1, N_det
    accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-   delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+   delta_ij_mrpt(j,i,i_state) += delta_ij_tmp(j,i,i_state)
   enddo
  enddo
  second_order_pt_new_2h1p(i_state) = accu(i_state) 
@@ -157,7 +157,7 @@
 !do i = 1, N_det
 ! do j = 1, N_det
 !  accu(i_state) += delta_ij_tmp(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
-!  delta_ij(j,i,i_state) += delta_ij_tmp(j,i,i_state)
+!  delta_ij_mrpt(j,i,i_state) += delta_ij_tmp(j,i,i_state)
 ! enddo
 !enddo
 !second_order_pt_new_2h2p(i_state) = accu(i_state) 
@@ -168,7 +168,7 @@
  call give_2h2p(contrib_2h2p)
  do i_state = 1, N_states
  do i = 1, N_det
-   delta_ij(i,i,i_state) += contrib_2h2p(i_state)
+   delta_ij_mrpt(i,i,i_state) += contrib_2h2p(i_state)
  enddo
  second_order_pt_new_2h2p(i_state) = contrib_2h2p(i_state) 
  enddo
@@ -179,9 +179,9 @@
  accu = 0.d0
  do i_state = 1, N_states
  do i = 1, N_det
-! write(*,'(1000(F16.10,x))')delta_ij(i,:,:)
+! write(*,'(1000(F16.10,x))')delta_ij_mrpt(i,:,:)
   do j = i_state, N_det
-   accu(i_state) += delta_ij(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
+   accu(i_state) += delta_ij_mrpt(j,i,i_state) * psi_coef(i,i_state) * psi_coef(j,i_state)
   enddo
  enddo
  second_order_pt_new(i_state) = accu(i_state) 
@@ -199,7 +199,7 @@ END_PROVIDER
  do i_state = 1, N_states
   do i = 1,N_det
    do j = 1,N_det
-    Hmatrix_dressed_pt2_new(j,i,i_state) = H_matrix_all_dets(j,i) + delta_ij(j,i,i_state)
+    Hmatrix_dressed_pt2_new(j,i,i_state) = H_matrix_all_dets(j,i) + delta_ij_mrpt(j,i,i_state)
    enddo
   enddo
  enddo
@@ -214,7 +214,7 @@ END_PROVIDER
   do i = 1,N_det
    do j = i,N_det
     Hmatrix_dressed_pt2_new_symmetrized(j,i,i_state) =  H_matrix_all_dets(j,i) & 
-                                            + 0.5d0 * ( delta_ij(j,i,i_state) + delta_ij(i,j,i_state) )
+                                            + 0.5d0 * ( delta_ij_mrpt(j,i,i_state) + delta_ij_mrpt(i,j,i_state) )
     Hmatrix_dressed_pt2_new_symmetrized(i,j,i_state) =  Hmatrix_dressed_pt2_new_symmetrized(j,i,i_state) 
    enddo
   enddo

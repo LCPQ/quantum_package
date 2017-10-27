@@ -1,6 +1,6 @@
- BEGIN_PROVIDER [ double precision, ao_deriv2_x,(ao_num_align,ao_num) ]
-&BEGIN_PROVIDER [ double precision, ao_deriv2_y,(ao_num_align,ao_num) ]
-&BEGIN_PROVIDER [ double precision, ao_deriv2_z,(ao_num_align,ao_num) ]
+ BEGIN_PROVIDER [ double precision, ao_deriv2_x,(ao_num,ao_num) ]
+&BEGIN_PROVIDER [ double precision, ao_deriv2_y,(ao_num,ao_num) ]
+&BEGIN_PROVIDER [ double precision, ao_deriv2_z,(ao_num,ao_num) ]
   implicit none
   integer :: i,j,n,l
   double precision :: f
@@ -45,8 +45,6 @@
    power_A(1)  = ao_power( j, 1 )
    power_A(2)  = ao_power( j, 2 )
    power_A(3)  = ao_power( j, 3 )
-   !DEC$ VECTOR ALIGNED
-   !DEC$ VECTOR ALWAYS
    do i= 1,ao_num
     ao_deriv2_x(i,j)= 0.d0
     ao_deriv2_y(i,j)= 0.d0
@@ -59,7 +57,6 @@
     power_B(3)  = ao_power( i, 3 )
     do n = 1,ao_prim_num(j)
      alpha = ao_expo_ordered_transp(n,j)
-     !DEC$ VECTOR ALIGNED
      do l = 1, ao_prim_num(i)
       beta = ao_expo_ordered_transp(l,i)
       call overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,power_B,overlap_x0,overlap_y0,overlap_z0,overlap,dim1)
@@ -122,7 +119,7 @@
 
 END_PROVIDER
 
-BEGIN_PROVIDER [double precision, ao_kinetic_integral, (ao_num_align,ao_num)]
+BEGIN_PROVIDER [double precision, ao_kinetic_integral, (ao_num,ao_num)]
   implicit none
   BEGIN_DOC
   ! array of the priminitve basis kinetic integrals
@@ -131,27 +128,23 @@ BEGIN_PROVIDER [double precision, ao_kinetic_integral, (ao_num_align,ao_num)]
   integer                        :: i,j,k,l
   
   if (read_ao_one_integrals) then
-     call ezfio_get_ao_basis_integral_kinetic(ao_kinetic_integral(1:ao_num, 1:ao_num))
- call ezfio_set_ao_basis_integral_kinetic(ao_kinetic_integral(1:ao_num, 1:ao_num))
+    call read_one_e_integrals('ao_kinetic_integral', ao_kinetic_integral,&
+        size(ao_kinetic_integral,1), size(ao_kinetic_integral,2))
     print *,  'AO kinetic integrals read from disk'
   else
     !$OMP PARALLEL DO DEFAULT(NONE) &
     !$OMP  PRIVATE(i,j) &
-    !$OMP  SHARED(ao_num, ao_num_align, ao_kinetic_integral,ao_deriv2_x,ao_deriv2_y,ao_deriv2_z)
+    !$OMP  SHARED(ao_num, ao_kinetic_integral,ao_deriv2_x,ao_deriv2_y,ao_deriv2_z)
     do j = 1, ao_num
-      !DEC$ VECTOR ALWAYS
-      !DEC$ VECTOR ALIGNED
       do i = 1, ao_num
       ao_kinetic_integral(i,j) = -0.5d0 * (ao_deriv2_x(i,j) + ao_deriv2_y(i,j) + ao_deriv2_z(i,j) )
-      enddo
-      do i = ao_num +1,ao_num_align
-        ao_kinetic_integral(i,j) = 0.d0
       enddo
     enddo
     !$OMP END PARALLEL DO
   endif
   if (write_ao_one_integrals) then
-    call ezfio_set_ao_basis_integral_kinetic(ao_kinetic_integral(1:ao_num, 1:ao_num))
+    call write_one_e_integrals('ao_kinetic_integral', ao_kinetic_integral,&
+        size(ao_kinetic_integral,1), size(ao_kinetic_integral,2))
     print *,  'AO kinetic integrals written to disk'
   endif
 END_PROVIDER

@@ -44,11 +44,12 @@ subroutine save_mos_truncated(n)
   
 end
 
-subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label,sign)
+subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label,sign,output)
   implicit none
   integer,intent(in)             :: n,m, sign
   character*(64), intent(in)     :: label
   double precision, intent(in)   :: matrix(n,m)
+  logical, intent(in)            :: output
   
   integer :: i,j
   double precision, allocatable  :: mo_coef_new(:,:), R(:,:),eigvalues(:), A(:,:)
@@ -76,22 +77,26 @@ subroutine mo_as_eigvectors_of_mo_matrix(matrix,n,m,label,sign)
   mo_coef_new = mo_coef
   
   call lapack_diag(eigvalues,R,A,n,m)
-  write (output_mo_basis,'(A)')  'MOs are now **'//trim(label)//'**'
-  write (output_mo_basis,'(A)') ''
-  write (output_mo_basis,'(A)')  'Eigenvalues'
-  write (output_mo_basis,'(A)') '-----------'
-  write (output_mo_basis,'(A)')  ''
-  write (output_mo_basis,'(A)') '======== ================'
+  if (output) then
+    write (output_mo_basis,'(A)')  'MOs are now **'//trim(label)//'**'
+    write (output_mo_basis,'(A)') ''
+    write (output_mo_basis,'(A)')  'Eigenvalues'
+    write (output_mo_basis,'(A)') '-----------'
+    write (output_mo_basis,'(A)')  ''
+    write (output_mo_basis,'(A)') '======== ================'
+  endif
   if (sign == -1) then
     do i=1,m
       eigvalues(i) = -eigvalues(i)
     enddo
   endif
-  do i=1,m
-    write (output_mo_basis,'(I8,1X,F16.10)')  i,eigvalues(i)
-  enddo
-  write (output_mo_basis,'(A)') '======== ================'
-  write (output_mo_basis,'(A)')  ''
+  if (output) then
+    do i=1,m
+      write (output_mo_basis,'(I8,1X,F16.10)')  i,eigvalues(i)
+    enddo
+    write (output_mo_basis,'(A)') '======== ================'
+    write (output_mo_basis,'(A)')  ''
+  endif
   
   call dgemm('N','N',ao_num,m,m,1.d0,mo_coef_new,size(mo_coef_new,1),R,size(R,1),0.d0,mo_coef,size(mo_coef,1))
   deallocate(A,mo_coef_new,R,eigvalues)

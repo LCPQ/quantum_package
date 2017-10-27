@@ -46,8 +46,8 @@ subroutine map_save_to_disk(filename,map)
     enddo
     deallocate(map % map(i) % value)
     deallocate(map % map(i) % key)
-    map % map(i) % value => map % consolidated_value ( map % consolidated_idx (i+1) :)
-    map % map(i) % key   => map % consolidated_key   ( map % consolidated_idx (i+1) :)
+    map % map(i) % value => map % consolidated_value ( map % consolidated_idx (i+1_8) :)
+    map % map(i) % key   => map % consolidated_key   ( map % consolidated_idx (i+1_8) :)
   enddo
   map % consolidated_idx (map % map_size + 2_8) = k
   map % consolidated = .True.
@@ -82,7 +82,7 @@ subroutine map_load_from_disk(filename,map)
   call mmap(trim(filename)//'_consolidated_idx', (/ map % map_size + 2_8 /), 8, fd(1), .True., c_pointer(1))
   call c_f_pointer(c_pointer(1),map % consolidated_idx, (/ map % map_size + 2_8/))
 
-  map% n_elements = map % consolidated_idx (map % map_size+2_8)-1
+  map% n_elements = map % consolidated_idx (map % map_size+2_8)-1_8
 
   call mmap(trim(filename)//'_consolidated_key', (/ map % n_elements /), cache_key_kind, fd(2), .True., c_pointer(2))
   call c_f_pointer(c_pointer(2),map % consolidated_key, (/ map % n_elements /))
@@ -96,11 +96,11 @@ subroutine map_load_from_disk(filename,map)
   do i=0_8, map % map_size
     deallocate(map % map(i) % value)
     deallocate(map % map(i) % key)
-    map % map(i) % value => map % consolidated_value ( map % consolidated_idx (i+1) :)
-    map % map(i) % key   => map % consolidated_key   ( map % consolidated_idx (i+1) :)
+    map % map(i) % value => map % consolidated_value ( map % consolidated_idx (i+1_8) :)
+    map % map(i) % key   => map % consolidated_key   ( map % consolidated_idx (i+1_8) :)
     map % map(i) % sorted = .True.
-    n_elements = int( map % consolidated_idx (i+2) - k, 4)
-    k = map % consolidated_idx (i+2)
+    n_elements = int( map % consolidated_idx (i+2_8) - k, 4)
+    k = map % consolidated_idx (i+2_8)
     map % map(i) % map_size = n_elements
     map % map(i) % n_elements = n_elements
     ! Load memory from disk
@@ -116,7 +116,7 @@ subroutine map_load_from_disk(filename,map)
     enddo
   enddo
   map % sorted = x>0 .or. l == 0_8
-  map % n_elements = k-1
+  map % n_elements = k-1_8
   map % sorted = map % sorted .or. .True. 
   map % consolidated = .True.
 

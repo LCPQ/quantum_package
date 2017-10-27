@@ -1,14 +1,14 @@
-open Core.Std;;
-open Qptypes;;
+open Core
+open Qptypes
 
 module Hole = struct
-    type t = MO_class.t with sexp
+    type t = MO_class.t [@@deriving sexp]
     let of_mo_class x = x
     let to_mo_class x = x
 end
 
 module Particle = struct
-    type t = MO_class.t with sexp
+    type t = MO_class.t [@@deriving sexp]
     let of_mo_class x = x
     let to_mo_class x = x
 end
@@ -16,7 +16,7 @@ end
 type t =
 | Single of Hole.t*Particle.t
 | Double of Hole.t*Particle.t*Hole.t*Particle.t
-with sexp;;
+[@@deriving sexp]
 
 let create_single ~hole ~particle =
   MO_class.(
@@ -29,7 +29,7 @@ let create_single ~hole ~particle =
   | (          _, Inactive _ ) -> failwith "Particles can not be in virtual MOs"
   | (h, p) -> Single ( (Hole.of_mo_class h), (Particle.of_mo_class p) )
   )
-;;
+
 
 let double_of_singles s1 s2 =
   let (h1,p1) = match s1 with
@@ -40,14 +40,14 @@ let double_of_singles s1 s2 =
   | _ -> assert false
   in
   Double (h1,p1,h2,p2)
-;;
+
 
 let create_double ~hole1 ~particle1 ~hole2 ~particle2 =
   let s1 = create_single ~hole:hole1 ~particle:particle1
   and s2 =  create_single ~hole:hole2 ~particle:particle2
   in
   double_of_singles s1 s2
-;;
+
 
 let to_string = function
   | Single (h,p) ->
@@ -68,5 +68,5 @@ let to_string = function
         (MO_class.to_string (Particle.to_mo_class p2));
         "]"]
       |> String.concat ~sep:" "
-;;
+
 

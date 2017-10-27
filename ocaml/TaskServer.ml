@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Qptypes
 
 
@@ -63,7 +63,7 @@ let bind_socket ~socket_type ~socket ~port =
         ZMQ.Socket.bind socket @@ Printf.sprintf "tcp://*:%d" port;
         loop (-1)
       with
-      | Unix.Unix_error _ -> (Time.pause @@ Time.Span.of_float 1. ; loop (i-1) )
+      | Unix.Unix_error _ -> (Time.pause @@ Time.Span.of_sec 1. ; loop (i-1) )
       | other_exception -> raise other_exception
   in loop 60
 

@@ -1,5 +1,10 @@
 program read_integrals
-
+  BEGIN_DOC
+! Reads the integrals from the following files:
+! - kinetic_mo
+! - nuclear_mo
+! - bielec_mo
+  END_DOC
   PROVIDE ezfio_filename
   call ezfio_set_integrals_monoelec_disk_access_mo_one_integrals("None")
   call run

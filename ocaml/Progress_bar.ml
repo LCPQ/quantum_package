@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 
 type t =
 { 
@@ -53,13 +53,13 @@ let display_tty bar =
     in
     let stop_time =
       let x = 
-        Time.Span.to_float running_time
+        Time.Span.to_sec running_time
       in
       if (percent > 0.) then
         x *. 100. /. percent -. x
-        |> Time.Span.of_float
+        |> Time.Span.of_sec
       else
-        Time.Span.of_float 0.
+        Time.Span.of_sec 0.
     in
     Printf.eprintf "%s : [%s] %4.1f%%  | %10s, ~%10s left\r%!"
       bar.title
@@ -67,7 +67,7 @@ let display_tty bar =
       percent
       (Time.Span.to_string running_time)
       (stop_time |> Time.Span.to_string );
-    { bar with dirty = false ; next = Time.add now (Time.Span.of_float 0.1) }
+    { bar with dirty = false ; next = Time.add now (Time.Span.of_sec 0.1) }
   
 
 let display_file bar =
@@ -80,19 +80,19 @@ let display_file bar =
     in
     let stop_time =
       let x = 
-        Time.Span.to_float running_time
+        Time.Span.to_sec running_time
       in
       if (percent > 0.) then
         x *. 100. /. percent -. x
-        |> Time.Span.of_float
+        |> Time.Span.of_sec
       else
-        Time.Span.of_float 0.
+        Time.Span.of_sec 0.
     in
     Printf.eprintf "%5.2f %%  in  %20s, ~%20s left\n%!"
       percent
       (Time.Span.to_string running_time)
       (Time.Span.to_string stop_time);
-    { bar with dirty = false ; next = Time.add (Time.now ()) (Time.Span.of_float 2.) }
+    { bar with dirty = false ; next = Time.add (Time.now ()) (Time.Span.of_sec 2.) }
   
 
 

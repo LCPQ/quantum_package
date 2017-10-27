@@ -1,4 +1,4 @@
-type t = S | P | D | F | G | H | I | J | K | L with sexp
+type t = S | P | D | F | G | H | I | J | K | L [@@deriving sexp]
 
 (** Creatio from strings *)
 val to_string : t -> string
@@ -16,7 +16,7 @@ module Xyz :
       x : Qptypes.Positive_int.t;
       y : Qptypes.Positive_int.t;
       z : Qptypes.Positive_int.t;
-    } with sexp
+    } [@@deriving sexp]
 
     (** The string format contains the powers of x,y and z in a
         format like "x2z3" *)

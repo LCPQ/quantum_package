@@ -1,6 +1,6 @@
 open Qptypes;;
 open Qputils;;
-open Core.Std;;
+open Core;;
 
 module Ao_basis : sig
   type t = 
@@ -13,7 +13,7 @@ module Ao_basis : sig
       ao_coef         : AO_coef.t array;
       ao_expo         : AO_expo.t array;
       ao_cartesian    : bool;
-    } with sexp
+    } [@@deriving sexp]
   ;;
   val read : unit -> t option
   val to_string : t -> string
@@ -32,7 +32,7 @@ end = struct
       ao_coef         : AO_coef.t array;
       ao_expo         : AO_expo.t array;
       ao_cartesian    : bool;
-    } with sexp
+    } [@@deriving sexp]
   ;;
 
   let get_default = Qpackage.get_ezfio_default "ao_basis";;
