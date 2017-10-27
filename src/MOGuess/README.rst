@@ -42,7 +42,7 @@ Documentation
   Undocumented
 
 
-`ao_ortho_lowdin_overlap <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess/mo_ortho_lowdin.irp.f#L22>`_
+`ao_ortho_lowdin_overlap <http://github.com/LCPQ/quantum_package/tree/master/src/MOGuess/mo_ortho_lowdin.irp.f#L25>`_
   overlap matrix of the ao_ortho_lowdin
   supposed to be the Identity
 

@@ -1,14 +1,29 @@
- BEGIN_PROVIDER [integer, N_z_pts]
+ BEGIN_PROVIDER [integer, spin_dens_coord]
+ implicit none
+ BEGIN_DOC
+  coordinate on which you are going to plot the spin density
+  and integrate over the ohters
+  spin_dens_coord = 1  === X
+  spin_dens_coord = 2  === Y
+  spin_dens_coord = 3  === Z
+ END_DOC
+ spin_dens_coord = 3
+ END_PROVIDER 
+
+
+ BEGIN_PROVIDER [double precision, delta_z]
 &BEGIN_PROVIDER [double precision, z_min]
 &BEGIN_PROVIDER [double precision, z_max]
-&BEGIN_PROVIDER [double precision, delta_z]
  implicit none
  z_min = 0.d0
  z_max = 10.d0
- delta_z = 0.005d0
+ delta_z = 0.05d0
+END_PROVIDER
+
+BEGIN_PROVIDER [integer, N_z_pts]
+ implicit none
  N_z_pts = int( (z_max - z_min)/delta_z )
  print*,'N_z_pts = ',N_z_pts
-
 END_PROVIDER
 
 
@@ -80,7 +95,7 @@ BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_all_points, (ao_num_a
  !$OMP PRIVATE(i,j,n,l,A_center,power_A,B_center,power_B,accu_z, &
  !$OMP  overlap_x,overlap_y,overlap_z,overlap,c,alpha,beta) &
  !$OMP SHARED(ao_num,nucl_coord,ao_nucl,ao_power,ao_prim_num,ao_expo_ordered_transp,ao_coef_normalized_ordered_transp, &
- !$OMP   ao_integrated_delta_rho_all_points,N_z_pts,dim1,i_z,z,delta_z)           
+ !$OMP   ao_integrated_delta_rho_all_points,N_z_pts,dim1,i_z,z,delta_z,spin_dens_coord)           
   do j=1,ao_num
    A_center(1) = nucl_coord( ao_nucl(j), 1 )
    A_center(2) = nucl_coord( ao_nucl(j), 2 )
@@ -104,7 +119,13 @@ BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_all_points, (ao_num_a
        call overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,power_B,overlap_x,overlap_y,overlap_z,overlap,dim1)
 
        c = ao_coef_normalized_ordered_transp(n,j) * ao_coef_normalized_ordered_transp(l,i) 
-       accu_z += c* overlap_x * overlap_y * SABpartial(z,z+delta_z,A_center,B_center,power_A,power_B,alpha,beta)
+       if(spin_dens_coord ==1 )then
+        accu_z += c* overlap_y * overlap_z * SABpartial(z,z+delta_z,A_center,B_center,power_A,power_B,alpha,beta,spin_dens_coord)
+       else if (spin_dens_coord ==2 )then
+        accu_z += c* overlap_x * overlap_z * SABpartial(z,z+delta_z,A_center,B_center,power_A,power_B,alpha,beta,spin_dens_coord)
+       else if (spin_dens_coord ==3 )then
+        accu_z += c* overlap_x * overlap_y * SABpartial(z,z+delta_z,A_center,B_center,power_A,power_B,alpha,beta,spin_dens_coord)
+       endif
       enddo
      enddo
      ao_integrated_delta_rho_all_points(i,j,i_z) = accu_z
@@ -144,11 +165,12 @@ BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_one_point, (ao_num_al
   double precision :: z,SABpartial,accu_z
   dim1=100
  z = z_one_point
+ provide delta_z
  !$OMP PARALLEL DO DEFAULT(none) &
  !$OMP PRIVATE(i,j,n,l,A_center,power_A,B_center,power_B,accu_z, &
  !$OMP  overlap_x,overlap_y,overlap_z,overlap,c,alpha,beta) &
  !$OMP SHARED(ao_num,nucl_coord,ao_nucl,ao_power,ao_prim_num,ao_expo_ordered_transp,ao_coef_normalized_ordered_transp, &
- !$OMP   ao_integrated_delta_rho_one_point,dim1,z,delta_z)           
+ !$OMP   ao_integrated_delta_rho_one_point,dim1,z,delta_z,spin_dens_coord)           
   do j=1,ao_num
    A_center(1) = nucl_coord( ao_nucl(j), 1 )
    A_center(2) = nucl_coord( ao_nucl(j), 2 )
@@ -172,7 +194,13 @@ BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_one_point, (ao_num_al
        call overlap_gaussian_xyz(A_center,B_center,alpha,beta,power_A,power_B,overlap_x,overlap_y,overlap_z,overlap,dim1)
 
        c = ao_coef_normalized_ordered_transp(n,j) * ao_coef_normalized_ordered_transp(l,i) 
-       accu_z += c* overlap_x * overlap_y * SABpartial(z,z+delta_z,A_center,B_center,power_A,power_B,alpha,beta)
+       if(spin_dens_coord ==1 )then
+        accu_z += c* overlap_y * overlap_z * SABpartial(z,z+delta_z,A_center,B_center,power_A,power_B,alpha,beta,spin_dens_coord)
+       else if (spin_dens_coord ==2 )then
+        accu_z += c* overlap_x * overlap_z * SABpartial(z,z+delta_z,A_center,B_center,power_A,power_B,alpha,beta,spin_dens_coord)
+       else if (spin_dens_coord ==3 )then
+        accu_z += c* overlap_x * overlap_y * SABpartial(z,z+delta_z,A_center,B_center,power_A,power_B,alpha,beta,spin_dens_coord)
+       endif
       enddo
      enddo
     ao_integrated_delta_rho_one_point(i,j) = accu_z

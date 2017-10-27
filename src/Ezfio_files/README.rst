@@ -199,20 +199,12 @@ Documentation
   .br
 
 
-output_all_singles
-  Output file for All_singles
-
-
 output_ao_basis
   Output file for AO_Basis
 
 
 output_bitmask
   Output file for Bitmask
-
-
-output_cas_sd
-  Output file for CAS_SD
 
 
 `output_cpu_time_0 <http://github.com/LCPQ/quantum_package/tree/master/src/Ezfio_files/output.irp.f#L2>`_
@@ -235,26 +227,6 @@ output_ezfio_files
   Output file for Ezfio_files
 
 
-output_full_ci
-  Output file for Full_CI
-
-
-output_full_ci_zmq
-  Output file for Full_CI_ZMQ
-
-
-output_generators_cas
-  Output file for Generators_CAS
-
-
-output_generators_full
-  Output file for Generators_full
-
-
-output_generators_restart
-  Output file for Generators_restart
-
-
 output_hartree_fock
   Output file for Hartree_Fock
 
@@ -275,44 +247,12 @@ output_moguess
   Output file for MOGuess
 
 
-output_mrcc_utils
-  Output file for MRCC_Utils
-
-
-output_mrcepa0
-  Output file for mrcepa0
-
-
 output_nuclei
   Output file for Nuclei
 
 
-output_perturbation
-  Output file for Perturbation
-
-
-output_properties
-  Output file for Properties
-
-
 output_pseudo
   Output file for Pseudo
-
-
-output_psiref_cas
-  Output file for Psiref_CAS
-
-
-output_psiref_utils
-  Output file for Psiref_Utils
-
-
-output_selectors_full
-  Output file for Selectors_full
-
-
-output_selectors_no_sorted
-  Output file for Selectors_no_sorted
 
 
 output_utils

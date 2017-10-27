@@ -101,10 +101,12 @@ program loc_rasorb
         cmoref = 0.d0
         irot = 0
         
-        irot(1,1) = 11
-        irot(2,1) = 12
-        cmoref(15,1,1)   = 1.d0   !
-        cmoref(14,2,1)   = 1.d0   !
+        irot(1,1) = 48
+        irot(2,1) = 49
+        cmoref(21,1,1)   = -0.7d0 !
+        cmoref(27,1,1)   = -0.4d0 !
+        cmoref(22,2,1)   =  0.7d0 !
+        cmoref(28,2,1)   =  0.4d0 !
         
         ! ESATRIENE with 3 bonding and anti bonding orbitals
         ! First bonding orbital for esa
@@ -147,22 +149,22 @@ program loc_rasorb
         !      cmoref(64,6,1)  = 1.d0   !
         !      cmoref(83,6,1)  =-1.d0   !
         
-        ! ESATRIENE with 1 central bonding and anti bonding orbitals
-        ! AND 4 radical orbitals
-        ! First radical orbital
-        cmoref(7,1,1)   = 1.d0   !
-        ! Second radical orbital
-        cmoref(26,2,1)  = 1.d0   !
-        ! First bonding orbital
-        cmoref(45,3,1)  = 1.d0   !
-        cmoref(64,3,1)  = 1.d0   !
-        ! Third radical orbital for esa
-        cmoref(83,4,1)  = 1.d0   !
-        ! Fourth radical orbital for esa
-        cmoref(102,5,1) = 1.d0   !
-        ! First anti bonding orbital
-        cmoref(45,6,1)  = 1.d0   !
-        cmoref(64,6,1)  =-1.d0   !
+       !! ESATRIENE with 1 central bonding and anti bonding orbitals
+       !! AND 4 radical orbitals
+       !! First radical orbital
+       !cmoref(7,1,1)   = 1.d0   !
+       !! Second radical orbital
+       !cmoref(26,2,1)  = 1.d0   !
+       !! First bonding orbital
+       !cmoref(45,3,1)  = 1.d0   !
+       !cmoref(64,3,1)  = 1.d0   !
+       !! Third radical orbital for esa
+       !cmoref(83,4,1)  = 1.d0   !
+       !! Fourth radical orbital for esa
+       !cmoref(102,5,1) = 1.d0   !
+       !! First anti bonding orbital
+       !cmoref(45,6,1)  = 1.d0   !
+       !cmoref(64,6,1)  =-1.d0   !
         
         
         do i = 1, nrot(1)

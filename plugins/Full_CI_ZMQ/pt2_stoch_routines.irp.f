@@ -3,7 +3,7 @@ BEGIN_PROVIDER [ integer, fragment_first ]
   fragment_first = first_det_of_teeth(1)
 END_PROVIDER
 
-subroutine ZMQ_pt2(E, pt2,relative_error)
+subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, eqt)
   use f77_zmq
   use selection_types
   
@@ -13,8 +13,8 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_to_qp_run_socket2
   type(selection_buffer)         :: b
   integer, external              :: omp_get_thread_num
-  double precision, intent(in)   :: relative_error, E
-  double precision, intent(out)  :: pt2(N_states)
+  double precision, intent(in)   :: relative_error, absolute_error, E
+  double precision, intent(out)  :: pt2(N_states),eqt
   
   
   double precision, allocatable  :: pt2_detail(:,:), comb(:)
@@ -93,7 +93,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error)
         !$OMP  PRIVATE(i)
     i = omp_get_thread_num()
     if (i==0) then
-      call pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
+      call pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, absolute_error, pt2,eqt)
     else
       call pt2_slave_inproc(i)
     endif
@@ -144,7 +144,7 @@ subroutine pt2_slave_inproc(i)
   call run_pt2_slave(1,i,pt2_e0_denominator)
 end
 
-subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, pt2)
+subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, absolute_error, pt2,eqt)
   use f77_zmq
   use selection_types
   use bitmasks
@@ -153,11 +153,11 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   
   integer, intent(in) :: Ncomb
   double precision, intent(inout) :: pt2_detail(N_states, N_det_generators)
-  double precision, intent(in) :: comb(Ncomb), relative_error, E
+  double precision, intent(in) :: comb(Ncomb), relative_error, absolute_error, E
   logical, intent(inout) :: computed(N_det_generators)
   integer, intent(in) :: tbc(0:size_tbc)
   double precision, intent(inout) :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
-  double precision, intent(out)  :: pt2(N_states)
+  double precision, intent(out)  :: pt2(N_states),eqt
 
 
   type(selection_buffer), intent(inout) :: b
@@ -249,7 +249,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
         end if
       end do
       
-      double precision :: E0, avg, eqt, prop
+      double precision :: E0, avg, prop
       call do_carlo(tbc, Ncomb+1-firstTBDcomb, comb(firstTBDcomb), pt2_detail, actually_computed, sumabove, sum2above, Nabove)
       firstTBDcomb = int(Nabove(1)) - orgTBDcomb + 1
       if(Nabove(1) < 5d0) cycle
@@ -266,10 +266,11 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
         eqt = 0.d0
       endif
       call wall_time(time)
-      if (dabs(eqt/avg) < relative_error) then
+      if ( (dabs(eqt/avg) < relative_error) .or. (dabs(eqt) < absolute_error)) then
         ! Termination
         pt2(1) = avg
         print '(G10.3, 2X, F16.10, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
+!       print*, 'Final statistical error = ',eqt
         call zmq_abort(zmq_to_qp_run_socket)
       else
         if (Nabove(tooth) > Nabove_old) then

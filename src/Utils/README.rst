@@ -28,11 +28,11 @@ Documentation
   Compute 1st dimension such that it is aligned for vectorization.
 
 
-`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L320>`_
+`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L372>`_
   Apply the rotation found by find_rotation
 
 
-`approx_dble <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L371>`_
+`approx_dble <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L355>`_
   Undocumented
 
 
@@ -75,19 +75,24 @@ Documentation
   Undocumented
 
 
-`dset_order <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_216#L27>`_
+`degree_max_integration_lebedev <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/angular_integration.irp.f#L1>`_
+  integrate correctly a polynom of order "degree_max_integration_lebedev"
+  needed for the angular integration according to LEBEDEV formulae
+
+
+`dset_order <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_323#L27>`_
   array A has already been sorted, and iorder has contains the new order of
   elements of A. This subroutine changes the order of x to match the new order of A.
 
 
-`dset_order_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_283#L94>`_
+`dset_order_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_388#L90>`_
   array A has already been sorted, and iorder has contains the new order of
   elements of A. This subroutine changes the order of x to match the new order of A.
   This is a version for very large arrays where the indices need
   to be in integer*8 format
 
 
-`dsort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L339>`_
+`dsort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_270#L30>`_
   Sort array x(isize).
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
@@ -114,7 +119,7 @@ Documentation
   1/n!
 
 
-`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L301>`_
+`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L353>`_
   Find A.C = B
 
 
@@ -140,7 +145,11 @@ Documentation
   Undocumented
 
 
-`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L247>`_
+`get_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L271>`_
+  Returns the inverse of the square matrix A
+
+
+`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L299>`_
   Find C = A^-1
 
 
@@ -175,27 +184,13 @@ Documentation
   Undocumented
 
 
-`heap_dsort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L210>`_
+`heap_dsort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L312>`_
   Sort array x(isize) using the heap sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
 
 
-`heap_dsort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L273>`_
-  Sort array x(isize) using the heap sort algorithm.
-  iorder in input should be (1,2,3,...,isize), and in output
-  contains the new order of the elements.
-  This is a version for very large arrays where the indices need
-  to be in integer*8 format
-
-
-`heap_i2sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L744>`_
-  Sort array x(isize) using the heap sort algorithm.
-  iorder in input should be (1,2,3,...,isize), and in output
-  contains the new order of the elements.
-
-
-`heap_i2sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L807>`_
+`heap_dsort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L375>`_
   Sort array x(isize) using the heap sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
@@ -203,27 +198,13 @@ Documentation
   to be in integer*8 format
 
 
-`heap_i8sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L566>`_
+`heap_i2sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L1008>`_
   Sort array x(isize) using the heap sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
 
 
-`heap_i8sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L629>`_
-  Sort array x(isize) using the heap sort algorithm.
-  iorder in input should be (1,2,3,...,isize), and in output
-  contains the new order of the elements.
-  This is a version for very large arrays where the indices need
-  to be in integer*8 format
-
-
-`heap_isort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L388>`_
-  Sort array x(isize) using the heap sort algorithm.
-  iorder in input should be (1,2,3,...,isize), and in output
-  contains the new order of the elements.
-
-
-`heap_isort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L451>`_
+`heap_i2sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L1071>`_
   Sort array x(isize) using the heap sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
@@ -231,13 +212,41 @@ Documentation
   to be in integer*8 format
 
 
-`heap_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L32>`_
+`heap_i8sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L776>`_
   Sort array x(isize) using the heap sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
 
 
-`heap_sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L95>`_
+`heap_i8sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L839>`_
+  Sort array x(isize) using the heap sort algorithm.
+  iorder in input should be (1,2,3,...,isize), and in output
+  contains the new order of the elements.
+  This is a version for very large arrays where the indices need
+  to be in integer*8 format
+
+
+`heap_isort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L544>`_
+  Sort array x(isize) using the heap sort algorithm.
+  iorder in input should be (1,2,3,...,isize), and in output
+  contains the new order of the elements.
+
+
+`heap_isort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L607>`_
+  Sort array x(isize) using the heap sort algorithm.
+  iorder in input should be (1,2,3,...,isize), and in output
+  contains the new order of the elements.
+  This is a version for very large arrays where the indices need
+  to be in integer*8 format
+
+
+`heap_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L80>`_
+  Sort array x(isize) using the heap sort algorithm.
+  iorder in input should be (1,2,3,...,isize), and in output
+  contains the new order of the elements.
+
+
+`heap_sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L143>`_
   Sort array x(isize) using the heap sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
@@ -249,84 +258,70 @@ Documentation
   Hermite polynomial
 
 
-`i2radix_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_452#L327>`_
+`i2radix_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_605#L423>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
   iradix should be -1 in input.
 
 
-`i2set_order <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_216#L102>`_
+`i2set_order <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_323#L102>`_
   array A has already been sorted, and iorder has contains the new order of
   elements of A. This subroutine changes the order of x to match the new order of A.
 
 
-`i2set_order_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_283#L271>`_
+`i2set_order_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_388#L261>`_
   array A has already been sorted, and iorder has contains the new order of
   elements of A. This subroutine changes the order of x to match the new order of A.
   This is a version for very large arrays where the indices need
   to be in integer*8 format
 
 
-`i2sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L873>`_
+`i2sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_291#L34>`_
   Sort array x(isize).
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
 
 
-`i8radix_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_452#L165>`_
+`i8radix_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_605#L213>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
   iradix should be -1 in input.
 
 
-`i8radix_sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_452#L651>`_
+`i8radix_sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_605#L843>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
   iradix should be -1 in input.
 
 
-`i8set_order <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_216#L77>`_
+`i8set_order <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_323#L77>`_
   array A has already been sorted, and iorder has contains the new order of
   elements of A. This subroutine changes the order of x to match the new order of A.
 
 
-`i8set_order_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_283#L212>`_
+`i8set_order_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_388#L204>`_
   array A has already been sorted, and iorder has contains the new order of
   elements of A. This subroutine changes the order of x to match the new order of A.
   This is a version for very large arrays where the indices need
   to be in integer*8 format
 
 
-`i8sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L695>`_
+`i8sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_291#L18>`_
   Sort array x(isize).
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
 
 
-`insertion_dsort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L180>`_
+`insertion_dsort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L234>`_
   Sort array x(isize) using the insertion sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
 
 
-`insertion_dsort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_283#L61>`_
-  Sort array x(isize) using the insertion sort algorithm.
-  iorder in input should be (1,2,3,...,isize), and in output
-  contains the new order of the elements.
-  This is a version for very large arrays where the indices need
-  to be in integer*8 format
-
-
-`insertion_i2sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L714>`_
-  Sort array x(isize) using the insertion sort algorithm.
-  iorder in input should be (1,2,3,...,isize), and in output
-  contains the new order of the elements.
-
-
-`insertion_i2sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_283#L238>`_
+`insertion_dsort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_388#L59>`_
   Sort array x(isize) using the insertion sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
@@ -334,27 +329,13 @@ Documentation
   to be in integer*8 format
 
 
-`insertion_i8sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L536>`_
+`insertion_i2sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L930>`_
   Sort array x(isize) using the insertion sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
 
 
-`insertion_i8sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_283#L179>`_
-  Sort array x(isize) using the insertion sort algorithm.
-  iorder in input should be (1,2,3,...,isize), and in output
-  contains the new order of the elements.
-  This is a version for very large arrays where the indices need
-  to be in integer*8 format
-
-
-`insertion_isort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L358>`_
-  Sort array x(isize) using the insertion sort algorithm.
-  iorder in input should be (1,2,3,...,isize), and in output
-  contains the new order of the elements.
-
-
-`insertion_isort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_283#L120>`_
+`insertion_i2sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_388#L230>`_
   Sort array x(isize) using the insertion sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
@@ -362,13 +343,13 @@ Documentation
   to be in integer*8 format
 
 
-`insertion_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L2>`_
+`insertion_i8sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L698>`_
   Sort array x(isize) using the insertion sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
 
 
-`insertion_sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_283#L2>`_
+`insertion_i8sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_388#L173>`_
   Sort array x(isize) using the insertion sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
@@ -376,43 +357,71 @@ Documentation
   to be in integer*8 format
 
 
-`inv_int <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L278>`_
+`insertion_isort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L466>`_
+  Sort array x(isize) using the insertion sort algorithm.
+  iorder in input should be (1,2,3,...,isize), and in output
+  contains the new order of the elements.
+
+
+`insertion_isort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_388#L116>`_
+  Sort array x(isize) using the insertion sort algorithm.
+  iorder in input should be (1,2,3,...,isize), and in output
+  contains the new order of the elements.
+  This is a version for very large arrays where the indices need
+  to be in integer*8 format
+
+
+`insertion_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L2>`_
+  Sort array x(isize) using the insertion sort algorithm.
+  iorder in input should be (1,2,3,...,isize), and in output
+  contains the new order of the elements.
+
+
+`insertion_sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_388#L2>`_
+  Sort array x(isize) using the insertion sort algorithm.
+  iorder in input should be (1,2,3,...,isize), and in output
+  contains the new order of the elements.
+  This is a version for very large arrays where the indices need
+  to be in integer*8 format
+
+
+`inv_int <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L262>`_
   1/i
 
 
-`iradix_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_452#L3>`_
+`iradix_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_605#L3>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
   iradix should be -1 in input.
 
 
-`iradix_sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_452#L489>`_
+`iradix_sort_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_605#L633>`_
   Sort integer array x(isize) using the radix sort algorithm.
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
   iradix should be -1 in input.
 
 
-`iset_order <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_216#L52>`_
+`iset_order <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_323#L52>`_
   array A has already been sorted, and iorder has contains the new order of
   elements of A. This subroutine changes the order of x to match the new order of A.
 
 
-`iset_order_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_283#L153>`_
+`iset_order_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_388#L147>`_
   array A has already been sorted, and iorder has contains the new order of
   elements of A. This subroutine changes the order of x to match the new order of A.
   This is a version for very large arrays where the indices need
   to be in integer*8 format
 
 
-`isort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L517>`_
+`isort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_291#L2>`_
   Sort array x(isize).
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
 
 
-`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L399>`_
+`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L451>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -423,7 +432,7 @@ Documentation
   .br
 
 
-`lapack_diag_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L462>`_
+`lapack_diag_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L519>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -434,7 +443,7 @@ Documentation
   .br
 
 
-`lapack_diagd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L332>`_
+`lapack_diagd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L384>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -445,7 +454,7 @@ Documentation
   .br
 
 
-`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L528>`_
+`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L585>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -460,11 +469,11 @@ Documentation
   n!
 
 
-`lowercase <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L395>`_
+`lowercase <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L379>`_
   Transform to lower case
 
 
-`map_load_from_disk <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/map_functions.irp.f#L70>`_
+`map_load_from_disk <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/map_functions.irp.f#L66>`_
   Undocumented
 
 
@@ -472,17 +481,25 @@ Documentation
   Undocumented
 
 
+`matrix_vector_product <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L666>`_
+  performs u1 =! performs u1 +( u0 * matrix)
+
+
 `multiply_poly <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L264>`_
   Multiply two polynomials
   D(t) =! D(t) +( B(t)*C(t))
 
 
-`normalize <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L348>`_
+`n_points_integration_angular_lebedev <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/angular_integration.irp.f#L11>`_
+  Number of points needed for the angular integral
+
+
+`normalize <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L332>`_
   Normalizes vector u
   u is expected to be aligned in memory.
 
 
-`nproc <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L304>`_
+`nproc <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L288>`_
   Number of current OpenMP threads
 
 
@@ -504,7 +521,7 @@ Documentation
   .br
 
 
-`ortho_lowdin <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L162>`_
+`ortho_lowdin <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L187>`_
   Compute C_new=C_old.S^-1/2 orthogonalization.
   .br
   overlap : overlap matrix
@@ -518,11 +535,24 @@ Documentation
   .br
   LDC : leftmost dimension of C
   .br
-  m : Coefficients matrix is MxN, ( array is (LDC,N) )
+  M : Coefficients matrix is MxN, ( array is (LDC,N) )
   .br
 
 
 `ortho_qr <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L128>`_
+  Orthogonalization using Q.R factorization
+  .br
+  A : matrix to orthogonalize
+  .br
+  LDA : leftmost dimension of A
+  .br
+  n : Number of rows of A
+  .br
+  m : Number of columns of A
+  .br
+
+
+`ortho_qr_unblocked <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L160>`_
   Orthogonalization using Q.R factorization
   .br
   A : matrix to orthogonalize
@@ -561,6 +591,12 @@ Documentation
   .br
 
 
+`phi_angular_integration_lebedev <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/angular_integration.irp.f#L41>`_
+  Theta phi values together with the weights values for the angular integration :
+  integral [dphi,dtheta] f(x,y,z) = 4 * pi * sum (1<i<n_points_integration_angular_lebedev) f(xi,yi,zi)
+  Note that theta and phi are in DEGREES !!
+
+
 `progress_active <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/progress.irp.f#L29>`_
   Current status for displaying progress bars. Global variable.
 
@@ -579,6 +615,56 @@ Documentation
 
 `progress_value <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/progress.irp.f#L30>`_
   Current status for displaying progress bars. Global variable.
+
+
+`quick_dsort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L262>`_
+  Sort array x(isize) using the quicksort algorithm.
+  iorder in input should be (1,2,3,...,isize), and in output
+  contains the new order of the elements.
+
+
+`quick_i2sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L958>`_
+  Sort array x(isize) using the quicksort algorithm.
+  iorder in input should be (1,2,3,...,isize), and in output
+  contains the new order of the elements.
+
+
+`quick_i8sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L726>`_
+  Sort array x(isize) using the quicksort algorithm.
+  iorder in input should be (1,2,3,...,isize), and in output
+  contains the new order of the elements.
+
+
+`quick_isort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L494>`_
+  Sort array x(isize) using the quicksort algorithm.
+  iorder in input should be (1,2,3,...,isize), and in output
+  contains the new order of the elements.
+
+
+`quick_sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L30>`_
+  Sort array x(isize) using the quicksort algorithm.
+  iorder in input should be (1,2,3,...,isize), and in output
+  contains the new order of the elements.
+
+
+`rec__quicksort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L43>`_
+  Undocumented
+
+
+`rec_d_quicksort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L275>`_
+  Undocumented
+
+
+`rec_i2_quicksort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L971>`_
+  Undocumented
+
+
+`rec_i8_quicksort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L739>`_
+  Undocumented
+
+
+`rec_i_quicksort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L507>`_
+  Undocumented
 
 
 `recentered_poly2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L363>`_
@@ -620,26 +706,46 @@ Documentation
   Undocumented
 
 
-`set_order <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_216#L2>`_
+`set_order <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_323#L2>`_
   array A has already been sorted, and iorder has contains the new order of
   elements of A. This subroutine changes the order of x to match the new order of A.
 
 
-`set_order_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_283#L35>`_
+`set_order_big <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_388#L33>`_
   array A has already been sorted, and iorder has contains the new order of
   elements of A. This subroutine changes the order of x to match the new order of A.
   This is a version for very large arrays where the indices need
   to be in integer*8 format
 
 
-`set_zero_extra_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L585>`_
+`set_zero_extra_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L642>`_
   Undocumented
 
 
-`sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_184#L161>`_
+`sort <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_270#L2>`_
   Sort array x(isize).
   iorder in input should be (1,2,3,...,isize), and in output
   contains the new order of the elements.
+
+
+`sorted_dnumber <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L441>`_
+  Returns the number of sorted elements
+
+
+`sorted_i2number <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L1137>`_
+  Returns the number of sorted elements
+
+
+`sorted_i8number <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L905>`_
+  Returns the number of sorted elements
+
+
+`sorted_inumber <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L673>`_
+  Returns the number of sorted elements
+
+
+`sorted_number <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/sort.irp.f_template_238#L209>`_
+  Returns the number of sorted elements
 
 
 `start_progress <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/progress.irp.f#L1>`_
@@ -659,22 +765,34 @@ Documentation
   .br
 
 
+`theta_angular_integration_lebedev <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/angular_integration.irp.f#L40>`_
+  Theta phi values together with the weights values for the angular integration :
+  integral [dphi,dtheta] f(x,y,z) = 4 * pi * sum (1<i<n_points_integration_angular_lebedev) f(xi,yi,zi)
+  Note that theta and phi are in DEGREES !!
+
+
 `transpose <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/transpose.irp.f#L2>`_
   Transpose input matrix A into output matrix B
 
 
-`u_dot_u <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L334>`_
+`u_dot_u <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L318>`_
   Compute <u|u>
 
 
-`u_dot_v <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L320>`_
+`u_dot_v <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L304>`_
   Compute <u|v>
 
 
-`wall_time <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L289>`_
+`wall_time <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L273>`_
   The equivalent of cpu_time, but for the wall time.
 
 
-`write_git_log <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L264>`_
+`weights_angular_integration_lebedev <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/angular_integration.irp.f#L42>`_
+  Theta phi values together with the weights values for the angular integration :
+  integral [dphi,dtheta] f(x,y,z) = 4 * pi * sum (1<i<n_points_integration_angular_lebedev) f(xi,yi,zi)
+  Note that theta and phi are in DEGREES !!
+
+
+`write_git_log <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L248>`_
   Write the last git commit in file iunit.
 
