@@ -13,22 +13,11 @@ integer function number_of_holes(key_in)
    + popcnt( xor( iand(reunion_of_core_inact_bitmask(1,1), xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1)))), reunion_of_core_inact_bitmask(1,1)) )&   
    + popcnt( xor( iand(reunion_of_core_inact_bitmask(1,2), xor(key_in(1,2),iand(key_in(1,2),cas_bitmask(1,2,1)))), reunion_of_core_inact_bitmask(1,2)) )
  else if(N_int == 2)then
-    integer(bit_kind) :: det_tmp(N_int,2)
-!   det_tmp(:,:) = 0_bit_kind
-!   det_tmp(1,1) = iand(reunion_of_core_inact_bitmask(1,1), xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1))))!, reunion_of_core_inact_bitmask(1,1)
-!   det_tmp(1,2) = reunion_of_core_inact_bitmask(1,1)
-!iand(reunion_of_core_inact_bitmask(1,2), xor(key_in(1,2),iand(key_in(1,2),cas_bitmask(1,2,1))))!, reunion_of_core_inact_bitmask(1,1)
-!   call debug_det(key_in,N_int)
-!   call debug_det(inact_bitmask, N_int)
-!   call debug_det(core_bitmask, N_int)
-!   call debug_det(det_tmp, N_int)
     number_of_holes = number_of_holes  & 
    + popcnt( xor( iand(reunion_of_core_inact_bitmask(1,1), xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1)))), reunion_of_core_inact_bitmask(1,1)) )&   
    + popcnt( xor( iand(reunion_of_core_inact_bitmask(1,2), xor(key_in(1,2),iand(key_in(1,2),cas_bitmask(1,2,1)))), reunion_of_core_inact_bitmask(1,2)) )&
    + popcnt( xor( iand(reunion_of_core_inact_bitmask(2,1), xor(key_in(2,1),iand(key_in(2,1),cas_bitmask(2,1,1)))), reunion_of_core_inact_bitmask(2,1)) )&   
    + popcnt( xor( iand(reunion_of_core_inact_bitmask(2,2), xor(key_in(2,2),iand(key_in(2,2),cas_bitmask(2,2,1)))), reunion_of_core_inact_bitmask(2,2)) ) 
-!  print*, number_of_holes
-!  pause
  else if(N_int == 3)then
     number_of_holes = number_of_holes  & 
    + popcnt( xor( iand(reunion_of_core_inact_bitmask(1,1), xor(key_in(1,1),iand(key_in(1,1),cas_bitmask(1,1,1)))), reunion_of_core_inact_bitmask(1,1)) )&   
@@ -523,7 +512,6 @@ logical function is_a_1p(key_in)
  integer(bit_kind), intent(in) :: key_in(N_int,2)
  integer :: number_of_particles, number_of_holes
  is_a_1p = .False.
- print*,number_of_holes(key_in), number_of_particles(key_in)
  if(number_of_holes(key_in).eq.0 .and. number_of_particles(key_in).eq.1)then
   is_a_1p = .True.
  endif

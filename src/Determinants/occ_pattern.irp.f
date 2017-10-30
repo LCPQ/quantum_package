@@ -244,7 +244,6 @@ end
 END_PROVIDER 
 
 subroutine make_s2_eigenfunction
-  return
   implicit none
   integer                        :: i,j,k
   integer                        :: smax, s
