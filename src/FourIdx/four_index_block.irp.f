@@ -71,7 +71,7 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
   integer*8 :: tempspace
 
   tempspace = (new_size * 16_8) / (1024_8 * 1024_8)
-  npass = min(int(l_end-l_start,8),1_8 + tempspace / 2048_8)   ! 2 GiB of scratch space
+  npass = int(min(int(l_end-l_start,8),1_8 + tempspace / 2048_8),4)   ! 2 GiB of scratch space
   l_block = (l_end-l_start+1)/npass
 
   ipass = 0

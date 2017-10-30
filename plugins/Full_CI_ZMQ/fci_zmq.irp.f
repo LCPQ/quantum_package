@@ -188,7 +188,6 @@ program fci_zmq
     else
       print *,  'E+PT2'//pt2_string//'   = ', CI_energy(k)+pt2(k)
     endif
-    print *,  'error           = ',error
   enddo
 
   print *,  '-----'
