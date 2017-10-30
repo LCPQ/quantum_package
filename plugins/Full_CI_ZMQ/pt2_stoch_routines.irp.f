@@ -250,11 +250,12 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
       end do
       
       double precision :: E0, avg, prop
-      call do_carlo(tbc, Ncomb+1-firstTBDcomb, comb(firstTBDcomb), pt2_detail, actually_computed, sumabove, sum2above, Nabove)
-      firstTBDcomb = int(Nabove(1)) - orgTBDcomb + 1
       if (firstTBDcomb > Ncomb) then
         call zmq_abort(zmq_to_qp_run_socket)
+        exit pullLoop
       endif
+      call do_carlo(tbc, Ncomb+1-firstTBDcomb, comb(firstTBDcomb), pt2_detail, actually_computed, sumabove, sum2above, Nabove)
+      firstTBDcomb = int(Nabove(1)) - orgTBDcomb + 1
       if(Nabove(1) < 5d0) cycle
       call get_first_tooth(actually_computed, tooth)
      
