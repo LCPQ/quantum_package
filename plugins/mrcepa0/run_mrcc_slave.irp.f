@@ -4,7 +4,7 @@ BEGIN_PROVIDER [ integer, fragment_count ]
   BEGIN_DOC
   ! Number of fragments for the deterministic part
   END_DOC
-  fragment_count = 1 ! (elec_alpha_num-n_core_orb)**2
+  fragment_count = 1 !! (elec_alpha_num-n_core_orb)**2
 END_PROVIDER
 
 
@@ -37,16 +37,16 @@ subroutine run_mrcc_slave(thread,iproc,energy)
  
   double precision,allocatable :: delta_ij_loc(:,:,:) 
   double precision,allocatable :: delta_ii_loc(:,:) 
-  double precision,allocatable :: delta_ij_s2_loc(:,:,:)
-  double precision,allocatable :: delta_ii_s2_loc(:,:)
+  !double precision,allocatable :: delta_ij_s2_loc(:,:,:)
+  !double precision,allocatable :: delta_ii_s2_loc(:,:)
   integer :: h,p,n
   logical :: ok
   double precision :: contrib(N_states)
 
-  allocate(delta_ij_loc(N_states,N_det_non_ref,N_det_ref) &
-  ,delta_ii_loc(N_states,N_det_ref) &
-  ,delta_ij_s2_loc(N_states,N_det_non_ref,N_det_ref) &
-  ,delta_ii_s2_loc(N_states, N_det_ref))
+  allocate(delta_ij_loc(N_states,N_det_non_ref,2) &
+  ,delta_ii_loc(N_states,2))! &
+  !,delta_ij_s2_loc(N_states,N_det_non_ref,N_det_ref) &
+  !,delta_ii_s2_loc(N_states, N_det_ref))
 
 
         allocate(abuf(N_int, 2, N_det_non_ref))
@@ -84,8 +84,8 @@ subroutine run_mrcc_slave(thread,iproc,energy)
         i_generator = ind(i_i_generator)
         delta_ij_loc = 0d0
         delta_ii_loc = 0d0
-        delta_ij_s2_loc = 0d0
-        delta_ii_s2_loc = 0d0
+        !delta_ij_s2_loc = 0d0
+        !delta_ii_s2_loc = 0d0
         !call select_connected(i_generator,energy,mrcc_detail(1, i_i_generator),buf,subset)
 
 !!!!!!!!!!!!!!!!!!!!!!
@@ -104,7 +104,7 @@ subroutine run_mrcc_slave(thread,iproc,energy)
           n = n - 1
 
           if(n /= 0) then
-            call mrcc_part_dress(delta_ij_loc, delta_ii_loc, delta_ij_s2_loc, delta_ii_s2_loc, &
+            call mrcc_part_dress_1c(delta_ij_loc(1,1,1), delta_ii_loc(1,1), delta_ij_loc(1,1,2), delta_ii_loc(1,2), &
                   i_generator,n,abuf,N_int,omask,1d0,contrib)
           endif
         end do
@@ -121,7 +121,7 @@ subroutine run_mrcc_slave(thread,iproc,energy)
          call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i))
       end do
       if(ctask > 0) then
-        call push_mrcc_results(zmq_socket_push, Nindex, ind, mrcc_detail, delta_ij_loc, delta_ij_s2_loc, task_id(1), ctask)
+        call push_mrcc_results(zmq_socket_push, Nindex, ind, mrcc_detail, delta_ij_loc(1,1,1), task_id(1), ctask)
         mrcc_detail(:,:Nindex) = 0d0
 !        buf%cur = 0
       end if
@@ -138,17 +138,18 @@ subroutine run_mrcc_slave(thread,iproc,energy)
 end subroutine
 
 
-subroutine push_mrcc_results(zmq_socket_push, N, ind, mrcc_detail, mrcc_dress, mrcc_s2_dress, task_id, ntask)
+subroutine push_mrcc_results(zmq_socket_push, N, ind, mrcc_detail, delta_loc, task_id, ntask)
   use f77_zmq
   implicit none
 
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_push
   double precision, intent(in)   :: mrcc_detail(N_states, N_det_generators)
-  double precision, intent(in)   :: mrcc_dress(N_states, N_det_non_ref, *)
-  double precision, intent(in)   :: mrcc_s2_dress(N_states, N_det_non_ref, *)
+  double precision, intent(in)   :: delta_loc(N_states, N_det_non_ref, 2)
   integer, intent(in) :: ntask, N, ind(*), task_id(*)
   integer :: rc, i
   
+  if(N/=1) stop "mrcc_stoch, tried to push N>1"
+
   rc = f77_zmq_send( zmq_socket_push, N, 4, ZMQ_SNDMORE)
   if(rc /= 4) stop "push"
 
@@ -159,10 +160,10 @@ subroutine push_mrcc_results(zmq_socket_push, N, ind, mrcc_detail, mrcc_dress, m
   rc = f77_zmq_send( zmq_socket_push, mrcc_detail, 8*N_states*N, ZMQ_SNDMORE)
   if(rc /= 8*N_states*N) stop "push"
 
-  rc = f77_zmq_send( zmq_socket_push, mrcc_dress, 8*N_states*N_det_non_ref*N, ZMQ_SNDMORE)
+  rc = f77_zmq_send( zmq_socket_push, delta_loc(1,1,1), 8*N_states*N_det_non_ref*N, ZMQ_SNDMORE)
   if(rc /= 8*N_states*N_det_non_ref*N) stop "push"
   
-  rc = f77_zmq_send( zmq_socket_push, mrcc_s2_dress, 8*N_states*N_det_non_ref*N, ZMQ_SNDMORE)
+  rc = f77_zmq_send( zmq_socket_push, delta_loc(1,1,2), 8*N_states*N_det_non_ref*N, ZMQ_SNDMORE)
   if(rc /= 8*N_states*N_det_non_ref*N) stop "push"
 
 
@@ -182,14 +183,14 @@ IRP_ENDIF
 end subroutine
 
 
-subroutine pull_mrcc_results(zmq_socket_pull, N, ind, mrcc_detail, mrcc_dress, task_id, ntask)
+subroutine pull_mrcc_results(zmq_socket_pull, N, ind, mrcc_detail, delta_loc, task_id, ntask)
   use dress_types
   use f77_zmq
   implicit none
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
-  double precision, intent(inout) :: mrcc_detail(N_states, N_det_generators)
+  double precision, intent(inout) :: mrcc_detail(N_states)
+  double precision, intent(inout) :: delta_loc(N_states, N_det_non_ref, 2)
   double precision, allocatable :: mrcc_dress_mwen(:,:)
-  type(dress_buffer), intent(inout) :: mrcc_dress(2)
   integer, intent(out) :: ind(*)
   integer, intent(out) :: N, ntask, task_id(*)
   integer :: rc, rn, i
@@ -198,6 +199,7 @@ subroutine pull_mrcc_results(zmq_socket_pull, N, ind, mrcc_detail, mrcc_dress, t
   
   rc = f77_zmq_recv( zmq_socket_pull, N, 4, 0)
   if(rc /= 4) stop "pull"
+  if(N /= 1) stop "mrcc : pull with N>1 not supported"
 
   rc = f77_zmq_recv( zmq_socket_pull, ind, 4, 0)
   if(rc /= 4*N) stop "pull"
@@ -205,17 +207,17 @@ subroutine pull_mrcc_results(zmq_socket_pull, N, ind, mrcc_detail, mrcc_dress, t
   rc = f77_zmq_recv( zmq_socket_pull, mrcc_detail, N_states*8*N, 0)
   if(rc /= 8*N_states*N) stop "pull"
   
-  do i=1,N
-    rc = f77_zmq_recv( zmq_socket_pull, mrcc_dress_mwen, N_states*8*N_det_non_ref, 0)
+  !do i=1,N
+    rc = f77_zmq_recv( zmq_socket_pull, delta_loc(1,1,1), N_states*8*N_det_non_ref, 0)
     if(rc /= 8*N_states*N_det_non_ref) stop "pull"
-    call add_to_dress_buffer(mrcc_dress(1), ind(i), mrcc_dress_mwen)
-  end do
+    !call add_to_dress_buffer(mrcc_dress(1), ind(i), mrcc_dress_mwen)
+  !end do
   
-  do i=1,N
-    rc = f77_zmq_recv( zmq_socket_pull, mrcc_dress_mwen, N_states*8*N_det_non_ref, 0)
+  !do i=1,N
+    rc = f77_zmq_recv( zmq_socket_pull, delta_loc(1,1,2), N_states*8*N_det_non_ref, 0)
     if(rc /= 8*N_states*N_det_non_ref) stop "pull"
-    call add_to_dress_buffer(mrcc_dress(2), ind(i), mrcc_dress_mwen)
-  end do
+    !call add_to_dress_buffer(mrcc_dress(2), ind(i), mrcc_dress_mwen)
+  !end do
 
   rc = f77_zmq_recv( zmq_socket_pull, ntask, 4, 0)
   if(rc /= 4) stop "pull"
