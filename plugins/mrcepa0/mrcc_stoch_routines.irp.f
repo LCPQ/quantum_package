@@ -130,7 +130,7 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
   logical, allocatable :: actually_computed(:)
   integer :: total_computed
   
-  allocate(delta_det(N_states, N_det_non_ref, 0:comb_teeth, 2))
+  allocate(delta_det(N_states, N_det_non_ref, 0:comb_teeth+1, 2))
   allocate(cp(N_states, N_det_non_ref, N_cp, 2), mrcc_detail(N_states, N_det_generators))
   allocate(delta_loc(N_states, N_det_non_ref, 2))
   mrcc_detail = 0d0
@@ -174,6 +174,8 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
         if(cps(ind(i), j) > 0d0) then
           if(tooth_of_det(ind(i)) < cp_first_tooth(j)) stop "coef on supposedely deterministic det"
           double precision :: fac
+          integer :: toothMwen
+          logical :: fracted
           fac = cps(ind(i), j) / cps_N(j) * mrcc_weight_inv(ind(i)) * comb_step
           do k=1,N_det_non_ref
           do i_state=1,N_states
@@ -183,8 +185,19 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
           end do
         end if
       end do
-      delta_det(:,:,tooth_of_det(ind(i)), 1) += delta_loc(:,:,1)
-      delta_det(:,:,tooth_of_det(ind(i)), 2) += delta_loc(:,:,2)
+      toothMwen = tooth_of_det(ind(i))
+      fracted = (toothMwen /= 0)
+      if(fracted) fracted = (ind(i) == first_det_of_teeth(toothMwen))
+     
+      if(fracted) then
+        delta_det(:,:,toothMwen-1, 1) += delta_loc(:,:,1) * (1d0-fractage(toothMwen))
+        delta_det(:,:,toothMwen-1, 2) += delta_loc(:,:,2) * (1d0-fractage(toothMwen))
+        delta_det(:,:,toothMwen, 1) += delta_loc(:,:,1) * (fractage(toothMwen))
+        delta_det(:,:,toothMwen, 2) += delta_loc(:,:,2) * (fractage(toothMwen))
+      else
+        delta_det(:,:,toothMwen, 1) += delta_loc(:,:,1)
+        delta_det(:,:,toothMwen, 2) += delta_loc(:,:,2)
+      end if
 
       parts_to_get(ind(i)) -= 1
       if(parts_to_get(ind(i)) == 0) then
@@ -223,7 +236,8 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
       if(N_states > 1) stop "mrcc_stoch : N_states == 1"
       do i=1, int(cps_N(cur_cp))
         !if(.not. actually_computed(i)) stop "not computed"
-        call get_comb_val(comb(i), mrcc_detail, cp_first_tooth(cur_cp), val)
+        !call get_comb_val(comb(i), mrcc_detail, cp_first_tooth(cur_cp), val)
+        call get_comb_val(comb(i), mrcc_detail, cur_cp, val)
         !val = mrcc_detail(1, i) * mrcc_weight_inv(i) * comb_step
         su += val ! cps(i, cur_cp) * val
         su2 += val**2 ! cps(i, cur_cp) * val**2
@@ -231,10 +245,11 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
       avg = su / cps_N(cur_cp)
       eqt = dsqrt( ((su2 / cps_N(cur_cp)) - avg**2) / cps_N(cur_cp) )
       E0 = sum(mrcc_detail(1, :first_det_of_teeth(cp_first_tooth(cur_cp))-1))
-      
-      
+      if(cp_first_tooth(cur_cp) <= comb_teeth) then
+        E0 = E0 + mrcc_detail(1, first_det_of_teeth(cp_first_tooth(cur_cp))) * (1d0-fractage(cp_first_tooth(cur_cp)))
+      end if
       call wall_time(time)
-      if (dabs(eqt) < relative_error .or. total_computed >= N_det_generators) then
+      if ((dabs(eqt) < relative_error*0d0 .and. cps_N(cur_cp) >= 30)  .or. total_computed >= N_det_generators) then
         ! Termination
         !print '(G10.3, 2X, F16.7, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
         print *, "GREPME", cur_cp, E+E0+avg, eqt, time-time0, total_computed
@@ -252,7 +267,7 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
   delta = cp(:,:,cur_cp,1)
   delta_s2 = cp(:,:,cur_cp,2)
   
-  do i=0, cp_first_tooth(cur_cp)-1
+  do i=cp_first_tooth(cur_cp)-1,0,-1
     delta += delta_det(:,:,i,1)
     delta_s2 += delta_det(:,:,i,2)
   end do
@@ -290,13 +305,16 @@ integer function mrcc_find(v, w, sze, imin, imax)
 end function
 
 
- BEGIN_PROVIDER [ integer, comb_per_cp ]
+ BEGIN_PROVIDER [ integer, gen_per_cp ]
 &BEGIN_PROVIDER [ integer, comb_teeth ]
 &BEGIN_PROVIDER [ integer, N_cps_max ]
   implicit none
   comb_teeth = 16
-  comb_per_cp = 64
-  N_cps_max = N_det_generators / comb_per_cp + 1
+  N_cps_max = 100
+  !comb_per_cp = 64
+  gen_per_cp = (N_det_generators / N_cps_max) + 1
+  N_cps_max += 1
+  !N_cps_max = N_det_generators / comb_per_cp + 1
 END_PROVIDER
 
 
@@ -334,13 +352,16 @@ END_PROVIDER
     !DIR$ FORCEINLINE
     call add_comb(comb(i), computed, cps(1, cur_cp), N_mrcc_jobs, mrcc_jobs)
     
-    if(mod(i, comb_per_cp) == 0 .or. N_mrcc_jobs == N_det_generators) then
-      cps(:, cur_cp+1) = cps(:,  cur_cp)
-      !cps(:, cur_cp) = cps(:, cur_cp) / dfloat(i)
-      
+    if(N_mrcc_jobs / gen_per_cp > (cur_cp-1) .or. N_mrcc_jobs == N_det_generators) then
+    !if(mod(i, comb_per_cp) == 0 .or. N_mrcc_jobs == N_det_generators) then
       done_cp_at(N_mrcc_jobs) = cur_cp
       cps_N(cur_cp) = dfloat(i)
-      cur_cp += 1
+      if(N_mrcc_jobs /= N_det_generators) then
+        cps(:, cur_cp+1) = cps(:,  cur_cp)
+        cur_cp += 1
+      end if
+      !cps(:, cur_cp) = cps(:, cur_cp) / dfloat(i)
+      
       if (N_mrcc_jobs == N_det_generators) exit
     end if
     do while (computed(l))
@@ -352,8 +373,8 @@ END_PROVIDER
     N_mrcc_jobs = k
   enddo
   N_cp = cur_cp
-
-  if(N_mrcc_jobs /= N_det_generators) then
+  if(N_mrcc_jobs /= N_det_generators .or. N_cp > N_cps_max) then
+    print *, N_mrcc_jobs, N_det_generators, N_cp, N_cps_max
     stop "carlo workcarlo_workbatch"
   end if
 
@@ -370,24 +391,30 @@ END_PROVIDER
     do j=comb_teeth+1,1,-1
       if(mrcc_jobs(i) <= first_det_of_teeth(j)) then
         under_det(j) = under_det(j) + 1
-        if(under_det(j) == first_det_of_teeth(j)) then
+        if(under_det(j) == first_det_of_teeth(j))then
           do l=done_cp_at(i)+1, N_cp
             cps(:first_det_of_teeth(j)-1, l) = 0d0
             cp_first_tooth(l) = j
           end do
+          cps(first_det_of_teeth(j), done_cp_at(i)+1) = &
+              cps(first_det_of_teeth(j), done_cp_at(i)+1) * fractage(j)
         end if
       else
         exit
       end if
     end do
   end do
+  cps(:, N_cp) = 0d0
+  cp_first_tooth(N_cp) = comb_teeth+1
+
 ! end subroutine
 END_PROVIDER
 
 
-subroutine get_comb_val(stato, detail, first, val)
+subroutine get_comb_val(stato, detail, cur_cp, val)
   implicit none
-  integer, intent(in)           :: first
+  integer, intent(in)           :: cur_cp
+  integer                       :: first
   double precision, intent(in)  :: stato, detail(N_states, N_det_generators)
   double precision, intent(out) :: val
   double precision :: curs
@@ -396,12 +423,18 @@ subroutine get_comb_val(stato, detail, first, val)
 
   curs = 1d0 - stato
   val = 0d0
+  first = cp_first_tooth(cur_cp) 
 
-  do j = comb_teeth, 1, -1
+  do j = comb_teeth, first, -1
     !DIR$ FORCEINLINE
     k = mrcc_find(curs, mrcc_cweight,size(mrcc_cweight), first_det_of_teeth(j), first_det_of_teeth(j+1))
-    if(k < first_det_of_teeth(first)) exit
-    val += detail(1, k) * mrcc_weight_inv(k) * comb_step
+    !if(k < first_det_of_teeth(first)) exit
+    if(k == first_det_of_teeth(first)) then
+     val += detail(1, k) * mrcc_weight_inv(k) * comb_step * fractage(first)
+    else
+     val += detail(1, k) * mrcc_weight_inv(k) * comb_step
+    end if
+
     curs -= comb_step
   end do
 end subroutine
@@ -455,6 +488,7 @@ end subroutine
 &BEGIN_PROVIDER [ double precision, mrcc_weight_inv, (N_det_generators) ]
 &BEGIN_PROVIDER [ double precision, mrcc_cweight, (N_det_generators) ]
 &BEGIN_PROVIDER [ double precision, mrcc_cweight_cache, (N_det_generators) ]
+&BEGIN_PROVIDER [ double precision, fractage, (comb_teeth) ]
 &BEGIN_PROVIDER [ double precision, comb_step ]
 &BEGIN_PROVIDER [ integer, first_det_of_teeth, (comb_teeth+1) ]
 &BEGIN_PROVIDER [ integer, first_det_of_comb ]
@@ -510,6 +544,7 @@ end subroutine
     integer :: iloc
     iloc = mrcc_find(stato, mrcc_cweight, N_det_generators, 1, iloc)
     first_det_of_teeth(i) = iloc
+    fractage(i) = (mrcc_cweight(iloc) - stato) / mrcc_weight(iloc)
     stato -= comb_step
   end do
   first_det_of_teeth(comb_teeth+1) = N_det_generators + 1
@@ -529,6 +564,13 @@ end subroutine
   do i=1,comb_teeth
     tooth_of_det(first_det_of_teeth(i):first_det_of_teeth(i+1)-1) = i
   end do
+
+  !double precision :: cur
+  !fractage = 1d0
+  !do i=1,comb_teeth-1
+  !  cur = 1d0 - dfloat(i)*comb_step
+    
+  !end do
 END_PROVIDER
 
 
