@@ -218,10 +218,11 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
     if(time - timeLast > 1d0 .or. more /= 1) then
       timeLast = time
       cur_cp = N_cp
-      if(.not. actually_computed(1)) cycle pullLoop
+      if(.not. actually_computed(mrcc_jobs(1))) cycle pullLoop
 
       do i=2,N_det_generators
-        if(.not. actually_computed(i)) then
+        if(.not. actually_computed(mrcc_jobs(i))) then
+          print *, "first not comp", i
           cur_cp = done_cp_at(i-1)
           exit
         end if
@@ -249,7 +250,8 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
         E0 = E0 + mrcc_detail(1, first_det_of_teeth(cp_first_tooth(cur_cp))) * (1d0-fractage(cp_first_tooth(cur_cp)))
       end if
       call wall_time(time)
-      if ((dabs(eqt) < relative_error*0d0 .and. cps_N(cur_cp) >= 30)  .or. total_computed >= N_det_generators) then
+      !if ((dabs(eqt) < relative_error*0d0 .and. cps_N(cur_cp) >= 30)  .or. total_computed == N_det_generators) then
+      if(cur_cp > 10) then 
         ! Termination
         !print '(G10.3, 2X, F16.7, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
         print *, "GREPME", cur_cp, E+E0+avg, eqt, time-time0, total_computed
@@ -331,8 +333,11 @@ END_PROVIDER
   logical, allocatable         :: computed(:)
   integer                        :: i, j, last_full, dets(comb_teeth)
   integer                        :: k, l, cur_cp, under_det(comb_teeth+1)
-  
+  integer, allocatable :: iorder(:), first_cp(:)
+
+  allocate(iorder(N_det_generators), first_cp(N_cps_max+1))
   allocate(computed(N_det_generators))
+  first_cp = 1
   cps = 0d0
   cur_cp = 1
   done_cp_at = 0
@@ -354,6 +359,7 @@ END_PROVIDER
     
     if(N_mrcc_jobs / gen_per_cp > (cur_cp-1) .or. N_mrcc_jobs == N_det_generators) then
     !if(mod(i, comb_per_cp) == 0 .or. N_mrcc_jobs == N_det_generators) then
+      first_cp(cur_cp+1) = N_mrcc_jobs
       done_cp_at(N_mrcc_jobs) = cur_cp
       cps_N(cur_cp) = dfloat(i)
       if(N_mrcc_jobs /= N_det_generators) then
@@ -407,6 +413,10 @@ END_PROVIDER
   cps(:, N_cp) = 0d0
   cp_first_tooth(N_cp) = comb_teeth+1
 
+  iorder = -1132154665
+  do i=1,N_cp-1
+    call isort(mrcc_jobs(first_cp(i)+1:first_cp(i+1)),iorder,first_cp(i+1)-first_cp(i))
+  end do
 ! end subroutine
 END_PROVIDER
 
