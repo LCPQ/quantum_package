@@ -8,6 +8,10 @@ end
 subroutine routine
  implicit none
  print*,'N_det = ',N_det
+ PROVIDE H_apply_buffer_allocated
+ if (s2_eig) then
+   call make_s2_eigenfunction
+ endif
  call diagonalize_CI
  integer :: igood_state
  igood_state=1

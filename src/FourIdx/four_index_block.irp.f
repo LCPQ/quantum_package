@@ -289,7 +289,7 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
     enddo
     !$OMP END DO
 
-    deallocate(key,value,V,T)
+    deallocate(key,value,V,T,T2d,V2d,U)
     !$OMP END PARALLEL
     call map_merge(map_c)
 
