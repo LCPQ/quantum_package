@@ -41,12 +41,12 @@ subroutine run(N_st,energy)
       print *,  'Iteration', iteration, '/', n_it_mrcc_max
       print *,  '===============================================' 
       print *,  ''
-      E_old = sum(ci_energy_dressed(1:N_states))
+      E_old = mrcc_e0_denominator(1) !sum(ci_energy_dressed(1:N_states))
       do i=1,N_st
         call write_double(6,ci_energy_dressed(i),"Energy")
       enddo
       call diagonalize_ci_dressed(lambda)
-      E_new = sum(ci_energy_dressed(1:N_states))
+      E_new = mrcc_e0_denominator(1) !sum(ci_energy_dressed(1:N_states))
 !  if (.true.) then
 !    provide delta_ij_mrcc_pouet
 !  endif
