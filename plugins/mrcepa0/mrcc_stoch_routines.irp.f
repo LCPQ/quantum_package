@@ -250,8 +250,7 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
         E0 = E0 + mrcc_detail(1, first_det_of_teeth(cp_first_tooth(cur_cp))) * (1d0-fractage(cp_first_tooth(cur_cp)))
       end if
       call wall_time(time)
-      !if ((dabs(eqt) < relative_error*0d0 .and. cps_N(cur_cp) >= 30)  .or. total_computed == N_det_generators) then
-      if(cur_cp > 10) then 
+      if ((dabs(eqt) < relative_error .and. cps_N(cur_cp) >= 30)  .or. total_computed == N_det_generators) then
         ! Termination
         !print '(G10.3, 2X, F16.7, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
         print *, "GREPME", cur_cp, E+E0+avg, eqt, time-time0, total_computed
