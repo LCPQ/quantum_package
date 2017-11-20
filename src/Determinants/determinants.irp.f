@@ -429,9 +429,10 @@ end
 subroutine save_ref_determinant
  implicit none
   use bitmasks
-  double precision :: buffer(1,1)
+  double precision :: buffer(1,N_states)
+  buffer = 0.d0
   buffer(1,1) = 1.d0
-  call save_wavefunction_general(1,1,ref_bitmask,1,buffer)
+  call save_wavefunction_general(1,N_states,ref_bitmask,1,buffer)
 end
 
 
