@@ -179,6 +179,33 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
   
 END_PROVIDER
 
+subroutine update_psi_average_norm_contrib(w)
+  implicit none
+  BEGIN_DOC
+! Compute psi_average_norm_contrib for different state average weights w(:)
+  END_DOC
+  double precision, intent(in) :: w(N_states)
+  double precision :: w0(N_states), f
+  w0(:) = w(:)/sum(w(:))
+
+  integer :: i,j,k
+  do i=1,N_det
+    psi_average_norm_contrib(i) = psi_coef(i,1)*psi_coef(i,1)*w(1)
+  enddo
+  do k=2,N_states
+    do i=1,N_det
+      psi_average_norm_contrib(i) = psi_average_norm_contrib(i) + &
+        psi_coef(i,k)*psi_coef(i,k)*w(k)
+    enddo
+  enddo
+  f = 1.d0/sum(psi_average_norm_contrib(1:N_det))
+  do i=1,N_det
+    psi_average_norm_contrib(i) = psi_average_norm_contrib(i)*f
+  enddo
+  SOFT_TOUCH psi_average_norm_contrib
+
+end subroutine
+
 
 BEGIN_PROVIDER [ double precision, psi_average_norm_contrib, (psi_det_size) ]
  implicit none

@@ -13,7 +13,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, eqt)
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_to_qp_run_socket2
   type(selection_buffer)         :: b
   integer, external              :: omp_get_thread_num
-  double precision, intent(in)   :: relative_error, absolute_error, E
+  double precision, intent(in)   :: relative_error, absolute_error, E(N_states)
   double precision, intent(out)  :: pt2(N_states),eqt
   
   
@@ -26,13 +26,20 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, eqt)
   double precision               :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
   double precision, external     :: omp_get_wtime
   double precision               :: time
+  double precision               :: w(N_states)
+  integer                        :: istate
   
   if (N_det < 10) then
     call ZMQ_selection(0, pt2)
     return
   else
     
-    allocate(pt2_detail(N_states, N_det_generators+1), comb(N_det_generators), computed(N_det_generators), tbc(0:size_tbc))
+  do istate=1,N_states
+    w(:) = 0.d0
+    w(istate) = 1.d0
+    call update_psi_average_norm_contrib(w)
+
+    allocate(pt2_detail(N_states,N_det_generators+1), comb(N_det_generators), computed(N_det_generators), tbc(0:size_tbc))
     sumabove = 0d0
     sum2above = 0d0
     Nabove = 0d0
@@ -93,7 +100,8 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, eqt)
         !$OMP  PRIVATE(i)
     i = omp_get_thread_num()
     if (i==0) then
-      call pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, absolute_error, pt2,eqt)
+      call pt2_collector(E(istate), b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, absolute_error,w,eqt,istate)
+      pt2(istate) = w(istate)
     else
       call pt2_slave_inproc(i)
     endif
@@ -104,15 +112,16 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, eqt)
     print *, '========== ================= ================= ================='
     
     deallocate(pt2_detail, comb, computed, tbc)
+  enddo
   endif
 
 end subroutine
 
 
-subroutine do_carlo(tbc, Ncomb, comb, pt2_detail, computed, sumabove, sum2above, Nabove)
-  integer, intent(in) :: tbc(0:size_tbc), Ncomb
+subroutine do_carlo(tbc, Ncomb, comb, pt2_detail, computed, sumabove, sum2above, Nabove,istate)
+  integer, intent(in) :: tbc(0:size_tbc), Ncomb, istate
   logical, intent(in) :: computed(N_det_generators)
-  double precision, intent(in) :: comb(Ncomb), pt2_detail(N_states, N_det_generators)
+  double precision, intent(in) :: comb(Ncomb), pt2_detail(N_states,N_det_generators)
   double precision, intent(inout) :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
   integer :: i, dets(comb_teeth)
   double precision :: myVal, myVal2
@@ -128,7 +137,7 @@ subroutine do_carlo(tbc, Ncomb, comb, pt2_detail, computed, sumabove, sum2above,
     myVal = 0d0
     myVal2 = 0d0
     do j=comb_teeth,1,-1
-      myVal += pt2_detail(1, dets(j)) * pt2_weight_inv(dets(j)) * comb_step
+      myVal += pt2_detail(istate,dets(j)) * pt2_weight_inv(dets(j)) * comb_step
       sumabove(j) += myVal
       sum2above(j) += myVal*myVal
       Nabove(j) += 1
@@ -144,7 +153,7 @@ subroutine pt2_slave_inproc(i)
   call run_pt2_slave(1,i,pt2_e0_denominator)
 end
 
-subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, absolute_error, pt2,eqt)
+subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, absolute_error, pt2,eqt,istate)
   use f77_zmq
   use selection_types
   use bitmasks
@@ -152,6 +161,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
 
   
   integer, intent(in) :: Ncomb
+  integer, intent(in) :: istate
   double precision, intent(inout) :: pt2_detail(N_states, N_det_generators)
   double precision, intent(in) :: comb(Ncomb), relative_error, absolute_error, E
   logical, intent(inout) :: computed(N_det_generators)
@@ -254,16 +264,16 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
         call zmq_abort(zmq_to_qp_run_socket)
         exit pullLoop
       endif
-      call do_carlo(tbc, Ncomb+1-firstTBDcomb, comb(firstTBDcomb), pt2_detail, actually_computed, sumabove, sum2above, Nabove)
+      call do_carlo(tbc, Ncomb+1-firstTBDcomb, comb(firstTBDcomb), pt2_detail, actually_computed, sumabove, sum2above, Nabove, istate)
       firstTBDcomb = int(Nabove(1)) - orgTBDcomb + 1
       if(Nabove(1) < 5d0) cycle
       call get_first_tooth(actually_computed, tooth)
      
-      E0 = sum(pt2_detail(1,:first_det_of_teeth(tooth)-1))
+      E0 = sum(pt2_detail(istate,:first_det_of_teeth(tooth)-1))
       if (tooth <= comb_teeth) then
         prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - pt2_cweight(first_det_of_teeth(tooth)-1))
         prop = prop * pt2_weight_inv(first_det_of_teeth(tooth))
-        E0 += pt2_detail(1,first_det_of_teeth(tooth)) * prop
+        E0 += pt2_detail(istate,first_det_of_teeth(tooth)) * prop
         avg = E0 + (sumabove(tooth) / Nabove(tooth))
         eqt = sqrt(1d0 / (Nabove(tooth)-1) * abs(sum2above(tooth) / Nabove(tooth) - (sumabove(tooth)/Nabove(tooth))**2))
       else
@@ -272,7 +282,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
       call wall_time(time)
       if ( (dabs(eqt/avg) < relative_error) .or. (dabs(eqt) < absolute_error) ) then
         ! Termination
-        pt2(1) = avg
+        pt2(istate) = avg
         print '(G10.3, 2X, F16.10, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
         call zmq_abort(zmq_to_qp_run_socket)
       else
@@ -284,11 +294,11 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
     end if
   end do pullLoop
 
-  E0 = sum(pt2_detail(1,:first_det_of_teeth(tooth)-1))
+  E0 = sum(pt2_detail(istate,:first_det_of_teeth(tooth)-1))
   prop = ((1d0 - dfloat(comb_teeth - tooth + 1) * comb_step) - pt2_cweight(first_det_of_teeth(tooth)-1))
   prop = prop * pt2_weight_inv(first_det_of_teeth(tooth))
-  E0 += pt2_detail(1,first_det_of_teeth(tooth)) * prop
-  pt2(1) = E0 + (sumabove(tooth) / Nabove(tooth))
+  E0 += pt2_detail(istate,first_det_of_teeth(tooth)) * prop
+  pt2(istate) = E0 + (sumabove(tooth) / Nabove(tooth))
 
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_pull_socket(zmq_socket_pull)
