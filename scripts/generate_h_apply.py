@@ -33,7 +33,6 @@ filter_only_1h2p_double
 filter_only_2h2p_single
 filter_only_2h2p_double
 filterhole
-filter_integrals
 filter_only_1h1p_double
 filter_only_1h1p_single
 filterparticle

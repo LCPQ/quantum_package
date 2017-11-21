@@ -303,7 +303,7 @@ subroutine fill_H_apply_buffer_no_selection(n_selected,det_buffer,Nint,iproc)
   enddo
   do j=1,N_states
     do i=1,N_selected
-      H_apply_buffer(iproc)%coef(i+H_apply_buffer(iproc)%N_det,j) = 0.d0
+      H_apply_buffer(iproc)%coef(i+H_apply_buffer(iproc)%N_det,j) = 1.e-8
     enddo
   enddo
   H_apply_buffer(iproc)%N_det = new_size
