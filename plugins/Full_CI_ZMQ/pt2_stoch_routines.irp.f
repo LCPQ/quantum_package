@@ -28,9 +28,10 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
   double precision               :: time
   double precision               :: w(N_states)
   
-  if (N_det < 10) then
+  if (N_det < max(10,N_states)) then
+    pt2=0.d0
     call ZMQ_selection(0, pt2)
-    return
+    error(:) = 0.d0
   else
     
     do pt2_stoch_istate=1,N_states
@@ -120,6 +121,9 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
     call update_psi_average_norm_contrib(w)
     SOFT_TOUCH psi_average_norm_contrib
   endif
+  do i=N_det+1,N_states
+    pt2(i) = 0.d0
+  enddo
 
 end subroutine
 

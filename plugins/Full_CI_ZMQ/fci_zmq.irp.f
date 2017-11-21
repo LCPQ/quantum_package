@@ -14,7 +14,7 @@ program fci_zmq
   relative_error=PT2_relative_error
   absolute_error=PT2_absolute_error
 
-  pt2 = -huge(1.d0)
+  pt2 = -huge(1.e0)
   threshold_davidson_in = threshold_davidson
   threshold_davidson = threshold_davidson_in * 100.d0
   SOFT_TOUCH threshold_davidson
@@ -40,12 +40,9 @@ program fci_zmq
     print *,  'N_states = ', N_states
     do k=1,N_states
       print*,'State ',k
-      print *,  'PT2      = ', pt2(k)
       print *,  'E        = ', CI_energy(k)
-      print *,  'E+PT2    = ', CI_energy(k) + pt2(k)
       print *,  '-----'
     enddo
-    call dump_fci_iterations_value(N_det,CI_energy,pt2) ! This call automatically appends data
   endif
   
   
@@ -89,12 +86,11 @@ program fci_zmq
       correlation_energy_ratio = min(1.d0,correlation_energy_ratio)
 
 
-
       print *,  'N_det             = ', N_det
       print *,  'N_states          = ', N_states
       print*,   'correlation_ratio = ', correlation_energy_ratio
 
-      do k=1, N_states
+      do k=1, min(N_states,N_det)
         print*,'State ',k
         print *,  'PT2             = ', pt2(k)
         print *,  'E               = ', CI_energy(k)
@@ -103,17 +99,16 @@ program fci_zmq
 
       print *,  '-----'
       if(N_states.gt.1)then
-        print*,'Variational Energy difference (au | eV)'
-        do i = 2, N_states
+        print *, 'Variational Energy difference (au | eV)'
+        do i=2, min(N_states,N_det)
           print*,'Delta E = ', (CI_energy(i) - CI_energy(1)), &
-            (CI_energy(i) - CI_energy(1)) * 27.2107362681d0
+            (CI_energy(i) - CI_energy(1)) * 27.211396641308d0
         enddo
-      endif
-      if(N_states.gt.1)then
-        print*,'Variational + perturbative Energy difference (au | eV)'
-        do i = 2, N_states
+        print *,  '-----'
+        print*, 'Variational + perturbative Energy difference (au | eV)'
+        do i=2, min(N_states,N_det)
           print*,'Delta E = ', (CI_energy(i)+ pt2(i) - (CI_energy(1) + pt2(1))), &
-            (CI_energy(i)+ pt2(i) - (CI_energy(1) + pt2(1))) * 27.2107362681d0
+            (CI_energy(i)+ pt2(i) - (CI_energy(1) + pt2(1))) * 27.211396641308d0
         enddo
       endif
       call ezfio_set_full_ci_zmq_energy_pt2(CI_energy(1)+pt2(1))
@@ -162,7 +157,7 @@ program fci_zmq
   print *,  'N_states          = ', N_states
   print*,   'correlation_ratio = ', correlation_energy_ratio
 
-  do k=1, N_states
+  do k=1, min(N_states,N_det)
     print*,'State ',k
     print *,  'PT2             = ', pt2(k)
     print *,  'E               = ', CI_energy(k)
@@ -171,6 +166,7 @@ program fci_zmq
 
   print *,  '-----'
   call dump_fci_iterations_value(N_det,CI_energy,pt2) 
+
 
 
 

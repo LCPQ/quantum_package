@@ -55,6 +55,9 @@ subroutine ZMQ_selection(N_in, pt2)
   endif
   !$OMP END PARALLEL
   call end_parallel_job(zmq_to_qp_run_socket, 'selection')
+  do i=N_det+1,N_states
+    pt2(i) = 0.d0
+  enddo
   if (N_in > 0) then
     call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) 
     call copy_H_apply_buffer_to_wf()
