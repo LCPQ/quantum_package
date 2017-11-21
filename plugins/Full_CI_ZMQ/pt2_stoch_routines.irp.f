@@ -116,6 +116,9 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
       deallocate(pt2_detail, comb, computed, tbc)
     enddo
     pt2_stoch_istate = 1
+    w(:) = 1.d0/N_states
+    call update_psi_average_norm_contrib(w)
+    SOFT_TOUCH psi_average_norm_contrib
   endif
 
 end subroutine
