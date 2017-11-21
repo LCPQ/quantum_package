@@ -57,7 +57,7 @@ program fci_zmq
   double precision :: threshold_selectors_save, threshold_generators_save
   threshold_selectors_save  = threshold_selectors
   threshold_generators_save = threshold_generators
-  double precision :: error
+  double precision :: error(N_states)
 
   correlation_energy_ratio = 0.d0
 
@@ -72,20 +72,13 @@ program fci_zmq
       if (do_pt2) then
         pt2_string = '        '
         pt2 = 0.d0
-!        if (N_states == 1) then
-          threshold_selectors = 1.d0
-          threshold_generators = 1d0 
-          SOFT_TOUCH threshold_selectors threshold_generators
-          call ZMQ_pt2(CI_energy, pt2,relative_error,absolute_error,error) ! Stochastic PT2
-          threshold_selectors = threshold_selectors_save
-          threshold_generators = threshold_generators_save
-          SOFT_TOUCH threshold_selectors threshold_generators
-!        else
-!          threshold_selectors = max(threshold_selectors,threshold_selectors_pt2)
-!          threshold_generators = max(threshold_generators,threshold_generators_pt2)
-!          SOFT_TOUCH threshold_selectors threshold_generators
-!          call ZMQ_selection(0, pt2)      ! Deterministic PT2
-!        endif
+        threshold_selectors = 1.d0
+        threshold_generators = 1d0 
+        SOFT_TOUCH threshold_selectors threshold_generators
+        call ZMQ_pt2(CI_energy, pt2,relative_error,absolute_error,error) ! Stochastic PT2
+        threshold_selectors = threshold_selectors_save
+        threshold_generators = threshold_generators_save
+        SOFT_TOUCH threshold_selectors threshold_generators
       else
         pt2_string = '(approx)'
       endif
@@ -104,11 +97,7 @@ program fci_zmq
         print*,'State ',k
         print *,  'PT2             = ', pt2(k)
         print *,  'E               = ', CI_energy(k)
-!        if (N_states==1) then
-          print *,  'E+PT2'//pt2_string//'   = ', CI_energy(k)+pt2(k), ' +/- ', error
-!        else
-!          print *,  'E+PT2'//pt2_string//'   = ', CI_energy(k)+pt2(k)
-!        endif
+        print *,  'E+PT2'//pt2_string//'   = ', CI_energy(k)+pt2(k), ' +/- ', error(k)
       enddo
 
       print *,  '-----'
@@ -159,20 +148,13 @@ program fci_zmq
 
   if (do_pt2) then
     pt2 = 0.d0
-!    if (N_states == 1) then
-      threshold_selectors = 1.d0
-      threshold_generators = 1d0 
-      SOFT_TOUCH threshold_selectors threshold_generators
-      call ZMQ_pt2(CI_energy, pt2,relative_error,absolute_error,error) ! Stochastic PT2
-      threshold_selectors = threshold_selectors_save
-      threshold_generators = threshold_generators_save
-      SOFT_TOUCH threshold_selectors threshold_generators
-!    else
-!      threshold_selectors = max(threshold_selectors,threshold_selectors_pt2)
-!      threshold_generators = max(threshold_generators,threshold_generators_pt2)
-!      SOFT_TOUCH threshold_selectors threshold_generators
-!      call ZMQ_selection(0, pt2)      ! Deterministic PT2
-!    endif
+    threshold_selectors = 1.d0
+    threshold_generators = 1d0 
+    SOFT_TOUCH threshold_selectors threshold_generators
+    call ZMQ_pt2(CI_energy, pt2,relative_error,absolute_error,error) ! Stochastic PT2
+    threshold_selectors = threshold_selectors_save
+    threshold_generators = threshold_generators_save
+    SOFT_TOUCH threshold_selectors threshold_generators
     call ezfio_set_full_ci_zmq_energy(CI_energy(1))
     call ezfio_set_full_ci_zmq_energy_pt2(CI_energy(1)+pt2(1))
     call dump_fci_iterations_value(N_det,CI_energy(1),pt2(1)) ! This call automatically appends data
@@ -185,11 +167,7 @@ program fci_zmq
     print*,'State ',k
     print *,  'PT2             = ', pt2(k)
     print *,  'E               = ', CI_energy(k)
-!    if (N_states==1) then
-      print *,  'E+PT2'//pt2_string//'   = ', CI_energy(k)+pt2(k), ' +/- ', error
-!    else
-!      print *,  'E+PT2'//pt2_string//'   = ', CI_energy(k)+pt2(k)
-!    endif
+    print *,  'E+PT2'//pt2_string//'   = ', CI_energy(k)+pt2(k), ' +/- ', error(k)
   enddo
 
   print *,  '-----'
