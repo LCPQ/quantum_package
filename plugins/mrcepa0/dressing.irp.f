@@ -611,7 +611,7 @@ end
 
 
 
-subroutine mrcc_part_dress_1c(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_generator,n_selected,det_buffer,Nint,key_mask,coef,contrib)
+subroutine mrcc_part_dress_1c(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_generator,n_selected,det_buffer,Nint,key_mask,contrib)
  use bitmasks
  implicit none
 
@@ -651,7 +651,6 @@ subroutine mrcc_part_dress_1c(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_
   logical, external :: detEq, is_generable
   !double precision, external :: get_dij, get_dij_index
   double precision :: Delta_E_inv(N_states)
-  double precision, intent(in) :: coef
   double precision, intent(inout) :: contrib(N_states)
   double precision :: sdress, hdress
 
@@ -846,8 +845,8 @@ subroutine mrcc_part_dress_1c(delta_ij_, delta_ii_,delta_ij_s2_, delta_ii_s2_,i_
         hla = hij_cache(k_sd)
         sla = sij_cache(k_sd)
         do i_state=1,N_states
-          dIa_hla(i_state,k_sd) = dIa(i_state) * hla * coef
-          dIa_sla(i_state,k_sd) = dIa(i_state) * sla * coef
+          dIa_hla(i_state,k_sd) = dIa(i_state) * hla
+          dIa_sla(i_state,k_sd) = dIa(i_state) * sla
         enddo
       enddo
       do i_state=1,N_states
