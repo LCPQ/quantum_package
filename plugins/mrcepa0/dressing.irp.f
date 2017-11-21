@@ -930,7 +930,7 @@ end
   if(errr /= 0d0) then
     errr = errr / 2d0 ! (-mrcc_E0_denominator(1) + mrcc_previous_E(1)) / 1d1
   else
-    errr = 4d-4
+    errr = 1d-4
   end if
   relative_error = errr
   print *, "RELATIVE ERROR", relative_error
@@ -979,8 +979,6 @@ END_PROVIDER
         enddo
       end do
     end do
-    print *, "De", delta_ij(1,:5,1)
-    print *, "Ds", delta_ij_s2(1,1000:1005,1)
   else  if(mrmode == 3) then
     do i = 1, N_det_ref
       do i_state = 1, N_states
@@ -1052,18 +1050,18 @@ END_PROVIDER
     stop "invalid mrmode"
   end if
 
-  if(mrmode == 2 .or. mrmode == 3) then
-     do i = 1, N_det_ref
-      do i_state = 1, N_states
-        delta_ii(i_state,i) += delta_ii_cancel(i_state,i)
-      enddo
-      do j = 1, N_det_non_ref
-        do i_state = 1, N_states
-          delta_ij(i_state,j,i) += delta_ij_cancel(i_state,j,i)
-        enddo
-      end do
-    end do
-  end if
+  !if(mrmode == 2 .or. mrmode == 3) then
+  !   do i = 1, N_det_ref
+  !    do i_state = 1, N_states
+  !      delta_ii(i_state,i) += delta_ii_cancel(i_state,i)
+  !    enddo
+  !    do j = 1, N_det_non_ref
+  !      do i_state = 1, N_states
+  !        delta_ij(i_state,j,i) += delta_ij_cancel(i_state,j,i)
+  !      enddo
+  !    end do
+  !  end do
+  !end if
 END_PROVIDER
 
 

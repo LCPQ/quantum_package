@@ -264,7 +264,18 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
       endif
     end if
   end do pullLoop
-  
+ 
+  if(total_computed == N_det_generators) then
+    print *, "TOTALLY COMPUTED"
+    delta = 0d0
+    delta_s2 = 0d0
+    do i=comb_teeth+1,0,-1
+      delta += delta_det(:,:,i,1)
+      delta_s2 += delta_det(:,:,i,2)
+    end do
+  else
+
+
   delta = cp(:,:,cur_cp,1)
   delta_s2 = cp(:,:,cur_cp,2)
   
@@ -272,6 +283,9 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
     delta += delta_det(:,:,i,1)
     delta_s2 += delta_det(:,:,i,2)
   end do
+
+  end if
+
   mrcc(1) = E
   
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
@@ -311,7 +325,7 @@ end function
 &BEGIN_PROVIDER [ integer, N_cps_max ]
   implicit none
   comb_teeth = 16
-  N_cps_max = 100
+  N_cps_max = 32
   !comb_per_cp = 64
   gen_per_cp = (N_det_generators / N_cps_max) + 1
   N_cps_max += 1
