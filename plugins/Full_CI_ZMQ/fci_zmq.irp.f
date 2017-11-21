@@ -45,7 +45,7 @@ program fci_zmq
       print *,  'E+PT2    = ', CI_energy(k) + pt2(k)
       print *,  '-----'
     enddo
-    call dump_fci_iterations_value(N_det,CI_energy(1),pt2(1)) ! This call automatically appends data
+    call dump_fci_iterations_value(N_det,CI_energy,pt2) ! This call automatically appends data
   endif
   
   
@@ -89,6 +89,7 @@ program fci_zmq
       correlation_energy_ratio = min(1.d0,correlation_energy_ratio)
 
 
+
       print *,  'N_det             = ', N_det
       print *,  'N_states          = ', N_states
       print*,   'correlation_ratio = ', correlation_energy_ratio
@@ -115,6 +116,8 @@ program fci_zmq
             (CI_energy(i)+ pt2(i) - (CI_energy(1) + pt2(1))) * 27.2107362681d0
         enddo
       endif
+      call ezfio_set_full_ci_zmq_energy_pt2(CI_energy(1)+pt2(1))
+      call dump_fci_iterations_value(N_det,CI_energy,pt2) 
 
       n_det_before = N_det
       to_select = N_det
@@ -132,8 +135,6 @@ program fci_zmq
       call diagonalize_CI
       call save_wavefunction
       call ezfio_set_full_ci_zmq_energy(CI_energy(1))
-      call ezfio_set_full_ci_zmq_energy_pt2(CI_energy(1)+pt2(1))
-      call dump_fci_iterations_value(N_det,CI_energy(1),pt2(1)) ! This call automatically appends data
     enddo
   endif
 
@@ -142,8 +143,7 @@ program fci_zmq
       call diagonalize_CI
       call save_wavefunction
       call ezfio_set_full_ci_zmq_energy(CI_energy(1))
-      call ezfio_set_full_ci_zmq_energy(CI_energy(1))
-      call dump_fci_iterations_value(N_det,CI_energy(1),pt2(1)) ! This call automatically appends data
+      call ezfio_set_full_ci_zmq_energy_pt2(CI_energy(1)+pt2(1))
   endif
 
   if (do_pt2) then
@@ -157,7 +157,6 @@ program fci_zmq
     SOFT_TOUCH threshold_selectors threshold_generators
     call ezfio_set_full_ci_zmq_energy(CI_energy(1))
     call ezfio_set_full_ci_zmq_energy_pt2(CI_energy(1)+pt2(1))
-    call dump_fci_iterations_value(N_det,CI_energy(1),pt2(1)) ! This call automatically appends data
   endif
   print *,  'N_det             = ', N_det
   print *,  'N_states          = ', N_states
@@ -171,6 +170,8 @@ program fci_zmq
   enddo
 
   print *,  '-----'
+  call dump_fci_iterations_value(N_det,CI_energy,pt2) 
+
 
 
 end

@@ -6,15 +6,17 @@ subroutine dump_fci_iterations_value(n_determinants,energy,pt2)
 !  BEGIN_DOC
 !! Output the number of determinants, energy, and pt2 correction at each iteration 
 !  END_DOC
-  integer                        :: n_determinants
-  double precision               :: energy, pt2
+  integer, intent(in)            :: n_determinants
+  double precision, intent(in)   :: energy(N_states), pt2(N_states)
   integer                        :: N_iterations
   integer, allocatable           :: n_determinants_list(:)
-  double precision, allocatable  :: energy_list(:)
-  double precision, allocatable  :: pt2_list(:)
+  double precision, allocatable  :: energy_list(:,:)
+  double precision, allocatable  :: pt2_list(:,:)
   integer                        :: saveMethod 
   logical                        :: hasIter
   logical,save                   :: firstAccess=.TRUE. !! every update of firstAccess will be saved
+  double precision, allocatable  :: extrapolated_energy(:,:)
+  integer                        :: i,k
 
   !!! Check to ensure that we should save iterations (default is Append)
   ! saveMethod: 1==Append, 2==Overwrite, 3==NoSave
@@ -42,16 +44,17 @@ subroutine dump_fci_iterations_value(n_determinants,energy,pt2)
      endif
      
      !! Now allocate the array for entire size needed
+     allocate(extrapolated_energy(N_iterations+1,N_states))
      allocate(n_determinants_list(N_iterations+1))
-     allocate(energy_list(N_iterations+1))
-     allocate(pt2_list(N_iterations+1))
+     allocate(energy_list(N_states,N_iterations+1))
+     allocate(pt2_list(N_states,N_iterations+1))
 
      !!! Pull previously written data
      !!! Unless it is at the beginning of a new/restarted calculation
      if((hasIter).AND.(N_iterations>0)) then 
-        call ezfio_get_full_ci_zmq_n_det_iter(n_determinants_list(1:N_iterations))
-        call ezfio_get_full_ci_zmq_energy_iter(energy_list(1:N_iterations))
-        call ezfio_get_full_ci_zmq_pt2_iter(pt2_list(1:N_iterations))
+        call ezfio_get_full_ci_zmq_n_det_iter(n_determinants_list)
+        call ezfio_get_full_ci_zmq_energy_iter(energy_list)
+        call ezfio_get_full_ci_zmq_pt2_iter(pt2_list)
      endif
 
      !! Now increment to the current iteration
@@ -59,8 +62,29 @@ subroutine dump_fci_iterations_value(n_determinants,energy,pt2)
 
      !! Add the data from latest iteration 
      n_determinants_list(N_iterations) = n_determinants
-     energy_list(N_iterations) = energy
-     pt2_list(N_iterations) = pt2 
+     energy_list(:,N_iterations) = energy(:)
+     pt2_list(:,N_iterations) = pt2(:) 
+
+    print *,  'Extrapolation'
+    print *,  '============='
+
+    do i=1,N_states
+      call extrapolate_data(N_iterations, energy_list(i,1:N_iterations), pt2_list(i,1:N_iterations), extrapolated_energy(1:N_iterations,i))
+    enddo
+ 
+    do i=1,N_states
+      print *,  'State ', i
+      print *,  '------------------'
+      print *,  ''
+      write(*,*)  '=========== ', '==================='
+      write(*,*)  'minimum PT2 ', 'Extrapolated energy'
+      write(*,*)  '=========== ', '==================='
+      do k=2,min(N_iterations,8)
+        write(*,'(F11.4,2X,F18.8)') pt2_list(i,N_iterations+1-k), extrapolated_energy(k,i)
+      enddo
+      write(*,*)  '=========== ', '==================='
+    enddo
+ 
 
     ! Reset the iteration number 
     call ezfio_set_full_ci_zmq_n_iter(N_iterations)
@@ -74,10 +98,11 @@ subroutine dump_fci_iterations_value(n_determinants,energy,pt2)
     deallocate(n_determinants_list)
     deallocate(energy_list)
     deallocate(pt2_list)
- 
+
   endif
 
   !!! set first access to false
   !!! it will be saved
   firstAccess=.FALSE.
  end subroutine 
+

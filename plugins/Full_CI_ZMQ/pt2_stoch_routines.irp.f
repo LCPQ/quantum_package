@@ -102,7 +102,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
           !$OMP  PRIVATE(i)
       i = omp_get_thread_num()
       if (i==0) then
-        call pt2_collector(E(pt2_stoch_istate), b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, absolute_error,w,error)
+        call pt2_collector(E(pt2_stoch_istate), b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, absolute_error, w, error)
         pt2(pt2_stoch_istate) = w(pt2_stoch_istate)
       else
         call pt2_slave_inproc(i)
