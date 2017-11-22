@@ -280,7 +280,7 @@ subroutine get_inverse(A,LDA,m,C,LDC)
   integer                        :: info,lwork
   integer, allocatable           :: ipiv(:)
   double precision,allocatable   :: work(:)
-  allocate (ipiv(ao_num), work(ao_num*ao_num))
+  allocate (ipiv(m), work(m*m))
   lwork = size(work)
   C(1:m,1:m) = A(1:m,1:m)
   call dgetrf(m,m,C,size(C,1),ipiv,info)
