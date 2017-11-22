@@ -10,8 +10,9 @@ program fci_zmq
 
   double precision               :: hf_energy_ref
   logical                        :: has
-  double precision :: relative_error, absolute_error
-  integer :: N_states_p
+  double precision               :: relative_error, absolute_error
+  integer                        :: N_states_p
+  character*(512)                :: fmt
 
   relative_error=PT2_relative_error
   absolute_error=PT2_absolute_error
@@ -87,7 +88,6 @@ program fci_zmq
 !    call write_double(6,correlation_energy_ratio, 'Correlation ratio')
 !    print *, ''
 !
-!    character*(512) :: fmt
 !  N_states_p = min(N_det,N_states)
 !  print *,  ''
 !  write(fmt,*) '(''# ============'',', N_states_p, '(1X,''=========================''))'
