@@ -66,37 +66,42 @@ subroutine dump_fci_iterations_value(n_determinants,energy,pt2)
      pt2_list(:,N_iterations) = pt2(:) 
 
     if (N_iterations > 2) then
-      print *,  ''
-      print *,  'Extrapolated energies'
-      print *,  '====================='
-
+      write(*,'(A)') ''
+      write(*,'(A)') 'Extrapolated energies'
+      write(*,'(A)') '------------------------'
+      write(*,'(A)') ''
+      
       do i=1, min(N_states,N_det)
         call extrapolate_data(N_iterations, energy_list(i,1:N_iterations), pt2_list(i,1:N_iterations), extrapolated_energy(1:N_iterations,i))
       enddo
   
-      do i=1, min(N_states,N_det)
+      print *,  ''
+      print *,  'State ', 1
+      print *,  ''
+      write(*,*)  '=========== ', '==================='
+      write(*,*)  'minimum PT2 ', 'Extrapolated energy'
+      write(*,*)  '=========== ', '==================='
+      do k=2,min(N_iterations,8)
+        write(*,'(F11.4,2X,F18.8)') pt2_list(1,N_iterations+1-k), extrapolated_energy(k,1)
+      enddo
+      write(*,*)  '=========== ', '==================='
+
+      do i=2, min(N_states,N_det)
         print *,  ''
-        print *,  'State ', i, ' : ', extrapolated_energy(min(N_iterations,3),i)
-        print *,  '------------------'
+        print *,  'State ', i
         print *,  ''
-        write(*,*)  '=========== ', '==================='
-        write(*,*)  'minimum PT2 ', 'Extrapolated energy'
-        write(*,*)  '=========== ', '==================='
+        write(*,*)  '=========== ', '=================== ', '=================== ', '==================='
+        write(*,*)  'minimum PT2 ', 'Extrapolated energy ', '  Excitation (a.u)  ', '  Excitation (eV)  '
+        write(*,*)  '=========== ', '=================== ', '=================== ', '==================='
         do k=2,min(N_iterations,8)
-          write(*,'(F11.4,2X,F18.8)') pt2_list(i,N_iterations+1-k), extrapolated_energy(k,i)
+          write(*,'(F11.4,X,3(X,F18.8))') pt2_list(i,N_iterations+1-k), extrapolated_energy(k,i), &
+              extrapolated_energy(k,i) - extrapolated_energy(k,1), &
+              (extrapolated_energy(k,i) - extrapolated_energy(k,1) ) * 27.211396641308d0
         enddo
-        write(*,*)  '=========== ', '==================='
+        write(*,*)  '=========== ', '=================== ', '=================== ', '==================='
       enddo
 
       print *,  ''
-      if(N_states.gt.1)then
-        print *, 'Extrapolated Energy differences (au | eV)'
-        do i=2, min(N_states,N_det)
-          print*,'Delta E = ', extrapolated_energy(3,i) - extrapolated_energy(3,1), &
-              (extrapolated_energy(3,i) - extrapolated_energy(3,1) ) * 27.211396641308d0
-        enddo
-        print *,  ''
-      endif
     endif
   
 

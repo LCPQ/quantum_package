@@ -35,9 +35,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
   else
     
     do pt2_stoch_istate=1,N_states
-      if (pt2_stoch_istate > 1) then
-        SOFT_TOUCH pt2_stoch_istate
-      endif
+      SOFT_TOUCH pt2_stoch_istate
       w(:) = 0.d0
       w(pt2_stoch_istate) = 1.d0
       call update_psi_average_norm_contrib(w)
