@@ -119,8 +119,8 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
     call update_psi_average_norm_contrib(w)
     SOFT_TOUCH psi_average_norm_contrib
   endif
-  do i=N_det+1,N_states
-    pt2(i) = 0.d0
+  do k=N_det+1,N_states
+    pt2(k) = 0.d0
   enddo
 
 end subroutine

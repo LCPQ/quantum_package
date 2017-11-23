@@ -646,7 +646,7 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
     do p2=ib,mo_tot_num
       if(bannedOrb(p2, s2)) cycle
       if(banned(p1,p2)) cycle
-      if(mat(1, p1, p2) == 0d0) cycle
+      if(sum(dabs(mat(:, p1, p2))) == 0d0) cycle
       call apply_particles(mask, s1, p1, s2, p2, det, ok, N_int)
       logical, external              :: is_in_wavefunction
       

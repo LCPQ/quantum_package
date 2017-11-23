@@ -36,7 +36,7 @@ subroutine run_selection_slave(thread,iproc,energy)
   end if
   buf%N = 0
   ctask = 1
-  pt2 = 0d0
+  pt2(:) = 0d0
 
   do
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(ctask), task)
@@ -65,7 +65,7 @@ subroutine run_selection_slave(thread,iproc,energy)
         call merge_selection_buffers(buf,buf2)
         call push_selection_results(zmq_socket_push, pt2, buf, task_id(1), ctask)
         buf%mini = buf2%mini
-        pt2 = 0d0
+        pt2(:) = 0d0
         buf%cur = 0
       end if
       ctask = 0

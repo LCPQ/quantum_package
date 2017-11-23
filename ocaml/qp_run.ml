@@ -4,6 +4,7 @@ open Qputils
 (* Environment variables :
 
    QP_PREFIX=gdb   : to run gdb (or valgrind, or whatever)
+   QP_MPIRUN=mpirun: to run mpi slaves
    QP_TASK_DEBUG=1 : debug task server
 
 *)
@@ -15,7 +16,7 @@ let print_list () =
 let () = 
   Random.self_init ()
 
-let run slave exe ezfio_file =
+let run slave mpi exe ezfio_file =
 
 
   (** Check availability of the ports *)
@@ -115,13 +116,18 @@ let run slave exe ezfio_file =
     match Sys.getenv "QP_PREFIX" with
     | Some x -> x^" "
     | None -> ""
+  and mpirun = 
+    match (mpi, Sys.getenv "QP_MPIRUN") with
+    | (true, None) -> "mpirun "
+    | (true, Some x) -> x^" "
+    | _ -> ""
   and exe =
     match (List.find ~f:(fun (x,_) -> x = exe) executables) with
     | Some (_,x) -> x^" "
     | None -> assert false
   in
   let exit_code = 
-    match (Sys.command (prefix^exe^ezfio_file)) with
+    match (Sys.command (mpirun^prefix^exe^ezfio_file)) with
     | 0 -> 0
     | i -> (Printf.printf "Program exited with code %d.\n%!" i; i)
   in
@@ -141,7 +147,9 @@ let spec =
   let open Command.Spec in
   empty
   +> flag "slave" no_arg
-     ~doc:(" Needed for slave tasks")
+     ~doc:(" Required for slave tasks")
+  +> flag "mpi" no_arg
+     ~doc:(" Required for MPI slaves")
   +> anon ("executable" %: string)
   +> anon ("ezfio_file" %: string)
 ;;
@@ -159,8 +167,8 @@ Executes a Quantum Package binary file among these:\n\n"
     )
   )
   spec
-  (fun slave exe ezfio_file () ->
-    run slave exe ezfio_file
+  (fun slave mpi exe ezfio_file () ->
+    run slave mpi exe ezfio_file
   )
   |> Command.run   ~version: Git.sha1   ~build_info: Git.message
 
