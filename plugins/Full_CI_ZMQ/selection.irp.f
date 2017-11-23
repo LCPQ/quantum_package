@@ -563,7 +563,6 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
             call spot_isinwf(mask, fullminilist, i_generator, fullinteresting(0), banned, fullMatch, fullinteresting)
             if(fullMatch) cycle
           
-            mat = 0d0
             call splash_pq(mask, sp, minilist, i_generator, interesting(0), bannedOrb, banned, mat, interesting)
 
             call fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_diag_tmp, E0, pt2, mat, buf)
@@ -617,7 +616,7 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
     do p2=ib,mo_tot_num
       if(bannedOrb(p2, s2)) cycle
       if(banned(p1,p2)) cycle
-      if(mat(1, p1, p2) == 0d0) cycle
+      if( sum(abs(mat(1:N_states, p1, p2))) == 0d0) cycle
       call apply_particles(mask, s1, p1, s2, p2, det, ok, N_int)
       
       Hii = diag_H_mat_elem_fock(psi_det_generators(1,1,i_generator),det,fock_diag_tmp,N_int)
@@ -783,9 +782,9 @@ subroutine get_d2(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
         
         hij = (mo_bielec_integral(p1, p2, h1, h2) - mo_bielec_integral(p2,p1, h1, h2)) * get_phase_bi(phasemask, ma, ma, h1, p1, h2, p2)
         if(ma == 1) then
-          mat(:, putj, puti) += coefs * hij
+          mat(:, putj, puti) += coefs(:) * hij
         else
-          mat(:, puti, putj) += coefs * hij
+          mat(:, puti, putj) += coefs(:) * hij
         end if
       end do
     else
@@ -801,7 +800,7 @@ subroutine get_d2(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
           p1 = p(turn2(i), 1)
           
           hij = mo_bielec_integral(p1, p2, h1, h2) * get_phase_bi(phasemask, 1, 2, h1, p1, h2, p2)
-          mat(:, puti, putj) += coefs * hij
+          mat(:, puti, putj) += coefs(:) * hij
         end do
       end do
     end if
@@ -821,7 +820,7 @@ subroutine get_d2(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
         p1 = p(i1, ma)
         p2 = p(i2, ma)
         hij = (mo_bielec_integral(p1, p2, h1, h2) - mo_bielec_integral(p2,p1, h1, h2)) * get_phase_bi(phasemask, ma, ma, h1, p1, h2, p2)
-        mat(:, puti, putj) += coefs * hij
+        mat(:, puti, putj) += coefs(:) * hij
       end do
       end do
     else if(tip == 3) then
@@ -835,7 +834,7 @@ subroutine get_d2(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
         p2 = p(i, ma)
         
         hij = mo_bielec_integral(p1, p2, h1, h2) * get_phase_bi(phasemask, mi, ma, h1, p1, h2, p2)
-        mat(:, min(puti, putj), max(puti, putj)) += coefs * hij
+        mat(:, min(puti, putj), max(puti, putj)) += coefs(:) * hij
       end do
     else ! tip == 4
       puti = p(1, sp)
@@ -846,7 +845,7 @@ subroutine get_d2(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
         h1 = h(1, mi)
         h2 = h(2, mi)
         hij = (mo_bielec_integral(p1, p2, h1, h2) - mo_bielec_integral(p2,p1, h1, h2)) * get_phase_bi(phasemask, mi, mi, h1, p1, h2, p2)
-        mat(:, puti, putj) += coefs * hij
+        mat(:, puti, putj) += coefs(:) * hij
       end if
     end if
   end if
@@ -931,13 +930,13 @@ subroutine get_d1(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
       putj = p1
       if(.not. banned(putj,puti,bant)) then
         hij = mo_bielec_integral(p2,pfix,hfix,puti) * get_phase_bi(phasemask, ma, mi, hfix, p2, puti, pfix)
-        tmp_row(:,puti) += hij * coefs
+        tmp_row(:,puti) += hij * coefs(:)
       end if
       
       putj = p2
       if(.not. banned(putj,puti,bant)) then
         hij = mo_bielec_integral(p1,pfix,hfix,puti) * get_phase_bi(phasemask, ma, mi, hfix, p1, puti, pfix)
-        tmp_row2(:,puti) += hij * coefs
+        tmp_row2(:,puti) += hij * coefs(:)
       end if
     end do
     
@@ -959,12 +958,12 @@ subroutine get_d1(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
         do putj=1,hfix-1
           if(lbanned(putj,ma) .or. banned(puti,putj,1)) cycle
           hij = (mo_bielec_integral(p1, p2, putj, hfix)-mo_bielec_integral(p2,p1,putj,hfix)) * get_phase_bi(phasemask, ma, ma, putj, p1, hfix, p2)
-          tmp_row(:,putj) += hij * coefs
+          tmp_row(:,putj) += hij * coefs(:)
         end do
         do putj=hfix+1,mo_tot_num
           if(lbanned(putj,ma) .or. banned(puti,putj,1)) cycle
           hij = (mo_bielec_integral(p1, p2, hfix, putj)-mo_bielec_integral(p2,p1,hfix,putj)) * get_phase_bi(phasemask, ma, ma, hfix, p1, putj, p2)
-          tmp_row(:,putj) += hij * coefs
+          tmp_row(:,putj) += hij * coefs(:)
         end do
 
         mat(:, :puti-1, puti) += tmp_row(:,:puti-1)
@@ -982,13 +981,13 @@ subroutine get_d1(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
         putj = p2
         if(.not. banned(puti,putj,1)) then
           hij = mo_bielec_integral(pfix, p1, hfix, puti) * get_phase_bi(phasemask, mi, ma, hfix, pfix, puti, p1)
-          tmp_row(:,puti) += hij * coefs
+          tmp_row(:,puti) += hij * coefs(:)
         end if
         
         putj = p1
         if(.not. banned(puti,putj,1)) then
           hij = mo_bielec_integral(pfix, p2, hfix, puti) * get_phase_bi(phasemask, mi, ma, hfix, pfix, puti, p2)
-          tmp_row2(:,puti) += hij * coefs
+          tmp_row2(:,puti) += hij * coefs(:)
         end if
       end do
       mat(:,:p2-1,p2) += tmp_row(:,:p2-1)
@@ -1017,7 +1016,7 @@ subroutine get_d1(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
         if(bannedOrb(p1, s1) .or. bannedOrb(p2, s2) .or. banned(p1, p2, 1)) cycle
         call apply_particles(mask, s1, p1, s2, p2, det, ok, N_int)
         call i_h_j(gen, det, N_int, hij)
-        mat(:, p1, p2) += coefs * hij
+        mat(:, p1, p2) += coefs(:) * hij
       end do
     end do
 end 

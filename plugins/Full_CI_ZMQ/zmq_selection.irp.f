@@ -100,7 +100,6 @@ subroutine selection_collector(b, N, pt2)
   double precision, pointer :: val(:)
   integer(bit_kind), pointer :: det(:,:,:)
   integer, allocatable :: task_id(:)
-  real :: time, time0
   type(selection_buffer) :: b2
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
@@ -109,11 +108,11 @@ subroutine selection_collector(b, N, pt2)
   allocate(task_id(N_det_generators))
   more = 1
   pt2(:) = 0d0
-  call CPU_TIME(time0)
+  pt2_mwen(:) = 0.d0
   do while (more == 1)
     call pull_selection_results(zmq_socket_pull, pt2_mwen, b2%val(1), b2%det(1,1,1), b2%cur, task_id, ntask)
 
-    pt2 += pt2_mwen
+    pt2(:) += pt2_mwen(:)
     do i=1, b2%cur
       call add_to_selection_buffer(b, b2%det(1,1,i), b2%val(i))
       if (b2%val(i) > b%mini) exit
@@ -125,7 +124,6 @@ subroutine selection_collector(b, N, pt2)
       endif
       call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more)
     end do
-    call CPU_TIME(time)
   end do
 
 

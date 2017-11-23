@@ -51,7 +51,10 @@ subroutine run_wf
       ! ---------
 
       print *,  'Selection'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      if (mpi_master) then
+        call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      endif
+      call mpi_bcast_psi(energy,N_states)
   
       !$OMP PARALLEL PRIVATE(i)
       i = omp_get_thread_num()
@@ -65,7 +68,11 @@ subroutine run_wf
       ! --------
 
       print *,  'Davidson'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      print *,  'PT2'
+      if (mpi_master) then
+        call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      endif
+      call mpi_bcast_psi(energy,N_states)
       call omp_set_nested(.True.)
       call davidson_slave_tcp(0)
       call omp_set_nested(.False.)
@@ -77,7 +84,10 @@ subroutine run_wf
       ! ---
 
       print *,  'PT2'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      if (mpi_master) then
+        call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      endif
+      call mpi_bcast_psi(energy,N_states)
   
       logical :: lstop
       lstop = .False.

@@ -8,8 +8,8 @@ subroutine create_selection_buffer(N, siz, res)
 
   allocate(res%det(N_int, 2, siz), res%val(siz))
 
-  res%val = 0d0
-  res%det = 0_8
+  res%val(:) = 0d0
+  res%det(:,:,:) = 0_8
   res%N = N
   res%mini = 0d0
   res%cur = 0

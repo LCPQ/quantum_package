@@ -81,40 +81,41 @@ program fci_zmq
                       (CI_energy(1) + pt2(1) - hf_energy_ref)
       correlation_energy_ratio = min(1.d0,correlation_energy_ratio)
 
-!    print *, ''
-!    print '(A,I12)',  'Summary at N_det = ', N_det
-!    print '(A)',      '-----------------------------------'
-!    print *, ''
-!    call write_double(6,correlation_energy_ratio, 'Correlation ratio')
-!    print *, ''
-!
-!  N_states_p = min(N_det,N_states)
-!  print *,  ''
-!  write(fmt,*) '(''# ============'',', N_states_p, '(1X,''=========================''))'
-!  write(*,fmt)
-!  write(fmt,*) '(12X,', N_states_p, '(6X,A5,1X,I6,8X))'
-!  write(*,fmt) ('State',k, k=1,N_states_p)
-!  write(fmt,*) '(''# ============'',', N_states_p, '(1X,''=========================''))'
-!  write(*,fmt)
-!  write(fmt,*) '(A12,', N_states_p, '(1X,F12.8,13X))'
-!  write(*,fmt) '# E          ', CI_energy(1:N_states_p)
-!  if (N_states_p > 1) then
-!    write(*,fmt) '# Excit. (au)', CI_energy(1:N_states_p)-CI_energy(1)
-!    write(*,fmt) '# Excit. (eV)', (CI_energy(1:N_states_p)-CI_energy(1))*27.211396641308d0
-!  endif
-!  write(fmt,*) '(A12,', 2*N_states_p, '(1X,F12.8))'
-!  write(*,fmt) '# PT2'//pt2_string, (pt2(k), error(k), k=1,N_states_p)
-!  write(*,*) '#'
-!  write(*,fmt) '# E+PT2      ', (CI_energy(k)+pt2(k),error(k), k=1,N_states_p)
-!  if (N_states_p > 1) then
-!    write(*,fmt) '# Excit. (au)', ( (CI_energy(k)+pt2(k)-CI_energy(1)-pt2(1)), &
-!      dsqrt(error(k)*error(k)+error(1)*error(1)), k=1,N_states_p)
-!    write(*,fmt) '# Excit. (eV)', ( (CI_energy(k)+pt2(k)-CI_energy(1)-pt2(1))*27.211396641308d0, &
-!      dsqrt(error(k)*error(k)+error(1)*error(1))*27.211396641308d0, k=1,N_states_p)
-!  endif
-!  write(fmt,*) '(''# ============'',', N_states_p, '(1X,''=========================''))'
-!  write(*,fmt)
-!  print *,  ''
+      N_states_p = min(N_det,N_states)
+
+      print *, ''
+      print '(A,I12)',  'Summary at N_det = ', N_det
+      print '(A)',      '-----------------------------------'
+      print *, ''
+      call write_double(6,correlation_energy_ratio, 'Correlation ratio')
+      print *, ''
+
+    print *,  ''
+    write(fmt,*) '(''# ============'',', N_states_p, '(1X,''=========================''))'
+    write(*,fmt)
+    write(fmt,*) '(12X,', N_states_p, '(6X,A5,1X,I6,8X))'
+    write(*,fmt) ('State',k, k=1,N_states_p)
+    write(fmt,*) '(''# ============'',', N_states_p, '(1X,''=========================''))'
+    write(*,fmt)
+    write(fmt,*) '(A12,', N_states_p, '(1X,F12.8,13X))'
+    write(*,fmt) '# E          ', CI_energy(1:N_states_p)
+    if (N_states_p > 1) then
+      write(*,fmt) '# Excit. (au)', CI_energy(1:N_states_p)-CI_energy(1)
+      write(*,fmt) '# Excit. (eV)', (CI_energy(1:N_states_p)-CI_energy(1))*27.211396641308d0
+    endif
+    write(fmt,*) '(A12,', 2*N_states_p, '(1X,F12.8))'
+    write(*,fmt) '# PT2'//pt2_string, (pt2(k), error(k), k=1,N_states_p)
+    write(*,'(A)') '#'
+    write(*,fmt) '# E+PT2      ', (CI_energy(k)+pt2(k),error(k), k=1,N_states_p)
+    if (N_states_p > 1) then
+      write(*,fmt) '# Excit. (au)', ( (CI_energy(k)+pt2(k)-CI_energy(1)-pt2(1)), &
+        dsqrt(error(k)*error(k)+error(1)*error(1)), k=1,N_states_p)
+      write(*,fmt) '# Excit. (eV)', ( (CI_energy(k)+pt2(k)-CI_energy(1)-pt2(1))*27.211396641308d0, &
+        dsqrt(error(k)*error(k)+error(1)*error(1))*27.211396641308d0, k=1,N_states_p)
+    endif
+    write(fmt,*) '(''# ============'',', N_states_p, '(1X,''=========================''))'
+    write(*,fmt)
+    print *,  ''
 
       print *,  'N_det             = ', N_det
       print *,  'N_states          = ', N_states
@@ -220,7 +221,7 @@ program fci_zmq
   endif
   write(fmt,*) '(A12,', 2*N_states_p, '(1X,F12.8))'
   write(*,fmt) '# PT2'//pt2_string, (pt2(k), error(k), k=1,N_states_p)
-  write(*,*) '#'
+  write(*,'(A)') '#'
   write(*,fmt) '# E+PT2      ', (CI_energy(k)+pt2(k),error(k), k=1,N_states_p)
   if (N_states_p > 1) then
     write(*,fmt) '# Excit. (au)', ( (CI_energy(k)+pt2(k)-CI_energy(1)-pt2(1)), &
