@@ -12,6 +12,7 @@ subroutine broadcast_chunks_$double(A, LDA)
   integer :: i, sze, ierr
   do i=1,LDA,2000000000/$8
     sze = min(LDA-i+1, 2000000000/$8)
+!    call MPI_BARRIER(MPI_COMM_WORLD)
     call MPI_BCAST (A(i), sze, MPI_$DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  'Unable to broadcast chuks $double ', i
@@ -43,18 +44,21 @@ subroutine mpi_bcast_psi(energy, size_energy)
     include 'mpif.h'
     integer :: ierr
 
+!    call MPI_BARRIER(MPI_COMM_WORLD)
     call MPI_BCAST (N_states, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  'Unable to broadcast N_states'
       stop -1
     endif
 
+!    call MPI_BARRIER(MPI_COMM_WORLD)
     call MPI_BCAST (N_det, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  'Unable to broadcast N_det'
       stop -1
     endif
 
+!    call MPI_BARRIER(MPI_COMM_WORLD)
     call MPI_BCAST (psi_det_size, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  'Unable to broadcast psi_det_size'
@@ -66,33 +70,15 @@ subroutine mpi_bcast_psi(energy, size_energy)
     endif
 
     
-    call broadcast_chunks_bit_kind(psi_det,size(psi_det))
-!    integer :: i, k, sze
-!    do i=1,psi_det_size,1000000000/(N_int*bit_kind_size)
-!      sze = min(psi_det_size-i+1, 1000000000/(N_int*bit_kind_size))
-!      call MPI_BCAST (psi_det(1,1,i), sze*N_int*2, MPI_BIT_KIND, 0, MPI_COMM_WORLD, ierr)
-!      if (ierr /= MPI_SUCCESS) then
-!        print *,  'Unable to broadcast psi_det ', i
-!        stop -1
-!      endif
-!    enddo
+    call broadcast_chunks_bit_kind(psi_det,N_det*N_int*2)
 
-    call broadcast_chunks_double(psi_coef,size(psi_coef))
-!    do k=1,N_states
-!      do i=1,psi_det_size,2000000000/8
-!        sze = min(psi_det_size-i+1, 2000000000/8)
-!        call MPI_BCAST (psi_coef(i,k), sze, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-!        if (ierr /= MPI_SUCCESS) then
-!          print *,  'Unable to broadcast psi_coef ', i, k
-!          stop -1
-!        endif
-!      enddo
-!    enddo
+    call broadcast_chunks_double(psi_coef,N_states*N_det)
 
     if (.not.mpi_master) then
       TOUCH psi_det psi_coef
     endif
 
+!    call MPI_BARRIER(MPI_COMM_WORLD)
     call MPI_BCAST (N_det_generators, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  'Unable to broadcast N_det_generators'
@@ -103,6 +89,7 @@ subroutine mpi_bcast_psi(energy, size_energy)
       TOUCH N_det_generators
     endif
 
+!    call MPI_BARRIER(MPI_COMM_WORLD)
     call MPI_BCAST (N_det_selectors, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  'Unable to broadcast N_det_selectors'
@@ -113,11 +100,13 @@ subroutine mpi_bcast_psi(energy, size_energy)
       TOUCH N_det_selectors
     endif
 
+!    call MPI_BARRIER(MPI_COMM_WORLD)
     call MPI_BCAST (energy, size(energy), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  'Unable to broadcast energy'
       stop -1
     endif
+!    call MPI_BARRIER(MPI_COMM_WORLD)
 
   IRP_ENDIF
 end
