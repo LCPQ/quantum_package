@@ -1,3 +1,23 @@
+BEGIN_PROVIDER [ integer, mpi_bit_kind ]
+ use bitmasks
+ include 'mpif.h'
+ implicit none
+ BEGIN_DOC
+ ! MPI bit kind type
+ END_DOC
+ IRP_IF MPI
+ if (bit_kind == 4) then
+  mpi_bit_kind = MPI_INTEGER4
+ else if (bit_kind == 8) then
+  mpi_bit_kind = MPI_INTEGER8
+ else
+  stop 'Wrong bit kind in mpi_bit_kind'
+ endif
+ IRP_ELSE
+  mpi_bit_kind = -1
+ IRP_ENDIF
+END_PROVIDER
+
 BEGIN_PROVIDER [ logical, mpi_initialized ]
  implicit none
  BEGIN_DOC
@@ -32,12 +52,14 @@ END_PROVIDER
     print *,  'ierr = ', ierr
     stop 'Unable to get MPI rank'
   endif
+  call write_int(6,mpi_rank,'MPI rank')
 
   call MPI_COMM_SIZE (MPI_COMM_WORLD, mpi_size, ierr)
   if (ierr /= 0) then
     print *,  'ierr = ', ierr
     stop 'Unable to get MPI size'
   endif
+  call write_int(6,mpi_size,'MPI size')
 
  IRP_ELSE
   mpi_rank = 0

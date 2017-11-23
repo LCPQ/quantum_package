@@ -132,7 +132,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
     + 4.d0*(N_st_diag*itermax)+nproc*(4.d0*N_det_alpha_unique+2.d0*N_st_diag*sze)))/(1024.d0**3)
   call write_double(iunit, r1, 'Memory(Gb)')
   write(iunit,'(A)') ''
-  write_buffer = '===='
+  write_buffer = '====='
   do i=1,N_st
     write_buffer = trim(write_buffer)//' ================ =========== ==========='
   enddo
@@ -142,7 +142,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
     write_buffer = trim(write_buffer)//'       Energy          S^2       Residual '
   enddo
   write(iunit,'(A)') write_buffer(1:6+41*N_states)
-  write_buffer = '===='
+  write_buffer = '====='
   do i=1,N_st
     write_buffer = trim(write_buffer)//' ================ =========== ==========='
   enddo
@@ -426,7 +426,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
     energies(k) = lambda(k)
     s2_out(k) = s2(k)
   enddo
-  write_buffer = '===== '
+  write_buffer = '======'
   do i=1,N_st
     write_buffer = trim(write_buffer)//' ================ =========== ==========='
   enddo

@@ -525,11 +525,12 @@ def create_ninja_and_rc(l_installed):
 
     try:
         with open('/dev/null', 'w') as dnull:
-            subprocess.check_call(" ".join(l), shell=True,stderr=dnull)
+            subprocess.check_call(" ".join(l), shell=True, stderr=dnull)
     except:
         print "[ FAIL ]"
         print "Check the validity of the config file provided ({0})".format(sys.argv[1])
         print "Exit..."
+        raise
         sys.exit(1)
 
     else:
