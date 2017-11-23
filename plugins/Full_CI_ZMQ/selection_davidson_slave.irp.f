@@ -69,7 +69,6 @@ subroutine run_wf
       ! --------
 
       print *,  'Davidson'
-      print *,  'PT2'
       if (mpi_master) then
         call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
       endif

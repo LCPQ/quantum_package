@@ -27,7 +27,7 @@ BEGIN_PROVIDER [ logical, mpi_initialized ]
   include 'mpif.h'
   integer                        :: ierr
   call mpi_init(ierr)
-  if (ierr /= 0) then
+  if (ierr /= MPI_SUCCESS) then
     print *,  'ierr = ', ierr
     stop 'Unable to initialize MPI'
   endif
@@ -48,14 +48,14 @@ END_PROVIDER
   integer                        :: ierr
 
   call MPI_COMM_RANK (MPI_COMM_WORLD, mpi_rank, ierr)
-  if (ierr /= 0) then
+  if (ierr /= MPI_SUCCESS) then
     print *,  'ierr = ', ierr
     stop 'Unable to get MPI rank'
   endif
   call write_int(6,mpi_rank,'MPI rank')
 
   call MPI_COMM_SIZE (MPI_COMM_WORLD, mpi_size, ierr)
-  if (ierr /= 0) then
+  if (ierr /= MPI_SUCCESS) then
     print *,  'ierr = ', ierr
     stop 'Unable to get MPI size'
   endif
