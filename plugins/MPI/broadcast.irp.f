@@ -1,3 +1,35 @@
+BEGIN_TEMPLATE
+
+subroutine broadcast_chunks_$double(A, LDA)
+  implicit none
+  integer, intent(in)             :: LDA
+  $type, intent(inout) :: A(LDA)
+  use bitmasks
+  include 'mpif.h'
+  BEGIN_DOC
+! Broadcast with chunks of ~2GB
+  END_DOC
+  integer :: i, sze, ierr
+  do i=1,LDA,2000000000/$8
+    sze = min(LDA-i+1, 2000000000/$8)
+    call MPI_BCAST (A(i), sze, MPI_$DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      print *,  'Unable to broadcast chuks $double ', i
+      stop -1
+    endif
+  enddo
+
+end
+
+SUBST [ double, type, 8, DOUBLE_PRECISION ]
+double    ; double precision  ; 8             ; DOUBLE_PRECISION ;;
+bit_kind  ; integer(bit_kind) ; bit_kind_size ; BIT_KIND ;;
+integer   ; integer          ; 4             ; INTEGER4 ;;
+integer8  ; integer*8        ; 8             ; INTEGER8 ;;
+
+END_TEMPLATE
+
+
 subroutine mpi_bcast_psi(energy, size_energy)
   implicit none
   BEGIN_DOC
@@ -5,7 +37,6 @@ subroutine mpi_bcast_psi(energy, size_energy)
   END_DOC
   integer, intent(in)            :: size_energy 
   double precision, intent(inout)  :: energy(size_energy) 
-  integer :: sze
   PROVIDE mpi_initialized
 
   IRP_IF MPI
@@ -35,17 +66,28 @@ subroutine mpi_bcast_psi(energy, size_energy)
     endif
 
     
-    call MPI_BCAST (psi_det, size(psi_det), MPI_BIT_KIND, 0, MPI_COMM_WORLD, ierr)
-    if (ierr /= MPI_SUCCESS) then
-      print *,  'Unable to broadcast psi_det'
-      stop -1
-    endif
+    call broadcast_chunks_bit_kind(psi_det,size(psi_det))
+!    integer :: i, k, sze
+!    do i=1,psi_det_size,1000000000/(N_int*bit_kind_size)
+!      sze = min(psi_det_size-i+1, 1000000000/(N_int*bit_kind_size))
+!      call MPI_BCAST (psi_det(1,1,i), sze*N_int*2, MPI_BIT_KIND, 0, MPI_COMM_WORLD, ierr)
+!      if (ierr /= MPI_SUCCESS) then
+!        print *,  'Unable to broadcast psi_det ', i
+!        stop -1
+!      endif
+!    enddo
 
-    call MPI_BCAST (psi_coef, size(psi_coef), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-    if (ierr /= MPI_SUCCESS) then
-      print *,  'Unable to broadcast psi_coef'
-      stop -1
-    endif
+    call broadcast_chunks_double(psi_coef,size(psi_coef))
+!    do k=1,N_states
+!      do i=1,psi_det_size,2000000000/8
+!        sze = min(psi_det_size-i+1, 2000000000/8)
+!        call MPI_BCAST (psi_coef(i,k), sze, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+!        if (ierr /= MPI_SUCCESS) then
+!          print *,  'Unable to broadcast psi_coef ', i, k
+!          stop -1
+!        endif
+!      enddo
+!    enddo
 
     if (.not.mpi_master) then
       TOUCH psi_det psi_coef
