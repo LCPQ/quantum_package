@@ -10,9 +10,8 @@ subroutine broadcast_chunks_$double(A, LDA)
 ! Broadcast with chunks of ~2GB
   END_DOC
   integer :: i, sze, ierr
-  do i=1,LDA,2000000000/$8
-    sze = min(LDA-i+1, 2000000000/$8)
-!    call MPI_BARRIER(MPI_COMM_WORLD)
+  do i=1,LDA,200000000/$8
+    sze = min(LDA-i+1, 200000000/$8)
     call MPI_BCAST (A(i), sze, MPI_$DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  irp_here//': Unable to broadcast chuks $double ', i
@@ -44,21 +43,18 @@ subroutine mpi_bcast_psi(energy, size_energy)
     include 'mpif.h'
     integer :: ierr
 
-!    call MPI_BARRIER(MPI_COMM_WORLD)
     call MPI_BCAST (N_states, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  irp_here//': Unable to broadcast N_states'
       stop -1
     endif
 
-!    call MPI_BARRIER(MPI_COMM_WORLD)
     call MPI_BCAST (N_det, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  irp_here//': Unable to broadcast N_det'
       stop -1
     endif
 
-!    call MPI_BARRIER(MPI_COMM_WORLD)
     call MPI_BCAST (psi_det_size, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  irp_here//': Unable to broadcast psi_det_size'
@@ -78,7 +74,6 @@ subroutine mpi_bcast_psi(energy, size_energy)
       TOUCH psi_det psi_coef
     endif
 
-!    call MPI_BARRIER(MPI_COMM_WORLD)
     call MPI_BCAST (N_det_generators, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  irp_here//': Unable to broadcast N_det_generators'
@@ -89,7 +84,6 @@ subroutine mpi_bcast_psi(energy, size_energy)
       TOUCH N_det_generators
     endif
 
-!    call MPI_BARRIER(MPI_COMM_WORLD)
     call MPI_BCAST (N_det_selectors, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  irp_here//': Unable to broadcast N_det_selectors'
@@ -100,13 +94,11 @@ subroutine mpi_bcast_psi(energy, size_energy)
       TOUCH N_det_selectors
     endif
 
-!    call MPI_BARRIER(MPI_COMM_WORLD)
     call MPI_BCAST (energy, size(energy), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  irp_here//': Unable to broadcast energy'
       stop -1
     endif
-!    call MPI_BARRIER(MPI_COMM_WORLD)
 
   IRP_ENDIF
 end

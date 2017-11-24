@@ -132,7 +132,12 @@ subroutine push_selection_results(zmq_socket_push, pt2, b, task_id, ntask)
 ! Activate is zmq_socket_push is a REQ
 IRP_IF ZMQ_PUSH
 IRP_ELSE
-  rc = f77_zmq_recv( zmq_socket_push, task_id(1), ntask*4, 0)
+  character*(2) :: ok
+  rc = f77_zmq_recv( zmq_socket_push, ok, 2, 0)
+  if ((rc /= 2).and.(ok(1:2) /= 'ok')) then
+    print *,  irp_here//': error in receiving ok'
+    stop -1
+  endif
 IRP_ENDIF
 
 end subroutine
@@ -186,9 +191,12 @@ subroutine pull_selection_results(zmq_socket_pull, pt2, val, det, N, task_id, nt
 ! Activate is zmq_socket_pull is a REP
 IRP_IF ZMQ_PUSH
 IRP_ELSE
-  rc = f77_zmq_send( zmq_socket_pull, task_id(1), ntask*4, 0)
+  rc = f77_zmq_send( zmq_socket_pull, 'ok', 2, 0)
+  if (rc /= 2) then
+    print *,  irp_here//': error in sending ok'
+    stop -1
+  endif
 IRP_ENDIF
-
 end subroutine
  
  

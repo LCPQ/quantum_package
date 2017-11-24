@@ -30,7 +30,7 @@ subroutine run_pt2_slave(thread,iproc,energy)
   zmq_socket_push      = new_zmq_push_socket(thread)
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   if(worker_id == -1) then
-    print *, "WORKER -1"
+    print *, 'WORKER -1'
     call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
     call end_zmq_push_socket(zmq_socket_push,thread)
     return
@@ -62,7 +62,7 @@ subroutine run_pt2_slave(thread,iproc,energy)
     endif
 
     if(done .or. (ctask == size(task_id)) ) then
-      if(buf%N == 0 .and. ctask > 0) stop "uninitialized selection_buffer"
+      if(buf%N == 0 .and. ctask > 0) stop 'uninitialized selection_buffer'
       do i=1, ctask
          call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i))
       end do
@@ -97,26 +97,30 @@ subroutine push_pt2_results(zmq_socket_push, N, index, pt2_detail, task_id, ntas
 
 
   rc = f77_zmq_send( zmq_socket_push, N, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "push"
+  if(rc /= 4) stop 'push'
 
   rc = f77_zmq_send( zmq_socket_push, index, 4, ZMQ_SNDMORE)
-  if(rc /= 4*N) stop "push"
+  if(rc /= 4*N) stop 'push'
 
 
   rc = f77_zmq_send( zmq_socket_push, pt2_detail, 8*N_states*N, ZMQ_SNDMORE)
-  if(rc /= 8*N_states*N) stop "push"
+  if(rc /= 8*N_states*N) stop 'push'
 
   rc = f77_zmq_send( zmq_socket_push, ntask, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "push"
+  if(rc /= 4) stop 'push'
 
   rc = f77_zmq_send( zmq_socket_push, task_id, ntask*4, 0)
-  if(rc /= 4*ntask) stop "push"
+  if(rc /= 4*ntask) stop 'push'
 
 ! Activate is zmq_socket_push is a REQ
 IRP_IF ZMQ_PUSH
 IRP_ELSE
   character*(2) :: ok
   rc = f77_zmq_recv( zmq_socket_push, ok, 2, 0)
+  if ((rc /= 2).and.(ok(1:2) /= 'ok')) then
+    print *,  irp_here//': error in receiving ok'
+    stop -1
+  endif
 IRP_ENDIF
 
 end subroutine
@@ -133,24 +137,28 @@ subroutine pull_pt2_results(zmq_socket_pull, N, index, pt2_detail, task_id, ntas
   integer :: rc, rn, i
 
   rc = f77_zmq_recv( zmq_socket_pull, N, 4, 0)
-  if(rc /= 4) stop "pull"
+  if(rc /= 4) stop 'pull'
 
   rc = f77_zmq_recv( zmq_socket_pull, index, 4, 0)
-  if(rc /= 4*N) stop "pull"
+  if(rc /= 4*N) stop 'pull'
 
   rc = f77_zmq_recv( zmq_socket_pull, pt2_detail, N_states*8*N, 0)
-  if(rc /= 8*N_states*N) stop "pull"
+  if(rc /= 8*N_states*N) stop 'pull'
 
   rc = f77_zmq_recv( zmq_socket_pull, ntask, 4, 0)
-  if(rc /= 4) stop "pull"
+  if(rc /= 4) stop 'pull'
 
   rc = f77_zmq_recv( zmq_socket_pull, task_id, ntask*4, 0)
-  if(rc /= 4*ntask) stop "pull"
+  if(rc /= 4*ntask) stop 'pull'
 
 ! Activate is zmq_socket_pull is a REP
 IRP_IF ZMQ_PUSH
 IRP_ELSE
   rc = f77_zmq_send( zmq_socket_pull, 'ok', 2, 0)
+  if (rc /= 2) then
+    print *,  irp_here//': error in sending ok'
+    stop -1
+  endif
 IRP_ENDIF
 
 end subroutine

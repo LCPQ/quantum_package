@@ -41,7 +41,7 @@ let debug_env =
 
 let debug str =
   if debug_env then
-    Printf.printf "TASK : %s%!" str
+    Printf.eprintf "TASK : %s%!" str
 
 
 

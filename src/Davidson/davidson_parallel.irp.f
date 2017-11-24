@@ -38,7 +38,7 @@ subroutine davidson_run_slave(thread,iproc)
   zmq_socket_push      = new_zmq_push_socket(thread)
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   if(worker_id == -1) then
-    print *, "WORKER -1"
+    print *, 'WORKER -1'
     call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
     call end_zmq_push_socket(zmq_socket_push,thread)
     return
@@ -160,28 +160,28 @@ subroutine davidson_push_results(zmq_socket_push, v_t, s_t, imin, imax, task_id)
   sz = (imax-imin+1)*N_states_diag
 
   rc = f77_zmq_send( zmq_socket_push, task_id, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "davidson_push_results failed to push task_id"
+  if(rc /= 4) stop 'davidson_push_results failed to push task_id'
 
   rc = f77_zmq_send( zmq_socket_push, imin, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "davidson_push_results failed to push imin"
+  if(rc /= 4) stop 'davidson_push_results failed to push imin'
 
   rc = f77_zmq_send( zmq_socket_push, imax, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "davidson_push_results failed to push imax"
+  if(rc /= 4) stop 'davidson_push_results failed to push imax'
 
   rc8 = f77_zmq_send8( zmq_socket_push, v_t(1,imin), 8_8*sz, ZMQ_SNDMORE)
-  if(rc8 /= 8_8*sz) stop "davidson_push_results failed to push vt"
+  if(rc8 /= 8_8*sz) stop 'davidson_push_results failed to push vt'
 
   rc8 = f77_zmq_send8( zmq_socket_push, s_t(1,imin), 8_8*sz, 0)
-  if(rc8 /= 8_8*sz) stop "davidson_push_results failed to push st"
+  if(rc8 /= 8_8*sz) stop 'davidson_push_results failed to push st'
 
 ! Activate is zmq_socket_push is a REQ
 IRP_IF ZMQ_PUSH
 IRP_ELSE
-  integer :: idummy
-  rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0)
-  if (rc /= 4) then
-    print *, irp_here, ': f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
-    stop 'error'
+  character*(2) :: ok
+  rc = f77_zmq_recv( zmq_socket_push, ok, 2, 0)
+  if ((rc /= 2).and.(ok(1:2)/='ok')) then
+    print *, irp_here, ': f77_zmq_recv( zmq_socket_push, ok, 2, 0)'
+    stop -1
   endif
 IRP_ENDIF
 
@@ -202,29 +202,29 @@ subroutine davidson_pull_results(zmq_socket_pull, v_t, s_t, imin, imax, task_id)
   integer*8                          :: rc8
 
   rc = f77_zmq_recv( zmq_socket_pull, task_id, 4, 0)
-  if(rc /= 4) stop "davidson_pull_results failed to pull task_id"
+  if(rc /= 4) stop 'davidson_pull_results failed to pull task_id'
 
   rc = f77_zmq_recv( zmq_socket_pull, imin, 4, 0)
-  if(rc /= 4) stop "davidson_pull_results failed to pull imin"
+  if(rc /= 4) stop 'davidson_pull_results failed to pull imin'
 
   rc = f77_zmq_recv( zmq_socket_pull, imax, 4, 0)
-  if(rc /= 4) stop "davidson_pull_results failed to pull imax"
+  if(rc /= 4) stop 'davidson_pull_results failed to pull imax'
 
   sz = (imax-imin+1)*N_states_diag
 
   rc8 = f77_zmq_recv8( zmq_socket_pull, v_t(1,imin), 8_8*sz, 0)
-  if(rc8 /= 8*sz) stop "davidson_pull_results failed to pull v_t"
+  if(rc8 /= 8*sz) stop 'davidson_pull_results failed to pull v_t'
 
   rc8 = f77_zmq_recv8( zmq_socket_pull, s_t(1,imin), 8_8*sz, 0)
-  if(rc8 /= 8*sz) stop "davidson_pull_results failed to pull s_t"
+  if(rc8 /= 8*sz) stop 'davidson_pull_results failed to pull s_t'
 
 ! Activate if zmq_socket_pull is a REP
 IRP_IF ZMQ_PUSH
 IRP_ELSE
-  rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)
-  if (rc /= 4) then
+  rc = f77_zmq_send( zmq_socket_pull, 'ok', 2, 0)
+  if (rc /= 2) then
     print *,  irp_here, ' : f77_zmq_send (zmq_socket_pull,...'
-    stop 'error'
+    stop -1
   endif
 IRP_ENDIF
 
