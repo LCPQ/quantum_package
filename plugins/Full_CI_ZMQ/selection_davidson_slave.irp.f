@@ -20,8 +20,9 @@ end
 
 subroutine run_wf
   use f77_zmq
-
+  
   implicit none
+  include 'mpif.h'
 
   integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
@@ -62,6 +63,12 @@ subroutine run_wf
       call run_selection_slave(0,i,energy)
       !$OMP END PARALLEL
       print *,  'Selection done'
+      IRP_IF MPI
+        call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+        if (ierr /= MPI_SUCCESS) then
+          print *,  irp_here, 'error in barrier'
+        endif
+      IRP_ENDIF
 
     else if (trim(zmq_state) == 'davidson') then
 
@@ -72,11 +79,23 @@ subroutine run_wf
       if (mpi_master) then
         call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
       endif
+      double precision :: t0, t1
+      call wall_time(t0)
       call mpi_bcast_psi(energy,N_states)
+      call wall_time(t1)
+      call write_double(6,(t1-t0),'Broadcast time')
+
       call omp_set_nested(.True.)
       call davidson_slave_tcp(0)
       call omp_set_nested(.False.)
       print *,  'Davidson done'
+      IRP_IF MPI
+        call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+        if (ierr /= MPI_SUCCESS) then
+          print *,  irp_here, 'error in barrier'
+        endif
+      IRP_ENDIF
+
 
     else if (trim(zmq_state) == 'pt2') then
 
@@ -96,6 +115,12 @@ subroutine run_wf
       call run_pt2_slave(0,i,energy,lstop)
       !$OMP END PARALLEL
       print *,  'PT2 done'
+      IRP_IF MPI
+        call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+        if (ierr /= MPI_SUCCESS) then
+          print *,  irp_here, 'error in barrier'
+        endif
+      IRP_ENDIF
 
     endif
 

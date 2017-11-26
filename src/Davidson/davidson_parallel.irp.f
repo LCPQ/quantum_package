@@ -32,8 +32,6 @@ subroutine davidson_run_slave(thread,iproc)
   integer(ZMQ_PTR), external     :: new_zmq_push_socket
   integer(ZMQ_PTR)               :: zmq_socket_push
 
-  
-
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_push      = new_zmq_push_socket(thread)
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
@@ -74,56 +72,93 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
   integer*8                      :: rc8
   integer                        :: N_states_read, N_det_read, psi_det_size_read
   integer                        :: N_det_selectors_read, N_det_generators_read
-  double precision               :: energy(N_st)
+  double precision, allocatable  :: energy(:)
 
 
-  write(msg, *) 'get_psi ', worker_id
-  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
-  if (rc /= len(trim(msg))) then
-    print *,  'f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)'
-    stop 'error'
+  allocate(u_t(N_st,N_det))
+
+  if (mpi_master) then
+
+    write(msg, *) 'get_psi ', worker_id
+    rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
+    if (rc /= len(trim(msg))) then
+      print *,  'f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)'
+      stop 'error'
+    endif
+
+    rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
+    if (msg(1:13) /= 'get_psi_reply') then
+      print *,  rc, trim(msg)
+      print *,  'Error in get_psi_reply'
+      stop 'error'
+    endif
+
+    read(msg(14:rc),*) N_states_read, N_det_read, psi_det_size_read,        &
+        N_det_generators_read, N_det_selectors_read
+
+    if (N_states_read /= N_st) then
+      print *, N_st
+      stop 'error : N_st'
+    endif
+
+    if (N_det_read /= N_det) then
+      print *, N_det
+      stop 'N_det /= N_det_read'
+    endif
+
+    rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det_read*bit_kind,0)
+    if (rc8 /= N_int*2_8*N_det_read*bit_kind) then
+      print *, 'f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det_read*bit_kind,0)'
+      stop 'error'
+    endif
+
+    rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,u_t,size(u_t)*8_8,0)
+    if (rc8 /= size(u_t)*8_8) then
+      print *,  rc, size(u_t)*8
+      print *, 'f77_zmq_recv8(zmq_to_qp_run_socket,u_t,size(u_t)*8_8,0)'
+      stop 'error'
+    endif
+
+    allocate (energy(N_st))
+    rc = f77_zmq_recv(zmq_to_qp_run_socket,energy,N_st*8,0)
+    if (rc /= N_st*8) then
+      print *, '77_zmq_recv(zmq_to_qp_run_socket,energy,N_st*8,0)'
+      stop 'error'
+    endif
+
   endif
 
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
-  if (msg(1:13) /= 'get_psi_reply') then
-    print *,  rc, trim(msg)
-    print *,  'Error in get_psi_reply'
-    stop 'error'
-  endif
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
 
-  read(msg(14:rc),*) N_states_read, N_det_read, psi_det_size_read,        &
-      N_det_generators_read, N_det_selectors_read
+    call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+    print *,  mpi_rank, size(u_t)
+    call sleep(1)
+    if (ierr /= MPI_SUCCESS) then
+      print *,  irp_here//': Unable to broadcast N_st'
+      stop -1
+    endif
+    call broadcast_chunks_double(u_t,size(u_t))
 
-  if (N_states_read /= N_st) then
-    print *, N_st
-    stop 'error : N_st'
-  endif
+    
+    call MPI_BCAST (N_st, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      print *,  irp_here//': Unable to broadcast N_st'
+      stop -1
+    endif
 
-  if (N_det_read /= N_det) then
-    N_det = N_det_read
-    TOUCH N_det
-  endif
+    if (.not.mpi_master) then
+      allocate (energy(N_st))
+    endif
 
-  allocate(u_t(N_st,N_det_read))
+    call MPI_BCAST (energy, N_st, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      print *,  irp_here//': Unable to broadcast energy'
+      stop -1
+    endif
 
-  rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det_read*bit_kind,0)
-  if (rc8 /= N_int*2_8*N_det_read*bit_kind) then
-    print *, 'f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det_read*bit_kind,0)'
-    stop 'error'
-  endif
-
-  rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,u_t,size(u_t)*8_8,0)
-  if (rc8 /= size(u_t)*8_8) then
-    print *,  rc, size(u_t)*8
-    print *, 'f77_zmq_recv8(zmq_to_qp_run_socket,u_t,size(u_t)*8_8,0)'
-    stop 'error'
-  endif
-
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,energy,N_st*8,0)
-  if (rc /= N_st*8) then
-    print *, '77_zmq_recv(zmq_to_qp_run_socket,energy,N_st*8,0)'
-    stop 'error'
-  endif
+  IRP_ENDIF
 
   ! Run tasks
   ! ---------
@@ -297,6 +332,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   PROVIDE psi_det_beta_unique psi_bilinear_matrix_order_transp_reverse psi_det_alpha_unique 
   PROVIDE psi_bilinear_matrix_transp_values psi_bilinear_matrix_values psi_bilinear_matrix_columns_loc
   PROVIDE ref_bitmask_energy nproc
+  PROVIDE mpi_initialized
 
 
   allocate(u_t(N_st,N_det))

@@ -472,8 +472,14 @@ subroutine u_0_H_u_0(e_0,u_0,n,keys_tmp,Nint,N_st,sze)
     allocate (v_0(sze,N_st),s_0(sze,N_st))
     call H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze)
   endif
+  double precision :: norm
   do i=1,N_st
-    e_0(i) = u_dot_v(v_0(1,i),u_0(1,i),n)/u_dot_u(u_0(1,i),n)
+    norm = u_dot_u(u_0(1,i),n)
+    if (norm /= 0.d0) then
+      e_0(i) = u_dot_v(v_0(1,i),u_0(1,i),n)
+    else
+      e_0(i) = 0.d0
+    endif
   enddo
   deallocate (s_0, v_0)
 end

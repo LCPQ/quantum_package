@@ -24,6 +24,7 @@ subroutine run_pt2_slave(thread,iproc,energy)
   double precision,allocatable :: pt2_detail(:,:)
   integer :: index
   integer :: Nindex
+  logical :: buffer_ready
 
   allocate(pt2_detail(N_states, N_det_generators))
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
@@ -40,6 +41,7 @@ subroutine run_pt2_slave(thread,iproc,energy)
   Nindex=1
   pt2 = 0d0
   pt2_detail = 0d0
+  buffer_ready = .False.
   do
     call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(ctask), task)
 
@@ -53,6 +55,7 @@ subroutine run_pt2_slave(thread,iproc,energy)
       if(buf%N == 0) then
         ! Only first time 
         call create_selection_buffer(1, 2, buf)
+        buffer_ready = .True.
       end if
       do i_i_generator=1, Nindex
         i_generator = index
@@ -81,7 +84,9 @@ subroutine run_pt2_slave(thread,iproc,energy)
   call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
-  call delete_selection_buffer(buf)
+  if (buffer_ready) then
+    call delete_selection_buffer(buf)
+  endif
 end subroutine
 
 

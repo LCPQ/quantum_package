@@ -20,7 +20,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
   double precision, allocatable  :: pt2_detail(:,:), comb(:)
   logical, allocatable           :: computed(:)
   integer, allocatable           :: tbc(:)
-  integer                        :: i, j, k, Ncomb, generator_per_task, i_generator_end
+  integer                        :: i, j, k, Ncomb, i_generator_end
   integer, external              :: pt2_find
   
   double precision               :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
@@ -56,7 +56,6 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
       end do
       
       pt2_detail = 0d0
-      generator_per_task = 1
       print *, '========== ================= ================= ================='
       print *, ' Samples        Energy         Stat. Error         Seconds      '
       print *, '========== ================= ================= ================='
@@ -192,7 +191,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   integer, allocatable :: task_id(:)
   integer :: Nindex
   integer, allocatable :: index(:)
-  double precision, save :: time0 = -1.d0
+  double precision :: time0
   double precision :: time, timeLast, Nabove_old
   double precision, external :: omp_get_wtime
   integer :: tooth, firstTBDcomb, orgTBDcomb
@@ -227,9 +226,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   zmq_socket_pull = new_zmq_pull_socket()
   allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det_generators), index(1))
   more = 1
-  if (time0 < 0.d0) then
-      call wall_time(time0)
-  endif
+  call wall_time(time0)
   timeLast = time0
 
   call get_first_tooth(actually_computed, tooth)

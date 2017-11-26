@@ -4,6 +4,8 @@ BEGIN_PROVIDER [ character*(128), ezfio_filename ]
   ! Name of EZFIO file. It is obtained from the QPACKAGE_INPUT environment
   ! variable if it is set, or as the 1st argument of the command line.
   END_DOC
+
+  PROVIDE mpi_initialized
   
   ! Get the QPACKAGE_INPUT environment variable
   call getenv('QPACKAGE_INPUT',ezfio_filename)

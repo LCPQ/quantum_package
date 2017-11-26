@@ -444,7 +444,7 @@ subroutine save_wavefunction
   BEGIN_DOC
 !  Save the wave function into the EZFIO file
   END_DOC
-  call save_wavefunction_general(N_det,N_states,psi_det_sorted,size(psi_coef_sorted,1),psi_coef_sorted)
+  call save_wavefunction_general(N_det,min(N_states,N_det),psi_det_sorted,size(psi_coef_sorted,1),psi_coef_sorted)
 end
 
 
@@ -454,7 +454,7 @@ subroutine save_wavefunction_unsorted
   BEGIN_DOC
 !  Save the wave function into the EZFIO file
   END_DOC
-  call save_wavefunction_general(N_det,N_states,psi_det,size(psi_coef,1),psi_coef)
+  call save_wavefunction_general(N_det,min(N_states,N_det),psi_det,size(psi_coef,1),psi_coef)
 end
 
 subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
@@ -497,6 +497,9 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
       accu_norm(k) = accu_norm(k) + psicoef(i,k) * psicoef(i,k)
       psi_coef_save(i,k) = psicoef(i,k)
     enddo
+    if (accu_norm(k) == 0.d0) then
+      accu_norm(k) = 1.e-12
+    endif
   enddo
   do k = 1, nstates
    accu_norm(k) = 1.d0/dsqrt(accu_norm(k))

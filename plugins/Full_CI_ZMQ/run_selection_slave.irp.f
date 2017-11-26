@@ -18,7 +18,7 @@ subroutine run_selection_slave(thread,iproc,energy)
   integer(ZMQ_PTR)               :: zmq_socket_push
 
   type(selection_buffer) :: buf, buf2
-  logical :: done
+  logical :: done, buffer_ready
   double precision :: pt2(N_states)
 
   PROVIDE psi_bilinear_matrix_columns_loc psi_det_alpha_unique psi_det_beta_unique
@@ -35,6 +35,7 @@ subroutine run_selection_slave(thread,iproc,energy)
     return
   end if
   buf%N = 0
+  buffer_ready = .False.
   ctask = 1
   pt2(:) = 0d0
 
@@ -50,6 +51,7 @@ subroutine run_selection_slave(thread,iproc,energy)
         ! Only first time 
         call create_selection_buffer(N, N*2, buf)
         call create_selection_buffer(N, N*2, buf2)
+        buffer_ready = .True.
       else
         ASSERT (N == buf%N)
       end if
@@ -77,7 +79,7 @@ subroutine run_selection_slave(thread,iproc,energy)
   call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
-  if (buf%N > 0) then
+  if (buffer_ready) then
     call delete_selection_buffer(buf)
     call delete_selection_buffer(buf2)
   endif
