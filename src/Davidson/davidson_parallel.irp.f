@@ -90,24 +90,7 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
     integer :: ierr
 
     call broadcast_chunks_double(u_t,size(u_t))
-
     
-    call MPI_BCAST (N_st, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-    if (ierr /= MPI_SUCCESS) then
-      print *,  irp_here//': Unable to broadcast N_st'
-      stop -1
-    endif
-
-    if (.not.mpi_master) then
-      allocate (energy(N_st))
-    endif
-
-    call MPI_BCAST (energy, N_st, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-    if (ierr /= MPI_SUCCESS) then
-      print *,  irp_here//': Unable to broadcast energy'
-      stop -1
-    endif
-
   IRP_ENDIF
 
   ! Run tasks
@@ -312,9 +295,9 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   energy = 0.d0
 
   call zmq_put_N_states_diag(zmq_to_qp_run_socket, 1)
-  call zmq_put_psi_det(zmq_to_qp_run_socket, 1)
+  call zmq_put_psi(zmq_to_qp_run_socket,1)
+  call zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',energy,size(energy))
   call zmq_put_dvector(zmq_to_qp_run_socket, 1, 'u_t', u_t, size(u_t))
-  call zmq_put_dvector(zmq_to_qp_run_socket, 1, 'energy', energy, size(energy))
 
   deallocate(u_t)
 

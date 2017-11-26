@@ -1,4 +1,4 @@
-subroutine zmq_put_psi(zmq_to_qp_run_socket,worker_id, energy, size_energy)
+subroutine zmq_put_psi(zmq_to_qp_run_socket,worker_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -6,10 +6,6 @@ subroutine zmq_put_psi(zmq_to_qp_run_socket,worker_id, energy, size_energy)
   END_DOC
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   integer, intent(in)            :: worker_id
-  integer, intent(in)            :: size_energy
-  double precision, intent(out)  :: energy(size_energy)
-  integer                        :: rc
-  integer*8                      :: rc8
   character*(256)                :: msg
 
   call zmq_put_N_states(zmq_to_qp_run_socket, worker_id)
@@ -19,7 +15,6 @@ subroutine zmq_put_psi(zmq_to_qp_run_socket,worker_id, energy, size_energy)
   call zmq_put_psi_coef(zmq_to_qp_run_socket, worker_id)
   call zmq_put_N_det_generators(zmq_to_qp_run_socket, worker_id)
   call zmq_put_N_det_selectors(zmq_to_qp_run_socket, worker_id)
-  call zmq_put_dvector(zmq_to_qp_run_socket, worker_id, 'energy', energy, size_energy)
 
 end
 
@@ -208,7 +203,7 @@ end
 !---------------------------------------------------------------------------
 
 
-subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id, energy, size_energy)
+subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -216,10 +211,6 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id, energy, size_energy)
   END_DOC
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   integer, intent(in)            :: worker_id
-  integer, intent(in)            :: size_energy
-  double precision, intent(out)  :: energy(size_energy)
-  integer                        :: rc
-  integer*8                      :: rc8
   character*(64)                 :: msg
 
   call zmq_get_N_states(zmq_to_qp_run_socket, worker_id)
@@ -236,8 +227,6 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id, energy, size_energy)
 
   call zmq_get_N_det_selectors(zmq_to_qp_run_socket, worker_id)
   TOUCH N_det_selectors
-
-  call zmq_get_dvector(zmq_to_qp_run_socket, worker_id, 'energy', energy, size_energy)
 
 end
 
@@ -271,7 +260,7 @@ subroutine zmq_get_psi_det(zmq_to_qp_run_socket, worker_id)
 
   rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,int(N_int*2_8*N_det*bit_kind,8),0)
   if (rc8 /= N_int*2_8*N_det*bit_kind) then
-    print *,  irp_here, ': Error getting psi_det'
+    print *,  irp_here, ': Error getting psi_det', rc8, N_int*2_8*N_det*bit_kind
     stop 'error'
   endif
 

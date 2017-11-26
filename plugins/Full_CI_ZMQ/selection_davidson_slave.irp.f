@@ -54,7 +54,8 @@ subroutine run_wf
 
       print *,  'Selection'
       if (mpi_master) then
-        call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+        call zmq_get_psi(zmq_to_qp_run_socket,1)
+        call zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states)
       endif
       call mpi_bcast_psi(energy,N_states)
   
@@ -77,11 +78,13 @@ subroutine run_wf
 
       print *,  'Davidson'
       if (mpi_master) then
-        call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+        call zmq_get_psi(zmq_to_qp_run_socket,1)
+        call zmq_get_N_states_diag(zmq_to_qp_run_socket,1)
+        call zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states_diag)
       endif
       double precision :: t0, t1
       call wall_time(t0)
-      call mpi_bcast_psi(energy,N_states)
+      call mpi_bcast_psi(energy,N_states_diag)
       call wall_time(t1)
       call write_double(6,(t1-t0),'Broadcast time')
 
@@ -104,7 +107,8 @@ subroutine run_wf
 
       print *,  'PT2'
       if (mpi_master) then
-        call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+        call zmq_get_psi(zmq_to_qp_run_socket,1)
+        call zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states)
       endif
       call mpi_bcast_psi(energy,N_states)
   

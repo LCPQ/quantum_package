@@ -51,7 +51,8 @@ subroutine run_wf
       ! ---------
 
       print *,  'Selection'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      call zmq_get_psi(zmq_to_qp_run_socket,1)
+      call zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states)
   
       !$OMP PARALLEL PRIVATE(i)
       i = omp_get_thread_num()
@@ -65,7 +66,8 @@ subroutine run_wf
       ! ---
 
       print *,  'PT2'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      call zmq_get_psi(zmq_to_qp_run_socket,1)
+      call zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states)
   
       logical :: lstop
       lstop = .False.

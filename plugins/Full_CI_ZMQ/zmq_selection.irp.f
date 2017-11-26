@@ -24,7 +24,8 @@ subroutine ZMQ_selection(N_in, pt2)
     PROVIDE psi_bilinear_matrix_transp_order
 
     call new_parallel_job(zmq_to_qp_run_socket,"selection")
-    call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
+    call zmq_put_psi(zmq_to_qp_run_socket,1)
+    call zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',pt2_e0_denominator,size(pt2_e0_denominator))
     call create_selection_buffer(N, N*2, b)
   endif
 

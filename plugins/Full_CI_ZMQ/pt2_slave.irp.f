@@ -47,7 +47,8 @@ subroutine run_wf
       ! ---------
 
       print *,  'PT2'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      call zmq_get_psi(zmq_to_qp_run_socket,1)
+      call zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states)
 
       PROVIDE psi_bilinear_matrix_columns_loc psi_det_alpha_unique psi_det_beta_unique
       PROVIDE psi_bilinear_matrix_rows psi_det_sorted_order psi_bilinear_matrix_order

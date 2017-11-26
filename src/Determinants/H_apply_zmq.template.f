@@ -33,7 +33,8 @@ subroutine $subroutine($params_main)
   call new_parallel_job(zmq_to_qp_run_socket,'$subroutine')
   zmq_socket_pair = new_zmq_pair_socket(.True.)
 
-  call zmq_put_psi(zmq_to_qp_run_socket,1,energy,size(energy))
+  call zmq_put_psi(zmq_to_qp_run_socket,1)
+  call zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',energy,size(energy))
 
   do i_generator=1,N_det_generators
     $skip
