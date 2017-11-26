@@ -36,7 +36,7 @@ subroutine davidson_run_slave(thread,iproc)
   zmq_socket_push      = new_zmq_push_socket(thread)
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   if(worker_id == -1) then
-    print *, 'WORKER -1'
+    print *, 'Exited'
     call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
     call end_zmq_push_socket(zmq_socket_push,thread)
     return
@@ -76,55 +76,12 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
 
 
   allocate(u_t(N_st,N_det))
+  allocate (energy(N_st))
 
   if (mpi_master) then
 
-    write(msg, *) 'get_psi ', worker_id
-    rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
-    if (rc /= len(trim(msg))) then
-      print *,  'f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)'
-      stop 'error'
-    endif
-
-    rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
-    if (msg(1:13) /= 'get_psi_reply') then
-      print *,  rc, trim(msg)
-      print *,  'Error in get_psi_reply'
-      stop 'error'
-    endif
-
-    read(msg(14:rc),*) N_states_read, N_det_read, psi_det_size_read,        &
-        N_det_generators_read, N_det_selectors_read
-
-    if (N_states_read /= N_st) then
-      print *, N_st
-      stop 'error : N_st'
-    endif
-
-    if (N_det_read /= N_det) then
-      print *, N_det
-      stop 'N_det /= N_det_read'
-    endif
-
-    rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det_read*bit_kind,0)
-    if (rc8 /= N_int*2_8*N_det_read*bit_kind) then
-      print *, 'f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det_read*bit_kind,0)'
-      stop 'error'
-    endif
-
-    rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,u_t,size(u_t)*8_8,0)
-    if (rc8 /= size(u_t)*8_8) then
-      print *,  rc, size(u_t)*8
-      print *, 'f77_zmq_recv8(zmq_to_qp_run_socket,u_t,size(u_t)*8_8,0)'
-      stop 'error'
-    endif
-
-    allocate (energy(N_st))
-    rc = f77_zmq_recv(zmq_to_qp_run_socket,energy,N_st*8,0)
-    if (rc /= N_st*8) then
-      print *, '77_zmq_recv(zmq_to_qp_run_socket,energy,N_st*8,0)'
-      stop 'error'
-    endif
+    call zmq_get_dvector(zmq_to_qp_run_socket, worker_id, 'u_t', u_t, size(u_t))
+    call zmq_get_dvector(zmq_to_qp_run_socket, worker_id, 'energy', energy, size(energy))
 
   endif
 
@@ -132,13 +89,6 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
     include 'mpif.h'
     integer :: ierr
 
-    call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-    print *,  mpi_rank, size(u_t)
-    call sleep(1)
-    if (ierr /= MPI_SUCCESS) then
-      print *,  irp_here//': Unable to broadcast N_st'
-      stop -1
-    endif
     call broadcast_chunks_double(u_t,size(u_t))
 
     
@@ -358,40 +308,13 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   integer :: rc
   integer*8 :: rc8
   double precision :: energy(N_st)
+
   energy = 0.d0
 
-  task = ' '
-  write(task,*) 'put_psi ', 1, N_st, N_det, N_det
-  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(task),len(trim(task)),ZMQ_SNDMORE)
-  if (rc /= len(trim(task))) then
-    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,trim(task),len(trim(task)),ZMQ_SNDMORE)'
-    stop 'error'
-  endif
-
-  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det*bit_kind,ZMQ_SNDMORE)
-  if (rc8 /= N_int*2_8*N_det*bit_kind) then
-    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,ZMQ_SNDMORE)'
-    stop 'error'
-  endif
-
-  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,u_t,size(u_t)*8_8,ZMQ_SNDMORE)
-  if (rc8 /= size(u_t)*8_8) then
-    print *,  'f77_zmq_send8(zmq_to_qp_run_socket,u_t,int(size(u_t)*8,8),ZMQ_SNDMORE)'
-    stop 'error'
-  endif
-
-  rc = f77_zmq_send(zmq_to_qp_run_socket,energy,N_st*8,0)
-  if (rc /= N_st*8) then
-    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,energy,int(size_energy*8,8),0)'
-    stop 'error'
-  endif
-
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,task,len(task),0)
-  if (task(1:rc) /= 'put_psi_reply 1') then
-    print *,  rc, trim(task)
-    print *,  'Error in put_psi_reply'
-    stop 'error'
-  endif
+  call zmq_put_N_states_diag(zmq_to_qp_run_socket, 1)
+  call zmq_put_psi_det(zmq_to_qp_run_socket, 1)
+  call zmq_put_dvector(zmq_to_qp_run_socket, 1, 'u_t', u_t, size(u_t))
+  call zmq_put_dvector(zmq_to_qp_run_socket, 1, 'energy', energy, size(energy))
 
   deallocate(u_t)
 

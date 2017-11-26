@@ -11,7 +11,6 @@ subroutine get_excitation_degree(key1,key2,degree,Nint)
   integer, intent(out)           :: degree
   
   integer(bit_kind)              :: xorvec(2*N_int_max)
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
   integer                        :: l
   
   ASSERT (Nint > 0)

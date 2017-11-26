@@ -4,10 +4,9 @@ type t =
     state           : Message.State.t option ;
     address_tcp     : Address.Tcp.t option ;
     address_inproc  : Address.Inproc.t option ;
-    psi             : Message.GetPsiReply_msg.t option;
-    vector          : Message.Vector.t option ;
     progress_bar    : Progress_bar.t option ;
     running         : bool;
+    data            : (string, string) Core.Hashtbl.t ;
 }
 
 
@@ -69,13 +68,6 @@ val get_task: Message.GetTask_msg.t -> t -> [> `Req ] ZMQ.Socket.t ->  [> `Pair]
 
 (** Terminate server *)
 val terminate : t -> [> `Req ] ZMQ.Socket.t -> t
-
-(** Put a wave function in the task server *)
-val put_psi :
-   Message.PutPsi_msg.t -> string list -> t -> [> `Req ] ZMQ.Socket.t -> t
-
-(** Get the wave function stored in the task server *)
-val get_psi : Message.GetPsi_msg.t -> t -> [> `Req ] ZMQ.Socket.t -> t
 
 (** Reply an Error message *)
 val error : string -> t -> [> `Req ] ZMQ.Socket.t -> t

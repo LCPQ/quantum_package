@@ -1,5 +1,5 @@
- BEGIN_PROVIDER [ double precision, one_body_dm_mo_alpha_average, (mo_tot_num_align,mo_tot_num) ]
-&BEGIN_PROVIDER [ double precision, one_body_dm_mo_beta_average, (mo_tot_num_align,mo_tot_num) ]
+ BEGIN_PROVIDER [ double precision, one_body_dm_mo_alpha_average, (mo_tot_num,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, one_body_dm_mo_beta_average, (mo_tot_num,mo_tot_num) ]
    implicit none
    BEGIN_DOC
    ! Alpha and beta one-body density matrix for each state
@@ -41,7 +41,7 @@ BEGIN_PROVIDER [ double precision, one_body_dm_mo_diff, (mo_tot_num,mo_tot_num,2
 END_PROVIDER
 
 
- BEGIN_PROVIDER [ double precision, one_body_dm_mo_spin_index, (mo_tot_num_align,mo_tot_num,N_states,2) ]
+ BEGIN_PROVIDER [ double precision, one_body_dm_mo_spin_index, (mo_tot_num,mo_tot_num,N_states,2) ]
  implicit none 
  integer :: i,j,ispin,istate
  ispin = 1
@@ -65,7 +65,7 @@ END_PROVIDER
  END_PROVIDER
 
 
- BEGIN_PROVIDER [ double precision, one_body_dm_dagger_mo_spin_index, (mo_tot_num_align,mo_tot_num,N_states,2) ]
+ BEGIN_PROVIDER [ double precision, one_body_dm_dagger_mo_spin_index, (mo_tot_num,mo_tot_num,N_states,2) ]
  implicit none 
  integer :: i,j,ispin,istate
  ispin = 1
@@ -92,8 +92,8 @@ END_PROVIDER
 
  END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, one_body_dm_mo_alpha, (mo_tot_num_align,mo_tot_num,N_states) ]
-&BEGIN_PROVIDER [ double precision, one_body_dm_mo_beta, (mo_tot_num_align,mo_tot_num,N_states) ]
+ BEGIN_PROVIDER [ double precision, one_body_dm_mo_alpha, (mo_tot_num,mo_tot_num,N_states) ]
+&BEGIN_PROVIDER [ double precision, one_body_dm_mo_beta, (mo_tot_num,mo_tot_num,N_states) ]
    implicit none
    BEGIN_DOC
    ! Alpha and beta one-body density matrix for each state
@@ -117,12 +117,12 @@ END_PROVIDER
     !$OMP PRIVATE(j,k,l,m,occ,ck, cl, ckl,phase,h1,h2,p1,p2,s1,s2, degree,exc, &
     !$OMP  tmp_a, tmp_b, n_occ, krow, kcol, lrow, lcol, tmp_det, tmp_det2)&
     !$OMP SHARED(psi_det,psi_coef,N_int,N_states,elec_alpha_num,&
-    !$OMP  elec_beta_num,one_body_dm_mo_alpha,one_body_dm_mo_beta,N_det,mo_tot_num_align,&
+    !$OMP  elec_beta_num,one_body_dm_mo_alpha,one_body_dm_mo_beta,N_det,&
     !$OMP  mo_tot_num,psi_bilinear_matrix_rows,psi_bilinear_matrix_columns, &
     !$OMP  psi_bilinear_matrix_transp_rows, psi_bilinear_matrix_transp_columns, &
     !$OMP  psi_bilinear_matrix_order_reverse, psi_det_alpha_unique, psi_det_beta_unique, &
     !$OMP  psi_bilinear_matrix_values, psi_bilinear_matrix_transp_values)
-  allocate(tmp_a(mo_tot_num_align,mo_tot_num,N_states), tmp_b(mo_tot_num_align,mo_tot_num,N_states) )
+  allocate(tmp_a(mo_tot_num,mo_tot_num,N_states), tmp_b(mo_tot_num,mo_tot_num,N_states) )
   tmp_a = 0.d0
   tmp_b = 0.d0
   !$OMP DO SCHEDULE(guided)
@@ -205,8 +205,8 @@ END_PROVIDER
 
 END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, one_body_single_double_dm_mo_alpha, (mo_tot_num_align,mo_tot_num) ]
-&BEGIN_PROVIDER [ double precision, one_body_single_double_dm_mo_beta, (mo_tot_num_align,mo_tot_num) ]
+ BEGIN_PROVIDER [ double precision, one_body_single_double_dm_mo_alpha, (mo_tot_num,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, one_body_single_double_dm_mo_beta, (mo_tot_num,mo_tot_num) ]
    implicit none
    BEGIN_DOC
    ! Alpha and beta one-body density matrix for each state
@@ -230,9 +230,9 @@ END_PROVIDER
       !$OMP PRIVATE(j,k,l,m,occ,ck, cl, ckl,phase,h1,h2,p1,p2,s1,s2, degree,exc, &
       !$OMP  tmp_a, tmp_b, n_occ_alpha,degree_respect_to_HF_k,degree_respect_to_HF_l)&
       !$OMP SHARED(ref_bitmask,psi_det,psi_coef,N_int,N_states,state_average_weight,elec_alpha_num,&
-      !$OMP  elec_beta_num,one_body_single_double_dm_mo_alpha,one_body_single_double_dm_mo_beta,N_det,mo_tot_num_align,&
+      !$OMP  elec_beta_num,one_body_single_double_dm_mo_alpha,one_body_single_double_dm_mo_beta,N_det,&
       !$OMP  mo_tot_num)
-   allocate(tmp_a(mo_tot_num_align,mo_tot_num), tmp_b(mo_tot_num_align,mo_tot_num) )
+   allocate(tmp_a(mo_tot_num,mo_tot_num), tmp_b(mo_tot_num,mo_tot_num) )
    tmp_a = 0.d0
    tmp_b = 0.d0
    !$OMP DO SCHEDULE(dynamic)
@@ -288,7 +288,7 @@ END_PROVIDER
    !$OMP END PARALLEL
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, one_body_dm_mo, (mo_tot_num_align,mo_tot_num) ]
+BEGIN_PROVIDER [ double precision, one_body_dm_mo, (mo_tot_num,mo_tot_num) ]
  implicit none
  BEGIN_DOC
  ! One-body density matrix
@@ -296,7 +296,7 @@ BEGIN_PROVIDER [ double precision, one_body_dm_mo, (mo_tot_num_align,mo_tot_num)
  one_body_dm_mo = one_body_dm_mo_alpha_average + one_body_dm_mo_beta_average
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, one_body_spin_density_mo, (mo_tot_num_align,mo_tot_num) ]
+BEGIN_PROVIDER [ double precision, one_body_spin_density_mo, (mo_tot_num,mo_tot_num) ]
  implicit none
  BEGIN_DOC
  ! rho(alpha) - rho(beta)
@@ -336,7 +336,7 @@ BEGIN_PROVIDER [ double precision, state_average_weight, (N_states) ]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ double precision, one_body_spin_density_ao, (ao_num_align,ao_num) ]
+BEGIN_PROVIDER [ double precision, one_body_spin_density_ao, (ao_num,ao_num) ]
  BEGIN_DOC
 ! one body spin density matrix on the AO basis : rho_AO(alpha) - rho_AO(beta)
  END_DOC
@@ -360,10 +360,8 @@ BEGIN_PROVIDER [ double precision, one_body_spin_density_ao, (ao_num_align,ao_nu
 
 END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, one_body_dm_ao_alpha, (ao_num_align,ao_num) ]
-&BEGIN_PROVIDER [ double precision, one_body_dm_ao_beta, (ao_num_align,ao_num) ]
-&BEGIN_PROVIDER [ double precision, one_body_dm_ao_alpha_no_align, (ao_num,ao_num) ]
-&BEGIN_PROVIDER [ double precision, one_body_dm_ao_beta_no_align, (ao_num,ao_num) ]
+ BEGIN_PROVIDER [ double precision, one_body_dm_ao_alpha, (ao_num,ao_num) ]
+&BEGIN_PROVIDER [ double precision, one_body_dm_ao_beta, (ao_num,ao_num) ]
  BEGIN_DOC
 ! one body density matrix on the AO basis : rho_AO(alpha) , rho_AO(beta)
  END_DOC
@@ -386,18 +384,12 @@ END_PROVIDER
    enddo
   enddo
  enddo
- do i = 1, ao_num
-  do j = 1, ao_num
-   one_body_dm_ao_alpha_no_align(j,i) = one_body_dm_ao_alpha(j,i)
-   one_body_dm_ao_beta_no_align(j,i) = one_body_dm_ao_beta(j,i)
-  enddo
- enddo
 
 END_PROVIDER
 
 
- BEGIN_PROVIDER [ double precision, one_body_dm_mo_alpha_old, (mo_tot_num_align,mo_tot_num,N_states) ]
-&BEGIN_PROVIDER [ double precision, one_body_dm_mo_beta_old, (mo_tot_num_align,mo_tot_num,N_states) ]
+ BEGIN_PROVIDER [ double precision, one_body_dm_mo_alpha_old, (mo_tot_num,mo_tot_num,N_states) ]
+&BEGIN_PROVIDER [ double precision, one_body_dm_mo_beta_old, (mo_tot_num,mo_tot_num,N_states) ]
    implicit none
    BEGIN_DOC
    ! Alpha and beta one-body density matrix for each state
@@ -417,9 +409,9 @@ END_PROVIDER
         !$OMP PRIVATE(j,k,l,m,occ,ck, cl, ckl,phase,h1,h2,p1,p2,s1,s2, degree,exc, &
         !$OMP  tmp_a, tmp_b, n_occ)&
         !$OMP SHARED(psi_det,psi_coef,N_int,N_states,elec_alpha_num,&
-        !$OMP  elec_beta_num,one_body_dm_mo_alpha_old,one_body_dm_mo_beta_old,N_det,mo_tot_num_align,&
+        !$OMP  elec_beta_num,one_body_dm_mo_alpha_old,one_body_dm_mo_beta_old,N_det,&
         !$OMP  mo_tot_num)
-     allocate(tmp_a(mo_tot_num_align,mo_tot_num,N_states), tmp_b(mo_tot_num_align,mo_tot_num,N_states) )
+     allocate(tmp_a(mo_tot_num,mo_tot_num,N_states), tmp_b(mo_tot_num,mo_tot_num,N_states) )
      tmp_a = 0.d0
      tmp_b = 0.d0
      !$OMP DO SCHEDULE(dynamic)

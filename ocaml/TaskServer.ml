@@ -25,10 +25,9 @@ type t =
     state           : Message.State.t option ;
     address_tcp     : Address.Tcp.t option ; 
     address_inproc  : Address.Inproc.t option ;
-    psi             : Message.GetPsiReply_msg.t option;
-    vector             : Message.Vector.t option;
     progress_bar    : Progress_bar.t option ;
     running         : bool;
+    data            : (string, string) Hashtbl.t;
 }
 
 
@@ -458,104 +457,48 @@ let task_done msg program_state rep_socket =
       end
 
 
-let put_psi msg rest_of_msg program_state rep_socket =
 
-    let psi_local =
-        match msg.Message.PutPsi_msg.psi with
-        | Some x -> x
-        | None ->
-          begin
-            let psi_det, psi_coef, energy =
-              match rest_of_msg with
-              | [ x ; y ; e ] -> x, y, e
-              | _ -> failwith "Badly formed put_psi message"
-            in
-            Message.Psi.create
-              ~n_state:msg.Message.PutPsi_msg.n_state
-              ~n_det:msg.Message.PutPsi_msg.n_det
-              ~psi_det_size:msg.Message.PutPsi_msg.psi_det_size
-              ~n_det_generators:msg.Message.PutPsi_msg.n_det_generators
-              ~n_det_selectors:msg.Message.PutPsi_msg.n_det_selectors
-              ~psi_det
-              ~psi_coef
-              ~energy
-          end
-    in
-    let new_program_state =
-        { program_state with
-          psi = Some (Message.GetPsiReply_msg.create ~psi:psi_local)
-        }
-    and client_id =
-      msg.Message.PutPsi_msg.client_id
-    in
-    Message.PutPsiReply (Message.PutPsiReply_msg.create ~client_id)
-    |> Message.to_string
-    |> ZMQ.Socket.send rep_socket;
+let put_data msg rest_of_msg program_state rep_socket =
 
-    new_program_state
-
-
-let get_psi msg program_state rep_socket =
-  begin
-    match program_state.psi with
-    | None -> failwith "No wave function saved in TaskServer"
-    | Some psi_message -> ZMQ.Socket.send_all rep_socket psi_message
-  end;
-  program_state
-
-
-
-let put_vector msg rest_of_msg program_state rep_socket =
-
-    let vector_local =
-        match msg.Message.PutVector_msg.vector with
-        | Some x -> x
-        | None ->
-          begin
-            let data =
-              match rest_of_msg with
-              | [ x ] -> x
-              | _ -> failwith "Badly formed put_vector message"
-            in
-            Message.Vector.create
-              ~size:msg.Message.PutVector_msg.size
-              ~data
-          end
-    in
-    let new_program_state =
-        { program_state with
-          vector = Some vector_local
-        }
-    and client_id =
-      msg.Message.PutVector_msg.client_id
-    in
-    Message.PutVectorReply (Message.PutVectorReply_msg.create ~client_id)
-    |> Message.to_string
-    |> ZMQ.Socket.send rep_socket;
-
-    new_program_state
-
-
-let get_vector msg program_state rep_socket =
-
-      let client_id =
-          msg.Message.GetVector_msg.client_id
+    debug (Message.PutData_msg.to_string msg);
+    let () = 
+      let key, value =
+        msg.Message.PutData_msg.key, 
+        match rest_of_msg with
+        | [ x ] -> x
+        | _ -> failwith "Badly formed put_data message"
       in
-      match program_state.vector with
-      | None -> failwith "No wave function saved in TaskServer"
-      | Some vector -> 
-          Message.GetVectorReply (Message.GetVectorReply_msg.create ~client_id ~vector)
-          |> Message.to_string_list 
-          |> ZMQ.Socket.send_all rep_socket;
-      program_state
+      Hashtbl.set program_state.data ~key ~data:value ;
+      
+      Message.PutDataReply (Message.PutDataReply_msg.create ())
+      |> Message.to_string
+      |> ZMQ.Socket.send rep_socket
+    in
+    program_state
+
+let get_data msg program_state rep_socket =
+
+    debug (Message.GetData_msg.to_string msg);
+    let () = 
+      let key =
+        msg.Message.GetData_msg.key
+      in
+      let value = 
+        match Hashtbl.find program_state.data key with
+        | Some value -> value
+        | None -> ""
+      in
+      Message.GetDataReply (Message.GetDataReply_msg.create ~value)
+      |> Message.to_string_list
+      |> ZMQ.Socket.send_all rep_socket
+    in
+    program_state
 
 
 
 let terminate program_state rep_socket =
     reply_ok rep_socket;
     { program_state with
-      psi = None;
-      vector = None;
       address_tcp = None;
       address_inproc = None;
       running = false
@@ -675,12 +618,11 @@ let run ~port =
     let initial_program_state =
     {   queue = Queuing_system.create () ;
         running = true ;
-        psi = None;
-        vector = None;
         state = None;
         address_tcp = None;
         address_inproc = None;
         progress_bar = None ;
+        data = Hashtbl.create ~hashable:String.hashable ();
     }
     in
 
@@ -747,10 +689,8 @@ let run ~port =
                   match program_state.state, message with
                   | _     , Message.Terminate   _ -> terminate program_state rep_socket
                   | _     , Message.Abort       _ -> abort program_state rep_socket
-                  | _     , Message.PutVector      x -> put_vector x rest program_state rep_socket
-                  | _     , Message.GetVector      x -> get_vector x program_state rep_socket
-                  | _     , Message.PutPsi      x -> put_psi x rest program_state rep_socket
-                  | _     , Message.GetPsi      x -> get_psi x program_state rep_socket
+                  | _     , Message.PutData     x -> put_data x rest program_state rep_socket
+                  | _     , Message.GetData     x -> get_data x program_state rep_socket
                   | None  , Message.Newjob      x -> new_job x program_state rep_socket pair_socket
                   | _     , Message.Newjob      _ -> error "A job is already running" program_state rep_socket
                   | Some _, Message.Endjob      x -> end_job x program_state rep_socket pair_socket
