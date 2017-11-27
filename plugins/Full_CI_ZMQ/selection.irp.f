@@ -5,8 +5,8 @@ BEGIN_PROVIDER [ integer, fragment_count ]
   BEGIN_DOC
   ! Number of fragments for the deterministic part
   END_DOC
+!  fragment_count = (elec_alpha_num-n_core_orb)*mo_tot_num
   fragment_count = (elec_alpha_num-n_core_orb)**2
-!  fragment_count = mo_tot_num*mo_tot_num
 END_PROVIDER
 
 

@@ -122,7 +122,7 @@ subroutine ao_bielec_integrals_in_map_slave(thread,iproc)
 end
 
 
-subroutine ao_bielec_integrals_in_map_collector
+subroutine ao_bielec_integrals_in_map_collector(zmq_socket_pull)
   use map_module
   use f77_zmq
   implicit none
@@ -130,6 +130,7 @@ subroutine ao_bielec_integrals_in_map_collector
 ! Collects results from the AO integral calculation
   END_DOC
 
+  integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
   integer                        :: j,l,n_integrals
   integer                        :: rc
   
@@ -140,13 +141,11 @@ subroutine ao_bielec_integrals_in_map_collector
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
   
   integer(ZMQ_PTR), external     :: new_zmq_pull_socket
-  integer(ZMQ_PTR)               :: zmq_socket_pull
   
   integer*8                      :: control, accu, sze
   integer                        :: task_id, more
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  zmq_socket_pull = new_zmq_pull_socket()
 
   sze = ao_num*ao_num
   allocate ( buffer_i(sze), buffer_value(sze) )
@@ -223,7 +222,6 @@ IRP_ENDIF
   endif
 
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-  call end_zmq_pull_socket(zmq_socket_pull)
 
 end
 

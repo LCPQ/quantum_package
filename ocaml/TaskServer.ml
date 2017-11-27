@@ -194,14 +194,21 @@ let end_job msg program_state rep_socket pair_socket =
         reply_wrong_state rep_socket;
         program_state
 
-    and success state =
+    and success () =
         reply_ok rep_socket;
         { program_state with
           state        = None ;
           progress_bar = Progress_bar.clear ();
         }
 
+    and wait n =
+      Printf.sprintf "waiting %d" n
+      |> Message.Error_msg.create 
+      |> Message.Error_msg.to_string
+      |> ZMQ.Socket.send rep_socket ;
+      program_state
     in
+
     match program_state.state with
     | None -> failure ()
     | Some state -> 
@@ -210,7 +217,10 @@ let end_job msg program_state rep_socket pair_socket =
           begin
             string_of_pub_state Waiting
             |> ZMQ.Socket.send pair_socket ;
-            success state
+            if (Queuing_system.number_of_clients program_state.queue = 0) then
+              success ()
+            else
+              wait (Queuing_system.number_of_clients program_state.queue)
           end
         else
           failure ()
@@ -599,6 +609,9 @@ let abort program_state rep_socket =
     let queue = 
       List.fold ~f:(fun queue task_id -> Queuing_system.del_task ~task_id queue)
                           ~init:queue tasks
+    in
+    let queue =
+      Queuing_system.del_client ~client_id  queue
     in
     reply_ok rep_socket;
 

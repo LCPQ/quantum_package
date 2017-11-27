@@ -10,7 +10,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
   implicit none
   
   character(len=64000)           :: task
-  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_to_qp_run_socket2
+  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_socket_pull
   type(selection_buffer)         :: b
   integer, external              :: omp_get_thread_num
   double precision, intent(in)   :: relative_error, absolute_error, E(N_states)
@@ -27,6 +27,7 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
   double precision, external     :: omp_get_wtime
   double precision               :: time
   double precision               :: w(N_states)
+  integer(ZMQ_PTR), external     :: new_zmq_to_qp_run_socket
   
   if (N_det < max(10,N_states)) then
     pt2=0.d0
@@ -55,22 +56,21 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
         computed(i) = .true.
       end do
       
+      Ncomb=size(comb)
+      call get_carlo_workbatch(computed, comb, Ncomb, tbc)
+
       pt2_detail = 0d0
       print *, '========== ================= ================= ================='
       print *, ' Samples        Energy         Stat. Error         Seconds      '
       print *, '========== ================= ================= ================='
       
-      call new_parallel_job(zmq_to_qp_run_socket,'pt2')
+      call new_parallel_job(zmq_to_qp_run_socket, zmq_socket_pull, 'pt2')
       call zmq_put_psi(zmq_to_qp_run_socket,1)
       call zmq_put_N_det_generators(zmq_to_qp_run_socket, 1)
       call zmq_put_N_det_selectors(zmq_to_qp_run_socket, 1)
       call zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',pt2_e0_denominator,size(pt2_e0_denominator))
       call create_selection_buffer(1, 1*2, b)
       
-      Ncomb=size(comb)
-      call get_carlo_workbatch(computed, comb, Ncomb, tbc)
-      
-      integer(ZMQ_PTR), external     :: new_zmq_to_qp_run_socket
       integer                        :: ipos
       ipos=1
       
@@ -103,14 +103,14 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
           !$OMP  PRIVATE(i)
       i = omp_get_thread_num()
       if (i==0) then
-        call pt2_collector(E(pt2_stoch_istate), b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, absolute_error, w, error)
+        call pt2_collector(zmq_socket_pull,E(pt2_stoch_istate), b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, absolute_error, w, error)
         pt2(pt2_stoch_istate) = w(pt2_stoch_istate)
       else
         call pt2_slave_inproc(i)
       endif
       !$OMP END PARALLEL
       call delete_selection_buffer(b)
-      call end_parallel_job(zmq_to_qp_run_socket, 'pt2')
+      call end_parallel_job(zmq_to_qp_run_socket, zmq_socket_pull, 'pt2')
       
       print *, '========== ================= ================= ================='
       
@@ -163,7 +163,7 @@ subroutine pt2_slave_inproc(i)
   call run_pt2_slave(1,i,pt2_e0_denominator)
 end
 
-subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, absolute_error, pt2,error)
+subroutine pt2_collector(zmq_socket_pull, E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove, sum2above, Nabove, relative_error, absolute_error, pt2,error)
   use f77_zmq
   use selection_types
   use bitmasks
@@ -171,6 +171,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
 
   
   integer, intent(in) :: Ncomb
+  integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
   double precision, intent(inout) :: pt2_detail(N_states, N_det_generators)
   double precision, intent(in) :: comb(Ncomb), relative_error, absolute_error, E
   logical, intent(inout) :: computed(N_det_generators)
@@ -184,8 +185,6 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
 
-  integer(ZMQ_PTR), external     :: new_zmq_pull_socket
-  integer(ZMQ_PTR)               :: zmq_socket_pull
 
   integer :: msg_size, rc, more
   integer :: acc, i, j, robin, N, n_tasks
@@ -227,7 +226,6 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   firstTBDcomb = 1
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  zmq_socket_pull = new_zmq_pull_socket()
   allocate(val(b%N), det(N_int, 2, b%N), task_id(n_tasks_max), index(n_tasks_max))
   more = 1
   call wall_time(time0)
@@ -253,16 +251,14 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
       if(parts_to_get(index(i)) == 0) actually_computed(index(i)) = .true.
     enddo
 
-    do i=1, n_tasks
-      call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more)
-      if (more /= 1) then
-        loop = .False.
-      endif
-    end do
+    call zmq_delete_tasks(zmq_to_qp_run_socket,zmq_socket_pull,task_id,n_tasks,more)
+    if (more == 0) then
+      loop = .False.
+    endif
 
     time = omp_get_wtime()
   
-    if(time - timeLast > 10d0 .or. more /= 1) then
+    if(time - timeLast > 10d0 .or. (.not.loop)) then
       timeLast = time
       do i=1, first_det_of_teeth(1)-1
         if(.not.(actually_computed(i))) then
@@ -313,7 +309,6 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   pt2(pt2_stoch_istate) = E0 + (sumabove(tooth) / Nabove(tooth))
 
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-  call end_zmq_pull_socket(zmq_socket_pull)
   call sort_selection_buffer(b)
 end subroutine
 

@@ -200,10 +200,11 @@ end subroutine
 
 
 
-subroutine davidson_collector(zmq_to_qp_run_socket, v0, s0, sze, N_st)
+subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull, v0, s0, sze, N_st)
   use f77_zmq
   implicit none
 
+  integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
   integer, intent(in)            :: sze, N_st
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   
@@ -214,14 +215,11 @@ subroutine davidson_collector(zmq_to_qp_run_socket, v0, s0, sze, N_st)
   
   double precision, allocatable :: v_t(:,:), s_t(:,:)
   integer :: i,j
-  integer(ZMQ_PTR), external     :: new_zmq_pull_socket
-  integer(ZMQ_PTR)               :: zmq_socket_pull
 
   allocate(v_t(N_st,N_det), s_t(N_st,N_det))
   v0 = 0.d0 
   s0 = 0.d0 
   more = 1
-  zmq_socket_pull = new_zmq_pull_socket()
   do while (more == 1)
     call davidson_pull_results(zmq_socket_pull, v_t, s_t, imin, imax, task_id)
     do j=1,N_st
@@ -233,7 +231,6 @@ subroutine davidson_collector(zmq_to_qp_run_socket, v0, s0, sze, N_st)
     call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
   end do
   deallocate(v_t,s_t)
-  call end_zmq_pull_socket(zmq_socket_pull)
 
 end subroutine
 
@@ -280,12 +277,12 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
       N_det, N_st)
 
 
-  integer(ZMQ_PTR) :: zmq_to_qp_run_socket
+  integer(ZMQ_PTR) :: zmq_to_qp_run_socket, zmq_socket_pull
   
   ASSERT (N_st == N_states_diag)
   ASSERT (sze >= N_det) 
 
-  call new_parallel_job(zmq_to_qp_run_socket,'davidson')
+  call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,'davidson')
   
   character*(512) :: task
   integer :: rc
@@ -342,12 +339,12 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   !$OMP PARALLEL NUM_THREADS(2) PRIVATE(ithread)
   ithread = omp_get_thread_num()
   if (ithread == 0 ) then
-    call davidson_collector(zmq_to_qp_run_socket, v_0, s_0, N_det, N_st)
+    call davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull, v_0, s_0, N_det, N_st)
   else 
     call davidson_slave_inproc(1)
   endif
   !$OMP END PARALLEL
-  call end_parallel_job(zmq_to_qp_run_socket, 'davidson')
+  call end_parallel_job(zmq_to_qp_run_socket, zmq_socket_pull, 'davidson')
 
   do k=1,N_st
     call dset_order(v_0(1,k),psi_bilinear_matrix_order_reverse,N_det)

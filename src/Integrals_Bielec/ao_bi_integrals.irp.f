@@ -365,8 +365,8 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   call wall_time(wall_1)
   call cpu_time(cpu_1)
 
-  integer(ZMQ_PTR) :: zmq_to_qp_run_socket
-  call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
+  integer(ZMQ_PTR) :: zmq_to_qp_run_socket, zmq_socket_pull
+  call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,'ao_integrals')
 
   character(len=:), allocatable :: task
   allocate(character(len=ao_num*12) :: task)
@@ -380,16 +380,16 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   call zmq_set_running(zmq_to_qp_run_socket)
 
   PROVIDE nproc
-  !$OMP PARALLEL DEFAULT(private) num_threads(nproc+1)
+  !$OMP PARALLEL DEFAULT(shared) private(i) num_threads(nproc+1)
       i = omp_get_thread_num()
       if (i==0) then
-        call ao_bielec_integrals_in_map_collector(i)
+        call ao_bielec_integrals_in_map_collector(zmq_socket_pull)
       else
         call ao_bielec_integrals_in_map_slave_inproc(i)
       endif
   !$OMP END PARALLEL
 
-  call end_parallel_job(zmq_to_qp_run_socket, 'ao_integrals')
+  call end_parallel_job(zmq_to_qp_run_socket, zmq_socket_pull, 'ao_integrals')
 
 
   print*, 'Sorting the map'

@@ -22,7 +22,7 @@ subroutine $subroutine($params_main)
   $initialization
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators
 
-  integer(ZMQ_PTR), external     :: new_zmq_pair_socket
+  integer(ZMQ_PTR), external     :: new_zmq_pair_socket, zmq_socket_pull
   integer(ZMQ_PTR)               :: zmq_socket_pair
 
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
@@ -30,7 +30,7 @@ subroutine $subroutine($params_main)
   double precision, allocatable :: H_pert_diag_generators(:,:)
   double precision              :: energy(N_st)
 
-  call new_parallel_job(zmq_to_qp_run_socket,'$subroutine')
+  call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,'$subroutine')
   zmq_socket_pair = new_zmq_pair_socket(.True.)
 
   call zmq_put_psi(zmq_to_qp_run_socket,1)
@@ -55,7 +55,7 @@ subroutine $subroutine($params_main)
   !$OMP num_threads(nproc+1)
       i = omp_get_thread_num()
       if (i == 0) then
-        call  $subroutine_collector()
+        call  $subroutine_collector(zmq_socket_pull)
         integer :: n, task_id
         call pull_pt2(zmq_socket_pair, pt2_generators, norm_pert_generators, H_pert_diag_generators, i_generator, size(pt2_generators), n, task_id)
       else
@@ -65,7 +65,7 @@ subroutine $subroutine($params_main)
 
 
   call end_zmq_pair_socket(zmq_socket_pair)
-  call end_parallel_job(zmq_to_qp_run_socket,'$subroutine')
+  call end_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,'$subroutine')
 
 
   $copy_buffer
@@ -192,7 +192,7 @@ subroutine $subroutine_slave(thread, iproc)
 
 end
 
-subroutine $subroutine_collector
+subroutine $subroutine_collector(zmq_socket_pull)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -202,7 +202,7 @@ subroutine $subroutine_collector
   integer :: k, rc
 
   integer(ZMQ_PTR), external     :: new_zmq_pull_socket
-  integer(ZMQ_PTR)               :: zmq_socket_pull
+  integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
   integer*8                      :: control, accu
   integer                        :: n, more, task_id, i_generator
 
@@ -210,7 +210,6 @@ subroutine $subroutine_collector
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  zmq_socket_pull = new_zmq_pull_socket()
 
   double precision, allocatable :: pt2(:), norm_pert(:), H_pert_diag(:)
   double precision, allocatable :: pt2_result(:,:), norm_pert_result(:,:), H_pert_diag_result(:,:)
@@ -238,7 +237,6 @@ subroutine $subroutine_collector
 
   enddo
 
-  call end_zmq_pull_socket(zmq_socket_pull)
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
 
 
