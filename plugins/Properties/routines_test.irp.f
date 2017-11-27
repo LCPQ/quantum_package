@@ -2,7 +2,7 @@
 
 subroutine test_average_value(array,value)
  implicit none
- double precision, intent(in) :: array(mo_tot_num_align,mo_tot_num)
+ double precision, intent(in) :: array(mo_tot_num,mo_tot_num)
  double precision, intent(in) :: value
  double precision :: tmp,hij
  integer :: i,j
@@ -24,7 +24,7 @@ end
 
 subroutine test_average_value_alpha_beta(array,value)
  implicit none
- double precision, intent(in) :: array(mo_tot_num_align,mo_tot_num)
+ double precision, intent(in) :: array(mo_tot_num,mo_tot_num)
  double precision, intent(in) :: value
  double precision :: tmp,hij
  integer :: i,j

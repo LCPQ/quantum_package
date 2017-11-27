@@ -1,4 +1,3 @@
-
 use bitmasks
  BEGIN_PROVIDER [integer, exc_degree_per_selectors, (N_det_selectors)]
 &BEGIN_PROVIDER [integer, double_index_selectors, (N_det_selectors)]
@@ -56,7 +55,7 @@ END_PROVIDER
    i_H_HF_per_selectors(i) = hij
    E_corr_per_selectors(i) = psi_selectors_coef(i,1) * hij
    E_corr_double_only += E_corr_per_selectors(i)
-   E_corr_second_order += hij * hij /(ref_bitmask_energy - diag_H_mat_elem(psi_selectors(1,1,i),N_int))
+!  E_corr_second_order += hij * hij /(ref_bitmask_energy - diag_H_mat_elem(psi_selectors(1,1,i),N_int))
   elseif(exc_degree_per_selectors(i) == 0)then
    coef_hf_selector = psi_selectors_coef(i,1)
    E_corr_per_selectors(i) = -1000.d0

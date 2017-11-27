@@ -371,3 +371,69 @@ BEGIN_PROVIDER [ integer, nthreads_davidson ]
  call write_int(6,nthreads_davidson,'Number of threads for Diagonalization')
 END_PROVIDER
 
+
+subroutine zmq_put_N_states_diag(zmq_to_qp_run_socket,worker_id)
+  use f77_zmq
+  implicit none
+  BEGIN_DOC
+! Put N_states_diag on the qp_run scheduler
+  END_DOC
+  integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
+  integer, intent(in)            :: worker_id
+  integer                        :: rc
+  character*(256)                :: msg
+
+  write(msg,'(A8,1X,I8,1X,A230)') 'put_data', worker_id, 'N_states_diag'
+  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),ZMQ_SNDMORE)
+  if (rc /= len(trim(msg))) then
+    print *,  irp_here, ': Error sending N_states_diag'
+    stop 'error'
+  endif
+
+  rc = f77_zmq_send(zmq_to_qp_run_socket,N_states_diag,4,0)
+  if (rc /= 4) then
+    print *,  irp_here, ': Error sending N_states_diag'
+    stop 'error'
+  endif
+
+  rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
+  if (msg(1:rc) /= 'put_data_reply ok') then
+    print *,  rc, trim(msg)
+    print *,  irp_here, ': Error in put_data_reply'
+    stop 'error'
+  endif
+
+end
+
+subroutine zmq_get_N_states_diag(zmq_to_qp_run_socket, worker_id)
+  use f77_zmq
+  implicit none
+  BEGIN_DOC
+! Get N_states_diag from the qp_run scheduler
+  END_DOC
+  integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
+  integer, intent(in)            :: worker_id
+  integer                        :: rc
+  character*(64)                 :: msg
+
+  write(msg,'(A8,1X,I8,1X,A230)') 'get_data', worker_id, 'N_states_diag'
+  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
+  if (rc /= len(trim(msg))) then
+    print *,  irp_here, ': Error getting N_states_diag'
+    stop 'error'
+  endif
+
+  rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0) 
+  if (msg(1:14) /= 'get_data_reply') then 
+    print *,  rc, trim(msg) 
+    print *,  irp_here, ': Error in get_data_reply' 
+    stop 'error' 
+  endif 
+ 
+  rc = f77_zmq_recv(zmq_to_qp_run_socket,N_states_diag,4,0) 
+  if (rc /= 4) then 
+    print *, irp_here, ': Error getting N_states_diag'
+    stop 'error' 
+  endif 
+
+end

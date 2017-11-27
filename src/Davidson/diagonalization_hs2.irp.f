@@ -113,7 +113,6 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
     stop -1
   endif
   
-  integer, external              :: align_double
   itermax = max(3,min(davidson_sze_max, sze/N_st_diag))
   
   PROVIDE nuclear_repulsion expected_s2 psi_bilinear_matrix_order psi_bilinear_matrix_order_reverse

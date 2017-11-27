@@ -10,7 +10,7 @@ subroutine i_O1_j(array,key_i,key_j,Nint,hij)
   integer, intent(in)            :: Nint
   integer(bit_kind), intent(in)  :: key_i(Nint,2), key_j(Nint,2)
   double precision, intent(out)  :: hij
-  double precision, intent(in)   :: array(mo_tot_num_align,mo_tot_num)
+  double precision, intent(in)   :: array(mo_tot_num,mo_tot_num)
   
   integer                        :: exc(0:2,2,2)
   integer                        :: degree
@@ -25,7 +25,7 @@ subroutine i_O1_j(array,key_i,key_j,Nint,hij)
   ASSERT (sum(popcnt(key_j(:,2))) == elec_beta_num)
   
   hij = 0.d0
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call get_excitation_degree(key_i,key_j,degree,Nint)
   select case (degree)
     case (2)
@@ -53,7 +53,7 @@ subroutine i_O1_psi(array,key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   use bitmasks
   implicit none
   integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate
-  double precision, intent(in)   :: array(mo_tot_num_align,mo_tot_num)
+  double precision, intent(in)   :: array(mo_tot_num,mo_tot_num)
   integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
   integer(bit_kind), intent(in)  :: key(Nint,2)
   double precision, intent(in)   :: coef(Ndet_max,Nstate)
@@ -80,7 +80,7 @@ subroutine i_O1_psi(array,key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H_psi_array)
   call filter_connected_mono(keys,key,Nint,Ndet,idx)
   do ii=1,idx(0)
     i = idx(ii)
-    !DEC$ FORCEINLINE
+    !DIR$ FORCEINLINE
     call i_O1_j(array,keys(1,1,i),key,Nint,hij)
     do j = 1, Nstate
       i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
@@ -96,7 +96,7 @@ double precision function diag_O1_mat_elem(array,det_in,Nint)
   END_DOC
   integer,intent(in)             :: Nint
   integer(bit_kind),intent(in)   :: det_in(Nint,2)
-  double precision, intent(in)   :: array(mo_tot_num_align,mo_tot_num)
+  double precision, intent(in)   :: array(mo_tot_num,mo_tot_num)
   
   integer                        :: i, ispin,tmp
   integer                        :: occ_det(Nint*bit_kind_size,2)
@@ -120,7 +120,7 @@ subroutine i_O1_psi_alpha_beta(array,key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H
   use bitmasks
   implicit none
   integer, intent(in)            :: Nint, Ndet,Ndet_max,Nstate
-  double precision, intent(in)   :: array(mo_tot_num_align,mo_tot_num)
+  double precision, intent(in)   :: array(mo_tot_num,mo_tot_num)
   integer(bit_kind), intent(in)  :: keys(Nint,2,Ndet)
   integer(bit_kind), intent(in)  :: key(Nint,2)
   double precision, intent(in)   :: coef(Ndet_max,Nstate)
@@ -147,7 +147,7 @@ subroutine i_O1_psi_alpha_beta(array,key,keys,coef,Nint,Ndet,Ndet_max,Nstate,i_H
   call filter_connected_mono(keys,key,Nint,Ndet,idx)
   do ii=1,idx(0)
     i = idx(ii)
-    !DEC$ FORCEINLINE
+    !DIR$ FORCEINLINE
     call i_O1_j_alpha_beta(array,keys(1,1,i),key,Nint,hij)
     do j = 1, Nstate
       i_H_psi_array(j) = i_H_psi_array(j) + coef(i,j)*hij
@@ -167,7 +167,7 @@ subroutine i_O1_j_alpha_beta(array,key_i,key_j,Nint,hij)
   integer, intent(in)            :: Nint
   integer(bit_kind), intent(in)  :: key_i(Nint,2), key_j(Nint,2)
   double precision, intent(out)  :: hij
-  double precision, intent(in)   :: array(mo_tot_num_align,mo_tot_num)
+  double precision, intent(in)   :: array(mo_tot_num,mo_tot_num)
   
   integer                        :: exc(0:2,2,2)
   integer                        :: degree
@@ -182,7 +182,7 @@ subroutine i_O1_j_alpha_beta(array,key_i,key_j,Nint,hij)
   ASSERT (sum(popcnt(key_j(:,2))) == elec_beta_num)
   
   hij = 0.d0
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call get_excitation_degree(key_i,key_j,degree,Nint)
   select case (degree)
     case (2)
@@ -215,7 +215,7 @@ double precision function diag_O1_mat_elem_alpha_beta(array,det_in,Nint)
   END_DOC
   integer,intent(in)             :: Nint
   integer(bit_kind),intent(in)   :: det_in(Nint,2)
-  double precision, intent(in)   :: array(mo_tot_num_align,mo_tot_num)
+  double precision, intent(in)   :: array(mo_tot_num,mo_tot_num)
   
   integer                        :: i, ispin,tmp
   integer                        :: occ_det(Nint*bit_kind_size,2)
@@ -319,7 +319,7 @@ subroutine filter_connected_mono(key1,key2,Nint,sze,idx)
     !DIR$ LOOP COUNT (1000)
     do i=1,sze
       degree_x2 = 0
-      !DEC$ LOOP COUNT MIN(4)
+      !DIR$ LOOP COUNT MIN(4)
       do j=1,Nint
         degree_x2 = degree_x2+ popcnt(xor( key1(j,1,i), key2(j,1))) +&
             popcnt(xor( key1(j,2,i), key2(j,2)))

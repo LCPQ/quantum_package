@@ -10,7 +10,7 @@ double precision function binom_func(i,j)
   double precision               :: logfact
   integer, save                  :: ifirst
   double precision, save         :: memo(0:15,0:15)
-  !DEC$ ATTRIBUTES ALIGN : $IRP_ALIGN :: memo
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: memo
   integer                        :: k,l
   if (ifirst == 0) then
     ifirst = 1
@@ -44,20 +44,6 @@ end
   enddo
 END_PROVIDER
 
-
-integer function align_double(n)
-  implicit none
-  BEGIN_DOC
-  ! Compute 1st dimension such that it is aligned for vectorization.
-  END_DOC
-  integer                        :: n
-  include 'constants.include.F'
-  if (mod(n,SIMD_vector/4) /= 0) then
-    align_double= n + SIMD_vector/4 - mod(n,SIMD_vector/4)
-  else
-    align_double= n
-  endif
-end
 
 
 double precision function fact(n)
@@ -333,7 +319,6 @@ subroutine normalize(u,sze)
   implicit none
   BEGIN_DOC
   ! Normalizes vector u
-  ! u is expected to be aligned in memory.
   END_DOC
   integer, intent(in)            :: sze
   double precision, intent(inout):: u(sze)

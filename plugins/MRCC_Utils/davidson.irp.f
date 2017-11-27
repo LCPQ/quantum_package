@@ -85,7 +85,6 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_s
   double precision, intent(inout) :: u_in(dim_in,N_st_diag)
   double precision, intent(out)  :: energies(N_st_diag)
   
-  integer                        :: sze_8
   integer                        :: iter
   integer                        :: i,j,k,l,m
   logical                        :: converged
@@ -138,13 +137,10 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_s
   enddo
   write(iunit,'(A)') trim(write_buffer)
 
-  integer, external :: align_double
-  sze_8 = align_double(sze)
-
   allocate(                                                          &
-      W(sze_8,N_st_diag,davidson_sze_max),                           &
-      U(sze_8,N_st_diag,davidson_sze_max),                           &
-      R(sze_8,N_st_diag),                                            &
+      W(sze,N_st_diag,davidson_sze_max),                           &
+      U(sze,N_st_diag,davidson_sze_max),                           &
+      R(sze,N_st_diag),                                            &
       h(N_st_diag,davidson_sze_max,N_st_diag,davidson_sze_max),      &
       y(N_st_diag,davidson_sze_max,N_st_diag,davidson_sze_max),      &
       residual_norm(N_st_diag),                                      &
@@ -199,7 +195,7 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_s
       ! Compute |W_k> = \sum_i |i><i|H|u_k>
       ! -----------------------------------------
       
-      call H_u_0_mrcc_nstates(W(1,1,iter),U(1,1,iter),H_jj,sze,dets_in,Nint,istate,N_st_diag,sze_8)
+      call H_u_0_mrcc_nstates(W(1,1,iter),U(1,1,iter),H_jj,sze,dets_in,Nint,istate,N_st_diag,sze)
       
       
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
@@ -320,7 +316,7 @@ subroutine davidson_diag_hjj_mrcc(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_s
 end
 
 
-subroutine u_0_H_u_0_mrcc_nstates(e_0,u_0,n,keys_tmp,Nint,istate,N_st,sze_8)
+subroutine u_0_H_u_0_mrcc_nstates(e_0,u_0,n,keys_tmp,Nint,istate,N_st,sze)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -329,16 +325,16 @@ subroutine u_0_H_u_0_mrcc_nstates(e_0,u_0,n,keys_tmp,Nint,istate,N_st,sze_8)
   ! n : number of determinants
   !
   END_DOC
-  integer, intent(in)            :: n,Nint,N_st,sze_8
+  integer, intent(in)            :: n,Nint,N_st,sze
   double precision, intent(out)  :: e_0(N_st)
-  double precision, intent(in)   :: u_0(sze_8,N_st)
+  double precision, intent(in)   :: u_0(sze,N_st)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   integer,intent(in)             :: istate
   
   double precision, allocatable  :: v_0(:,:), H_jj(:)
   double precision               :: u_dot_u,u_dot_v,diag_H_mat_elem
   integer :: i,j
-  allocate(H_jj(n), v_0(sze_8,N_st))
+  allocate(H_jj(n), v_0(sze,N_st))
   do i = 1, n
    H_jj(i) = diag_H_mat_elem(keys_tmp(1,1,i),Nint)
   enddo
@@ -347,7 +343,7 @@ subroutine u_0_H_u_0_mrcc_nstates(e_0,u_0,n,keys_tmp,Nint,istate,N_st,sze_8)
     H_jj(idx_ref(i)) +=  delta_ii(istate,i)
   enddo
   
-  call H_u_0_mrcc_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,istate,N_st,sze_8)
+  call H_u_0_mrcc_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,istate,N_st,sze)
   do i=1,N_st
     e_0(i) = u_dot_v(v_0(1,i),u_0(1,i),n)/u_dot_u(u_0(1,i),n)
   enddo
@@ -355,7 +351,7 @@ subroutine u_0_H_u_0_mrcc_nstates(e_0,u_0,n,keys_tmp,Nint,istate,N_st,sze_8)
 end
 
 
-subroutine H_u_0_mrcc_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,istate_in,N_st,sze_8)
+subroutine H_u_0_mrcc_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,istate_in,N_st,sze)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -365,9 +361,9 @@ subroutine H_u_0_mrcc_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,istate_in,N_st,sze_8)
   !     
   ! H_jj : array of <j|H|j>
   END_DOC
-  integer, intent(in)            :: n,Nint,istate_in,N_st,sze_8
-  double precision, intent(out)  :: v_0(sze_8,N_st)
-  double precision, intent(in)   :: u_0(sze_8,N_st)
+  integer, intent(in)            :: n,Nint,istate_in,N_st,sze
+  double precision, intent(out)  :: v_0(sze,N_st)
+  double precision, intent(in)   :: u_0(sze,N_st)
   double precision, intent(in)   :: H_jj(n)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   double precision               :: hij
@@ -396,9 +392,9 @@ subroutine H_u_0_mrcc_nstates(v_0,u_0,H_jj,n,keys_tmp,Nint,istate_in,N_st,sze_8)
   
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,j,k,jj,vt,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i,istate)&
-      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,sorted,shortcut,sort_idx,version,N_st,sze_8,&
+      !$OMP SHARED(n,H_jj,u_0,keys_tmp,Nint,v_0,sorted,shortcut,sort_idx,version,N_st,sze,&
       !$OMP   istate_in,delta_ij,N_det_ref,N_det_non_ref,idx_ref,idx_non_ref)
-  allocate(vt(sze_8,N_st))
+  allocate(vt(sze,N_st))
   Vt = 0.d0
   
   !$OMP DO SCHEDULE(static,1)
@@ -590,7 +586,7 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
   double precision, intent(inout) :: u_in(dim_in,N_st_diag)
   double precision, intent(out)  :: energies(N_st_diag)
   
-  integer                        :: sze_8
+  integer                        :: sze
   integer                        :: iter
   integer                        :: i,j,k,l,m
   logical                        :: converged
@@ -649,14 +645,11 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
   enddo
   write(iunit,'(A)') trim(write_buffer)
 
-  integer, external :: align_double
-  sze_8 = align_double(sze)
-
   itermax = min(davidson_sze_max, sze/N_st_diag)
   allocate(                                                          &
-      W(sze_8,N_st_diag*itermax),                                    &
-      U(sze_8,N_st_diag*itermax),                                    &
-      S(sze_8,N_st_diag*itermax),                                    &
+      W(sze,N_st_diag*itermax),                                    &
+      U(sze,N_st_diag*itermax),                                    &
+      S(sze,N_st_diag*itermax),                                    &
       h(N_st_diag*itermax,N_st_diag*itermax),                        &
       y(N_st_diag*itermax,N_st_diag*itermax),                        &
       s_(N_st_diag*itermax,N_st_diag*itermax),                       &
@@ -722,7 +715,7 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
       ! -----------------------------------------
        
       call H_S2_u_0_mrcc_nstates(W(1,shift+1),S(1,shift+1),U(1,shift+1),H_jj,S2_jj,sze,dets_in,Nint,&
-        istate,N_st_diag,sze_8)
+        istate,N_st_diag,sze)
       
       
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
@@ -960,7 +953,7 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
 end
 
 
-subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_in,N_st,sze_8)
+subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_in,N_st,sze)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -972,9 +965,9 @@ subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_i
   !
   ! S2_jj : array of <j|S^2|j>
   END_DOC
-  integer, intent(in)            :: N_st,n,Nint, sze_8, istate_in
-  double precision, intent(out)  :: v_0(sze_8,N_st), s_0(sze_8,N_st)
-  double precision, intent(in)   :: u_0(sze_8,N_st)
+  integer, intent(in)            :: N_st,n,Nint, sze, istate_in
+  double precision, intent(out)  :: v_0(sze,N_st), s_0(sze,N_st)
+  double precision, intent(in)   :: u_0(sze,N_st)
   double precision, intent(in)   :: H_jj(n), S2_jj(n)
   integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
   double precision               :: hij,s2
@@ -987,12 +980,8 @@ subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_i
   integer(bit_kind)              :: sorted_i(Nint)
 
   integer                        :: sh, sh2, ni, exa, ext, org_i, org_j, endi, istate
-  integer                        :: N_st_8
 
-  integer, external              :: align_double
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: vt, ut
-
-  N_st_8 = align_double(N_st)
 
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
@@ -1000,7 +989,7 @@ subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_i
   PROVIDE ref_bitmask_energy
 
   allocate (shortcut(0:n+1,2), sort_idx(n,2), sorted(Nint,n,2), version(Nint,n,2))
-  allocate(ut(N_st_8,n))
+  allocate(ut(N_st,n))
 
   v_0 = 0.d0
   s_0 = 0.d0
@@ -1017,9 +1006,9 @@ subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_i
   PROVIDE delta_ij_s2 
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE(i,hij,s2,j,k,jj,vt,st,ii,sh,sh2,ni,exa,ext,org_i,org_j,endi,sorted_i,istate)&
-      !$OMP SHARED(n,keys_tmp,ut,Nint,v_0,s_0,sorted,shortcut,sort_idx,version,N_st,N_st_8, &
+      !$OMP SHARED(n,keys_tmp,ut,Nint,v_0,s_0,sorted,shortcut,sort_idx,version,N_st, &
       !$OMP  N_det_ref, idx_ref, N_det_non_ref, idx_non_ref, delta_ij, delta_ij_s2,istate_in)
-  allocate(vt(N_st_8,n),st(N_st_8,n))
+  allocate(vt(N_st,n),st(N_st,n))
   Vt = 0.d0
   St = 0.d0
 

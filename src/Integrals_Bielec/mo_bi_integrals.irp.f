@@ -207,7 +207,7 @@ subroutine add_integrals_to_map(mask_ijkl)
   double precision, allocatable  :: bielec_tmp_1(:)
   double precision, allocatable  :: bielec_tmp_2(:,:)
   double precision, allocatable  :: bielec_tmp_3(:,:,:)
-  !DEC$ ATTRIBUTES ALIGN : 64    :: bielec_tmp_1, bielec_tmp_2, bielec_tmp_3
+  !DIR$ ATTRIBUTES ALIGN : 64    :: bielec_tmp_1, bielec_tmp_2, bielec_tmp_3
   
   integer                        :: n_integrals
   integer                        :: size_buffer
@@ -276,7 +276,7 @@ subroutine add_integrals_to_map(mask_ijkl)
   
   size_buffer = min(ao_num*ao_num*ao_num,16000000)
   print*, 'Providing the molecular integrals '
-  print*, 'Buffers : ', 8.*(mo_tot_num_align*(n_j)*(n_k+1) + mo_tot_num_align +&
+  print*, 'Buffers : ', 8.*(mo_tot_num*(n_j)*(n_k+1) + mo_tot_num+&
       ao_num+ao_num*ao_num+ size_buffer*3)/(1024*1024), 'MB / core'
   
   call wall_time(wall_1)
@@ -289,18 +289,18 @@ subroutine add_integrals_to_map(mask_ijkl)
       !$OMP  buffer_i,buffer_value,n_integrals,wall_2,i0,j0,k0,l0,   &
       !$OMP  wall_0,thread_num,accu_bis)                             &
       !$OMP  DEFAULT(NONE)                                           &
-      !$OMP  SHARED(size_buffer,ao_num,mo_tot_num,n_i,n_j,n_k,n_l,mo_tot_num_align,&
+      !$OMP  SHARED(size_buffer,ao_num,mo_tot_num,n_i,n_j,n_k,n_l,   &
       !$OMP  mo_coef_transp,                                         &
       !$OMP  mo_coef_transp_is_built, list_ijkl,                     &
       !$OMP  mo_coef_is_built, wall_1,                               &
       !$OMP  mo_coef,mo_integrals_threshold,mo_integrals_map)
   n_integrals = 0
   wall_0 = wall_1
-  allocate(bielec_tmp_3(mo_tot_num_align, n_j, n_k),                 &
-      bielec_tmp_1(mo_tot_num_align),                                &
+  allocate(bielec_tmp_3(mo_tot_num, n_j, n_k),                 &
+      bielec_tmp_1(mo_tot_num),                                &
       bielec_tmp_0(ao_num,ao_num),                                   &
       bielec_tmp_0_idx(ao_num),                                      &
-      bielec_tmp_2(mo_tot_num_align, n_j),                           &
+      bielec_tmp_2(mo_tot_num, n_j),                           &
       buffer_i(size_buffer),                                         &
       buffer_value(size_buffer) )
   
@@ -308,10 +308,8 @@ subroutine add_integrals_to_map(mask_ijkl)
   !$  thread_num = omp_get_thread_num()
   !$OMP DO SCHEDULE(guided)
   do l1 = 1,ao_num
-    !DEC$ VECTOR ALIGNED
     bielec_tmp_3 = 0.d0
     do k1 = 1,ao_num
-      !DEC$ VECTOR ALIGNED
       bielec_tmp_2 = 0.d0
       do j1 = 1,ao_num
         call get_ao_bielec_integrals(j1,k1,l1,ao_num,bielec_tmp_0(1,j1))
@@ -333,7 +331,6 @@ subroutine add_integrals_to_map(mask_ijkl)
           cycle
         endif
         
-        !DEC$ VECTOR ALIGNED
         bielec_tmp_1 = 0.d0
         ii1=1
         do ii1 = 1,kmax-4,4
@@ -443,7 +440,7 @@ subroutine add_integrals_to_map(mask_ijkl)
             endif
             n_integrals += 1
             buffer_value(n_integrals) = bielec_tmp_1(i)
-            !DEC$ FORCEINLINE
+            !DIR$ FORCEINLINE
             call mo_bielec_integrals_index(i,j,k,l,buffer_i(n_integrals))
             if (n_integrals == size_buffer) then
               call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
@@ -514,7 +511,7 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
   double precision, allocatable  :: bielec_tmp_1(:)
   double precision, allocatable  :: bielec_tmp_2(:,:)
   double precision, allocatable  :: bielec_tmp_3(:,:,:)
-  !DEC$ ATTRIBUTES ALIGN : 64    :: bielec_tmp_1, bielec_tmp_2, bielec_tmp_3
+  !DIR$ ATTRIBUTES ALIGN : 64    :: bielec_tmp_1, bielec_tmp_2, bielec_tmp_3
   
   integer                        :: n_integrals
   integer                        :: size_buffer
@@ -571,7 +568,7 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
   
   size_buffer = min(ao_num*ao_num*ao_num,16000000)
   print*, 'Providing the molecular integrals '
-  print*, 'Buffers : ', 8.*(mo_tot_num_align*(n_j)*(n_k+1) + mo_tot_num_align +&
+  print*, 'Buffers : ', 8.*(mo_tot_num*(n_j)*(n_k+1) + mo_tot_num+&
       ao_num+ao_num*ao_num+ size_buffer*3)/(1024*1024), 'MB / core'
   
   call wall_time(wall_1)
@@ -583,18 +580,18 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
       !$OMP  buffer_i,buffer_value,n_integrals,wall_2,i0,j0,k0,l0,   &
       !$OMP  wall_0,thread_num,accu_bis)                             &
       !$OMP  DEFAULT(NONE)                                           &
-      !$OMP  SHARED(size_buffer,ao_num,mo_tot_num,n_i,n_j,n_k,mo_tot_num_align,&
+      !$OMP  SHARED(size_buffer,ao_num,mo_tot_num,n_i,n_j,n_k,       &
       !$OMP  mo_coef_transp,                                         &
       !$OMP  mo_coef_transp_is_built, list_ijkl,                     &
       !$OMP  mo_coef_is_built, wall_1,                               &
       !$OMP  mo_coef,mo_integrals_threshold,mo_integrals_map)
   n_integrals = 0
   wall_0 = wall_1
-  allocate(bielec_tmp_3(mo_tot_num_align, n_j, n_k),                 &
-      bielec_tmp_1(mo_tot_num_align),                                &
+  allocate(bielec_tmp_3(mo_tot_num, n_j, n_k),                 &
+      bielec_tmp_1(mo_tot_num),                                &
       bielec_tmp_0(ao_num,ao_num),                                   &
       bielec_tmp_0_idx(ao_num),                                      &
-      bielec_tmp_2(mo_tot_num_align, n_j),                           &
+      bielec_tmp_2(mo_tot_num, n_j),                           &
       buffer_i(size_buffer),                                         &
       buffer_value(size_buffer) )
   
@@ -602,10 +599,8 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
   !$  thread_num = omp_get_thread_num()
   !$OMP DO SCHEDULE(guided)
   do l1 = 1,ao_num
-    !DEC$ VECTOR ALIGNED
     bielec_tmp_3 = 0.d0
     do k1 = 1,ao_num
-      !DEC$ VECTOR ALIGNED
       bielec_tmp_2 = 0.d0
       do j1 = 1,ao_num
         call get_ao_bielec_integrals(j1,k1,l1,ao_num,bielec_tmp_0(1,j1))
@@ -626,7 +621,6 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
           cycle
         endif
         
-        !DEC$ VECTOR ALIGNED
         bielec_tmp_1 = 0.d0
         ii1=1
         do ii1 = 1,kmax-4,4
@@ -728,7 +722,7 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
           if(i==k .and. j==l .and. i.ne.j)then
             buffer_value(n_integrals) = buffer_value(n_integrals) *0.5d0
           endif
-          !DEC$ FORCEINLINE
+          !DIR$ FORCEINLINE
           call mo_bielec_integrals_index(i,j,k,l,buffer_i(n_integrals))
           if (n_integrals == size_buffer) then
             call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
@@ -760,7 +754,7 @@ subroutine add_integrals_to_map_three_indices(mask_ijk)
         
         n_integrals += 1
         buffer_value(n_integrals) = bielec_tmp_1(i)
-        !DEC$ FORCEINLINE
+        !DIR$ FORCEINLINE
         call mo_bielec_integrals_index(i,j,k,l,buffer_i(n_integrals))
         if (n_integrals == size_buffer) then
           call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
@@ -828,7 +822,7 @@ subroutine add_integrals_to_map_no_exit_34(mask_ijkl)
   double precision, allocatable  :: bielec_tmp_1(:)
   double precision, allocatable  :: bielec_tmp_2(:,:)
   double precision, allocatable  :: bielec_tmp_3(:,:,:)
-  !DEC$ ATTRIBUTES ALIGN : 64    :: bielec_tmp_1, bielec_tmp_2, bielec_tmp_3
+  !DIR$ ATTRIBUTES ALIGN : 64    :: bielec_tmp_1, bielec_tmp_2, bielec_tmp_3
   
   integer                        :: n_integrals
   integer                        :: size_buffer
@@ -853,7 +847,7 @@ subroutine add_integrals_to_map_no_exit_34(mask_ijkl)
   
   size_buffer = min(ao_num*ao_num*ao_num,16000000)
   print*, 'Providing the molecular integrals '
-  print*, 'Buffers : ', 8.*(mo_tot_num_align*(n_j)*(n_k+1) + mo_tot_num_align +&
+  print*, 'Buffers : ', 8.*(mo_tot_num*(n_j)*(n_k+1) + mo_tot_num+&
       ao_num+ao_num*ao_num+ size_buffer*3)/(1024*1024), 'MB / core'
   
   call wall_time(wall_1)
@@ -864,18 +858,18 @@ subroutine add_integrals_to_map_no_exit_34(mask_ijkl)
       !$OMP  buffer_i,buffer_value,n_integrals,wall_2,i0,j0,k0,l0,   &
       !$OMP  wall_0,thread_num)                                      &
       !$OMP  DEFAULT(NONE)                                           &
-      !$OMP  SHARED(size_buffer,ao_num,mo_tot_num,n_i,n_j,n_k,n_l,mo_tot_num_align,&
+      !$OMP  SHARED(size_buffer,ao_num,mo_tot_num,n_i,n_j,n_k,n_l,   &
       !$OMP  mo_coef_transp,                                         &
       !$OMP  mo_coef_transp_is_built, list_ijkl,                     &
       !$OMP  mo_coef_is_built, wall_1,                               &
       !$OMP  mo_coef,mo_integrals_threshold,mo_integrals_map)
   n_integrals = 0
   wall_0 = wall_1
-  allocate(bielec_tmp_3(mo_tot_num_align, n_j, n_k),                 &
-      bielec_tmp_1(mo_tot_num_align),                                &
+  allocate(bielec_tmp_3(mo_tot_num, n_j, n_k),                 &
+      bielec_tmp_1(mo_tot_num),                                &
       bielec_tmp_0(ao_num,ao_num),                                   &
       bielec_tmp_0_idx(ao_num),                                      &
-      bielec_tmp_2(mo_tot_num_align, n_j),                           &
+      bielec_tmp_2(mo_tot_num, n_j),                           &
       buffer_i(size_buffer),                                         &
       buffer_value(size_buffer) )
   
@@ -888,10 +882,8 @@ subroutine add_integrals_to_map_no_exit_34(mask_ijkl)
     !      cycle
     !    endif
     !IRP_ENDIF
-    !DEC$ VECTOR ALIGNED
     bielec_tmp_3 = 0.d0
     do k1 = 1,ao_num
-      !DEC$ VECTOR ALIGNED
       bielec_tmp_2 = 0.d0
       do j1 = 1,ao_num
         call get_ao_bielec_integrals(j1,k1,l1,ao_num,bielec_tmp_0(1,j1))
@@ -913,7 +905,6 @@ subroutine add_integrals_to_map_no_exit_34(mask_ijkl)
           cycle
         endif
         
-        !DEC$ VECTOR ALIGNED
         bielec_tmp_1 = 0.d0
         ii1=1
         do ii1 = 1,kmax-4,4
@@ -1018,7 +1009,7 @@ subroutine add_integrals_to_map_no_exit_34(mask_ijkl)
             endif
             n_integrals += 1
             buffer_value(n_integrals) = bielec_tmp_1(i)
-            !DEC$ FORCEINLINE
+            !DIR$ FORCEINLINE
             call mo_bielec_integrals_index(i,j,k,l,buffer_i(n_integrals))
             if (n_integrals == size_buffer) then
               call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_value,&
@@ -1071,9 +1062,9 @@ end
 
 
 
- BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_from_ao, (mo_tot_num_align,mo_tot_num) ]
-&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_exchange_from_ao, (mo_tot_num_align,mo_tot_num) ]
-&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_anti_from_ao, (mo_tot_num_align,mo_tot_num) ]
+ BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_from_ao, (mo_tot_num,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_exchange_from_ao, (mo_tot_num,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_anti_from_ao, (mo_tot_num,mo_tot_num) ]
   implicit none
   BEGIN_DOC
   ! mo_bielec_integral_jj_from_ao(i,j) = J_ij
@@ -1103,20 +1094,19 @@ end
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE (i,j,p,q,r,s,integral,c,n,pp,int_value,int_idx,  &
       !$OMP  iqrs, iqsr,iqri,iqis)                                   &
-      !$OMP SHARED(mo_tot_num,mo_coef_transp,mo_tot_num_align,ao_num,&
+      !$OMP SHARED(mo_tot_num,mo_coef_transp,ao_num,                 &
       !$OMP  ao_integrals_threshold,do_direct_integrals)             &
       !$OMP REDUCTION(+:mo_bielec_integral_jj_from_ao,mo_bielec_integral_jj_exchange_from_ao)
   
   allocate( int_value(ao_num), int_idx(ao_num),                      &
-      iqrs(mo_tot_num_align,ao_num), iqis(mo_tot_num), iqri(mo_tot_num),&
-      iqsr(mo_tot_num_align,ao_num) )
+      iqrs(mo_tot_num,ao_num), iqis(mo_tot_num), iqri(mo_tot_num),&
+      iqsr(mo_tot_num,ao_num) )
   
   !$OMP DO SCHEDULE (guided)
   do s=1,ao_num
     do q=1,ao_num
       
       do j=1,ao_num
-        !DIR$ VECTOR ALIGNED
         do i=1,mo_tot_num
           iqrs(i,j) = 0.d0
           iqsr(i,j) = 0.d0
@@ -1130,7 +1120,6 @@ end
           do p=1,ao_num
             integral = int_value(p)
             if (abs(integral) > ao_integrals_threshold) then
-              !DIR$ VECTOR ALIGNED
               do i=1,mo_tot_num
                 iqrs(i,r) += mo_coef_transp(i,p) * integral
               enddo
@@ -1140,7 +1129,6 @@ end
           do p=1,ao_num
             integral = int_value(p)
             if (abs(integral) > ao_integrals_threshold) then
-              !DIR$ VECTOR ALIGNED
               do i=1,mo_tot_num
                 iqsr(i,r) += mo_coef_transp(i,p) * integral
               enddo
@@ -1156,7 +1144,6 @@ end
             p = int_idx(pp)
             integral = int_value(pp)
             if (abs(integral) > ao_integrals_threshold) then
-              !DIR$ VECTOR ALIGNED
               do i=1,mo_tot_num
                 iqrs(i,r) += mo_coef_transp(i,p) * integral
               enddo
@@ -1167,7 +1154,6 @@ end
             p = int_idx(pp)
             integral = int_value(pp)
             if (abs(integral) > ao_integrals_threshold) then
-              !DIR$ VECTOR ALIGNED
               do i=1,mo_tot_num
                 iqsr(i,r) += mo_coef_transp(i,p) * integral
               enddo
@@ -1178,14 +1164,12 @@ end
       iqis = 0.d0
       iqri = 0.d0
       do r=1,ao_num
-        !DIR$ VECTOR ALIGNED
         do i=1,mo_tot_num
           iqis(i) += mo_coef_transp(i,r) * iqrs(i,r)
           iqri(i) += mo_coef_transp(i,r) * iqsr(i,r)
         enddo
       enddo
       do i=1,mo_tot_num
-        !DIR$ VECTOR ALIGNED
         do j=1,mo_tot_num
           c = mo_coef_transp(j,q)*mo_coef_transp(j,s)
           mo_bielec_integral_jj_from_ao(j,i) += c * iqis(i)
@@ -1204,9 +1188,9 @@ end
   
 END_PROVIDER
 
- BEGIN_PROVIDER [ double precision, mo_bielec_integral_vv_from_ao, (mo_tot_num_align,mo_tot_num) ]
-&BEGIN_PROVIDER [ double precision, mo_bielec_integral_vv_exchange_from_ao, (mo_tot_num_align,mo_tot_num) ]
-&BEGIN_PROVIDER [ double precision, mo_bielec_integral_vv_anti_from_ao, (mo_tot_num_align,mo_tot_num) ]
+ BEGIN_PROVIDER [ double precision, mo_bielec_integral_vv_from_ao, (mo_tot_num,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, mo_bielec_integral_vv_exchange_from_ao, (mo_tot_num,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, mo_bielec_integral_vv_anti_from_ao, (mo_tot_num,mo_tot_num) ]
   implicit none
   BEGIN_DOC
   ! mo_bielec_integral_vv_from_ao(i,j) = J_ij
@@ -1238,20 +1222,19 @@ END_PROVIDER
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP PRIVATE (i0,j0,i,j,p,q,r,s,integral,c,n,pp,int_value,int_idx,&
       !$OMP  iqrs, iqsr,iqri,iqis)                                   &
-      !$OMP SHARED(n_virt_orb,mo_tot_num,list_virt,mo_coef_transp,mo_tot_num_align,ao_num,&
+      !$OMP SHARED(n_virt_orb,mo_tot_num,list_virt,mo_coef_transp,ao_num,&
       !$OMP  ao_integrals_threshold,do_direct_integrals)             &
       !$OMP REDUCTION(+:mo_bielec_integral_vv_from_ao,mo_bielec_integral_vv_exchange_from_ao)
   
   allocate( int_value(ao_num), int_idx(ao_num),                      &
-      iqrs(mo_tot_num_align,ao_num), iqis(mo_tot_num), iqri(mo_tot_num),&
-      iqsr(mo_tot_num_align,ao_num) )
+      iqrs(mo_tot_num,ao_num), iqis(mo_tot_num), iqri(mo_tot_num),&
+      iqsr(mo_tot_num,ao_num) )
   
   !$OMP DO SCHEDULE (guided)
   do s=1,ao_num
     do q=1,ao_num
       
       do j=1,ao_num
-        !DIR$ VECTOR ALIGNED
         do i0=1,n_virt_orb
           i = list_virt(i0)
           iqrs(i,j) = 0.d0
@@ -1266,7 +1249,6 @@ END_PROVIDER
           do p=1,ao_num
             integral = int_value(p)
             if (abs(integral) > ao_integrals_threshold) then
-              !DIR$ VECTOR ALIGNED
               do i0=1,n_virt_orb
                 i = list_virt(i0)
                 iqrs(i,r) += mo_coef_transp(i,p) * integral
@@ -1277,7 +1259,6 @@ END_PROVIDER
           do p=1,ao_num
             integral = int_value(p)
             if (abs(integral) > ao_integrals_threshold) then
-              !DIR$ VECTOR ALIGNED
               do i0=1,n_virt_orb
                 i =list_virt(i0)
                 iqsr(i,r) += mo_coef_transp(i,p) * integral
@@ -1294,7 +1275,6 @@ END_PROVIDER
             p = int_idx(pp)
             integral = int_value(pp)
             if (abs(integral) > ao_integrals_threshold) then
-              !DIR$ VECTOR ALIGNED
               do i0=1,n_virt_orb
                 i =list_virt(i0)
                 iqrs(i,r) += mo_coef_transp(i,p) * integral
@@ -1306,7 +1286,6 @@ END_PROVIDER
             p = int_idx(pp)
             integral = int_value(pp)
             if (abs(integral) > ao_integrals_threshold) then
-              !DIR$ VECTOR ALIGNED
               do i0=1,n_virt_orb
                 i = list_virt(i0)
                 iqsr(i,r) += mo_coef_transp(i,p) * integral
@@ -1318,7 +1297,6 @@ END_PROVIDER
       iqis = 0.d0
       iqri = 0.d0
       do r=1,ao_num
-        !DIR$ VECTOR ALIGNED
         do i0=1,n_virt_orb
           i = list_virt(i0)
           iqis(i) += mo_coef_transp(i,r) * iqrs(i,r)
@@ -1327,7 +1305,6 @@ END_PROVIDER
       enddo
       do i0=1,n_virt_orb
         i= list_virt(i0)
-        !DIR$ VECTOR ALIGNED
         do j0=1,n_virt_orb
           j = list_virt(j0)
           c = mo_coef_transp(j,q)*mo_coef_transp(j,s)
@@ -1354,9 +1331,9 @@ END_PROVIDER
 END_PROVIDER
 
 
- BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj, (mo_tot_num_align,mo_tot_num) ]
-&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_exchange, (mo_tot_num_align,mo_tot_num) ]
-&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_anti, (mo_tot_num_align,mo_tot_num) ]
+ BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj, (mo_tot_num,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_exchange, (mo_tot_num,mo_tot_num) ]
+&BEGIN_PROVIDER [ double precision, mo_bielec_integral_jj_anti, (mo_tot_num,mo_tot_num) ]
   implicit none
   BEGIN_DOC
   ! mo_bielec_integral_jj(i,j) = J_ij

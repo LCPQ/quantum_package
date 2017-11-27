@@ -73,7 +73,7 @@ END_PROVIDER
 
 
 
-BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_all_points, (ao_num_align, ao_num, N_z_pts)]
+BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_all_points, (ao_num, ao_num, N_z_pts)]
  BEGIN_DOC
 !  array of the overlap in x,y between the AO function and integrated between [z,z+dz] in the z axis
 !  for all the z points that are given (N_z_pts)
@@ -148,7 +148,7 @@ BEGIN_PROVIDER [integer, i_unit_integrated_delta_rho]
 
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_one_point, (ao_num_align, ao_num )]
+BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_one_point, (ao_num, ao_num )]
  BEGIN_DOC
 !  array of the overlap in x,y between the AO function and integrated between [z,z+dz] in the z axis
 !  for one specific z point
@@ -209,7 +209,7 @@ BEGIN_PROVIDER [ double precision, ao_integrated_delta_rho_one_point, (ao_num_al
  !$OMP END PARALLEL DO
 END_PROVIDER
 
-BEGIN_PROVIDER [double precision, mo_integrated_delta_rho_one_point, (mo_tot_num_align,mo_tot_num)]
+BEGIN_PROVIDER [double precision, mo_integrated_delta_rho_one_point, (mo_tot_num,mo_tot_num)]
  BEGIN_DOC
 ! 
 ! array of the integrals needed of integrated_rho(alpha,z) - integrated_rho(beta,z) for z = z_one_point

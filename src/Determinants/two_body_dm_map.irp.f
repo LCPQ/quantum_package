@@ -141,8 +141,7 @@ subroutine add_values_to_two_body_dm_map(mask_ijkl)
      n_elements += 1
      contrib = psi_coef(i,1) * psi_coef(j,1) * phase
      buffer_value(n_elements) = contrib
-     !DEC$ FORCEINLINE
-!    call mo_bielec_integrals_index(h1,p1,h2,p2,buffer_i(n_elements))
+     !DIR$ FORCEINLINE
      call mo_bielec_integrals_index(h1,h2,p1,p2,buffer_i(n_elements))
 !    if (n_elements == size_buffer) then
 !      call insert_into_two_body_dm_ab_map(n_elements,buffer_i,buffer_value,&

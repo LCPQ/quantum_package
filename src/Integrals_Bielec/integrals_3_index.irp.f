@@ -1,5 +1,5 @@
- BEGIN_PROVIDER [double precision, big_array_coulomb_integrals, (mo_tot_num_align,mo_tot_num, mo_tot_num)]
-&BEGIN_PROVIDER [double precision, big_array_exchange_integrals,(mo_tot_num_align,mo_tot_num, mo_tot_num)]
+ BEGIN_PROVIDER [double precision, big_array_coulomb_integrals, (mo_tot_num,mo_tot_num, mo_tot_num)]
+&BEGIN_PROVIDER [double precision, big_array_exchange_integrals,(mo_tot_num,mo_tot_num, mo_tot_num)]
  implicit none
  integer :: i,j,k,l
  double precision :: get_mo_bielec_integral

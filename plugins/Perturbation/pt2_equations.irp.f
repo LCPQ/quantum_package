@@ -314,7 +314,7 @@ subroutine pt2_epstein_nesbet_SC2_projected ($arguments)
 
   degree = popcnt(xor( ref_bitmask(1,1), det_pert(1,1))) +                      &
            popcnt(xor( ref_bitmask(1,2), det_pert(1,2)))
-  !DEC$ NOUNROLL
+  !DIR$ NOUNROLL
   do l=2,Nint
     degree = degree+ popcnt(xor( ref_bitmask(l,1), det_pert(l,1))) +            &
                      popcnt(xor( ref_bitmask(l,2), det_pert(l,2)))

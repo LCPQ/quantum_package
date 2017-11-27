@@ -1,15 +1,4 @@
-BEGIN_PROVIDER [ integer, nucl_num_aligned ]
-   implicit none
-   BEGIN_DOC
-   ! Number of nuclei algined
-   END_DOC
-   
-   PROVIDE ezfio_filename
-   integer                        :: align_double
-   nucl_num_aligned = align_double(nucl_num)
-END_PROVIDER
- 
-BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num_aligned,3) ]
+BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num,3) ]
    implicit none
    
    BEGIN_DOC
@@ -79,11 +68,11 @@ BEGIN_PROVIDER [ double precision, nucl_coord_transp, (3,nucl_num) ]
    enddo
 END_PROVIDER
  
- BEGIN_PROVIDER [ double precision, nucl_dist_2, (nucl_num_aligned,nucl_num) ]
-&BEGIN_PROVIDER [ double precision, nucl_dist_vec_x, (nucl_num_aligned,nucl_num) ]
-&BEGIN_PROVIDER [ double precision, nucl_dist_vec_y, (nucl_num_aligned,nucl_num) ]
-&BEGIN_PROVIDER [ double precision, nucl_dist_vec_z, (nucl_num_aligned,nucl_num) ]
-&BEGIN_PROVIDER [ double precision, nucl_dist, (nucl_num_aligned,nucl_num) ]
+ BEGIN_PROVIDER [ double precision, nucl_dist_2, (nucl_num,nucl_num) ]
+&BEGIN_PROVIDER [ double precision, nucl_dist_vec_x, (nucl_num,nucl_num) ]
+&BEGIN_PROVIDER [ double precision, nucl_dist_vec_y, (nucl_num,nucl_num) ]
+&BEGIN_PROVIDER [ double precision, nucl_dist_vec_z, (nucl_num,nucl_num) ]
+&BEGIN_PROVIDER [ double precision, nucl_dist, (nucl_num,nucl_num) ]
    implicit none
    BEGIN_DOC
    ! nucl_dist     : Nucleus-nucleus distances
@@ -105,16 +94,12 @@ END_PROVIDER
    endif
    
    do ie2 = 1,nucl_num
-     !DEC$ VECTOR ALWAYS
-     !DEC$ VECTOR ALIGNED
-     do ie1 = 1,nucl_num_aligned
+     do ie1 = 1,nucl_num
        nucl_dist_vec_x(ie1,ie2) = nucl_coord(ie1,1) - nucl_coord(ie2,1)
        nucl_dist_vec_y(ie1,ie2) = nucl_coord(ie1,2) - nucl_coord(ie2,2)
        nucl_dist_vec_z(ie1,ie2) = nucl_coord(ie1,3) - nucl_coord(ie2,3)
      enddo
-     !DEC$ VECTOR ALWAYS
-     !DEC$ VECTOR ALIGNED
-     do ie1 = 1,nucl_num_aligned
+     do ie1 = 1,nucl_num
        nucl_dist_2(ie1,ie2) = nucl_dist_vec_x(ie1,ie2)*nucl_dist_vec_x(ie1,ie2) +&
            nucl_dist_vec_y(ie1,ie2)*nucl_dist_vec_y(ie1,ie2) +       &
            nucl_dist_vec_z(ie1,ie2)*nucl_dist_vec_z(ie1,ie2)

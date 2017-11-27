@@ -70,7 +70,7 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
   double precision, allocatable  :: Vt(:,:)
   double precision, allocatable  :: D(:)
   double precision, allocatable  :: S(:,:)
-  !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
+  !DIR$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
   integer                        :: info, i, j
   
   if (n < 2) then

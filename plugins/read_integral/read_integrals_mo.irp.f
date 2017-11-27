@@ -28,7 +28,7 @@ subroutine run
    
   call ezfio_get_mo_basis_mo_tot_num(mo_tot_num)
 
-  allocate (A(mo_tot_num_align,mo_tot_num))
+  allocate (A(mo_tot_num,mo_tot_num))
   A = 0.d0
   
   iunit = getunitandopen('kinetic_mo','r')

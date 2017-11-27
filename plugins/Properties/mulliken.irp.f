@@ -1,5 +1,5 @@
 
-BEGIN_PROVIDER [double precision, spin_population, (ao_num_align,ao_num)]
+BEGIN_PROVIDER [double precision, spin_population, (ao_num,ao_num)]
  implicit none
  integer :: i,j
  BEGIN_DOC
@@ -57,8 +57,8 @@ BEGIN_PROVIDER [double precision, mulliken_spin_densities, (nucl_num)]
 
 END_PROVIDER
 
- BEGIN_PROVIDER [double precision, electronic_population_alpha, (ao_num_align,ao_num)]
-&BEGIN_PROVIDER [double precision, electronic_population_beta, (ao_num_align,ao_num)]
+ BEGIN_PROVIDER [double precision, electronic_population_alpha, (ao_num,ao_num)]
+&BEGIN_PROVIDER [double precision, electronic_population_beta, (ao_num,ao_num)]
  implicit none
  integer :: i,j
  BEGIN_DOC

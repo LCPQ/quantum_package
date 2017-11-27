@@ -2,7 +2,7 @@ program permut_mos
  implicit none
  integer :: mo1,mo2
  integer :: i,j,k,l
- double precision :: mo_coef_tmp(ao_num_align,2)
+ double precision :: mo_coef_tmp(ao_num,2)
  print*,'Which MOs would you like to change ?'
  read(5,*)mo1,mo2
  print*,''

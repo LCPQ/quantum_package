@@ -1,14 +1,5 @@
-BEGIN_PROVIDER [ integer, n_pt_max_integrals_16 ]
- implicit none
- BEGIN_DOC
- ! Aligned n_pt_max_integrals
- END_DOC
- integer, external :: align_double
- n_pt_max_integrals_16 = align_double(n_pt_max_integrals)
-END_PROVIDER
-
- BEGIN_PROVIDER [ double precision, gauleg_t2, (n_pt_max_integrals_16,n_pt_max_integrals/2) ]
-&BEGIN_PROVIDER [ double precision, gauleg_w, (n_pt_max_integrals_16,n_pt_max_integrals/2) ]
+ BEGIN_PROVIDER [ double precision, gauleg_t2, (n_pt_max_integrals,n_pt_max_integrals/2) ]
+&BEGIN_PROVIDER [ double precision, gauleg_w, (n_pt_max_integrals,n_pt_max_integrals/2) ]
    implicit none
    BEGIN_DOC
    ! t_w(i,1,k) = w(i)

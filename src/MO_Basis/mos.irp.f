@@ -16,17 +16,7 @@ BEGIN_PROVIDER [ integer, mo_tot_num ]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ integer, mo_tot_num_align ]
-  implicit none
-  BEGIN_DOC
-  ! Aligned variable for dimensioning of arrays
-  END_DOC
-  integer                        :: align_double
-  mo_tot_num_align = align_double(mo_tot_num)
-END_PROVIDER
-
-
- BEGIN_PROVIDER [ double precision, mo_coef, (ao_num_align,mo_tot_num) ]
+BEGIN_PROVIDER [ double precision, mo_coef, (ao_num,mo_tot_num) ]
   implicit none
   BEGIN_DOC
   ! Molecular orbital coefficients on AO basis set
@@ -42,32 +32,18 @@ END_PROVIDER
   ! Coefs
   call ezfio_has_mo_basis_mo_coef(exists)
   if (exists) then
-    allocate(buffer(ao_num,mo_tot_num))
-    buffer = 0.d0
-    call ezfio_get_mo_basis_mo_coef(buffer)
-    do i=1,mo_tot_num
-      do j=1,ao_num
-        mo_coef(j,i) = buffer(j,i)
-      enddo
-      do j=ao_num+1,ao_num_align
-        mo_coef(j,i) = 0.d0
-      enddo
-    enddo
-    deallocate(buffer)
+    call ezfio_get_mo_basis_mo_coef(mo_coef)
   else
     ! Orthonormalized AO basis
     do i=1,mo_tot_num
       do j=1,ao_num
         mo_coef(j,i) = ao_ortho_canonical_coef(j,i)
       enddo
-      do j=ao_num+1,ao_num_align
-        mo_coef(j,i) = 0.d0
-      enddo
     enddo
   endif
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, mo_coef_in_ao_ortho_basis, (ao_num_align, mo_tot_num) ]
+BEGIN_PROVIDER [ double precision, mo_coef_in_ao_ortho_basis, (ao_num, mo_tot_num) ]
  implicit none
  BEGIN_DOC
  ! MO coefficients in orthogonalized AO basis
@@ -99,7 +75,7 @@ BEGIN_PROVIDER [ character*(64), mo_label ]
   endif
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, mo_coef_transp, (mo_tot_num_align,ao_num) ]
+BEGIN_PROVIDER [ double precision, mo_coef_transp, (mo_tot_num,ao_num) ]
   implicit none
   BEGIN_DOC
   ! Molecular orbital coefficients on AO basis set
@@ -110,14 +86,11 @@ BEGIN_PROVIDER [ double precision, mo_coef_transp, (mo_tot_num_align,ao_num) ]
     do i=1,mo_tot_num
       mo_coef_transp(i,j) = mo_coef(j,i)
     enddo
-    do i=mo_tot_num+1,mo_tot_num_align
-      mo_coef_transp(i,j) = 0.d0
-    enddo
   enddo
   
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, S_mo_coef, (ao_num_align, mo_tot_num) ]
+BEGIN_PROVIDER [ double precision, S_mo_coef, (ao_num, mo_tot_num) ]
  implicit none
  BEGIN_DOC
  ! Product S.C where S is the overlap matrix in the AO basis and C the mo_coef matrix.
@@ -165,18 +138,18 @@ subroutine ao_to_mo(A_ao,LDA_ao,A_mo,LDA_mo)
   double precision, intent(out)  :: A_mo(LDA_mo,mo_tot_num)
   double precision, allocatable  :: T(:,:)
   
-  allocate ( T(ao_num_align,mo_tot_num) )
+  allocate ( T(ao_num,mo_tot_num) )
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
   
   call dgemm('N','N', ao_num, mo_tot_num, ao_num,                    &
       1.d0, A_ao,LDA_ao,                                             &
       mo_coef, size(mo_coef,1),                                      &
-      0.d0, T, ao_num_align)
+      0.d0, T, size(T,1))
   
   call dgemm('T','N', mo_tot_num, mo_tot_num, ao_num,                &
       1.d0, mo_coef,size(mo_coef,1),                                 &
-      T, ao_num_align,                                               &
-      0.d0, A_mo, LDA_mo)
+      T, ao_num,                                                     &   
+      0.d0, A_mo, size(A_mo,1))
   
   deallocate(T)
 end
@@ -193,7 +166,7 @@ subroutine mo_to_ao(A_mo,LDA_mo,A_ao,LDA_ao)
   double precision, intent(out)  :: A_ao(LDA_ao,ao_num)
   double precision, allocatable  :: T(:,:)
   
-  allocate ( T(mo_tot_num_align,ao_num) )
+  allocate ( T(mo_tot_num,ao_num) )
   
   call dgemm('N','T', mo_tot_num, ao_num, mo_tot_num,                &
       1.d0, A_mo,size(A_mo,1),                                       &
@@ -219,7 +192,7 @@ subroutine mo_to_ao_no_overlap(A_mo,LDA_mo,A_ao,LDA_ao)
   double precision, intent(out)  :: A_ao(LDA_ao,ao_num)
   double precision, allocatable  :: T(:,:)
   
-  allocate ( T(mo_tot_num_align,ao_num) )
+  allocate ( T(mo_tot_num,ao_num) )
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: T
   
   call dgemm('N','T', mo_tot_num, ao_num, mo_tot_num,                &
@@ -281,7 +254,7 @@ subroutine ao_ortho_cano_to_ao(A_ao,LDA_ao,A,LDA)
   double precision, intent(out)  :: A(LDA,*)
   double precision, allocatable  :: T(:,:)
   
-  allocate ( T(ao_num_align,ao_num) )
+  allocate ( T(ao_num,ao_num) )
   
   call dgemm('T','N', ao_num, ao_num, ao_num,                        &
       1.d0,                                                          &

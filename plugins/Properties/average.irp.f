@@ -1,7 +1,7 @@
 subroutine get_average(array,density,average)
  implicit none
- double precision, intent(in) :: array(mo_tot_num_align,mo_tot_num)
- double precision, intent(in) :: density(mo_tot_num_align,mo_tot_num)
+ double precision, intent(in) :: array(mo_tot_num,mo_tot_num)
+ double precision, intent(in) :: density(mo_tot_num,mo_tot_num)
  double precision, intent(out):: average
  integer :: i,j
  BEGIN_DOC

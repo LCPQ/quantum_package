@@ -363,8 +363,6 @@ subroutine davidson_diag_hjj(dets_in,u_in,H_jj,energies,dim_in,sze,N_st,N_st_dia
   enddo
   write(iunit,'(A)') trim(write_buffer)
 
-  integer, external :: align_double
-
   allocate(                                                          &
       kl_pairs(2,N_st_diag*(N_st_diag+1)/2),                         &
       W(sze,N_st_diag,davidson_sze_max),                           &

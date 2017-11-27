@@ -4,7 +4,7 @@ program swap_mos
   double precision :: x
   print *,  'MOs to swap?'
   read(*,*) i1, i2
-  do i=1,ao_num_align
+  do i=1,ao_num
     x = mo_coef(i,i1)
     mo_coef(i,i1) = mo_coef(i,i2)
     mo_coef(i,i2) = x

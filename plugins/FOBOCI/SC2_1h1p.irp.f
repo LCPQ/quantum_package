@@ -725,8 +725,8 @@ subroutine density_matrix_1h1p(dets_in,u_in,density_matrix_alpha,density_matrix_
   integer, intent(in)            :: dim_in, sze, N_st, Nint
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision, intent(inout) :: u_in(dim_in,N_st)
-  double precision, intent(inout)  :: density_matrix_alpha(mo_tot_num_align,mo_tot_num)
-  double precision, intent(inout)  :: density_matrix_beta(mo_tot_num_align,mo_tot_num)
+  double precision, intent(inout)  :: density_matrix_alpha(mo_tot_num,mo_tot_num)
+  double precision, intent(inout)  :: density_matrix_beta(mo_tot_num,mo_tot_num)
   double precision, intent(inout)  :: norm
   
   integer :: i,j,k,l

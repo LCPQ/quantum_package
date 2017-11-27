@@ -1,23 +1,3 @@
-BEGIN_PROVIDER [ integer, mpi_bit_kind ]
- use bitmasks
- implicit none
- BEGIN_DOC
- ! MPI bit kind type
- END_DOC
- IRP_IF MPI
-  include 'mpif.h'
-  if (bit_kind == 4) then
-    mpi_bit_kind = MPI_INTEGER4
-  else if (bit_kind == 8) then
-    mpi_bit_kind = MPI_INTEGER8
-  else
-    stop 'Wrong bit kind in mpi_bit_kind'
-  endif
- IRP_ELSE
-  mpi_bit_kind = -1
- IRP_ENDIF
-END_PROVIDER
-
 BEGIN_PROVIDER [ logical, mpi_initialized ]
  implicit none
  BEGIN_DOC
@@ -88,7 +68,6 @@ subroutine broadcast_chunks_$double(A, LDA)
   implicit none
   integer, intent(in)             :: LDA
   $type, intent(inout) :: A(LDA)
-  use bitmasks
   BEGIN_DOC
 ! Broadcast with chunks of ~2GB
   END_DOC
@@ -99,7 +78,7 @@ subroutine broadcast_chunks_$double(A, LDA)
       sze = min(LDA-i+1, 200000000/$8)
       call MPI_BCAST (A(i), sze, MPI_$DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
       if (ierr /= MPI_SUCCESS) then
-        print *,  irp_here//': Unable to broadcast chuks $double ', i
+        print *,  irp_here//': Unable to broadcast chunks $double ', i
         stop -1
       endif
     enddo
@@ -107,10 +86,9 @@ subroutine broadcast_chunks_$double(A, LDA)
 end
 
 SUBST [ double, type, 8, DOUBLE_PRECISION ]
-double    ; double precision  ; 8             ; DOUBLE_PRECISION ;;
-bit_kind  ; integer(bit_kind) ; bit_kind_size ; BIT_KIND ;;
-integer   ; integer          ; 4             ; INTEGER4 ;;
-integer8  ; integer*8        ; 8             ; INTEGER8 ;;
+double    ; double precision  ; 8 ; DOUBLE_PRECISION ;;
+integer   ; integer           ; 4  ; INTEGER4 ;;
+integer8  ; integer*8         ; 8  ; INTEGER8 ;;
 
 END_TEMPLATE
 
