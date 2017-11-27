@@ -599,6 +599,7 @@ subroutine end_parallel_job(zmq_to_qp_run_socket,name_in)
     stop 'Wrong end of job'
   endif
 
+  call sleep(1)
   rc = f77_zmq_send(zmq_to_qp_run_socket, 'end_job '//trim(zmq_state),8+len(trim(zmq_state)),0)
   rc = f77_zmq_recv(zmq_to_qp_run_socket, zmq_state, 2, 0)
   if (rc /= 2) then
@@ -925,9 +926,9 @@ subroutine zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
   character*(512)                :: msg
 
   write(msg,*) 'del_task ', zmq_state, task_id
-  rc = f77_zmq_send(zmq_to_qp_run_socket,msg,512,0)
-  if (rc /= 512) then
-    print *,  'f77_zmq_send(zmq_to_qp_run_socket,task_id,4,0)'
+  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
+  if (rc /= len(trim(msg))) then
+    print *,  irp_here
     stop 'error'
   endif
 
@@ -946,7 +947,7 @@ subroutine zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
 !    endif
   else
     print *,  reply
-    print *,  'f77_zmq_recv(zmq_to_qp_run_socket,reply,64,0)'
+    print *,  irp_here
     stop 'error'
   endif
 end

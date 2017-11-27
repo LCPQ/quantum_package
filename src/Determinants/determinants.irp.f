@@ -511,8 +511,8 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
   enddo
 
   call ezfio_set_determinants_psi_coef(psi_coef_save)
-  call write_int(output_determinants,ndet,'Saved determinants')
   deallocate (psi_coef_save)
+  call write_int(output_determinants,ndet,'Saved determinants')
 end
 
 
