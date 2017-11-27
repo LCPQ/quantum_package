@@ -434,8 +434,8 @@ let get_tasks msg program_state rep_socket pair_socket =
             in
             match (task_id, task) with
             | Some task_id, Some task -> 
-              build_list ( (task_id, task)::accu ) new_queue (n-1)
-            | _ -> queue, ((Id.Task.of_int 0, "terminate")::accu)
+              build_list ( (Some task_id, task)::accu ) new_queue (n-1)
+            | _ -> queue, (None, "terminate")::accu
         in
 
         let new_queue, result =

@@ -29,7 +29,7 @@ let run slave exe ezfio_file =
       try 
         List.iter [ 0;1;2;3;4;5;6;7;8;9 ] ~f:(fun i ->
             let address = 
-              Printf.sprintf "tcp://*:%d" (port_number+i)
+              Printf.sprintf "tcp://%s:%d" (Lazy.force TaskServer.ip_address) (port_number+i)
             in
             ZMQ.Socket.bind dummy_socket address;
             ZMQ.Socket.unbind dummy_socket address;
@@ -48,10 +48,6 @@ let run slave exe ezfio_file =
 
   let time_start = 
     Time.now ()
-  in
-
-  let address =
-    Printf.sprintf "tcp://%s:%d" (Lazy.force TaskServer.ip_address) port_number
   in
 
   if (not (Sys.file_exists_exn ezfio_file)) then
@@ -102,6 +98,9 @@ let run slave exe ezfio_file =
          TaskServer.run port_number )
      in
      thread ();
+  in
+  let address =
+    Printf.sprintf "tcp://%s:%d" (Lazy.force TaskServer.ip_address) port_number
   in
   Unix.putenv ~key:"QP_RUN_ADDRESS" ~data:address;
   let () = 

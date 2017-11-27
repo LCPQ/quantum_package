@@ -245,7 +245,7 @@ end = struct
       (Id.Client.to_int x.client_id)
 end
 
-(** GetTaskReply : Reply to the GetTasks message *)
+(** GetTaskReply : Reply to the GetTask message *)
 module GetTaskReply_msg : sig
   type t  
   val create : task_id:Id.Task.t option -> task:string option -> t
@@ -292,19 +292,22 @@ end
 
 (** GetTasksReply : Reply to the GetTasks message *)
 module GetTasksReply_msg : sig
-  type t = (Id.Task.t * string) list
+  type t = (Id.Task.t option * string) list
   val create : t -> t
   val to_string : t -> string
   val to_string_list : t -> string list
 end = struct
-  type t = (Id.Task.t * string) list
+  type t = (Id.Task.t option * string) list
   let create l = l
   let to_string _ =
      "get_tasks_reply ok" 
   let to_string_list x = 
      "get_tasks_reply ok" :: (
-     List.map x ~f:(fun (task_id, task) -> Printf.sprintf "%d %s" (Id.Task.to_int task_id) task)
-     ) 
+     List.map x ~f:(fun (task_id, task) ->
+       match task_id with
+       | Some task_id -> Printf.sprintf "%d %s" (Id.Task.to_int task_id) task
+       | None -> Printf.sprintf "0 terminate" 
+     ) )
      
 end
 
@@ -552,5 +555,6 @@ let to_string = function
 
 let to_string_list = function
 | GetDataReply     x -> GetDataReply_msg.to_string_list   x
+| GetTasksReply    x -> GetTasksReply_msg.to_string_list   x
 | _                  -> assert false
 
