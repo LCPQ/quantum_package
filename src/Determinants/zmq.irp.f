@@ -102,7 +102,8 @@ subroutine zmq_put_psi_det(zmq_to_qp_run_socket,worker_id)
   END_DOC
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   integer, intent(in)            :: worker_id
-  integer                        :: rc, rc8
+  integer                        :: rc
+  integer*8                      :: rc8
   character*(256)                :: msg
 
   write(msg,'(A8,1X,I8,1X,A230)') 'put_data', worker_id, 'psi_det'
@@ -112,7 +113,7 @@ subroutine zmq_put_psi_det(zmq_to_qp_run_socket,worker_id)
     stop 'error'
   endif
 
-  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det*bit_kind,0)
+  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_det,int(N_int*2_8*N_det*bit_kind,8),0)
   if (rc8 /= N_int*2_8*N_det*bit_kind) then
     print *,  irp_here, ': Error sending psi_det'
     stop 'error'
@@ -134,7 +135,8 @@ subroutine zmq_put_psi_coef(zmq_to_qp_run_socket,worker_id)
   END_DOC
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   integer, intent(in)            :: worker_id
-  integer                        :: rc, rc8
+  integer                        :: rc
+  integer*8                      :: rc8
   character*(256)                :: msg
 
   write(msg,'(A8,1X,I8,1X,A230)') 'put_data', worker_id, 'psi_coef'
@@ -144,7 +146,7 @@ subroutine zmq_put_psi_coef(zmq_to_qp_run_socket,worker_id)
     stop 'error'
   endif
 
-  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_coef,psi_det_size*N_states*8_8,0)
+  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_coef,int(psi_det_size*N_states*8_8,8),0)
   if (rc8 /= psi_det_size*N_states*8_8) then
     print *,  irp_here, ': Error sending psi_coef'
     stop 'error'

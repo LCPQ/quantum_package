@@ -49,8 +49,8 @@ subroutine ZMQ_selection(N_in, pt2)
   endif
   call zmq_set_running(zmq_to_qp_run_socket)
 
-  ASSERT (allocated(b%det))
-  ASSERT (allocated(b%val))
+  ASSERT (associated(b%det))
+  ASSERT (associated(b%val))
 
   !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
   i = omp_get_thread_num()
