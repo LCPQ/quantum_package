@@ -41,4 +41,3 @@ if __name__ == '__main__':
 
     print get_compilation_option(pwd_cfg, "FC")
     print get_compilation_option(pwd_cfg, "FCFLAGS")
-    print get_compilation_option(pwd_cfg, "GPI2_LIB")

@@ -140,12 +140,12 @@ function new_zmq_to_qp_run_socket()
      stop 'Unable to create zmq req socket'
   endif
 
-!  rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_SNDTIMEO, 120000, 4)
+!  rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_SNDTIMEO, 300000, 4)
 !  if (rc /= 0) then
 !    stop 'Unable to set send timeout in new_zmq_to_qp_run_socket'
 !  endif
 !
-!  rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_RCVTIMEO, 120000, 4)
+!  rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_RCVTIMEO, 300000, 4)
 !  if (rc /= 0) then
 !    stop 'Unable to set recv timeout in new_zmq_to_qp_run_socket'
 !  endif
@@ -180,25 +180,25 @@ function new_zmq_pair_socket(bind)
   endif
 
 
-  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 1, 4)
-  if (rc /= 0) then
-    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 1, 4)'
-  endif
-
-  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 1, 4)
-  if (rc /= 0) then
-    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 1, 4)'
-  endif
-
-  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_IMMEDIATE, 1, 4)
-  if (rc /= 0) then
-    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_IMMEDIATE, 1, 4)'
-  endif
-
-  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_LINGER, 600000, 4)
-  if (rc /= 0) then
-    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_LINGER, 60000, 4)'
-  endif
+!  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 2, 4)
+!  if (rc /= 0) then
+!    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_SNDHWM, 2, 4)'
+!  endif
+!
+!  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 2, 4)
+!  if (rc /= 0) then
+!    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 2, 4)'
+!  endif
+!
+!  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_IMMEDIATE, 1, 4)
+!  if (rc /= 0) then
+!    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_IMMEDIATE, 1, 4)'
+!  endif
+!
+!  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_LINGER, 600000, 4)
+!  if (rc /= 0) then
+!    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_LINGER, 600000, 4)'
+!  endif
 
   if (bind) then
     rc = f77_zmq_bind(new_zmq_pair_socket,zmq_socket_pair_inproc_address)
@@ -247,12 +247,12 @@ IRP_ENDIF
 !    stop 'Unable to set ZMQ_LINGER on pull socket'
 !  endif
 !  
-  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVBUF,100000000,4)
-  if (rc /= 0) then
-    stop 'Unable to set ZMQ_RCVBUF on pull socket'
-  endif
+!  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVBUF,100000000,4)
+!  if (rc /= 0) then
+!    stop 'Unable to set ZMQ_RCVBUF on pull socket'
+!  endif
   
-  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVHWM,1,4)
+  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_RCVHWM,3,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_RCVHWM on pull socket'
   endif
@@ -327,16 +327,16 @@ IRP_ENDIF
 !    stop 'Unable to set ZMQ_LINGER on push socket'
 !  endif
   
-  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDHWM,1,4)
+  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDHWM,2,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_SNDHWM on push socket'
   endif
   
-  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDBUF,100000000,4)
-  if (rc /= 0) then
-    stop 'Unable to set ZMQ_SNDBUF on push socket'
-  endif
-  
+!  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_SNDBUF,100000000,4)
+!  if (rc /= 0) then
+!    stop 'Unable to set ZMQ_SNDBUF on push socket'
+!  endif
+!  
   rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_IMMEDIATE,1,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_IMMEDIATE on push socket'
@@ -898,7 +898,7 @@ subroutine end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   character*(8), external        :: zmq_port
   integer                        :: rc
 
-!  rc = f77_zmq_setsockopt(zmq_to_qp_run_socket,ZMQ_LINGER,1000,4)
+!  rc = f77_zmq_setsockopt(zmq_to_qp_run_socket,ZMQ_LINGER,300000,4)
 !  if (rc /= 0) then
 !    stop 'Unable to set ZMQ_LINGER on zmq_to_qp_run_socket'
 !  endif
@@ -940,11 +940,6 @@ subroutine zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
     more = 1
   else if (reply(16:19) == 'done') then
     more = 0
-!    rc = f77_zmq_setsockopt(zmq_socket_pull, ZMQ_RCVTIMEO, 1000, 4)
-!    if (rc /= 0) then
-!       print *,  'f77_zmq_setsockopt(zmq_socket_pull, ZMQ_RCVTIMEO, 3000, 4)'
-!       stop 'error'
-!    endif
   else
     print *,  reply
     print *,  irp_here
