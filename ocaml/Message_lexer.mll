@@ -9,6 +9,7 @@ type kw_type =
     | ADD_TASK 
     | DEL_TASK 
     | GET_TASK 
+    | GET_TASKS
     | TASK_DONE
     | DISCONNECT
     | CONNECT
@@ -28,6 +29,7 @@ type state_tasks            = { state : string ; tasks            : string list 
 type state_taskids          = { state : string ; task_ids         : int list   ; }
 type state_taskids_clientid = { state : string ; task_ids         : int list   ; client_id : int    ; }
 type state_clientid         = { state : string ; client_id        : int    ; }
+type state_clientid_ntasks  = { state : string ; client_id        : int    ; n_tasks : int}
 type state_tcp_inproc       = { state : string ; push_address_tcp : string ; push_address_inproc : string ; }
 type psi = { client_id: int ; n_state: int ; n_det: int ; psi_det_size: int ; 
   n_det_generators: int option ; n_det_selectors: int option ; }
@@ -37,6 +39,7 @@ type msg =
     | AddTask_    of state_tasks
     | DelTask_    of state_taskids
     | GetTask_    of state_clientid
+    | GetTasks_   of state_clientid_ntasks
     | TaskDone_   of state_taskids_clientid
     | Disconnect_ of state_clientid
     | Connect_    of string
@@ -80,6 +83,7 @@ and kw = parse
   | "add_task"     { ADD_TASK }
   | "del_task"     { DEL_TASK }
   | "get_task"     { GET_TASK }
+  | "get_tasks"    { GET_TASKS }
   | "task_done"    { TASK_DONE }
   | "disconnect"   { DISCONNECT }
   | "connect"      { CONNECT }
@@ -155,6 +159,12 @@ and kw = parse
         let state   = read_word lexbuf in  
         let client_id = read_int lexbuf in
         GetTask_ { state ; client_id }
+
+    | GET_TASKS ->
+        let state   = read_word lexbuf in  
+        let client_id = read_int lexbuf in
+        let n_tasks = read_int lexbuf in
+        GetTasks_ { state ; client_id ; n_tasks }
  
     | TASK_DONE ->
         let state     = read_word lexbuf in  
@@ -218,6 +228,7 @@ and kw = parse
       "del_task  state_pouet  12345" ;
       "del_task  state_pouet  12345 | 6789 | 10 | 11" ;
       "get_task  state_pouet  12" ;
+      "get_tasks  state_pouet  12 23" ;
       "task_done state_pouet  12 12345";
       "task_done state_pouet  12 12345 | 678 | 91011";
       "connect tcp";
@@ -241,6 +252,7 @@ and kw = parse
       | AddTask_  { state ; tasks   } -> Printf.sprintf "ADD_TASK state:\"%s\" tasks:{\"%s\"}" state (String.concat "\"}|{\"" tasks)
       | DelTask_  { state ; task_ids } -> Printf.sprintf "DEL_TASK state:\"%s\" task_ids:{%s}" state (String.concat "|" @@ List.map string_of_int task_ids)
       | GetTask_  { state ; client_id } -> Printf.sprintf "GET_TASK state:\"%s\" task_id:%d" state client_id
+      | GetTasks_  { state ; client_id ; n_tasks } -> Printf.sprintf "GET_TASKS state:\"%s\" task_id:%d n_tasks:%d" state client_id n_tasks
       | TaskDone_ { state ; task_ids ; client_id } -> Printf.sprintf "TASK_DONE state:\"%s\" task_ids:{%s} client_id:%d" state (String.concat "|" @@ List.map string_of_int task_ids) client_id
       | Disconnect_ { state ; client_id } -> Printf.sprintf "DISCONNECT state:\"%s\" client_id:%d" state client_id
       | Connect_ socket -> Printf.sprintf "CONNECT socket:\"%s\"" socket

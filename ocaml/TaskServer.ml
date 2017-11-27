@@ -412,6 +412,71 @@ let get_task msg program_state rep_socket pair_socket =
 
 
 
+let get_tasks msg program_state rep_socket pair_socket =
+
+    let state, client_id, n_tasks =
+      msg.Message.GetTasks_msg.state, 
+      msg.Message.GetTasks_msg.client_id,
+      Strictly_positive_int.to_int msg.Message.GetTasks_msg.n_tasks
+    in
+
+    let failure () =
+        reply_wrong_state rep_socket;
+        program_state
+    
+    and success () = 
+
+        let rec build_list accu queue = function
+        | 0 -> queue, accu
+        | n -> 
+            let new_queue, task_id, task =
+               Queuing_system.pop_task ~client_id queue
+            in
+            match (task_id, task) with
+            | Some task_id, Some task -> 
+              build_list ( (task_id, task)::accu ) new_queue (n-1)
+            | _ -> queue, ((Id.Task.of_int 0, "terminate")::accu)
+        in
+
+        let new_queue, result =
+          build_list [] program_state.queue (n_tasks)
+        in
+
+        let no_task =
+          Queuing_system.number_of_queued new_queue = 0
+        in
+
+        if no_task then
+          string_of_pub_state Waiting 
+          |> ZMQ.Socket.send pair_socket
+        else
+          string_of_pub_state (Running (Message.State.to_string state))
+          |> ZMQ.Socket.send pair_socket;
+        
+        let new_program_state = 
+            { program_state with
+              queue = new_queue
+            }
+        in
+
+        Message.GetTasksReply (Message.GetTasksReply_msg.create result)
+        |> Message.to_string_list
+        |> ZMQ.Socket.send_all rep_socket ;
+        new_program_state
+    in
+
+    match program_state.state with
+    | None -> assert false
+    | Some state' -> 
+      begin
+        if (state = state') then
+          success ()
+        else
+          failure ()
+      end
+
+
+
 let task_done msg program_state rep_socket =
 
     let state, client_id, task_ids =
@@ -703,6 +768,7 @@ let run ~port =
                   | Some _, Message.AddTask     x -> add_task x program_state rep_socket
                   | Some _, Message.DelTask     x -> del_task x program_state rep_socket
                   | Some _, Message.GetTask     x -> get_task x program_state rep_socket pair_socket
+                  | Some _, Message.GetTasks    x -> get_tasks x program_state rep_socket pair_socket
                   | Some _, Message.TaskDone    x -> task_done x program_state rep_socket
                   | _     , _                     ->
                     error ("Invalid message : "^(Message.to_string message))  program_state rep_socket

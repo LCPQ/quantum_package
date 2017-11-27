@@ -20,6 +20,9 @@ subroutine dump_fci_iterations_value(n_determinants,energy,pt2)
 
   !!! Check to ensure that we should save iterations (default is Append)
   ! saveMethod: 1==Append, 2==Overwrite, 3==NoSave
+  if (N_det < N_states) then
+    return
+  endif
   call ezfio_get_full_ci_zmq_iterative_save(saveMethod)
 
   !!! Check we are saving data

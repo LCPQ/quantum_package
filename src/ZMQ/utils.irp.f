@@ -190,10 +190,10 @@ function new_zmq_pair_socket(bind)
 !    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_RCVHWM, 2, 4)'
 !  endif
 !
-!  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_IMMEDIATE, 1, 4)
-!  if (rc /= 0) then
-!    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_IMMEDIATE, 1, 4)'
-!  endif
+  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_IMMEDIATE, 1, 4)
+  if (rc /= 0) then
+    stop 'f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_IMMEDIATE, 1, 4)'
+  endif
 !
 !  rc = f77_zmq_setsockopt(new_zmq_pair_socket, ZMQ_LINGER, 600000, 4)
 !  if (rc /= 0) then
@@ -849,6 +849,7 @@ subroutine get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
   character*(64)                 :: reply
   integer                        :: rc, sze
   
+!  call get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task,1)
   write(message,*) 'get_task '//trim(zmq_state), worker_id
   
   sze = len(trim(message))
@@ -884,6 +885,68 @@ subroutine get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
     print *,  trim(message)
     stop -1
   endif
+  
+end
+
+
+subroutine get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task,n_tasks)
+  use f77_zmq
+  implicit none
+  BEGIN_DOC
+  ! Get multiple tasks from the task server
+  END_DOC
+  integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
+  integer, intent(in)            :: worker_id
+  integer, intent(in)            :: n_tasks
+  integer, intent(out)           :: task_id(n_tasks)
+  character*(512), intent(out)   :: task(n_tasks)
+  
+  character*(1024)                :: message
+  character*(64)                 :: reply
+  integer                        :: rc, sze, i
+  
+  write(message,*) 'get_tasks '//trim(zmq_state), worker_id, n_tasks
+  
+  sze = len(trim(message))
+  rc = f77_zmq_send(zmq_to_qp_run_socket, message, sze, 0)
+  if (rc /= sze) then
+    print *,  irp_here, ':f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
+    stop 'error'
+  endif
+  
+  message = repeat(' ',512)
+  rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 1024, 0)
+  rc = min(1024,rc)
+  read(message(1:rc),*) reply
+  if (trim(reply) == 'get_task_reply ok') then
+      continue
+  else if (trim(reply) == 'terminate') then
+      task_id(1) = 0
+      task(1) = 'terminate'
+  else if (trim(message) == 'error No job is running') then
+      task_id(1) = 0
+      task(1) = 'terminate'
+  else
+      print *,  'Unable to get the next task'
+      print *,  trim(message)
+      stop -1
+  endif
+
+  do i=1,n_tasks
+    message = repeat(' ',512)
+    rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 1024, 0)
+    rc = min(1024,rc)
+    read(message(1:rc),*) task_id(i)
+    rc = 1
+    do while (message(rc:rc) == ' ')
+      rc += 1
+    enddo
+    do while (message(rc:rc) /= ' ')
+      rc += 1
+    enddo
+    rc += 1
+    task(i) = message(rc:)
+  enddo
   
 end
 

@@ -22,7 +22,9 @@ subroutine run_wf
   use f77_zmq
   
   implicit none
-  include 'mpif.h'
+  IRP_IF MPI
+    include 'mpif.h'
+  IRP_ENDIF
 
   integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket

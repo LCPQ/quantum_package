@@ -245,7 +245,7 @@ end = struct
       (Id.Client.to_int x.client_id)
 end
 
-(** GetTaskReply : Reply to the GetTask message *)
+(** GetTaskReply : Reply to the GetTasks message *)
 module GetTaskReply_msg : sig
   type t  
   val create : task_id:Id.Task.t option -> task:string option -> t
@@ -262,6 +262,50 @@ end = struct
       Printf.sprintf "get_task_reply %d %s" (Id.Task.to_int task_id) task
     | _ ->
       Printf.sprintf "get_task_reply 0"
+end
+
+
+(** GetTasks : get a new task to do *)
+module GetTasks_msg : sig
+  type t = 
+  { client_id: Id.Client.t ;
+    state: State.t ;
+    n_tasks: Strictly_positive_int.t ;
+  }
+  val create : state:string -> client_id:int -> n_tasks:int -> t
+  val to_string : t -> string
+end = struct
+  type t = 
+  { client_id: Id.Client.t ;
+    state: State.t ;
+    n_tasks: Strictly_positive_int.t;
+  }
+  let create ~state ~client_id ~n_tasks = 
+    { client_id = Id.Client.of_int client_id ; state = State.of_string state ;
+      n_tasks = Strictly_positive_int.of_int n_tasks }
+  let to_string x =
+    Printf.sprintf "get_tasks %s %d %d"
+      (State.to_string x.state)
+      (Id.Client.to_int x.client_id)
+      (Strictly_positive_int.to_int x.n_tasks)
+end
+
+(** GetTasksReply : Reply to the GetTasks message *)
+module GetTasksReply_msg : sig
+  type t = (Id.Task.t * string) list
+  val create : t -> t
+  val to_string : t -> string
+  val to_string_list : t -> string list
+end = struct
+  type t = (Id.Task.t * string) list
+  let create l = l
+  let to_string _ =
+     "get_tasks_reply ok" 
+  let to_string_list x = 
+     "get_tasks_reply ok" :: (
+     List.map x ~f:(fun (task_id, task) -> Printf.sprintf "%d %s" (Id.Task.to_int task_id) task)
+     ) 
+     
 end
 
 
@@ -425,7 +469,9 @@ type t =
 | Disconnect          of  Disconnect_msg.t
 | DisconnectReply     of  DisconnectReply_msg.t
 | GetTask             of  GetTask_msg.t
+| GetTasks            of  GetTasks_msg.t
 | GetTaskReply        of  GetTaskReply_msg.t
+| GetTasksReply       of  GetTasksReply_msg.t
 | DelTask             of  DelTask_msg.t
 | DelTaskReply        of  DelTaskReply_msg.t
 | AddTask             of  AddTask_msg.t
@@ -449,6 +495,8 @@ let of_string s =
         DelTask (DelTask_msg.create ~state ~task_ids)
     | GetTask_  { state ; client_id } ->
         GetTask (GetTask_msg.create ~state ~client_id)
+    | GetTasks_  { state ; client_id ; n_tasks } ->
+        GetTasks (GetTasks_msg.create ~state ~client_id ~n_tasks)
     | TaskDone_ { state ; task_ids ; client_id } ->
         TaskDone (TaskDone_msg.create ~state ~client_id ~task_ids)
     | Disconnect_ { state ; client_id } ->
@@ -485,7 +533,9 @@ let to_string = function
 | Disconnect          x -> Disconnect_msg.to_string         x
 | DisconnectReply     x -> DisconnectReply_msg.to_string    x
 | GetTask             x -> GetTask_msg.to_string            x
+| GetTasks            x -> GetTasks_msg.to_string           x
 | GetTaskReply        x -> GetTaskReply_msg.to_string       x
+| GetTasksReply       x -> GetTasksReply_msg.to_string      x
 | DelTask             x -> DelTask_msg.to_string            x
 | DelTaskReply        x -> DelTaskReply_msg.to_string       x
 | AddTask             x -> AddTask_msg.to_string            x

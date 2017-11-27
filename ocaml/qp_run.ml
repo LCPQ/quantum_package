@@ -4,7 +4,6 @@ open Qputils
 (* Environment variables :
 
    QP_PREFIX=gdb   : to run gdb (or valgrind, or whatever)
-   QP_MPIRUN=mpirun: to run mpi slaves
    QP_TASK_DEBUG=1 : debug task server
 
 *)
@@ -16,8 +15,7 @@ let print_list () =
 let () = 
   Random.self_init ()
 
-let run slave mpi exe ezfio_file =
-
+let run slave exe ezfio_file =
 
   (** Check availability of the ports *)
   let port_number = 
@@ -31,7 +29,7 @@ let run slave mpi exe ezfio_file =
       try 
         List.iter [ 0;1;2;3;4;5;6;7;8;9 ] ~f:(fun i ->
             let address = 
-              Printf.sprintf "tcp://%s:%d" (Lazy.force TaskServer.ip_address) (port_number+i)
+              Printf.sprintf "tcp://*:%d" (port_number+i)
             in
             ZMQ.Socket.bind dummy_socket address;
             ZMQ.Socket.unbind dummy_socket address;
@@ -47,8 +45,13 @@ let run slave mpi exe ezfio_file =
     ZMQ.Context.terminate zmq_context;
     result
   in
+
   let time_start = 
     Time.now ()
+  in
+
+  let address =
+    Printf.sprintf "tcp://%s:%d" (Lazy.force TaskServer.ip_address) port_number
   in
 
   if (not (Sys.file_exists_exn ezfio_file)) then
@@ -100,9 +103,6 @@ let run slave mpi exe ezfio_file =
      in
      thread ();
   in
-  let address =
-    Printf.sprintf "tcp://%s:%d" (Lazy.force TaskServer.ip_address) port_number
-  in
   Unix.putenv ~key:"QP_RUN_ADDRESS" ~data:address;
   let () = 
     if (not slave) then
@@ -116,18 +116,13 @@ let run slave mpi exe ezfio_file =
     match Sys.getenv "QP_PREFIX" with
     | Some x -> x^" "
     | None -> ""
-  and mpirun = 
-    match (mpi, Sys.getenv "QP_MPIRUN") with
-    | (true, None) -> "mpirun "
-    | (true, Some x) -> x^" "
-    | _ -> ""
   and exe =
     match (List.find ~f:(fun (x,_) -> x = exe) executables) with
     | Some (_,x) -> x^" "
     | None -> assert false
   in
   let exit_code = 
-    match (Sys.command (mpirun^prefix^exe^ezfio_file)) with
+    match (Sys.command (prefix^exe^ezfio_file)) with
     | 0 -> 0
     | i -> (Printf.printf "Program exited with code %d.\n%!" i; i)
   in
@@ -148,8 +143,6 @@ let spec =
   empty
   +> flag "slave" no_arg
      ~doc:(" Required for slave tasks")
-  +> flag "mpi" no_arg
-     ~doc:(" Required for MPI slaves")
   +> anon ("executable" %: string)
   +> anon ("ezfio_file" %: string)
 ;;
@@ -167,8 +160,8 @@ Executes a Quantum Package binary file among these:\n\n"
     )
   )
   spec
-  (fun slave mpi exe ezfio_file () ->
-    run slave mpi exe ezfio_file
+  (fun slave exe ezfio_file () ->
+    run slave exe ezfio_file
   )
   |> Command.run   ~version: Git.sha1   ~build_info: Git.message
 
