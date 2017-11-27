@@ -62,7 +62,7 @@ subroutine zmq_get_$X(zmq_to_qp_run_socket, worker_id)
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   integer, intent(in)            :: worker_id
   integer                        :: rc
-  character*(64)                 :: msg
+  character*(256)                :: msg
 
   write(msg,'(A8,1X,I8,1X,A230)') 'get_data', worker_id, '$X'
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
@@ -171,7 +171,6 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id)
   END_DOC
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   integer, intent(in)            :: worker_id
-  character*(64)                 :: msg
 
   call zmq_get_N_states(zmq_to_qp_run_socket, worker_id)
   call zmq_get_N_det(zmq_to_qp_run_socket, worker_id)
@@ -195,7 +194,7 @@ subroutine zmq_get_psi_det(zmq_to_qp_run_socket, worker_id)
   integer, intent(in)            :: worker_id
   integer                        :: rc
   integer*8                      :: rc8
-  character*(64)                 :: msg
+  character*(256)                :: msg
 
   
   write(msg,'(A8,1X,I8,1X,A230)') 'get_data', worker_id, 'psi_det' 
@@ -230,7 +229,7 @@ subroutine zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id)
   integer, intent(in)            :: worker_id
   integer                        :: rc
   integer*8                      :: rc8
-  character*(64)                 :: msg
+  character*(256)                :: msg
 
 
   write(msg,'(A8,1X,I8,1X,A230)') 'get_data', worker_id, 'psi_coef'

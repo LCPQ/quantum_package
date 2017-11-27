@@ -599,6 +599,9 @@ subroutine dump_$ao_integrals(filename)
   integer(cache_key_kind), pointer :: key(:)
   real(integral_kind), pointer   :: val(:)
   integer*8                      :: i,j, n
+  if (.not.mpi_master) then
+    return
+  endif
   call ezfio_set_work_empty(.False.)
   open(unit=66,file=filename,FORM='unformatted')
   write(66) integral_kind, key_kind

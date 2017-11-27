@@ -1,8 +1,9 @@
 BEGIN_PROVIDER [ integer, ao_prim_num_max ]
  implicit none
- ao_prim_num_max = 0
- PROVIDE ezfio_filename
- call ezfio_get_ao_basis_ao_prim_num_max(ao_prim_num_max)
+ BEGIN_DOC
+ ! max number of primitives
+ END_DOC
+ ao_prim_num_max = maxval(ao_prim_num)
 END_PROVIDER
 
  BEGIN_PROVIDER [ double precision, ao_coef_normalized, (ao_num,ao_prim_num_max) ]

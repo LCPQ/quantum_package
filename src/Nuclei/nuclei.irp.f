@@ -6,29 +6,42 @@ BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num,3) ]
    END_DOC
    PROVIDE ezfio_filename
    
-   double precision, allocatable  :: buffer(:,:)
-   nucl_coord = 0.d0
-   allocate (buffer(nucl_num,3))
-   buffer = 0.d0
-   logical                        :: has
-   call ezfio_has_nuclei_nucl_coord(has)
-   if (.not.has) then
-     print *, irp_here
-     stop 1
+   if (mpi_master) then
+    double precision, allocatable  :: buffer(:,:)
+    nucl_coord = 0.d0
+    allocate (buffer(nucl_num,3))
+    buffer = 0.d0
+    logical                        :: has
+    call ezfio_has_nuclei_nucl_coord(has)
+    if (.not.has) then
+      print *, irp_here
+      stop 1
+    endif
+    call ezfio_get_nuclei_nucl_coord(buffer)
+    integer                        :: i,j
+    
+    do i=1,3
+      do j=1,nucl_num
+        nucl_coord(j,i) = buffer(j,i)
+      enddo
+    enddo
+    deallocate(buffer)
+    
+    character*(64), parameter      :: f = '(A16, 4(1X,F12.6))'
+    character*(64), parameter      :: ft= '(A16, 4(1X,A12  ))'
+    double precision, parameter    :: a0= 0.529177249d0
    endif
-   call ezfio_get_nuclei_nucl_coord(buffer)
-   integer                        :: i,j
    
-   do i=1,3
-     do j=1,nucl_num
-       nucl_coord(j,i) = buffer(j,i)
-     enddo
-   enddo
-   deallocate(buffer)
-   
-   character*(64), parameter      :: f = '(A16, 4(1X,F12.6))'
-   character*(64), parameter      :: ft= '(A16, 4(1X,A12  ))'
-   double precision, parameter    :: a0= 0.529177249d0
+    IRP_IF MPI
+      include 'mpif.h'
+      integer :: ierr
+      call MPI_BCAST( nucl_coord, 3*nucl_num, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+      if (ierr /= MPI_SUCCESS) then
+        stop 'Unable to read nucl_coord with MPI'
+      endif
+    IRP_ENDIF
+
+
    call write_time(output_Nuclei)
    write(output_Nuclei,'(A)') ''
    write(output_Nuclei,'(A)') 'Nuclear Coordinates (Angstroms)'
@@ -135,13 +148,24 @@ BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
    IF (disk_access_nuclear_repulsion.EQ.'Read') THEN
           print*, 'nuclear_repulsion read from disk'
           LOGICAL :: has
-          call ezfio_has_nuclei_nuclear_repulsion(has)
-          if (has) then
-                 call ezfio_get_nuclei_nuclear_repulsion(nuclear_repulsion)
-          else
-                 print *, 'nuclei/nuclear_repulsion not found in EZFIO file'
-                 stop 1
+          if (mpi_master) then
+            call ezfio_has_nuclei_nuclear_repulsion(has)
+            if (has) then
+                  call ezfio_get_nuclei_nuclear_repulsion(nuclear_repulsion)
+            else
+                  print *, 'nuclei/nuclear_repulsion not found in EZFIO file'
+                  stop 1
+            endif
           endif
+          IRP_IF MPI
+            include 'mpif.h'
+            integer :: ierr
+            call MPI_BCAST( nuclear_repulsion, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+            if (ierr /= MPI_SUCCESS) then
+              stop 'Unable to read nuclear_repulsion with MPI'
+            endif
+          IRP_ENDIF
+
 
    ELSE
 
@@ -169,7 +193,9 @@ BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
        'Nuclear repulsion energy')
 
    IF (disk_access_nuclear_repulsion.EQ.'Write') THEN
+     if (mpi_master) then
         call ezfio_set_nuclei_nuclear_repulsion(nuclear_repulsion)
+     endif
    END IF
 END_PROVIDER
 

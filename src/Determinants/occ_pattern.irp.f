@@ -36,7 +36,7 @@ subroutine occ_pattern_to_dets_size(o,sze,n_alpha,Nint)
     amax -= popcnt( o(k,2) )
   enddo
   sze = int( min(binom_func(bmax, amax), 1.d8) )
-  sze = 2*sze*sze + 16
+  sze = 2*sze*sze + 64
 
 end
 
@@ -264,7 +264,7 @@ subroutine make_s2_eigenfunction
   !$OMP  PRIVATE(s,ithread, d, det_buffer, smax, N_det_new,i,j,k)
   N_det_new = 0
   call occ_pattern_to_dets_size(psi_occ_pattern(1,1,1),s,elec_alpha_num,N_int)
-  allocate (d(N_int,2,s+16), det_buffer(N_int,2,bufsze) )
+  allocate (d(N_int,2,s+64), det_buffer(N_int,2,bufsze) )
   smax = s
   ithread=0
   !$ ithread = omp_get_thread_num()
@@ -274,7 +274,7 @@ subroutine make_s2_eigenfunction
     s += 1
     if (s > smax) then
       deallocate(d)
-      allocate ( d(N_int,2,s+16) )
+      allocate ( d(N_int,2,s+64) )
       smax = s
     endif
     call occ_pattern_to_dets(psi_occ_pattern(1,1,i),d,s,elec_alpha_num,N_int)

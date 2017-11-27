@@ -26,6 +26,7 @@ BEGIN_PROVIDER [ integer, N_det ]
  character*(64)                   :: label
  PROVIDE ezfio_filename
  PROVIDE nproc
+ if (mpi_master) then
  if (read_wf) then
    call ezfio_has_determinants_n_det(exists)
    if (exists) then
@@ -43,6 +44,16 @@ BEGIN_PROVIDER [ integer, N_det ]
  else
    N_det = 1
  endif
+ endif
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+    call MPI_BCAST( N_det, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to read N_det with MPI'
+    endif
+  IRP_ENDIF
+
  call write_int(output_determinants,N_det,'Number of determinants')
  ASSERT (N_det > 0)
 END_PROVIDER
@@ -69,14 +80,25 @@ BEGIN_PROVIDER [ integer, psi_det_size ]
  END_DOC
  PROVIDE ezfio_filename
  logical                        :: exists
- call ezfio_has_determinants_n_det(exists)
- if (exists) then
-   call ezfio_get_determinants_n_det(psi_det_size)
- else
-   psi_det_size = 1
+ if (mpi_master) then
+  call ezfio_has_determinants_n_det(exists)
+  if (exists) then
+    call ezfio_get_determinants_n_det(psi_det_size)
+  else
+    psi_det_size = 1
+  endif
+  psi_det_size = max(psi_det_size,100000)
+  call write_int(output_determinants,psi_det_size,'Dimension of the psi arrays')
  endif
- psi_det_size = max(psi_det_size,100000)
- call write_int(output_determinants,psi_det_size,'Dimension of the psi arrays')
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+    call MPI_BCAST( psi_det_size, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to read psi_det_size with MPI'
+    endif
+  IRP_ENDIF
+
 
 END_PROVIDER
 
@@ -91,6 +113,7 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
   character*(64)                   :: label
   
   psi_det = 0_bit_kind
+  if (mpi_master) then
   if (read_wf) then
     call ezfio_has_determinants_N_int(exists)
     if (exists) then
@@ -129,6 +152,16 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
        psi_det(i,2,1) = HF_bitmask(i,2)
      enddo
   endif
+  endif
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+    call MPI_BCAST( psi_det, N_int*2*N_det, MPI_BIT_KIND, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to read psi_det with MPI'
+    endif
+  IRP_ENDIF
+
 
 END_PROVIDER
 
@@ -146,6 +179,7 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
   double precision, allocatable  :: psi_coef_read(:,:)
   character*(64)                 :: label
 
+  if (mpi_master) then
   psi_coef = 0.d0
   do i=1,min(N_states,psi_det_size)
     psi_coef(i,i) = 1.d0
@@ -175,6 +209,16 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
     endif
     
   endif
+  endif
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+    call MPI_BCAST( psi_coef, N_states*psi_det_size, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to read psi_coef with MPI'
+    endif
+  IRP_ENDIF
+
     
   
 END_PROVIDER
@@ -444,7 +488,9 @@ subroutine save_wavefunction
   BEGIN_DOC
 !  Save the wave function into the EZFIO file
   END_DOC
-  call save_wavefunction_general(N_det,min(N_states,N_det),psi_det_sorted,size(psi_coef_sorted,1),psi_coef_sorted)
+  if (mpi_master) then
+    call save_wavefunction_general(N_det,min(N_states,N_det),psi_det_sorted,size(psi_coef_sorted,1),psi_coef_sorted)
+  endif
 end
 
 
@@ -454,7 +500,9 @@ subroutine save_wavefunction_unsorted
   BEGIN_DOC
 !  Save the wave function into the EZFIO file
   END_DOC
-  call save_wavefunction_general(N_det,min(N_states,N_det),psi_det,size(psi_coef,1),psi_coef)
+  if (mpi_master) then
+    call save_wavefunction_general(N_det,min(N_states,N_det),psi_det,size(psi_coef,1),psi_coef)
+  endif
 end
 
 subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
@@ -472,6 +520,7 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
 
   integer :: i,j,k
 
+  if (mpi_master) then
   call ezfio_set_determinants_N_int(N_int)
   call ezfio_set_determinants_bit_kind(bit_kind)
   call ezfio_set_determinants_N_det(ndet)
@@ -513,6 +562,7 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
   call ezfio_set_determinants_psi_coef(psi_coef_save)
   deallocate (psi_coef_save)
   call write_int(output_determinants,ndet,'Saved determinants')
+  endif
 end
 
 

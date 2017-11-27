@@ -407,7 +407,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   
   ao_bielec_integrals_in_map = .True.
 
-  if (write_ao_integrals) then
+  if (write_ao_integrals.and.mpi_master) then
     call ezfio_set_work_empty(.False.)
     call map_save_to_disk(trim(ezfio_filename)//'/work/ao_ints',ao_integrals_map)
     call ezfio_set_integrals_bielec_disk_access_ao_integrals("Read")
