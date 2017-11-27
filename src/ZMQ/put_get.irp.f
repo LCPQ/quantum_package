@@ -49,7 +49,7 @@ subroutine zmq_get_dvector(zmq_to_qp_run_socket, worker_id, name, x, size_x)
   double precision, intent(out)  :: x(size_x)
   integer                        :: rc
   integer*8                      :: rc8
-  character*(64)                 :: msg
+  character*(256)                :: msg
 
   write(msg,'(A8,1X,I8,1X,A230)') 'get_data', worker_id, name
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
