@@ -1,18 +1,18 @@
 BEGIN_PROVIDER [ integer, mpi_bit_kind ]
  use bitmasks
- include 'mpif.h'
  implicit none
  BEGIN_DOC
  ! MPI bit kind type
  END_DOC
  IRP_IF MPI
- if (bit_kind == 4) then
-  mpi_bit_kind = MPI_INTEGER4
- else if (bit_kind == 8) then
-  mpi_bit_kind = MPI_INTEGER8
- else
-  stop 'Wrong bit kind in mpi_bit_kind'
- endif
+  include 'mpif.h'
+  if (bit_kind == 4) then
+    mpi_bit_kind = MPI_INTEGER4
+  else if (bit_kind == 8) then
+    mpi_bit_kind = MPI_INTEGER8
+  else
+    stop 'Wrong bit kind in mpi_bit_kind'
+  endif
  IRP_ELSE
   mpi_bit_kind = -1
  IRP_ENDIF
@@ -89,20 +89,21 @@ subroutine broadcast_chunks_$double(A, LDA)
   integer, intent(in)             :: LDA
   $type, intent(inout) :: A(LDA)
   use bitmasks
-  include 'mpif.h'
   BEGIN_DOC
 ! Broadcast with chunks of ~2GB
   END_DOC
-  integer :: i, sze, ierr
-  do i=1,LDA,200000000/$8
-    sze = min(LDA-i+1, 200000000/$8)
-    call MPI_BCAST (A(i), sze, MPI_$DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-    if (ierr /= MPI_SUCCESS) then
-      print *,  irp_here//': Unable to broadcast chuks $double ', i
-      stop -1
-    endif
-  enddo
-
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: i, sze, ierr
+    do i=1,LDA,200000000/$8
+      sze = min(LDA-i+1, 200000000/$8)
+      call MPI_BCAST (A(i), sze, MPI_$DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+      if (ierr /= MPI_SUCCESS) then
+        print *,  irp_here//': Unable to broadcast chuks $double ', i
+        stop -1
+      endif
+    enddo
+  IRP_ENDIF
 end
 
 SUBST [ double, type, 8, DOUBLE_PRECISION ]
