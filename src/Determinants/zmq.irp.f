@@ -13,8 +13,6 @@ subroutine zmq_put_psi(zmq_to_qp_run_socket,worker_id)
   call zmq_put_psi_det_size(zmq_to_qp_run_socket, worker_id)
   call zmq_put_psi_det(zmq_to_qp_run_socket, worker_id)
   call zmq_put_psi_coef(zmq_to_qp_run_socket, worker_id)
-  call zmq_put_N_det_generators(zmq_to_qp_run_socket, worker_id)
-  call zmq_put_N_det_selectors(zmq_to_qp_run_socket, worker_id)
 
 end
 
@@ -93,8 +91,6 @@ SUBST [ X ]
 N_states ;;
 N_det ;;
 psi_det_size ;;
-N_det_generators ;;
-N_det_selectors ;;
 
 END_TEMPLATE
 
@@ -183,12 +179,6 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id)
   call zmq_get_psi_det(zmq_to_qp_run_socket, worker_id)
   call zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id)
   TOUCH psi_det psi_coef
-
-  call zmq_get_N_det_generators(zmq_to_qp_run_socket, worker_id)
-  TOUCH N_det_generators
-
-  call zmq_get_N_det_selectors(zmq_to_qp_run_socket, worker_id)
-  TOUCH N_det_selectors
 
 end
 

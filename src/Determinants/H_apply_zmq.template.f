@@ -34,6 +34,8 @@ subroutine $subroutine($params_main)
   zmq_socket_pair = new_zmq_pair_socket(.True.)
 
   call zmq_put_psi(zmq_to_qp_run_socket,1)
+  call zmq_put_N_det_generators(zmq_to_qp_run_socket, worker_id)
+  call zmq_put_N_det_selectors(zmq_to_qp_run_socket, worker_id)
   call zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',energy,size(energy))
 
   do i_generator=1,N_det_generators

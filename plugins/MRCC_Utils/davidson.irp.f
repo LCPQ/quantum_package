@@ -586,7 +586,6 @@ subroutine davidson_diag_hjj_sjj_mrcc(dets_in,u_in,H_jj,S2_jj,energies,dim_in,sz
   double precision, intent(inout) :: u_in(dim_in,N_st_diag)
   double precision, intent(out)  :: energies(N_st_diag)
   
-  integer                        :: sze
   integer                        :: iter
   integer                        :: i,j,k,l,m
   logical                        :: converged

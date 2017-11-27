@@ -62,6 +62,8 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
       
       call new_parallel_job(zmq_to_qp_run_socket,'pt2')
       call zmq_put_psi(zmq_to_qp_run_socket,1)
+      call zmq_put_N_det_generators(zmq_to_qp_run_socket, 1)
+      call zmq_put_N_det_selectors(zmq_to_qp_run_socket, 1)
       call zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',pt2_e0_denominator,size(pt2_e0_denominator))
       call create_selection_buffer(1, 1*2, b)
       
