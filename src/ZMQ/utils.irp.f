@@ -679,6 +679,10 @@ subroutine disconnect_from_taskserver(zmq_to_qp_run_socket, &
   
   sze = len(trim(message))
   rc = f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)
+  if (rc == -1) then
+    return
+  endif
+
   if (rc /= sze) then
     print *,  rc, sze
     print *,  irp_here, 'f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
@@ -849,42 +853,41 @@ subroutine get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
   character*(64)                 :: reply
   integer                        :: rc, sze
   
-  call get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task,1)
-!  write(message,*) 'get_task '//trim(zmq_state), worker_id
-!  
-!  sze = len(trim(message))
-!  rc = f77_zmq_send(zmq_to_qp_run_socket, message, sze, 0)
-!  if (rc /= sze) then
-!    print *,  irp_here, ':f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
-!    stop 'error'
-!  endif
-!  
-!  message = repeat(' ',512)
-!  rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 1024, 0)
-!  rc = min(1024,rc)
-!  read(message(1:rc),*) reply
-!  if (trim(reply) == 'get_task_reply') then
-!    read(message(1:rc),*) reply, task_id
-!    rc = 15
-!    do while (message(rc:rc) == ' ')
-!      rc += 1
-!    enddo
-!    do while (message(rc:rc) /= ' ')
-!      rc += 1
-!    enddo
-!    rc += 1
-!    task = message(rc:)
-!  else if (trim(reply) == 'terminate') then
-!    task_id = 0
-!    task = 'terminate'
-!  else if (trim(message) == 'error No job is running') then
-!    task_id = 0
-!    task = 'terminate'
-!  else
-!    print *,  'Unable to get the next task'
-!    print *,  trim(message)
-!    stop -1
-!  endif
+  write(message,*) 'get_task '//trim(zmq_state), worker_id
+  
+  sze = len(trim(message))
+  rc = f77_zmq_send(zmq_to_qp_run_socket, message, sze, 0)
+  if (rc /= sze) then
+    print *,  irp_here, ':f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
+    stop 'error'
+  endif
+  
+  message = repeat(' ',512)
+  rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 1024, 0)
+  rc = min(1024,rc)
+  read(message(1:rc),*) reply
+  if (trim(reply) == 'get_task_reply') then
+    read(message(1:rc),*) reply, task_id
+    rc = 15
+    do while (message(rc:rc) == ' ')
+      rc += 1
+    enddo
+    do while (message(rc:rc) /= ' ')
+      rc += 1
+    enddo
+    rc += 1
+    task = message(rc:)
+  else if (trim(reply) == 'terminate') then
+    task_id = 0
+    task = 'terminate'
+  else if (trim(message) == 'error No job is running') then
+    task_id = 0
+    task = 'terminate'
+  else
+    print *,  'Unable to get the next task'
+    print *,  trim(message)
+    stop -1
+  endif
   
 end
 
@@ -897,7 +900,7 @@ subroutine get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task
   END_DOC
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   integer, intent(in)            :: worker_id
-  integer, intent(in)            :: n_tasks
+  integer, intent(inout)         :: n_tasks
   integer, intent(out)           :: task_id(n_tasks)
   character*(512), intent(out)   :: task(n_tasks)
   
@@ -931,12 +934,18 @@ subroutine get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task
       print *,  ':'//trim(message)//':'
       stop -1
   endif
-
+ 
+  task(:) = repeat(' ',512)
   do i=1,n_tasks
     message = repeat(' ',512)
     rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 1024, 0)
     rc = min(1024,rc)
     read(message(1:rc),*) task_id(i)
+    if (task_id(i) == 0) then
+      task(i) = 'terminate'
+      n_tasks = i
+      exit
+    endif
     rc = 1
     do while (message(rc:rc) == ' ')
       rc += 1

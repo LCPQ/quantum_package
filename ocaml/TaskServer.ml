@@ -427,7 +427,7 @@ let get_tasks msg program_state rep_socket pair_socket =
     and success () = 
 
         let rec build_list accu queue = function
-        | 0 -> queue, accu
+        | 0 -> queue, (List.rev accu)
         | n -> 
             let new_queue, task_id, task =
                Queuing_system.pop_task ~client_id queue
@@ -435,7 +435,7 @@ let get_tasks msg program_state rep_socket pair_socket =
             match (task_id, task) with
             | Some task_id, Some task -> 
               build_list ( (Some task_id, task)::accu ) new_queue (n-1)
-            | _ -> queue, (None, "terminate")::accu
+            | _ -> build_list ( (None, "terminate")::accu ) queue 0
         in
 
         let new_queue, result =

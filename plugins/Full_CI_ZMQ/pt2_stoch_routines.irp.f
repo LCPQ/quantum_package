@@ -188,25 +188,26 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   integer(ZMQ_PTR)               :: zmq_socket_pull
 
   integer :: msg_size, rc, more
-  integer :: acc, i, j, robin, N, ntask
+  integer :: acc, i, j, robin, N, n_tasks
   double precision, allocatable :: val(:)
   integer(bit_kind), allocatable :: det(:,:,:)
   integer, allocatable :: task_id(:)
-  integer :: Nindex
   integer, allocatable :: index(:)
   double precision :: time0
   double precision :: time, timeLast, Nabove_old
   double precision, external :: omp_get_wtime
-  integer :: tooth, firstTBDcomb, orgTBDcomb
+  integer :: tooth, firstTBDcomb, orgTBDcomb, n_tasks_max
   integer, allocatable :: parts_to_get(:)
   logical, allocatable :: actually_computed(:)
   double precision :: eqt
   character*(512) :: task
   Nabove_old = -1.d0
+  n_tasks_max = N_det_generators/100+1
   
   allocate(actually_computed(N_det_generators), parts_to_get(N_det_generators), &
-    pt2_mwen(N_states, N_det_generators) )
-  pt2_mwen(1:N_states, 1:N_det_generators) =0.d0
+    pt2_mwen(N_states, n_tasks_max) )
+
+  pt2_mwen(1:N_states, 1:n_tasks_max) = 0.d0
   do i=1,N_det_generators
     actually_computed(i) = computed(i)
   enddo
@@ -227,7 +228,7 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_pull = new_zmq_pull_socket()
-  allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det_generators), index(1))
+  allocate(val(b%N), det(N_int, 2, b%N), task_id(n_tasks_max), index(n_tasks_max))
   more = 1
   call wall_time(time0)
   timeLast = time0
@@ -235,26 +236,28 @@ subroutine pt2_collector(E, b, tbc, comb, Ncomb, computed, pt2_detail, sumabove,
   call get_first_tooth(actually_computed, tooth)
   Nabove_old = Nabove(tooth)
   
-  pullLoop : do while (more == 1)
+  logical :: loop
+  loop = .True.
+  pullLoop : do while (loop)
 
-    call pull_pt2_results(zmq_socket_pull, Nindex, index, pt2_mwen, task_id, ntask)
-    do i=1,Nindex
+    call pull_pt2_results(zmq_socket_pull, index, pt2_mwen, task_id, n_tasks)
+    do i=1,n_tasks
       pt2_detail(1:N_states, index(i)) += pt2_mwen(1:N_states,i)
       parts_to_get(index(i)) -= 1
       if(parts_to_get(index(i)) < 0) then 
-        print *, i, index(i), parts_to_get(index(i)), Nindex
+        print *, i, index(i), parts_to_get(index(i))
         print *, "PARTS ??"
         print *, parts_to_get
         stop "PARTS ??"
       end if
       if(parts_to_get(index(i)) == 0) actually_computed(index(i)) = .true.
-    end do
+    enddo
 
-    do i=1, ntask
-      if(task_id(i) == 0) then
-          print *,  "Error in collector"
-      endif
+    do i=1, n_tasks
       call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more)
+      if (more /= 1) then
+        loop = .False.
+      endif
     end do
 
     time = omp_get_wtime()
