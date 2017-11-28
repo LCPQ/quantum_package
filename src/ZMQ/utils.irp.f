@@ -32,10 +32,14 @@ END_PROVIDER
   do i=len(buffer),1,-1
     if ( buffer(i:i) == ':') then
       qp_run_address = trim(buffer(1:i-1))
-      read(buffer(i+1:), *) zmq_port_start
+      read(buffer(i+1:), *, err=10,end=10) zmq_port_start
       exit
     endif
   enddo
+  return
+  10 continue
+  print *,  irp_here, ': Error in read'
+  stop -1
 END_PROVIDER
 
  BEGIN_PROVIDER [ character*(128), zmq_socket_pull_tcp_address    ]
@@ -98,12 +102,16 @@ subroutine switch_qp_run_to_master
   do i=len(buffer),1,-1
     if ( buffer(i:i) == ':') then
       qp_run_address = trim(buffer(1:i-1))
-      read(buffer(i+1:), *) zmq_port_start
+      read(buffer(i+1:), *, end=10, err=10) zmq_port_start
       exit
     endif
   enddo
   call reset_zmq_addresses
 
+  return
+  10 continue
+  print *,  irp_here, ': Error in read'
+  stop -1
 end
 
 
@@ -604,17 +612,20 @@ subroutine end_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,name_in)
     stop 'Wrong end of job'
   endif
 
-  do i=1,30
+  do i=6,1,-1
     rc = f77_zmq_send(zmq_to_qp_run_socket, 'end_job '//trim(zmq_state),8+len(trim(zmq_state)),0)
     rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 512, 0)
     if (trim(message(1:13)) == 'error waiting') then
-      print *,  trim(message(6:rc))
       call sleep(1)
       cycle
     else if (message(1:2) == 'ok') then
       exit
     endif
   end do
+  if (i==0) then
+    rc = f77_zmq_send(zmq_to_qp_run_socket, 'end_job force',13,0)
+    rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 512, 0)
+  endif
   zmq_state = 'No_state'
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_pull_socket(zmq_socket_pull)
@@ -659,18 +670,18 @@ subroutine connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
   message = trim(message(1:rc))
   if(message(1:5) == "error") then
-    print *,  trim(message(1:rc))
     worker_id = -1
     return
   end if
-  read(message,*) reply, state, worker_id, address
-  if ( (trim(reply) /= 'connect_reply') .and.                        &
-        (trim(state) /= trim(zmq_state)) ) then
-    print *,  'Reply: ', trim(reply)
-    print *,  'State: ', trim(state), '/', trim(zmq_state)
-    print *,  'Address: ', trim(address)
+  read(message,*, end=10, err=10) reply, state, worker_id, address
+  if (trim(reply) /= 'connect_reply') then
+    print *,  trim(message)
     stop -1
   endif
+  return
+  10 continue
+  print *,  irp_here, ': Error in read'
+  stop
 end
 
 subroutine disconnect_from_taskserver(zmq_to_qp_run_socket, &
@@ -703,8 +714,11 @@ subroutine disconnect_from_taskserver(zmq_to_qp_run_socket, &
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
   message = trim(message(1:rc))
   
-  read(message,*) reply, state
+  read(message,*, end=10, err=10) reply, state
   if ((trim(reply) == 'disconnect_reply').and.(trim(state) == trim(zmq_state))) then
+    return
+  endif
+  if (trim(message) == 'error Wrong state') then
     return
   endif
   if (trim(message) == 'error No job is running') then
@@ -715,6 +729,10 @@ subroutine disconnect_from_taskserver(zmq_to_qp_run_socket, &
   print *,  trim(message)
   stop -1
 
+  return
+  10 continue
+  print *,  irp_here, ': Error in read'
+  stop
 end
 
 subroutine add_task_to_taskserver(zmq_to_qp_run_socket,task)
@@ -916,9 +934,9 @@ subroutine get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
   message = repeat(' ',512)
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 1024, 0)
   rc = min(1024,rc)
-  read(message(1:rc),*) reply
+  read(message(1:rc),*, end=10, err=10) reply
   if (trim(reply) == 'get_task_reply') then
-    read(message(1:rc),*) reply, task_id
+    read(message(1:rc),*, end=10, err=10) reply, task_id
     rc = 15
     do while (message(rc:rc) == ' ')
       rc += 1
@@ -934,11 +952,18 @@ subroutine get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
   else if (trim(message) == 'error No job is running') then
     task_id = 0
     task = 'terminate'
+  else if (trim(message) == 'error Wrong state') then
+    task_id = 0
+    task = 'terminate'
   else
     print *,  'Unable to get the next task'
     print *,  trim(message)
     stop -1
   endif
+  return
+  10 continue
+  print *,  irp_here, ': Error in read'
+  stop
   
 end
 
@@ -973,7 +998,7 @@ subroutine get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task
   message = repeat(' ',1024)
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 1024, 0)
   rc = min(1024,rc)
-  read(message(1:rc),*) reply
+  read(message(1:rc),*, end=10, err=10) reply
   if (trim(message) == 'get_tasks_reply ok') then
       continue
   else if (trim(message) == 'terminate') then
@@ -993,7 +1018,7 @@ subroutine get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task
     message = repeat(' ',512)
     rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 1024, 0)
     rc = min(1024,rc)
-    read(message(1:rc),*) task_id(i)
+    read(message(1:rc),*, end=10, err=10) task_id(i)
     if (task_id(i) == 0) then
       task(i) = 'terminate'
       n_tasks = i
@@ -1009,6 +1034,11 @@ subroutine get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task
     rc += 1
     task(i) = message(rc:)
   enddo
+
+  return
+  10 continue
+  print *,  irp_here, ': Error in read'
+  stop
   
 end
 

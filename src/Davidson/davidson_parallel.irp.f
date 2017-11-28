@@ -36,7 +36,6 @@ subroutine davidson_run_slave(thread,iproc)
   zmq_socket_push      = new_zmq_push_socket(thread)
   call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   if(worker_id == -1) then
-    print *, 'Exited'
     call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
     call end_zmq_push_socket(zmq_socket_push,thread)
     return

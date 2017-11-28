@@ -70,11 +70,12 @@ let run slave exe ezfio_file =
 
 
   (** Check input *)
-  begin
-    match (Sys.command ("qp_edit -c "^ezfio_file)) with
-    | 0 -> ()
-    | i -> failwith "Error: Input inconsistent\n"
-  end;
+  if (not slave) then
+    begin
+      match (Sys.command ("qp_edit -c "^ezfio_file)) with
+      | 0 -> ()
+      | i -> failwith "Error: Input inconsistent\n"
+    end;
 
   let qp_run_address_filename = 
    Filename.concat (Qpackage.ezfio_work ezfio_file) "qp_run_address"

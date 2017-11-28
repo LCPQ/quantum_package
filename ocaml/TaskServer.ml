@@ -188,6 +188,9 @@ let change_pub_state msg program_state rep_socket pair_socket =
 
   program_state
 
+let force_state = 
+  Message.State.of_string "force"
+
 let end_job msg program_state rep_socket pair_socket =
 
     let failure () =
@@ -202,7 +205,7 @@ let end_job msg program_state rep_socket pair_socket =
         }
 
     and wait n =
-      Printf.sprintf "waiting %d" n
+      Printf.sprintf "waiting for %d slaves..." n
       |> Message.Error_msg.create 
       |> Message.Error_msg.to_string
       |> ZMQ.Socket.send rep_socket ;
@@ -213,7 +216,13 @@ let end_job msg program_state rep_socket pair_socket =
     | None -> failure ()
     | Some state -> 
       begin
-        if (msg.Message.Endjob_msg.state = state) then
+        if (state = force_state) then
+          begin
+            string_of_pub_state Waiting
+            |> ZMQ.Socket.send pair_socket ;
+              success ()
+          end
+        else if (msg.Message.Endjob_msg.state = state) then
           begin
             string_of_pub_state Waiting
             |> ZMQ.Socket.send pair_socket ;
@@ -223,7 +232,10 @@ let end_job msg program_state rep_socket pair_socket =
               wait (Queuing_system.number_of_clients program_state.queue)
           end
         else
+(
+Printf.eprintf "STATE:%s%!" (Message.State.to_string state);
           failure ()
+)
       end
 
 
