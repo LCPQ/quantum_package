@@ -43,10 +43,6 @@ END_PROVIDER
   mpi_rank = 0
   mpi_size = 1
  IRP_ENDIF
- if (mpi_size > 1) then
-    call write_int(6,mpi_rank,'MPI rank')
-    call write_int(6,mpi_size,'MPI size')
- endif
  ASSERT (mpi_rank >= 0)
  ASSERT (mpi_rank < mpi_size)
 
@@ -59,6 +55,9 @@ BEGIN_PROVIDER [ logical, mpi_master ]
  ! If true, rank is zero
  END_DOC
  mpi_master = (mpi_rank == 0)
+ if (mpi_master.and.(mpi_size > 1)) then
+    print *,  'MPI size: ', mpi_size
+ endif
 
 END_PROVIDER
 
@@ -87,7 +86,7 @@ end
 
 SUBST [ double, type, 8, DOUBLE_PRECISION ]
 double    ; double precision  ; 8 ; DOUBLE_PRECISION ;;
-integer   ; integer           ; 4  ; INTEGER4 ;;
+integer   ; integer           ; 4  ; INTEGER ;;
 integer8  ; integer*8         ; 8  ; INTEGER8 ;;
 
 END_TEMPLATE

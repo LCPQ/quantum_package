@@ -175,11 +175,42 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id)
   call zmq_get_N_states(zmq_to_qp_run_socket, worker_id)
   call zmq_get_N_det(zmq_to_qp_run_socket, worker_id)
   call zmq_get_psi_det_size(zmq_to_qp_run_socket, worker_id)
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+
+    call MPI_BCAST (N_states, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      print *,  irp_here//': Unable to broadcast N_states'
+      stop -1
+    endif
+
+    call MPI_BCAST (N_det, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      print *,  irp_here//': Unable to broadcast N_det'
+      stop -1
+    endif
+
+    call MPI_BCAST (psi_det_size, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      print *,  irp_here//': Unable to broadcast psi_det_size'
+      stop -1
+    endif
+  IRP_ENDIF
+
   TOUCH psi_det_size N_det N_states
 
-  call zmq_get_psi_det(zmq_to_qp_run_socket, worker_id)
-  call zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id)
-  TOUCH psi_det psi_coef
+  if (mpi_master) then
+    call zmq_get_psi_det(zmq_to_qp_run_socket, worker_id)
+    call zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id)
+  endif
+
+  IRP_IF MPI
+    call broadcast_chunks_bit_kind(psi_det,N_det*N_int*2)
+    call broadcast_chunks_double(psi_coef,N_states*N_det)
+  IRP_ENDIF
+
+  SOFT_TOUCH psi_det psi_coef
 
 end
 

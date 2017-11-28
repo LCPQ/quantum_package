@@ -411,7 +411,7 @@ subroutine zmq_get_N_states_diag(zmq_to_qp_run_socket, worker_id)
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   integer, intent(in)            :: worker_id
   integer                        :: rc
-  character*(64)                 :: msg
+  character*(256)                :: msg
 
   write(msg,'(A8,1X,I8,1X,A230)') 'get_data', worker_id, 'N_states_diag'
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
@@ -433,4 +433,14 @@ subroutine zmq_get_N_states_diag(zmq_to_qp_run_socket, worker_id)
     stop 'error' 
   endif 
 
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+
+    call MPI_BCAST (N_states_diag, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      print *,  irp_here//': Unable to broadcast N_states'
+      stop -1
+    endif
+  IRP_ENDIF
 end

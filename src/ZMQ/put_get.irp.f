@@ -70,6 +70,16 @@ subroutine zmq_get_dvector(zmq_to_qp_run_socket, worker_id, name, x, size_x)
     print *, irp_here, ': Error getting '//name
     stop 'error'
   endif
+
+  IRP_IF MPI
+    integer :: ierr
+    include 'mpif.h'
+    call MPI_BCAST (x, size_x, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      print *,  irp_here//': Unable to broadcast dvector'
+      stop -1
+    endif
+  IRP_ENDIF
 end
 
 

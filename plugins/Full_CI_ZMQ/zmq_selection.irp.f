@@ -67,7 +67,7 @@ subroutine ZMQ_selection(N_in, pt2)
   if (N_in > 0) then
     call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) 
     call copy_H_apply_buffer_to_wf()
-    if (s2_eig) then
+    if (s2_eig.or.(N_states > 1) ) then
       call make_s2_eigenfunction
     endif
     call save_wavefunction

@@ -81,23 +81,28 @@ END_PROVIDER
             self.test_null_size = ""
 
     def set_write(self):
-        self.write = ""
+        output = self.output
+        name = self.name
+        l_write = ["",
+                   "  call write_time(%(output)s)",
+                   "  if (mpi_master) then",
+                   "    write(%(output)s, *) 'Read  %(name)s'",
+                   "  endif", 
+                   ""]
+
+        self.write = "\n".join(l_write) % locals()
         self.type_mpi = self.mpi_correspondance[self.type]
         if "size" in self.__dict__:
             return
         else:
-            if self.type in self.mpi_correspondance:
+            if self.type in self.write_correspondance:
                 write = self.write_correspondance[self.type]
-                output = self.output
-                name = self.name
 
                 l_write = ["",
                           "  call write_time(%(output)s)",
                           "  call %(write)s(%(output)s, %(name)s, &",
                           "     '%(name)s')",
                           ""]
-
-                self.write = "\n".join(l_write) % locals()
 
     def set_type(self, t):
         self.type = t.lower()

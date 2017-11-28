@@ -122,6 +122,7 @@ BEGIN_PROVIDER [ integer, N_generators_bitmask ]
     N_generators_bitmask = 1
   endif
   ASSERT (N_generators_bitmask > 0)
+  call write_int(6,N_generators_bitmask,'N_generators_bitmask')
  endif
   IRP_IF MPI
     include 'mpif.h'
@@ -129,14 +130,6 @@ BEGIN_PROVIDER [ integer, N_generators_bitmask ]
     call MPI_BCAST( N_generators_bitmask, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       stop 'Unable to read N_generators_bitmask with MPI'
-    endif
-    call MPI_BCAST( bit_kind, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-    if (ierr /= MPI_SUCCESS) then
-      stop 'Unable to read bit_kind with MPI'
-    endif
-    call MPI_BCAST( N_int, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-    if (ierr /= MPI_SUCCESS) then
-      stop 'Unable to read N_int with MPI'
     endif
   IRP_ENDIF
 
@@ -150,7 +143,7 @@ BEGIN_PROVIDER [ integer, N_generators_bitmask_restart ]
  ! Number of bitmasks for generators
  END_DOC
  logical                        :: exists
- PROVIDE ezfio_filename
+ PROVIDE ezfio_filename N_int 
  
  if (mpi_master) then
   call ezfio_has_bitmasks_N_mask_gen(exists)
@@ -172,14 +165,11 @@ BEGIN_PROVIDER [ integer, N_generators_bitmask_restart ]
     N_generators_bitmask_restart = 1
   endif
   ASSERT (N_generators_bitmask_restart > 0)
+  call write_int(6,N_generators_bitmask_restart,'N_generators_bitmask_restart')
  endif
  IRP_IF MPI
     include 'mpif.h'
     integer :: ierr
-    call MPI_BCAST( bit_kind, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-    if (ierr /= MPI_SUCCESS) then
-      stop 'Unable to read bit_kind with MPI'
-    endif
     call MPI_BCAST( N_generators_bitmask_restart, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       stop 'Unable to read N_generators_bitmask_restart with MPI'
@@ -214,7 +204,8 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask_restart, (N_int,2,6,N_gen
  !
  END_DOC
  logical                        :: exists
- PROVIDE ezfio_filename
+ PROVIDE ezfio_filename full_ijkl_bitmask N_generators_bitmask N_int
+ PROVIDE generators_bitmask_restart 
 
  if (mpi_master) then
   call ezfio_has_bitmasks_generators(exists)
@@ -284,7 +275,7 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_
  !
  END_DOC
  logical                        :: exists
- PROVIDE ezfio_filename
+ PROVIDE ezfio_filename full_ijkl_bitmask N_generators_bitmask
 
 if (mpi_master) then
  call ezfio_has_bitmasks_generators(exists)
@@ -337,7 +328,7 @@ BEGIN_PROVIDER [ integer, N_cas_bitmask ]
  END_DOC
  logical                        :: exists
  PROVIDE ezfio_filename
- 
+ PROVIDE N_cas_bitmask N_int
  if (mpi_master) then
   call ezfio_has_bitmasks_N_mask_cas(exists)
   if (exists) then
@@ -357,6 +348,7 @@ BEGIN_PROVIDER [ integer, N_cas_bitmask ]
   else
     N_cas_bitmask = 1
   endif
+  call write_int(6,N_cas_bitmask,'N_cas_bitmask')
  endif
  ASSERT (N_cas_bitmask > 0)
   IRP_IF MPI
@@ -377,7 +369,8 @@ BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
  END_DOC
  logical                        :: exists
  integer                        :: i,i_part,i_gen,j,k
- PROVIDE ezfio_filename
+ PROVIDE ezfio_filename generators_bitmask_restart full_ijkl_bitmask
+ PROVIDE n_generators_bitmask HF_bitmask 
 
  if (mpi_master) then
   call ezfio_has_bitmasks_cas(exists)
@@ -409,6 +402,7 @@ BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
       enddo
     enddo
   enddo
+  write(*,*) 'Read CAS bitmask'
  endif
   IRP_IF MPI
     include 'mpif.h'

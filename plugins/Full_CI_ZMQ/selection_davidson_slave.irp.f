@@ -13,9 +13,9 @@ program selection_slave
 end
 
 subroutine provide_everything
-  PROVIDE mpi_master
-  PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators psi_det_sorted_bit psi_selectors n_det_generators n_states generators_bitmask zmq_context
-  PROVIDE pt2_e0_denominator mo_tot_num N_int fragment_count 
+  PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators psi_det_sorted_bit psi_selectors n_det_generators n_states generators_bitmask zmq_context n_states_diag
+  PROVIDE pt2_e0_denominator mo_tot_num N_int fragment_count ci_energy mpi_master zmq_state zmq_context
+  PROVIDE psi_det psi_coef
 end
 
 subroutine run_wf
@@ -31,6 +31,7 @@ subroutine run_wf
   double precision :: energy(N_states)
   character*(64) :: states(4)
   integer :: rc, i, ierr
+  double precision :: t0, t1
   
   call provide_everything
   
@@ -55,11 +56,14 @@ subroutine run_wf
       ! ---------
 
       print *,  'Selection'
-      if (mpi_master) then
-        call zmq_get_psi(zmq_to_qp_run_socket,1)
-        call zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states)
-      endif
-      call mpi_bcast_psi(energy,N_states)
+      call wall_time(t0)
+      call zmq_get_psi(zmq_to_qp_run_socket,1)
+      call zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states)
+      call zmq_get_N_det_generators (zmq_to_qp_run_socket, 1)
+      call zmq_get_N_det_selectors(zmq_to_qp_run_socket, 1)
+
+      call wall_time(t1)
+      call write_double(6,(t1-t0),'Broadcast time')
   
       !$OMP PARALLEL PRIVATE(i)
       i = omp_get_thread_num()
@@ -79,14 +83,11 @@ subroutine run_wf
       ! --------
 
       print *,  'Davidson'
-      if (mpi_master) then
-        call zmq_get_psi(zmq_to_qp_run_socket,1)
-        call zmq_get_N_states_diag(zmq_to_qp_run_socket,1)
-        call zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states_diag)
-      endif
-      double precision :: t0, t1
       call wall_time(t0)
-      call mpi_bcast_psi(energy,N_states_diag)
+      call zmq_get_psi(zmq_to_qp_run_socket,1)
+      call zmq_get_N_states_diag(zmq_to_qp_run_socket,1)
+      call zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states_diag)
+
       call wall_time(t1)
       call write_double(6,(t1-t0),'Broadcast time')
 
@@ -108,12 +109,15 @@ subroutine run_wf
       ! ---
 
       print *,  'PT2'
-      if (mpi_master) then
-        call zmq_get_psi(zmq_to_qp_run_socket,1)
-        call zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states)
-      endif
-      call mpi_bcast_psi(energy,N_states)
-  
+      call wall_time(t0)
+      call zmq_get_psi(zmq_to_qp_run_socket,1)
+      call zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states)
+      call zmq_get_N_det_generators (zmq_to_qp_run_socket, 1)
+      call zmq_get_N_det_selectors(zmq_to_qp_run_socket, 1)
+
+      call wall_time(t1)
+      call write_double(6,(t1-t0),'Broadcast time')
+
       logical :: lstop
       lstop = .False.
       !$OMP PARALLEL PRIVATE(i)

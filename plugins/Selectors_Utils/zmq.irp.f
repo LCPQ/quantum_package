@@ -64,6 +64,18 @@ subroutine zmq_get_$X(zmq_to_qp_run_socket, worker_id)
     print *,  irp_here, ': Error getting $X'
     stop 'error'
   endif
+
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+
+    call MPI_BCAST ($X, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      print *,  irp_here//': Unable to broadcast N_det_generators'
+      stop -1
+    endif
+  IRP_ENDIF
+
 end
 
 SUBST [ X ]

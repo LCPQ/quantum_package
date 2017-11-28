@@ -5,25 +5,31 @@ BEGIN_PROVIDER [ integer, mo_tot_num ]
   END_DOC
 
   logical                        :: has
-  PROVIDE ezfio_filename
+  PROVIDE ezfio_filename 
   if (mpi_master) then
     call ezfio_has_mo_basis_mo_tot_num(has)
-    if (has) then
-      mo_tot_num = ao_ortho_canonical_num
-    else
-      print *, 'mo_basis/mo_tot_num not found in EZFIO file'
-      stop 1
-    endif
   endif
   IRP_IF MPI
     include 'mpif.h'
     integer :: ierr
-    call MPI_BCAST( mo_tot_num, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    call MPI_BCAST( has, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       stop 'Unable to read mo_tot_num with MPI'
     endif
   IRP_ENDIF
-
+  if (.not.has) then
+      mo_tot_num = ao_ortho_canonical_num
+  else
+    if (mpi_master) then
+      call ezfio_get_mo_basis_mo_tot_num(mo_tot_num)
+    endif
+    IRP_IF MPI
+      call MPI_BCAST( mo_tot_num, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      if (ierr /= MPI_SUCCESS) then
+        stop 'Unable to read mo_tot_num with MPI'
+      endif
+    IRP_ENDIF
+  endif
   call write_int(6,mo_tot_num,'mo_tot_num')
   ASSERT (mo_tot_num > 0)
 
@@ -40,31 +46,41 @@ BEGIN_PROVIDER [ double precision, mo_coef, (ao_num,mo_tot_num) ]
   integer                        :: i, j
   double precision, allocatable  :: buffer(:,:)
   logical                        :: exists
-  PROVIDE ezfio_filename
+  PROVIDE ezfio_filename 
   
 
   if (mpi_master) then
     ! Coefs
     call ezfio_has_mo_basis_mo_coef(exists)
-    if (exists) then
-      call ezfio_get_mo_basis_mo_coef(mo_coef)
-    else
-      ! Orthonormalized AO basis
-      do i=1,mo_tot_num
-        do j=1,ao_num
-          mo_coef(j,i) = ao_ortho_canonical_coef(j,i)
-        enddo
-      enddo
-    endif
   endif
   IRP_IF MPI
     include 'mpif.h'
     integer :: ierr
-    call MPI_BCAST( mo_coef, mo_tot_num*ao_num, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+    call MPI_BCAST(exists, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       stop 'Unable to read mo_coef with MPI'
     endif
   IRP_ENDIF
+
+  if (exists) then
+    if (mpi_master) then
+      call ezfio_get_mo_basis_mo_coef(mo_coef)
+      write(*,*) 'Read  mo_coef'
+    endif
+    IRP_IF MPI
+      call MPI_BCAST( mo_coef, mo_tot_num*ao_num, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+      if (ierr /= MPI_SUCCESS) then
+        stop 'Unable to read mo_coef with MPI'
+      endif
+    IRP_ENDIF
+  else
+    ! Orthonormalized AO basis
+    do i=1,mo_tot_num
+      do j=1,ao_num
+        mo_coef(j,i) = ao_ortho_canonical_coef(j,i)
+      enddo
+    enddo
+  endif
 
 END_PROVIDER
 
@@ -96,9 +112,11 @@ BEGIN_PROVIDER [ character*(64), mo_label ]
     call ezfio_has_mo_basis_mo_label(exists)
     if (exists) then
       call ezfio_get_mo_basis_mo_label(mo_label)
+      mo_label = trim(mo_label)
     else
       mo_label = 'no_label'
     endif
+    write(*,*) '* mo_label          ', trim(mo_label)
   endif
   IRP_IF MPI
     include 'mpif.h'
@@ -144,7 +162,7 @@ BEGIN_PROVIDER [ double precision, mo_occ, (mo_tot_num) ]
   BEGIN_DOC
   ! MO occupation numbers
   END_DOC
-  PROVIDE ezfio_filename
+  PROVIDE ezfio_filename elec_beta_num elec_alpha_num 
   if (mpi_master) then
     logical :: exists
     call ezfio_has_mo_basis_mo_occ(exists)
@@ -160,6 +178,7 @@ BEGIN_PROVIDER [ double precision, mo_occ, (mo_tot_num) ]
         mo_occ(i) = 1.d0
       enddo
     endif
+    write(*,*) 'Read mo_occ'
   endif
   IRP_IF MPI
     include 'mpif.h'

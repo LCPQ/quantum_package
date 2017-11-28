@@ -24,8 +24,7 @@ BEGIN_PROVIDER [ integer, N_det ]
  END_DOC
  logical                        :: exists
  character*(64)                   :: label
- PROVIDE ezfio_filename
- PROVIDE nproc
+ PROVIDE read_wf mo_label ezfio_filename nproc
  if (mpi_master) then
  if (read_wf) then
    call ezfio_has_determinants_n_det(exists)
@@ -44,6 +43,7 @@ BEGIN_PROVIDER [ integer, N_det ]
  else
    N_det = 1
  endif
+ call write_int(output_determinants,N_det,'Number of determinants')
  endif
   IRP_IF MPI
     include 'mpif.h'
@@ -54,7 +54,6 @@ BEGIN_PROVIDER [ integer, N_det ]
     endif
   IRP_ENDIF
 
- call write_int(output_determinants,N_det,'Number of determinants')
  ASSERT (N_det > 0)
 END_PROVIDER
 
@@ -78,7 +77,7 @@ BEGIN_PROVIDER [ integer, psi_det_size ]
  BEGIN_DOC
  ! Size of the psi_det/psi_coef arrays
  END_DOC
- PROVIDE ezfio_filename
+ PROVIDE ezfio_filename output_determinants 
  logical                        :: exists
  if (mpi_master) then
   call ezfio_has_determinants_n_det(exists)
@@ -112,6 +111,7 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
   logical                        :: exists
   character*(64)                   :: label
   
+  PROVIDE read_wf N_det mo_label ezfio_filename HF_bitmask mo_coef  
   psi_det = 0_bit_kind
   if (mpi_master) then
   if (read_wf) then
@@ -152,11 +152,12 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
        psi_det(i,2,1) = HF_bitmask(i,2)
      enddo
   endif
+  print *,  'Read psi_det'
   endif
   IRP_IF MPI
     include 'mpif.h'
     integer :: ierr
-    call MPI_BCAST( psi_det, N_int*2*N_det, MPI_BIT_KIND, 0, MPI_COMM_WORLD, ierr)
+    call     MPI_BCAST( psi_det, N_int*2*N_det, MPI_BIT_KIND, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       stop 'Unable to read psi_det with MPI'
     endif
@@ -176,15 +177,15 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
   
   integer                        :: i,k, N_int2
   logical                        :: exists
-  double precision, allocatable  :: psi_coef_read(:,:)
   character*(64)                 :: label
 
-  if (mpi_master) then
+  PROVIDE read_wf N_det mo_label ezfio_filename  
   psi_coef = 0.d0
   do i=1,min(N_states,psi_det_size)
     psi_coef(i,i) = 1.d0
   enddo
 
+  if (mpi_master) then
   if (read_wf) then
     call ezfio_has_determinants_psi_coef(exists)
     if (exists) then
@@ -194,26 +195,17 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
         exists = (label == mo_label)
       endif
     endif
-    
     if (exists) then
-      
-      allocate (psi_coef_read(N_det,N_states))
-      call ezfio_get_determinants_psi_coef(psi_coef_read)
-      do k=1,N_states
-        do i=1,N_det
-          psi_coef(i,k) = psi_coef_read(i,k)
-        enddo
-      enddo
-      deallocate(psi_coef_read)
-      
+      call ezfio_get_determinants_psi_coef(psi_coef)
     endif
     
   endif
+  print *,  'Read psi_coef'
   endif
   IRP_IF MPI
     include 'mpif.h'
     integer :: ierr
-    call MPI_BCAST( psi_coef, N_states*psi_det_size, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+    call     MPI_BCAST( psi_coef, N_states*psi_det_size, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       stop 'Unable to read psi_coef with MPI'
     endif
@@ -449,9 +441,6 @@ subroutine read_dets(det,Nint,Ndet)
   N_int2 = (Nint*bit_kind)/8
   allocate (psi_det_read(N_int2,2,Ndet))
   call ezfio_get_determinants_psi_det (psi_det_read)
-! print*,'N_int2 = ',N_int2,N_int
-! print*,'k',k,bit_kind
-! print*,'psi_det_read = ',Ndet
   do i=1,Ndet
     do k=1,N_int2
       det_8(k) = psi_det_read(k,1,i)

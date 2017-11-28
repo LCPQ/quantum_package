@@ -4,7 +4,7 @@ BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num,3) ]
    BEGIN_DOC
    ! Nuclear coordinates in the format (:, {x,y,z})
    END_DOC
-   PROVIDE ezfio_filename
+   PROVIDE ezfio_filename nucl_label nucl_charge
    
    if (mpi_master) then
     double precision, allocatable  :: buffer(:,:)
@@ -30,6 +30,28 @@ BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num,3) ]
     character*(64), parameter      :: f = '(A16, 4(1X,F12.6))'
     character*(64), parameter      :: ft= '(A16, 4(1X,A12  ))'
     double precision, parameter    :: a0= 0.529177249d0
+
+    call write_time(output_Nuclei)
+    write(output_Nuclei,'(A)') ''
+    write(output_Nuclei,'(A)') 'Nuclear Coordinates (Angstroms)'
+    write(output_Nuclei,'(A)') '==============================='
+    write(output_Nuclei,'(A)') ''
+    write(output_Nuclei,ft)                                           &
+        '================','============','============','============','============'
+    write(output_Nuclei,*)                                            &
+        '     Atom          Charge          X            Y            Z '
+    write(output_Nuclei,ft)                                           &
+        '================','============','============','============','============'
+    do i=1,nucl_num
+      write(output_Nuclei,f) nucl_label(i), nucl_charge(i),           &
+          nucl_coord(i,1)*a0,                                         &
+          nucl_coord(i,2)*a0,                                         &
+          nucl_coord(i,3)*a0
+    enddo
+    write(output_Nuclei,ft)                                           &
+        '================','============','============','============','============'
+    write(output_Nuclei,'(A)') ''
+   
    endif
    
     IRP_IF MPI
@@ -41,28 +63,6 @@ BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num,3) ]
       endif
     IRP_ENDIF
 
-
-   call write_time(output_Nuclei)
-   write(output_Nuclei,'(A)') ''
-   write(output_Nuclei,'(A)') 'Nuclear Coordinates (Angstroms)'
-   write(output_Nuclei,'(A)') '==============================='
-   write(output_Nuclei,'(A)') ''
-   write(output_Nuclei,ft)                                           &
-       '================','============','============','============','============'
-   write(output_Nuclei,*)                                            &
-       '     Atom          Charge          X            Y            Z '
-   write(output_Nuclei,ft)                                           &
-       '================','============','============','============','============'
-   do i=1,nucl_num
-     write(output_Nuclei,f) nucl_label(i), nucl_charge(i),           &
-         nucl_coord(i,1)*a0,                                         &
-         nucl_coord(i,2)*a0,                                         &
-         nucl_coord(i,3)*a0
-   enddo
-   write(output_Nuclei,ft)                                           &
-       '================','============','============','============','============'
-   write(output_Nuclei,'(A)') ''
-   
 END_PROVIDER
  
  
@@ -145,8 +145,8 @@ BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
    ! Nuclear repulsion energy
    END_DOC
 
+   PROVIDE mpi_master nucl_coord nucl_charge nucl_num
    IF (disk_access_nuclear_repulsion.EQ.'Read') THEN
-          print*, 'nuclear_repulsion read from disk'
           LOGICAL :: has
           if (mpi_master) then
             call ezfio_has_nuclei_nuclear_repulsion(has)
@@ -156,6 +156,7 @@ BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
                   print *, 'nuclei/nuclear_repulsion not found in EZFIO file'
                   stop 1
             endif
+            print*, 'Read nuclear_repulsion'
           endif
           IRP_IF MPI
             include 'mpif.h'
