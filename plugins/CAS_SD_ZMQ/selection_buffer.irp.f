@@ -15,6 +15,18 @@ subroutine create_selection_buffer(N, siz, res)
   res%cur = 0
 end subroutine
 
+subroutine delete_selection_buffer(b)
+  use selection_types
+  implicit none
+  type(selection_buffer), intent(inout) :: b
+  if (allocated(b%det)) then
+    deallocate(b%det)
+  endif
+  if (allocated(b%val)) then
+    deallocate(b%val) 
+  endif
+end
+
   
 subroutine add_to_selection_buffer(b, det, val)
   use selection_types

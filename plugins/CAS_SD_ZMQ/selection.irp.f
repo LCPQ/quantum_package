@@ -1193,7 +1193,7 @@ subroutine ZMQ_selection(N_in, pt2)
   
   implicit none
   
-  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
+  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_socket_pull
   integer, intent(in)            :: N_in
   type(selection_buffer)         :: b
   integer                        :: i, N
@@ -1204,12 +1204,17 @@ subroutine ZMQ_selection(N_in, pt2)
   
   N = max(N_in,1)
   if (.True.) then
-    PROVIDE pt2_e0_denominator
-    provide nproc
-    call new_parallel_job(zmq_to_qp_run_socket,"selection")
-    call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
+    PROVIDE pt2_e0_denominator nproc
+    PROVIDE psi_bilinear_matrix_columns_loc psi_det_alpha_unique psi_det_beta_unique
+    PROVIDE psi_bilinear_matrix_rows psi_det_sorted_order psi_bilinear_matrix_order
+    PROVIDE psi_bilinear_matrix_transp_rows_loc psi_bilinear_matrix_transp_columns
+    PROVIDE psi_bilinear_matrix_transp_order
+
+    call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,'selection')
+    call zmq_put_psi(zmq_to_qp_run_socket,1)
     call zmq_put_N_det_generators(zmq_to_qp_run_socket, 1)
     call zmq_put_N_det_selectors(zmq_to_qp_run_socket, 1)
+    call zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',pt2_e0_denominator,size(pt2_e0_denominator))
     call create_selection_buffer(N, N*2, b)
   endif
 
@@ -1234,20 +1239,25 @@ subroutine ZMQ_selection(N_in, pt2)
   !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
   i = omp_get_thread_num()
   if (i==0) then
-    call selection_collector(b, pt2)
+    call selection_collector(zmq_socket_pull, b, pt2)
   else
     call selection_slave_inproc(i)
   endif
   !$OMP END PARALLEL
-  call end_parallel_job(zmq_to_qp_run_socket, 'selection')
+  call end_parallel_job(zmq_to_qp_run_socket, zmq_socket_pull, 'selection')
+  do i=N_det+1,N_states
+    pt2(i) = 0.d0
+  enddo
   if (N_in > 0) then
     call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) !!! PAS DE ROBIN
     call copy_H_apply_buffer_to_wf()
-    if (s2_eig) then
+    if (s2_eig .or. (N_states > 1) ) then
       call make_s2_eigenfunction
     endif
     call save_wavefunction
   endif
+  call delete_selection_buffer(b)
+
 end subroutine
 
 
@@ -1258,7 +1268,7 @@ subroutine selection_slave_inproc(i)
   call run_selection_slave(1,i,pt2_e0_denominator)
 end
 
-subroutine selection_collector(b, pt2)
+subroutine selection_collector(zmq_socket_pull, b, pt2)
   use f77_zmq
   use selection_types
   use bitmasks
@@ -1272,7 +1282,7 @@ subroutine selection_collector(b, pt2)
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
 
   integer(ZMQ_PTR), external     :: new_zmq_pull_socket
-  integer(ZMQ_PTR)               :: zmq_socket_pull
+  integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
 
   integer :: msg_size, rc, more
   integer :: acc, i, j, robin, N, ntask
@@ -1282,7 +1292,6 @@ subroutine selection_collector(b, pt2)
   integer :: done
   real :: time, time0
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  zmq_socket_pull = new_zmq_pull_socket()
   allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det))
   done = 0
   more = 1
@@ -1306,9 +1315,7 @@ subroutine selection_collector(b, pt2)
 !    print *, "DONE" , done, time - time0
   end do
 
-
-  call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-  call end_zmq_pull_socket(zmq_socket_pull)
   call sort_selection_buffer(b)
+  call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
 end subroutine
 

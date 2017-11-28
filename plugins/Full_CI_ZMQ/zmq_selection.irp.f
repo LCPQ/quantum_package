@@ -23,7 +23,7 @@ subroutine ZMQ_selection(N_in, pt2)
     PROVIDE psi_bilinear_matrix_transp_rows_loc psi_bilinear_matrix_transp_columns
     PROVIDE psi_bilinear_matrix_transp_order
 
-    call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,"selection")
+    call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,'selection')
     call zmq_put_psi(zmq_to_qp_run_socket,1)
     call zmq_put_N_det_generators(zmq_to_qp_run_socket, 1)
     call zmq_put_N_det_selectors(zmq_to_qp_run_socket, 1)
