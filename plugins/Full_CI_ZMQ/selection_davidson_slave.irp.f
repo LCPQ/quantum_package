@@ -29,7 +29,7 @@ subroutine run_wf
   integer(ZMQ_PTR), external :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
   double precision :: energy(N_states)
-  character*(64) :: states(4)
+  character*(64) :: states(3)
   integer :: rc, i, ierr
   double precision :: t0, t1
   
@@ -44,18 +44,18 @@ subroutine run_wf
 
   do
 
-    call wait_for_states(states,zmq_state,3)
+    call wait_for_states(states,zmq_state,size(states))
+    print *,  trim(zmq_state)
 
-    if(trim(zmq_state) == 'Stopped') then
+    if(zmq_state(1:7) == 'Stopped') then
 
       exit
 
-    else if (trim(zmq_state) == 'selection') then
+    else if (zmq_state(1:9) == 'selection') then
 
       ! Selection
       ! ---------
 
-      print *,  'Selection'
       call wall_time(t0)
       call zmq_get_psi(zmq_to_qp_run_socket,1)
       call zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states)
@@ -70,14 +70,8 @@ subroutine run_wf
       call run_selection_slave(0,i,energy)
       !$OMP END PARALLEL
       print *,  'Selection done'
-      IRP_IF MPI
-        call MPI_BARRIER(MPI_COMM_WORLD, ierr)
-        if (ierr /= MPI_SUCCESS) then
-          print *,  irp_here, 'error in barrier'
-        endif
-      IRP_ENDIF
 
-    else if (trim(zmq_state) == 'davidson') then
+    else if (zmq_state(1:8) == 'davidson') then
 
       ! Davidson
       ! --------
@@ -95,15 +89,8 @@ subroutine run_wf
       call davidson_slave_tcp(0)
       call omp_set_nested(.False.)
       print *,  'Davidson done'
-      IRP_IF MPI
-        call MPI_BARRIER(MPI_COMM_WORLD, ierr)
-        if (ierr /= MPI_SUCCESS) then
-          print *,  irp_here, 'error in barrier'
-        endif
-      IRP_ENDIF
 
-
-    else if (trim(zmq_state) == 'pt2') then
+    else if (zmq_state(1:3) == 'pt2') then
 
       ! PT2
       ! ---
@@ -125,14 +112,15 @@ subroutine run_wf
       call run_pt2_slave(0,i,energy,lstop)
       !$OMP END PARALLEL
       print *,  'PT2 done'
-      IRP_IF MPI
-        call MPI_BARRIER(MPI_COMM_WORLD, ierr)
-        if (ierr /= MPI_SUCCESS) then
-          print *,  irp_here, 'error in barrier'
-        endif
-      IRP_ENDIF
 
     endif
+
+    IRP_IF MPI
+      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+      if (ierr /= MPI_SUCCESS) then
+        print *,  irp_here, 'error in barrier'
+      endif
+    IRP_ENDIF
 
   end do
   IRP_IF MPI

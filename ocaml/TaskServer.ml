@@ -106,7 +106,6 @@ let reply_ok rep_socket =
     |> ZMQ.Socket.send rep_socket 
 
 let reply_wrong_state rep_socket =
-    Printf.printf "WRONG STATE\n%!";
     Message.Error_msg.create "Wrong state"
     |> Message.Error_msg.to_string
     |> ZMQ.Socket.send rep_socket 

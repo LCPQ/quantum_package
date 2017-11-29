@@ -526,7 +526,9 @@ subroutine new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,name_in)
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR),external      :: new_zmq_pull_socket
   integer(ZMQ_PTR), intent(out)  :: zmq_to_qp_run_socket, zmq_socket_pull
+  integer, save                  :: icount=0
 
+  icount = icount+1
   call omp_set_lock(zmq_lock)
   zmq_context = f77_zmq_ctx_new ()
   call omp_unset_lock(zmq_lock)
@@ -541,7 +543,7 @@ subroutine new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,name_in)
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   zmq_socket_pull      = new_zmq_pull_socket ()
-  name = name_in
+  write(name,'(A,I8.8)') trim(name_in)//'.', icount
   sze = len(trim(name))
   call lowercase(name,sze)
   message = 'new_job '//trim(name)//' '//zmq_socket_push_tcp_address//' '//zmq_socket_pull_inproc_address
@@ -604,8 +606,10 @@ subroutine end_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,name_in)
 
   character*(512)                :: message, name
   integer                        :: i,rc, sze
+  integer, save                  :: icount=0
 
-  name = name_in
+  icount = icount+1
+  write(name,'(A,I8.8)') trim(name_in)//'.', icount
   sze = len(trim(name))
   call lowercase(name,sze)
   if (name /= zmq_state) then
@@ -1209,7 +1213,12 @@ subroutine wait_for_states(state_wait,state,n)
   integer(ZMQ_PTR)               :: zmq_socket_sub
   integer(ZMQ_PTR), external     :: new_zmq_sub_socket
   integer                        :: rc, i
+  integer                        :: sze(n)
   logical                        :: condition
+
+  do i=1,n
+    sze(i) = len(trim(state_wait(i)))
+  enddo
 
   zmq_socket_sub       = new_zmq_sub_socket()
   state = 'Waiting'
@@ -1224,7 +1233,7 @@ subroutine wait_for_states(state_wait,state,n)
     endif
     condition = trim(state) /= 'Stopped'
     do i=1,n
-      condition = condition .and. (trim(state) /= trim(state_wait(i)))
+      condition = condition .and. (state(1:sze(i)) /= state_wait(i)(1:sze(i)))
     enddo
   end do
   call end_zmq_sub_socket(zmq_socket_sub)
