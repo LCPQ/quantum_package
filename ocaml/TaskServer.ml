@@ -21,13 +21,14 @@ let string_of_pub_state = function
 
 type t =
 {
-    queue           : Queuing_system.t ;
-    state           : Message.State.t option ;
-    address_tcp     : Address.Tcp.t option ; 
-    address_inproc  : Address.Inproc.t option ;
-    progress_bar    : Progress_bar.t option ;
-    running         : bool;
-    data            : (string, string) Hashtbl.t;
+    queue             : Queuing_system.t ;
+    state             : Message.State.t option ;
+    address_tcp       : Address.Tcp.t option ; 
+    address_inproc    : Address.Inproc.t option ;
+    progress_bar      : Progress_bar.t option ;
+    running           : bool;
+    accepting_clients : bool;
+    data              : (string, string) Hashtbl.t;
 }
 
 
@@ -159,6 +160,7 @@ let new_job msg program_state rep_socket pair_socket =
         progress_bar    = Some progress_bar ;
         address_tcp     = Some msg.Message.Newjob_msg.address_tcp;
         address_inproc  = Some msg.Message.Newjob_msg.address_inproc;
+        accepting_clients = true;
       }
     in
     reply_ok rep_socket;
@@ -198,9 +200,15 @@ let end_job msg program_state rep_socket pair_socket =
 
     and success () =
         reply_ok rep_socket;
-        { program_state with
-          state        = None ;
-          progress_bar = Progress_bar.clear ();
+        { 
+          queue             = Queuing_system.create ();
+          state             = None ;
+          progress_bar      = Progress_bar.clear ();
+          address_tcp       = None;
+          address_inproc    = None;
+          running           = true;
+          accepting_clients = false;
+          data = Hashtbl.create ~hashable:String.hashable ();
         }
 
     and wait n =
@@ -215,7 +223,7 @@ let end_job msg program_state rep_socket pair_socket =
     | None -> failure ()
     | Some state -> 
       begin
-        if (state = force_state) then
+        if (msg.Message.Endjob_msg.state = force_state) then
           begin
             string_of_pub_state Waiting
             |> ZMQ.Socket.send pair_socket ;
@@ -231,48 +239,50 @@ let end_job msg program_state rep_socket pair_socket =
               wait (Queuing_system.number_of_clients program_state.queue)
           end
         else
-(
-Printf.eprintf "STATE:%s%!" (Message.State.to_string state);
           failure ()
-)
       end
 
 
 let connect msg program_state rep_socket =
 
-    let state =
-        match program_state.state with
-        | Some state -> state
-        | None -> assert false
+    let failure () =
+        reply_wrong_state rep_socket;
+        program_state
     in
-  
-    let push_address =
-        match msg with
-        | Message.Connect_msg.Tcp    -> 
-          begin
-              match program_state.address_tcp  with
-              | Some address -> Address.Tcp address
-              | None -> failwith "Error: No TCP address"
-          end
-        | Message.Connect_msg.Inproc -> 
-          begin
-              match program_state.address_inproc with
-              | Some address -> Address.Inproc address
-              | None -> failwith "Error: No inproc address"
-          end
-        | Message.Connect_msg.Ipc    -> assert false
-    in
-    
-    let new_queue, client_id =
-        Queuing_system.add_client program_state.queue
-    in
-    Message.ConnectReply (Message.ConnectReply_msg.create
-        ~state:state ~client_id ~push_address)
-    |> Message.to_string
-    |> ZMQ.Socket.send rep_socket ;
-    { program_state with
-      queue = new_queue 
-    }
+
+    if (not program_state.accepting_clients) then
+      failure ()
+    else
+      match program_state.state with
+      | None -> failure ()
+      | Some state -> 
+          let push_address =
+              match msg with
+              | Message.Connect_msg.Tcp    -> 
+                begin
+                    match program_state.address_tcp  with
+                    | Some address -> Address.Tcp address
+                    | None -> failwith "Error: No TCP address"
+                end
+              | Message.Connect_msg.Inproc -> 
+                begin
+                    match program_state.address_inproc with
+                    | Some address -> Address.Inproc address
+                    | None -> failwith "Error: No inproc address"
+                end
+              | Message.Connect_msg.Ipc    -> assert false
+          in
+          
+          let new_queue, client_id =
+              Queuing_system.add_client program_state.queue
+          in
+          Message.ConnectReply (Message.ConnectReply_msg.create
+              ~state:state ~client_id ~push_address)
+          |> Message.to_string
+          |> ZMQ.Socket.send rep_socket ;
+          { program_state with
+            queue = new_queue 
+          }
 
 
 let disconnect msg program_state rep_socket =
@@ -323,14 +333,21 @@ let del_task msg program_state rep_socket =
     
     and success () = 
 
+        let queue = 
+           List.fold ~f:(fun queue task_id -> Queuing_system.del_task ~task_id queue)
+                      ~init:program_state.queue task_ids
+        in
+        let accepting_clients = 
+            (Queuing_system.number_of_queued queue > Queuing_system.number_of_clients queue) 
+        in
         let new_program_state = 
             { program_state with
-              queue = List.fold ~f:(fun queue task_id -> Queuing_system.del_task ~task_id queue)
-                      ~init:program_state.queue task_ids
+              accepting_clients ;
+              queue ;
             }
         in
         let more = 
-            (Queuing_system.number_of_tasks new_program_state.queue > 0)
+            (Queuing_system.number_of_tasks queue > 0)
         in
         Message.DelTaskReply (Message.DelTaskReply_msg.create ~task_ids ~more)
         |> Message.to_string
@@ -393,12 +410,17 @@ let get_task msg program_state rep_socket pair_socket =
     
     and success () = 
 
-        let new_queue, task_id, task =
+        let queue, task_id, task =
             Queuing_system.pop_task ~client_id program_state.queue
         in
 
+        let accepting_clients = 
+            (Queuing_system.number_of_queued queue >
+             Queuing_system.number_of_clients queue) 
+        in
+
         let no_task =
-          Queuing_system.number_of_queued new_queue = 0
+          Queuing_system.number_of_queued queue = 0
         in
 
         if no_task then
@@ -410,7 +432,8 @@ let get_task msg program_state rep_socket pair_socket =
 
         let new_program_state = 
             { program_state with
-              queue = new_queue
+              queue ;
+              accepting_clients;
             }
         in
 
@@ -467,6 +490,11 @@ let get_tasks msg program_state rep_socket pair_socket =
           Queuing_system.number_of_queued new_queue = 0
         in
 
+        let accepting_clients = 
+            (Queuing_system.number_of_queued new_queue >
+             Queuing_system.number_of_clients new_queue) 
+        in
+
         if no_task then
           string_of_pub_state Waiting 
           |> ZMQ.Socket.send pair_socket
@@ -476,7 +504,8 @@ let get_tasks msg program_state rep_socket pair_socket =
         
         let new_program_state = 
             { program_state with
-              queue = new_queue
+              queue = new_queue;
+              accepting_clients;
             }
         in
 
@@ -522,10 +551,17 @@ let task_done msg program_state rep_socket =
               increment_progress_bar bar)
             ~init:(program_state.queue, program_state.progress_bar) task_ids 
         in
+
+        let accepting_clients = 
+            (Queuing_system.number_of_queued new_queue >
+             Queuing_system.number_of_clients new_queue) 
+        in
+
         let result = 
           { program_state with
             queue = new_queue;
-            progress_bar = new_bar
+            progress_bar = new_bar;
+            accepting_clients
           }
         in
         reply_ok rep_socket;
@@ -654,7 +690,8 @@ let abort program_state rep_socket =
     reply_ok rep_socket;
 
     { program_state with
-      queue 
+      queue ; 
+      accepting_clients = false;
     }
 
   
@@ -738,6 +775,7 @@ let run ~port =
         address_tcp = None;
         address_inproc = None;
         progress_bar = None ;
+        accepting_clients = false;
         data = Hashtbl.create ~hashable:String.hashable ();
     }
     in

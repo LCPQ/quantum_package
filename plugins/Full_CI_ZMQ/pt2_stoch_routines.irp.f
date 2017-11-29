@@ -130,8 +130,8 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
         call pt2_slave_inproc(i)
       endif
       !$OMP END PARALLEL
-      call delete_selection_buffer(b)
       call end_parallel_job(zmq_to_qp_run_socket, zmq_socket_pull, 'pt2')
+      call delete_selection_buffer(b)
       
       print *, '========== ================= ================= ================='
       

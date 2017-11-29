@@ -87,21 +87,30 @@ integer function zmq_get_$X(zmq_to_qp_run_socket, worker_id)
   integer                        :: rc
   character*(256)                :: msg
 
+  zmq_get_$X = 0
   if (mpi_master) then
     write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, '$X'
     rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
-    if (rc /= len(trim(msg))) go to 10
+    if (rc /= len(trim(msg))) then
+      zmq_get_$X = -1
+      go to 10
+    endif
 
     rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
-    if (msg(1:14) /= 'get_data_reply') go to 10
+    if (msg(1:14) /= 'get_data_reply') then
+      zmq_get_$X = -1
+      go to 10
+    endif
 
     rc = f77_zmq_recv(zmq_to_qp_run_socket,$X,4,0)
-    if (rc /= 4) go to 10
+    if (rc /= 4) then
+      zmq_get_$X = -1
+      go to 10
+    endif
 
   endif
 
-  ! Normal exit
-  zmq_get_$X = 0
+ 10 continue
   IRP_IF MPI
     include 'mpif.h'
     integer :: ierr
@@ -110,25 +119,12 @@ integer function zmq_get_$X(zmq_to_qp_run_socket, worker_id)
     if (ierr /= MPI_SUCCESS) then
       stop 'Unable to broadcast zmq_get_psi_det'
     endif
-    if (zmq_get_$X == 0) then
-      call MPI_BCAST ($X, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-      if (ierr /= MPI_SUCCESS) then
-        stop 'Unable to broadcast zmq_get_psi_det'
-      endif
-    endif
-  IRP_ENDIF
-
-  return
-
-  ! Exception
-  10 continue
-  zmq_get_$X = -1
-  IRP_IF MPI
-    call MPI_BCAST (zmq_get_$X, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    call MPI_BCAST ($X, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       stop 'Unable to broadcast zmq_get_psi_det'
     endif
   IRP_ENDIF
+
 end
 
 SUBST [ X ]
@@ -276,20 +272,29 @@ integer function zmq_get_psi_det(zmq_to_qp_run_socket, worker_id)
   integer*8                      :: rc8
   character*(256)                :: msg
 
+  zmq_get_psi_det = 0
   if (mpi_master) then
     write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, 'psi_det'
     rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
-    if (rc /= len(trim(msg))) go to 10
+    if (rc /= len(trim(msg))) then
+      zmq_get_psi_det = -1
+      go to 10
+    endif
 
     rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
-    if (msg(1:14) /= 'get_data_reply') go to 10
+    if (msg(1:14) /= 'get_data_reply') then
+      zmq_get_psi_det = -1
+      go to 10
+    endif
 
     rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,int(N_int*2_8*N_det*bit_kind,8),0)
-    if (rc8 /= N_int*2_8*N_det*bit_kind) go to 10
+    if (rc8 /= N_int*2_8*N_det*bit_kind) then
+      zmq_get_psi_det = -1
+      go to 10
+    endif
   endif
 
-  ! Normal exit
-  zmq_get_psi_det = 0
+  10 continue
   IRP_IF MPI
     include 'mpif.h'
     integer :: ierr
@@ -297,22 +302,9 @@ integer function zmq_get_psi_det(zmq_to_qp_run_socket, worker_id)
     if (ierr /= MPI_SUCCESS) then
       stop 'Unable to broadcast zmq_get_psi_det'
     endif
-    if (zmq_get_psi_det  == 0) then
-      call broadcast_chunks_bit_kind(psi_det,N_det*N_int*2)
-    endif
+    call broadcast_chunks_bit_kind(psi_det,N_det*N_int*2)
   IRP_ENDIF
 
-  return
-
-  ! Exception
- 10 continue
-  zmq_get_psi_det = -1
-  IRP_IF MPI
-    call MPI_BCAST (zmq_get_psi_det, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-    if (ierr /= MPI_SUCCESS) then
-      stop 'Unable to broadcast zmq_get_psi_det'
-    endif
-  IRP_ENDIF
 end
 
 integer function zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id)
@@ -327,20 +319,29 @@ integer function zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id)
   integer*8                      :: rc8
   character*(256)                :: msg
 
+  zmq_get_psi_coef = 0
   if (mpi_master) then
     write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, 'psi_coef'
     rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
-    if (rc /= len(trim(msg))) go to 10
+    if (rc /= len(trim(msg))) then
+      zmq_get_psi_coef = -1
+      go to 10
+    endif
 
     rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
-    if (msg(1:14) /= 'get_data_reply') go to 10
+    if (msg(1:14) /= 'get_data_reply') then
+      zmq_get_psi_coef = -1
+      go to 10
+    endif
 
     rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,psi_coef,int(psi_det_size*N_states*8_8,8),0)
-    if (rc8 /= psi_det_size*N_states*8_8) go to 10
+    if (rc8 /= psi_det_size*N_states*8_8) then
+      zmq_get_psi_coef = -1
+      go to 10
+    endif
   endif
   
-  ! Normal exit
-  zmq_get_psi_coef = 0
+  10 continue
 
   IRP_IF MPI
     include 'mpif.h'
@@ -349,22 +350,9 @@ integer function zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id)
     if (ierr /= MPI_SUCCESS) then
       stop 'Unable to broadcast zmq_get_psi_coef'
     endif
-    if (zmq_get_psi_coef  == 0) then
-      call broadcast_chunks_double(psi_coef,N_states*N_det)
-    endif
+    call broadcast_chunks_double(psi_coef,N_states*N_det)
   IRP_ENDIF
 
-  return
-
-  ! Exception
- 10 continue
-  zmq_get_psi_coef = -1
-  IRP_IF MPI
-    call MPI_BCAST (zmq_get_psi_coef, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-    if (ierr /= MPI_SUCCESS) then
-      stop 'Unable to broadcast zmq_get_psi_coef'
-    endif
-  IRP_ENDIF
 end
 
 

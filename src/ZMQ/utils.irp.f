@@ -620,6 +620,7 @@ subroutine end_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,name_in)
     rc = f77_zmq_send(zmq_to_qp_run_socket, 'end_job '//trim(zmq_state),8+len(trim(zmq_state)),0)
     rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 512, 0)
     if (trim(message(1:13)) == 'error waiting') then
+      print *,  trim(message(1:rc))
       call sleep(1)
       cycle
     else if (message(1:2) == 'ok') then
@@ -630,11 +631,11 @@ subroutine end_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,name_in)
     rc = f77_zmq_send(zmq_to_qp_run_socket, 'end_job force',13,0)
     rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 512, 0)
   endif
-  zmq_state = 'No_state'
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_pull_socket(zmq_socket_pull)
 
   call omp_set_lock(zmq_lock)
+  zmq_state = 'No_state'
   rc = f77_zmq_ctx_term(zmq_context)
   zmq_context = 0_ZMQ_PTR
   call omp_unset_lock(zmq_lock)

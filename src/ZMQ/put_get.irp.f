@@ -57,16 +57,25 @@ integer function zmq_get_dvector(zmq_to_qp_run_socket, worker_id, name, x, size_
   if (mpi_master) then
     write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, name
     rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
-    if (rc /= len(trim(msg))) go to 10
+    if (rc /= len(trim(msg))) then
+      zmq_get_dvector = -1
+      go to 10
+    endif
 
     rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
-    if (msg(1:14) /= 'get_data_reply') go to 10
+    if (msg(1:14) /= 'get_data_reply') then
+      zmq_get_dvector = -1
+      go to 10
+    endif
 
     rc = f77_zmq_recv(zmq_to_qp_run_socket,x,size_x*8,0)
-    if (rc /= size_x*8) go to 10
+    if (rc /= size_x*8) then
+      zmq_get_dvector = -1
+      go to 10
+    endif
   endif
 
-  ! Normal exit
+  10 continue
 
   IRP_IF MPI
     integer :: ierr
@@ -76,28 +85,13 @@ integer function zmq_get_dvector(zmq_to_qp_run_socket, worker_id, name, x, size_
       print *,  irp_here//': Unable to broadcast zmq_get_dvector'
       stop -1
     endif
-    if (zmq_get_dvector == 0) then
-      call MPI_BCAST (x, size_x, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-      if (ierr /= MPI_SUCCESS) then
-        print *,  irp_here//': Unable to broadcast dvector'
-        stop -1
-      endif
-    endif
-  IRP_ENDIF
-
-  return
-
-  ! Exception
- 10 continue
-  zmq_get_dvector = -1
-  IRP_IF MPI
-    call MPI_BCAST (zmq_get_dvector, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    call MPI_BCAST (x, size_x, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
-      print *,  irp_here//': Unable to broadcast zmq_get_dvector'
+      print *,  irp_here//': Unable to broadcast dvector'
       stop -1
     endif
   IRP_ENDIF
-  
+
 end
 
 

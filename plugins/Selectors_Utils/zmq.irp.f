@@ -50,17 +50,26 @@ integer function zmq_get_$X(zmq_to_qp_run_socket, worker_id)
 
     write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, '$X'
     rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
-    if (rc /= len(trim(msg))) go to 10
+    if (rc /= len(trim(msg))) then
+      zmq_get_$X = -1
+      go to 10
+    endif
 
     rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
-    if (msg(1:14) /= 'get_data_reply') go to 10
+    if (msg(1:14) /= 'get_data_reply') then
+      zmq_get_$X = -1
+      go to 10
+    endif
 
     rc = f77_zmq_recv(zmq_to_qp_run_socket,$X,4,0)
-    if (rc /= 4) go to 10
+    if (rc /= 4) then
+      zmq_get_$X = -1
+      go to 10
+    endif
 
   endif
 
-  ! Normal exit
+  10 continue
 
   IRP_IF MPI
     include 'mpif.h'
@@ -71,27 +80,13 @@ integer function zmq_get_$X(zmq_to_qp_run_socket, worker_id)
       print *,  irp_here//': Unable to broadcast N_det_generators'
       stop -1
     endif
-    if (zmq_get_$X == 0) then
-      call MPI_BCAST ($X, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-      if (ierr /= MPI_SUCCESS) then
-        print *,  irp_here//': Unable to broadcast N_det_generators'
-        stop -1
-      endif
-    endif
-  IRP_ENDIF
-
-  return
-
-  ! Exception
-  10 continue
-  zmq_get_$X = -1
-  IRP_IF MPI
-    call MPI_BCAST (zmq_get_$X, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    call MPI_BCAST ($X, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  irp_here//': Unable to broadcast N_det_generators'
       stop -1
     endif
   IRP_ENDIF
+
 end
 
 SUBST [ X ]

@@ -1,12 +1,13 @@
 type t =
 {
-    queue           : Queuing_system.t ;
-    state           : Message.State.t option ;
-    address_tcp     : Address.Tcp.t option ;
-    address_inproc  : Address.Inproc.t option ;
-    progress_bar    : Progress_bar.t option ;
-    running         : bool;
-    data            : (string, string) Core.Hashtbl.t ;
+    queue             : Queuing_system.t ;
+    state             : Message.State.t option ;
+    address_tcp       : Address.Tcp.t option ;
+    address_inproc    : Address.Inproc.t option ;
+    progress_bar      : Progress_bar.t option ;
+    running           : bool;
+    accepting_clients : bool;
+    data              : (string, string) Core.Hashtbl.t ;
 }
 
 
