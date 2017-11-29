@@ -138,6 +138,7 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
    
     if (exists) then
       call read_dets(psi_det,N_int,N_det)
+      print *,  'Read psi_det'
     else
        psi_det = 0_bit_kind
        do i=1,N_int
@@ -152,7 +153,6 @@ BEGIN_PROVIDER [ integer(bit_kind), psi_det, (N_int,2,psi_det_size) ]
        psi_det(i,2,1) = HF_bitmask(i,2)
      enddo
   endif
-  print *,  'Read psi_det'
   endif
   IRP_IF MPI
     include 'mpif.h'

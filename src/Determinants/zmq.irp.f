@@ -175,11 +175,20 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id)
   call zmq_get_N_states(zmq_to_qp_run_socket, worker_id)
   call zmq_get_N_det(zmq_to_qp_run_socket, worker_id)
   call zmq_get_psi_det_size(zmq_to_qp_run_socket, worker_id)
-  TOUCH psi_det_size N_det N_states
+  
+  if (size(psi_det) /= N_int*2_8*psi_det_size*bit_kind) then
+    deallocate(psi_det)
+    allocate(psi_det(N_int,2,psi_det_size))
+  endif
+
+  if (size(psi_coef) /= psi_det_size*N_states) then
+    deallocate(psi_coef)
+    allocate(psi_coef(psi_det_size,N_states))
+  endif
 
   call zmq_get_psi_det(zmq_to_qp_run_socket, worker_id)
   call zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id)
-  SOFT_TOUCH psi_det psi_coef
+  SOFT_TOUCH psi_det psi_coef psi_det_size N_det N_states
 
 end
 
