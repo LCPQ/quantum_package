@@ -547,28 +547,44 @@ let task_done msg program_state rep_socket =
 let put_data msg rest_of_msg program_state rep_socket =
 
     debug (Message.PutData_msg.to_string msg);
-    let () = 
-      let key, value =
-        msg.Message.PutData_msg.key, 
-        match rest_of_msg with
-        | [ x ] -> x
-        | _ -> failwith "Badly formed put_data message"
-      in
+    let state, key, value =
+      msg.Message.PutData_msg.state,
+      msg.Message.PutData_msg.key, 
+      match rest_of_msg with
+      | [ x ] -> x
+      | _ -> failwith "Badly formed put_data message"
+    in
+
+    let success ()  =
       Hashtbl.set program_state.data ~key ~data:value ;
-      
       Message.PutDataReply (Message.PutDataReply_msg.create ())
       |> Message.to_string
-      |> ZMQ.Socket.send rep_socket
+      |> ZMQ.Socket.send rep_socket;
+      program_state
+
+    and failure () =
+        reply_wrong_state rep_socket;
+        program_state
     in
-    program_state
+
+    match program_state.state with
+    | None -> assert false
+    | Some state' -> 
+        if (state = state') then
+          success ()
+        else
+          failure ()
+
 
 let get_data msg program_state rep_socket =
 
     debug (Message.GetData_msg.to_string msg);
-    let () = 
-      let key =
+    let state, key =
+        msg.Message.GetData_msg.state,
         msg.Message.GetData_msg.key
-      in
+    in
+
+    let success () = 
       let value = 
         match Hashtbl.find program_state.data key with
         | Some value -> value
@@ -576,10 +592,21 @@ let get_data msg program_state rep_socket =
       in
       Message.GetDataReply (Message.GetDataReply_msg.create ~value)
       |> Message.to_string_list
-      |> ZMQ.Socket.send_all rep_socket
-    in
-    program_state
+      |> ZMQ.Socket.send_all rep_socket;
+      program_state
 
+    and failure () =
+        reply_wrong_state rep_socket;
+        program_state
+    in
+
+    match program_state.state with
+    | None -> assert false
+    | Some state' -> 
+        if (state = state') then
+          success ()
+        else
+          failure ()
 
 
 let terminate program_state rep_socket =

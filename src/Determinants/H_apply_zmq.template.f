@@ -36,7 +36,9 @@ subroutine $subroutine($params_main)
   call zmq_put_psi(zmq_to_qp_run_socket,1)
   call zmq_put_N_det_generators(zmq_to_qp_run_socket, worker_id)
   call zmq_put_N_det_selectors(zmq_to_qp_run_socket, worker_id)
-  call zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',energy,size(energy))
+  if (zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',energy,size(energy)) == -1) then
+    stop 'Unable to put energy on ZMQ server'
+  endif
 
   do i_generator=1,N_det_generators
     $skip

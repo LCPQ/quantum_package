@@ -73,15 +73,19 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
   integer                        :: N_det_selectors_read, N_det_generators_read
   double precision, allocatable  :: energy(:)
 
+  integer, external :: zmq_get_dvector
 
   allocate(u_t(N_st,N_det))
   allocate (energy(N_st))
 
-  if (mpi_master) then
+  if (zmq_get_dvector(zmq_to_qp_run_socket, worker_id, 'u_t', u_t, size(u_t)) == -1) then
+    deallocate(u_t,energy)
+    return
+  endif
 
-    call zmq_get_dvector(zmq_to_qp_run_socket, worker_id, 'u_t', u_t, size(u_t))
-    call zmq_get_dvector(zmq_to_qp_run_socket, worker_id, 'energy', energy, size(energy))
-
+  if (zmq_get_dvector(zmq_to_qp_run_socket, worker_id, 'energy', energy, size(energy)) == -1) then
+    deallocate(u_t,energy)
+    return
   endif
 
   IRP_IF MPI
@@ -288,12 +292,18 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   integer*8 :: rc8
   double precision :: energy(N_st)
 
+  integer, external :: zmq_put_dvector
+
   energy = 0.d0
 
   call zmq_put_N_states_diag(zmq_to_qp_run_socket, 1)
   call zmq_put_psi(zmq_to_qp_run_socket,1)
-  call zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',energy,size(energy))
-  call zmq_put_dvector(zmq_to_qp_run_socket, 1, 'u_t', u_t, size(u_t))
+  if (zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',energy,size(energy)) == -1) then
+    stop 'Unable to put energy on ZMQ server'
+  endif
+  if (zmq_put_dvector(zmq_to_qp_run_socket, 1, 'u_t', u_t, size(u_t)) == -1) then
+    stop 'Unable to put u_t on ZMQ server'
+  endif
 
   deallocate(u_t)
 
@@ -379,7 +389,7 @@ subroutine zmq_put_N_states_diag(zmq_to_qp_run_socket,worker_id)
   integer                        :: rc
   character*(256)                :: msg
 
-  write(msg,'(A8,1X,I8,1X,A230)') 'put_data', worker_id, 'N_states_diag'
+  write(msg,'(A,1X,I8,1X,A200)') 'put_data '//trim(zmq_state), worker_id, 'N_states_diag'
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),ZMQ_SNDMORE)
   if (rc /= len(trim(msg))) then
     print *,  irp_here, ': Error sending N_states_diag'
@@ -412,7 +422,7 @@ subroutine zmq_get_N_states_diag(zmq_to_qp_run_socket, worker_id)
   integer                        :: rc
   character*(256)                :: msg
 
-  write(msg,'(A8,1X,I8,1X,A230)') 'get_data', worker_id, 'N_states_diag'
+  write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, 'N_states_diag'
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
   if (rc /= len(trim(msg))) then
     print *,  irp_here, ': Error getting N_states_diag'

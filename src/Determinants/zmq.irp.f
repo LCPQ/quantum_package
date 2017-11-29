@@ -31,7 +31,7 @@ subroutine zmq_put_$X(zmq_to_qp_run_socket,worker_id)
   integer                        :: rc
   character*(256)                :: msg
 
-  write(msg,'(A8,1X,I8,1X,A230)') 'put_data', worker_id, '$X'
+  write(msg,'(A,1X,I8,1X,A200)') 'put_data '//trim(zmq_state), worker_id, '$X'
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),ZMQ_SNDMORE)
   if (rc /= len(trim(msg))) then
     print *,  irp_here, ': Error sending $X'
@@ -64,7 +64,7 @@ subroutine zmq_get_$X(zmq_to_qp_run_socket, worker_id)
   integer                        :: rc
   character*(256)                :: msg
 
-  write(msg,'(A8,1X,I8,1X,A230)') 'get_data', worker_id, '$X'
+  write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, '$X'
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
   if (rc /= len(trim(msg))) then
     print *,  irp_here, ': Error getting $X'
@@ -106,7 +106,7 @@ subroutine zmq_put_psi_det(zmq_to_qp_run_socket,worker_id)
   integer*8                      :: rc8
   character*(256)                :: msg
 
-  write(msg,'(A8,1X,I8,1X,A230)') 'put_data', worker_id, 'psi_det'
+  write(msg,'(A,1X,I8,1X,A200)') 'put_data '//trim(zmq_state), worker_id, 'psi_det'
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),ZMQ_SNDMORE)
   if (rc /= len(trim(msg))) then
     print *,  irp_here, ': Error sending psi_det'
@@ -139,7 +139,7 @@ subroutine zmq_put_psi_coef(zmq_to_qp_run_socket,worker_id)
   integer*8                      :: rc8
   character*(256)                :: msg
 
-  write(msg,'(A8,1X,I8,1X,A230)') 'put_data', worker_id, 'psi_coef'
+  write(msg,'(A,1X,I8,1X,A200)') 'put_data '//trim(zmq_state), worker_id, 'psi_coef'
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),ZMQ_SNDMORE)
   if (rc /= len(trim(msg))) then
     print *,  irp_here, ': Error sending psi_coef'
@@ -206,7 +206,7 @@ subroutine zmq_get_psi_det(zmq_to_qp_run_socket, worker_id)
   character*(256)                :: msg
 
   
-  write(msg,'(A8,1X,I8,1X,A230)') 'get_data', worker_id, 'psi_det' 
+  write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, 'psi_det'
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
   if (rc /= len(trim(msg))) then
     print *,  irp_here, ': Error getting psi_det'
@@ -244,7 +244,7 @@ subroutine zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id)
   character*(256)                :: msg
 
 
-  write(msg,'(A8,1X,I8,1X,A230)') 'get_data', worker_id, 'psi_coef'
+  write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, 'psi_coef'
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
   if (rc /= len(trim(msg))) then
     print *,  irp_here, ': Error getting psi_coef'

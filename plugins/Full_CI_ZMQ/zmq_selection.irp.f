@@ -11,6 +11,7 @@ subroutine ZMQ_selection(N_in, pt2)
   integer, external              :: omp_get_thread_num
   double precision, intent(out)  :: pt2(N_states)
   integer, parameter             :: maxtasks=10000
+  integer, external              :: zmq_put_dvector
   
   
   PROVIDE fragment_count
@@ -27,7 +28,9 @@ subroutine ZMQ_selection(N_in, pt2)
     call zmq_put_psi(zmq_to_qp_run_socket,1)
     call zmq_put_N_det_generators(zmq_to_qp_run_socket, 1)
     call zmq_put_N_det_selectors(zmq_to_qp_run_socket, 1)
-    call zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',pt2_e0_denominator,size(pt2_e0_denominator))
+    if (zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',pt2_e0_denominator,size(pt2_e0_denominator)) == -1) then
+      stop 'Unable to put energy on ZMQ server'
+    endif
     call create_selection_buffer(N, N*2, b)
   endif
 

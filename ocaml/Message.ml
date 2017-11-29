@@ -316,18 +316,21 @@ end
 module PutData_msg : sig
   type t =
   { client_id : Id.Client.t ;
+    state     : State.t ;
     key       : string; }
-  val create : client_id: int -> key: string -> t
+  val create : client_id: int -> state: string -> key: string -> t
   val to_string : t -> string
 end = struct
   type t =
   { client_id : Id.Client.t ;
+    state     : State.t ;
     key       : string; }
-  let create ~client_id ~key = 
+  let create ~client_id ~state ~key = 
     { client_id = Id.Client.of_int client_id ;
+      state = State.of_string state;
       key ; }
   let to_string x =
-    Printf.sprintf "put_data %d %s"
+    Printf.sprintf "put_data %s %d %s" (State.to_string x.state)
     (Id.Client.to_int x.client_id) x.key
 end
 
@@ -349,17 +352,21 @@ end
 module GetData_msg : sig
   type t =
   { client_id : Id.Client.t ;
+    state     : State.t ;
     key       : string; }
-  val create : client_id: int -> key: string -> t
+  val create : client_id: int -> state: string ->  key: string -> t
   val to_string : t -> string
 end = struct
   type t =
   { client_id : Id.Client.t ;
+    state     : State.t ;
     key       : string }
-  let create ~client_id ~key = 
-    { client_id = Id.Client.of_int client_id ; key }
+  let create ~client_id ~state ~key = 
+    { client_id = Id.Client.of_int client_id ;
+      state = State.of_string state;
+      key }
   let to_string x =
-    Printf.sprintf "get_data %d %s"
+    Printf.sprintf "get_data %s %d %s" (State.to_string x.state)
     (Id.Client.to_int x.client_id) x.key 
 end
 
@@ -510,10 +517,10 @@ let of_string s =
         Newjob (Newjob_msg.create push_address_tcp push_address_inproc state)
     | EndJob_ state  ->
         Endjob (Endjob_msg.create state)
-    | GetData_ { client_id ; key } ->
-        GetData (GetData_msg.create ~client_id ~key)
-    | PutData_ { client_id ; key } ->
-        PutData (PutData_msg.create ~client_id ~key)
+    | GetData_ { state ; client_id ; key } ->
+        GetData (GetData_msg.create ~client_id ~state ~key)
+    | PutData_ { state ; client_id ; key } ->
+        PutData (PutData_msg.create ~client_id ~state ~key)
     | Terminate_  -> Terminate (Terminate_msg.create )
     | Abort_      -> Abort (Abort_msg.create )
     | SetWaiting_ -> SetWaiting
