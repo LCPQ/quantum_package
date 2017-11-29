@@ -27,20 +27,25 @@ subroutine run_selection_slave(thread,iproc,energy)
   PROVIDE psi_bilinear_matrix_transp_order
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  zmq_socket_push      = new_zmq_push_socket(thread)
-  call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
-  if(worker_id == -1) then
-    call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-    call end_zmq_push_socket(zmq_socket_push,thread)
+
+  integer, external :: connect_to_taskserver 
+  if (connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread) == -1) then 
+    call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket) 
     return
-  end if
+  endif
+
+  zmq_socket_push      = new_zmq_push_socket(thread)
+
   buf%N = 0
   buffer_ready = .False.
   ctask = 1
   pt2(:) = 0d0
 
   do
-    call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(ctask), task)
+    integer, external :: get_task_from_taskserver
+    if (get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(ctask), task) == -1) then
+      exit
+    endif
     done = task_id(ctask) == 0
     if (done) then
       ctask = ctask - 1
@@ -58,9 +63,18 @@ subroutine run_selection_slave(thread,iproc,energy)
       call select_connected(i_generator,energy,pt2,buf,0)
     endif
 
+    integer, external :: task_done_to_taskserver
+
     if(done .or. ctask == size(task_id)) then
       do i=1, ctask
-         call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i))
+         if (task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i)) == -1) then
+           call sleep(1)
+          if (task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i)) == -1) then
+            ctask = 0
+            done = .true.
+            exit
+          endif
+         endif
       end do
       if(ctask > 0) then
         call sort_selection_buffer(buf)
@@ -76,7 +90,13 @@ subroutine run_selection_slave(thread,iproc,energy)
     if(done) exit
     ctask = ctask + 1
   end do
-  call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
+
+
+  integer, external :: disconnect_from_taskserver 
+  if (disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id) == -1) then 
+    continue 
+  endif 
+
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
   if (buffer_ready) then

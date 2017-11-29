@@ -1,4 +1,4 @@
-subroutine zmq_put_psi(zmq_to_qp_run_socket,worker_id)
+integer function zmq_put_psi(zmq_to_qp_run_socket,worker_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -8,11 +8,33 @@ subroutine zmq_put_psi(zmq_to_qp_run_socket,worker_id)
   integer, intent(in)            :: worker_id
   character*(256)                :: msg
 
-  call zmq_put_N_states(zmq_to_qp_run_socket, worker_id)
-  call zmq_put_N_det(zmq_to_qp_run_socket, worker_id)
-  call zmq_put_psi_det_size(zmq_to_qp_run_socket, worker_id)
-  call zmq_put_psi_det(zmq_to_qp_run_socket, worker_id)
-  call zmq_put_psi_coef(zmq_to_qp_run_socket, worker_id)
+  integer, external              :: zmq_put_N_states
+  integer, external              :: zmq_put_N_det
+  integer, external              :: zmq_put_psi_det_size
+  integer, external              :: zmq_put_psi_det
+  integer, external              :: zmq_put_psi_coef
+
+  zmq_put_psi = 0
+  if (zmq_put_N_states(zmq_to_qp_run_socket, worker_id) == -1) then
+    zmq_put_psi = -1
+    return
+  endif
+  if (zmq_put_N_det(zmq_to_qp_run_socket, worker_id) == -1) then
+    zmq_put_psi = -1
+    return
+  endif
+  if (zmq_put_psi_det_size(zmq_to_qp_run_socket, worker_id) == -1) then
+    zmq_put_psi = -1
+    return
+  endif
+  if (zmq_put_psi_det(zmq_to_qp_run_socket, worker_id) == -1) then
+    zmq_put_psi = -1
+    return
+  endif
+  if (zmq_put_psi_coef(zmq_to_qp_run_socket, worker_id) == -1) then
+    zmq_put_psi = -1
+    return
+  endif
 
 end
 
@@ -20,7 +42,7 @@ end
 
 BEGIN_TEMPLATE 
 
-subroutine zmq_put_$X(zmq_to_qp_run_socket,worker_id)
+integer function zmq_put_$X(zmq_to_qp_run_socket,worker_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -31,29 +53,30 @@ subroutine zmq_put_$X(zmq_to_qp_run_socket,worker_id)
   integer                        :: rc
   character*(256)                :: msg
 
+  zmq_put_$X = 0
+
   write(msg,'(A,1X,I8,1X,A200)') 'put_data '//trim(zmq_state), worker_id, '$X'
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),ZMQ_SNDMORE)
   if (rc /= len(trim(msg))) then
-    print *,  irp_here, ': Error sending $X'
-    stop 'error'
+    zmq_put_$X = -1
+    return
   endif
 
   rc = f77_zmq_send(zmq_to_qp_run_socket,$X,4,0)
   if (rc /= 4) then
-    print *,  irp_here, ': Error sending $X'
-    stop 'error'
+    zmq_put_$X = -1
+    return
   endif
 
   rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
   if (msg(1:rc) /= 'put_data_reply ok') then
-    print *,  rc, trim(msg)
-    print *,  irp_here, ': Error in put_data_reply'
-    stop 'error'
+    zmq_put_$X = -1
+    return
   endif
 
 end
 
-subroutine zmq_get_$X(zmq_to_qp_run_socket, worker_id)
+integer function zmq_get_$X(zmq_to_qp_run_socket, worker_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -64,26 +87,48 @@ subroutine zmq_get_$X(zmq_to_qp_run_socket, worker_id)
   integer                        :: rc
   character*(256)                :: msg
 
-  write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, '$X'
-  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
-  if (rc /= len(trim(msg))) then
-    print *,  irp_here, ': Error getting $X'
-    stop 'error'
+  if (mpi_master) then
+    write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, '$X'
+    rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
+    if (rc /= len(trim(msg))) go to 10
+
+    rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
+    if (msg(1:14) /= 'get_data_reply') go to 10
+
+    rc = f77_zmq_recv(zmq_to_qp_run_socket,$X,4,0)
+    if (rc /= 4) go to 10
+
   endif
 
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
-  if (msg(1:14) /= 'get_data_reply') then
-    print *,  rc, trim(msg)
-    print *,  irp_here, ': Error in get_data_reply'
-    stop 'error'
-  endif
+  ! Normal exit
+  zmq_get_$X = 0
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
 
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,$X,4,0)
-  if (rc /= 4) then
-    print *,  rc
-    print *,  irp_here, ': Error getting $X'
-    stop 'error'
-  endif
+    call MPI_BCAST (zmq_get_$X, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to broadcast zmq_get_psi_det'
+    endif
+    if (zmq_get_$X == 0) then
+      call MPI_BCAST ($X, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      if (ierr /= MPI_SUCCESS) then
+        stop 'Unable to broadcast zmq_get_psi_det'
+      endif
+    endif
+  IRP_ENDIF
+
+  return
+
+  ! Exception
+  10 continue
+  zmq_get_$X = -1
+  IRP_IF MPI
+    call MPI_BCAST (zmq_get_$X, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to broadcast zmq_get_psi_det'
+    endif
+  IRP_ENDIF
 end
 
 SUBST [ X ]
@@ -94,7 +139,7 @@ psi_det_size ;;
 
 END_TEMPLATE
 
-subroutine zmq_put_psi_det(zmq_to_qp_run_socket,worker_id)
+integer function zmq_put_psi_det(zmq_to_qp_run_socket,worker_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -106,28 +151,29 @@ subroutine zmq_put_psi_det(zmq_to_qp_run_socket,worker_id)
   integer*8                      :: rc8
   character*(256)                :: msg
 
+  zmq_put_psi_det = 0
+
   write(msg,'(A,1X,I8,1X,A200)') 'put_data '//trim(zmq_state), worker_id, 'psi_det'
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),ZMQ_SNDMORE)
   if (rc /= len(trim(msg))) then
-    print *,  irp_here, ': Error sending psi_det'
-    stop 'error'
+    zmq_put_psi_det = -1
+    return
   endif
 
   rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_det,int(N_int*2_8*N_det*bit_kind,8),0)
   if (rc8 /= N_int*2_8*N_det*bit_kind) then
-    print *,  irp_here, ': Error sending psi_det'
-    stop 'error'
+    zmq_put_psi_det = -1
+    return
   endif
 
   rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
   if (msg(1:rc) /= 'put_data_reply ok') then
-    print *,  rc, trim(msg)
-    print *,  irp_here, ': Error in put_data_reply'
-    stop 'error'
+    zmq_put_psi_det = -1
+    return
   endif
 end
 
-subroutine zmq_put_psi_coef(zmq_to_qp_run_socket,worker_id)
+integer function zmq_put_psi_coef(zmq_to_qp_run_socket,worker_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -139,31 +185,33 @@ subroutine zmq_put_psi_coef(zmq_to_qp_run_socket,worker_id)
   integer*8                      :: rc8
   character*(256)                :: msg
 
+  zmq_put_psi_coef = 0
+
   write(msg,'(A,1X,I8,1X,A200)') 'put_data '//trim(zmq_state), worker_id, 'psi_coef'
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),ZMQ_SNDMORE)
   if (rc /= len(trim(msg))) then
-    print *,  irp_here, ': Error sending psi_coef'
-    stop 'error'
+    zmq_put_psi_coef = -1
+    return
   endif
 
   rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_coef,int(psi_det_size*N_states*8_8,8),0)
   if (rc8 /= psi_det_size*N_states*8_8) then
-    print *,  irp_here, ': Error sending psi_coef'
-    stop 'error'
+    zmq_put_psi_coef = -1
+    return
   endif
 
   rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
   if (msg(1:rc) /= 'put_data_reply ok') then
-    print *,  rc, trim(msg)
-    print *,  irp_here, ': Error in put_data_reply'
-    stop 'error'
+    zmq_put_psi_coef = -1
+    return
   endif
+
 end
 
 !---------------------------------------------------------------------------
 
 
-subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id)
+integer function zmq_get_psi(zmq_to_qp_run_socket, worker_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -172,9 +220,26 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id)
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   integer, intent(in)            :: worker_id
 
-  call zmq_get_N_states(zmq_to_qp_run_socket, worker_id)
-  call zmq_get_N_det(zmq_to_qp_run_socket, worker_id)
-  call zmq_get_psi_det_size(zmq_to_qp_run_socket, worker_id)
+  integer, external              :: zmq_get_N_states
+  integer, external              :: zmq_get_N_det
+  integer, external              :: zmq_get_psi_det_size
+  integer, external              :: zmq_get_psi_det
+  integer, external              :: zmq_get_psi_coef
+
+  zmq_get_psi = 0
+
+  if (zmq_get_N_states(zmq_to_qp_run_socket, worker_id) == -1) then
+    zmq_get_psi = -1
+    return
+  endif
+  if (zmq_get_N_det(zmq_to_qp_run_socket, worker_id) == -1) then
+    zmq_get_psi = -1
+    return
+  endif
+  if (zmq_get_psi_det_size(zmq_to_qp_run_socket, worker_id) == -1) then
+    zmq_get_psi = -1
+    return
+  endif
   
   if (size(psi_det) /= N_int*2_8*psi_det_size*bit_kind) then
     deallocate(psi_det)
@@ -186,14 +251,20 @@ subroutine zmq_get_psi(zmq_to_qp_run_socket, worker_id)
     allocate(psi_coef(psi_det_size,N_states))
   endif
 
-  call zmq_get_psi_det(zmq_to_qp_run_socket, worker_id)
-  call zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id)
+  if (zmq_get_psi_det(zmq_to_qp_run_socket, worker_id) == -1) then
+    zmq_get_psi = -1
+    return
+  endif
+  if (zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id) == -1) then
+    zmq_get_psi = -1
+    return
+  endif
   SOFT_TOUCH psi_det psi_coef psi_det_size N_det N_states
 
 end
 
 
-subroutine zmq_get_psi_det(zmq_to_qp_run_socket, worker_id)
+integer function zmq_get_psi_det(zmq_to_qp_run_socket, worker_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -205,33 +276,46 @@ subroutine zmq_get_psi_det(zmq_to_qp_run_socket, worker_id)
   integer*8                      :: rc8
   character*(256)                :: msg
 
-  
-  write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, 'psi_det'
-  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
-  if (rc /= len(trim(msg))) then
-    print *,  irp_here, ': Error getting psi_det'
-    stop 'error'
+  if (mpi_master) then
+    write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, 'psi_det'
+    rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
+    if (rc /= len(trim(msg))) go to 10
+
+    rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
+    if (msg(1:14) /= 'get_data_reply') go to 10
+
+    rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,int(N_int*2_8*N_det*bit_kind,8),0)
+    if (rc8 /= N_int*2_8*N_det*bit_kind) go to 10
   endif
 
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
-  if (msg(1:14) /= 'get_data_reply') then
-    print *,  rc, trim(msg)
-    print *,  irp_here, ': Error in get_data_reply'
-    stop 'error'
-  endif
-
-  rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,int(N_int*2_8*N_det*bit_kind,8),0)
-  if (rc8 /= N_int*2_8*N_det*bit_kind) then
-    print *,  irp_here, ': Error getting psi_det', rc8, N_int*2_8*N_det*bit_kind
-    stop 'error'
-  endif
+  ! Normal exit
+  zmq_get_psi_det = 0
   IRP_IF MPI
-    call broadcast_chunks_bit_kind(psi_det,N_det*N_int*2)
+    include 'mpif.h'
+    integer :: ierr
+    call MPI_BCAST (zmq_get_psi_det, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to broadcast zmq_get_psi_det'
+    endif
+    if (zmq_get_psi_det  == 0) then
+      call broadcast_chunks_bit_kind(psi_det,N_det*N_int*2)
+    endif
   IRP_ENDIF
 
+  return
+
+  ! Exception
+ 10 continue
+  zmq_get_psi_det = -1
+  IRP_IF MPI
+    call MPI_BCAST (zmq_get_psi_det, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to broadcast zmq_get_psi_det'
+    endif
+  IRP_ENDIF
 end
 
-subroutine zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id)
+integer function zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -243,31 +327,44 @@ subroutine zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id)
   integer*8                      :: rc8
   character*(256)                :: msg
 
+  if (mpi_master) then
+    write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, 'psi_coef'
+    rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
+    if (rc /= len(trim(msg))) go to 10
 
-  write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, 'psi_coef'
-  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
-  if (rc /= len(trim(msg))) then
-    print *,  irp_here, ': Error getting psi_coef'
-    stop 'error'
-  endif
+    rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
+    if (msg(1:14) /= 'get_data_reply') go to 10
 
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
-  if (msg(1:14) /= 'get_data_reply') then
-    print *,  rc, trim(msg)
-    print *,  irp_here, ': Error in get_data_reply'
-    stop 'error'
+    rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,psi_coef,int(psi_det_size*N_states*8_8,8),0)
+    if (rc8 /= psi_det_size*N_states*8_8) go to 10
   endif
-
-  rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,psi_coef,int(psi_det_size*N_states*8_8,8),0)
-  if (rc8 /= psi_det_size*N_states*8_8) then
-    print *, irp_here, ': Error getting psi_coef'
-    stop 'error'
-  endif
+  
+  ! Normal exit
+  zmq_get_psi_coef = 0
 
   IRP_IF MPI
-    call broadcast_chunks_double(psi_coef,N_states*N_det)
+    include 'mpif.h'
+    integer :: ierr
+    call MPI_BCAST (zmq_get_psi_coef, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to broadcast zmq_get_psi_coef'
+    endif
+    if (zmq_get_psi_coef  == 0) then
+      call broadcast_chunks_double(psi_coef,N_states*N_det)
+    endif
   IRP_ENDIF
 
+  return
+
+  ! Exception
+ 10 continue
+  zmq_get_psi_coef = -1
+  IRP_IF MPI
+    call MPI_BCAST (zmq_get_psi_coef, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to broadcast zmq_get_psi_coef'
+    endif
+  IRP_ENDIF
 end
 
 

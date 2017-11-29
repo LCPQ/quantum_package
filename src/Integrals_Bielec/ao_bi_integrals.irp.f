@@ -373,7 +373,10 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   write(fmt,*) '(', ao_num, '(I5,X,I5,''|''))'
   do l=1,ao_num
     write(task,fmt) (i,l, i=1,l)
-    call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task))
+    integer, external :: add_task_to_taskserver
+    if (add_task_to_taskserver(zmq_to_qp_run_socket,trim(task)) == -1) then
+      stop 'Unable to add task to server'
+    endif
   enddo
   deallocate(task)
   

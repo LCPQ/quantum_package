@@ -33,9 +33,20 @@ subroutine $subroutine($params_main)
   call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,'$subroutine')
   zmq_socket_pair = new_zmq_pair_socket(.True.)
 
-  call zmq_put_psi(zmq_to_qp_run_socket,1)
-  call zmq_put_N_det_generators(zmq_to_qp_run_socket, worker_id)
-  call zmq_put_N_det_selectors(zmq_to_qp_run_socket, worker_id)
+  integer, external              :: zmq_put_psi
+  integer, external              :: zmq_put_N_det_generators
+  integer, external              :: zmq_put_N_det_selectors
+  integer, external              :: zmq_put_dvector
+  
+  if (zmq_put_psi(zmq_to_qp_run_socket,1) == -1) then
+    stop 'Unable to put psi on ZMQ server'
+  endif
+  if (zmq_put_N_det_generators(zmq_to_qp_run_socket, worker_id) == -1) then
+    stop 'Unable to put N_det_generators on ZMQ server'
+  endif
+  if (zmq_put_N_det_selectors(zmq_to_qp_run_socket, worker_id) == -1) then
+    stop 'Unable to put N_det_selectors on ZMQ server'
+  endif
   if (zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',energy,size(energy)) == -1) then
     stop 'Unable to put energy on ZMQ server'
   endif
@@ -43,7 +54,10 @@ subroutine $subroutine($params_main)
   do i_generator=1,N_det_generators
     $skip
     write(task,*) i_generator
-    call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task))
+    integer, external :: add_task_to_taskserver
+    if (add_task_to_taskserver(zmq_to_qp_run_socket,trim(task)) == -1) then
+      stop 'Unable to add task to taskserver'
+    endif
   enddo
 
   allocate ( pt2_generators(N_states,N_det_generators), &
@@ -122,17 +136,24 @@ subroutine $subroutine_slave(thread, iproc)
   integer(ZMQ_PTR)               :: zmq_socket_push
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  zmq_socket_push      = new_zmq_push_socket(thread) 
 
+  integer, external              :: connect_to_taskserver
+  if (connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread) == -1) then
+    call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
+    return
+  endif
+  
+  zmq_socket_push = new_zmq_push_socket(thread) 
 
   N_st = N_states
   allocate( pt2(N_st), norm_pert(N_st), H_pert_diag(N_st), &
             mask(N_int,2,6), fock_diag_tmp(2,mo_tot_num+1) )
 
-  call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
-
   do
-    call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task)
+    integer, external :: get_task_from_taskserver
+    if (get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task) == -1) then
+      exit
+    endif
     if (task_id == 0) exit
     read(task,*) i_generator
 
@@ -180,15 +201,21 @@ subroutine $subroutine_slave(thread, iproc)
         fock_diag_tmp, i_generator, iproc $params_post)
     endif
 
-    call task_done_to_taskserver(zmq_to_qp_run_socket, worker_id, task_id)
+    integer, external :: task_done_to_taskserver
+    if (task_done_to_taskserver(zmq_to_qp_run_socket, worker_id, task_id) == -1) then
+        print *,  irp_here, ': Unable to send task_done'
+    endif
     call push_pt2(zmq_socket_push,pt2,norm_pert,H_pert_diag,i_generator,N_st,task_id)
 
   enddo
   
-  call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
-
   deallocate( mask, fock_diag_tmp, pt2, norm_pert, H_pert_diag )
 
+
+  integer, external              :: disconnect_from_taskserver
+  if (disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id) == -1) then
+    continue
+  endif
   call end_zmq_push_socket(zmq_socket_push,thread)
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
 
@@ -234,7 +261,10 @@ subroutine $subroutine_collector(zmq_socket_pull)
         H_pert_diag_result(k,i_generator) = H_pert_diag(k)
       enddo
       accu = accu + 1_8
-      call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
+      integer, external :: zmq_delete_task
+      if (zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more) == -1) then
+        stop 'Unable to delete task'
+      endif
     endif
 
   enddo

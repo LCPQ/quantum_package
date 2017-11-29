@@ -28,14 +28,17 @@ subroutine run_pt2_slave(thread,iproc,energy)
   n_tasks_max = N_det_generators/100+1
   allocate(task_id(n_tasks_max), task(n_tasks_max))
   allocate(pt2(N_states,n_tasks_max), i_generator(n_tasks_max), subset(n_tasks_max))
+
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  zmq_socket_push      = new_zmq_push_socket(thread)
-  call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
-  if(worker_id == -1) then
+
+  integer, external :: connect_to_taskserver
+  if (connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread) == -1) then
     call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-    call end_zmq_push_socket(zmq_socket_push,thread)
     return
-  end if
+  endif
+           
+  zmq_socket_push      = new_zmq_push_socket(thread)
+
   buf%N = 0
   n_tasks = 0
   call create_selection_buffer(1, 2, buf)
@@ -45,7 +48,10 @@ subroutine run_pt2_slave(thread,iproc,energy)
 
     n_tasks = min(n_tasks+1,n_tasks_max)
 
-    call get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task, n_tasks)
+    integer, external :: get_tasks_from_taskserver
+    if (get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task, n_tasks) == -1) then
+      exit
+    endif
     done = task_id(n_tasks) == 0
     if (done) n_tasks = n_tasks-1
     if (n_tasks == 0) exit
@@ -59,10 +65,18 @@ subroutine run_pt2_slave(thread,iproc,energy)
         buf%cur = 0
         call select_connected(i_generator(k),energy,pt2(1,k),buf,subset(k))
     enddo
-    call tasks_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id,n_tasks)
+    integer, external :: tasks_done_to_taskserver
+    if (tasks_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id,n_tasks) == -1) then
+      done = .true.
+    endif
     call push_pt2_results(zmq_socket_push, i_generator, pt2, task_id, n_tasks)
   end do
-  call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
+
+  integer, external :: disconnect_from_taskserver
+  if (disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id) == -1) then 
+    continue 
+  endif 
+
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
   call delete_selection_buffer(buf)

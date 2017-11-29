@@ -28,7 +28,6 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
   double precision               :: time
   double precision               :: w(N_states)
   integer(ZMQ_PTR), external     :: new_zmq_to_qp_run_socket
-  integer, external              :: zmq_put_dvector
   
   if (N_det < max(10,N_states)) then
     pt2=0.d0
@@ -66,9 +65,20 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
       print *, '========== ================= ================= ================='
       
       call new_parallel_job(zmq_to_qp_run_socket, zmq_socket_pull, 'pt2')
-      call zmq_put_psi(zmq_to_qp_run_socket,1)
-      call zmq_put_N_det_generators(zmq_to_qp_run_socket, 1)
-      call zmq_put_N_det_selectors(zmq_to_qp_run_socket, 1)
+
+      integer, external              :: zmq_put_psi
+      integer, external              :: zmq_put_N_det_generators
+      integer, external              :: zmq_put_N_det_selectors
+      integer, external              :: zmq_put_dvector
+      if (zmq_put_psi(zmq_to_qp_run_socket,1) == -1) then
+        stop 'Unable to put psi on ZMQ server'
+      endif
+      if (zmq_put_N_det_generators(zmq_to_qp_run_socket, 1) == -1) then
+        stop 'Unable to put N_det_generators on ZMQ server'
+      endif
+      if (zmq_put_N_det_selectors(zmq_to_qp_run_socket, 1) == -1) then
+        stop 'Unable to put N_det_selectors on ZMQ server'
+      endif
       if (zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',pt2_e0_denominator,size(pt2_e0_denominator)) == -1) then
         stop 'Unable to put energy on ZMQ server'
       endif
@@ -76,13 +86,17 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
       
       integer                        :: ipos
       ipos=1
+
+      integer, external :: add_task_to_taskserver
       
       do i=1,tbc(0)
         if(tbc(i) > fragment_first) then
           write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') 0, tbc(i)
           ipos += 20
           if (ipos > 63980) then
-            call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
+            if (add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos))) == -1) then
+              stop 'Unable to add task to task server'
+            endif
             ipos=1
           endif
         else
@@ -90,14 +104,18 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
             write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') j, tbc(i)
             ipos += 20
             if (ipos > 63980) then
-              call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
+              if (add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos))) == -1) then
+                stop 'Unable to add task to task server'
+              endif
               ipos=1
             endif
           end do
         end if
       end do
       if (ipos > 1) then
-        call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
+        if (add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos))) == -1) then
+          stop 'Unable to add task to task server'
+        endif
       endif
       
       call zmq_set_running(zmq_to_qp_run_socket)
@@ -254,7 +272,10 @@ subroutine pt2_collector(zmq_socket_pull, E, b, tbc, comb, Ncomb, computed, pt2_
       if(parts_to_get(index(i)) == 0) actually_computed(index(i)) = .true.
     enddo
 
-    call zmq_delete_tasks(zmq_to_qp_run_socket,zmq_socket_pull,task_id,n_tasks,more)
+    integer, external :: zmq_delete_tasks
+    if (zmq_delete_tasks(zmq_to_qp_run_socket,zmq_socket_pull,task_id,n_tasks,more) == -1) then
+        stop 'Unable to delete tasks'
+    endif
     if (more == 0) then
       loop = .False.
     endif
@@ -269,11 +290,16 @@ subroutine pt2_collector(zmq_socket_pull, E, b, tbc, comb, Ncomb, computed, pt2_
         end if
       end do
       
-      double precision :: E0, avg, prop
+      integer, external :: zmq_abort
+
       if (firstTBDcomb > Ncomb) then
-        call zmq_abort(zmq_to_qp_run_socket)
+        if (zmq_abort(zmq_to_qp_run_socket) == -1) then
+          stop 'Error in sending abort signal'
+        endif
         exit pullLoop
       endif
+
+      double precision :: E0, avg, prop
       call do_carlo(tbc, Ncomb+1-firstTBDcomb, comb(firstTBDcomb), pt2_detail, actually_computed, sumabove, sum2above, Nabove)
       firstTBDcomb = int(Nabove(1)) - orgTBDcomb + 1
       if(Nabove(1) < 5d0) cycle
@@ -295,7 +321,9 @@ subroutine pt2_collector(zmq_socket_pull, E, b, tbc, comb, Ncomb, computed, pt2_
         pt2(pt2_stoch_istate) = avg
         error(pt2_stoch_istate) = eqt
         print '(G10.3, 2X, F16.10, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
-        call zmq_abort(zmq_to_qp_run_socket)
+        if (zmq_abort(zmq_to_qp_run_socket) == -1) then
+          stop 'Error in sending abort signal'
+        endif
       else
         if (Nabove(tooth) > Nabove_old) then
           print '(G10.3, 2X, F16.10, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''

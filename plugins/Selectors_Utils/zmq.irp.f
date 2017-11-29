@@ -1,6 +1,6 @@
 BEGIN_TEMPLATE 
 
-subroutine zmq_put_$X(zmq_to_qp_run_socket,worker_id)
+integer function zmq_put_$X(zmq_to_qp_run_socket,worker_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -11,29 +11,30 @@ subroutine zmq_put_$X(zmq_to_qp_run_socket,worker_id)
   integer                        :: rc
   character*(256)                :: msg
 
+  zmq_put_$X = 0
+
   write(msg,'(A,1X,I8,1X,A200)') 'put_data '//trim(zmq_state), worker_id, '$X'
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),ZMQ_SNDMORE)
   if (rc /= len(trim(msg))) then
-    print *,  irp_here, ': Error sending $X'
-    stop 'error'
+    zmq_put_$X = -1
+    return
   endif
 
   rc = f77_zmq_send(zmq_to_qp_run_socket,$X,4,0)
   if (rc /= 4) then
-    print *,  irp_here, ': Error sending $X'
-    stop 'error'
+    zmq_put_$X = -1
+    return
   endif
 
   rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
   if (msg(1:rc) /= 'put_data_reply ok') then
-    print *,  rc, trim(msg)
-    print *,  irp_here, ': Error in put_data_reply'
-    stop 'error'
+    zmq_put_$X = -1
+    return
   endif
 
 end
 
-subroutine zmq_get_$X(zmq_to_qp_run_socket, worker_id)
+integer function zmq_get_$X(zmq_to_qp_run_socket, worker_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -44,38 +45,53 @@ subroutine zmq_get_$X(zmq_to_qp_run_socket, worker_id)
   integer                        :: rc
   character*(256)                :: msg
 
-  write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, '$X'
-  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
-  if (rc /= len(trim(msg))) then
-    print *,  irp_here, ': Error getting $X'
-    stop 'error'
+  zmq_get_$X = 0
+  if (mpi_master) then
+
+    write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, '$X'
+    rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
+    if (rc /= len(trim(msg))) go to 10
+
+    rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
+    if (msg(1:14) /= 'get_data_reply') go to 10
+
+    rc = f77_zmq_recv(zmq_to_qp_run_socket,$X,4,0)
+    if (rc /= 4) go to 10
+
   endif
 
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
-  if (msg(1:14) /= 'get_data_reply') then
-    print *,  rc, trim(msg)
-    print *,  irp_here, ': Error in get_data_reply'
-    stop 'error'
-  endif
-
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,$X,4,0)
-  if (rc /= 4) then
-    print *,  rc
-    print *,  irp_here, ': Error getting $X'
-    stop 'error'
-  endif
+  ! Normal exit
 
   IRP_IF MPI
     include 'mpif.h'
     integer :: ierr
 
-    call MPI_BCAST ($X, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    call MPI_BCAST (zmq_get_$X, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      print *,  irp_here//': Unable to broadcast N_det_generators'
+      stop -1
+    endif
+    if (zmq_get_$X == 0) then
+      call MPI_BCAST ($X, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      if (ierr /= MPI_SUCCESS) then
+        print *,  irp_here//': Unable to broadcast N_det_generators'
+        stop -1
+      endif
+    endif
+  IRP_ENDIF
+
+  return
+
+  ! Exception
+  10 continue
+  zmq_get_$X = -1
+  IRP_IF MPI
+    call MPI_BCAST (zmq_get_$X, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       print *,  irp_here//': Unable to broadcast N_det_generators'
       stop -1
     endif
   IRP_ENDIF
-
 end
 
 SUBST [ X ]

@@ -33,7 +33,9 @@ subroutine run_wf
   integer :: rc, i, ierr
   double precision :: t0, t1
   
-  integer, external :: zmq_get_dvector
+  integer, external              :: zmq_get_dvector, zmq_get_N_det_generators 
+  integer, external              :: zmq_get_psi, zmq_get_N_det_selectors
+  integer, external              :: zmq_get_N_states_diag
 
   call provide_everything
   
@@ -59,10 +61,10 @@ subroutine run_wf
       ! ---------
 
       call wall_time(t0)
-      call zmq_get_psi(zmq_to_qp_run_socket,1)
+      if (zmq_get_psi(zmq_to_qp_run_socket,1) == -1) cycle
+      if (zmq_get_N_det_generators (zmq_to_qp_run_socket, 1) == -1) cycle
+      if (zmq_get_N_det_selectors(zmq_to_qp_run_socket, 1) == -1) cycle
       if (zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states) == -1) cycle
-      call zmq_get_N_det_generators (zmq_to_qp_run_socket, 1)
-      call zmq_get_N_det_selectors(zmq_to_qp_run_socket, 1)
 
       call wall_time(t1)
       call write_double(6,(t1-t0),'Broadcast time')
@@ -80,8 +82,8 @@ subroutine run_wf
 
       print *,  'Davidson'
       call wall_time(t0)
-      call zmq_get_psi(zmq_to_qp_run_socket,1)
-      call zmq_get_N_states_diag(zmq_to_qp_run_socket,1)
+      if (zmq_get_psi(zmq_to_qp_run_socket,1) == -1) cycle
+      if (zmq_get_N_states_diag(zmq_to_qp_run_socket,1) == -1) cycle
       if (zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states_diag) == -1) cycle
 
       call wall_time(t1)
@@ -99,10 +101,10 @@ subroutine run_wf
 
       print *,  'PT2'
       call wall_time(t0)
-      call zmq_get_psi(zmq_to_qp_run_socket,1)
+      if (zmq_get_psi(zmq_to_qp_run_socket,1) == -1) cycle
       if (zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states) == -1) cycle
-      call zmq_get_N_det_generators (zmq_to_qp_run_socket, 1)
-      call zmq_get_N_det_selectors(zmq_to_qp_run_socket, 1)
+      if (zmq_get_N_det_generators (zmq_to_qp_run_socket, 1) == -1) cycle
+      if (zmq_get_N_det_selectors(zmq_to_qp_run_socket, 1) == -1) cycle
 
       call wall_time(t1)
       call write_double(6,(t1-t0),'Broadcast time')

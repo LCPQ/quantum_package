@@ -644,7 +644,7 @@ subroutine end_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,name_in)
   endif
 end
 
-subroutine connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
+integer function connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -657,38 +657,42 @@ subroutine connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
   character*(512)                :: message
   character*(128)                :: reply, state, address
   integer                        :: rc
+  
+  !Success
+  connect_to_taskserver = 0
+
   if (thread == 1) then
     rc = f77_zmq_send(zmq_to_qp_run_socket, "connect inproc", 14, 0)
     if (rc /= 14) then
-      print *,  'f77_zmq_send(zmq_to_qp_run_socket, "connect inproc", 14, 0)'
-      stop 'error'
+      connect_to_taskserver = -1
+      return
     endif
   else
     rc = f77_zmq_send(zmq_to_qp_run_socket, "connect tcp", 11, 0)
     if (rc /= 11) then
-      print *,  'f77_zmq_send(zmq_to_qp_run_socket, "connect tcp", 11, 0)'
-      stop 'error'
+      connect_to_taskserver = -1
+      return
     endif
   endif
   
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
   message = trim(message(1:rc))
   if(message(1:5) == "error") then
-    worker_id = -1
+    connect_to_taskserver = -1
     return
   end if
   read(message,*, end=10, err=10) reply, state, worker_id, address
   if (trim(reply) /= 'connect_reply') then
-    print *,  trim(message)
-    stop -1
+    connect_to_taskserver = -1
+    return
   endif
+
   return
   10 continue
-  print *,  irp_here, ': Error in read'
-  stop
+  connect_to_taskserver = -1
 end
 
-subroutine disconnect_from_taskserver(zmq_to_qp_run_socket, &
+integer function disconnect_from_taskserver(zmq_to_qp_run_socket, &
    zmq_socket_push, worker_id)
   use f77_zmq
   implicit none
@@ -701,18 +705,17 @@ subroutine disconnect_from_taskserver(zmq_to_qp_run_socket, &
   
   integer                        :: rc, sze
   character*(64)                 :: message, reply, state
+
+  disconnect_from_taskserver = 0
+
   write(message,*) 'disconnect '//trim(zmq_state), worker_id
   
   sze = len(trim(message))
   rc = f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)
-!  if (rc == -1) then
-!    return
-!  endif
 
   if (rc /= sze) then
-    print *,  rc, sze
-    print *,  irp_here, 'f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
-    stop 'error'
+    disconnect_from_taskserver = -1
+    return
   endif
   
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
@@ -720,26 +723,23 @@ subroutine disconnect_from_taskserver(zmq_to_qp_run_socket, &
   
   read(message,*, end=10, err=10) reply, state
   if ((trim(reply) == 'disconnect_reply').and.(trim(state) == trim(zmq_state))) then
+    disconnect_from_taskserver = -1
     return
   endif
   if (trim(message) == 'error Wrong state') then
+    disconnect_from_taskserver = -1
+    return
+  else if (trim(message) == 'error No job is running') then
+    disconnect_from_taskserver = -1
     return
   endif
-  if (trim(message) == 'error No job is running') then
-    return
-  endif
-
-  print *,  'Unable to disconnect : ', trim(zmq_state)
-  print *,  trim(message)
-  stop -1
 
   return
   10 continue
-  print *,  irp_here, ': Error in read'
-  stop
+  disconnect_from_taskserver = -1
 end
 
-subroutine add_task_to_taskserver(zmq_to_qp_run_socket,task)
+integer function add_task_to_taskserver(zmq_to_qp_run_socket,task)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -751,71 +751,27 @@ subroutine add_task_to_taskserver(zmq_to_qp_run_socket,task)
   integer                        :: rc, sze
   character(len=:), allocatable :: message
 
+  add_task_to_taskserver = 0
+
   message='add_task '//trim(zmq_state)//' '//trim(task)
   sze = len(message)
   rc = f77_zmq_send(zmq_to_qp_run_socket, message, sze, 0)
 
   if (rc /= sze) then
-    print *,  rc, sze
-    print *,  irp_here,': f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
-    stop 'error'
+    add_task_to_taskserver = -1
+    return
   endif
   
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, sze-1, 0)
   if (message(1:rc) /= 'ok') then
-    print *,  trim(message(1:rc))
-    print *,  trim(task)
-    print *,  'Unable to add the next task'
-    stop -1
+    add_task_to_taskserver = -1
+    return
   endif
   
 end
 
-subroutine add_task_to_taskserver_send(zmq_to_qp_run_socket,task)
-  use f77_zmq
-  implicit none
-  BEGIN_DOC
-  ! Get a task from the task server
-  END_DOC
-  integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
-  character*(*), intent(in)      :: task
-  
-  integer                        :: rc, sze
-  character(len=:), allocatable  :: message
 
-  sze = len(trim(task))+12+len(trim(zmq_state))
-  message = repeat(' ',sze)
-  write(message,*) 'add_task '//trim(zmq_state)//' '//trim(task)
-  
-  rc = f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)
-  if (rc /= sze) then
-    print *,  rc, sze
-    print *,  irp_here,': f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
-    stop 'error'
-  endif
-  
-end
-
-subroutine add_task_to_taskserver_recv(zmq_to_qp_run_socket)
-  use f77_zmq
-  implicit none
-  BEGIN_DOC
-  ! Get a task from the task server
-  END_DOC
-  integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
-  
-  integer                        :: rc, sze
-  character*(512)                :: message
-  rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
-  if (message(1:rc) /= 'ok') then
-    print *,  trim(message(1:rc))
-    print *,  'Unable to add the next task'
-    stop -1
-  endif
-  
-end
-
-subroutine zmq_abort(zmq_to_qp_run_socket)
+integer function zmq_abort(zmq_to_qp_run_socket)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -824,25 +780,26 @@ subroutine zmq_abort(zmq_to_qp_run_socket)
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   integer                        :: rc, sze
   character*(512)                :: message
+  zmq_abort = 0
+
   write(message,*) 'abort '
   
   sze = len(trim(message))
   rc = f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)
   if (rc /= sze) then
-    print *,  irp_here, 'f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
-    stop 'error'
+    zmq_abort = -1
+    return
   endif
   
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
   if (trim(message(1:rc)) /= 'ok') then
-    print *,  trim(message(1:rc))
-    print *,  'Unable to send abort message'
-    stop -1
+    zmq_abort = -1
+    return
   endif
   
 end
 
-subroutine task_done_to_taskserver(zmq_to_qp_run_socket, worker_id, task_id)
+integer function task_done_to_taskserver(zmq_to_qp_run_socket, worker_id, task_id)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -853,25 +810,27 @@ subroutine task_done_to_taskserver(zmq_to_qp_run_socket, worker_id, task_id)
   
   integer                        :: rc, sze
   character*(512)                :: message
+
+  task_done_to_taskserver = 0
+
   write(message,*) 'task_done '//trim(zmq_state), worker_id, task_id
   
   sze = len(trim(message))
   rc = f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)
   if (rc /= sze) then
-    print *,  irp_here, 'f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
-    stop 'error'
+    task_done_to_taskserver = -1
+    return
   endif
   
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 510, 0)
   if (trim(message(1:rc)) /= 'ok') then
-    print *,  trim(message(1:rc))
-    print *,  'Unable to send task_done message'
-    stop -1
+    task_done_to_taskserver = -1
+    return
   endif
   
 end
 
-subroutine tasks_done_to_taskserver(zmq_to_qp_run_socket, worker_id, task_id, n_tasks)
+integer function tasks_done_to_taskserver(zmq_to_qp_run_socket, worker_id, task_id, n_tasks)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -884,6 +843,8 @@ subroutine tasks_done_to_taskserver(zmq_to_qp_run_socket, worker_id, task_id, n_
   character(LEN=:), allocatable     :: message
   character*(64)                 :: fmt
 
+  tasks_done_to_taskserver = 0
+
   allocate(character(LEN=64+n_tasks*12) :: message)
   write(fmt,*) '(A,X,A,I10,X,', n_tasks, '(I11,1X))'
   write(message,*) 'task_done '//trim(zmq_state), worker_id, (task_id(k), k=1,n_tasks)
@@ -891,27 +852,26 @@ subroutine tasks_done_to_taskserver(zmq_to_qp_run_socket, worker_id, task_id, n_
   sze = len(trim(message))
   rc = f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)
   if (rc == -1) then
-    ! Server is shut down
+    tasks_done_to_taskserver = -1
     deallocate(message)
     return
   endif
 
   if (rc /= sze) then
-    print *,  irp_here, 'f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
-    stop 'error'
+    tasks_done_to_taskserver = -1
+    deallocate(message)
+    return
   endif
   
   rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 64, 0)
   if (trim(message(1:rc)) /= 'ok') then
-    print *,  trim(message(1:rc))
-    print *,  'Unable to send task_done message'
-    stop -1
+    tasks_done_to_taskserver = -1
   endif
   deallocate(message)
   
 end
 
-subroutine get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
+integer function get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -926,13 +886,15 @@ subroutine get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
   character*(64)                 :: reply
   integer                        :: rc, sze
   
+  get_task_from_taskserver = 0
+
   write(message,*) 'get_task '//trim(zmq_state), worker_id
   
   sze = len(trim(message))
   rc = f77_zmq_send(zmq_to_qp_run_socket, message, sze, 0)
   if (rc /= sze) then
-    print *,  irp_here, ':f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
-    stop 'error'
+    get_task_from_taskserver = -1
+    return
   endif
   
   message = repeat(' ',512)
@@ -960,19 +922,18 @@ subroutine get_task_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task)
     task_id = 0
     task = 'terminate'
   else
-    print *,  'Unable to get the next task'
-    print *,  trim(message)
-    stop -1
+    get_task_from_taskserver = -1
+    return
   endif
   return
+
   10 continue
-  print *,  irp_here, ': Error in read'
-  stop
+  get_task_from_taskserver = -1
   
 end
 
 
-subroutine get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task,n_tasks)
+integer function get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task,n_tasks)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -988,15 +949,15 @@ subroutine get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task
   character*(64)                 :: reply
   integer                        :: rc, sze, i
   
+  get_tasks_from_taskserver = 0
+
   write(message,*) 'get_tasks '//trim(zmq_state), worker_id, n_tasks
   
   sze = len(trim(message))
   rc = f77_zmq_send(zmq_to_qp_run_socket, message, sze, 0)
   if (rc /= sze) then
-    print *,  trim(message)
-    print *,  rc, sze
-    print *,  irp_here, ':f77_zmq_send(zmq_to_qp_run_socket, trim(message), sze, 0)'
-    stop 'error'
+    get_tasks_from_taskserver = -1
+    return 
   endif
   
   message = repeat(' ',1024)
@@ -1004,17 +965,16 @@ subroutine get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task
   rc = min(1024,rc)
   read(message(1:rc),*, end=10, err=10) reply
   if (trim(message) == 'get_tasks_reply ok') then
-      continue
+    continue
   else if (trim(message) == 'terminate') then
-      task_id(1) = 0
-      task(1) = 'terminate'
+    task_id(1) = 0
+    task(1) = 'terminate'
   else if (trim(message) == 'error No job is running') then
-      task_id(1) = 0
-      task(1) = 'terminate'
+    task_id(1) = 0
+    task(1) = 'terminate'
   else
-      print *,  'Unable to get the next task'
-      print *,  ':'//trim(message)//':'
-      stop -1
+    get_tasks_from_taskserver = -1
+    return 
   endif
  
   task(:) = repeat(' ',512)
@@ -1038,11 +998,11 @@ subroutine get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id,task_id,task
     rc += 1
     task(i) = message(rc:)
   enddo
-
   return
+
   10 continue
-  print *,  irp_here, ': Error in read'
-  stop
+  get_tasks_from_taskserver = -1
+  return 
   
 end
 
@@ -1070,7 +1030,7 @@ subroutine end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   
 end
 
-subroutine zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
+integer function zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -1084,11 +1044,13 @@ subroutine zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
   integer                        :: rc
   character*(512)                :: message
 
+  zmq_delete_task = 0
+
   write(message,*) 'del_task ', zmq_state, task_id
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(message),len(trim(message)),0)
   if (rc /= len(trim(message))) then
-    print *,  irp_here
-    stop 'error'
+    zmq_delete_task = -1
+    return
   endif
 
   character*(64) :: reply
@@ -1100,13 +1062,12 @@ subroutine zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
   else if (reply(16:19) == 'done') then
     more = 0
   else
-    print *,  reply
-    print *,  irp_here
-    stop 'error'
+    zmq_delete_task = -1
+    return
   endif
 end
 
-subroutine zmq_delete_tasks(zmq_to_qp_run_socket,zmq_socket_pull,task_id,n_tasks,more)
+integer function zmq_delete_tasks(zmq_to_qp_run_socket,zmq_socket_pull,task_id,n_tasks,more)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -1121,6 +1082,8 @@ subroutine zmq_delete_tasks(zmq_to_qp_run_socket,zmq_socket_pull,task_id,n_tasks
   character*(64)                 :: fmt, reply
   character(LEN=:), allocatable  :: message
 
+  zmq_delete_tasks = 0
+
   allocate(character(LEN=64+n_tasks*12) :: message)
 
   write(fmt,*) '(A,1X,A,1X,', n_tasks, '(I11,1X))'
@@ -1129,8 +1092,9 @@ subroutine zmq_delete_tasks(zmq_to_qp_run_socket,zmq_socket_pull,task_id,n_tasks
 
   rc = f77_zmq_send(zmq_to_qp_run_socket,trim(message),len(trim(message)),0)
   if (rc /= len(trim(message))) then
-    print *,  irp_here
-    stop 'error'
+    zmq_delete_tasks = -1
+    deallocate(message)
+    return
   endif
   deallocate(message)
 
@@ -1142,9 +1106,7 @@ subroutine zmq_delete_tasks(zmq_to_qp_run_socket,zmq_socket_pull,task_id,n_tasks
   else if (reply(16:19) == 'done') then
     more = 0
   else
-    print *,  reply
-    print *,  irp_here
-    stop 'error'
+    zmq_delete_tasks = -1
   endif
 end
 

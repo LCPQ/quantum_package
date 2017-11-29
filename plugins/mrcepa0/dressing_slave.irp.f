@@ -56,12 +56,18 @@ subroutine mrsc2_dressing_slave(thread,iproc)
   logical, external               :: is_in_wavefunction
   integer,allocatable :: komon(:)
   logical :: komoned
+  integer, external :: connect_to_taskserver, disconnect_from_taskserver
   !double precision, external :: get_dij
      
-  zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  zmq_socket_push      = new_zmq_push_socket(thread)
+  integer, external :: add_task_to_taskserver
 
-  call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
+  zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
+  if (connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread) == -1) then
+    call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
+    return
+  endif
+
+  zmq_socket_push      = new_zmq_push_socket(thread)
 
   allocate (delta(N_states,0:N_det_non_ref, 2))
   allocate (delta_s2(N_states,0:N_det_non_ref, 2))
@@ -74,7 +80,10 @@ subroutine mrsc2_dressing_slave(thread,iproc)
 
 
   do 
-    call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task)
+    integer, external :: get_task_from_taskserver
+    if (get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task) == -1) then
+      exit
+    endif
     if (task_id == 0) exit
     read (task,*) i_I, J, k1, k2
     do i_state=1, N_states
@@ -191,12 +200,17 @@ subroutine mrsc2_dressing_slave(thread,iproc)
     end do ! kk
 
     call push_mrsc2_results(zmq_socket_push, I_i, J, delta, delta_s2, task_id) 
-    call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id)
+    integer, external :: task_done_to_taskserver
+    if (task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id) == -1) then
+        stop 'Unable to send task_done to server'
+    endif
   enddo
 
   deallocate(delta)
 
-  call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
+  if (disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id) == -1)
+    continue
+  endif
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
 
@@ -389,17 +403,18 @@ end
 
 
 
-subroutine mrsc2_dressing_collector(delta_ii_,delta_ij_,delta_ii_s2_,delta_ij_s2_)
+subroutine mrsc2_dressing_collector(zmq_socket_pull,delta_ii_,delta_ij_,delta_ii_s2_,delta_ij_s2_)
   use f77_zmq
   implicit none
   BEGIN_DOC 
 ! Collects results from the AO integral calculation 
   END_DOC 
  
-  double precision,intent(inout)               :: delta_ij_(N_states,N_det_non_ref,N_det_ref) 
-  double precision,intent(inout)               :: delta_ii_(N_states,N_det_ref)
-  double precision,intent(inout)               :: delta_ij_s2_(N_states,N_det_non_ref,N_det_ref) 
-  double precision,intent(inout)               :: delta_ii_s2_(N_states,N_det_ref)
+  double precision,intent(inout) :: delta_ij_(N_states,N_det_non_ref,N_det_ref)
+  double precision,intent(inout) :: delta_ii_(N_states,N_det_ref)
+  double precision,intent(inout) :: delta_ij_s2_(N_states,N_det_non_ref,N_det_ref)
+  double precision,intent(inout) :: delta_ii_s2_(N_states,N_det_ref)
+  integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
 
 !   integer                        :: j,l
   integer                        :: rc 
@@ -410,7 +425,6 @@ subroutine mrsc2_dressing_collector(delta_ii_,delta_ij_,delta_ii_s2_,delta_ij_s2
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
    
   integer(ZMQ_PTR), external     :: new_zmq_pull_socket 
-  integer(ZMQ_PTR)               :: zmq_socket_pull 
    
   integer*8                      :: control, accu 
   integer                        :: task_id, more 
@@ -424,7 +438,6 @@ subroutine mrsc2_dressing_collector(delta_ii_,delta_ij_,delta_ii_s2_,delta_ij_s2
   delta_ij_s2_(:,:,:) = 0d0
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket() 
-  zmq_socket_pull = new_zmq_pull_socket() 
  
   allocate ( delta(N_states,0:N_det_non_ref,2), delta_s2(N_states,0:N_det_non_ref,2) ) 
   
@@ -466,7 +479,10 @@ subroutine mrsc2_dressing_collector(delta_ii_,delta_ij_,delta_ii_s2_,delta_ij_s2
 
 
     if (task_id /= 0) then 
-      call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more) 
+        integer, external :: zmq_delete_task
+        if (zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more) == -1) then
+          stop 'Unable to delete task'
+        endif
     endif 
 
  
@@ -474,7 +490,6 @@ subroutine mrsc2_dressing_collector(delta_ii_,delta_ij_,delta_ii_s2_,delta_ij_s2
   deallocate( delta, delta_s2 )
  
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-  call end_zmq_pull_socket(zmq_socket_pull)
 
 end
 
@@ -498,12 +513,12 @@ end
   integer, external               :: get_index_in_psi_det_sorted_bit, searchDet, detCmp
   logical, external               :: is_in_wavefunction, isInCassd, detEq
   character*(512)                :: task 
-  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
+  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_socket_pull
   
   integer :: KKsize = 1000000
   
   
-  call new_parallel_job(zmq_to_qp_run_socket,'mrsc2')
+  call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,'mrsc2')
 
 
   call wall_time(iwall)
@@ -573,14 +588,18 @@ end
         
         do kk = 1 , nlink(i_I), KKsize
           write(task,*) I_i, J, kk, int(min(kk+KKsize-1, nlink(i_I)))
-          call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+          if (add_task_to_taskserver(zmq_to_qp_run_socket,task) == -1) then
+            stop 'Unable to add task to task server'
+          endif
         end do
         
   !       do kk = 1 , nlink(i_I)
   !         k = linked(kk,i_I)
   !         blok = blokMwen(kk,i_I)
   !         write(task,*) I_i, J, k, blok
-  !         call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+  !          if (add_task_to_taskserver(zmq_to_qp_run_socket,task) == -1) then
+  !            stop 'Unable to add task to task server'
+  !          endif
   !         
   !       enddo !kk
       enddo !J
@@ -593,17 +612,19 @@ end
 !  rc = pthread_create(collector_thread, mrsc2_dressing_collector)
   print *, nzer, ntot, float(nzer) / float(ntot)
   provide nproc
-  !$OMP PARALLEL DEFAULT(none)  SHARED(delta_ii_old,delta_ij_old,delta_ii_s2_old,delta_ij_s2_old)  PRIVATE(i) NUM_THREADS(nproc+1)
+  !$OMP PARALLEL DEFAULT(none)                                       &
+      !$OMP SHARED(delta_ii_old,delta_ij_old,delta_ii_s2_old,delta_ij_s2_old,zmq_socket_pull)&
+      !$OMP  PRIVATE(i) NUM_THREADS(nproc+1)
       i = omp_get_thread_num()
       if (i==0) then
-        call mrsc2_dressing_collector(delta_ii_old,delta_ij_old,delta_ii_s2_old,delta_ij_s2_old)
+        call mrsc2_dressing_collector(zmq_socket_pull,delta_ii_old,delta_ij_old,delta_ii_s2_old,delta_ij_s2_old)
       else
         call mrsc2_dressing_slave_inproc(i)
       endif
   !$OMP END PARALLEL
 
 !  rc = pthread_join(collector_thread)
-  call end_parallel_job(zmq_to_qp_run_socket, 'mrsc2')
+  call end_parallel_job(zmq_to_qp_run_socket, zmq_socket_pull, 'mrsc2')
     
 
 END_PROVIDER

@@ -1200,6 +1200,10 @@ subroutine ZMQ_selection(N_in, pt2)
   integer, external              :: omp_get_thread_num
   double precision, intent(out)  :: pt2(N_states)
   integer, parameter             :: maxtasks=10000
+  integer, external              :: zmq_put_psi
+  integer, external              :: zmq_put_N_det_generators
+  integer, external              :: zmq_put_N_det_selectors
+  integer, external              :: zmq_put_dvector
   
   
   N = max(N_in,1)
@@ -1211,10 +1215,18 @@ subroutine ZMQ_selection(N_in, pt2)
     PROVIDE psi_bilinear_matrix_transp_order
 
     call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,'selection')
-    call zmq_put_psi(zmq_to_qp_run_socket,1)
-    call zmq_put_N_det_generators(zmq_to_qp_run_socket, 1)
-    call zmq_put_N_det_selectors(zmq_to_qp_run_socket, 1)
-    call zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',pt2_e0_denominator,size(pt2_e0_denominator))
+    if (zmq_put_psi(zmq_to_qp_run_socket,1) == -1) then
+       stop 'Unable to put psi'
+    endif
+    if (zmq_put_N_det_generators(zmq_to_qp_run_socket, 1) == -1) then
+       stop 'Unable to put N_det_generators'
+    endif
+    if (zmq_put_N_det_selectors(zmq_to_qp_run_socket, 1) == -1) then
+       stop 'Unable to put N_det_selectors'
+    endif
+    if (zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',pt2_e0_denominator,size(pt2_e0_denominator)) == -1) then
+       stop 'Unable to put energy'
+    endif
     call create_selection_buffer(N, N*2, b)
   endif
 
@@ -1222,17 +1234,22 @@ subroutine ZMQ_selection(N_in, pt2)
   task = ' '
 
   integer :: k
+  integer, external :: add_task_to_taskserver
   k=0
   do i= 1, N_det_generators
     k = k+1
     write(task(20*(k-1)+1:20*k),'(I9,1X,I9,''|'')') i, N
     if (k>=maxtasks) then
        k=0
-       call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+       if (add_task_to_taskserver(zmq_to_qp_run_socket,task) == -1) then
+         stop 'Unable to add task to task server'
+       endif
     endif
   enddo
   if (k > 0) then
-    call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+       if (add_task_to_taskserver(zmq_to_qp_run_socket,task) == -1) then
+         stop 'Unable to add task to task server'
+       endif
   endif
   call zmq_set_running(zmq_to_qp_run_socket)
 
@@ -1308,7 +1325,10 @@ subroutine selection_collector(zmq_socket_pull, b, pt2)
       if(task_id(i) == 0) then
           print *,  "Error in collector"
       endif
-      call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more)
+      integer, external :: zmq_delete_task
+      if (zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more) == -1) then
+        stop 'Unable to delete task'
+      endif
     end do
     done += ntask
     call CPU_TIME(time)
