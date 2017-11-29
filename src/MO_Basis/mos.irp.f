@@ -1,24 +1,24 @@
 BEGIN_PROVIDER [ integer, mo_tot_num ]
   implicit none
   BEGIN_DOC
-! Number of MOs
+  ! Number of MOs
   END_DOC
-
+  
   logical                        :: has
-  PROVIDE ezfio_filename 
+  PROVIDE ezfio_filename
   if (mpi_master) then
     call ezfio_has_mo_basis_mo_tot_num(has)
   endif
   IRP_IF MPI
     include 'mpif.h'
-    integer :: ierr
+    integer                        :: ierr
     call MPI_BCAST( has, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       stop 'Unable to read mo_tot_num with MPI'
     endif
   IRP_ENDIF
   if (.not.has) then
-      mo_tot_num = ao_ortho_canonical_num
+    mo_tot_num = ao_ortho_canonical_num
   else
     if (mpi_master) then
       call ezfio_get_mo_basis_mo_tot_num(mo_tot_num)
@@ -32,7 +32,7 @@ BEGIN_PROVIDER [ integer, mo_tot_num ]
   endif
   call write_int(6,mo_tot_num,'mo_tot_num')
   ASSERT (mo_tot_num > 0)
-
+  
 END_PROVIDER
 
 
