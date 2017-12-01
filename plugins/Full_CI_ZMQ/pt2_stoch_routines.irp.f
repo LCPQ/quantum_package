@@ -118,7 +118,11 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
         endif
       endif
       
-      call zmq_set_running(zmq_to_qp_run_socket)
+      integer, external :: zmq_set_running
+      if (zmq_set_running(zmq_to_qp_run_socket) == -1) then
+        print *,  irp_here, ': Failed in zmq_set_running'
+      endif
+
       
       !$OMP PARALLEL DEFAULT(shared) NUM_THREADS(nproc+1)            &
           !$OMP  PRIVATE(i)
@@ -294,7 +298,10 @@ subroutine pt2_collector(zmq_socket_pull, E, b, tbc, comb, Ncomb, computed, pt2_
 
       if (firstTBDcomb > Ncomb) then
         if (zmq_abort(zmq_to_qp_run_socket) == -1) then
-          stop 'Error in sending abort signal'
+          call sleep(1)
+          if (zmq_abort(zmq_to_qp_run_socket) == -1) then
+            print *, irp_here, ': Error in sending abort signal (1)'
+          endif
         endif
         exit pullLoop
       endif
@@ -322,7 +329,10 @@ subroutine pt2_collector(zmq_socket_pull, E, b, tbc, comb, Ncomb, computed, pt2_
         error(pt2_stoch_istate) = eqt
         print '(G10.3, 2X, F16.10, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
         if (zmq_abort(zmq_to_qp_run_socket) == -1) then
-          stop 'Error in sending abort signal'
+          call sleep(1)
+          if (zmq_abort(zmq_to_qp_run_socket) == -1) then
+            print *, irp_here, ': Error in sending abort signal (2)'
+          endif
         endif
       else
         if (Nabove(tooth) > Nabove_old) then

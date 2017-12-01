@@ -380,7 +380,10 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   enddo
   deallocate(task)
   
-  call zmq_set_running(zmq_to_qp_run_socket)
+  integer, external :: zmq_set_running
+  if (zmq_set_running(zmq_to_qp_run_socket) == -1) then
+    print *,  irp_here, ': Failed in zmq_set_running'
+  endif
 
   PROVIDE nproc
   !$OMP PARALLEL DEFAULT(shared) private(i) num_threads(nproc+1)

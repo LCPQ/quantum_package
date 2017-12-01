@@ -70,7 +70,11 @@ subroutine ZMQ_selection(N_in, pt2)
   ASSERT (associated(b%det))
   ASSERT (associated(b%val))
 
-  call zmq_set_running(zmq_to_qp_run_socket)
+  integer, external :: zmq_set_running
+  if (zmq_set_running(zmq_to_qp_run_socket) == -1) then
+    print *,  irp_here, ': Failed in zmq_set_running'
+  endif
+
   !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
   i = omp_get_thread_num()
   if (i==0) then

@@ -35,6 +35,24 @@ BEGIN_PROVIDER [ integer, mo_tot_num ]
   
 END_PROVIDER
 
+BEGIN_PROVIDER [ integer, mo_num ]
+ implicit none
+ BEGIN_DOC
+ ! mo_tot_num without the highest deleted MOs
+ END_DOC
+ mo_num = mo_tot_num
+ integer :: i
+ mo_num = mo_tot_num
+ do i=mo_tot_num,1,-1
+   if (mo_class(i) == 'Deleted') then
+     mo_num -= 1
+   else
+     exit
+   endif
+ enddo
+END_PROVIDER
+
+
 
 BEGIN_PROVIDER [ double precision, mo_coef, (ao_num,mo_tot_num) ]
   implicit none

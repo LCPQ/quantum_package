@@ -8,7 +8,7 @@ type t =
 
 let to_string p = 
   let { sym = s ; expo = e } = p in
-  Printf.sprintf "(%s, %f)" 
+  Printf.sprintf "(%s, %22e)" 
    (Symmetry.to_string s)
    (AO_expo.to_float e)
 

@@ -23,7 +23,7 @@ end = struct
      { expo = dz ; r_power = n }
 
   let to_string p =
-     Printf.sprintf "(%d, %f)"
+     Printf.sprintf "(%d, %22e)"
      (R_power.to_int p.r_power)
      (AO_expo.to_float p.expo)
 end
@@ -52,7 +52,7 @@ end = struct
      { expo = dz ; r_power = n ; proj = p }
 
   let to_string p =
-     Printf.sprintf "(%d, %f, %d)" 
+     Printf.sprintf "(%d, %22e, %d)" 
        (R_power.to_int p.r_power)
        (AO_expo.to_float p.expo)
        (Positive_int.to_int p.proj)

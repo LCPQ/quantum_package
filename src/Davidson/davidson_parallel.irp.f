@@ -369,8 +369,12 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   v_0 = 0.d0
   s_0 = 0.d0
 
+  integer, external :: zmq_set_running
+  if (zmq_set_running(zmq_to_qp_run_socket) == -1) then
+    print *,  irp_here, ': Failed in zmq_set_running'
+  endif
+
   call omp_set_nested(.True.)
-  call zmq_set_running(zmq_to_qp_run_socket)
   !$OMP PARALLEL NUM_THREADS(2) PRIVATE(ithread)
   ithread = omp_get_thread_num()
   if (ithread == 0 ) then

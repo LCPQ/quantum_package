@@ -148,12 +148,12 @@ function new_zmq_to_qp_run_socket()
      stop 'Unable to create zmq req socket'
   endif
 
-  rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_SNDTIMEO, 10000, 4)
+  rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_SNDTIMEO, 30000, 4)
   if (rc /= 0) then
     stop 'Unable to set send timeout in new_zmq_to_qp_run_socket'
   endif
 
-  rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_RCVTIMEO, 10000, 4)
+  rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_RCVTIMEO, 30000, 4)
   if (rc /= 0) then
     stop 'Unable to set recv timeout in new_zmq_to_qp_run_socket'
   endif
@@ -347,12 +347,12 @@ IRP_ENDIF
 !    stop 'Unable to set ZMQ_SNDBUF on push socket'
 !  endif
 
-  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_IMMEDIATE,0,4)
+  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_IMMEDIATE,1,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_IMMEDIATE on push socket'
   endif
   
-  rc = f77_zmq_setsockopt(new_zmq_push_socket, ZMQ_SNDTIMEO, 10000, 4)
+  rc = f77_zmq_setsockopt(new_zmq_push_socket, ZMQ_SNDTIMEO, 30000, 4)
   if (rc /= 0) then
     stop 'Unable to set send timout in new_zmq_push_socket'
   endif
@@ -565,7 +565,7 @@ subroutine new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,name_in)
   
 end
 
-subroutine zmq_set_running(zmq_to_qp_run_socket)
+integer function zmq_set_running(zmq_to_qp_run_socket)
   use f77_zmq
   implicit none
   BEGIN_DOC
@@ -576,22 +576,21 @@ subroutine zmq_set_running(zmq_to_qp_run_socket)
   character*(512)                :: message
   integer                        :: rc, sze
 
+  zmq_set_running = 0
   message = 'set_running'
   sze = len(trim(message))
   rc = f77_zmq_send(zmq_to_qp_run_socket,message,sze,0)
   if (rc /= sze) then
-    print *,  irp_here, ':f77_zmq_send(zmq_to_qp_run_socket,message,sze,0)'
-    stop 'error'
+    zmq_set_running = -1
+    return
   endif
   rc = f77_zmq_recv(zmq_to_qp_run_socket,message,510,0)
   message = trim(message(1:rc))
   if (message(1:2) /= 'ok') then
-    print *,  trim(message(1:rc))
-    print *,  'Unable to set qp_run to Running'
-    stop 1
+    zmq_set_running = -1
+    return
   endif
-  
-  
+
 end
 
 
@@ -616,11 +615,10 @@ subroutine end_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,name_in)
     stop 'Wrong end of job'
   endif
 
-  do i=6,1,-1
+  do i=10,1,-1
     rc = f77_zmq_send(zmq_to_qp_run_socket, 'end_job '//trim(zmq_state),8+len(trim(zmq_state)),0)
     rc = f77_zmq_recv(zmq_to_qp_run_socket, message, 512, 0)
     if (trim(message(1:13)) == 'error waiting') then
-      print *,  trim(message(1:rc))
       call sleep(1)
       cycle
     else if (message(1:2) == 'ok') then
