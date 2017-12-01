@@ -208,7 +208,7 @@ subroutine mrsc2_dressing_slave(thread,iproc)
 
   deallocate(delta)
 
-  if (disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id) == -1)
+  if (disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id) == -1) then
     continue
   endif
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)

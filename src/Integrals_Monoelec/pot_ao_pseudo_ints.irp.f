@@ -105,6 +105,14 @@ BEGIN_PROVIDER [ double precision, ao_pseudo_integral_local, (ao_num,ao_num)]
                 pseudo_n_k_transp (1,k), & 
                 pseudo_dz_k_transp(1,k), & 
                 A_center,power_A,alpha,B_center,power_B,beta,C_center)
+
+!if ((k==nucl_num).and.(num_A == nucl_num).and.(num_B == nucl_num)) then
+!print *,  pseudo_klocmax,pseudo_v_k_transp (1,k),pseudo_n_k_transp (1,k),pseudo_dz_k_transp(1,k)
+!print *,  A_center(1:3), power_A
+!print *,  B_center(1:3), power_B
+!print *,  C_center(1:3)
+!print *,  c
+!endif
           enddo
           ao_pseudo_integral_local(i,j) = ao_pseudo_integral_local(i,j) +&
               ao_coef_normalized_ordered_transp(l,j)*ao_coef_normalized_ordered_transp(m,i)*c
