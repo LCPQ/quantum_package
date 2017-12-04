@@ -3,6 +3,7 @@ program analyze_wf
   BEGIN_DOC
 ! Wave function analyzis
   END_DOC
+  PROVIDE mo_tot_num psi_det psi_coef
   read_wf = .True.
   SOFT_TOUCH read_wf
   call run()
@@ -29,11 +30,11 @@ subroutine run
   write(*,'(A)')  '============='
   write(*,'(A)')  ''
   do istate=1,N_states
-    call get_occupation_from_dets(occupation,istate)
     write(*,'(A)')  ''
     write(*,'(A,I3)'),  'State ', istate
     write(*,'(A)')  '---------------'
     write(*,'(A)')  ''
+    call get_occupation_from_dets(istate,occupation)
     write (*,'(A)')  '======== ================'
     class = 0
     do i=1,mo_tot_num
