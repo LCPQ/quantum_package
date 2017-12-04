@@ -9,7 +9,6 @@ END_PROVIDER
 
 
 subroutine run_mrcc_slave(thread,iproc,energy)
-  use dress_types
   use f77_zmq
   implicit none
 
@@ -184,7 +183,6 @@ end subroutine
 
 
 subroutine pull_mrcc_results(zmq_socket_pull, N, ind, mrcc_detail, delta_loc, task_id, ntask)
-  use dress_types
   use f77_zmq
   implicit none
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull

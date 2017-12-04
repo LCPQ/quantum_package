@@ -11,7 +11,7 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
   implicit none
   
   character(len=64000)           :: task
-  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_to_qp_run_socket2
+  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_socket_pull
   integer, external              :: omp_get_thread_num
   double precision, intent(in)   :: relative_error, E
   double precision, intent(out)  :: mrcc(N_states)
@@ -23,10 +23,16 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
   
   double precision, external     :: omp_get_wtime
   double precision               :: time
+  double precision               :: w(N_states)
 
 
-  
+
   provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral mrcc_weight psi_selectors
+
+  w(:) = 0.d0
+  w(mrcc_stoch_istate) = 1.d0
+  call update_psi_average_norm_contrib(w)
+
   
   
   
@@ -34,16 +40,30 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
   print *, ' Samples        Energy         Stat. Error         Seconds      '
   print *, '========== ================= ================= ================='
   
-  call new_parallel_job(zmq_to_qp_run_socket,'mrcc')
-  call zmq_put_psi(zmq_to_qp_run_socket,1,mrcc_e0_denominator,size(mrcc_e0_denominator))
+  call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull, 'mrcc')
   
-!   call get_carlo_workbatch(Ncp, tbc, cp, cp_at, cp_N)
+  integer, external              :: zmq_put_psi
+  integer, external              :: zmq_put_N_det_generators
+  integer, external              :: zmq_put_N_det_selectors
+  integer, external              :: zmq_put_dvector
+  
+  if (zmq_put_psi(zmq_to_qp_run_socket,1) == -1) then
+    stop 'Unable to put psi on ZMQ server'
+  endif
+  if (zmq_put_N_det_generators(zmq_to_qp_run_socket, 1) == -1) then
+    stop 'Unable to put N_det_generators on ZMQ server'
+  endif
+  if (zmq_put_N_det_selectors(zmq_to_qp_run_socket, 1) == -1) then
+    stop 'Unable to put N_det_selectors on ZMQ server'
+  endif
+  if (zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',mrcc_e0_denominator,size(mrcc_e0_denominator)) == -1) then
+    stop 'Unable to put energy on ZMQ server'
+  endif
 
-  do i=1,comb_teeth
-    print *, "TOOTH", first_det_of_teeth(i+1) - first_det_of_teeth(i)
-  end do
-  !stop
-
+!  do i=1,comb_teeth
+!    print *, "TOOTH", first_det_of_teeth(i+1) - first_det_of_teeth(i)
+!  end do
+  
   integer(ZMQ_PTR), external     :: new_zmq_to_qp_run_socket
   integer                        :: ipos
   ipos=1
@@ -52,7 +72,9 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
       write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') 0, mrcc_jobs(i)
       ipos += 20
       if (ipos > 63980) then
-        call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
+        if (add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos))) == -1) then
+          stop 'Unable to add task to task server'
+        endif
         ipos=1
       endif
     else
@@ -60,28 +82,34 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
         write(task(ipos:ipos+20),'(I9,1X,I9,''|'')') j, mrcc_jobs(i)
         ipos += 20
         if (ipos > 63980) then
-          call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
+          if (add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos))) == -1) then
+            stop 'Unable to add task to task server'
+          endif
           ipos=1
         endif
       end do
     end if
   end do
   if (ipos > 1) then
-    call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos)))
+        if (add_task_to_taskserver(zmq_to_qp_run_socket,trim(task(1:ipos))) == -1) then
+          stop 'Unable to add task to task server'
+        endif
   endif
   
-  call zmq_set_running(zmq_to_qp_run_socket)
-  
-  !$OMP PARALLEL DEFAULT(shared) NUM_THREADS(nproc+1)              &
+      if (zmq_set_running(zmq_to_qp_run_socket) == -1) then
+        print *,  irp_here, ': Failed in zmq_set_running'
+      endif
+
+  !$OMP PARALLEL DEFAULT(shared) NUM_THREADS(nproc+1)                &
       !$OMP  PRIVATE(i)
   i = omp_get_thread_num()
   if (i==0) then
-    call mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
+    call mrcc_collector(zmq_socket_pull,E(mrcc_stoch_istate), relative_error, delta, delta_s2, mrcc)
   else
     call mrcc_slave_inproc(i)
   endif
   !$OMP END PARALLEL
-  call end_parallel_job(zmq_to_qp_run_socket, 'mrcc')
+  call end_parallel_job(zmq_to_qp_run_socket, zmq_socket_pull, 'mrcc')
   
   print *, '========== ================= ================= ================='
 end subroutine
@@ -95,13 +123,14 @@ subroutine mrcc_slave_inproc(i)
 end
 
 
-subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
+subroutine mrcc_collector(zmq_socket_pull, E, relative_error, delta, delta_s2, mrcc)
   use dress_types
   use f77_zmq
   use bitmasks
   implicit none
 
   
+  integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
   double precision, intent(in) :: relative_error, E
   double precision, intent(out)  :: mrcc(N_states)
   double precision, allocatable  :: cp(:,:,:,:)
@@ -207,10 +236,11 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
       end if
     end do
 
-    do i=1, ntask
-      call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more)
-    end do
-     
+    integer, external :: zmq_delete_tasks
+    if (zmq_delete_tasks(zmq_to_qp_run_socket,zmq_socket_pull,task_id,ntask,more) == -1) then
+        stop 'Unable to delete tasks'
+    endif
+
     time = omp_get_wtime()
     
     
@@ -231,6 +261,7 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
       
       !!!!!!!!!!!!
       double precision :: su, su2, eqt, avg, E0, val
+      integer, external :: zmq_abort
       su = 0d0
       su2 = 0d0
       
@@ -253,12 +284,18 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
       if ((dabs(eqt) < relative_error .and. cps_N(cur_cp) >= 30)  .or. total_computed == N_det_generators) then
         ! Termination
         !print '(G10.3, 2X, F16.7, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
-        print *, "GREPME", cur_cp, E+E0+avg, eqt, time-time0, total_computed
-        call zmq_abort(zmq_to_qp_run_socket)
+!        print *, "GREPME", cur_cp, E+E0+avg, eqt, time-time0, total_computed
+        if (zmq_abort(zmq_to_qp_run_socket) == -1) then
+          call sleep(1)
+          if (zmq_abort(zmq_to_qp_run_socket) == -1) then
+            print *, irp_here, ': Error in sending abort signal (2)'
+          endif
+        endif
+
       else
         if (cur_cp > old_cur_cp) then
           old_cur_cp = cur_cp
-          print *, "GREPME", cur_cp, E+E0+avg, eqt, time-time0, total_computed
+!          print *, "GREPME", cur_cp, E+E0+avg, eqt, time-time0, total_computed
           !print '(G10.3, 2X, F16.7, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
         endif
       endif
@@ -289,7 +326,6 @@ subroutine mrcc_collector(E, relative_error, delta, delta_s2, mrcc)
   mrcc(1) = E
   
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-  call end_zmq_pull_socket(zmq_socket_pull)
 end subroutine
 
 
