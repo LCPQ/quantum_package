@@ -38,6 +38,11 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
   else
     PROVIDE ao_bielec_integrals_in_map
   endif
+
+  print *,  ''
+  print *,  'AO -> MO integrals transformation'
+  print *,  '---------------------------------'
+  print *,  ''
   
   if(no_vvvv_integrals)then
     integer                        :: i,j,k,l

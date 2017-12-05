@@ -69,7 +69,7 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
   integer   :: npass, l_block
 
   tempspace = (new_size * 16_8) / (1024_8 * 1024_8)
-  npass = int(min(int(l_end-l_start,8),1_8 + tempspace / 2048_8),4)   ! 2 GiB of scratch space
+  npass = int(min(int(l_end-l_start,8),1_8 + tempspace / 1024_8),4)   ! 1 GiB of scratch space
   l_block = (l_end-l_start+1)/npass
 
   allocate(a_array_ik(new_size/npass), a_array_j(new_size/npass), a_array_value(new_size/npass))
