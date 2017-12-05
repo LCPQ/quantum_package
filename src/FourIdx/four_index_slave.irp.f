@@ -1,4 +1,4 @@
-subroutine four_index_transform_slave(map_a,map_c,matrix_B,LDB,            &
+subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
       i_start, j_start, k_start, l_start,                            &
       i_end  , j_end  , k_end  , l_end  ,                            &
       a_start, b_start, c_start, d_start,                            &
@@ -13,7 +13,6 @@ subroutine four_index_transform_slave(map_a,map_c,matrix_B,LDB,            &
 ! Loops run over *_start->*_end
   END_DOC
   type(map_type), intent(in)     :: map_a
-  type(map_type), intent(inout)  :: map_c
   integer, intent(in)            :: LDB
   double precision, intent(in)   :: matrix_B(LDB,*)
   integer, intent(in)            :: i_start, j_start, k_start, l_start
@@ -66,7 +65,14 @@ subroutine four_index_transform_slave(map_a,map_c,matrix_B,LDB,            &
   integer*8 :: new_size
   new_size = max(1024_8, 5_8 * map_a % n_elements )
 
-  allocate(a_array_ik(new_size), a_array_j(new_size), a_array_value(new_size))
+  integer*8 :: tempspace
+  integer   :: npass, l_block
+
+  tempspace = (new_size * 16_8) / (1024_8 * 1024_8)
+  npass = int(min(int(l_end-l_start,8),1_8 + tempspace / 2048_8),4)   ! 2 GiB of scratch space
+  l_block = (l_end-l_start+1)/npass
+
+  allocate(a_array_ik(new_size/npass), a_array_j(new_size/npass), a_array_value(new_size/npass))
 
 
   allocate(l_pointer(l_start:l_end+1), value((i_max*k_max)) )
@@ -127,18 +133,18 @@ subroutine four_index_transform_slave(map_a,map_c,matrix_B,LDB,            &
 !open(unit=10,file='OUTPUT',form='FORMATTED')
 ! END INPUT DATA
 
-
   !$OMP PARALLEL DEFAULT(NONE) SHARED(a_array_ik,a_array_j,a_array_value, &
       !$OMP  a_start,a_end,b_start,b_end,c_start,c_end,d_start,d_end,&
       !$OMP  i_start,i_end,j_start,j_end,k_start,k_end,l_start,l_end,&
       !$OMP  i_min,i_max,j_min,j_max,k_min,k_max,l_min,l_max,        &
-      !$OMP  map_c,matrix_B,l_pointer)                         &
+      !$OMP  matrix_B,l_pointer,thread,task_id)                         &
       !$OMP  PRIVATE(key,value,T,U,V,i,j,k,l,idx,ik,ll,   &
-      !$OMP  a,b,c,d,tmp,T2d,V2d,ii)
+      !$OMP  a,b,c,d,p,q,tmp,T2d,V2d,ii,zmq_socket_push)
   allocate( key(i_max*j_max*k_max), value(i_max*j_max*k_max) )
   allocate( U(a_start:a_end, c_start:c_end, b_start:b_end) )
 
   integer(ZMQ_PTR)               :: zmq_socket_push
+  integer(ZMQ_PTR), external     :: new_zmq_push_socket
   zmq_socket_push = new_zmq_push_socket(thread)
 
 
@@ -232,22 +238,27 @@ subroutine four_index_transform_slave(map_a,map_c,matrix_B,LDB,            &
     enddo
 
     idx = 0_8
+
+    integer :: p, q
     do b=b_start,d
+      q = b+ishft(d*d-d,-1)
       do c=c_start,c_end
+        p = a_start+ishft(c*c-c,-1)
         do a=a_start,min(b,c)
           if (dabs(U(a,c,b)) < 1.d-15) then
             cycle
           endif
+          if ((a==b).and.(p>q)) cycle
+          p = p+1
           idx = idx+1_8
           call bielec_integrals_index(a,b,c,d,key(idx))
+!print *,  int(key(idx),4), int(a,2),int(b,2),int(c,2),int(d,2), p, q
           value(idx) = U(a,c,b)
         enddo
       enddo
     enddo
 
-    !$OMP CRITICAL
-    call four_idx_push_results(zmq_socket_push, key, value, idx, task_id)
-    !$OMP END CRITICAL
+    call four_idx_push_results(zmq_socket_push, key, value, idx, -task_id)
 
 !WRITE OUTPUT
 ! OMP CRITICAL
@@ -268,10 +279,13 @@ subroutine four_index_transform_slave(map_a,map_c,matrix_B,LDB,            &
 
   enddo
   !$OMP END DO
-  call end_zmq_push_socket(zmq_socket_push,thread)
   deallocate(key,value,V,T)
+  !$OMP BARRIER
+  !$OMP MASTER
+  call four_idx_push_results(zmq_socket_push, 0_8, 0.d0, 0, task_id)
+  !$OMP END MASTER
+  call end_zmq_push_socket(zmq_socket_push)
   !$OMP END PARALLEL
-  call map_merge(map_c)
 
   deallocate(l_pointer)
   deallocate(a_array_ik,a_array_j,a_array_value)

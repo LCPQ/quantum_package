@@ -88,7 +88,7 @@ subroutine run_selection_slave(thread,iproc,energy)
   end do
 
   integer, external              :: disconnect_from_taskserver
-  if (disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id) == -1) then
+  if (disconnect_from_taskserver(zmq_to_qp_run_socket,worker_id) == -1) then
     continue
   endif
   

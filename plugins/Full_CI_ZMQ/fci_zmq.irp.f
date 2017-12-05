@@ -112,6 +112,8 @@ program fci_zmq
         write(*,fmt) '# Excit. (eV)', ( (CI_energy(k)+pt2(k)-CI_energy(1)-pt2(1))*27.211396641308d0, &
           dsqrt(error(k)*error(k)+error(1)*error(1))*27.211396641308d0, k=1,N_states_p)
       endif
+      write(fmt,*) '(''# ============'',', N_states_p, '(1X,''=============================''))'
+      write(*,fmt)
       print *,  ''
 
       print *,  'N_det             = ', N_det

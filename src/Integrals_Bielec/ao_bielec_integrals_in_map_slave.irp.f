@@ -126,7 +126,7 @@ subroutine ao_bielec_integrals_in_map_slave(thread,iproc)
   enddo
 
   integer, external :: disconnect_from_taskserver
-  if (disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id) == -1) then
+  if (disconnect_from_taskserver(zmq_to_qp_run_socket,worker_id) == -1) then
     continue
   endif
   deallocate( buffer_i, buffer_value )

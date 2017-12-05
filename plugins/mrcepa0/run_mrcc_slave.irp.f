@@ -130,7 +130,7 @@ subroutine run_mrcc_slave(thread,iproc,energy)
     if(done) exit
     ctask = ctask + 1
   end do
-  call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
+  call disconnect_from_taskserver(zmq_to_qp_run_socket,worker_id)
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
 !  call delete_selection_buffer(buf)
