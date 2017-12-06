@@ -1,5 +1,12 @@
 program cis
   implicit none
+  read_wf = .False.
+  SOFT_TOUCH read_wf
+  call run
+end
+
+subroutine run
+  implicit none
   integer :: i
 
   call H_apply_cis
