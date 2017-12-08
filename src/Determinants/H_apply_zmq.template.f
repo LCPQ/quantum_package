@@ -22,8 +22,8 @@ subroutine $subroutine($params_main)
   $initialization
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators
 
-  integer(ZMQ_PTR), external     :: new_zmq_pair_socket, zmq_socket_pull
-  integer(ZMQ_PTR)               :: zmq_socket_pair
+  integer(ZMQ_PTR), external     :: new_zmq_pair_socket
+  integer(ZMQ_PTR)               :: zmq_socket_pair, zmq_socket_pull
 
   integer(ZMQ_PTR) :: zmq_to_qp_run_socket
   double precision, allocatable :: pt2_generators(:,:), norm_pert_generators(:,:)
@@ -41,10 +41,10 @@ subroutine $subroutine($params_main)
   if (zmq_put_psi(zmq_to_qp_run_socket,1) == -1) then
     stop 'Unable to put psi on ZMQ server'
   endif
-  if (zmq_put_N_det_generators(zmq_to_qp_run_socket, worker_id) == -1) then
+  if (zmq_put_N_det_generators(zmq_to_qp_run_socket, 1) == -1) then
     stop 'Unable to put N_det_generators on ZMQ server'
   endif
-  if (zmq_put_N_det_selectors(zmq_to_qp_run_socket, worker_id) == -1) then
+  if (zmq_put_N_det_selectors(zmq_to_qp_run_socket, 1) == -1) then
     stop 'Unable to put N_det_selectors on ZMQ server'
   endif
   if (zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',energy,size(energy)) == -1) then
@@ -67,7 +67,7 @@ subroutine $subroutine($params_main)
   PROVIDE nproc N_states
   !$OMP PARALLEL DEFAULT(NONE) &
   !$OMP PRIVATE(i) & 
-  !$OMP SHARED(zmq_socket_pair,N_states, pt2_generators, norm_pert_generators, H_pert_diag_generators, n, task_id, i_generator)  & 
+  !$OMP SHARED(zmq_socket_pair,N_states, pt2_generators, norm_pert_generators, H_pert_diag_generators, n, task_id, i_generator,zmq_socket_pull)  & 
   !$OMP num_threads(nproc+1)
       i = omp_get_thread_num()
       if (i == 0) then
@@ -213,7 +213,7 @@ subroutine $subroutine_slave(thread, iproc)
 
 
   integer, external              :: disconnect_from_taskserver
-  if (disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id) == -1) then
+  if (disconnect_from_taskserver(zmq_to_qp_run_socket,worker_id) == -1) then
     continue
   endif
   call end_zmq_push_socket(zmq_socket_push,thread)

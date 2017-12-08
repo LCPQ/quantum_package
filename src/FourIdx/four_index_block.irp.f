@@ -261,10 +261,6 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
       enddo
 
 
-
-
-
-
       !$OMP CRITICAL
       call map_update(map_c, key, value, idx,1.d-15) 
       !$OMP END CRITICAL

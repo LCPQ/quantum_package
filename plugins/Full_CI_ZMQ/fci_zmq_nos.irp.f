@@ -154,6 +154,15 @@ program fci_zmq
         to_select = max(N_det, to_select)
         to_select = min(to_select, N_det_max-n_det_before)
       endif
+      call save_natural_mos
+      call map_deinit(mo_integrals_map)
+      FREE mo_integrals_map
+      PROVIDE mo_integrals_map
+      call four_index_transform_zmq(ao_integrals_map,mo_integrals_map,  &
+         mo_coef, size(mo_coef,1),                                      &
+         1, 1, 1, 1, ao_num, ao_num, ao_num, ao_num,                    &
+         1, 1, 1, 1, mo_num, mo_num, mo_num, mo_num)
+      
       call ZMQ_selection(to_select, pt2)
       
       PROVIDE  psi_coef

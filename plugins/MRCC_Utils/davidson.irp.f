@@ -1084,6 +1084,8 @@ subroutine H_S2_u_0_mrcc_nstates(v_0,s_0,u_0,H_jj,S2_jj,n,keys_tmp,Nint,istate_i
 ! Begin Specific to dressing
 ! --------------------------
 
+!TODO : DRESSING 1 column
+
   !$OMP DO 
   do ii=1,n_det_ref
     i = idx_ref(ii)
