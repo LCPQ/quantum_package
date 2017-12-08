@@ -14,14 +14,6 @@ subroutine $subroutine_diexc(key_in, key_prev, hole_1,particl_1, hole_2, particl
   
   $declarations
   
-!   print *, "bbbbbbbbbbbbbbb"
-!   call debug_det(key_in, N_int)
-!   call debug_det(hole_1, N_int)
-!   call debug_det(hole_2, N_int)
-!   call debug_det(particl_1, N_int)
-!   call debug_det(particl_2, N_int)
-!   print *, "eeeeeeeeeeeeeeee"
-  
   highest = 0
   do k=1,N_int*bit_kind_size
     status(k,1) = 0
@@ -42,32 +34,6 @@ subroutine $subroutine_diexc(key_in, key_prev, hole_1,particl_1, hole_2, particl
       end do
     end do
   end do
-  
-! ! GEL D'ELECTRONS
-! !  nt = 0
-!   do i=1,i_generator-1
-!     if(key_in(1,1) == key_prev(1,1,i)) then
-!       tmp = xor(key_in(1,2), key_prev(1,2,i))
-!       if(popcnt(tmp) == 2) then
-!         ns = 1+trailz(iand(tmp, key_in(1,2)))
-! !         if(status(ns, 2) /= 0) then
-! !           nt += 1
-! !         end if
-!         status(ns, 2) = 0
-!       end if
-!     else if(key_in(1,2) == key_prev(1,2,i)) then
-!       tmp = xor(key_in(1,1), key_prev(1,1,i))
-!       if(popcnt(tmp) == 2) then
-!         ns = 1+trailz(iand(tmp, key_in(1,1)))
-! !         if(status(ns, 1) /= 0) then
-! !           nt += 1
-! !         end if
-!         status(ns, 1) = 0
-!       end if
-!     end if
-!   end do
-! !  print *, "nt", nt, i_generator
-  
   
   do sp=1,2
     do p1=1,highest
