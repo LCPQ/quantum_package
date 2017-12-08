@@ -177,14 +177,15 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
   
   integer                        :: i,k, N_int2
   logical                        :: exists
+  double precision, allocatable  :: psi_coef_read(:,:)
   character*(64)                 :: label
-  
+
   PROVIDE read_wf N_det mo_label ezfio_filename
   psi_coef = 0.d0
   do i=1,min(N_states,psi_det_size)
     psi_coef(i,i) = 1.d0
   enddo
-  
+
   if (mpi_master) then
     if (read_wf) then
       call ezfio_has_determinants_psi_coef(exists)
@@ -195,12 +196,21 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
           exists = (label == mo_label)
         endif
       endif
-      if (exists) then
-        call ezfio_get_determinants_psi_coef(psi_coef)
-      endif
+    endif
+
+    if (exists) then
+      
+      allocate (psi_coef_read(N_det,N_states))
+      call ezfio_get_determinants_psi_coef(psi_coef_read)
+      do k=1,N_states
+        do i=1,N_det
+          psi_coef(i,k) = psi_coef_read(i,k)
+        enddo
+      enddo
+      deallocate(psi_coef_read)
+      print *,  'Read psi_coef'
       
     endif
-    print *,  'Read psi_coef'
   endif
   IRP_IF MPI
     include 'mpif.h'
