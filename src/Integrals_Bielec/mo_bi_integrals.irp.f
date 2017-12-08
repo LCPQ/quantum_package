@@ -124,16 +124,16 @@ BEGIN_PROVIDER [ logical, mo_bielec_integrals_in_map ]
   else
 !    call add_integrals_to_map(full_ijkl_bitmask_4)
 
-     call four_index_transform_zmq(ao_integrals_map,mo_integrals_map, &
-         mo_coef, size(mo_coef,1),                                      &
-         1, 1, 1, 1, ao_num, ao_num, ao_num, ao_num,                    &
-         1, 1, 1, 1, mo_num, mo_num, mo_num, mo_num)
-!
-!     call four_index_transform_block(ao_integrals_map,mo_integrals_map, &
+!     call four_index_transform_zmq(ao_integrals_map,mo_integrals_map, &
 !         mo_coef, size(mo_coef,1),                                      &
 !         1, 1, 1, 1, ao_num, ao_num, ao_num, ao_num,                    &
 !         1, 1, 1, 1, mo_num, mo_num, mo_num, mo_num)
-!
+
+     call four_index_transform_block(ao_integrals_map,mo_integrals_map, &
+         mo_coef, size(mo_coef,1),                                      &
+         1, 1, 1, 1, ao_num, ao_num, ao_num, ao_num,                    &
+         1, 1, 1, 1, mo_num, mo_num, mo_num, mo_num)
+
 !     call four_index_transform(ao_integrals_map,mo_integrals_map, &
 !         mo_coef, size(mo_coef,1),                                      &
 !         1, 1, 1, 1, ao_num, ao_num, ao_num, ao_num,                    &
