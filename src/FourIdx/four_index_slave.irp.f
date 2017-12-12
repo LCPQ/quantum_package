@@ -69,7 +69,7 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
   integer   :: npass, l_block
 
   tempspace = (new_size * 16_8) / (1024_8 * 1024_8)
-  npass = int(min(int(l_end-l_start,8),1_8 + tempspace / 1024_8),4)   ! 1 GiB of scratch space
+  npass = int(min(1_8+int(l_end-l_start,8),1_8 + tempspace / 1024_8),4)   ! 1 GiB of scratch space
   l_block = (l_end-l_start+1)/npass
 
   allocate(a_array_ik(new_size/npass), a_array_j(new_size/npass), a_array_value(new_size/npass))
@@ -133,12 +133,15 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
 !open(unit=10,file='OUTPUT',form='FORMATTED')
 ! END INPUT DATA
 
+  PROVIDE nproc
+  integer :: n_running_threads
+  n_running_threads = 0
   call omp_set_nested(.true.)
   !$OMP PARALLEL DEFAULT(NONE) SHARED(a_array_ik,a_array_j,a_array_value, &
       !$OMP  a_start,a_end,b_start,b_end,c_start,c_end,d_start,d_end,&
       !$OMP  i_start,i_end,j_start,j_end,k_start,k_end,l_start,l_end,&
       !$OMP  i_min,i_max,j_min,j_max,k_min,k_max,l_min,l_max,        &
-      !$OMP  matrix_B,l_pointer,thread,task_id)                         &
+      !$OMP  matrix_B,l_pointer,thread,task_id,n_running_threads,nproc) &
       !$OMP  PRIVATE(key,value,T,U,V,i,j,k,l,idx,ik,ll,   &
       !$OMP  a,b,c,d,p,q,tmp,T2d,V2d,ii,zmq_socket_push)
 
@@ -150,6 +153,8 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
 
   allocate( U(a_start:a_end, c_start:c_end, b_start:b_end) )
 
+  !$OMP ATOMIC
+  n_running_threads = n_running_threads+1
 
   !$OMP DO SCHEDULE(dynamic,1)
   do d=d_start,d_end
@@ -183,7 +188,7 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
       !$OMP PARALLEL DEFAULT(NONE) SHARED(a_array_ik,a_array_j,a_array_value, &
           !$OMP  a_start,b_start,b_end,c_start,c_end,i_start,k_start,k_end,   &
           !$OMP  matrix_B,U,l,d,V2d,i_end,a_end) &
-          !$OMP  PRIVATE(T,V,i,k,ik)
+          !$OMP  PRIVATE(T,V,i,k,ik) NUM_THREADS(nproc-n_running_threads+1)
       allocate( V(i_start:i_end, k_start:k_end), T(k_start:k_end, a_start:a_end))
       !$OMP DO SCHEDULE(static,1)
       do b=b_start,d
@@ -266,6 +271,10 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
   enddo
   !$OMP END DO
   deallocate(U)
+
+  !$OMP ATOMIC
+  n_running_threads = n_running_threads-1
+
   !$OMP BARRIER
   !$OMP MASTER
   call four_idx_push_results(zmq_socket_push, 0_8, 0.d0, 0, task_id)
