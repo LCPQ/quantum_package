@@ -133,6 +133,7 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
 !open(unit=10,file='OUTPUT',form='FORMATTED')
 ! END INPUT DATA
 
+  call omp_set_nested(.true.)
   !$OMP PARALLEL DEFAULT(NONE) SHARED(a_array_ik,a_array_j,a_array_value, &
       !$OMP  a_start,a_end,b_start,b_end,c_start,c_end,d_start,d_end,&
       !$OMP  i_start,i_end,j_start,j_end,k_start,k_end,l_start,l_end,&
@@ -140,8 +141,6 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
       !$OMP  matrix_B,l_pointer,thread,task_id)                         &
       !$OMP  PRIVATE(key,value,T,U,V,i,j,k,l,idx,ik,ll,   &
       !$OMP  a,b,c,d,p,q,tmp,T2d,V2d,ii,zmq_socket_push)
-  allocate( key(i_max*j_max*k_max), value(i_max*j_max*k_max) )
-  allocate( U(a_start:a_end, c_start:c_end, b_start:b_end) )
 
   integer(ZMQ_PTR)               :: zmq_socket_push
   integer(ZMQ_PTR), external     :: new_zmq_push_socket
@@ -149,13 +148,10 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
 
 
 
-  allocate( T2d((i_end-i_start+1)*(k_end-k_start+2)/2, j_start:j_end), &
-            V2d((i_end-i_start+1)*(k_end-k_start+2)/2, b_start:b_end), &
-            V(i_start:i_end, k_start:k_end), &
-            T(k_start:k_end, a_start:a_end))
+  allocate( U(a_start:a_end, c_start:c_end, b_start:b_end) )
 
 
-  !$OMP DO SCHEDULE(dynamic)
+  !$OMP DO SCHEDULE(dynamic,1)
   do d=d_start,d_end
     U = 0.d0
     do l=l_start,l_end
@@ -163,6 +159,7 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
         cycle
       endif
       
+      allocate( T2d((i_end-i_start+1)*(k_end-k_start+2)/2, j_start:j_end) )
       ii=l_pointer(l)
       do j=j_start,j_end
         !DIR$ VECTOR NONTEMPORAL
@@ -174,13 +171,21 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
         enddo
       enddo
 
+      allocate (V2d((i_end-i_start+1)*(k_end-k_start+2)/2, b_start:b_end)) 
       call DGEMM('N','N', ishft( (i_end-i_start+1)*(i_end-i_start+2), -1),&
           (d-b_start+1),                                             &
           (j_end-j_start+1), 1.d0,                                   &
           T2d(1,j_start), size(T2d,1),                               &
           matrix_B(j_start,b_start), size(matrix_B,1),0.d0,          &
           V2d(1,b_start), size(V2d,1) )
+      deallocate(T2d)
 
+      !$OMP PARALLEL DEFAULT(NONE) SHARED(a_array_ik,a_array_j,a_array_value, &
+          !$OMP  a_start,b_start,b_end,c_start,c_end,i_start,k_start,k_end,   &
+          !$OMP  matrix_B,U,l,d,V2d,i_end,a_end) &
+          !$OMP  PRIVATE(T,V,i,k,ik)
+      allocate( V(i_start:i_end, k_start:k_end), T(k_start:k_end, a_start:a_end))
+      !$OMP DO SCHEDULE(static,1)
       do b=b_start,d
         ik = 0
         do k=k_start,k_end
@@ -190,42 +195,18 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
           enddo
         enddo
 
-!        T = 0.d0
-!        do a=a_start,b
-!          do k=k_start,k_end
-!            do i=i_start,k
-!              T(k,a) = T(k,a) + V(i,k)*matrix_B(i,a)
-!            enddo
-!            do i=k+1,i_end
-!              T(k,a) = T(k,a) + V(k,i)*matrix_B(i,a)
-!            enddo
-!          enddo
-!        enddo
         call DSYMM('L','U', (k_end-k_start+1), (b-a_start+1),        &
             1.d0,                                                    &
             V(i_start,k_start), size(V,1),                           &
             matrix_B(i_start,a_start), size(matrix_B,1),0.d0,        &
             T(k_start,a_start), size(T,1) )
 
-!        do c=c_start,b
-!          do a=a_start,c
-!            do k=k_start,k_end
-!              U(a,c,b) = U(a,c,b) + T(k,a)*matrix_B(k,c)*matrix_B(l,d)
-!            enddo
-!          enddo
-!        enddo
         call DGEMM('T','N', (b-a_start+1), (b-c_start+1),            &
             (k_end-k_start+1), matrix_B(l, d),                       &
             T(k_start,a_start), size(T,1),                           &
             matrix_B(k_start,c_start), size(matrix_B,1), 1.d0,       &
             U(a_start,c_start,b), size(U,1) )
-!        do c=b+1,c_end
-!          do a=a_start,b
-!            do k=k_start,k_end
-!              U(a,c,b) = U(a,c,b) + T(k,a)*matrix_B(k,c)*matrix_B(l,d)
-!            enddo
-!          enddo
-!        enddo
+
         if (b < b_end) then
           call DGEMM('T','N', (b-a_start+1), (c_end-b),              &
               (k_end-k_start+1), matrix_B(l, d),                     &
@@ -234,11 +215,15 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
               U(a_start,b+1,b), size(U,1) )
         endif
       enddo
+      deallocate(T,V)
+      !$OMP END PARALLEL
 
+      deallocate(V2d)
     enddo
 
     idx = 0_8
 
+    allocate( key(i_max*j_max*k_max), value(i_max*j_max*k_max) )
     integer :: p, q
     do b=b_start,d
       q = b+ishft(d*d-d,-1)
@@ -259,6 +244,7 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
     enddo
 
     call four_idx_push_results(zmq_socket_push, key, value, idx, -task_id)
+    deallocate(key,value)
 
 !WRITE OUTPUT
 ! OMP CRITICAL
@@ -279,7 +265,7 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
 
   enddo
   !$OMP END DO
-  deallocate(key,value,V,T,U,T2d,V2d)
+  deallocate(U)
   !$OMP BARRIER
   !$OMP MASTER
   call four_idx_push_results(zmq_socket_push, 0_8, 0.d0, 0, task_id)
