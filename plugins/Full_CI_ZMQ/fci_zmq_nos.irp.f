@@ -158,7 +158,7 @@ program fci_zmq
       call map_deinit(mo_integrals_map)
       FREE mo_integrals_map
       PROVIDE mo_integrals_map
-      call four_index_transform_zmq(ao_integrals_map,mo_integrals_map,  &
+      call four_index_transform_block(ao_integrals_map,mo_integrals_map,  &
          mo_coef, size(mo_coef,1),                                      &
          1, 1, 1, 1, ao_num, ao_num, ao_num, ao_num,                    &
          1, 1, 1, 1, mo_num, mo_num, mo_num, mo_num)

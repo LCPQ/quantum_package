@@ -279,7 +279,7 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
 
   enddo
   !$OMP END DO
-  deallocate(key,value,V,T)
+  deallocate(key,value,V,T,U,T2d,V2d)
   !$OMP BARRIER
   !$OMP MASTER
   call four_idx_push_results(zmq_socket_push, 0_8, 0.d0, 0, task_id)
@@ -287,7 +287,6 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
   call end_zmq_push_socket(zmq_socket_push)
   !$OMP END PARALLEL
 
-  deallocate(l_pointer)
-  deallocate(a_array_ik,a_array_j,a_array_value)
+  deallocate(l_pointer,a_array_ik,a_array_j,a_array_value)
 
 end

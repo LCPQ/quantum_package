@@ -20,8 +20,6 @@ subroutine four_index_transform_zmq(map_a,map_c,matrix_B,LDB,        &
   integer, intent(in)            :: a_start, b_start, c_start, d_start
   integer, intent(in)            :: a_end  , b_end  , c_end  , d_end
 
-  double precision, allocatable  :: T(:,:), U(:,:,:), V(:,:)
-  double precision, allocatable  :: T2d(:,:), V2d(:,:)
   integer                        :: i_max, j_max, k_max, l_max
   integer                        :: i_min, j_min, k_min, l_min
   integer                        :: i, j, k, l, ik, ll
