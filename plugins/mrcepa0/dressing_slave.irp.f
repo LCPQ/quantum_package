@@ -59,7 +59,6 @@ subroutine mrsc2_dressing_slave(thread,iproc)
   integer, external :: connect_to_taskserver, disconnect_from_taskserver
   !double precision, external :: get_dij
      
-  integer, external :: add_task_to_taskserver
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
   if (connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread) == -1) then
@@ -514,6 +513,7 @@ end
   logical, external               :: is_in_wavefunction, isInCassd, detEq
   character*(512)                :: task 
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_socket_pull
+  integer, external :: add_task_to_taskserver
   
   integer :: KKsize = 1000000
   
