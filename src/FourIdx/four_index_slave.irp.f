@@ -185,9 +185,10 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
           V2d(1,b_start), size(V2d,1) )
       deallocate(T2d)
 
+      !$OMP FLUSH(n_running_threads)
       !$OMP PARALLEL DEFAULT(NONE) SHARED(a_array_ik,a_array_j,a_array_value, &
           !$OMP  a_start,b_start,b_end,c_start,c_end,i_start,k_start,k_end,   &
-          !$OMP  matrix_B,U,l,d,V2d,i_end,a_end) &
+          !$OMP  matrix_B,U,l,d,V2d,i_end,a_end,n_running_threads) &
           !$OMP  PRIVATE(T,V,i,k,ik) NUM_THREADS(nproc-n_running_threads+1)
       allocate( V(i_start:i_end, k_start:k_end), T(k_start:k_end, a_start:a_end))
       !$OMP DO SCHEDULE(static,1)
@@ -251,25 +252,8 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
     call four_idx_push_results(zmq_socket_push, key, value, idx, -task_id)
     deallocate(key,value)
 
-!WRITE OUTPUT
-! OMP CRITICAL
-!print *,  d
-!do b=b_start,d
-!  do c=c_start,c_end
-!    do a=a_start,min(b,c)
-!      if (dabs(U(a,c,b)) < 1.d-15) then
-!        cycle
-!      endif
-!      write(10,*) d,c,b,a,U(a,c,b)
-!    enddo
-!  enddo
-!enddo
-! OMP END CRITICAL
-!END WRITE OUTPUT
-
-
   enddo
-  !$OMP END DO
+  !$OMP END DO NOWAIT
   deallocate(U)
 
   !$OMP ATOMIC
