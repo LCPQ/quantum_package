@@ -62,13 +62,13 @@ subroutine four_index_transform_zmq(map_a,map_c,matrix_B,LDB,        &
   call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,'four_idx')
 
   integer*8 :: new_size
-  new_size = max(1024_8, 5_8 * map_a % n_elements )
+  new_size = max(2048_8, 5_8 * map_a % n_elements )
 
   integer :: npass
   integer*8 :: tempspace
 
-  tempspace = (new_size * 16_8) / (1024_8 * 1024_8)
-  npass = int(min(int(l_end-l_start,8),1_8 + tempspace / 1024_8),4)   ! 1 GiB of scratch space
+  tempspace = (new_size * 16_8) / (2048_8 * 2048_8)
+  npass = int(min(int(l_end-l_start,8),1_8 + tempspace / 2048_8),4)   ! 2 GiB of scratch space
   l_block = (l_end-l_start+1)/npass
 
   ! Create tasks
@@ -98,9 +98,11 @@ subroutine four_index_transform_zmq(map_a,map_c,matrix_B,LDB,        &
 
   PROVIDE nproc
 
+  integer :: ithread, sqnproc
+  sqnproc = int(sqrt(float(nproc))+0.5)
   call omp_set_nested(.True.)
-  integer :: ithread
-  !$OMP PARALLEL NUM_THREADS(2) PRIVATE(ithread)
+  call omp_set_dynamic(.True.)
+  !$OMP PARALLEL NUM_THREADS(1+max(1,sqnproc)) PRIVATE(ithread)
   ithread = omp_get_thread_num()
   if (ithread==0) then
     call four_idx_collector(zmq_socket_pull,map_c)
@@ -178,19 +180,13 @@ subroutine four_index_transform_slave(thread,worker_id)
         i_end  , j_end  , k_end  , l_end_block  ,                    &
         a_start, b_start, c_start, d_start,                          &
         a_end  , b_end  , c_end  , d_end,                            &
-        task_id, thread)
+        task_id, worker_id, thread)
 
-    integer, external              :: task_done_to_taskserver
-    if (task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id) == -1) then
-      print *,  irp_here, ': Unable  to send task_done'
-      stop
-    endif
 
   enddo
   integer, external :: disconnect_from_taskserver
   if (disconnect_from_taskserver(zmq_to_qp_run_socket,thread) == -1) then
-    call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-    return
+    continue
   endif
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
 
@@ -287,8 +283,6 @@ subroutine four_idx_pull_results(zmq_socket_pull, map_c, task_id)
   rc8 = f77_zmq_recv8( zmq_socket_pull, value, int(integral_kind*sze,8), 0)
   if(rc8 /= integral_kind*sze) stop 'four_idx_pull_results failed to pull value'
 
-  call map_update(map_c, key, value, sze, mo_integrals_threshold)  
-
 ! Activate if zmq_socket_pull is a REP
   IRP_IF ZMQ_PUSH
   IRP_ELSE
@@ -298,6 +292,8 @@ subroutine four_idx_pull_results(zmq_socket_pull, map_c, task_id)
       stop 'error'
     endif
   IRP_ENDIF
+
+  call map_update(map_c, key, value, sze, mo_integrals_threshold)  
 
   deallocate(key, value)
 end
