@@ -51,7 +51,15 @@ subroutine compute_sym_ao_values(sym_points, n_sym_points, result)
       x = x**ao_power(j,1)
       y = y**ao_power(j,2)
       z = z**ao_power(j,3)
-      result(i,j) = x*y*z*exp(-(x*x+y*y+z*z))
+!      result(i,j) = x*y*z*exp(-(x*x+y*y+z*z))
+      result(i,j) = x*y*z
+      if (result(i,j) > 0.d0) then
+        result(i,j) = 1.d0
+      else if (result(i,j) < 0.d0) then
+        result(i,j) = -1.d0
+      else
+        result(i,j) = 0.d0
+      endif
     enddo
   enddo
   
