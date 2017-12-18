@@ -516,7 +516,7 @@ end
   integer, external :: add_task_to_taskserver
   
   integer :: KKsize = 1000000
-  
+  integer, external :: add_task_to_taskserver 
   
   call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,'mrsc2')
 
