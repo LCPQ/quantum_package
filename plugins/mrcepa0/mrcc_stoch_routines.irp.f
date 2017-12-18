@@ -13,7 +13,7 @@ BEGIN_PROVIDER [ integer, mrcc_stoch_istate ]
 END_PROVIDER
 
 subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
-  !use dress_types
+  use dress_types
   use f77_zmq
   
   implicit none
@@ -32,14 +32,14 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
   
   double precision, external     :: omp_get_wtime
   double precision               :: time
-  double precision               :: w!(N_states)
-  integer, external :: add_task_to_taskserver
+  double precision               :: w(N_states)
+
 
 
   provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral mrcc_weight psi_selectors
 
-  w = 0.d0
-  w = 1.d0
+  w(:) = 0.d0
+  w(mrcc_stoch_istate) = 1.d0
   call update_psi_average_norm_contrib(w)
 
   
@@ -56,7 +56,7 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
   integer, external              :: zmq_put_N_det_generators
   integer, external              :: zmq_put_N_det_selectors
   integer, external              :: zmq_put_dvector
-  integer, external              :: zmq_set_running 
+  
   if (zmq_put_psi(zmq_to_qp_run_socket,1) == -1) then
     stop 'Unable to put psi on ZMQ server'
   endif
@@ -107,6 +107,7 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
           stop 'Unable to add task to task server'
         endif
   endif
+  
       if (zmq_set_running(zmq_to_qp_run_socket) == -1) then
         print *,  irp_here, ': Failed in zmq_set_running'
       endif
@@ -115,7 +116,7 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
       !$OMP  PRIVATE(i)
   i = omp_get_thread_num()
   if (i==0) then
-    call mrcc_collector(zmq_socket_pull,E, relative_error, delta, delta_s2, mrcc)
+    call mrcc_collector(zmq_socket_pull,E(mrcc_stoch_istate), relative_error, delta, delta_s2, mrcc)
 
   else
     call mrcc_slave_inproc(i)
@@ -174,8 +175,6 @@ subroutine mrcc_collector(zmq_socket_pull, E, relative_error, delta, delta_s2, m
   logical, allocatable :: actually_computed(:)
   integer :: total_computed
   
-  delta = 0d0
-  delta_s2 = 0d0
   allocate(delta_det(N_states, N_det_non_ref, 0:comb_teeth+1, 2))
   allocate(cp(N_states, N_det_non_ref, N_cp, 2), mrcc_detail(N_states, N_det_generators))
   allocate(delta_loc(N_states, N_det_non_ref, 2))
@@ -270,6 +269,7 @@ subroutine mrcc_collector(zmq_socket_pull, E, relative_error, delta, delta_s2, m
 
       do i=2,N_det_generators
         if(.not. actually_computed(mrcc_jobs(i))) then
+          print *, "first not comp", i
           cur_cp = done_cp_at(i-1)
           exit
         end if
@@ -310,6 +310,7 @@ subroutine mrcc_collector(zmq_socket_pull, E, relative_error, delta, delta_s2, m
             print *, irp_here, ': Error in sending abort signal (2)'
           endif
         endif
+
       else
         if (cur_cp > old_cur_cp) then
           old_cur_cp = cur_cp
@@ -322,6 +323,7 @@ subroutine mrcc_collector(zmq_socket_pull, E, relative_error, delta, delta_s2, m
   end do pullLoop
  
   if(total_computed == N_det_generators) then
+    print *, "TOTALLY COMPUTED"
     delta = 0d0
     delta_s2 = 0d0
     do i=comb_teeth+1,0,-1
@@ -330,16 +332,21 @@ subroutine mrcc_collector(zmq_socket_pull, E, relative_error, delta, delta_s2, m
     end do
   else
 
+
   delta = cp(:,:,cur_cp,1)
   delta_s2 = cp(:,:,cur_cp,2)
+  
   do i=cp_first_tooth(cur_cp)-1,0,-1
     delta += delta_det(:,:,i,1)
     delta_s2 += delta_det(:,:,i,2)
   end do
 
   end if
+
   mrcc(1) = E
+  
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
+
 end subroutine
 
 

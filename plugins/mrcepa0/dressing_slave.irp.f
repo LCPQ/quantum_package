@@ -513,7 +513,6 @@ end
   logical, external               :: is_in_wavefunction, isInCassd, detEq
   character*(512)                :: task 
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_socket_pull
-  integer, external :: add_task_to_taskserver
   
   integer :: KKsize = 1000000
   integer, external :: add_task_to_taskserver 
