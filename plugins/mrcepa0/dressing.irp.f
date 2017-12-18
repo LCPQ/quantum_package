@@ -925,7 +925,6 @@ end
   E_CI_before = mrcc_E0_denominator(1) + nuclear_repulsion
   threshold_selectors = 1.d0
   threshold_generators = 1d0 
-  !errr = errr / 2d0
   if(errr /= 0d0) then
     errr = errr / 2d0 ! (-mrcc_E0_denominator(1) + mrcc_previous_E(1)) / 1d1
   else
@@ -934,7 +933,7 @@ end
   relative_error = errr
   print *, "RELATIVE ERROR", relative_error
   call ZMQ_mrcc(E_CI_before, mrcc, delta_ij_mrcc_zmq, delta_ij_s2_mrcc_zmq, abs(relative_error))
-  !errr = 
+
   mrcc_previous_E(:) = mrcc_E0_denominator(:)
   do i=N_det_non_ref,1,-1
     delta_ii_mrcc_zmq(:,1) -= delta_ij_mrcc_zmq(:, i, 1) / psi_ref_coef(1,1) * psi_non_ref_coef(i, 1)
@@ -950,7 +949,6 @@ END_PROVIDER
   use bitmasks
   implicit none
   integer                        :: i, j, i_state
-  
   !mrmode : 1=mrcepa0, 2=mrsc2 add, 3=mrcc
   if(mrmode == 4) then
     do i = 1, N_det_ref
