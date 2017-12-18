@@ -245,7 +245,7 @@ subroutine four_idx_pull_results(zmq_socket_pull, map_c, task_id)
   use map_module
   implicit none
   type(map_type), intent(inout)   :: map_c
-  integer(ZMQ_PTR), intent(inout) :: zmq_socket_pull
+  integer(ZMQ_PTR), intent(in) :: zmq_socket_pull
 
   integer, intent(out) :: task_id
 
