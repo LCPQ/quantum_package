@@ -1,4 +1,4 @@
-BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num,3) ]
+BEGIN_PROVIDER [ double precision, nucl_coord_input,  (nucl_num,3) ]
    implicit none
    
    BEGIN_DOC
@@ -8,7 +8,7 @@ BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num,3) ]
    
    if (mpi_master) then
      double precision, allocatable  :: buffer(:,:)
-     nucl_coord = 0.d0
+     nucl_coord_input = 0.d0
      allocate (buffer(nucl_num,3))
      buffer = 0.d0
      logical                        :: has
@@ -22,10 +22,69 @@ BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num,3) ]
      
      do i=1,3
        do j=1,nucl_num
-         nucl_coord(j,i) = buffer(j,i)
+         nucl_coord_input(j,i) = buffer(j,i)
        enddo
      enddo
      deallocate(buffer)
+     
+     character*(64), parameter      :: f = '(A16, 4(1X,F12.6))'
+     character*(64), parameter      :: ft= '(A16, 4(1X,A12  ))'
+     double precision, parameter    :: a0= 0.529177249d0
+     
+     call write_time(output_Nuclei)
+     write(output_Nuclei,'(A)') ''
+     write(output_Nuclei,'(A)') 'Input Nuclear Coordinates (Angstroms)'
+     write(output_Nuclei,'(A)') '====================================='
+     write(output_Nuclei,'(A)') ''
+     write(output_Nuclei,ft)                                         &
+         '================','============','============','============','============'
+     write(output_Nuclei,*)                                          &
+         '     Atom          Charge          X            Y            Z '
+     write(output_Nuclei,ft)                                         &
+         '================','============','============','============','============'
+     do i=1,nucl_num
+       write(output_Nuclei,f) nucl_label(i), nucl_charge(i),         &
+           nucl_coord_input(i,1)*a0,                                       &
+           nucl_coord_input(i,2)*a0,                                       &
+           nucl_coord_input(i,3)*a0
+     enddo
+     write(output_Nuclei,ft)                                         &
+         '================','============','============','============','============'
+     write(output_Nuclei,'(A)') ''
+     
+   endif
+   
+   IRP_IF MPI
+     include 'mpif.h'
+     integer                        :: ierr
+     call MPI_BCAST( nucl_coord_input, 3*nucl_num, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+     if (ierr /= MPI_SUCCESS) then
+       stop 'Unable to read nucl_coord_input with MPI'
+     endif
+   IRP_ENDIF
+
+END_PROVIDER
+ 
+BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num,3) ]
+   implicit none
+   
+   BEGIN_DOC
+   ! Nuclear coordinates in standard orientation
+   END_DOC
+   
+   if (mpi_master) then
+     integer :: i
+     do i=1,nucl_num
+       nucl_coord(i,1) = (nucl_coord_input(i,1) - center_of_mass(1))*inertia_tensor_eigenvectors(1,1) + &
+                         (nucl_coord_input(i,2) - center_of_mass(2))*inertia_tensor_eigenvectors(2,1) + &
+                         (nucl_coord_input(i,3) - center_of_mass(3))*inertia_tensor_eigenvectors(3,1) 
+       nucl_coord(i,2) = (nucl_coord_input(i,1) - center_of_mass(1))*inertia_tensor_eigenvectors(1,2) + &
+                         (nucl_coord_input(i,2) - center_of_mass(2))*inertia_tensor_eigenvectors(2,2) + &
+                         (nucl_coord_input(i,3) - center_of_mass(3))*inertia_tensor_eigenvectors(3,2) 
+       nucl_coord(i,3) = (nucl_coord_input(i,1) - center_of_mass(1))*inertia_tensor_eigenvectors(1,3) + &
+                         (nucl_coord_input(i,2) - center_of_mass(2))*inertia_tensor_eigenvectors(2,3) + &
+                         (nucl_coord_input(i,3) - center_of_mass(3))*inertia_tensor_eigenvectors(3,3) 
+     enddo
      
      character*(64), parameter      :: f = '(A16, 4(1X,F12.6))'
      character*(64), parameter      :: ft= '(A16, 4(1X,A12  ))'
@@ -285,3 +344,87 @@ BEGIN_PROVIDER [ character*(128), element_name, (78)]
  element_name(78) = 'Pt'
 
 END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, mass, (0:110) ]
+  implicit none
+  BEGIN_DOC
+  ! Atomic masses
+  END_DOC
+  
+  mass(  0   )  =  0.
+  mass(  1   )  =  1.0079
+  mass(  2   )  =  4.00260
+  mass(  3   )  =  6.941
+  mass(  4   )  =  9.01218
+  mass(  5   )  =  10.81
+  mass(  6   )  =  12.011
+  mass(  7   )  =  14.0067
+  mass(  8   )  =  15.9994
+  mass(  9   )  =  18.998403
+  mass(  10  )  =  20.179
+  mass(  11  )  =  22.98977
+  mass(  12  )  =  24.305
+  mass(  13  )  =  26.98154
+  mass(  14  )  =  28.0855
+  mass(  15  )  =  30.97376
+  mass(  16  )  =  32.06
+  mass(  17  )  =  35.453
+  mass(  18  )  =  39.948
+  mass(  19  )  =  39.0983
+  mass(  20  )  =  40.08
+  mass(  21  )  =  44.9559
+  mass(  22  )  =  47.90
+  mass(  23  )  =  50.9415
+  mass(  24  )  =  51.996
+  mass(  25  )  =  54.9380
+  mass(  26  )  =  55.9332
+  mass(  27  )  =  58.9332
+  mass(  28  )  =  58.70
+  mass(  29  )  =  63.546
+  mass(  30  )  =  65.38
+  mass(  31  )  =  69.72
+  mass(  32  )  =  72.59
+  mass(  33  )  =  74.9216
+  mass(  34  )  =  78.96
+  mass(  35  )  =  79.904
+  mass(  36  )  =  83.80
+  mass(  37  )  =  85.4678
+  mass(  38  )  =  87.62
+  mass(  39  )  =  88.90584
+  mass(  40  )  =  91.224
+  mass(  41  )  =  92.90637
+  mass(  42  )  =  95.95
+  mass(  43  )  =  98.
+  mass(  44  )  =  101.07
+  mass(  45  )  =  102.90550
+  mass(  46  )  =  106.42
+  mass(  47  )  =  107.8682
+  mass(  48  )  =  112.414
+  mass(  49  )  =  114.818
+  mass(  50  )  =  118.710
+  mass(  51  )  =  121.760
+  mass(  52  )  =  127.60
+  mass(  53  )  =  126.90447
+  mass(  54  )  =  131.293
+  mass(  78  )  =  195.084
+END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, center_of_mass, (3) ]
+  implicit none
+  BEGIN_DOC
+  ! Center of mass of the molecule
+  END_DOC
+  integer                        :: i,j
+  double precision               :: s
+  center_of_mass(:) = 0.d0
+  s = 0.d0
+  do i=1,nucl_num
+    do j=1,3
+      center_of_mass(j) += nucl_coord_input(i,j)* mass(int(nucl_charge(i)))
+    enddo
+    s += mass(int(nucl_charge(i)))
+  enddo
+  s = 1.d0/s
+  center_of_mass(:) = center_of_mass(:)*s
+END_PROVIDER
+
