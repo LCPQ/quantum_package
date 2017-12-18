@@ -195,27 +195,27 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
           exists = (label == mo_label)
         endif
       endif
-    endif
 
-    if (exists) then
-      
-      double precision, allocatable  :: psi_coef_read(:,:)
-      allocate (psi_coef_read(N_det,N_states))
-      call ezfio_get_determinants_psi_coef(psi_coef_read)
-      do k=1,N_states
-        do i=1,N_det
-          psi_coef(i,k) = psi_coef_read(i,k)
+      if (exists) then
+        
+        double precision, allocatable  :: psi_coef_read(:,:)
+        allocate (psi_coef_read(N_det,N_states))
+        print *,  'Read psi_coef', N_det, N_states
+        call ezfio_get_determinants_psi_coef(psi_coef_read)
+        do k=1,N_states
+          do i=1,N_det
+            psi_coef(i,k) = psi_coef_read(i,k)
+          enddo
         enddo
-      enddo
-      deallocate(psi_coef_read)
-      print *,  'Read psi_coef'
-      
+        deallocate(psi_coef_read)
+        
+      endif
     endif
   endif
   IRP_IF MPI
     include 'mpif.h'
     integer                        :: ierr
-    call     MPI_BCAST( psi_coef, N_states*psi_det_size, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+    call     MPI_BCAST( psi_coef, size(psi_coef), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
     if (ierr /= MPI_SUCCESS) then
       stop 'Unable to read psi_coef with MPI'
     endif
