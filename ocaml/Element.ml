@@ -14,7 +14,7 @@ type t =
 [@@deriving sexp]
 
 let of_string x = 
-  match (String.capitalize_ascii (String.lowercase x)) with
+  match (String.capitalize (String.lowercase x)) with
 |  "X"   |  "Dummy"       ->  X
 |  "H"   |  "Hydrogen"    ->  H
 |  "He"  |  "Helium"      ->  He

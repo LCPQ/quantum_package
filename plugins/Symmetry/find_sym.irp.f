@@ -233,8 +233,9 @@ BEGIN_PROVIDER [ character*16, point_group ]
 ! Point group of the molecule
  END_DOC
 
-  character*2, save  :: i_to_a(24) = (/ '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',&
-      '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24'  /)
+  character*2, save  :: i_to_a(24) = (/ ' 1', ' 2', ' 3', ' 4', ' 5', ' 6', ' 7', ' 8', ' 9', &
+      '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', &
+      '21', '22', '23', '24'  /)
   point_group = 'C1'
   if (molecule_is_linear) then
     if (molecule_has_center_of_inversion) then
