@@ -701,7 +701,7 @@ integer function disconnect_from_taskserver(zmq_to_qp_run_socket, worker_id)
   integer, intent(in)            :: worker_id
   
   integer                        :: rc, sze
-  character*(64)                 :: message, reply, state
+  character*(512)                :: message, reply, state
 
   disconnect_from_taskserver = 0
 

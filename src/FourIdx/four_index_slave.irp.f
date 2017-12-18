@@ -101,7 +101,7 @@ subroutine four_index_transform_slave_work(map_a,matrix_B,LDB,            &
           tmp=value(ik)
           if (tmp /= 0.d0) then
             a_array_ik(ii) = ik
-            a_array_j(ii)  = int(iand(j,32767),2)  ! Warning: integer*2
+            a_array_j(ii)  = int(j,2)  ! Warning: integer*2
             a_array_value(ii) = tmp
             ii=ii+1_8
           endif

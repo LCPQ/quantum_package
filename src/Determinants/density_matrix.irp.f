@@ -121,7 +121,8 @@ END_PROVIDER
     !$OMP  mo_tot_num,psi_bilinear_matrix_rows,psi_bilinear_matrix_columns, &
     !$OMP  psi_bilinear_matrix_transp_rows, psi_bilinear_matrix_transp_columns, &
     !$OMP  psi_bilinear_matrix_order_reverse, psi_det_alpha_unique, psi_det_beta_unique, &
-    !$OMP  psi_bilinear_matrix_values, psi_bilinear_matrix_transp_values)
+    !$OMP  psi_bilinear_matrix_values, psi_bilinear_matrix_transp_values, &
+    !$OMP  N_det_alpha_unique,N_det_beta_unique,irp_here)
   allocate(tmp_a(mo_tot_num,mo_tot_num,N_states), tmp_b(mo_tot_num,mo_tot_num,N_states) )
   tmp_a = 0.d0
   !$OMP DO SCHEDULE(dynamic,64)
@@ -365,7 +366,15 @@ BEGIN_PROVIDER [ double precision, state_average_weight, (N_states) ]
  BEGIN_DOC
  ! Weights in the state-average calculation of the density matrix
  END_DOC
- state_average_weight = 1.d0/dble(N_states)
+ logical :: exists
+
+ state_average_weight = 0.d0
+ call ezfio_has_state_average_weight(exists)
+ if (exists) then
+  call ezfio_get_state_average_weight(state_average_weight)
+ endif
+ state_average_weight = state_average_weight+1.d-31
+ state_average_weight = state_average_weight/(sum(state_average_weight))
 END_PROVIDER
 
 

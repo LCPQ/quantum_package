@@ -177,7 +177,6 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
   
   integer                        :: i,k, N_int2
   logical                        :: exists
-  double precision, allocatable  :: psi_coef_read(:,:)
   character*(64)                 :: label
 
   PROVIDE read_wf N_det mo_label ezfio_filename
@@ -200,6 +199,7 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
 
     if (exists) then
       
+      double precision, allocatable  :: psi_coef_read(:,:)
       allocate (psi_coef_read(N_det,N_states))
       call ezfio_get_determinants_psi_coef(psi_coef_read)
       do k=1,N_states
