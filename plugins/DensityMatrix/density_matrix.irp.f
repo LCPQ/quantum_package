@@ -167,9 +167,9 @@ END_PROVIDER
  END_TEMPLATE
  
  
- BEGIN_PROVIDER [ double precision, two_body_dm_diag_aa, (mo_tot_num_align,mo_tot_num)]
-&BEGIN_PROVIDER [ double precision, two_body_dm_diag_bb, (mo_tot_num_align,mo_tot_num)]
-&BEGIN_PROVIDER [ double precision, two_body_dm_diag_ab, (mo_tot_num_align,mo_tot_num)]
+ BEGIN_PROVIDER [ double precision, two_body_dm_diag_aa, (mo_tot_num,mo_tot_num)]
+&BEGIN_PROVIDER [ double precision, two_body_dm_diag_bb, (mo_tot_num,mo_tot_num)]
+&BEGIN_PROVIDER [ double precision, two_body_dm_diag_ab, (mo_tot_num,mo_tot_num)]
    implicit none
    use bitmasks
    BEGIN_DOC

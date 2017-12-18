@@ -51,6 +51,7 @@ check_version 4.6 $i
 if [[ $? == 1 ]]
 then
    echo "GCC version $(gcc -dumpversion) too old. GCC >= 4.6 required."
+   rm ${QP_ROOT}/bin/opam
    exit 1
 fi
 

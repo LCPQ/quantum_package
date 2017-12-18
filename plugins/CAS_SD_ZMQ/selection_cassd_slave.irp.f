@@ -27,6 +27,7 @@ subroutine run_wf
   character*(64) :: states(4)
   integer :: rc, i
   
+  integer, external              :: zmq_get_psi
   call provide_everything
   
   zmq_context = f77_zmq_ctx_new ()
@@ -50,7 +51,7 @@ subroutine run_wf
       ! ---------
 
       print *,  'Selection'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      if (zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states) == -1) cycle
   
       !$OMP PARALLEL PRIVATE(i)
       i = omp_get_thread_num()
@@ -64,7 +65,7 @@ subroutine run_wf
       ! --------
 
       print *,  'Davidson'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      if (zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states) == -1) cycle
       call omp_set_nested(.True.)
       call davidson_slave_tcp(0)
       call omp_set_nested(.False.)
@@ -76,7 +77,7 @@ subroutine run_wf
       ! ---
 
       print *,  'PT2'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      if (zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states) == -1) cycle
   
       !$OMP PARALLEL PRIVATE(i)
       i = omp_get_thread_num()

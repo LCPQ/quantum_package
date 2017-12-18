@@ -17,7 +17,6 @@ let () =
 
 let run slave exe ezfio_file =
 
-
   (** Check availability of the ports *)
   let port_number = 
     let zmq_context =
@@ -46,6 +45,7 @@ let run slave exe ezfio_file =
     ZMQ.Context.terminate zmq_context;
     result
   in
+
   let time_start = 
     Time.now ()
   in
@@ -70,11 +70,12 @@ let run slave exe ezfio_file =
 
 
   (** Check input *)
-  begin
-    match (Sys.command ("qp_edit -c "^ezfio_file)) with
-    | 0 -> ()
-    | i -> failwith "Error: Input inconsistent\n"
-  end;
+  if (not slave) then
+    begin
+      match (Sys.command ("qp_edit -c "^ezfio_file)) with
+      | 0 -> ()
+      | i -> failwith "Error: Input inconsistent\n"
+    end;
 
   let qp_run_address_filename = 
    Filename.concat (Qpackage.ezfio_work ezfio_file) "qp_run_address"
@@ -141,7 +142,7 @@ let spec =
   let open Command.Spec in
   empty
   +> flag "slave" no_arg
-     ~doc:(" Needed for slave tasks")
+     ~doc:(" Required for slave tasks")
   +> anon ("executable" %: string)
   +> anon ("ezfio_file" %: string)
 ;;

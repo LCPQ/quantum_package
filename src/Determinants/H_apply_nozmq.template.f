@@ -9,7 +9,7 @@ subroutine $subroutine($params_main)
   
   $decls_main
   
-  integer                        :: i_generator, nmax
+  integer                        :: i_generator
   double precision               :: wall_0, wall_1
   integer(bit_kind), allocatable :: mask(:,:,:)
   integer                        :: ispin, k
@@ -20,15 +20,11 @@ subroutine $subroutine($params_main)
   PROVIDE H_apply_buffer_allocated mo_bielec_integrals_in_map psi_det_generators psi_coef_generators
 
   
-  nmax = mod( N_det_generators,nproc )
-
   call wall_time(wall_0)
 
   iproc = 0
   allocate( mask(N_int,2,6), fock_diag_tmp(2,mo_tot_num+1) )
-  do i_generator=1,nmax
-
-    $skip
+  do i_generator=1,N_det_generators
 
     ! Compute diagonal of the Fock matrix
     call build_fock_tmp(fock_diag_tmp,psi_det_generators(1,1,i_generator),N_int)
@@ -77,67 +73,6 @@ subroutine $subroutine($params_main)
   enddo
 
   deallocate( mask, fock_diag_tmp )
-
-  !$OMP PARALLEL DEFAULT(SHARED) &
-  !$OMP PRIVATE(i_generator,wall_1,wall_0,ispin,k,mask,iproc,fock_diag_tmp) 
-  call wall_time(wall_0)
-  !$ iproc = omp_get_thread_num()
-  allocate( mask(N_int,2,6), fock_diag_tmp(2,mo_tot_num+1) )
-  !$OMP DO SCHEDULE(dynamic,1)
-  do i_generator=nmax+1,N_det_generators
-    $skip
-
-    ! Compute diagonal of the Fock matrix
-    call build_fock_tmp(fock_diag_tmp,psi_det_generators(1,1,i_generator),N_int)
-
-    ! Create bit masks for holes and particles
-    do ispin=1,2
-      do k=1,N_int
-        mask(k,ispin,s_hole) =                                      &
-            iand(generators_bitmask(k,ispin,s_hole,i_bitmask_gen),  &
-            psi_det_generators(k,ispin,i_generator) )
-        mask(k,ispin,s_part) =                                      &
-            iand(generators_bitmask(k,ispin,s_part,i_bitmask_gen),  &
-            not(psi_det_generators(k,ispin,i_generator)) )
-        mask(k,ispin,d_hole1) =                                      &
-            iand(generators_bitmask(k,ispin,d_hole1,i_bitmask_gen),  &
-            psi_det_generators(k,ispin,i_generator) )
-        mask(k,ispin,d_part1) =                                      &
-            iand(generators_bitmask(k,ispin,d_part1,i_bitmask_gen),  &
-            not(psi_det_generators(k,ispin,i_generator)) )
-        mask(k,ispin,d_hole2) =                                      &
-            iand(generators_bitmask(k,ispin,d_hole2,i_bitmask_gen),  &
-            psi_det_generators(k,ispin,i_generator) )
-        mask(k,ispin,d_part2) =                                      &
-            iand(generators_bitmask(k,ispin,d_part2,i_bitmask_gen),  &
-            not (psi_det_generators(k,ispin,i_generator)) )
-      enddo
-    enddo
-
-    if($do_double_excitations)then
-      call $subroutine_diexc(psi_det_generators(1,1,i_generator),    &
-        psi_det_generators(1,1,1),                                   &
-        mask(1,1,d_hole1), mask(1,1,d_part1),                        &
-        mask(1,1,d_hole2), mask(1,1,d_part2),                        &
-        fock_diag_tmp, i_generator, iproc $params_post)
-    endif
-    if($do_mono_excitations)then
-      call $subroutine_monoexc(psi_det_generators(1,1,i_generator),  &
-        mask(1,1,s_hole ), mask(1,1,s_part ),                        &
-        fock_diag_tmp, i_generator, iproc $params_post)
-    endif
-    !$OMP CRITICAL
-    call wall_time(wall_1)
-    $printout_always
-    if (wall_1 - wall_0 > 2.d0) then
-        $printout_now
-        wall_0 = wall_1
-    endif
-    !$OMP END CRITICAL
-  enddo
-  !$OMP END DO 
-  deallocate( mask, fock_diag_tmp )
-  !$OMP END PARALLEL
 
   $copy_buffer
   $generate_psi_guess

@@ -365,31 +365,37 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   call wall_time(wall_1)
   call cpu_time(cpu_1)
 
-  integer(ZMQ_PTR) :: zmq_to_qp_run_socket
-  call new_parallel_job(zmq_to_qp_run_socket,'ao_integrals')
+  integer(ZMQ_PTR) :: zmq_to_qp_run_socket, zmq_socket_pull
+  call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,'ao_integrals')
 
   character(len=:), allocatable :: task
   allocate(character(len=ao_num*12) :: task)
   write(fmt,*) '(', ao_num, '(I5,X,I5,''|''))'
   do l=1,ao_num
     write(task,fmt) (i,l, i=1,l)
-    call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task))
+    integer, external :: add_task_to_taskserver
+    if (add_task_to_taskserver(zmq_to_qp_run_socket,trim(task)) == -1) then
+      stop 'Unable to add task to server'
+    endif
   enddo
   deallocate(task)
   
-  call zmq_set_running(zmq_to_qp_run_socket)
+  integer, external :: zmq_set_running
+  if (zmq_set_running(zmq_to_qp_run_socket) == -1) then
+    print *,  irp_here, ': Failed in zmq_set_running'
+  endif
 
   PROVIDE nproc
-  !$OMP PARALLEL DEFAULT(private) num_threads(nproc+1)
+  !$OMP PARALLEL DEFAULT(shared) private(i) num_threads(nproc+1)
       i = omp_get_thread_num()
       if (i==0) then
-        call ao_bielec_integrals_in_map_collector(i)
+        call ao_bielec_integrals_in_map_collector(zmq_socket_pull)
       else
         call ao_bielec_integrals_in_map_slave_inproc(i)
       endif
   !$OMP END PARALLEL
 
-  call end_parallel_job(zmq_to_qp_run_socket, 'ao_integrals')
+  call end_parallel_job(zmq_to_qp_run_socket, zmq_socket_pull, 'ao_integrals')
 
 
   print*, 'Sorting the map'
@@ -407,7 +413,7 @@ BEGIN_PROVIDER [ logical, ao_bielec_integrals_in_map ]
   
   ao_bielec_integrals_in_map = .True.
 
-  if (write_ao_integrals) then
+  if (write_ao_integrals.and.mpi_master) then
     call ezfio_set_work_empty(.False.)
     call map_save_to_disk(trim(ezfio_filename)//'/work/ao_ints',ao_integrals_map)
     call ezfio_set_integrals_bielec_disk_access_ao_integrals("Read")
@@ -483,7 +489,6 @@ double precision function general_primitive_integral(dim,            &
   
   accu = 0.d0
   iorder = iorder_p(1)+iorder_q(1)+iorder_p(1)+iorder_q(1)
-  !DIR$ VECTOR ALIGNED
   do ix=0,iorder
     Ix_pol(ix) = 0.d0
   enddo
@@ -494,9 +499,9 @@ double precision function general_primitive_integral(dim,            &
     do jx = 0, iorder_q(1)
       d = a*Q_new(jx,1)
       if (abs(d) < thresh) cycle
-      !DEC$ FORCEINLINE
+      !DIR$ FORCEINLINE
       call give_polynom_mult_center_x(P_center(1),Q_center(1),ix,jx,p,q,iorder,pq_inv,pq_inv_2,p10_1,p01_1,p10_2,p01_2,dx,nx)
-      !DEC$ FORCEINLINE
+      !DIR$ FORCEINLINE
       call add_poly_multiply(dx,nx,d,Ix_pol,n_Ix)
     enddo
   enddo
@@ -504,7 +509,6 @@ double precision function general_primitive_integral(dim,            &
     return
   endif
   iorder = iorder_p(2)+iorder_q(2)+iorder_p(2)+iorder_q(2)
-  !DIR$ VECTOR ALIGNED
   do ix=0, iorder
     Iy_pol(ix) = 0.d0
   enddo
@@ -515,9 +519,9 @@ double precision function general_primitive_integral(dim,            &
       do jy = 0, iorder_q(2)
         e = b*Q_new(jy,2)
         if (abs(e) < thresh) cycle
-        !DEC$ FORCEINLINE
+        !DIR$ FORCEINLINE
         call   give_polynom_mult_center_x(P_center(2),Q_center(2),iy,jy,p,q,iorder,pq_inv,pq_inv_2,p10_1,p01_1,p10_2,p01_2,dy,ny)
-        !DEC$ FORCEINLINE
+        !DIR$ FORCEINLINE
         call add_poly_multiply(dy,ny,e,Iy_pol,n_Iy)
       enddo
     endif
@@ -537,9 +541,9 @@ double precision function general_primitive_integral(dim,            &
       do jz = 0, iorder_q(3)
         f = c*Q_new(jz,3)
         if (abs(f) < thresh) cycle
-        !DEC$ FORCEINLINE
+        !DIR$ FORCEINLINE
         call   give_polynom_mult_center_x(P_center(3),Q_center(3),iz,jz,p,q,iorder,pq_inv,pq_inv_2,p10_1,p01_1,p10_2,p01_2,dz,nz)
-        !DEC$ FORCEINLINE
+        !DIR$ FORCEINLINE
         call add_poly_multiply(dz,nz,f,Iz_pol,n_Iz)
       enddo
     endif
@@ -559,7 +563,7 @@ double precision function general_primitive_integral(dim,            &
     d_poly(i)=0.d0
   enddo
   
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call multiply_poly(Ix_pol,n_Ix,Iy_pol,n_Iy,d_poly,n_pt_tmp)
   if (n_pt_tmp == -1) then
     return
@@ -569,7 +573,7 @@ double precision function general_primitive_integral(dim,            &
     d1(i)=0.d0
   enddo
   
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call multiply_poly(d_poly ,n_pt_tmp ,Iz_pol,n_Iz,d1,n_pt_out)
   double precision               :: rint_sum
   accu = accu + rint_sum(n_pt_out,const,d1)
@@ -673,7 +677,6 @@ subroutine integrale_new(I_f,a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z,p,q
   sy = iy+jy
   sz = iz+jz
 
-  !DIR$ VECTOR ALIGNED
   do i = 1,n_pt
     B10(i)  = p10_1 -  gauleg_t2(i,j)* p10_2
     B01(i)  = p01_1 -  gauleg_t2(i,j)* p01_2
@@ -682,27 +685,23 @@ subroutine integrale_new(I_f,a_x,b_x,c_x,d_x,a_y,b_y,c_y,d_y,a_z,b_z,c_z,d_z,p,q
   if (sx > 0) then
     call I_x1_new(ix,jx,B10,B01,B00,t1,n_pt)
   else
-    !DIR$ VECTOR ALIGNED
     do i = 1,n_pt
       t1(i) = 1.d0
     enddo
   endif
   if (sy > 0) then
     call I_x1_new(iy,jy,B10,B01,B00,t2,n_pt)
-    !DIR$ VECTOR ALIGNED
     do i = 1,n_pt
       t1(i) = t1(i)*t2(i)
     enddo
   endif
   if (sz > 0) then
     call I_x1_new(iz,jz,B10,B01,B00,t2,n_pt)
-    !DIR$ VECTOR ALIGNED
     do i = 1,n_pt
       t1(i) = t1(i)*t2(i)
     enddo
   endif
   I_f= 0.d0
-  !DIR$ VECTOR ALIGNED
   do i = 1,n_pt
     I_f += gauleg_w(i,j)*t1(i)
   enddo
@@ -724,7 +723,6 @@ recursive subroutine I_x1_new(a,c,B_10,B_01,B_00,res,n_pt)
   integer                        :: i
   
   if(c<0)then
-    !DIR$ VECTOR ALIGNED
     do i=1,n_pt
       res(i) = 0.d0
     enddo
@@ -732,14 +730,12 @@ recursive subroutine I_x1_new(a,c,B_10,B_01,B_00,res,n_pt)
     call I_x2_new(c,B_10,B_01,B_00,res,n_pt)
   else if (a==1) then
     call I_x2_new(c-1,B_10,B_01,B_00,res,n_pt)
-    !DIR$ VECTOR ALIGNED
     do i=1,n_pt
       res(i) = c * B_00(i) * res(i)
     enddo
   else
     call I_x1_new(a-2,c,B_10,B_01,B_00,res,n_pt)
     call I_x1_new(a-1,c-1,B_10,B_01,B_00,res2,n_pt)
-    !DIR$ VECTOR ALIGNED
     do i=1,n_pt
       res(i) = (a-1) * B_10(i) * res(i) &
                + c * B_00(i) * res2(i)
@@ -759,18 +755,15 @@ recursive subroutine I_x2_new(c,B_10,B_01,B_00,res,n_pt)
   integer                        :: i
   
   if(c==1)then
-    !DIR$ VECTOR ALIGNED
     do i=1,n_pt
       res(i) = 0.d0
     enddo
   elseif(c==0) then
-    !DIR$ VECTOR ALIGNED
     do i=1,n_pt
       res(i) = 1.d0
     enddo
   else
     call I_x1_new(0,c-2,B_10,B_01,B_00,res,n_pt)
-    !DIR$ VECTOR ALIGNED
     do i=1,n_pt
       res(i) =  (c-1) * B_01(i) * res(i)
     enddo
@@ -906,7 +899,6 @@ recursive subroutine I_x1_pol_mult_recurs(a,c,B_10,B_01,B_00,C_00,D_00,d,nd,n_pt
   integer                        :: nx, ix,iy,ny
   
   ASSERT (a>2)
-  !DIR$ VECTOR ALIGNED
   !DIR$ LOOP COUNT(8)
   do ix=0,n_pt_in
     X(ix) = 0.d0
@@ -921,17 +913,15 @@ recursive subroutine I_x1_pol_mult_recurs(a,c,B_10,B_01,B_00,C_00,D_00,d,nd,n_pt
     call I_x1_pol_mult_recurs(a-2,c,B_10,B_01,B_00,C_00,D_00,X,nx,n_pt_in)
   endif
   
-  !DIR$ VECTOR ALIGNED
   !DIR$ LOOP COUNT(8)
   do ix=0,nx
     X(ix) *= dble(a-1)
   enddo
   
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call multiply_poly(X,nx,B_10,2,d,nd)
   
   nx = nd
-  !DIR$ VECTOR ALIGNED
   !DIR$ LOOP COUNT(8)
   do ix=0,n_pt_in
     X(ix) = 0.d0
@@ -945,19 +935,17 @@ recursive subroutine I_x1_pol_mult_recurs(a,c,B_10,B_01,B_00,C_00,D_00,d,nd,n_pt
       call I_x1_pol_mult_recurs(a-1,c-1,B_10,B_01,B_00,C_00,D_00,X,nx,n_pt_in)
     endif
     if (c>1) then
-      !DIR$ VECTOR ALIGNED
       !DIR$ LOOP COUNT(8)
       do ix=0,nx
         X(ix) *= c
       enddo
     endif
-    !DEC$ FORCEINLINE
+    !DIR$ FORCEINLINE
     call multiply_poly(X,nx,B_00,2,d,nd)
   endif
   
   ny=0
   
-  !DIR$ VECTOR ALIGNED
   !DIR$ LOOP COUNT(8)
   do ix=0,n_pt_in
     Y(ix) = 0.d0
@@ -970,7 +958,7 @@ recursive subroutine I_x1_pol_mult_recurs(a,c,B_10,B_01,B_00,C_00,D_00,d,nd,n_pt
     call I_x1_pol_mult_recurs(a-1,c,B_10,B_01,B_00,C_00,D_00,Y,ny,n_pt_in)
   endif
   
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call multiply_poly(Y,ny,C_00,2,d,nd)
   
 end
@@ -997,7 +985,6 @@ recursive subroutine I_x1_pol_mult_a1(c,B_10,B_01,B_00,C_00,D_00,d,nd,n_pt_in)
   endif
   
   nx = nd
-  !DIR$ VECTOR ALIGNED
   !DIR$ LOOP COUNT(8)
   do ix=0,n_pt_in
     X(ix) = 0.d0
@@ -1005,26 +992,24 @@ recursive subroutine I_x1_pol_mult_a1(c,B_10,B_01,B_00,C_00,D_00,d,nd,n_pt_in)
   call I_x2_pol_mult(c-1,B_10,B_01,B_00,C_00,D_00,X,nx,n_pt_in)
   
   if (c>1) then
-    !DIR$ VECTOR ALIGNED
     !DIR$ LOOP COUNT(8)
     do ix=0,nx
       X(ix) *= dble(c)
     enddo
   endif
   
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call multiply_poly(X,nx,B_00,2,d,nd)
   
   ny=0
   
-  !DIR$ VECTOR ALIGNED
   !DIR$ LOOP COUNT(8)
   do ix=0,n_pt_in
     Y(ix) = 0.d0
   enddo
   call I_x2_pol_mult(c,B_10,B_01,B_00,C_00,D_00,Y,ny,n_pt_in)
   
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call multiply_poly(Y,ny,C_00,2,d,nd)
   
 end
@@ -1045,7 +1030,6 @@ recursive subroutine I_x1_pol_mult_a2(c,B_10,B_01,B_00,C_00,D_00,d,nd,n_pt_in)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: X,Y
   integer                        :: nx, ix,iy,ny
   
-  !DIR$ VECTOR ALIGNED
   !DIR$ LOOP COUNT(8)
   do ix=0,n_pt_in
     X(ix) = 0.d0
@@ -1053,11 +1037,10 @@ recursive subroutine I_x1_pol_mult_a2(c,B_10,B_01,B_00,C_00,D_00,d,nd,n_pt_in)
   nx = 0
   call I_x2_pol_mult(c,B_10,B_01,B_00,C_00,D_00,X,nx,n_pt_in)
   
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call multiply_poly(X,nx,B_10,2,d,nd)
   
   nx = nd
-  !DIR$ VECTOR ALIGNED
   !DIR$ LOOP COUNT(8)
   do ix=0,n_pt_in
     X(ix) = 0.d0
@@ -1067,26 +1050,24 @@ recursive subroutine I_x1_pol_mult_a2(c,B_10,B_01,B_00,C_00,D_00,d,nd,n_pt_in)
   call I_x1_pol_mult_a1(c-1,B_10,B_01,B_00,C_00,D_00,X,nx,n_pt_in)
   
   if (c>1) then
-    !DIR$ VECTOR ALIGNED
     !DIR$ LOOP COUNT(8)
     do ix=0,nx
       X(ix) *= dble(c)
     enddo
   endif
   
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call multiply_poly(X,nx,B_00,2,d,nd)
   
   ny=0
-  !DIR$ VECTOR ALIGNED
   !DIR$ LOOP COUNT(8)
   do ix=0,n_pt_in
     Y(ix) = 0.d0
   enddo
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call I_x1_pol_mult_a1(c,B_10,B_01,B_00,C_00,D_00,Y,ny,n_pt_in)
   
-  !DEC$ FORCEINLINE
+  !DIR$ FORCEINLINE
   call multiply_poly(Y,ny,C_00,2,d,nd)
   
 end
@@ -1104,7 +1085,7 @@ recursive subroutine I_x2_pol_mult(c,B_10,B_01,B_00,C_00,D_00,d,nd,dim)
   double precision, intent(in)   :: B_10(0:2),B_01(0:2),B_00(0:2),C_00(0:2),D_00(0:2)
   integer                        :: nx, ix,ny
   double precision               :: X(0:max_dim),Y(0:max_dim)
-  !DEC$ ATTRIBUTES ALIGN : $IRP_ALIGN :: X, Y
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: X, Y
   integer                        :: i
   
   select case (c)
@@ -1135,13 +1116,12 @@ recursive subroutine I_x2_pol_mult(c,B_10,B_01,B_00,C_00,D_00,d,nd,dim)
       Y(1) = D_00(1)
       Y(2) = D_00(2)
       
-      !DEC$ FORCEINLINE
+      !DIR$ FORCEINLINE
       call multiply_poly(Y,ny,D_00,2,d,nd)
       return
       
       case default
       
-      !DIR$ VECTOR ALIGNED
       !DIR$ LOOP COUNT(6)
       do ix=0,c+c
         X(ix) = 0.d0
@@ -1149,24 +1129,22 @@ recursive subroutine I_x2_pol_mult(c,B_10,B_01,B_00,C_00,D_00,d,nd,dim)
       nx = 0
       call I_x2_pol_mult(c-2,B_10,B_01,B_00,C_00,D_00,X,nx,dim)
       
-      !DIR$ VECTOR ALIGNED
       !DIR$ LOOP COUNT(6)
       do ix=0,nx
         X(ix) *= dble(c-1)
       enddo
       
-      !DEC$ FORCEINLINE
+      !DIR$ FORCEINLINE
       call multiply_poly(X,nx,B_01,2,d,nd)
       
       ny = 0
-      !DIR$ VECTOR ALIGNED
       !DIR$ LOOP COUNT(6)
       do ix=0,c+c
         Y(ix) = 0.d0
       enddo
       call I_x2_pol_mult(c-1,B_10,B_01,B_00,C_00,D_00,Y,ny,dim)
       
-      !DEC$ FORCEINLINE
+      !DIR$ FORCEINLINE
       call multiply_poly(Y,ny,D_00,2,d,nd)
       
   end select

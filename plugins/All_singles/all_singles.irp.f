@@ -15,7 +15,7 @@ subroutine routine
   integer                        :: N_st, degree
   double precision,allocatable :: E_before(:)
   integer :: n_det_before
-  N_st = N_states_diag
+  N_st = N_states
   allocate (pt2(N_st), norm_pert(N_st),H_pert_diag(N_st),E_before(N_st))
   i = 0
   print*,'N_det = ',N_det

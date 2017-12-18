@@ -1,4 +1,4 @@
-BEGIN_PROVIDER [ double precision, ao_ortho_mono_elec_integral_dressing, (ao_num_align,ao_num) ]
+BEGIN_PROVIDER [ double precision, ao_ortho_mono_elec_integral_dressing, (ao_num,ao_num) ]
   implicit none
   BEGIN_DOC
   ! Dressing of the core hamiltonian in the orthogonal AO basis set
@@ -25,7 +25,7 @@ BEGIN_PROVIDER [ double precision, ao_ortho_mono_elec_integral_dressing, (ao_num
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ double precision, ao_ortho_mono_elec_integral, (ao_num_align, ao_num) ]
+BEGIN_PROVIDER [ double precision, ao_ortho_mono_elec_integral, (ao_num, ao_num) ]
  implicit none
  BEGIN_DOC
  ! h core in orthogonal AO basis
@@ -53,7 +53,7 @@ BEGIN_PROVIDER [ double precision, ao_mono_elec_integral_dressing, (ao_num,ao_nu
     ao_mono_elec_integral_dressing,size(ao_mono_elec_integral_dressing,1))
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, mo_mono_elec_integral_dressing, (mo_tot_num_align,mo_tot_num) ]
+BEGIN_PROVIDER [ double precision, mo_mono_elec_integral_dressing, (mo_tot_num,mo_tot_num) ]
   implicit none
   BEGIN_DOC
   ! Dressing of the core hamiltonian in the MO basis set
@@ -73,14 +73,14 @@ BEGIN_PROVIDER [ integer, idx_dressing ]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ double precision, cusp_corrected_mos, (ao_num_align,mo_tot_num) ]
+BEGIN_PROVIDER [ double precision, cusp_corrected_mos, (ao_num,mo_tot_num) ]
   implicit none
   BEGIN_DOC
   ! Dressing core hamiltonian in the AO basis set
   END_DOC
   integer :: i,j
   double precision, allocatable :: F(:,:), M(:,:)
-  allocate(F(mo_tot_num_align,mo_tot_num),M(ao_num,mo_tot_num))
+  allocate(F(mo_tot_num,mo_tot_num),M(ao_num,mo_tot_num))
 
   logical :: oneshot
 

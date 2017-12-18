@@ -1,15 +1,17 @@
 
-subroutine create_selection_buffer(N, siz, res)
+subroutine create_selection_buffer(N, siz_, res)
   use selection_types
   implicit none
 
-  integer, intent(in) :: N, siz
+  integer, intent(in) :: N, siz_
   type(selection_buffer), intent(out) :: res
 
+  integer :: siz
+  siz = max(siz_,1)
   allocate(res%det(N_int, 2, siz), res%val(siz))
 
-  res%val = 0d0
-  res%det = 0_8
+  res%val(:) = 0d0
+  res%det(:,:,:) = 0_8
   res%N = N
   res%mini = 0d0
   res%cur = 0
@@ -97,6 +99,10 @@ subroutine merge_selection_buffers(b1, b2)
     endif
   enddo
   deallocate(b2%det, b2%val)
+  do i=nmwen+1,b2%N
+    val(i) = 0.d0
+    detmp(1:N_int,1:2,i) = 0_bit_kind
+  enddo
   b2%det => detmp
   b2%val => val
   b2%mini = min(b2%mini,b2%val(b2%N))

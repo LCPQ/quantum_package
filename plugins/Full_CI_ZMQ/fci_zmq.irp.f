@@ -10,10 +10,14 @@ program fci_zmq
 
   double precision               :: hf_energy_ref
   logical                        :: has
-  double precision :: relative_error
-  relative_error=1.d-3
+  double precision               :: relative_error, absolute_error
+  integer                        :: N_states_p
+  character*(512)                :: fmt
 
-  pt2 = -huge(1.d0)
+  relative_error=PT2_relative_error
+  absolute_error=PT2_absolute_error
+
+  pt2 = -huge(1.e0)
   threshold_davidson_in = threshold_davidson
   threshold_davidson = threshold_davidson_in * 100.d0
   SOFT_TOUCH threshold_davidson
@@ -35,20 +39,9 @@ program fci_zmq
     soft_touch N_det psi_det psi_coef
     call diagonalize_CI
     call save_wavefunction
-    print *,  'N_det    = ', N_det
-    print *,  'N_states = ', N_states
-    do k=1,N_states
-      print*,'State ',k
-      print *,  'PT2      = ', pt2(k)
-      print *,  'E        = ', CI_energy(k)
-      print *,  'E+PT2    = ', CI_energy(k) + pt2(k)
-      print *,  '-----'
-    enddo
-    call dump_fci_iterations_value(N_det,CI_energy(1),pt2(1)) ! This call automatically appends data
+    N_states_p = min(N_det,N_states)
   endif
   
-  
-  print*,'Beginning the selection ...'
   n_det_before = 0
 
   character*(8) :: pt2_string
@@ -56,6 +49,7 @@ program fci_zmq
   double precision :: threshold_selectors_save, threshold_generators_save
   threshold_selectors_save  = threshold_selectors
   threshold_generators_save = threshold_generators
+  double precision :: error(N_states)
 
   correlation_energy_ratio = 0.d0
 
@@ -65,25 +59,19 @@ program fci_zmq
           (maxval(abs(pt2(1:N_states))) > pt2_max) .and.               &
           (correlation_energy_ratio <= correlation_energy_ratio_max)    &
           )
+       write(*,'(A)')  '--------------------------------------------------------------------------------'
 
 
       if (do_pt2) then
         pt2_string = '        '
         pt2 = 0.d0
-        if (N_states == 1) then
-          threshold_selectors = 1.d0
-          threshold_generators = 1d0 
-          SOFT_TOUCH threshold_selectors threshold_generators
-          call ZMQ_pt2(CI_energy, pt2,relative_error) ! Stochastic PT2
-          threshold_selectors = threshold_selectors_save
-          threshold_generators = threshold_generators_save
-          SOFT_TOUCH threshold_selectors threshold_generators
-        else
-          threshold_selectors = max(threshold_selectors,threshold_selectors_pt2)
-          threshold_generators = max(threshold_generators,threshold_generators_pt2)
-          SOFT_TOUCH threshold_selectors threshold_generators
-          call ZMQ_selection(0, pt2)      ! Deterministic PT2
-        endif
+        threshold_selectors = 1.d0
+        threshold_generators = 1d0 
+        SOFT_TOUCH threshold_selectors threshold_generators
+        call ZMQ_pt2(CI_energy, pt2,relative_error,absolute_error,error) ! Stochastic PT2
+        threshold_selectors = threshold_selectors_save
+        threshold_generators = threshold_generators_save
+        SOFT_TOUCH threshold_selectors threshold_generators
       else
         pt2_string = '(approx)'
       endif
@@ -93,36 +81,79 @@ program fci_zmq
                       (CI_energy(1) + pt2(1) - hf_energy_ref)
       correlation_energy_ratio = min(1.d0,correlation_energy_ratio)
 
+      N_states_p = min(N_det,N_states)
+
+      print *, ''
+      print '(A,I12)',  'Summary at N_det = ', N_det
+      print '(A)',      '-----------------------------------'
+      print *, ''
+      call write_double(6,correlation_energy_ratio, 'Correlation ratio')
+      print *, ''
+
+      write(fmt,*) '(''# ============'',', N_states_p, '(1X,''=============================''))'
+      write(*,fmt)
+      write(fmt,*) '(12X,', N_states_p, '(6X,A7,1X,I6,10X))'
+      write(*,fmt) ('State',k, k=1,N_states_p)
+      write(fmt,*) '(''# ============'',', N_states_p, '(1X,''=============================''))'
+      write(*,fmt)
+      write(fmt,*) '(A12,', N_states_p, '(1X,F14.8,15X))'
+      write(*,fmt) '# E          ', CI_energy(1:N_states_p)
+      if (N_states_p > 1) then
+        write(*,fmt) '# Excit. (au)', CI_energy(1:N_states_p)-CI_energy(1)
+        write(*,fmt) '# Excit. (eV)', (CI_energy(1:N_states_p)-CI_energy(1))*27.211396641308d0
+      endif
+      write(fmt,*) '(A12,', 2*N_states_p, '(1X,F14.8))'
+      write(*,fmt) '# PT2'//pt2_string, (pt2(k), error(k), k=1,N_states_p)
+      write(*,'(A)') '#'
+      write(*,fmt) '# E+PT2      ', (CI_energy(k)+pt2(k),error(k), k=1,N_states_p)
+      if (N_states_p > 1) then
+        write(*,fmt) '# Excit. (au)', ( (CI_energy(k)+pt2(k)-CI_energy(1)-pt2(1)), &
+          dsqrt(error(k)*error(k)+error(1)*error(1)), k=1,N_states_p)
+        write(*,fmt) '# Excit. (eV)', ( (CI_energy(k)+pt2(k)-CI_energy(1)-pt2(1))*27.211396641308d0, &
+          dsqrt(error(k)*error(k)+error(1)*error(1))*27.211396641308d0, k=1,N_states_p)
+      endif
+      write(fmt,*) '(''# ============'',', N_states_p, '(1X,''=============================''))'
+      write(*,fmt)
+      print *,  ''
 
       print *,  'N_det             = ', N_det
       print *,  'N_states          = ', N_states
       print*,   'correlation_ratio = ', correlation_energy_ratio
 
-      do k=1, N_states
+      do k=1, N_states_p
         print*,'State ',k
         print *,  'PT2             = ', pt2(k)
         print *,  'E               = ', CI_energy(k)
-        print *,  'E+PT2'//pt2_string//'   = ', CI_energy(k)+pt2(k)
+        print *,  'E+PT2'//pt2_string//'   = ', CI_energy(k)+pt2(k), ' +/- ', error(k)
       enddo
 
       print *,  '-----'
       if(N_states.gt.1)then
-        print*,'Variational Energy difference'
-        do i = 2, N_states
-          print*,'Delta E = ',CI_energy(i) - CI_energy(1)
+        print *, 'Variational Energy difference (au | eV)'
+        do i=2, N_states_p
+          print*,'Delta E = ', (CI_energy(i) - CI_energy(1)), &
+            (CI_energy(i) - CI_energy(1)) * 27.211396641308d0
+        enddo
+        print *,  '-----'
+        print*, 'Variational + perturbative Energy difference (au | eV)'
+        do i=2, N_states_p
+          print*,'Delta E = ', (CI_energy(i)+ pt2(i) - (CI_energy(1) + pt2(1))), &
+            (CI_energy(i)+ pt2(i) - (CI_energy(1) + pt2(1))) * 27.211396641308d0
         enddo
       endif
-      if(N_states.gt.1)then
-        print*,'Variational + perturbative Energy difference'
-        do i = 2, N_states
-          print*,'Delta E = ',CI_energy(i)+ pt2(i) - (CI_energy(1) + pt2(1))
-        enddo
-      endif
+      call ezfio_set_full_ci_zmq_energy_pt2(CI_energy(1)+pt2(1))
+      call dump_fci_iterations_value(N_det,CI_energy,pt2) 
 
       n_det_before = N_det
-      to_select = N_det
-      to_select = max(N_det, to_select)
-      to_select = min(to_select, N_det_max-n_det_before)
+      if (s2_eig) then
+        to_select = N_det/2+1
+        to_select = max(N_det/2+1, to_select)
+        to_select = min(to_select, N_det_max-n_det_before)
+      else
+        to_select = N_det
+        to_select = max(N_det, to_select)
+        to_select = min(to_select, N_det_max-n_det_before)
+      endif
       call ZMQ_selection(to_select, pt2)
       
       PROVIDE  psi_coef
@@ -135,8 +166,6 @@ program fci_zmq
       call diagonalize_CI
       call save_wavefunction
       call ezfio_set_full_ci_zmq_energy(CI_energy(1))
-      call ezfio_set_full_ci_zmq_energy_pt2(CI_energy(1)+pt2(1))
-      call dump_fci_iterations_value(N_det,CI_energy(1),pt2(1)) ! This call automatically appends data
     enddo
   endif
 
@@ -145,28 +174,64 @@ program fci_zmq
       call diagonalize_CI
       call save_wavefunction
       call ezfio_set_full_ci_zmq_energy(CI_energy(1))
-      call dump_fci_iterations_value(N_det,CI_energy(1),pt2(1)) ! This call automatically appends data
+      call ezfio_set_full_ci_zmq_energy_pt2(CI_energy(1)+pt2(1))
   endif
 
   if (do_pt2) then
     pt2 = 0.d0
-    if (N_states == 1) then
-      threshold_selectors = 1.d0
-      threshold_generators = 1d0 
-      SOFT_TOUCH threshold_selectors threshold_generators
-      call ZMQ_pt2(CI_energy, pt2, relative_error) ! Stochastic PT2
-      threshold_selectors = threshold_selectors_save
-      threshold_generators = threshold_generators_save
-      SOFT_TOUCH threshold_selectors threshold_generators
-    else
-      threshold_selectors = max(threshold_selectors,threshold_selectors_pt2)
-      threshold_generators = max(threshold_generators,threshold_generators_pt2)
-      SOFT_TOUCH threshold_selectors threshold_generators
-      call ZMQ_selection(0, pt2)      ! Deterministic PT2
-    endif
+    threshold_selectors = 1.d0
+    threshold_generators = 1d0 
+    SOFT_TOUCH threshold_selectors threshold_generators
+    call ZMQ_pt2(CI_energy, pt2,relative_error,absolute_error,error) ! Stochastic PT2
+    threshold_selectors = threshold_selectors_save
+    threshold_generators = threshold_generators_save
+    SOFT_TOUCH threshold_selectors threshold_generators
+    call ezfio_set_full_ci_zmq_energy(CI_energy(1))
     call ezfio_set_full_ci_zmq_energy_pt2(CI_energy(1)+pt2(1))
-    call dump_fci_iterations_value(N_det,CI_energy(1),pt2(1)) ! This call automatically appends data
   endif
+  print *,  'N_det             = ', N_det
+  print *,  'N_states          = ', N_states
+  print*,   'correlation_ratio = ', correlation_energy_ratio
+
+
+  call dump_fci_iterations_value(N_det,CI_energy,pt2) 
+
+  print *, ''
+  print '(A,I12)',  'Summary at N_det = ', N_det
+  print '(A)',      '-----------------------------------'
+  print *, ''
+  call write_double(6,correlation_energy_ratio, 'Correlation ratio')
+  print *, ''
+
+
+  N_states_p = min(N_det,N_states)
+  print *,  ''
+  write(fmt,*) '(''# ============'',', N_states_p, '(1X,''=============================''))'
+  write(*,fmt)
+  write(fmt,*) '(12X,', N_states_p, '(6X,A7,1X,I6,10X))'
+  write(*,fmt) ('State',k, k=1,N_states_p)
+  write(fmt,*) '(''# ============'',', N_states_p, '(1X,''=============================''))'
+  write(*,fmt)
+  write(fmt,*) '(A12,', N_states_p, '(1X,F14.8,15X))'
+  write(*,fmt) '# E          ', CI_energy(1:N_states_p)
+  if (N_states_p > 1) then
+    write(*,fmt) '# Excit. (au)', CI_energy(1:N_states_p)-CI_energy(1)
+    write(*,fmt) '# Excit. (eV)', (CI_energy(1:N_states_p)-CI_energy(1))*27.211396641308d0
+  endif
+  write(fmt,*) '(A12,', 2*N_states_p, '(1X,F14.8))'
+  write(*,fmt) '# PT2'//pt2_string, (pt2(k), error(k), k=1,N_states_p)
+  write(*,'(A)') '#'
+  write(*,fmt) '# E+PT2      ', (CI_energy(k)+pt2(k),error(k), k=1,N_states_p)
+  if (N_states_p > 1) then
+    write(*,fmt) '# Excit. (au)', ( (CI_energy(k)+pt2(k)-CI_energy(1)-pt2(1)), &
+      dsqrt(error(k)*error(k)+error(1)*error(1)), k=1,N_states_p)
+    write(*,fmt) '# Excit. (eV)', ( (CI_energy(k)+pt2(k)-CI_energy(1)-pt2(1))*27.211396641308d0, &
+      dsqrt(error(k)*error(k)+error(1)*error(1))*27.211396641308d0, k=1,N_states_p)
+  endif
+  write(fmt,*) '(''# ============'',', N_states_p, '(1X,''=============================''))'
+  write(*,fmt)
+  print *,  ''
+
 
 
 end

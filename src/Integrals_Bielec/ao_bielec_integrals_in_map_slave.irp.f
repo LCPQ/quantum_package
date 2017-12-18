@@ -98,23 +98,37 @@ subroutine ao_bielec_integrals_in_map_slave(thread,iproc)
   character*(64)                 :: state
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
+
+  integer, external :: connect_to_taskserver
+  if (connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread) == -1) then
+    call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
+    return
+  endif
+
   zmq_socket_push      = new_zmq_push_socket(thread)
 
   allocate ( buffer_i(ao_num*ao_num), buffer_value(ao_num*ao_num) )
 
-  call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
 
   do 
-    call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task)
+    integer, external :: get_task_from_taskserver
+    if (get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task) == -1) then
+      exit
+    endif
     if (task_id == 0) exit
     read(task,*) j, l
+    integer, external :: task_done_to_taskserver
     call compute_ao_integrals_jl(j,l,n_integrals,buffer_i,buffer_value) 
-    call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id)
+    if (task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id) == -1) then
+        stop 'Unable to send task_done'
+    endif
     call push_integrals(zmq_socket_push, n_integrals, buffer_i, buffer_value, task_id)
   enddo
 
-
-  call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
+  integer, external :: disconnect_from_taskserver
+  if (disconnect_from_taskserver(zmq_to_qp_run_socket,worker_id) == -1) then
+    continue
+  endif
   deallocate( buffer_i, buffer_value )
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
@@ -122,7 +136,7 @@ subroutine ao_bielec_integrals_in_map_slave(thread,iproc)
 end
 
 
-subroutine ao_bielec_integrals_in_map_collector
+subroutine ao_bielec_integrals_in_map_collector(zmq_socket_pull)
   use map_module
   use f77_zmq
   implicit none
@@ -130,6 +144,7 @@ subroutine ao_bielec_integrals_in_map_collector
 ! Collects results from the AO integral calculation
   END_DOC
 
+  integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
   integer                        :: j,l,n_integrals
   integer                        :: rc
   
@@ -140,13 +155,11 @@ subroutine ao_bielec_integrals_in_map_collector
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
   
   integer(ZMQ_PTR), external     :: new_zmq_pull_socket
-  integer(ZMQ_PTR)               :: zmq_socket_pull
   
   integer*8                      :: control, accu, sze
   integer                        :: task_id, more
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  zmq_socket_pull = new_zmq_pull_socket()
 
   sze = ao_num*ao_num
   allocate ( buffer_i(sze), buffer_value(sze) )
@@ -201,7 +214,10 @@ IRP_ENDIF
       call insert_into_ao_integrals_map(n_integrals,buffer_i,buffer_value)
       accu += n_integrals
       if (task_id /= 0) then
-        call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
+        integer, external :: zmq_delete_task
+        if (zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more) == -1) then
+          stop 'Unable to delete task'
+        endif
       endif
     endif
 
@@ -223,7 +239,6 @@ IRP_ENDIF
   endif
 
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-  call end_zmq_pull_socket(zmq_socket_pull)
 
 end
 

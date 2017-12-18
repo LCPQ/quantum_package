@@ -249,7 +249,7 @@ let parse_input input=
         in
         let typ  = String_ext.strip typ
         and name = String_ext.strip name in
-        let typ_cap = String.capitalize typ in
+        let typ_cap = String.capitalize_ascii typ in
         let newstring = Printf.sprintf template name typ typ typ params_val typ typ 
           typ typ params ( String_ext.strip text ) typ_cap
         in
@@ -320,8 +320,8 @@ let parse_input_ezfio input=
         | _ -> assert false
         in
         Printf.sprintf ezfio_template 
-          name typ typ typ typ typ typ typ typ (String.capitalize typ)
-          ezfio_func ezfio_func max min typ typ max msg min name (String.capitalize typ)
+          name typ typ typ typ typ typ typ typ (String.capitalize_ascii typ)
+          ezfio_func ezfio_func max min typ typ max msg min name (String.capitalize_ascii typ)
       end
     | _ -> failwith "Error in input_ezfio"
   in

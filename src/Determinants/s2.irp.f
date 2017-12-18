@@ -10,7 +10,6 @@ double precision function diag_S_mat_elem(key_i,Nint)
   END_DOC
   integer                        :: nup, i
   integer(bit_kind)              :: xorvec(N_int_max)
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
 
   do i=1,Nint
     xorvec(i) = xor(key_i(i,1),key_i(i,2))

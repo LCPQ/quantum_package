@@ -49,7 +49,7 @@ function run_FCI_ZMQ() {
 
 
 @test "FCI-ZMQ H2O cc-pVDZ" {
-  run_FCI_ZMQ h2o.ezfio 2000 -76.1250552686394     -76.1258817228809  
+  run_FCI_ZMQ h2o.ezfio 2000 -76.1255113765945     -76.12588757
 }
 
 

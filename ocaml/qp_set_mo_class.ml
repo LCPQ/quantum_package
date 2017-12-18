@@ -203,6 +203,18 @@ let set ~core ~inact ~act ~virt ~del =
 
 
 let get () =
+
+  let data =
+    match Input.Electrons.read () with
+    | None -> failwith "Unable to read electrons"
+    | Some x -> x
+  in
+  let elec_alpha_num = 
+    Elec_alpha_number.to_int data.Input.Electrons.elec_alpha_num
+  and elec_beta_num = 
+    Elec_beta_number.to_int data.Input.Electrons.elec_beta_num
+  in
+
   let data =
     match Input.Mo_basis.read () with
     | None -> failwith "Unable to read MOs"
@@ -213,11 +225,13 @@ let get () =
     MO_number.to_int data.Input.Mo_basis.mo_tot_num
   in
 
+
   let n_int =
     try  N_int_number.of_int (Ezfio.get_determinants_n_int ())
     with _ -> Bitlist.n_int_of_mo_tot_num mo_tot_num 
   in
 
+  Printf.printf "Electrons: %d %d\n" elec_alpha_num elec_beta_num;
   Printf.printf "MO  : %d\n" mo_tot_num;
   Printf.printf "n_int: %d\n" (N_int_number.to_int n_int);
 

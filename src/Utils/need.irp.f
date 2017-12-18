@@ -1,12 +1,11 @@
  
-      double precision function SABpartial(zA,zB,A,B,nA,nB,gamA,gamB) 
+      double precision function SABpartial(zA,zB,A,B,nA,nB,gamA,gamB,l) 
       implicit double precision(a-h,o-z)
       dimension nA(3),nB(3)
       dimension A(3),B(3)
       gamtot=gamA+gamB
       SABpartial=1.d0
 
-      l=3
       u=gamA/gamtot*A(l)+gamB/gamtot*B(l)
       arg=gamtot*u**2-gamA*A(l)**2-gamB*B(l)**2
       alpha=dexp(arg)

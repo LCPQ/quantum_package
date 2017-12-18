@@ -32,20 +32,23 @@ subroutine davidson_run_slave(thread,iproc)
   integer(ZMQ_PTR), external     :: new_zmq_push_socket
   integer(ZMQ_PTR)               :: zmq_socket_push
 
-  
-
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
+
+  integer, external :: connect_to_taskserver 
+
+  if (connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread) == -1) then 
+    call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket) 
+  endif
+
   zmq_socket_push      = new_zmq_push_socket(thread)
-  call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
-  if(worker_id == -1) then
-    print *, "WORKER -1"
-    call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-    call end_zmq_push_socket(zmq_socket_push,thread)
-    return
-  end if
-  
+
   call davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_states_diag, N_det, worker_id)
-  call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
+
+  integer, external :: disconnect_from_taskserver 
+  if (disconnect_from_taskserver(zmq_to_qp_run_socket,worker_id) == -1) then 
+    continue 
+  endif 
+
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
 end subroutine
@@ -65,6 +68,7 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
   
   integer, allocatable           :: psi_det_read(:,:,:)
   double precision, allocatable  :: v_t(:,:), s_t(:,:), u_t(:,:)
+
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: u_t, v_t, s_t
 
   ! Get wave function (u_t)
@@ -74,56 +78,30 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
   integer*8                      :: rc8
   integer                        :: N_states_read, N_det_read, psi_det_size_read
   integer                        :: N_det_selectors_read, N_det_generators_read
-  double precision               :: energy(N_st)
+  double precision, allocatable  :: energy(:)
 
+  integer, external :: zmq_get_dvector
 
-  write(msg, *) 'get_psi ', worker_id
-  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
-  if (rc /= len(trim(msg))) then
-    print *,  'f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)'
-    stop 'error'
+  allocate(u_t(N_st,N_det))
+  allocate (energy(N_st))
+
+  if (zmq_get_dvector(zmq_to_qp_run_socket, worker_id, 'u_t', u_t, size(u_t)) == -1) then
+    deallocate(u_t,energy)
+    return
   endif
 
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
-  if (msg(1:13) /= 'get_psi_reply') then
-    print *,  rc, trim(msg)
-    print *,  'Error in get_psi_reply'
-    stop 'error'
+  if (zmq_get_dvector(zmq_to_qp_run_socket, worker_id, 'energy', energy, size(energy)) == -1) then
+    deallocate(u_t,energy)
+    return
   endif
 
-  read(msg(14:rc),*) N_states_read, N_det_read, psi_det_size_read,        &
-      N_det_generators_read, N_det_selectors_read
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
 
-  if (N_states_read /= N_st) then
-    print *, N_st
-    stop 'error : N_st'
-  endif
-
-  if (N_det_read /= N_det) then
-    N_det = N_det_read
-    TOUCH N_det
-  endif
-
-  allocate(u_t(N_st,N_det_read))
-
-  rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det_read*bit_kind,0)
-  if (rc8 /= N_int*2_8*N_det_read*bit_kind) then
-    print *, 'f77_zmq_recv8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det_read*bit_kind,0)'
-    stop 'error'
-  endif
-
-  rc8 = f77_zmq_recv8(zmq_to_qp_run_socket,u_t,size(u_t)*8_8,0)
-  if (rc8 /= size(u_t)*8_8) then
-    print *,  rc, size(u_t)*8
-    print *, 'f77_zmq_recv8(zmq_to_qp_run_socket,u_t,size(u_t)*8_8,0)'
-    stop 'error'
-  endif
-
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,energy,N_st*8,0)
-  if (rc /= N_st*8) then
-    print *, '77_zmq_recv(zmq_to_qp_run_socket,energy,N_st*8,0)'
-    stop 'error'
-  endif
+    call broadcast_chunks_double(u_t,size(u_t))
+    
+  IRP_ENDIF
 
   ! Run tasks
   ! ---------
@@ -131,13 +109,20 @@ subroutine davidson_slave_work(zmq_to_qp_run_socket, zmq_socket_push, N_st, sze,
 
   allocate(v_t(N_st,N_det), s_t(N_st,N_det))
   do
-    call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, msg)
+    integer, external :: get_task_from_taskserver
+    integer, external :: task_done_to_taskserver
+    call sleep(1)
+    if (get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, msg) == -1) then
+      exit
+    endif
     if(task_id == 0) exit
     read (msg,*) imin, imax, ishift, istep
     v_t = 0.d0
     s_t = 0.d0
     call H_S2_u_0_nstates_openmp_work(v_t,s_t,u_t,N_st,N_det,imin,imax,ishift,istep)
-    call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id)
+    if (task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id) == -1) then
+        print *,  irp_here, 'Unable to send task_done'
+    endif
     call davidson_push_results(zmq_socket_push, v_t, s_t, imin, imax, task_id)
   end do
   deallocate(u_t,v_t, s_t)
@@ -160,28 +145,28 @@ subroutine davidson_push_results(zmq_socket_push, v_t, s_t, imin, imax, task_id)
   sz = (imax-imin+1)*N_states_diag
 
   rc = f77_zmq_send( zmq_socket_push, task_id, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "davidson_push_results failed to push task_id"
+  if(rc /= 4) stop 'davidson_push_results failed to push task_id'
 
   rc = f77_zmq_send( zmq_socket_push, imin, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "davidson_push_results failed to push imin"
+  if(rc /= 4) stop 'davidson_push_results failed to push imin'
 
   rc = f77_zmq_send( zmq_socket_push, imax, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "davidson_push_results failed to push imax"
+  if(rc /= 4) stop 'davidson_push_results failed to push imax'
 
   rc8 = f77_zmq_send8( zmq_socket_push, v_t(1,imin), 8_8*sz, ZMQ_SNDMORE)
-  if(rc8 /= 8_8*sz) stop "davidson_push_results failed to push vt"
+  if(rc8 /= 8_8*sz) stop 'davidson_push_results failed to push vt'
 
   rc8 = f77_zmq_send8( zmq_socket_push, s_t(1,imin), 8_8*sz, 0)
-  if(rc8 /= 8_8*sz) stop "davidson_push_results failed to push st"
+  if(rc8 /= 8_8*sz) stop 'davidson_push_results failed to push st'
 
 ! Activate is zmq_socket_push is a REQ
 IRP_IF ZMQ_PUSH
 IRP_ELSE
-  integer :: idummy
-  rc = f77_zmq_recv( zmq_socket_push, idummy, 4, 0)
-  if (rc /= 4) then
-    print *, irp_here, ': f77_zmq_send( zmq_socket_push, idummy, 4, 0)'
-    stop 'error'
+  character*(2) :: ok
+  rc = f77_zmq_recv( zmq_socket_push, ok, 2, 0)
+  if ((rc /= 2).and.(ok(1:2)/='ok')) then
+    print *, irp_here, ': f77_zmq_recv( zmq_socket_push, ok, 2, 0)'
+    stop -1
   endif
 IRP_ENDIF
 
@@ -202,29 +187,29 @@ subroutine davidson_pull_results(zmq_socket_pull, v_t, s_t, imin, imax, task_id)
   integer*8                          :: rc8
 
   rc = f77_zmq_recv( zmq_socket_pull, task_id, 4, 0)
-  if(rc /= 4) stop "davidson_pull_results failed to pull task_id"
+  if(rc /= 4) stop 'davidson_pull_results failed to pull task_id'
 
   rc = f77_zmq_recv( zmq_socket_pull, imin, 4, 0)
-  if(rc /= 4) stop "davidson_pull_results failed to pull imin"
+  if(rc /= 4) stop 'davidson_pull_results failed to pull imin'
 
   rc = f77_zmq_recv( zmq_socket_pull, imax, 4, 0)
-  if(rc /= 4) stop "davidson_pull_results failed to pull imax"
+  if(rc /= 4) stop 'davidson_pull_results failed to pull imax'
 
   sz = (imax-imin+1)*N_states_diag
 
   rc8 = f77_zmq_recv8( zmq_socket_pull, v_t(1,imin), 8_8*sz, 0)
-  if(rc8 /= 8*sz) stop "davidson_pull_results failed to pull v_t"
+  if(rc8 /= 8*sz) stop 'davidson_pull_results failed to pull v_t'
 
   rc8 = f77_zmq_recv8( zmq_socket_pull, s_t(1,imin), 8_8*sz, 0)
-  if(rc8 /= 8*sz) stop "davidson_pull_results failed to pull s_t"
+  if(rc8 /= 8*sz) stop 'davidson_pull_results failed to pull s_t'
 
 ! Activate if zmq_socket_pull is a REP
 IRP_IF ZMQ_PUSH
 IRP_ELSE
-  rc = f77_zmq_send( zmq_socket_pull, 0, 4, 0)
-  if (rc /= 4) then
+  rc = f77_zmq_send( zmq_socket_pull, 'ok', 2, 0)
+  if (rc /= 2) then
     print *,  irp_here, ' : f77_zmq_send (zmq_socket_pull,...'
-    stop 'error'
+    stop -1
   endif
 IRP_ENDIF
 
@@ -232,10 +217,11 @@ end subroutine
 
 
 
-subroutine davidson_collector(zmq_to_qp_run_socket, v0, s0, sze, N_st)
+subroutine davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull, v0, s0, sze, N_st)
   use f77_zmq
   implicit none
 
+  integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
   integer, intent(in)            :: sze, N_st
   integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
   
@@ -246,14 +232,11 @@ subroutine davidson_collector(zmq_to_qp_run_socket, v0, s0, sze, N_st)
   
   double precision, allocatable :: v_t(:,:), s_t(:,:)
   integer :: i,j
-  integer(ZMQ_PTR), external     :: new_zmq_pull_socket
-  integer(ZMQ_PTR)               :: zmq_socket_pull
 
   allocate(v_t(N_st,N_det), s_t(N_st,N_det))
   v0 = 0.d0 
   s0 = 0.d0 
   more = 1
-  zmq_socket_pull = new_zmq_pull_socket()
   do while (more == 1)
     call davidson_pull_results(zmq_socket_pull, v_t, s_t, imin, imax, task_id)
     do j=1,N_st
@@ -262,10 +245,12 @@ subroutine davidson_collector(zmq_to_qp_run_socket, v0, s0, sze, N_st)
         s0(i,j) = s0(i,j) + s_t(j,i)
       enddo
     enddo
-    call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more)
+    integer, external :: zmq_delete_task
+    if (zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more) == -1) then
+      stop 'Unable to delete task'
+    endif
   end do
   deallocate(v_t,s_t)
-  call end_zmq_pull_socket(zmq_socket_pull)
 
 end subroutine
 
@@ -297,6 +282,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   PROVIDE psi_det_beta_unique psi_bilinear_matrix_order_transp_reverse psi_det_alpha_unique 
   PROVIDE psi_bilinear_matrix_transp_values psi_bilinear_matrix_values psi_bilinear_matrix_columns_loc
   PROVIDE ref_bitmask_energy nproc
+  PROVIDE mpi_initialized
 
 
   allocate(u_t(N_st,N_det))
@@ -311,50 +297,33 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
       N_det, N_st)
 
 
-  integer(ZMQ_PTR) :: zmq_to_qp_run_socket
+  integer(ZMQ_PTR) :: zmq_to_qp_run_socket, zmq_socket_pull
   
   ASSERT (N_st == N_states_diag)
   ASSERT (sze >= N_det) 
 
-  call new_parallel_job(zmq_to_qp_run_socket,'davidson')
+  call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,'davidson')
   
   character*(512) :: task
   integer :: rc
   integer*8 :: rc8
   double precision :: energy(N_st)
+
+  integer, external :: zmq_put_dvector, zmq_put_psi, zmq_put_N_states_diag
+
   energy = 0.d0
 
-  task = ' '
-  write(task,*) 'put_psi ', 1, N_st, N_det, N_det
-  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(task),len(trim(task)),ZMQ_SNDMORE)
-  if (rc /= len(trim(task))) then
-    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,trim(task),len(trim(task)),ZMQ_SNDMORE)'
-    stop 'error'
+  if (zmq_put_N_states_diag(zmq_to_qp_run_socket, 1) == -1) then
+    stop 'Unable to put N_states_diag on ZMQ server'
   endif
-
-  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,psi_det,N_int*2_8*N_det*bit_kind,ZMQ_SNDMORE)
-  if (rc8 /= N_int*2_8*N_det*bit_kind) then
-    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,psi_det,N_int*2*N_det*bit_kind,ZMQ_SNDMORE)'
-    stop 'error'
+  if (zmq_put_psi(zmq_to_qp_run_socket,1) == -1) then
+    stop 'Unable to put psi on ZMQ server'
   endif
-
-  rc8 = f77_zmq_send8(zmq_to_qp_run_socket,u_t,size(u_t)*8_8,ZMQ_SNDMORE)
-  if (rc8 /= size(u_t)*8_8) then
-    print *,  'f77_zmq_send8(zmq_to_qp_run_socket,u_t,int(size(u_t)*8,8),ZMQ_SNDMORE)'
-    stop 'error'
+  if (zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',energy,size(energy)) == -1) then
+    stop 'Unable to put energy on ZMQ server'
   endif
-
-  rc = f77_zmq_send(zmq_to_qp_run_socket,energy,N_st*8,0)
-  if (rc /= N_st*8) then
-    print *, 'f77_zmq_send8(zmq_to_qp_run_socket,energy,int(size_energy*8,8),0)'
-    stop 'error'
-  endif
-
-  rc = f77_zmq_recv(zmq_to_qp_run_socket,task,len(task),0)
-  if (task(1:rc) /= 'put_psi_reply 1') then
-    print *,  rc, trim(task)
-    print *,  'Error in put_psi_reply'
-    stop 'error'
+  if (zmq_put_dvector(zmq_to_qp_run_socket, 1, 'u_t', u_t, size(u_t)) == -1) then
+    stop 'Unable to put u_t on ZMQ server'
   endif
 
   deallocate(u_t)
@@ -365,6 +334,7 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
 
   integer :: istep, imin, imax, ishift
   double precision :: w, max_workload, N_det_inv, di
+  integer, external :: add_task_to_taskserver
   w = 0.d0
   istep=1
   ishift=0
@@ -377,7 +347,9 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
     if (w > max_workload) then
       do ishift=0,istep-1
         write(task,'(4(I9,1X),1A)') imin, imax, ishift, istep, '|'
-        call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task))
+        if (add_task_to_taskserver(zmq_to_qp_run_socket,trim(task)) == -1) then
+          stop 'Unable to add task'
+        endif
       enddo
       imin = imax+1
       w = 0.d0
@@ -387,7 +359,9 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
     imax = N_det
     do ishift=0,istep-1
       write(task,'(4(I9,1X),1A)') imin, imax, ishift, istep, '|'
-      call add_task_to_taskserver(zmq_to_qp_run_socket,trim(task))
+      if (add_task_to_taskserver(zmq_to_qp_run_socket,trim(task)) == -1) then
+        stop 'Unable to add task'
+      endif
     enddo
   endif
     
@@ -395,17 +369,21 @@ subroutine H_S2_u_0_nstates_zmq(v_0,s_0,u_0,N_st,sze)
   v_0 = 0.d0
   s_0 = 0.d0
 
+  integer, external :: zmq_set_running
+  if (zmq_set_running(zmq_to_qp_run_socket) == -1) then
+    print *,  irp_here, ': Failed in zmq_set_running'
+  endif
+
   call omp_set_nested(.True.)
-  call zmq_set_running(zmq_to_qp_run_socket)
   !$OMP PARALLEL NUM_THREADS(2) PRIVATE(ithread)
   ithread = omp_get_thread_num()
   if (ithread == 0 ) then
-    call davidson_collector(zmq_to_qp_run_socket, v_0, s_0, N_det, N_st)
+    call davidson_collector(zmq_to_qp_run_socket, zmq_socket_pull, v_0, s_0, N_det, N_st)
   else 
     call davidson_slave_inproc(1)
   endif
   !$OMP END PARALLEL
-  call end_parallel_job(zmq_to_qp_run_socket, 'davidson')
+  call end_parallel_job(zmq_to_qp_run_socket, zmq_socket_pull, 'davidson')
 
   do k=1,N_st
     call dset_order(v_0(1,k),psi_bilinear_matrix_order_reverse,N_det)
@@ -429,3 +407,94 @@ BEGIN_PROVIDER [ integer, nthreads_davidson ]
  call write_int(6,nthreads_davidson,'Number of threads for Diagonalization')
 END_PROVIDER
 
+
+integer function zmq_put_N_states_diag(zmq_to_qp_run_socket,worker_id)
+  use f77_zmq
+  implicit none
+  BEGIN_DOC
+! Put N_states_diag on the qp_run scheduler
+  END_DOC
+  integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
+  integer, intent(in)            :: worker_id
+  integer                        :: rc
+  character*(256)                :: msg
+
+  zmq_put_N_states_diag = 0
+
+  write(msg,'(A,1X,I8,1X,A200)') 'put_data '//trim(zmq_state), worker_id, 'N_states_diag'
+  rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),ZMQ_SNDMORE)
+  if (rc /= len(trim(msg))) then
+    zmq_put_N_states_diag = -1
+    return
+  endif
+
+  rc = f77_zmq_send(zmq_to_qp_run_socket,N_states_diag,4,0)
+  if (rc /= 4) then
+    zmq_put_N_states_diag = -1
+    return
+  endif
+
+  rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0)
+  if (msg(1:rc) /= 'put_data_reply ok') then
+    zmq_put_N_states_diag = -1
+    return
+  endif
+
+end
+
+integer function zmq_get_N_states_diag(zmq_to_qp_run_socket, worker_id)
+  use f77_zmq
+  implicit none
+  BEGIN_DOC
+! Get N_states_diag from the qp_run scheduler
+  END_DOC
+  integer(ZMQ_PTR), intent(in)   :: zmq_to_qp_run_socket
+  integer, intent(in)            :: worker_id
+  integer                        :: rc
+  character*(256)                :: msg
+
+  zmq_get_N_states_diag = 0
+
+  if (mpi_master) then
+    write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, 'N_states_diag'
+    rc = f77_zmq_send(zmq_to_qp_run_socket,trim(msg),len(trim(msg)),0)
+    if (rc /= len(trim(msg))) go to 10
+
+    rc = f77_zmq_recv(zmq_to_qp_run_socket,msg,len(msg),0) 
+    if (msg(1:14) /= 'get_data_reply') go to 10
+  
+    rc = f77_zmq_recv(zmq_to_qp_run_socket,N_states_diag,4,0) 
+    if (rc /= 4) go to 10
+  endif 
+
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+
+    call MPI_BCAST (zmq_get_N_states_diag, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      print *,  irp_here//': Unable to broadcast N_states'
+      stop -1
+    endif
+    if (zmq_get_N_states_diag == 0) then
+      call MPI_BCAST (N_states_diag, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      if (ierr /= MPI_SUCCESS) then
+        print *,  irp_here//': Unable to broadcast N_states'
+        stop -1
+      endif
+    endif
+  IRP_ENDIF
+
+  return
+
+  ! Exception
+  10 continue
+  zmq_get_N_states_diag = -1
+  IRP_IF MPI
+    call MPI_BCAST (zmq_get_N_states_diag, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      print *,  irp_here//': Unable to broadcast N_states'
+      stop -1
+    endif
+  IRP_ENDIF
+end

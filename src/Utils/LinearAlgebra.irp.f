@@ -70,7 +70,7 @@ subroutine ortho_canonical(overlap,LDA,N,C,LDC,m)
   double precision, allocatable  :: Vt(:,:)
   double precision, allocatable  :: D(:)
   double precision, allocatable  :: S(:,:)
-  !DEC$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
+  !DIR$ ATTRIBUTES ALIGN : 64    :: U, Vt, D
   integer                        :: info, i, j
   
   if (n < 2) then
@@ -280,7 +280,7 @@ subroutine get_inverse(A,LDA,m,C,LDC)
   integer                        :: info,lwork
   integer, allocatable           :: ipiv(:)
   double precision,allocatable   :: work(:)
-  allocate (ipiv(ao_num), work(ao_num*ao_num))
+  allocate (ipiv(m), work(m*m))
   lwork = size(work)
   C(1:m,1:m) = A(1:m,1:m)
   call dgetrf(m,m,C,size(C,1),ipiv,info)

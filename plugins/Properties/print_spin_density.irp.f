@@ -14,7 +14,7 @@ subroutine routine
  double precision, allocatable :: aos_array(:)
  allocate(aos_array(ao_num))
  r = 0.d0
- r(1) = z_min
+ r(spin_dens_coord) = z_min
  do i = 1, N_z_pts
   call give_all_aos_at_r(r,aos_array)
   accu = 0.d0
@@ -28,8 +28,8 @@ subroutine routine
     accu_beta  += one_body_dm_ao_beta(k,j) * tmp
    enddo
   enddo
-  r(1) += delta_z
-  write(33,'(100(f16.10,X))')r(1),accu,accu_alpha,accu_beta
+  r(spin_dens_coord) += delta_z
+  write(33,'(100(f16.10,X))')r(spin_dens_coord),accu,accu_alpha,accu_beta
  enddo
  
 

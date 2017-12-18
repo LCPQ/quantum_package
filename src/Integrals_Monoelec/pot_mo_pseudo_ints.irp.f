@@ -1,4 +1,4 @@
-BEGIN_PROVIDER [double precision, mo_pseudo_integral, (mo_tot_num_align,mo_tot_num)]
+BEGIN_PROVIDER [double precision, mo_pseudo_integral, (mo_tot_num,mo_tot_num)]
   implicit none
   BEGIN_DOC
   ! interaction nuclear electron on the MO basis

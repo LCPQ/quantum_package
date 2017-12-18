@@ -115,7 +115,7 @@ Documentation
   Local pseudo-potential
 
 
-`ao_pseudo_integral_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L144>`_
+`ao_pseudo_integral_non_local <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L131>`_
   Local pseudo-potential
 
 
@@ -193,7 +193,7 @@ Documentation
 
 `mo_mono_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/mo_mono_ints.irp.f#L1>`_
   array of the mono electronic hamiltonian on the MOs basis :
-  sum of the kinetic and nuclear electronic potential
+  sum of the kinetic and nuclear electronic potential (and pseudo potential if needed)
 
 
 `mo_nucl_elec_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_mo_ints.irp.f#L1>`_
@@ -259,27 +259,27 @@ Documentation
   Undocumented
 
 
-`pseudo_dz_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L260>`_
+`pseudo_dz_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L233>`_
   Transposed arrays for pseudopotentials
 
 
-`pseudo_dz_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L278>`_
+`pseudo_dz_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L251>`_
   Transposed arrays for pseudopotentials
 
 
-`pseudo_n_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L259>`_
+`pseudo_n_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L232>`_
   Transposed arrays for pseudopotentials
 
 
-`pseudo_n_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L277>`_
+`pseudo_n_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L250>`_
   Transposed arrays for pseudopotentials
 
 
-`pseudo_v_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L258>`_
+`pseudo_v_k_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L231>`_
   Transposed arrays for pseudopotentials
 
 
-`pseudo_v_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L276>`_
+`pseudo_v_kl_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Integrals_Monoelec/pot_ao_pseudo_ints.irp.f#L249>`_
   Transposed arrays for pseudopotentials
 
 

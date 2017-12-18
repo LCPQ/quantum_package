@@ -102,25 +102,37 @@ BEGIN_PROVIDER [ integer, N_generators_bitmask ]
  logical                        :: exists
  PROVIDE ezfio_filename
  
- call ezfio_has_bitmasks_N_mask_gen(exists)
- if (exists) then
-   call ezfio_get_bitmasks_N_mask_gen(N_generators_bitmask)
-   integer                        :: N_int_check
-   integer                        :: bit_kind_check
-   call ezfio_get_bitmasks_bit_kind(bit_kind_check)
-   if (bit_kind_check /= bit_kind) then
-     print *,  bit_kind_check, bit_kind
-     print *,  'Error: bit_kind is not correct in EZFIO file'
-   endif
-   call ezfio_get_bitmasks_N_int(N_int_check)
-   if (N_int_check /= N_int) then
-     print *,  N_int_check, N_int
-     print *,  'Error: N_int is not correct in EZFIO file'
-   endif
- else
-   N_generators_bitmask = 1
+ if (mpi_master) then
+  call ezfio_has_bitmasks_N_mask_gen(exists)
+  if (exists) then
+    call ezfio_get_bitmasks_N_mask_gen(N_generators_bitmask)
+    integer                        :: N_int_check
+    integer                        :: bit_kind_check
+    call ezfio_get_bitmasks_bit_kind(bit_kind_check)
+    if (bit_kind_check /= bit_kind) then
+      print *,  bit_kind_check, bit_kind
+      print *,  'Error: bit_kind is not correct in EZFIO file'
+    endif
+    call ezfio_get_bitmasks_N_int(N_int_check)
+    if (N_int_check /= N_int) then
+      print *,  N_int_check, N_int
+      print *,  'Error: N_int is not correct in EZFIO file'
+    endif
+  else
+    N_generators_bitmask = 1
+  endif
+  ASSERT (N_generators_bitmask > 0)
+  call write_int(6,N_generators_bitmask,'N_generators_bitmask')
  endif
- ASSERT (N_generators_bitmask > 0)
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+    call MPI_BCAST( N_generators_bitmask, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to read N_generators_bitmask with MPI'
+    endif
+  IRP_ENDIF
+
 
 END_PROVIDER
 
@@ -131,27 +143,39 @@ BEGIN_PROVIDER [ integer, N_generators_bitmask_restart ]
  ! Number of bitmasks for generators
  END_DOC
  logical                        :: exists
- PROVIDE ezfio_filename
+ PROVIDE ezfio_filename N_int 
  
- call ezfio_has_bitmasks_N_mask_gen(exists)
- if (exists) then
-   call ezfio_get_bitmasks_N_mask_gen(N_generators_bitmask_restart)
-   integer                        :: N_int_check
-   integer                        :: bit_kind_check
-   call ezfio_get_bitmasks_bit_kind(bit_kind_check)
-   if (bit_kind_check /= bit_kind) then
-     print *,  bit_kind_check, bit_kind
-     print *,  'Error: bit_kind is not correct in EZFIO file'
-   endif
-   call ezfio_get_bitmasks_N_int(N_int_check)
-   if (N_int_check /= N_int) then
-     print *,  N_int_check, N_int
-     print *,  'Error: N_int is not correct in EZFIO file'
-   endif
- else
-   N_generators_bitmask_restart = 1
+ if (mpi_master) then
+  call ezfio_has_bitmasks_N_mask_gen(exists)
+  if (exists) then
+    call ezfio_get_bitmasks_N_mask_gen(N_generators_bitmask_restart)
+    integer                        :: N_int_check
+    integer                        :: bit_kind_check
+    call ezfio_get_bitmasks_bit_kind(bit_kind_check)
+    if (bit_kind_check /= bit_kind) then
+      print *,  bit_kind_check, bit_kind
+      print *,  'Error: bit_kind is not correct in EZFIO file'
+    endif
+    call ezfio_get_bitmasks_N_int(N_int_check)
+    if (N_int_check /= N_int) then
+      print *,  N_int_check, N_int
+      print *,  'Error: N_int is not correct in EZFIO file'
+    endif
+  else
+    N_generators_bitmask_restart = 1
+  endif
+  ASSERT (N_generators_bitmask_restart > 0)
+  call write_int(6,N_generators_bitmask_restart,'N_generators_bitmask_restart')
  endif
- ASSERT (N_generators_bitmask_restart > 0)
+ IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+    call MPI_BCAST( N_generators_bitmask_restart, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to read N_generators_bitmask_restart with MPI'
+    endif
+ IRP_ENDIF
+
 
 END_PROVIDER
 
@@ -180,40 +204,52 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask_restart, (N_int,2,6,N_gen
  !
  END_DOC
  logical                        :: exists
- PROVIDE ezfio_filename
+ PROVIDE ezfio_filename full_ijkl_bitmask N_generators_bitmask N_int
+ PROVIDE generators_bitmask_restart 
 
- call ezfio_has_bitmasks_generators(exists)
- if (exists) then
-   call ezfio_get_bitmasks_generators(generators_bitmask_restart)
- else
-   integer :: k, ispin
-   do k=1,N_generators_bitmask
-     do ispin=1,2
-      do i=1,N_int
-       generators_bitmask_restart(i,ispin,s_hole ,k) = full_ijkl_bitmask(i)
-       generators_bitmask_restart(i,ispin,s_part ,k) = full_ijkl_bitmask(i)
-       generators_bitmask_restart(i,ispin,d_hole1,k) = full_ijkl_bitmask(i)
-       generators_bitmask_restart(i,ispin,d_part1,k) = full_ijkl_bitmask(i)
-       generators_bitmask_restart(i,ispin,d_hole2,k) = full_ijkl_bitmask(i)
-       generators_bitmask_restart(i,ispin,d_part2,k) = full_ijkl_bitmask(i)
+ if (mpi_master) then
+  call ezfio_has_bitmasks_generators(exists)
+  if (exists) then
+    call ezfio_get_bitmasks_generators(generators_bitmask_restart)
+  else
+    integer :: k, ispin
+    do k=1,N_generators_bitmask
+      do ispin=1,2
+        do i=1,N_int
+        generators_bitmask_restart(i,ispin,s_hole ,k) = full_ijkl_bitmask(i)
+        generators_bitmask_restart(i,ispin,s_part ,k) = full_ijkl_bitmask(i)
+        generators_bitmask_restart(i,ispin,d_hole1,k) = full_ijkl_bitmask(i)
+        generators_bitmask_restart(i,ispin,d_part1,k) = full_ijkl_bitmask(i)
+        generators_bitmask_restart(i,ispin,d_hole2,k) = full_ijkl_bitmask(i)
+        generators_bitmask_restart(i,ispin,d_part2,k) = full_ijkl_bitmask(i)
+        enddo
       enddo
-     enddo
-   enddo
- endif
+    enddo
+  endif
 
- integer :: i
- do k=1,N_generators_bitmask
-   do ispin=1,2
-     do i=1,N_int
-      generators_bitmask_restart(i,ispin,s_hole ,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,s_hole,k) )
-      generators_bitmask_restart(i,ispin,s_part ,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,s_part,k) )
-      generators_bitmask_restart(i,ispin,d_hole1,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,d_hole1,k) )
-      generators_bitmask_restart(i,ispin,d_part1,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,d_part1,k) )
-      generators_bitmask_restart(i,ispin,d_hole2,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,d_hole2,k) )
-      generators_bitmask_restart(i,ispin,d_part2,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,d_part2,k) )
-     enddo
-   enddo
- enddo
+  integer :: i
+  do k=1,N_generators_bitmask
+    do ispin=1,2
+      do i=1,N_int
+        generators_bitmask_restart(i,ispin,s_hole ,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,s_hole,k) )
+        generators_bitmask_restart(i,ispin,s_part ,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,s_part,k) )
+        generators_bitmask_restart(i,ispin,d_hole1,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,d_hole1,k) )
+        generators_bitmask_restart(i,ispin,d_part1,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,d_part1,k) )
+        generators_bitmask_restart(i,ispin,d_hole2,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,d_hole2,k) )
+        generators_bitmask_restart(i,ispin,d_part2,k) = iand(full_ijkl_bitmask(i),generators_bitmask_restart(i,ispin,d_part2,k) )
+      enddo
+    enddo
+  enddo
+ endif
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+    call MPI_BCAST( generators_bitmask_restart, N_int*2*6*N_generators_bitmask_restart, MPI_BIT_KIND, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to read generators_bitmask_restart with MPI'
+    endif
+  IRP_ENDIF
+
 END_PROVIDER
 
 
@@ -239,8 +275,9 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_
  !
  END_DOC
  logical                        :: exists
- PROVIDE ezfio_filename
+ PROVIDE ezfio_filename full_ijkl_bitmask N_generators_bitmask
 
+if (mpi_master) then
  call ezfio_has_bitmasks_generators(exists)
  if (exists) then
    call ezfio_get_bitmasks_generators(generators_bitmask)
@@ -272,6 +309,16 @@ BEGIN_PROVIDER [ integer(bit_kind), generators_bitmask, (N_int,2,6,N_generators_
      enddo
    enddo
  enddo
+ endif
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+    call MPI_BCAST( generators_bitmask, N_int*2*6*N_generators_bitmask, MPI_BIT_KIND, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to read generators_bitmask with MPI'
+    endif
+  IRP_ENDIF
+
 END_PROVIDER
 
 BEGIN_PROVIDER [ integer, N_cas_bitmask ]
@@ -281,26 +328,37 @@ BEGIN_PROVIDER [ integer, N_cas_bitmask ]
  END_DOC
  logical                        :: exists
  PROVIDE ezfio_filename
- 
- call ezfio_has_bitmasks_N_mask_cas(exists)
- if (exists) then
-   call ezfio_get_bitmasks_N_mask_cas(N_cas_bitmask)
-   integer                        :: N_int_check
-   integer                        :: bit_kind_check
-   call ezfio_get_bitmasks_bit_kind(bit_kind_check)
-   if (bit_kind_check /= bit_kind) then
-     print *,  bit_kind_check, bit_kind
-     print *,  'Error: bit_kind is not correct in EZFIO file'
-   endif
-   call ezfio_get_bitmasks_N_int(N_int_check)
-   if (N_int_check /= N_int) then
-     print *,  N_int_check, N_int
-     print *,  'Error: N_int is not correct in EZFIO file'
-   endif
- else
-   N_cas_bitmask = 1
+ PROVIDE N_cas_bitmask N_int
+ if (mpi_master) then
+  call ezfio_has_bitmasks_N_mask_cas(exists)
+  if (exists) then
+    call ezfio_get_bitmasks_N_mask_cas(N_cas_bitmask)
+    integer                        :: N_int_check
+    integer                        :: bit_kind_check
+    call ezfio_get_bitmasks_bit_kind(bit_kind_check)
+    if (bit_kind_check /= bit_kind) then
+      print *,  bit_kind_check, bit_kind
+      print *,  'Error: bit_kind is not correct in EZFIO file'
+    endif
+    call ezfio_get_bitmasks_N_int(N_int_check)
+    if (N_int_check /= N_int) then
+      print *,  N_int_check, N_int
+      print *,  'Error: N_int is not correct in EZFIO file'
+    endif
+  else
+    N_cas_bitmask = 1
+  endif
+  call write_int(6,N_cas_bitmask,'N_cas_bitmask')
  endif
  ASSERT (N_cas_bitmask > 0)
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+    call MPI_BCAST( N_cas_bitmask, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to read N_cas_bitmask with MPI'
+    endif
+  IRP_ENDIF
 
 END_PROVIDER
 
@@ -311,37 +369,50 @@ BEGIN_PROVIDER [ integer(bit_kind), cas_bitmask, (N_int,2,N_cas_bitmask) ]
  END_DOC
  logical                        :: exists
  integer                        :: i,i_part,i_gen,j,k
- PROVIDE ezfio_filename
+ PROVIDE ezfio_filename generators_bitmask_restart full_ijkl_bitmask
+ PROVIDE n_generators_bitmask HF_bitmask 
 
- call ezfio_has_bitmasks_cas(exists)
- if (exists) then
-   call ezfio_get_bitmasks_cas(cas_bitmask)
- else
-  if(N_generators_bitmask == 1)then
-   do j=1, N_cas_bitmask
-    do i=1, N_int
-     cas_bitmask(i,1,j) = iand(not(HF_bitmask(i,1)),full_ijkl_bitmask(i))
-     cas_bitmask(i,2,j) = iand(not(HF_bitmask(i,2)),full_ijkl_bitmask(i))
+ if (mpi_master) then
+  call ezfio_has_bitmasks_cas(exists)
+  if (exists) then
+    call ezfio_get_bitmasks_cas(cas_bitmask)
+  else
+    if(N_generators_bitmask == 1)then
+    do j=1, N_cas_bitmask
+      do i=1, N_int
+      cas_bitmask(i,1,j) = iand(not(HF_bitmask(i,1)),full_ijkl_bitmask(i))
+      cas_bitmask(i,2,j) = iand(not(HF_bitmask(i,2)),full_ijkl_bitmask(i))
+      enddo
     enddo
-   enddo
-  else 
-   i_part = 2
-   i_gen = 1
-   do j=1, N_cas_bitmask
-    do i=1, N_int
-      cas_bitmask(i,1,j) = generators_bitmask_restart(i,1,i_part,i_gen)
-      cas_bitmask(i,2,j) = generators_bitmask_restart(i,2,i_part,i_gen)
+    else 
+    i_part = 2
+    i_gen = 1
+    do j=1, N_cas_bitmask
+      do i=1, N_int
+        cas_bitmask(i,1,j) = generators_bitmask_restart(i,1,i_part,i_gen)
+        cas_bitmask(i,2,j) = generators_bitmask_restart(i,2,i_part,i_gen)
+      enddo
     enddo
-   enddo
+    endif
   endif
+  do i=1,N_cas_bitmask
+    do j = 1, N_cas_bitmask
+      do k=1,N_int
+        cas_bitmask(k,j,i) = iand(cas_bitmask(k,j,i),full_ijkl_bitmask(k))
+      enddo
+    enddo
+  enddo
+  write(*,*) 'Read CAS bitmask'
  endif
- do i=1,N_cas_bitmask
-   do j = 1, N_cas_bitmask
-     do k=1,N_int
-       cas_bitmask(k,j,i) = iand(cas_bitmask(k,j,i),full_ijkl_bitmask(k))
-     enddo
-   enddo
- enddo
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+    call MPI_BCAST( cas_bitmask, N_int*2*N_cas_bitmask, MPI_BIT_KIND, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to read cas_bitmask with MPI'
+    endif
+  IRP_ENDIF
+
 
 END_PROVIDER
 

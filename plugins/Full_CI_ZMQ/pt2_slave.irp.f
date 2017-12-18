@@ -25,6 +25,9 @@ subroutine run_wf
   double precision :: energy(N_states_diag)
   character*(64) :: states(1)
   integer :: rc, i
+
+  integer, external              :: zmq_get_dvector
+  integer, external              :: zmq_get_psi
   
   call provide_everything
   
@@ -47,7 +50,8 @@ subroutine run_wf
       ! ---------
 
       print *,  'PT2'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      if (zmq_get_psi(zmq_to_qp_run_socket,1) == -1) cycle
+      if (zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states) == -1) cycle
 
       PROVIDE psi_bilinear_matrix_columns_loc psi_det_alpha_unique psi_det_beta_unique
       PROVIDE psi_bilinear_matrix_rows psi_det_sorted_order psi_bilinear_matrix_order

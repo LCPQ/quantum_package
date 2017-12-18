@@ -646,7 +646,7 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
     do p2=ib,mo_tot_num
       if(bannedOrb(p2, s2)) cycle
       if(banned(p1,p2)) cycle
-      if(mat(1, p1, p2) == 0d0) cycle
+      if(sum(dabs(mat(:, p1, p2))) == 0d0) cycle
       call apply_particles(mask, s1, p1, s2, p2, det, ok, N_int)
       logical, external              :: is_in_wavefunction
       
@@ -1193,21 +1193,40 @@ subroutine ZMQ_selection(N_in, pt2)
   
   implicit none
   
-  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket 
+  integer(ZMQ_PTR)               :: zmq_to_qp_run_socket, zmq_socket_pull
   integer, intent(in)            :: N_in
   type(selection_buffer)         :: b
   integer                        :: i, N
   integer, external              :: omp_get_thread_num
   double precision, intent(out)  :: pt2(N_states)
   integer, parameter             :: maxtasks=10000
+  integer, external              :: zmq_put_psi
+  integer, external              :: zmq_put_N_det_generators
+  integer, external              :: zmq_put_N_det_selectors
+  integer, external              :: zmq_put_dvector
   
   
   N = max(N_in,1)
   if (.True.) then
-    PROVIDE pt2_e0_denominator
-    provide nproc
-    call new_parallel_job(zmq_to_qp_run_socket,"selection")
-    call zmq_put_psi(zmq_to_qp_run_socket,1,pt2_e0_denominator,size(pt2_e0_denominator))
+    PROVIDE pt2_e0_denominator nproc
+    PROVIDE psi_bilinear_matrix_columns_loc psi_det_alpha_unique psi_det_beta_unique
+    PROVIDE psi_bilinear_matrix_rows psi_det_sorted_order psi_bilinear_matrix_order
+    PROVIDE psi_bilinear_matrix_transp_rows_loc psi_bilinear_matrix_transp_columns
+    PROVIDE psi_bilinear_matrix_transp_order
+
+    call new_parallel_job(zmq_to_qp_run_socket,zmq_socket_pull,'selection')
+    if (zmq_put_psi(zmq_to_qp_run_socket,1) == -1) then
+       stop 'Unable to put psi'
+    endif
+    if (zmq_put_N_det_generators(zmq_to_qp_run_socket, 1) == -1) then
+       stop 'Unable to put N_det_generators'
+    endif
+    if (zmq_put_N_det_selectors(zmq_to_qp_run_socket, 1) == -1) then
+       stop 'Unable to put N_det_selectors'
+    endif
+    if (zmq_put_dvector(zmq_to_qp_run_socket,1,'energy',pt2_e0_denominator,size(pt2_e0_denominator)) == -1) then
+       stop 'Unable to put energy'
+    endif
     call create_selection_buffer(N, N*2, b)
   endif
 
@@ -1215,37 +1234,50 @@ subroutine ZMQ_selection(N_in, pt2)
   task = ' '
 
   integer :: k
+  integer, external :: add_task_to_taskserver
   k=0
   do i= 1, N_det_generators
     k = k+1
     write(task(20*(k-1)+1:20*k),'(I9,1X,I9,''|'')') i, N
     if (k>=maxtasks) then
        k=0
-       call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+       if (add_task_to_taskserver(zmq_to_qp_run_socket,task) == -1) then
+         stop 'Unable to add task to task server'
+       endif
     endif
   enddo
   if (k > 0) then
-    call add_task_to_taskserver(zmq_to_qp_run_socket,task)
+       if (add_task_to_taskserver(zmq_to_qp_run_socket,task) == -1) then
+         stop 'Unable to add task to task server'
+       endif
   endif
-  call zmq_set_running(zmq_to_qp_run_socket)
+  integer, external :: zmq_set_running
+  if (zmq_set_running(zmq_to_qp_run_socket) == -1) then
+    print *,  irp_here, ': Failed in zmq_set_running'
+  endif
 
   !$OMP PARALLEL DEFAULT(shared)  SHARED(b, pt2)  PRIVATE(i) NUM_THREADS(nproc+1)
   i = omp_get_thread_num()
   if (i==0) then
-    call selection_collector(b, pt2)
+    call selection_collector(zmq_socket_pull, b, pt2)
   else
     call selection_slave_inproc(i)
   endif
   !$OMP END PARALLEL
-  call end_parallel_job(zmq_to_qp_run_socket, 'selection')
+  call end_parallel_job(zmq_to_qp_run_socket, zmq_socket_pull, 'selection')
+  do i=N_det+1,N_states
+    pt2(i) = 0.d0
+  enddo
   if (N_in > 0) then
     call fill_H_apply_buffer_no_selection(b%cur,b%det,N_int,0) !!! PAS DE ROBIN
     call copy_H_apply_buffer_to_wf()
-    if (s2_eig) then
+    if (s2_eig .or. (N_states > 1) ) then
       call make_s2_eigenfunction
     endif
     call save_wavefunction
   endif
+  call delete_selection_buffer(b)
+
 end subroutine
 
 
@@ -1256,7 +1288,7 @@ subroutine selection_slave_inproc(i)
   call run_selection_slave(1,i,pt2_e0_denominator)
 end
 
-subroutine selection_collector(b, pt2)
+subroutine selection_collector(zmq_socket_pull, b, pt2)
   use f77_zmq
   use selection_types
   use bitmasks
@@ -1270,7 +1302,7 @@ subroutine selection_collector(b, pt2)
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
 
   integer(ZMQ_PTR), external     :: new_zmq_pull_socket
-  integer(ZMQ_PTR)               :: zmq_socket_pull
+  integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
 
   integer :: msg_size, rc, more
   integer :: acc, i, j, robin, N, ntask
@@ -1280,7 +1312,6 @@ subroutine selection_collector(b, pt2)
   integer :: done
   real :: time, time0
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  zmq_socket_pull = new_zmq_pull_socket()
   allocate(val(b%N), det(N_int, 2, b%N), task_id(N_det))
   done = 0
   more = 1
@@ -1297,16 +1328,17 @@ subroutine selection_collector(b, pt2)
       if(task_id(i) == 0) then
           print *,  "Error in collector"
       endif
-      call zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more)
+      integer, external :: zmq_delete_task
+      if (zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id(i),more) == -1) then
+        stop 'Unable to delete task'
+      endif
     end do
     done += ntask
     call CPU_TIME(time)
 !    print *, "DONE" , done, time - time0
   end do
 
-
-  call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-  call end_zmq_pull_socket(zmq_socket_pull)
   call sort_selection_buffer(b)
+  call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
 end subroutine
 

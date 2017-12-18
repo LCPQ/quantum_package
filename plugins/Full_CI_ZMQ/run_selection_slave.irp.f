@@ -18,7 +18,7 @@ subroutine run_selection_slave(thread,iproc,energy)
   integer(ZMQ_PTR)               :: zmq_socket_push
 
   type(selection_buffer) :: buf, buf2
-  logical :: done
+  logical :: done, buffer_ready
   double precision :: pt2(N_states)
 
   PROVIDE psi_bilinear_matrix_columns_loc psi_det_alpha_unique psi_det_beta_unique
@@ -27,19 +27,25 @@ subroutine run_selection_slave(thread,iproc,energy)
   PROVIDE psi_bilinear_matrix_transp_order
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  zmq_socket_push      = new_zmq_push_socket(thread)
-  call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
-  if(worker_id == -1) then
-    call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-    call end_zmq_push_socket(zmq_socket_push,thread)
+
+  integer, external :: connect_to_taskserver 
+  if (connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread) == -1) then 
+    call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket) 
     return
-  end if
+  endif
+
+  zmq_socket_push      = new_zmq_push_socket(thread)
+
   buf%N = 0
+  buffer_ready = .False.
   ctask = 1
-  pt2 = 0d0
+  pt2(:) = 0d0
 
   do
-    call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(ctask), task)
+    integer, external :: get_task_from_taskserver
+    if (get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(ctask), task) == -1) then
+      exit
+    endif
     done = task_id(ctask) == 0
     if (done) then
       ctask = ctask - 1
@@ -50,22 +56,32 @@ subroutine run_selection_slave(thread,iproc,energy)
         ! Only first time 
         call create_selection_buffer(N, N*2, buf)
         call create_selection_buffer(N, N*2, buf2)
+        buffer_ready = .True.
       else
         ASSERT (N == buf%N)
       end if
       call select_connected(i_generator,energy,pt2,buf,0)
     endif
 
+    integer, external :: task_done_to_taskserver
+
     if(done .or. ctask == size(task_id)) then
       do i=1, ctask
-         call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i))
+         if (task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i)) == -1) then
+           call sleep(1)
+          if (task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i)) == -1) then
+            ctask = 0
+            done = .true.
+            exit
+          endif
+         endif
       end do
       if(ctask > 0) then
         call sort_selection_buffer(buf)
         call merge_selection_buffers(buf,buf2)
         call push_selection_results(zmq_socket_push, pt2, buf, task_id(1), ctask)
         buf%mini = buf2%mini
-        pt2 = 0d0
+        pt2(:) = 0d0
         buf%cur = 0
       end if
       ctask = 0
@@ -74,10 +90,16 @@ subroutine run_selection_slave(thread,iproc,energy)
     if(done) exit
     ctask = ctask + 1
   end do
-  call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
+
+
+  integer, external :: disconnect_from_taskserver 
+  if (disconnect_from_taskserver(zmq_to_qp_run_socket,worker_id) == -1) then 
+    continue 
+  endif 
+
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
-  if (buf%N > 0) then
+  if (buffer_ready) then
     call delete_selection_buffer(buf)
     call delete_selection_buffer(buf2)
   endif
@@ -132,7 +154,12 @@ subroutine push_selection_results(zmq_socket_push, pt2, b, task_id, ntask)
 ! Activate is zmq_socket_push is a REQ
 IRP_IF ZMQ_PUSH
 IRP_ELSE
-  rc = f77_zmq_recv( zmq_socket_push, task_id(1), ntask*4, 0)
+  character*(2) :: ok
+  rc = f77_zmq_recv( zmq_socket_push, ok, 2, 0)
+  if ((rc /= 2).and.(ok(1:2) /= 'ok')) then
+    print *,  irp_here//': error in receiving ok'
+    stop -1
+  endif
 IRP_ENDIF
 
 end subroutine
@@ -186,9 +213,12 @@ subroutine pull_selection_results(zmq_socket_pull, pt2, val, det, N, task_id, nt
 ! Activate is zmq_socket_pull is a REP
 IRP_IF ZMQ_PUSH
 IRP_ELSE
-  rc = f77_zmq_send( zmq_socket_pull, task_id(1), ntask*4, 0)
+  rc = f77_zmq_send( zmq_socket_pull, 'ok', 2, 0)
+  if (rc /= 2) then
+    print *,  irp_here//': error in sending ok'
+    stop -1
+  endif
 IRP_ENDIF
-
 end subroutine
  
  

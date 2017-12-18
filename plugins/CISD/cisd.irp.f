@@ -13,10 +13,8 @@ program cisd
    print *,  'E_corr  = ',CI_electronic_energy(i) - ref_bitmask_energy
   enddo
 
-  call save_wavefunction
   call ezfio_set_cisd_energy(CI_energy(1))
-! call CISD_SC2(psi_det,psi_coef,eigvalues,size(psi_coef,1),N_det,N_states,N_int)
-! do i = 1, N_states
-!  print*,'eigvalues(i) = ',eigvalues(i)
-! enddo
+  psi_coef = ci_eigenvectors
+  SOFT_TOUCH psi_coef
+  call save_wavefunction
 end

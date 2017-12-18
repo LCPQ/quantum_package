@@ -943,7 +943,6 @@ subroutine get_all_spin_singles_and_doubles_1(buffer, idx, spindet, size_buffer,
 
   n_singles = 1
   n_doubles = 1
-  !DIR$ VECTOR ALIGNED
   do i=1,size_buffer
     degree =  popcnt(  xor( spindet, buffer(i) ) )
     if ( degree == 4 ) then
@@ -1011,7 +1010,6 @@ subroutine get_all_spin_doubles_1(buffer, idx, spindet, size_buffer, doubles, n_
   integer                        :: degree
 
   n_doubles = 1
-  !DIR$ VECTOR ALIGNED
   do i=1,size_buffer
     degree = popcnt(xor( spindet, buffer(i) ))
     if ( degree == 4 ) then
@@ -1050,12 +1048,8 @@ subroutine get_all_spin_singles_and_doubles_$N_int(buffer, idx, spindet, size_bu
   integer(bit_kind)              :: xorvec($N_int)
   integer                        :: degree
 
-  integer, external              :: align_double
-
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec, degree
   n_singles = 1
   n_doubles = 1
-  !DIR$ VECTOR ALIGNED
   do i=1,size_buffer
 
     do k=1,$N_int
@@ -1069,7 +1063,6 @@ subroutine get_all_spin_singles_and_doubles_$N_int(buffer, idx, spindet, size_bu
     endif
   
     do k=2,$N_int
-      !DIR$ VECTOR ALIGNED
       if ( (degree <= 4).and.(xorvec(k) /= 0_8) ) then
         degree = degree + popcnt(xorvec(k))
       endif
@@ -1110,12 +1103,7 @@ subroutine get_all_spin_singles_$N_int(buffer, idx, spindet, size_buffer, single
   integer(bit_kind)              :: xorvec($N_int)
   integer                        :: degree
 
-  integer, external              :: align_double
-
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
-
   n_singles = 1
-  !DIR$ VECTOR ALIGNED
   do i=1,size_buffer
 
     do k=1,$N_int
@@ -1165,7 +1153,6 @@ subroutine get_all_spin_doubles_$N_int(buffer, idx, spindet, size_buffer, double
   integer(bit_kind)              :: xorvec($N_int)
 
   n_doubles = 1
-  !DIR$ VECTOR ALIGNED
   do i=1,size_buffer
 
     do k=1,$N_int
@@ -1179,7 +1166,6 @@ subroutine get_all_spin_doubles_$N_int(buffer, idx, spindet, size_buffer, double
     endif
   
     do k=2,$N_int
-      !DIR$ VECTOR ALIGNED
       if ( (degree <= 4).and.(xorvec(k) /= 0_8) ) then
         degree = degree + popcnt(xorvec(k))
       endif

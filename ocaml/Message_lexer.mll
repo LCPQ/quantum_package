@@ -9,6 +9,7 @@ type kw_type =
     | ADD_TASK 
     | DEL_TASK 
     | GET_TASK 
+    | GET_TASKS
     | TASK_DONE
     | DISCONNECT
     | CONNECT
@@ -16,10 +17,8 @@ type kw_type =
     | END_JOB
     | TERMINATE
     | ABORT
-    | GET_PSI
-    | PUT_PSI
-    | GET_VECTOR
-    | PUT_VECTOR
+    | GET_DATA
+    | PUT_DATA
     | OK
     | ERROR
     | SET_STOPPED
@@ -30,15 +29,17 @@ type state_tasks            = { state : string ; tasks            : string list 
 type state_taskids          = { state : string ; task_ids         : int list   ; }
 type state_taskids_clientid = { state : string ; task_ids         : int list   ; client_id : int    ; }
 type state_clientid         = { state : string ; client_id        : int    ; }
+type state_clientid_ntasks  = { state : string ; client_id        : int    ; n_tasks : int}
 type state_tcp_inproc       = { state : string ; push_address_tcp : string ; push_address_inproc : string ; }
 type psi = { client_id: int ; n_state: int ; n_det: int ; psi_det_size: int ; 
   n_det_generators: int option ; n_det_selectors: int option ; }
-type vector = { client_id: int ; size: int }
+type state_client_id_key = { state: string ; client_id: int ; key: string }
 
 type msg =
     | AddTask_    of state_tasks
     | DelTask_    of state_taskids
     | GetTask_    of state_clientid
+    | GetTasks_   of state_clientid_ntasks
     | TaskDone_   of state_taskids_clientid
     | Disconnect_ of state_clientid
     | Connect_    of string
@@ -46,10 +47,8 @@ type msg =
     | EndJob_     of string
     | Terminate_
     | Abort_
-    | GetPsi_     of int
-    | PutPsi_     of psi
-    | GetVector_  of int
-    | PutVector_  of vector
+    | GetData_    of state_client_id_key
+    | PutData_    of state_client_id_key
     | Ok_
     | Error_      of string 
     | SetStopped_
@@ -84,17 +83,16 @@ and kw = parse
   | "add_task"     { ADD_TASK }
   | "del_task"     { DEL_TASK }
   | "get_task"     { GET_TASK }
+  | "get_tasks"    { GET_TASKS }
   | "task_done"    { TASK_DONE }
   | "disconnect"   { DISCONNECT }
   | "connect"      { CONNECT }
   | "new_job"      { NEW_JOB }
   | "end_job"      { END_JOB }
+  | "put_data"     { PUT_DATA }
+  | "get_data"     { GET_DATA }
   | "terminate"    { TERMINATE }
   | "abort"        { ABORT }
-  | "get_psi"      { GET_PSI }
-  | "put_psi"      { PUT_PSI }
-  | "get_vector"   { GET_PSI }
-  | "put_vector"   { PUT_PSI }
   | "ok"           { OK }
   | "error"        { ERROR }
   | "set_stopped"  { SET_STOPPED }
@@ -161,6 +159,12 @@ and kw = parse
         let state   = read_word lexbuf in  
         let client_id = read_int lexbuf in
         GetTask_ { state ; client_id }
+
+    | GET_TASKS ->
+        let state   = read_word lexbuf in  
+        let client_id = read_int lexbuf in
+        let n_tasks = read_int lexbuf in
+        GetTasks_ { state ; client_id ; n_tasks }
  
     | TASK_DONE ->
         let state     = read_word lexbuf in  
@@ -173,30 +177,17 @@ and kw = parse
         let client_id = read_int lexbuf in
         Disconnect_ { state ; client_id }
  
-    | GET_PSI ->
+    | GET_DATA ->
+        let state     = read_word lexbuf in  
         let client_id = read_int lexbuf in
-        GetPsi_ client_id
+        let key = read_word lexbuf in
+        GetData_ { state ; client_id ; key }
  
-    | PUT_PSI ->
-        let client_id    = read_int lexbuf in
-        let n_state      = read_int lexbuf in
-        let n_det        = read_int lexbuf in
-        let psi_det_size = read_int lexbuf in
-        let n_det_generators, n_det_selectors = 
-          try
-            (Some (read_int lexbuf), Some (read_int lexbuf))
-          with (Failure _) -> (None, None)
-        in
-        PutPsi_ { client_id ; n_state ; n_det ; psi_det_size ; n_det_generators ; n_det_selectors }
- 
-    | GET_VECTOR ->
+    | PUT_DATA ->
+        let state     = read_word lexbuf in  
         let client_id = read_int lexbuf in
-        GetVector_ client_id
- 
-    | PUT_VECTOR ->
-        let client_id    = read_int lexbuf in
-        let size         = read_int lexbuf in
-        PutVector_ { client_id ; size }
+        let key = read_word lexbuf in
+        PutData_ { state ; client_id ; key }
  
     | CONNECT ->
         let socket    = read_word lexbuf in  
@@ -239,6 +230,7 @@ and kw = parse
       "del_task  state_pouet  12345" ;
       "del_task  state_pouet  12345 | 6789 | 10 | 11" ;
       "get_task  state_pouet  12" ;
+      "get_tasks  state_pouet  12 23" ;
       "task_done state_pouet  12 12345";
       "task_done state_pouet  12 12345 | 678 | 91011";
       "connect tcp";
@@ -262,21 +254,14 @@ and kw = parse
       | AddTask_  { state ; tasks   } -> Printf.sprintf "ADD_TASK state:\"%s\" tasks:{\"%s\"}" state (String.concat "\"}|{\"" tasks)
       | DelTask_  { state ; task_ids } -> Printf.sprintf "DEL_TASK state:\"%s\" task_ids:{%s}" state (String.concat "|" @@ List.map string_of_int task_ids)
       | GetTask_  { state ; client_id } -> Printf.sprintf "GET_TASK state:\"%s\" task_id:%d" state client_id
+      | GetTasks_  { state ; client_id ; n_tasks } -> Printf.sprintf "GET_TASKS state:\"%s\" task_id:%d n_tasks:%d" state client_id n_tasks
       | TaskDone_ { state ; task_ids ; client_id } -> Printf.sprintf "TASK_DONE state:\"%s\" task_ids:{%s} client_id:%d" state (String.concat "|" @@ List.map string_of_int task_ids) client_id
       | Disconnect_ { state ; client_id } -> Printf.sprintf "DISCONNECT state:\"%s\" client_id:%d" state client_id
       | Connect_ socket -> Printf.sprintf "CONNECT socket:\"%s\"" socket
       | NewJob_ { state ; push_address_tcp ; push_address_inproc } -> Printf.sprintf "NEW_JOB state:\"%s\" tcp:\"%s\" inproc:\"%s\"" state push_address_tcp push_address_inproc
       | EndJob_ state  -> Printf.sprintf "END_JOB state:\"%s\"" state
-      | GetPsi_ client_id -> Printf.sprintf "GET_PSI client_id:%d" client_id
-      | PutPsi_ { client_id ; n_state ; n_det ; psi_det_size ; n_det_generators ; n_det_selectors } ->
-        begin 
-          match n_det_selectors, n_det_generators with
-          | Some s, Some g ->  Printf.sprintf "PUT_PSI client_id:%d n_state:%d n_det:%d psi_det_size:%d n_det_generators:%d n_det_selectors:%d" client_id n_state n_det psi_det_size g s
-          | _ -> Printf.sprintf "PUT_PSI client_id:%d n_state:%d n_det:%d psi_det_size:%d" client_id n_state n_det psi_det_size 
-        end
-      | GetVector_ client_id -> Printf.sprintf "GET_VECTOR client_id:%d" client_id
-      | PutVector_ { client_id ; size } ->
-          Printf.sprintf "PUT_VECTOR client_id:%d size:%d" client_id size 
+      | GetData_ { state ; client_id; key } -> Printf.sprintf "GET_DATA state:%s client_id:%d key:%s" state client_id key
+      | PutData_ { state ; client_id ; key } -> Printf.sprintf "PUT_DATA state:%s client_id:%d key:%s" state client_id key 
       | Terminate_ ->  "TERMINATE"
       | Abort_ ->  "ABORT"
       | SetWaiting_ ->  "SET_WAITING"

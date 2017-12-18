@@ -22,14 +22,24 @@ BEGIN_PROVIDER [ %(type)s, %(name)s %(size)s ]
 
   logical                        :: has
   PROVIDE ezfio_filename
-  %(test_null_size)s
-  call ezfio_has_%(ezfio_dir)s_%(ezfio_name)s(has)
-  if (has) then
-    call ezfio_get_%(ezfio_dir)s_%(ezfio_name)s(%(name)s)
-  else
-    print *, '%(ezfio_dir)s/%(ezfio_name)s not found in EZFIO file'
-    stop 1
+  if (mpi_master) then
+    %(test_null_size)s
+    call ezfio_has_%(ezfio_dir)s_%(ezfio_name)s(has)
+    if (has) then
+      call ezfio_get_%(ezfio_dir)s_%(ezfio_name)s(%(name)s)
+    else
+      print *, '%(ezfio_dir)s/%(ezfio_name)s not found in EZFIO file'
+      stop 1
+    endif
   endif
+  IRP_IF MPI
+    include 'mpif.h'
+    integer :: ierr
+    call MPI_BCAST( %(name)s, %(size_mpi)s, %(type_mpi)s, 0, MPI_COMM_WORLD, ierr)
+    if (ierr /= MPI_SUCCESS) then
+      stop 'Unable to read %(name)s with MPI'
+    endif
+  IRP_ENDIF
 %(write)s
 END_PROVIDER
 """.strip()
@@ -37,6 +47,12 @@ END_PROVIDER
     write_correspondance = {"integer": "write_int",
                             "logical": "write_bool",
                             "double precision": "write_double"}
+
+    mpi_correspondance   = {"integer": "MPI_INTEGER",
+                            "integer*8": "MPI_INTEGER8",
+                            "character*(32)": "MPI_CHARACTER",
+                            "logical": "MPI_LOGICAL",
+                            "double precision": "MPI_DOUBLE_PRECISION"}
 
     def __init__(self):
         self.values = "type doc name ezfio_dir ezfio_name write output".split()
@@ -65,22 +81,28 @@ END_PROVIDER
             self.test_null_size = ""
 
     def set_write(self):
-        self.write = ""
+        output = self.output
+        name = self.name
+        l_write = ["",
+                   "  call write_time(%(output)s)",
+                   "  if (mpi_master) then",
+                   "    write(%(output)s, *) 'Read  %(name)s'",
+                   "  endif", 
+                   ""]
+
+        self.write = "\n".join(l_write) % locals()
+        self.type_mpi = self.mpi_correspondance[self.type]
         if "size" in self.__dict__:
             return
         else:
             if self.type in self.write_correspondance:
                 write = self.write_correspondance[self.type]
-                output = self.output
-                name = self.name
 
                 l_write = ["",
                           "  call write_time(%(output)s)",
                           "  call %(write)s(%(output)s, %(name)s, &",
                           "     '%(name)s')",
                           ""]
-
-                self.write = "\n".join(l_write) % locals()
 
     def set_type(self, t):
         self.type = t.lower()
@@ -101,7 +123,9 @@ END_PROVIDER
         self.output = t
 
     def set_size(self, t):
-
+        self.size_mpi = t.replace(',',')*(').replace('0:','1+')
+        if (self.type == "character*(32)"):
+            self.size_mpi += "*32"
         if t != "1":
             self.size = ", " + t
         else:

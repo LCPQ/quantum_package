@@ -11,7 +11,6 @@ subroutine get_excitation_degree(key1,key2,degree,Nint)
   integer, intent(out)           :: degree
   
   integer(bit_kind)              :: xorvec(2*N_int_max)
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xorvec
   integer                        :: l
   
   ASSERT (Nint > 0)
@@ -21,7 +20,7 @@ subroutine get_excitation_degree(key1,key2,degree,Nint)
     case (1)
       xorvec(1) = xor( key1(1), key2(1))
       xorvec(2) = xor( key1(2), key2(2))
-      degree = sum(popcnt(xorvec(1:2)))
+      degree = popcnt(xorvec(1))+popcnt(xorvec(2))
 
     case (2)
       xorvec(1) = xor( key1(1), key2(1))
@@ -1397,7 +1396,7 @@ subroutine get_excitation_degree_vector_mono_or_exchange(key1,key2,degree,Nint,s
           popcnt(xor( key1(1,2,i), key2(1,2)))
       key_tmp(1,1) = xor(key1(1,1,i),key2(1,1))
       key_tmp(1,2) = xor(key1(1,2,i),key2(1,2))
-      if(popcnt(key_tmp(1,1)) .gt.3 .or. popcnt(key_tmp(1,2)) .gt.3 )cycle !! no double excitations of same spin
+      if(popcnt(key_tmp(1,1)) .ge.3 .or. popcnt(key_tmp(1,2)) .ge.3 )cycle !! no double excitations of same spin
       if (d > 4)cycle
       if (d ==4)then  
        if(popcnt(xor(key_tmp(1,1),key_tmp(1,2))) == 0)then
@@ -1458,10 +1457,10 @@ subroutine get_excitation_degree_vector_double_alpha_beta(key1,key2,degree,Nint,
       key_tmp(1,2) = xor(key1(1,2,i),key2(1,2))
       degree_alpha = popcnt(key_tmp(1,1))
       degree_beta  = popcnt(key_tmp(1,2))
-      if(degree_alpha .gt.3 .or. degree_beta .gt.3 )cycle !! no double excitations of same spin
-        degree(l) = ishft(d,-1)
-        idx(l) = i
-        l = l+1
+      if(degree_alpha .ge.3 .or. degree_beta .ge.3 )cycle !! no double excitations of same spin
+      degree(l) = ishft(d,-1)
+      idx(l) = i
+      l = l+1
     enddo
   else if (Nint==2) then
     
@@ -1478,9 +1477,9 @@ subroutine get_excitation_degree_vector_double_alpha_beta(key1,key2,degree,Nint,
       key_tmp(2,2) = xor(key1(2,2,i),key2(2,2))
       degree_alpha = popcnt(key_tmp(1,1)) + popcnt(key_tmp(2,1)) 
       degree_beta  = popcnt(key_tmp(1,2)) + popcnt(key_tmp(2,2)) 
-      if(degree_alpha .gt.3 .or. degree_beta .gt.3 )cycle !! no double excitations of same spin
-        degree(l) = ishft(d,-1)
-        idx(l) = i
+      if(degree_alpha .ge.3 .or. degree_beta .ge.3 )cycle !! no double excitations of same spin
+      degree(l) = ishft(d,-1)
+      idx(l) = i
         l = l+1
     enddo
     
@@ -1503,10 +1502,10 @@ subroutine get_excitation_degree_vector_double_alpha_beta(key1,key2,degree,Nint,
       key_tmp(3,2) = xor(key1(3,2,i),key2(3,2))
       degree_alpha = popcnt(key_tmp(1,1)) + popcnt(key_tmp(2,1)) + popcnt(key_tmp(3,1)) 
       degree_beta  = popcnt(key_tmp(1,2)) + popcnt(key_tmp(2,2)) + popcnt(key_tmp(3,2)) 
-      if(degree_alpha .gt.3 .or. degree_beta .gt.3 )cycle !! no double excitations of same spin
-        degree(l) = ishft(d,-1)
-        idx(l) = i
-        l = l+1
+      if(degree_alpha .ge.3 .or. degree_beta .ge.3 )cycle !! no double excitations of same spin
+      degree(l) = ishft(d,-1)
+      idx(l) = i
+      l = l+1
     enddo
     
   else
@@ -1525,10 +1524,10 @@ subroutine get_excitation_degree_vector_double_alpha_beta(key1,key2,degree,Nint,
         degree_alpha += popcnt(key_tmp(m,1)) 
         degree_beta  += popcnt(key_tmp(m,2)) 
       enddo
-      if(degree_alpha .gt.3 .or. degree_beta .gt.3 )cycle !! no double excitations of same spin
-        degree(l) = ishft(d,-1)
-        idx(l) = i
-        l = l+1
+      if(degree_alpha .ge.3 .or. degree_beta .ge.3 )cycle !! no double excitations of same spin
+      degree(l) = ishft(d,-1)
+      idx(l) = i
+      l = l+1
     enddo
     
   endif

@@ -110,7 +110,7 @@ subroutine FOBOCI_lmct_mlct_old_thr(iter)
    call update_density_matrix_osoci
  enddo
 
- if(.True.)then
+ if(.False.)then
   print*,''
   print*,'DOING THEN THE MLCT !!'
   print*,'Threshold_mlct = ',threshold_mlct

@@ -65,15 +65,15 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
   integer*8 :: new_size
   new_size = max(1024_8, 5_8 * map_a % n_elements )
 
-  allocate(a_array_ik(new_size), a_array_j(new_size), a_array_value(new_size))
-
-  integer :: ipass, npass
   integer*8 :: tempspace
 
   tempspace = (new_size * 16_8) / (1024_8 * 1024_8)
-  npass = min(int(l_end-l_start,8),1_8 + tempspace / 2048_8)   ! 2 GiB of scratch space
+  npass = int(min(int(l_end-l_start,8),1_8 + tempspace / 2048_8),4)   ! 2 GiB of scratch space
   l_block = (l_end-l_start+1)/npass
 
+  allocate(a_array_ik(new_size/npass), a_array_j(new_size/npass), a_array_value(new_size/npass))
+
+  integer :: ipass, npass
   ipass = 0
   do l_start_block = l_start, l_end, l_block
     ipass = ipass+1
@@ -261,10 +261,6 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
       enddo
 
 
-
-
-
-
       !$OMP CRITICAL
       call map_update(map_c, key, value, idx,1.d-15) 
       !$OMP END CRITICAL
@@ -289,7 +285,7 @@ subroutine four_index_transform_block(map_a,map_c,matrix_B,LDB,            &
     enddo
     !$OMP END DO
 
-    deallocate(key,value,V,T)
+    deallocate(key,value,V,T,T2d,V2d,U)
     !$OMP END PARALLEL
     call map_merge(map_c)
 

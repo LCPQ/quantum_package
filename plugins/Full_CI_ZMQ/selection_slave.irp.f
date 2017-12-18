@@ -27,6 +27,9 @@ subroutine run_wf
   double precision :: energy(N_states)
   character*(64) :: states(4)
   integer :: rc, i, ierr
+
+  integer, external              :: zmq_get_dvector
+  integer, external              :: zmq_get_psi
   
   call provide_everything
   
@@ -51,7 +54,8 @@ subroutine run_wf
       ! ---------
 
       print *,  'Selection'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      if (zmq_get_psi(zmq_to_qp_run_socket,1) == -1) cycle
+      if (zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states) == -1) cycle
   
       !$OMP PARALLEL PRIVATE(i)
       i = omp_get_thread_num()
@@ -65,7 +69,8 @@ subroutine run_wf
       ! ---
 
       print *,  'PT2'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      if (zmq_get_psi(zmq_to_qp_run_socket,1) == -1) cycle
+      if (zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states) == -1) cycle
   
       logical :: lstop
       lstop = .False.

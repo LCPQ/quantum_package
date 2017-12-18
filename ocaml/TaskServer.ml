@@ -21,14 +21,14 @@ let string_of_pub_state = function
 
 type t =
 {
-    queue           : Queuing_system.t ;
-    state           : Message.State.t option ;
-    address_tcp     : Address.Tcp.t option ; 
-    address_inproc  : Address.Inproc.t option ;
-    psi             : Message.GetPsiReply_msg.t option;
-    vector             : Message.Vector.t option;
-    progress_bar    : Progress_bar.t option ;
-    running         : bool;
+    queue             : Queuing_system.t ;
+    state             : Message.State.t option ;
+    address_tcp       : Address.Tcp.t option ; 
+    address_inproc    : Address.Inproc.t option ;
+    progress_bar      : Progress_bar.t option ;
+    running           : bool;
+    accepting_clients : bool;
+    data              : (string, string) Hashtbl.t;
 }
 
 
@@ -41,7 +41,7 @@ let debug_env =
 
 let debug str =
   if debug_env then
-    Printf.printf "TASK : %s%!" str
+    Printf.eprintf "TASK : %s%!" str
 
 
 
@@ -107,7 +107,6 @@ let reply_ok rep_socket =
     |> ZMQ.Socket.send rep_socket 
 
 let reply_wrong_state rep_socket =
-    Printf.printf "WRONG STATE\n%!";
     Message.Error_msg.create "Wrong state"
     |> Message.Error_msg.to_string
     |> ZMQ.Socket.send rep_socket 
@@ -161,6 +160,7 @@ let new_job msg program_state rep_socket pair_socket =
         progress_bar    = Some progress_bar ;
         address_tcp     = Some msg.Message.Newjob_msg.address_tcp;
         address_inproc  = Some msg.Message.Newjob_msg.address_inproc;
+        accepting_clients = true;
       }
     in
     reply_ok rep_socket;
@@ -189,29 +189,54 @@ let change_pub_state msg program_state rep_socket pair_socket =
 
   program_state
 
+let force_state = 
+  Message.State.of_string "force"
+
 let end_job msg program_state rep_socket pair_socket =
 
     let failure () =
         reply_wrong_state rep_socket;
         program_state
 
-    and success state =
+    and success () =
         reply_ok rep_socket;
-        { program_state with
-          state        = None ;
-          progress_bar = Progress_bar.clear ();
+        { 
+          queue             = Queuing_system.create ();
+          state             = None ;
+          progress_bar      = Progress_bar.clear ();
+          address_tcp       = None;
+          address_inproc    = None;
+          running           = true;
+          accepting_clients = false;
+          data = Hashtbl.create ~hashable:String.hashable ();
         }
 
+    and wait n =
+      Printf.sprintf "waiting for %d slaves..." n
+      |> Message.Error_msg.create 
+      |> Message.Error_msg.to_string
+      |> ZMQ.Socket.send rep_socket ;
+      program_state
     in
+
     match program_state.state with
     | None -> failure ()
     | Some state -> 
       begin
-        if (msg.Message.Endjob_msg.state = state) then
+        if (msg.Message.Endjob_msg.state = force_state) then
           begin
             string_of_pub_state Waiting
             |> ZMQ.Socket.send pair_socket ;
-            success state
+              success ()
+          end
+        else if (msg.Message.Endjob_msg.state = state) then
+          begin
+            string_of_pub_state Waiting
+            |> ZMQ.Socket.send pair_socket ;
+            if (Queuing_system.number_of_clients program_state.queue = 0) then
+              success ()
+            else
+              wait (Queuing_system.number_of_clients program_state.queue)
           end
         else
           failure ()
@@ -220,39 +245,44 @@ let end_job msg program_state rep_socket pair_socket =
 
 let connect msg program_state rep_socket =
 
-    let state =
-        match program_state.state with
-        | Some state -> state
-        | None -> assert false
+    let failure () =
+        reply_wrong_state rep_socket;
+        program_state
     in
-  
-    let push_address =
-        match msg with
-        | Message.Connect_msg.Tcp    -> 
-          begin
-              match program_state.address_tcp  with
-              | Some address -> Address.Tcp address
-              | None -> failwith "Error: No TCP address"
-          end
-        | Message.Connect_msg.Inproc -> 
-          begin
-              match program_state.address_inproc with
-              | Some address -> Address.Inproc address
-              | None -> failwith "Error: No inproc address"
-          end
-        | Message.Connect_msg.Ipc    -> assert false
-    in
-    
-    let new_queue, client_id =
-        Queuing_system.add_client program_state.queue
-    in
-    Message.ConnectReply (Message.ConnectReply_msg.create
-        ~state:state ~client_id ~push_address)
-    |> Message.to_string
-    |> ZMQ.Socket.send rep_socket ;
-    { program_state with
-      queue = new_queue 
-    }
+
+    if (not program_state.accepting_clients) then
+      failure ()
+    else
+      match program_state.state with
+      | None -> failure ()
+      | Some state -> 
+          let push_address =
+              match msg with
+              | Message.Connect_msg.Tcp    -> 
+                begin
+                    match program_state.address_tcp  with
+                    | Some address -> Address.Tcp address
+                    | None -> failwith "Error: No TCP address"
+                end
+              | Message.Connect_msg.Inproc -> 
+                begin
+                    match program_state.address_inproc with
+                    | Some address -> Address.Inproc address
+                    | None -> failwith "Error: No inproc address"
+                end
+              | Message.Connect_msg.Ipc    -> assert false
+          in
+          
+          let new_queue, client_id =
+              Queuing_system.add_client program_state.queue
+          in
+          Message.ConnectReply (Message.ConnectReply_msg.create
+              ~state:state ~client_id ~push_address)
+          |> Message.to_string
+          |> ZMQ.Socket.send rep_socket ;
+          { program_state with
+            queue = new_queue 
+          }
 
 
 let disconnect msg program_state rep_socket =
@@ -303,14 +333,21 @@ let del_task msg program_state rep_socket =
     
     and success () = 
 
+        let queue = 
+           List.fold ~f:(fun queue task_id -> Queuing_system.del_task ~task_id queue)
+                      ~init:program_state.queue task_ids
+        in
+        let accepting_clients = 
+            (Queuing_system.number_of_queued queue > Queuing_system.number_of_clients queue) 
+        in
         let new_program_state = 
             { program_state with
-              queue = List.fold ~f:(fun queue task_id -> Queuing_system.del_task ~task_id queue)
-                      ~init:program_state.queue task_ids
+              accepting_clients ;
+              queue ;
             }
         in
         let more = 
-            (Queuing_system.number_of_tasks new_program_state.queue > 0)
+            (Queuing_system.number_of_tasks queue > 0)
         in
         Message.DelTaskReply (Message.DelTaskReply_msg.create ~task_ids ~more)
         |> Message.to_string
@@ -373,12 +410,17 @@ let get_task msg program_state rep_socket pair_socket =
     
     and success () = 
 
-        let new_queue, task_id, task =
+        let queue, task_id, task =
             Queuing_system.pop_task ~client_id program_state.queue
         in
 
+        let accepting_clients = 
+            (Queuing_system.number_of_queued queue >
+             Queuing_system.number_of_clients queue) 
+        in
+
         let no_task =
-          Queuing_system.number_of_queued new_queue = 0
+          Queuing_system.number_of_queued queue = 0
         in
 
         if no_task then
@@ -390,7 +432,8 @@ let get_task msg program_state rep_socket pair_socket =
 
         let new_program_state = 
             { program_state with
-              queue = new_queue
+              queue ;
+              accepting_clients;
             }
         in
 
@@ -399,6 +442,77 @@ let get_task msg program_state rep_socket pair_socket =
         |> ZMQ.Socket.send rep_socket ;
         new_program_state
 
+    in
+
+    match program_state.state with
+    | None -> assert false
+    | Some state' -> 
+      begin
+        if (state = state') then
+          success ()
+        else
+          failure ()
+      end
+
+
+
+let get_tasks msg program_state rep_socket pair_socket =
+
+    let state, client_id, n_tasks =
+      msg.Message.GetTasks_msg.state, 
+      msg.Message.GetTasks_msg.client_id,
+      Strictly_positive_int.to_int msg.Message.GetTasks_msg.n_tasks
+    in
+
+    let failure () =
+        reply_wrong_state rep_socket;
+        program_state
+    
+    and success () = 
+
+        let rec build_list accu queue = function
+        | 0 -> queue, (List.rev accu)
+        | n -> 
+            let new_queue, task_id, task =
+               Queuing_system.pop_task ~client_id queue
+            in
+            match (task_id, task) with
+            | Some task_id, Some task -> 
+              build_list ( (Some task_id, task)::accu ) new_queue (n-1)
+            | _ -> build_list ( (None, "terminate")::accu ) queue 0
+        in
+
+        let new_queue, result =
+          build_list [] program_state.queue (n_tasks)
+        in
+
+        let no_task =
+          Queuing_system.number_of_queued new_queue = 0
+        in
+
+        let accepting_clients = 
+            (Queuing_system.number_of_queued new_queue >
+             Queuing_system.number_of_clients new_queue) 
+        in
+
+        if no_task then
+          string_of_pub_state Waiting 
+          |> ZMQ.Socket.send pair_socket
+        else
+          string_of_pub_state (Running (Message.State.to_string state))
+          |> ZMQ.Socket.send pair_socket;
+        
+        let new_program_state = 
+            { program_state with
+              queue = new_queue;
+              accepting_clients;
+            }
+        in
+
+        Message.GetTasksReply (Message.GetTasksReply_msg.create result)
+        |> Message.to_string_list
+        |> ZMQ.Socket.send_all rep_socket ;
+        new_program_state
     in
 
     match program_state.state with
@@ -437,10 +551,17 @@ let task_done msg program_state rep_socket =
               increment_progress_bar bar)
             ~init:(program_state.queue, program_state.progress_bar) task_ids 
         in
+
+        let accepting_clients = 
+            (Queuing_system.number_of_queued new_queue >
+             Queuing_system.number_of_clients new_queue) 
+        in
+
         let result = 
           { program_state with
             queue = new_queue;
-            progress_bar = new_bar
+            progress_bar = new_bar;
+            accepting_clients
           }
         in
         reply_ok rep_socket;
@@ -458,104 +579,75 @@ let task_done msg program_state rep_socket =
       end
 
 
-let put_psi msg rest_of_msg program_state rep_socket =
 
-    let psi_local =
-        match msg.Message.PutPsi_msg.psi with
-        | Some x -> x
-        | None ->
-          begin
-            let psi_det, psi_coef, energy =
-              match rest_of_msg with
-              | [ x ; y ; e ] -> x, y, e
-              | _ -> failwith "Badly formed put_psi message"
-            in
-            Message.Psi.create
-              ~n_state:msg.Message.PutPsi_msg.n_state
-              ~n_det:msg.Message.PutPsi_msg.n_det
-              ~psi_det_size:msg.Message.PutPsi_msg.psi_det_size
-              ~n_det_generators:msg.Message.PutPsi_msg.n_det_generators
-              ~n_det_selectors:msg.Message.PutPsi_msg.n_det_selectors
-              ~psi_det
-              ~psi_coef
-              ~energy
-          end
+let put_data msg rest_of_msg program_state rep_socket =
+
+    debug (Message.PutData_msg.to_string msg);
+    let state, key, value =
+      msg.Message.PutData_msg.state,
+      msg.Message.PutData_msg.key, 
+      match rest_of_msg with
+      | [ x ] -> x
+      | _ -> failwith "Badly formed put_data message"
     in
-    let new_program_state =
-        { program_state with
-          psi = Some (Message.GetPsiReply_msg.create ~psi:psi_local)
-        }
-    and client_id =
-      msg.Message.PutPsi_msg.client_id
-    in
-    Message.PutPsiReply (Message.PutPsiReply_msg.create ~client_id)
-    |> Message.to_string
-    |> ZMQ.Socket.send rep_socket;
 
-    new_program_state
-
-
-let get_psi msg program_state rep_socket =
-  begin
-    match program_state.psi with
-    | None -> failwith "No wave function saved in TaskServer"
-    | Some psi_message -> ZMQ.Socket.send_all rep_socket psi_message
-  end;
-  program_state
-
-
-
-let put_vector msg rest_of_msg program_state rep_socket =
-
-    let vector_local =
-        match msg.Message.PutVector_msg.vector with
-        | Some x -> x
-        | None ->
-          begin
-            let data =
-              match rest_of_msg with
-              | [ x ] -> x
-              | _ -> failwith "Badly formed put_vector message"
-            in
-            Message.Vector.create
-              ~size:msg.Message.PutVector_msg.size
-              ~data
-          end
-    in
-    let new_program_state =
-        { program_state with
-          vector = Some vector_local
-        }
-    and client_id =
-      msg.Message.PutVector_msg.client_id
-    in
-    Message.PutVectorReply (Message.PutVectorReply_msg.create ~client_id)
-    |> Message.to_string
-    |> ZMQ.Socket.send rep_socket;
-
-    new_program_state
-
-
-let get_vector msg program_state rep_socket =
-
-      let client_id =
-          msg.Message.GetVector_msg.client_id
-      in
-      match program_state.vector with
-      | None -> failwith "No wave function saved in TaskServer"
-      | Some vector -> 
-          Message.GetVectorReply (Message.GetVectorReply_msg.create ~client_id ~vector)
-          |> Message.to_string_list 
-          |> ZMQ.Socket.send_all rep_socket;
+    let success ()  =
+      Hashtbl.set program_state.data ~key ~data:value ;
+      Message.PutDataReply (Message.PutDataReply_msg.create ())
+      |> Message.to_string
+      |> ZMQ.Socket.send rep_socket;
       program_state
 
+    and failure () =
+        reply_wrong_state rep_socket;
+        program_state
+    in
+
+    match program_state.state with
+    | None -> assert false
+    | Some state' -> 
+        if (state = state') then
+          success ()
+        else
+          failure ()
+
+
+let get_data msg program_state rep_socket =
+
+    debug (Message.GetData_msg.to_string msg);
+    let state, key =
+        msg.Message.GetData_msg.state,
+        msg.Message.GetData_msg.key
+    in
+
+    let success () = 
+      let value = 
+        match Hashtbl.find program_state.data key with
+        | Some value -> value
+        | None -> ""
+      in
+      Message.GetDataReply (Message.GetDataReply_msg.create ~value)
+      |> Message.to_string_list
+      |> ZMQ.Socket.send_all rep_socket;
+      program_state
+
+    and failure () =
+        reply_wrong_state rep_socket;
+        program_state
+    in
+
+    match program_state.state with
+    | None -> assert false
+    | Some state' -> 
+        if (state = state') then
+          success ()
+        else
+          failure ()
 
 
 let terminate program_state rep_socket =
     reply_ok rep_socket;
     { program_state with
-      psi = None;
-      vector = None;
       address_tcp = None;
       address_inproc = None;
       running = false
@@ -592,10 +684,14 @@ let abort program_state rep_socket =
       List.fold ~f:(fun queue task_id -> Queuing_system.del_task ~task_id queue)
                           ~init:queue tasks
     in
+    let queue =
+      Queuing_system.del_client ~client_id  queue
+    in
     reply_ok rep_socket;
 
     { program_state with
-      queue 
+      queue ; 
+      accepting_clients = false;
     }
 
   
@@ -675,12 +771,12 @@ let run ~port =
     let initial_program_state =
     {   queue = Queuing_system.create () ;
         running = true ;
-        psi = None;
-        vector = None;
         state = None;
         address_tcp = None;
         address_inproc = None;
         progress_bar = None ;
+        accepting_clients = false;
+        data = Hashtbl.create ~hashable:String.hashable ();
     }
     in
 
@@ -747,10 +843,8 @@ let run ~port =
                   match program_state.state, message with
                   | _     , Message.Terminate   _ -> terminate program_state rep_socket
                   | _     , Message.Abort       _ -> abort program_state rep_socket
-                  | _     , Message.PutVector      x -> put_vector x rest program_state rep_socket
-                  | _     , Message.GetVector      x -> get_vector x program_state rep_socket
-                  | _     , Message.PutPsi      x -> put_psi x rest program_state rep_socket
-                  | _     , Message.GetPsi      x -> get_psi x program_state rep_socket
+                  | _     , Message.PutData     x -> put_data x rest program_state rep_socket
+                  | _     , Message.GetData     x -> get_data x program_state rep_socket
                   | None  , Message.Newjob      x -> new_job x program_state rep_socket pair_socket
                   | _     , Message.Newjob      _ -> error "A job is already running" program_state rep_socket
                   | Some _, Message.Endjob      x -> end_job x program_state rep_socket pair_socket
@@ -763,6 +857,7 @@ let run ~port =
                   | Some _, Message.AddTask     x -> add_task x program_state rep_socket
                   | Some _, Message.DelTask     x -> del_task x program_state rep_socket
                   | Some _, Message.GetTask     x -> get_task x program_state rep_socket pair_socket
+                  | Some _, Message.GetTasks    x -> get_tasks x program_state rep_socket pair_socket
                   | Some _, Message.TaskDone    x -> task_done x program_state rep_socket
                   | _     , _                     ->
                     error ("Invalid message : "^(Message.to_string message))  program_state rep_socket

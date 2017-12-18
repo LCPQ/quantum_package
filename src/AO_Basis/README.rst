@@ -96,19 +96,19 @@ Documentation
   Transposed ao_expo_ordered
 
 
-`ao_l <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L182>`_
+`ao_l <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L146>`_
   ao_l = l value of the AO: a+b+c in x^a y^b z^c
 
 
-`ao_l_char <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L184>`_
+`ao_l_char <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L148>`_
   ao_l = l value of the AO: a+b+c in x^a y^b z^c
 
 
-`ao_l_char_space <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L291>`_
+`ao_l_char_space <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L282>`_
   Undocumented
 
 
-`ao_l_max <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L183>`_
+`ao_l_max <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L147>`_
   ao_l = l value of the AO: a+b+c in x^a y^b z^c
 
 
@@ -157,7 +157,7 @@ Documentation
   Powers of x, y and z for each AO
 
 
-`ao_power_index <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L169>`_
+`ao_power_index <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L171>`_
   Unique index given to a triplet of powers:
   .br
   1/2 (l-n_x)*(l-n_x+1) + n_z + 1
@@ -171,7 +171,7 @@ Documentation
   Undocumented
 
 
-`ao_prim_num_max_align <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L159>`_
+`ao_prim_num_max_align <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L161>`_
   Number of primitives per atomic orbital aligned
 
 
@@ -223,11 +223,11 @@ Documentation
   gives the values of aos at a given point r
 
 
-`l_to_charater <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L197>`_
+`l_to_charater <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L185>`_
   character corresponding to the "L" value of an AO orbital
 
 
-`n_aos_max <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L211>`_
+`n_aos_max <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L202>`_
   Number of AOs per atom
 
 
@@ -239,21 +239,21 @@ Documentation
   Undocumented
 
 
-`nucl_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L224>`_
+`nucl_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L215>`_
   List of AOs attached on each atom
 
 
-`nucl_list_shell_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L242>`_
+`nucl_list_shell_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L233>`_
   Index of the shell type Aos and of the corresponding Aos
   Per convention, for P,D,F and G AOs, we take the index
   of the AO with the the corresponding power in the "X" axis
 
 
-`nucl_n_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L210>`_
+`nucl_n_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L201>`_
   Number of AOs per atom
 
 
-`nucl_num_shell_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L243>`_
+`nucl_num_shell_aos <http://github.com/LCPQ/quantum_package/tree/master/src/AO_Basis/aos.irp.f#L234>`_
   Index of the shell type Aos and of the corresponding Aos
   Per convention, for P,D,F and G AOs, we take the index
   of the AO with the the corresponding power in the "X" axis

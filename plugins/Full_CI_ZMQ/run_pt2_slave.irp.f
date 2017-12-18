@@ -8,8 +8,9 @@ subroutine run_pt2_slave(thread,iproc,energy)
   integer,  intent(in)            :: thread, iproc
   integer                        :: rc, i
 
-  integer                        :: worker_id, task_id(1), ctask, ltask
-  character*(512)                :: task
+  integer                        :: worker_id, ctask, ltask
+  character*(512), allocatable   :: task(:)
+  integer, allocatable           :: task_id(:)
 
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
@@ -20,137 +21,171 @@ subroutine run_pt2_slave(thread,iproc,energy)
   type(selection_buffer) :: buf
   logical :: done
 
-  double precision :: pt2(N_states)
-  double precision,allocatable :: pt2_detail(:,:)
-  integer :: index
-  integer :: Nindex
+  double precision,allocatable :: pt2(:,:)
+  integer :: n_tasks, k, n_tasks_max
+  integer, allocatable :: i_generator(:), subset(:)
 
-  allocate(pt2_detail(N_states, N_det_generators))
+  n_tasks_max = N_det_generators/100+1
+  allocate(task_id(n_tasks_max), task(n_tasks_max))
+  allocate(pt2(N_states,n_tasks_max), i_generator(n_tasks_max), subset(n_tasks_max))
+
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  zmq_socket_push      = new_zmq_push_socket(thread)
-  call connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread)
-  if(worker_id == -1) then
-    print *, "WORKER -1"
+
+  integer, external :: connect_to_taskserver
+  if (connect_to_taskserver(zmq_to_qp_run_socket,worker_id,thread) == -1) then
     call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-    call end_zmq_push_socket(zmq_socket_push,thread)
     return
-  end if
+  endif
+           
+  zmq_socket_push      = new_zmq_push_socket(thread)
+
   buf%N = 0
-  ctask = 1
-  Nindex=1
-  pt2 = 0d0
-  pt2_detail = 0d0
-  do
-    call get_task_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id(ctask), task)
+  n_tasks = 0
+  call create_selection_buffer(1, 2, buf)
 
-    done = task_id(ctask) == 0
-    if (done) then
-      ctask = ctask - 1
-    else
-      integer :: i_generator, i_i_generator, subset
-      read (task,*) subset, index
-      
-      if(buf%N == 0) then
-        ! Only first time 
-        call create_selection_buffer(1, 2, buf)
-      end if
-      do i_i_generator=1, Nindex
-        i_generator = index
-        call select_connected(i_generator,energy,pt2_detail(1, i_i_generator),buf,subset)
-        pt2(:) += pt2_detail(:, i_generator)
-      enddo
+  done = .False.
+  do while (.not.done)
+
+    n_tasks = min(n_tasks+1,n_tasks_max)
+
+    integer, external :: get_tasks_from_taskserver
+    if (get_tasks_from_taskserver(zmq_to_qp_run_socket,worker_id, task_id, task, n_tasks) == -1) then
+      exit
     endif
+    done = task_id(n_tasks) == 0
+    if (done) n_tasks = n_tasks-1
+    if (n_tasks == 0) exit
 
-    if(done .or. (ctask == size(task_id)) ) then
-      if(buf%N == 0 .and. ctask > 0) stop "uninitialized selection_buffer"
-      do i=1, ctask
-         call task_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id(i))
-      end do
-      if(ctask > 0) then
-        call push_pt2_results(zmq_socket_push, Nindex, index, pt2_detail, task_id(1), ctask)
-        pt2 = 0d0
-        pt2_detail(:,:Nindex) = 0d0
+    do k=1,n_tasks
+      read (task(k),*) subset(k), i_generator(k)
+    enddo
+
+    do k=1,n_tasks
+        pt2(:,k) = 0.d0
         buf%cur = 0
-      end if
-      ctask = 0
-    end if
-
-    if(done) exit
-    ctask = ctask + 1
+        call select_connected(i_generator(k),energy,pt2(1,k),buf,subset(k))
+    enddo
+    integer, external :: tasks_done_to_taskserver
+    if (tasks_done_to_taskserver(zmq_to_qp_run_socket,worker_id,task_id,n_tasks) == -1) then
+      done = .true.
+    endif
+    call push_pt2_results(zmq_socket_push, i_generator, pt2, task_id, n_tasks)
   end do
-  call disconnect_from_taskserver(zmq_to_qp_run_socket,zmq_socket_push,worker_id)
+
+  integer, external :: disconnect_from_taskserver
+  if (disconnect_from_taskserver(zmq_to_qp_run_socket,worker_id) == -1) then 
+    continue 
+  endif 
+
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   call end_zmq_push_socket(zmq_socket_push,thread)
   call delete_selection_buffer(buf)
 end subroutine
 
 
-subroutine push_pt2_results(zmq_socket_push, N, index, pt2_detail, task_id, ntask)
+subroutine push_pt2_results(zmq_socket_push, index, pt2, task_id, n_tasks)
   use f77_zmq
   use selection_types
   implicit none
 
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_push
-  double precision, intent(in)   :: pt2_detail(N_states, N_det_generators)
-  integer, intent(in) :: ntask, N, index, task_id(*)
+  double precision, intent(in)   :: pt2(N_states,n_tasks)
+  integer, intent(in) :: n_tasks, index(n_tasks), task_id(n_tasks)
   integer :: rc
 
+  rc = f77_zmq_send( zmq_socket_push, n_tasks, 4, ZMQ_SNDMORE)
+  if (rc == -1) then
+    return
+  endif
+  if(rc /= 4) stop 'push'
 
-  rc = f77_zmq_send( zmq_socket_push, N, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "push"
 
-  rc = f77_zmq_send( zmq_socket_push, index, 4, ZMQ_SNDMORE)
-  if(rc /= 4*N) stop "push"
+  rc = f77_zmq_send( zmq_socket_push, index, 4*n_tasks, ZMQ_SNDMORE)
+  if (rc == -1) then
+    return
+  endif
+  if(rc /= 4*n_tasks) stop 'push'
 
 
-  rc = f77_zmq_send( zmq_socket_push, pt2_detail, 8*N_states*N, ZMQ_SNDMORE)
-  if(rc /= 8*N_states*N) stop "push"
+  rc = f77_zmq_send( zmq_socket_push, pt2, 8*N_states*n_tasks, ZMQ_SNDMORE)
+  if (rc == -1) then
+    return
+  endif
+  if(rc /= 8*N_states*n_tasks) stop 'push'
 
-  rc = f77_zmq_send( zmq_socket_push, ntask, 4, ZMQ_SNDMORE)
-  if(rc /= 4) stop "push"
-
-  rc = f77_zmq_send( zmq_socket_push, task_id, ntask*4, 0)
-  if(rc /= 4*ntask) stop "push"
+  rc = f77_zmq_send( zmq_socket_push, task_id, n_tasks*4, 0)
+  if (rc == -1) then
+    return
+  endif
+  if(rc /= 4*n_tasks) stop 'push'
 
 ! Activate is zmq_socket_push is a REQ
 IRP_IF ZMQ_PUSH
 IRP_ELSE
   character*(2) :: ok
   rc = f77_zmq_recv( zmq_socket_push, ok, 2, 0)
+  if (rc == -1) then
+    return
+  endif
+  if ((rc /= 2).and.(ok(1:2) /= 'ok')) then
+    print *,  irp_here//': error in receiving ok'
+    stop -1
+  endif
 IRP_ENDIF
 
 end subroutine
 
 
-subroutine pull_pt2_results(zmq_socket_pull, N, index, pt2_detail, task_id, ntask)
+subroutine pull_pt2_results(zmq_socket_pull, index, pt2, task_id, n_tasks)
   use f77_zmq
   use selection_types
   implicit none
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
-  double precision, intent(inout) :: pt2_detail(N_states, N_det_generators)
-  integer, intent(out) :: index
-  integer, intent(out) :: N, ntask, task_id(*)
+  double precision, intent(inout) :: pt2(N_states,*)
+  integer, intent(out) :: index(*)
+  integer, intent(out) :: n_tasks, task_id(*)
   integer :: rc, rn, i
 
-  rc = f77_zmq_recv( zmq_socket_pull, N, 4, 0)
-  if(rc /= 4) stop "pull"
+  rc = f77_zmq_recv( zmq_socket_pull, n_tasks, 4, 0)
+  if (rc == -1) then
+    n_tasks = 1
+    task_id(1) = 0
+  endif
+  if(rc /= 4) stop 'pull'
 
-  rc = f77_zmq_recv( zmq_socket_pull, index, 4, 0)
-  if(rc /= 4*N) stop "pull"
+  rc = f77_zmq_recv( zmq_socket_pull, index, 4*n_tasks, 0)
+  if (rc == -1) then
+    n_tasks = 1
+    task_id(1) = 0
+  endif
+  if(rc /= 4*n_tasks) stop 'pull'
 
-  rc = f77_zmq_recv( zmq_socket_pull, pt2_detail, N_states*8*N, 0)
-  if(rc /= 8*N_states*N) stop "pull"
+  rc = f77_zmq_recv( zmq_socket_pull, pt2, N_states*8*n_tasks, 0)
+  if (rc == -1) then
+    n_tasks = 1
+    task_id(1) = 0
+  endif
+  if(rc /= 8*N_states*n_tasks) stop 'pull'
 
-  rc = f77_zmq_recv( zmq_socket_pull, ntask, 4, 0)
-  if(rc /= 4) stop "pull"
-
-  rc = f77_zmq_recv( zmq_socket_pull, task_id, ntask*4, 0)
-  if(rc /= 4*ntask) stop "pull"
+  rc = f77_zmq_recv( zmq_socket_pull, task_id, n_tasks*4, 0)
+  if (rc == -1) then
+    n_tasks = 1
+    task_id(1) = 0
+  endif
+  if(rc /= 4*n_tasks) stop 'pull'
 
 ! Activate is zmq_socket_pull is a REP
 IRP_IF ZMQ_PUSH
 IRP_ELSE
   rc = f77_zmq_send( zmq_socket_pull, 'ok', 2, 0)
+  if (rc == -1) then
+    n_tasks = 1
+    task_id(1) = 0
+  endif
+  if (rc /= 2) then
+    print *,  irp_here//': error in sending ok'
+    stop -1
+  endif
 IRP_ENDIF
 
 end subroutine

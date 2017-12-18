@@ -46,6 +46,9 @@ subroutine write_time(iunit)
   END_DOC
   integer, intent(in)            :: iunit
   double precision               :: wt, ct
+  if (.not.mpi_master) then
+    return
+  endif
   call cpu_time(ct)
   call wall_time(wt)
   write(iunit,*)
@@ -60,6 +63,9 @@ subroutine write_double(iunit,value,label)
   BEGIN_DOC
   ! Write a double precision value in output
   END_DOC
+  if (.not.mpi_master) then
+    return
+  endif
   integer, intent(in)            :: iunit
   double precision               :: value
   character*(*)                  :: label
@@ -75,6 +81,9 @@ subroutine write_int(iunit,value,label)
   BEGIN_DOC
   ! Write an integer value in output
   END_DOC
+  if (.not.mpi_master) then
+    return
+  endif
   integer, intent(in)            :: iunit
   integer                        :: value
   character*(*)                  :: label
@@ -90,6 +99,9 @@ subroutine write_bool(iunit,value,label)
   BEGIN_DOC
   ! Write an logical value in output
   END_DOC
+  if (.not.mpi_master) then
+    return
+  endif
   integer, intent(in)            :: iunit
   logical                        :: value
   character*(*)                  :: label

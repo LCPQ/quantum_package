@@ -1,4 +1,4 @@
-BEGIN_PROVIDER [double precision, ao_ortho_lowdin_nucl_elec_integral, (mo_tot_num_align,mo_tot_num)]
+BEGIN_PROVIDER [double precision, ao_ortho_lowdin_nucl_elec_integral, (mo_tot_num,mo_tot_num)]
  implicit none
  integer :: i1,j1,i,j
  double precision :: c_i1,c_j1
