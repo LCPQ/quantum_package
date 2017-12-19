@@ -345,7 +345,10 @@ print "mo_num", mo_num
 print "det_num", n_det
 print ""
 
-state = 0
+if "QP_STATE" in os.environ:
+  state = int(os.environ["QP_STATE"])-1
+else:
+  state = 0
 psi_coef = psi_coef[state]
 
 encode = 8*bit_kind

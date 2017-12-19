@@ -2,6 +2,14 @@
 QmcChem Module
 ==============
 
+For multi-state calculations, to extract state 2 use:
+
+``
+QP_STATE=2 qp_run save_for_qmcpack x.ezfio
+``
+(state 1 is the ground state).
+
+
 Documentation
 =============
 
