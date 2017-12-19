@@ -26,7 +26,7 @@ if do_pseudo:
 
     l_element_raw = data_raw.split("\n")
     l_element = [element_raw.split() for element_raw in l_element_raw]
-    d_z = dict((abr, z) for (z, abr, ele) in l_element)
+    d_z = dict((abr, z) for (z, abr, ele, _) in filter(lambda x: x != [], l_element) )
 else:
     print "do_pseudo False"
 
