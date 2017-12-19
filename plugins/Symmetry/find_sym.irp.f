@@ -20,7 +20,7 @@ BEGIN_PROVIDER [ logical, molecule_has_center_of_inversion ]
     found = .False.
     do j=1,nucl_num
       if (nucl_charge(i) /= nucl_charge(j)) cycle
-      point(:) = nucl_coord_transp(:,i) + nucl_coord_transp(:,j)
+      point(:) = nucl_coord_sym_transp(:,i) + nucl_coord_sym_transp(:,j)
       if (u_dot_u(point,3) < 1.d-5) then
         found = .True.
         exit
@@ -52,10 +52,10 @@ BEGIN_PROVIDER [ integer, sym_rotation_axis, (3) ]
       sym_rotation_axis(iaxis) = iorder
       do i=1,nucl_num
         found = .False.
-        call sym_apply_rotation(dble(iorder),iaxis,nucl_coord_transp(1,i),point)
+        call sym_apply_rotation(dble(iorder),iaxis,nucl_coord_sym_transp(1,i),point)
         do j=1,nucl_num
           if (nucl_charge(i) /= nucl_charge(j)) cycle
-          point2(:) = nucl_coord_transp(:,j) - point(:)
+          point2(:) = nucl_coord_sym_transp(:,j) - point(:)
           if (u_dot_u(point2,3) < 1.d-5) then
             found = .True.
             exit
@@ -148,10 +148,10 @@ BEGIN_PROVIDER [ logical, molecule_has_improper_rotation ]
   molecule_has_improper_rotation = .True.
   do i=1,nucl_num
     found = .False.
-    call sym_apply_improper_rotation(dble(iorder),iaxis,nucl_coord_transp(1,i),point)
+    call sym_apply_improper_rotation(dble(iorder),iaxis,nucl_coord_sym_transp(1,i),point)
     do j=1,nucl_num
       if (nucl_charge(i) /= nucl_charge(j)) cycle
-      point2(:) = nucl_coord_transp(:,j) - point(:)
+      point2(:) = nucl_coord_sym_transp(:,j) - point(:)
       if (u_dot_u(point2,3) < 1.d-5) then
         found = .True.
         exit
@@ -179,7 +179,7 @@ BEGIN_PROVIDER [ logical, molecule_has_center_of_inversion ]
     found = .False.
     do j=1,nucl_num
       if (nucl_charge(i) /= nucl_charge(j)) cycle
-      point(:) = nucl_coord_transp(:,i) + nucl_coord_transp(:,j)
+      point(:) = nucl_coord_sym_transp(:,i) + nucl_coord_sym_transp(:,j)
       if (u_dot_u(point,3) < 1.d-5) then
         found = .True.
         exit
@@ -208,11 +208,11 @@ BEGIN_PROVIDER [ logical, molecule_has_sigma_plane, (3) ]
     molecule_has_sigma_plane(iaxis) = .True.
     do i=1,nucl_num
       found = .False.
-      point(:) = nucl_coord_transp(:,i)
+      point(:) = nucl_coord_sym_transp(:,i)
       point(iaxis) = -point(iaxis)
       do j=1,nucl_num
         if (nucl_charge(i) /= nucl_charge(j)) cycle
-        point2(:) = nucl_coord_transp(:,j) - point(:)
+        point2(:) = nucl_coord_sym_transp(:,j) - point(:)
         if (u_dot_u(point2,3) < 1.d-5) then
           found = .True.
           exit
@@ -233,7 +233,7 @@ BEGIN_PROVIDER [ character*16, point_group ]
 ! Point group of the molecule
  END_DOC
 
-  character*2, save  :: i_to_a(24) = (/ ' 1', ' 2', ' 3', ' 4', ' 5', ' 6', ' 7', ' 8', ' 9', &
+  character*2, save  :: i_to_a(24) = (/ '1 ', '2 ', '3 ', '4 ', '5 ', '6 ', '7 ', '8 ', '9 ', &
       '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', &
       '21', '22', '23', '24'  /)
   point_group = 'C1'
@@ -366,7 +366,7 @@ BEGIN_PROVIDER [ integer, mo_sym, (mo_tot_num) ]
   integer                        :: iangle, n_sym_points
   double precision               :: angle
   integer                        :: iop, imo, ipoint, l, i
-  double precision               :: sym_operations_on_mos(n_irrep)
+  double precision               :: sym_operations_on_mos(mo_tot_num)
   logical                        :: possible_irrep(n_irrep,mo_tot_num)
 
   n_sym_points = 10000
@@ -443,6 +443,7 @@ BEGIN_PROVIDER [ integer, mo_sym, (mo_tot_num) ]
         sym_operations_on_mos(imo) += x
       enddo
       sym_operations_on_mos(imo) *= 1.d0/n_sym_points
+      print *,  iop, imo, sym_operations_on_mos(imo)
       if (dabs(sym_operations_on_mos(imo)-1.d0) < 1.d-2) then
           sym_operations_on_mos(imo)=1.d0 
       else if (dabs(sym_operations_on_mos(imo)+1.d0) < 1.d-2) then

@@ -7,8 +7,8 @@ BEGIN_PROVIDER [ double precision, sym_box, (3,2) ]
   sym_box(:,:) = 0.d0
   do xyz=1,3
     do i=1,nucl_num
-      sym_box(xyz,1) = min(sym_box(xyz,1), nucl_coord(i,xyz))
-      sym_box(xyz,2) = max(sym_box(xyz,2), nucl_coord(i,xyz))
+      sym_box(xyz,1) = min(sym_box(xyz,1), nucl_coord_sym(i,xyz))
+      sym_box(xyz,2) = max(sym_box(xyz,2), nucl_coord_sym(i,xyz))
     enddo
   enddo
   sym_box(:,1) = sym_box(:,1) - 2.d0
@@ -42,24 +42,28 @@ subroutine compute_sym_ao_values(sym_points, n_sym_points, result)
   double precision, intent(out)  :: result(n_sym_points, ao_num)
   integer                        :: i, j
   double precision               :: x, y, z
+  double precision               :: x2, y2, z2
   result (:,:) = 0.d0
   do j=1,ao_num
     do i=1,n_sym_points
-      x = sym_points(1,i) - nucl_coord_transp(1,ao_nucl(j))
-      y = sym_points(2,i) - nucl_coord_transp(2,ao_nucl(j))
-      z = sym_points(3,i) - nucl_coord_transp(3,ao_nucl(j))
-      x = x**ao_power(j,1)
-      y = y**ao_power(j,2)
-      z = z**ao_power(j,3)
-!      result(i,j) = x*y*z*exp(-(x*x+y*y+z*z))
-      result(i,j) = x*y*z
-      if (result(i,j) > 0.d0) then
-        result(i,j) = 1.d0
-      else if (result(i,j) < 0.d0) then
-        result(i,j) = -1.d0
-      else
-        result(i,j) = 0.d0
-      endif
+      x = sym_points(1,i) - nucl_coord_sym_transp(1,ao_nucl(j))
+      y = sym_points(2,i) - nucl_coord_sym_transp(2,ao_nucl(j))
+      z = sym_points(3,i) - nucl_coord_sym_transp(3,ao_nucl(j))
+      x2 = x*sym_molecule_rotation_inv(1,1) + y*sym_molecule_rotation_inv(2,1) + z*sym_molecule_rotation_inv(3,1)
+      y2 = x*sym_molecule_rotation_inv(1,2) + y*sym_molecule_rotation_inv(2,2) + z*sym_molecule_rotation_inv(3,2)
+      z2 = x*sym_molecule_rotation_inv(1,3) + y*sym_molecule_rotation_inv(2,3) + z*sym_molecule_rotation_inv(3,3) 
+      x = x2**ao_power(j,1)
+      y = y2**ao_power(j,2)
+      z = z2**ao_power(j,3)
+      result(i,j) = x*y*z*exp(-(x*x+y*y+z*z))
+!      result(i,j) = x*y*z
+!      if (result(i,j) > 0.d0) then
+!        result(i,j) = 1.d0
+!      else if (result(i,j) < 0.d0) then
+!        result(i,j) = -1.d0
+!      else
+!        result(i,j) = 0.d0
+!      endif
     enddo
   enddo
   

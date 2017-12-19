@@ -17,7 +17,7 @@ MLLFILES=$(wildcard *.mll)
 MLFILES=$(wildcard *.ml) ezfio.ml Qptypes.ml Input_auto_generated.ml qp_edit.ml 
 MLIFILES=$(wildcard *.mli) git
 ALL_TESTS=$(patsubst %.ml,%.byte,$(wildcard test_*.ml))
-ALL_EXE=$(patsubst %.ml,%.native,$(wildcard qp_*.ml)) qp_edit.native
+ALL_EXE=$(patsubst %.ml,%.native,$(wildcard qp_*.ml)) qp_edit.native element_create_db.byte
 
 .PHONY: executables default remake_executables
 
@@ -37,8 +37,9 @@ tests: $(ALL_TESTS)
 executables: $(QP_ROOT)/data/executables
 
 
-$(QP_ROOT)/data/executables: remake_executables
+$(QP_ROOT)/data/executables: remake_executables element_create_db.byte Qptypes.ml
 	$(QP_ROOT)/scripts/module/create_executables_list.sh
+	$(QP_ROOT)/ocaml/element_create_db.byte
 
 external_libs:
 	opam install cryptokit core
