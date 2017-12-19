@@ -260,153 +260,31 @@ BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
    endif
 END_PROVIDER
 
-BEGIN_PROVIDER [ character*(128), element_name, (78)] 
+ BEGIN_PROVIDER [ character*(4), element_name, (0:128)] 
+&BEGIN_PROVIDER [ double precision, element_mass, (0:128) ]
  BEGIN_DOC
  ! Array of the name of element, sorted by nuclear charge (integer)
  END_DOC
- element_name(1) = 'H'
- element_name(2) = 'He'
- element_name(3) = 'Li'
- element_name(4) = 'Be'
- element_name(5) = 'B'
- element_name(6) = 'C'
- element_name(7) = 'N'
- element_name(8) = 'O'
- element_name(9) = 'F'
- element_name(10) = 'Ne'
- element_name(11) = 'Na'
- element_name(12) = 'Mg'
- element_name(13) = 'Al'
- element_name(14) = 'Si'
- element_name(15) = 'P'
- element_name(16) = 'S'
- element_name(17) = 'Cl'
- element_name(18) = 'Ar'
- element_name(19) = 'K'
- element_name(20) = 'Ca'
- element_name(21) = 'Sc'
- element_name(22) = 'Ti'
- element_name(23) = 'V'
- element_name(24) = 'Cr'
- element_name(25) = 'Mn'
- element_name(26) = 'Fe'
- element_name(27) = 'Co'
- element_name(28) = 'Ni'
- element_name(29) = 'Cu'
- element_name(30) = 'Zn'
- element_name(31) = 'Ga'
- element_name(32) = 'Ge'
- element_name(33) = 'As'
- element_name(34) = 'Se'
- element_name(35) = 'Br'
- element_name(36) = 'Kr'
- element_name(37) = 'Rb'
- element_name(38) = 'Sr'
- element_name(39) = 'Y'
- element_name(40) = 'Zr'
- element_name(41) = 'Nb'
- element_name(42) = 'Mo'
- element_name(43) = 'Tc'
- element_name(44) = 'Ru'
- element_name(45) = 'Rh'
- element_name(46) = 'Pd'
- element_name(47) = 'Ag'
- element_name(48) = 'Cd'
- element_name(49) = 'In'
- element_name(50) = 'Sn'
- element_name(51) = 'Sb'
- element_name(52) = 'Te'
- element_name(53) = 'I'
- element_name(54) = 'Xe'
- element_name(55) = 'Cs'
- element_name(56) = 'Ba'
- element_name(57) = 'La'
- element_name(58) = 'Ce'
- element_name(59) = 'Pr'
- element_name(60) = 'Nd'
- element_name(61) = 'Pm'
- element_name(62) = 'Sm'
- element_name(63) = 'Eu'
- element_name(64) = 'Gd'
- element_name(65) = 'Tb'
- element_name(66) = 'Dy'
- element_name(67) = 'Ho'
- element_name(68) = 'Er'
- element_name(69) = 'Tm'
- element_name(70) = 'Yb'
- element_name(71) = 'Lu'
- element_name(72) = 'Hf'
- element_name(73) = 'Ta'
- element_name(74) = 'W'
- element_name(75) = 'Re'
- element_name(76) = 'Os'
- element_name(77) = 'Ir'
- element_name(78) = 'Pt'
+ integer :: iunit
+ integer, external :: getUnitAndOpen
+ character*(128) :: filename
+ call getenv('QP_ROOT',filename)
+ filename = trim(filename)//'/data/list_element.txt'
+ iunit = getUnitAndOpen(filename,'r')
+ element_mass(:) = 0.d0
+ do i=0,128
+   write(element_name(i),'(I4)') i
+ enddo
+ character*(80) :: buffer, dummy
+ do
+   read(iunit,'(A80)',end=10) buffer
+   read(buffer,*) i ! First read i
+   read(buffer,*) i, element_name(i), dummy, element_mass(i)
+   print *,  i, element_name(i), element_mass(i)
+ enddo
+ 10 continue
+ close(10)
 
-END_PROVIDER
-
-BEGIN_PROVIDER [ double precision, mass, (0:110) ]
-  implicit none
-  BEGIN_DOC
-  ! Atomic masses
-  END_DOC
-  
-  mass(  0   )  =  0.
-  mass(  1   )  =  1.0079
-  mass(  2   )  =  4.00260
-  mass(  3   )  =  6.941
-  mass(  4   )  =  9.01218
-  mass(  5   )  =  10.81
-  mass(  6   )  =  12.011
-  mass(  7   )  =  14.0067
-  mass(  8   )  =  15.9994
-  mass(  9   )  =  18.998403
-  mass(  10  )  =  20.179
-  mass(  11  )  =  22.98977
-  mass(  12  )  =  24.305
-  mass(  13  )  =  26.98154
-  mass(  14  )  =  28.0855
-  mass(  15  )  =  30.97376
-  mass(  16  )  =  32.06
-  mass(  17  )  =  35.453
-  mass(  18  )  =  39.948
-  mass(  19  )  =  39.0983
-  mass(  20  )  =  40.08
-  mass(  21  )  =  44.9559
-  mass(  22  )  =  47.90
-  mass(  23  )  =  50.9415
-  mass(  24  )  =  51.996
-  mass(  25  )  =  54.9380
-  mass(  26  )  =  55.9332
-  mass(  27  )  =  58.9332
-  mass(  28  )  =  58.70
-  mass(  29  )  =  63.546
-  mass(  30  )  =  65.38
-  mass(  31  )  =  69.72
-  mass(  32  )  =  72.59
-  mass(  33  )  =  74.9216
-  mass(  34  )  =  78.96
-  mass(  35  )  =  79.904
-  mass(  36  )  =  83.80
-  mass(  37  )  =  85.4678
-  mass(  38  )  =  87.62
-  mass(  39  )  =  88.90584
-  mass(  40  )  =  91.224
-  mass(  41  )  =  92.90637
-  mass(  42  )  =  95.95
-  mass(  43  )  =  98.
-  mass(  44  )  =  101.07
-  mass(  45  )  =  102.90550
-  mass(  46  )  =  106.42
-  mass(  47  )  =  107.8682
-  mass(  48  )  =  112.414
-  mass(  49  )  =  114.818
-  mass(  50  )  =  118.710
-  mass(  51  )  =  121.760
-  mass(  52  )  =  127.60
-  mass(  53  )  =  126.90447
-  mass(  54  )  =  131.293
-  mass(  78  )  =  195.084
 END_PROVIDER
 
 BEGIN_PROVIDER [ double precision, center_of_mass, (3) ]
@@ -420,9 +298,9 @@ BEGIN_PROVIDER [ double precision, center_of_mass, (3) ]
   s = 0.d0
   do i=1,nucl_num
     do j=1,3
-      center_of_mass(j) += nucl_coord_input(i,j)* mass(int(nucl_charge(i)))
+      center_of_mass(j) += nucl_coord_input(i,j)* element_mass(int(nucl_charge(i)))
     enddo
-    s += mass(int(nucl_charge(i)))
+    s += element_mass(int(nucl_charge(i)))
   enddo
   s = 1.d0/s
   center_of_mass(:) = center_of_mass(:)*s

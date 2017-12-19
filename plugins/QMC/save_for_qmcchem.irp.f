@@ -1,7 +1,6 @@
 program save_for_qmc
 
   integer                        :: iunit
-  integer, external              :: get_unit_and_open
   logical                        :: exists
   double precision               :: e_ref
   
