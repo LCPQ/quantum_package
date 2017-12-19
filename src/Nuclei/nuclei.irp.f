@@ -280,7 +280,6 @@ END_PROVIDER
    read(iunit,'(A80)',end=10) buffer
    read(buffer,*) i ! First read i
    read(buffer,*) i, element_name(i), dummy, element_mass(i)
-   print *,  i, element_name(i), element_mass(i)
  enddo
  10 continue
  close(10)
