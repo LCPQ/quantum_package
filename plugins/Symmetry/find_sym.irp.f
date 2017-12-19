@@ -369,7 +369,7 @@ BEGIN_PROVIDER [ integer, mo_sym, (mo_tot_num) ]
   double precision               :: sym_operations_on_mos(mo_tot_num)
   logical                        :: possible_irrep(n_irrep,mo_tot_num)
 
-  n_sym_points = 10000
+  n_sym_points = 10
   allocate(val(n_sym_points,mo_tot_num,2), sym_points(3,n_sym_points), ref_points(3,n_sym_points))
 
   call generate_sym_coord(n_sym_points,ref_points)
@@ -402,10 +402,12 @@ BEGIN_PROVIDER [ integer, mo_sym, (mo_tot_num) ]
         call sym_apply_diagonal_reflexion(molecule_principal_axis,ref_points(1,ipoint),sym_points(1,ipoint))
       enddo
     else if (sym_operation(iop) == 'C2''') then 
+      angle = 2.d0
       do ipoint=1,n_sym_points
         call sym_apply_rotation(angle,molecule_secondary_axis,ref_points(1,ipoint),sym_points(1,ipoint))
       enddo
     else if (sym_operation(iop) == 'C2"') then 
+      angle = 2.d0
       do ipoint=1,n_sym_points
         call sym_apply_rotation(angle,molecule_ternary_axis,ref_points(1,ipoint),sym_points(1,ipoint))
       enddo
@@ -414,9 +416,12 @@ BEGIN_PROVIDER [ integer, mo_sym, (mo_tot_num) ]
         if (sym_operation(iop)(l:l) == '^') exit
       enddo
       read(sym_operation(iop)(2:l-1), *) iangle
-      l=1
-      read(sym_operation(iop)(l+1:), *, err=10, end=10) l
-      10 continue
+      if (l == len(sym_operation(iop))+1) then
+        l=1
+      else
+        read(sym_operation(iop)(l+1:), *, err=10, end=10) l
+        10 continue
+      endif
       angle = dble(iangle)/(dble(l))
       if (sym_operation(iop)(1:1) == 'C') then 
         do ipoint=1,n_sym_points
@@ -432,23 +437,23 @@ BEGIN_PROVIDER [ integer, mo_sym, (mo_tot_num) ]
     call compute_sym_mo_values(sym_points,n_sym_points,val(1,1,1))
 
     print *,  sym_operation(iop)
+    double precision :: icount
     do imo=1,mo_tot_num
       sym_operations_on_mos(imo) = 0.d0
+      icount = 0
       do ipoint=1,n_sym_points
         double precision :: x
+        if (dabs(val(ipoint,imo,1)) < 1.d-5) cycle
+        icount += 1.d0 
         x =  val(ipoint,imo,1)/val(ipoint,imo,2)
         if (dabs(x) > 1.d0) then
           x = 1.d0/x
         endif
         sym_operations_on_mos(imo) += x
       enddo
-      sym_operations_on_mos(imo) *= 1.d0/n_sym_points
+      sym_operations_on_mos(imo) *= 1.d0/icount
       print *,  iop, imo, sym_operations_on_mos(imo)
-      if (dabs(sym_operations_on_mos(imo)-1.d0) < 1.d-2) then
-          sym_operations_on_mos(imo)=1.d0 
-      else if (dabs(sym_operations_on_mos(imo)+1.d0) < 1.d-2) then
-          sym_operations_on_mos(imo)=-1.d0 
-      endif
+      print *,  val(:,imo,1)
       do i=1,n_irrep
         if (character_table(i,iop) /= sym_operations_on_mos(imo)) then
           possible_irrep(i,imo) = .False.
