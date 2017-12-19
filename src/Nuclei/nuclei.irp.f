@@ -146,76 +146,61 @@ BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
    END_DOC
 
    PROVIDE mpi_master nucl_coord nucl_charge nucl_num
-   if (mpi_master) then
-     if (disk_access_nuclear_repulsion.EQ.'Read') then
-       logical                        :: has
-       
-       if (mpi_master) then
-         call ezfio_has_nuclei_nuclear_repulsion(has)
-         if (has) then
-           call ezfio_get_nuclei_nuclear_repulsion(nuclear_repulsion)
-         else
-           print *, 'nuclei/nuclear_repulsion not found in EZFIO file'
-           stop 1
-         endif
-         print*, 'Read nuclear_repulsion'
-       endif
-       IRP_IF MPI
-       include 'mpif.h'
-       integer                        :: ierr
-       call MPI_BCAST( nuclear_repulsion, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-       if (ierr /= MPI_SUCCESS) then
-         stop 'Unable to read nuclear_repulsion with MPI'
-       endif
-       IRP_ENDIF
-       
-       
-     else
-       
-       integer                        :: k,l
-       double precision               :: Z12, r2, x(3)
-       nuclear_repulsion = 0.d0
-       do l = 1, nucl_num
-         do  k = 1, nucl_num
-           if(k == l) then
-             cycle
-           endif
-           Z12 = nucl_charge(k)*nucl_charge(l)
-           x(1) = nucl_coord(k,1) - nucl_coord(l,1)
-           x(2) = nucl_coord(k,2) - nucl_coord(l,2)
-           x(3) = nucl_coord(k,3) - nucl_coord(l,3)
-           r2 = x(1)*x(1) + x(2)*x(2) + x(3)*x(3)
-           nuclear_repulsion += Z12/dsqrt(r2)
-         enddo
-       enddo
-       nuclear_repulsion *= 0.5d0
-     end if
+   if (disk_access_nuclear_repulsion.EQ.'Read') then
+     logical                        :: has
      
-     call write_time(output_Nuclei)
-     call write_double(output_Nuclei,nuclear_repulsion,              &
-         'Nuclear repulsion energy')
-     
-     if (disk_access_nuclear_repulsion.EQ.'Write') then
-       if (mpi_master) then
-         call ezfio_set_nuclei_nuclear_repulsion(nuclear_repulsion)
+     if (mpi_master) then
+       call ezfio_has_nuclei_nuclear_repulsion(has)
+       if (has) then
+         call ezfio_get_nuclei_nuclear_repulsion(nuclear_repulsion)
+       else
+         print *, 'nuclei/nuclear_repulsion not found in EZFIO file'
+         stop 1
        endif
+       print*, 'Read nuclear_repulsion'
      endif
-
-  endif
-
-  IRP_IF MPI
-    include 'mpif.h'
-    integer                        :: ierr
-    call MPI_BCAST( element_name, size(element_name)*4, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
-    if (ierr /= MPI_SUCCESS) then
-      stop 'Unable to read element_name with MPI'
-    endif
-    call MPI_BCAST( element_mass, size(element_mass), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-    if (ierr /= MPI_SUCCESS) then
-      stop 'Unable to read element_name with MPI'
-    endif
-  IRP_ENDIF
-
+     IRP_IF MPI
+      include 'mpif.h'
+      integer                        :: ierr
+      call MPI_BCAST( nuclear_repulsion, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+      if (ierr /= MPI_SUCCESS) then
+        stop 'Unable to read nuclear_repulsion with MPI'
+      endif
+     IRP_ENDIF
+     
+     
+   else
+     
+     integer                        :: k,l
+     double precision               :: Z12, r2, x(3)
+     nuclear_repulsion = 0.d0
+     do l = 1, nucl_num
+       do  k = 1, nucl_num
+         if(k == l) then
+           cycle
+         endif
+         Z12 = nucl_charge(k)*nucl_charge(l)
+         x(1) = nucl_coord(k,1) - nucl_coord(l,1)
+         x(2) = nucl_coord(k,2) - nucl_coord(l,2)
+         x(3) = nucl_coord(k,3) - nucl_coord(l,3)
+         r2 = x(1)*x(1) + x(2)*x(2) + x(3)*x(3)
+         nuclear_repulsion += Z12/dsqrt(r2)
+       enddo
+     enddo
+     nuclear_repulsion *= 0.5d0
+   end if
+   
+   call write_time(output_Nuclei)
+   call write_double(output_Nuclei,nuclear_repulsion,                &
+       'Nuclear repulsion energy')
+   
+   if (disk_access_nuclear_repulsion.EQ.'Write') then
+     if (mpi_master) then
+       call ezfio_set_nuclei_nuclear_repulsion(nuclear_repulsion)
+     endif
+   endif
+   
+   
 END_PROVIDER
 
  BEGIN_PROVIDER [ character*(4), element_name, (0:128)]
