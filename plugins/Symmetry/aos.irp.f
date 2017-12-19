@@ -48,6 +48,7 @@ subroutine compute_sym_ao_values(sym_points, n_sym_points, result)
   double precision               :: x, y, z
   double precision               :: x2, y2, z2
   integer                        :: k
+
   result (:,:) = 0.d0
 print *,  sym_molecule_rotation_inv
 print *,  ''
