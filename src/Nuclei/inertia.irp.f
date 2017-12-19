@@ -6,12 +6,12 @@ BEGIN_PROVIDER [ double precision, inertia_tensor, (3,3) ]
   integer                        :: i,j,k
   inertia_tensor = 0.d0
   do k=1,nucl_num
-    inertia_tensor(1,1) += element_mass(int(nucl_charge(k))) * ((nucl_coord_input(k,2)-center_of_mass(2))**2 + (nucl_coord_input(k,3)-center_of_mass(3))**2)
-    inertia_tensor(2,2) += element_mass(int(nucl_charge(k))) * ((nucl_coord_input(k,1)-center_of_mass(1))**2 + (nucl_coord_input(k,3)-center_of_mass(3))**2)
-    inertia_tensor(3,3) += element_mass(int(nucl_charge(k))) * ((nucl_coord_input(k,1)-center_of_mass(1))**2 + (nucl_coord_input(k,2)-center_of_mass(2))**2)
-    inertia_tensor(1,2) -= element_mass(int(nucl_charge(k))) * ((nucl_coord_input(k,1)-center_of_mass(1))    * (nucl_coord_input(k,2)-center_of_mass(2))   )
-    inertia_tensor(1,3) -= element_mass(int(nucl_charge(k))) * ((nucl_coord_input(k,1)-center_of_mass(1))    * (nucl_coord_input(k,3)-center_of_mass(3))   )
-    inertia_tensor(2,3) -= element_mass(int(nucl_charge(k))) * ((nucl_coord_input(k,2)-center_of_mass(2))    * (nucl_coord_input(k,3)-center_of_mass(3))   )
+    inertia_tensor(1,1) += element_mass(int(nucl_charge(k))) * ((nucl_coord(k,2)-center_of_mass(2))**2 + (nucl_coord(k,3)-center_of_mass(3))**2)
+    inertia_tensor(2,2) += element_mass(int(nucl_charge(k))) * ((nucl_coord(k,1)-center_of_mass(1))**2 + (nucl_coord(k,3)-center_of_mass(3))**2)
+    inertia_tensor(3,3) += element_mass(int(nucl_charge(k))) * ((nucl_coord(k,1)-center_of_mass(1))**2 + (nucl_coord(k,2)-center_of_mass(2))**2)
+    inertia_tensor(1,2) -= element_mass(int(nucl_charge(k))) * ((nucl_coord(k,1)-center_of_mass(1))    * (nucl_coord(k,2)-center_of_mass(2))   )
+    inertia_tensor(1,3) -= element_mass(int(nucl_charge(k))) * ((nucl_coord(k,1)-center_of_mass(1))    * (nucl_coord(k,3)-center_of_mass(3))   )
+    inertia_tensor(2,3) -= element_mass(int(nucl_charge(k))) * ((nucl_coord(k,2)-center_of_mass(2))    * (nucl_coord(k,3)-center_of_mass(3))   )
   enddo
   inertia_tensor(2,1) = inertia_tensor(1,2) 
   inertia_tensor(3,1) = inertia_tensor(1,3) 
