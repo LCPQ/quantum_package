@@ -1,3 +1,56 @@
+subroutine point_to_standard_orientation(point_in,point_out)
+  implicit none
+  double precision, intent(in)   :: point_in(3)
+  double precision, intent(out)  :: point_out(3)
+  BEGIN_DOC
+  ! Returns the coordinates of a point in the standard orientation
+  END_DOC
+  double precision :: point_tmp(3)
+
+  point_tmp(1) = point_in(1) - center_of_mass(1)
+  point_tmp(2) = point_in(2) - center_of_mass(2)
+  point_tmp(3) = point_in(3) - center_of_mass(3)
+
+  point_out(1) = point_tmp(1)*inertia_tensor_eigenvectors(1,1) +     &
+                 point_tmp(2)*inertia_tensor_eigenvectors(2,1) +     &
+                 point_tmp(3)*inertia_tensor_eigenvectors(3,1)
+
+  point_out(2) = point_tmp(1)*inertia_tensor_eigenvectors(1,2) +     &
+                 point_tmp(2)*inertia_tensor_eigenvectors(2,2) +     &
+                 point_tmp(3)*inertia_tensor_eigenvectors(3,2)
+
+  point_out(3) = point_tmp(1)*inertia_tensor_eigenvectors(1,3) +     &
+                 point_tmp(2)*inertia_tensor_eigenvectors(2,3) +     &
+                 point_tmp(3)*inertia_tensor_eigenvectors(3,3)
+  
+end
+
+subroutine point_to_input_orientation(point_in,point_out)
+  implicit none
+  double precision, intent(in)   :: point_in(3)
+  double precision, intent(out)  :: point_out(3)
+  BEGIN_DOC
+  ! Returns the coordinates of a point in the input orientation
+  END_DOC
+  double precision :: point_tmp(3)
+
+  point_tmp(1) = point_in(1)*inertia_tensor_eigenvectors(1,1) +     &
+                 point_in(2)*inertia_tensor_eigenvectors(1,2) +     &
+                 point_in(3)*inertia_tensor_eigenvectors(1,3)
+
+  point_tmp(2) = point_in(1)*inertia_tensor_eigenvectors(2,1) +     &
+                 point_in(2)*inertia_tensor_eigenvectors(2,2) +     &
+                 point_in(3)*inertia_tensor_eigenvectors(2,3)
+
+  point_tmp(3) = point_in(1)*inertia_tensor_eigenvectors(3,1) +     &
+                 point_in(2)*inertia_tensor_eigenvectors(3,2) +     &
+                 point_in(3)*inertia_tensor_eigenvectors(3,3)
+  
+  point_out(1) = point_tmp(1) + center_of_mass(1)
+  point_out(2) = point_tmp(2) + center_of_mass(2)
+  point_out(3) = point_tmp(3) + center_of_mass(3)
+
+end
 
 BEGIN_PROVIDER [ double precision, nucl_coord_sym,  (nucl_num,3) ]
    implicit none
@@ -9,15 +62,7 @@ BEGIN_PROVIDER [ double precision, nucl_coord_sym,  (nucl_num,3) ]
    if (mpi_master) then
      integer :: i
      do i=1,nucl_num
-       nucl_coord_sym(i,1) = (nucl_coord(i,1) - center_of_mass(1))*inertia_tensor_eigenvectors(1,1) + &
-                         (nucl_coord(i,2) - center_of_mass(2))*inertia_tensor_eigenvectors(2,1) + &
-                         (nucl_coord(i,3) - center_of_mass(3))*inertia_tensor_eigenvectors(3,1) 
-       nucl_coord_sym(i,2) = (nucl_coord(i,1) - center_of_mass(1))*inertia_tensor_eigenvectors(1,2) + &
-                         (nucl_coord(i,2) - center_of_mass(2))*inertia_tensor_eigenvectors(2,2) + &
-                         (nucl_coord(i,3) - center_of_mass(3))*inertia_tensor_eigenvectors(3,2) 
-       nucl_coord_sym(i,3) = (nucl_coord(i,1) - center_of_mass(1))*inertia_tensor_eigenvectors(1,3) + &
-                         (nucl_coord(i,2) - center_of_mass(2))*inertia_tensor_eigenvectors(2,3) + &
-                         (nucl_coord(i,3) - center_of_mass(3))*inertia_tensor_eigenvectors(3,3) 
+       call point_to_standard_orientation(nucl_coord(i,:), nucl_coord_sym(i,:))
      enddo
      
      character*(64), parameter      :: f = '(A16, 4(1X,F12.6))'
@@ -74,19 +119,4 @@ BEGIN_PROVIDER [ double precision, nucl_coord_sym_transp, (3,nucl_num) ]
    enddo
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, sym_molecule_rotation, (3,3) ]
- implicit none
- BEGIN_DOC
- ! Rotation of the molecule to go from input orientation to standard orientation
- END_DOC
- call find_rotation(nucl_coord, size(nucl_coord,1), nucl_coord_sym, 3, sym_molecule_rotation, 3)
-END_PROVIDER
-
-BEGIN_PROVIDER [ double precision, sym_molecule_rotation_inv, (3,3) ]
- implicit none
- BEGIN_DOC
- ! Rotation of the molecule to go from standard orientation to input orientation
- END_DOC
- call find_rotation(nucl_coord_sym, size(nucl_coord_sym,1), nucl_coord, 3, sym_molecule_rotation_inv, 3)
-END_PROVIDER
 

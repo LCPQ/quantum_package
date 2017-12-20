@@ -25,8 +25,9 @@ END_PROVIDER
  ! Eigenvectors/eigenvalues of the inertia_tensor. Used to find normal orientation.
  END_DOC
  integer :: k
- call lapack_diagd(inertia_tensor_eigenvalues,inertia_tensor_eigenvectors,inertia_tensor,3,3)
+ call lapack_diagd(inertia_tensor_eigenvalues,inertia_tensor_eigenvectors,-inertia_tensor,3,3)
+ inertia_tensor_eigenvalues = -inertia_tensor_eigenvalues
  print *, 'Rotational constants (GHZ):'
- print *, (1805.65468542d0/(inertia_tensor_eigenvalues(k)+1.d-32), k=3,1,-1) 
+ print *, (1805.65468542d0/(inertia_tensor_eigenvalues(k)+1.d-32), k=1,3) 
 END_PROVIDER
 

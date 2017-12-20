@@ -84,7 +84,7 @@ END_PROVIDER
   END_DOC
   molecule_principal_axis = maxloc(sym_rotation_axis,1)
   if (molecule_principal_axis == 1) then
-    if (sym_rotation_axis(2) >= sym_rotation_axis(3)) then 
+    if (sym_rotation_axis(2) > sym_rotation_axis(3)) then 
       molecule_secondary_axis = 2
       molecule_ternary_axis = 3
     else
@@ -92,7 +92,7 @@ END_PROVIDER
       molecule_ternary_axis = 2
     endif
   else if (molecule_principal_axis == 2) then
-    if (sym_rotation_axis(1) >= sym_rotation_axis(3)) then 
+    if (sym_rotation_axis(1) > sym_rotation_axis(3)) then 
       molecule_secondary_axis = 1
       molecule_ternary_axis = 3
     else
@@ -100,7 +100,7 @@ END_PROVIDER
       molecule_ternary_axis = 1
     endif
   else if (molecule_principal_axis == 3) then
-    if (sym_rotation_axis(1) >= sym_rotation_axis(2)) then 
+    if (sym_rotation_axis(1) > sym_rotation_axis(2)) then 
       molecule_secondary_axis = 1
       molecule_ternary_axis = 2
     else
@@ -375,11 +375,11 @@ BEGIN_PROVIDER [ integer, mo_sym, (mo_tot_num) ]
   call generate_sym_coord(n_sym_points,ref_points)
   call compute_sym_mo_values(ref_points,n_sym_points,val(1,1,2))
 
+  possible_irrep = .True.
   do iop=1,n_irrep
     if (sym_operation(iop) == 'E') then
       cycle
     endif
-    possible_irrep = .True.
 
     if (sym_operation(iop) == 'i') then
       do ipoint=1,n_sym_points
@@ -395,11 +395,12 @@ BEGIN_PROVIDER [ integer, mo_sym, (mo_tot_num) ]
       enddo
     else if (sym_operation(iop) == 'sv') then 
       do ipoint=1,n_sym_points
-        call sym_apply_reflexion(molecule_secondary_axis,ref_points(1,ipoint),sym_points(1,ipoint))
+        call sym_apply_reflexion(molecule_ternary_axis,ref_points(1,ipoint),sym_points(1,ipoint))
       enddo
     else if (sym_operation(iop) == 'sd') then
+      angle = dble(maxval(sym_rotation_axis))
       do ipoint=1,n_sym_points
-        call sym_apply_diagonal_reflexion(molecule_principal_axis,ref_points(1,ipoint),sym_points(1,ipoint))
+        call sym_apply_diagonal_reflexion(angle,molecule_principal_axis,ref_points(1,ipoint),sym_points(1,ipoint))
       enddo
     else if (sym_operation(iop) == 'C2''') then 
       angle = 2.d0
@@ -452,17 +453,23 @@ BEGIN_PROVIDER [ integer, mo_sym, (mo_tot_num) ]
         sym_operations_on_mos(imo) += x
       enddo
       sym_operations_on_mos(imo) *= 1.d0/icount
-      print *,  iop, imo, sym_operations_on_mos(imo)
-      print *,  val(:,imo,1)
+      if (dabs(sym_operations_on_mos(imo) - 1.d0) < 1.d-2) then
+        sym_operations_on_mos(imo) = 1.d0
+      else if (dabs(sym_operations_on_mos(imo) + 1.d0) < 1.d-2) then
+        sym_operations_on_mos(imo) = -1.d0
+      else if (dabs(sym_operations_on_mos(imo)) < 1.d-2) then
+        sym_operations_on_mos(imo) = 0.d0
+      endif
+      print *, imo,  sym_operations_on_mos(imo)
       do i=1,n_irrep
-        if (character_table(i,iop) /= sym_operations_on_mos(imo)) then
+        if (dabs(character_table(i,iop) - sym_operations_on_mos(imo)) > 1.d-2) then
           possible_irrep(i,imo) = .False.
         endif
       enddo
     enddo
   enddo
   do imo=1,mo_tot_num
-    print *,  imo
+    print *,  'MO ', imo
     do i=1,n_irrep
       if (possible_irrep(i,imo)) then
         print *,  sym_irrep(i)
