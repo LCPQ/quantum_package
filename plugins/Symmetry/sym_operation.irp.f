@@ -15,25 +15,18 @@ subroutine sym_apply_reflexion(iaxis,point_in,point_out)
   
 end
 
-subroutine sym_apply_diagonal_reflexion(iaxis,point_in,point_out)
+subroutine sym_apply_diagonal_reflexion(angle,iaxis,point_in,point_out)
   implicit none
   integer, intent(in)            :: iaxis
-  double precision, intent(in)   :: point_in(3)
+  double precision, intent(in)   :: point_in(3), angle
   double precision, intent(out)  :: point_out(3)
-  if (iaxis == 1) then
-    point_out(1) = point_in(1)
-    point_out(2) = point_in(3)
-    point_out(3) = point_in(2)
-  else if (iaxis == 2) then
-    point_out(1) = point_in(3)
-    point_out(2) = point_in(2)
-    point_out(3) = point_in(1)
-  else if (iaxis == 3) then
-    point_out(1) = point_in(2)
-    point_out(2) = point_in(1)
-    point_out(3) = point_in(3)
-  endif
-  
+  double precision :: point_tmp1(3), point_tmp2(3)
+  integer :: iaxis2
+  iaxis2 = mod(iaxis,3)+1
+  iaxis2 = mod(iaxis2,3)+1
+  call sym_apply_rotation(-angle,iaxis,point_in,point_tmp1)
+  call sym_apply_reflexion(iaxis2,point_tmp1,point_tmp2)
+  call sym_apply_rotation(angle,iaxis,point_tmp2,point_out)
 end
 
 subroutine sym_apply_rotation(angle,iaxis,point_in,point_out)

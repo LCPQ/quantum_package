@@ -45,38 +45,27 @@ subroutine compute_sym_ao_values(sym_points, n_sym_points, result)
   double precision, intent(in)   :: sym_points(3,n_sym_points)
   double precision, intent(out)  :: result(n_sym_points, ao_num)
   integer                        :: i, j
+  double precision               :: point(3)
   double precision               :: x, y, z
   double precision               :: x2, y2, z2
   integer                        :: k
-
+  
   result (:,:) = 0.d0
-print *,  sym_molecule_rotation_inv
-print *,  ''
-print *,  sym_molecule_rotation
-stop
   do j=1,ao_num
     do i=1,n_sym_points
-      x2 = sym_points(1,i)
-      y2 = sym_points(2,i)
-      z2 = sym_points(3,i)
-      x = x2*sym_molecule_rotation_inv(1,1) + y2*sym_molecule_rotation_inv(2,1) + z2*sym_molecule_rotation_inv(3,1)
-      y = x2*sym_molecule_rotation_inv(1,2) + y2*sym_molecule_rotation_inv(2,2) + z2*sym_molecule_rotation_inv(3,2)
-      z = x2*sym_molecule_rotation_inv(1,3) + y2*sym_molecule_rotation_inv(2,3) + z2*sym_molecule_rotation_inv(3,3) 
-      x = x - nucl_coord_transp(1,ao_nucl(j))
-      y = y - nucl_coord_transp(2,ao_nucl(j))
-      z = z - nucl_coord_transp(3,ao_nucl(j))
+      call point_to_input_orientation(sym_points(:,i), point)
+      x = point(1) - nucl_coord_transp(1,ao_nucl(j))
+      y = point(2) - nucl_coord_transp(2,ao_nucl(j))
+      z = point(3) - nucl_coord_transp(3,ao_nucl(j))
       x2 = x*x + y*y + z*z
       result(i,j) = 0.d0
       do k=1,ao_prim_num(j)
         result(i,j) += ao_coef_normalized_ordered_transp(k,j)*exp(-ao_expo_ordered_transp(k,j)*x2)
       enddo
-print *,  real(x), ao_power(j,1), real(y), ao_power(j,2), real(z), ao_power(j,3)
       x = x**ao_power(j,1)
       y = y**ao_power(j,2)
       z = z**ao_power(j,3)
-print *,  result(i,j)
       result(i,j) = x*y*z*result(i,j)
-      print *,  result(i,j)
     enddo
   enddo
   
@@ -94,11 +83,6 @@ subroutine compute_sym_mo_values(sym_points, n_sym_points, result)
   double precision, allocatable :: tmp(:,:)
   allocate(tmp(n_sym_points,ao_num))
   call compute_sym_ao_values(sym_points,n_sym_points,tmp)
-integer :: i
-do i=1,ao_num
-  print *,  tmp(:,i)
-enddo
-stop
   call dgemm('N','N',n_sym_points,mo_tot_num,ao_num, &
     1.d0, tmp,size(tmp,1), mo_coef, size(mo_coef,1), &
     0.d0, result,size(result,1))

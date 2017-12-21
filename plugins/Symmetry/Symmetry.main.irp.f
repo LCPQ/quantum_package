@@ -15,7 +15,7 @@ program Symmetry
   print *,  'Symmetry operations :  ', sym_operation(1:n_irrep)
   print *,  'Character table'
   do i=1,n_irrep
-    print *,  character_table(i,:)
+    print *,  i, real(character_table(i,:))
   enddo
   PROVIDE mo_sym
 end
