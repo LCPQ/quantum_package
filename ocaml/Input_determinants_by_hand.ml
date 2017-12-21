@@ -11,6 +11,7 @@ module Determinants_by_hand : sig
       expected_s2            : Positive_float.t;
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
+      state_average_weight   : Positive_float.t array;
     } [@@deriving sexp]
   val read  : unit -> t
   val read_maybe  : unit -> t option
@@ -30,6 +31,7 @@ end = struct
       expected_s2            : Positive_float.t;
       psi_coef               : Det_coef.t array;
       psi_det                : Determinant.t array;
+      state_average_weight   : Positive_float.t array;
     } [@@deriving sexp]
   ;;
 
@@ -82,7 +84,6 @@ end = struct
     |> Ezfio.set_determinants_n_det
   ;;
 
-
   let read_n_states () =
     if not (Ezfio.has_determinants_n_states ()) then
       Ezfio.set_determinants_n_states 1
@@ -96,6 +97,36 @@ end = struct
     |> Ezfio.set_determinants_n_states
   ;;
 
+  let write_state_average_weight data =
+      let n_states =
+        read_n_states ()
+        |> States_number.to_int
+      in
+      let data =
+        Array.map ~f:Positive_float.to_float data
+        |> Array.to_list
+      in
+      Ezfio.ezfio_array_of_list ~rank:1 ~dim:[| n_states |] ~data
+      |> Ezfio.set_determinants_state_average_weight
+  ;;
+
+  let read_state_average_weight () =
+    if not (Ezfio.has_determinants_state_average_weight ()) then
+      begin
+        let n_states =
+          read_n_states ()
+          |> States_number.to_int
+        in
+        let data = 
+          Array.init n_states (fun _ -> 1./.(float_of_int n_states))
+          |> Array.map ~f:Positive_float.of_float
+        in
+        write_state_average_weight data;
+      end;
+    Ezfio.get_determinants_state_average_weight ()
+    |> Ezfio.flattened_ezfio
+    |> Array.map ~f:Positive_float.of_float
+  ;;
 
   let read_expected_s2 () =
     if not (Ezfio.has_determinants_expected_s2 ()) then
@@ -205,6 +236,7 @@ end = struct
           psi_coef               = read_psi_coef ()             ;
           psi_det                = read_psi_det ()              ;
           n_states               = read_n_states ()             ;
+          state_average_weight   = read_state_average_weight () ;
         }
     else
       failwith "No molecular orbitals, so no determinants"
@@ -228,6 +260,7 @@ end = struct
               psi_coef             ;
               psi_det              ;
               n_states             ;
+              state_average_weight ;
             } =
      write_n_int n_int ;
      write_bit_kind bit_kind;
@@ -236,6 +269,7 @@ end = struct
      write_expected_s2 expected_s2;
      write_psi_coef ~n_det:n_det ~n_states:n_states psi_coef ;
      write_psi_det ~n_int:n_int ~n_det:n_det psi_det;
+     write_state_average_weight state_average_weight;
   ;;
 
 
@@ -288,12 +322,17 @@ Number of determinants ::
 
   n_det = %s
 
+State average weights ::
+
+  state_average_weight = (%s)
+
 Determinants ::
 
 %s
 "
      (b.expected_s2   |> Positive_float.to_string)
      (b.n_det         |> Det_number.to_string)
+     (b.state_average_weight |> Array.to_list |> List.map ~f:Positive_float.to_string |> String.concat ~sep:"\t")
      det_text
      |> Rst_string.of_string
   ;;
@@ -307,6 +346,7 @@ bit_kind               = %s
 n_det                  = %s
 n_states               = %s
 expected_s2            = %s
+state_average_weight   = %s
 psi_coef               = %s
 psi_det                = %s
 "
@@ -315,6 +355,7 @@ psi_det                = %s
      (b.n_det         |> Det_number.to_string)
      (b.n_states      |> States_number.to_string)
      (b.expected_s2   |> Positive_float.to_string)
+     (b.state_average_weight |> Array.to_list |> List.map ~f:Positive_float.to_string |> String.concat ~sep:",")
      (b.psi_coef  |> Array.to_list |> List.map ~f:Det_coef.to_string
       |> String.concat ~sep:", ")
      (b.psi_det   |> Array.to_list |> List.map ~f:(Determinant.to_string
