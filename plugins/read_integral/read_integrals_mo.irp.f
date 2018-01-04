@@ -1,12 +1,13 @@
 program read_integrals
   BEGIN_DOC
 ! Reads the integrals from the following files:
-! - kinetic_mo
-! - nuclear_mo
-! - bielec_mo
+! il for (Index Last value i j k l)
+! - hcore_mo_il (kintec + nuclear + pseudo )
+! - bielec_mo_il 
+
   END_DOC
   PROVIDE ezfio_filename
-  call ezfio_set_integrals_monoelec_disk_access_mo_one_integrals("None")
+  call ezfio_set_integrals_monoelec_disk_access_mo_hcore("None")
   call run
 end
 
@@ -31,37 +32,24 @@ subroutine run
   allocate (A(mo_tot_num,mo_tot_num))
   A = 0.d0
   
-  iunit = getunitandopen('kinetic_mo','r')
+  iunit = getunitandopen('hcore_mo_il','r')
   do 
-    read (iunit,*,end=10) i,j, integral
+    read (iunit,*,end=10) integral, i,j
     A(i,j) = integral
   enddo
   10 continue
   close(iunit)
-  call write_one_e_integrals('mo_kinetic_integral', A, size(A,1), size(A,2))
-
-
-  iunit = getunitandopen('nuclear_mo','r')
-  do 
-    read (iunit,*,end=12) i,j, integral
-    A(i,j) = integral
-  enddo
-  12 continue
-  close(iunit)
-  call write_one_e_integrals('mo_ne_integral', A, size(A,1), size(A,2))
-
-  call write_one_e_integrals('mo_pseudo_integral', mo_pseudo_integral,&
-        size(mo_pseudo_integral,1), size(mo_pseudo_integral,2))
-
+  call write_one_e_integrals('mo_mono_elec_integral', A, size(A,1), size(A,2))
+  
 
   call ezfio_set_integrals_monoelec_disk_access_mo_one_integrals("Read")
 
   allocate(buffer_i(mo_tot_num**4), buffer_values(mo_tot_num**4))
    
-  iunit = getunitandopen('bielec_mo','r')
+  iunit = getunitandopen('bielec_mo_il','r')
   n_integrals=0
   do 
-    read (iunit,*,end=13) i,j,k,l, integral
+    read (iunit,*,end=13) integral, i,j,k,l
     n_integrals += 1
     call bielec_integrals_index(i, j, k, l, buffer_i(n_integrals) )
     buffer_values(n_integrals) = integral
