@@ -31,80 +31,12 @@ BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num,3) ]
      character*(64), parameter      :: ft= '(A16, 4(1X,A12  ))'
      double precision, parameter    :: a0= 0.529177249d0
      
-<<<<<<< HEAD
-     call write_time(output_Nuclei)
-     write(output_Nuclei,'(A)') ''
-     write(output_Nuclei,'(A)') 'Nuclear Coordinates (Angstroms)'
-     write(output_Nuclei,'(A)') '==============================='
-     write(output_Nuclei,'(A)') ''
-     write(output_Nuclei,ft)                                         &
-=======
-     call write_time(6)
-     write(6,'(A)') ''
-     write(6,'(A)') 'Input Nuclear Coordinates (Angstroms)'
-     write(6,'(A)') '====================================='
-     write(6,'(A)') ''
-     write(6,ft)                                         &
-         '================','============','============','============','============'
-     write(6,*)                                          &
-         '     Atom          Charge          X            Y            Z '
-     write(6,ft)                                         &
-         '================','============','============','============','============'
-     do i=1,nucl_num
-       write(6,f) nucl_label(i), nucl_charge(i),         &
-           nucl_coord_input(i,1)*a0,                                       &
-           nucl_coord_input(i,2)*a0,                                       &
-           nucl_coord_input(i,3)*a0
-     enddo
-     write(6,ft)                                         &
-         '================','============','============','============','============'
-     write(6,'(A)') ''
-     
-   endif
-   
-   IRP_IF MPI
-     include 'mpif.h'
-     integer                        :: ierr
-     call MPI_BCAST( nucl_coord_input, 3*nucl_num, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
-     if (ierr /= MPI_SUCCESS) then
-       stop 'Unable to read nucl_coord_input with MPI'
-     endif
-   IRP_ENDIF
-
-END_PROVIDER
- 
-BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num,3) ]
-   implicit none
-   
-   BEGIN_DOC
-   ! Nuclear coordinates in standard orientation
-   END_DOC
-   
-   if (mpi_master) then
-     integer :: i
-     do i=1,nucl_num
-       nucl_coord(i,1) = (nucl_coord_input(i,1) - center_of_mass(1))*inertia_tensor_eigenvectors(1,1) + &
-                         (nucl_coord_input(i,2) - center_of_mass(2))*inertia_tensor_eigenvectors(2,1) + &
-                         (nucl_coord_input(i,3) - center_of_mass(3))*inertia_tensor_eigenvectors(3,1) 
-       nucl_coord(i,2) = (nucl_coord_input(i,1) - center_of_mass(1))*inertia_tensor_eigenvectors(1,2) + &
-                         (nucl_coord_input(i,2) - center_of_mass(2))*inertia_tensor_eigenvectors(2,2) + &
-                         (nucl_coord_input(i,3) - center_of_mass(3))*inertia_tensor_eigenvectors(3,2) 
-       nucl_coord(i,3) = (nucl_coord_input(i,1) - center_of_mass(1))*inertia_tensor_eigenvectors(1,3) + &
-                         (nucl_coord_input(i,2) - center_of_mass(2))*inertia_tensor_eigenvectors(2,3) + &
-                         (nucl_coord_input(i,3) - center_of_mass(3))*inertia_tensor_eigenvectors(3,3) 
-     enddo
-     
-     character*(64), parameter      :: f = '(A16, 4(1X,F12.6))'
-     character*(64), parameter      :: ft= '(A16, 4(1X,A12  ))'
-     double precision, parameter    :: a0= 0.529177249d0
-     
      call write_time(6)
      write(6,'(A)') ''
      write(6,'(A)') 'Nuclear Coordinates (Angstroms)'
      write(6,'(A)') '==============================='
      write(6,'(A)') ''
      write(6,ft)                                         &
->>>>>>> 9bc0215d... Removed output variables
          '================','============','============','============','============'
      write(6,*)                                          &
          '     Atom          Charge          X            Y            Z '
@@ -257,16 +189,9 @@ BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
      enddo
      nuclear_repulsion *= 0.5d0
    end if
-<<<<<<< HEAD
-   
-   call write_time(output_Nuclei)
-   call write_double(output_Nuclei,nuclear_repulsion,                &
-=======
 
    call write_time(6)
-   call write_double(6,nuclear_repulsion,                &
->>>>>>> 9bc0215d... Removed output variables
-       'Nuclear repulsion energy')
+   call write_double(6,nuclear_repulsion,'Nuclear repulsion energy')
    
    if (disk_access_nuclear_repulsion.EQ.'Write') then
      if (mpi_master) then
