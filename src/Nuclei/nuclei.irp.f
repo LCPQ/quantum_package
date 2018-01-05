@@ -203,8 +203,8 @@ BEGIN_PROVIDER [ double precision, nuclear_repulsion ]
    
 END_PROVIDER
 
- BEGIN_PROVIDER [ character*(4), element_name, (0:128)]
-&BEGIN_PROVIDER [ double precision, element_mass, (0:128) ]
+ BEGIN_PROVIDER [ character*(4), element_name, (0:127)]
+&BEGIN_PROVIDER [ double precision, element_mass, (0:127) ]
    BEGIN_DOC
    ! Array of the name of element, sorted by nuclear charge (integer)
    END_DOC
@@ -216,7 +216,7 @@ END_PROVIDER
      filename = trim(filename)//'/data/list_element.txt'
      iunit = getUnitAndOpen(filename,'r')
      element_mass(:) = 0.d0
-     do i=0,128
+     do i=0,127
        write(element_name(i),'(I4)') i
      enddo
      character*(80)                 :: buffer, dummy
@@ -232,11 +232,11 @@ END_PROVIDER
  IRP_IF MPI
   include 'mpif.h'
   integer                        :: ierr
-  call MPI_BCAST( element_name, size(element_name)*4, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
+  call MPI_BCAST( element_name, 128*4, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
   if (ierr /= MPI_SUCCESS) then
     stop 'Unable to read element_name with MPI'
   endif
-  call MPI_BCAST( element_mass, size(element_mass), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+  call MPI_BCAST( element_mass, 128, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
   if (ierr /= MPI_SUCCESS) then
     stop 'Unable to read element_name with MPI'
   endif
