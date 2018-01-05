@@ -8,7 +8,7 @@ BEGIN_PROVIDER [ double precision, nucl_coord,  (nucl_num,3) ]
    
    if (mpi_master) then
      double precision, allocatable  :: buffer(:,:)
-     nucl_coord_input = 0.d0
+     nucl_coord = 0.d0
      allocate (buffer(nucl_num,3))
      buffer = 0.d0
      logical                        :: has

@@ -23,7 +23,7 @@ subroutine sym_apply_diagonal_reflexion(angle,iaxis,point_in,point_out)
   double precision :: point_tmp1(3), point_tmp2(3)
   integer :: iaxis2
   iaxis2 = mod(iaxis,3)+1
-  iaxis2 = mod(iaxis2,3)+1
+!  iaxis2 = mod(iaxis2,3)+1
   call sym_apply_rotation(-angle,iaxis,point_in,point_tmp1)
   call sym_apply_reflexion(iaxis2,point_tmp1,point_tmp2)
   call sym_apply_rotation(angle,iaxis,point_tmp2,point_out)

@@ -47,6 +47,7 @@ BEGIN_PROVIDER [ integer, sym_rotation_axis, (3) ]
   logical                        :: found
   double precision, external     :: u_dot_u
   integer                        :: iorder, iaxis
+
   do iaxis=1,3
     do iorder=12,2,-1
       sym_rotation_axis(iaxis) = iorder
@@ -300,14 +301,6 @@ BEGIN_PROVIDER [ character*16, point_group ]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ character*8, mo_symmetry ]
- implicit none
- BEGIN_DOC
- ! Symmetry of the MOs
- END_DOC
- integer :: i,j
-END_PROVIDER
-
 
 BEGIN_PROVIDER [ integer, n_irrep ]
  implicit none
@@ -369,105 +362,6 @@ BEGIN_PROVIDER [ integer, mo_sym, (mo_tot_num) ]
   double precision               :: sym_operations_on_mos(mo_tot_num)
   logical                        :: possible_irrep(n_irrep,mo_tot_num)
 
-  n_sym_points = 10
-  allocate(val(n_sym_points,mo_tot_num,2), sym_points(3,n_sym_points), ref_points(3,n_sym_points))
-
-  call generate_sym_coord(n_sym_points,ref_points)
-  call compute_sym_mo_values(ref_points,n_sym_points,val(1,1,2))
-
-  possible_irrep = .True.
-  do iop=1,n_irrep
-    if (sym_operation(iop) == 'E') then
-      cycle
-    endif
-
-    if (sym_operation(iop) == 'i') then
-      do ipoint=1,n_sym_points
-        call sym_apply_inversion(ref_points(1,ipoint),sym_points(1,ipoint))
-      enddo
-    else if (sym_operation(iop) == 'sh') then
-      do ipoint=1,n_sym_points
-        call sym_apply_reflexion(molecule_principal_axis,ref_points(1,ipoint),sym_points(1,ipoint))
-      enddo
-    else if (sym_operation(iop) == 's') then
-      do ipoint=1,n_sym_points
-        call sym_apply_reflexion(molecule_principal_axis,ref_points(1,ipoint),sym_points(1,ipoint))
-      enddo
-    else if (sym_operation(iop) == 'sv') then 
-      do ipoint=1,n_sym_points
-        call sym_apply_reflexion(molecule_ternary_axis,ref_points(1,ipoint),sym_points(1,ipoint))
-      enddo
-    else if (sym_operation(iop) == 'sd') then
-      angle = dble(maxval(sym_rotation_axis))
-      do ipoint=1,n_sym_points
-        call sym_apply_diagonal_reflexion(angle,molecule_principal_axis,ref_points(1,ipoint),sym_points(1,ipoint))
-      enddo
-    else if (sym_operation(iop) == 'C2''') then 
-      angle = 2.d0
-      do ipoint=1,n_sym_points
-        call sym_apply_rotation(angle,molecule_secondary_axis,ref_points(1,ipoint),sym_points(1,ipoint))
-      enddo
-    else if (sym_operation(iop) == 'C2"') then 
-      angle = 2.d0
-      do ipoint=1,n_sym_points
-        call sym_apply_rotation(angle,molecule_ternary_axis,ref_points(1,ipoint),sym_points(1,ipoint))
-      enddo
-    else
-      do l=2,len(sym_operation(iop))
-        if (sym_operation(iop)(l:l) == '^') exit
-      enddo
-      read(sym_operation(iop)(2:l-1), *) iangle
-      if (l == len(sym_operation(iop))+1) then
-        l=1
-      else
-        read(sym_operation(iop)(l+1:), *, err=10, end=10) l
-        10 continue
-      endif
-      angle = dble(iangle)/(dble(l))
-      if (sym_operation(iop)(1:1) == 'C') then 
-        do ipoint=1,n_sym_points
-          call sym_apply_rotation(angle,molecule_principal_axis,ref_points(1,ipoint),sym_points(1,ipoint))
-        enddo
-      else if (sym_operation(iop)(1:1) == 'S') then 
-        do ipoint=1,n_sym_points
-          call sym_apply_improper_rotation(angle,molecule_principal_axis,ref_points(1,ipoint),sym_points(1,ipoint))
-        enddo
-      endif
-    endif
-
-    call compute_sym_mo_values(sym_points,n_sym_points,val(1,1,1))
-
-    print *,  sym_operation(iop)
-    double precision :: icount
-    do imo=1,mo_tot_num
-      sym_operations_on_mos(imo) = 0.d0
-      icount = 0
-      do ipoint=1,n_sym_points
-        double precision :: x
-        if (dabs(val(ipoint,imo,1)) < 1.d-5) cycle
-        icount += 1.d0 
-        x =  val(ipoint,imo,1)/val(ipoint,imo,2)
-        if (dabs(x) > 1.d0) then
-          x = 1.d0/x
-        endif
-        sym_operations_on_mos(imo) += x
-      enddo
-      sym_operations_on_mos(imo) *= 1.d0/icount
-      if (dabs(sym_operations_on_mos(imo) - 1.d0) < 1.d-2) then
-        sym_operations_on_mos(imo) = 1.d0
-      else if (dabs(sym_operations_on_mos(imo) + 1.d0) < 1.d-2) then
-        sym_operations_on_mos(imo) = -1.d0
-      else if (dabs(sym_operations_on_mos(imo)) < 1.d-2) then
-        sym_operations_on_mos(imo) = 0.d0
-      endif
-      print *, imo,  sym_operations_on_mos(imo)
-      do i=1,n_irrep
-        if (dabs(character_table(i,iop) - sym_operations_on_mos(imo)) > 1.d-2) then
-          possible_irrep(i,imo) = .False.
-        endif
-      enddo
-    enddo
-  enddo
   do imo=1,mo_tot_num
     print *,  'MO ', imo
     do i=1,n_irrep

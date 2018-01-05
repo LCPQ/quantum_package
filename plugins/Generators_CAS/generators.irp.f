@@ -7,7 +7,7 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
   END_DOC
   integer                        :: i,k,l
   logical                        :: good
-  call write_time(output_determinants)
+  call write_time(6)
   N_det_generators = 0
   do i=1,N_det
     do l=1,n_cas_bitmask
@@ -28,7 +28,7 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
     endif
   enddo
   N_det_generators = max(N_det_generators,1)
-  call write_int(output_determinants,N_det_generators,'Number of generators')
+  call write_int(6,N_det_generators,'Number of generators')
 END_PROVIDER
 
  BEGIN_PROVIDER [ integer(bit_kind), psi_det_generators, (N_int,2,psi_det_size) ]

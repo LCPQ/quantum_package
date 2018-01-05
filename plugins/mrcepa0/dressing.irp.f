@@ -963,6 +963,19 @@ END_PROVIDER
         enddo
       end do
     end do
+!  else if(mrmode == 10) then
+!    do i = 1, N_det_ref
+!      do i_state = 1, N_states
+!        delta_ii(i_state,i)= delta_ii_mrsc2(i_state,i)
+!        delta_ii_s2(i_state,i)= delta_ii_s2_mrsc2(i_state,i)
+!      enddo
+!      do j = 1, N_det_non_ref
+!        do i_state = 1, N_states
+!          delta_ij(i_state,j,i) = delta_ij_mrsc2(i_state,j,i)
+!          delta_ij_s2(i_state,j,i) = delta_ij_s2_mrsc2(i_state,j,i)
+!        enddo
+!      end do
+!    end do
   else if(mrmode == 5) then
     do i = 1, N_det_ref
       do i_state = 1, N_states
