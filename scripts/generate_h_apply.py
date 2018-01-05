@@ -142,7 +142,7 @@ class H_apply(object):
   endif
   SOFT_TOUCH psi_det psi_coef N_det
 """
-    s["printout_now"]   = """write(output_determinants,*)  &
+    s["printout_now"]   = """write(6,*)  &
        100.*float(i_generator)/float(N_det_generators), '% in ', wall_1-wall_0, 's'"""
     self.data = s
 
@@ -370,9 +370,9 @@ class H_apply(object):
     delta_pt2(k) = 0.d0
     pt2_old(k) = 0.d0
   enddo
-        write(output_determinants,'(A12, 1X, A8, 3(2X, A9), 2X, A8, 2X, A8, 2X, A8)') &
+        write(6,'(A12, 1X, A8, 3(2X, A9), 2X, A8, 2X, A8, 2X, A8)') &
                  'N_generators', 'Norm', 'Delta PT2', 'PT2', 'Est. PT2', 'secs'
-        write(output_determinants,'(A12, 1X, A8, 3(2X, A9), 2X, A8, 2X, A8, 2X, A8)') &
+        write(6,'(A12, 1X, A8, 3(2X, A9), 2X, A8, 2X, A8, 2X, A8)') &
                  '============', '========', '=========', '=========', '=========', &
                  '========='
       """ 
@@ -385,7 +385,7 @@ class H_apply(object):
       """
       self.data["printout_now"] = """
       do k=1,N_st
-        write(output_determinants,'(I10, 4(2X, F9.6), 2X, F8.1)') &
+        write(6,'(I10, 4(2X, F9.6), 2X, F8.1)') &
                  i_generator, norm_psi(k), delta_pt2(k), pt2(k), &
                  pt2(k)/(norm_psi(k)*norm_psi(k)), &
                  wall_1-wall_0
@@ -416,7 +416,7 @@ class H_apply(object):
       SOFT_TOUCH psi_det psi_coef N_det
       selection_criterion_min = min(selection_criterion_min, maxval(select_max))*0.1d0
       selection_criterion = selection_criterion_min
-      call write_double(output_determinants,selection_criterion,'Selection criterion')
+      call write_double(6,selection_criterion,'Selection criterion')
       """
       self.data["keys_work"] = """
       e_2_pert_buffer = 0.d0

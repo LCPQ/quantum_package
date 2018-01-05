@@ -8,7 +8,7 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
  END_DOC
  integer :: i
  double precision :: norm
- call write_time(output_determinants)
+ call write_time(6)
  norm = 0.d0
  N_det_generators = N_det
  do i=1,N_det
@@ -19,7 +19,7 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
    endif
  enddo
  N_det_generators = max(N_det_generators,1)
- call write_int(output_determinants,N_det_generators,'Number of generators')
+ call write_int(6,N_det_generators,'Number of generators')
 END_PROVIDER
 
  BEGIN_PROVIDER [ integer(bit_kind), psi_det_generators, (N_int,2,psi_det_size) ]

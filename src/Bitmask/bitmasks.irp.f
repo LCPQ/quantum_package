@@ -100,7 +100,7 @@ BEGIN_PROVIDER [ integer, N_generators_bitmask ]
  ! Number of bitmasks for generators
  END_DOC
  logical                        :: exists
- PROVIDE ezfio_filename
+ PROVIDE ezfio_filename N_int
  
  if (mpi_master) then
   call ezfio_has_bitmasks_N_mask_gen(exists)

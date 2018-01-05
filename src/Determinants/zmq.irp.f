@@ -87,6 +87,7 @@ integer function zmq_get_$X(zmq_to_qp_run_socket, worker_id)
   integer                        :: rc
   character*(256)                :: msg
 
+  PROVIDE zmq_state
   zmq_get_$X = 0
   if (mpi_master) then
     write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, '$X'
@@ -272,6 +273,7 @@ integer function zmq_get_psi_det(zmq_to_qp_run_socket, worker_id)
   integer*8                      :: rc8
   character*(256)                :: msg
 
+  PROVIDE zmq_state
   zmq_get_psi_det = 0
   if (mpi_master) then
     write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, 'psi_det'
@@ -319,6 +321,7 @@ integer function zmq_get_psi_coef(zmq_to_qp_run_socket, worker_id)
   integer*8                      :: rc8
   character*(256)                :: msg
 
+  PROVIDE zmq_state psi_det_size
   zmq_get_psi_coef = 0
   if (mpi_master) then
     write(msg,'(A,1X,I8,1X,A200)') 'get_data '//trim(zmq_state), worker_id, 'psi_coef'

@@ -12,12 +12,12 @@ subroutine super_CI
   integer                        :: k
   character                      :: save_char
 
-  call write_time(output_hartree_fock)
-  write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16 )')           &
+  call write_time(6)
+  write(6,'(A4,X,A16, X, A16, X, A16 )')           &
       '====','================','================','================'
-  write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16 )')           &
+  write(6,'(A4,X,A16, X, A16, X, A16 )')           &
       '  N ', 'Energy  ', 'Energy diff  ', 'Save  '
-  write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16 )')           &
+  write(6,'(A4,X,A16, X, A16, X, A16 )')           &
       '====','================','================','================'
   
   E = HF_energy + 1.d0
@@ -39,7 +39,7 @@ subroutine super_CI
       save_char = ' '
     endif
     E_min = min(E,E_min)
-    write(output_hartree_fock,'(I4,X,F16.10, X, F16.10, X, A8 )') &
+    write(6,'(I4,X,F16.10, X, F16.10, X, A8 )') &
         k, E, delta_E, save_char
     if ( (delta_E < 0.d0).and.(dabs(delta_E) < thresh_scf) ) then
       exit
@@ -55,8 +55,8 @@ subroutine super_CI
     TOUCH mo_coef
   enddo
   
-  write(output_hartree_fock,'(A4,X,A16, X, A16, X, A16 )')           &
+  write(6,'(A4,X,A16, X, A16, X, A16 )')           &
       '====','================','================','================'
-  call write_time(output_hartree_fock)
+  call write_time(6)
 end
     

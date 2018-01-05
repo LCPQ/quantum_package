@@ -354,12 +354,12 @@ BEGIN_PROVIDER [ double precision, CI_dressed_pt2_new_energy, (N_states) ]
   
   integer                        :: j
   character*(8)                  :: st
-  call write_time(output_determinants)
+  call write_time(6)
   do j=1,N_states
     CI_dressed_pt2_new_energy(j) = CI_electronic_dressed_pt2_new_energy(j) + nuclear_repulsion
     write(st,'(I4)') j
-    call write_double(output_determinants,CI_dressed_pt2_new_energy(j),'Energy of state '//trim(st))
-    call write_double(output_determinants,CI_dressed_pt2_new_eigenvectors_s2(j),'S^2 of state '//trim(st))
+    call write_double(6,CI_dressed_pt2_new_energy(j),'Energy of state '//trim(st))
+    call write_double(6,CI_dressed_pt2_new_eigenvectors_s2(j),'S^2 of state '//trim(st))
   enddo
 
 END_PROVIDER

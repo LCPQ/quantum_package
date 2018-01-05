@@ -51,6 +51,7 @@ integer function zmq_get_dvector(zmq_to_qp_run_socket, worker_id, name, x, size_
   integer*8                      :: rc8
   character*(256)                :: msg
 
+  PROVIDE zmq_state
   ! Success
   zmq_get_dvector = 0
 
