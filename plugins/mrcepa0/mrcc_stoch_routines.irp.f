@@ -32,17 +32,15 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
   
   double precision, external     :: omp_get_wtime
   double precision               :: time
-  double precision               :: w(N_states)
 
 
+  state_average_weight(:) = 0.d0
+  state_average_weight(mrcc_stoch_istate) = 1.d0
+  TOUCH state_average_weight 
+  
 
   provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral mrcc_weight psi_selectors
 
-  w(:) = 0.d0
-  w(mrcc_stoch_istate) = 1.d0
-  call update_psi_average_norm_contrib(w)
-
-  
   
   
   print *, '========== ================= ================= ================='
