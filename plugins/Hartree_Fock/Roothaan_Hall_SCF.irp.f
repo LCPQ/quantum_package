@@ -14,6 +14,8 @@ END_DOC
  
   integer                        :: i,j
   double precision, allocatable :: mo_coef_save(:,:)
+
+  PROVIDE ao_md5 mo_occ level_shift 
  
   allocate(mo_coef_save(ao_num,mo_tot_num),                          &
       Fock_matrix_DIIS (ao_num,ao_num,max_dim_DIIS),                 &
