@@ -368,13 +368,13 @@ BEGIN_PROVIDER [ double precision, state_average_weight, (N_states) ]
  END_DOC
  logical :: exists
 
- state_average_weight = 1.d0
+ state_average_weight(:) = 1.d0
  call ezfio_has_determinants_state_average_weight(exists)
  if (exists) then
   call ezfio_get_determinants_state_average_weight(state_average_weight)
  endif
- state_average_weight = state_average_weight+1.d-31
- state_average_weight = state_average_weight/(sum(state_average_weight))
+ state_average_weight(:) = state_average_weight(:)+1.d-31
+ state_average_weight(:) = state_average_weight(:)/(sum(state_average_weight(:)))
 END_PROVIDER
 
 

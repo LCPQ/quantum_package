@@ -25,8 +25,8 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
   
   double precision               :: sumabove(comb_teeth), sum2above(comb_teeth), Nabove(comb_teeth)
   double precision, external     :: omp_get_wtime
+  double precision               :: state_average_weight_save(N_states), w(N_states)
   double precision               :: time
-  double precision               :: w(N_states)
   integer(ZMQ_PTR), external     :: new_zmq_to_qp_run_socket
   
   if (N_det < max(10,N_states)) then
@@ -35,18 +35,19 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
     error(:) = 0.d0
   else
     
+    state_average_weight_save(:) = state_average_weight(:)
     do pt2_stoch_istate=1,N_states
       SOFT_TOUCH pt2_stoch_istate
-      w(:) = 0.d0
-      w(pt2_stoch_istate) = 1.d0
-      call update_psi_average_norm_contrib(w)
+      state_average_weight(:) = 0.d0
+      state_average_weight(pt2_stoch_istate) = 1.d0
+      TOUCH state_average_weight 
       
       allocate(pt2_detail(N_states,N_det_generators+1), comb(N_det_generators), computed(N_det_generators), tbc(0:size_tbc))
       sumabove = 0d0
       sum2above = 0d0
       Nabove = 0d0
       
-      provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral pt2_weight psi_selectors
+      provide nproc fragment_first fragment_count mo_bielec_integrals_in_map mo_mono_elec_integral pt2_weight psi_selectors 
       
       computed = .false.
       
@@ -141,7 +142,9 @@ subroutine ZMQ_pt2(E, pt2,relative_error, absolute_error, error)
       
       deallocate(pt2_detail, comb, computed, tbc)
     enddo
-    FREE psi_average_norm_contrib pt2_stoch_istate
+    FREE pt2_stoch_istate 
+    state_average_weight(:) = state_average_weight_save(:)
+    TOUCH state_average_weight
   endif
   do k=N_det+1,N_states
     pt2(k) = 0.d0
