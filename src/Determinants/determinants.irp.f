@@ -43,7 +43,7 @@ BEGIN_PROVIDER [ integer, N_det ]
     else
       N_det = 1
     endif
-    call write_int(output_determinants,N_det,'Number of determinants')
+    call write_int(6,N_det,'Number of determinants')
   endif
   IRP_IF MPI
     include 'mpif.h'
@@ -77,7 +77,7 @@ BEGIN_PROVIDER [ integer, psi_det_size ]
   BEGIN_DOC
   ! Size of the psi_det/psi_coef arrays
   END_DOC
-  PROVIDE ezfio_filename output_determinants
+  PROVIDE ezfio_filename 
   logical                        :: exists
   if (mpi_master) then
     call ezfio_has_determinants_n_det(exists)
@@ -87,7 +87,7 @@ BEGIN_PROVIDER [ integer, psi_det_size ]
       psi_det_size = 1
     endif
     psi_det_size = max(psi_det_size,100000)
-    call write_int(output_determinants,psi_det_size,'Dimension of the psi arrays')
+    call write_int(6,psi_det_size,'Dimension of the psi arrays')
   endif
   IRP_IF MPI
     include 'mpif.h'
@@ -225,34 +225,6 @@ BEGIN_PROVIDER [ double precision, psi_coef, (psi_det_size,N_states) ]
   
 END_PROVIDER
 
-subroutine update_psi_average_norm_contrib(w)
-  implicit none
-  BEGIN_DOC
-  ! Compute psi_average_norm_contrib for different state average weights w(:)
-  END_DOC
-  double precision, intent(in)   :: w(N_states)
-  double precision               :: w0(N_states), f
-  w0(:) = w(:)/sum(w(:))
-  
-  integer                        :: i,j,k
-  do i=1,N_det
-    psi_average_norm_contrib(i) = psi_coef(i,1)*psi_coef(i,1)*w(1)
-  enddo
-  do k=2,N_states
-    do i=1,N_det
-      psi_average_norm_contrib(i) = psi_average_norm_contrib(i) +    &
-          psi_coef(i,k)*psi_coef(i,k)*w(k)
-    enddo
-  enddo
-  f = 1.d0/sum(psi_average_norm_contrib(1:N_det))
-  do i=1,N_det
-    psi_average_norm_contrib(i) = psi_average_norm_contrib(i)*f
-  enddo
-  SOFT_TOUCH psi_average_norm_contrib
-  
-end subroutine
-
-
 BEGIN_PROVIDER [ double precision, psi_average_norm_contrib, (psi_det_size) ]
   implicit none
   BEGIN_DOC
@@ -260,14 +232,12 @@ BEGIN_PROVIDER [ double precision, psi_average_norm_contrib, (psi_det_size) ]
   END_DOC
   integer                        :: i,j,k
   double precision               :: f
-  f = 1.d0/dble(N_states)
-  do i=1,N_det
-    psi_average_norm_contrib(i) = psi_coef(i,1)*psi_coef(i,1)*f
-  enddo
-  do k=2,N_states
+
+  psi_average_norm_contrib(:) = 0.d0
+  do k=1,N_states
     do i=1,N_det
       psi_average_norm_contrib(i) = psi_average_norm_contrib(i) +    &
-          psi_coef(i,k)*psi_coef(i,k)*f
+          psi_coef(i,k)*psi_coef(i,k)*state_average_weight(k)
     enddo
   enddo
   f = 1.d0/sum(psi_average_norm_contrib(1:N_det))
@@ -562,7 +532,7 @@ subroutine save_wavefunction_general(ndet,nstates,psidet,dim_psicoef,psicoef)
     
     call ezfio_set_determinants_psi_coef(psi_coef_save)
     deallocate (psi_coef_save)
-    call write_int(output_determinants,ndet,'Saved determinants')
+    call write_int(6,ndet,'Saved determinants')
   endif
 end
 
@@ -634,7 +604,7 @@ subroutine save_wavefunction_specified(ndet,nstates,psidet,psicoef,ndetsave,inde
   enddo
   
   call ezfio_set_determinants_psi_coef(psi_coef_save)
-  call write_int(output_determinants,ndet,'Saved determinants')
+  call write_int(6,ndet,'Saved determinants')
   deallocate (psi_coef_save)
 end
 

@@ -8,36 +8,6 @@
   call wall_time(output_wall_time_0)
 END_PROVIDER
  
-BEGIN_SHELL [ /bin/bash ]
- 
- for NAME in $(\ls -d ${QP_ROOT}/src/*/)
- do
- NAME=$(basename ${NAME})
- cat << EOF
- BEGIN_PROVIDER [ integer, output_$NAME ]
-  implicit none
-  BEGIN_DOC
-  ! Output file for $NAME
-  END_DOC
-  PROVIDE output_wall_time_0 output_cpu_time_0 ezfio_filename
-!  integer                        :: getUnitAndOpen
-!  call ezfio_set_output_empty(.False.)
-IRP_IF COARRAY
-  if (this_image() == 1) then
-    output_$NAME = 6 !getUnitAndOpen(trim(ezfio_filename)//'/output/'//'$NAME.rst','a')
-  else
-    output_$NAME = getUnitAndOpen('/dev/null','w')
-  endif
-IRP_ELSE
-  output_$NAME = 6 !getUnitAndOpen(trim(ezfio_filename)//'/output/'//'$NAME.rst','a')
-IRP_ENDIF
-  write(output_$NAME,'(A)')                                          &
-      '--------------------------------------------------------------------------------'
- END_PROVIDER
-EOF
- done
- 
-END_SHELL
  
 subroutine write_time(iunit)
   implicit none

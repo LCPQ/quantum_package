@@ -22,15 +22,19 @@ subroutine generate_sym_coord(n_sym_points,result)
   BEGIN_DOC
   ! xyz coordinates of points to check the symmetry, drawn uniformly in the molecular box.
   END_DOC
-  integer                        :: i, xyz
+  integer                        :: i, iop
   
-  do i=1,n_sym_points
-    call random_number(result(1,i))
-    call random_number(result(2,i))
-    call random_number(result(3,i))
-  enddo
-  do xyz=1,3
-    result(xyz,1:n_sym_points) = sym_box(xyz,1) + result(xyz,:) * (sym_box(xyz,2)-sym_box(xyz,1))
+  double precision, external :: halton_ranf
+  do i=1,n_sym_points,n_irrep
+    result(1,i) = sym_box(1,1) + halton_ranf(1) * (sym_box(1,2)-sym_box(1,1))
+    result(2,i) = sym_box(1,1) + halton_ranf(2) * (sym_box(2,2)-sym_box(2,1))
+    result(3,i) = sym_box(1,1) + halton_ranf(3) * (sym_box(3,2)-sym_box(3,1))
+    do iop=2,n_irrep
+      if (iop-1+i > n_sym_points) exit
+      call dgemm('N','N',3,1,3,1.d0,sym_transformation_matrices(1,1,iop), &
+        size(sym_transformation_matrices,1),&
+        result(1,i),size(result,1),0.d0,result(1,i+iop-1),size(result,1))
+    enddo
   enddo
   
 end

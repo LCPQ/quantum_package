@@ -129,7 +129,7 @@ END_PROVIDER
     enddo
 
     ao_ortho_canonical_num = ao_cart_to_sphe_num
-    call ortho_canonical (ao_cart_to_sphe_overlap, size(ao_cart_to_sphe_overlap,1), &
+    call ortho_canonical(ao_cart_to_sphe_overlap, size(ao_cart_to_sphe_overlap,1), &
       ao_cart_to_sphe_num, S, size(S,1), ao_ortho_canonical_num)
 
     call dgemm('N','N', ao_num, ao_ortho_canonical_num, ao_cart_to_sphe_num, 1.d0, &

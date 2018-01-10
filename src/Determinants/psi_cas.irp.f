@@ -41,7 +41,7 @@ use bitmasks
       enddo
     endif
   enddo
-  call write_int(output_determinants,N_det_cas, 'Number of determinants in the CAS')
+  call write_int(6,N_det_cas, 'Number of determinants in the CAS')
 
 END_PROVIDER
 

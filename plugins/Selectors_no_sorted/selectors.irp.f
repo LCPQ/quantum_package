@@ -8,11 +8,11 @@ BEGIN_PROVIDER [ integer, N_det_selectors]
  END_DOC
  integer :: i
  double precision :: norm
- call write_time(output_determinants)
+ call write_time(6)
  norm = 0.d0
  N_det_selectors = N_det
  N_det_selectors = max(N_det_selectors,1)
- call write_int(output_determinants,N_det_selectors,'Number of selectors')
+ call write_int(6,N_det_selectors,'Number of selectors')
 END_PROVIDER
 
 

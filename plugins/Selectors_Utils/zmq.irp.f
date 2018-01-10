@@ -45,6 +45,7 @@ integer function zmq_get_$X(zmq_to_qp_run_socket, worker_id)
   integer                        :: rc
   character*(256)                :: msg
 
+  PROVIDE zmq_state
   zmq_get_$X = 0
   if (mpi_master) then
 

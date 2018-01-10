@@ -265,7 +265,7 @@ subroutine remove_duplicates_in_psi_det(found_duplicates)
       endif
     enddo
     N_det = k
-    call write_bool(output_determinants,found_duplicates,'Found duplicate determinants')
+    call write_bool(6,found_duplicates,'Found duplicate determinants')
     SOFT_TOUCH N_det psi_det psi_coef
   endif
   deallocate (duplicate,bit_tmp)

@@ -36,7 +36,10 @@ let of_prim_coef_list pc =
 
 let read_one in_channel =
   (* Fetch number of lines to read on first line *)
-  let buffer = input_line in_channel in
+  let buffer = 
+    try input_line in_channel with
+    | End_of_file -> raise End_Of_Basis
+  in
   if ( (String_ext.strip buffer) = "" ) then
      raise End_Of_Basis;
   let sym_str = String.sub buffer 0 2 in

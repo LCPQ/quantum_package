@@ -69,26 +69,26 @@ BEGIN_PROVIDER [ double precision, nucl_coord_sym,  (nucl_num,3) ]
      character*(64), parameter      :: ft= '(A16, 4(1X,A12  ))'
      double precision, parameter    :: a0= 0.529177249d0
      
-     call write_time(output_Nuclei)
-     write(output_Nuclei,'(A)') ''
-     write(output_Nuclei,'(A)') 'Nuclear Coordinates in standard orientation (Angstroms)'
-     write(output_Nuclei,'(A)') '======================================================='
-     write(output_Nuclei,'(A)') ''
-     write(output_Nuclei,ft)                                         &
+     call write_time(6)
+     write(6,'(A)') ''
+     write(6,'(A)') 'Nuclear Coordinates in standard orientation (Angstroms)'
+     write(6,'(A)') '======================================================='
+     write(6,'(A)') ''
+     write(6,ft)                                         &
          '================','============','============','============','============'
-     write(output_Nuclei,*)                                          &
+     write(6,*)                                          &
          '     Atom          Charge          X            Y            Z '
-     write(output_Nuclei,ft)                                         &
+     write(6,ft)                                         &
          '================','============','============','============','============'
      do i=1,nucl_num
-       write(output_Nuclei,f) nucl_label(i), nucl_charge(i),         &
+       write(6,f) nucl_label(i), nucl_charge(i),         &
            nucl_coord_sym(i,1)*a0,                                       &
            nucl_coord_sym(i,2)*a0,                                       &
            nucl_coord_sym(i,3)*a0
      enddo
-     write(output_Nuclei,ft)                                         &
+     write(6,ft)                                         &
          '================','============','============','============','============'
-     write(output_Nuclei,'(A)') ''
+     write(6,'(A)') ''
      
    endif
    

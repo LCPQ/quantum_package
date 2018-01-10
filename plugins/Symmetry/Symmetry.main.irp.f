@@ -3,8 +3,16 @@ program Symmetry
   BEGIN_DOC
 ! TODO
   END_DOC
-  integer :: i, j
+  integer :: i, j, k
   character*8 :: sym
+
+do k=1,n_irrep
+  print *,  sym_operation(k)
+  do i=1,mo_tot_num
+    print '(1000(F8.4,X))', mo_symm(i,:,k), sum(mo_symm(i,:,k))
+  enddo
+  print *,  ''
+enddo
 
   print *,  'Molecule is linear:  ', molecule_is_linear
   print *,  'Has center of inversion:  ', molecule_has_center_of_inversion
@@ -17,5 +25,4 @@ program Symmetry
   do i=1,n_irrep
     print *,  i, real(character_table(i,:))
   enddo
-  PROVIDE mo_sym
 end
