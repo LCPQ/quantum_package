@@ -69,9 +69,10 @@ subroutine run
   13 continue
   close(iunit)
   
-  call insert_into_mo_integrals_map(n_integrals,buffer_i,buffer_values,0.d0)
+  call map_append(mo_integrals_map, buffer_i, buffer_values, n_integrals)
 
   call map_sort(mo_integrals_map)
+  call map_unique(mo_integrals_map)
 
   call map_save_to_disk(trim(ezfio_filename)//'/work/mo_ints',mo_integrals_map)
   call ezfio_set_integrals_bielec_disk_access_mo_integrals("Read")
