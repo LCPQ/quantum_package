@@ -45,13 +45,13 @@ program print_integrals
    do k=1,mo_tot_num
     do j=l,mo_tot_num
      do i=k,mo_tot_num
-       !if (i>=j) then
+       if (i>=j) then
           double precision :: get_mo_bielec_integral
           integral = get_mo_bielec_integral(i,j,k,l,mo_integrals_map)
           if (dabs(integral) > mo_integrals_threshold) then
-            write (iunit,'(4(I6,X),F20.15)') i,j,k,l, integral 
+            write (iunit,'(4(I6,X),E25.15)') i,j,k,l, integral 
           endif
-       !end if
+       end if
      enddo
     enddo
    enddo
