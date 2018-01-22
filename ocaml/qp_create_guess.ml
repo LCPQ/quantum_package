@@ -128,7 +128,7 @@ let spec =
   +> anon ("ezfio_file" %: string)
 
 let () = 
-  Command.basic
+  Command.basic_spec
   ~summary: "Quantum Package command"
   ~readme:( fun () -> "
 Creates an open-shell multiplet initial guess\n\n" )

@@ -665,7 +665,7 @@ let run ?o b au c d m p cart xyz_file =
 
 
 let command = 
-    Command.basic 
+    Command.basic_spec
     ~summary: "Quantum Package command"
     ~readme:(fun () -> "
 

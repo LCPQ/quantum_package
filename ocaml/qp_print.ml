@@ -141,7 +141,7 @@ let run_o ~action ezfio_filename =
 ;;
 
 let command = 
-    Command.basic 
+    Command.basic_spec
     ~summary: "Quantum Package command"
     ~readme:(fun () ->
       "

@@ -49,7 +49,7 @@ QP_ROOT_INSTALL = join(QP_ROOT, "install")
 os.environ["PATH"] = os.environ["PATH"] + ":" + QP_ROOT_BIN
 
 d_dependency = {
-    "ocaml": ["m4", "curl", "zlib", "patch", "gcc", "zeromq"],
+    "ocaml": ["m4", "curl", "zlib", "patch", "gcc", "zeromq", "gmp"],
     "m4": ["make"],
     "curl": ["make"],
     "zlib": ["gcc", "make"],
@@ -67,7 +67,8 @@ d_dependency = {
     "ninja": ["g++", "python"],
     "make": [],
     "p_graphviz": ["python"],
-    "bats": []
+    "bats": [],
+    "gmp" : ["make", "g++"]
 }
 
 from collections import namedtuple
@@ -136,6 +137,11 @@ zeromq = Info(
     description=' ZeroMQ',
     default_path=join(QP_ROOT_LIB, "libzmq.a"))
 
+gmp= Info(
+    url='https://gmplib.org/download/gmp/gmp-6.1.2.tar.bz2',
+    description=' The GNU Multiple Precision Arithmetic Library',
+    default_path=join(QP_ROOT_LIB, "libgmp.a"))
+
 f77zmq = Info(
     url='{head}/zeromq/f77_zmq/{tail}'.format(**path_github),
     description=' F77-ZeroMQ',
@@ -155,7 +161,7 @@ d_info = dict()
 
 for m in ["ocaml", "m4", "curl", "zlib", "patch", "irpf90", "docopt",
           "resultsFile", "ninja", "emsl", "ezfio", "p_graphviz",
-          "zeromq", "f77zmq", "bats"]: 
+          "zeromq", "f77zmq", "bats", "gmp"]: 
     exec ("d_info['{0}']={0}".format(m))
 
 
@@ -480,16 +486,16 @@ def create_ninja_and_rc(l_installed):
         'export QP_PYTHON={0}'.format(":".join(l_python)), "",
         'export IRPF90={0}'.format(path_irpf90.replace(QP_ROOT,"${QP_ROOT}")),
         'export NINJA={0}'.format(path_ninja.replace(QP_ROOT,"${QP_ROOT}")),
-        'function qp_append_export () {',
-        '  #Append path $2:${!1}. Add the semicolon only if ${!1} is defined',
+        'function qp_prepend_export () {',
+        '  #Prepend path $2:${!1}. Add the semicolon only if ${!1} is defined',
         '  eval "value_1=\"\${$1}\""',
-        '  echo ${2}${value_1:+:${value_1}}',
+        '  echo ${value_1:+${value_1}:}${2}',
         '}',
-        'export PYTHONPATH=$(qp_append_export "PYTHONPATH" "${QP_EZFIO}/Python":"${QP_PYTHON}")',
-        'export PATH=$(qp_append_export "PATH" "${QP_PYTHON}":"${QP_ROOT}"/bin:"${QP_ROOT}"/ocaml)',
-        'export LD_LIBRARY_PATH=$(qp_append_export "LD_LIBRARY_PATH" "${QP_ROOT}"/lib:"${QP_ROOT}"/lib64)',
-        'export LIBRARY_PATH=$(qp_append_export "LIBRARY_PATH" "${QP_ROOT}"/lib:"${QP_ROOT}"/lib64)',
-        'export C_INCLUDE_PATH=$(qp_append_export "C_INCLUDE_PATH" "${QP_ROOT}"/include)',
+        'export PYTHONPATH=$(qp_prepend_export "PYTHONPATH" "${QP_EZFIO}/Python":"${QP_PYTHON}")',
+        'export PATH=$(qp_prepend_export "PATH" "${QP_PYTHON}":"${QP_ROOT}"/bin:"${QP_ROOT}"/ocaml)',
+        'export LD_LIBRARY_PATH=$(qp_prepend_export "LD_LIBRARY_PATH" "${QP_ROOT}"/lib:"${QP_ROOT}"/lib64)',
+        'export LIBRARY_PATH=$(qp_prepend_export "LIBRARY_PATH" "${QP_ROOT}"/lib:"${QP_ROOT}"/lib64)',
+        'export C_INCLUDE_PATH=$(qp_prepend_export "C_INCLUDE_PATH" "${QP_ROOT}"/include)',
         '',
         'if [[ $SHELL == "bash" ]] ; then',
         '  source ${QP_ROOT}/install/EZFIO/Bash/ezfio.sh',

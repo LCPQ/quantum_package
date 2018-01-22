@@ -95,7 +95,7 @@ let spec =
 
 
 let command =
-    Command.basic
+    Command.basic_spec
     ~summary: "Quantum Package command"
     ~readme:(fun () ->
      "Find all the pi molecular orbitals to create a pi space.

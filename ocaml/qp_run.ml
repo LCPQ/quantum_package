@@ -150,7 +150,7 @@ let spec =
 
 
 let () =
-  Command.basic
+  Command.basic_spec
   ~summary: "Quantum Package command"
   ~readme:( fun () -> "
 Executes a Quantum Package binary file among these:\n\n"

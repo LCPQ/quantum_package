@@ -323,7 +323,7 @@ let spec =
 
 
 let command = 
-    Command.basic 
+    Command.basic_spec
     ~summary: "Quantum Package command"
     ~readme:(fun () ->
      "Set the orbital classes in an EZFIO directory

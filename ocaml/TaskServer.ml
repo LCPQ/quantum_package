@@ -1,6 +1,7 @@
 open Core
 open Qptypes
 
+module StringHashtbl = Hashtbl.Make(String)
 
 type pub_state =
 | Waiting
@@ -28,7 +29,7 @@ type t =
     progress_bar      : Progress_bar.t option ;
     running           : bool;
     accepting_clients : bool;
-    data              : (string, string) Hashtbl.t;
+    data              : string StringHashtbl.t;
 }
 
 
@@ -208,7 +209,7 @@ let end_job msg program_state rep_socket pair_socket =
           address_inproc    = None;
           running           = true;
           accepting_clients = false;
-          data = Hashtbl.create ~hashable:String.hashable ();
+          data = StringHashtbl.create ();
         }
 
     and wait n =
@@ -592,7 +593,7 @@ let put_data msg rest_of_msg program_state rep_socket =
     in
 
     let success ()  =
-      Hashtbl.set program_state.data ~key ~data:value ;
+      StringHashtbl.set program_state.data ~key ~data:value ;
       Message.PutDataReply (Message.PutDataReply_msg.create ())
       |> Message.to_string
       |> ZMQ.Socket.send rep_socket;
@@ -622,7 +623,7 @@ let get_data msg program_state rep_socket =
 
     let success () = 
       let value = 
-        match Hashtbl.find program_state.data key with
+        match StringHashtbl.find program_state.data key with
         | Some value -> value
         | None -> ""
       in
@@ -776,7 +777,7 @@ let run ~port =
         address_inproc = None;
         progress_bar = None ;
         accepting_clients = false;
-        data = Hashtbl.create ~hashable:String.hashable ();
+        data = StringHashtbl.create ();
     }
     in
 
