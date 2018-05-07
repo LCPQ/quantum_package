@@ -163,3 +163,6 @@ It's caused when we call the DGEMM routine of LAPACK.
 
 Set `ulimit -s unlimited`, before runing `qp_run`. It seems to fix the problem.
 
+#### Error: f77zmq not symbol found
+
+In the Makefile of the f77zmq, you should NOT use ar but `libtool -static`
