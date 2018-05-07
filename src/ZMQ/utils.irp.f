@@ -148,12 +148,12 @@ function new_zmq_to_qp_run_socket()
      stop 'Unable to create zmq req socket'
   endif
 
-  rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_SNDTIMEO, 30000, 4)
+  rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_SNDTIMEO, 60000, 4)
   if (rc /= 0) then
     stop 'Unable to set send timeout in new_zmq_to_qp_run_socket'
   endif
 
-  rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_RCVTIMEO, 30000, 4)
+  rc = f77_zmq_setsockopt(new_zmq_to_qp_run_socket, ZMQ_RCVTIMEO, 60000, 4)
   if (rc /= 0) then
     stop 'Unable to set recv timeout in new_zmq_to_qp_run_socket'
   endif
@@ -250,7 +250,7 @@ IRP_ENDIF
      stop 'Unable to create zmq pull socket'
   endif
   
-  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_LINGER,30000,4)
+  rc = f77_zmq_setsockopt(new_zmq_pull_socket,ZMQ_LINGER,60000,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_LINGER on pull socket'
   endif
@@ -332,7 +332,7 @@ IRP_ENDIF
      stop 'Unable to create zmq push socket'
   endif
   
-  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_LINGER,30000,4)
+  rc = f77_zmq_setsockopt(new_zmq_push_socket,ZMQ_LINGER,60000,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_LINGER on push socket'
   endif
@@ -352,7 +352,7 @@ IRP_ENDIF
     stop 'Unable to set ZMQ_IMMEDIATE on push socket'
   endif
   
-  rc = f77_zmq_setsockopt(new_zmq_push_socket, ZMQ_SNDTIMEO, 30000, 4)
+  rc = f77_zmq_setsockopt(new_zmq_push_socket, ZMQ_SNDTIMEO, 60000, 4)
   if (rc /= 0) then
     stop 'Unable to set send timout in new_zmq_push_socket'
   endif
@@ -488,7 +488,7 @@ subroutine end_zmq_push_socket(zmq_socket_push,thread)
   integer                        :: rc
   character*(8), external        :: zmq_port
   
-  rc = f77_zmq_setsockopt(zmq_socket_push,ZMQ_LINGER,30000,4)
+  rc = f77_zmq_setsockopt(zmq_socket_push,ZMQ_LINGER,60000,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_LINGER on push socket'
   endif
@@ -1014,7 +1014,7 @@ subroutine end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
   character*(8), external        :: zmq_port
   integer                        :: rc
 
-  rc = f77_zmq_setsockopt(zmq_to_qp_run_socket,ZMQ_LINGER,30000,4)
+  rc = f77_zmq_setsockopt(zmq_to_qp_run_socket,ZMQ_LINGER,60000,4)
   if (rc /= 0) then
     stop 'Unable to set ZMQ_LINGER on zmq_to_qp_run_socket'
   endif

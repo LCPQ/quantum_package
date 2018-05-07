@@ -74,6 +74,8 @@ subroutine map_load_from_disk(filename,map)
   integer                        :: fd(3)
   integer*8                      :: i,k,l
   integer*4                      :: j,n_elements
+  integer(cache_key_kind), pointer :: key_p(:)
+  real(integral_kind), pointer   :: value_p(:)
 
   if (map % consolidated) then
     stop 'map already consolidated'
@@ -96,21 +98,25 @@ subroutine map_load_from_disk(filename,map)
   do i=0_8, map % map_size
     deallocate(map % map(i) % value)
     deallocate(map % map(i) % key)
-    map % map(i) % value => map % consolidated_value ( map % consolidated_idx (i+1_8) :)
-    map % map(i) % key   => map % consolidated_key   ( map % consolidated_idx (i+1_8) :)
-    map % map(i) % sorted = .True.
-    n_elements = int( map % consolidated_idx (i+2_8) - k, 4)
     k = map % consolidated_idx (i+2_8)
+    l =  map % consolidated_idx (i+1_8) 
+    n_elements = int(k - l, 4)
+    key_p => map % consolidated_key   (l:l+n_elements)
+    value_p => map % consolidated_value ( l:l+n_elements )
+    print *,  i, n_elements
+    map % map(i) % key   => key_p
+    map % map(i) % value => value_p
+    map % map(i) % sorted = .True.
     map % map(i) % map_size = n_elements
     map % map(i) % n_elements = n_elements
     ! Load memory from disk
     do j=1,n_elements
-      x = x + map % map(i) % value(j)
-      l = iand(l,int(map % map(i) % key(j),8))
-      if (map % map(i) % value(j) > 1.e30) then
+      x = x + value_p(j)
+      l = iand(l,int(key_p(j),8))
+      if (value_p(j) > 1.e30) then
         stop 'Error in integrals file'
       endif
-      if (map % map(i) % key(j) < 0) then
+      if (key_p(j) < 0) then
         stop 'Error in integrals file'
       endif
     enddo

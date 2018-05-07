@@ -33,7 +33,7 @@ void* mmap_fortran(char* filename, size_t bytes, int* file_descr, int read_only)
             exit(EXIT_FAILURE);
         }
 
-        result = lseek(fd, bytes, SEEK_SET);
+        result = lseek(fd, bytes+1, SEEK_SET);
         if (result == -1) {
             close(fd);
             printf("%s:\n", filename);
