@@ -138,7 +138,7 @@ zeromq = Info(
     default_path=join(QP_ROOT_LIB, "libzmq.a"))
 
 gmp= Info(
-    url='https://gmplib.org/download/gmp/gmp-6.1.2.tar.bz2',
+    url='ftp://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.bz2',
     description=' The GNU Multiple Precision Arithmetic Library',
     default_path=join(QP_ROOT_LIB, "libgmp.a"))
 
