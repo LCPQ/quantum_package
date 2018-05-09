@@ -5,7 +5,7 @@ QP_ROOT=$PWD
 cd -
 
 # Normal installation
-PACKAGES="core.v0.10.0 cryptokit ocamlfind sexplib.v0.10.0 ZMQ ppx_sexp_conv ppx_deriving jbuilder.1.0+beta17"
+PACKAGES="core.v0.10.0 cryptokit ocamlfind sexplib.v0.10.0 zmq ppx_sexp_conv ppx_deriving jbuilder.1.0+beta17"
 
 # Needed for ZeroMQ
 export C_INCLUDE_PATH="${QP_ROOT}"/include:"${C_INCLUDE_PATH}"

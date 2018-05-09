@@ -20,10 +20,10 @@ let run slave exe ezfio_file =
   (** Check availability of the ports *)
   let port_number = 
     let zmq_context =
-      ZMQ.Context.create ()
+      Zmq.Context.create ()
     in
     let dummy_socket = 
-      ZMQ.Socket.create zmq_context ZMQ.Socket.rep
+      Zmq.Socket.create zmq_context Zmq.Socket.rep
     in
     let rec try_new_port port_number =
       try 
@@ -31,8 +31,8 @@ let run slave exe ezfio_file =
             let address = 
               Printf.sprintf "tcp://%s:%d" (Lazy.force TaskServer.ip_address) (port_number+i)
             in
-            ZMQ.Socket.bind dummy_socket address;
-            ZMQ.Socket.unbind dummy_socket address;
+            Zmq.Socket.bind dummy_socket address;
+            Zmq.Socket.unbind dummy_socket address;
         );
         port_number
       with
@@ -41,8 +41,8 @@ let run slave exe ezfio_file =
     let result = 
       try_new_port 41279
     in
-    ZMQ.Socket.close dummy_socket;
-    ZMQ.Context.terminate zmq_context;
+    Zmq.Socket.close dummy_socket;
+    Zmq.Context.terminate zmq_context;
     result
   in
 
