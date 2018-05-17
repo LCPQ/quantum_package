@@ -100,7 +100,7 @@ subroutine bielec_integrals_index_reverse(i,j,k,l,i1)
       call bielec_integrals_index(i(ii),j(ii),k(ii),l(ii),i2)
       if (i1 /= i2) then
         print *,  i1, i2
-        print *,  i(ii), j(jj), k(jj), l(jj)
+        print *,  i(ii), j(ii), k(ii), l(ii)
         stop 'bielec_integrals_index_reverse failed'
       endif
     endif
