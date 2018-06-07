@@ -76,6 +76,11 @@ from collections import namedtuple
 Info = namedtuple("Info", ["url", "description", "default_path"])
 
 path_github = {"head": "http://github.com", "tail": "archive/master.tar.gz"}
+def path_gitlab(user,project,branch):
+  """For example,
+      https://gitlab.com/scemama/resultsFile/-/archive/master/resultsFile-master.tar.gz
+  """
+  return "http://gitlab.com/%(user)s/%(project)s/-/archive/%(branch)s/%(project)s-%(branch)s.tar.gz"%locals()
 
 ocaml = Info(
     url='http://raw.github.com/ocaml/opam/master/shell/opam_installer.sh',
@@ -113,7 +118,7 @@ docopt = Info(
     default_path=join(QP_ROOT_INSTALL, "docopt"))
 
 resultsFile = Info(
-    url='{head}/LCPQ/resultsFile/{tail}'.format(**path_github),
+    url=path_gitlab("scemama","resultsFile","master"),
     description=' resultsFile',
     default_path=join(QP_ROOT_INSTALL, "resultsFile"))
 
@@ -128,7 +133,7 @@ emsl = Info(
     default_path=join(QP_ROOT_INSTALL, "emsl"))
 
 ezfio = Info(
-    url='{head}/LCPQ/EZFIO/{tail}'.format(**path_github),
+    url=path_gitlab("scemama","EZFIO","master"),
     description=' EZFIO',
     default_path=join(QP_ROOT_INSTALL, "EZFIO"))
 
