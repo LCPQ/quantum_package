@@ -21,7 +21,7 @@ program localize_mos
     mo_coef(1,1),size(mo_coef,1),1.d-6,rank)
   print *,  rank
 
-  if (elec_alpha_num>elec_alpha_num) then
+  if (elec_alpha_num>elec_beta_num) then
     W = 0.d0
     do k=elec_beta_num+1,elec_alpha_num
       do j=1,ao_num
