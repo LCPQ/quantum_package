@@ -60,7 +60,7 @@ beta = ezfio.get_electrons_elec_beta_num()
 print "elec_alpha_num", alpha
 print "elec_beta_num", beta
 print "elec_tot_num", alpha + beta
-print "spin_multiplicity", 2 * (alpha - beta) + 1
+print "spin_multiplicity", (alpha - beta) + 1
 
 l_label = ezfio.get_nuclei_nucl_label()
 l_charge = ezfio.get_nuclei_nucl_charge()
