@@ -1,9 +1,8 @@
 ## IMPORTANT
 
-If you have problems upgrading to the current version, first try
-`qp_upgrade_ocaml.sh`. If it fails, then consider re-installing everything from
-scratch including the OCaml compiler.  To do this, you will have to remove the
-`quantum_package` directory **and** the `$HOME/.opam` directory as well.
+This repository is version 1 of QP.
+
+Version 2 is available here : https://github.com/QuantumPackage/qp2
 
 
 
