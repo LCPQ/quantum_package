@@ -649,7 +649,7 @@ subroutine create_wf_of_psi_bilinear_matrix(truncate)
         do k=1,N_states
           psi_coef_sorted_bit(idx,k) = psi_bilinear_matrix(i,j,k) 
           !$OMP ATOMIC
-          norm(k) += psi_bilinear_matrix(i,j,k)
+          norm(k) += psi_bilinear_matrix(i,j,k)*psi_bilinear_matrix(i,j,k)
         enddo
       endif
     enddo

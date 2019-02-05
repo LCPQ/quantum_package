@@ -559,7 +559,7 @@ END_PROVIDER
  n_core_inact_act_orb = 0
  do i = 1, N_int
   reunion_of_core_inact_act_bitmask(i,1) = ior(reunion_of_core_inact_bitmask(i,1),cas_bitmask(i,1,1))
-  reunion_of_core_inact_act_bitmask(i,2) = ior(reunion_of_core_inact_bitmask(i,2),cas_bitmask(i,1,1))
+  reunion_of_core_inact_act_bitmask(i,2) = ior(reunion_of_core_inact_bitmask(i,2),cas_bitmask(i,2,1))
   n_core_inact_act_orb +=popcnt(reunion_of_core_inact_act_bitmask(i,1))
  enddo
  END_PROVIDER

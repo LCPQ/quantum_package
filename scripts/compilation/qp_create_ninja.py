@@ -97,7 +97,9 @@ def ninja_create_env_variable(pwd_config_file):
         l_string.append(str_)
 
     lib_lapack = get_compilation_option(pwd_config_file, "LAPACK_LIB")
-    str_lib = " ".join([LIB, lib_lapack, EZFIO_LIB, ZMQ_LIB])
+    lib_usr = get_compilation_option(pwd_config_file, "LIB")
+
+    str_lib = " ".join([LIB, lib_lapack, EZFIO_LIB, ZMQ_LIB, lib_usr])
     l_string.append("LIB = {0} ".format(str_lib))
 
     l_string.append("")

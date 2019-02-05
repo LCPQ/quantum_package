@@ -60,7 +60,7 @@ beta = ezfio.get_electrons_elec_beta_num()
 print "elec_alpha_num", alpha
 print "elec_beta_num", beta
 print "elec_tot_num", alpha + beta
-print "spin_multiplicity", 2 * (alpha - beta) + 1
+print "spin_multiplicity", (alpha - beta) + 1
 
 l_label = ezfio.get_nuclei_nucl_label()
 l_charge = ezfio.get_nuclei_nucl_charge()
@@ -133,7 +133,7 @@ d_gms_order ={ 0:["s"],
      1:[ "x", "y", "z" ],
      2:[ "xx", "yy", "zz", "xy", "xz", "yz" ],
      3:[ "xxx", "yyy", "zzz", "xxy", "xxz", "yyx", "yyz", "zzx", "zzy", "xyz"],
-     4: ["xxxx", "yyyy", "zzzz", "xxxy", "xxxz", "yyyx", "yyyz", "zzzx", "zzzy", "xxyy", "xxzz", "yyzz", "xxyz", "yyxz", "zzxy", "xxxx", "yyyy", "zzzz", "xxxy", "xxxz", "yyyx", "yyyz", "zzzx", "zzzy", "xxyy", "xxzz", "yyzz", "xxyz", "yyxz","zzxy"] }
+     4:[ "xxxx", "yyyy", "zzzz", "xxxy", "xxxz", "yyyx", "yyyz", "zzzx", "zzzy", "xxyy", "xxzz", "yyzz", "xxyz", "yyxz", "zzxy"] }
 
 def compare_gamess_style(item1, item2):
     n1,n2 = map(len,(item1,item2))
