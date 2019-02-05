@@ -1,6 +1,6 @@
 ## IMPORTANT
 
-This repository is version 1 of QP.
+This repository is version 1 of QP. This version is not supported any more.
 
 Version 2 is available here : https://github.com/QuantumPackage/qp2
 
