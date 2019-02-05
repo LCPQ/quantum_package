@@ -21,6 +21,7 @@ Needed Modules
 .. image:: tree_dependency.png
 
 * `Determinants <http://github.com/LCPQ/quantum_package/tree/master/src/Determinants>`_
+* `Davidson <http://github.com/LCPQ/quantum_package/tree/master/src/Davidson>`_
 
 Documentation
 =============
@@ -28,12 +29,12 @@ Documentation
 .. by the `update_README.py` script.
 
 
-`ao_integrated_delta_rho_all_points <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L61>`_
+`ao_integrated_delta_rho_all_points <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L76>`_
   array of the overlap in x,y between the AO function and integrated between [z,z+dz] in the z axis
   for all the z points that are given (N_z_pts)
 
 
-`ao_integrated_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L130>`_
+`ao_integrated_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L151>`_
   array of the overlap in x,y between the AO function and integrated between [z,z+dz] in the z axis
   for one specific z point
 
@@ -62,7 +63,7 @@ Documentation
   Conversion factor for the calculation of the hcc, according to the nuclear charge
 
 
-`delta_z <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L4>`_
+`delta_z <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L14>`_
   Undocumented
 
 
@@ -74,12 +75,12 @@ Documentation
   Computes <i|O1(alpha) -O1(beta)|i>
 
 
-`electronic_population_alpha <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L57>`_
+`electronic_population_alpha <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L60>`_
   spin population on the ao basis :
   spin_population(i,j) = rho_AO(alpha)(i,j) - rho_AO(beta)(i,j) * <AO_i|AO_j>
 
 
-`electronic_population_beta <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L58>`_
+`electronic_population_beta <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L61>`_
   spin population on the ao basis :
   spin_population(i,j) = rho_AO(alpha)(i,j) - rho_AO(beta)(i,j) * <AO_i|AO_j>
 
@@ -104,11 +105,19 @@ Documentation
   and with the density is stored in  "density"
 
 
-`gross_orbital_product_alpha <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L76>`_
+`give_all_act_mos_at_r <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/give_mos_at_r.irp.f#L1>`_
+  Undocumented
+
+
+`give_all_core_mos_at_r <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/give_mos_at_r.irp.f#L19>`_
+  Undocumented
+
+
+`gross_orbital_product_alpha <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L79>`_
   gross orbital product
 
 
-`gross_orbital_product_beta <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L77>`_
+`gross_orbital_product_beta <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L80>`_
   gross orbital product
 
 
@@ -140,60 +149,84 @@ Documentation
   on the MO basis
 
 
-`i_unit_integrated_delta_rho <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L118>`_
+`i_unit_integrated_delta_rho <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L139>`_
   fortran unit for the writing of the integrated delta_rho
 
 
-`integrated_delta_rho_all_points <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L15>`_
+`i_unit_x_two_body_dm_ab <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/iunit_two_bod.irp.f#L1>`_
+  Undocumented
+
+
+`i_unit_y_two_body_dm_ab <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/iunit_two_bod.irp.f#L10>`_
+  Undocumented
+
+
+`i_unit_z_two_body_diag_dm_ab <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/iunit_two_bod.irp.f#L28>`_
+  Undocumented
+
+
+`i_unit_z_two_body_extra_diag_dm_ab <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/iunit_two_bod.irp.f#L19>`_
+  Undocumented
+
+
+`i_unit_z_two_body_total_dm_ab <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/iunit_two_bod.irp.f#L37>`_
+  Undocumented
+
+
+`integrated_delta_rho_all_points <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L30>`_
   .br
   integrated_rho(alpha,z) - integrated_rho(beta,z) for all the z points
   chosen
   .br
 
 
-`integrated_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L212>`_
+`integrated_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L240>`_
   .br
   integral (x,y) and (z,z+delta_z) of rho(alpha) - rho(beta)
   on the MO basis
   .br
 
 
-`iso_hcc_cm_1 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/hyperfine_constants.irp.f#L124>`_
+`iso_hcc_cm_1 <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/hyperfine_constants.irp.f#L134>`_
   isotropic hyperfine coupling constants among the various atoms
 
 
-`iso_hcc_gauss <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/hyperfine_constants.irp.f#L123>`_
+`iso_hcc_gauss <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/hyperfine_constants.irp.f#L133>`_
   isotropic hyperfine coupling constants among the various atoms
 
 
-`iso_hcc_mhz <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/hyperfine_constants.irp.f#L122>`_
+`iso_hcc_mhz <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/hyperfine_constants.irp.f#L132>`_
   isotropic hyperfine coupling constants among the various atoms
 
 
-`mo_integrated_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L184>`_
+`mo_integrated_delta_rho_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L212>`_
   .br
   array of the integrals needed of integrated_rho(alpha,z) - integrated_rho(beta,z) for z = z_one_point
   on the MO basis
   .br
 
 
-`mulliken_densities_alpha <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L93>`_
+`mulliken_densities_alpha <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L96>`_
   .br
 
 
-`mulliken_densities_beta <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L94>`_
+`mulliken_densities_beta <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L97>`_
   .br
 
 
-`mulliken_spin_densities <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L44>`_
+`mulliken_spin_densities <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L47>`_
   ATOMIC SPIN POPULATION (ALPHA MINUS BETA)
 
 
-`n_z_pts <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L1>`_
+`n_z_pts <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L23>`_
   Undocumented
 
 
-`print_hcc <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/hyperfine_constants.irp.f#L138>`_
+`pouet <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/provide_deltarho.irp.f#L1>`_
+  Undocumented
+
+
+`print_hcc <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/hyperfine_constants.irp.f#L148>`_
   Undocumented
 
 
@@ -205,8 +238,20 @@ Documentation
   Undocumented
 
 
-`print_mulliken_sd <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L110>`_
+`print_mulliken_sd <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L113>`_
   Undocumented
+
+
+`print_sd <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/print_spin_density.irp.f#L1>`_
+  Undocumented
+
+
+`spin_dens_coord <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L1>`_
+  oordinate on which you are going to plot the spin density
+  nd integrate over the ohters
+  pin_dens_coord = 1  === X
+  pin_dens_coord = 2  === Y
+  pin_dens_coord = 3  === Z
 
 
 `spin_density_at_nucleous <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/hyperfine_constants.irp.f#L1>`_
@@ -229,7 +274,7 @@ Documentation
   value of the spin density at each nucleus
 
 
-`spin_gross_orbital_product <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L29>`_
+`spin_gross_orbital_product <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L32>`_
   gross orbital product for the spin population
 
 
@@ -239,6 +284,10 @@ Documentation
 
 
 `spin_population_angular_momentum <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L17>`_
+  Undocumented
+
+
+`spin_population_angular_momentum_per_atom <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/mulliken.irp.f#L18>`_
   Undocumented
 
 
@@ -254,14 +303,22 @@ Documentation
   Undocumented
 
 
-`z_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L3>`_
+`test_two_bod <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/test_two_body_dm.irp.f#L1>`_
   Undocumented
 
 
-`z_min <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L2>`_
+`threshld_two_bod_dm <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/ezfio_interface.irp.f#L6>`_
+  threshold for the values of the alpha/beta two body dm evaluation
+
+
+`z_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L16>`_
   Undocumented
 
 
-`z_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/ezfio_interface.irp.f#L6>`_
+`z_min <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/delta_rho.irp.f#L15>`_
+  Undocumented
+
+
+`z_one_point <http://github.com/LCPQ/quantum_package/tree/master/plugins/Properties/ezfio_interface.irp.f#L40>`_
   z point on which the integrated delta rho is calculated
 

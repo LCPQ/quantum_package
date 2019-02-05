@@ -71,12 +71,24 @@ Documentation
   determinants. idx_cas gives the indice of the CAS determinant in psi_det.
 
 
+`inv_norm_psi_ref <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/psi_ref.irp.f#L71>`_
+  Undocumented
+
+
 `n_det_ref <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/psi_ref.irp.f#L6>`_
   CAS wave function, defined from the application of the CAS bitmask on the
   determinants. idx_cas gives the indice of the CAS determinant in psi_det.
 
 
+`norm_psi_ref <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/psi_ref.irp.f#L70>`_
+  Undocumented
+
+
 `overwrite_w_cas <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/overwrite_with_cas.irp.f#L1>`_
+  Undocumented
+
+
+`psi_non_ref_coef_interm_norm <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/psi_ref.irp.f#L95>`_
   Undocumented
 
 
@@ -88,6 +100,10 @@ Documentation
 `psi_ref_coef <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/psi_ref.irp.f#L4>`_
   CAS wave function, defined from the application of the CAS bitmask on the
   determinants. idx_cas gives the indice of the CAS determinant in psi_det.
+
+
+`psi_ref_coef_interm_norm <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/psi_ref.irp.f#L85>`_
+  Undocumented
 
 
 `psi_ref_coef_inv <http://github.com/LCPQ/quantum_package/tree/master/plugins/Psiref_CAS/psi_ref.irp.f#L29>`_

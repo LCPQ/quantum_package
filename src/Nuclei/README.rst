@@ -34,73 +34,89 @@ Documentation
 .. by the `update_README.py` script.
 
 
+`center_of_mass <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L246>`_
+  Center of mass of the molecule
+
+
 `disk_access_nuclear_repulsion <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L6>`_
   Read/Write Nuclear Repulsion from/to disk [ Write | Read | None ]
 
 
-`element_name <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L191>`_
+`element_mass <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L206>`_
   Array of the name of element, sorted by nuclear charge (integer)
 
 
-`nucl_charge <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L44>`_
+`element_name <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L205>`_
+  Array of the name of element, sorted by nuclear charge (integer)
+
+
+`inertia_tensor <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/inertia.irp.f#L1>`_
+  Inertia tensor
+
+
+`inertia_tensor_eigenvalues <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/inertia.irp.f#L22>`_
+  Eigenvectors/eigenvalues of the inertia_tensor. Used to find normal orientation.
+
+
+`inertia_tensor_eigenvectors <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/inertia.irp.f#L21>`_
+  Eigenvectors/eigenvalues of the inertia_tensor. Used to find normal orientation.
+
+
+`nucl_charge <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L74>`_
   Nuclear charges
 
 
-`nucl_coord <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L12>`_
+`nucl_coord <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L1>`_
   Nuclear coordinates in the format (:, {x,y,z})
 
 
-`nucl_coord_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L67>`_
+`nucl_coord_transp <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L69>`_
   Transposed array of nucl_coord
 
 
-`nucl_dist <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L86>`_
+`nucl_dist <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L88>`_
   nucl_dist     : Nucleus-nucleus distances
   nucl_dist_2   : Nucleus-nucleus distances squared
   nucl_dist_vec : Nucleus-nucleus distances vectors
 
 
-`nucl_dist_2 <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L82>`_
+`nucl_dist_2 <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L84>`_
   nucl_dist     : Nucleus-nucleus distances
   nucl_dist_2   : Nucleus-nucleus distances squared
   nucl_dist_vec : Nucleus-nucleus distances vectors
 
 
-`nucl_dist_vec_x <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L83>`_
+`nucl_dist_vec_x <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L85>`_
   nucl_dist     : Nucleus-nucleus distances
   nucl_dist_2   : Nucleus-nucleus distances squared
   nucl_dist_vec : Nucleus-nucleus distances vectors
 
 
-`nucl_dist_vec_y <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L84>`_
+`nucl_dist_vec_y <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L86>`_
   nucl_dist     : Nucleus-nucleus distances
   nucl_dist_2   : Nucleus-nucleus distances squared
   nucl_dist_vec : Nucleus-nucleus distances vectors
 
 
-`nucl_dist_vec_z <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L85>`_
+`nucl_dist_vec_z <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L87>`_
   nucl_dist     : Nucleus-nucleus distances
   nucl_dist_2   : Nucleus-nucleus distances squared
   nucl_dist_vec : Nucleus-nucleus distances vectors
 
 
-`nucl_label <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L64>`_
+`nucl_label <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L109>`_
   Nuclear labels
 
 
-`nucl_num <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L25>`_
+`nucl_num <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/ezfio_interface.irp.f#L40>`_
   Number of nuclei
 
 
-`nucl_num_aligned <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L1>`_
-  Number of nuclei algined
-
-
-`nuclear_repulsion <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L144>`_
+`nuclear_repulsion <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L142>`_
   Nuclear repulsion energy
 
 
-`positive_charge_barycentre <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L128>`_
+`positive_charge_barycentre <http://github.com/LCPQ/quantum_package/tree/master/src/Nuclei/nuclei.irp.f#L126>`_
   Centroid of the positive charges
 
 

@@ -44,7 +44,7 @@ Documentation
 .. by the `update_README.py` script.
 
 
-`elec_alpha_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/ezfio_interface.irp.f#L25>`_
+`elec_alpha_num <http://github.com/LCPQ/quantum_package/tree/master/src/Electrons/ezfio_interface.irp.f#L40>`_
   Numbers of electrons alpha ("up")
 
 

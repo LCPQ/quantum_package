@@ -10,33 +10,29 @@ Documentation
 .. by the `update_README.py` script.
 
 
-`a_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L252>`_
+`a_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L251>`_
   Undocumented
 
 
-`add_poly <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L306>`_
+`add_poly <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L302>`_
   Add two polynomials
   D(t) =! D(t) +( B(t)+C(t))
 
 
-`add_poly_multiply <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L334>`_
+`add_poly_multiply <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L330>`_
   Add a polynomial multiplied by a constant
   D(t) =! D(t) +( cst * B(t))
 
 
-`align_double <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L48>`_
-  Compute 1st dimension such that it is aligned for vectorization.
-
-
-`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L372>`_
+`apply_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L367>`_
   Apply the rotation found by find_rotation
 
 
-`approx_dble <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L355>`_
+`approx_dble <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L340>`_
   Undocumented
 
 
-`b_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L257>`_
+`b_coef <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L256>`_
   Undocumented
 
 
@@ -55,23 +51,23 @@ Documentation
   Binomial coefficients
 
 
-`dble_fact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L136>`_
+`dble_fact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L122>`_
   Undocumented
 
 
-`dble_fact_even <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L153>`_
+`dble_fact_even <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L139>`_
   n!!
 
 
-`dble_fact_odd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L197>`_
+`dble_fact_odd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L183>`_
   n!!
 
 
-`dble_logfact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L231>`_
+`dble_logfact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L217>`_
   n!!
 
 
-`ddfact2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L243>`_
+`ddfact2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L242>`_
   Undocumented
 
 
@@ -102,54 +98,58 @@ Documentation
   Transpose input matrix A into output matrix B
 
 
-`erf0 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L105>`_
+`erf0 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L104>`_
   Undocumented
 
 
-`f_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L408>`_
+`extrapolate_data <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/extrapolation.irp.f#L1>`_
+  Extrapolate the data to the FCI limit
+
+
+`f_integral <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L404>`_
   function that calculates the following integral
   \int_{\-infty}^{+\infty} x^n \exp(-p x^2) dx
 
 
-`fact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L63>`_
+`fact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L49>`_
   n!
 
 
-`fact_inv <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L123>`_
+`fact_inv <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L109>`_
   1/n!
 
 
-`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L353>`_
+`find_rotation <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L348>`_
   Find A.C = B
 
 
-`gammln <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L271>`_
+`gammln <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L270>`_
   Undocumented
 
 
-`gammp <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L133>`_
+`gammp <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L132>`_
   Undocumented
 
 
-`gaussian_product <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L184>`_
+`gaussian_product <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L181>`_
   Gaussian product in 1D.
   e^{-a (x-x_A)^2} e^{-b (x-x_B)^2} = K_{ab}^x e^{-p (x-x_P)^2}
 
 
-`gaussian_product_x <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L226>`_
+`gaussian_product_x <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L223>`_
   Gaussian product in 1D.
   e^{-a (x-x_A)^2} e^{-b (x-x_B)^2} = K_{ab}^x e^{-p (x-x_P)^2}
 
 
-`gcf <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L211>`_
+`gcf <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L210>`_
   Undocumented
 
 
-`get_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L271>`_
+`get_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L266>`_
   Returns the inverse of the square matrix A
 
 
-`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L299>`_
+`get_pseudo_inverse <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L294>`_
   Find C = A^-1
 
 
@@ -162,7 +162,7 @@ Documentation
   * [ sum (l_z = 0,i_order(3)) P_new(l_z,3) * (z-P_center(3))^l_z ] exp (- p (z-P_center(3))^2 )
 
 
-`give_explicit_poly_and_gaussian_double <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L122>`_
+`give_explicit_poly_and_gaussian_double <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L119>`_
   Transforms the product of
   (x-x_A)^a(1) (x-x_B)^b(1) (x-x_A)^a(2) (y-y_B)^b(2) (z-z_A)^a(3) (z-z_B)^b(3)
   exp(-(r-A)^2 alpha) exp(-(r-B)^2 beta) exp(-(r-Nucl_center)^2 gama
@@ -180,7 +180,7 @@ Documentation
   fact_k  (x-x_P)^iorder(1)  (y-y_P)^iorder(2)  (z-z_P)^iorder(3) exp(-p(r-P)^2)
 
 
-`gser <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L167>`_
+`gser <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L166>`_
   Undocumented
 
 
@@ -254,7 +254,7 @@ Documentation
   to be in integer*8 format
 
 
-`hermite <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L540>`_
+`hermite <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L536>`_
   Hermite polynomial
 
 
@@ -385,7 +385,7 @@ Documentation
   to be in integer*8 format
 
 
-`inv_int <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L262>`_
+`inv_int <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L248>`_
   1/i
 
 
@@ -421,7 +421,7 @@ Documentation
   contains the new order of the elements.
 
 
-`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L451>`_
+`lapack_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L446>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -432,7 +432,7 @@ Documentation
   .br
 
 
-`lapack_diag_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L519>`_
+`lapack_diag_s2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L514>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -443,7 +443,7 @@ Documentation
   .br
 
 
-`lapack_diagd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L384>`_
+`lapack_diagd <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L379>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -454,7 +454,7 @@ Documentation
   .br
 
 
-`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L585>`_
+`lapack_partial_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L580>`_
   Diagonalize matrix H
   .br
   H is untouched between input and ouptut
@@ -465,11 +465,11 @@ Documentation
   .br
 
 
-`logfact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L91>`_
+`logfact <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L77>`_
   n!
 
 
-`lowercase <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L379>`_
+`lowercase <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L364>`_
   Transform to lower case
 
 
@@ -481,11 +481,11 @@ Documentation
   Undocumented
 
 
-`matrix_vector_product <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L666>`_
+`matrix_vector_product <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L661>`_
   performs u1 =! performs u1 +( u0 * matrix)
 
 
-`multiply_poly <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L264>`_
+`multiply_poly <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L261>`_
   Multiply two polynomials
   D(t) =! D(t) +( B(t)*C(t))
 
@@ -494,12 +494,11 @@ Documentation
   Number of points needed for the angular integral
 
 
-`normalize <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L332>`_
+`normalize <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L318>`_
   Normalizes vector u
-  u is expected to be aligned in memory.
 
 
-`nproc <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L288>`_
+`nproc <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L274>`_
   Number of current OpenMP threads
 
 
@@ -521,7 +520,7 @@ Documentation
   .br
 
 
-`ortho_lowdin <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L187>`_
+`ortho_lowdin <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L182>`_
   Compute C_new=C_old.S^-1/2 orthogonalization.
   .br
   overlap : overlap matrix
@@ -539,7 +538,7 @@ Documentation
   .br
 
 
-`ortho_qr <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L128>`_
+`ortho_qr <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L123>`_
   Orthogonalization using Q.R factorization
   .br
   A : matrix to orthogonalize
@@ -552,7 +551,7 @@ Documentation
   .br
 
 
-`ortho_qr_unblocked <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L160>`_
+`ortho_qr_unblocked <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L155>`_
   Orthogonalization using Q.R factorization
   .br
   A : matrix to orthogonalize
@@ -667,34 +666,34 @@ Documentation
   Undocumented
 
 
-`recentered_poly2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L363>`_
+`recentered_poly2 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L359>`_
   Recenter two polynomials
 
 
-`rint <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L436>`_
+`rint <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L432>`_
   .. math::
   .br
   \int_0^1 dx \exp(-p x^2) x^n
   .br
 
 
-`rint1 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L596>`_
+`rint1 <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L592>`_
   Standard version of rint
 
 
-`rint_large_n <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L565>`_
+`rint_large_n <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L561>`_
   Version of rint for large values of n
 
 
-`rint_sum <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L484>`_
+`rint_sum <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/integration.irp.f#L480>`_
   Needed for the calculation of two-electron integrals.
 
 
-`rinteg <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L47>`_
+`rinteg <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L46>`_
   Undocumented
 
 
-`rintgauss <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L31>`_
+`rintgauss <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/need.irp.f#L30>`_
   Undocumented
 
 
@@ -718,7 +717,7 @@ Documentation
   to be in integer*8 format
 
 
-`set_zero_extra_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L642>`_
+`set_zero_extra_diag <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/LinearAlgebra.irp.f#L637>`_
   Undocumented
 
 
@@ -775,15 +774,15 @@ Documentation
   Transpose input matrix A into output matrix B
 
 
-`u_dot_u <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L318>`_
+`u_dot_u <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L304>`_
   Compute <u|u>
 
 
-`u_dot_v <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L304>`_
+`u_dot_v <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L290>`_
   Compute <u|v>
 
 
-`wall_time <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L273>`_
+`wall_time <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L259>`_
   The equivalent of cpu_time, but for the wall time.
 
 
@@ -793,6 +792,6 @@ Documentation
   Note that theta and phi are in DEGREES !!
 
 
-`write_git_log <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L248>`_
+`write_git_log <http://github.com/LCPQ/quantum_package/tree/master/src/Utils/util.irp.f#L234>`_
   Write the last git commit in file iunit.
 

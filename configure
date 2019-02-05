@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """configure
 
@@ -133,7 +133,7 @@ emsl = Info(
     default_path=join(QP_ROOT_INSTALL, "emsl"))
 
 ezfio = Info(
-    url=path_gitlab("scemama","EZFIO","master"),
+    url='https://gitlab.com/scemama/EZFIO/-/archive/v1.3.5/EZFIO-v1.3.5.tar.gz',
     description=' EZFIO',
     default_path=join(QP_ROOT_INSTALL, "EZFIO"))
 

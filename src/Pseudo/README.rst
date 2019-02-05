@@ -28,19 +28,19 @@ Documentation
 .. by the `update_README.py` script.
 
 
-`do_pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L241>`_
+`do_pseudo <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L421>`_
   Using pseudo potential integral or not
 
 
-`nucl_charge_remove <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L45>`_
+`nucl_charge_remove <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L75>`_
   Nuclear charges removed
 
 
-`pseudo_dz_k <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L202>`_
+`pseudo_dz_k <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L352>`_
   test
 
 
-`pseudo_dz_kl <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L105>`_
+`pseudo_dz_kl <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L180>`_
   test
 
 
@@ -48,34 +48,34 @@ Documentation
   R_maxof the QMC grid
 
 
-`pseudo_grid_size <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L163>`_
+`pseudo_grid_size <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L283>`_
   Nb of points of the QMC grid
 
 
-`pseudo_klocmax <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L125>`_
+`pseudo_klocmax <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L215>`_
   test
 
 
-`pseudo_kmax <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L222>`_
+`pseudo_kmax <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L387>`_
   test
 
 
-`pseudo_lmax <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L144>`_
+`pseudo_lmax <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L249>`_
   test
 
 
-`pseudo_n_k <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L85>`_
+`pseudo_n_k <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L145>`_
   test
 
 
-`pseudo_n_kl <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L182>`_
+`pseudo_n_kl <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L317>`_
   test
 
 
-`pseudo_v_k <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L25>`_
+`pseudo_v_k <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L40>`_
   test
 
 
-`pseudo_v_kl <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L65>`_
+`pseudo_v_kl <http://github.com/LCPQ/quantum_package/tree/master/src/Pseudo/ezfio_interface.irp.f#L110>`_
   test
 

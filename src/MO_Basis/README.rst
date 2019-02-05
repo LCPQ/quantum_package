@@ -78,7 +78,7 @@ Documentation
   AO overlap matrix in the spherical basis set
 
 
-`ao_ortho_cano_to_ao <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L278>`_
+`ao_ortho_cano_to_ao <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L329>`_
   Transform A from the AO basis to the orthogonal AO basis
   .br
   C^(-1).A_ao.Ct^(-1)
@@ -105,10 +105,10 @@ Documentation
   Expected to be the Identity
 
 
-`ao_to_mo <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L156>`_
+`ao_to_mo <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L213>`_
   Transform A from the AO basis to the MO basis
   .br
-  C.A_ao.Ct
+  Ct.A_ao.C
 
 
 `cholesky_mo <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/cholesky_mo.irp.f#L1>`_
@@ -127,15 +127,15 @@ Documentation
   .br
 
 
-`give_all_mos_at_r <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L271>`_
+`give_all_mos_at_r <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L276>`_
   Undocumented
 
 
-`give_specific_mos_at_r <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L278>`_
+`give_specific_mos_at_r <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L283>`_
   Undocumented
 
 
-`mix_mo_jk <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L244>`_
+`mix_mo_jk <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L295>`_
   subroutine that rotates the jth MO with the kth MO
   to give two new MO's that are
   '+' = 1/sqrt(2) (|j> + |k>)
@@ -148,11 +148,11 @@ Documentation
   Undocumented
 
 
-`mo_as_eigvectors_of_mo_matrix_sort_by_observable <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L150>`_
+`mo_as_eigvectors_of_mo_matrix_sort_by_observable <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L155>`_
   Undocumented
 
 
-`mo_as_svd_vectors_of_mo_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L103>`_
+`mo_as_svd_vectors_of_mo_matrix <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L108>`_
   Undocumented
 
 
@@ -160,29 +160,33 @@ Documentation
   Core|Inactive|Active|Virtual|Deleted
 
 
-`mo_coef <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L29>`_
+`mo_coef <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L57>`_
   Molecular orbital coefficients on AO basis set
   mo_coef(i,j) = coefficient of the ith ao on the jth mo
   mo_label : Label characterizing the MOS (local, canonical, natural, etc)
 
 
-`mo_coef_in_ao_ortho_basis <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L71>`_
+`mo_coef_in_ao_ortho_basis <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L105>`_
   MO coefficients in orthogonalized AO basis
   .br
   C^(-1).C_mo
 
 
-`mo_coef_transp <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L103>`_
+`mo_coef_transp <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L150>`_
   Molecular orbital coefficients on AO basis set
 
 
-`mo_label <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L85>`_
+`mo_label <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L119>`_
   Molecular orbital coefficients on AO basis set
   mo_coef(i,j) = coefficient of the ith ao on the jth mo
   mo_label : Label characterizing the MOS (local, canonical, natural, etc)
 
 
-`mo_occ <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L134>`_
+`mo_num <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L38>`_
+  mo_tot_num without the highest deleted MOs
+
+
+`mo_occ <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L178>`_
   MO occupation numbers
 
 
@@ -190,37 +194,30 @@ Documentation
   Undocumented
 
 
-`mo_sort_by_observable <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L232>`_
+`mo_sort_by_observable <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/utils.irp.f#L237>`_
   Undocumented
 
 
-`mo_to_ao <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L184>`_
+`mo_to_ao <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L241>`_
   Transform A from the MO basis to the AO basis
   .br
   (S.C).A_mo.(S.C)t
 
 
-`mo_to_ao_no_overlap <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L218>`_
+`mo_to_ao_no_overlap <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L268>`_
   Transform A from the MO basis to the S^-1 AO basis
+  Useful for density matrix
 
 
 `mo_tot_num <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L1>`_
-  Total number of molecular orbitals and the size of the keys corresponding
-
-
-`mo_tot_num_align <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L19>`_
-  Aligned variable for dimensioning of arrays
+  Number of MOs
 
 
 `permut_mos <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mo_permutation.irp.f#L1>`_
   Undocumented
 
 
-`pouet <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/print_mo_in_space.irp.f#L1>`_
-  Undocumented
-
-
-`s_mo_coef <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L121>`_
+`s_mo_coef <http://github.com/LCPQ/quantum_package/tree/master/src/MO_Basis/mos.irp.f#L165>`_
   Product S.C where S is the overlap matrix in the AO basis and C the mo_coef matrix.
 
 

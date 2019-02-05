@@ -41,7 +41,7 @@ Documentation
   Alpha Fock matrix in AO basis set
 
 
-`create_guess <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/SCF.irp.f#L13>`_
+`create_guess <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/SCF_old.irp.f#L13>`_
   Create a MO guess if no MOs are present in the EZFIO directory
 
 
@@ -71,11 +71,11 @@ Documentation
   Diagonal Fock matrix in the MO basis
 
 
-`extrapolate_fock_matrix <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Roothaan_Hall_SCF.irp.f#L146>`_
+`extrapolate_fock_matrix <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Roothaan_Hall_SCF.irp.f#L148>`_
   Compute the extrapolated Fock matrix using the DIIS procedure
 
 
-`fock_matrix_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L317>`_
+`fock_matrix_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L299>`_
   Fock matrix in AO basis set
 
 
@@ -123,12 +123,8 @@ Documentation
   Fock matrix on the MO basis
 
 
-`fock_matrix_mo_beta <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L280>`_
+`fock_matrix_mo_beta <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L271>`_
   Fock matrix on the MO basis
-
-
-`fock_mo_to_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L378>`_
-  Undocumented
 
 
 `fps_spf_matrix_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/DIIS.irp.f#L15>`_
@@ -144,18 +140,18 @@ Documentation
 
 
 `hf_density_matrix_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/HF_density_matrix_ao.irp.f#L27>`_
-  S^-1 Density matrix in the AO basis S^-1
+  S^{-1}.P.S^{-1}  where P = C.C^t
 
 
 `hf_density_matrix_ao_alpha <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/HF_density_matrix_ao.irp.f#L1>`_
-  S^-1 x Alpha density matrix in the AO basis x S^-1
+  S^{-1}.P_alpha.S^{-1}
 
 
 `hf_density_matrix_ao_beta <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/HF_density_matrix_ao.irp.f#L14>`_
-  S^-1 Beta density matrix in the AO basis x S^-1
+  S^{-1}.P_beta.S^{-1}
 
 
-`hf_energy <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L298>`_
+`hf_energy <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/Fock_matrix.irp.f#L280>`_
   Hartree-Fock energy
 
 
@@ -163,7 +159,7 @@ Documentation
   Build the MOs using the extended Huckel model
 
 
-`level_shift <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L44>`_
+`level_shift <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L40>`_
   Energy shift on the virtual MOs to improve SCF convergence
 
 
@@ -175,15 +171,15 @@ Documentation
   Maximum size of the DIIS extrapolation procedure
 
 
-`mo_guess_type <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L82>`_
+`mo_guess_type <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L108>`_
   Initial MO guess. Can be [ Huckel | HCore ]
 
 
-`n_it_scf_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L139>`_
+`n_it_scf_max <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L210>`_
   Maximum number of SCF iterations
 
 
-`no_oa_or_av_opt <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L120>`_
+`no_oa_or_av_opt <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L176>`_
   If true, skip the (inactive+core) --> (active) and the (active) --> (virtual) orbital rotations within the SCF procedure
 
 
@@ -191,37 +187,29 @@ Documentation
   Roothaan-Hall algorithm for SCF Hartree-Fock calculation
 
 
-`run <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/SCF.irp.f#L37>`_
+`run <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/SCF_old.irp.f#L37>`_
   Run SCF calculation
 
 
-`scf <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/SCF.irp.f#L1>`_
+`scf <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/SCF_old.irp.f#L1>`_
   Produce `Hartree_Fock` MO orbital
   output: mo_basis.mo_tot_num mo_basis.mo_label mo_basis.ao_md5 mo_basis.mo_coef mo_basis.mo_occ
   output: hartree_fock.energy
   optional: mo_basis.mo_coef
 
 
-`scf_algorithm <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L101>`_
+`scf_algorithm <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L142>`_
   Type of SCF algorithm used. Possible choices are [ Simple | DIIS]
 
 
-`thresh_scf <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L158>`_
+`thresh_scf <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L244>`_
   Threshold on the convergence of the Hartree Fock energy.
 
 
-`threshold_diis <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L63>`_
+`threshold_diis <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L74>`_
   Threshold on the convergence of the DIIS error vector during a Hartree-Fock calculation. If 0. is chosen, the square root of thresh_scf will be used.
 
 
 `threshold_diis_nonzero <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/DIIS.irp.f#L1>`_
   If threshold_DIIS is zero, choose sqrt(thresh_scf)
-
-
-`threshold_overlap_ao_eigenvalues <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/ezfio_interface.irp.f#L25>`_
-  Threshold on the magnitude of the smallest eigenvalues of the overlap matrix in the AO basis
-
-
-`x_matrix_ao <http://github.com/LCPQ/quantum_package/tree/master/plugins/Hartree_Fock/DIIS.irp.f#L140>`_
-  Matrix X = S^{-1/2} obtained by SVD
 
