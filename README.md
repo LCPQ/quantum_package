@@ -4,7 +4,7 @@ This repository is version 1 of QP. This version is not supported any more.
 
 Version 2 is available here : https://github.com/QuantumPackage/qp2
 
-
+----------------------------------
 
 ![QP](https://raw.githubusercontent.com/LCPQ/quantum_package/master/data/qp.png)     
 [![Build Status](https://travis-ci.org/LCPQ/quantum_package.svg?branch=master)](https://travis-ci.org/LCPQ/quantum_package)
