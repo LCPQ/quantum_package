@@ -176,6 +176,8 @@ subroutine FOBOCI_lmct_mlct_old_thr(iter)
     call update_density_matrix_osoci
   enddo
  endif
+ call set_generators_to_generators_restart
+ call set_psi_det_to_generators
 
    print*,'norm_total = ',norm_total
    norm_total = norm_generators_restart
