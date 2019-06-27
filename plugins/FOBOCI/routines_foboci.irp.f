@@ -823,14 +823,14 @@ end
 
  subroutine diag_dressed_2h2p_hamiltonian_and_update_psi_det(i_hole,lmct)
  implicit none
- double precision, allocatable :: dressing_H_mat_elem(:),energies(:)
+ double precision, allocatable :: dressing_H_mat_elem(:),energies(:),S2_out(:)
   integer, intent(in) :: i_hole
   logical, intent(in) :: lmct
   ! if lmct = .True. ===> LMCT
   ! else             ===> MLCT
  integer :: i
  double precision :: hij
- allocate(dressing_H_mat_elem(N_det),energies(N_states_diag))
+ allocate(dressing_H_mat_elem(N_det),energies(N_states_diag),S2_out(N_states_diag))
   print*,''
   print*,'dressing with the 2h2p in a CC logic'
   print*,''
@@ -841,7 +841,8 @@ end
   call dress_diag_elem_2h2p(dressing_H_mat_elem,N_det)
   call dress_diag_elem_2h1p(dressing_H_mat_elem,N_det,lmct,i_hole)
   call dress_diag_elem_1h2p(dressing_H_mat_elem,N_det,lmct,i_hole)
-  call davidson_diag_hjj(psi_det,psi_coef,dressing_H_mat_elem,energies,size(psi_coef,1),N_det,N_states,N_states_diag,N_int,output_determinants)
+! call davidson_diag_hjj(psi_det,psi_coef,dressing_H_mat_elem,energies,size(psi_coef,1),N_det,N_states,N_states_diag,N_int)
+  call davidson_diag_hjj_sjj(psi_det,psi_coef,dressing_H_mat_elem,S2_out,energies,size(psi_coef,1),N_det,N_states,N_states_diag,N_int,6)
   do i = 1, 2
    print*,'psi_coef = ',psi_coef(i,1)
   enddo

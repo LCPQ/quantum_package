@@ -52,11 +52,16 @@ Needed Modules
 
 * `Selectors_full <http://github.com/LCPQ/quantum_package/tree/master/plugins/Selectors_full>`_
 * `SingleRefMethod <http://github.com/LCPQ/quantum_package/tree/master/plugins/SingleRefMethod>`_
+* `Davidson <http://github.com/LCPQ/quantum_package/tree/master/src/Davidson>`_
 
 Documentation
 =============
 .. Do not edit this section It was auto-generated
 .. by the `update_README.py` script.
+
+
+`cisd <http://github.com/LCPQ/quantum_package/tree/master/plugins/CISD/cisd_lapack.irp.f#L1>`_
+  Undocumented
 
 
 h_apply_cisd

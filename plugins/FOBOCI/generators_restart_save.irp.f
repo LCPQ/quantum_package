@@ -16,7 +16,7 @@ BEGIN_PROVIDER [ integer, N_det_generators_restart ]
  else
   print*,'PB in generators_restart restart !!!'
  endif
- call write_int(output_determinants,N_det_generators_restart,'Number of generators_restart')
+!call write_int(output_determinants,N_det_generators_restart,'Number of generators_restart')
 END_PROVIDER
 
 

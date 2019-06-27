@@ -445,7 +445,7 @@ subroutine make_s2_eigenfunction_first_order
 
   deallocate(d,det_buffer)
 
-   call write_int(output_determinants,N_det_new, 'Added deteminants for S^2')
+!  call write_int(output_determinants,N_det_new, 'Added deteminants for S^2')
 
 end
 

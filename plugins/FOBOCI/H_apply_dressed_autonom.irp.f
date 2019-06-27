@@ -500,7 +500,7 @@ subroutine H_apply_dressed_pert(delta_ij_generators_,  Ndet_generators,psi_det_g
     call wall_time(wall_1)
     
     if (wall_1 - wall_0 > 2.d0) then
-        write(output_determinants,*)  &
+        write(*,*)  &
        100.*float(i_generator)/float(Ndet_generators), '% in ', wall_1-wall_0, 's'
         wall_0 = wall_1
     endif
@@ -555,7 +555,7 @@ subroutine H_apply_dressed_pert(delta_ij_generators_,  Ndet_generators,psi_det_g
     call wall_time(wall_1)
     
     if (wall_1 - wall_0 > 2.d0) then
-        write(output_determinants,*)  &
+        write(*,*)  &
        100.*float(i_generator)/float(Ndet_generators), '% in ', wall_1-wall_0, 's'
         wall_0 = wall_1
     endif
