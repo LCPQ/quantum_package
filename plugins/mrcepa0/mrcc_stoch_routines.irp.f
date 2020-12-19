@@ -13,7 +13,7 @@ BEGIN_PROVIDER [ integer, mrcc_stoch_istate ]
 END_PROVIDER
 
 subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
-  use dress_types
+  !use dress_types
   use f77_zmq
   
   implicit none
@@ -32,7 +32,7 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
   
   double precision, external     :: omp_get_wtime
   double precision               :: time
-
+  integer, external :: add_task_to_taskserver
 
   state_average_weight(:) = 0.d0
   state_average_weight(mrcc_stoch_istate) = 1.d0
@@ -54,7 +54,7 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
   integer, external              :: zmq_put_N_det_generators
   integer, external              :: zmq_put_N_det_selectors
   integer, external              :: zmq_put_dvector
-  
+  integer, external              :: zmq_set_running 
   if (zmq_put_psi(zmq_to_qp_run_socket,1) == -1) then
     stop 'Unable to put psi on ZMQ server'
   endif
@@ -73,7 +73,6 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
 !  end do
 
   integer(ZMQ_PTR), external     :: new_zmq_to_qp_run_socket
-  integer, external              :: add_task_to_taskserver, zmq_set_running
   integer                        :: ipos
   ipos=1
   do i=1,N_mrcc_jobs
@@ -105,7 +104,6 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
           stop 'Unable to add task to task server'
         endif
   endif
-  
       if (zmq_set_running(zmq_to_qp_run_socket) == -1) then
         print *,  irp_here, ': Failed in zmq_set_running'
       endif
@@ -114,8 +112,7 @@ subroutine ZMQ_mrcc(E, mrcc, delta, delta_s2, relative_error)
       !$OMP  PRIVATE(i)
   i = omp_get_thread_num()
   if (i==0) then
-    call mrcc_collector(zmq_socket_pull,E(mrcc_stoch_istate), relative_error, delta, delta_s2, mrcc)
-
+    call mrcc_collector(zmq_socket_pull,E, relative_error, delta, delta_s2, mrcc)
   else
     call mrcc_slave_inproc(i)
   endif
@@ -146,15 +143,14 @@ subroutine mrcc_collector(zmq_socket_pull, E, relative_error, delta, delta_s2, m
 
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
 
-  double precision, intent(in) :: relative_error, E
+  double precision, intent(in) :: relative_error, E(N_states)
   double precision, intent(out)  :: mrcc(N_states)
   double precision, allocatable  :: cp(:,:,:,:)
 
   double precision, intent(out)  :: delta(N_states, N_det_non_ref)
   double precision, intent(out)  :: delta_s2(N_states, N_det_non_ref)
-  double precision, allocatable  :: delta_loc(:,:,:), delta_det(:,:,:,:)
+  double precision, allocatable  :: delta_loc(:,:,:,:), delta_det(:,:,:,:)
   double precision, allocatable  :: mrcc_detail(:,:)
-  double precision               :: mrcc_mwen(N_states)
   integer(ZMQ_PTR),external      :: new_zmq_to_qp_run_socket
   integer(ZMQ_PTR)               :: zmq_to_qp_run_socket
 
@@ -164,21 +160,31 @@ subroutine mrcc_collector(zmq_socket_pull, E, relative_error, delta, delta_s2, m
   integer :: i, j, k, i_state, N, ntask
   integer, allocatable :: task_id(:)
   integer :: Nindex
-  integer, allocatable :: ind(:)
-  double precision, save :: time0 = -1.d0
-  double precision :: time, timeLast, old_tooth
+  integer :: ind
+  double precision :: time, time0, timeInit, old_tooth
   double precision, external :: omp_get_wtime
   integer :: cur_cp, old_cur_cp
   integer, allocatable :: parts_to_get(:)
   logical, allocatable :: actually_computed(:)
   integer :: total_computed
-  
+  integer, parameter :: delta_loc_N = 4
+  integer :: delta_loc_slot, delta_loc_i(delta_loc_N)
+  double precision               :: mrcc_mwen(N_states, delta_loc_N), lcoef(delta_loc_N)
+  logical :: ok
+  double precision :: usf, num
+  integer(8), save :: rezo = 0_8
+
+  usf = 0d0
+  num = 0d0
+
+  print *, "TARGET ERROR :", relative_error
+  delta = 0d0
+  delta_s2 = 0d0
   allocate(delta_det(N_states, N_det_non_ref, 0:comb_teeth+1, 2))
   allocate(cp(N_states, N_det_non_ref, N_cp, 2), mrcc_detail(N_states, N_det_generators))
-  allocate(delta_loc(N_states, N_det_non_ref, 2))
+  allocate(delta_loc(N_states, N_det_non_ref, 2, delta_loc_N))
   mrcc_detail = 0d0
   delta_det = 0d0
-  !mrcc_detail = mrcc_detail / 0d0
   cp = 0d0
   total_computed = 0
   character*(512) :: task
@@ -197,83 +203,116 @@ subroutine mrcc_collector(zmq_socket_pull, E, relative_error, delta, delta_s2, m
   actually_computed = .false.
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
-  allocate(task_id(N_det_generators), ind(1))
+  allocate(task_id(N_det_generators))
   more = 1
-  if (time0 < 0.d0) then
-      call wall_time(time0)
-  endif
-  timeLast = time0
+  time = omp_get_wtime()
+  time0 = time
+  timeInit = time
   cur_cp = 0
   old_cur_cp = 0
+  delta_loc_slot = 1
+  delta_loc_i = 0
   pullLoop : do while (more == 1)
-    call pull_mrcc_results(zmq_socket_pull, Nindex, ind, mrcc_mwen, delta_loc, task_id, ntask)
-
+    call pull_mrcc_results(zmq_socket_pull, Nindex, ind, mrcc_mwen(1, delta_loc_slot), delta_loc(1,1,1,delta_loc_slot), task_id, ntask)
     if(Nindex /= 1) stop "tried pull multiple Nindex"
-
-    do i=1,Nindex
-      mrcc_detail(:, ind(i)) += mrcc_mwen(:)
-      do j=1,N_cp !! optimizable
-        if(cps(ind(i), j) > 0d0) then
-          if(tooth_of_det(ind(i)) < cp_first_tooth(j)) stop "coef on supposedely deterministic det"
-          double precision :: fac
-          integer :: toothMwen
-          logical :: fracted
-          fac = cps(ind(i), j) / cps_N(j) * mrcc_weight_inv(ind(i)) * comb_step
-          do k=1,N_det_non_ref
-          do i_state=1,N_states
-            cp(i_state,k,j,1) += delta_loc(i_state,k,1) * fac
-            cp(i_state,k,j,2) += delta_loc(i_state,k,2) * fac
-          end do
-          end do
-        end if
-      end do
-      toothMwen = tooth_of_det(ind(i))
-      fracted = (toothMwen /= 0)
-      if(fracted) fracted = (ind(i) == first_det_of_teeth(toothMwen))
-     
-      if(fracted) then
-        delta_det(:,:,toothMwen-1, 1) += delta_loc(:,:,1) * (1d0-fractage(toothMwen))
-        delta_det(:,:,toothMwen-1, 2) += delta_loc(:,:,2) * (1d0-fractage(toothMwen))
-        delta_det(:,:,toothMwen, 1) += delta_loc(:,:,1) * (fractage(toothMwen))
-        delta_det(:,:,toothMwen, 2) += delta_loc(:,:,2) * (fractage(toothMwen))
-      else
-        delta_det(:,:,toothMwen, 1) += delta_loc(:,:,1)
-        delta_det(:,:,toothMwen, 2) += delta_loc(:,:,2)
-      end if
-
-      parts_to_get(ind(i)) -= 1
-      if(parts_to_get(ind(i)) == 0) then
-        actually_computed(ind(i)) = .true.
-        !print *, "CONTRIB", ind(i), psi_non_ref_coef(ind(i),1), mrcc_detail(1, ind(i))
-        total_computed += 1
-      end if
-    end do
-
+    delta_loc_i(delta_loc_slot) = ind
 
     integer, external :: zmq_delete_tasks
     if (zmq_delete_tasks(zmq_to_qp_run_socket,zmq_socket_pull,task_id,ntask,more) == -1) then
         stop 'Unable to delete tasks'
     endif
-
-
+    
     time = omp_get_wtime()
-    
-    
+    if(more /= 1 .or. delta_loc_slot == delta_loc_N) then
+      time0 = time
+      do i=1,delta_loc_N
+        if(delta_loc_i(i) /= 0) then
+          mrcc_detail(:, delta_loc_i(i)) += mrcc_mwen(:,i)  
+        end if
+      end do
 
-    if(time - timeLast > 1d0 .or. more /= 1) then
-      timeLast = time
+      do j=1,N_cp !! optimizable
+        ok = .false.
+        do i=1,delta_loc_N
+          if(delta_loc_i(i) == 0) then
+            lcoef(i) = 0d0
+          else
+            lcoef(i) = cps(delta_loc_i(i), j) / cps_N(j) * mrcc_weight_inv(delta_loc_i(i)) * comb_step
+            if(lcoef(i) /= 0d0) then
+              ok = .true.
+            end if
+          end if
+        end do
+        if(.not. ok) cycle
+            double precision :: fac
+            integer :: toothMwen
+            logical :: fracted, toothMwendid(0:10000)
+            do k=1,N_det_non_ref
+            do i_state=1,N_states
+              cp(i_state,k,j,1) += delta_loc(i_state,k,1,1) * lcoef(1) + &
+                 delta_loc(i_state,k,1,2) * lcoef(2) + &
+                 delta_loc(i_state,k,1,3) * lcoef(3) + &
+                 delta_loc(i_state,k,1,4) * lcoef(4)  
+            end do
+            end do
+            
+            do k=1,N_det_non_ref
+            do i_state=1,N_states
+              cp(i_state,k,j,2) += delta_loc(i_state,k,2,1) * lcoef(1) + &
+                  delta_loc(i_state,k,2,2) * lcoef(2) + &
+                  delta_loc(i_state,k,2,3) * lcoef(3) + &
+                  delta_loc(i_state,k,2,4) * lcoef(4) 
+            end do
+            end do
+
+      end do
+
+      do i=1,delta_loc_N
+        ind = delta_loc_i(i)
+        if(ind == 0) cycle
+        toothMwen = tooth_of_det(ind)
+        
+        fracted = (toothMwen /= 0)
+        if(fracted) fracted = (ind == first_det_of_teeth(toothMwen))
+      
+        if(fracted) then
+          delta_det(:,:,toothMwen-1, 1) += delta_loc(:,:,1,i) * (1d0-fractage(toothMwen))
+          delta_det(:,:,toothMwen-1, 2) += delta_loc(:,:,2,i) * (1d0-fractage(toothMwen))
+          delta_det(:,:,toothMwen, 1) += delta_loc(:,:,1,i) * (fractage(toothMwen))
+          delta_det(:,:,toothMwen, 2) += delta_loc(:,:,2,i) * (fractage(toothMwen))
+        else
+          delta_det(:,:,toothMwen, 1) += delta_loc(:,:,1,i)
+          delta_det(:,:,toothMwen, 2) += delta_loc(:,:,2,i)
+        end if
+        parts_to_get(ind) -= 1
+        if(parts_to_get(ind) == 0) then
+          actually_computed(ind) = .true.
+          total_computed += 1
+        end if
+      end do
+      
+      delta_loc_slot = 1
+      delta_loc_i = 0
+
+
+    !if(time - time0 > 10d0 .or. more /= 1) then
       cur_cp = N_cp
-      if(.not. actually_computed(mrcc_jobs(1))) cycle pullLoop
+      !if(.not. actually_computed(mrcc_jobs(1))) cycle pullLoop
 
-      do i=2,N_det_generators
+      do i=1,N_det_generators
         if(.not. actually_computed(mrcc_jobs(i))) then
-          print *, "first not comp", i
-          cur_cp = done_cp_at(i-1)
+          if(i==1) then
+            cur_cp = 0
+          else
+            cur_cp = done_cp_at(i-1)
+          end if
           exit
         end if
       end do
-      if(cur_cp == 0) cycle pullLoop
-      
+      if(cur_cp == 0) then
+        print *, "no checkpoint reached so far..."
+        cycle pullLoop
+      end if
       !!!!!!!!!!!!
       double precision :: su, su2, eqt, avg, E0, val
       integer, external :: zmq_abort
@@ -281,14 +320,10 @@ subroutine mrcc_collector(zmq_socket_pull, E, relative_error, delta, delta_s2, m
       su = 0d0
       su2 = 0d0
       
-      if(N_states > 1) stop "mrcc_stoch : N_states == 1"
       do i=1, int(cps_N(cur_cp))
-        !if(.not. actually_computed(i)) stop "not computed"
-        !call get_comb_val(comb(i), mrcc_detail, cp_first_tooth(cur_cp), val)
         call get_comb_val(comb(i), mrcc_detail, cur_cp, val)
-        !val = mrcc_detail(1, i) * mrcc_weight_inv(i) * comb_step
-        su += val ! cps(i, cur_cp) * val
-        su2 += val**2 ! cps(i, cur_cp) * val**2
+        su += val
+        su2 += val**2 
       end do
       avg = su / cps_N(cur_cp)
       eqt = dsqrt( ((su2 / cps_N(cur_cp)) - avg**2) / cps_N(cur_cp) )
@@ -296,32 +331,26 @@ subroutine mrcc_collector(zmq_socket_pull, E, relative_error, delta, delta_s2, m
       if(cp_first_tooth(cur_cp) <= comb_teeth) then
         E0 = E0 + mrcc_detail(1, first_det_of_teeth(cp_first_tooth(cur_cp))) * (1d0-fractage(cp_first_tooth(cur_cp)))
       end if
-      call wall_time(time)
-      if ((dabs(eqt) < relative_error .and. cps_N(cur_cp) >= 30)  .or. total_computed == N_det_generators) then
-        ! Termination
-        !print '(G10.3, 2X, F16.7, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
 
-!        print *, "GREPME", cur_cp, E+E0+avg, eqt, time-time0, total_computed
+      if(cur_cp /= old_cur_cp) then
+        old_cur_cp = cur_cp
+        print '(I5,F15.7,E12.4,F10.2)', cur_cp, E(mrcc_stoch_istate)+E0+avg, eqt, time-timeInit
+      end if
+      
+      if ((dabs(eqt) < relative_error .and. cps_N(cur_cp) >= 30)  .or. total_computed == N_det_generators) then
         if (zmq_abort(zmq_to_qp_run_socket) == -1) then
           call sleep(1)
           if (zmq_abort(zmq_to_qp_run_socket) == -1) then
             print *, irp_here, ': Error in sending abort signal (2)'
           endif
         endif
-
-      else
-        if (cur_cp > old_cur_cp) then
-          old_cur_cp = cur_cp
-!          print *, "GREPME", cur_cp, E+E0+avg, eqt, time-time0, total_computed
-
-          !print '(G10.3, 2X, F16.7, 2X, G16.3, 2X, F16.4, A20)', Nabove(tooth), avg+E, eqt, time-time0, ''
-        endif
       endif
+    else
+      delta_loc_slot += 1
     end if
   end do pullLoop
  
   if(total_computed == N_det_generators) then
-    print *, "TOTALLY COMPUTED"
     delta = 0d0
     delta_s2 = 0d0
     do i=comb_teeth+1,0,-1
@@ -329,22 +358,15 @@ subroutine mrcc_collector(zmq_socket_pull, E, relative_error, delta, delta_s2, m
       delta_s2 += delta_det(:,:,i,2)
     end do
   else
-
-
-  delta = cp(:,:,cur_cp,1)
-  delta_s2 = cp(:,:,cur_cp,2)
-  
-  do i=cp_first_tooth(cur_cp)-1,0,-1
-    delta += delta_det(:,:,i,1)
-    delta_s2 += delta_det(:,:,i,2)
-  end do
-
+    delta = cp(:,:,cur_cp,1)
+    delta_s2 = cp(:,:,cur_cp,2)
+    do i=cp_first_tooth(cur_cp)-1,0,-1
+      delta += delta_det(:,:,i,1)
+      delta_s2 += delta_det(:,:,i,2)
+    end do
   end if
-
-  mrcc(1) = E
-  
+  mrcc = E
   call end_zmq_to_qp_run_socket(zmq_to_qp_run_socket)
-
 end subroutine
 
 
@@ -380,7 +402,7 @@ end function
 &BEGIN_PROVIDER [ integer, N_cps_max ]
   implicit none
   comb_teeth = 16
-  N_cps_max = 32
+  N_cps_max = 64
   !comb_per_cp = 64
   gen_per_cp = (N_det_generators / N_cps_max) + 1
   N_cps_max += 1
@@ -402,6 +424,8 @@ END_PROVIDER
   integer                        :: i, j, last_full, dets(comb_teeth)
   integer                        :: k, l, cur_cp, under_det(comb_teeth+1)
   integer, allocatable :: iorder(:), first_cp(:)
+  double precision :: tmp
+
 
   allocate(iorder(N_det_generators), first_cp(N_cps_max+1))
   allocate(computed(N_det_generators))
@@ -481,11 +505,10 @@ END_PROVIDER
   cps(:, N_cp) = 0d0
   cp_first_tooth(N_cp) = comb_teeth+1
 
-  iorder = -1132154665
-  do i=1,N_cp-1
-    call isort(mrcc_jobs(first_cp(i)+1:first_cp(i+1)),iorder,first_cp(i+1)-first_cp(i))
-  end do
-! end subroutine
+  !iorder = -1132154665
+  !do i=1,N_cp-1
+  !  call isort(mrcc_jobs(first_cp(i)+1:first_cp(i+1)),iorder,first_cp(i+1)-first_cp(i))
+  !end do
 END_PROVIDER
 
 

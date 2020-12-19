@@ -93,8 +93,16 @@ end = struct
   ;;
 
   let write_n_states n =
-    States_number.to_int n
-    |> Ezfio.set_determinants_n_states
+    let n_states = 
+      States_number.to_int n
+    in
+    Ezfio.set_determinants_n_states n_states;
+    let data =
+      Array.create n_states 1.
+      |> Array.to_list
+    in
+    Ezfio.ezfio_array_of_list ~rank:1 ~dim:[| n_states |] ~data
+    |> Ezfio.set_determinants_state_average_weight
   ;;
 
   let write_state_average_weight data =
@@ -111,21 +119,31 @@ end = struct
   ;;
 
   let read_state_average_weight () =
+    let n_states =
+      read_n_states ()
+      |> States_number.to_int
+    in
     if not (Ezfio.has_determinants_state_average_weight ()) then
-      begin
-        let n_states =
-          read_n_states ()
-          |> States_number.to_int
-        in
+     begin
         let data = 
           Array.init n_states (fun _ -> 1./.(float_of_int n_states))
           |> Array.map ~f:Positive_float.of_float
         in
-        write_state_average_weight data;
-      end;
-    Ezfio.get_determinants_state_average_weight ()
-    |> Ezfio.flattened_ezfio
-    |> Array.map ~f:Positive_float.of_float
+        write_state_average_weight data
+     end;
+    let result = 
+      Ezfio.get_determinants_state_average_weight ()
+      |> Ezfio.flattened_ezfio
+      |> Array.map ~f:Positive_float.of_float
+    in
+    if Array.length result = n_states then
+      result
+    else
+      let data = 
+        Array.init n_states (fun _ -> 1./.(float_of_int n_states))
+        |> Array.map ~f:Positive_float.of_float
+      in
+      (write_state_average_weight data; data)
   ;;
 
   let read_expected_s2 () =

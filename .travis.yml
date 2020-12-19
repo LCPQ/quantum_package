@@ -24,6 +24,7 @@ addons:
 cache:
   directories:
   - $HOME/.opam/
+  - $HOME/lapack-release
 
 language: python
 python:

@@ -7,22 +7,11 @@ BEGIN_PROVIDER [ integer, N_det_generators ]
   END_DOC
   integer                        :: i,k,l
   logical                        :: good
+  integer, external :: number_of_holes,number_of_particles
   call write_time(6)
   N_det_generators = 0
   do i=1,N_det
-    do l=1,n_cas_bitmask
-      good = .True.
-      do k=1,N_int
-        good = good .and. (                                          &
-            iand(not(cas_bitmask(k,1,l)), psi_det_sorted(k,1,i)) ==         &
-            iand(not(cas_bitmask(k,1,l)), HF_bitmask(k,1)) ) .and. ( &
-            iand(not(cas_bitmask(k,2,l)), psi_det_sorted(k,2,i)) ==         &
-            iand(not(cas_bitmask(k,2,l)), HF_bitmask(k,2)) )
-      enddo
-      if (good) then
-        exit
-      endif
-    enddo
+    good = ( number_of_holes(psi_det_sorted(1,1,i)) ==0).and.(number_of_particles(psi_det_sorted(1,1,i))==0 )
     if (good) then
       N_det_generators += 1
     endif
@@ -40,28 +29,17 @@ END_PROVIDER
   END_DOC
   integer                        :: i, k, l, m
   logical                        :: good
+  integer, external :: number_of_holes,number_of_particles
   m=0
   do i=1,N_det
-    do l=1,n_cas_bitmask
-      good = .True.
-      do k=1,N_int
-        good = good .and. (                                         &
-            iand(not(cas_bitmask(k,1,l)), psi_det_sorted(k,1,i)) ==         &
-            iand(not(cas_bitmask(k,1,l)), HF_bitmask(k,1)) .and. (   &
-            iand(not(cas_bitmask(k,2,l)), psi_det_sorted(k,2,i)) ==         &
-            iand(not(cas_bitmask(k,2,l)), HF_bitmask(k,2) )) )
-      enddo
-      if (good) then
-        exit
-      endif
-    enddo
+    good = ( number_of_holes(psi_det_sorted(1,1,i)) ==0).and.(number_of_particles(psi_det_sorted(1,1,i))==0 )
     if (good) then
       m = m+1
       do k=1,N_int
         psi_det_generators(k,1,m) = psi_det_sorted(k,1,i)
         psi_det_generators(k,2,m) = psi_det_sorted(k,2,i)
       enddo
-      psi_coef_generators(m,:) = psi_coef(m,:)
+      psi_coef_generators(m,:) = psi_coef_sorted(m,:)
     endif
   enddo
   

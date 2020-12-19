@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 Usage: qp_create_ninja.py create <config_file> (--development | --production)
@@ -25,7 +25,6 @@ except ImportError:
                                       "quantum_package.rc"))
 
     print "\n".join(["", "Error:", "source %s" % f, ""])
-    raise
     sys.exit(1)
 
 
@@ -822,13 +821,8 @@ if __name__ == "__main__":
     pickle_path = os.path.join(QP_ROOT, "config", "qp_create_ninja.pickle")
 
     if arguments["update"]:
-        try:
             with open(pickle_path, 'rb') as handle:
                 arguments = pickle.load(handle)
-        except IOError:
-            print "You need to create first my friend"
-            raise
-            sys.exit(1)
 
     elif arguments["create"]:
 
@@ -930,7 +924,6 @@ if __name__ == "__main__":
                      "- Or install a module that needs {0} with a main "]
 
             print "\n".join(l_msg).format(module.rel)
-            raise
             sys.exit(1)
 
     # ~#~#~#~#~#~#~#~#~#~#~#~ #

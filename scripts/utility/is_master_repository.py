@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 import subprocess
 pipe = subprocess.Popen("git config --get remote.origin.url", \

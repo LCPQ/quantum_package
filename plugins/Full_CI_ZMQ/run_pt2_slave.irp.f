@@ -41,7 +41,7 @@ subroutine run_pt2_slave(thread,iproc,energy)
 
   buf%N = 0
   n_tasks = 0
-  call create_selection_buffer(1, 2, buf)
+  call create_selection_buffer(0, 0, buf)
 
   done = .False.
   do while (.not.done)

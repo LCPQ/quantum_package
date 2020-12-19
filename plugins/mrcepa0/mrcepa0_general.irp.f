@@ -14,8 +14,6 @@ subroutine run(N_st,energy)
   
   integer :: n_it_mrcc_max
   double precision :: thresh_mrcc
-  double precision, allocatable :: lambda(:)
-  allocate (lambda(N_states))
 
   thresh_mrcc = thresh_dressed_ci
   n_it_mrcc_max = n_it_max_dressed_ci
@@ -34,7 +32,6 @@ subroutine run(N_st,energy)
     E_new = 0.d0
     delta_E = 1.d0
     iteration = 0
-    lambda = 1.d0
     do while (delta_E > thresh_mrcc)
       iteration += 1
       print *,  '===============================================' 
@@ -45,12 +42,9 @@ subroutine run(N_st,energy)
       do i=1,N_st
         call write_double(6,ci_energy_dressed(i),"Energy")
       enddo
-      call diagonalize_ci_dressed(lambda)
+      call diagonalize_ci_dressed
       E_new = mrcc_e0_denominator(1) !sum(ci_energy_dressed(1:N_states))
 
-!  if (.true.) then
-!    provide delta_ij_mrcc_pouet
-!  endif
       delta_E = (E_new - E_old)/dble(N_states)
       print *,  ''
       call write_double(6,thresh_mrcc,"thresh_mrcc")

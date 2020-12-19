@@ -25,7 +25,11 @@ subroutine run_wf
   double precision :: energy(N_states_diag)
   character*(64) :: states(1)
   integer :: rc, i
-  
+ 
+ integer, external              :: zmq_get_dvector, zmq_get_N_det_generators 
+  integer, external              :: zmq_get_psi, zmq_get_N_det_selectors
+  integer, external              :: zmq_get_N_states_diag
+       
   call provide_everything
   
   zmq_context = f77_zmq_ctx_new ()
@@ -34,20 +38,24 @@ subroutine run_wf
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket()
 
   do
-
     call wait_for_states(states,zmq_state,1)
-
-    if(trim(zmq_state) == 'Stopped') then
+    if(zmq_state(1:7) == 'Stopped') then
 
       exit
 
-    else if (trim(zmq_state) == 'mrcc') then
+    else if (zmq_state(1:4) == 'mrcc') then
 
       ! Selection
       ! ---------
 
-      print *,  'mrcc'
-      call zmq_get_psi(zmq_to_qp_run_socket,1,energy,N_states)
+      !call wall_time(t0)
+      if (zmq_get_psi(zmq_to_qp_run_socket,1) == -1) cycle
+      if (zmq_get_N_det_generators (zmq_to_qp_run_socket, 1) == -1) cycle
+      if (zmq_get_N_det_selectors(zmq_to_qp_run_socket, 1) == -1) cycle
+      if (zmq_get_dvector(zmq_to_qp_run_socket,1,'energy',energy,N_states) == -1) cycle
+
+      !call wall_time(t1)
+      !call write_double(6,(t1-t0),'Broadcast time')
 
       PROVIDE psi_bilinear_matrix_columns_loc psi_det_alpha_unique psi_det_beta_unique
       PROVIDE psi_bilinear_matrix_rows psi_det_sorted_order psi_bilinear_matrix_order

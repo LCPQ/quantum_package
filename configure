@@ -247,7 +247,7 @@ def checking(d_dependency):
                 version = check_output("irpf90 -v".split()).strip()
 
                 from distutils.version import LooseVersion
-                if LooseVersion(version) < LooseVersion("1.6.7"):
+                if LooseVersion(version) < LooseVersion("1.7.2"):
                     return 0
                 else:
                     return a
@@ -502,7 +502,7 @@ def create_ninja_and_rc(l_installed):
         'export LIBRARY_PATH=$(qp_prepend_export "LIBRARY_PATH" "${QP_ROOT}"/lib:"${QP_ROOT}"/lib64)',
         'export C_INCLUDE_PATH=$(qp_prepend_export "C_INCLUDE_PATH" "${QP_ROOT}"/include)',
         '',
-        'if [[ $SHELL == "bash" ]] ; then',
+        'if [[ $SHELL == "/bin/bash" ]] ; then',
         '  source ${QP_ROOT}/install/EZFIO/Bash/ezfio.sh',
         'fi',
         '',

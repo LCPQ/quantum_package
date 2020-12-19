@@ -72,7 +72,7 @@ program first_guess
   call write_int(6,psi_det_size,'psi_det_size')
   TOUCH psi_det_size
 
-BEGIN_SHELL [ /usr/bin/python ]
+BEGIN_SHELL [ /usr/bin/env python2 ]
 
 template_alpha_ext = """
 do %(i2)s = %(i1)s-1,1,-1

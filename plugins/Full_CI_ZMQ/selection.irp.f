@@ -5,7 +5,6 @@ BEGIN_PROVIDER [ integer, fragment_count ]
   BEGIN_DOC
   ! Number of fragments for the deterministic part
   END_DOC
-!  fragment_count = (elec_alpha_num-n_core_orb)*mo_tot_num
   fragment_count = (elec_alpha_num-n_core_orb)**2
 END_PROVIDER
 
@@ -71,7 +70,6 @@ subroutine select_connected(i_generator,E0,pt2,b,subset)
       hole_mask(k,2) = iand(generators_bitmask(k,2,s_hole,l), psi_det_generators(k,2,i_generator))
       particle_mask(k,1) = iand(generators_bitmask(k,1,s_part,l), not(psi_det_generators(k,1,i_generator)) )
       particle_mask(k,2) = iand(generators_bitmask(k,2,s_part,l), not(psi_det_generators(k,2,i_generator)) )
-
     enddo
     call select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,b,subset)
   enddo
@@ -255,6 +253,7 @@ subroutine get_m0(gen, phasemask, bannedOrb, vect, mask, h, p, sp, coefs)
   deallocate(lbanned)
 end 
 
+
 subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_diag_tmp,E0,pt2,buf,subset)
   use bitmasks
   use selection_types
@@ -291,7 +290,7 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
 
   monoAdo = .true.
   monoBdo = .true.
-  
+
   
   do k=1,N_int
     hole    (k,1) = iand(psi_det_generators(k,1,i_generator), hole_mask(k,1))
@@ -299,7 +298,8 @@ subroutine select_singles_and_doubles(i_generator,hole_mask,particle_mask,fock_d
     particle(k,1) = iand(not(psi_det_generators(k,1,i_generator)), particle_mask(k,1))
     particle(k,2) = iand(not(psi_det_generators(k,2,i_generator)), particle_mask(k,2))
   enddo
-
+  
+  
   integer                        :: N_holes(2), N_particles(2)
   integer                        :: hole_list(N_int*bit_kind_size,2)
   integer                        :: particle_list(N_int*bit_kind_size,2)
@@ -599,7 +599,6 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
   
   logical, external :: detEq
   
-  
   if(sp == 3) then
     s1 = 1
     s2 = 2
@@ -617,6 +616,7 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
     do p2=ib,mo_tot_num
       if(bannedOrb(p2, s2)) cycle
       if(banned(p1,p2)) cycle
+
       if( sum(abs(mat(1:N_states, p1, p2))) == 0d0) cycle
       call apply_particles(mask, s1, p1, s2, p2, det, ok, N_int)
       
@@ -633,7 +633,6 @@ subroutine fill_buffer_double(i_generator, sp, h1, h2, bannedOrb, banned, fock_d
         e_pert = 0.5d0 * (tmp - delta_E)
         pt2(istate) = pt2(istate) + e_pert
         min_e_pert = min(e_pert,min_e_pert)
-!        ci(istate) = e_pert / mat(istate, p1, p2)
       end do
       
       if(min_e_pert <= buf%mini) then
@@ -771,6 +770,7 @@ subroutine get_d2(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
     
     if(tip == 3) then
       puti = p(1, mi)
+      if(bannedOrb(puti, mi)) return
       do i = 1, 3
         putj = p(i, ma)
         if(banned(putj,puti,bant)) cycle
@@ -793,11 +793,12 @@ subroutine get_d2(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
       h2 = h(1,2)
       do j = 1,2
         putj = p(j, 2)
+        if(bannedOrb(putj, 2)) cycle
         p2 = p(turn2(j), 2)
         do i = 1,2
           puti = p(i, 1)
           
-          if(banned(puti,putj,bant)) cycle
+          if(banned(puti,putj,bant) .or. bannedOrb(puti,1)) cycle
           p1 = p(turn2(i), 1)
           
           hij = mo_bielec_integral(p1, p2, h1, h2) * get_phase_bi(phasemask, 1, 2, h1, p1, h2, p2)
@@ -812,8 +813,10 @@ subroutine get_d2(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
       h2 = h(2, ma)
       do i=1,3
       puti = p(i, ma)
+      if(bannedOrb(puti,ma)) cycle
       do j=i+1,4
         putj = p(j, ma)
+        if(bannedOrb(putj,ma)) cycle
         if(banned(puti,putj,1)) cycle
         
         i1 = turn2d(1, i, j)
@@ -830,7 +833,9 @@ subroutine get_d2(gen, phasemask, bannedOrb, banned, mat, mask, h, p, sp, coefs)
       p1 = p(1, mi)
       do i=1,3
         puti = p(turn3(1,i), ma)
+        if(bannedOrb(puti,ma)) cycle
         putj = p(turn3(2,i), ma)
+        if(bannedOrb(putj,ma)) cycle
         if(banned(puti,putj,1)) cycle
         p2 = p(i, ma)
         

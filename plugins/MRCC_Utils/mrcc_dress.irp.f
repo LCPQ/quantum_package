@@ -14,14 +14,13 @@ BEGIN_PROVIDER [ integer(omp_lock_kind), psi_ref_lock, (psi_det_size) ]
 END_PROVIDER
 
 
-subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_generator,n_selected,det_buffer,Nint,iproc,key_mask)
+subroutine mrcc_dress(delta_ij_, Nstates, Ndet_non_ref, Ndet_ref,i_generator,n_selected,det_buffer,Nint,iproc,key_mask)
  use bitmasks
  implicit none
 
   integer, intent(in)            :: i_generator,n_selected, Nint, iproc
   integer, intent(in)            :: Nstates, Ndet_ref, Ndet_non_ref
   double precision, intent(inout) :: delta_ij_(Nstates,Ndet_non_ref,Ndet_ref)
-  double precision, intent(inout) :: delta_ii_(Nstates,Ndet_ref)
 
   integer(bit_kind), intent(in)  :: det_buffer(Nint,2,n_selected)
   integer                        :: i,j,k,l,m
@@ -265,10 +264,8 @@ subroutine mrcc_dress(delta_ij_, delta_ii_, Nstates, Ndet_non_ref, Ndet_ref,i_ge
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
             delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + dIa_hla(i_state,k_sd)
-            delta_ii_(i_state,i_I) = delta_ii_(i_state,i_I) - dIa_hla(i_state,k_sd) * ci_inv(i_state) * psi_non_ref_coef_transp(i_state,k_sd)
           enddo
         else
-          !delta_ii_(i_state,i_I)  = 0.d0
           do l_sd=1,idx_alpha(0)
             k_sd = idx_alpha(l_sd)
             delta_ij_(i_state,k_sd,i_I) = delta_ij_(i_state,k_sd,i_I) + 0.5d0 * dIa_hla(i_state,k_sd)

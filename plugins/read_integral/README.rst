@@ -3,6 +3,7 @@ read_integral
 =============
 
 Warning: CAN NOT CHANGE THE NUMBER OF MO !
+Scripts to read integrals and metadata and generates fake ezfio
 
 Needed Modules
 ==============

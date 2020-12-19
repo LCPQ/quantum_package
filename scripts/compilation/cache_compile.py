@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """
 Save the .o from a .f90
 and is the .o is asked a second time, retur it

@@ -39,7 +39,7 @@ subroutine add_to_selection_buffer(b, det, val)
   double precision, intent(in) :: val
   integer :: i
 
-  if(val <= b%mini) then
+  if(b%N > 0 .and. val <= b%mini) then
     b%cur += 1
     b%det(1:N_int,1:2,b%cur) = det(1:N_int,1:2)
     b%val(b%cur) = val
@@ -119,7 +119,7 @@ subroutine sort_selection_buffer(b)
   integer(bit_kind), pointer :: detmp(:,:,:)
   integer :: i, nmwen
   logical, external :: detEq
-  if (b%cur == 0) return
+  if (b%N == 0 .or. b%cur == 0) return
   nmwen = min(b%N, b%cur)
 
   allocate(iorder(b%cur), detmp(N_int, 2, size(b%det,3)))

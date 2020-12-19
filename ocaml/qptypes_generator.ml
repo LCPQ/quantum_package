@@ -58,7 +58,7 @@ let input_data = "
 
 * Det_number_max : int 
   assert (x > 0) ; 
-  if (x > 10000000000) then
+  if (x > 10_00_000_000) then
     warning \"More than 10 billion determinants\";
 
 * States_number : int 
@@ -142,18 +142,18 @@ let input_data = "
 let input_ezfio = "
 * MO_number : int
   mo_basis_mo_tot_num
-  1 : 10000
-  More than 10000 MOs
+  1 : 10_000
+  More than 10_000 MOs
 
 * AO_number : int
   ao_basis_ao_num
-  1 : 10000
-  More than 10000 AOs
+  1 : 10_000
+  More than 10_000 AOs
 
 * Nucl_number : int
   nuclei_nucl_num
-  1 : 10000
-  More than 10000 nuclei
+  1 : 10_000
+  More than 10_000 nuclei
 
 * N_int_number : int
   determinants_n_int
@@ -162,8 +162,8 @@ let input_ezfio = "
 
 * Det_number : int
   determinants_n_det
-  1 : 10000000000
-  More than 10 billion of determinants
+  1 : 10_000_000_000
+  More than 10 billion determinants
 
 "
 
@@ -213,6 +213,26 @@ end = struct
     | \"none\"  -> None
     | _ -> raise (Invalid_argument (\"Wrong IO type : \"^s))
 
+end
+
+module Perturbation : sig
+  type t [@@deriving sexp]
+  val to_string : t -> string
+  val of_string : string -> t
+end = struct
+  type t = 
+  | EN
+  | Barycentric
+  [@@deriving sexp]
+
+  let to_string = function
+  | EN -> \"EN\"
+  | Barycentric -> \"Barycentric\"
+  let of_string  s = 
+    match (String.lowercase_ascii s) with
+    | \"en\"  -> EN
+    | \"barycentric\" -> Barycentric
+    | _ -> raise (Invalid_argument (\"Wrong Perturbation type : \"^s))
 end
 "
 

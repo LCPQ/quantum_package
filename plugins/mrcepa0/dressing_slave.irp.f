@@ -402,17 +402,15 @@ end
 
 
 
-subroutine mrsc2_dressing_collector(zmq_socket_pull,delta_ii_,delta_ij_,delta_ii_s2_,delta_ij_s2_)
+subroutine mrsc2_dressing_collector(zmq_socket_pull,delta_ij_,delta_ij_s2_)
   use f77_zmq
   implicit none
   BEGIN_DOC 
 ! Collects results from the AO integral calculation 
   END_DOC 
  
-  double precision,intent(inout) :: delta_ij_(N_states,N_det_non_ref,N_det_ref)
-  double precision,intent(inout) :: delta_ii_(N_states,N_det_ref)
-  double precision,intent(inout) :: delta_ij_s2_(N_states,N_det_non_ref,N_det_ref)
-  double precision,intent(inout) :: delta_ii_s2_(N_states,N_det_ref)
+  double precision,intent(inout) :: delta_ij_(N_states,N_det_non_ref)
+  double precision,intent(inout) :: delta_ij_s2_(N_states,N_det_non_ref)
   integer(ZMQ_PTR), intent(in)   :: zmq_socket_pull
 
 !   integer                        :: j,l
@@ -431,15 +429,18 @@ subroutine mrsc2_dressing_collector(zmq_socket_pull,delta_ii_,delta_ij_,delta_ii
   integer                        :: I_i, J, l, i_state, n(2), kk
   integer,allocatable :: idx(:,:)
   
-  delta_ii_(:,:) = 0d0
-  delta_ij_(:,:,:) = 0d0
-  delta_ii_s2_(:,:) = 0d0
-  delta_ij_s2_(:,:,:) = 0d0
+  delta_ij_(:,:) = 0d0
+  delta_ij_s2_(:,:) = 0d0
 
   zmq_to_qp_run_socket = new_zmq_to_qp_run_socket() 
  
   allocate ( delta(N_states,0:N_det_non_ref,2), delta_s2(N_states,0:N_det_non_ref,2) ) 
   
+  double precision :: c0(N_states)
+  do i_state=1,N_states
+    c0(i_state) = 1.d0/psi_coef(dressed_column_idx(i_state),i_state)
+  enddo
+
   allocate(idx(N_det_non_ref,2))
   more = 1 
   do while (more == 1) 
@@ -449,34 +450,19 @@ subroutine mrsc2_dressing_collector(zmq_socket_pull,delta_ii_,delta_ij_,delta_ii
 
       do l=1, n(1)
         do i_state=1,N_states
-          delta_ij_(i_state,idx(l,1),i_I) += delta(i_state,l,1)
-          delta_ij_s2_(i_state,idx(l,1),i_I) += delta_s2(i_state,l,1)
+          delta_ij_(i_state,idx(l,1)) += delta(i_state,l,1) * psi_ref_coef(i_I,i_state) * c0(i_state)
+          delta_ij_s2_(i_state,idx(l,1)) += delta_s2(i_state,l,1) * psi_ref_coef(i_I,i_state) * c0(i_state)
         end do
       end do
       
       do l=1, n(2)
         do i_state=1,N_states
-          delta_ij_(i_state,idx(l,2),J) += delta(i_state,l,2)
-          delta_ij_s2_(i_state,idx(l,2),J) += delta_s2(i_state,l,2)
+          delta_ij_(i_state,idx(l,2)) += delta(i_state,l,2) * psi_ref_coef(J,i_state) * c0(i_state)
+          delta_ij_s2_(i_state,idx(l,2)) += delta_s2(i_state,l,2) * psi_ref_coef(J,i_state) * c0(i_state)
         end do
       end do
 
     
-       if(n(1) /= 0) then 
-       do i_state=1,N_states
-         delta_ii_(i_state,i_I) += delta(i_state,0,1)
-         delta_ii_s2_(i_state,i_I) += delta_s2(i_state,0,1)
-       end do
-       end if
-
-      if(n(2) /= 0) then 
-       do i_state=1,N_states
-         delta_ii_(i_state,J) += delta(i_state,0,2)
-         delta_ii_s2_(i_state,J) += delta_s2(i_state,0,2)
-       end do
-       end if
-
-
     if (task_id /= 0) then 
         integer, external :: zmq_delete_task
         if (zmq_delete_task(zmq_to_qp_run_socket,zmq_socket_pull,task_id,more) == -1) then
@@ -495,10 +481,8 @@ end
 
 
 
- BEGIN_PROVIDER [ double precision, delta_ij_old, (N_states,N_det_non_ref,N_det_ref) ]
-&BEGIN_PROVIDER [ double precision, delta_ii_old, (N_states,N_det_ref) ]
-&BEGIN_PROVIDER [ double precision, delta_ij_s2_old, (N_states,N_det_non_ref,N_det_ref) ]
-&BEGIN_PROVIDER [ double precision, delta_ii_s2_old, (N_states,N_det_ref) ]
+ BEGIN_PROVIDER [ double precision, delta_ij_old, (N_states,N_det_non_ref) ]
+&BEGIN_PROVIDER [ double precision, delta_ij_s2_old, (N_states,N_det_non_ref) ]
   implicit none
   
   integer                         :: i_state, i, i_I, J, k, kk, degree, degree2, m, l, deg, ni, m2
@@ -612,11 +596,11 @@ end
   print *, nzer, ntot, float(nzer) / float(ntot)
   provide nproc
   !$OMP PARALLEL DEFAULT(none)                                       &
-      !$OMP SHARED(delta_ii_old,delta_ij_old,delta_ii_s2_old,delta_ij_s2_old,zmq_socket_pull)&
+      !$OMP SHARED(delta_ij_old,delta_ij_s2_old,zmq_socket_pull)&
       !$OMP  PRIVATE(i) NUM_THREADS(nproc+1)
       i = omp_get_thread_num()
       if (i==0) then
-        call mrsc2_dressing_collector(zmq_socket_pull,delta_ii_old,delta_ij_old,delta_ii_s2_old,delta_ij_s2_old)
+        call mrsc2_dressing_collector(zmq_socket_pull,delta_ij_old,delta_ij_s2_old)
       else
         call mrsc2_dressing_slave_inproc(i)
       endif

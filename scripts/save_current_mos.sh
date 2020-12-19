@@ -24,7 +24,7 @@ if [[ ! -f "${EZFIO}/mo_basis/mo_label" ]]
 then
   LABEL='no_label'
 else
-  LABEL=$(head -1 "${EZFIO}/mo_basis/mo_label")
+  LABEL=$(head -1 "${EZFIO}/mo_basis/mo_label" | xargs) #xargs trims the result
 fi
 
 DESTINATION="save/mo_basis/${LABEL}"

@@ -1,4 +1,4 @@
-BEGIN_SHELL [ /usr/bin/env python ]
+BEGIN_SHELL [ /usr/bin/env python2 ]
 import perturbation
 END_SHELL
 

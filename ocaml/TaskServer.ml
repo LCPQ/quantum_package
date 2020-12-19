@@ -830,10 +830,11 @@ let run ~port =
               let () = 
                 if debug_env then
                   begin
-                    Printf.sprintf "q:%d  r:%d  n:%d  : %s\n%!"
+                    Printf.sprintf "q:%d  r:%d  n:%d  c:%d : %s\n%!"
                     (Queuing_system.number_of_queued program_state.queue)
                     (Queuing_system.number_of_running program_state.queue)
                     (Queuing_system.number_of_tasks program_state.queue)
+                    (Queuing_system.number_of_clients program_state.queue)
                     (Message.to_string message)
                     |> debug
                   end

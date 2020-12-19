@@ -1,5 +1,5 @@
 use bitmasks
-BEGIN_SHELL [ /usr/bin/env python ]
+BEGIN_SHELL [ /usr/bin/env python2 ]
 from generate_h_apply import *
 from perturbation import perturbations
 
@@ -16,7 +16,7 @@ subroutine H_apply_cisd_selection(perturbation,pt2, norm_pert, H_pert_diag, N_st
   integer, intent(in)            :: N_st
   double precision, intent(inout):: pt2(N_st), norm_pert(N_st), H_pert_diag(N_st)
 
-BEGIN_SHELL [  /usr/bin/env python ]
+BEGIN_SHELL [  /usr/bin/env python2 ]
 from perturbation import perturbations
 
 for perturbation in perturbations:

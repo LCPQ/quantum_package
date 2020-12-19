@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 print "#QP -> QMCPACK"
 
@@ -333,10 +333,13 @@ if do_pseudo:
 # |_/ (/_ |_ 
 #
 
+
 psi_coef = ezfio.get_determinants_psi_coef()
 psi_det = ezfio.get_determinants_psi_det()
 bit_kind = ezfio.get_determinants_bit_kind()
 
+
+nexcitedstate = ezfio.get_determinants_n_states()
 
 print ""
 print "BEGIN_DET"
@@ -349,7 +352,11 @@ if "QP_STATE" in os.environ:
   state = int(os.environ["QP_STATE"])-1
 else:
   state = 0
-psi_coef = psi_coef[state]
+
+psi_coef_small = psi_coef[state]
+
+
+
 
 encode = 8*bit_kind
 
@@ -359,11 +366,35 @@ def bindigits(n, bits):
 
 decode = lambda det: ''.join(bindigits(i,encode)[::-1] for i in det)[:mo_num]
 
-for coef, (det_a, det_b) in zip(psi_coef, psi_det):
+MultiDetAlpha = []
+MultiDetBeta = []
+for coef, (det_a, det_b) in zip(psi_coef_small, psi_det):
 
         print coef
-        print decode(det_a)
-        print decode(det_b)
+        MyDetA=decode(det_a)
+        MyDetB=decode(det_b)
+        print MyDetA 
+        print MyDetB
         print ''
-
+        MultiDetAlpha.append( det_a  )
+	MultiDetBeta.append( det_b  )
 print "END_DET"
+
+import h5py
+H5_qmcpack=h5py.File('MultiDet.h5','w')
+groupMultiDet=H5_qmcpack.create_group("MultiDet")
+groupMultiDet.create_dataset("NbDet",(1,),dtype="f8",data=len(psi_coef_small))
+
+groupMultiDet.create_dataset("Coeff",(len(psi_coef_small),),dtype="f8",data=psi_coef)
+groupMultiDet.create_dataset("nstate",(1,),dtype="i4",data=len(MyDetA))
+groupMultiDet.create_dataset("nexcitedstate",(1,),dtype="i4",data=nexcitedstate)
+groupMultiDet.create_dataset("Nbits",(1,),dtype="i4",data=len(det_a))
+
+print "temp=",MultiDetAlpha[0]
+mylen="S"+str(len(MyDetA))
+groupMultiDet.create_dataset("CI_Alpha",(len(psi_coef_small),len(det_a)),dtype='i8',data=MultiDetAlpha)
+
+mylen="S"+str(len(MyDetB))
+groupMultiDet.create_dataset("CI_Beta",(len(psi_coef_small),len(det_b)),dtype='i8',data=MultiDetBeta)
+
+H5_qmcpack.close()

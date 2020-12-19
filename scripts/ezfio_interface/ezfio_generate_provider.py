@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 __author__ = "Applencourt PEP8"
 __date__ = "jeudi 26 mars 2015, 12:49:35 (UTC+0100)"

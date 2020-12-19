@@ -19,6 +19,7 @@ subroutine run
   double precision               :: E_CI_before, relative_error, absolute_error, eqt
 
   allocate (pt2(N_states))
+  call diagonalize_CI()
   pt2 = 0.d0
   
   E_CI_before = pt2_E0_denominator(1) + nuclear_repulsion

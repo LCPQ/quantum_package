@@ -1,4 +1,4 @@
-BEGIN_SHELL [ /usr/bin/env python ]
+BEGIN_SHELL [ /usr/bin/env python2 ]
 from perturbation import perturbations
 import os
 

@@ -1,5 +1,5 @@
 use bitmasks
-BEGIN_SHELL [ /usr/bin/env python ]
+BEGIN_SHELL [ /usr/bin/env python2 ]
 from generate_h_apply import *
 
 s = H_apply("mrpt")

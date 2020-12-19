@@ -458,3 +458,46 @@ N_int;;
 END_TEMPLATE
 
 
+subroutine u_0_H_u_0(e_0,u_0,n,keys_tmp,Nint,N_st,sze)
+  use bitmasks
+  implicit none
+  BEGIN_DOC
+  ! Computes e_0 = <u_0|H|u_0>/<u_0|u_0>
+  !
+  ! n : number of determinants
+  !
+  END_DOC
+  integer, intent(in)            :: n,Nint, N_st, sze
+  double precision, intent(out)  :: e_0(N_st)
+  double precision, intent(inout) :: u_0(sze,N_st)
+  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
+
+  double precision, allocatable  :: v_0(:,:), s_0(:,:), u_1(:,:)
+  double precision               :: u_dot_u,u_dot_v,diag_H_mat_elem
+  integer                        :: i,j
+
+  if ((sze > 100000).and.distributed_davidson) then
+    allocate (v_0(sze,N_states_diag),s_0(sze,N_states_diag), u_1(sze,N_states_diag))
+    u_1(1:sze,1:N_states) = u_0(1:sze,1:N_states)
+    u_1(1:sze,N_states+1:N_states_diag) = 0.d0
+    call H_S2_u_0_nstates_zmq(v_0,s_0,u_1,N_states_diag,sze)
+    deallocate(u_1)
+  else
+    allocate (v_0(n,N_st),s_0(n,N_st),u_1(n,N_st))
+    u_1(1:n,:) = u_0(1:n,:)
+    call H_S2_u_0_nstates_openmp(v_0,s_0,u_1,N_st,n)
+    u_0(1:n,:) = u_1(1:n,:)
+    deallocate(u_1)
+  endif
+  double precision :: norm
+  do i=1,N_st
+    norm = u_dot_u(u_0(1,i),n)
+    if (norm /= 0.d0) then
+      e_0(i) = u_dot_v(v_0(1,i),u_0(1,i),n)
+    else
+      e_0(i) = 0.d0
+    endif
+  enddo
+  deallocate (s_0, v_0)
+end
+

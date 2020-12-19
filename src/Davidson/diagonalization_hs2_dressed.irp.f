@@ -1,4 +1,17 @@
-subroutine davidson_diag_hs2(dets_in,u_in,s2_out,dim_in,energies,sze,N_st,N_st_diag,Nint,iunit)
+BEGIN_PROVIDER [ integer, dressed_column_idx, (N_states) ]
+ implicit none
+ BEGIN_DOC
+ ! Index of the dressed columns
+ END_DOC
+ integer :: i
+ double precision :: tmp
+ integer, external :: idamax 
+ do i=1,N_states
+   dressed_column_idx(i) = idamax(size(psi_coef,1), psi_coef(1,i), 1)
+ enddo
+END_PROVIDER
+
+subroutine davidson_diag_hs2(dets_in,u_in,s2_out,dim_in,energies,sze,N_st,N_st_diag,Nint,dressing_state)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -15,41 +28,49 @@ subroutine davidson_diag_hs2(dets_in,u_in,s2_out,dim_in,energies,sze,N_st,N_st_d
   !
   ! N_st : Number of eigenstates
   !
-  ! iunit : Unit number for the I/O
-  !
   ! Initial guess vectors are not necessarily orthonormal
   END_DOC
-  integer, intent(in)            :: dim_in, sze, N_st, N_st_diag, Nint, iunit
+  integer, intent(in)            :: dim_in, sze, N_st, N_st_diag, Nint
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision, intent(inout) :: u_in(dim_in,N_st_diag)
   double precision, intent(out)  :: energies(N_st_diag), s2_out(N_st_diag)
-  double precision, allocatable  :: H_jj(:)
+  integer, intent(in)            :: dressing_state
+  double precision, allocatable  :: H_jj(:), S2_jj(:)
   
-  double precision               :: diag_H_mat_elem, diag_S_mat_elem
-  integer                        :: i
+  double precision, external     :: diag_H_mat_elem, diag_S_mat_elem
+  integer                        :: i,k
   ASSERT (N_st > 0)
   ASSERT (sze > 0)
   ASSERT (Nint > 0)
   ASSERT (Nint == N_int)
   PROVIDE mo_bielec_integrals_in_map
-  allocate(H_jj(sze) )
+  allocate(H_jj(sze),S2_jj(sze))
   
+  H_jj(1) = diag_h_mat_elem(dets_in(1,1,1),Nint)
   !$OMP PARALLEL DEFAULT(NONE)                                       &
       !$OMP  SHARED(sze,H_jj, dets_in,Nint)                    &
       !$OMP  PRIVATE(i)
   !$OMP DO SCHEDULE(static)
-  do i=1,sze
+  do i=2,sze
     H_jj(i)  = diag_H_mat_elem(dets_in(1,1,i),Nint)
   enddo
   !$OMP END DO 
   !$OMP END PARALLEL
 
-  call davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_out,energies,dim_in,sze,N_st,N_st_diag,Nint,iunit)
-  deallocate (H_jj)
+  if (dressing_state > 0) then
+    do k=1,N_st
+      do i=1,sze
+        H_jj(i) += u_in(i,k) * dressing_column_h(i,k)
+      enddo
+    enddo
+  endif
+
+  call davidson_diag_hjj_sjj(dets_in,u_in,H_jj,S2_out,energies,dim_in,sze,N_st,N_st_diag,Nint,dressing_state)
+  deallocate (H_jj,S2_jj)
 end
 
 
-subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_st,N_st_diag,Nint,iunit)
+subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_st,N_st_diag,Nint,dressing_state)
   use bitmasks
   implicit none
   BEGIN_DOC
@@ -72,15 +93,13 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
   ! 
   ! N_st_diag : Number of states in which H is diagonalized. Assumed > sze
   !
-  ! iunit : Unit for the I/O
-  !
   ! Initial guess vectors are not necessarily orthonormal
   END_DOC
   integer, intent(in)            :: dim_in, sze, N_st, N_st_diag, Nint
   integer(bit_kind), intent(in)  :: dets_in(Nint,2,sze)
   double precision,  intent(in)  :: H_jj(sze)
+  integer, intent(in)            :: dressing_state
   double precision,  intent(inout) :: s2_out(N_st_diag)
-  integer,  intent(in)           :: iunit
   double precision, intent(inout) :: u_in(dim_in,N_st_diag)
   double precision, intent(out)  :: energies(N_st_diag)
   
@@ -88,7 +107,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
   integer                        :: i,j,k,l,m
   logical                        :: converged
   
-  double precision               :: u_dot_v, u_dot_u
+  double precision, external     :: u_dot_v, u_dot_u
   
   integer                        :: k_pairs, kl
   
@@ -101,7 +120,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
   character*(16384)              :: write_buffer
   double precision               :: to_print(3,N_st)
   double precision               :: cpu, wall
-  integer                        :: shift, shift2, itermax
+  integer                        :: shift, shift2, itermax, istate
   double precision               :: r1, r2
   logical                        :: state_ok(N_st_diag*davidson_sze_max)
   include 'constants.include.F'
@@ -117,35 +136,35 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
   
   PROVIDE nuclear_repulsion expected_s2 psi_bilinear_matrix_order psi_bilinear_matrix_order_reverse
   
-  call write_time(iunit)
+  call write_time(6)
   call wall_time(wall)
   call cpu_time(cpu)
-  write(iunit,'(A)') ''
-  write(iunit,'(A)') 'Davidson Diagonalization'
-  write(iunit,'(A)') '------------------------'
-  write(iunit,'(A)') ''
-  call write_int(iunit,N_st,'Number of states')
-  call write_int(iunit,N_st_diag,'Number of states in diagonalization')
-  call write_int(iunit,sze,'Number of determinants')
+  write(6,'(A)') ''
+  write(6,'(A)') 'Davidson Diagonalization'
+  write(6,'(A)') '------------------------'
+  write(6,'(A)') ''
+  call write_int(6,N_st,'Number of states')
+  call write_int(6,N_st_diag,'Number of states in diagonalization')
+  call write_int(6,sze,'Number of determinants')
   r1 = 8.d0*(3.d0*dble(sze*N_st_diag*itermax+5.d0*(N_st_diag*itermax)**2 & 
     + 4.d0*(N_st_diag*itermax)+nproc*(4.d0*N_det_alpha_unique+2.d0*N_st_diag*sze)))/(1024.d0**3)
-  call write_double(iunit, r1, 'Memory(Gb)')
-  write(iunit,'(A)') ''
+  call write_double(6, r1, 'Memory(Gb)')
+  write(6,'(A)') ''
   write_buffer = '====='
   do i=1,N_st
     write_buffer = trim(write_buffer)//' ================ =========== ==========='
   enddo
-  write(iunit,'(A)') write_buffer(1:6+41*N_states)
+  write(6,'(A)') write_buffer(1:6+41*N_st)
   write_buffer = 'Iter'
   do i=1,N_st
     write_buffer = trim(write_buffer)//'       Energy          S^2       Residual '
   enddo
-  write(iunit,'(A)') write_buffer(1:6+41*N_states)
+  write(6,'(A)') write_buffer(1:6+41*N_st)
   write_buffer = '====='
   do i=1,N_st
     write_buffer = trim(write_buffer)//' ================ =========== ==========='
   enddo
-  write(iunit,'(A)') write_buffer(1:6+41*N_states)
+  write(6,'(A)') write_buffer(1:6+41*N_st)
   
 
   allocate(                                                          &
@@ -225,7 +244,39 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
           call H_S2_u_0_nstates_openmp(W(1,shift+1),S(1,shift+1),U(1,shift+1),N_st_diag,sze)
       endif
       
-      
+      if (dressing_state > 0) then
+
+        call dgemm('T','N', N_st, N_st_diag, sze, 1.d0, &
+          psi_coef, size(psi_coef,1), &
+          U(1,shift+1), size(U,1), 0.d0, s_tmp, size(s_tmp,1))
+
+        call dgemm('N','N', sze, N_st_diag, N_st, 0.5d0, &
+          dressing_column_h, size(dressing_column_h,1), s_tmp, size(s_tmp,1), &
+          1.d0, W(1,shift+1), size(W,1))
+
+        call dgemm('N','N', sze, N_st_diag, N_st, 0.5d0, &
+          dressing_column_s, size(dressing_column_s,1), s_tmp, size(s_tmp,1), &
+          1.d0, S(1,shift+1), size(S,1))
+
+
+        call dgemm('T','N', N_st, N_st_diag, sze, 1.d0, &
+          dressing_column_h, size(dressing_column_h,1), &
+          U(1,shift+1), size(U,1), 0.d0, s_tmp, size(s_tmp,1))
+
+        call dgemm('N','N', sze, N_st_diag, N_st, 0.5d0, &
+          psi_coef, size(psi_coef,1), s_tmp, size(s_tmp,1), &
+          1.d0, W(1,shift+1), size(W,1))
+
+        call dgemm('T','N', N_st, N_st_diag, sze, 1.d0, &
+          dressing_column_s, size(dressing_column_s,1), &
+          U(1,shift+1), size(U,1), 0.d0, s_tmp, size(s_tmp,1))
+
+        call dgemm('N','N', sze, N_st_diag, N_st, 0.5d0, &
+          psi_coef, size(psi_coef,1), s_tmp, size(s_tmp,1), &
+          1.d0, S(1,shift+1), size(S,1))
+
+      endif
+
       ! Compute h_kl = <u_k | W_l> = <u_k| H |u_l>
       ! -------------------------------------------
 
@@ -399,7 +450,7 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
         endif
       enddo
       
-      write(iunit,'(1X,I3,1X,100(1X,F16.10,1X,F11.6,1X,E11.3))')  iter, to_print(1:3,1:N_st)
+      write(6,'(1X,I3,1X,100(1X,F16.10,1X,F11.6,1X,E11.3))')  iter, to_print(1:3,1:N_st)
       call davidson_converged(lambda,residual_norm,wall,iter,cpu,N_st,converged)
       do k=1,N_st
         if (residual_norm(k) > 1.e8) then
@@ -429,9 +480,9 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
   do i=1,N_st
     write_buffer = trim(write_buffer)//' ================ =========== ==========='
   enddo
-  write(iunit,'(A)') trim(write_buffer)
-  write(iunit,'(A)') ''
-  call write_time(iunit)
+  write(6,'(A)') trim(write_buffer)
+  write(6,'(A)') ''
+  call write_time(6)
 
   deallocate (                                                       &
       W, residual_norm,                                              &
@@ -443,43 +494,9 @@ subroutine davidson_diag_hjj_sjj(dets_in,u_in,H_jj,s2_out,energies,dim_in,sze,N_
       )
 end
 
-subroutine u_0_H_u_0(e_0,u_0,n,keys_tmp,Nint,N_st,sze)
-  use bitmasks
-  implicit none
-  BEGIN_DOC
-  ! Computes e_0 = <u_0|H|u_0>/<u_0|u_0>
-  !
-  ! n : number of determinants
-  !
-  END_DOC
-  integer, intent(in)            :: n,Nint, N_st, sze
-  double precision, intent(out)  :: e_0(N_st)
-  double precision, intent(inout) :: u_0(sze,N_st)
-  integer(bit_kind),intent(in)   :: keys_tmp(Nint,2,n)
-  
-  double precision, allocatable  :: v_0(:,:), s_0(:,:), u_1(:,:)
-  double precision               :: u_dot_u,u_dot_v,diag_H_mat_elem
-  integer                        :: i,j
 
-  if ((sze > 100000).and.distributed_davidson) then
-    allocate (v_0(sze,N_states_diag),s_0(sze,N_states_diag), u_1(sze,N_states_diag))
-    u_1(1:sze,1:N_states) = u_0(1:sze,1:N_states) 
-    u_1(1:sze,N_states+1:N_states_diag) = 0.d0
-    call H_S2_u_0_nstates_zmq(v_0,s_0,u_1,N_states_diag,sze)
-    deallocate(u_1)
-  else
-    allocate (v_0(sze,N_st),s_0(sze,N_st))
-    call H_S2_u_0_nstates_openmp(v_0,s_0,u_0,N_st,sze)
-  endif
-  double precision :: norm
-  do i=1,N_st
-    norm = u_dot_u(u_0(1,i),n)
-    if (norm /= 0.d0) then
-      e_0(i) = u_dot_v(v_0(1,i),u_0(1,i),n)
-    else
-      e_0(i) = 0.d0
-    endif
-  enddo
-  deallocate (s_0, v_0)
-end
+
+
+
+
 

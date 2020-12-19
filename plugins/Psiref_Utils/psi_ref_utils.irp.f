@@ -325,3 +325,17 @@ BEGIN_PROVIDER [double precision, ref_hamiltonian_matrix, (n_det_ref,n_det_ref)]
  enddo
 END_PROVIDER
 
+
+BEGIN_PROVIDER [ integer, idx_non_ref_from_sorted, (N_det) ]
+  implicit none
+  integer :: i,inpsisor
+  
+  idx_non_ref_from_sorted = 0
+
+  do i=1,N_det
+    inpsisor = psi_det_sorted_order(i)
+    if(inpsisor <= 0) stop "idx_non_ref_from_sorted"
+    idx_non_ref_from_sorted(inpsisor) = idx_non_ref_rev(i)
+  end do
+END_PROVIDER
+
